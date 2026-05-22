@@ -73,6 +73,7 @@
 - Split `ShellOverlaysView` into five focused UserControls for statistics, about, properties, delete confirmation, and unsaved confirmation overlays.
 - Added `IShellStatusPublisher` to centralize status-bar message publication and remove duplicate EventBus status wrappers from several Shell child ViewModels.
 - Extended `IShellStatusPublisher` with localized resource publishing, and moved line-number, recent-file, help-menu, and language-switch status feedback onto `Vex.VexL` resources.
+- Added shared Shell localization and document-flow text services so `MainWindowViewModel` status feedback and unsaved prompts reuse `Vex.VexL` resources.
 
 ### Changed
 
@@ -132,3 +133,4 @@
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the Prism Region files tab, file list, status bar, and outline tab.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified that `Ctrl+F` still opens and focuses the find bar.
 - Validated all Vex JSON localization resources, built `Vex.slnx`, and ran `git diff --check` for the localized shell-status messages.
+- Validated all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app to confirm the main window handle is created.

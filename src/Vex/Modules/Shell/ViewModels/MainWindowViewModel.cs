@@ -3,6 +3,7 @@ using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Models;
 using Vex.Core.Services;
+using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
@@ -13,6 +14,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     private readonly IMarkdownOutlineService _outlineService;
     private readonly IMarkdownStatisticsService _statisticsService;
     private readonly IEventBus _eventBus;
+    private readonly IShellDocumentWorkflowText _text;
     private DocumentSnapshot _document;
     private IReadOnlyList<DocumentFile> _documentFiles = [];
     private string _lastSavedMarkdown = string.Empty;
@@ -34,6 +36,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         ShellNavigationViewModel navigation,
         ShellRecentDocumentsViewModel recent,
         ShellStatusViewModel status,
+        IShellDocumentWorkflowText text,
         IEventBus eventBus)
     {
         _documentService = documentService;
@@ -51,6 +54,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         Navigation = navigation;
         Recent = recent;
         Status = status;
+        _text = text;
         _eventBus = eventBus;
         _eventBus.Subscribe(this);
 
@@ -106,26 +110,26 @@ public sealed class MainWindowViewModel : ReactiveObject
         if (Directory.Exists(path))
         {
             return RequestUnsavedConfirmationAsync(
-                "Save changes before opening a folder?",
-                $"Save changes to {_document.FileName} before opening the dropped folder?",
+                _text.TitleBeforeOpeningFolder,
+                _text.BeforeOpeningDroppedFolder(_document.FileName),
                 () => OpenFolderPathCoreAsync(path));
         }
 
         if (!File.Exists(path))
         {
-            SetStatus("Dropped item is unavailable.");
+            _text.PublishDroppedItemUnavailable();
             return Task.CompletedTask;
         }
 
         if (!_documentService.IsSupportedDocumentPath(path))
         {
-            SetStatus("Drop a Markdown or text file.");
+            _text.PublishDropMarkdownOrTextFile();
             return Task.CompletedTask;
         }
 
         return RequestUnsavedConfirmationAsync(
-            "Save changes before opening?",
-            $"Save changes to {_document.FileName} before opening {Path.GetFileName(path)}?",
+            _text.TitleBeforeOpening,
+            _text.BeforeOpeningFile(_document.FileName, Path.GetFileName(path)),
             () => OpenPathCoreAsync(path));
     }
 
@@ -147,8 +151,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public Task NewDocument()
     {
         return RequestUnsavedConfirmationAsync(
-            "Save changes?",
-            $"Save changes to {_document.FileName} before creating a new document?",
+            _text.TitleSaveChanges,
+            _text.BeforeNewDocument(_document.FileName),
             () =>
             {
                 NewDocumentCore();
@@ -161,7 +165,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _document = _documentService.CreateNew();
         _lastSavedMarkdown = _document.Markdown;
         Markdown = _document.Markdown;
-        SetStatus("New document created.");
+        _text.PublishNewDocumentCreated();
         RefreshDocumentInfo();
         EditorActions.FocusEditor();
     }
@@ -169,8 +173,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public Task CloseDocument()
     {
         return RequestUnsavedConfirmationAsync(
-            "Save changes?",
-            $"Save changes to {_document.FileName} before closing this document?",
+            _text.TitleSaveChanges,
+            _text.BeforeClosingDocument(_document.FileName),
             () =>
             {
                 CloseDocumentCore();
@@ -185,7 +189,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         Markdown = _document.Markdown;
         _documentFiles = [];
         _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles));
-        SetStatus("Document closed.");
+        _text.PublishDocumentClosed();
         RefreshDocumentInfo();
         EditorActions.FocusEditor();
     }
@@ -193,8 +197,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public async Task OpenAsync()
     {
         await RequestUnsavedConfirmationAsync(
-            "Save changes before opening?",
-            $"Save changes to {_document.FileName} before opening another file?",
+            _text.TitleBeforeOpening,
+            _text.BeforeOpeningAnotherFile(_document.FileName),
             OpenAsyncCore);
     }
 
@@ -212,7 +216,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         if (_documentFiles.Count > 0)
         {
             SelectSidebarTab(0);
-            SetStatus("Choose a document from the loaded folder.");
+            _text.PublishChooseDocumentFromLoadedFolder();
             return;
         }
 
@@ -222,8 +226,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public async Task OpenFolderAsync()
     {
         await RequestUnsavedConfirmationAsync(
-            "Save changes before opening a folder?",
-            $"Save changes to {_document.FileName} before opening a folder?",
+            _text.TitleBeforeOpeningFolder,
+            _text.BeforeOpeningFolder(_document.FileName),
             OpenFolderAsyncCore);
     }
 
@@ -248,7 +252,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         var firstFile = _documentFiles.FirstOrDefault();
         _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles, firstFile));
 
-        SetStatus(_documentFiles.Count == 0 ? "No markdown files loaded." : $"Loaded {_documentFiles.Count} markdown files.");
+        _text.PublishLoadedMarkdownFiles(_documentFiles.Count);
         if (firstFile is not null)
         {
             if (bypassUnsavedPrompt)
@@ -270,8 +274,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
 
         await RequestUnsavedConfirmationAsync(
-            "Save changes before switching files?",
-            $"Save changes to {_document.FileName} before opening {file.Name}?",
+            _text.TitleBeforeSwitchingFiles,
+            _text.BeforeSwitchingFile(_document.FileName, file.Name),
             () => OpenDocumentFileCoreAsync(file),
             () => RestoreDocumentFileSelection(previousSelection));
     }
@@ -288,7 +292,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         if (saved is not null)
         {
             ApplyDocument(saved, false);
-            SetStatus($"Saved {saved.FileName}.");
+            _text.PublishSaved(saved.FileName);
         }
     }
 
@@ -298,7 +302,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         if (saved is not null)
         {
             ApplyDocument(saved, false);
-            SetStatus($"Saved as {saved.FileName}.");
+            _text.PublishSavedAs(saved.FileName);
         }
     }
 
@@ -306,9 +310,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         // 当前仍是单文档编辑器，保留“保存全部”入口时必须明确只保存当前文档。
         await SaveAsync();
-        SetStatus(DocumentInfo.IsModified
-            ? "Save all canceled. Current document is still modified."
-            : "Saved current document. Multi-document save is not available yet.");
+        _text.PublishSaveAllResult(DocumentInfo.IsModified);
     }
 
     public Task DeleteAsync()
@@ -319,8 +321,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
 
         return RequestUnsavedConfirmationAsync(
-            "Save changes before deleting?",
-            $"Save changes to {_document.FileName} before deleting it?",
+            _text.TitleBeforeDeleting,
+            _text.BeforeDeleting(_document.FileName),
             () =>
             {
                 Dialogs.ShowDeleteConfirmation(path);
@@ -340,7 +342,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         Recent.RemoveRecentDocument(path);
         Dialogs.ClearDeleteConfirmation();
         NewDocumentCore();
-        SetStatus("File deleted.");
+        _text.PublishFileDeleted();
     }
 
     public async Task OpenFileLocationAsync()
@@ -355,20 +357,20 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         if (DocumentInfo.CurrentFilePath is not { Length: > 0 } path || string.IsNullOrWhiteSpace(encodingName))
         {
-            SetStatus("Open a file before choosing an encoding.");
+            _text.PublishOpenFileBeforeEncoding();
             return;
         }
 
         await RequestUnsavedConfirmationAsync(
-            "Save changes before reopening?",
-            $"Save changes to {_document.FileName} before reopening it with {encodingName}?",
+            _text.TitleBeforeReopening,
+            _text.BeforeReopeningWithEncoding(_document.FileName, encodingName),
             () => ReopenWithEncodingCoreAsync(path, encodingName));
     }
 
     private async Task ReopenWithEncodingCoreAsync(string path, string encodingName)
     {
         ApplyDocument(await _documentService.OpenPathAsync(path, encodingName));
-        SetStatus($"Reopened with {encodingName}.");
+        _text.PublishReopenedWithEncoding(encodingName);
     }
 
     private void ApplyDocument(DocumentSnapshot snapshot, bool updateMarkdown = true)
@@ -390,7 +392,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
 
         RefreshDocumentInfo();
-        SetStatus($"Opened {snapshot.FileName}.");
+        _text.PublishOpened(snapshot.FileName);
         EditorActions.FocusEditor();
     }
 
@@ -423,7 +425,12 @@ public sealed class MainWindowViewModel : ReactiveObject
     public void ShowProperties()
     {
         Dialogs.ShowPropertiesPanel();
-        SetStatus($"{DocumentInfo.CurrentDocumentTitle} | {DocumentInfo.DocumentStateText} | {DocumentInfo.CurrentEncodingText} | {DocumentInfo.PropertySizeText} | {DocumentInfo.PropertyLocationText}");
+        _text.PublishPropertiesSummary(
+            DocumentInfo.CurrentDocumentTitle,
+            DocumentInfo.DocumentStateText,
+            DocumentInfo.CurrentEncodingText,
+            DocumentInfo.PropertySizeText,
+            DocumentInfo.PropertyLocationText);
     }
 
     public async Task Export(string? format)
@@ -431,23 +438,31 @@ public sealed class MainWindowViewModel : ReactiveObject
         if (format?.Equals("HTML", StringComparison.OrdinalIgnoreCase) == true)
         {
             var path = await _exportService.ExportHtmlAsync(_document with { Markdown = Markdown });
-            SetStatus(path is null ? "HTML export canceled." : $"Exported HTML to {Path.GetFileName(path)}.");
+            if (path is null)
+            {
+                _text.PublishHtmlExportCanceled();
+            }
+            else
+            {
+                _text.PublishExportedHtmlTo(Path.GetFileName(path));
+            }
+
             return;
         }
 
-        SetStatus($"{format?.ToUpperInvariant() ?? "Document"} export is not implemented yet.");
+        _text.PublishExportNotImplemented(format?.ToUpperInvariant() ?? "Document");
     }
 
     public async Task Print()
     {
         var path = await _exportService.OpenHtmlPrintPreviewAsync(_document with { Markdown = Markdown });
-        SetStatus(path is null ? "Print preview canceled." : "Opened HTML print preview.");
+        _text.PublishPrintPreviewResult(path is null);
     }
 
     public void WordCount()
     {
         Dialogs.ShowStatisticsPanel();
-        SetStatus($"Words {DocumentInfo.Statistics.Words}, Characters {DocumentInfo.Statistics.Characters}, Lines {DocumentInfo.Statistics.Lines}, Reading {DocumentInfo.Statistics.ReadingMinutes} min.");
+        _text.PublishStatisticsSummary(DocumentInfo.Statistics);
     }
 
     public bool CloseFloatingPanel() => Dialogs.CloseFloatingPanel();
@@ -464,11 +479,6 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public void ReplaceAll() => FindBar.ReplaceAll();
 
-    private void SetStatus(string message)
-    {
-        _eventBus.Publish(new WorkspaceStatusChangedCommand(message));
-    }
-
     private void SelectSidebarTab(int selectedIndex)
     {
         _eventBus.Publish(new ShellSidebarTabSelectedCommand(selectedIndex));
@@ -483,28 +493,28 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         if (!Recent.TryGetDocument(index, out var recent) || recent is null)
         {
-            SetStatus("Recent file is unavailable.");
+            _text.PublishRecentFileUnavailable();
             return;
         }
 
         if (!File.Exists(recent.Path))
         {
             Recent.RemoveRecentDocument(recent.Path);
-            SetStatus("Recent file was removed because it no longer exists.");
+            _text.PublishRecentFileRemovedMissing();
             return;
         }
 
         await RequestUnsavedConfirmationAsync(
-            "Save changes before opening recent file?",
-            $"Save changes to {_document.FileName} before opening {recent.DisplayText}?",
+            _text.TitleBeforeOpeningRecent,
+            _text.BeforeOpeningRecent(_document.FileName, recent.DisplayText),
             async () => ApplyDocument(await _documentService.OpenPathAsync(recent.Path)));
     }
 
     public Task BeginWindowCloseAsync()
     {
         return RequestUnsavedConfirmationAsync(
-            "Save changes before closing Vex?",
-            $"Save changes to {_document.FileName} before closing Vex?",
+            _text.TitleBeforeClosingVex,
+            _text.BeforeClosingVex(_document.FileName),
             () =>
             {
                 CloseWindowRequested?.Invoke(this, EventArgs.Empty);
@@ -522,7 +532,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         await SaveAsync();
         if (DocumentInfo.IsModified)
         {
-            SetStatus("Save canceled. Action was not completed.");
+            _text.PublishSaveCanceledActionIncomplete();
             return;
         }
 
@@ -549,7 +559,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         Dialogs.ShowUnsavedConfirmation(
             title,
             message,
-            DocumentInfo.CurrentFilePath ?? "Unsaved document",
+            DocumentInfo.CurrentFilePath ?? _text.UnsavedDocumentFallback,
             continuation,
             cancellation);
     }

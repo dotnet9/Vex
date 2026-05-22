@@ -381,3 +381,10 @@
 - Verified all Vex JSON localization resources with `ConvertFrom-Json`, built `Vex.slnx`, ran `git diff --check`, and launched the desktop app from the Debug output to confirm the shell process starts with the copied resources.
 - Desktop screenshot capture was not reliable in this session: `PrintWindow` produced black Avalonia/Skia captures and `CopyFromScreen` failed with `The handle is invalid`, so no visual screenshot was used as passing evidence for this iteration.
 - Added no new third-party dependency.
+- Added `IShellLocalizer` and `ShellLocalizer` as the shared runtime localization gateway for Shell services, keeping direct `I18nManager` usage out of ViewModels.
+- Added `IShellDocumentWorkflowText` and `ShellDocumentWorkflowText` to centralize main document-flow status messages and unsaved-confirmation prompts.
+- Migrated `MainWindowViewModel` document workflow messages, Save All feedback, export/print feedback, recent-file errors, and unsaved prompts to `VexL` resources through the new workflow text service.
+- Kept `MainWindowViewModel.cs` at 576 lines after the localization migration by moving text formatting into the focused service instead of growing the main shell class.
+- Verified all Vex JSON localization resources with `ConvertFrom-Json`, built `Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app to confirm the main window handle is created with the new IoC registrations.
+- Visual screenshot capture remains blocked by the same desktop-session limitation noted above, so this iteration used build, JSON, diff, and startup-handle smoke validation.
+- Added no new third-party dependency.
