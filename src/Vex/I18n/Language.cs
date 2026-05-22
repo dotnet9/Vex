@@ -142,4 +142,12 @@ public static class VexL
     public static readonly string CharacterCountFormat = "Vex.VexL.CharacterCountFormat";
     public static readonly string LineCountFormat = "Vex.VexL.LineCountFormat";
     public static readonly string StatusLanguageSwitched = "Vex.VexL.StatusLanguageSwitched";
+    public static readonly string StatusLineNumbersShown = "Vex.VexL.StatusLineNumbersShown";
+    public static readonly string StatusLineNumbersHidden = "Vex.VexL.StatusLineNumbersHidden";
+    public static readonly string StatusRecentFilesCleared = "Vex.VexL.StatusRecentFilesCleared";
+    public static readonly string StatusOpenedChangelog = "Vex.VexL.StatusOpenedChangelog";
+    public static readonly string StatusOpenedQuickStart = "Vex.VexL.StatusOpenedQuickStart";
+    public static readonly string StatusOpenedAcknowledgements = "Vex.VexL.StatusOpenedAcknowledgements";
+    public static readonly string StatusAboutVex = "Vex.VexL.StatusAboutVex";
+    public static readonly string StatusHelpQueuedFormat = "Vex.VexL.StatusHelpQueuedFormat";
 }

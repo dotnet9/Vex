@@ -26,15 +26,15 @@ public sealed class ShellHelpViewModel
         {
             case "changelog":
                 await _helpService.OpenDocumentAsync("CHANGELOG.zh-CN.md");
-                _statusPublisher.Publish("Opened changelog.");
+                _statusPublisher.PublishResource(VexL.StatusOpenedChangelog);
                 break;
             case "quick-start":
                 await _helpService.OpenDocumentAsync("QuickStart.zh-CN.md");
-                _statusPublisher.Publish("Opened quick start.");
+                _statusPublisher.PublishResource(VexL.StatusOpenedQuickStart);
                 break;
             case "thanks":
                 await _helpService.OpenDocumentAsync("ACKNOWLEDGEMENTS.zh-CN.md");
-                _statusPublisher.Publish("Opened acknowledgements.");
+                _statusPublisher.PublishResource(VexL.StatusOpenedAcknowledgements);
                 break;
             case "website":
                 await _helpService.OpenWebsiteAsync();
@@ -45,10 +45,10 @@ public sealed class ShellHelpViewModel
             case "about":
                 // 关于面板属于 Shell 浮层，具体显示状态交给 ShellDialogsViewModel 维护。
                 _dialogs.ShowAboutPanel();
-                _statusPublisher.Publish("About Vex.");
+                _statusPublisher.PublishResource(VexL.StatusAboutVex);
                 break;
             default:
-                _statusPublisher.Publish($"{topic ?? "Help"} is queued for implementation.");
+                _statusPublisher.PublishResourceFormat(VexL.StatusHelpQueuedFormat, topic ?? "Help");
                 break;
         }
     }

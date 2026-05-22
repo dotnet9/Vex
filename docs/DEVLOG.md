@@ -375,3 +375,9 @@
 - Registered the status publisher through Prism IoC before shell ViewModels so later status localization, logging, or throttling can be handled in one place.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a startup screenshot confirming the shell still opens with the new IoC service. Screenshot path: `%TEMP%\VexScreenshots\shell-status-publisher-startup.png`.
 - Added no new third-party dependency.
+- Extended `IShellStatusPublisher` with resource-key and formatted-resource publishing so status-bar messages can reuse the same `VexL` localization path as XAML bindings.
+- Added zh-CN, zh-Hant, en-US, and ja-JP resources for line-number toggles, recent-file clearing, help-document opening, about feedback, and queued help topics.
+- Migrated line-number, recent-file, help, and language-switch status feedback to the shared publisher; `ShellAppearanceViewModel` no longer publishes `WorkspaceStatusChangedCommand` directly.
+- Verified all Vex JSON localization resources with `ConvertFrom-Json`, built `Vex.slnx`, ran `git diff --check`, and launched the desktop app from the Debug output to confirm the shell process starts with the copied resources.
+- Desktop screenshot capture was not reliable in this session: `PrintWindow` produced black Avalonia/Skia captures and `CopyFromScreen` failed with `The handle is invalid`, so no visual screenshot was used as passing evidence for this iteration.
+- Added no new third-party dependency.

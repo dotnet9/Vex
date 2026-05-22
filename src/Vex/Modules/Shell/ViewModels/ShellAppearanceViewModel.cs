@@ -1,29 +1,28 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using CodeWF.EventBus;
 using CodeWF.Markdown.Themes;
 using Lang.Avalonia;
 using ReactiveUI;
-using Vex.Core.Messaging;
 using Vex.Core.Models;
 using Vex.Core.Services;
+using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellAppearanceViewModel : ReactiveObject
 {
     private readonly IThemeService _themeService;
-    private readonly IEventBus _eventBus;
+    private readonly IShellStatusPublisher _statusPublisher;
     private bool _isCompactLayout;
     private ThemeOption? _selectedTheme;
     private TypographyOption? _selectedTypography;
     private LanguageOption? _selectedLanguage;
 
-    public ShellAppearanceViewModel(IThemeService themeService, IEventBus eventBus)
+    public ShellAppearanceViewModel(IThemeService themeService, IShellStatusPublisher statusPublisher)
     {
         _themeService = themeService;
-        _eventBus = eventBus;
+        _statusPublisher = statusPublisher;
 
         ThemeOptions = new ObservableCollection<ThemeOption>(_themeService.GetThemeOptions());
         TypographyOptions = new ObservableCollection<TypographyOption>(
@@ -102,9 +101,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             if (SetProperty(ref _selectedLanguage, value) && value is not null)
             {
                 I18nManager.Instance.Culture = new CultureInfo(value.CultureName);
-                SetStatus(string.Format(
-                    I18nManager.Instance.GetResource(VexL.StatusLanguageSwitched),
-                    value.DisplayName));
+                _statusPublisher.PublishResourceFormat(VexL.StatusLanguageSwitched, value.DisplayName);
             }
         }
     }
@@ -154,11 +151,6 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
     {
         var language = LanguageOptions.FirstOrDefault(item => item.CultureName.Equals(cultureName, StringComparison.OrdinalIgnoreCase));
         SelectLanguage(language);
-    }
-
-    private void SetStatus(string message)
-    {
-        _eventBus.Publish(new WorkspaceStatusChangedCommand(message));
     }
 
     private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)

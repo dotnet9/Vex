@@ -136,7 +136,15 @@
       "WordCountFormat": "{0} 語",
       "CharacterCountFormat": "{0} 文字",
       "LineCountFormat": "{0} 行",
-      "StatusLanguageSwitched": "言語を {0} に切り替えました。"
+      "StatusLanguageSwitched": "言語を {0} に切り替えました。",
+      "StatusLineNumbersShown": "行番号を表示しました。",
+      "StatusLineNumbersHidden": "行番号を非表示にしました。",
+      "StatusRecentFilesCleared": "最近使ったファイルを消去しました。",
+      "StatusOpenedChangelog": "変更履歴を開きました。",
+      "StatusOpenedQuickStart": "クイックスタートを開きました。",
+      "StatusOpenedAcknowledgements": "謝辞を開きました。",
+      "StatusAboutVex": "Vex のバージョン情報。",
+      "StatusHelpQueuedFormat": "{0} は今後実装予定です。"
     }
   }
 }

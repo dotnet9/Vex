@@ -58,7 +58,7 @@ public sealed class ShellRecentDocumentsViewModel : ReactiveObject
         RecentDocuments.Clear();
         SaveRecentDocuments();
         NotifyRecentDocumentsChanged();
-        _statusPublisher.Publish("Recent files cleared.");
+        _statusPublisher.PublishResource(VexL.StatusRecentFilesCleared);
     }
 
     public void AddRecentDocument(string path)

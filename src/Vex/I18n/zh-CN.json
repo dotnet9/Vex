@@ -136,7 +136,15 @@
       "WordCountFormat": "{0} 词",
       "CharacterCountFormat": "{0} 字符",
       "LineCountFormat": "{0} 行",
-      "StatusLanguageSwitched": "语言已切换为 {0}。"
+      "StatusLanguageSwitched": "语言已切换为 {0}。",
+      "StatusLineNumbersShown": "已显示行号。",
+      "StatusLineNumbersHidden": "已隐藏行号。",
+      "StatusRecentFilesCleared": "最近文件已清空。",
+      "StatusOpenedChangelog": "已打开更新日志。",
+      "StatusOpenedQuickStart": "已打开快速开始。",
+      "StatusOpenedAcknowledgements": "已打开鸣谢。",
+      "StatusAboutVex": "关于 Vex。",
+      "StatusHelpQueuedFormat": "{0} 正在排期实现。"
     }
   }
 }

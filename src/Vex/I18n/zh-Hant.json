@@ -136,7 +136,15 @@
       "WordCountFormat": "{0} 詞",
       "CharacterCountFormat": "{0} 字元",
       "LineCountFormat": "{0} 行",
-      "StatusLanguageSwitched": "語言已切換為 {0}。"
+      "StatusLanguageSwitched": "語言已切換為 {0}。",
+      "StatusLineNumbersShown": "已顯示行號。",
+      "StatusLineNumbersHidden": "已隱藏行號。",
+      "StatusRecentFilesCleared": "最近檔案已清除。",
+      "StatusOpenedChangelog": "已開啟更新日誌。",
+      "StatusOpenedQuickStart": "已開啟快速開始。",
+      "StatusOpenedAcknowledgements": "已開啟鳴謝。",
+      "StatusAboutVex": "關於 Vex。",
+      "StatusHelpQueuedFormat": "{0} 已排入待實作。"
     }
   }
 }

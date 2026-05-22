@@ -57,7 +57,7 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
     public void ToggleLineNumbers()
     {
         ShowLineNumbers = !ShowLineNumbers;
-        _statusPublisher.Publish(ShowLineNumbers ? "Line numbers shown." : "Line numbers hidden.");
+        _statusPublisher.PublishResource(ShowLineNumbers ? VexL.StatusLineNumbersShown : VexL.StatusLineNumbersHidden);
     }
 
     private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)

@@ -136,7 +136,15 @@
       "WordCountFormat": "{0} words",
       "CharacterCountFormat": "{0} chars",
       "LineCountFormat": "{0} lines",
-      "StatusLanguageSwitched": "Language switched to {0}."
+      "StatusLanguageSwitched": "Language switched to {0}.",
+      "StatusLineNumbersShown": "Line numbers shown.",
+      "StatusLineNumbersHidden": "Line numbers hidden.",
+      "StatusRecentFilesCleared": "Recent files cleared.",
+      "StatusOpenedChangelog": "Opened changelog.",
+      "StatusOpenedQuickStart": "Opened quick start.",
+      "StatusOpenedAcknowledgements": "Opened acknowledgements.",
+      "StatusAboutVex": "About Vex.",
+      "StatusHelpQueuedFormat": "{0} is queued for implementation."
     }
   }
 }

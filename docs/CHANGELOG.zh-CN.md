@@ -38,6 +38,7 @@
 - [优化] 统计、属性、删除确认和未保存确认浮层标签继续迁移到 `Vex.VexL`，阅读时间文本改由 `ShellDocumentInfoViewModel` 生成本地化格式。
 - [优化] `ShellOverlaysView` 拆分为统计、关于、属性、删除确认和未保存确认 5 个独立 UserControl，宿主 View 只保留组合职责。
 - [优化] 新增 `IShellStatusPublisher` 统一发布状态栏消息，多个 Shell 子 ViewModel 不再重复持有 EventBus 和 `SetStatus` 包装方法。
+- [优化] `IShellStatusPublisher` 增加本地化资源发布能力，行号、最近文件、帮助菜单和语言切换状态反馈改为复用 `Vex.VexL`。
 
 - 创建 Vex（维刻）Markdown 编辑器基础版本。
 - 完善作者、码坊 CodeWF 与官方网站信息。
@@ -138,3 +139,4 @@
 - 🧪[测试]-构建 `Vex.slnx`，并截图验证 Ursa 标题栏内置控制按钮、菜单、文档标题和三栏内容布局显示正常。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图验证 Prism Region 文件页签、文件列表、状态栏和大纲页签显示正常。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图验证 `Ctrl+F` 仍可打开并聚焦查找栏。
+- 🧪[测试]-校验全部 Vex JSON 本地化资源、构建 `Vex.slnx` 并执行 `git diff --check`，确认状态消息本地化改动编译通过。
