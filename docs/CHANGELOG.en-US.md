@@ -147,3 +147,5 @@
 - Validated JSON resources, built `Vex.slnx`, ran `git diff --check`, and completed a Debug startup smoke run.
 - Split unsaved-change guarding and document utility actions into focused Shell services, reducing `MainWindowViewModel.cs` from 576 to 495 lines.
 - Built `Vex.slnx`, ran `git diff --check`, and completed a Debug startup smoke run.
+- Localized the new-document default template and fallback default file name through `VexL` resources.
+- Validated JSON resources, built `Vex.slnx`, ran `git diff --check`, searched for the old hard-coded template, and captured a window screenshot of the localized default document.

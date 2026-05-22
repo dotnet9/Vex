@@ -139,6 +139,9 @@ public static class VexL
     public static readonly string DocumentStateModified = "Vex.VexL.DocumentStateModified";
     public static readonly string DocumentStateSaved = "Vex.VexL.DocumentStateSaved";
     public static readonly string UnsavedDocument = "Vex.VexL.UnsavedDocument";
+    public static readonly string DocumentDefaultFileName = "Vex.VexL.DocumentDefaultFileName";
+    public static readonly string DocumentDefaultHeading = "Vex.VexL.DocumentDefaultHeading";
+    public static readonly string DocumentDefaultBody = "Vex.VexL.DocumentDefaultBody";
     public static readonly string WordCountFormat = "Vex.VexL.WordCountFormat";
     public static readonly string CharacterCountFormat = "Vex.VexL.CharacterCountFormat";
     public static readonly string LineCountFormat = "Vex.VexL.LineCountFormat";

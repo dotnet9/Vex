@@ -10,7 +10,7 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class ShellDocumentInfoViewModel : ReactiveObject
 {
     private readonly IAppLocalizer _localizer;
-    private DocumentSnapshot _document = new(null, "Untitled.md", string.Empty, Encoding.UTF8, true);
+    private DocumentSnapshot _document;
     private string _markdown = string.Empty;
     private string _lastSavedMarkdown = string.Empty;
     private MarkdownStatistics _statistics = new(0, 0, 1);
@@ -18,6 +18,7 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
     public ShellDocumentInfoViewModel(IAppLocalizer localizer)
     {
         _localizer = localizer;
+        _document = new(null, _localizer.Get(VexL.DocumentDefaultFileName), string.Empty, Encoding.UTF8, true);
         _localizer.CultureChanged += OnCultureChanged;
     }
 

@@ -155,3 +155,5 @@
 - 🧪[测试]-校验 JSON 资源、构建 `Vex.slnx`、执行 `git diff --check`，并完成 Debug 启动烟测。
 - 🔧[优化]-将未保存确认守卫和文档工具动作拆成独立 Shell 服务，`MainWindowViewModel.cs` 从 576 行降到 495 行。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并完成 Debug 启动烟测。
+- 🔧[优化]-新建文档默认模板和兜底文件名改走 `VexL` 资源。
+- 🧪[测试]-校验 JSON 资源、构建 `Vex.slnx`、执行 `git diff --check`、检索旧硬编码模板，并截图确认默认文档本地化显示。

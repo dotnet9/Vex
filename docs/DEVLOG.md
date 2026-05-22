@@ -181,6 +181,11 @@
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并启动 Debug 桌面程序确认主窗口句柄可创建。
 - 当前自动截图仍受桌面会话限制，本轮没有新增截图证据。
 - 本轮未新增第三方依赖。
+- 新建文档默认模板接入 `VexL` 资源，文件名、一级标题和正文占位文案可随当前语言切换。
+- `ShellDocumentInfoViewModel` 的初始快照也改用本地化默认文件名，避免启动早期派生文案继续保留硬编码文件名。
+- 验证全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并检索确认旧的 `# Untitled` 与中文模板正文不再硬编码在服务代码中。
+- 启动 Debug 桌面程序并使用窗口句柄截图，确认默认中文新文档模板在编辑器和预览区同步显示。截图路径：`%TEMP%\VexScreenshots\localized-new-document-template-window.png`。
+- 本轮未新增第三方依赖。
 
 ### en-US
 
@@ -447,4 +452,9 @@
 - Reduced `MainWindowViewModel.cs` from 576 lines to 495 lines; the new service files stay under 70 lines and are resolved through Prism IoC.
 - Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app to confirm the main window handle is created.
 - Automated screenshot capture remains blocked by the current desktop session, so this iteration has no new screenshot evidence.
+- Added no new third-party dependency.
+- Moved the new-document default template into `VexL` resources, covering the file name, heading, and body placeholder text.
+- `ShellDocumentInfoViewModel` now initializes its fallback snapshot with the localized default file name instead of a hard-coded string.
+- Verified all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and searched to confirm the old `# Untitled` plus Chinese body placeholder no longer live in service code.
+- Launched the Debug desktop app and captured a window-handle screenshot confirming the default Chinese new-document template renders in both the editor and preview. Screenshot path: `%TEMP%\VexScreenshots\localized-new-document-template-window.png`.
 - Added no new third-party dependency.

@@ -23,13 +23,9 @@ public sealed class DocumentService : IDocumentService
 
     public DocumentSnapshot CreateNew()
     {
-        const string markdown = """
-            # Untitled
+        var markdown = $"# {_localizer.Get(VexL.DocumentDefaultHeading)}\n\n{_localizer.Get(VexL.DocumentDefaultBody)}\n";
 
-            极简之力，妙笔成章。
-            """;
-
-        return new DocumentSnapshot(null, "Untitled.md", markdown, Utf8NoBom, true);
+        return new DocumentSnapshot(null, _localizer.Get(VexL.DocumentDefaultFileName), markdown, Utf8NoBom, true);
     }
 
     public async Task<DocumentSnapshot?> OpenAsync()
