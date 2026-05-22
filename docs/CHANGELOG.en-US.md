@@ -143,3 +143,5 @@
 - Validated all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and launched the Debug app with a temporary Markdown folder; screenshot capture is still blocked by the current desktop session.
 - Centralized culture switching and culture-change notifications in `IAppLocalizer`, removing direct `I18nManager` access from Shell ViewModels.
 - Validated JSON resources, built `Vex.slnx`, ran `git diff --check`, searched for remaining direct localization access, and completed a Debug startup smoke run.
+- Localized the HTML export save dialog and file type label, and made exported HTML use the current app culture for its `lang` attribute.
+- Validated JSON resources, built `Vex.slnx`, ran `git diff --check`, and completed a Debug startup smoke run.

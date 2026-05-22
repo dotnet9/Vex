@@ -119,7 +119,13 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
 
     public void PublishExportedHtmlTo(string fileName) => PublishFormat(VexL.StatusExportedHtmlToFormat, fileName);
 
-    public void PublishExportNotImplemented(string format) => PublishFormat(VexL.StatusExportNotImplementedFormat, format);
+    public void PublishExportNotImplemented(string? format)
+    {
+        var displayFormat = string.IsNullOrWhiteSpace(format)
+            ? Text(VexL.ExportFormatDocument)
+            : format.ToUpperInvariant();
+        PublishFormat(VexL.StatusExportNotImplementedFormat, displayFormat);
+    }
 
     public void PublishPrintPreviewResult(bool isCanceled)
     {

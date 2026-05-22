@@ -147,8 +147,11 @@ public static class VexL
     public static readonly string DialogOpenMarkdownTitle = "Vex.VexL.DialogOpenMarkdownTitle";
     public static readonly string DialogOpenFolderTitle = "Vex.VexL.DialogOpenFolderTitle";
     public static readonly string DialogSaveMarkdownTitle = "Vex.VexL.DialogSaveMarkdownTitle";
+    public static readonly string DialogExportHtmlTitle = "Vex.VexL.DialogExportHtmlTitle";
     public static readonly string FileTypeMarkdown = "Vex.VexL.FileTypeMarkdown";
     public static readonly string FileTypeText = "Vex.VexL.FileTypeText";
+    public static readonly string FileTypeHtml = "Vex.VexL.FileTypeHtml";
+    public static readonly string ExportFormatDocument = "Vex.VexL.ExportFormatDocument";
     public static readonly string StatusLanguageSwitched = "Vex.VexL.StatusLanguageSwitched";
     public static readonly string StatusLineNumbersShown = "Vex.VexL.StatusLineNumbersShown";
     public static readonly string StatusLineNumbersHidden = "Vex.VexL.StatusLineNumbersHidden";

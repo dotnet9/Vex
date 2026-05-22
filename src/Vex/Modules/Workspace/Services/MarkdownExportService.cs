@@ -16,6 +16,12 @@ public sealed class MarkdownExportService : IMarkdownExportService
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
         .Build();
+    private readonly IAppLocalizer _localizer;
+
+    public MarkdownExportService(IAppLocalizer localizer)
+    {
+        _localizer = localizer;
+    }
 
     public async Task<string?> ExportHtmlAsync(DocumentSnapshot document)
     {
@@ -27,10 +33,10 @@ public sealed class MarkdownExportService : IMarkdownExportService
 
         var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Export HTML",
+            Title = _localizer.Get(VexL.DialogExportHtmlTitle),
             SuggestedFileName = Path.ChangeExtension(document.FileName, ".html"),
             DefaultExtension = "html",
-            FileTypeChoices = HtmlFileTypes
+            FileTypeChoices = CreateHtmlFileTypes()
         });
 
         var path = file?.TryGetLocalPath();
@@ -53,13 +59,14 @@ public sealed class MarkdownExportService : IMarkdownExportService
         return path;
     }
 
-    private static string BuildHtml(DocumentSnapshot document)
+    private string BuildHtml(DocumentSnapshot document)
     {
         var title = WebUtility.HtmlEncode(Path.GetFileNameWithoutExtension(document.FileName));
         var body = Markdig.Markdown.ToHtml(document.Markdown ?? string.Empty, Pipeline);
+        var language = WebUtility.HtmlEncode(_localizer.Culture.Name);
         return $$"""
             <!doctype html>
-            <html lang="zh-CN">
+            <html lang="{{language}}">
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -90,14 +97,17 @@ public sealed class MarkdownExportService : IMarkdownExportService
             """;
     }
 
-    private static IReadOnlyList<FilePickerFileType> HtmlFileTypes { get; } =
-    [
-        new("HTML")
-        {
-            Patterns = ["*.html", "*.htm"]
-        },
-        FilePickerFileTypes.All
-    ];
+    private IReadOnlyList<FilePickerFileType> CreateHtmlFileTypes()
+    {
+        return
+        [
+            new(_localizer.Get(VexL.FileTypeHtml))
+            {
+                Patterns = ["*.html", "*.htm"]
+            },
+            FilePickerFileTypes.All
+        ];
+    }
 
     private static Window? GetMainWindow()
     {

@@ -151,3 +151,5 @@
 - 🧪[测试]-校验全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并用临时 Markdown 文件夹启动 Debug 程序；当前桌面会话仍阻止自动截图。
 - 🔧[优化]-将语言切换与语言变更通知收口到 `IAppLocalizer`，Shell ViewModel 不再直接访问 `I18nManager`。
 - 🧪[测试]-校验 JSON 资源、构建 `Vex.slnx`、执行 `git diff --check`、检索剩余本地化直接访问，并完成 Debug 启动烟测。
+- 🔧[优化]-本地化 HTML 导出保存对话框和文件类型名称，并让导出的 HTML `lang` 属性跟随当前应用语言。
+- 🧪[测试]-校验 JSON 资源、构建 `Vex.slnx`、执行 `git diff --check`，并完成 Debug 启动烟测。

@@ -169,6 +169,12 @@
 - 验证全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并检索确认 Shell/Workspace 模块中仅 Core 本地化门面仍访问 `I18nManager`。
 - 启动 Debug 桌面程序确认主窗口句柄可创建；截图仍受当前桌面会话限制，沿用上一轮记录的限制说明。
 - 本轮未新增第三方依赖。
+- 本地化 HTML 导出保存对话框标题和 HTML 文件类型名称，继续复用 `IAppLocalizer`。
+- 导出的 HTML 文档 `lang` 属性改为跟随当前应用语言，打印预览与 HTML 导出共用同一生成路径。
+- 未识别导出格式的状态栏 fallback 从硬编码 `Document` 改为 `ExportFormatDocument` 资源。
+- 验证全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并启动 Debug 桌面程序确认主窗口句柄可创建。
+- 当前自动截图仍受桌面会话限制，本轮没有新增截图证据。
+- 本轮未新增第三方依赖。
 
 ### en-US
 
@@ -423,4 +429,10 @@
 - `ShellAppearanceViewModel` now switches language through the localizer, and `ShellDocumentInfoViewModel` refreshes state, statistics, location fallback, and file-size text through the same gateway.
 - Verified all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and searched the Shell/Workspace modules to confirm only the Core localizer still accesses `I18nManager`.
 - Launched the Debug desktop app to confirm the main window handle is created; visual screenshot capture remains blocked by the current desktop session.
+- Added no new third-party dependency.
+- Localized the HTML export save-dialog title and HTML file-type label through `IAppLocalizer`.
+- Exported HTML now writes its `lang` attribute from the current app culture, shared by both HTML export and print preview generation.
+- The unknown export-format fallback changed from hard-coded `Document` to the `ExportFormatDocument` resource.
+- Verified all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app to confirm the main window handle is created.
+- Automated screenshot capture remains blocked by the current desktop session, so this iteration has no new screenshot evidence.
 - Added no new third-party dependency.

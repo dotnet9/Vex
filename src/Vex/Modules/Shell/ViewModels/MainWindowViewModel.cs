@@ -450,7 +450,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             return;
         }
 
-        _text.PublishExportNotImplemented(format?.ToUpperInvariant() ?? "Document");
+        _text.PublishExportNotImplemented(format);
     }
 
     public async Task Print()

@@ -81,7 +81,7 @@ public interface IShellDocumentWorkflowText
 
     void PublishExportedHtmlTo(string fileName);
 
-    void PublishExportNotImplemented(string format);
+    void PublishExportNotImplemented(string? format);
 
     void PublishPrintPreviewResult(bool isCanceled);
 
