@@ -116,6 +116,10 @@
 - 保持既有 CodeWF.EventBus 通信通道不变，并在控制器中补充中文注释说明光标移动与文本变化共用状态更新消息的原因。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认启动后将光标移动到文末时状态栏更新为 Line 3 / Col 11。截图路径：`%TEMP%\VexScreenshots\caret-status-update.png`。
 - 本轮未新增第三方依赖，无需额外许可证核查。
+- 增加编辑器行号显示开关：视图菜单新增“显示行号”，编辑器 `ShowLineNumbers` 绑定到 `EditorDisplay.ShowLineNumbers`。
+- 行号显示状态由 `ShellEditorDisplayViewModel` 管理，切换时通过 CodeWF.EventBus 发布状态栏反馈；模块内补充中文注释说明 Workspace 视图只绑定显示偏好。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认行号列显示正常、正文未被挤压、状态栏反馈为 `Line numbers shown.`。截图路径：`%TEMP%\VexScreenshots\editor-line-numbers.png`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 
 ### en-US
 
@@ -258,4 +262,8 @@
 - Added no new third-party dependency, so no additional license review was required.
 - Updated the editor controller so AvaloniaEdit caret movement also publishes `MarkdownTextChangedCommand`, keeping status-bar line and column badges current even when text does not change.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the status bar updates to Line 3 / Col 11 after moving the caret to the document end. Screenshot path: `%TEMP%\VexScreenshots\caret-status-update.png`.
+- Added no new third-party dependency, so no additional license review was required.
+- Added a View menu toggle for editor line numbers, binding AvaloniaEdit `ShowLineNumbers` to `EditorDisplay.ShowLineNumbers`.
+- Kept the line-number display preference in `ShellEditorDisplayViewModel` and publish status feedback through CodeWF.EventBus when toggled.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming line numbers render without crowding the editor. Screenshot path: `%TEMP%\VexScreenshots\editor-line-numbers.png`.
 - Added no new third-party dependency, so no additional license review was required.

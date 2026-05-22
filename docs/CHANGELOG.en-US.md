@@ -52,6 +52,7 @@
 - Added paragraph count, heading count, and estimated reading time to Markdown statistics and the statistics overlay.
 - Added a Markdown editor context menu for clipboard, formatting, heading, quote, list, and clear-formatting actions.
 - Improved status-bar caret tracking so editor caret movement updates line and column badges through CodeWF.EventBus.
+- Added a View menu toggle for editor line numbers.
 
 ### Changed
 
@@ -102,3 +103,4 @@
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the expanded statistics overlay fields and layout.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the editor context-menu popup.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the status bar after moving the caret to the document end.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the editor line-number column.

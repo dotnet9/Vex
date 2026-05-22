@@ -168,6 +168,7 @@
                         <MenuItem Header="搜索" Command="{Binding ShowFindPanel}" InputGesture="Ctrl+F" />
                         <Separator />
                         <MenuItem Header="源代码模式" Command="{Binding Layout.ToggleSourceMode}" />
+                        <MenuItem Header="显示行号" Command="{Binding EditorDisplay.ToggleLineNumbers}" />
                         <MenuItem Header="显示状态栏" Command="{Binding Layout.ToggleStatusBar}" />
                         <MenuItem Header="字数统计窗口" Command="{Binding WordCount}" />
                         <Separator />
