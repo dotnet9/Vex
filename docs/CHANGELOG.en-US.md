@@ -26,6 +26,7 @@
 - Added print preview by generating temporary HTML and opening it with the system browser.
 - Added a delete confirmation overlay that warns about permanent deletion and shows the target file path.
 - Added menu shortcut hints and window-level shortcuts for new, open, save, save as, print, close, full screen, and zoom actions.
+- Added startup file opening when Vex receives a file path from the command line or the operating system Open With flow.
 
 ### Changed
 
@@ -53,3 +54,4 @@
 - Built `Vex.slnx` to verify the print-preview path.
 - Built `Vex.slnx` to verify the delete confirmation overlay.
 - Built `Vex.slnx` to verify the shortcut bindings.
+- Built `Vex.slnx` and screenshot-verified startup opening with a temporary Markdown file path argument.

@@ -20,6 +20,7 @@ public partial class MainWindow : Window
         DataContext = viewModel;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
         ApplyWindowState(viewModel);
+        Opened += async (_, _) => await viewModel.OpenStartupDocumentAsync(Environment.GetCommandLineArgs().Skip(1));
     }
 
     private void TitleBarPointerPressed(object? sender, PointerPressedEventArgs e)

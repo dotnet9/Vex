@@ -100,6 +100,17 @@ public sealed class MainWindowViewModel : ReactiveObject
         Markdown = _document.Markdown;
     }
 
+    public async Task OpenStartupDocumentAsync(IEnumerable<string> arguments)
+    {
+        var path = arguments.FirstOrDefault(File.Exists);
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        ApplyDocument(await _documentService.OpenPathAsync(path));
+    }
+
     public ObservableCollection<DocumentFile> DocumentFiles { get; } = [];
 
     public ObservableCollection<OutlineItem> OutlineItems { get; } = [];

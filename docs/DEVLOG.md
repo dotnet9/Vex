@@ -50,6 +50,8 @@
 - 验证 `dotnet build Vex.slnx`。
 - 为常用文件操作、全屏和缩放补充菜单快捷键提示，并在窗口级处理 `Ctrl+N/O/S/Shift+S/P/W`、`F11`、`Ctrl+加减号/0`。
 - 验证 `dotnet build Vex.slnx`。
+- 支持启动参数打开文件：当命令行或系统打开方式传入存在的文件路径时，窗口打开后自动加载该 Markdown 文档。
+- 验证 `dotnet build Vex.slnx`，并通过临时 Markdown 文件启动截图确认标题、编辑区、预览和状态栏均正确更新。
 
 ### en-US
 
@@ -99,3 +101,5 @@
 - Verified `dotnet build Vex.slnx`.
 - Added menu shortcut hints and window-level handlers for common file, full-screen, and zoom shortcuts.
 - Verified `dotnet build Vex.slnx`.
+- Added startup file opening for command-line and operating-system Open With file path arguments.
+- Verified `dotnet build Vex.slnx` and captured a startup screenshot with a temporary Markdown file to confirm title, editor, preview, and status bar updates.
