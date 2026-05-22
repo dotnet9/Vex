@@ -55,6 +55,7 @@ public partial class MainWindow : Window
 
         var hasControl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         var hasShift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+        var hasAlt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
 
         if (hasControl && !hasShift && e.Key == Key.N)
         {
@@ -104,6 +105,11 @@ public partial class MainWindow : Window
         else if (e.Key == Key.F11)
         {
             viewModel.ToggleFullScreen();
+            e.Handled = true;
+        }
+        else if (hasAlt && e.Key == Key.Enter)
+        {
+            viewModel.ShowProperties();
             e.Handled = true;
         }
         else if (hasControl && e.Key == Key.F)

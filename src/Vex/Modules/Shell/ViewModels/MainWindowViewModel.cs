@@ -44,6 +44,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     private bool _isReplaceVisible;
     private bool _isStatisticsPanelVisible;
     private bool _isAboutPanelVisible;
+    private bool _isPropertiesPanelVisible;
     private bool _isDeleteConfirmVisible;
     private string? _pendingDeletePath;
     private string _searchText = string.Empty;
@@ -317,6 +318,12 @@ public sealed class MainWindowViewModel : ReactiveObject
         set => SetProperty(ref _isAboutPanelVisible, value);
     }
 
+    public bool IsPropertiesPanelVisible
+    {
+        get => _isPropertiesPanelVisible;
+        set => SetProperty(ref _isPropertiesPanelVisible, value);
+    }
+
     public bool IsDeleteConfirmVisible
     {
         get => _isDeleteConfirmVisible;
@@ -408,6 +415,14 @@ public sealed class MainWindowViewModel : ReactiveObject
     public string CharacterCountText => $"{Statistics.Characters} chars";
 
     public string LineCountText => $"{Statistics.Lines} lines";
+
+    public string PropertyNameText => _document.FileName;
+
+    public string PropertyLocationText => CurrentFilePath ?? "Unsaved document";
+
+    public string PropertySizeText => CurrentFilePath is { Length: > 0 } path && File.Exists(path)
+        ? FormatFileSize(new FileInfo(path).Length)
+        : $"{Encoding.UTF8.GetByteCount(Markdown):N0} B";
 
     public DocumentFile? SelectedDocumentFile
     {
@@ -645,6 +660,9 @@ public sealed class MainWindowViewModel : ReactiveObject
         OnPropertyChanged(nameof(CurrentFilePath));
         OnPropertyChanged(nameof(HasCurrentFile));
         OnPropertyChanged(nameof(CurrentEncodingText));
+        OnPropertyChanged(nameof(PropertyNameText));
+        OnPropertyChanged(nameof(PropertyLocationText));
+        OnPropertyChanged(nameof(PropertySizeText));
         NotifyDocumentStateChanged();
     }
 
@@ -654,6 +672,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         OnPropertyChanged(nameof(DocumentStateText));
         OnPropertyChanged(nameof(WindowTitle));
         OnPropertyChanged(nameof(CurrentDocumentTitle));
+        OnPropertyChanged(nameof(PropertySizeText));
     }
 
     [EventHandler]
@@ -692,11 +711,8 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public void ShowProperties()
     {
-        var location = CurrentFilePath ?? "Untitled document";
-        var size = CurrentFilePath is { Length: > 0 } path && File.Exists(path)
-            ? FormatFileSize(new FileInfo(path).Length)
-            : $"{Encoding.UTF8.GetByteCount(Markdown):N0} B";
-        SetStatus($"{CurrentDocumentTitle} | {DocumentStateText} | {CurrentEncodingText} | {size} | {location}");
+        IsPropertiesPanelVisible = true;
+        SetStatus($"{CurrentDocumentTitle} | {DocumentStateText} | {CurrentEncodingText} | {PropertySizeText} | {PropertyLocationText}");
     }
 
     public async Task Export(string? format)
@@ -804,6 +820,11 @@ public sealed class MainWindowViewModel : ReactiveObject
     public void CloseAboutPanel()
     {
         IsAboutPanelVisible = false;
+    }
+
+    public void ClosePropertiesPanel()
+    {
+        IsPropertiesPanelVisible = false;
     }
 
     public void ShowFindPanel()

@@ -54,6 +54,8 @@
 - 验证 `dotnet build Vex.slnx`，并通过临时 Markdown 文件启动截图确认标题、编辑区、预览和状态栏均正确更新。
 - 支持启动参数打开文件夹：传入目录时复用打开文件夹逻辑加载文档列表，并自动打开排序后的首个 Markdown 文件。
 - 通过临时 Markdown 文件夹启动截图确认左侧文件列表、默认文档、预览和状态栏均正确更新。
+- 属性入口从状态栏摘要升级为浮动属性面板，展示名称、保存状态、编码、大小和路径，并补充 `Alt+Enter` 打开入口。
+- 验证 `dotnet build Vex.slnx`。
 
 ### en-US
 
@@ -107,3 +109,5 @@
 - Verified `dotnet build Vex.slnx` and captured a startup screenshot with a temporary Markdown file to confirm title, editor, preview, and status bar updates.
 - Added startup folder opening by reusing the open-folder loading path and opening the first sorted Markdown file.
 - Captured a startup screenshot with a temporary Markdown folder to confirm the sidebar list, default document, preview, and status bar updates.
+- Upgraded the properties action from a status-bar summary to a floating properties panel with name, saved state, encoding, size, path, and `Alt+Enter` access.
+- Verified `dotnet build Vex.slnx`.

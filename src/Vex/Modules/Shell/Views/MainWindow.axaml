@@ -104,7 +104,7 @@
                         <MenuItem Header="另存为..." Command="{Binding SaveAsAsync}" InputGesture="Ctrl+Shift+S" />
                         <MenuItem Header="保存全部打开的文件..." Command="{Binding SaveAsync}" />
                         <Separator />
-                        <MenuItem Header="属性..." Command="{Binding ShowProperties}" />
+                        <MenuItem Header="属性..." Command="{Binding ShowProperties}" InputGesture="Alt+Enter" />
                         <MenuItem Header="打开文件位置..." Command="{Binding OpenFileLocationAsync}" IsEnabled="{Binding HasCurrentFile}" />
                         <MenuItem Header="删除..." Command="{Binding DeleteAsync}" IsEnabled="{Binding HasCurrentFile}" />
                         <Separator />
@@ -451,6 +451,54 @@
                         Classes="muted"
                         Text="Markdown editor powered by Avalonia, Prism, and CodeWF libraries."
                         TextWrapping="Wrap" />
+                </Grid>
+            </Border>
+
+            <Border
+                Grid.ColumnSpan="5"
+                Width="420"
+                Padding="20"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="#FFFFFFFF"
+                BorderBrush="#D0D5DD"
+                BorderThickness="1"
+                CornerRadius="8"
+                IsVisible="{Binding IsPropertiesPanelVisible}">
+                <Grid RowDefinitions="Auto,Auto" RowSpacing="14">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock
+                            FontSize="17"
+                            FontWeight="SemiBold"
+                            Text="Properties" />
+                        <Button
+                            Grid.Column="1"
+                            Command="{Binding ClosePropertiesPanel}"
+                            Content="X"
+                            MinWidth="34"
+                            Padding="0" />
+                    </Grid>
+                    <Grid
+                        Grid.Row="1"
+                        ColumnDefinitions="Auto,*"
+                        RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                        RowSpacing="9"
+                        ColumnSpacing="16">
+                        <TextBlock Classes="muted" Text="Name" />
+                        <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding PropertyNameText}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Row="1" Classes="muted" Text="State" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DocumentStateText}" />
+                        <TextBlock Grid.Row="2" Classes="muted" Text="Encoding" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CurrentEncodingText}" />
+                        <TextBlock Grid.Row="3" Classes="muted" Text="Size" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PropertySizeText}" />
+                        <TextBlock Grid.Row="4" Classes="muted" Text="Path" />
+                        <TextBlock
+                            Grid.Row="4"
+                            Grid.Column="1"
+                            Text="{Binding PropertyLocationText}"
+                            TextTrimming="CharacterEllipsis" />
+                    </Grid>
                 </Grid>
             </Border>
 
