@@ -573,3 +573,7 @@
 - `MainWindow.axaml.cs` now only asks the drop handler for drag effects and publishes dropped paths; `MainWindowViewModel` handles the dropped-path command and keeps unsaved-confirmation/opening behavior in the document workflow.
 - Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a startup screenshot confirming the shell still renders after the drop-routing refactor. Screenshot path: `%TEMP%\VexScreenshots\drop-target-handler-startup.png`.
 - Added no new third-party dependency.
+- Added `ShellStartupArgumentsCommand` plus `IShellStartupArgumentPublisher`/`ShellStartupArgumentPublisher` to publish startup paths through CodeWF.EventBus.
+- `MainWindow.axaml.cs` no longer calls `OpenStartupDocumentAsync`; it publishes command-line arguments on window open, and `MainWindowViewModel` handles the command through the existing startup document workflow.
+- Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a temporary Markdown startup file to confirm the routed startup command still opens the document. Screenshot path: `%TEMP%\VexScreenshots\startup-argument-eventbus-file.png`.
+- Added no new third-party dependency.

@@ -88,6 +88,7 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<IShellExternalPathResolver, ShellExternalPathResolver>();
         containerRegistry.RegisterSingleton<IShellDroppedPathReader, ShellDroppedPathReader>();
         containerRegistry.RegisterSingleton<IShellDropTargetHandler, ShellDropTargetHandler>();
+        containerRegistry.RegisterSingleton<IShellStartupArgumentPublisher, ShellStartupArgumentPublisher>();
         containerRegistry.RegisterSingleton<ShellAppearanceViewModel>();
         containerRegistry.RegisterSingleton<ShellDocumentInfoViewModel>();
         containerRegistry.RegisterSingleton<ShellDialogsViewModel>();

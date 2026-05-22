@@ -183,3 +183,5 @@
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图确认窗口状态绑定重构后 Shell 仍正常渲染。
 - 🔧[优化]-拖放本地路径改为通过 `ShellDroppedPathCommand` 和 `ShellDropTargetHandler` 路由，`MainWindow.axaml.cs` 不再直接调用文档打开流程。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图确认拖放路由重构后 Shell 仍正常渲染。
+- 🔧[优化]-启动参数改为通过 `ShellStartupArgumentsCommand` 和 `ShellStartupArgumentPublisher` 路由，启动文件/文件夹打开不再写在 `MainWindow.axaml.cs`。
+- 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图确认启动参数 Markdown 文件仍可通过 EventBus 路由打开。

@@ -175,3 +175,5 @@
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the shell still renders after the window-state binding refactor.
 - Routed dropped local paths through `ShellDroppedPathCommand` and `ShellDropTargetHandler`, so `MainWindow.axaml.cs` no longer directly calls the document-opening workflow.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the shell still renders after the drop-routing refactor.
+- Routed startup arguments through `ShellStartupArgumentsCommand` and `ShellStartupArgumentPublisher`, keeping startup file/folder opening out of `MainWindow.axaml.cs`.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified a startup Markdown file still opens through the EventBus route.

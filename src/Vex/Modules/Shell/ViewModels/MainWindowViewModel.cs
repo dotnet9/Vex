@@ -408,13 +408,13 @@ public sealed class MainWindowViewModel : ReactiveObject
     }
 
     [EventHandler]
-    public void ApplyDocumentFileOpenRequested(DocumentFileOpenRequestedCommand command)
-    {
-        _ = OpenDocumentFileAsync(command.File, command.PreviousSelection);
-    }
+    public void ApplyDocumentFileOpenRequested(DocumentFileOpenRequestedCommand command) => _ = OpenDocumentFileAsync(command.File, command.PreviousSelection);
 
     [EventHandler]
     public void ApplyShellDroppedPath(ShellDroppedPathCommand command) => _ = OpenDroppedPathAsync(command.Path);
+
+    [EventHandler]
+    public void ApplyShellStartupArguments(ShellStartupArgumentsCommand command) => _ = OpenStartupDocumentAsync(command.Arguments);
 
     private void RefreshMarkdownDerivedState()
     {

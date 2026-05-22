@@ -11,6 +11,7 @@ public partial class MainWindow : UrsaWindow
 {
     private IShellDropTargetHandler? _dropTargetHandler;
     private ShellKeyboardShortcutViewModel? _keyboardShortcuts;
+    private IShellStartupArgumentPublisher? _startupArguments;
     private bool _isCloseConfirmed;
 
     public MainWindow()
@@ -26,16 +27,18 @@ public partial class MainWindow : UrsaWindow
         MainWindowViewModel viewModel,
         ShellActionCoordinator actionCoordinator,
         IShellDropTargetHandler dropTargetHandler,
+        IShellStartupArgumentPublisher startupArguments,
         ShellKeyboardShortcutViewModel keyboardShortcuts)
         : this()
     {
         // 强制解析 ShellActionCoordinator，让标题栏菜单的 EventBus 动作路由在窗口创建时完成订阅。
         _ = actionCoordinator;
         _dropTargetHandler = dropTargetHandler;
+        _startupArguments = startupArguments;
         _keyboardShortcuts = keyboardShortcuts;
         DataContext = viewModel;
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
-        Opened += async (_, _) => await viewModel.OpenStartupDocumentAsync(Environment.GetCommandLineArgs().Skip(1));
+        Opened += (_, _) => _startupArguments.PublishStartupArguments(Environment.GetCommandLineArgs().Skip(1));
     }
 
     private void WindowKeyDown(object? sender, KeyEventArgs e)
