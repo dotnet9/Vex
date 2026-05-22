@@ -6,14 +6,17 @@ namespace Vex.Modules.Workspace.Services;
 
 public sealed class MarkdownEditorController : IMarkdownEditorController
 {
-    private const string IndentText = "    ";
     private readonly IEventBus _eventBus;
+    private readonly IMarkdownEditorMutationService _textMutationService;
     private TextEditor? _editor;
     private bool _suppressTextChanged;
 
-    public MarkdownEditorController(IEventBus eventBus)
+    public MarkdownEditorController(
+        IEventBus eventBus,
+        IMarkdownEditorMutationService textMutationService)
     {
         _eventBus = eventBus;
+        _textMutationService = textMutationService;
         eventBus.Subscribe(this);
     }
 
@@ -260,122 +263,27 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
 
     private void WrapSelection(string prefix, string suffix, string placeholder)
     {
-        if (_editor is null)
-        {
-            return;
-        }
-
-        RunTextMutation(() =>
-        {
-            var text = _editor.Text ?? string.Empty;
-            var start = Math.Clamp(_editor.SelectionStart, 0, text.Length);
-            var length = Math.Clamp(_editor.SelectionLength, 0, text.Length - start);
-            var selected = length > 0 ? text.Substring(start, length) : placeholder;
-            var replacement = $"{prefix}{selected}{suffix}";
-            _editor.Text = text[..start] + replacement + text[(start + length)..];
-            _editor.SelectionStart = start + prefix.Length;
-            _editor.SelectionLength = selected.Length;
-            _editor.CaretOffset = start + replacement.Length;
-        });
+        MutateEditor(editor => _textMutationService.WrapSelection(editor, prefix, suffix, placeholder));
     }
 
     private void InsertText(string insertion)
     {
-        if (_editor is null)
-        {
-            return;
-        }
-
-        RunTextMutation(() =>
-        {
-            var text = _editor.Text ?? string.Empty;
-            var start = Math.Clamp(_editor.SelectionStart, 0, text.Length);
-            var length = Math.Clamp(_editor.SelectionLength, 0, text.Length - start);
-            _editor.Text = text[..start] + insertion + text[(start + length)..];
-            _editor.CaretOffset = start + insertion.Length;
-        });
+        MutateEditor(editor => _textMutationService.InsertText(editor, insertion));
     }
 
     private void IndentSelection()
     {
-        if (_editor is null)
-        {
-            return;
-        }
-
-        if (_editor.SelectionLength == 0)
-        {
-            InsertText(IndentText);
-            return;
-        }
-
-        RunTextMutation(() =>
-        {
-            var text = _editor.Text ?? string.Empty;
-            var range = GetSelectedLineRange(text, _editor.SelectionStart, _editor.SelectionLength);
-            var selectedLines = text[range.Start..range.End];
-            var replacement = IndentText + selectedLines.Replace("\n", "\n" + IndentText, StringComparison.Ordinal);
-            _editor.Text = text[..range.Start] + replacement + text[range.End..];
-            _editor.SelectionStart = range.Start;
-            _editor.SelectionLength = replacement.Length;
-            _editor.CaretOffset = range.Start + replacement.Length;
-        });
+        MutateEditor(_textMutationService.IndentSelection);
     }
 
     private void OutdentSelection()
     {
-        if (_editor is null)
-        {
-            return;
-        }
-
-        RunTextMutation(() =>
-        {
-            var text = _editor.Text ?? string.Empty;
-            var range = GetSelectedLineRange(text, _editor.SelectionStart, _editor.SelectionLength);
-            var selectedLines = text[range.Start..range.End];
-            var replacement = OutdentLines(selectedLines);
-            _editor.Text = text[..range.Start] + replacement + text[range.End..];
-            _editor.SelectionStart = range.Start;
-            _editor.SelectionLength = replacement.Length;
-            _editor.CaretOffset = range.Start + replacement.Length;
-        });
+        MutateEditor(_textMutationService.OutdentSelection);
     }
 
     private void ClearFormatting()
     {
-        if (_editor is null)
-        {
-            return;
-        }
-
-        RunTextMutation(() =>
-        {
-            var text = _editor.Text ?? string.Empty;
-            var start = Math.Clamp(_editor.SelectionStart, 0, text.Length);
-            var length = Math.Clamp(_editor.SelectionLength, 0, text.Length - start);
-
-            if (length == 0)
-            {
-                var offset = Math.Clamp(_editor.CaretOffset, 0, text.Length);
-                start = text.LastIndexOf('\n', Math.Max(0, offset - 1));
-                start = start < 0 ? 0 : start + 1;
-                var end = text.IndexOf('\n', start);
-                if (end < 0)
-                {
-                    end = text.Length;
-                }
-
-                length = end - start;
-            }
-
-            var selected = text.Substring(start, length);
-            var cleaned = ClearMarkdownFormatting(selected);
-            _editor.Text = text[..start] + cleaned + text[(start + length)..];
-            _editor.SelectionStart = start;
-            _editor.SelectionLength = cleaned.Length;
-            _editor.CaretOffset = start + cleaned.Length;
-        });
+        MutateEditor(_textMutationService.ClearFormatting);
     }
 
     private void FindNext(string searchText, int startOffset)
@@ -543,81 +451,9 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
         return 0;
     }
 
-    private static (int Start, int End) GetSelectedLineRange(string text, int selectionStart, int selectionLength)
-    {
-        var start = Math.Clamp(selectionStart, 0, text.Length);
-        var end = Math.Clamp(selectionStart + selectionLength, start, text.Length);
-
-        var lineStart = text.LastIndexOf('\n', Math.Max(0, start - 1));
-        lineStart = lineStart < 0 ? 0 : lineStart + 1;
-
-        if (selectionLength == 0)
-        {
-            var lineEnd = text.IndexOf('\n', start);
-            return (lineStart, lineEnd < 0 ? text.Length : lineEnd);
-        }
-
-        if (end > start && end <= text.Length && text[end - 1] == '\n')
-        {
-            end--;
-        }
-
-        var nextLine = text.IndexOf('\n', end);
-        return (lineStart, nextLine < 0 ? text.Length : nextLine);
-    }
-
-    private static string OutdentLines(string text)
-    {
-        var lines = text.Split('\n');
-        for (var i = 0; i < lines.Length; i++)
-        {
-            lines[i] = OutdentLine(lines[i]);
-        }
-
-        return string.Join('\n', lines);
-    }
-
-    private static string OutdentLine(string line)
-    {
-        if (line.StartsWith('\t'))
-        {
-            return line[1..];
-        }
-
-        var spaces = 0;
-        while (spaces < Math.Min(IndentText.Length, line.Length) && line[spaces] == ' ')
-        {
-            spaces++;
-        }
-
-        return line[spaces..];
-    }
-
     private void PrefixCurrentLine(string prefix)
     {
-        if (_editor is null)
-        {
-            return;
-        }
-
-        RunTextMutation(() =>
-        {
-            var text = _editor.Text ?? string.Empty;
-            var offset = Math.Clamp(_editor.CaretOffset, 0, text.Length);
-            var lineStart = text.LastIndexOf('\n', Math.Max(0, offset - 1));
-            lineStart = lineStart < 0 ? 0 : lineStart + 1;
-            var lineEnd = text.IndexOf('\n', lineStart);
-            if (lineEnd < 0)
-            {
-                lineEnd = text.Length;
-            }
-
-            var line = text[lineStart..lineEnd];
-            var normalized = RemoveMarkdownLinePrefix(line);
-            var replacement = string.IsNullOrEmpty(prefix) ? normalized : prefix + normalized;
-            _editor.Text = text[..lineStart] + replacement + text[lineEnd..];
-            _editor.CaretOffset = lineStart + replacement.Length;
-        });
+        MutateEditor(editor => _textMutationService.PrefixCurrentLine(editor, prefix));
     }
 
     private void DetachCurrentEditor()
@@ -630,54 +466,14 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
         }
     }
 
-    private static string RemoveMarkdownLinePrefix(string line)
+    private void MutateEditor(Action<TextEditor> mutation)
     {
-        var trimmed = line.TrimStart();
-        var leading = line.Length - trimmed.Length;
-
-        string[] prefixes =
-        [
-            "###### ",
-            "##### ",
-            "#### ",
-            "### ",
-            "## ",
-            "# ",
-            "> ",
-            "- [ ] ",
-            "- ",
-            "1. "
-        ];
-
-        foreach (var prefix in prefixes)
+        if (_editor is null)
         {
-            if (trimmed.StartsWith(prefix, StringComparison.Ordinal))
-            {
-                return line[..leading] + trimmed[prefix.Length..];
-            }
+            return;
         }
 
-        return line;
-    }
-
-    private static string ClearMarkdownFormatting(string markdown)
-    {
-        var lines = markdown
-            .Replace("**", string.Empty, StringComparison.Ordinal)
-            .Replace("__", string.Empty, StringComparison.Ordinal)
-            .Replace("*", string.Empty, StringComparison.Ordinal)
-            .Replace("_", string.Empty, StringComparison.Ordinal)
-            .Replace("`", string.Empty, StringComparison.Ordinal)
-            .Split('\n');
-
-        for (var i = 0; i < lines.Length; i++)
-        {
-            lines[i] = RemoveMarkdownLinePrefix(lines[i])
-                .Replace("![", "[", StringComparison.Ordinal)
-                .Replace("](", " (", StringComparison.Ordinal)
-                .Replace(")", string.Empty, StringComparison.Ordinal);
-        }
-
-        return string.Join('\n', lines);
+        var editor = _editor;
+        RunTextMutation(() => mutation(editor));
     }
 }

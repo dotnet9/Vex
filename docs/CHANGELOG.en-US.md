@@ -66,6 +66,7 @@
 - Localized the Markdown editor context menu through `Vex.VexL` resources for undo, redo, clipboard, formatting, heading, quote, list, task-list, and clear-formatting actions.
 - Updated zh-CN, zh-Hant, and ja-JP sidebar empty-state strings to native-language labels.
 - Documented the future Typora-like visual editing mode, including an editable CodeWF.Markdown preview switch and a Vex layout where the source editor can stay hidden by default.
+- Split Markdown editor text mutations into `IMarkdownEditorMutationService` and `MarkdownEditorMutationService`, leaving the controller focused on EventBus wiring, synchronization, search, and navigation.
 
 ### Changed
 

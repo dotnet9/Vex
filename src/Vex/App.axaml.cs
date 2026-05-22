@@ -65,6 +65,7 @@ public partial class App : PrismApplication
         containerRegistry.AddEventBus();
         containerRegistry.RegisterSingleton<IDocumentService, DocumentService>();
         containerRegistry.RegisterSingleton<IMarkdownExportService, MarkdownExportService>();
+        containerRegistry.RegisterSingleton<IMarkdownEditorMutationService, MarkdownEditorMutationService>();
         containerRegistry.RegisterSingleton<IMarkdownEditorController, MarkdownEditorController>();
         containerRegistry.RegisterSingleton<IMarkdownOutlineService, MarkdownOutlineService>();
         containerRegistry.RegisterSingleton<IMarkdownStatisticsService, MarkdownStatisticsService>();

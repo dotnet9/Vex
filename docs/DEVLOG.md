@@ -345,3 +345,8 @@
 - Updated `docs/Vex需求文档.md` with the Typora-like visual editing requirement: CodeWF.Markdown should grow an editable preview switch, while Vex defaults to hidden source editor plus directly editable Markdown preview once that control capability is ready.
 - Verified all Vex JSON localization resources with `ConvertFrom-Json`, built `Vex.slnx`, and launched the desktop app to capture the localized editor context menu. Screenshot path: `%TEMP%\VexScreenshots\editor-context-menu-i18n-popup.png`.
 - Added no new third-party dependency, reusing the existing `Lang.Avalonia.Json` localization pipeline.
+- Split Markdown editor text mutations into `IMarkdownEditorMutationService` and `MarkdownEditorMutationService`, keeping wrap, insert, indent, outdent, clear-formatting, and line-prefix algorithms out of the EventBus controller.
+- Registered the mutation service through Prism IoC so `MarkdownEditorController` keeps editor attach/sync, search, navigation, suppression, and status publication responsibilities.
+- Reduced `MarkdownEditorController.cs` from about 603 lines to about 425 lines, with the new mutation service at about 179 lines and its interface at about 11 lines.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, launched the desktop app with a temporary Markdown file, sent Tab into the editor, and captured a screenshot confirming the document enters Modified state through the refactored mutation path. Screenshot path: `%TEMP%\VexScreenshots\editor-mutation-service-refactor.png`.
+- Added no new third-party dependency, reusing AvaloniaEdit and Prism IoC already present in the workspace.
