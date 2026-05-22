@@ -34,6 +34,7 @@
 - [规划] 需求文档补充 Typora 风格可视化编辑模式，后续 CodeWF.Markdown 需支持可编辑预览开关，Vex 默认隐藏源码编辑器并允许预览区直接编辑。
 - [优化] Markdown 编辑器文本变更算法拆分为 `IMarkdownEditorMutationService` 与 `MarkdownEditorMutationService`，控制器专注 EventBus、同步、搜索和导航。
 - [优化] `MainWindowViewModel` 精简到约 480 行，新窗口启动迁移到 Shell action 协调器，文档扩展名校验统一下沉到 `IDocumentService`。
+- [优化] 关于浮层的产品标语、作者、品牌和说明迁移到 `Vex.VexL` 本地化资源，View 中不再硬编码这些中文/英文文案。
 
 - 创建 Vex（维刻）Markdown 编辑器基础版本。
 - 完善作者、码坊 CodeWF 与官方网站信息。

@@ -12,6 +12,13 @@ public static class VexL
     public static readonly string AppName = "Vex.VexL.AppName";
     public static readonly string ChineseName = "Vex.VexL.ChineseName";
     public static readonly string Slogan = "Vex.VexL.Slogan";
+    public static readonly string AboutChineseNameLabel = "Vex.VexL.AboutChineseNameLabel";
+    public static readonly string AboutAuthorLabel = "Vex.VexL.AboutAuthorLabel";
+    public static readonly string AboutAuthorName = "Vex.VexL.AboutAuthorName";
+    public static readonly string AboutWebsiteLabel = "Vex.VexL.AboutWebsiteLabel";
+    public static readonly string AboutBrandLabel = "Vex.VexL.AboutBrandLabel";
+    public static readonly string AboutBrandName = "Vex.VexL.AboutBrandName";
+    public static readonly string AboutDescription = "Vex.VexL.AboutDescription";
     public static readonly string MenuFile = "Vex.VexL.MenuFile";
     public static readonly string MenuEdit = "Vex.VexL.MenuEdit";
     public static readonly string MenuParagraph = "Vex.VexL.MenuParagraph";

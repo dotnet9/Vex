@@ -355,3 +355,7 @@
 - Promoted supported Markdown/TXT path detection to `IDocumentService.IsSupportedDocumentPath`, so drag/drop validation and folder scanning share the same document service rule.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, launched the desktop app with a temporary Markdown file, and captured a screenshot confirming the title, editor, preview, and status bar still load correctly. Screenshot path: `%TEMP%\VexScreenshots\main-viewmodel-trim-startup.png`.
 - Added no new third-party dependency.
+- Localized the about overlay identity strings by adding resource keys for author, website label, brand, and the product description across zh-CN, zh-Hant, en-US, and ja-JP resources.
+- Changed `ShellOverlaysView.axaml` to bind the about overlay title, slogan, Chinese name, author, brand, and description through `VexL` instead of hard-coded Chinese/English text.
+- Verified all Vex JSON localization resources with `ConvertFrom-Json`, built `Vex.slnx`, and captured a screenshot confirming the about overlay renders the localized resource text. Screenshot path: `%TEMP%\VexScreenshots\about-overlay-i18n.png`.
+- Added no new third-party dependency, reusing the existing `Lang.Avalonia.Json` resource pipeline.

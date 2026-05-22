@@ -2,6 +2,8 @@
     x:Class="Vex.Modules.Shell.Views.ShellOverlaysView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:MainWindowViewModel">
     <Grid>
@@ -68,8 +70,8 @@
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
                     <Image Width="32" Height="32" Source="/Assets/logo.png" />
                     <StackPanel Grid.Column="1" Spacing="2">
-                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Vex" />
-                        <TextBlock Classes="muted" Text="极简之力，妙笔成章" />
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.AppName}}" />
+                        <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.Slogan}}" />
                     </StackPanel>
                     <Button
                         Grid.Column="2"
@@ -84,20 +86,20 @@
                     RowDefinitions="Auto,Auto,Auto,Auto"
                     RowSpacing="8"
                     ColumnSpacing="14">
-                    <TextBlock Classes="muted" Text="中文名" />
-                    <TextBlock Grid.Column="1" Text="维刻" />
-                    <TextBlock Grid.Row="1" Classes="muted" Text="作者" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="沙漠尽头的狼" />
-                    <TextBlock Grid.Row="2" Classes="muted" Text="网站" />
+                    <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutChineseNameLabel}}" />
+                    <TextBlock Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.ChineseName}}" />
+                    <TextBlock Grid.Row="1" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorLabel}}" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorName}}" />
+                    <TextBlock Grid.Row="2" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutWebsiteLabel}}" />
                     <TextBlock Grid.Row="2" Grid.Column="1" Text="https://codewf.com" />
-                    <TextBlock Grid.Row="3" Classes="muted" Text="品牌" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="CodeWF（码坊）" />
+                    <TextBlock Grid.Row="3" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutBrandLabel}}" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutBrandName}}" />
                 </Grid>
                 <Separator Grid.Row="2" />
                 <TextBlock
                     Grid.Row="3"
                     Classes="muted"
-                    Text="Markdown editor powered by Avalonia, Prism, and CodeWF libraries."
+                    Text="{i18n:I18n {x:Static l:VexL.AboutDescription}}"
                     TextWrapping="Wrap" />
             </Grid>
         </Border>

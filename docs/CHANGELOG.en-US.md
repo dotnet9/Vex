@@ -68,6 +68,7 @@
 - Documented the future Typora-like visual editing mode, including an editable CodeWF.Markdown preview switch and a Vex layout where the source editor can stay hidden by default.
 - Split Markdown editor text mutations into `IMarkdownEditorMutationService` and `MarkdownEditorMutationService`, leaving the controller focused on EventBus wiring, synchronization, search, and navigation.
 - Trimmed `MainWindowViewModel` to about 480 lines, moved new-window launch handling into the Shell action coordinator, and centralized document extension validation in `IDocumentService`.
+- Localized the about overlay identity strings through `Vex.VexL` resources instead of keeping hard-coded Chinese/English text in the view.
 
 ### Changed
 
