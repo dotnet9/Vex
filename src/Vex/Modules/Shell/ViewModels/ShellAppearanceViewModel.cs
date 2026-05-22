@@ -11,6 +11,7 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class ShellAppearanceViewModel : ReactiveObject
 {
     private readonly IAppLocalizer _localizer;
+    private readonly IEditorAppearanceState _editorAppearanceState;
     private readonly IThemeService _themeService;
     private readonly IShellStatusPublisher _statusPublisher;
     private bool _isCompactLayout;
@@ -18,9 +19,14 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
     private TypographyOption? _selectedTypography;
     private LanguageOption? _selectedLanguage;
 
-    public ShellAppearanceViewModel(IAppLocalizer localizer, IThemeService themeService, IShellStatusPublisher statusPublisher)
+    public ShellAppearanceViewModel(
+        IAppLocalizer localizer,
+        IEditorAppearanceState editorAppearanceState,
+        IThemeService themeService,
+        IShellStatusPublisher statusPublisher)
     {
         _localizer = localizer;
+        _editorAppearanceState = editorAppearanceState;
         _themeService = themeService;
         _statusPublisher = statusPublisher;
 
@@ -59,6 +65,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             if (SetProperty(ref _isCompactLayout, value))
             {
                 OnPropertyChanged(nameof(CurrentTypographySize));
+                PublishTypographyState();
             }
         }
     }
@@ -83,6 +90,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             if (SetProperty(ref _selectedTypography, value))
             {
                 OnPropertyChanged(nameof(CurrentTypographyTheme));
+                PublishTypographyState();
             }
         }
     }
@@ -162,6 +170,11 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
 
         this.RaiseAndSetIfChanged(ref storage, value, propertyName);
         return true;
+    }
+
+    private void PublishTypographyState()
+    {
+        _editorAppearanceState.UpdateTypography(CurrentTypographyTheme, CurrentTypographySize);
     }
 
     private void OnPropertyChanged(string propertyName)

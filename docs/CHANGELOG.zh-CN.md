@@ -161,3 +161,5 @@
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并在搜索服务重构后截图确认启动窗口正常渲染。
 - 🔧[优化]-将最近文件持久化拆入 `IRecentDocumentStore`/`RecentDocumentStore`，ViewModel 只维护最近文件菜单状态，文件 I/O 由服务承担。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并在最近文件存储重构后截图确认启动窗口正常渲染。
+- 🔧[优化]-将右侧 Markdown 预览拆成 `MarkdownPreviewView`/`MarkdownPreviewViewModel`，通过文档状态和外观状态服务同步内容与排版。
+- 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图确认拆分后的预览能渲染初始文档。

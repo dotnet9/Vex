@@ -1,0 +1,21 @@
+<UserControl
+    x:Class="Vex.Modules.Workspace.Views.MarkdownPreviewView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:md="https://codewf.com"
+    xmlns:prism="http://prismlibrary.com/"
+    xmlns:vm="using:Vex.Modules.Workspace.ViewModels"
+    x:DataType="vm:MarkdownPreviewViewModel"
+    prism:ViewModelLocator.AutoWireViewModel="True">
+
+    <Border
+        Background="White"
+        Padding="34 28 34 0">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <md:MarkdownViewer
+                Markdown="{Binding Markdown}"
+                TypographySize="{Binding TypographySize}"
+                TypographyTheme="{Binding TypographyTheme}" />
+        </ScrollViewer>
+    </Border>
+</UserControl>

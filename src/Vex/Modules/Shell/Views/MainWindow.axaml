@@ -3,7 +3,6 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:regions="using:Vex.Core.Regions"
-    xmlns:md="https://codewf.com"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:shell="using:Vex.Modules.Shell.Views"
     xmlns:u="https://irihi.tech/ursa"
@@ -78,18 +77,9 @@
                 IsVisible="{Binding Layout.IsPreviewVisible}"
                 ResizeDirection="Columns" />
 
-            <Border
+            <workspace:MarkdownPreviewView
                 Grid.Column="4"
-                Background="White"
-                IsVisible="{Binding Layout.IsPreviewVisible}"
-                Padding="34 28 34 0">
-                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                    <md:MarkdownViewer
-                        Markdown="{Binding Markdown}"
-                        TypographySize="{Binding Appearance.CurrentTypographySize}"
-                        TypographyTheme="{Binding Appearance.CurrentTypographyTheme}" />
-                </ScrollViewer>
-            </Border>
+                IsVisible="{Binding Layout.IsPreviewVisible}" />
 
             <shell:ShellOverlaysView Grid.ColumnSpan="5" />
         </Grid>

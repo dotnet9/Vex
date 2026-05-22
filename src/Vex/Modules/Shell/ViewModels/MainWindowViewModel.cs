@@ -10,6 +10,7 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class MainWindowViewModel : ReactiveObject
 {
     private readonly IDocumentService _documentService;
+    private readonly IWorkspaceDocumentState _workspaceDocumentState;
     private readonly IMarkdownOutlineService _outlineService;
     private readonly IMarkdownStatisticsService _statisticsService;
     private readonly IEventBus _eventBus;
@@ -23,6 +24,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public MainWindowViewModel(
         IDocumentService documentService,
+        IWorkspaceDocumentState workspaceDocumentState,
         IMarkdownOutlineService outlineService,
         IMarkdownStatisticsService statisticsService,
         ShellAppearanceViewModel appearance,
@@ -42,6 +44,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         IEventBus eventBus)
     {
         _documentService = documentService;
+        _workspaceDocumentState = workspaceDocumentState;
         _outlineService = outlineService;
         _statisticsService = statisticsService;
         Appearance = appearance;
@@ -412,6 +415,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private void RefreshMarkdownDerivedState()
     {
+        _workspaceDocumentState.UpdateMarkdown(Markdown);
         RefreshDocumentInfo();
         _eventBus.Publish(new OutlineItemsChangedCommand(_outlineService.BuildOutline(Markdown)));
     }

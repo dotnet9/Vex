@@ -153,3 +153,5 @@
 - Built `Vex.slnx`, ran `git diff --check`, and captured a startup window screenshot after the search-service refactor.
 - Moved recent-file persistence into `IRecentDocumentStore`/`RecentDocumentStore`, keeping recent menu state in the ViewModel and file I/O in a service.
 - Built `Vex.slnx`, ran `git diff --check`, and captured a startup screenshot after the recent-file store refactor.
+- Extracted the right Markdown preview into `MarkdownPreviewView`/`MarkdownPreviewViewModel` backed by document and appearance state services.
+- Built `Vex.slnx`, ran `git diff --check`, and captured a startup screenshot confirming the extracted preview renders the initial document.

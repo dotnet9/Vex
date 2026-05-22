@@ -196,6 +196,12 @@
 - 存储服务加载时会过滤不可读、已丢失、重复和无效的最近文件条目，避免轻量状态坏数据阻塞启动。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并启动 Debug 桌面程序使用窗口句柄截图确认 Shell 仍正常渲染。截图路径：`%TEMP%\VexScreenshots\recent-document-store-startup.png`。
 - 本轮未新增第三方依赖。
+- 新增 `MarkdownPreviewView`/`MarkdownPreviewViewModel`，右侧 Markdown 预览从 `MainWindow.axaml` 中拆出。
+- 新增 `IWorkspaceDocumentState`/`WorkspaceDocumentState`，主文档正文变化通过 CodeWF.EventBus 广播 `MarkdownDocumentChangedCommand`，预览 VM 不再依赖主窗口 VM。
+- 新增 `IEditorAppearanceState`/`EditorAppearanceState`，预览排版主题和字号通过外观状态服务同步，避免 Workspace 预览反向绑定 Shell 外观 VM。
+- `MainWindowViewModel.cs` 本轮保持 499 行，仍低于 500 行检查线。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并启动 Debug 桌面程序使用窗口句柄截图确认拆分后的预览仍能渲染初始文档。截图路径：`%TEMP%\VexScreenshots\markdown-preview-view-startup.png`。
+- 本轮未新增第三方依赖。
 
 ### en-US
 
@@ -477,4 +483,10 @@
 - `ShellRecentDocumentsViewModel` now keeps menu state, ordering, and status feedback only; AppData file reads/writes are resolved through Prism IoC.
 - The store filters unreadable, missing, duplicate, and invalid recent-file entries during load so bad lightweight state does not block startup.
 - Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a window-handle screenshot confirming the shell still renders. Screenshot path: `%TEMP%\VexScreenshots\recent-document-store-startup.png`.
+- Added no new third-party dependency.
+- Added `MarkdownPreviewView`/`MarkdownPreviewViewModel`, extracting the right Markdown preview from `MainWindow.axaml`.
+- Added `IWorkspaceDocumentState`/`WorkspaceDocumentState`; main document markdown changes now publish `MarkdownDocumentChangedCommand` through CodeWF.EventBus, so the preview ViewModel does not depend on the main window ViewModel.
+- Added `IEditorAppearanceState`/`EditorAppearanceState`; preview typography theme and size now sync through appearance state instead of binding Workspace preview code back to the Shell appearance ViewModel.
+- `MainWindowViewModel.cs` remains at 499 lines, still below the 500-line check threshold.
+- Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a window-handle screenshot confirming the extracted preview still renders the initial document. Screenshot path: `%TEMP%\VexScreenshots\markdown-preview-view-startup.png`.
 - Added no new third-party dependency.

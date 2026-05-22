@@ -21,6 +21,7 @@ using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
 using Vex.Modules.Workspace;
 using Vex.Modules.Workspace.Services;
+using Vex.Modules.Workspace.ViewModels;
 
 namespace Vex;
 
@@ -66,6 +67,8 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<IAppLocalizer, AppLocalizer>();
         containerRegistry.RegisterSingleton<IDocumentFileFactory, DocumentFileFactory>();
         containerRegistry.RegisterSingleton<IDocumentService, DocumentService>();
+        containerRegistry.RegisterSingleton<IEditorAppearanceState, EditorAppearanceState>();
+        containerRegistry.RegisterSingleton<IWorkspaceDocumentState, WorkspaceDocumentState>();
         containerRegistry.RegisterSingleton<IMarkdownExportService, MarkdownExportService>();
         containerRegistry.RegisterSingleton<IMarkdownEditorMutationService, MarkdownEditorMutationService>();
         containerRegistry.RegisterSingleton<IMarkdownEditorSearchService, MarkdownEditorSearchService>();
@@ -95,6 +98,7 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<ShellStatusViewModel>();
         containerRegistry.RegisterSingleton<ShellTitleMenuViewModel>();
         containerRegistry.RegisterSingleton<ShellWindowLayoutViewModel>();
+        containerRegistry.RegisterSingleton<MarkdownPreviewViewModel>();
         containerRegistry.RegisterSingleton<ShellActionCoordinator>();
         containerRegistry.RegisterSingleton<MainWindowViewModel>();
         containerRegistry.Register<MainWindow>();
