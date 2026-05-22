@@ -52,6 +52,7 @@
     <PackageReference Include="CodeWF.DryIoc.EventBus" />
     <PackageReference Include="CodeWF.EventBus" />
     <PackageReference Include="CodeWF.Markdown.Themes" />
+    <PackageReference Include="CodeWF.Tools.Files" />
     <PackageReference Include="Irihi.Ursa.Themes.Semi" />
     <PackageReference Include="Lang.Avalonia.Json" />
     <PackageReference Include="Prism.DryIoc.Avalonia" />

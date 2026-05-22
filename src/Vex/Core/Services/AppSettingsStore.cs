@@ -1,11 +1,24 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using CodeWF.Tools.Helpers;
 using Vex.Core.Models;
 
 namespace Vex.Core.Services;
 
 public sealed class AppSettingsStore : IAppSettingsStore
 {
+    private const string ThemeKey = nameof(AppSettings.ThemeKey);
+    private const string TypographyKey = nameof(AppSettings.TypographyKey);
+    private const string IsCompactLayout = nameof(AppSettings.IsCompactLayout);
+    private const string CultureName = nameof(AppSettings.CultureName);
+    private const string IsSidebarVisible = nameof(AppSettings.IsSidebarVisible);
+    private const string IsStatusBarVisible = nameof(AppSettings.IsStatusBarVisible);
+    private const string IsPreviewVisible = nameof(AppSettings.IsPreviewVisible);
+    private const string IsAlwaysOnTop = nameof(AppSettings.IsAlwaysOnTop);
+    private const string SelectedSidebarTabIndex = nameof(AppSettings.SelectedSidebarTabIndex);
+    private const string EditorZoom = nameof(AppSettings.EditorZoom);
+    private const string ShowLineNumbers = nameof(AppSettings.ShowLineNumbers);
+    private const string WindowWidth = nameof(AppSettings.WindowWidth);
+    private const string WindowHeight = nameof(AppSettings.WindowHeight);
+
     private readonly object _syncRoot = new();
     private AppSettings? _settings;
 
@@ -33,44 +46,54 @@ public sealed class AppSettingsStore : IAppSettingsStore
 
     private static AppSettings Load()
     {
-        if (!File.Exists(SettingsPath))
+        var configPath = AppConfigHelper.GetDefaultConfigPath();
+        return new AppSettings
         {
-            return new AppSettings();
-        }
-
-        try
-        {
-            var json = File.ReadAllText(SettingsPath);
-            return JsonSerializer.Deserialize(json, AppSettingsJsonContext.Default.AppSettings) ?? new AppSettings();
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
-        {
-            return new AppSettings();
-        }
+            ThemeKey = Get<string>(configPath, ThemeKey),
+            TypographyKey = Get<string>(configPath, TypographyKey),
+            IsCompactLayout = Get<bool?>(configPath, IsCompactLayout),
+            CultureName = Get<string>(configPath, CultureName),
+            IsSidebarVisible = Get<bool?>(configPath, IsSidebarVisible),
+            IsStatusBarVisible = Get<bool?>(configPath, IsStatusBarVisible),
+            IsPreviewVisible = Get<bool?>(configPath, IsPreviewVisible),
+            IsAlwaysOnTop = Get<bool?>(configPath, IsAlwaysOnTop),
+            SelectedSidebarTabIndex = Get<int?>(configPath, SelectedSidebarTabIndex),
+            EditorZoom = Get<double?>(configPath, EditorZoom),
+            ShowLineNumbers = Get<bool?>(configPath, ShowLineNumbers),
+            WindowWidth = Get<double?>(configPath, WindowWidth),
+            WindowHeight = Get<double?>(configPath, WindowHeight)
+        };
     }
 
     private static void Save(AppSettings settings)
     {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
-            var json = JsonSerializer.Serialize(settings, AppSettingsJsonContext.Default.AppSettings);
-            File.WriteAllText(SettingsPath, json);
+            var configPath = AppConfigHelper.GetDefaultConfigPath();
+            AppConfigHelper.Set(configPath, ThemeKey, settings.ThemeKey);
+            AppConfigHelper.Set(configPath, TypographyKey, settings.TypographyKey);
+            AppConfigHelper.Set(configPath, IsCompactLayout, settings.IsCompactLayout);
+            AppConfigHelper.Set(configPath, CultureName, settings.CultureName);
+            AppConfigHelper.Set(configPath, IsSidebarVisible, settings.IsSidebarVisible);
+            AppConfigHelper.Set(configPath, IsStatusBarVisible, settings.IsStatusBarVisible);
+            AppConfigHelper.Set(configPath, IsPreviewVisible, settings.IsPreviewVisible);
+            AppConfigHelper.Set(configPath, IsAlwaysOnTop, settings.IsAlwaysOnTop);
+            AppConfigHelper.Set(configPath, SelectedSidebarTabIndex, settings.SelectedSidebarTabIndex);
+            AppConfigHelper.Set(configPath, EditorZoom, settings.EditorZoom);
+            AppConfigHelper.Set(configPath, ShowLineNumbers, settings.ShowLineNumbers);
+            AppConfigHelper.Set(configPath, WindowWidth, settings.WindowWidth);
+            AppConfigHelper.Set(configPath, WindowHeight, settings.WindowHeight);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Xml.XmlException)
         {
             // 用户设置保存失败不应打断当前编辑流程，后续可接入统一错误提示。
         }
     }
 
-    private static string SettingsPath =>
-        Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "CodeWF",
-            "Vex",
-            "settings.json");
+    private static T? Get<T>(string configPath, string key)
+    {
+        return AppConfigHelper.TryGet<T>(configPath, key, out var value)
+            ? value
+            : default;
+    }
 }
-
-[JsonSourceGenerationOptions(WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
-[JsonSerializable(typeof(AppSettings))]
-internal sealed partial class AppSettingsJsonContext : JsonSerializerContext;

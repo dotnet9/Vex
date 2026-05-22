@@ -237,11 +237,11 @@
 - `MainWindow.axaml.cs` 本轮缩短到 108 行，拖放路径服务 33 行。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并启动 Debug 桌面程序使用窗口句柄截图确认 Shell、编辑器、预览和状态栏仍正常渲染。截图路径：`%TEMP%\VexScreenshots\dropped-path-reader-startup.png`。
 - 本轮未新增第三方依赖。
-- 新增 `AppSettings`、`IAppSettingsStore` 和 `AppSettingsStore`，使用 `System.Text.Json` 源生成将轻量用户设置保存到 `%APPDATA%\CodeWF\Vex\settings.json`。
+- 新增 `AppSettings`、`IAppSettingsStore` 和 `AppSettingsStore`，通过 `CodeWF.Tools.Files` 的 `AppConfigHelper` 读取和写入 `App.config`/`Vex.dll.config` 中的 `appSettings`。
 - 外观设置现在会持久化主题色、Markdown 排版主题、紧凑布局和语言；首次没有保存语言时会按系统语言选择简中、繁中、日文或英文默认值。
 - Shell 布局与编辑器显示设置现在会持久化侧栏、预览区、状态栏、置顶、侧栏页签、编辑器缩放、行号和窗口尺寸；源码模式临时隐藏侧栏/预览时不会覆盖用户原布局。
-- 验证 `dotnet build Vex.slnx`、`git diff --check`，并启动 Debug 桌面程序使用 `PrintWindow` 截图确认主窗口、编辑器、预览和状态栏正常渲染。截图路径：`%TEMP%\VexScreenshots\settings-persistence-startup-printwindow.png`。
-- 本轮未新增第三方依赖。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`、NuGet 漏洞扫描，并启动 Debug 桌面程序使用 `PrintWindow` 截图确认主窗口、编辑器、预览和状态栏正常渲染。截图路径：`%TEMP%\VexScreenshots\app-config-settings-startup.png`。
+- 新增 NuGet 依赖 `CodeWF.Tools.Files` 1.3.13.2；本地仓库 `D:\github\libs\CodeWF.Tools` 与 NuGet 元数据均标注 MIT 许可证，源码公开可追溯，间接依赖许可证已在该仓库 README 中记录。
 
 ### en-US
 
@@ -582,8 +582,8 @@
 - `MainWindow.axaml.cs` no longer calls `OpenStartupDocumentAsync`; it publishes command-line arguments on window open, and `MainWindowViewModel` handles the command through the existing startup document workflow.
 - Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a temporary Markdown startup file to confirm the routed startup command still opens the document. Screenshot path: `%TEMP%\VexScreenshots\startup-argument-eventbus-file.png`.
 - Added no new third-party dependency.
-- Added `AppSettings`, `IAppSettingsStore`, and `AppSettingsStore`, using `System.Text.Json` source generation to persist lightweight user settings at `%APPDATA%\CodeWF\Vex\settings.json`.
+- Added `AppSettings`, `IAppSettingsStore`, and `AppSettingsStore`, using `AppConfigHelper` from `CodeWF.Tools.Files` to read and write `appSettings` in `App.config`/`Vex.dll.config`.
 - Appearance settings now persist theme variant, Markdown typography theme, compact layout, and language; when no language is saved, startup chooses Simplified Chinese, Traditional Chinese, Japanese, or English from the OS culture.
 - Shell layout and editor display settings now persist sidebar, preview, status bar, topmost, sidebar tab, editor zoom, line numbers, and window size; temporary source-mode sidebar/preview hiding does not overwrite the saved layout.
-- Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a `PrintWindow` screenshot confirming the main window, editor, preview, and status bar render correctly. Screenshot path: `%TEMP%\VexScreenshots\settings-persistence-startup-printwindow.png`.
-- Added no new third-party dependency.
+- Verified `dotnet build Vex.slnx`, ran `git diff --check`, completed a NuGet vulnerability scan, and launched the Debug desktop app with a `PrintWindow` screenshot confirming the main window, editor, preview, and status bar render correctly. Screenshot path: `%TEMP%\VexScreenshots\app-config-settings-startup.png`.
+- Added the `CodeWF.Tools.Files` 1.3.13.2 NuGet dependency; the local repository at `D:\github\libs\CodeWF.Tools` and NuGet metadata identify it as MIT licensed, source-available, and its transitive dependency license notes are recorded in that repository README.

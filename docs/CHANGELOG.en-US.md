@@ -4,9 +4,9 @@
 
 ### Added
 
-- Added user settings persistence for theme, typography, compact layout, language, window size, sidebar/preview/status-bar layout, editor zoom, and line-number display.
+- Added App.config-backed user settings persistence for theme, typography, compact layout, language, window size, sidebar/preview/status-bar layout, editor zoom, and line-number display.
 - Improved first-run language selection so Vex chooses Simplified Chinese, Traditional Chinese, Japanese, or English from the OS culture when no saved language exists.
-- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the main window, editor, preview, and status bar after wiring settings persistence.
+- Built `Vex.slnx`, ran `git diff --check` and NuGet vulnerability scanning, and screenshot-verified the main window, editor, preview, and status bar after wiring settings persistence.
 - Created the initial Vex Markdown editor.
 - Added author, CodeWF, and official website metadata.
 - Added a Typora-inspired title-bar menu, file/outline sidebar, Markdown editor, Markdown preview, and status bar.
