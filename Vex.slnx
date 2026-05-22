@@ -1,4 +1,17 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="docs/ACKNOWLEDGEMENTS.zh-CN.md" />
+    <File Path="docs/CHANGELOG.en-US.md" />
+    <File Path="docs/CHANGELOG.zh-CN.md" />
+    <File Path="docs/DEVLOG.md" />
+    <File Path="docs/QuickStart.zh-CN.md" />
+    <File Path="docs/Vex需求文档.md" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
   <Project Path="src/Vex.Controls.Themes/Vex.Controls.Themes.csproj" />
   <Project Path="src/Vex.Controls/Vex.Controls.csproj" />
   <Project Path="src/Vex/Vex.csproj" />
