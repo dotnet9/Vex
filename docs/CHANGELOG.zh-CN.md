@@ -4,8 +4,6 @@
 
 ### 新增
 
-- [新增] 接入第一阶段可视化 Markdown 编辑：CodeWF.Markdown `MarkdownViewer` 新增 `AllowEdit` 和 `MarkdownEdited`，支持标题、段落、列表、引用、代码块在预览区双击编辑并回写 Markdown。
-- [新增] Vex 默认隐藏中间源码编辑器，右侧预览默认允许编辑；视图菜单新增“显示源码编辑器”和“允许预览编辑”开关，状态反馈进入四套 i18n 资源。
 - [优化] 将查找/替换面板拆分为独立 `ShellFindBarView` 与 `ShellFindBarViewModel`，通过 CodeWF.EventBus 与编辑器通信，降低主窗口和主 ViewModel 复杂度。
 - [优化] 将主题、排版、紧凑布局和语言切换迁移到独立 `ShellAppearanceViewModel`，主窗口通过 Prism IoC 组合外观模块。
 - [优化] 将撤销、重做、剪贴板、全选和 Markdown 插入命令迁移到独立 `ShellEditorActionsViewModel`，统一通过 CodeWF.EventBus 路由到编辑器。

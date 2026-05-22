@@ -13,9 +13,7 @@
         Padding="34 28 34 0">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <md:MarkdownViewer
-                AllowEdit="{Binding AllowEdit}"
                 Markdown="{Binding Markdown}"
-                MarkdownEdited="OnMarkdownEdited"
                 TypographySize="{Binding TypographySize}"
                 TypographyTheme="{Binding TypographyTheme}" />
         </ScrollViewer>

@@ -78,8 +78,6 @@ public static class VexL
     public static readonly string DocumentList = "Vex.VexL.DocumentList";
     public static readonly string Search = "Vex.VexL.Search";
     public static readonly string SourceMode = "Vex.VexL.SourceMode";
-    public static readonly string ShowSourceEditor = "Vex.VexL.ShowSourceEditor";
-    public static readonly string AllowPreviewEdit = "Vex.VexL.AllowPreviewEdit";
     public static readonly string ShowLineNumbers = "Vex.VexL.ShowLineNumbers";
     public static readonly string ShowStatusBar = "Vex.VexL.ShowStatusBar";
     public static readonly string WordCount = "Vex.VexL.WordCount";
@@ -223,10 +221,6 @@ public static class VexL
     public static readonly string StatusAboutClosed = "Vex.VexL.StatusAboutClosed";
     public static readonly string StatusSourceModeEnabled = "Vex.VexL.StatusSourceModeEnabled";
     public static readonly string StatusSourceModeDisabled = "Vex.VexL.StatusSourceModeDisabled";
-    public static readonly string StatusSourceEditorShown = "Vex.VexL.StatusSourceEditorShown";
-    public static readonly string StatusSourceEditorHidden = "Vex.VexL.StatusSourceEditorHidden";
-    public static readonly string StatusPreviewEditEnabled = "Vex.VexL.StatusPreviewEditEnabled";
-    public static readonly string StatusPreviewEditDisabled = "Vex.VexL.StatusPreviewEditDisabled";
     public static readonly string StatusFindReady = "Vex.VexL.StatusFindReady";
     public static readonly string StatusReplaceReady = "Vex.VexL.StatusReplaceReady";
     public static readonly string StatusFindClosed = "Vex.VexL.StatusFindClosed";

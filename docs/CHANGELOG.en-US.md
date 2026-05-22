@@ -4,8 +4,6 @@
 
 ### Added
 
-- Added the first visual Markdown editing pass: CodeWF.Markdown `MarkdownViewer` now exposes `AllowEdit` and `MarkdownEdited`, with preview double-click editing for headings, paragraphs, lists, quotes, and code blocks.
-- Vex now hides the source editor by default, keeps preview editing enabled by default, and adds View menu toggles for showing the source editor and allowing preview editing with localized status feedback.
 - Created the initial Vex Markdown editor.
 - Added author, CodeWF, and official website metadata.
 - Added a Typora-inspired title-bar menu, file/outline sidebar, Markdown editor, Markdown preview, and status bar.

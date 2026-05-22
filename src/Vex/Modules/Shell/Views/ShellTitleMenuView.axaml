@@ -101,8 +101,6 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Search}}" Command="{Binding ShowFindPanel}" InputGesture="Ctrl+F" />
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.SourceMode}}" Command="{Binding Layout.ToggleSourceMode}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowSourceEditor}}" Command="{Binding Layout.ToggleSourceEditor}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.AllowPreviewEdit}}" Command="{Binding Layout.TogglePreviewEdit}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowLineNumbers}}" Command="{Binding EditorDisplay.ToggleLineNumbers}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowStatusBar}}" Command="{Binding Layout.ToggleStatusBar}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.WordCount}}" Command="{Binding WordCount}" />

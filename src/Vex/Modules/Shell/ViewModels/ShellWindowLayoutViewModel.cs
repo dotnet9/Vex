@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
-using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
@@ -13,26 +12,19 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 {
     private readonly IEventBus _eventBus;
     private readonly IShellStatusPublisher _statusPublisher;
-    private readonly IMarkdownVisualEditorState _visualEditorState;
     private bool _isSidebarVisible = true;
     private bool _isStatusBarVisible = true;
     private bool _isPreviewVisible = true;
-    private bool _isSourceEditorVisible;
     private bool _isAlwaysOnTop;
     private bool _isFullScreen;
     private bool _isSourceMode;
     private bool _sidebarBeforeSourceMode = true;
     private bool _previewBeforeSourceMode = true;
-    private bool _sourceEditorBeforeSourceMode;
 
-    public ShellWindowLayoutViewModel(
-        IEventBus eventBus,
-        IShellStatusPublisher statusPublisher,
-        IMarkdownVisualEditorState visualEditorState)
+    public ShellWindowLayoutViewModel(IEventBus eventBus, IShellStatusPublisher statusPublisher)
     {
         _eventBus = eventBus;
         _statusPublisher = statusPublisher;
-        _visualEditorState = visualEditorState;
     }
 
     public bool IsSidebarVisible
@@ -67,43 +59,13 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         }
     }
 
-    public bool IsSourceEditorVisible
-    {
-        get => _isSourceEditorVisible;
-        set
-        {
-            if (SetProperty(ref _isSourceEditorVisible, value))
-            {
-                OnPropertyChanged(nameof(SourceEditorColumnWidth));
-                OnPropertyChanged(nameof(PreviewSplitterWidth));
-            }
-        }
-    }
-
-    public bool AllowPreviewEdit
-    {
-        get => _visualEditorState.AllowPreviewEdit;
-        set
-        {
-            if (_visualEditorState.AllowPreviewEdit == value)
-            {
-                return;
-            }
-
-            _visualEditorState.SetAllowPreviewEdit(value);
-            OnPropertyChanged(nameof(AllowPreviewEdit));
-        }
-    }
-
     public GridLength SidebarColumnWidth => IsSidebarVisible ? new GridLength(320) : new GridLength(0);
 
     public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(6) : new GridLength(0);
 
-    public GridLength SourceEditorColumnWidth => IsSourceEditorVisible ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
-
     public GridLength PreviewColumnWidth => IsPreviewVisible ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
 
-    public GridLength PreviewSplitterWidth => IsPreviewVisible && IsSourceEditorVisible ? new GridLength(6) : new GridLength(0);
+    public GridLength PreviewSplitterWidth => IsPreviewVisible ? new GridLength(6) : new GridLength(0);
 
     public bool IsAlwaysOnTop
     {
@@ -153,22 +115,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         IsPreviewVisible = !IsPreviewVisible;
     }
 
-    public void ToggleSourceEditor()
-    {
-        IsSourceEditorVisible = !IsSourceEditorVisible;
-        _statusPublisher.PublishResource(IsSourceEditorVisible
-            ? VexL.StatusSourceEditorShown
-            : VexL.StatusSourceEditorHidden);
-    }
-
-    public void TogglePreviewEdit()
-    {
-        AllowPreviewEdit = !AllowPreviewEdit;
-        _statusPublisher.PublishResource(AllowPreviewEdit
-            ? VexL.StatusPreviewEditEnabled
-            : VexL.StatusPreviewEditDisabled);
-    }
-
     public void ToggleStatusBar()
     {
         IsStatusBarVisible = !IsStatusBarVisible;
@@ -181,10 +127,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             // 源码模式会临时隐藏侧栏和预览，退出时必须恢复用户原先的布局选择。
             _sidebarBeforeSourceMode = IsSidebarVisible;
             _previewBeforeSourceMode = IsPreviewVisible;
-            _sourceEditorBeforeSourceMode = IsSourceEditorVisible;
             IsSidebarVisible = false;
             IsPreviewVisible = false;
-            IsSourceEditorVisible = true;
             IsSourceMode = true;
             _statusPublisher.PublishResource(VexL.StatusSourceModeEnabled);
             FocusEditor();
@@ -193,7 +137,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
         IsSidebarVisible = _sidebarBeforeSourceMode;
         IsPreviewVisible = _previewBeforeSourceMode;
-        IsSourceEditorVisible = _sourceEditorBeforeSourceMode;
         IsSourceMode = false;
         _statusPublisher.PublishResource(VexL.StatusSourceModeDisabled);
         FocusEditor();
