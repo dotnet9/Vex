@@ -36,6 +36,8 @@
 - 验证 `dotnet build Vex.slnx`，截图确认默认窗口空状态、三栏布局和状态栏显示正常。
 - 增加 `IMarkdownExportService` 和 HTML 导出实现，导出菜单的 HTML 项会通过 Markdig 生成带基础阅读样式的独立 HTML 文件。
 - 核查 Markdig 许可证为 BSD-2-Clause，显式加入 NuGet 引用和裁剪免裁配置；验证 `dotnet build Vex.slnx` 与 NuGet 漏洞扫描。
+- 实现格式菜单清除样式动作，通过 CodeWF.EventBus 通知 AvaloniaEdit 控制器清理选区或当前行的常见 Markdown 标记。
+- 验证 `dotnet build Vex.slnx`。
 
 ### en-US
 
@@ -71,3 +73,5 @@
 - Verified `dotnet build Vex.slnx` and captured a screenshot for the default window empty states, three-pane layout, and status bar text.
 - Added `IMarkdownExportService` and HTML export support; the HTML export menu item now generates a standalone HTML file with baseline reading styles through Markdig.
 - Checked Markdig's BSD-2-Clause license, added an explicit NuGet reference and trimmer root, and verified `dotnet build Vex.slnx` plus NuGet vulnerability scanning.
+- Implemented the clear-formatting menu action through CodeWF.EventBus so the AvaloniaEdit controller can clean common Markdown markers from the selection or current line.
+- Verified `dotnet build Vex.slnx`.

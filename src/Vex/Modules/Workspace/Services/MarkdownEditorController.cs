@@ -117,6 +117,9 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
             case EditorActionKind.Image:
                 InsertText("![alt text](image.png)");
                 break;
+            case EditorActionKind.ClearFormatting:
+                ClearFormatting();
+                break;
             case EditorActionKind.Paragraph:
                 PrefixCurrentLine(string.Empty);
                 break;
@@ -270,6 +273,42 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
             var length = Math.Clamp(_editor.SelectionLength, 0, text.Length - start);
             _editor.Text = text[..start] + insertion + text[(start + length)..];
             _editor.CaretOffset = start + insertion.Length;
+        });
+    }
+
+    private void ClearFormatting()
+    {
+        if (_editor is null)
+        {
+            return;
+        }
+
+        RunTextMutation(() =>
+        {
+            var text = _editor.Text ?? string.Empty;
+            var start = Math.Clamp(_editor.SelectionStart, 0, text.Length);
+            var length = Math.Clamp(_editor.SelectionLength, 0, text.Length - start);
+
+            if (length == 0)
+            {
+                var offset = Math.Clamp(_editor.CaretOffset, 0, text.Length);
+                start = text.LastIndexOf('\n', Math.Max(0, offset - 1));
+                start = start < 0 ? 0 : start + 1;
+                var end = text.IndexOf('\n', start);
+                if (end < 0)
+                {
+                    end = text.Length;
+                }
+
+                length = end - start;
+            }
+
+            var selected = text.Substring(start, length);
+            var cleaned = ClearMarkdownFormatting(selected);
+            _editor.Text = text[..start] + cleaned + text[(start + length)..];
+            _editor.SelectionStart = start;
+            _editor.SelectionLength = cleaned.Length;
+            _editor.CaretOffset = start + cleaned.Length;
         });
     }
 
@@ -445,5 +484,26 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
         }
 
         return line;
+    }
+
+    private static string ClearMarkdownFormatting(string markdown)
+    {
+        var lines = markdown
+            .Replace("**", string.Empty, StringComparison.Ordinal)
+            .Replace("__", string.Empty, StringComparison.Ordinal)
+            .Replace("*", string.Empty, StringComparison.Ordinal)
+            .Replace("_", string.Empty, StringComparison.Ordinal)
+            .Replace("`", string.Empty, StringComparison.Ordinal)
+            .Split('\n');
+
+        for (var i = 0; i < lines.Length; i++)
+        {
+            lines[i] = RemoveMarkdownLinePrefix(lines[i])
+                .Replace("![", "[", StringComparison.Ordinal)
+                .Replace("](", " (", StringComparison.Ordinal)
+                .Replace(")", string.Empty, StringComparison.Ordinal);
+        }
+
+        return string.Join('\n', lines);
     }
 }

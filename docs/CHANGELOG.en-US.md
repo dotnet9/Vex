@@ -20,6 +20,7 @@
 - Added recent files, clearing recent files, quick open, and close current document actions to the File menu.
 - Added a find/replace bar with find next, replace next, replace all, and `Ctrl+F`, `Ctrl+H`, `F3`, and `Esc` shortcuts.
 - Added HTML export for the current Markdown document.
+- Added clear formatting support for common Markdown markers in the current selection or line.
 
 ### Changed
 
@@ -39,3 +40,4 @@
 - Tested `Vex.slnx` build for the find/replace changes and captured a desktop screenshot for the base window layout.
 - Captured a desktop screenshot to verify the default sidebar empty state, three-pane layout, and Ready status text.
 - Checked Markdig's BSD-2-Clause license, built `Vex.slnx`, and ran NuGet vulnerability scanning.
+- Built `Vex.slnx` to verify the clear-formatting editor action.

@@ -13,6 +13,7 @@ public enum EditorActionKind
     InlineCode,
     Link,
     Image,
+    ClearFormatting,
     Paragraph,
     Heading1,
     Heading2,

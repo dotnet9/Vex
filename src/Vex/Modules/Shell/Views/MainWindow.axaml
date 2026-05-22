@@ -157,7 +157,7 @@
                         <Separator />
                         <MenuItem Header="链接" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Link}" />
                         <MenuItem Header="图像" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Image}" />
-                        <MenuItem Header="清除样式" Command="{Binding OpenHelpTopic}" CommandParameter="clear-format" />
+                        <MenuItem Header="清除样式" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}" />
                     </MenuItem>
 
                     <MenuItem Header="视图(V)">
