@@ -17,6 +17,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     private readonly IShellDocumentWorkflowText _text;
     private readonly IShellUnsavedChangesGuard _unsavedChanges;
     private readonly IShellDocumentUtilityActions _documentUtilities;
+    private readonly IShellExternalPathResolver _externalPaths;
     private DocumentSnapshot _document;
     private IReadOnlyList<DocumentFile> _documentFiles = [];
     private string _lastSavedMarkdown = string.Empty;
@@ -41,6 +42,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         IShellDocumentWorkflowText text,
         IShellUnsavedChangesGuard unsavedChanges,
         IShellDocumentUtilityActions documentUtilities,
+        IShellExternalPathResolver externalPaths,
         IEventBus eventBus)
     {
         _documentService = documentService;
@@ -61,6 +63,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _text = text;
         _unsavedChanges = unsavedChanges;
         _documentUtilities = documentUtilities;
+        _externalPaths = externalPaths;
         _eventBus = eventBus;
         _eventBus.Subscribe(this);
 
@@ -73,70 +76,67 @@ public sealed class MainWindowViewModel : ReactiveObject
     public event EventHandler? CloseWindowRequested;
 
     public ShellAppearanceViewModel Appearance { get; }
-
     public ShellDocumentInfoViewModel DocumentInfo { get; }
-
     public ShellDialogsViewModel Dialogs { get; }
-
     public ShellEditorActionsViewModel EditorActions { get; }
-
     public ShellEditorDisplayViewModel EditorDisplay { get; }
-
     public ShellFindBarViewModel FindBar { get; }
-
     public ShellHelpViewModel Help { get; }
-
     public ShellWindowLayoutViewModel Layout { get; }
-
     public ShellNavigationViewModel Navigation { get; }
-
     public ShellRecentDocumentsViewModel Recent { get; }
-
     public ShellStatusViewModel Status { get; }
 
     public async Task OpenStartupDocumentAsync(IEnumerable<string> arguments)
     {
-        var path = arguments.FirstOrDefault(argument => File.Exists(argument) || Directory.Exists(argument));
-        if (string.IsNullOrWhiteSpace(path))
+        var target = _externalPaths.ResolveStartupArgument(arguments);
+        if (target.Path is not { Length: > 0 } path)
         {
             return;
         }
 
-        if (Directory.Exists(path))
+        if (target.Kind == ShellExternalPathKind.Folder)
         {
             await ApplyDocumentFilesAsync(await _documentService.OpenFolderPathAsync(path), true);
             return;
         }
 
-        ApplyDocument(await _documentService.OpenPathAsync(path));
+        if (target.Kind == ShellExternalPathKind.File)
+        {
+            ApplyDocument(await _documentService.OpenPathAsync(path));
+        }
     }
 
     public Task OpenDroppedPathAsync(string path)
     {
-        if (Directory.Exists(path))
+        var target = _externalPaths.ResolveDroppedPath(path);
+        if (target.Kind == ShellExternalPathKind.Missing)
+        {
+            return PublishAndComplete(_text.PublishDroppedItemUnavailable);
+        }
+
+        if (target.Kind == ShellExternalPathKind.Unsupported)
+        {
+            return PublishAndComplete(_text.PublishDropMarkdownOrTextFile);
+        }
+
+        if (target.Path is not { Length: > 0 } resolvedPath)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (target.Kind == ShellExternalPathKind.Folder)
         {
             return RequestUnsavedConfirmationAsync(
                 _text.TitleBeforeOpeningFolder,
                 _text.BeforeOpeningDroppedFolder(_document.FileName),
-                () => OpenFolderPathCoreAsync(path));
-        }
-
-        if (!File.Exists(path))
-        {
-            _text.PublishDroppedItemUnavailable();
-            return Task.CompletedTask;
-        }
-
-        if (!_documentService.IsSupportedDocumentPath(path))
-        {
-            _text.PublishDropMarkdownOrTextFile();
-            return Task.CompletedTask;
+                () => OpenFolderPathCoreAsync(resolvedPath));
         }
 
         return RequestUnsavedConfirmationAsync(
             _text.TitleBeforeOpening,
-            _text.BeforeOpeningFile(_document.FileName, Path.GetFileName(path)),
-            () => OpenPathCoreAsync(path));
+            _text.BeforeOpeningFile(_document.FileName, target.FileName ?? resolvedPath),
+            () => OpenPathCoreAsync(resolvedPath));
     }
 
     public string Markdown
@@ -426,25 +426,15 @@ public sealed class MainWindowViewModel : ReactiveObject
     }
 
     public void ShowProperties() => _documentUtilities.ShowProperties(Dialogs, DocumentInfo);
-
     public Task Export(string? format) => _documentUtilities.ExportAsync(_document, Markdown, format);
-
     public Task Print() => _documentUtilities.PrintAsync(_document, Markdown);
-
     public void WordCount() => _documentUtilities.WordCount(Dialogs, DocumentInfo.Statistics);
-
     public bool CloseFloatingPanel() => Dialogs.CloseFloatingPanel();
-
     public void ShowFindPanel() => FindBar.ShowFindPanel();
-
     public void ShowReplacePanel() => FindBar.ShowReplacePanel();
-
     public void CloseFindPanel() => FindBar.CloseFindPanel();
-
     public void FindNext() => FindBar.FindNext();
-
     public void ReplaceNext() => FindBar.ReplaceNext();
-
     public void ReplaceAll() => FindBar.ReplaceAll();
 
     public async Task OpenRecentDocumentAsync(int index)
@@ -455,7 +445,8 @@ public sealed class MainWindowViewModel : ReactiveObject
             return;
         }
 
-        if (!File.Exists(recent.Path))
+        var target = _externalPaths.ResolveRecentPath(recent.Path);
+        if (target is not { Kind: ShellExternalPathKind.File, Path: { Length: > 0 } path })
         {
             Recent.RemoveRecentDocument(recent.Path);
             _text.PublishRecentFileRemovedMissing();
@@ -465,7 +456,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         await RequestUnsavedConfirmationAsync(
             _text.TitleBeforeOpeningRecent,
             _text.BeforeOpeningRecent(_document.FileName, recent.DisplayText),
-            async () => ApplyDocument(await _documentService.OpenPathAsync(recent.Path)));
+            async () => ApplyDocument(await _documentService.OpenPathAsync(path)));
     }
 
     public Task BeginWindowCloseAsync()
@@ -483,6 +474,12 @@ public sealed class MainWindowViewModel : ReactiveObject
     public Task SavePendingActionAsync() => _unsavedChanges.SavePendingActionAsync(SaveAsync, () => DocumentInfo.IsModified);
 
     public Task DiscardPendingActionAsync() => _unsavedChanges.DiscardPendingActionAsync();
+
+    private static Task PublishAndComplete(Action publish)
+    {
+        publish();
+        return Task.CompletedTask;
+    }
 
     private Task RequestUnsavedConfirmationAsync(
         string title,

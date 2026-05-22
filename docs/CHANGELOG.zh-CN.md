@@ -165,3 +165,5 @@
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图确认拆分后的预览能渲染初始文档。
 - 🔧[优化]-将状态栏初始 `Ready` 文案接入 `StatusReady` 本地化资源，并在状态栏仍为空闲状态时随语言刷新。
 - 🧪[测试]-校验 JSON 资源、构建 `Vex.slnx`、执行 `git diff --check`、检索硬编码 `Ready`，并截图确认启动状态文案已本地化。
+- 🔧[优化]-将启动参数、拖放和最近文件路径分类拆入 `ShellExternalPathResolver`，文件系统检查不再散落在 `MainWindowViewModel`。
+- 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并用启动参数截图确认 Markdown 文件可通过解析服务直接打开。

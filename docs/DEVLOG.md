@@ -207,6 +207,11 @@
 - 验证全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并检索确认除 en-US 资源值外不再存在硬编码 `Ready`。
 - 启动 Debug 桌面程序并使用窗口句柄截图，确认中文状态栏左下角显示 `就绪`。截图路径：`%TEMP%\VexScreenshots\localized-ready-status-startup.png`。
 - 本轮未新增第三方依赖。
+- 新增 `IShellExternalPathResolver`/`ShellExternalPathResolver`，集中解析启动参数、拖放路径和最近文件路径的文件/文件夹/缺失/不支持状态。
+- `MainWindowViewModel` 不再直接调用 `File.Exists`、`Directory.Exists` 或 `IDocumentService.IsSupportedDocumentPath` 做路径分类，文件系统检查收口到 Shell 服务。
+- `MainWindowViewModel.cs` 本轮保持 496 行，仍低于 500 行检查线。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并用临时 Markdown 文件作为启动参数启动 Debug 桌面程序，截图确认文件标题、编辑器、预览和状态栏都正确更新。截图路径：`%TEMP%\VexScreenshots\external-path-resolver-startup-file.png`。
+- 本轮未新增第三方依赖。
 
 ### en-US
 
@@ -499,4 +504,9 @@
 - `ShellStatusViewModel` no longer hard-codes `Ready`; it reads through `IAppLocalizer`, and it refreshes on culture changes while the status bar is still showing the idle ready state.
 - Verified all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and searched to confirm hard-coded `Ready` only remains as the en-US resource value.
 - Launched the Debug desktop app and captured a window-handle screenshot confirming the Chinese status bar shows `就绪` in the bottom-left corner. Screenshot path: `%TEMP%\VexScreenshots\localized-ready-status-startup.png`.
+- Added no new third-party dependency.
+- Added `IShellExternalPathResolver`/`ShellExternalPathResolver`, centralizing startup-argument, dropped-path, and recent-file path classification as file, folder, missing, or unsupported.
+- `MainWindowViewModel` no longer calls `File.Exists`, `Directory.Exists`, or `IDocumentService.IsSupportedDocumentPath` for path classification; file-system checks now sit in a Shell service.
+- `MainWindowViewModel.cs` remains at 496 lines, still below the 500-line check threshold.
+- Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a temporary Markdown file as the startup argument; the screenshot confirms the file title, editor, preview, and status bar all update. Screenshot path: `%TEMP%\VexScreenshots\external-path-resolver-startup-file.png`.
 - Added no new third-party dependency.
