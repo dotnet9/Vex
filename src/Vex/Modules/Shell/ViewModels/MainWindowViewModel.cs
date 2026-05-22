@@ -43,8 +43,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     private string _unsavedConfirmMessage = "Save changes before continuing?";
     private string _unsavedConfirmPath = "Unsaved document";
     private MarkdownStatistics _statistics = new(0, 0, 1);
-    private DocumentFile? _selectedDocumentFile;
-    private OutlineItem? _selectedOutlineItem;
 
     public MainWindowViewModel(
         IDocumentService documentService,
@@ -56,6 +54,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         ShellEditorActionsViewModel editorActions,
         ShellEditorDisplayViewModel editorDisplay,
         ShellFindBarViewModel findBar,
+        ShellNavigationViewModel navigation,
         ShellRecentDocumentsViewModel recent,
         ShellStatusViewModel status,
         IEventBus eventBus)
@@ -69,6 +68,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         EditorActions = editorActions;
         EditorDisplay = editorDisplay;
         FindBar = findBar;
+        Navigation = navigation;
         Recent = recent;
         Status = status;
         _eventBus = eventBus;
@@ -88,6 +88,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ShellEditorDisplayViewModel EditorDisplay { get; }
 
     public ShellFindBarViewModel FindBar { get; }
+
+    public ShellNavigationViewModel Navigation { get; }
 
     public ShellRecentDocumentsViewModel Recent { get; }
 
@@ -138,10 +140,6 @@ public sealed class MainWindowViewModel : ReactiveObject
             () => OpenPathCoreAsync(path));
     }
 
-    public ObservableCollection<DocumentFile> DocumentFiles { get; } = [];
-
-    public ObservableCollection<OutlineItem> OutlineItems { get; } = [];
-
     public string Markdown
     {
         get => _markdown;
@@ -164,25 +162,11 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public bool HasCurrentFile => !string.IsNullOrWhiteSpace(CurrentFilePath);
 
-    public bool HasDocumentFiles => DocumentFiles.Count > 0;
-
-    public bool IsDocumentFilesEmpty => !HasDocumentFiles;
-
-    public bool HasOutlineItems => OutlineItems.Count > 0;
-
-    public bool IsOutlineEmpty => !HasOutlineItems;
-
     public bool IsModified => !string.Equals(Markdown, _lastSavedMarkdown, StringComparison.Ordinal);
 
     public string DocumentStateText => IsModified ? "Modified" : "Saved";
 
     public string CurrentEncodingText => GetEncodingDisplayName(_document.Encoding);
-
-    public int SelectedSideTabIndex
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
 
     public bool IsSidebarVisible
     {
@@ -312,33 +296,6 @@ public sealed class MainWindowViewModel : ReactiveObject
         ? FormatFileSize(new FileInfo(path).Length)
         : $"{Encoding.UTF8.GetByteCount(Markdown):N0} B";
 
-    public DocumentFile? SelectedDocumentFile
-    {
-        get => _selectedDocumentFile;
-        set
-        {
-            var previousSelection = _selectedDocumentFile;
-            if (SetProperty(ref _selectedDocumentFile, value) && value is not null)
-            {
-                _ = OpenDocumentFileAsync(value, previousSelection);
-            }
-        }
-    }
-
-    public OutlineItem? SelectedOutlineItem
-    {
-        get => _selectedOutlineItem;
-        set
-        {
-            if (SetProperty(ref _selectedOutlineItem, value) && value is not null)
-            {
-                SelectedSideTabIndex = 1;
-                _eventBus.Publish(new NavigateToLineCommand(value.Line));
-                SetStatus($"Navigated to {value.Title}.");
-            }
-        }
-    }
-
     public Task NewDocument()
     {
         return RequestUnsavedConfirmationAsync(
@@ -378,10 +335,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _document = _documentService.CreateNew();
         _lastSavedMarkdown = _document.Markdown;
         Markdown = _document.Markdown;
-        DocumentFiles.Clear();
-        SelectedDocumentFile = null;
-        SelectedOutlineItem = null;
-        NotifyDocumentFilesChanged();
+        Navigation.ClearDocumentFiles();
         SetStatus("Document closed.");
         NotifyDocumentChanged();
         EditorActions.FocusEditor();
@@ -414,9 +368,9 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public async Task QuickOpenAsync()
     {
-        if (DocumentFiles.Count > 0)
+        if (Navigation.HasDocumentFiles)
         {
-            SelectedSideTabIndex = 0;
+            Navigation.SelectedSideTabIndex = 0;
             SetStatus("Choose a document from the loaded folder.");
             return;
         }
@@ -449,17 +403,12 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private async Task ApplyDocumentFilesAsync(IReadOnlyList<DocumentFile> files, bool bypassUnsavedPrompt = false)
     {
-        DocumentFiles.Clear();
-        foreach (var file in files)
-        {
-            DocumentFiles.Add(file);
-        }
-        NotifyDocumentFilesChanged();
+        Navigation.SetDocumentFiles(files);
 
         SetStatus(files.Count == 0 ? "No markdown files loaded." : $"Loaded {files.Count} markdown files.");
         if (files.Count > 0)
         {
-            SetProperty(ref _selectedDocumentFile, files[0], nameof(SelectedDocumentFile));
+            Navigation.SelectDocumentFileSilently(files[0]);
             if (bypassUnsavedPrompt)
             {
                 await OpenDocumentFileCoreAsync(files[0]);
@@ -482,7 +431,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             "Save changes before switching files?",
             $"Save changes to {_document.FileName} before opening {file.Name}?",
             () => OpenDocumentFileCoreAsync(file),
-            () => RestoreSelectedDocumentFile(previousSelection));
+            () => Navigation.RestoreSelectedDocumentFile(previousSelection));
     }
 
     private async Task OpenDocumentFileCoreAsync(DocumentFile file)
@@ -655,16 +604,16 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
     }
 
+    [EventHandler]
+    public void ApplyDocumentFileOpenRequested(DocumentFileOpenRequestedCommand command)
+    {
+        _ = OpenDocumentFileAsync(command.File, command.PreviousSelection);
+    }
+
     private void RefreshMarkdownDerivedState()
     {
         Statistics = _statisticsService.Count(Markdown);
-        OutlineItems.Clear();
-        foreach (var item in _outlineService.BuildOutline(Markdown))
-        {
-            OutlineItems.Add(item);
-        }
-
-        NotifyOutlineChanged();
+        Navigation.SetOutlineItems(_outlineService.BuildOutline(Markdown));
     }
 
     public void ShowProperties()
@@ -699,13 +648,13 @@ public sealed class MainWindowViewModel : ReactiveObject
     public void ShowOutline()
     {
         IsSidebarVisible = true;
-        SelectedSideTabIndex = 1;
+        Navigation.SelectedSideTabIndex = 1;
     }
 
     public void ShowFiles()
     {
         IsSidebarVisible = true;
-        SelectedSideTabIndex = 0;
+        Navigation.SelectedSideTabIndex = 0;
     }
 
     public void TogglePreview()
@@ -978,23 +927,6 @@ public sealed class MainWindowViewModel : ReactiveObject
         _pendingUnsavedContinuation = null;
         _pendingUnsavedCancellation = null;
         IsUnsavedConfirmVisible = false;
-    }
-
-    private void RestoreSelectedDocumentFile(DocumentFile? documentFile)
-    {
-        SetProperty(ref _selectedDocumentFile, documentFile, nameof(SelectedDocumentFile));
-    }
-
-    private void NotifyDocumentFilesChanged()
-    {
-        OnPropertyChanged(nameof(HasDocumentFiles));
-        OnPropertyChanged(nameof(IsDocumentFilesEmpty));
-    }
-
-    private void NotifyOutlineChanged()
-    {
-        OnPropertyChanged(nameof(HasOutlineItems));
-        OnPropertyChanged(nameof(IsOutlineEmpty));
     }
 
     private static string FormatFileSize(long bytes)

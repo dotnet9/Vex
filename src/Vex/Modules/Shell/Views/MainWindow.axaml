@@ -243,16 +243,16 @@
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Classes="panel" IsVisible="{Binding IsSidebarVisible}">
-                <TabControl SelectedIndex="{Binding SelectedSideTabIndex, Mode=TwoWay}">
+                <TabControl SelectedIndex="{Binding Navigation.SelectedSideTabIndex, Mode=TwoWay}">
                     <TabItem Header="文件">
                         <Grid>
                             <ListBox
                                 Classes="side-list"
-                                IsVisible="{Binding HasDocumentFiles}"
-                                ItemsSource="{Binding DocumentFiles}"
-                                SelectedItem="{Binding SelectedDocumentFile, Mode=TwoWay}" />
+                                IsVisible="{Binding Navigation.HasDocumentFiles}"
+                                ItemsSource="{Binding Navigation.DocumentFiles}"
+                                SelectedItem="{Binding Navigation.SelectedDocumentFile, Mode=TwoWay}" />
                             <Border
-                                IsVisible="{Binding IsDocumentFilesEmpty}"
+                                IsVisible="{Binding Navigation.IsDocumentFilesEmpty}"
                                 Padding="18"
                                 VerticalAlignment="Top">
                                 <TextBlock
@@ -266,11 +266,11 @@
                         <Grid>
                             <ListBox
                                 Classes="side-list"
-                                IsVisible="{Binding HasOutlineItems}"
-                                ItemsSource="{Binding OutlineItems}"
-                                SelectedItem="{Binding SelectedOutlineItem, Mode=TwoWay}" />
+                                IsVisible="{Binding Navigation.HasOutlineItems}"
+                                ItemsSource="{Binding Navigation.OutlineItems}"
+                                SelectedItem="{Binding Navigation.SelectedOutlineItem, Mode=TwoWay}" />
                             <Border
-                                IsVisible="{Binding IsOutlineEmpty}"
+                                IsVisible="{Binding Navigation.IsOutlineEmpty}"
                                 Padding="18"
                                 VerticalAlignment="Top">
                                 <TextBlock

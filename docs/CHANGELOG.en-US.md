@@ -44,6 +44,7 @@
 - Split status text and caret position into a dedicated `ShellStatusViewModel` that listens through CodeWF.EventBus.
 - Split editor zoom, derived font size, and status-bar zoom text into a dedicated `ShellEditorDisplayViewModel`.
 - Split recent-file menu state and persistence into a dedicated `ShellRecentDocumentsViewModel`.
+- Split sidebar document files, outline items, side-tab selection, and navigation selection state into a dedicated `ShellNavigationViewModel`.
 
 ### Changed
 
@@ -86,3 +87,4 @@
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the extracted status text and line/column badges.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the extracted editor display bindings and `100%` zoom label.
 - Built `Vex.slnx`, ran `git diff --check`, and captured a startup screenshot after moving recent-file menu bindings under `Recent`.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the sidebar empty state after moving navigation bindings under `Navigation`.

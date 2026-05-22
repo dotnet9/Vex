@@ -189,3 +189,9 @@
 - Reduced `MainWindowViewModel.cs` from about 1164 lines to 1048 lines, with the new recent-documents ViewModel at about 159 lines.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a startup screenshot confirming the window still loads after the recent-menu binding refactor. Screenshot path: `%TEMP%\VexScreenshots\recent-module-refactor.png`.
 - Added no new third-party dependency, so no additional license review was required.
+- Split sidebar document files, outline items, side-tab selection, and navigation selection state into `ShellNavigationViewModel`.
+- Added `DocumentFileOpenRequestedCommand` so the navigation module can request file opening through CodeWF.EventBus while the main shell keeps the unsaved-change and document-loading flow.
+- Changed sidebar XAML to bind to `Navigation.*`, and moved outline item navigation/status feedback into the navigation module.
+- Reduced `MainWindowViewModel.cs` from about 1048 lines to 980 lines, with the new navigation ViewModel at about 138 lines.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the sidebar empty state and three-pane layout still render correctly. Screenshot path: `%TEMP%\VexScreenshots\navigation-module-refactor.png`.
+- Added no new third-party dependency, so no additional license review was required.
