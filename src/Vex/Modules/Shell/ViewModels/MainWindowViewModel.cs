@@ -463,7 +463,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     public void WordCount()
     {
         Dialogs.ShowStatisticsPanel();
-        SetStatus($"Words {DocumentInfo.Statistics.Words}, Characters {DocumentInfo.Statistics.Characters}, Lines {DocumentInfo.Statistics.Lines}.");
+        SetStatus($"Words {DocumentInfo.Statistics.Words}, Characters {DocumentInfo.Statistics.Characters}, Lines {DocumentInfo.Statistics.Lines}, Reading {DocumentInfo.Statistics.ReadingMinutes} min.");
     }
 
     public bool CloseFloatingPanel()

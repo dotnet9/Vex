@@ -103,6 +103,11 @@
 - `MainWindowViewModel.cs` 从约 552 行降至约 521 行，新增 `ShellHelpViewModel.cs` 约 51 行，并补充中文注释说明帮助入口与 Shell 浮层职责边界。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认帮助模块触发关于浮层和状态栏 `About Vex.` 反馈正常。截图路径：`%TEMP%\VexScreenshots\help-module-refactor.png`。
 - 本轮未新增第三方依赖，无需额外许可证核查。
+- 扩展 Markdown 统计模型：`MarkdownStatistics` 新增段落数、标题数和预估阅读时间，统计服务会在剥离常见 Markdown 标记后计算正文指标。
+- 统计浮层增加 Paragraphs、Headings、Reading 三项，字数统计状态栏反馈同步显示阅读时间，便于长文档快速评估结构与阅读成本。
+- 在统计服务中补充中文维护注释，说明语法标记弱化和段落统计边界，后续调整算法时更容易定位入口。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认扩展后的统计浮层布局不溢出，新字段显示正常。截图路径：`%TEMP%\VexScreenshots\statistics-expanded.png`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 
 ### en-US
 
@@ -234,4 +239,8 @@
 - Registered the help ViewModel through Prism IoC, changed menu bindings to `Help.OpenHelpTopic`, reused `ShellDialogsViewModel` for the about overlay, and kept status feedback on CodeWF.EventBus.
 - Reduced `MainWindowViewModel.cs` from about 552 lines to about 521 lines, with the new help ViewModel at about 51 lines.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the help module opens the about overlay and publishes `About Vex.` status feedback. Screenshot path: `%TEMP%\VexScreenshots\help-module-refactor.png`.
+- Added no new third-party dependency, so no additional license review was required.
+- Extended `MarkdownStatistics` with paragraph count, heading count, and estimated reading time, calculated after common Markdown syntax markers are softened.
+- Added Paragraphs, Headings, and Reading rows to the statistics overlay, and included reading time in the word-count status feedback.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the expanded statistics panel fits and renders the new fields. Screenshot path: `%TEMP%\VexScreenshots\statistics-expanded.png`.
 - Added no new third-party dependency, so no additional license review was required.

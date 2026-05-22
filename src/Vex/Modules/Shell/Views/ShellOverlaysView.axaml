@@ -32,7 +32,7 @@
                 <Grid
                     Grid.Row="1"
                     ColumnDefinitions="*,Auto"
-                    RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                    RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
                     RowSpacing="8">
                     <TextBlock Classes="muted" Text="Words" />
                     <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.Statistics.Words}" />
@@ -40,10 +40,16 @@
                     <TextBlock Grid.Row="1" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.Statistics.Characters}" />
                     <TextBlock Grid.Row="2" Classes="muted" Text="Lines" />
                     <TextBlock Grid.Row="2" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.Statistics.Lines}" />
-                    <TextBlock Grid.Row="3" Classes="muted" Text="Encoding" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.CurrentEncodingText}" />
-                    <TextBlock Grid.Row="4" Classes="muted" Text="State" />
-                    <TextBlock Grid.Row="4" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.DocumentStateText}" />
+                    <TextBlock Grid.Row="3" Classes="muted" Text="Paragraphs" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.Statistics.Paragraphs}" />
+                    <TextBlock Grid.Row="4" Classes="muted" Text="Headings" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.Statistics.Headings}" />
+                    <TextBlock Grid.Row="5" Classes="muted" Text="Reading" />
+                    <TextBlock Grid.Row="5" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.Statistics.ReadingMinutes, StringFormat={}{0} min}" />
+                    <TextBlock Grid.Row="6" Classes="muted" Text="Encoding" />
+                    <TextBlock Grid.Row="6" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.CurrentEncodingText}" />
+                    <TextBlock Grid.Row="7" Classes="muted" Text="State" />
+                    <TextBlock Grid.Row="7" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.DocumentStateText}" />
                 </Grid>
             </Grid>
         </Border>

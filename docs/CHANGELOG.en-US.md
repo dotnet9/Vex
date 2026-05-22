@@ -49,6 +49,7 @@
 - Split sidebar, preview, status-bar, source-mode, always-on-top, and full-screen state into a dedicated `ShellWindowLayoutViewModel`.
 - Split window-title, saved-state, encoding, file-size, statistics, and properties-panel display state into a dedicated `ShellDocumentInfoViewModel`.
 - Split help menu actions into a dedicated `ShellHelpViewModel` that reuses the dialogs module for the about overlay and publishes status feedback through CodeWF.EventBus.
+- Added paragraph count, heading count, and estimated reading time to Markdown statistics and the statistics overlay.
 
 ### Changed
 
@@ -96,3 +97,4 @@
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the default three-pane layout, preview, and status bar after moving layout bindings under `Layout`.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified title and status-bar bindings after moving document display state under `DocumentInfo`.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the help module opening the about overlay and updating the status bar.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the expanded statistics overlay fields and layout.
