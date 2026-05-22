@@ -151,3 +151,5 @@
 - Validated JSON resources, built `Vex.slnx`, ran `git diff --check`, searched for the old hard-coded template, and captured a window screenshot of the localized default document.
 - Split editor search/replace behavior into `MarkdownEditorSearchService`, reducing `MarkdownEditorController.cs` from 493 to 298 lines.
 - Built `Vex.slnx`, ran `git diff --check`, and captured a startup window screenshot after the search-service refactor.
+- Moved recent-file persistence into `IRecentDocumentStore`/`RecentDocumentStore`, keeping recent menu state in the ViewModel and file I/O in a service.
+- Built `Vex.slnx`, ran `git diff --check`, and captured a startup screenshot after the recent-file store refactor.

@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
 using ReactiveUI;
 using Vex.Core.Models;
 using Vex.Core.Services;
@@ -11,11 +10,16 @@ public sealed class ShellRecentDocumentsViewModel : ReactiveObject
 {
     private const int MaxRecentDocuments = 5;
     private readonly IAppLocalizer _localizer;
+    private readonly IRecentDocumentStore _recentDocumentStore;
     private readonly IShellStatusPublisher _statusPublisher;
 
-    public ShellRecentDocumentsViewModel(IAppLocalizer localizer, IShellStatusPublisher statusPublisher)
+    public ShellRecentDocumentsViewModel(
+        IAppLocalizer localizer,
+        IRecentDocumentStore recentDocumentStore,
+        IShellStatusPublisher statusPublisher)
     {
         _localizer = localizer;
+        _recentDocumentStore = recentDocumentStore;
         _statusPublisher = statusPublisher;
         LoadRecentDocuments();
     }
@@ -99,15 +103,9 @@ public sealed class ShellRecentDocumentsViewModel : ReactiveObject
 
     private void LoadRecentDocuments()
     {
-        if (!File.Exists(RecentDocumentsPath))
+        foreach (var document in _recentDocumentStore.Load(MaxRecentDocuments))
         {
-            return;
-        }
-
-        var paths = File.ReadAllLines(RecentDocumentsPath);
-        foreach (var path in paths.Where(File.Exists).Take(MaxRecentDocuments))
-        {
-            RecentDocuments.Add(new RecentDocument(Path.GetFullPath(path)));
+            RecentDocuments.Add(document);
         }
 
         NotifyRecentDocumentsChanged();
@@ -115,9 +113,7 @@ public sealed class ShellRecentDocumentsViewModel : ReactiveObject
 
     private void SaveRecentDocuments()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(RecentDocumentsPath)!);
-        var paths = RecentDocuments.Select(item => item.Path).ToArray();
-        File.WriteAllLines(RecentDocumentsPath, paths);
+        _recentDocumentStore.Save(RecentDocuments);
     }
 
     private void NotifyRecentDocumentsChanged()
@@ -141,13 +137,6 @@ public sealed class ShellRecentDocumentsViewModel : ReactiveObject
             ? RecentDocuments[index].DisplayText
             : _localizer.Get(VexL.RecentNoFiles);
     }
-
-    private static string RecentDocumentsPath =>
-        Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "CodeWF",
-            "Vex",
-            "recent-files.txt");
 
     private void OnPropertyChanged(string propertyName)
     {

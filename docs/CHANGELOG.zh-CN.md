@@ -159,3 +159,5 @@
 - 🧪[测试]-校验 JSON 资源、构建 `Vex.slnx`、执行 `git diff --check`、检索旧硬编码模板，并截图确认默认文档本地化显示。
 - 🔧[优化]-将编辑器查找/替换行为拆入 `MarkdownEditorSearchService`，`MarkdownEditorController.cs` 从 493 行降到 298 行。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并在搜索服务重构后截图确认启动窗口正常渲染。
+- 🔧[优化]-将最近文件持久化拆入 `IRecentDocumentStore`/`RecentDocumentStore`，ViewModel 只维护最近文件菜单状态，文件 I/O 由服务承担。
+- 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并在最近文件存储重构后截图确认启动窗口正常渲染。

@@ -191,6 +191,11 @@
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并启动 Debug 桌面程序使用窗口句柄截图确认默认编辑器与预览仍正常渲染。截图路径：`%TEMP%\VexScreenshots\editor-search-service-refactor-startup.png`。
 - 自动快捷键注入未稳定打开查找栏，因此本轮不把查找栏交互截图作为通过证据；搜索服务路径由编译和保留的 EventBus 入口覆盖，后续可补自动化 UI 测试。
 - 本轮未新增第三方依赖。
+- 新增 `IRecentDocumentStore`/`RecentDocumentStore`，将最近文件持久化从 `ShellRecentDocumentsViewModel` 抽离。
+- `ShellRecentDocumentsViewModel` 只保留菜单状态、排序和状态提示，AppData 文件读写通过 Prism IoC 解析的服务完成。
+- 存储服务加载时会过滤不可读、已丢失、重复和无效的最近文件条目，避免轻量状态坏数据阻塞启动。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并启动 Debug 桌面程序使用窗口句柄截图确认 Shell 仍正常渲染。截图路径：`%TEMP%\VexScreenshots\recent-document-store-startup.png`。
+- 本轮未新增第三方依赖。
 
 ### en-US
 
@@ -467,4 +472,9 @@
 - Reduced `MarkdownEditorController.cs` from 493 lines to 298 lines; the controller keeps editor lifetime, text sync, editor actions, and navigation while the search service owns search-result publication.
 - Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a window-handle screenshot confirming the editor and preview still render. Screenshot path: `%TEMP%\VexScreenshots\editor-search-service-refactor-startup.png`.
 - Keyboard injection did not reliably open the find bar in this session, so this iteration does not claim an interactive find-bar screenshot; the search path is covered by compilation and the retained EventBus entry point.
+- Added no new third-party dependency.
+- Added `IRecentDocumentStore`/`RecentDocumentStore`, moving recent-file persistence out of `ShellRecentDocumentsViewModel`.
+- `ShellRecentDocumentsViewModel` now keeps menu state, ordering, and status feedback only; AppData file reads/writes are resolved through Prism IoC.
+- The store filters unreadable, missing, duplicate, and invalid recent-file entries during load so bad lightweight state does not block startup.
+- Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a window-handle screenshot confirming the shell still renders. Screenshot path: `%TEMP%\VexScreenshots\recent-document-store-startup.png`.
 - Added no new third-party dependency.
