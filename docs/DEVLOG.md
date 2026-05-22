@@ -58,6 +58,10 @@
 - 验证 `dotnet build Vex.slnx`。
 - 增加浮层统一关闭入口：`Esc` 可关闭属性、统计和关于浮层，删除确认浮层中按 `Esc` 会执行取消删除。
 - 验证 `dotnet build Vex.slnx`。
+- 增加未保存内容保护：新建、关闭当前文档、打开文件、打开文件夹、打开最近文件、切换文件列表项、编码重开、删除当前文件和关闭窗口前，会统一显示保存确认浮层。
+- 保存确认浮层支持保存后继续、不保存继续和取消操作；`Esc` 会取消当前风险操作并保留未保存内容。
+- 验证 `dotnet build Vex.slnx` 与 `git diff --check`，并截图检查保存确认浮层居中显示、按钮不溢出、状态栏仍可读。截图路径：`%TEMP%\VexScreenshots\unsaved-confirm-final.png`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 
 ### en-US
 
@@ -115,3 +119,7 @@
 - Verified `dotnet build Vex.slnx`.
 - Added unified overlay closing so `Esc` closes properties, statistics, and about panels, while delete confirmation treats `Esc` as cancel.
 - Verified `dotnet build Vex.slnx`.
+- Added unsaved-change protection before creating a new document, closing the current document, opening files or folders, opening recent files, switching sidebar files, reopening with another encoding, deleting the current file, and closing the application window.
+- Added a shared save-confirmation overlay with Save, Don't Save, and Cancel paths; `Esc` cancels the pending risky action and keeps the unsaved content.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot to check the save-confirmation overlay placement, button fit, and readable status bar. Screenshot path: `%TEMP%\VexScreenshots\unsaved-confirm-final.png`.
+- Added no new third-party dependency, so no additional license review was required.

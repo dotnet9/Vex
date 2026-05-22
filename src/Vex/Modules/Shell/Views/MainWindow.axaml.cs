@@ -8,10 +8,13 @@ namespace Vex.Modules.Shell.Views;
 
 public partial class MainWindow : Window
 {
+    private bool _isCloseConfirmed;
+
     public MainWindow()
     {
         InitializeComponent();
         AddHandler(KeyDownEvent, WindowKeyDown, RoutingStrategies.Tunnel);
+        Closing += WindowClosing;
     }
 
     public MainWindow(MainWindowViewModel viewModel)
@@ -19,6 +22,7 @@ public partial class MainWindow : Window
     {
         DataContext = viewModel;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        viewModel.CloseWindowRequested += OnCloseWindowRequested;
         ApplyWindowState(viewModel);
         Opened += async (_, _) => await viewModel.OpenStartupDocumentAsync(Environment.GetCommandLineArgs().Skip(1));
     }
@@ -59,8 +63,8 @@ public partial class MainWindow : Window
 
         if (hasControl && !hasShift && e.Key == Key.N)
         {
-            viewModel.NewDocument();
             e.Handled = true;
+            await viewModel.NewDocument();
         }
         else if (hasControl && !hasShift && e.Key == Key.O)
         {
@@ -84,8 +88,8 @@ public partial class MainWindow : Window
         }
         else if (hasControl && !hasShift && e.Key == Key.W)
         {
-            viewModel.CloseDocument();
             e.Handled = true;
+            await viewModel.CloseDocument();
         }
         else if (hasControl && !hasShift && IsZoomInKey(e.Key))
         {
@@ -127,13 +131,13 @@ public partial class MainWindow : Window
             viewModel.FindNext();
             e.Handled = true;
         }
+        else if (e.Key == Key.Escape && viewModel.CloseFloatingPanel())
+        {
+            e.Handled = true;
+        }
         else if (e.Key == Key.Escape && viewModel.IsFindPanelVisible)
         {
             viewModel.CloseFindPanel();
-            e.Handled = true;
-        }
-        else if (e.Key == Key.Escape && viewModel.CloseFloatingPanel())
-        {
             e.Handled = true;
         }
     }
@@ -166,5 +170,25 @@ public partial class MainWindow : Window
     {
         Topmost = viewModel.IsAlwaysOnTop;
         WindowState = viewModel.IsFullScreen ? WindowState.FullScreen : WindowState.Normal;
+    }
+
+    private async void WindowClosing(object? sender, CancelEventArgs e)
+    {
+        if (_isCloseConfirmed)
+        {
+            return;
+        }
+
+        if (DataContext is MainWindowViewModel { IsModified: true } viewModel)
+        {
+            e.Cancel = true;
+            await viewModel.BeginWindowCloseAsync();
+        }
+    }
+
+    private void OnCloseWindowRequested(object? sender, EventArgs e)
+    {
+        _isCloseConfirmed = true;
+        Close();
     }
 }

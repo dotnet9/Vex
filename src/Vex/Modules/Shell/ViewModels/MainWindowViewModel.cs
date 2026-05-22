@@ -46,9 +46,15 @@ public sealed class MainWindowViewModel : ReactiveObject
     private bool _isAboutPanelVisible;
     private bool _isPropertiesPanelVisible;
     private bool _isDeleteConfirmVisible;
+    private bool _isUnsavedConfirmVisible;
     private string? _pendingDeletePath;
+    private Func<Task>? _pendingUnsavedContinuation;
+    private Action? _pendingUnsavedCancellation;
     private string _searchText = string.Empty;
     private string _replacementText = string.Empty;
+    private string _unsavedConfirmTitle = "Save changes?";
+    private string _unsavedConfirmMessage = "Save changes before continuing?";
+    private string _unsavedConfirmPath = "Unsaved document";
     private double _editorZoom = 1.0;
     private ThemeOption? _selectedTheme;
     private TypographyOption? _selectedTypography;
@@ -101,6 +107,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         Markdown = _document.Markdown;
     }
 
+    public event EventHandler? CloseWindowRequested;
+
     public async Task OpenStartupDocumentAsync(IEnumerable<string> arguments)
     {
         var path = arguments.FirstOrDefault(argument => File.Exists(argument) || Directory.Exists(argument));
@@ -111,7 +119,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
         if (Directory.Exists(path))
         {
-            await ApplyDocumentFilesAsync(await _documentService.OpenFolderPathAsync(path));
+            await ApplyDocumentFilesAsync(await _documentService.OpenFolderPathAsync(path), true);
             return;
         }
 
@@ -330,11 +338,23 @@ public sealed class MainWindowViewModel : ReactiveObject
         set => SetProperty(ref _isDeleteConfirmVisible, value);
     }
 
+    public bool IsUnsavedConfirmVisible
+    {
+        get => _isUnsavedConfirmVisible;
+        set => SetProperty(ref _isUnsavedConfirmVisible, value);
+    }
+
     public string DeleteConfirmText => _pendingDeletePath is { Length: > 0 }
         ? $"Delete {Path.GetFileName(_pendingDeletePath)}?"
         : "Delete current file?";
 
     public string DeleteConfirmPath => _pendingDeletePath ?? string.Empty;
+
+    public string UnsavedConfirmTitle => _unsavedConfirmTitle;
+
+    public string UnsavedConfirmMessage => _unsavedConfirmMessage;
+
+    public string UnsavedConfirmPath => _unsavedConfirmPath;
 
     public double EditorZoom
     {
@@ -429,9 +449,10 @@ public sealed class MainWindowViewModel : ReactiveObject
         get => _selectedDocumentFile;
         set
         {
+            var previousSelection = _selectedDocumentFile;
             if (SetProperty(ref _selectedDocumentFile, value) && value is not null)
             {
-                _ = OpenDocumentFileAsync(value);
+                _ = OpenDocumentFileAsync(value, previousSelection);
             }
         }
     }
@@ -450,7 +471,19 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
     }
 
-    public void NewDocument()
+    public Task NewDocument()
+    {
+        return RequestUnsavedConfirmationAsync(
+            "Save changes?",
+            $"Save changes to {_document.FileName} before creating a new document?",
+            () =>
+            {
+                NewDocumentCore();
+                return Task.CompletedTask;
+            });
+    }
+
+    private void NewDocumentCore()
     {
         _document = _documentService.CreateNew();
         _lastSavedMarkdown = _document.Markdown;
@@ -460,7 +493,19 @@ public sealed class MainWindowViewModel : ReactiveObject
         PublishEditorAction(EditorActionKind.FocusEditor);
     }
 
-    public void CloseDocument()
+    public Task CloseDocument()
+    {
+        return RequestUnsavedConfirmationAsync(
+            "Save changes?",
+            $"Save changes to {_document.FileName} before closing this document?",
+            () =>
+            {
+                CloseDocumentCore();
+                return Task.CompletedTask;
+            });
+    }
+
+    private void CloseDocumentCore()
     {
         _document = _documentService.CreateNew();
         _lastSavedMarkdown = _document.Markdown;
@@ -484,6 +529,14 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public async Task OpenAsync()
     {
+        await RequestUnsavedConfirmationAsync(
+            "Save changes before opening?",
+            $"Save changes to {_document.FileName} before opening another file?",
+            OpenAsyncCore);
+    }
+
+    private async Task OpenAsyncCore()
+    {
         var snapshot = await _documentService.OpenAsync();
         if (snapshot is not null)
         {
@@ -505,10 +558,18 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public async Task OpenFolderAsync()
     {
-        await ApplyDocumentFilesAsync(await _documentService.OpenFolderAsync());
+        await RequestUnsavedConfirmationAsync(
+            "Save changes before opening a folder?",
+            $"Save changes to {_document.FileName} before opening a folder?",
+            OpenFolderAsyncCore);
     }
 
-    private async Task ApplyDocumentFilesAsync(IReadOnlyList<DocumentFile> files)
+    private async Task OpenFolderAsyncCore()
+    {
+        await ApplyDocumentFilesAsync(await _documentService.OpenFolderAsync(), true);
+    }
+
+    private async Task ApplyDocumentFilesAsync(IReadOnlyList<DocumentFile> files, bool bypassUnsavedPrompt = false)
     {
         DocumentFiles.Clear();
         foreach (var file in files)
@@ -521,11 +582,32 @@ public sealed class MainWindowViewModel : ReactiveObject
         if (files.Count > 0)
         {
             SetProperty(ref _selectedDocumentFile, files[0], nameof(SelectedDocumentFile));
-            await OpenDocumentFileAsync(files[0]);
+            if (bypassUnsavedPrompt)
+            {
+                await OpenDocumentFileCoreAsync(files[0]);
+            }
+            else
+            {
+                await OpenDocumentFileAsync(files[0], null);
+            }
         }
     }
 
-    private async Task OpenDocumentFileAsync(DocumentFile file)
+    private async Task OpenDocumentFileAsync(DocumentFile file, DocumentFile? previousSelection)
+    {
+        if (CurrentFilePath?.Equals(file.Path, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return;
+        }
+
+        await RequestUnsavedConfirmationAsync(
+            "Save changes before switching files?",
+            $"Save changes to {_document.FileName} before opening {file.Name}?",
+            () => OpenDocumentFileCoreAsync(file),
+            () => RestoreSelectedDocumentFile(previousSelection));
+    }
+
+    private async Task OpenDocumentFileCoreAsync(DocumentFile file)
     {
         var snapshot = await _documentService.OpenPathAsync(file.Path);
         ApplyDocument(snapshot);
@@ -576,11 +658,22 @@ public sealed class MainWindowViewModel : ReactiveObject
             return Task.CompletedTask;
         }
 
+        return RequestUnsavedConfirmationAsync(
+            "Save changes before deleting?",
+            $"Save changes to {_document.FileName} before deleting it?",
+            () =>
+            {
+                ShowDeleteConfirmation(path);
+                return Task.CompletedTask;
+            });
+    }
+
+    private void ShowDeleteConfirmation(string path)
+    {
         _pendingDeletePath = path;
         OnPropertyChanged(nameof(DeleteConfirmText));
         OnPropertyChanged(nameof(DeleteConfirmPath));
         IsDeleteConfirmVisible = true;
-        return Task.CompletedTask;
     }
 
     public async Task ConfirmDeleteAsync()
@@ -597,7 +690,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _pendingDeletePath = null;
         OnPropertyChanged(nameof(DeleteConfirmText));
         OnPropertyChanged(nameof(DeleteConfirmPath));
-        NewDocument();
+        NewDocumentCore();
         SetStatus("File deleted.");
     }
 
@@ -626,6 +719,14 @@ public sealed class MainWindowViewModel : ReactiveObject
             return;
         }
 
+        await RequestUnsavedConfirmationAsync(
+            "Save changes before reopening?",
+            $"Save changes to {_document.FileName} before reopening it with {encodingName}?",
+            () => ReopenWithEncodingCoreAsync(path, encodingName));
+    }
+
+    private async Task ReopenWithEncodingCoreAsync(string path, string encodingName)
+    {
         ApplyDocument(await _documentService.OpenPathAsync(path, encodingName));
         SetStatus($"Reopened with {encodingName}.");
     }
@@ -829,6 +930,12 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public bool CloseFloatingPanel()
     {
+        if (IsUnsavedConfirmVisible)
+        {
+            CancelPendingAction();
+            return true;
+        }
+
         if (IsDeleteConfirmVisible)
         {
             CancelDelete();
@@ -1054,7 +1161,99 @@ public sealed class MainWindowViewModel : ReactiveObject
             return;
         }
 
-        ApplyDocument(await _documentService.OpenPathAsync(recent.Path));
+        await RequestUnsavedConfirmationAsync(
+            "Save changes before opening recent file?",
+            $"Save changes to {_document.FileName} before opening {recent.DisplayText}?",
+            async () => ApplyDocument(await _documentService.OpenPathAsync(recent.Path)));
+    }
+
+    public Task BeginWindowCloseAsync()
+    {
+        return RequestUnsavedConfirmationAsync(
+            "Save changes before closing Vex?",
+            $"Save changes to {_document.FileName} before closing Vex?",
+            () =>
+            {
+                CloseWindowRequested?.Invoke(this, EventArgs.Empty);
+                return Task.CompletedTask;
+            });
+    }
+
+    public async Task SavePendingActionAsync()
+    {
+        if (_pendingUnsavedContinuation is null)
+        {
+            IsUnsavedConfirmVisible = false;
+            return;
+        }
+
+        await SaveAsync();
+        if (IsModified)
+        {
+            SetStatus("Save canceled. Action was not completed.");
+            return;
+        }
+
+        await ContinuePendingActionAsync();
+    }
+
+    public Task DiscardPendingActionAsync()
+    {
+        return ContinuePendingActionAsync();
+    }
+
+    public void CancelPendingAction()
+    {
+        var cancellation = _pendingUnsavedCancellation;
+        ClearUnsavedConfirmation();
+        cancellation?.Invoke();
+        SetStatus("Action canceled. Unsaved changes kept.");
+    }
+
+    private async Task RequestUnsavedConfirmationAsync(
+        string title,
+        string message,
+        Func<Task> continuation,
+        Action? cancellation = null)
+    {
+        if (!IsModified)
+        {
+            await continuation();
+            return;
+        }
+
+        _pendingUnsavedContinuation = continuation;
+        _pendingUnsavedCancellation = cancellation;
+        _unsavedConfirmTitle = title;
+        _unsavedConfirmMessage = message;
+        _unsavedConfirmPath = CurrentFilePath ?? "Unsaved document";
+        OnPropertyChanged(nameof(UnsavedConfirmTitle));
+        OnPropertyChanged(nameof(UnsavedConfirmMessage));
+        OnPropertyChanged(nameof(UnsavedConfirmPath));
+        IsUnsavedConfirmVisible = true;
+        SetStatus("Unsaved changes need a decision.");
+    }
+
+    private async Task ContinuePendingActionAsync()
+    {
+        var continuation = _pendingUnsavedContinuation;
+        ClearUnsavedConfirmation();
+        if (continuation is not null)
+        {
+            await continuation();
+        }
+    }
+
+    private void ClearUnsavedConfirmation()
+    {
+        _pendingUnsavedContinuation = null;
+        _pendingUnsavedCancellation = null;
+        IsUnsavedConfirmVisible = false;
+    }
+
+    private void RestoreSelectedDocumentFile(DocumentFile? documentFile)
+    {
+        SetProperty(ref _selectedDocumentFile, documentFile, nameof(SelectedDocumentFile));
     }
 
     private void AddRecentDocument(string path)

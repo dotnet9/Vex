@@ -30,6 +30,8 @@
 - Added startup folder opening, loading the sidebar document list and opening the first Markdown file.
 - Added a floating properties panel with name, state, encoding, size, path, and `Alt+Enter` access.
 - Improved overlays so `Esc` closes properties, statistics, and about panels, and cancels delete confirmation.
+- Added save confirmation before creating, opening, switching files, reopening with another encoding, deleting, or exiting when the current document has unsaved changes.
+- Improved the save-confirmation overlay with Save, Don't Save, and Cancel paths so risky actions no longer discard edits immediately.
 
 ### Changed
 
@@ -61,3 +63,4 @@
 - Screenshot-verified startup opening with a temporary Markdown folder path argument.
 - Built `Vex.slnx` to verify the properties panel and shortcut binding.
 - Built `Vex.slnx` to verify the overlay `Esc` close handling.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the save-confirmation overlay placement and button fit.
