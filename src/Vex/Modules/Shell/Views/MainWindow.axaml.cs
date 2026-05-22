@@ -132,6 +132,10 @@ public partial class MainWindow : Window
             viewModel.CloseFindPanel();
             e.Handled = true;
         }
+        else if (e.Key == Key.Escape && viewModel.CloseFloatingPanel())
+        {
+            e.Handled = true;
+        }
     }
 
     private static bool IsZoomInKey(Key key)

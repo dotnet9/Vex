@@ -29,6 +29,7 @@
 - Added startup file opening when Vex receives a file path from the command line or the operating system Open With flow.
 - Added startup folder opening, loading the sidebar document list and opening the first Markdown file.
 - Added a floating properties panel with name, state, encoding, size, path, and `Alt+Enter` access.
+- Improved overlays so `Esc` closes properties, statistics, and about panels, and cancels delete confirmation.
 
 ### Changed
 
@@ -59,3 +60,4 @@
 - Built `Vex.slnx` and screenshot-verified startup opening with a temporary Markdown file path argument.
 - Screenshot-verified startup opening with a temporary Markdown folder path argument.
 - Built `Vex.slnx` to verify the properties panel and shortcut binding.
+- Built `Vex.slnx` to verify the overlay `Esc` close handling.

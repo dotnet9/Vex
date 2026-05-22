@@ -56,6 +56,8 @@
 - 通过临时 Markdown 文件夹启动截图确认左侧文件列表、默认文档、预览和状态栏均正确更新。
 - 属性入口从状态栏摘要升级为浮动属性面板，展示名称、保存状态、编码、大小和路径，并补充 `Alt+Enter` 打开入口。
 - 验证 `dotnet build Vex.slnx`。
+- 增加浮层统一关闭入口：`Esc` 可关闭属性、统计和关于浮层，删除确认浮层中按 `Esc` 会执行取消删除。
+- 验证 `dotnet build Vex.slnx`。
 
 ### en-US
 
@@ -110,4 +112,6 @@
 - Added startup folder opening by reusing the open-folder loading path and opening the first sorted Markdown file.
 - Captured a startup screenshot with a temporary Markdown folder to confirm the sidebar list, default document, preview, and status bar updates.
 - Upgraded the properties action from a status-bar summary to a floating properties panel with name, saved state, encoding, size, path, and `Alt+Enter` access.
+- Verified `dotnet build Vex.slnx`.
+- Added unified overlay closing so `Esc` closes properties, statistics, and about panels, while delete confirmation treats `Esc` as cancel.
 - Verified `dotnet build Vex.slnx`.

@@ -827,6 +827,38 @@ public sealed class MainWindowViewModel : ReactiveObject
         IsPropertiesPanelVisible = false;
     }
 
+    public bool CloseFloatingPanel()
+    {
+        if (IsDeleteConfirmVisible)
+        {
+            CancelDelete();
+            return true;
+        }
+
+        if (IsPropertiesPanelVisible)
+        {
+            IsPropertiesPanelVisible = false;
+            SetStatus("Properties closed.");
+            return true;
+        }
+
+        if (IsStatisticsPanelVisible)
+        {
+            IsStatisticsPanelVisible = false;
+            SetStatus("Statistics closed.");
+            return true;
+        }
+
+        if (IsAboutPanelVisible)
+        {
+            IsAboutPanelVisible = false;
+            SetStatus("About closed.");
+            return true;
+        }
+
+        return false;
+    }
+
     public void ShowFindPanel()
     {
         IsFindPanelVisible = true;
