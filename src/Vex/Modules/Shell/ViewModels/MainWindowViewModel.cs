@@ -1,20 +1,20 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using CodeWF.EventBus;
 using CodeWF.Markdown.Themes;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Lang.Avalonia;
+using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Models;
 using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
-public sealed class MainWindowViewModel : ObservableObject
+public sealed class MainWindowViewModel : ReactiveObject
 {
     private readonly IDocumentService _documentService;
     private readonly IMarkdownOutlineService _outlineService;
@@ -55,61 +55,7 @@ public sealed class MainWindowViewModel : ObservableObject
         _themeService = themeService;
         _helpService = helpService;
         _eventBus = eventBus;
-        _eventBus.Subscribe<MarkdownTextChangedCommand>(OnMarkdownTextChanged);
-
-        NewDocumentCommand = new RelayCommand(NewDocument);
-        NewWindowCommand = new RelayCommand(NewWindow);
-        OpenCommand = new AsyncRelayCommand(OpenAsync);
-        OpenFolderCommand = new AsyncRelayCommand(OpenFolderAsync);
-        QuickOpenCommand = new AsyncRelayCommand(OpenAsync);
-        SaveCommand = new AsyncRelayCommand(SaveAsync);
-        SaveAsCommand = new AsyncRelayCommand(SaveAsAsync);
-        SaveAllCommand = new AsyncRelayCommand(SaveAsync);
-        DeleteCommand = new AsyncRelayCommand(DeleteAsync, () => HasCurrentFile);
-        OpenFileLocationCommand = new AsyncRelayCommand(OpenFileLocationAsync, () => HasCurrentFile);
-        ShowPropertiesCommand = new RelayCommand(() => SetStatus(CurrentFilePath ?? "Untitled document"));
-        ExportCommand = new RelayCommand<string?>(format => SetStatus($"Export {format ?? "document"} is queued for implementation."));
-        PrintCommand = new RelayCommand(() => SetStatus("Print is queued for implementation."));
-        CloseDocumentCommand = new RelayCommand(NewDocument);
-        ReopenWithEncodingCommand = new AsyncRelayCommand<string?>(ReopenWithEncodingAsync);
-
-        ToggleSidebarCommand = new RelayCommand(() => IsSidebarVisible = !IsSidebarVisible);
-        ShowOutlineCommand = new RelayCommand(() => SelectedSideTabIndex = 1);
-        ShowFilesCommand = new RelayCommand(() => SelectedSideTabIndex = 0);
-        TogglePreviewCommand = new RelayCommand(() => IsPreviewVisible = !IsPreviewVisible);
-        ToggleStatusBarCommand = new RelayCommand(() => IsStatusBarVisible = !IsStatusBarVisible);
-        ToggleSourceModeCommand = new RelayCommand(() => IsPreviewVisible = !IsPreviewVisible);
-        ToggleAlwaysOnTopCommand = new RelayCommand(() => IsAlwaysOnTop = !IsAlwaysOnTop);
-        ToggleFullScreenCommand = new RelayCommand(() => IsFullScreen = !IsFullScreen);
-        ActualSizeCommand = new RelayCommand(() => EditorZoom = 1.0);
-        ZoomInCommand = new RelayCommand(() => EditorZoom = Math.Min(1.8, EditorZoom + 0.1));
-        ZoomOutCommand = new RelayCommand(() => EditorZoom = Math.Max(0.7, EditorZoom - 0.1));
-        WordCountCommand = new RelayCommand(() => SetStatus($"Words {Statistics.Words}, Characters {Statistics.Characters}, Lines {Statistics.Lines}."));
-
-        SelectThemeCommand = new RelayCommand<ThemeOption?>(SelectTheme);
-        SelectThemeByKeyCommand = new RelayCommand<string?>(SelectThemeByKey);
-        SelectTypographyCommand = new RelayCommand<TypographyOption?>(SelectTypography);
-        SelectTypographyByKeyCommand = new RelayCommand<string?>(SelectTypographyByKey);
-        ToggleCompactLayoutCommand = new RelayCommand(() => IsCompactLayout = !IsCompactLayout);
-        SelectLanguageCommand = new RelayCommand<LanguageOption?>(SelectLanguage);
-        SelectLanguageByCultureCommand = new RelayCommand<string?>(SelectLanguageByCulture);
-
-        HelpCommand = new RelayCommand<string?>(OpenHelpTopic);
-
-        UndoCommand = new RelayCommand(() => PublishEditorAction(EditorActionKind.Undo));
-        RedoCommand = new RelayCommand(() => PublishEditorAction(EditorActionKind.Redo));
-        CutCommand = new RelayCommand(() => PublishEditorAction(EditorActionKind.Cut));
-        CopyCommand = new RelayCommand(() => PublishEditorAction(EditorActionKind.Copy));
-        PasteCommand = new RelayCommand(() => PublishEditorAction(EditorActionKind.Paste));
-        SelectAllCommand = new RelayCommand(() => PublishEditorAction(EditorActionKind.SelectAll));
-        FocusEditorCommand = new RelayCommand(() => PublishEditorAction(EditorActionKind.FocusEditor));
-        InsertActionCommand = new RelayCommand<EditorActionKind?>(action =>
-        {
-            if (action is { } value)
-            {
-                PublishEditorAction(value);
-            }
-        });
+        _eventBus.Subscribe(this);
 
         ThemeOptions = new ObservableCollection<ThemeOption>(_themeService.GetThemeOptions());
         TypographyOptions = new ObservableCollection<TypographyOption>(
@@ -131,8 +77,6 @@ public sealed class MainWindowViewModel : ObservableObject
         Markdown = _document.Markdown;
     }
 
-    public IEventBus EventBus => _eventBus;
-
     public ObservableCollection<DocumentFile> DocumentFiles { get; } = [];
 
     public ObservableCollection<OutlineItem> OutlineItems { get; } = [];
@@ -142,92 +86,6 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<TypographyOption> TypographyOptions { get; }
 
     public ObservableCollection<LanguageOption> LanguageOptions { get; }
-
-    public IRelayCommand NewDocumentCommand { get; }
-
-    public IRelayCommand NewWindowCommand { get; }
-
-    public IAsyncRelayCommand OpenCommand { get; }
-
-    public IAsyncRelayCommand OpenFolderCommand { get; }
-
-    public IAsyncRelayCommand QuickOpenCommand { get; }
-
-    public IAsyncRelayCommand SaveCommand { get; }
-
-    public IAsyncRelayCommand SaveAsCommand { get; }
-
-    public IAsyncRelayCommand SaveAllCommand { get; }
-
-    public IAsyncRelayCommand DeleteCommand { get; }
-
-    public IAsyncRelayCommand OpenFileLocationCommand { get; }
-
-    public IRelayCommand ShowPropertiesCommand { get; }
-
-    public IRelayCommand<string?> ExportCommand { get; }
-
-    public IRelayCommand PrintCommand { get; }
-
-    public IRelayCommand CloseDocumentCommand { get; }
-
-    public IAsyncRelayCommand<string?> ReopenWithEncodingCommand { get; }
-
-    public IRelayCommand ToggleSidebarCommand { get; }
-
-    public IRelayCommand ShowOutlineCommand { get; }
-
-    public IRelayCommand ShowFilesCommand { get; }
-
-    public IRelayCommand TogglePreviewCommand { get; }
-
-    public IRelayCommand ToggleStatusBarCommand { get; }
-
-    public IRelayCommand ToggleSourceModeCommand { get; }
-
-    public IRelayCommand ToggleAlwaysOnTopCommand { get; }
-
-    public IRelayCommand ToggleFullScreenCommand { get; }
-
-    public IRelayCommand ActualSizeCommand { get; }
-
-    public IRelayCommand ZoomInCommand { get; }
-
-    public IRelayCommand ZoomOutCommand { get; }
-
-    public IRelayCommand WordCountCommand { get; }
-
-    public IRelayCommand<ThemeOption?> SelectThemeCommand { get; }
-
-    public IRelayCommand<string?> SelectThemeByKeyCommand { get; }
-
-    public IRelayCommand<TypographyOption?> SelectTypographyCommand { get; }
-
-    public IRelayCommand<string?> SelectTypographyByKeyCommand { get; }
-
-    public IRelayCommand ToggleCompactLayoutCommand { get; }
-
-    public IRelayCommand<LanguageOption?> SelectLanguageCommand { get; }
-
-    public IRelayCommand<string?> SelectLanguageByCultureCommand { get; }
-
-    public IRelayCommand<string?> HelpCommand { get; }
-
-    public IRelayCommand UndoCommand { get; }
-
-    public IRelayCommand RedoCommand { get; }
-
-    public IRelayCommand CutCommand { get; }
-
-    public IRelayCommand CopyCommand { get; }
-
-    public IRelayCommand PasteCommand { get; }
-
-    public IRelayCommand SelectAllCommand { get; }
-
-    public IRelayCommand FocusEditorCommand { get; }
-
-    public IRelayCommand<EditorActionKind?> InsertActionCommand { get; }
 
     public string Markdown
     {
@@ -444,7 +302,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void NewDocument()
+    public void NewDocument()
     {
         _document = _documentService.CreateNew();
         Markdown = _document.Markdown;
@@ -453,7 +311,7 @@ public sealed class MainWindowViewModel : ObservableObject
         PublishEditorAction(EditorActionKind.FocusEditor);
     }
 
-    private static void NewWindow()
+    public void NewWindow()
     {
         if (!string.IsNullOrWhiteSpace(Environment.ProcessPath))
         {
@@ -461,7 +319,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private async Task OpenAsync()
+    public async Task OpenAsync()
     {
         var snapshot = await _documentService.OpenAsync();
         if (snapshot is not null)
@@ -470,7 +328,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private async Task OpenFolderAsync()
+    public async Task OpenFolderAsync()
     {
         var files = await _documentService.OpenFolderAsync();
         DocumentFiles.Clear();
@@ -492,7 +350,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ApplyDocument(snapshot);
     }
 
-    private async Task SaveAsync()
+    public async Task SaveAsync()
     {
         var saved = await _documentService.SaveAsync(_document with { Markdown = Markdown });
         if (saved is not null)
@@ -502,7 +360,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private async Task SaveAsAsync()
+    public async Task SaveAsAsync()
     {
         var saved = await _documentService.SaveAsAsync(_document with { Markdown = Markdown });
         if (saved is not null)
@@ -512,7 +370,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private async Task DeleteAsync()
+    public async Task DeleteAsync()
     {
         if (CurrentFilePath is not { Length: > 0 } path)
         {
@@ -524,7 +382,7 @@ public sealed class MainWindowViewModel : ObservableObject
         SetStatus("File deleted.");
     }
 
-    private async Task OpenFileLocationAsync()
+    public async Task OpenFileLocationAsync()
     {
         if (CurrentFilePath is { Length: > 0 } path)
         {
@@ -532,7 +390,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private async Task ReopenWithEncodingAsync(string? encodingName)
+    public async Task ReopenWithEncodingAsync(string? encodingName)
     {
         if (CurrentFilePath is not { Length: > 0 } path || string.IsNullOrWhiteSpace(encodingName))
         {
@@ -563,11 +421,10 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(CurrentDocumentTitle));
         OnPropertyChanged(nameof(CurrentFilePath));
         OnPropertyChanged(nameof(HasCurrentFile));
-        DeleteCommand.NotifyCanExecuteChanged();
-        OpenFileLocationCommand.NotifyCanExecuteChanged();
     }
 
-    private void OnMarkdownTextChanged(MarkdownTextChangedCommand command)
+    [EventHandler]
+    public void ApplyMarkdownTextChanged(MarkdownTextChangedCommand command)
     {
         CaretLine = command.CaretLine;
         CaretColumn = command.CaretColumn;
@@ -592,7 +449,127 @@ public sealed class MainWindowViewModel : ObservableObject
         _eventBus.Publish(new EditorActionCommand(action));
     }
 
-    private void SelectTheme(ThemeOption? theme)
+    public void ShowProperties()
+    {
+        SetStatus(CurrentFilePath ?? "Untitled document");
+    }
+
+    public void Export(string? format)
+    {
+        SetStatus($"Export {format ?? "document"} is queued for implementation.");
+    }
+
+    public void Print()
+    {
+        SetStatus("Print is queued for implementation.");
+    }
+
+    public void ToggleSidebar()
+    {
+        IsSidebarVisible = !IsSidebarVisible;
+    }
+
+    public void ShowOutline()
+    {
+        SelectedSideTabIndex = 1;
+    }
+
+    public void ShowFiles()
+    {
+        SelectedSideTabIndex = 0;
+    }
+
+    public void TogglePreview()
+    {
+        IsPreviewVisible = !IsPreviewVisible;
+    }
+
+    public void ToggleStatusBar()
+    {
+        IsStatusBarVisible = !IsStatusBarVisible;
+    }
+
+    public void ToggleSourceMode()
+    {
+        IsPreviewVisible = !IsPreviewVisible;
+    }
+
+    public void ToggleAlwaysOnTop()
+    {
+        IsAlwaysOnTop = !IsAlwaysOnTop;
+    }
+
+    public void ToggleFullScreen()
+    {
+        IsFullScreen = !IsFullScreen;
+    }
+
+    public void ActualSize()
+    {
+        EditorZoom = 1.0;
+    }
+
+    public void ZoomIn()
+    {
+        EditorZoom = Math.Min(1.8, EditorZoom + 0.1);
+    }
+
+    public void ZoomOut()
+    {
+        EditorZoom = Math.Max(0.7, EditorZoom - 0.1);
+    }
+
+    public void WordCount()
+    {
+        SetStatus($"Words {Statistics.Words}, Characters {Statistics.Characters}, Lines {Statistics.Lines}.");
+    }
+
+    public void Undo()
+    {
+        PublishEditorAction(EditorActionKind.Undo);
+    }
+
+    public void Redo()
+    {
+        PublishEditorAction(EditorActionKind.Redo);
+    }
+
+    public void Cut()
+    {
+        PublishEditorAction(EditorActionKind.Cut);
+    }
+
+    public void Copy()
+    {
+        PublishEditorAction(EditorActionKind.Copy);
+    }
+
+    public void Paste()
+    {
+        PublishEditorAction(EditorActionKind.Paste);
+    }
+
+    public void SelectAll()
+    {
+        PublishEditorAction(EditorActionKind.SelectAll);
+    }
+
+    public void FocusEditor()
+    {
+        PublishEditorAction(EditorActionKind.FocusEditor);
+    }
+
+    public void InsertAction(EditorActionKind action)
+    {
+        PublishEditorAction(action);
+    }
+
+    public void ToggleCompactLayout()
+    {
+        IsCompactLayout = !IsCompactLayout;
+    }
+
+    public void SelectTheme(ThemeOption? theme)
     {
         if (theme is not null)
         {
@@ -600,13 +577,13 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void SelectThemeByKey(string? key)
+    public void SelectThemeByKey(string? key)
     {
         var theme = ThemeOptions.FirstOrDefault(item => item.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
         SelectTheme(theme);
     }
 
-    private void SelectTypography(TypographyOption? typography)
+    public void SelectTypography(TypographyOption? typography)
     {
         if (typography is not null)
         {
@@ -614,13 +591,13 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void SelectTypographyByKey(string? key)
+    public void SelectTypographyByKey(string? key)
     {
         var typography = TypographyOptions.FirstOrDefault(item => item.Key?.Equals(key, StringComparison.OrdinalIgnoreCase) == true);
         SelectTypography(typography);
     }
 
-    private void SelectLanguage(LanguageOption? language)
+    public void SelectLanguage(LanguageOption? language)
     {
         if (language is not null)
         {
@@ -628,21 +605,33 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void SelectLanguageByCulture(string? cultureName)
+    public void SelectLanguageByCulture(string? cultureName)
     {
         var language = LanguageOptions.FirstOrDefault(item => item.CultureName.Equals(cultureName, StringComparison.OrdinalIgnoreCase));
         SelectLanguage(language);
     }
 
-    private void OpenHelpTopic(string? topic)
+    public async Task OpenHelpTopic(string? topic)
     {
         switch (topic)
         {
+            case "changelog":
+                await _helpService.OpenDocumentAsync("CHANGELOG.zh-CN.md");
+                SetStatus("Opened changelog.");
+                break;
+            case "quick-start":
+                await _helpService.OpenDocumentAsync("QuickStart.zh-CN.md");
+                SetStatus("Opened quick start.");
+                break;
+            case "thanks":
+                await _helpService.OpenDocumentAsync("ACKNOWLEDGEMENTS.zh-CN.md");
+                SetStatus("Opened acknowledgements.");
+                break;
             case "website":
-                _ = _helpService.OpenWebsiteAsync();
+                await _helpService.OpenWebsiteAsync();
                 break;
             case "feedback":
-                _ = _helpService.OpenFeedbackAsync();
+                await _helpService.OpenFeedbackAsync();
                 break;
             case "about":
                 SetStatus("Vex 0.1.0 - 极简之力，妙笔成章.");
@@ -657,5 +646,21 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         StatusText = message;
         _eventBus.Publish(new WorkspaceStatusChangedCommand(message));
+    }
+
+    private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(storage, value))
+        {
+            return false;
+        }
+
+        this.RaiseAndSetIfChanged(ref storage, value, propertyName);
+        return true;
+    }
+
+    private void OnPropertyChanged(string propertyName)
+    {
+        this.RaisePropertyChanged(propertyName);
     }
 }

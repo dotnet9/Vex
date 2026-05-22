@@ -1,7 +1,7 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Markup.Xaml;
-using CodeWF.EventBus;
+using CodeWF.DryIoc.EventBus;
 using Lang.Avalonia;
 using Lang.Avalonia.Json;
 using Prism.DryIoc;
@@ -52,8 +52,9 @@ public partial class App : PrismApplication
 
     protected override void RegisterTypes(IContainerRegistry containerRegistry)
     {
-        containerRegistry.RegisterSingleton<IEventBus, EventBus>();
+        containerRegistry.AddEventBus();
         containerRegistry.RegisterSingleton<IDocumentService, DocumentService>();
+        containerRegistry.RegisterSingleton<IMarkdownEditorController, MarkdownEditorController>();
         containerRegistry.RegisterSingleton<IMarkdownOutlineService, MarkdownOutlineService>();
         containerRegistry.RegisterSingleton<IMarkdownStatisticsService, MarkdownStatisticsService>();
         containerRegistry.RegisterSingleton<IThemeService, ThemeService>();

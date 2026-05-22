@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
@@ -10,6 +10,28 @@
     <PackageId>Vex</PackageId>
     <AssemblyName>Vex</AssemblyName>
     <RootNamespace>Vex</RootNamespace>
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <SelfContained>true</SelfContained>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <WindowsSupportedOSPlatformVersion>6.1</WindowsSupportedOSPlatformVersion>
+    <IsTrimmable>true</IsTrimmable>
+    <PublishTrimmed>true</PublishTrimmed>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' != ''">
+    <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,16 +48,19 @@
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="CodeWF.DryIoc.EventBus" />
     <PackageReference Include="CodeWF.EventBus" />
     <PackageReference Include="CodeWF.Markdown" />
     <PackageReference Include="CodeWF.Markdown.Themes" />
-    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Irihi.Ursa" />
+    <PackageReference Include="Irihi.Ursa.Themes.Semi" />
     <PackageReference Include="Lang.Avalonia.Json" />
     <PackageReference Include="Prism.Avalonia" />
     <PackageReference Include="Prism.DryIoc.Avalonia" />
+    <PackageReference Include="ReactiveUI.Avalonia" />
     <PackageReference Include="Semi.Avalonia" />
     <PackageReference Include="VC-LTL" />
-    <PackageReference Include="YY-Thunks" Condition="'$(TargetFramework)' == 'net10.0-windows'" />
+    <PackageReference Include="YY-Thunks" />
   </ItemGroup>
 
   <ItemGroup>

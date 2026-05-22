@@ -77,130 +77,130 @@
                     Classes="title-menu"
                     VerticalAlignment="Center">
                     <MenuItem Header="文件(F)">
-                        <MenuItem Header="新建" Command="{Binding NewDocumentCommand}" />
-                        <MenuItem Header="新建窗口" Command="{Binding NewWindowCommand}" />
+                        <MenuItem Header="新建" Command="{Binding NewDocument}" />
+                        <MenuItem Header="新建窗口" Command="{Binding NewWindow}" />
                         <Separator />
-                        <MenuItem Header="打开..." Command="{Binding OpenCommand}" />
-                        <MenuItem Header="打开文件夹..." Command="{Binding OpenFolderCommand}" />
-                        <MenuItem Header="快速打开..." Command="{Binding QuickOpenCommand}" />
+                        <MenuItem Header="打开..." Command="{Binding OpenAsync}" />
+                        <MenuItem Header="打开文件夹..." Command="{Binding OpenFolderAsync}" />
+                        <MenuItem Header="快速打开..." Command="{Binding OpenAsync}" />
                         <MenuItem Header="打开最近文件" IsEnabled="False" />
                         <MenuItem Header="选择编码重新打开">
-                            <MenuItem Header="UTF-8" Command="{Binding ReopenWithEncodingCommand}" CommandParameter="utf-8" />
-                            <MenuItem Header="UTF-8 BOM" Command="{Binding ReopenWithEncodingCommand}" CommandParameter="utf-8-bom" />
-                            <MenuItem Header="GB18030" Command="{Binding ReopenWithEncodingCommand}" CommandParameter="GB18030" />
-                            <MenuItem Header="Big5" Command="{Binding ReopenWithEncodingCommand}" CommandParameter="Big5" />
+                            <MenuItem Header="UTF-8" Command="{Binding ReopenWithEncodingAsync}" CommandParameter="utf-8" />
+                            <MenuItem Header="UTF-8 BOM" Command="{Binding ReopenWithEncodingAsync}" CommandParameter="utf-8-bom" />
+                            <MenuItem Header="GB18030" Command="{Binding ReopenWithEncodingAsync}" CommandParameter="GB18030" />
+                            <MenuItem Header="Big5" Command="{Binding ReopenWithEncodingAsync}" CommandParameter="Big5" />
                         </MenuItem>
                         <Separator />
-                        <MenuItem Header="保存" Command="{Binding SaveCommand}" />
-                        <MenuItem Header="另存为..." Command="{Binding SaveAsCommand}" />
-                        <MenuItem Header="保存全部打开的文件..." Command="{Binding SaveAllCommand}" />
+                        <MenuItem Header="保存" Command="{Binding SaveAsync}" />
+                        <MenuItem Header="另存为..." Command="{Binding SaveAsAsync}" />
+                        <MenuItem Header="保存全部打开的文件..." Command="{Binding SaveAsync}" />
                         <Separator />
-                        <MenuItem Header="属性..." Command="{Binding ShowPropertiesCommand}" />
-                        <MenuItem Header="打开文件位置..." Command="{Binding OpenFileLocationCommand}" />
-                        <MenuItem Header="删除..." Command="{Binding DeleteCommand}" />
+                        <MenuItem Header="属性..." Command="{Binding ShowProperties}" />
+                        <MenuItem Header="打开文件位置..." Command="{Binding OpenFileLocationAsync}" IsEnabled="{Binding HasCurrentFile}" />
+                        <MenuItem Header="删除..." Command="{Binding DeleteAsync}" IsEnabled="{Binding HasCurrentFile}" />
                         <Separator />
                         <MenuItem Header="导出">
-                            <MenuItem Header="HTML" Command="{Binding ExportCommand}" CommandParameter="HTML" />
-                            <MenuItem Header="PDF" Command="{Binding ExportCommand}" CommandParameter="PDF" />
-                            <MenuItem Header="PNG" Command="{Binding ExportCommand}" CommandParameter="PNG" />
+                            <MenuItem Header="HTML" Command="{Binding Export}" CommandParameter="HTML" />
+                            <MenuItem Header="PDF" Command="{Binding Export}" CommandParameter="PDF" />
+                            <MenuItem Header="PNG" Command="{Binding Export}" CommandParameter="PNG" />
                         </MenuItem>
-                        <MenuItem Header="打印..." Command="{Binding PrintCommand}" />
+                        <MenuItem Header="打印..." Command="{Binding Print}" />
                         <Separator />
-                        <MenuItem Header="关闭" Command="{Binding CloseDocumentCommand}" />
+                        <MenuItem Header="关闭" Command="{Binding NewDocument}" />
                     </MenuItem>
 
                     <MenuItem Header="编辑(E)">
-                        <MenuItem Header="撤销" Command="{Binding UndoCommand}" />
-                        <MenuItem Header="重做" Command="{Binding RedoCommand}" />
+                        <MenuItem Header="撤销" Command="{Binding Undo}" />
+                        <MenuItem Header="重做" Command="{Binding Redo}" />
                         <Separator />
-                        <MenuItem Header="剪切" Command="{Binding CutCommand}" />
-                        <MenuItem Header="复制" Command="{Binding CopyCommand}" />
-                        <MenuItem Header="粘贴" Command="{Binding PasteCommand}" />
-                        <MenuItem Header="全选" Command="{Binding SelectAllCommand}" />
+                        <MenuItem Header="剪切" Command="{Binding Cut}" />
+                        <MenuItem Header="复制" Command="{Binding Copy}" />
+                        <MenuItem Header="粘贴" Command="{Binding Paste}" />
+                        <MenuItem Header="全选" Command="{Binding SelectAll}" />
                         <Separator />
-                        <MenuItem Header="查找..." Command="{Binding HelpCommand}" CommandParameter="search" />
-                        <MenuItem Header="替换..." Command="{Binding HelpCommand}" CommandParameter="replace" />
+                        <MenuItem Header="查找..." Command="{Binding OpenHelpTopic}" CommandParameter="search" />
+                        <MenuItem Header="替换..." Command="{Binding OpenHelpTopic}" CommandParameter="replace" />
                     </MenuItem>
 
                     <MenuItem Header="段落(P)">
-                        <MenuItem Header="段落" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Paragraph}" />
-                        <MenuItem Header="标题 1" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Heading1}" />
-                        <MenuItem Header="标题 2" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Heading2}" />
-                        <MenuItem Header="标题 3" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Heading3}" />
-                        <MenuItem Header="标题 4" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Heading4}" />
-                        <MenuItem Header="标题 5" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Heading5}" />
-                        <MenuItem Header="标题 6" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Heading6}" />
+                        <MenuItem Header="段落" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Paragraph}" />
+                        <MenuItem Header="标题 1" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading1}" />
+                        <MenuItem Header="标题 2" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading2}" />
+                        <MenuItem Header="标题 3" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading3}" />
+                        <MenuItem Header="标题 4" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading4}" />
+                        <MenuItem Header="标题 5" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading5}" />
+                        <MenuItem Header="标题 6" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading6}" />
                         <Separator />
-                        <MenuItem Header="表格" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Table}" />
-                        <MenuItem Header="代码块" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.CodeFence}" />
-                        <MenuItem Header="公式块" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.MathBlock}" />
-                        <MenuItem Header="引用" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Quote}" />
-                        <MenuItem Header="有序列表" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.OrderedList}" />
-                        <MenuItem Header="无序列表" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.UnorderedList}" />
-                        <MenuItem Header="任务列表" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.TaskList}" />
-                        <MenuItem Header="水平分割线" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.HorizontalRule}" />
+                        <MenuItem Header="表格" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Table}" />
+                        <MenuItem Header="代码块" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.CodeFence}" />
+                        <MenuItem Header="公式块" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.MathBlock}" />
+                        <MenuItem Header="引用" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Quote}" />
+                        <MenuItem Header="有序列表" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.OrderedList}" />
+                        <MenuItem Header="无序列表" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.UnorderedList}" />
+                        <MenuItem Header="任务列表" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.TaskList}" />
+                        <MenuItem Header="水平分割线" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.HorizontalRule}" />
                     </MenuItem>
 
                     <MenuItem Header="格式(O)">
-                        <MenuItem Header="加粗" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Bold}" />
-                        <MenuItem Header="斜体" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Italic}" />
-                        <MenuItem Header="代码" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" />
+                        <MenuItem Header="加粗" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" />
+                        <MenuItem Header="斜体" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" />
+                        <MenuItem Header="代码" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" />
                         <Separator />
-                        <MenuItem Header="链接" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Link}" />
-                        <MenuItem Header="图像" Command="{Binding InsertActionCommand}" CommandParameter="{x:Static core:EditorActionKind.Image}" />
-                        <MenuItem Header="清除样式" Command="{Binding HelpCommand}" CommandParameter="clear-format" />
+                        <MenuItem Header="链接" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Link}" />
+                        <MenuItem Header="图像" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Image}" />
+                        <MenuItem Header="清除样式" Command="{Binding OpenHelpTopic}" CommandParameter="clear-format" />
                     </MenuItem>
 
                     <MenuItem Header="视图(V)">
-                        <MenuItem Header="显示 / 隐藏侧边栏" Command="{Binding ToggleSidebarCommand}" />
-                        <MenuItem Header="大纲" Command="{Binding ShowOutlineCommand}" />
-                        <MenuItem Header="文档列表" Command="{Binding ShowFilesCommand}" />
-                        <MenuItem Header="搜索" Command="{Binding HelpCommand}" CommandParameter="search" />
+                        <MenuItem Header="显示 / 隐藏侧边栏" Command="{Binding ToggleSidebar}" />
+                        <MenuItem Header="大纲" Command="{Binding ShowOutline}" />
+                        <MenuItem Header="文档列表" Command="{Binding ShowFiles}" />
+                        <MenuItem Header="搜索" Command="{Binding OpenHelpTopic}" CommandParameter="search" />
                         <Separator />
-                        <MenuItem Header="源代码模式" Command="{Binding ToggleSourceModeCommand}" />
-                        <MenuItem Header="显示状态栏" Command="{Binding ToggleStatusBarCommand}" />
-                        <MenuItem Header="字数统计窗口" Command="{Binding WordCountCommand}" />
+                        <MenuItem Header="源代码模式" Command="{Binding ToggleSourceMode}" />
+                        <MenuItem Header="显示状态栏" Command="{Binding ToggleStatusBar}" />
+                        <MenuItem Header="字数统计窗口" Command="{Binding WordCount}" />
                         <Separator />
-                        <MenuItem Header="切换全屏" Command="{Binding ToggleFullScreenCommand}" />
-                        <MenuItem Header="保持窗口在最前端" Command="{Binding ToggleAlwaysOnTopCommand}" />
+                        <MenuItem Header="切换全屏" Command="{Binding ToggleFullScreen}" />
+                        <MenuItem Header="保持窗口在最前端" Command="{Binding ToggleAlwaysOnTop}" />
                         <Separator />
-                        <MenuItem Header="实际大小" Command="{Binding ActualSizeCommand}" />
-                        <MenuItem Header="放大" Command="{Binding ZoomInCommand}" />
-                        <MenuItem Header="缩小" Command="{Binding ZoomOutCommand}" />
+                        <MenuItem Header="实际大小" Command="{Binding ActualSize}" />
+                        <MenuItem Header="放大" Command="{Binding ZoomIn}" />
+                        <MenuItem Header="缩小" Command="{Binding ZoomOut}" />
                     </MenuItem>
 
                     <MenuItem Header="主题(T)">
                         <MenuItem Header="主题色">
-                            <MenuItem Header="Light" Command="{Binding SelectThemeByKeyCommand}" CommandParameter="light" />
-                            <MenuItem Header="Dark" Command="{Binding SelectThemeByKeyCommand}" CommandParameter="dark" />
-                            <MenuItem Header="System" Command="{Binding SelectThemeByKeyCommand}" CommandParameter="system" />
+                            <MenuItem Header="Light" Command="{Binding SelectThemeByKey}" CommandParameter="light" />
+                            <MenuItem Header="Dark" Command="{Binding SelectThemeByKey}" CommandParameter="dark" />
+                            <MenuItem Header="System" Command="{Binding SelectThemeByKey}" CommandParameter="system" />
                         </MenuItem>
                         <MenuItem Header="排版">
-                            <MenuItem Header="简洁" Command="{Binding SelectTypographyByKeyCommand}" CommandParameter="Simple" />
-                            <MenuItem Header="Basic" Command="{Binding SelectTypographyByKeyCommand}" CommandParameter="Basic" />
-                            <MenuItem Header="橙心" Command="{Binding SelectTypographyByKeyCommand}" CommandParameter="OrangeHeart" />
-                            <MenuItem Header="墨黑" Command="{Binding SelectTypographyByKeyCommand}" CommandParameter="InkBlack" />
-                            <MenuItem Header="科技蓝" Command="{Binding SelectTypographyByKeyCommand}" CommandParameter="TechnologyBlue" />
+                            <MenuItem Header="简洁" Command="{Binding SelectTypographyByKey}" CommandParameter="Simple" />
+                            <MenuItem Header="Basic" Command="{Binding SelectTypographyByKey}" CommandParameter="Basic" />
+                            <MenuItem Header="橙心" Command="{Binding SelectTypographyByKey}" CommandParameter="OrangeHeart" />
+                            <MenuItem Header="墨黑" Command="{Binding SelectTypographyByKey}" CommandParameter="InkBlack" />
+                            <MenuItem Header="科技蓝" Command="{Binding SelectTypographyByKey}" CommandParameter="TechnologyBlue" />
                             <Separator />
-                            <MenuItem Header="紧凑布局" Command="{Binding ToggleCompactLayoutCommand}" />
+                            <MenuItem Header="紧凑布局" Command="{Binding ToggleCompactLayout}" />
                         </MenuItem>
                     </MenuItem>
 
                     <MenuItem Header="国际化(L)">
-                        <MenuItem Header="简体中文" Command="{Binding SelectLanguageByCultureCommand}" CommandParameter="zh-CN" />
-                        <MenuItem Header="繁體中文" Command="{Binding SelectLanguageByCultureCommand}" CommandParameter="zh-Hant" />
-                        <MenuItem Header="English" Command="{Binding SelectLanguageByCultureCommand}" CommandParameter="en-US" />
-                        <MenuItem Header="日本語" Command="{Binding SelectLanguageByCultureCommand}" CommandParameter="ja-JP" />
+                        <MenuItem Header="简体中文" Command="{Binding SelectLanguageByCulture}" CommandParameter="zh-CN" />
+                        <MenuItem Header="繁體中文" Command="{Binding SelectLanguageByCulture}" CommandParameter="zh-Hant" />
+                        <MenuItem Header="English" Command="{Binding SelectLanguageByCulture}" CommandParameter="en-US" />
+                        <MenuItem Header="日本語" Command="{Binding SelectLanguageByCulture}" CommandParameter="ja-JP" />
                     </MenuItem>
 
                     <MenuItem Header="帮助(H)">
-                        <MenuItem Header="更新日志" Command="{Binding HelpCommand}" CommandParameter="changelog" />
-                        <MenuItem Header="快速开始（引导）" Command="{Binding HelpCommand}" CommandParameter="quick-start" />
-                        <MenuItem Header="鸣谢" Command="{Binding HelpCommand}" CommandParameter="thanks" />
+                        <MenuItem Header="更新日志" Command="{Binding OpenHelpTopic}" CommandParameter="changelog" />
+                        <MenuItem Header="快速开始（引导）" Command="{Binding OpenHelpTopic}" CommandParameter="quick-start" />
+                        <MenuItem Header="鸣谢" Command="{Binding OpenHelpTopic}" CommandParameter="thanks" />
                         <Separator />
-                        <MenuItem Header="官方网站" Command="{Binding HelpCommand}" CommandParameter="website" />
-                        <MenuItem Header="反馈" Command="{Binding HelpCommand}" CommandParameter="feedback" />
-                        <MenuItem Header="关于" Command="{Binding HelpCommand}" CommandParameter="about" />
+                        <MenuItem Header="官方网站" Command="{Binding OpenHelpTopic}" CommandParameter="website" />
+                        <MenuItem Header="反馈" Command="{Binding OpenHelpTopic}" CommandParameter="feedback" />
+                        <MenuItem Header="关于" Command="{Binding OpenHelpTopic}" CommandParameter="about" />
                     </MenuItem>
                 </Menu>
 

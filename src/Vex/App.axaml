@@ -7,9 +7,16 @@
     xmlns:semi="https://irihi.tech/semi"
     xmlns:vexThemes="https://codewf.com"
     RequestedThemeVariant="Light">
+    <prism:PrismApplication.Resources>
+        <FontFamily x:Key="ContentControlThemeFontFamily">Inter, Microsoft YaHei UI, Segoe UI</FontFamily>
+        <FontFamily x:Key="ControlContentThemeFontFamily">Inter, Microsoft YaHei UI, Segoe UI</FontFamily>
+        <x:Double x:Key="ControlContentThemeFontSize">14</x:Double>
+    </prism:PrismApplication.Resources>
+
     <prism:PrismApplication.Styles>
         <FluentTheme />
         <semi:SemiTheme Locale="zh-CN" />
+        <semi:UrsaSemiTheme Locale="zh-CN" />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <markdownThemes:MarkdownThemes TypographyTheme="Simple" />
         <vexThemes:VexControlsTheme />

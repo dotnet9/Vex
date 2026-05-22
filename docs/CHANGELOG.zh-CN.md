@@ -12,8 +12,15 @@
 - 新增主题色、排版主题、紧凑布局和语言切换入口。
 - 新增 `Vex.Controls` 与 `Vex.Controls.Themes` 控件主题包。
 - 新增大纲点击跳转到编辑器对应标题行。
+- ✨[新增]-帮助菜单支持打开随程序复制的更新日志、快速开始和鸣谢文档。
 
 ### 优化
 
 - 解决方案文件切换为 `.slnx`。
 - CodeWF 相关依赖改为 NuGet 包引用。
+- 🔧[优化]-界面主题切换到 Semi.Avalonia 与 Ursa.Semi，并保留开源 Avalonia.Themes.Fluent 适配 AvaloniaEdit。
+- 🔧[优化]-移除 CommunityToolkit.Mvvm，ViewModel 改为 ReactiveUI，并让菜单直接绑定 public 方法。
+- 🔧[优化]-CodeWF.EventBus 改为通过 DryIoc 注册服务，并使用 `[EventHandler]` 方法处理编辑器动作与导航消息。
+- 🔧[优化]-新增 Windows AOT/Win7 与 Linux/macOS self-contained single-file 发布配置。
+- 🔧[优化]-通过中央传递钉版消除旧 `System.Drawing.Common` 解析带来的 NU1904 告警。
+- 🧪[测试]-构建 `Vex.slnx`、执行依赖漏洞扫描、桌面启动烟测，并验证 `win-x64` Release Native AOT 与 `linux-x64` self-contained single-file 发布链路。

@@ -1,5 +1,6 @@
 using System.Text;
 using Avalonia;
+using ReactiveUI.Avalonia;
 
 namespace Vex;
 
@@ -17,6 +18,7 @@ internal sealed class Program
         return AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
+            .UseReactiveUI(_ => { })
             .LogToTrace();
     }
 }
