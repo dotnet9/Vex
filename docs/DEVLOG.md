@@ -38,6 +38,8 @@
 - 核查 Markdig 许可证为 BSD-2-Clause，显式加入 NuGet 引用和裁剪免裁配置；验证 `dotnet build Vex.slnx` 与 NuGet 漏洞扫描。
 - 实现格式菜单清除样式动作，通过 CodeWF.EventBus 通知 AvaloniaEdit 控制器清理选区或当前行的常见 Markdown 标记。
 - 验证 `dotnet build Vex.slnx`。
+- 优化视图菜单行为：显示文件/大纲会展开侧边栏，源代码模式会保存原布局状态、隐藏侧栏与预览，并在退出时恢复。
+- 验证 `dotnet build Vex.slnx`。
 
 ### en-US
 
@@ -74,4 +76,6 @@
 - Added `IMarkdownExportService` and HTML export support; the HTML export menu item now generates a standalone HTML file with baseline reading styles through Markdig.
 - Checked Markdig's BSD-2-Clause license, added an explicit NuGet reference and trimmer root, and verified `dotnet build Vex.slnx` plus NuGet vulnerability scanning.
 - Implemented the clear-formatting menu action through CodeWF.EventBus so the AvaloniaEdit controller can clean common Markdown markers from the selection or current line.
+- Verified `dotnet build Vex.slnx`.
+- Improved view menu behavior: files/outline reveal the sidebar, and source mode saves the previous layout, hides sidebar/preview, and restores them when disabled.
 - Verified `dotnet build Vex.slnx`.

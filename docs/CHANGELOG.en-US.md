@@ -35,9 +35,11 @@
 - Pinned the transitive `Avalonia.Markup.Xaml.Loader` dependency to Avalonia 12.0.3 to avoid publishing an older runtime loader.
 - Improved the properties action to show document state, encoding, size, and path details.
 - Restored the startup status bar text to Ready and added empty states for the files and outline sidebar tabs.
+- Updated the view menu so outline/files reveal the sidebar, while source mode temporarily hides the sidebar and preview and restores them when toggled off.
 - Tested `Vex.slnx` build, dependency vulnerability scanning, desktop smoke startup, and the `win-x64` Release Native AOT plus `linux-x64` self-contained single-file publish paths.
 - Tested `publish_vex_all.bat` and confirmed all five Vex publish profiles complete successfully.
 - Tested `Vex.slnx` build for the find/replace changes and captured a desktop screenshot for the base window layout.
 - Captured a desktop screenshot to verify the default sidebar empty state, three-pane layout, and Ready status text.
 - Checked Markdig's BSD-2-Clause license, built `Vex.slnx`, and ran NuGet vulnerability scanning.
 - Built `Vex.slnx` to verify the clear-formatting editor action.
+- Built `Vex.slnx` to verify the view-mode toggle behavior.

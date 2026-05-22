@@ -37,6 +37,9 @@ public sealed class MainWindowViewModel : ReactiveObject
     private bool _isAlwaysOnTop;
     private bool _isFullScreen;
     private bool _isCompactLayout;
+    private bool _isSourceMode;
+    private bool _sidebarBeforeSourceMode = true;
+    private bool _previewBeforeSourceMode = true;
     private bool _isFindPanelVisible;
     private bool _isReplaceVisible;
     private string _searchText = string.Empty;
@@ -249,6 +252,12 @@ public sealed class MainWindowViewModel : ReactiveObject
                 OnPropertyChanged(nameof(CurrentTypographySize));
             }
         }
+    }
+
+    public bool IsSourceMode
+    {
+        get => _isSourceMode;
+        set => SetProperty(ref _isSourceMode, value);
     }
 
     public bool IsFindPanelVisible
@@ -636,11 +645,13 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public void ShowOutline()
     {
+        IsSidebarVisible = true;
         SelectedSideTabIndex = 1;
     }
 
     public void ShowFiles()
     {
+        IsSidebarVisible = true;
         SelectedSideTabIndex = 0;
     }
 
@@ -656,7 +667,23 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public void ToggleSourceMode()
     {
-        IsPreviewVisible = !IsPreviewVisible;
+        if (!IsSourceMode)
+        {
+            _sidebarBeforeSourceMode = IsSidebarVisible;
+            _previewBeforeSourceMode = IsPreviewVisible;
+            IsSidebarVisible = false;
+            IsPreviewVisible = false;
+            IsSourceMode = true;
+            SetStatus("Source mode enabled.");
+            PublishEditorAction(EditorActionKind.FocusEditor);
+            return;
+        }
+
+        IsSidebarVisible = _sidebarBeforeSourceMode;
+        IsPreviewVisible = _previewBeforeSourceMode;
+        IsSourceMode = false;
+        SetStatus("Source mode disabled.");
+        PublishEditorAction(EditorActionKind.FocusEditor);
     }
 
     public void ToggleAlwaysOnTop()
