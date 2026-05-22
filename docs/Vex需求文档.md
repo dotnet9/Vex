@@ -25,8 +25,8 @@
 | 官网 | https://codewf.com |
 | 产品类型 | 跨平台 Markdown 桌面编辑器 |
 | 体验参考 | Typora |
-| 技术参考 | `E:\github\libs\CodeWF.Markdown\src\CodeWF.Markdown.Sample` |
-| 参考素材 | `C:\Users\liu64\Pictures\1` |
+| 技术参考 | `https://github.com/dotnet9/CodeWF.Markdown/tree/main/src/CodeWF.Markdown.Sample` |
+| 参考素材 | `.\typocs\typora` |
 
 AssemblyInfo、About、帮助文档、发布元数据等涉及网站时，统一使用 `https://codewf.com`，不要使用二级域名。
 
@@ -62,11 +62,11 @@ Vex 是面向写作者、开发者和知识工作者的 Markdown 编辑器。核
 3. 模块化使用 Prism 8.x 与 DryIoc。
 4. ViewModel 使用 ReactiveUI，不使用 CommunityToolkit.Mvvm。
 5. UI 绑定命令优先直接绑定 ViewModel 的 public 方法，方法可为同步或 async。
-6. 编辑器、模块、View、ViewModel 间的业务消息使用 CodeWF.EventBus，不回退到 Prism 事件体系。
+6. 编辑器、模块、View、ViewModel 间的业务消息使用 CodeWF.EventBus。
 
 ### 4.2 UI 库与主题
 
-1. 主 UI 使用 Semi.Avalonia 与 Ursa.Avalonia NuGet 包。
+1. 主 UI 使用 Semi.Avalonia 与 Ursa.Avalonia NuGet 包，支持Semi的所有主题，参考用法`https://github.com/dotnet9/CodeWF.Toolbox/tree/develop`，尽量使用Ursa的控件，包括他的UrsaWindow做为窗体基类。
 2. Avalonia.Themes.Fluent 允许保留，用于 AvaloniaEdit 适配和必要的基础主题补充。
 3. 不使用无源码仓库、许可证不可查或黑盒的 AvaloniaEdit 第三方主题包。
 4. 主题资源应拆分到 `Vex.Controls` 与 `Vex.Controls.Themes`，按 Semi.Avalonia 风格组织。
@@ -147,9 +147,10 @@ publish/
 
 1. Core 不依赖 UI 具体实现。
 2. ViewModel 不直接操作 Avalonia 控件，除非是应用窗口状态这类必须由 View 处理的能力。
-3. 编辑器控件相关行为放在 Workspace 的 Controller 或 View code-behind 内，通过 EventBus 接收 Shell 发来的编辑动作。
+3. 编辑器控件相关行为放在 Workspace 的 ViewModel 或 Controller 或 View code-behind 内，通过 EventBus 接收 Shell 发来的编辑动作。
 4. 文件系统、导出、帮助打开等 I/O 行为放在服务内。
 5. UI 文案最终应逐步进入 I18n 资源，不长期散落在 XAML 和 ViewModel 中。
+6. 需要严格按开源项目规范、.NET 规范、Avalonia开发规范、MVVM优先规范开发所有项目。
 
 ## 6. 核心数据模型
 
@@ -205,9 +206,9 @@ publish/
 
 ### 7.1 框架布局
 
-主窗口采用四行布局：
+基于UrsaWindow的主窗口采用四行布局：
 
-1. 自定义标题栏：Logo、产品名、标题栏菜单、当前文件名、窗口控制按钮。
+1. 标题栏：Logo、产品名、标题栏菜单、当前文件名、窗口控制按钮。
 2. 查找/替换栏：按需显示，不常驻。
 3. 工作区：左侧文件/大纲、中间编辑器、右侧预览。
 4. 状态栏：状态文本、保存状态、编码、缩放、行列、词数、字符数。
@@ -238,7 +239,7 @@ publish/
 
 ### 7.4 预览区域
 
-1. 使用 CodeWF.Markdown 或 CodeWF.Markdown.Themes 提供的 MarkdownViewer。
+1. 使用 CodeWF.Markdown.Themes（引入了CodeWF.Markdown） 提供的 MarkdownViewer。
 2. 预览内容跟随当前 Markdown 实时更新。
 3. 支持排版主题切换。
 4. 支持紧凑布局切换。

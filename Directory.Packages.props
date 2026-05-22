@@ -16,13 +16,9 @@
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="CodeWF.DryIoc.EventBus" Version="3.4.5.5" />
     <PackageVersion Include="CodeWF.EventBus" Version="3.4.5.5" />
-    <PackageVersion Include="CodeWF.Markdown" Version="12.0.3.2" />
     <PackageVersion Include="CodeWF.Markdown.Themes" Version="12.0.3.2" />
-    <PackageVersion Include="Irihi.Ursa" Version="$(UrsaAvaloniaVersion)" />
     <PackageVersion Include="Irihi.Ursa.Themes.Semi" Version="$(UrsaAvaloniaVersion)" />
     <PackageVersion Include="Lang.Avalonia.Json" Version="12.0.3.1" />
-    <PackageVersion Include="Markdig" Version="1.2.0" />
-    <PackageVersion Include="Prism.Avalonia" Version="$(PrismVersion)" />
     <PackageVersion Include="Prism.DryIoc.Avalonia" Version="$(PrismVersion)" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="12.0.1" />
     <PackageVersion Include="Semi.Avalonia" Version="$(SemiAvaloniaVersion)" />

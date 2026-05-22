@@ -51,13 +51,9 @@
     <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="CodeWF.DryIoc.EventBus" />
     <PackageReference Include="CodeWF.EventBus" />
-    <PackageReference Include="CodeWF.Markdown" />
     <PackageReference Include="CodeWF.Markdown.Themes" />
-    <PackageReference Include="Irihi.Ursa" />
     <PackageReference Include="Irihi.Ursa.Themes.Semi" />
     <PackageReference Include="Lang.Avalonia.Json" />
-    <PackageReference Include="Markdig" />
-    <PackageReference Include="Prism.Avalonia" />
     <PackageReference Include="Prism.DryIoc.Avalonia" />
     <PackageReference Include="ReactiveUI.Avalonia" />
     <PackageReference Include="Semi.Avalonia" />
