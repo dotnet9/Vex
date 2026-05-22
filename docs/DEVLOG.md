@@ -88,6 +88,11 @@
 - `MainWindowViewModel.cs` 从约 980 行降至约 714 行，新增 `ShellDialogsViewModel.cs` 约 191 行，`ShellOverlaysView.axaml` 保持约 252 行，继续按有意义的独立文件拆分而非 partial。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认关于浮层在 `Dialogs.*` 嵌套绑定下显示正常。截图路径：`%TEMP%\VexScreenshots\dialogs-module-refactor.png`。
 - 本轮未新增第三方依赖，无需额外许可证核查。
+- 拆分 Shell 窗口布局状态：新增 `ShellWindowLayoutViewModel` 承载侧栏、预览区、状态栏、源码模式、置顶和全屏状态，主 ViewModel 不再持有这些纯窗口显示字段。
+- 布局模块通过 Prism IoC 注入，并在源码模式切换时通过 CodeWF.EventBus 发布 `WorkspaceStatusChangedCommand` 与 `EditorActionCommand(FocusEditor)`，保持状态反馈和编辑器聚焦解耦。
+- `MainWindowViewModel.cs` 从约 714 行降至约 610 行，新增 `ShellWindowLayoutViewModel.cs` 约 142 行，`MainWindow.axaml` 约 323 行，并补充中文注释说明源码模式恢复布局的维护点。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认默认三栏布局、预览区和状态栏在 `Layout.*` 绑定下正常显示。截图路径：`%TEMP%\VexScreenshots\layout-module-refactor.png`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 
 ### en-US
 
@@ -204,4 +209,9 @@
 - Registered the dialogs ViewModel through Prism IoC and changed overlay bindings to `Dialogs.*`; cancel and close actions publish status feedback through `WorkspaceStatusChangedCommand`.
 - Reduced `MainWindowViewModel.cs` from about 980 lines to about 714 lines, with the new dialogs ViewModel at about 191 lines and `ShellOverlaysView.axaml` at about 252 lines.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the about overlay still renders through the nested `Dialogs.*` bindings. Screenshot path: `%TEMP%\VexScreenshots\dialogs-module-refactor.png`.
+- Added no new third-party dependency, so no additional license review was required.
+- Split shell window layout state into `ShellWindowLayoutViewModel`, covering sidebar, preview, status bar, source mode, always-on-top, and full-screen state outside the main shell ViewModel.
+- Registered the layout ViewModel through Prism IoC and publish source-mode status plus editor-focus messages through CodeWF.EventBus.
+- Reduced `MainWindowViewModel.cs` from about 714 lines to about 610 lines, with the new layout ViewModel at about 142 lines and `MainWindow.axaml` at about 323 lines.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the default three-pane layout, preview, and status bar still render through `Layout.*` bindings. Screenshot path: `%TEMP%\VexScreenshots\layout-module-refactor.png`.
 - Added no new third-party dependency, so no additional license review was required.

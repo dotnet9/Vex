@@ -25,9 +25,9 @@ public partial class MainWindow : Window
         : this()
     {
         DataContext = viewModel;
-        viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        viewModel.Layout.PropertyChanged += OnLayoutPropertyChanged;
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
-        ApplyWindowState(viewModel);
+        ApplyWindowState(viewModel.Layout);
         Opened += async (_, _) => await viewModel.OpenStartupDocumentAsync(Environment.GetCommandLineArgs().Skip(1));
     }
 
@@ -112,7 +112,7 @@ public partial class MainWindow : Window
         }
         else if (e.Key == Key.F11)
         {
-            viewModel.ToggleFullScreen();
+            viewModel.Layout.ToggleFullScreen();
             e.Handled = true;
         }
         else if (hasAlt && e.Key == Key.Enter)
@@ -161,20 +161,20 @@ public partial class MainWindow : Window
         return key is Key.D0 or Key.NumPad0;
     }
 
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnLayoutPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (sender is MainWindowViewModel viewModel
-            && e.PropertyName is nameof(MainWindowViewModel.IsAlwaysOnTop) or nameof(MainWindowViewModel.IsFullScreen))
+        if (sender is ShellWindowLayoutViewModel layout
+            && e.PropertyName is nameof(ShellWindowLayoutViewModel.IsAlwaysOnTop) or nameof(ShellWindowLayoutViewModel.IsFullScreen))
         {
-            ApplyWindowState(viewModel);
+            ApplyWindowState(layout);
         }
 
     }
 
-    private void ApplyWindowState(MainWindowViewModel viewModel)
+    private void ApplyWindowState(ShellWindowLayoutViewModel layout)
     {
-        Topmost = viewModel.IsAlwaysOnTop;
-        WindowState = viewModel.IsFullScreen ? WindowState.FullScreen : WindowState.Normal;
+        Topmost = layout.IsAlwaysOnTop;
+        WindowState = layout.IsFullScreen ? WindowState.FullScreen : WindowState.Normal;
     }
 
     private async void WindowClosing(object? sender, CancelEventArgs e)

@@ -162,17 +162,17 @@
                     </MenuItem>
 
                     <MenuItem Header="视图(V)">
-                        <MenuItem Header="显示 / 隐藏侧边栏" Command="{Binding ToggleSidebar}" />
-                        <MenuItem Header="大纲" Command="{Binding ShowOutline}" />
-                        <MenuItem Header="文档列表" Command="{Binding ShowFiles}" />
+                        <MenuItem Header="显示 / 隐藏侧边栏" Command="{Binding Layout.ToggleSidebar}" />
+                        <MenuItem Header="大纲" Command="{Binding Layout.ShowOutline}" />
+                        <MenuItem Header="文档列表" Command="{Binding Layout.ShowFiles}" />
                         <MenuItem Header="搜索" Command="{Binding ShowFindPanel}" InputGesture="Ctrl+F" />
                         <Separator />
-                        <MenuItem Header="源代码模式" Command="{Binding ToggleSourceMode}" />
-                        <MenuItem Header="显示状态栏" Command="{Binding ToggleStatusBar}" />
+                        <MenuItem Header="源代码模式" Command="{Binding Layout.ToggleSourceMode}" />
+                        <MenuItem Header="显示状态栏" Command="{Binding Layout.ToggleStatusBar}" />
                         <MenuItem Header="字数统计窗口" Command="{Binding WordCount}" />
                         <Separator />
-                        <MenuItem Header="切换全屏" Command="{Binding ToggleFullScreen}" InputGesture="F11" />
-                        <MenuItem Header="保持窗口在最前端" Command="{Binding ToggleAlwaysOnTop}" />
+                        <MenuItem Header="切换全屏" Command="{Binding Layout.ToggleFullScreen}" InputGesture="F11" />
+                        <MenuItem Header="保持窗口在最前端" Command="{Binding Layout.ToggleAlwaysOnTop}" />
                         <Separator />
                         <MenuItem Header="实际大小" Command="{Binding EditorDisplay.ActualSize}" />
                         <MenuItem Header="放大" Command="{Binding EditorDisplay.ZoomIn}" />
@@ -235,14 +235,14 @@
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="{Binding SidebarColumnWidth}" MinWidth="0" />
-                <ColumnDefinition Width="{Binding SidebarSplitterWidth}" />
+                <ColumnDefinition Width="{Binding Layout.SidebarColumnWidth}" MinWidth="0" />
+                <ColumnDefinition Width="{Binding Layout.SidebarSplitterWidth}" />
                 <ColumnDefinition Width="*" MinWidth="360" />
-                <ColumnDefinition Width="{Binding PreviewSplitterWidth}" />
-                <ColumnDefinition Width="{Binding PreviewColumnWidth}" MinWidth="0" />
+                <ColumnDefinition Width="{Binding Layout.PreviewSplitterWidth}" />
+                <ColumnDefinition Width="{Binding Layout.PreviewColumnWidth}" MinWidth="0" />
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Classes="panel" IsVisible="{Binding IsSidebarVisible}">
+            <Border Grid.Column="0" Classes="panel" IsVisible="{Binding Layout.IsSidebarVisible}">
                 <TabControl SelectedIndex="{Binding Navigation.SelectedSideTabIndex, Mode=TwoWay}">
                     <TabItem Header="文件">
                         <Grid>
@@ -286,7 +286,7 @@
             <GridSplitter
                 Grid.Column="1"
                 HorizontalAlignment="Stretch"
-                IsVisible="{Binding IsSidebarVisible}"
+                IsVisible="{Binding Layout.IsSidebarVisible}"
                 ResizeDirection="Columns" />
 
             <workspace:MarkdownEditorView Grid.Column="2" />
@@ -294,13 +294,13 @@
             <GridSplitter
                 Grid.Column="3"
                 HorizontalAlignment="Stretch"
-                IsVisible="{Binding IsPreviewVisible}"
+                IsVisible="{Binding Layout.IsPreviewVisible}"
                 ResizeDirection="Columns" />
 
             <Border
                 Grid.Column="4"
                 Background="White"
-                IsVisible="{Binding IsPreviewVisible}"
+                IsVisible="{Binding Layout.IsPreviewVisible}"
                 Padding="34 28 34 0">
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                     <md:MarkdownViewer
@@ -318,7 +318,7 @@
             Background="#FFF7F8FA"
             BorderBrush="#E4E7EC"
             BorderThickness="0 1 0 0"
-            IsVisible="{Binding IsStatusBarVisible}"
+            IsVisible="{Binding Layout.IsStatusBarVisible}"
             Padding="10 4">
             <Grid ColumnDefinitions="*,Auto" MinHeight="28">
                 <TextBlock

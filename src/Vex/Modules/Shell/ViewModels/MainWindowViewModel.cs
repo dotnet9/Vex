@@ -2,8 +2,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
@@ -23,14 +21,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     private DocumentSnapshot _document;
     private string _lastSavedMarkdown = string.Empty;
     private string _markdown = string.Empty;
-    private bool _isSidebarVisible = true;
-    private bool _isStatusBarVisible = true;
-    private bool _isPreviewVisible = true;
-    private bool _isAlwaysOnTop;
-    private bool _isFullScreen;
-    private bool _isSourceMode;
-    private bool _sidebarBeforeSourceMode = true;
-    private bool _previewBeforeSourceMode = true;
     private MarkdownStatistics _statistics = new(0, 0, 1);
 
     public MainWindowViewModel(
@@ -44,6 +34,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         ShellEditorActionsViewModel editorActions,
         ShellEditorDisplayViewModel editorDisplay,
         ShellFindBarViewModel findBar,
+        ShellWindowLayoutViewModel layout,
         ShellNavigationViewModel navigation,
         ShellRecentDocumentsViewModel recent,
         ShellStatusViewModel status,
@@ -59,6 +50,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         EditorActions = editorActions;
         EditorDisplay = editorDisplay;
         FindBar = findBar;
+        Layout = layout;
         Navigation = navigation;
         Recent = recent;
         Status = status;
@@ -81,6 +73,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ShellEditorDisplayViewModel EditorDisplay { get; }
 
     public ShellFindBarViewModel FindBar { get; }
+
+    public ShellWindowLayoutViewModel Layout { get; }
 
     public ShellNavigationViewModel Navigation { get; }
 
@@ -160,64 +154,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     public string DocumentStateText => IsModified ? "Modified" : "Saved";
 
     public string CurrentEncodingText => GetEncodingDisplayName(_document.Encoding);
-
-    public bool IsSidebarVisible
-    {
-        get => _isSidebarVisible;
-        set
-        {
-            if (SetProperty(ref _isSidebarVisible, value))
-            {
-                OnPropertyChanged(nameof(SidebarColumnWidth));
-                OnPropertyChanged(nameof(SidebarSplitterWidth));
-            }
-        }
-    }
-
-    public bool IsStatusBarVisible
-    {
-        get => _isStatusBarVisible;
-        set => SetProperty(ref _isStatusBarVisible, value);
-    }
-
-    public bool IsPreviewVisible
-    {
-        get => _isPreviewVisible;
-        set
-        {
-            if (SetProperty(ref _isPreviewVisible, value))
-            {
-                OnPropertyChanged(nameof(PreviewColumnWidth));
-                OnPropertyChanged(nameof(PreviewSplitterWidth));
-            }
-        }
-    }
-
-    public GridLength SidebarColumnWidth => IsSidebarVisible ? new GridLength(320) : new GridLength(0);
-
-    public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(6) : new GridLength(0);
-
-    public GridLength PreviewColumnWidth => IsPreviewVisible ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
-
-    public GridLength PreviewSplitterWidth => IsPreviewVisible ? new GridLength(6) : new GridLength(0);
-
-    public bool IsAlwaysOnTop
-    {
-        get => _isAlwaysOnTop;
-        set => SetProperty(ref _isAlwaysOnTop, value);
-    }
-
-    public bool IsFullScreen
-    {
-        get => _isFullScreen;
-        set => SetProperty(ref _isFullScreen, value);
-    }
-
-    public bool IsSourceMode
-    {
-        get => _isSourceMode;
-        set => SetProperty(ref _isSourceMode, value);
-    }
 
     public MarkdownStatistics Statistics
     {
@@ -569,64 +505,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         var path = await _exportService.OpenHtmlPrintPreviewAsync(_document with { Markdown = Markdown });
         SetStatus(path is null ? "Print preview canceled." : "Opened HTML print preview.");
-    }
-
-    public void ToggleSidebar()
-    {
-        IsSidebarVisible = !IsSidebarVisible;
-    }
-
-    public void ShowOutline()
-    {
-        IsSidebarVisible = true;
-        Navigation.SelectedSideTabIndex = 1;
-    }
-
-    public void ShowFiles()
-    {
-        IsSidebarVisible = true;
-        Navigation.SelectedSideTabIndex = 0;
-    }
-
-    public void TogglePreview()
-    {
-        IsPreviewVisible = !IsPreviewVisible;
-    }
-
-    public void ToggleStatusBar()
-    {
-        IsStatusBarVisible = !IsStatusBarVisible;
-    }
-
-    public void ToggleSourceMode()
-    {
-        if (!IsSourceMode)
-        {
-            _sidebarBeforeSourceMode = IsSidebarVisible;
-            _previewBeforeSourceMode = IsPreviewVisible;
-            IsSidebarVisible = false;
-            IsPreviewVisible = false;
-            IsSourceMode = true;
-            SetStatus("Source mode enabled.");
-            EditorActions.FocusEditor();
-            return;
-        }
-
-        IsSidebarVisible = _sidebarBeforeSourceMode;
-        IsPreviewVisible = _previewBeforeSourceMode;
-        IsSourceMode = false;
-        SetStatus("Source mode disabled.");
-        EditorActions.FocusEditor();
-    }
-
-    public void ToggleAlwaysOnTop()
-    {
-        IsAlwaysOnTop = !IsAlwaysOnTop;
-    }
-
-    public void ToggleFullScreen()
-    {
-        IsFullScreen = !IsFullScreen;
     }
 
     public void WordCount()

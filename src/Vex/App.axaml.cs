@@ -68,6 +68,7 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<ShellNavigationViewModel>();
         containerRegistry.RegisterSingleton<ShellRecentDocumentsViewModel>();
         containerRegistry.RegisterSingleton<ShellStatusViewModel>();
+        containerRegistry.RegisterSingleton<ShellWindowLayoutViewModel>();
         containerRegistry.RegisterSingleton<MainWindowViewModel>();
         containerRegistry.Register<MainWindow>();
     }
