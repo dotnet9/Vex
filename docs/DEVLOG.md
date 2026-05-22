@@ -98,6 +98,11 @@
 - `MainWindowViewModel.cs` 从约 610 行降至约 552 行，新增 `ShellDocumentInfoViewModel.cs` 约 95 行，并补充中文注释说明派生属性集中刷新，降低后续维护漏改风险。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认标题栏、状态栏 Saved/UTF-8/Words/Chars 和预览区在 `DocumentInfo.*` 绑定下正常显示。截图路径：`%TEMP%\VexScreenshots\document-info-module-refactor.png`。
 - 本轮未新增第三方依赖，无需额外许可证核查。
+- 拆分帮助菜单动作：新增 `ShellHelpViewModel` 处理更新日志、快速开始、鸣谢、官网、反馈和关于入口，主 ViewModel 不再直接依赖 `IHelpService`。
+- 帮助模块通过 Prism IoC 注入，菜单绑定改为 `Help.OpenHelpTopic`，关于入口复用 `ShellDialogsViewModel`，状态栏反馈继续通过 CodeWF.EventBus 发布。
+- `MainWindowViewModel.cs` 从约 552 行降至约 521 行，新增 `ShellHelpViewModel.cs` 约 51 行，并补充中文注释说明帮助入口与 Shell 浮层职责边界。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认帮助模块触发关于浮层和状态栏 `About Vex.` 反馈正常。截图路径：`%TEMP%\VexScreenshots\help-module-refactor.png`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 
 ### en-US
 
@@ -224,4 +229,9 @@
 - Registered the document-info ViewModel through Prism IoC and changed window, status-bar, and overlay bindings to `DocumentInfo.*`; window close checks now read `DocumentInfo.IsModified`.
 - Reduced `MainWindowViewModel.cs` from about 610 lines to about 552 lines, with the new document-info ViewModel at about 95 lines.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming title, Saved/UTF-8/Words/Chars status badges, and preview still render through `DocumentInfo.*` bindings. Screenshot path: `%TEMP%\VexScreenshots\document-info-module-refactor.png`.
+- Added no new third-party dependency, so no additional license review was required.
+- Split help menu actions into `ShellHelpViewModel`, covering changelog, quick start, acknowledgements, website, feedback, and about actions outside the main shell ViewModel.
+- Registered the help ViewModel through Prism IoC, changed menu bindings to `Help.OpenHelpTopic`, reused `ShellDialogsViewModel` for the about overlay, and kept status feedback on CodeWF.EventBus.
+- Reduced `MainWindowViewModel.cs` from about 552 lines to about 521 lines, with the new help ViewModel at about 51 lines.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the help module opens the about overlay and publishes `About Vex.` status feedback. Screenshot path: `%TEMP%\VexScreenshots\help-module-refactor.png`.
 - Added no new third-party dependency, so no additional license review was required.

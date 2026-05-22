@@ -204,13 +204,13 @@
                     </MenuItem>
 
                     <MenuItem Header="帮助(H)">
-                        <MenuItem Header="更新日志" Command="{Binding OpenHelpTopic}" CommandParameter="changelog" />
-                        <MenuItem Header="快速开始（引导）" Command="{Binding OpenHelpTopic}" CommandParameter="quick-start" />
-                        <MenuItem Header="鸣谢" Command="{Binding OpenHelpTopic}" CommandParameter="thanks" />
+                        <MenuItem Header="更新日志" Command="{Binding Help.OpenHelpTopic}" CommandParameter="changelog" />
+                        <MenuItem Header="快速开始（引导）" Command="{Binding Help.OpenHelpTopic}" CommandParameter="quick-start" />
+                        <MenuItem Header="鸣谢" Command="{Binding Help.OpenHelpTopic}" CommandParameter="thanks" />
                         <Separator />
-                        <MenuItem Header="官方网站" Command="{Binding OpenHelpTopic}" CommandParameter="website" />
-                        <MenuItem Header="反馈" Command="{Binding OpenHelpTopic}" CommandParameter="feedback" />
-                        <MenuItem Header="关于" Command="{Binding OpenHelpTopic}" CommandParameter="about" />
+                        <MenuItem Header="官方网站" Command="{Binding Help.OpenHelpTopic}" CommandParameter="website" />
+                        <MenuItem Header="反馈" Command="{Binding Help.OpenHelpTopic}" CommandParameter="feedback" />
+                        <MenuItem Header="关于" Command="{Binding Help.OpenHelpTopic}" CommandParameter="about" />
                     </MenuItem>
                 </Menu>
 

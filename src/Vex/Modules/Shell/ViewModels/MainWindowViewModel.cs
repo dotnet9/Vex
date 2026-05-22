@@ -15,7 +15,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     private readonly IMarkdownExportService _exportService;
     private readonly IMarkdownOutlineService _outlineService;
     private readonly IMarkdownStatisticsService _statisticsService;
-    private readonly IHelpService _helpService;
     private readonly IEventBus _eventBus;
     private DocumentSnapshot _document;
     private string _lastSavedMarkdown = string.Empty;
@@ -26,13 +25,13 @@ public sealed class MainWindowViewModel : ReactiveObject
         IMarkdownExportService exportService,
         IMarkdownOutlineService outlineService,
         IMarkdownStatisticsService statisticsService,
-        IHelpService helpService,
         ShellAppearanceViewModel appearance,
         ShellDocumentInfoViewModel documentInfo,
         ShellDialogsViewModel dialogs,
         ShellEditorActionsViewModel editorActions,
         ShellEditorDisplayViewModel editorDisplay,
         ShellFindBarViewModel findBar,
+        ShellHelpViewModel help,
         ShellWindowLayoutViewModel layout,
         ShellNavigationViewModel navigation,
         ShellRecentDocumentsViewModel recent,
@@ -43,13 +42,13 @@ public sealed class MainWindowViewModel : ReactiveObject
         _exportService = exportService;
         _outlineService = outlineService;
         _statisticsService = statisticsService;
-        _helpService = helpService;
         Appearance = appearance;
         DocumentInfo = documentInfo;
         Dialogs = dialogs;
         EditorActions = editorActions;
         EditorDisplay = editorDisplay;
         FindBar = findBar;
+        Help = help;
         Layout = layout;
         Navigation = navigation;
         Recent = recent;
@@ -76,6 +75,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ShellEditorDisplayViewModel EditorDisplay { get; }
 
     public ShellFindBarViewModel FindBar { get; }
+
+    public ShellHelpViewModel Help { get; }
 
     public ShellWindowLayoutViewModel Layout { get; }
 
@@ -498,38 +499,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     public void ReplaceAll()
     {
         FindBar.ReplaceAll();
-    }
-
-    public async Task OpenHelpTopic(string? topic)
-    {
-        switch (topic)
-        {
-            case "changelog":
-                await _helpService.OpenDocumentAsync("CHANGELOG.zh-CN.md");
-                SetStatus("Opened changelog.");
-                break;
-            case "quick-start":
-                await _helpService.OpenDocumentAsync("QuickStart.zh-CN.md");
-                SetStatus("Opened quick start.");
-                break;
-            case "thanks":
-                await _helpService.OpenDocumentAsync("ACKNOWLEDGEMENTS.zh-CN.md");
-                SetStatus("Opened acknowledgements.");
-                break;
-            case "website":
-                await _helpService.OpenWebsiteAsync();
-                break;
-            case "feedback":
-                await _helpService.OpenFeedbackAsync();
-                break;
-            case "about":
-                Dialogs.ShowAboutPanel();
-                SetStatus("About Vex.");
-                break;
-            default:
-                SetStatus($"{topic ?? "Help"} is queued for implementation.");
-                break;
-        }
     }
 
     private void SetStatus(string message)
