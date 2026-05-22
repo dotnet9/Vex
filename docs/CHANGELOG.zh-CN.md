@@ -7,6 +7,7 @@
 - [优化] 将查找/替换面板拆分为独立 `ShellFindBarView` 与 `ShellFindBarViewModel`，通过 CodeWF.EventBus 与编辑器通信，降低主窗口和主 ViewModel 复杂度。
 - [优化] 将主题、排版、紧凑布局和语言切换迁移到独立 `ShellAppearanceViewModel`，主窗口通过 Prism IoC 组合外观模块。
 - [优化] 将撤销、重做、剪贴板、全选和 Markdown 插入命令迁移到独立 `ShellEditorActionsViewModel`，统一通过 CodeWF.EventBus 路由到编辑器。
+- [优化] 将状态栏文本和光标位置迁移到独立 `ShellStatusViewModel`，由 CodeWF.EventBus 订阅状态和编辑器光标消息。
 
 - 创建 Vex（维刻）Markdown 编辑器基础版本。
 - 完善作者、码坊 CodeWF 与官方网站信息。

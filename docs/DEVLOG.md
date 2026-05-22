@@ -174,3 +174,8 @@
 - Reduced `MainWindowViewModel.cs` from about 1260 lines to 1219 lines, with the new editor-actions ViewModel at about 59 lines.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a startup smoke screenshot after the nested command-binding refactor. Screenshot path: `%TEMP%\VexScreenshots\editor-actions-module-refactor.png`.
 - Added no new third-party dependency, so no additional license review was required.
+- Split status-bar state into `ShellStatusViewModel`, which subscribes to `WorkspaceStatusChangedCommand` and `MarkdownTextChangedCommand` for status text and caret position updates.
+- Registered the status ViewModel through Prism IoC and changed status-bar bindings to `Status.StatusText`, `Status.CaretLine`, and `Status.CaretColumn`; the main shell ViewModel now only publishes status messages.
+- Reduced `MainWindowViewModel.cs` from about 1219 lines to 1193 lines, with the new status ViewModel at about 60 lines.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming status text and line/column badges still render correctly. Screenshot path: `%TEMP%\VexScreenshots\status-module-refactor.png`.
+- Added no new third-party dependency, so no additional license review was required.

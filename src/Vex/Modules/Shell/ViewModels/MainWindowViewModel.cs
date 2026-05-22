@@ -24,9 +24,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     private DocumentSnapshot _document;
     private string _lastSavedMarkdown = string.Empty;
     private string _markdown = string.Empty;
-    private string _statusText = "Ready";
-    private int _caretLine = 1;
-    private int _caretColumn = 1;
     private bool _isSidebarVisible = true;
     private bool _isStatusBarVisible = true;
     private bool _isPreviewVisible = true;
@@ -60,6 +57,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         ShellAppearanceViewModel appearance,
         ShellEditorActionsViewModel editorActions,
         ShellFindBarViewModel findBar,
+        ShellStatusViewModel status,
         IEventBus eventBus)
     {
         _documentService = documentService;
@@ -70,6 +68,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         Appearance = appearance;
         EditorActions = editorActions;
         FindBar = findBar;
+        Status = status;
         _eventBus = eventBus;
         _eventBus.Subscribe(this);
         LoadRecentDocuments();
@@ -86,6 +85,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ShellEditorActionsViewModel EditorActions { get; }
 
     public ShellFindBarViewModel FindBar { get; }
+
+    public ShellStatusViewModel Status { get; }
 
     public async Task OpenStartupDocumentAsync(IEnumerable<string> arguments)
     {
@@ -195,24 +196,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     public string DocumentStateText => IsModified ? "Modified" : "Saved";
 
     public string CurrentEncodingText => GetEncodingDisplayName(_document.Encoding);
-
-    public string StatusText
-    {
-        get => _statusText;
-        set => SetProperty(ref _statusText, value);
-    }
-
-    public int CaretLine
-    {
-        get => _caretLine;
-        set => SetProperty(ref _caretLine, value);
-    }
-
-    public int CaretColumn
-    {
-        get => _caretColumn;
-        set => SetProperty(ref _caretColumn, value);
-    }
 
     public int SelectedSideTabIndex
     {
@@ -710,18 +693,10 @@ public sealed class MainWindowViewModel : ReactiveObject
     [EventHandler]
     public void ApplyMarkdownTextChanged(MarkdownTextChangedCommand command)
     {
-        CaretLine = command.CaretLine;
-        CaretColumn = command.CaretColumn;
         if (Markdown != command.Markdown)
         {
             Markdown = command.Markdown;
         }
-    }
-
-    [EventHandler]
-    public void ApplyWorkspaceStatusChanged(WorkspaceStatusChangedCommand command)
-    {
-        StatusText = command.Message;
     }
 
     private void RefreshMarkdownDerivedState()
@@ -956,7 +931,6 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private void SetStatus(string message)
     {
-        StatusText = message;
         _eventBus.Publish(new WorkspaceStatusChangedCommand(message));
     }
 

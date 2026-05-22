@@ -41,6 +41,7 @@
 - Split find/replace into a dedicated `ShellFindBarView` and `ShellFindBarViewModel` that communicate with the editor through CodeWF.EventBus.
 - Split theme, typography, compact-layout, and language switching state into a dedicated `ShellAppearanceViewModel`.
 - Split editor actions into a dedicated `ShellEditorActionsViewModel` for undo, redo, clipboard, select-all, focus, and Markdown insertion commands.
+- Split status text and caret position into a dedicated `ShellStatusViewModel` that listens through CodeWF.EventBus.
 
 ### Changed
 
@@ -80,3 +81,4 @@
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the extracted find bar focus, `1/1` count, and status feedback.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the nested appearance bindings still render the Markdown preview.
 - Built `Vex.slnx`, ran `git diff --check`, and captured a startup smoke screenshot after moving editor command bindings under `EditorActions`.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the extracted status text and line/column badges.

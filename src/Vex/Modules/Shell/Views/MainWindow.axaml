@@ -323,7 +323,7 @@
             <Grid ColumnDefinitions="*,Auto" MinHeight="28">
                 <TextBlock
                     Classes="muted"
-                    Text="{Binding StatusText}"
+                    Text="{Binding Status.StatusText}"
                     TextTrimming="CharacterEllipsis"
                     VerticalAlignment="Center" />
                 <StackPanel
@@ -334,8 +334,8 @@
                     <md:VexStatusBadge Label="State" Value="{Binding DocumentStateText}" />
                     <md:VexStatusBadge Label="Encoding" Value="{Binding CurrentEncodingText}" />
                     <TextBlock Classes="muted" Text="{Binding ZoomText}" VerticalAlignment="Center" />
-                    <md:VexStatusBadge Label="Line" Value="{Binding CaretLine}" />
-                    <md:VexStatusBadge Label="Col" Value="{Binding CaretColumn}" />
+                    <md:VexStatusBadge Label="Line" Value="{Binding Status.CaretLine}" />
+                    <md:VexStatusBadge Label="Col" Value="{Binding Status.CaretColumn}" />
                     <md:VexStatusBadge Label="Words" Value="{Binding Statistics.Words}" />
                     <md:VexStatusBadge Label="Chars" Value="{Binding Statistics.Characters}" />
                 </StackPanel>
