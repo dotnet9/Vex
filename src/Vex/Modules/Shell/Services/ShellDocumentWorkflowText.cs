@@ -1,14 +1,15 @@
 using Vex.Core.Models;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.Services;
 
 // 主窗口文档流程的状态栏和确认框文案集中在这里，避免 MainWindowViewModel 因多语言格式化继续膨胀。
 public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
 {
-    private readonly IShellLocalizer _localizer;
+    private readonly IAppLocalizer _localizer;
     private readonly IShellStatusPublisher _statusPublisher;
 
-    public ShellDocumentWorkflowText(IShellLocalizer localizer, IShellStatusPublisher statusPublisher)
+    public ShellDocumentWorkflowText(IAppLocalizer localizer, IShellStatusPublisher statusPublisher)
     {
         _localizer = localizer;
         _statusPublisher = statusPublisher;

@@ -1,6 +1,6 @@
-namespace Vex.Modules.Shell.Services;
+namespace Vex.Core.Services;
 
-public interface IShellLocalizer
+public interface IAppLocalizer
 {
     string Get(string key);
 

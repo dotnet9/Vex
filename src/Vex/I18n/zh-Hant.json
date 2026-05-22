@@ -203,7 +203,12 @@
       "StatusFindReady": "尋找已就緒。",
       "StatusReplaceReady": "取代已就緒。",
       "StatusFindClosed": "尋找已關閉。",
-      "StatusEnterSearchTextFirst": "請先輸入搜尋文字。"
+      "StatusEnterSearchTextFirst": "請先輸入搜尋文字。",
+      "EditorSearchNoMatchFormat": "未找到 \"{0}\"。",
+      "EditorSearchFoundOnLineFormat": "在第 {1} 行找到 \"{0}\"（{2}/{3}）。",
+      "EditorSearchReplacedNextFormat": "已取代下一個 \"{0}\"。",
+      "EditorSearchReplacedAllFormat": "已取代 {0} 處。",
+      "EditorSearchMatchCountFormat": "\"{1}\" 共 {0} 處符合。"
     }
   }
 }

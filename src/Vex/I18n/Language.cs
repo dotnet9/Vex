@@ -209,4 +209,9 @@ public static class VexL
     public static readonly string StatusReplaceReady = "Vex.VexL.StatusReplaceReady";
     public static readonly string StatusFindClosed = "Vex.VexL.StatusFindClosed";
     public static readonly string StatusEnterSearchTextFirst = "Vex.VexL.StatusEnterSearchTextFirst";
+    public static readonly string EditorSearchNoMatchFormat = "Vex.VexL.EditorSearchNoMatchFormat";
+    public static readonly string EditorSearchFoundOnLineFormat = "Vex.VexL.EditorSearchFoundOnLineFormat";
+    public static readonly string EditorSearchReplacedNextFormat = "Vex.VexL.EditorSearchReplacedNextFormat";
+    public static readonly string EditorSearchReplacedAllFormat = "Vex.VexL.EditorSearchReplacedAllFormat";
+    public static readonly string EditorSearchMatchCountFormat = "Vex.VexL.EditorSearchMatchCountFormat";
 }

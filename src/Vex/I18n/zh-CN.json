@@ -203,7 +203,12 @@
       "StatusFindReady": "查找已就绪。",
       "StatusReplaceReady": "替换已就绪。",
       "StatusFindClosed": "查找已关闭。",
-      "StatusEnterSearchTextFirst": "请先输入搜索文本。"
+      "StatusEnterSearchTextFirst": "请先输入搜索文本。",
+      "EditorSearchNoMatchFormat": "未找到 \"{0}\"。",
+      "EditorSearchFoundOnLineFormat": "在第 {1} 行找到 \"{0}\"（{2}/{3}）。",
+      "EditorSearchReplacedNextFormat": "已替换下一个 \"{0}\"。",
+      "EditorSearchReplacedAllFormat": "已替换 {0} 处。",
+      "EditorSearchMatchCountFormat": "\"{1}\" 共 {0} 处匹配。"
     }
   }
 }

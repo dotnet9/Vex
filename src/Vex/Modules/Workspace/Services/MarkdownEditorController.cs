@@ -1,6 +1,7 @@
 using AvaloniaEdit;
 using CodeWF.EventBus;
 using Vex.Core.Messaging;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Workspace.Services;
 
@@ -8,15 +9,18 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
 {
     private readonly IEventBus _eventBus;
     private readonly IMarkdownEditorMutationService _textMutationService;
+    private readonly IAppLocalizer _localizer;
     private TextEditor? _editor;
     private bool _suppressTextChanged;
 
     public MarkdownEditorController(
         IEventBus eventBus,
-        IMarkdownEditorMutationService textMutationService)
+        IMarkdownEditorMutationService textMutationService,
+        IAppLocalizer localizer)
     {
         _eventBus = eventBus;
         _textMutationService = textMutationService;
+        _localizer = localizer;
         eventBus.Subscribe(this);
     }
 
@@ -192,7 +196,7 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
 
         if (string.IsNullOrEmpty(command.SearchText))
         {
-            _eventBus.Publish(new EditorSearchResultCommand("Enter search text first."));
+            PublishSearchResult(VexL.StatusEnterSearchTextFirst);
             return;
         }
 
@@ -299,7 +303,7 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
         var index = matchIndex >= 0 ? matches[matchIndex] : -1;
         if (index < 0)
         {
-            _eventBus.Publish(new EditorSearchResultCommand($"No match for \"{searchText}\"."));
+            PublishSearchResultFormat(VexL.EditorSearchNoMatchFormat, searchText);
             return;
         }
 
@@ -309,7 +313,7 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
         _editor.Focus();
         var line = _editor.Document.GetLineByOffset(index).LineNumber;
         _eventBus.Publish(new EditorSearchResultCommand(
-            $"Found \"{searchText}\" on line {line} ({matchIndex + 1}/{matches.Count}).",
+            _localizer.Format(VexL.EditorSearchFoundOnLineFormat, searchText, line, matchIndex + 1, matches.Count),
             matchIndex + 1,
             matches.Count));
         PublishTextChanged();
@@ -339,7 +343,7 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
             _editor.CaretOffset = start + replacementText.Length;
             _editor.Select(start, replacementText.Length);
         });
-        _eventBus.Publish(new EditorSearchResultCommand($"Replaced next \"{searchText}\"."));
+        PublishSearchResultFormat(VexL.EditorSearchReplacedNextFormat, searchText);
         FindNext(searchText, start + replacementText.Length);
     }
 
@@ -373,7 +377,7 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
 
         if (count == 0)
         {
-            _eventBus.Publish(new EditorSearchResultCommand($"No match for \"{searchText}\"."));
+            PublishSearchResultFormat(VexL.EditorSearchNoMatchFormat, searchText);
             return;
         }
 
@@ -383,7 +387,7 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
             _editor.CaretOffset = 0;
             _editor.SelectionLength = 0;
         });
-        _eventBus.Publish(new EditorSearchResultCommand($"Replaced {count} occurrence(s)."));
+        PublishSearchResultFormat(VexL.EditorSearchReplacedAllFormat, count);
     }
 
     private void CountMatches(string searchText)
@@ -396,15 +400,25 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
         var matches = FindMatches(_editor.Text ?? string.Empty, searchText);
         if (matches.Count == 0)
         {
-            _eventBus.Publish(new EditorSearchResultCommand($"No match for \"{searchText}\"."));
+            PublishSearchResultFormat(VexL.EditorSearchNoMatchFormat, searchText);
             return;
         }
 
         var matchIndex = GetNextMatchIndex(matches, _editor.CaretOffset);
         _eventBus.Publish(new EditorSearchResultCommand(
-            $"{matches.Count} match(es) for \"{searchText}\".",
+            _localizer.Format(VexL.EditorSearchMatchCountFormat, matches.Count, searchText),
             matchIndex >= 0 ? matchIndex + 1 : 1,
             matches.Count));
+    }
+
+    private void PublishSearchResult(string key)
+    {
+        _eventBus.Publish(new EditorSearchResultCommand(_localizer.Get(key)));
+    }
+
+    private void PublishSearchResultFormat(string key, params object?[] args)
+    {
+        _eventBus.Publish(new EditorSearchResultCommand(_localizer.Format(key, args)));
     }
 
     private static List<int> FindMatches(string text, string searchText)

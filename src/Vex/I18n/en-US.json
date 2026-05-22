@@ -203,7 +203,12 @@
       "StatusFindReady": "Find is ready.",
       "StatusReplaceReady": "Replace is ready.",
       "StatusFindClosed": "Find closed.",
-      "StatusEnterSearchTextFirst": "Enter search text first."
+      "StatusEnterSearchTextFirst": "Enter search text first.",
+      "EditorSearchNoMatchFormat": "No match for \"{0}\".",
+      "EditorSearchFoundOnLineFormat": "Found \"{0}\" on line {1} ({2}/{3}).",
+      "EditorSearchReplacedNextFormat": "Replaced next \"{0}\".",
+      "EditorSearchReplacedAllFormat": "Replaced {0} occurrence(s).",
+      "EditorSearchMatchCountFormat": "{0} match(es) for \"{1}\"."
     }
   }
 }

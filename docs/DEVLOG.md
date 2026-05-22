@@ -395,3 +395,10 @@
 - Verified all Vex JSON localization resources with `ConvertFrom-Json`, built `Vex.slnx`, ran `git diff --check`, searched for the migrated hard-coded English status strings, and launched the Debug desktop app to confirm the main window handle is created.
 - Visual screenshot capture remains blocked by the current desktop-session limitation.
 - Added no new third-party dependency.
+- Promoted the runtime localization gateway from Shell to Core as `IAppLocalizer`/`AppLocalizer`, so Workspace services can reuse it without depending on Shell modules.
+- Updated `ShellStatusPublisher`, `ShellDocumentWorkflowText`, and `ShellDialogsViewModel` to depend on the Core localizer.
+- Localized `MarkdownEditorController` search-result messages for no-match, found-on-line, replace-next, replace-all, and match-count feedback.
+- `MarkdownEditorController.cs` remains below the 500-line maintenance threshold after the search-message migration.
+- Verified all Vex JSON localization resources with `ConvertFrom-Json`, built `Vex.slnx`, ran `git diff --check`, searched for the old search-message literals, and launched the Debug desktop app to confirm the main window handle is created.
+- Visual screenshot capture remains blocked by the current desktop-session limitation.
+- Added no new third-party dependency.

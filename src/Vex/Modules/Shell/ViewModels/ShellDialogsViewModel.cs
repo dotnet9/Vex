@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using ReactiveUI;
+using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
@@ -8,7 +9,7 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class ShellDialogsViewModel : ReactiveObject
 {
     private readonly IShellStatusPublisher _statusPublisher;
-    private readonly IShellLocalizer _localizer;
+    private readonly IAppLocalizer _localizer;
     private bool _isStatisticsPanelVisible;
     private bool _isAboutPanelVisible;
     private bool _isPropertiesPanelVisible;
@@ -22,7 +23,7 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     private string _unsavedConfirmMessage;
     private string _unsavedConfirmPath;
 
-    public ShellDialogsViewModel(IShellStatusPublisher statusPublisher, IShellLocalizer localizer)
+    public ShellDialogsViewModel(IShellStatusPublisher statusPublisher, IAppLocalizer localizer)
     {
         _statusPublisher = statusPublisher;
         _localizer = localizer;

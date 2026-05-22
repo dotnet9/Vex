@@ -1,13 +1,13 @@
 using System.Globalization;
 using Lang.Avalonia;
 
-namespace Vex.Modules.Shell.Services;
+namespace Vex.Core.Services;
 
-public sealed class ShellLocalizer : IShellLocalizer
+public sealed class AppLocalizer : IAppLocalizer
 {
     public string Get(string key)
     {
-        // Shell 层所有运行时文案统一走这里，避免 ViewModel 直接散落 I18nManager 调用。
+        // 应用级运行时文案统一走这里，Shell 与 Workspace 都不直接依赖 I18nManager。
         return I18nManager.Instance.GetResource(key);
     }
 

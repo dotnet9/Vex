@@ -75,6 +75,7 @@
 - Extended `IShellStatusPublisher` with localized resource publishing, and moved line-number, recent-file, help-menu, and language-switch status feedback onto `Vex.VexL` resources.
 - Added shared Shell localization and document-flow text services so `MainWindowViewModel` status feedback and unsaved prompts reuse `Vex.VexL` resources.
 - Moved fixed dialog, source-mode, and find-bar status feedback to `Vex.VexL` resources, reducing hard-coded English in Shell child ViewModels.
+- Promoted the runtime localization gateway to Core and localized Workspace editor search-result messages through `Vex.VexL`.
 
 ### Changed
 
@@ -136,3 +137,4 @@
 - Validated all Vex JSON localization resources, built `Vex.slnx`, and ran `git diff --check` for the localized shell-status messages.
 - Validated all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app to confirm the main window handle is created.
 - Validated all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and searched Shell ViewModels for the migrated hard-coded English status strings.
+- Validated all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and searched for the old editor search-result message literals.

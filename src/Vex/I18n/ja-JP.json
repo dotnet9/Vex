@@ -203,7 +203,12 @@
       "StatusFindReady": "検索の準備ができました。",
       "StatusReplaceReady": "置換の準備ができました。",
       "StatusFindClosed": "検索を閉じました。",
-      "StatusEnterSearchTextFirst": "先に検索テキストを入力してください。"
+      "StatusEnterSearchTextFirst": "先に検索テキストを入力してください。",
+      "EditorSearchNoMatchFormat": "\"{0}\" は見つかりませんでした。",
+      "EditorSearchFoundOnLineFormat": "{1} 行目で \"{0}\" を見つけました（{2}/{3}）。",
+      "EditorSearchReplacedNextFormat": "次の \"{0}\" を置換しました。",
+      "EditorSearchReplacedAllFormat": "{0} 件を置換しました。",
+      "EditorSearchMatchCountFormat": "\"{1}\" は {0} 件見つかりました。"
     }
   }
 }

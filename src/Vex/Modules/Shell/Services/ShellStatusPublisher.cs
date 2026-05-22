@@ -1,14 +1,15 @@
 using CodeWF.EventBus;
 using Vex.Core.Messaging;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.Services;
 
 public sealed class ShellStatusPublisher : IShellStatusPublisher
 {
     private readonly IEventBus _eventBus;
-    private readonly IShellLocalizer _localizer;
+    private readonly IAppLocalizer _localizer;
 
-    public ShellStatusPublisher(IEventBus eventBus, IShellLocalizer localizer)
+    public ShellStatusPublisher(IEventBus eventBus, IAppLocalizer localizer)
     {
         _eventBus = eventBus;
         _localizer = localizer;

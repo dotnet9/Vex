@@ -41,6 +41,7 @@
 - [优化] `IShellStatusPublisher` 增加本地化资源发布能力，行号、最近文件、帮助菜单和语言切换状态反馈改为复用 `Vex.VexL`。
 - [优化] 新增 Shell 运行时本地化服务和文档流程文案服务，`MainWindowViewModel` 的状态反馈与未保存确认文案改为复用 `Vex.VexL`。
 - [优化] 对话浮层、源码模式和查找栏的固定状态反馈继续迁移到 `Vex.VexL`，减少 Shell 子 ViewModel 中的硬编码英文。
+- [优化] 将运行时本地化门面提升到 Core 层，Workspace 编辑器搜索结果消息也改为复用 `Vex.VexL`。
 
 - 创建 Vex（维刻）Markdown 编辑器基础版本。
 - 完善作者、码坊 CodeWF 与官方网站信息。
@@ -144,3 +145,4 @@
 - 🧪[测试]-校验全部 Vex JSON 本地化资源、构建 `Vex.slnx` 并执行 `git diff --check`，确认状态消息本地化改动编译通过。
 - 🧪[测试]-校验全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并启动 Debug 桌面程序确认主窗口句柄可创建。
 - 🧪[测试]-校验全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并检索确认本轮迁移的英文状态文本不再留在 Shell ViewModel 中。
+- 🧪[测试]-校验全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并检索确认旧编辑器搜索结果英文文案已迁移。
