@@ -2,6 +2,7 @@
     x:Class="Vex.Modules.Workspace.Views.MarkdownEditorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="using:Vex.Core.Messaging"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:edit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,6 +18,31 @@
             HorizontalScrollBarVisibility="Disabled"
             ShowLineNumbers="False"
             VerticalScrollBarVisibility="Auto"
-            WordWrap="True" />
+            WordWrap="True">
+            <!-- 右键菜单只转发 Shell 编辑动作，实际文本变更仍由 Workspace 控制器通过 EventBus 执行。 -->
+            <edit:TextEditor.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="撤销" Command="{Binding EditorActions.Undo}" />
+                    <MenuItem Header="重做" Command="{Binding EditorActions.Redo}" />
+                    <Separator />
+                    <MenuItem Header="剪切" Command="{Binding EditorActions.Cut}" />
+                    <MenuItem Header="复制" Command="{Binding EditorActions.Copy}" />
+                    <MenuItem Header="粘贴" Command="{Binding EditorActions.Paste}" />
+                    <MenuItem Header="全选" Command="{Binding EditorActions.SelectAll}" />
+                    <Separator />
+                    <MenuItem Header="加粗" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" />
+                    <MenuItem Header="斜体" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" />
+                    <MenuItem Header="代码" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" />
+                    <MenuItem Header="链接" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Link}" />
+                    <Separator />
+                    <MenuItem Header="标题 1" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading1}" />
+                    <MenuItem Header="引用" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Quote}" />
+                    <MenuItem Header="无序列表" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.UnorderedList}" />
+                    <MenuItem Header="任务列表" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.TaskList}" />
+                    <Separator />
+                    <MenuItem Header="清除样式" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}" />
+                </ContextMenu>
+            </edit:TextEditor.ContextMenu>
+        </edit:TextEditor>
     </Border>
 </UserControl>

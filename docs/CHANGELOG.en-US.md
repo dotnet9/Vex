@@ -50,6 +50,7 @@
 - Split window-title, saved-state, encoding, file-size, statistics, and properties-panel display state into a dedicated `ShellDocumentInfoViewModel`.
 - Split help menu actions into a dedicated `ShellHelpViewModel` that reuses the dialogs module for the about overlay and publishes status feedback through CodeWF.EventBus.
 - Added paragraph count, heading count, and estimated reading time to Markdown statistics and the statistics overlay.
+- Added a Markdown editor context menu for clipboard, formatting, heading, quote, list, and clear-formatting actions.
 
 ### Changed
 
@@ -98,3 +99,4 @@
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified title and status-bar bindings after moving document display state under `DocumentInfo`.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the help module opening the about overlay and updating the status bar.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the expanded statistics overlay fields and layout.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the editor context-menu popup.

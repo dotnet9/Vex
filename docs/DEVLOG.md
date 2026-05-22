@@ -108,6 +108,10 @@
 - 在统计服务中补充中文维护注释，说明语法标记弱化和段落统计边界，后续调整算法时更容易定位入口。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认扩展后的统计浮层布局不溢出，新字段显示正常。截图路径：`%TEMP%\VexScreenshots\statistics-expanded.png`。
 - 本轮未新增第三方依赖，无需额外许可证核查。
+- 为 Markdown 编辑器增加右键上下文菜单，覆盖撤销/重做、剪切/复制/粘贴/全选、加粗/斜体/代码/链接、标题/引用/列表和清除样式等高频写作动作。
+- 右键菜单复用现有 `EditorActions.*` 绑定，实际文本修改仍由 Workspace 编辑器控制器通过 CodeWF.EventBus 执行；XAML 中补充中文注释说明该边界。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认编辑器 ContextMenu 弹出层菜单项、分隔线和中文文本显示正常。截图路径：`%TEMP%\VexScreenshots\editor-context-menu-popup.png`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 
 ### en-US
 
@@ -243,4 +247,8 @@
 - Extended `MarkdownStatistics` with paragraph count, heading count, and estimated reading time, calculated after common Markdown syntax markers are softened.
 - Added Paragraphs, Headings, and Reading rows to the statistics overlay, and included reading time in the word-count status feedback.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the expanded statistics panel fits and renders the new fields. Screenshot path: `%TEMP%\VexScreenshots\statistics-expanded.png`.
+- Added no new third-party dependency, so no additional license review was required.
+- Added a Markdown editor context menu for undo/redo, clipboard actions, select all, common inline formatting, heading/quote/list insertion, and clear formatting.
+- Reused the existing `EditorActions.*` bindings so context-menu commands still flow to the Workspace editor controller through CodeWF.EventBus.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the editor context-menu popup renders correctly. Screenshot path: `%TEMP%\VexScreenshots\editor-context-menu-popup.png`.
 - Added no new third-party dependency, so no additional license review was required.
