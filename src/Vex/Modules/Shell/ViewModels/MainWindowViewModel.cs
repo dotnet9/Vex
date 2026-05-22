@@ -31,17 +31,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     private bool _isSourceMode;
     private bool _sidebarBeforeSourceMode = true;
     private bool _previewBeforeSourceMode = true;
-    private bool _isStatisticsPanelVisible;
-    private bool _isAboutPanelVisible;
-    private bool _isPropertiesPanelVisible;
-    private bool _isDeleteConfirmVisible;
-    private bool _isUnsavedConfirmVisible;
-    private string? _pendingDeletePath;
-    private Func<Task>? _pendingUnsavedContinuation;
-    private Action? _pendingUnsavedCancellation;
-    private string _unsavedConfirmTitle = "Save changes?";
-    private string _unsavedConfirmMessage = "Save changes before continuing?";
-    private string _unsavedConfirmPath = "Unsaved document";
     private MarkdownStatistics _statistics = new(0, 0, 1);
 
     public MainWindowViewModel(
@@ -51,6 +40,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         IMarkdownStatisticsService statisticsService,
         IHelpService helpService,
         ShellAppearanceViewModel appearance,
+        ShellDialogsViewModel dialogs,
         ShellEditorActionsViewModel editorActions,
         ShellEditorDisplayViewModel editorDisplay,
         ShellFindBarViewModel findBar,
@@ -65,6 +55,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _statisticsService = statisticsService;
         _helpService = helpService;
         Appearance = appearance;
+        Dialogs = dialogs;
         EditorActions = editorActions;
         EditorDisplay = editorDisplay;
         FindBar = findBar;
@@ -82,6 +73,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public event EventHandler? CloseWindowRequested;
 
     public ShellAppearanceViewModel Appearance { get; }
+
+    public ShellDialogsViewModel Dialogs { get; }
 
     public ShellEditorActionsViewModel EditorActions { get; }
 
@@ -225,48 +218,6 @@ public sealed class MainWindowViewModel : ReactiveObject
         get => _isSourceMode;
         set => SetProperty(ref _isSourceMode, value);
     }
-
-    public bool IsStatisticsPanelVisible
-    {
-        get => _isStatisticsPanelVisible;
-        set => SetProperty(ref _isStatisticsPanelVisible, value);
-    }
-
-    public bool IsAboutPanelVisible
-    {
-        get => _isAboutPanelVisible;
-        set => SetProperty(ref _isAboutPanelVisible, value);
-    }
-
-    public bool IsPropertiesPanelVisible
-    {
-        get => _isPropertiesPanelVisible;
-        set => SetProperty(ref _isPropertiesPanelVisible, value);
-    }
-
-    public bool IsDeleteConfirmVisible
-    {
-        get => _isDeleteConfirmVisible;
-        set => SetProperty(ref _isDeleteConfirmVisible, value);
-    }
-
-    public bool IsUnsavedConfirmVisible
-    {
-        get => _isUnsavedConfirmVisible;
-        set => SetProperty(ref _isUnsavedConfirmVisible, value);
-    }
-
-    public string DeleteConfirmText => _pendingDeletePath is { Length: > 0 }
-        ? $"Delete {Path.GetFileName(_pendingDeletePath)}?"
-        : "Delete current file?";
-
-    public string DeleteConfirmPath => _pendingDeletePath ?? string.Empty;
-
-    public string UnsavedConfirmTitle => _unsavedConfirmTitle;
-
-    public string UnsavedConfirmMessage => _unsavedConfirmMessage;
-
-    public string UnsavedConfirmPath => _unsavedConfirmPath;
 
     public MarkdownStatistics Statistics
     {
@@ -482,44 +433,24 @@ public sealed class MainWindowViewModel : ReactiveObject
             $"Save changes to {_document.FileName} before deleting it?",
             () =>
             {
-                ShowDeleteConfirmation(path);
+                Dialogs.ShowDeleteConfirmation(path);
                 return Task.CompletedTask;
             });
     }
 
-    private void ShowDeleteConfirmation(string path)
-    {
-        _pendingDeletePath = path;
-        OnPropertyChanged(nameof(DeleteConfirmText));
-        OnPropertyChanged(nameof(DeleteConfirmPath));
-        IsDeleteConfirmVisible = true;
-    }
-
     public async Task ConfirmDeleteAsync()
     {
-        if (_pendingDeletePath is not { Length: > 0 } path)
+        if (Dialogs.PendingDeletePath is not { Length: > 0 } path)
         {
-            IsDeleteConfirmVisible = false;
+            Dialogs.ClearDeleteConfirmation();
             return;
         }
 
         await _documentService.DeleteAsync(path);
         Recent.RemoveRecentDocument(path);
-        IsDeleteConfirmVisible = false;
-        _pendingDeletePath = null;
-        OnPropertyChanged(nameof(DeleteConfirmText));
-        OnPropertyChanged(nameof(DeleteConfirmPath));
+        Dialogs.ClearDeleteConfirmation();
         NewDocumentCore();
         SetStatus("File deleted.");
-    }
-
-    public void CancelDelete()
-    {
-        _pendingDeletePath = null;
-        OnPropertyChanged(nameof(DeleteConfirmText));
-        OnPropertyChanged(nameof(DeleteConfirmPath));
-        IsDeleteConfirmVisible = false;
-        SetStatus("Delete canceled.");
     }
 
     public async Task OpenFileLocationAsync()
@@ -618,7 +549,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public void ShowProperties()
     {
-        IsPropertiesPanelVisible = true;
+        Dialogs.ShowPropertiesPanel();
         SetStatus($"{CurrentDocumentTitle} | {DocumentStateText} | {CurrentEncodingText} | {PropertySizeText} | {PropertyLocationText}");
     }
 
@@ -700,61 +631,13 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public void WordCount()
     {
-        IsStatisticsPanelVisible = true;
+        Dialogs.ShowStatisticsPanel();
         SetStatus($"Words {Statistics.Words}, Characters {Statistics.Characters}, Lines {Statistics.Lines}.");
-    }
-
-    public void CloseStatisticsPanel()
-    {
-        IsStatisticsPanelVisible = false;
-    }
-
-    public void CloseAboutPanel()
-    {
-        IsAboutPanelVisible = false;
-    }
-
-    public void ClosePropertiesPanel()
-    {
-        IsPropertiesPanelVisible = false;
     }
 
     public bool CloseFloatingPanel()
     {
-        if (IsUnsavedConfirmVisible)
-        {
-            CancelPendingAction();
-            return true;
-        }
-
-        if (IsDeleteConfirmVisible)
-        {
-            CancelDelete();
-            return true;
-        }
-
-        if (IsPropertiesPanelVisible)
-        {
-            IsPropertiesPanelVisible = false;
-            SetStatus("Properties closed.");
-            return true;
-        }
-
-        if (IsStatisticsPanelVisible)
-        {
-            IsStatisticsPanelVisible = false;
-            SetStatus("Statistics closed.");
-            return true;
-        }
-
-        if (IsAboutPanelVisible)
-        {
-            IsAboutPanelVisible = false;
-            SetStatus("About closed.");
-            return true;
-        }
-
-        return false;
+        return Dialogs.CloseFloatingPanel();
     }
 
     public void ShowFindPanel()
@@ -810,7 +693,7 @@ public sealed class MainWindowViewModel : ReactiveObject
                 await _helpService.OpenFeedbackAsync();
                 break;
             case "about":
-                IsAboutPanelVisible = true;
+                Dialogs.ShowAboutPanel();
                 SetStatus("About Vex.");
                 break;
             default:
@@ -859,9 +742,8 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public async Task SavePendingActionAsync()
     {
-        if (_pendingUnsavedContinuation is null)
+        if (!Dialogs.HasPendingUnsavedAction)
         {
-            IsUnsavedConfirmVisible = false;
             return;
         }
 
@@ -880,14 +762,6 @@ public sealed class MainWindowViewModel : ReactiveObject
         return ContinuePendingActionAsync();
     }
 
-    public void CancelPendingAction()
-    {
-        var cancellation = _pendingUnsavedCancellation;
-        ClearUnsavedConfirmation();
-        cancellation?.Invoke();
-        SetStatus("Action canceled. Unsaved changes kept.");
-    }
-
     private async Task RequestUnsavedConfirmationAsync(
         string title,
         string message,
@@ -900,33 +774,21 @@ public sealed class MainWindowViewModel : ReactiveObject
             return;
         }
 
-        _pendingUnsavedContinuation = continuation;
-        _pendingUnsavedCancellation = cancellation;
-        _unsavedConfirmTitle = title;
-        _unsavedConfirmMessage = message;
-        _unsavedConfirmPath = CurrentFilePath ?? "Unsaved document";
-        OnPropertyChanged(nameof(UnsavedConfirmTitle));
-        OnPropertyChanged(nameof(UnsavedConfirmMessage));
-        OnPropertyChanged(nameof(UnsavedConfirmPath));
-        IsUnsavedConfirmVisible = true;
-        SetStatus("Unsaved changes need a decision.");
+        Dialogs.ShowUnsavedConfirmation(
+            title,
+            message,
+            CurrentFilePath ?? "Unsaved document",
+            continuation,
+            cancellation);
     }
 
     private async Task ContinuePendingActionAsync()
     {
-        var continuation = _pendingUnsavedContinuation;
-        ClearUnsavedConfirmation();
+        var continuation = Dialogs.TakePendingUnsavedContinuation();
         if (continuation is not null)
         {
             await continuation();
         }
-    }
-
-    private void ClearUnsavedConfirmation()
-    {
-        _pendingUnsavedContinuation = null;
-        _pendingUnsavedCancellation = null;
-        IsUnsavedConfirmVisible = false;
     }
 
     private static string FormatFileSize(long bytes)

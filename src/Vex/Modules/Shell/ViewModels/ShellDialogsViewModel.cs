@@ -1,0 +1,232 @@
+using System.Runtime.CompilerServices;
+using CodeWF.EventBus;
+using ReactiveUI;
+using Vex.Core.Messaging;
+
+namespace Vex.Modules.Shell.ViewModels;
+
+// 集中管理 Shell 浮层和确认框状态，避免 MainWindowViewModel 持续堆叠纯 UI 状态。
+public sealed class ShellDialogsViewModel : ReactiveObject
+{
+    private readonly IEventBus _eventBus;
+    private bool _isStatisticsPanelVisible;
+    private bool _isAboutPanelVisible;
+    private bool _isPropertiesPanelVisible;
+    private bool _isDeleteConfirmVisible;
+    private bool _isUnsavedConfirmVisible;
+    private string? _pendingDeletePath;
+    // 未保存确认框需要暂存用户选择后的后续动作，保存/不保存/取消会从这里恢复流程。
+    private Func<Task>? _pendingUnsavedContinuation;
+    private Action? _pendingUnsavedCancellation;
+    private string _unsavedConfirmTitle = "Save changes?";
+    private string _unsavedConfirmMessage = "Save changes before continuing?";
+    private string _unsavedConfirmPath = "Unsaved document";
+
+    public ShellDialogsViewModel(IEventBus eventBus)
+    {
+        _eventBus = eventBus;
+    }
+
+    public bool IsStatisticsPanelVisible
+    {
+        get => _isStatisticsPanelVisible;
+        set => SetProperty(ref _isStatisticsPanelVisible, value);
+    }
+
+    public bool IsAboutPanelVisible
+    {
+        get => _isAboutPanelVisible;
+        set => SetProperty(ref _isAboutPanelVisible, value);
+    }
+
+    public bool IsPropertiesPanelVisible
+    {
+        get => _isPropertiesPanelVisible;
+        set => SetProperty(ref _isPropertiesPanelVisible, value);
+    }
+
+    public bool IsDeleteConfirmVisible
+    {
+        get => _isDeleteConfirmVisible;
+        set => SetProperty(ref _isDeleteConfirmVisible, value);
+    }
+
+    public bool IsUnsavedConfirmVisible
+    {
+        get => _isUnsavedConfirmVisible;
+        set => SetProperty(ref _isUnsavedConfirmVisible, value);
+    }
+
+    public string DeleteConfirmText => _pendingDeletePath is { Length: > 0 }
+        ? $"Delete {Path.GetFileName(_pendingDeletePath)}?"
+        : "Delete current file?";
+
+    public string DeleteConfirmPath => _pendingDeletePath ?? string.Empty;
+
+    public string? PendingDeletePath => _pendingDeletePath;
+
+    public string UnsavedConfirmTitle => _unsavedConfirmTitle;
+
+    public string UnsavedConfirmMessage => _unsavedConfirmMessage;
+
+    public string UnsavedConfirmPath => _unsavedConfirmPath;
+
+    public bool HasPendingUnsavedAction => _pendingUnsavedContinuation is not null;
+
+    public void ShowStatisticsPanel()
+    {
+        IsStatisticsPanelVisible = true;
+    }
+
+    public void CloseStatisticsPanel()
+    {
+        IsStatisticsPanelVisible = false;
+    }
+
+    public void ShowAboutPanel()
+    {
+        IsAboutPanelVisible = true;
+    }
+
+    public void CloseAboutPanel()
+    {
+        IsAboutPanelVisible = false;
+    }
+
+    public void ShowPropertiesPanel()
+    {
+        IsPropertiesPanelVisible = true;
+    }
+
+    public void ClosePropertiesPanel()
+    {
+        IsPropertiesPanelVisible = false;
+    }
+
+    public void ShowDeleteConfirmation(string path)
+    {
+        _pendingDeletePath = path;
+        OnPropertyChanged(nameof(DeleteConfirmText));
+        OnPropertyChanged(nameof(DeleteConfirmPath));
+        OnPropertyChanged(nameof(PendingDeletePath));
+        IsDeleteConfirmVisible = true;
+    }
+
+    public void ClearDeleteConfirmation()
+    {
+        _pendingDeletePath = null;
+        OnPropertyChanged(nameof(DeleteConfirmText));
+        OnPropertyChanged(nameof(DeleteConfirmPath));
+        OnPropertyChanged(nameof(PendingDeletePath));
+        IsDeleteConfirmVisible = false;
+    }
+
+    public void CancelDelete()
+    {
+        ClearDeleteConfirmation();
+        SetStatus("Delete canceled.");
+    }
+
+    public void ShowUnsavedConfirmation(
+        string title,
+        string message,
+        string path,
+        Func<Task> continuation,
+        Action? cancellation = null)
+    {
+        // 这里只保存流程闭包，不直接执行文件操作，确保确认框仍是独立的 UI 状态模块。
+        _pendingUnsavedContinuation = continuation;
+        _pendingUnsavedCancellation = cancellation;
+        _unsavedConfirmTitle = title;
+        _unsavedConfirmMessage = message;
+        _unsavedConfirmPath = path;
+        OnPropertyChanged(nameof(UnsavedConfirmTitle));
+        OnPropertyChanged(nameof(UnsavedConfirmMessage));
+        OnPropertyChanged(nameof(UnsavedConfirmPath));
+        OnPropertyChanged(nameof(HasPendingUnsavedAction));
+        IsUnsavedConfirmVisible = true;
+        SetStatus("Unsaved changes need a decision.");
+    }
+
+    public Func<Task>? TakePendingUnsavedContinuation()
+    {
+        var continuation = _pendingUnsavedContinuation;
+        ClearUnsavedConfirmation();
+        return continuation;
+    }
+
+    public void CancelPendingAction()
+    {
+        var cancellation = _pendingUnsavedCancellation;
+        ClearUnsavedConfirmation();
+        cancellation?.Invoke();
+        SetStatus("Action canceled. Unsaved changes kept.");
+    }
+
+    public bool CloseFloatingPanel()
+    {
+        if (IsUnsavedConfirmVisible)
+        {
+            CancelPendingAction();
+            return true;
+        }
+
+        if (IsDeleteConfirmVisible)
+        {
+            CancelDelete();
+            return true;
+        }
+
+        if (IsPropertiesPanelVisible)
+        {
+            IsPropertiesPanelVisible = false;
+            SetStatus("Properties closed.");
+            return true;
+        }
+
+        if (IsStatisticsPanelVisible)
+        {
+            IsStatisticsPanelVisible = false;
+            SetStatus("Statistics closed.");
+            return true;
+        }
+
+        if (IsAboutPanelVisible)
+        {
+            IsAboutPanelVisible = false;
+            SetStatus("About closed.");
+            return true;
+        }
+
+        return false;
+    }
+
+    private void ClearUnsavedConfirmation()
+    {
+        _pendingUnsavedContinuation = null;
+        _pendingUnsavedCancellation = null;
+        OnPropertyChanged(nameof(HasPendingUnsavedAction));
+        IsUnsavedConfirmVisible = false;
+    }
+
+    private void SetStatus(string message)
+    {
+        _eventBus.Publish(new WorkspaceStatusChangedCommand(message));
+    }
+
+    private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(storage, value))
+        {
+            return false;
+        }
+
+        this.RaiseAndSetIfChanged(ref storage, value, propertyName);
+        return true;
+    }
+
+    private void OnPropertyChanged(string propertyName)
+    {
+        this.RaisePropertyChanged(propertyName);
+    }
+}

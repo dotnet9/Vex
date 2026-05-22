@@ -15,7 +15,7 @@
             BorderBrush="#D0D5DD"
             BorderThickness="1"
             CornerRadius="8"
-            IsVisible="{Binding IsStatisticsPanelVisible}">
+            IsVisible="{Binding Dialogs.IsStatisticsPanelVisible}">
             <Grid RowDefinitions="Auto,Auto" RowSpacing="12">
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBlock
@@ -24,7 +24,7 @@
                         Text="Statistics" />
                     <Button
                         Grid.Column="1"
-                        Command="{Binding CloseStatisticsPanel}"
+                        Command="{Binding Dialogs.CloseStatisticsPanel}"
                         Content="X"
                         MinWidth="34"
                         Padding="0" />
@@ -57,7 +57,7 @@
             BorderBrush="#D0D5DD"
             BorderThickness="1"
             CornerRadius="8"
-            IsVisible="{Binding IsAboutPanelVisible}">
+            IsVisible="{Binding Dialogs.IsAboutPanelVisible}">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="14">
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
                     <Image Width="32" Height="32" Source="/Assets/logo.png" />
@@ -67,7 +67,7 @@
                     </StackPanel>
                     <Button
                         Grid.Column="2"
-                        Command="{Binding CloseAboutPanel}"
+                        Command="{Binding Dialogs.CloseAboutPanel}"
                         Content="X"
                         MinWidth="34"
                         Padding="0" />
@@ -105,7 +105,7 @@
             BorderBrush="#D0D5DD"
             BorderThickness="1"
             CornerRadius="8"
-            IsVisible="{Binding IsPropertiesPanelVisible}">
+            IsVisible="{Binding Dialogs.IsPropertiesPanelVisible}">
             <Grid RowDefinitions="Auto,Auto" RowSpacing="14">
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBlock
@@ -114,7 +114,7 @@
                         Text="Properties" />
                     <Button
                         Grid.Column="1"
-                        Command="{Binding ClosePropertiesPanel}"
+                        Command="{Binding Dialogs.ClosePropertiesPanel}"
                         Content="X"
                         MinWidth="34"
                         Padding="0" />
@@ -143,7 +143,7 @@
             </Grid>
         </Border>
 
-        <Border Background="#66000000" IsVisible="{Binding IsDeleteConfirmVisible}">
+        <Border Background="#66000000" IsVisible="{Binding Dialogs.IsDeleteConfirmVisible}">
             <Border
                 Width="420"
                 Padding="22"
@@ -157,7 +157,7 @@
                     <TextBlock
                         FontSize="17"
                         FontWeight="SemiBold"
-                        Text="{Binding DeleteConfirmText}"
+                        Text="{Binding Dialogs.DeleteConfirmText}"
                         TextWrapping="Wrap" />
                     <TextBlock
                         Grid.Row="1"
@@ -175,7 +175,7 @@
                             Classes="muted"
                             FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI"
                             FontSize="12"
-                            Text="{Binding DeleteConfirmPath}"
+                            Text="{Binding Dialogs.DeleteConfirmPath}"
                             TextTrimming="CharacterEllipsis" />
                     </Border>
                     <StackPanel
@@ -184,7 +184,7 @@
                         Orientation="Horizontal"
                         Spacing="8">
                         <Button
-                            Command="{Binding CancelDelete}"
+                            Command="{Binding Dialogs.CancelDelete}"
                             Content="Cancel"
                             MinWidth="86" />
                         <Button
@@ -196,7 +196,7 @@
             </Border>
         </Border>
 
-        <Border Background="#66000000" IsVisible="{Binding IsUnsavedConfirmVisible}">
+        <Border Background="#66000000" IsVisible="{Binding Dialogs.IsUnsavedConfirmVisible}">
             <Border
                 Width="440"
                 Padding="22"
@@ -210,12 +210,12 @@
                     <TextBlock
                         FontSize="17"
                         FontWeight="SemiBold"
-                        Text="{Binding UnsavedConfirmTitle}"
+                        Text="{Binding Dialogs.UnsavedConfirmTitle}"
                         TextWrapping="Wrap" />
                     <TextBlock
                         Grid.Row="1"
                         Classes="muted"
-                        Text="{Binding UnsavedConfirmMessage}"
+                        Text="{Binding Dialogs.UnsavedConfirmMessage}"
                         TextWrapping="Wrap" />
                     <Border
                         Grid.Row="2"
@@ -228,7 +228,7 @@
                             Classes="muted"
                             FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI"
                             FontSize="12"
-                            Text="{Binding UnsavedConfirmPath}"
+                            Text="{Binding Dialogs.UnsavedConfirmPath}"
                             TextTrimming="CharacterEllipsis" />
                     </Border>
                     <StackPanel
@@ -237,7 +237,7 @@
                         Orientation="Horizontal"
                         Spacing="8">
                         <Button
-                            Command="{Binding CancelPendingAction}"
+                            Command="{Binding Dialogs.CancelPendingAction}"
                             Content="Cancel"
                             MinWidth="84" />
                         <Button

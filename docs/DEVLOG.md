@@ -83,6 +83,11 @@
 - `MainWindow.axaml` 从约 405 行降至 345 行，新增 `ShellFindBarView.axaml` 约 68 行；`MainWindowViewModel.cs` 删除查找状态与事件处理，新增 `ShellFindBarViewModel.cs` 约 160 行，避免继续在主窗口和主 ViewModel 中堆叠查找逻辑。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认独立查找控件可显示、自动聚焦、结果计数 `1/1` 与状态栏反馈正常。截图路径：`%TEMP%\VexScreenshots\findbar-module-refactor.png`。
 - 本轮未新增第三方依赖，无需额外许可证核查。
+- 拆分 Shell 浮层对话状态：新增 `ShellDialogsViewModel` 承载统计、关于、属性、删除确认和未保存确认的可见性、文本与待执行动作，主 ViewModel 仅保留业务流程协调。
+- 对话模块通过 Prism IoC 注入，浮层 XAML 改为绑定 `Dialogs.*`，取消/关闭动作通过 `ShellDialogsViewModel` 发布 `WorkspaceStatusChangedCommand`，让浮层状态不再堆叠在主 Shell ViewModel 中。
+- `MainWindowViewModel.cs` 从约 980 行降至约 714 行，新增 `ShellDialogsViewModel.cs` 约 191 行，`ShellOverlaysView.axaml` 保持约 252 行，继续按有意义的独立文件拆分而非 partial。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认关于浮层在 `Dialogs.*` 嵌套绑定下显示正常。截图路径：`%TEMP%\VexScreenshots\dialogs-module-refactor.png`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 
 ### en-US
 
@@ -194,4 +199,9 @@
 - Changed sidebar XAML to bind to `Navigation.*`, and moved outline item navigation/status feedback into the navigation module.
 - Reduced `MainWindowViewModel.cs` from about 1048 lines to 980 lines, with the new navigation ViewModel at about 138 lines.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the sidebar empty state and three-pane layout still render correctly. Screenshot path: `%TEMP%\VexScreenshots\navigation-module-refactor.png`.
+- Added no new third-party dependency, so no additional license review was required.
+- Split shell dialog and overlay state into `ShellDialogsViewModel`, covering statistics, about, properties, delete confirmation, and unsaved-change confirmation visibility, text, and pending actions.
+- Registered the dialogs ViewModel through Prism IoC and changed overlay bindings to `Dialogs.*`; cancel and close actions publish status feedback through `WorkspaceStatusChangedCommand`.
+- Reduced `MainWindowViewModel.cs` from about 980 lines to about 714 lines, with the new dialogs ViewModel at about 191 lines and `ShellOverlaysView.axaml` at about 252 lines.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the about overlay still renders through the nested `Dialogs.*` bindings. Screenshot path: `%TEMP%\VexScreenshots\dialogs-module-refactor.png`.
 - Added no new third-party dependency, so no additional license review was required.

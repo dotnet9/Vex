@@ -11,6 +11,7 @@
 - [优化] 将编辑器缩放、字号和状态栏缩放文本迁移到独立 `ShellEditorDisplayViewModel`。
 - [优化] 将最近文件菜单状态和持久化迁移到独立 `ShellRecentDocumentsViewModel`。
 - [优化] 将侧栏文件列表、大纲、侧栏 Tab 选择和导航选中状态迁移到独立 `ShellNavigationViewModel`，文件选择通过 CodeWF.EventBus 请求主 Shell 打开。
+- [优化] 将统计、关于、属性、删除确认和未保存确认浮层状态迁移到独立 `ShellDialogsViewModel`，浮层通过 `Dialogs.*` 绑定并由 CodeWF.EventBus 回写状态栏。
 
 - 创建 Vex（维刻）Markdown 编辑器基础版本。
 - 完善作者、码坊 CodeWF 与官方网站信息。
@@ -46,6 +47,7 @@
 - 🔧[优化]-打开查找或替换时自动聚焦搜索输入框并选中文本。
 - 🔧[优化]-拖放打开会复用未保存内容保护流程，不支持的文件类型会给出状态栏提示。
 - 🔧[优化]-将统计、关于、属性和确认类浮层拆到独立 `ShellOverlaysView`，降低主窗口 XAML 复杂度。
+- 🔧[优化]-为对话框状态模块补充必要中文维护注释，说明未保存确认的延续动作如何恢复。
 
 ### 优化
 
@@ -82,3 +84,4 @@
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图验证拖放路径打开后的标题、编辑区、预览和状态栏。
 - 🧪[测试]-构建 `Vex.slnx`，并截图验证当前行高亮在编辑区正常显示。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图验证拆分后的关于浮层显示正常。
+- 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图验证对话框状态抽取后的 `Dialogs.*` 浮层绑定显示正常。
