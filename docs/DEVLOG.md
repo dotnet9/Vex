@@ -73,6 +73,10 @@
 - 增加编辑器当前行高亮体验，使用 AvaloniaEdit 内置 `HighlightCurrentLine` 与当前行背景/边框配置，避免引入自定义渲染器。
 - 验证 `dotnet build Vex.slnx` 与桌面截图，确认当前行高亮可见但不干扰 Markdown 编辑和预览。截图路径：`%TEMP%\VexScreenshots\current-line-highlight.png`。
 - 本轮未新增第三方依赖，无需额外许可证核查。
+- 拆分主窗口浮层 XAML：新增 `ShellOverlaysView` 承载统计、关于、属性、删除确认和未保存确认浮层，主窗口保留布局组合职责。
+- `MainWindow.axaml` 从约 659 行降至约 405 行，`ShellOverlaysView.axaml` 约 256 行，避免继续在单个主窗口 XAML 堆叠浮层实现。
+- 验证 `dotnet build Vex.slnx` 与 `git diff --check`，并截图确认抽出的关于浮层可正常继承 DataContext、显示内容和状态栏反馈。截图路径：`%TEMP%\VexScreenshots\overlay-refactor-about.png`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 
 ### en-US
 
@@ -144,4 +148,8 @@
 - Added no new third-party dependency, so no additional license review was required.
 - Added current-line highlighting for the editor by using AvaloniaEdit's built-in `HighlightCurrentLine` option plus current-line background and border styling, avoiding a custom renderer.
 - Verified `dotnet build Vex.slnx` and captured a desktop screenshot to confirm the current-line highlight is visible without disrupting Markdown editing or preview. Screenshot path: `%TEMP%\VexScreenshots\current-line-highlight.png`.
+- Added no new third-party dependency, so no additional license review was required.
+- Split shell overlay XAML into a new `ShellOverlaysView` that owns statistics, about, properties, delete confirmation, and unsaved-change confirmation overlays, leaving the main window focused on layout composition.
+- Reduced `MainWindow.axaml` from about 659 lines to about 405 lines, with `ShellOverlaysView.axaml` at about 256 lines, avoiding further overlay growth in the main window file.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the extracted about overlay still inherits DataContext and shows content plus status feedback correctly. Screenshot path: `%TEMP%\VexScreenshots\overlay-refactor-about.png`.
 - Added no new third-party dependency, so no additional license review was required.
