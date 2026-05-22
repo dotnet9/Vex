@@ -164,6 +164,11 @@
 - 验证全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并用临时 Markdown 文件夹启动 Debug 桌面程序确认主窗口句柄可创建。
 - 当前桌面会话仍无法稳定截图：`CopyFromScreen` 返回 `The handle is invalid`，因此本轮仅记录启动烟测和机器校验结果。
 - 本轮未新增第三方依赖。
+- 扩展 `IAppLocalizer`，统一提供当前语言、格式化、语言切换和语言变更事件，Shell ViewModel 不再直接访问 `Lang.Avalonia.I18nManager`。
+- `ShellAppearanceViewModel` 通过本地化门面切换语言，`ShellDocumentInfoViewModel` 通过同一门面刷新保存状态、统计文本、路径占位和文件大小显示。
+- 验证全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并检索确认 Shell/Workspace 模块中仅 Core 本地化门面仍访问 `I18nManager`。
+- 启动 Debug 桌面程序确认主窗口句柄可创建；截图仍受当前桌面会话限制，沿用上一轮记录的限制说明。
+- 本轮未新增第三方依赖。
 
 ### en-US
 
@@ -413,4 +418,9 @@
 - `DocumentService` now receives the app localizer and document-file factory through Prism IoC instead of keeping hard-coded English picker strings.
 - Verified all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a temporary Markdown folder to confirm the main window handle is created.
 - Visual screenshot capture remains blocked in this desktop session: `CopyFromScreen` returned `The handle is invalid`, so this iteration used startup smoke and machine validation.
+- Added no new third-party dependency.
+- Extended `IAppLocalizer` to expose the current culture, formatting, culture switching, and culture-change events, so Shell ViewModels no longer call `Lang.Avalonia.I18nManager` directly.
+- `ShellAppearanceViewModel` now switches language through the localizer, and `ShellDocumentInfoViewModel` refreshes state, statistics, location fallback, and file-size text through the same gateway.
+- Verified all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and searched the Shell/Workspace modules to confirm only the Core localizer still accesses `I18nManager`.
+- Launched the Debug desktop app to confirm the main window handle is created; visual screenshot capture remains blocked by the current desktop session.
 - Added no new third-party dependency.

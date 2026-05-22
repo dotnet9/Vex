@@ -1,22 +1,24 @@
 using System.Runtime.CompilerServices;
 using System.Text;
-using Lang.Avalonia;
 using ReactiveUI;
 using Vex.Core.Models;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
 // 保存当前文档的派生展示信息；文件读写流程仍由 MainWindowViewModel 统一协调。
 public sealed class ShellDocumentInfoViewModel : ReactiveObject
 {
+    private readonly IAppLocalizer _localizer;
     private DocumentSnapshot _document = new(null, "Untitled.md", string.Empty, Encoding.UTF8, true);
     private string _markdown = string.Empty;
     private string _lastSavedMarkdown = string.Empty;
     private MarkdownStatistics _statistics = new(0, 0, 1);
 
-    public ShellDocumentInfoViewModel()
+    public ShellDocumentInfoViewModel(IAppLocalizer localizer)
     {
-        I18nManager.Instance.CultureChanged += OnCultureChanged;
+        _localizer = localizer;
+        _localizer.CultureChanged += OnCultureChanged;
     }
 
     public string WindowTitle => $"{(IsModified ? "*" : string.Empty)}{_document.FileName} - Vex";
@@ -30,8 +32,8 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
     public bool IsModified => !string.Equals(_markdown, _lastSavedMarkdown, StringComparison.Ordinal);
 
     public string DocumentStateText => IsModified
-        ? I18nManager.Instance.GetResource(VexL.DocumentStateModified)
-        : I18nManager.Instance.GetResource(VexL.DocumentStateSaved);
+        ? _localizer.Get(VexL.DocumentStateModified)
+        : _localizer.Get(VexL.DocumentStateSaved);
 
     public string CurrentEncodingText => GetEncodingDisplayName(_document.Encoding);
 
@@ -50,29 +52,21 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
         }
     }
 
-    public string WordCountText => string.Format(
-        I18nManager.Instance.GetResource(VexL.WordCountFormat),
-        Statistics.Words);
+    public string WordCountText => _localizer.Format(VexL.WordCountFormat, Statistics.Words);
 
-    public string CharacterCountText => string.Format(
-        I18nManager.Instance.GetResource(VexL.CharacterCountFormat),
-        Statistics.Characters);
+    public string CharacterCountText => _localizer.Format(VexL.CharacterCountFormat, Statistics.Characters);
 
-    public string LineCountText => string.Format(
-        I18nManager.Instance.GetResource(VexL.LineCountFormat),
-        Statistics.Lines);
+    public string LineCountText => _localizer.Format(VexL.LineCountFormat, Statistics.Lines);
 
-    public string ReadingMinutesText => string.Format(
-        I18nManager.Instance.GetResource(VexL.ReadingMinutesFormat),
-        Statistics.ReadingMinutes);
+    public string ReadingMinutesText => _localizer.Format(VexL.ReadingMinutesFormat, Statistics.ReadingMinutes);
 
     public string PropertyNameText => _document.FileName;
 
-    public string PropertyLocationText => CurrentFilePath ?? I18nManager.Instance.GetResource(VexL.UnsavedDocument);
+    public string PropertyLocationText => CurrentFilePath ?? _localizer.Get(VexL.UnsavedDocument);
 
     public string PropertySizeText => CurrentFilePath is { Length: > 0 } path && File.Exists(path)
         ? FormatFileSize(new FileInfo(path).Length)
-        : $"{Encoding.UTF8.GetByteCount(_markdown):N0} B";
+        : $"{Encoding.UTF8.GetByteCount(_markdown).ToString("N0", _localizer.Culture)} B";
 
     public void Refresh(
         DocumentSnapshot document,
@@ -108,13 +102,13 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
         OnPropertyChanged(nameof(PropertyLocationText));
     }
 
-    private static string FormatFileSize(long bytes)
+    private string FormatFileSize(long bytes)
     {
         return bytes switch
         {
-            < 1024 => $"{bytes:N0} B",
-            < 1024 * 1024 => $"{bytes / 1024d:N1} KB",
-            _ => $"{bytes / 1024d / 1024d:N1} MB"
+            < 1024 => $"{bytes.ToString("N0", _localizer.Culture)} B",
+            < 1024 * 1024 => $"{(bytes / 1024d).ToString("N1", _localizer.Culture)} KB",
+            _ => $"{(bytes / 1024d / 1024d).ToString("N1", _localizer.Culture)} MB"
         };
     }
 

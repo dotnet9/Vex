@@ -141,3 +141,5 @@
 - Localized file-picker titles, file-type labels, recent-file empty text, file-list modified-time labels, and outline navigation feedback.
 - Extracted `IDocumentFileFactory`/`DocumentFileFactory` so `DocumentFile` stays a simple display model and Workspace formatting stays reusable.
 - Validated all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and launched the Debug app with a temporary Markdown folder; screenshot capture is still blocked by the current desktop session.
+- Centralized culture switching and culture-change notifications in `IAppLocalizer`, removing direct `I18nManager` access from Shell ViewModels.
+- Validated JSON resources, built `Vex.slnx`, ran `git diff --check`, searched for remaining direct localization access, and completed a Debug startup smoke run.

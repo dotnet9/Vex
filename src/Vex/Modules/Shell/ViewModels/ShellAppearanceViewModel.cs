@@ -1,8 +1,6 @@
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using CodeWF.Markdown.Themes;
-using Lang.Avalonia;
 using ReactiveUI;
 using Vex.Core.Models;
 using Vex.Core.Services;
@@ -12,6 +10,7 @@ namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellAppearanceViewModel : ReactiveObject
 {
+    private readonly IAppLocalizer _localizer;
     private readonly IThemeService _themeService;
     private readonly IShellStatusPublisher _statusPublisher;
     private bool _isCompactLayout;
@@ -19,8 +18,9 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
     private TypographyOption? _selectedTypography;
     private LanguageOption? _selectedLanguage;
 
-    public ShellAppearanceViewModel(IThemeService themeService, IShellStatusPublisher statusPublisher)
+    public ShellAppearanceViewModel(IAppLocalizer localizer, IThemeService themeService, IShellStatusPublisher statusPublisher)
     {
+        _localizer = localizer;
         _themeService = themeService;
         _statusPublisher = statusPublisher;
 
@@ -41,7 +41,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         _selectedLanguage = LanguageOptions.FirstOrDefault(item => item.CultureName == "zh-CN");
         if (_selectedLanguage is not null)
         {
-            I18nManager.Instance.Culture = new CultureInfo(_selectedLanguage.CultureName);
+            _localizer.SetCulture(_selectedLanguage.CultureName);
         }
     }
 
@@ -100,7 +100,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         {
             if (SetProperty(ref _selectedLanguage, value) && value is not null)
             {
-                I18nManager.Instance.Culture = new CultureInfo(value.CultureName);
+                _localizer.SetCulture(value.CultureName);
                 _statusPublisher.PublishResourceFormat(VexL.StatusLanguageSwitched, value.DisplayName);
             }
         }
