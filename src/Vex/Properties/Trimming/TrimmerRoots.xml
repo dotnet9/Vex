@@ -1,0 +1,46 @@
+<linker>
+  <assembly fullname="Vex" preserve="all" />
+  <assembly fullname="Vex.Controls" preserve="all" />
+  <assembly fullname="Vex.Controls.Themes" preserve="all" />
+
+  <assembly fullname="CodeWF.EventBus" preserve="all" />
+  <assembly fullname="CodeWF.DryIoc.EventBus" preserve="all" />
+  <assembly fullname="CodeWF.Markdown" preserve="all" />
+  <assembly fullname="CodeWF.Markdown.Themes" preserve="all" />
+
+  <assembly fullname="Prism" preserve="all" />
+  <assembly fullname="Prism.Avalonia" preserve="all" />
+  <assembly fullname="Prism.DryIoc.Avalonia" preserve="all" />
+  <assembly fullname="DryIoc" preserve="all" />
+
+  <assembly fullname="ReactiveUI" preserve="all" />
+  <assembly fullname="ReactiveUI.Avalonia" preserve="all" />
+  <assembly fullname="Splat" preserve="all" />
+
+  <assembly fullname="Semi.Avalonia" preserve="all" />
+  <assembly fullname="Ursa" preserve="all" />
+  <assembly fullname="Ursa.Themes.Semi" preserve="all" />
+  <assembly fullname="Irihi.Avalonia.Shared" preserve="all" />
+  <assembly fullname="Irihi.Avalonia.Shared.Contracts" preserve="all" />
+
+  <assembly fullname="Lang.Avalonia" preserve="all" />
+  <assembly fullname="Lang.Avalonia.Json" preserve="all" />
+
+  <assembly fullname="Avalonia" preserve="all" />
+  <assembly fullname="Avalonia.Base" preserve="all" />
+  <assembly fullname="Avalonia.Controls" preserve="all" />
+  <assembly fullname="Avalonia.Desktop" preserve="all" />
+  <assembly fullname="Avalonia.Markup" preserve="all" />
+  <assembly fullname="Avalonia.Markup.Xaml" preserve="all" />
+  <assembly fullname="Avalonia.Markup.Xaml.Loader" preserve="all" />
+  <assembly fullname="Avalonia.Themes.Fluent" preserve="all" />
+  <assembly fullname="AvaloniaEdit" preserve="all" />
+
+  <assembly fullname="Svg.Controls.Skia.Avalonia" preserve="all" />
+  <assembly fullname="Svg.Skia" preserve="all" />
+  <assembly fullname="Svg.Model" preserve="all" />
+  <assembly fullname="Svg.SceneGraph" preserve="all" />
+  <assembly fullname="Svg.Custom" preserve="all" />
+  <assembly fullname="Svg.Animation" preserve="all" />
+  <assembly fullname="ExCSS" preserve="all" />
+</linker>

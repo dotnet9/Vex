@@ -15,6 +15,7 @@
 - Added help menu actions for opening bundled changelog, quick start, and acknowledgements documents.
 - Added Vex folder publish profiles for `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`.
 - Added the root `publish_vex_all.bat` script to run all Vex publish profiles.
+- Added trimming roots to preserve Vex, Avalonia, Prism, ReactiveUI, CodeWF, and SVG rendering assemblies for trimmed publishes.
 
 ### Changed
 
@@ -24,6 +25,8 @@
 - Removed CommunityToolkit.Mvvm, moved the shell ViewModel to ReactiveUI, and bound menu actions directly to public methods.
 - Registered CodeWF.EventBus through DryIoc and handled editor actions/navigation with `[EventHandler]` methods.
 - Added Windows AOT/Win7 and Linux/macOS self-contained single-file publish settings.
+- Extracted shared publish profile settings into `FolderProfile.Common.props`, unified outputs under root `publish\<RuntimeIdentifier>\`, and enabled trimming for non-Windows self-contained single-file publishes.
 - Removed the NU1904 warning from old `System.Drawing.Common` resolution through central transitive pinning.
+- Pinned the transitive `Avalonia.Markup.Xaml.Loader` dependency to Avalonia 12.0.3 to avoid publishing an older runtime loader.
 - Tested `Vex.slnx` build, dependency vulnerability scanning, desktop smoke startup, and the `win-x64` Release Native AOT plus `linux-x64` self-contained single-file publish paths.
 - Tested `publish_vex_all.bat` and confirmed all five Vex publish profiles complete successfully.

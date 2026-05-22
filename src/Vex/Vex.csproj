@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <TrimmerRootDescriptor Include="Properties\Trimming\TrimmerRoots.xml" />
     <Content Include="..\..\docs\CHANGELOG.en-US.md" Link="docs\CHANGELOG.en-US.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\CHANGELOG.zh-CN.md" Link="docs\CHANGELOG.zh-CN.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\QuickStart.zh-CN.md" Link="docs\QuickStart.zh-CN.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />

@@ -22,8 +22,11 @@
 - 使用中央传递钉版将旧 `System.Drawing.Common` 解析覆盖到 10.0.8，消除 Prism 8.x 依赖链带来的 NU1904 告警。
 - 验证 `dotnet build Vex.slnx`、依赖漏洞扫描、桌面启动烟测、`win-x64` Release Native AOT 发布链路和 `linux-x64` self-contained single-file 发布链路。
 - 增加 VS 文件夹发布 Profile，覆盖 `win-x64`、`linux-x64`、`linux-arm64`、`osx-x64` 和 `osx-arm64`。
+- 提取 `FolderProfile.Common.props` 复用发布公共配置，发布输出统一写入根目录 `publish\<RuntimeIdentifier>\`，非 Windows self-contained single-file 发布启用裁剪以减少体积。
 - 增加根目录 `publish_vex_all.bat`，可一键按上述发布 Profile 依次发布 Vex 主工程。
 - 验证 `publish_vex_all.bat` 可成功调用全部五个发布 Profile。
+- 增加 `Properties\Trimming\TrimmerRoots.xml`，为裁剪发布保留 Vex、Avalonia、Prism、ReactiveUI、CodeWF.EventBus、CodeWF.Markdown、Semi/Ursa 与 SVG 渲染相关程序集。
+- 将 Prism 8.x 带入的 `Avalonia.Markup.Xaml.Loader` 传递版本钉到 Avalonia 12.0.3，避免发布时混入 Avalonia 11 运行时加载器。
 
 ### en-US
 
@@ -45,5 +48,8 @@
 - Used central transitive pinning to resolve old `System.Drawing.Common` references to 10.0.8 and remove the Prism 8.x NU1904 warning.
 - Verified `dotnet build Vex.slnx`, dependency vulnerability scanning, desktop smoke startup, the `win-x64` Release Native AOT publish path, and the `linux-x64` self-contained single-file publish path.
 - Added Visual Studio folder publish profiles for `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`.
+- Extracted shared publish settings into `FolderProfile.Common.props`, unified outputs under root `publish\<RuntimeIdentifier>\`, and enabled trimming for non-Windows self-contained single-file publishes.
 - Added the root `publish_vex_all.bat` script to publish the Vex application through each profile.
 - Verified `publish_vex_all.bat` can successfully run all five publish profiles.
+- Added `Properties\Trimming\TrimmerRoots.xml` to preserve Vex, Avalonia, Prism, ReactiveUI, CodeWF.EventBus, CodeWF.Markdown, Semi/Ursa, and SVG rendering assemblies during trimmed publishes.
+- Pinned the Prism 8.x transitive `Avalonia.Markup.Xaml.Loader` version to Avalonia 12.0.3 to avoid publishing the Avalonia 11 runtime loader.
