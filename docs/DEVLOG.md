@@ -227,6 +227,11 @@
 - `MarkdownEditorView.axaml.cs` 不再依赖 `MainWindowViewModel`、`ContainerLocator`、`IEventBus` 或编辑器控制器，只保留 TextEditor 视觉配置、附着/分离和键盘事件转发；文件缩短到 48 行。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并启动 Debug 桌面程序使用窗口句柄截图确认编辑器仍能同步初始文档，预览和状态栏正常渲染。截图路径：`%TEMP%\VexScreenshots\markdown-editor-viewmodel-startup.png`。
 - 本轮未新增第三方依赖。
+- 新增 `IEditorDisplayState`/`EditorDisplayState`，Shell 编辑器显示 VM 更新字体大小和行号状态，Workspace 编辑器 VM 只依赖 Core 服务契约读取显示状态。
+- `MarkdownEditorViewModel` 不再引用 `ShellEditorDisplayViewModel`，`MarkdownEditorView.axaml` 直接绑定 `EditorFontSize` 和 `ShowLineNumbers`。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并检索确认 Workspace 模块不再引用 `ShellEditorDisplayViewModel` 或 `EditorDisplay.` 绑定。
+- 启动 Debug 桌面程序并使用窗口句柄截图，确认显示状态服务接入后编辑器、预览和状态栏仍正常渲染。截图路径：`%TEMP%\VexScreenshots\editor-display-state-startup.png`。
+- 本轮未新增第三方依赖。
 
 ### en-US
 
@@ -539,4 +544,9 @@
 - Added `MarkdownEditorViewModel`, using Prism AutoWire to manage editor-controller attachment, initial document sync, document-change sync, Tab indent actions, and context-menu editor action publication.
 - `MarkdownEditorView.axaml.cs` no longer depends on `MainWindowViewModel`, `ContainerLocator`, `IEventBus`, or the editor controller; it keeps only TextEditor visual setup, attach/detach forwarding, and keyboard event forwarding, and is down to 48 lines.
 - Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a window-handle screenshot confirming the editor still syncs the initial document while the preview and status bar render normally. Screenshot path: `%TEMP%\VexScreenshots\markdown-editor-viewmodel-startup.png`.
+- Added no new third-party dependency.
+- Added `IEditorDisplayState`/`EditorDisplayState`; the Shell editor display ViewModel updates font-size and line-number state while the Workspace editor ViewModel reads those settings through a Core service contract.
+- `MarkdownEditorViewModel` no longer references `ShellEditorDisplayViewModel`, and `MarkdownEditorView.axaml` now binds directly to `EditorFontSize` and `ShowLineNumbers`.
+- Verified `dotnet build Vex.slnx`, ran `git diff --check`, and searched to confirm the Workspace module no longer references `ShellEditorDisplayViewModel` or `EditorDisplay.` bindings.
+- Launched the Debug desktop app and captured a window-handle screenshot confirming the editor, preview, and status bar still render after the display-state service wiring. Screenshot path: `%TEMP%\VexScreenshots\editor-display-state-startup.png`.
 - Added no new third-party dependency.

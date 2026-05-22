@@ -18,9 +18,9 @@
             x:Name="MarkdownEditor"
             Background="White"
             FontFamily="Cascadia Mono, Consolas, Microsoft YaHei UI"
-            FontSize="{Binding EditorDisplay.EditorFontSize}"
+            FontSize="{Binding EditorFontSize}"
             HorizontalScrollBarVisibility="Disabled"
-            ShowLineNumbers="{Binding EditorDisplay.ShowLineNumbers}"
+            ShowLineNumbers="{Binding ShowLineNumbers}"
             VerticalScrollBarVisibility="Auto"
             WordWrap="True">
             <!-- 右键菜单只转发 Shell 编辑动作，实际文本变更仍由 Workspace 控制器通过 EventBus 执行。 -->

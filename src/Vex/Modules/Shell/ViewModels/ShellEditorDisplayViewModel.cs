@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using ReactiveUI;
+using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
@@ -7,13 +8,16 @@ namespace Vex.Modules.Shell.ViewModels;
 // 管理编辑器显示偏好，Workspace 视图只绑定这些状态，不直接保存用户显示选择。
 public sealed class ShellEditorDisplayViewModel : ReactiveObject
 {
+    private readonly IEditorDisplayState _editorDisplayState;
     private readonly IShellStatusPublisher _statusPublisher;
     private double _editorZoom = 1.0;
     private bool _showLineNumbers;
 
-    public ShellEditorDisplayViewModel(IShellStatusPublisher statusPublisher)
+    public ShellEditorDisplayViewModel(IEditorDisplayState editorDisplayState, IShellStatusPublisher statusPublisher)
     {
+        _editorDisplayState = editorDisplayState;
         _statusPublisher = statusPublisher;
+        PublishDisplayState();
     }
 
     public double EditorZoom
@@ -25,6 +29,7 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
             {
                 OnPropertyChanged(nameof(EditorFontSize));
                 OnPropertyChanged(nameof(ZoomText));
+                PublishDisplayState();
             }
         }
     }
@@ -36,7 +41,13 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
     public bool ShowLineNumbers
     {
         get => _showLineNumbers;
-        set => SetProperty(ref _showLineNumbers, value);
+        set
+        {
+            if (SetProperty(ref _showLineNumbers, value))
+            {
+                PublishDisplayState();
+            }
+        }
     }
 
     public void ActualSize()
@@ -74,5 +85,10 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
     private void OnPropertyChanged(string propertyName)
     {
         this.RaisePropertyChanged(propertyName);
+    }
+
+    private void PublishDisplayState()
+    {
+        _editorDisplayState.Update(EditorFontSize, ShowLineNumbers);
     }
 }

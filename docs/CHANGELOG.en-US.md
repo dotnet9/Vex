@@ -165,3 +165,5 @@
 - Validated JSON resources, built `Vex.slnx`, ran `git diff --check`, searched for old hard-coded templates, and captured a startup screenshot.
 - Added `MarkdownEditorViewModel` with Prism AutoWire, removing direct `MainWindowViewModel` and `ContainerLocator` dependencies from `MarkdownEditorView.axaml.cs`.
 - Built `Vex.slnx`, ran `git diff --check`, and captured a startup screenshot confirming the editor still syncs the initial document.
+- Added `IEditorDisplayState`/`EditorDisplayState` so Workspace editor views consume editor display settings through a Core service contract instead of the Shell display ViewModel.
+- Built `Vex.slnx`, ran `git diff --check`, searched Workspace for Shell display ViewModel references, and captured a startup screenshot.

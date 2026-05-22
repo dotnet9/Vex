@@ -4,7 +4,6 @@ using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
-using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Workspace.Services;
 
 namespace Vex.Modules.Workspace.ViewModels;
@@ -12,23 +11,39 @@ namespace Vex.Modules.Workspace.ViewModels;
 public sealed class MarkdownEditorViewModel : ReactiveObject
 {
     private readonly IEventBus _eventBus;
+    private readonly IEditorDisplayState _editorDisplayState;
     private readonly IMarkdownEditorController _editorController;
+    private double _editorFontSize;
     private string _markdown;
+    private bool _showLineNumbers;
 
     public MarkdownEditorViewModel(
         IEventBus eventBus,
         IWorkspaceDocumentState documentState,
-        IMarkdownEditorController editorController,
-        ShellEditorDisplayViewModel editorDisplay)
+        IEditorDisplayState editorDisplayState,
+        IMarkdownEditorController editorController)
     {
         _eventBus = eventBus;
+        _editorDisplayState = editorDisplayState;
         _editorController = editorController;
+        _editorFontSize = editorDisplayState.EditorFontSize;
         _markdown = documentState.Markdown;
-        EditorDisplay = editorDisplay;
+        _showLineNumbers = editorDisplayState.ShowLineNumbers;
+        _editorDisplayState.Changed += OnEditorDisplayChanged;
         eventBus.Subscribe(this);
     }
 
-    public ShellEditorDisplayViewModel EditorDisplay { get; }
+    public double EditorFontSize
+    {
+        get => _editorFontSize;
+        private set => this.RaiseAndSetIfChanged(ref _editorFontSize, value);
+    }
+
+    public bool ShowLineNumbers
+    {
+        get => _showLineNumbers;
+        private set => this.RaiseAndSetIfChanged(ref _showLineNumbers, value);
+    }
 
     public string Markdown
     {
@@ -73,6 +88,12 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     public void ApplyMarkdownDocumentChanged(MarkdownDocumentChangedCommand command)
     {
         Markdown = command.Markdown;
+    }
+
+    private void OnEditorDisplayChanged(object? sender, EventArgs e)
+    {
+        EditorFontSize = _editorDisplayState.EditorFontSize;
+        ShowLineNumbers = _editorDisplayState.ShowLineNumbers;
     }
 
     public void Undo() => PublishEditorAction(EditorActionKind.Undo);

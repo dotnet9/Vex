@@ -82,6 +82,7 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<IRecentDocumentStore, RecentDocumentStore>();
         containerRegistry.RegisterSingleton<IShellStatusPublisher, ShellStatusPublisher>();
         containerRegistry.RegisterSingleton<IShellDocumentWorkflowText, ShellDocumentWorkflowText>();
+        containerRegistry.RegisterSingleton<IEditorDisplayState, EditorDisplayState>();
         containerRegistry.RegisterSingleton<IShellUnsavedChangesGuard, ShellUnsavedChangesGuard>();
         containerRegistry.RegisterSingleton<IShellDocumentUtilityActions, ShellDocumentUtilityActions>();
         containerRegistry.RegisterSingleton<IShellExternalPathResolver, ShellExternalPathResolver>();
