@@ -3,12 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Ursa.Controls;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
 
 namespace Vex.Modules.Shell.Views;
 
-public partial class MainWindow : Window
+public partial class MainWindow : UrsaWindow
 {
     private bool _isCloseConfirmed;
 
@@ -19,7 +20,6 @@ public partial class MainWindow : Window
         DragDrop.SetAllowDrop(this, true);
         AddHandler(DragDrop.DragOverEvent, WindowDragOver);
         AddHandler(DragDrop.DropEvent, WindowDrop);
-        Closing += WindowClosing;
     }
 
     public MainWindow(MainWindowViewModel viewModel, ShellActionCoordinator actionCoordinator)
@@ -32,29 +32,6 @@ public partial class MainWindow : Window
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
         ApplyWindowState(viewModel.Layout);
         Opened += async (_, _) => await viewModel.OpenStartupDocumentAsync(Environment.GetCommandLineArgs().Skip(1));
-    }
-
-    private void TitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-        {
-            BeginMoveDrag(e);
-        }
-    }
-
-    private void MinimizeClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        WindowState = WindowState.Minimized;
-    }
-
-    private void MaximizeClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-    }
-
-    private void CloseClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        Close();
     }
 
     private async void WindowKeyDown(object? sender, KeyEventArgs e)
@@ -180,18 +157,20 @@ public partial class MainWindow : Window
         WindowState = layout.IsFullScreen ? WindowState.FullScreen : WindowState.Normal;
     }
 
-    private async void WindowClosing(object? sender, CancelEventArgs e)
+    protected override async Task<bool> CanClose()
     {
         if (_isCloseConfirmed)
         {
-            return;
+            return true;
         }
 
         if (DataContext is MainWindowViewModel viewModel && viewModel.DocumentInfo.IsModified)
         {
-            e.Cancel = true;
             await viewModel.BeginWindowCloseAsync();
+            return false;
         }
+
+        return true;
     }
 
     private void OnCloseWindowRequested(object? sender, EventArgs e)

@@ -141,6 +141,11 @@
 - 在标题栏菜单 ViewModel 与文档展示状态 ViewModel 中补充中文维护注释，说明菜单事件边界和语言切换派生文案刷新点。
 - 验证 `dotnet build Vex.slnx`，并分别截图确认默认中文与 `en-US` 下标题栏菜单、侧栏、状态栏标签和保存状态本地化显示正常。截图路径：`%TEMP%\VexScreenshots\i18n-title-menu.png`、`%TEMP%\VexScreenshots\i18n-title-menu-en.png`。
 - 本轮未新增第三方依赖，复用已有自研 `Lang.Avalonia.Json`，无需额外许可证核查。
+- 将主窗口根节点从 Avalonia `Window` 改为 Ursa `UrsaWindow`，标题栏品牌、菜单和文档标题分别放入 Ursa 标题栏内容区，工作区内容下移到标题栏下方。
+- 移除 Vex 自绘的最小化、最大化、关闭按钮样式和事件处理，窗口拖动、系统按钮和标题栏按钮状态由 Ursa/Semi 模板统一维护。
+- 关闭未保存确认改为重写 `UrsaWindow.CanClose()`，保留原有 `ShellDialogsViewModel` 保存确认流程，同时避免继续订阅普通 `Window.Closing` 事件。
+- 验证 `dotnet build Vex.slnx`，并截图确认 Ursa 标题栏内置控制按钮、标题栏菜单、文档标题、侧栏、编辑区、预览区和状态栏显示正常。截图路径：`%TEMP%\VexScreenshots\ursa-window-shell-foreground.png`。
+- 本轮未新增第三方依赖，复用已有 `Irihi.Ursa.Themes.Semi` 依赖。
 
 ### en-US
 
@@ -306,3 +311,8 @@
 - Moved the first main-window, find-bar, status-bar, and document-display strings to `{I18n}` bindings or `I18nManager.GetResource`; `ShellDocumentInfoViewModel` now refreshes derived localized strings on culture changes.
 - Verified `dotnet build Vex.slnx`, and captured screenshots confirming the localized title menu, sidebar, status badges, and saved-state text in default Chinese and `en-US`. Screenshot paths: `%TEMP%\VexScreenshots\i18n-title-menu.png`, `%TEMP%\VexScreenshots\i18n-title-menu-en.png`.
 - Added no new third-party dependency, reusing the existing first-party `Lang.Avalonia.Json` dependency.
+- Changed the main window root from Avalonia `Window` to Ursa `UrsaWindow`, moving brand, menu, and document-title content into the Ursa title-bar content areas and keeping the workspace content below the title bar.
+- Removed Vex-owned minimize, maximize, and close button styles and handlers so window drag behavior, caption buttons, and button states come from the Ursa/Semi template.
+- Moved unsaved-close protection to `UrsaWindow.CanClose()`, preserving the existing `ShellDialogsViewModel` confirmation flow without subscribing to the plain `Window.Closing` event.
+- Verified `dotnet build Vex.slnx`, and captured a screenshot confirming the Ursa title bar, built-in caption buttons, title menu, document title, sidebar, editor, preview, and status bar render correctly. Screenshot path: `%TEMP%\VexScreenshots\ursa-window-shell-foreground.png`.
+- Added no new third-party dependency, reusing the existing `Irihi.Ursa.Themes.Semi` dependency.

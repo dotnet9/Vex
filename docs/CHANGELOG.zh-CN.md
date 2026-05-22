@@ -24,6 +24,7 @@
 - [新增] 编辑器支持 Tab/Shift+Tab 缩进与反缩进，选区会按行批量处理。
 - [新增] 接入 `Vex.VexL` JSON 本地化资源，标题栏菜单、侧栏、查找栏和状态栏首批文案支持运行时语言切换。
 - [优化] 标题栏菜单拆分为独立 `ShellTitleMenuView` 与 `ShellTitleMenuViewModel`，通过 Prism AutoWireViewModel 和 CodeWF.EventBus 降低主窗口耦合。
+- [优化] 主窗口改为继承 Ursa `UrsaWindow`，标题栏控制按钮和拖动区域交由 Ursa 内置窗口模板负责。
 
 - 创建 Vex（维刻）Markdown 编辑器基础版本。
 - 完善作者、码坊 CodeWF 与官方网站信息。
@@ -72,6 +73,7 @@
 - 🔧[优化]-Tab 键处理通过 CodeWF.EventBus 转为编辑器动作，文本修改仍集中在 Workspace 控制器。
 - 🔧[优化]-本地化资源沿用 CodeWF.Markdown 的 JSON + 强类型 key 类组织方式，`I18n\Language.tt` 可辅助后续维护资源 key。
 - 🔧[优化]-文件类菜单动作改为由标题栏菜单 ViewModel 发布 `ShellActionCommand`，主 Shell 仍统一处理未保存确认和文件 I/O。
+- 🔧[优化]-移除 Vex 自绘窗口控制按钮样式和事件处理，关闭未保存确认改为接入 `UrsaWindow.CanClose()`。
 
 ### 优化
 
@@ -120,3 +122,4 @@
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图验证 `.mdown` 文件可通过启动参数正常打开。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图验证 Tab 缩进后编辑区和预览区同步更新。
 - 🧪[测试]-构建 `Vex.slnx`，并分别截图验证默认中文与 `en-US` 下标题栏菜单、侧栏和状态栏本地化显示正常。
+- 🧪[测试]-构建 `Vex.slnx`，并截图验证 Ursa 标题栏内置控制按钮、菜单、文档标题和三栏内容布局显示正常。

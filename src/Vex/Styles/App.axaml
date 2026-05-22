@@ -27,22 +27,6 @@
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="#98A2B3" />
     </Style>
-    <Style Selector="Button.window-button">
-        <Setter Property="Width" Value="46" />
-        <Setter Property="Height" Value="34" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="CornerRadius" Value="0" />
-        <Setter Property="FontSize" Value="12" />
-    </Style>
-    <Style Selector="Button.window-button:pointerover">
-        <Setter Property="Background" Value="#EEF2F6" />
-    </Style>
-    <Style Selector="Button.window-button.close:pointerover">
-        <Setter Property="Background" Value="#E5484D" />
-        <Setter Property="Foreground" Value="White" />
-    </Style>
     <Style Selector="ListBox.side-list">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
