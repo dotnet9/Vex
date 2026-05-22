@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
+using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
@@ -11,6 +12,7 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class ShellWindowLayoutViewModel : ReactiveObject
 {
     private readonly IEventBus _eventBus;
+    private readonly IAppSettingsStore _settingsStore;
     private readonly IShellStatusPublisher _statusPublisher;
     private bool _isSidebarVisible = true;
     private bool _isStatusBarVisible = true;
@@ -18,13 +20,25 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _isAlwaysOnTop;
     private bool _isFullScreen;
     private bool _isSourceMode;
+    private bool _isApplyingSourceMode;
     private bool _sidebarBeforeSourceMode = true;
     private bool _previewBeforeSourceMode = true;
 
-    public ShellWindowLayoutViewModel(IEventBus eventBus, IShellStatusPublisher statusPublisher)
+    public ShellWindowLayoutViewModel(
+        IEventBus eventBus,
+        IAppSettingsStore settingsStore,
+        IShellStatusPublisher statusPublisher)
     {
         _eventBus = eventBus;
+        _settingsStore = settingsStore;
         _statusPublisher = statusPublisher;
+        var settings = _settingsStore.Current;
+        _isSidebarVisible = settings.IsSidebarVisible ?? true;
+        _isStatusBarVisible = settings.IsStatusBarVisible ?? true;
+        _isPreviewVisible = settings.IsPreviewVisible ?? true;
+        _isAlwaysOnTop = settings.IsAlwaysOnTop ?? false;
+        _sidebarBeforeSourceMode = _isSidebarVisible;
+        _previewBeforeSourceMode = _isPreviewVisible;
     }
 
     public bool IsSidebarVisible
@@ -36,6 +50,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             {
                 OnPropertyChanged(nameof(SidebarColumnWidth));
                 OnPropertyChanged(nameof(SidebarSplitterWidth));
+                PersistLayoutSettings();
             }
         }
     }
@@ -43,7 +58,13 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public bool IsStatusBarVisible
     {
         get => _isStatusBarVisible;
-        set => SetProperty(ref _isStatusBarVisible, value);
+        set
+        {
+            if (SetProperty(ref _isStatusBarVisible, value))
+            {
+                PersistLayoutSettings();
+            }
+        }
     }
 
     public bool IsPreviewVisible
@@ -55,6 +76,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             {
                 OnPropertyChanged(nameof(PreviewColumnWidth));
                 OnPropertyChanged(nameof(PreviewSplitterWidth));
+                PersistLayoutSettings();
             }
         }
     }
@@ -70,7 +92,13 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public bool IsAlwaysOnTop
     {
         get => _isAlwaysOnTop;
-        set => SetProperty(ref _isAlwaysOnTop, value);
+        set
+        {
+            if (SetProperty(ref _isAlwaysOnTop, value))
+            {
+                PersistLayoutSettings();
+            }
+        }
     }
 
     public bool IsFullScreen
@@ -127,16 +155,21 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             // 源码模式会临时隐藏侧栏和预览，退出时必须恢复用户原先的布局选择。
             _sidebarBeforeSourceMode = IsSidebarVisible;
             _previewBeforeSourceMode = IsPreviewVisible;
+            _isApplyingSourceMode = true;
             IsSidebarVisible = false;
             IsPreviewVisible = false;
+            _isApplyingSourceMode = false;
             IsSourceMode = true;
             _statusPublisher.PublishResource(VexL.StatusSourceModeEnabled);
             FocusEditor();
             return;
         }
 
+        _isApplyingSourceMode = true;
         IsSidebarVisible = _sidebarBeforeSourceMode;
         IsPreviewVisible = _previewBeforeSourceMode;
+        _isApplyingSourceMode = false;
+        PersistLayoutSettings();
         IsSourceMode = false;
         _statusPublisher.PublishResource(VexL.StatusSourceModeDisabled);
         FocusEditor();
@@ -160,6 +193,22 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private void SelectSidebarTab(int selectedIndex)
     {
         _eventBus.Publish(new ShellSidebarTabSelectedCommand(selectedIndex));
+    }
+
+    private void PersistLayoutSettings()
+    {
+        if (_isApplyingSourceMode)
+        {
+            return;
+        }
+
+        _settingsStore.Update(settings => settings with
+        {
+            IsSidebarVisible = IsSidebarVisible,
+            IsStatusBarVisible = IsStatusBarVisible,
+            IsPreviewVisible = IsPreviewVisible,
+            IsAlwaysOnTop = IsAlwaysOnTop
+        });
     }
 
     private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)

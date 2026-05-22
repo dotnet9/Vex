@@ -4,6 +4,9 @@
 
 ### 新增
 
+- ✨[新增]-用户设置会保存主题、排版、紧凑布局、语言、窗口尺寸、侧栏/预览/状态栏布局、编辑器缩放和行号显示状态。
+- 🔧[优化]-首次启动未保存语言时，会根据系统语言选择简体中文、繁体中文、日文或英文，不再固定为单一默认语言。
+- 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图验证设置持久化接入后主窗口、编辑器、预览和状态栏正常渲染。
 - [优化] 将查找/替换面板拆分为独立 `ShellFindBarView` 与 `ShellFindBarViewModel`，通过 CodeWF.EventBus 与编辑器通信，降低主窗口和主 ViewModel 复杂度。
 - [优化] 将主题、排版、紧凑布局和语言切换迁移到独立 `ShellAppearanceViewModel`，主窗口通过 Prism IoC 组合外观模块。
 - [优化] 将撤销、重做、剪贴板、全选和 Markdown 插入命令迁移到独立 `ShellEditorActionsViewModel`，统一通过 CodeWF.EventBus 路由到编辑器。

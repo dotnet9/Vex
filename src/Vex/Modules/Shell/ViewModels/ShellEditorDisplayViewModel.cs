@@ -9,14 +9,22 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class ShellEditorDisplayViewModel : ReactiveObject
 {
     private readonly IEditorDisplayState _editorDisplayState;
+    private readonly IAppSettingsStore _settingsStore;
     private readonly IShellStatusPublisher _statusPublisher;
     private double _editorZoom = 1.0;
     private bool _showLineNumbers;
 
-    public ShellEditorDisplayViewModel(IEditorDisplayState editorDisplayState, IShellStatusPublisher statusPublisher)
+    public ShellEditorDisplayViewModel(
+        IEditorDisplayState editorDisplayState,
+        IAppSettingsStore settingsStore,
+        IShellStatusPublisher statusPublisher)
     {
         _editorDisplayState = editorDisplayState;
+        _settingsStore = settingsStore;
         _statusPublisher = statusPublisher;
+        var settings = _settingsStore.Current;
+        _editorZoom = Math.Clamp(settings.EditorZoom ?? 1.0, 0.7, 1.8);
+        _showLineNumbers = settings.ShowLineNumbers ?? false;
         PublishDisplayState();
     }
 
@@ -30,6 +38,7 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
                 OnPropertyChanged(nameof(EditorFontSize));
                 OnPropertyChanged(nameof(ZoomText));
                 PublishDisplayState();
+                PersistDisplaySettings();
             }
         }
     }
@@ -46,6 +55,7 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
             if (SetProperty(ref _showLineNumbers, value))
             {
                 PublishDisplayState();
+                PersistDisplaySettings();
             }
         }
     }
@@ -90,5 +100,14 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
     private void PublishDisplayState()
     {
         _editorDisplayState.Update(EditorFontSize, ShowLineNumbers);
+    }
+
+    private void PersistDisplaySettings()
+    {
+        _settingsStore.Update(settings => settings with
+        {
+            EditorZoom = EditorZoom,
+            ShowLineNumbers = ShowLineNumbers
+        });
     }
 }

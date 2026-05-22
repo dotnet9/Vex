@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using CodeWF.Markdown.Themes;
 using ReactiveUI;
@@ -12,9 +13,11 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
 {
     private readonly IAppLocalizer _localizer;
     private readonly IEditorAppearanceState _editorAppearanceState;
+    private readonly IAppSettingsStore _settingsStore;
     private readonly IThemeService _themeService;
     private readonly IShellStatusPublisher _statusPublisher;
     private bool _isCompactLayout;
+    private bool _isInitializing = true;
     private ThemeOption? _selectedTheme;
     private TypographyOption? _selectedTypography;
     private LanguageOption? _selectedLanguage;
@@ -22,11 +25,13 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
     public ShellAppearanceViewModel(
         IAppLocalizer localizer,
         IEditorAppearanceState editorAppearanceState,
+        IAppSettingsStore settingsStore,
         IThemeService themeService,
         IShellStatusPublisher statusPublisher)
     {
         _localizer = localizer;
         _editorAppearanceState = editorAppearanceState;
+        _settingsStore = settingsStore;
         _themeService = themeService;
         _statusPublisher = statusPublisher;
 
@@ -41,14 +46,27 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             new("ja-JP", "日本語", "日本語")
         };
 
-        SelectedTheme = ThemeOptions.FirstOrDefault();
-        SelectedTypography = TypographyOptions.FirstOrDefault(item => item.Key == MarkdownTypographyThemes.Simple)
-                             ?? TypographyOptions.FirstOrDefault();
-        _selectedLanguage = LanguageOptions.FirstOrDefault(item => item.CultureName == "zh-CN");
+        var settings = _settingsStore.Current;
+        _selectedTheme = FindTheme(settings.ThemeKey)
+                         ?? FindTheme("system")
+                         ?? ThemeOptions.FirstOrDefault();
+        _selectedTypography = FindTypography(settings.TypographyKey)
+                              ?? FindTypography(MarkdownTypographyThemes.Simple)
+                              ?? TypographyOptions.FirstOrDefault();
+        _isCompactLayout = settings.IsCompactLayout ?? false;
+        _selectedLanguage = FindLanguage(GetInitialCulture(settings.CultureName));
+        if (_selectedTheme is not null)
+        {
+            _themeService.ApplyTheme(_selectedTheme);
+        }
+
         if (_selectedLanguage is not null)
         {
             _localizer.SetCulture(_selectedLanguage.CultureName);
         }
+
+        PublishTypographyState();
+        _isInitializing = false;
     }
 
     public ObservableCollection<ThemeOption> ThemeOptions { get; }
@@ -66,6 +84,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             {
                 OnPropertyChanged(nameof(CurrentTypographySize));
                 PublishTypographyState();
+                PersistAppearanceSettings();
             }
         }
     }
@@ -78,6 +97,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             if (SetProperty(ref _selectedTheme, value) && value is not null)
             {
                 _themeService.ApplyTheme(value);
+                PersistAppearanceSettings();
             }
         }
     }
@@ -91,6 +111,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             {
                 OnPropertyChanged(nameof(CurrentTypographyTheme));
                 PublishTypographyState();
+                PersistAppearanceSettings();
             }
         }
     }
@@ -109,6 +130,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             if (SetProperty(ref _selectedLanguage, value) && value is not null)
             {
                 _localizer.SetCulture(value.CultureName);
+                PersistAppearanceSettings();
                 _statusPublisher.PublishResourceFormat(VexL.StatusLanguageSwitched, value.DisplayName);
             }
         }
@@ -175,6 +197,74 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
     private void PublishTypographyState()
     {
         _editorAppearanceState.UpdateTypography(CurrentTypographyTheme, CurrentTypographySize);
+    }
+
+    private void PersistAppearanceSettings()
+    {
+        if (_isInitializing)
+        {
+            return;
+        }
+
+        _settingsStore.Update(settings => settings with
+        {
+            ThemeKey = SelectedTheme?.Key,
+            TypographyKey = SelectedTypography?.Key,
+            IsCompactLayout = IsCompactLayout,
+            CultureName = SelectedLanguage?.CultureName
+        });
+    }
+
+    private ThemeOption? FindTheme(string? key)
+    {
+        return string.IsNullOrWhiteSpace(key)
+            ? null
+            : ThemeOptions.FirstOrDefault(item => item.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private TypographyOption? FindTypography(string? key)
+    {
+        return string.IsNullOrWhiteSpace(key)
+            ? null
+            : TypographyOptions.FirstOrDefault(item => item.Key?.Equals(key, StringComparison.OrdinalIgnoreCase) == true);
+    }
+
+    private LanguageOption? FindLanguage(string? cultureName)
+    {
+        return string.IsNullOrWhiteSpace(cultureName)
+            ? null
+            : LanguageOptions.FirstOrDefault(item => item.CultureName.Equals(cultureName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private string GetInitialCulture(string? savedCultureName)
+    {
+        if (FindLanguage(savedCultureName) is { } savedLanguage)
+        {
+            return savedLanguage.CultureName;
+        }
+
+        var osCulture = CultureInfo.CurrentUICulture;
+        if (FindLanguage(osCulture.Name) is { } exactLanguage)
+        {
+            return exactLanguage.CultureName;
+        }
+
+        if (osCulture.TwoLetterISOLanguageName.Equals("zh", StringComparison.OrdinalIgnoreCase))
+        {
+            return IsTraditionalChineseCulture(osCulture.Name) ? "zh-Hant" : "zh-CN";
+        }
+
+        return osCulture.TwoLetterISOLanguageName.Equals("ja", StringComparison.OrdinalIgnoreCase)
+            ? "ja-JP"
+            : "en-US";
+    }
+
+    private static bool IsTraditionalChineseCulture(string cultureName)
+    {
+        return cultureName.Contains("Hant", StringComparison.OrdinalIgnoreCase)
+               || cultureName.EndsWith("-TW", StringComparison.OrdinalIgnoreCase)
+               || cultureName.EndsWith("-HK", StringComparison.OrdinalIgnoreCase)
+               || cultureName.EndsWith("-MO", StringComparison.OrdinalIgnoreCase);
     }
 
     private void OnPropertyChanged(string propertyName)

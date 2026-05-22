@@ -64,6 +64,7 @@ public partial class App : PrismApplication
     protected override void RegisterTypes(IContainerRegistry containerRegistry)
     {
         containerRegistry.AddEventBus();
+        containerRegistry.RegisterSingleton<IAppSettingsStore, AppSettingsStore>();
         containerRegistry.RegisterSingleton<IAppLocalizer, AppLocalizer>();
         containerRegistry.RegisterSingleton<IDocumentFileFactory, DocumentFileFactory>();
         containerRegistry.RegisterSingleton<IDocumentService, DocumentService>();

@@ -2,20 +2,35 @@ using System.Runtime.CompilerServices;
 using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellNavigationViewModel : ReactiveObject
 {
-    public ShellNavigationViewModel(IEventBus eventBus)
+    private readonly IAppSettingsStore _settingsStore;
+
+    public ShellNavigationViewModel(IEventBus eventBus, IAppSettingsStore settingsStore)
     {
+        _settingsStore = settingsStore;
+        SelectedSideTabIndex = Math.Clamp(_settingsStore.Current.SelectedSidebarTabIndex ?? 0, 0, 1);
         eventBus.Subscribe(this);
     }
 
     public int SelectedSideTabIndex
     {
         get;
-        set => SetProperty(ref field, value);
+        set
+        {
+            var selectedIndex = Math.Clamp(value, 0, 1);
+            if (SetProperty(ref field, selectedIndex))
+            {
+                _settingsStore.Update(settings => settings with
+                {
+                    SelectedSidebarTabIndex = selectedIndex
+                });
+            }
+        }
     }
 
     [EventHandler]
