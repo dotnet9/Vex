@@ -43,7 +43,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     private string _unsavedConfirmTitle = "Save changes?";
     private string _unsavedConfirmMessage = "Save changes before continuing?";
     private string _unsavedConfirmPath = "Unsaved document";
-    private double _editorZoom = 1.0;
     private MarkdownStatistics _statistics = new(0, 0, 1);
     private DocumentFile? _selectedDocumentFile;
     private OutlineItem? _selectedOutlineItem;
@@ -56,6 +55,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         IHelpService helpService,
         ShellAppearanceViewModel appearance,
         ShellEditorActionsViewModel editorActions,
+        ShellEditorDisplayViewModel editorDisplay,
         ShellFindBarViewModel findBar,
         ShellStatusViewModel status,
         IEventBus eventBus)
@@ -67,6 +67,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _helpService = helpService;
         Appearance = appearance;
         EditorActions = editorActions;
+        EditorDisplay = editorDisplay;
         FindBar = findBar;
         Status = status;
         _eventBus = eventBus;
@@ -83,6 +84,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ShellAppearanceViewModel Appearance { get; }
 
     public ShellEditorActionsViewModel EditorActions { get; }
+
+    public ShellEditorDisplayViewModel EditorDisplay { get; }
 
     public ShellFindBarViewModel FindBar { get; }
 
@@ -302,23 +305,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     public string UnsavedConfirmMessage => _unsavedConfirmMessage;
 
     public string UnsavedConfirmPath => _unsavedConfirmPath;
-
-    public double EditorZoom
-    {
-        get => _editorZoom;
-        set
-        {
-            if (SetProperty(ref _editorZoom, value))
-            {
-                OnPropertyChanged(nameof(EditorFontSize));
-                OnPropertyChanged(nameof(ZoomText));
-            }
-        }
-    }
-
-    public double EditorFontSize => Math.Round(15 * EditorZoom, 1);
-
-    public string ZoomText => $"{EditorZoom:P0}";
 
     public MarkdownStatistics Statistics
     {
@@ -791,21 +777,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     public void ToggleFullScreen()
     {
         IsFullScreen = !IsFullScreen;
-    }
-
-    public void ActualSize()
-    {
-        EditorZoom = 1.0;
-    }
-
-    public void ZoomIn()
-    {
-        EditorZoom = Math.Min(1.8, EditorZoom + 0.1);
-    }
-
-    public void ZoomOut()
-    {
-        EditorZoom = Math.Max(0.7, EditorZoom - 0.1);
     }
 
     public void WordCount()

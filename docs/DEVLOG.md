@@ -179,3 +179,8 @@
 - Reduced `MainWindowViewModel.cs` from about 1219 lines to 1193 lines, with the new status ViewModel at about 60 lines.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming status text and line/column badges still render correctly. Screenshot path: `%TEMP%\VexScreenshots\status-module-refactor.png`.
 - Added no new third-party dependency, so no additional license review was required.
+- Split editor display settings into `ShellEditorDisplayViewModel`, covering editor zoom, derived editor font size, and the status-bar zoom label.
+- Registered the editor-display ViewModel through Prism IoC and changed editor, status-bar, menu, and shortcut handlers to use `EditorDisplay.*` bindings and methods.
+- Reduced `MainWindowViewModel.cs` from about 1193 lines to 1164 lines, with the new editor-display ViewModel at about 57 lines.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the editor and `100%` zoom label still render correctly. Screenshot path: `%TEMP%\VexScreenshots\editor-display-module-refactor.png`.
+- Added no new third-party dependency, so no additional license review was required.

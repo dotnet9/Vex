@@ -97,17 +97,17 @@ public partial class MainWindow : Window
         }
         else if (hasControl && !hasShift && IsZoomInKey(e.Key))
         {
-            viewModel.ZoomIn();
+            viewModel.EditorDisplay.ZoomIn();
             e.Handled = true;
         }
         else if (hasControl && !hasShift && IsZoomOutKey(e.Key))
         {
-            viewModel.ZoomOut();
+            viewModel.EditorDisplay.ZoomOut();
             e.Handled = true;
         }
         else if (hasControl && !hasShift && IsActualSizeKey(e.Key))
         {
-            viewModel.ActualSize();
+            viewModel.EditorDisplay.ActualSize();
             e.Handled = true;
         }
         else if (e.Key == Key.F11)

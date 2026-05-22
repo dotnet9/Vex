@@ -174,9 +174,9 @@
                         <MenuItem Header="切换全屏" Command="{Binding ToggleFullScreen}" InputGesture="F11" />
                         <MenuItem Header="保持窗口在最前端" Command="{Binding ToggleAlwaysOnTop}" />
                         <Separator />
-                        <MenuItem Header="实际大小" Command="{Binding ActualSize}" />
-                        <MenuItem Header="放大" Command="{Binding ZoomIn}" />
-                        <MenuItem Header="缩小" Command="{Binding ZoomOut}" />
+                        <MenuItem Header="实际大小" Command="{Binding EditorDisplay.ActualSize}" />
+                        <MenuItem Header="放大" Command="{Binding EditorDisplay.ZoomIn}" />
+                        <MenuItem Header="缩小" Command="{Binding EditorDisplay.ZoomOut}" />
                     </MenuItem>
 
                     <MenuItem Header="主题(T)">
@@ -333,7 +333,7 @@
                     VerticalAlignment="Center">
                     <md:VexStatusBadge Label="State" Value="{Binding DocumentStateText}" />
                     <md:VexStatusBadge Label="Encoding" Value="{Binding CurrentEncodingText}" />
-                    <TextBlock Classes="muted" Text="{Binding ZoomText}" VerticalAlignment="Center" />
+                    <TextBlock Classes="muted" Text="{Binding EditorDisplay.ZoomText}" VerticalAlignment="Center" />
                     <md:VexStatusBadge Label="Line" Value="{Binding Status.CaretLine}" />
                     <md:VexStatusBadge Label="Col" Value="{Binding Status.CaretColumn}" />
                     <md:VexStatusBadge Label="Words" Value="{Binding Statistics.Words}" />

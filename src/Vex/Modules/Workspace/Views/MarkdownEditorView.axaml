@@ -13,7 +13,7 @@
             x:Name="MarkdownEditor"
             Background="White"
             FontFamily="Cascadia Mono, Consolas, Microsoft YaHei UI"
-            FontSize="{Binding EditorFontSize}"
+            FontSize="{Binding EditorDisplay.EditorFontSize}"
             HorizontalScrollBarVisibility="Disabled"
             ShowLineNumbers="False"
             VerticalScrollBarVisibility="Auto"
