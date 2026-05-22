@@ -177,3 +177,5 @@
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`、检索 Workspace 对 Shell 显示 ViewModel 的引用，并完成启动截图。
 - 🔧[优化]-新增 `ShellDroppedPathReader`，将拖放本地路径读取、Storage API 和文件系统检查从 `MainWindow.axaml.cs` 抽离。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并在拖放路径读取服务重构后完成启动截图。
+- 🔧[优化]-新增可复用 `FocusOnVisible` 附加行为，将查找栏聚焦和全选逻辑从 `ShellFindBarView.axaml.cs` 抽离。
+- 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图验证 `Ctrl+F` 可打开查找栏且搜索框获得焦点。

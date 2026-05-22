@@ -560,3 +560,8 @@
 - `MainWindow.axaml.cs` is down to 108 lines, with the dropped-path reader at 33 lines.
 - Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a window-handle screenshot confirming the shell, editor, preview, and status bar still render. Screenshot path: `%TEMP%\VexScreenshots\dropped-path-reader-startup.png`.
 - Added no new third-party dependency.
+- Added the reusable `FocusOnVisible` attached behavior for focus/select-all-on-show interactions.
+- `ShellFindBarView` now declares focus behavior in XAML, while its code-behind only initializes the component and no longer subscribes to `DataContextChanged`, `AttachedToVisualTree`, or ViewModel property changes.
+- The behavior listens to the host container visibility and rechecks effective visibility before focusing, matching the find bar scenario without coupling the View to `ShellFindBarViewModel`.
+- Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a `Ctrl+F` screenshot confirming the find bar opens and the search box receives focus. Screenshot path: `%TEMP%\VexScreenshots\findbar-focus-behavior-startup.png`.
+- Added no new third-party dependency.

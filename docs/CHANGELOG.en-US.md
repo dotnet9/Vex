@@ -169,3 +169,5 @@
 - Built `Vex.slnx`, ran `git diff --check`, searched Workspace for Shell display ViewModel references, and captured a startup screenshot.
 - Extracted dropped local-path reading into `ShellDroppedPathReader`, keeping drag/drop storage and file-system checks out of `MainWindow.axaml.cs`.
 - Built `Vex.slnx`, ran `git diff --check`, and captured a startup screenshot after the dropped-path reader refactor.
+- Added the reusable `FocusOnVisible` attached behavior and moved find-bar focus/select-all handling out of `ShellFindBarView.axaml.cs`.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified `Ctrl+F` opens the find bar with the search box focused.

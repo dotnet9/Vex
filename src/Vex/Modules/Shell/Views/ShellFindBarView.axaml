@@ -2,10 +2,13 @@
     x:Class="Vex.Modules.Shell.Views.ShellFindBarView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="using:Vex.Core.Behaviors"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellFindBarViewModel"
+    behaviors:FocusOnVisible.TargetName="FindTextBox"
+    behaviors:FocusOnVisible.SelectAll="True"
     IsVisible="{Binding IsVisible}">
 
     <Border
