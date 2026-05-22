@@ -188,7 +188,22 @@
       "UnsavedMessageBeforeDeletingFormat": "Save changes to {0} before deleting it?",
       "UnsavedMessageBeforeReopeningWithEncodingFormat": "Save changes to {0} before reopening it with {1}?",
       "UnsavedMessageBeforeOpeningRecentFormat": "Save changes to {0} before opening {1}?",
-      "UnsavedMessageBeforeClosingVexFormat": "Save changes to {0} before closing Vex?"
+      "UnsavedMessageBeforeClosingVexFormat": "Save changes to {0} before closing Vex?",
+      "UnsavedMessageBeforeContinuing": "Save changes before continuing?",
+      "DeleteConfirmFileFormat": "Delete {0}?",
+      "DeleteConfirmCurrentFile": "Delete current file?",
+      "StatusDeleteCanceled": "Delete canceled.",
+      "StatusUnsavedChangesNeedDecision": "Unsaved changes need a decision.",
+      "StatusActionCanceledUnsavedKept": "Action canceled. Unsaved changes kept.",
+      "StatusPropertiesClosed": "Properties closed.",
+      "StatusStatisticsClosed": "Statistics closed.",
+      "StatusAboutClosed": "About closed.",
+      "StatusSourceModeEnabled": "Source mode enabled.",
+      "StatusSourceModeDisabled": "Source mode disabled.",
+      "StatusFindReady": "Find is ready.",
+      "StatusReplaceReady": "Replace is ready.",
+      "StatusFindClosed": "Find closed.",
+      "StatusEnterSearchTextFirst": "Enter search text first."
     }
   }
 }

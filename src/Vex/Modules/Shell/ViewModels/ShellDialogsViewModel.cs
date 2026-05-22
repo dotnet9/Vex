@@ -8,6 +8,7 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class ShellDialogsViewModel : ReactiveObject
 {
     private readonly IShellStatusPublisher _statusPublisher;
+    private readonly IShellLocalizer _localizer;
     private bool _isStatisticsPanelVisible;
     private bool _isAboutPanelVisible;
     private bool _isPropertiesPanelVisible;
@@ -17,13 +18,17 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     // 未保存确认框需要暂存用户选择后的后续动作，保存/不保存/取消会从这里恢复流程。
     private Func<Task>? _pendingUnsavedContinuation;
     private Action? _pendingUnsavedCancellation;
-    private string _unsavedConfirmTitle = "Save changes?";
-    private string _unsavedConfirmMessage = "Save changes before continuing?";
-    private string _unsavedConfirmPath = "Unsaved document";
+    private string _unsavedConfirmTitle;
+    private string _unsavedConfirmMessage;
+    private string _unsavedConfirmPath;
 
-    public ShellDialogsViewModel(IShellStatusPublisher statusPublisher)
+    public ShellDialogsViewModel(IShellStatusPublisher statusPublisher, IShellLocalizer localizer)
     {
         _statusPublisher = statusPublisher;
+        _localizer = localizer;
+        _unsavedConfirmTitle = _localizer.Get(VexL.UnsavedTitleSaveChanges);
+        _unsavedConfirmMessage = _localizer.Get(VexL.UnsavedMessageBeforeContinuing);
+        _unsavedConfirmPath = _localizer.Get(VexL.UnsavedDocument);
     }
 
     public bool IsStatisticsPanelVisible
@@ -57,8 +62,8 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     }
 
     public string DeleteConfirmText => _pendingDeletePath is { Length: > 0 }
-        ? $"Delete {Path.GetFileName(_pendingDeletePath)}?"
-        : "Delete current file?";
+        ? _localizer.Format(VexL.DeleteConfirmFileFormat, Path.GetFileName(_pendingDeletePath))
+        : _localizer.Get(VexL.DeleteConfirmCurrentFile);
 
     public string DeleteConfirmPath => _pendingDeletePath ?? string.Empty;
 
@@ -123,7 +128,7 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     public void CancelDelete()
     {
         ClearDeleteConfirmation();
-        _statusPublisher.Publish("Delete canceled.");
+        _statusPublisher.PublishResource(VexL.StatusDeleteCanceled);
     }
 
     public void ShowUnsavedConfirmation(
@@ -144,7 +149,7 @@ public sealed class ShellDialogsViewModel : ReactiveObject
         OnPropertyChanged(nameof(UnsavedConfirmPath));
         OnPropertyChanged(nameof(HasPendingUnsavedAction));
         IsUnsavedConfirmVisible = true;
-        _statusPublisher.Publish("Unsaved changes need a decision.");
+        _statusPublisher.PublishResource(VexL.StatusUnsavedChangesNeedDecision);
     }
 
     public Func<Task>? TakePendingUnsavedContinuation()
@@ -159,7 +164,7 @@ public sealed class ShellDialogsViewModel : ReactiveObject
         var cancellation = _pendingUnsavedCancellation;
         ClearUnsavedConfirmation();
         cancellation?.Invoke();
-        _statusPublisher.Publish("Action canceled. Unsaved changes kept.");
+        _statusPublisher.PublishResource(VexL.StatusActionCanceledUnsavedKept);
     }
 
     public bool CloseFloatingPanel()
@@ -179,21 +184,21 @@ public sealed class ShellDialogsViewModel : ReactiveObject
         if (IsPropertiesPanelVisible)
         {
             IsPropertiesPanelVisible = false;
-            _statusPublisher.Publish("Properties closed.");
+            _statusPublisher.PublishResource(VexL.StatusPropertiesClosed);
             return true;
         }
 
         if (IsStatisticsPanelVisible)
         {
             IsStatisticsPanelVisible = false;
-            _statusPublisher.Publish("Statistics closed.");
+            _statusPublisher.PublishResource(VexL.StatusStatisticsClosed);
             return true;
         }
 
         if (IsAboutPanelVisible)
         {
             IsAboutPanelVisible = false;
-            _statusPublisher.Publish("About closed.");
+            _statusPublisher.PublishResource(VexL.StatusAboutClosed);
             return true;
         }
 

@@ -188,7 +188,22 @@
       "UnsavedMessageBeforeDeletingFormat": "删除前，是否保存对 {0} 的更改？",
       "UnsavedMessageBeforeReopeningWithEncodingFormat": "使用 {1} 重新打开前，是否保存对 {0} 的更改？",
       "UnsavedMessageBeforeOpeningRecentFormat": "打开 {1} 前，是否保存对 {0} 的更改？",
-      "UnsavedMessageBeforeClosingVexFormat": "关闭 Vex 前，是否保存对 {0} 的更改？"
+      "UnsavedMessageBeforeClosingVexFormat": "关闭 Vex 前，是否保存对 {0} 的更改？",
+      "UnsavedMessageBeforeContinuing": "继续前是否保存更改？",
+      "DeleteConfirmFileFormat": "删除 {0}？",
+      "DeleteConfirmCurrentFile": "删除当前文件？",
+      "StatusDeleteCanceled": "已取消删除。",
+      "StatusUnsavedChangesNeedDecision": "未保存更改需要确认。",
+      "StatusActionCanceledUnsavedKept": "操作已取消，未保存更改已保留。",
+      "StatusPropertiesClosed": "属性已关闭。",
+      "StatusStatisticsClosed": "统计已关闭。",
+      "StatusAboutClosed": "关于已关闭。",
+      "StatusSourceModeEnabled": "源码模式已启用。",
+      "StatusSourceModeDisabled": "源码模式已关闭。",
+      "StatusFindReady": "查找已就绪。",
+      "StatusReplaceReady": "替换已就绪。",
+      "StatusFindClosed": "查找已关闭。",
+      "StatusEnterSearchTextFirst": "请先输入搜索文本。"
     }
   }
 }

@@ -2,21 +2,24 @@ using System.Runtime.CompilerServices;
 using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
+using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellFindBarViewModel : ReactiveObject
 {
     private readonly IEventBus _eventBus;
+    private readonly IShellStatusPublisher _statusPublisher;
     private bool _isVisible;
     private bool _isReplaceVisible;
     private string _searchText = string.Empty;
     private string _replacementText = string.Empty;
     private string _searchResultText = "0/0";
 
-    public ShellFindBarViewModel(IEventBus eventBus)
+    public ShellFindBarViewModel(IEventBus eventBus, IShellStatusPublisher statusPublisher)
     {
         _eventBus = eventBus;
+        _statusPublisher = statusPublisher;
         _eventBus.Subscribe(this);
     }
 
@@ -61,7 +64,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         IsVisible = true;
         IsReplaceVisible = false;
         RefreshSearchResultCount();
-        SetStatus("Find is ready.");
+        SetStatusResource(VexL.StatusFindReady);
     }
 
     public void ShowReplacePanel()
@@ -69,13 +72,13 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         IsVisible = true;
         IsReplaceVisible = true;
         RefreshSearchResultCount();
-        SetStatus("Replace is ready.");
+        SetStatusResource(VexL.StatusReplaceReady);
     }
 
     public void CloseFindPanel()
     {
         IsVisible = false;
-        SetStatus("Find closed.");
+        SetStatusResource(VexL.StatusFindClosed);
         PublishEditorAction(EditorActionKind.FocusEditor);
     }
 
@@ -83,7 +86,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     {
         if (string.IsNullOrWhiteSpace(SearchText))
         {
-            SetStatus("Enter search text first.");
+            SetStatusResource(VexL.StatusEnterSearchTextFirst);
             return;
         }
 
@@ -94,7 +97,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     {
         if (string.IsNullOrWhiteSpace(SearchText))
         {
-            SetStatus("Enter search text first.");
+            SetStatusResource(VexL.StatusEnterSearchTextFirst);
             return;
         }
 
@@ -105,7 +108,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     {
         if (string.IsNullOrWhiteSpace(SearchText))
         {
-            SetStatus("Enter search text first.");
+            SetStatusResource(VexL.StatusEnterSearchTextFirst);
             return;
         }
 
@@ -144,7 +147,12 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 
     private void SetStatus(string message)
     {
-        _eventBus.Publish(new WorkspaceStatusChangedCommand(message));
+        _statusPublisher.Publish(message);
+    }
+
+    private void SetStatusResource(string key)
+    {
+        _statusPublisher.PublishResource(key);
     }
 
     private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)

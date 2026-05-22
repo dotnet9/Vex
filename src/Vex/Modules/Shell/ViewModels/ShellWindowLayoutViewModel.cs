@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
+using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
@@ -10,6 +11,7 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class ShellWindowLayoutViewModel : ReactiveObject
 {
     private readonly IEventBus _eventBus;
+    private readonly IShellStatusPublisher _statusPublisher;
     private bool _isSidebarVisible = true;
     private bool _isStatusBarVisible = true;
     private bool _isPreviewVisible = true;
@@ -19,9 +21,10 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _sidebarBeforeSourceMode = true;
     private bool _previewBeforeSourceMode = true;
 
-    public ShellWindowLayoutViewModel(IEventBus eventBus)
+    public ShellWindowLayoutViewModel(IEventBus eventBus, IShellStatusPublisher statusPublisher)
     {
         _eventBus = eventBus;
+        _statusPublisher = statusPublisher;
     }
 
     public bool IsSidebarVisible
@@ -119,7 +122,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             IsSidebarVisible = false;
             IsPreviewVisible = false;
             IsSourceMode = true;
-            SetStatus("Source mode enabled.");
+            _statusPublisher.PublishResource(VexL.StatusSourceModeEnabled);
             FocusEditor();
             return;
         }
@@ -127,7 +130,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         IsSidebarVisible = _sidebarBeforeSourceMode;
         IsPreviewVisible = _previewBeforeSourceMode;
         IsSourceMode = false;
-        SetStatus("Source mode disabled.");
+        _statusPublisher.PublishResource(VexL.StatusSourceModeDisabled);
         FocusEditor();
     }
 
@@ -149,11 +152,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private void SelectSidebarTab(int selectedIndex)
     {
         _eventBus.Publish(new ShellSidebarTabSelectedCommand(selectedIndex));
-    }
-
-    private void SetStatus(string message)
-    {
-        _eventBus.Publish(new WorkspaceStatusChangedCommand(message));
     }
 
     private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)

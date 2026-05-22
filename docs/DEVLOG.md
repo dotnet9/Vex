@@ -388,3 +388,10 @@
 - Verified all Vex JSON localization resources with `ConvertFrom-Json`, built `Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app to confirm the main window handle is created with the new IoC registrations.
 - Visual screenshot capture remains blocked by the same desktop-session limitation noted above, so this iteration used build, JSON, diff, and startup-handle smoke validation.
 - Added no new third-party dependency.
+- Localized the remaining fixed Shell utility status messages in `ShellDialogsViewModel`, `ShellWindowLayoutViewModel`, and `ShellFindBarViewModel`.
+- Dialog delete confirmation text now uses `VexL` format keys, and the default unsaved-confirmation text/path initialize from the shared Shell localizer.
+- `ShellWindowLayoutViewModel` now uses `IShellStatusPublisher` for source-mode feedback while still using CodeWF.EventBus only for editor focus and sidebar-tab commands.
+- `ShellFindBarViewModel` now publishes fixed find/replace readiness and empty-search feedback through localized resource keys; editor search result messages remain on the existing raw EventBus path for a later Workspace search-message pass.
+- Verified all Vex JSON localization resources with `ConvertFrom-Json`, built `Vex.slnx`, ran `git diff --check`, searched for the migrated hard-coded English status strings, and launched the Debug desktop app to confirm the main window handle is created.
+- Visual screenshot capture remains blocked by the current desktop-session limitation.
+- Added no new third-party dependency.

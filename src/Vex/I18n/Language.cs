@@ -194,4 +194,19 @@ public static class VexL
     public static readonly string UnsavedMessageBeforeReopeningWithEncodingFormat = "Vex.VexL.UnsavedMessageBeforeReopeningWithEncodingFormat";
     public static readonly string UnsavedMessageBeforeOpeningRecentFormat = "Vex.VexL.UnsavedMessageBeforeOpeningRecentFormat";
     public static readonly string UnsavedMessageBeforeClosingVexFormat = "Vex.VexL.UnsavedMessageBeforeClosingVexFormat";
+    public static readonly string UnsavedMessageBeforeContinuing = "Vex.VexL.UnsavedMessageBeforeContinuing";
+    public static readonly string DeleteConfirmFileFormat = "Vex.VexL.DeleteConfirmFileFormat";
+    public static readonly string DeleteConfirmCurrentFile = "Vex.VexL.DeleteConfirmCurrentFile";
+    public static readonly string StatusDeleteCanceled = "Vex.VexL.StatusDeleteCanceled";
+    public static readonly string StatusUnsavedChangesNeedDecision = "Vex.VexL.StatusUnsavedChangesNeedDecision";
+    public static readonly string StatusActionCanceledUnsavedKept = "Vex.VexL.StatusActionCanceledUnsavedKept";
+    public static readonly string StatusPropertiesClosed = "Vex.VexL.StatusPropertiesClosed";
+    public static readonly string StatusStatisticsClosed = "Vex.VexL.StatusStatisticsClosed";
+    public static readonly string StatusAboutClosed = "Vex.VexL.StatusAboutClosed";
+    public static readonly string StatusSourceModeEnabled = "Vex.VexL.StatusSourceModeEnabled";
+    public static readonly string StatusSourceModeDisabled = "Vex.VexL.StatusSourceModeDisabled";
+    public static readonly string StatusFindReady = "Vex.VexL.StatusFindReady";
+    public static readonly string StatusReplaceReady = "Vex.VexL.StatusReplaceReady";
+    public static readonly string StatusFindClosed = "Vex.VexL.StatusFindClosed";
+    public static readonly string StatusEnterSearchTextFirst = "Vex.VexL.StatusEnterSearchTextFirst";
 }

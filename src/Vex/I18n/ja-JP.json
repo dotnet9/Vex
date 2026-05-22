@@ -188,7 +188,22 @@
       "UnsavedMessageBeforeDeletingFormat": "削除する前に {0} への変更を保存しますか？",
       "UnsavedMessageBeforeReopeningWithEncodingFormat": "{1} で開き直す前に {0} への変更を保存しますか？",
       "UnsavedMessageBeforeOpeningRecentFormat": "{1} を開く前に {0} への変更を保存しますか？",
-      "UnsavedMessageBeforeClosingVexFormat": "Vex を閉じる前に {0} への変更を保存しますか？"
+      "UnsavedMessageBeforeClosingVexFormat": "Vex を閉じる前に {0} への変更を保存しますか？",
+      "UnsavedMessageBeforeContinuing": "続行する前に変更を保存しますか？",
+      "DeleteConfirmFileFormat": "{0} を削除しますか？",
+      "DeleteConfirmCurrentFile": "現在のファイルを削除しますか？",
+      "StatusDeleteCanceled": "削除をキャンセルしました。",
+      "StatusUnsavedChangesNeedDecision": "未保存の変更について選択が必要です。",
+      "StatusActionCanceledUnsavedKept": "操作をキャンセルしました。未保存の変更は保持されました。",
+      "StatusPropertiesClosed": "プロパティを閉じました。",
+      "StatusStatisticsClosed": "統計を閉じました。",
+      "StatusAboutClosed": "バージョン情報を閉じました。",
+      "StatusSourceModeEnabled": "ソースモードを有効にしました。",
+      "StatusSourceModeDisabled": "ソースモードを無効にしました。",
+      "StatusFindReady": "検索の準備ができました。",
+      "StatusReplaceReady": "置換の準備ができました。",
+      "StatusFindClosed": "検索を閉じました。",
+      "StatusEnterSearchTextFirst": "先に検索テキストを入力してください。"
     }
   }
 }
