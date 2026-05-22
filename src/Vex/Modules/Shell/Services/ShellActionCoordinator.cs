@@ -24,65 +24,75 @@ public sealed class ShellActionCoordinator
 
     private async Task HandleShellActionAsync(ShellActionCommand command)
     {
-        switch (command.Action)
+        try
         {
-            case ShellActionKind.NewDocument:
-                await _shell.NewDocument();
-                break;
-            case ShellActionKind.NewWindow:
-                OpenNewWindow();
-                break;
-            case ShellActionKind.Open:
-                await _shell.OpenAsync();
-                break;
-            case ShellActionKind.OpenFolder:
-                await _shell.OpenFolderAsync();
-                break;
-            case ShellActionKind.QuickOpen:
-                await _shell.QuickOpenAsync();
-                break;
-            case ShellActionKind.OpenRecentDocument:
-                await OpenRecentDocumentAsync(command.Parameter);
-                break;
-            case ShellActionKind.ReopenWithEncoding:
-                await _shell.ReopenWithEncodingAsync(command.Parameter);
-                break;
-            case ShellActionKind.Save:
-                await _shell.SaveAsync();
-                break;
-            case ShellActionKind.SaveAs:
-                await _shell.SaveAsAsync();
-                break;
-            case ShellActionKind.SaveAll:
-                await _shell.SaveAllAsync();
-                break;
-            case ShellActionKind.ShowProperties:
-                _shell.ShowProperties();
-                break;
-            case ShellActionKind.OpenFileLocation:
-                await _shell.OpenFileLocationAsync();
-                break;
-            case ShellActionKind.Delete:
-                await _shell.DeleteAsync();
-                break;
-            case ShellActionKind.Export:
-                await _shell.Export(command.Parameter);
-                break;
-            case ShellActionKind.Print:
-                await _shell.Print();
-                break;
-            case ShellActionKind.CloseDocument:
-                await _shell.CloseDocument();
-                break;
-            case ShellActionKind.ShowFindPanel:
-                _shell.ShowFindPanel();
-                break;
-            case ShellActionKind.ShowReplacePanel:
-                _shell.ShowReplacePanel();
-                break;
-            case ShellActionKind.WordCount:
-                _shell.WordCount();
-                break;
+            switch (command.Action)
+            {
+                case ShellActionKind.NewDocument:
+                    await _shell.NewDocument();
+                    break;
+                case ShellActionKind.NewWindow:
+                    OpenNewWindow();
+                    break;
+                case ShellActionKind.Open:
+                    await _shell.OpenAsync();
+                    break;
+                case ShellActionKind.OpenFolder:
+                    await _shell.OpenFolderAsync();
+                    break;
+                case ShellActionKind.QuickOpen:
+                    await _shell.QuickOpenAsync();
+                    break;
+                case ShellActionKind.OpenRecentDocument:
+                    await OpenRecentDocumentAsync(command.Parameter);
+                    break;
+                case ShellActionKind.ReopenWithEncoding:
+                    await _shell.ReopenWithEncodingAsync(command.Parameter);
+                    break;
+                case ShellActionKind.Save:
+                    await _shell.SaveAsync();
+                    break;
+                case ShellActionKind.SaveAs:
+                    await _shell.SaveAsAsync();
+                    break;
+                case ShellActionKind.SaveAll:
+                    await _shell.SaveAllAsync();
+                    break;
+                case ShellActionKind.ShowProperties:
+                    _shell.ShowProperties();
+                    break;
+                case ShellActionKind.OpenFileLocation:
+                    await _shell.OpenFileLocationAsync();
+                    break;
+                case ShellActionKind.Delete:
+                    await _shell.DeleteAsync();
+                    break;
+                case ShellActionKind.Export:
+                    await _shell.Export(command.Parameter);
+                    break;
+                case ShellActionKind.Print:
+                    await _shell.Print();
+                    break;
+                case ShellActionKind.CloseDocument:
+                    await _shell.CloseDocument();
+                    break;
+                case ShellActionKind.ShowFindPanel:
+                    _shell.ShowFindPanel();
+                    break;
+                case ShellActionKind.ShowReplacePanel:
+                    _shell.ShowReplacePanel();
+                    break;
+                case ShellActionKind.WordCount:
+                    _shell.WordCount();
+                    break;
+            }
+        }
+        catch (Exception exception)
+        {
+            var messageKey = command.Action == ShellActionKind.NewWindow
+                ? VexL.ErrorMessageCannotStartNewWindow
+                : VexL.ErrorMessageActionFailed;
+            _shell.Dialogs.ShowError(messageKey, exception);
         }
     }
 

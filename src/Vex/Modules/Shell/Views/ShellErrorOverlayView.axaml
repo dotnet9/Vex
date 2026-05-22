@@ -1,0 +1,74 @@
+<UserControl
+    x:Class="Vex.Modules.Shell.Views.ShellErrorOverlayView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
+    xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+    x:DataType="vm:MainWindowViewModel">
+    <Border Background="#66000000" IsVisible="{Binding Dialogs.IsErrorPanelVisible}">
+        <Border
+            Width="460"
+            Padding="22"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Background="{DynamicResource VexPanelBackgroundBrush}"
+            BorderBrush="{DynamicResource VexPanelBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="8">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="14">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <TextBlock
+                        FontSize="17"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource VexEditorForegroundBrush}"
+                        Text="{Binding Dialogs.ErrorTitle}"
+                        TextWrapping="Wrap" />
+                    <Button
+                        Grid.Column="1"
+                        Command="{Binding Dialogs.CloseErrorPanel}"
+                        Content="X"
+                        MinWidth="34"
+                        Padding="0" />
+                </Grid>
+                <TextBlock
+                    Grid.Row="1"
+                    Classes="muted"
+                    Text="{Binding Dialogs.ErrorMessage}"
+                    TextWrapping="Wrap" />
+                <Border
+                    Grid.Row="2"
+                    Padding="10"
+                    Background="{DynamicResource VexStatusBadgeBackgroundBrush}"
+                    BorderBrush="{DynamicResource VexStatusBadgeBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                    <Grid RowDefinitions="Auto,Auto" RowSpacing="6">
+                        <TextBlock
+                            Classes="muted"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Text="{i18n:I18n {x:Static l:VexL.ErrorDetailLabel}}" />
+                        <ScrollViewer Grid.Row="1" MaxHeight="160">
+                            <TextBlock
+                                Classes="muted"
+                                FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI"
+                                FontSize="12"
+                                Text="{Binding Dialogs.ErrorDetail}"
+                                TextWrapping="Wrap" />
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+                <StackPanel
+                    Grid.Row="3"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+                    <Button
+                        Command="{Binding Dialogs.CloseErrorPanel}"
+                        Content="{i18n:I18n {x:Static l:VexL.Close}}"
+                        MinWidth="86" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>

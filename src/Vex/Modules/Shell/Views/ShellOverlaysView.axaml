@@ -9,5 +9,6 @@
         <views:ShellPropertiesOverlayView />
         <views:ShellDeleteConfirmationOverlayView />
         <views:ShellUnsavedConfirmationOverlayView />
+        <views:ShellErrorOverlayView />
     </Grid>
 </UserControl>

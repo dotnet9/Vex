@@ -4,6 +4,8 @@
 
 ### Added
 
+- Added an error overlay for file opening, folder loading, saving, deleting, export, print, help, and system-open failures.
+- Parsed all four i18n JSON files, built `Vex.slnx`, and screenshot-verified the error overlay with a locked startup file.
 - Added editor-to-preview scroll synchronization so the preview follows the current editor position.
 - Improved preview synchronization to use CodeWF.Markdown source-line bounds first, with ratio scrolling as fallback.
 - Added auto-save drafts and crash recovery for unsaved edits when reopening the same document.

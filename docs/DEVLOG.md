@@ -4,6 +4,9 @@
 
 ### zh-CN
 
+- 增加统一错误提示浮层，覆盖文件打开、文件夹加载、保存、删除、导出、打印、帮助文档、打开文件位置和新窗口启动失败。
+- 错误浮层接入简体中文、繁体中文、英文和日文资源，状态栏同步提示错误显示和关闭状态。
+- 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 和 `git diff --check` 通过，并截图确认锁定文件打开失败时显示错误浮层。截图路径：`%TEMP%\VexScreenshots\error-overlay-locked-startup-file.png`。
 - 完善项目身份信息：作者“沙漠尽头的狼”、出品“码坊 CodeWF”、网站 `https://codewf.com`。
 - 创建 Vex Avalonia 桌面应用骨架，接入 Prism 8.x 模块目录。
 - 创建 `Vex.Controls` 和 `Vex.Controls.Themes`，按 Semi.Avalonia 风格拆分控件和主题资源。
@@ -262,6 +265,9 @@
 
 ### en-US
 
+- Added a unified error overlay for file opening, folder loading, saving, deleting, export, print, help documents, file-location opening, and new-window startup failures.
+- Localized the error overlay in Simplified Chinese, Traditional Chinese, English, and Japanese, with status-bar feedback for showing and closing the panel.
+- Verified that all four i18n JSON files parse, `dotnet build Vex.slnx -v:minimal` and `git diff --check` pass, and a locked startup file shows the error overlay. Screenshot path: `%TEMP%\VexScreenshots\error-overlay-locked-startup-file.png`.
 - Added project identity metadata for author, CodeWF, and `https://codewf.com`.
 - Created the Vex Avalonia desktop application shell with Prism 8.x module catalog wiring.
 - Created `Vex.Controls` and `Vex.Controls.Themes`, with controls and theme resources separated in a Semi.Avalonia-style layout.

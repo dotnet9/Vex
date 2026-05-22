@@ -114,7 +114,10 @@ public sealed class MainWindowViewModel : ReactiveObject
             await RequestUnsavedConfirmationAsync(
                 _text.TitleBeforeOpeningFolder,
                 _text.BeforeOpeningFolder(_document.FileName),
-                async () => await ApplyDocumentFilesAsync(await _documentService.OpenFolderPathAsync(path), true));
+                GuardedAction(
+                    VexL.ErrorMessageCannotOpenFolderFormat,
+                    async () => await ApplyDocumentFilesAsync(await _documentService.OpenFolderPathAsync(path), true),
+                    path));
             return;
         }
 
@@ -123,7 +126,10 @@ public sealed class MainWindowViewModel : ReactiveObject
             await RequestUnsavedConfirmationAsync(
                 _text.TitleBeforeOpening,
                 _text.BeforeOpeningFile(_document.FileName, target.FileName ?? path),
-                async () => ApplyDocument(await _documentService.OpenPathAsync(path)));
+                GuardedAction(
+                    VexL.ErrorMessageCannotOpenFileFormat,
+                    async () => ApplyDocument(await _documentService.OpenPathAsync(path)),
+                    path));
         }
     }
 
@@ -150,13 +156,19 @@ public sealed class MainWindowViewModel : ReactiveObject
             return RequestUnsavedConfirmationAsync(
                 _text.TitleBeforeOpeningFolder,
                 _text.BeforeOpeningDroppedFolder(_document.FileName),
-                () => OpenFolderPathCoreAsync(resolvedPath));
+                GuardedAction(
+                    VexL.ErrorMessageCannotOpenFolderFormat,
+                    () => OpenFolderPathCoreAsync(resolvedPath),
+                    resolvedPath));
         }
 
         return RequestUnsavedConfirmationAsync(
             _text.TitleBeforeOpening,
             _text.BeforeOpeningFile(_document.FileName, target.FileName ?? resolvedPath),
-            () => OpenPathCoreAsync(resolvedPath));
+            GuardedAction(
+                VexL.ErrorMessageCannotOpenFileFormat,
+                () => OpenPathCoreAsync(resolvedPath),
+                resolvedPath));
     }
 
     public string Markdown
@@ -227,7 +239,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         await RequestUnsavedConfirmationAsync(
             _text.TitleBeforeOpening,
             _text.BeforeOpeningAnotherFile(_document.FileName),
-            OpenAsyncCore);
+            GuardedAction(VexL.ErrorMessageCannotOpenFile, OpenAsyncCore));
     }
 
     private async Task OpenAsyncCore()
@@ -256,7 +268,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         await RequestUnsavedConfirmationAsync(
             _text.TitleBeforeOpeningFolder,
             _text.BeforeOpeningFolder(_document.FileName),
-            OpenFolderAsyncCore);
+            GuardedAction(VexL.ErrorMessageCannotOpenFolder, OpenFolderAsyncCore));
     }
 
     private async Task OpenFolderAsyncCore()
@@ -304,7 +316,10 @@ public sealed class MainWindowViewModel : ReactiveObject
         await RequestUnsavedConfirmationAsync(
             _text.TitleBeforeSwitchingFiles,
             _text.BeforeSwitchingFile(_document.FileName, file.Name),
-            () => OpenDocumentFileCoreAsync(file),
+            GuardedAction(
+                VexL.ErrorMessageCannotOpenFileFormat,
+                () => OpenDocumentFileCoreAsync(file),
+                file.Path),
             () => _eventBus.Publish(new DocumentFileSelectionChangedCommand(previousSelection)));
     }
 
@@ -316,22 +331,34 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public async Task SaveAsync()
     {
-        var saved = await _documentService.SaveAsync(_document with { Markdown = Markdown });
-        if (saved is not null)
-        {
-            ApplyDocument(saved, false, false);
-            _text.PublishSaved(saved.FileName);
-        }
+        await RunWithErrorOverlayAsync(
+            VexL.ErrorMessageCannotSaveFormat,
+            async () =>
+            {
+                var saved = await _documentService.SaveAsync(_document with { Markdown = Markdown });
+                if (saved is not null)
+                {
+                    ApplyDocument(saved, false, false);
+                    _text.PublishSaved(saved.FileName);
+                }
+            },
+            _document.FileName);
     }
 
     public async Task SaveAsAsync()
     {
-        var saved = await _documentService.SaveAsAsync(_document with { Markdown = Markdown });
-        if (saved is not null)
-        {
-            ApplyDocument(saved, false, false);
-            _text.PublishSavedAs(saved.FileName);
-        }
+        await RunWithErrorOverlayAsync(
+            VexL.ErrorMessageCannotSaveFormat,
+            async () =>
+            {
+                var saved = await _documentService.SaveAsAsync(_document with { Markdown = Markdown });
+                if (saved is not null)
+                {
+                    ApplyDocument(saved, false, false);
+                    _text.PublishSavedAs(saved.FileName);
+                }
+            },
+            _document.FileName);
     }
 
     public async Task SaveAllAsync()
@@ -366,19 +393,28 @@ public sealed class MainWindowViewModel : ReactiveObject
             return;
         }
 
-        await _documentService.DeleteAsync(path);
-        _drafts.Clear(_document);
-        Recent.RemoveRecentDocument(path);
-        Dialogs.ClearDeleteConfirmation();
-        NewDocumentCore();
-        _text.PublishFileDeleted();
+        await RunWithErrorOverlayAsync(
+            VexL.ErrorMessageCannotDeleteFormat,
+            async () =>
+            {
+                await _documentService.DeleteAsync(path);
+                _drafts.Clear(_document);
+                Recent.RemoveRecentDocument(path);
+                Dialogs.ClearDeleteConfirmation();
+                NewDocumentCore();
+                _text.PublishFileDeleted();
+            },
+            path);
     }
 
     public async Task OpenFileLocationAsync()
     {
         if (DocumentInfo.CurrentFilePath is { Length: > 0 } path)
         {
-            await _documentService.OpenFileLocationAsync(path);
+            await RunWithErrorOverlayAsync(
+                VexL.ErrorMessageCannotOpenLocationFormat,
+                () => _documentService.OpenFileLocationAsync(path),
+                path);
         }
     }
 
@@ -393,7 +429,10 @@ public sealed class MainWindowViewModel : ReactiveObject
         await RequestUnsavedConfirmationAsync(
             _text.TitleBeforeReopening,
             _text.BeforeReopeningWithEncoding(_document.FileName, encodingName),
-            () => ReopenWithEncodingCoreAsync(path, encodingName));
+            GuardedAction(
+                VexL.ErrorMessageCannotOpenFileFormat,
+                () => ReopenWithEncodingCoreAsync(path, encodingName),
+                path));
     }
 
     private async Task ReopenWithEncodingCoreAsync(string path, string encodingName)
@@ -479,8 +518,14 @@ public sealed class MainWindowViewModel : ReactiveObject
     }
 
     public void ShowProperties() => _documentUtilities.ShowProperties(Dialogs, DocumentInfo);
-    public Task Export(string? format) => _documentUtilities.ExportAsync(_document, Markdown, format);
-    public Task Print() => _documentUtilities.PrintAsync(_document, Markdown);
+    public Task Export(string? format) => RunWithErrorOverlayAsync(
+        VexL.ErrorMessageCannotExportFormat,
+        () => _documentUtilities.ExportAsync(_document, Markdown, format),
+        string.IsNullOrWhiteSpace(format) ? _document.FileName : format);
+
+    public Task Print() => RunWithErrorOverlayAsync(
+        VexL.ErrorMessageCannotPrintFormat,
+        () => _documentUtilities.PrintAsync(_document, Markdown));
     public void WordCount() => _documentUtilities.WordCount(Dialogs, DocumentInfo.Statistics);
     public bool CloseFloatingPanel() => Dialogs.CloseFloatingPanel();
     public void ShowFindPanel() => FindBar.ShowFindPanel();
@@ -509,7 +554,10 @@ public sealed class MainWindowViewModel : ReactiveObject
         await RequestUnsavedConfirmationAsync(
             _text.TitleBeforeOpeningRecent,
             _text.BeforeOpeningRecent(_document.FileName, recent.DisplayText),
-            async () => ApplyDocument(await _documentService.OpenPathAsync(path)));
+            GuardedAction(
+                VexL.ErrorMessageCannotOpenFileFormat,
+                async () => ApplyDocument(await _documentService.OpenPathAsync(path)),
+                path));
     }
 
     public Task BeginWindowCloseAsync()
@@ -548,6 +596,23 @@ public sealed class MainWindowViewModel : ReactiveObject
             DocumentInfo.CurrentFilePath,
             continuation,
             cancellation);
+
+    private Func<Task> GuardedAction(string messageResourceKey, Func<Task> action, params object?[] messageArgs)
+    {
+        return () => RunWithErrorOverlayAsync(messageResourceKey, action, messageArgs);
+    }
+
+    private async Task RunWithErrorOverlayAsync(string messageResourceKey, Func<Task> action, params object?[] messageArgs)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception exception)
+        {
+            Dialogs.ShowError(messageResourceKey, exception, messageArgs);
+        }
+    }
 
     private DocumentSnapshot RestoreDraftIfAvailable(DocumentSnapshot document, out bool restoredDraft)
     {

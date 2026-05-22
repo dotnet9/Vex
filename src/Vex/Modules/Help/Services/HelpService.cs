@@ -22,11 +22,12 @@ public sealed class HelpService : IHelpService
     public Task OpenDocumentAsync(string fileName)
     {
         var path = Path.Combine(DocumentsFolder, fileName);
-        if (File.Exists(path))
+        if (!File.Exists(path))
         {
-            Open(path);
+            throw new FileNotFoundException("The bundled help document was not found.", path);
         }
 
+        Open(path);
         return Task.CompletedTask;
     }
 

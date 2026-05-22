@@ -15,6 +15,7 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     private bool _isPropertiesPanelVisible;
     private bool _isDeleteConfirmVisible;
     private bool _isUnsavedConfirmVisible;
+    private bool _isErrorPanelVisible;
     private string? _pendingDeletePath;
     // 未保存确认框需要暂存用户选择后的后续动作，保存/不保存/取消会从这里恢复流程。
     private Func<Task>? _pendingUnsavedContinuation;
@@ -22,6 +23,9 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     private string _unsavedConfirmTitle;
     private string _unsavedConfirmMessage;
     private string _unsavedConfirmPath;
+    private string _errorTitle;
+    private string _errorMessage;
+    private string _errorDetail;
 
     public ShellDialogsViewModel(IShellStatusPublisher statusPublisher, IAppLocalizer localizer)
     {
@@ -30,6 +34,9 @@ public sealed class ShellDialogsViewModel : ReactiveObject
         _unsavedConfirmTitle = _localizer.Get(VexL.UnsavedTitleSaveChanges);
         _unsavedConfirmMessage = _localizer.Get(VexL.UnsavedMessageBeforeContinuing);
         _unsavedConfirmPath = _localizer.Get(VexL.UnsavedDocument);
+        _errorTitle = _localizer.Get(VexL.ErrorTitle);
+        _errorMessage = string.Empty;
+        _errorDetail = string.Empty;
     }
 
     public bool IsStatisticsPanelVisible
@@ -62,6 +69,12 @@ public sealed class ShellDialogsViewModel : ReactiveObject
         set => SetProperty(ref _isUnsavedConfirmVisible, value);
     }
 
+    public bool IsErrorPanelVisible
+    {
+        get => _isErrorPanelVisible;
+        set => SetProperty(ref _isErrorPanelVisible, value);
+    }
+
     public string DeleteConfirmText => _pendingDeletePath is { Length: > 0 }
         ? _localizer.Format(VexL.DeleteConfirmFileFormat, Path.GetFileName(_pendingDeletePath))
         : _localizer.Get(VexL.DeleteConfirmCurrentFile);
@@ -75,6 +88,12 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     public string UnsavedConfirmMessage => _unsavedConfirmMessage;
 
     public string UnsavedConfirmPath => _unsavedConfirmPath;
+
+    public string ErrorTitle => _errorTitle;
+
+    public string ErrorMessage => _errorMessage;
+
+    public string ErrorDetail => _errorDetail;
 
     public bool HasPendingUnsavedAction => _pendingUnsavedContinuation is not null;
 
@@ -168,6 +187,33 @@ public sealed class ShellDialogsViewModel : ReactiveObject
         _statusPublisher.PublishResource(VexL.StatusActionCanceledUnsavedKept);
     }
 
+    public void ShowError(string messageResourceKey, Exception exception, params object?[] messageArgs)
+    {
+        var message = messageArgs.Length > 0
+            ? _localizer.Format(messageResourceKey, messageArgs)
+            : _localizer.Get(messageResourceKey);
+
+        ShowError(_localizer.Get(VexL.ErrorTitle), message, ResolveErrorDetail(exception));
+    }
+
+    public void ShowError(string title, string message, string detail)
+    {
+        _errorTitle = title;
+        _errorMessage = message;
+        _errorDetail = detail;
+        OnPropertyChanged(nameof(ErrorTitle));
+        OnPropertyChanged(nameof(ErrorMessage));
+        OnPropertyChanged(nameof(ErrorDetail));
+        IsErrorPanelVisible = true;
+        _statusPublisher.PublishResource(VexL.StatusErrorPanelShown);
+    }
+
+    public void CloseErrorPanel()
+    {
+        IsErrorPanelVisible = false;
+        _statusPublisher.PublishResource(VexL.StatusErrorPanelClosed);
+    }
+
     public bool CloseFloatingPanel()
     {
         if (IsUnsavedConfirmVisible)
@@ -179,6 +225,12 @@ public sealed class ShellDialogsViewModel : ReactiveObject
         if (IsDeleteConfirmVisible)
         {
             CancelDelete();
+            return true;
+        }
+
+        if (IsErrorPanelVisible)
+        {
+            CloseErrorPanel();
             return true;
         }
 
@@ -212,6 +264,13 @@ public sealed class ShellDialogsViewModel : ReactiveObject
         _pendingUnsavedCancellation = null;
         OnPropertyChanged(nameof(HasPendingUnsavedAction));
         IsUnsavedConfirmVisible = false;
+    }
+
+    private string ResolveErrorDetail(Exception exception)
+    {
+        return string.IsNullOrWhiteSpace(exception.Message)
+            ? _localizer.Get(VexL.ErrorDetailFallback)
+            : exception.Message;
     }
 
     private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
