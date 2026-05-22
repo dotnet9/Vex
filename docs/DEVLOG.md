@@ -80,6 +80,9 @@
 - 增加编辑器到预览的滚动同步：光标行变化时，预览区按文档位置比例滚动，便于长文档双栏定位。
 - 验证 `dotnet build Vex.slnx`，并截图确认长文档跳转到末尾后预览同步滚动。截图路径：`%TEMP%\VexScreenshots\scroll-sync-after-end-fixed.png`。
 - 本轮未新增第三方依赖，无需额外许可证核查。
+- 增强表格、链接、图片插入辅助：选中 URL 可生成链接，选中图片路径或 URL 可生成图片，选中 CSV/TSV/管道分隔文本可转换为 Markdown 表格。
+- 验证 `dotnet build Vex.slnx`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 
 - 拆分查找/替换功能模块：新增 `ShellFindBarView` 与 `ShellFindBarViewModel`，主窗口仅负责组合，菜单和快捷键继续转发到独立模块。
 - 查找模块通过 Prism IoC 注入，并使用 CodeWF.EventBus 发布 `EditorSearchCommand`、订阅 `EditorSearchResultCommand`，同时通过 `WorkspaceStatusChangedCommand` 回写状态栏，降低 Shell 主 ViewModel 与编辑器控制器的耦合。

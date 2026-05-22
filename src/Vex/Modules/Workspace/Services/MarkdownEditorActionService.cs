@@ -49,10 +49,22 @@ public sealed class MarkdownEditorActionService : IMarkdownEditorActionService
                 WrapSelection(editor, "`", "`", _templates.InlineCodePlaceholder, runTextMutation);
                 break;
             case EditorActionKind.Link:
-                WrapSelection(editor, "[", "](https://example.com)", _templates.LinkPlaceholder, runTextMutation);
+                MutateEditor(
+                    editor,
+                    currentEditor => _textMutationService.InsertLink(
+                        currentEditor,
+                        _templates.LinkPlaceholder,
+                        _templates.LinkUrlPlaceholder),
+                    runTextMutation);
                 break;
             case EditorActionKind.Image:
-                InsertText(editor, _templates.ImageInsertion, runTextMutation);
+                MutateEditor(
+                    editor,
+                    currentEditor => _textMutationService.InsertImage(
+                        currentEditor,
+                        _templates.ImageAltPlaceholder,
+                        _templates.ImageTargetPlaceholder),
+                    runTextMutation);
                 break;
             case EditorActionKind.ClearFormatting:
                 MutateEditor(editor, _textMutationService.ClearFormatting, runTextMutation);
@@ -94,7 +106,10 @@ public sealed class MarkdownEditorActionService : IMarkdownEditorActionService
                 WrapSelection(editor, "```csharp\n", "\n```", _templates.CodeFencePlaceholder, runTextMutation);
                 break;
             case EditorActionKind.Table:
-                InsertText(editor, _templates.TableInsertion, runTextMutation);
+                MutateEditor(
+                    editor,
+                    currentEditor => _textMutationService.InsertTable(currentEditor, _templates.TableInsertion),
+                    runTextMutation);
                 break;
             case EditorActionKind.MathBlock:
                 WrapSelection(editor, "$$\n", "\n$$", _templates.MathPlaceholder, runTextMutation);

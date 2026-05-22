@@ -5,6 +5,7 @@
 ### Added
 
 - Added editor-to-preview scroll synchronization so the preview follows the current editor position.
+- Added context-aware table, link, and image insertion for selected URLs, image paths, and delimited text.
 - Built `Vex.slnx` and screenshot-verified that the preview follows a long document after jumping to the end.
 - Added App.config-backed user settings persistence for theme, typography, compact layout, language, window size, sidebar/preview/status-bar layout, editor zoom, and line-number display.
 - Improved dark mode so the main window background, sidebar, editor, preview area, status bar, status badges, and editor current-line highlight follow theme resources.

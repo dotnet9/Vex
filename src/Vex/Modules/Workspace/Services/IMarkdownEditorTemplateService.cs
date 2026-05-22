@@ -10,6 +10,12 @@ public interface IMarkdownEditorTemplateService
 
     string LinkPlaceholder { get; }
 
+    string LinkUrlPlaceholder { get; }
+
+    string ImageAltPlaceholder { get; }
+
+    string ImageTargetPlaceholder { get; }
+
     string ImageInsertion { get; }
 
     string CodeFencePlaceholder { get; }

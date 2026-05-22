@@ -19,7 +19,13 @@ public sealed class MarkdownEditorTemplateService : IMarkdownEditorTemplateServi
 
     public string LinkPlaceholder => Text(VexL.EditorTemplateLinkText);
 
-    public string ImageInsertion => $"![{Text(VexL.EditorTemplateImageAltText)}](image.png)";
+    public string LinkUrlPlaceholder => "https://example.com";
+
+    public string ImageAltPlaceholder => Text(VexL.EditorTemplateImageAltText);
+
+    public string ImageTargetPlaceholder => "image.png";
+
+    public string ImageInsertion => $"![{ImageAltPlaceholder}]({ImageTargetPlaceholder})";
 
     public string CodeFencePlaceholder => Text(VexL.EditorTemplateCodeFence);
 
