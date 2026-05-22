@@ -184,3 +184,8 @@
 - Reduced `MainWindowViewModel.cs` from about 1193 lines to 1164 lines, with the new editor-display ViewModel at about 57 lines.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the editor and `100%` zoom label still render correctly. Screenshot path: `%TEMP%\VexScreenshots\editor-display-module-refactor.png`.
 - Added no new third-party dependency, so no additional license review was required.
+- Split recent-file menu state and persistence into `ShellRecentDocumentsViewModel`, covering recent item text, visibility flags, clearing, add/remove, and storage under the Vex application data folder.
+- Registered the recent-documents ViewModel through Prism IoC and changed the File menu to bind to `Recent.*`; the main shell ViewModel now only coordinates opening a selected recent path through the existing unsaved-change flow.
+- Reduced `MainWindowViewModel.cs` from about 1164 lines to 1048 lines, with the new recent-documents ViewModel at about 159 lines.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a startup screenshot confirming the window still loads after the recent-menu binding refactor. Screenshot path: `%TEMP%\VexScreenshots\recent-module-refactor.png`.
+- Added no new third-party dependency, so no additional license review was required.

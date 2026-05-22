@@ -9,6 +9,7 @@
 - [优化] 将撤销、重做、剪贴板、全选和 Markdown 插入命令迁移到独立 `ShellEditorActionsViewModel`，统一通过 CodeWF.EventBus 路由到编辑器。
 - [优化] 将状态栏文本和光标位置迁移到独立 `ShellStatusViewModel`，由 CodeWF.EventBus 订阅状态和编辑器光标消息。
 - [优化] 将编辑器缩放、字号和状态栏缩放文本迁移到独立 `ShellEditorDisplayViewModel`。
+- [优化] 将最近文件菜单状态和持久化迁移到独立 `ShellRecentDocumentsViewModel`。
 
 - 创建 Vex（维刻）Markdown 编辑器基础版本。
 - 完善作者、码坊 CodeWF 与官方网站信息。

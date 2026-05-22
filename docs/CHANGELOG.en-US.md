@@ -43,6 +43,7 @@
 - Split editor actions into a dedicated `ShellEditorActionsViewModel` for undo, redo, clipboard, select-all, focus, and Markdown insertion commands.
 - Split status text and caret position into a dedicated `ShellStatusViewModel` that listens through CodeWF.EventBus.
 - Split editor zoom, derived font size, and status-bar zoom text into a dedicated `ShellEditorDisplayViewModel`.
+- Split recent-file menu state and persistence into a dedicated `ShellRecentDocumentsViewModel`.
 
 ### Changed
 
@@ -84,3 +85,4 @@
 - Built `Vex.slnx`, ran `git diff --check`, and captured a startup smoke screenshot after moving editor command bindings under `EditorActions`.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the extracted status text and line/column badges.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the extracted editor display bindings and `100%` zoom label.
+- Built `Vex.slnx`, ran `git diff --check`, and captured a startup screenshot after moving recent-file menu bindings under `Recent`.

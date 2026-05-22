@@ -85,14 +85,14 @@
                         <MenuItem Header="打开..." Command="{Binding OpenAsync}" InputGesture="Ctrl+O" />
                         <MenuItem Header="打开文件夹..." Command="{Binding OpenFolderAsync}" />
                         <MenuItem Header="快速打开..." Command="{Binding QuickOpenAsync}" />
-                        <MenuItem Header="打开最近文件" IsEnabled="{Binding HasRecentDocuments}">
-                            <MenuItem Header="{Binding RecentDocument1Text}" Command="{Binding OpenRecentDocument1Async}" IsVisible="{Binding HasRecentDocument1}" />
-                            <MenuItem Header="{Binding RecentDocument2Text}" Command="{Binding OpenRecentDocument2Async}" IsVisible="{Binding HasRecentDocument2}" />
-                            <MenuItem Header="{Binding RecentDocument3Text}" Command="{Binding OpenRecentDocument3Async}" IsVisible="{Binding HasRecentDocument3}" />
-                            <MenuItem Header="{Binding RecentDocument4Text}" Command="{Binding OpenRecentDocument4Async}" IsVisible="{Binding HasRecentDocument4}" />
-                            <MenuItem Header="{Binding RecentDocument5Text}" Command="{Binding OpenRecentDocument5Async}" IsVisible="{Binding HasRecentDocument5}" />
+                        <MenuItem Header="打开最近文件" IsEnabled="{Binding Recent.HasRecentDocuments}">
+                            <MenuItem Header="{Binding Recent.RecentDocument1Text}" Command="{Binding OpenRecentDocument1Async}" IsVisible="{Binding Recent.HasRecentDocument1}" />
+                            <MenuItem Header="{Binding Recent.RecentDocument2Text}" Command="{Binding OpenRecentDocument2Async}" IsVisible="{Binding Recent.HasRecentDocument2}" />
+                            <MenuItem Header="{Binding Recent.RecentDocument3Text}" Command="{Binding OpenRecentDocument3Async}" IsVisible="{Binding Recent.HasRecentDocument3}" />
+                            <MenuItem Header="{Binding Recent.RecentDocument4Text}" Command="{Binding OpenRecentDocument4Async}" IsVisible="{Binding Recent.HasRecentDocument4}" />
+                            <MenuItem Header="{Binding Recent.RecentDocument5Text}" Command="{Binding OpenRecentDocument5Async}" IsVisible="{Binding Recent.HasRecentDocument5}" />
                             <Separator />
-                            <MenuItem Header="清空最近文件" Command="{Binding ClearRecentDocuments}" />
+                            <MenuItem Header="清空最近文件" Command="{Binding Recent.ClearRecentDocuments}" />
                         </MenuItem>
                         <MenuItem Header="选择编码重新打开">
                             <MenuItem Header="UTF-8" Command="{Binding ReopenWithEncodingAsync}" CommandParameter="utf-8" />
