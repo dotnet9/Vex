@@ -10,11 +10,12 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class MainWindowViewModel : ReactiveObject
 {
     private readonly IDocumentService _documentService;
-    private readonly IMarkdownExportService _exportService;
     private readonly IMarkdownOutlineService _outlineService;
     private readonly IMarkdownStatisticsService _statisticsService;
     private readonly IEventBus _eventBus;
     private readonly IShellDocumentWorkflowText _text;
+    private readonly IShellUnsavedChangesGuard _unsavedChanges;
+    private readonly IShellDocumentUtilityActions _documentUtilities;
     private DocumentSnapshot _document;
     private IReadOnlyList<DocumentFile> _documentFiles = [];
     private string _lastSavedMarkdown = string.Empty;
@@ -22,7 +23,6 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public MainWindowViewModel(
         IDocumentService documentService,
-        IMarkdownExportService exportService,
         IMarkdownOutlineService outlineService,
         IMarkdownStatisticsService statisticsService,
         ShellAppearanceViewModel appearance,
@@ -37,10 +37,11 @@ public sealed class MainWindowViewModel : ReactiveObject
         ShellRecentDocumentsViewModel recent,
         ShellStatusViewModel status,
         IShellDocumentWorkflowText text,
+        IShellUnsavedChangesGuard unsavedChanges,
+        IShellDocumentUtilityActions documentUtilities,
         IEventBus eventBus)
     {
         _documentService = documentService;
-        _exportService = exportService;
         _outlineService = outlineService;
         _statisticsService = statisticsService;
         Appearance = appearance;
@@ -55,6 +56,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         Recent = recent;
         Status = status;
         _text = text;
+        _unsavedChanges = unsavedChanges;
+        _documentUtilities = documentUtilities;
         _eventBus = eventBus;
         _eventBus.Subscribe(this);
 
@@ -215,7 +218,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         if (_documentFiles.Count > 0)
         {
-            SelectSidebarTab(0);
+            _eventBus.Publish(new ShellSidebarTabSelectedCommand(0));
             _text.PublishChooseDocumentFromLoadedFolder();
             return;
         }
@@ -277,7 +280,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             _text.TitleBeforeSwitchingFiles,
             _text.BeforeSwitchingFile(_document.FileName, file.Name),
             () => OpenDocumentFileCoreAsync(file),
-            () => RestoreDocumentFileSelection(previousSelection));
+            () => _eventBus.Publish(new DocumentFileSelectionChangedCommand(previousSelection)));
     }
 
     private async Task OpenDocumentFileCoreAsync(DocumentFile file)
@@ -386,10 +389,6 @@ public sealed class MainWindowViewModel : ReactiveObject
         {
             Markdown = snapshot.Markdown;
         }
-        else
-        {
-            RefreshDocumentInfo();
-        }
 
         RefreshDocumentInfo();
         _text.PublishOpened(snapshot.FileName);
@@ -422,48 +421,13 @@ public sealed class MainWindowViewModel : ReactiveObject
         DocumentInfo.Refresh(_document, Markdown, _lastSavedMarkdown, _statisticsService.Count(Markdown));
     }
 
-    public void ShowProperties()
-    {
-        Dialogs.ShowPropertiesPanel();
-        _text.PublishPropertiesSummary(
-            DocumentInfo.CurrentDocumentTitle,
-            DocumentInfo.DocumentStateText,
-            DocumentInfo.CurrentEncodingText,
-            DocumentInfo.PropertySizeText,
-            DocumentInfo.PropertyLocationText);
-    }
+    public void ShowProperties() => _documentUtilities.ShowProperties(Dialogs, DocumentInfo);
 
-    public async Task Export(string? format)
-    {
-        if (format?.Equals("HTML", StringComparison.OrdinalIgnoreCase) == true)
-        {
-            var path = await _exportService.ExportHtmlAsync(_document with { Markdown = Markdown });
-            if (path is null)
-            {
-                _text.PublishHtmlExportCanceled();
-            }
-            else
-            {
-                _text.PublishExportedHtmlTo(Path.GetFileName(path));
-            }
+    public Task Export(string? format) => _documentUtilities.ExportAsync(_document, Markdown, format);
 
-            return;
-        }
+    public Task Print() => _documentUtilities.PrintAsync(_document, Markdown);
 
-        _text.PublishExportNotImplemented(format);
-    }
-
-    public async Task Print()
-    {
-        var path = await _exportService.OpenHtmlPrintPreviewAsync(_document with { Markdown = Markdown });
-        _text.PublishPrintPreviewResult(path is null);
-    }
-
-    public void WordCount()
-    {
-        Dialogs.ShowStatisticsPanel();
-        _text.PublishStatisticsSummary(DocumentInfo.Statistics);
-    }
+    public void WordCount() => _documentUtilities.WordCount(Dialogs, DocumentInfo.Statistics);
 
     public bool CloseFloatingPanel() => Dialogs.CloseFloatingPanel();
 
@@ -478,16 +442,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     public void ReplaceNext() => FindBar.ReplaceNext();
 
     public void ReplaceAll() => FindBar.ReplaceAll();
-
-    private void SelectSidebarTab(int selectedIndex)
-    {
-        _eventBus.Publish(new ShellSidebarTabSelectedCommand(selectedIndex));
-    }
-
-    private void RestoreDocumentFileSelection(DocumentFile? previousSelection)
-    {
-        _eventBus.Publish(new DocumentFileSelectionChangedCommand(previousSelection));
-    }
 
     public async Task OpenRecentDocumentAsync(int index)
     {
@@ -522,55 +476,20 @@ public sealed class MainWindowViewModel : ReactiveObject
             });
     }
 
-    public async Task SavePendingActionAsync()
-    {
-        if (!Dialogs.HasPendingUnsavedAction)
-        {
-            return;
-        }
+    public Task SavePendingActionAsync() => _unsavedChanges.SavePendingActionAsync(SaveAsync, () => DocumentInfo.IsModified);
 
-        await SaveAsync();
-        if (DocumentInfo.IsModified)
-        {
-            _text.PublishSaveCanceledActionIncomplete();
-            return;
-        }
+    public Task DiscardPendingActionAsync() => _unsavedChanges.DiscardPendingActionAsync();
 
-        await ContinuePendingActionAsync();
-    }
-
-    public Task DiscardPendingActionAsync()
-    {
-        return ContinuePendingActionAsync();
-    }
-
-    private async Task RequestUnsavedConfirmationAsync(
+    private Task RequestUnsavedConfirmationAsync(
         string title,
         string message,
         Func<Task> continuation,
-        Action? cancellation = null)
-    {
-        if (!DocumentInfo.IsModified)
-        {
-            await continuation();
-            return;
-        }
-
-        Dialogs.ShowUnsavedConfirmation(
+        Action? cancellation = null) =>
+        _unsavedChanges.RunAsync(
             title,
             message,
-            DocumentInfo.CurrentFilePath ?? _text.UnsavedDocumentFallback,
+            DocumentInfo.IsModified,
+            DocumentInfo.CurrentFilePath,
             continuation,
             cancellation);
-    }
-
-    private async Task ContinuePendingActionAsync()
-    {
-        var continuation = Dialogs.TakePendingUnsavedContinuation();
-        if (continuation is not null)
-        {
-            await continuation();
-        }
-    }
-
 }

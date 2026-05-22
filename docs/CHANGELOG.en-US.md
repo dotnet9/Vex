@@ -145,3 +145,5 @@
 - Validated JSON resources, built `Vex.slnx`, ran `git diff --check`, searched for remaining direct localization access, and completed a Debug startup smoke run.
 - Localized the HTML export save dialog and file type label, and made exported HTML use the current app culture for its `lang` attribute.
 - Validated JSON resources, built `Vex.slnx`, ran `git diff --check`, and completed a Debug startup smoke run.
+- Split unsaved-change guarding and document utility actions into focused Shell services, reducing `MainWindowViewModel.cs` from 576 to 495 lines.
+- Built `Vex.slnx`, ran `git diff --check`, and completed a Debug startup smoke run.

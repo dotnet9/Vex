@@ -75,6 +75,8 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<IHelpService, HelpService>();
         containerRegistry.RegisterSingleton<IShellStatusPublisher, ShellStatusPublisher>();
         containerRegistry.RegisterSingleton<IShellDocumentWorkflowText, ShellDocumentWorkflowText>();
+        containerRegistry.RegisterSingleton<IShellUnsavedChangesGuard, ShellUnsavedChangesGuard>();
+        containerRegistry.RegisterSingleton<IShellDocumentUtilityActions, ShellDocumentUtilityActions>();
         containerRegistry.RegisterSingleton<ShellAppearanceViewModel>();
         containerRegistry.RegisterSingleton<ShellDocumentInfoViewModel>();
         containerRegistry.RegisterSingleton<ShellDialogsViewModel>();

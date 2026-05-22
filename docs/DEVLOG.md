@@ -175,6 +175,12 @@
 - 验证全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并启动 Debug 桌面程序确认主窗口句柄可创建。
 - 当前自动截图仍受桌面会话限制，本轮没有新增截图证据。
 - 本轮未新增第三方依赖。
+- 新增 `IShellUnsavedChangesGuard`/`ShellUnsavedChangesGuard`，未保存确认、保存后继续和放弃继续流程从主窗口 ViewModel 抽离。
+- 新增 `IShellDocumentUtilityActions`/`ShellDocumentUtilityActions`，属性、统计、HTML 导出和打印预览这些文档工具动作从主窗口 ViewModel 抽离。
+- `MainWindowViewModel.cs` 从 576 行降到 495 行；新增服务文件均保持在 70 行以内，继续通过 Prism IoC 注入。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并启动 Debug 桌面程序确认主窗口句柄可创建。
+- 当前自动截图仍受桌面会话限制，本轮没有新增截图证据。
+- 本轮未新增第三方依赖。
 
 ### en-US
 
@@ -434,5 +440,11 @@
 - Exported HTML now writes its `lang` attribute from the current app culture, shared by both HTML export and print preview generation.
 - The unknown export-format fallback changed from hard-coded `Document` to the `ExportFormatDocument` resource.
 - Verified all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app to confirm the main window handle is created.
+- Automated screenshot capture remains blocked by the current desktop session, so this iteration has no new screenshot evidence.
+- Added no new third-party dependency.
+- Added `IShellUnsavedChangesGuard`/`ShellUnsavedChangesGuard`, moving unsaved-confirmation, save-then-continue, and discard-then-continue flow out of the main window ViewModel.
+- Added `IShellDocumentUtilityActions`/`ShellDocumentUtilityActions`, moving properties, statistics, HTML export, and print-preview utility actions out of the main window ViewModel.
+- Reduced `MainWindowViewModel.cs` from 576 lines to 495 lines; the new service files stay under 70 lines and are resolved through Prism IoC.
+- Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app to confirm the main window handle is created.
 - Automated screenshot capture remains blocked by the current desktop session, so this iteration has no new screenshot evidence.
 - Added no new third-party dependency.

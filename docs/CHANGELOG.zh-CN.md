@@ -153,3 +153,5 @@
 - 🧪[测试]-校验 JSON 资源、构建 `Vex.slnx`、执行 `git diff --check`、检索剩余本地化直接访问，并完成 Debug 启动烟测。
 - 🔧[优化]-本地化 HTML 导出保存对话框和文件类型名称，并让导出的 HTML `lang` 属性跟随当前应用语言。
 - 🧪[测试]-校验 JSON 资源、构建 `Vex.slnx`、执行 `git diff --check`，并完成 Debug 启动烟测。
+- 🔧[优化]-将未保存确认守卫和文档工具动作拆成独立 Shell 服务，`MainWindowViewModel.cs` 从 576 行降到 495 行。
+- 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并完成 Debug 启动烟测。
