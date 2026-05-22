@@ -164,3 +164,8 @@
 - Reduced `MainWindow.axaml` from about 405 lines to 345 lines, added `ShellFindBarView.axaml` at about 68 lines, and moved find state plus search-result handling out of `MainWindowViewModel.cs` into a focused 160-line ViewModel.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the extracted find bar displays, focuses the search box, shows `1/1`, and updates the status bar. Screenshot path: `%TEMP%\VexScreenshots\findbar-module-refactor.png`.
 - Added no new third-party dependency, so no additional license review was required.
+- Split shell appearance state into `ShellAppearanceViewModel`, covering theme selection, Markdown typography, compact layout, and language switching outside the main shell ViewModel.
+- Registered the appearance ViewModel through Prism IoC and routed language switch feedback through CodeWF.EventBus via `WorkspaceStatusChangedCommand`; the Markdown preview now binds to `Appearance.CurrentTypographyTheme` and `Appearance.CurrentTypographySize`.
+- Reduced `MainWindowViewModel.cs` from about 1394 lines to 1260 lines, with the new appearance ViewModel at about 177 lines.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a startup screenshot confirming the nested appearance bindings still render the Markdown preview. Screenshot path: `%TEMP%\VexScreenshots\appearance-module-refactor.png`.
+- Added no new third-party dependency, so no additional license review was required.

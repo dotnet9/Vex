@@ -181,26 +181,26 @@
 
                     <MenuItem Header="主题(T)">
                         <MenuItem Header="主题色">
-                            <MenuItem Header="Light" Command="{Binding SelectThemeByKey}" CommandParameter="light" />
-                            <MenuItem Header="Dark" Command="{Binding SelectThemeByKey}" CommandParameter="dark" />
-                            <MenuItem Header="System" Command="{Binding SelectThemeByKey}" CommandParameter="system" />
+                            <MenuItem Header="Light" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="light" />
+                            <MenuItem Header="Dark" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="dark" />
+                            <MenuItem Header="System" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="system" />
                         </MenuItem>
                         <MenuItem Header="排版">
-                            <MenuItem Header="简洁" Command="{Binding SelectTypographyByKey}" CommandParameter="Simple" />
-                            <MenuItem Header="Basic" Command="{Binding SelectTypographyByKey}" CommandParameter="Basic" />
-                            <MenuItem Header="橙心" Command="{Binding SelectTypographyByKey}" CommandParameter="OrangeHeart" />
-                            <MenuItem Header="墨黑" Command="{Binding SelectTypographyByKey}" CommandParameter="InkBlack" />
-                            <MenuItem Header="科技蓝" Command="{Binding SelectTypographyByKey}" CommandParameter="TechnologyBlue" />
+                            <MenuItem Header="简洁" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="Simple" />
+                            <MenuItem Header="Basic" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="Basic" />
+                            <MenuItem Header="橙心" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="OrangeHeart" />
+                            <MenuItem Header="墨黑" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="InkBlack" />
+                            <MenuItem Header="科技蓝" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="TechnologyBlue" />
                             <Separator />
-                            <MenuItem Header="紧凑布局" Command="{Binding ToggleCompactLayout}" />
+                            <MenuItem Header="紧凑布局" Command="{Binding Appearance.ToggleCompactLayout}" />
                         </MenuItem>
                     </MenuItem>
 
                     <MenuItem Header="国际化(L)">
-                        <MenuItem Header="简体中文" Command="{Binding SelectLanguageByCulture}" CommandParameter="zh-CN" />
-                        <MenuItem Header="繁體中文" Command="{Binding SelectLanguageByCulture}" CommandParameter="zh-Hant" />
-                        <MenuItem Header="English" Command="{Binding SelectLanguageByCulture}" CommandParameter="en-US" />
-                        <MenuItem Header="日本語" Command="{Binding SelectLanguageByCulture}" CommandParameter="ja-JP" />
+                        <MenuItem Header="简体中文" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="zh-CN" />
+                        <MenuItem Header="繁體中文" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="zh-Hant" />
+                        <MenuItem Header="English" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="en-US" />
+                        <MenuItem Header="日本語" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="ja-JP" />
                     </MenuItem>
 
                     <MenuItem Header="帮助(H)">
@@ -305,8 +305,8 @@
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                     <md:MarkdownViewer
                         Markdown="{Binding Markdown}"
-                        TypographySize="{Binding CurrentTypographySize}"
-                        TypographyTheme="{Binding CurrentTypographyTheme}" />
+                        TypographySize="{Binding Appearance.CurrentTypographySize}"
+                        TypographyTheme="{Binding Appearance.CurrentTypographyTheme}" />
                 </ScrollViewer>
             </Border>
 

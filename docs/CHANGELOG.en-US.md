@@ -39,6 +39,7 @@
 - Added current-line highlighting in the editor to make the active editing position easier to track in longer documents.
 - Split statistics, about, properties, and confirmation overlays into a dedicated `ShellOverlaysView` to reduce main-window XAML complexity.
 - Split find/replace into a dedicated `ShellFindBarView` and `ShellFindBarViewModel` that communicate with the editor through CodeWF.EventBus.
+- Split theme, typography, compact-layout, and language switching state into a dedicated `ShellAppearanceViewModel`.
 
 ### Changed
 
@@ -76,3 +77,4 @@
 - Built `Vex.slnx` and screenshot-verified the current-line highlight in the editor.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the extracted about overlay.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the extracted find bar focus, `1/1` count, and status feedback.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the nested appearance bindings still render the Markdown preview.
