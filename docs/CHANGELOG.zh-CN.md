@@ -32,6 +32,8 @@
 - 🔧[优化]-通过中央传递钉版消除旧 `System.Drawing.Common` 解析带来的 NU1904 告警。
 - 🔧[优化]-将 `Avalonia.Markup.Xaml.Loader` 传递依赖钉到 Avalonia 12.0.3，避免发布链路混入旧版本运行时加载器。
 - 🔧[优化]-属性菜单显示当前文档状态、编码、大小和路径信息。
+- 🔧[优化]-启动状态栏恢复为 Ready，文件/大纲侧边栏为空时显示空状态。
 - 🧪[测试]-构建 `Vex.slnx`、执行依赖漏洞扫描、桌面启动烟测，并验证 `win-x64` Release Native AOT 与 `linux-x64` self-contained single-file 发布链路。
 - 🧪[测试]-执行 `publish_vex_all.bat`，确认五个 Vex 发布 Profile 均可成功发布。
 - 🧪[测试]-构建 `Vex.slnx`，确认查找/替换栏相关改动编译通过，并截图验证主窗口基础布局。
+- 🧪[测试]-截图验证默认窗口的侧边栏空状态、三栏布局和状态栏 Ready 文案。

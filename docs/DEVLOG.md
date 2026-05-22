@@ -32,6 +32,8 @@
 - 验证 `dotnet build Vex.slnx`，并截图检查主窗口标题栏、三栏布局和状态栏徽标没有挤压错位。
 - 增加查找/替换栏，查找和替换动作通过 CodeWF.EventBus 发送到 AvaloniaEdit 控制器处理，并提供窗口级快捷键兜底。
 - 验证 `dotnet build Vex.slnx`，截图检查主窗口基础布局；当前自动化桌面无法稳定把快捷键注入窗口，后续人工交互可直接验证查找栏显示。
+- 修正启动状态栏默认文案，避免初始化语言时显示切换提示；为文件和大纲侧边栏增加空状态。
+- 验证 `dotnet build Vex.slnx`，截图确认默认窗口空状态、三栏布局和状态栏显示正常。
 
 ### en-US
 
@@ -63,3 +65,5 @@
 - Verified `dotnet build Vex.slnx` and captured a desktop screenshot to check the title bar, three-pane layout, and status bar badges for visual fit.
 - Added the find/replace bar, with find and replace actions routed through CodeWF.EventBus to the AvaloniaEdit controller and window-level shortcut handling.
 - Verified `dotnet build Vex.slnx` and captured a desktop screenshot for the base window layout; this desktop automation session could not reliably inject shortcuts into the window, so the visible find bar path still needs manual interaction confirmation.
+- Fixed the startup status text so language initialization does not show a switch message, and added empty states for the files and outline sidebar tabs.
+- Verified `dotnet build Vex.slnx` and captured a screenshot for the default window empty states, three-pane layout, and status bar text.

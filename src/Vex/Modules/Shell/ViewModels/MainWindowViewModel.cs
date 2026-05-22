@@ -79,7 +79,11 @@ public sealed class MainWindowViewModel : ReactiveObject
         SelectedTheme = ThemeOptions.FirstOrDefault();
         SelectedTypography = TypographyOptions.FirstOrDefault(item => item.Key == MarkdownTypographyThemes.Simple)
                              ?? TypographyOptions.FirstOrDefault();
-        SelectedLanguage = LanguageOptions.FirstOrDefault(item => item.CultureName == "zh-CN");
+        _selectedLanguage = LanguageOptions.FirstOrDefault(item => item.CultureName == "zh-CN");
+        if (_selectedLanguage is not null)
+        {
+            I18nManager.Instance.Culture = new CultureInfo(_selectedLanguage.CultureName);
+        }
 
         _document = _documentService.CreateNew();
         _lastSavedMarkdown = _document.Markdown;
@@ -121,6 +125,14 @@ public sealed class MainWindowViewModel : ReactiveObject
     public bool HasCurrentFile => !string.IsNullOrWhiteSpace(CurrentFilePath);
 
     public bool HasRecentDocuments => RecentDocuments.Count > 0;
+
+    public bool HasDocumentFiles => DocumentFiles.Count > 0;
+
+    public bool IsDocumentFilesEmpty => !HasDocumentFiles;
+
+    public bool HasOutlineItems => OutlineItems.Count > 0;
+
+    public bool IsOutlineEmpty => !HasOutlineItems;
 
     public bool HasRecentDocument1 => RecentDocuments.Count > 0;
 
@@ -384,6 +396,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         DocumentFiles.Clear();
         SelectedDocumentFile = null;
         SelectedOutlineItem = null;
+        NotifyDocumentFilesChanged();
         SetStatus("Document closed.");
         NotifyDocumentChanged();
         PublishEditorAction(EditorActionKind.FocusEditor);
@@ -426,6 +439,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         {
             DocumentFiles.Add(file);
         }
+        NotifyDocumentFilesChanged();
 
         SetStatus(files.Count == 0 ? "No markdown files loaded." : $"Loaded {files.Count} markdown files.");
         if (files.Count > 0)
@@ -577,6 +591,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         {
             OutlineItems.Add(item);
         }
+
+        NotifyOutlineChanged();
     }
 
     private void PublishEditorAction(EditorActionKind action)
@@ -929,6 +945,18 @@ public sealed class MainWindowViewModel : ReactiveObject
         OnPropertyChanged(nameof(RecentDocument3Text));
         OnPropertyChanged(nameof(RecentDocument4Text));
         OnPropertyChanged(nameof(RecentDocument5Text));
+    }
+
+    private void NotifyDocumentFilesChanged()
+    {
+        OnPropertyChanged(nameof(HasDocumentFiles));
+        OnPropertyChanged(nameof(IsDocumentFilesEmpty));
+    }
+
+    private void NotifyOutlineChanged()
+    {
+        OnPropertyChanged(nameof(HasOutlineItems));
+        OnPropertyChanged(nameof(IsOutlineEmpty));
     }
 
     private string GetRecentDocumentText(int index)

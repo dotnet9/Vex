@@ -296,16 +296,40 @@
             <Border Grid.Column="0" Classes="panel" IsVisible="{Binding IsSidebarVisible}">
                 <TabControl SelectedIndex="{Binding SelectedSideTabIndex, Mode=TwoWay}">
                     <TabItem Header="文件">
-                        <ListBox
-                            Classes="side-list"
-                            ItemsSource="{Binding DocumentFiles}"
-                            SelectedItem="{Binding SelectedDocumentFile, Mode=TwoWay}" />
+                        <Grid>
+                            <ListBox
+                                Classes="side-list"
+                                IsVisible="{Binding HasDocumentFiles}"
+                                ItemsSource="{Binding DocumentFiles}"
+                                SelectedItem="{Binding SelectedDocumentFile, Mode=TwoWay}" />
+                            <Border
+                                IsVisible="{Binding IsDocumentFilesEmpty}"
+                                Padding="18"
+                                VerticalAlignment="Top">
+                                <TextBlock
+                                    Classes="muted"
+                                    Text="No files"
+                                    TextAlignment="Center" />
+                            </Border>
+                        </Grid>
                     </TabItem>
                     <TabItem Header="大纲">
-                        <ListBox
-                            Classes="side-list"
-                            ItemsSource="{Binding OutlineItems}"
-                            SelectedItem="{Binding SelectedOutlineItem, Mode=TwoWay}" />
+                        <Grid>
+                            <ListBox
+                                Classes="side-list"
+                                IsVisible="{Binding HasOutlineItems}"
+                                ItemsSource="{Binding OutlineItems}"
+                                SelectedItem="{Binding SelectedOutlineItem, Mode=TwoWay}" />
+                            <Border
+                                IsVisible="{Binding IsOutlineEmpty}"
+                                Padding="18"
+                                VerticalAlignment="Top">
+                                <TextBlock
+                                    Classes="muted"
+                                    Text="No headings"
+                                    TextAlignment="Center" />
+                            </Border>
+                        </Grid>
                     </TabItem>
                 </TabControl>
             </Border>
