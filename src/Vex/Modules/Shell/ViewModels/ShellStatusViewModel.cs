@@ -2,17 +2,23 @@ using System.Runtime.CompilerServices;
 using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellStatusViewModel : ReactiveObject
 {
-    private string _statusText = "Ready";
+    private readonly IAppLocalizer _localizer;
+    private string _statusText;
     private int _caretLine = 1;
     private int _caretColumn = 1;
+    private bool _isReadyStatus = true;
 
-    public ShellStatusViewModel(IEventBus eventBus)
+    public ShellStatusViewModel(IEventBus eventBus, IAppLocalizer localizer)
     {
+        _localizer = localizer;
+        _statusText = _localizer.Get(VexL.StatusReady);
+        _localizer.CultureChanged += OnCultureChanged;
         eventBus.Subscribe(this);
     }
 
@@ -37,6 +43,7 @@ public sealed class ShellStatusViewModel : ReactiveObject
     [EventHandler]
     public void ApplyWorkspaceStatusChanged(WorkspaceStatusChangedCommand command)
     {
+        _isReadyStatus = false;
         StatusText = command.Message;
     }
 
@@ -45,6 +52,15 @@ public sealed class ShellStatusViewModel : ReactiveObject
     {
         CaretLine = command.CaretLine;
         CaretColumn = command.CaretColumn;
+    }
+
+    private void OnCultureChanged(object? sender, EventArgs e)
+    {
+        if (_isReadyStatus)
+        {
+            // 空闲状态仍显示“就绪”时才随语言切换刷新，避免覆盖刚发生的用户操作反馈。
+            StatusText = _localizer.Get(VexL.StatusReady);
+        }
     }
 
     private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)

@@ -150,6 +150,7 @@
       "FileTypeText": "Text",
       "FileTypeHtml": "HTML",
       "ExportFormatDocument": "Document",
+      "StatusReady": "Ready",
       "StatusLanguageSwitched": "Language switched to {0}.",
       "StatusLineNumbersShown": "Line numbers shown.",
       "StatusLineNumbersHidden": "Line numbers hidden.",

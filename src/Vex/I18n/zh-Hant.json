@@ -150,6 +150,7 @@
       "FileTypeText": "文字",
       "FileTypeHtml": "HTML",
       "ExportFormatDocument": "文件",
+      "StatusReady": "就緒",
       "StatusLanguageSwitched": "語言已切換為 {0}。",
       "StatusLineNumbersShown": "已顯示行號。",
       "StatusLineNumbersHidden": "已隱藏行號。",

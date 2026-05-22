@@ -202,6 +202,11 @@
 - `MainWindowViewModel.cs` 本轮保持 499 行，仍低于 500 行检查线。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并启动 Debug 桌面程序使用窗口句柄截图确认拆分后的预览仍能渲染初始文档。截图路径：`%TEMP%\VexScreenshots\markdown-preview-view-startup.png`。
 - 本轮未新增第三方依赖。
+- 新增 `StatusReady` 本地化资源，覆盖简体中文、繁体中文、英文和日文。
+- `ShellStatusViewModel` 初始状态不再硬编码 `Ready`，改由 `IAppLocalizer` 读取资源；状态栏仍处于空闲“就绪”状态时，语言变更会同步刷新。
+- 验证全部 Vex JSON 本地化资源、构建 `Vex.slnx`、执行 `git diff --check`，并检索确认除 en-US 资源值外不再存在硬编码 `Ready`。
+- 启动 Debug 桌面程序并使用窗口句柄截图，确认中文状态栏左下角显示 `就绪`。截图路径：`%TEMP%\VexScreenshots\localized-ready-status-startup.png`。
+- 本轮未新增第三方依赖。
 
 ### en-US
 
@@ -489,4 +494,9 @@
 - Added `IEditorAppearanceState`/`EditorAppearanceState`; preview typography theme and size now sync through appearance state instead of binding Workspace preview code back to the Shell appearance ViewModel.
 - `MainWindowViewModel.cs` remains at 499 lines, still below the 500-line check threshold.
 - Verified `dotnet build Vex.slnx`, ran `git diff --check`, and launched the Debug desktop app with a window-handle screenshot confirming the extracted preview still renders the initial document. Screenshot path: `%TEMP%\VexScreenshots\markdown-preview-view-startup.png`.
+- Added no new third-party dependency.
+- Added the `StatusReady` localization resource for Simplified Chinese, Traditional Chinese, English, and Japanese.
+- `ShellStatusViewModel` no longer hard-codes `Ready`; it reads through `IAppLocalizer`, and it refreshes on culture changes while the status bar is still showing the idle ready state.
+- Verified all Vex JSON localization resources, built `Vex.slnx`, ran `git diff --check`, and searched to confirm hard-coded `Ready` only remains as the en-US resource value.
+- Launched the Debug desktop app and captured a window-handle screenshot confirming the Chinese status bar shows `就绪` in the bottom-left corner. Screenshot path: `%TEMP%\VexScreenshots\localized-ready-status-startup.png`.
 - Added no new third-party dependency.

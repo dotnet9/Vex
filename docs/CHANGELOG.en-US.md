@@ -155,3 +155,5 @@
 - Built `Vex.slnx`, ran `git diff --check`, and captured a startup screenshot after the recent-file store refactor.
 - Extracted the right Markdown preview into `MarkdownPreviewView`/`MarkdownPreviewViewModel` backed by document and appearance state services.
 - Built `Vex.slnx`, ran `git diff --check`, and captured a startup screenshot confirming the extracted preview renders the initial document.
+- Localized the initial status-bar `Ready` text through `StatusReady` resources and refreshed it while the status bar remains idle.
+- Validated JSON resources, built `Vex.slnx`, ran `git diff --check`, searched for hard-coded `Ready`, and captured a startup screenshot showing the localized status text.

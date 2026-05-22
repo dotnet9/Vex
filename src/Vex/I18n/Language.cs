@@ -155,6 +155,7 @@ public static class VexL
     public static readonly string FileTypeText = "Vex.VexL.FileTypeText";
     public static readonly string FileTypeHtml = "Vex.VexL.FileTypeHtml";
     public static readonly string ExportFormatDocument = "Vex.VexL.ExportFormatDocument";
+    public static readonly string StatusReady = "Vex.VexL.StatusReady";
     public static readonly string StatusLanguageSwitched = "Vex.VexL.StatusLanguageSwitched";
     public static readonly string StatusLineNumbersShown = "Vex.VexL.StatusLineNumbersShown";
     public static readonly string StatusLineNumbersHidden = "Vex.VexL.StatusLineNumbersHidden";

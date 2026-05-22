@@ -163,3 +163,5 @@
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并在最近文件存储重构后截图确认启动窗口正常渲染。
 - 🔧[优化]-将右侧 Markdown 预览拆成 `MarkdownPreviewView`/`MarkdownPreviewViewModel`，通过文档状态和外观状态服务同步内容与排版。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图确认拆分后的预览能渲染初始文档。
+- 🔧[优化]-将状态栏初始 `Ready` 文案接入 `StatusReady` 本地化资源，并在状态栏仍为空闲状态时随语言刷新。
+- 🧪[测试]-校验 JSON 资源、构建 `Vex.slnx`、执行 `git diff --check`、检索硬编码 `Ready`，并截图确认启动状态文案已本地化。
