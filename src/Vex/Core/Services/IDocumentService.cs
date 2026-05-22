@@ -12,6 +12,8 @@ public interface IDocumentService
 
     Task<IReadOnlyList<DocumentFile>> OpenFolderAsync();
 
+    Task<IReadOnlyList<DocumentFile>> OpenFolderPathAsync(string folder);
+
     Task<DocumentSnapshot?> SaveAsync(DocumentSnapshot document);
 
     Task<DocumentSnapshot?> SaveAsAsync(DocumentSnapshot document);

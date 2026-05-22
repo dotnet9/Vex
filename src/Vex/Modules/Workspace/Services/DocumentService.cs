@@ -65,12 +65,19 @@ public sealed class DocumentService : IDocumentService
         });
 
         var folder = folders.Count > 0 ? folders[0].TryGetLocalPath() : null;
+        return string.IsNullOrWhiteSpace(folder)
+            ? []
+            : await OpenFolderPathAsync(folder);
+    }
+
+    public Task<IReadOnlyList<DocumentFile>> OpenFolderPathAsync(string folder)
+    {
         if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder))
         {
-            return [];
+            return Task.FromResult<IReadOnlyList<DocumentFile>>([]);
         }
 
-        return Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories)
+        IReadOnlyList<DocumentFile> files = Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories)
             .Where(path => path.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
                            || path.EndsWith(".markdown", StringComparison.OrdinalIgnoreCase)
                            || path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
@@ -78,6 +85,7 @@ public sealed class DocumentService : IDocumentService
             .Take(300)
             .Select(path => new DocumentFile(path, folder))
             .ToList();
+        return Task.FromResult(files);
     }
 
     public async Task<DocumentSnapshot?> SaveAsync(DocumentSnapshot document)

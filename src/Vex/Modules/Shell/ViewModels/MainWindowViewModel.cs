@@ -102,9 +102,15 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public async Task OpenStartupDocumentAsync(IEnumerable<string> arguments)
     {
-        var path = arguments.FirstOrDefault(File.Exists);
+        var path = arguments.FirstOrDefault(argument => File.Exists(argument) || Directory.Exists(argument));
         if (string.IsNullOrWhiteSpace(path))
         {
+            return;
+        }
+
+        if (Directory.Exists(path))
+        {
+            await ApplyDocumentFilesAsync(await _documentService.OpenFolderPathAsync(path));
             return;
         }
 
@@ -484,7 +490,11 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public async Task OpenFolderAsync()
     {
-        var files = await _documentService.OpenFolderAsync();
+        await ApplyDocumentFilesAsync(await _documentService.OpenFolderAsync());
+    }
+
+    private async Task ApplyDocumentFilesAsync(IReadOnlyList<DocumentFile> files)
+    {
         DocumentFiles.Clear();
         foreach (var file in files)
         {
@@ -495,7 +505,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         SetStatus(files.Count == 0 ? "No markdown files loaded." : $"Loaded {files.Count} markdown files.");
         if (files.Count > 0)
         {
-            SelectedDocumentFile = files[0];
+            SetProperty(ref _selectedDocumentFile, files[0], nameof(SelectedDocumentFile));
+            await OpenDocumentFileAsync(files[0]);
         }
     }
 
