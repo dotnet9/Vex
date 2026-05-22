@@ -21,6 +21,9 @@
 - 核查第三方依赖来源，避免引用无源码的 AvaloniaEdit 第三方主题包。
 - 使用中央传递钉版将旧 `System.Drawing.Common` 解析覆盖到 10.0.8，消除 Prism 8.x 依赖链带来的 NU1904 告警。
 - 验证 `dotnet build Vex.slnx`、依赖漏洞扫描、桌面启动烟测、`win-x64` Release Native AOT 发布链路和 `linux-x64` self-contained single-file 发布链路。
+- 增加 VS 文件夹发布 Profile，覆盖 `win-x64`、`linux-x64`、`linux-arm64`、`osx-x64` 和 `osx-arm64`。
+- 增加根目录 `publish_vex_all.bat`，可一键按上述发布 Profile 依次发布 Vex 主工程。
+- 验证 `publish_vex_all.bat` 可成功调用全部五个发布 Profile。
 
 ### en-US
 
@@ -41,3 +44,6 @@
 - Reviewed third-party dependency sources and avoided source-unavailable AvaloniaEdit theme packages.
 - Used central transitive pinning to resolve old `System.Drawing.Common` references to 10.0.8 and remove the Prism 8.x NU1904 warning.
 - Verified `dotnet build Vex.slnx`, dependency vulnerability scanning, desktop smoke startup, the `win-x64` Release Native AOT publish path, and the `linux-x64` self-contained single-file publish path.
+- Added Visual Studio folder publish profiles for `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`.
+- Added the root `publish_vex_all.bat` script to publish the Vex application through each profile.
+- Verified `publish_vex_all.bat` can successfully run all five publish profiles.

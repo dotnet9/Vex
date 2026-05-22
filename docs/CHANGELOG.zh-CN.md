@@ -13,6 +13,8 @@
 - 新增 `Vex.Controls` 与 `Vex.Controls.Themes` 控件主题包。
 - 新增大纲点击跳转到编辑器对应标题行。
 - ✨[新增]-帮助菜单支持打开随程序复制的更新日志、快速开始和鸣谢文档。
+- ✨[新增]-为 Vex 主工程新增 `win-x64`、`linux-x64`、`linux-arm64`、`osx-x64`、`osx-arm64` 文件夹发布 Profile。
+- ✨[新增]-新增根目录 `publish_vex_all.bat`，可一键依次执行所有 Vex 发布 Profile。
 
 ### 优化
 
@@ -24,3 +26,4 @@
 - 🔧[优化]-新增 Windows AOT/Win7 与 Linux/macOS self-contained single-file 发布配置。
 - 🔧[优化]-通过中央传递钉版消除旧 `System.Drawing.Common` 解析带来的 NU1904 告警。
 - 🧪[测试]-构建 `Vex.slnx`、执行依赖漏洞扫描、桌面启动烟测，并验证 `win-x64` Release Native AOT 与 `linux-x64` self-contained single-file 发布链路。
+- 🧪[测试]-执行 `publish_vex_all.bat`，确认五个 Vex 发布 Profile 均可成功发布。

@@ -13,6 +13,8 @@
 - Added `Vex.Controls` and `Vex.Controls.Themes` packages for Vex-specific controls and themes.
 - Added outline navigation to jump to the matching editor heading line.
 - Added help menu actions for opening bundled changelog, quick start, and acknowledgements documents.
+- Added Vex folder publish profiles for `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`.
+- Added the root `publish_vex_all.bat` script to run all Vex publish profiles.
 
 ### Changed
 
@@ -24,3 +26,4 @@
 - Added Windows AOT/Win7 and Linux/macOS self-contained single-file publish settings.
 - Removed the NU1904 warning from old `System.Drawing.Common` resolution through central transitive pinning.
 - Tested `Vex.slnx` build, dependency vulnerability scanning, desktop smoke startup, and the `win-x64` Release Native AOT plus `linux-x64` self-contained single-file publish paths.
+- Tested `publish_vex_all.bat` and confirmed all five Vex publish profiles complete successfully.
