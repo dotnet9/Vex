@@ -34,6 +34,8 @@
 - 验证 `dotnet build Vex.slnx`，截图检查主窗口基础布局；当前自动化桌面无法稳定把快捷键注入窗口，后续人工交互可直接验证查找栏显示。
 - 修正启动状态栏默认文案，避免初始化语言时显示切换提示；为文件和大纲侧边栏增加空状态。
 - 验证 `dotnet build Vex.slnx`，截图确认默认窗口空状态、三栏布局和状态栏显示正常。
+- 增加 `IMarkdownExportService` 和 HTML 导出实现，导出菜单的 HTML 项会通过 Markdig 生成带基础阅读样式的独立 HTML 文件。
+- 核查 Markdig 许可证为 BSD-2-Clause，显式加入 NuGet 引用和裁剪免裁配置；验证 `dotnet build Vex.slnx` 与 NuGet 漏洞扫描。
 
 ### en-US
 
@@ -67,3 +69,5 @@
 - Verified `dotnet build Vex.slnx` and captured a desktop screenshot for the base window layout; this desktop automation session could not reliably inject shortcuts into the window, so the visible find bar path still needs manual interaction confirmation.
 - Fixed the startup status text so language initialization does not show a switch message, and added empty states for the files and outline sidebar tabs.
 - Verified `dotnet build Vex.slnx` and captured a screenshot for the default window empty states, three-pane layout, and status bar text.
+- Added `IMarkdownExportService` and HTML export support; the HTML export menu item now generates a standalone HTML file with baseline reading styles through Markdig.
+- Checked Markdig's BSD-2-Clause license, added an explicit NuGet reference and trimmer root, and verified `dotnet build Vex.slnx` plus NuGet vulnerability scanning.

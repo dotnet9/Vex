@@ -19,6 +19,7 @@
 - Added unsaved document indicators in the window title and status bar, with the current file encoding shown in the status bar.
 - Added recent files, clearing recent files, quick open, and close current document actions to the File menu.
 - Added a find/replace bar with find next, replace next, replace all, and `Ctrl+F`, `Ctrl+H`, `F3`, and `Esc` shortcuts.
+- Added HTML export for the current Markdown document.
 
 ### Changed
 
@@ -37,3 +38,4 @@
 - Tested `publish_vex_all.bat` and confirmed all five Vex publish profiles complete successfully.
 - Tested `Vex.slnx` build for the find/replace changes and captured a desktop screenshot for the base window layout.
 - Captured a desktop screenshot to verify the default sidebar empty state, three-pane layout, and Ready status text.
+- Checked Markdig's BSD-2-Clause license, built `Vex.slnx`, and ran NuGet vulnerability scanning.

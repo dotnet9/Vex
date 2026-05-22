@@ -19,6 +19,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 {
     private const int MaxRecentDocuments = 5;
     private readonly IDocumentService _documentService;
+    private readonly IMarkdownExportService _exportService;
     private readonly IMarkdownOutlineService _outlineService;
     private readonly IMarkdownStatisticsService _statisticsService;
     private readonly IThemeService _themeService;
@@ -50,6 +51,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public MainWindowViewModel(
         IDocumentService documentService,
+        IMarkdownExportService exportService,
         IMarkdownOutlineService outlineService,
         IMarkdownStatisticsService statisticsService,
         IThemeService themeService,
@@ -57,6 +59,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         IEventBus eventBus)
     {
         _documentService = documentService;
+        _exportService = exportService;
         _outlineService = outlineService;
         _statisticsService = statisticsService;
         _themeService = themeService;
@@ -609,8 +612,15 @@ public sealed class MainWindowViewModel : ReactiveObject
         SetStatus($"{CurrentDocumentTitle} | {DocumentStateText} | {CurrentEncodingText} | {size} | {location}");
     }
 
-    public void Export(string? format)
+    public async Task Export(string? format)
     {
+        if (format?.Equals("HTML", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            var path = await _exportService.ExportHtmlAsync(_document with { Markdown = Markdown });
+            SetStatus(path is null ? "HTML export canceled." : $"Exported HTML to {Path.GetFileName(path)}.");
+            return;
+        }
+
         SetStatus($"Export {format ?? "document"} is queued for implementation.");
     }
 

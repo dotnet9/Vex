@@ -25,6 +25,7 @@
 
   <assembly fullname="Lang.Avalonia" preserve="all" />
   <assembly fullname="Lang.Avalonia.Json" preserve="all" />
+  <assembly fullname="Markdig" preserve="all" />
 
   <assembly fullname="Avalonia" preserve="all" />
   <assembly fullname="Avalonia.Base" preserve="all" />
