@@ -42,6 +42,8 @@
 - 验证 `dotnet build Vex.slnx`。
 - 增加字数统计浮动面板，复用当前统计模型展示词数、字符数、行数、编码和保存状态。
 - 验证 `dotnet build Vex.slnx`。
+- 增加关于浮动面板，展示 Vex、中文名“维刻”、作者“沙漠尽头的狼”、CodeWF（码坊）和 `https://codewf.com`。
+- 验证 `dotnet build Vex.slnx`。
 
 ### en-US
 
@@ -82,4 +84,6 @@
 - Improved view menu behavior: files/outline reveal the sidebar, and source mode saves the previous layout, hides sidebar/preview, and restores them when disabled.
 - Verified `dotnet build Vex.slnx`.
 - Added a floating word-count panel that reuses the current statistics model for words, characters, lines, encoding, and saved state.
+- Verified `dotnet build Vex.slnx`.
+- Added an about panel with Vex, Chinese name, author, CodeWF, and `https://codewf.com` details.
 - Verified `dotnet build Vex.slnx`.

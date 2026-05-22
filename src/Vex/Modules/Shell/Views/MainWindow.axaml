@@ -404,6 +404,55 @@
                     </Grid>
                 </Grid>
             </Border>
+
+            <Border
+                Grid.ColumnSpan="5"
+                Width="360"
+                Padding="20"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="#FFFFFFFF"
+                BorderBrush="#D0D5DD"
+                BorderThickness="1"
+                CornerRadius="8"
+                IsVisible="{Binding IsAboutPanelVisible}">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="14">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Image Width="32" Height="32" Source="/Assets/logo.png" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="Vex" />
+                            <TextBlock Classes="muted" Text="极简之力，妙笔成章" />
+                        </StackPanel>
+                        <Button
+                            Grid.Column="2"
+                            Command="{Binding CloseAboutPanel}"
+                            Content="X"
+                            MinWidth="34"
+                            Padding="0" />
+                    </Grid>
+                    <Grid
+                        Grid.Row="1"
+                        ColumnDefinitions="Auto,*"
+                        RowDefinitions="Auto,Auto,Auto,Auto"
+                        RowSpacing="8"
+                        ColumnSpacing="14">
+                        <TextBlock Classes="muted" Text="中文名" />
+                        <TextBlock Grid.Column="1" Text="维刻" />
+                        <TextBlock Grid.Row="1" Classes="muted" Text="作者" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="沙漠尽头的狼" />
+                        <TextBlock Grid.Row="2" Classes="muted" Text="网站" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="https://codewf.com" />
+                        <TextBlock Grid.Row="3" Classes="muted" Text="品牌" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="CodeWF（码坊）" />
+                    </Grid>
+                    <Separator Grid.Row="2" />
+                    <TextBlock
+                        Grid.Row="3"
+                        Classes="muted"
+                        Text="Markdown editor powered by Avalonia, Prism, and CodeWF libraries."
+                        TextWrapping="Wrap" />
+                </Grid>
+            </Border>
         </Grid>
 
         <Border

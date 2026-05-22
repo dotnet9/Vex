@@ -43,6 +43,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     private bool _isFindPanelVisible;
     private bool _isReplaceVisible;
     private bool _isStatisticsPanelVisible;
+    private bool _isAboutPanelVisible;
     private string _searchText = string.Empty;
     private string _replacementText = string.Empty;
     private double _editorZoom = 1.0;
@@ -289,6 +290,12 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         get => _isStatisticsPanelVisible;
         set => SetProperty(ref _isStatisticsPanelVisible, value);
+    }
+
+    public bool IsAboutPanelVisible
+    {
+        get => _isAboutPanelVisible;
+        set => SetProperty(ref _isAboutPanelVisible, value);
     }
 
     public double EditorZoom
@@ -729,6 +736,11 @@ public sealed class MainWindowViewModel : ReactiveObject
         IsStatisticsPanelVisible = false;
     }
 
+    public void CloseAboutPanel()
+    {
+        IsAboutPanelVisible = false;
+    }
+
     public void ShowFindPanel()
     {
         IsFindPanelVisible = true;
@@ -893,7 +905,8 @@ public sealed class MainWindowViewModel : ReactiveObject
                 await _helpService.OpenFeedbackAsync();
                 break;
             case "about":
-                SetStatus("Vex 0.1.0 - 极简之力，妙笔成章.");
+                IsAboutPanelVisible = true;
+                SetStatus("About Vex.");
                 break;
             default:
                 SetStatus($"{topic ?? "Help"} is queued for implementation.");
