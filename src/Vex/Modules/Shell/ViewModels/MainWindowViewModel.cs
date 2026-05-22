@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text;
 using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
@@ -21,7 +20,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     private DocumentSnapshot _document;
     private string _lastSavedMarkdown = string.Empty;
     private string _markdown = string.Empty;
-    private MarkdownStatistics _statistics = new(0, 0, 1);
 
     public MainWindowViewModel(
         IDocumentService documentService,
@@ -30,6 +28,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         IMarkdownStatisticsService statisticsService,
         IHelpService helpService,
         ShellAppearanceViewModel appearance,
+        ShellDocumentInfoViewModel documentInfo,
         ShellDialogsViewModel dialogs,
         ShellEditorActionsViewModel editorActions,
         ShellEditorDisplayViewModel editorDisplay,
@@ -46,6 +45,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _statisticsService = statisticsService;
         _helpService = helpService;
         Appearance = appearance;
+        DocumentInfo = documentInfo;
         Dialogs = dialogs;
         EditorActions = editorActions;
         EditorDisplay = editorDisplay;
@@ -60,11 +60,14 @@ public sealed class MainWindowViewModel : ReactiveObject
         _document = _documentService.CreateNew();
         _lastSavedMarkdown = _document.Markdown;
         Markdown = _document.Markdown;
+        RefreshDocumentInfo();
     }
 
     public event EventHandler? CloseWindowRequested;
 
     public ShellAppearanceViewModel Appearance { get; }
+
+    public ShellDocumentInfoViewModel DocumentInfo { get; }
 
     public ShellDialogsViewModel Dialogs { get; }
 
@@ -136,52 +139,13 @@ public sealed class MainWindowViewModel : ReactiveObject
             {
                 _document = _document with { Markdown = _markdown };
                 RefreshMarkdownDerivedState();
-                NotifyDocumentStateChanged();
             }
         }
     }
 
-    public string WindowTitle => $"{(IsModified ? "*" : string.Empty)}{_document.FileName} - Vex";
+    private string? CurrentFilePath => DocumentInfo.CurrentFilePath;
 
-    public string CurrentDocumentTitle => $"{(IsModified ? "*" : string.Empty)}{_document.FileName}";
-
-    public string? CurrentFilePath => _document.FilePath;
-
-    public bool HasCurrentFile => !string.IsNullOrWhiteSpace(CurrentFilePath);
-
-    public bool IsModified => !string.Equals(Markdown, _lastSavedMarkdown, StringComparison.Ordinal);
-
-    public string DocumentStateText => IsModified ? "Modified" : "Saved";
-
-    public string CurrentEncodingText => GetEncodingDisplayName(_document.Encoding);
-
-    public MarkdownStatistics Statistics
-    {
-        get => _statistics;
-        set
-        {
-            if (SetProperty(ref _statistics, value))
-            {
-                OnPropertyChanged(nameof(WordCountText));
-                OnPropertyChanged(nameof(CharacterCountText));
-                OnPropertyChanged(nameof(LineCountText));
-            }
-        }
-    }
-
-    public string WordCountText => $"{Statistics.Words} words";
-
-    public string CharacterCountText => $"{Statistics.Characters} chars";
-
-    public string LineCountText => $"{Statistics.Lines} lines";
-
-    public string PropertyNameText => _document.FileName;
-
-    public string PropertyLocationText => CurrentFilePath ?? "Unsaved document";
-
-    public string PropertySizeText => CurrentFilePath is { Length: > 0 } path && File.Exists(path)
-        ? FormatFileSize(new FileInfo(path).Length)
-        : $"{Encoding.UTF8.GetByteCount(Markdown):N0} B";
+    private bool IsModified => DocumentInfo.IsModified;
 
     public Task NewDocument()
     {
@@ -432,7 +396,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
         else
         {
-            NotifyDocumentStateChanged();
+            RefreshDocumentInfo();
         }
 
         NotifyDocumentChanged();
@@ -442,24 +406,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private void NotifyDocumentChanged()
     {
-        OnPropertyChanged(nameof(WindowTitle));
-        OnPropertyChanged(nameof(CurrentDocumentTitle));
-        OnPropertyChanged(nameof(CurrentFilePath));
-        OnPropertyChanged(nameof(HasCurrentFile));
-        OnPropertyChanged(nameof(CurrentEncodingText));
-        OnPropertyChanged(nameof(PropertyNameText));
-        OnPropertyChanged(nameof(PropertyLocationText));
-        OnPropertyChanged(nameof(PropertySizeText));
-        NotifyDocumentStateChanged();
-    }
-
-    private void NotifyDocumentStateChanged()
-    {
-        OnPropertyChanged(nameof(IsModified));
-        OnPropertyChanged(nameof(DocumentStateText));
-        OnPropertyChanged(nameof(WindowTitle));
-        OnPropertyChanged(nameof(CurrentDocumentTitle));
-        OnPropertyChanged(nameof(PropertySizeText));
+        RefreshDocumentInfo();
     }
 
     [EventHandler]
@@ -479,14 +426,19 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private void RefreshMarkdownDerivedState()
     {
-        Statistics = _statisticsService.Count(Markdown);
+        RefreshDocumentInfo();
         Navigation.SetOutlineItems(_outlineService.BuildOutline(Markdown));
+    }
+
+    private void RefreshDocumentInfo()
+    {
+        DocumentInfo.Refresh(_document, Markdown, _lastSavedMarkdown, _statisticsService.Count(Markdown));
     }
 
     public void ShowProperties()
     {
         Dialogs.ShowPropertiesPanel();
-        SetStatus($"{CurrentDocumentTitle} | {DocumentStateText} | {CurrentEncodingText} | {PropertySizeText} | {PropertyLocationText}");
+        SetStatus($"{DocumentInfo.CurrentDocumentTitle} | {DocumentInfo.DocumentStateText} | {DocumentInfo.CurrentEncodingText} | {DocumentInfo.PropertySizeText} | {DocumentInfo.PropertyLocationText}");
     }
 
     public async Task Export(string? format)
@@ -510,7 +462,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     public void WordCount()
     {
         Dialogs.ShowStatisticsPanel();
-        SetStatus($"Words {Statistics.Words}, Characters {Statistics.Characters}, Lines {Statistics.Lines}.");
+        SetStatus($"Words {DocumentInfo.Statistics.Words}, Characters {DocumentInfo.Statistics.Characters}, Lines {DocumentInfo.Statistics.Lines}.");
     }
 
     public bool CloseFloatingPanel()
@@ -655,7 +607,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         Dialogs.ShowUnsavedConfirmation(
             title,
             message,
-            CurrentFilePath ?? "Unsaved document",
+            DocumentInfo.CurrentFilePath ?? "Unsaved document",
             continuation,
             cancellation);
     }
@@ -667,31 +619,6 @@ public sealed class MainWindowViewModel : ReactiveObject
         {
             await continuation();
         }
-    }
-
-    private static string FormatFileSize(long bytes)
-    {
-        return bytes switch
-        {
-            < 1024 => $"{bytes:N0} B",
-            < 1024 * 1024 => $"{bytes / 1024d:N1} KB",
-            _ => $"{bytes / 1024d / 1024d:N1} MB"
-        };
-    }
-
-    private static string GetEncodingDisplayName(Encoding encoding)
-    {
-        if (encoding is UTF8Encoding { Preamble.Length: > 0 })
-        {
-            return "UTF-8 BOM";
-        }
-
-        if (encoding.CodePage == Encoding.UTF8.CodePage)
-        {
-            return "UTF-8";
-        }
-
-        return encoding.WebName.ToUpperInvariant();
     }
 
     private static bool IsSupportedDocumentPath(string path)

@@ -93,6 +93,11 @@
 - `MainWindowViewModel.cs` 从约 714 行降至约 610 行，新增 `ShellWindowLayoutViewModel.cs` 约 142 行，`MainWindow.axaml` 约 323 行，并补充中文注释说明源码模式恢复布局的维护点。
 - 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认默认三栏布局、预览区和状态栏在 `Layout.*` 绑定下正常显示。截图路径：`%TEMP%\VexScreenshots\layout-module-refactor.png`。
 - 本轮未新增第三方依赖，无需额外许可证核查。
+- 拆分当前文档派生展示状态：新增 `ShellDocumentInfoViewModel` 承载窗口标题、当前文件路径、保存状态、编码、文件大小、字数统计和属性面板文本，文件读写流程仍由主 ViewModel 协调。
+- 主窗口、状态栏和浮层绑定改为 `DocumentInfo.*`，窗口关闭前的未保存判断也读取 `DocumentInfo.IsModified`，避免 UI 文案与文档流程状态散落在主 ViewModel 中。
+- `MainWindowViewModel.cs` 从约 610 行降至约 552 行，新增 `ShellDocumentInfoViewModel.cs` 约 95 行，并补充中文注释说明派生属性集中刷新，降低后续维护漏改风险。
+- 验证 `dotnet build Vex.slnx`、`git diff --check`，并截图确认标题栏、状态栏 Saved/UTF-8/Words/Chars 和预览区在 `DocumentInfo.*` 绑定下正常显示。截图路径：`%TEMP%\VexScreenshots\document-info-module-refactor.png`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 
 ### en-US
 
@@ -214,4 +219,9 @@
 - Registered the layout ViewModel through Prism IoC and publish source-mode status plus editor-focus messages through CodeWF.EventBus.
 - Reduced `MainWindowViewModel.cs` from about 714 lines to about 610 lines, with the new layout ViewModel at about 142 lines and `MainWindow.axaml` at about 323 lines.
 - Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming the default three-pane layout, preview, and status bar still render through `Layout.*` bindings. Screenshot path: `%TEMP%\VexScreenshots\layout-module-refactor.png`.
+- Added no new third-party dependency, so no additional license review was required.
+- Split current-document derived display state into `ShellDocumentInfoViewModel`, covering the window title, current path, saved state, encoding, file size, statistics, and properties-panel text.
+- Registered the document-info ViewModel through Prism IoC and changed window, status-bar, and overlay bindings to `DocumentInfo.*`; window close checks now read `DocumentInfo.IsModified`.
+- Reduced `MainWindowViewModel.cs` from about 610 lines to about 552 lines, with the new document-info ViewModel at about 95 lines.
+- Verified `dotnet build Vex.slnx` and `git diff --check`, and captured a screenshot confirming title, Saved/UTF-8/Words/Chars status badges, and preview still render through `DocumentInfo.*` bindings. Screenshot path: `%TEMP%\VexScreenshots\document-info-module-refactor.png`.
 - Added no new third-party dependency, so no additional license review was required.

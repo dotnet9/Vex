@@ -35,15 +35,15 @@
                     RowDefinitions="Auto,Auto,Auto,Auto,Auto"
                     RowSpacing="8">
                     <TextBlock Classes="muted" Text="Words" />
-                    <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding Statistics.Words}" />
+                    <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.Statistics.Words}" />
                     <TextBlock Grid.Row="1" Classes="muted" Text="Characters" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" FontWeight="SemiBold" Text="{Binding Statistics.Characters}" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.Statistics.Characters}" />
                     <TextBlock Grid.Row="2" Classes="muted" Text="Lines" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" FontWeight="SemiBold" Text="{Binding Statistics.Lines}" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.Statistics.Lines}" />
                     <TextBlock Grid.Row="3" Classes="muted" Text="Encoding" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" FontWeight="SemiBold" Text="{Binding CurrentEncodingText}" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.CurrentEncodingText}" />
                     <TextBlock Grid.Row="4" Classes="muted" Text="State" />
-                    <TextBlock Grid.Row="4" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentStateText}" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.DocumentStateText}" />
                 </Grid>
             </Grid>
         </Border>
@@ -126,18 +126,18 @@
                     RowSpacing="9"
                     ColumnSpacing="16">
                     <TextBlock Classes="muted" Text="Name" />
-                    <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding PropertyNameText}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentInfo.PropertyNameText}" TextTrimming="CharacterEllipsis" />
                     <TextBlock Grid.Row="1" Classes="muted" Text="State" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DocumentStateText}" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DocumentInfo.DocumentStateText}" />
                     <TextBlock Grid.Row="2" Classes="muted" Text="Encoding" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CurrentEncodingText}" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DocumentInfo.CurrentEncodingText}" />
                     <TextBlock Grid.Row="3" Classes="muted" Text="Size" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PropertySizeText}" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DocumentInfo.PropertySizeText}" />
                     <TextBlock Grid.Row="4" Classes="muted" Text="Path" />
                     <TextBlock
                         Grid.Row="4"
                         Grid.Column="1"
-                        Text="{Binding PropertyLocationText}"
+                        Text="{Binding DocumentInfo.PropertyLocationText}"
                         TextTrimming="CharacterEllipsis" />
                 </Grid>
             </Grid>

@@ -9,7 +9,7 @@
     xmlns:workspace="using:Vex.Modules.Workspace.Views"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:MainWindowViewModel"
-    Title="{Binding WindowTitle}"
+    Title="{Binding DocumentInfo.WindowTitle}"
     Width="1280"
     Height="820"
     MinWidth="980"
@@ -106,8 +106,8 @@
                         <MenuItem Header="保存全部打开的文件..." Command="{Binding SaveAsync}" />
                         <Separator />
                         <MenuItem Header="属性..." Command="{Binding ShowProperties}" InputGesture="Alt+Enter" />
-                        <MenuItem Header="打开文件位置..." Command="{Binding OpenFileLocationAsync}" IsEnabled="{Binding HasCurrentFile}" />
-                        <MenuItem Header="删除..." Command="{Binding DeleteAsync}" IsEnabled="{Binding HasCurrentFile}" />
+                        <MenuItem Header="打开文件位置..." Command="{Binding OpenFileLocationAsync}" IsEnabled="{Binding DocumentInfo.HasCurrentFile}" />
+                        <MenuItem Header="删除..." Command="{Binding DeleteAsync}" IsEnabled="{Binding DocumentInfo.HasCurrentFile}" />
                         <Separator />
                         <MenuItem Header="导出">
                             <MenuItem Header="HTML" Command="{Binding Export}" CommandParameter="HTML" />
@@ -219,7 +219,7 @@
                     Classes="muted"
                     FontSize="12"
                     HorizontalAlignment="Center"
-                    Text="{Binding CurrentDocumentTitle}"
+                    Text="{Binding DocumentInfo.CurrentDocumentTitle}"
                     TextTrimming="CharacterEllipsis"
                     VerticalAlignment="Center" />
 
@@ -331,13 +331,13 @@
                     Orientation="Horizontal"
                     Spacing="8"
                     VerticalAlignment="Center">
-                    <md:VexStatusBadge Label="State" Value="{Binding DocumentStateText}" />
-                    <md:VexStatusBadge Label="Encoding" Value="{Binding CurrentEncodingText}" />
+                    <md:VexStatusBadge Label="State" Value="{Binding DocumentInfo.DocumentStateText}" />
+                    <md:VexStatusBadge Label="Encoding" Value="{Binding DocumentInfo.CurrentEncodingText}" />
                     <TextBlock Classes="muted" Text="{Binding EditorDisplay.ZoomText}" VerticalAlignment="Center" />
                     <md:VexStatusBadge Label="Line" Value="{Binding Status.CaretLine}" />
                     <md:VexStatusBadge Label="Col" Value="{Binding Status.CaretColumn}" />
-                    <md:VexStatusBadge Label="Words" Value="{Binding Statistics.Words}" />
-                    <md:VexStatusBadge Label="Chars" Value="{Binding Statistics.Characters}" />
+                    <md:VexStatusBadge Label="Words" Value="{Binding DocumentInfo.Statistics.Words}" />
+                    <md:VexStatusBadge Label="Chars" Value="{Binding DocumentInfo.Statistics.Characters}" />
                 </StackPanel>
             </Grid>
         </Border>

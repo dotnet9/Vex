@@ -184,7 +184,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (DataContext is MainWindowViewModel { IsModified: true } viewModel)
+        if (DataContext is MainWindowViewModel viewModel && viewModel.DocumentInfo.IsModified)
         {
             e.Cancel = true;
             await viewModel.BeginWindowCloseAsync();

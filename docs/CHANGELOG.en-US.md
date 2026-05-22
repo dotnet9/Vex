@@ -47,6 +47,7 @@
 - Split sidebar document files, outline items, side-tab selection, and navigation selection state into a dedicated `ShellNavigationViewModel`.
 - Split statistics, about, properties, delete confirmation, and unsaved-confirmation state into a dedicated `ShellDialogsViewModel`.
 - Split sidebar, preview, status-bar, source-mode, always-on-top, and full-screen state into a dedicated `ShellWindowLayoutViewModel`.
+- Split window-title, saved-state, encoding, file-size, statistics, and properties-panel display state into a dedicated `ShellDocumentInfoViewModel`.
 
 ### Changed
 
@@ -92,3 +93,4 @@
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the sidebar empty state after moving navigation bindings under `Navigation`.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the extracted dialog state through nested `Dialogs.*` overlay bindings.
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the default three-pane layout, preview, and status bar after moving layout bindings under `Layout`.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified title and status-bar bindings after moving document display state under `DocumentInfo`.
