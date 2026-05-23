@@ -4,18 +4,18 @@
 
 ### zh-CN
 
-- 修复 Markdown 预览媒体加载：`CodeWF.Markdown`/`CodeWF.Markdown.Themes` 本地打包为 12.0.3.6，新增 `MarkdownViewer.ImageBasePath`，Vex 在文档状态中传递当前文件路径，使相对 SVG/GIF/图片按 Markdown 文件目录解析。
+- 修复 Markdown 预览媒体加载：`CodeWF.Markdown`/`CodeWF.Markdown.Themes` 已切换为 NuGet 官方源 12.0.3.6，新增 `MarkdownViewer.ImageBasePath`，Vex 在文档状态中传递当前文件路径，使相对 SVG/GIF/图片按 Markdown 文件目录解析。
 - 补齐 HTML 导出、打印预览和复制自媒体链路：渲染 HTML 前解析 Markdown，把本地图片按当前文档路径解析并内联为 data URI，远程图片 URL 保持不变。
 - 同步补齐 PNG/PDF 导出路径：`MarkdownPngRenderer` 对本地 SVG 图片做 Skia 栅格化，PDF 复用该 PNG 渲染结果，因此导出链路不会遗漏 SVG 图片。
 - GIF 播放由 `AnimatedImage.Avalonia` 提供，已在 `CodeWF.Markdown` README 中记录 Apache-2.0 许可证和源码链接；Vex 裁剪根保留 `AnimatedImage` 与 `AnimatedImage.Avalonia`。
-- 修复新手引导 Guide 方位：`CodeWF.AvaloniaControls` 本地打包为 12.0.3.6，按 Avalonia anchor/gravity 语义修正 `TopLeft`、`RightTop`、`LeftTop` 等边缘对齐模式。
+- 修复新手引导 Guide 方位：`CodeWF.AvaloniaControls` 已切换为 NuGet 官方源 12.0.3.6，按 Avalonia anchor/gravity 语义修正 `TopLeft`、`RightTop`、`LeftTop` 等边缘对齐模式。
 - 补齐编辑器自动缩进细节：普通回车通过 `SmartNewLine` 编辑动作进入 Workspace mutation 服务，自动延续缩进、引用、无序列表、有序列表和任务列表；空列表项回车会结束列表。
 - 智能换行解析逻辑拆到 `MarkdownSmartNewLine`，避免继续拉长 `MarkdownEditorMutationService`；当前 mutation service 439 行，helper 185 行，仍低于维护阈值。
-- Vex 通过 `.local-nuget` 引用本地 12.0.3.6 包；验证 `dotnet build Vex.slnx -v:minimal`、NuGet 漏洞扫描，并用临时反射 smoke 确认 HTML 输出会内联相对 GIF/SVG/PNG 且保留远程图片 URL。截图确认 Markdown SVG/GIF 预览正常且 GIF 像素变化可见。截图路径：`%TEMP%\VexScreenshots\media-svg-gif-preview.png`、`%TEMP%\VexScreenshots\media-svg-gif-preview-2.png`。
+- Vex 从 NuGet 官方源还原 CodeWF 12.0.3.6 包，并移除仓库级 `.local-nuget` 本地包文件和临时 `NuGet.config`；验证 `dotnet build Vex.slnx -v:minimal`、NuGet 漏洞扫描，并用临时反射 smoke 确认 HTML 输出会内联相对 GIF/SVG/PNG 且保留远程图片 URL。截图确认 Markdown SVG/GIF 预览正常且 GIF 像素变化可见。截图路径：`%TEMP%\VexScreenshots\media-svg-gif-preview.png`、`%TEMP%\VexScreenshots\media-svg-gif-preview-2.png`。
 - 通过临时 AvaloniaEdit smoke 验证智能换行：无序列表、有序列表、任务列表、引用、普通缩进和空列表项结束均符合预期。
 - 重置 Debug 配置中的 `HasSeenOnboardingGuide=false` 后截图验证文件菜单引导步骤：弹层回到可视区，目标菜单和说明卡不再越界。截图路径：`%TEMP%\VexScreenshots\guide-file-menu-placement-fixed-2.png`。
-- `CodeWF.AvaloniaControls`/`CodeWF.AvaloniaControls.Themes` 已切换为 NuGet 官方源最新 12.0.3.4，还原不再依赖仓库级 `.local-nuget` 源。
-- 移除临时 `NuGet.Config` 本地包源和 `pack_codewf_controls_local.bat`，避免继续使用本地打包兜底。
+- `CodeWF.AvaloniaControls`/`CodeWF.AvaloniaControls.Themes` 已切换为 NuGet 官方源最新 12.0.3.6，还原不再依赖仓库级 `.local-nuget` 源。
+- 移除临时 `NuGet.config` 本地包源配置和 `.local-nuget` 本地包文件，避免继续使用本地打包兜底。
 - 新增基于 `CodeWF.AvaloniaControls` Guide 的新手引导：首次启动自动展示一次，帮助菜单可再次打开。
 - 引导覆盖标题栏关键菜单、文档列表、大纲、编辑区、预览区和状态栏；文件、段落、格式、视图、主题、帮助等菜单步骤会自动展开对应菜单后再高亮目标项。
 - 新增“大纲入口”和“大纲导航”引导步骤：先高亮视图菜单里的“大纲”，随后自动切换左侧侧栏到大纲页签再展示说明。
@@ -57,18 +57,18 @@
 
 ### en-US
 
-- Fixed Markdown preview media loading by packing `CodeWF.Markdown`/`CodeWF.Markdown.Themes` locally as 12.0.3.6. `MarkdownViewer.ImageBasePath` now lets Vex pass the current document path so relative SVG/GIF/image URLs resolve from the Markdown file directory.
+- Fixed Markdown preview media loading by restoring `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.6 from the official NuGet source. `MarkdownViewer.ImageBasePath` now lets Vex pass the current document path so relative SVG/GIF/image URLs resolve from the Markdown file directory.
 - Filled the HTML export, print-preview, and social-copy path by parsing Markdown before rendering HTML, resolving local images from the current document path, and inlining them as data URIs while keeping remote image URLs unchanged.
 - Filled the same gap in PNG/PDF export: `MarkdownPngRenderer` rasterizes local SVG images with Skia, and PDF export reuses that PNG render so SVG images are not dropped.
 - GIF playback uses `AnimatedImage.Avalonia`; the `CodeWF.Markdown` README records its Apache-2.0 license and source link, and Vex preserves `AnimatedImage` plus `AnimatedImage.Avalonia` for trimming.
-- Fixed Guide placement by packing `CodeWF.AvaloniaControls` locally as 12.0.3.6 and mapping edge-aligned modes such as `TopLeft`, `RightTop`, and `LeftTop` to the matching Avalonia anchor/gravity behavior.
+- Fixed Guide placement by restoring `CodeWF.AvaloniaControls` 12.0.3.6 from the official NuGet source and mapping edge-aligned modes such as `TopLeft`, `RightTop`, and `LeftTop` to the matching Avalonia anchor/gravity behavior.
 - Filled the editor auto-indent detail: plain Enter now routes through a `SmartNewLine` editor action and Workspace mutation service, continuing indentation, block quotes, unordered lists, ordered lists, and task lists; pressing Enter on an empty list item exits the list.
 - Moved smart-newline parsing into `MarkdownSmartNewLine` so `MarkdownEditorMutationService` does not keep growing; the mutation service is now 439 lines and the helper is 185 lines.
-- Vex consumes the local 12.0.3.6 packages from `.local-nuget`; verified `dotnet build Vex.slnx -v:minimal`, completed NuGet vulnerability scanning, and used a temporary reflection smoke to confirm HTML output inlines relative GIF/SVG/PNG while preserving remote image URLs. Screenshot-checked Markdown SVG/GIF preview with visible GIF pixel changes. Screenshot paths: `%TEMP%\VexScreenshots\media-svg-gif-preview.png`, `%TEMP%\VexScreenshots\media-svg-gif-preview-2.png`.
+- Vex restores the CodeWF 12.0.3.6 packages from the official NuGet source and no longer ships local `.local-nuget` package files or a temporary `NuGet.config`; verified `dotnet build Vex.slnx -v:minimal`, completed NuGet vulnerability scanning, and used a temporary reflection smoke to confirm HTML output inlines relative GIF/SVG/PNG while preserving remote image URLs. Screenshot-checked Markdown SVG/GIF preview with visible GIF pixel changes. Screenshot paths: `%TEMP%\VexScreenshots\media-svg-gif-preview.png`, `%TEMP%\VexScreenshots\media-svg-gif-preview-2.png`.
 - A temporary AvaloniaEdit smoke verified smart-newline behavior for unordered lists, ordered lists, task lists, block quotes, normal indentation, and exiting an empty list item.
 - After resetting `HasSeenOnboardingGuide=false` in the Debug config, screenshot-verified the File-menu guide step: the popup is back inside the visible window and the target menu plus guide card no longer overflow. Screenshot path: `%TEMP%\VexScreenshots\guide-file-menu-placement-fixed-2.png`.
-- Switched `CodeWF.AvaloniaControls` and `CodeWF.AvaloniaControls.Themes` to the latest nuget.org 12.0.3.4 packages, so restore no longer depends on the repository `.local-nuget` source.
-- Removed the temporary local-source `NuGet.Config` and `pack_codewf_controls_local.bat` to avoid relying on locally packed fallback packages.
+- Switched `CodeWF.AvaloniaControls` and `CodeWF.AvaloniaControls.Themes` to the latest nuget.org 12.0.3.6 packages, so restore no longer depends on the repository `.local-nuget` source.
+- Removed the temporary local-source `NuGet.config` and local `.local-nuget` package files to avoid relying on locally packed fallback packages.
 - Added a new-user Guide powered by `CodeWF.AvaloniaControls`: it appears once on first launch and can be reopened from the Help menu.
 - The guide covers the title-bar menu, document list, outline, editor, preview, and status bar; File, Paragraph, Format, View, Theme, and Help menu steps open their target menus before highlighting items.
 - Added dedicated outline guide steps: the guide highlights View > Outline, then switches the sidebar to the Outline tab before explaining outline navigation.
