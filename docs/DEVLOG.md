@@ -265,8 +265,9 @@
 - 验证 `dotnet build Vex.slnx`，并通过 Debug 输出配置切换深色主题截图确认主要工作区和状态栏均为深色。截图路径：`%TEMP%\VexScreenshots\dark-shell-statusbar-theme.png`。
 - 本轮未新增第三方依赖。
 - 文件列表新增右键重命名入口，重命名面板会自动聚焦并全选文件名；当前打开文件重命名后同步更新窗口标题、文件列表、最近文件和监听路径。
+- 文件列表右键菜单扩展打开、打开文件位置和删除；删除列表中的非当前文件不会清空当前编辑器，删除当前文件仍复用未保存保护和删除确认。
 - 当前打开文件新增外部变更监听：磁盘内容变化后自动刷新编辑区、预览和文件列表摘要；当前存在未保存编辑时只在状态栏提示，不覆盖本地内容。
-- 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 和 `git diff --check` 通过；通过 UI 自动化确认文件列表重命名会完成磁盘改名，并截图确认重命名面板与外部文件自动刷新流程。截图路径：`%TEMP%\VexScreenshots\file-list-rename-overlay-click.png`、`%TEMP%\VexScreenshots\external-file-watch-current.png`。
+- 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 和 `git diff --check` 通过；通过 UI 自动化确认文件列表重命名会完成磁盘改名，并截图确认右键菜单、重命名面板与外部文件自动刷新流程。截图路径：`%TEMP%\VexScreenshots\file-list-context-menu-actions.png`、`%TEMP%\VexScreenshots\file-list-rename-overlay-click.png`、`%TEMP%\VexScreenshots\external-file-watch-current.png`。
 - 本轮未新增第三方依赖。
 
 ### en-US
@@ -622,6 +623,7 @@
 - Verified `dotnet build Vex.slnx`, then switched the Debug output config to dark mode and captured a screenshot confirming the main workspace and status bar render dark. Screenshot path: `%TEMP%\VexScreenshots\dark-shell-statusbar-theme.png`.
 - Added no new third-party dependency.
 - Added a file-list context-menu rename action; the rename overlay focuses and selects the file name, and renaming the current file updates the title, file list, recent files, and watched path.
+- Expanded the file-list context menu with open, reveal-location, and delete actions; deleting a non-current list file keeps the current editor intact, while deleting the current file reuses unsaved protection and delete confirmation.
 - Added external change watching for the current opened file. Disk changes reload the editor, preview, and file-list summary automatically, while unsaved local edits are preserved with a status-bar warning.
-- Verified all four i18n JSON files, built `Vex.slnx -v:minimal`, ran `git diff --check`, completed a UI-automation disk-rename smoke test, and screenshot-verified the rename overlay plus external file reload flow. Screenshot paths: `%TEMP%\VexScreenshots\file-list-rename-overlay-click.png`, `%TEMP%\VexScreenshots\external-file-watch-current.png`.
+- Verified all four i18n JSON files, built `Vex.slnx -v:minimal`, ran `git diff --check`, completed a UI-automation disk-rename smoke test, and screenshot-verified the context menu, rename overlay, and external file reload flow. Screenshot paths: `%TEMP%\VexScreenshots\file-list-context-menu-actions.png`, `%TEMP%\VexScreenshots\file-list-rename-overlay-click.png`, `%TEMP%\VexScreenshots\external-file-watch-current.png`.
 - Added no new third-party dependency.

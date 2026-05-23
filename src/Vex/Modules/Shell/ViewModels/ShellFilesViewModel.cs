@@ -12,7 +12,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 {
     private readonly IEventBus _eventBus;
     private DocumentFile? _selectedDocumentFile;
-    private bool _suppressSelectedFileOpen;
+    private DocumentFile? _contextDocumentFile;
 
     public ShellFilesViewModel(IEventBus eventBus)
     {
@@ -37,7 +37,8 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
             if (SetProperty(ref _selectedDocumentFile, value))
             {
                 OnPropertyChanged(nameof(HasSelectedDocumentFile));
-                if (value is not null && !_suppressSelectedFileOpen)
+                OnPropertyChanged(nameof(HasDocumentFileCommandTarget));
+                if (value is not null)
                 {
                     _eventBus.Publish(new DocumentFileOpenRequestedCommand(value, previousSelection));
                 }
@@ -47,27 +48,57 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
     public bool HasSelectedDocumentFile => SelectedDocumentFile is not null;
 
-    public void RenameSelectedFile()
+    public bool HasDocumentFileCommandTarget => GetDocumentFileCommandTarget() is not null;
+
+    public void OpenSelectedFile()
     {
-        if (SelectedDocumentFile is not { } file)
+        if (GetDocumentFileCommandTarget() is not { } file)
         {
             return;
         }
 
+        var previousSelection = SelectedDocumentFile;
+        ClearContextDocumentFile();
+        _eventBus.Publish(new DocumentFileOpenRequestedCommand(file, previousSelection));
+    }
+
+    public void RenameSelectedFile()
+    {
+        if (GetDocumentFileCommandTarget() is not { } file)
+        {
+            return;
+        }
+
+        ClearContextDocumentFile();
         _eventBus.Publish(new DocumentFileRenameRequestedCommand(file));
+    }
+
+    public void OpenSelectedFileLocation()
+    {
+        if (GetDocumentFileCommandTarget() is not { } file)
+        {
+            return;
+        }
+
+        ClearContextDocumentFile();
+        _eventBus.Publish(new DocumentFileOpenLocationRequestedCommand(file));
+    }
+
+    public void DeleteSelectedFile()
+    {
+        if (GetDocumentFileCommandTarget() is not { } file)
+        {
+            return;
+        }
+
+        ClearContextDocumentFile();
+        _eventBus.Publish(new DocumentFileDeleteRequestedCommand(file));
     }
 
     public void SelectDocumentFileForContextMenu(DocumentFile documentFile)
     {
-        _suppressSelectedFileOpen = true;
-        try
-        {
-            SelectedDocumentFile = documentFile;
-        }
-        finally
-        {
-            _suppressSelectedFileOpen = false;
-        }
+        _contextDocumentFile = documentFile;
+        OnPropertyChanged(nameof(HasDocumentFileCommandTarget));
     }
 
     [EventHandler]
@@ -96,7 +127,21 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         if (SetProperty(ref _selectedDocumentFile, documentFile, nameof(SelectedDocumentFile)))
         {
             OnPropertyChanged(nameof(HasSelectedDocumentFile));
+            OnPropertyChanged(nameof(HasDocumentFileCommandTarget));
         }
+    }
+
+    private DocumentFile? GetDocumentFileCommandTarget() => _contextDocumentFile ?? SelectedDocumentFile;
+
+    private void ClearContextDocumentFile()
+    {
+        if (_contextDocumentFile is null)
+        {
+            return;
+        }
+
+        _contextDocumentFile = null;
+        OnPropertyChanged(nameof(HasDocumentFileCommandTarget));
     }
 
     private void NotifyDocumentFilesChanged()

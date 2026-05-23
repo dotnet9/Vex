@@ -4,9 +4,10 @@
 
 ### Added
 
+- Added file-list context-menu actions for opening a file, revealing its location, and deleting it through the existing confirmation flow.
 - Added file-list rename support for Markdown/TXT files, updating the current document, title, file list, and recent files after a rename.
 - Added external change watching for the opened file, refreshing the editor, preview, and file-list summary after another app saves the file while preserving unsaved local edits.
-- Validated all four i18n JSON files, built `Vex.slnx`, and screenshot-verified the file-list rename overlay plus external file reload flow.
+- Validated all four i18n JSON files, built `Vex.slnx`, and screenshot-verified the file-list context menu, rename overlay, and external file reload flow.
 - Restored `CodeWF.Markdown.Themes` 12.0.3.3 from nuget.org and removed the temporary local package source and nupkg files.
 - Restored from nuget.org, built `Vex.slnx`, and completed NuGet vulnerability scanning.
 - Added an error overlay for file opening, folder loading, saving, deleting, export, print, help, and system-open failures.

@@ -49,9 +49,23 @@
             <ListBox.ContextMenu>
                 <ContextMenu>
                     <MenuItem
+                        Header="{i18n:I18n {x:Static l:VexL.OpenFile}}"
+                        Command="{Binding OpenSelectedFile}"
+                        IsEnabled="{Binding HasDocumentFileCommandTarget}" />
+                    <Separator />
+                    <MenuItem
                         Header="{i18n:I18n {x:Static l:VexL.Rename}}"
                         Command="{Binding RenameSelectedFile}"
-                        IsEnabled="{Binding HasSelectedDocumentFile}" />
+                        IsEnabled="{Binding HasDocumentFileCommandTarget}" />
+                    <MenuItem
+                        Header="{i18n:I18n {x:Static l:VexL.OpenFileLocation}}"
+                        Command="{Binding OpenSelectedFileLocation}"
+                        IsEnabled="{Binding HasDocumentFileCommandTarget}" />
+                    <Separator />
+                    <MenuItem
+                        Header="{i18n:I18n {x:Static l:VexL.Delete}}"
+                        Command="{Binding DeleteSelectedFile}"
+                        IsEnabled="{Binding HasDocumentFileCommandTarget}" />
                 </ContextMenu>
             </ListBox.ContextMenu>
         </ListBox>

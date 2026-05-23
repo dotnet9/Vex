@@ -383,14 +383,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             return Task.CompletedTask;
         }
 
-        return RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeDeleting,
-            _text.BeforeDeleting(_document.FileName),
-            () =>
-            {
-                Dialogs.ShowDeleteConfirmation(path);
-                return Task.CompletedTask;
-            });
+        return RequestDeleteFileAsync(path);
     }
 
     public async Task ConfirmDeleteAsync()
@@ -403,16 +396,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
         await RunWithErrorOverlayAsync(
             VexL.ErrorMessageCannotDeleteFormat,
-            async () =>
-            {
-                StopCurrentFileWatcher();
-                await _documentService.DeleteAsync(path);
-                _drafts.Clear(_document);
-                Recent.RemoveRecentDocument(path);
-                Dialogs.ClearDeleteConfirmation();
-                NewDocumentCore();
-                _text.PublishFileDeleted();
-            },
+            () => DeleteFileCoreAsync(path),
             path);
     }
 
@@ -420,11 +404,62 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         if (DocumentInfo.CurrentFilePath is { Length: > 0 } path)
         {
-            await RunWithErrorOverlayAsync(
-                VexL.ErrorMessageCannotOpenLocationFormat,
-                () => _documentService.OpenFileLocationAsync(path),
-                path);
+            await OpenFileLocationCoreAsync(path);
         }
+    }
+
+    private Task RequestDeleteFileAsync(string path)
+    {
+        if (!IsCurrentDocumentPath(path))
+        {
+            Dialogs.ShowDeleteConfirmation(path);
+            return Task.CompletedTask;
+        }
+
+        return RequestUnsavedConfirmationAsync(
+            _text.TitleBeforeDeleting,
+            _text.BeforeDeleting(_document.FileName),
+            () =>
+            {
+                Dialogs.ShowDeleteConfirmation(path);
+                return Task.CompletedTask;
+            });
+    }
+
+    private async Task DeleteFileCoreAsync(string path)
+    {
+        var wasCurrentDocument = IsCurrentDocumentPath(path);
+        if (wasCurrentDocument)
+        {
+            StopCurrentFileWatcher();
+            _drafts.Clear(_document);
+        }
+
+        await _documentService.DeleteAsync(path);
+        Recent.RemoveRecentDocument(path);
+        RemoveDocumentFileFromList(path);
+        Dialogs.ClearDeleteConfirmation();
+
+        if (wasCurrentDocument)
+        {
+            NewDocumentCore();
+            _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles));
+        }
+        else
+        {
+            var selected = FindCurrentDocumentFile();
+            _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles, selected));
+        }
+
+        _text.PublishFileDeleted();
+    }
+
+    private Task OpenFileLocationCoreAsync(string path)
+    {
+        return RunWithErrorOverlayAsync(
+            VexL.ErrorMessageCannotOpenLocationFormat,
+            () => _documentService.OpenFileLocationAsync(path),
+            path);
     }
 
     public async Task ReopenWithEncodingAsync(string? encodingName)
@@ -495,6 +530,12 @@ public sealed class MainWindowViewModel : ReactiveObject
     public void ApplyDocumentFileOpenRequested(DocumentFileOpenRequestedCommand command) => _ = OpenDocumentFileAsync(command.File, command.PreviousSelection);
 
     [EventHandler]
+    public void ApplyDocumentFileOpenLocationRequested(DocumentFileOpenLocationRequestedCommand command) => _ = OpenFileLocationCoreAsync(command.File.Path);
+
+    [EventHandler]
+    public void ApplyDocumentFileDeleteRequested(DocumentFileDeleteRequestedCommand command) => _ = RequestDeleteFileAsync(command.File.Path);
+
+    [EventHandler]
     public void ApplyDocumentFileRenameRequested(DocumentFileRenameRequestedCommand command) => Dialogs.ShowRenameFilePanel(command.File.Path);
 
     [EventHandler]
@@ -528,6 +569,20 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
 
         _eventBus.Publish(new DocumentFileSelectionChangedCommand(selected));
+    }
+
+    private DocumentFile? FindCurrentDocumentFile()
+    {
+        return _document.FilePath is { Length: > 0 } path
+            ? _documentFiles.FirstOrDefault(file => PathsEqual(file.Path, path))
+            : null;
+    }
+
+    private void RemoveDocumentFileFromList(string path)
+    {
+        _documentFiles = _documentFiles
+            .Where(file => !PathsEqual(file.Path, path))
+            .ToArray();
     }
 
     public void ShowProperties() => _documentUtilities.ShowProperties(Dialogs, DocumentInfo);
@@ -667,7 +722,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
 
         Dialogs.ClearRenameFilePanel();
-        _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles, renamedFile));
+        var selectedFile = wasCurrentDocument ? renamedFile : FindCurrentDocumentFile() ?? renamedFile;
+        _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles, selectedFile));
         _text.PublishRenamedFile(Path.GetFileName(renamedPath));
     }
 

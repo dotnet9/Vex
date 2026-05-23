@@ -35,7 +35,6 @@ public partial class ShellFilesView : UserControl
         if (item?.DataContext is DocumentFile documentFile
             && DataContext is ShellFilesViewModel viewModel)
         {
-            listBox.Focus();
             viewModel.SelectDocumentFileForContextMenu(documentFile);
         }
     }
