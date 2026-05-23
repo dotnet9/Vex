@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Publish profiles no longer automatically delete existing files under `publish/<RID>/`, avoiding cleanup of unconfirmed publish artifacts.
+- Built `Vex.slnx` and used MSBuild property evaluation to verify win-x64 and linux-x64 publish profile output directories and delete behavior.
 - Missing-help-document error details are now localized instead of showing fixed English internal text.
 - Parsed all four i18n JSON files, built `Vex.slnx`, and used a temporary smoke to verify missing-help-document details.
 - File-rename failure details are now localized, so empty names, duplicate names, invalid characters, and unsupported extensions no longer expose English internal messages in non-English UI.

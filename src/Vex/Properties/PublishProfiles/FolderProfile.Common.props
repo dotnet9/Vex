@@ -5,7 +5,7 @@
     <PublishProvider>FileSystem</PublishProvider>
     <WebPublishMethod>FileSystem</WebPublishMethod>
     <LaunchSiteAfterPublish>false</LaunchSiteAfterPublish>
-    <DeleteExistingFiles>true</DeleteExistingFiles>
+    <DeleteExistingFiles>false</DeleteExistingFiles>
     <LastUsedBuildConfiguration>Release</LastUsedBuildConfiguration>
     <Configuration>Release</Configuration>
     <LastUsedPlatform>Any CPU</LastUsedPlatform>

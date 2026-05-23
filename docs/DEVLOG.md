@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 发布 Profile 安全性调整：公共 Folder Profile 将 `DeleteExistingFiles` 改为 `false`，避免发布流程自动清理用户未确认的 `publish/<RID>/` 目录内容。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并通过 `dotnet msbuild -getProperty` 检查 `FolderProfile__linux-x64` 与 `FolderProfile__win-x64` 的 `DeleteExistingFiles=false` 和 `PublishDir=publish/<RID>/`。
 - 帮助文档缺失详情迁移到 i18n：`OpenDocumentAsync` 与窗口内 Markdown 文档读取失败时使用 `HelpDetailDocumentNotFound`，错误浮层不再显示固定英文详情。
 - 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 通过，并用临时 smoke 覆盖缺失帮助文档错误详情。
 - 文件重命名失败详情迁移到 i18n：原文件不存在、目录无法解析、同名文件、空文件名、非法字符和扩展名不支持等异常详情改为四套本地化文案，避免错误浮层继续暴露英文内部消息。
@@ -76,6 +78,8 @@
 
 ### en-US
 
+- Adjusted publish profile safety: the shared Folder Profile now sets `DeleteExistingFiles` to `false`, so publishing does not automatically clear unconfirmed files under `publish/<RID>/`.
+- Verified `dotnet build Vex.slnx -v:minimal` and used `dotnet msbuild -getProperty` to check `FolderProfile__linux-x64` and `FolderProfile__win-x64` report `DeleteExistingFiles=false` with `PublishDir=publish/<RID>/`.
 - Moved missing-help-document details into i18n: `OpenDocumentAsync` and in-window Markdown document reads now use `HelpDetailDocumentNotFound`, so the error overlay no longer shows fixed English detail text.
 - Verified all four i18n JSON files, built `Vex.slnx -v:minimal`, and used a temporary smoke to cover missing-help-document error details.
 - Moved file-rename failure details into i18n: missing source file, unresolved directory, duplicate name, empty file name, invalid characters, and unsupported extension details now use the four localized resource sets instead of exposing English internal exception text.
