@@ -119,6 +119,7 @@ public sealed class HelpService : IHelpService
 
     private static IEnumerable<string> EnumerateDocumentCandidates(string documentName, string cultureName)
     {
+        var isChineseCulture = false;
         if (!string.IsNullOrWhiteSpace(cultureName))
         {
             yield return $"{documentName}.{cultureName}.md";
@@ -127,6 +128,13 @@ public sealed class HelpService : IHelpService
             {
                 yield return $"{documentName}.{cultureName[..dashIndex]}.md";
             }
+
+            isChineseCulture = cultureName.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (!isChineseCulture)
+        {
+            yield return $"{documentName}.en-US.md";
         }
 
         yield return $"{documentName}.zh-CN.md";
