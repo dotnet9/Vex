@@ -28,6 +28,8 @@
 - 增加 PDF 导出首版：复用现有 Markdown 离屏渲染结果并通过已有 SkiaSharp 传递依赖写入分页 PDF，文件菜单的 PDF 导出会打开 PDF 保存对话框并在完成后更新状态栏。
 - PDF 导出当前为图像型分页 PDF，优先保证可分发预览和本地图片随文档嵌入；后续再迭代文本可选择、分页断点和更精细的排版控制。
 - 新增 PDF 导出对话框、文件类型、状态反馈和引导文案的四套 i18n 文案；本轮未新增 NuGet 包，SkiaSharp 已由 Avalonia 渲染链路传递引入。验证四套 JSON、`dotnet build Vex.slnx -v:minimal`、`git diff --check`，并通过临时 smoke 程序生成 PDF。输出路径：`%TEMP%\VexScreenshots\pdf-export-smoke.pdf`。
+- 优化帮助文档本地化：更新日志、快速开始和鸣谢入口会优先打开当前语言对应的内置 Markdown 文件，缺失时回退到 `zh-CN` 文件，避免英文环境仍固定打开中文更新日志。
+- 验证 `dotnet build Vex.slnx -v:minimal` 和 `git diff --check`，并检索确认帮助菜单不再硬编码 `CHANGELOG.zh-CN.md` 等固定文件名。
 
 ### en-US
 
@@ -55,6 +57,8 @@
 - Added the first PDF export pass: Vex reuses the existing Markdown offscreen render and writes paged PDFs through the already-transitive SkiaSharp rendering dependency. File > Export > PDF now opens a PDF save dialog and updates the status bar on completion.
 - PDF export currently produces image-based paged PDFs, prioritizing distributable preview fidelity and embedded local images; selectable text, page-break tuning, and finer typography control remain future refinements.
 - Added localized PDF export dialog, file type, status feedback, and guide text for all four cultures. This pass adds no NuGet package; SkiaSharp is already pulled in by the Avalonia rendering chain. Verified JSON resources, `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and generated a PDF with a temporary smoke program. Output path: `%TEMP%\VexScreenshots\pdf-export-smoke.pdf`.
+- Improved help-document localization: Changelog, Quick Start, and Acknowledgements now prefer the current culture's bundled Markdown file and fall back to `zh-CN` when a localized file is not present, so English environments can open the English changelog.
+- Verified `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and searched to confirm the help menu no longer hard-codes fixed `CHANGELOG.zh-CN.md` document names.
 
 ## 0.1.0 - 2026-05-22
 

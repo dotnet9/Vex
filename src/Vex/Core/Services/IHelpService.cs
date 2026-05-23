@@ -7,4 +7,6 @@ public interface IHelpService
     Task OpenFeedbackAsync();
 
     Task OpenDocumentAsync(string fileName);
+
+    Task OpenLocalizedDocumentAsync(string documentName, string cultureName);
 }

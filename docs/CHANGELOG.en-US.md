@@ -24,6 +24,8 @@
 - Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the dark find bar and about overlay.
 - Added File > Export > PDF. The first pass creates image-based paged PDFs so documents can be shared with preview fidelity and embedded local images.
 - Parsed all four i18n JSON files, built `Vex.slnx`, ran `git diff --check`, and generated a PDF with a temporary smoke program.
+- Improved bundled help-document selection so the Help menu prefers the current UI language and falls back to Simplified Chinese when a localized file is missing.
+- Built `Vex.slnx`, ran `git diff --check`, and searched to confirm help entries no longer hard-code Chinese document filenames.
 - Added File menu actions to copy the current Markdown as HTML rich text for WeChat Official Account, Zhihu, and Juejin.
 - Validated all four i18n JSON files, built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the new copy entries in the File menu.
 - Added PNG export from the File > Export menu, rendering the current Markdown document as a long image.
