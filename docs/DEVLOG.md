@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 当前文档无文件路径的重载失败详情迁移到 i18n，异常详情不再固定为英文。
+- 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 通过，并确认常见 `throw new ...("...")` 英文详情扫描无剩余结果。
 - 大文件性能优化：`MarkdownTextChangedCommand` 增加编辑器维护的 `LineCount`，预览滚动比例直接使用该值，避免仅移动光标时反复扫描整篇 Markdown 统计行数。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并扫描 `MarkdownTextChangedCommand` 调用点确认编辑器路径会传入 AvaloniaEdit 的 `Document.LineCount`。
 - 暗色模式细节调整：关于窗口链接颜色改用 `VexLinkBrush` 主题资源，暗色主题使用更高亮度蓝色；错误、删除、重命名和未保存确认遮罩改用 `VexOverlayScrimBrush`，暗色主题遮罩更稳定。
@@ -88,6 +90,8 @@
 
 ### en-US
 
+- Moved the reload failure detail for documents without a file path into i18n, so the exception detail is no longer fixed English.
+- Verified all four i18n JSON files, `dotnet build Vex.slnx -v:minimal`, and a fixed-string scan for common `throw new ...("...")` English details.
 - Optimized large-file preview updates: `MarkdownTextChangedCommand` now carries the editor-maintained `LineCount`, so preview scroll-ratio updates no longer rescan the full Markdown text when only the caret moves.
 - Verified `dotnet build Vex.slnx -v:minimal` and scanned `MarkdownTextChangedCommand` call sites to confirm the editor path passes AvaloniaEdit `Document.LineCount`.
 - Refined dark-mode details: the About window link now uses the themed `VexLinkBrush` with a brighter dark-theme blue, and error/delete/rename/unsaved overlays use `VexOverlayScrimBrush` with a stronger dark-theme scrim.

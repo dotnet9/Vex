@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- The reload failure detail for documents without a file path now uses i18n instead of fixed English.
+- Parsed all four i18n JSON files, built `Vex.slnx`, and scanned for common fixed-English `throw new` details.
 - Preview scroll-ratio updates now use the editor-maintained line count, avoiding full Markdown scans on caret-only movement in large files.
 - Built `Vex.slnx` and checked `MarkdownTextChangedCommand` call sites to confirm the editor passes `Document.LineCount`.
 - The About link and Shell overlay scrims now use theme resources, improving link contrast and overlay stability in dark mode.

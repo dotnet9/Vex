@@ -239,6 +239,7 @@
       "ErrorMessageCannotStartNewWindow": "無法啟動新的 Vex 視窗。",
       "ErrorMessageActionFailed": "目前操作未能完成。",
       "ErrorDetailFallback": "沒有更多錯誤詳情。",
+      "DocumentDetailFilePathMissing": "目前文件沒有檔案路徑。",
       "RenameDetailFileNotFound": "找不到要重新命名的原檔案。",
       "RenameDetailDirectoryUnavailable": "無法解析原檔案所在資料夾。",
       "RenameDetailDuplicateFileFormat": "已存在名為「{0}」的檔案。",

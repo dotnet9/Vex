@@ -58,7 +58,7 @@ public sealed class DocumentService : IDocumentService
     {
         if (document.FilePath is not { Length: > 0 } path)
         {
-            throw new InvalidOperationException("The current document does not have a file path.");
+            throw new InvalidOperationException(_localizer.Get(VexL.DocumentDetailFilePathMissing));
         }
 
         var markdown = await File.ReadAllTextAsync(path, document.Encoding);

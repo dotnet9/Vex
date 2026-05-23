@@ -239,6 +239,7 @@
       "ErrorMessageCannotStartNewWindow": "Could not start a new Vex window.",
       "ErrorMessageActionFailed": "The current action could not be completed.",
       "ErrorDetailFallback": "No additional error details were provided.",
+      "DocumentDetailFilePathMissing": "The current document does not have a file path.",
       "RenameDetailFileNotFound": "The original file to rename was not found.",
       "RenameDetailDirectoryUnavailable": "The original file folder could not be resolved.",
       "RenameDetailDuplicateFileFormat": "A file named \"{0}\" already exists.",
