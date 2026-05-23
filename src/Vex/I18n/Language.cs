@@ -13,6 +13,8 @@ public static class VexL
     public static readonly string ChineseName = "Vex.VexL.ChineseName";
     public static readonly string Slogan = "Vex.VexL.Slogan";
     public static readonly string AboutChineseNameLabel = "Vex.VexL.AboutChineseNameLabel";
+    public static readonly string AboutVersionLabel = "Vex.VexL.AboutVersionLabel";
+    public static readonly string AboutCompileTimeLabel = "Vex.VexL.AboutCompileTimeLabel";
     public static readonly string AboutAuthorLabel = "Vex.VexL.AboutAuthorLabel";
     public static readonly string AboutAuthorName = "Vex.VexL.AboutAuthorName";
     public static readonly string AboutWebsiteLabel = "Vex.VexL.AboutWebsiteLabel";

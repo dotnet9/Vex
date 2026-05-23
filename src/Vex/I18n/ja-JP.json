@@ -8,6 +8,8 @@
       "ChineseName": "Vex",
       "Slogan": "最小の力で、美しい文章を",
       "AboutChineseNameLabel": "中国語名",
+      "AboutVersionLabel": "バージョン",
+      "AboutCompileTimeLabel": "ビルド時刻",
       "AboutAuthorLabel": "作者",
       "AboutAuthorName": "砂漠の果ての狼",
       "AboutWebsiteLabel": "Web サイト",

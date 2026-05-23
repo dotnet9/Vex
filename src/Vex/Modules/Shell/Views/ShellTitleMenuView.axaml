@@ -118,48 +118,47 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ZoomOut}}" Command="{Binding EditorDisplay.ZoomOut}" />
         </MenuItem>
 
-        <MenuItem x:Name="ThemeMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuTheme}}">
-            <MenuItem x:Name="ThemeColorMenuItem" Header="{i18n:I18n {x:Static l:VexL.ThemeColor}}">
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeSystem}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="system" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeLight}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="light" />
-                <MenuItem x:Name="ThemeDarkMenuItem" Header="{i18n:I18n {x:Static l:VexL.ThemeDark}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="dark" />
-                <Separator />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeAquatic}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="aquatic" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeDesert}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="desert" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeDusk}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="dusk" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeNightSky}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="night-sky" />
-            </MenuItem>
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Typography}}">
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographySimple}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="Simple" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyBasic}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="Basic" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyOrangeHeart}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="OrangeHeart" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyInkBlack}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="InkBlack" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyColorfulPurple}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="ColorfulPurple" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyTenderGreen}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="TenderGreen" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyVerdant}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="Verdant" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyRedScarlet}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="RedScarlet" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyBlueGlow}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="BlueGlow" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyTechnologyBlue}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="TechnologyBlue" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyLanQing}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="LanQing" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyYamabuki}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="Yamabuki" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyFrontendPeak}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="FrontendPeak" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyGeekBlack}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="GeekBlack" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyRosePurple}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="RosePurple" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyCuteGreen}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="CuteGreen" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyFullStackBlue}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="FullStackBlue" />
-                <Separator />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.CompactLayout}}" Command="{Binding Appearance.ToggleCompactLayout}" />
-            </MenuItem>
-        </MenuItem>
-
-        <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuLanguage}}">
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.LanguageZhCn}}" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="zh-CN" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.LanguageZhHant}}" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="zh-Hant" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.LanguageEnUs}}" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="en-US" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.LanguageJaJp}}" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="ja-JP" />
-        </MenuItem>
-
         <MenuItem x:Name="HelpMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuHelp}}">
+            <MenuItem x:Name="ThemeMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuTheme}}">
+                <MenuItem x:Name="ThemeColorMenuItem" Header="{i18n:I18n {x:Static l:VexL.ThemeColor}}">
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeSystem}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="system" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeLight}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="light" />
+                    <MenuItem x:Name="ThemeDarkMenuItem" Header="{i18n:I18n {x:Static l:VexL.ThemeDark}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="dark" />
+                    <Separator />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeAquatic}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="aquatic" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeDesert}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="desert" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeDusk}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="dusk" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeNightSky}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="night-sky" />
+                </MenuItem>
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.Typography}}">
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographySimple}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="Simple" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyBasic}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="Basic" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyOrangeHeart}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="OrangeHeart" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyInkBlack}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="InkBlack" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyColorfulPurple}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="ColorfulPurple" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyTenderGreen}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="TenderGreen" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyVerdant}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="Verdant" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyRedScarlet}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="RedScarlet" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyBlueGlow}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="BlueGlow" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyTechnologyBlue}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="TechnologyBlue" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyLanQing}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="LanQing" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyYamabuki}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="Yamabuki" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyFrontendPeak}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="FrontendPeak" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyGeekBlack}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="GeekBlack" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyRosePurple}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="RosePurple" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyCuteGreen}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="CuteGreen" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyFullStackBlue}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="FullStackBlue" />
+                    <Separator />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.CompactLayout}}" Command="{Binding Appearance.ToggleCompactLayout}" />
+                </MenuItem>
+            </MenuItem>
+            <MenuItem x:Name="LanguageMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuLanguage}}">
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.LanguageZhCn}}" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="zh-CN" />
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.LanguageZhHant}}" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="zh-Hant" />
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.LanguageEnUs}}" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="en-US" />
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.LanguageJaJp}}" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="ja-JP" />
+            </MenuItem>
+            <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Changelog}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="changelog" />
             <MenuItem x:Name="BeginGuideMenuItem" Header="{i18n:I18n {x:Static l:VexL.OnboardingGuide}}" Click="BeginGuideMenuItem_OnClick" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Thanks}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="thanks" />

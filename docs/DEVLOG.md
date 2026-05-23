@@ -1,9 +1,16 @@
 # Vex Development Log
 
-## 0.1.0 - 2026-05-23
+## 0.1.0 - 2026-05-24
 
 ### zh-CN
 
+- 关于窗口新增版本号和编译时间展示；版本号从 Vex 程序集元数据读取，编译时间通过 `CodeWF.Tools.Core` NuGet 包中的 `AssemblyExtensions.CompileTime()` 获取，并补齐四套本地化标签。
+- 基于用户截图继续修正新手引导箭头：`CodeWF.AvaloniaControls` 的 Guide 在 Popup 打开和布局渲染后按目标与卡片的实际屏幕位置重新计算箭头偏移，并保留弹层在窗口边缘的自动滑动约束。
+- 核查 `CodeWF.Markdown.12.0.3.7.nupkg`：包内已有 `contentFiles/any/any/I18n/CodeWF.Markdown/*.json`，nuspec 也标记 `copyToOutput=true`；Vex 原先只直接引用 `CodeWF.Markdown.Themes`，`CodeWF.Markdown` 作为传递依赖时 contentFiles 不会复制到应用输出目录。
+- Vex 增加对 `CodeWF.Markdown` 的显式包引用，使 Markdown 本地化 JSON 正常输出到 `I18n/CodeWF.Markdown`，修复代码块复制按钮显示 `CodeWF.MarkdownL.Copy`；`CodeWF.Markdown` 与 `Lang.Avalonia` 仓库保持不改。
+- 标题栏菜单重新组合：主题和国际化移入帮助菜单；文件菜单保留打开、保存、复制、属性、关闭等常用项直接点击，只保留最近打开、重新编码打开和导出格式这类必要子菜单；一级菜单 `MinHeight` 与水平 `Padding` 收紧。
+- Vex 改回从 NuGet 平台还原 CodeWF 12.0.3.7 包，删除仓库级 `.local-nuget` 本地包目录和临时 `NuGet.config`；`CodeWF.AvaloniaControls` 仓库的包版本同步提升到 12.0.3.7。
+- 验证 `dotnet restore Vex.slnx --force-evaluate`、`dotnet build Vex.slnx -v:minimal --no-restore`、四套 i18n JSON 解析和 `I18n/CodeWF.Markdown/*.json` 输出通过。
 - 修复 Markdown 预览媒体加载：`CodeWF.Markdown`/`CodeWF.Markdown.Themes` 已切换为 NuGet 官方源 12.0.3.6，新增 `MarkdownViewer.ImageBasePath`，Vex 在文档状态中传递当前文件路径，使相对 SVG/GIF/图片按 Markdown 文件目录解析。
 - 补齐 HTML 导出、打印预览和复制自媒体链路：渲染 HTML 前解析 Markdown，把本地图片按当前文档路径解析并内联为 data URI，远程图片 URL 保持不变。
 - 同步补齐 PNG/PDF 导出路径：`MarkdownPngRenderer` 对本地 SVG 图片做 Skia 栅格化，PDF 复用该 PNG 渲染结果，因此导出链路不会遗漏 SVG 图片。
@@ -57,6 +64,13 @@
 
 ### en-US
 
+- Added version and build time to the About window. The version comes from the Vex assembly metadata, and build time is read through `AssemblyExtensions.CompileTime()` from the `CodeWF.Tools.Core` NuGet package, with labels localized in all four languages.
+- Continued guide-arrow alignment fixes from the user screenshots: `CodeWF.AvaloniaControls` Guide now recalculates arrow offset from the actual target and card screen positions after the Popup opens and after render layout, while keeping window-edge slide constraints.
+- Checked `CodeWF.Markdown.12.0.3.7.nupkg`: the package already contains `contentFiles/any/any/I18n/CodeWF.Markdown/*.json`, and the nuspec marks them with `copyToOutput=true`. Vex previously referenced only `CodeWF.Markdown.Themes` directly, so Markdown was a transitive dependency and its contentFiles were not copied to the app output.
+- Added an explicit Vex package reference to `CodeWF.Markdown`, copying Markdown localization JSON to `I18n/CodeWF.Markdown` and fixing code-block copy buttons that displayed `CodeWF.MarkdownL.Copy`; `CodeWF.Markdown` and `Lang.Avalonia` repositories remain unchanged.
+- Regrouped the title-bar menu: Theme and Language moved under Help; File keeps Open, Save, Copy, Properties, and Close directly clickable and only keeps natural option groups such as recent files, reopen encoding, and export formats as submenus; top-level menu `MinHeight` and horizontal `Padding` were tightened.
+- Vex now restores the CodeWF 12.0.3.7 packages from nuget.org again, with the repository `.local-nuget` package folder and temporary `NuGet.config` removed; `CodeWF.AvaloniaControls` was bumped to 12.0.3.7.
+- Verified `dotnet restore Vex.slnx --force-evaluate`, `dotnet build Vex.slnx -v:minimal --no-restore`, four i18n JSON parses, and the copied `I18n/CodeWF.Markdown/*.json` output.
 - Fixed Markdown preview media loading by restoring `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.6 from the official NuGet source. `MarkdownViewer.ImageBasePath` now lets Vex pass the current document path so relative SVG/GIF/image URLs resolve from the Markdown file directory.
 - Filled the HTML export, print-preview, and social-copy path by parsing Markdown before rendering HTML, resolving local images from the current document path, and inlining them as data URIs while keeping remote image URLs unchanged.
 - Filled the same gap in PNG/PDF export: `MarkdownPngRenderer` rasterizes local SVG images with Skia, and PDF export reuses that PNG render so SVG images are not dropped.

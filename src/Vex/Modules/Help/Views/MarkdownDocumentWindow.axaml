@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:md="https://codewf.com"
     xmlns:u="https://irihi.tech/ursa"
-    Width="760"
+    Width="460"
     Height="560"
     MinWidth="560"
     MinHeight="420"

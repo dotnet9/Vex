@@ -8,6 +8,8 @@
       "ChineseName": "Vex",
       "Slogan": "Minimal power, elegant writing",
       "AboutChineseNameLabel": "Chinese Name",
+      "AboutVersionLabel": "Version",
+      "AboutCompileTimeLabel": "Build Time",
       "AboutAuthorLabel": "Author",
       "AboutAuthorName": "Wolf at the End of the Desert",
       "AboutWebsiteLabel": "Website",

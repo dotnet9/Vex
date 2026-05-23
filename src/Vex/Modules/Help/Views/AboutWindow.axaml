@@ -7,9 +7,9 @@
     xmlns:u="https://irihi.tech/ursa"
     Title="{i18n:I18n {x:Static l:VexL.About}}"
     Width="420"
-    Height="330"
+    Height="370"
     MinWidth="380"
-    MinHeight="300"
+    MinHeight="340"
     CanMaximize="False"
     CanMinimize="False"
     CanResize="False"
@@ -34,25 +34,29 @@
             <Grid
                 Grid.Row="1"
                 ColumnDefinitions="Auto,*"
-                RowDefinitions="Auto,Auto,Auto,Auto"
+                RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
                 RowSpacing="9"
                 ColumnSpacing="16">
                 <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutChineseNameLabel}}" />
                 <TextBlock Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.ChineseName}}" />
-                <TextBlock Grid.Row="1" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorLabel}}" />
-                <TextBlock Grid.Row="1" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorName}}" />
-                <TextBlock Grid.Row="2" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutWebsiteLabel}}" />
+                <TextBlock Grid.Row="1" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutVersionLabel}}" />
+                <TextBlock x:Name="VersionText" Grid.Row="1" Grid.Column="1" />
+                <TextBlock Grid.Row="2" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutCompileTimeLabel}}" />
+                <TextBlock x:Name="CompileTimeText" Grid.Row="2" Grid.Column="1" />
+                <TextBlock Grid.Row="3" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorLabel}}" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorName}}" />
+                <TextBlock Grid.Row="4" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutWebsiteLabel}}" />
                 <TextBlock
                     x:Name="WebsiteLink"
-                    Grid.Row="2"
+                    Grid.Row="4"
                     Grid.Column="1"
                     Cursor="Hand"
                     Foreground="#1677FF"
                     PointerPressed="WebsiteLink_OnPointerPressed"
                     Text="https://codewf.com"
                     TextDecorations="Underline" />
-                <TextBlock Grid.Row="3" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutBrandLabel}}" />
-                <TextBlock Grid.Row="3" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutBrandName}}" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="5" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutBrandLabel}}" />
+                <TextBlock Grid.Row="5" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutBrandName}}" TextWrapping="Wrap" />
             </Grid>
 
             <TextBlock
