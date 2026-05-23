@@ -16,6 +16,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
         .Build();
+    private static readonly MarkdownPngRenderer PngRenderer = new();
     private readonly IAppLocalizer _localizer;
 
     public MarkdownExportService(IAppLocalizer localizer)
@@ -46,6 +47,33 @@ public sealed class MarkdownExportService : IMarkdownExportService
         }
 
         await File.WriteAllTextAsync(path, BuildHtml(document), Utf8NoBom);
+        return path;
+    }
+
+    public async Task<string?> ExportPngAsync(DocumentSnapshot document)
+    {
+        var owner = GetMainWindow();
+        if (owner is null)
+        {
+            return null;
+        }
+
+        var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = _localizer.Get(VexL.DialogExportPngTitle),
+            SuggestedFileName = Path.ChangeExtension(document.FileName, ".png"),
+            DefaultExtension = "png",
+            FileTypeChoices = CreatePngFileTypes()
+        });
+
+        var path = file?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        using var bitmap = PngRenderer.Render(document);
+        bitmap.Save(path);
         return path;
     }
 
@@ -104,6 +132,18 @@ public sealed class MarkdownExportService : IMarkdownExportService
             new(_localizer.Get(VexL.FileTypeHtml))
             {
                 Patterns = ["*.html", "*.htm"]
+            },
+            FilePickerFileTypes.All
+        ];
+    }
+
+    private IReadOnlyList<FilePickerFileType> CreatePngFileTypes()
+    {
+        return
+        [
+            new(_localizer.Get(VexL.FileTypePng))
+            {
+                Patterns = ["*.png"]
             },
             FilePickerFileTypes.All
         ];

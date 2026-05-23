@@ -4,6 +4,9 @@
 
 ### Added
 
+- Added PNG export from the File > Export menu, rendering the current Markdown document as a long image.
+- Improved preview synchronization compatibility by falling back to ratio scrolling when the current MarkdownViewer package does not expose source-line bounds.
+- Validated all four i18n JSON files, built `Vex.slnx`, ran `git diff --check`, and generated a PNG with a temporary Avalonia smoke program.
 - Added file-list context-menu actions for opening a file, revealing its location, and deleting it through the existing confirmation flow.
 - Added file-list rename support for Markdown/TXT files, updating the current document, title, file list, and recent files after a rename.
 - Added external change watching for the opened file, refreshing the editor, preview, and file-list summary after another app saves the file while preserving unsaved local edits.

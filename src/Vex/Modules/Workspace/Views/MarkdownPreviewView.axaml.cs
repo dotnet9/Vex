@@ -1,4 +1,6 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -77,9 +79,27 @@ public partial class MarkdownPreviewView : UserControl
         PreviewScrollViewer.Offset = new Vector(0d, targetY);
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Optional CodeWF.Markdown line-bound API is probed at runtime and falls back to ratio scrolling when unavailable.")]
     private bool TryScrollToSourceLine()
     {
-        if (_viewModel is null || !PreviewMarkdownViewer.TryGetSourceLineBounds(_viewModel.PreviewSourceLine, out var bounds))
+        if (_viewModel is null)
+        {
+            return false;
+        }
+
+        var method = PreviewMarkdownViewer.GetType().GetMethod(
+            "TryGetSourceLineBounds",
+            BindingFlags.Instance | BindingFlags.Public,
+            binder: null,
+            types: [typeof(int), typeof(Rect).MakeByRefType()],
+            modifiers: null);
+        if (method is null)
+        {
+            return false;
+        }
+
+        var arguments = new object?[] { _viewModel.PreviewSourceLine, default(Rect) };
+        if (method.Invoke(PreviewMarkdownViewer, arguments) is not true || arguments[1] is not Rect bounds)
         {
             return false;
         }

@@ -85,6 +85,10 @@ public interface IShellDocumentWorkflowText
 
     void PublishExportedHtmlTo(string fileName);
 
+    void PublishPngExportCanceled();
+
+    void PublishExportedPngTo(string fileName);
+
     void PublishExportNotImplemented(string? format);
 
     void PublishPrintPreviewResult(bool isCanceled);

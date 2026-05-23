@@ -4,6 +4,11 @@
 
 ### zh-CN
 
+- 增加 PNG 导出：文件菜单导出 PNG 会通过 Avalonia 离屏渲染当前 Markdown，生成包含标题、段落、引用、列表、表格、代码块和本地块级图片的长图。
+- PNG 导出复用现有 Markdig 与 Avalonia 依赖，不新增第三方组件；新增 PNG 文件选择器标题、文件类型和导出状态的简体中文、繁体中文、英文、日文本地化资源。
+- 兼容当前 NuGet 版 CodeWF.Markdown.Themes：预览区源码行精确滚动 API 不存在时自动回退到比例滚动，避免构建失败并保留基础同步体验。
+- 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 和 `git diff --check` 通过；使用临时 smoke 程序初始化 Avalonia 并生成 PNG，输出路径：`%TEMP%\VexScreenshots\png-export-smoke.png`。
+- 本轮未新增第三方依赖，无需额外许可证核查。
 - 增加统一错误提示浮层，覆盖文件打开、文件夹加载、保存、删除、导出、打印、帮助文档、打开文件位置和新窗口启动失败。
 - 错误浮层接入简体中文、繁体中文、英文和日文资源，状态栏同步提示错误显示和关闭状态。
 - 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 和 `git diff --check` 通过，并截图确认锁定文件打开失败时显示错误浮层。截图路径：`%TEMP%\VexScreenshots\error-overlay-locked-startup-file.png`。
@@ -272,6 +277,11 @@
 
 ### en-US
 
+- Added PNG export: the File > Export > PNG action now renders the current Markdown document off-screen through Avalonia, producing a long PNG with headings, paragraphs, quotes, lists, tables, code blocks, and local block images.
+- PNG export reuses the existing Markdig and Avalonia dependencies, adds no new third-party component, and includes localized PNG picker/status resources for zh-CN, zh-Hant, en-US, and ja-JP.
+- Kept compatibility with the current NuGet CodeWF.Markdown.Themes package by probing the optional source-line scroll API at runtime and falling back to ratio scrolling when it is unavailable.
+- Verified all four i18n JSON files, built `Vex.slnx -v:minimal`, ran `git diff --check`, and used a temporary Avalonia smoke program to render `%TEMP%\VexScreenshots\png-export-smoke.png`.
+- Added no new third-party dependency.
 - Added a unified error overlay for file opening, folder loading, saving, deleting, export, print, help documents, file-location opening, and new-window startup failures.
 - Localized the error overlay in Simplified Chinese, Traditional Chinese, English, and Japanese, with status-bar feedback for showing and closing the panel.
 - Verified that all four i18n JSON files parse, `dotnet build Vex.slnx -v:minimal` and `git diff --check` pass, and a locked startup file shows the error overlay. Screenshot path: `%TEMP%\VexScreenshots\error-overlay-locked-startup-file.png`.

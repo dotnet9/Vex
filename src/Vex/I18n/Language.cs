@@ -168,9 +168,11 @@ public static class VexL
     public static readonly string DialogOpenFolderTitle = "Vex.VexL.DialogOpenFolderTitle";
     public static readonly string DialogSaveMarkdownTitle = "Vex.VexL.DialogSaveMarkdownTitle";
     public static readonly string DialogExportHtmlTitle = "Vex.VexL.DialogExportHtmlTitle";
+    public static readonly string DialogExportPngTitle = "Vex.VexL.DialogExportPngTitle";
     public static readonly string FileTypeMarkdown = "Vex.VexL.FileTypeMarkdown";
     public static readonly string FileTypeText = "Vex.VexL.FileTypeText";
     public static readonly string FileTypeHtml = "Vex.VexL.FileTypeHtml";
+    public static readonly string FileTypePng = "Vex.VexL.FileTypePng";
     public static readonly string ExportFormatDocument = "Vex.VexL.ExportFormatDocument";
     public static readonly string ErrorTitle = "Vex.VexL.ErrorTitle";
     public static readonly string ErrorDetailLabel = "Vex.VexL.ErrorDetailLabel";
@@ -227,6 +229,8 @@ public static class VexL
     public static readonly string StatusPropertiesSummaryFormat = "Vex.VexL.StatusPropertiesSummaryFormat";
     public static readonly string StatusHtmlExportCanceled = "Vex.VexL.StatusHtmlExportCanceled";
     public static readonly string StatusExportedHtmlToFormat = "Vex.VexL.StatusExportedHtmlToFormat";
+    public static readonly string StatusPngExportCanceled = "Vex.VexL.StatusPngExportCanceled";
+    public static readonly string StatusExportedPngToFormat = "Vex.VexL.StatusExportedPngToFormat";
     public static readonly string StatusExportNotImplementedFormat = "Vex.VexL.StatusExportNotImplementedFormat";
     public static readonly string StatusPrintPreviewCanceled = "Vex.VexL.StatusPrintPreviewCanceled";
     public static readonly string StatusOpenedHtmlPrintPreview = "Vex.VexL.StatusOpenedHtmlPrintPreview";
