@@ -171,6 +171,8 @@
       "FindBarNext": "次へ",
       "FindBarAll": "すべて",
       "FindBarClose": "閉じる",
+      "FindBarMatchCase": "大文字と小文字を区別",
+      "FindBarWholeWord": "単語単位",
       "StatisticsTitle": "統計",
       "StatisticsLines": "行数",
       "StatisticsParagraphs": "段落",

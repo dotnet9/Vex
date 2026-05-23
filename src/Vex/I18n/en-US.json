@@ -171,6 +171,8 @@
       "FindBarNext": "Next",
       "FindBarAll": "All",
       "FindBarClose": "Close",
+      "FindBarMatchCase": "Match case",
+      "FindBarWholeWord": "Whole word",
       "StatisticsTitle": "Statistics",
       "StatisticsLines": "Lines",
       "StatisticsParagraphs": "Paragraphs",

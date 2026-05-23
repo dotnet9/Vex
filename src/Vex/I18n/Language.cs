@@ -176,6 +176,8 @@ public static class VexL
     public static readonly string FindBarNext = "Vex.VexL.FindBarNext";
     public static readonly string FindBarAll = "Vex.VexL.FindBarAll";
     public static readonly string FindBarClose = "Vex.VexL.FindBarClose";
+    public static readonly string FindBarMatchCase = "Vex.VexL.FindBarMatchCase";
+    public static readonly string FindBarWholeWord = "Vex.VexL.FindBarWholeWord";
     public static readonly string StatisticsTitle = "Vex.VexL.StatisticsTitle";
     public static readonly string StatisticsLines = "Vex.VexL.StatisticsLines";
     public static readonly string StatisticsParagraphs = "Vex.VexL.StatisticsParagraphs";

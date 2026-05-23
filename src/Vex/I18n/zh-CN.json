@@ -171,6 +171,8 @@
       "FindBarNext": "下一个",
       "FindBarAll": "全部",
       "FindBarClose": "关闭",
+      "FindBarMatchCase": "区分大小写",
+      "FindBarWholeWord": "整词匹配",
       "StatisticsTitle": "统计",
       "StatisticsLines": "行数",
       "StatisticsParagraphs": "段落",

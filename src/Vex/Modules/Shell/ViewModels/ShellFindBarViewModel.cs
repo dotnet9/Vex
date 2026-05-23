@@ -12,6 +12,8 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     private readonly IShellStatusPublisher _statusPublisher;
     private bool _isVisible;
     private bool _isReplaceVisible;
+    private bool _isMatchCase;
+    private bool _isWholeWord;
     private string _searchText = string.Empty;
     private string _replacementText = string.Empty;
     private string _searchResultText = "0/0";
@@ -33,6 +35,30 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     {
         get => _isReplaceVisible;
         set => SetProperty(ref _isReplaceVisible, value);
+    }
+
+    public bool IsMatchCase
+    {
+        get => _isMatchCase;
+        set
+        {
+            if (SetProperty(ref _isMatchCase, value))
+            {
+                RefreshSearchResultCount();
+            }
+        }
+    }
+
+    public bool IsWholeWord
+    {
+        get => _isWholeWord;
+        set
+        {
+            if (SetProperty(ref _isWholeWord, value))
+            {
+                RefreshSearchResultCount();
+            }
+        }
     }
 
     public string SearchText
@@ -90,7 +116,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
             return;
         }
 
-        _eventBus.Publish(new EditorSearchCommand(EditorSearchAction.FindNext, SearchText));
+        PublishSearch(EditorSearchAction.FindNext);
     }
 
     public void ReplaceNext()
@@ -101,7 +127,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
             return;
         }
 
-        _eventBus.Publish(new EditorSearchCommand(EditorSearchAction.ReplaceNext, SearchText, ReplacementText));
+        PublishSearch(EditorSearchAction.ReplaceNext, ReplacementText);
     }
 
     public void ReplaceAll()
@@ -112,7 +138,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
             return;
         }
 
-        _eventBus.Publish(new EditorSearchCommand(EditorSearchAction.ReplaceAll, SearchText, ReplacementText));
+        PublishSearch(EditorSearchAction.ReplaceAll, ReplacementText);
     }
 
     [EventHandler]
@@ -137,7 +163,17 @@ public sealed class ShellFindBarViewModel : ReactiveObject
             return;
         }
 
-        _eventBus.Publish(new EditorSearchCommand(EditorSearchAction.Count, SearchText));
+        PublishSearch(EditorSearchAction.Count);
+    }
+
+    private void PublishSearch(EditorSearchAction action, string? replacementText = null)
+    {
+        _eventBus.Publish(new EditorSearchCommand(
+            action,
+            SearchText,
+            replacementText,
+            IsMatchCase,
+            IsWholeWord));
     }
 
     private void PublishEditorAction(EditorActionKind action)

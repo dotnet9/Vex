@@ -16,7 +16,7 @@
         BorderBrush="#E4E7EC"
         BorderThickness="0 0 0 1"
         Padding="10 8">
-        <Grid ColumnDefinitions="Auto,220,Auto,220,Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="8">
+        <Grid ColumnDefinitions="Auto,220,Auto,220,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="8">
             <TextBlock
                 Classes="muted"
                 Text="{i18n:I18n {x:Static l:VexL.FindBarFind}}"
@@ -67,6 +67,18 @@
                 MinWidth="48"
                 Text="{Binding SearchResultText}"
                 TextAlignment="Right"
+                VerticalAlignment="Center" />
+            <CheckBox
+                Grid.Column="9"
+                Content="Aa"
+                IsChecked="{Binding IsMatchCase, Mode=TwoWay}"
+                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarMatchCase}}"
+                VerticalAlignment="Center" />
+            <CheckBox
+                Grid.Column="10"
+                Content="W"
+                IsChecked="{Binding IsWholeWord, Mode=TwoWay}"
+                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
                 VerticalAlignment="Center" />
         </Grid>
     </Border>
