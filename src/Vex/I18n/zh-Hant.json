@@ -154,7 +154,7 @@
       "GuideStatusBarTitle": "狀態列",
       "GuideStatusBarDescription": "底部狀態列顯示儲存狀態、編碼、縮放、游標位置、詞數和字元數，輕量回饋會優先顯示在左側。",
       "GuideHelpMenuTitle": "再次開啟引導",
-      "GuideHelpMenuDescription": "之後可以從幫助選單再次開啟新手引導，也可以查看快速開始、更新日誌、鳴謝和關於面板。",
+      "GuideHelpMenuDescription": "之後可以從幫助選單再次開啟新手引導，也可以查看更新日誌、鳴謝和關於視窗。",
       "GuideFinishTitle": "開始寫作",
       "GuideFinishDescription": "引導結束後即可直接在編輯區寫作；常用入口都在標題列選單內，檔案和大綱位於左側。",
       "Thanks": "鳴謝",

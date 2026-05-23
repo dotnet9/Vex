@@ -26,9 +26,9 @@
 
     <u:UrsaWindow.LeftContent>
         <StackPanel
-            Margin="10 0 10 0"
+            Margin="8 0 10 0"
             Orientation="Horizontal"
-            Spacing="7"
+            Spacing="5"
             VerticalAlignment="Center">
             <Image Width="16" Height="16" Source="/Assets/logo.png" />
             <TextBlock
@@ -37,18 +37,16 @@
                 Text="Vex"
                 VerticalAlignment="Center" />
             <shell:ShellTitleMenuView x:Name="TitleMenuView" />
+            <TextBlock
+                Classes="muted"
+                FontSize="12"
+                Margin="3 0 0 0"
+                MaxWidth="380"
+                Text="{Binding DocumentInfo.CurrentDocumentTitle}"
+                TextTrimming="CharacterEllipsis"
+                VerticalAlignment="Center" />
         </StackPanel>
     </u:UrsaWindow.LeftContent>
-
-    <u:UrsaWindow.TitleBarContent>
-        <TextBlock
-            Classes="muted"
-            FontSize="12"
-            HorizontalAlignment="Center"
-            Text="{Binding DocumentInfo.CurrentDocumentTitle}"
-            TextTrimming="CharacterEllipsis"
-            VerticalAlignment="Center" />
-    </u:UrsaWindow.TitleBarContent>
 
     <Grid
         x:Name="ShellGuideRoot"

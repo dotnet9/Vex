@@ -3,7 +3,7 @@ using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
-// 处理帮助菜单入口；主 Shell 只负责组合，不直接关心外部文档和网站打开细节。
+// 处理帮助菜单入口；Shell 只协调菜单动作，文档和网站打开细节收口到帮助服务。
 public sealed class ShellHelpViewModel
 {
     private readonly IHelpService _helpService;
@@ -30,15 +30,14 @@ public sealed class ShellHelpViewModel
             switch (topic)
             {
                 case "changelog":
-                    await _helpService.OpenLocalizedDocumentAsync("CHANGELOG", _localizer.Culture.Name);
+                    await _helpService.ShowLocalizedDocumentWindowAsync(
+                        _localizer.Get(VexL.Changelog),
+                        "CHANGELOG",
+                        _localizer.Culture.Name);
                     _statusPublisher.PublishResource(VexL.StatusOpenedChangelog);
                     break;
-                case "quick-start":
-                    await _helpService.OpenLocalizedDocumentAsync("QuickStart", _localizer.Culture.Name);
-                    _statusPublisher.PublishResource(VexL.StatusOpenedQuickStart);
-                    break;
                 case "thanks":
-                    await _helpService.OpenLocalizedDocumentAsync("ACKNOWLEDGEMENTS", _localizer.Culture.Name);
+                    await _helpService.ShowDocumentWindowAsync(_localizer.Get(VexL.Thanks), "Thanks.md");
                     _statusPublisher.PublishResource(VexL.StatusOpenedAcknowledgements);
                     break;
                 case "website":
@@ -48,8 +47,7 @@ public sealed class ShellHelpViewModel
                     await _helpService.OpenFeedbackAsync();
                     break;
                 case "about":
-                    // 关于面板属于 Shell 浮层，具体显示状态交给 ShellDialogsViewModel 维护。
-                    _dialogs.ShowAboutPanel();
+                    await _helpService.ShowAboutWindowAsync();
                     _statusPublisher.PublishResource(VexL.StatusAboutVex);
                     break;
                 default:
@@ -68,7 +66,6 @@ public sealed class ShellHelpViewModel
         return topic switch
         {
             "changelog" => _localizer.Get(VexL.Changelog),
-            "quick-start" => _localizer.Get(VexL.QuickStart),
             "thanks" => _localizer.Get(VexL.Thanks),
             "website" => _localizer.Get(VexL.Website),
             "feedback" => _localizer.Get(VexL.Feedback),

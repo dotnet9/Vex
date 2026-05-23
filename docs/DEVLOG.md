@@ -38,6 +38,10 @@
 - 验证 `git diff --check`。
 - 优化 PDF 导出分页：分页切片会在目标页尾附近优先寻找空白横行作为断点，减少图像型 PDF 正好切过正文、表格或代码行的概率。
 - 验证 `dotnet build Vex.slnx -v:minimal`、`git diff --check`，并通过临时 smoke 程序重新生成 PDF。输出路径：`%TEMP%\VexScreenshots\pdf-export-smoke.pdf`。
+- 整理标题栏帮助体验：收紧标题栏菜单间距，将当前文件名移到菜单右侧紧邻展示，并从帮助菜单移除重复的“快速开始（引导）”入口。
+- 更新日志和鸣谢改为独立 UrsaWindow 窗口，使用 CodeWF.Markdown `MarkdownViewer` 渲染内置 Markdown；鸣谢入口改为加载随程序输出的 `docs/Thanks.md`。
+- 关于入口改为独立 UrsaWindow 窗口，移除 Shell 内自绘关于浮层和自绘关闭按钮，网站地址可点击打开 `https://codewf.com`。
+- 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 和 `git diff --check` 通过，并截图检查标题栏菜单、帮助菜单、更新日志窗口、鸣谢窗口和关于窗口。截图路径：`%TEMP%\VexScreenshots\menu-layout-printwindow.png`、`%TEMP%\VexScreenshots\help-menu-items.png`、`%TEMP%\VexScreenshots\help-changelog-window.png`、`%TEMP%\VexScreenshots\help-thanks-window.png`、`%TEMP%\VexScreenshots\help-about-window.png`。
 
 ### en-US
 
@@ -75,6 +79,10 @@
 - Verified `git diff --check`.
 - Improved PDF pagination: page image slices now prefer a blank horizontal row near the target page bottom, reducing the chance of cutting through text, tables, or code lines.
 - Verified `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and regenerated the PDF with a temporary smoke program. Output path: `%TEMP%\VexScreenshots\pdf-export-smoke.pdf`.
+- Refined the title-bar help experience: tightened title-menu spacing, moved the current file name directly beside the menu, and removed the duplicate Quick Start guide entry from the Help menu.
+- Changelog and Acknowledgements now open in standalone UrsaWindow windows rendered with CodeWF.Markdown `MarkdownViewer`; Acknowledgements now loads the bundled `docs/Thanks.md` file.
+- About now opens in a standalone UrsaWindow, removing the custom Shell about overlay and its custom close button; the website URL is clickable and opens `https://codewf.com`.
+- Verified all four i18n JSON files, `dotnet build Vex.slnx -v:minimal`, and `git diff --check`, then screenshot-checked the title menu, Help menu, Changelog window, Acknowledgements window, and About window. Screenshot paths: `%TEMP%\VexScreenshots\menu-layout-printwindow.png`, `%TEMP%\VexScreenshots\help-menu-items.png`, `%TEMP%\VexScreenshots\help-changelog-window.png`, `%TEMP%\VexScreenshots\help-thanks-window.png`, `%TEMP%\VexScreenshots\help-about-window.png`.
 
 ## 0.1.0 - 2026-05-22
 

@@ -12,7 +12,7 @@
     </Style>
     <Style Selector="Menu.title-menu MenuItem:toplevel">
         <Setter Property="MinHeight" Value="30" />
-        <Setter Property="Padding" Value="7 0" />
+        <Setter Property="Padding" Value="4 0" />
     </Style>
     <Style Selector="Border.panel">
         <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />

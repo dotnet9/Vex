@@ -43,6 +43,7 @@
     <Content Include="..\..\docs\QuickStart.zh-CN.md" Link="docs\QuickStart.zh-CN.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\ACKNOWLEDGEMENTS.en-US.md" Link="docs\ACKNOWLEDGEMENTS.en-US.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\ACKNOWLEDGEMENTS.zh-CN.md" Link="docs\ACKNOWLEDGEMENTS.zh-CN.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\Thanks.md" Link="docs\Thanks.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

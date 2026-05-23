@@ -154,7 +154,7 @@
       "GuideStatusBarTitle": "状态栏",
       "GuideStatusBarDescription": "底部状态栏显示保存状态、编码、缩放、光标位置、词数和字符数，轻量反馈会优先显示在左侧。",
       "GuideHelpMenuTitle": "再次打开引导",
-      "GuideHelpMenuDescription": "以后可以从帮助菜单再次打开新手引导，也可以查看快速开始、更新日志、鸣谢和关于面板。",
+      "GuideHelpMenuDescription": "以后可以从帮助菜单再次打开新手引导，也可以查看更新日志、鸣谢和关于窗口。",
       "GuideFinishTitle": "开始写作",
       "GuideFinishDescription": "引导结束后即可直接在编辑区写作；常用入口都在标题栏菜单内，文件和大纲位于左侧。",
       "Thanks": "鸣谢",

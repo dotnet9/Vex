@@ -1,0 +1,59 @@
+<u:UrsaWindow
+    x:Class="Vex.Modules.Help.Views.AboutWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
+    xmlns:u="https://irihi.tech/ursa"
+    Title="{i18n:I18n {x:Static l:VexL.About}}"
+    Width="420"
+    Height="330"
+    MinWidth="380"
+    MinHeight="300"
+    CanResize="False"
+    Icon="/Assets/logo.ico"
+    WindowStartupLocation="CenterOwner">
+    <Border
+        Background="{DynamicResource VexPanelBackgroundBrush}"
+        Padding="24">
+        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="18">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <Image Width="40" Height="40" Source="/Assets/logo.png" />
+                <StackPanel Grid.Column="1" Spacing="3">
+                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.AppName}}" />
+                    <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.Slogan}}" TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
+
+            <Grid
+                Grid.Row="1"
+                ColumnDefinitions="Auto,*"
+                RowDefinitions="Auto,Auto,Auto,Auto"
+                RowSpacing="9"
+                ColumnSpacing="16">
+                <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutChineseNameLabel}}" />
+                <TextBlock Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.ChineseName}}" />
+                <TextBlock Grid.Row="1" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorLabel}}" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorName}}" />
+                <TextBlock Grid.Row="2" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutWebsiteLabel}}" />
+                <TextBlock
+                    x:Name="WebsiteLink"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Cursor="Hand"
+                    Foreground="#1677FF"
+                    PointerPressed="WebsiteLink_OnPointerPressed"
+                    Text="https://codewf.com"
+                    TextDecorations="Underline" />
+                <TextBlock Grid.Row="3" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutBrandLabel}}" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutBrandName}}" TextWrapping="Wrap" />
+            </Grid>
+
+            <TextBlock
+                Grid.Row="2"
+                Classes="muted"
+                Text="{i18n:I18n {x:Static l:VexL.AboutDescription}}"
+                TextWrapping="Wrap" />
+        </Grid>
+    </Border>
+</u:UrsaWindow>

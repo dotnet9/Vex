@@ -1,11 +1,21 @@
 using System.Diagnostics;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Vex.Core.Services;
+using Vex.Modules.Help.Views;
 
 namespace Vex.Modules.Help.Services;
 
 public sealed class HelpService : IHelpService
 {
     private static readonly string DocumentsFolder = Path.Combine(AppContext.BaseDirectory, "docs");
+    private readonly IEditorAppearanceState _appearanceState;
+
+    public HelpService(IEditorAppearanceState appearanceState)
+    {
+        _appearanceState = appearanceState;
+    }
 
     public Task OpenWebsiteAsync()
     {
@@ -36,9 +46,60 @@ public sealed class HelpService : IHelpService
         return OpenDocumentAsync(ResolveLocalizedDocumentName(documentName, cultureName));
     }
 
+    public Task ShowDocumentWindowAsync(string title, string fileName)
+    {
+        var markdown = ReadDocument(fileName);
+        ShowWindow(new MarkdownDocumentWindow(
+            title,
+            markdown,
+            _appearanceState.TypographyTheme,
+            _appearanceState.TypographySize));
+        return Task.CompletedTask;
+    }
+
+    public Task ShowLocalizedDocumentWindowAsync(string title, string documentName, string cultureName)
+    {
+        return ShowDocumentWindowAsync(title, ResolveLocalizedDocumentName(documentName, cultureName));
+    }
+
+    public Task ShowAboutWindowAsync()
+    {
+        ShowWindow(new AboutWindow());
+        return Task.CompletedTask;
+    }
+
     private static void Open(string uri)
     {
         Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
+    }
+
+    private static string ReadDocument(string fileName)
+    {
+        var path = Path.Combine(DocumentsFolder, fileName);
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException("The bundled help document was not found.", path);
+        }
+
+        return File.ReadAllText(path);
+    }
+
+    private static void ShowWindow(Window window)
+    {
+        if (GetMainWindow() is { } owner)
+        {
+            window.Show(owner);
+            return;
+        }
+
+        window.Show();
+    }
+
+    private static Window? GetMainWindow()
+    {
+        return Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow }
+            ? mainWindow
+            : null;
     }
 
     private static string ResolveLocalizedDocumentName(string documentName, string cultureName)

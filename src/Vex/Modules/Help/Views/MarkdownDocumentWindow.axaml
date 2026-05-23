@@ -1,0 +1,22 @@
+<u:UrsaWindow
+    x:Class="Vex.Modules.Help.Views.MarkdownDocumentWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:md="https://codewf.com"
+    xmlns:u="https://irihi.tech/ursa"
+    Width="860"
+    Height="680"
+    MinWidth="640"
+    MinHeight="480"
+    Icon="/Assets/logo.ico"
+    WindowStartupLocation="CenterOwner">
+    <Border
+        Background="{DynamicResource VexPreviewBackgroundBrush}"
+        Padding="34 28">
+        <ScrollViewer
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <md:MarkdownViewer x:Name="DocumentMarkdownViewer" />
+        </ScrollViewer>
+    </Border>
+</u:UrsaWindow>

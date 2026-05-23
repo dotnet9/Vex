@@ -154,7 +154,7 @@
       "GuideStatusBarTitle": "ステータスバー",
       "GuideStatusBarDescription": "下部のステータスバーには、保存状態、エンコーディング、ズーム、カーソル位置、単語数、文字数が表示されます。",
       "GuideHelpMenuTitle": "ガイドを再表示",
-      "GuideHelpMenuDescription": "ヘルプメニューからこのガイドを再度開けます。クイックスタート、変更履歴、謝辞、バージョン情報も確認できます。",
+      "GuideHelpMenuDescription": "ヘルプメニューからこのガイドを再度開けます。変更履歴、謝辞、バージョン情報ウィンドウも確認できます。",
       "GuideFinishTitle": "執筆を始める",
       "GuideFinishDescription": "ガイド終了後はそのままエディターで書き始められます。よく使う入口はタイトルバーメニューにあり、ファイルとアウトラインは左側にあります。",
       "Thanks": "謝辞",

@@ -161,7 +161,6 @@
 
         <MenuItem x:Name="HelpMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuHelp}}">
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Changelog}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="changelog" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.QuickStart}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="quick-start" />
             <MenuItem x:Name="BeginGuideMenuItem" Header="{i18n:I18n {x:Static l:VexL.OnboardingGuide}}" Click="BeginGuideMenuItem_OnClick" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Thanks}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="thanks" />
             <Separator />

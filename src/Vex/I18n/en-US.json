@@ -154,7 +154,7 @@
       "GuideStatusBarTitle": "Status Bar",
       "GuideStatusBarDescription": "The bottom status bar shows save state, encoding, zoom, cursor position, word count, and character count. Lightweight feedback appears on the left.",
       "GuideHelpMenuTitle": "Open the Guide Again",
-      "GuideHelpMenuDescription": "Use the Help menu to open this guide again, or to view Quick Start, Changelog, Acknowledgements, and About.",
+      "GuideHelpMenuDescription": "Use the Help menu to open this guide again, or to view Changelog, Acknowledgements, and About windows.",
       "GuideFinishTitle": "Start Writing",
       "GuideFinishDescription": "You can start writing directly in the editor. Common entries are in the title-bar menus, while files and outline stay on the left.",
       "Thanks": "Acknowledgements",

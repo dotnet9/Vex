@@ -5,7 +5,6 @@
     xmlns:views="using:Vex.Modules.Shell.Views">
     <Grid>
         <views:ShellStatisticsOverlayView />
-        <views:ShellAboutOverlayView />
         <views:ShellPropertiesOverlayView />
         <views:ShellDeleteConfirmationOverlayView />
         <views:ShellUnsavedConfirmationOverlayView />

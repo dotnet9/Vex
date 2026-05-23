@@ -9,4 +9,10 @@ public interface IHelpService
     Task OpenDocumentAsync(string fileName);
 
     Task OpenLocalizedDocumentAsync(string documentName, string cultureName);
+
+    Task ShowDocumentWindowAsync(string title, string fileName);
+
+    Task ShowLocalizedDocumentWindowAsync(string title, string documentName, string cultureName);
+
+    Task ShowAboutWindowAsync();
 }

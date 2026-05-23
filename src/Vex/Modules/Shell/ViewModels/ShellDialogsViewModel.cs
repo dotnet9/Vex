@@ -11,7 +11,6 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     private readonly IShellStatusPublisher _statusPublisher;
     private readonly IAppLocalizer _localizer;
     private bool _isStatisticsPanelVisible;
-    private bool _isAboutPanelVisible;
     private bool _isPropertiesPanelVisible;
     private bool _isDeleteConfirmVisible;
     private bool _isUnsavedConfirmVisible;
@@ -47,12 +46,6 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     {
         get => _isStatisticsPanelVisible;
         set => SetProperty(ref _isStatisticsPanelVisible, value);
-    }
-
-    public bool IsAboutPanelVisible
-    {
-        get => _isAboutPanelVisible;
-        set => SetProperty(ref _isAboutPanelVisible, value);
     }
 
     public bool IsPropertiesPanelVisible
@@ -125,16 +118,6 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     public void CloseStatisticsPanel()
     {
         IsStatisticsPanelVisible = false;
-    }
-
-    public void ShowAboutPanel()
-    {
-        IsAboutPanelVisible = true;
-    }
-
-    public void CloseAboutPanel()
-    {
-        IsAboutPanelVisible = false;
     }
 
     public void ShowPropertiesPanel()
@@ -295,13 +278,6 @@ public sealed class ShellDialogsViewModel : ReactiveObject
         {
             IsStatisticsPanelVisible = false;
             _statusPublisher.PublishResource(VexL.StatusStatisticsClosed);
-            return true;
-        }
-
-        if (IsAboutPanelVisible)
-        {
-            IsAboutPanelVisible = false;
-            _statusPublisher.PublishResource(VexL.StatusAboutClosed);
             return true;
         }
 
