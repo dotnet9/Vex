@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- PDF/PNG export-renderer failure details now use i18n resources, so PDF creation, bitmap decode, and SVG rasterization failures no longer show fixed English internal exceptions.
+- Parsed all four i18n JSON files and built `Vex.slnx` to verify the export-renderer localization changes.
 - Added `scripts/package_vex_artifacts.ps1` to package `publish/<RID>/` outputs into release zip archives, SHA256 files, and a release manifest under `artifacts/release/`.
 - Added `publish_vex_all.bat --package` so successful all-RID publishing can generate compressed release artifacts without overwriting existing outputs by default.
 - Built `Vex.slnx`, ran a package smoke against a temporary publish directory, and verified unknown one-command publish arguments print usage and stop.

@@ -13,6 +13,7 @@ using Markdig.Syntax.Inlines;
 using SkiaSharp;
 using Svg.Skia;
 using Vex.Core.Models;
+using Vex.Core.Services;
 using MarkdigInline = Markdig.Syntax.Inlines.Inline;
 
 namespace Vex.Modules.Workspace.Services;
@@ -44,10 +45,16 @@ internal sealed class MarkdownPngRenderer
     private static readonly IBrush LinkBrush = Brush("#2563eb");
     private static readonly IBrush TableHeaderBrush = Brush("#f9fafb");
     private static readonly IBrush QuoteBorderBrush = Brush("#d1d5db");
+    private readonly IAppLocalizer _localizer;
+
+    public MarkdownPngRenderer(IAppLocalizer localizer)
+    {
+        _localizer = localizer;
+    }
 
     public RenderTargetBitmap Render(DocumentSnapshot document)
     {
-        var visual = BuildVisual(document);
+        var visual = BuildVisual(document, _localizer);
         visual.Measure(new Size(PageWidth, double.PositiveInfinity));
 
         var width = (int)Math.Ceiling(PageWidth);
@@ -59,7 +66,7 @@ internal sealed class MarkdownPngRenderer
         return bitmap;
     }
 
-    private static Border BuildVisual(DocumentSnapshot document)
+    private static Border BuildVisual(DocumentSnapshot document, IAppLocalizer localizer)
     {
         var stack = new StackPanel
         {
@@ -70,7 +77,7 @@ internal sealed class MarkdownPngRenderer
         var parsed = Markdown.Parse(document.Markdown ?? string.Empty, Pipeline);
         foreach (var block in parsed)
         {
-            AddBlock(stack, block, document.FilePath, 0);
+            AddBlock(stack, block, document.FilePath, localizer, 0);
         }
 
         if (stack.Children.Count == 0)
@@ -87,14 +94,14 @@ internal sealed class MarkdownPngRenderer
         };
     }
 
-    private static void AddBlock(Panel parent, Block block, string? documentPath, int depth)
+    private static void AddBlock(Panel parent, Block block, string? documentPath, IAppLocalizer localizer, int depth)
     {
         switch (block)
         {
             case HeadingBlock heading:
                 parent.Children.Add(CreateHeading(heading));
                 break;
-            case ParagraphBlock paragraph when TryCreateImage(paragraph, documentPath, out var image):
+            case ParagraphBlock paragraph when TryCreateImage(paragraph, documentPath, localizer, out var image):
                 parent.Children.Add(image);
                 break;
             case ParagraphBlock paragraph:
@@ -104,10 +111,10 @@ internal sealed class MarkdownPngRenderer
                 parent.Children.Add(CreateCodeBlock(codeBlock));
                 break;
             case QuoteBlock quote:
-                parent.Children.Add(CreateQuoteBlock(quote, documentPath, depth));
+                parent.Children.Add(CreateQuoteBlock(quote, documentPath, localizer, depth));
                 break;
             case ListBlock list:
-                parent.Children.Add(CreateListBlock(list, documentPath, depth));
+                parent.Children.Add(CreateListBlock(list, documentPath, localizer, depth));
                 break;
             case ThematicBreakBlock:
                 parent.Children.Add(CreateThematicBreak());
@@ -121,7 +128,7 @@ internal sealed class MarkdownPngRenderer
             case ContainerBlock container:
                 foreach (var child in container)
                 {
-                    AddBlock(parent, child, documentPath, depth);
+                    AddBlock(parent, child, documentPath, localizer, depth);
                 }
 
                 break;
@@ -180,7 +187,7 @@ internal sealed class MarkdownPngRenderer
         };
     }
 
-    private static Border CreateQuoteBlock(QuoteBlock quote, string? documentPath, int depth)
+    private static Border CreateQuoteBlock(QuoteBlock quote, string? documentPath, IAppLocalizer localizer, int depth)
     {
         var stack = new StackPanel
         {
@@ -189,7 +196,7 @@ internal sealed class MarkdownPngRenderer
 
         foreach (var child in quote)
         {
-            AddBlock(stack, child, documentPath, depth + 1);
+            AddBlock(stack, child, documentPath, localizer, depth + 1);
         }
 
         return new Border
@@ -202,7 +209,7 @@ internal sealed class MarkdownPngRenderer
         };
     }
 
-    private static StackPanel CreateListBlock(ListBlock list, string? documentPath, int depth)
+    private static StackPanel CreateListBlock(ListBlock list, string? documentPath, IAppLocalizer localizer, int depth)
     {
         var stack = new StackPanel
         {
@@ -214,13 +221,13 @@ internal sealed class MarkdownPngRenderer
         foreach (var child in list.OfType<ListItemBlock>())
         {
             var marker = list.IsOrdered ? $"{index++}." : "-";
-            stack.Children.Add(CreateListItem(marker, child, documentPath, depth));
+            stack.Children.Add(CreateListItem(marker, child, documentPath, localizer, depth));
         }
 
         return stack;
     }
 
-    private static Grid CreateListItem(string marker, ListItemBlock item, string? documentPath, int depth)
+    private static Grid CreateListItem(string marker, ListItemBlock item, string? documentPath, IAppLocalizer localizer, int depth)
     {
         var grid = new Grid
         {
@@ -239,7 +246,7 @@ internal sealed class MarkdownPngRenderer
         var content = new StackPanel { Spacing = 0 };
         foreach (var child in item)
         {
-            AddBlock(content, child, documentPath, depth + 1);
+            AddBlock(content, child, documentPath, localizer, depth + 1);
         }
 
         Grid.SetColumn(content, 1);
@@ -412,7 +419,11 @@ internal sealed class MarkdownPngRenderer
         return span;
     }
 
-    private static bool TryCreateImage(ParagraphBlock paragraph, string? documentPath, out Control imageControl)
+    private static bool TryCreateImage(
+        ParagraphBlock paragraph,
+        string? documentPath,
+        IAppLocalizer localizer,
+        out Control imageControl)
     {
         imageControl = null!;
 
@@ -430,7 +441,7 @@ internal sealed class MarkdownPngRenderer
 
         try
         {
-            var bitmap = LoadLocalBitmap(path);
+            var bitmap = LoadLocalBitmap(path, localizer);
             imageControl = new Image
             {
                 Source = bitmap,
@@ -475,12 +486,12 @@ internal sealed class MarkdownPngRenderer
         return File.Exists(relativePath) ? relativePath : null;
     }
 
-    private static Bitmap LoadLocalBitmap(string path)
+    private static Bitmap LoadLocalBitmap(string path, IAppLocalizer localizer)
     {
         var bytes = File.ReadAllBytes(path);
         if (IsSvgPath(path) || IsSvgBytes(bytes))
         {
-            using var svgPng = new MemoryStream(RenderSvgToPngBytes(bytes));
+            using var svgPng = new MemoryStream(RenderSvgToPngBytes(bytes, localizer));
             return new Bitmap(svgPng);
         }
 
@@ -511,14 +522,14 @@ internal sealed class MarkdownPngRenderer
         "Trimming",
         "IL2026",
         Justification = "Markdown export renders user-provided SVG files at runtime, so build-time SVG generation is not applicable.")]
-    private static byte[] RenderSvgToPngBytes(byte[] svgBytes)
+    private static byte[] RenderSvgToPngBytes(byte[] svgBytes, IAppLocalizer localizer)
     {
         using var svg = new SKSvg();
         using var svgStream = new MemoryStream(svgBytes);
         var picture = svg.Load(svgStream) ?? svg.Picture;
         if (picture is null)
         {
-            throw new InvalidDataException("SVG picture could not be loaded.");
+            throw new InvalidDataException(localizer.Get(VexL.ExportDetailSvgPictureLoadFailed));
         }
 
         var bounds = picture.CullRect;
@@ -531,7 +542,7 @@ internal sealed class MarkdownPngRenderer
         using var surface = SKSurface.Create(new SKImageInfo(scaledWidth, scaledHeight, SKColorType.Rgba8888, SKAlphaType.Premul));
         if (surface is null)
         {
-            throw new InvalidDataException("SVG rendering surface could not be created.");
+            throw new InvalidDataException(localizer.Get(VexL.ExportDetailSvgSurfaceCreateFailed));
         }
 
         var canvas = surface.Canvas;
@@ -543,7 +554,7 @@ internal sealed class MarkdownPngRenderer
 
         using var image = surface.Snapshot();
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        return data?.ToArray() ?? throw new InvalidDataException("SVG picture could not be encoded.");
+        return data?.ToArray() ?? throw new InvalidDataException(localizer.Get(VexL.ExportDetailSvgEncodeFailed));
     }
 
     private static string GetTableCellText(TableCell cell)

@@ -4,6 +4,9 @@
 
 ### zh-CN
 
+- 导出渲染失败详情继续迁移到 i18n：PDF 文档创建失败、渲染位图解码失败，以及本地 SVG 栅格化加载/画布/编码失败改用四套本地化文案。
+- `MarkdownExportService` 将本地化服务传入 PNG/PDF 渲染器，避免导出错误浮层继续显示固定英文内部异常。
+- 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 通过。
 - 正式发布产物整理：新增 `scripts/package_vex_artifacts.ps1`，可从 `publish/<RID>/` 生成 `artifacts/release/` 下的 zip、SHA256 和发布 manifest；默认不覆盖已有产物，需显式 `-Force`。
 - 一键发布脚本支持 `publish_vex_all.bat --package`，在五个 RID 发布成功后自动生成压缩包发布产物。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并使用临时 `publish/smoke-rid` 目录执行打包 smoke，确认可生成 zip、SHA256 与 release manifest；批处理未知参数会输出用法并停止。
@@ -81,6 +84,9 @@
 
 ### en-US
 
+- Continued moving export-renderer failure details into i18n: PDF creation failures, rendered bitmap decode failures, and local SVG rasterization load/surface/encode failures now use the four localized resource sets.
+- `MarkdownExportService` now passes the app localizer into the PNG/PDF renderers, so export error overlays no longer show those fixed English internal exceptions.
+- Verified all four i18n JSON files and `dotnet build Vex.slnx -v:minimal`.
 - Organized formal release artifacts: added `scripts/package_vex_artifacts.ps1` to create zip archives, SHA256 files, and a release manifest under `artifacts/release/` from `publish/<RID>/`; existing outputs are not overwritten unless `-Force` is explicit.
 - Added `publish_vex_all.bat --package` so the one-command publish flow can generate compressed release artifacts after all five RIDs publish successfully.
 - Verified `dotnet build Vex.slnx -v:minimal`, ran a packaging smoke against a temporary `publish/smoke-rid` folder, and confirmed unknown batch arguments print usage and stop.

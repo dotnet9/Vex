@@ -1,6 +1,7 @@
 using Avalonia.Media.Imaging;
 using SkiaSharp;
 using Vex.Core.Models;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Workspace.Services;
 
@@ -24,7 +25,14 @@ internal sealed class MarkdownPdfRenderer
     private static readonly SKColor MetadataTextColor = new(107, 114, 128);
     private static readonly SKColor MetadataLineColor = new(229, 231, 235);
 
-    private readonly MarkdownPngRenderer _pngRenderer = new();
+    private readonly IAppLocalizer _localizer;
+    private readonly MarkdownPngRenderer _pngRenderer;
+
+    public MarkdownPdfRenderer(IAppLocalizer localizer)
+    {
+        _localizer = localizer;
+        _pngRenderer = new MarkdownPngRenderer(localizer);
+    }
 
     public void Render(DocumentSnapshot document, string path)
     {
@@ -36,7 +44,7 @@ internal sealed class MarkdownPdfRenderer
         using var pdf = SKDocument.CreatePdf(stream);
         if (pdf is null)
         {
-            throw new InvalidOperationException("Could not create PDF document.");
+            throw new InvalidOperationException(_localizer.Get(VexL.ExportDetailPdfDocumentCreateFailed));
         }
 
         var contentWidth = PageWidth - (PageMargin * 2);
@@ -70,13 +78,13 @@ internal sealed class MarkdownPdfRenderer
         pdf.Close();
     }
 
-    private static SKBitmap DecodeRenderedBitmap(RenderTargetBitmap rendered)
+    private SKBitmap DecodeRenderedBitmap(RenderTargetBitmap rendered)
     {
         using var stream = new MemoryStream();
         rendered.Save(stream);
         stream.Position = 0;
         return SKBitmap.Decode(stream)
-               ?? throw new InvalidOperationException("Could not decode rendered Markdown bitmap.");
+               ?? throw new InvalidOperationException(_localizer.Get(VexL.ExportDetailRenderedBitmapDecodeFailed));
     }
 
     private static IEnumerable<PdfSlice> CreateSlices(SKBitmap bitmap, int sourceSliceHeight)

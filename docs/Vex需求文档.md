@@ -974,6 +974,7 @@ AI 继续开发时必须遵守：
 51. 帮助文档缺失错误详情已覆盖四套 i18n 文案。
 52. Folder Publish Profile 不会自动删除 `publish/<RID>/` 中已有文件，避免清理用户未确认的发布产物。
 53. 正式压缩包发布产物已有 `scripts/package_vex_artifacts.ps1`，可生成 zip、SHA256 与 release manifest；`publish_vex_all.bat --package` 可在全部 RID 发布成功后自动打包。
+54. PDF/PNG 导出渲染失败详情继续迁移到四套 i18n 文案，覆盖 PDF 创建、位图解码和 SVG 栅格化关键失败路径。
 
 ## 25. 未完成重点清单
 

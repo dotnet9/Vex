@@ -4,6 +4,8 @@
 
 ### 修复
 
+- 🐛[修复]-PDF/PNG 导出渲染失败详情继续迁移到 i18n，PDF 创建、位图解码和 SVG 栅格化失败不再固定显示英文内部异常。
+- 🧪[测试]-解析四套 i18n JSON，并构建 `Vex.slnx` 验证导出渲染器本地化改动。
 - ✨[新增]-新增 `scripts/package_vex_artifacts.ps1`，可把 `publish/<RID>/` 打包为 `artifacts/release/` 下的 zip、SHA256 和发布 manifest。
 - 🔧[优化]-`publish_vex_all.bat --package` 支持在全部 RID 发布成功后生成压缩包发布产物，且默认不覆盖已有产物。
 - 🧪[测试]-构建 `Vex.slnx`，使用临时发布目录执行打包 smoke，并验证一键发布脚本未知参数会输出用法后停止。

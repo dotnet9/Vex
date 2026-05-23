@@ -21,16 +21,18 @@ public sealed class MarkdownExportService : IMarkdownExportService
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
         .Build();
-    private static readonly MarkdownPdfRenderer PdfRenderer = new();
-    private static readonly MarkdownPngRenderer PngRenderer = new();
     private static readonly DataFormat<string> HtmlMimeFormat = DataFormat.CreateStringPlatformFormat("text/html");
     private static readonly DataFormat<string> MacHtmlFormat = DataFormat.CreateStringPlatformFormat("public.html");
     private static readonly DataFormat<string> WindowsHtmlFormat = DataFormat.CreateStringPlatformFormat("HTML Format");
     private readonly IAppLocalizer _localizer;
+    private readonly MarkdownPdfRenderer _pdfRenderer;
+    private readonly MarkdownPngRenderer _pngRenderer;
 
     public MarkdownExportService(IAppLocalizer localizer)
     {
         _localizer = localizer;
+        _pdfRenderer = new MarkdownPdfRenderer(localizer);
+        _pngRenderer = new MarkdownPngRenderer(localizer);
     }
 
     public async Task<string?> ExportHtmlAsync(DocumentSnapshot document)
@@ -81,7 +83,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
             return null;
         }
 
-        PdfRenderer.Render(document, path);
+        _pdfRenderer.Render(document, path);
         return path;
     }
 
@@ -107,7 +109,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
             return null;
         }
 
-        using var bitmap = PngRenderer.Render(document);
+        using var bitmap = _pngRenderer.Render(document);
         bitmap.Save(path);
         return path;
     }
