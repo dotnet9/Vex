@@ -245,6 +245,7 @@
       "RenameDetailEmptyFileName": "ファイル名は空にできません。",
       "RenameDetailInvalidFileName": "ファイル名に使用できない文字が含まれています。",
       "RenameDetailUnsupportedExtension": "変更後の名前には、サポートされている Markdown またはテキスト拡張子を残してください。",
+      "HelpDetailDocumentNotFound": "同梱されているヘルプ文書が見つかりません。",
       "RenameFileTitle": "ファイル名を変更",
       "RenameFileNameLabel": "ファイル名",
       "RenameFilePathLabel": "元のパス",

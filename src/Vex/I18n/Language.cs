@@ -250,6 +250,7 @@ public static class VexL
     public static readonly string RenameDetailEmptyFileName = "Vex.VexL.RenameDetailEmptyFileName";
     public static readonly string RenameDetailInvalidFileName = "Vex.VexL.RenameDetailInvalidFileName";
     public static readonly string RenameDetailUnsupportedExtension = "Vex.VexL.RenameDetailUnsupportedExtension";
+    public static readonly string HelpDetailDocumentNotFound = "Vex.VexL.HelpDetailDocumentNotFound";
     public static readonly string RenameFileTitle = "Vex.VexL.RenameFileTitle";
     public static readonly string RenameFileNameLabel = "Vex.VexL.RenameFileNameLabel";
     public static readonly string RenameFilePathLabel = "Vex.VexL.RenameFilePathLabel";

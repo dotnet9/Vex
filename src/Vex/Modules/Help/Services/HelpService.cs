@@ -11,10 +11,12 @@ public sealed class HelpService : IHelpService
 {
     private static readonly string DocumentsFolder = Path.Combine(AppContext.BaseDirectory, "docs");
     private readonly IEditorAppearanceState _appearanceState;
+    private readonly IAppLocalizer _localizer;
 
-    public HelpService(IEditorAppearanceState appearanceState)
+    public HelpService(IEditorAppearanceState appearanceState, IAppLocalizer localizer)
     {
         _appearanceState = appearanceState;
+        _localizer = localizer;
     }
 
     public Task OpenWebsiteAsync()
@@ -34,7 +36,7 @@ public sealed class HelpService : IHelpService
         var path = Path.Combine(DocumentsFolder, fileName);
         if (!File.Exists(path))
         {
-            throw new FileNotFoundException("The bundled help document was not found.", path);
+            throw new FileNotFoundException(_localizer.Get(VexL.HelpDetailDocumentNotFound), path);
         }
 
         Open(path);
@@ -73,12 +75,12 @@ public sealed class HelpService : IHelpService
         Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
     }
 
-    private static string ReadDocument(string fileName)
+    private string ReadDocument(string fileName)
     {
         var path = Path.Combine(DocumentsFolder, fileName);
         if (!File.Exists(path))
         {
-            throw new FileNotFoundException("The bundled help document was not found.", path);
+            throw new FileNotFoundException(_localizer.Get(VexL.HelpDetailDocumentNotFound), path);
         }
 
         return File.ReadAllText(path);

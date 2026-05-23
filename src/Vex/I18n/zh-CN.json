@@ -245,6 +245,7 @@
       "RenameDetailEmptyFileName": "文件名不能为空。",
       "RenameDetailInvalidFileName": "文件名包含非法字符。",
       "RenameDetailUnsupportedExtension": "重命名后必须保留受支持的 Markdown 或文本扩展名。",
+      "HelpDetailDocumentNotFound": "未找到随程序提供的帮助文档。",
       "RenameFileTitle": "重命名文件",
       "RenameFileNameLabel": "文件名",
       "RenameFilePathLabel": "原路径",

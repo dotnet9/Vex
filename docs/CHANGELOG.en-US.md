@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Missing-help-document error details are now localized instead of showing fixed English internal text.
+- Parsed all four i18n JSON files, built `Vex.slnx`, and used a temporary smoke to verify missing-help-document details.
 - File-rename failure details are now localized, so empty names, duplicate names, invalid characters, and unsupported extensions no longer expose English internal messages in non-English UI.
 - Parsed all four i18n JSON files, built `Vex.slnx`, and used a temporary smoke to verify rename boundary error details.
 - Print-preview HTML now includes a screen-only toolbar, so users can manually print or close the preview if the browser blocks automatic printing; the toolbar is hidden when printing.
