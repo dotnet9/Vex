@@ -19,6 +19,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
         .Build();
+    private static readonly MarkdownPdfRenderer PdfRenderer = new();
     private static readonly MarkdownPngRenderer PngRenderer = new();
     private static readonly DataFormat<string> HtmlMimeFormat = DataFormat.CreateStringPlatformFormat("text/html");
     private static readonly DataFormat<string> MacHtmlFormat = DataFormat.CreateStringPlatformFormat("public.html");
@@ -53,6 +54,32 @@ public sealed class MarkdownExportService : IMarkdownExportService
         }
 
         await File.WriteAllTextAsync(path, BuildHtml(document), Utf8NoBom);
+        return path;
+    }
+
+    public async Task<string?> ExportPdfAsync(DocumentSnapshot document)
+    {
+        var owner = GetMainWindow();
+        if (owner is null)
+        {
+            return null;
+        }
+
+        var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = _localizer.Get(VexL.DialogExportPdfTitle),
+            SuggestedFileName = Path.ChangeExtension(document.FileName, ".pdf"),
+            DefaultExtension = "pdf",
+            FileTypeChoices = CreatePdfFileTypes()
+        });
+
+        var path = file?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        PdfRenderer.Render(document, path);
         return path;
     }
 
@@ -242,6 +269,18 @@ public sealed class MarkdownExportService : IMarkdownExportService
             new(_localizer.Get(VexL.FileTypeHtml))
             {
                 Patterns = ["*.html", "*.htm"]
+            },
+            FilePickerFileTypes.All
+        ];
+    }
+
+    private IReadOnlyList<FilePickerFileType> CreatePdfFileTypes()
+    {
+        return
+        [
+            new(_localizer.Get(VexL.FileTypePdf))
+            {
+                Patterns = ["*.pdf"]
             },
             FilePickerFileTypes.All
         ];

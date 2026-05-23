@@ -48,7 +48,7 @@
             <Separator />
             <MenuItem x:Name="ExportMenuItem" Header="{i18n:I18n {x:Static l:VexL.Export}}">
                 <MenuItem Header="HTML" Command="{Binding Export}" CommandParameter="HTML" />
-                <MenuItem Header="PDF" Command="{Binding Export}" CommandParameter="PDF" />
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.ExportPdf}}" Command="{Binding Export}" CommandParameter="PDF" />
                 <MenuItem Header="PNG" Command="{Binding Export}" CommandParameter="PNG" />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.ExportWord}}" Command="{Binding Export}" CommandParameter="Word" />
             </MenuItem>

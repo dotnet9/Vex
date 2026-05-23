@@ -25,6 +25,9 @@
 - 新增循环查找提示的四套 i18n 文案；验证四套 JSON、`dotnet build Vex.slnx -v:minimal` 和 `git diff --check`，并截图检查连续查找后的循环提示。截图路径：`%TEMP%\VexScreenshots\find-wrap-feedback.png`。
 - 完善深色模式细节：查找栏、统计/关于/属性浮层、删除确认和未保存确认浮层不再写死白色背景，改用现有主题动态资源。
 - 本轮深色细节未新增第三方依赖；验证 `dotnet build Vex.slnx -v:minimal`、`git diff --check`，并截图检查深色模式下查找栏和关于浮层。截图路径：`%TEMP%\VexScreenshots\dark-findbar-themed.png`、`%TEMP%\VexScreenshots\dark-about-overlay-themed.png`。
+- 增加 PDF 导出首版：复用现有 Markdown 离屏渲染结果并通过已有 SkiaSharp 传递依赖写入分页 PDF，文件菜单的 PDF 导出会打开 PDF 保存对话框并在完成后更新状态栏。
+- PDF 导出当前为图像型分页 PDF，优先保证可分发预览和本地图片随文档嵌入；后续再迭代文本可选择、分页断点和更精细的排版控制。
+- 新增 PDF 导出对话框、文件类型、状态反馈和引导文案的四套 i18n 文案；本轮未新增 NuGet 包，SkiaSharp 已由 Avalonia 渲染链路传递引入。验证四套 JSON、`dotnet build Vex.slnx -v:minimal`、`git diff --check`，并通过临时 smoke 程序生成 PDF。输出路径：`%TEMP%\VexScreenshots\pdf-export-smoke.pdf`。
 
 ### en-US
 
@@ -49,6 +52,9 @@
 - Added localized wrap-around search feedback for all four cultures; verified JSON resources, `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and screenshot-checked the feedback after repeated Find Next. Screenshot path: `%TEMP%\VexScreenshots\find-wrap-feedback.png`.
 - Improved dark-mode details: the find bar, statistics/about/properties overlays, delete confirmation, and unsaved confirmation now use existing dynamic theme resources instead of fixed white panel colors.
 - This dark-mode pass adds no third-party dependency; verified `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and screenshot-checked the dark find bar plus about overlay. Screenshot paths: `%TEMP%\VexScreenshots\dark-findbar-themed.png`, `%TEMP%\VexScreenshots\dark-about-overlay-themed.png`.
+- Added the first PDF export pass: Vex reuses the existing Markdown offscreen render and writes paged PDFs through the already-transitive SkiaSharp rendering dependency. File > Export > PDF now opens a PDF save dialog and updates the status bar on completion.
+- PDF export currently produces image-based paged PDFs, prioritizing distributable preview fidelity and embedded local images; selectable text, page-break tuning, and finer typography control remain future refinements.
+- Added localized PDF export dialog, file type, status feedback, and guide text for all four cultures. This pass adds no NuGet package; SkiaSharp is already pulled in by the Avalonia rendering chain. Verified JSON resources, `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and generated a PDF with a temporary smoke program. Output path: `%TEMP%\VexScreenshots\pdf-export-smoke.pdf`.
 
 ## 0.1.0 - 2026-05-22
 

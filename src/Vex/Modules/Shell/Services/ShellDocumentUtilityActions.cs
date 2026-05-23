@@ -43,6 +43,21 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
             return;
         }
 
+        if (format?.Equals("PDF", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            var path = await _exportService.ExportPdfAsync(document with { Markdown = markdown });
+            if (path is null)
+            {
+                _text.PublishPdfExportCanceled();
+            }
+            else
+            {
+                _text.PublishExportedPdfTo(Path.GetFileName(path));
+            }
+
+            return;
+        }
+
         if (format?.Equals("PNG", StringComparison.OrdinalIgnoreCase) == true)
         {
             var path = await _exportService.ExportPngAsync(document with { Markdown = markdown });

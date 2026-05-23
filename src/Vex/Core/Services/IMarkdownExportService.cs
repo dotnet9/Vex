@@ -6,6 +6,8 @@ public interface IMarkdownExportService
 {
     Task<string?> ExportHtmlAsync(DocumentSnapshot document);
 
+    Task<string?> ExportPdfAsync(DocumentSnapshot document);
+
     Task<string?> ExportPngAsync(DocumentSnapshot document);
 
     Task<bool> CopyHtmlAsync(DocumentSnapshot document, string? target);

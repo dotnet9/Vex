@@ -46,6 +46,7 @@ public static class VexL
     public static readonly string Delete = "Vex.VexL.Delete";
     public static readonly string Rename = "Vex.VexL.Rename";
     public static readonly string Export = "Vex.VexL.Export";
+    public static readonly string ExportPdf = "Vex.VexL.ExportPdf";
     public static readonly string ExportWord = "Vex.VexL.ExportWord";
     public static readonly string Print = "Vex.VexL.Print";
     public static readonly string Close = "Vex.VexL.Close";
@@ -212,10 +213,12 @@ public static class VexL
     public static readonly string DialogOpenFolderTitle = "Vex.VexL.DialogOpenFolderTitle";
     public static readonly string DialogSaveMarkdownTitle = "Vex.VexL.DialogSaveMarkdownTitle";
     public static readonly string DialogExportHtmlTitle = "Vex.VexL.DialogExportHtmlTitle";
+    public static readonly string DialogExportPdfTitle = "Vex.VexL.DialogExportPdfTitle";
     public static readonly string DialogExportPngTitle = "Vex.VexL.DialogExportPngTitle";
     public static readonly string FileTypeMarkdown = "Vex.VexL.FileTypeMarkdown";
     public static readonly string FileTypeText = "Vex.VexL.FileTypeText";
     public static readonly string FileTypeHtml = "Vex.VexL.FileTypeHtml";
+    public static readonly string FileTypePdf = "Vex.VexL.FileTypePdf";
     public static readonly string FileTypePng = "Vex.VexL.FileTypePng";
     public static readonly string ExportFormatDocument = "Vex.VexL.ExportFormatDocument";
     public static readonly string CopyPlatformWechat = "Vex.VexL.CopyPlatformWechat";
@@ -277,6 +280,8 @@ public static class VexL
     public static readonly string StatusPropertiesSummaryFormat = "Vex.VexL.StatusPropertiesSummaryFormat";
     public static readonly string StatusHtmlExportCanceled = "Vex.VexL.StatusHtmlExportCanceled";
     public static readonly string StatusExportedHtmlToFormat = "Vex.VexL.StatusExportedHtmlToFormat";
+    public static readonly string StatusPdfExportCanceled = "Vex.VexL.StatusPdfExportCanceled";
+    public static readonly string StatusExportedPdfToFormat = "Vex.VexL.StatusExportedPdfToFormat";
     public static readonly string StatusPngExportCanceled = "Vex.VexL.StatusPngExportCanceled";
     public static readonly string StatusExportedPngToFormat = "Vex.VexL.StatusExportedPngToFormat";
     public static readonly string StatusCopiedHtmlToPlatformFormat = "Vex.VexL.StatusCopiedHtmlToPlatformFormat";
