@@ -5,10 +5,11 @@
 ### Fixed
 
 - Fixed guide-card arrow alignment after the popup is slid back inside the window, so File-menu, submenu, and Help-menu guide steps point at the target center.
+- Restored `CodeWF.Markdown` and `CodeWF.Markdown.Themes` to the currently available nuget.org 12.0.3.6 packages so unavailable 12.0.3.7 packages no longer block builds.
 - Fixed Markdown preview code-block copy localization by adding an explicit Vex reference to the `CodeWF.Markdown` package, so its `I18n/CodeWF.Markdown/*.json` contentFiles are copied to output and `CodeWF.MarkdownL.Copy` is not shown.
 - Added program version and build time to the About window, with build time read through `AssemblyExtensions.CompileTime()` from `CodeWF.Tools.Core`.
 - Reduced title-bar menu crowding: Theme and Language now live under Help; File keeps common actions directly clickable and only keeps natural option groups such as recent files, reopen encoding, and export formats as submenus.
-- Vex now restores `CodeWF.AvaloniaControls`, `CodeWF.AvaloniaControls.Themes`, `CodeWF.Markdown`, and `CodeWF.Markdown.Themes` 12.0.3.7 from nuget.org again, with the temporary local package source and local package files removed.
+- Vex now restores `CodeWF.AvaloniaControls` and `CodeWF.AvaloniaControls.Themes` 12.0.3.7 plus `CodeWF.Markdown` and `CodeWF.Markdown.Themes` 12.0.3.6 from nuget.org again, with the temporary local package source and local package files removed.
 
 ## 0.1.0 - 2026-05-22
 

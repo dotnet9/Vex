@@ -5,10 +5,11 @@
 ### 修复
 
 - 🐛[修复]-新手引导卡片箭头会在弹层被窗口边缘滑动修正后重新对准目标中心，文件菜单、子菜单和帮助菜单引导不再出现箭头偏移。
+- 🐛[修复]-`CodeWF.Markdown` 和 `CodeWF.Markdown.Themes` 改回 nuget.org 当前可还原的 12.0.3.6，避免 12.0.3.7 尚不可用时阻塞构建。
 - 🐛[修复]-Vex 显式引用实际使用的 `CodeWF.Markdown` 包，使 Markdown 包内 `I18n/CodeWF.Markdown/*.json` contentFiles 正常输出，代码块复制按钮不再显示 `CodeWF.MarkdownL.Copy`。
 - ✨[新增]-关于窗口显示程序版本号和编译时间，编译时间通过 `CodeWF.Tools.Core` 的 `AssemblyExtensions.CompileTime()` 获取。
 - 🔧[优化]-标题栏菜单减少一级菜单数量：主题和国际化移动到帮助菜单下；文件菜单保留常用项直接点击，只保留最近打开、重新编码打开和导出格式这类必要子菜单。
-- 🔧[优化]-Vex 改回从 NuGet 平台还原 `CodeWF.AvaloniaControls`、`CodeWF.AvaloniaControls.Themes`、`CodeWF.Markdown` 和 `CodeWF.Markdown.Themes` 12.0.3.7，移除临时本地包源和本地包文件。
+- 🔧[优化]-Vex 改回从 NuGet 平台还原 `CodeWF.AvaloniaControls`、`CodeWF.AvaloniaControls.Themes` 12.0.3.7 以及 `CodeWF.Markdown`、`CodeWF.Markdown.Themes` 12.0.3.6，移除临时本地包源和本地包文件。
 
 ## 0.1.0 - 2026-05-22
 
