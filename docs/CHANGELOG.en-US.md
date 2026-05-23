@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Help documents now prefer Traditional Chinese files for `zh-TW`, `zh-HK`, `zh-MO`, and related regions before falling back to Simplified Chinese.
+- Built `Vex.slnx` and used a temporary console smoke covering `zh-TW`, `zh-HK`, `zh-SG`, and `fr-FR` help-document resolution.
 - Print preview now supports paper, margin, and header/footer controls, with fixed document-title headers and file footers available during printing.
 - Parsed all four i18n JSON files, built `Vex.slnx`, and used a temporary console smoke covering print-preview HTML paper/margin controls, header/footer nodes, and the dynamic `@page` script.
 - HTML/print, PNG, and image-based PDF exports now read the current Markdown typography theme and compact layout through a shared export style map instead of always using one light style.

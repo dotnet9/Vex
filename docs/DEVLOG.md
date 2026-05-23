@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 帮助文档本地化回退继续细化：`zh-TW`、`zh-HK`、`zh-MO` 等传统中文区域会优先回退 `zh-Hant` 文档，再回退简体中文；简体中文区域仍回退 `zh-CN`。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并用临时 console smoke 覆盖 `zh-TW`、`zh-HK`、`zh-SG` 与 `fr-FR` 的帮助文档解析结果。
 - 打印预览继续成熟化：HTML 预览工具条新增纸张、边距和页眉页脚开关，打印 CSS 动态写入 `@page`，正式打印时可固定显示文档标题页眉和文件页脚。
 - 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 通过，并用临时 console smoke 覆盖打印预览 HTML 的纸张/边距控件、页眉页脚节点和动态 `@page` 脚本。
 - 导出排版主题映射增强：HTML/打印、PNG 与图像型 PDF 共用 `MarkdownExportStyle`，导出时读取当前 Markdown 排版主题和紧凑布局，不再固定使用单一浅色样式。
@@ -111,6 +113,8 @@
 
 ### en-US
 
+- Refined localized help fallback: Traditional Chinese regions such as `zh-TW`, `zh-HK`, and `zh-MO` now prefer `zh-Hant` documents before Simplified Chinese, while Simplified Chinese regions still fall back to `zh-CN`.
+- Verified `dotnet build Vex.slnx -v:minimal` and used a temporary console smoke covering `zh-TW`, `zh-HK`, `zh-SG`, and `fr-FR` help-document resolution.
 - Further matured print preview: the HTML preview toolbar now includes paper, margin, and header/footer controls; print CSS writes a dynamic `@page`, and printed pages can show a fixed document-title header and file footer.
 - Verified all four i18n JSON files, `dotnet build Vex.slnx -v:minimal`, and a temporary console smoke covering print-preview HTML paper/margin controls, header/footer nodes, and the dynamic `@page` script.
 - Improved export typography-theme mapping: HTML/print, PNG, and image-based PDF now share `MarkdownExportStyle`, reading the current Markdown typography theme and compact layout instead of always using one light style.

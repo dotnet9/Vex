@@ -120,6 +120,7 @@ public sealed class HelpService : IHelpService
     private static IEnumerable<string> EnumerateDocumentCandidates(string documentName, string cultureName)
     {
         var isChineseCulture = false;
+        var useTraditionalChineseFallback = false;
         if (!string.IsNullOrWhiteSpace(cultureName))
         {
             yield return $"{documentName}.{cultureName}.md";
@@ -130,13 +131,28 @@ public sealed class HelpService : IHelpService
             }
 
             isChineseCulture = cultureName.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
+            useTraditionalChineseFallback = isChineseCulture && IsTraditionalChineseCulture(cultureName);
         }
 
         if (!isChineseCulture)
         {
             yield return $"{documentName}.en-US.md";
         }
+        else if (useTraditionalChineseFallback)
+        {
+            yield return $"{documentName}.zh-Hant.md";
+        }
 
         yield return $"{documentName}.zh-CN.md";
+    }
+
+    private static bool IsTraditionalChineseCulture(string cultureName)
+    {
+        return cultureName.Equals("zh-Hant", StringComparison.OrdinalIgnoreCase)
+               || cultureName.StartsWith("zh-Hant-", StringComparison.OrdinalIgnoreCase)
+               || cultureName.Equals("zh-CHT", StringComparison.OrdinalIgnoreCase)
+               || cultureName.EndsWith("-TW", StringComparison.OrdinalIgnoreCase)
+               || cultureName.EndsWith("-HK", StringComparison.OrdinalIgnoreCase)
+               || cultureName.EndsWith("-MO", StringComparison.OrdinalIgnoreCase);
     }
 }
