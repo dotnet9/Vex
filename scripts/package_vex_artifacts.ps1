@@ -16,6 +16,21 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+$RuntimeIdentifier = @(
+    foreach ($rid in $RuntimeIdentifier) {
+        foreach ($part in ($rid -split ",")) {
+            $normalized = $part.Trim()
+            if ($normalized.Length -gt 0) {
+                $normalized
+            }
+        }
+    }
+)
+
+if ($RuntimeIdentifier.Count -eq 0) {
+    throw "At least one runtime identifier is required."
+}
+
 $repoRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")
 
 if ([string]::IsNullOrWhiteSpace($Version)) {

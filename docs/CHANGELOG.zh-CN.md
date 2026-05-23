@@ -4,6 +4,8 @@
 
 ### 修复
 
+- 🔧[优化]-发布打包脚本支持逗号分隔 RID 参数，手动指定多个 RID 时不再被当成单个目录名。
+- 🧪[测试]-用外层 `powershell -File` 传入逗号分隔 RID，验证可生成两个 RID 的 zip、SHA256 和 manifest。
 - 🐛[修复]-系统 Shell 未能启动打印预览浏览器时会显示本地化错误详情，不再误报预览已打开。
 - 🧪[测试]-解析四套 i18n JSON，构建 `Vex.slnx`，并执行 `git diff --check`。
 - 📝[文档]-README 新增 Build and Release 段落，说明构建、一键发布和压缩包打包入口。

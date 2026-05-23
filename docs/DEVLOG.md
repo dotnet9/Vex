@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 发布打包脚本兼容逗号分隔 RID 参数，`-RuntimeIdentifier win-x64,linux-x64` 与 PowerShell 数组传参都会被规范化为多个 RID。
+- 使用外层 `powershell -File` 传入 `-RuntimeIdentifier rid-a,rid-b` 的临时 smoke 验证逗号分隔参数会生成两个 RID 的 zip、SHA256 和 manifest。
 - 打印预览打开失败详情迁移到 i18n：当系统 Shell 没有启动预览浏览器时，导出服务会抛出本地化错误详情，而不是继续返回成功路径。
 - 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 与 `git diff --check` 通过。
 - README 补充 Build and Release 段落，记录 `dotnet build`、`publish_vex_all.bat` 与 `publish_vex_all.bat --package` 的基本用法，以及压缩包产物输出到 `artifacts/release/`。
@@ -100,6 +102,8 @@
 
 ### en-US
 
+- The release packaging script now accepts comma-separated RID arguments, so `-RuntimeIdentifier win-x64,linux-x64` and PowerShell array input both normalize to multiple RIDs.
+- Verified comma-separated arguments with an outer `powershell -File` smoke using `-RuntimeIdentifier rid-a,rid-b`, producing two RID zip/SHA256 outputs plus the manifest.
 - Moved print-preview open failure details into i18n: if the system shell does not start a preview browser, the export service now throws a localized detail instead of returning a successful path.
 - Verified all four i18n JSON files, `dotnet build Vex.slnx -v:minimal`, and `git diff --check`.
 - Added a Build and Release section to README documenting `dotnet build`, `publish_vex_all.bat`, `publish_vex_all.bat --package`, and `artifacts/release/` package outputs.

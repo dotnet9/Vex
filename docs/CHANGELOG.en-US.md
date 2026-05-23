@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- The release packaging script now supports comma-separated RID arguments instead of treating them as one directory name.
+- Verified comma-separated RIDs through an outer `powershell -File` smoke that generated two RID zip/SHA256 outputs and the manifest.
 - If the system shell fails to start the print-preview browser, Vex now reports a localized error detail instead of treating the preview as opened.
 - Parsed all four i18n JSON files, built `Vex.slnx`, and ran `git diff --check`.
 - Documented build, one-command publish, and release package commands in README.
