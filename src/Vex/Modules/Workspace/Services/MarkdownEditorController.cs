@@ -83,7 +83,8 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
         _eventBus.Publish(new MarkdownTextChangedCommand(
             _editor.Text ?? string.Empty,
             caret.Line,
-            caret.Column));
+            caret.Column,
+            _editor.Document?.LineCount ?? 1));
     }
 
     [EventHandler]

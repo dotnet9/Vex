@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 大文件性能优化：`MarkdownTextChangedCommand` 增加编辑器维护的 `LineCount`，预览滚动比例直接使用该值，避免仅移动光标时反复扫描整篇 Markdown 统计行数。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并扫描 `MarkdownTextChangedCommand` 调用点确认编辑器路径会传入 AvaloniaEdit 的 `Document.LineCount`。
 - 暗色模式细节调整：关于窗口链接颜色改用 `VexLinkBrush` 主题资源，暗色主题使用更高亮度蓝色；错误、删除、重命名和未保存确认遮罩改用 `VexOverlayScrimBrush`，暗色主题遮罩更稳定。
 - 清理控件级硬编码颜色，除主题资源定义外，帮助窗口链接和 Shell 浮层不再直接写固定色值。
 - 导出渲染失败详情继续迁移到 i18n：PDF 文档创建失败、渲染位图解码失败，以及本地 SVG 栅格化加载/画布/编码失败改用四套本地化文案。
@@ -86,6 +88,8 @@
 
 ### en-US
 
+- Optimized large-file preview updates: `MarkdownTextChangedCommand` now carries the editor-maintained `LineCount`, so preview scroll-ratio updates no longer rescan the full Markdown text when only the caret moves.
+- Verified `dotnet build Vex.slnx -v:minimal` and scanned `MarkdownTextChangedCommand` call sites to confirm the editor path passes AvaloniaEdit `Document.LineCount`.
 - Refined dark-mode details: the About window link now uses the themed `VexLinkBrush` with a brighter dark-theme blue, and error/delete/rename/unsaved overlays use `VexOverlayScrimBrush` with a stronger dark-theme scrim.
 - Removed control-level hard-coded colors from the Help link and Shell overlays; fixed color values now live in theme resources.
 - Continued moving export-renderer failure details into i18n: PDF creation failures, rendered bitmap decode failures, and local SVG rasterization load/surface/encode failures now use the four localized resource sets.

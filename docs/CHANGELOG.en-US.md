@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Preview scroll-ratio updates now use the editor-maintained line count, avoiding full Markdown scans on caret-only movement in large files.
+- Built `Vex.slnx` and checked `MarkdownTextChangedCommand` call sites to confirm the editor passes `Document.LineCount`.
 - The About link and Shell overlay scrims now use theme resources, improving link contrast and overlay stability in dark mode.
 - Built `Vex.slnx` and scanned AXAML fixed colors to confirm control-level hard-coded colors were reduced to theme resources.
 - PDF/PNG export-renderer failure details now use i18n resources, so PDF creation, bitmap decode, and SVG rasterization failures no longer show fixed English internal exceptions.

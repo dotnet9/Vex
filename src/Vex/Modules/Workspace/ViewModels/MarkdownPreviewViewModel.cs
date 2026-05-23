@@ -76,7 +76,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     public void ApplyMarkdownTextChanged(MarkdownTextChangedCommand command)
     {
         PreviewSourceLine = command.CaretLine;
-        PreviewScrollRatio = CalculatePreviewScrollRatio(command.Markdown, command.CaretLine);
+        PreviewScrollRatio = CalculatePreviewScrollRatio(command.CaretLine, command.LineCount);
     }
 
     private void OnAppearanceChanged(object? sender, EventArgs e)
@@ -85,9 +85,8 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         TypographyTheme = _appearanceState.TypographyTheme;
     }
 
-    private static double CalculatePreviewScrollRatio(string markdown, int caretLine)
+    private static double CalculatePreviewScrollRatio(int caretLine, int lineCount)
     {
-        var lineCount = CountLines(markdown);
         if (lineCount <= 1)
         {
             return 0d;
@@ -95,24 +94,5 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
 
         var lineIndex = Math.Clamp(caretLine, 1, lineCount) - 1;
         return lineIndex / (double)(lineCount - 1);
-    }
-
-    private static int CountLines(string markdown)
-    {
-        if (string.IsNullOrEmpty(markdown))
-        {
-            return 1;
-        }
-
-        var count = 1;
-        foreach (var character in markdown)
-        {
-            if (character == '\n')
-            {
-                count++;
-            }
-        }
-
-        return count;
     }
 }
