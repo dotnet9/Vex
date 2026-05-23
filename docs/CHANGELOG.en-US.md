@@ -38,6 +38,8 @@
 - Changelog and Acknowledgements now open in standalone UrsaWindow windows rendered with CodeWF.Markdown `MarkdownViewer`; Acknowledgements loads the bundled `docs/Thanks.md`.
 - Moved About into a standalone UrsaWindow, removed the custom Shell close button, and made the website URL clickable.
 - Parsed all four i18n JSON files, built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the title bar, Help menu, and three Help windows.
+- Reduced the Changelog and Acknowledgements window size, and made Changelog, Acknowledgements, and About close-only windows that do not appear in the system taskbar.
+- Built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the title-bar buttons on all three Help windows.
 - Added File menu actions to copy the current Markdown as HTML rich text for WeChat Official Account, Zhihu, and Juejin.
 - Validated all four i18n JSON files, built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the new copy entries in the File menu.
 - Added PNG export from the File > Export menu, rendering the current Markdown document as a long image.

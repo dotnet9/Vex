@@ -10,8 +10,14 @@
     Height="330"
     MinWidth="380"
     MinHeight="300"
+    CanMaximize="False"
+    CanMinimize="False"
     CanResize="False"
     Icon="/Assets/logo.ico"
+    IsFullScreenButtonVisible="False"
+    IsMinimizeButtonVisible="False"
+    IsRestoreButtonVisible="False"
+    ShowInTaskbar="False"
     WindowStartupLocation="CenterOwner">
     <Border
         Background="{DynamicResource VexPanelBackgroundBrush}"

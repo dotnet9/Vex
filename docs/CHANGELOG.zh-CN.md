@@ -38,6 +38,8 @@
 - ✨[新增]-更新日志和鸣谢改为独立 UrsaWindow 窗口，使用 CodeWF.Markdown `MarkdownViewer` 渲染；鸣谢加载随程序输出的 `docs/Thanks.md`。
 - 🔧[优化]-关于改为独立 UrsaWindow 窗口，不再使用 Shell 内自绘关闭按钮，网站地址可点击打开。
 - 🧪[测试]-解析四套 i18n JSON，构建 `Vex.slnx`、执行 `git diff --check`，并截图验证标题栏、帮助菜单和三个帮助窗口。
+- 🔧[优化]-更新日志和鸣谢窗口尺寸收小，更新日志、鸣谢、关于窗口均只保留关闭按钮且不显示在系统任务栏。
+- 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并截图验证三个帮助窗口的标题栏按钮。
 - ✨[新增]-文件菜单新增复制到公众号、知乎和稀土掘金，可将当前 Markdown 转为 HTML 富文本并写入剪贴板。
 - 🧪[测试]-校验四套 i18n JSON，构建 `Vex.slnx`，执行 `git diff --check`，并截图验证文件菜单新增复制入口。
 - ✨[新增]-导出菜单新增 PNG 导出，可将当前 Markdown 文档渲染为长图。

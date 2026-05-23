@@ -42,6 +42,8 @@
 - 更新日志和鸣谢改为独立 UrsaWindow 窗口，使用 CodeWF.Markdown `MarkdownViewer` 渲染内置 Markdown；鸣谢入口改为加载随程序输出的 `docs/Thanks.md`。
 - 关于入口改为独立 UrsaWindow 窗口，移除 Shell 内自绘关于浮层和自绘关闭按钮，网站地址可点击打开 `https://codewf.com`。
 - 验证四套 i18n JSON 可解析，`dotnet build Vex.slnx -v:minimal` 和 `git diff --check` 通过，并截图检查标题栏菜单、帮助菜单、更新日志窗口、鸣谢窗口和关于窗口。截图路径：`%TEMP%\VexScreenshots\menu-layout-printwindow.png`、`%TEMP%\VexScreenshots\help-menu-items.png`、`%TEMP%\VexScreenshots\help-changelog-window.png`、`%TEMP%\VexScreenshots\help-thanks-window.png`、`%TEMP%\VexScreenshots\help-about-window.png`。
+- 收紧帮助类窗口形态：更新日志和鸣谢窗口缩小到 760x560，更新日志、鸣谢、关于窗口均隐藏最小化/最大化按钮并不再显示在系统任务栏。
+- 验证 `dotnet build Vex.slnx -v:minimal`、`git diff --check`，并截图检查更新日志、鸣谢和关于窗口只保留关闭按钮。截图路径：`%TEMP%\VexScreenshots\help-changelog-close-only.png`、`%TEMP%\VexScreenshots\help-thanks-close-only.png`、`%TEMP%\VexScreenshots\help-about-close-only.png`。
 
 ### en-US
 
@@ -83,6 +85,8 @@
 - Changelog and Acknowledgements now open in standalone UrsaWindow windows rendered with CodeWF.Markdown `MarkdownViewer`; Acknowledgements now loads the bundled `docs/Thanks.md` file.
 - About now opens in a standalone UrsaWindow, removing the custom Shell about overlay and its custom close button; the website URL is clickable and opens `https://codewf.com`.
 - Verified all four i18n JSON files, `dotnet build Vex.slnx -v:minimal`, and `git diff --check`, then screenshot-checked the title menu, Help menu, Changelog window, Acknowledgements window, and About window. Screenshot paths: `%TEMP%\VexScreenshots\menu-layout-printwindow.png`, `%TEMP%\VexScreenshots\help-menu-items.png`, `%TEMP%\VexScreenshots\help-changelog-window.png`, `%TEMP%\VexScreenshots\help-thanks-window.png`, `%TEMP%\VexScreenshots\help-about-window.png`.
+- Tightened the Help window shape: Changelog and Acknowledgements now use a smaller 760x560 window, and Changelog, Acknowledgements, and About all hide minimize/maximize buttons and no longer appear in the system taskbar.
+- Verified `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and screenshot-checked the close-only Changelog, Acknowledgements, and About windows. Screenshot paths: `%TEMP%\VexScreenshots\help-changelog-close-only.png`, `%TEMP%\VexScreenshots\help-thanks-close-only.png`, `%TEMP%\VexScreenshots\help-about-close-only.png`.
 
 ## 0.1.0 - 2026-05-22
 
