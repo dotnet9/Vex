@@ -4,6 +4,7 @@
 
 ### 修复
 
+- 🔧[优化]-帮助菜单的“鸣谢”会按当前语言打开本地化文档，并补齐繁体中文与日文的快速开始、鸣谢文档。
 - 🐛[修复]-新手引导卡片箭头会在弹层被窗口边缘滑动修正后重新对准目标中心，文件菜单、子菜单和帮助菜单引导不再出现箭头偏移。
 - 🐛[修复]-`CodeWF.Markdown` 和 `CodeWF.Markdown.Themes` 改回 nuget.org 当前可还原的 12.0.3.6，避免 12.0.3.7 尚不可用时阻塞构建。
 - 🐛[修复]-Vex 显式引用实际使用的 `CodeWF.Markdown` 包，使 Markdown 包内 `I18n/CodeWF.Markdown/*.json` contentFiles 正常输出，代码块复制按钮不再显示 `CodeWF.MarkdownL.Copy`。

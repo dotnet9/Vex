@@ -4,6 +4,7 @@
 
 ### zh-CN
 
+- 帮助菜单的“鸣谢”入口改为按当前语言加载 `ACKNOWLEDGEMENTS.[culture].md`，不再固定打开单一 `Thanks.md`；补齐繁体中文和日文快速开始、鸣谢文档，并纳入应用输出。
 - 修复当前仓库的 NuGet 还原基线：`CodeWF.Markdown` 和 `CodeWF.Markdown.Themes` 改回 nuget.org 当前可用的 12.0.3.6，避免 12.0.3.7 尚不可还原时阻塞 `dotnet build Vex.slnx -v:minimal`；本轮未新增第三方依赖。
 - 关于窗口新增版本号和编译时间展示；版本号从 Vex 程序集元数据读取，编译时间通过 `CodeWF.Tools.Core` NuGet 包中的 `AssemblyExtensions.CompileTime()` 获取，并补齐四套本地化标签。
 - 基于用户截图继续修正新手引导箭头：`CodeWF.AvaloniaControls` 的 Guide 在 Popup 打开和布局渲染后按目标与卡片的实际屏幕位置重新计算箭头偏移，并保留弹层在窗口边缘的自动滑动约束。
@@ -65,6 +66,7 @@
 
 ### en-US
 
+- The Help menu Acknowledgements entry now loads `ACKNOWLEDGEMENTS.[culture].md` for the current language instead of a fixed `Thanks.md`; Traditional Chinese and Japanese Quick Start and Acknowledgements documents are now bundled with the app output.
 - Fixed the repository NuGet restore baseline by pinning `CodeWF.Markdown` and `CodeWF.Markdown.Themes` back to the currently available nuget.org 12.0.3.6 packages, so unavailable 12.0.3.7 packages no longer block `dotnet build Vex.slnx -v:minimal`; this pass adds no third-party dependency.
 - Added version and build time to the About window. The version comes from the Vex assembly metadata, and build time is read through `AssemblyExtensions.CompileTime()` from the `CodeWF.Tools.Core` NuGet package, with labels localized in all four languages.
 - Continued guide-arrow alignment fixes from the user screenshots: `CodeWF.AvaloniaControls` Guide now recalculates arrow offset from the actual target and card screen positions after the Popup opens and after render layout, while keeping window-edge slide constraints.

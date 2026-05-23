@@ -37,7 +37,10 @@ public sealed class ShellHelpViewModel
                     _statusPublisher.PublishResource(VexL.StatusOpenedChangelog);
                     break;
                 case "thanks":
-                    await _helpService.ShowDocumentWindowAsync(_localizer.Get(VexL.Thanks), "Thanks.md");
+                    await _helpService.ShowLocalizedDocumentWindowAsync(
+                        _localizer.Get(VexL.Thanks),
+                        "ACKNOWLEDGEMENTS",
+                        _localizer.Culture.Name);
                     _statusPublisher.PublishResource(VexL.StatusOpenedAcknowledgements);
                     break;
                 case "website":

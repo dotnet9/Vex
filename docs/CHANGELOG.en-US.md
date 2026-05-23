@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Acknowledgements in the Help menu now opens the localized document for the current language, with Traditional Chinese and Japanese Quick Start and Acknowledgements documents bundled.
 - Fixed guide-card arrow alignment after the popup is slid back inside the window, so File-menu, submenu, and Help-menu guide steps point at the target center.
 - Restored `CodeWF.Markdown` and `CodeWF.Markdown.Themes` to the currently available nuget.org 12.0.3.6 packages so unavailable 12.0.3.7 packages no longer block builds.
 - Fixed Markdown preview code-block copy localization by adding an explicit Vex reference to the `CodeWF.Markdown` package, so its `I18n/CodeWF.Markdown/*.json` contentFiles are copied to output and `CodeWF.MarkdownL.Copy` is not shown.

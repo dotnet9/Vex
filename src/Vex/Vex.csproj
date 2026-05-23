@@ -40,8 +40,12 @@
     <Content Include="..\..\docs\CHANGELOG.en-US.md" Link="docs\CHANGELOG.en-US.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\CHANGELOG.zh-CN.md" Link="docs\CHANGELOG.zh-CN.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\QuickStart.en-US.md" Link="docs\QuickStart.en-US.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\QuickStart.ja-JP.md" Link="docs\QuickStart.ja-JP.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\QuickStart.zh-Hant.md" Link="docs\QuickStart.zh-Hant.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\QuickStart.zh-CN.md" Link="docs\QuickStart.zh-CN.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\ACKNOWLEDGEMENTS.en-US.md" Link="docs\ACKNOWLEDGEMENTS.en-US.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\ACKNOWLEDGEMENTS.ja-JP.md" Link="docs\ACKNOWLEDGEMENTS.ja-JP.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\ACKNOWLEDGEMENTS.zh-Hant.md" Link="docs\ACKNOWLEDGEMENTS.zh-Hant.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\ACKNOWLEDGEMENTS.zh-CN.md" Link="docs\ACKNOWLEDGEMENTS.zh-CN.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\Thanks.md" Link="docs\Thanks.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
