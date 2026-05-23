@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- PDF export now adds a footer with the file name and `current page / total pages`, reserving footer space so document content does not overlap it.
+- Built `Vex.slnx` and generated a footer-enabled PDF with a temporary smoke program.
 - Acknowledgements in the Help menu now opens the localized document for the current language, with Traditional Chinese and Japanese Quick Start and Acknowledgements documents bundled.
 - Fixed guide-card arrow alignment after the popup is slid back inside the window, so File-menu, submenu, and Help-menu guide steps point at the target center.
 - Restored `CodeWF.Markdown` and `CodeWF.Markdown.Themes` to the currently available nuget.org 12.0.3.6 packages so unavailable 12.0.3.7 packages no longer block builds.
