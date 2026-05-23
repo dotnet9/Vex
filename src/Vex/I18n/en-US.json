@@ -332,6 +332,7 @@
       "EditorTemplateMath": "E = mc^2",
       "EditorSearchNoMatchFormat": "No match for \"{0}\".",
       "EditorSearchFoundOnLineFormat": "Found \"{0}\" on line {1} ({2}/{3}).",
+      "EditorSearchFoundWrappedOnLineFormat": "Wrapped to the beginning and found \"{0}\" on line {1} ({2}/{3}).",
       "EditorSearchReplacedNextFormat": "Replaced next \"{0}\".",
       "EditorSearchReplacedAllFormat": "Replaced {0} occurrence(s).",
       "EditorSearchMatchCountFormat": "{0} match(es) for \"{1}\".",

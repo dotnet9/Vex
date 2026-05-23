@@ -332,6 +332,7 @@
       "EditorTemplateMath": "E = mc^2",
       "EditorSearchNoMatchFormat": "\"{0}\" は見つかりませんでした。",
       "EditorSearchFoundOnLineFormat": "{1} 行目で \"{0}\" を見つけました（{2}/{3}）。",
+      "EditorSearchFoundWrappedOnLineFormat": "先頭に戻り、{1} 行目で \"{0}\" を見つけました（{2}/{3}）。",
       "EditorSearchReplacedNextFormat": "次の \"{0}\" を置換しました。",
       "EditorSearchReplacedAllFormat": "{0} 件を置換しました。",
       "EditorSearchMatchCountFormat": "\"{1}\" は {0} 件見つかりました。",

@@ -337,6 +337,7 @@ public static class VexL
     public static readonly string EditorTemplateMath = "Vex.VexL.EditorTemplateMath";
     public static readonly string EditorSearchNoMatchFormat = "Vex.VexL.EditorSearchNoMatchFormat";
     public static readonly string EditorSearchFoundOnLineFormat = "Vex.VexL.EditorSearchFoundOnLineFormat";
+    public static readonly string EditorSearchFoundWrappedOnLineFormat = "Vex.VexL.EditorSearchFoundWrappedOnLineFormat";
     public static readonly string EditorSearchReplacedNextFormat = "Vex.VexL.EditorSearchReplacedNextFormat";
     public static readonly string EditorSearchReplacedAllFormat = "Vex.VexL.EditorSearchReplacedAllFormat";
     public static readonly string EditorSearchMatchCountFormat = "Vex.VexL.EditorSearchMatchCountFormat";

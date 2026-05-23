@@ -61,7 +61,7 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
             return;
         }
 
-        var matchIndex = GetNextMatchIndex(matches, startOffset);
+        var matchIndex = GetNextMatchIndex(matches, startOffset, out var wrapped);
         if (matchIndex < 0)
         {
             PublishSearchResultFormat(VexL.EditorSearchNoMatchFormat, command.SearchText);
@@ -74,8 +74,11 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
         editor.TextArea.Caret.BringCaretToView();
         editor.Focus();
         var line = editor.Document.GetLineByOffset(match.Index).LineNumber;
+        var messageKey = wrapped
+            ? VexL.EditorSearchFoundWrappedOnLineFormat
+            : VexL.EditorSearchFoundOnLineFormat;
         _eventBus.Publish(new EditorSearchResultCommand(
-            _localizer.Format(VexL.EditorSearchFoundOnLineFormat, command.SearchText, line, matchIndex + 1, matches.Count),
+            _localizer.Format(messageKey, command.SearchText, line, matchIndex + 1, matches.Count),
             matchIndex + 1,
             matches.Count));
         publishTextChanged();
@@ -375,6 +378,12 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
 
     private static int GetNextMatchIndex(IReadOnlyList<SearchMatch> matches, int startOffset)
     {
+        return GetNextMatchIndex(matches, startOffset, out _);
+    }
+
+    private static int GetNextMatchIndex(IReadOnlyList<SearchMatch> matches, int startOffset, out bool wrapped)
+    {
+        wrapped = false;
         if (matches.Count == 0)
         {
             return -1;
@@ -389,6 +398,7 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
             }
         }
 
+        wrapped = true;
         return 0;
     }
 

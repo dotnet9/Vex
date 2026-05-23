@@ -332,6 +332,7 @@
       "EditorTemplateMath": "E = mc^2",
       "EditorSearchNoMatchFormat": "未找到 \"{0}\"。",
       "EditorSearchFoundOnLineFormat": "在第 {1} 行找到 \"{0}\"（{2}/{3}）。",
+      "EditorSearchFoundWrappedOnLineFormat": "已循环到开头，在第 {1} 行找到 \"{0}\"（{2}/{3}）。",
       "EditorSearchReplacedNextFormat": "已替换下一个 \"{0}\"。",
       "EditorSearchReplacedAllFormat": "已替换 {0} 处。",
       "EditorSearchMatchCountFormat": "\"{1}\" 共 {0} 处匹配。",
