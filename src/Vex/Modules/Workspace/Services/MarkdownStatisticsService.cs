@@ -13,21 +13,59 @@ public sealed partial class MarkdownStatisticsService : IMarkdownStatisticsServi
             return new MarkdownStatistics(0, 0, 1);
         }
 
-        // 统计前先弱化常见 Markdown 标记，避免 #、*、链接符号等语法字符污染正文指标。
-        var text = MarkdownSyntaxRegex().Replace(markdown, " ");
-        var latinWords = LatinWordRegex().Matches(text).Count;
-        var cjkWords = CjkRegex().Matches(text).Count;
-        var words = latinWords + cjkWords;
-        var characters = text.Count(c => !char.IsWhiteSpace(c));
+        var textMetrics = CountTextMetrics(markdown);
         var lineMetrics = CountLineMetrics(markdown);
-        var readingMinutes = words == 0 ? 0 : Math.Max(1, (int)Math.Ceiling(words / 220d));
+        var readingMinutes = textMetrics.Words == 0
+            ? 0
+            : Math.Max(1, (int)Math.Ceiling(textMetrics.Words / 220d));
+
         return new MarkdownStatistics(
-            words,
-            characters,
+            textMetrics.Words,
+            textMetrics.Characters,
             lineMetrics.Lines,
             lineMetrics.Paragraphs,
             lineMetrics.Headings,
             readingMinutes);
+    }
+
+    private static TextMetrics CountTextMetrics(string markdown)
+    {
+        var words = 0;
+        var characters = 0;
+        var inLatinWord = false;
+
+        foreach (var character in markdown)
+        {
+            if (char.IsWhiteSpace(character) || IsMarkdownSyntaxCharacter(character))
+            {
+                inLatinWord = false;
+                continue;
+            }
+
+            characters++;
+
+            if (IsCjkCharacter(character))
+            {
+                words++;
+                inLatinWord = false;
+                continue;
+            }
+
+            if (char.IsLetterOrDigit(character))
+            {
+                if (!inLatinWord)
+                {
+                    words++;
+                    inLatinWord = true;
+                }
+
+                continue;
+            }
+
+            inLatinWord = false;
+        }
+
+        return new TextMetrics(words, characters);
     }
 
     private static LineMetrics CountLineMetrics(string markdown)
@@ -90,16 +128,19 @@ public sealed partial class MarkdownStatisticsService : IMarkdownStatisticsServi
         return lines;
     }
 
+    private static bool IsMarkdownSyntaxCharacter(char character)
+    {
+        return character is '`' or '*' or '_' or '>' or '#' or '-' or '[' or ']' or '(' or ')' or '!' or '|';
+    }
+
+    private static bool IsCjkCharacter(char character)
+    {
+        return character is >= '\u3400' and <= '\u9FFF';
+    }
+
+    private readonly record struct TextMetrics(int Words, int Characters);
+
     private readonly record struct LineMetrics(int Lines, int Paragraphs, int Headings);
-
-    [GeneratedRegex(@"[`*_>#\-\[\]\(\)!|]")]
-    private static partial Regex MarkdownSyntaxRegex();
-
-    [GeneratedRegex(@"[\p{L}\p{N}]+", RegexOptions.CultureInvariant)]
-    private static partial Regex LatinWordRegex();
-
-    [GeneratedRegex(@"[\u3400-\u9FFF]")]
-    private static partial Regex CjkRegex();
 
     [GeneratedRegex(@"^#{1,6}\s+\S+", RegexOptions.Multiline)]
     private static partial Regex HeadingRegex();

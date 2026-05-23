@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Markdown word/character statistics now use a single character scan, reducing temporary strings and regex match allocations for large files.
+- Built `Vex.slnx` and used a temporary console smoke covering English, CJK, headings, paragraphs, line count, and reading-time statistics.
 - The release packaging script now preflights the manifest, publish directories, and artifact conflicts before compression, avoiding partial packages on failure.
 - Verified normal packaging with temporary publish directories and a second-RID conflict case that stops before creating the first RID artifact.
 - Print-preview temporary HTML file names now sanitize invalid file-name characters and cap length, avoiding preview creation failures for unusual document names.
