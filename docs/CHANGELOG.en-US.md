@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Print-preview HTML now includes a screen-only toolbar, so users can manually print or close the preview if the browser blocks automatic printing; the toolbar is hidden when printing.
+- Built `Vex.slnx` and used a temporary smoke program to verify the print-preview HTML includes the toolbar, print-hidden style, and auto-print script.
 - PDF pagination now prefers continuous blank bands as page-break points, reducing cuts through paragraphs, tables, or code-block edges.
 - Built `Vex.slnx` and generated a PDF with a temporary smoke program to verify blank-band pagination.
 - PDF export now adds headers and footers: the header shows the document title, and the footer shows the file name plus `current page / total pages`, reserving metadata space so content does not overlap it.

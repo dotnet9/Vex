@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 打印预览流程增强：打印模式 HTML 增加屏幕工具条，提供“打印”和“关闭”按钮；工具条在 `@media print` 中隐藏，自动打印被浏览器拦截时用户仍可手动重试。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并用临时反射 smoke 调用 HTML 生成逻辑，确认工具条按钮、隐藏打印样式和自动打印脚本同时存在。输出路径：`%TEMP%\VexScreenshots\print-preview-toolbar-smoke.html`。
 - PDF 分页断点进一步优化：分页切片现在优先寻找 10px 连续空白带作为断点，找不到时再回退到单行空白，减少切到段落行距、表格或代码块边缘的概率。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并复用临时 Avalonia smoke 程序生成 PDF，确认连续空白带分页与页眉页脚可以共同工作。输出路径：`%TEMP%\VexScreenshots\pdf-header-footer-smoke.pdf`。
 - PDF 导出页眉页脚成熟化：图像型分页 PDF 现在会预留页眉和页脚区域，页眉显示 Markdown 首个标题或文件名，页脚左侧显示当前文件名，右侧显示 `当前页 / 总页数`，正文切片高度同步扣除元数据区域，避免内容重叠。
@@ -70,6 +72,8 @@
 
 ### en-US
 
+- Improved the print-preview flow: print-mode HTML now includes a screen-only toolbar with Print and Close buttons. The toolbar is hidden by `@media print`, giving users a manual retry path when the browser blocks automatic printing.
+- Verified `dotnet build Vex.slnx -v:minimal` and used a temporary reflection smoke to call the HTML generator, confirming the toolbar buttons, print-hidden style, and auto-print script are present. Output path: `%TEMP%\VexScreenshots\print-preview-toolbar-smoke.html`.
 - Further improved PDF page breaks: page slicing now prefers a 10px continuous blank band before falling back to a single blank row, reducing cuts through paragraph leading, table edges, or code-block edges.
 - Verified `dotnet build Vex.slnx -v:minimal` and reused the temporary Avalonia smoke program to generate a PDF, confirming blank-band page breaks work with headers and footers. Output path: `%TEMP%\VexScreenshots\pdf-header-footer-smoke.pdf`.
 - Matured PDF export headers and footers: image-based paged PDFs now reserve header and footer space. The header shows the first Markdown heading or file name, while the footer shows the current file name and `current page / total pages`; body slice height is reduced so content does not overlap metadata.
