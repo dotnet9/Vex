@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- The release packaging script now preflights the manifest, publish directories, and artifact conflicts before compression, avoiding partial packages on failure.
+- Verified normal packaging with temporary publish directories and a second-RID conflict case that stops before creating the first RID artifact.
 - Print-preview temporary HTML file names now sanitize invalid file-name characters and cap length, avoiding preview creation failures for unusual document names.
 - Added Traditional Chinese and Japanese changelog summary documents, so Help > Changelog no longer falls back to Simplified Chinese in zh-Hant/ja-JP environments.
 - Built `Vex.slnx` and confirmed the new changelog documents are copied to the output directory.

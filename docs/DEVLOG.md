@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 发布打包脚本可靠性增强：`package_vex_artifacts.ps1` 先完整预检 manifest、所有 RID 发布目录和目标 zip/SHA256 是否冲突，确认无误后才开始压缩，避免失败时留下部分产物。
+- 使用临时发布目录验证打包成功路径，并预置第二个 RID 的 zip 冲突验证脚本会在生成第一个 RID 产物前停止。
 - 打印预览流程加固：临时 HTML 文件名会清理文档名中的非法文件名字符并限制长度，避免特殊标题导致打印预览文件创建失败。
 - 帮助文档继续本地化：新增 `CHANGELOG.zh-Hant.md` 与 `CHANGELOG.ja-JP.md` 摘要文件，繁体中文和日文环境打开更新日志时不再回退到简体中文文档。
 - 发布内容配置同步复制新增的繁体中文、日文更新日志文件。
@@ -93,6 +95,8 @@
 
 ### en-US
 
+- Improved packaging-script reliability: `package_vex_artifacts.ps1` now preflights the manifest, all RID publish directories, and target zip/SHA256 conflicts before compressing, avoiding partial artifacts on failure.
+- Verified the successful packaging path with temporary publish directories, and pre-created a second-RID zip conflict to confirm the script stops before creating the first RID artifact.
 - Hardened the print-preview flow: temporary HTML file names now sanitize invalid file-name characters and cap length, avoiding preview creation failures for unusual document titles.
 - Continued help-document localization: added `CHANGELOG.zh-Hant.md` and `CHANGELOG.ja-JP.md` summary files so Traditional Chinese and Japanese changelog help no longer falls back to Simplified Chinese.
 - Updated publish content configuration to copy the new Traditional Chinese and Japanese changelog files.

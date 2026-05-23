@@ -46,9 +46,12 @@ if ([string]::IsNullOrWhiteSpace($ArtifactsRoot)) {
 
 New-Item -ItemType Directory -Force -Path $ArtifactsRoot | Out-Null
 
-$packagedAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-$packages = New-Object System.Collections.Generic.List[object]
+$manifestPath = Join-Path $ArtifactsRoot "Vex-$Version-release-manifest.json"
+if ((Test-Path -LiteralPath $manifestPath -PathType Leaf) -and -not $Force) {
+    throw "Release manifest already exists: '$manifestPath'. Pass -Force to replace it."
+}
 
+$plans = New-Object System.Collections.Generic.List[object]
 foreach ($rid in $RuntimeIdentifier) {
     if ([string]::IsNullOrWhiteSpace($rid)) {
         throw "Runtime identifier cannot be empty."
@@ -78,37 +81,47 @@ foreach ($rid in $RuntimeIdentifier) {
         throw "Artifact output already exists: '$existingList'. Pass -Force to replace it."
     }
 
-    Compress-Archive `
-        -Path (Join-Path $publishDir "*") `
-        -DestinationPath $archivePath `
-        -CompressionLevel Optimal `
-        -Force:$Force
-
-    $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $archivePath
-    $sha256 = $hash.Hash.ToLowerInvariant()
-    Set-Content -Encoding ASCII -LiteralPath $checksumPath -Value "$sha256  $archiveName"
-
     $uncompressedBytes = ($entries | Measure-Object -Property Length -Sum).Sum
     if ($null -eq $uncompressedBytes) {
         $uncompressedBytes = 0
     }
 
+    $plans.Add([pscustomobject]@{
+        RuntimeIdentifier = $rid
+        PublishDir = $publishDir
+        Entries = $entries
+        ArchiveName = $archiveName
+        ArchivePath = $archivePath
+        ChecksumPath = $checksumPath
+        UncompressedBytes = [int64]$uncompressedBytes
+    }) | Out-Null
+}
+
+$packagedAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+$packages = New-Object System.Collections.Generic.List[object]
+
+foreach ($plan in $plans) {
+    Compress-Archive `
+        -Path (Join-Path $plan.PublishDir "*") `
+        -DestinationPath $plan.ArchivePath `
+        -CompressionLevel Optimal `
+        -Force:$Force
+
+    $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $plan.ArchivePath
+    $sha256 = $hash.Hash.ToLowerInvariant()
+    Set-Content -Encoding ASCII -LiteralPath $plan.ChecksumPath -Value "$sha256  $($plan.ArchiveName)"
+
     $packages.Add([ordered]@{
         product = "Vex"
         version = $Version
-        runtimeIdentifier = $rid
-        archive = $archiveName
+        runtimeIdentifier = $plan.RuntimeIdentifier
+        archive = $plan.ArchiveName
         sha256 = $sha256
-        fileCount = $entries.Count
-        uncompressedBytes = [int64]$uncompressedBytes
+        fileCount = $plan.Entries.Count
+        uncompressedBytes = $plan.UncompressedBytes
     }) | Out-Null
 
-    Write-Host "Packaged $archiveName"
-}
-
-$manifestPath = Join-Path $ArtifactsRoot "Vex-$Version-release-manifest.json"
-if ((Test-Path -LiteralPath $manifestPath -PathType Leaf) -and -not $Force) {
-    throw "Release manifest already exists: '$manifestPath'. Pass -Force to replace it."
+    Write-Host "Packaged $($plan.ArchiveName)"
 }
 
 $manifest = [ordered]@{
