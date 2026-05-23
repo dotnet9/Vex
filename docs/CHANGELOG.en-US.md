@@ -4,6 +4,8 @@
 
 ### Added
 
+- Restored `CodeWF.Markdown.Themes` 12.0.3.3 from nuget.org and removed the temporary local package source and nupkg files.
+- Restored from nuget.org, built `Vex.slnx`, and completed NuGet vulnerability scanning.
 - Added an error overlay for file opening, folder loading, saving, deleting, export, print, help, and system-open failures.
 - Parsed all four i18n JSON files, built `Vex.slnx`, and screenshot-verified the error overlay with a locked startup file.
 - Added editor-to-preview scroll synchronization so the preview follows the current editor position.

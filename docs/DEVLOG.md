@@ -87,7 +87,9 @@
 - 主题菜单补齐 Semi 的跟随系统、浅色、深色、水生、沙漠、黄昏、夜空；排版菜单补齐 CodeWF.Markdown.Themes 内置排版主题。
 - 语言切换同步 Semi 与 Ursa 控件资源，减少第三方控件固定语言问题。
 - 打开文件夹改为后台扫描，使用 `EnumerationOptions.IgnoreInaccessible` 跳过无权限目录，并让文件列表摘要读取失败时降级为空摘要。
-- 依赖更新到一方 MIT 包 `CodeWF.Markdown.Themes` 12.0.3.3；源码在 `D:\github\libs\CodeWF.Markdown`，本轮使用本地 NuGet 包源验证。
+- 依赖更新到一方 MIT 包 `CodeWF.Markdown.Themes` 12.0.3.3；源码在 `D:\github\libs\CodeWF.Markdown`，当前从 NuGet 平台还原。
+- 移除临时 `NuGet.config` 本地包源和 `local-nuget` 下的本地 nupkg，避免继续依赖未发布包文件。
+- 验证 `dotnet restore Vex.slnx --force-evaluate --source https://api.nuget.org/v3/index.json`、`dotnet build Vex.slnx -v:minimal --no-restore`、`git diff --check` 和 NuGet 漏洞扫描。
 - 验证 `dotnet build Vex.slnx`、JSON 本地化资源解析、`Assets.Dotnet9` 真实文件夹打开、真实大文件单文件打开、长文档预览同步滚动、主题/排版菜单截图和自动保存崩溃恢复。
 - 验证 `dotnet build Vex.slnx`，并截图确认长文档跳转到末尾后预览同步滚动。截图路径：`%TEMP%\VexScreenshots\scroll-sync-after-end-fixed.png`。
 - 本轮未新增第三方依赖，无需额外许可证核查。
@@ -268,6 +270,8 @@
 - Added a unified error overlay for file opening, folder loading, saving, deleting, export, print, help documents, file-location opening, and new-window startup failures.
 - Localized the error overlay in Simplified Chinese, Traditional Chinese, English, and Japanese, with status-bar feedback for showing and closing the panel.
 - Verified that all four i18n JSON files parse, `dotnet build Vex.slnx -v:minimal` and `git diff --check` pass, and a locked startup file shows the error overlay. Screenshot path: `%TEMP%\VexScreenshots\error-overlay-locked-startup-file.png`.
+- Restored the first-party MIT package `CodeWF.Markdown.Themes` 12.0.3.3 from nuget.org and removed the temporary `NuGet.config` local source plus local nupkg files.
+- Verified `dotnet restore Vex.slnx --force-evaluate --source https://api.nuget.org/v3/index.json`, `dotnet build Vex.slnx -v:minimal --no-restore`, `git diff --check`, and NuGet vulnerability scanning.
 - Added project identity metadata for author, CodeWF, and `https://codewf.com`.
 - Created the Vex Avalonia desktop application shell with Prism 8.x module catalog wiring.
 - Created `Vex.Controls` and `Vex.Controls.Themes`, with controls and theme resources separated in a Semi.Avalonia-style layout.
