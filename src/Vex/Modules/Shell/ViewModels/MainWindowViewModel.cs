@@ -864,7 +864,7 @@ public sealed class MainWindowViewModel : ReactiveObject
                 var reloaded = await _documentService.ReloadAsync(_document);
                 _document = reloaded;
                 _lastSavedMarkdown = reloaded.Markdown;
-                if (!MarkdownEquals(Markdown, reloaded.Markdown))
+                if (!MarkdownTextComparer.EqualsNormalizedLineEndings(Markdown, reloaded.Markdown))
                 {
                     Markdown = reloaded.Markdown;
                 }
@@ -931,11 +931,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         return _document.FilePath is { Length: > 0 } currentPath
                && PathsEqual(currentPath, path);
-    }
-
-    private static bool MarkdownEquals(string left, string right)
-    {
-        return string.Equals(left.ReplaceLineEndings("\n"), right.ReplaceLineEndings("\n"), StringComparison.Ordinal);
     }
 
     private static DateTimeOffset? TryGetLastWriteTimeUtc(string path)

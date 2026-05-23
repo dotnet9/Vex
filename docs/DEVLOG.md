@@ -17,6 +17,8 @@
 - 本轮打印优化未新增第三方依赖；验证 `dotnet build Vex.slnx -v:minimal`、`git diff --check`，并检查生成逻辑包含打印样式与自动打印脚本。
 - 优化大文档编辑路径：大纲生成和统计里的行级扫描不再对整篇 Markdown 先做 `ReplaceLineEndings().Split()`，改为逐行读取和单次换行计数，减少长文档按键时的临时分配。
 - 验证 `dotnet build Vex.slnx -v:minimal`、`git diff --check`，并用临时 Release micro-benchmark 对 100k+ 字符 Markdown 统计和大纲循环扫描做烟测。
+- 继续优化大文档修改状态判断：窗口标题、自动保存草稿和外部文件重载的 Markdown 等值比较不再分配整篇换行归一化字符串，改为逐字符归一化比较。
+- 验证 `dotnet build Vex.slnx -v:minimal` 和 `git diff --check`。
 - 补齐查找增强里的“区分大小写”和“整词匹配”选项，查找计数、查找下一个、替换下一个和全部替换统一遵守当前选项。
 - 新增查找栏选项提示的四套 i18n 文案；验证四套 JSON、`dotnet build Vex.slnx -v:minimal`、`git diff --check`，并截图检查查找栏按钮与选项在主窗口内正常显示。截图路径：`%TEMP%\VexScreenshots\find-bar-search-options.png`。
 - 继续补齐查找增强里的正则匹配选项：查找计数、查找下一个、替换下一个和全部替换支持正则表达式，保留区分大小写与整词过滤，并对无效正则给出本地化状态反馈。
@@ -52,6 +54,8 @@
 - This print improvement adds no third-party dependency; verified `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and checked the generated path logic for print styles plus the auto-print script.
 - Improved the large-document edit path: outline generation and statistics no longer call `ReplaceLineEndings().Split()` before line-level scanning, instead reading lines incrementally and counting line breaks in one pass to reduce temporary allocations.
 - Verified `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and ran a temporary Release micro-benchmark over repeated statistics and outline scans on 100k+ characters of Markdown.
+- Continued large-document performance work: Markdown equality checks for the window modified state, auto-save drafts, and external reloads now compare normalized line endings character-by-character instead of allocating full normalized strings.
+- Verified `dotnet build Vex.slnx -v:minimal` and `git diff --check`.
 - Added the unfinished find enhancements for Match Case and Whole Word. Match counting, Find Next, Replace Next, and Replace All now follow the selected options consistently.
 - Added localized find-option tooltips for all four cultures; verified JSON resources, `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and screenshot-checked the find bar layout. Screenshot path: `%TEMP%\VexScreenshots\find-bar-search-options.png`.
 - Continued the unfinished find enhancements with a Regex option. Match counting, Find Next, Replace Next, and Replace All now support regular expressions while still honoring Match Case and Whole Word filters, with localized feedback for invalid patterns.

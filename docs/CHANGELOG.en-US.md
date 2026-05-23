@@ -14,6 +14,8 @@
 - Built `Vex.slnx`, ran `git diff --check`, and checked that print HTML generation contains `@media print` and `window.print()`.
 - Improved the large-document edit path by reducing temporary full-document splits during outline and statistics scans.
 - Built `Vex.slnx`, ran `git diff --check`, and smoke-tested repeated statistics and outline scans over 100k+ characters with a temporary Release micro-benchmark.
+- Improved Markdown comparisons for modified-state checks, auto-save drafts, and external reloads by normalizing line endings character-by-character instead of allocating full normalized strings for large documents.
+- Built `Vex.slnx` and ran `git diff --check`.
 - Added Match Case and Whole Word options to the find/replace bar, applied consistently across counting, find, and replace.
 - Parsed all four i18n JSON files, built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the find bar layout.
 - Added a Regex option to the find/replace bar. Count, Find Next, Replace Next, and Replace All now support regular expressions while still honoring Match Case and Whole Word.

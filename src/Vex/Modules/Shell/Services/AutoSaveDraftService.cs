@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Vex.Core.Models;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.Services;
 
@@ -24,7 +25,8 @@ public sealed class AutoSaveDraftService : IAutoSaveDraftService
 
             var json = File.ReadAllText(path, DraftEncoding);
             var draft = JsonSerializer.Deserialize(json, AutoSaveDraftJsonContext.Default.AutoSaveDraft);
-            if (draft is null || draft.Markdown is null || MarkdownEquals(draft.Markdown, document.Markdown))
+            if (draft is null || draft.Markdown is null
+                || MarkdownTextComparer.EqualsNormalizedLineEndings(draft.Markdown, document.Markdown))
             {
                 Clear(document);
                 return null;
@@ -46,7 +48,7 @@ public sealed class AutoSaveDraftService : IAutoSaveDraftService
 
     public void QueueSave(DocumentSnapshot document, string markdown, string lastSavedMarkdown)
     {
-        if (MarkdownEquals(markdown, lastSavedMarkdown))
+        if (MarkdownTextComparer.EqualsNormalizedLineEndings(markdown, lastSavedMarkdown))
         {
             Clear(document);
             return;
@@ -121,11 +123,6 @@ public sealed class AutoSaveDraftService : IAutoSaveDraftService
 
         var currentWriteTime = new DateTimeOffset(File.GetLastWriteTimeUtc(path));
         return currentWriteTime > draft.SourceLastWriteTimeUtc.Value.AddSeconds(1);
-    }
-
-    private static bool MarkdownEquals(string left, string right)
-    {
-        return string.Equals(left.ReplaceLineEndings("\n"), right.ReplaceLineEndings("\n"), StringComparison.Ordinal);
     }
 
     private static string GetDraftPath(DocumentSnapshot document)
