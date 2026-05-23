@@ -16,6 +16,8 @@
 - Built `Vex.slnx`, ran `git diff --check`, and smoke-tested repeated statistics and outline scans over 100k+ characters with a temporary Release micro-benchmark.
 - Added Match Case and Whole Word options to the find/replace bar, applied consistently across counting, find, and replace.
 - Parsed all four i18n JSON files, built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the find bar layout.
+- Added a Regex option to the find/replace bar. Count, Find Next, Replace Next, and Replace All now support regular expressions while still honoring Match Case and Whole Word.
+- Parsed all four i18n JSON files, built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the regex option in the find bar.
 - Added File menu actions to copy the current Markdown as HTML rich text for WeChat Official Account, Zhihu, and Juejin.
 - Validated all four i18n JSON files, built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the new copy entries in the File menu.
 - Added PNG export from the File > Export menu, rendering the current Markdown document as a long image.

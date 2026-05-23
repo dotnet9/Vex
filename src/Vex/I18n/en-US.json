@@ -173,6 +173,7 @@
       "FindBarClose": "Close",
       "FindBarMatchCase": "Match case",
       "FindBarWholeWord": "Whole word",
+      "FindBarRegex": "Regular expression",
       "StatisticsTitle": "Statistics",
       "StatisticsLines": "Lines",
       "StatisticsParagraphs": "Paragraphs",
@@ -333,7 +334,8 @@
       "EditorSearchFoundOnLineFormat": "Found \"{0}\" on line {1} ({2}/{3}).",
       "EditorSearchReplacedNextFormat": "Replaced next \"{0}\".",
       "EditorSearchReplacedAllFormat": "Replaced {0} occurrence(s).",
-      "EditorSearchMatchCountFormat": "{0} match(es) for \"{1}\"."
+      "EditorSearchMatchCountFormat": "{0} match(es) for \"{1}\".",
+      "EditorSearchInvalidRegexFormat": "Invalid regular expression: {0}"
     }
   }
 }

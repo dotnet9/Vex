@@ -1,5 +1,7 @@
 using AvaloniaEdit;
 using CodeWF.EventBus;
+using System.Text;
+using System.Text.RegularExpressions;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
 
@@ -53,23 +55,27 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
         }
 
         var text = editor.Text ?? string.Empty;
-        var searchText = command.SearchText;
         var matches = FindMatches(text, command);
-        var matchIndex = GetNextMatchIndex(matches, startOffset);
-        var index = matchIndex >= 0 ? matches[matchIndex] : -1;
-        if (index < 0)
+        if (matches is null)
         {
-            PublishSearchResultFormat(VexL.EditorSearchNoMatchFormat, searchText);
             return;
         }
 
-        editor.Select(index, searchText.Length);
-        editor.CaretOffset = index + searchText.Length;
+        var matchIndex = GetNextMatchIndex(matches, startOffset);
+        if (matchIndex < 0)
+        {
+            PublishSearchResultFormat(VexL.EditorSearchNoMatchFormat, command.SearchText);
+            return;
+        }
+
+        var match = matches[matchIndex];
+        editor.Select(match.Index, match.Length);
+        editor.CaretOffset = match.Index + match.Length;
         editor.TextArea.Caret.BringCaretToView();
         editor.Focus();
-        var line = editor.Document.GetLineByOffset(index).LineNumber;
+        var line = editor.Document.GetLineByOffset(match.Index).LineNumber;
         _eventBus.Publish(new EditorSearchResultCommand(
-            _localizer.Format(VexL.EditorSearchFoundOnLineFormat, searchText, line, matchIndex + 1, matches.Count),
+            _localizer.Format(VexL.EditorSearchFoundOnLineFormat, command.SearchText, line, matchIndex + 1, matches.Count),
             matchIndex + 1,
             matches.Count));
         publishTextChanged();
@@ -84,24 +90,26 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
         var text = editor.Text ?? string.Empty;
         var start = Math.Clamp(editor.SelectionStart, 0, text.Length);
         var length = Math.Clamp(editor.SelectionLength, 0, text.Length - start);
-        var selected = length > 0 ? text.Substring(start, length) : string.Empty;
-        var searchText = command.SearchText;
-
-        if (!IsMatch(selected, searchText, command)
-            || (command.IsWholeWord && !IsWholeWordMatch(text, start, length)))
+        var currentMatch = FindCurrentSelectionMatch(text, command, start, length);
+        if (currentMatch is null)
         {
             FindNext(editor, command, editor.CaretOffset, publishTextChanged);
             return;
         }
 
+        if (!TryGetReplacementText(currentMatch.Value, command, out var replacementText))
+        {
+            return;
+        }
+
         runTextMutation(() =>
         {
-            editor.Text = text[..start] + command.ReplacementText + text[(start + length)..];
-            editor.CaretOffset = start + command.ReplacementText.Length;
-            editor.Select(start, command.ReplacementText.Length);
+            editor.Text = text[..start] + replacementText + text[(start + currentMatch.Value.Length)..];
+            editor.CaretOffset = start + replacementText.Length;
+            editor.Select(start, replacementText.Length);
         });
-        PublishSearchResultFormat(VexL.EditorSearchReplacedNextFormat, searchText);
-        FindNext(editor, command, start + command.ReplacementText.Length, publishTextChanged);
+        PublishSearchResultFormat(VexL.EditorSearchReplacedNextFormat, command.SearchText);
+        FindNext(editor, command, start + replacementText.Length, publishTextChanged);
     }
 
     private void ReplaceAll(
@@ -110,31 +118,32 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
         Action<Action> runTextMutation)
     {
         var text = editor.Text ?? string.Empty;
-        var builder = new System.Text.StringBuilder(text.Length);
-        var offset = 0;
-        var count = 0;
-        var searchText = command.SearchText;
-
-        while (offset < text.Length)
+        var matches = FindMatches(text, command);
+        if (matches is null)
         {
-            var index = FindNextIndex(text, searchText, offset, command);
-            if (index < 0)
-            {
-                builder.Append(text, offset, text.Length - offset);
-                break;
-            }
-
-            builder.Append(text, offset, index - offset);
-            builder.Append(command.ReplacementText);
-            offset = index + searchText.Length;
-            count++;
-        }
-
-        if (count == 0)
-        {
-            PublishSearchResultFormat(VexL.EditorSearchNoMatchFormat, searchText);
             return;
         }
+
+        if (matches.Count == 0)
+        {
+            PublishSearchResultFormat(VexL.EditorSearchNoMatchFormat, command.SearchText);
+            return;
+        }
+
+        var builder = new StringBuilder(text.Length);
+        var offset = 0;
+        foreach (var match in matches)
+        {
+            if (!TryGetReplacementText(match, command, out var replacementText))
+            {
+                return;
+            }
+
+            builder.Append(text, offset, match.Index - offset);
+            builder.Append(replacementText);
+            offset = match.Index + match.Length;
+        }
+        builder.Append(text, offset, text.Length - offset);
 
         runTextMutation(() =>
         {
@@ -142,12 +151,17 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
             editor.CaretOffset = 0;
             editor.SelectionLength = 0;
         });
-        PublishSearchResultFormat(VexL.EditorSearchReplacedAllFormat, count);
+        PublishSearchResultFormat(VexL.EditorSearchReplacedAllFormat, matches.Count);
     }
 
     private void CountMatches(TextEditor editor, EditorSearchCommand command)
     {
         var matches = FindMatches(editor.Text ?? string.Empty, command);
+        if (matches is null)
+        {
+            return;
+        }
+
         if (matches.Count == 0)
         {
             PublishSearchResultFormat(VexL.EditorSearchNoMatchFormat, command.SearchText);
@@ -171,7 +185,7 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
         _eventBus.Publish(new EditorSearchResultCommand(_localizer.Format(key, args)));
     }
 
-    private static List<int> FindMatches(string text, EditorSearchCommand command)
+    private List<SearchMatch>? FindMatches(string text, EditorSearchCommand command)
     {
         var searchText = command.SearchText;
         if (text.Length == 0 || searchText.Length == 0)
@@ -179,7 +193,12 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
             return [];
         }
 
-        List<int> matches = [];
+        if (command.IsRegex)
+        {
+            return FindRegexMatches(text, command);
+        }
+
+        List<SearchMatch> matches = [];
         var offset = 0;
         while (offset <= text.Length - searchText.Length)
         {
@@ -189,8 +208,41 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
                 break;
             }
 
-            matches.Add(index);
-            offset = index + Math.Max(1, searchText.Length);
+            matches.Add(new SearchMatch(index, searchText.Length));
+            offset = index + searchText.Length;
+        }
+
+        return matches;
+    }
+
+    private List<SearchMatch>? FindRegexMatches(string text, EditorSearchCommand command)
+    {
+        var regex = TryCreateRegex(command);
+        if (regex is null)
+        {
+            return null;
+        }
+
+        List<SearchMatch> matches = [];
+        try
+        {
+            foreach (Match match in regex.Matches(text))
+            {
+                if (!match.Success || match.Length == 0)
+                {
+                    continue;
+                }
+
+                if (!command.IsWholeWord || IsWholeWordMatch(text, match.Index, match.Length))
+                {
+                    matches.Add(new SearchMatch(match.Index, match.Length, match));
+                }
+            }
+        }
+        catch (RegexMatchTimeoutException exception)
+        {
+            PublishSearchResultFormat(VexL.EditorSearchInvalidRegexFormat, exception.Message);
+            return null;
         }
 
         return matches;
@@ -221,12 +273,91 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
         return -1;
     }
 
-    private static bool IsMatch(string selected, string searchText, EditorSearchCommand command)
+    private SearchMatch? FindCurrentSelectionMatch(string text, EditorSearchCommand command, int start, int length)
     {
+        if (length <= 0)
+        {
+            return null;
+        }
+
+        if (command.IsRegex)
+        {
+            var regex = TryCreateRegex(command);
+            if (regex is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                var match = regex.Match(text, start);
+                if (!match.Success || match.Index != start || match.Length != length || match.Length == 0)
+                {
+                    return null;
+                }
+
+                return command.IsWholeWord && !IsWholeWordMatch(text, start, length)
+                    ? null
+                    : new SearchMatch(start, length, match);
+            }
+            catch (RegexMatchTimeoutException exception)
+            {
+                PublishSearchResultFormat(VexL.EditorSearchInvalidRegexFormat, exception.Message);
+                return null;
+            }
+        }
+
+        var selected = text.Substring(start, length);
         var comparison = command.IsMatchCase
             ? StringComparison.CurrentCulture
             : StringComparison.CurrentCultureIgnoreCase;
-        return selected.Equals(searchText, comparison);
+        if (!selected.Equals(command.SearchText, comparison))
+        {
+            return null;
+        }
+
+        return command.IsWholeWord && !IsWholeWordMatch(text, start, length)
+            ? null
+            : new SearchMatch(start, length);
+    }
+
+    private bool TryGetReplacementText(SearchMatch match, EditorSearchCommand command, out string replacementText)
+    {
+        replacementText = command.ReplacementText;
+        if (!command.IsRegex || match.RegexMatch is null)
+        {
+            return true;
+        }
+
+        try
+        {
+            replacementText = match.RegexMatch.Result(command.ReplacementText);
+            return true;
+        }
+        catch (ArgumentException exception)
+        {
+            PublishSearchResultFormat(VexL.EditorSearchInvalidRegexFormat, exception.Message);
+            return false;
+        }
+    }
+
+    private Regex? TryCreateRegex(EditorSearchCommand command)
+    {
+        var options = RegexOptions.Multiline;
+        if (!command.IsMatchCase)
+        {
+            options |= RegexOptions.IgnoreCase;
+        }
+
+        try
+        {
+            return new Regex(command.SearchText, options, TimeSpan.FromSeconds(1));
+        }
+        catch (ArgumentException exception)
+        {
+            PublishSearchResultFormat(VexL.EditorSearchInvalidRegexFormat, exception.Message);
+            return null;
+        }
     }
 
     private static bool IsWholeWordMatch(string text, int index, int length)
@@ -242,7 +373,7 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
         return char.IsLetterOrDigit(value) || value == '_';
     }
 
-    private static int GetNextMatchIndex(IReadOnlyList<int> matches, int startOffset)
+    private static int GetNextMatchIndex(IReadOnlyList<SearchMatch> matches, int startOffset)
     {
         if (matches.Count == 0)
         {
@@ -252,7 +383,7 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
         var start = Math.Max(0, startOffset);
         for (var i = 0; i < matches.Count; i++)
         {
-            if (matches[i] >= start)
+            if (matches[i].Index >= start)
             {
                 return i;
             }
@@ -260,4 +391,6 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
 
         return 0;
     }
+
+    private readonly record struct SearchMatch(int Index, int Length, Match? RegexMatch = null);
 }

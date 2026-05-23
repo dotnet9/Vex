@@ -9,13 +9,15 @@ public sealed class EditorSearchCommand : Command
         string searchText,
         string? replacementText = null,
         bool isMatchCase = false,
-        bool isWholeWord = false)
+        bool isWholeWord = false,
+        bool isRegex = false)
     {
         Action = action;
         SearchText = searchText;
         ReplacementText = replacementText ?? string.Empty;
         IsMatchCase = isMatchCase;
         IsWholeWord = isWholeWord;
+        IsRegex = isRegex;
     }
 
     public EditorSearchAction Action { get; }
@@ -27,4 +29,6 @@ public sealed class EditorSearchCommand : Command
     public bool IsMatchCase { get; }
 
     public bool IsWholeWord { get; }
+
+    public bool IsRegex { get; }
 }

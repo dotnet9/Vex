@@ -173,6 +173,7 @@
       "FindBarClose": "閉じる",
       "FindBarMatchCase": "大文字と小文字を区別",
       "FindBarWholeWord": "単語単位",
+      "FindBarRegex": "正規表現",
       "StatisticsTitle": "統計",
       "StatisticsLines": "行数",
       "StatisticsParagraphs": "段落",
@@ -333,7 +334,8 @@
       "EditorSearchFoundOnLineFormat": "{1} 行目で \"{0}\" を見つけました（{2}/{3}）。",
       "EditorSearchReplacedNextFormat": "次の \"{0}\" を置換しました。",
       "EditorSearchReplacedAllFormat": "{0} 件を置換しました。",
-      "EditorSearchMatchCountFormat": "\"{1}\" は {0} 件見つかりました。"
+      "EditorSearchMatchCountFormat": "\"{1}\" は {0} 件見つかりました。",
+      "EditorSearchInvalidRegexFormat": "正規表現が無効です: {0}"
     }
   }
 }

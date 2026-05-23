@@ -178,6 +178,7 @@ public static class VexL
     public static readonly string FindBarClose = "Vex.VexL.FindBarClose";
     public static readonly string FindBarMatchCase = "Vex.VexL.FindBarMatchCase";
     public static readonly string FindBarWholeWord = "Vex.VexL.FindBarWholeWord";
+    public static readonly string FindBarRegex = "Vex.VexL.FindBarRegex";
     public static readonly string StatisticsTitle = "Vex.VexL.StatisticsTitle";
     public static readonly string StatisticsLines = "Vex.VexL.StatisticsLines";
     public static readonly string StatisticsParagraphs = "Vex.VexL.StatisticsParagraphs";
@@ -339,4 +340,5 @@ public static class VexL
     public static readonly string EditorSearchReplacedNextFormat = "Vex.VexL.EditorSearchReplacedNextFormat";
     public static readonly string EditorSearchReplacedAllFormat = "Vex.VexL.EditorSearchReplacedAllFormat";
     public static readonly string EditorSearchMatchCountFormat = "Vex.VexL.EditorSearchMatchCountFormat";
+    public static readonly string EditorSearchInvalidRegexFormat = "Vex.VexL.EditorSearchInvalidRegexFormat";
 }

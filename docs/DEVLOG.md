@@ -19,6 +19,8 @@
 - 验证 `dotnet build Vex.slnx -v:minimal`、`git diff --check`，并用临时 Release micro-benchmark 对 100k+ 字符 Markdown 统计和大纲循环扫描做烟测。
 - 补齐查找增强里的“区分大小写”和“整词匹配”选项，查找计数、查找下一个、替换下一个和全部替换统一遵守当前选项。
 - 新增查找栏选项提示的四套 i18n 文案；验证四套 JSON、`dotnet build Vex.slnx -v:minimal`、`git diff --check`，并截图检查查找栏按钮与选项在主窗口内正常显示。截图路径：`%TEMP%\VexScreenshots\find-bar-search-options.png`。
+- 继续补齐查找增强里的正则匹配选项：查找计数、查找下一个、替换下一个和全部替换支持正则表达式，保留区分大小写与整词过滤，并对无效正则给出本地化状态反馈。
+- 新增正则查找提示和错误反馈的四套 i18n 文案；验证四套 JSON、`dotnet build Vex.slnx -v:minimal`、`git diff --check`，并截图检查查找栏正则选项显示正常。截图路径：`%TEMP%\VexScreenshots\find-bar-regex-option.png`。
 
 ### en-US
 
@@ -37,6 +39,8 @@
 - Verified `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and ran a temporary Release micro-benchmark over repeated statistics and outline scans on 100k+ characters of Markdown.
 - Added the unfinished find enhancements for Match Case and Whole Word. Match counting, Find Next, Replace Next, and Replace All now follow the selected options consistently.
 - Added localized find-option tooltips for all four cultures; verified JSON resources, `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and screenshot-checked the find bar layout. Screenshot path: `%TEMP%\VexScreenshots\find-bar-search-options.png`.
+- Continued the unfinished find enhancements with a Regex option. Match counting, Find Next, Replace Next, and Replace All now support regular expressions while still honoring Match Case and Whole Word filters, with localized feedback for invalid patterns.
+- Added localized regex-search tooltip and invalid-regex feedback for all four cultures; verified JSON resources, `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and screenshot-checked the regex option in the find bar. Screenshot path: `%TEMP%\VexScreenshots\find-bar-regex-option.png`.
 
 ## 0.1.0 - 2026-05-22
 

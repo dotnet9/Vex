@@ -14,6 +14,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     private bool _isReplaceVisible;
     private bool _isMatchCase;
     private bool _isWholeWord;
+    private bool _isRegex;
     private string _searchText = string.Empty;
     private string _replacementText = string.Empty;
     private string _searchResultText = "0/0";
@@ -55,6 +56,18 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         set
         {
             if (SetProperty(ref _isWholeWord, value))
+            {
+                RefreshSearchResultCount();
+            }
+        }
+    }
+
+    public bool IsRegex
+    {
+        get => _isRegex;
+        set
+        {
+            if (SetProperty(ref _isRegex, value))
             {
                 RefreshSearchResultCount();
             }
@@ -173,7 +186,8 @@ public sealed class ShellFindBarViewModel : ReactiveObject
             SearchText,
             replacementText,
             IsMatchCase,
-            IsWholeWord));
+            IsWholeWord,
+            IsRegex));
     }
 
     private void PublishEditorAction(EditorActionKind action)

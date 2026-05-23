@@ -173,6 +173,7 @@
       "FindBarClose": "關閉",
       "FindBarMatchCase": "區分大小寫",
       "FindBarWholeWord": "整詞符合",
+      "FindBarRegex": "正則符合",
       "StatisticsTitle": "統計",
       "StatisticsLines": "行數",
       "StatisticsParagraphs": "段落",
@@ -333,7 +334,8 @@
       "EditorSearchFoundOnLineFormat": "在第 {1} 行找到 \"{0}\"（{2}/{3}）。",
       "EditorSearchReplacedNextFormat": "已取代下一個 \"{0}\"。",
       "EditorSearchReplacedAllFormat": "已取代 {0} 處。",
-      "EditorSearchMatchCountFormat": "\"{1}\" 共 {0} 處符合。"
+      "EditorSearchMatchCountFormat": "\"{1}\" 共 {0} 處符合。",
+      "EditorSearchInvalidRegexFormat": "正則表示式無效：{0}"
     }
   }
 }
