@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 大文件查找路径优化：查找栏搜索文本、大小写、整词和正则开关变化时，全文匹配计数改为 180ms 防抖发布；打开查找/替换面板仍立即计数，关闭面板会取消挂起计数。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认查找计数防抖、面板打开立即计数和关闭取消挂起计数路径存在。
 - 大文件编辑路径继续优化：真实文本变更时会立即刷新未保存状态并排队草稿保存，但预览文档状态、统计和大纲构建合并到 220ms 防抖刷新，避免连续输入时每个字符都同步触发全量 Markdown 派生扫描。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认普通文档设置仍走立即刷新，`MarkdownTextChangedCommand` 路径走防抖刷新，`ShellDocumentInfoViewModel` 具备不重算统计的轻量状态刷新入口。
 - 深色模式菜单细节继续完善：标题菜单新增动态前景、悬停和选中态资源，暗色主题下菜单文本、悬停背景和选中勾选色单独配置；主题色、排版主题和语言菜单改为 Radio 勾选，紧凑布局改为 CheckBox 勾选。
@@ -119,6 +121,8 @@
 
 ### en-US
 
+- Optimized the large-file find path: changes to search text, match case, whole word, and regex now publish full-document match counts through a 180ms debounce; opening find/replace still counts immediately, and closing the panel cancels pending counts.
+- Verified `dotnet build Vex.slnx -v:minimal` and used a source-structure smoke confirming debounced find counts, immediate count on panel open, and pending-count cancellation on close.
 - Further optimized the large-file edit path: real text changes now update unsaved state and queue draft saving immediately, while preview document state, statistics, and outline building are coalesced behind a 220ms debounce to avoid full Markdown-derived scans for every typed character.
 - Verified `dotnet build Vex.slnx -v:minimal` and used a source-structure smoke confirming ordinary document assignment still refreshes immediately, the `MarkdownTextChangedCommand` path uses the debounced refresh, and `ShellDocumentInfoViewModel` has a lightweight state refresh that does not recalculate statistics.
 - Further refined dark-mode menu details: the title menu now has dynamic foreground, hover, and checked-state resources with separate dark-theme colors; theme, typography, and language menus now show Radio checks, and compact layout shows a CheckBox state.

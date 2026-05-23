@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Avalonia.Threading;
 using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
@@ -8,8 +9,10 @@ namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellFindBarViewModel : ReactiveObject
 {
+    private static readonly TimeSpan SearchCountDebounce = TimeSpan.FromMilliseconds(180);
     private readonly IEventBus _eventBus;
     private readonly IShellStatusPublisher _statusPublisher;
+    private Timer? _searchCountTimer;
     private bool _isVisible;
     private bool _isReplaceVisible;
     private bool _isMatchCase;
@@ -103,7 +106,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         IsVisible = true;
         IsReplaceVisible = false;
         SeedSearchTextFromEditorSelection();
-        RefreshSearchResultCount();
+        RefreshSearchResultCount(immediate: true);
         SetStatusResource(VexL.StatusFindReady);
     }
 
@@ -112,13 +115,14 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         IsVisible = true;
         IsReplaceVisible = true;
         SeedSearchTextFromEditorSelection();
-        RefreshSearchResultCount();
+        RefreshSearchResultCount(immediate: true);
         SetStatusResource(VexL.StatusReplaceReady);
     }
 
     public void CloseFindPanel()
     {
         IsVisible = false;
+        CancelSearchResultCount();
         SetStatusResource(VexL.StatusFindClosed);
         PublishEditorAction(EditorActionKind.FocusEditor);
     }
@@ -165,7 +169,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         SetStatus(command.Message);
     }
 
-    private void RefreshSearchResultCount()
+    private void RefreshSearchResultCount(bool immediate = false)
     {
         if (!IsVisible)
         {
@@ -174,11 +178,42 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 
         if (string.IsNullOrWhiteSpace(SearchText))
         {
+            CancelSearchResultCount();
             SearchResultText = "0/0";
             return;
         }
 
-        PublishSearch(EditorSearchAction.Count);
+        if (immediate)
+        {
+            CancelSearchResultCount();
+            PublishSearch(EditorSearchAction.Count);
+            return;
+        }
+
+        ScheduleSearchResultCount();
+    }
+
+    private void ScheduleSearchResultCount()
+    {
+        _searchCountTimer ??= new Timer(
+            _ => Dispatcher.UIThread.Post(PublishSearchResultCount),
+            null,
+            Timeout.InfiniteTimeSpan,
+            Timeout.InfiniteTimeSpan);
+        _searchCountTimer.Change(SearchCountDebounce, Timeout.InfiniteTimeSpan);
+    }
+
+    private void CancelSearchResultCount()
+    {
+        _searchCountTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+    }
+
+    private void PublishSearchResultCount()
+    {
+        if (IsVisible && !string.IsNullOrWhiteSpace(SearchText))
+        {
+            PublishSearch(EditorSearchAction.Count);
+        }
     }
 
     private void PublishSearch(EditorSearchAction action, string? replacementText = null)

@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Debounced full-document find match counting by 180ms, reducing repeated scans while typing search text or toggling match options in long documents.
+- Built `Vex.slnx` and used a source-structure smoke to verify debounced find counts, immediate count on panel open, and pending-count cancellation on close.
 - Coalesced preview, statistics, and outline refreshes behind a 220ms debounce during continuous large-file typing, while keeping unsaved state and draft-save queuing immediate.
 - Built `Vex.slnx` and used a source-structure smoke to verify the debounced text-change path and lightweight document-state refresh entry point.
 - Refined title-menu colors for dark mode with dynamic foreground, hover, and checked-state brushes; theme, typography, language, and compact-layout menus now show the current selection.
