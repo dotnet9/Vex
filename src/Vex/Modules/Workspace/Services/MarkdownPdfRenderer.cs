@@ -20,8 +20,8 @@ internal sealed class MarkdownPdfRenderer
     private const int PreferredMinimumSliceHeight = 160;
     private const int BoundarySearchWindow = 120;
     private const int PreferredBlankBandHeight = 10;
-    private const byte WhiteThreshold = 245;
-    private const double WhiteRowRatio = 0.985;
+    private const byte BackgroundTolerance = 8;
+    private const double BackgroundRowRatio = 0.985;
     private static readonly SKColor MetadataTextColor = new(107, 114, 128);
     private static readonly SKColor MetadataLineColor = new(229, 231, 235);
 
@@ -36,7 +36,8 @@ internal sealed class MarkdownPdfRenderer
 
     public void Render(DocumentSnapshot document, string path, MarkdownExportStyle? exportStyle = null)
     {
-        using var rendered = _pngRenderer.Render(document, exportStyle);
+        var style = exportStyle ?? MarkdownExportStyle.Resolve(null, null);
+        using var rendered = _pngRenderer.Render(document, style);
         using var bitmap = DecodeRenderedBitmap(rendered);
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path)) ?? ".");
 
@@ -53,7 +54,10 @@ internal sealed class MarkdownPdfRenderer
         var contentHeight = contentBottom - contentTop;
         var scale = contentWidth / bitmap.Width;
         var sourceSliceHeight = Math.Max(MinimumSourceSliceHeight, (int)Math.Floor(contentHeight / scale));
-        var slices = CreateSlices(bitmap, sourceSliceHeight).ToList();
+        var pageBackgroundColor = ParseColor(style.PageBackgroundColor, SKColors.White);
+        var metadataTextColor = ParseColor(style.MutedColor, MetadataTextColor);
+        var metadataLineColor = ParseColor(style.BorderColor, MetadataLineColor);
+        var slices = CreateSlices(bitmap, sourceSliceHeight, pageBackgroundColor).ToList();
         var pageCount = slices.Count;
 
         for (var pageIndex = 0; pageIndex < pageCount; pageIndex++)
@@ -68,10 +72,10 @@ internal sealed class MarkdownPdfRenderer
                 contentTop + destinationHeight);
 
             var canvas = pdf.BeginPage(PageWidth, PageHeight);
-            canvas.Clear(SKColors.White);
-            DrawHeader(canvas, document);
+            canvas.Clear(pageBackgroundColor);
+            DrawHeader(canvas, document, metadataTextColor, metadataLineColor);
             canvas.DrawBitmap(bitmap, source, destination);
-            DrawFooter(canvas, document, pageIndex + 1, pageCount);
+            DrawFooter(canvas, document, pageIndex + 1, pageCount, metadataTextColor, metadataLineColor);
             pdf.EndPage();
         }
 
@@ -87,18 +91,18 @@ internal sealed class MarkdownPdfRenderer
                ?? throw new InvalidOperationException(_localizer.Get(VexL.ExportDetailRenderedBitmapDecodeFailed));
     }
 
-    private static IEnumerable<PdfSlice> CreateSlices(SKBitmap bitmap, int sourceSliceHeight)
+    private static IEnumerable<PdfSlice> CreateSlices(SKBitmap bitmap, int sourceSliceHeight, SKColor pageBackgroundColor)
     {
         for (var sourceTop = 0; sourceTop < bitmap.Height;)
         {
             var idealBottom = Math.Min(bitmap.Height, sourceTop + sourceSliceHeight);
-            var sourceBottom = FindSliceBottom(bitmap, sourceTop, idealBottom);
+            var sourceBottom = FindSliceBottom(bitmap, sourceTop, idealBottom, pageBackgroundColor);
             yield return new PdfSlice(sourceTop, sourceBottom);
             sourceTop = sourceBottom;
         }
     }
 
-    private static int FindSliceBottom(SKBitmap bitmap, int sourceTop, int idealBottom)
+    private static int FindSliceBottom(SKBitmap bitmap, int sourceTop, int idealBottom, SKColor pageBackgroundColor)
     {
         if (idealBottom >= bitmap.Height)
         {
@@ -109,7 +113,7 @@ internal sealed class MarkdownPdfRenderer
         var searchTop = Math.Max(minimumBottom, idealBottom - BoundarySearchWindow);
         for (var bandBottom = idealBottom; bandBottom >= searchTop + PreferredBlankBandHeight; bandBottom--)
         {
-            if (IsMostlyWhiteBand(bitmap, bandBottom - PreferredBlankBandHeight, bandBottom))
+            if (IsMostlyBackgroundBand(bitmap, bandBottom - PreferredBlankBandHeight, bandBottom, pageBackgroundColor))
             {
                 return bandBottom;
             }
@@ -117,7 +121,7 @@ internal sealed class MarkdownPdfRenderer
 
         for (var bottom = idealBottom; bottom >= searchTop; bottom--)
         {
-            if (IsMostlyWhiteRow(bitmap, bottom - 1))
+            if (IsMostlyBackgroundRow(bitmap, bottom - 1, pageBackgroundColor))
             {
                 return bottom;
             }
@@ -126,11 +130,11 @@ internal sealed class MarkdownPdfRenderer
         return idealBottom;
     }
 
-    private static bool IsMostlyWhiteBand(SKBitmap bitmap, int top, int bottom)
+    private static bool IsMostlyBackgroundBand(SKBitmap bitmap, int top, int bottom, SKColor pageBackgroundColor)
     {
         for (var y = top; y < bottom; y++)
         {
-            if (!IsMostlyWhiteRow(bitmap, y))
+            if (!IsMostlyBackgroundRow(bitmap, y, pageBackgroundColor))
             {
                 return false;
             }
@@ -139,33 +143,38 @@ internal sealed class MarkdownPdfRenderer
         return true;
     }
 
-    private static bool IsMostlyWhiteRow(SKBitmap bitmap, int y)
+    private static bool IsMostlyBackgroundRow(SKBitmap bitmap, int y, SKColor pageBackgroundColor)
     {
         const int SampleStep = 8;
         var samples = 0;
-        var whiteSamples = 0;
+        var backgroundSamples = 0;
         for (var x = 0; x < bitmap.Width; x += SampleStep)
         {
             var color = bitmap.GetPixel(x, y);
             samples++;
-            if (color.Red >= WhiteThreshold
-                && color.Green >= WhiteThreshold
-                && color.Blue >= WhiteThreshold)
+            if (IsNearColor(color, pageBackgroundColor))
             {
-                whiteSamples++;
+                backgroundSamples++;
             }
         }
 
-        return samples > 0 && (double)whiteSamples / samples >= WhiteRowRatio;
+        return samples > 0 && (double)backgroundSamples / samples >= BackgroundRowRatio;
     }
 
-    private static void DrawHeader(SKCanvas canvas, DocumentSnapshot document)
+    private static bool IsNearColor(SKColor color, SKColor expected)
+    {
+        return Math.Abs(color.Red - expected.Red) <= BackgroundTolerance
+               && Math.Abs(color.Green - expected.Green) <= BackgroundTolerance
+               && Math.Abs(color.Blue - expected.Blue) <= BackgroundTolerance;
+    }
+
+    private static void DrawHeader(SKCanvas canvas, DocumentSnapshot document, SKColor textColor, SKColor lineColor)
     {
         var headerBottom = PageMargin + HeaderHeight;
-        using var linePaint = CreateLinePaint();
+        using var linePaint = CreateLinePaint(lineColor);
         canvas.DrawLine(PageMargin, headerBottom, PageWidth - PageMargin, headerBottom, linePaint);
 
-        using var textPaint = CreateTextPaint();
+        using var textPaint = CreateTextPaint(textColor);
         using var font = CreateMetadataFont(HeaderFontSize);
 
         var titleMaxWidth = PageWidth - (PageMargin * 2);
@@ -173,13 +182,13 @@ internal sealed class MarkdownPdfRenderer
         canvas.DrawText(title, PageMargin, PageMargin + 17, font, textPaint);
     }
 
-    private static void DrawFooter(SKCanvas canvas, DocumentSnapshot document, int pageNumber, int pageCount)
+    private static void DrawFooter(SKCanvas canvas, DocumentSnapshot document, int pageNumber, int pageCount, SKColor textColor, SKColor lineColor)
     {
         var footerTop = PageHeight - PageMargin - FooterHeight;
-        using var linePaint = CreateLinePaint();
+        using var linePaint = CreateLinePaint(lineColor);
         canvas.DrawLine(PageMargin, footerTop, PageWidth - PageMargin, footerTop, linePaint);
 
-        using var textPaint = CreateTextPaint();
+        using var textPaint = CreateTextPaint(textColor);
         using var font = CreateMetadataFont(FooterFontSize);
 
         var baseline = footerTop + 18;
@@ -193,21 +202,21 @@ internal sealed class MarkdownPdfRenderer
         canvas.DrawText(pageText, pageTextX, baseline, font, textPaint);
     }
 
-    private static SKPaint CreateLinePaint()
+    private static SKPaint CreateLinePaint(SKColor color)
     {
         return new SKPaint
         {
-            Color = MetadataLineColor,
+            Color = color,
             IsAntialias = true,
             StrokeWidth = 1
         };
     }
 
-    private static SKPaint CreateTextPaint()
+    private static SKPaint CreateTextPaint(SKColor color)
     {
         return new SKPaint
         {
-            Color = MetadataTextColor,
+            Color = color,
             IsAntialias = true
         };
     }
@@ -299,6 +308,18 @@ internal sealed class MarkdownPdfRenderer
         }
 
         return Ellipsis;
+    }
+
+    private static SKColor ParseColor(string color, SKColor fallback)
+    {
+        try
+        {
+            return SKColor.Parse(color);
+        }
+        catch (ArgumentException)
+        {
+            return fallback;
+        }
     }
 
     private readonly record struct PdfSlice(int Top, int Bottom);

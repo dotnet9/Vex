@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- PDF 排版主题映射继续细化：图像型 PDF 页面背景不再固定白色，而是使用导出样式背景；页眉页脚文字和分割线使用当前样式的弱文本色与边框色；分页空白带检测改为匹配页面背景色，暗色排版主题也能寻找自然断点。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认 PDF 背景、页眉页脚元数据颜色和分页空白检测均读取 `MarkdownExportStyle`。
 - 查找计数路径继续减分配：`EditorSearchAction.Count` 不再为全部命中构建 `SearchMatch` 列表，而是在一次扫描中统计总数和当前命中索引；正则计数也只枚举匹配并计数。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认 Count 路径调用新的计数扫描，保留 Find/Replace 路径的完整命中列表。
 - 大文件查找路径优化：查找栏搜索文本、大小写、整词和正则开关变化时，全文匹配计数改为 180ms 防抖发布；打开查找/替换面板仍立即计数，关闭面板会取消挂起计数。
@@ -123,6 +125,8 @@
 
 ### en-US
 
+- Further refined PDF typography-theme mapping: image-based PDF pages no longer force a white background; header/footer text and divider lines use the current style muted and border colors; page-break blank-band detection now matches the page background color so dark typography themes can also find natural breaks.
+- Verified `dotnet build Vex.slnx -v:minimal` and used a source-structure smoke confirming PDF background, header/footer metadata colors, and blank-band detection all read `MarkdownExportStyle`.
 - Further reduced find-count allocations: `EditorSearchAction.Count` no longer builds a `SearchMatch` list for every hit, and instead computes total count plus current match index in one scan; regex count also enumerates matches only for counting.
 - Verified `dotnet build Vex.slnx -v:minimal` and used a source-structure smoke confirming Count uses the new counting scan while Find/Replace still keep full match lists.
 - Optimized the large-file find path: changes to search text, match case, whole word, and regex now publish full-document match counts through a 180ms debounce; opening find/replace still counts immediately, and closing the panel cancels pending counts.

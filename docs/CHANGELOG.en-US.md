@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Image-based PDF background, header/footer metadata colors, and page-break blank-band detection now use the active export style, so dark typography themes no longer search for white page breaks.
+- Built `Vex.slnx` and used a source-structure smoke to verify PDF background, metadata colors, and blank-band detection read the export style.
 - Changed the find Count path to compute total matches and current index in one scan instead of allocating a `SearchMatch` list for every hit.
 - Built `Vex.slnx` and used a source-structure smoke to verify Count uses the new counting scan while Find/Replace still keep full match lists.
 - Debounced full-document find match counting by 180ms, reducing repeated scans while typing search text or toggling match options in long documents.
