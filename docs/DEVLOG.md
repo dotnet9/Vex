@@ -34,6 +34,8 @@
 - 验证 `dotnet build Vex.slnx -v:minimal`、`git diff --check`，并确认 Debug 输出目录包含 `QuickStart.en-US.md` 和 `ACKNOWLEDGEMENTS.en-US.md`。
 - 同步更新 `docs/Vex需求文档.md` 的当前能力快照与未完成重点清单，避免后续继续把已完成的 PDF/PNG、查找增强和深色浮层适配当作未完成项。
 - 验证 `git diff --check`。
+- 优化 PDF 导出分页：分页切片会在目标页尾附近优先寻找空白横行作为断点，减少图像型 PDF 正好切过正文、表格或代码行的概率。
+- 验证 `dotnet build Vex.slnx -v:minimal`、`git diff --check`，并通过临时 smoke 程序重新生成 PDF。输出路径：`%TEMP%\VexScreenshots\pdf-export-smoke.pdf`。
 
 ### en-US
 
@@ -67,6 +69,8 @@
 - Verified `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and confirmed the Debug output contains `QuickStart.en-US.md` and `ACKNOWLEDGEMENTS.en-US.md`.
 - Updated `docs/Vex需求文档.md` current-capability and unfinished-priority sections so future iterations do not keep treating completed PDF/PNG export, find enhancements, and dark overlay adaptation as missing.
 - Verified `git diff --check`.
+- Improved PDF pagination: page image slices now prefer a blank horizontal row near the target page bottom, reducing the chance of cutting through text, tables, or code lines.
+- Verified `dotnet build Vex.slnx -v:minimal`, `git diff --check`, and regenerated the PDF with a temporary smoke program. Output path: `%TEMP%\VexScreenshots\pdf-export-smoke.pdf`.
 
 ## 0.1.0 - 2026-05-22
 

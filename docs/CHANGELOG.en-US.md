@@ -30,6 +30,8 @@
 - Built `Vex.slnx`, ran `git diff --check`, and confirmed the English help documents are copied to the output folder.
 - Updated the requirements document capability snapshot and unfinished-priority list so future iterations can follow the current project state.
 - Ran `git diff --check`.
+- Improved PDF export pagination so page slices prefer nearby blank rows, reducing cuts through text, tables, or code lines.
+- Built `Vex.slnx`, ran `git diff --check`, and regenerated a PDF with the temporary smoke program.
 - Added File menu actions to copy the current Markdown as HTML rich text for WeChat Official Account, Zhihu, and Juejin.
 - Validated all four i18n JSON files, built `Vex.slnx`, ran `git diff --check`, and screenshot-verified the new copy entries in the File menu.
 - Added PNG export from the File > Export menu, rendering the current Markdown document as a long image.
