@@ -6,6 +6,9 @@
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}" />
     </Style>
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource VexEditorForegroundBrush}" />
+    </Style>
     <Style Selector="Menu.title-menu">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="FontSize" Value="12" />
@@ -24,6 +27,16 @@
     <Style Selector="Menu.title-menu MenuItem:checked">
         <Setter Property="Background" Value="{DynamicResource VexMenuCheckedBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource VexMenuCheckedForegroundBrush}" />
+    </Style>
+    <Style Selector="ContextMenu">
+        <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+    </Style>
+    <Style Selector="ContextMenu MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource VexMenuForegroundBrush}" />
+    </Style>
+    <Style Selector="ContextMenu MenuItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource VexMenuHoverBackgroundBrush}" />
     </Style>
     <Style Selector="Border.panel">
         <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />

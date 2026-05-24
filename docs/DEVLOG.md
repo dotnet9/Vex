@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 深色模式边界继续细化：应用级样式新增普通 `TextBlock` 默认前景色，绑定到 `VexEditorForegroundBrush`；文件列表等右键 `ContextMenu` 统一接入面板背景、边框、菜单前景和悬停背景资源，减少暗色主题下普通文本或弹出菜单回落到默认浅色外观的风险。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并用 XAML 结构 smoke 确认 `TextBlock`、`ContextMenu`、`ContextMenu MenuItem` 与悬停态样式均读取 Vex 动态主题资源。
 - MSIX 准备布局流程细节修复：`scripts/package_vex_msix.ps1 -PrepareOnly` 不再因为目标 `.msix` 包文件已存在而提前失败；只有真实执行 `makeappx` 打包时才检查包文件冲突，准备布局和打包覆盖语义更清晰。
 - 验证临时 `publish/win-x64` 与 `artifacts` smoke：预置已存在的 `Vex-0.1.0-win-x64.msix` 时，非 `PrepareOnly` 仍拒绝覆盖；`PrepareOnly` 可生成 `msix-layout/win-x64/AppxManifest.xml`，并确认 `0.1.0.0` 版本和 `x64` 架构。
 - 帮助菜单 i18n 边界继续收口：未知或空帮助 topic 的状态栏排期提示和错误上下文不再使用固定英文 `Help`，改为复用当前语言的 `MenuHelp` 文案；未知非空 topic 仍保留原始 topic 便于定位。
@@ -137,6 +139,8 @@
 
 ### en-US
 
+- Further refined dark-mode edges: app-level styles now give plain `TextBlock` controls a default foreground bound to `VexEditorForegroundBrush`; file-list and other right-click `ContextMenu` popups now use the panel background, border, menu foreground, and hover-background resources.
+- Built `Vex.slnx` and used a XAML structure smoke to confirm `TextBlock`, `ContextMenu`, `ContextMenu MenuItem`, and hover-state styles all read Vex dynamic theme resources.
 - Fixed an MSIX layout-preparation edge case: `scripts/package_vex_msix.ps1 -PrepareOnly` no longer fails just because the target `.msix` package already exists; package-output conflicts are checked only when `makeappx` packaging will actually run.
 - Verified with a temporary `publish/win-x64` plus `artifacts` smoke: an existing `Vex-0.1.0-win-x64.msix` still blocks real packaging without `-Force`, while `PrepareOnly` creates `msix-layout/win-x64/AppxManifest.xml` with version `0.1.0.0` and architecture `x64`.
 - Continued closing Help-menu i18n edges: queued-status and error context for unknown or empty help topics no longer fall back to fixed English `Help`; empty topics now reuse the current language's `MenuHelp` text, while unknown non-empty topics stay visible for diagnostics.

@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Plain `TextBlock` default foreground and right-click `ContextMenu` background, border, menu foreground, and hover state now use Vex dynamic theme resources, reducing light-default fallbacks in dark mode.
+- Built `Vex.slnx` and used a XAML structure smoke to verify text and right-click menu styles read theme resources.
 - `package_vex_msix.ps1 -PrepareOnly` no longer fails just because the target `.msix` already exists; package-output conflicts are checked only during real packaging.
 - Used a temporary `publish/win-x64` setup with a pre-existing `.msix` artifact to verify real packaging still refuses overwrite while `PrepareOnly` generates the MSIX layout and manifest.
 - Help-menu queued-status and error context for unknown or empty topics no longer fall back to fixed English `Help`; empty topics now use the current language's Help menu text.
