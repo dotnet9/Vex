@@ -118,10 +118,6 @@
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ToggleFullScreen}}" Command="{Binding Layout.ToggleFullScreen}" InputGesture="F11" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.AlwaysOnTop}}" Command="{Binding Layout.ToggleAlwaysOnTop}" IsChecked="{Binding Layout.IsAlwaysOnTop}" ToggleType="CheckBox" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.ActualSize}}" Command="{Binding EditorDisplay.ActualSize}" InputGesture="Ctrl+0" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.ZoomIn}}" Command="{Binding EditorDisplay.ZoomIn}" InputGesture="Ctrl++" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.ZoomOut}}" Command="{Binding EditorDisplay.ZoomOut}" InputGesture="Ctrl+-" />
         </MenuItem>
 
         <MenuItem x:Name="HelpMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuHelp}}">

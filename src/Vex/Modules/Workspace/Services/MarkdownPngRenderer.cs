@@ -504,30 +504,21 @@ internal sealed class MarkdownPngRenderer
             return false;
         }
 
-        var path = ResolveLocalImagePath(imageInline.Url, documentPath);
-        if (path is null)
+        if (!TryLoadImage(imageInline.Url, documentPath, localizer, out var bitmap))
         {
             return false;
         }
 
-        try
+        imageControl = new Image
         {
-            var bitmap = LoadLocalBitmap(path, localizer);
-            imageControl = new Image
-            {
-                Source = bitmap,
-                MaxWidth = ContentWidth,
-                Stretch = Stretch.Uniform,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(0, 4, 0, 18)
-            };
+            Source = bitmap,
+            MaxWidth = ContentWidth,
+            Stretch = Stretch.Uniform,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 4, 0, 18)
+        };
 
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        return true;
     }
 
     private static bool TryGetOnlyImageInline(ContainerInline? inline, [NotNullWhen(true)] out LinkInline? imageInline)
@@ -565,6 +556,34 @@ internal sealed class MarkdownPngRenderer
             HtmlInline html => string.IsNullOrWhiteSpace(html.Tag),
             _ => false
         };
+    }
+
+    private static bool TryLoadImage(string? url, string? documentPath, IAppLocalizer localizer, [NotNullWhen(true)] out Bitmap? bitmap)
+    {
+        bitmap = null;
+        try
+        {
+            if (TryGetDataImageBytes(url, out var dataBytes))
+            {
+                bitmap = LoadBitmap(dataBytes, null, localizer);
+                return true;
+            }
+
+            var path = ResolveLocalImagePath(url, documentPath);
+            if (path is null)
+            {
+                return false;
+            }
+
+            bitmap = LoadBitmap(File.ReadAllBytes(path), path, localizer);
+            return true;
+        }
+        catch
+        {
+            bitmap?.Dispose();
+            bitmap = null;
+            return false;
+        }
     }
 
     private static string? ResolveLocalImagePath(string? url, string? documentPath)
@@ -629,10 +648,36 @@ internal sealed class MarkdownPngRenderer
         }
     }
 
-    private static Bitmap LoadLocalBitmap(string path, IAppLocalizer localizer)
+    private static bool TryGetDataImageBytes(string? url, out byte[] bytes)
     {
-        var bytes = File.ReadAllBytes(path);
-        if (IsSvgPath(path) || IsSvgBytes(bytes))
+        bytes = [];
+        if (string.IsNullOrWhiteSpace(url)
+            || !url.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var commaIndex = url.IndexOf(',', StringComparison.Ordinal);
+        if (commaIndex < 0 || !url[..commaIndex].Contains(";base64", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        try
+        {
+            bytes = Convert.FromBase64String(url[(commaIndex + 1)..]);
+            return bytes.Length > 0;
+        }
+        catch (FormatException)
+        {
+            bytes = [];
+            return false;
+        }
+    }
+
+    private static Bitmap LoadBitmap(byte[] bytes, string? path, IAppLocalizer localizer)
+    {
+        if ((path is not null && IsSvgPath(path)) || IsSvgBytes(bytes))
         {
             using var svgPng = new MemoryStream(RenderSvgToPngBytes(bytes, localizer));
             return new Bitmap(svgPng);

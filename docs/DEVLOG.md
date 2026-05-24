@@ -4,6 +4,11 @@
 
 ### zh-CN
 
+- 本轮继续处理 `D:\r.md` 中除社交复制外的体验问题：PDF/PNG 图像型导出补充 `data:image` 图片识别；Word 导出支持本地图片与 `data:image`，并把 SVG/WebP 转换为 PNG 嵌入 `.docx`，降低导出后缺图概率。
+- 视图菜单收口：移除“实际大小”“放大”“缩小”菜单项、窗口级缩放快捷键和状态栏缩放显示；编辑器字号回到固定默认值，保留行号显示设置。
+- 帮助类窗口标题与链接体验修复：更新日志/鸣谢 Markdown 窗口和关于窗口在 Ursa 标题栏左侧显示明确标题；鸣谢入口改为加载 `docs/Thanks.md`，官网与开源项目链接以 Markdown 链接形式渲染并可由 `MarkdownViewer` 打开。
+- 左侧文件/大纲页签视觉调整：侧栏 `TabControl` header 改为等宽横向分布，页签内容居中，选中项加粗，贴近参考图里的文件/大纲 header 位置。
+- 验证 `dotnet build Vex.slnx` 通过，`net10.0` 与 `net10.0-windows` 均为 0 警告 0 错误；复查源码中已无视图缩放菜单、快捷键和状态栏缩放绑定残留。
 - 本轮集中处理 `D:\r.md` 中的体验问题：直接打开单个 Markdown/txt 文件后，`MainWindowViewModel.SyncDocumentFileList` 会扫描当前文件所在目录的支持文档，左侧文件列表自动切换到同目录上下文。
 - 对话框体系调整：属性、字数统计和删除确认改为独立 `UrsaWindow`，长名称、长路径、错误详情、重命名路径和未保存路径使用 `SelectableTextBlock` 便于选择复制；删除确认按钮使用警告红色，旧属性/统计/删除覆盖层从 `ShellOverlaysView` 中移除。
 - 导出链路完善：HTML/PDF/PNG/Word 成功后会打开保存目录并定位文件；新增 `MarkdownDocxExporter` 原生生成 `.docx`，写入 Word 样式、基础 Markdown 结构、表格、代码、链接文本和本地图片关系；HTML/打印/社交复制继续内联本地图片。
@@ -165,6 +170,11 @@
 
 ### en-US
 
+- Continued addressing the actionable `D:\r.md` items except social-copy follow-up: PDF/PNG image-based export now recognizes `data:image` sources, while Word export embeds local and `data:image` images and converts SVG/WebP assets to PNG before writing them into `.docx`.
+- Removed the View-menu Actual Size, Zoom In, and Zoom Out entries, their window-level zoom shortcuts, and the status-bar zoom indicator. The editor now keeps the default fixed font size while preserving the line-number display setting.
+- Fixed Help-window title and link behavior: Changelog/Acknowledgements Markdown windows and the About window now show explicit left title-bar text; Acknowledgements loads `docs/Thanks.md`, whose website and project entries are Markdown links rendered by `MarkdownViewer`.
+- Adjusted the left Files/Outline tab headers so the sidebar `TabControl` uses equal-width horizontal headers, centered text, and a bold selected state matching the referenced layout.
+- Verified `dotnet build Vex.slnx` with both `net10.0` and `net10.0-windows` producing 0 warnings and 0 errors, and rechecked that View zoom menu, shortcut, and status-bar bindings are gone.
 - Added real large-file stress coverage: `scripts/stress_vex_markdown_services.ps1` creates a temporary net10.0 console, references the Vex project, builds a large Markdown document with headings, fences, tables, tasks, and mixed Chinese/English paragraphs, then times `MarkdownOutlineService` and `MarkdownStatisticsService`.
 - Verified the default 120,000-line stress run: it generated 10,336,464 Markdown characters, completed outline scanning in 154ms with about 410,608 allocated bytes, completed statistics scanning in 498ms with about 416 allocated bytes, produced 3,000 outline headings and 1,802,106 words, and cleaned its temporary work directory.
 - Closed an i18n edge in print/PDF fallback titles: for documents without a path or file name, the HTML print-preview footer and PDF header/footer now use the existing `DocumentDefaultFileName`/`DocumentDefaultHeading` resources instead of hardcoded `Untitled.md`; PDF rendering also resolves header/footer titles once per export.

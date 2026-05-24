@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- PDF/PNG image-based exports now support `data:image` sources. Word export embeds local and `data:image` images and converts SVG/WebP assets to PNG before writing them into `.docx`, reducing missing exported images.
+- Removed the View-menu Actual Size, Zoom In, and Zoom Out entries, plus the related window-level zoom shortcuts and status-bar zoom display.
+- Changelog, Acknowledgements, and About windows now show explicit title-bar text. Acknowledgements now loads `docs/Thanks.md` with Markdown links that can be opened from the dialog.
+- The left Files/Outline tab headers now use equal-width centered layout with a bold selected state to better match the requested reference.
+- Built `Vex.slnx` and confirmed both `net10.0` and `net10.0-windows` complete with 0 warnings and 0 errors, with no remaining View zoom entry points.
 - Opening a single Markdown/txt document now populates the left file list with supported Markdown documents from the same folder.
 - Properties, word count, and delete confirmation now open as UrsaWindow dialogs with selectable long names/paths; obsolete overlay implementations for those dialogs were removed.
 - File export now includes Word `.docx` output with basic Markdown structure, Word styles, and embedded local images. HTML, PDF, PNG, and Word exports open the save location after success.

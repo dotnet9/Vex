@@ -18,6 +18,7 @@ internal static class MarkdownDocxExporter
     private const string StylesRelationshipId = "rIdStyles";
     private const long EmuPerPixelAt96Dpi = 9525;
     private const long MaxImageWidthEmu = 9026L * 635L;
+    private const int MaxSvgRasterDimension = 4096;
 
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
@@ -80,6 +81,9 @@ internal static class MarkdownDocxExporter
                 new XElement(ContentTypes + "Default",
                     new XAttribute("Extension", "bmp"),
                     new XAttribute("ContentType", "image/bmp")),
+                new XElement(ContentTypes + "Default",
+                    new XAttribute("Extension", "webp"),
+                    new XAttribute("ContentType", "image/webp")),
                 new XElement(ContentTypes + "Override",
                     new XAttribute("PartName", "/word/document.xml"),
                     new XAttribute("ContentType", "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")),
@@ -803,10 +807,165 @@ internal static class MarkdownDocxExporter
             ".jpg" or ".jpeg" => "image/jpeg",
             ".gif" => "image/gif",
             ".bmp" => "image/bmp",
+            ".webp" => "image/webp",
             _ => string.Empty
         };
 
         return contentType.Length > 0;
+    }
+
+    private static bool TryGetDataImageBytes(string? url, out byte[] bytes, out string extension)
+    {
+        bytes = [];
+        extension = string.Empty;
+        if (string.IsNullOrWhiteSpace(url)
+            || !url.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var commaIndex = url.IndexOf(',', StringComparison.Ordinal);
+        if (commaIndex < 0)
+        {
+            return false;
+        }
+
+        var metadata = url[..commaIndex];
+        if (!metadata.Contains(";base64", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        extension = metadata.ToLowerInvariant() switch
+        {
+            var value when value.Contains("image/png", StringComparison.Ordinal) => ".png",
+            var value when value.Contains("image/jpeg", StringComparison.Ordinal) => ".jpg",
+            var value when value.Contains("image/gif", StringComparison.Ordinal) => ".gif",
+            var value when value.Contains("image/bmp", StringComparison.Ordinal) => ".bmp",
+            var value when value.Contains("image/webp", StringComparison.Ordinal) => ".webp",
+            var value when value.Contains("image/svg+xml", StringComparison.Ordinal) => ".svg",
+            _ => ".png"
+        };
+
+        try
+        {
+            bytes = Convert.FromBase64String(url[(commaIndex + 1)..]);
+            return bytes.Length > 0;
+        }
+        catch (FormatException)
+        {
+            bytes = [];
+            extension = string.Empty;
+            return false;
+        }
+    }
+
+    private static bool IsSvgPath(string path)
+    {
+        return string.Equals(Path.GetExtension(path), ".svg", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsSvgBytes(byte[] bytes)
+    {
+        var length = Math.Min(bytes.Length, 512);
+        if (length == 0)
+        {
+            return false;
+        }
+
+        var prefix = System.Text.Encoding.UTF8.GetString(bytes, 0, length).TrimStart('\uFEFF', ' ', '\t', '\r', '\n');
+        return prefix.StartsWith("<svg", StringComparison.OrdinalIgnoreCase)
+               || prefix.StartsWith("<?xml", StringComparison.OrdinalIgnoreCase)
+               && prefix.Contains("<svg", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static byte[] RenderSvgToPngBytes(byte[] svgBytes)
+    {
+        using var svg = new Svg.Skia.SKSvg();
+        using var svgStream = new MemoryStream(svgBytes);
+        var picture = svg.Load(svgStream) ?? svg.Picture;
+        if (picture is null)
+        {
+            throw new InvalidDataException("SVG picture could not be loaded.");
+        }
+
+        var bounds = picture.CullRect;
+        var width = Math.Max(1, (int)Math.Ceiling(bounds.Width));
+        var height = Math.Max(1, (int)Math.Ceiling(bounds.Height));
+        var scale = Math.Min(1d, MaxSvgRasterDimension / (double)Math.Max(width, height));
+        var scaledWidth = Math.Max(1, (int)Math.Ceiling(width * scale));
+        var scaledHeight = Math.Max(1, (int)Math.Ceiling(height * scale));
+
+        using var surface = SkiaSharp.SKSurface.Create(new SkiaSharp.SKImageInfo(
+            scaledWidth,
+            scaledHeight,
+            SkiaSharp.SKColorType.Rgba8888,
+            SkiaSharp.SKAlphaType.Premul));
+        if (surface is null)
+        {
+            throw new InvalidDataException("SVG rendering surface could not be created.");
+        }
+
+        var canvas = surface.Canvas;
+        canvas.Clear(SkiaSharp.SKColors.Transparent);
+        canvas.Scale((float)scale);
+        canvas.Translate(-bounds.Left, -bounds.Top);
+        canvas.DrawPicture(picture);
+        canvas.Flush();
+
+        using var image = surface.Snapshot();
+        using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+        return data?.ToArray() ?? throw new InvalidDataException("SVG picture could not be encoded.");
+    }
+
+    private static bool TryNormalizeImageForWord(
+        byte[] sourceBytes,
+        string sourceExtension,
+        out byte[] bytes,
+        out string extension,
+        out int pixelWidth,
+        out int pixelHeight)
+    {
+        bytes = sourceBytes;
+        extension = sourceExtension.ToLowerInvariant();
+        pixelWidth = 0;
+        pixelHeight = 0;
+
+        try
+        {
+            if (extension == ".svg" || IsSvgBytes(sourceBytes))
+            {
+                bytes = RenderSvgToPngBytes(sourceBytes);
+                extension = ".png";
+            }
+            else if (extension == ".webp")
+            {
+                using var input = new MemoryStream(sourceBytes);
+                using var bitmap = new Bitmap(input);
+                using var output = new MemoryStream();
+                bitmap.Save(output);
+                bytes = output.ToArray();
+                extension = ".png";
+            }
+
+            using var stream = new MemoryStream(bytes);
+            using var decoded = new Bitmap(stream);
+            pixelWidth = decoded.PixelSize.Width;
+            pixelHeight = decoded.PixelSize.Height;
+            return pixelWidth > 0 && pixelHeight > 0 && TryGetWordImageContentType($"image{extension}", out _, out _);
+        }
+        catch (Exception ex) when (ex is IOException
+                                   or UnauthorizedAccessException
+                                   or ArgumentException
+                                   or NotSupportedException
+                                   or InvalidDataException)
+        {
+            bytes = [];
+            extension = string.Empty;
+            pixelWidth = 0;
+            pixelHeight = 0;
+            return false;
+        }
     }
 
     private static (long Width, long Height) CalculateImageSizeEmu(int pixelWidth, int pixelHeight)
@@ -893,47 +1052,53 @@ internal static class MarkdownDocxExporter
         public bool TryCreateImageRun(LinkInline image, out XElement run)
         {
             run = null!;
-            if (!TryResolveLocalImagePath(image.Url, documentPath, out var path)
-                || !TryGetWordImageContentType(path, out var extension, out _))
+            byte[] sourceBytes;
+            string sourceExtension;
+            if (TryGetDataImageBytes(image.Url, out var dataBytes, out var dataExtension))
             {
-                return false;
+                sourceBytes = dataBytes;
+                sourceExtension = dataExtension;
             }
-
-            try
+            else if (TryResolveLocalImagePath(image.Url, documentPath, out var path))
             {
-                var bytes = File.ReadAllBytes(path);
-                using var stream = new MemoryStream(bytes);
-                using var bitmap = new Bitmap(stream);
-                var pixelWidth = bitmap.PixelSize.Width;
-                var pixelHeight = bitmap.PixelSize.Height;
-                if (pixelWidth <= 0 || pixelHeight <= 0)
+                try
+                {
+                    sourceBytes = File.ReadAllBytes(path);
+                    sourceExtension = Path.GetExtension(path);
+                }
+                catch (Exception ex) when (ex is IOException
+                                           or UnauthorizedAccessException
+                                           or ArgumentException
+                                           or NotSupportedException
+                                           or PathTooLongException)
                 {
                     return false;
                 }
-
-                var imageId = ++_imageIndex;
-                var relationshipId = $"rIdImage{imageId}";
-                var fileName = $"image{imageId}{extension}";
-                var target = $"media/{fileName}";
-                var description = GetInlineText(image);
-                if (string.IsNullOrWhiteSpace(description))
-                {
-                    description = image.Url ?? fileName;
-                }
-
-                var (widthEmu, heightEmu) = CalculateImageSizeEmu(pixelWidth, pixelHeight);
-                ImageParts.Add(new DocxImagePart(relationshipId, target, bytes));
-                run = CreateImageRun(relationshipId, fileName, description, imageId, widthEmu, heightEmu);
-                return true;
             }
-            catch (Exception ex) when (ex is IOException
-                                       or UnauthorizedAccessException
-                                       or ArgumentException
-                                       or NotSupportedException
-                                       or InvalidDataException)
+            else
             {
                 return false;
             }
+
+            if (!TryNormalizeImageForWord(sourceBytes, sourceExtension, out var bytes, out var extension, out var pixelWidth, out var pixelHeight))
+            {
+                return false;
+            }
+
+            var imageId = ++_imageIndex;
+            var relationshipId = $"rIdImage{imageId}";
+            var fileName = $"image{imageId}{extension}";
+            var target = $"media/{fileName}";
+            var description = GetInlineText(image);
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = image.Url ?? fileName;
+            }
+
+            var (widthEmu, heightEmu) = CalculateImageSizeEmu(pixelWidth, pixelHeight);
+            ImageParts.Add(new DocxImagePart(relationshipId, target, bytes));
+            run = CreateImageRun(relationshipId, fileName, description, imageId, widthEmu, heightEmu);
+            return true;
         }
     }
 

@@ -11,7 +11,6 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
     private readonly IEditorDisplayState _editorDisplayState;
     private readonly IAppSettingsStore _settingsStore;
     private readonly IShellStatusPublisher _statusPublisher;
-    private double _editorZoom = 1.0;
     private bool _showLineNumbers;
 
     public ShellEditorDisplayViewModel(
@@ -23,29 +22,11 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
         _settingsStore = settingsStore;
         _statusPublisher = statusPublisher;
         var settings = _settingsStore.Current;
-        _editorZoom = Math.Clamp(settings.EditorZoom ?? 1.0, 0.7, 1.8);
         _showLineNumbers = settings.ShowLineNumbers ?? true;
         PublishDisplayState();
     }
 
-    public double EditorZoom
-    {
-        get => _editorZoom;
-        set
-        {
-            if (SetProperty(ref _editorZoom, value))
-            {
-                OnPropertyChanged(nameof(EditorFontSize));
-                OnPropertyChanged(nameof(ZoomText));
-                PublishDisplayState();
-                PersistDisplaySettings();
-            }
-        }
-    }
-
-    public double EditorFontSize => Math.Round(15 * EditorZoom, 1);
-
-    public string ZoomText => $"{EditorZoom:P0}";
+    public double EditorFontSize => 15d;
 
     public bool ShowLineNumbers
     {
@@ -58,21 +39,6 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
                 PersistDisplaySettings();
             }
         }
-    }
-
-    public void ActualSize()
-    {
-        EditorZoom = 1.0;
-    }
-
-    public void ZoomIn()
-    {
-        EditorZoom = Math.Min(1.8, EditorZoom + 0.1);
-    }
-
-    public void ZoomOut()
-    {
-        EditorZoom = Math.Max(0.7, EditorZoom - 0.1);
     }
 
     public void ToggleLineNumbers()
@@ -106,7 +72,6 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
     {
         _settingsStore.Update(settings => settings with
         {
-            EditorZoom = EditorZoom,
             ShowLineNumbers = ShowLineNumbers
         });
     }

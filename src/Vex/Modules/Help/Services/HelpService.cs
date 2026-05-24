@@ -50,10 +50,12 @@ public sealed class HelpService : IHelpService
 
     public Task ShowDocumentWindowAsync(string title, string fileName)
     {
-        var markdown = ReadDocument(fileName);
+        var path = GetDocumentPath(fileName);
+        var markdown = File.ReadAllText(path);
         ShowWindow(new MarkdownDocumentWindow(
             title,
             markdown,
+            path,
             _appearanceState.TypographyTheme,
             _appearanceState.TypographySize));
         return Task.CompletedTask;
@@ -75,7 +77,7 @@ public sealed class HelpService : IHelpService
         Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
     }
 
-    private string ReadDocument(string fileName)
+    private string GetDocumentPath(string fileName)
     {
         var path = Path.Combine(DocumentsFolder, fileName);
         if (!File.Exists(path))
@@ -83,7 +85,7 @@ public sealed class HelpService : IHelpService
             throw new FileNotFoundException(_localizer.Get(VexL.HelpDetailDocumentNotFound), path);
         }
 
-        return File.ReadAllText(path);
+        return path;
     }
 
     private static void ShowWindow(Window window)

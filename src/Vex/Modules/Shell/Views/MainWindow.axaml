@@ -72,7 +72,13 @@
                 <TabControl
                     Classes="sidebar-tabs"
                     prism:RegionManager.RegionName="{x:Static regions:RegionNames.ShellSidebarRegion}"
-                    SelectedIndex="{Binding Navigation.SelectedSideTabIndex, Mode=TwoWay}" />
+                    SelectedIndex="{Binding Navigation.SelectedSideTabIndex, Mode=TwoWay}">
+                    <TabControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="1" />
+                        </ItemsPanelTemplate>
+                    </TabControl.ItemsPanel>
+                </TabControl>
             </Border>
 
             <GridSplitter

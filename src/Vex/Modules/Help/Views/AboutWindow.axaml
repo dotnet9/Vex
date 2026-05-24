@@ -19,6 +19,15 @@
     IsRestoreButtonVisible="False"
     ShowInTaskbar="False"
     WindowStartupLocation="CenterOwner">
+    <u:UrsaWindow.LeftContent>
+        <TextBlock
+            FontSize="13"
+            FontWeight="SemiBold"
+            Margin="12 0 0 0"
+            Text="{i18n:I18n {x:Static l:VexL.AboutVexTitle}}"
+            VerticalAlignment="Center" />
+    </u:UrsaWindow.LeftContent>
+
     <Border
         Background="{DynamicResource VexPanelBackgroundBrush}"
         Padding="24">

@@ -8,19 +8,15 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
 {
     public ShellKeyboardShortcutViewModel(
         ShellDialogsViewModel dialogs,
-        ShellEditorDisplayViewModel editorDisplay,
         ShellFindBarViewModel findBar,
         ShellWindowLayoutViewModel layout)
     {
         Dialogs = dialogs;
-        EditorDisplay = editorDisplay;
         FindBar = findBar;
         Layout = layout;
     }
 
     public ShellDialogsViewModel Dialogs { get; }
-
-    public ShellEditorDisplayViewModel EditorDisplay { get; }
 
     public ShellFindBarViewModel FindBar { get; }
 
@@ -61,24 +57,6 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
         if (hasControl && !hasShift && key == Key.W)
         {
             return PublishShellAction(ShellActionKind.CloseDocument);
-        }
-
-        if (hasControl && !hasShift && IsZoomInKey(key))
-        {
-            EditorDisplay.ZoomIn();
-            return true;
-        }
-
-        if (hasControl && !hasShift && IsZoomOutKey(key))
-        {
-            EditorDisplay.ZoomOut();
-            return true;
-        }
-
-        if (hasControl && !hasShift && IsActualSizeKey(key))
-        {
-            EditorDisplay.ActualSize();
-            return true;
         }
 
         if (key == Key.F11)
@@ -135,18 +113,4 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
         return true;
     }
 
-    private static bool IsZoomInKey(Key key)
-    {
-        return key is Key.OemPlus or Key.Add;
-    }
-
-    private static bool IsZoomOutKey(Key key)
-    {
-        return key is Key.OemMinus or Key.Subtract;
-    }
-
-    private static bool IsActualSizeKey(Key key)
-    {
-        return key is Key.D0 or Key.NumPad0;
-    }
 }

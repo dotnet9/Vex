@@ -1,6 +1,6 @@
 # 鸣谢
 
-Vex 由【沙漠尽头的狼】创建，出品方为 码坊 CodeWF，官方网站为 https://codewf.com。
+Vex 由【沙漠尽头的狼】创建，出品方为 码坊 CodeWF，官方网站为 [https://codewf.com](https://codewf.com)。
 
 Vex 使用（参考）并感谢以下开源项目：
 
