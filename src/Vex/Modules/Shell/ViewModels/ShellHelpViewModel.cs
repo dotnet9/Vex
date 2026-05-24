@@ -54,7 +54,7 @@ public sealed class ShellHelpViewModel
                     _statusPublisher.PublishResource(VexL.StatusAboutVex);
                     break;
                 default:
-                    _statusPublisher.PublishResourceFormat(VexL.StatusHelpQueuedFormat, topic ?? "Help");
+                    _statusPublisher.PublishResourceFormat(VexL.StatusHelpQueuedFormat, GetHelpTopicDisplayName(topic));
                     break;
             }
         }
@@ -73,7 +73,7 @@ public sealed class ShellHelpViewModel
             "website" => _localizer.Get(VexL.Website),
             "feedback" => _localizer.Get(VexL.Feedback),
             "about" => _localizer.Get(VexL.About),
-            _ => topic ?? "Help"
+            _ => string.IsNullOrWhiteSpace(topic) ? _localizer.Get(VexL.MenuHelp) : topic
         };
     }
 }

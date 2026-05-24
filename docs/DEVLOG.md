@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 帮助菜单 i18n 边界继续收口：未知或空帮助 topic 的状态栏排期提示和错误上下文不再使用固定英文 `Help`，改为复用当前语言的 `MenuHelp` 文案；未知非空 topic 仍保留原始 topic 便于定位。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认 `ShellHelpViewModel` 已移除 `topic ?? "Help"`，四套 i18n 资源均存在 `MenuHelp` 与 `StatusHelpQueuedFormat`。
 - 文件列表摘要边界优化：左侧文件列表预览不再通过 `File.ReadLines(...).Take(8)` 读取整行，而是最多扫描前 8 行和 4096 个字符，单行最多保留 512 个字符后再生成 96 字符摘要，避免超长单行 Markdown/txt 文件拖慢文件夹加载。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认摘要路径改为 `StreamReader` + `ReadBoundedLine`，保留 8 行、4096 字符扫描上限和 96 字符摘要上限。
 - 打印预览主题一致性继续完善：HTML 打印预览的屏幕工具条、选择框、按钮、页眉页脚、打印背景和链接色改为读取当前 `MarkdownExportStyle`，暗色排版主题下不再混入固定浅色工具条或白底元数据区域。
@@ -133,6 +135,8 @@
 
 ### en-US
 
+- Continued closing Help-menu i18n edges: queued-status and error context for unknown or empty help topics no longer fall back to fixed English `Help`; empty topics now reuse the current language's `MenuHelp` text, while unknown non-empty topics stay visible for diagnostics.
+- Built `Vex.slnx` and used a source-structure smoke to verify `ShellHelpViewModel` no longer contains `topic ?? "Help"` and all four i18n resource sets provide `MenuHelp` plus `StatusHelpQueuedFormat`.
 - Optimized file-list preview boundaries: the left file list no longer reads whole lines through `File.ReadLines(...).Take(8)`, and instead scans at most the first 8 lines and 4096 characters, stores at most 512 characters per line, then emits the existing 96-character preview to avoid slow folder loading on huge single-line Markdown/txt files.
 - Built `Vex.slnx` and used a source-structure smoke to verify the preview path now uses `StreamReader` plus `ReadBoundedLine`, with 8-line, 4096-character, and 96-character preview caps.
 - Further aligned print-preview theming: the HTML print-preview toolbar, selects, buttons, header/footer metadata, print background, and link color now read the current `MarkdownExportStyle`, avoiding fixed light toolbar and white metadata bands under dark typography themes.
