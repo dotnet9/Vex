@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 本地化更新日志摘要刷新：`CHANGELOG.zh-Hant.md` 与 `CHANGELOG.ja-JP.md` 补充最近的本地图片导出 URL 解码、任务列表 PNG/PDF 导出、大文件 span 扫描、暗色右键菜单和 MSIX `PrepareOnly` 边界修复摘要，降低繁体中文/日文帮助菜单打开更新日志时的信息滞后。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并确认两份本地化摘要文档仍由 `Vex.csproj` 作为内容复制到输出目录。
 - 本地图片导出路径边界修复：HTML/打印/复制与 PNG/PDF 图像型导出解析本地图片时，会先尝试原始相对/绝对路径，再尝试 URL 解码后的路径；相对路径同时统一处理 `/` 分隔符，避免 `my%20image.png` 这类带空格文件名在导出时缺图。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认 `MarkdownExportService` 与 `MarkdownPngRenderer` 均具备 `EnumerateLocalImagePathCandidates` 和 `Uri.UnescapeDataString` 回退路径。
 - PNG/PDF 块级映射继续补齐：图像型导出渲染列表时会识别 Markdig `TaskList` inline，把任务列表 marker 渲染为 `[ ]` 或 `[x]`，不再把 `- [ ]`/`- [x]` 导出成普通无状态项目符号。
@@ -145,6 +147,8 @@
 
 ### en-US
 
+- Refreshed localized changelog summaries: `CHANGELOG.zh-Hant.md` and `CHANGELOG.ja-JP.md` now mention recent local-image URL decoding, PNG/PDF task-list export, large-file span scanning, dark context-menu theming, and the MSIX `PrepareOnly` edge fix so localized Help > Changelog windows are not stale.
+- Built `Vex.slnx` and confirmed both localized summary documents are still copied to the output by `Vex.csproj` content entries.
 - Fixed a local-image export path edge case: HTML/print/copy and PNG/PDF image-based exports now try both the original relative/absolute path and a URL-decoded path, with `/` separators normalized for relative paths, so files such as `my%20image.png` can resolve to local filenames with spaces.
 - Built `Vex.slnx` and used a source-structure smoke to verify both `MarkdownExportService` and `MarkdownPngRenderer` include `EnumerateLocalImagePathCandidates` plus the `Uri.UnescapeDataString` fallback path.
 - Further filled PNG/PDF block mapping: image-based export now recognizes Markdig `TaskList` inlines while rendering lists and uses `[ ]` or `[x]` markers, so `- [ ]`/`- [x]` tasks no longer export as plain stateless bullets.

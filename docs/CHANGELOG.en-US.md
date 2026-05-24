@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Refreshed Traditional Chinese and Japanese changelog summaries with recent export, performance, dark-theme, and MSIX packaging changes.
+- Built `Vex.slnx` and confirmed the localized changelog summary files are still copied to output by the project file.
 - HTML/print/copy and PNG/PDF exports now try URL-decoded local image paths, so `my%20image.png` can resolve to a local filename containing spaces.
 - Built `Vex.slnx` and used a source-structure smoke to verify both image export paths include URL-decoding fallback.
 - PNG/PDF image-based export now preserves task-list state by rendering `- [ ]` and `- [x]` as `[ ]`/`[x]` markers instead of plain bullets.
