@@ -4,6 +4,8 @@
 
 ### 修复
 
+- 🧪[测试]-新增 `scripts/stress_vex_markdown_services.ps1`，可生成真实大 Markdown 文本并计时大纲与统计服务。
+- 🧪[测试]-默认 120,000 行压测通过：10,336,464 字符，大纲 154ms，统计 498ms，并自动清理临时工作目录。
 - 🐞[修复]-无路径且无文件名的文档导出时，打印预览和 PDF 页眉页脚改用 `DocumentDefaultFileName`/`DocumentDefaultHeading` 资源，不再在导出路径硬编码 `Untitled.md`。
 - 🧪[测试]-构建 `Vex.slnx`，并用源码结构 smoke 验证导出服务和 PDF 渲染器都读取默认文档名资源。
 - 🔧[优化]-PNG/PDF 图像型导出的表格单元格改为渲染段落 inline，保留粗体、斜体、删除线、行内代码和链接样式，不再全部压平成纯文本。

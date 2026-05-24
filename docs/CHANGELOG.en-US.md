@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Added `scripts/stress_vex_markdown_services.ps1` to generate realistic large Markdown input and time outline/statistics services.
+- Verified the default 120,000-line stress run: 10,336,464 characters, 154ms outline scan, 498ms statistics scan, with temporary work cleaned automatically.
 - Print preview and PDF header/footer fallback titles now use `DocumentDefaultFileName`/`DocumentDefaultHeading` resources for documents without a path or file name instead of hardcoded `Untitled.md`.
 - Built `Vex.slnx` and used a source-structure smoke to verify the export service and PDF renderer read the default document-name resources.
 - PNG/PDF image-based export table cells now render paragraph inlines, preserving bold, italic, strikethrough, inline code, and link styling instead of flattening everything to plain text.

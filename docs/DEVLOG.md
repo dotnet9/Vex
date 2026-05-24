@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 大文件真实压测补齐：新增 `scripts/stress_vex_markdown_services.ps1`，脚本会在临时目录生成 net10.0 console，引用 Vex 项目并构造含标题、代码围栏、表格、任务列表和中英文段落的大 Markdown 文本，计时 `MarkdownOutlineService` 与 `MarkdownStatisticsService`。
+- 验证默认 120,000 行压测：生成 10,336,464 字符 Markdown，大纲扫描 154ms、约 410,608 bytes 分配，统计扫描 498ms、约 416 bytes 分配，输出 3,000 个大纲标题和 1,802,106 词；脚本结束后自动清理临时工作目录。
 - 打印/PDF 默认文件名 i18n 边界收口：无路径、无文件名的文档导出时，HTML 打印预览页脚与 PDF 页眉/页脚不再硬编码 `Untitled.md`，改用现有 `DocumentDefaultFileName`/`DocumentDefaultHeading` 资源；PDF 渲染循环也只解析一次页眉和页脚标题。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认 `MarkdownExportService` 与 `MarkdownPdfRenderer` 已引用 `DocumentDefaultFileName`/`DocumentDefaultHeading`，导出路径中不再直接写入 `Untitled.md`。
 - PNG/PDF 表格映射继续补齐：`MarkdownPngRenderer` 的表格单元格不再把内容压平成纯文本，而是以单元格内容栈渲染段落 inline，保留粗体、斜体、删除线、行内代码和链接颜色等样式；图像型 PDF 复用该渲染结果同步受益。
@@ -153,6 +155,8 @@
 
 ### en-US
 
+- Added real large-file stress coverage: `scripts/stress_vex_markdown_services.ps1` creates a temporary net10.0 console, references the Vex project, builds a large Markdown document with headings, fences, tables, tasks, and mixed Chinese/English paragraphs, then times `MarkdownOutlineService` and `MarkdownStatisticsService`.
+- Verified the default 120,000-line stress run: it generated 10,336,464 Markdown characters, completed outline scanning in 154ms with about 410,608 allocated bytes, completed statistics scanning in 498ms with about 416 allocated bytes, produced 3,000 outline headings and 1,802,106 words, and cleaned its temporary work directory.
 - Closed an i18n edge in print/PDF fallback titles: for documents without a path or file name, the HTML print-preview footer and PDF header/footer now use the existing `DocumentDefaultFileName`/`DocumentDefaultHeading` resources instead of hardcoded `Untitled.md`; PDF rendering also resolves header/footer titles once per export.
 - Built `Vex.slnx` and used a source-structure smoke to verify `MarkdownExportService` and `MarkdownPdfRenderer` reference `DocumentDefaultFileName`/`DocumentDefaultHeading`, with no direct `Untitled.md` fallback left in the export path.
 - Further filled PNG/PDF table mapping: `MarkdownPngRenderer` table cells no longer flatten content to plain text; cells render paragraph inlines through a small content stack, preserving bold, italic, strikethrough, inline code, and link color styles. Image-based PDF benefits because it reuses the PNG renderer.
