@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Markdig;
 using Markdig.Extensions.Tables;
+using Markdig.Extensions.TaskLists;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using SkiaSharp;
@@ -208,11 +209,39 @@ internal sealed class MarkdownPngRenderer
         var index = string.IsNullOrWhiteSpace(list.OrderedStart) ? 1 : int.TryParse(list.OrderedStart, out var start) ? start : 1;
         foreach (var child in list.OfType<ListItemBlock>())
         {
-            var marker = list.IsOrdered ? $"{index++}." : "-";
+            var marker = ResolveListMarker(list, child, index);
+            if (list.IsOrdered)
+            {
+                index++;
+            }
+
             stack.Children.Add(CreateListItem(marker, child, documentPath, localizer, depth, style));
         }
 
         return stack;
+    }
+
+    private static string ResolveListMarker(ListBlock list, ListItemBlock item, int index)
+    {
+        if (TryGetTaskListState(item, out var isChecked))
+        {
+            return isChecked ? "[x]" : "[ ]";
+        }
+
+        return list.IsOrdered ? $"{index}." : "-";
+    }
+
+    private static bool TryGetTaskListState(ListItemBlock item, out bool isChecked)
+    {
+        isChecked = false;
+        var paragraph = item.OfType<ParagraphBlock>().FirstOrDefault();
+        if (paragraph?.Inline?.FirstChild is not TaskList taskList)
+        {
+            return false;
+        }
+
+        isChecked = taskList.Checked;
+        return true;
     }
 
     private static Grid CreateListItem(string marker, ListItemBlock item, string? documentPath, IAppLocalizer localizer, int depth, MarkdownExportStyle style)

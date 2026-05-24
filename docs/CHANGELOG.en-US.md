@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- PNG/PDF image-based export now preserves task-list state by rendering `- [ ]` and `- [x]` as `[ ]`/`[x]` markers instead of plain bullets.
+- Built `Vex.slnx` and used a source-structure smoke to verify the export renderer reads Markdig TaskList state.
 - Markdown outline scans now parse lines through `ReadOnlySpan<char>`, avoiding one string allocation per line; title text is allocated only for actual headings, and `~~~` code fences are skipped too.
 - Built `Vex.slnx` and used a source-structure smoke to verify the outline path no longer uses `StringReader.ReadLine()`.
 - Plain `TextBlock` default foreground and right-click `ContextMenu` background, border, menu foreground, and hover state now use Vex dynamic theme resources, reducing light-default fallbacks in dark mode.
