@@ -489,9 +489,12 @@ internal sealed class MarkdownPngRenderer
             return uri.IsFile && File.Exists(uri.LocalPath) ? uri.LocalPath : null;
         }
 
-        if (Path.IsPathRooted(url))
+        foreach (var candidate in EnumerateLocalImagePathCandidates(url))
         {
-            return File.Exists(url) ? url : null;
+            if (Path.IsPathRooted(candidate) && File.Exists(candidate))
+            {
+                return candidate;
+            }
         }
 
         var baseDirectory = string.IsNullOrWhiteSpace(documentPath) ? null : Path.GetDirectoryName(documentPath);
@@ -500,8 +503,40 @@ internal sealed class MarkdownPngRenderer
             return null;
         }
 
-        var relativePath = Path.GetFullPath(Path.Combine(baseDirectory, url));
-        return File.Exists(relativePath) ? relativePath : null;
+        foreach (var candidate in EnumerateLocalImagePathCandidates(url))
+        {
+            var relativePath = Path.GetFullPath(Path.Combine(baseDirectory, candidate));
+            if (File.Exists(relativePath))
+            {
+                return relativePath;
+            }
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<string> EnumerateLocalImagePathCandidates(string url)
+    {
+        var normalized = url.Replace('/', Path.DirectorySeparatorChar);
+        yield return normalized;
+
+        var decoded = DecodeLocalImageUrl(normalized);
+        if (!string.Equals(decoded, normalized, StringComparison.Ordinal))
+        {
+            yield return decoded;
+        }
+    }
+
+    private static string DecodeLocalImageUrl(string url)
+    {
+        try
+        {
+            return Uri.UnescapeDataString(url);
+        }
+        catch (UriFormatException)
+        {
+            return url;
+        }
     }
 
     private static Bitmap LoadLocalBitmap(string path, IAppLocalizer localizer)

@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- HTML/print/copy and PNG/PDF exports now try URL-decoded local image paths, so `my%20image.png` can resolve to a local filename containing spaces.
+- Built `Vex.slnx` and used a source-structure smoke to verify both image export paths include URL-decoding fallback.
 - PNG/PDF image-based export now preserves task-list state by rendering `- [ ]` and `- [x]` as `[ ]`/`[x]` markers instead of plain bullets.
 - Built `Vex.slnx` and used a source-structure smoke to verify the export renderer reads Markdig TaskList state.
 - Markdown outline scans now parse lines through `ReadOnlySpan<char>`, avoiding one string allocation per line; title text is allocated only for actual headings, and `~~~` code fences are skipped too.

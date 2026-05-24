@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 本地图片导出路径边界修复：HTML/打印/复制与 PNG/PDF 图像型导出解析本地图片时，会先尝试原始相对/绝对路径，再尝试 URL 解码后的路径；相对路径同时统一处理 `/` 分隔符，避免 `my%20image.png` 这类带空格文件名在导出时缺图。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认 `MarkdownExportService` 与 `MarkdownPngRenderer` 均具备 `EnumerateLocalImagePathCandidates` 和 `Uri.UnescapeDataString` 回退路径。
 - PNG/PDF 块级映射继续补齐：图像型导出渲染列表时会识别 Markdig `TaskList` inline，把任务列表 marker 渲染为 `[ ]` 或 `[x]`，不再把 `- [ ]`/`- [x]` 导出成普通无状态项目符号。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认 `MarkdownPngRenderer` 引入 `Markdig.Extensions.TaskLists`、`ResolveListMarker` 与 `TryGetTaskListState`，任务列表 marker 具备未选中/已选中两种输出。
 - 大文件大纲扫描继续减分配：`MarkdownOutlineService` 不再用 `StringReader.ReadLine()` 为每一行分配字符串，改为基于 `ReadOnlySpan<char>` 扫描行边界、围栏和 ATX 标题；只有真正命中标题时才创建标题字符串，并补充识别 `~~~` 代码围栏。
@@ -143,6 +145,8 @@
 
 ### en-US
 
+- Fixed a local-image export path edge case: HTML/print/copy and PNG/PDF image-based exports now try both the original relative/absolute path and a URL-decoded path, with `/` separators normalized for relative paths, so files such as `my%20image.png` can resolve to local filenames with spaces.
+- Built `Vex.slnx` and used a source-structure smoke to verify both `MarkdownExportService` and `MarkdownPngRenderer` include `EnumerateLocalImagePathCandidates` plus the `Uri.UnescapeDataString` fallback path.
 - Further filled PNG/PDF block mapping: image-based export now recognizes Markdig `TaskList` inlines while rendering lists and uses `[ ]` or `[x]` markers, so `- [ ]`/`- [x]` tasks no longer export as plain stateless bullets.
 - Built `Vex.slnx` and used a source-structure smoke to verify `MarkdownPngRenderer` imports `Markdig.Extensions.TaskLists`, uses `ResolveListMarker` and `TryGetTaskListState`, and has unchecked/checked task-list marker outputs.
 - Further reduced outline-scan allocations for large files: `MarkdownOutlineService` no longer allocates one string per line through `StringReader.ReadLine()`, and instead scans line boundaries, fences, and ATX headings with `ReadOnlySpan<char>`; it creates a title string only when a heading is found and now recognizes `~~~` fences too.

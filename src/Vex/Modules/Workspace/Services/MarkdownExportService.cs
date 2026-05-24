@@ -594,10 +594,16 @@ public sealed class MarkdownExportService : IMarkdownExportService
             return File.Exists(path);
         }
 
-        if (Path.IsPathRooted(url))
+        foreach (var candidate in EnumerateLocalImagePathCandidates(url))
         {
-            path = url;
-            return File.Exists(path);
+            if (Path.IsPathRooted(candidate))
+            {
+                path = candidate;
+                if (File.Exists(path))
+                {
+                    return true;
+                }
+            }
         }
 
         var baseDirectory = string.IsNullOrWhiteSpace(documentPath) ? null : Path.GetDirectoryName(documentPath);
@@ -606,8 +612,41 @@ public sealed class MarkdownExportService : IMarkdownExportService
             return false;
         }
 
-        path = Path.GetFullPath(Path.Combine(baseDirectory, url.Replace('/', Path.DirectorySeparatorChar)));
-        return File.Exists(path);
+        foreach (var candidate in EnumerateLocalImagePathCandidates(url))
+        {
+            path = Path.GetFullPath(Path.Combine(baseDirectory, candidate));
+            if (File.Exists(path))
+            {
+                return true;
+            }
+        }
+
+        path = string.Empty;
+        return false;
+    }
+
+    private static IEnumerable<string> EnumerateLocalImagePathCandidates(string url)
+    {
+        var normalized = url.Replace('/', Path.DirectorySeparatorChar);
+        yield return normalized;
+
+        var decoded = DecodeLocalImageUrl(normalized);
+        if (!string.Equals(decoded, normalized, StringComparison.Ordinal))
+        {
+            yield return decoded;
+        }
+    }
+
+    private static string DecodeLocalImageUrl(string url)
+    {
+        try
+        {
+            return Uri.UnescapeDataString(url);
+        }
+        catch (UriFormatException)
+        {
+            return url;
+        }
     }
 
     private static string ResolveImageMediaType(string path)
