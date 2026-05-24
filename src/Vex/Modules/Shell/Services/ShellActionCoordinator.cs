@@ -9,10 +9,10 @@ public sealed class ShellActionCoordinator
 {
     private readonly MainWindowViewModel _shell;
 
-    public ShellActionCoordinator(MainWindowViewModel shell, IEventBus eventBus)
+    public ShellActionCoordinator(MainWindowViewModel shell)
     {
         _shell = shell;
-        eventBus.Subscribe(this);
+        CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
     [EventHandler]

@@ -1,4 +1,3 @@
-using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 
@@ -6,8 +5,6 @@ namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellTitleMenuViewModel : ReactiveObject
 {
-    private readonly IEventBus _eventBus;
-
     public ShellTitleMenuViewModel(
         ShellAppearanceViewModel appearance,
         ShellDocumentInfoViewModel documentInfo,
@@ -15,8 +12,7 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
         ShellEditorDisplayViewModel editorDisplay,
         ShellHelpViewModel help,
         ShellWindowLayoutViewModel layout,
-        ShellRecentDocumentsViewModel recent,
-        IEventBus eventBus)
+        ShellRecentDocumentsViewModel recent)
     {
         Appearance = appearance;
         DocumentInfo = documentInfo;
@@ -25,7 +21,6 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
         Help = help;
         Layout = layout;
         Recent = recent;
-        _eventBus = eventBus;
     }
 
     public ShellAppearanceViewModel Appearance { get; }
@@ -93,6 +88,6 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
     private void Publish(ShellActionKind action, string? parameter = null)
     {
         // 标题栏菜单只表达用户意图，文档保存、未保存确认和文件 I/O 仍由 Shell 协调层统一处理。
-        _eventBus.Publish(new ShellActionCommand(action, parameter));
+        CodeWF.EventBus.EventBus.Default.Publish(new ShellActionCommand(action, parameter));
     }
 }

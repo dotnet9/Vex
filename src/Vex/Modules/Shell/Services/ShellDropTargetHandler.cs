@@ -1,5 +1,4 @@
 using Avalonia.Input;
-using CodeWF.EventBus;
 using Vex.Core.Messaging;
 
 namespace Vex.Modules.Shell.Services;
@@ -7,12 +6,10 @@ namespace Vex.Modules.Shell.Services;
 public sealed class ShellDropTargetHandler : IShellDropTargetHandler
 {
     private readonly IShellDroppedPathReader _droppedPaths;
-    private readonly IEventBus _eventBus;
 
-    public ShellDropTargetHandler(IShellDroppedPathReader droppedPaths, IEventBus eventBus)
+    public ShellDropTargetHandler(IShellDroppedPathReader droppedPaths)
     {
         _droppedPaths = droppedPaths;
-        _eventBus = eventBus;
     }
 
     public DragDropEffects GetDragEffects(DragEventArgs e)
@@ -31,6 +28,6 @@ public sealed class ShellDropTargetHandler : IShellDropTargetHandler
         }
 
         // 窗口只发布拖入路径，未保存确认和打开流程继续由 Shell 文档流程统一处理。
-        _eventBus.Publish(new ShellDroppedPathCommand(path));
+        CodeWF.EventBus.EventBus.Default.Publish(new ShellDroppedPathCommand(path));
     }
 }

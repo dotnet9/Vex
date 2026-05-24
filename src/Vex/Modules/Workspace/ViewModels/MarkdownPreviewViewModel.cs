@@ -16,7 +16,6 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     private string? _typographyTheme;
 
     public MarkdownPreviewViewModel(
-        IEventBus eventBus,
         IWorkspaceDocumentState documentState,
         IEditorAppearanceState appearanceState)
     {
@@ -26,7 +25,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         _typographySize = appearanceState.TypographySize;
         _typographyTheme = appearanceState.TypographyTheme;
         _appearanceState.Changed += OnAppearanceChanged;
-        eventBus.Subscribe(this);
+        CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public string Markdown

@@ -1,17 +1,9 @@
-using CodeWF.EventBus;
 using Vex.Core.Messaging;
 
 namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellEditorActionsViewModel
 {
-    private readonly IEventBus _eventBus;
-
-    public ShellEditorActionsViewModel(IEventBus eventBus)
-    {
-        _eventBus = eventBus;
-    }
-
     public void Undo()
     {
         Publish(EditorActionKind.Undo);
@@ -54,6 +46,6 @@ public sealed class ShellEditorActionsViewModel
 
     private void Publish(EditorActionKind action)
     {
-        _eventBus.Publish(new EditorActionCommand(action));
+        CodeWF.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));
     }
 }

@@ -10,7 +10,6 @@ namespace Vex.Modules.Workspace.ViewModels;
 
 public sealed class MarkdownEditorViewModel : ReactiveObject
 {
-    private readonly IEventBus _eventBus;
     private readonly IEditorDisplayState _editorDisplayState;
     private readonly IMarkdownEditorController _editorController;
     private double _editorFontSize;
@@ -18,19 +17,17 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     private bool _showLineNumbers;
 
     public MarkdownEditorViewModel(
-        IEventBus eventBus,
         IWorkspaceDocumentState documentState,
         IEditorDisplayState editorDisplayState,
         IMarkdownEditorController editorController)
     {
-        _eventBus = eventBus;
         _editorDisplayState = editorDisplayState;
         _editorController = editorController;
         _editorFontSize = editorDisplayState.EditorFontSize;
         _markdown = documentState.Markdown;
         _showLineNumbers = editorDisplayState.ShowLineNumbers;
         _editorDisplayState.Changed += OnEditorDisplayChanged;
-        eventBus.Subscribe(this);
+        CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public double EditorFontSize
@@ -118,6 +115,6 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
 
     private void PublishEditorAction(EditorActionKind action)
     {
-        _eventBus.Publish(new EditorActionCommand(action));
+        CodeWF.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));
     }
 }

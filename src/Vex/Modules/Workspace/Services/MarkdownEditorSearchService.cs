@@ -1,5 +1,4 @@
 using AvaloniaEdit;
-using CodeWF.EventBus;
 using System.Text;
 using System.Text.RegularExpressions;
 using Vex.Core.Messaging;
@@ -9,12 +8,10 @@ namespace Vex.Modules.Workspace.Services;
 
 public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
 {
-    private readonly IEventBus _eventBus;
     private readonly IAppLocalizer _localizer;
 
-    public MarkdownEditorSearchService(IEventBus eventBus, IAppLocalizer localizer)
+    public MarkdownEditorSearchService(IAppLocalizer localizer)
     {
-        _eventBus = eventBus;
         _localizer = localizer;
     }
 
@@ -77,7 +74,7 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
         var messageKey = wrapped
             ? VexL.EditorSearchFoundWrappedOnLineFormat
             : VexL.EditorSearchFoundOnLineFormat;
-        _eventBus.Publish(new EditorSearchResultCommand(
+        CodeWF.EventBus.EventBus.Default.Publish(new EditorSearchResultCommand(
             _localizer.Format(messageKey, command.SearchText, line, matchIndex + 1, matches.Count),
             matchIndex + 1,
             matches.Count));
@@ -181,7 +178,7 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
             return;
         }
 
-        _eventBus.Publish(new EditorSearchResultCommand(
+        CodeWF.EventBus.EventBus.Default.Publish(new EditorSearchResultCommand(
             _localizer.Format(VexL.EditorSearchMatchCountFormat, matchCount, command.SearchText),
             matchIndex + 1,
             matchCount.Value));
@@ -189,12 +186,12 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
 
     private void PublishSearchResult(string key)
     {
-        _eventBus.Publish(new EditorSearchResultCommand(_localizer.Get(key)));
+        CodeWF.EventBus.EventBus.Default.Publish(new EditorSearchResultCommand(_localizer.Get(key)));
     }
 
     private void PublishSearchResultFormat(string key, params object?[] args)
     {
-        _eventBus.Publish(new EditorSearchResultCommand(_localizer.Format(key, args)));
+        CodeWF.EventBus.EventBus.Default.Publish(new EditorSearchResultCommand(_localizer.Format(key, args)));
     }
 
     private List<SearchMatch>? FindMatches(string text, EditorSearchCommand command)

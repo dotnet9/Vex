@@ -10,11 +10,11 @@ public sealed class ShellNavigationViewModel : ReactiveObject
 {
     private readonly IAppSettingsStore _settingsStore;
 
-    public ShellNavigationViewModel(IEventBus eventBus, IAppSettingsStore settingsStore)
+    public ShellNavigationViewModel(IAppSettingsStore settingsStore)
     {
         _settingsStore = settingsStore;
         SelectedSideTabIndex = Math.Clamp(_settingsStore.Current.SelectedSidebarTabIndex ?? 0, 0, 1);
-        eventBus.Subscribe(this);
+        CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public int SelectedSideTabIndex

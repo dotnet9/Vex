@@ -11,15 +11,13 @@ namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
 {
-    private readonly IEventBus _eventBus;
     private readonly IShellStatusPublisher _statusPublisher;
     private OutlineItem? _selectedOutlineItem;
 
-    public ShellOutlineViewModel(IEventBus eventBus, IShellStatusPublisher statusPublisher)
+    public ShellOutlineViewModel(IShellStatusPublisher statusPublisher)
     {
-        _eventBus = eventBus;
         _statusPublisher = statusPublisher;
-        eventBus.Subscribe(this);
+        CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public string? TitleKey { get; } = VexL.SidebarOutline;
@@ -37,7 +35,7 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
         {
             if (SetProperty(ref _selectedOutlineItem, value) && value is not null)
             {
-                _eventBus.Publish(new NavigateToLineCommand(value.Line));
+                CodeWF.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(value.Line));
                 _statusPublisher.PublishResourceFormat(VexL.StatusNavigatedToOutlineFormat, value.Title);
             }
         }

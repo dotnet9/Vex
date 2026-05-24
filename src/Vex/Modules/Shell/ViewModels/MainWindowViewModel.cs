@@ -16,7 +16,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     private readonly IMarkdownOutlineService _outlineService;
     private readonly IMarkdownStatisticsService _statisticsService;
     private readonly IDocumentFileFactory _documentFileFactory;
-    private readonly IEventBus _eventBus;
     private readonly IShellDocumentWorkflowText _text;
     private readonly IShellUnsavedChangesGuard _unsavedChanges;
     private readonly IShellDocumentUtilityActions _documentUtilities;
@@ -56,8 +55,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         IShellDocumentUtilityActions documentUtilities,
         IShellExternalPathResolver externalPaths,
         IAutoSaveDraftService drafts,
-        IShellStatusPublisher statusPublisher,
-        IEventBus eventBus)
+        IShellStatusPublisher statusPublisher)
     {
         _documentService = documentService;
         _workspaceDocumentState = workspaceDocumentState;
@@ -81,8 +79,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _externalPaths = externalPaths;
         _drafts = drafts;
         _statusPublisher = statusPublisher;
-        _eventBus = eventBus;
-        _eventBus.Subscribe(this);
+        CodeWF.EventBus.EventBus.Default.Subscribe(this);
 
         _document = _documentService.CreateNew();
         _lastSavedMarkdown = _document.Markdown;
@@ -253,7 +250,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _lastSavedMarkdown = _document.Markdown;
         Markdown = _document.Markdown;
         _documentFiles = [];
-        _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles));
+        CodeWF.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(_documentFiles));
         _text.PublishDocumentClosed();
         RefreshDocumentInfo();
         PublishWorkspaceDocumentState();
@@ -281,7 +278,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         if (_documentFiles.Count > 0)
         {
-            _eventBus.Publish(new ShellSidebarTabSelectedCommand(0));
+            CodeWF.EventBus.EventBus.Default.Publish(new ShellSidebarTabSelectedCommand(0));
             _text.PublishChooseDocumentFromLoadedFolder();
             return;
         }
@@ -316,7 +313,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         _documentFiles = files.ToArray();
         var firstFile = _documentFiles.FirstOrDefault();
-        _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles, firstFile));
+        CodeWF.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(_documentFiles, firstFile));
 
         _text.PublishLoadedMarkdownFiles(_documentFiles.Count);
         if (firstFile is not null)
@@ -346,7 +343,7 @@ public sealed class MainWindowViewModel : ReactiveObject
                 VexL.ErrorMessageCannotOpenFileFormat,
                 () => OpenDocumentFileCoreAsync(file),
                 file.Path),
-            () => _eventBus.Publish(new DocumentFileSelectionChangedCommand(previousSelection)));
+            () => CodeWF.EventBus.EventBus.Default.Publish(new DocumentFileSelectionChangedCommand(previousSelection)));
     }
 
     private async Task OpenDocumentFileCoreAsync(DocumentFile file)
@@ -461,12 +458,12 @@ public sealed class MainWindowViewModel : ReactiveObject
         if (wasCurrentDocument)
         {
             NewDocumentCore();
-            _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles));
+            CodeWF.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(_documentFiles));
         }
         else
         {
             var selected = FindCurrentDocumentFile();
-            _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles, selected));
+            CodeWF.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(_documentFiles, selected));
         }
 
         _text.PublishFileDeleted();
@@ -567,7 +564,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         PublishWorkspaceDocumentState();
         RefreshDocumentInfo();
-        _eventBus.Publish(new OutlineItemsChangedCommand(_outlineService.BuildOutline(Markdown)));
+        CodeWF.EventBus.EventBus.Default.Publish(new OutlineItemsChangedCommand(_outlineService.BuildOutline(Markdown)));
     }
 
     private void RefreshDocumentState()
@@ -608,11 +605,11 @@ public sealed class MainWindowViewModel : ReactiveObject
         {
             selected = _documentFileFactory.Create(path);
             _documentFiles = [selected];
-            _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles, selected));
+            CodeWF.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(_documentFiles, selected));
             return;
         }
 
-        _eventBus.Publish(new DocumentFileSelectionChangedCommand(selected));
+        CodeWF.EventBus.EventBus.Default.Publish(new DocumentFileSelectionChangedCommand(selected));
     }
 
     private DocumentFile? FindCurrentDocumentFile()
@@ -773,7 +770,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
         Dialogs.ClearRenameFilePanel();
         var selectedFile = wasCurrentDocument ? renamedFile : FindCurrentDocumentFile() ?? renamedFile;
-        _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles, selectedFile));
+        CodeWF.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(_documentFiles, selectedFile));
         _text.PublishRenamedFile(Path.GetFileName(renamedPath));
     }
 
@@ -932,7 +929,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         {
             var selected = _documentFileFactory.Create(path);
             _documentFiles = [selected];
-            _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles, selected));
+            CodeWF.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(_documentFiles, selected));
             return;
         }
 
@@ -946,7 +943,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _documentFiles = _documentFiles
             .Select(item => PathsEqual(item.Path, path) ? file : item)
             .ToArray();
-        _eventBus.Publish(new DocumentFilesChangedCommand(_documentFiles, file));
+        CodeWF.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(_documentFiles, file));
     }
 
     private DocumentSnapshot RestoreDraftIfAvailable(DocumentSnapshot document, out bool restoredDraft)

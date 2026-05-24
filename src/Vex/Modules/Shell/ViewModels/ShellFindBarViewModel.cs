@@ -10,7 +10,6 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class ShellFindBarViewModel : ReactiveObject
 {
     private static readonly TimeSpan SearchCountDebounce = TimeSpan.FromMilliseconds(180);
-    private readonly IEventBus _eventBus;
     private readonly IShellStatusPublisher _statusPublisher;
     private Timer? _searchCountTimer;
     private bool _isVisible;
@@ -22,11 +21,10 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     private string _replacementText = string.Empty;
     private string _searchResultText = "0/0";
 
-    public ShellFindBarViewModel(IEventBus eventBus, IShellStatusPublisher statusPublisher)
+    public ShellFindBarViewModel(IShellStatusPublisher statusPublisher)
     {
-        _eventBus = eventBus;
         _statusPublisher = statusPublisher;
-        _eventBus.Subscribe(this);
+        CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public bool IsVisible
@@ -218,7 +216,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 
     private void PublishSearch(EditorSearchAction action, string? replacementText = null)
     {
-        _eventBus.Publish(new EditorSearchCommand(
+        CodeWF.EventBus.EventBus.Default.Publish(new EditorSearchCommand(
             action,
             SearchText,
             replacementText,
@@ -229,7 +227,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 
     private void SeedSearchTextFromEditorSelection()
     {
-        var selectedText = _eventBus.Query(new EditorSelectedTextQuery());
+        var selectedText = CodeWF.EventBus.EventBus.Default.Query(new EditorSelectedTextQuery());
         if (!string.IsNullOrEmpty(selectedText))
         {
             SearchText = selectedText;
@@ -238,7 +236,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 
     private void PublishEditorAction(EditorActionKind action)
     {
-        _eventBus.Publish(new EditorActionCommand(action));
+        CodeWF.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));
     }
 
     private void SetStatus(string message)

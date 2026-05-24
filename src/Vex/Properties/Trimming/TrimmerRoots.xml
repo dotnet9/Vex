@@ -4,7 +4,6 @@
   <assembly fullname="Vex.Controls.Themes" preserve="all" />
 
   <assembly fullname="CodeWF.EventBus" preserve="all" />
-  <assembly fullname="CodeWF.DryIoc.EventBus" preserve="all" />
   <assembly fullname="CodeWF.AvaloniaControls" preserve="all" />
   <assembly fullname="CodeWF.AvaloniaControls.Themes" preserve="all" />
   <assembly fullname="CodeWF.Markdown" preserve="all" />

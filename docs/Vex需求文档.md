@@ -81,11 +81,11 @@ Vex 是面向写作者、开发者和知识工作者的 Markdown 编辑器。核
 
 1. CodeWF.EventBus、CodeWF.Markdown、CodeWF.Markdown.Themes 等通过 NuGet 包安装使用，不通过项目引用直接引用。
 2. 如果 CodeWF 系列库存在问题，可直接修改对应仓库，本地打包后在 Vex 中使用，验证通过后再发布 NuGet（这些库本地对应目录`D:\github\libs`，人工审核通过后再由人工发布）。
-3. CodeWF.EventBus 通过 IOC 注册服务使用。
+3. CodeWF.EventBus 统一直接使用 `CodeWF.EventBus.EventBus.Default`，不通过 IOC 注册或构造函数注入事件总线。
 4. Command、Query、Notification 等消息仍归 CodeWF.EventBus 管理，不使用 Prism 命令或事件替代。
 5. 不使用显式 `Subscribe(Action<TCommand>)` 这类写法。
 6. 推荐模式：ViewModel 或服务中声明 `[EventHandler]` 处理方法，并在构造函数通过 `Subscribe(this)` 注册。
-7. 不为了使用 CodeWF.DryIoc.EventBus 创建无必要的中转服务；能放在 ViewModel 或已有服务的处理函数应直接放在对应对象内。
+7. 不使用 CodeWF.DryIoc.EventBus 包；能放在 ViewModel 或已有服务的处理函数应直接放在对应对象内。
 
 ### 4.4 第三方组件合规
 
@@ -923,7 +923,7 @@ AI 继续开发时必须遵守：
 
 1. `.slnx` 解决方案。
 2. Avalonia + Prism + DryIoc + ReactiveUI 基础框架。
-3. CodeWF.EventBus IOC 注册和 `[EventHandler]` 通信模式。
+3. CodeWF.EventBus 默认单例和 `[EventHandler]` 通信模式。
 4. Semi.Avalonia、Ursa、Avalonia.Themes.Fluent 主题接入。
 5. 标题栏菜单、三栏布局、状态栏。
 6. 新建、打开、打开文件夹、保存、另存为、删除确认。

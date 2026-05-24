@@ -14,12 +14,12 @@ public sealed class ShellStatusViewModel : ReactiveObject
     private int _caretColumn = 1;
     private bool _isReadyStatus = true;
 
-    public ShellStatusViewModel(IEventBus eventBus, IAppLocalizer localizer)
+    public ShellStatusViewModel(IAppLocalizer localizer)
     {
         _localizer = localizer;
         _statusText = _localizer.Get(VexL.StatusReady);
         _localizer.CultureChanged += OnCultureChanged;
-        eventBus.Subscribe(this);
+        CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public string StatusText

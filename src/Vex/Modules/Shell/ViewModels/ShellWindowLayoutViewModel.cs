@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using Avalonia.Controls;
-using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
@@ -11,7 +10,6 @@ namespace Vex.Modules.Shell.ViewModels;
 // 管理 Shell 窗口布局状态，避免主 ViewModel 继续混入纯窗口显示逻辑。
 public sealed class ShellWindowLayoutViewModel : ReactiveObject
 {
-    private readonly IEventBus _eventBus;
     private readonly IAppSettingsStore _settingsStore;
     private readonly IShellStatusPublisher _statusPublisher;
     private bool _isSidebarVisible = true;
@@ -25,11 +23,9 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _previewBeforeSourceMode = true;
 
     public ShellWindowLayoutViewModel(
-        IEventBus eventBus,
         IAppSettingsStore settingsStore,
         IShellStatusPublisher statusPublisher)
     {
-        _eventBus = eventBus;
         _settingsStore = settingsStore;
         _statusPublisher = statusPublisher;
         var settings = _settingsStore.Current;
@@ -187,12 +183,12 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
     private void FocusEditor()
     {
-        _eventBus.Publish(new EditorActionCommand(EditorActionKind.FocusEditor));
+        CodeWF.EventBus.EventBus.Default.Publish(new EditorActionCommand(EditorActionKind.FocusEditor));
     }
 
     private void SelectSidebarTab(int selectedIndex)
     {
-        _eventBus.Publish(new ShellSidebarTabSelectedCommand(selectedIndex));
+        CodeWF.EventBus.EventBus.Default.Publish(new ShellSidebarTabSelectedCommand(selectedIndex));
     }
 
     private void PersistLayoutSettings()

@@ -7,21 +7,18 @@ namespace Vex.Modules.Workspace.Services;
 
 public sealed class MarkdownEditorController : IMarkdownEditorController
 {
-    private readonly IEventBus _eventBus;
     private readonly IMarkdownEditorActionService _actionService;
     private readonly IMarkdownEditorSearchService _searchService;
     private TextEditor? _editor;
     private bool _suppressTextChanged;
 
     public MarkdownEditorController(
-        IEventBus eventBus,
         IMarkdownEditorActionService actionService,
         IMarkdownEditorSearchService searchService)
     {
-        _eventBus = eventBus;
         _actionService = actionService;
         _searchService = searchService;
-        eventBus.Subscribe(this);
+        CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public void Attach(TextEditor editor)
@@ -80,7 +77,7 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
         }
 
         var caret = _editor.TextArea.Caret;
-        _eventBus.Publish(new MarkdownTextChangedCommand(
+        CodeWF.EventBus.EventBus.Default.Publish(new MarkdownTextChangedCommand(
             _editor.Text ?? string.Empty,
             caret.Line,
             caret.Column,

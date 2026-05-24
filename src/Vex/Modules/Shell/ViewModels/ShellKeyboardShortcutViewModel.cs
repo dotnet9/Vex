@@ -1,5 +1,4 @@
 using Avalonia.Input;
-using CodeWF.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 
@@ -7,20 +6,16 @@ namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
 {
-    private readonly IEventBus _eventBus;
-
     public ShellKeyboardShortcutViewModel(
         ShellDialogsViewModel dialogs,
         ShellEditorDisplayViewModel editorDisplay,
         ShellFindBarViewModel findBar,
-        ShellWindowLayoutViewModel layout,
-        IEventBus eventBus)
+        ShellWindowLayoutViewModel layout)
     {
         Dialogs = dialogs;
         EditorDisplay = editorDisplay;
         FindBar = findBar;
         Layout = layout;
-        _eventBus = eventBus;
     }
 
     public ShellDialogsViewModel Dialogs { get; }
@@ -131,7 +126,7 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
 
     private bool PublishShellAction(ShellActionKind action)
     {
-        _eventBus.Publish(new ShellActionCommand(action));
+        CodeWF.EventBus.EventBus.Default.Publish(new ShellActionCommand(action));
         return true;
     }
 

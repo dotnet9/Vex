@@ -60,7 +60,6 @@
     <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="CodeWF.AvaloniaControls" />
     <PackageReference Include="CodeWF.AvaloniaControls.Themes" />
-    <PackageReference Include="CodeWF.DryIoc.EventBus" />
     <PackageReference Include="CodeWF.EventBus" />
     <PackageReference Include="CodeWF.Markdown" />
     <PackageReference Include="CodeWF.Markdown.Themes" />

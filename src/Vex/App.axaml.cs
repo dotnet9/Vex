@@ -2,7 +2,6 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using CodeWF.DryIoc.EventBus;
 using Lang.Avalonia;
 using Lang.Avalonia.Json;
 using Prism.DryIoc;
@@ -63,7 +62,6 @@ public partial class App : PrismApplication
 
     protected override void RegisterTypes(IContainerRegistry containerRegistry)
     {
-        containerRegistry.AddEventBus();
         containerRegistry.RegisterSingleton<IAppSettingsStore, AppSettingsStore>();
         containerRegistry.RegisterSingleton<IAppLocalizer, AppLocalizer>();
         containerRegistry.RegisterSingleton<IDocumentFileFactory, DocumentFileFactory>();

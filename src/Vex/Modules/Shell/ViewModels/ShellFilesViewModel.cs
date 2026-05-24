@@ -10,14 +10,12 @@ namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 {
-    private readonly IEventBus _eventBus;
     private DocumentFile? _selectedDocumentFile;
     private DocumentFile? _contextDocumentFile;
 
-    public ShellFilesViewModel(IEventBus eventBus)
+    public ShellFilesViewModel()
     {
-        _eventBus = eventBus;
-        eventBus.Subscribe(this);
+        CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public string? TitleKey { get; } = VexL.SidebarFiles;
@@ -40,7 +38,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
                 OnPropertyChanged(nameof(HasDocumentFileCommandTarget));
                 if (value is not null)
                 {
-                    _eventBus.Publish(new DocumentFileOpenRequestedCommand(value, previousSelection));
+                    CodeWF.EventBus.EventBus.Default.Publish(new DocumentFileOpenRequestedCommand(value, previousSelection));
                 }
             }
         }
@@ -59,7 +57,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
         var previousSelection = SelectedDocumentFile;
         ClearContextDocumentFile();
-        _eventBus.Publish(new DocumentFileOpenRequestedCommand(file, previousSelection));
+        CodeWF.EventBus.EventBus.Default.Publish(new DocumentFileOpenRequestedCommand(file, previousSelection));
     }
 
     public void RenameSelectedFile()
@@ -70,7 +68,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         }
 
         ClearContextDocumentFile();
-        _eventBus.Publish(new DocumentFileRenameRequestedCommand(file));
+        CodeWF.EventBus.EventBus.Default.Publish(new DocumentFileRenameRequestedCommand(file));
     }
 
     public void OpenSelectedFileLocation()
@@ -81,7 +79,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         }
 
         ClearContextDocumentFile();
-        _eventBus.Publish(new DocumentFileOpenLocationRequestedCommand(file));
+        CodeWF.EventBus.EventBus.Default.Publish(new DocumentFileOpenLocationRequestedCommand(file));
     }
 
     public void DeleteSelectedFile()
@@ -92,7 +90,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         }
 
         ClearContextDocumentFile();
-        _eventBus.Publish(new DocumentFileDeleteRequestedCommand(file));
+        CodeWF.EventBus.EventBus.Default.Publish(new DocumentFileDeleteRequestedCommand(file));
     }
 
     public void SelectDocumentFileForContextMenu(DocumentFile documentFile)
