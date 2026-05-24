@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Outline, PDF header, and HTML print-preview title extraction now share `MarkdownHeadingScanner`, using a span-based scan that skips fenced sample headings and removes duplicated per-line string scanning.
+- Built `Vex.slnx` and used a source-structure smoke to verify all three heading-scan paths call the shared scanner.
 - Refreshed Traditional Chinese and Japanese changelog summaries with recent export, performance, dark-theme, and MSIX packaging changes.
 - Built `Vex.slnx` and confirmed the localized changelog summary files are still copied to output by the project file.
 - HTML/print/copy and PNG/PDF exports now try URL-decoded local image paths, so `my%20image.png` can resolve to a local filename containing spaces.

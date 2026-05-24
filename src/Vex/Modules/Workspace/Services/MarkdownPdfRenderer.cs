@@ -228,46 +228,8 @@ internal sealed class MarkdownPdfRenderer
 
     private static string ResolveHeaderTitle(DocumentSnapshot document)
     {
-        return FindFirstMarkdownHeading(document.Markdown)
+        return MarkdownHeadingScanner.FindFirstHeading(document.Markdown)
                ?? Path.GetFileNameWithoutExtension(ResolveFooterTitle(document));
-    }
-
-    private static string? FindFirstMarkdownHeading(string? markdown)
-    {
-        if (string.IsNullOrWhiteSpace(markdown))
-        {
-            return null;
-        }
-
-        using var reader = new StringReader(markdown);
-        while (reader.ReadLine() is { } line)
-        {
-            var trimmed = line.TrimStart();
-            var markerCount = CountHeadingMarkers(trimmed);
-            if (markerCount == 0 || markerCount >= trimmed.Length || !char.IsWhiteSpace(trimmed[markerCount]))
-            {
-                continue;
-            }
-
-            var title = trimmed[markerCount..].Trim().TrimEnd('#').Trim();
-            if (!string.IsNullOrWhiteSpace(title))
-            {
-                return title;
-            }
-        }
-
-        return null;
-    }
-
-    private static int CountHeadingMarkers(string line)
-    {
-        var count = 0;
-        while (count < line.Length && count < 6 && line[count] == '#')
-        {
-            count++;
-        }
-
-        return count;
     }
 
     private static string ResolveFooterTitle(DocumentSnapshot document)
