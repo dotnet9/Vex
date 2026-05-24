@@ -311,7 +311,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
             """;
     }
 
-    private static string BuildPrintPreviewMetadata(DocumentSnapshot document)
+    private string BuildPrintPreviewMetadata(DocumentSnapshot document)
     {
         var title = WebUtility.HtmlEncode(ResolvePrintTitle(document));
         var footer = WebUtility.HtmlEncode(ResolvePrintFooter(document));
@@ -321,21 +321,24 @@ public sealed class MarkdownExportService : IMarkdownExportService
             """;
     }
 
-    private static string ResolvePrintTitle(DocumentSnapshot document)
+    private string ResolvePrintTitle(DocumentSnapshot document)
     {
         return MarkdownHeadingScanner.FindFirstHeading(document.Markdown)
                ?? Path.GetFileNameWithoutExtension(document.FileName)
-               ?? document.FileName;
+               ?? document.FileName
+               ?? _localizer.Get(VexL.DocumentDefaultHeading);
     }
 
-    private static string ResolvePrintFooter(DocumentSnapshot document)
+    private string ResolvePrintFooter(DocumentSnapshot document)
     {
         if (!string.IsNullOrWhiteSpace(document.FilePath))
         {
             return document.FilePath;
         }
 
-        return string.IsNullOrWhiteSpace(document.FileName) ? "Untitled.md" : document.FileName;
+        return string.IsNullOrWhiteSpace(document.FileName)
+            ? _localizer.Get(VexL.DocumentDefaultFileName)
+            : document.FileName;
     }
 
     private static string BuildPrintPreviewStyles(MarkdownExportStyle style, string cssBodyFont)

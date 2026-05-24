@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Print preview and PDF header/footer fallback titles now use `DocumentDefaultFileName`/`DocumentDefaultHeading` resources for documents without a path or file name instead of hardcoded `Untitled.md`.
+- Built `Vex.slnx` and used a source-structure smoke to verify the export service and PDF renderer read the default document-name resources.
 - PNG/PDF image-based export table cells now render paragraph inlines, preserving bold, italic, strikethrough, inline code, and link styling instead of flattening everything to plain text.
 - Built `Vex.slnx` and used a source-structure smoke to verify the table-cell path no longer uses the plain-text flattening helpers.
 - Outline, PDF header, and HTML print-preview title extraction now share `MarkdownHeadingScanner`, using a span-based scan that skips fenced sample headings and removes duplicated per-line string scanning.

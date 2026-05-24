@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 打印/PDF 默认文件名 i18n 边界收口：无路径、无文件名的文档导出时，HTML 打印预览页脚与 PDF 页眉/页脚不再硬编码 `Untitled.md`，改用现有 `DocumentDefaultFileName`/`DocumentDefaultHeading` 资源；PDF 渲染循环也只解析一次页眉和页脚标题。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认 `MarkdownExportService` 与 `MarkdownPdfRenderer` 已引用 `DocumentDefaultFileName`/`DocumentDefaultHeading`，导出路径中不再直接写入 `Untitled.md`。
 - PNG/PDF 表格映射继续补齐：`MarkdownPngRenderer` 的表格单元格不再把内容压平成纯文本，而是以单元格内容栈渲染段落 inline，保留粗体、斜体、删除线、行内代码和链接颜色等样式；图像型 PDF 复用该渲染结果同步受益。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认表格单元格路径使用 `CreateTableCellContent`、`AddTableCellBlock` 与 `CreateTableParagraph`，旧的 `GetTableCellText`/`GetBlockText` 纯文本压平逻辑已移除。
 - Markdown 标题扫描逻辑合并：新增 `MarkdownHeadingScanner`，大纲、PDF 页眉标题和 HTML 打印预览标题共用同一套 `ReadOnlySpan<char>` 行扫描；扫描会跳过反引号/波浪线代码围栏，支持 3 空格以内缩进的 ATX 标题，并避免把围栏内示例标题误当作真实文档标题。
@@ -151,6 +153,8 @@
 
 ### en-US
 
+- Closed an i18n edge in print/PDF fallback titles: for documents without a path or file name, the HTML print-preview footer and PDF header/footer now use the existing `DocumentDefaultFileName`/`DocumentDefaultHeading` resources instead of hardcoded `Untitled.md`; PDF rendering also resolves header/footer titles once per export.
+- Built `Vex.slnx` and used a source-structure smoke to verify `MarkdownExportService` and `MarkdownPdfRenderer` reference `DocumentDefaultFileName`/`DocumentDefaultHeading`, with no direct `Untitled.md` fallback left in the export path.
 - Further filled PNG/PDF table mapping: `MarkdownPngRenderer` table cells no longer flatten content to plain text; cells render paragraph inlines through a small content stack, preserving bold, italic, strikethrough, inline code, and link color styles. Image-based PDF benefits because it reuses the PNG renderer.
 - Built `Vex.slnx` and used a source-structure smoke to verify the table-cell path uses `CreateTableCellContent`, `AddTableCellBlock`, and `CreateTableParagraph`, with the old `GetTableCellText`/`GetBlockText` flattening path removed.
 - Consolidated Markdown heading scanning: added `MarkdownHeadingScanner` so the outline, PDF header title, and HTML print-preview title share the same `ReadOnlySpan<char>` line scanner; it skips backtick/tilde code fences, supports ATX headings indented by up to three spaces, and avoids treating fenced sample headings as real document titles.

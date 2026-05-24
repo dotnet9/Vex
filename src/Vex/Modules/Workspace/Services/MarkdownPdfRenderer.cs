@@ -59,6 +59,8 @@ internal sealed class MarkdownPdfRenderer
         var metadataLineColor = ParseColor(style.BorderColor, MetadataLineColor);
         var slices = CreateSlices(bitmap, sourceSliceHeight, pageBackgroundColor).ToList();
         var pageCount = slices.Count;
+        var headerTitle = ResolveHeaderTitle(document);
+        var footerTitle = ResolveFooterTitle(document);
 
         for (var pageIndex = 0; pageIndex < pageCount; pageIndex++)
         {
@@ -73,9 +75,9 @@ internal sealed class MarkdownPdfRenderer
 
             var canvas = pdf.BeginPage(PageWidth, PageHeight);
             canvas.Clear(pageBackgroundColor);
-            DrawHeader(canvas, document, metadataTextColor, metadataLineColor);
+            DrawHeader(canvas, headerTitle, metadataTextColor, metadataLineColor);
             canvas.DrawBitmap(bitmap, source, destination);
-            DrawFooter(canvas, document, pageIndex + 1, pageCount, metadataTextColor, metadataLineColor);
+            DrawFooter(canvas, footerTitle, pageIndex + 1, pageCount, metadataTextColor, metadataLineColor);
             pdf.EndPage();
         }
 
@@ -168,7 +170,7 @@ internal sealed class MarkdownPdfRenderer
                && Math.Abs(color.Blue - expected.Blue) <= BackgroundTolerance;
     }
 
-    private static void DrawHeader(SKCanvas canvas, DocumentSnapshot document, SKColor textColor, SKColor lineColor)
+    private static void DrawHeader(SKCanvas canvas, string title, SKColor textColor, SKColor lineColor)
     {
         var headerBottom = PageMargin + HeaderHeight;
         using var linePaint = CreateLinePaint(lineColor);
@@ -178,11 +180,11 @@ internal sealed class MarkdownPdfRenderer
         using var font = CreateMetadataFont(HeaderFontSize);
 
         var titleMaxWidth = PageWidth - (PageMargin * 2);
-        var title = TrimToWidth(ResolveHeaderTitle(document), font, textPaint, titleMaxWidth);
-        canvas.DrawText(title, PageMargin, PageMargin + 17, font, textPaint);
+        var visibleTitle = TrimToWidth(title, font, textPaint, titleMaxWidth);
+        canvas.DrawText(visibleTitle, PageMargin, PageMargin + 17, font, textPaint);
     }
 
-    private static void DrawFooter(SKCanvas canvas, DocumentSnapshot document, int pageNumber, int pageCount, SKColor textColor, SKColor lineColor)
+    private static void DrawFooter(SKCanvas canvas, string title, int pageNumber, int pageCount, SKColor textColor, SKColor lineColor)
     {
         var footerTop = PageHeight - PageMargin - FooterHeight;
         using var linePaint = CreateLinePaint(lineColor);
@@ -196,9 +198,9 @@ internal sealed class MarkdownPdfRenderer
         var pageTextWidth = font.MeasureText(pageText, textPaint);
         var pageTextX = PageWidth - PageMargin - pageTextWidth;
         var titleMaxWidth = Math.Max(0, pageTextX - PageMargin - 24);
-        var title = TrimToWidth(ResolveFooterTitle(document), font, textPaint, titleMaxWidth);
+        var visibleTitle = TrimToWidth(title, font, textPaint, titleMaxWidth);
 
-        canvas.DrawText(title, PageMargin, baseline, font, textPaint);
+        canvas.DrawText(visibleTitle, PageMargin, baseline, font, textPaint);
         canvas.DrawText(pageText, pageTextX, baseline, font, textPaint);
     }
 
@@ -226,20 +228,23 @@ internal sealed class MarkdownPdfRenderer
         return new SKFont(SKTypeface.Default, size);
     }
 
-    private static string ResolveHeaderTitle(DocumentSnapshot document)
+    private string ResolveHeaderTitle(DocumentSnapshot document)
     {
         return MarkdownHeadingScanner.FindFirstHeading(document.Markdown)
-               ?? Path.GetFileNameWithoutExtension(ResolveFooterTitle(document));
+               ?? Path.GetFileNameWithoutExtension(ResolveFooterTitle(document))
+               ?? _localizer.Get(VexL.DocumentDefaultHeading);
     }
 
-    private static string ResolveFooterTitle(DocumentSnapshot document)
+    private string ResolveFooterTitle(DocumentSnapshot document)
     {
         if (!string.IsNullOrWhiteSpace(document.FilePath))
         {
             return Path.GetFileName(document.FilePath);
         }
 
-        return string.IsNullOrWhiteSpace(document.FileName) ? "Untitled.md" : document.FileName;
+        return string.IsNullOrWhiteSpace(document.FileName)
+            ? _localizer.Get(VexL.DocumentDefaultFileName)
+            : document.FileName;
     }
 
     private static string TrimToWidth(string text, SKFont font, SKPaint paint, float maxWidth)
