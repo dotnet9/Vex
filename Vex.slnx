@@ -18,6 +18,7 @@
     <File Path="docs/Vex需求文档.md" />
     <File Path="LICENSE" />
     <File Path="README.md" />
+    <File Path="RELEASES.md" />
   </Folder>
   <Project Path="src/Vex.Controls.Themes/Vex.Controls.Themes.csproj" />
   <Project Path="src/Vex.Controls/Vex.Controls.csproj" />
