@@ -90,6 +90,11 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
         Action<Action> runTextMutation,
         Action publishTextChanged)
     {
+        if (editor.Document is null)
+        {
+            return;
+        }
+
         var text = editor.Text ?? string.Empty;
         var start = Math.Clamp(editor.SelectionStart, 0, text.Length);
         var length = Math.Clamp(editor.SelectionLength, 0, text.Length - start);
@@ -107,7 +112,7 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
 
         runTextMutation(() =>
         {
-            editor.Text = text[..start] + replacementText + text[(start + currentMatch.Value.Length)..];
+            editor.Document.Replace(start, currentMatch.Value.Length, replacementText);
             editor.CaretOffset = start + replacementText.Length;
             editor.Select(start, replacementText.Length);
         });
@@ -150,7 +155,12 @@ public sealed class MarkdownEditorSearchService : IMarkdownEditorSearchService
 
         runTextMutation(() =>
         {
-            editor.Text = builder.ToString();
+            if (editor.Document is null)
+            {
+                return;
+            }
+
+            editor.Document.Replace(0, editor.Document.TextLength, builder.ToString());
             editor.CaretOffset = 0;
             editor.SelectionLength = 0;
         });

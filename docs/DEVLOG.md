@@ -4,6 +4,8 @@
 
 ### zh-CN
 
+- 大文件替换路径优化：`ReplaceNext` 不再用整篇字符串拼接后重设编辑器文本，而是直接调用 AvaloniaEdit 文档级 `Replace`；`ReplaceAll` 生成最终文本后也通过文档替换整段内容，减少编辑器文档重建开销。
+- 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认替换路径已移除 `editor.Text = ...` 赋值，改用 `editor.Document.Replace(...)`。
 - PDF 排版主题映射继续细化：图像型 PDF 页面背景不再固定白色，而是使用导出样式背景；页眉页脚文字和分割线使用当前样式的弱文本色与边框色；分页空白带检测改为匹配页面背景色，暗色排版主题也能寻找自然断点。
 - 验证 `dotnet build Vex.slnx -v:minimal`，并用源码结构 smoke 确认 PDF 背景、页眉页脚元数据颜色和分页空白检测均读取 `MarkdownExportStyle`。
 - 查找计数路径继续减分配：`EditorSearchAction.Count` 不再为全部命中构建 `SearchMatch` 列表，而是在一次扫描中统计总数和当前命中索引；正则计数也只枚举匹配并计数。
@@ -125,6 +127,8 @@
 
 ### en-US
 
+- Optimized the large-file replace path: `ReplaceNext` no longer rebuilds the whole editor text with string concatenation, and instead calls AvaloniaEdit document-level `Replace`; `ReplaceAll` also replaces the document content after building the final text, reducing editor-document reset overhead.
+- Verified `dotnet build Vex.slnx -v:minimal` and used a source-structure smoke confirming replace paths removed `editor.Text = ...` assignment and now use `editor.Document.Replace(...)`.
 - Further refined PDF typography-theme mapping: image-based PDF pages no longer force a white background; header/footer text and divider lines use the current style muted and border colors; page-break blank-band detection now matches the page background color so dark typography themes can also find natural breaks.
 - Verified `dotnet build Vex.slnx -v:minimal` and used a source-structure smoke confirming PDF background, header/footer metadata colors, and blank-band detection all read `MarkdownExportStyle`.
 - Further reduced find-count allocations: `EditorSearchAction.Count` no longer builds a `SearchMatch` list for every hit, and instead computes total count plus current match index in one scan; regex count also enumerates matches only for counting.

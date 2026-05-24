@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Replace next and replace all now use AvaloniaEdit document-level `Replace`, avoiding full editor-text resets for single replacements.
+- Built `Vex.slnx` and used a source-structure smoke to verify replace paths use `editor.Document.Replace(...)`.
 - Image-based PDF background, header/footer metadata colors, and page-break blank-band detection now use the active export style, so dark typography themes no longer search for white page breaks.
 - Built `Vex.slnx` and used a source-structure smoke to verify PDF background, metadata colors, and blank-band detection read the export style.
 - Changed the find Count path to compute total matches and current index in one scan instead of allocating a `SearchMatch` list for every hit.
