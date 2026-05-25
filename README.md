@@ -10,7 +10,7 @@ Slogan：极简之力，妙笔成章。
 
 ## Status
 
-当前处于 `0.1.0` 基础开发阶段，已具备 Prism 模块化应用骨架、Typora 风格菜单、左中右三栏工作区、Markdown 编辑/预览链路、同目录文件列表、大纲跳转、查找替换、主题/排版切换、HTML/PDF/PNG/Word 导出、复制到微信公众号/知乎/稀土掘金，以及基于 UrsaWindow 的关键对话框。PDF、PNG 和 Word 导出复用 `CodeWF.Markdown` 的 `MarkdownDocumentExporter` 公共能力，支持本地相对图、`data:image`、HTTP(S) 图片、SVG/GIF/WebP 转 PNG，导出文件通过邮件、微信等发送后可离线查看嵌入图片。自媒体复制复用 `CodeWF.Markdown` 的富 HTML 剪贴板能力，写入 `text/html`、`public.html` 和 Windows `HTML Format`，并把当前排版主题和紧凑布局内联到 HTML 片段中。
+当前处于 `0.1.0` 基础开发阶段，已具备 Prism 模块化应用骨架、Typora 风格菜单、左中右三栏工作区、Markdown 编辑/预览链路、同目录文件列表、大纲跳转、查找替换、主题/排版切换、HTML/PDF/PNG/Word 导出、复制到微信公众号/知乎/稀土掘金，以及基于 UrsaWindow 的关键对话框。PDF、PNG 和 Word 导出复用 `CodeWF.Markdown` 的 `MarkdownDocumentExporter`/`ExportKind` 公共能力，支持本地相对图、`data:image`、HTTP(S) 图片、SVG/GIF/WebP 转 PNG，导出文件通过邮件、微信等发送后可离线查看嵌入图片。自媒体复制复用 `CodeWF.Markdown` 的富 HTML 剪贴板能力，写入 `text/html`、`public.html` 和 Windows `HTML Format`，并通过 `MarkdownThemes.CreateExportStyle` 把当前排版主题和紧凑布局内联到 HTML 片段中。
 
 ## Build and Release
 

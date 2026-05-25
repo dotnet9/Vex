@@ -4,9 +4,10 @@
 
 ### zh-CN
 
-- 导出公共能力继续下沉：`CodeWF.Markdown` 新增 `MarkdownDocumentExporter`、`MarkdownExportDocument` 和公共 `MarkdownExportStyle`，封装 PNG、图像型 PDF、Word `.docx` 导出；Vex 更新到本地 NuGet 包 `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.10 后，PDF/PNG/Word 菜单只负责选文件和传当前主题，不再保留本地 `MarkdownPngRenderer`、`MarkdownPdfRenderer`、`MarkdownDocxExporter`。
+- 导出公共能力继续下沉：`CodeWF.Markdown` 新增 `MarkdownDocumentExporter`、`ExportKind`、`MarkdownExportDocument` 和公共 `MarkdownExportStyle`，封装 Markdown 字符串/文件到 PNG、图像型 PDF、Word `.docx` 的一站式导出；Vex 更新到本地 NuGet 包 `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.11 后，PDF/PNG/Word 菜单统一调用 `ExportKind` 入口，只负责选文件和传当前主题，不再保留本地 `MarkdownPngRenderer`、`MarkdownPdfRenderer`、`MarkdownDocxExporter`。
+- 排版主题扩展链路整理：`CodeWF.Markdown.Themes` 新增 `MarkdownTypographyThemeRegistry`，导出和自媒体复制样式改由 `MarkdownThemes.CreateExportStyle` 从排版资源生成，应用注册的自定义主题可参与预览与导出样式解析。
 - Word 导出实现从 Vex 移入 `CodeWF.Markdown`，图片嵌入 `word/media`，图片尺寸读取改用 SkiaSharp，避免公共导出 API 在无 Avalonia UI 平台初始化的环境下失败；新增 `.docx` 嵌入 `data:image` 图片测试。
-- 验证 `cmd /c pack.bat` 生成 `CodeWF.Markdown.12.0.3.10.nupkg` 等本地包，`dotnet test tests\CodeWF.Markdown.Tests\CodeWF.Markdown.Tests.csproj -v:minimal` 25 项通过，Vex 使用本地包源构建 `Vex.slnx` 通过。
+- 验证 `cmd /c pack.bat` 生成 `CodeWF.Markdown.12.0.3.11.nupkg` 等本地包，`dotnet test tests\CodeWF.Markdown.Tests\CodeWF.Markdown.Tests.csproj -v:minimal` 28 项通过，Vex 使用本地包源构建 `Vex.slnx` 通过。
 - 自媒体复制链路修复：`CodeWF.Markdown` 新增 `MarkdownHtmlClipboard` 并本地打包为 12.0.3.9；Vex 通过本地包源引用 `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.9，不使用跨仓库项目引用。Windows `HTML Format` 改为 UTF-8 CF_HTML 字节载荷，公众号后台不再把 HTML 片段当普通文本显示。
 - 复制到公众号、知乎、稀土掘金三条路径统一读取当前 `MarkdownExportStyle`：根节点、标题、段落、列表、引用、代码块、表格、链接、分割线和掘金尾注都会内联当前排版主题与紧凑布局的颜色、字号、边框和背景。
 - 验证 `cmd /c pack.bat` 生成 `CodeWF.Markdown.12.0.3.9.nupkg` 等本地包；`dotnet test tests\CodeWF.Markdown.Tests\CodeWF.Markdown.Tests.csproj -v:minimal`、`dotnet build Vex.slnx -v:minimal` 和 `git diff --check` 通过。
@@ -178,9 +179,10 @@
 
 ### en-US
 
-- Continued moving export capabilities into `CodeWF.Markdown`: the package now provides `MarkdownDocumentExporter`, `MarkdownExportDocument`, and public `MarkdownExportStyle` APIs for PNG, image-based PDF, and Word `.docx` export. After updating to local NuGet packages `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.10, Vex export menu actions only choose the save path and pass the active theme; local `MarkdownPngRenderer`, `MarkdownPdfRenderer`, and `MarkdownDocxExporter` were removed from Vex.
+- Continued moving export capabilities into `CodeWF.Markdown`: the package now provides `MarkdownDocumentExporter`, `ExportKind`, `MarkdownExportDocument`, and public `MarkdownExportStyle` APIs for Markdown string/file export to PNG, image-based PDF, and Word `.docx`. After updating to local NuGet packages `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.11, Vex export menu actions call the unified `ExportKind` entry point, choose the save path, and pass the active theme; local `MarkdownPngRenderer`, `MarkdownPdfRenderer`, and `MarkdownDocxExporter` were removed from Vex.
+- Refined the typography-theme extension path: `CodeWF.Markdown.Themes` now includes `MarkdownTypographyThemeRegistry`, and export/social-copy styling resolves through `MarkdownThemes.CreateExportStyle` so application-registered custom themes can participate in preview and export styling.
 - Word export moved from Vex into `CodeWF.Markdown`, embeds images under `word/media`, and now uses SkiaSharp for image sizing so the public export API does not require Avalonia UI platform initialization. Added a `.docx` test covering embedded `data:image` content.
-- Verified `cmd /c pack.bat` produced `CodeWF.Markdown.12.0.3.10.nupkg` and related local packages, `dotnet test tests\CodeWF.Markdown.Tests\CodeWF.Markdown.Tests.csproj -v:minimal` passed 25 tests, and Vex built against the local package source.
+- Verified `cmd /c pack.bat` produced `CodeWF.Markdown.12.0.3.11.nupkg` and related local packages, `dotnet test tests\CodeWF.Markdown.Tests\CodeWF.Markdown.Tests.csproj -v:minimal` passed 28 tests, and Vex built against the local package source.
 - Fixed the social-copy pipeline: `CodeWF.Markdown` now includes `MarkdownHtmlClipboard` and was packed locally as 12.0.3.9; Vex consumes `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.9 from the existing local package source, without a cross-repository project reference. Windows `HTML Format` is now UTF-8 CF_HTML bytes, so WeChat's editor no longer receives the HTML fragment as plain text.
 - Copy to WeChat, Zhihu, and Juejin now all read the active `MarkdownExportStyle`: root, headings, paragraphs, lists, quotes, code blocks, tables, links, rules, and the Juejin suffix inline the current typography theme and compact-layout colors, font sizes, borders, and backgrounds.
 - Verified `cmd /c pack.bat` produced `CodeWF.Markdown.12.0.3.9.nupkg` and related local packages; `dotnet test tests\CodeWF.Markdown.Tests\CodeWF.Markdown.Tests.csproj -v:minimal`, `dotnet build Vex.slnx -v:minimal`, and `git diff --check` passed.

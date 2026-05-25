@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using CodeWF.Markdown;
+using CodeWF.Markdown.Themes;
 using Markdig;
 using Markdig.Extensions.Tables;
 using Markdig.Extensions.TaskLists;
@@ -79,8 +80,9 @@ public sealed class MarkdownExportService : IMarkdownExportService
             return null;
         }
 
-        MarkdownDocumentExporter.ExportPdf(
+        MarkdownDocumentExporter.Export(
             ToExportDocument(document),
+            ExportKind.Pdf,
             path,
             ResolveExportStyle(),
             new MarkdownPdfExportOptions(
@@ -111,7 +113,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
             return null;
         }
 
-        MarkdownDocumentExporter.ExportPng(ToExportDocument(document), path, ResolveExportStyle());
+        MarkdownDocumentExporter.Export(ToExportDocument(document), ExportKind.Png, path, ResolveExportStyle());
         return path;
     }
 
@@ -137,7 +139,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
             return null;
         }
 
-        MarkdownDocumentExporter.ExportWord(ToExportDocument(document), path, ResolveExportStyle());
+        MarkdownDocumentExporter.Export(ToExportDocument(document), ExportKind.Word, path, ResolveExportStyle());
         return path;
     }
 
@@ -576,7 +578,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
 
     private MarkdownExportStyle ResolveExportStyle()
     {
-        return MarkdownExportStyle.Resolve(_appearanceState.TypographyTheme, _appearanceState.TypographySize);
+        return MarkdownThemes.CreateExportStyle(_appearanceState.TypographyTheme, _appearanceState.TypographySize);
     }
 
     private static MarkdownExportDocument ToExportDocument(DocumentSnapshot document)

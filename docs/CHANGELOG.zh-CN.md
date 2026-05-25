@@ -5,7 +5,8 @@
 ### 修复
 
 - 🐞[修复]-PDF/PNG/Word 导出共用 `CodeWF.Markdown` 图片加载与栅格化能力，支持相对本地图、`data:image`、HTTP(S) 图片、SVG 栅格化和 GIF/WebP 转 PNG；PDF 与 Word 会嵌入图片资源，离线发送后仍可查看。
-- 🔧[优化]-PDF/PNG/Word 导出实现下沉到 `CodeWF.Markdown` 12.0.3.10 的 `MarkdownDocumentExporter`，Vex 端只负责选择保存路径和传入当前排版主题，不再维护本地 Word/OpenXML、PDF 切片和 PNG 渲染器。
+- 🔧[优化]-PDF/PNG/Word 导出实现下沉到 `CodeWF.Markdown` 12.0.3.11 的 `MarkdownDocumentExporter`，Vex 端统一调用 `ExportKind` 入口，只负责选择保存路径和传入当前排版主题，不再维护本地 Word/OpenXML、PDF 切片和 PNG 渲染器。
+- 🔧[优化]-导出和自媒体复制样式改为通过 `MarkdownThemes.CreateExportStyle` 从排版资源生成，后续应用注册的个性化排版主题也能复用同一套导出样式解析。
 - 🔧[优化]-视图菜单移除“实际大小”“放大”“缩小”，同步删除窗口级缩放快捷键和状态栏缩放显示。
 - 🐞[修复]-更新日志、鸣谢和关于窗口的标题栏显示明确标题；鸣谢改为加载带 Markdown 链接的 `docs/Thanks.md`，链接可点击打开。
 - 🔧[优化]-左侧文件/大纲页签 header 改为等宽横向居中布局，选中项加粗，贴近参考图效果。

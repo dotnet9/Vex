@@ -9,7 +9,8 @@
 - 単一の Markdown/txt ファイルを開いたとき、同じフォルダー内の Markdown 文書を左側のファイル一覧へ読み込むようにしました。
 - プロパティ、文字数統計、削除確認を UrsaWindow ダイアログに変更しました。長い名前やパスは選択してコピーできます。
 - Word `.docx` エクスポートを追加しました。基本的な Markdown 構造と Word スタイルを保持します。PDF/PNG/Word は `CodeWF.Markdown` の画像読み込みとラスタライズを共有し、相対ローカル画像、`data:image`、HTTP(S)、SVG、GIF、WebP に対応します。PDF と Word は画像を埋め込むため、オフライン共有後も表示できます。
-- PDF/PNG/Word エクスポートの実装は `CodeWF.Markdown` 12.0.3.10 の `MarkdownDocumentExporter` を使うようになりました。Vex 側は保存先の選択と現在の組版テーマの受け渡しだけを担当し、Word/OpenXML、PDF 分割、PNG レンダラーをローカルには保持しません。
+- PDF/PNG/Word エクスポートの実装は `CodeWF.Markdown` 12.0.3.11 の `MarkdownDocumentExporter` を使うようになりました。Vex 側は統一された `ExportKind` 入口を呼び出し、保存先の選択と現在の組版テーマの受け渡しだけを担当します。Word/OpenXML、PDF 分割、PNG レンダラーはローカルには保持しません。
+- エクスポートとソーシャルコピーのスタイルは `MarkdownThemes.CreateExportStyle` から解決するようになり、アプリが登録したカスタム組版テーマも同じエクスポートスタイル変換を共有できます。
 - PDF のヘッダー/フッターで CJK 対応フォントを優先し、中国語の文字化けを減らしました。HTML、PDF、PNG、ソーシャルコピーは現在の組版スタイルをより一貫して使用します。
 - WeChat、知乎、稀土掘金へのコピーを改善しました。リッチ HTML クリップボードは `CodeWF.Markdown` 12.0.3.9 の共通機能を使い、Windows `HTML Format` は UTF-8 CF_HTML バイトとして書き込みます。現在の組版テーマ、コンパクトレイアウト、Juejin の末尾文も inline style に反映されます。
 - ヘルプメニューで「テーマ色」と「組版」を直接表示し、行番号、ステータスバー、常に手前に表示のチェック状態と保存を補いました。
