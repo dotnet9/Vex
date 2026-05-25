@@ -5,8 +5,9 @@
 ### Fixed
 
 - PDF/PNG/Word exports now share the `CodeWF.Markdown` image loader and rasterizer. They support relative local images, `data:image`, HTTP(S) images, SVG rasterization, and GIF/WebP PNG normalization; PDF and Word embed image assets so shared files remain viewable offline.
-- PDF/PNG/Word export implementation now uses `CodeWF.Markdown` 12.0.3.11 `MarkdownDocumentExporter`; Vex calls the unified `ExportKind` entry point and only selects the save path plus active typography theme instead of maintaining local Word/OpenXML, PDF slicing, and PNG rendering code.
-- Export and social-copy styling now resolve through `MarkdownThemes.CreateExportStyle`, so application-registered custom typography themes can share the same export style mapping.
+- PDF/PNG/Word export implementation now uses `CodeWF.Markdown` 12.0.3.12 `MarkdownDocumentExporter`; Vex calls the unified `ExportKind` entry point and only selects the save path plus active typography theme instead of maintaining local Word/OpenXML, PDF slicing, and PNG rendering code.
+- WeChat, Zhihu, and Juejin copy now uses `CodeWF.Markdown` 12.0.3.12 `MarkdownHtmlClipboardExtensions.TrySetMarkdownHtmlAsync(markdown, themeName, targetName, typographySize)`, so Vex only passes the current Markdown, active typography theme, and publishing target.
+- Social-copy platform profiles, inline HTML rendering, image embedding, CF_HTML output, and localized suffix/tool metadata now live in `CodeWF.Markdown`; Vex no longer maintains local WeChat/Zhihu/Juejin HTML templates.
 - Removed the View-menu Actual Size, Zoom In, and Zoom Out entries, plus the related window-level zoom shortcuts and status-bar zoom display.
 - Changelog, Acknowledgements, and About windows now show explicit title-bar text. Acknowledgements now loads `docs/Thanks.md` with Markdown links that can be opened from the dialog.
 - The left Files/Outline tab headers now use equal-width centered layout with a bold selected state to better match the requested reference.
@@ -17,9 +18,9 @@
 - HTML, PDF, PNG, and social-copy export paths now use the active typography/export style more consistently; PDF metadata text prefers CJK-capable fonts to avoid Chinese header/footer garbling.
 - The Help menu now exposes Theme Color and Typography as direct submenus, removes the duplicate View > Search item, and shows persisted check states for line numbers, status bar, and always-on-top.
 - Find and replace fields now cap text at 200 characters, force single-line input, and avoid layout expansion from pasted content.
-- WeChat, Zhihu, and Juejin copy now writes HTML clipboard content with `markdown编辑器` and `https://codewf.com` metadata, including the Juejin suffix.
-- WeChat, Zhihu, and Juejin copy now reuses `CodeWF.Markdown` 12.0.3.9 `MarkdownHtmlClipboard`; Windows `HTML Format` is written as UTF-8 CF_HTML bytes, so web editors paste rich HTML instead of raw markup text.
-- The three social-copy paths now inline the active typography theme and compact layout, including heading/body/link colors, table borders, quote colors, code-block backgrounds, and the Juejin suffix.
+- WeChat, Zhihu, and Juejin copy now writes localized rich HTML clipboard metadata, including the Juejin suffix.
+- Windows `HTML Format` is written as UTF-8 CF_HTML bytes, so web editors paste rich HTML instead of raw markup text.
+- The three social-copy paths now inline the active typography theme and compact layout through the shared `MarkdownExportStyle` path, including heading/body/link colors, table borders, quote colors, code-block backgrounds, and the Juejin suffix.
 - Updated CodeWF Markdown and AvaloniaControls NuGet package versions, built `Vex.slnx -m:1`, and ran `git diff --check`.
 - Added `scripts/stress_vex_markdown_services.ps1` to generate realistic large Markdown input and time outline/statistics services.
 - Verified the default 120,000-line stress run: 10,336,464 characters, 154ms outline scan, 498ms statistics scan, with temporary work cleaned automatically.

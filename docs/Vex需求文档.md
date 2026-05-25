@@ -464,8 +464,8 @@ Vex 是面向写作者、开发者和知识工作者的 Markdown 编辑器。核
 ### 10.1 复制到公众号
 
 1. 点击“复制到公众号”必须复制微信公众号文章编辑器可直接粘贴的富 HTML，不是 Markdown 源文，也不是只包含普通文本的 HTML 字符串。
-2. 剪贴板必须通过 `CodeWF.Markdown` 的 `MarkdownHtmlClipboard` 写入富 HTML 载荷：包括 `text/html`、macOS `public.html` 和 Windows 原生 `HTML Format`。Windows `HTML Format` 必须是 UTF-8 CF_HTML 字节数据，片段偏移按字节计算；同时可提供 plain text 兜底，兜底内容应是完整 HTML 片段，不应回退为 Markdown。
-3. HTML 片段根节点使用 `section#vex`，包含 `data-tool="markdown编辑器"`、`data-website="https://codewf.com"` 和必要的 inline style。
+2. 剪贴板必须通过 `CodeWF.Markdown` 的 `MarkdownHtmlClipboardExtensions.TrySetMarkdownHtmlAsync(markdown, themeName, targetName, typographySize)` 写入富 HTML 载荷：包括 `text/html`、macOS `public.html` 和 Windows 原生 `HTML Format`。Windows `HTML Format` 必须是 UTF-8 CF_HTML 字节数据，片段偏移按字节计算；同时可提供 plain text 兜底，兜底内容应是完整 HTML 片段，不应回退为 Markdown。
+3. HTML 片段根节点使用 `section#vex`，包含多语言资源解析后的 `data-tool`、`data-website="https://codewf.com"` 和必要的 inline style。
 4. 公众号内容必须使用当前 Markdown、当前排版主题和紧凑布局配置生成；所有公众号需要的样式写入 inline style，不依赖外部 CSS、外部 class 或运行时脚本。
 5. 标题、段落、列表、引用、代码块、表格、链接和图片至少应在微信公众号编辑器中保持可读排版；本地图片按当前复制能力内联或转换为粘贴后可显示的资源。
 6. 主题色、标题边框、段落间距、代码块背景、表格边框等样式应与 Vex 预览和 CodeWF.Markdown 排版主题保持一致。
@@ -479,7 +479,7 @@ Vex 是面向写作者、开发者和知识工作者的 Markdown 编辑器。核
 剪贴板 HTML 片段应为类似结构，具体颜色和间距随当前排版主题变化：
 
 ```html
-<section id="vex" data-tool="markdown编辑器" data-website="https://codewf.com" style="font-size: 15px; color: #333333; background: #ffffff; padding: 25px 30px; line-height: 1.75; word-break: break-word; text-align: justify;">
+<section id="vex" data-tool="{localized tool name}" data-website="https://codewf.com" style="font-size: 15px; color: #333333; background: #ffffff; padding: 25px 30px; line-height: 1.75; word-break: break-word; text-align: justify;">
   <h2 style="margin-top: 30px; font-weight: bold; font-size: 26px; border-bottom: 2px solid #dfe2e5; margin-bottom: 30px; color: #333333;">
     <span class="content" style="font-size: 26px; display: inline-block; border-bottom: 2px solid #333333;">这是标题</span>
   </h2>
@@ -491,14 +491,14 @@ Vex 是面向写作者、开发者和知识工作者的 Markdown 编辑器。核
 
 ### 10.2 复制到知乎
 
-1. 导出符合知乎编辑器粘贴要求的富 HTML 片段，使用同一套 `MarkdownHtmlClipboard` 剪贴板写入能力。
+1. 导出符合知乎编辑器粘贴要求的富 HTML 片段，使用同一套 `MarkdownHtmlClipboardExtensions` 剪贴板写入能力。
 2. HTML 文档包含标题、编码声明、`vex-copy-target=zhihu` 元数据和 `section#vex` 片段。
 3. 内容应使用当前 Markdown、当前排版主题和紧凑布局；标题、段落、列表、引用、代码块、表格、链接和图片的关键样式必须 inline。
 4. 粘贴到知乎编辑器后不得显示原始 HTML 文本，且标题色、链接色、表格边框和代码块背景应跟随当前排版主题。
 
 ### 10.3 复制到稀土掘金
 
-1. 导出符合稀土掘金编辑器粘贴要求的富 HTML 片段，使用同一套 `MarkdownHtmlClipboard` 剪贴板写入能力。
+1. 导出符合稀土掘金编辑器粘贴要求的富 HTML 片段，使用同一套 `MarkdownHtmlClipboardExtensions` 剪贴板写入能力。
 2. HTML 文档包含标题、编码声明、`vex-copy-target=juejin` 元数据和 `section#vex` 片段。
 3. 内容应使用当前 Markdown、当前排版主题和紧凑布局；标题、段落、列表、引用、代码块、表格、链接和图片的关键样式必须 inline。
 4. 掘金后缀文案也必须跟随当前主题的正文色和链接色，不允许保留固定蓝色/灰色模板色。
@@ -1079,7 +1079,7 @@ AI 继续开发时必须遵守：
 92. 属性、字数统计和删除确认已使用 UrsaWindow 对话框；长名称、长路径和错误详情等文本可选择复制。
 93. 查找和替换输入框限制为 200 字符并强制单行显示，避免粘贴超长内容破坏布局。
 94. 导出 HTML、PDF、PNG、Word 成功后会打开保存目录并定位文件；PDF/PNG/Word 导出已复用 `CodeWF.Markdown` 图片加载和栅格化能力，支持本地相对图、`data:image`、HTTP(S)、SVG/GIF/WebP，并确保 PDF 与 Word 文件可离线查看嵌入图片。
-95. 复制到公众号、知乎、稀土掘金会通过 `CodeWF.Markdown.MarkdownHtmlClipboard` 写入富 HTML 剪贴板内容，元数据统一为 `markdown编辑器` 和 `https://codewf.com`，并把当前 `MarkdownExportStyle` 的主题色、字号、边框、代码块背景和掘金尾注样式内联到片段中。
+95. 复制到公众号、知乎、稀土掘金会通过 `CodeWF.Markdown.MarkdownHtmlClipboardExtensions` 写入富 HTML 剪贴板内容，工具名、网站和尾注文案读取 `CodeWF.Markdown` 多语言资源，并把当前 `MarkdownExportStyle` 的主题色、字号、边框、代码块背景和掘金尾注样式内联到片段中。
 
 ## 24. 近期修复需求（来自 `D:\r.md`）
 
@@ -1135,7 +1135,7 @@ AI 继续开发时必须遵守：
 
 实现要求：
 
-1. Vex 菜单动作负责把当前 Markdown 转为目标平台可粘贴的 HTML 片段，并通过 `CodeWF.Markdown.MarkdownHtmlClipboard` 写入剪贴板富 HTML 格式。
+1. Vex 菜单动作负责把当前 Markdown、排版主题和目标平台交给 `CodeWF.Markdown.MarkdownHtmlClipboardExtensions`，由公共库生成目标平台可粘贴的 HTML 片段并写入剪贴板富 HTML 格式。
 2. HTML 生成应复用当前 `MarkdownExportStyle`，避免 Vex 另写一套不一致的样式；三平台都必须读取当前排版主题和紧凑布局。
 3. 根节点使用 `section#vex`，携带 `data-tool`、`data-website` 和 inline style；标题、段落、列表、表格、代码块、图片等节点也应内联关键样式。
 4. Windows `HTML Format` 必须使用 UTF-8 CF_HTML 字节载荷并正确计算片段偏移；`text/html` 和 macOS `public.html` 也应同时写入。

@@ -9,10 +9,10 @@
 - 直接開啟單一 Markdown/txt 檔案後，左側檔案清單會同步載入同資料夾中的 Markdown 文件。
 - 屬性、字數統計與刪除確認改為 UrsaWindow 對話框；長名稱與路徑可選取複製，刪除確認保留警告色按鈕。
 - 新增 Word `.docx` 匯出，保留基礎 Markdown 結構與 Word 樣式；PDF/PNG/Word 匯出共用 `CodeWF.Markdown` 圖片載入與柵格化能力，支援相對本地圖、`data:image`、HTTP(S)、SVG、GIF 與 WebP，PDF 和 Word 會嵌入圖片，離線分享後仍可查看。
-- PDF/PNG/Word 匯出實作改用 `CodeWF.Markdown` 12.0.3.11 的 `MarkdownDocumentExporter`，Vex 端統一呼叫 `ExportKind` 入口，只負責選擇儲存路徑並傳入目前排版主題，不再維護本地 Word/OpenXML、PDF 切片與 PNG 渲染器。
-- 匯出與社群複製樣式改由 `MarkdownThemes.CreateExportStyle` 從排版資源產生，後續應用註冊的個性化排版主題也能共用同一套匯出樣式解析。
+- PDF/PNG/Word 匯出實作改用 `CodeWF.Markdown` 12.0.3.12 的 `MarkdownDocumentExporter`，Vex 端統一呼叫 `ExportKind` 入口，只負責選擇儲存路徑並傳入目前排版主題，不再維護本地 Word/OpenXML、PDF 切片與 PNG 渲染器。
+- 複製到公眾號、知乎與稀土掘金改用 `CodeWF.Markdown` 12.0.3.12 的 `MarkdownHtmlClipboardExtensions.TrySetMarkdownHtmlAsync`，Vex 只傳目前 Markdown、排版主題與發布目標；平台 profile、inline HTML、圖片嵌入、CF_HTML 與尾註文案由公共庫處理。
 - 改善 PDF 匯出中文頁眉頁腳字型選擇，減少中文亂碼；HTML、PDF、PNG 與社群複製會更一致地使用目前排版樣式。
-- 改善複製到公眾號、知乎與稀土掘金：剪貼簿富 HTML 改用 `CodeWF.Markdown` 12.0.3.9 的公共能力，Windows `HTML Format` 使用 UTF-8 CF_HTML 位元組資料，並把目前排版主題、緊湊版面與掘金尾註樣式寫入 inline style。
+- 改善複製到公眾號、知乎與稀土掘金：剪貼簿富 HTML 由 `CodeWF.Markdown` 公共能力產生，Windows `HTML Format` 使用 UTF-8 CF_HTML 位元組資料，並把目前排版主題、緊湊版面與掘金尾註樣式寫入 inline style。
 - 說明選單已將「主題色」與「排版」提升為二級選單，並補齊行號、狀態列、視窗置頂等選單勾選與持久化狀態。
 - 尋找與取代輸入框限制 200 字元且不換行，避免貼上過長文字導致版面錯亂。
 - 改善本地圖片匯出：HTML、列印、複製、PNG、PDF 與 Word 匯出會嘗試 URL 解碼後的圖片路徑，檔名含空格時更不容易缺圖。

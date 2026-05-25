@@ -25,7 +25,7 @@
 - Use **File > Export > PDF** for a paged PDF export with embedded images that remain viewable after sharing offline.
 - Use **File > Export > Word** for a `.docx` document with Markdown structure and embedded images, including SVG/GIF/WebP assets normalized to PNG when needed.
 - Use **File > Print** to open the HTML print preview in the system browser.
-- Use **File > Copy to WeChat**, **Copy to Zhihu**, or **Copy to Juejin** to place themed rich HTML on the clipboard for those web editors.
+- Use **File > Copy to WeChat**, **Copy to Zhihu**, or **Copy to Juejin** to place themed rich HTML on the clipboard for those web editors. Vex passes the current Markdown, active typography theme, and target name to the shared `CodeWF.Markdown` clipboard API.
 - After a successful export, Vex opens the save location and selects the exported file when the platform supports it.
 
 ## Settings
