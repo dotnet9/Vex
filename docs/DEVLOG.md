@@ -13,7 +13,7 @@
 - 验证 `dotnet build Vex.slnx` 通过，`net10.0` 与 `net10.0-windows` 均为 0 警告 0 错误；复查源码中已无视图缩放菜单、快捷键和状态栏缩放绑定残留。
 - 本轮集中处理 `D:\r.md` 中的体验问题：直接打开单个 Markdown/txt 文件后，`MainWindowViewModel.SyncDocumentFileList` 会扫描当前文件所在目录的支持文档，左侧文件列表自动切换到同目录上下文。
 - 对话框体系调整：属性、字数统计和删除确认改为独立 `UrsaWindow`，长名称、长路径、错误详情、重命名路径和未保存路径使用 `SelectableTextBlock` 便于选择复制；删除确认按钮使用警告红色，旧属性/统计/删除覆盖层从 `ShellOverlaysView` 中移除。
-- 导出链路完善：HTML/PDF/PNG/Word 成功后会打开保存目录并定位文件；新增 `MarkdownDocxExporter` 原生生成 `.docx`，写入 Word 样式、基础 Markdown 结构、表格、代码、链接文本和本地图片关系；HTML/打印/社交复制继续内联本地图片。
+- 导出链路完善：HTML/PDF/PNG/Word 成功后会打开保存目录并定位文件；新增 `MarkdownDocxExporter` 原生生成 `.docx`，写入 Word 样式、基础 Markdown 结构、表格、代码、链接文本和图片关系；HTML/打印/社交复制继续内联本地图片。
 - PDF/PNG 导出继续修正：PNG 渲染识别仅包含图片和空白 inline 的段落；PDF 页眉页脚元数据字体优先使用 `Microsoft YaHei UI`、`Microsoft YaHei`、`PingFang SC`、`Noto Sans CJK SC` 等中文可用字体，减少中文乱码。
 - 菜单与设置收口：帮助菜单去掉“主题”中间层，直接展示“主题色”和“排版”；移除重复的“视图 / 搜索”；行号、状态栏、窗口置顶补齐菜单勾选状态并保持 App.config 持久化；行号默认开启；放大、缩小和实际大小菜单补齐快捷键提示。
 - 查找/替换栏限制搜索和替换文本为 200 字符，强制单行显示并在 ViewModel 层标准化换行，避免用户全选或粘贴超长内容导致布局变形。
@@ -172,9 +172,9 @@
 
 ### en-US
 
-- Moved PNG/PDF image-export loading into `CodeWF.Markdown`: Vex now references `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.8, and `MarkdownPngRenderer` reuses the shared `MarkdownImageSourceLoader` and `MarkdownImageRasterizer` for relative local images, `data:image`, HTTP(S) images, SVG rasterization, and static GIF first-frame output, so image-based PDFs can be sent and viewed offline with embedded images.
-- Verified `dotnet test CodeWF.Markdown.slnx -v:minimal`, a lightweight image-raster smoke covering local SVG and GIF first-frame PNG output, and `dotnet restore Vex.slnx --no-cache` plus `dotnet build Vex.slnx --no-restore -v:minimal`.
-- Continued addressing the actionable `D:\r.md` items except social-copy follow-up: PDF/PNG image-based export now recognizes `data:image` sources, while Word export embeds local and `data:image` images and converts SVG/WebP assets to PNG before writing them into `.docx`.
+- Moved PDF/PNG/Word export image loading into `CodeWF.Markdown`: Vex now references `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.8, and `MarkdownPngRenderer` plus `MarkdownDocxExporter` reuse the shared `MarkdownImageSourceLoader` and `MarkdownImageRasterizer` for relative local images, `data:image`, HTTP(S) images, SVG rasterization, and GIF/WebP PNG normalization, so exported files can be sent and viewed offline with embedded images.
+- Verified `dotnet test CodeWF.Markdown.slnx -v:minimal`, a lightweight image-raster smoke covering local SVG and GIF first-frame PNG output, a temporary Markdown-to-Word smoke confirming `word/media/image1.png` and `word/media/image2.png` are embedded in the `.docx`, and `dotnet restore Vex.slnx --no-cache` plus `dotnet build Vex.slnx --no-restore -v:minimal`.
+- Continued addressing the actionable `D:\r.md` items except social-copy follow-up: PDF/PNG image-based export now recognizes `data:image` sources, while Word export embeds local, relative, `data:image`, and HTTP(S) images and converts SVG/GIF/WebP assets to PNG before writing them into `.docx`.
 - Removed the View-menu Actual Size, Zoom In, and Zoom Out entries, their window-level zoom shortcuts, and the status-bar zoom indicator. The editor now keeps the default fixed font size while preserving the line-number display setting.
 - Fixed Help-window title and link behavior: Changelog/Acknowledgements Markdown windows and the About window now show explicit left title-bar text; Acknowledgements loads `docs/Thanks.md`, whose website and project entries are Markdown links rendered by `MarkdownViewer`.
 - Adjusted the left Files/Outline tab headers so the sidebar `TabControl` uses equal-width horizontal headers, centered text, and a bold selected state matching the referenced layout.

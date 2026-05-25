@@ -4,14 +4,14 @@
 
 ### Fixed
 
-- PDF/PNG image-based exports now support `data:image` sources. Word export embeds local and `data:image` images and converts SVG/WebP assets to PNG before writing them into `.docx`, reducing missing exported images.
+- PDF/PNG/Word exports now share the `CodeWF.Markdown` image loader and rasterizer. They support relative local images, `data:image`, HTTP(S) images, SVG rasterization, and GIF/WebP PNG normalization; PDF and Word embed image assets so shared files remain viewable offline.
 - Removed the View-menu Actual Size, Zoom In, and Zoom Out entries, plus the related window-level zoom shortcuts and status-bar zoom display.
 - Changelog, Acknowledgements, and About windows now show explicit title-bar text. Acknowledgements now loads `docs/Thanks.md` with Markdown links that can be opened from the dialog.
 - The left Files/Outline tab headers now use equal-width centered layout with a bold selected state to better match the requested reference.
 - Built `Vex.slnx` and confirmed both `net10.0` and `net10.0-windows` complete with 0 warnings and 0 errors, with no remaining View zoom entry points.
 - Opening a single Markdown/txt document now populates the left file list with supported Markdown documents from the same folder.
 - Properties, word count, and delete confirmation now open as UrsaWindow dialogs with selectable long names/paths; obsolete overlay implementations for those dialogs were removed.
-- File export now includes Word `.docx` output with basic Markdown structure, Word styles, and embedded local images. HTML, PDF, PNG, and Word exports open the save location after success.
+- File export now includes Word `.docx` output with basic Markdown structure, Word styles, and embedded images. HTML, PDF, PNG, and Word exports open the save location after success.
 - HTML, PDF, PNG, and social-copy export paths now use the active typography/export style more consistently; PDF metadata text prefers CJK-capable fonts to avoid Chinese header/footer garbling.
 - The Help menu now exposes Theme Color and Typography as direct submenus, removes the duplicate View > Search item, and shows persisted check states for line numbers, status bar, and always-on-top.
 - Find and replace fields now cap text at 200 characters, force single-line input, and avoid layout expansion from pasted content.

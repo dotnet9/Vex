@@ -21,9 +21,9 @@
 ## Export And Print
 
 - Use **File > Export > HTML** for a standalone HTML document.
-- Use **File > Export > PNG** for a long image export.
-- Use **File > Export > PDF** for a paged PDF export.
-- Use **File > Export > Word** for a `.docx` document with Markdown structure and embedded local images.
+- Use **File > Export > PNG** for a long image export with resolved local, `data:image`, HTTP(S), SVG, GIF, and WebP images.
+- Use **File > Export > PDF** for a paged PDF export with embedded images that remain viewable after sharing offline.
+- Use **File > Export > Word** for a `.docx` document with Markdown structure and embedded images, including SVG/GIF/WebP assets normalized to PNG when needed.
 - Use **File > Print** to open the HTML print preview in the system browser.
 - After a successful export, Vex opens the save location and selects the exported file when the platform supports it.
 
