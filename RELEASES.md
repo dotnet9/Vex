@@ -6,6 +6,48 @@ Add new releases at the top.
 本文档记录 Vex 每个发布版本对应的 GitHub Release 标题和说明。
 后续发布请在顶部追加新版本。
 
+## v1.1.0 - 2026-05-25
+
+### Release Title
+
+Vex 1.1.0 - Shared Markdown Export And Social Copy
+
+### Release Notes
+
+#### English
+
+Vex 1.1.0 focuses on moving Markdown export and publishing-copy behavior into the shared `CodeWF.Markdown` package so Vex and other host applications can use the same NuGet APIs.
+
+Highlights:
+
+- PDF, PNG, and Word export now use `CodeWF.Markdown` 12.0.3.12 `MarkdownDocumentExporter` and `ExportKind`.
+- Exported PDF and Word documents embed relative local, `data:image`, HTTP(S), SVG/GIF/WebP images so shared files remain viewable offline.
+- Copy to WeChat Official Account, Zhihu, and Juejin now uses `MarkdownHtmlClipboardExtensions.TrySetMarkdownHtmlAsync`, passing only the current Markdown, active typography theme, and publishing target.
+- Social-copy platform profiles, inline HTML rendering, CF_HTML output, image embedding, and localized suffix/tool metadata now live in `CodeWF.Markdown`.
+- Vex consumes locally packed `CodeWF.Markdown` NuGet packages instead of cross-repository project references.
+
+Recommended build verification:
+
+- `dotnet build Vex.slnx`
+- `publish_vex_all.bat --package`
+
+#### 简体中文
+
+Vex 1.1.0 重点将 Markdown 导出与自媒体复制能力下沉到共享的 `CodeWF.Markdown` 包，让 Vex 和其他宿主应用都能复用同一套 NuGet API。
+
+主要亮点：
+
+- PDF、PNG 和 Word 导出改用 `CodeWF.Markdown` 12.0.3.12 的 `MarkdownDocumentExporter` 与 `ExportKind`。
+- 导出的 PDF 和 Word 会嵌入相对本地图、`data:image`、HTTP(S)、SVG/GIF/WebP 图片，文件离线分享后仍可查看。
+- 复制到微信公众号、知乎、稀土掘金改用 `MarkdownHtmlClipboardExtensions.TrySetMarkdownHtmlAsync`，Vex 只传当前 Markdown、排版主题和发布目标。
+- 自媒体平台 profile、inline HTML 渲染、CF_HTML 写入、图片嵌入和尾注/工具名多语言文案已下沉到 `CodeWF.Markdown`。
+- Vex 通过本地打包的 `CodeWF.Markdown` NuGet 包引用公共能力，不使用跨仓库项目引用。
+
+建议发布前验证：
+
+- `dotnet build Vex.slnx`
+- `publish_vex_all.bat --package`
+
 ## v1.0.0 - 2026-05-24
 
 ### Release Title
