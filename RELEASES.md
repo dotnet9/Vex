@@ -1,51 +1,62 @@
 # GitHub Releases
 
-This document keeps the GitHub release title and release notes for each published Vex version.
-Add new releases at the top.
-
-本文档记录 Vex 每个发布版本对应的 GitHub Release 标题和说明。
-后续发布请在顶部追加新版本。
+This document keeps copy-ready GitHub Release notes for Vex.
+本文档记录 Vex 每个发布版本可直接复制使用的 GitHub Release 文案。
 
 ## v1.1.0 - 2026-05-25
 
 ### Release Title
 
-Vex 1.1.0 - Shared Markdown Export And Social Copy
+Vex 1.1.0 - Markdown Export And Social Copy Improvements
 
 ### Release Notes
 
 #### English
 
-Vex 1.1.0 focuses on moving Markdown export and publishing-copy behavior into the shared `CodeWF.Markdown` package so Vex and other host applications can use the same NuGet APIs.
+##### Added
 
-Highlights:
+- Paste from web pages now prefers clipboard HTML and converts it to Markdown.
 
-- PDF, PNG, and Word export now use `CodeWF.Markdown` 12.0.3.14 `MarkdownDocumentExporter` and `ExportKind`.
-- Exported PDF documents now keep Markdown body text selectable and copyable while embedding relative local, `data:image`, HTTP(S), SVG/GIF/WebP images; Word documents continue to embed those images for offline sharing.
-- Copy to WeChat Official Account, Zhihu, and Juejin now uses `MarkdownHtmlClipboardExtensions.TrySetMarkdownHtmlAsync`, passing only the current Markdown, active typography theme, and publishing target.
-- Pasting content copied from a web page now prefers clipboard HTML, converts it through `MarkdownHtmlClipboard.Html2Markdown(htmlContent)`, and falls back to native paste when HTML is unavailable.
-- Social-copy platform profiles, inline HTML rendering, CF_HTML output, image embedding, and localized suffix/tool metadata now live in `CodeWF.Markdown`.
-- Vex consumes locally packed `CodeWF.Markdown` NuGet packages instead of cross-repository project references.
+##### Improved
 
-Recommended build verification:
+- PDF, PNG, and Word export now use `CodeWF.Markdown` 12.0.3.14 `MarkdownDocumentExporter` / `ExportKind`.
+- Exported PDF text is now selectable and copyable.
+- PDF, PNG, and Word export handle relative local images, `data:image`, HTTP(S), SVG, GIF, and WebP.
+- Word and PDF exports embed image resources for offline sharing.
+- Copy to WeChat Official Account, Zhihu, and Juejin now uses the shared `CodeWF.Markdown` rich HTML clipboard pipeline.
+- Social-copy output now includes CF_HTML, embedded images, platform suffixes, and localized tool metadata.
+
+##### Changed
+
+- Word/OpenXML, PDF text layout, PNG rendering, and social HTML templates were moved from Vex into `CodeWF.Markdown`.
+- Vex now consumes locally packed `CodeWF.Markdown` NuGet packages instead of cross-repository project references.
+
+##### Verification
 
 - `dotnet build Vex.slnx`
 - `package_all.bat`
 
 #### 简体中文
 
-Vex 1.1.0 重点将 Markdown 导出与自媒体复制能力下沉到共享的 `CodeWF.Markdown` 包，让 Vex 和其他宿主应用都能复用同一套 NuGet API。
+##### 新增
 
-主要亮点：
+- 从网页粘贴内容时，优先读取剪贴板 HTML 并转换为 Markdown。
 
-- PDF、PNG 和 Word 导出改用 `CodeWF.Markdown` 12.0.3.14 的 `MarkdownDocumentExporter` 与 `ExportKind`。
-- 导出的 PDF 会保留 Markdown 正文为可选择、可复制文本，并嵌入相对本地图、`data:image`、HTTP(S)、SVG/GIF/WebP 图片；Word 会继续嵌入这些图片，文件离线分享后仍可查看。
-- 复制到微信公众号、知乎、稀土掘金改用 `MarkdownHtmlClipboardExtensions.TrySetMarkdownHtmlAsync`，Vex 只传当前 Markdown、排版主题和发布目标。
-- 从网页复制内容后粘贴到编辑器时，Vex 会优先读取剪贴板 HTML，通过 `MarkdownHtmlClipboard.Html2Markdown(htmlContent)` 转为 Markdown；没有 HTML 时回落到普通粘贴。
-- 自媒体平台 profile、inline HTML 渲染、CF_HTML 写入、图片嵌入和尾注/工具名多语言文案已下沉到 `CodeWF.Markdown`。
-- Vex 通过本地打包的 `CodeWF.Markdown` NuGet 包引用公共能力，不使用跨仓库项目引用。
+##### 优化
 
-建议发布前验证：
+- PDF、PNG、Word 导出统一改用 `CodeWF.Markdown` 12.0.3.14 的 `MarkdownDocumentExporter` / `ExportKind`。
+- PDF 正文现在可选择、可复制。
+- PDF、PNG、Word 导出增强图片处理，支持相对本地图、`data:image`、HTTP(S)、SVG、GIF、WebP。
+- Word 和 PDF 会嵌入图片资源，文件离线发送后仍可查看。
+- 复制到微信公众号、知乎、稀土掘金改用 `CodeWF.Markdown` 的公共富 HTML 剪贴板链路。
+- 自媒体复制补齐 CF_HTML、图片嵌入、平台尾注和多语言工具文案。
+
+##### 调整
+
+- Word/OpenXML、PDF 文本排版、PNG 渲染器和自媒体 HTML 模板已从 Vex 下沉到 `CodeWF.Markdown`。
+- Vex 改为消费本地打包的 `CodeWF.Markdown` NuGet 包，不再使用跨仓库项目引用。
+
+##### 验证
 
 - `dotnet build Vex.slnx`
 - `package_all.bat`
@@ -60,40 +71,72 @@ Vex 1.0.0 - First Stable Release
 
 #### English
 
-Vex 1.0.0 is the first stable release of Vex, a lightweight Markdown editor built with .NET 10 and Avalonia 12. This release marks the project as feature-complete enough for daily writing, editing, previewing, and document export workflows.
+##### Added
 
-Highlights:
+- Markdown source editing, live preview, outline navigation, and document statistics.
+- New, open, save, save as, open folder, and recent document workflows.
+- Drag-and-drop opening for files and folders, plus startup argument opening.
+- File rename/delete and external file change detection.
+- Find and replace with match options, match count, replace next, and replace all.
+- HTML, print preview, PNG, PDF, and Word `.docx` export.
+- Copy to WeChat Official Account, Zhihu, and Juejin.
+- Theme, typography, compact layout, line number, status bar, and always-on-top options.
+- First-run guide, About window, quick start, acknowledgements, and localized help documents.
+- Simplified Chinese, Traditional Chinese, English, and Japanese UI resources.
+- Multi-RID publish scripts, release zip packaging, SHA256 files, and release manifest.
+- Optional Windows MSIX layout/package script.
 
-- Markdown editing with live preview, outline navigation, document statistics, smart list continuation, and source-mode focused writing.
-- File workflows for new/open/save/save as, folder-based document browsing, recent documents, drag-and-drop opening, startup argument opening, file rename/delete, and external file reload detection.
-- Find and replace with match options, current/total match count, replacement actions, and debounced large-document scanning.
-- Export and sharing support for HTML, print preview, PNG, image-based PDF, Word `.docx`, themed copy to WeChat Official Account, Zhihu, and Juejin, local/data/HTTP(S) images, SVG/GIF/WebP PNG normalization, task lists, themed output, and PDF headers/footers. PDF and Word exports embed image assets so shared files remain viewable offline.
-- Multiple visual themes, typography options, compact layout support, dark-mode refinements, localized Help documents, localized changelogs, and localized error details.
-- First-run guide, About window version/build information, acknowledgements, quick start documents, and multilingual UI resources for Simplified Chinese, Traditional Chinese, English, and Japanese.
-- Release tooling for multi-RID publishing, packaged release archives, SHA256 files, release manifests, and optional Windows MSIX layout/package creation.
-- Event bus usage now directly routes through `CodeWF.EventBus.EventBus.Default`, avoiding the DryIoc event-bus registration path and improving Windows 7 startup compatibility.
+##### Improved
 
-Recommended build verification:
+- Optimized outline scanning, statistics, find counting, and preview refresh for large documents.
+- PNG/PDF export supports task lists, themed output, inline table styles, headers, and footers.
+- HTML, print preview, PNG, PDF, and social-copy output use the current typography theme and compact layout.
+- Improved dark-theme styling for the editor, preview, status bar, menus, overlays, and exported output.
+
+##### Fixed
+
+- Improved Windows 7 startup compatibility by routing event bus usage through `CodeWF.EventBus.EventBus.Default`.
+- Fixed several dark-theme text, menu, and overlay color issues.
+- Fixed long find/replace input breaking the layout.
+- Fixed image export issues for local paths, URL-decoded paths, SVG, GIF, and WebP images.
+
+##### Verification
 
 - `dotnet build Vex.slnx`
 - `package_all.bat`
 
 #### 简体中文
 
-Vex 1.0.0 是 Vex 的首个稳定版本。Vex 是基于 .NET 10 与 Avalonia 12 构建的轻量级 Markdown 编辑器，本版本的功能已经足以覆盖日常写作、编辑、预览和文档导出流程。
+##### 新增
 
-主要亮点：
+- Markdown 源码编辑、实时预览、大纲导航和文档统计。
+- 新建、打开、保存、另存为、打开文件夹和最近文档。
+- 拖拽打开文件/文件夹，支持启动参数打开文档。
+- 文件重命名、删除和外部文件变更检测。
+- 查找替换，支持匹配选项、命中计数、替换下一个和全部替换。
+- HTML、打印预览、PNG、PDF、Word `.docx` 导出。
+- 复制到微信公众号、知乎、稀土掘金。
+- 主题、排版、紧凑布局、行号、状态栏和窗口置顶选项。
+- 首次启动引导、关于窗口、快速开始、鸣谢和多语言帮助文档。
+- 简体中文、繁体中文、英文、日文界面资源。
+- 多 RID 发布脚本、release zip 打包、SHA256 文件、release manifest。
+- 可选 Windows MSIX 布局/打包脚本。
 
-- 支持 Markdown 编辑、实时预览、大纲导航、文档统计、智能列表续写，以及专注源码编辑的源码模式。
-- 支持新建、打开、保存、另存为、文件夹文档浏览、最近文档、拖拽打开、启动参数打开、文件重命名/删除，以及外部文件变更检测与重载。
-- 支持查找替换、匹配选项、当前/总命中计数、替换操作，并对大文档扫描做了防抖优化。
-- 支持 HTML、打印预览、PNG、图像型 PDF、Word `.docx`、按当前排版主题复制到微信公众号/知乎/稀土掘金、本地/`data:image`/HTTP(S) 图片、SVG/GIF/WebP 转 PNG、任务列表、主题化导出，以及 PDF 页眉页脚；PDF 与 Word 会嵌入图片资源，文件分享后可离线查看。
-- 支持多套视觉主题、排版选项、紧凑布局、暗色模式细节优化、本地化帮助文档、本地化更新日志和本地化错误详情。
-- 提供首次启动引导、关于窗口版本/构建信息、鸣谢、快速开始文档，以及简体中文、繁体中文、英文、日文多语言 UI 资源。
-- 提供多 RID 发布、压缩包产物、SHA256 文件、发布 manifest，以及可选 Windows MSIX 布局/打包脚本。
-- 事件总线已统一直接使用 `CodeWF.EventBus.EventBus.Default`，避开 DryIoc 事件总线注册路径，改善 Windows 7 启动兼容性。
+##### 优化
 
-建议发布前验证：
+- 大文档的大纲扫描、统计、查找计数和预览刷新做了性能优化。
+- PNG/PDF 导出支持任务列表、主题化输出、表格 inline 样式和页眉页脚。
+- HTML、打印预览、PNG、PDF 和自媒体复制会读取当前排版主题与紧凑布局。
+- 暗色主题下优化编辑器、预览、状态栏、菜单、浮层和导出样式。
+
+##### 修复
+
+- Windows 7 启动兼容性改善，事件总线改为直接使用 `CodeWF.EventBus.EventBus.Default`。
+- 修复多处深色主题下文本、菜单、浮层颜色不一致的问题。
+- 修复长查找/替换输入撑乱界面的问题。
+- 修复部分本地图片路径、URL 解码、SVG/GIF/WebP 导出缺图问题。
+
+##### 验证
 
 - `dotnet build Vex.slnx`
 - `package_all.bat`
