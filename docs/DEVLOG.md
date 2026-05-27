@@ -1,9 +1,10 @@
 # Vex Development Log
 
-## 1.1.0 - 2026-05-25
+## 1.1.1 - 2026-05-27
 
 ### zh-CN
 
+- Markdown 预览行内中文加粗修复：`CodeWF.Markdown` 12.0.3.15 默认正文字体族补充中文字体回退，解决 `极简 **之** 力` 这类普通中文后面的行内加粗显示成普通字重的问题；已用 Vex 启动样例 Markdown 并截图确认行内 `**之**` 加粗、反引号行内代码仍正常。
 - 网页 HTML 粘贴链路下沉：`CodeWF.Markdown` 新增 `MarkdownHtmlConverter` 和 `MarkdownHtmlClipboard.Html2Markdown(string htmlContent)`，Vex 中间编辑器粘贴时优先读取剪贴板 HTML，自动转为 Markdown 后插入；没有 HTML 或转换失败时回落到 AvaloniaEdit 原生粘贴。
 - Vex 更新到本地 NuGet 包 `CodeWF.Markdown`/`CodeWF.Markdown.Themes` 12.0.3.14，`Ctrl+V`、`Command+V` 和菜单粘贴统一走编辑动作服务；验证 `CodeWF.Markdown.Tests` 48 项通过，重新本地打包后强制还原并构建 `Vex.slnx` 通过。
 - 帮助文档保留中文 Markdown 文件：`Vex.csproj` 只复制 `CHANGELOG.md`、`QuickStart.md`、`ACKNOWLEDGEMENTS.md` 和 `Thanks.md`，帮助菜单改为打开固定中文文档，不再解析已删除的 `*.en-US.md`、`*.zh-Hant.md`、`*.ja-JP.md` 文件。

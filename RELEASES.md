@@ -20,6 +20,7 @@ Vex 1.1.1 - Markdown Inline Style Fix
 ##### Fixed
 
 - Markdown preview now applies inline bold, italic, and strikethrough styles to the correct text ranges when mixed with plain text on the same line.
+- Chinese inline bold now remains visibly bold after regular Chinese text in the same paragraph.
 
 ##### Improved
 
@@ -38,6 +39,7 @@ Vex 1.1.1 - Markdown Inline Style Fix
 ##### Verification
 
 - `dotnet build Vex.slnx`
+- Vex screenshot smoke with ``极简 **之** 力，`妙`笔成章。``
 - `package_all.bat`
 
 #### 简体中文
@@ -49,6 +51,7 @@ Vex 1.1.1 - Markdown Inline Style Fix
 ##### 修复
 
 - Markdown 预览现在能在同一行普通文本混排时，把加粗、斜体、删除线正确应用到对应文本片段。
+- 中文普通文本后面的行内加粗现在能稳定显示为粗体。
 
 ##### 优化
 
@@ -67,6 +70,7 @@ Vex 1.1.1 - Markdown Inline Style Fix
 ##### 验证
 
 - `dotnet build Vex.slnx`
+- 使用 ``极简 **之** 力，`妙`笔成章。`` 启动 Vex 并截图验证。
 - `package_all.bat`
 
 ## v1.0.0 - 2026-05-24
