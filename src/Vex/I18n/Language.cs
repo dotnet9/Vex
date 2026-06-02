@@ -128,6 +128,7 @@ public static class VexL
     public static readonly string TypographyRosePurple = "Vex.VexL.TypographyRosePurple";
     public static readonly string TypographyCuteGreen = "Vex.VexL.TypographyCuteGreen";
     public static readonly string TypographyFullStackBlue = "Vex.VexL.TypographyFullStackBlue";
+    public static readonly string TypographyWeChatFormat = "Vex.VexL.TypographyWeChatFormat";
     public static readonly string CompactLayout = "Vex.VexL.CompactLayout";
     public static readonly string LanguageZhCn = "Vex.VexL.LanguageZhCn";
     public static readonly string LanguageZhHant = "Vex.VexL.LanguageZhHant";

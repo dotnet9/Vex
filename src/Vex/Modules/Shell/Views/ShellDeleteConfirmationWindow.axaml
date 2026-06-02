@@ -59,7 +59,7 @@
                 <Button
                     Click="Delete_OnClick"
                     Content="{i18n:I18n {x:Static l:VexL.Delete}}"
-                    Foreground="#DC2626"
+                    Foreground="{DynamicResource TextBlockDangerForeground}"
                     MinWidth="86" />
             </StackPanel>
         </Grid>

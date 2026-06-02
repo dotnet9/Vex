@@ -1,0 +1,133 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:semi="https://irihi.tech/semi">
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="ListBoxItemDefaultBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverForeground" Color="#101828" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverBackground" Color="#F8FAFC" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedForeground" Color="#101828" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedBackground" Color="#E8F1FF" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedForeground" Color="#101828" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedBackground" Color="#EAF4FF" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedPointeroverBackground" Color="#DCEBFA" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledForeground" Color="#98A2B3" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedDisabledBackground" Color="#F2F4F7" />
+                </ResourceDictionary>
+
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="ListBoxItemDefaultBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverForeground" Color="#F8FAFC" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverBackground" Color="#1B2533" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedForeground" Color="#F8FAFC" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedBackground" Color="#263244" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedForeground" Color="#F3F4F6" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedBackground" Color="#1D3A5F" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedPointeroverBackground" Color="#243F66" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledForeground" Color="#7D8999" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedDisabledBackground" Color="#263244" />
+                </ResourceDictionary>
+
+                <ResourceDictionary x:Key="{x:Static semi:SemiTheme.Aquatic}">
+                    <SolidColorBrush x:Key="ListBoxItemDefaultBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverForeground" Color="#16323A" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverBackground" Color="#EFF8FA" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedForeground" Color="#16323A" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedBackground" Color="#CDEFF5" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedForeground" Color="#16323A" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedBackground" Color="#DFF7FA" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedPointeroverBackground" Color="#CDEFF5" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledForeground" Color="#7A99A1" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedDisabledBackground" Color="#EFF8FA" />
+                </ResourceDictionary>
+
+                <ResourceDictionary x:Key="{x:Static semi:SemiTheme.Desert}">
+                    <SolidColorBrush x:Key="ListBoxItemDefaultBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverForeground" Color="#32261B" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverBackground" Color="#FFF5E8" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedForeground" Color="#32261B" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedBackground" Color="#F4DEC2" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedForeground" Color="#32261B" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedBackground" Color="#FFF0D9" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedPointeroverBackground" Color="#F4DEC2" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledForeground" Color="#9A856D" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedDisabledBackground" Color="#FFF5E8" />
+                </ResourceDictionary>
+
+                <ResourceDictionary x:Key="{x:Static semi:SemiTheme.Dusk}">
+                    <SolidColorBrush x:Key="ListBoxItemDefaultBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverForeground" Color="#2C2237" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverBackground" Color="#F3F1FA" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedForeground" Color="#2C2237" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedBackground" Color="#E3DAF8" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedForeground" Color="#2C2237" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedBackground" Color="#F0E9FF" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedPointeroverBackground" Color="#E3DAF8" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledForeground" Color="#8A7A98" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedDisabledBackground" Color="#F3F1FA" />
+                </ResourceDictionary>
+
+                <ResourceDictionary x:Key="{x:Static semi:SemiTheme.NightSky}">
+                    <SolidColorBrush x:Key="ListBoxItemDefaultBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverForeground" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ListBoxItemPointeroverBackground" Color="#1E2A3F" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedForeground" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ListBoxItemPressedBackground" Color="#1E335A" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedForeground" Color="#EBF2FF" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedBackground" Color="#1E335A" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedPointeroverBackground" Color="#25436F" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledForeground" Color="#7F8CA3" />
+                    <SolidColorBrush x:Key="ListBoxItemDisabledBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListBoxItemSelectedDisabledBackground" Color="#1E2A3F" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <Style Selector="ListBox.side-list">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.side-list ListBoxItem">
+        <Setter Property="Padding" Value="10 8" />
+        <Setter Property="MinHeight" Value="34" />
+        <Setter Property="CornerRadius" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.side-list TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
+    </Style>
+
+    <Style Selector="ListBox.side-list TextBlock.muted">
+        <Setter Property="Foreground" Value="{DynamicResource MenuItemInputGestureTextForeground}" />
+    </Style>
+
+    <Style Selector="ListBox.side-list TextBlock.side-heading">
+        <Setter Property="Foreground" Value="{DynamicResource TextBlockDisabledForeground}" />
+    </Style>
+
+    <Style Selector="ListBox.side-list ListBoxItem:pointerover TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource ListBoxItemPointeroverForeground}" />
+    </Style>
+
+    <Style Selector="ListBox.side-list ListBoxItem:selected TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource ListBoxItemSelectedForeground}" />
+    </Style>
+
+    <Style Selector="ListBox.side-list ListBoxItem:selected TextBlock.muted">
+        <Setter Property="Foreground" Value="{DynamicResource MenuItemInputGestureTextForeground}" />
+    </Style>
+
+    <Style Selector="ListBox.side-list ListBoxItem:selected TextBlock.side-heading">
+        <Setter Property="Foreground" Value="{DynamicResource ButtonSolidPrimaryBackground}" />
+    </Style>
+</Styles>

@@ -21,16 +21,17 @@
     WindowStartupLocation="CenterOwner">
     <u:UrsaWindow.LeftContent>
         <TextBlock
+            Classes="titlebar-text"
             FontSize="13"
             FontWeight="SemiBold"
-            Margin="12 0 0 0"
+            Margin="12 7 0 0"
             Text="{i18n:I18n {x:Static l:VexL.AboutVexTitle}}"
             VerticalAlignment="Center" />
     </u:UrsaWindow.LeftContent>
 
     <Border
         Background="{DynamicResource VexPanelBackgroundBrush}"
-        Padding="24">
+        Padding="24 50 24 24">
         <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="18">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                 <Image Width="40" Height="40" Source="/Assets/logo.png" />

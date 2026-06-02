@@ -12,7 +12,6 @@
     prism:ViewModelLocator.AutoWireViewModel="True">
 
     <UserControl.Resources>
-        <x:Double x:Key="MenuFlyoutMaxHeight">Infinity</x:Double>
         <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
     </UserControl.Resources>
 
@@ -25,11 +24,11 @@
             <MenuItem x:Name="OpenFolderMenuItem" Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.QuickOpen}}" Command="{Binding QuickOpenAsync}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenRecent}}" IsEnabled="{Binding Recent.HasRecentDocuments}">
-                <MenuItem Header="{Binding Recent.RecentDocument1Text}" Command="{Binding OpenRecentDocument1Async}" IsVisible="{Binding Recent.HasRecentDocument1}" />
-                <MenuItem Header="{Binding Recent.RecentDocument2Text}" Command="{Binding OpenRecentDocument2Async}" IsVisible="{Binding Recent.HasRecentDocument2}" />
-                <MenuItem Header="{Binding Recent.RecentDocument3Text}" Command="{Binding OpenRecentDocument3Async}" IsVisible="{Binding Recent.HasRecentDocument3}" />
-                <MenuItem Header="{Binding Recent.RecentDocument4Text}" Command="{Binding OpenRecentDocument4Async}" IsVisible="{Binding Recent.HasRecentDocument4}" />
-                <MenuItem Header="{Binding Recent.RecentDocument5Text}" Command="{Binding OpenRecentDocument5Async}" IsVisible="{Binding Recent.HasRecentDocument5}" />
+                <MenuItem Header="{Binding Recent.RecentDocument1Text}" Command="{Binding OpenRecentDocument1Async}" IsVisible="{Binding Recent.HasRecentDocument1}" ToolTip.Tip="{Binding Recent.RecentDocument1ToolTip}" />
+                <MenuItem Header="{Binding Recent.RecentDocument2Text}" Command="{Binding OpenRecentDocument2Async}" IsVisible="{Binding Recent.HasRecentDocument2}" ToolTip.Tip="{Binding Recent.RecentDocument2ToolTip}" />
+                <MenuItem Header="{Binding Recent.RecentDocument3Text}" Command="{Binding OpenRecentDocument3Async}" IsVisible="{Binding Recent.HasRecentDocument3}" ToolTip.Tip="{Binding Recent.RecentDocument3ToolTip}" />
+                <MenuItem Header="{Binding Recent.RecentDocument4Text}" Command="{Binding OpenRecentDocument4Async}" IsVisible="{Binding Recent.HasRecentDocument4}" ToolTip.Tip="{Binding Recent.RecentDocument4ToolTip}" />
+                <MenuItem Header="{Binding Recent.RecentDocument5Text}" Command="{Binding OpenRecentDocument5Async}" IsVisible="{Binding Recent.HasRecentDocument5}" ToolTip.Tip="{Binding Recent.RecentDocument5ToolTip}" />
                 <Separator />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.ClearRecent}}" Command="{Binding Recent.ClearRecentDocuments}" />
             </MenuItem>
@@ -149,6 +148,7 @@
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyRosePurple}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="RosePurple" GroupName="Typography" IsChecked="{Binding Appearance.SelectedTypography.Key, Converter={StaticResource StringEqualsConverter}, ConverterParameter=RosePurple}" ToggleType="Radio" />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyCuteGreen}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="CuteGreen" GroupName="Typography" IsChecked="{Binding Appearance.SelectedTypography.Key, Converter={StaticResource StringEqualsConverter}, ConverterParameter=CuteGreen}" ToggleType="Radio" />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyFullStackBlue}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="FullStackBlue" GroupName="Typography" IsChecked="{Binding Appearance.SelectedTypography.Key, Converter={StaticResource StringEqualsConverter}, ConverterParameter=FullStackBlue}" ToggleType="Radio" />
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.TypographyWeChatFormat}}" Command="{Binding Appearance.SelectTypographyByKey}" CommandParameter="WeChatFormat" GroupName="Typography" IsChecked="{Binding Appearance.SelectedTypography.Key, Converter={StaticResource StringEqualsConverter}, ConverterParameter=WeChatFormat}" ToggleType="Radio" />
                 <Separator />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.CompactLayout}}" IsChecked="{Binding Appearance.IsCompactLayout, Mode=TwoWay}" ToggleType="CheckBox" />
             </MenuItem>

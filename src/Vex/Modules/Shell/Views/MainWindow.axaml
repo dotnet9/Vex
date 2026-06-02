@@ -32,13 +32,14 @@
             VerticalAlignment="Center">
             <Image Width="16" Height="16" Source="/Assets/logo.png" />
             <TextBlock
+                Classes="titlebar-text"
                 FontSize="12"
                 FontWeight="SemiBold"
                 Text="Vex"
                 VerticalAlignment="Center" />
             <shell:ShellTitleMenuView x:Name="TitleMenuView" />
             <TextBlock
-                Classes="muted"
+                Classes="titlebar-muted"
                 FontSize="12"
                 Margin="3 0 0 0"
                 MaxWidth="380"

@@ -20,7 +20,7 @@
                 <TextBlock
                     FontSize="17"
                     FontWeight="SemiBold"
-                    Foreground="{DynamicResource VexEditorForegroundBrush}"
+                    Foreground="{DynamicResource TextBlockDefaultForeground}"
                     Text="{Binding Dialogs.ErrorTitle}"
                     TextWrapping="Wrap" />
                 <TextBlock

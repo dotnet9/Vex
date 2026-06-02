@@ -1,0 +1,13 @@
+<Styles xmlns="https://github.com/avaloniaui">
+    <Style Selector="TextBlock.titlebar-text">
+        <Setter Property="Foreground" Value="{DynamicResource CaptionButtonForeground}" />
+    </Style>
+
+    <Style Selector="TextBlock.titlebar-muted">
+        <Setter Property="Foreground" Value="{DynamicResource MenuItemInputGestureTextForeground}" />
+    </Style>
+
+    <Style Selector="TextBlock.titlebar-menu-text">
+        <Setter Property="Foreground" Value="{DynamicResource CaptionButtonForeground}" />
+    </Style>
+</Styles>

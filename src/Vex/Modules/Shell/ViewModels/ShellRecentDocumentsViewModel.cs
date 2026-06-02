@@ -9,6 +9,26 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class ShellRecentDocumentsViewModel : ReactiveObject
 {
     private const int MaxRecentDocuments = 5;
+    private static readonly string[] RecentDocumentPropertyNames =
+    [
+        nameof(HasRecentDocuments),
+        nameof(HasRecentDocument1),
+        nameof(HasRecentDocument2),
+        nameof(HasRecentDocument3),
+        nameof(HasRecentDocument4),
+        nameof(HasRecentDocument5),
+        nameof(RecentDocument1Text),
+        nameof(RecentDocument2Text),
+        nameof(RecentDocument3Text),
+        nameof(RecentDocument4Text),
+        nameof(RecentDocument5Text),
+        nameof(RecentDocument1ToolTip),
+        nameof(RecentDocument2ToolTip),
+        nameof(RecentDocument3ToolTip),
+        nameof(RecentDocument4ToolTip),
+        nameof(RecentDocument5ToolTip)
+    ];
+
     private readonly IAppLocalizer _localizer;
     private readonly IRecentDocumentStore _recentDocumentStore;
     private readonly IShellStatusPublisher _statusPublisher;
@@ -47,6 +67,16 @@ public sealed class ShellRecentDocumentsViewModel : ReactiveObject
     public string RecentDocument4Text => GetRecentDocumentText(3);
 
     public string RecentDocument5Text => GetRecentDocumentText(4);
+
+    public string RecentDocument1ToolTip => GetRecentDocumentToolTip(0);
+
+    public string RecentDocument2ToolTip => GetRecentDocumentToolTip(1);
+
+    public string RecentDocument3ToolTip => GetRecentDocumentToolTip(2);
+
+    public string RecentDocument4ToolTip => GetRecentDocumentToolTip(3);
+
+    public string RecentDocument5ToolTip => GetRecentDocumentToolTip(4);
 
     public bool TryGetDocument(int index, out RecentDocument? document)
     {
@@ -118,17 +148,10 @@ public sealed class ShellRecentDocumentsViewModel : ReactiveObject
 
     private void NotifyRecentDocumentsChanged()
     {
-        OnPropertyChanged(nameof(HasRecentDocuments));
-        OnPropertyChanged(nameof(HasRecentDocument1));
-        OnPropertyChanged(nameof(HasRecentDocument2));
-        OnPropertyChanged(nameof(HasRecentDocument3));
-        OnPropertyChanged(nameof(HasRecentDocument4));
-        OnPropertyChanged(nameof(HasRecentDocument5));
-        OnPropertyChanged(nameof(RecentDocument1Text));
-        OnPropertyChanged(nameof(RecentDocument2Text));
-        OnPropertyChanged(nameof(RecentDocument3Text));
-        OnPropertyChanged(nameof(RecentDocument4Text));
-        OnPropertyChanged(nameof(RecentDocument5Text));
+        foreach (var propertyName in RecentDocumentPropertyNames)
+        {
+            OnPropertyChanged(propertyName);
+        }
     }
 
     private string GetRecentDocumentText(int index)
@@ -136,6 +159,13 @@ public sealed class ShellRecentDocumentsViewModel : ReactiveObject
         return index >= 0 && index < RecentDocuments.Count
             ? RecentDocuments[index].DisplayText
             : _localizer.Get(VexL.RecentNoFiles);
+    }
+
+    private string GetRecentDocumentToolTip(int index)
+    {
+        return index >= 0 && index < RecentDocuments.Count
+            ? RecentDocuments[index].Path
+            : string.Empty;
     }
 
     private void OnPropertyChanged(string propertyName)

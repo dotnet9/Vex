@@ -5,9 +5,18 @@
     <Styles.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="Themes/Shared/AppPalette.axaml" />
                 <ResourceInclude Source="Themes/Shared/Palette.axaml" />
                 <ResourceInclude Source="Themes/Controls/VexStatusBadge.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Styles.Resources>
+
+    <StyleInclude Source="Themes/Controls/TitleBar.axaml" />
+    <StyleInclude Source="Themes/Controls/Shell.axaml" />
+    <StyleInclude Source="Themes/Controls/ListBox.axaml" />
+    <StyleInclude Source="Themes/Controls/Menu.axaml" />
+    <StyleInclude Source="Themes/Controls/ScrollViewer.axaml" />
+    <StyleInclude Source="Themes/Controls/TabControl.axaml" />
+    <StyleInclude Source="Themes/Controls/ToolTip.axaml" />
 </Styles>

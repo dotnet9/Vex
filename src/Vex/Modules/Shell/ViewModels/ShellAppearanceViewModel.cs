@@ -29,7 +29,8 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         MarkdownTypographyThemes.GeekBlack,
         MarkdownTypographyThemes.RosePurple,
         MarkdownTypographyThemes.CuteGreen,
-        MarkdownTypographyThemes.FullStackBlue
+        MarkdownTypographyThemes.FullStackBlue,
+        MarkdownTypographyThemes.WeChatFormat
     ];
 
     private readonly IAppLocalizer _localizer;

@@ -4,8 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:md="https://codewf.com"
     xmlns:u="https://irihi.tech/ursa"
-    Width="460"
-    Height="560"
+    Width="620"
+    Height="640"
     MinWidth="560"
     MinHeight="420"
     CanMaximize="False"
@@ -19,19 +19,39 @@
     <u:UrsaWindow.LeftContent>
         <TextBlock
             x:Name="TitleText"
+            Classes="titlebar-text"
             FontSize="13"
             FontWeight="SemiBold"
-            Margin="12 0 0 0"
+            Margin="12 7 0 0"
             VerticalAlignment="Center" />
     </u:UrsaWindow.LeftContent>
 
-    <Border
-        Background="{DynamicResource VexPreviewBackgroundBrush}"
-        Padding="34 28">
-        <ScrollViewer
-            HorizontalScrollBarVisibility="Disabled"
-            VerticalScrollBarVisibility="Auto">
-            <md:MarkdownViewer x:Name="DocumentMarkdownViewer" />
-        </ScrollViewer>
-    </Border>
+    <Grid RowDefinitions="Auto,*" Background="{DynamicResource VexPanelBackgroundBrush}">
+        <Border
+            BorderBrush="{DynamicResource VexPanelBorderBrush}"
+            BorderThickness="0 0 0 1"
+            Padding="28 50 28 20">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                <Image Width="38" Height="38" Source="/Assets/logo.png" />
+                <TextBlock
+                    x:Name="DocumentTitleText"
+                    Grid.Column="1"
+                    FontSize="18"
+                    FontWeight="SemiBold"
+                    TextWrapping="Wrap"
+                    VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <Border
+            Grid.Row="1"
+            Background="{DynamicResource VexPreviewBackgroundBrush}"
+            Padding="36 26 36 30">
+            <ScrollViewer
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+                <md:MarkdownViewer x:Name="DocumentMarkdownViewer" />
+            </ScrollViewer>
+        </Border>
+    </Grid>
 </u:UrsaWindow>

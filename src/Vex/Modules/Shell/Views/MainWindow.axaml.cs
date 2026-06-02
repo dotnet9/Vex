@@ -58,7 +58,18 @@ public partial class MainWindow : UrsaWindow
 
     private void MainWindow_OnOpened(object? sender, EventArgs e)
     {
-        _startupArguments?.PublishStartupArguments(Environment.GetCommandLineArgs().Skip(1));
+        var startupArguments = Environment.GetCommandLineArgs().Skip(1).ToArray();
+        if (startupArguments.Length > 0 && DataContext is MainWindowViewModel viewModel)
+        {
+            Dispatcher.UIThread.Post(
+                () => _ = viewModel.OpenStartupDocumentAsync(startupArguments),
+                DispatcherPriority.Background);
+        }
+        else
+        {
+            _startupArguments?.PublishStartupArguments(startupArguments);
+        }
+
         QueueFirstRunOnboardingGuide();
     }
 

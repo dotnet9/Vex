@@ -1,0 +1,17 @@
+<Styles xmlns="https://github.com/avaloniaui">
+    <Style Selector="ToolTip">
+        <Setter Property="Foreground" Value="{DynamicResource ToolTipForeground}" />
+        <Setter Property="Background" Value="{DynamicResource ToolTipBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ToolTipBorderBrush}" />
+    </Style>
+
+    <Style Selector="ToolTip /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource ToolTipForeground}" />
+        <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="ToolTip TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource ToolTipForeground}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+</Styles>

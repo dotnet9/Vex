@@ -1,10 +1,5 @@
 <ResourceDictionary
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <SolidColorBrush x:Key="VexStatusBadgeBackgroundBrush" Color="#F8FAFC" />
-    <SolidColorBrush x:Key="VexStatusBadgeBorderBrush" Color="#D8DEE8" />
-    <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#667085" />
-    <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#1D2939" />
-    <SolidColorBrush x:Key="VexStatusBadgeAccentBrush" Color="#246BFE" />
     <CornerRadius x:Key="VexStatusBadgeCornerRadius">6</CornerRadius>
 </ResourceDictionary>
