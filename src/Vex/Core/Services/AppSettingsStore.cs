@@ -19,6 +19,13 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string HasSeenOnboardingGuide = nameof(AppSettings.HasSeenOnboardingGuide);
     private const string WindowWidth = nameof(AppSettings.WindowWidth);
     private const string WindowHeight = nameof(AppSettings.WindowHeight);
+    private const string IsMcpServerEnabled = nameof(AppSettings.IsMcpServerEnabled);
+    private const string McpServerHost = nameof(AppSettings.McpServerHost);
+    private const string McpServerPort = nameof(AppSettings.McpServerPort);
+    private const string McpAuthorizationToken = nameof(AppSettings.McpAuthorizationToken);
+    private const string McpAccessScope = nameof(AppSettings.McpAccessScope);
+    private const string McpAllowedWorkspacePath = nameof(AppSettings.McpAllowedWorkspacePath);
+    private const string McpRequireConfirmation = nameof(AppSettings.McpRequireConfirmation);
 
     private readonly object _syncRoot = new();
     private AppSettings? _settings;
@@ -63,7 +70,14 @@ public sealed class AppSettingsStore : IAppSettingsStore
             ShowLineNumbers = Get<bool?>(configPath, ShowLineNumbers),
             HasSeenOnboardingGuide = Get<bool?>(configPath, HasSeenOnboardingGuide),
             WindowWidth = Get<double?>(configPath, WindowWidth),
-            WindowHeight = Get<double?>(configPath, WindowHeight)
+            WindowHeight = Get<double?>(configPath, WindowHeight),
+            IsMcpServerEnabled = Get<bool?>(configPath, IsMcpServerEnabled),
+            McpServerHost = Get<string>(configPath, McpServerHost),
+            McpServerPort = Get<int?>(configPath, McpServerPort),
+            McpAuthorizationToken = Get<string>(configPath, McpAuthorizationToken),
+            McpAccessScope = Get<string>(configPath, McpAccessScope),
+            McpAllowedWorkspacePath = Get<string>(configPath, McpAllowedWorkspacePath),
+            McpRequireConfirmation = Get<bool?>(configPath, McpRequireConfirmation)
         };
     }
 
@@ -86,6 +100,13 @@ public sealed class AppSettingsStore : IAppSettingsStore
             AppConfigHelper.Set(configPath, HasSeenOnboardingGuide, settings.HasSeenOnboardingGuide);
             AppConfigHelper.Set(configPath, WindowWidth, settings.WindowWidth);
             AppConfigHelper.Set(configPath, WindowHeight, settings.WindowHeight);
+            AppConfigHelper.Set(configPath, IsMcpServerEnabled, settings.IsMcpServerEnabled);
+            AppConfigHelper.Set(configPath, McpServerHost, settings.McpServerHost);
+            AppConfigHelper.Set(configPath, McpServerPort, settings.McpServerPort);
+            AppConfigHelper.Set(configPath, McpAuthorizationToken, settings.McpAuthorizationToken);
+            AppConfigHelper.Set(configPath, McpAccessScope, settings.McpAccessScope);
+            AppConfigHelper.Set(configPath, McpAllowedWorkspacePath, settings.McpAllowedWorkspacePath);
+            AppConfigHelper.Set(configPath, McpRequireConfirmation, settings.McpRequireConfirmation);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Xml.XmlException)
         {

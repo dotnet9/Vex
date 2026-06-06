@@ -1,0 +1,117 @@
+<u:UrsaWindow
+    x:Class="Vex.Modules.Shell.Views.McpSettingsWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+    x:DataType="vm:McpSettingsViewModel"
+    Title="{i18n:I18n {x:Static l:VexL.McpSettingsTitle}}"
+    Width="640"
+    Height="660"
+    MinWidth="560"
+    MinHeight="620"
+    CanMaximize="False"
+    CanMinimize="False"
+    CanResize="False"
+    Icon="/Assets/logo.ico"
+    IsFullScreenButtonVisible="False"
+    IsMinimizeButtonVisible="False"
+    IsRestoreButtonVisible="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner">
+    <Border
+        Background="{DynamicResource VexPanelBackgroundBrush}"
+        Padding="24">
+        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="18">
+            <StackPanel Spacing="6">
+                <TextBlock
+                    FontSize="20"
+                    FontWeight="SemiBold"
+                    Text="{i18n:I18n {x:Static l:VexL.McpSettingsTitle}}" />
+                <TextBlock
+                    Classes="muted"
+                    Text="{i18n:I18n {x:Static l:VexL.McpSettingsDescription}}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1">
+                <StackPanel Spacing="14">
+                    <CheckBox
+                        Content="{i18n:I18n {x:Static l:VexL.McpServerEnabled}}"
+                        IsChecked="{Binding IsEnabled}" />
+
+                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
+                        <TextBlock VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpServerAddress}}" />
+                        <TextBox Grid.Column="1" Text="{Binding Host}" />
+
+                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpServerPort}}" />
+                        <NumericUpDown
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Minimum="1"
+                            Maximum="65535"
+                            Value="{Binding Port}" />
+
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpAuthorizationToken}}" />
+                        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                            <TextBox Text="{Binding Token}" />
+                            <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.McpGenerateToken}}" Command="{Binding GenerateToken}" />
+                            <Button Grid.Column="2" Content="{i18n:I18n {x:Static l:VexL.McpCopyToken}}" Command="{Binding CopyTokenAsync}" />
+                        </Grid>
+
+                        <TextBlock Grid.Row="3" VerticalAlignment="Center" Classes="muted" Text="Endpoint" />
+                        <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <SelectableTextBlock
+                                VerticalAlignment="Center"
+                                FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI"
+                                Text="{Binding Endpoint}" />
+                            <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.McpCopyEndpoint}}" Command="{Binding CopyEndpointAsync}" />
+                        </Grid>
+                    </Grid>
+
+                    <Border
+                        BorderBrush="{DynamicResource VexPanelBorderBrush}"
+                        BorderThickness="1"
+                        Padding="14">
+                        <StackPanel Spacing="10">
+                            <TextBlock FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.McpAllowedWorkspace}}" />
+                            <RadioButton
+                                Content="{i18n:I18n {x:Static l:VexL.McpScopeCurrentDocument}}"
+                                GroupName="McpAccessScope"
+                                IsChecked="{Binding IsCurrentDocumentScope}" />
+                            <RadioButton
+                                Content="{i18n:I18n {x:Static l:VexL.McpScopeCurrentFolder}}"
+                                GroupName="McpAccessScope"
+                                IsChecked="{Binding IsCurrentFolderScope}" />
+                            <RadioButton
+                                Content="{i18n:I18n {x:Static l:VexL.McpScopeCustomFolder}}"
+                                GroupName="McpAccessScope"
+                                IsChecked="{Binding IsCustomFolderScope}" />
+                            <TextBox Text="{Binding AllowedWorkspacePath}" PlaceholderText="{i18n:I18n {x:Static l:VexL.McpCustomFolderWatermark}}" />
+                        </StackPanel>
+                    </Border>
+
+                    <CheckBox
+                        Content="{i18n:I18n {x:Static l:VexL.McpRequireConfirmation}}"
+                        IsChecked="{Binding RequireConfirmation}" />
+
+                    <TextBlock
+                        Classes="muted"
+                        Text="{Binding StatusText}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel
+                Grid.Row="2"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="10">
+                <Button Content="{i18n:I18n {x:Static l:VexL.McpCancel}}" Command="{Binding Cancel}" />
+                <Button Content="{i18n:I18n {x:Static l:VexL.McpSave}}" Command="{Binding SaveAsync}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</u:UrsaWindow>

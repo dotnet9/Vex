@@ -29,4 +29,18 @@ public sealed record AppSettings
     public double? WindowWidth { get; init; }
 
     public double? WindowHeight { get; init; }
+
+    public bool? IsMcpServerEnabled { get; init; }
+
+    public string? McpServerHost { get; init; }
+
+    public int? McpServerPort { get; init; }
+
+    public string? McpAuthorizationToken { get; init; }
+
+    public string? McpAccessScope { get; init; }
+
+    public string? McpAllowedWorkspacePath { get; init; }
+
+    public bool? McpRequireConfirmation { get; init; }
 }

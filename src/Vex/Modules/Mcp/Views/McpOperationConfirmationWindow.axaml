@@ -1,0 +1,68 @@
+<u:UrsaWindow
+    x:Class="Vex.Modules.Mcp.Views.McpOperationConfirmationWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:views="using:Vex.Modules.Mcp.Views"
+    x:DataType="views:McpOperationConfirmationWindowModel"
+    Title="{Binding Title}"
+    Width="520"
+    Height="340"
+    MinWidth="480"
+    MinHeight="320"
+    CanMaximize="False"
+    CanMinimize="False"
+    CanResize="False"
+    Icon="/Assets/logo.ico"
+    IsFullScreenButtonVisible="False"
+    IsMinimizeButtonVisible="False"
+    IsRestoreButtonVisible="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner">
+    <Border
+        Background="{DynamicResource VexPanelBackgroundBrush}"
+        Padding="24">
+        <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="14">
+            <TextBlock
+                FontSize="17"
+                FontWeight="SemiBold"
+                Text="{Binding Title}"
+                TextWrapping="Wrap" />
+            <TextBlock
+                Grid.Row="1"
+                Classes="muted"
+                Text="{Binding Message}"
+                TextWrapping="Wrap" />
+            <Border
+                Grid.Row="2"
+                Padding="12"
+                Background="{DynamicResource VexStatusBadgeBackgroundBrush}"
+                CornerRadius="6">
+                <Grid ColumnDefinitions="96,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="10">
+                    <TextBlock Classes="muted" Text="Tool" />
+                    <SelectableTextBlock Grid.Column="1" FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI" Text="{Binding ToolName}" TextWrapping="Wrap" />
+
+                    <TextBlock Grid.Row="1" Classes="muted" Text="Target" />
+                    <SelectableTextBlock Grid.Row="1" Grid.Column="1" FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI" Text="{Binding Target}" TextWrapping="Wrap" />
+
+                    <TextBlock Grid.Row="2" Classes="muted" Text="Summary" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Summary}" TextWrapping="Wrap" />
+                </Grid>
+            </Border>
+            <StackPanel
+                Grid.Row="3"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Click="Cancel_OnClick"
+                    Content="{Binding CancelText}"
+                    MinWidth="86" />
+                <Button
+                    Click="Confirm_OnClick"
+                    Content="{Binding ConfirmText}"
+                    MinWidth="86" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</u:UrsaWindow>

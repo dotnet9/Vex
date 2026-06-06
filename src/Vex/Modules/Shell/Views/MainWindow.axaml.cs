@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using CodeWF.AvaloniaControls.Controls;
 using Ursa.Controls;
 using Vex.Core.Services;
+using Vex.Modules.Mcp.Services;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
 
@@ -16,6 +17,7 @@ public partial class MainWindow : UrsaWindow
     private IAppSettingsStore? _settingsStore;
     private ShellKeyboardShortcutViewModel? _keyboardShortcuts;
     private IShellStartupArgumentPublisher? _startupArguments;
+    private IMcpServerHost? _mcpServerHost;
     private bool _isCloseConfirmed;
 
     public MainWindow()
@@ -35,7 +37,8 @@ public partial class MainWindow : UrsaWindow
         IAppSettingsStore settingsStore,
         IShellDropTargetHandler dropTargetHandler,
         IShellStartupArgumentPublisher startupArguments,
-        ShellKeyboardShortcutViewModel keyboardShortcuts)
+        ShellKeyboardShortcutViewModel keyboardShortcuts,
+        IMcpServerHost mcpServerHost)
         : this()
     {
         // 强制解析 ShellActionCoordinator，让标题栏菜单的 EventBus 动作路由在窗口创建时完成订阅。
@@ -44,11 +47,12 @@ public partial class MainWindow : UrsaWindow
         _settingsStore = settingsStore;
         _startupArguments = startupArguments;
         _keyboardShortcuts = keyboardShortcuts;
+        _mcpServerHost = mcpServerHost;
         RestoreWindowSize(settingsStore);
         DataContext = viewModel;
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
         Opened += MainWindow_OnOpened;
-        Closed += (_, _) => SaveWindowSize();
+        Closed += MainWindow_OnClosed;
     }
 
     private void WindowKeyDown(object? sender, KeyEventArgs e)
@@ -71,6 +75,7 @@ public partial class MainWindow : UrsaWindow
         }
 
         QueueFirstRunOnboardingGuide();
+        _ = _mcpServerHost?.ApplySettingsAsync();
     }
 
     private void QueueFirstRunOnboardingGuide()
@@ -258,5 +263,11 @@ public partial class MainWindow : UrsaWindow
     private static bool IsUsableWindowSize(double value)
     {
         return value > 0 && double.IsFinite(value);
+    }
+
+    private void MainWindow_OnClosed(object? sender, EventArgs e)
+    {
+        SaveWindowSize();
+        _ = _mcpServerHost?.StopAsync();
     }
 }

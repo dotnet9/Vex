@@ -14,6 +14,7 @@ using Vex.Modules.Appearance;
 using Vex.Modules.Appearance.Services;
 using Vex.Modules.Help;
 using Vex.Modules.Help.Services;
+using Vex.Modules.Mcp.Services;
 using Vex.Modules.Shell;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
@@ -89,6 +90,10 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<IShellDroppedPathReader, ShellDroppedPathReader>();
         containerRegistry.RegisterSingleton<IShellDropTargetHandler, ShellDropTargetHandler>();
         containerRegistry.RegisterSingleton<IShellStartupArgumentPublisher, ShellStartupArgumentPublisher>();
+        containerRegistry.RegisterSingleton<IMcpToolDispatcher, McpToolDispatcher>();
+        containerRegistry.RegisterSingleton<IMcpOperationConfirmationService, McpOperationConfirmationService>();
+        containerRegistry.RegisterSingleton<IMcpOperationAuditService, McpOperationAuditService>();
+        containerRegistry.RegisterSingleton<IMcpServerHost, McpServerHost>();
         containerRegistry.RegisterSingleton<ShellAppearanceViewModel>();
         containerRegistry.RegisterSingleton<ShellDocumentInfoViewModel>();
         containerRegistry.RegisterSingleton<ShellDialogsViewModel>();
@@ -105,6 +110,7 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<ShellStatusViewModel>();
         containerRegistry.RegisterSingleton<ShellTitleMenuViewModel>();
         containerRegistry.RegisterSingleton<ShellWindowLayoutViewModel>();
+        containerRegistry.RegisterSingleton<McpSettingsViewModel>();
         containerRegistry.RegisterSingleton<MarkdownEditorViewModel>();
         containerRegistry.RegisterSingleton<MarkdownPreviewViewModel>();
         containerRegistry.RegisterSingleton<ShellActionCoordinator>();
