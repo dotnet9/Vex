@@ -182,6 +182,36 @@ public sealed class MainWindowViewModel : ReactiveObject
         set => SetMarkdown(value, refreshImmediately: true);
     }
 
+    public DocumentSnapshot GetCurrentDocumentSnapshot()
+    {
+        return _document with { Markdown = Markdown };
+    }
+
+    public void ReplaceMarkdownFromMcp(string markdown)
+    {
+        Markdown = markdown;
+        EditorActions.FocusEditor();
+    }
+
+    public void ApplyTextEditFromMcp(int startOffset, int length, string replacement)
+    {
+        var markdown = Markdown;
+        var start = Math.Clamp(startOffset, 0, markdown.Length);
+        var editLength = Math.Clamp(length, 0, markdown.Length - start);
+        Markdown = markdown[..start] + replacement + markdown[(start + editLength)..];
+        EditorActions.FocusEditor();
+    }
+
+    public Task OpenPathFromMcpAsync(string path, string? encodingName = null)
+    {
+        return OpenPathFromMcpCoreAsync(path, encodingName);
+    }
+
+    private async Task OpenPathFromMcpCoreAsync(string path, string? encodingName)
+    {
+        ApplyDocument(await _documentService.OpenPathAsync(path, encodingName));
+    }
+
     private void SetMarkdown(string? value, bool refreshImmediately)
     {
         var normalized = value ?? string.Empty;

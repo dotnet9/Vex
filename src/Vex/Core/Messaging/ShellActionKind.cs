@@ -22,5 +22,6 @@ public enum ShellActionKind
     RefreshPreview,
     ShowFindPanel,
     ShowReplacePanel,
-    WordCount
+    WordCount,
+    ShowMcpSettings
 }
