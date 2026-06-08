@@ -16,7 +16,7 @@
     <_TargetId>Folder</_TargetId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net11.0'">
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
@@ -24,7 +24,7 @@
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-windows'">
     <PublishAot>true</PublishAot>
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>

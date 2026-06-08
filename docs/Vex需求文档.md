@@ -319,7 +319,7 @@ string Html2Markdown(string htmlContent);
 
 | 菜单项 | 行为 |
 | --- | --- |
-| 更新日志 | 弹出更新日志对话框，使用MarkdownViewer加载内置 `CHANGELOG.md` |
+| 更新日志 | 弹出更新日志对话框，使用MarkdownViewer加载内置 `UpdateLog.md` |
 | 鸣谢 | 弹出鸣谢对话框，使用MarkdownViewer加载内置 `ACKNOWLEDGEMENTS.md` |
 | 官方网站 | 打开 `https://codewf.com` |
 | 反馈 | 打开反馈入口，未确定前可打开官网 |
@@ -748,7 +748,6 @@ publish_vex_all.bat
 文件：
 
 ```text
-docs/DEVLOG.md
 ```
 
 要求：
@@ -763,7 +762,7 @@ docs/DEVLOG.md
 文件：
 
 ```text
-docs/CHANGELOG.md
+UpdateLog.md
 ```
 
 要求：
@@ -937,7 +936,7 @@ AI 继续开发时必须遵守：
 7. 新增 NuGet 包前先查许可证、源码仓库、间接依赖。
 8. UI 改动后启动程序截图验证。
 9. 发布配置改动后执行对应发布验证。
-10. 每次提交前更新 `DEVLOG.md` 与中文 `CHANGELOG.md`。
+10. 每次提交前更新根目录 `UpdateLog.md`。
 11. Commit message 使用英文，例如 `feat: add startup folder support`。
 12. 提交后推送远端。
 

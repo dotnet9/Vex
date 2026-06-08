@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
+    <TargetFrameworks>net11.0;net11.0-windows</TargetFrameworks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\logo.ico</ApplicationIcon>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <Title>Vex</Title>
     <Description>Vex Markdown editor.</Description>
@@ -12,37 +12,34 @@
     <RootNamespace>Vex</RootNamespace>
     <RuntimeIdentifiers>win-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
     <SelfContained>true</SelfContained>
   </PropertyGroup>
-
-  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0-windows'))">
     <WindowsSupportedOSPlatformVersion>6.1</WindowsSupportedOSPlatformVersion>
     <IsTrimmable>true</IsTrimmable>
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' != ''">
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net11.0' and '$(RuntimeIdentifier)' != ''">
     <PublishSingleFile>true</PublishSingleFile>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release' and $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0-windows'))">
     <PublishAot>true</PublishAot>
   </PropertyGroup>
-
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="..\..\logo.ico" Link="Assets\logo.ico" />
+    <AvaloniaResource Include="..\..\logo.png" Link="Assets\logo.png" />
+    <AvaloniaResource Include="..\..\logo.svg" Link="Assets\logo.svg" />
     <TrimmerRootDescriptor Include="Properties\Trimming\TrimmerRoots.xml" />
-    <Content Include="..\..\docs\CHANGELOG.md" Link="docs\CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\UpdateLog.md" Link="UpdateLog.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\QuickStart.md" Link="docs\QuickStart.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\ACKNOWLEDGEMENTS.md" Link="docs\ACKNOWLEDGEMENTS.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\Thanks.md" Link="docs\Thanks.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.AvaloniaEdit" />
@@ -64,12 +61,10 @@
     <PackageReference Include="VC-LTL" />
     <PackageReference Include="YY-Thunks" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Vex.Controls\Vex.Controls.csproj" />
     <ProjectReference Include="..\Vex.Controls.Themes\Vex.Controls.Themes.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Update="I18n\Language.cs">
       <DependentUpon>Language.tt</DependentUpon>

@@ -1,11 +1,17 @@
 <Project>
   <PropertyGroup>
-    <Version>1.1.2.1</Version>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <DebugType>portable</DebugType>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IncludeSymbols>true</IncludeSymbols>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Version>1.1.2.3</Version>
     <Authors>沙漠尽头的狼</Authors>
     <Company>CodeWF</Company>
-	<Title>Vex - 维刻</Title>
+    <Title>Vex - 维刻</Title>
     <Product>Vex</Product>
-	<Description>极简之力，妙笔成章 | Markdown 编辑器</Description>
+    <Description>极简之力，妙笔成章 | Markdown 编辑器</Description>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/dotnet9/Vex</RepositoryUrl>
     <PackageProjectUrl>https://codewf.com</PackageProjectUrl>
@@ -20,9 +26,21 @@
     <LocalCodeWFAvaloniaControlsPackages>$(MSBuildThisFileDirectory)..\CodeWF.AvaloniaControls\artifacts\packages</LocalCodeWFAvaloniaControlsPackages>
   </PropertyGroup>
   <PropertyGroup Condition="Exists('$(LocalCodeWFMarkdownPackages)')">
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <DebugType>portable</DebugType>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IncludeSymbols>true</IncludeSymbols>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RestoreAdditionalProjectSources>$(RestoreAdditionalProjectSources);$(LocalCodeWFMarkdownPackages)</RestoreAdditionalProjectSources>
   </PropertyGroup>
   <PropertyGroup Condition="Exists('$(LocalCodeWFAvaloniaControlsPackages)')">
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <DebugType>portable</DebugType>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IncludeSymbols>true</IncludeSymbols>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RestoreAdditionalProjectSources>$(RestoreAdditionalProjectSources);$(LocalCodeWFAvaloniaControlsPackages)</RestoreAdditionalProjectSources>
   </PropertyGroup>
 </Project>

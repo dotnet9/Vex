@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <Title>Vex.Controls</Title>
     <Description>Vex product controls for Avalonia applications.</Description>
@@ -9,8 +9,8 @@
     <RootNamespace>Vex.Controls</RootNamespace>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
-
   <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
     <PackageReference Include="Avalonia" />
   </ItemGroup>
 </Project>
