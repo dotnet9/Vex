@@ -1,5 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Vex logo">
-  <rect width="256" height="256" rx="56" fill="#111827"/>
-  <path d="M50 62H93L128 166L163 62H206L151 201H105L50 62Z" fill="#F8FAFC"/>
+  <defs>
+    <linearGradient id="vex-tech-blue" x1="58" y1="58" x2="196" y2="202" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+  <path d="M50 62H93L128 166L163 62H206L151 201H105L50 62Z" fill="none" stroke="#E0F2FE" stroke-width="14" stroke-linejoin="round"/>
+  <path d="M50 62H93L128 166L163 62H206L151 201H105L50 62Z" fill="url(#vex-tech-blue)"/>
   <rect x="78" y="214" width="100" height="14" rx="7" fill="#43D6C8"/>
 </svg>
