@@ -1,11 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Vex logo">
   <defs>
-    <linearGradient id="vex-tech-blue" x1="58" y1="58" x2="196" y2="202" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#38BDF8"/>
+    <linearGradient id="vex-main" x1="48" y1="28" x2="186" y2="226" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5EEAD4"/>
+      <stop offset="0.5" stop-color="#38BDF8"/>
       <stop offset="1" stop-color="#2563EB"/>
     </linearGradient>
+    <filter id="vex-shadow" x="-12%" y="-8%" width="124%" height="122%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.28"/>
+    </filter>
   </defs>
-  <path d="M50 62H93L128 166L163 62H206L151 201H105L50 62Z" fill="none" stroke="#E0F2FE" stroke-width="14" stroke-linejoin="round"/>
-  <path d="M50 62H93L128 166L163 62H206L151 201H105L50 62Z" fill="url(#vex-tech-blue)"/>
-  <rect x="78" y="214" width="100" height="14" rx="7" fill="#43D6C8"/>
+  <path d="M28 26H96L128 132L160 26H228L154 226H102L28 26Z" fill="url(#vex-main)" filter="url(#vex-shadow)"/>
 </svg>
