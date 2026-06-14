@@ -208,7 +208,22 @@ $manifest = @"
         Description="Vex Markdown editor"
         Square150x150Logo="Assets\logo.png"
         Square44x44Logo="Assets\logo.png"
-        BackgroundColor="transparent" />
+        BackgroundColor="transparent">
+        <uap:DefaultTile Square150x150Logo="Assets\logo.png" Square44x44Logo="Assets\logo.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="markdown">
+            <uap:DisplayName>Markdown Document</uap:DisplayName>
+            <uap:InfoTip>Markdown document</uap:InfoTip>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.md</uap:FileType>
+              <uap:FileType>.markdown</uap:FileType>
+              <uap:FileType>.mdown</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+      </Extensions>
     </Application>
   </Applications>
   <Capabilities>

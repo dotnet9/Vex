@@ -30,6 +30,7 @@ public partial class App : PrismApplication
 
     public override void Initialize()
     {
+        DefaultFileOpeningService.Configure();
         AvaloniaXamlLoader.Load(this);
         var langPlugin = new JsonLangPlugin
         {
