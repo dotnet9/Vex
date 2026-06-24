@@ -36,9 +36,8 @@
     <AvaloniaResource Include="..\..\logo.svg" Link="Assets\logo.svg" />
     <TrimmerRootDescriptor Include="Properties\Trimming\TrimmerRoots.xml" />
     <Content Include="..\..\UpdateLog.md" Link="UpdateLog.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="..\..\docs\QuickStart.md" Link="docs\QuickStart.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="..\..\docs\ACKNOWLEDGEMENTS.md" Link="docs\ACKNOWLEDGEMENTS.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="..\..\docs\Thanks.md" Link="docs\Thanks.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\快速开始.md" Link="docs\快速开始.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\鸣谢.md" Link="docs\鸣谢.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" />

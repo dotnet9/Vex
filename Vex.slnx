@@ -3,10 +3,9 @@
     <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
-    <File Path="docs/ACKNOWLEDGEMENTS.md" />
     <File Path="UpdateLog.md" />
-    <File Path="docs/QuickStart.md" />
-    <File Path="docs/Thanks.md" />
+    <File Path="docs/快速开始.md" />
+    <File Path="docs/鸣谢.md" />
     <File Path="docs/Vex需求文档.md" />
     <File Path="LICENSE" />
     <File Path="README.md" />

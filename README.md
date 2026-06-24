@@ -95,7 +95,7 @@ dotnet build Vex.slnx -v:minimal
 dotnet run --project src\Vex\Vex.csproj -f net11.0
 ```
 
-更多使用说明见 [docs/QuickStart.md](docs/QuickStart.md)。
+更多使用说明见 [docs/快速开始.md](docs/快速开始.md)。
 
 ## 构建与发布
 
@@ -118,9 +118,9 @@ Release 压缩包会排除 `*.pdb` 调试符号文件。已有产物默认不会
 
 ## 文档
 
-- [快速开始](docs/QuickStart.md)
+- [快速开始](docs/快速开始.md)
 - [更新日志](UpdateLog.md)
-- [鸣谢](docs/ACKNOWLEDGEMENTS.md)
+- [鸣谢](docs/鸣谢.md)
 
 ## 开源致谢
 
@@ -135,9 +135,10 @@ Vex 使用并感谢以下开源项目：
 - [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit)
 - [Markdig](https://github.com/xoofx/markdig)
 
-## License
+## 许可证
 
-MIT. See [LICENSE](LICENSE).
-## Package Versioning Convention
+MIT，详见 [LICENSE](LICENSE)。
 
-Keep NuGet package versions and Central Package Management settings in `Directory.Packages.props`, including shared version properties such as `AvaloniaVersion`. Keep `Directory.Build.props` focused on build, compiler, and NuGet package metadata. When referenced, `VC-LTL` and `YY-Thunks` should use their latest prerelease versions for OS platform compatibility.
+## 包版本维护约定
+
+XML 文件统一使用两个空格缩进。`Directory.Packages.props` 统一承载 NuGet 中央包管理开关和包版本变量，包括 `AvaloniaVersion` 等共享版本属性；`Directory.Build.props` 仅保留项目构建、编译选项和 NuGet 元数据。仓库如引用 `VC-LTL`、`YY-Thunks`，这两个兼容旧版操作系统的特殊包必须使用最新预览版。

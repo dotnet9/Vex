@@ -50,10 +50,10 @@
 - 🔧[优化]-PDF/PNG/Word 导出实现下沉到 `CodeWF.Markdown` 12.0.3.15 的 `MarkdownDocumentExporter`，Vex 端统一调用 `ExportKind` 入口，只负责选择保存路径和传入当前排版主题，不再维护本地 Word/OpenXML、PDF 文本排版和 PNG 渲染器。
 - 🔧[优化]-复制到公众号、知乎、稀土掘金现在调用 `CodeWF.Markdown` 12.0.3.15 的 `MarkdownHtmlClipboardExtensions.TrySetMarkdownHtmlAsync(markdown, themeName, targetName, typographySize)`，Vex 端只传当前 Markdown、排版主题和发布目标。
 - ✨[新增]-从网页复制内容后粘贴到中间编辑器时，Vex 会优先读取剪贴板 HTML，通过 `MarkdownHtmlClipboard.Html2Markdown(htmlContent)` 转成 Markdown；没有 HTML 或转换失败时回落到 AvaloniaEdit 原生粘贴。
-- 🔧[优化]-内置帮助 Markdown 文档收口为中文文件，项目输出只复制 `UpdateLog.md`、`QuickStart.md`、`ACKNOWLEDGEMENTS.md` 和 `Thanks.md`，帮助菜单不再解析已删除的多语言文档名。
+- 🔧[优化]-内置帮助 Markdown 文档收口为中文文件，项目输出只复制 `UpdateLog.md`、`快速开始.md` 和 `鸣谢.md`，帮助菜单不再解析已删除的多语言文档名。
 - 🔧[优化]-自媒体平台 profile、inline HTML 渲染、图片嵌入、CF_HTML 写入和尾注/工具名多语言文案已下沉到 `CodeWF.Markdown`，Vex 不再维护本地公众号/知乎/掘金 HTML 模板。
 - 🔧[优化]-视图菜单移除“实际大小”“放大”“缩小”，同步删除窗口级缩放快捷键和状态栏缩放显示。
-- 🐞[修复]-更新日志、鸣谢和关于窗口的标题栏显示明确标题；鸣谢改为加载带 Markdown 链接的 `docs/ACKNOWLEDGEMENTS.md`，链接可点击打开。
+- 🐞[修复]-更新日志、鸣谢和关于窗口的标题栏显示明确标题；鸣谢改为加载带 Markdown 链接的 `docs/鸣谢.md`，链接可点击打开。
 - 🔧[优化]-左侧文件/大纲页签 header 改为等宽横向居中布局，选中项加粗，贴近参考图效果。
 - 🧪[测试]-构建 `Vex.slnx`，确认 `net10.0` 与 `net10.0-windows` 均为 0 警告 0 错误，并复查无视图缩放入口残留。
 - ✨[新增]-直接打开单个 Markdown/txt 文件后，左侧文件列表会自动加载同目录下支持的 Markdown 文档。
@@ -116,7 +116,7 @@
 - 🧪[测试]-构建 `Vex.slnx`，并用临时 console smoke 覆盖 `InkBlack + Small` 导出 HTML 的暗色背景、正文颜色、紧凑字号和链接色。
 - 🔧[优化]-Markdown 统计的行数、段落、标题和横线统计合并为单次字符扫描，减少大文件逐行正则匹配开销。
 - 🧪[测试]-构建 `Vex.slnx`，并用临时 console smoke 覆盖 CRLF/LF 行数、段落、标题和横线统计。
-- 🔧[优化]-帮助文档在未知非中文语言下优先回退英文文档，再回退简体中文，减少非中文环境直接显示中文文档的情况。
+- 🔧[优化]-帮助文档统一回退到简体中文文档，减少多语言文档副本维护成本。
 - 🔧[优化]-Markdown 大纲扫描改用手写 ATX 标题解析，减少长文档逐行正则匹配开销。
 - 🧪[测试]-构建 `Vex.slnx`，并用临时 console smoke 覆盖代码围栏跳过、三级标题和六级标题。
 - 🔧[优化]-发布打包脚本支持逗号分隔 RID 参数，手动指定多个 RID 时不再被当成单个目录名。
@@ -196,14 +196,14 @@
 - 🧪[测试]-解析四套 i18n JSON，构建 `Vex.slnx`、执行 `git diff --check`，并用临时 smoke 程序生成 PDF 验证。
 - 🔧[优化]-帮助菜单打开内置文档时会优先使用当前语言版本，缺失时再回退到简体中文。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并检索确认帮助入口不再固定中文文件名。
-- ✨[新增]-补齐英文快速开始和英文鸣谢文档，英文环境下帮助菜单可直接打开对应英文内容。
+- ✨[新增]-补齐快速开始和鸣谢文档，帮助菜单可直接打开对应内容。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并确认英文帮助文档会复制到输出目录。
 - 🔧[优化]-同步需求文档里的当前能力快照和未完成重点清单，后续迭代可继续按最新状态推进。
 - 🧪[测试]-执行 `git diff --check`。
 - 🔧[优化]-PDF 导出分页会优先在页尾附近的空白行断开，减少切到正文、表格或代码行的情况。
 - 🧪[测试]-构建 `Vex.slnx`、执行 `git diff --check`，并用临时 smoke 程序重新生成 PDF。
 - 🔧[优化]-收紧标题栏菜单间距，当前文件名改为紧跟菜单右侧显示，并从帮助菜单移除重复的“快速开始（引导）”。
-- ✨[新增]-更新日志和鸣谢改为独立 UrsaWindow 窗口，使用 CodeWF.Markdown `MarkdownViewer` 渲染；鸣谢加载随程序输出的 `docs/Thanks.md`。
+- ✨[新增]-更新日志和鸣谢改为独立 UrsaWindow 窗口，使用 CodeWF.Markdown `MarkdownViewer` 渲染；鸣谢加载随程序输出的 `docs/鸣谢.md`。
 - 🔧[优化]-关于改为独立 UrsaWindow 窗口，不再使用 Shell 内自绘关闭按钮，网站地址可点击打开。
 - 🧪[测试]-解析四套 i18n JSON，构建 `Vex.slnx`、执行 `git diff --check`，并截图验证标题栏、帮助菜单和三个帮助窗口。
 - 🔧[优化]-更新日志和鸣谢窗口尺寸收小，更新日志、鸣谢、关于窗口均只保留关闭按钮且不显示在系统任务栏。
@@ -487,7 +487,7 @@
 - `package_all.bat`
 ## 2026-06-08 仓库规范整理
 
-- 统一文档维护入口：每个仓库只保留根目录 `README.md` 和根目录 `UpdateLog.md`，清理重复日志、英文文档和语言切换入口。
+- 统一文档维护入口：每个仓库只保留简体中文文档内容，清理重复日志、多语言文档副本和语言切换入口。
 - 统一版本维护入口：包版本只在仓库根目录 `Directory.Build.props` 的 `<Version>` 节点维护，移除散落的程序集版本配置。
 - 不再维护 `global.json`，SDK 选择交给本机或 CI 环境；NuGet 包和应用的目标框架在项目文件中明确声明。
 - 统一 NuGet 包文档入口：包 README 统一引用仓库根 `README.md`，更新日志统一引用仓库根 `UpdateLog.md`。
