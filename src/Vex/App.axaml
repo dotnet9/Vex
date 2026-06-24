@@ -21,7 +21,7 @@
         <semi:SemiTheme Locale="zh-CN" />
         <semi:UrsaSemiTheme Locale="zh-CN" />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
-        <codewf:CodeWFTheme />
+        <codewf:ACSemiTheme />
         <markdownThemes:MarkdownThemes TypographyTheme="Simple" />
         <vexThemes:VexControlsTheme />
     </prism:PrismApplication.Styles>
