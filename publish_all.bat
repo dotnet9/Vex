@@ -17,6 +17,7 @@ if not "%~1"=="" (
 echo Publishing Vex profiles...
 
 call :publish FolderProfile__win-x64 net11.0-windows win-x64 || exit /b 1
+call :publish FolderProfile__win-x86 net11.0-windows win-x86 || exit /b 1
 call :publish FolderProfile__linux-x64 net11.0 linux-x64 || exit /b 1
 call :publish FolderProfile__linux-arm64 net11.0 linux-arm64 || exit /b 1
 call :publish FolderProfile__osx-x64 net11.0 osx-x64 || exit /b 1

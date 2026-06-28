@@ -10,7 +10,7 @@
     <PackageId>Vex</PackageId>
     <AssemblyName>Vex</AssemblyName>
     <RootNamespace>Vex</RootNamespace>
-    <RuntimeIdentifiers>win-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
     <SelfContained>true</SelfContained>
@@ -25,9 +25,6 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Release' and $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0-windows'))">
-    <PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />

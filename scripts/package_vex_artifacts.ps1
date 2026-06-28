@@ -2,6 +2,7 @@
 param(
     [string[]]$RuntimeIdentifier = @(
         "win-x64",
+        "win-x86",
         "linux-x64",
         "linux-arm64",
         "osx-x64",
