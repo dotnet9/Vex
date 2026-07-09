@@ -116,7 +116,6 @@ public sealed class DocumentService : IDocumentService
             return Directory.EnumerateFiles(folder, "*.*", options)
                 // 与文件选择器保持一致，文件夹扫描也识别常见 Markdown 扩展名。
                 .Where(IsSupportedDocumentPath)
-                .Take(300)
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
                 .Select(path => _documentFileFactory.Create(path, folder))
                 .ToList();

@@ -18,6 +18,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string EditorZoom = nameof(AppSettings.EditorZoom);
     private const string ShowLineNumbers = nameof(AppSettings.ShowLineNumbers);
     private const string HasSeenOnboardingGuide = nameof(AppSettings.HasSeenOnboardingGuide);
+    private const string LastWorkspaceFolderPath = nameof(AppSettings.LastWorkspaceFolderPath);
     private const string WindowWidth = nameof(AppSettings.WindowWidth);
     private const string WindowHeight = nameof(AppSettings.WindowHeight);
     private const string IsMcpServerEnabled = nameof(AppSettings.IsMcpServerEnabled);
@@ -71,6 +72,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             EditorZoom = Get<double?>(configPath, EditorZoom),
             ShowLineNumbers = Get<bool?>(configPath, ShowLineNumbers),
             HasSeenOnboardingGuide = Get<bool?>(configPath, HasSeenOnboardingGuide),
+            LastWorkspaceFolderPath = Get<string>(configPath, LastWorkspaceFolderPath),
             WindowWidth = Get<double?>(configPath, WindowWidth),
             WindowHeight = Get<double?>(configPath, WindowHeight),
             IsMcpServerEnabled = Get<bool?>(configPath, IsMcpServerEnabled),
@@ -101,6 +103,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             AppConfigHelper.Set(configPath, EditorZoom, settings.EditorZoom);
             AppConfigHelper.Set(configPath, ShowLineNumbers, settings.ShowLineNumbers);
             AppConfigHelper.Set(configPath, HasSeenOnboardingGuide, settings.HasSeenOnboardingGuide);
+            AppConfigHelper.Set(configPath, LastWorkspaceFolderPath, settings.LastWorkspaceFolderPath);
             AppConfigHelper.Set(configPath, WindowWidth, settings.WindowWidth);
             AppConfigHelper.Set(configPath, WindowHeight, settings.WindowHeight);
             AppConfigHelper.Set(configPath, IsMcpServerEnabled, settings.IsMcpServerEnabled);

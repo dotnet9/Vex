@@ -28,6 +28,8 @@ public sealed record AppSettings
 
     public bool? HasSeenOnboardingGuide { get; init; }
 
+    public string? LastWorkspaceFolderPath { get; init; }
+
     public double? WindowWidth { get; init; }
 
     public double? WindowHeight { get; init; }
