@@ -24,7 +24,8 @@
             ShowLineNumbers="{Binding ShowLineNumbers}"
             VerticalScrollBarVisibility="Auto"
             WordWrap="True">
-            <!-- 右键菜单只转发 Shell 编辑动作，实际文本变更仍由 Workspace 控制器通过 EventBus 执行。 -->
+            <!-- 右键菜单只转发 Shell 编辑动作，实际文本变更仍由 Workspace 控制器通过 EventBus 执行。
+                 Avalonia 12.1 对带强类型参数的方法命令使用反射绑定，避免把 ViewModel 的枚举参数退化为 object。 -->
             <edit:TextEditor.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.Undo}}" Command="{Binding Undo}" />
@@ -35,17 +36,17 @@
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.Paste}}" Command="{Binding Paste}" />
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.SelectAll}}" Command="{Binding SelectAll}" />
                     <Separator />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Bold}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Italic}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.InlineCode}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Link}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Link}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Bold}}" Command="{ReflectionBinding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Italic}}" Command="{ReflectionBinding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.InlineCode}}" Command="{ReflectionBinding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Link}}" Command="{ReflectionBinding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Link}" />
                     <Separator />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading1}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading1}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Quote}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Quote}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.UnorderedList}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.UnorderedList}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TaskList}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.TaskList}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading1}}" Command="{ReflectionBinding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading1}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Quote}}" Command="{ReflectionBinding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Quote}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.UnorderedList}}" Command="{ReflectionBinding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.UnorderedList}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TaskList}}" Command="{ReflectionBinding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.TaskList}" />
                     <Separator />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" Command="{ReflectionBinding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}" />
                 </ContextMenu>
             </edit:TextEditor.ContextMenu>
         </edit:TextEditor>
