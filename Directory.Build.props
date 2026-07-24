@@ -22,25 +22,5 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <LocalCodeWFMarkdownPackages>$(MSBuildThisFileDirectory)..\CodeWF.Markdown\artifacts\packages</LocalCodeWFMarkdownPackages>
-    <LocalCodeWFAvaloniaControlsPackages>$(MSBuildThisFileDirectory)..\CodeWF.AvaloniaControls\artifacts\packages</LocalCodeWFAvaloniaControlsPackages>
-  </PropertyGroup>
-  <PropertyGroup Condition="Exists('$(LocalCodeWFMarkdownPackages)')">
-    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <DebugType>portable</DebugType>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <IncludeSymbols>true</IncludeSymbols>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <RestoreAdditionalProjectSources>$(RestoreAdditionalProjectSources);$(LocalCodeWFMarkdownPackages)</RestoreAdditionalProjectSources>
-  </PropertyGroup>
-  <PropertyGroup Condition="Exists('$(LocalCodeWFAvaloniaControlsPackages)')">
-    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <DebugType>portable</DebugType>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <IncludeSymbols>true</IncludeSymbols>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <RestoreAdditionalProjectSources>$(RestoreAdditionalProjectSources);$(LocalCodeWFAvaloniaControlsPackages)</RestoreAdditionalProjectSources>
   </PropertyGroup>
 </Project>
