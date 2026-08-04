@@ -11,8 +11,8 @@
     <LastUsedPlatform>Any CPU</LastUsedPlatform>
     <Platform>Any CPU</Platform>
     <SelfContained>true</SelfContained>
-    <PublishUrl>$(MSBuildProjectDirectory)\..\..\publish\$(RuntimeIdentifier)\</PublishUrl>
-    <PublishDir>$(MSBuildProjectDirectory)\..\..\publish\$(RuntimeIdentifier)\</PublishDir>
+    <PublishUrl>$(PublishDir)</PublishUrl>
+    <PublishDir>$(ArtifactsPath)publish\$(RuntimeIdentifier)\$(MSBuildProjectName)\</PublishDir>
     <_TargetId>Folder</_TargetId>
   </PropertyGroup>
 

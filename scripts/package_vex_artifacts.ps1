@@ -131,7 +131,7 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 $releaseVersion = Get-ReleaseVersion $Version
 
 if ([string]::IsNullOrWhiteSpace($PublishRoot)) {
-    $PublishRoot = Join-Path $repoRoot "publish"
+    $PublishRoot = Join-Path $repoRoot "artifacts\publish"
 }
 
 if ([string]::IsNullOrWhiteSpace($ArtifactsRoot)) {
@@ -151,7 +151,7 @@ foreach ($rid in $RuntimeIdentifier) {
         throw "Runtime identifier cannot be empty."
     }
 
-    $publishDir = Join-Path $PublishRoot $rid
+    $publishDir = Join-Path (Join-Path $PublishRoot $rid) "Vex"
     if (-not (Test-Path -LiteralPath $publishDir -PathType Container)) {
         throw "Publish directory '$publishDir' was not found. Run publish_all.bat first or pass -PublishRoot."
     }

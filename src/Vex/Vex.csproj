@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <IsPackable>false</IsPackable>
     <TargetFrameworks>net11.0;net11.0-windows</TargetFrameworks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>..\..\logo.ico</ApplicationIcon>
@@ -54,6 +55,7 @@
     <PackageReference Include="Prism.DryIoc.Avalonia" />
     <PackageReference Include="ReactiveUI.Avalonia" />
     <PackageReference Include="Semi.Avalonia" />
+    <PackageReference Include="System.Reactive" />
     <PackageReference Include="VC-LTL" />
     <PackageReference Include="YY-Thunks" />
   </ItemGroup>

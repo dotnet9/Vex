@@ -143,7 +143,7 @@ $msixVersion = ConvertTo-MsixVersion $Version
 $architecture = Get-MsixArchitecture $RuntimeIdentifier
 
 if ([string]::IsNullOrWhiteSpace($PublishRoot)) {
-    $PublishRoot = Join-Path $repoRoot "publish"
+    $PublishRoot = Join-Path $repoRoot "artifacts\publish"
 }
 
 if ([string]::IsNullOrWhiteSpace($ArtifactsRoot)) {
@@ -152,7 +152,7 @@ if ([string]::IsNullOrWhiteSpace($ArtifactsRoot)) {
 
 New-Item -ItemType Directory -Force -Path $ArtifactsRoot | Out-Null
 
-$publishDir = Join-Path $PublishRoot $RuntimeIdentifier
+$publishDir = Join-Path (Join-Path $PublishRoot $RuntimeIdentifier) "Vex"
 if (-not (Test-Path -LiteralPath $publishDir -PathType Container)) {
     throw "Publish directory '$publishDir' was not found. Run publish_all.bat first or pass -PublishRoot."
 }
