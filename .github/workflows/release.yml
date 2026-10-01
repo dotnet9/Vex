@@ -1,0 +1,203 @@
+name: release
+
+# 推送 v* 标签发布 Vex 全平台安装包（6 个 RID，仓库自带 PublishProfile）：
+# win-x64 / win-x86 用 Inno Setup 生成 setup.exe（Windows 走 NativeAOT 裁剪），
+# linux-x64 / linux-arm64 生成 deb，macOS 生成 dmg。
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号（不含 v），例如 1.1.2.7'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: 发布 ${{ matrix.rid }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: win-x64
+            os: windows-latest
+          - rid: win-x86
+            os: windows-latest
+          - rid: linux-x64
+            os: ubuntu-latest
+          - rid: linux-arm64
+            os: ubuntu-latest
+          - rid: osx-x64
+            os: macos-14
+          - rid: osx-arm64
+            os: macos-14
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: preview
+
+      - name: 计算版本号
+        id: version
+        shell: pwsh
+        run: |
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            $version = '${{ inputs.version }}'.TrimStart('v', 'V')
+          } else {
+            $version = '${{ github.ref_name }}'.TrimStart('v', 'V')
+          }
+          "APP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "版本：$version"
+
+      # 与 publish_all.bat 相同的 Profile / TFM 组合（win NativeAOT 裁剪，其它单文件压缩）
+      - name: 发布（PublishProfile）
+        shell: pwsh
+        run: |
+          $rid = '${{ matrix.rid }}'
+          $tfm = if ($rid.StartsWith('win-', [StringComparison]::OrdinalIgnoreCase)) { 'net11.0-windows' } else { 'net11.0' }
+          dotnet publish src/Vex/Vex.csproj -c Release -f $tfm -r $rid /p:PublishProfile=FolderProfile__$rid
+          if ($LASTEXITCODE -ne 0) { throw "publish failed for $rid" }
+
+      - name: 打包 Linux deb + sha256
+        if: startsWith(matrix.rid, 'linux-')
+        shell: pwsh
+        run: pwsh scripts/package_linux_deb.ps1 -RuntimeIdentifier '${{ matrix.rid }}' -Version $env:APP_VERSION -Force
+
+      - name: 打包 macOS dmg
+        if: startsWith(matrix.rid, 'osx-')
+        shell: bash
+        run: |
+          chmod +x scripts/package_macos.sh
+          ./scripts/package_macos.sh ${{ matrix.rid }}
+
+      - name: 构建 Windows 安装包
+        if: startsWith(matrix.rid, 'win-')
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: scripts/Vex.iss
+          options: >-
+            /DAppVersion=${{ env.APP_VERSION }}
+            /DAppArch=${{ matrix.rid == 'win-x64' && 'x64' || 'x86' }}
+            /DSourceDir=${{ github.workspace }}\artifacts\publish\${{ matrix.rid }}\Vex
+            /DOutputDir=${{ github.workspace }}\artifacts\release
+
+      - name: 计算安装包 SHA-256
+        if: startsWith(matrix.rid, 'win-')
+        shell: pwsh
+        env:
+          ARCH: ${{ matrix.rid == 'win-x64' && 'x64' || 'x86' }}
+        run: |
+          $installerName = "Vex-v$env:APP_VERSION-win-$env:ARCH-setup.exe"
+          $installerPath = Join-Path "artifacts/release" $installerName
+          if (-not (Test-Path -LiteralPath $installerPath -PathType Leaf)) {
+            throw "Installer was not produced: $installerPath"
+          }
+          $sha = (Get-FileHash -LiteralPath $installerPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha  $installerName" | Set-Content -LiteralPath "$installerPath.sha256" -Encoding ASCII
+
+      - name: 收集 macOS dmg 到发布目录
+        if: startsWith(matrix.rid, 'osx-')
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path artifacts/release -Force | Out-Null
+          Copy-Item -Path "artifacts/macos/*.dmg" -Destination artifacts/release/ -Force
+          Get-ChildItem artifacts/release | ForEach-Object { Write-Host $_.Name }
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vex-${{ matrix.rid }}
+          path: artifacts/release/*
+          if-no-files-found: error
+
+  release:
+    name: 创建 GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 下载构建产物
+        uses: actions/download-artifact@v4
+        with:
+          pattern: Vex-*
+          path: artifacts/release
+          merge-multiple: true
+
+      - name: 计算版本号
+        id: version
+        shell: pwsh
+        run: |
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            $version = '${{ inputs.version }}'.TrimStart('v', 'V')
+            $tagName = "v$version"
+          } else {
+            # 沿用被推送的原始标签，避免额外创建新标签。
+            $tagName = '${{ github.ref_name }}'
+            $version = $tagName.TrimStart('v', 'V')
+          }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "tag_name=$tagName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: 准备发布说明
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # 优先使用手工维护的版本说明，否则退回 UpdateLog 中对应版本的段落
+          $curated = ".github/release-notes/v$env:VERSION.md"
+          $bodyPath = "artifacts/release-body.md"
+          New-Item -ItemType Directory -Path (Split-Path -Parent $bodyPath) -Force | Out-Null
+          if (Test-Path -LiteralPath $curated -PathType Leaf) {
+            Copy-Item -LiteralPath $curated -Destination $bodyPath -Force
+            Write-Host "使用发布说明：$curated"
+          }
+          else {
+            $updateLog = "UpdateLog.md"
+            $body = New-Object System.Collections.Generic.List[string]
+            if (Test-Path -LiteralPath $updateLog -PathType Leaf) {
+              $lines = Get-Content -LiteralPath $updateLog -Encoding UTF8
+              $capture = $false
+              foreach ($line in $lines) {
+                if ($line -match '^#+\s.*v?' + [regex]::Escape($env:VERSION) + '\b') {
+                  $capture = $true
+                  $body.Add($line)
+                  continue
+                }
+                if ($capture -and $line -match '^#+\s') { break }
+                if ($capture) { $body.Add($line) }
+              }
+            }
+            if ($body.Count -gt 0) {
+              $body | Set-Content -LiteralPath $bodyPath -Encoding utf8
+              Write-Host "使用 UpdateLog 段落作为发布说明。"
+            }
+            else {
+              "Vex v$env:VERSION" | Set-Content -LiteralPath $bodyPath -Encoding utf8
+              Write-Host "未找到版本说明，将只使用自动生成的变更列表。"
+            }
+          }
+
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag_name }}
+          name: Vex v${{ steps.version.outputs.version }}
+          body_path: artifacts/release-body.md
+          generate_release_notes: true
+          files: |
+            artifacts/release/*.exe
+            artifacts/release/*.deb
+            artifacts/release/*.dmg
+            artifacts/release/*.sha256
