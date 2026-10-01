@@ -2,7 +2,7 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    <AvaloniaVersion>12.1.1</AvaloniaVersion>
+    <AvaloniaVersion>12.1.3</AvaloniaVersion>
     <PrismVersion>8.1.97.11073</PrismVersion>
     <SemiAvaloniaVersion>12.1.0.1</SemiAvaloniaVersion>
     <UrsaAvaloniaVersion>2.2.0</UrsaAvaloniaVersion>
