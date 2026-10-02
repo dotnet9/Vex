@@ -19,7 +19,12 @@ public partial class MarkdownEditorView : UserControl
         ActualThemeVariantChanged += (_, _) => ConfigureEditorVisuals();
         MarkdownEditor.AddHandler(InputElement.KeyDownEvent, OnEditorKeyDown, RoutingStrategies.Tunnel);
         DataContextChanged += (_, _) => AttachEditorController();
-        AttachedToVisualTree += (_, _) => AttachEditorController();
+        AttachedToVisualTree += (_, _) =>
+        {
+            // 挂载后 ActualThemeVariant 才有真实值，主题字典资源此时才可解析——重新应用编辑器配色。
+            ConfigureEditorVisuals();
+            AttachEditorController();
+        };
         DetachedFromVisualTree += (_, _) => ViewModel?.DetachEditor(MarkdownEditor);
     }
 
@@ -46,6 +51,8 @@ public partial class MarkdownEditorView : UserControl
         SetHighlightingForeground(definition, "BlockQuote", GetBrush("VexQuoteBrush"));
         SetHighlightingForeground(definition, "Link", GetBrush("VexLinkBrush"));
         SetHighlightingForeground(definition, "Image", GetBrush("VexLinkBrush"));
+        // LineBreak 内置浅灰背景在暗色主题刺眼，换成主题分隔色。
+        SetHighlightingBackground(definition, "LineBreak", GetBrush("VexSplitterBrush"));
         MarkdownEditor.TextArea.TextView.Redraw();
     }
 
@@ -69,6 +76,29 @@ public partial class MarkdownEditorView : UserControl
         if (foreground is ISolidColorBrush solid)
         {
             color.Foreground = new SimpleHighlightingBrush(solid.Color);
+        }
+    }
+
+    private static void SetHighlightingBackground(
+        IHighlightingDefinition definition,
+        string colorName,
+        IBrush? background)
+    {
+        if (background is null)
+        {
+            return;
+        }
+
+        var color = definition.NamedHighlightingColors.FirstOrDefault(candidate =>
+            string.Equals(candidate.Name, colorName, StringComparison.OrdinalIgnoreCase));
+        if (color is null)
+        {
+            return;
+        }
+
+        if (background is ISolidColorBrush solid)
+        {
+            color.Background = new SimpleHighlightingBrush(solid.Color);
         }
     }
 

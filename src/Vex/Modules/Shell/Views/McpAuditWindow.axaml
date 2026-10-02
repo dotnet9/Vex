@@ -50,10 +50,10 @@
                                                 Text="{Binding OperationType}" />
                                             <TextBlock
                                                 IsVisible="{Binding Succeeded}"
-                                                Foreground="PaleGreen"
+                                                Foreground="{DynamicResource VexSuccessBrush}"
                                                 Text="✓" />
                                             <TextBlock
-                                                Foreground="LightCoral"
+                                                Foreground="{DynamicResource VexDangerBrush}"
                                                 IsVisible="{Binding !Succeeded}"
                                                 Text="✗" />
                                         </StackPanel>
@@ -64,7 +64,7 @@
                                             TextTrimming="CharacterEllipsis" />
                                         <TextBlock
                                             FontSize="11"
-                                            Foreground="LightCoral"
+                                            Foreground="{DynamicResource VexDangerBrush}"
                                             IsVisible="{Binding HasError}"
                                             Text="{Binding Error}"
                                             TextWrapping="Wrap" />
