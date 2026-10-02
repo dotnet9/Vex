@@ -27,8 +27,8 @@ public partial class MarkdownEditorView : UserControl
     {
         MarkdownEditor.Options.HighlightCurrentLine = true;
         MarkdownEditor.TextArea.TextView.Margin = new Thickness(6, 0, 0, 0);
-        MarkdownEditor.TextArea.TextView.CurrentLineBackground = GetBrush("VexEditorCurrentLineBackgroundBrush");
-        MarkdownEditor.TextArea.TextView.CurrentLineBorder = new Pen(GetBrush("VexEditorCurrentLineBorderBrush"), 1);
+        MarkdownEditor.TextArea.TextView.CurrentLineBackground = GetBrush("VexEditorCurrentLineBackgroundBrush", Brushes.Transparent);
+        MarkdownEditor.TextArea.TextView.CurrentLineBorder = new Pen(GetBrush("VexEditorCurrentLineBorderBrush", Brushes.Transparent), 1);
         ApplyThemedSyntaxHighlighting();
     }
 
@@ -109,10 +109,12 @@ public partial class MarkdownEditorView : UserControl
 
     private MarkdownEditorViewModel? ViewModel => DataContext as MarkdownEditorViewModel;
 
-    private IBrush GetBrush(string key)
+    private IBrush? GetBrush(string key, IBrush? fallback = null)
     {
+        // 资源缺失时返回 fallback（语法着色传 null 以保留 AvaloniaEdit 内置配色），
+        // 不能默认透明——否则 Link 高亮会把 [文字](链接) 的文字段渲染成隐形。
         return this.TryGetResource(key, ActualThemeVariant, out var resource) && resource is IBrush brush
             ? brush
-            : Brushes.Transparent;
+            : fallback;
     }
 }
