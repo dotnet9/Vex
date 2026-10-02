@@ -15,10 +15,10 @@
             BorderBrush="{DynamicResource VexSplitterBrush}"
             BorderThickness="0 0 0 1">
             <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon
+                <Path
+                    Classes="stroke-ico"
                     Width="13"
                     Height="13"
-                    Foreground="{DynamicResource VexMutedBrush}"
                     Data="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
                 <TextBlock
                     FontSize="11.5"

@@ -815,10 +815,15 @@ public sealed class MainWindowViewModel : ReactiveObject
             Dialogs.ClearRenameFilePanel();
             return;
         }
+        // 内联校验：空名 / 非法字符红字提示且不关闭弹窗（对应原型的即时校验）
+        if (!Dialogs.TryValidateRenameFile())
+        {
+            return;
+        }
 
         await RunWithErrorOverlayAsync(
             VexL.ErrorMessageCannotRenameFormat,
-            () => RenameFileCoreAsync(path, Dialogs.RenameFileName),
+            () => RenameFileCoreAsync(path, Dialogs.RenameFileName.Trim()),
             path);
     }
 

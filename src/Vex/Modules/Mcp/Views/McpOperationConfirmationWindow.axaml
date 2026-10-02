@@ -25,10 +25,7 @@
         <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="12">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <Border Classes="dlg-ico info">
-                    <PathIcon
-                        Width="18"
-                        Height="18"
-                        Data="M4 17l6-6-6-6 M12 19h8" />
+                    <Path Classes="stroke-ico" Data="M4 17l6-6-6-6 M12 19h8" />
                 </Border>
                 <TextBlock
                     VerticalAlignment="Center"

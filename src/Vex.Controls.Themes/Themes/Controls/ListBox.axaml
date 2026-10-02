@@ -139,6 +139,16 @@
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="IsHitTestVisible" Value="False" />
     </Style>
+    <Style Selector="ListBox.side-list Border.lvl-badge.on">
+        <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
+    </Style>
+    <Style Selector="ListBox.side-list Border.lvl-badge.on > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentSoftBrush}" />
+    </Style>
+    <Style Selector="ListBox.side-list TextBlock.outline-title.current">
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
     <Style Selector="ListBox.side-list Border.lvl-badge > TextBlock">
         <Setter Property="FontSize" Value="9.5" />
         <Setter Property="FontWeight" Value="SemiBold" />
@@ -186,8 +196,11 @@
         <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
     </Style>
 
-    <Style Selector="TreeView.side-tree PathIcon">
-        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+    <Style Selector="TreeView.side-tree Path.tree-ico">
+        <Setter Property="Width" Value="14" />
+        <Setter Property="Height" Value="14" />
+        <Setter Property="Margin" Value="0 2 0 0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <Style Selector="TreeView.side-tree TextBlock.side-heading">

@@ -156,6 +156,50 @@
         <Setter Property="Height" Value="6" />
     </Style>
 
+    <!-- 遮罩打开时底层内容模糊（对应原型 backdrop blur）：由 MainWindow 的 Classes.blur 联动 -->
+    <Style Selector="Grid.blur, Border.blur">
+        <Setter Property="Effect">
+            <Setter.Value>
+                <BlurEffect Radius="9" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 覆盖层对话框阴影：四主题通用（对应原型 shadow-pop），DynamicResource 不支持字符串令牌故直接内联 -->
+    <Style Selector="Border.dialog-card">
+        <Setter Property="Width" Value="440" />
+        <Setter Property="Padding" Value="22" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="BoxShadow" Value="0 12 32 0 #29000000, 0 2 8 0 #14000000" />
+    </Style>
+
+    <!-- 描边图标（feather 风格）：Path 走 Stroke 而非 Fill -->
+    <Style Selector="Path.stroke-ico">
+        <Setter Property="Fill" Value="{x:Null}" />
+        <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
+        <Setter Property="StrokeThickness" Value="2" />
+        <Setter Property="StrokeJoin" Value="Round" />
+        <Setter Property="StrokeLineCap" Value="Round" />
+        <Setter Property="Width" Value="18" />
+        <Setter Property="Height" Value="18" />
+        <Setter Property="Stretch" Value="Uniform" />
+    </Style>
+    <Style Selector="Border.dlg-ico > Path.stroke-ico">
+        <Setter Property="Width" Value="18" />
+        <Setter Property="Height" Value="18" />
+    </Style>
+    <Style Selector="Border.dlg-ico.warn > Path.stroke-ico">
+        <Setter Property="Stroke" Value="{DynamicResource VexDangerBrush}" />
+    </Style>
+    <Style Selector="Border.dlg-ico.info > Path.stroke-ico">
+        <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
+    </Style>
+
     <!-- 表单禁用态（对应原型 .form-disabled）：由绑定切换 Classes -->
     <Style Selector="Border.form-disabled, StackPanel.form-disabled, Grid.form-disabled">
         <Setter Property="Opacity" Value="0.45" />

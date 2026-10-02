@@ -75,9 +75,11 @@
         Background="{DynamicResource VexShellBackgroundBrush}"
         Margin="0 32 0 0"
         RowDefinitions="Auto,*,Auto">
-        <shell:ShellFindBarView Grid.Row="0" DataContext="{Binding FindBar}" />
+        <Border Grid.Row="0" Classes.blur="{Binding Dialogs.IsAnyOverlayVisible}">
+            <shell:ShellFindBarView DataContext="{Binding FindBar}" />
+        </Border>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Classes.blur="{Binding Dialogs.IsAnyOverlayVisible}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="{Binding Layout.SidebarColumnWidth}" MinWidth="0" />
                 <ColumnDefinition Width="{Binding Layout.SidebarSplitterWidth}" />
@@ -124,11 +126,15 @@
                 x:Name="PreviewGuideTarget"
                 Grid.Column="4"
                 IsVisible="{Binding Layout.IsPreviewVisible}" />
-
-            <shell:ShellOverlaysView Grid.ColumnSpan="5" />
         </Grid>
 
-        <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="2" />
+        <shell:ShellStatusBarView
+            x:Name="StatusBarGuideTarget"
+            Grid.Row="2"
+            Classes.blur="{Binding Dialogs.IsAnyOverlayVisible}" />
+
+        <!-- 覆盖层提升到 Shell 根级：遮罩完整覆盖查找栏/主区/状态栏，并置于模糊内容之上 -->
+        <shell:ShellOverlaysView Grid.Row="0" Grid.RowSpan="3" />
 
         <codewf:Guide
             x:Name="OnboardingGuide"

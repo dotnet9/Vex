@@ -27,10 +27,7 @@
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <Border Classes="dlg-ico info">
-                    <PathIcon
-                        Width="18"
-                        Height="18"
-                        Data="M4 17l6-6-6-6 M12 19h8" />
+                    <Path Classes="stroke-ico" Data="M4 17l6-6-6-6 M12 19h8" />
                 </Border>
                 <StackPanel VerticalAlignment="Center" Spacing="2">
                     <TextBlock FontSize="16" FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.McpSettingsTitle}}" />
@@ -55,9 +52,9 @@
                                     Text="{i18n:I18n {x:Static l:VexL.McpSettingsDescription}}"
                                     TextTrimming="CharacterEllipsis" />
                             </StackPanel>
-                            <ToggleButton
+                            <ToggleSwitch
                                 Grid.Column="1"
-                                Classes="vex-switch"
+                                Classes="Small"
                                 IsChecked="{Binding IsEnabled}"
                                 VerticalAlignment="Center" />
                         </Grid>
@@ -65,10 +62,10 @@
 
                     <StackPanel Spacing="14" Classes.form-disabled="{Binding !IsEnabled}">
                         <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
-                            <TextBlock VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpServerAddress}}" />
+                            <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpServerAddress}}" />
                             <TextBox Grid.Column="1" Text="{Binding Host}" />
 
-                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpServerPort}}" />
+                            <TextBlock Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpServerPort}}" />
                             <NumericUpDown
                                 Grid.Row="1"
                                 Grid.Column="1"
@@ -76,23 +73,29 @@
                                 Maximum="65535"
                                 Value="{Binding Port}" />
 
-                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpAuthorizationToken}}" />
+                            <TextBlock Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpAuthorizationToken}}" />
                             <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                                <TextBox Text="{Binding Token}" />
+                                <TextBox Text="{Binding Token}" PasswordChar="●" />
                                 <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.McpGenerateToken}}" Command="{Binding GenerateToken}" />
                                 <Button Grid.Column="2" Content="{i18n:I18n {x:Static l:VexL.McpCopyToken}}" Command="{Binding CopyTokenAsync}" />
                             </Grid>
 
-                            <TextBlock Grid.Row="3" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpEndpoint}}" />
+                            <TextBlock Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpEndpoint}}" />
                             <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <Border Classes="dlg-path" Padding="10 6">
-                                    <SelectableTextBlock
-                                        VerticalAlignment="Center"
-                                        Text="{Binding Endpoint}"
-                                        TextWrapping="NoWrap"
-                                        TextTrimming="CharacterEllipsis" />
+                                <Border Classes="dlg-path" Padding="10 5 6 5">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <SelectableTextBlock
+                                            VerticalAlignment="Center"
+                                            Text="{Binding Endpoint}"
+                                            TextWrapping="NoWrap"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <Button
+                                            Grid.Column="1"
+                                            Padding="8 2"
+                                            Content="{i18n:I18n {x:Static l:VexL.McpCopyEndpoint}}"
+                                            Command="{Binding CopyEndpointAsync}" />
+                                    </Grid>
                                 </Border>
-                                <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.McpCopyEndpoint}}" Command="{Binding CopyEndpointAsync}" />
                             </Grid>
                         </Grid>
 

@@ -8,21 +8,12 @@
     x:DataType="vm:MainWindowViewModel">
     <Border Background="{DynamicResource VexOverlayScrimBrush}" IsVisible="{Binding Dialogs.IsErrorPanelVisible}">
         <Border
-            Width="460"
-            Padding="22"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Background="{DynamicResource VexPanelBackgroundBrush}"
-            BorderBrush="{DynamicResource VexPanelBorderBrush}"
-            BorderThickness="1"
-            CornerRadius="12">
+            Classes="dialog-card"
+            Width="460">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <Border Classes="dlg-ico warn">
-                        <PathIcon
-                            Width="18"
-                            Height="18"
-                            Data="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M15 9l-6 6 M9 9l6 6" />
+                        <Path Classes="stroke-ico" Data="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M15 9l-6 6 M9 9l6 6" />
                     </Border>
                     <TextBlock
                         VerticalAlignment="Center"

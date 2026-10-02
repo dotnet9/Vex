@@ -28,6 +28,7 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     private string _errorMessage;
     private string _errorDetail;
     private string _renameFileName;
+    private string? _renameFileError;
 
     public ShellDialogsViewModel(IShellStatusPublisher statusPublisher, IAppLocalizer localizer)
     {
@@ -58,6 +59,35 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     {
         get => _isRenameFilePanelVisible;
         set => SetProperty(ref _isRenameFilePanelVisible, value);
+    }
+
+    // 任一覆盖层可见（供窗口内容联动模糊等）
+    public bool IsAnyOverlayVisible => IsUnsavedConfirmVisible || IsErrorPanelVisible || IsRenameFilePanelVisible;
+
+    // 重命名内联校验错误（空 / 非法字符），非空时弹窗内红字提示且不关闭
+    public string? RenameFileError
+    {
+        get => _renameFileError;
+        set => SetProperty(ref _renameFileError, value);
+    }
+
+    // 重命名确认前的内联校验：返回 false 时已设置 RenameFileError，弹窗保持打开
+    public bool TryValidateRenameFile()
+    {
+        var newName = RenameFileName?.Trim() ?? string.Empty;
+        if (newName.Length == 0)
+        {
+            RenameFileError = _localizer.Get(VexL.RenameErrorEmpty);
+            return false;
+        }
+
+        if (newName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            RenameFileError = _localizer.Get(VexL.RenameErrorInvalidChars);
+            return false;
+        }
+
+        return true;
     }
 
     public string UnsavedConfirmTitle => _unsavedConfirmTitle;

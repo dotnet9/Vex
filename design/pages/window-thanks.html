@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鸣谢 · Vex 界面原型</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<script src="../assets/theme.js"></script>
+<script src="../assets/interact.js"></script>
+<style>
+  .doc-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 28px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+  .doc-head .d-logo {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--title-grad);
+    color: #fff; font-size: 18px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-pop);
+    flex: none;
+  }
+  .doc-head h2 { font-size: 18px; font-weight: 700; }
+  .doc-head .sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+  /* 与实现一致：Padding 加在滚动容器外层，Right 的滚动条与 Bottom 与 Left 留白一致 */
+  .doc-body {
+    height: 430px; overflow: auto;
+    margin: 0 24px 20px;
+  }
+  .doc-body .md-body { padding: 22px 12px 10px; }
+  .md-body a { color: var(--accent); }
+</style>
+</head>
+<body data-page="window-thanks">
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+</defs></svg>
+
+<header class="proto-head">
+  <div class="proto-crumb"><a href="../index.html">Vex 界面原型</a> / 鸣谢</div>
+  <h1>鸣谢窗口 <span class="proto-tag">独立窗口</span></h1>
+  <p class="proto-desc">帮助菜单「鸣谢」打开的文档窗口（复用 <span class="mono" style="font-size:11.5px">MarkdownDocumentWindow.axaml</span>，与更新日志同窗体）。<b>本稿要点</b>：① 与帮助文档窗口同一套头部与排版；② 开源项目按「界面 / 架构 / Markdown」分组列出，链接使用主题强调色；③ 正文 Padding 加在滚动容器外层，四边留白一致。</p>
+</header>
+
+<main class="stage">
+  <div class="mini-window" style="width: 620px; margin: 0 auto;">
+    <div class="mini-titlebar">
+      鸣谢
+      <span class="caption-btns">
+        <span class="caption-btn"><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+      </span>
+    </div>
+    <div class="doc-head">
+      <span class="d-logo">V</span>
+      <div>
+        <h2>鸣谢</h2>
+        <div class="sub">随应用分发的官方文档 · Markdown 渲染</div>
+      </div>
+    </div>
+    <div class="doc-body">
+      <div class="md-body">
+        <h1>鸣谢</h1>
+        <p>Vex 感谢下列开源项目及其维护者。它们为跨平台界面、编辑体验、Markdown 解析和应用结构提供了可靠基础。</p>
+        <h2>界面与桌面体验</h2>
+        <ul>
+          <li><a href="#">Avalonia</a></li>
+          <li><a href="#">Semi.Avalonia</a></li>
+          <li><a href="#">Ursa.Avalonia</a></li>
+          <li><a href="#">AvaloniaEdit</a></li>
+        </ul>
+        <h2>应用架构</h2>
+        <ul>
+          <li><a href="#">Prism.Avalonia</a></li>
+          <li><a href="#">CodeWF.EventBus</a></li>
+        </ul>
+        <h2>Markdown</h2>
+        <ul>
+          <li><a href="#">CodeWF.Markdown</a></li>
+          <li><a href="#">Markdig</a></li>
+        </ul>
+        <h2>项目</h2>
+        <p>Vex 由沙漠尽头的狼发起并维护，CodeWF 提供项目支持。</p>
+        <p><a href="#">https://codewf.com</a></p>
+      </div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

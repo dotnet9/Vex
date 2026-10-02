@@ -14,26 +14,48 @@
 
     <UserControl.DataTemplates>
         <DataTemplate DataType="models:OutlineItem">
-            <!-- 层级角标 + 渐进缩进（对应原型 H1-H4 标签） -->
+            <!-- 层级角标 + 渐进缩进；IsCurrent = 光标所在章节高亮 -->
             <StackPanel Margin="{Binding IndentMargin}" Orientation="Horizontal" Spacing="6">
-                <Border Classes="lvl-badge">
+                <Border Classes="lvl-badge" Classes.on="{Binding IsCurrent}">
                     <TextBlock Text="{Binding LevelText}" />
                 </Border>
                 <TextBlock
                     VerticalAlignment="Center"
+                    Classes="outline-title"
+                    Classes.current="{Binding IsCurrent}"
                     Text="{Binding Title}"
                     TextTrimming="CharacterEllipsis" />
             </StackPanel>
         </DataTemplate>
     </UserControl.DataTemplates>
 
-    <Grid>
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- 当前章节指示（对应原型 outline-meta） -->
+        <Border Padding="12 8 12 4" IsVisible="{Binding HasOutlineItems}">
+            <TextBlock
+                Classes="muted"
+                FontSize="11.5"
+                Text="{Binding CurrentChapterText}"
+                TextTrimming="CharacterEllipsis" />
+        </Border>
         <ListBox
+            Grid.Row="1"
             Classes="side-list"
             IsVisible="{Binding HasOutlineItems}"
             ItemsSource="{Binding OutlineItems}"
             SelectedItem="{Binding SelectedOutlineItem, Mode=TwoWay}" />
+        <!-- 阅读进度条（新增能力，随光标更新） -->
+        <Border Grid.Row="2" Padding="12 2 12 10" IsVisible="{Binding HasOutlineItems}">
+            <ProgressBar
+                Height="4"
+                Background="{DynamicResource VexSplitterBrush}"
+                CornerRadius="2"
+                Foreground="{DynamicResource VexAccentBrush}"
+                Maximum="100"
+                Value="{Binding ReadingPercent}" />
+        </Border>
         <Border
+            Grid.Row="1"
             IsVisible="{Binding IsOutlineEmpty}"
             Padding="18"
             VerticalAlignment="Top">

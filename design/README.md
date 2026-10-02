@@ -48,7 +48,8 @@ cd design && python -m http.server 8791
 | `pages/window-statistics.html` | 字数统计窗口（`ShellStatisticsWindow.axaml`） |
 | `pages/window-properties.html` | 文件属性窗口（`ShellPropertiesWindow.axaml`） |
 | `pages/window-mcp-settings.html` | MCP 设置窗口（`McpSettingsWindow.axaml`） |
-| `pages/window-help-doc.html` | 帮助文档窗口（`MarkdownDocumentWindow.axaml`，更新日志 / 鸣谢等） |
+| `pages/window-help-doc.html` | 帮助文档窗口（`MarkdownDocumentWindow.axaml`，更新日志等） |
+| `pages/window-thanks.html` | 鸣谢窗口（`MarkdownDocumentWindow.axaml` 复用，帮助菜单「鸣谢」） |
 | `pages/window-about.html` | 关于窗口（`AboutWindow.axaml`） |
 
 ## 结构与约定

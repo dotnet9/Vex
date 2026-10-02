@@ -32,6 +32,7 @@
       { key: 'window-properties', name: '文件属性', file: 'pages/window-properties.html' },
       { key: 'window-mcp-settings', name: 'MCP 设置', file: 'pages/window-mcp-settings.html' },
       { key: 'window-help-doc', name: '帮助文档', file: 'pages/window-help-doc.html' },
+      { key: 'window-thanks', name: '鸣谢', file: 'pages/window-thanks.html' },
       { key: 'window-about', name: '关于 Vex', file: 'pages/window-about.html' }
     ]}
   ];
@@ -89,7 +90,7 @@
 
     var panel = document.createElement('div');
     panel.className = 'nav-panel';
-    var html = '<div class="np-title"><span>原型页面导航</span><span class="kbd">16 个界面</span></div>';
+    var html = '<div class="np-title"><span>原型页面导航</span><span class="kbd">17 个界面</span></div>';
     PAGES.forEach(function (g) {
       html += '<div class="nav-group">' + g.group + '</div>';
       g.items.forEach(function (p) {

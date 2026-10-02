@@ -211,6 +211,8 @@ public static class VexL
     public static readonly string SidebarOutline = "Vex.VexL.SidebarOutline";
     public static readonly string EmptyNoFiles = "Vex.VexL.EmptyNoFiles";
     public static readonly string EmptyNoHeadings = "Vex.VexL.EmptyNoHeadings";
+    public static readonly string OutlineCurrentFormat = "Vex.VexL.OutlineCurrentFormat";
+    public static readonly string OutlineNoCurrentChapter = "Vex.VexL.OutlineNoCurrentChapter";
     public static readonly string RecentNoFiles = "Vex.VexL.RecentNoFiles";
     public static readonly string FindBarFind = "Vex.VexL.FindBarFind";
     public static readonly string FindBarText = "Vex.VexL.FindBarText";
@@ -300,6 +302,8 @@ public static class VexL
     public static readonly string ExportDetailSvgSurfaceCreateFailed = "Vex.VexL.ExportDetailSvgSurfaceCreateFailed";
     public static readonly string ExportDetailSvgEncodeFailed = "Vex.VexL.ExportDetailSvgEncodeFailed";
     public static readonly string RenameFileTitle = "Vex.VexL.RenameFileTitle";
+    public static readonly string RenameErrorEmpty = "Vex.VexL.RenameErrorEmpty";
+    public static readonly string RenameErrorInvalidChars = "Vex.VexL.RenameErrorInvalidChars";
     public static readonly string RenameFileNameLabel = "Vex.VexL.RenameFileNameLabel";
     public static readonly string RenameFilePathLabel = "Vex.VexL.RenameFilePathLabel";
     public static readonly string StatusReady = "Vex.VexL.StatusReady";
