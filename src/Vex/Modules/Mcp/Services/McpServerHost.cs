@@ -30,6 +30,8 @@ public sealed class McpServerHost : IMcpServerHost
 
     public bool IsRunning { get; private set; }
 
+    public event EventHandler? StatusChanged;
+
     public string StatusText { get; private set; } = string.Empty;
 
     public async Task ApplySettingsAsync()
@@ -119,6 +121,7 @@ public sealed class McpServerHost : IMcpServerHost
         _statusResourceKey = resourceKey;
         _statusArgs = args;
         RefreshLocalizedStatus();
+        StatusChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void SetRawStatus(string text)
@@ -126,6 +129,7 @@ public sealed class McpServerHost : IMcpServerHost
         _statusResourceKey = null;
         _statusArgs = [];
         StatusText = text;
+        StatusChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void RefreshLocalizedStatus()
@@ -223,7 +227,7 @@ public sealed class McpServerHost : IMcpServerHost
                     new McpInitializeResult(
                         "2025-06-18",
                         new McpServerInfo("Vex", "1.0"),
-                        new McpCapabilities(new McpToolsCapability(false))),
+                        new McpCapabilities(new McpToolsCapability(false), new McpResourcesCapability(false, false))),
                     McpJsonContext.Default.McpInitializeResult));
             case "ping":
                 return new JsonRpcResponse("2.0", request.Id, ToJsonElement(new OperationResult("ok"), McpJsonContext.Default.OperationResult));
@@ -240,6 +244,22 @@ public sealed class McpServerHost : IMcpServerHost
                     "2.0",
                     request.Id,
                     ToJsonElement(await _toolDispatcher.CallToolAsync(name, call.Arguments), McpJsonContext.Default.McpToolCallResult));
+            case "resources/list":
+                return new JsonRpcResponse(
+                    "2.0",
+                    request.Id,
+                    ToJsonElement(_toolDispatcher.ListResources(), McpJsonContext.Default.ResourceListResult));
+            case "resources/read":
+                var resourceParams = request.Params?.Deserialize(McpJsonContext.Default.ResourceReadParams);
+                if (string.IsNullOrWhiteSpace(resourceParams?.Uri))
+                {
+                    return new JsonRpcResponse("2.0", request.Id, Error: new JsonRpcError(-32602, "Resource uri is required."));
+                }
+
+                return new JsonRpcResponse(
+                    "2.0",
+                    request.Id,
+                    ToJsonElement(_toolDispatcher.ReadResource(resourceParams.Uri), McpJsonContext.Default.ResourceReadResult));
             case "notifications/initialized":
                 return null;
             default:

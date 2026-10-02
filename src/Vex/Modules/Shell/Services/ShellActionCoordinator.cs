@@ -3,6 +3,8 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using CodeWF.EventBus;
 using Vex.Core.Messaging;
+using Vex.Core.Services;
+using Vex.Modules.Mcp.Services;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
 
@@ -12,11 +14,19 @@ public sealed class ShellActionCoordinator
 {
     private readonly MainWindowViewModel _shell;
     private readonly McpSettingsViewModel _mcpSettings;
+    private readonly IMcpOperationAuditService _auditService;
+    private readonly IAppLocalizer _localizer;
 
-    public ShellActionCoordinator(MainWindowViewModel shell, McpSettingsViewModel mcpSettings)
+    public ShellActionCoordinator(
+        MainWindowViewModel shell,
+        McpSettingsViewModel mcpSettings,
+        IMcpOperationAuditService auditService,
+        IAppLocalizer localizer)
     {
         _shell = shell;
         _mcpSettings = mcpSettings;
+        _auditService = auditService;
+        _localizer = localizer;
         CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
@@ -99,6 +109,9 @@ public sealed class ShellActionCoordinator
                 case ShellActionKind.ShowMcpSettings:
                     ShowMcpSettings();
                     break;
+                case ShellActionKind.ShowMcpAudit:
+                    ShowMcpAudit();
+                    break;
             }
         }
         catch (Exception exception)
@@ -128,6 +141,22 @@ public sealed class ShellActionCoordinator
     private void ShowMcpSettings()
     {
         var window = new McpSettingsWindow(_mcpSettings);
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } owner })
+        {
+            window.Show(owner);
+            return;
+        }
+
+        window.Show();
+    }
+
+    private void ShowMcpAudit()
+    {
+        var window = new McpAuditWindow(
+            _auditService,
+            _localizer.Get(VexL.McpAudit),
+            _localizer.Get(VexL.McpAuditRefresh),
+            _localizer.Get(VexL.McpAuditEmpty));
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } owner })
         {
             window.Show(owner);

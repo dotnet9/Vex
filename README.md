@@ -72,15 +72,29 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 
 - 内置本机 MCP Server，入口位于“帮助 -> MCP 设置”，可设置启用状态、监听地址、端口、授权 Token 和访问范围。
 - 默认使用本机 loopback 地址，例如 `http://127.0.0.1:17891/mcp/`，并通过 Bearer Token 鉴权。
-- 暴露当前文档读取、选区读取、大纲读取、渲染 HTML 读取、应用状态读取和操作审计读取等只读工具。
-- 暴露整体替换文档、按 offset 应用文本编辑、插入文本、替换选区、打开授权范围内文档、保存当前文档等文档工具。
+- 暴露当前文档读取、选区读取、大纲读取、渲染 HTML 读取、应用状态读取、操作审计读取、工作区文件列表等只读工具。
+- 暴露整体替换文档、按 offset 应用文本编辑、插入文本、替换选区、查找替换（`vex_replace_text`，查找串需唯一）、打开/新建授权范围内文档、保存当前文档、撤销/重做（`vex_undo` / `vex_redo`）等文档工具，共 29 个工具。
+- 实现 MCP `resources` 能力：`resources/list`、`resources/read` 暴露当前文档（`vex://current-document`）与工作区文件（`vex://file/<完整路径>`），读取同样受访问范围约束。
 - 暴露基础界面操作工具，包括读取界面状态、切换主题、切换排版、切换语言、切换侧边栏/预览/源码模式、打开基础面板、执行常用编辑命令、触发现有导出和复制富 HTML 流程。
 - AI 编辑会更新 Vex 当前文档状态，并实时刷新编辑器、预览、大纲和状态栏。
 - 文档编辑、打开文档、保存当前文档、复制富 HTML 默认需要用户确认；确认弹窗支持勾选"本次运行内记住此选择"，对单个工具在本次运行内免询问（执行 = 始终允许，取消 = 始终拒绝），重新保存 MCP 设置后重置；打开文档时若当前文档有未保存修改，还会先走应用的未保存更改确认流程。
 - 不向 AI 暴露删除、打印、新窗口、全屏、置顶、打开外部网站、反馈、新手引导、清空最近文档、打开文件所在位置、剪切、粘贴等高意图或系统级操作。
 - MCP 工具名对外使用 OpenAI function calling 兼容的下划线格式，例如 `vex_get_current_document`；旧的 `vex.get_current_document` 调用会由服务端兼容归一化。
 - MCP 协议和工具分发采用手写 JSON-RPC、静态工具 schema 和 `System.Text.Json` source generation，避免反射扫描工具方法，保持 Native AOT 兼容。
-- 接口为本机 HTTP JSON-RPC 形式，面向支持 HTTP + Bearer Token 方式接入 MCP 的 AI 客户端；基于 stdio 传输的标准 MCP 客户端（如 Claude Desktop）无法直接连接，需自建桥接。
+- 接口为本机 HTTP JSON-RPC 形式，面向支持 HTTP + Bearer Token 方式接入 MCP 的 AI 客户端；标准 stdio MCP 客户端（Claude Desktop、Cursor 等）可使用附带的桥接脚本接入：
+  ```json
+  {
+    "mcpServers": {
+      "vex": {
+        "command": "python",
+        "args": ["<安装或仓库目录>/scripts/mcp_stdio_bridge.py"],
+        "env": { "VEX_MCP_TOKEN": "<MCP 设置中生成的 Token>" }
+      }
+    }
+  }
+  ```
+- MCP 操作审计持久化到 `%LOCALAPPDATA%\Vex\mcp-audit.jsonl`（超 1MB 自动轮转），帮助菜单提供"MCP 操作审计"查看窗口；状态栏常驻 MCP 服务指示器。
+- HTTP 端点基于 `HttpListener` 托管实现，理论上跨平台可用，但 linux/macOS 未经系统级实测；所有 29 个工具描述随界面语言本地化（zh-CN / zh-Hant / en-US / ja-JP）。
 
 ### 发布产物
 

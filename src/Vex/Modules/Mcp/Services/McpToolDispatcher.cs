@@ -21,34 +21,6 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
     private static readonly StringComparison PathComparison = OperatingSystem.IsWindows()
         ? StringComparison.OrdinalIgnoreCase
         : StringComparison.Ordinal;
-    private static readonly McpToolDescription[] Tools =
-    [
-        Tool("vex_get_current_document", "读取当前文档。"),
-        Tool("vex_get_document_outline", "读取当前文档大纲。"),
-        Tool("vex_get_selection", "读取当前选区。"),
-        Tool("vex_replace_current_document", "整体替换当前 Markdown。", ReplaceDocumentSchema),
-        Tool("vex_apply_text_edit", "按 offset 应用文本编辑。", ApplyTextEditSchema),
-        Tool("vex_insert_text", "插入文本。", InsertTextSchema),
-        Tool("vex_replace_selection", "替换当前选区。", ReplaceSelectionSchema),
-        Tool("vex_open_document", "打开授权范围内的文档。", OpenDocumentSchema),
-        Tool("vex_save_current_document", "保存当前文档。"),
-        Tool("vex_refresh_preview", "刷新预览。"),
-        Tool("vex_get_rendered_html", "返回当前 Markdown 渲染后的 HTML。"),
-        Tool("vex_get_app_status", "读取应用状态。"),
-        Tool("vex_get_operation_audit", "读取最近 MCP 操作审计记录。"),
-        Tool("vex_ui_get_state", "读取界面状态。"),
-        Tool("vex_ui_set_theme", "设置主题色。", UiSetThemeSchema),
-        Tool("vex_ui_set_typography", "设置 Markdown 排版主题。", UiSetTypographySchema),
-        Tool("vex_ui_set_language", "设置界面语言。", UiSetLanguageSchema),
-        Tool("vex_ui_set_layout", "设置基础布局状态。", UiSetLayoutSchema),
-        Tool("vex_ui_show_sidebar_tab", "切换侧边栏页签。", UiShowSidebarTabSchema),
-        Tool("vex_ui_open_panel", "打开基础面板。", UiOpenPanelSchema),
-        Tool("vex_ui_refresh_preview", "刷新当前预览。"),
-        Tool("vex_ui_apply_editor_command", "执行常用编辑命令。", UiApplyEditorCommandSchema),
-        Tool("vex_ui_export_current_document", "导出当前文档，输出位置仍由用户选择。", ExportCurrentDocumentSchema),
-        Tool("vex_ui_copy_rendered_html", "复制面向平台的富 HTML。", CopyRenderedHtmlSchema)
-    ];
-
     private const string EmptySchema = """{"type":"object","properties":{},"additionalProperties":false}""";
     private const string ReplaceDocumentSchema = """{"type":"object","properties":{"markdown":{"type":"string"},"reason":{"type":"string"}},"required":["markdown"],"additionalProperties":false}""";
     private const string ApplyTextEditSchema = """{"type":"object","properties":{"startOffset":{"type":"integer","minimum":0},"length":{"type":"integer","minimum":0},"replacement":{"type":"string"},"reason":{"type":"string"}},"required":["startOffset","length","replacement"],"additionalProperties":false}""";
@@ -64,6 +36,8 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
     private const string UiApplyEditorCommandSchema = """{"type":"object","properties":{"command":{"type":"string","enum":["undo","redo","copy","selectAll","paragraph","heading1","heading2","heading3","bold","italic","inlineCode","link","image","quote","orderedList","unorderedList","taskList","codeFence","mathBlock","table","horizontalRule","clearFormatting"]}},"required":["command"],"additionalProperties":false}""";
     private const string ExportCurrentDocumentSchema = """{"type":"object","properties":{"format":{"type":"string","enum":["HTML","PDF","PNG","Word"]}},"required":["format"],"additionalProperties":false}""";
     private const string CopyRenderedHtmlSchema = """{"type":"object","properties":{"target":{"type":"string","enum":["wechat","zhihu","juejin"]}},"required":["target"],"additionalProperties":false}""";
+    private const string ReplaceTextSchema = """{"type":"object","properties":{"find":{"type":"string","minLength":1},"replacement":{"type":"string"},"replace_all":{"type":"boolean"}},"required":["find","replacement"],"additionalProperties":false}""";
+    private const string CreateDocumentSchema = """{"type":"object","properties":{"path":{"type":"string"},"content":{"type":"string"},"overwrite":{"type":"boolean"},"reason":{"type":"string"}},"required":["path","content"],"additionalProperties":false}""";
 
     private readonly MainWindowViewModel _shell;
     private readonly IMarkdownOutlineService _outlineService;
@@ -71,6 +45,11 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
     private readonly IAppSettingsStore _settingsStore;
     private readonly IMcpOperationConfirmationService _confirmationService;
     private readonly IMcpOperationAuditService _auditService;
+    private readonly IAppLocalizer _localizer;
+    private readonly List<McpEditSnapshot> _undoStack = [];
+    private readonly List<McpEditSnapshot> _redoStack = [];
+
+    private sealed record McpEditSnapshot(string FilePath, string Markdown);
 
     public McpToolDispatcher(
         MainWindowViewModel shell,
@@ -78,7 +57,8 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         IDocumentService documentService,
         IAppSettingsStore settingsStore,
         IMcpOperationConfirmationService confirmationService,
-        IMcpOperationAuditService auditService)
+        IMcpOperationAuditService auditService,
+        IAppLocalizer localizer)
     {
         _shell = shell;
         _outlineService = outlineService;
@@ -86,9 +66,46 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         _settingsStore = settingsStore;
         _confirmationService = confirmationService;
         _auditService = auditService;
+        _localizer = localizer;
     }
 
-    public McpToolsListResult ListTools() => new(Tools);
+    public McpToolsListResult ListTools() => new(BuildTools());
+
+    private McpToolDescription[] BuildTools()
+    {
+        return
+        [
+            Tool("vex_get_current_document", _localizer.Get(VexL.McpToolGetDocument)),
+            Tool("vex_get_document_outline", _localizer.Get(VexL.McpToolGetOutline)),
+            Tool("vex_get_selection", _localizer.Get(VexL.McpToolGetSelection)),
+            Tool("vex_replace_current_document", _localizer.Get(VexL.McpToolReplaceDocument), ReplaceDocumentSchema),
+            Tool("vex_apply_text_edit", _localizer.Get(VexL.McpToolApplyTextEdit), ApplyTextEditSchema),
+            Tool("vex_insert_text", _localizer.Get(VexL.McpToolInsertText), InsertTextSchema),
+            Tool("vex_replace_selection", _localizer.Get(VexL.McpToolReplaceSelection), ReplaceSelectionSchema),
+            Tool("vex_replace_text", _localizer.Get(VexL.McpToolReplaceText), ReplaceTextSchema),
+            Tool("vex_open_document", _localizer.Get(VexL.McpToolOpenDocument), OpenDocumentSchema),
+            Tool("vex_save_current_document", _localizer.Get(VexL.McpToolSaveDocument)),
+            Tool("vex_undo", _localizer.Get(VexL.McpToolUndo)),
+            Tool("vex_redo", _localizer.Get(VexL.McpToolRedo)),
+            Tool("vex_list_files", _localizer.Get(VexL.McpToolListFiles)),
+            Tool("vex_create_document", _localizer.Get(VexL.McpToolCreateDocument), CreateDocumentSchema),
+            Tool("vex_refresh_preview", _localizer.Get(VexL.McpToolRefreshPreview)),
+            Tool("vex_get_rendered_html", _localizer.Get(VexL.McpToolGetRenderedHtml)),
+            Tool("vex_get_app_status", _localizer.Get(VexL.McpToolGetAppStatus)),
+            Tool("vex_get_operation_audit", _localizer.Get(VexL.McpToolGetAudit)),
+            Tool("vex_ui_get_state", _localizer.Get(VexL.McpToolUiGetState)),
+            Tool("vex_ui_set_theme", _localizer.Get(VexL.McpToolUiSetTheme), UiSetThemeSchema),
+            Tool("vex_ui_set_typography", _localizer.Get(VexL.McpToolUiSetTypography), UiSetTypographySchema),
+            Tool("vex_ui_set_language", _localizer.Get(VexL.McpToolUiSetLanguage), UiSetLanguageSchema),
+            Tool("vex_ui_set_layout", _localizer.Get(VexL.McpToolUiSetLayout), UiSetLayoutSchema),
+            Tool("vex_ui_show_sidebar_tab", _localizer.Get(VexL.McpToolUiShowSidebarTab), UiShowSidebarTabSchema),
+            Tool("vex_ui_open_panel", _localizer.Get(VexL.McpToolUiOpenPanel), UiOpenPanelSchema),
+            Tool("vex_ui_refresh_preview", _localizer.Get(VexL.McpToolUiRefreshPreview)),
+            Tool("vex_ui_apply_editor_command", _localizer.Get(VexL.McpToolUiApplyEditorCommand), UiApplyEditorCommandSchema),
+            Tool("vex_ui_export_current_document", _localizer.Get(VexL.McpToolUiExport), ExportCurrentDocumentSchema),
+            Tool("vex_ui_copy_rendered_html", _localizer.Get(VexL.McpToolUiCopyHtml), CopyRenderedHtmlSchema)
+        ];
+    }
 
     public async Task<McpToolCallResult> CallToolAsync(string name, JsonElement? arguments)
     {
@@ -124,6 +141,16 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
                 return await InsertTextAsync(Read(arguments, McpJsonContext.Default.InsertTextInput));
             case "vex_replace_selection":
                 return await ReplaceSelectionAsync(Read(arguments, McpJsonContext.Default.ReplaceSelectionInput));
+            case "vex_replace_text":
+                return await ReplaceTextAsync(Read(arguments, McpJsonContext.Default.ReplaceTextInput));
+            case "vex_undo":
+                return await UndoRedoAsync(undo: true, "vex_undo");
+            case "vex_redo":
+                return await UndoRedoAsync(undo: false, "vex_redo");
+            case "vex_list_files":
+                return ListFiles();
+            case "vex_create_document":
+                return await CreateDocumentAsync(Read(arguments, McpJsonContext.Default.CreateDocumentInput));
             case "vex_open_document":
                 return await OpenDocumentAsync(Read(arguments, McpJsonContext.Default.OpenDocumentInput));
             case "vex_save_current_document":
@@ -171,7 +198,8 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             document.FileName,
             _shell.Markdown,
             _shell.DocumentInfo.IsModified,
-            GetEncodingDisplayName(document.Encoding));
+            GetEncodingDisplayName(document.Encoding),
+            _shell.DocumentVersion);
     }
 
     private OutlineResult GetOutline()
@@ -197,6 +225,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             return new OperationResult("canceled", "operation rejected");
         }
 
+        PushUndoSnapshot();
         _shell.ReplaceMarkdownFromMcp(input.Markdown);
         return new OperationResult("ok", "document replaced");
     }
@@ -211,6 +240,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             return new OperationResult("canceled", "operation rejected");
         }
 
+        PushUndoSnapshot();
         _shell.ApplyTextEditFromMcp(input.StartOffset, input.Length, input.Replacement);
         return new OperationResult("ok", "text edit applied");
     }
@@ -225,6 +255,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             return new OperationResult("canceled", "operation rejected");
         }
 
+        PushUndoSnapshot();
         var offset = input.Offset ?? _shell.Markdown.Length;
         _shell.ApplyTextEditFromMcp(offset, 0, input.Text);
         return new OperationResult("ok", "text inserted");
@@ -246,8 +277,212 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             return new OperationResult("canceled", "operation rejected");
         }
 
+        PushUndoSnapshot();
         _shell.ApplyTextEditFromMcp(selection.StartOffset, selection.Length, input.Text);
         return new OperationResult("ok", "selection replaced");
+    }
+
+    private async Task<OperationResult> ReplaceTextAsync(ReplaceTextInput input)
+    {
+        if (string.IsNullOrEmpty(input.Find))
+        {
+            throw new InvalidOperationException("find must not be empty.");
+        }
+
+        var markdown = _shell.Markdown;
+        var occurrences = CountOccurrences(markdown, input.Find);
+        if (occurrences == 0)
+        {
+            throw new InvalidOperationException("target text not found.");
+        }
+
+        if (occurrences > 1 && !input.ReplaceAll)
+        {
+            throw new InvalidOperationException(
+                $"target text appears {occurrences} times; use a unique string or set replace_all.");
+        }
+
+        if (!await ConfirmIfRequiredAsync(
+                "vex_replace_text",
+                GetCurrentTargetName(),
+                (input.ReplaceAll ? $"replace all {occurrences} occurrence(s) of " : "replace occurrence of ")
+                + Summarize(input.Find)))
+        {
+            return new OperationResult("canceled", "operation rejected");
+        }
+
+        PushUndoSnapshot();
+        if (input.ReplaceAll)
+        {
+            _shell.ReplaceMarkdownFromMcp(markdown.Replace(input.Find, input.Replacement));
+            return new OperationResult("ok", $"replaced {occurrences} occurrence(s)");
+        }
+
+        var index = markdown.IndexOf(input.Find, StringComparison.Ordinal);
+        _shell.ApplyTextEditFromMcp(index, input.Find.Length, input.Replacement);
+        return new OperationResult("ok", "replaced");
+    }
+
+    private async Task<OperationResult> UndoRedoAsync(bool undo, string toolName)
+    {
+        if (!await ConfirmIfRequiredAsync(
+                toolName,
+                GetCurrentTargetName(),
+                undo ? "undo last MCP-applied change" : "redo last undone change"))
+        {
+            return new OperationResult("canceled", "operation rejected");
+        }
+
+        var currentPath = NormalizePathSeparators(GetCurrentTargetName());
+        var source = undo ? _undoStack : _redoStack;
+        if (source.Count == 0)
+        {
+            return new OperationResult("ok", undo ? "nothing to undo" : "nothing to redo");
+        }
+
+        var snapshot = source[^1];
+        if (!PathComparer.Equals(snapshot.FilePath, currentPath))
+        {
+            return new OperationResult("canceled", "the recorded change belongs to a different document");
+        }
+
+        source.RemoveAt(source.Count - 1);
+        var current = _shell.GetCurrentDocumentSnapshot();
+        var redoOrUndo = undo ? _redoStack : _undoStack;
+        redoOrUndo.Add(new McpEditSnapshot(currentPath, current.Markdown));
+        _shell.ReplaceMarkdownFromMcp(snapshot.Markdown);
+        return new OperationResult("ok", undo ? "undone" : "redone");
+    }
+
+    public ResourceListResult ListResources()
+    {
+        var document = _shell.GetCurrentDocumentSnapshot();
+        var resources = new List<ResourceEntryResult>
+        {
+            new("vex://current-document", document.FileName, "text/markdown", null)
+        };
+
+        foreach (var file in _shell.DocumentFiles)
+        {
+            resources.Add(new ResourceEntryResult(ResourceUriForPath(file.Path), file.Name, "text/markdown", null));
+        }
+
+        return new ResourceListResult(resources);
+    }
+
+    public ResourceReadResult ReadResource(string uri)
+    {
+        if (string.Equals(uri, "vex://current-document", StringComparison.Ordinal))
+        {
+            return new ResourceReadResult(uri, "text/markdown", _shell.Markdown);
+        }
+
+        const string filePrefix = "vex://file/";
+        if (!uri.StartsWith(filePrefix, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"Unknown resource uri: {uri}");
+        }
+
+        var path = ResolveAuthorizedDocumentPath(uri[filePrefix.Length..]);
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException("Resource not found.", path);
+        }
+
+        return new ResourceReadResult(uri, "text/markdown", File.ReadAllText(path));
+    }
+
+    private static string ResourceUriForPath(string path)
+    {
+        return "vex://file/" + path;
+    }
+
+    private ListFilesResult ListFiles()
+    {
+        var current = NormalizePathSeparators(GetCurrentTargetName());
+        var files = _shell.DocumentFiles
+            .Select(file => new FileEntryResult(
+                file.Path,
+                file.Name,
+                PathComparer.Equals(NormalizePathSeparators(file.Path), current)))
+            .ToArray();
+        return new ListFilesResult(_shell.WorkspaceFolderPath, files);
+    }
+
+    private static string? NormalizePathSeparators(string? path)
+    {
+        return path?.Replace('/', Path.DirectorySeparatorChar);
+    }
+
+    private async Task<OperationResult> CreateDocumentAsync(CreateDocumentInput input)
+    {
+        if (string.IsNullOrWhiteSpace(input.Path))
+        {
+            throw new InvalidOperationException("Document path is required.");
+        }
+
+        if (!_documentService.IsSupportedDocumentPath(input.Path))
+        {
+            throw new InvalidOperationException("Unsupported document path.");
+        }
+
+        var fullPath = ResolveAuthorizedDocumentPath(input.Path);
+        if (File.Exists(fullPath) && !input.Overwrite)
+        {
+            throw new InvalidOperationException("File already exists; set overwrite to replace it.");
+        }
+
+        if (!await ConfirmIfRequiredAsync(
+                "vex_create_document",
+                fullPath,
+                $"create document ({input.Content.Length} characters)"))
+        {
+            return new OperationResult("canceled", "operation rejected");
+        }
+
+        var directory = Path.GetDirectoryName(fullPath);
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        await File.WriteAllTextAsync(fullPath, input.Content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        var opened = await _shell.OpenPathFromMcpAsync(fullPath);
+        return opened
+            ? new OperationResult("ok", "document created and opened")
+            : new OperationResult("canceled", "document created; opening was rejected");
+    }
+
+    private void PushUndoSnapshot()
+    {
+        var document = _shell.GetCurrentDocumentSnapshot();
+        _undoStack.Add(new McpEditSnapshot(
+            NormalizePathSeparators(document.FilePath ?? document.FileName),
+            document.Markdown));
+        _redoStack.Clear();
+        if (_undoStack.Count > 50)
+        {
+            _undoStack.RemoveAt(0);
+        }
+    }
+
+    private static int CountOccurrences(string source, string value)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = source.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
+    }
+
+    private static string Summarize(string text)
+    {
+        var clipped = text.Length <= 40 ? text : text[..40] + "…";
+        return '"' + clipped + '"';
     }
 
     private async Task<OperationResult> SaveCurrentDocumentAsync()
@@ -387,10 +622,12 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         return toolName switch
         {
             "vex_get_current_document" or "vex_get_document_outline" or "vex_get_selection"
-                or "vex_get_rendered_html" or "vex_get_app_status" or "vex_ui_get_state" => "read",
+                or "vex_get_rendered_html" or "vex_get_app_status" or "vex_ui_get_state"
+                or "vex_list_files" => "read",
             "vex_replace_current_document" or "vex_apply_text_edit" or "vex_insert_text"
                 or "vex_replace_selection" => "edit",
             "vex_open_document" => "open",
+            "vex_create_document" => "create",
             "vex_save_current_document" => "save",
             "vex_ui_export_current_document" => "export",
             "vex_ui_copy_rendered_html" => "clipboard",
@@ -404,6 +641,10 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             or "vex_apply_text_edit"
             or "vex_insert_text"
             or "vex_replace_selection"
+            or "vex_replace_text"
+            or "vex_undo"
+            or "vex_redo"
+            or "vex_create_document"
             or "vex_open_document"
             or "vex_save_current_document"
             or "vex_ui_copy_rendered_html";
@@ -647,6 +888,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             RenderedHtmlResult value => JsonSerializer.Serialize(value, McpJsonContext.Default.RenderedHtmlResult),
             OperationResult value => JsonSerializer.Serialize(value, McpJsonContext.Default.OperationResult),
             OperationAuditResult value => JsonSerializer.Serialize(value, McpJsonContext.Default.OperationAuditResult),
+            ListFilesResult value => JsonSerializer.Serialize(value, McpJsonContext.Default.ListFilesResult),
             _ => JsonSerializer.Serialize(new OperationResult("ok", result.ToString()), McpJsonContext.Default.OperationResult)
         };
     }

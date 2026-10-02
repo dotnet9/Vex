@@ -29,7 +29,12 @@ public sealed record McpServerInfo(
     [property: JsonPropertyName("version")] string Version);
 
 public sealed record McpCapabilities(
-    [property: JsonPropertyName("tools")] McpToolsCapability Tools);
+    [property: JsonPropertyName("tools")] McpToolsCapability Tools,
+    [property: JsonPropertyName("resources")] McpResourcesCapability? Resources = null);
+
+public sealed record McpResourcesCapability(
+    [property: JsonPropertyName("subscribe")] bool SubscribeChanged,
+    [property: JsonPropertyName("listChanged")] bool ListChanged);
 
 public sealed record McpToolsCapability(
     [property: JsonPropertyName("listChanged")] bool ListChanged);
@@ -58,6 +63,12 @@ public sealed record EmptyInput;
 
 public sealed record ReplaceCurrentDocumentInput(string Markdown, string? Reason);
 
+public sealed record ReplaceTextInput(string Find, string Replacement, bool ReplaceAll);
+
+public sealed record CreateDocumentInput(string Path, string Content, bool Overwrite);
+
+public sealed record ResourceReadParams(string Uri);
+
 public sealed record ApplyTextEditInput(int StartOffset, int Length, string Replacement, string? Reason);
 
 public sealed record InsertTextInput(int? Offset, string Text);
@@ -84,7 +95,17 @@ public sealed record ExportCurrentDocumentInput(string Format);
 
 public sealed record CopyRenderedHtmlInput(string Target);
 
-public sealed record CurrentDocumentResult(string? FilePath, string FileName, string Markdown, bool IsDirty, string Encoding);
+public sealed record CurrentDocumentResult(string? FilePath, string FileName, string Markdown, bool IsDirty, string Encoding, long Version);
+
+public sealed record ListFilesResult(string? Root, IReadOnlyList<FileEntryResult> Files);
+
+public sealed record FileEntryResult(string Path, string Name, bool IsCurrent);
+
+public sealed record ResourceListResult(IReadOnlyList<ResourceEntryResult> Resources);
+
+public sealed record ResourceEntryResult(string Uri, string Name, string MimeType, string? Description);
+
+public sealed record ResourceReadResult(string Uri, string MimeType, string Text);
 
 public sealed record OutlineResult(IReadOnlyList<OutlineItemResult> Items);
 

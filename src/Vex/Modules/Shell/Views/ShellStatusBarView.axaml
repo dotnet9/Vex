@@ -34,6 +34,7 @@
                 <md:VexStatusBadge Label="{i18n:I18n {x:Static l:VexL.StatusColumn}}" Value="{Binding Status.CaretColumn}" />
                 <md:VexStatusBadge Label="{i18n:I18n {x:Static l:VexL.StatusWords}}" Value="{Binding DocumentInfo.Statistics.Words}" />
                 <md:VexStatusBadge Label="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" Value="{Binding DocumentInfo.Statistics.Characters}" />
+                <md:VexStatusBadge Label="MCP" Value="{Binding McpStatusText}" />
             </StackPanel>
         </Grid>
     </Border>

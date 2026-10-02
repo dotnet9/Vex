@@ -89,6 +89,8 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
 
     public void ShowMcpSettings() => Publish(ShellActionKind.ShowMcpSettings);
 
+    public void ShowMcpAudit() => Publish(ShellActionKind.ShowMcpAudit);
+
     private void Publish(ShellActionKind action, string? parameter = null)
     {
         // 标题栏菜单只表达用户意图，文档保存、未保存确认和文件 I/O 仍由 Shell 协调层统一处理。

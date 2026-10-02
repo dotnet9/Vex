@@ -1,5 +1,18 @@
 # 更新日志
 
+## 1.3.0 (2026-10-02)
+
+- ✨[新增]-MCP 新增 5 个工具：`vex_replace_text`（查找唯一串替换，告别易错的字符偏移）、`vex_undo` / `vex_redo`（AI 修改可撤销重做）、`vex_list_files`（列出工作区文件）、`vex_create_document`（授权范围内新建文档并打开），工具总数达 29 个。
+- ✨[新增]-MCP 实现协议 `resources` 能力：`resources/list`、`resources/read` 暴露当前文档与工作区文件（`vex://current-document`、`vex://file/<路径>`，读取同样受访问范围约束）。
+- ✨[新增]-附带 stdio 桥接脚本 `scripts/mcp_stdio_bridge.py`，标准 MCP 客户端（Claude Desktop / Cursor 等）经桥即可连接 Vex，README 提供各客户端接入配置示例。
+- ✨[新增]-帮助菜单新增"MCP 操作审计"窗口；审计记录持久化到 `%LOCALAPPDATA%\Vex\mcp-audit.jsonl`（超 1MB 自动轮转），重启不再丢失。
+- ✨[新增]-状态栏常驻 MCP 服务指示器（运行中/已停止），服务启停实时可见。
+- 🔨[优化]-MCP 工具描述接入四语言本地化（随界面语言切换）；`get_current_document` 返回自增文档版本号，用于检测并发编辑。
+- 🔨[优化]-Windows 安装器改为 per-user 安装（`PrivilegesRequired=lowest`），应用可持久化自身设置，修复安装到 Program Files 后主题等设置重启丢失的问题。
+- 📝[说明]-MCP 的 HTTP 端点基于 `HttpListener` 托管实现，理论上跨平台可用，但 linux/macOS 未经系统级实测；标准 MCP 客户端请使用 stdio 桥接脚本接入。
+
+---
+
 ## 1.2.0 (2026-10-02)
 
 - ✨[新增]-内置 MCP 本地 AI 协作服务：帮助菜单新增 MCP 设置入口，支持启用状态、监听地址、端口、授权 Token、访问范围（当前文档 / 当前文件夹 / 自定义文件夹）和确认策略配置；AI 客户端可通过本机回环 HTTP + Bearer Token 读取、编辑、保存当前文档并操作主题、排版、语言、布局等基础界面，暴露 24 个 OpenAI function calling 兼容命名的工具，编辑与保存类操作默认弹窗确认并记录操作审计。

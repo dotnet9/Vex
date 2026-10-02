@@ -40,7 +40,8 @@ SolidCompression=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 #endif
-PrivilegesRequired=admin
+; per-user 安装：应用以普通权限运行，可持久化自身设置（配置文件在安装目录内）。
+PrivilegesRequired=lowest
 ChangesAssociations=no
 CloseApplications=yes
 RestartApplications=yes

@@ -6,6 +6,8 @@ public interface IMcpServerHost
 
     string StatusText { get; }
 
+    event EventHandler? StatusChanged;
+
     Task ApplySettingsAsync();
 
     Task StopAsync();

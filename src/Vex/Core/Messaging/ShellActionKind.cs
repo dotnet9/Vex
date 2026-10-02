@@ -23,5 +23,6 @@ public enum ShellActionKind
     ShowFindPanel,
     ShowReplacePanel,
     WordCount,
-    ShowMcpSettings
+    ShowMcpSettings,
+    ShowMcpAudit
 }

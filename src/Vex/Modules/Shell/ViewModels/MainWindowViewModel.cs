@@ -32,6 +32,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     private IReadOnlyList<DocumentFile> _documentFiles = [];
     private string _lastSavedMarkdown = string.Empty;
     private string _markdown = string.Empty;
+    private long _documentVersion;
     private string? _currentWorkspaceFolderPath;
     private string? _watchedFilePath;
     private string? _watchedFolderPath;
@@ -218,6 +219,12 @@ public sealed class MainWindowViewModel : ReactiveObject
         set => SetMarkdown(value, refreshImmediately: true);
     }
 
+    public long DocumentVersion => _documentVersion;
+
+    public IReadOnlyList<DocumentFile> DocumentFiles => _documentFiles;
+
+    public string? WorkspaceFolderPath => _currentWorkspaceFolderPath;
+
     public DocumentSnapshot GetCurrentDocumentSnapshot()
     {
         return _document with { Markdown = Markdown };
@@ -265,6 +272,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
         this.RaiseAndSetIfChanged(ref _markdown, normalized);
         _document = _document with { Markdown = _markdown };
+        _documentVersion++;
 
         if (refreshImmediately)
         {

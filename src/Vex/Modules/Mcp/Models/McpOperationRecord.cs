@@ -8,4 +8,7 @@ public sealed record McpOperationRecord(
     bool RequiresConfirmation,
     bool Confirmed,
     bool Succeeded,
-    string? Error);
+    string? Error)
+{
+    public bool HasError => !string.IsNullOrEmpty(Error);
+}
