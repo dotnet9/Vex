@@ -21,6 +21,8 @@ public sealed class DocumentService : IDocumentService
         _localizer = localizer;
     }
 
+    public string? LastOpenedFolderPath { get; private set; }
+
     public DocumentSnapshot CreateNew()
     {
         var markdown = $"# {_localizer.Get(VexL.DocumentDefaultHeading)}\n\n{_localizer.Get(VexL.DocumentDefaultBody)}\n";
@@ -86,6 +88,7 @@ public sealed class DocumentService : IDocumentService
         });
 
         var folder = folders.Count > 0 ? folders[0].TryGetLocalPath() : null;
+        LastOpenedFolderPath = string.IsNullOrWhiteSpace(folder) ? null : Path.GetFullPath(folder);
         return string.IsNullOrWhiteSpace(folder)
             ? []
             : await OpenFolderPathAsync(folder);
@@ -95,8 +98,11 @@ public sealed class DocumentService : IDocumentService
     {
         if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder))
         {
+            LastOpenedFolderPath = null;
             return Task.FromResult<IReadOnlyList<DocumentFile>>([]);
         }
+
+        LastOpenedFolderPath = Path.GetFullPath(folder);
 
         return Task.Run<IReadOnlyList<DocumentFile>>(() =>
         {
@@ -110,7 +116,6 @@ public sealed class DocumentService : IDocumentService
             return Directory.EnumerateFiles(folder, "*.*", options)
                 // 与文件选择器保持一致，文件夹扫描也识别常见 Markdown 扩展名。
                 .Where(IsSupportedDocumentPath)
-                .Take(300)
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
                 .Select(path => _documentFileFactory.Create(path, folder))
                 .ToList();

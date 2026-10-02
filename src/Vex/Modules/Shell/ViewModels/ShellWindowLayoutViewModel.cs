@@ -17,10 +17,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _isPreviewVisible = true;
     private bool _isAlwaysOnTop;
     private bool _isFullScreen;
-    private bool _isSourceMode;
-    private bool _isApplyingSourceMode;
-    private bool _sidebarBeforeSourceMode = true;
-    private bool _previewBeforeSourceMode = true;
+    private bool _isSourceMode = true;
 
     public ShellWindowLayoutViewModel(
         IAppSettingsStore settingsStore,
@@ -32,9 +29,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _isSidebarVisible = settings.IsSidebarVisible ?? true;
         _isStatusBarVisible = settings.IsStatusBarVisible ?? true;
         _isPreviewVisible = settings.IsPreviewVisible ?? true;
+        _isSourceMode = settings.IsSourceMode ?? true;
         _isAlwaysOnTop = settings.IsAlwaysOnTop ?? false;
-        _sidebarBeforeSourceMode = _isSidebarVisible;
-        _previewBeforeSourceMode = _isPreviewVisible;
     }
 
     public bool IsSidebarVisible
@@ -81,9 +77,11 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
     public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(6) : new GridLength(0);
 
+    public GridLength SourceColumnWidth => IsSourceMode ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+
     public GridLength PreviewColumnWidth => IsPreviewVisible ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
 
-    public GridLength PreviewSplitterWidth => IsPreviewVisible ? new GridLength(6) : new GridLength(0);
+    public GridLength PreviewSplitterWidth => IsSourceMode && IsPreviewVisible ? new GridLength(6) : new GridLength(0);
 
     public bool IsAlwaysOnTop
     {
@@ -114,7 +112,15 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public bool IsSourceMode
     {
         get => _isSourceMode;
-        set => SetProperty(ref _isSourceMode, value);
+        set
+        {
+            if (SetProperty(ref _isSourceMode, value))
+            {
+                OnPropertyChanged(nameof(SourceColumnWidth));
+                OnPropertyChanged(nameof(PreviewSplitterWidth));
+                PersistLayoutSettings();
+            }
+        }
     }
 
     public void ToggleSidebar()
@@ -146,29 +152,13 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
     public void ToggleSourceMode()
     {
-        if (!IsSourceMode)
+        // 源代码模式现在只控制源码编辑面板，不再联动侧边栏或预览面板。
+        IsSourceMode = !IsSourceMode;
+        _statusPublisher.PublishResource(IsSourceMode ? VexL.StatusSourceModeEnabled : VexL.StatusSourceModeDisabled);
+        if (IsSourceMode)
         {
-            // 源码模式会临时隐藏侧栏和预览，退出时必须恢复用户原先的布局选择。
-            _sidebarBeforeSourceMode = IsSidebarVisible;
-            _previewBeforeSourceMode = IsPreviewVisible;
-            _isApplyingSourceMode = true;
-            IsSidebarVisible = false;
-            IsPreviewVisible = false;
-            _isApplyingSourceMode = false;
-            IsSourceMode = true;
-            _statusPublisher.PublishResource(VexL.StatusSourceModeEnabled);
             FocusEditor();
-            return;
         }
-
-        _isApplyingSourceMode = true;
-        IsSidebarVisible = _sidebarBeforeSourceMode;
-        IsPreviewVisible = _previewBeforeSourceMode;
-        _isApplyingSourceMode = false;
-        PersistLayoutSettings();
-        IsSourceMode = false;
-        _statusPublisher.PublishResource(VexL.StatusSourceModeDisabled);
-        FocusEditor();
     }
 
     public void ToggleAlwaysOnTop()
@@ -193,16 +183,12 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
     private void PersistLayoutSettings()
     {
-        if (_isApplyingSourceMode)
-        {
-            return;
-        }
-
         _settingsStore.Update(settings => settings with
         {
             IsSidebarVisible = IsSidebarVisible,
             IsStatusBarVisible = IsStatusBarVisible,
             IsPreviewVisible = IsPreviewVisible,
+            IsSourceMode = IsSourceMode,
             IsAlwaysOnTop = IsAlwaysOnTop
         });
     }

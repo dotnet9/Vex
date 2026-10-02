@@ -15,12 +15,12 @@ public partial class ShellFilesView : UserControl
 
     private void SelectItemOnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not ListBox listBox)
+        if (sender is not TreeView treeView)
         {
             return;
         }
 
-        var point = e.GetCurrentPoint(listBox);
+        var point = e.GetCurrentPoint(treeView);
         if (!point.Properties.IsRightButtonPressed)
         {
             return;
@@ -31,11 +31,11 @@ public partial class ShellFilesView : UserControl
             return;
         }
 
-        var item = source.FindAncestorOfType<ListBoxItem>();
-        if (item?.DataContext is DocumentFile documentFile
+        var item = source.FindAncestorOfType<TreeViewItem>();
+        if (item?.DataContext is DocumentFileNode documentFileNode
             && DataContext is ShellFilesViewModel viewModel)
         {
-            viewModel.SelectDocumentFileForContextMenu(documentFile);
+            viewModel.SelectDocumentFileForContextMenu(documentFileNode);
         }
     }
 }

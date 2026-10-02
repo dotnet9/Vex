@@ -13,7 +13,7 @@
     x:DataType="vm:MarkdownEditorViewModel"
     prism:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
-    <Border Background="{DynamicResource VexEditorBackgroundBrush}" Padding="34 28">
+    <Border Background="{DynamicResource VexEditorBackgroundBrush}" Padding="6 28 34 28">
         <edit:TextEditor
             x:Name="MarkdownEditor"
             Background="{DynamicResource VexEditorBackgroundBrush}"

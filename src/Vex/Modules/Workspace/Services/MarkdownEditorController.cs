@@ -113,6 +113,12 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
     }
 
     [EventHandler]
+    public void GetSelection(EditorSelectionQuery query)
+    {
+        query.Result = GetSelection();
+    }
+
+    [EventHandler]
     public void NavigateTo(NavigateToLineCommand command)
     {
         if (_editor?.Document is null)
@@ -130,17 +136,21 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
 
     private string GetSelectedText()
     {
+        return GetSelection().Text;
+    }
+
+    private EditorSelectionInfo GetSelection()
+    {
         if (_editor is null || _editor.SelectionLength <= 0)
         {
-            return string.Empty;
+            return new EditorSelectionInfo(string.Empty, 0, 0);
         }
 
         var text = _editor.Text ?? string.Empty;
         var start = Math.Clamp(_editor.SelectionStart, 0, text.Length);
         var length = Math.Clamp(_editor.SelectionLength, 0, text.Length - start);
-        return length > 0
-            ? text.Substring(start, length)
-            : string.Empty;
+        var selected = length > 0 ? text.Substring(start, length) : string.Empty;
+        return new EditorSelectionInfo(selected, start, length);
     }
 
     private void OnEditorTextChanged(object? sender, EventArgs e)

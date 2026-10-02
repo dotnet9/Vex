@@ -16,6 +16,8 @@ public sealed record AppSettings
 
     public bool? IsPreviewVisible { get; init; }
 
+    public bool? IsSourceMode { get; init; }
+
     public bool? IsAlwaysOnTop { get; init; }
 
     public int? SelectedSidebarTabIndex { get; init; }
@@ -26,7 +28,23 @@ public sealed record AppSettings
 
     public bool? HasSeenOnboardingGuide { get; init; }
 
+    public string? LastWorkspaceFolderPath { get; init; }
+
     public double? WindowWidth { get; init; }
 
     public double? WindowHeight { get; init; }
+
+    public bool? IsMcpServerEnabled { get; init; }
+
+    public string? McpServerHost { get; init; }
+
+    public int? McpServerPort { get; init; }
+
+    public string? McpAuthorizationToken { get; init; }
+
+    public string? McpAccessScope { get; init; }
+
+    public string? McpAllowedWorkspacePath { get; init; }
+
+    public bool? McpRequireConfirmation { get; init; }
 }

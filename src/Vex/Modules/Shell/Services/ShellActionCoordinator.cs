@@ -1,17 +1,22 @@
 using System.Diagnostics;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using CodeWF.EventBus;
 using Vex.Core.Messaging;
 using Vex.Modules.Shell.ViewModels;
+using Vex.Modules.Shell.Views;
 
 namespace Vex.Modules.Shell.Services;
 
 public sealed class ShellActionCoordinator
 {
     private readonly MainWindowViewModel _shell;
+    private readonly McpSettingsViewModel _mcpSettings;
 
-    public ShellActionCoordinator(MainWindowViewModel shell)
+    public ShellActionCoordinator(MainWindowViewModel shell, McpSettingsViewModel mcpSettings)
     {
         _shell = shell;
+        _mcpSettings = mcpSettings;
         CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
@@ -91,6 +96,9 @@ public sealed class ShellActionCoordinator
                 case ShellActionKind.WordCount:
                     _shell.WordCount();
                     break;
+                case ShellActionKind.ShowMcpSettings:
+                    ShowMcpSettings();
+                    break;
             }
         }
         catch (Exception exception)
@@ -115,5 +123,17 @@ public sealed class ShellActionCoordinator
         {
             Process.Start(new ProcessStartInfo(Environment.ProcessPath) { UseShellExecute = true });
         }
+    }
+
+    private void ShowMcpSettings()
+    {
+        var window = new McpSettingsWindow(_mcpSettings);
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } owner })
+        {
+            window.Show(owner);
+            return;
+        }
+
+        window.Show();
     }
 }

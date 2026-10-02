@@ -36,6 +36,8 @@
     <Content Include="..\..\UpdateLog.md" Link="UpdateLog.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\快速开始.md" Link="docs\快速开始.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\鸣谢.md" Link="docs\鸣谢.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\scripts\register_vex_context_menu.ps1" Link="register_vex_context_menu.ps1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\scripts\unregister_vex_context_menu.ps1" Link="unregister_vex_context_menu.ps1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" />

@@ -60,7 +60,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="{Binding Layout.SidebarColumnWidth}" MinWidth="0" />
                 <ColumnDefinition Width="{Binding Layout.SidebarSplitterWidth}" />
-                <ColumnDefinition Width="*" MinWidth="360" />
+                <ColumnDefinition Width="{Binding Layout.SourceColumnWidth}" MinWidth="0" />
                 <ColumnDefinition Width="{Binding Layout.PreviewSplitterWidth}" />
                 <ColumnDefinition Width="{Binding Layout.PreviewColumnWidth}" MinWidth="0" />
             </Grid.ColumnDefinitions>
@@ -88,7 +88,10 @@
                 IsVisible="{Binding Layout.IsSidebarVisible}"
                 ResizeDirection="Columns" />
 
-            <workspace:MarkdownEditorView x:Name="EditorGuideTarget" Grid.Column="2" />
+            <workspace:MarkdownEditorView
+                x:Name="EditorGuideTarget"
+                Grid.Column="2"
+                IsVisible="{Binding Layout.IsSourceMode}" />
 
             <GridSplitter
                 Grid.Column="3"

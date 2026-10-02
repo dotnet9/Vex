@@ -13,40 +13,54 @@
     regions:RegionTab.HeaderKey="{x:Static l:VexL.SidebarFiles}">
 
     <UserControl.DataTemplates>
-        <DataTemplate DataType="models:DocumentFile">
-            <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="3">
-                <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Classes="side-heading" Text="{Binding FolderName}" />
+        <TreeDataTemplate DataType="models:DocumentFileNode" ItemsSource="{Binding Children}">
+            <StackPanel>
+                <Grid
+                    MinHeight="26"
+                    ColumnDefinitions="*"
+                    IsVisible="{Binding IsFolder}">
                     <TextBlock
-                        Grid.Column="1"
-                        Classes="muted"
-                        FontSize="11"
-                        Text="{Binding ModifiedText}" />
+                        Classes="side-heading"
+                        FontWeight="SemiBold"
+                        Text="{Binding Name}"
+                        TextTrimming="CharacterEllipsis" />
                 </Grid>
-                <TextBlock
-                    Grid.Row="1"
-                    FontWeight="SemiBold"
-                    Text="{Binding Name}"
-                    TextTrimming="CharacterEllipsis" />
-                <TextBlock
-                    Grid.Row="2"
-                    Classes="muted"
-                    MaxHeight="38"
-                    Text="{Binding Preview}"
-                    TextTrimming="CharacterEllipsis"
-                    TextWrapping="Wrap" />
-            </Grid>
-        </DataTemplate>
+                <Grid
+                    RowDefinitions="Auto,Auto"
+                    RowSpacing="2"
+                    IsVisible="{Binding IsDocument}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock
+                            FontWeight="SemiBold"
+                            Text="{Binding Name}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Classes="muted"
+                            FontSize="11"
+                            Margin="8 0 0 0"
+                            Text="{Binding ModifiedText}" />
+                    </Grid>
+                    <TextBlock
+                        Grid.Row="1"
+                        Classes="muted"
+                        MaxHeight="34"
+                        Text="{Binding Preview}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="Wrap" />
+                </Grid>
+            </StackPanel>
+        </TreeDataTemplate>
     </UserControl.DataTemplates>
 
     <Grid>
-        <ListBox
-            Classes="side-list"
+        <TreeView
+            Classes="side-tree"
             IsVisible="{Binding HasDocumentFiles}"
-            ItemsSource="{Binding DocumentFiles}"
+            ItemsSource="{Binding DocumentFileNodes}"
             PointerPressed="SelectItemOnPointerPressed"
-            SelectedItem="{Binding SelectedDocumentFile, Mode=TwoWay}">
-            <ListBox.ContextMenu>
+            SelectedItem="{Binding SelectedDocumentFileNode, Mode=TwoWay}">
+            <TreeView.ContextMenu>
                 <ContextMenu>
                     <MenuItem
                         Header="{i18n:I18n {x:Static l:VexL.OpenFile}}"
@@ -67,8 +81,8 @@
                         Command="{Binding DeleteSelectedFile}"
                         IsEnabled="{Binding HasDocumentFileCommandTarget}" />
                 </ContextMenu>
-            </ListBox.ContextMenu>
-        </ListBox>
+            </TreeView.ContextMenu>
+        </TreeView>
         <Border
             IsVisible="{Binding IsDocumentFilesEmpty}"
             Padding="18"

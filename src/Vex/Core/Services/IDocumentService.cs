@@ -4,6 +4,8 @@ namespace Vex.Core.Services;
 
 public interface IDocumentService
 {
+    string? LastOpenedFolderPath { get; }
+
     DocumentSnapshot CreateNew();
 
     Task<DocumentSnapshot?> OpenAsync();

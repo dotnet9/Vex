@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -25,6 +26,7 @@ public partial class MarkdownEditorView : UserControl
     private void ConfigureEditorVisuals()
     {
         MarkdownEditor.Options.HighlightCurrentLine = true;
+        MarkdownEditor.TextArea.TextView.Margin = new Thickness(6, 0, 0, 0);
         MarkdownEditor.TextArea.TextView.CurrentLineBackground = GetBrush("VexEditorCurrentLineBackgroundBrush");
         MarkdownEditor.TextArea.TextView.CurrentLineBorder = new Pen(GetBrush("VexEditorCurrentLineBorderBrush"), 1);
     }

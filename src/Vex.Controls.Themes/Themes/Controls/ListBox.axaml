@@ -130,4 +130,43 @@
     <Style Selector="ListBox.side-list ListBoxItem:selected TextBlock.side-heading">
         <Setter Property="Foreground" Value="{DynamicResource ButtonSolidPrimaryBackground}" />
     </Style>
+
+    <Style Selector="TreeView.side-tree">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style Selector="TreeView.side-tree TreeViewItem">
+        <Setter Property="IsExpanded" Value="True" />
+        <Setter Property="Padding" Value="8 5" />
+        <Setter Property="MinHeight" Value="30" />
+    </Style>
+
+    <Style Selector="TreeView.side-tree TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
+    </Style>
+
+    <Style Selector="TreeView.side-tree TextBlock.muted">
+        <Setter Property="Foreground" Value="{DynamicResource MenuItemInputGestureTextForeground}" />
+    </Style>
+
+    <Style Selector="TreeView.side-tree TextBlock.side-heading">
+        <Setter Property="Foreground" Value="{DynamicResource TextBlockDisabledForeground}" />
+    </Style>
+
+    <Style Selector="TreeView.side-tree TreeViewItem:pointerover TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource ListBoxItemPointeroverForeground}" />
+    </Style>
+
+    <Style Selector="TreeView.side-tree TreeViewItem:selected TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource ListBoxItemSelectedForeground}" />
+    </Style>
+
+    <Style Selector="TreeView.side-tree TreeViewItem:selected TextBlock.muted">
+        <Setter Property="Foreground" Value="{DynamicResource MenuItemInputGestureTextForeground}" />
+    </Style>
+
+    <Style Selector="TreeView.side-tree TreeViewItem:selected TextBlock.side-heading">
+        <Setter Property="Foreground" Value="{DynamicResource ButtonSolidPrimaryBackground}" />
+    </Style>
 </Styles>
