@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>关于 Vex · Vex 界面原型</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<script src="../assets/theme.js"></script>
+<script src="../assets/interact.js"></script>
+<style>
+  .about-hero { display: flex; align-items: center; gap: 14px; padding: 28px 24px 0; }
+  .about-logo {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: var(--title-grad);
+    color: #fff; font-size: 22px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-pop);
+    flex: none;
+  }
+  .about-hero h2 { font-size: 20px; font-weight: 700; letter-spacing: .3px; }
+  .about-hero .slogan { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .about-rows { padding: 18px 24px 4px; }
+  .about-row {
+    display: grid; grid-template-columns: 76px 1fr; gap: 14px;
+    padding: 9px 0;
+    border-bottom: 1px dashed var(--splitter);
+    font-size: 12.5px; align-items: baseline;
+  }
+  .about-row:last-child { border-bottom: none; }
+  .about-row .k { color: var(--muted); }
+  .about-row .v { color: var(--value); }
+  .about-row .v.mono { font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; }
+  .ver-badge {
+    display: inline-flex; align-items: center;
+    font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 999px; padding: 1px 10px;
+  }
+  .about-link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; font-weight: 500; }
+  .about-foot {
+    padding: 14px 24px 22px;
+    font-size: 11.5px; color: var(--muted); line-height: 1.8;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .about-foot svg { width: 13px; height: 13px; flex: none; margin-top: 3px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .75; }
+</style>
+</head>
+<body data-page="window-about">
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+</defs></svg>
+
+<header class="proto-head">
+  <div class="proto-crumb"><a href="../index.html">Vex 界面原型</a> / 关于 Vex</div>
+  <h1>关于 Vex <span class="proto-tag">独立窗口</span></h1>
+  <p class="proto-desc">帮助菜单「关于 Vex」打开的小窗（固定尺寸，仅保留关闭按钮）。<b>本稿升级点</b>：① 顶部改为<b>品牌头</b>：渐变 Logo 方块 + 应用名 + Slogan，先建立品牌识别再看信息；② 版本号升级为强调色徽章、网站为强调色链接，键值行虚线分隔，与「文件属性」窗口同一套节奏；③ 底部技术栈描述弱化为辅助说明，主次分明。</p>
+</header>
+
+<main class="stage">
+  <div class="mini-window" style="width: 420px; margin: 0 auto;">
+    <div class="mini-titlebar">
+      关于 Vex
+      <span class="caption-btns">
+        <span class="caption-btn"><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+      </span>
+    </div>
+    <div class="about-hero">
+      <span class="about-logo">V</span>
+      <div>
+        <h2>Vex</h2>
+        <div class="slogan">极简之力，妙笔成章</div>
+      </div>
+    </div>
+    <div class="about-rows">
+      <div class="about-row"><span class="k">中文名</span><span class="v">维刻</span></div>
+      <div class="about-row"><span class="k">版本</span><span class="v"><span class="ver-badge">1.2.0</span></span></div>
+      <div class="about-row"><span class="k">编译时间</span><span class="v mono">2026-10-02 15:04</span></div>
+      <div class="about-row"><span class="k">作者</span><span class="v">沙漠尽头的狼</span></div>
+      <div class="about-row"><span class="k">网站</span><span class="v"><a class="about-link" href="#">https://codewf.com</a></span></div>
+      <div class="about-row"><span class="k">品牌</span><span class="v">CodeWF（码坊）</span></div>
+    </div>
+    <div class="about-foot">
+      <svg><use href="#i-info"/></svg>
+      <span>由 Avalonia、Prism 和 CodeWF 自研库驱动的 Markdown 编辑器。</span>
+    </div>
+  </div>
+</main>
+
+<script>
+  // 官网链接：原型内以提示代替真实跳转（App 中为系统浏览器打开）
+  document.querySelector('.about-link').addEventListener('click', function (e) {
+    e.preventDefault();
+    VexProto.toast('将在系统浏览器打开 https://codewf.com（演示）');
+  });
+</script>
+
+</body>
+</html>

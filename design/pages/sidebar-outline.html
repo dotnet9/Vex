@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大纲侧栏 · Vex 界面原型</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<script src="../assets/theme.js"></script>
+<script src="../assets/interact.js"></script>
+<style>
+  .outline-demo { display: flex; gap: 28px; flex-wrap: wrap; }
+  .side-mock {
+    width: 300px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-window);
+    background: var(--bg);
+    overflow: hidden;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+  }
+  .side-head { padding: 12px 14px 8px; display: flex; align-items: center; gap: 8px; }
+  .side-head h3 { font-size: 13.5px; font-weight: 700; }
+  .side-head .hint { margin-left: auto; font-size: 11px; color: var(--fg-disabled); }
+  .outline-meta { padding: 2px 14px 10px; font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .lv-h1 { font-weight: 700; }
+  .lv-h2 { padding-left: 24px; font-weight: 500; }
+  .lv-h3 { padding-left: 40px; color: var(--muted); }
+  .lv-h4 { padding-left: 54px; color: var(--muted); font-size: 12px; }
+  .progress-rail { margin: 10px 14px 14px; height: 4px; border-radius: 4px; background: var(--badge-bg); border: 1px solid var(--badge-border); position: relative; }
+  .progress-rail i { position: absolute; left: 0; top: 0; bottom: 0; width: 38%; border-radius: 4px; background: var(--accent); }
+</style>
+</head>
+<body data-page="sidebar-outline">
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+  <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+</defs></svg>
+
+<header class="proto-head">
+  <div class="proto-crumb"><a href="../index.html">Vex 界面原型</a> / 大纲侧栏</div>
+  <h1>大纲侧栏 <span class="proto-tag">标题导航 + 阅读位置</span></h1>
+  <p class="proto-desc">按 Markdown 标题层级生成的大纲导航。<b>本稿升级点</b>：① 每级标题带 H1–H4 角标与渐进缩进，长文档结构一目了然；② 当前光标所在章节用主题色高亮；③ 底部新增<b>阅读进度条</b>（新增能力），随滚动更新当前章节百分比；④ 空状态引导用户先写标题。</p>
+</header>
+
+<main class="stage">
+  <div class="outline-demo">
+    <!-- 完整形态 -->
+    <div class="side-mock">
+      <div class="side-head">
+        <h3>大纲</h3>
+        <span class="hint">11 个标题</span>
+      </div>
+      <div class="outline-meta"><svg class="ico" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><use href="#i-list"/></svg>当前章节：设计原则 · 38%</div>
+      <div class="side-body">
+        <div class="outline-row lv-h1"><span class="lv">H1</span>主题设计笔记</div>
+        <div class="outline-row lv-h2 on"><span class="lv">H2</span>设计原则</div>
+        <div class="outline-row lv-h3"><span class="lv">H3</span>保持沉浸感</div>
+        <div class="outline-row lv-h3"><span class="lv">H3</span>降低视觉噪音</div>
+        <div class="outline-row lv-h2"><span class="lv">H2</span>主题色体系</div>
+        <div class="outline-row lv-h3"><span class="lv">H3</span>中性色梯度</div>
+        <div class="outline-row lv-h3"><span class="lv">H3</span>强调色与语义色</div>
+        <div class="outline-row lv-h4"><span class="lv">H4</span>对比度检查</div>
+        <div class="outline-row lv-h2"><span class="lv">H2</span>排版与字距</div>
+        <div class="outline-row lv-h2"><span class="lv">H2</span>导出一致性</div>
+        <div class="outline-row lv-h1"><span class="lv">H1</span>附录：令牌清单</div>
+      </div>
+      <div class="progress-rail"><i></i></div>
+    </div>
+
+    <!-- 空状态 -->
+    <div class="side-mock">
+      <div class="side-head">
+        <h3>大纲</h3>
+      </div>
+      <div class="side-body">
+        <div class="empty-hint" style="margin-top: 180px;">
+          <svg class="ico" style="width: 34px; height: 34px; opacity: .5; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; display:block; margin: 0 auto 10px;"><use href="#i-list"/></svg>
+          暂无标题<br>
+          <span style="font-size: 11.5px;">使用 <span class="kbd">#</span> 添加标题后，这里会自动生成可跳转的大纲</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // 点击大纲项 → 当前章节高亮 + 状态行与阅读进度条联动
+  var rows = document.querySelectorAll('.side-mock')[0].querySelectorAll('.outline-row');
+  var meta = document.querySelector('.outline-meta');
+  var bar = document.querySelector('.progress-rail i');
+  var total = rows.length;
+  rows.forEach(function (row, i) {
+    row.addEventListener('click', function () {
+      rows.forEach(function (r) { r.classList.remove('on'); });
+      row.classList.add('on');
+      var name = row.textContent.replace(/^H[1-4]/, '').trim();
+      var pct = Math.round(((i + 1) / total) * 100);
+      meta.innerHTML = '<svg class="ico" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><use href="#i-list"/></svg>当前章节：' + name + ' · ' + pct + '%';
+      bar.style.width = pct + '%';
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>字数统计 · Vex 界面原型</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<script src="../assets/theme.js"></script>
+<script src="../assets/interact.js"></script>
+<style>
+  .stat-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 18px 24px 4px; }
+  .stat-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px 10px;
+  }
+  .stat-card .num { font-size: 24px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stat-card .lbl { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .stat-rows { padding: 12px 24px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--splitter); font-size: 12.5px; }
+  .stat-row .k { color: var(--muted); }
+  .stat-row .v { font-weight: 600; color: var(--value); font-variant-numeric: tabular-nums; }
+  .stat-row .v.mono { font-size: 12px; }
+</style>
+</head>
+<body data-page="window-statistics">
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
+</defs></svg>
+
+<header class="proto-head">
+  <div class="proto-crumb"><a href="../index.html">Vex 界面原型</a> / 字数统计</div>
+  <h1>字数统计 <span class="proto-tag">独立窗口</span></h1>
+  <p class="proto-desc">视图菜单「字数统计窗口」打开的小窗。<b>本稿升级点</b>：① 词数 / 字符两个核心指标放大为<b>指标卡</b>，数字使用等宽数字字体（tabular-nums）避免跳动；② 其余指标两列排布，虚线分隔更轻盈；③ 阅读时间按中文 300 字/分钟估算并在悬停时说明口径。</p>
+</header>
+
+<main class="stage">
+  <div class="mini-window" style="width: 360px; margin: 0 auto;">
+    <div class="mini-titlebar">
+      统计
+      <span class="caption-btns">
+        <span class="caption-btn"><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+      </span>
+    </div>
+    <div class="stat-hero">
+      <div class="stat-card">
+        <div class="num">328</div>
+        <div class="lbl">词数</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">1,892</div>
+        <div class="lbl">字符</div>
+      </div>
+    </div>
+    <div class="stat-rows">
+      <div class="stat-row"><span class="k">行数</span><span class="v">57</span></div>
+      <div class="stat-row"><span class="k">段落</span><span class="v">12</span></div>
+      <div class="stat-row"><span class="k">标题</span><span class="v">6</span></div>
+      <div class="stat-row"><span class="k">阅读时间</span><span class="v">约 1 分钟</span></div>
+      <div class="stat-row"><span class="k">编码</span><span class="v mono">UTF-8</span></div>
+      <div class="stat-row"><span class="k">状态</span><span class="v">已保存</span></div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

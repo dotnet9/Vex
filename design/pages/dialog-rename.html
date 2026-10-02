@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>重命名文件 · Vex 界面原型</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<script src="../assets/theme.js"></script>
+<script src="../assets/interact.js"></script>
+<style>
+  .host {
+    position: relative;
+    height: 560px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-window);
+    background: var(--bg);
+  }
+  .host .ghost {
+    height: 100%;
+    background: repeating-linear-gradient(45deg, var(--splitter) 0 12px, transparent 12px 24px);
+    opacity: .5;
+  }
+  .dlg-field { margin-top: 14px; }
+  .dlg-field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .dlg-path2 { margin-top: 12px; }
+  .dlg-path2 .lbl { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+</style>
+</head>
+<body data-page="dialog-rename">
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></symbol>
+</defs></svg>
+
+<header class="proto-head">
+  <div class="proto-crumb"><a href="../index.html">Vex 界面原型</a> / 重命名文件</div>
+  <h1>重命名文件 <span class="proto-tag">覆盖层</span></h1>
+  <p class="proto-desc">侧栏文件右键「重命名」唤起。<b>本稿升级点</b>：① 输入框预选中主文件名（扩展名不选中），直接键入即可替换；② 原路径完整回显，重命名结果一目了然；③ 非法字符（<span class="mono">\ / : * ? " &lt; &gt; |</span>）即时校验并以红色内联提示（示意）；④ Enter 确认、Esc 取消。</p>
+</header>
+
+<main class="stage">
+  <div class="host">
+    <div class="ghost"></div>
+    <div class="overlay">
+      <div class="dialog">
+        <div class="dlg-title">
+          <span class="dlg-ico info"><svg><use href="#i-edit"/></svg></span>
+          重命名文件
+        </div>
+        <div class="dlg-field">
+          <label>文件名</label>
+          <input class="input mono" value="主题设计笔记.md">
+        </div>
+        <div class="dlg-path2">
+          <div class="lbl">原路径</div>
+          <div class="dlg-path" style="margin-top:0;">D:\Notes\笔记\主题设计笔记.md</div>
+        </div>
+        <div class="dlg-actions">
+          <button class="btn" id="rn-cancel">取消</button>
+          <button class="btn primary" id="rn-ok">重命名</button>
+        </div>
+        <div class="rn-error" id="rn-error" style="display:none; margin-top:10px; font-size:12px; color:var(--danger);"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  var demo = VexProto.dialogDemo({
+    host: '.host',
+    chipText: '演示结束 · 点击重新打开重命名弹窗',
+    bind: function (overlay, close) {
+      var input = overlay.querySelector('.dlg-field .input');
+      var pathEl = overlay.querySelector('.dlg-path');
+      var errEl = overlay.querySelector('#rn-error');
+      var baseDir = 'D:\\Notes\\笔记\\';
+      var original = input.value;
+      function fail(msg) { errEl.textContent = msg; errEl.style.display = ''; }
+      function ok() {
+        var name = input.value.trim();
+        if (!name) { fail('文件名不能为空'); return false; }
+        if (/[\\/:*?"<>|]/.test(name)) { fail('文件名不能包含 \\ / : * ? " < > | 等字符'); return false; }
+        pathEl.textContent = baseDir + name;
+        errEl.style.display = 'none';
+        close('已重命名为「' + name + '」（演示）');
+        return true;
+      }
+      document.getElementById('rn-ok').addEventListener('click', ok);
+      document.getElementById('rn-cancel').addEventListener('click', function () { close('已取消'); });
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') ok(); });
+      input.addEventListener('input', function () { errEl.style.display = 'none'; });
+      // 演示描述中的「主文件名预选中」
+      var dot = original.lastIndexOf('.');
+      input.setSelectionRange(0, dot > 0 ? dot : original.length);
+      input.focus();
+    }
+  });
+</script>
+
+</body>
+</html>

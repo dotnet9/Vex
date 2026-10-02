@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>查找替换 · Vex 界面原型</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<script src="../assets/theme.js"></script>
+<script src="../assets/interact.js"></script>
+<style>
+  .find-stage {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-window);
+    background: var(--bg);
+    height: 560px;
+    display: flex;
+    flex-direction: column;
+  }
+  .find-stage .editor { flex: 1; }
+  .hl { background: color-mix(in srgb, var(--accent) 22%, transparent); border-radius: 3px; }
+  .hl.active { background: var(--accent); color: var(--accent-fg); border-radius: 3px; }
+  .fb-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fb-row + .fb-row { margin-top: 8px; }
+  .fb-count-chip {
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 5px;
+    padding: 0 6px;
+    line-height: 17px;
+    white-space: nowrap;
+  }
+  .legend { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 18px; }
+  .legend .lg { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--muted); max-width: 240px; line-height: 1.7; }
+  .legend .lg .num {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-fg);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex: none; margin-top: 2px;
+  }
+</style>
+</head>
+<body data-page="find-replace">
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></symbol>
+</defs></svg>
+
+<header class="proto-head">
+  <div class="proto-crumb"><a href="../index.html">Vex 界面原型</a> / 查找替换</div>
+  <h1>查找替换栏 <span class="proto-tag">替换模式展开态</span></h1>
+  <p class="proto-desc">编辑器顶部的查找 / 替换栏（Ctrl+F / Ctrl+H 唤起）。<b>本稿升级点</b>：① 查找框内右侧集成「当前 / 总数」命中徽章，替代独立计数控件；② Aa（区分大小写）、W（整词）、.*（正则）由复选框改为<b>图标化开关</b>，激活态用主题色填充，可发现性更强；③ 主操作（下一个 / 替换 / 全部）用主题色实心与描边按钮分级；④ 循环查找、未命中（0 结果）用彩色提示芯片反馈。下方编辑器内演示命中高亮与当前命中。</p>
+</header>
+
+<main class="stage">
+  <div class="find-stage">
+    <!-- 重新打开提示（关闭查找栏后显示） -->
+    <span class="reopen-chip" id="reopen-find" style="display:none;">查找栏已关闭 · 点击或 Ctrl+F 重新打开</span>
+    <!-- 查找替换栏 -->
+    <div class="findbar" id="findbar" style="flex-direction: column; align-items: stretch;">
+      <div class="fb-row">
+        <span class="fb-label">查找</span>
+        <span class="fb-field">
+          <input class="input" id="find-input" style="padding-right: 64px;" value="主题" placeholder="文本">
+          <span class="fb-count-chip" id="hit-chip" style="position:absolute; right:8px; top:50%; transform:translateY(-50%);">2 / 3</span>
+        </span>
+        <button class="btn primary sm" id="btn-next">下一个</button>
+        <button class="btn sm" id="btn-prev" title="上一个"><svg class="ico" style="width:13px;height:13px"><use href="#i-up"/></svg></button>
+        <span style="flex:1"></span>
+        <button class="opt-toggle on" title="区分大小写">Aa</button>
+        <button class="opt-toggle" title="整词匹配">W</button>
+        <button class="opt-toggle" title="正则匹配">.*</button>
+        <span class="tb-sep" style="height:20px"></span>
+        <button class="btn ghost sm" id="btn-close" title="关闭"><svg class="ico" style="width:14px;height:14px"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="fb-row">
+        <span class="fb-label">替换</span>
+        <span class="fb-field"><input class="input" id="replace-input" value="配色" placeholder="文本"></span>
+        <button class="btn sm" id="btn-replace">替换</button>
+        <button class="btn sm" id="btn-replace-all">全部替换</button>
+        <span class="badge accent" id="loop-badge" title="已到达文档末尾，将从开头继续循环查找">↻ 循环查找</span>
+      </div>
+    </div>
+
+    <!-- 编辑器 -->
+    <div class="editor">
+      <div class="ed-line"><span class="ed-lno">1</span><span class="ed-text"><span class="tok-marker"># </span><span class="tok-h">主题设计笔记</span></span></div>
+      <div class="ed-line"><span class="ed-lno">2</span><span class="ed-text"></span></div>
+      <div class="ed-line"><span class="ed-lno">3</span><span class="ed-text"><span class="tok-marker">**</span><span class="tok-bold">Vex</span><span class="tok-marker">**</span> 的 <span class="hl">主题</span> 系统基于 Semi 设计令牌。</span></div>
+      <div class="ed-line"><span class="ed-lno">4</span><span class="ed-text"></span></div>
+      <div class="ed-line"><span class="ed-lno">5</span><span class="ed-text"><span class="tok-marker">## </span><span class="tok-h">六套 <span class="hl active">主题</span> 色</span></span></div>
+      <div class="ed-line"><span class="ed-lno">6</span><span class="ed-text"></span></div>
+      <div class="ed-line"><span class="ed-lno">7</span><span class="ed-text">浅色、深色、水生、沙漠、黄昏、夜空 —— 每套 <span class="hl">主题</span> 都包含</span></div>
+      <div class="ed-line"><span class="ed-lno">8</span><span class="ed-text">面板、边框、强调色与代码块等三十余个颜色令牌。</span></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="lg"><span class="num">1</span>命中计数徽章显示「当前命中 / 总命中」，随输入实时刷新，正则无效时显示错误。</div>
+    <div class="lg"><span class="num">2</span>Aa / W / .* 开关激活时使用主题色底色，鼠标悬停有文字提示（区分大小写 / 整词匹配 / 正则匹配）。</div>
+    <div class="lg"><span class="num">3</span>编辑器内命中项浅色高亮、当前命中实心高亮，两者在六套主题下均保持可读对比。</div>
+    <div class="lg"><span class="num">4</span>替换行仅在替换模式（Ctrl+H）出现；「循环查找 / 0 结果」等状态用芯片提示，不打断输入。</div>
+  </div>
+</main>
+
+<script>
+  // 开关：Aa / W / .* 点击切换激活态
+  document.querySelectorAll('.opt-toggle').forEach(function (t) {
+    t.addEventListener('click', function () {
+      t.classList.toggle('on');
+      VexProto.toast('「' + t.title + '」已' + (t.classList.contains('on') ? '开启' : '关闭'));
+    });
+  });
+
+  // 命中循环 / 替换（编辑器中的 .hl 即命中项）
+  var hits = Array.prototype.slice.call(document.querySelectorAll('.editor .hl'));
+  var current = Math.max(0, hits.findIndex(function (h) { return h.classList.contains('active'); }));
+  var chip = document.getElementById('hit-chip');
+  var badge = document.getElementById('loop-badge');
+  function refresh() {
+    if (hits.length === 0) {
+      chip.textContent = '0 / 0';
+      chip.style.background = 'var(--danger-soft)';
+      chip.style.color = 'var(--danger)';
+      badge.textContent = '⚠ 0 结果';
+      badge.classList.remove('accent');
+      badge.style.background = 'var(--danger-soft)';
+      badge.style.color = 'var(--danger)';
+      return;
+    }
+    if (current >= hits.length) current = 0;
+    hits.forEach(function (h) { h.classList.remove('active'); });
+    hits[current].classList.add('active');
+    chip.textContent = (current + 1) + ' / ' + hits.length;
+  }
+  function move(step) {
+    if (!hits.length) return;
+    var prev = current;
+    current = (current + step + hits.length) % hits.length;
+    refresh();
+    if (step > 0 && current < prev) VexProto.toast('已到达文档末尾，从开头继续循环查找');
+    if (step < 0 && current > prev) VexProto.toast('已到达文档开头，从末尾继续循环查找');
+  }
+  document.getElementById('btn-next').addEventListener('click', function () { move(1); });
+  document.getElementById('btn-prev').addEventListener('click', function () { move(-1); });
+  document.getElementById('find-input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') move(1);
+  });
+  document.getElementById('btn-replace').addEventListener('click', function () {
+    if (!hits.length) { VexProto.toast('没有可替换的命中'); return; }
+    var hit = hits.splice(current, 1)[0];
+    hit.textContent = document.getElementById('replace-input').value || '配色';
+    hit.classList.remove('hl', 'active');
+    refresh();
+    VexProto.toast('已替换当前命中（' + hits.length + ' 处剩余）');
+  });
+  document.getElementById('btn-replace-all').addEventListener('click', function () {
+    if (!hits.length) { VexProto.toast('没有可替换的命中'); return; }
+    var n = hits.length;
+    hits.forEach(function (h) { h.textContent = document.getElementById('replace-input').value || '配色'; h.classList.remove('hl', 'active'); });
+    hits = [];
+    refresh();
+    VexProto.toast('已全部替换（共 ' + n + ' 处）');
+  });
+
+  // 关闭 / 重新打开（Ctrl+F / Ctrl+H）
+  var bar = document.getElementById('findbar');
+  var reopen = document.getElementById('reopen-find');
+  function showBar() { bar.style.display = ''; reopen.style.display = 'none'; }
+  document.getElementById('btn-close').addEventListener('click', function () {
+    bar.style.display = 'none';
+    reopen.style.display = '';
+  });
+  reopen.addEventListener('click', showBar);
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'h')) { e.preventDefault(); showBar(); }
+  });
+
+  refresh();
+</script>
+
+</body>
+</html>

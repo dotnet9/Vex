@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>文件属性 · Vex 界面原型</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<script src="../assets/theme.js"></script>
+<script src="../assets/interact.js"></script>
+<style>
+  .prop-head { display: flex; align-items: center; gap: 14px; padding: 20px 24px 14px; }
+  .prop-head .f-ico {
+    width: 44px; height: 44px;
+    border-radius: 11px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex: none;
+  }
+  .prop-head .f-ico svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .prop-head h2 { font-size: 15.5px; font-weight: 700; word-break: break-all; }
+  .prop-head .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .prop-rows { padding: 4px 24px 22px; }
+  .prop-row { display: grid; grid-template-columns: 76px 1fr; gap: 14px; padding: 9px 0; border-bottom: 1px dashed var(--splitter); font-size: 12.5px; }
+  .prop-row:last-child { border-bottom: none; }
+  .prop-row .k { color: var(--muted); }
+  .prop-row .v { color: var(--value); word-break: break-all; }
+  .prop-row .v.path { font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px; color: var(--muted); display: flex; align-items: flex-start; gap: 8px; }
+  .copy-btn {
+    appearance: none; border: 1px solid var(--border); background: var(--panel);
+    color: var(--muted); border-radius: 6px; padding: 2px 7px;
+    font-size: 11px; cursor: pointer; flex: none; margin-top: -2px;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .pill-ok {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 600;
+    color: var(--success);
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    border-radius: 999px; padding: 1px 9px;
+  }
+  .pill-ok::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+</style>
+</head>
+<body data-page="window-properties">
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+</defs></svg>
+
+<header class="proto-head">
+  <div class="proto-crumb"><a href="../index.html">Vex 界面原型</a> / 文件属性</div>
+  <h1>文件属性 <span class="proto-tag">独立窗口</span></h1>
+  <p class="proto-desc">文件菜单「属性...」（Alt+Enter）打开的小窗。<b>本稿升级点</b>：① 顶部为文件图标 + 名称 + 所在目录的「文件头」，先认文件再看属性；② 状态用绿色圆点胶囊表达「已保存 / 未保存修改」，替代纯文字；③ 路径支持一键复制；④ 键值行虚线分隔，等宽字体用于编码、大小、路径等技术值。</p>
+</header>
+
+<main class="stage">
+  <div class="mini-window" style="width: 520px; margin: 0 auto;">
+    <div class="mini-titlebar">
+      属性
+      <span class="caption-btns">
+        <span class="caption-btn"><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+      </span>
+    </div>
+    <div class="prop-head">
+      <span class="f-ico"><svg><use href="#i-file"/></svg></span>
+      <div>
+        <h2>主题设计笔记.md</h2>
+        <div class="sub">D:\Notes\笔记</div>
+      </div>
+    </div>
+    <div class="prop-rows">
+      <div class="prop-row"><span class="k">状态</span><span class="v"><span class="pill-ok">已保存</span></span></div>
+      <div class="prop-row"><span class="k">编码</span><span class="v mono">UTF-8</span></div>
+      <div class="prop-row"><span class="k">大小</span><span class="v">4.2 KB（4,318 字节）</span></div>
+      <div class="prop-row">
+        <span class="k">路径</span>
+        <span class="v path">
+          <span>D:\Notes\笔记\主题设计笔记.md</span>
+          <button class="copy-btn" id="copy-path">复制</button>
+        </span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // 路径一键复制（对应升级点 ③）
+  document.getElementById('copy-path').addEventListener('click', function () {
+    var text = 'D:\\Notes\\笔记\\主题设计笔记.md';
+    if (navigator.clipboard) navigator.clipboard.writeText(text);
+    this.textContent = '已复制';
+    var btn = this;
+    setTimeout(function () { btn.textContent = '复制'; }, 1400);
+    VexProto.toast('完整路径已复制到剪贴板');
+  });
+</script>
+
+</body>
+</html>

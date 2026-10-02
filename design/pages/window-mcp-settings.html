@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP 设置 · Vex 界面原型</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<script src="../assets/theme.js"></script>
+<script src="../assets/interact.js"></script>
+<style>
+  .settings-win { width: 620px; margin: 0 auto; }
+  .set-head { padding: 20px 24px 4px; display: flex; align-items: center; gap: 14px; }
+  .set-head .s-ico {
+    width: 44px; height: 44px; border-radius: 11px;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+  }
+  .set-head .s-ico svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .set-head h2 { font-size: 16.5px; font-weight: 700; }
+  .set-head .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .enable-row {
+    margin: 14px 24px 0;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 5%, var(--panel));
+  }
+  .enable-row .et { font-weight: 600; font-size: 13px; }
+  .enable-row .ed { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .enable-row .switch { margin-left: auto; }
+  .set-body { padding: 14px 24px 6px; display: flex; flex-direction: column; gap: 12px; }
+  .form-grid { display: grid; grid-template-columns: 108px 1fr; gap: 10px 14px; align-items: center; }
+  .form-grid > .k { font-size: 12.5px; color: var(--muted); text-align: right; }
+  .input-group { display: flex; gap: 8px; align-items: center; }
+  .endpoint {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 6px 5px 10px;
+  }
+  .endpoint code { flex: 1; font-size: 12px; color: var(--value); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .status-line {
+    margin: 2px 24px 0;
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12px; color: var(--success);
+  }
+  .status-line::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 18%, transparent); }
+  .set-foot {
+    margin-top: 16px;
+    padding: 12px 24px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 10px;
+    background: var(--statusbar-bg);
+  }
+</style>
+</head>
+<body data-page="window-mcp-settings">
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+</defs></svg>
+
+<header class="proto-head">
+  <div class="proto-crumb"><a href="../index.html">Vex 界面原型</a> / MCP 设置</div>
+  <h1>MCP 设置 <span class="proto-tag">独立窗口</span></h1>
+  <p class="proto-desc">帮助菜单「MCP 设置」打开的配置窗口。<b>本稿升级点</b>：① 启用状态由复选框升级为<b>开关</b>并前置为独立卡片，卡片底色随启用状态染色；② 连接信息（地址 / 端口 / Token / 端点）分组呈现，Token 掩码显示、可生成 / 复制；③ 端点以只读芯片展示并一键复制；④ 访问范围保留三选一，自定义目录在选中后才展开路径输入（示意）；⑤ 底部状态行显示运行中指示灯。</p>
+</header>
+
+<main class="stage" style="display: flex; justify-content: center;">
+  <div class="mini-window settings-win">
+    <div class="mini-titlebar">
+      MCP 设置
+      <span class="caption-btns">
+        <span class="caption-btn"><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+      </span>
+    </div>
+
+    <div class="set-head">
+      <span class="s-ico"><svg><use href="#i-terminal"/></svg></span>
+      <div>
+        <h2>MCP 设置</h2>
+        <div class="sub">允许 AI 客户端通过本机 MCP 接口读取和操作当前文档。</div>
+      </div>
+    </div>
+
+    <div class="enable-row">
+      <div>
+        <div class="et">启用 MCP Server</div>
+        <div class="ed">仅监听本机地址，通过 Bearer Token 鉴权</div>
+      </div>
+      <button class="switch on" aria-label="启用 MCP Server"></button>
+    </div>
+
+    <div class="set-body">
+      <div class="form-grid">
+        <span class="k">监听地址</span>
+        <input class="input mono" value="127.0.0.1">
+        <span class="k">端口</span>
+        <input class="input mono" value="17891" style="width: 120px;">
+        <span class="k">授权 Token</span>
+        <span class="input-group">
+          <input class="input mono" type="password" value="vx_9f3ac21e77b04d5c8a12" style="font-family: inherit;">
+          <button class="btn sm" title="重新生成"><svg class="ico" style="width:13px;height:13px"><use href="#i-refresh"/></svg>生成</button>
+          <button class="btn sm"><svg class="ico" style="width:13px;height:13px"><use href="#i-copy"/></svg>复制</button>
+        </span>
+        <span class="k">端点</span>
+        <span class="endpoint">
+          <code class="mono">http://127.0.0.1:17891/mcp/</code>
+          <button class="btn sm ghost" style="border:1px solid var(--border)"><svg class="ico" style="width:13px;height:13px"><use href="#i-copy"/></svg>复制地址</button>
+        </span>
+      </div>
+
+      <div class="field-card">
+        <h3>允许访问范围</h3>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <label class="radio"><input type="radio" name="scope" value="doc" checked><span class="dot"></span>仅当前文档</label>
+          <label class="radio"><input type="radio" name="scope" value="folder"><span class="dot"></span>当前打开文件夹</label>
+          <label class="radio"><input type="radio" name="scope" value="custom"><span class="dot"></span>自定义目录</label>
+          <input class="input mono" id="custom-dir" placeholder="自定义目录路径，例如 D:\Notes" style="max-width: 360px;" disabled>
+        </div>
+      </div>
+
+      <label class="check" style="margin-top: 2px;">
+        <input type="checkbox" checked><span class="box"></span>
+        修改、删除、打开外部路径前需要确认
+      </label>
+    </div>
+
+    <div class="status-line" id="mcp-status" style="margin-left: 24px; margin-bottom: 6px;">服务运行中 · 最近调用 2 分钟前</div>
+
+    <div class="set-foot">
+      <button class="btn" id="mcp-cancel">取消</button>
+      <button class="btn primary" id="mcp-save">保存</button>
+    </div>
+  </div>
+</main>
+
+<script>
+  var enableSwitch = document.querySelector('.enable-row .switch');
+  var enableRow = document.querySelector('.enable-row');
+  var setBody = document.querySelector('.set-body');
+  var statusLine = document.getElementById('mcp-status');
+  var enabled = true;
+
+  // 启用开关：关闭时表单禁用、状态灯熄灭（对应升级点 ①）
+  enableSwitch.addEventListener('click', function () {
+    enabled = !enabled;
+    enableSwitch.classList.toggle('on', enabled);
+    enableRow.style.background = enabled
+      ? 'color-mix(in srgb, var(--accent) 5%, var(--panel))'
+      : 'var(--panel)';
+    setBody.classList.toggle('form-disabled', !enabled);
+    statusLine.classList.toggle('status-off', !enabled);
+    statusLine.textContent = enabled ? '服务运行中 · 最近调用 2 分钟前' : '服务已停止';
+    VexProto.toast(enabled ? 'MCP Server 已启用' : 'MCP Server 已停用');
+  });
+
+  // 访问范围：选中「自定义目录」后才展开路径输入（对应升级点 ④）
+  var scopeRadios = document.querySelectorAll('input[name="scope"]');
+  var customDir = document.getElementById('custom-dir');
+  scopeRadios.forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      customDir.disabled = document.querySelector('input[name="scope"]:checked').value !== 'custom';
+      if (!customDir.disabled) customDir.focus();
+    });
+  });
+
+  // Token：重新生成 / 复制 / 掩码显示
+  var tokenInput = document.querySelector('.input-group input');
+  function randomToken() {
+    var chars = 'abcdef0123456789';
+    var s = 'vx_';
+    for (var i = 0; i < 20; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return s;
+  }
+  document.querySelector('.input-group .btn[title="重新生成"]').addEventListener('click', function () {
+    tokenInput.value = randomToken();
+    VexProto.toast('已重新生成 Token，保存前请同步更新 AI 客户端配置');
+  });
+  document.querySelectorAll('.btn.sm').forEach(function (btn) {
+    if (btn.textContent.indexOf('复制') < 0) return;
+    btn.addEventListener('click', function () {
+      var isToken = btn.closest('.input-group') !== null;
+      var text = isToken ? tokenInput.value : document.querySelector('.endpoint code').textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(text);
+      VexProto.toast(isToken ? 'Token 已复制到剪贴板' : '端点地址已复制到剪贴板');
+    });
+  });
+
+  // 保存 / 取消
+  document.getElementById('mcp-save').addEventListener('click', function () {
+    VexProto.toast('MCP 设置已保存（演示）· 确认策略随设置重置');
+  });
+  document.getElementById('mcp-cancel').addEventListener('click', function () {
+    VexProto.closeWin();
+  });
+</script>
+
+</body>
+</html>

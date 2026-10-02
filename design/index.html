@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vex 界面原型 · 总览</title>
+<link rel="stylesheet" href="assets/theme.css">
+<script src="assets/theme.js"></script>
+<script src="assets/interact.js"></script>
+<style>
+  .hero { max-width: 1160px; margin: 0 auto; padding: 52px 24px 10px; }
+  .hero .brand-row { display: flex; align-items: center; gap: 14px; }
+  .hero .logo-big {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: var(--title-grad);
+    color: #fff; font-size: 26px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-pop);
+  }
+  .hero h1 { font-size: 28px; font-weight: 700; letter-spacing: .3px; }
+  .hero .slogan { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+  .hero p.intro {
+    margin-top: 18px; max-width: 880px;
+    font-size: 13.5px; color: var(--muted); line-height: 1.9;
+  }
+  .hero p.intro b { color: var(--value); }
+  .theme-strip { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .theme-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 999px;
+    padding: 5px 14px 5px 6px;
+    font-size: 12.5px; color: var(--fg);
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .theme-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-chip .sw { display: inline-flex; }
+  .theme-chip .sw i { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--panel); margin-left: -5px; box-shadow: 0 0 0 1px rgba(0,0,0,.10); }
+  .theme-chip .sw i:first-child { margin-left: 0; }
+  .theme-chip .key { color: var(--muted); font-size: 11px; }
+
+  .gallery { max-width: 1160px; margin: 0 auto; padding: 34px 24px 110px; }
+  .group-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 700;
+    margin: 30px 0 14px;
+  }
+  .group-title:first-child { margin-top: 0; }
+  .group-title .gt-line { flex: 1; height: 1px; background: var(--border); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: 14px; }
+  .card {
+    display: block;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 16px 14px;
+    color: var(--fg);
+    transition: all .16s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity .16s ease;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-pop);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    text-decoration: none;
+  }
+  .card:hover::before { opacity: 1; }
+  .card .c-ico {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 10px;
+  }
+  .card .c-ico svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .card h3 { font-size: 14px; font-weight: 600; }
+  .card p { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.65; }
+  .card .c-open {
+    margin-top: 10px;
+    font-size: 12px; color: var(--accent); font-weight: 600;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  footer.foot { max-width: 1160px; margin: 0 auto; padding: 0 24px 60px; color: var(--fg-disabled); font-size: 12px; }
+</style>
+</head>
+<body data-page="index">
+
+<header class="hero">
+  <div class="brand-row">
+    <span class="logo-big">V</span>
+    <div>
+      <h1>Vex 界面原型</h1>
+      <div class="slogan">极简之力，妙笔成章 · 界面改版设计稿 v1</div>
+    </div>
+  </div>
+  <p class="intro">
+    本目录是 Vex（维刻）各界面<b>可交互原型</b>，覆盖主窗口、侧栏、查找替换、全部对话框与独立窗口，共 16 页。
+    每页右下角有<b>页面导航器</b>（九宫格按钮），16 个界面之间可直接跳转；菜单、对话框、设置开关等交互均可实际操作，
+    与实现的界面行为一一对应。右上角悬浮球（或 <b>Alt + 1..6</b>）可切换与 App 一致的六套主题色：<b>浅色 / 深色 / 水生 / 沙漠 / 黄昏 / 夜空</b>，
+    选择会跨页面记忆。色值取自 <span class="mono" style="font-size:11.5px">AppPalette.axaml</span>，保证原型与真实主题一致；
+    在此基础上统一了圆角、阴影、间距与强调色的使用方式。
+  </p>
+  <div class="theme-strip" id="theme-chips">
+    <span class="theme-chip" data-key="light"><span class="sw"><i style="background:#FFFFFF"></i><i style="background:#1677FF"></i><i style="background:#FDFDFD"></i></span>浅色 <span class="key">Alt+1</span></span>
+    <span class="theme-chip" data-key="dark"><span class="sw"><i style="background:#151B26"></i><i style="background:#60A5FA"></i><i style="background:#111827"></i></span>深色 <span class="key">Alt+2</span></span>
+    <span class="theme-chip" data-key="aquatic"><span class="sw"><i style="background:#FFFFFF"></i><i style="background:#0EA5B7"></i><i style="background:#F0FAFD"></i></span>水生 <span class="key">Alt+3</span></span>
+    <span class="theme-chip" data-key="desert"><span class="sw"><i style="background:#FFFFFF"></i><i style="background:#C77B2A"></i><i style="background:#FCF7F0"></i></span>沙漠 <span class="key">Alt+4</span></span>
+    <span class="theme-chip" data-key="dusk"><span class="sw"><i style="background:#FFFFFF"></i><i style="background:#8A63D2"></i><i style="background:#F5F7FB"></i></span>黄昏 <span class="key">Alt+5</span></span>
+    <span class="theme-chip" data-key="night-sky"><span class="sw"><i style="background:#172033"></i><i style="background:#7AA2FF"></i><i style="background:#0D1320"></i></span>夜空 <span class="key">Alt+6</span></span>
+  </div>
+</header>
+
+<main class="gallery">
+  <div class="group-title">核心界面 <span class="gt-line"></span></div>
+  <div class="cards">
+    <a class="card" href="pages/main-window.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9.5" y1="9" x2="9.5" y2="20"/></svg></span>
+      <h3>主窗口</h3>
+      <p>标题栏 + 侧栏（文件/大纲）+ 源码编辑 + 实时预览 + 状态栏的完整形态。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/menu-flyout.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="16" y2="12"/><line x1="4" y1="17" x2="12" y2="17"/></svg></span>
+      <h3>标题菜单</h3>
+      <p>六大菜单浮层与「主题色」子菜单展开态，含快捷键、勾选态与分组。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/find-replace.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      <h3>查找替换</h3>
+      <p>查找 / 替换栏展开态：命中计数、大小写、整词、正则开关与循环查找提示。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/sidebar-files.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+      <h3>文件侧栏</h3>
+      <p>目录树 + 文档卡片（摘要 / 修改时间），含右键菜单与空状态两种形态。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/sidebar-outline.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
+      <h3>大纲侧栏</h3>
+      <p>按标题层级缩进的大纲导航，当前章节高亮，含空状态形态。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+  </div>
+
+  <div class="group-title">对话框与覆盖层 <span class="gt-line"></span></div>
+  <div class="cards">
+    <a class="card" href="pages/dialog-unsaved.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <h3>未保存更改</h3>
+      <p>关闭 / 打开前的保存确认覆盖层：保存、不保存、取消三级操作。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/dialog-rename.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span>
+      <h3>重命名文件</h3>
+      <p>侧栏文件重命名覆盖层：文件名输入 + 原路径回显。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/dialog-delete.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+      <h3>删除确认</h3>
+      <p>独立确认窗口：警告文案 + 完整路径回显，危险按钮红色描边。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/dialog-error.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+      <h3>错误提示</h3>
+      <p>操作失败覆盖层：错误摘要 + 可滚动的详情堆栈区。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/dialog-mcp-confirm.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
+      <h3>MCP 操作确认</h3>
+      <p>AI 工具调用前的授权确认：工具名、目标、摘要与「记住选择」。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+  </div>
+
+  <div class="group-title">独立窗口 <span class="gt-line"></span></div>
+  <div class="cards">
+    <a class="card" href="pages/window-statistics.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+      <h3>字数统计</h3>
+      <p>统计窗口：词数、字符、行数、段落、标题、阅读时间等指标卡。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/window-properties.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      <h3>文件属性</h3>
+      <p>属性窗口：名称、状态、编码、大小与完整路径（可复制）。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/window-mcp-settings.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15l3-3-3-3"/><line x1="13" y1="15" x2="17" y2="15"/></svg></span>
+      <h3>MCP 设置</h3>
+      <p>本机 MCP Server 配置：启用开关、监听地址、Token、访问范围。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/window-help-doc.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      <h3>帮助文档</h3>
+      <p>更新日志 / 鸣谢等文档窗口：品牌头部 + 与预览一致的 Markdown 排版。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+    <a class="card" href="pages/window-about.html">
+      <span class="c-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <h3>关于 Vex</h3>
+      <p>品牌头 + 版本徽章 + 作者 / 网站 / 品牌信息的紧凑关于窗口。</p>
+      <span class="c-open">查看原型 →</span>
+    </a>
+  </div>
+</main>
+
+<footer class="foot">Vex（维刻）界面原型 · 基于 AppPalette.axaml 六套主题色 · 纯静态 HTML，可直接双击浏览</footer>
+
+<script>
+  document.querySelectorAll('.theme-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      document.documentElement.setAttribute('data-theme', chip.getAttribute('data-key'));
+      try { localStorage.setItem('vex-design-theme', chip.getAttribute('data-key')); } catch (e) {}
+    });
+  });
+</script>
+
+</body>
+</html>
