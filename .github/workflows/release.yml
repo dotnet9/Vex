@@ -66,7 +66,9 @@ jobs:
         run: |
           $rid = '${{ matrix.rid }}'
           $tfm = if ($rid.StartsWith('win-', [StringComparison]::OrdinalIgnoreCase)) { 'net11.0-windows' } else { 'net11.0' }
-          dotnet publish src/Vex/Vex.csproj -c Release -f $tfm -r $rid /p:PublishProfile=FolderProfile__$rid
+          # NativeAOT 的 ILC 在 preview SDK 上并行编译可能崩溃，单线程更稳
+          $ilcArgs = if ($rid.StartsWith('win-', [StringComparison]::OrdinalIgnoreCase)) { '-p:IlcSingleThreaded=true' } else { '' }
+          dotnet publish src/Vex/Vex.csproj -c Release -f $tfm -r $rid $ilcArgs /p:PublishProfile=FolderProfile__$rid
           if ($LASTEXITCODE -ne 0) { throw "publish failed for $rid" }
 
       - name: 打包 Linux deb + sha256

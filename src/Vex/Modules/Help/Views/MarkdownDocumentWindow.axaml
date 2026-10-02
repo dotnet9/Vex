@@ -54,4 +54,12 @@
             </ScrollViewer>
         </Border>
     </Grid>
+
+    <Window.Styles>
+        <!-- 选区可读性：默认浅色选区底 + 芯片浅色文字会撞色，选中时强制深色前景。 -->
+        <Style Selector="SelectableTextBlock">
+            <Setter Property="SelectionForegroundBrush" Value="#1D2129" />
+        </Style>
+    </Window.Styles>
+
 </u:UrsaWindow>

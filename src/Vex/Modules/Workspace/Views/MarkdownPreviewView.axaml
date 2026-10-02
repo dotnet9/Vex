@@ -23,4 +23,12 @@
                 TypographyTheme="{Binding TypographyTheme}" />
         </ScrollViewer>
     </Border>
+
+    <UserControl.Styles>
+        <!-- 选区可读性：默认浅色选区底 + 芯片浅色文字会撞色，选中时强制深色前景。 -->
+        <Style Selector="SelectableTextBlock">
+            <Setter Property="SelectionForegroundBrush" Value="#1D2129" />
+        </Style>
+    </UserControl.Styles>
+
 </UserControl>
