@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using Avalonia.Input.Platform;
 using ReactiveUI;
 using Vex.Core.Services;
@@ -34,6 +35,7 @@ public sealed class McpSettingsViewModel : ReactiveObject
         _confirmationService = confirmationService;
         _localizer = localizer;
         _localizer.CultureChanged += (_, _) => RefreshStatus();
+        _serverHost.StatusChanged += (_, _) => Dispatcher.UIThread.Post(RefreshStatus);
         Load();
     }
 
