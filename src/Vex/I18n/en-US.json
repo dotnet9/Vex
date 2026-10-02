@@ -404,7 +404,8 @@
       "EditorSearchReplacedNextFormat": "Replaced next \"{0}\".",
       "EditorSearchReplacedAllFormat": "Replaced {0} occurrence(s).",
       "EditorSearchMatchCountFormat": "{0} match(es) for \"{1}\".",
-      "EditorSearchInvalidRegexFormat": "Invalid regular expression: {0}"
+      "EditorSearchInvalidRegexFormat": "Invalid regular expression: {0}",
+      "MarkdownDocumentSubtitle": "Official document bundled with the app · Rendered as Markdown"
     }
   }
 }

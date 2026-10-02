@@ -404,7 +404,8 @@
       "EditorSearchReplacedNextFormat": "次の \"{0}\" を置換しました。",
       "EditorSearchReplacedAllFormat": "{0} 件を置換しました。",
       "EditorSearchMatchCountFormat": "\"{1}\" は {0} 件見つかりました。",
-      "EditorSearchInvalidRegexFormat": "正規表現が無効です: {0}"
+      "EditorSearchInvalidRegexFormat": "正規表現が無効です: {0}",
+      "MarkdownDocumentSubtitle": "アプリに同梱の公式ドキュメント · Markdown 描画"
     }
   }
 }

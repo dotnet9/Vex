@@ -2,6 +2,8 @@
     x:Class="Vex.Modules.Help.Views.MarkdownDocumentWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
     xmlns:md="https://codewf.com"
     xmlns:u="https://irihi.tech/ursa"
     Width="620"
@@ -31,15 +33,19 @@
             BorderBrush="{DynamicResource VexPanelBorderBrush}"
             BorderThickness="0 0 0 1"
             Padding="28 50 28 20">
-            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
                 <Image Width="38" Height="38" Source="/Assets/logo.png" />
-                <TextBlock
-                    x:Name="DocumentTitleText"
-                    Grid.Column="1"
-                    FontSize="18"
-                    FontWeight="SemiBold"
-                    TextWrapping="Wrap"
-                    VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                    <TextBlock
+                        x:Name="DocumentTitleText"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Classes="muted"
+                        FontSize="11.5"
+                        Text="{i18n:I18n {x:Static l:VexL.MarkdownDocumentSubtitle}}" />
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -59,6 +65,25 @@
         <!-- 选区可读性：默认浅色选区底 + 芯片浅色文字会撞色，选中时强制深色前景。 -->
         <Style Selector="SelectableTextBlock">
             <Setter Property="SelectionForegroundBrush" Value="#1D2129" />
+        </Style>
+
+        <!-- 排版对齐原型 .md-body：h2/h4/h6 无下划线，仅 h1 保留浅色分隔线；
+             排版主题默认给标题 Border 画强调色线，这里统一中性化。 -->
+        <Style Selector="Border.MdHeadingBorder">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.MdH3Border">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.MdH5Border">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.MdH1Border">
+            <Setter Property="Background" Value="{DynamicResource VexSplitterBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexSplitterBrush}" />
         </Style>
     </Window.Styles>
 

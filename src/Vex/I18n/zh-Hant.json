@@ -404,7 +404,8 @@
       "EditorSearchReplacedNextFormat": "已取代下一個 \"{0}\"。",
       "EditorSearchReplacedAllFormat": "已取代 {0} 處。",
       "EditorSearchMatchCountFormat": "\"{1}\" 共 {0} 處符合。",
-      "EditorSearchInvalidRegexFormat": "正則表示式無效：{0}"
+      "EditorSearchInvalidRegexFormat": "正則表示式無效：{0}",
+      "MarkdownDocumentSubtitle": "隨應用程式散發的官方文件 · Markdown 轉譯"
     }
   }
 }

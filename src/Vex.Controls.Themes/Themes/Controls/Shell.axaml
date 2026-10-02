@@ -180,7 +180,6 @@
 
     <!-- 描边图标（feather 风格）：Path 走 Stroke 而非 Fill -->
     <Style Selector="Path.stroke-ico">
-        <Setter Property="Fill" Value="{x:Null}" />
         <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
         <Setter Property="StrokeThickness" Value="2" />
         <Setter Property="StrokeJoin" Value="Round" />

@@ -164,6 +164,7 @@ public static class VexL
     public static readonly string McpOperationRejected = "Vex.VexL.McpOperationRejected";
     public static readonly string McpOperationRememberChoice = "Vex.VexL.McpOperationRememberChoice";
     public static readonly string Changelog = "Vex.VexL.Changelog";
+    public static readonly string MarkdownDocumentSubtitle = "Vex.VexL.MarkdownDocumentSubtitle";
     public static readonly string QuickStart = "Vex.VexL.QuickStart";
     public static readonly string OnboardingGuide = "Vex.VexL.OnboardingGuide";
     public static readonly string GuideActionPrevious = "Vex.VexL.GuideActionPrevious";
