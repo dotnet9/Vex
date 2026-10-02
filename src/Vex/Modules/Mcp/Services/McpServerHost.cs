@@ -156,7 +156,9 @@ public sealed class McpServerHost : IMcpServerHost
                     return;
                 }
 
-                throw;
+                IsRunning = false;
+                SetRawStatus(exception.Message);
+                return;
             }
 
             _ = Task.Run(() => HandleContextAsync(context), cancellationToken);

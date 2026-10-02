@@ -127,8 +127,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             case "vex_open_document":
                 return await OpenDocumentAsync(Read(arguments, McpJsonContext.Default.OpenDocumentInput));
             case "vex_save_current_document":
-                await _shell.SaveAsync();
-                return new OperationResult("ok", "saved");
+                return await SaveCurrentDocumentAsync();
             case "vex_refresh_preview":
             case "vex_ui_refresh_preview":
                 _shell.RefreshPreview();
@@ -251,6 +250,20 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         return new OperationResult("ok", "selection replaced");
     }
 
+    private async Task<OperationResult> SaveCurrentDocumentAsync()
+    {
+        if (!await ConfirmIfRequiredAsync(
+                "vex_save_current_document",
+                GetCurrentTargetName(),
+                "save current document"))
+        {
+            return new OperationResult("canceled", "operation rejected");
+        }
+
+        await _shell.SaveAsync();
+        return new OperationResult("ok", "saved");
+    }
+
     private async Task<OperationResult> OpenDocumentAsync(OpenDocumentInput input)
     {
         if (string.IsNullOrWhiteSpace(input.Path))
@@ -269,7 +282,11 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             return new OperationResult("canceled", "operation rejected");
         }
 
-        await _shell.OpenPathFromMcpAsync(fullPath, input.EncodingName);
+        if (!await _shell.OpenPathFromMcpAsync(fullPath, input.EncodingName))
+        {
+            return new OperationResult("canceled", "operation rejected");
+        }
+
         return new OperationResult("ok", "document opened");
     }
 
@@ -388,6 +405,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             or "vex_insert_text"
             or "vex_replace_selection"
             or "vex_open_document"
+            or "vex_save_current_document"
             or "vex_ui_copy_rendered_html";
     }
 

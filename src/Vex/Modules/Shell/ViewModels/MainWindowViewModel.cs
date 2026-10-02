@@ -238,14 +238,21 @@ public sealed class MainWindowViewModel : ReactiveObject
         EditorActions.FocusEditor();
     }
 
-    public Task OpenPathFromMcpAsync(string path, string? encodingName = null)
+    public async Task<bool> OpenPathFromMcpAsync(string path, string? encodingName = null)
     {
-        return OpenPathFromMcpCoreAsync(path, encodingName);
-    }
-
-    private async Task OpenPathFromMcpCoreAsync(string path, string? encodingName)
-    {
-        ApplyDocument(await _documentService.OpenPathAsync(path, encodingName));
+        var opened = false;
+        await RequestUnsavedConfirmationAsync(
+            _text.TitleBeforeOpening,
+            _text.BeforeOpeningFile(_document.FileName, Path.GetFileName(path)),
+            GuardedAction(
+                VexL.ErrorMessageCannotOpenFileFormat,
+                async () =>
+                {
+                    ApplyDocument(await _documentService.OpenPathAsync(path, encodingName));
+                    opened = true;
+                },
+                path));
+        return opened;
     }
 
     private void SetMarkdown(string? value, bool refreshImmediately)
