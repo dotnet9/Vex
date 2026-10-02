@@ -12,7 +12,7 @@
                     <SolidColorBrush x:Key="TabItemLinePipePressedBorderBrush" Color="#1677FF" />
                     <SolidColorBrush x:Key="TabItemLineHeaderForeground" Color="#667085" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverForeground" Color="#101828" />
-                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="#101828" />
+                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="{DynamicResource VexAccentColor}" />
                     <SolidColorBrush x:Key="TabItemLineHeaderSelectedBackground" Color="#F8FAFC" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverBackground" Color="#F2F4F7" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPressedBackground" Color="#E8F1FF" />
@@ -27,7 +27,7 @@
                     <SolidColorBrush x:Key="TabItemLinePipePressedBorderBrush" Color="#60A5FA" />
                     <SolidColorBrush x:Key="TabItemLineHeaderForeground" Color="#AAB4C3" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverForeground" Color="#F8FAFC" />
-                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="#F3F4F6" />
+                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="{DynamicResource VexAccentColor}" />
                     <SolidColorBrush x:Key="TabItemLineHeaderSelectedBackground" Color="#1B2533" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverBackground" Color="#263244" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPressedBackground" Color="#1D3A5F" />
@@ -42,7 +42,7 @@
                     <SolidColorBrush x:Key="TabItemLinePipePressedBorderBrush" Color="#0EA5B7" />
                     <SolidColorBrush x:Key="TabItemLineHeaderForeground" Color="#5C7880" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverForeground" Color="#16323A" />
-                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="#16323A" />
+                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="{DynamicResource VexAccentColor}" />
                     <SolidColorBrush x:Key="TabItemLineHeaderSelectedBackground" Color="#EFF8FA" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverBackground" Color="#DFF7FA" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPressedBackground" Color="#CDEFF5" />
@@ -57,7 +57,7 @@
                     <SolidColorBrush x:Key="TabItemLinePipePressedBorderBrush" Color="#C77B2A" />
                     <SolidColorBrush x:Key="TabItemLineHeaderForeground" Color="#7A6752" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverForeground" Color="#32261B" />
-                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="#32261B" />
+                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="{DynamicResource VexAccentColor}" />
                     <SolidColorBrush x:Key="TabItemLineHeaderSelectedBackground" Color="#FFF5E8" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverBackground" Color="#FFF0D9" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPressedBackground" Color="#F4DEC2" />
@@ -72,7 +72,7 @@
                     <SolidColorBrush x:Key="TabItemLinePipePressedBorderBrush" Color="#8A63D2" />
                     <SolidColorBrush x:Key="TabItemLineHeaderForeground" Color="#72637F" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverForeground" Color="#2C2237" />
-                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="#2C2237" />
+                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="{DynamicResource VexAccentColor}" />
                     <SolidColorBrush x:Key="TabItemLineHeaderSelectedBackground" Color="#F3F1FA" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverBackground" Color="#F0E9FF" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPressedBackground" Color="#E3DAF8" />
@@ -87,7 +87,7 @@
                     <SolidColorBrush x:Key="TabItemLinePipePressedBorderBrush" Color="#7AA2FF" />
                     <SolidColorBrush x:Key="TabItemLineHeaderForeground" Color="#AAB6C8" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverForeground" Color="#FFFFFF" />
-                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="#EBF2FF" />
+                    <SolidColorBrush x:Key="TabItemLineHeaderSelectedForeground" Color="{DynamicResource VexAccentColor}" />
                     <SolidColorBrush x:Key="TabItemLineHeaderSelectedBackground" Color="#1E2A3F" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPointeroverBackground" Color="#1E2A3F" />
                     <SolidColorBrush x:Key="TabItemLineHeaderPressedBackground" Color="#1E335A" />

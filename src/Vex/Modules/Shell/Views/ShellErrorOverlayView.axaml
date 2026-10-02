@@ -15,33 +15,47 @@
             Background="{DynamicResource VexPanelBackgroundBrush}"
             BorderBrush="{DynamicResource VexPanelBorderBrush}"
             BorderThickness="1"
-            CornerRadius="8">
-            <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="14">
-                <TextBlock
-                    FontSize="17"
-                    FontWeight="SemiBold"
-                    Foreground="{DynamicResource TextBlockDefaultForeground}"
-                    Text="{Binding Dialogs.ErrorTitle}"
-                    TextWrapping="Wrap" />
+            CornerRadius="12">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Border Classes="dlg-ico warn">
+                        <PathIcon
+                            Width="18"
+                            Height="18"
+                            Data="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M15 9l-6 6 M9 9l6 6" />
+                    </Border>
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="15.5"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource TextBlockDefaultForeground}"
+                        Text="{Binding Dialogs.ErrorTitle}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
                 <TextBlock
                     Grid.Row="1"
                     Classes="muted"
                     Text="{Binding Dialogs.ErrorMessage}"
                     TextWrapping="Wrap" />
-                <Border
+                <Expander
                     Grid.Row="2"
-                    Padding="10"
-                    Background="{DynamicResource VexStatusBadgeBackgroundBrush}"
-                    BorderBrush="{DynamicResource VexStatusBadgeBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="6">
-                    <Grid RowDefinitions="Auto,Auto" RowSpacing="6">
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    IsExpanded="False">
+                    <Expander.Header>
                         <TextBlock
                             Classes="muted"
                             FontSize="12"
                             FontWeight="SemiBold"
                             Text="{i18n:I18n {x:Static l:VexL.ErrorDetailLabel}}" />
-                        <ScrollViewer Grid.Row="1" MaxHeight="160">
+                    </Expander.Header>
+                    <Border
+                        Padding="10"
+                        Background="{DynamicResource TextBlockCodeBackground}"
+                        BorderBrush="{DynamicResource VexPanelBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                        <ScrollViewer MaxHeight="160">
                             <SelectableTextBlock
                                 Classes="muted"
                                 FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI"
@@ -49,13 +63,14 @@
                                 Text="{Binding Dialogs.ErrorDetail}"
                                 TextWrapping="Wrap" />
                         </ScrollViewer>
-                    </Grid>
-                </Border>
+                    </Border>
+                </Expander>
                 <StackPanel
                     Grid.Row="3"
                     HorizontalAlignment="Right"
                     Orientation="Horizontal">
                     <Button
+                        Classes="primary"
                         Command="{Binding Dialogs.CloseErrorPanel}"
                         Content="{i18n:I18n {x:Static l:VexL.Close}}"
                         MinWidth="86" />

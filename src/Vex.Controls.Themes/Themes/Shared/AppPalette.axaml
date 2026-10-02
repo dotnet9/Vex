@@ -20,6 +20,27 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#667085" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#1D2939" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#1677FF" />
+            <SolidColorBrush x:Key="VexAccentBrush" Color="#1677FF" />
+            <Color x:Key="VexAccentColor">#1677FF</Color>
+            <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#E8F1FF" />
+            <SolidColorBrush x:Key="VexDangerBrush" Color="#DC2626" />
+            <SolidColorBrush x:Key="VexDangerSoftBrush" Color="#FEECEB" />
+            <SolidColorBrush x:Key="VexSuccessBrush" Color="#067647" />
+            <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A067647" />
+            <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
+            <SolidColorBrush x:Key="VexMutedBrush" Color="#667085" />
+            <SolidColorBrush x:Key="VexValueBrush" Color="#1D2939" />
+            <SolidColorBrush x:Key="VexDisabledBrush" Color="#98A2B3" />
+            <SolidColorBrush x:Key="VexHoverBrush" Color="#F2F4F7" />
+            <SolidColorBrush x:Key="VexPressedBrush" Color="#E8F1FF" />
+            <LinearGradientBrush x:Key="VexTitleGradBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Color="#1677FF" Offset="0" />
+                <GradientStop Color="#69B1FF" Offset="1" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="VexCodeFgBrush" Color="#B42318" />
+            <SolidColorBrush x:Key="VexQuoteBrush" Color="#667085" />
+            <SolidColorBrush x:Key="VexMarkerBrush" Color="#98A2B3" />
+
             <SolidColorBrush x:Key="VexOverlayScrimBrush" Color="#66000000" />
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#FFFFFFFF" />
             <SolidColorBrush x:Key="WindowDefaultForeground" Color="#101828" />
@@ -77,6 +98,27 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#AAB4C3" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#F3F4F6" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#60A5FA" />
+            <SolidColorBrush x:Key="VexAccentBrush" Color="#60A5FA" />
+            <Color x:Key="VexAccentColor">#60A5FA</Color>
+            <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#1D3A5F" />
+            <SolidColorBrush x:Key="VexDangerBrush" Color="#F87171" />
+            <SolidColorBrush x:Key="VexDangerSoftBrush" Color="#3B1D23" />
+            <SolidColorBrush x:Key="VexSuccessBrush" Color="#4ADE80" />
+            <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A4ADE80" />
+            <SolidColorBrush x:Key="VexWarningBrush" Color="#FBBF24" />
+            <SolidColorBrush x:Key="VexMutedBrush" Color="#AAB4C3" />
+            <SolidColorBrush x:Key="VexValueBrush" Color="#F3F4F6" />
+            <SolidColorBrush x:Key="VexDisabledBrush" Color="#7D8999" />
+            <SolidColorBrush x:Key="VexHoverBrush" Color="#263244" />
+            <SolidColorBrush x:Key="VexPressedBrush" Color="#1D3A5F" />
+            <LinearGradientBrush x:Key="VexTitleGradBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Color="#60A5FA" Offset="0" />
+                <GradientStop Color="#A5C8FF" Offset="1" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="VexCodeFgBrush" Color="#FBBF77" />
+            <SolidColorBrush x:Key="VexQuoteBrush" Color="#AAB4C3" />
+            <SolidColorBrush x:Key="VexMarkerBrush" Color="#7D8999" />
+
             <SolidColorBrush x:Key="VexOverlayScrimBrush" Color="#99000000" />
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#151B26" />
             <SolidColorBrush x:Key="WindowDefaultForeground" Color="#E5E7EB" />
@@ -134,6 +176,27 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#5C7880" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#16323A" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#0EA5B7" />
+            <SolidColorBrush x:Key="VexAccentBrush" Color="#0EA5B7" />
+            <Color x:Key="VexAccentColor">#0EA5B7</Color>
+            <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#CDEFF5" />
+            <SolidColorBrush x:Key="VexDangerBrush" Color="#D92D20" />
+            <SolidColorBrush x:Key="VexDangerSoftBrush" Color="#FEECEB" />
+            <SolidColorBrush x:Key="VexSuccessBrush" Color="#067647" />
+            <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A067647" />
+            <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
+            <SolidColorBrush x:Key="VexMutedBrush" Color="#5C7880" />
+            <SolidColorBrush x:Key="VexValueBrush" Color="#16323A" />
+            <SolidColorBrush x:Key="VexDisabledBrush" Color="#7A99A1" />
+            <SolidColorBrush x:Key="VexHoverBrush" Color="#DFF7FA" />
+            <SolidColorBrush x:Key="VexPressedBrush" Color="#CDEFF5" />
+            <LinearGradientBrush x:Key="VexTitleGradBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Color="#0EA5B7" Offset="0" />
+                <GradientStop Color="#5BD0DC" Offset="1" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="VexCodeFgBrush" Color="#B4552D" />
+            <SolidColorBrush x:Key="VexQuoteBrush" Color="#5C7880" />
+            <SolidColorBrush x:Key="VexMarkerBrush" Color="#8FA9B0" />
+
             <SolidColorBrush x:Key="VexOverlayScrimBrush" Color="#66000000" />
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#FFFFFFFF" />
             <SolidColorBrush x:Key="WindowDefaultForeground" Color="#16323A" />
@@ -191,6 +254,27 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#7A6752" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#32261B" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#C77B2A" />
+            <SolidColorBrush x:Key="VexAccentBrush" Color="#C77B2A" />
+            <Color x:Key="VexAccentColor">#C77B2A</Color>
+            <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#F4DEC2" />
+            <SolidColorBrush x:Key="VexDangerBrush" Color="#B54708" />
+            <SolidColorBrush x:Key="VexDangerSoftBrush" Color="#FDEAD7" />
+            <SolidColorBrush x:Key="VexSuccessBrush" Color="#067647" />
+            <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A067647" />
+            <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
+            <SolidColorBrush x:Key="VexMutedBrush" Color="#7A6752" />
+            <SolidColorBrush x:Key="VexValueBrush" Color="#32261B" />
+            <SolidColorBrush x:Key="VexDisabledBrush" Color="#9A856D" />
+            <SolidColorBrush x:Key="VexHoverBrush" Color="#FFF0D9" />
+            <SolidColorBrush x:Key="VexPressedBrush" Color="#F4DEC2" />
+            <LinearGradientBrush x:Key="VexTitleGradBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Color="#C77B2A" Offset="0" />
+                <GradientStop Color="#E8A85C" Offset="1" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="VexCodeFgBrush" Color="#A8551F" />
+            <SolidColorBrush x:Key="VexQuoteBrush" Color="#7A6752" />
+            <SolidColorBrush x:Key="VexMarkerBrush" Color="#A99274" />
+
             <SolidColorBrush x:Key="VexOverlayScrimBrush" Color="#66000000" />
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#FFFBF5" />
             <SolidColorBrush x:Key="WindowDefaultForeground" Color="#32261B" />
@@ -248,6 +332,27 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#72637F" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#2C2237" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#8A63D2" />
+            <SolidColorBrush x:Key="VexAccentBrush" Color="#8A63D2" />
+            <Color x:Key="VexAccentColor">#8A63D2</Color>
+            <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#E3DAF8" />
+            <SolidColorBrush x:Key="VexDangerBrush" Color="#D92D20" />
+            <SolidColorBrush x:Key="VexDangerSoftBrush" Color="#FEECEB" />
+            <SolidColorBrush x:Key="VexSuccessBrush" Color="#067647" />
+            <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A067647" />
+            <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
+            <SolidColorBrush x:Key="VexMutedBrush" Color="#72637F" />
+            <SolidColorBrush x:Key="VexValueBrush" Color="#2C2237" />
+            <SolidColorBrush x:Key="VexDisabledBrush" Color="#8A7A98" />
+            <SolidColorBrush x:Key="VexHoverBrush" Color="#F0E9FF" />
+            <SolidColorBrush x:Key="VexPressedBrush" Color="#E3DAF8" />
+            <LinearGradientBrush x:Key="VexTitleGradBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Color="#8A63D2" Offset="0" />
+                <GradientStop Color="#B99BF0" Offset="1" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="VexCodeFgBrush" Color="#6F49B8" />
+            <SolidColorBrush x:Key="VexQuoteBrush" Color="#72637F" />
+            <SolidColorBrush x:Key="VexMarkerBrush" Color="#A79BB8" />
+
             <SolidColorBrush x:Key="VexOverlayScrimBrush" Color="#66000000" />
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#FFFFFFFF" />
             <SolidColorBrush x:Key="WindowDefaultForeground" Color="#2C2237" />
@@ -305,6 +410,27 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#AAB6C8" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#EBF2FF" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#7AA2FF" />
+            <SolidColorBrush x:Key="VexAccentBrush" Color="#7AA2FF" />
+            <Color x:Key="VexAccentColor">#7AA2FF</Color>
+            <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#1E335A" />
+            <SolidColorBrush x:Key="VexDangerBrush" Color="#F87171" />
+            <SolidColorBrush x:Key="VexDangerSoftBrush" Color="#3B1D2A" />
+            <SolidColorBrush x:Key="VexSuccessBrush" Color="#4ADE80" />
+            <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A4ADE80" />
+            <SolidColorBrush x:Key="VexWarningBrush" Color="#FBBF24" />
+            <SolidColorBrush x:Key="VexMutedBrush" Color="#AAB6C8" />
+            <SolidColorBrush x:Key="VexValueBrush" Color="#EBF2FF" />
+            <SolidColorBrush x:Key="VexDisabledBrush" Color="#7F8CA3" />
+            <SolidColorBrush x:Key="VexHoverBrush" Color="#1E2A3F" />
+            <SolidColorBrush x:Key="VexPressedBrush" Color="#1E335A" />
+            <LinearGradientBrush x:Key="VexTitleGradBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Color="#7AA2FF" Offset="0" />
+                <GradientStop Color="#A8C3FF" Offset="1" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="VexCodeFgBrush" Color="#FFB86C" />
+            <SolidColorBrush x:Key="VexQuoteBrush" Color="#AAB6C8" />
+            <SolidColorBrush x:Key="VexMarkerBrush" Color="#7F8CA3" />
+
             <SolidColorBrush x:Key="VexOverlayScrimBrush" Color="#99000000" />
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#172033" />
             <SolidColorBrush x:Key="WindowDefaultForeground" Color="#EBF2FF" />
@@ -352,4 +478,7 @@
     <Thickness x:Key="ToolTipBorderThickness">1</Thickness>
     <x:Double x:Key="ToolTipMaxWidth">420</x:Double>
     <Thickness x:Key="ToolTipPadding">10 8</Thickness>
+    <!-- 阴影令牌：弹层（pop）与窗口级（window），深浅主题通用 -->
+    <x:String x:Key="VexShadowPop">0 12 32 0 #29000000, 0 2 8 0 #14000000</x:String>
+    <x:String x:Key="VexShadowWindow">0 24 64 0 #38101828, 0 4 16 0 #1A101828</x:String>
 </ResourceDictionary>

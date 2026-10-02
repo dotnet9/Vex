@@ -29,6 +29,47 @@ public partial class MarkdownEditorView : UserControl
         MarkdownEditor.TextArea.TextView.Margin = new Thickness(6, 0, 0, 0);
         MarkdownEditor.TextArea.TextView.CurrentLineBackground = GetBrush("VexEditorCurrentLineBackgroundBrush");
         MarkdownEditor.TextArea.TextView.CurrentLineBorder = new Pen(GetBrush("VexEditorCurrentLineBorderBrush"), 1);
+        ApplyThemedSyntaxHighlighting();
+    }
+
+    // Markdown 语法着色跟随主题（对应原型 --md-code-fg / --md-quote 与标题用强调色），
+    // 颜色资源缺失时保持 AvaloniaEdit 内置配色；六套主题的取值都在 AppPalette 中维护。
+    private void ApplyThemedSyntaxHighlighting()
+    {
+        if (MarkdownEditor.SyntaxHighlighting is not { } definition)
+        {
+            return;
+        }
+
+        SetHighlightingForeground(definition, "Heading", GetBrush("VexAccentBrush"));
+        SetHighlightingForeground(definition, "Code", GetBrush("VexCodeFgBrush"));
+        SetHighlightingForeground(definition, "BlockQuote", GetBrush("VexQuoteBrush"));
+        SetHighlightingForeground(definition, "Link", GetBrush("VexLinkBrush"));
+        SetHighlightingForeground(definition, "Image", GetBrush("VexLinkBrush"));
+        MarkdownEditor.TextArea.TextView.Redraw();
+    }
+
+    private static void SetHighlightingForeground(
+        IHighlightingDefinition definition,
+        string colorName,
+        IBrush? foreground)
+    {
+        if (foreground is null)
+        {
+            return;
+        }
+
+        var color = definition.NamedHighlightingColors.FirstOrDefault(candidate =>
+            string.Equals(candidate.Name, colorName, StringComparison.OrdinalIgnoreCase));
+        if (color is null)
+        {
+            return;
+        }
+
+        if (foreground is ISolidColorBrush solid)
+        {
+            color.Foreground = new SimpleHighlightingBrush(solid.Color);
+        }
     }
 
     private void OnEditorKeyDown(object? sender, KeyEventArgs e)

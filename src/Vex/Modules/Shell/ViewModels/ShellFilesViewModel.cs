@@ -22,7 +22,24 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
     public ObservableCollection<DocumentFileNode> DocumentFileNodes { get; } = [];
 
-    public bool HasDocumentFiles => DocumentFileNodes.Count > 0;
+    // 侧栏过滤（对应原型「侧栏内搜索」）：TreeView 绑定过滤后的列表，主列表保留用于选中恢复
+    public ObservableCollection<DocumentFileNode> FilteredDocumentFileNodes { get; } = [];
+
+    private string _filterText = string.Empty;
+
+    public string FilterText
+    {
+        get => _filterText;
+        set
+        {
+            if (SetProperty(ref _filterText, value))
+            {
+                RebuildFilteredNodes();
+            }
+        }
+    }
+
+    public bool HasDocumentFiles => FilteredDocumentFileNodes.Count > 0;
 
     public bool IsDocumentFilesEmpty => !HasDocumentFiles;
 
@@ -109,6 +126,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
             DocumentFileNodes.Add(node);
         }
 
+        RebuildFilteredNodes();
         SelectDocumentFileSilently(FindDocumentFileNode(DocumentFileNodes, command.SelectedFile));
         NotifyDocumentFilesChanged();
     }
@@ -147,6 +165,45 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     {
         OnPropertyChanged(nameof(HasDocumentFiles));
         OnPropertyChanged(nameof(IsDocumentFilesEmpty));
+    }
+
+    // 按名称 / 摘要过滤文档；文件夹保留仍有命中的子树。命中文档节点复用主列表实例，保证选中绑定不受影响。
+    private void RebuildFilteredNodes()
+    {
+        FilteredDocumentFileNodes.Clear();
+        var filter = _filterText?.Trim();
+        foreach (var node in DocumentFileNodes)
+        {
+            if (BuildFilteredNode(node, filter) is { } filtered)
+            {
+                FilteredDocumentFileNodes.Add(filtered);
+            }
+        }
+
+        NotifyDocumentFilesChanged();
+    }
+
+    private static DocumentFileNode? BuildFilteredNode(DocumentFileNode node, string? filter)
+    {
+        if (string.IsNullOrEmpty(filter))
+        {
+            return node;
+        }
+
+        if (node.IsFolder)
+        {
+            var children = node.Children
+                .Select(child => BuildFilteredNode(child, filter))
+                .OfType<DocumentFileNode>()
+                .ToList();
+            return children.Count > 0
+                ? new DocumentFileNode(node.Name, node.Path, true, children)
+                : null;
+        }
+
+        var matches = node.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)
+            || node.Preview.Contains(filter, StringComparison.OrdinalIgnoreCase);
+        return matches ? node : null;
     }
 
     private static IReadOnlyList<DocumentFileNode> BuildDocumentFileNodes(

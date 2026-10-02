@@ -14,10 +14,16 @@
 
     <UserControl.DataTemplates>
         <DataTemplate DataType="models:OutlineItem">
-            <TextBlock
-                Margin="{Binding IndentMargin}"
-                Text="{Binding Title}"
-                TextTrimming="CharacterEllipsis" />
+            <!-- 层级角标 + 渐进缩进（对应原型 H1-H4 标签） -->
+            <StackPanel Margin="{Binding IndentMargin}" Orientation="Horizontal" Spacing="6">
+                <Border Classes="lvl-badge">
+                    <TextBlock Text="{Binding LevelText}" />
+                </Border>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="{Binding Title}"
+                    TextTrimming="CharacterEllipsis" />
+            </StackPanel>
         </DataTemplate>
     </UserControl.DataTemplates>
 

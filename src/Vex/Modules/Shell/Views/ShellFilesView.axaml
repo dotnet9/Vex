@@ -14,50 +14,79 @@
 
     <UserControl.DataTemplates>
         <TreeDataTemplate DataType="models:DocumentFileNode" ItemsSource="{Binding Children}">
-            <StackPanel>
-                <Grid
-                    MinHeight="26"
-                    ColumnDefinitions="*"
-                    IsVisible="{Binding IsFolder}">
-                    <TextBlock
-                        Classes="side-heading"
-                        FontWeight="SemiBold"
-                        Text="{Binding Name}"
-                        TextTrimming="CharacterEllipsis" />
-                </Grid>
-                <Grid
-                    RowDefinitions="Auto,Auto"
-                    RowSpacing="2"
-                    IsVisible="{Binding IsDocument}">
-                    <Grid ColumnDefinitions="*,Auto">
+            <!-- 卡片行：左侧主题色竖条仅在选中时显示（对应原型 .tree-row.selected） -->
+            <Border Classes="file-card" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}">
+                <Grid ColumnDefinitions="Auto,3,*" ColumnSpacing="8">
+                    <Border Classes="file-bar" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}" />
+                    <StackPanel Grid.Column="2">
+                        <Grid
+                            MinHeight="24"
+                            ColumnDefinitions="Auto,*,Auto"
+                            IsVisible="{Binding IsFolder}">
+                            <PathIcon
+                                Width="14"
+                                Height="14"
+                                Margin="0 1 0 0"
+                                Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                            <TextBlock
+                                Grid.Column="1"
+                                Margin="7 0 0 0"
+                                Classes="side-heading"
+                                FontWeight="SemiBold"
+                                Text="{Binding Name}"
+                                TextTrimming="CharacterEllipsis" />
+                        </Grid>
+                        <Grid
+                            RowDefinitions="Auto,Auto"
+                            RowSpacing="2"
+                            ColumnDefinitions="Auto,*,Auto"
+                            IsVisible="{Binding IsDocument}">
+                            <PathIcon
+                                Width="14"
+                                Height="14"
+                                Margin="0 2 0 0"
+                                Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8" />
+                            <TextBlock
+                                Grid.Column="1"
+                                Margin="7 0 0 0"
+                                FontWeight="SemiBold"
+                                Text="{Binding Name}"
+                                TextTrimming="CharacterEllipsis" />
+                            <TextBlock
+                                Grid.Column="2"
+                                Classes="muted"
+                                FontSize="11"
+                                Margin="8 0 0 0"
+                                Text="{Binding ModifiedText}" />
+                        </Grid>
                         <TextBlock
-                            FontWeight="SemiBold"
-                            Text="{Binding Name}"
-                            TextTrimming="CharacterEllipsis" />
-                        <TextBlock
-                            Grid.Column="1"
+                            Grid.Row="1"
+                            Grid.Column="2"
                             Classes="muted"
-                            FontSize="11"
-                            Margin="8 0 0 0"
-                            Text="{Binding ModifiedText}" />
-                    </Grid>
-                    <TextBlock
-                        Grid.Row="1"
-                        Classes="muted"
-                        MaxHeight="34"
-                        Text="{Binding Preview}"
-                        TextTrimming="CharacterEllipsis"
-                        TextWrapping="Wrap" />
+                            MaxHeight="34"
+                            Margin="21 0 0 0"
+                            Text="{Binding Preview}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
                 </Grid>
-            </StackPanel>
+            </Border>
         </TreeDataTemplate>
     </UserControl.DataTemplates>
 
-    <Grid>
+    <Grid RowDefinitions="Auto,*">
+        <!-- 顶部过滤：长目录时快速过滤（新增能力，对应原型 .side-search） -->
+        <TextBox
+            Margin="10 8 10 6"
+            MinHeight="30"
+            PlaceholderText="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}"
+            Text="{Binding FilterText, Mode=TwoWay}"
+            TextWrapping="NoWrap" />
         <TreeView
+            Grid.Row="1"
             Classes="side-tree"
             IsVisible="{Binding HasDocumentFiles}"
-            ItemsSource="{Binding DocumentFileNodes}"
+            ItemsSource="{Binding FilteredDocumentFileNodes}"
             PointerPressed="SelectItemOnPointerPressed"
             SelectedItem="{Binding SelectedDocumentFileNode, Mode=TwoWay}">
             <TreeView.ContextMenu>
@@ -84,6 +113,7 @@
             </TreeView.ContextMenu>
         </TreeView>
         <Border
+            Grid.Row="1"
             IsVisible="{Binding IsDocumentFilesEmpty}"
             Padding="18"
             VerticalAlignment="Top">

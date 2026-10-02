@@ -16,7 +16,7 @@
     </Style>
 
     <Style Selector="TextBlock.muted">
-        <Setter Property="Foreground" Value="{DynamicResource MenuItemInputGestureTextForeground}" />
+        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
     </Style>
 
     <Style Selector="TextBlock.side-heading">
@@ -27,5 +27,160 @@
 
     <Style Selector="GridSplitter">
         <Setter Property="Background" Value="{DynamicResource VexSplitterBrush}" />
+    </Style>
+
+    <!-- ============================================================
+         按钮风险分级（对应原型 btn / btn.primary / btn.danger）
+         primary：主题色实心，用于对话框主操作（保存 / 允许执行 / 重命名）
+         danger：红描边，悬停转红底白字，用于删除等危险操作
+         ============================================================ -->
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource VexPressedBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+
+    <Style Selector="Button.danger">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexDangerBrush}" />
+    </Style>
+    <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource VexDangerBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+    <Style Selector="Button.danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource VexPressedBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+
+    <!-- ============================================================
+         对话框构件：语义图标色块（dlg-ico）、路径代码芯片（dlg-path）
+         dlg-ico 用法：<Border Classes="dlg-ico warn"><PathIcon .../></Border>
+         ============================================================ -->
+    <Style Selector="Border.dlg-ico">
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="CornerRadius" Value="9" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.dlg-ico.warn">
+        <Setter Property="Background" Value="{DynamicResource VexDangerSoftBrush}" />
+    </Style>
+    <Style Selector="Border.dlg-ico.warn > PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}" />
+    </Style>
+    <Style Selector="Border.dlg-ico.info">
+        <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+    </Style>
+    <Style Selector="Border.dlg-ico.info > PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+    </Style>
+
+    <Style Selector="Border.dlg-path">
+        <Setter Property="Background" Value="{DynamicResource TextBlockCodeBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="10 8" />
+    </Style>
+    <Style Selector="Border.dlg-path > SelectableTextBlock">
+        <Setter Property="FontFamily" Value="Consolas, Cascadia Code, monospace" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- 开关（对应原型 .switch）：仅appearance形态，配合 IsChecked -->
+    <Style Selector="ToggleButton.vex-switch">
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Background" Value="{DynamicResource VexStatusBadgeBorderBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.vex-switch:checked">
+        <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
+    </Style>
+
+    <!-- 图标化开关（对应原型 .opt-toggle）：Aa / W / .* 等 -->
+    <Style Selector="ToggleButton.opt-toggle">
+        <Setter Property="MinWidth" Value="30" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="8 0" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="7" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ToggleButton.opt-toggle:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
+    </Style>
+    <Style Selector="ToggleButton.opt-toggle:checked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
+    </Style>
+
+    <!-- 状态胶囊（对应原型 .pill-ok）：浅绿底 + 绿字 -->
+    <Style Selector="Border.pill-ok">
+        <Setter Property="Background" Value="{DynamicResource VexSuccessSoftBrush}" />
+        <Setter Property="CornerRadius" Value="9" />
+        <Setter Property="Padding" Value="9 2" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style Selector="Border.pill-ok > StackPanel > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource VexSuccessBrush}" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Border.pill-ok > StackPanel > Ellipse">
+        <Setter Property="Fill" Value="{DynamicResource VexSuccessBrush}" />
+        <Setter Property="Width" Value="6" />
+        <Setter Property="Height" Value="6" />
+    </Style>
+
+    <!-- 表单禁用态（对应原型 .form-disabled）：由绑定切换 Classes -->
+    <Style Selector="Border.form-disabled, StackPanel.form-disabled, Grid.form-disabled">
+        <Setter Property="Opacity" Value="0.45" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+
+    <!-- MCP 启用卡片：启用时底色随主题染色（对应原型升级点） -->
+    <Style Selector="Border.mcp-enable">
+        <Setter Property="Padding" Value="14 12" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+    </Style>
+    <Style Selector="Border.mcp-enable.tinted">
+        <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+    </Style>
+
+    <!-- 运行状态指示灯：绿点 = 运行中（对应原型状态行） -->
+    <Style Selector="Ellipse.status-dot">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="8" />
+        <Setter Property="Fill" Value="{DynamicResource TextBlockDisabledForeground}" />
+    </Style>
+    <Style Selector="Ellipse.status-dot.on">
+        <Setter Property="Fill" Value="{DynamicResource VexSuccessBrush}" />
     </Style>
 </Styles>

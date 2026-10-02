@@ -9,9 +9,9 @@
     x:DataType="vm:ShellDocumentInfoViewModel"
     Title="{i18n:I18n {x:Static l:VexL.Properties}}"
     Width="520"
-    Height="360"
+    Height="380"
     MinWidth="460"
-    MinHeight="320"
+    MinHeight="340"
     CanMaximize="False"
     CanMinimize="False"
     CanResize="False"
@@ -36,18 +36,44 @@
                 Text="{Binding PropertyNameText}"
                 TextWrapping="Wrap" />
             <TextBlock Grid.Row="1" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.StatusState}}" />
-            <SelectableTextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DocumentStateText}" TextWrapping="Wrap" />
+            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="0">
+                <!-- 已保存：绿色胶囊；未保存：主题色徽章（对应原型 pill-ok / Badge.accent） -->
+                <Border Classes="pill-ok" IsVisible="{Binding !IsModified}">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <Ellipse />
+                        <TextBlock Text="{Binding DocumentStateText}" />
+                    </StackPanel>
+                </Border>
+                <Border
+                    Padding="9 2"
+                    HorizontalAlignment="Left"
+                    Background="{DynamicResource VexAccentSoftBrush}"
+                    CornerRadius="9"
+                    IsVisible="{Binding IsModified}">
+                    <TextBlock
+                        FontSize="11.5"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource VexAccentBrush}"
+                        Text="{Binding DocumentStateText}" />
+                </Border>
+            </StackPanel>
             <TextBlock Grid.Row="2" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.StatusEncoding}}" />
             <SelectableTextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CurrentEncodingText}" TextWrapping="Wrap" />
             <TextBlock Grid.Row="3" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.PropertySizeLabel}}" />
             <SelectableTextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PropertySizeText}" TextWrapping="Wrap" />
             <TextBlock Grid.Row="4" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.PropertyPathLabel}}" />
-            <SelectableTextBlock
-                Grid.Row="4"
-                Grid.Column="1"
-                FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI"
-                Text="{Binding PropertyLocationText}"
-                TextWrapping="Wrap" />
+            <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <SelectableTextBlock
+                    VerticalAlignment="Center"
+                    FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI"
+                    Text="{Binding PropertyLocationText}"
+                    TextWrapping="Wrap" />
+                <Button
+                    Padding="8 2"
+                    Click="CopyPath_OnClick"
+                    Content="{i18n:I18n {x:Static l:VexL.Copy}}"
+                    VerticalAlignment="Center" />
+            </StackPanel>
         </Grid>
     </Border>
 </u:UrsaWindow>

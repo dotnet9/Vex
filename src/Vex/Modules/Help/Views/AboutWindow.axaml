@@ -50,7 +50,19 @@
                 <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutChineseNameLabel}}" />
                 <TextBlock Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.ChineseName}}" />
                 <TextBlock Grid.Row="1" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutVersionLabel}}" />
-                <TextBlock x:Name="VersionText" Grid.Row="1" Grid.Column="1" />
+                <Border
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Padding="10 1"
+                    HorizontalAlignment="Left"
+                    Background="{DynamicResource VexAccentSoftBrush}"
+                    CornerRadius="9">
+                    <TextBlock
+                        x:Name="VersionText"
+                        FontSize="11.5"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource VexAccentBrush}" />
+                </Border>
                 <TextBlock Grid.Row="2" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutCompileTimeLabel}}" />
                 <TextBlock x:Name="CompileTimeText" Grid.Row="2" Grid.Column="1" />
                 <TextBlock Grid.Row="3" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorLabel}}" />

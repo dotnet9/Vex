@@ -16,20 +16,36 @@
         BorderBrush="{DynamicResource VexPanelBorderBrush}"
         BorderThickness="0 0 0 1"
         Padding="10 8">
-        <Grid ColumnDefinitions="Auto,220,Auto,220,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="8">
+        <Grid ColumnDefinitions="Auto,250,Auto,220,Auto,Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="8">
             <TextBlock
                 Classes="muted"
                 Text="{i18n:I18n {x:Static l:VexL.FindBarFind}}"
                 VerticalAlignment="Center" />
-            <TextBox
-                x:Name="FindTextBox"
-                Grid.Column="1"
-                AcceptsReturn="False"
-                MaxLength="200"
-                MinHeight="30"
-                PlaceholderText="{i18n:I18n {x:Static l:VexL.FindBarText}}"
-                TextWrapping="NoWrap"
-                Text="{Binding SearchText, Mode=TwoWay}" />
+            <!-- 查找框：命中计数以内嵌徽章叠在输入框右侧（对应原型 .fb-count） -->
+            <Grid Grid.Column="1">
+                <TextBox
+                    x:Name="FindTextBox"
+                    AcceptsReturn="False"
+                    MaxLength="200"
+                    MinHeight="30"
+                    Padding="0 0 56 0"
+                    PlaceholderText="{i18n:I18n {x:Static l:VexL.FindBarText}}"
+                    TextWrapping="NoWrap"
+                    Text="{Binding SearchText, Mode=TwoWay}" />
+                <Border
+                    Margin="0 0 8 0"
+                    Padding="6 0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource VexAccentSoftBrush}"
+                    CornerRadius="5"
+                    IsHitTestVisible="False">
+                    <TextBlock
+                        FontSize="11"
+                        Foreground="{DynamicResource VexAccentBrush}"
+                        Text="{Binding SearchResultText}" />
+                </Border>
+            </Grid>
             <TextBlock
                 Grid.Column="2"
                 Classes="muted"
@@ -47,6 +63,7 @@
                 Text="{Binding ReplacementText, Mode=TwoWay}" />
             <Button
                 Grid.Column="4"
+                Classes="primary"
                 Command="{Binding FindNext}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarNext}}"
                 MinWidth="72" />
@@ -63,31 +80,28 @@
                 IsVisible="{Binding IsReplaceVisible}"
                 MinWidth="64" />
             <Button
-                Grid.Column="7"
+                Grid.Column="8"
                 Command="{Binding CloseFindPanel}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
                 MinWidth="42" />
-            <TextBlock
-                Grid.Column="8"
-                Classes="muted"
-                MinWidth="48"
-                Text="{Binding SearchResultText}"
-                TextAlignment="Right"
-                VerticalAlignment="Center" />
-            <CheckBox
+            <!-- Aa / W / .* 图标化开关：激活态主题色底（对应原型 .opt-toggle） -->
+            <ToggleButton
                 Grid.Column="9"
+                Classes="opt-toggle"
                 Content="Aa"
                 IsChecked="{Binding IsMatchCase, Mode=TwoWay}"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarMatchCase}}"
                 VerticalAlignment="Center" />
-            <CheckBox
+            <ToggleButton
                 Grid.Column="10"
+                Classes="opt-toggle"
                 Content="W"
                 IsChecked="{Binding IsWholeWord, Mode=TwoWay}"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
                 VerticalAlignment="Center" />
-            <CheckBox
+            <ToggleButton
                 Grid.Column="11"
+                Classes="opt-toggle"
                 Content=".*"
                 IsChecked="{Binding IsRegex, Mode=TwoWay}"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarRegex}}"

@@ -8,21 +8,39 @@
     x:DataType="vm:MarkdownPreviewViewModel"
     prism:ViewModelLocator.AutoWireViewModel="True">
 
-    <Border
-        Background="{DynamicResource VexPreviewBackgroundBrush}"
-        Padding="34 28 34 0">
+    <Grid RowDefinitions="Auto,*" Background="{DynamicResource VexPreviewBackgroundBrush}">
+        <!-- 预览窗格头：标注窗格身份 + 当前排版主题（对应原型 pane-head） -->
+        <Border
+            Padding="12 5"
+            BorderBrush="{DynamicResource VexSplitterBrush}"
+            BorderThickness="0 0 0 1">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon
+                    Width="13"
+                    Height="13"
+                    Foreground="{DynamicResource VexMutedBrush}"
+                    Data="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                <TextBlock
+                    FontSize="11.5"
+                    Foreground="{DynamicResource VexMutedBrush}"
+                    Text="{Binding TypographyTheme, TargetNullValue=Preview}"
+                    VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
         <ScrollViewer
             x:Name="PreviewScrollViewer"
+            Grid.Row="1"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto">
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
+                Margin="34 24 34 0"
                 ImageBasePath="{Binding ImageBasePath}"
                 Markdown="{Binding Markdown}"
                 TypographySize="{Binding TypographySize}"
                 TypographyTheme="{Binding TypographyTheme}" />
         </ScrollViewer>
-    </Border>
+    </Grid>
 
     <UserControl.Styles>
         <!-- 选区可读性：默认浅色选区底 + 芯片浅色文字会撞色，选中时强制深色前景。 -->

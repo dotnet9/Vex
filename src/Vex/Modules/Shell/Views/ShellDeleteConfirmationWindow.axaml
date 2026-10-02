@@ -9,9 +9,9 @@
     x:DataType="views:ShellDeleteConfirmationWindowModel"
     Title="{i18n:I18n {x:Static l:VexL.Delete}}"
     Width="480"
-    Height="280"
+    Height="300"
     MinWidth="440"
-    MinHeight="260"
+    MinHeight="280"
     CanMaximize="False"
     CanMinimize="False"
     CanResize="False"
@@ -24,28 +24,28 @@
     <Border
         Background="{DynamicResource VexPanelBackgroundBrush}"
         Padding="24">
-        <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="14">
-            <TextBlock
-                FontSize="17"
-                FontWeight="SemiBold"
-                Text="{Binding ConfirmationText}"
-                TextWrapping="Wrap" />
+        <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Border Classes="dlg-ico warn">
+                    <PathIcon
+                        Width="18"
+                        Height="18"
+                        Data="M3 6h18 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6 m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2 M10 11v6 M14 11v6" />
+                </Border>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="15.5"
+                    FontWeight="SemiBold"
+                    Text="{Binding ConfirmationText}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
             <TextBlock
                 Grid.Row="1"
                 Classes="muted"
                 Text="{Binding WarningText}"
                 TextWrapping="Wrap" />
-            <Border
-                Grid.Row="2"
-                Padding="10 8"
-                Background="{DynamicResource VexStatusBadgeBackgroundBrush}"
-                CornerRadius="6">
-                <SelectableTextBlock
-                    Classes="muted"
-                    FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI"
-                    FontSize="12"
-                    Text="{Binding DeletePath}"
-                    TextWrapping="Wrap" />
+            <Border Grid.Row="2" Classes="dlg-path" VerticalAlignment="Top">
+                <SelectableTextBlock Text="{Binding DeletePath}" />
             </Border>
             <StackPanel
                 Grid.Row="3"
@@ -57,9 +57,9 @@
                     Content="{i18n:I18n {x:Static l:VexL.Cancel}}"
                     MinWidth="86" />
                 <Button
+                    Classes="danger"
                     Click="Delete_OnClick"
                     Content="{i18n:I18n {x:Static l:VexL.Delete}}"
-                    Foreground="{DynamicResource TextBlockDangerForeground}"
                     MinWidth="86" />
             </StackPanel>
         </Grid>

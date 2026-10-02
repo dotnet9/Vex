@@ -7,9 +7,9 @@
     x:DataType="views:McpOperationConfirmationWindowModel"
     Title="{Binding Title}"
     Width="520"
-    Height="365"
+    Height="390"
     MinWidth="480"
-    MinHeight="320"
+    MinHeight="340"
     CanMaximize="False"
     CanMinimize="False"
     CanResize="False"
@@ -22,12 +22,21 @@
     <Border
         Background="{DynamicResource VexPanelBackgroundBrush}"
         Padding="24">
-        <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="14">
-            <TextBlock
-                FontSize="17"
-                FontWeight="SemiBold"
-                Text="{Binding Title}"
-                TextWrapping="Wrap" />
+        <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Border Classes="dlg-ico info">
+                    <PathIcon
+                        Width="18"
+                        Height="18"
+                        Data="M4 17l6-6-6-6 M12 19h8" />
+                </Border>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="15.5"
+                    FontWeight="SemiBold"
+                    Text="{Binding Title}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
             <TextBlock
                 Grid.Row="1"
                 Classes="muted"
@@ -36,8 +45,11 @@
             <Border
                 Grid.Row="2"
                 Padding="12"
-                Background="{DynamicResource VexStatusBadgeBackgroundBrush}"
-                CornerRadius="6">
+                Background="{DynamicResource TextBlockCodeBackground}"
+                BorderBrush="{DynamicResource VexPanelBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                VerticalAlignment="Top">
                 <Grid ColumnDefinitions="96,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="10">
                     <TextBlock Classes="muted" Text="Tool" />
                     <SelectableTextBlock Grid.Column="1" FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI" Text="{Binding ToolName}" TextWrapping="Wrap" />
@@ -63,6 +75,7 @@
                     Content="{Binding CancelText}"
                     MinWidth="86" />
                 <Button
+                    Classes="primary"
                     Click="Confirm_OnClick"
                     Content="{Binding ConfirmText}"
                     MinWidth="86" />

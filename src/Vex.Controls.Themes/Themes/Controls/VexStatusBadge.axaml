@@ -6,18 +6,22 @@
         <StackPanel Width="220" Spacing="8">
             <vex:VexStatusBadge Label="Words" Value="128" />
             <vex:VexStatusBadge Label="Encoding" Value="UTF-8" />
+            <vex:VexStatusBadge Label="State" Value="Modified" IsAccent="True" />
         </StackPanel>
     </Design.PreviewWith>
 
     <ControlTheme x:Key="{x:Type vex:VexStatusBadge}" TargetType="vex:VexStatusBadge">
         <Setter Property="MinHeight" Value="22" />
         <Setter Property="Padding" Value="8 2" />
+        <Setter Property="Background" Value="{DynamicResource VexStatusBadgeBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexStatusBadgeBorderBrush}" />
         <Setter Property="Template">
             <ControlTemplate TargetType="{x:Type vex:VexStatusBadge}">
                 <Border
-                    Background="Transparent"
-                    BorderBrush="Transparent"
-                    BorderThickness="0"
+                    Name="RootBorder"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="1"
                     CornerRadius="{DynamicResource VexStatusBadgeCornerRadius}"
                     Padding="{TemplateBinding Padding}">
                     <StackPanel Orientation="Horizontal" Spacing="5">
@@ -26,6 +30,7 @@
                             Foreground="{DynamicResource VexStatusBadgeLabelBrush}"
                             Text="{TemplateBinding Label}" />
                         <TextBlock
+                            Name="ValueText"
                             FontSize="11"
                             FontWeight="SemiBold"
                             Foreground="{DynamicResource VexStatusBadgeValueBrush}"
@@ -36,5 +41,12 @@
                 </Border>
             </ControlTemplate>
         </Setter>
+        <!-- 强调变体：值与描边使用主题色（未保存状态等） -->
+        <Style Selector="^[IsAccent=True] /template/ Border#RootBorder">
+            <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
+        <Style Selector="^[IsAccent=True] /template/ TextBlock#ValueText">
+            <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
     </ControlTheme>
 </ResourceDictionary>

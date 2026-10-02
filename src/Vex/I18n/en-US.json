@@ -202,6 +202,7 @@
       "Feedback": "Feedback",
       "About": "About",
       "SidebarFiles": "Files",
+      "SidebarFilesFilterPlaceholder": "Filter documents in folder…",
       "SidebarOutline": "Outline",
       "EmptyNoFiles": "No files",
       "EmptyNoHeadings": "No headings",

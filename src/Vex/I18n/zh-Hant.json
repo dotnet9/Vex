@@ -202,6 +202,7 @@
       "Feedback": "回饋",
       "About": "關於",
       "SidebarFiles": "檔案",
+      "SidebarFilesFilterPlaceholder": "過濾目前目錄文件…",
       "SidebarOutline": "大綱",
       "EmptyNoFiles": "暫無檔案",
       "EmptyNoHeadings": "暫無標題",

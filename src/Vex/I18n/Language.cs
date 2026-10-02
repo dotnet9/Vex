@@ -207,6 +207,7 @@ public static class VexL
     public static readonly string Feedback = "Vex.VexL.Feedback";
     public static readonly string About = "Vex.VexL.About";
     public static readonly string SidebarFiles = "Vex.VexL.SidebarFiles";
+    public static readonly string SidebarFilesFilterPlaceholder = "Vex.VexL.SidebarFilesFilterPlaceholder";
     public static readonly string SidebarOutline = "Vex.VexL.SidebarOutline";
     public static readonly string EmptyNoFiles = "Vex.VexL.EmptyNoFiles";
     public static readonly string EmptyNoHeadings = "Vex.VexL.EmptyNoHeadings";
