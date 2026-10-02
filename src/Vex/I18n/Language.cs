@@ -162,6 +162,7 @@ public static class VexL
     public static readonly string McpOperationConfirmationMessage = "Vex.VexL.McpOperationConfirmationMessage";
     public static readonly string McpOperationConfirm = "Vex.VexL.McpOperationConfirm";
     public static readonly string McpOperationRejected = "Vex.VexL.McpOperationRejected";
+    public static readonly string McpOperationRememberChoice = "Vex.VexL.McpOperationRememberChoice";
     public static readonly string Changelog = "Vex.VexL.Changelog";
     public static readonly string QuickStart = "Vex.VexL.QuickStart";
     public static readonly string OnboardingGuide = "Vex.VexL.OnboardingGuide";

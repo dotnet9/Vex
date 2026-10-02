@@ -157,6 +157,7 @@
       "McpOperationConfirmationMessage": "AI クライアントが現在の文書に影響する操作、またはパスを開く操作を要求しています。",
       "McpOperationConfirm": "実行",
       "McpOperationRejected": "MCP 操作を拒否しました。",
+      "McpOperationRememberChoice": "このセッションでこの選択を記憶する（実行 = 常に許可、キャンセル = 常に拒否）",
       "Changelog": "変更履歴",
       "QuickStart": "クイックスタート",
       "OnboardingGuide": "初回ガイド",

@@ -12,6 +12,7 @@ public sealed class McpSettingsViewModel : ReactiveObject
 {
     private readonly IAppSettingsStore _settingsStore;
     private readonly IMcpServerHost _serverHost;
+    private readonly IMcpOperationConfirmationService _confirmationService;
     private readonly IAppLocalizer _localizer;
     private bool _isEnabled;
     private string _host = "127.0.0.1";
@@ -22,10 +23,15 @@ public sealed class McpSettingsViewModel : ReactiveObject
     private bool _requireConfirmation = true;
     private string _statusText = string.Empty;
 
-    public McpSettingsViewModel(IAppSettingsStore settingsStore, IMcpServerHost serverHost, IAppLocalizer localizer)
+    public McpSettingsViewModel(
+        IAppSettingsStore settingsStore,
+        IMcpServerHost serverHost,
+        IMcpOperationConfirmationService confirmationService,
+        IAppLocalizer localizer)
     {
         _settingsStore = settingsStore;
         _serverHost = serverHost;
+        _confirmationService = confirmationService;
         _localizer = localizer;
         _localizer.CultureChanged += (_, _) => RefreshStatus();
         Load();
@@ -161,6 +167,7 @@ public sealed class McpSettingsViewModel : ReactiveObject
         Host = normalizedHost;
         Port = normalizedPort;
         Token = normalizedToken;
+        _confirmationService.ResetRememberedChoices();
         await _serverHost.ApplySettingsAsync();
         RefreshStatus();
         CloseRequested?.Invoke(this, EventArgs.Empty);

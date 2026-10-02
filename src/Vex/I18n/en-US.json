@@ -157,6 +157,7 @@
       "McpOperationConfirmationMessage": "An AI client is requesting an operation that can affect the current document or open a path.",
       "McpOperationConfirm": "Run",
       "McpOperationRejected": "MCP operation rejected.",
+      "McpOperationRememberChoice": "Remember this choice for this session (Run = always allow, Cancel = always deny)",
       "Changelog": "Changelog",
       "QuickStart": "Quick Start",
       "OnboardingGuide": "New User Guide",

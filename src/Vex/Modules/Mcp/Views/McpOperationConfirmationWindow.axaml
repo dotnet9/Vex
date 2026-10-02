@@ -7,7 +7,7 @@
     x:DataType="views:McpOperationConfirmationWindowModel"
     Title="{Binding Title}"
     Width="520"
-    Height="340"
+    Height="365"
     MinWidth="480"
     MinHeight="320"
     CanMaximize="False"
@@ -22,7 +22,7 @@
     <Border
         Background="{DynamicResource VexPanelBackgroundBrush}"
         Padding="24">
-        <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="14">
+        <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="14">
             <TextBlock
                 FontSize="17"
                 FontWeight="SemiBold"
@@ -49,8 +49,12 @@
                     <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Summary}" TextWrapping="Wrap" />
                 </Grid>
             </Border>
-            <StackPanel
+            <CheckBox
                 Grid.Row="3"
+                Content="{Binding RememberChoiceText}"
+                IsChecked="{Binding RememberChoice, Mode=TwoWay}" />
+            <StackPanel
+                Grid.Row="4"
                 HorizontalAlignment="Right"
                 Orientation="Horizontal"
                 Spacing="8">

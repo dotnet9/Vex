@@ -157,6 +157,7 @@
       "McpOperationConfirmationMessage": "AI 用戶端要求執行會影響目前文件或開啟路徑的操作。",
       "McpOperationConfirm": "執行",
       "McpOperationRejected": "已拒絕 MCP 操作。",
+      "McpOperationRememberChoice": "本次執行期間記住此選擇（執行 = 始終允許，取消 = 始終拒絕）",
       "Changelog": "更新日誌",
       "QuickStart": "快速開始（引導）",
       "OnboardingGuide": "新手引導",
