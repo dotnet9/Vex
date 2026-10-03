@@ -21,7 +21,6 @@ public partial class MarkdownPreviewView : UserControl
         AttachedToVisualTree += (_, _) => SetViewModel(DataContext as MarkdownPreviewViewModel);
         DetachedFromVisualTree += (_, _) => SetViewModel(null);
         PreviewScrollViewer.ScrollChanged += OnPreviewScrollChanged;
-        MarkdownCodeContrastFixer.Attach(PreviewMarkdownViewer);
         SetViewModel(DataContext as MarkdownPreviewViewModel);
     }
 
