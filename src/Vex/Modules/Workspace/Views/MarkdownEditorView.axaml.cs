@@ -39,6 +39,7 @@ public partial class MarkdownEditorView : UserControl
 
     // Markdown 语法着色跟随主题（对应原型 --md-code-fg / --md-quote 与标题用强调色），
     // 颜色资源缺失时保持 AvaloniaEdit 内置配色；六套主题的取值都在 AppPalette 中维护。
+    // 图片语法用独立的 VexImageBrush，与链接（VexLinkBrush）区分，对齐常规 Markdown 编辑器的源码样式。
     private void ApplyThemedSyntaxHighlighting()
     {
         if (MarkdownEditor.SyntaxHighlighting is not { } definition)
@@ -50,10 +51,42 @@ public partial class MarkdownEditorView : UserControl
         SetHighlightingForeground(definition, "Code", GetBrush("VexCodeFgBrush"));
         SetHighlightingForeground(definition, "BlockQuote", GetBrush("VexQuoteBrush"));
         SetHighlightingForeground(definition, "Link", GetBrush("VexLinkBrush"));
-        SetHighlightingForeground(definition, "Image", GetBrush("VexLinkBrush"));
+        SetHighlightingForeground(definition, "Image", GetBrush("VexImageBrush"));
         // LineBreak 内置浅灰背景在暗色主题刺眼，换成主题分隔色。
         SetHighlightingBackground(definition, "LineBreak", GetBrush("VexSplitterBrush"));
+        ApplyCodeHighlightingColors();
         MarkdownEditor.TextArea.TextView.Redraw();
+    }
+
+    // Markdown 缩进代码块通过 ruleSet 导入复用 C# 着色，内置配色（Green 注释、Blue 关键字等）
+    // 在暗色编辑器背景上不可读，映射到主题语义色。Vex 只编辑 Markdown，直接改共享的 C# 定义无副作用。
+    private static readonly IReadOnlyDictionary<string, string> CodeColorBrushKeys = new Dictionary<string, string>
+    {
+        ["Comment"] = "VexQuoteBrush",
+        ["Preprocessor"] = "VexQuoteBrush",
+        ["String"] = "VexWarningBrush",
+        ["Char"] = "VexWarningBrush",
+        ["StringInterpolation"] = "VexCodeFgBrush",
+        ["NumberLiteral"] = "VexWarningBrush",
+        ["Keywords"] = "VexLinkBrush",
+        ["GotoKeywords"] = "VexLinkBrush",
+        ["ValueTypeKeywords"] = "VexDangerBrush",
+        ["ReferenceTypeKeywords"] = "VexDangerBrush",
+        ["NullOrValueKeywords"] = "VexDangerBrush",
+        ["MethodCall"] = "VexCodeFgBrush",
+    };
+
+    private void ApplyCodeHighlightingColors()
+    {
+        if (HighlightingManager.Instance.GetDefinition("C#") is not { } codeDefinition)
+        {
+            return;
+        }
+
+        foreach (var (colorName, brushKey) in CodeColorBrushKeys)
+        {
+            SetHighlightingForeground(codeDefinition, colorName, GetBrush(brushKey));
+        }
     }
 
     private static void SetHighlightingForeground(
@@ -141,10 +174,17 @@ public partial class MarkdownEditorView : UserControl
 
     private IBrush? GetBrush(string key, IBrush? fallback = null)
     {
-        // 资源缺失时返回 fallback（语法着色传 null 以保留 AvaloniaEdit 内置配色），
-        // 不能默认透明——否则 Link 高亮会把 [文字](链接) 的文字段渲染成隐形。
-        return this.TryGetResource(key, ActualThemeVariant, out var resource) && resource is IBrush brush
-            ? brush
-            : fallback;
+        // 必须走 Application 级查找：控件级 TryGetResource 只查自身 Resources（恒为空），
+        // 主题色永远解析失败。此前回退透明曾把 Link 高亮变成"隐形文字"。
+        // 传入 ActualThemeVariant 以匹配 AppPalette 的 ThemeDictionaries（六套主题各自键值）。
+        IBrush? result = fallback;
+        if (Application.Current is { } app
+            && app.TryGetResource(key, ActualThemeVariant, out var resource)
+            && resource is IBrush brush)
+        {
+            result = brush;
+        }
+
+        return result;
     }
 }

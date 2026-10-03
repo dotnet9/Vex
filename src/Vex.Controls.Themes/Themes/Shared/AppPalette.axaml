@@ -20,6 +20,7 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#667085" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#1D2939" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#1677FF" />
+            <SolidColorBrush x:Key="VexImageBrush" Color="#7C3AED" />
             <SolidColorBrush x:Key="VexAccentBrush" Color="#1677FF" />
             <Color x:Key="VexAccentColor">#1677FF</Color>
             <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#E8F1FF" />
@@ -98,6 +99,7 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#AAB4C3" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#F3F4F6" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#60A5FA" />
+            <SolidColorBrush x:Key="VexImageBrush" Color="#C4B5FD" />
             <SolidColorBrush x:Key="VexAccentBrush" Color="#60A5FA" />
             <Color x:Key="VexAccentColor">#60A5FA</Color>
             <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#1D3A5F" />
@@ -176,6 +178,7 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#5C7880" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#16323A" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#0EA5B7" />
+            <SolidColorBrush x:Key="VexImageBrush" Color="#7C3AED" />
             <SolidColorBrush x:Key="VexAccentBrush" Color="#0EA5B7" />
             <Color x:Key="VexAccentColor">#0EA5B7</Color>
             <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#CDEFF5" />
@@ -254,6 +257,7 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#7A6752" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#32261B" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#C77B2A" />
+            <SolidColorBrush x:Key="VexImageBrush" Color="#7C3AED" />
             <SolidColorBrush x:Key="VexAccentBrush" Color="#C77B2A" />
             <Color x:Key="VexAccentColor">#C77B2A</Color>
             <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#F4DEC2" />
@@ -332,6 +336,7 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#72637F" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#2C2237" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#8A63D2" />
+            <SolidColorBrush x:Key="VexImageBrush" Color="#DB2777" />
             <SolidColorBrush x:Key="VexAccentBrush" Color="#8A63D2" />
             <Color x:Key="VexAccentColor">#8A63D2</Color>
             <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#E3DAF8" />
@@ -410,6 +415,7 @@
             <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="#AAB6C8" />
             <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="#EBF2FF" />
             <SolidColorBrush x:Key="VexLinkBrush" Color="#7AA2FF" />
+            <SolidColorBrush x:Key="VexImageBrush" Color="#C4B5FD" />
             <SolidColorBrush x:Key="VexAccentBrush" Color="#7AA2FF" />
             <Color x:Key="VexAccentColor">#7AA2FF</Color>
             <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#1E335A" />
