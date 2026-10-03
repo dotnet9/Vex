@@ -48,7 +48,11 @@ public sealed class AppSettingsStore : IAppSettingsStore
     {
         lock (_syncRoot)
         {
-            _settings = update(Current);
+            // 以磁盘最新配置为基准做读-改-写合并：Update 调用点均为 with{指定键} 的部分更新，
+            // 其余键保留磁盘现状。此前以内存快照全量覆盖保存，多实例并存或配置文件被外部
+            // 修改后，任一实例退出都会用过期快照覆盖全部键（MCP 开关/Token 因此丢失）。
+            var latest = Load();
+            _settings = update(latest);
             Save(_settings);
             return _settings;
         }
