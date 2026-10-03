@@ -3,68 +3,41 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using CodeWF.Markdown;
 using CodeWF.Markdown.Controls;
-using Vex.Core.Services;
 
 namespace Vex.Modules.Workspace.Views;
 
 /// <summary>
 /// 修正预览代码块在浅色应用主题下的可读性：
 /// CodeWF.Markdown 的代码高亮按 ActualThemeVariant 选配色，非 Dark 主题（含 Desert 等
-/// 浅色暖色主题）使用浅底 token 色（暗红/深蓝），而代码块背景由排版主题固定为深色，
-/// 导致键名/字符串/标点不可读。这里在渲染完成后把浅色主题 token 色映射为暗底可读色。
+/// 浅色暖色主题与 night-sky 等自定义暗色变体）会拿到浅底 token 色（暗红/深蓝/黑），
+/// 而代码块背景由排版主题固定为深色，导致深色 token（大括号/键名/字符串）不可读。
+/// 这里在渲染完成后把所有低亮度 token 前景按色相提亮为暗底可读色（对齐 VS Code dark+ 风格）。
 /// </summary>
 public static class MarkdownCodeContrastFixer
 {
-    // 浅色主题 token 前景（VS 浅色系）→ 暗底可读色。键取整色比对。
-    private static readonly Dictionary<Color, Color> LightTokenToDarkReadable = new()
-    {
-        [Color.FromRgb(0xA3, 0x15, 0x15)] = Color.FromRgb(0xE0, 0x6C, 0x75), // 字符串/键暗红
-        [Color.FromRgb(0x00, 0x00, 0xFF)] = Color.FromRgb(0x56, 0x9C, 0xD6), // 键名蓝
-        [Color.FromRgb(0x00, 0x7F, 0x00)] = Color.FromRgb(0x6A, 0x99, 0x55), // 注释绿
-    };
+    // 近黑标点（大括号/引号/冒号等）统一提为浅灰，对齐 VS Code dark+ 的标点色。
+    private static readonly Color PunctuationLight = Color.FromRgb(0xD4, 0xD4, 0xD4);
 
     public static void Attach(MarkdownViewer viewer)
     {
         viewer.CodeBlockToolRender += OnCodeBlockToolRender;
-        Log("attach ok");
-    }
-
-    private static void Log(string message)
-    {
-        try
-        {
-            System.IO.File.AppendAllText(
-                System.IO.Path.Combine(System.IO.Path.GetTempPath(), "vex_contrast_fix.log"),
-                DateTime.Now.ToString("HH:mm:ss.fff") + " " + message + Environment.NewLine);
-        }
-        catch
-        {
-        }
     }
 
     private static void OnCodeBlockToolRender(object? sender, CodeBlockToolRenderEventArgs e)
     {
-        Log("event fired");
-        var replaced = FixTokenForegrounds(e.ContentPanel);
-        Log("replaced: " + replaced);
+        FixTokenForegrounds(e.ContentPanel);
     }
 
-    private static int FixTokenForegrounds(Control control)
+    private static void FixTokenForegrounds(Control control)
     {
-        var count = 0;
         if (control is SelectableTextBlock textBlock)
         {
-            Log("found SelectableTextBlock, inlines=" + textBlock.Inlines.Count);
             foreach (var inline in textBlock.Inlines)
             {
-                if (inline.Foreground is ISolidColorBrush solid)
+                if (inline.Foreground is ISolidColorBrush solid
+                    && IsTooDarkForDarkBackground(solid.Color))
                 {
-                    Log("  token color: " + solid.Color);
-                    if (LightTokenToDarkReadable.TryGetValue(solid.Color, out var readable))
-                    {
-                        inline.Foreground = new SolidColorBrush(readable);
-                        count++;
-                    }
+                    inline.Foreground = new SolidColorBrush(BrightenForDarkBackground(solid.Color));
                 }
             }
         }
@@ -73,25 +46,106 @@ public static class MarkdownCodeContrastFixer
         {
             foreach (var child in panel.Children)
             {
-                count += FixTokenForegrounds(child);
+                FixTokenForegrounds(child);
             }
         }
         else if (control is Decorator decorator)
         {
             if (decorator.Child is { } child)
             {
-                count += FixTokenForegrounds(child);
+                FixTokenForegrounds(child);
             }
         }
         else if (control is Border border)
         {
-            count += FixTokenForegrounds(border.Child);
+            if (border.Child is { } child)
+            {
+                FixTokenForegrounds(child);
+            }
         }
         else if (control is ContentControl contentControl && contentControl.Content is Control contentChild)
         {
-            count += FixTokenForegrounds(contentChild);
+            FixTokenForegrounds(contentChild);
+        }
+    }
+
+    private static bool IsTooDarkForDarkBackground(Color color)
+    {
+        // 感知亮度（CCIR 601），低于 0.5 在深色代码块底上即为低对比。
+        var luminance = (0.299 * color.R + 0.587 * color.G + 0.114 * color.B) / 255.0;
+        return luminance < 0.5;
+    }
+
+    private static Color BrightenForDarkBackground(Color color)
+    {
+        RgbToHsv(color, out var hue, out var saturation, out var value);
+
+        // 近黑无彩（标点/大括号/引号）→ 浅灰
+        if (saturation < 0.15 && value < 0.35)
+        {
+            return PunctuationLight;
         }
 
-        return count;
+        // 保留色相，亮度提到暗底可读水平，饱和度略降避免刺眼
+        value = Math.Clamp(value, 0.80, 1.0);
+        saturation = Math.Min(saturation, 0.65);
+        return HsvToRgb(hue, saturation, value);
+    }
+
+    private static void RgbToHsv(Color color, out double h, out double s, out double v)
+    {
+        var r = color.R / 255.0;
+        var g = color.G / 255.0;
+        var b = color.B / 255.0;
+        var max = Math.Max(r, Math.Max(g, b));
+        var min = Math.Min(r, Math.Min(g, b));
+        var delta = max - min;
+
+        v = max;
+        s = max <= 0 ? 0 : delta / max;
+
+        if (delta <= 0)
+        {
+            h = 0;
+            return;
+        }
+
+        if (max == r)
+        {
+            h = 60 * (((g - b) / delta) % 6);
+        }
+        else if (max == g)
+        {
+            h = 60 * ((b - r) / delta + 2);
+        }
+        else
+        {
+            h = 60 * ((r - g) / delta + 4);
+        }
+
+        if (h < 0)
+        {
+            h += 360;
+        }
+    }
+
+    private static Color HsvToRgb(double h, double s, double v)
+    {
+        var c = v * s;
+        var x = c * (1 - Math.Abs(h / 60 % 2 - 1));
+        var m = v - c;
+        (var r, var g, var b) = (int)(h / 60) switch
+        {
+            0 => (c, x, 0.0),
+            1 => (x, c, 0.0),
+            2 => (0.0, c, x),
+            3 => (0.0, x, c),
+            4 => (x, 0.0, c),
+            _ => (c, 0.0, x),
+        };
+        return Color.FromRgb(
+            (byte)Math.Round((r + m) * 255),
+            (byte)Math.Round((g + m) * 255),
+            (byte)Math.Round((b + m) * 255));
     }
 }
