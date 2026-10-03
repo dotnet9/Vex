@@ -150,7 +150,6 @@ Release 压缩包会排除 `*.pdb` 调试符号文件。已有产物默认不会
 - [快速开始](docs/快速开始.md)
 - [更新日志](UpdateLog.md)
 - [MCP 功能实现方案](docs/MCP功能实现方案.md)
-- [GitHub Release 文案](RELEASES.md)
 - [鸣谢](docs/鸣谢.md)
 
 ## 开源致谢
