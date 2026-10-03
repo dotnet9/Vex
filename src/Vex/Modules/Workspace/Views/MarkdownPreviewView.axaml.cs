@@ -11,6 +11,8 @@ namespace Vex.Modules.Workspace.Views;
 public partial class MarkdownPreviewView : UserControl
 {
     private MarkdownPreviewViewModel? _viewModel;
+    private double _savedReadingRatio;
+    private bool _restoringScrollPosition;
 
     public MarkdownPreviewView()
     {
@@ -18,7 +20,23 @@ public partial class MarkdownPreviewView : UserControl
         DataContextChanged += OnDataContextChanged;
         AttachedToVisualTree += (_, _) => SetViewModel(DataContext as MarkdownPreviewViewModel);
         DetachedFromVisualTree += (_, _) => SetViewModel(null);
+        PreviewScrollViewer.ScrollChanged += OnPreviewScrollChanged;
+        MarkdownCodeContrastFixer.Attach(PreviewMarkdownViewer);
         SetViewModel(DataContext as MarkdownPreviewViewModel);
+    }
+
+    // 持续记录阅读位置（滚动比例），主题/排版切换整篇重渲染后按比例恢复。
+    private void OnPreviewScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (_restoringScrollPosition)
+        {
+            return;
+        }
+
+        var scrollableHeight = Math.Max(0d, PreviewScrollViewer.Extent.Height - PreviewScrollViewer.Viewport.Height);
+        _savedReadingRatio = scrollableHeight <= 0
+            ? 0
+            : Math.Clamp(PreviewScrollViewer.Offset.Y / scrollableHeight, 0d, 1d);
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -54,6 +72,37 @@ public partial class MarkdownPreviewView : UserControl
             or nameof(MarkdownPreviewViewModel.Markdown))
         {
             QueueScrollToEditorPosition();
+        }
+        else if (e.PropertyName is nameof(MarkdownPreviewViewModel.TypographyTheme)
+            or nameof(MarkdownPreviewViewModel.TypographySize))
+        {
+            // 主题/排版切换会整篇重渲染并重置滚动，按比例恢复切换前的阅读位置。
+            QueueScrollToReadingPosition();
+        }
+    }
+
+    private void QueueScrollToReadingPosition()
+    {
+        // 重渲染异步完成且会把 Offset 重置为 0：恢复窗口内（300ms）冻结保存值，
+        // 定时器触发时重渲染已完成，按保存的比例恢复。
+        _restoringScrollPosition = true;
+        Dispatcher.UIThread.Post(RestoreReadingPosition, DispatcherPriority.Background);
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            RestoreReadingPosition();
+            _restoringScrollPosition = false;
+        };
+        timer.Start();
+    }
+
+    private void RestoreReadingPosition()
+    {
+        var scrollableHeight = Math.Max(0d, PreviewScrollViewer.Extent.Height - PreviewScrollViewer.Viewport.Height);
+        if (scrollableHeight > 0d)
+        {
+            PreviewScrollViewer.Offset = new Vector(0d, scrollableHeight * _savedReadingRatio);
         }
     }
 

@@ -142,18 +142,20 @@
     <Style Selector="ListBox.side-list Border.lvl-badge.on">
         <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
     </Style>
-    <Style Selector="ListBox.side-list Border.lvl-badge.on > TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource VexAccentSoftBrush}" />
-    </Style>
     <Style Selector="ListBox.side-list TextBlock.outline-title.current">
         <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
+    <!-- 通用徽章文字规则必须放在 .on 覆盖规则之后：Avalonia 同特异性按定义顺序裁决，
+         否则选中徽章的文字色被通用主题色覆盖（文字与底同色 → 隐形）。 -->
     <Style Selector="ListBox.side-list Border.lvl-badge > TextBlock">
         <Setter Property="FontSize" Value="9.5" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
         <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ListBox.side-list Border.lvl-badge.on > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentSoftBrush}" />
     </Style>
 
     <Style Selector="TreeView.side-tree">
@@ -221,5 +223,13 @@
 
     <Style Selector="TreeView.side-tree TreeViewItem:selected TextBlock.side-heading">
         <Setter Property="Foreground" Value="{DynamicResource ButtonSolidPrimaryBackground}" />
+    </Style>
+    <!-- 大纲徽章兜底规则（放文件末尾）：ListBoxItem:selected 的通用文字色会命中徽章内文字，
+         必须以更全的选择器 + 更后位置覆盖，否则选中项的 H2 角标文字与底色同色而隐形。 -->
+    <Style Selector="ListBox.side-list ListBoxItem Border.lvl-badge.on > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentSoftBrush}" />
+    </Style>
+    <Style Selector="ListBox.side-list ListBoxItem:selected Border.lvl-badge.on > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentSoftBrush}" />
     </Style>
 </Styles>
