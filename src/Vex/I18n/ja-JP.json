@@ -439,7 +439,13 @@
       "EditorSearchReplacedAllFormat": "{0} 件を置換しました。",
       "EditorSearchMatchCountFormat": "\"{1}\" は {0} 件見つかりました。",
       "EditorSearchInvalidRegexFormat": "正規表現が無効です: {0}",
-      "MarkdownDocumentSubtitle": "アプリに同梱の公式ドキュメント · Markdown 描画"
+      "MarkdownDocumentSubtitle": "アプリに同梱の公式ドキュメント · Markdown 描画",
+      "AboutCheckUpdateLabel": "更新",
+      "AboutCheckUpdate": "更新を確認",
+      "AboutCheckingUpdate": "更新を確認中…",
+      "AboutUpToDate": "すでに最新版です",
+      "AboutUpdateAvailable": "新しいバージョン {0} が見つかりました。リリースページを開きました。",
+      "AboutUpdateFailed": "更新の確認に失敗しました: {0}"
     }
   }
 }

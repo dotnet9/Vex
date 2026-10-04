@@ -1,4 +1,4 @@
-<u:UrsaWindow
+﻿<u:UrsaWindow
     x:Class="Vex.Modules.Help.Views.AboutWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -44,7 +44,7 @@
             <Grid
                 Grid.Row="1"
                 ColumnDefinitions="Auto,*"
-                RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
+                RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
                 RowSpacing="9"
                 ColumnSpacing="16">
                 <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutChineseNameLabel}}" />
@@ -79,13 +79,24 @@
                     TextDecorations="Underline" />
                 <TextBlock Grid.Row="5" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutBrandLabel}}" />
                 <TextBlock Grid.Row="5" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutBrandName}}" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="6" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutCheckUpdateLabel}}" />
+                <TextBlock
+                    x:Name="CheckUpdateLink"
+                    Grid.Row="6"
+                    Grid.Column="1"
+                    Cursor="Hand"
+                    Foreground="{DynamicResource VexLinkBrush}"
+                    PointerPressed="CheckUpdateLink_OnPointerPressed"
+                    TextDecorations="Underline"
+                    Text="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}" />
             </Grid>
 
             <TextBlock
+                x:Name="CheckUpdateResultText"
                 Grid.Row="2"
                 Classes="muted"
-                Text="{i18n:I18n {x:Static l:VexL.AboutDescription}}"
-                TextWrapping="Wrap" />
+                TextWrapping="Wrap"
+                Text="{i18n:I18n {x:Static l:VexL.AboutDescription}}" />
         </Grid>
     </Border>
 </u:UrsaWindow>

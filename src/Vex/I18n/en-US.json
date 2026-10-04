@@ -439,7 +439,13 @@
       "EditorSearchReplacedAllFormat": "Replaced {0} occurrence(s).",
       "EditorSearchMatchCountFormat": "{0} match(es) for \"{1}\".",
       "EditorSearchInvalidRegexFormat": "Invalid regular expression: {0}",
-      "MarkdownDocumentSubtitle": "Official document bundled with the app · Rendered as Markdown"
+      "MarkdownDocumentSubtitle": "Official document bundled with the app · Rendered as Markdown",
+      "AboutCheckUpdateLabel": "Updates",
+      "AboutCheckUpdate": "Check for updates",
+      "AboutCheckingUpdate": "Checking for updates…",
+      "AboutUpToDate": "You are already on the latest version",
+      "AboutUpdateAvailable": "New version found: {0}. Release page opened.",
+      "AboutUpdateFailed": "Update check failed: {0}"
     }
   }
 }

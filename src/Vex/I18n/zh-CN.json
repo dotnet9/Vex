@@ -439,7 +439,13 @@
       "EditorSearchReplacedAllFormat": "已替换 {0} 处。",
       "EditorSearchMatchCountFormat": "\"{1}\" 共 {0} 处匹配。",
       "EditorSearchInvalidRegexFormat": "正则表达式无效：{0}",
-      "MarkdownDocumentSubtitle": "随应用分发的官方文档 · Markdown 渲染"
+      "MarkdownDocumentSubtitle": "随应用分发的官方文档 · Markdown 渲染",
+      "AboutCheckUpdateLabel": "更新",
+      "AboutCheckUpdate": "检查更新",
+      "AboutCheckingUpdate": "正在检查更新…",
+      "AboutUpToDate": "当前已是最新版本",
+      "AboutUpdateAvailable": "发现新版本 {0}，已打开发布页",
+      "AboutUpdateFailed": "检查更新失败：{0}"
     }
   }
 }

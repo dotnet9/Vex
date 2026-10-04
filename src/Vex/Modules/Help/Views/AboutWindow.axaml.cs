@@ -1,14 +1,18 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using Avalonia.Input;
 using CodeWF.Tools.Extensions;
+using Lang.Avalonia;
 using Ursa.Controls;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Help.Views;
 
 public partial class AboutWindow : UrsaWindow
 {
     private const string WebsiteUrl = "https://codewf.com";
+    private static readonly UpdateChecker UpdateChecker = new("dotnet9", "Vex");
+    private bool _checkingUpdate;
 
     public AboutWindow()
     {
@@ -30,5 +34,47 @@ public partial class AboutWindow : UrsaWindow
     {
         Process.Start(new ProcessStartInfo(WebsiteUrl) { UseShellExecute = true });
         e.Handled = true;
+    }
+
+    private async void CheckUpdateLink_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (_checkingUpdate)
+        {
+            return;
+        }
+
+        _checkingUpdate = true;
+        CheckUpdateResultText.Text = I18nManager.Instance.GetResource(VexL.AboutCheckingUpdate);
+        e.Handled = true;
+        try
+        {
+            Version? current = UpdateVersion.Parse(VersionText.Text);
+            UpdateCheckResult result = await UpdateChecker.CheckAsync(current ?? new Version(0, 0, 0));
+            if (!result.Succeeded)
+            {
+                CheckUpdateResultText.Text = string.Format(
+                    I18nManager.Instance.GetResource(VexL.AboutUpdateFailed) ?? "{0}", result.Error);
+                return;
+            }
+
+            if (result.Update is { } update)
+            {
+                CheckUpdateResultText.Text = string.Format(
+                    I18nManager.Instance.GetResource(VexL.AboutUpdateAvailable) ?? "{0}", update.Tag);
+                Process.Start(new ProcessStartInfo(update.PageUrl) { UseShellExecute = true });
+                return;
+            }
+
+            CheckUpdateResultText.Text = I18nManager.Instance.GetResource(VexL.AboutUpToDate);
+        }
+        catch (Exception exception)
+        {
+            CheckUpdateResultText.Text = string.Format(
+                I18nManager.Instance.GetResource(VexL.AboutUpdateFailed) ?? "{0}", exception.Message);
+        }
+        finally
+        {
+            _checkingUpdate = false;
+        }
     }
 }

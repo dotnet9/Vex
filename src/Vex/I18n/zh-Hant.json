@@ -439,7 +439,13 @@
       "EditorSearchReplacedAllFormat": "已取代 {0} 處。",
       "EditorSearchMatchCountFormat": "\"{1}\" 共 {0} 處符合。",
       "EditorSearchInvalidRegexFormat": "正則表示式無效：{0}",
-      "MarkdownDocumentSubtitle": "隨應用程式散發的官方文件 · Markdown 轉譯"
+      "MarkdownDocumentSubtitle": "隨應用程式散發的官方文件 · Markdown 轉譯",
+      "AboutCheckUpdateLabel": "更新",
+      "AboutCheckUpdate": "檢查更新",
+      "AboutCheckingUpdate": "正在檢查更新…",
+      "AboutUpToDate": "目前已是最新版本",
+      "AboutUpdateAvailable": "發現新版本 {0}，已打開發布頁",
+      "AboutUpdateFailed": "檢查更新失敗：{0}"
     }
   }
 }
