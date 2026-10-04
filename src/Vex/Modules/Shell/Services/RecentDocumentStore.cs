@@ -1,4 +1,4 @@
-using Vex.Core.Models;
+﻿using Vex.Core.Models;
 using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.Services;
@@ -67,10 +67,36 @@ public sealed class RecentDocumentStore : IRecentDocumentStore
         }
     }
 
-    private static string RecentDocumentsPath =>
-        Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "CodeWF",
-            "Vex",
-            "recent-files.txt");
+    private static string RecentDocumentsPath
+    {
+        get
+        {
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "CodeWF",
+                "Vex",
+                "recent-files.txt");
+
+            // 旧版列表在 Roaming（%APPDATA% 下），首次升级一次性迁到 Local（应用数据标准位置），旧文件保留作备份
+            try
+            {
+                var legacy = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "CodeWF",
+                    "Vex",
+                    "recent-files.txt");
+                if (File.Exists(legacy) && !File.Exists(path))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                    File.Copy(legacy, path, overwrite: false);
+                }
+            }
+            catch
+            {
+                // 迁移失败不阻塞读取，按无历史记录处理
+            }
+
+            return path;
+        }
+    }
 }
