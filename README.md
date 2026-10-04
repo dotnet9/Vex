@@ -180,3 +180,7 @@ XML 文件统一使用两个空格缩进。`Directory.Packages.props` 统一承�
 **[publish-nuget.yml](.github/workflows/publish-nuget.yml)**：发布 `Vex.Controls`、`Vex.Controls.Themes` 到 nuget.org（NuGet Trusted Publishing，仓库不存 secret）。
 
 **[release.yml](.github/workflows/release.yml)**：为六个平台（win-x64 / win-x86 / linux-x64 / linux-arm64 / osx-x64 / osx-arm64）构建并制作安装包——Windows 用 Inno Setup 中文向导（NativeAOT 裁剪）、Linux 用 deb、macOS 用 dmg（替代此前 zip 便携包），最后创建 GitHub Release。
+
+## 发布
+
+标准发布流程与发布说明规范见 [docs/RELEASE.md](docs/RELEASE.md)。
