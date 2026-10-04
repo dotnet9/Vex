@@ -1,4 +1,4 @@
-name: release
+﻿name: release
 
 # 推送 v* 标签发布 Vex 全平台安装包（6 个 RID，仓库自带 PublishProfile）：
 # win-x64 / win-x86 用 Inno Setup 生成 setup.exe（Windows 走 NativeAOT 裁剪），
@@ -31,7 +31,7 @@ jobs:
           - rid: linux-x64
             os: ubuntu-latest
           - rid: linux-arm64
-            os: ubuntu-latest
+            os: ubuntu-24.04-arm
           - rid: osx-x64
             os: macos-14
           - rid: osx-arm64
@@ -60,14 +60,26 @@ jobs:
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           Write-Host "版本：$version"
 
-      # 与 publish_all.bat 相同的 Profile / TFM 组合（win NativeAOT 裁剪，其它单文件压缩）
-      - name: 发布（PublishProfile）
+      - name: 安装 NativeAOT 依赖 (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      # 与 publish_all.bat 相同的 Profile / TFM 组合；全平台 NativeAOT（完整反射元数据保全 Prism/DryIoc）
+      - name: 发布（PublishProfile + NativeAOT）
         shell: pwsh
         run: |
           $rid = '${{ matrix.rid }}'
           $tfm = if ($rid.StartsWith('win-', [StringComparison]::OrdinalIgnoreCase)) { 'net11.0-windows' } else { 'net11.0' }
-          # NativeAOT 的 ILC 在 preview SDK 上并行编译可能崩溃，单线程更稳
-          $ilcArgs = if ($rid.StartsWith('win-', [StringComparison]::OrdinalIgnoreCase)) { '-p:IlcSingleThreaded=true' } else { '' }
+          # NativeAOT 的 ILC 在 preview SDK 上并行编译可能崩溃，单线程更稳；win-x86 不支持 NativeAOT 保持自包含单文件
+          $ilcArgs = @(
+            '-p:PublishAot=true',
+            '-p:PublishTrimmed=true',
+            '-p:PublishSingleFile=false',
+            '-p:IlcGenerateCompleteTypeMetadata=true',
+            '-p:IlcTrimMetadata=false',
+            '-p:IlcSingleThreaded=true'
+          )
+          if ($rid -eq 'win-x86') { $ilcArgs = @() }
           dotnet publish src/Vex/Vex.csproj -c Release -f $tfm -r $rid $ilcArgs /p:PublishProfile=FolderProfile__$rid
           if ($LASTEXITCODE -ne 0) { throw "publish failed for $rid" }
 
