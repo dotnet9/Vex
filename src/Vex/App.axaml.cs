@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -35,7 +35,7 @@ public partial class App : PrismApplication
         AvaloniaXamlLoader.Load(this);
         var langPlugin = new JsonLangPlugin
         {
-            ResourceFolder = Path.Combine(AppContext.BaseDirectory, "I18n")
+            ResourceFolder = ResolveI18nFolder()
         };
         I18nManager.Instance.Register(langPlugin, new CultureInfo("zh-CN"), out _);
         base.Initialize();
@@ -118,4 +118,21 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<MainWindowViewModel>();
         containerRegistry.Register<MainWindow>();
     }
+
+    /// <summary>
+    /// 语言包目录：常规部署在 BaseDirectory/I18n；macOS .app 打包会把
+    /// 可执行文件以外的内容挪进 Contents/Resources，这里按存在性探测。
+    /// </summary>
+    private static string ResolveI18nFolder()
+    {
+        var baseDirectory = AppContext.BaseDirectory;
+        var candidates = new[]
+        {
+            Path.Combine(baseDirectory, "I18n"),
+            Path.Combine(baseDirectory, "..", "Resources", "I18n"),
+        };
+        return candidates.FirstOrDefault(Directory.Exists)
+            ?? Path.Combine(baseDirectory, "I18n");
+
+}
 }
