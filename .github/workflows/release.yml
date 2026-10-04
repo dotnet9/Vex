@@ -80,6 +80,7 @@ jobs:
             '-p:IlcSingleThreaded=true'
           )
           if ($rid -eq 'win-x86') { $ilcArgs = @() }
+          if ($rid.StartsWith('osx-', [StringComparison]::OrdinalIgnoreCase)) { $ilcArgs += '-p:StripSymbols=false' }
           dotnet publish src/Vex/Vex.csproj -c Release -f $tfm -r $rid $ilcArgs /p:PublishProfile=FolderProfile__$rid
           if ($LASTEXITCODE -ne 0) { throw "publish failed for $rid" }
 
