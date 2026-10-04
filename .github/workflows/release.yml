@@ -69,7 +69,7 @@ jobs:
         shell: pwsh
         run: |
           $rid = '${{ matrix.rid }}'
-          $tfm = if ($rid.StartsWith('win-', [StringComparison]::OrdinalIgnoreCase)) { 'net11.0-windows' } else { 'net11.0' }
+          $tfm = if ($rid.StartsWith('win-', [StringComparison]::OrdinalIgnoreCase)) { 'net10.0-windows' } else { 'net10.0' }
           # NativeAOT 的 ILC 在 preview SDK 上并行编译可能崩溃，单线程更稳；win-x86 不支持 NativeAOT 保持自包含单文件
           $ilcArgs = @(
             '-p:PublishAot=true',
