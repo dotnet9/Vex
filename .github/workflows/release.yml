@@ -79,8 +79,9 @@ jobs:
             '-p:IlcTrimMetadata=false',
             '-p:IlcSingleThreaded=true'
           )
-          if ($rid -eq 'win-x86') { $ilcArgs = @() }
-          if ($rid.StartsWith('osx-', [StringComparison]::OrdinalIgnoreCase)) { $ilcArgs += '-p:StripSymbols=false' }
+          # win-x86 不支持 NativeAOT；macOS 在 .NET 11 rc.1 上有 swift auto-link 工具链 bug
+          # （__swift_FORCE_LOAD 符号缺失，GA 后恢复 AOT），两者保持自包含单文件
+          if ($rid -eq 'win-x86' -or $rid.StartsWith('osx-', [StringComparison]::OrdinalIgnoreCase)) { $ilcArgs = @() }
           dotnet publish src/Vex/Vex.csproj -c Release -f $tfm -r $rid $ilcArgs /p:PublishProfile=FolderProfile__$rid
           if ($LASTEXITCODE -ne 0) { throw "publish failed for $rid" }
 
