@@ -44,7 +44,7 @@ jobs:
       - name: 安装 .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '11.0.x'
+          dotnet-version: '10.0.x'
           dotnet-quality: preview
 
       - name: 计算版本号
@@ -79,9 +79,9 @@ jobs:
             '-p:IlcTrimMetadata=false',
             '-p:IlcSingleThreaded=true'
           )
-          # win-x86 不支持 NativeAOT；macOS 在 .NET 11 rc.1 上有 swift auto-link 工具链 bug
-          # （__swift_FORCE_LOAD 符号缺失，GA 后恢复 AOT），两者保持自包含单文件
-          if ($rid -eq 'win-x86' -or $rid.StartsWith('osx-', [StringComparison]::OrdinalIgnoreCase)) { $ilcArgs = @() }
+          # win-x86 不支持 NativeAOT，保持自包含单文件；macOS 保留符号（ld_classic 不支持压缩调试段）
+          if ($rid -eq 'win-x86') { $ilcArgs = @() }
+          if ($rid.StartsWith('osx-', [StringComparison]::OrdinalIgnoreCase)) { $ilcArgs += '-p:StripSymbols=false' }
           dotnet publish src/Vex/Vex.csproj -c Release -f $tfm -r $rid $ilcArgs /p:PublishProfile=FolderProfile__$rid
           if ($LASTEXITCODE -ne 0) { throw "publish failed for $rid" }
 
