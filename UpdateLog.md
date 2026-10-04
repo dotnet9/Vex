@@ -1,5 +1,11 @@
 # 更新日志
 
+## 1.3.1 (2026-10-04)
+
+### 更新检查
+
+- 「关于」窗口新增检查更新：版本号经 GitHub 网页端点（`releases/latest` 302 落点 + `expanded_assets/{tag}`）获取，不碰 api.github.com 的每小时配额；发现新版本就地提示并打开发布页。四语言文案同步。
+
 ## 1.3.0 (2026-10-02)
 
 - ✨[新增]-MCP 新增 5 个工具：`vex_replace_text`（查找唯一串替换，告别易错的字符偏移）、`vex_undo` / `vex_redo`（AI 修改可撤销重做）、`vex_list_files`（列出工作区文件）、`vex_create_document`（授权范围内新建文档并打开），工具总数达 29 个。
