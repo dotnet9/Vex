@@ -132,7 +132,8 @@ create_app_bundle() {
 
   rm -rf "$app_dir"
   mkdir -p "$macos_dir" "$resources_dir"
-
+  # older bundle marker; some tools fail to recognize the bundle without it.
+  printf 'APPL????' >"$contents_dir/PkgInfo"
   # codesign 要求 Contents/MacOS 下只能出现可执行文件/动态库：
   # 先整体拷入，再把主可执行文件与动态库以外的内容挪到 Contents/Resources。
   ditto "$publish_dir" "$macos_dir"
