@@ -156,15 +156,6 @@
         <Setter Property="Height" Value="6" />
     </Style>
 
-    <!-- 遮罩打开时底层内容模糊（对应原型 backdrop blur）：由 MainWindow 的 Classes.blur 联动 -->
-    <Style Selector="Grid.blur, Border.blur">
-        <Setter Property="Effect">
-            <Setter.Value>
-                <BlurEffect Radius="9" />
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <!-- 覆盖层对话框阴影：四主题通用（对应原型 shadow-pop），DynamicResource 不支持字符串令牌故直接内联 -->
     <Style Selector="Border.dialog-card">
         <Setter Property="Width" Value="440" />

@@ -5,7 +5,6 @@ using ReactiveUI;
 using Ursa.Controls;
 using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
-using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
 
 namespace Vex.Modules.Shell.ViewModels;

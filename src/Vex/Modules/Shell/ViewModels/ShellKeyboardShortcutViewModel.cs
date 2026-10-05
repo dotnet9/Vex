@@ -7,16 +7,12 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
 {
     public ShellKeyboardShortcutViewModel(
-        ShellDialogsViewModel dialogs,
         ShellFindBarViewModel findBar,
         ShellWindowLayoutViewModel layout)
     {
-        Dialogs = dialogs;
         FindBar = findBar;
         Layout = layout;
     }
-
-    public ShellDialogsViewModel Dialogs { get; }
 
     public ShellFindBarViewModel FindBar { get; }
 

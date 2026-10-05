@@ -46,7 +46,7 @@ public sealed class ShellRenameDialogViewModel : ReactiveObject, Irihi.Avalonia.
             return;
         }
 
-        if (newName.IndexOfAny(global::System.IO.Path.GetInvalidFileNameChars()) >= 0)
+        if (newName.IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) >= 0)
         {
             Error = _localizer.Get(VexL.RenameErrorInvalidChars);
             return;
