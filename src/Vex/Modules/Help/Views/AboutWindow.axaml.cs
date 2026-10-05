@@ -2,9 +2,10 @@
 using System.Reflection;
 using Avalonia.Input;
 using CodeWF.Tools.Extensions;
+using CodeWF.Tools.UpdateChecking;
 using Lang.Avalonia;
 using Ursa.Controls;
-using Vex.Core.Services;
+
 
 namespace Vex.Modules.Help.Views;
 
@@ -48,7 +49,7 @@ public partial class AboutWindow : UrsaWindow
         e.Handled = true;
         try
         {
-            Version? current = UpdateVersion.Parse(VersionText.Text);
+            Version? current = VersionUtil.Parse(VersionText.Text);
             UpdateCheckResult result = await UpdateChecker.CheckAsync(current ?? new Version(0, 0, 0));
             if (!result.Succeeded)
             {
