@@ -1,5 +1,6 @@
 using Ursa.Controls;
 using Vex.Modules.Shell.ViewModels;
+using Vex.Modules.Shell.Views;
 
 namespace Vex.Modules.Shell.Services;
 
@@ -36,14 +37,10 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
         }
 
         // 这里只负责决策分发，不直接执行文件操作；保存与后续动作由调用方闭包描述。
-        var result = await OverlayMessageBox.ShowAsync(
-            message,
-            title,
-            icon: MessageBoxIcon.Warning,
-            button: MessageBoxButton.YesNoCancel);
-        switch (result)
+        var decision = await ShowUnsavedDialogAsync(title, message, currentFilePath ?? _text.UnsavedDocumentFallback);
+        switch (decision)
         {
-            case MessageBoxResult.Yes:
+            case ShellUnsavedDecision.Save:
                 if (saveAsync is not null)
                 {
                     await saveAsync();
@@ -56,7 +53,7 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
 
                 await continuation();
                 break;
-            case MessageBoxResult.No:
+            case ShellUnsavedDecision.Discard:
                 await continuation();
                 break;
             default:
@@ -64,5 +61,13 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
                 _statusPublisher.PublishResource(VexL.StatusActionCanceledUnsavedKept);
                 break;
         }
+    }
+
+    private static Task<ShellUnsavedDecision> ShowUnsavedDialogAsync(string title, string message, string path)
+    {
+        var viewModel = new ShellUnsavedDialogViewModel(title, message, path);
+        return OverlayDialog.ShowCustomAsync<ShellUnsavedDecision>(
+            new ShellUnsavedDialogView(),
+            viewModel);
     }
 }

@@ -1,0 +1,51 @@
+<UserControl
+    x:Class="Vex.Modules.Shell.Views.ShellUnsavedDialogView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
+    xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+    x:DataType="vm:ShellUnsavedDialogViewModel">
+    <Border Classes="dialog-card" Width="440">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Border Classes="dlg-ico warn">
+                    <Path Classes="stroke-ico" Data="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01" />
+                </Border>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="15.5"
+                    FontWeight="SemiBold"
+                    Text="{Binding Title}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+            <TextBlock
+                Grid.Row="1"
+                Classes="muted"
+                Text="{Binding Message}"
+                TextWrapping="Wrap" />
+            <Border Grid.Row="2" Classes="dlg-path">
+                <SelectableTextBlock Text="{Binding Path}" />
+            </Border>
+            <StackPanel
+                Grid.Row="3"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Click="OnCancelClicked"
+                    Content="{i18n:I18n {x:Static l:VexL.Cancel}}"
+                    MinWidth="84" />
+                <Button
+                    Click="OnDiscardClicked"
+                    Content="{i18n:I18n {x:Static l:VexL.DoNotSave}}"
+                    MinWidth="104" />
+                <Button
+                    Classes="primary"
+                    Click="OnSaveClicked"
+                    Content="{i18n:I18n {x:Static l:VexL.Save}}"
+                    MinWidth="84" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
