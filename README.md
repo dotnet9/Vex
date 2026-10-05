@@ -23,7 +23,7 @@ Slogan：极简之力，妙笔成章。
 
 ## 仓库规范
 
-- 当前版本：`1.3.3`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
+- 当前版本：`1.3.4`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
 - NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net10.0` / `net10.0-windows`。
 - 根目录 `logo.svg`、`logo.png`、`logo.ico` 是唯一图标源，子工程只通过 MSBuild `Link` 引用，不维护图标副本。
 - 运行时帮助、Markdown 示例、内置备忘录、设计说明等业务文档按功能保留；仓库级入口文档使用根目录 `README.md` 和 `UpdateLog.md`。
@@ -38,7 +38,6 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - 分享时会尽量嵌入图片资源，让 PDF 和 Word 文件离线发送后仍能正常查看。
 - 需要 AI 协作时，可以通过本机 MCP 接口让支持 MCP 的 AI 客户端读取、编辑、预览和保存当前文档。
 
-当前版本：`1.1.2.3`
 
 ## 主要功能
 
@@ -71,7 +70,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - 导出 PDF，正文文本可选择、可复制，并支持页眉页脚。
 - 导出 Word `.docx`，保留基础 Markdown 结构并嵌入图片。
 - 复制到微信公众号、知乎、稀土掘金，生成适合网页编辑器粘贴的富 HTML 剪贴板内容。
-- PDF、PNG 和 Word 导出复用 `CodeWF.Markdown` 12.0.3.14 的 `MarkdownDocumentExporter` / `ExportKind` 能力，支持本地相对图、`data:image`、HTTP(S) 图片、SVG/GIF/WebP 转 PNG。
+- PDF、PNG 和 Word 导出复用 `CodeWF.Markdown` 12.1.2.14 的 `MarkdownDocumentExporter` / `ExportKind` 能力，支持本地相对图、`data:image`、HTTP(S) 图片、SVG/GIF/WebP 转 PNG。
 
 ### 外观与本地化
 
@@ -111,11 +110,9 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 
 ### 发布产物
 
-- 支持 `win-x64`、`linux-x64`、`linux-arm64`、`osx-x64`、`osx-arm64` 多 RID 发布。
-- 提供一键发布和 release zip 打包脚本。
-- Release zip 命名为 `Vex-v<Version>-<RID>.zip`，例如 `Vex-v1.1.0-win-x64.zip`。
-- Release zip 会排除 `*.pdb` 调试符号文件，并生成 SHA256 文件和 release manifest，方便直接上传 GitHub Release。
-- Windows 可选生成 MSIX 布局/安装包。
+- 支持 `win-x64`、`linux-x64`、`linux-arm64`、`osx-x64`、`osx-arm64` 多 RID 发布（NativeAOT，单文件 + 压缩）。
+- GitHub Release 资产为安装包：Windows exe（Inno Setup 中文向导）、Linux deb、macOS dmg，均附 `.sha256`。
+- 本地仍可用 `package_all.bat` 生成 `Vex-v<Version>-<RID>.zip` 便携包（排除 `*.pdb`，附 SHA256 与 release manifest）；Windows 也可选生成 MSIX 布局/安装包。
 
 ## 技术栈
 
@@ -192,7 +189,7 @@ XML 文件统一使用两个空格缩进。`Directory.Packages.props` 统一承�
 
 **[publish-nuget.yml](.github/workflows/publish-nuget.yml)**：发布 `Vex.Controls`、`Vex.Controls.Themes` 到 nuget.org（NuGet Trusted Publishing，仓库不存 secret）。
 
-**[release.yml](.github/workflows/release.yml)**：为六个平台（win-x64 / win-x86 / linux-x64 / linux-arm64 / osx-x64 / osx-arm64）构建并制作安装包——Windows 用 Inno Setup 中文向导（NativeAOT 裁剪）、Linux 用 deb、macOS 用 dmg（替代此前 zip 便携包），最后创建 GitHub Release。
+**[release.yml](.github/workflows/release.yml)**：为五个平台（win-x64 / linux-x64 / linux-arm64 / osx-x64 / osx-arm64）构建并制作安装包——Windows 用 Inno Setup 中文向导（NativeAOT 裁剪）、Linux 用 deb、macOS 用 dmg（标准 .app 镜像），最后创建 GitHub Release。
 
 ## 发布
 
