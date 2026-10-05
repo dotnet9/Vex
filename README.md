@@ -1,6 +1,6 @@
 # Vex
 
-Vex（维刻）是一个基于 .NET 11 与 Avalonia 12 构建的跨平台 Markdown 编辑器，面向日常写作、技术文档整理、自媒体排版和多格式文档导出。
+Vex（维刻）是一个基于 .NET 10 与 Avalonia 12 构建的跨平台 Markdown 编辑器，面向日常写作、技术文档整理、自媒体排版和多格式文档导出。
 
 Slogan：极简之力，妙笔成章。
 
@@ -24,7 +24,7 @@ Slogan：极简之力，妙笔成章。
 ## 仓库规范
 
 - 当前版本：`1.3.3`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
-- NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net11.0` / `net11.0-windows`。
+- NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net10.0` / `net10.0-windows`。
 - 根目录 `logo.svg`、`logo.png`、`logo.ico` 是唯一图标源，子工程只通过 MSBuild `Link` 引用，不维护图标副本。
 - 运行时帮助、Markdown 示例、内置备忘录、设计说明等业务文档按功能保留；仓库级入口文档使用根目录 `README.md` 和 `UpdateLog.md`。
 
@@ -119,7 +119,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 
 ## 技术栈
 
-- .NET 11
+- .NET 10
 - Avalonia 12
 - AvaloniaEdit
 - Prism.Avalonia
@@ -134,7 +134,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 ```powershell
 dotnet restore Vex.slnx
 dotnet build Vex.slnx -v:minimal
-dotnet run --project src\Vex\Vex.csproj -f net11.0
+dotnet run --project src\Vex\Vex.csproj -f net10.0
 ```
 
 更多使用说明见 [docs/快速开始.md](docs/快速开始.md)。
