@@ -8,6 +8,10 @@ Slogan：极简之力，妙笔成章。
 出品：码坊 CodeWF  
 网站：https://codewf.com
 
+![Vex 主窗口](docs/media/design-main.png)
+
+![Vex 界面轮播](docs/media/design-tour.gif)
+
 ## 下载安装
 
 从 [GitHub Releases](https://github.com/dotnet9/Vex/releases/latest) 下载最新安装包（附 `.sha256` 校验）：
