@@ -20,6 +20,7 @@
         <FluentTheme />
         <semi:SemiTheme Locale="zh-CN" />
         <semi:UrsaSemiTheme Locale="zh-CN" />
+        <semi:SemiPopupAnimations />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <codewf:ACSemiTheme />
         <markdownThemes:MarkdownThemes TypographyTheme="Simple" />
