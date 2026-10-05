@@ -648,7 +648,21 @@ public sealed class MainWindowViewModel : ReactiveObject
     public void ApplyDocumentFileDeleteRequested(DocumentFileDeleteRequestedCommand command) => _ = RequestDeleteFileAsync(command.File.Path);
 
     [EventHandler]
-    public void ApplyDocumentFileRenameRequested(DocumentFileRenameRequestedCommand command) => Dialogs.ShowRenameFilePanel(command.File.Path);
+    public void ApplyDocumentFileRenameRequested(DocumentFileRenameRequestedCommand command) => _ = RenameFileFlowAsync(command.File.Path);
+
+    private async Task RenameFileFlowAsync(string path)
+    {
+        var newName = await Dialogs.RenameFileAsync(path);
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            return;
+        }
+
+        await RunWithErrorOverlayAsync(
+            VexL.ErrorMessageCannotRenameFormat,
+            () => RenameFileCoreAsync(path, newName.Trim()),
+            path);
+    }
 
     [EventHandler]
     public void ApplyShellDroppedPath(ShellDroppedPathCommand command) => _ = OpenDroppedPathAsync(command.Path);
@@ -816,27 +830,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _statusPublisher.PublishResource(VexL.StatusPreviewRefreshed);
     }
 
-    public async Task ConfirmRenameFileAsync()
-    {
-        if (Dialogs.PendingRenamePath is not { Length: > 0 } path)
-        {
-            Dialogs.ClearRenameFilePanel();
-            return;
-        }
-        // 内联校验：空名 / 非法字符红字提示且不关闭弹窗（对应原型的即时校验）
-        if (!Dialogs.TryValidateRenameFile())
-        {
-            return;
-        }
-
-        await RunWithErrorOverlayAsync(
-            VexL.ErrorMessageCannotRenameFormat,
-            () => RenameFileCoreAsync(path, Dialogs.RenameFileName.Trim()),
-            path);
-    }
-
     public void WordCount() => _documentUtilities.WordCount(DocumentInfo);
-    public bool CloseFloatingPanel() => Dialogs.CloseFloatingPanel();
     public void ShowFindPanel() => FindBar.ShowFindPanel();
     public void ShowReplacePanel() => FindBar.ShowReplacePanel();
     public void CloseFindPanel() => FindBar.CloseFindPanel();
@@ -885,10 +879,6 @@ public sealed class MainWindowViewModel : ReactiveObject
             });
     }
 
-    public Task SavePendingActionAsync() => _unsavedChanges.SavePendingActionAsync(SaveAsync, () => DocumentInfo.IsModified);
-
-    public Task DiscardPendingActionAsync() => _unsavedChanges.DiscardPendingActionAsync();
-
     private static Task PublishAndComplete(Action publish)
     {
         publish();
@@ -906,7 +896,9 @@ public sealed class MainWindowViewModel : ReactiveObject
             DocumentInfo.IsModified,
             DocumentInfo.CurrentFilePath,
             continuation,
-            cancellation);
+            cancellation,
+            () => SaveAsync(),
+            () => DocumentInfo.IsModified);
 
     private Func<Task> GuardedAction(string messageResourceKey, Func<Task> action, params object?[] messageArgs)
     {
@@ -950,7 +942,6 @@ public sealed class MainWindowViewModel : ReactiveObject
             StartCurrentFileWatcher();
         }
 
-        Dialogs.ClearRenameFilePanel();
         var selectedFile = wasCurrentDocument ? renamedFile : FindCurrentDocumentFile() ?? renamedFile;
         PublishDocumentFilesChanged(selectedFile);
         _text.PublishRenamedFile(Path.GetFileName(renamedPath));

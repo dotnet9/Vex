@@ -93,11 +93,6 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
             return true;
         }
 
-        if (key == Key.Escape && Dialogs.CloseFloatingPanel())
-        {
-            return true;
-        }
-
         if (key == Key.Escape && FindBar.IsVisible)
         {
             FindBar.CloseFindPanel();

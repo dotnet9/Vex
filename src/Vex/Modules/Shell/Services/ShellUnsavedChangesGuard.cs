@@ -1,3 +1,4 @@
+using Ursa.Controls;
 using Vex.Modules.Shell.ViewModels;
 
 namespace Vex.Modules.Shell.Services;
@@ -6,11 +7,16 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
 {
     private readonly ShellDialogsViewModel _dialogs;
     private readonly IShellDocumentWorkflowText _text;
+    private readonly IShellStatusPublisher _statusPublisher;
 
-    public ShellUnsavedChangesGuard(ShellDialogsViewModel dialogs, IShellDocumentWorkflowText text)
+    public ShellUnsavedChangesGuard(
+        ShellDialogsViewModel dialogs,
+        IShellDocumentWorkflowText text,
+        IShellStatusPublisher statusPublisher)
     {
         _dialogs = dialogs;
         _text = text;
+        _statusPublisher = statusPublisher;
     }
 
     public async Task RunAsync(
@@ -19,7 +25,9 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
         bool isModified,
         string? currentFilePath,
         Func<Task> continuation,
-        Action? cancellation = null)
+        Action? cancellation = null,
+        Func<Task>? saveAsync = null,
+        Func<bool>? isStillModified = null)
     {
         if (!isModified)
         {
@@ -27,38 +35,34 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
             return;
         }
 
-        // 未保存确认的弹窗状态集中在这里，调用方只描述动作和后续流程。
-        _dialogs.ShowUnsavedConfirmation(
-            title,
+        // 这里只负责决策分发，不直接执行文件操作；保存与后续动作由调用方闭包描述。
+        var result = await OverlayMessageBox.ShowAsync(
             message,
-            currentFilePath ?? _text.UnsavedDocumentFallback,
-            continuation,
-            cancellation);
-    }
-
-    public async Task SavePendingActionAsync(Func<Task> saveAsync, Func<bool> isModified)
-    {
-        if (!_dialogs.HasPendingUnsavedAction)
+            title,
+            icon: MessageBoxIcon.Warning,
+            button: MessageBoxButton.YesNoCancel);
+        switch (result)
         {
-            return;
-        }
+            case MessageBoxResult.Yes:
+                if (saveAsync is not null)
+                {
+                    await saveAsync();
+                    if (isStillModified?.Invoke() == true)
+                    {
+                        _text.PublishSaveCanceledActionIncomplete();
+                        return;
+                    }
+                }
 
-        await saveAsync();
-        if (isModified())
-        {
-            _text.PublishSaveCanceledActionIncomplete();
-            return;
-        }
-
-        await DiscardPendingActionAsync();
-    }
-
-    public async Task DiscardPendingActionAsync()
-    {
-        var continuation = _dialogs.TakePendingUnsavedContinuation();
-        if (continuation is not null)
-        {
-            await continuation();
+                await continuation();
+                break;
+            case MessageBoxResult.No:
+                await continuation();
+                break;
+            default:
+                cancellation?.Invoke();
+                _statusPublisher.PublishResource(VexL.StatusActionCanceledUnsavedKept);
+                break;
         }
     }
 }
