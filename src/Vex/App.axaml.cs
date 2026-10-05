@@ -53,7 +53,22 @@ public partial class App : PrismApplication
     protected override AvaloniaObject CreateShell()
     {
         Instance = this;
+        ApplyInitialTheme();
         return Container.Resolve<MainWindow>();
+    }
+
+    /// <summary>
+    /// 在解析主窗口前先应用保存的主题：默认变体交给系统，避免任何早于
+    /// ShellAppearanceViewModel 构造的 UI 以错误的固定变体渲染。
+    /// </summary>
+    private void ApplyInitialTheme()
+    {
+        var settings = Container.Resolve<IAppSettingsStore>().Current;
+        var themeService = Container.Resolve<IThemeService>();
+        var options = themeService.GetThemeOptions();
+        var option = options.FirstOrDefault(item => item.Key.Equals(settings.ThemeKey, StringComparison.OrdinalIgnoreCase))
+                     ?? options.First(item => item.Key.Equals("system", StringComparison.OrdinalIgnoreCase));
+        themeService.ApplyTheme(option);
     }
 
     protected override void ConfigureRegionAdapterMappings(RegionAdapterMappings regionAdapterMappings)

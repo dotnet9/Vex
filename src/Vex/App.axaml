@@ -6,8 +6,7 @@
     xmlns:markdownThemes="https://codewf.com"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:semi="https://irihi.tech/semi"
-    xmlns:vexThemes="https://codewf.com"
-    RequestedThemeVariant="Light">
+    xmlns:vexThemes="https://codewf.com">
     <prism:PrismApplication.Resources>
         <ResourceDictionary>
             <FontFamily x:Key="ContentControlThemeFontFamily">Inter, Microsoft YaHei UI, Segoe UI</FontFamily>
