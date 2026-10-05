@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -18,6 +19,7 @@ public partial class MainWindow : UrsaWindow
     private ShellKeyboardShortcutViewModel? _keyboardShortcuts;
     private IShellStartupArgumentPublisher? _startupArguments;
     private IMcpServerHost? _mcpServerHost;
+    private IShellToastPublisher? _toastPublisher;
     private bool _isCloseConfirmed;
 
     public MainWindow()
@@ -38,7 +40,8 @@ public partial class MainWindow : UrsaWindow
         IShellDropTargetHandler dropTargetHandler,
         IShellStartupArgumentPublisher startupArguments,
         ShellKeyboardShortcutViewModel keyboardShortcuts,
-        IMcpServerHost mcpServerHost)
+        IMcpServerHost mcpServerHost,
+        IShellToastPublisher toastPublisher)
         : this()
     {
         // 强制解析 ShellActionCoordinator，让标题栏菜单的 EventBus 动作路由在窗口创建时完成订阅。
@@ -48,11 +51,18 @@ public partial class MainWindow : UrsaWindow
         _startupArguments = startupArguments;
         _keyboardShortcuts = keyboardShortcuts;
         _mcpServerHost = mcpServerHost;
+        _toastPublisher = toastPublisher;
         RestoreWindowSize(settingsStore);
         DataContext = viewModel;
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
         Opened += MainWindow_OnOpened;
         Closed += MainWindow_OnClosed;
+    }
+
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+        _toastPublisher?.Install(e.NameScope.Find<VisualLayerManager>("PART_VisualLayerManager"));
     }
 
     private void WindowKeyDown(object? sender, KeyEventArgs e)

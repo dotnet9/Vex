@@ -1,18 +1,25 @@
+using Avalonia.Controls.Notifications;
 using Vex.Core.Models;
 using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.Services;
 
 // 主窗口文档流程的状态栏和确认框文案集中在这里，避免 MainWindowViewModel 因多语言格式化继续膨胀。
+// 保存/导出/复制等完成型事件走 Toast 反馈，进度与提示类事件留在状态栏。
 public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
 {
     private readonly IAppLocalizer _localizer;
     private readonly IShellStatusPublisher _statusPublisher;
+    private readonly IShellToastPublisher _toastPublisher;
 
-    public ShellDocumentWorkflowText(IAppLocalizer localizer, IShellStatusPublisher statusPublisher)
+    public ShellDocumentWorkflowText(
+        IAppLocalizer localizer,
+        IShellStatusPublisher statusPublisher,
+        IShellToastPublisher toastPublisher)
     {
         _localizer = localizer;
         _statusPublisher = statusPublisher;
+        _toastPublisher = toastPublisher;
     }
 
     public string UnsavedDocumentFallback => Text(VexL.UnsavedDocument);
@@ -87,9 +94,9 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
         PublishFormat(VexL.StatusLoadedMarkdownFilesFormat, count);
     }
 
-    public void PublishSaved(string fileName) => PublishFormat(VexL.StatusSavedFileFormat, fileName);
+    public void PublishSaved(string fileName) => PublishToast(VexL.StatusSavedFileFormat, fileName);
 
-    public void PublishSavedAs(string fileName) => PublishFormat(VexL.StatusSavedAsFileFormat, fileName);
+    public void PublishSavedAs(string fileName) => PublishToast(VexL.StatusSavedAsFileFormat, fileName);
 
     public void PublishSaveAllResult(bool isStillModified)
     {
@@ -98,7 +105,7 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
 
     public void PublishFileDeleted() => Publish(VexL.StatusFileDeleted);
 
-    public void PublishRenamedFile(string fileName) => PublishFormat(VexL.StatusRenamedFileFormat, fileName);
+    public void PublishRenamedFile(string fileName) => PublishToast(VexL.StatusRenamedFileFormat, fileName);
 
     public void PublishOpenFileBeforeEncoding() => Publish(VexL.StatusOpenFileBeforeEncoding);
 
@@ -107,7 +114,8 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
 
     public void PublishOpened(string fileName) => PublishFormat(VexL.StatusOpenedFileFormat, fileName);
 
-    public void PublishExternalFileReloaded(string fileName) => PublishFormat(VexL.StatusExternalFileReloadedFormat, fileName);
+    public void PublishExternalFileReloaded(string fileName) =>
+        PublishToast(VexL.StatusExternalFileReloadedFormat, NotificationType.Information, fileName);
 
     public void PublishPropertiesSummary(
         string title,
@@ -121,17 +129,17 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
 
     public void PublishHtmlExportCanceled() => Publish(VexL.StatusHtmlExportCanceled);
 
-    public void PublishExportedHtmlTo(string fileName) => PublishFormat(VexL.StatusExportedHtmlToFormat, fileName);
+    public void PublishExportedHtmlTo(string fileName) => PublishToast(VexL.StatusExportedHtmlToFormat, fileName);
 
     public void PublishPdfExportCanceled() => Publish(VexL.StatusPdfExportCanceled);
 
-    public void PublishExportedPdfTo(string fileName) => PublishFormat(VexL.StatusExportedPdfToFormat, fileName);
+    public void PublishExportedPdfTo(string fileName) => PublishToast(VexL.StatusExportedPdfToFormat, fileName);
 
     public void PublishPngExportCanceled() => Publish(VexL.StatusPngExportCanceled);
 
-    public void PublishExportedPngTo(string fileName) => PublishFormat(VexL.StatusExportedPngToFormat, fileName);
+    public void PublishExportedPngTo(string fileName) => PublishToast(VexL.StatusExportedPngToFormat, fileName);
 
-    public void PublishExportedWordTo(string fileName) => PublishFormat(VexL.StatusExportedWordToFormat, fileName);
+    public void PublishExportedWordTo(string fileName) => PublishToast(VexL.StatusExportedWordToFormat, fileName);
 
     public void PublishExportNotImplemented(string? format)
     {
@@ -142,7 +150,7 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
     public string CopyTargetName(string? target) => Text(CopyTargetKey(target));
 
     public void PublishCopiedHtmlToPlatform(string? target) =>
-        PublishFormat(VexL.StatusCopiedHtmlToPlatformFormat, CopyTargetName(target));
+        PublishToast(VexL.StatusCopiedHtmlToPlatformFormat, CopyTargetName(target));
 
     public void PublishCopyHtmlUnavailable() => Publish(VexL.StatusCopyHtmlUnavailable);
 
@@ -174,6 +182,12 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
     private void Publish(string key) => _statusPublisher.PublishResource(key);
 
     private void PublishFormat(string key, params object?[] args) => _statusPublisher.PublishResourceFormat(key, args);
+
+    private void PublishToast(string key, params object?[] args) =>
+        _toastPublisher.Publish(_localizer.Format(key, args));
+
+    private void PublishToast(string key, NotificationType type, params object?[] args) =>
+        _toastPublisher.Publish(_localizer.Format(key, args), type);
 
     private string ExportFormatName(string? format)
     {
