@@ -62,7 +62,6 @@ function ConvertTo-MsixVersion([string]$InputVersion) {
 function Get-MsixArchitecture([string]$Rid) {
     switch -Regex ($Rid) {
         "win-x64$" { return "x64" }
-        "win-x86$" { return "x86" }
         "win-arm64$" { return "arm64" }
         default { throw "MSIX packaging supports Windows runtime identifiers only. Actual: '$Rid'." }
     }

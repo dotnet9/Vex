@@ -20,8 +20,8 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 }
 Write-Host "发布 $RuntimeIdentifier (Version=$Version)"
 
-$tfm = if ($RuntimeIdentifier.StartsWith("win-", [StringComparison]::OrdinalIgnoreCase)) { "net11.0-windows" } else { "net11.0" }
-# 全平台 NativeAOT：完整反射元数据保全（Prism/DryIoc），单线程 ILC 更稳；win-x86 保持自包含单文件
+$tfm = if ($RuntimeIdentifier.StartsWith("win-", [StringComparison]::OrdinalIgnoreCase)) { "net10.0-windows" } else { "net10.0" }
+# 全平台 NativeAOT：完整反射元数据保全（Prism/DryIoc），单线程 ILC 更稳
 $ilcArgs = @("-p:PublishAot=true", "-p:PublishTrimmed=true", "-p:PublishSingleFile=false",
     "-p:IlcGenerateCompleteTypeMetadata=true", "-p:IlcTrimMetadata=false", "-p:IlcSingleThreaded=true")
 # macOS 保留符号（ld_classic 不支持压缩调试段）

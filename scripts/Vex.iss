@@ -1,21 +1,12 @@
 ; Vex Windows installer.
 ; Build from the repository root with Inno Setup 6 and pass /DAppVersion=x.y.z.
-; /DAppArch selects the target architecture: x64 (default) or x86.
 
 #ifndef AppVersion
 #define AppVersion "0.0.0"
 #endif
 
-#ifndef AppArch
-#define AppArch "x64"
-#endif
-
-#if AppArch != "x64" && AppArch != "x86"
-#error AppArch must be x64 or x86
-#endif
-
 #ifndef SourceDir
-#define SourceDir "..\artifacts\publish\win-" + AppArch + "\Vex"
+#define SourceDir "..\artifacts\publish\win-x64\Vex"
 #endif
 
 #ifndef OutputDir
@@ -33,13 +24,11 @@ DefaultDirName={autopf}\Vex
 DefaultGroupName=Vex
 DisableProgramGroupPage=yes
 OutputDir={#OutputDir}
-OutputBaseFilename=Vex-v{#AppVersion}-win-{#AppArch}-setup
+OutputBaseFilename=Vex-v{#AppVersion}-win-x64-setup
 Compression=lzma2/ultra64
 SolidCompression=yes
-#if AppArch == "x64"
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-#endif
 ; per-user 安装：应用以普通权限运行，可持久化自身设置（配置文件在安装目录内）。
 PrivilegesRequired=lowest
 ChangesAssociations=no

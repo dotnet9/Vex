@@ -1,7 +1,7 @@
 ﻿name: release
 
-# 推送 v* 标签发布 Vex 全平台安装包（6 个 RID，仓库自带 PublishProfile）：
-# win-x64 / win-x86 用 Inno Setup 生成 setup.exe（Windows 走 NativeAOT 裁剪），
+# 推送 v* 标签发布 Vex 全平台安装包（5 个 RID，仓库自带 PublishProfile）：
+# win-x64 用 Inno Setup 生成 setup.exe（NativeAOT 裁剪），
 # linux-x64 / linux-arm64 生成 deb，macOS 生成 dmg。
 on:
   push:
@@ -68,7 +68,7 @@ jobs:
         run: |
           $rid = '${{ matrix.rid }}'
           $tfm = if ($rid.StartsWith('win-', [StringComparison]::OrdinalIgnoreCase)) { 'net10.0-windows' } else { 'net10.0' }
-          # NativeAOT 的 ILC 在 preview SDK 上并行编译可能崩溃，单线程更稳；win-x86 不支持 NativeAOT 保持自包含单文件
+          # NativeAOT 的 ILC 在 preview SDK 上并行编译可能崩溃，单线程更稳
           $ilcArgs = @(
             '-p:PublishAot=true',
             '-p:PublishTrimmed=true',
@@ -77,8 +77,7 @@ jobs:
             '-p:IlcTrimMetadata=false',
             '-p:IlcSingleThreaded=true'
           )
-          # win-x86 不支持 NativeAOT，保持自包含单文件；macOS 保留符号（ld_classic 不支持压缩调试段）
-          if ($rid -eq 'win-x86') { $ilcArgs = @() }
+          # macOS 保留符号（ld_classic 不支持压缩调试段）
           if ($rid.StartsWith('osx-', [StringComparison]::OrdinalIgnoreCase)) { $ilcArgs += '-p:StripSymbols=false' }
           dotnet publish src/Vex/Vex.csproj -c Release -f $tfm -r $rid $ilcArgs /p:PublishProfile=FolderProfile__$rid
           if ($LASTEXITCODE -ne 0) { throw "publish failed for $rid" }
@@ -102,17 +101,14 @@ jobs:
           path: scripts/Vex.iss
           options: >-
             /DAppVersion=${{ env.APP_VERSION }}
-            /DAppArch=${{ matrix.rid == 'win-x64' && 'x64' || 'x86' }}
             /DSourceDir=${{ github.workspace }}\artifacts\publish\${{ matrix.rid }}\Vex
             /DOutputDir=${{ github.workspace }}\artifacts\release
 
       - name: 计算安装包 SHA-256
         if: startsWith(matrix.rid, 'win-')
         shell: pwsh
-        env:
-          ARCH: ${{ matrix.rid == 'win-x64' && 'x64' || 'x86' }}
         run: |
-          $installerName = "Vex-v$env:APP_VERSION-win-$env:ARCH-setup.exe"
+          $installerName = "Vex-v$env:APP_VERSION-win-x64-setup.exe"
           $installerPath = Join-Path "artifacts/release" $installerName
           if (-not (Test-Path -LiteralPath $installerPath -PathType Leaf)) {
             throw "Installer was not produced: $installerPath"
