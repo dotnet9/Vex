@@ -8,6 +8,15 @@ Slogan：极简之力，妙笔成章。
 出品：码坊 CodeWF  
 网站：https://codewf.com
 
+## 下载安装
+
+从 [GitHub Releases](https://github.com/dotnet9/Vex/releases/latest) 下载最新安装包（附 `.sha256` 校验）：
+
+
+- Windows x64：`Vex-v*-win-x64-setup.exe`
+- Linux x64 / arm64：`Vex-*-linux-x64.deb`、`Vex-*-linux-arm64.deb`
+- macOS x64 / arm64：`Vex-*-osx-x64.dmg`、`Vex-*-osx-arm64.dmg`
+
 ## 仓库规范
 
 - 当前版本：`1.3.3`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
