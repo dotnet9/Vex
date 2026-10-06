@@ -1,24 +1,24 @@
-<u:UrsaWindow
-    x:Class="Vex.Modules.Shell.Views.McpAuditWindow"
+<UserControl
+    x:Class="Vex.Modules.Shell.Views.McpAuditOverlayView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mcp="using:Vex.Modules.Mcp.Models"
-    xmlns:u="https://irihi.tech/ursa"
-    Title="MCP Audit"
-    Width="720"
-    Height="520"
-    MinWidth="560"
-    MinHeight="420"
-    Icon="/Assets/logo.ico"
-    WindowStartupLocation="CenterOwner">
-    <Border Background="{DynamicResource VexPanelBackgroundBrush}" Padding="16">
-        <Grid RowDefinitions="Auto,*" RowSpacing="12">
-            <Button
-                x:Name="RefreshButton"
-                Grid.Row="0"
-                Click="Refresh_OnClick"
-                HorizontalAlignment="Right"
-                MinWidth="86" />
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
+    xmlns:mcp="using:Vex.Modules.Mcp.Models">
+    <Border Classes="dialog-card" Width="720" MaxHeight="640">
+        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock
+                    x:Name="TitleText"
+                    VerticalAlignment="Center"
+                    FontSize="15.5"
+                    FontWeight="SemiBold" />
+                <Button
+                    x:Name="RefreshButton"
+                    Grid.Column="1"
+                    Click="Refresh_OnClick"
+                    MinWidth="86" />
+            </Grid>
             <ScrollViewer Grid.Row="1">
                 <StackPanel Spacing="4">
                     <TextBlock
@@ -75,6 +75,16 @@
                     </ItemsControl>
                 </StackPanel>
             </ScrollViewer>
+            <StackPanel
+                Grid.Row="2"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Click="Close_OnClick"
+                    Content="{i18n:I18n {x:Static l:VexL.Close}}"
+                    MinWidth="86" />
+            </StackPanel>
         </Grid>
     </Border>
-</u:UrsaWindow>
+</UserControl>

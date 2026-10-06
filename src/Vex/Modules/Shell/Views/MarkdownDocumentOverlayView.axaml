@@ -1,0 +1,85 @@
+<UserControl
+    x:Class="Vex.Modules.Shell.Views.MarkdownDocumentOverlayView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
+    xmlns:md="https://codewf.com">
+    <Border Classes="dialog-card" Width="720" MaxHeight="720">
+        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+            <!-- 标题行：图标 + 文档名 + 只读提示 -->
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                <Image Width="28" Height="28" Source="/Assets/logo.png" />
+                <TextBlock
+                    x:Name="DocumentTitleText"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    FontSize="15.5"
+                    FontWeight="SemiBold"
+                    TextTrimming="CharacterEllipsis" />
+                <Border
+                    Grid.Column="2"
+                    Padding="9 2"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource VexStatusBadgeBackgroundBrush}"
+                    CornerRadius="9">
+                    <TextBlock
+                        Classes="muted"
+                        FontSize="11"
+                        Text="{i18n:I18n {x:Static l:VexL.MarkdownDocumentSubtitle}}" />
+                </Border>
+            </Grid>
+
+            <Border
+                Grid.Row="1"
+                Background="{DynamicResource VexPreviewBackgroundBrush}"
+                BorderBrush="{DynamicResource VexPanelBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                ClipToBounds="True">
+                <ScrollViewer
+                    Padding="24 18"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                    <md:MarkdownViewer x:Name="DocumentMarkdownViewer" />
+                </ScrollViewer>
+            </Border>
+
+            <StackPanel
+                Grid.Row="2"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Click="Close_OnClick"
+                    Content="{i18n:I18n {x:Static l:VexL.Close}}"
+                    MinWidth="86" />
+            </StackPanel>
+        </Grid>
+    </Border>
+
+    <UserControl.Styles>
+        <!-- 选区可读性：默认浅色选区底 + 芯片浅色文字会撞色，选中时强制深色前景。 -->
+        <Style Selector="SelectableTextBlock">
+            <Setter Property="SelectionForegroundBrush" Value="#1D2129" />
+        </Style>
+
+        <!-- 排版对齐原型 .md-body：h2/h4/h6 无下划线，仅 h1 保留浅色分隔线。 -->
+        <Style Selector="Border.MdHeadingBorder">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.MdH3Border">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.MdH5Border">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.MdH1Border">
+            <Setter Property="Background" Value="{DynamicResource VexSplitterBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexSplitterBrush}" />
+        </Style>
+    </UserControl.Styles>
+</UserControl>

@@ -103,6 +103,7 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<IHelpService, HelpService>();
         containerRegistry.RegisterSingleton<IRecentDocumentStore, RecentDocumentStore>();
         containerRegistry.RegisterSingleton<IShellStatusPublisher, ShellStatusPublisher>();
+        containerRegistry.RegisterSingleton<IShellOverlayService, ShellOverlayService>();
         containerRegistry.RegisterSingleton<IShellToastPublisher, ShellToastPublisher>();
         containerRegistry.RegisterSingleton<IShellDocumentWorkflowText, ShellDocumentWorkflowText>();
         containerRegistry.RegisterSingleton<IEditorDisplayState, EditorDisplayState>();

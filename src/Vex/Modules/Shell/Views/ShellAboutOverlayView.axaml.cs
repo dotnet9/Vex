@@ -1,21 +1,22 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using CodeWF.Tools.Extensions;
 using CodeWF.Tools.UpdateChecking;
 using Lang.Avalonia;
-using Ursa.Controls;
+using Vex.Modules.Shell.Services;
 
+namespace Vex.Modules.Shell.Views;
 
-namespace Vex.Modules.Help.Views;
-
-public partial class AboutWindow : UrsaWindow
+public partial class ShellAboutOverlayView : UserControl
 {
     private const string WebsiteUrl = "https://codewf.com";
     private static readonly UpdateChecker UpdateChecker = new("dotnet9", "Vex");
     private bool _checkingUpdate;
 
-    public AboutWindow()
+    public ShellAboutOverlayView()
     {
         InitializeComponent();
         InitializeAssemblyInfo();
@@ -78,4 +79,6 @@ public partial class AboutWindow : UrsaWindow
             _checkingUpdate = false;
         }
     }
+
+    private void Close_OnClick(object? sender, RoutedEventArgs e) => ShellOverlayHost.Dismiss(this);
 }

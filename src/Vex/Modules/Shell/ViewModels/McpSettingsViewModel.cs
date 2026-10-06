@@ -9,7 +9,7 @@ using Vex.Modules.Mcp.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
-public sealed class McpSettingsViewModel : ReactiveObject
+public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared.Contracts.IDialogContext
 {
     private readonly IAppSettingsStore _settingsStore;
     private readonly IMcpServerHost _serverHost;
@@ -40,6 +40,11 @@ public sealed class McpSettingsViewModel : ReactiveObject
     }
 
     public event EventHandler? CloseRequested;
+
+    // 浮层关闭语义：Ursa 对话框要求 VM 实现 IDialogContext。
+    public event EventHandler<object?>? RequestClose;
+
+    public void Close() => CloseRequested?.Invoke(this, EventArgs.Empty);
 
     public bool IsEnabled
     {

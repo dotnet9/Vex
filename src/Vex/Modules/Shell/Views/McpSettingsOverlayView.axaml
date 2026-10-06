@@ -1,29 +1,12 @@
-<u:UrsaWindow
-    x:Class="Vex.Modules.Shell.Views.McpSettingsWindow"
+<UserControl
+    x:Class="Vex.Modules.Shell.Views.McpSettingsOverlayView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
-    xmlns:u="https://irihi.tech/ursa"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
-    x:DataType="vm:McpSettingsViewModel"
-    Title="{i18n:I18n {x:Static l:VexL.McpSettingsTitle}}"
-    Width="640"
-    Height="680"
-    MinWidth="560"
-    MinHeight="640"
-    CanMaximize="False"
-    CanMinimize="False"
-    CanResize="False"
-    Icon="/Assets/logo.ico"
-    IsFullScreenButtonVisible="False"
-    IsMinimizeButtonVisible="False"
-    IsRestoreButtonVisible="False"
-    ShowInTaskbar="False"
-    WindowStartupLocation="CenterOwner">
-    <Border
-        Background="{DynamicResource VexPanelBackgroundBrush}"
-        Padding="24">
+    x:DataType="vm:McpSettingsViewModel">
+    <Border Classes="dialog-card" Width="640" MaxHeight="720">
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <Border Classes="dlg-ico info">
@@ -154,4 +137,4 @@
             </StackPanel>
         </Grid>
     </Border>
-</u:UrsaWindow>
+</UserControl>

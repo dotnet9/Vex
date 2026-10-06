@@ -1,25 +1,32 @@
-using Ursa.Controls;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Vex.Modules.Shell.Services;
 
-namespace Vex.Modules.Help.Views;
+namespace Vex.Modules.Shell.Views;
 
-public partial class MarkdownDocumentWindow : UrsaWindow
+public partial class MarkdownDocumentOverlayView : UserControl
 {
-    public MarkdownDocumentWindow()
+    public MarkdownDocumentOverlayView()
     {
         InitializeComponent();
     }
 
-    public MarkdownDocumentWindow(string title, string markdown, string? imageBasePath, string? typographyTheme, string typographySize)
+    public MarkdownDocumentOverlayView(
+        string title,
+        string markdown,
+        string? imageBasePath,
+        string? typographyTheme,
+        string typographySize)
         : this()
     {
-        Title = title;
-        TitleText.Text = title;
         DocumentTitleText.Text = title;
         DocumentMarkdownViewer.Markdown = RemoveLeadingHeading(markdown);
         DocumentMarkdownViewer.ImageBasePath = imageBasePath;
         DocumentMarkdownViewer.TypographyTheme = typographyTheme;
         DocumentMarkdownViewer.TypographySize = typographySize;
     }
+
+    private void Close_OnClick(object? sender, RoutedEventArgs e) => ShellOverlayHost.Dismiss(this);
 
     private static string RemoveLeadingHeading(string markdown)
     {

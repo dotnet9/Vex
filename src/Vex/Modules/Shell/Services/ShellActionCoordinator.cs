@@ -14,6 +14,7 @@ public sealed class ShellActionCoordinator
 {
     private readonly MainWindowViewModel _shell;
     private readonly McpSettingsViewModel _mcpSettings;
+    private readonly IShellOverlayService _overlay;
     private readonly IMcpOperationAuditService _auditService;
     private readonly IAppLocalizer _localizer;
 
@@ -21,12 +22,14 @@ public sealed class ShellActionCoordinator
         MainWindowViewModel shell,
         McpSettingsViewModel mcpSettings,
         IMcpOperationAuditService auditService,
-        IAppLocalizer localizer)
+        IAppLocalizer localizer,
+        IShellOverlayService overlay)
     {
         _shell = shell;
         _mcpSettings = mcpSettings;
         _auditService = auditService;
         _localizer = localizer;
+        _overlay = overlay;
         CodeWF.EventBus.EventBus.Default.Subscribe(this);
     }
 
@@ -138,31 +141,11 @@ public sealed class ShellActionCoordinator
         }
     }
 
-    private void ShowMcpSettings()
-    {
-        var window = new McpSettingsWindow(_mcpSettings);
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } owner })
-        {
-            window.Show(owner);
-            return;
-        }
+    private void ShowMcpSettings() => _ = _overlay.ShowMcpSettingsAsync(_mcpSettings);
 
-        window.Show();
-    }
-
-    private void ShowMcpAudit()
-    {
-        var window = new McpAuditWindow(
-            _auditService,
-            _localizer.Get(VexL.McpAudit),
-            _localizer.Get(VexL.McpAuditRefresh),
-            _localizer.Get(VexL.McpAuditEmpty));
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } owner })
-        {
-            window.Show(owner);
-            return;
-        }
-
-        window.Show();
-    }
+    private void ShowMcpAudit() => _ = _overlay.ShowMcpAuditAsync(
+        _auditService,
+        _localizer.Get(VexL.McpAudit),
+        _localizer.Get(VexL.McpAuditRefresh),
+        _localizer.Get(VexL.McpAuditEmpty));
 }

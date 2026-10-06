@@ -1,38 +1,11 @@
-﻿<u:UrsaWindow
-    x:Class="Vex.Modules.Help.Views.AboutWindow"
+<UserControl
+    x:Class="Vex.Modules.Shell.Views.ShellAboutOverlayView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:i18n="https://codewf.com"
-    xmlns:l="clr-namespace:Vex"
-    xmlns:u="https://irihi.tech/ursa"
-    Title="{i18n:I18n {x:Static l:VexL.AboutVexTitle}}"
-    Width="420"
-    Height="370"
-    MinWidth="380"
-    MinHeight="340"
-    CanMaximize="False"
-    CanMinimize="False"
-    CanResize="False"
-    Icon="/Assets/logo.ico"
-    IsFullScreenButtonVisible="False"
-    IsMinimizeButtonVisible="False"
-    IsRestoreButtonVisible="False"
-    ShowInTaskbar="False"
-    WindowStartupLocation="CenterOwner">
-    <u:UrsaWindow.LeftContent>
-        <TextBlock
-            Classes="titlebar-text"
-            FontSize="13"
-            FontWeight="SemiBold"
-            Margin="12 7 0 0"
-            Text="{i18n:I18n {x:Static l:VexL.AboutVexTitle}}"
-            VerticalAlignment="Center" />
-    </u:UrsaWindow.LeftContent>
-
-    <Border
-        Background="{DynamicResource VexPanelBackgroundBrush}"
-        Padding="24 50 24 24">
-        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="18">
+    xmlns:l="clr-namespace:Vex">
+    <Border Classes="dialog-card" Width="460">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="18">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                 <Image Width="40" Height="40" Source="/Assets/logo.png" />
                 <StackPanel Grid.Column="1" Spacing="3">
@@ -69,7 +42,6 @@
                 <TextBlock Grid.Row="3" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorName}}" />
                 <TextBlock Grid.Row="4" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutWebsiteLabel}}" />
                 <TextBlock
-                    x:Name="WebsiteLink"
                     Grid.Row="4"
                     Grid.Column="1"
                     Cursor="Hand"
@@ -81,22 +53,32 @@
                 <TextBlock Grid.Row="5" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutBrandName}}" TextWrapping="Wrap" />
                 <TextBlock Grid.Row="6" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutCheckUpdateLabel}}" />
                 <TextBlock
-                    x:Name="CheckUpdateLink"
                     Grid.Row="6"
                     Grid.Column="1"
                     Cursor="Hand"
                     Foreground="{DynamicResource VexLinkBrush}"
                     PointerPressed="CheckUpdateLink_OnPointerPressed"
-                    TextDecorations="Underline"
-                    Text="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}" />
+                    Text="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}"
+                    TextDecorations="Underline" />
             </Grid>
 
             <TextBlock
                 x:Name="CheckUpdateResultText"
                 Grid.Row="2"
                 Classes="muted"
-                TextWrapping="Wrap"
-                Text="{i18n:I18n {x:Static l:VexL.AboutDescription}}" />
+                Text="{i18n:I18n {x:Static l:VexL.AboutDescription}}"
+                TextWrapping="Wrap" />
+
+            <StackPanel
+                Grid.Row="3"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Click="Close_OnClick"
+                    Content="{i18n:I18n {x:Static l:VexL.Close}}"
+                    MinWidth="86" />
+            </StackPanel>
         </Grid>
     </Border>
-</u:UrsaWindow>
+</UserControl>

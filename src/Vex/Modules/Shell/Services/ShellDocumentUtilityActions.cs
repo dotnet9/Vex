@@ -14,16 +14,21 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
 {
     private readonly IMarkdownExportService _exportService;
     private readonly IShellDocumentWorkflowText _text;
+    private readonly IShellOverlayService _overlay;
 
-    public ShellDocumentUtilityActions(IMarkdownExportService exportService, IShellDocumentWorkflowText text)
+    public ShellDocumentUtilityActions(
+        IMarkdownExportService exportService,
+        IShellDocumentWorkflowText text,
+        IShellOverlayService overlay)
     {
         _exportService = exportService;
         _text = text;
+        _overlay = overlay;
     }
 
     public void ShowProperties(ShellDocumentInfoViewModel documentInfo)
     {
-        ShowWindow(new ShellPropertiesWindow(documentInfo));
+        _ = _overlay.ShowPropertiesAsync(documentInfo);
         _text.PublishPropertiesSummary(
             documentInfo.CurrentDocumentTitle,
             documentInfo.DocumentStateText,
@@ -123,20 +128,10 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
 
     public void WordCount(ShellDocumentInfoViewModel documentInfo)
     {
-        ShowWindow(new ShellStatisticsWindow(documentInfo));
+        _ = _overlay.ShowStatisticsAsync(documentInfo);
         _text.PublishStatisticsSummary(documentInfo.Statistics);
     }
 
-    private static void ShowWindow(Window window)
-    {
-        if (GetMainWindow() is { } owner)
-        {
-            window.Show(owner);
-            return;
-        }
-
-        window.Show();
-    }
 
     private static void OpenFileLocation(string path)
     {
@@ -160,10 +155,5 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
         }
     }
 
-    private static Window? GetMainWindow()
-    {
-        return Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow }
-            ? mainWindow
-            : null;
-    }
+
 }

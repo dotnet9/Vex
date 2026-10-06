@@ -1,6 +1,3 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using Ursa.Controls;
 using Vex.Core.Services;
@@ -9,16 +6,21 @@ using Vex.Modules.Shell.Views;
 
 namespace Vex.Modules.Shell.ViewModels;
 
-// 集中管理 Shell 浮层交互：错误提示与重命名走 Ursa 浮层体系，删除确认维持独立模态窗口。
+// 集中管理 Shell 浮层交互：错误提示与重命名走 Ursa 浮层体系，删除确认走窗内浮层。
 public sealed class ShellDialogsViewModel : ReactiveObject
 {
     private readonly IShellStatusPublisher _statusPublisher;
     private readonly IAppLocalizer _localizer;
+    private readonly IShellOverlayService _overlay;
 
-    public ShellDialogsViewModel(IShellStatusPublisher statusPublisher, IAppLocalizer localizer)
+    public ShellDialogsViewModel(
+        IShellStatusPublisher statusPublisher,
+        IAppLocalizer localizer,
+        IShellOverlayService overlay)
     {
         _statusPublisher = statusPublisher;
         _localizer = localizer;
+        _overlay = overlay;
     }
 
     public async Task<bool> ShowDeleteConfirmationAsync(string path)
@@ -26,19 +28,10 @@ public sealed class ShellDialogsViewModel : ReactiveObject
         var confirmationText = path is { Length: > 0 }
             ? _localizer.Format(VexL.DeleteConfirmFileFormat, Path.GetFileName(path))
             : _localizer.Get(VexL.DeleteConfirmCurrentFile);
-        var owner = GetMainWindow();
-        var window = new ShellDeleteConfirmationWindow(
+        var confirmed = await _overlay.ConfirmDeleteAsync(
             confirmationText,
             _localizer.Get(VexL.DeletePermanentWarning),
             path);
-        if (owner is null)
-        {
-            window.Show();
-            _statusPublisher.PublishResource(VexL.StatusDeleteCanceled);
-            return false;
-        }
-
-        var confirmed = await window.ShowDialog<bool>(owner);
         if (!confirmed)
         {
             _statusPublisher.PublishResource(VexL.StatusDeleteCanceled);
@@ -104,10 +97,5 @@ public sealed class ShellDialogsViewModel : ReactiveObject
             : exception.Message;
     }
 
-    private static Window? GetMainWindow()
-    {
-        return Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow }
-            ? mainWindow
-            : null;
-    }
+
 }

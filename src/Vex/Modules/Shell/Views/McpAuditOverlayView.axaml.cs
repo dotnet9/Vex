@@ -1,22 +1,20 @@
+using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Ursa.Controls;
-using Vex.Core.Services;
-using Vex.Modules.Mcp.Models;
+using Vex.Modules.Shell.Services;
 using Vex.Modules.Mcp.Services;
 
 namespace Vex.Modules.Shell.Views;
 
-public partial class McpAuditWindow : UrsaWindow
+public partial class McpAuditOverlayView : UserControl
 {
-    private readonly IMcpOperationAuditService _auditService;
-    private readonly string _emptyText;
+    private readonly IMcpOperationAuditService? _auditService;
 
-    public McpAuditWindow()
+    public McpAuditOverlayView()
     {
         InitializeComponent();
     }
 
-    public McpAuditWindow(
+    public McpAuditOverlayView(
         IMcpOperationAuditService auditService,
         string title,
         string refreshText,
@@ -24,8 +22,7 @@ public partial class McpAuditWindow : UrsaWindow
         : this()
     {
         _auditService = auditService;
-        _emptyText = emptyText;
-        Title = title;
+        TitleText.Text = title;
         RefreshButton.Content = refreshText;
         EmptyTextBlock.Text = emptyText;
         LoadRecords();
@@ -33,13 +30,12 @@ public partial class McpAuditWindow : UrsaWindow
 
     private void LoadRecords()
     {
-        var records = _auditService.GetRecent();
+        var records = _auditService?.GetRecent() ?? [];
         RecordsItemsControl.ItemsSource = records;
         EmptyTextBlock.IsVisible = records.Count == 0;
     }
 
-    private void Refresh_OnClick(object? sender, RoutedEventArgs e)
-    {
-        LoadRecords();
-    }
+    private void Refresh_OnClick(object? sender, RoutedEventArgs e) => LoadRecords();
+
+    private void Close_OnClick(object? sender, RoutedEventArgs e) => ShellOverlayHost.Dismiss(this);
 }

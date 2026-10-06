@@ -1,24 +1,19 @@
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
+using Avalonia.Interactivity;
+using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
-using Ursa.Controls;
 
 namespace Vex.Modules.Shell.Views;
 
-public partial class ShellPropertiesWindow : UrsaWindow
+public partial class ShellPropertiesOverlayView : UserControl
 {
-    public ShellPropertiesWindow()
+    public ShellPropertiesOverlayView()
     {
         InitializeComponent();
     }
 
-    public ShellPropertiesWindow(object dataContext)
-        : this()
-    {
-        DataContext = dataContext;
-    }
-
-    private async void CopyPath_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void CopyPath_OnClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ShellDocumentInfoViewModel info ||
             info.CurrentFilePath is not { Length: > 0 } path)
@@ -33,4 +28,6 @@ public partial class ShellPropertiesWindow : UrsaWindow
 
         await clipboard.SetTextAsync(path);
     }
+
+    private void Close_OnClick(object? sender, RoutedEventArgs e) => ShellOverlayHost.Dismiss(this);
 }

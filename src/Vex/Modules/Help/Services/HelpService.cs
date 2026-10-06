@@ -1,9 +1,6 @@
 using System.Diagnostics;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Vex.Core.Services;
-using Vex.Modules.Help.Views;
+using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Help.Services;
 
@@ -12,11 +9,16 @@ public sealed class HelpService : IHelpService
     private static readonly string DocumentsFolder = Path.Combine(AppContext.BaseDirectory, "docs");
     private readonly IEditorAppearanceState _appearanceState;
     private readonly IAppLocalizer _localizer;
+    private readonly IShellOverlayService _overlay;
 
-    public HelpService(IEditorAppearanceState appearanceState, IAppLocalizer localizer)
+    public HelpService(
+        IEditorAppearanceState appearanceState,
+        IAppLocalizer localizer,
+        IShellOverlayService overlay)
     {
         _appearanceState = appearanceState;
         _localizer = localizer;
+        _overlay = overlay;
     }
 
     public Task OpenWebsiteAsync()
@@ -47,20 +49,15 @@ public sealed class HelpService : IHelpService
     {
         var path = GetDocumentPath(fileName);
         var markdown = File.ReadAllText(path);
-        ShowWindow(new MarkdownDocumentWindow(
+        return _overlay.ShowDocumentAsync(
             title,
             markdown,
             path,
             _appearanceState.TypographyTheme,
-            _appearanceState.TypographySize));
-        return Task.CompletedTask;
+            _appearanceState.TypographySize);
     }
 
-    public Task ShowAboutWindowAsync()
-    {
-        ShowWindow(new AboutWindow());
-        return Task.CompletedTask;
-    }
+    public Task ShowAboutWindowAsync() => _overlay.ShowAboutAsync();
 
     private static void Open(string uri)
     {
@@ -78,22 +75,7 @@ public sealed class HelpService : IHelpService
         return path;
     }
 
-    private static void ShowWindow(Window window)
-    {
-        if (GetMainWindow() is { } owner)
-        {
-            window.Show(owner);
-            return;
-        }
 
-        window.Show();
-    }
 
-    private static Window? GetMainWindow()
-    {
-        return Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow }
-            ? mainWindow
-            : null;
-    }
 
 }
