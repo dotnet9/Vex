@@ -9,8 +9,9 @@
         <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
     </Style>
 
+    <!-- 侧栏容器：底色用 --bg（VexShellBackgroundBrush），只保留右侧分隔线（对应原型 .sidebar） -->
     <Style Selector="Border.panel">
-        <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
         <Setter Property="BorderThickness" Value="0 0 1 0" />
     </Style>
