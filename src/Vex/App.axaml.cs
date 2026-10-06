@@ -33,6 +33,7 @@ public partial class App : PrismApplication
     {
         DefaultFileOpeningService.Configure();
         CodeWF.Markdown.Highlighting.CodeWFMarkdownHighlightingExtensions.UseHighlighting();
+        CodeWF.Markdown.MathRendering.CodeWFMarkdownMathExtensions.UseMath();
         CodeWF.Markdown.Mermaid.CodeWFMarkdownMermaidExtensions.EnsureRegistered();
         AvaloniaXamlLoader.Load(this);
         var langPlugin = new JsonLangPlugin
