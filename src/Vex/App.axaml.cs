@@ -34,7 +34,9 @@ public partial class App : PrismApplication
         DefaultFileOpeningService.Configure();
         CodeWF.Markdown.Highlighting.CodeWFMarkdownHighlightingExtensions.UseHighlighting();
         CodeWF.Markdown.Images.CodeWFMarkdownImagesExtensions.UseImages();
-        CodeWF.Markdown.MathRendering.CodeWFMarkdownMathExtensions.UseMath();
+        // 数学渲染暂停启用：Sylinko.CSharpMath.Avalonia 12.0.0 在 Avalonia 12.1.3 下字形
+        // 不显示（12.x 同样，上游问题）；修复前公式以原文显示比不可见更有信息量。
+        // CodeWF.Markdown.MathRendering.CodeWFMarkdownMathExtensions.UseMath();
         CodeWF.Markdown.Mermaid.CodeWFMarkdownMermaidExtensions.EnsureRegistered();
         AvaloniaXamlLoader.Load(this);
         var langPlugin = new JsonLangPlugin
