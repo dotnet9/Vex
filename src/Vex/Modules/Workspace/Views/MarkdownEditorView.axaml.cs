@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
 using AvaloniaEdit.Highlighting;
+using CodeWF.AvaloniaControls.Text;
 using Vex.Modules.Workspace.ViewModels;
 
 namespace Vex.Modules.Workspace.Views;
@@ -18,6 +19,7 @@ public partial class MarkdownEditorView : UserControl
         ConfigureEditorVisuals();
         ActualThemeVariantChanged += (_, _) => ConfigureEditorVisuals();
         MarkdownEditor.AddHandler(InputElement.KeyDownEvent, OnEditorKeyDown, RoutingStrategies.Tunnel);
+        MarkdownEditor.TextArea.TextEntering += OnEditorTextEntering;
         DataContextChanged += (_, _) => AttachEditorController();
         AttachedToVisualTree += (_, _) =>
         {
@@ -144,6 +146,12 @@ public partial class MarkdownEditorView : UserControl
             return;
         }
 
+        if (e.Key == Key.Back && e.KeyModifiers == KeyModifiers.None && CanAutoPair())
+        {
+            e.Handled = ViewModel?.TryHandleAutoPairBackspace() == true;
+            return;
+        }
+
         if (e.Key == Key.Enter && e.KeyModifiers == KeyModifiers.None)
         {
             e.Handled = ViewModel?.HandleEditorKeyDown(e.Key, e.KeyModifiers) == true;
@@ -160,6 +168,40 @@ public partial class MarkdownEditorView : UserControl
         ViewModel?.HandleEditorKeyDown(e.Key, e.KeyModifiers);
     }
 
+    // 自动配对：Unicode 字符输入（含 IME 组字）不经此事件，故组字态天然不受影响。
+    private void OnEditorTextEntering(object? sender, TextInputEventArgs e)
+    {
+        if (!CanAutoPair() || string.IsNullOrEmpty(e.Text) || e.Text.Length != 1)
+        {
+            return;
+        }
+
+        var document = MarkdownEditor.Document;
+        if (document is null)
+        {
+            return;
+        }
+
+        var result = TextAutoPair.HandleTextInput(
+            document.Text,
+            MarkdownEditor.SelectionStart,
+            MarkdownEditor.SelectionLength,
+            e.Text);
+        if (result is not { } change)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        if (change.Length > 0 || change.Text.Length > 0)
+        {
+            document.Replace(change.Start, change.Length, change.Text);
+        }
+
+        MarkdownEditor.CaretOffset = change.CaretOffset;
+    }
+
+    private bool CanAutoPair() => ViewModel?.EnableAutoPair == true;
     private static bool IsPlainPasteGesture(KeyModifiers modifiers)
     {
         return modifiers is KeyModifiers.Control or KeyModifiers.Meta;

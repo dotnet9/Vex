@@ -15,8 +15,8 @@
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Markup.Xaml.Loader" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="CodeWF.AvaloniaControls" Version="12.3.0" />
-    <PackageVersion Include="CodeWF.AvaloniaControls.Themes" Version="12.3.0" />
+    <PackageVersion Include="CodeWF.AvaloniaControls" Version="12.3.1" />
+    <PackageVersion Include="CodeWF.AvaloniaControls.Themes" Version="12.3.1" />
     <PackageVersion Include="CodeWF.EventBus" Version="3.4.5.27" />
     <PackageVersion Include="CodeWF.Markdown" Version="13.0.0.1" />
     <PackageVersion Include="CodeWF.Markdown.Export" Version="13.0.0.1" />

@@ -115,6 +115,7 @@
             <MenuItem x:Name="SourceModeMenuItem" Header="{i18n:I18n {x:Static l:VexL.SourceMode}}" Command="{Binding Layout.ToggleSourceMode}" IsChecked="{Binding Layout.IsSourceMode}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.PreviewMode}}" Command="{Binding Layout.TogglePreview}" IsChecked="{Binding Layout.IsPreviewVisible}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowLineNumbers}}" Command="{Binding EditorDisplay.ToggleLineNumbers}" IsChecked="{Binding EditorDisplay.ShowLineNumbers}" ToggleType="CheckBox" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuAutoPair}}" Command="{Binding EditorDisplay.ToggleAutoPair}" IsChecked="{Binding EditorDisplay.EnableAutoPair}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowStatusBar}}" Command="{Binding Layout.ToggleStatusBar}" IsChecked="{Binding Layout.IsStatusBarVisible}" ToggleType="CheckBox" />
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuFocusMode}}" Command="{Binding Layout.ToggleFocusMode}" InputGesture="F8" IsChecked="{Binding Layout.IsFocusMode}" ToggleType="CheckBox" />

@@ -12,6 +12,7 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
     private readonly IAppSettingsStore _settingsStore;
     private readonly IShellStatusPublisher _statusPublisher;
     private bool _showLineNumbers;
+    private bool _enableAutoPair = true;
 
     public ShellEditorDisplayViewModel(
         IEditorDisplayState editorDisplayState,
@@ -23,6 +24,7 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
         _statusPublisher = statusPublisher;
         var settings = _settingsStore.Current;
         _showLineNumbers = settings.ShowLineNumbers ?? true;
+        _enableAutoPair = settings.EnableAutoPair ?? true;
         PublishDisplayState();
     }
 
@@ -39,6 +41,25 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
                 PersistDisplaySettings();
             }
         }
+    }
+
+    public bool EnableAutoPair
+    {
+        get => _enableAutoPair;
+        set
+        {
+            if (SetProperty(ref _enableAutoPair, value))
+            {
+                PublishDisplayState();
+                PersistDisplaySettings();
+            }
+        }
+    }
+
+    public void ToggleAutoPair()
+    {
+        EnableAutoPair = !EnableAutoPair;
+        _statusPublisher.PublishResource(EnableAutoPair ? VexL.StatusAutoPairEnabled : VexL.StatusAutoPairDisabled);
     }
 
     public void ToggleLineNumbers()
@@ -65,14 +86,15 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
 
     private void PublishDisplayState()
     {
-        _editorDisplayState.Update(EditorFontSize, ShowLineNumbers);
+        _editorDisplayState.Update(EditorFontSize, ShowLineNumbers, EnableAutoPair);
     }
 
     private void PersistDisplaySettings()
     {
         _settingsStore.Update(settings => settings with
         {
-            ShowLineNumbers = ShowLineNumbers
+            ShowLineNumbers = ShowLineNumbers,
+            EnableAutoPair = EnableAutoPair
         });
     }
 }

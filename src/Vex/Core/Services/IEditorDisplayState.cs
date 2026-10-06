@@ -8,5 +8,8 @@ public interface IEditorDisplayState
 
     bool ShowLineNumbers { get; }
 
-    void Update(double editorFontSize, bool showLineNumbers);
+    /// <summary>自动配对开关（默认开启）。</summary>
+    bool EnableAutoPair { get; }
+
+    void Update(double editorFontSize, bool showLineNumbers, bool enableAutoPair);
 }

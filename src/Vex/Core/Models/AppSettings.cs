@@ -26,6 +26,9 @@ public sealed record AppSettings
 
     public bool? ShowLineNumbers { get; init; }
 
+    /// <summary>自动配对输入（成对符号插入 / 选区包裹 / 空配对退格删除）。</summary>
+    public bool? EnableAutoPair { get; init; }
+
     public bool? HasSeenOnboardingGuide { get; init; }
 
     public string? LastWorkspaceFolderPath { get; init; }

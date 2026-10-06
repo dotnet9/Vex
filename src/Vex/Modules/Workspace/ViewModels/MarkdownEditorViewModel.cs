@@ -15,6 +15,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     private double _editorFontSize;
     private string _markdown;
     private bool _showLineNumbers;
+    private bool _enableAutoPair = true;
 
     public MarkdownEditorViewModel(
         IWorkspaceDocumentState documentState,
@@ -26,8 +27,20 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
         _editorFontSize = editorDisplayState.EditorFontSize;
         _markdown = documentState.Markdown;
         _showLineNumbers = editorDisplayState.ShowLineNumbers;
+        _enableAutoPair = editorDisplayState.EnableAutoPair;
         _editorDisplayState.Changed += OnEditorDisplayChanged;
         CodeWF.EventBus.EventBus.Default.Subscribe(this);
+    }
+
+    /// <summary>自动配对开关；由 Shell 显示偏好下发给编辑器视图。</summary>
+    public bool EnableAutoPair
+    {
+        get => _enableAutoPair;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _enableAutoPair, value);
+            _editorController.SetAutoPairEnabled(value);
+        }
     }
 
     public double EditorFontSize
@@ -60,8 +73,12 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     public void AttachEditor(TextEditor editor)
     {
         _editorController.Attach(editor);
+        _editorController.SetAutoPairEnabled(EnableAutoPair);
         _editorController.SyncText(Markdown);
     }
+
+    /// <summary>退格命中空配对时按库逻辑删除两侧，返回是否已处理。</summary>
+    public bool TryHandleAutoPairBackspace() => _editorController.TryHandleAutoPairBackspace();
 
     public void DetachEditor(TextEditor editor)
     {
@@ -97,6 +114,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     {
         EditorFontSize = _editorDisplayState.EditorFontSize;
         ShowLineNumbers = _editorDisplayState.ShowLineNumbers;
+        EnableAutoPair = _editorDisplayState.EnableAutoPair;
     }
 
     public void Undo() => PublishEditorAction(EditorActionKind.Undo);

@@ -157,6 +157,22 @@
     </Style>
 
     <!-- 覆盖层对话框阴影：四主题通用（对应原型 shadow-pop），DynamicResource 不支持字符串令牌故直接内联 -->
+    <!-- 编辑器窗格头工具栏按钮（对应原型 .tb-btn：28×28、圆角 7） -->
+    <Style Selector="Button.fmt-btn">
+        <Setter Property="Width" Value="28" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="7" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.fmt-btn:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+    </Style>
+
     <Style Selector="Border.dialog-card">
         <Setter Property="Width" Value="440" />
         <Setter Property="Padding" Value="22" />

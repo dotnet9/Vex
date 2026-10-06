@@ -1,4 +1,5 @@
 using AvaloniaEdit;
+using CodeWF.AvaloniaControls.Text;
 using CodeWF.EventBus;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
@@ -11,6 +12,7 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
     private readonly IMarkdownEditorSearchService _searchService;
     private TextEditor? _editor;
     private bool _suppressTextChanged;
+    private bool _autoPairEnabled = true;
 
     public MarkdownEditorController(
         IMarkdownEditorActionService actionService,
@@ -67,6 +69,26 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
         }
 
         PublishTextChanged();
+    }
+
+    public void SetAutoPairEnabled(bool enabled) => _autoPairEnabled = enabled;
+
+    public bool TryHandleAutoPairBackspace()
+    {
+        if (_editor?.Document is not { } document || !_autoPairEnabled)
+        {
+            return false;
+        }
+
+        var result = TextAutoPair.HandleBackspace(document.Text, _editor.SelectionStart, _editor.SelectionLength);
+        if (result is not { } change)
+        {
+            return false;
+        }
+
+        document.Replace(change.Start, change.Length, change.Text);
+        _editor.CaretOffset = change.CaretOffset;
+        return true;
     }
 
     public void PublishTextChanged()

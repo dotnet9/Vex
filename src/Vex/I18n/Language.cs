@@ -435,7 +435,9 @@ public static class VexL
     public static readonly string StatusFocusModeDisabled = "Vex.VexL.StatusFocusModeDisabled";
     public static readonly string StatusTypewriterEnabled = "Vex.VexL.StatusTypewriterEnabled";
     public static readonly string StatusTypewriterDisabled = "Vex.VexL.StatusTypewriterDisabled";
-    public static readonly string MenuMotion = "Vex.VexL.MenuMotion";
+    public static readonly string StatusAutoPairEnabled = "Vex.VexL.StatusAutoPairEnabled";
+    public static readonly string StatusAutoPairDisabled = "Vex.VexL.StatusAutoPairDisabled";
+    public static readonly string MenuAutoPair = "Vex.VexL.MenuAutoPair";    public static readonly string MenuMotion = "Vex.VexL.MenuMotion";
     public static readonly string MenuFocusMode = "Vex.VexL.MenuFocusMode";
     public static readonly string MenuTypewriterMode = "Vex.VexL.MenuTypewriterMode";    public static readonly string StatusFindReady = "Vex.VexL.StatusFindReady";
     public static readonly string StatusReplaceReady = "Vex.VexL.StatusReplaceReady";
