@@ -4,6 +4,7 @@ using System.Text;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+using CodeWF.Tools.FileExtensions;
 using Vex.Core.Models;
 using Vex.Core.Services;
 
@@ -52,7 +53,7 @@ public sealed class DocumentService : IDocumentService
     public async Task<DocumentSnapshot> OpenPathAsync(string path, string? encodingName = null)
     {
         var encoding = ResolveEncoding(encodingName);
-        var markdown = await File.ReadAllTextAsync(path, encoding);
+        var markdown = await FileHelper.SafeReadAllTextAsync(path, encoding);
         return new DocumentSnapshot(path, Path.GetFileName(path), markdown, encoding, false);
     }
 
@@ -63,7 +64,7 @@ public sealed class DocumentService : IDocumentService
             throw new InvalidOperationException(_localizer.Get(VexL.DocumentDetailFilePathMissing));
         }
 
-        var markdown = await File.ReadAllTextAsync(path, document.Encoding);
+        var markdown = await FileHelper.SafeReadAllTextAsync(path, document.Encoding);
         return document with
         {
             FilePath = path,
