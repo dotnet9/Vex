@@ -70,7 +70,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - 导出 PDF，正文文本可选择、可复制，并支持页眉页脚。
 - 导出 Word `.docx`，保留基础 Markdown 结构并嵌入图片。
 - 复制到微信公众号、知乎、稀土掘金，生成适合网页编辑器粘贴的富 HTML 剪贴板内容。
-- PDF、PNG 和 Word 导出复用 `CodeWF.Markdown` 12.1.2.14 的 `MarkdownDocumentExporter` / `ExportKind` 能力，支持本地相对图、`data:image`、HTTP(S) 图片、SVG/GIF/WebP 转 PNG。
+- PDF、PNG 和 Word 导出复用 `CodeWF.Markdown` 13.x 的 `MarkdownDocumentExporter` / `ExportKind` 能力，支持本地相对图、`data:image`、HTTP(S) 图片、SVG/GIF/WebP 转 PNG。
 
 ### 外观与本地化
 

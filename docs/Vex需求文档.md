@@ -937,7 +937,7 @@ AI 继续开发时必须遵守：
 8. UI 改动后启动程序截图验证。
 9. 发布配置改动后执行对应发布验证。
 10. 每次提交前更新根目录 `UpdateLog.md`。
-11. Commit message 使用英文，例如 `feat: add startup folder support`。
+11. Commit message 使用简体中文 Conventional Commits，例如 `feat(editor): 新增自动配对输入`。
 12. 提交后推送远端。
 
 ## 22. 推荐迭代路线
