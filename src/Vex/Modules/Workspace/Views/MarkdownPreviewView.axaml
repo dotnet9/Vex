@@ -3,29 +3,29 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:md="https://codewf.com"
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:vm="using:Vex.Modules.Workspace.ViewModels"
     x:DataType="vm:MarkdownPreviewViewModel"
     prism:ViewModelLocator.AutoWireViewModel="True">
 
     <Grid RowDefinitions="Auto,*" Background="{DynamicResource VexPreviewBackgroundBrush}">
-        <!-- 预览窗格头：标注窗格身份 + 当前排版主题（对应原型 pane-head） -->
-        <Border
-            Padding="12 5"
-            BorderBrush="{DynamicResource VexSplitterBrush}"
-            BorderThickness="0 0 0 1">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-                <Path
-                    Classes="stroke-ico"
-                    Width="13"
-                    Height="13"
-                    Data="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
-                <TextBlock
-                    FontSize="11.5"
-                    Foreground="{DynamicResource VexMutedBrush}"
-                    Text="{Binding TypographyTheme, TargetNullValue=Preview}"
-                    VerticalAlignment="Center" />
-            </StackPanel>
+        <!-- 预览窗格头：标注窗格身份 + 当前排版主题（对应原型 .pane-head + .kbd） -->
+        <Border Classes="pane-head">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Path
+                        Classes="stroke-ico"
+                        Width="12"
+                        Height="12"
+                        Data="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                    <TextBlock Classes="pane-title" Text="{i18n:I18n {x:Static l:VexL.PreviewMode}}" />
+                </StackPanel>
+                <Border Grid.Column="1" Classes="kbd-chip">
+                    <TextBlock Text="{Binding TypographyTheme, TargetNullValue=Basic}" />
+                </Border>
+            </Grid>
         </Border>
         <ScrollViewer
             x:Name="PreviewScrollViewer"
