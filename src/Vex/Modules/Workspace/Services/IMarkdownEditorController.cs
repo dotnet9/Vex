@@ -28,6 +28,12 @@ public interface IMarkdownEditorController
     /// <summary>复制为纯文本：有选区复制选区，否则复制整篇文档文本。</summary>
     Task CopyPlainTextAsync();
 
+    /// <summary>
+    /// 应用外部改写（预览任务勾选回写）：长度一致时只替换目标区间并保持光标，
+    /// 否则整篇同步，保证编辑器与文档状态一致。
+    /// </summary>
+    void ApplyExternalEdit(string markdown, int start, int length);
+
     void Execute(EditorActionCommand command);
 
     void NavigateTo(NavigateToLineCommand command);

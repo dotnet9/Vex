@@ -23,6 +23,8 @@ public partial class MarkdownPreviewView : UserControl
         AttachedToVisualTree += OnAttachedToVisualTree;
         DetachedFromVisualTree += (_, _) => SetViewModel(null);
         PreviewScrollViewer.ScrollChanged += OnPreviewScrollChanged;
+        PreviewMarkdownViewer.TaskWriteBackRequested += OnTaskWriteBackRequested;
+        DetachedFromVisualTree += (_, _) => PreviewMarkdownViewer.TaskWriteBackRequested -= OnTaskWriteBackRequested;
         SetViewModel(DataContext as MarkdownPreviewViewModel);
     }
 
@@ -30,6 +32,15 @@ public partial class MarkdownPreviewView : UserControl
     {
         // 阅读位置由库统一按「块序号 + 块内比例」采集与恢复，这里只需把滚动宿主交给 Viewer。
         PreviewMarkdownViewer.ScrollHost = PreviewScrollViewer;
+    }
+
+    // 预览里点击任务勾选框：库返回新 Markdown 与变更区间，交给编辑器按区间回写。
+    private static void OnTaskWriteBackRequested(object? sender, CodeWF.Markdown.Shared.Rendering.MarkdownTaskWriteResult result)
+    {
+        CodeWF.EventBus.EventBus.Default.Publish(new Core.Messaging.MarkdownTaskWriteBackCommand(
+            result.Markdown,
+            result.ChangedSpan.Start,
+            result.ChangedSpan.Length));
     }
 
     private void OnPreviewScrollChanged(object? sender, ScrollChangedEventArgs e)

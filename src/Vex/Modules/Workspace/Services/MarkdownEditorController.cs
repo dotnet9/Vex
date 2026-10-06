@@ -76,6 +76,39 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
 
     public void SetAutoPairEnabled(bool enabled) => _autoPairEnabled = enabled;
 
+    public void ApplyExternalEdit(string markdown, int start, int length)
+    {
+        if (_editor?.Document is not { } document)
+        {
+            return;
+        }
+
+        var caret = _editor.CaretOffset;
+        var canReplaceInPlace = document.TextLength == markdown.Length
+                                && start >= 0
+                                && length > 0
+                                && start + length <= markdown.Length;
+
+        if (!canReplaceInPlace)
+        {
+            SyncText(markdown);
+            return;
+        }
+
+        _suppressTextChanged = true;
+        try
+        {
+            document.Replace(start, length, markdown.Substring(start, length));
+            _editor.CaretOffset = Math.Min(caret, document.TextLength);
+        }
+        finally
+        {
+            _suppressTextChanged = false;
+        }
+
+        PublishTextChanged();
+    }
+
     public async Task CopyPlainTextAsync()
     {
         if (_editor is null)
