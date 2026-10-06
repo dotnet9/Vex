@@ -9,7 +9,7 @@
     <UseArtifactsOutput>true</UseArtifactsOutput>
     <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
     <PackageOutputPath>$(ArtifactsPath)packages\</PackageOutputPath>
-    <Version>1.3.4</Version>
+    <Version>1.4.0</Version>
     <Authors>沙漠尽头的狼</Authors>
     <Company>CodeWF</Company>
     <Title>Vex - 维刻</Title>
