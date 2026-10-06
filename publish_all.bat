@@ -5,6 +5,11 @@ set "ROOT=%~dp0"
 set "PROJECT=%ROOT%src\Vex\Vex.csproj"
 set "PACKAGE_AFTER=false"
 
+rem ILC 在多核机器（>=32 逻辑核）上线程池会触发 fail-fast 崩溃，限核规避（2026-10-06 验证）
+set "DOTNET_PROCESSOR_COUNT=4"
+rem NuGetAudit 默认联网审计在代理环境下会卡死 restore，本地发布关闭
+set "NUGET_AUDIT=false"
+
 if not "%~1"=="" (
     if /I "%~1"=="--package" (
         set "PACKAGE_AFTER=true"
@@ -35,5 +40,5 @@ exit /b 0
 :publish
 echo.
 echo === %~1 ===
-dotnet publish "%PROJECT%" -c Release -f %~2 -r %~3 /p:PublishProfile=%~1
+dotnet publish "%PROJECT%" -c Release -f %~2 -r %~3 -p:PublishProfile=%~1 -p:NuGetAudit=%NUGET_AUDIT%
 exit /b %ERRORLEVEL%
