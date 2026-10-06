@@ -14,6 +14,7 @@ public enum EditorActionKind
     Link,
     Image,
     ClearFormatting,
+    CopyPlainText,
     Paragraph,
     Heading1,
     Heading2,

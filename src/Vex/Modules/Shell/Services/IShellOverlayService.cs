@@ -27,4 +27,7 @@ public interface IShellOverlayService
     Task ShowMcpSettingsAsync(McpSettingsViewModel viewModel);
 
     Task ShowMcpAuditAsync(Vex.Modules.Mcp.Services.IMcpOperationAuditService auditService, string title, string refreshText, string emptyText);
+
+    /// <summary>Ctrl+P 快速打开浮层；返回用户选中的文件路径，取消返回 null。</summary>
+    Task<string?> ShowQuickOpenAsync(Vex.Modules.Shell.ViewModels.ShellQuickOpenViewModel viewModel);
 }

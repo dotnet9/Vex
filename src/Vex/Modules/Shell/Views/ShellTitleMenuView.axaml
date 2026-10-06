@@ -24,7 +24,7 @@
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFile}}" Command="{Binding OpenAsync}" InputGesture="Ctrl+O" />
             <MenuItem x:Name="OpenFolderMenuItem" Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.QuickOpen}}" Command="{Binding QuickOpenAsync}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.QuickOpen}}" Command="{Binding QuickOpenAsync}" InputGesture="Ctrl+P" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenRecent}}" IsEnabled="{Binding Recent.HasRecentDocuments}">
                 <MenuItem Header="{Binding Recent.RecentDocument1Text}" Command="{Binding OpenRecentDocument1Async}" IsVisible="{Binding Recent.HasRecentDocument1}" ToolTip.Tip="{Binding Recent.RecentDocument1ToolTip}" />
                 <MenuItem Header="{Binding Recent.RecentDocument2Text}" Command="{Binding OpenRecentDocument2Async}" IsVisible="{Binding Recent.HasRecentDocument2}" ToolTip.Tip="{Binding Recent.RecentDocument2ToolTip}" />
@@ -59,7 +59,7 @@
                 <MenuItem Header="PNG" Command="{Binding Export}" CommandParameter="PNG" />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.ExportWord}}" Command="{Binding Export}" CommandParameter="Word" />
             </MenuItem>
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Print}}" Command="{Binding Print}" InputGesture="Ctrl+P" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Print}}" Command="{Binding Print}" InputGesture="Ctrl+Shift+P" />
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Close}}" Command="{Binding CloseDocument}" InputGesture="Ctrl+W" />
         </MenuItem>
@@ -72,6 +72,7 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Copy}}" Command="{Binding EditorActions.Copy}" InputGesture="Ctrl+C" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Paste}}" Command="{Binding EditorActions.Paste}" InputGesture="Ctrl+V" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.SelectAll}}" Command="{Binding EditorActions.SelectAll}" InputGesture="Ctrl+A" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyPlainText}}" Command="{Binding EditorActions.CopyPlainText}" InputGesture="Ctrl+Shift+C" />
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Find}}" Command="{Binding ShowFindPanel}" InputGesture="Ctrl+F" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Replace}}" Command="{Binding ShowReplacePanel}" InputGesture="Ctrl+H" />

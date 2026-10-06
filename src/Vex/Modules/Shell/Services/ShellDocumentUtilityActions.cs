@@ -126,6 +126,7 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
         _text.PublishPrintPreviewResult(path is null);
     }
 
+
     public void WordCount(ShellDocumentInfoViewModel documentInfo)
     {
         _ = _overlay.ShowStatisticsAsync(documentInfo);
@@ -133,6 +134,37 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
     }
 
 
+
+    /// <summary>
+    /// 把拖入的本地图片复制到文档所在目录的 assets/ 下，返回插入 Markdown 的相对路径；
+    /// 同名文件已存在时复用，不覆盖用户已有素材。
+    /// </summary>
+    public string? CopyImageToAssets(string? documentPath, string imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(documentPath) || string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
+        {
+            return null;
+        }
+
+        var documentDirectory = Path.GetDirectoryName(documentPath);
+        if (string.IsNullOrWhiteSpace(documentDirectory))
+        {
+            return null;
+        }
+
+        var assetsDirectory = Path.Combine(documentDirectory, "assets");
+        Directory.CreateDirectory(assetsDirectory);
+
+        var fileName = Path.GetFileName(imagePath);
+        var targetPath = Path.Combine(assetsDirectory, fileName);
+        if (!File.Exists(targetPath))
+        {
+            File.Copy(imagePath, targetPath);
+        }
+
+        // 无论来源在哪，源码里统一写 assets/<文件名> 相对路径。
+        return "assets/" + fileName;
+    }
     private static void OpenFileLocation(string path)
     {
         var directory = Path.GetDirectoryName(path);

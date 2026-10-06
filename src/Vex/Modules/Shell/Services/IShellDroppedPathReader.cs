@@ -4,5 +4,5 @@ namespace Vex.Modules.Shell.Services;
 
 public interface IShellDroppedPathReader
 {
-    string? GetFirstLocalPath(DragEventArgs e);
+    string? GetFirstLocalFile(DragEventArgs e);
 }

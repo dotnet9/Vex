@@ -22,6 +22,12 @@ public interface IMarkdownEditorController
     /// <summary>处理退格：命中空配对时删除两侧并返回 true。</summary>
     bool TryHandleAutoPairBackspace();
 
+    /// <summary>在当前插入点插入文本（不覆盖选区时保持撤销栈一致）。</summary>
+    void InsertText(string text);
+
+    /// <summary>复制为纯文本：有选区复制选区，否则复制整篇文档文本。</summary>
+    Task CopyPlainTextAsync();
+
     void Execute(EditorActionCommand command);
 
     void NavigateTo(NavigateToLineCommand command);

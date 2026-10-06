@@ -59,7 +59,7 @@ public sealed class ShellActionCoordinator
                     await _shell.OpenFolderAsync();
                     break;
                 case ShellActionKind.QuickOpen:
-                    await _shell.QuickOpenAsync();
+                    await ShowQuickOpenAsync();
                     break;
                 case ShellActionKind.OpenRecentDocument:
                     await OpenRecentDocumentAsync(command.Parameter);
@@ -138,6 +138,18 @@ public sealed class ShellActionCoordinator
         if (!string.IsNullOrWhiteSpace(Environment.ProcessPath))
         {
             Process.Start(new ProcessStartInfo(Environment.ProcessPath) { UseShellExecute = true });
+        }
+    }
+
+    private async Task ShowQuickOpenAsync()
+    {
+        var viewModel = new ShellQuickOpenViewModel(
+            _shell.BuildQuickOpenItems(),
+            _localizer.Get(VexL.QuickOpen));
+        var path = await _overlay.ShowQuickOpenAsync(viewModel);
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+            await _shell.OpenPathAsync(path);
         }
     }
 

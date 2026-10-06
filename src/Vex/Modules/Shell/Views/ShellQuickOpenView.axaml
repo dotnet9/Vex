@@ -1,0 +1,64 @@
+<UserControl
+    x:Class="Vex.Modules.Shell.Views.ShellQuickOpenView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
+    xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+    x:DataType="vm:ShellQuickOpenViewModel">
+    <Border Classes="dialog-card" Width="560" MaxHeight="520">
+        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+            <TextBox
+                x:Name="QueryBox"
+                KeyDown="QueryBox_OnKeyDown"
+                PlaceholderText="{Binding Placeholder}"
+                Text="{Binding Query, Mode=TwoWay}" />
+
+            <ScrollViewer Grid.Row="1" MinHeight="120">
+                <StackPanel Spacing="2">
+                    <TextBlock
+                        Classes="muted"
+                        HorizontalAlignment="Center"
+                        Margin="0 18 0 0"
+                        Text="{i18n:I18n {x:Static l:VexL.QuickOpenEmpty}}"
+                        IsVisible="{Binding !HasResults}" />
+                    <ListBox
+                        x:Name="ResultsList"
+                        ItemsSource="{Binding Items}"
+                        SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                        DoubleTapped="Results_OnDoubleTapped">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:QuickOpenItem">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                    <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Classes="muted"
+                                        FontSize="11"
+                                        Text="{Binding LocationText}"
+                                        VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel
+                Grid.Row="2"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Click="Cancel_OnClick"
+                    Content="{i18n:I18n {x:Static l:VexL.Cancel}}"
+                    MinWidth="86" />
+                <Button
+                    Classes="primary"
+                    Click="Open_OnClick"
+                    Content="{i18n:I18n {x:Static l:VexL.OpenFile}}"
+                    MinWidth="86" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

@@ -80,6 +80,9 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     /// <summary>退格命中空配对时按库逻辑删除两侧，返回是否已处理。</summary>
     public bool TryHandleAutoPairBackspace() => _editorController.TryHandleAutoPairBackspace();
 
+    /// <summary>在当前插入点插入文本（图片拖入等场景）。</summary>
+    public void InsertText(string text) => _editorController.InsertText(text);
+
     public void DetachEditor(TextEditor editor)
     {
         _editorController.Detach(editor);

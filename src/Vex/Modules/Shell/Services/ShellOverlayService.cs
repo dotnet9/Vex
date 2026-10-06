@@ -58,6 +58,12 @@ public sealed class ShellOverlayService : IShellOverlayService
     public Task ShowMcpAuditAsync(IMcpOperationAuditService auditService, string title, string refreshText, string emptyText) =>
         ShowAsync(new McpAuditOverlayView(auditService, title, refreshText, emptyText), null);
 
+    public Task<string?> ShowQuickOpenAsync(ShellQuickOpenViewModel viewModel) =>
+        OverlayDialog.ShowCustomAsync<string>(
+            new ShellQuickOpenView(),
+            viewModel,
+            options: CreateOptions());
+
     private static async Task ShowAsync(Control view, object? viewModel)
     {
         await OverlayDialog.ShowCustomAsync<object>(view, viewModel, options: CreateOptions());

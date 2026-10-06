@@ -67,6 +67,7 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
 
     public void ShowProperties() => Publish(ShellActionKind.ShowProperties);
 
+
     public void OpenFileLocationAsync() => Publish(ShellActionKind.OpenFileLocation);
 
     public void DeleteAsync() => Publish(ShellActionKind.Delete);

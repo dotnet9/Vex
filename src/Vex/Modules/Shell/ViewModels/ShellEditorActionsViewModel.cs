@@ -34,6 +34,11 @@ public sealed class ShellEditorActionsViewModel
         Publish(EditorActionKind.SelectAll);
     }
 
+    public void CopyPlainText()
+    {
+        Publish(EditorActionKind.CopyPlainText);
+    }
+
     public void FocusEditor()
     {
         Publish(EditorActionKind.FocusEditor);

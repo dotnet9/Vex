@@ -14,20 +14,26 @@ public sealed class ShellDropTargetHandler : IShellDropTargetHandler
 
     public DragDropEffects GetDragEffects(DragEventArgs e)
     {
-        return _droppedPaths.GetFirstLocalPath(e) is null
+        return _droppedPaths.GetFirstLocalFile(e) is null
             ? DragDropEffects.None
             : DragDropEffects.Copy;
     }
 
     public void PublishDroppedPath(DragEventArgs e)
     {
-        var path = _droppedPaths.GetFirstLocalPath(e);
+        var path = _droppedPaths.GetFirstLocalFile(e);
         if (path is null)
         {
             return;
         }
 
-        // 窗口只发布拖入路径，未保存确认和打开流程继续由 Shell 文档流程统一处理。
+        // 图片文件走插入通道（复制到 assets/ 并插入 Markdown），其余仍是打开文档流程。
+        if (ShellDroppedPathReader.IsSupportedImage(path))
+        {
+            CodeWF.EventBus.EventBus.Default.Publish(new ShellImageDroppedCommand(path));
+            return;
+        }
+
         CodeWF.EventBus.EventBus.Default.Publish(new ShellDroppedPathCommand(path));
     }
 }

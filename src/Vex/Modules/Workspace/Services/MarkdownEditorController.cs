@@ -1,3 +1,6 @@
+using Avalonia.Controls;
+using Avalonia.Input.Platform;
+
 using AvaloniaEdit;
 using CodeWF.AvaloniaControls.Text;
 using CodeWF.EventBus;
@@ -73,6 +76,36 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
 
     public void SetAutoPairEnabled(bool enabled) => _autoPairEnabled = enabled;
 
+    public async Task CopyPlainTextAsync()
+    {
+        if (_editor is null)
+        {
+            return;
+        }
+
+        var text = _editor.SelectedText;
+        if (string.IsNullOrEmpty(text))
+        {
+            text = _editor.Text ?? string.Empty;
+        }
+
+        if (TopLevel.GetTopLevel(_editor)?.Clipboard is { } clipboard)
+        {
+            await clipboard.SetTextAsync(text);
+        }
+    }
+
+    public void InsertText(string text)
+    {
+        if (_editor?.Document is not { } document || string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        document.Insert(_editor.CaretOffset, text);
+        _editor.CaretOffset += text.Length;
+    }
+
     public bool TryHandleAutoPairBackspace()
     {
         if (_editor?.Document is not { } document || !_autoPairEnabled)
@@ -104,6 +137,18 @@ public sealed class MarkdownEditorController : IMarkdownEditorController
             caret.Line,
             caret.Column,
             _editor.Document?.LineCount ?? 1));
+    }
+
+    [EventHandler]
+    public void ApplyEditorInsertText(MarkdownEditorInsertTextCommand command) => InsertText(command.Text);
+
+    [EventHandler]
+    public async void ApplyCopyPlainText(EditorActionCommand command)
+    {
+        if (command.Action == EditorActionKind.CopyPlainText)
+        {
+            await CopyPlainTextAsync();
+        }
     }
 
     [EventHandler]

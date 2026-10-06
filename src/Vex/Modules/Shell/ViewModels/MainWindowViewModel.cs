@@ -362,17 +362,38 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
     }
 
-    public async Task QuickOpenAsync()
+    /// <summary>
+    /// Ctrl+P 快速打开的候选列表：当前文件夹文档 + 最近文件，按路径去重。
+    /// </summary>
+    public IReadOnlyList<QuickOpenItem> BuildQuickOpenItems()
     {
-        if (_documentFiles.Count > 0)
+        var items = new List<QuickOpenItem>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var file in _documentFiles)
         {
-            CodeWF.EventBus.EventBus.Default.Publish(new ShellSidebarTabSelectedCommand(0));
-            _text.PublishChooseDocumentFromLoadedFolder();
-            return;
+            if (seen.Add(file.Path))
+            {
+                items.Add(new QuickOpenItem(file.Path, file.Name, file.FolderName));
+            }
         }
 
-        await OpenAsync();
+        foreach (var recent in Recent.RecentDocuments)
+        {
+            if (seen.Add(recent.Path))
+            {
+                items.Add(new QuickOpenItem(recent.Path, recent.FileName, recent.FolderName));
+            }
+        }
+
+        return items;
     }
+
+    /// <summary>按路径打开文档（快速打开选中项）。</summary>
+    public Task OpenPathAsync(string path) => RunWithErrorOverlayAsync(
+        VexL.ErrorMessageCannotOpenFile,
+        () => OpenPathCoreAsync(path),
+        Path.GetFileName(path));
 
     public async Task OpenFolderAsync()
     {
@@ -803,6 +824,36 @@ public sealed class MainWindowViewModel : ReactiveObject
         _documentFiles = _documentFiles
             .Where(file => !PathsEqual(file.Path, path))
             .ToArray();
+    }
+
+    [EventHandler]
+    public void ApplyShellImageDropped(ShellImageDroppedCommand command)
+    {
+        _ = HandleImageDroppedAsync(command.SourcePath);
+    }
+
+    // 拖入图片：复制到 assets/ 后把 ![](assets/xxx.png) 插到编辑器当前插入点，
+    // 文本变更仍走 EventBus 的编辑器通道，撤销栈保持一致。
+    private async Task HandleImageDroppedAsync(string sourcePath)
+    {
+        try
+        {
+            var relativePath = _documentUtilities.CopyImageToAssets(_workspaceDocumentState.FilePath, sourcePath);
+            if (relativePath is null)
+            {
+                _statusPublisher.PublishResource(VexL.ErrorMessageImageDropFailed);
+                return;
+            }
+
+            CodeWF.EventBus.EventBus.Default.Publish(new MarkdownEditorInsertTextCommand($"![]({relativePath})"));
+            _statusPublisher.PublishResourceFormat(VexL.StatusImageInserted, relativePath);
+        }
+        catch (Exception exception)
+        {
+            Dialogs.ShowError(VexL.ErrorMessageImageDropFailed, exception);
+        }
+
+        await Task.CompletedTask;
     }
 
     public void ShowProperties() => _documentUtilities.ShowProperties(DocumentInfo);
