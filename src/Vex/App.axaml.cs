@@ -32,6 +32,7 @@ public partial class App : PrismApplication
     public override void Initialize()
     {
         DefaultFileOpeningService.Configure();
+        CodeWF.Markdown.Mermaid.CodeWFMarkdownMermaidExtensions.EnsureRegistered();
         AvaloniaXamlLoader.Load(this);
         var langPlugin = new JsonLangPlugin
         {
