@@ -1,0 +1,22 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:anim="using:Avalonia.Animation.Easings"
+    xmlns:sys="using:System">
+    <!--
+        Motion Token 体系（Ant Design Design Tokens 规范，MIT）
+        三档时长 + 两条缓动曲线，供控件样式与自研动效控件统一引用；
+        全局动效开关见 Vex.Core.Motion.MotionResources。
+        说明：曲线以 SplineEasing 的三次贝塞尔控制点表达，
+        Ant Design 标准入场/出场曲线为 cubic-bezier(0.645, 0.045, 0.355, 1)。
+    -->
+
+    <!-- 时长 Token（100 / 200 / 300 ms） -->
+    <sys:TimeSpan x:Key="MotionDurationFast">0:0:0.1</sys:TimeSpan>
+    <sys:TimeSpan x:Key="MotionDurationMid">0:0:0.2</sys:TimeSpan>
+    <sys:TimeSpan x:Key="MotionDurationSlow">0:0:0.3</sys:TimeSpan>
+
+    <!-- 缓动曲线（Ant Design 动效曲线族：入场偏缓出、出场偏缓入） -->
+    <anim:CubicEaseInOut x:Key="MotionEaseInOut" />
+    <anim:CubicEaseOut x:Key="MotionEaseOut" />
+</ResourceDictionary>
