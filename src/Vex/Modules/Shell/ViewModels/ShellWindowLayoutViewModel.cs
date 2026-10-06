@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Avalonia.Controls;
 using ReactiveUI;
 using Vex.Core.Messaging;
+using Vex.Core.Motion;
 using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
 
@@ -18,6 +19,11 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _isAlwaysOnTop;
     private bool _isFullScreen;
     private bool _isSourceMode = true;
+    private bool _enableMotion = true;
+    private bool _isFocusMode;
+    private bool _isTypewriterMode;
+    private bool? _sidebarVisibleBeforeFocus;
+    private bool? _statusBarVisibleBeforeFocus;
 
     public ShellWindowLayoutViewModel(
         IAppSettingsStore settingsStore,
@@ -31,6 +37,17 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _isPreviewVisible = settings.IsPreviewVisible ?? true;
         _isSourceMode = settings.IsSourceMode ?? true;
         _isAlwaysOnTop = settings.IsAlwaysOnTop ?? false;
+        _enableMotion = settings.EnableMotion ?? true;
+        _isTypewriterMode = settings.IsTypewriterMode ?? false;
+        _isFocusMode = settings.IsFocusMode ?? false;
+        MotionResources.Apply(_enableMotion);
+        if (_isFocusMode)
+        {
+            _sidebarVisibleBeforeFocus = true;
+            _statusBarVisibleBeforeFocus = true;
+            _isSidebarVisible = false;
+            _isStatusBarVisible = false;
+        }
     }
 
     public bool IsSidebarVisible
@@ -83,6 +100,82 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
     public GridLength PreviewSplitterWidth => IsSourceMode && IsPreviewVisible ? new GridLength(6) : new GridLength(0);
 
+    /// <summary>
+    /// 界面动效总开关：关闭时三档动效时长归零，已有过渡立即到达终态。
+    /// </summary>
+    public bool EnableMotion
+    {
+        get => _enableMotion;
+        set
+        {
+            if (SetProperty(ref _enableMotion, value))
+            {
+                MotionResources.Apply(value);
+                _statusPublisher.PublishResource(value ? VexL.StatusMotionEnabled : VexL.StatusMotionDisabled);
+                PersistLayoutSettings();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 专注模式：隐藏侧栏与状态栏（保留标题栏），退出时恢复进入前的可见性。
+    /// </summary>
+    public bool IsFocusMode
+    {
+        get => _isFocusMode;
+        set
+        {
+            if (!SetProperty(ref _isFocusMode, value))
+            {
+                return;
+            }
+
+            if (value)
+            {
+                _sidebarVisibleBeforeFocus = IsSidebarVisible;
+                _statusBarVisibleBeforeFocus = IsStatusBarVisible;
+                _isSidebarVisible = false;
+                _isStatusBarVisible = false;
+            }
+            else
+            {
+                _isSidebarVisible = _sidebarVisibleBeforeFocus ?? true;
+                _isStatusBarVisible = _statusBarVisibleBeforeFocus ?? true;
+            }
+
+            OnPropertyChanged(nameof(IsSidebarVisible));
+            OnPropertyChanged(nameof(IsStatusBarVisible));
+            OnPropertyChanged(nameof(SidebarColumnWidth));
+            OnPropertyChanged(nameof(SidebarSplitterWidth));
+            _statusPublisher.PublishResource(value
+                ? VexL.StatusFocusModeEnabled
+                : VexL.StatusFocusModeDisabled);
+            PersistLayoutSettings();
+
+            if (!value)
+            {
+                FocusEditor();
+            }
+        }
+    }
+
+    /// <summary>打字机模式：编辑器把光标行保持在视口垂直居中。</summary>
+    public bool IsTypewriterMode
+    {
+        get => _isTypewriterMode;
+        set
+        {
+            if (SetProperty(ref _isTypewriterMode, value))
+            {
+                _statusPublisher.PublishResource(value
+                    ? VexL.StatusTypewriterEnabled
+                    : VexL.StatusTypewriterDisabled);
+                PersistLayoutSettings();
+                FocusEditor();
+            }
+        }
+    }
+
     public bool IsAlwaysOnTop
     {
         get => _isAlwaysOnTop;
@@ -126,6 +219,21 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public void ToggleSidebar()
     {
         IsSidebarVisible = !IsSidebarVisible;
+    }
+
+    public void ToggleMotion()
+    {
+        EnableMotion = !EnableMotion;
+    }
+
+    public void ToggleFocusMode()
+    {
+        IsFocusMode = !IsFocusMode;
+    }
+
+    public void ToggleTypewriterMode()
+    {
+        IsTypewriterMode = !IsTypewriterMode;
     }
 
     public void ShowOutline()
@@ -189,7 +297,10 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             IsStatusBarVisible = IsStatusBarVisible,
             IsPreviewVisible = IsPreviewVisible,
             IsSourceMode = IsSourceMode,
-            IsAlwaysOnTop = IsAlwaysOnTop
+            IsAlwaysOnTop = IsAlwaysOnTop,
+            EnableMotion = EnableMotion,
+            IsFocusMode = IsFocusMode,
+            IsTypewriterMode = IsTypewriterMode
         });
     }
 

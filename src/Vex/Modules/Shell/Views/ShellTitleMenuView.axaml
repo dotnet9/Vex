@@ -116,6 +116,10 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.PreviewMode}}" Command="{Binding Layout.TogglePreview}" IsChecked="{Binding Layout.IsPreviewVisible}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowLineNumbers}}" Command="{Binding EditorDisplay.ToggleLineNumbers}" IsChecked="{Binding EditorDisplay.ShowLineNumbers}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowStatusBar}}" Command="{Binding Layout.ToggleStatusBar}" IsChecked="{Binding Layout.IsStatusBarVisible}" ToggleType="CheckBox" />
+            <Separator />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuFocusMode}}" Command="{Binding Layout.ToggleFocusMode}" InputGesture="F8" IsChecked="{Binding Layout.IsFocusMode}" ToggleType="CheckBox" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuTypewriterMode}}" Command="{Binding Layout.ToggleTypewriterMode}" IsChecked="{Binding Layout.IsTypewriterMode}" ToggleType="CheckBox" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuMotion}}" Command="{Binding Layout.ToggleMotion}" IsChecked="{Binding Layout.EnableMotion}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.WordCount}}" Command="{Binding WordCount}" />
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ToggleFullScreen}}" Command="{Binding Layout.ToggleFullScreen}" InputGesture="F11" />

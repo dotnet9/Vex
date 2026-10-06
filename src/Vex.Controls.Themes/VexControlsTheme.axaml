@@ -6,6 +6,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="Themes/Shared/AppPalette.axaml" />
+                <ResourceInclude Source="Themes/Shared/Motion.axaml" />
                 <ResourceInclude Source="Themes/Shared/Palette.axaml" />
                 <ResourceInclude Source="Themes/Controls/VexStatusBadge.axaml" />
             </ResourceDictionary.MergedDictionaries>

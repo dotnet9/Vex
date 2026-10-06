@@ -47,4 +47,13 @@ public sealed record AppSettings
     public string? McpAllowedWorkspacePath { get; init; }
 
     public bool? McpRequireConfirmation { get; init; }
+
+    /// <summary>界面动效总开关（关闭后所有过渡时长归零）。</summary>
+    public bool? EnableMotion { get; init; }
+
+    /// <summary>专注模式：隐藏侧栏与状态栏。</summary>
+    public bool? IsFocusMode { get; init; }
+
+    /// <summary>打字机模式：光标行垂直居中。</summary>
+    public bool? IsTypewriterMode { get; init; }
 }

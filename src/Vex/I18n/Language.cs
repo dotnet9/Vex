@@ -429,7 +429,15 @@ public static class VexL
     public static readonly string StatusAboutClosed = "Vex.VexL.StatusAboutClosed";
     public static readonly string StatusSourceModeEnabled = "Vex.VexL.StatusSourceModeEnabled";
     public static readonly string StatusSourceModeDisabled = "Vex.VexL.StatusSourceModeDisabled";
-    public static readonly string StatusFindReady = "Vex.VexL.StatusFindReady";
+    public static readonly string StatusMotionEnabled = "Vex.VexL.StatusMotionEnabled";
+    public static readonly string StatusMotionDisabled = "Vex.VexL.StatusMotionDisabled";
+    public static readonly string StatusFocusModeEnabled = "Vex.VexL.StatusFocusModeEnabled";
+    public static readonly string StatusFocusModeDisabled = "Vex.VexL.StatusFocusModeDisabled";
+    public static readonly string StatusTypewriterEnabled = "Vex.VexL.StatusTypewriterEnabled";
+    public static readonly string StatusTypewriterDisabled = "Vex.VexL.StatusTypewriterDisabled";
+    public static readonly string MenuMotion = "Vex.VexL.MenuMotion";
+    public static readonly string MenuFocusMode = "Vex.VexL.MenuFocusMode";
+    public static readonly string MenuTypewriterMode = "Vex.VexL.MenuTypewriterMode";    public static readonly string StatusFindReady = "Vex.VexL.StatusFindReady";
     public static readonly string StatusReplaceReady = "Vex.VexL.StatusReplaceReady";
     public static readonly string StatusFindClosed = "Vex.VexL.StatusFindClosed";
     public static readonly string StatusEnterSearchTextFirst = "Vex.VexL.StatusEnterSearchTextFirst";
