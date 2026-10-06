@@ -3,6 +3,7 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:behaviors="using:Vex.Core.Behaviors"
+    xmlns:ac="https://codewf.com"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
@@ -11,12 +12,19 @@
     behaviors:FocusOnVisible.SelectAll="True"
     IsVisible="{Binding IsVisible}">
 
-    <Border
-        Background="{DynamicResource VexPanelBackgroundBrush}"
-        BorderBrush="{DynamicResource VexPanelBorderBrush}"
-        BorderThickness="0 0 0 1"
-        Padding="12 8">
-        <Grid ColumnDefinitions="Auto,220,Auto,220,Auto,Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="8">
+    <ac:ContentExpansionAnimator
+        Animate="{Binding IsVisible}"
+        CollapsedSize="0"
+        Duration="{DynamicResource MotionDurationMid}"
+        ExpandedSize="64"
+        IsExpanded="{Binding IsVisible}"
+        Orientation="Vertical">
+        <Border
+            Background="{DynamicResource VexPanelBackgroundBrush}"
+            BorderBrush="{DynamicResource VexPanelBorderBrush}"
+            BorderThickness="0 0 0 1"
+            Padding="12 8">
+            <Grid ColumnDefinitions="Auto,220,Auto,220,Auto,Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="8">
             <TextBlock
                 Classes="muted"
                 Text="{i18n:I18n {x:Static l:VexL.FindBarFind}}"
@@ -106,6 +114,7 @@
                 IsChecked="{Binding IsRegex, Mode=TwoWay}"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarRegex}}"
                 VerticalAlignment="Center" />
-        </Grid>
-    </Border>
+            </Grid>
+        </Border>
+    </ac:ContentExpansionAnimator>
 </UserControl>
