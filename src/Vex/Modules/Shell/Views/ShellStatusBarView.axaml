@@ -15,7 +15,7 @@
         BorderBrush="{DynamicResource VexStatusBarBorderBrush}"
         BorderThickness="0 1 0 0"
         Padding="12 4">
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" MinHeight="32">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" MinHeight="32">
             <TextBlock
                 Classes="muted"
                 FontSize="12"

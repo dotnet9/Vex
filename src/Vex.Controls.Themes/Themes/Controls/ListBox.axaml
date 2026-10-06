@@ -98,9 +98,10 @@
     </Style>
 
     <Style Selector="ListBox.side-list ListBoxItem">
-        <Setter Property="Padding" Value="10 8" />
-        <Setter Property="MinHeight" Value="34" />
-        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Padding" Value="10 5" />
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="CornerRadius" Value="7" />
+        <Setter Property="FontSize" Value="12.5" />
     </Style>
 
     <Style Selector="ListBox.side-list TextBlock">
@@ -172,8 +173,8 @@
 
     <!-- 文档卡片行（对应原型 .tree-row）：圆角卡片 + 选中主题色左竖条与浅底 -->
     <Style Selector="TreeView.side-tree Border.file-card">
-        <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Padding" Value="8 6" />
+        <Setter Property="CornerRadius" Value="7" />
+        <Setter Property="Padding" Value="10 5" />
         <Setter Property="Background" Value="Transparent" />
     </Style>
     <Style Selector="TreeView.side-tree Border.file-card.selected">
