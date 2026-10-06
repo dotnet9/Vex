@@ -81,29 +81,34 @@
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="{Binding Layout.SidebarColumnWidth}" MinWidth="0" />
+                <ColumnDefinition Width="Auto" MinWidth="0" />
                 <ColumnDefinition Width="{Binding Layout.SidebarSplitterWidth}" />
                 <ColumnDefinition Width="{Binding Layout.SourceColumnWidth}" MinWidth="0" />
                 <ColumnDefinition Width="{Binding Layout.PreviewSplitterWidth}" />
                 <ColumnDefinition Width="{Binding Layout.PreviewColumnWidth}" MinWidth="0" />
             </Grid.ColumnDefinitions>
 
-            <Border
+            <codewf:ContentExpansionAnimator
                 x:Name="SidebarGuideTarget"
                 Grid.Column="0"
-                Classes="panel"
-                IsVisible="{Binding Layout.IsSidebarVisible}">
-                <TabControl
-                    Classes="sidebar-tabs"
-                    prism:RegionManager.RegionName="{x:Static regions:RegionNames.ShellSidebarRegion}"
-                    SelectedIndex="{Binding Navigation.SelectedSideTabIndex, Mode=TwoWay}">
-                    <TabControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <UniformGrid Rows="1" />
-                        </ItemsPanelTemplate>
-                    </TabControl.ItemsPanel>
-                </TabControl>
-            </Border>
+                CollapsedSize="0"
+                Duration="{DynamicResource MotionDurationMid}"
+                ExpandedSize="320"
+                IsExpanded="{Binding Layout.IsSidebarVisible}"
+                Orientation="Horizontal">
+                <Border Classes="panel">
+                    <TabControl
+                        Classes="sidebar-tabs"
+                        prism:RegionManager.RegionName="{x:Static regions:RegionNames.ShellSidebarRegion}"
+                        SelectedIndex="{Binding Navigation.SelectedSideTabIndex, Mode=TwoWay}">
+                        <TabControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="1" />
+                            </ItemsPanelTemplate>
+                        </TabControl.ItemsPanel>
+                    </TabControl>
+                </Border>
+            </codewf:ContentExpansionAnimator>
 
             <GridSplitter
                 Grid.Column="1"
