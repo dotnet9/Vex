@@ -3,244 +3,1016 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vex 界面原型 · 总览</title>
+<title>Vex 界面原型 · 主窗体</title>
 <link rel="stylesheet" href="assets/theme.css">
 <script src="assets/theme.js"></script>
 <script src="assets/interact.js"></script>
 <style>
-  .hero { max-width: 1160px; margin: 0 auto; padding: 52px 24px 10px; }
-  .hero .brand-row { display: flex; align-items: center; gap: 14px; }
-  .hero .logo-big {
-    width: 52px; height: 52px; border-radius: 14px;
-    background: var(--title-grad);
-    color: #fff; font-size: 26px; font-weight: 800;
-    display: inline-flex; align-items: center; justify-content: center;
-    box-shadow: var(--shadow-pop);
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--stage);
+    display: flex; align-items: center; justify-content: center;
+    padding: 28px 0;
+    overflow: auto;
   }
-  .hero h1 { font-size: 28px; font-weight: 700; letter-spacing: .3px; }
-  .hero .slogan { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
-  .hero p.intro {
-    margin-top: 18px; max-width: 880px;
-    font-size: 13.5px; color: var(--muted); line-height: 1.9;
-  }
-  .hero p.intro b { color: var(--value); }
-  .theme-strip { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
-  .theme-chip {
-    display: inline-flex; align-items: center; gap: 8px;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    border-radius: 999px;
-    padding: 5px 14px 5px 6px;
-    font-size: 12.5px; color: var(--fg);
-    cursor: pointer;
-    transition: all .15s ease;
-  }
-  .theme-chip:hover { border-color: var(--accent); color: var(--accent); }
-  .theme-chip .sw { display: inline-flex; }
-  .theme-chip .sw i { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--panel); margin-left: -5px; box-shadow: 0 0 0 1px rgba(0,0,0,.10); }
-  .theme-chip .sw i:first-child { margin-left: 0; }
-  .theme-chip .key { color: var(--muted); font-size: 11px; }
+  [hidden] { display: none !important; }
 
-  .gallery { max-width: 1160px; margin: 0 auto; padding: 34px 24px 110px; }
-  .group-title {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 15px; font-weight: 700;
-    margin: 30px 0 14px;
-  }
-  .group-title:first-child { margin-top: 0; }
-  .group-title .gt-line { flex: 1; height: 1px; background: var(--border); }
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: 14px; }
-  .card {
-    display: block;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 16px 14px;
-    color: var(--fg);
-    transition: all .16s ease;
+  .app-window {
     position: relative;
+    width: 1280px;
+    border-radius: 10px;
     overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-window);
+    background: var(--bg);
+    display: flex; flex-direction: column;
   }
-  .card::before {
-    content: "";
-    position: absolute; left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: var(--accent);
-    opacity: 0;
-    transition: opacity .16s ease;
+
+  /* 查找替换栏（编辑菜单 / Ctrl+F 呼出） */
+  .fb-inwindow { border-bottom: 1px solid var(--border); }
+  .fb-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fb-row + .fb-row { margin-top: 8px; }
+  .fb-label { font-size: 12px; color: var(--muted); }
+  .fb-field { position: relative; }
+  .fb-field .input { padding-right: 64px; }
+  .fb-count-chip {
+    font-size: 11px; color: var(--accent);
+    background: var(--accent-soft); border-radius: 5px;
+    padding: 0 6px; line-height: 17px; white-space: nowrap;
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    pointer-events: none;
   }
-  .card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-pop);
-    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
-    text-decoration: none;
+  .hl { background: color-mix(in srgb, var(--accent) 22%, transparent); border-radius: 3px; }
+  .hl.active { background: var(--accent); color: var(--accent-fg); border-radius: 3px; }
+  .badge.warn-chip { background: var(--danger-soft); color: var(--danger); }
+
+  /* 侧栏过滤框 */
+  .side-search { padding: 0 10px 8px; position: relative; }
+  .side-search .input { padding-left: 28px; font-size: 12px; min-height: 28px; }
+  .side-search svg {
+    position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+    width: 12px; height: 12px; color: var(--fg-disabled); pointer-events: none;
+    fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
   }
-  .card:hover::before { opacity: 1; }
-  .card .c-ico {
-    width: 34px; height: 34px;
-    border-radius: 9px;
-    background: var(--accent-soft);
-    color: var(--accent);
+  .outline-meta { padding: 0 14px 8px; font-size: 11.5px; color: var(--muted); }
+  .progress-rail { margin: 4px 14px 10px; height: 4px; border-radius: 4px; background: var(--badge-bg); border: 1px solid var(--badge-border); position: relative; overflow: hidden; }
+  .progress-rail i { position: absolute; left: 0; top: 0; bottom: 0; width: 38%; border-radius: 4px; background: var(--accent); transition: width .2s ease; }
+
+  /* 窗体内浮层（覆盖查找栏 / 主区 / 状态栏，不含标题栏） */
+  .window-body { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .win-layer {
+    position: absolute; inset: 0; z-index: 40;
+    background: var(--scrim);
+    backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .win-layer .mini-window { box-shadow: 0 24px 64px rgba(16,24,40,.35), 0 4px 16px rgba(16,24,40,.18); max-height: 94%; overflow: auto; }
+
+  /* 独立窗口内容 */
+  .stat-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 18px 24px 4px; }
+  .stat-card { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px 10px; }
+  .stat-card .num { font-size: 24px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stat-card .lbl { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .stat-rows { padding: 12px 24px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--splitter); font-size: 12.5px; }
+  .stat-row .k { color: var(--muted); }
+  .stat-row .v { font-weight: 600; color: var(--value); }
+
+  .prop-rows { padding: 4px 24px 22px; }
+  .prop-row { display: grid; grid-template-columns: 76px 1fr; gap: 14px; padding: 9px 0; border-bottom: 1px dashed var(--splitter); font-size: 12.5px; }
+  .prop-row:last-child { border-bottom: none; }
+  .prop-row .k { color: var(--muted); }
+  .prop-row .v { color: var(--value); }
+  .prop-row .v.mono { font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px; color: var(--muted); }
+  .copy-btn {
+    appearance: none; border: 1px solid var(--border); background: var(--panel);
+    color: var(--muted); border-radius: 6px; padding: 2px 7px;
+    font-size: 11px; cursor: pointer; flex: none; margin-top: -2px;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .pill-ok {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 600; color: var(--success);
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    border-radius: 999px; padding: 1px 9px;
+  }
+  .pill-ok::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+  .about-hero { display: flex; align-items: center; gap: 14px; padding: 28px 24px 0; }
+  .about-logo {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: var(--title-grad); color: #fff; font-size: 22px; font-weight: 800;
     display: inline-flex; align-items: center; justify-content: center;
-    margin-bottom: 10px;
+    box-shadow: var(--shadow-pop); flex: none;
   }
-  .card .c-ico svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .card h3 { font-size: 14px; font-weight: 600; }
-  .card p { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.65; }
-  .card .c-open {
-    margin-top: 10px;
-    font-size: 12px; color: var(--accent); font-weight: 600;
-    display: inline-flex; align-items: center; gap: 4px;
+  .about-hero h2 { font-size: 20px; font-weight: 700; letter-spacing: .3px; }
+  .about-hero .slogan { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .about-rows { padding: 18px 24px 4px; }
+  .about-row { display: grid; grid-template-columns: 76px 1fr; gap: 14px; padding: 9px 0; border-bottom: 1px dashed var(--splitter); font-size: 12.5px; align-items: baseline; }
+  .about-row:last-child { border-bottom: none; }
+  .about-row .k { color: var(--muted); }
+  .about-row .v { color: var(--value); }
+  .about-row .v.mono { font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; }
+  .ver-badge {
+    display: inline-flex; font-size: 11.5px; font-weight: 600;
+    color: var(--accent); background: var(--accent-soft);
+    border-radius: 999px; padding: 1px 10px;
   }
-  footer.foot { max-width: 1160px; margin: 0 auto; padding: 0 24px 60px; color: var(--fg-disabled); font-size: 12px; }
+  .about-link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; font-weight: 500; }
+  .about-foot { padding: 14px 24px 22px; font-size: 11.5px; color: var(--muted); line-height: 1.8; display: flex; gap: 8px; align-items: flex-start; }
+  .about-foot svg { width: 13px; height: 13px; flex: none; margin-top: 3px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .75; }
+
+  .set-head { padding: 20px 24px 4px; display: flex; align-items: center; gap: 14px; }
+  .set-head .s-ico {
+    width: 44px; height: 44px; border-radius: 11px;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+  }
+  .set-head h2 { font-size: 16.5px; font-weight: 700; }
+  .set-head .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .enable-row {
+    margin: 14px 24px 0; display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 5%, var(--panel));
+  }
+  .enable-row .et { font-weight: 600; font-size: 13px; }
+  .enable-row .ed { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .enable-row .switch { margin-left: auto; }
+  .set-body { padding: 14px 24px 6px; display: flex; flex-direction: column; gap: 12px; }
+  .form-grid { display: grid; grid-template-columns: 108px 1fr; gap: 10px 14px; align-items: center; }
+  .form-grid > .k { font-size: 12.5px; color: var(--muted); text-align: right; }
+  .input-group { display: flex; gap: 8px; align-items: center; }
+  .endpoint {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 5px 6px 5px 10px;
+  }
+  .endpoint code { flex: 1; font-size: 12px; color: var(--value); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .set-foot { margin-top: 16px; padding: 12px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: var(--statusbar-bg); }
+
+  .doc-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 28px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+  .doc-head .d-logo {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--title-grad); color: #fff; font-size: 18px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-pop); flex: none;
+  }
+  .doc-head h2 { font-size: 18px; font-weight: 700; }
+  .doc-head .sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+  .doc-body { height: 400px; overflow: auto; margin: 0 24px 20px; }
+  .doc-body .md-body { padding: 22px 12px 10px; }
+  .md-body a { color: var(--accent); }
+
+  .detail-box { margin-top: 14px; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .detail-box pre {
+    max-height: 150px; overflow: auto; margin: 8px 0 0;
+    font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px;
+    line-height: 1.65; color: var(--muted); white-space: pre-wrap; word-break: break-all;
+  }
+  .rn-error { margin-top: 10px; font-size: 12px; color: var(--danger); }
+
+  /* 主区栅格与窗格（原 main-window.html 局部样式并入） */
+  .main-area {
+    display: grid;
+    grid-template-columns: 252px 5px 1fr 5px 1.06fr;
+    height: 640px;
+    background: var(--bg);
+  }
+  .editor-pane, .preview-pane { min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .pane-head {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    border-bottom: 1px solid var(--splitter);
+    font-size: 11.5px; color: var(--muted);
+    flex: none;
+    letter-spacing: .3px;
+  }
+  .pane-head .ph-ico { width: 13px; height: 13px; }
+  .pane-head .ph-right { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; }
+  .editor-pane .editor { flex: 1; }
+  .preview-pane .md-body { flex: 1; overflow: auto; padding-top: 14px; }
+  .lv-h1 { font-weight: 700; }
+  .lv-h2 { padding-left: 24px; font-weight: 500; }
+  .lv-h3 { padding-left: 40px; color: var(--muted); }
+  .side-body { overflow: auto; }
 </style>
 </head>
 <body data-page="index">
 
-<header class="hero">
-  <div class="brand-row">
-    <span class="logo-big">V</span>
-    <div>
-      <h1>Vex 界面原型</h1>
-      <div class="slogan">极简之力，妙笔成章 · 界面改版设计稿 v1</div>
+<!-- 图标库（feather 风格描边图标） -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-min" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-max" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+</defs></svg>
+
+<div class="window app-window">
+  <!-- 标题栏 -->
+  <div class="titlebar">
+    <div class="tb-left">
+      <span class="tb-logo">V</span>
+      <span class="tb-appname">Vex</span>
+      <nav class="tb-menu">
+        <span class="tb-menuitem">文件(F)</span>
+        <span class="tb-menuitem">编辑(E)</span>
+        <span class="tb-menuitem">段落(P)</span>
+        <span class="tb-menuitem">格式(O)</span>
+        <span class="tb-menuitem">视图(V)</span>
+        <span class="tb-menuitem">帮助(H)</span>
+      </nav>
+      <span class="tb-doc"><span class="tb-dot"></span>主题设计笔记.md</span>
+    </div>
+    <div class="caption-btns" id="caption-btns">
+      <span class="caption-btn" data-cap="min"><svg class="sym" style="width:11px;height:11px"><use href="#i-min"/></svg></span>
+      <span class="caption-btn" data-cap="max"><svg class="sym" style="width:11px;height:11px"><use href="#i-max"/></svg></span>
+      <span class="caption-btn close" data-cap="close"><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
     </div>
   </div>
-  <p class="intro">
-    本目录是 Vex（维刻）各界面<b>可交互原型</b>，覆盖主窗口、侧栏、查找替换、全部对话框与独立窗口，共 17 页。
-    每页右下角有<b>页面导航器</b>（九宫格按钮），16 个界面之间可直接跳转；菜单、对话框、设置开关等交互均可实际操作，
-    与实现的界面行为一一对应。右上角悬浮球（或 <b>Alt + 1..6</b>）可切换与 App 一致的六套主题色：<b>浅色 / 深色 / 水生 / 沙漠 / 黄昏 / 夜空</b>，
-    选择会跨页面记忆。色值取自 <span class="mono" style="font-size:11.5px">AppPalette.axaml</span>，保证原型与真实主题一致；
-    在此基础上统一了圆角、阴影、间距与强调色的使用方式。
-  </p>
-  <div class="theme-strip" id="theme-chips">
-    <span class="theme-chip" data-key="light"><span class="sw"><i style="background:#FFFFFF"></i><i style="background:#1677FF"></i><i style="background:#FDFDFD"></i></span>浅色 <span class="key">Alt+1</span></span>
-    <span class="theme-chip" data-key="dark"><span class="sw"><i style="background:#151B26"></i><i style="background:#60A5FA"></i><i style="background:#111827"></i></span>深色 <span class="key">Alt+2</span></span>
-    <span class="theme-chip" data-key="aquatic"><span class="sw"><i style="background:#FFFFFF"></i><i style="background:#0EA5B7"></i><i style="background:#F0FAFD"></i></span>水生 <span class="key">Alt+3</span></span>
-    <span class="theme-chip" data-key="desert"><span class="sw"><i style="background:#FFFFFF"></i><i style="background:#C77B2A"></i><i style="background:#FCF7F0"></i></span>沙漠 <span class="key">Alt+4</span></span>
-    <span class="theme-chip" data-key="dusk"><span class="sw"><i style="background:#FFFFFF"></i><i style="background:#8A63D2"></i><i style="background:#F5F7FB"></i></span>黄昏 <span class="key">Alt+5</span></span>
-    <span class="theme-chip" data-key="night-sky"><span class="sw"><i style="background:#172033"></i><i style="background:#7AA2FF"></i><i style="background:#0D1320"></i></span>夜空 <span class="key">Alt+6</span></span>
-  </div>
-</header>
 
-<main class="gallery">
-  <div class="group-title">核心界面 <span class="gt-line"></span></div>
-  <div class="cards">
-    <a class="card" href="pages/main-window.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9.5" y1="9" x2="9.5" y2="20"/></svg></span>
-      <h3>主窗口</h3>
-      <p>标题栏 + 侧栏（文件/大纲）+ 源码编辑 + 实时预览 + 状态栏的完整形态。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/menu-flyout.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="16" y2="12"/><line x1="4" y1="17" x2="12" y2="17"/></svg></span>
-      <h3>标题菜单</h3>
-      <p>六大菜单浮层与「主题色」子菜单展开态，含快捷键、勾选态与分组。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/find-replace.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-      <h3>查找替换</h3>
-      <p>查找 / 替换栏展开态：命中计数、大小写、整词、正则开关与循环查找提示。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/sidebar-files.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
-      <h3>文件侧栏</h3>
-      <p>目录树 + 文档卡片（摘要 / 修改时间），含右键菜单与空状态两种形态。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/sidebar-outline.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
-      <h3>大纲侧栏</h3>
-      <p>按标题层级缩进的大纲导航，当前章节高亮，含空状态形态。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-  </div>
+  <div class="window-body">
+    <!-- 查找替换栏（编辑菜单 / Ctrl+F、Ctrl+H 呼出） -->
+    <div class="findbar fb-inwindow" id="findbar" hidden>
+      <div class="fb-row" style="padding: 10px 12px 0;">
+        <span class="fb-label">查找</span>
+        <span class="fb-field">
+          <input class="input" id="find-input" style="padding-right: 56px;" value="主题" placeholder="文本">
+          <span class="fb-count-chip" id="hit-chip">2 / 2</span>
+        </span>
+        <button class="btn primary sm" id="btn-next">下一个</button>
+        <button class="btn sm" id="btn-prev" title="上一个"><svg class="ico" style="width:13px;height:13px"><use href="#i-up"/></svg></button>
+        <span style="flex:1"></span>
+        <button class="opt-toggle on" title="区分大小写">Aa</button>
+        <button class="opt-toggle" title="整词匹配">W</button>
+        <button class="opt-toggle" title="正则匹配">.*</button>
+        <span class="tb-sep" style="height:20px"></span>
+        <button class="btn ghost sm" id="btn-close" title="关闭"><svg class="ico" style="width:14px;height:14px"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="fb-row" style="padding: 8px 12px 10px;">
+        <span class="fb-label">替换</span>
+        <span class="fb-field"><input class="input" id="replace-input" value="配色" placeholder="文本"></span>
+        <button class="btn sm" id="btn-replace">替换</button>
+        <button class="btn sm" id="btn-replace-all">全部替换</button>
+        <span class="badge accent" id="loop-badge">↻ 循环查找</span>
+      </div>
+    </div>
 
-  <div class="group-title">对话框与覆盖层 <span class="gt-line"></span></div>
-  <div class="cards">
-    <a class="card" href="pages/dialog-unsaved.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-      <h3>未保存更改</h3>
-      <p>关闭 / 打开前的保存确认覆盖层：保存、不保存、取消三级操作。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/dialog-rename.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span>
-      <h3>重命名文件</h3>
-      <p>侧栏文件重命名覆盖层：文件名输入 + 原路径回显。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/dialog-delete.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
-      <h3>删除确认</h3>
-      <p>独立确认窗口：警告文案 + 完整路径回显，危险按钮红色描边。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/dialog-error.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
-      <h3>错误提示</h3>
-      <p>操作失败覆盖层：错误摘要 + 可滚动的详情堆栈区。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/dialog-mcp-confirm.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
-      <h3>MCP 操作确认</h3>
-      <p>AI 工具调用前的授权确认：工具名、目标、摘要与「记住选择」。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-  </div>
+    <!-- 主区 -->
+    <div class="main-area">
+      <aside class="sidebar">
+        <div class="side-tabs">
+          <button class="side-tab on" data-pane="files"><svg class="ico"><use href="#i-file"/></svg>文件</button>
+          <button class="side-tab" data-pane="outline"><svg class="ico"><use href="#i-list"/></svg>大纲</button>
+        </div>
+        <div data-pane-body="files" style="display:flex;flex-direction:column;min-height:0;flex:1;">
+          <div class="side-search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="input" id="file-filter" placeholder="过滤当前目录文档…">
+          </div>
+          <div class="side-body" style="flex:1;">
+            <div class="tree-folder"><svg class="ico file-ico"><use href="#i-folder"/></svg>笔记</div>
+            <div class="tree-file"><svg class="ico file-ico"><use href="#i-file"/></svg>每周复盘.md<span class="tf-time">昨天</span></div>
+            <div class="tree-file selected"><svg class="ico file-ico"><use href="#i-file"/></svg>主题设计笔记.md<span class="tf-time">16:02</span></div>
+            <div class="tree-file"><svg class="ico file-ico"><use href="#i-file"/></svg>读书摘录.md<span class="tf-time">周一</span></div>
+            <div class="tree-folder"><svg class="ico file-ico"><use href="#i-folder"/></svg>教程</div>
+            <div class="tree-file"><svg class="ico file-ico"><use href="#i-file"/></svg>快速开始.md<span class="tf-time">09-28</span></div>
+            <div class="tree-file"><svg class="ico file-ico"><use href="#i-file"/></svg>导出指南.md<span class="tf-time">09-25</span></div>
+          </div>
+        </div>
+        <div data-pane-body="outline" style="display:none;flex-direction:column;min-height:0;flex:1;">
+          <div class="outline-meta" id="outline-meta">当前章节：设计原则 · 38%</div>
+          <div class="side-body" style="flex:1;" id="outline-body">
+            <div class="outline-row lv-h1"><span class="lv">H1</span>主题设计笔记</div>
+            <div class="outline-row lv-h2 on"><span class="lv">H2</span>设计原则</div>
+            <div class="outline-row lv-h3"><span class="lv">H3</span>保持沉浸感</div>
+            <div class="outline-row lv-h3"><span class="lv">H3</span>降低视觉噪音</div>
+            <div class="outline-row lv-h2"><span class="lv">H2</span>主题色体系</div>
+            <div class="outline-row lv-h3"><span class="lv">H3</span>中性色梯度</div>
+            <div class="outline-row lv-h3"><span class="lv">H3</span>强调色与语义色</div>
+            <div class="outline-row lv-h2"><span class="lv">H2</span>排版与字距</div>
+            <div class="outline-row lv-h2"><span class="lv">H2</span>导出一致性</div>
+            <div class="outline-row lv-h1"><span class="lv">H1</span>附录：令牌清单</div>
+          </div>
+          <div class="progress-rail"><i id="reading-progress"></i></div>
+        </div>
+      </aside>
 
-  <div class="group-title">独立窗口 <span class="gt-line"></span></div>
-  <div class="cards">
-    <a class="card" href="pages/window-statistics.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
-      <h3>字数统计</h3>
-      <p>统计窗口：词数、字符、行数、段落、标题、阅读时间等指标卡。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/window-properties.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-      <h3>文件属性</h3>
-      <p>属性窗口：名称、状态、编码、大小与完整路径（可复制）。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/window-mcp-settings.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15l3-3-3-3"/><line x1="13" y1="15" x2="17" y2="15"/></svg></span>
-      <h3>MCP 设置</h3>
-      <p>本机 MCP Server 配置：启用开关、监听地址、Token、访问范围。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/window-help-doc.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
-      <h3>帮助文档</h3>
-      <p>更新日志等文档窗口：品牌头部 + 与预览一致的 Markdown 排版。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/window-thanks.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-      <h3>鸣谢</h3>
-      <p>开源项目致谢文档窗口：与帮助文档同窗体，链接用主题强调色。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-    <a class="card" href="pages/window-about.html">
-      <span class="c-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
-      <h3>关于 Vex</h3>
-      <p>品牌头 + 版本徽章 + 作者 / 网站 / 品牌信息的紧凑关于窗口。</p>
-      <span class="c-open">查看原型 →</span>
-    </a>
-  </div>
-</main>
+      <div class="splitter-v"></div>
 
-<footer class="foot">Vex（维刻）界面原型 · 基于 AppPalette.axaml 六套主题色 · 纯静态 HTML，可直接双击浏览</footer>
+      <!-- 编辑器 -->
+      <section class="editor-pane">
+        <div class="pane-head">
+          <svg class="ico ph-ico"><use href="#i-edit"/></svg>源码
+          <span class="ph-right"><span class="kbd">Markdown</span></span>
+        </div>
+        <div class="editor" id="editor">
+          <div class="ed-line"><span class="ed-lno">1</span><span class="ed-text"><span class="tok-marker"># </span><span class="tok-h">主题设计笔记</span></span></div>
+          <div class="ed-line"><span class="ed-lno">2</span><span class="ed-text"></span></div>
+          <div class="ed-line"><span class="ed-lno">3</span><span class="ed-text"><span class="tok-marker">**</span><span class="tok-bold">Vex</span><span class="tok-marker">**</span> 是一款轻量的 Markdown 编辑器，这里记录 <span class="tok-marker">*</span><span class="tok-em">界面原型</span><span class="tok-marker">*</span> 的设计要点。</span></div>
+          <div class="ed-line"><span class="ed-lno">4</span><span class="ed-text"></span></div>
+          <div class="ed-line"><span class="ed-lno">5</span><span class="ed-text"><span class="tok-marker">&gt; </span><span class="tok-quote">极简之力，妙笔成章。</span></span></div>
+          <div class="ed-line"><span class="ed-lno">6</span><span class="ed-text"></span></div>
+          <div class="ed-line"><span class="ed-lno">7</span><span class="ed-text"><span class="tok-marker">## </span><span class="tok-h">设计原则</span></span></div>
+          <div class="ed-line"><span class="ed-lno">8</span><span class="ed-text"></span></div>
+          <div class="ed-line current"><span class="ed-lno">9</span><span class="ed-text"><span class="tok-marker">- </span>保持写作沉浸感<span class="caret"></span></span></div>
+          <div class="ed-line"><span class="ed-lno">10</span><span class="ed-text"><span class="tok-marker">- </span><span class="tok-code">Ctrl+S</span> 快速保存</span></div>
+          <div class="ed-line"><span class="ed-lno">11</span><span class="ed-text"><span class="tok-marker">- </span><span class="tok-marker">[</span><span class="tok-link">链接示例</span><span class="tok-marker">](https://codewf.com)</span></span></div>
+          <div class="ed-line"><span class="ed-lno">12</span><span class="ed-text"></span></div>
+          <div class="ed-line"><span class="ed-lno">13</span><span class="ed-text"><span class="tok-marker">- [x] </span>支持六套主题色</span></div>
+          <div class="ed-line"><span class="ed-lno">14</span><span class="ed-text"><span class="tok-marker">- [ ] </span><span class="tok-dim">支持自定义主题</span></span></div>
+          <div class="ed-line"><span class="ed-lno">15</span><span class="ed-text"><span class="tok-marker">- </span>浅色、深色、水生、沙漠、黄昏、夜空 —— 每套 <span class="hl">主题</span> 都包含</span></div>
+          <div class="ed-line"><span class="ed-lno">16</span><span class="ed-text">面板、边框、<span class="hl active">主题</span> 色之外还有三十余个颜色令牌。</span></div>
+        </div>
+      </section>
+
+      <div class="splitter-v"></div>
+
+      <!-- 预览 -->
+      <section class="preview-pane">
+        <div class="pane-head">
+          <svg class="ico ph-ico"><use href="#i-eye"/></svg>预览
+          <span class="ph-right"><span class="kbd">Basic 排版</span></span>
+        </div>
+        <div class="md-body">
+          <h1>主题设计笔记</h1>
+          <p><b>Vex</b> 是一款轻量的 Markdown 编辑器，这里记录 <em>界面原型</em> 的设计要点。</p>
+          <blockquote>极简之力，妙笔成章。</blockquote>
+          <h2>设计原则</h2>
+          <ul>
+            <li>保持写作沉浸感</li>
+            <li><code>Ctrl+S</code> 快速保存</li>
+            <li><a href="#">链接示例</a></li>
+          </ul>
+          <div class="task-list">
+            <div class="task done"><span class="cb"></span><span>支持六套主题色</span></div>
+            <div class="task"><span class="cb"></span><span>支持自定义主题</span></div>
+          </div>
+          <table>
+            <thead><tr><th>主题</th><th>强调色</th></tr></thead>
+            <tbody>
+              <tr><td>浅色</td><td><code>#1677FF</code></td></tr>
+              <tr><td>水生</td><td><code>#0EA5B7</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- 状态栏 -->
+    <div class="statusbar">
+      <span class="sb-status">
+        <svg class="ico sb-ico"><use href="#i-check"/></svg>已保存 · 上次保存于 16:02
+      </span>
+      <span class="sb-badges">
+        <span class="badge">状态 <b>已保存</b></span>
+        <span class="badge">编码 <b>UTF-8</b></span>
+        <span class="badge accent">行 <b>9</b></span>
+        <span class="badge accent">列 <b>10</b></span>
+        <span class="badge" id="sb-wordcount" title="打开字数统计窗口" style="cursor:pointer;">词数 <b>328</b></span>
+        <span class="badge">字符 <b>1,892</b></span>
+      </span>
+    </div>
+
+    <!-- ========== 窗体内浮层 ========== -->
+
+    <!-- 未保存更改 -->
+    <div class="overlay win-layer" id="layer-unsaved" hidden>
+      <div class="dialog">
+        <div class="dlg-title">
+          <span class="dlg-ico warn"><svg><use href="#i-warn"/></svg></span>
+          未保存的更改
+        </div>
+        <p class="dlg-msg">「主题设计笔记.md」有尚未保存的修改。关闭前要保存这些更改吗？</p>
+        <div class="dlg-path mono">D:\Notes\笔记\主题设计笔记.md</div>
+        <div class="dlg-actions">
+          <button class="btn" data-close="已取消，继续编辑">取消</button>
+          <button class="btn" data-close="已放弃修改并关闭文档">不保存</button>
+          <button class="btn primary" data-close="已保存并关闭文档">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 重命名文件 -->
+    <div class="overlay win-layer" id="layer-rename" hidden>
+      <div class="dialog" style="width: 430px;">
+        <div class="dlg-title">
+          <span class="dlg-ico info"><svg><use href="#i-edit"/></svg></span>
+          重命名文件
+        </div>
+        <div class="dlg-field" style="margin-top:14px;">
+          <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;">文件名</label>
+          <input class="input mono" id="rename-input" value="主题设计笔记.md">
+          <div class="rn-error" id="rename-error" style="display:none;">文件名不能包含 \ / : * ? " &lt; &gt; | 等字符</div>
+        </div>
+        <div style="margin-top:12px;">
+          <div style="font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:4px;">原路径</div>
+          <div class="dlg-path" style="margin-top:0;">D:\Notes\笔记\主题设计笔记.md</div>
+        </div>
+        <div class="dlg-actions">
+          <button class="btn" data-close="已取消">取消</button>
+          <button class="btn primary" id="rename-ok">重命名</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 错误提示 -->
+    <div class="overlay win-layer" id="layer-error" hidden>
+      <div class="dialog" style="width: 470px;">
+        <div class="dlg-title">
+          <span class="dlg-ico warn"><svg><use href="#i-x"/></svg></span>
+          导出 PDF 失败
+        </div>
+        <p class="dlg-msg">写入 <span class="mono">Vex-指南.pdf</span> 时被其他程序占用。请关闭可能打开该文件的程序（如 PDF 阅读器）后重试。</p>
+        <div class="detail-box">
+          <div style="font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none;" id="err-toggle">▸ 错误详情（点击展开 / 收起）</div>
+          <pre id="err-detail" style="display:none;">CodeWF.Markdown.ExportException: The process cannot access the file
+'D:\Notes\export\Vex-指南.pdf' because it is being used by another process.
+   at MarkdownDocumentExporter.ExportToPdf(ExportContext ctx)
+   at Vex.Modules.Workspace.ExportService.ExportPdfAsync(String path)</pre>
+        </div>
+        <div class="dlg-actions">
+          <button class="btn" id="err-copy">复制详情</button>
+          <button class="btn primary" data-close="已关闭错误提示">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 删除确认 -->
+    <div class="overlay win-layer" id="layer-delete" hidden>
+      <div class="mini-window" style="width: 480px;">
+        <div class="mini-titlebar">
+          删除确认
+          <span class="caption-btns">
+            <span class="caption-btn" data-close="已取消，文件安全"><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div style="padding: 22px;">
+          <div class="dlg-title" style="font-size:15.5px;">
+            <span class="dlg-ico warn"><svg style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><use href="#i-trash"/></svg></span>
+            确定要删除「读书摘录.md」吗？
+          </div>
+          <p class="dlg-msg">此操作会从磁盘永久删除该文件，且无法从回收站恢复（仅 Windows 直接删除）。</p>
+          <div class="dlg-path mono">D:\Notes\笔记\读书摘录.md</div>
+          <div class="dlg-actions">
+            <button class="btn" data-close="已取消，文件安全">取消</button>
+            <button class="btn danger" data-close="已删除「读书摘录.md」（演示）">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 文件属性 -->
+    <div class="overlay win-layer" id="layer-properties" hidden>
+      <div class="mini-window" style="width: 520px;">
+        <div class="mini-titlebar">
+          属性
+          <span class="caption-btns">
+            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:20px 24px 14px;">
+          <span style="width:44px;height:44px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;flex:none;">
+            <svg class="ico" style="width:21px;height:21px;"><use href="#i-file"/></svg>
+          </span>
+          <div>
+            <div style="font-size:15.5px;font-weight:700;">主题设计笔记.md</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px;">D:\Notes\笔记</div>
+          </div>
+        </div>
+        <div class="prop-rows">
+          <div class="prop-row"><span class="k">状态</span><span class="v"><span class="pill-ok">已保存</span></span></div>
+          <div class="prop-row"><span class="k">编码</span><span class="v mono">UTF-8</span></div>
+          <div class="prop-row"><span class="k">大小</span><span class="v">4.2 KB（4,318 字节）</span></div>
+          <div class="prop-row">
+            <span class="k">路径</span>
+            <span class="v mono" style="display:flex;align-items:flex-start;gap:8px;">
+              <span>D:\Notes\笔记\主题设计笔记.md</span>
+              <button class="copy-btn" id="prop-copy">复制</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 字数统计 -->
+    <div class="overlay win-layer" id="layer-statistics" hidden>
+      <div class="mini-window" style="width: 360px;">
+        <div class="mini-titlebar">
+          统计
+          <span class="caption-btns">
+            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div class="stat-hero">
+          <div class="stat-card"><div class="num">328</div><div class="lbl">词数</div></div>
+          <div class="stat-card"><div class="num">1,892</div><div class="lbl">字符</div></div>
+        </div>
+        <div class="stat-rows">
+          <div class="stat-row"><span class="k">行数</span><span class="v">57</span></div>
+          <div class="stat-row"><span class="k">段落</span><span class="v">12</span></div>
+          <div class="stat-row"><span class="k">标题</span><span class="v">6</span></div>
+          <div class="stat-row"><span class="k">阅读时间</span><span class="v">约 1 分钟</span></div>
+          <div class="stat-row"><span class="k">编码</span><span class="v mono">UTF-8</span></div>
+          <div class="stat-row"><span class="k">状态</span><span class="v">已保存</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 关于 Vex -->
+    <div class="overlay win-layer" id="layer-about" hidden>
+      <div class="mini-window" style="width: 420px;">
+        <div class="mini-titlebar">
+          关于 Vex
+          <span class="caption-btns">
+            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div class="about-hero">
+          <span class="about-logo">V</span>
+          <div>
+            <h2>Vex</h2>
+            <div class="slogan">极简之力，妙笔成章</div>
+          </div>
+        </div>
+        <div class="about-rows">
+          <div class="about-row"><span class="k">中文名</span><span class="v">维刻</span></div>
+          <div class="about-row"><span class="k">版本</span><span class="v"><span class="ver-badge">1.2.0</span></span></div>
+          <div class="about-row"><span class="k">编译时间</span><span class="v mono">2026-10-02 15:04</span></div>
+          <div class="about-row"><span class="k">作者</span><span class="v">沙漠尽头的狼</span></div>
+          <div class="about-row"><span class="k">网站</span><span class="v"><a class="about-link" href="#">https://codewf.com</a></span></div>
+          <div class="about-row"><span class="k">品牌</span><span class="v">CodeWF（码坊）</span></div>
+        </div>
+        <div class="about-foot">
+          <svg><use href="#i-info"/></svg>
+          <span>由 Avalonia、Prism 和 CodeWF 自研库驱动的 Markdown 编辑器。</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MCP 设置 -->
+    <div class="overlay win-layer" id="layer-mcp" hidden>
+      <div class="mini-window" style="width: 620px;">
+        <div class="mini-titlebar">
+          MCP 设置
+          <span class="caption-btns">
+            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div class="set-head">
+          <span class="s-ico"><svg class="ico" style="width:21px;height:21px;"><use href="#i-terminal"/></svg></span>
+          <div>
+            <h2>MCP 设置</h2>
+            <div class="sub">允许 AI 客户端通过本机 MCP 接口读取和操作当前文档。</div>
+          </div>
+        </div>
+        <div class="enable-row">
+          <div>
+            <div class="et">启用 MCP Server</div>
+            <div class="ed">仅监听本机地址，通过 Bearer Token 鉴权</div>
+          </div>
+          <button class="switch on" id="mcp-switch" aria-label="启用 MCP Server"></button>
+        </div>
+        <div class="set-body" id="mcp-form">
+          <div class="form-grid">
+            <span class="k">监听地址</span>
+            <input class="input mono" value="127.0.0.1">
+            <span class="k">端口</span>
+            <input class="input mono" value="17891" style="width: 120px;">
+            <span class="k">授权 Token</span>
+            <span class="input-group">
+              <input class="input mono" id="mcp-token" value="vx_9f3ac21e77b04d5c8a12">
+              <button class="btn sm" id="mcp-gen"><svg class="ico" style="width:13px;height:13px"><use href="#i-refresh"/></svg>生成</button>
+              <button class="btn sm" id="mcp-copy-token"><svg class="ico" style="width:13px;height:13px"><use href="#i-copy"/></svg>复制</button>
+            </span>
+            <span class="k">端点</span>
+            <span class="endpoint">
+              <code class="mono">http://127.0.0.1:17891/mcp/</code>
+              <button class="btn sm ghost" id="mcp-copy-endpoint" style="border:1px solid var(--border)"><svg class="ico" style="width:13px;height:13px"><use href="#i-copy"/></svg>复制地址</button>
+            </span>
+          </div>
+          <div class="field-card">
+            <h3>允许访问范围</h3>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <label class="radio"><input type="radio" name="scope" checked><span class="dot"></span>仅当前文档</label>
+              <label class="radio"><input type="radio" name="scope"><span class="dot"></span>当前打开文件夹</label>
+              <label class="radio"><input type="radio" name="scope"><span class="dot"></span>自定义目录</label>
+              <input class="input mono" placeholder="自定义目录路径，例如 D:\Notes" style="max-width: 360px;">
+            </div>
+          </div>
+          <label class="check" style="margin-top: 2px;">
+            <input type="checkbox" checked><span class="box"></span>
+            修改、删除、打开外部路径前需要确认
+          </label>
+        </div>
+        <div style="margin: 2px 24px 6px; display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--success);">
+          <span id="mcp-status-dot" style="width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px color-mix(in srgb, var(--success) 18%, transparent);"></span>
+          <span id="mcp-status-text">服务运行中 · 最近调用 2 分钟前</span>
+        </div>
+        <div class="set-foot">
+          <button class="btn" data-close>取消</button>
+          <button class="btn primary" id="mcp-save">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 文档窗口（更新日志 / 鸣谢） -->
+    <div class="overlay win-layer" id="layer-doc" hidden>
+      <div class="mini-window" style="width: 620px;">
+        <div class="mini-titlebar">
+          <span id="doc-tb-title">更新日志</span>
+          <span class="caption-btns">
+            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div class="doc-head">
+          <span class="d-logo">V</span>
+          <div>
+            <h2 id="doc-head-title">更新日志</h2>
+            <div class="sub">随应用分发的官方文档 · Markdown 渲染</div>
+          </div>
+        </div>
+        <div class="doc-body">
+          <div class="md-body" id="doc-content-changelog">
+            <h1>更新日志</h1>
+            <h2>1.2.0 (2026-10-02)</h2>
+            <ul>
+              <li>✨[新增]-内置 MCP 本地 AI 协作服务：帮助菜单新增 MCP 设置入口，支持启用状态、监听地址、端口、授权 Token、访问范围和确认策略配置。</li>
+              <li>✨[新增]-MCP 操作确认弹窗支持勾选「本次运行内记住此选择」，按工具在本次运行内免询问。</li>
+              <li>✨[新增]-左侧文件视图支持打开文件夹工作区，监听文件新增、删除、重命名和修改并自动刷新。</li>
+              <li>🐞[修复]-NativeAOT 发布版标题菜单与编辑器菜单命令因反射绑定在 AOT 下失效而不可点击，统一改为编译期绑定。</li>
+              <li>🐞[修复]-MCP 保存文档纳入确认清单；打开文档前先经过未保存更改确认。</li>
+            </ul>
+            <hr>
+            <h2>1.1.2.3 (2026-06-08)</h2>
+            <ul>
+              <li>🔨[优化]-简化并放大 Vex 应用图标，改为透明底高对比 V 标识。</li>
+              <li>🔨[优化]-补齐根目录 logo.svg、logo.png、logo.ico 三件套，子工程通过 MSBuild Link 引用。</li>
+            </ul>
+          </div>
+          <div class="md-body" id="doc-content-thanks" hidden>
+            <h1>鸣谢</h1>
+            <p>Vex 感谢下列开源项目及其维护者。它们为跨平台界面、编辑体验、Markdown 解析和应用结构提供了可靠基础。</p>
+            <h2>界面与桌面体验</h2>
+            <ul>
+              <li><a href="#">Avalonia</a></li>
+              <li><a href="#">Semi.Avalonia</a></li>
+              <li><a href="#">Ursa.Avalonia</a></li>
+              <li><a href="#">AvaloniaEdit</a></li>
+            </ul>
+            <h2>应用架构</h2>
+            <ul>
+              <li><a href="#">Prism.Avalonia</a></li>
+              <li><a href="#">CodeWF.EventBus</a></li>
+            </ul>
+            <h2>Markdown</h2>
+            <ul>
+              <li><a href="#">CodeWF.Markdown</a></li>
+              <li><a href="#">Markdig</a></li>
+            </ul>
+            <h2>项目</h2>
+            <p>Vex 由沙漠尽头的狼发起并维护，CodeWF 提供项目支持。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /window-body -->
+</div><!-- /app-window -->
 
 <script>
-  document.querySelectorAll('.theme-chip').forEach(function (chip) {
-    chip.addEventListener('click', function () {
-      document.documentElement.setAttribute('data-theme', chip.getAttribute('data-key'));
-      try { localStorage.setItem('vex-design-theme', chip.getAttribute('data-key')); } catch (e) {}
+  /* ================= 主窗体交互（单页原型） ================= */
+
+  /* ---------- 浮层管理 ---------- */
+  var layers = document.querySelectorAll('.win-layer');
+  function openLayer(id) {
+    layers.forEach(function (l) { l.hidden = l.id !== 'layer-' + id; });
+  }
+  function closeLayers() {
+    layers.forEach(function (l) { l.hidden = true; });
+  }
+  layers.forEach(function (layer) {
+    layer.addEventListener('click', function (e) {
+      if (e.target === layer) closeLayers();
+    });
+    layer.querySelectorAll('[data-close]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        closeLayers();
+        var msg = btn.getAttribute('data-close');
+        if (msg) VexProto.toast(msg);
+      });
     });
   });
+
+  /* ---------- 菜单呼出动作（interact.js MENUS 的 act 分发） ---------- */
+  VexProto.handleAction = function (act, item) {
+    switch (act) {
+      case 'dlg-properties': openLayer('properties'); return true;
+      case 'dlg-delete': openLayer('delete'); return true;
+      case 'dlg-unsaved': openLayer('unsaved'); return true;
+      case 'dlg-error': openLayer('error'); return true;
+      case 'dlg-statistics': openLayer('statistics'); return true;
+      case 'dlg-about': openLayer('about'); return true;
+      case 'dlg-mcp': openLayer('mcp'); return true;
+      case 'dlg-doc':
+        openLayer('doc');
+        var isThanks = item && item.arg === '鸣谢';
+        document.getElementById('doc-tb-title').textContent = item.arg;
+        document.getElementById('doc-head-title').textContent = item.arg;
+        document.getElementById('doc-content-changelog').hidden = isThanks;
+        document.getElementById('doc-content-thanks').hidden = !isThanks;
+        return true;
+      case 'find': showFindbar(false); return true;
+      case 'replace': showFindbar(true); return true;
+      case 'pane-outline': switchSidebarTab('outline'); return true;
+      case 'pane-files': switchSidebarTab('files'); return true;
+      case 'toggle-sidebar': toggleSidebar(); return true;
+      case 'toggle-source': setSourceMode(!viewState.source); return true;
+      case 'toggle-preview': setPreviewMode(!viewState.preview); return true;
+    }
+    return false;
+  };
+
+  /* ---------- 标题菜单栏 ---------- */
+  VexProto.attachMenuBar(document.querySelector('.tb-menu'));
+
+  /* ---------- 标题栏窗口按钮 ---------- */
+  document.querySelectorAll('#caption-btns .caption-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var cap = btn.getAttribute('data-cap');
+      if (cap === 'min') VexProto.toast('已最小化（演示）');
+      else if (cap === 'max') VexProto.toast('已最大化 / 还原（演示）');
+      else if (cap === 'close') openLayer('unsaved');
+    });
+  });
+
+  /* ---------- 侧栏：页签 / 过滤 / 选中 ---------- */
+  function switchSidebarTab(pane) {
+    document.querySelectorAll('.side-tab').forEach(function (t) {
+      t.classList.toggle('on', t.getAttribute('data-pane') === pane);
+    });
+    document.querySelectorAll('[data-pane-body]').forEach(function (body) {
+      body.style.display = body.getAttribute('data-pane-body') === pane ? '' : 'none';
+    });
+  }
+  document.querySelectorAll('.side-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () { switchSidebarTab(tab.getAttribute('data-pane')); });
+  });
+  var fileRows = document.querySelectorAll('[data-pane-body="files"] .tree-file');
+  fileRows.forEach(function (row) {
+    row.addEventListener('click', function () {
+      fileRows.forEach(function (r) { r.classList.remove('selected'); });
+      row.classList.add('selected');
+      document.querySelector('.tb-doc').innerHTML = '<span class="tb-dot"></span>' + row.textContent.trim().replace(/(昨天|周一|[0-9:]{4,5}|[0-9]{2}-[0-9]{2})$/, '');
+    });
+  });
+  document.getElementById('file-filter').addEventListener('input', function () {
+    var kw = this.value.trim().toLowerCase();
+    var visible = 0;
+    fileRows.forEach(function (row) {
+      var hit = !kw || row.textContent.trim().toLowerCase().indexOf(kw) >= 0;
+      row.style.display = hit ? '' : 'none';
+      if (hit) visible++;
+    });
+    document.querySelectorAll('[data-pane-body="files"] .tree-folder').forEach(function (folder) {
+      folder.style.display = kw && visible === 0 ? 'none' : '';
+    });
+    if (kw && visible === 0) VexProto.toast('没有匹配「' + this.value.trim() + '」的文档');
+  });
+
+  /* ---------- 大纲：点击章节 + 阅读进度 ---------- */
+  var outlineRows = document.querySelectorAll('#outline-body .outline-row');
+  outlineRows.forEach(function (row, i) {
+    row.addEventListener('click', function () {
+      outlineRows.forEach(function (r) { r.classList.remove('on'); });
+      row.classList.add('on');
+      updateReading(i);
+    });
+  });
+  function updateReading(index) {
+    var pct = Math.round(((index + 1) / outlineRows.length) * 100);
+    var name = outlineRows[index].textContent.replace(/^H[1-6]/, '').trim();
+    document.getElementById('outline-meta').textContent = '当前章节：' + name + ' · ' + pct + '%';
+    document.getElementById('reading-progress').style.width = pct + '%';
+  }
+
+  /* ---------- 编辑器：点击行 = 当前行 ---------- */
+  document.querySelectorAll('#editor .ed-line').forEach(function (line) {
+    line.addEventListener('click', function () {
+      document.querySelectorAll('#editor .ed-line').forEach(function (l) { l.classList.remove('current'); });
+      line.classList.add('current');
+    });
+  });
+
+  /* ---------- 状态栏词数 → 字数统计 ---------- */
+  document.getElementById('sb-wordcount').addEventListener('click', function () {
+    openLayer('statistics');
+  });
+
+  /* ---------- 视图布局：侧栏 / 源代码模式 / 预览模式 ---------- */
+  var viewState = { sidebar: true, preview: true, source: false };
+  function applyLayout() {
+    var area = document.querySelector('.main-area');
+    var sidebar = document.querySelector('.sidebar');
+    var splitters = document.querySelectorAll('.main-area > .splitter-v');
+    var preview = document.querySelector('.preview-pane');
+    sidebar.style.display = viewState.sidebar ? '' : 'none';
+    if (splitters[0]) splitters[0].style.display = viewState.sidebar ? '' : 'none';
+    preview.style.display = viewState.preview ? '' : 'none';
+    if (splitters[1]) splitters[1].style.display = viewState.preview ? '' : 'none';
+    var cols = [];
+    if (viewState.sidebar) cols.push('252px', '5px');
+    cols.push('1fr');
+    if (viewState.preview && !viewState.source) cols.push('5px', '1.06fr');
+    area.style.gridTemplateColumns = cols.join(' ');
+  }
+  function toggleSidebar() {
+    viewState.sidebar = !viewState.sidebar;
+    applyLayout();
+    VexProto.toast(viewState.sidebar ? '侧边栏已显示' : '侧边栏已隐藏');
+  }
+  function setSourceMode(on) {
+    viewState.source = on;
+    if (on) viewState.preview = false; else viewState.preview = true;
+    applyLayout();
+    VexProto.toast(on ? '源代码模式：已隐藏预览' : '已退出源代码模式');
+  }
+  function setPreviewMode(on) {
+    viewState.preview = on;
+    if (on) viewState.source = false;
+    applyLayout();
+    VexProto.toast(on ? '预览已显示' : '预览已隐藏');
+  }
+
+  /* ---------- 查找替换栏 ---------- */
+  var hits = Array.prototype.slice.call(document.querySelectorAll('#editor .hl'));
+  var current = Math.max(0, hits.findIndex(function (h) { return h.classList.contains('active'); }));
+  var hitChip = document.getElementById('hit-chip');
+  var loopBadge = document.getElementById('loop-badge');
+  function refreshHits() {
+    if (hits.length === 0) {
+      hitChip.textContent = '0 / 0';
+      hitChip.style.background = 'var(--danger-soft)';
+      hitChip.style.color = 'var(--danger)';
+      loopBadge.textContent = '⚠ 0 结果';
+      loopBadge.classList.remove('accent');
+      loopBadge.classList.add('warn-chip');
+      return;
+    }
+    if (current >= hits.length) current = 0;
+    hits.forEach(function (h) { h.classList.remove('active'); });
+    hits[current].classList.add('active');
+    hitChip.textContent = (current + 1) + ' / ' + hits.length;
+  }
+  function moveHit(step) {
+    if (!hits.length) return;
+    var prev = current;
+    current = (current + step + hits.length) % hits.length;
+    refreshHits();
+    if (step > 0 && current < prev) VexProto.toast('已到达文档末尾，从开头继续循环查找');
+    if (step < 0 && current > prev) VexProto.toast('已到达文档开头，从末尾继续循环查找');
+  }
+  document.getElementById('btn-next').addEventListener('click', function () { moveHit(1); });
+  document.getElementById('btn-prev').addEventListener('click', function () { moveHit(-1); });
+  document.getElementById('find-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') moveHit(1); });
+  document.getElementById('btn-replace').addEventListener('click', function () {
+    if (!hits.length) { VexProto.toast('没有可替换的命中'); return; }
+    var hit = hits.splice(current, 1)[0];
+    hit.textContent = document.getElementById('replace-input').value || '配色';
+    hit.classList.remove('hl', 'active');
+    refreshHits();
+    VexProto.toast('已替换当前命中（' + hits.length + ' 处剩余）');
+  });
+  document.getElementById('btn-replace-all').addEventListener('click', function () {
+    if (!hits.length) { VexProto.toast('没有可替换的命中'); return; }
+    var n = hits.length;
+    hits.forEach(function (h) { h.textContent = document.getElementById('replace-input').value || '配色'; h.classList.remove('hl', 'active'); });
+    hits = [];
+    refreshHits();
+    VexProto.toast('已全部替换（共 ' + n + ' 处）');
+  });
+  document.querySelectorAll('.opt-toggle').forEach(function (t) {
+    t.addEventListener('click', function () {
+      t.classList.toggle('on');
+      VexProto.toast('「' + t.title + '」已' + (t.classList.contains('on') ? '开启' : '关闭'));
+    });
+  });
+
+  var findbar = document.getElementById('findbar');
+  function showFindbar(withReplace) {
+    findbar.hidden = false;
+    var rows = findbar.querySelectorAll('.fb-row');
+    rows[1].style.display = withReplace === false ? 'none' : '';
+    document.getElementById('find-input').focus();
+  }
+  document.getElementById('btn-close').addEventListener('click', function () { findbar.hidden = true; });
+
+  /* ---------- 重命名校验 ---------- */
+  var renameInput = document.getElementById('rename-input');
+  var renameError = document.getElementById('rename-error');
+  document.getElementById('rename-ok').addEventListener('click', function () {
+    var name = renameInput.value.trim();
+    if (!name) { renameError.textContent = '文件名不能为空'; renameError.style.display = ''; return; }
+    if (/[\\/:*?"<>|]/.test(name)) {
+      renameError.textContent = '文件名不能包含 \\ / : * ? " < > | 等字符';
+      renameError.style.display = '';
+      return;
+    }
+    renameError.style.display = 'none';
+    closeLayers();
+    VexProto.toast('已重命名为「' + name + '」（演示）');
+  });
+  renameInput.addEventListener('input', function () { renameError.style.display = 'none'; });
+
+  /* ---------- 错误详情 ---------- */
+  document.getElementById('err-toggle').addEventListener('click', function () {
+    var pre = document.getElementById('err-detail');
+    pre.style.display = pre.style.display === 'none' ? '' : 'none';
+  });
+  document.getElementById('err-copy').addEventListener('click', function () {
+    var text = document.getElementById('err-detail').textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText(text);
+    VexProto.toast('错误详情已复制，可粘贴到反馈中');
+  });
+
+  /* ---------- 属性窗口：路径复制 ---------- */
+  document.getElementById('prop-copy').addEventListener('click', function () {
+    if (navigator.clipboard) navigator.clipboard.writeText('D:\\Notes\\笔记\\主题设计笔记.md');
+    this.textContent = '已复制';
+    var btn = this;
+    setTimeout(function () { btn.textContent = '复制'; }, 1400);
+    VexProto.toast('完整路径已复制到剪贴板');
+  });
+
+  /* ---------- MCP 设置 ---------- */
+  var mcpSwitch = document.getElementById('mcp-switch');
+  var mcpForm = document.getElementById('mcp-form');
+  var mcpDot = document.getElementById('mcp-status-dot');
+  var mcpStatus = document.getElementById('mcp-status-text');
+  var mcpEnabled = true;
+  mcpSwitch.addEventListener('click', function () {
+    mcpEnabled = !mcpEnabled;
+    mcpSwitch.classList.toggle('on', mcpEnabled);
+    mcpForm.style.pointerEvents = mcpEnabled ? '' : 'none';
+    mcpForm.style.opacity = mcpEnabled ? '' : '0.45';
+    mcpDot.style.background = mcpEnabled ? 'var(--success)' : 'var(--fg-disabled)';
+    mcpStatus.textContent = mcpEnabled ? '服务运行中 · 最近调用 2 分钟前' : '服务已停止';
+    VexProto.toast(mcpEnabled ? 'MCP Server 已启用' : 'MCP Server 已停用');
+  });
+  document.getElementById('mcp-gen').addEventListener('click', function () {
+    var chars = 'abcdef0123456789';
+    var s = 'vx_';
+    for (var i = 0; i < 20; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    document.getElementById('mcp-token').value = s;
+    VexProto.toast('已重新生成 Token，保存前请同步更新 AI 客户端配置');
+  });
+  document.getElementById('mcp-copy-token').addEventListener('click', function () {
+    if (navigator.clipboard) navigator.clipboard.writeText(document.getElementById('mcp-token').value);
+    VexProto.toast('Token 已复制到剪贴板');
+  });
+  document.getElementById('mcp-copy-endpoint').addEventListener('click', function () {
+    if (navigator.clipboard) navigator.clipboard.writeText('http://127.0.0.1:17891/mcp/');
+    VexProto.toast('端点地址已复制到剪贴板');
+  });
+  document.getElementById('mcp-save').addEventListener('click', function () {
+    closeLayers();
+    VexProto.toast('MCP 设置已保存（演示）· 确认策略随设置重置');
+  });
+
+  /* ---------- 快捷键 ---------- */
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'h')) {
+      e.preventDefault();
+      showFindbar(e.key === 'h');
+    }
+    if (e.key === 'Escape') closeLayers();
+  });
+
+  refreshHits();
+  applyLayout();
 </script>
 
 </body>
