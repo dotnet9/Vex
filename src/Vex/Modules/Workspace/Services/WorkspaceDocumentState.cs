@@ -12,6 +12,9 @@ public sealed class WorkspaceDocumentState : IWorkspaceDocumentState
 
     public string? FilePath => _filePath;
 
+    /// <summary>文档载入/保存事件的本地订阅通道，避免依赖单例消息总线的订阅时序。</summary>
+    public event EventHandler<MarkdownDocumentChangedCommand>? DocumentChanged;
+
     public void UpdateDocument(string markdown, string? filePath)
     {
         var normalized = markdown ?? string.Empty;
@@ -23,7 +26,10 @@ public sealed class WorkspaceDocumentState : IWorkspaceDocumentState
 
         _markdown = normalized;
         _filePath = normalizedPath;
+
+        var command = new MarkdownDocumentChangedCommand(_markdown, _filePath);
         // 文档正文变化统一广播，预览、大纲和后续可视化编辑都可以复用这一条轻量状态通道。
-        CodeWF.EventBus.EventBus.Default.Publish(new MarkdownDocumentChangedCommand(_markdown, _filePath));
+        CodeWF.EventBus.EventBus.Default.Publish(command);
+        DocumentChanged?.Invoke(this, command);
     }
 }

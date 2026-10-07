@@ -10,9 +10,10 @@
         </StackPanel>
     </Design.PreviewWith>
 
+    <!-- 尺寸对齐 Vex 原型 .badge：字号 11.5、内边距 1 8、圆角 6 -->
     <ControlTheme x:Key="{x:Type vex:VexStatusBadge}" TargetType="vex:VexStatusBadge">
-        <Setter Property="MinHeight" Value="22" />
-        <Setter Property="Padding" Value="8 2" />
+        <Setter Property="MinHeight" Value="20" />
+        <Setter Property="Padding" Value="8 1" />
         <Setter Property="Background" Value="{DynamicResource VexStatusBadgeBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource VexStatusBadgeBorderBrush}" />
         <Setter Property="Template">
@@ -22,16 +23,16 @@
                     Background="{TemplateBinding Background}"
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="{DynamicResource VexStatusBadgeCornerRadius}"
+                    CornerRadius="6"
                     Padding="{TemplateBinding Padding}">
                     <StackPanel Orientation="Horizontal" Spacing="5">
                         <TextBlock
-                            FontSize="11"
+                            FontSize="11.5"
                             Foreground="{DynamicResource VexStatusBadgeLabelBrush}"
                             Text="{TemplateBinding Label}" />
                         <TextBlock
                             Name="ValueText"
-                            FontSize="11"
+                            FontSize="11.5"
                             FontWeight="SemiBold"
                             Foreground="{DynamicResource VexStatusBadgeValueBrush}"
                             MaxWidth="96"

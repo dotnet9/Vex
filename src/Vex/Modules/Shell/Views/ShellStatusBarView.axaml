@@ -16,13 +16,28 @@
         BorderThickness="0 1 0 0"
         Padding="12 4">
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" MinHeight="32">
-            <TextBlock
-                Classes="muted"
-                FontSize="12"
-                MinWidth="96"
-                Text="{Binding Status.StatusText}"
-                TextTrimming="CharacterEllipsis"
-                VerticalAlignment="Center" />
+            <!-- 状态文本带成功色对勾（对应原型 .sb-status + .sb-ico） -->
+            <StackPanel
+                Orientation="Horizontal"
+                Spacing="6"
+                VerticalAlignment="Center">
+                <Path
+                    Width="13"
+                    Height="13"
+                    Data="M20 6L9 17l-5-5"
+                    Stretch="Uniform"
+                    Stroke="{DynamicResource VexSuccessBrush}"
+                    StrokeJoin="Round"
+                    StrokeLineCap="Round"
+                    StrokeThickness="2" />
+                <TextBlock
+                    Classes="muted"
+                    FontSize="12"
+                    MinWidth="96"
+                    Text="{Binding Status.StatusText}"
+                    TextTrimming="CharacterEllipsis"
+                    VerticalAlignment="Center" />
+            </StackPanel>
             <StackPanel
                 Grid.Column="1"
                 Orientation="Horizontal"

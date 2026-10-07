@@ -30,11 +30,11 @@
             Orientation="Horizontal"
             Spacing="5"
             VerticalAlignment="Center">
-            <!-- 品牌 Logo：渐变圆角方块（对应原型 tb-logo 与 title-grad 令牌） -->
+            <!-- 品牌 Logo：渐变圆角方块（对应原型 .tb-logo：20×20、圆角 6、字号 11 粗体） -->
             <Border
-                Width="18"
-                Height="18"
-                CornerRadius="5"
+                Width="20"
+                Height="20"
+                CornerRadius="6"
                 Background="{DynamicResource VexTitleGradBrush}"
                 VerticalAlignment="Center">
                 <TextBlock

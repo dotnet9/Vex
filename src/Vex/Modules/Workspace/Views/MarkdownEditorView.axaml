@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:core="using:Vex.Core.Messaging"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:edit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+    xmlns:editor="using:CodeWF.Markdown.Editor.Controls"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -29,19 +29,11 @@
                 </Border>
             </Grid>
         </Border>
-        <Border Grid.Row="1" Padding="6 28 34 28" Background="{DynamicResource VexEditorBackgroundBrush}">        <edit:TextEditor
-            x:Name="MarkdownEditor"
-            Background="{DynamicResource VexEditorBackgroundBrush}"
-            FontFamily="Cascadia Mono, Consolas, Microsoft YaHei UI"
-            FontSize="{Binding EditorFontSize}"
-            Foreground="{DynamicResource VexEditorForegroundBrush}"
-            HorizontalScrollBarVisibility="Disabled"
-            ShowLineNumbers="{Binding ShowLineNumbers}"
-            VerticalScrollBarVisibility="Auto"
-            WordWrap="True">
-            <!-- 右键菜单只转发 Shell 编辑动作，实际文本变更仍由 Workspace 控制器通过 EventBus 执行。
-                 Avalonia 12.1 对带强类型参数的方法命令使用反射绑定，避免把 ViewModel 的枚举参数退化为 object。 -->
-            <edit:TextEditor.ContextMenu>
+
+        <!-- 编辑器控件来自 CodeWF.Markdown.Editor（库内维护），Vex 只负责右键菜单与消息桥接。
+             右键菜单转发 Shell 编辑动作，实际文本变更由库控件执行后经消息通道回抛。 -->
+        <editor:MarkdownEditorView x:Name="MarkdownEditor" Grid.Row="1">
+            <editor:MarkdownEditorView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.Undo}}" Command="{Binding Undo}" />
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.Redo}}" Command="{Binding Redo}" />
@@ -50,21 +42,21 @@
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.Copy}}" Command="{Binding Copy}" />
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.Paste}}" Command="{Binding Paste}" />
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.SelectAll}}" Command="{Binding SelectAll}" />
+                    <MenuItem Click="OnCopyPlainTextClick" Header="{i18n:I18n {x:Static l:VexL.CopyPlainText}}" />
                     <Separator />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Bold}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Italic}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.InlineCode}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Link}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Link}" />
+                    <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" Header="{i18n:I18n {x:Static l:VexL.Bold}}" />
+                    <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" Header="{i18n:I18n {x:Static l:VexL.Italic}}" />
+                    <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" Header="{i18n:I18n {x:Static l:VexL.InlineCode}}" />
+                    <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Link}" Header="{i18n:I18n {x:Static l:VexL.Link}}" />
                     <Separator />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading1}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading1}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Quote}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Quote}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.UnorderedList}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.UnorderedList}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.TaskList}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.TaskList}" />
+                    <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading1}" Header="{i18n:I18n {x:Static l:VexL.Heading1}}" />
+                    <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Quote}" Header="{i18n:I18n {x:Static l:VexL.Quote}}" />
+                    <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.UnorderedList}" Header="{i18n:I18n {x:Static l:VexL.UnorderedList}}" />
+                    <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.TaskList}" Header="{i18n:I18n {x:Static l:VexL.TaskList}}" />
                     <Separator />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}" />
+                    <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}" Header="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" />
                 </ContextMenu>
-            </edit:TextEditor.ContextMenu>
-        </edit:TextEditor>
-        </Border>
+            </editor:MarkdownEditorView.ContextMenu>
+        </editor:MarkdownEditorView>
     </Grid>
 </UserControl>

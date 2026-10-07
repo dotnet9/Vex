@@ -92,11 +92,9 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<IEditorAppearanceState, EditorAppearanceState>();
         containerRegistry.RegisterSingleton<IWorkspaceDocumentState, WorkspaceDocumentState>();
         containerRegistry.RegisterSingleton<IMarkdownExportService, MarkdownExportService>();
-        containerRegistry.RegisterSingleton<IMarkdownEditorTemplateService, MarkdownEditorTemplateService>();
-        containerRegistry.RegisterSingleton<IMarkdownEditorMutationService, MarkdownEditorMutationService>();
-        containerRegistry.RegisterSingleton<IMarkdownEditorActionService, MarkdownEditorActionService>();
-        containerRegistry.RegisterSingleton<IMarkdownEditorSearchService, MarkdownEditorSearchService>();
-        containerRegistry.RegisterSingleton<IMarkdownEditorController, MarkdownEditorController>();
+        // 编辑能力来自 CodeWF.Markdown.Editor，Vex 只提供 i18n 与 HTML 粘贴转换两个适配实现。
+        containerRegistry.RegisterSingleton<CodeWF.Markdown.Editor.Services.IMarkdownEditorLocalizer, VexMarkdownEditorLocalizer>();
+        containerRegistry.RegisterSingleton<CodeWF.Markdown.Editor.Services.IMarkdownHtmlPasteConverter, VexMarkdownHtmlPasteConverter>();
         containerRegistry.RegisterSingleton<IMarkdownOutlineService, MarkdownOutlineService>();
         containerRegistry.RegisterSingleton<IMarkdownStatisticsService, MarkdownStatisticsService>();
         containerRegistry.RegisterSingleton<IThemeService, ThemeService>();
