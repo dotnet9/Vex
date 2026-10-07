@@ -21,6 +21,7 @@ public partial class MainWindow : UrsaWindow
     private IMcpServerHost? _mcpServerHost;
     private IShellToastPublisher? _toastPublisher;
     private bool _isCloseConfirmed;
+    private double _sidebarWidthBeforeDrag;
 
     public MainWindow()
     {
@@ -28,6 +29,8 @@ public partial class MainWindow : UrsaWindow
         ConfigureOnboardingGuideTargets();
         TitleMenuView.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
         AddHandler(KeyDownEvent, WindowKeyDown, RoutingStrategies.Tunnel);
+        SidebarSplitter.DragStarted += SidebarSplitter_OnDragStarted;
+        SidebarSplitter.DragCompleted += SidebarSplitter_OnDragCompleted;
         DragDrop.SetAllowDrop(this, true);
         AddHandler(DragDrop.DragOverEvent, WindowDragOver);
         AddHandler(DragDrop.DropEvent, WindowDrop);
@@ -63,6 +66,24 @@ public partial class MainWindow : UrsaWindow
     {
         base.OnApplyTemplate(e);
         _toastPublisher?.Install(e.NameScope.Find<VisualLayerManager>("PART_VisualLayerManager"));
+    }
+
+    // 侧栏宽度拖动：UrsaWindow 的对话框宿主遮住 OverlayLayer，自定义调整手柄改为
+    // 「拖动前记录宽度 → 拖动结束按列宽变化写回 VM」，宽度因此可持久化。
+    private void SidebarSplitter_OnDragStarted(object? sender, VectorEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            _sidebarWidthBeforeDrag = viewModel.Layout.SidebarWidth;
+        }
+    }
+
+    private void SidebarSplitter_OnDragCompleted(object? sender, VectorEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel && e.Vector.X != 0)
+        {
+            viewModel.Layout.SidebarWidth = _sidebarWidthBeforeDrag + e.Vector.X;
+        }
     }
 
     private void WindowKeyDown(object? sender, KeyEventArgs e)

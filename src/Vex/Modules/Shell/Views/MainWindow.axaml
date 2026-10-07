@@ -81,6 +81,7 @@
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
+                <!-- 侧栏宽度由内层动画容器的 ExpandedSize 与分隔条拖动共同决定 -->
                 <ColumnDefinition Width="Auto" MinWidth="0" />
                 <ColumnDefinition Width="{Binding Layout.SidebarSplitterWidth}" />
                 <ColumnDefinition Width="{Binding Layout.SourceColumnWidth}" MinWidth="0" />
@@ -93,7 +94,7 @@
                 Grid.Column="0"
                 CollapsedSize="0"
                 Duration="{DynamicResource MotionDurationMid}"
-                ExpandedSize="320"
+                ExpandedSize="{Binding Layout.SidebarWidth}"
                 IsExpanded="{Binding Layout.IsSidebarVisible}"
                 Orientation="Horizontal">
                 <Border Classes="panel">
@@ -110,7 +111,9 @@
                 </Border>
             </codewf:ContentExpansionAnimator>
 
+            <!-- 拖动侧栏分隔条即写回宽度（记住到设置）；列宽为 Auto，由动画容器决定 -->
             <GridSplitter
+                x:Name="SidebarSplitter"
                 Grid.Column="1"
                 HorizontalAlignment="Stretch"
                 IsVisible="{Binding Layout.IsSidebarVisible}"

@@ -10,6 +10,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string IsCompactLayout = nameof(AppSettings.IsCompactLayout);
     private const string CultureName = nameof(AppSettings.CultureName);
     private const string IsSidebarVisible = nameof(AppSettings.IsSidebarVisible);
+    private const string SidebarWidth = nameof(AppSettings.SidebarWidth);
     private const string IsStatusBarVisible = nameof(AppSettings.IsStatusBarVisible);
     private const string IsPreviewVisible = nameof(AppSettings.IsPreviewVisible);
     private const string IsSourceMode = nameof(AppSettings.IsSourceMode);
@@ -68,6 +69,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             IsCompactLayout = Get<bool?>(configPath, IsCompactLayout),
             CultureName = Get<string>(configPath, CultureName),
             IsSidebarVisible = Get<bool?>(configPath, IsSidebarVisible),
+            SidebarWidth = Get<double?>(configPath, SidebarWidth),
             IsStatusBarVisible = Get<bool?>(configPath, IsStatusBarVisible),
             IsPreviewVisible = Get<bool?>(configPath, IsPreviewVisible),
             IsSourceMode = Get<bool?>(configPath, IsSourceMode),
@@ -99,6 +101,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             AppConfigHelper.Set(configPath, IsCompactLayout, settings.IsCompactLayout);
             AppConfigHelper.Set(configPath, CultureName, settings.CultureName);
             AppConfigHelper.Set(configPath, IsSidebarVisible, settings.IsSidebarVisible);
+            AppConfigHelper.Set(configPath, SidebarWidth, settings.SidebarWidth);
             AppConfigHelper.Set(configPath, IsStatusBarVisible, settings.IsStatusBarVisible);
             AppConfigHelper.Set(configPath, IsPreviewVisible, settings.IsPreviewVisible);
             AppConfigHelper.Set(configPath, IsSourceMode, settings.IsSourceMode);

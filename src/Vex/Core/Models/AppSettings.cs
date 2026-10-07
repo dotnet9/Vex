@@ -12,6 +12,9 @@ public sealed record AppSettings
 
     public bool? IsSidebarVisible { get; init; }
 
+    /// <summary>侧栏宽度（可拖分隔条调整并记忆）。</summary>
+    public double? SidebarWidth { get; init; }
+
     public bool? IsStatusBarVisible { get; init; }
 
     public bool? IsPreviewVisible { get; init; }

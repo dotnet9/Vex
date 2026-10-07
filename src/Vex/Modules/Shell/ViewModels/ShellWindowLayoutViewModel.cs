@@ -24,6 +24,14 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _isTypewriterMode;
     private bool? _sidebarVisibleBeforeFocus;
     private bool? _statusBarVisibleBeforeFocus;
+    private double _sidebarWidth = DefaultSidebarWidth;
+
+    /// <summary>侧栏默认宽度（原型为柔性宽度，这里取固定基准值）。</summary>
+    public const double DefaultSidebarWidth = 320d;
+
+    private const double MinSidebarWidth = 200d;
+
+    private const double MaxSidebarWidth = 560d;
 
     public ShellWindowLayoutViewModel(
         IAppSettingsStore settingsStore,
@@ -40,6 +48,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _enableMotion = settings.EnableMotion ?? true;
         _isTypewriterMode = settings.IsTypewriterMode ?? false;
         _isFocusMode = settings.IsFocusMode ?? false;
+        _sidebarWidth = Math.Clamp(settings.SidebarWidth ?? DefaultSidebarWidth, MinSidebarWidth, MaxSidebarWidth);
         MotionResources.Apply(_enableMotion);
         if (_isFocusMode)
         {
@@ -90,7 +99,24 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         }
     }
 
-    public GridLength SidebarColumnWidth => IsSidebarVisible ? new GridLength(320) : new GridLength(0);
+    /// <summary>侧栏当前宽度（px）：可拖分隔条调整并记忆。</summary>
+    public double SidebarWidth
+    {
+        get => _sidebarWidth;
+        set
+        {
+            var clamped = Math.Clamp(value, MinSidebarWidth, MaxSidebarWidth);
+            if (!SetProperty(ref _sidebarWidth, clamped))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(SidebarColumnWidth));
+            PersistLayoutSettings();
+        }
+    }
+
+    public GridLength SidebarColumnWidth => IsSidebarVisible ? new GridLength(SidebarWidth) : new GridLength(0);
 
     public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(6) : new GridLength(0);
 
@@ -298,6 +324,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             IsPreviewVisible = IsPreviewVisible,
             IsSourceMode = IsSourceMode,
             IsAlwaysOnTop = IsAlwaysOnTop,
+            SidebarWidth = SidebarWidth,
             EnableMotion = EnableMotion,
             IsFocusMode = IsFocusMode,
             IsTypewriterMode = IsTypewriterMode

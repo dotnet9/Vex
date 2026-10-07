@@ -473,6 +473,9 @@
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
+    <!-- 标题条高度：按 design/assets/theme.css 的 .titlebar height:40px 覆盖 Ursa 默认值 -->
+    <x:Double x:Key="TitleBarMinHeight">40</x:Double>
+
     <Thickness x:Key="TopLevelMenuItemPadding">16 0</Thickness>
     <x:Double x:Key="MenuFlyoutMaxHeight">Infinity</x:Double>
     <Thickness x:Key="ToolTipBorderThickness">1</Thickness>
