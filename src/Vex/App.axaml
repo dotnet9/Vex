@@ -1,4 +1,4 @@
-<prism:PrismApplication
+﻿<prism:PrismApplication
     x:Class="Vex.App"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -22,7 +22,9 @@
         <semi:SemiPopupAnimations />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <codewf:ACSemiTheme />
-        <markdownThemes:MarkdownThemes TypographyTheme="Simple" />
+        <!-- 完整包样式入口（CodeWF.Markdown.Themes）：在 Lite.Themes 的控件模板与 18 套排版主题之上
+             叠加图片能力控件与编辑器控件外观。 -->
+        <markdownThemes:MarkdownFullThemes TypographyTheme="Simple" />
         <vexThemes:VexControlsTheme />
     </prism:PrismApplication.Styles>
 </prism:PrismApplication>

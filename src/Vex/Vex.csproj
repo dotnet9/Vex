@@ -50,13 +50,9 @@
     <PackageReference Include="CodeWF.AvaloniaControls" />
     <PackageReference Include="CodeWF.AvaloniaControls.Themes" />
     <PackageReference Include="CodeWF.EventBus" />
+    <PackageReference Include="CodeWF.Markdown.Lite" />
     <PackageReference Include="CodeWF.Markdown" />
-    <PackageReference Include="CodeWF.Markdown.Editor" />
-    <PackageReference Include="CodeWF.Markdown.Export" />
-    <PackageReference Include="CodeWF.Markdown.Highlighting" />
-    <PackageReference Include="CodeWF.Markdown.Images" />
-    <PackageReference Include="CodeWF.Markdown.Math" />
-    <PackageReference Include="CodeWF.Markdown.Mermaid" />
+    <PackageReference Include="CodeWF.Markdown.Lite.Themes" />
     <PackageReference Include="CodeWF.Markdown.Themes" />
     <PackageReference Include="CodeWF.Tools.Core" />
     <PackageReference Include="CodeWF.Tools.Files" />
