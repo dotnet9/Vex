@@ -31,7 +31,11 @@
 
     <Grid RowDefinitions="Auto,*,Auto">
         <!-- 当前章节指示（对应原型 outline-meta） -->
-        <Border Padding="12 8 12 4" IsVisible="{Binding HasOutlineItems}">
+        <Border
+            Padding="12 8 12 4"
+            Classes="outline-fade"
+            Classes.shown="{Binding HasOutlineItems}"
+            IsVisible="{Binding HasOutlineItems}">
             <TextBlock
                 Classes="muted"
                 FontSize="11.5"
@@ -45,7 +49,12 @@
             ItemsSource="{Binding OutlineItems}"
             SelectedItem="{Binding SelectedOutlineItem, Mode=TwoWay}" />
         <!-- 阅读进度条（新增能力，随光标更新） -->
-        <Border Grid.Row="2" Padding="12 2 12 10" IsVisible="{Binding HasOutlineItems}">
+        <Border
+            Grid.Row="2"
+            Padding="12 2 12 10"
+            Classes="outline-fade"
+            Classes.shown="{Binding HasOutlineItems}"
+            IsVisible="{Binding HasOutlineItems}">
             <ProgressBar
                 Height="4"
                 Background="{DynamicResource VexSplitterBrush}"
