@@ -15,54 +15,28 @@
 
     <UserControl.DataTemplates>
         <TreeDataTemplate DataType="models:DocumentFileNode" ItemsSource="{Binding Children}">
-            <!-- 卡片行：左侧主题色竖条仅在选中时显示（对应原型 .tree-row.selected） -->
-            <Border Classes="file-card" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}">
+            <!-- 文件树使用原型的单行布局，摘要放入提示，避免文件夹空摘要撑高行。 -->
+            <Border Classes="file-card" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"
+                    ToolTip.Tip="{Binding Preview}" ToolTip.IsEnabled="{Binding IsDocument}">
                 <Grid>
                     <Border Classes="file-bar" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}" HorizontalAlignment="Left" />
-                    <StackPanel Margin="10 6" Spacing="2">
-                        <Grid
-                            MinHeight="24"
-                            ColumnDefinitions="Auto,*,Auto"
-                            IsVisible="{Binding IsFolder}">
-                            <Path Classes="stroke-ico tree-ico" Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                            <TextBlock
-                                Grid.Column="1"
-                                Margin="7 0 0 0"
-                                Classes="file-heading"
-                                FontWeight="SemiBold"
-                                Text="{Binding Name}"
-                                TextTrimming="CharacterEllipsis" />
-                        </Grid>
-                        <Grid
-                            RowDefinitions="Auto,Auto"
-                            RowSpacing="2"
-                            ColumnDefinitions="Auto,*,Auto"
-                            IsVisible="{Binding IsDocument}">
-                            <Path Classes="stroke-ico tree-ico" Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8" />
-                            <TextBlock
-                                Grid.Column="1"
-                                Margin="7 0 0 0"
-                                Classes="file-title"
-                                FontWeight="SemiBold"
-                                Text="{Binding Name}"
-                                TextTrimming="CharacterEllipsis" />
-                            <TextBlock
-                                Grid.Column="2"
-                                Classes="file-muted"
-                                FontSize="11"
-                                Margin="8 0 0 0"
-                                Text="{Binding ModifiedText}" />
-                        </Grid>
+                    <Grid Margin="10 5" ColumnDefinitions="15,*,Auto" ColumnSpacing="7">
+                        <Path Classes="stroke-ico tree-ico" IsVisible="{Binding IsFolder}"
+                              Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                        <Path Classes="stroke-ico tree-ico" IsVisible="{Binding IsDocument}"
+                              Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8" />
+                        <TextBlock Grid.Column="1" Classes="file-heading" IsVisible="{Binding IsFolder}"
+                                   VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="1" Classes="file-title" IsVisible="{Binding IsDocument}"
+                                   VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                         <TextBlock
-                            Grid.Row="1"
                             Grid.Column="2"
                             Classes="file-muted"
-                            MaxHeight="34"
-                            Margin="0"
-                            Text="{Binding Preview}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="Wrap" />
-                    </StackPanel>
+                            FontSize="11"
+                            VerticalAlignment="Center"
+                            IsVisible="{Binding IsDocument}"
+                            Text="{Binding ModifiedText}" />
+                    </Grid>
                 </Grid>
             </Border>
         </TreeDataTemplate>

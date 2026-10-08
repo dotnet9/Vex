@@ -22,9 +22,10 @@ using Vex.Core.Messaging;
 using SampleVm = CodeWF.Markdown.Sample.ViewModels.MainWindowViewModel;
 
 var mode = args.FirstOrDefault() ?? "sample";
+Console.WriteLine("Markdown library " + typeof(CodeWF.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
-if (mode == "sample")
+if (mode is "sample" or "sample-switch")
 {
     AppBuilder.Configure<CodeWF.Markdown.Sample.App>().UseSkia().WithInterFont()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -36,6 +37,12 @@ if (mode == "sample")
     VerifySourceLineHeight(window, sourceView, 22.1, "Demo");
     Check(vm.Markdown.StartsWith("# 基础元素"), "Demo default document matches prototype");
     var original = vm.Markdown;
+    VerifyDemoDocumentSwitches(window, vm);
+    if (mode == "sample-switch")
+    {
+        window.Close();
+        return;
+    }
     foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "MarkdownSamples"), "*.md", SearchOption.AllDirectories))
     {
         var source = File.ReadAllText(file);
@@ -192,6 +199,7 @@ else if (mode == "vex")
     Check(vm.DocumentInfo.IsModified, "A recovered draft different from disk remains unsaved");
     drafts.RestoredMarkdown = null;
     Pump(vm.OpenPathAsync(files[0]));
+    VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
     foreach (var theme in new[] { ThemeVariant.Light, ThemeVariant.Dark, SemiTheme.Aquatic, SemiTheme.Desert, SemiTheme.Dusk, SemiTheme.NightSky })
     {
         Application.Current!.RequestedThemeVariant = theme;
@@ -277,6 +285,45 @@ void SettleRendering()
     }
 }
 
+void VerifyDemoDocumentSwitches(Window window, SampleVm vm)
+{
+    var originalFile = vm.SelectedFile;
+    var originalMode = vm.ViewMode;
+    var files = vm.MarkdownFiles.ToArray();
+    foreach (var viewMode in new[] { "split", "preview", "pair", "live" })
+    {
+        vm.ViewMode = viewMode;
+        foreach (var file in files.Concat(files.Reverse()))
+        {
+            vm.SelectedFile = file;
+            Pump();
+            SettleRendering();
+            foreach (var viewer in window.GetVisualDescendants().OfType<CodeWF.Markdown.Controls.MarkdownViewer>()
+                         .Where(v => v.IsEffectivelyVisible))
+            {
+                Check(viewer.CurrentModel.Source == viewer.Markdown,
+                    $"Demo {viewMode} preview finishes rendering {file.Name}");
+                if (!viewer.EnableVirtualization || viewer.CurrentModel.Blocks.Count < viewer.VirtualizationThreshold)
+                    Check(viewer.RealizedBlockCount == viewer.CurrentModel.Blocks.Count,
+                        $"Demo {viewMode} rendered indices match the model: {file.Name}");
+            }
+            Check(vm.Markdown == File.ReadAllText(file.Path), $"Demo {viewMode} document switch preserves source: {file.Name}");
+        }
+    }
+    vm.ViewMode = "split";
+    for (var round = 0; round < 3; round++)
+        foreach (var file in files) vm.SelectedFile = file;
+    Pump();
+    SettleRendering();
+    Check(window.GetVisualDescendants().OfType<CodeWF.Markdown.Controls.MarkdownViewer>()
+        .Where(v => v.IsEffectivelyVisible).All(v => v.CurrentModel.Source == vm.Markdown),
+        "Demo rapid switches display only the final document");
+    vm.SelectedFile = originalFile;
+    vm.ViewMode = originalMode;
+    Pump();
+    SettleRendering();
+}
+
 void PumpUntil(Func<bool> completed)
 {
     var deadline = DateTime.UtcNow.AddSeconds(15);
@@ -313,6 +360,69 @@ void VerifyFileColors(Window window, ThemeVariant theme)
         return t.Foreground is ISolidColorBrush foreground && Contrast(foreground.Color, background) >= 4.5;
     }), "Vex ordinary file-title contrast >= 4.5; selected card follows prototype accent colors under " + theme);
     foreach (var title in titles.Take(2)) Console.WriteLine($"COLOR {theme} {title.Foreground}");
+}
+
+void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFolder)
+{
+    // 仅构造文件列表快照，不创建或打开这些布局验证路径。
+    var documents = new[]
+    {
+        new DocumentFile(Path.Combine(sampleFolder, "Regression", "01-基础元素.md"), "01-基础元素.md", "Regression", "16:02", "摘要保留在提示中"),
+        new DocumentFile(Path.Combine(sampleFolder, "Regression", "02-非常长的文件名称用于验证省略而不是挤出文件树.md"), "02-非常长的文件名称用于验证省略而不是挤出文件树.md", "Regression", "昨天", "长摘要不撑高节点"),
+        new DocumentFile(Path.Combine(sampleFolder, "Regression", "Nested", "deep.md"), "deep.md", "Nested", "周一", "第三层文档"),
+        new DocumentFile(Path.Combine(sampleFolder, "root.md"), "root.md", "MarkdownSamples", "09-28", "根层文档")
+    };
+    vm.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(documents, documents[0], sampleFolder));
+    Pump();
+    var tree = window.GetVisualDescendants().OfType<TreeView>().Single(t => t.Classes.Contains("side-tree"));
+    var items = tree.GetVisualDescendants().OfType<TreeViewItem>().Where(i => i.IsEffectivelyVisible).ToArray();
+    Check(items.Length == 6, "Vex tree renders root, sibling and nested documents");
+    foreach (var item in items)
+    {
+        var card = item.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("file-card"));
+        var chevron = item.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
+            .First(b => b.Name == "PART_ExpandCollapseChevron");
+        var point = card.TranslatePoint(default, tree)!.Value;
+        Check(card.Bounds.Height is >= 25 and <= 30 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
+            "Vex tree has compact rows within sidebar bounds: " + ((DocumentFileNode)item.DataContext!).Name);
+        Check(Math.Abs(chevron.TranslatePoint(default, tree)!.Value.Y + chevron.Bounds.Height / 2
+            - point.Y - card.Bounds.Height / 2) < 1,
+            "Vex tree chevron aligns with its own row");
+        var icon = card.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().First(p => p.IsEffectivelyVisible);
+        var label = card.GetVisualDescendants().OfType<TextBlock>().First(t => t.IsEffectivelyVisible &&
+            (t.Classes.Contains("file-title") || t.Classes.Contains("file-heading")));
+        Check(Math.Abs(icon.TranslatePoint(default, card)!.Value.Y + icon.Bounds.Height / 2
+            - label.TranslatePoint(default, card)!.Value.Y - label.Bounds.Height / 2) < 1,
+            "Vex tree icon and title align vertically");
+    }
+    var cardPositions = items.Select(item => new
+    {
+        item.Level,
+        X = item.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("file-card"))
+            .TranslatePoint(default, tree)!.Value.X
+    }).ToArray();
+    Check(cardPositions.GroupBy(p => p.Level).All(g => g.Max(p => p.X) - g.Min(p => p.X) < 1)
+        && cardPositions.All(p => Math.Abs(p.X - cardPositions.Min(x => x.X) - p.Level * 16) < 1),
+        "Vex tree siblings align and each level indents by 16 px");
+    Capture(window, "vex-file-tree");
+    var folder = items.First(i => i.Level == 0 && ((DocumentFileNode)i.DataContext!).IsFolder);
+    var toggle = folder.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
+        .First(b => b.Name == "PART_ExpandCollapseChevron");
+    var click = toggle.TranslatePoint(new Point(8, 12), window)!.Value;
+    window.MouseDown(click, MouseButton.Left);
+    window.MouseUp(click, MouseButton.Left);
+    Pump();
+    Check(!folder.IsExpanded, "Vex folder chevron collapses its subtree");
+    window.MouseDown(click, MouseButton.Left);
+    window.MouseUp(click, MouseButton.Left);
+    Pump();
+    Check(folder.IsExpanded, "Vex folder chevron expands its subtree");
+    vm.FilterText = "deep";
+    Pump();
+    Check(tree.GetVisualDescendants().OfType<TextBlock>().Count(t => t.IsEffectivelyVisible && t.Classes.Contains("file-title")) == 1,
+        "Vex file filter retains the matching document and its ancestors");
+    vm.FilterText = string.Empty;
+    Pump();
 }
 
 void VerifyVexDetails(Window window, ThemeVariant theme)
