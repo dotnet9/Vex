@@ -4,7 +4,9 @@
 
 需要 .NET 10 SDK。默认布局是 E:/github/Apps/Vex 和 E:/github/Libs/CodeWF.Markdown；其他布局通过 `-p:MarkdownRepoRoot=...` 指定库路径。
 
-## 打包依赖
+## 依赖来源
+
+Vex 默认从 nuget.org 恢复 Directory.Packages.props 中指定的正式版四包，无需本地打包。下面的打包步骤仅用于修改库代码后、正式发布前的开发联调。
 
 在库仓库执行。改产品代码后先递增 Directory.Build.props 的 Version，再同步 Vex 四包版本。覆盖同版本 nupkg 不会刷新 NuGet 缓存。
 
@@ -15,7 +17,7 @@ foreach ($projectName in @('CodeWF.Markdown.Lite','CodeWF.Markdown','CodeWF.Mark
 }
 ```
 
-开发包未发布，首次运行需要上述四包；其他依赖需已恢复到 NuGet 缓存，全新机器可在 RestoreSources 加入 nuget.org。
+使用开发版本时，恢复源需要同时包含本地源和 nuget.org。正式版验证直接使用下面的命令。
 
 ## 构建和运行
 
@@ -23,8 +25,7 @@ foreach ($projectName in @('CodeWF.Markdown.Lite','CodeWF.Markdown','CodeWF.Mark
 
 ```powershell
 dotnet build scripts/ui-verification/UiVerification.csproj -c Debug `
-    --artifacts-path E:/github/Apps/Vex/artifacts/verification `
-    -p:RestoreSources=E:/github/Libs/nuget-local
+    --artifacts-path E:/github/Apps/Vex/artifacts/verification
 
 New-Item -ItemType Directory -Force E:/github/Libs/CodeWF.Markdown/artifacts/ui-verification | Out-Null
 New-Item -ItemType Directory -Force E:/github/Apps/Vex/artifacts/ui-verification | Out-Null
@@ -50,7 +51,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Vex verification failed' }
 
 不渲染浏览器原型，也不模拟 Windows 标题按钮、DPI、IME。CSS 数值、截图视觉检查和 UI 断言共同构成证据，程序通过不等于全页逐像素一致。
 
-原型维护规格见本仓库 `design/README.md` 和 CodeWF.Markdown 的 `design/README.md`。`artifacts/verification`、两个仓库的 `artifacts/ui-verification` 都是可重建输出；验证完成后可删除。`nuget-local` 中 Vex 当前引用版本的四包用于本地恢复，保留当前版本或按上面的命令重新打包。
+原型维护规格见本仓库 `design/README.md` 和 CodeWF.Markdown 的 `design/README.md`。`artifacts/verification`、两个仓库的 `artifacts/ui-verification` 都是可重建输出；验证完成后可删除。正式版从 nuget.org 恢复后，本地联调包也可清理。
 
 ## 清理输出
 
@@ -61,4 +62,6 @@ pwsh -NoProfile -File scripts/clean-development-artifacts.ps1 -WhatIf
 pwsh -NoProfile -File scripts/clean-development-artifacts.ps1
 ```
 
-脚本清理两个仓库的 `artifacts`、测试结果和空 `.plan`，并只删除 Vex 当前四包同开发日期下更早的迭代包。非空计划目录会停止清理，便于先核对其中内容。支持 `-MarkdownRepoRoot` 和 `-LocalPackageSource` 指定其他布局；不关闭运行中的应用，应用占用输出时应先自行关闭。
+脚本清理两个仓库的 `artifacts`、测试结果和空 `.plan`。开发版只删除同开发日期下更早的迭代包；正式版确认可在 nuget.org 恢复后，删除相同正式版本对应的本地开发包。非空计划目录会停止清理，便于先核对其中内容。支持 `-MarkdownRepoRoot` 和 `-LocalPackageSource` 指定其他布局；不关闭运行中的应用，应用占用输出时应先自行关闭。
+
+正式版号因发布修复递增时，可用 `-SupersededDevelopmentVersions 14.0.1` 明确清理之前用于联调的开发版本；脚本拒绝删除比当前正式依赖更新的版本。
