@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Http;
 using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -13,7 +14,9 @@ namespace Vex.Modules.Shell.Views;
 public partial class ShellAboutOverlayView : UserControl
 {
     private const string WebsiteUrl = "https://codewf.com";
-    private static readonly UpdateChecker UpdateChecker = new("dotnet9", "Vex");
+    private static readonly IUpdateChecker UpdateChecker = new ShellUpdateChecker(
+        new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(12) },
+        "dotnet9", "Vex");
     private bool _checkingUpdate;
 
     public ShellAboutOverlayView()

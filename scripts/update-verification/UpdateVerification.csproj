@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CodeWF.Tools.UpdateChecking" />
+    <Compile Include="../../src/Vex/Modules/Shell/Services/ShellUpdateChecker.cs" Link="ShellUpdateChecker.cs" />
+  </ItemGroup>
+</Project>
