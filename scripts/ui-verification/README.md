@@ -44,8 +44,21 @@ if ($LASTEXITCODE -ne 0) { throw 'Vex verification failed' }
 
 ## 覆盖与边界
 
-- Demo：明/暗 × 1400/980 × 四模式；源码往返、选中图标/竖条、活动按钮、标题高度；实际点击/输入/Esc、共享引用编辑、源码同步、性能插入/停止、双预览。
-- Vex：六主题/980px；标题线实际像素、紧凑带图标页签、正文边框、文件卡画刷和普通标题对比度；五文件切换、未保存浮层、草稿基线、侧栏勾选/宽度/持久化字段。
+- Demo：明/暗 × 1400/980 × 四模式；源码往返、22.1px 行高及点击/键盘光标定位、选中图标/竖条、活动按钮、标题高度；实际点击/输入/Esc、共享引用编辑、源码同步、性能插入/停止、双预览。
+- Vex：六主题/980px；21.875px 源码行高及换行后键盘移动、标题线实际像素、紧凑带图标页签、正文边框、文件卡画刷和普通标题对比度；五文件切换、未保存浮层、草稿基线、侧栏勾选/宽度/持久化字段。
 - PNG/日志保存在参数指定目录，覆盖首屏、中部/底部和标题局部；断言失败返回非零。
 
 不渲染浏览器原型，也不模拟 Windows 标题按钮、DPI、IME。CSS 数值、截图视觉检查和 UI 断言共同构成证据，程序通过不等于全页逐像素一致。
+
+原型维护规格见本仓库 `design/README.md` 和 CodeWF.Markdown 的 `design/README.md`。`artifacts/verification`、两个仓库的 `artifacts/ui-verification` 都是可重建输出；验证完成后可删除。`nuget-local` 中 Vex 当前引用版本的四包用于本地恢复，保留当前版本或按上面的命令重新打包。
+
+## 清理输出
+
+关闭本轮验证进程后，在 Vex 仓库运行：
+
+```powershell
+pwsh -NoProfile -File scripts/clean-development-artifacts.ps1 -WhatIf
+pwsh -NoProfile -File scripts/clean-development-artifacts.ps1
+```
+
+脚本清理两个仓库的 `artifacts`、测试结果和空 `.plan`，并只删除 Vex 当前四包同开发日期下更早的迭代包。非空计划目录会停止清理，便于先核对其中内容。支持 `-MarkdownRepoRoot` 和 `-LocalPackageSource` 指定其他布局；不关闭运行中的应用，应用占用输出时应先自行关闭。

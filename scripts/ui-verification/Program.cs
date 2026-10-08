@@ -32,9 +32,8 @@ if (mode == "sample")
     var vm = (SampleVm)window.DataContext!;
     window.Show();
     var sourceView = window.GetVisualDescendants().OfType<MarkdownEditorView>().Single();
-    Console.WriteLine("METRIC source TextView line properties: " + string.Join(", ",
-        sourceView.Editor.TextArea.TextView.GetType().GetProperties().Where(p => p.Name.Contains("LineHeight"))
-            .Select(p => p.Name + "=" + p.GetValue(sourceView.Editor.TextArea.TextView) + " writable=" + p.CanWrite)));
+    Pump();
+    VerifySourceLineHeight(window, sourceView, 22.1, "Demo");
     Check(vm.Markdown.StartsWith("# 基础元素"), "Demo default document matches prototype");
     var original = vm.Markdown;
     foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "MarkdownSamples"), "*.md", SearchOption.AllDirectories))
@@ -173,6 +172,7 @@ else if (mode == "vex")
         Check(!vm.DocumentInfo.IsModified, "Opening an untouched file stays clean: " + Path.GetFileName(file));
     }
     var editorVm = app.Resolve<MarkdownEditorViewModel>();
+    VerifySourceLineHeight(window, window.GetVisualDescendants().OfType<MarkdownEditorView>().Single(), 21.875, "Vex");
     editorVm.InsertText(" regression edit");
     Pump();
     Check(vm.DocumentInfo.IsModified, "Typing marks Vex document dirty");
@@ -342,6 +342,24 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
 }
 
 bool SameBrush(IBrush? first, IBrush? second) => first is ISolidColorBrush a && second is ISolidColorBrush b && a.Color == b.Color;
+
+void VerifySourceLineHeight(Window window, MarkdownEditorView source, double expected, string name)
+{
+    var textView = source.Editor.TextArea.TextView;
+    Check(Math.Abs(textView.DefaultLineHeight - expected) < 0.01, $"{name} source line height matches {expected} px");
+    var click = textView.TranslatePoint(new Point(2, expected * 2.5), window)!.Value;
+    window.MouseDown(click, MouseButton.Left);
+    window.MouseUp(click, MouseButton.Left);
+    Pump();
+    Check(source.Editor.TextArea.Caret.Line == 3, $"{name} clicking the third source row positions the caret on line 3");
+    var caretTop = source.Editor.TextArea.Caret.CalculateCaretRectangle().Top;
+    window.KeyPress(Key.Down, RawInputModifiers.None, PhysicalKey.ArrowDown, null);
+    window.KeyRelease(Key.Down, RawInputModifiers.None, PhysicalKey.ArrowDown, null);
+    Pump();
+    Check(Math.Abs(source.Editor.TextArea.Caret.CalculateCaretRectangle().Top - caretTop - expected) < 1,
+        $"{name} Down moves the caret by one visual source row, including wrapped lines");
+    source.Editor.CaretOffset = 0;
+}
 
 void VerifyDemoDetails(Window window, ThemeVariant theme, string viewMode)
 {

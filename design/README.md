@@ -24,7 +24,7 @@ cd design && python -m http.server 8791
 | 编辑 → 查找... / 替换...（Ctrl+F / Ctrl+H） | 查找替换栏（编辑器顶部展开） |
 | 视图 → 字数统计窗口 / 状态栏「词数」 | 字数统计窗口 |
 | 视图 → 大纲 / 文档列表 | 侧栏「文件 / 大纲」页签切换 |
-| 视图 → 源代码模式 / 预览模式 / 显示侧边栏 | 主区窗格真实切换 |
+| 视图 → 源代码模式 / 预览模式 / 侧边栏 | 主区窗格真实切换，侧边栏项右侧勾选反映显隐 |
 | 帮助 → MCP 设置 | MCP 设置窗口 |
 | 帮助 → 更新日志 / 鸣谢 | 文档窗口（内容切换） |
 | 帮助 → 关于 | 关于窗口 |
@@ -64,3 +64,38 @@ design/
 - **设计升级点**：主窗体各区域的改版要点体现在与实现的对照评审中（标题栏品牌 Logo + 未保存圆点、编辑器语法着色与行号、侧栏卡片化与过滤、状态栏徽章化等）。
 - **窗口内边距节律**：滚动容器的 Padding 加在滚动容器外层（如文档窗口正文），保证 Right 的滚动条、Bottom 与 Left 留白一致。
 - 图标为内联 SVG sprite（feather 风格描边），随主题 `currentColor` 着色。
+
+## 实现规格
+
+尺寸以当前 `assets/theme.css` 为准，不沿用旧计划或 Demo 的规格。
+
+| 区域 | 规格与维护要点 |
+| --- | --- |
+| 标题栏 | 高 40px；底线在 y=39 绘制 1px，内容从 y=40 开始；品牌左留白 12px、gap 8px、logo 20px |
+| 菜单/文档名 | 菜单字号 12.5px、padding 3px 9px、gap 2px；文档区左 margin 10px、圆点/名称 gap 6px，圆点反映真实修改状态 |
+| 侧栏 | 默认 252px、可拖动；页签带图标、紧凑内容宽度、2px 选中下线；显隐、菜单勾选和保存宽度保持同步 |
+| 文件卡片 | 圆角 8px、padding 6px 10px、3px 选中左条；标题/摘要 12.5/11.5px；普通色用前景，选中色用 accent/accent-soft |
+| 面板头/状态栏 | 高 30/32px，各有分隔线；面板标题使用独立短名「源码 / 预览」，菜单仍使用完整模式名 |
+| 源码 | 字号 12.5px、行高 21.875px；颜色使用 Vex 编辑器语义令牌，URL 跟随 LinkKey |
+| 默认预览 | margin 30px 22px 30px 30px（左/上/右/下）；H1 22px、1px 普通下边框、bottom padding 8px |
+| H2/H3 | 17.5/15px、上下 margin 20/10 与 16/8px；H2 无下边框 |
+| 引用/表格 | 引用左线 3px accent、6% accent 底、padding 6px 14px；表头使用 code-bg |
+
+壳层维护在 `src/Vex/Modules/Shell/Views/` 和 `src/Vex.Controls.Themes/`；源码宿主在 `src/Vex/Modules/Workspace/Views/MarkdownEditorView.axaml`，复用 CodeWF.Markdown 的编辑器。源码行高由库的 `EditorLineHeight` 指定，根据实测字体高度换算 AvaloniaEdit 的 `LineHeightFactor`，保持字号不变。
+
+## 回归验证
+
+[scripts/ui-verification/README.md](../scripts/ui-verification/README.md) 提供可重复的离屏构建、截图与输入验证。它加载实际 Prism Shell/XAML；设置、草稿、最近记录使用内存服务，MCP 关闭，不操作真实键鼠或修改草稿。构建输出、截图和日志可重建，属于临时产物。
+
+- Light/Dark/Aquatic/Desert/Dusk/NightSky 六主题和 980×640 窄窗，检查标题线实际像素、紧凑页签图标、文件卡片画刷、H1 和引用边框。
+- 普通文件标题对比度至少 4.5:1；选中卡片跟随原型 accent/accent-soft，不声称所有选中色均达到 4.5:1。
+- 五份真实样例连续切换不误报未保存；真实编辑后切换出现确认，取消保留修改；恢复草稿与磁盘不同仍标为未保存，磁盘是保存基线。
+- 源码行高、点击定位和换行后的键盘移动；侧栏显隐与菜单勾选、内存持久化字段同步。
+
+改库产品代码后先提升开发版本、打包四包到本地源，再同步 Vex 版本。覆盖同版本 nupkg 不会自动刷新 NuGet 缓存。正式发布流程见 [docs/RELEASE.md](../docs/RELEASE.md)。
+
+## 验证边界
+
+本环境未获得浏览器原型截图，采用 CSS/结构与实际截图核对，不宣称全页逐像素一致。离屏不能模拟 Windows 非客户区；真实窗控、拖动/最大化、多 DPI、中文 IME 仍需实机检查，滚动条与字体度量可能与网页不同。
+
+实时控件的复杂嵌套引用、组内编辑规范化和导出验证边界见 CodeWF.Markdown 的 `design/README.md`。本地开发包联调不等于正式 NuGet、标签或安装包发布。
