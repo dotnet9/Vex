@@ -4,6 +4,49 @@
     xmlns:semi="https://irihi.tech/semi">
     <Styles.Resources>
         <ResourceDictionary>
+            <!-- 侧栏页签独立模板，避免通用主题的等宽大页签和选中底色。 -->
+            <ControlTheme x:Key="SidebarTabItem" TargetType="TabItem">
+                <Setter Property="Focusable" Value="True" />
+                <Setter Property="FontSize" Value="12.5" />
+                <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+                <Setter Property="Padding" Value="12 6 12 8" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Grid>
+                            <Border Name="TabSurface" Padding="{TemplateBinding Padding}" Background="Transparent">
+                                <ContentPresenter Name="PART_HeaderPresenter"
+                                                  Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                                  Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" />
+                            </Border>
+                            <Border Name="TabUnderline" Height="2" Margin="10 0 10 -1" CornerRadius="2"
+                                    VerticalAlignment="Bottom" Background="{DynamicResource VexAccentBrush}" IsVisible="False" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter>
+                <Style Selector="^:pointerover">
+                    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+                </Style>
+                <Style Selector="^:selected">
+                    <Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+                </Style>
+                <Style Selector="^:selected /template/ Border#TabUnderline">
+                    <Setter Property="IsVisible" Value="True" />
+                </Style>
+            </ControlTheme>
+            <ControlTheme x:Key="SidebarTabControl" TargetType="TabControl">
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Grid RowDefinitions="Auto,*">
+                            <Border BorderBrush="{DynamicResource VexSplitterBrush}" BorderThickness="0 0 0 1" Padding="10 8 0 0">
+                                <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                            </Border>
+                            <ContentPresenter Name="PART_SelectedContentHost" Grid.Row="1"
+                                              Content="{TemplateBinding SelectedContent}" ContentTemplate="{TemplateBinding SelectedContentTemplate}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter>
+            </ControlTheme>
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
                     <SolidColorBrush x:Key="TabControlSeparatorBorderBrush" Color="#E4E7EC" />
@@ -98,14 +141,10 @@
         </ResourceDictionary>
     </Styles.Resources>
 
-    <Style Selector="TabControl.sidebar-tabs TabItem">
-        <Setter Property="MinHeight" Value="48" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="HorizontalContentAlignment" Value="Center" />
-        <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Style Selector="TabControl.sidebar-tabs">
+        <Setter Property="Theme" Value="{StaticResource SidebarTabControl}" />
     </Style>
-
-    <Style Selector="TabControl.sidebar-tabs TabItem:selected">
-        <Setter Property="FontWeight" Value="SemiBold" />
+    <Style Selector="TabControl.sidebar-tabs TabItem">
+        <Setter Property="Theme" Value="{StaticResource SidebarTabItem}" />
     </Style>
 </Styles>

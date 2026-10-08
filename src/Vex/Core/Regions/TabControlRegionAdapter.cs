@@ -1,6 +1,8 @@
 using System.Collections.Specialized;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Lang.Avalonia.MarkupExtensions;
 using Prism.Regions;
 
@@ -73,10 +75,32 @@ public sealed class TabControlRegionAdapter : RegionAdapterBase<TabControl>
     {
         var tabItem = new TabItem { Content = view };
         var headerKey = ResolveHeaderKey(view);
+        var iconData = view is Control control ? RegionTab.GetIconData(control) : null;
+        var title = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
         if (new I18nBinding(headerKey).ProvideValue(null!) is BindingBase headerBinding)
         {
-            tabItem.Bind(TabItem.HeaderProperty, headerBinding);
+            title.Bind(TextBlock.TextProperty, headerBinding);
         }
+
+        title.Bind(TextBlock.ForegroundProperty, new Binding(nameof(TabItem.Foreground)) { Source = tabItem });
+        if (string.IsNullOrWhiteSpace(iconData))
+        {
+            tabItem.Header = title;
+            return tabItem;
+        }
+
+        var icon = new Avalonia.Controls.Shapes.Path
+        {
+            Width = 13, Height = 13, Stretch = Stretch.Uniform,
+            StrokeThickness = 1.6, Data = Geometry.Parse(iconData),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        icon.Bind(Avalonia.Controls.Shapes.Shape.StrokeProperty,
+            new Binding(nameof(TabItem.Foreground)) { Source = tabItem });
+        var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        header.Children.Add(icon);
+        header.Children.Add(title);
+        tabItem.Header = header;
 
         return tabItem;
     }

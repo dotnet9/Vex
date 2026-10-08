@@ -834,6 +834,7 @@
 
   /* ---------- 视图布局：侧栏 / 源代码模式 / 预览模式 ---------- */
   var viewState = { sidebar: true, preview: true, source: false };
+  VexProto.isSidebarVisible = function () { return viewState.sidebar; };
   function applyLayout() {
     var area = document.querySelector('.main-area');
     var sidebar = document.querySelector('.sidebar');

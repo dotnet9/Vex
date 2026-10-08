@@ -1,11 +1,13 @@
 <Styles xmlns="https://github.com/avaloniaui">
     <Style Selector="Menu.title-menu">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="12.5" />
     </Style>
 
     <Style Selector="Menu.title-menu > MenuItem">
-        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="MinHeight" Value="24" />
+        <Setter Property="Padding" Value="9 3" />
+        <Setter Property="Margin" Value="0 0 2 0" />
     </Style>
 
     <Style Selector="MenuItem /template/ ContentPresenter#PART_HeaderPresenter TextBlock">

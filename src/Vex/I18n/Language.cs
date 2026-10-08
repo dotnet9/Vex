@@ -101,6 +101,8 @@ public static class VexL
     public static readonly string Search = "Vex.VexL.Search";
     public static readonly string SourceMode = "Vex.VexL.SourceMode";
     public static readonly string PreviewMode = "Vex.VexL.PreviewMode";
+    public static readonly string SourcePaneTitle = "Vex.VexL.SourcePaneTitle";
+    public static readonly string PreviewPaneTitle = "Vex.VexL.PreviewPaneTitle";
     public static readonly string ShowLineNumbers = "Vex.VexL.ShowLineNumbers";
     public static readonly string ShowStatusBar = "Vex.VexL.ShowStatusBar";
     public static readonly string WordCount = "Vex.VexL.WordCount";

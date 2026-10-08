@@ -10,15 +10,16 @@
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellFilesViewModel"
     prism:ViewModelLocator.AutoWireViewModel="True"
-    regions:RegionTab.HeaderKey="{x:Static l:VexL.SidebarFiles}">
+    regions:RegionTab.HeaderKey="{x:Static l:VexL.SidebarFiles}"
+    regions:RegionTab.IconData="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6">
 
     <UserControl.DataTemplates>
         <TreeDataTemplate DataType="models:DocumentFileNode" ItemsSource="{Binding Children}">
             <!-- 卡片行：左侧主题色竖条仅在选中时显示（对应原型 .tree-row.selected） -->
             <Border Classes="file-card" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}">
-                <Grid ColumnDefinitions="Auto,3,*" ColumnSpacing="8">
-                    <Border Classes="file-bar" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}" />
-                    <StackPanel Grid.Column="2">
+                <Grid>
+                    <Border Classes="file-bar" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}" HorizontalAlignment="Left" />
+                    <StackPanel Margin="10 6" Spacing="2">
                         <Grid
                             MinHeight="24"
                             ColumnDefinitions="Auto,*,Auto"
@@ -27,7 +28,7 @@
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="7 0 0 0"
-                                Classes="side-heading"
+                                Classes="file-heading"
                                 FontWeight="SemiBold"
                                 Text="{Binding Name}"
                                 TextTrimming="CharacterEllipsis" />
@@ -41,12 +42,13 @@
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="7 0 0 0"
+                                Classes="file-title"
                                 FontWeight="SemiBold"
                                 Text="{Binding Name}"
                                 TextTrimming="CharacterEllipsis" />
                             <TextBlock
                                 Grid.Column="2"
-                                Classes="muted"
+                                Classes="file-muted"
                                 FontSize="11"
                                 Margin="8 0 0 0"
                                 Text="{Binding ModifiedText}" />
@@ -54,9 +56,9 @@
                         <TextBlock
                             Grid.Row="1"
                             Grid.Column="2"
-                            Classes="muted"
+                            Classes="file-muted"
                             MaxHeight="34"
-                            Margin="21 0 0 0"
+                            Margin="0"
                             Text="{Binding Preview}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="Wrap" />
@@ -71,6 +73,9 @@
         <TextBox
             Margin="10 8 10 6"
             MinHeight="30"
+            Foreground="{DynamicResource VexValueBrush}"
+            PlaceholderForeground="{DynamicResource VexMutedBrush}"
+            BorderBrush="{DynamicResource VexPanelBorderBrush}"
             PlaceholderText="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}"
             Text="{Binding FilterText, Mode=TwoWay}"
             TextWrapping="NoWrap" />

@@ -26,8 +26,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool? _statusBarVisibleBeforeFocus;
     private double _sidebarWidth = DefaultSidebarWidth;
 
-    /// <summary>侧栏默认宽度（原型为柔性宽度，这里取固定基准值）。</summary>
-    public const double DefaultSidebarWidth = 320d;
+    /// <summary>侧栏默认宽度，与 design/index.html 主区栅格一致。</summary>
+    public const double DefaultSidebarWidth = 252d;
 
     private const double MinSidebarWidth = 200d;
 
@@ -67,6 +67,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             if (SetProperty(ref _isSidebarVisible, value))
             {
                 OnPropertyChanged(nameof(SidebarColumnWidth));
+                OnPropertyChanged(nameof(VisibleSidebarWidth));
                 OnPropertyChanged(nameof(SidebarSplitterWidth));
                 PersistLayoutSettings();
             }
@@ -112,19 +113,22 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             }
 
             OnPropertyChanged(nameof(SidebarColumnWidth));
+            OnPropertyChanged(nameof(VisibleSidebarWidth));
             PersistLayoutSettings();
         }
     }
 
     public GridLength SidebarColumnWidth => IsSidebarVisible ? new GridLength(SidebarWidth) : new GridLength(0);
 
-    public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(6) : new GridLength(0);
+    public double VisibleSidebarWidth => IsSidebarVisible ? SidebarWidth : 0;
+
+    public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(5) : new GridLength(0);
 
     public GridLength SourceColumnWidth => IsSourceMode ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
 
-    public GridLength PreviewColumnWidth => IsPreviewVisible ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+    public GridLength PreviewColumnWidth => IsPreviewVisible ? new GridLength(1.06, GridUnitType.Star) : new GridLength(0);
 
-    public GridLength PreviewSplitterWidth => IsSourceMode && IsPreviewVisible ? new GridLength(6) : new GridLength(0);
+    public GridLength PreviewSplitterWidth => IsSourceMode && IsPreviewVisible ? new GridLength(5) : new GridLength(0);
 
     /// <summary>
     /// 界面动效总开关：关闭时三档动效时长归零，已有过渡立即到达终态。

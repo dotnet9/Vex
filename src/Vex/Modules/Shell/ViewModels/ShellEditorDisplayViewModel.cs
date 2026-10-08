@@ -28,7 +28,7 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
         PublishDisplayState();
     }
 
-    public double EditorFontSize => 15d;
+    public double EditorFontSize => 12.5d;
 
     public bool ShowLineNumbers
     {

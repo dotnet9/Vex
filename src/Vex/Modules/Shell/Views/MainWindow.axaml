@@ -26,9 +26,10 @@
 
     <u:UrsaWindow.LeftContent>
         <StackPanel
-            Margin="8 0 10 0"
+            Margin="12 0 10 0"
+            Height="40"
             Orientation="Horizontal"
-            Spacing="5"
+            Spacing="8"
             VerticalAlignment="Center">
             <!-- 品牌 Logo：渐变圆角方块（对应原型 .tb-logo：20×20、圆角 6、字号 11 粗体） -->
             <Border
@@ -51,8 +52,9 @@
                 FontWeight="SemiBold"
                 Text="Vex"
                 VerticalAlignment="Center" />
-            <shell:ShellTitleMenuView x:Name="TitleMenuView" />
+            <shell:ShellTitleMenuView x:Name="TitleMenuView" Margin="4 0 0 0" />
             <!-- 未保存圆点：主题色，替代原来的 * 前缀 -->
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="10 0 0 0">
             <Ellipse
                 Width="7"
                 Height="7"
@@ -62,18 +64,20 @@
             <TextBlock
                 Classes="titlebar-muted"
                 FontSize="12"
-                Margin="3 0 0 0"
                 MaxWidth="380"
                 Text="{Binding DocumentInfo.PropertyNameText}"
                 TextTrimming="CharacterEllipsis"
                 VerticalAlignment="Center" />
+            </StackPanel>
         </StackPanel>
     </u:UrsaWindow.LeftContent>
 
+    <!-- 分隔线位于标题栏的第 40 像素，内容仍从 y=40 开始。 -->
+    <Border x:Name="ShellTitleDivider" Margin="0 39 0 0"
+            BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0 1 0 0">
     <Grid
         x:Name="ShellGuideRoot"
         Background="{DynamicResource VexShellBackgroundBrush}"
-        Margin="0 32 0 0"
         RowDefinitions="Auto,*,Auto">
         <Border Grid.Row="0">
             <shell:ShellFindBarView DataContext="{Binding FindBar}" />
@@ -89,14 +93,17 @@
                 <ColumnDefinition Width="{Binding Layout.PreviewColumnWidth}" MinWidth="0" />
             </Grid.ColumnDefinitions>
 
-            <codewf:ContentExpansionAnimator
+            <Border
                 x:Name="SidebarGuideTarget"
                 Grid.Column="0"
-                CollapsedSize="0"
-                Duration="{DynamicResource MotionDurationMid}"
-                ExpandedSize="{Binding Layout.SidebarWidth}"
-                IsExpanded="{Binding Layout.IsSidebarVisible}"
-                Orientation="Horizontal">
+                Width="{Binding Layout.VisibleSidebarWidth}"
+                ClipToBounds="True"
+                IsHitTestVisible="{Binding Layout.IsSidebarVisible}">
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Width" Duration="{DynamicResource MotionDurationMid}" />
+                    </Transitions>
+                </Border.Transitions>
                 <Border Classes="panel">
                     <TabControl
                         Classes="sidebar-tabs"
@@ -104,12 +111,12 @@
                         SelectedIndex="{Binding Navigation.SelectedSideTabIndex, Mode=TwoWay}">
                         <TabControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Rows="1" />
+                                <StackPanel Orientation="Horizontal" Spacing="2" />
                             </ItemsPanelTemplate>
                         </TabControl.ItemsPanel>
                     </TabControl>
                 </Border>
-            </codewf:ContentExpansionAnimator>
+            </Border>
 
             <!-- 拖动侧栏分隔条即写回宽度（记住到设置）；列宽为 Auto，由动画容器决定 -->
             <GridSplitter
@@ -239,4 +246,5 @@
                 Title="{i18n:I18n {x:Static l:VexL.GuideFinishTitle}}" />
         </codewf:Guide>
     </Grid>
+    </Border>
 </u:UrsaWindow>

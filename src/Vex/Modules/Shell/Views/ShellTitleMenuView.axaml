@@ -110,7 +110,7 @@
         <MenuItem x:Name="ViewMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuView}}">
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.RefreshPreview}}" Command="{Binding RefreshPreview}" InputGesture="F5" />
             <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.ToggleSidebar}}" Command="{Binding Layout.ToggleSidebar}" />
+            <MenuItem x:Name="SidebarMenuItem" Header="{i18n:I18n {x:Static l:VexL.ToggleSidebar}}" Command="{Binding Layout.ToggleSidebar}" IsChecked="{Binding Layout.IsSidebarVisible, Mode=OneWay}" ToggleType="CheckBox" />
             <MenuItem x:Name="OutlineMenuItem" Header="{i18n:I18n {x:Static l:VexL.Outline}}" Command="{Binding Layout.ShowOutline}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.DocumentList}}" Command="{Binding Layout.ShowFiles}" />
             <MenuItem x:Name="SourceModeMenuItem" Header="{i18n:I18n {x:Static l:VexL.SourceMode}}" Command="{Binding Layout.ToggleSourceMode}" IsChecked="{Binding Layout.IsSourceMode}" ToggleType="CheckBox" />

@@ -1,4 +1,32 @@
 <Styles xmlns="https://github.com/avaloniaui">
+    <!-- 主窗格头与芯片：与 design/index.html 的 pane-head / kbd 对齐。 -->
+    <Style Selector="Border.pane-head">
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Padding" Value="12 0" />
+        <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexSplitterBrush}" />
+        <Setter Property="BorderThickness" Value="0 0 0 1" />
+    </Style>
+    <Style Selector="Border.pane-head Grid">
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.pane-title">
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.kbd-chip">
+        <Setter Property="Padding" Value="5 0" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="Background" Value="{DynamicResource TextBlockCodeBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1 1 1 2" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.kbd-chip > TextBlock">
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+    </Style>
     <Style Selector="Window">
         <Setter Property="FontFamily" Value="Inter, Microsoft YaHei UI, Segoe UI" />
         <Setter Property="FontSize" Value="13" />

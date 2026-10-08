@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <MarkdownRepoRoot Condition="'$(MarkdownRepoRoot)' == ''">$(MSBuildThisFileDirectory)..\..\..\..\Libs\CodeWF.Markdown</MarkdownRepoRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless" VersionOverride="12.1.3" />
+    <ProjectReference Include="..\..\src\Vex\Vex.csproj" />
+    <ProjectReference Include="$(MarkdownRepoRoot)\src\CodeWF.Markdown.Sample\CodeWF.Markdown.Sample.csproj" />
+  </ItemGroup>
+</Project>

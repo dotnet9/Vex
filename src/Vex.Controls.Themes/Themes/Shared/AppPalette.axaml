@@ -40,6 +40,7 @@
             </LinearGradientBrush>
             <SolidColorBrush x:Key="VexCodeFgBrush" Color="#B42318" />
             <SolidColorBrush x:Key="VexQuoteBrush" Color="#667085" />
+            <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="#0F1677FF" />
             <SolidColorBrush x:Key="VexMarkerBrush" Color="#98A2B3" />
 
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#FFFFFFFF" />
@@ -118,6 +119,7 @@
             </LinearGradientBrush>
             <SolidColorBrush x:Key="VexCodeFgBrush" Color="#FBBF77" />
             <SolidColorBrush x:Key="VexQuoteBrush" Color="#AAB4C3" />
+            <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="#0F60A5FA" />
             <SolidColorBrush x:Key="VexMarkerBrush" Color="#7D8999" />
 
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#151B26" />
@@ -196,6 +198,7 @@
             </LinearGradientBrush>
             <SolidColorBrush x:Key="VexCodeFgBrush" Color="#B4552D" />
             <SolidColorBrush x:Key="VexQuoteBrush" Color="#5C7880" />
+            <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="#0F0EA5B7" />
             <SolidColorBrush x:Key="VexMarkerBrush" Color="#8FA9B0" />
 
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#FFFFFFFF" />
@@ -274,6 +277,7 @@
             </LinearGradientBrush>
             <SolidColorBrush x:Key="VexCodeFgBrush" Color="#A8551F" />
             <SolidColorBrush x:Key="VexQuoteBrush" Color="#7A6752" />
+            <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="#0FC77B2A" />
             <SolidColorBrush x:Key="VexMarkerBrush" Color="#A99274" />
 
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#FFFBF5" />
@@ -352,6 +356,7 @@
             </LinearGradientBrush>
             <SolidColorBrush x:Key="VexCodeFgBrush" Color="#6F49B8" />
             <SolidColorBrush x:Key="VexQuoteBrush" Color="#72637F" />
+            <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="#0F8A63D2" />
             <SolidColorBrush x:Key="VexMarkerBrush" Color="#A79BB8" />
 
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#FFFFFFFF" />
@@ -430,6 +435,7 @@
             </LinearGradientBrush>
             <SolidColorBrush x:Key="VexCodeFgBrush" Color="#FFB86C" />
             <SolidColorBrush x:Key="VexQuoteBrush" Color="#AAB6C8" />
+            <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="#0F7AA2FF" />
             <SolidColorBrush x:Key="VexMarkerBrush" Color="#7F8CA3" />
 
             <SolidColorBrush x:Key="WindowDefaultBackground" Color="#172033" />

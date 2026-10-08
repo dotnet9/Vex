@@ -20,7 +20,7 @@
                         Width="12"
                         Height="12"
                         Data="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
-                    <TextBlock Classes="pane-title" Text="{i18n:I18n {x:Static l:VexL.PreviewMode}}" />
+                    <TextBlock Classes="pane-title" Text="{i18n:I18n {x:Static l:VexL.PreviewPaneTitle}}" />
                 </StackPanel>
                 <Border Grid.Column="1" Classes="kbd-chip">
                     <TextBlock Text="{Binding TypographyTheme, TargetNullValue=Basic}" />
@@ -34,7 +34,7 @@
             VerticalScrollBarVisibility="Auto">
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
-                Margin="34 24 34 0"
+                Margin="30 22 30 30"
                 ImageBasePath="{Binding ImageBasePath}"
                 Markdown="{Binding Markdown}"
                 TypographySize="{Binding TypographySize}"
@@ -43,6 +43,65 @@
     </Grid>
 
     <UserControl.Styles>
+        <Style Selector="Button.MdCopyButton">
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdH1Border">
+            <Setter Property="BorderThickness" Value="0 0 0 1" />
+            <Setter Property="Padding" Value="0 0 0 8" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+            <Setter Property="Margin" Value="0 6 0 12" />
+        </Style>
+        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdH2Border">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0 20 0 10" />
+        </Style>
+        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdH3Border">
+            <Setter Property="Margin" Value="0 16 0 8" />
+        </Style>
+        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdQuote">
+            <Setter Property="BorderThickness" Value="3 0 0 0" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
+            <Setter Property="Padding" Value="14 6" />
+            <Setter Property="Margin" Value="0 10" />
+            <Setter Property="CornerRadius" Value="0 8 8 0" />
+        </Style>
+        <Style Selector="CheckBox.MdTaskMarkerBox">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="TaskBox" Width="14" Height="14" CornerRadius="3"
+                            BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}"
+                            Background="{DynamicResource VexPanelBackgroundBrush}">
+                        <Path Name="TaskTick" Width="10" Height="8" Stretch="Uniform"
+                              Data="M1 4l3 3 5-6" Stroke="White" StrokeThickness="2"
+                              IsVisible="{TemplateBinding IsChecked}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="CheckBox.MdTaskMarkerBox:checked /template/ Border#TaskBox">
+            <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple]">
+            <Setter Property="TextBrush" Value="{DynamicResource VexValueBrush}" />
+            <Setter Property="MutedTextBrush" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="AccentBrush" Value="{DynamicResource VexAccentBrush}" />
+            <Setter Property="QuoteBackgroundBrush" Value="{DynamicResource VexQuoteBackgroundBrush}" />
+            <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
+            <Setter Property="CodeBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
+            <Setter Property="InlineCodeBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
+            <Setter Property="BorderLineBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+            <Setter Property="ParagraphFontSize" Value="13.5" />
+            <Setter Property="ParagraphLineHeight" Value="24.3" />
+            <Setter Property="Heading1FontSize" Value="22" />
+            <Setter Property="Heading2FontSize" Value="17.5" />
+            <Setter Property="Heading3FontSize" Value="15" />
+            <Setter Property="ParagraphMargin" Value="0 8" />
+            <Setter Property="HeadingMargin" Value="0 6 0 12" />
+            <Setter Property="BlockSpacing" Value="0" />
+        </Style>
         <!-- 选区可读性：默认浅色选区底 + 芯片浅色文字会撞色，选中时强制深色前景。 -->
         <Style Selector="SelectableTextBlock">
             <Setter Property="SelectionForegroundBrush" Value="#1D2129" />

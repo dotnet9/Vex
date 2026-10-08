@@ -120,8 +120,14 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     /// <summary>插入点变化（光标移动）也走同一条消息通道，状态栏行列号不依赖文本变化。</summary>
     public void PublishSelectionChanged(int line, int column, int lineCount)
     {
+        // SetText 也会移动插入点；载入中不能把中间文本回抛成用户编辑。
+        if (_syncingFromDocument || _editor is not { } editor)
+        {
+            return;
+        }
+
         EventBus.Default.Publish(new MarkdownTextChangedCommand(
-            _editor?.Text ?? string.Empty,
+            editor.Text,
             line,
             column,
             lineCount));

@@ -165,16 +165,26 @@
     </Style>
 
     <Style Selector="TreeView.side-tree TreeViewItem">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
         <Setter Property="IsExpanded" Value="True" />
         <Setter Property="Padding" Value="2 1" />
         <Setter Property="MinHeight" Value="30" />
         <Setter Property="Margin" Value="6 1" />
     </Style>
 
+    <!-- Semi 的选中/悬停底色画在内建模板上；文件行由 file-card 自己着色。 -->
+    <Style Selector="TreeView.side-tree TreeViewItem /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="TreeView.side-tree TreeViewItem /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+    </Style>
+
     <!-- 文档卡片行（对应原型 .tree-row）：圆角卡片 + 选中主题色左竖条与浅底 -->
     <Style Selector="TreeView.side-tree Border.file-card">
-        <Setter Property="CornerRadius" Value="7" />
-        <Setter Property="Padding" Value="10 5" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="0" />
         <Setter Property="Background" Value="Transparent" />
     </Style>
     <Style Selector="TreeView.side-tree Border.file-card.selected">
@@ -182,7 +192,7 @@
     </Style>
     <Style Selector="TreeView.side-tree Border.file-bar">
         <Setter Property="Width" Value="3" />
-        <Setter Property="Margin" Value="0 2 0 2" />
+        <Setter Property="Margin" Value="0 6 0 6" />
         <Setter Property="CornerRadius" Value="2" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
@@ -191,12 +201,20 @@
         <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
     </Style>
 
-    <Style Selector="TreeView.side-tree TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
+    <Style Selector="TreeView.side-tree Border.file-card TextBlock.file-title">
+        <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+        <Setter Property="FontSize" Value="12.5" />
+    </Style>
+    <Style Selector="TreeView.side-tree Border.file-card.selected TextBlock.file-title">
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+    </Style>
+    <Style Selector="TreeView.side-tree Border.file-card.selected Path.tree-ico">
+        <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
     </Style>
 
-    <Style Selector="TreeView.side-tree TextBlock.muted">
+    <Style Selector="TreeView.side-tree Border.file-card TextBlock.file-muted">
         <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        <Setter Property="FontSize" Value="11.5" />
     </Style>
 
     <Style Selector="TreeView.side-tree Path.tree-ico">
@@ -206,24 +224,12 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <Style Selector="TreeView.side-tree TextBlock.side-heading">
-        <Setter Property="Foreground" Value="{DynamicResource TextBlockDisabledForeground}" />
+    <Style Selector="TreeView.side-tree Border.file-card TextBlock.file-heading">
+        <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
     </Style>
 
-    <Style Selector="TreeView.side-tree TreeViewItem:pointerover TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource ListBoxItemPointeroverForeground}" />
-    </Style>
-
-    <Style Selector="TreeView.side-tree TreeViewItem:selected TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource ListBoxItemSelectedForeground}" />
-    </Style>
-
-    <Style Selector="TreeView.side-tree TreeViewItem:selected TextBlock.muted">
-        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
-    </Style>
-
-    <Style Selector="TreeView.side-tree TreeViewItem:selected TextBlock.side-heading">
-        <Setter Property="Foreground" Value="{DynamicResource ButtonSolidPrimaryBackground}" />
+    <Style Selector="TreeView.side-tree Border.file-card.selected TextBlock.file-heading">
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
     </Style>
     <!-- 大纲徽章兜底规则（放文件末尾）：ListBoxItem:selected 的通用文字色会命中徽章内文字，
          必须以更全的选择器 + 更后位置覆盖，否则选中项的 H2 角标文字与底色同色而隐形。 -->

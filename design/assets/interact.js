@@ -115,7 +115,7 @@
     { key: 'view', label: '视图(V)', items: [
       { label: '刷新预览', gesture: 'F5', toast: '预览已刷新（演示）' },
       { sep: true },
-      { label: '显示 / 隐藏侧边栏', action: 'toggle-sidebar' },
+      { label: '侧边栏', check: true, on: true, action: 'toggle-sidebar' },
       { label: '大纲', icon: 'i-list', act: 'pane-outline' },
       { label: '文档列表', icon: 'i-folder', act: 'pane-files' },
       { label: '源代码模式', check: true, action: 'toggle-source' },
@@ -163,6 +163,7 @@
 
   function buildItem(it, toastAll) {
     if (it.sep) { var s = document.createElement('div'); s.className = 'menu-sep'; return s; }
+    if (it.action === 'toggle-sidebar' && VexProto.isSidebarVisible) it.on = VexProto.isSidebarVisible();
     var el = document.createElement('div');
     el.className = 'menu-item' + (it.danger ? ' danger' : '') + (it.on ? ' checked' : '') + (it.sub ? ' has-sub' : '');
     if (it.icon && document.getElementById(it.icon)) {
