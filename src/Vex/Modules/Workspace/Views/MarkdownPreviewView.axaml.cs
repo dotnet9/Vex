@@ -2,7 +2,7 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
-using CodeWF.Markdown.Controls;
+using CodeWF.Avalonia.Markdown.Controls;
 using Vex.Modules.Workspace.ViewModels;
 
 namespace Vex.Modules.Workspace.Views;
@@ -35,9 +35,9 @@ public partial class MarkdownPreviewView : UserControl
     }
 
     // 预览里点击任务勾选框：库返回新 Markdown 与变更区间，交给编辑器按区间回写。
-    private static void OnTaskWriteBackRequested(object? sender, CodeWF.Markdown.Shared.Rendering.MarkdownTaskWriteResult result)
+    private static void OnTaskWriteBackRequested(object? sender, CodeWF.Avalonia.Markdown.Shared.Rendering.MarkdownTaskWriteResult result)
     {
-        CodeWF.EventBus.EventBus.Default.Publish(new Core.Messaging.MarkdownTaskWriteBackCommand(
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new Core.Messaging.MarkdownTaskWriteBackCommand(
             result.Markdown,
             result.ChangedSpan.Start,
             result.ChangedSpan.Length));

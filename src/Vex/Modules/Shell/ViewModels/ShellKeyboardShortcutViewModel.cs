@@ -100,7 +100,7 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
 
     private bool PublishShellAction(ShellActionKind action)
     {
-        CodeWF.EventBus.EventBus.Default.Publish(new ShellActionCommand(action));
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(action));
         return true;
     }
 

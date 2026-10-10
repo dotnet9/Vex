@@ -1,4 +1,4 @@
-using CodeWF.EventBus;
+using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
@@ -28,7 +28,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         _typographySize = appearanceState.TypographySize;
         _typographyTheme = appearanceState.TypographyTheme;
         _appearanceState.Changed += OnAppearanceChanged;
-        CodeWF.EventBus.EventBus.Default.Subscribe(this);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public string Markdown

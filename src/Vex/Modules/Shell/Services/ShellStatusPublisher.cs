@@ -14,7 +14,7 @@ public sealed class ShellStatusPublisher : IShellStatusPublisher
 
     public void Publish(string message)
     {
-        CodeWF.EventBus.EventBus.Default.Publish(new WorkspaceStatusChangedCommand(message));
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new WorkspaceStatusChangedCommand(message));
     }
 
     public void PublishResource(string key)

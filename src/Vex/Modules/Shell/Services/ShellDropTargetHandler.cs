@@ -30,10 +30,10 @@ public sealed class ShellDropTargetHandler : IShellDropTargetHandler
         // 图片文件走插入通道（复制到 assets/ 并插入 Markdown），其余仍是打开文档流程。
         if (ShellDroppedPathReader.IsSupportedImage(path))
         {
-            CodeWF.EventBus.EventBus.Default.Publish(new ShellImageDroppedCommand(path));
+            CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellImageDroppedCommand(path));
             return;
         }
 
-        CodeWF.EventBus.EventBus.Default.Publish(new ShellDroppedPathCommand(path));
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellDroppedPathCommand(path));
     }
 }

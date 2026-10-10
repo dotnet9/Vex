@@ -29,7 +29,7 @@ public sealed class WorkspaceDocumentState : IWorkspaceDocumentState
 
         var command = new MarkdownDocumentChangedCommand(_markdown, _filePath);
         // 文档正文变化统一广播，预览、大纲和后续可视化编辑都可以复用这一条轻量状态通道。
-        CodeWF.EventBus.EventBus.Default.Publish(command);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(command);
         DocumentChanged?.Invoke(this, command);
     }
 }

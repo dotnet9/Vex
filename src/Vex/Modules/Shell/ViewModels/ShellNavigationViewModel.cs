@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using CodeWF.EventBus;
+using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
@@ -14,7 +14,7 @@ public sealed class ShellNavigationViewModel : ReactiveObject
     {
         _settingsStore = settingsStore;
         SelectedSideTabIndex = Math.Clamp(_settingsStore.Current.SelectedSidebarTabIndex ?? 0, 0, 1);
-        CodeWF.EventBus.EventBus.Default.Subscribe(this);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public int SelectedSideTabIndex

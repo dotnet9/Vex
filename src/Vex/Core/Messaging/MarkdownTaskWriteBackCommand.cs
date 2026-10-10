@@ -4,7 +4,7 @@ namespace Vex.Core.Messaging;
 /// 预览里勾选任务列表项后回写 Markdown：携带新文本与被改写的源码区间，
 /// 编辑器按区间精确替换（长度一致时保持光标位置），保持撤销栈单步。
 /// </summary>
-public sealed class MarkdownTaskWriteBackCommand : CodeWF.EventBus.Command
+public sealed class MarkdownTaskWriteBackCommand : CodeWF.Toolkit.EventBus.Command
 {
     public MarkdownTaskWriteBackCommand(string markdown, int start, int length)
     {

@@ -51,6 +51,6 @@ public sealed class ShellEditorActionsViewModel
 
     private void Publish(EditorActionKind action)
     {
-        CodeWF.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));
     }
 }

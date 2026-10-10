@@ -4,7 +4,7 @@ using System.Text;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-using CodeWF.Tools.FileExtensions;
+using CodeWF.Toolkit.Core.FileExtensions;
 using Vex.Core.Models;
 using Vex.Core.Services;
 

@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
-using CodeWF.EventBus;
+using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Models;
@@ -24,7 +24,7 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     {
         _statusPublisher = statusPublisher;
         _localizer = localizer;
-        CodeWF.EventBus.EventBus.Default.Subscribe(this);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public string? TitleKey { get; } = VexL.SidebarOutline;
@@ -42,7 +42,7 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
         {
             if (SetProperty(ref _selectedOutlineItem, value) && value is not null)
             {
-                CodeWF.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(value.Line));
+                CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(value.Line));
                 _statusPublisher.PublishResourceFormat(VexL.StatusNavigatedToOutlineFormat, value.Title);
             }
         }

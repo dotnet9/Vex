@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using CodeWF.EventBus;
+using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
@@ -19,7 +19,7 @@ public sealed class ShellStatusViewModel : ReactiveObject
         _localizer = localizer;
         _statusText = _localizer.Get(VexL.StatusReady);
         _localizer.CultureChanged += OnCultureChanged;
-        CodeWF.EventBus.EventBus.Default.Subscribe(this);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public string StatusText

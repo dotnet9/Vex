@@ -1,5 +1,5 @@
 using Avalonia.Threading;
-using CodeWF.EventBus;
+using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Models;
@@ -87,7 +87,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _externalPaths = externalPaths;
         _drafts = drafts;
         _statusPublisher = statusPublisher;
-        CodeWF.EventBus.EventBus.Default.Subscribe(this);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
 
         _document = _documentService.CreateNew();
         _lastSavedMarkdown = _document.Markdown;
@@ -464,7 +464,7 @@ public sealed class MainWindowViewModel : ReactiveObject
                 VexL.ErrorMessageCannotOpenFileFormat,
                 () => OpenDocumentFileCoreAsync(file),
                 file.Path),
-            () => CodeWF.EventBus.EventBus.Default.Publish(new DocumentFileSelectionChangedCommand(previousSelection)));
+            () => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFileSelectionChangedCommand(previousSelection)));
     }
 
     private async Task OpenDocumentFileCoreAsync(DocumentFile file)
@@ -695,7 +695,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         PublishWorkspaceDocumentState();
         RefreshDocumentInfo();
-        CodeWF.EventBus.EventBus.Default.Publish(new OutlineItemsChangedCommand(_outlineService.BuildOutline(Markdown)));
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new OutlineItemsChangedCommand(_outlineService.BuildOutline(Markdown)));
     }
 
     private void RefreshDocumentState()
@@ -725,7 +725,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private void PublishDocumentFilesChanged(DocumentFile? selectedFile = null)
     {
-        CodeWF.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(
             _documentFiles,
             selectedFile,
             _currentWorkspaceFolderPath));
@@ -776,7 +776,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         var selected = _documentFiles.FirstOrDefault(file => PathsEqual(file.Path, path));
         if (selected is not null)
         {
-            CodeWF.EventBus.EventBus.Default.Publish(new DocumentFileSelectionChangedCommand(selected));
+            CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFileSelectionChangedCommand(selected));
             return;
         }
 
@@ -845,7 +845,7 @@ public sealed class MainWindowViewModel : ReactiveObject
                 return;
             }
 
-            CodeWF.EventBus.EventBus.Default.Publish(new MarkdownEditorInsertTextCommand($"![]({relativePath})"));
+            CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new MarkdownEditorInsertTextCommand($"![]({relativePath})"));
             _statusPublisher.PublishResourceFormat(VexL.StatusImageInserted, relativePath);
         }
         catch (Exception exception)
@@ -873,7 +873,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public void RefreshPreview()
     {
-        CodeWF.EventBus.EventBus.Default.Publish(
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
             new MarkdownPreviewRefreshCommand(
                 Markdown,
                 _document.FilePath,

@@ -7,8 +7,8 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using CodeWF.Markdown.Editor.Controls;
-using CodeWF.Markdown.Editor.Controls.Wysiwyg;
+using CodeWF.Avalonia.Markdown.Editor.Controls;
+using CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg;
 using Prism.Ioc;
 using Semi.Avalonia;
 using SkiaSharp;
@@ -19,17 +19,17 @@ using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Workspace.ViewModels;
 using Vex.Modules.Workspace.Services;
 using Vex.Core.Messaging;
-using SampleVm = CodeWF.Markdown.Sample.ViewModels.MainWindowViewModel;
+using SampleVm = CodeWF.Avalonia.Markdown.Sample.ViewModels.MainWindowViewModel;
 
 var mode = args.FirstOrDefault() ?? "sample";
-Console.WriteLine("Markdown library " + typeof(CodeWF.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
+Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
 if (mode is "sample" or "sample-switch")
 {
-    AppBuilder.Configure<CodeWF.Markdown.Sample.App>().UseSkia().WithInterFont()
+    AppBuilder.Configure<CodeWF.Avalonia.Markdown.Sample.App>().UseSkia().WithInterFont()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
-    var window = new CodeWF.Markdown.Sample.Views.MainWindow();
+    var window = new CodeWF.Avalonia.Markdown.Sample.Views.MainWindow();
     var vm = (SampleVm)window.DataContext!;
     window.Show();
     var sourceView = window.GetVisualDescendants().OfType<MarkdownEditorView>().Single();
@@ -208,7 +208,7 @@ else if (mode == "vex")
         Capture(window, "vex-" + theme);
         VerifyVexDetails(window, theme);
         VerifyFileColors(window, theme);
-        var preview = window.GetVisualDescendants().OfType<CodeWF.Markdown.Controls.MarkdownViewer>()
+        var preview = window.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
             .Single(viewer => viewer.Name == "PreviewMarkdownViewer");
         var previewScroll = preview.GetVisualAncestors().OfType<ScrollViewer>().First();
         previewScroll.Offset = new Vector(0, (previewScroll.Extent.Height - previewScroll.Viewport.Height) / 2);
@@ -298,7 +298,7 @@ void VerifyDemoDocumentSwitches(Window window, SampleVm vm)
             vm.SelectedFile = file;
             Pump();
             SettleRendering();
-            foreach (var viewer in window.GetVisualDescendants().OfType<CodeWF.Markdown.Controls.MarkdownViewer>()
+            foreach (var viewer in window.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
                          .Where(v => v.IsEffectivelyVisible))
             {
                 Check(viewer.CurrentModel.Source == viewer.Markdown,
@@ -315,7 +315,7 @@ void VerifyDemoDocumentSwitches(Window window, SampleVm vm)
         foreach (var file in files) vm.SelectedFile = file;
     Pump();
     SettleRendering();
-    Check(window.GetVisualDescendants().OfType<CodeWF.Markdown.Controls.MarkdownViewer>()
+    Check(window.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
         .Where(v => v.IsEffectivelyVisible).All(v => v.CurrentModel.Source == vm.Markdown),
         "Demo rapid switches display only the final document");
     vm.SelectedFile = originalFile;

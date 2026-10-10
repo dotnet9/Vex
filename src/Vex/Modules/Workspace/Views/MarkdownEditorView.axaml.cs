@@ -1,8 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using CodeWF.EventBus;
-using CodeWF.Markdown.Editor.Controls;
+using CodeWF.Toolkit.EventBus;
+using CodeWF.Avalonia.Markdown.Editor.Controls;
 using Vex.Core.Messaging;
 using Vex.Modules.Workspace.ViewModels;
 

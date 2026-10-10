@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using CodeWF.EventBus;
+using CodeWF.Toolkit.EventBus;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
 using Vex.Modules.Mcp.Services;
@@ -30,7 +30,7 @@ public sealed class ShellActionCoordinator
         _auditService = auditService;
         _localizer = localizer;
         _overlay = overlay;
-        CodeWF.EventBus.EventBus.Default.Subscribe(this);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 
     [EventHandler]

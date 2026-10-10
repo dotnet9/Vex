@@ -28,7 +28,7 @@
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CodeWF.Tools.UpdateChecking" />
+    <PackageReference Include="CodeWF.Toolkit.Core" />
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Include="..\..\logo.ico" Link="Assets\logo.ico" />
     <AvaloniaResource Include="..\..\logo.png" Link="Assets\logo.png" />
@@ -47,15 +47,15 @@
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
-    <PackageReference Include="CodeWF.AvaloniaControls" />
-    <PackageReference Include="CodeWF.AvaloniaControls.Themes" />
-    <PackageReference Include="CodeWF.EventBus" />
-    <PackageReference Include="CodeWF.Markdown.Lite" />
-    <PackageReference Include="CodeWF.Markdown" />
-    <PackageReference Include="CodeWF.Markdown.Lite.Themes" />
-    <PackageReference Include="CodeWF.Markdown.Themes" />
-    <PackageReference Include="CodeWF.Tools.Core" />
-    <PackageReference Include="CodeWF.Tools.Files" />
+    <PackageReference Include="CodeWF.Avalonia.Controls" />
+    <PackageReference Include="CodeWF.Avalonia.Controls" />
+    <PackageReference Include="CodeWF.Toolkit.EventBus" />
+    <PackageReference Include="CodeWF.Avalonia.Markdown.Lite" />
+    <PackageReference Include="CodeWF.Avalonia.Markdown" />
+    <PackageReference Include="CodeWF.Avalonia.Markdown.Lite" />
+    <PackageReference Include="CodeWF.Avalonia.Markdown" />
+    <PackageReference Include="CodeWF.Toolkit.Core" />
+    <PackageReference Include="CodeWF.Toolkit.Files" />
     <PackageReference Include="Irihi.Ursa.Themes.Semi" />
     <PackageReference Include="Lang.Avalonia.Json" />
     <PackageReference Include="Prism.DryIoc.Avalonia" />

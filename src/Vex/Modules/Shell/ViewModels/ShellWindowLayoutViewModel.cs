@@ -311,12 +311,12 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
     private void FocusEditor()
     {
-        CodeWF.EventBus.EventBus.Default.Publish(new EditorActionCommand(EditorActionKind.FocusEditor));
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorActionCommand(EditorActionKind.FocusEditor));
     }
 
     private void SelectSidebarTab(int selectedIndex)
     {
-        CodeWF.EventBus.EventBus.Default.Publish(new ShellSidebarTabSelectedCommand(selectedIndex));
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellSidebarTabSelectedCommand(selectedIndex));
     }
 
     private void PersistLayoutSettings()

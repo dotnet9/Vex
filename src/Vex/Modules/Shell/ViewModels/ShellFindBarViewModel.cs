@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 using Avalonia.Threading;
-using CodeWF.EventBus;
+using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Modules.Shell.Services;
@@ -25,7 +25,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     public ShellFindBarViewModel(IShellStatusPublisher statusPublisher)
     {
         _statusPublisher = statusPublisher;
-        CodeWF.EventBus.EventBus.Default.Subscribe(this);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public bool IsVisible
@@ -217,7 +217,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 
     private void PublishSearch(EditorSearchAction action, string? replacementText = null)
     {
-        CodeWF.EventBus.EventBus.Default.Publish(new EditorSearchCommand(
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorSearchCommand(
             action,
             SearchText,
             replacementText,
@@ -228,7 +228,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 
     private void SeedSearchTextFromEditorSelection()
     {
-        var selectedText = CodeWF.EventBus.EventBus.Default.Query(new EditorSelectedTextQuery());
+        var selectedText = CodeWF.Toolkit.EventBus.EventBus.Default.Query(new EditorSelectedTextQuery());
         if (!string.IsNullOrEmpty(selectedText))
         {
             SearchText = selectedText;
@@ -250,7 +250,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 
     private void PublishEditorAction(EditorActionKind action)
     {
-        CodeWF.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));
     }
 
     private void SetStatus(string message)

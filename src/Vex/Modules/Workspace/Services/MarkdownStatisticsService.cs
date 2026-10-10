@@ -1,4 +1,4 @@
-using CodeWF.Markdown.Shared.Rendering;
+using CodeWF.Avalonia.Markdown.Shared.Rendering;
 using Markdig;
 using Vex.Core.Models;
 using Vex.Core.Services;

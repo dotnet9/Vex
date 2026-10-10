@@ -82,7 +82,7 @@ static HttpResponseMessage Redirect(string target)
     return response;
 }
 
-static async Task<CodeWF.Tools.UpdateChecking.UpdateCheckResult> Verify(
+static async Task<CodeWF.Toolkit.Core.UpdateChecking.UpdateCheckResult> Verify(
     Func<HttpRequestMessage, HttpResponseMessage> respond, Version current, CancellationToken cancellationToken = default)
 {
     using var handler = new ProbeHandler(respond);

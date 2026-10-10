@@ -1,4 +1,4 @@
-using CodeWF.EventBus;
+using CodeWF.Toolkit.EventBus;
 using Vex.Core.Models;
 
 namespace Vex.Core.Messaging;

@@ -1,5 +1,5 @@
-using CodeWF.Markdown.Editor.Controls;
-using CodeWF.EventBus;
+using CodeWF.Avalonia.Markdown.Editor.Controls;
+using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
@@ -9,7 +9,7 @@ namespace Vex.Modules.Workspace.ViewModels;
 
 /// <summary>
 /// 源码编辑器 ViewModel：只维护显示状态（字号、行号、自动配对、焦点模式）
-/// 并把 Shell 消息转发给库编辑器视图，编辑能力本身由 CodeWF.Markdown.Editor 提供。
+/// 并把 Shell 消息转发给库编辑器视图，编辑能力本身由 CodeWF.Avalonia.Markdown.Editor 提供。
 /// </summary>
 public sealed class MarkdownEditorViewModel : ReactiveObject
 {

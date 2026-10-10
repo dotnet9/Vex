@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http;
-using CodeWF.Tools.UpdateChecking;
+using CodeWF.Toolkit.Core.UpdateChecking;
 
 namespace Vex.Modules.Shell.Services;
 

@@ -1,10 +1,10 @@
-using CodeWF.Markdown;
-using CodeWF.Markdown.Editor.Services;
+using CodeWF.Avalonia.Markdown;
+using CodeWF.Avalonia.Markdown.Editor.Services;
 
 namespace Vex.Modules.Workspace.Services;
 
 /// <summary>
-/// 把导出包（CodeWF.Markdown.Export）的 HTML → Markdown 转换接到编辑器动作服务上，
+/// 把导出包（CodeWF.Avalonia.Markdown.Export）的 HTML → Markdown 转换接到编辑器动作服务上，
 /// 保留 Vex「粘贴网页内容自动转 Markdown」的行为。
 /// </summary>
 public sealed class VexMarkdownHtmlPasteConverter : IMarkdownHtmlPasteConverter

@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using Avalonia.Threading;
-using CodeWF.EventBus;
+using CodeWF.Toolkit.EventBus;
 using Markdig;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
@@ -211,7 +211,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
 
     private static SelectionResult GetSelection()
     {
-        var selection = CodeWF.EventBus.EventBus.Default.Query(new EditorSelectionQuery());
+        var selection = CodeWF.Toolkit.EventBus.EventBus.Default.Query(new EditorSelectionQuery());
         return new SelectionResult(selection.Text, selection.StartOffset, selection.Length);
     }
 
@@ -263,7 +263,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
 
     private async Task<OperationResult> ReplaceSelectionAsync(ReplaceSelectionInput input)
     {
-        var selection = CodeWF.EventBus.EventBus.Default.Query(new EditorSelectionQuery());
+        var selection = CodeWF.Toolkit.EventBus.EventBus.Default.Query(new EditorSelectionQuery());
         if (selection.Length <= 0)
         {
             throw new InvalidOperationException("No active editor selection.");
@@ -779,7 +779,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
                 await _shell.Help.OpenHelpTopic("about");
                 break;
             case "mcpsettings":
-                CodeWF.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.ShowMcpSettings));
+                CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.ShowMcpSettings));
                 break;
             default:
                 throw new InvalidOperationException($"Unsupported panel: {input.Panel}");
@@ -822,7 +822,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             throw new InvalidOperationException($"Unsupported editor command: {input.Command}");
         }
 
-        CodeWF.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));
         return new OperationResult("ok", "editor command applied");
     }
 

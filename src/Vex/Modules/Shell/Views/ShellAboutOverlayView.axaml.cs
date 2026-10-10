@@ -4,9 +4,9 @@ using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using CodeWF.Tools.Extensions;
-using CodeWF.Tools.UpdateChecking;
-using Lang.Avalonia;
+using CodeWF.Toolkit.Core.Extensions;
+using CodeWF.Toolkit.Core.UpdateChecking;
+using CodeWF.Avalonia.Lang;
 using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.Views;

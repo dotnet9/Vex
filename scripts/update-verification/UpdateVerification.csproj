@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CodeWF.Tools.UpdateChecking" />
+    <PackageReference Include="CodeWF.Toolkit.Core" />
     <Compile Include="../../src/Vex/Modules/Shell/Services/ShellUpdateChecker.cs" Link="ShellUpdateChecker.cs" />
   </ItemGroup>
 </Project>

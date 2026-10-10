@@ -2,8 +2,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Lang.Avalonia;
-using Lang.Avalonia.Json;
+using CodeWF.Avalonia.Lang;
+using CodeWF.Avalonia.Lang.Json;
 using Prism.DryIoc;
 using Prism.Ioc;
 using Prism.Modularity;
@@ -32,12 +32,12 @@ public partial class App : PrismApplication
     public override void Initialize()
     {
         DefaultFileOpeningService.Configure();
-        CodeWF.Markdown.Highlighting.CodeWFMarkdownHighlightingExtensions.UseHighlighting();
-        CodeWF.Markdown.Images.CodeWFMarkdownImagesExtensions.UseImages();
+        CodeWF.Avalonia.Markdown.Highlighting.CodeWFMarkdownHighlightingExtensions.UseHighlighting();
+        CodeWF.Avalonia.Markdown.Images.CodeWFMarkdownImagesExtensions.UseImages();
         // 数学渲染：库内已内置 Avalonia 12 兼容画布，修复了官方 CSharpMath.Avalonia 12.0.0
         // 在 Avalonia 12.1.3 下只剩分数线、字形全部缺失的问题。
-        CodeWF.Markdown.MathRendering.CodeWFMarkdownMathExtensions.UseMath();
-        CodeWF.Markdown.Mermaid.CodeWFMarkdownMermaidExtensions.EnsureRegistered();
+        CodeWF.Avalonia.Markdown.MathRendering.CodeWFMarkdownMathExtensions.UseMath();
+        CodeWF.Avalonia.Markdown.Mermaid.CodeWFMarkdownMermaidExtensions.EnsureRegistered();
         AvaloniaXamlLoader.Load(this);
         var langPlugin = new JsonLangPlugin
         {
@@ -92,9 +92,9 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<IEditorAppearanceState, EditorAppearanceState>();
         containerRegistry.RegisterSingleton<IWorkspaceDocumentState, WorkspaceDocumentState>();
         containerRegistry.RegisterSingleton<IMarkdownExportService, MarkdownExportService>();
-        // 编辑能力来自 CodeWF.Markdown.Editor，Vex 只提供 i18n 与 HTML 粘贴转换两个适配实现。
-        containerRegistry.RegisterSingleton<CodeWF.Markdown.Editor.Services.IMarkdownEditorLocalizer, VexMarkdownEditorLocalizer>();
-        containerRegistry.RegisterSingleton<CodeWF.Markdown.Editor.Services.IMarkdownHtmlPasteConverter, VexMarkdownHtmlPasteConverter>();
+        // 编辑能力来自 CodeWF.Avalonia.Markdown.Editor，Vex 只提供 i18n 与 HTML 粘贴转换两个适配实现。
+        containerRegistry.RegisterSingleton<CodeWF.Avalonia.Markdown.Editor.Services.IMarkdownEditorLocalizer, VexMarkdownEditorLocalizer>();
+        containerRegistry.RegisterSingleton<CodeWF.Avalonia.Markdown.Editor.Services.IMarkdownHtmlPasteConverter, VexMarkdownHtmlPasteConverter>();
         containerRegistry.RegisterSingleton<IMarkdownOutlineService, MarkdownOutlineService>();
         containerRegistry.RegisterSingleton<IMarkdownStatisticsService, MarkdownStatisticsService>();
         containerRegistry.RegisterSingleton<IThemeService, ThemeService>();

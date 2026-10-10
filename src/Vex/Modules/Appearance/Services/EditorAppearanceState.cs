@@ -1,4 +1,4 @@
-using CodeWF.Markdown.Themes;
+using CodeWF.Avalonia.Markdown.Themes;
 using Vex.Core.Services;
 
 namespace Vex.Modules.Appearance.Services;

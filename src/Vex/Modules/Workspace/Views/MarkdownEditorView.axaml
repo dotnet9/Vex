@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:core="using:Vex.Core.Messaging"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:editor="using:CodeWF.Markdown.Editor.Controls"
+    xmlns:editor="using:CodeWF.Avalonia.Markdown.Editor.Controls"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -30,7 +30,7 @@
             </Grid>
         </Border>
 
-        <!-- 编辑器控件来自 CodeWF.Markdown（库内维护），Vex 只负责右键菜单与消息桥接。
+        <!-- 编辑器控件来自 CodeWF.Avalonia.Markdown（库内维护），Vex 只负责右键菜单与消息桥接。
              右键菜单转发 Shell 编辑动作，实际文本变更由库控件执行后经消息通道回抛。 -->
         <editor:MarkdownEditorView x:Name="MarkdownEditor" Grid.Row="1"
             EditorPadding="6 16 16 16"

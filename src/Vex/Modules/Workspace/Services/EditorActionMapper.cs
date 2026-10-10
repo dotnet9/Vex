@@ -1,4 +1,4 @@
-using CodeWF.Markdown.Editor.Services;
+using CodeWF.Avalonia.Markdown.Editor.Services;
 
 using Vex.Core.Messaging;
 

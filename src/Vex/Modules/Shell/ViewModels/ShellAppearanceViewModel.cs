@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using CodeWF.Markdown.Themes;
+using CodeWF.Avalonia.Markdown.Themes;
 using ReactiveUI;
 using Vex.Core.Models;
 using Vex.Core.Services;
