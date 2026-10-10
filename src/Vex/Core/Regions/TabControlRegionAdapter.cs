@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Lang.Avalonia.MarkupExtensions;
+using CodeWF.Avalonia.Lang.MarkupExtensions;
 using Prism.Regions;
 
 namespace Vex.Core.Regions;
