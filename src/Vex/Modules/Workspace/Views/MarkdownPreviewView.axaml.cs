@@ -3,6 +3,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CodeWF.Avalonia.Markdown.Controls;
+using CodeWF.Toolkit.EventBus;
+using Vex.Core.Messaging;
 using Vex.Modules.Workspace.ViewModels;
 
 namespace Vex.Modules.Workspace.Views;
@@ -13,6 +15,7 @@ public partial class MarkdownPreviewView : UserControl
     private MarkdownViewer.MarkdownReadingPosition? _savedReadingPosition;
     private bool _restoringScrollPosition;
     private int _appliedRefreshVersion;
+    private int _appliedNavigationSequence;
     private long _lastReadingPositionSampleTick;
     private int _restoreAttempts;
 
@@ -25,6 +28,9 @@ public partial class MarkdownPreviewView : UserControl
         PreviewScrollViewer.ScrollChanged += OnPreviewScrollChanged;
         PreviewMarkdownViewer.TaskWriteBackRequested += OnTaskWriteBackRequested;
         DetachedFromVisualTree += (_, _) => PreviewMarkdownViewer.TaskWriteBackRequested -= OnTaskWriteBackRequested;
+        // 大纲跳转不经过预览视图模型，直接订阅总线，避免被「属性值未变」过滤掉。
+        EventBus.Default.Subscribe(this);
+        DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
         SetViewModel(DataContext as MarkdownPreviewViewModel);
     }
 
@@ -123,6 +129,23 @@ public partial class MarkdownPreviewView : UserControl
         PreviewMarkdownViewer.RefreshRemoteImages();
     }
 
+    /// <summary>
+    /// 点击大纲跳转同步预览。重复点击同一项时选中值与光标都不会变化，
+    /// 因此按事件序号判断是否为一次新的跳转，保证「点一次就到我这里」。
+    /// </summary>
+    private void OnNavigateToLine(NavigateToLineCommand command)
+    {
+        if (command.Sequence == _appliedNavigationSequence || _viewModel is null)
+        {
+            return;
+        }
+
+        _appliedNavigationSequence = command.Sequence;
+        _viewModel.PreviewSourceLine = command.Line;
+        _viewModel.PreviewScrollRatio = 0d;
+        Dispatcher.UIThread.Post(ScrollToEditorPosition, DispatcherPriority.Background);
+    }
+
     private void QueueRestoreReadingPosition()
     {
         if (_savedReadingPosition is null)
@@ -184,9 +207,14 @@ public partial class MarkdownPreviewView : UserControl
             return;
         }
 
+        // 目标块尚未渲染/量测：用本次定位带来的滚动比例做临时落点，
+        // 渲染完成后的 Markdown 属性变化会再触发一次精确定位。
         var height = Math.Max(0d, PreviewScrollViewer.Extent.Height - PreviewScrollViewer.Viewport.Height);
         PreviewScrollViewer.Offset = new Vector(
             0d,
             height * Math.Clamp(_viewModel.PreviewScrollRatio, 0d, 1d));
+        Dispatcher.UIThread.Post(
+            () => PreviewMarkdownViewer.TryGetSourceLineBounds(_viewModel.PreviewSourceLine, out _),
+            DispatcherPriority.Background);
     }
 }

@@ -46,13 +46,17 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     public double PreviewScrollRatio
     {
         get => _previewScrollRatio;
-        private set => this.RaiseAndSetIfChanged(ref _previewScrollRatio, value);
+        set => this.RaiseAndSetIfChanged(ref _previewScrollRatio, value);
     }
 
+    /// <summary>
+    /// 需要预览定位到的源码行。除编辑器光标同步外，大纲跳转也会直接写入这里；
+    /// 值未变化时不会重新定位，因此重复点击同一章节由视图按指令序号强制发起。
+    /// </summary>
     public int PreviewSourceLine
     {
         get => _previewSourceLine;
-        private set => this.RaiseAndSetIfChanged(ref _previewSourceLine, value);
+        set => this.RaiseAndSetIfChanged(ref _previewSourceLine, value);
     }
 
     /// <summary>

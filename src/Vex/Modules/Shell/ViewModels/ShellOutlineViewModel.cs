@@ -40,10 +40,10 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
         get => _selectedOutlineItem;
         set
         {
-            if (SetProperty(ref _selectedOutlineItem, value) && value is not null)
+            SetProperty(ref _selectedOutlineItem, value);
+            if (value is not null)
             {
-                CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(value.Line));
-                _statusPublisher.PublishResourceFormat(VexL.StatusNavigatedToOutlineFormat, value.Title);
+                NavigateToOutlineItem(value);
             }
         }
     }
@@ -142,6 +142,16 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     private void SelectOutlineItemSilently(OutlineItem? outlineItem)
     {
         SetProperty(ref _selectedOutlineItem, outlineItem, nameof(SelectedOutlineItem));
+    }
+
+    /// <summary>
+    /// 点击大纲跳转。重复点击同一项时选中值不变，因此不能只靠选中值变化触发，
+    /// 必须每次都下发一次跳转指令（指令带序号，接收端按序号强制重新定位）。
+    /// </summary>
+    private void NavigateToOutlineItem(OutlineItem outlineItem)
+    {
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(outlineItem.Line));
+        _statusPublisher.PublishResourceFormat(VexL.StatusNavigatedToOutlineFormat, outlineItem.Title);
     }
 
     private void NotifyOutlineChanged()
