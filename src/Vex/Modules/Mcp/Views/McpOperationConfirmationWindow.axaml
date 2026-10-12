@@ -1,8 +1,8 @@
-<u:UrsaWindow
+<codewf:CodeWFWindow
     x:Class="Vex.Modules.Mcp.Views.McpOperationConfirmationWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:u="https://irihi.tech/ursa"
+    xmlns:codewf="https://codewf.com"
     xmlns:views="using:Vex.Modules.Mcp.Views"
     x:DataType="views:McpOperationConfirmationWindowModel"
     Title="{Binding Title}"
@@ -79,4 +79,4 @@
             </StackPanel>
         </Grid>
     </Border>
-</u:UrsaWindow>
+</codewf:CodeWFWindow>

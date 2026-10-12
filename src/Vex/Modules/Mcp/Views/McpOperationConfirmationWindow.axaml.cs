@@ -1,9 +1,9 @@
 using Avalonia.Interactivity;
-using Ursa.Controls;
+using CodeWF.Avalonia.Controls.Controls;
 
 namespace Vex.Modules.Mcp.Views;
 
-public partial class McpOperationConfirmationWindow : UrsaWindow
+public partial class McpOperationConfirmationWindow : CodeWFWindow
 {
     public McpOperationConfirmationWindow()
     {
@@ -31,13 +31,13 @@ public partial class McpOperationConfirmationWindow : UrsaWindow
     private void Cancel_OnClick(object? sender, RoutedEventArgs e)
     {
         Confirmed = false;
-        Close(false);
+        Close();
     }
 
     private void Confirm_OnClick(object? sender, RoutedEventArgs e)
     {
         Confirmed = true;
-        Close(true);
+        Close();
     }
 }
 

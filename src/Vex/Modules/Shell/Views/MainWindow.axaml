@@ -1,4 +1,4 @@
-<u:UrsaWindow
+<codewf:CodeWFWindow
     x:Class="Vex.Modules.Shell.Views.MainWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -8,7 +8,6 @@
     xmlns:regions="using:Vex.Core.Regions"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:shell="using:Vex.Modules.Shell.Views"
-    xmlns:u="https://irihi.tech/ursa"
     xmlns:workspace="using:Vex.Modules.Workspace.Views"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:MainWindowViewModel"
@@ -18,13 +17,12 @@
     MinWidth="980"
     MinHeight="640"
     Icon="/Assets/logo.ico"
-    ExtendClientAreaToDecorationsHint="True"
-    IsManagedResizerVisible="{OnPlatform {x:False}, Linux={x:True}}"
+    TitleBarHeight="40"
     Topmost="{Binding Layout.IsAlwaysOnTop}"
     WindowState="{Binding Layout.CurrentWindowState}"
     WindowStartupLocation="CenterScreen">
 
-    <u:UrsaWindow.LeftContent>
+    <codewf:CodeWFWindow.LeftContent>
         <StackPanel
             Margin="12 0 10 0"
             Height="40"
@@ -70,7 +68,7 @@
                 VerticalAlignment="Center" />
             </StackPanel>
         </StackPanel>
-    </u:UrsaWindow.LeftContent>
+    </codewf:CodeWFWindow.LeftContent>
 
     <!-- 分隔线位于标题栏的第 40 像素，内容仍从 y=40 开始。 -->
     <Border x:Name="ShellTitleDivider" Margin="0 39 0 0"
@@ -247,4 +245,4 @@
         </codewf:Guide>
     </Grid>
     </Border>
-</u:UrsaWindow>
+</codewf:CodeWFWindow>

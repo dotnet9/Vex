@@ -4,7 +4,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CodeWF.Avalonia.Controls.Controls;
-using Ursa.Controls;
 using Vex.Core.Services;
 using Vex.Modules.Mcp.Services;
 using Vex.Modules.Shell.Services;
@@ -12,7 +11,7 @@ using Vex.Modules.Shell.ViewModels;
 
 namespace Vex.Modules.Shell.Views;
 
-public partial class MainWindow : UrsaWindow
+public partial class MainWindow : CodeWFWindow
 {
     private IShellDropTargetHandler? _dropTargetHandler;
     private IAppSettingsStore? _settingsStore;
@@ -58,6 +57,7 @@ public partial class MainWindow : UrsaWindow
         RestoreWindowSize(settingsStore);
         DataContext = viewModel;
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
+        Closing += MainWindow_OnClosing;
         Opened += MainWindow_OnOpened;
         Closed += MainWindow_OnClosed;
     }
@@ -226,20 +226,20 @@ public partial class MainWindow : UrsaWindow
         return null;
     }
 
-    protected override async Task<bool> CanClose()
+    // 原 UrsaWindow.CanClose 的迁移实现：有未保存修改时拦截关闭，交给 VM 弹确认框，
+    // 用户确认后由 OnCloseWindowRequested 置位 _isCloseConfirmed 再真正关闭。
+    private void MainWindow_OnClosing(object? sender, WindowClosingEventArgs e)
     {
         if (_isCloseConfirmed)
         {
-            return true;
+            return;
         }
 
         if (DataContext is MainWindowViewModel viewModel && viewModel.DocumentInfo.IsModified)
         {
-            await viewModel.BeginWindowCloseAsync();
-            return false;
+            e.Cancel = true;
+            _ = viewModel.BeginWindowCloseAsync();
         }
-
-        return true;
     }
 
     private void OnCloseWindowRequested(object? sender, EventArgs e)
