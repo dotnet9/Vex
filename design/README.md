@@ -1,4 +1,4 @@
-# Vex 界面原型（design/）
+﻿# Vex 界面原型（design/）
 
 本目录是 Vex（维刻）界面的**可交互重设计原型**。只有一个页面：`index.html` 是完整的主窗体，**所有其他界面都通过标题菜单、状态栏等入口在窗体内以浮层呼出**（与真实 App 的交互一致），没有页面间跳转。
 
@@ -28,24 +28,15 @@ cd design && python -m http.server 8791
 | 帮助 → MCP 设置 | MCP 设置窗口 |
 | 帮助 → 更新日志 / 鸣谢 | 文档窗口（内容切换） |
 | 帮助 → 关于 | 关于窗口 |
-| 帮助 → 主题色（Alt+1..6 / 右下悬浮球） | 六套主题即时切换 |
+| 帮助 → 主题色（Alt+1..8 / 右下悬浮球） | 八套配色与三态模式即时切换 |
 
 > 打印预览为导出 HTML 到系统浏览器、新手引导为 CodeWF Guide 控件自带 UI，均无自绘界面，不设原型。
 
 ## 主题色切换
 
-右下角**主题悬浮球**（或 `Alt + 1..6`、URL 参数 `?theme=dark` 等）切换与 App 一致的六套主题色（定义见 `src/Vex.Controls.Themes/Themes/Shared/AppPalette.axaml`）：
+右下角主题悬浮球、帮助菜单或 `Alt + 1..8` 切换八套配色：.NET 紫、AI 极光、AI 赤陶、默认蓝、水生、沙漠、黄昏、夜空。浅色、深色、跟随系统独立选择，URL 可指定 `?palette=aurora&theme=dark`。选择写入 `localStorage`；系统模式响应系统主题变化，固定浅深模式不跟随。
 
-| 主题 | 说明 | 强调色 |
-|------|------|--------|
-| 浅色 light | 极地蓝，默认 | `#1677FF` |
-| 深色 dark | 石墨 | `#60A5FA` |
-| 水生 aquatic | 湖心青 | `#0EA5B7` |
-| 沙漠 desert | 暖阳橙 | `#C77B2A` |
-| 黄昏 dusk | 薄暮紫 | `#8A63D2` |
-| 夜空 night-sky | 深海蓝（深色） | `#7AA2FF` |
-
-选择写入 `localStorage`，刷新 / 重开浏览器后保持。
+应用通过 `CodeWF.Avalonia.Controls` 的 StudioThemeController 与 StudioTheme 加载同款资源；`src/Vex/Styles/StudioPalette.axaml` 将共享令牌映射到 Vex 语义画刷。独立 Vex.Controls.Themes 仍带浅深默认资源，可用于 net8.0/net10.0，不依赖应用资源初始化。
 
 ## 结构与约定
 
@@ -54,7 +45,7 @@ design/
 ├── index.html          主窗体原型（唯一页面：标题栏 + 菜单 + 侧栏 + 编辑器 + 预览 + 状态栏
 │                       + 全部浮层：对话框 / 独立窗口 / 查找替换栏）
 ├── assets/
-│   ├── theme.css       六套主题令牌（变量）+ 全部组件样式 + 交互层样式
+│   ├── theme.css       八套配色的浅深主题令牌（变量）+ 全部组件样式 + 交互层样式
 │   ├── theme.js        主题切换器（悬浮球 / localStorage / Alt 快捷键 / ?theme= 参数）
 │   └── interact.js     菜单数据（与 ShellTitleMenuView.axaml 同构）+ 菜单呼出分发 + toast
 └── README.md
@@ -71,7 +62,7 @@ design/
 
 | 区域 | 规格与维护要点 |
 | --- | --- |
-| 标题栏 | 高 40px；底线在 y=39 绘制 1px，内容从 y=40 开始；品牌左留白 12px、gap 8px、logo 20px |
+| 标题栏 | 高 40px；内容紧接标题栏底部的 1px 分隔线；原生坐标包含系统窗口框边，不叠加第二份标题栏上边距；品牌左留白 12px、gap 8px、logo 20px |
 | 菜单/文档名 | 菜单字号 12.5px、padding 3px 9px、gap 2px；文档区左 margin 10px、圆点/名称 gap 6px，圆点反映真实修改状态 |
 | 侧栏 | 默认 252px、可拖动；页签带图标、紧凑内容宽度、2px 选中下线；显隐、菜单勾选和保存宽度保持同步 |
 | 文件树 | 单行节点、padding 5px 10px、15px 图标、7px 图文间距、每层缩进 16px；标题/时间 12.5/11px；摘要只在提示中显示；选中行用 accent/accent-soft 与左竖条 |
@@ -81,22 +72,32 @@ design/
 | H2/H3 | 17.5/15px、上下 margin 20/10 与 16/8px；H2 无下边框 |
 | 引用/表格 | 引用左线 3px accent、6% accent 底、padding 6px 14px；表头使用 code-bg |
 
-壳层维护在 `src/Vex/Modules/Shell/Views/` 和 `src/Vex.Controls.Themes/`；源码宿主在 `src/Vex/Modules/Workspace/Views/MarkdownEditorView.axaml`，复用 CodeWF.Markdown 的编辑器。源码行高由库的 `EditorLineHeight` 指定，根据实测字体高度换算 AvaloniaEdit 的 `LineHeightFactor`，保持字号不变。
+壳层维护在 `src/Vex/Modules/Shell/Views/` 和 `src/Vex.Controls.Themes/`；源码宿主在 `src/Vex/Modules/Workspace/Views/MarkdownEditorView.axaml`，复用 CodeWF.Avalonia.Markdown 的编辑器。源码行高由库的 `EditorLineHeight` 指定，根据实测字体高度换算 AvaloniaEdit 的 `LineHeightFactor`，保持字号不变。
 
 ## 回归验证
 
 [scripts/ui-verification/README.md](../scripts/ui-verification/README.md) 提供可重复的离屏构建、截图与输入验证。它加载实际 Prism Shell/XAML；设置、草稿、最近记录使用内存服务，MCP 关闭，不操作真实键鼠或修改草稿。构建输出、截图和日志可重建，属于临时产物。
 
-- Light/Dark/Aquatic/Desert/Dusk/NightSky 六主题和 980×640 窄窗，检查标题线实际像素、紧凑页签图标、文件卡片画刷、H1 和引用边框。
+- 八套配色各自浅深模式和 980×640 窄窗，检查标题线实际像素、紧凑页签图标、文件卡片画刷、H1 和引用边框。
 - 普通文件标题对比度至少 4.5:1；选中卡片跟随原型 accent/accent-soft，不声称所有选中色均达到 4.5:1。
 - 五份真实样例连续切换不误报未保存；真实编辑后切换出现确认，取消保留修改；恢复草稿与磁盘不同仍标为未保存，磁盘是保存基线。
 - 文件树验证根层/同级/多层目录的紧凑行高、16px 缩进、图文及展开箭头对齐、长文件名省略，以及真实点击展开/折叠与筛选。
 - 源码行高、点击定位和换行后的键盘移动；侧栏显隐与菜单勾选、内存持久化字段同步。
 
-Vex 正式版从 nuget.org 恢复四包。改库产品代码后的发布前联调需要提升开发版本、打包四包到本地源，再同步 Vex 版本；覆盖同版本 nupkg 不会自动刷新 NuGet 缓存。正式发布流程见 [docs/RELEASE.md](../docs/RELEASE.md)。
+Vex 正式版从 nuget.org 恢复库包。改库后的本地联调先提升版本、打包到 temp_nugets 指定目录，通过仓外 NuGet 配置恢复；不等待云端发布，不覆盖已发布版本。正式发布流程见 [docs/RELEASE.md](../docs/RELEASE.md)。
 
 ## 验证边界
 
-本环境未获得浏览器原型截图，采用 CSS/结构与实际截图核对，不宣称全页逐像素一致。离屏不能模拟 Windows 非客户区；真实窗控、拖动/最大化、多 DPI、中文 IME 仍需实机检查，滚动条与字体度量可能与网页不同。
+浏览器审计使用 Playwright 检查真实主题事件、系统模式和标题布局，不承诺全页逐像素一致。离屏不能模拟 Windows 非客户区；真实窗控、拖动/最大化、多 DPI、中文 IME 仍需实机检查，滚动条与字体度量可能与网页不同。
 
-实时控件的复杂嵌套引用、组内编辑规范化和导出验证边界见 CodeWF.Markdown 的 `design/README.md`。本地开发包联调不等于正式 NuGet、标签或安装包发布。
+Markdown 控件的复杂嵌套引用、编辑规范化和导出验证范围见 CodeWF.Avalonia 仓库。本地开发包联调不等于正式 NuGet、标签或安装包发布。
+
+## 原型自动检查
+
+```powershell
+npm ci --prefix design/tests
+# 首次使用时，在 design/tests 中执行 npx playwright install chromium
+npm test --prefix design/tests
+```
+
+检查八色 × 浅深组合、系统主题变化、固定模式、菜单适配、标题与工作区无空行及脚本异常。原型不执行 .NET 更新、安装和文件关联操作。

@@ -1,4 +1,4 @@
-# Vex
+﻿# Vex
 
 Vex（维刻）是一个基于 .NET 10 与 Avalonia 12 构建的跨平台 Markdown 编辑器，面向日常写作、技术文档整理、自媒体排版和多格式文档导出。
 
@@ -8,9 +8,23 @@ Slogan：极简之力，妙笔成章。
 出品：码坊 CodeWF  
 网站：https://codewf.com
 
-![Vex 主窗口](docs/media/design-main.png)
+原型预览（实际程序截图见下文）：
+
+![Vex 主窗口原型](docs/media/design-main.png)
 
 ![Vex 界面轮播](docs/media/design-tour.gif)
+
+Windows x64 NativeAOT 1.5.4 实际界面：
+
+![Vex 原生主窗口：AI 极光深色模式](docs/media/native-main.png)
+
+![Markdown 表格按内容分配列宽](docs/media/native-table.png)
+
+![Vex 原生关于与更新入口](docs/media/native-about.png)
+
+[英文深色关于界面](docs/media/native-about-english.png)
+
+本机已验证文件参数打开、表格自然列宽、中文切换英文、深色与配色分别保存并在重启后恢复，以及关于窗口联网检查更新。三种 Markdown 扩展名的打开候选与图标已注册；未通过安装器改变默认应用，Linux/macOS 和多 DPI 仍需各平台验收。
 
 ## 下载安装
 
@@ -23,7 +37,7 @@ Slogan：极简之力，妙笔成章。
 
 ## 仓库规范
 
-- 当前版本：`1.5.3`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
+- 当前版本：`1.5.4`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
 - NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net10.0` / `net10.0-windows`。
 - 根目录 `logo.svg`、`logo.png`、`logo.ico` 是唯一图标源，子工程只通过 MSBuild `Link` 引用，不维护图标副本。
 - 运行时帮助、Markdown 示例、内置备忘录、设计说明等业务文档按功能保留；仓库级入口文档使用根目录 `README.md` 和 `UpdateLog.md`。
@@ -54,6 +68,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - 支持打开文件夹，左侧自动列出目录中的 Markdown/TXT 文档。
 - 直接打开单个文件时，会自动加载同目录下的可编辑文档列表。
 - 支持最近文件、拖拽打开、启动参数打开、文件重命名/删除，以及外部文件变更检测。
+- Windows 安装包和便携注册脚本提供 `.md`、`.markdown`、`.mdown` 图标、打开方式候选和右键入口，保留用户默认程序选择；Linux/macOS 安装包声明 Markdown 文档类型。
 
 ### 大纲、查找与统计
 
@@ -70,11 +85,11 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - 导出 PDF，正文文本可选择、可复制，并支持页眉页脚。
 - 导出 Word `.docx`，保留基础 Markdown 结构并嵌入图片。
 - 复制到微信公众号、知乎、稀土掘金，生成适合网页编辑器粘贴的富 HTML 剪贴板内容。
-- PDF、PNG 和 Word 导出复用 `CodeWF.Markdown` 13.x 的 `MarkdownDocumentExporter` / `ExportKind` 能力，支持本地相对图、`data:image`、HTTP(S) 图片、SVG/GIF/WebP 转 PNG。
+- PDF、PNG 和 Word 导出复用 `CodeWF.Avalonia.Markdown` 的 `MarkdownDocumentExporter` / `ExportKind` 能力，支持本地相对图、`data:image`、HTTP(S) 图片、SVG/GIF/WebP 转 PNG。
 
 ### 外观与本地化
 
-- 支持浅色/深色主题。
+- 浅色、深色、跟随系统三态，搭配 .NET 紫、AI 极光、AI 赤陶、默认蓝、水生、沙漠、黄昏、夜空八套配色；颜色和模式独立保存。
 - 支持多套 Markdown 排版主题和紧凑布局。
 - 支持行号、状态栏、窗口置顶等视图选项。
 - 内置简体中文、繁体中文、英文、日文界面资源。
@@ -122,11 +137,14 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - Prism.Avalonia
 - ReactiveUI.Avalonia
 - Ursa.Avalonia / Semi.Avalonia
-- CodeWF.Markdown
-- CodeWF.EventBus
-- Lang.Avalonia.Json
+- CodeWF.Avalonia.Markdown / Markdown.Lite / Lang
+- CodeWF.Toolkit.Core / EventBus / Files
 
 ## 快速开始
+
+应用语言 JSON 保留在输出目录 `I18n/Vex/`，支持中文、英文、繁体中文和日文动态切换；库内默认翻译由 NuGet 程序集提供。修改资源后执行 `dotnet tool restore` 和 `dotnet tool run t4 -- src/Vex/I18n/Language.tt -o src/Vex/I18n/Language.cs` 更新强类型映射。
+
+「帮助 → 关于」提供版本、运行平台、编译时间及检查/下载/取消/安装更新。下载由 Toolkit 验证 SHA256；缺少平台安装包或校验文件时打开发布页。普通构建与发布版本统一来自版本属性，稳定版 .NET 10 SDK 由 `global.json` 选择。
 
 ```powershell
 dotnet restore Vex.slnx
@@ -135,6 +153,23 @@ dotnet run --project src\Vex\Vex.csproj -f net10.0
 ```
 
 更多使用说明见 [docs/快速开始.md](docs/快速开始.md)。
+
+本地联调通过 `temp_nugets` 环境变量指定的包目录与仓外 NuGet 配置使用真实包；最终提交和 CI 从 nuget.org 恢复，不需要克隆库仓库。普通测试与离屏验收不打开系统浏览器、不注册测试宿主为 Markdown 程序。
+
+验证入口：
+
+```powershell
+dotnet run --project scripts/update-verification/UpdateVerification.csproj -c Release
+dotnet run --project scripts/settings-verification/SettingsVerification.csproj -c Release
+dotnet run --project scripts/about-visual-verification/AboutVisualVerification.csproj -c Release -- ./artifacts/about-verification
+dotnet run --project scripts/ui-verification/UiVerification.csproj -c Release -- vex ./artifacts/ui-verification
+npm ci --prefix design/tests
+npm test --prefix design/tests
+pwsh scripts/publish.ps1 -RuntimeIdentifier win-x64
+```
+
+离屏回归覆盖八套配色的浅深组合、四语关于、标题栏紧接工作区、未保存确认的保存/放弃/取消与表格自然列宽；实际桌面和 NativeAOT 验收单独记录，边界见 [设计说明](design/README.md)。
+
 
 ## 构建与发布
 
@@ -147,7 +182,7 @@ dotnet build Vex.slnx -v:minimal
 .\scripts\package_vex_msix.ps1 -RuntimeIdentifier win-x64 -CertificatePath .\cert.pfx
 ```
 
-`publish_all.bat` 会将配置好的运行时发布到 `publish/<RID>/`。
+`publish_all.bat` 调用仓库发布脚本，输出到 `artifacts/publish/<RID>/Vex/`。
 
 `package_all.bat` 会先调用 `publish_all.bat`，再在 `artifacts/release/` 下生成 `Vex-v<Version>-<RID>.zip`、SHA256 文件和 release manifest。
 
@@ -170,8 +205,8 @@ Vex 使用并感谢以下开源项目：
 - [Prism.Avalonia](https://github.com/AvaloniaCommunity/Prism.Avalonia)
 - [Semi.Avalonia](https://github.com/irihitech/Semi.Avalonia)
 - [Ursa.Avalonia](https://github.com/irihitech/Ursa.Avalonia)
-- [CodeWF.Markdown](https://github.com/dotnet9/CodeWF.Markdown)
-- [CodeWF.EventBus](https://github.com/dotnet9/CodeWF.EventBus)
+- [CodeWF.Avalonia](https://github.com/dotnet9/CodeWF.Avalonia)
+- [CodeWF.Toolkit](https://github.com/dotnet9/CodeWF.Toolkit)
 - [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit)
 - [Markdig](https://github.com/xoofx/markdig)
 

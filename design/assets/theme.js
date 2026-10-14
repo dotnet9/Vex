@@ -1,128 +1,65 @@
-/* ============================================================
-   Vex 界面原型 · 主题切换器
-   - 在 <head> 同步加载：立即设置 data-theme，避免闪烁
-   - DOMContentLoaded 后自动注入右下角悬浮切换面板
-   - localStorage 持久化，多页面 / 多标签页同步
-   - 快捷键：Alt + 1..6 切换主题
-   ============================================================ */
+﻿/* Vex 原型使用与应用一致的八套配色和独立三态模式。 */
 (function () {
-  var THEMES = [
-    { key: 'light',     name: '浅色 · 极地蓝', dots: ['#FFFFFF', '#1677FF', '#FDFDFD'] },
-    { key: 'dark',      name: '深色 · 石墨',   dots: ['#151B26', '#60A5FA', '#111827'] },
-    { key: 'aquatic',   name: '水生 · 湖心青', dots: ['#FFFFFF', '#0EA5B7', '#F0FAFD'] },
-    { key: 'desert',    name: '沙漠 · 暖阳橙', dots: ['#FFFFFF', '#C77B2A', '#FCF7F0'] },
-    { key: 'dusk',      name: '黄昏 · 薄暮紫', dots: ['#FFFFFF', '#8A63D2', '#F5F7FB'] },
-    { key: 'night-sky', name: '夜空 · 深海蓝', dots: ['#172033', '#7AA2FF', '#0D1320'] }
+  var palettes = [
+    ['dotnet','.NET 紫','#512BD4'], ['aurora','AI 极光','#8968FF'],
+    ['ember','AI 赤陶','#BD674D'], ['default','默认蓝','#0064FA'],
+    ['aquatic','水生','#008D9E'], ['desert','沙漠','#B57532'],
+    ['dusk','黄昏','#7A5CC4'], ['night-sky','夜空','#2B6CB0']
   ];
-  var STORE_KEY = 'vex-design-theme';
-
-  function current() {
-    // URL 参数 ?theme=xxx 优先（便于分享与无头截图），其次 localStorage
-    var fromUrl = new URLSearchParams(location.search).get('theme');
-    if (fromUrl && THEMES.some(function (x) { return x.key === fromUrl; })) return fromUrl;
-    var t = null;
-    try { t = localStorage.getItem(STORE_KEY); } catch (e) { /* file:// 下个别浏览器禁用 */ }
-    if (!t || !THEMES.some(function (x) { return x.key === t; })) t = 'light';
-    return t;
-  }
-
-  function apply(key) {
-    document.documentElement.setAttribute('data-theme', key);
-    try { localStorage.setItem(STORE_KEY, key); } catch (e) { /* ignore */ }
-    var panel = document.getElementById('vex-theme-panel');
-    if (panel) {
-      var rows = panel.querySelectorAll('.vtp-item');
-      rows.forEach(function (r) {
-        r.classList.toggle('on', r.getAttribute('data-key') === key);
-      });
-    }
+  var modes = [['system','跟随系统'],['light','浅色'],['dark','深色']];
+  var storeKey = 'vex-design-appearance', system = matchMedia('(prefers-color-scheme: dark)');
+  var state = { mode:'system', palette:'dotnet' };
+  try { Object.assign(state, JSON.parse(localStorage.getItem(storeKey) || '{}')); } catch (_) {}
+  var query = new URLSearchParams(location.search), theme = query.get('theme');
+  if (modes.some(item => item[0] === theme)) state.mode = theme;
+  else if (palettes.some(item => item[0] === theme)) state.palette = theme;
+  if (query.has('palette')) state.palette = query.get('palette');
+  function apply() {
+    if (!modes.some(item => item[0] === state.mode)) state.mode = 'system';
+    if (!palettes.some(item => item[0] === state.palette)) state.palette = 'dotnet';
+    document.documentElement.dataset.themeMode = state.mode;
+    document.documentElement.dataset.theme = state.mode === 'system' ? (system.matches ? 'dark' : 'light') : state.mode;
+    document.documentElement.dataset.palette = state.palette;
+    try { localStorage.setItem(storeKey, JSON.stringify(state)); } catch (_) {}
+    document.querySelectorAll('#vex-theme-panel button').forEach(button => {
+      var selected = button.dataset.mode ? button.dataset.mode === state.mode : button.dataset.palette === state.palette;
+      button.classList.toggle('on', selected); button.setAttribute('aria-pressed', String(selected));
+    });
     var fab = document.getElementById('vex-theme-fab');
-    if (fab) {
-      var theme = THEMES.filter(function (x) { return x.key === key; })[0];
-      if (theme) fab.style.background = 'conic-gradient(from 210deg, ' + theme.dots[1] + ', ' + theme.dots[0] + ', ' + theme.dots[1] + ')';
-    }
+    if (fab) fab.style.background = palettes.find(item => item[0] === state.palette)[2];
   }
-
-  // 尽早执行，避免主题闪烁
-  apply(current());
-
-  window.addEventListener('storage', function (e) {
-    if (e.key === STORE_KEY && e.newValue) apply(e.newValue);
+  window.VexTheme = {
+    setMode: function(mode) { state.mode = mode; apply(); },
+    setPalette: function(palette) { state.palette = palette; apply(); }
+  };
+  apply();
+  system.addEventListener('change', function() { if (state.mode === 'system') apply(); });
+  window.addEventListener('storage', function(event) {
+    if (event.key !== storeKey) return;
+    try { Object.assign(state, JSON.parse(event.newValue || '{}')); apply(); } catch (_) {}
   });
-
-  window.addEventListener('keydown', function (e) {
-    if (e.altKey && !e.ctrlKey && !e.metaKey) {
-      var idx = parseInt(e.key, 10) - 1;
-      if (idx >= 0 && idx < THEMES.length) {
-        apply(THEMES[idx].key);
-      }
-    }
+  window.addEventListener('keydown', function(event) {
+    var index = Number(event.key) - 1;
+    if (event.altKey && !event.ctrlKey && index >= 0 && index < palettes.length) window.VexTheme.setPalette(palettes[index][0]);
   });
-
-  function inject() {
-    if (document.getElementById('vex-theme-fab')) return;
-
+  document.addEventListener('DOMContentLoaded', function() {
     var style = document.createElement('style');
-    style.textContent = [
-      '#vex-theme-fab{position:fixed;right:22px;bottom:22px;z-index:999;width:42px;height:42px;border-radius:50%;',
-      'border:2px solid rgba(255,255,255,.65);box-shadow:0 4px 14px rgba(0,0,0,.28);cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;}',
-      '#vex-theme-fab:hover{transform:scale(1.08);box-shadow:0 6px 20px rgba(0,0,0,.34);}',
-      '#vex-theme-panel{position:fixed;right:22px;bottom:74px;z-index:999;min-width:218px;background:var(--panel);',
-      'border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-pop);padding:8px;display:none;}',
-      '#vex-theme-panel.open{display:block;}',
-      '.vtp-title{font-size:11px;color:var(--muted);padding:2px 10px 7px;letter-spacing:.4px;display:flex;justify-content:space-between;align-items:center;}',
-      '.vtp-title .vtp-hint{font-size:10px;opacity:.8;}',
-      '.vtp-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:12.5px;color:var(--fg);}',
-      '.vtp-item:hover{background:var(--hover);}',
-      '.vtp-item.on{background:var(--accent-soft);color:var(--accent);font-weight:600;}',
-      '.vtp-dots{display:inline-flex;flex:none;}',
-      '.vtp-dots i{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--panel);margin-left:-4px;box-shadow:0 0 0 1px rgba(0,0,0,.10);}',
-      '.vtp-dots i:first-child{margin-left:0;}',
-      '.vtp-item .vtp-check{margin-left:auto;font-size:12px;font-weight:700;display:none;}',
-      '.vtp-item.on .vtp-check{display:inline;}'
-    ].join('');
+    style.textContent = '#vex-theme-fab{position:fixed;right:22px;bottom:22px;width:42px;height:42px;border-radius:50%;border:2px solid #fff8;z-index:999;cursor:pointer}' +
+      '#vex-theme-panel{position:fixed;right:22px;bottom:74px;z-index:999;padding:10px;min-width:230px;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-pop)}' +
+      '#vex-theme-panel[hidden]{display:none}.vtp-modes{display:flex;gap:4px;margin-bottom:8px}.vtp-item{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;border-radius:6px;padding:7px;background:transparent;color:var(--fg);cursor:pointer}.vtp-item:hover{background:var(--hover)}.vtp-item.on{background:var(--accent-soft);color:var(--accent)}.vtp-item i{width:13px;height:13px;border-radius:50%}.vtp-modes button{white-space:nowrap}';
     document.head.appendChild(style);
-
-    var panel = document.createElement('div');
-    panel.id = 'vex-theme-panel';
-    var rows = THEMES.map(function (t, i) {
-      return '<div class="vtp-item" data-key="' + t.key + '">' +
-        '<span class="vtp-dots">' + t.dots.map(function (c) { return '<i style="background:' + c + '"></i>'; }).join('') + '</span>' +
-        '<span>' + t.name + '</span>' +
-        '<span class="vtp-check">✓</span>' +
-        '<span class="kbd" style="margin-left:auto">' + (i + 1) + '</span>' +
-        '</div>';
-    }).join('');
-    panel.innerHTML = '<div class="vtp-title"><span>主题色 · 与 App 同步</span><span class="vtp-hint">Alt+1..6</span></div>' + rows;
-
-    var fab = document.createElement('button');
-    fab.id = 'vex-theme-fab';
-    fab.title = '切换主题色';
-    fab.setAttribute('aria-label', '切换主题色');
-
-    document.body.appendChild(panel);
-    document.body.appendChild(fab);
-
-    panel.querySelectorAll('.vtp-item').forEach(function (row) {
-      row.addEventListener('click', function () {
-        apply(row.getAttribute('data-key'));
-      });
+    var panel = document.createElement('div'); panel.id = 'vex-theme-panel'; panel.hidden = true;
+    panel.innerHTML = '<div class="vtp-modes">' + modes.map(item => '<button class="vtp-item" data-mode="'+item[0]+'">'+item[1]+'</button>').join('')+'</div>' +
+      palettes.map(item => '<button class="vtp-item" data-palette="'+item[0]+'"><i style="background:'+item[2]+'"></i>'+item[1]+'</button>').join('');
+    var fab = document.createElement('button'); fab.id = 'vex-theme-fab'; fab.setAttribute('aria-label','切换主题');
+    document.body.append(panel,fab);
+    panel.addEventListener('click', function(event) {
+      var button = event.target.closest('button'); if (!button) return;
+      if (button.dataset.mode) window.VexTheme.setMode(button.dataset.mode);
+      if (button.dataset.palette) window.VexTheme.setPalette(button.dataset.palette);
     });
-
-    fab.addEventListener('click', function () {
-      panel.classList.toggle('open');
-    });
-
-    document.addEventListener('click', function (e) {
-      if (!panel.contains(e.target) && e.target !== fab) panel.classList.remove('open');
-    });
-
-    apply(current());
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inject);
-  } else {
-    inject();
-  }
+    fab.onclick = function() { panel.hidden = !panel.hidden; };
+    document.addEventListener('click', function(event) { if (!panel.contains(event.target) && event.target !== fab) panel.hidden = true; });
+    apply();
+  });
 })();

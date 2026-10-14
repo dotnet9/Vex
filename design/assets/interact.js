@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    Vex 界面原型 · 交互层（单页版）
    页面只有一个主窗体（index.html），所有界面通过标题菜单 / 状态栏
    在窗体内以浮层呼出：
@@ -10,7 +10,7 @@
 (function () {
   var VexProto = {
     applyTheme: function (key) {
-      if (typeof apply === 'function') apply(key);
+      window.VexTheme.setMode(key);
     }
   };
   window.VexProto = VexProto;
@@ -36,14 +36,10 @@
 
   /* ---------- 标题菜单（ShellTitleMenuView.axaml 的原型化） ---------- */
   var THEME_ITEMS = [
-    { label: '跟随系统', theme: 'light' },
-    { label: '浅色 · 极地蓝', theme: 'light' },
-    { label: '深色 · 石墨', theme: 'dark' },
-    { sep: true },
-    { label: '水生 · 湖心青', theme: 'aquatic', checked: true },
-    { label: '沙漠 · 暖阳橙', theme: 'desert' },
-    { label: '黄昏 · 薄暮紫', theme: 'dusk' },
-    { label: '夜空 · 深海蓝', theme: 'night-sky' }
+    { label:'跟随系统', theme:'system' }, { label:'浅色', theme:'light' }, { label:'深色', theme:'dark' }, { sep:true },
+    { label:'.NET 紫', palette:'dotnet' }, { label:'AI 极光', palette:'aurora' }, { label:'AI 赤陶', palette:'ember' },
+    { label:'默认蓝', palette:'default' }, { label:'水生', palette:'aquatic' }, { label:'沙漠', palette:'desert' },
+    { label:'黄昏', palette:'dusk' }, { label:'夜空', palette:'night-sky' }
   ];
   var TYPE_ITEMS = ['Basic', '简', '橙心', '墨黑', '姹紫', '嫩青', '绿意', '红绯', '蓝莹', '科技蓝', '兰青', '山吹', '前端之峰', '极客黑', '蔷薇紫', '萌绿', '全栈蓝', '微信公众号'];
 
@@ -129,7 +125,7 @@
     ]},
     { key: 'help', label: '帮助(H)', items: [
       { label: '主题色', sub: THEME_ITEMS.map(function (t) {
-        return t.sep ? { sep: true } : { label: t.label, check: true, on: !!t.checked, action: 'theme', arg: t.theme };
+        return t.sep ? { sep: true } : { label: t.label, check: true, on: !!t.checked, action: t.palette ? 'palette' : 'theme', arg: t.palette || t.theme };
       })},
       { label: '排版', sub: TYPE_ITEMS.map(function (n, i) {
         return { label: n, check: true, on: i === 0, toast: '排版主题已切换为「' + n + '」（演示）' };
@@ -164,6 +160,8 @@
   function buildItem(it, toastAll) {
     if (it.sep) { var s = document.createElement('div'); s.className = 'menu-sep'; return s; }
     if (it.action === 'toggle-sidebar' && VexProto.isSidebarVisible) it.on = VexProto.isSidebarVisible();
+    if (it.action === 'theme') it.on = document.documentElement.dataset.themeMode === it.arg;
+    if (it.action === 'palette') it.on = document.documentElement.dataset.palette === it.arg;
     var el = document.createElement('div');
     el.className = 'menu-item' + (it.danger ? ' danger' : '') + (it.on ? ' checked' : '') + (it.sub ? ' has-sub' : '');
     if (it.icon && document.getElementById(it.icon)) {
@@ -218,8 +216,9 @@
         else el._placeSub();
         return;
       }
-      if (it.action === 'theme') {
-        VexProto.applyTheme(it.arg);
+      if (it.action === 'theme' || it.action === 'palette') {
+        if (it.action === 'palette') window.VexTheme.setPalette(it.arg);
+        else VexProto.applyTheme(it.arg);
         closeOpenMenu();
         VexProto.toast('主题已切换为「' + it.label + '」');
         return;
