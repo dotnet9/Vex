@@ -113,6 +113,30 @@ write_info_plist() {
   <true/>
   <key>LSMinimumSystemVersion</key>
   <string>11.0</string>
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeName</key><string>Markdown</string>
+      <key>CFBundleTypeExtensions</key><array><string>md</string><string>markdown</string><string>mdown</string></array>
+      <key>CFBundleTypeRole</key><string>Editor</string>
+      <key>LSHandlerRank</key><string>Alternate</string>
+      <key>LSItemContentTypes</key><array><string>net.daringfireball.markdown</string></array>
+      <key>CFBundleTypeIconFile</key><string>$APP_NAME</string>
+    </dict>
+  </array>
+  <key>UTImportedTypeDeclarations</key>
+  <array>
+    <dict>
+      <key>UTTypeIdentifier</key><string>net.daringfireball.markdown</string>
+      <key>UTTypeConformsTo</key><array><string>public.plain-text</string></array>
+      <key>UTTypeDescription</key><string>Markdown</string>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key><array><string>md</string><string>markdown</string><string>mdown</string></array>
+        <key>public.mime-type</key><string>text/markdown</string>
+      </dict>
+    </dict>
+  </array>
 </dict>
 </plist>
 PLIST

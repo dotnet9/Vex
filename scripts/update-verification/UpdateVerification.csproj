@@ -7,6 +7,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CodeWF.Toolkit.Core" />
-    <Compile Include="../../src/Vex/Modules/Shell/Services/ShellUpdateChecker.cs" Link="ShellUpdateChecker.cs" />
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="ReactiveUI.Avalonia" />
+    <PackageReference Include="Irihi.Ursa.Themes.Semi" />
+    <Compile Include="../../src/Vex/Modules/Shell/ViewModels/ShellAboutViewModel.cs" Link="ShellAboutViewModel.cs" />
+    <Compile Include="../../src/Vex/Core/Services/IAppLocalizer.cs" Link="IAppLocalizer.cs" />
+    <Compile Include="../../src/Vex/I18n/Language.cs" Link="Language.cs" />
   </ItemGroup>
 </Project>

@@ -1,67 +1,24 @@
-# Demo / Vex 离屏验证
+﻿# Vex 离屏回归验证
 
-加载实际 App、XAML、模板和 ViewModel，用 Avalonia.Headless + Skia 后台绘制。输入只发到离屏窗口；Vex 设置/草稿/最近记录为内存服务，MCP 关闭。不操作真实桌面，不修改草稿或关闭已有应用。
+加载本仓库的实际 App、主窗口、XAML 模板和 ViewModel，通过 Avalonia.Headless 与 Skia 绘制，不操作真实桌面。设置、草稿及最近记录使用内存服务，MCP 关闭，文件关联注册跳过。五份 Markdown 输入位于本目录的 `MarkdownSamples/`，每轮复制到输出目录后再测试保存流程。
 
-需要 .NET 10 SDK。默认布局是 E:/github/Apps/Vex 和 E:/github/Libs/CodeWF.Markdown；其他布局通过 `-p:MarkdownRepoRoot=...` 指定库路径。
-
-## 依赖来源
-
-Vex 默认从 nuget.org 恢复 Directory.Packages.props 中指定的正式版四包，无需本地打包。下面的打包步骤仅用于修改库代码后、正式发布前的开发联调。
-
-在库仓库执行。改产品代码后先递增 Directory.Build.props 的 Version，再同步 Vex 四包版本。覆盖同版本 nupkg 不会刷新 NuGet 缓存。
+需要 .NET 10 SDK；自研库通过 `Directory.Packages.props` 指定的 NuGet 包安装，不依赖其他仓库源码。
 
 ```powershell
-foreach ($projectName in @('CodeWF.Markdown.Lite','CodeWF.Markdown','CodeWF.Markdown.Lite.Themes','CodeWF.Markdown.Themes')) {
-    dotnet pack "src/$projectName/$projectName.csproj" -c Debug -o E:/github/Libs/nuget-local
-    if ($LASTEXITCODE -ne 0) { throw "Packing $projectName failed" }
-}
+dotnet run --project scripts/ui-verification/UiVerification.csproj -c Release `
+    --artifacts-path ./artifacts/verification -- vex ./artifacts/ui-verification
+if ($LASTEXITCODE -ne 0) { throw 'Vex UI verification failed' }
 ```
 
-使用开发版本时，恢复源需要同时包含本地源和 nuget.org。正式版验证直接使用下面的命令。
+开发联调时将库打包到环境变量 `temp_nugets` 指定目录，通过仓库外的 NuGet 配置恢复；不提交本地源或绝对路径。日志、截图等临时输出可指定到仓库外临时目录。
 
-## 构建和运行
+验证范围：
 
-在 Vex 仓库执行，隔离输出避免覆盖运行中的二进制。
+- 真实窗口标题栏与内容区坐标、1 像素分隔线，避免重复预留标题栏高度；八套配色各自浅深模式及窄窗口。
+- 21.875 像素源码行高、鼠标点击与键盘光标移动；五个文件连续切换。
+- 未保存确认的取消、放弃和保存分支；确认期间标题菜单禁用；草稿恢复后的修改状态。
+- 关于浮层在真实主窗口内显示与关闭。
+- 文件树层级、16 像素缩进、紧凑行高、图标与箭头对齐、折叠展开、过滤及文字对比度。
+- 侧栏显隐、宽度、菜单勾选与设置持久化。
 
-```powershell
-dotnet build scripts/ui-verification/UiVerification.csproj -c Debug `
-    --artifacts-path E:/github/Apps/Vex/artifacts/verification
-
-New-Item -ItemType Directory -Force E:/github/Libs/CodeWF.Markdown/artifacts/ui-verification | Out-Null
-New-Item -ItemType Directory -Force E:/github/Apps/Vex/artifacts/ui-verification | Out-Null
-
-dotnet artifacts/verification/bin/UiVerification/debug/UiVerification.dll sample `
-    E:/github/Libs/CodeWF.Markdown/artifacts/ui-verification |
-    Tee-Object E:/github/Libs/CodeWF.Markdown/artifacts/ui-verification/verification.log
-if ($LASTEXITCODE -ne 0) { throw 'Demo verification failed' }
-
-dotnet artifacts/verification/bin/UiVerification/debug/UiVerification.dll vex `
-    E:/github/Apps/Vex/artifacts/ui-verification |
-    Tee-Object E:/github/Apps/Vex/artifacts/ui-verification/verification.log
-if ($LASTEXITCODE -ne 0) { throw 'Vex verification failed' }
-```
-
-同时引用源码 Demo 和 Vex 的 NuGet 依赖，同版本不同 DLL 也可能在复制时选到旧文件。因此库改动必须提升版本并重新打包。
-
-## 覆盖与边界
-
-- Demo：明/暗 × 1400/980 × 四模式；所有样例在分栏、预览、双预览、实时编辑中正反切换、快速切换最终状态与渲染块索引一致性；源码往返、22.1px 行高及点击/键盘光标定位、选中图标/竖条、活动按钮、标题高度；实际点击/输入/Esc、共享引用编辑、源码同步、性能插入/停止、双预览。可用 `sample-switch` 只运行样例切换回归。
-- Vex：六主题/980px；21.875px 源码行高及换行后键盘移动、标题线实际像素、紧凑带图标页签、正文边框、文件行画刷和普通标题对比度；文件树多层/同级对齐、16px 缩进、长文件名省略、图文/箭头对齐与点击展开/折叠、筛选；五文件切换、未保存浮层、草稿基线、侧栏勾选/宽度/持久化字段。
-- PNG/日志保存在参数指定目录，覆盖首屏、中部/底部和标题局部；断言失败返回非零。
-
-不渲染浏览器原型，也不模拟 Windows 标题按钮、DPI、IME。CSS 数值、截图视觉检查和 UI 断言共同构成证据，程序通过不等于全页逐像素一致。
-
-原型维护规格见本仓库 `design/README.md` 和 CodeWF.Markdown 的 `design/README.md`。`artifacts/verification`、两个仓库的 `artifacts/ui-verification` 都是可重建输出；验证完成后可删除。正式版从 nuget.org 恢复后，本地联调包也可清理。
-
-## 清理输出
-
-关闭本轮验证进程后，在 Vex 仓库运行：
-
-```powershell
-pwsh -NoProfile -File scripts/clean-development-artifacts.ps1 -WhatIf
-pwsh -NoProfile -File scripts/clean-development-artifacts.ps1
-```
-
-脚本清理两个仓库的 `artifacts`、测试结果和空 `.plan`。开发版只删除同开发日期下更早的迭代包；正式版确认可在 nuget.org 恢复后，删除相同正式版本对应的本地开发包。非空计划目录会停止清理，便于先核对其中内容。支持 `-MarkdownRepoRoot` 和 `-LocalPackageSource` 指定其他布局；不关闭运行中的应用，应用占用输出时应先自行关闭。
-
-正式版号因发布修复递增时，可用 `-SupersededDevelopmentVersions 14.0.1` 明确清理之前用于联调的开发版本；脚本拒绝删除比当前正式依赖更新的版本。
+任何断言失败均返回非零退出码，PNG 输出到指定目录。离屏结果不替代 Windows 实际窗口、DPI、IME、文件关联和 NativeAOT 运行验收。

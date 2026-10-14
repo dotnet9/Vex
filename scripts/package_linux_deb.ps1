@@ -37,15 +37,17 @@ $stageRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("Vex-deb-" + [Guid]::N
 $appPath = Join-Path $stageRoot "usr/lib/vex"
 $binPath = Join-Path $stageRoot "usr/bin"
 $desktopPath = Join-Path $stageRoot "usr/share/applications"
+$iconPath = Join-Path $stageRoot "usr/share/icons/hicolor/256x256/apps"
 $controlPath = Join-Path $stageRoot "DEBIAN"
 
 if ((Test-Path -LiteralPath $packagePath) -and -not $Force) {
     throw "Artifact already exists: $packagePath (use -Force to overwrite)."
 }
 New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
-New-Item -ItemType Directory -Path $appPath, $binPath, $desktopPath, $controlPath -Force | Out-Null
+New-Item -ItemType Directory -Path $appPath, $binPath, $desktopPath, $iconPath, $controlPath -Force | Out-Null
 
 try {
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "logo.png") -Destination (Join-Path $iconPath "vex.png")
     Get-ChildItem -LiteralPath $sourcePath -Force | ForEach-Object {
         Copy-Item -LiteralPath $_.FullName -Destination $appPath -Recurse -Force
     }
@@ -67,7 +69,9 @@ try {
         "Type=Application",
         "Name=Vex",
         "Comment=Vex Markdown editor",
-        "Exec=vex",
+        "Exec=vex %f",
+        "Icon=vex",
+        "MimeType=text/markdown;text/x-markdown;",
         "Terminal=false",
         "Categories=Office;TextEditor;"
     ) | Set-Content -LiteralPath (Join-Path $desktopPath "vex.desktop") -Encoding ascii

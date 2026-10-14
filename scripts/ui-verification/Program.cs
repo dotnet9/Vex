@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Input;
@@ -8,9 +8,8 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
-using CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg;
 using Prism.Ioc;
-using Semi.Avalonia;
+using CodeWF.Avalonia.Controls.Themes;
 using SkiaSharp;
 using Vex.Core.Models;
 using Vex.Core.Services;
@@ -19,135 +18,12 @@ using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Workspace.ViewModels;
 using Vex.Modules.Workspace.Services;
 using Vex.Core.Messaging;
-using SampleVm = CodeWF.Avalonia.Markdown.Sample.ViewModels.MainWindowViewModel;
 
-var mode = args.FirstOrDefault() ?? "sample";
+var mode = args.FirstOrDefault() ?? "vex";
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
-if (mode is "sample" or "sample-switch")
-{
-    AppBuilder.Configure<CodeWF.Avalonia.Markdown.Sample.App>().UseSkia().WithInterFont()
-        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
-    var window = new CodeWF.Avalonia.Markdown.Sample.Views.MainWindow();
-    var vm = (SampleVm)window.DataContext!;
-    window.Show();
-    var sourceView = window.GetVisualDescendants().OfType<MarkdownEditorView>().Single();
-    Pump();
-    VerifySourceLineHeight(window, sourceView, 22.1, "Demo");
-    Check(vm.Markdown.StartsWith("# 基础元素"), "Demo default document matches prototype");
-    var original = vm.Markdown;
-    VerifyDemoDocumentSwitches(window, vm);
-    if (mode == "sample-switch")
-    {
-        window.Close();
-        return;
-    }
-    foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "MarkdownSamples"), "*.md", SearchOption.AllDirectories))
-    {
-        var source = File.ReadAllText(file);
-        Check(MarkdownBlockParser.Write(MarkdownBlockParser.Parse(source)) == source,
-            "Live parser preserves exact sample source: " + Path.GetFileName(file));
-    }
-    foreach (var theme in new[] { ThemeVariant.Light, ThemeVariant.Dark })
-    {
-        vm.SelectedThemeVariant = vm.ThemeVariants.Single(option => option.ThemeVariant == theme);
-        foreach (var size in new[] { (1400d, 900d), (980d, 640d) })
-        {
-            window.Width = size.Item1;
-            window.Height = size.Item2;
-            foreach (var viewMode in new[] { "split", "live", "preview", "edit" })
-            {
-                vm.ViewMode = viewMode;
-                Pump();
-                SettleRendering();
-                Check(vm.Markdown == original, $"Demo {viewMode} mode preserves source");
-                VerifyDemoDetails(window, theme, viewMode);
-                Capture(window, $"demo-{theme}-{size.Item1}-{viewMode}");
-                if (size.Item1 == 1400 && viewMode is "preview" or "live")
-                {
-                    var scroll = window.GetVisualDescendants().OfType<ScrollViewer>()
-                        .Where(s => s.IsEffectivelyVisible && s.Bounds.Height > 500 && s.Extent.Height > s.Viewport.Height)
-                        .OrderByDescending(s => s.Bounds.Width).First();
-                    scroll.Offset = new Vector(0, (scroll.Extent.Height - scroll.Viewport.Height) / 2);
-                    Pump();
-                    Capture(window, $"demo-{theme}-{viewMode}-middle");
-                    scroll.Offset = new Vector(0, scroll.Extent.Height);
-                    Pump();
-                    Check(scroll.Offset.Y > 0, $"Demo {viewMode} screenshot scrolls the visible document");
-                    Capture(window, $"demo-{theme}-{viewMode}-bottom");
-                    scroll.Offset = default;
-                    Pump();
-                }
-            }
-        }
-    }
-    vm.ViewMode = "live";
-    window.Width = 1400;
-    window.Height = 900;
-    vm.SelectedThemeVariant = vm.ThemeVariants.Single(option => option.ThemeVariant == ThemeVariant.Light);
-    Pump();
-    SettleRendering();
-    var live = window.GetVisualDescendants().OfType<MarkdownLiveEditorView>().Single();
-    var heading = live.GetVisualDescendants().OfType<SelectableTextBlock>().First(text => text.IsEffectivelyVisible);
-    var click = heading.TranslatePoint(new Point(10, heading.Bounds.Height / 2), window)!.Value;
-    window.MouseDown(click, MouseButton.Left);
-    window.MouseUp(click, MouseButton.Left);
-    Pump();
-    Check(live.ActiveBlockIndex == 0, "Demo clicking the rendered heading activates its editor");
-    Capture(window, "demo-live-editing");
-    Check(window.FocusManager?.GetFocusedElement() is TextBox, "Demo click keeps keyboard focus in the live editor");
-    window.KeyPress(Key.A, RawInputModifiers.Control, PhysicalKey.A, "a");
-    window.KeyRelease(Key.A, RawInputModifiers.Control, PhysicalKey.A, "a");
-    window.KeyTextInput("基础元素（离屏验证）");
-    Pump();
-    Check(vm.Markdown == original.Replace("# 基础元素", "# 基础元素（离屏验证）"),
-        "Demo live text input updates only the active heading and synchronizes the document");
-    window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
-    window.KeyRelease(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
-    Pump();
-    SettleRendering();
-    Capture(window, "demo-live-edited");
-    vm.ViewMode = "split";
-    Pump();
-    Check(window.GetVisualDescendants().OfType<MarkdownEditorView>().Single().Text == vm.Markdown,
-        "Demo returning to split mode preserves the live edit in the source editor");
-    vm.Markdown = original;
-    vm.ViewMode = "live";
-    Pump();
-    SettleRendering();
-    var quoteGroup = live.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("MdLiveQuote"));
-    var quoteParagraphs = quoteGroup.GetVisualDescendants().OfType<SelectableTextBlock>().ToArray();
-    Check(quoteParagraphs.Length == 2, "Demo multi-paragraph quote shares one container");
-    var quoteClick = quoteParagraphs[0].TranslatePoint(new Point(10, quoteParagraphs[0].Bounds.Height / 2), window)!.Value;
-    window.MouseDown(quoteClick, MouseButton.Left);
-    window.MouseUp(quoteClick, MouseButton.Left);
-    Pump();
-    Check(window.FocusManager?.GetFocusedElement() is TextBox, "Demo grouped quote paragraph keeps editing focus");
-    window.KeyPress(Key.A, RawInputModifiers.Control, PhysicalKey.A, "a");
-    window.KeyRelease(Key.A, RawInputModifiers.Control, PhysicalKey.A, "a");
-    window.KeyTextInput("引用段落编辑（离屏验证）");
-    Pump();
-    Check(vm.Markdown.Contains("> 引用段落编辑（离屏验证）") && vm.Markdown.Contains("[跳到代码示例](#代码高亮)")
-        && vm.Markdown.Contains("## 任务列表"), "Demo grouped quote edit preserves sibling link and following blocks");
-    window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
-    window.KeyRelease(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
-    Pump();
-    SettleRendering();
-    Capture(window, "demo-live-quote-edited");
-    vm.Markdown = original;
-    vm.ViewMode = "split";
-    vm.StartIncrementalStressCommand.Execute("insert");
-    vm.StopIncrementalStressCommand.Execute(null);
-    Check(!vm.IsIncrementalStressRunning, "Demo stop command stops the timer");
-    Check(vm.Markdown.Contains("中部插入锚点"), "Demo insert command inserts a section");
-    vm.SetViewModeCommand.Execute("pair");
-    Pump();
-    Check(vm.IsPairVisible, "Demo dual preview is reachable");
-    Capture(window, "demo-pair");
-    window.Close();
-}
-else if (mode == "vex")
+if (mode == "vex")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().WithInterFont()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -156,6 +32,7 @@ else if (mode == "vex")
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
     Pump();
+    VerifyTitleLayout(window);
     Check(Math.Abs(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width - 252) < 1,
         "Vex sidebar initially occupies 252 px");
     var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
@@ -164,11 +41,16 @@ else if (mode == "vex")
     Pump();
     var sidebarMenu = titleMenu.FindControl<MenuItem>("SidebarMenuItem")!;
     Check(sidebarMenu.IsChecked, "Vex Sidebar menu is initially checked");
-    Check(sidebarMenu.Header?.ToString() == "侧边栏", "Vex Sidebar menu label is localized");
+    Check(sidebarMenu.Header?.ToString() == app.Resolve<IAppLocalizer>().Get(Vex.VexL.ToggleSidebar),
+        "Vex Sidebar menu label is localized");
     viewMenu.IsSubMenuOpen = false;
     viewMenu.IsSelected = false;
     Pump();
-    var sampleFolder = Path.Combine(AppContext.BaseDirectory, "MarkdownSamples");
+    // 每轮复制到独立输出目录，保存路径回归不会污染测试输入或用户文档。
+    var sampleFolder = Path.Combine(output, "documents");
+    Directory.CreateDirectory(sampleFolder);
+    foreach (var sample in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "MarkdownSamples"), "*.md"))
+        File.Copy(sample, Path.Combine(sampleFolder, Path.GetFileName(sample)), overwrite: true);
     var files = Directory.GetFiles(sampleFolder, "*.md").Order().Take(5).ToArray();
     Check(files.Length == 5, "Vex regression uses five real sample files");
     foreach (var file in files)
@@ -188,10 +70,34 @@ else if (mode == "vex")
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Any());
     var dialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Single();
     Check(vm.DocumentInfo.CurrentFilePath == files[^1], "Dirty-file switch waits for save confirmation");
+    Check(!titleMenu.IsEffectivelyEnabled, "Modal confirmation disables title menu commands");
     Capture(window, "vex-unsaved-confirmation");
     ((ShellUnsavedDialogViewModel)dialog.DataContext!).Cancel();
     Pump();
     Check(vm.DocumentInfo.IsModified, "Cancel keeps the edited document dirty");
+    Check(vm.DocumentInfo.CurrentFilePath == files[^1], "Cancel keeps the current document selected");
+    Check(titleMenu.IsEffectivelyEnabled, "Closing the modal confirmation re-enables title menu commands");
+    var unchanged = File.ReadAllText(files[^1]);
+    vm.ApplyDocumentFileOpenRequested(new DocumentFileOpenRequestedCommand(
+        new DocumentFile(files[0], Path.GetFileName(files[0]), sampleFolder, string.Empty, string.Empty), null));
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Any());
+    ((ShellUnsavedDialogViewModel)window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>()
+        .Single().DataContext!).Discard();
+    PumpUntil(() => vm.DocumentInfo.CurrentFilePath == files[0]);
+    Check(!vm.DocumentInfo.IsModified && File.ReadAllText(files[^1]) == unchanged,
+        "Discard opens the requested document without saving the previous edits");
+    editorVm.InsertText(" saved regression edit");
+    Pump();
+    var expectedSaved = window.GetVisualDescendants().OfType<MarkdownEditorView>().Single().Text;
+    vm.ApplyDocumentFileOpenRequested(new DocumentFileOpenRequestedCommand(
+        new DocumentFile(files[1], Path.GetFileName(files[1]), sampleFolder, string.Empty, string.Empty), null));
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Any());
+    ((ShellUnsavedDialogViewModel)window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>()
+        .Single().DataContext!).Save();
+    PumpUntil(() => vm.DocumentInfo.CurrentFilePath == files[1]);
+    Check(!vm.DocumentInfo.IsModified && File.ReadAllText(files[0]) == expectedSaved,
+        "Save writes the current document before switching to the requested document");
+    File.Copy(Path.Combine(AppContext.BaseDirectory, "MarkdownSamples", Path.GetFileName(files[0])), files[0], overwrite: true);
     Pump(vm.OpenPathAsync(files[0]));
     var drafts = (MemoryDrafts)app.Resolve<IAutoSaveDraftService>();
     drafts.RestoredMarkdown = "# recovered draft";
@@ -199,12 +105,34 @@ else if (mode == "vex")
     Check(vm.DocumentInfo.IsModified, "A recovered draft different from disk remains unsaved");
     drafts.RestoredMarkdown = null;
     Pump(vm.OpenPathAsync(files[0]));
+    var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
+    var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
+    Check(about.IsEffectivelyVisible && about.Bounds.Width > 0 && !titleMenu.IsEffectivelyEnabled,
+        "About opens inside the real main window modal host");
+    Capture(window, "vex-about");
+    ((ShellAboutViewModel)about.DataContext!).Close();
+    Pump(aboutTask);
     VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
-    foreach (var theme in new[] { ThemeVariant.Light, ThemeVariant.Dark, SemiTheme.Aquatic, SemiTheme.Desert, SemiTheme.Dusk, SemiTheme.NightSky })
+    Check(vm.Appearance.PaletteOptions.Count == 8 && vm.Appearance.ThemeOptions.Count == 3,
+        "Vex exposes eight palettes and three independent theme modes");
+    foreach (var palette in vm.Appearance.PaletteOptions)
+    foreach (var modeOption in vm.Appearance.ThemeOptions.Where(option => option.Mode != StudioThemeMode.System))
     {
-        Application.Current!.RequestedThemeVariant = theme;
+        vm.Appearance.SelectedPalette = palette;
+        vm.Appearance.SelectedTheme = modeOption;
+        var theme = Application.Current!.ActualThemeVariant;
+        Check(theme == StudioTheme.GetVariant(palette.Palette, modeOption.Mode == StudioThemeMode.Dark),
+            "Vex selected mode and palette reach the shared theme controller: " + theme);
+        Check(app.Resolve<IAppSettingsStore>().Current is { } settings
+            && settings.ThemeKey == modeOption.Key && settings.PaletteKey == palette.Key,
+            "Vex stores palette and mode independently: " + theme);
         Pump();
         SettleRendering();
+        Application.Current.TryGetResource("VexAccentBrush", theme, out var appAccent);
+        Application.Current.TryGetResource("StudioAccent", theme, out var sharedAccent);
+        Check(SameBrush(appAccent as IBrush, sharedAccent as IBrush),
+            "Vex brushes follow the shared palette tokens: " + theme);
         Capture(window, "vex-" + theme);
         VerifyVexDetails(window, theme);
         VerifyFileColors(window, theme);
@@ -217,6 +145,9 @@ else if (mode == "vex")
         previewScroll.Offset = default;
         Pump();
     }
+    vm.Appearance.SelectThemeByKey("system");
+    Check(vm.Appearance.SelectedTheme?.Mode == StudioThemeMode.System,
+        "Vex can return to system mode after explicit light and dark selections");
     vm.Layout.IsSidebarVisible = false;
     Pump();
     Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 0, "Vex sidebar collapses");
@@ -230,10 +161,11 @@ else if (mode == "vex")
     window.Width = 980;
     window.Height = 640;
     Pump();
+    VerifyTitleLayout(window);
     Capture(window, "vex-980");
     window.Close();
 }
-else throw new ArgumentException("Expected sample or vex");
+else throw new ArgumentException("Expected vex");
 Console.WriteLine("UI verification passed; images: " + output);
 
 void Check(bool condition, string message)
@@ -262,8 +194,8 @@ void Capture(Window window, string name)
 {
     Pump();
     using var frame = window.CaptureRenderedFrame() ?? throw new Exception("No rendered frame");
-    frame.Save(Path.Combine(output, name + ".png"));
-    if (name is "vex-Light" or "vex-Dark" or "demo-Light-1400-split" or "demo-Dark-1400-split")
+    frame.Save(Path.Combine(output, name + ".png"), new Avalonia.Media.Imaging.PngBitmapEncoderOptions());
+    if (name is "vex-Light" or "vex-Dark")
     {
         using var bitmap = SKBitmap.Decode(Path.Combine(output, name + ".png"));
         using var crop = new SKBitmap(bitmap.Width, Math.Min(120, bitmap.Height));
@@ -283,45 +215,6 @@ void SettleRendering()
         Pump();
         Thread.Sleep(10);
     }
-}
-
-void VerifyDemoDocumentSwitches(Window window, SampleVm vm)
-{
-    var originalFile = vm.SelectedFile;
-    var originalMode = vm.ViewMode;
-    var files = vm.MarkdownFiles.ToArray();
-    foreach (var viewMode in new[] { "split", "preview", "pair", "live" })
-    {
-        vm.ViewMode = viewMode;
-        foreach (var file in files.Concat(files.Reverse()))
-        {
-            vm.SelectedFile = file;
-            Pump();
-            SettleRendering();
-            foreach (var viewer in window.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
-                         .Where(v => v.IsEffectivelyVisible))
-            {
-                Check(viewer.CurrentModel.Source == viewer.Markdown,
-                    $"Demo {viewMode} preview finishes rendering {file.Name}");
-                if (!viewer.EnableVirtualization || viewer.CurrentModel.Blocks.Count < viewer.VirtualizationThreshold)
-                    Check(viewer.RealizedBlockCount == viewer.CurrentModel.Blocks.Count,
-                        $"Demo {viewMode} rendered indices match the model: {file.Name}");
-            }
-            Check(vm.Markdown == File.ReadAllText(file.Path), $"Demo {viewMode} document switch preserves source: {file.Name}");
-        }
-    }
-    vm.ViewMode = "split";
-    for (var round = 0; round < 3; round++)
-        foreach (var file in files) vm.SelectedFile = file;
-    Pump();
-    SettleRendering();
-    Check(window.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
-        .Where(v => v.IsEffectivelyVisible).All(v => v.CurrentModel.Source == vm.Markdown),
-        "Demo rapid switches display only the final document");
-    vm.SelectedFile = originalFile;
-    vm.ViewMode = originalMode;
-    Pump();
-    SettleRendering();
 }
 
 void PumpUntil(Func<bool> completed)
@@ -367,10 +260,10 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     // 仅构造文件列表快照，不创建或打开这些布局验证路径。
     var documents = new[]
     {
-        new DocumentFile(Path.Combine(sampleFolder, "Regression", "01-基础元素.md"), "01-基础元素.md", "Regression", "16:02", "摘要保留在提示中"),
-        new DocumentFile(Path.Combine(sampleFolder, "Regression", "02-非常长的文件名称用于验证省略而不是挤出文件树.md"), "02-非常长的文件名称用于验证省略而不是挤出文件树.md", "Regression", "昨天", "长摘要不撑高节点"),
-        new DocumentFile(Path.Combine(sampleFolder, "Regression", "Nested", "deep.md"), "deep.md", "Nested", "周一", "第三层文档"),
-        new DocumentFile(Path.Combine(sampleFolder, "root.md"), "root.md", "MarkdownSamples", "09-28", "根层文档")
+        new DocumentFile(Path.Combine(sampleFolder, "Regression", "01-basics.md"), "01-basics.md", "Regression", "16:02", "Summary remains in the tooltip"),
+        new DocumentFile(Path.Combine(sampleFolder, "Regression", "02-a-very-long-document-name-that-must-trim-inside-the-sidebar.md"), "02-a-very-long-document-name-that-must-trim-inside-the-sidebar.md", "Regression", "Yesterday", "Long summary does not expand the row"),
+        new DocumentFile(Path.Combine(sampleFolder, "Regression", "Nested", "deep.md"), "deep.md", "Nested", "Monday", "Nested document"),
+        new DocumentFile(Path.Combine(sampleFolder, "root.md"), "root.md", "MarkdownSamples", "09-28", "Root document")
     };
     vm.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(documents, documents[0], sampleFolder));
     Pump();
@@ -425,14 +318,32 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     Pump();
 }
 
+void VerifyTitleLayout(Window window)
+{
+    // 使用真实主窗口模板校验坐标，防止标题栏高度被内容区再次预留。
+    var shell = (CodeWF.Avalonia.Controls.Controls.CodeWFWindow)window;
+    var divider = window.FindControl<Border>("ShellTitleDivider")!;
+    var content = window.FindControl<Grid>("ShellGuideRoot")!;
+    var sidebar = window.FindControl<Border>("SidebarGuideTarget")!;
+    var spacer = window.GetVisualDescendants().OfType<Border>().Single(border => border.Name == "PART_TitleBarSpacer");
+    var titleBottom = spacer.TranslatePoint(default, window)!.Value.Y + spacer.Bounds.Height;
+    var dividerY = divider.TranslatePoint(default, window)!.Value.Y;
+    var contentY = content.TranslatePoint(default, window)!.Value.Y;
+    Check(divider.BorderThickness.Top == 1 && Math.Abs(dividerY - titleBottom) < 0.01
+        && Math.Abs(spacer.Bounds.Height - shell.TitleBarHeight) < 0.01,
+        $"Vex content divider starts immediately after the {shell.TitleBarHeight} px title bar: y={dividerY}");
+    Check(Math.Abs(contentY - dividerY - 1) < 0.01
+        && Math.Abs(sidebar.TranslatePoint(default, window)!.Value.Y - contentY) < 0.01,
+        $"Vex sidebar and workspace start below the 1 px divider without a blank row: y={contentY}");
+}
+
 void VerifyVexDetails(Window window, ThemeVariant theme)
 {
+    VerifyTitleLayout(window);
     var divider = window.FindControl<Border>("ShellTitleDivider")!;
-    Check(divider.BorderThickness.Top == 1 && divider.TranslatePoint(default, window)!.Value.Y == 39,
-        "Vex title divider is 1 px at y=39 under " + theme);
     using (var bitmap = SKBitmap.Decode(Path.Combine(output, "vex-" + theme + ".png")))
     {
-        var pixel = bitmap.GetPixel(1000, 39);
+        var pixel = bitmap.GetPixel(1000, (int)divider.TranslatePoint(default, window)!.Value.Y);
         var borderColor = ((ISolidColorBrush)divider.BorderBrush!).Color;
         Check(pixel.Red == borderColor.R && pixel.Green == borderColor.G && pixel.Blue == borderColor.B,
             "Vex screenshot contains the title border pixel under " + theme);
@@ -469,23 +380,6 @@ void VerifySourceLineHeight(Window window, MarkdownEditorView source, double exp
     Check(Math.Abs(source.Editor.TextArea.Caret.CalculateCaretRectangle().Top - caretTop - expected) < 1,
         $"{name} Down moves the caret by one visual source row, including wrapped lines");
     source.Editor.CaretOffset = 0;
-}
-
-void VerifyDemoDetails(Window window, ThemeVariant theme, string viewMode)
-{
-    Application.Current!.TryGetResource("DemoAccent", theme, out var accent);
-    var selected = window.GetVisualDescendants().OfType<ListBoxItem>().Single(item => item.IsSelected);
-    var icon = selected.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("doc-icon"));
-    Check(icon.Bounds.Size == new Size(30, 30) && SameBrush(icon.BorderBrush, (IBrush)accent!),
-        $"Demo selected file icon is 30 px with accent border ({theme}, {viewMode})");
-    var activeBar = selected.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "ActiveBar");
-    Check(activeBar.IsVisible && activeBar.Bounds.Height >= 30,
-        $"Demo selected file stripe spans the card ({theme}, {viewMode})");
-    var segment = window.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("seg") && b.Classes.Contains("on"));
-    var text = segment.GetVisualDescendants().OfType<TextBlock>().First();
-    Check(SameBrush(text.Foreground, (IBrush)accent!), $"Demo active view label uses accent ({theme}, {viewMode})");
-    Check(window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("titlebar")).Bounds.Height == 44,
-        $"Demo title bar is 44 px ({theme}, {viewMode})");
 }
 
 double Contrast(Color first, Color second)

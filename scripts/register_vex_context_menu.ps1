@@ -39,6 +39,23 @@ if ($env:OS -ne "Windows_NT") {
 
 $vexExecutable = Resolve-VexExecutable $VexPath
 $command = '"{0}" "%1"' -f $vexExecutable
+$progId = "Vex.Markdown"
+$classesRoot = "HKCU:\Software\Classes"
+
+if ($PSCmdlet.ShouldProcess($vexExecutable, "Register Vex Markdown opening candidate and icon")) {
+    Set-RegistryDefaultValue "$classesRoot\$progId" "Markdown"
+    Set-RegistryDefaultValue "$classesRoot\$progId\DefaultIcon" ('"{0}",0' -f $vexExecutable)
+    Set-RegistryDefaultValue "$classesRoot\$progId\shell\open\command" $command
+    Set-RegistryStringValue "$classesRoot\Applications\Vex.exe" "FriendlyAppName" "Vex"
+    Set-RegistryDefaultValue "$classesRoot\Applications\Vex.exe\DefaultIcon" ('"{0}",0' -f $vexExecutable)
+    Set-RegistryDefaultValue "$classesRoot\Applications\Vex.exe\shell\open\command" $command
+    foreach ($extension in @(".md", ".markdown", ".mdown")) {
+        Set-RegistryStringValue "$classesRoot\Applications\Vex.exe\SupportedTypes" $extension ""
+        $candidatePath = "$classesRoot\$extension\OpenWithProgids"
+        New-Item -Path $candidatePath -Force | Out-Null
+        (Get-Item -LiteralPath $candidatePath).SetValue($progId, [byte[]]@(), [Microsoft.Win32.RegistryValueKind]::None)
+    }
+}
 
 foreach ($extension in $supportedExtensions) {
     $verbPath = "HKCU:\Software\Classes\SystemFileAssociations\$extension\shell\$menuKeyName"
@@ -53,5 +70,5 @@ foreach ($extension in $supportedExtensions) {
     }
 }
 
-Write-Host "Registered Vex context menu for: $($supportedExtensions -join ', ')"
+Write-Host "Vex context menu targets: $($supportedExtensions -join ', ')"
 Write-Host "Command: $command"

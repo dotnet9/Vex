@@ -1,83 +1,43 @@
-#Requires -Version 7.0
+﻿#Requires -Version 7.0
 <#
-清理 Vex / CodeWF.Markdown 的可重建输出与不再使用的开发包。
-支持 -WhatIf；保留源码、原型、文档、样例及 Vex 当前引用的包。
+清理本仓库可重建的项目输出。支持 -WhatIf，不修改源码、设计文件或共享 NuGet 包目录。
+发布产物默认保留，需要清理时显式传入 -IncludePublishArtifacts。
 #>
 [CmdletBinding(SupportsShouldProcess)]
-param(
-    [string]$MarkdownRepoRoot = (Join-Path $PSScriptRoot '..\..\..\Libs\CodeWF.Markdown'),
-    [string]$LocalPackageSource,
-    [version[]]$SupersededDevelopmentVersions = @()
-)
+param([switch]$IncludePublishArtifacts)
 
 $ErrorActionPreference = 'Stop'
-$vexRepoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$MarkdownRepoRoot = (Resolve-Path -LiteralPath $MarkdownRepoRoot).Path
-if (-not (Test-Path -LiteralPath (Join-Path $MarkdownRepoRoot 'CodeWF.Markdown.slnx'))) {
-    throw 'MarkdownRepoRoot must point to the CodeWF.Markdown repository.'
-}
-if (-not $LocalPackageSource) {
-    $LocalPackageSource = Join-Path (Split-Path -Parent $MarkdownRepoRoot) 'nuget-local'
-}
-$LocalPackageSource = [IO.Path]::GetFullPath($LocalPackageSource)
+$repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$repositoryPrefix = $repositoryRoot.TrimEnd('\') + '\'
+$targets = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 
-$targets = @(
-    @{ Root = $vexRepoRoot; Relative = '.plan' },
-    @{ Root = $vexRepoRoot; Relative = 'artifacts' },
-    @{ Root = $MarkdownRepoRoot; Relative = '.plan' },
-    @{ Root = $MarkdownRepoRoot; Relative = 'artifacts' },
-    @{ Root = $MarkdownRepoRoot; Relative = 'tests\CodeWF.Markdown.Tests\TestResults' }
-)
-foreach ($target in $targets) {
-    $path = [IO.Path]::GetFullPath((Join-Path $target.Root $target.Relative))
-    if (-not $path.StartsWith($target.Root.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase)) {
+# 只枚举受版本控制的工程，避免进入输出目录、链接目录或其他仓库。
+$projects = & git -C $repositoryRoot ls-files -- '*.csproj'
+if ($LASTEXITCODE -ne 0) { throw 'Could not enumerate tracked projects.' }
+foreach ($project in $projects) {
+    $projectDirectory = Split-Path -Parent (Join-Path $repositoryRoot $project)
+    foreach ($output in @('bin', 'obj', 'TestResults')) {
+        [void]$targets.Add([IO.Path]::GetFullPath((Join-Path $projectDirectory $output)))
+    }
+}
+if ($IncludePublishArtifacts) {
+    [void]$targets.Add([IO.Path]::GetFullPath((Join-Path $repositoryRoot 'artifacts')))
+}
+
+foreach ($path in $targets) {
+    if (-not $path.StartsWith($repositoryPrefix, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Target is outside the repository: $path"
     }
     if (-not (Test-Path -LiteralPath $path)) { continue }
-    $item = Get-Item -LiteralPath $path -Force
-    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw "Refusing linked directory: $path" }
-    if ($target.Relative -eq '.plan' -and (Get-ChildItem -LiteralPath $path -Force)) {
-        throw "Plan directory contains files; review them before cleaning: $path"
+    $ancestor = Get-Item -LiteralPath $path -Force
+    while ($ancestor.FullName -ne $repositoryRoot) {
+        if ($ancestor.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+            throw "Refusing linked directory: $($ancestor.FullName)"
+        }
+        $ancestor = $ancestor.Parent
+        if ($null -eq $ancestor) { throw "Could not verify target ancestry: $path" }
     }
     if ($PSCmdlet.ShouldProcess($path, 'Remove generated directory')) {
         Remove-Item -LiteralPath $path -Recurse -Force
-    }
-}
-
-if (Test-Path -LiteralPath $LocalPackageSource) {
-    [xml]$packageProps = Get-Content -LiteralPath (Join-Path $vexRepoRoot 'Directory.Packages.props') -Raw
-    $packageIds = @('CodeWF.Markdown', 'CodeWF.Markdown.Lite', 'CodeWF.Markdown.Themes', 'CodeWF.Markdown.Lite.Themes')
-    $references = @($packageProps.Project.ItemGroup.PackageVersion | Where-Object { $_.Include -in $packageIds })
-    foreach ($reference in $references) {
-        if ($reference.Version -match '^\d+(?:\.\d+){2,3}$') {
-            $packageId = $reference.Include.ToLowerInvariant()
-            $packageVersions = (Invoke-RestMethod "https://api.nuget.org/v3-flatcontainer/$packageId/index.json").versions
-            if ($reference.Version -notin $packageVersions) { throw "Stable dependency is not available on nuget.org: $($reference.Include) $($reference.Version)" }
-            $developmentVersions = @([version]$reference.Version) + @($SupersededDevelopmentVersions)
-            if (@($developmentVersions | Where-Object { $_ -gt [version]$reference.Version }).Count) { throw 'Cannot remove development packages newer than the stable dependency.' }
-            $versionPattern = ($developmentVersions | ForEach-Object { [regex]::Escape($_.ToString()) }) -join '|'
-            $stablePattern = '^' + [regex]::Escape("$($reference.Include).") + '(?:' + $versionPattern + ')-dev\.\d{8}\.\d+\.(?:nupkg|snupkg)$'
-            foreach ($package in Get-ChildItem -LiteralPath $LocalPackageSource -File) {
-                if ($package.Name -notmatch $stablePattern) { continue }
-                if ($package.DirectoryName -ne $LocalPackageSource) { throw "Unexpected package path: $($package.FullName)" }
-                if ($PSCmdlet.ShouldProcess($package.FullName, 'Remove local development package superseded by NuGet release')) {
-                    Remove-Item -LiteralPath $package.FullName -Force
-                }
-            }
-            continue
-        }
-        if ($reference.Version -notmatch '^(?<batch>.+-dev\.\d{8})\.(?<iteration>\d+)$') { continue }
-        $batch = $Matches.batch
-        $iteration = [int]$Matches.iteration
-        $currentPackage = Join-Path $LocalPackageSource "$($reference.Include).$($reference.Version).nupkg"
-        if (-not (Test-Path -LiteralPath $currentPackage)) { throw "Current dependency package is missing: $currentPackage" }
-        $pattern = '^' + [regex]::Escape("$($reference.Include).$batch") + '\.(?<iteration>\d+)\.(?:nupkg|snupkg)$'
-        foreach ($package in Get-ChildItem -LiteralPath $LocalPackageSource -File) {
-            if ($package.Name -notmatch $pattern -or [int]$Matches.iteration -ge $iteration) { continue }
-            if ($package.DirectoryName -ne $LocalPackageSource) { throw "Unexpected package path: $($package.FullName)" }
-            if ($PSCmdlet.ShouldProcess($package.FullName, 'Remove obsolete development package')) {
-                Remove-Item -LiteralPath $package.FullName -Force
-            }
-        }
     }
 }
