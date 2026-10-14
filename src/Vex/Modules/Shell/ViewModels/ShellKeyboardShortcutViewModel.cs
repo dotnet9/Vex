@@ -47,8 +47,11 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
 
         if (hasControl && !hasShift && key == Key.P)
         {
-            return PublishShellAction(ShellActionKind.Print);
+            return PublishShellAction(ShellActionKind.QuickOpen);
         }
+
+        if (hasControl && hasShift && key == Key.P) return PublishShellAction(ShellActionKind.Print);
+        if (key == Key.F8 && keyModifiers == KeyModifiers.None) { Layout.ToggleFocusMode(); return true; }
 
         if (hasControl && !hasShift && key == Key.W)
         {

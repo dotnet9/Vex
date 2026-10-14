@@ -12,6 +12,7 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
         ShellEditorDisplayViewModel editorDisplay,
         ShellHelpViewModel help,
         ShellWindowLayoutViewModel layout,
+        ShellWorkbenchViewModel workbench,
         ShellRecentDocumentsViewModel recent)
     {
         Appearance = appearance;
@@ -20,6 +21,7 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
         EditorDisplay = editorDisplay;
         Help = help;
         Layout = layout;
+        Workbench = workbench;
         Recent = recent;
     }
 
@@ -34,6 +36,7 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
     public ShellHelpViewModel Help { get; }
 
     public ShellWindowLayoutViewModel Layout { get; }
+    public ShellWorkbenchViewModel Workbench { get; }
 
     public ShellRecentDocumentsViewModel Recent { get; }
 

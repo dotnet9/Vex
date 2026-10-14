@@ -8,6 +8,8 @@ namespace Vex.Modules.Workspace.ViewModels;
 public sealed class MarkdownPreviewViewModel : ReactiveObject
 {
     private readonly IEditorAppearanceState _appearanceState;
+    private readonly Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel _workbench;
+    public bool IsTaskEditingEnabled => _workbench.IsSourceEditing;
     private string? _imageBasePath;
     private string _markdown;
     private string _sourceMarkdown;
@@ -19,8 +21,11 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
 
     public MarkdownPreviewViewModel(
         IWorkspaceDocumentState documentState,
-        IEditorAppearanceState appearanceState)
+        IEditorAppearanceState appearanceState,
+        Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel workbench)
     {
+        _workbench = workbench;
+        workbench.PropertyChanged += (_, _) => this.RaisePropertyChanged(nameof(IsTaskEditingEnabled));
         _appearanceState = appearanceState;
         _imageBasePath = documentState.FilePath;
         _sourceMarkdown = documentState.Markdown;

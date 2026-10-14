@@ -25,8 +25,8 @@ public partial class MainWindow : CodeWFWindow
     public MainWindow()
     {
         InitializeComponent();
-        ConfigureOnboardingGuideTargets();
         TitleMenuView.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
+        WorkbenchToolbar.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
         AddHandler(KeyDownEvent, WindowKeyDown, RoutingStrategies.Tunnel);
         SidebarSplitter.DragStarted += SidebarSplitter_OnDragStarted;
         SidebarSplitter.DragCompleted += SidebarSplitter_OnDragCompleted;
@@ -56,8 +56,10 @@ public partial class MainWindow : CodeWFWindow
         _toastPublisher = toastPublisher;
         RestoreWindowSize(settingsStore);
         DataContext = viewModel;
+        viewModel.Workbench.GuideExitRequested += (_, _) => WorkbenchGuide.Finish();
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
         Closing += MainWindow_OnClosing;
+        Closed += (_, _) => WorkbenchGuide.Finish();
         Opened += MainWindow_OnOpened;
         Closed += MainWindow_OnClosed;
     }
@@ -88,6 +90,7 @@ public partial class MainWindow : CodeWFWindow
 
     private void WindowKeyDown(object? sender, KeyEventArgs e)
     {
+        if (WorkbenchGuide.IsVisible && WorkbenchGuide.HandleKey(e)) { e.Handled = true; return; }
         e.Handled = _keyboardShortcuts?.HandleKeyDown(e.Key, e.KeyModifiers) == true;
     }
 
@@ -111,125 +114,20 @@ public partial class MainWindow : CodeWFWindow
 
     private void QueueFirstRunOnboardingGuide()
     {
-        if (_settingsStore is null || _settingsStore.Current.HasSeenOnboardingGuide == true)
-        {
-            return;
-        }
-
-        _settingsStore.Update(settings => settings with { HasSeenOnboardingGuide = true });
-        Dispatcher.UIThread.Post(BeginOnboardingGuide, DispatcherPriority.Background);
+        WorkbenchToolbar.QuickStartButton.IsVisible = _settingsStore?.Current.HasSeenOnboardingGuide != true;
     }
 
-    private void TitleMenuView_OnBeginGuideRequested(object? sender, EventArgs e)
+    private void TitleMenuView_OnBeginGuideRequested(object? sender, EventArgs e) => BeginOnboardingGuide();
+
+    public void BeginOnboardingGuide()
     {
-        BeginOnboardingGuide();
+        if (DataContext is MainWindowViewModel vm)
+            WorkbenchGuide.Start(vm, this, _settingsStore, new Control[] { WorkbenchToolbar.ViewTarget, InstantGuideTarget, TypographyGallery, MindMapGuideTarget.GuideSettingsTarget, TitleMenuView.FileMenuTarget });
     }
 
-    private void ConfigureOnboardingGuideTargets()
-    {
-        GuideFileMenuStep.Target = TitleMenuView.FileMenuTarget;
-        GuideFileOpenStep.Target = TitleMenuView.OpenFolderMenuTarget;
-        GuideFileExportStep.Target = TitleMenuView.ExportMenuTarget;
-        GuideParagraphMenuStep.Target = TitleMenuView.TableMenuTarget;
-        GuideFormatMenuStep.Target = TitleMenuView.LinkMenuTarget;
-        GuideViewMenuStep.Target = TitleMenuView.SourceModeMenuTarget;
-        GuideViewOutlineMenuStep.Target = TitleMenuView.OutlineMenuTarget;
-        GuideThemeMenuStep.Target = TitleMenuView.ThemeDarkMenuTarget;
-        GuideHelpMenuStep.Target = TitleMenuView.BeginGuideMenuTarget;
-    }
-
-    private void BeginOnboardingGuide()
-    {
-        ConfigureOnboardingGuideTargets();
-        TitleMenuView.CloseGuideMenus();
-        OnboardingGuide.GoTo(0);
-        OnboardingGuide.Show();
-    }
-
-    private void OnboardingGuide_OnStepOpening(object? sender, GuideStepEventArgs e)
-    {
-        PrepareOnboardingGuideStep(e.Step);
-        TitleMenuView.SetGuideMenuOpen(GetGuideMenuKey(e.Step));
-    }
-
-    private void PrepareOnboardingGuideStep(IGuideStepOption step)
-    {
-        if (DataContext is not MainWindowViewModel viewModel)
-        {
-            return;
-        }
-
-        if (ReferenceEquals(step, GuideSidebarFilesStep))
-        {
-            viewModel.Layout.ShowFiles();
-            QueueOnboardingGuideRefresh();
-            return;
-        }
-
-        if (ReferenceEquals(step, GuideSidebarOutlineStep))
-        {
-            viewModel.Layout.ShowOutline();
-            QueueOnboardingGuideRefresh();
-        }
-    }
-
-    private void QueueOnboardingGuideRefresh()
-    {
-        Dispatcher.UIThread.Post(OnboardingGuide.Refresh, DispatcherPriority.Background);
-    }
-
-    private void OnboardingGuide_OnCompleted(object? sender, EventArgs e)
-    {
-        TitleMenuView.CloseGuideMenus();
-    }
-
-    private void OnboardingGuide_OnClosed(object? sender, EventArgs e)
-    {
-        TitleMenuView.CloseGuideMenus();
-    }
-
-    private string? GetGuideMenuKey(IGuideStepOption step)
-    {
-        if (ReferenceEquals(step, GuideFileMenuStep)
-            || ReferenceEquals(step, GuideFileOpenStep)
-            || ReferenceEquals(step, GuideFileExportStep))
-        {
-            return ShellTitleMenuView.FileGuideMenu;
-        }
-
-        if (ReferenceEquals(step, GuideParagraphMenuStep))
-        {
-            return ShellTitleMenuView.ParagraphGuideMenu;
-        }
-
-        if (ReferenceEquals(step, GuideFormatMenuStep))
-        {
-            return ShellTitleMenuView.FormatGuideMenu;
-        }
-
-        if (ReferenceEquals(step, GuideViewMenuStep)
-            || ReferenceEquals(step, GuideViewOutlineMenuStep))
-        {
-            return ShellTitleMenuView.ViewGuideMenu;
-        }
-
-        if (ReferenceEquals(step, GuideThemeMenuStep))
-        {
-            return ShellTitleMenuView.ThemeColorGuideMenu;
-        }
-
-        if (ReferenceEquals(step, GuideHelpMenuStep))
-        {
-            return ShellTitleMenuView.HelpGuideMenu;
-        }
-
-        return null;
-    }
-
-    // 原 UrsaWindow.CanClose 的迁移实现：有未保存修改时拦截关闭，交给 VM 弹确认框，
-    // 用户确认后由 OnCloseWindowRequested 置位 _isCloseConfirmed 再真正关闭。
     private void MainWindow_OnClosing(object? sender, WindowClosingEventArgs e)
     {
+        WorkbenchGuide.Finish();
         if (_isCloseConfirmed)
         {
             return;

@@ -1,4 +1,4 @@
-﻿{
+{
   "language": "Japanese",
   "description": "日本語",
   "cultureName": "ja-JP",
@@ -485,7 +485,32 @@
       "ThemeDotNet": ".NET パープル",
       "ThemeAurora": "AI オーロラ",
       "ThemeEmber": "AI テラコッタ",
-      "ThemeDefault": "標準ブルー"
+      "ThemeDefault": "標準ブルー",
+      "WBEdit": "編集",
+      "WBRead": "閲覧",
+      "WBMap": "マインドマップ",
+      "WBInstant": "ライブ編集",
+      "WBSource": "ソースとプレビュー",
+      "WBTypography": "組版テーマ",
+      "WBMapSource": "ソースを表示",
+      "WBMapSettings": "マップ設定",
+      "WBQuickStart": "クイックスタート",
+      "WBInsert": "挿入",
+      "WBTools": "ツール",
+      "WBMindMap": "マインドマップ",
+      "WBSummary": "段落要約の文字数",
+      "WBSummaryHint": "既定は30文字。本文は保持します。",
+      "WBParagraphs": "段落と引用を表示",
+      "WBLists": "リストを表示",
+      "WBCode": "コード要約を表示",
+      "WBTables": "表の要約を表示",
+      "WBLocate": "ソースへ →",
+      "WBFit": "全体を表示",
+      "WBExpand": "すべて展開",
+      "WBCollapse": "枝を折りたたむ",
+      "WBTypographyTitle": "Markdown 組版テーマ",
+      "WBTypographyHint": "ライブ編集、閲覧、プレビュー、出力に使う18のスタイル。",
+      "WBToggleNavigation": "ナビゲーションの表示切替"
     }
   }
 }

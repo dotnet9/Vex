@@ -733,7 +733,8 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
 
         if (input.SourceMode is { } sourceMode && sourceMode != _shell.Layout.IsSourceMode)
         {
-            _shell.Layout.ToggleSourceMode();
+            if (_shell.Workbench.IsSourceEditing) _shell.Workbench.ShowInstant();
+            else _shell.Workbench.ShowSource();
         }
 
         return new OperationResult("ok", "layout updated");

@@ -2,6 +2,13 @@
 
 public sealed record AppSettings
 {
+    public string? WorkbenchView { get; init; }
+    public string? EditMode { get; init; }
+    public int? MindMapSummaryLength { get; init; }
+    public bool? MindMapShowParagraphs { get; init; }
+    public bool? MindMapShowCode { get; init; }
+    public bool? MindMapShowTables { get; init; }
+    public bool? MindMapShowLists { get; init; }
     public string? ThemeKey { get; init; }
 
     /// <summary>配色独立于浅色、深色与跟随系统模式。</summary>

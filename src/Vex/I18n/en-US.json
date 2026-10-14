@@ -1,4 +1,4 @@
-﻿{
+{
   "language": "English",
   "description": "English",
   "cultureName": "en-US",
@@ -485,7 +485,32 @@
       "ThemeDotNet": ".NET Purple",
       "ThemeAurora": "AI Aurora",
       "ThemeEmber": "AI Ember",
-      "ThemeDefault": "Default Blue"
+      "ThemeDefault": "Default Blue",
+      "WBEdit": "Edit",
+      "WBRead": "Read",
+      "WBMap": "Mind map",
+      "WBInstant": "Live editing",
+      "WBSource": "Source & preview",
+      "WBTypography": "Typography",
+      "WBMapSource": "Compare source",
+      "WBMapSettings": "Map settings",
+      "WBQuickStart": "Quick start",
+      "WBInsert": "Insert",
+      "WBTools": "Tools",
+      "WBMindMap": "Mind map",
+      "WBSummary": "Paragraph summary length",
+      "WBSummaryHint": "Default: 30 characters. Full text is preserved.",
+      "WBParagraphs": "Show paragraphs and quotes",
+      "WBLists": "Show lists",
+      "WBCode": "Show code summaries",
+      "WBTables": "Show table summaries",
+      "WBLocate": "Go to source →",
+      "WBFit": "Fit to canvas",
+      "WBExpand": "Expand all",
+      "WBCollapse": "Collapse branches",
+      "WBTypographyTitle": "Markdown typography",
+      "WBTypographyHint": "18 styles for live editing, reading, preview and export.",
+      "WBToggleNavigation": "Show / hide navigation"
     }
   }
 }

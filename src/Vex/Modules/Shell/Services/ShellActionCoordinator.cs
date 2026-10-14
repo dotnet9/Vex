@@ -44,6 +44,10 @@ public sealed class ShellActionCoordinator
     {
         try
         {
+            if (command.Action is ShellActionKind.NewDocument or ShellActionKind.Open or ShellActionKind.OpenFolder
+                or ShellActionKind.QuickOpen or ShellActionKind.OpenRecentDocument or ShellActionKind.ReopenWithEncoding
+                or ShellActionKind.CloseDocument or ShellActionKind.Delete)
+                _shell.Workbench.ExitGuide();
             switch (command.Action)
             {
                 case ShellActionKind.NewDocument:

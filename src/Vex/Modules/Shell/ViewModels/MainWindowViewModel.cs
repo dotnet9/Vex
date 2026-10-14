@@ -34,6 +34,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     private string _markdown = string.Empty;
     private long _documentVersion;
     private string? _currentWorkspaceFolderPath;
+    private (DocumentSnapshot Document, string LastSaved, long Version, IReadOnlyList<DocumentFile> Files, string? Folder)? _guideDocument;
     private string? _watchedFilePath;
     private string? _watchedFolderPath;
     private DateTimeOffset? _watchedFileLastWriteTimeUtc;
@@ -54,6 +55,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         ShellFindBarViewModel findBar,
         ShellHelpViewModel help,
         ShellWindowLayoutViewModel layout,
+        ShellWorkbenchViewModel workbench,
         ShellNavigationViewModel navigation,
         ShellRecentDocumentsViewModel recent,
         ShellStatusViewModel status,
@@ -78,6 +80,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         FindBar = findBar;
         Help = help;
         Layout = layout;
+        Workbench = workbench;
         Navigation = navigation;
         Recent = recent;
         Status = status;
@@ -110,6 +113,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ShellFindBarViewModel FindBar { get; }
     public ShellHelpViewModel Help { get; }
     public ShellWindowLayoutViewModel Layout { get; }
+    public ShellWorkbenchViewModel Workbench { get; }
     public ShellNavigationViewModel Navigation { get; }
     public ShellRecentDocumentsViewModel Recent { get; }
     public ShellStatusViewModel Status { get; }
@@ -219,6 +223,33 @@ public sealed class MainWindowViewModel : ReactiveObject
         set => SetMarkdown(value, refreshImmediately: true);
     }
 
+    public void BeginGuideDocument(string markdown)
+    {
+        if (_guideDocument is not null) return;
+        _guideDocument = (_document, _lastSavedMarkdown, _documentVersion, _documentFiles, _currentWorkspaceFolderPath);
+        StopCurrentFileWatcher();
+        StopCurrentFolderWatcher();
+        _document = _documentService.CreateNew() with { FileName = "快速上手.md", Markdown = markdown };
+        _lastSavedMarkdown = markdown;
+        Markdown = markdown;
+        RefreshDocumentInfo(); PublishWorkspaceDocumentState();
+    }
+
+    public void EndGuideDocument()
+    {
+        if (_guideDocument is not { } saved) return;
+        CancelScheduledMarkdownDerivedStateRefresh();
+        _document = saved.Document; _lastSavedMarkdown = saved.LastSaved;
+        this.RaiseAndSetIfChanged(ref _markdown, saved.Document.Markdown, nameof(Markdown));
+        _documentVersion = saved.Version;
+        _documentFiles = saved.Files; _currentWorkspaceFolderPath = saved.Folder;
+        PublishDocumentFilesChanged(FindCurrentDocumentFile());
+        RefreshDocumentInfo(); PublishWorkspaceDocumentState();
+        _guideDocument = null;
+        StartCurrentFileWatcher();
+        StartCurrentFolderWatcher(_currentWorkspaceFolderPath);
+    }
+
     public long DocumentVersion => _documentVersion;
 
     public IReadOnlyList<DocumentFile> DocumentFiles => _documentFiles;
@@ -282,7 +313,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
 
         RefreshDocumentState();
-        _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
+        PublishWorkspaceDocumentState();
+        if (_guideDocument is null) _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
         ScheduleMarkdownDerivedStateRefresh();
     }
 
@@ -768,7 +800,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     private void RefreshDocumentInfo()
     {
         DocumentInfo.Refresh(_document, Markdown, _lastSavedMarkdown, _statisticsService.Count(Markdown));
-        _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
+        if (_guideDocument is null) _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
     }
 
     private void SyncDocumentFileList(string path)

@@ -6,6 +6,7 @@
   <assembly fullname="CodeWF.Toolkit.EventBus" preserve="all" />
   <assembly fullname="CodeWF.Avalonia.Controls" preserve="all" />
   <assembly fullname="CodeWF.Avalonia.Markdown" preserve="all" />
+  <assembly fullname="CodeWF.Avalonia.MindView" preserve="all" />
   <assembly fullname="AnimatedImage" preserve="all" />
   <assembly fullname="AnimatedImage.Avalonia" preserve="all" />
   <assembly fullname="Prism" preserve="all" />

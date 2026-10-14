@@ -19,7 +19,7 @@
             <!-- 状态文本带成功色对勾（对应原型 .sb-status + .sb-ico） -->
             <StackPanel
                 Orientation="Horizontal"
-                Spacing="6"
+                Spacing="12"
                 VerticalAlignment="Center">
                 <Path
                     Width="13"
@@ -41,15 +41,18 @@
             <StackPanel
                 Grid.Column="1"
                 Orientation="Horizontal"
-                Spacing="6"
+                Spacing="12"
                 VerticalAlignment="Center">
-                <md:VexStatusBadge Label="{i18n:I18n {x:Static l:VexL.StatusState}}" Value="{Binding DocumentInfo.DocumentStateText}" />
-                <md:VexStatusBadge Label="{i18n:I18n {x:Static l:VexL.StatusEncoding}}" Value="{Binding DocumentInfo.CurrentEncodingText}" />
-                <md:VexStatusBadge Label="{i18n:I18n {x:Static l:VexL.StatusLine}}" Value="{Binding Status.CaretLine}" />
-                <md:VexStatusBadge Label="{i18n:I18n {x:Static l:VexL.StatusColumn}}" Value="{Binding Status.CaretColumn}" />
-                <md:VexStatusBadge Label="{i18n:I18n {x:Static l:VexL.StatusWords}}" Value="{Binding DocumentInfo.Statistics.Words}" />
-                <md:VexStatusBadge Label="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" Value="{Binding DocumentInfo.Statistics.Characters}" />
-                <md:VexStatusBadge Label="MCP" Value="{Binding McpStatusText}" />
+                <TextBlock Text="{Binding DocumentInfo.DocumentStateText}" Classes="muted" FontSize="11" />
+                <TextBlock Text="{Binding DocumentInfo.CurrentEncodingText}" Classes="muted" FontSize="11" />
+                <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding Workbench.IsEditing}">
+                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusLine}}" Classes="muted" FontSize="11"/><TextBlock Text="{Binding Status.CaretLine}" FontSize="11"/>
+                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusColumn}}" Classes="muted" FontSize="11"/><TextBlock Text="{Binding Status.CaretColumn}" FontSize="11"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusWords}}" Classes="muted" FontSize="11"/><TextBlock Text="{Binding DocumentInfo.Statistics.Words}" FontSize="11"/></StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" Classes="muted" FontSize="11"/><TextBlock Text="{Binding DocumentInfo.Statistics.Characters}" FontSize="11"/></StackPanel>
+                <TextBlock Text="{Binding Workbench.ViewLabel}" Classes="muted" FontSize="11" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding McpStatusText}" Classes="muted" FontSize="11" />
             </StackPanel>
         </Grid>
     </Border>

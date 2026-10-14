@@ -1,4 +1,4 @@
-﻿{
+{
   "language": "繁體中文",
   "description": "中文（繁體）",
   "cultureName": "zh-Hant",
@@ -485,7 +485,32 @@
       "ThemeDotNet": ".NET 紫",
       "ThemeAurora": "AI 極光",
       "ThemeEmber": "AI 赤陶",
-      "ThemeDefault": "預設藍"
+      "ThemeDefault": "預設藍",
+      "WBEdit": "編輯",
+      "WBRead": "閱讀",
+      "WBMap": "導圖",
+      "WBInstant": "即時渲染",
+      "WBSource": "原始碼對照",
+      "WBTypography": "排版主題",
+      "WBMapSource": "對照原始碼",
+      "WBMapSettings": "導圖設定",
+      "WBQuickStart": "快速上手",
+      "WBInsert": "插入",
+      "WBTools": "工具",
+      "WBMindMap": "思維導圖",
+      "WBSummary": "段落摘要字數",
+      "WBSummaryHint": "預設最多 30 字；僅縮短導圖顯示，正文保留完整。",
+      "WBParagraphs": "顯示段落和引用",
+      "WBLists": "顯示清單",
+      "WBCode": "顯示程式碼摘要",
+      "WBTables": "顯示表格摘要",
+      "WBLocate": "定位原始碼 →",
+      "WBFit": "適應畫布",
+      "WBExpand": "全部展開",
+      "WBCollapse": "收起分支",
+      "WBTypographyTitle": "Markdown 排版主題",
+      "WBTypographyHint": "18 套排版，適用於即時渲染、閱讀、預覽與匯出。",
+      "WBToggleNavigation": "顯示 / 隱藏導覽"
     }
   }
 }

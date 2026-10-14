@@ -15,12 +15,14 @@ public sealed class ShellStatusBarViewModel : ReactiveObject
         ShellStatusViewModel status,
         ShellDocumentInfoViewModel documentInfo,
         ShellWindowLayoutViewModel layout,
+        ShellWorkbenchViewModel workbench,
         IMcpServerHost mcpServerHost,
         IAppLocalizer localizer)
     {
         Status = status;
         DocumentInfo = documentInfo;
         Layout = layout;
+        Workbench = workbench;
         _mcpServerHost = mcpServerHost;
         _localizer = localizer;
         _mcpServerHost.StatusChanged += (_, _) => RefreshMcpStatus();
@@ -33,6 +35,7 @@ public sealed class ShellStatusBarViewModel : ReactiveObject
     public ShellDocumentInfoViewModel DocumentInfo { get; }
 
     public ShellWindowLayoutViewModel Layout { get; }
+    public ShellWorkbenchViewModel Workbench { get; }
 
     public string McpStatusText
     {

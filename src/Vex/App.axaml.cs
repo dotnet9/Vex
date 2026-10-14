@@ -140,6 +140,7 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<ShellStatusViewModel>();
         containerRegistry.RegisterSingleton<ShellTitleMenuViewModel>();
         containerRegistry.RegisterSingleton<ShellWindowLayoutViewModel>();
+        containerRegistry.RegisterSingleton<ShellWorkbenchViewModel>();
         containerRegistry.RegisterSingleton<McpSettingsViewModel>();
         containerRegistry.RegisterSingleton<MarkdownEditorViewModel>();
         containerRegistry.RegisterSingleton<MarkdownPreviewViewModel>();

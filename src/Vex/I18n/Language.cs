@@ -492,6 +492,31 @@ namespace Vex
         public static readonly string ThemeAurora = "Vex.VexL.ThemeAurora";
         public static readonly string ThemeEmber = "Vex.VexL.ThemeEmber";
         public static readonly string ThemeDefault = "Vex.VexL.ThemeDefault";
+        public static readonly string WBEdit = "Vex.VexL.WBEdit";
+        public static readonly string WBRead = "Vex.VexL.WBRead";
+        public static readonly string WBMap = "Vex.VexL.WBMap";
+        public static readonly string WBInstant = "Vex.VexL.WBInstant";
+        public static readonly string WBSource = "Vex.VexL.WBSource";
+        public static readonly string WBTypography = "Vex.VexL.WBTypography";
+        public static readonly string WBMapSource = "Vex.VexL.WBMapSource";
+        public static readonly string WBMapSettings = "Vex.VexL.WBMapSettings";
+        public static readonly string WBQuickStart = "Vex.VexL.WBQuickStart";
+        public static readonly string WBInsert = "Vex.VexL.WBInsert";
+        public static readonly string WBTools = "Vex.VexL.WBTools";
+        public static readonly string WBMindMap = "Vex.VexL.WBMindMap";
+        public static readonly string WBSummary = "Vex.VexL.WBSummary";
+        public static readonly string WBSummaryHint = "Vex.VexL.WBSummaryHint";
+        public static readonly string WBParagraphs = "Vex.VexL.WBParagraphs";
+        public static readonly string WBLists = "Vex.VexL.WBLists";
+        public static readonly string WBCode = "Vex.VexL.WBCode";
+        public static readonly string WBTables = "Vex.VexL.WBTables";
+        public static readonly string WBLocate = "Vex.VexL.WBLocate";
+        public static readonly string WBFit = "Vex.VexL.WBFit";
+        public static readonly string WBExpand = "Vex.VexL.WBExpand";
+        public static readonly string WBCollapse = "Vex.VexL.WBCollapse";
+        public static readonly string WBTypographyTitle = "Vex.VexL.WBTypographyTitle";
+        public static readonly string WBTypographyHint = "Vex.VexL.WBTypographyHint";
+        public static readonly string WBToggleNavigation = "Vex.VexL.WBToggleNavigation";
     }
 
 }

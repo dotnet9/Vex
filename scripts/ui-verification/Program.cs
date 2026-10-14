@@ -31,6 +31,7 @@ if (mode == "vex")
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
+    vm.Workbench.ShowSource();
     Pump();
     VerifyTitleLayout(window);
     Check(Math.Abs(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width - 252) < 1,
@@ -145,6 +146,7 @@ if (mode == "vex")
         previewScroll.Offset = default;
         Pump();
     }
+    VerifyWorkbench(app, window, vm);
     vm.Appearance.SelectThemeByKey("system");
     Check(vm.Appearance.SelectedTheme?.Mode == StudioThemeMode.System,
         "Vex can return to system mode after explicit light and dark selections");
@@ -163,6 +165,23 @@ if (mode == "vex")
     Pump();
     VerifyTitleLayout(window);
     Capture(window, "vex-980");
+    vm.Workbench.ShowInstant(); Pump(); Capture(window, "vex-native-instant-980");
+    vm.Workbench.ShowRead(); Pump(); Capture(window, "vex-native-read-980");
+    vm.Workbench.ShowMindMap(); vm.Workbench.ShowMapSource = false; vm.Workbench.ShowMapSettings = false;
+    Pump(); Capture(window, "vex-native-mindmap-980");
+    ((Vex.Modules.Shell.Views.MainWindow)window).BeginOnboardingGuide(); Pump();
+    var narrowGuide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
+    for (var step = 0; step < 5; step++)
+    {
+        narrowGuide.ShowStep(step); Pump();
+        var card = narrowGuide.Children.OfType<Border>().Single();
+        var origin = card.TranslatePoint(default, window)!.Value;
+        Check(origin.X >= 0 && origin.Y >= 0 && origin.X + card.Bounds.Width <= window.Bounds.Width + 1
+            && origin.Y + card.Bounds.Height <= window.Bounds.Height + 1,
+            "Guide card stays inside a 980 x 640 window: step " + (step + 1));
+        Capture(window, "vex-native-guide-980-" + (step + 1));
+    }
+    narrowGuide.Finish(); Pump();
     window.Close();
 }
 else throw new ArgumentException("Expected vex");
@@ -318,6 +337,68 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     Pump();
 }
 
+void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel vm)
+{
+    var original = vm.Markdown;
+    vm.Workbench.ShowInstant(); Pump();
+    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    Check(instant.IsEffectivelyVisible && instant.Bounds.Width > 500 && instant.Editor.Text == original, "Instant editor has a real viewport and shares the current document");
+    instant.Editor.FocusBlock(0); instant.Editor.InsertText(" 实时编辑验证"); Pump();
+    Check(vm.Markdown.Contains("实时编辑验证"), "Instant edits update the real Markdown document");
+    var changed = vm.Markdown;
+    vm.Workbench.ShowRead(); Pump();
+    app.Resolve<MarkdownEditorViewModel>().Execute(EditorActionKind.Bold); Pump();
+    Check(vm.Markdown == changed, "Read view does not route format actions to hidden editors");
+    vm.Workbench.ShowMindMap(); Pump();
+    PumpUntil(() => vm.Workbench.Root?.FullText.Contains("实时编辑验证") == true);
+    var map = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+    Check(map.IsEffectivelyVisible && map.Bounds.Width > 500 && vm.Workbench.Root is not null, "Mind map has a real viewport and parses the shared Markdown");
+    var node = vm.Workbench.Root!.Children.First();
+    vm.Workbench.SelectedNode = node;
+    map.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!.ToggleCollapse(node); Pump();
+    Check(node.IsCollapsed && vm.Markdown == changed, "Folding never modifies the source");
+    vm.Workbench.ShowMapSource = true; Pump();
+    Check(window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.IsEffectivelyVisible, "Map can display source comparison");
+    vm.Workbench.LocateSource(node); Pump();
+    Check(vm.Workbench.IsSourceEditing && vm.Markdown == changed, "Mind map locates source without changing content");
+    vm.Workbench.ShowMindMap(); vm.Workbench.ShowMapSettings = true; Pump();
+    var previousRoot = vm.Workbench.Root;
+    vm.Workbench.SummaryLength = 12; Pump();
+    PumpUntil(() => !ReferenceEquals(vm.Workbench.Root, previousRoot));
+    Capture(window, "vex-native-mindmap");
+    vm.Workbench.ShowInstant(); Pump(); Capture(window, "vex-native-instant");
+    vm.Workbench.ShowTypography = true; Pump();
+    var typographyGallery = window.FindControl<Border>("TypographyGallery")!;
+    Check(typographyGallery.GetVisualDescendants().OfType<TextBlock>().Any(text => text.Text == app.Resolve<IAppLocalizer>().Get(Vex.VexL.TypographySimple)),
+        "Typography cards use the same localized names as the menu");
+    vm.Workbench.ShowTypography = false;
+    var preferences = app.Resolve<IAppSettingsStore>().Current;
+    var sourceDocument = window.GetVisualDescendants().OfType<MarkdownEditorView>().Single().Editor.Document;
+    var mapControl = map.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
+    mapControl.SetZoom(.85);
+    ((Vex.Modules.Shell.Views.MainWindow)window).BeginOnboardingGuide(); Pump();
+    var guide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
+    for (var i = 0; i < 5; i++)
+    {
+        Check(guide.IsVisible && guide.StepIndex == i, "Interactive guide step " + (i + 1));
+        if (i == 3) PumpUntil(() => vm.Workbench.Root?.Title == "从文字到结构");
+        Capture(window, "vex-native-guide-" + (i + 1));
+        guide.NextStep(); Pump();
+    }
+    Check(!guide.IsVisible && vm.Markdown == changed, "Guide restores the original unsaved Markdown");
+    Check(vm.Workbench.SummaryLength == 12 && vm.Workbench.IsInstantEditing, "Guide restores map and editor preferences");
+    PumpUntil(() => vm.Workbench.Root?.FullText.Contains("实时编辑验证") == true);
+    Check(Math.Abs(mapControl.Zoom - .85) < .001, "Guide restores map zoom after asynchronous document parsing");
+    Check(ReferenceEquals(sourceDocument, window.GetVisualDescendants().OfType<MarkdownEditorView>().Single().Editor.Document), "Guide preserves the source document and undo stack");
+    app.Resolve<MarkdownEditorViewModel>().Execute(EditorActionKind.Undo); Pump();
+    Check(vm.Markdown == original, "Guide preserves instant editor undo history");
+    app.Resolve<MarkdownEditorViewModel>().Execute(EditorActionKind.Redo); Pump();
+    Check(vm.Markdown == changed, "Instant editor redo restores the pre-guide changes");
+    ((Vex.Modules.Shell.Views.MainWindow)window).BeginOnboardingGuide(); Pump(); guide.ShowStep(3); Pump(); guide.Finish(); Pump();
+    Check(vm.Markdown == changed && vm.Workbench.IsInstantEditing, "Skipping the restarted guide restores state");
+    vm.Workbench.ShowSource(); Pump();
+}
+
 void VerifyTitleLayout(Window window)
 {
     // 使用真实主窗口模板校验坐标，防止标题栏高度被内容区再次预留。
@@ -333,8 +414,8 @@ void VerifyTitleLayout(Window window)
         && Math.Abs(spacer.Bounds.Height - shell.TitleBarHeight) < 0.01,
         $"Vex content divider starts immediately after the {shell.TitleBarHeight} px title bar: y={dividerY}");
     Check(Math.Abs(contentY - dividerY - 1) < 0.01
-        && Math.Abs(sidebar.TranslatePoint(default, window)!.Value.Y - contentY) < 0.01,
-        $"Vex sidebar and workspace start below the 1 px divider without a blank row: y={contentY}");
+        && Math.Abs(sidebar.TranslatePoint(default, window)!.Value.Y - (window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.TranslatePoint(default, window)!.Value.Y + window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.Bounds.Height)) < 0.01,
+        $"Vex sidebar and workspace start immediately below the workbench toolbar: y={contentY}");
 }
 
 void VerifyVexDetails(Window window, ThemeVariant theme)

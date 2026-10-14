@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellTitleMenuView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -41,10 +41,6 @@
                 <MenuItem Header="Big5" Command="{Binding ReopenWithEncodingAsync}" CommandParameter="Big5" />
             </MenuItem>
             <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToWechat}}" Command="{Binding CopyHtml}" CommandParameter="wechat" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToZhihu}}" Command="{Binding CopyHtml}" CommandParameter="zhihu" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToJuejin}}" Command="{Binding CopyHtml}" CommandParameter="juejin" />
-            <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Save}}" Command="{Binding SaveAsync}" InputGesture="Ctrl+S" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.SaveAs}}" Command="{Binding SaveAsAsync}" InputGesture="Ctrl+Shift+S" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.SaveAll}}" Command="{Binding SaveAllAsync}" />
@@ -78,6 +74,7 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Replace}}" Command="{Binding ShowReplacePanel}" InputGesture="Ctrl+H" />
         </MenuItem>
 
+        <MenuItem Header="{i18n:I18n {x:Static l:VexL.WBInsert}}">
         <MenuItem x:Name="ParagraphMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuParagraph}}">
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Paragraph}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Paragraph}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading1}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading1}" />
@@ -96,7 +93,6 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.TaskList}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.TaskList}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.HorizontalRule}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.HorizontalRule}" />
         </MenuItem>
-
         <MenuItem x:Name="FormatMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuFormat}}">
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Bold}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Italic}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" />
@@ -106,15 +102,17 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Image}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Image}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}" />
         </MenuItem>
+        </MenuItem>
 
         <MenuItem x:Name="ViewMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuView}}">
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.RefreshPreview}}" Command="{Binding RefreshPreview}" InputGesture="F5" />
             <Separator />
             <MenuItem x:Name="SidebarMenuItem" Header="{i18n:I18n {x:Static l:VexL.ToggleSidebar}}" Command="{Binding Layout.ToggleSidebar}" IsChecked="{Binding Layout.IsSidebarVisible, Mode=OneWay}" ToggleType="CheckBox" />
             <MenuItem x:Name="OutlineMenuItem" Header="{i18n:I18n {x:Static l:VexL.Outline}}" Command="{Binding Layout.ShowOutline}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.DocumentList}}" Command="{Binding Layout.ShowFiles}" />
-            <MenuItem x:Name="SourceModeMenuItem" Header="{i18n:I18n {x:Static l:VexL.SourceMode}}" Command="{Binding Layout.ToggleSourceMode}" IsChecked="{Binding Layout.IsSourceMode}" ToggleType="CheckBox" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.PreviewMode}}" Command="{Binding Layout.TogglePreview}" IsChecked="{Binding Layout.IsPreviewVisible}" ToggleType="CheckBox" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.WBInstant}}" Command="{Binding Workbench.ShowInstant}" IsChecked="{Binding Workbench.IsInstantEditing, Mode=OneWay}" ToggleType="Radio" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.WBMindMap}}" Command="{Binding Workbench.ShowMindMap}" IsChecked="{Binding Workbench.IsMindMap, Mode=OneWay}" ToggleType="Radio" />
+            <MenuItem x:Name="SourceModeMenuItem" Header="{i18n:I18n {x:Static l:VexL.SourceMode}}" Command="{Binding Workbench.ShowSource}" IsChecked="{Binding Workbench.IsSourceEditing, Mode=OneWay}" ToggleType="Radio" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.PreviewMode}}" Command="{Binding Workbench.ShowRead}" IsChecked="{Binding Workbench.IsReading, Mode=OneWay}" ToggleType="Radio" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowLineNumbers}}" Command="{Binding EditorDisplay.ToggleLineNumbers}" IsChecked="{Binding EditorDisplay.ShowLineNumbers}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuAutoPair}}" Command="{Binding EditorDisplay.ToggleAutoPair}" IsChecked="{Binding EditorDisplay.EnableAutoPair}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowStatusBar}}" Command="{Binding Layout.ToggleStatusBar}" IsChecked="{Binding Layout.IsStatusBarVisible}" ToggleType="CheckBox" />
@@ -122,13 +120,9 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuFocusMode}}" Command="{Binding Layout.ToggleFocusMode}" InputGesture="F8" IsChecked="{Binding Layout.IsFocusMode}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuTypewriterMode}}" Command="{Binding Layout.ToggleTypewriterMode}" IsChecked="{Binding Layout.IsTypewriterMode}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuMotion}}" Command="{Binding Layout.ToggleMotion}" IsChecked="{Binding Layout.EnableMotion}" ToggleType="CheckBox" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.WordCount}}" Command="{Binding WordCount}" />
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ToggleFullScreen}}" Command="{Binding Layout.ToggleFullScreen}" InputGesture="F11" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.AlwaysOnTop}}" Command="{Binding Layout.ToggleAlwaysOnTop}" IsChecked="{Binding Layout.IsAlwaysOnTop}" ToggleType="CheckBox" />
-        </MenuItem>
-
-        <MenuItem x:Name="HelpMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuHelp}}">
             <MenuItem x:Name="ThemeColorMenuItem" Header="{i18n:I18n {x:Static l:VexL.ThemeColor}}">
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeSystem}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="system" GroupName="ThemeColor" IsChecked="{Binding Appearance.SelectedTheme.Key, Converter={StaticResource StringEqualsConverter}, ConverterParameter=system}" ToggleType="Radio" />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.ThemeLight}}" Command="{Binding Appearance.SelectThemeByKey}" CommandParameter="light" GroupName="ThemeColor" IsChecked="{Binding Appearance.SelectedTheme.Key, Converter={StaticResource StringEqualsConverter}, ConverterParameter=light}" ToggleType="Radio" />
@@ -171,9 +165,20 @@
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.LanguageEnUs}}" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="en-US" GroupName="Language" IsChecked="{Binding Appearance.SelectedLanguage.CultureName, Converter={StaticResource StringEqualsConverter}, ConverterParameter=en-US}" ToggleType="Radio" />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.LanguageJaJp}}" Command="{Binding Appearance.SelectLanguageByCulture}" CommandParameter="ja-JP" GroupName="Language" IsChecked="{Binding Appearance.SelectedLanguage.CultureName, Converter={StaticResource StringEqualsConverter}, ConverterParameter=ja-JP}" ToggleType="Radio" />
             </MenuItem>
-            <Separator />
+        </MenuItem>
+
+        <MenuItem Header="{i18n:I18n {x:Static l:VexL.WBTools}}">
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.WBMapSettings}}" Command="{Binding Workbench.OpenMapSettings}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.WordCount}}" Command="{Binding WordCount}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.RefreshPreview}}" Command="{Binding RefreshPreview}" InputGesture="F5" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.McpSettings}}" Command="{Binding ShowMcpSettings}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.McpAudit}}" Command="{Binding ShowMcpAudit}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToWechat}}" Command="{Binding CopyHtml}" CommandParameter="wechat" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToZhihu}}" Command="{Binding CopyHtml}" CommandParameter="zhihu" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToJuejin}}" Command="{Binding CopyHtml}" CommandParameter="juejin" />
+        </MenuItem>
+
+        <MenuItem x:Name="HelpMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuHelp}}">
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Changelog}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="changelog" />
             <MenuItem x:Name="BeginGuideMenuItem" Header="{i18n:I18n {x:Static l:VexL.OnboardingGuide}}" Click="BeginGuideMenuItem_OnClick" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Thanks}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="thanks" />

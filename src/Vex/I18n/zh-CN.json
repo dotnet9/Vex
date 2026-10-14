@@ -1,4 +1,4 @@
-﻿{
+{
   "language": "简体中文",
   "description": "中文（简体）",
   "cultureName": "zh-CN",
@@ -485,7 +485,32 @@
       "ThemeDotNet": ".NET 紫",
       "ThemeAurora": "AI 极光",
       "ThemeEmber": "AI 赤陶",
-      "ThemeDefault": "默认蓝"
+      "ThemeDefault": "默认蓝",
+      "WBEdit": "编辑",
+      "WBRead": "阅读",
+      "WBMap": "导图",
+      "WBInstant": "即时渲染",
+      "WBSource": "源码对照",
+      "WBTypography": "排版主题",
+      "WBMapSource": "对照源码",
+      "WBMapSettings": "导图设置",
+      "WBQuickStart": "快速上手",
+      "WBInsert": "插入",
+      "WBTools": "工具",
+      "WBMindMap": "思维导图",
+      "WBSummary": "段落摘要字数",
+      "WBSummaryHint": "最多 30 字是默认值；只缩短导图显示，正文保留完整。",
+      "WBParagraphs": "显示段落和引用",
+      "WBLists": "显示列表",
+      "WBCode": "显示代码摘要",
+      "WBTables": "显示表格摘要",
+      "WBLocate": "定位源码 →",
+      "WBFit": "适应画布",
+      "WBExpand": "全部展开",
+      "WBCollapse": "收起分支",
+      "WBTypographyTitle": "Markdown 排版主题",
+      "WBTypographyHint": "18 套排版，适用于即时渲染、阅读、预览与导出。",
+      "WBToggleNavigation": "显示 / 隐藏导航"
     }
   }
 }

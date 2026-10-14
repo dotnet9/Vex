@@ -34,6 +34,7 @@
             VerticalScrollBarVisibility="Auto">
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
+                IsTaskEditingEnabled="{Binding IsTaskEditingEnabled}"
                 Margin="30 22 30 30"
                 ImageBasePath="{Binding ImageBasePath}"
                 Markdown="{Binding Markdown}"

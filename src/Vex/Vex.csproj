@@ -47,6 +47,7 @@
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="CodeWF.Avalonia.Controls" />
+    <PackageReference Include="CodeWF.Avalonia.MindView" />
     <PackageReference Include="CodeWF.Toolkit.EventBus" />
     <PackageReference Include="CodeWF.Avalonia.Markdown.Lite" />
     <PackageReference Include="CodeWF.Avalonia.Markdown" />

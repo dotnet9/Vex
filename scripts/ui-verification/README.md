@@ -20,5 +20,11 @@ if ($LASTEXITCODE -ne 0) { throw 'Vex UI verification failed' }
 - 关于浮层在真实主窗口内显示与关闭。
 - 文件树层级、16 像素缩进、紧凑行高、图标与箭头对齐、折叠展开、过滤及文字对比度。
 - 侧栏显隐、宽度、菜单勾选与设置持久化。
+- 即时编辑、阅读只读与导图真实视口；摘要设置、折叠、源码对照与定位共用当前正文。
+- 五步引导与跳过恢复：未保存原文、源码文档实例、即时编辑撤销重做、导图缩放和用户偏好。
+
+Windows 发布验收使用 `scripts/publish.ps1 -RuntimeIdentifier win-x64`，再运行 `artifacts/publish/win-x64/Vex/Vex.exe`；不能用框架运行结果代替 NativeAOT。发布构建保留 portable 编译符号，保证 Avalonia XAML 编译链路完整。
 
 任何断言失败均返回非零退出码，PNG 输出到指定目录。离屏结果不替代 Windows 实际窗口、DPI、IME、文件关联和 NativeAOT 运行验收。
+
+2026-10-15 回归记录：使用仅含 nuget.org 的仓库外配置及独立缓存恢复 CodeWF.Avalonia 12.1.4.15，最终源码的 272 项断言全部通过，包含 980 × 640 窗口下的三视图与全部五步引导。日志位于 `artifacts/official-verification-final.log`，截图位于 `artifacts/ui-verification-official/`。真实键鼠操作、中文输入法、多 DPI、超长文档和其他系统尚未完成专项验收。

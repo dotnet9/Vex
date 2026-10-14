@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+             xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:mind="https://codewf.com"
+             x:DataType="vm:MainWindowViewModel" x:Class="Vex.Modules.Workspace.Views.MarkdownMindMapHost">
+    <Grid>
+        <mind:MarkdownMindMapView x:Name="Map" Root="{Binding Workbench.Root}" EnableMotion="{Binding Layout.EnableMotion}" />
+        <Border x:Name="SettingsTarget" Width="264" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18"
+                Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18"
+                IsVisible="{Binding Workbench.ShowMapSettings}">
+            <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBMapSettings}}" FontWeight="SemiBold"/><Button Grid.Column="1" Content="×" Command="{Binding Workbench.ToggleMapSettings}" Padding="3,0" MinHeight="0"/></Grid>
+                <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBSummary}}" FontSize="12" />
+                <NumericUpDown Minimum="1" Maximum="120" Increment="1" Value="{Binding Workbench.SummaryLength, Mode=TwoWay}" />
+                <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBSummaryHint}}" TextWrapping="Wrap" Classes="muted" FontSize="11" />
+                <CheckBox Content="{i18n:I18n {x:Static l:VexL.WBParagraphs}}" IsChecked="{Binding Workbench.ShowParagraphs, Mode=TwoWay}" />
+                <CheckBox Content="{i18n:I18n {x:Static l:VexL.WBLists}}" IsChecked="{Binding Workbench.ShowLists, Mode=TwoWay}" />
+                <CheckBox Content="{i18n:I18n {x:Static l:VexL.WBCode}}" IsChecked="{Binding Workbench.ShowCode, Mode=TwoWay}" />
+                <CheckBox Content="{i18n:I18n {x:Static l:VexL.WBTables}}" IsChecked="{Binding Workbench.ShowTables, Mode=TwoWay}" />
+            </StackPanel>
+        </Border>
+        <Border Width="280" MaxHeight="260" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="18,18,18,70"
+                Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18"
+                IsVisible="{Binding Workbench.HasSelectedNode}">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+                <TextBlock Text="{Binding Workbench.SelectedSourceLabel}" Classes="muted" FontSize="11" />
+                <ScrollViewer Grid.Row="1"><SelectableTextBlock Text="{Binding Workbench.SelectedFullText}" TextWrapping="Wrap" FontSize="13" /></ScrollViewer>
+                <Button Grid.Row="2" Content="{i18n:I18n {x:Static l:VexL.WBLocate}}" Command="{Binding Workbench.LocateSelectedSource}" HorizontalAlignment="Left" />
+            </Grid>
+        </Border>
+        <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="20" Background="{DynamicResource VexPanelBackgroundBrush}"
+                BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="6">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <Button Content="−" Click="ZoomOutClick" Padding="10,4" ToolTip.Tip="缩小" />
+                <Button x:Name="ZoomLabel" Content="100%" Click="ResetZoomClick" Padding="10,4" ToolTip.Tip="重置为 100%" />
+                <Button Content="+" Click="ZoomInClick" Padding="10,4" ToolTip.Tip="放大" />
+                <Button Content="{i18n:I18n {x:Static l:VexL.WBFit}}" Click="FitClick" Padding="10,4" />
+                <Button Content="{i18n:I18n {x:Static l:VexL.WBExpand}}" Click="ExpandClick" Padding="10,4" />
+                <Button Content="{i18n:I18n {x:Static l:VexL.WBCollapse}}" Click="CollapseClick" Padding="10,4" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

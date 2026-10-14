@@ -15,6 +15,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
 {
     private readonly IEditorDisplayState _editorDisplayState;
     private readonly IWorkspaceDocumentState _workspaceDocumentState;
+    private readonly Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel _workbench;
     private MarkdownEditorView? _editor;
     private bool _syncingFromDocument;
     private double _editorFontSize;
@@ -23,10 +24,19 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
 
     public MarkdownEditorViewModel(
         IEditorDisplayState editorDisplayState,
-        IWorkspaceDocumentState workspaceDocumentState)
+        IWorkspaceDocumentState workspaceDocumentState,
+        Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel workbench)
     {
         _editorDisplayState = editorDisplayState;
         _workspaceDocumentState = workspaceDocumentState;
+        _workbench = workbench;
+        workbench.PropertyChanged += (_, _) => { if (_editor is { } source) source.Editor.IsReadOnly = !workbench.IsSourceEditing; };
+        workbench.SourceNavigationRequested += (_, node) =>
+        {
+            if (_editor is null) return;
+            _editor.NavigateToLine(node.SourceLine);
+            _editor.Editor.Select(node.SourceStart, Math.Max(0, node.SourceEnd - node.SourceStart));
+        };
         _editorFontSize = editorDisplayState.EditorFontSize;
         _showLineNumbers = editorDisplayState.ShowLineNumbers;
         _enableAutoPair = editorDisplayState.EnableAutoPair;
@@ -83,6 +93,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     public void AttachEditor(MarkdownEditorView editor)
     {
         _editor = editor;
+        editor.Editor.IsReadOnly = !_workbench.IsSourceEditing;
         editor.EnableAutoPair = EnableAutoPair;
         editor.ShowLineNumbers = ShowLineNumbers;
         editor.EditorFontSize = EditorFontSize;
@@ -104,7 +115,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     /// <summary>库控件正文变化（用户输入/动作）→ 回抛给 Shell；文档载入期间的同步不回抛。</summary>
     public void PublishTextChanged()
     {
-        if (_syncingFromDocument || _editor is not { } editor)
+        if (_syncingFromDocument || !_workbench.IsSourceEditing || _editor is not { } editor)
         {
             return;
         }
@@ -121,7 +132,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     public void PublishSelectionChanged(int line, int column, int lineCount)
     {
         // SetText 也会移动插入点；载入中不能把中间文本回抛成用户编辑。
-        if (_syncingFromDocument || _editor is not { } editor)
+        if (_syncingFromDocument || !_workbench.IsSourceEditing || _editor is not { } editor)
         {
             return;
         }
@@ -135,22 +146,50 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
 
     public void CopyPlainText()
     {
+        if (_workbench.IsInstantEditing && _workbench.LiveEditor is { } live) { _ = live.CopyPlainTextAsync(); return; }
         if (_editor is { } editor)
         {
             _ = editor.CopyPlainTextAsync();
         }
     }
 
-    public void InsertText(string text) => _editor?.InsertText(text);
+    public void InsertText(string text)
+    {
+        if (_workbench.IsInstantEditing) _workbench.LiveEditor?.InsertText(text);
+        else if (_workbench.IsSourceEditing) _editor?.InsertText(text);
+    }
 
     /// <summary>外部改写（预览勾选任务回写）转发给库控件，保持编辑器与文档状态一致。</summary>
-    public void ApplyExternalEdit(string markdown, int start, int length) =>
-        _editor?.ApplyExternalEdit(markdown, start, length);
+    public void ApplyExternalEdit(string markdown, int start, int length)
+    {
+        if (_workbench.IsSourceEditing) _editor?.ApplyExternalEdit(markdown, start, length);
+    }
+
+    public AvaloniaEdit.Document.TextDocument? BeginTemporaryDocument()
+    {
+        if (_editor is null) return null;
+        _syncingFromDocument = true;
+        try { var saved = _editor.Editor.Document; _editor.Editor.Document = new(); return saved; }
+        finally { _syncingFromDocument = false; }
+    }
+    public void RestoreDocument(AvaloniaEdit.Document.TextDocument? document)
+    {
+        if (_editor is null || document is null) return;
+        _syncingFromDocument = true;
+        try { _editor.Editor.Document = document; }
+        finally { _syncingFromDocument = false; }
+    }
 
     /// <summary>执行库编辑器动作（Shell 菜单、快捷键与 MCP 都汇到这里）。</summary>
     public void Execute(EditorActionKind action)
     {
-        if (_editor is { } editor)
+        if (_workbench.IsInstantEditing)
+        {
+            if (action == EditorActionKind.FocusEditor) _workbench.LiveEditor?.FocusEditor();
+            else if (_workbench.LiveEditor is { } live) _ = live.ExecuteAsync(action.ToEditorAction());
+            return;
+        }
+        if (_workbench.IsSourceEditing && _editor is { } editor)
         {
             _ = editor.ExecuteAsync(action.ToEditorAction());
         }
@@ -208,14 +247,29 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     public void ApplyEditorInsertText(MarkdownEditorInsertTextCommand command) => InsertText(command.Text);
 
     [EventHandler]
-    public void ApplySearch(EditorSearchCommand command) => _editor?.Search(command.ToEditorSearchCommand());
+    public void ApplyTaskWriteBack(MarkdownTaskWriteBackCommand command) => ApplyExternalEdit(command.Markdown, command.Start, command.Length);
 
     [EventHandler]
-    public void GetSelectedText(EditorSelectedTextQuery query) => query.Result = _editor?.SelectedText ?? string.Empty;
+    public void ApplySearch(EditorSearchCommand command)
+    {
+        // 查找始终露出命中位置，替换只在明确的编辑视图执行。
+        _workbench.ShowSource();
+        _editor?.Search(command.ToEditorSearchCommand());
+    }
+
+    [EventHandler]
+    public void GetSelectedText(EditorSelectedTextQuery query) => query.Result = _workbench.IsInstantEditing
+        ? _workbench.LiveEditor?.SelectedText ?? string.Empty : _editor?.SelectedText ?? string.Empty;
 
     [EventHandler]
     public void GetSelection(EditorSelectionQuery query)
     {
+        if (_workbench.IsInstantEditing && _workbench.LiveEditor is { } live)
+        {
+            var selection = live.Selection;
+            query.Result = new EditorSelectionInfo(live.SelectedText, selection.Start, selection.Length);
+            return;
+        }
         if (_editor is not { } editor)
         {
             query.Result = new EditorSelectionInfo(string.Empty, 0, 0);
