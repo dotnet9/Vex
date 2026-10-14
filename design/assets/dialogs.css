@@ -1,0 +1,110 @@
+/* 沿用现有独立窗口样式，主工作台由 workbench.css 定义。 */
+/* 独立窗口内容 */
+  .stat-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 18px 24px 4px; }
+  .stat-card { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px 10px; }
+  .stat-card .num { font-size: 24px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stat-card .lbl { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .stat-rows { padding: 12px 24px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--splitter); font-size: 12.5px; }
+  .stat-row .k { color: var(--muted); }
+  .stat-row .v { font-weight: 600; color: var(--value); }
+
+  .prop-rows { padding: 4px 24px 22px; }
+  .prop-row { display: grid; grid-template-columns: 76px 1fr; gap: 14px; padding: 9px 0; border-bottom: 1px dashed var(--splitter); font-size: 12.5px; }
+  .prop-row:last-child { border-bottom: none; }
+  .prop-row .k { color: var(--muted); }
+  .prop-row .v { color: var(--value); }
+  .prop-row .v.mono { font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px; color: var(--muted); }
+  .copy-btn {
+    appearance: none; border: 1px solid var(--border); background: var(--panel);
+    color: var(--muted); border-radius: 6px; padding: 2px 7px;
+    font-size: 11px; cursor: pointer; flex: none; margin-top: -2px;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .pill-ok {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 600; color: var(--success);
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    border-radius: 999px; padding: 1px 9px;
+  }
+  .pill-ok::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+  .about-hero { display: flex; align-items: center; gap: 14px; padding: 28px 24px 0; }
+  .about-logo {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: var(--title-grad); color: #fff; font-size: 22px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-pop); flex: none;
+  }
+  .about-hero h2 { font-size: 20px; font-weight: 700; letter-spacing: .3px; }
+  .about-hero .slogan { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .about-rows { padding: 18px 24px 4px; }
+  .about-row { display: grid; grid-template-columns: 76px 1fr; gap: 14px; padding: 9px 0; border-bottom: 1px dashed var(--splitter); font-size: 12.5px; align-items: baseline; }
+  .about-row:last-child { border-bottom: none; }
+  .about-row .k { color: var(--muted); }
+  .about-row .v { color: var(--value); }
+  .about-row .v.mono { font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; }
+  .ver-badge {
+    display: inline-flex; font-size: 11.5px; font-weight: 600;
+    color: var(--accent); background: var(--accent-soft);
+    border-radius: 999px; padding: 1px 10px;
+  }
+  .about-link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; font-weight: 500; }
+  .about-foot { padding: 14px 24px 22px; font-size: 11.5px; color: var(--muted); line-height: 1.8; display: flex; gap: 8px; align-items: flex-start; }
+  .about-foot svg { width: 13px; height: 13px; flex: none; margin-top: 3px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .75; }
+
+  .set-head { padding: 20px 24px 4px; display: flex; align-items: center; gap: 14px; }
+  .set-head .s-ico {
+    width: 44px; height: 44px; border-radius: 11px;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+  }
+  .set-head h2 { font-size: 16.5px; font-weight: 700; }
+  .set-head .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .enable-row {
+    margin: 14px 24px 0; display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 5%, var(--panel));
+  }
+  .enable-row .et { font-weight: 600; font-size: 13px; }
+  .enable-row .ed { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .enable-row .switch { margin-left: auto; }
+  .set-body { padding: 14px 24px 6px; display: flex; flex-direction: column; gap: 12px; }
+  .form-grid { display: grid; grid-template-columns: 108px 1fr; gap: 10px 14px; align-items: center; }
+  .form-grid > .k { font-size: 12.5px; color: var(--muted); text-align: right; }
+  .input-group { display: flex; gap: 8px; align-items: center; }
+  .endpoint {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 5px 6px 5px 10px;
+  }
+  .endpoint code { flex: 1; font-size: 12px; color: var(--value); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .set-foot { margin-top: 16px; padding: 12px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: var(--statusbar-bg); }
+
+  .doc-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 28px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+  .doc-head .d-logo {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--title-grad); color: #fff; font-size: 18px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-pop); flex: none;
+  }
+  .doc-head h2 { font-size: 18px; font-weight: 700; }
+  .doc-head .sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+  .doc-body { height: 400px; overflow: auto; margin: 0 24px 20px; }
+  .doc-body .md-body { padding: 22px 12px 10px; }
+  .md-body a { color: var(--accent); }
+
+  .detail-box { margin-top: 14px; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .detail-box pre {
+    max-height: 150px; overflow: auto; margin: 8px 0 0;
+    font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px;
+    line-height: 1.65; color: var(--muted); white-space: pre-wrap; word-break: break-all;
+  }
+  .rn-error { margin-top: 10px; font-size: 12px; color: var(--danger); }
+
+  

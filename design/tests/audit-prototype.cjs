@@ -38,19 +38,22 @@ const { chromium } = require('playwright');
     // 通过标题菜单点击，避免仅验证悬浮色板而漏掉实际菜单接线。
     await page.locator('#vex-theme-fab').click();
     const openThemes = async () => {
-      await page.locator('.tb-menuitem').filter({ hasText: '帮助(H)' }).click();
-      await page.locator('.menu-flyout > .flyout > .menu-item').filter({ hasText: '主题色' }).hover();
+      await page.locator('.tb-menuitem').filter({ hasText: '视图(V)' }).click();
+      await page.locator('.menu-flyout > .flyout > .menu-item').filter({ hasText: '界面配色' }).hover();
     };
+    const themeItem = label => page.locator('.submenu:visible > .menu-item').filter({
+      has: page.locator('.menu-label').filter({ hasText: new RegExp('^' + label + '$') })
+    });
     await openThemes();
-    await page.locator('.submenu:visible > .menu-item').filter({ hasText: /^AI 极光$/ }).click();
+    await themeItem('AI 极光').click();
     assert.equal(await page.locator('html').getAttribute('data-palette'), 'aurora');
     await openThemes();
-    await page.locator('.submenu:visible > .menu-item').filter({ hasText: /^浅色$/ }).click();
+    await themeItem('浅色').click();
     assert.equal(await page.locator('html').getAttribute('data-theme-mode'), 'light');
     await openThemes();
-    assert.equal(await page.locator('.submenu:visible > .menu-item').filter({ hasText: /^AI 极光$/ }).evaluate(item => item.classList.contains('checked')), true);
-    assert.equal(await page.locator('.submenu:visible > .menu-item').filter({ hasText: /^浅色$/ }).evaluate(item => item.classList.contains('checked')), true);
-    await page.locator('.tb-menuitem').filter({ hasText: '帮助(H)' }).click();
+    assert.equal(await themeItem('AI 极光').evaluate(item => item.classList.contains('checked')), true);
+    assert.equal(await themeItem('浅色').evaluate(item => item.classList.contains('checked')), true);
+    await page.locator('.tb-menuitem').filter({ hasText: '视图(V)' }).click();
     await page.emulateMedia({ colorScheme: 'dark' });
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
     assert.deepEqual(errors, []);
