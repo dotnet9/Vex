@@ -6,6 +6,7 @@ namespace Vex.Core.Services;
 public sealed class AppSettingsStore : IAppSettingsStore
 {
     private const string ThemeKey = nameof(AppSettings.ThemeKey);
+    private const string PaletteKey = nameof(AppSettings.PaletteKey);
     private const string TypographyKey = nameof(AppSettings.TypographyKey);
     private const string IsCompactLayout = nameof(AppSettings.IsCompactLayout);
     private const string CultureName = nameof(AppSettings.CultureName);
@@ -65,6 +66,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
         return new AppSettings
         {
             ThemeKey = Get<string>(configPath, ThemeKey),
+            PaletteKey = Get<string>(configPath, PaletteKey),
             TypographyKey = Get<string>(configPath, TypographyKey),
             IsCompactLayout = Get<bool?>(configPath, IsCompactLayout),
             CultureName = Get<string>(configPath, CultureName),
@@ -97,6 +99,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
         {
             var configPath = AppConfigHelper.GetDefaultConfigPath();
             AppConfigHelper.Set(configPath, ThemeKey, settings.ThemeKey);
+            AppConfigHelper.Set(configPath, PaletteKey, settings.PaletteKey);
             AppConfigHelper.Set(configPath, TypographyKey, settings.TypographyKey);
             AppConfigHelper.Set(configPath, IsCompactLayout, settings.IsCompactLayout);
             AppConfigHelper.Set(configPath, CultureName, settings.CultureName);

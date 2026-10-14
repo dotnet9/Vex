@@ -1,31 +1,38 @@
-using Avalonia;
-using Avalonia.Styling;
-using Semi.Avalonia;
+﻿using Avalonia;
+using CodeWF.Avalonia.Controls.Themes;
 using Vex.Core.Models;
 using Vex.Core.Services;
 
 namespace Vex.Modules.Appearance.Services;
 
-public sealed class ThemeService : IThemeService
+/// <summary>应用只保存选项，配色与系统明暗变化统一交给控件库。</summary>
+public sealed class ThemeService : IThemeService, IDisposable
 {
-    private static readonly ThemeOption[] Themes =
+    private StudioThemeController? _controller;
+    private static readonly ThemeOption[] Modes =
     [
-        new("System", "system", ThemeVariant.Default),
-        new("Light", "light", ThemeVariant.Light),
-        new("Dark", "dark", ThemeVariant.Dark),
-        new("Aquatic", "aquatic", SemiTheme.Aquatic),
-        new("Desert", "desert", SemiTheme.Desert),
-        new("Dusk", "dusk", SemiTheme.Dusk),
-        new("NightSky", "night-sky", SemiTheme.NightSky)
+        new("system", StudioThemeMode.System),
+        new("light", StudioThemeMode.Light),
+        new("dark", StudioThemeMode.Dark),
+    ];
+    private static readonly PaletteOption[] Palettes =
+    [
+        new("dotnet", StudioPalette.DotNet), new("aurora", StudioPalette.Aurora),
+        new("ember", StudioPalette.Ember), new("default", StudioPalette.Default),
+        new("aquatic", StudioPalette.Aquatic), new("desert", StudioPalette.Desert),
+        new("dusk", StudioPalette.Dusk), new("night-sky", StudioPalette.NightSky),
     ];
 
-    public IReadOnlyList<ThemeOption> GetThemeOptions() => Themes;
+    public IReadOnlyList<ThemeOption> GetThemeOptions() => Modes;
+    public IReadOnlyList<PaletteOption> GetPaletteOptions() => Palettes;
 
-    public void ApplyTheme(ThemeOption theme)
+    public void ApplyTheme(ThemeOption theme, PaletteOption palette)
     {
-        if (Application.Current is { } app)
-        {
-            app.RequestedThemeVariant = theme.ThemeVariant;
-        }
+        if (Application.Current is not { } app) return;
+        _controller ??= new StudioThemeController(app);
+        _controller.Palette = palette.Palette;
+        _controller.Mode = theme.Mode;
     }
+
+    public void Dispose() => _controller?.Dispose();
 }

@@ -1,4 +1,4 @@
-using Vex.Core.Models;
+﻿using Vex.Core.Models;
 
 namespace Vex.Core.Services;
 
@@ -6,5 +6,7 @@ public interface IThemeService
 {
     IReadOnlyList<ThemeOption> GetThemeOptions();
 
-    void ApplyTheme(ThemeOption theme);
+    IReadOnlyList<PaletteOption> GetPaletteOptions();
+
+    void ApplyTheme(ThemeOption theme, PaletteOption palette);
 }

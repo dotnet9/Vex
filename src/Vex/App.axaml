@@ -9,6 +9,9 @@
     xmlns:vexThemes="https://codewf.com">
     <prism:PrismApplication.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="Styles/StudioPalette.axaml" />
+            </ResourceDictionary.MergedDictionaries>
             <FontFamily x:Key="ContentControlThemeFontFamily">Inter, Microsoft YaHei UI, Segoe UI</FontFamily>
             <FontFamily x:Key="ControlContentThemeFontFamily">Inter, Microsoft YaHei UI, Segoe UI</FontFamily>
             <x:Double x:Key="ControlContentThemeFontSize">14</x:Double>
@@ -25,6 +28,7 @@
         <semi:SemiPopupAnimations />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Simple/AvaloniaEdit.xaml" />
         <codewf:ACSemiTheme />
+        <codewf:StudioTheme />
         <!-- 完整包样式入口（CodeWF.Avalonia.Markdown.Themes）：在 Lite.Themes 的控件模板与 18 套排版主题之上
              叠加图片能力控件与编辑器控件外观。 -->
         <markdownThemes:MarkdownFullThemes TypographyTheme="Simple" />

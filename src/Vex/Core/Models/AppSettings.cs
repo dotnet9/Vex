@@ -1,8 +1,11 @@
-namespace Vex.Core.Models;
+﻿namespace Vex.Core.Models;
 
 public sealed record AppSettings
 {
     public string? ThemeKey { get; init; }
+
+    /// <summary>配色独立于浅色、深色与跟随系统模式。</summary>
+    public string? PaletteKey { get; init; }
 
     public string? TypographyKey { get; init; }
 

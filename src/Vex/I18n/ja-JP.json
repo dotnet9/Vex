@@ -1,4 +1,4 @@
-{
+﻿{
   "language": "Japanese",
   "description": "日本語",
   "cultureName": "ja-JP",
@@ -428,9 +428,12 @@
       "StatusAutoPairEnabled": "自動ペア入力を有効にしました。",
       "StatusAutoPairDisabled": "自動ペア入力を無効にしました。",
       "StatusImageInserted": "画像 {0} を挿入しました。",
-      "ErrorMessageImageDropFailed": "ドロップした画像をドキュメントの assets フォルダーにコピーできませんでした。",      "MenuAutoPair": "自動ペア入力",      "MenuMotion": "アニメーション",
+      "ErrorMessageImageDropFailed": "ドロップした画像をドキュメントの assets フォルダーにコピーできませんでした。",
+      "MenuAutoPair": "自動ペア入力",
+      "MenuMotion": "アニメーション",
       "QuickOpenEmpty": "一致するドキュメントがありません",
-      "CopyPlainText": "プレーンテキストとしてコピー",      "MenuFocusMode": "集中モード",
+      "CopyPlainText": "プレーンテキストとしてコピー",
+      "MenuFocusMode": "集中モード",
       "MenuTypewriterMode": "タイプライターモード",
       "StatusFindReady": "検索の準備ができました。",
       "StatusReplaceReady": "置換の準備ができました。",
@@ -459,8 +462,30 @@
       "AboutCheckUpdate": "更新を確認",
       "AboutCheckingUpdate": "更新を確認中…",
       "AboutUpToDate": "すでに最新版です",
-      "AboutUpdateAvailable": "新しいバージョン {0} が見つかりました。リリースページを開きました。",
-      "AboutUpdateFailed": "更新の確認に失敗しました: {0}"
+      "AboutUpdateAvailable": "新しいバージョン：{0}。",
+      "AboutUpdateFailed": "更新の確認に失敗しました: {0}",
+      "AboutPlatformLabel": "開発環境",
+      "AboutRepositoryLabel": "リポジトリ",
+      "AboutCopyrightLabel": "著作権",
+      "AboutUpdateHint": "Vex の更新を確認します。ダウンロード後にインストールします。Windows ではインストーラーの起動後にアプリが終了します。",
+      "AboutDownload": "更新をダウンロード",
+      "AboutDownloading": "ダウンロード中…",
+      "AboutInstall": "更新をインストール",
+      "AboutInstalling": "インストーラーを起動中…",
+      "AboutOpenRelease": "リリースページを開く",
+      "AboutOpenFolder": "保存フォルダーを開く",
+      "AboutReleaseNotes": "リリースノート",
+      "AboutDownloadProgress": "ダウンロード中 {0}",
+      "AboutDownloaded": "検証済みです。インストールできます。",
+      "AboutCanceled": "操作がキャンセルされました。",
+      "LanguageSimplifiedChinese": "简体中文",
+      "LanguageTraditionalChinese": "繁體中文",
+      "LanguageEnglish": "English",
+      "LanguageJapanese": "日本語",
+      "ThemeDotNet": ".NET パープル",
+      "ThemeAurora": "AI オーロラ",
+      "ThemeEmber": "AI テラコッタ",
+      "ThemeDefault": "標準ブルー"
     }
   }
 }

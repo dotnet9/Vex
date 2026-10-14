@@ -47,16 +47,12 @@
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="CodeWF.Avalonia.Controls" />
-    <PackageReference Include="CodeWF.Avalonia.Controls" />
     <PackageReference Include="CodeWF.Toolkit.EventBus" />
     <PackageReference Include="CodeWF.Avalonia.Markdown.Lite" />
     <PackageReference Include="CodeWF.Avalonia.Markdown" />
-    <PackageReference Include="CodeWF.Avalonia.Markdown.Lite" />
-    <PackageReference Include="CodeWF.Avalonia.Markdown" />
-    <PackageReference Include="CodeWF.Toolkit.Core" />
     <PackageReference Include="CodeWF.Toolkit.Files" />
     <PackageReference Include="Irihi.Ursa.Themes.Semi" />
-    <PackageReference Include="Lang.Avalonia.Json" />
+    <PackageReference Include="CodeWF.Avalonia.Lang" />
     <PackageReference Include="Prism.DryIoc.Avalonia" />
     <PackageReference Include="ReactiveUI.Avalonia" />
     <PackageReference Include="Semi.Avalonia" />

@@ -1,4 +1,4 @@
-{
+﻿{
   "language": "繁體中文",
   "description": "中文（繁體）",
   "cultureName": "zh-Hant",
@@ -428,9 +428,12 @@
       "StatusAutoPairEnabled": "自動配對已啟用。",
       "StatusAutoPairDisabled": "自動配對已關閉。",
       "StatusImageInserted": "已插入圖片 {0}。",
-      "ErrorMessageImageDropFailed": "無法把拖入的圖片複製到文件的 assets 目錄。",      "MenuAutoPair": "自動配對輸入",      "MenuMotion": "介面動效",
+      "ErrorMessageImageDropFailed": "無法把拖入的圖片複製到文件的 assets 目錄。",
+      "MenuAutoPair": "自動配對輸入",
+      "MenuMotion": "介面動效",
       "QuickOpenEmpty": "沒有符合的文件",
-      "CopyPlainText": "複製為純文字",      "MenuFocusMode": "專注模式",
+      "CopyPlainText": "複製為純文字",
+      "MenuFocusMode": "專注模式",
       "MenuTypewriterMode": "打字機模式",
       "StatusFindReady": "尋找已就緒。",
       "StatusReplaceReady": "取代已就緒。",
@@ -459,8 +462,30 @@
       "AboutCheckUpdate": "檢查更新",
       "AboutCheckingUpdate": "正在檢查更新…",
       "AboutUpToDate": "目前已是最新版本",
-      "AboutUpdateAvailable": "發現新版本 {0}，已打開發布頁",
-      "AboutUpdateFailed": "檢查更新失敗：{0}"
+      "AboutUpdateAvailable": "發現新版本：{0}。",
+      "AboutUpdateFailed": "檢查更新失敗：{0}",
+      "AboutPlatformLabel": "開發平台",
+      "AboutRepositoryLabel": "開源倉庫",
+      "AboutCopyrightLabel": "版權",
+      "AboutUpdateHint": "從 Vex 更新服務檢查新版本。下載後需要安裝；Windows 啟動安裝程式後會退出應用程式。",
+      "AboutDownload": "下載更新",
+      "AboutDownloading": "正在下載…",
+      "AboutInstall": "安裝更新",
+      "AboutInstalling": "正在啟動安裝程式…",
+      "AboutOpenRelease": "開啟發佈頁面",
+      "AboutOpenFolder": "開啟所在資料夾",
+      "AboutReleaseNotes": "發佈說明",
+      "AboutDownloadProgress": "正在下載 {0}",
+      "AboutDownloaded": "下載已驗證，可開始安裝。",
+      "AboutCanceled": "操作已取消。",
+      "LanguageSimplifiedChinese": "简体中文",
+      "LanguageTraditionalChinese": "繁體中文",
+      "LanguageEnglish": "English",
+      "LanguageJapanese": "日本語",
+      "ThemeDotNet": ".NET 紫",
+      "ThemeAurora": "AI 極光",
+      "ThemeEmber": "AI 赤陶",
+      "ThemeDefault": "預設藍"
     }
   }
 }

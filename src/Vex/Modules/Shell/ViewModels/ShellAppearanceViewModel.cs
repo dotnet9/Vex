@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using CodeWF.Avalonia.Markdown.Themes;
@@ -41,6 +41,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
     private bool _isCompactLayout;
     private bool _isInitializing = true;
     private ThemeOption? _selectedTheme;
+    private PaletteOption? _selectedPalette;
     private TypographyOption? _selectedTypography;
     private LanguageOption? _selectedLanguage;
 
@@ -58,20 +59,24 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         _statusPublisher = statusPublisher;
 
         ThemeOptions = new ObservableCollection<ThemeOption>(_themeService.GetThemeOptions());
+        PaletteOptions = new ObservableCollection<PaletteOption>(_themeService.GetPaletteOptions());
         TypographyOptions = new ObservableCollection<TypographyOption>(
             TypographyKeys.Select(theme => new TypographyOption(theme, theme)));
         LanguageOptions = new ObservableCollection<LanguageOption>
         {
-            new("zh-CN", "简体中文", "中文（简体）"),
-            new("zh-Hant", "繁體中文", "中文（繁體）"),
-            new("en-US", "English", "English"),
-            new("ja-JP", "日本語", "日本語")
+            new("zh-CN", _localizer.Get(VexL.LanguageSimplifiedChinese), _localizer.Get(VexL.LanguageSimplifiedChinese)),
+            new("zh-Hant", _localizer.Get(VexL.LanguageTraditionalChinese), _localizer.Get(VexL.LanguageTraditionalChinese)),
+            new("en-US", _localizer.Get(VexL.LanguageEnglish), _localizer.Get(VexL.LanguageEnglish)),
+            new("ja-JP", _localizer.Get(VexL.LanguageJapanese), _localizer.Get(VexL.LanguageJapanese))
         };
 
         var settings = _settingsStore.Current;
         _selectedTheme = FindTheme(settings.ThemeKey)
                          ?? FindTheme("system")
                          ?? ThemeOptions.FirstOrDefault();
+        _selectedPalette = PaletteOptions.FirstOrDefault(item =>
+            item.Key.Equals(settings.PaletteKey ?? settings.ThemeKey, StringComparison.OrdinalIgnoreCase))
+            ?? PaletteOptions[0];
         _selectedTypography = FindTypography(settings.TypographyKey)
                               ?? FindTypography(MarkdownTypographyThemes.Simple)
                               ?? TypographyOptions.FirstOrDefault();
@@ -79,7 +84,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         _selectedLanguage = FindLanguage(GetInitialCulture(settings.CultureName));
         if (_selectedTheme is not null)
         {
-            _themeService.ApplyTheme(_selectedTheme);
+            _themeService.ApplyTheme(_selectedTheme, _selectedPalette);
         }
 
         if (_selectedLanguage is not null)
@@ -89,9 +94,12 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
 
         PublishTypographyState();
         _isInitializing = false;
+        PersistAppearanceSettings();
     }
 
     public ObservableCollection<ThemeOption> ThemeOptions { get; }
+
+    public ObservableCollection<PaletteOption> PaletteOptions { get; }
 
     public ObservableCollection<TypographyOption> TypographyOptions { get; }
 
@@ -118,10 +126,29 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         {
             if (SetProperty(ref _selectedTheme, value) && value is not null)
             {
-                _themeService.ApplyTheme(value);
+                _themeService.ApplyTheme(value, SelectedPalette!);
                 PersistAppearanceSettings();
             }
         }
+    }
+
+    public PaletteOption? SelectedPalette
+    {
+        get => _selectedPalette;
+        set
+        {
+            if (SetProperty(ref _selectedPalette, value) && value is not null)
+            {
+                _themeService.ApplyTheme(SelectedTheme!, value);
+                PersistAppearanceSettings();
+            }
+        }
+    }
+
+    public void SelectPaletteByKey(string? key)
+    {
+        if (PaletteOptions.FirstOrDefault(item => item.Key.Equals(key, StringComparison.OrdinalIgnoreCase)) is { } option)
+            SelectedPalette = option;
     }
 
     public TypographyOption? SelectedTypography
@@ -231,6 +258,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         _settingsStore.Update(settings => settings with
         {
             ThemeKey = SelectedTheme?.Key,
+            PaletteKey = SelectedPalette?.Key,
             TypographyKey = SelectedTypography?.Key,
             IsCompactLayout = IsCompactLayout,
             CultureName = SelectedLanguage?.CultureName

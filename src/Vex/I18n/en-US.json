@@ -1,4 +1,4 @@
-{
+﻿{
   "language": "English",
   "description": "English",
   "cultureName": "en-US",
@@ -428,9 +428,12 @@
       "StatusAutoPairEnabled": "Auto pair enabled.",
       "StatusAutoPairDisabled": "Auto pair disabled.",
       "StatusImageInserted": "Inserted image {0}.",
-      "ErrorMessageImageDropFailed": "Could not copy the dropped image into the document's assets folder.",      "MenuAutoPair": "Auto Pair Input",      "MenuMotion": "Motion Effects",
+      "ErrorMessageImageDropFailed": "Could not copy the dropped image into the document's assets folder.",
+      "MenuAutoPair": "Auto Pair Input",
+      "MenuMotion": "Motion Effects",
       "QuickOpenEmpty": "No matching documents",
-      "CopyPlainText": "Copy as Plain Text",      "MenuFocusMode": "Focus Mode",
+      "CopyPlainText": "Copy as Plain Text",
+      "MenuFocusMode": "Focus Mode",
       "MenuTypewriterMode": "Typewriter Mode",
       "StatusFindReady": "Find is ready.",
       "StatusReplaceReady": "Replace is ready.",
@@ -459,8 +462,30 @@
       "AboutCheckUpdate": "Check for updates",
       "AboutCheckingUpdate": "Checking for updates…",
       "AboutUpToDate": "You are already on the latest version",
-      "AboutUpdateAvailable": "New version found: {0}. Release page opened.",
-      "AboutUpdateFailed": "Update check failed: {0}"
+      "AboutUpdateAvailable": "New version found: {0}.",
+      "AboutUpdateFailed": "Update check failed: {0}",
+      "AboutPlatformLabel": "Development platform",
+      "AboutRepositoryLabel": "Repository",
+      "AboutCopyrightLabel": "Copyright",
+      "AboutUpdateHint": "Check the Vex update service. Downloading is followed by installation; Windows will close after launching the installer.",
+      "AboutDownload": "Download update",
+      "AboutDownloading": "Downloading…",
+      "AboutInstall": "Install update",
+      "AboutInstalling": "Starting installer…",
+      "AboutOpenRelease": "Open release page",
+      "AboutOpenFolder": "Open containing folder",
+      "AboutReleaseNotes": "Release notes",
+      "AboutDownloadProgress": "Downloading {0}",
+      "AboutDownloaded": "Download verified. Ready to install.",
+      "AboutCanceled": "Operation canceled.",
+      "LanguageSimplifiedChinese": "简体中文",
+      "LanguageTraditionalChinese": "繁體中文",
+      "LanguageEnglish": "English",
+      "LanguageJapanese": "日本語",
+      "ThemeDotNet": ".NET Purple",
+      "ThemeAurora": "AI Aurora",
+      "ThemeEmber": "AI Ember",
+      "ThemeDefault": "Default Blue"
     }
   }
 }

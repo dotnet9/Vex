@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.Versioning;
 using System.Text;
 
@@ -12,6 +13,9 @@ public static class DefaultFileOpeningService
 
     public static void Configure()
     {
+        // 离屏测试和其他宿主引用 Vex 程序集时，不注册宿主程序的路径。
+        if (Assembly.GetEntryAssembly() != typeof(DefaultFileOpeningService).Assembly) return;
+
         try
         {
             var executablePath = Environment.ProcessPath;
@@ -92,6 +96,11 @@ public static class DefaultFileOpeningService
             using var appKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\Applications\{executableName}");
             appKey?.SetValue("FriendlyAppName", ApplicationName);
 
+            using var appIconKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\Applications\{executableName}\DefaultIcon");
+            appIconKey?.SetValue(null, $"\"{executablePath}\",0");
+            using var supportedTypes = Registry.CurrentUser.CreateSubKey($@"Software\Classes\Applications\{executableName}\SupportedTypes");
+            foreach (var extension in MarkdownExtensions) supportedTypes?.SetValue(extension, string.Empty);
+
             using var appCommandKey = Registry.CurrentUser.CreateSubKey(
                 $@"Software\Classes\Applications\{executableName}\shell\open\command");
             appCommandKey?.SetValue(null, $"\"{executablePath}\" \"%1\"");
@@ -99,9 +108,7 @@ public static class DefaultFileOpeningService
 
         private static void RegisterExtension(string extension)
         {
-            using var extensionKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{extension}");
-            extensionKey?.SetValue(null, ProgId);
-
+            // 仅添加“打开方式”候选，不覆盖扩展名默认值及系统 UserChoice。
             using var openWithKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{extension}\OpenWithProgids");
             openWithKey?.SetValue(ProgId, Array.Empty<byte>(), RegistryValueKind.None);
         }
@@ -127,10 +134,7 @@ public static class DefaultFileOpeningService
             var desktopFilePath = Path.Combine(applicationsDirectory, DesktopFileName);
             File.WriteAllText(desktopFilePath, CreateDesktopFile(executablePath), Encoding.UTF8);
 
-            foreach (var mimeType in MimeTypes)
-            {
-                RunXdgMime("default", DesktopFileName, mimeType);
-            }
+            RunCommand("update-desktop-database", applicationsDirectory);
         }
 
         private static string? GetLocalShareDirectory()
@@ -192,11 +196,6 @@ public static class DefaultFileOpeningService
         private static string EscapeDesktopEntryValue(string value)
         {
             return value.Replace("\\", "\\\\", StringComparison.Ordinal);
-        }
-
-        private static void RunXdgMime(params string[] arguments)
-        {
-            RunCommand("xdg-mime", arguments);
         }
 
         private static void RunCommand(string fileName, params string[] arguments)

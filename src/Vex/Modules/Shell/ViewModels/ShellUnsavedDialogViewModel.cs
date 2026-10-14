@@ -7,13 +7,13 @@ namespace Vex.Modules.Shell.ViewModels;
 public enum ShellUnsavedDecision
 {
     /// <summary>保存后继续。</summary>
-    Save,
+    Save = 1,
 
     /// <summary>放弃修改并继续。</summary>
-    Discard,
+    Discard = 2,
 
     /// <summary>取消本次流转。</summary>
-    Cancel
+    Cancel = 0
 }
 
 /// <summary>

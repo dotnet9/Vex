@@ -10,6 +10,7 @@
     xmlns:shell="using:Vex.Modules.Shell.Views"
     xmlns:workspace="using:Vex.Modules.Workspace.Views"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+    xmlns:u="https://irihi.tech/ursa"
     x:DataType="vm:MainWindowViewModel"
     Title="{Binding DocumentInfo.WindowTitle}"
     Width="1280"
@@ -28,7 +29,8 @@
             Height="40"
             Orientation="Horizontal"
             Spacing="8"
-            VerticalAlignment="Center">
+            VerticalAlignment="Center"
+            IsEnabled="{Binding !IsInModalStatus, ElementName=ShellDialogHost}">
             <!-- 品牌 Logo：渐变圆角方块（对应原型 .tb-logo：20×20、圆角 6、字号 11 粗体） -->
             <Border
                 Width="20"
@@ -70,8 +72,8 @@
         </StackPanel>
     </codewf:CodeWFWindow.LeftContent>
 
-    <!-- 分隔线位于标题栏的第 40 像素，内容仍从 y=40 开始。 -->
-    <Border x:Name="ShellTitleDivider" Margin="0 39 0 0"
+    <!-- CodeWFWindow 模板已预留标题栏高度，内容只添加 1 像素分隔线。 -->
+    <Border x:Name="ShellTitleDivider"
             BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0 1 0 0">
     <Grid
         x:Name="ShellGuideRoot"
@@ -243,6 +245,8 @@
                 Placement="Center"
                 Title="{i18n:I18n {x:Static l:VexL.GuideFinishTitle}}" />
         </codewf:Guide>
+        <!-- 自定义窗口不含 UrsaWindow 的默认宿主，显式复用 Ursa 浮层控件。 -->
+        <u:OverlayDialogHost x:Name="ShellDialogHost" Grid.RowSpan="3" />
     </Grid>
     </Border>
 </codewf:CodeWFWindow>

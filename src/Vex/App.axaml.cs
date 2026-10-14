@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using CodeWF.Avalonia.Lang;
 using CodeWF.Avalonia.Lang.Json;
+using CodeWF.Toolkit.Core.UpdateChecking;
 using Prism.DryIoc;
 using Prism.Ioc;
 using Prism.Modularity;
@@ -74,7 +75,10 @@ public partial class App : PrismApplication
         var options = themeService.GetThemeOptions();
         var option = options.FirstOrDefault(item => item.Key.Equals(settings.ThemeKey, StringComparison.OrdinalIgnoreCase))
                      ?? options.First(item => item.Key.Equals("system", StringComparison.OrdinalIgnoreCase));
-        themeService.ApplyTheme(option);
+        var palette = themeService.GetPaletteOptions().FirstOrDefault(item =>
+            item.Key.Equals(settings.PaletteKey ?? settings.ThemeKey, StringComparison.OrdinalIgnoreCase))
+            ?? themeService.GetPaletteOptions()[0];
+        themeService.ApplyTheme(option, palette);
     }
 
     protected override void ConfigureRegionAdapterMappings(RegionAdapterMappings regionAdapterMappings)
@@ -85,6 +89,10 @@ public partial class App : PrismApplication
 
     protected override void RegisterTypes(IContainerRegistry containerRegistry)
     {
+        containerRegistry.RegisterInstance<IUpdateService>(new UpdateService(new UpdateServiceOptions
+        {
+            Owner = "dotnet9", Repository = "Vex", ProductName = "Vex"
+        }));
         containerRegistry.RegisterSingleton<IAppSettingsStore, AppSettingsStore>();
         containerRegistry.RegisterSingleton<IAppLocalizer, AppLocalizer>();
         containerRegistry.RegisterSingleton<IDocumentFileFactory, DocumentFileFactory>();
