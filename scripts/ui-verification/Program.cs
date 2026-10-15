@@ -406,7 +406,9 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     Pump();
     Check(folder.IsExpanded, "Vex folder chevron expands its subtree");
     vm.FilterText = "deep";
-    Pump();
+    // 过滤会重建树容器，等待布局队列完成后再核对实际可见节点。
+    PumpUntil(() => tree.GetVisualDescendants().OfType<TextBlock>()
+        .Count(t => t.IsEffectivelyVisible && t.Classes.Contains("file-title")) == 1);
     Check(tree.GetVisualDescendants().OfType<TextBlock>().Count(t => t.IsEffectivelyVisible && t.Classes.Contains("file-title")) == 1,
         "Vex file filter retains the matching document and its ancestors");
     vm.FilterText = string.Empty;
