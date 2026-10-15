@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
@@ -26,7 +26,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     public ObservableCollection<DocumentFileNode> FilteredDocumentFileNodes { get; } = [];
 
     private string? _workspacePath;
-    public string WorkspaceName => _workspacePath is { Length: > 0 } path ? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) : CodeWF.Avalonia.Lang.I18nManager.Instance.GetResource(VexL.WBWorkspace) ?? string.Empty;
+    public string WorkspaceName => _workspacePath is { Length: > 0 } path ? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) : CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.WBWorkspace) ?? string.Empty;
 
     private string _filterText = string.Empty;
 

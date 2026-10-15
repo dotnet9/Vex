@@ -1,4 +1,4 @@
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Markdown.Editor.Services;
 using CodeWF.Avalonia.MindView.Markdown;
@@ -51,7 +51,7 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
         _showLists = settings.Current.MindMapShowLists ?? true;
         document.DocumentChanged += (_, _) => { SynchronizeLive(); QueueMap(); };
         appearance.Changed += (_, _) => ApplyLiveAppearance();
-        CodeWF.Avalonia.Lang.I18nManager.Instance.CultureChanged += (_, _) =>
+        CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += (_, _) =>
         { foreach (var name in new[] { nameof(ViewLabel), nameof(EditingHint), nameof(InstantHint), nameof(MapSummaryLabel), nameof(MapCountLabel), nameof(SelectedSourceLabel), nameof(SelectedKindLabel), nameof(SummaryPreview) }) this.RaisePropertyChanged(name); };
         ApplyLayout(); QueueMap();
     }
@@ -69,7 +69,7 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     public bool IsPreviewVisible => IsReading || IsSourceEditing && SourcePreviewEnabled;
     public bool SourcePreviewEnabled { get => _sourcePreviewEnabled; set { this.RaiseAndSetIfChanged(ref _sourcePreviewEnabled, value); NotifyModes(); _settings.Update(s => s with { SourcePreviewEnabled = value }); } }
     public void ToggleSourcePreview() => SourcePreviewEnabled = !SourcePreviewEnabled;
-    private static string L(string key) => CodeWF.Avalonia.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
+    private static string L(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
     public string EditingHint => L(IsInstantEditing ? VexL.WBInstantDescription : IsReading ? VexL.WBReadDescription : VexL.WBSourceDescription);
     public string InstantHint => L(VexL.WBInstantHint);
     public string MapSummaryLabel => string.Format(L(VexL.WBSummaryFormat), SummaryLength);
@@ -89,7 +89,7 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     public Avalonia.Controls.GridLength SplitterWidth => IsSourceEditing && SourcePreviewEnabled || IsMindMap && ShowMapSource ? new(1) : new(0);
     public string View => _view;
     public string EditMode => _edit;
-    public string ViewLabel => CodeWF.Avalonia.Lang.I18nManager.Instance.GetResource(IsReading ? VexL.WBRead : IsMindMap ? VexL.WBMap : IsInstantEditing ? VexL.WBInstant : VexL.WBSource) ?? string.Empty;
+    public string ViewLabel => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(IsReading ? VexL.WBRead : IsMindMap ? VexL.WBMap : IsInstantEditing ? VexL.WBInstant : VexL.WBSource) ?? string.Empty;
     public string? ImageBasePath => _document.FilePath;
     public MarkdownMindMapNode? Root { get => _root; private set => this.RaiseAndSetIfChanged(ref _root, value); }
     public MarkdownMindMapNode? SelectedNode

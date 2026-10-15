@@ -6,7 +6,10 @@ namespace Vex.Modules.Help.Services;
 
 public sealed class HelpService : IHelpService
 {
-    private static readonly string DocumentsFolder = Path.Combine(AppContext.BaseDirectory, "docs");
+    private static readonly string DocumentsFolder = OperatingSystem.IsMacOS() &&
+        Directory.Exists(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Resources", "docs")))
+        ? Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Resources", "docs"))
+        : Path.Combine(AppContext.BaseDirectory, "docs");
     private readonly IEditorAppearanceState _appearanceState;
     private readonly IAppLocalizer _localizer;
     private readonly IShellOverlayService _overlay;

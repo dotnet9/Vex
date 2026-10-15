@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -57,7 +57,7 @@ public sealed class WorkbenchGuideView : Panel
     private Vex.Modules.Workspace.ViewModels.MarkdownEditorViewModel? _sourceVm;
     public int StepIndex { get; private set; }
 
-    private static string L(string key) => CodeWF.Avalonia.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
+    private static string L(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
 
     public WorkbenchGuideView()
     {
