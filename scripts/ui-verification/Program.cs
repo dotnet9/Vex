@@ -238,6 +238,9 @@ if (mode is "vex" or "preferences")
     var editableTable = window.GetVisualDescendants().OfType<Grid>().FirstOrDefault(grid => grid.GetType().Name == "MarkdownTableGrid" && grid.ColumnDefinitions.Count == 2);
     Check(editableTable is not null && editableTable.ColumnDefinitions[0].ActualWidth < editableTable.ColumnDefinitions[1].ActualWidth / 2,
         "Instant editing allocates natural table widths for short API names and long descriptions");
+    Check(editableTable?.Parent is Border tableOutline &&
+        Math.Abs(tableOutline.Bounds.Width - editableTable.ColumnDefinitions.Sum(column => column.ActualWidth) - 2) <= 2,
+        "Instant table outline fits the actual columns without a blank trailing area");
     Capture(window, "vex-native-instant-980");
     vm.Workbench.ShowRead(); Pump(); Capture(window, "vex-native-read-980");
     vm.Workbench.ShowMindMap(); vm.Workbench.ShowMapSource = false; vm.Workbench.ShowMapSettings = false;
