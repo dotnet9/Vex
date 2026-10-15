@@ -27,4 +27,4 @@ Windows 发布验收使用 `scripts/publish.ps1 -RuntimeIdentifier win-x64`，�
 
 任何断言失败均返回非零退出码，PNG 输出到指定目录。离屏结果不替代 Windows 实际窗口、DPI、IME、文件关联和 NativeAOT 运行验收。
 
-2026-10-15 回归记录：使用仅含 nuget.org 的仓库外配置及独立缓存恢复 CodeWF.Avalonia 12.1.4.15，最终源码的 272 项断言全部通过，包含 980 × 640 窗口下的三视图与全部五步引导。日志位于 `artifacts/official-verification-final.log`，截图位于 `artifacts/ui-verification-official/`。真实键鼠操作、中文输入法、多 DPI、超长文档和其他系统尚未完成专项验收。
+2026-10-15 复核：正式 NuGet 依赖及独立缓存恢复成功，Windows App 脚本 NativeAOT 发布成功，验证器另行 NativeAOT 发布后实际运行通过 369 项断言，包含同一关于浮层四语动态切换和实际元数据。详见 [复核记录](../../docs/UI-REVIEW-20261015.md)。

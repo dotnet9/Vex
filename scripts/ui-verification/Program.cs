@@ -162,8 +162,21 @@ if (mode is "vex" or "preferences")
     var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
     Check(about.IsEffectivelyVisible && about.Bounds.Width > 0 && !titleMenu.IsEffectivelyEnabled,
         "About opens inside the real main window modal host");
+    var aboutModel = (ShellAboutViewModel)about.DataContext!;
+    Check(aboutModel.VersionText == CodeWF.Toolkit.Core.UpdateChecking.UpdateVersion.Display(typeof(Vex.App).Assembly),
+        "About displays the actual application assembly version");
+    Check(DateTime.TryParse(aboutModel.CompileTimeText, out _) && aboutModel.PlatformText.Contains("Avalonia"),
+        "About metadata remains available in NativeAOT");
+    foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
+    {
+        vm.Appearance.SelectLanguageByCulture(culture); Pump();
+        Check(aboutModel.ActionText == app.Resolve<IAppLocalizer>().Get(Vex.VexL.AboutCheckUpdate),
+            "The open About dialog changes language: " + culture);
+        Capture(window, "vex-about-" + culture);
+    }
+    vm.Appearance.SelectLanguageByCulture("zh-CN"); Pump();
     Capture(window, "vex-about");
-    ((ShellAboutViewModel)about.DataContext!).Close();
+    aboutModel.Close();
     Pump(aboutTask);
     VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
     Check(vm.Appearance.PaletteOptions.Count == 8 && vm.Appearance.ThemeOptions.Count == 3,
