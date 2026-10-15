@@ -197,37 +197,37 @@ jobs:
             Copy-Item -LiteralPath $curated -Destination $bodyPath -Force
             Write-Host "使用发布说明：$curated"
           }
-                    # 附注 tag 的说明就是发布说明（Release 页直接可读，不点开 tag 也能看到）
-                    git fetch --quiet --tags origin 2>$null
-                    $tagMessage = git tag -l "$env:TAG_NAME" --format='%(contents)'
-                    if (-not [string]::IsNullOrWhiteSpace($tagMessage)) {
-                      $tagMessage | Set-Content -LiteralPath $bodyPath -Encoding utf8
-                      Write-Host "使用附注 tag 说明作为发布说明。"
-                    }
-                    else {
-        
-            $updateLog = "UpdateLog.md"
-            $body = New-Object System.Collections.Generic.List[string]
-            if (Test-Path -LiteralPath $updateLog -PathType Leaf) {
-              $lines = Get-Content -LiteralPath $updateLog -Encoding UTF8
-              $capture = $false
-              foreach ($line in $lines) {
-                if ($line -match '^#+\s.*v?' + [regex]::Escape($env:VERSION) + '\b') {
-                  $capture = $true
-                  $body.Add($line)
-                  continue
-                }
-                if ($capture -and $line -match '^#+\s') { break }
-                if ($capture) { $body.Add($line) }
-              }
-            }
-            if ($body.Count -gt 0) {
-              $body | Set-Content -LiteralPath $bodyPath -Encoding utf8
-              Write-Host "使用 UpdateLog 段落作为发布说明。"
+          else {
+            git fetch --quiet --tags origin 2>$null
+            $tagMessage = git tag -l "$env:TAG_NAME" --format='%(contents)'
+            if (-not [string]::IsNullOrWhiteSpace($tagMessage)) {
+              $tagMessage | Set-Content -LiteralPath $bodyPath -Encoding utf8
+              Write-Host "使用附注 tag 说明作为发布说明。"
             }
             else {
-              "Vex v$env:VERSION" | Set-Content -LiteralPath $bodyPath -Encoding utf8
-              Write-Host "未找到版本说明，将只使用自动生成的变更列表。"
+              $updateLog = "UpdateLog.md"
+              $body = New-Object System.Collections.Generic.List[string]
+              if (Test-Path -LiteralPath $updateLog -PathType Leaf) {
+                $lines = Get-Content -LiteralPath $updateLog -Encoding UTF8
+                $capture = $false
+                foreach ($line in $lines) {
+                  if ($line -match '^#+\s.*v?' + [regex]::Escape($env:VERSION) + '\b') {
+                    $capture = $true
+                    $body.Add($line)
+                    continue
+                  }
+                  if ($capture -and $line -match '^#+\s') { break }
+                  if ($capture) { $body.Add($line) }
+                }
+              }
+              if ($body.Count -gt 0) {
+                $body | Set-Content -LiteralPath $bodyPath -Encoding utf8
+                Write-Host "使用 UpdateLog 段落作为发布说明。"
+              }
+              else {
+                "Vex v$env:VERSION" | Set-Content -LiteralPath $bodyPath -Encoding utf8
+                Write-Host "未找到版本说明，将只使用自动生成的变更列表。"
+              }
             }
           }
 
