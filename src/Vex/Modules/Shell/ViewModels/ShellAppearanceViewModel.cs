@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using CodeWF.Avalonia.Markdown.Themes;
+using CodeWF.Avalonia.Controls.Themes;
 using ReactiveUI;
 using Vex.Core.Models;
 using Vex.Core.Services;
@@ -126,10 +127,18 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         {
             if (SetProperty(ref _selectedTheme, value) && value is not null)
             {
+                OnPropertyChanged(nameof(ThemeMode));
                 _themeService.ApplyTheme(value, SelectedPalette!);
                 PersistAppearanceSettings();
             }
         }
+    }
+
+    /// <summary>标题栏三态按钮与视图菜单共用同一份主题设置。</summary>
+    public StudioThemeMode ThemeMode
+    {
+        get => SelectedTheme?.Mode ?? StudioThemeMode.System;
+        set => SelectedTheme = ThemeOptions.First(option => option.Mode == value);
     }
 
     public PaletteOption? SelectedPalette

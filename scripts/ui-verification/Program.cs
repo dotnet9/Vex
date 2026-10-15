@@ -85,6 +85,7 @@ if (mode is "vex" or "preferences")
     vm.Workbench.ShowSource();
     Pump();
     VerifyTitleLayout(window);
+    VerifyAppearanceControls(window, vm);
     Check(Math.Abs(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width - 226) < 1,
         "Vex sidebar initially occupies 226 px");
     var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
@@ -160,7 +161,8 @@ if (mode is "vex" or "preferences")
     var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
-    Check(about.IsEffectivelyVisible && about.Bounds.Width > 0 && !titleMenu.IsEffectivelyEnabled,
+    Check(about.IsEffectivelyVisible && about.Bounds.Width > 0 && !titleMenu.IsEffectivelyEnabled
+        && !window.FindControl<StackPanel>("TitleBarAppearance")!.IsEffectivelyEnabled,
         "About opens inside the real main window modal host");
     var aboutModel = (ShellAboutViewModel)about.DataContext!;
     Check(aboutModel.VersionText == CodeWF.Toolkit.Core.UpdateChecking.UpdateVersion.Display(typeof(Vex.App).Assembly),
@@ -232,7 +234,11 @@ if (mode is "vex" or "preferences")
     Pump();
     VerifyTitleLayout(window);
     Capture(window, "vex-980");
-    vm.Workbench.ShowInstant(); Pump(); Capture(window, "vex-native-instant-980");
+    vm.Workbench.ShowInstant(); Pump();
+    var editableTable = window.GetVisualDescendants().OfType<Grid>().FirstOrDefault(grid => grid.GetType().Name == "MarkdownTableGrid" && grid.ColumnDefinitions.Count == 2);
+    Check(editableTable is not null && editableTable.ColumnDefinitions[0].ActualWidth < editableTable.ColumnDefinitions[1].ActualWidth / 2,
+        "Instant editing allocates natural table widths for short API names and long descriptions");
+    Capture(window, "vex-native-instant-980");
     vm.Workbench.ShowRead(); Pump(); Capture(window, "vex-native-read-980");
     vm.Workbench.ShowMindMap(); vm.Workbench.ShowMapSource = false; vm.Workbench.ShowMapSettings = false;
     Pump(); Capture(window, "vex-native-mindmap-980");
@@ -649,6 +655,46 @@ void VerifyLocalizedGuide(Window window, MainWindowViewModel vm)
     }
     vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Layout.EnableMotion = false;
     window.Width = 1280; window.Height = 820; Pump();
+}
+
+void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
+{
+    var appearance = vm.Appearance;
+    var originalTheme = appearance.SelectedTheme;
+    var originalPalette = appearance.SelectedPalette;
+    var originalLanguage = appearance.SelectedLanguage;
+    var toggle = window.FindControl<Ursa.Controls.ThemeToggleButton>("TitleBarThemeToggle")!;
+    var language = window.FindControl<ComboBox>("TitleBarLanguageSelector")!;
+    var swatches = window.FindControl<ListBox>("TitleBarPalettes")!;
+    var button = toggle.GetVisualDescendants().OfType<Button>().Single(item => item.Name == "PART_ThemeButton");
+    foreach (var palette in appearance.PaletteOptions)
+    {
+        swatches.SelectedItem = palette; appearance.ThemeMode = StudioThemeMode.System; Pump();
+        foreach (var expected in new[] { StudioThemeMode.Light, StudioThemeMode.Dark, StudioThemeMode.System })
+        {
+            button.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
+            Check(appearance.ThemeMode == expected && ReferenceEquals(appearance.SelectedPalette, palette), "Title bar cycles mode and preserves palette: " + palette.Key + "/" + expected);
+            var settings = ((VerificationVexApp)Application.Current!).Resolve<IAppSettingsStore>().Current;
+            Check(settings.ThemeKey == appearance.SelectedTheme!.Key && settings.PaletteKey == palette.Key, "Title bar persists the shared appearance state");
+        }
+    }
+    foreach (var width in new[] { 980, 1280 })
+    foreach (var option in appearance.LanguageOptions)
+    {
+        window.Width = width; language.IsDropDownOpen = true; Pump();
+        Check(language.IsDropDownOpen && language.Items.Count == appearance.LanguageOptions.Count, "Language icon opens the complete language menu");
+        language.SelectedItem = option; language.IsDropDownOpen = false; Pump();
+        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture.Name == option.CultureName, "Title bar language follows the single global manager");
+        Check(ToolTip.GetTip(button) is TextBlock tip && tip.Text == ((VerificationVexApp)Application.Current!).Resolve<IAppLocalizer>().Get(
+            appearance.ThemeMode switch { StudioThemeMode.Light => Vex.VexL.ThemeLight, StudioThemeMode.Dark => Vex.VexL.ThemeDark, _ => Vex.VexL.ThemeSystem }),
+            "Ursa mode tooltip changes with the host language");
+        var left = (Control)((CodeWF.Avalonia.Controls.Controls.CodeWFWindow)window).LeftContent!;
+        var right = window.FindControl<StackPanel>("TitleBarAppearance")!;
+        Check(left.TranslatePoint(new Point(left.Bounds.Width, 0), window)!.Value.X <= right.TranslatePoint(default, window)!.Value.X,
+            "Title bar menus and appearance controls do not overlap: " + width + "/" + option.CultureName);
+    }
+    appearance.SelectedTheme = originalTheme; appearance.SelectedPalette = originalPalette; appearance.SelectedLanguage = originalLanguage;
+    window.Width = 1280; Pump();
 }
 
 void VerifyTitleLayout(Window window)

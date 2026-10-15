@@ -1,4 +1,4 @@
-<codewf:CodeWFWindow
+﻿<codewf:CodeWFWindow
     x:Class="Vex.Modules.Shell.Views.MainWindow" x:Name="ShellWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -55,6 +55,43 @@
             <shell:ShellTitleMenuView x:Name="TitleMenuView" Margin="4 0 0 0" />
         </StackPanel>
     </codewf:CodeWFWindow.LeftContent>
+
+    <codewf:CodeWFWindow.RightContent>
+        <StackPanel x:Name="TitleBarAppearance" Orientation="Horizontal" Spacing="8" Margin="0,0,8,0"
+                    VerticalAlignment="Center" IsEnabled="{Binding !IsInModalStatus, ElementName=ShellDialogHost}">
+            <ListBox x:Name="TitleBarPalettes" ItemsSource="{Binding Appearance.PaletteOptions}"
+                     SelectedItem="{Binding Appearance.SelectedPalette}" Background="Transparent" BorderThickness="0" Padding="0"
+                     ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ThemeColor}}">
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="Width" Value="24" /><Setter Property="Height" Value="30" />
+                        <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" />
+                        <Setter Property="Padding" Value="4" /><Setter Property="CornerRadius" Value="15" />
+                    </Style>
+                </ListBox.Styles>
+                <ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ListBox.ItemsPanel>
+                <ListBox.ItemTemplate><DataTemplate x:DataType="model:PaletteOption">
+                    <Ellipse Width="13" Height="13" Fill="{Binding Swatch}" ToolTip.Tip="{i18n:I18n {Binding NameKey}}" />
+                </DataTemplate></ListBox.ItemTemplate>
+            </ListBox>
+            <ThemeVariantScope x:Name="TitleBarThemeScope"
+                               RequestedThemeVariant="{Binding Appearance.ThemeMode, Mode=TwoWay, Converter={x:Static codewf:StudioThemeModeConverter.Instance}}">
+                <ThemeVariantScope.Resources>
+                    <TextBlock x:Key="STRING_THEME_TOGGLE_SYSTEM" Text="{codewf:I18n {x:Static l:VexL.ThemeSystem}}" />
+                    <TextBlock x:Key="STRING_THEME_TOGGLE_LIGHT" Text="{codewf:I18n {x:Static l:VexL.ThemeLight}}" />
+                    <TextBlock x:Key="STRING_THEME_TOGGLE_DARK" Text="{codewf:I18n {x:Static l:VexL.ThemeDark}}" />
+                </ThemeVariantScope.Resources>
+                <u:ThemeToggleButton x:Name="TitleBarThemeToggle" Width="30" Height="30" IsThreeState="True"
+                                     TargetScope="{Binding #TitleBarThemeScope}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.MenuTheme}}" />
+            </ThemeVariantScope>
+            <ComboBox x:Name="TitleBarLanguageSelector" ItemsSource="{Binding Appearance.LanguageOptions}"
+                      SelectedItem="{Binding Appearance.SelectedLanguage}" Width="50" Height="30" MinHeight="0" Padding="6,0"
+                      HorizontalContentAlignment="Left" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.MenuLanguage}}">
+                <ComboBox.SelectionBoxItemTemplate><DataTemplate><PathIcon Width="16" Height="16" Data="{DynamicResource SemiIconLanguage}" /></DataTemplate></ComboBox.SelectionBoxItemTemplate>
+                <ComboBox.ItemTemplate><DataTemplate x:DataType="model:LanguageOption"><TextBlock MinWidth="120" Text="{Binding NativeName}" /></DataTemplate></ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+    </codewf:CodeWFWindow.RightContent>
 
     <!-- CodeWFWindow 模板已预留标题栏高度，内容只添加 1 像素分隔线。 -->
     <Border x:Name="ShellTitleDivider"

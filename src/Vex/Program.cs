@@ -10,6 +10,11 @@ internal sealed class Program
     public static void Main(string[] args)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        if (args is ["--verify-runtime", var directory])
+        {
+            RuntimeVerification.Run(directory);
+            return;
+        }
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

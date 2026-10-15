@@ -100,8 +100,8 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<IEditorAppearanceState, EditorAppearanceState>();
         containerRegistry.RegisterSingleton<IWorkspaceDocumentState, WorkspaceDocumentState>();
         containerRegistry.RegisterSingleton<IMarkdownExportService, MarkdownExportService>();
-        // 编辑能力来自 CodeWF.Avalonia.Markdown.Editor，Vex 只提供 i18n 与 HTML 粘贴转换两个适配实现。
-        containerRegistry.RegisterSingleton<CodeWF.Avalonia.Markdown.Editor.Services.IMarkdownEditorLocalizer, VexMarkdownEditorLocalizer>();
+        // 编辑器使用库内嵌文案并自动跟随全局语言，Vex 仅保留 HTML 粘贴转换适配。
+        containerRegistry.RegisterSingleton<CodeWF.Avalonia.Markdown.Editor.Services.IMarkdownEditorLocalizer, CodeWF.Avalonia.Markdown.Editor.Services.MarkdownEditorLocalizer>();
         containerRegistry.RegisterSingleton<CodeWF.Avalonia.Markdown.Editor.Services.IMarkdownHtmlPasteConverter, VexMarkdownHtmlPasteConverter>();
         containerRegistry.RegisterSingleton<IMarkdownOutlineService, MarkdownOutlineService>();
         containerRegistry.RegisterSingleton<IMarkdownStatisticsService, MarkdownStatisticsService>();
