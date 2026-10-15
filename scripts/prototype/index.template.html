@@ -274,32 +274,31 @@
 
     <!-- 关于 Vex -->
     <div class="overlay win-layer" id="layer-about" hidden>
-      <div class="mini-window" style="width: 420px;">
-        <div class="mini-titlebar">
-          关于 Vex
-          <span class="caption-btns">
-            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
-          </span>
-        </div>
-        <div class="about-hero">
-          <span class="about-logo">V</span>
-          <div>
-            <h2>Vex</h2>
-            <div class="slogan">极简之力，妙笔成章</div>
-          </div>
-        </div>
+      <div class="mini-window about-updated" style="width:580px;max-height:85vh;overflow:auto">
+        <div class="mini-titlebar"><span data-l10n="AboutVexTitle"></span><button class="caption-btn" data-close aria-label="Close">×</button></div>
+        <div class="about-hero"><span class="about-logo">V</span><div><h2>Vex</h2><div class="slogan" data-l10n="Slogan"></div></div></div>
         <div class="about-rows">
-          <div class="about-row"><span class="k">中文名</span><span class="v">维刻</span></div>
-          <div class="about-row"><span class="k">版本</span><span class="v"><span class="ver-badge">1.2.0</span></span></div>
-          <div class="about-row"><span class="k">编译时间</span><span class="v mono">2026-10-02 15:04</span></div>
-          <div class="about-row"><span class="k">作者</span><span class="v">沙漠尽头的狼</span></div>
-          <div class="about-row"><span class="k">网站</span><span class="v"><a class="about-link" href="#">https://codewf.com</a></span></div>
-          <div class="about-row"><span class="k">品牌</span><span class="v">CodeWF（码坊）</span></div>
+          <section class="proto-update-card"><strong data-l10n="AboutCheckUpdateLabel"></strong><p data-l10n="AboutUpdateHint"></p>
+            <p id="vex-update-status" role="status"></p><progress id="vex-update-progress" hidden max="100" value="65"></progress>
+            <div class="proto-update-actions"><button class="btn primary" id="vex-update"></button><button class="btn" id="vex-update-recheck" data-l10n="AboutCheckUpdate"></button><button class="btn" id="vex-update-cancel" data-l10n="Cancel" hidden></button></div>
+            <a id="vex-release-link" href="https://github.com/dotnet9/Vex/releases/latest" hidden>https://github.com/dotnet9/Vex/releases/latest</a>
+          </section>
+          <div class="about-row"><span class="k" data-l10n="AboutVersionLabel"></span><span class="v ver-badge" id="about-version"></span></div>
+          <div class="about-row"><span class="k" data-l10n="AboutPlatformLabel"></span><span class="v">.NET 10 · Avalonia 12 · Windows / macOS / Linux</span></div>
+          <div class="about-row"><span class="k" data-l10n="AboutCompileTimeLabel"></span><span class="v" id="about-build"></span></div>
+          <div class="about-row"><span class="k" data-l10n="AboutAuthorLabel"></span><span class="v" data-l10n="AboutAuthorName"></span></div>
+          <div class="about-row"><span class="k" data-l10n="AboutRepositoryLabel"></span><a class="v" href="https://github.com/dotnet9/Vex">https://github.com/dotnet9/Vex</a></div>
+          <div class="about-row"><span class="k" data-l10n="AboutWebsiteLabel"></span><a class="v" href="https://codewf.com">https://codewf.com</a></div>
+          <div class="about-row"><span class="k" data-l10n="AboutBrandLabel"></span><span class="v" data-l10n="AboutBrandName"></span></div>
+          <div class="about-row"><span class="k" data-l10n="AboutCopyrightLabel"></span><span class="v" id="about-copyright"></span></div>
+          <p data-proto-label="原型生成信息，安装版显示其实际编译时间。"></p>
+          <label><span data-proto-label="离线演示"></span> <select id="vex-update-scenario">
+            <option value="available" data-proto-label="发现新版"></option><option value="current" data-proto-label="已是最新"></option>
+            <option value="check-failed" data-proto-label="检查失败"></option><option value="download-failed" data-proto-label="下载失败"></option>
+            <option value="checksum-failed" data-proto-label="校验失败"></option><option value="install-failed" data-proto-label="安装失败"></option><option value="missing" data-proto-label="缺少安装包"></option>
+          </select></label>
         </div>
-        <div class="about-foot">
-          <svg><use href="#i-info"/></svg>
-          <span>由 Avalonia、Prism 和 CodeWF 自研库驱动的 Markdown 编辑器。</span>
-        </div>
+        <div class="about-foot"><span data-l10n="AboutDescription"></span></div>
       </div>
     </div>
 
@@ -434,5 +433,5 @@
   </div>
 </div>
 <input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
-<script src="assets/typography.js"></script><script src="assets/interact.js"></script><script src="assets/mindmap.js"></script><script src="assets/instant-editor.js"></script><script src="assets/workbench.js"></script><script src="assets/guide.js"></script>
-</body></html>
+<script src="assets/localization.js"></script><script src="assets/typography.js"></script><script src="assets/interact.js"></script><script src="assets/mindmap.js"></script><script src="assets/instant-editor.js"></script><script src="assets/workbench.js"></script><script src="assets/guide.js"></script>
+<script src="assets/about-update.js"></script></body></html>

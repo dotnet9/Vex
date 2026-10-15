@@ -1,4 +1,6 @@
 /* 沿用现有独立窗口样式，主工作台由 workbench.css 定义。 */
+.about-updated .mini-titlebar{display:flex;align-items:center;justify-content:space-between}
+.about-updated .mini-titlebar .caption-btn{margin-left:auto;flex:none}
 /* 独立窗口内容 */
   .stat-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 18px 24px 4px; }
   .stat-card { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px 10px; }
@@ -107,3 +109,5 @@
   }
   .rn-error { margin-top: 10px; font-size: 12px; color: var(--danger); }
 
+
+.proto-update-card{padding:14px;background:var(--surface2,var(--surface));border:1px solid var(--splitter);border-radius:8px;margin-bottom:16px}.proto-update-card p{line-height:1.5;margin:8px 0}.proto-update-actions{display:flex;gap:8px;flex-wrap:wrap}.proto-update-card progress{width:100%;accent-color:var(--accent)}.about-updated .about-row{grid-template-columns:110px minmax(0,1fr)}.about-updated .v{overflow-wrap:anywhere}.about-updated select{max-width:100%;background:var(--surface);color:var(--text);border:1px solid var(--splitter);padding:6px}

@@ -179,7 +179,7 @@
     });
     el.className = 'menu-item' + (it.danger ? ' danger' : '') + (it.on ? ' checked' : '') + (it.sub ? ' has-sub' : '');
     var indicator = document.createElement('span'); indicator.className = 'menu-state'; indicator.setAttribute('aria-hidden', 'true'); indicator.textContent = it.on ? '✓' : ''; el.appendChild(indicator);
-    var label = document.createElement('span'); label.className = 'menu-label'; label.textContent = it.label; el.appendChild(label);
+    var label = document.createElement('span'); label.className = 'menu-label'; label.textContent = window.VexL ? VexL.label(it.label) : it.label; el.appendChild(label);
     if (it.gesture) {
       var g = document.createElement('span');
       g.className = 'mi-gesture';
@@ -271,12 +271,12 @@
       host.style.display = 'block';
       host.style.left = Math.max(0, Math.min(item.offsetLeft, bar.offsetWidth - 268)) + 'px';
       host.style.top = (nav.offsetTop + nav.offsetHeight + 2) + 'px';
-      openMenuKey = data.label;
+      openMenuKey = data.key;
     }
 
-    nav.querySelectorAll('.tb-menuitem').forEach(function (item) {
-      var key = (item.textContent || '').trim();
-      item.setAttribute('data-menu', key);
+    nav.querySelectorAll('.tb-menuitem').forEach(function (item, index) {
+      var key = MENUS[index].key;
+      item.setAttribute('data-menu', MENUS[index].label);
       item.addEventListener('click', function (e) {
         e.stopPropagation();
         if (openMenuKey === key) { closeOpenMenu(); return; }

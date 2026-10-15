@@ -6,6 +6,17 @@ $sourceRoot = Join-Path $PSScriptRoot 'prototype'
 $template = Join-Path $sourceRoot 'index.template.html'
 $output = Join-Path $repositoryRoot 'design/index.html'
 $designRoot = Join-Path $repositoryRoot 'design'
+[xml]$projectMetadata = [IO.File]::ReadAllText((Join-Path $repositoryRoot 'Directory.Build.props'))
+$prototypeResources = [ordered]@{ languages = [ordered]@{}; metadata = [ordered]@{
+    version = [string]$projectMetadata.Project.PropertyGroup.Version
+    copyright = [string]$projectMetadata.Project.PropertyGroup.Copyright
+    build = '2026-10-15 00:00:00'
+} }
+foreach ($culture in @('zh-CN','zh-Hant','en-US','ja-JP')) {
+    $resources = Get-Content -LiteralPath (Join-Path $repositoryRoot "src/Vex/I18n/$culture.json") -Raw | ConvertFrom-Json -AsHashtable
+    $prototypeResources.languages[$culture] = $resources.Vex.VexL
+}
+$prototypeResourcesJson = $prototypeResources | ConvertTo-Json -Depth 12 -Compress
 
 function Resolve-PrototypeAsset([string] $Reference, [string] $BaseDirectory) {
     if ($Reference -match '^(https?:|//)') { throw "原型运行资源不能依赖网络：$Reference" }
@@ -53,6 +64,7 @@ $html = [regex]::Replace($html, '<script\b[^>]*\bsrc\s*=\s*["''](?<path>[^"'']+)
     param($match)
     $file = Resolve-PrototypeAsset $match.Groups['path'].Value $sourceRoot
     $javascript = [IO.File]::ReadAllText($file) -replace '(?i)</script', '<\/script'
+    $javascript = $javascript.Replace('/*__VEX_RESOURCES__*/', 'window.VEX_DATA = ' + $prototypeResourcesJson + ';')
     return "<script>`n" + $javascript + "`n</script>"
 })
 # 静态 HTML 和脚本中引用的本地图片一并内嵌；动态模板和已有 data URI 保持原样。

@@ -488,7 +488,7 @@
       case 'typography': VexTypography.toggle(); break;
       case 'typography-select': VexTypography.choose(item.arg); break;
       case 'toggle-compact': VexTypography.toggleCompact(); break;
-      case 'language': state.language = item.arg; VexProto.toast('语言切换入口（原型演示），完整界面翻译在正式版本提供'); break;
+      case 'language': state.language = item.arg; VexL.set(item.arg); break;
       case 'toggle-status': document.querySelector('.statusbar').hidden = !document.querySelector('.statusbar').hidden; break;
       case 'maximize': document.querySelector('.app-window').classList.toggle('expanded'); break;
       case 'toggle-fullscreen': document.querySelector('.app-window').classList.toggle('expanded'); break;
