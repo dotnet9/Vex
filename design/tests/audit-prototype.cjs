@@ -1,3 +1,4 @@
+const standaloneFixture = require('./standalone-fixture.cjs');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -5,12 +6,14 @@ const { chromium } = require('playwright');
 
 // 检查真实原型事件与系统主题变化，浏览器在后台运行。
 (async () => {
+  const standalone = standaloneFixture(path.resolve(__dirname, '../index.html'));
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    await standalone.attach(page);
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto(pathToFileURL(path.join(__dirname, '..', 'index.html')).href);
+    await page.goto(standalone.url);
     await page.locator('#vex-theme-fab').click();
     const palettes = await page.locator('#vex-theme-panel [data-palette]').evaluateAll(items => items.map(item => item.dataset.palette));
     assert.equal(palettes.length, 8);
@@ -57,6 +60,7 @@ const { chromium } = require('playwright');
     await page.emulateMedia({ colorScheme: 'dark' });
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
     assert.deepEqual(errors, []);
+    await standalone.verify(page);
     console.log('Passed: eight palettes, sixteen light/dark combinations, system mode, menu adapter, and title layout.');
-  } finally { await browser.close(); }
+  } finally { await browser.close(); standalone.dispose(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vex · 写作与思考工作台</title>
+<link rel="stylesheet" href="assets/theme.css"><link rel="stylesheet" href="assets/dialogs.css"><link rel="stylesheet" href="assets/workbench.css">
+<link rel="stylesheet" href="assets/editing.css">
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/theme.js"></script>
+</head>
+<body data-page="index">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-min" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-max" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+
+<symbol id="i-map" viewBox="0 0 24 24"><rect x="2" y="8" width="6" height="8" rx="1.5"/><rect x="16" y="2" width="6" height="6" rx="1.5"/><rect x="16" y="16" width="6" height="6" rx="1.5"/><path d="M8 12h4V5h4M12 12v7h4"/></symbol>
+<symbol id="i-columns" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/></symbol>
+<symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-fit" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><rect x="8" y="8" width="8" height="8" rx="1"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+</defs></svg>
+<div class="app-window">
+  <header class="titlebar">
+    <div class="brand"><img src="../logo.svg" alt="">Vex</div>
+    <nav class="tb-menu" aria-label="应用菜单"><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">文件(F)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">编辑(E)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">插入(I)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">视图(V)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">工具(T)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">帮助(H)</button></nav>
+    <div class="caption-btns" id="caption-btns">
+      <button class="caption-btn" data-action="minimize" title="最小化"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button>
+      <button class="caption-btn" data-action="maximize" title="最大化 / 还原"><svg class="ico" aria-hidden="true"><use href="#i-max"/></svg></button>
+      <button class="caption-btn close" data-action="close" title="关闭"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+  </header>
+  <div class="window-body">
+    <div class="workbar">
+      <button class="icon-button on" data-action="toggle-sidebar" id="sidebar-toggle" title="显示 / 隐藏侧栏" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-sidebar"/></svg></button>
+      <div class="document-label"><div class="document-title"><span id="document-name">主题设计笔记.md</span><i class="doc-dot" id="dirty-dot" hidden></i></div><div class="document-path">笔记 <span style="opacity:.5">/</span> 写作与思考</div></div>
+      <div class="view-switch" role="tablist" aria-label="文档视图" data-active="edit">
+        <button id="view-edit" role="tab" aria-controls="instant-pane source-pane reading-pane" aria-selected="true" data-view="edit"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg>编辑</button>
+        <button id="view-read" role="tab" aria-controls="reading-pane" aria-selected="false" data-view="read"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg>阅读</button>
+        <button id="view-mindmap" role="tab" aria-controls="map-pane" aria-selected="false" data-view="mindmap"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg>导图</button>
+      </div>
+      <div class="work-actions"><button class="guide-launch" data-action="guide" id="guide-launch" title="新手引导 · 5 个重点"><i aria-hidden="true"></i><span>快速上手</span></button><button class="icon-button" data-action="find" title="查找 · Ctrl+F"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg></button><button class="btn sm save-button" data-action="save" title="保存副本 · Ctrl+S"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg><span>保存</span></button></div>
+    </div>
+    <div class="find-strip" id="findbar" hidden><input class="input" id="find-input" placeholder="查找文本"><input class="input" id="replace-input" placeholder="替换为" hidden><button class="btn sm" data-action="find-next">下一个</button><button class="btn sm" data-action="replace-all" id="replace-all" hidden>全部替换</button><small id="find-count">输入查找内容</small><button class="icon-button" data-action="close-find" title="关闭查找"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    <main class="workspace" data-view="edit">
+      <aside class="sidebar" aria-label="文档导航"><div class="sidebar-inner">
+        <div class="side-tabs"><button class="side-tab on" data-pane="files"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg>文档</button><button class="side-tab" data-pane="outline"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>大纲</button></div>
+        <div class="side-pane" data-pane-body="files">
+          <label class="sidebar-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="file-filter" placeholder="搜索文档…" aria-label="搜索文档"><kbd style="font-size:9px;opacity:.6">/</kbd></label>
+          <div class="side-section-label">工作区 <button class="icon-button" data-action="open" title="打开 Markdown 文件"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button></div>
+          <div class="folder-row"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg>笔记</div><div class="file-list" id="file-list"></div><div class="empty-state" id="file-empty" hidden>没有匹配的文档</div>
+        </div>
+        <div class="side-pane" data-pane-body="outline" hidden><div class="side-section-label" style="padding-top:16px">文档结构 <span id="outline-count"></span></div><div class="outline-list" id="outline-body"></div></div>
+        <div class="sidebar-foot"><i></i>本地工作区 <span style="margin-left:auto">Markdown</span></div>
+      </div></aside>
+      <div class="workspace-main">
+        <div class="edit-options" id="edit-options">
+          <div class="edit-methods" role="group" aria-label="编辑方式">
+            <button data-action="edit-instant" id="edit-instant" aria-pressed="true">即时渲染</button>
+            <button data-action="edit-source" id="edit-source" aria-pressed="false">源码对照</button>
+          </div>
+          <span class="edit-method-description" id="edit-method-description">点击内容即可编辑</span>
+          <button class="toolbar-button" data-action="toggle-source-preview" id="source-preview-toggle" aria-pressed="true" hidden>显示预览</button>
+          <button class="toolbar-button typography-trigger" data-action="typography" title="Markdown 排版主题">排版 <span data-typography-label>简</span><span aria-hidden="true">⌄</span></button>
+        </div>
+      <div class="content-area">
+        <section class="instant-pane" id="instant-pane" aria-label="即时渲染编辑器">
+          <div class="instant-scroll"><article class="md-body" id="instant-content"></article></div>
+          <div class="instant-hint" id="instant-hint">点击内容编辑，输入时同步预览，离开后恢复排版</div>
+        </section>
+        <section class="source-pane" id="source-pane" aria-label="Markdown 源码">
+          <div class="pane-head"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg>Markdown<span class="ph-right">可直接编辑 · 实时同步</span></div>
+          <div class="source-scroll"><div class="line-numbers" aria-hidden="true" id="line-numbers"></div><textarea id="markdown-input" aria-label="Markdown 内容" spellcheck="false" wrap="off"></textarea></div>
+        </section>
+        <section class="reading-pane" id="reading-pane" aria-label="正文预览">
+          <div class="pane-head"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg><span id="reading-title">正文预览</span><span class="ph-right"><button class="toolbar-button typography-trigger" data-action="typography">排版 <span data-typography-label>简</span><span aria-hidden="true">⌄</span></button></span></div><div class="reading-scroll"><article class="md-body" id="markdown-preview"></article></div>
+        </section>
+        <section class="map-pane" id="map-pane" aria-label="Markdown 思维导图" hidden>
+          <div class="map-toolbar"><div class="map-toolbar-title"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg><span id="map-count">文档结构</span></div>
+            <button class="toolbar-button" data-action="map-settings" id="map-settings-button" aria-expanded="false" aria-controls="map-settings"><svg class="ico" aria-hidden="true"><use href="#i-gear"/></svg><span id="summary-label">摘要 30 字</span></button>
+            <span class="toolbar-divider"></span><button class="toolbar-button" data-action="map-collapse" id="collapse-all"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>收起分支</button>
+            <button class="toolbar-button" data-action="map-source" id="map-source-toggle" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-columns"/></svg>对照源码</button>
+          </div>
+          <div class="map-viewport" id="map-viewport" tabindex="0" aria-label="导图画布，拖动平移，Ctrl 加滚轮缩放">
+            <div class="map-scene" id="map-scene"><svg class="map-links" id="map-links" aria-hidden="true"></svg><div id="map-nodes"></div></div>
+            <div class="map-legend"><span><i></i>标题</span><span><i class="content-key"></i>内容摘要</span></div>
+            <span class="map-hint">拖动画布平移 · Ctrl + 滚轮缩放 · 点击节点查看全文</span>
+            <div class="map-controls"><button class="icon-button" data-action="zoom-out" title="缩小"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button><span class="zoom-value" id="zoom-value">100%</span><button class="icon-button" data-action="zoom-in" title="放大"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button><span class="toolbar-divider"></span><button class="icon-button" data-action="map-fit" title="适应画布"><svg class="ico" aria-hidden="true"><use href="#i-fit"/></svg></button></div>
+          </div>
+          <section class="settings-popover" id="map-settings" aria-label="导图显示设置" hidden>
+            <div class="popover-title">导图显示<button class="icon-button" data-action="close-settings" title="关闭设置"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+            <label class="setting-label" for="summary-length">内容摘要长度 <span><input id="summary-length" type="number" min="1" max="120" value="30"> 字</span></label>
+            <p class="setting-note">默认 30 字，可设置 1–120 字。按可见字符截取，省略号不计入；全文始终保留。</p>
+            <label class="setting-label">显示段落与引用 <input id="show-paragraphs" type="checkbox" checked></label>
+            <label class="setting-label">显示列表项 <input id="show-lists" type="checkbox" checked></label>
+            <label class="setting-label">显示代码块与表格摘要 <input id="show-blocks" type="checkbox"></label>
+            <div class="summary-example"><small>摘要预览</small><span id="summary-example"></span></div>
+            <button class="settings-reset" data-action="reset-settings">恢复默认设置</button>
+          </section>
+          <aside class="node-inspector" id="node-inspector" aria-label="节点全文" hidden>
+            <div class="inspector-head"><svg class="ico" aria-hidden="true"><use href="#i-file"/></svg><span id="inspector-kind">段落</span><button class="icon-button" data-action="close-inspector" title="关闭节点详情"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+            <div class="inspector-body"><h3 id="inspector-title"></h3><div class="inspector-content" id="inspector-content"></div></div>
+            <div class="inspector-foot"><span id="inspector-line"></span><button class="btn sm" data-action="locate-source"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg>定位源码</button></div>
+          </aside>
+        </section>
+      </div>
+      </div>
+    </main>
+    <footer class="statusbar"><span class="save-status" id="save-status"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span id="save-text">示例文档 · 未修改</span></span><span class="status-view" id="status-view">编辑视图</span><div class="status-right"><span id="cursor-position">行 1，列 1</span><button id="sb-wordcount" data-action="dlg-statistics">0 字符</button><span id="status-encoding">UTF-8 · LF</span><button data-action="theme" title="切换主题">主题</button></div></footer>
+    <!-- ========== 窗体内浮层 ========== -->
+
+    <!-- 未保存更改 -->
+    <div class="overlay win-layer" id="layer-unsaved" hidden>
+      <div class="dialog">
+        <div class="dlg-title">
+          <span class="dlg-ico warn"><svg><use href="#i-warn"/></svg></span>
+          未保存的更改
+        </div>
+        <p class="dlg-msg">「主题设计笔记.md」有尚未保存的修改。关闭前要保存这些更改吗？</p>
+        <div class="dlg-path mono">D:\Notes\笔记\主题设计笔记.md</div>
+        <div class="dlg-actions">
+          <button class="btn" data-close="已取消，继续编辑">取消</button>
+          <button class="btn" data-close="已放弃修改并关闭文档">不保存</button>
+          <button class="btn primary" data-close="已保存并关闭文档">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 重命名文件 -->
+    <div class="overlay win-layer" id="layer-rename" hidden>
+      <div class="dialog" style="width: 430px;">
+        <div class="dlg-title">
+          <span class="dlg-ico info"><svg><use href="#i-edit"/></svg></span>
+          重命名文件
+        </div>
+        <div class="dlg-field" style="margin-top:14px;">
+          <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;">文件名</label>
+          <input class="input mono" id="rename-input" value="主题设计笔记.md">
+          <div class="rn-error" id="rename-error" style="display:none;">文件名不能包含 \ / : * ? " &lt; &gt; | 等字符</div>
+        </div>
+        <div style="margin-top:12px;">
+          <div style="font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:4px;">原路径</div>
+          <div class="dlg-path" style="margin-top:0;">D:\Notes\笔记\主题设计笔记.md</div>
+        </div>
+        <div class="dlg-actions">
+          <button class="btn" data-close="已取消">取消</button>
+          <button class="btn primary" id="rename-ok">重命名</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 错误提示 -->
+    <div class="overlay win-layer" id="layer-error" hidden>
+      <div class="dialog" style="width: 470px;">
+        <div class="dlg-title">
+          <span class="dlg-ico warn"><svg><use href="#i-x"/></svg></span>
+          导出 PDF 失败
+        </div>
+        <p class="dlg-msg">写入 <span class="mono">Vex-指南.pdf</span> 时被其他程序占用。请关闭可能打开该文件的程序（如 PDF 阅读器）后重试。</p>
+        <div class="detail-box">
+          <div style="font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none;" id="err-toggle">▸ 错误详情（点击展开 / 收起）</div>
+          <pre id="err-detail" style="display:none;">CodeWF.Markdown.ExportException: The process cannot access the file
+'D:\Notes\export\Vex-指南.pdf' because it is being used by another process.
+   at MarkdownDocumentExporter.ExportToPdf(ExportContext ctx)
+   at Vex.Modules.Workspace.ExportService.ExportPdfAsync(String path)</pre>
+        </div>
+        <div class="dlg-actions">
+          <button class="btn" id="err-copy">复制详情</button>
+          <button class="btn primary" data-close="已关闭错误提示">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 删除确认 -->
+    <div class="overlay win-layer" id="layer-delete" hidden>
+      <div class="mini-window" style="width: 480px;">
+        <div class="mini-titlebar">
+          删除确认
+          <span class="caption-btns">
+            <span class="caption-btn" data-close="已取消，文件安全"><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div style="padding: 22px;">
+          <div class="dlg-title" style="font-size:15.5px;">
+            <span class="dlg-ico warn"><svg style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><use href="#i-trash"/></svg></span>
+            确定要删除「读书摘录.md」吗？
+          </div>
+          <p class="dlg-msg">此操作会从磁盘永久删除该文件，且无法从回收站恢复（仅 Windows 直接删除）。</p>
+          <div class="dlg-path mono">D:\Notes\笔记\读书摘录.md</div>
+          <div class="dlg-actions">
+            <button class="btn" data-close="已取消，文件安全">取消</button>
+            <button class="btn danger" data-close="已删除「读书摘录.md」（演示）">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 文件属性 -->
+    <div class="overlay win-layer" id="layer-properties" hidden>
+      <div class="mini-window" style="width: 520px;">
+        <div class="mini-titlebar">
+          属性
+          <span class="caption-btns">
+            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:20px 24px 14px;">
+          <span style="width:44px;height:44px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;flex:none;">
+            <svg class="ico" style="width:21px;height:21px;"><use href="#i-file"/></svg>
+          </span>
+          <div>
+            <div class="prop-name" style="font-size:15.5px;font-weight:700;">主题设计笔记.md</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px;">本地文档 · Markdown</div>
+          </div>
+        </div>
+        <div class="prop-rows">
+          <div class="prop-row"><span class="k">状态</span><span class="v"><span class="pill-ok">已保存</span></span></div>
+          <div class="prop-row"><span class="k">编码</span><span class="v mono">UTF-8</span></div>
+          <div class="prop-row"><span class="k">大小</span><span class="v">4.2 KB（4,318 字节）</span></div>
+          <div class="prop-row">
+            <span class="k">路径</span>
+            <span class="v mono" style="display:flex;align-items:flex-start;gap:8px;">
+              <span>D:\Notes\笔记\主题设计笔记.md</span>
+              <button class="copy-btn" id="prop-copy">复制</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 字数统计 -->
+    <div class="overlay win-layer" id="layer-statistics" hidden>
+      <div class="mini-window" style="width: 360px;">
+        <div class="mini-titlebar">
+          统计
+          <span class="caption-btns">
+            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div class="stat-hero">
+          <div class="stat-card"><div class="num">328</div><div class="lbl">词数</div></div>
+          <div class="stat-card"><div class="num">1,892</div><div class="lbl">字符</div></div>
+        </div>
+        <div class="stat-rows">
+          <div class="stat-row"><span class="k">行数</span><span class="v">57</span></div>
+          <div class="stat-row"><span class="k">段落</span><span class="v">12</span></div>
+          <div class="stat-row"><span class="k">标题</span><span class="v">6</span></div>
+          <div class="stat-row"><span class="k">阅读时间</span><span class="v">约 1 分钟</span></div>
+          <div class="stat-row"><span class="k">编码</span><span class="v mono">UTF-8</span></div>
+          <div class="stat-row"><span class="k">状态</span><span class="v">已保存</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 关于 Vex -->
+    <div class="overlay win-layer" id="layer-about" hidden>
+      <div class="mini-window" style="width: 420px;">
+        <div class="mini-titlebar">
+          关于 Vex
+          <span class="caption-btns">
+            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div class="about-hero">
+          <span class="about-logo">V</span>
+          <div>
+            <h2>Vex</h2>
+            <div class="slogan">极简之力，妙笔成章</div>
+          </div>
+        </div>
+        <div class="about-rows">
+          <div class="about-row"><span class="k">中文名</span><span class="v">维刻</span></div>
+          <div class="about-row"><span class="k">版本</span><span class="v"><span class="ver-badge">1.2.0</span></span></div>
+          <div class="about-row"><span class="k">编译时间</span><span class="v mono">2026-10-02 15:04</span></div>
+          <div class="about-row"><span class="k">作者</span><span class="v">沙漠尽头的狼</span></div>
+          <div class="about-row"><span class="k">网站</span><span class="v"><a class="about-link" href="#">https://codewf.com</a></span></div>
+          <div class="about-row"><span class="k">品牌</span><span class="v">CodeWF（码坊）</span></div>
+        </div>
+        <div class="about-foot">
+          <svg><use href="#i-info"/></svg>
+          <span>由 Avalonia、Prism 和 CodeWF 自研库驱动的 Markdown 编辑器。</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MCP 设置 -->
+    <div class="overlay win-layer" id="layer-mcp" hidden>
+      <div class="mini-window" style="width: 620px;">
+        <div class="mini-titlebar">
+          MCP 设置
+          <span class="caption-btns">
+            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div class="set-head">
+          <span class="s-ico"><svg class="ico" style="width:21px;height:21px;"><use href="#i-terminal"/></svg></span>
+          <div>
+            <h2>MCP 设置</h2>
+            <div class="sub">允许 AI 客户端通过本机 MCP 接口读取和操作当前文档。</div>
+          </div>
+        </div>
+        <div class="enable-row">
+          <div>
+            <div class="et">启用 MCP Server</div>
+            <div class="ed">仅监听本机地址，通过 Bearer Token 鉴权</div>
+          </div>
+          <button class="switch on" id="mcp-switch" aria-label="启用 MCP Server"></button>
+        </div>
+        <div class="set-body" id="mcp-form">
+          <div class="form-grid">
+            <span class="k">监听地址</span>
+            <input class="input mono" value="127.0.0.1">
+            <span class="k">端口</span>
+            <input class="input mono" value="17891" style="width: 120px;">
+            <span class="k">授权 Token</span>
+            <span class="input-group">
+              <input class="input mono" id="mcp-token" value="vx_9f3ac21e77b04d5c8a12">
+              <button class="btn sm" id="mcp-gen"><svg class="ico" style="width:13px;height:13px"><use href="#i-refresh"/></svg>生成</button>
+              <button class="btn sm" id="mcp-copy-token"><svg class="ico" style="width:13px;height:13px"><use href="#i-copy"/></svg>复制</button>
+            </span>
+            <span class="k">端点</span>
+            <span class="endpoint">
+              <code class="mono">http://127.0.0.1:17891/mcp/</code>
+              <button class="btn sm ghost" id="mcp-copy-endpoint" style="border:1px solid var(--border)"><svg class="ico" style="width:13px;height:13px"><use href="#i-copy"/></svg>复制地址</button>
+            </span>
+          </div>
+          <div class="field-card">
+            <h3>允许访问范围</h3>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <label class="radio"><input type="radio" name="scope" checked><span class="dot"></span>仅当前文档</label>
+              <label class="radio"><input type="radio" name="scope"><span class="dot"></span>当前打开文件夹</label>
+              <label class="radio"><input type="radio" name="scope"><span class="dot"></span>自定义目录</label>
+              <input class="input mono" placeholder="自定义目录路径，例如 D:\Notes" style="max-width: 360px;">
+            </div>
+          </div>
+          <label class="check" style="margin-top: 2px;">
+            <input type="checkbox" checked><span class="box"></span>
+            修改、删除、打开外部路径前需要确认
+          </label>
+        </div>
+        <div style="margin: 2px 24px 6px; display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--success);">
+          <span id="mcp-status-dot" style="width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px color-mix(in srgb, var(--success) 18%, transparent);"></span>
+          <span id="mcp-status-text">服务运行中 · 最近调用 2 分钟前</span>
+        </div>
+        <div class="set-foot">
+          <button class="btn" data-close>取消</button>
+          <button class="btn primary" id="mcp-save">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 文档窗口（更新日志 / 鸣谢） -->
+    <div class="overlay win-layer" id="layer-doc" hidden>
+      <div class="mini-window" style="width: 620px;">
+        <div class="mini-titlebar">
+          <span id="doc-tb-title">更新日志</span>
+          <span class="caption-btns">
+            <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div class="doc-head">
+          <span class="d-logo">V</span>
+          <div>
+            <h2 id="doc-head-title">更新日志</h2>
+            <div class="sub">随应用分发的官方文档 · Markdown 渲染</div>
+          </div>
+        </div>
+        <div class="doc-body">
+          <div class="md-body" id="doc-content-changelog">
+            <h1>更新日志</h1>
+            <h2>1.2.0 (2026-10-02)</h2>
+            <ul>
+              <li>✨[新增]-内置 MCP 本地 AI 协作服务：帮助菜单新增 MCP 设置入口，支持启用状态、监听地址、端口、授权 Token、访问范围和确认策略配置。</li>
+              <li>✨[新增]-MCP 操作确认弹窗支持勾选「本次运行内记住此选择」，按工具在本次运行内免询问。</li>
+              <li>✨[新增]-左侧文件视图支持打开文件夹工作区，监听文件新增、删除、重命名和修改并自动刷新。</li>
+              <li>🐞[修复]-NativeAOT 发布版标题菜单与编辑器菜单命令因反射绑定在 AOT 下失效而不可点击，统一改为编译期绑定。</li>
+              <li>🐞[修复]-MCP 保存文档纳入确认清单；打开文档前先经过未保存更改确认。</li>
+            </ul>
+            <hr>
+            <h2>1.1.2.3 (2026-06-08)</h2>
+            <ul>
+              <li>🔨[优化]-简化并放大 Vex 应用图标，改为透明底高对比 V 标识。</li>
+              <li>🔨[优化]-补齐根目录 logo.svg、logo.png、logo.ico 三件套，子工程通过 MSBuild Link 引用。</li>
+            </ul>
+          </div>
+          <div class="md-body" id="doc-content-thanks" hidden>
+            <h1>鸣谢</h1>
+            <p>Vex 感谢下列开源项目及其维护者。它们为跨平台界面、编辑体验、Markdown 解析和应用结构提供了可靠基础。</p>
+            <h2>界面与桌面体验</h2>
+            <ul>
+              <li><a href="#">Avalonia</a></li>
+              <li><a href="#">Semi.Avalonia</a></li>
+              <li><a href="#">Ursa.Avalonia</a></li>
+              <li><a href="#">AvaloniaEdit</a></li>
+            </ul>
+            <h2>应用架构</h2>
+            <ul>
+              <li><a href="#">Prism.Avalonia</a></li>
+              <li><a href="#">CodeWF.EventBus</a></li>
+            </ul>
+            <h2>Markdown</h2>
+            <ul>
+              <li><a href="#">CodeWF.Markdown</a></li>
+              <li><a href="#">Markdig</a></li>
+            </ul>
+            <h2>项目</h2>
+            <p>Vex 由沙漠尽头的狼发起并维护，CodeWF 提供项目支持。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+<input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
+<script src="assets/typography.js"></script><script src="assets/interact.js"></script><script src="assets/mindmap.js"></script><script src="assets/instant-editor.js"></script><script src="assets/workbench.js"></script><script src="assets/guide.js"></script>
+</body></html>

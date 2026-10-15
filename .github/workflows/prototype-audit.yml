@@ -1,0 +1,24 @@
+name: prototype-audit
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  offline-prototype:
+    name: 单文件原型离线交互
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 校验单文件生成结果
+        shell: pwsh
+        run: ./scripts/build_standalone_prototype.ps1 -Check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: design/tests/package-lock.json
+      - run: npm ci --prefix design/tests
+      - name: 安装 Chromium
+        working-directory: design/tests
+        run: npx playwright install --with-deps chromium
+      - run: npm test --prefix design/tests
