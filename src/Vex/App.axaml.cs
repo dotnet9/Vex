@@ -2,6 +2,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using CodeWF.Toolkit.Lang;
 using CodeWF.Toolkit.Lang.Json;
 using CodeWF.Toolkit.Core.UpdateChecking;
@@ -45,6 +46,8 @@ public partial class App : PrismApplication
             ResourceFolder = ResolveI18nFolder()
         };
         I18nManager.Instance.Register(langPlugin, new CultureInfo("zh-CN"), out _);
+        I18nManager.Instance.CultureChanged += OnCultureChanged;
+        ApplyControlCulture();
         base.Initialize();
     }
 
@@ -163,6 +166,24 @@ public partial class App : PrismApplication
         };
         return candidates.FirstOrDefault(Directory.Exists)
             ?? Path.Combine(baseDirectory, "I18n");
+    }
+    private static void OnCultureChanged(object? sender, EventArgs args)
+    {
+        if (Dispatcher.UIThread.CheckAccess()) ApplyControlCulture();
+        else Dispatcher.UIThread.Post(ApplyControlCulture);
+    }
 
-}
+    /// <summary>更新主题内置文案，保留宿主资源的同键覆盖。</summary>
+    private static void ApplyControlCulture()
+    {
+        if (Application.Current is not { } application || I18nManager.Instance.Culture is not { } culture) return;
+        // Semi 提供繁体字典，但使用地区名称 zh-TW；Ursa 当前包没有日语和繁体字典。
+        var traditionalChinese = culture.Name.StartsWith("zh-Hant", StringComparison.OrdinalIgnoreCase);
+        var semiCulture = traditionalChinese ? CultureInfo.GetCultureInfo("zh-TW") : culture;
+        var ursaCulture = traditionalChinese ? CultureInfo.GetCultureInfo("zh-CN")
+            : culture.TwoLetterISOLanguageName == "ja" ? CultureInfo.GetCultureInfo("en-US") : culture;
+        foreach (var theme in application.Styles.OfType<Semi.Avalonia.SemiTheme>()) theme.Locale = semiCulture;
+        foreach (var theme in application.Styles.OfType<Ursa.Themes.Semi.UrsaSemiTheme>()) theme.Locale = ursaCulture;
+    }
+
 }

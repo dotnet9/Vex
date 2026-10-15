@@ -70,7 +70,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "vex" or "preferences")
+if (mode is "vex" or "preferences" or "locale")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().WithInterFont()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -78,6 +78,8 @@ if (mode is "vex" or "preferences")
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
+    ControlLocaleVerification.Run(window, ["zh-CN", "en-US", "zh-Hant", "ja-JP"], app.Resolve<IAppLocalizer>().SetCulture);
+    if (mode == "locale") { window.Close(); return; }
     if (mode == "preferences")
     {
         vm.Workbench.ShowSource(); Pump(); VerifyEditingPreferences(app, window, vm); VerifyLocalizedGuide(window, vm); window.Close(); return;
@@ -158,6 +160,7 @@ if (mode is "vex" or "preferences")
     Check(vm.DocumentInfo.IsModified, "A recovered draft different from disk remains unsaved");
     drafts.RestoredMarkdown = null;
     Pump(vm.OpenPathAsync(files[0]));
+    window.Width = 980; window.Height = 640; Pump();
     var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
@@ -174,12 +177,21 @@ if (mode is "vex" or "preferences")
         vm.Appearance.SelectLanguageByCulture(culture); Pump();
         Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture.Name == culture && aboutModel.ActionText == app.Resolve<IAppLocalizer>().Get(Vex.VexL.AboutCheckUpdate),
             "The open About dialog changes language: " + culture);
+        var aboutScroll = about.GetVisualDescendants().OfType<ScrollViewer>().Single();
+        VerifyInside(aboutScroll, window, "About viewport fits the minimum window: " + culture);
+        aboutScroll.Offset = default; Pump();
+        var updateAction = about.GetVisualDescendants().OfType<Button>().Single(button => button.Command == aboutModel.UpdateCommand);
+        VerifyInside(updateAction, aboutScroll, "About update action is reachable: " + culture);
+        aboutScroll.ScrollToEnd(); Pump();
+        var closeAction = about.GetVisualDescendants().OfType<Button>().Single(button => button.MinWidth == 86);
+        VerifyInside(closeAction, aboutScroll, "About close action is reachable after scrolling: " + culture);
         Capture(window, "vex-about-" + culture);
     }
     vm.Appearance.SelectLanguageByCulture("zh-CN"); Pump();
     Capture(window, "vex-about");
     aboutModel.Close();
     Pump(aboutTask);
+    window.Width = 1280; window.Height = 820; Pump();
     VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
     Check(vm.Appearance.PaletteOptions.Count == 8 && vm.Appearance.ThemeOptions.Count == 3,
         "Vex exposes eight palettes and three independent theme modes");
@@ -233,6 +245,15 @@ if (mode is "vex" or "preferences")
     window.Height = 640;
     Pump();
     VerifyTitleLayout(window);
+    foreach (var culture in new[] { "zh-CN", "zh-Hant", "en-US", "ja-JP" })
+    {
+        vm.Appearance.SelectLanguageByCulture(culture); Pump();
+        var toolbar = window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!;
+        foreach (var action in toolbar.GetVisualDescendants().OfType<Button>().Where(button => button.IsEffectivelyVisible))
+            VerifyInside(action, toolbar, "Workbench action fits minimum window: " + culture);
+        Capture(window, "vex-workbench-minimum-" + culture);
+    }
+    vm.Appearance.SelectLanguageByCulture("zh-CN"); Pump();
     Capture(window, "vex-980");
     vm.Workbench.ShowInstant(); Pump();
     var editableTable = window.GetVisualDescendants().OfType<Grid>().FirstOrDefault(grid => grid.GetType().Name == "MarkdownTableGrid" && grid.ColumnDefinitions.Count == 2);
@@ -267,6 +288,15 @@ void Check(bool condition, string message)
 {
     if (!condition) throw new InvalidOperationException(message);
     Console.WriteLine("PASS " + message);
+}
+
+void VerifyInside(Control control, Control host, string description)
+{
+    var position = control.TranslatePoint(default, host) ?? throw new InvalidOperationException(description + ": missing visual host");
+    Check(control.IsEffectivelyVisible && control.Bounds.Width > 0 && control.Bounds.Height > 0
+        && position.X >= -1 && position.Y >= -1 && position.X + control.Bounds.Width <= host.Bounds.Width + 1
+        && position.Y + control.Bounds.Height <= host.Bounds.Height + 1,
+        $"{description}; {control.Bounds.Size} at {position}, host {host.Bounds.Size}");
 }
 
 void Pump(Task? pending = null)
