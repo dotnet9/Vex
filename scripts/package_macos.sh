@@ -156,15 +156,22 @@ create_app_bundle() {
 
   rm -rf "$app_dir"
   mkdir -p "$macos_dir" "$resources_dir"
-  # older bundle marker; some tools fail to recognize the bundle without it.
+  # 标准包结构，语言和文档进入 Resources，调试符号留在原发布目录。
   printf 'APPL????' >"$contents_dir/PkgInfo"
-  # codesign 要求 Contents/MacOS 下只能出现可执行文件/动态库：
-  # 先整体拷入，再把主可执行文件与动态库以外的内容挪到 Contents/Resources。
-  ditto "$publish_dir" "$macos_dir"
-  find "$macos_dir" -mindepth 1 -maxdepth 1 ! -name "$EXECUTABLE_NAME" ! -name "*.dylib" -exec mv {} "$resources_dir/" \;
-  chmod +x "$macos_dir/$EXECUTABLE_NAME"
-  create_icon "$resources_dir/$APP_NAME.icns" "$iconset_dir"
-  write_info_plist "$contents_dir/Info.plist" "$macos_version"
+  local entry name destination
+  for entry in "$publish_dir"/*; do
+    [[ -e "$entry" || -L "$entry" ]] || continue
+    name="${entry##*/}"
+    case "$name" in
+      *.dSYM|*.pdb|*.dbg) continue ;;
+      "$EXECUTABLE_NAME"|*.dylib) destination="$macos_dir/$name" ;;
+      *) destination="$resources_dir/$name" ;;
+    esac
+    ditto "$entry" "$destination" || die "Could not copy bundle resource: $name"
+  done
+  chmod +x "$macos_dir/$EXECUTABLE_NAME" || die "Could not set executable permissions."
+  create_icon "$resources_dir/$APP_NAME.icns" "$iconset_dir" || die "Could not create application icon."
+  write_info_plist "$contents_dir/Info.plist" "$macos_version" || die "Could not write application metadata."
 
   echo "$app_dir"
 }
@@ -197,16 +204,20 @@ create_dmg() {
 
   rm -rf "$dmg_stage" "$dmg_path"
   mkdir -p "$dmg_stage"
-  ditto "$app_dir" "$dmg_stage/$APP_NAME.app"
+  mv "$app_dir" "$dmg_stage/$APP_NAME.app" || die "Could not stage the application bundle."
   ln -s /Applications "$dmg_stage/Applications"
 
-  echo "Creating DMG $dmg_path ..."
+  echo "Creating DMG $dmg_path ..." >&2
   hdiutil create \
     -volname "$APP_NAME" \
     -srcfolder "$dmg_stage" \
     -ov \
     -format UDZO \
-    "$dmg_path" >/dev/null
+    "$dmg_path" >/dev/null || die "DMG creation failed."
+
+  local sha
+  sha="$(shasum -a 256 "$dmg_path" | awk '{print $1}')" || die "DMG checksum failed."
+  printf '%s  %s\n' "$sha" "${dmg_path##*/}" >"$dmg_path.sha256"
 
   rm -rf "$dmg_stage"
 
@@ -232,10 +243,10 @@ package_rid() {
   local app_dir
   local dmg_path
 
-  app_dir="$(create_app_bundle "$rid" "$macos_version")"
-  sign_app_bundle "$app_dir"
-  dmg_path="$(create_dmg "$rid" "$version" "$app_dir")"
-  notarize_dmg "$dmg_path"
+  app_dir="$(create_app_bundle "$rid" "$macos_version")" || die "Bundle creation failed for $rid."
+  sign_app_bundle "$app_dir" || die "Bundle signing failed for $rid."
+  dmg_path="$(create_dmg "$rid" "$version" "$app_dir")" || die "DMG creation failed for $rid."
+  notarize_dmg "$dmg_path" || die "DMG notarization failed for $rid."
 
   echo "Created: $dmg_path"
 }
@@ -272,4 +283,6 @@ main() {
   echo "All macOS packages are under $ARTIFACTS_ROOT"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

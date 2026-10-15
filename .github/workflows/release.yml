@@ -31,7 +31,7 @@ jobs:
           - rid: linux-arm64
             os: ubuntu-24.04-arm
           - rid: osx-x64
-            os: macos-14
+            os: macos-15-intel
           - rid: osx-arm64
             os: macos-14
     runs-on: ${{ matrix.os }}
@@ -43,7 +43,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-          dotnet-quality: preview
 
       - name: 计算版本号
         id: version
@@ -81,6 +80,23 @@ jobs:
           if ($rid.StartsWith('osx-', [StringComparison]::OrdinalIgnoreCase)) { $ilcArgs += '-p:StripSymbols=false' }
           dotnet publish src/Vex/Vex.csproj -c Release -f $tfm -r $rid $ilcArgs -p:Version=$env:APP_VERSION /p:PublishProfile=FolderProfile__$rid
           if ($LASTEXITCODE -ne 0) { throw "publish failed for $rid" }
+
+      - name: 验证正式 Windows 原生产物
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $directory = Join-Path $env:RUNNER_TEMP ('vex-runtime-' + [guid]::NewGuid().ToString('N'))
+          $start = [Diagnostics.ProcessStartInfo]::new((Resolve-Path './artifacts/publish/win-x64/Vex/Vex.exe').Path)
+          $start.UseShellExecute = $false
+          $start.CreateNoWindow = $true
+          $start.ArgumentList.Add('--verify-runtime')
+          $start.ArgumentList.Add($directory)
+          $process = [Diagnostics.Process]::Start($start)
+          if (-not $process.WaitForExit(30000)) { throw 'Native runtime verification timed out.' }
+          if ($process.ExitCode -ne 0) { throw "Native runtime verification failed: $($process.ExitCode)" }
+          $result = Get-Content -LiteralPath (Join-Path $directory 'runtime-verification.txt') -Raw
+          if ($result -notmatch '^NativeAOT runtime verification passed;') { throw 'Native runtime evidence is missing.' }
+          Write-Output $result
 
       - name: 打包 Linux deb + sha256
         if: startsWith(matrix.rid, 'linux-')
@@ -122,6 +138,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path artifacts/release -Force | Out-Null
           Copy-Item -Path "artifacts/macos/*.dmg" -Destination artifacts/release/ -Force
+          Copy-Item -Path "artifacts/macos/*.sha256" -Destination artifacts/release/ -Force
           Get-ChildItem artifacts/release | ForEach-Object { Write-Host $_.Name }
 
       - name: 上传构建产物
@@ -161,6 +178,10 @@ jobs:
           }
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "tag_name=$tagName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: 校验五平台安装包与 SHA-256
+        shell: pwsh
+        run: ./scripts/verify_release_installers.ps1 -Version '${{ steps.version.outputs.version }}'
 
       - name: 准备发布说明
         shell: pwsh
