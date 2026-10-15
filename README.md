@@ -14,17 +14,19 @@ Slogan：极简之力，妙笔成章。
 
 ![Vex 界面轮播](docs/media/design-tour.gif)
 
-Windows x64 NativeAOT 1.5.4 实际界面：
+Windows x64 NativeAOT 1.5.5 实际界面：
 
 ![Vex 原生主窗口：AI 极光深色模式](docs/media/native-main.png)
 
 ![Markdown 表格按内容分配列宽](docs/media/native-table.png)
 
+![Markdown 导图与源码定位](docs/media/native-mindmap.png)
+
 ![Vex 原生关于与更新入口](docs/media/native-about.png)
 
 [英文深色关于界面](docs/media/native-about-english.png)
 
-本机已验证文件参数打开、表格自然列宽、中文切换英文、深色与配色分别保存并在重启后恢复，以及关于窗口联网检查更新。三种 Markdown 扩展名的打开候选与图标已注册；未通过安装器改变默认应用，Linux/macOS 和多 DPI 仍需各平台验收。
+本机已验证文件参数打开、表格自然列宽、动态切语、深色与配色分别保存并在重启后恢复，以及关于与更新流程。Windows 安装器支持三种 Markdown 扩展名的打开候选、右键入口与图标；本轮复核未更改默认应用，Linux/macOS 和多 DPI 仍需各平台验收。
 
 ## 下载安装
 
@@ -37,7 +39,7 @@ Windows x64 NativeAOT 1.5.4 实际界面：
 
 ## 仓库规范
 
-- 当前版本：`1.5.4`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
+- 当前版本：`1.5.5`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
 - NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net10.0` / `net10.0-windows`。
 - 根目录 `logo.svg`、`logo.png`、`logo.ico` 是唯一图标源，子工程只通过 MSBuild `Link` 引用，不维护图标副本。
 - 运行时帮助、Markdown 示例、内置备忘录、设计说明等业务文档按功能保留；仓库级入口文档使用根目录 `README.md` 和 `UpdateLog.md`。
@@ -97,7 +99,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 
 ### 外观与本地化
 
-- 浅色、深色、跟随系统三态，搭配 .NET 紫、AI 极光、AI 赤陶、默认蓝、水生、沙漠、黄昏、夜空八套配色；颜色和模式独立保存。
+- 标题栏右侧提供八色点、Ursa 三态模式按钮和语言菜单。浅色、深色、跟随系统搭配 .NET 紫、AI 极光、AI 赤陶、默认蓝、水生、沙漠、黄昏、夜空；颜色和模式独立保存，模式提示实时切语。
 - 支持多套 Markdown 排版主题和紧凑布局。
 - 支持行号、状态栏、窗口置顶等视图选项。
 - 内置简体中文、繁体中文、英文、日文界面资源。
@@ -133,7 +135,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 
 ### 发布产物
 
-- 支持 `win-x64`、`linux-x64`、`linux-arm64`、`osx-x64`、`osx-arm64` 多 RID 发布（NativeAOT，单文件 + 压缩）。
+- 支持 `win-x64`、`linux-x64`、`linux-arm64`、`osx-x64`、`osx-arm64` 的 NativeAOT 发布，交付 EXE、DEB、DMG 安装器及 SHA256 校验文件。
 - GitHub Release 资产为安装包：Windows exe（Inno Setup 中文向导）、Linux deb、macOS dmg，均附 `.sha256`。
 - 本地仍可用 `package_all.bat` 生成 `Vex-v<Version>-<RID>.zip` 便携包（排除 `*.pdb`，附 SHA256 与 release manifest）；Windows 也可选生成 MSIX 布局/安装包。
 
