@@ -25,7 +25,11 @@ function Convert-PrototypeImage([string] $Reference, [string] $BaseDirectory) {
         '.ico' { 'image/x-icon' } '.woff2' { 'font/woff2' } '.woff' { 'font/woff' }
         default { throw "未支持的原型资源类型：$file" }
     }
-    return 'data:' + $mime + ';base64,' + [Convert]::ToBase64String([IO.File]::ReadAllBytes($file))
+    # SVG 属于文本，先规范换行，避免 Git 在 Windows 检出 CRLF 后使生成物不稳定。
+    $bytes = if ([IO.Path]::GetExtension($file).Equals('.svg', [StringComparison]::OrdinalIgnoreCase)) {
+        [Text.Encoding]::UTF8.GetBytes([IO.File]::ReadAllText($file).ReplaceLineEndings("`n"))
+    } else { [IO.File]::ReadAllBytes($file) }
+    return 'data:' + $mime + ';base64,' + [Convert]::ToBase64String($bytes)
 }
 function Read-PrototypeCss([string] $Path) {
     $css = [IO.File]::ReadAllText($Path)

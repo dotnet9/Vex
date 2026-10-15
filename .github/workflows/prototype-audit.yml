@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: 验证跨平台文本换行的一致性
+        shell: pwsh
+        run: ./scripts/tests/prototype_newlines_test.ps1
       - name: 校验单文件生成结果
         shell: pwsh
         run: ./scripts/build_standalone_prototype.ps1 -Check
