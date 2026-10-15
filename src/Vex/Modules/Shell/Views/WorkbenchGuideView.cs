@@ -22,10 +22,14 @@ public sealed class WorkbenchGuideView : Panel
     private readonly TextBlock _title = new() { FontSize = 22, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock _description = new() { FontSize = 13, TextWrapping = TextWrapping.Wrap, LineHeight = 22 };
     private readonly TextBlock _feedback = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap };
-    private readonly TextBlock _visual = new() { FontSize = 30, TextAlignment = TextAlignment.Center, FontWeight = FontWeight.SemiBold };
-    private readonly Button _next = new() { Content = "下一步 →", HorizontalAlignment = HorizontalAlignment.Right };
-    private readonly Button _previous = new() { Content = "上一步" };
+    private readonly TextBlock _visual = new() { FontSize = 30, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, FontWeight = FontWeight.SemiBold };
+    private readonly Button _skip = new() { FontSize = 11, Padding = new Thickness(0), Background = Brushes.Transparent, BorderThickness = new Thickness(0), MinHeight = 0 };
+    private readonly Button _next = new() { Content = L(VexL.GuideNext), HorizontalAlignment = HorizontalAlignment.Right };
+    private readonly Button _previous = new() { Content = L(VexL.GuidePrevious) };
     private readonly ProgressBar _progress = new() { Minimum = 0, Maximum = 5, Height = 3 };
+    private readonly List<(ScrollViewer View, Vector Offset)> _scrollPositions = [];
+    private (int Start, int Length) _sourceSelection;
+    public IReadOnlyList<Rect> SpotlightTargets => _mask.Targets;
     private readonly Button[] _steps = new Button[5];
     private MainWindowViewModel? _vm;
     private MainWindow? _window;
@@ -53,14 +57,15 @@ public sealed class WorkbenchGuideView : Panel
     private Vex.Modules.Workspace.ViewModels.MarkdownEditorViewModel? _sourceVm;
     public int StepIndex { get; private set; }
 
+    private static string L(string key) => CodeWF.Avalonia.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
+
     public WorkbenchGuideView()
     {
         IsVisible = false;
         var stack = new StackPanel { Spacing = 16 };
         var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         header.Children.Add(_counter);
-        var skip = new Button { Content = "跳过", FontSize = 11, Padding = new Thickness(0), Background = Brushes.Transparent, BorderThickness = new Thickness(0), MinHeight = 0 };
-        Grid.SetColumn(skip, 1); header.Children.Add(skip); skip.Click += (_, _) => Finish();
+        Grid.SetColumn(_skip, 1); header.Children.Add(_skip); _skip.Click += (_, _) => Finish();
         stack.Children.Add(header);
         stack.Children.Add(new Border { Child = _visual, Padding = new Thickness(18), CornerRadius = new CornerRadius(12), Background = new SolidColorBrush(Color.Parse("#7457E8"), .12) });
         stack.Children.Add(_title); stack.Children.Add(_description); stack.Children.Add(_feedback); stack.Children.Add(_progress);
@@ -76,7 +81,7 @@ public sealed class WorkbenchGuideView : Panel
         stack.Children.Add(steps);
         var actions = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
         actions.Children.Add(_previous); Grid.SetColumn(_next, 1); actions.Children.Add(_next); stack.Children.Add(actions);
-        _card.Child = stack;
+        _card.Child = new ScrollViewer { Content = stack, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
         Children.Add(_mask); Children.Add(_card);
         _next.Click += (_, _) => NextStep();
         _previous.Click += (_, _) => ShowStep(Math.Max(0, StepIndex - 1));
@@ -96,11 +101,15 @@ public sealed class WorkbenchGuideView : Panel
         _liveState = vm.Workbench.LiveEditor?.CaptureState();
         var sourceView = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!;
         _sourceVm = sourceView.DataContext as Vex.Modules.Workspace.ViewModels.MarkdownEditorViewModel;
+        _sourceSelection = sourceView.FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor")!.Selection;
+        _scrollPositions.Clear();
+        foreach (var scroll in window.GetVisualDescendants().OfType<ScrollViewer>()) _scrollPositions.Add((scroll, scroll.Offset));
         _sourceCaret = sourceView.FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor")!.Editor.CaretOffset;
         _sourceDocument = _sourceVm?.BeginTemporaryDocument();
         _mapState = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!
             .FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!.CaptureViewport();
         vm.BeginGuideDocument(Demo);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new Vex.Core.Messaging.MarkdownTextChangedCommand(Demo, 1, 1, Demo.Count(c => c == '\n') + 1));
         vm.Workbench.SummaryLength = 30; vm.Workbench.ShowParagraphs = true; vm.Workbench.ShowLists = true;
         vm.Workbench.ShowCode = false; vm.Workbench.ShowTables = false;
         vm.Layout.IsFocusMode = false; vm.Layout.IsSidebarVisible = true; vm.Layout.IsStatusBarVisible = true;
@@ -108,7 +117,9 @@ public sealed class WorkbenchGuideView : Panel
         vm.Appearance.PropertyChanged += AppearanceChanged;
         vm.Workbench.PropertyChanged += WorkbenchChanged;
         vm.PropertyChanged += DocumentChanged;
+        vm.Layout.PropertyChanged += LayoutChanged;
         IsVisible = true;
+        _card.Transitions = null; _visual.Opacity = 1; _mask.Glow = 0;
         if (vm.Layout.EnableMotion)
         {
             _card.Transitions = new Transitions { new ThicknessTransition { Property = MarginProperty, Duration = TimeSpan.FromMilliseconds(260) }, new DoubleTransition { Property = OpacityProperty, Duration = TimeSpan.FromMilliseconds(180) } };
@@ -118,6 +129,11 @@ public sealed class WorkbenchGuideView : Panel
             _animation.Start();
         }
         ShowStep(0);
+    }
+    private void LayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ShellWindowLayoutViewModel.EnableMotion) && _vm?.Layout.EnableMotion == false)
+        { _animation?.Stop(); _card.Transitions = null; _visual.Opacity = 1; _mask.Glow = 0; _mask.InvalidateVisual(); }
     }
     private void AppearanceChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
@@ -137,52 +153,64 @@ public sealed class WorkbenchGuideView : Panel
     {
         if (_vm is null || !IsVisible) return;
         StepIndex = Math.Clamp(index, 0, 4);
+        _skip.Content = L(VexL.GuideSkip); _previous.Content = L(VexL.GuidePrevious);
         for (var i = 0; i < _steps.Length; i++) _steps[i].Opacity = i == StepIndex ? 1 : .5;
-        _counter.Text = $"快速上手   {StepIndex + 1} / 5"; _progress.Value = StepIndex + 1;
-        _previous.IsVisible = StepIndex > 0; _next.Content = StepIndex == 4 ? "开始创作 ✓" : "下一步 →";
+        _counter.Text = string.Format(L(VexL.GuideStepFormat), StepIndex + 1); _progress.Value = StepIndex + 1;
+        _previous.IsVisible = StepIndex > 0; _next.Content = StepIndex == 4 ? L(VexL.GuideStart) : L(VexL.GuideNext);
         _vm.Workbench.ShowTypography = false; _vm.Workbench.ShowMapSettings = false;
+        if (_window?.FindControl<ShellTitleMenuView>("TitleMenuView")?.FileMenuTarget is MenuItem activeMenu) activeMenu.IsSubMenuOpen = false;
         switch (StepIndex)
         {
             case 0:
                 _vm.Workbench.ShowInstant();
-                _title.Text = "一篇文档，三个视角"; _visual.Text = "编辑  ⇄  阅读  ⇄  导图"; _visual.FontSize = 16;
-                _description.Text = "点击上方的视图切换：写作、检查排版、梳理结构共用同一份 Markdown。";
+                _title.Text = L(VexL.GuideTitle0); _visual.Text = L(VexL.GuideVisual0); _visual.FontSize = 16;
+                _description.Text = L(VexL.GuideDescription0);
                 break;
             case 1:
                 _vm.Workbench.ShowInstant();
-                _title.Text = "输入就能看到效果"; _visual.Text = "**重点** → 重点"; _visual.FontSize = 22;
-                _description.Text = "点击段落进入编辑，试着加上 **重点**。输入时即时渲染；Ctrl+Enter 完成当前块，Esc 撤销本块改动。源码对照适合精细调整。";
+                _title.Text = L(VexL.GuideTitle1); _visual.Text = L(VexL.GuideVisual1); _visual.FontSize = 22;
+                _description.Text = L(VexL.GuideDescription1);
                 break;
             case 2:
                 _vm.Workbench.ShowRead(); _vm.Workbench.ShowTypography = true;
-                _title.Text = "给文字选一套排版"; _visual.Text = "Aa  标题 · 正文 · 引用"; _visual.FontSize = 21;
-                _description.Text = "点击任意主题预览真实文档。Markdown 排版与界面主题分别设置，编辑、阅读、导出采用相同排版。";
+                _title.Text = L(VexL.GuideTitle2); _visual.Text = L(VexL.GuideVisual2); _visual.FontSize = 21;
+                _description.Text = L(VexL.GuideDescription2);
                 break;
             case 3:
                 _vm.Workbench.ShowMapSource = false; _vm.Workbench.ShowMindMap(); _vm.Workbench.ShowMapSettings = true;
-                _title.Text = "用导图整理结构"; _visual.Text = "标题 ─ 分支 ─ 摘要"; _visual.FontSize = 19;
-                _description.Text = "把摘要字数调小，点击段落节点查看完整正文。双击节点定位源码；分支旁按钮用于折叠，拖动画布平移，Ctrl+滚轮缩放。";
+                _title.Text = L(VexL.GuideTitle3); _visual.Text = L(VexL.GuideVisual3); _visual.FontSize = 19;
+                _description.Text = L(VexL.GuideDescription3);
                 break;
             case 4:
                 _vm.Workbench.ShowInstant();
                 if (_window?.FindControl<ShellTitleMenuView>("TitleMenuView")?.FileMenuTarget is MenuItem menu) menu.IsSubMenuOpen = true;
-                _title.Text = "保存与分享"; _visual.Text = "Markdown  →  HTML / PDF"; _visual.FontSize = 17;
-                _description.Text = "在“文件”菜单保存 Markdown，或导出 HTML、PDF、PNG、Word。Ctrl+S 保存，Ctrl+P 快速打开，F8 专注。演示结束会恢复你原来的文档。";
+                _title.Text = L(VexL.GuideTitle4); _visual.Text = L(VexL.GuideVisual4); _visual.FontSize = 17;
+                _description.Text = L(VexL.GuideDescription4);
                 break;
         }
         UpdateFeedback();
-        Dispatcher.UIThread.Post(PositionCard, DispatcherPriority.Render);
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (StepIndex <= 2 && IsVisible && _window is not null)
+            {
+                var name = StepIndex == 2 ? "PreviewGuideTarget" : "InstantGuideTarget";
+                if (_window.FindControl<Control>(name) is { } content)
+                    foreach (var scroll in content.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
+                _window.UpdateLayout();
+            }
+            PositionCard();
+        }, DispatcherPriority.Render);
     }
     private void UpdateFeedback()
     {
         if (_vm is null) return;
         _feedback.Text = StepIndex switch
         {
-            0 => _vm.Workbench.IsMindMap ? "✓ 你已切换到导图" : _vm.Workbench.IsReading ? "✓ 你已切换到阅读" : "试试点击“阅读”或“导图”",
-            1 => _vm.Markdown != Demo ? "✓ 实际内容已经更新" : "直接在演示段落里输入即可",
-            2 => _changedTheme ? "✓ 已应用新的排版主题" : "从右侧卡片选择一套主题",
-            3 => _changedSummary ? $"✓ 当前摘要最多 {_vm.Workbench.SummaryLength} 字" : "默认 30 字；完整正文始终保留",
-            _ => "此处是临时演示文档，保存和导出由你主动触发"
+            0 => _vm.Workbench.IsMindMap ? L(VexL.GuideFeedbackMap) : _vm.Workbench.IsReading ? L(VexL.GuideFeedbackRead) : L(VexL.GuideFeedbackView),
+            1 => _vm.Markdown != Demo ? L(VexL.GuideFeedbackEdited) : L(VexL.GuideFeedbackType),
+            2 => _changedTheme ? L(VexL.GuideFeedbackTheme) : L(VexL.GuideFeedbackChooseTheme),
+            3 => _changedSummary ? string.Format(L(VexL.GuideFeedbackSummary), _vm.Workbench.SummaryLength) : L(VexL.GuideFeedbackSummaryDefault),
+            _ => L(VexL.GuideFeedbackTemporary)
         };
     }
     private void PositionCard()
@@ -191,25 +219,43 @@ public sealed class WorkbenchGuideView : Panel
         var target = _targets[StepIndex];
         var origin = target.TranslatePoint(new Point(0, 0), this);
         var rect = origin is { } point ? new Rect(point, target.Bounds.Size) : new Rect(20, 20, 250, 40);
-        if (StepIndex == 1) rect = new Rect(rect.X + 28, rect.Y + 70, Math.Min(rect.Width - 56, 560), 220);
+        if (StepIndex == 1 && _vm?.Workbench.LiveEditor?.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().FirstOrDefault(v => v.Markdown?.Contains("在这里输入一句话", StringComparison.Ordinal) == true) is { } paragraph && paragraph.TranslatePoint(default, this) is { } paragraphPoint)
+            rect = new Rect(paragraphPoint, paragraph.Bounds.Size).Inflate(new Thickness(12, 16));
         rect = rect.Intersect(new Rect(Bounds.Size)).Inflate(6);
-        _mask.Target = rect;
+        var highlights = new List<Rect> { rect };
+        if (StepIndex is 1 or 3 && _window?.FindControl<ShellEditorOptionsView>("EditorOptions") is { IsEffectivelyVisible: true } options && options.TranslatePoint(default, this) is { } optionPoint)
+            highlights.Add(new Rect(optionPoint, options.Bounds.Size).Inflate(4));
+        if (StepIndex == 3 && _window?.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget") is { } map && map.TranslatePoint(default, this) is { } mapPoint)
+        {
+            var rootCard = map.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => ToolTip.GetTip(b)?.ToString() == _vm?.Workbench.Root?.FullText);
+            if (rootCard?.TranslatePoint(default, this) is { } rootPoint && rootCard.TranslatePoint(new Point(rootCard.Bounds.Width, rootCard.Bounds.Height), this) is { } rootEnd)
+                highlights.Add(new Rect(rootPoint, rootEnd).Inflate(8));
+        }
+        _mask.Targets = highlights;
         _mask.Accent = FindBrush("VexAccentBrush", "#7457E8");
         _card.Background = FindBrush("VexPanelBackgroundBrush", "#FFFFFF");
         _card.BorderBrush = FindBrush("VexPanelBorderBrush", "#DFE1EB");
         _title.Foreground = FindBrush("VexEditorForegroundBrush", "#333344");
         _description.Foreground = _title.Foreground;
         _counter.Foreground = _feedback.Foreground = FindBrush("VexMutedBrush", "#77778A");
-        _card.HorizontalAlignment = rect.Center.X > Bounds.Width / 2 ? HorizontalAlignment.Left : HorizontalAlignment.Right;
-        _card.VerticalAlignment = StepIndex == 1 || StepIndex == 4 ? VerticalAlignment.Bottom : VerticalAlignment.Center;
-        _card.Margin = new Thickness(24);
+        _card.MaxHeight = Math.Max(100, Bounds.Height - 40);
+        _card.Measure(new Size(_card.Width, _card.MaxHeight));
+        var width = _card.Width; var height = Math.Min(_card.DesiredSize.Height, Bounds.Height - 40);
+        var candidates = new[] { new Point(rect.Right + 20, rect.Y), new Point(rect.Left - width - 20, rect.Y), new Point(rect.Center.X - width / 2, rect.Bottom + 20), new Point(rect.Center.X - width / 2, rect.Top - height - 20), new Point(24, Bounds.Height - height - 24), new Point(Bounds.Width - width - 24, Bounds.Height - height - 24) }
+            .Select(p => new Rect(Math.Clamp(p.X, 20, Math.Max(20, Bounds.Width - width - 20)), Math.Clamp(p.Y, 20, Math.Max(20, Bounds.Height - height - 20)), width, height));
+        var placement = candidates.OrderBy(candidate => highlights.Sum(h => { var overlap = candidate.Intersect(h); return overlap.Width * overlap.Height; })).ThenBy(candidate => Math.Abs(candidate.Center.X - rect.Center.X) + Math.Abs(candidate.Center.Y - rect.Center.Y)).First();
+        _card.HorizontalAlignment = HorizontalAlignment.Left; _card.VerticalAlignment = VerticalAlignment.Top;
+        _card.Margin = new Thickness(placement.X, placement.Y, 0, 0);
+        _mask.Card = placement;
     }
     private IBrush FindBrush(string key, string fallback) => this.TryFindResource(key, out var value) && value is IBrush brush ? brush : Brush.Parse(fallback);
     public bool HandleKey(KeyEventArgs e)
     {
         if (!IsVisible) return false;
-        if (e.Key == Key.Escape && e.Source is not TextBox) { Finish(); return true; }
-        if (e.Source is TextBox || e.KeyModifiers != KeyModifiers.None) return false;
+        var input = e.Source as Visual;
+        var editing = input is TextBox or AvaloniaEdit.Editing.TextArea || input?.GetVisualAncestors().Any(v => v is TextBox or AvaloniaEdit.Editing.TextArea) == true;
+        if (e.Key == Key.Escape && !editing) { Finish(); return true; }
+        if (editing || e.KeyModifiers != KeyModifiers.None) return false;
         if (e.Key == Key.Right) { NextStep(); return true; }
         if (e.Key == Key.Left) { ShowStep(StepIndex - 1); return true; }
         return false;
@@ -218,14 +264,16 @@ public sealed class WorkbenchGuideView : Panel
     {
         if (!IsVisible || _vm is null) return;
         IsVisible = false; _animation?.Stop(); _animation = null;
+        _card.Transitions = null; _visual.Opacity = 1; _mask.Glow = 0;
         if (_window?.FindControl<ShellTitleMenuView>("TitleMenuView")?.FileMenuTarget is MenuItem menu) menu.IsSubMenuOpen = false;
         _vm.Appearance.PropertyChanged -= AppearanceChanged;
         _vm.Workbench.PropertyChanged -= WorkbenchChanged;
         _vm.PropertyChanged -= DocumentChanged;
+        _vm.Layout.PropertyChanged -= LayoutChanged;
         _vm.EndGuideDocument();
         _sourceVm?.RestoreDocument(_sourceDocument);
-        if (_liveState is { } live && _vm.Workbench.LiveEditor is { } editor) editor.RestoreState(live);
         _vm.Appearance.SelectedTypography = _savedTypography;
+        if (_liveState is { } live && _vm.Workbench.LiveEditor is { } editor) editor.RestoreState(live);
         _vm.Workbench.RestorePreferences(_savedSettings, _savedView, _savedEdit);
         _vm.Workbench.ShowMapSource = _source; _vm.Workbench.ShowMapSettings = _mapSettings; _vm.Workbench.ShowTypography = _typography;
         _vm.Layout.IsFocusMode = _focus; _vm.Layout.IsSidebarVisible = _sidebar; _vm.Layout.IsStatusBarVisible = _status;
@@ -235,6 +283,8 @@ public sealed class WorkbenchGuideView : Panel
         var mapState = _mapState;
         var focus = _savedFocus;
         var caret = _sourceCaret;
+        var selection = _sourceSelection;
+        var scrollPositions = _scrollPositions.ToArray();
         Dispatcher.UIThread.Post(() =>
         {
             if (window is null) return;
@@ -242,6 +292,9 @@ public sealed class WorkbenchGuideView : Panel
                 .FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor")!.Editor.CaretOffset = caret;
             if (mapState is { } state) window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!
                 .FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!.RestoreViewport(state, onNextRoot: true);
+            var restoredSource = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor")!.Editor;
+            restoredSource.Select(selection.Start, selection.Length);
+            foreach (var (view, offset) in scrollPositions) view.Offset = offset;
             focus?.Focus();
         }, DispatcherPriority.Background);
         _vm = null;
@@ -249,18 +302,31 @@ public sealed class WorkbenchGuideView : Panel
 
     private sealed class Spotlight : Control
     {
-        private Rect _target;
-        public Rect Target { get => _target; set { _target = value; InvalidateVisual(); } }
+        private IReadOnlyList<Rect> _targets = [];
+        public IReadOnlyList<Rect> Targets { get => _targets; set { _targets = value; InvalidateVisual(); } }
+        private Rect _card;
+        public Rect Card { get => _card; set { _card = value; InvalidateVisual(); } }
         public IBrush Accent { get; set; } = Brushes.MediumPurple;
-        public double Glow { get; set; } = .5;
+        public double Glow { get; set; } = .18;
         public override void Render(DrawingContext context)
         {
             var geometry = new GeometryGroup { FillRule = FillRule.EvenOdd };
             geometry.Children.Add(new RectangleGeometry(new Rect(Bounds.Size)));
-            geometry.Children.Add(new RectangleGeometry(Target, 12, 12));
+            foreach (var target in Targets) geometry.Children.Add(new RectangleGeometry(target, 12, 12));
             context.DrawGeometry(new SolidColorBrush(Color.Parse("#24243E"), .52), null, geometry);
-            using (context.PushOpacity(Glow)) context.DrawRectangle(null, new Pen(Accent, 9), Target.Inflate(2), 14, 14);
-            context.DrawRectangle(null, new Pen(Accent, 2), Target, 12, 12);
+            foreach (var target in Targets)
+            {
+                using (context.PushOpacity(Glow)) context.DrawRectangle(null, new Pen(Accent, 9), target.Inflate(2), 14, 14);
+                context.DrawRectangle(null, new Pen(Accent, 2), target, 12, 12);
+            }
+            if (Targets.Count > 0)
+            {
+                var target = Targets[0];
+                var start = new Point(Math.Clamp(Card.Center.X, target.Left, target.Right), Math.Clamp(Card.Center.Y, target.Top, target.Bottom));
+                var end = new Point(Math.Clamp(start.X, Card.Left, Card.Right), Math.Clamp(start.Y, Card.Top, Card.Bottom));
+                context.DrawLine(new Pen { Brush = Accent, Thickness = 1.5, DashStyle = new DashStyle(new double[] { 4, 4 }, 0) }, start, end);
+                context.DrawEllipse(Accent, null, start, 3, 3);
+            }
         }
     }
 }

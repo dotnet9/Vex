@@ -1,4 +1,6 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.VisualTree;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -25,9 +27,11 @@ public partial class MainWindow : CodeWFWindow
     public MainWindow()
     {
         InitializeComponent();
+        SizeChanged += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.IsCompactWindow = Bounds.Width < 1100; };
         TitleMenuView.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
         WorkbenchToolbar.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
         AddHandler(KeyDownEvent, WindowKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(PointerPressedEvent, WorkbenchPointerPressed, RoutingStrategies.Tunnel);
         SidebarSplitter.DragStarted += SidebarSplitter_OnDragStarted;
         SidebarSplitter.DragCompleted += SidebarSplitter_OnDragCompleted;
         DragDrop.SetAllowDrop(this, true);
@@ -88,9 +92,18 @@ public partial class MainWindow : CodeWFWindow
         }
     }
 
+    private void WorkbenchPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || e.Source is not Visual source) return;
+        var ancestors = source.GetVisualAncestors().Prepend(source).ToArray();
+        if (vm.Workbench.ShowTypography && !ancestors.Contains(TypographyGallery) && !ancestors.Contains(EditorOptions)) vm.Workbench.ShowTypography = false;
+    }
+
     private void WindowKeyDown(object? sender, KeyEventArgs e)
     {
         if (WorkbenchGuide.IsVisible && WorkbenchGuide.HandleKey(e)) { e.Handled = true; return; }
+        if (e.Key == Key.Escape && DataContext is MainWindowViewModel vm && (vm.Workbench.ShowTypography || vm.Workbench.ShowMapSettings || vm.Workbench.HasSelectedNode))
+        { vm.Workbench.ShowTypography = false; vm.Workbench.ShowMapSettings = false; vm.Workbench.CloseInspector(); e.Handled = true; return; }
         e.Handled = _keyboardShortcuts?.HandleKeyDown(e.Key, e.KeyModifiers) == true;
     }
 

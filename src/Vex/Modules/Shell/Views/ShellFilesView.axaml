@@ -20,7 +20,7 @@
                     ToolTip.Tip="{Binding Preview}" ToolTip.IsEnabled="{Binding IsDocument}">
                 <Grid>
                     <Border Classes="file-bar" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}" HorizontalAlignment="Left" />
-                    <Grid Margin="10 5" ColumnDefinitions="15,*,Auto" ColumnSpacing="7">
+                    <Grid Margin="10 8" ColumnDefinitions="15,*,Auto" ColumnSpacing="7">
                         <Path Classes="stroke-ico tree-ico" IsVisible="{Binding IsFolder}"
                               Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                         <Path Classes="stroke-ico tree-ico" IsVisible="{Binding IsDocument}"
@@ -42,7 +42,7 @@
         </TreeDataTemplate>
     </UserControl.DataTemplates>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
         <!-- 顶部过滤：长目录时快速过滤（新增能力，对应原型 .side-search） -->
         <TextBox
             Margin="10 8 10 6"
@@ -53,8 +53,13 @@
             PlaceholderText="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}"
             Text="{Binding FilterText, Mode=TwoWay}"
             TextWrapping="NoWrap" />
+        <Grid Grid.Row="1" Margin="14,4,14,10" ColumnDefinitions="*,Auto">
+          <TextBlock Text="{Binding WorkspaceName}" FontSize="10" Foreground="{DynamicResource VexMutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+          <Button Grid.Column="1" Classes="wb-quiet" Content="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Click="OpenFolderClick" Padding="4,0" MinHeight="22" FontSize="10"/>
+        </Grid>
+        <Border Grid.Row="3" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" Padding="14,10"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBLocalWorkspace}}" FontSize="10" Foreground="{DynamicResource VexMutedBrush}"/><TextBlock Grid.Column="1" Text="Markdown" FontSize="10" Foreground="{DynamicResource VexMutedBrush}"/></Grid></Border>
         <TreeView
-            Grid.Row="1"
+            Grid.Row="2"
             Classes="side-tree"
             IsVisible="{Binding HasDocumentFiles}"
             ItemsSource="{Binding FilteredDocumentFileNodes}"
@@ -84,7 +89,7 @@
             </TreeView.ContextMenu>
         </TreeView>
         <Border
-            Grid.Row="1"
+            Grid.Row="2"
             IsVisible="{Binding IsDocumentFilesEmpty}"
             Padding="18"
             VerticalAlignment="Top">

@@ -25,6 +25,9 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     // 侧栏过滤（对应原型「侧栏内搜索」）：TreeView 绑定过滤后的列表，主列表保留用于选中恢复
     public ObservableCollection<DocumentFileNode> FilteredDocumentFileNodes { get; } = [];
 
+    private string? _workspacePath;
+    public string WorkspaceName => _workspacePath is { Length: > 0 } path ? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) : CodeWF.Avalonia.Lang.I18nManager.Instance.GetResource(VexL.WBWorkspace) ?? string.Empty;
+
     private string _filterText = string.Empty;
 
     public string FilterText
@@ -120,6 +123,8 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     public void ApplyDocumentFilesChanged(DocumentFilesChangedCommand command)
     {
         // 文件列表只接收 Shell 发布的快照，不直接调用主 ViewModel 的文件打开流程。
+        _workspacePath = command.WorkspaceRootPath;
+        OnPropertyChanged(nameof(WorkspaceName));
         DocumentFileNodes.Clear();
         foreach (var node in BuildDocumentFileNodes(command.Files, command.WorkspaceRootPath))
         {

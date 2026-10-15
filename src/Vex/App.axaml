@@ -34,5 +34,7 @@
              叠加图片能力控件与编辑器控件外观。 -->
         <markdownThemes:MarkdownFullThemes TypographyTheme="Simple" />
         <vexThemes:VexControlsTheme />
+        <StyleInclude Source="avares://Vex/Modules/Shell/Views/WorkbenchStyles.axaml" />
+        <StyleInclude Source="avares://Vex/Modules/Workspace/Views/MarkdownDocumentStyles.axaml" />
     </prism:PrismApplication.Styles>
 </prism:PrismApplication>

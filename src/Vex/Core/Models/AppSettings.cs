@@ -1,7 +1,9 @@
-﻿namespace Vex.Core.Models;
+namespace Vex.Core.Models;
 
 public sealed record AppSettings
 {
+    public bool? SourcePreviewEnabled { get; init; }
+
     public string? WorkbenchView { get; init; }
     public string? EditMode { get; init; }
     public int? MindMapSummaryLength { get; init; }

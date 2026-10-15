@@ -185,7 +185,11 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     {
         if (_workbench.IsInstantEditing)
         {
-            if (action == EditorActionKind.FocusEditor) _workbench.LiveEditor?.FocusEditor();
+            if (action == EditorActionKind.FocusEditor && _workbench.LiveEditor is { } focused)
+            {
+                if (focused.Text.Length == 0 || focused.ActiveBlockIndex >= 0) focused.FocusEditor();
+                else focused.Focus();
+            }
             else if (_workbench.LiveEditor is { } live) _ = live.ExecuteAsync(action.ToEditorAction());
             return;
         }
@@ -253,7 +257,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     public void ApplySearch(EditorSearchCommand command)
     {
         // 查找始终露出命中位置，替换只在明确的编辑视图执行。
-        _workbench.ShowSource();
+        if (command.Action != EditorSearchAction.Count) _workbench.ShowSource();
         _editor?.Search(command.ToEditorSearchCommand());
     }
 
@@ -281,7 +285,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     }
 
     [EventHandler]
-    public void NavigateTo(NavigateToLineCommand command) => _editor?.NavigateToLine(command.Line);
+    public void NavigateTo(NavigateToLineCommand command) { if (_workbench.IsSourceVisible) _editor?.NavigateToLine(command.Line); }
 
     private void OnEditorDisplayChanged(object? sender, EventArgs e)
     {

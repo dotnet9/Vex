@@ -12,7 +12,7 @@
 
     <Grid RowDefinitions="Auto,*" Background="{DynamicResource VexPreviewBackgroundBrush}">
         <!-- 预览窗格头：标注窗格身份 + 当前排版主题（对应原型 .pane-head + .kbd） -->
-        <Border Classes="pane-head">
+        <Border x:Name="PaneHeader" Classes="pane-head">
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Path
@@ -43,70 +43,5 @@
         </ScrollViewer>
     </Grid>
 
-    <UserControl.Styles>
-        <Style Selector="Button.MdCopyButton">
-            <Setter Property="BorderThickness" Value="0" />
-        </Style>
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdH1Border">
-            <Setter Property="BorderThickness" Value="0 0 0 1" />
-            <Setter Property="Padding" Value="0 0 0 8" />
-            <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
-            <Setter Property="Margin" Value="0 6 0 12" />
-        </Style>
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdH2Border">
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Margin" Value="0 20 0 10" />
-        </Style>
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdH3Border">
-            <Setter Property="Margin" Value="0 16 0 8" />
-        </Style>
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdQuote">
-            <Setter Property="BorderThickness" Value="3 0 0 0" />
-            <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
-            <Setter Property="Padding" Value="14 6" />
-            <Setter Property="Margin" Value="0 10" />
-            <Setter Property="CornerRadius" Value="0 8 8 0" />
-        </Style>
-        <Style Selector="CheckBox.MdTaskMarkerBox">
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <Border Name="TaskBox" Width="14" Height="14" CornerRadius="3"
-                            BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}"
-                            Background="{DynamicResource VexPanelBackgroundBrush}">
-                        <Path Name="TaskTick" Width="10" Height="8" Stretch="Uniform"
-                              Data="M1 4l3 3 5-6" Stroke="White" StrokeThickness="2"
-                              IsVisible="{TemplateBinding IsChecked}" />
-                    </Border>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="CheckBox.MdTaskMarkerBox:checked /template/ Border#TaskBox">
-            <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
-        </Style>
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple]">
-            <Setter Property="TextBrush" Value="{DynamicResource VexValueBrush}" />
-            <Setter Property="MutedTextBrush" Value="{DynamicResource VexMutedBrush}" />
-            <Setter Property="AccentBrush" Value="{DynamicResource VexAccentBrush}" />
-            <Setter Property="QuoteBackgroundBrush" Value="{DynamicResource VexQuoteBackgroundBrush}" />
-            <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
-            <Setter Property="CodeBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
-            <Setter Property="InlineCodeBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
-            <Setter Property="BorderLineBrush" Value="{DynamicResource VexPanelBorderBrush}" />
-            <Setter Property="ParagraphFontSize" Value="13.5" />
-            <Setter Property="ParagraphLineHeight" Value="24.3" />
-            <Setter Property="Heading1FontSize" Value="22" />
-            <Setter Property="Heading2FontSize" Value="17.5" />
-            <Setter Property="Heading3FontSize" Value="15" />
-            <Setter Property="ParagraphMargin" Value="0 8" />
-            <Setter Property="HeadingMargin" Value="0 6 0 12" />
-            <Setter Property="BlockSpacing" Value="0" />
-        </Style>
-        <!-- 选区可读性：默认浅色选区底 + 芯片浅色文字会撞色，选中时强制深色前景。 -->
-        <Style Selector="SelectableTextBlock">
-            <Setter Property="SelectionForegroundBrush" Value="#1D2129" />
-        </Style>
-    </UserControl.Styles>
 
 </UserControl>

@@ -27,7 +27,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private double _sidebarWidth = DefaultSidebarWidth;
 
     /// <summary>侧栏默认宽度，与 design/index.html 主区栅格一致。</summary>
-    public const double DefaultSidebarWidth = 252d;
+    public const double DefaultSidebarWidth = 226d;
 
     private const double MinSidebarWidth = 200d;
 
@@ -118,17 +118,23 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         }
     }
 
-    public GridLength SidebarColumnWidth => IsSidebarVisible ? new GridLength(SidebarWidth) : new GridLength(0);
+    public GridLength SidebarColumnWidth => new(VisibleSidebarWidth);
 
-    public double VisibleSidebarWidth => IsSidebarVisible ? SidebarWidth : 0;
+    private bool _isCompactWindow;
+    public bool IsCompactWindow
+    {
+        get => _isCompactWindow;
+        set { if (!SetProperty(ref _isCompactWindow, value)) return; OnPropertyChanged(nameof(VisibleSidebarWidth)); OnPropertyChanged(nameof(SidebarColumnWidth)); }
+    }
+    public double VisibleSidebarWidth => IsSidebarVisible ? IsCompactWindow && Math.Abs(SidebarWidth - DefaultSidebarWidth) < .01 ? 200 : SidebarWidth : 0;
 
-    public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(5) : new GridLength(0);
+    public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(1) : new GridLength(0);
 
     public GridLength SourceColumnWidth => IsSourceMode ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
 
     public GridLength PreviewColumnWidth => IsPreviewVisible ? new GridLength(1.06, GridUnitType.Star) : new GridLength(0);
 
-    public GridLength PreviewSplitterWidth => IsSourceMode && IsPreviewVisible ? new GridLength(5) : new GridLength(0);
+    public GridLength PreviewSplitterWidth => IsSourceMode && IsPreviewVisible ? new GridLength(1) : new GridLength(0);
 
     /// <summary>
     /// 界面动效总开关：关闭时三档动效时长归零，已有过渡立即到达终态。

@@ -1,5 +1,5 @@
 <codewf:CodeWFWindow
-    x:Class="Vex.Modules.Shell.Views.MainWindow"
+    x:Class="Vex.Modules.Shell.Views.MainWindow" x:Name="ShellWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:codewf="https://codewf.com"
@@ -53,22 +53,6 @@
                 Text="Vex"
                 VerticalAlignment="Center" />
             <shell:ShellTitleMenuView x:Name="TitleMenuView" Margin="4 0 0 0" />
-            <!-- 未保存圆点：主题色，替代原来的 * 前缀 -->
-            <StackPanel Orientation="Horizontal" Spacing="6" Margin="10 0 0 0">
-            <Ellipse
-                Width="7"
-                Height="7"
-                Fill="{DynamicResource VexAccentBrush}"
-                IsVisible="{Binding DocumentInfo.IsModified}"
-                VerticalAlignment="Center" />
-            <TextBlock
-                Classes="titlebar-muted"
-                FontSize="12"
-                MaxWidth="380"
-                Text="{Binding DocumentInfo.PropertyNameText}"
-                TextTrimming="CharacterEllipsis"
-                VerticalAlignment="Center" />
-            </StackPanel>
         </StackPanel>
     </codewf:CodeWFWindow.LeftContent>
 
@@ -79,11 +63,11 @@
         x:Name="ShellGuideRoot"
         Background="{DynamicResource VexShellBackgroundBrush}"
         RowDefinitions="Auto,Auto,*,Auto">
-        <Border Grid.Row="0">
+        <Border Grid.Row="1">
             <shell:ShellFindBarView DataContext="{Binding FindBar}" />
         </Border>
 
-        <shell:ShellWorkbenchToolbarView x:Name="WorkbenchToolbar" Grid.Row="1"/>
+        <shell:ShellWorkbenchToolbarView x:Name="WorkbenchToolbar" Grid.Row="0"/>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <!-- 侧栏宽度由内层动画容器的 ExpandedSize 与分隔条拖动共同决定 -->
@@ -125,29 +109,33 @@
                 IsVisible="{Binding Layout.IsSidebarVisible}"
                 ResizeDirection="Columns" />
 
-            <Grid Grid.Column="2">
+            <Grid Grid.Column="2" RowDefinitions="Auto,*">
+                <shell:ShellEditorOptionsView x:Name="EditorOptions"/>
+                <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="{Binding Workbench.SourceColumnWidth}"/>
                     <ColumnDefinition Width="{Binding Workbench.SplitterWidth}"/>
                     <ColumnDefinition Width="{Binding Workbench.PreviewColumnWidth}"/>
                 </Grid.ColumnDefinitions>
-                <workspace:MarkdownEditorView x:Name="EditorGuideTarget" Grid.Column="0" IsVisible="{Binding Workbench.IsSourceVisible}" />
+                <workspace:MarkdownEditorView x:Name="EditorGuideTarget" Grid.Column="0" IsVisible="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Workbench.IsSourceVisible}" />
                 <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" ResizeDirection="Columns" IsVisible="{Binding Workbench.IsSourceVisible}" />
-                <workspace:MarkdownPreviewView x:Name="PreviewGuideTarget" Grid.Column="2" IsVisible="{Binding Workbench.IsPreviewVisible}" />
+                <workspace:MarkdownPreviewView x:Name="PreviewGuideTarget" IsReadingMode="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Workbench.IsReading}" Grid.Column="2" IsVisible="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Workbench.IsPreviewVisible}" />
                 <workspace:MarkdownInstantView x:Name="InstantGuideTarget" Grid.ColumnSpan="3" IsVisible="{Binding Workbench.IsInstantEditing}" />
                 <workspace:MarkdownMindMapHost x:Name="MindMapGuideTarget" Grid.Column="{Binding Workbench.MapColumn}" Grid.ColumnSpan="{Binding Workbench.MapSpan}" IsVisible="{Binding Workbench.IsMindMap}" />
-                <Border x:Name="TypographyGallery" Grid.ColumnSpan="3" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top"
-                        Margin="16" Padding="18" Width="560" MaxHeight="520" CornerRadius="14" BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexPanelBackgroundBrush}">
-                    <Grid RowDefinitions="Auto,*" RowSpacing="12">
-                        <Grid ColumnDefinitions="*,Auto"><StackPanel Spacing="5"><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBTypographyTitle}}" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBTypographyHint}}" Classes="muted" FontSize="12"/></StackPanel><Button Grid.Column="1" Content="×" Command="{Binding Workbench.ToggleTypography}" Padding="4"/></Grid>
-                        <ListBox Grid.Row="1" ItemsSource="{Binding Appearance.TypographyOptions}" SelectedItem="{Binding Appearance.SelectedTypography, Mode=TwoWay}">
+                </Grid>
+                <Border x:Name="TypographyGallery" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="3" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="18,48,18,18" Padding="18" Width="338" MaxHeight="520" CornerRadius="10" BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexPanelBackgroundBrush}">
+                    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+                        <Grid ColumnDefinitions="*,Auto"><StackPanel Spacing="5"><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBTypographyTitle}}" FontSize="13" FontWeight="SemiBold"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBTypographyHint}}" Classes="muted" FontSize="10" TextWrapping="Wrap"/></StackPanel><Button Grid.Column="1" Content="×" Command="{Binding Workbench.ToggleTypography}" Padding="4"/></Grid>
+                        <ListBox Classes="typography-grid" Grid.Row="1" ItemsSource="{Binding Appearance.TypographyOptions}" SelectedItem="{Binding Appearance.SelectedTypography, Mode=TwoWay}">
                             <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
                             <ListBox.ItemTemplate><DataTemplate x:DataType="model:TypographyOption">
-                                <Border Width="146" Height="110" Padding="8" ClipToBounds="True" BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}" CornerRadius="8">
-                                    <StackPanel><TextBlock Text="{i18n:I18n {Binding NameKey}}" FontSize="12"/><Viewbox Height="70" Stretch="Uniform" HorizontalAlignment="Left"><md:MarkdownViewer Width="260" Markdown="## 标题示例&#10;&#10;正文与 **重点**" TypographyTheme="{Binding Key}" IsHitTestVisible="False" DocumentBottomPadding="0" /></Viewbox></StackPanel>
+                                <Border Width="90" Height="58" Padding="6" ClipToBounds="True" BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}" CornerRadius="8">
+                                    <StackPanel Spacing="6" HorizontalAlignment="Center"><StackPanel Width="36" Spacing="4"><Border Height="3" Background="{Binding SwatchColor}"/><Border Height="1" Background="{DynamicResource VexPanelBorderBrush}"/><Border Height="1" Width="26" HorizontalAlignment="Left" Background="{DynamicResource VexPanelBorderBrush}"/></StackPanel><TextBlock Text="{i18n:I18n {Binding NameKey}}" FontSize="10" TextAlignment="Center"/></StackPanel>
                                 </Border>
                             </DataTemplate></ListBox.ItemTemplate>
                         </ListBox>
+                        <CheckBox Grid.Row="2" Content="{i18n:I18n {x:Static l:VexL.CompactLayout}}" IsChecked="{Binding Appearance.IsCompactLayout, Mode=TwoWay}" FontSize="11"/>
                     </Grid>
                 </Border>
             </Grid>

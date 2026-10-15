@@ -9,6 +9,7 @@ public sealed class ShellStatusBarViewModel : ReactiveObject
 {
     private readonly IMcpServerHost _mcpServerHost;
     private readonly IAppLocalizer _localizer;
+    private readonly Vex.Modules.Shell.Services.IShellOverlayService _overlays;
     private string _mcpStatusText = string.Empty;
 
     public ShellStatusBarViewModel(
@@ -17,8 +18,9 @@ public sealed class ShellStatusBarViewModel : ReactiveObject
         ShellWindowLayoutViewModel layout,
         ShellWorkbenchViewModel workbench,
         IMcpServerHost mcpServerHost,
-        IAppLocalizer localizer)
+        IAppLocalizer localizer, ShellAppearanceViewModel appearance, Vex.Modules.Shell.Services.IShellOverlayService overlays)
     {
+        Appearance = appearance; _overlays = overlays;
         Status = status;
         DocumentInfo = documentInfo;
         Layout = layout;
@@ -29,6 +31,9 @@ public sealed class ShellStatusBarViewModel : ReactiveObject
         _localizer.CultureChanged += (_, _) => RefreshMcpStatus();
         RefreshMcpStatus();
     }
+
+    public ShellAppearanceViewModel Appearance { get; }
+    public Task ShowStatisticsAsync() => _overlays.ShowStatisticsAsync(DocumentInfo);
 
     public ShellStatusViewModel Status { get; }
 

@@ -11,6 +11,18 @@ namespace Vex.Modules.Workspace.Views;
 
 public partial class MarkdownPreviewView : UserControl
 {
+    public static readonly StyledProperty<bool> IsReadingModeProperty = AvaloniaProperty.Register<MarkdownPreviewView, bool>(nameof(IsReadingMode));
+    public bool IsReadingMode { get => GetValue(IsReadingModeProperty); set => SetValue(IsReadingModeProperty, value); }
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == IsReadingModeProperty && PreviewMarkdownViewer is not null)
+        {
+            PaneHeader.IsVisible = !IsReadingMode;
+            PreviewMarkdownViewer.MaxWidth = IsReadingMode ? 692 : double.PositiveInfinity;
+            PreviewMarkdownViewer.Margin = IsReadingMode ? new Thickness(44, 44, 44, 60) : new Thickness(30, 22, 30, 30);
+        }
+    }
     private MarkdownPreviewViewModel? _viewModel;
     private MarkdownViewer.MarkdownReadingPosition? _savedReadingPosition;
     private bool _restoringScrollPosition;

@@ -23,7 +23,54 @@ var mode = args.FirstOrDefault() ?? "vex";
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
-if (mode == "vex")
+if (mode == "parity")
+{
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().WithInterFont()
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+    var app = (VerificationVexApp)Application.Current!;
+    var window = app.Shell!;
+    var vm = (MainWindowViewModel)window.DataContext!;
+    window.Show();
+    SettleRendering();
+    window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.FindControl<Button>("QuickStartButton")!.IsVisible = true;
+    vm.Appearance.SelectPaletteByKey("aurora");
+    var sample = Path.GetFullPath("artifacts/parity/documents/笔记/主题设计笔记.md");
+    Pump(vm.OpenStartupDocumentAsync(new[] { Path.GetDirectoryName(Path.GetDirectoryName(sample))! }));
+    Pump(vm.OpenPathAsync(sample));
+    Check(vm.DocumentFiles.Count == 5, "Parity captures retain the complete five file workspace");
+    foreach (var width in new[] { 1280, 980 })
+    {
+        window.Width = width; window.Height = width == 1280 ? 820 : 640;
+        foreach (var theme in new[] { "light", "dark" })
+        {
+            vm.Appearance.SelectThemeByKey(theme);
+            foreach (var view in new[] { "instant", "source", "read", "mindmap" })
+            {
+                vm.Workbench.ShowTypography = false; vm.Workbench.ShowMapSettings = false; vm.Workbench.SelectedNode = null;
+                vm.Workbench.ShowMapSource = false;
+                switch (view) { case "instant": vm.Workbench.ShowInstant(); break; case "source": vm.Workbench.ShowSource(); break; case "read": vm.Workbench.ShowRead(); break; default: vm.Workbench.ShowMindMap(); break; }
+                Pump();
+                PumpUntil(() => vm.Workbench.Root is not null);
+                SettleRendering();
+                var sourceView = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
+                sourceView.Editor.CaretOffset = 0;
+                sourceView.Editor.ScrollToHome();
+                foreach (var scroll in window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
+                foreach (var scroll in window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
+                Pump();
+                Capture(window, $"{width}-{theme}-{(view is "instant" or "source" ? "edit" : view)}-{(view == "source" ? "source" : "instant")}");
+            }
+        }
+    }
+    window.Width = 1280; window.Height = 820; vm.Appearance.SelectThemeByKey("light");
+    vm.Workbench.ShowInstant(); vm.Workbench.ShowTypography = true; Pump(); SettleRendering(); Capture(window, "typography");
+    vm.Workbench.ShowMindMap(); vm.Workbench.ShowMapSettings = true; Pump(); SettleRendering(); Capture(window, "map-settings");
+    vm.Workbench.ShowMapSettings = false; vm.Workbench.SelectedNode = vm.Workbench.Root!.Children.First(); Pump(); SettleRendering(); Capture(window, "map-inspector");
+    window.Close();
+    Console.WriteLine("Native parity captures: " + output);
+    return;
+}
+if (mode is "vex" or "preferences")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().WithInterFont()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -31,11 +78,15 @@ if (mode == "vex")
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
+    if (mode == "preferences")
+    {
+        vm.Workbench.ShowSource(); Pump(); VerifyEditingPreferences(app, window, vm); VerifyLocalizedGuide(window, vm); window.Close(); return;
+    }
     vm.Workbench.ShowSource();
     Pump();
     VerifyTitleLayout(window);
-    Check(Math.Abs(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width - 252) < 1,
-        "Vex sidebar initially occupies 252 px");
+    Check(Math.Abs(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width - 226) < 1,
+        "Vex sidebar initially occupies 226 px");
     var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
     var viewMenu = titleMenu.FindControl<MenuItem>("ViewMenuItem")!;
     viewMenu.IsSubMenuOpen = true;
@@ -147,6 +198,9 @@ if (mode == "vex")
         Pump();
     }
     VerifyWorkbench(app, window, vm);
+    VerifyPrototypeInteractions(app, window, vm);
+    VerifyEditingPreferences(app, window, vm);
+    VerifyLocalizedGuide(window, vm);
     vm.Appearance.SelectThemeByKey("system");
     Check(vm.Appearance.SelectedTheme?.Mode == StudioThemeMode.System,
         "Vex can return to system mode after explicit light and dark selections");
@@ -157,7 +211,7 @@ if (mode == "vex")
         "Sidebar check and persisted state follow collapse");
     vm.Layout.IsSidebarVisible = true;
     Pump();
-    Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 252, "Vex sidebar reopens");
+    Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 226, "Vex sidebar reopens");
     Check(sidebarMenu.IsChecked && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == true,
         "Sidebar check and persisted state follow reopening");
     window.Width = 980;
@@ -295,7 +349,7 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
         var chevron = item.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
             .First(b => b.Name == "PART_ExpandCollapseChevron");
         var point = card.TranslatePoint(default, tree)!.Value;
-        Check(card.Bounds.Height is >= 25 and <= 30 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
+        Check(card.Bounds.Height is >= 31 and <= 38 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
             "Vex tree has compact rows within sidebar bounds: " + ((DocumentFileNode)item.DataContext!).Name);
         Check(Math.Abs(chevron.TranslatePoint(default, tree)!.Value.Y + chevron.Bounds.Height / 2
             - point.Y - card.Bounds.Height / 2) < 1,
@@ -399,6 +453,191 @@ void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel 
     vm.Workbench.ShowSource(); Pump();
 }
 
+void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWindowViewModel vm)
+{
+    var document = vm.Markdown;
+    var source = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!;
+    var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    var host = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+    var map = host.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
+    var wb = vm.Workbench;
+    wb.ShowInstant(); Pump();
+    Check(!source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && instant.IsEffectivelyVisible, "Instant mode hides the source and read views");
+    Check(instant.Editor.DocumentMaxWidth == 810 && instant.Editor.EditorFontSize == 13.5, "Instant document uses the prototype reading width and base font");
+    Check(window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.Bounds.Height == 62
+        && window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
+        "Workbench and editing context rows are 62 and 42 px");
+    wb.ShowSource(); wb.SourcePreviewEnabled = false; Pump();
+    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && source.Bounds.Width > 1000, "Source preview can be disabled for full width editing");
+    Check(app.Resolve<IAppSettingsStore>().Current.SourcePreviewEnabled == false, "Source preview preference is persisted separately from the active view");
+    wb.ShowRead(); Pump();
+    Check(preview.IsEffectivelyVisible && preview.IsReadingMode && !source.IsEffectivelyVisible && !instant.IsEffectivelyVisible, "Read mode has one read only document and no duplicate preview header");
+    app.Resolve<MarkdownEditorViewModel>().ApplySearch(new EditorSearchCommand(EditorSearchAction.Count, "Markdown")); Pump();
+    Check(wb.IsReading && vm.Markdown == document, "Counting search matches keeps the reading view and document unchanged");
+    wb.SourcePreviewEnabled = true;
+    wb.ShowInstant(); wb.ShowTypography = true; Pump();
+    var gallery = window.FindControl<Border>("TypographyGallery")!;
+    var cards = gallery.GetVisualDescendants().OfType<Border>().Where(b => b.Width == 90 && b.Height == 58).ToArray();
+    Check(gallery.Bounds.Width == 338 && cards.Length == 18, "Typography gallery contains all 18 themes in a 338 px panel");
+    Check(cards.GroupBy(c => Math.Round(c.TranslatePoint(default, gallery)!.Value.Y)).First().Count() == 3, "Typography cards form three columns");
+    var typography = vm.Appearance.SelectedTypography;
+    foreach (var option in vm.Appearance.TypographyOptions)
+    {
+        vm.Appearance.SelectedTypography = option; Pump();
+        Check(instant.Editor.TypographyTheme == option.Key && app.Resolve<MarkdownPreviewViewModel>().TypographyTheme == option.Key && vm.Markdown == document,
+            "Typography stays consistent across instant and reading views: " + option.Key);
+    }
+    vm.Appearance.IsCompactLayout = true; Pump();
+    Check(instant.Editor.TypographySize == "Small" && vm.Markdown == document, "Compact typography applies without rewriting Markdown");
+    vm.Appearance.IsCompactLayout = false; vm.Appearance.SelectedTypography = typography; wb.ShowTypography = false;
+    wb.ShowMapSource = false; wb.ShowMindMap(); Pump(); SettleRendering();
+    var oldRoot = wb.Root;
+    wb.ShowParagraphs = wb.ShowLists = wb.ShowCode = wb.ShowTables = false;
+    PumpUntil(() => !ReferenceEquals(oldRoot, wb.Root));
+    Check(Flatten(wb.Root!).All(n => n.Kind is CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNodeKind.Heading or CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNodeKind.Document), "Turning off summaries leaves the heading structure intact");
+    wb.SummaryLength = 999; Check(wb.SummaryLength == 120, "Summary length is capped at 120 graphemes");
+    wb.SummaryLength = -10; Check(wb.SummaryLength == 1, "Summary length is at least one grapheme");
+    oldRoot = wb.Root; wb.ResetMapSettings();
+    PumpUntil(() => !ReferenceEquals(oldRoot, wb.Root)); Pump();
+    Check(wb.SummaryLength == 30 && wb.ShowParagraphs && wb.ShowLists && !wb.ShowCode && !wb.ShowTables, "Reset restores every map display default");
+    Check(wb.VisibleNodeCount == map.VisibleNodeCount && wb.SummaryPreview.Length > 0, "Map count and summary preview update from the real tree");
+    map.CollapseAll(); Pump();
+    var heading = Flatten(wb.Root!).LastOrDefault(n => n.Kind == CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNodeKind.Heading) ?? wb.Root!;
+    CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(heading.SourceLine)); Pump();
+    Check(wb.IsMindMap && map.SelectedNode?.Id == heading.Id && wb.SelectedNode?.Id == heading.Id, "Outline navigation reveals and selects the corresponding map node");
+    wb.CloseInspector(); Pump(); Check(map.SelectedNode is null && !host.FindControl<Border>("NodeInspector")!.IsEffectivelyVisible, "Closing full text also clears canvas selection");
+    map.SetZoom(.01); Check(Math.Abs(map.Zoom - .15) < .001, "Map zoom respects the lower bound");
+    map.SetZoom(50); Check(Math.Abs(map.Zoom - 2.5) < .001, "Map zoom respects the upper bound"); map.Fit();
+    wb.ShowMapSource = true; Pump();
+    Check(source.FindControl<MarkdownEditorView>("MarkdownEditor")!.Editor.IsReadOnly, "Source comparison remains read only in map mode");
+    wb.ShowMapSource = false;
+    wb.ShowInstant();
+    CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(heading.SourceLine)); Pump();
+    Check(wb.IsInstantEditing && !source.IsEffectivelyVisible && vm.Markdown == document, "Outline navigation in instant mode scrolls without activating hidden source");
+    var statsTask = app.Resolve<ShellStatusBarViewModel>().ShowStatisticsAsync();
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellStatisticsOverlayView>().Any());
+    var stats = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellStatisticsOverlayView>().Single();
+    Check(stats.IsEffectivelyVisible, "Status bar character count opens real document statistics");
+    ShellOverlayHost.Dismiss(stats); Pump(statsTask);
+    var shell = (Vex.Modules.Shell.Views.MainWindow)window;
+    wb.SourcePreviewEnabled = false;
+    shell.BeginOnboardingGuide(); Pump();
+    var guide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
+    guide.ShowStep(1); Pump();
+    Check(guide.SpotlightTargets.Count >= 2, "Instant guide highlights editing options and editable content together");
+    var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Source = source.FindControl<MarkdownEditorView>("MarkdownEditor")!.Editor.TextArea, Key = Key.Right };
+    Check(!guide.HandleKey(key) && guide.StepIndex == 1, "Guide leaves editor arrow keys available for typing");
+    vm.Appearance.SelectTypographyByKey("OrangeHeart"); wb.SourcePreviewEnabled = true; guide.ShowStep(3); Pump();
+    Check(guide.SpotlightTargets.Count >= 2, "Map guide highlights the settings and canvas together");
+    guide.Finish(); Pump();
+    Check(!wb.SourcePreviewEnabled && vm.Appearance.SelectedTypography == typography && vm.Markdown == document, "Guide restores preview, typography and original document after real interactions");
+    wb.SourcePreviewEnabled = true;
+    window.Width = 980; window.Height = 640; Pump();
+    Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 200, "Narrow windows use the prototype 200 px default sidebar");
+    foreach (var mode in new[] { "instant", "read", "mindmap" })
+    {
+        if (mode == "instant") wb.ShowInstant(); else if (mode == "read") wb.ShowRead(); else wb.ShowMindMap(); Pump();
+        wb.ShowTypography = mode != "mindmap"; wb.ShowMapSettings = mode == "mindmap"; Pump();
+        var panel = mode == "mindmap" ? host.FindControl<Border>("SettingsTarget")! : gallery;
+        var position = panel.TranslatePoint(default, window)!.Value;
+        Check(position.X >= 0 && position.Y >= 0 && position.X + panel.Bounds.Width <= 980 && position.Y + panel.Bounds.Height <= 640, "Settings panel stays within a 980 x 640 window: " + mode);
+        Capture(window, "vex-parity-narrow-" + mode);
+        wb.ShowTypography = wb.ShowMapSettings = false;
+    }
+    window.Width = 1280; window.Height = 820; wb.ShowSource(); Pump();
+    static IEnumerable<CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode> Flatten(CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode root)
+    { yield return root; foreach (var child in root.Children) foreach (var node in Flatten(child)) yield return node; }
+}
+
+void VerifyEditingPreferences(VerificationVexApp app, Window window, MainWindowViewModel vm)
+{
+    var source = window.GetVisualDescendants().OfType<MarkdownEditorView>().Single();
+    var sourceVm = app.Resolve<MarkdownEditorViewModel>();
+    var sourceDocument = sourceVm.BeginTemporaryDocument();
+    var document = vm.Markdown;
+    var live = vm.Workbench.LiveEditor!;
+    var savedLive = live.CaptureState();
+    var oldAutoPair = vm.EditorDisplay.EnableAutoPair;
+    vm.BeginGuideDocument("# 滚动验证\n\n" + string.Join("\n\n", Enumerable.Range(1, 100).Select(i => $"## 章节 {i}\n\n正文内容 {i}")));
+    vm.Workbench.ShowSource(); Pump();
+    vm.Layout.IsTypewriterMode = true; Pump();
+    source.Editor.CaretOffset = source.Editor.Document.GetLineByNumber(150).Offset; Pump(); SettleRendering();
+    var view = source.Editor.TextArea.TextView;
+    Check(Math.Abs(source.Editor.TextArea.Caret.CalculateCaretRectangle().Center.Y - view.ScrollOffset.Y - view.Bounds.Height / 2) < 3,
+        "Typewriter source mode centers the actual caret in a long document");
+    source.Editor.CaretOffset = source.Text.Length; Pump();
+    Check(Math.Abs(source.Editor.TextArea.Caret.CalculateCaretRectangle().Center.Y - view.ScrollOffset.Y - view.Bounds.Height / 2) < 3,
+        "Typewriter source mode centers the last line using trailing scroll space");
+    var text = vm.Markdown;
+    vm.Layout.IsTypewriterMode = false; Pump();
+    Check(!source.Editor.Options.AllowScrollBelowDocument && vm.Markdown == text,
+        "Turning off source typewriter restores normal scrolling without changing Markdown");
+    vm.Workbench.ShowInstant(); Pump();
+    live.NavigateToSourceLine(150, beginEdit: true); Pump();
+    vm.Layout.IsTypewriterMode = true; Pump();
+    CheckLiveCaretCentered("Typewriter instant mode centers the active paragraph caret");
+    live.NavigateToSourceLine(400, beginEdit: true); Pump();
+    CheckLiveCaretCentered("Typewriter instant mode centers the last paragraph caret");
+    vm.Layout.IsTypewriterMode = false; Pump();
+    Check(live.DocumentPadding.Bottom <= 70 && vm.Markdown == text,
+        "Turning off instant typewriter restores normal padding without changing Markdown");
+    foreach (var enabled in new[] { false, true })
+    {
+        vm.EditorDisplay.EnableAutoPair = enabled; Pump();
+        Check(live.EnableAutoPair == enabled && source.EnableAutoPair == enabled,
+            "Auto pair preference reaches both editors: " + enabled);
+        var box = live.GetVisualDescendants().OfType<TextBox>().First(b => b.IsEffectivelyVisible);
+        box.Focus(); box.CaretIndex = box.Text!.Length; box.SelectionStart = box.SelectionEnd = box.CaretIndex;
+        window.KeyTextInput("("); Pump();
+        Check(box.Text!.EndsWith(enabled ? "()" : "("), "Instant typing observes auto pair: " + enabled);
+    }
+    vm.EditorDisplay.EnableAutoPair = oldAutoPair;
+    vm.EndGuideDocument(); sourceVm.RestoreDocument(sourceDocument); live.RestoreState(savedLive);
+    vm.Workbench.ShowSource(); Pump();
+    Check(vm.Markdown == document, "Editing preference verification restores the original document");
+
+    void CheckLiveCaretCentered(string message)
+    {
+        var box = live.GetVisualDescendants().OfType<TextBox>().First(b => b.IsEffectivelyVisible);
+        var presenter = box.GetVisualDescendants().OfType<Avalonia.Controls.Presenters.TextPresenter>().First();
+        var scroll = live.GetVisualDescendants().OfType<ScrollViewer>().First();
+        var point = presenter.TranslatePoint(presenter.TextLayout.HitTestTextPosition(box.CaretIndex).Center, scroll)!.Value;
+        Check(Math.Abs(point.Y - scroll.Viewport.Height / 2) < 4 && scroll.Offset.Y > 0, message);
+    }
+}
+
+void VerifyLocalizedGuide(Window window, MainWindowViewModel vm)
+{
+    var shell = (Vex.Modules.Shell.Views.MainWindow)window;
+    var guide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
+    var document = vm.Markdown;
+    window.Width = 980; window.Height = 640; Pump();
+    foreach (var culture in new[] { "zh-CN", "zh-Hant", "en-US", "ja-JP" })
+    {
+        vm.Appearance.SelectLanguageByCulture(culture); Pump();
+        vm.Layout.EnableMotion = culture == "en-US";
+        shell.BeginOnboardingGuide(); Pump();
+        for (var step = 0; step < 5; step++)
+        {
+            guide.ShowStep(step); Pump(); SettleRendering();
+            if (step == 1) Check(guide.SpotlightTargets[0].Top > 100 && guide.SpotlightTargets[0].Bottom < guide.Bounds.Height,
+                "Guide scrolls the actual editable paragraph into view: " + culture);
+            var card = guide.GetVisualDescendants().OfType<Border>().Single(b => b.Width == 330);
+            if (step == 0) Check((card.Transitions?.Count > 0) == vm.Layout.EnableMotion,
+                "Replayed guide follows the current motion preference: " + culture);
+            var position = card.TranslatePoint(default, window)!.Value;
+            Check(position.X >= 0 && position.Y >= 0 && position.X + card.Bounds.Width <= window.Bounds.Width + 1 && position.Y + card.Bounds.Height <= window.Bounds.Height + 1,
+                $"Localized guide card fits narrow window: {culture} step {step + 1}");
+            Capture(window, $"vex-guide-{culture}-{step + 1}");
+        }
+        guide.Finish(); Pump();
+        Check(vm.Markdown == document, "Localized guide restores document: " + culture);
+    }
+    vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Layout.EnableMotion = false;
+    window.Width = 1280; window.Height = 820; Pump();
+}
+
 void VerifyTitleLayout(Window window)
 {
     // 使用真实主窗口模板校验坐标，防止标题栏高度被内容区再次预留。
@@ -430,7 +669,7 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
             "Vex screenshot contains the title border pixel under " + theme);
     }
     var tabs = window.GetVisualDescendants().OfType<TabItem>().Where(t => t.IsEffectivelyVisible).ToArray();
-    Check(tabs.Length == 2 && tabs.All(t => t.Bounds.Height < 40 && t.Bounds.Width < 100),
+    Check(tabs.Length == 2 && tabs.All(t => t.Bounds.Height <= 44 && t.Bounds.Width < 100),
         "Vex sidebar uses compact tabs under " + theme);
     Check(tabs.All(t => t.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Any()),
         "Vex Files and Outline tabs include icons under " + theme);

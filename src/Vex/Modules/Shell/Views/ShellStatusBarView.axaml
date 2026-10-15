@@ -1,59 +1,23 @@
-<UserControl
-    x:Class="Vex.Modules.Shell.Views.ShellStatusBarView"
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:i18n="https://codewf.com"
-    xmlns:l="clr-namespace:Vex"
-    xmlns:md="https://codewf.com"
-    xmlns:prism="http://prismlibrary.com/"
-    xmlns:vm="using:Vex.Modules.Shell.ViewModels"
-    x:DataType="vm:ShellStatusBarViewModel"
-    IsVisible="{Binding Layout.IsStatusBarVisible}"
-    prism:ViewModelLocator.AutoWireViewModel="True">
-    <Border
-        Background="{DynamicResource VexStatusBarBackgroundBrush}"
-        BorderBrush="{DynamicResource VexStatusBarBorderBrush}"
-        BorderThickness="0 1 0 0"
-        Padding="12 4">
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" MinHeight="23">
-            <!-- 状态文本带成功色对勾（对应原型 .sb-status + .sb-ico） -->
-            <StackPanel
-                Orientation="Horizontal"
-                Spacing="12"
-                VerticalAlignment="Center">
-                <Path
-                    Width="13"
-                    Height="13"
-                    Data="M20 6L9 17l-5-5"
-                    Stretch="Uniform"
-                    Stroke="{DynamicResource VexSuccessBrush}"
-                    StrokeJoin="Round"
-                    StrokeLineCap="Round"
-                    StrokeThickness="2" />
-                <TextBlock
-                    Classes="muted"
-                    FontSize="12"
-                    MinWidth="96"
-                    Text="{Binding Status.StatusText}"
-                    TextTrimming="CharacterEllipsis"
-                    VerticalAlignment="Center" />
-            </StackPanel>
-            <StackPanel
-                Grid.Column="1"
-                Orientation="Horizontal"
-                Spacing="12"
-                VerticalAlignment="Center">
-                <TextBlock Text="{Binding DocumentInfo.DocumentStateText}" Classes="muted" FontSize="11" />
-                <TextBlock Text="{Binding DocumentInfo.CurrentEncodingText}" Classes="muted" FontSize="11" />
-                <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding Workbench.IsEditing}">
-                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusLine}}" Classes="muted" FontSize="11"/><TextBlock Text="{Binding Status.CaretLine}" FontSize="11"/>
-                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusColumn}}" Classes="muted" FontSize="11"/><TextBlock Text="{Binding Status.CaretColumn}" FontSize="11"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusWords}}" Classes="muted" FontSize="11"/><TextBlock Text="{Binding DocumentInfo.Statistics.Words}" FontSize="11"/></StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" Classes="muted" FontSize="11"/><TextBlock Text="{Binding DocumentInfo.Statistics.Characters}" FontSize="11"/></StackPanel>
-                <TextBlock Text="{Binding Workbench.ViewLabel}" Classes="muted" FontSize="11" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding McpStatusText}" Classes="muted" FontSize="11" />
-            </StackPanel>
-        </Grid>
-    </Border>
+<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+ xmlns:prism="http://prismlibrary.com/" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.IsStatusBarVisible}" prism:ViewModelLocator.AutoWireViewModel="True">
+ <Border Height="30" Background="{DynamicResource VexStatusBarBackgroundBrush}" BorderBrush="{DynamicResource VexStatusBarBorderBrush}" BorderThickness="0,1,0,0" Padding="14,0">
+  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+   <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" ToolTip.Tip="{Binding Status.StatusText}">
+    <Ellipse Width="5" Height="5" Fill="{DynamicResource VexSuccessBrush}" IsVisible="{Binding !DocumentInfo.IsModified}"/>
+    <Ellipse Width="5" Height="5" Fill="{DynamicResource VexWarningBrush}" IsVisible="{Binding DocumentInfo.IsModified}"/>
+    <TextBlock Text="{Binding DocumentInfo.DocumentStateText}" Classes="wb-muted"/>
+    <TextBlock Text="·" Classes="wb-muted"/><TextBlock Text="{Binding Workbench.ViewLabel}" Classes="wb-muted"/>
+   </StackPanel>
+   <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding Workbench.IsEditing}" VerticalAlignment="Center">
+     <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusLine}}" Classes="wb-muted"/><TextBlock Text="{Binding Status.CaretLine}" Classes="wb-muted"/>
+     <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusColumn}}" Classes="wb-muted"/><TextBlock Text="{Binding Status.CaretColumn}" Classes="wb-muted"/>
+    </StackPanel>
+    <Button x:Name="StatisticsButton" Classes="wb-quiet" MinHeight="24" Padding="0" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}"><StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{Binding DocumentInfo.Statistics.Characters}" FontSize="10.5"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" FontSize="10.5"/></StackPanel></Button>
+    <TextBlock Text="{Binding DocumentInfo.CurrentEncodingText}" Classes="wb-muted" VerticalAlignment="Center"/>
+    <TextBlock Text="{Binding DocumentInfo.LineEndingText}" Classes="wb-muted" VerticalAlignment="Center"/>
+    <Button x:Name="AppearanceButton" Classes="wb-quiet" MinHeight="24" Padding="0" Content="{i18n:I18n {x:Static l:VexL.WBTheme}}" Click="AppearanceClick"/>
+   </StackPanel>
+  </Grid>
+ </Border>
 </UserControl>

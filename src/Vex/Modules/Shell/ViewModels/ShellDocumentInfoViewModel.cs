@@ -26,6 +26,8 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
 
     public string CurrentDocumentTitle => $"{(IsModified ? "*" : string.Empty)}{_document.FileName}";
 
+    public string WorkspacePathText => CurrentFilePath is { } path ? Path.GetDirectoryName(path) ?? string.Empty : _localizer.Get(VexL.DocumentDefaultFileName);
+
     public string? CurrentFilePath => _document.FilePath;
 
     public bool HasCurrentFile => !string.IsNullOrWhiteSpace(CurrentFilePath);
@@ -35,6 +37,8 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
     public string DocumentStateText => IsModified
         ? _localizer.Get(VexL.DocumentStateModified)
         : _localizer.Get(VexL.DocumentStateSaved);
+
+    public string LineEndingText => _markdown.Contains("\r\n", StringComparison.Ordinal) ? "CRLF" : "LF";
 
     public string CurrentEncodingText => GetEncodingDisplayName(_document.Encoding);
 
@@ -96,10 +100,12 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
         OnPropertyChanged(nameof(WindowTitle));
         OnPropertyChanged(nameof(CurrentDocumentTitle));
         OnPropertyChanged(nameof(CurrentFilePath));
+        OnPropertyChanged(nameof(WorkspacePathText));
         OnPropertyChanged(nameof(HasCurrentFile));
         OnPropertyChanged(nameof(IsModified));
         OnPropertyChanged(nameof(DocumentStateText));
         OnPropertyChanged(nameof(CurrentEncodingText));
+        OnPropertyChanged(nameof(LineEndingText));
         OnPropertyChanged(nameof(PropertyNameText));
         OnPropertyChanged(nameof(PropertyLocationText));
         OnPropertyChanged(nameof(PropertySizeText));

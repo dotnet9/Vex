@@ -1,38 +1,31 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
-             xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:MainWindowViewModel"
-             x:Class="Vex.Modules.Shell.Views.ShellWorkbenchToolbarView">
-    <Border Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1" Padding="14,9">
-        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="18">
-            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                <Button Content="☰" Command="{Binding Layout.ToggleSidebar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBToggleNavigation}}" Classes="workbench-quiet" />
-                <TextBlock Text="{Binding DocumentInfo.PropertyNameText}" FontSize="13" FontWeight="SemiBold" MaxWidth="200" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-            </StackPanel>
-            <StackPanel x:Name="PerspectiveTarget" Grid.Column="1" Orientation="Horizontal" Spacing="3" HorizontalAlignment="Center">
-                <ToggleButton Content="{i18n:I18n {x:Static l:VexL.WBEdit}}" Command="{Binding Workbench.ShowEdit}" IsChecked="{Binding Workbench.IsEditing, Mode=OneWay}" Classes="workbench-view" />
-                <ToggleButton Content="{i18n:I18n {x:Static l:VexL.WBRead}}" Command="{Binding Workbench.ShowRead}" IsChecked="{Binding Workbench.IsReading, Mode=OneWay}" Classes="workbench-view" />
-                <ToggleButton Content="{i18n:I18n {x:Static l:VexL.WBMap}}" Command="{Binding Workbench.ShowMindMap}" IsChecked="{Binding Workbench.IsMindMap, Mode=OneWay}" Classes="workbench-view" />
-            </StackPanel>
-            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
-                <StackPanel Orientation="Horizontal" Spacing="2" IsVisible="{Binding Workbench.IsEditing}">
-                    <ToggleButton Content="{i18n:I18n {x:Static l:VexL.WBInstant}}" Command="{Binding Workbench.ShowInstant}" IsChecked="{Binding Workbench.IsInstantEditing, Mode=OneWay}" Classes="workbench-quiet" />
-                    <ToggleButton Content="{i18n:I18n {x:Static l:VexL.WBSource}}" Command="{Binding Workbench.ShowSource}" IsChecked="{Binding Workbench.IsSourceEditing, Mode=OneWay}" Classes="workbench-quiet" />
-                </StackPanel>
-                <Button x:Name="TypographyTarget" Content="{i18n:I18n {x:Static l:VexL.WBTypography}}" Command="{Binding Workbench.ToggleTypography}" Classes="workbench-quiet" IsVisible="{Binding !Workbench.IsMindMap}" />
-                <Button Content="{i18n:I18n {x:Static l:VexL.WBMapSource}}" Command="{Binding Workbench.ToggleMapSource}" Classes="workbench-quiet" IsVisible="{Binding Workbench.IsMindMap}" />
-                <Button Content="{i18n:I18n {x:Static l:VexL.WBMapSettings}}" Command="{Binding Workbench.ToggleMapSettings}" Classes="workbench-quiet" IsVisible="{Binding Workbench.IsMindMap}" />
-                <Button x:Name="QuickStartButton" Content="{i18n:I18n {x:Static l:VexL.WBQuickStart}}" Classes="workbench-quiet" Click="QuickStartClick" />
-            </StackPanel>
+             xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:MainWindowViewModel" x:Class="Vex.Modules.Shell.Views.ShellWorkbenchToolbarView">
+  <Border Height="62" Padding="20,0" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
+    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="14">
+      <Grid ColumnDefinitions="30,*" ColumnSpacing="14" VerticalAlignment="Center">
+        <ToggleButton Classes="wb-quiet" Command="{Binding Layout.ToggleSidebar}" IsChecked="{Binding Layout.IsSidebarVisible, Mode=OneWay}" Padding="7"><Path Classes="wb-icon" Data="{StaticResource WBSidebarIcon}"/></ToggleButton>
+        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="{Binding DocumentInfo.PropertyNameText}" FontSize="13" FontWeight="SemiBold" MaxWidth="190" TextTrimming="CharacterEllipsis"/><Ellipse Width="5" Height="5" Fill="{DynamicResource VexWarningBrush}" IsVisible="{Binding DocumentInfo.IsModified}" VerticalAlignment="Center"/></StackPanel>
+          <TextBlock x:Name="DocumentPath" HorizontalAlignment="Left" Text="{Binding DocumentInfo.WorkspacePathText}" Classes="wb-muted" MaxWidth="240" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding DocumentInfo.CurrentFilePath}"/>
+        </StackPanel>
+      </Grid>
+      <Border x:Name="PerspectiveTarget" Grid.Column="1" Padding="3" VerticalAlignment="Center" CornerRadius="8" Background="{DynamicResource TextBlockCodeBackground}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="1">
+        <Grid>
+          <Border Width="86" Height="28" CornerRadius="5" HorizontalAlignment="Left" Margin="{Binding Workbench.ViewIndicatorMargin}" Background="{DynamicResource VexPanelBackgroundBrush}" BoxShadow="0 1 4 0 #12000000">
+            <Border.Transitions><Transitions><ThicknessTransition Property="Margin" Duration="{DynamicResource MotionDurationMid}"/></Transitions></Border.Transitions>
+          </Border>
+          <StackPanel Orientation="Horizontal" Spacing="2">
+            <ToggleButton Classes="wb-view" Command="{Binding Workbench.ShowEdit}" IsChecked="{Binding Workbench.IsEditing, Mode=OneWay}"><StackPanel Orientation="Horizontal" Spacing="7"><Path Classes="wb-icon" Data="{StaticResource WBEditIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBEdit}}"/></StackPanel></ToggleButton>
+            <ToggleButton Classes="wb-view" Command="{Binding Workbench.ShowRead}" IsChecked="{Binding Workbench.IsReading, Mode=OneWay}"><StackPanel Orientation="Horizontal" Spacing="7"><Path Classes="wb-icon" Data="{StaticResource WBReadIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBRead}}"/></StackPanel></ToggleButton>
+            <ToggleButton Classes="wb-view" Command="{Binding Workbench.ShowMindMap}" IsChecked="{Binding Workbench.IsMindMap, Mode=OneWay}"><StackPanel Orientation="Horizontal" Spacing="7"><Path Classes="wb-icon" Data="{StaticResource WBMapIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBMap}}"/></StackPanel></ToggleButton>
+          </StackPanel>
         </Grid>
-    </Border>
-    <UserControl.Styles>
-        <Style Selector="Button.workbench-quiet, ToggleButton.workbench-quiet">
-            <Setter Property="FontSize" Value="12"/><Setter Property="Padding" Value="9,5"/><Setter Property="MinHeight" Value="30"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="ToggleButton.workbench-view">
-            <Setter Property="FontSize" Value="13"/><Setter Property="Padding" Value="16,5"/><Setter Property="CornerRadius" Value="8"/><Setter Property="MinHeight" Value="30"/><Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="ToggleButton.workbench-view:checked, ToggleButton.workbench-quiet:checked">
-            <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
-        </Style>
-    </UserControl.Styles>
+      </Border>
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+        <Button x:Name="QuickStartButton" Classes="wb-quiet" Click="QuickStartClick"><StackPanel Orientation="Horizontal" Spacing="6"><Ellipse Width="5" Height="5" Fill="{DynamicResource VexAccentBrush}" VerticalAlignment="Center"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBQuickStart}}" Foreground="{DynamicResource VexAccentBrush}"/></StackPanel></Button>
+        <Button Classes="wb-quiet" Command="{Binding ShowFindPanel}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Find}}" Padding="7"><Path Classes="wb-icon" Data="{StaticResource WBSearchIcon}"/></Button>
+        <Button Command="{Binding SaveAsync}" FontSize="11" Padding="10,4" MinHeight="28" CornerRadius="6"><StackPanel Orientation="Horizontal" Spacing="7"><Path Classes="wb-icon" Data="{StaticResource WBSaveIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.Save}}"/></StackPanel></Button>
+      </StackPanel>
+    </Grid>
+  </Border>
 </UserControl>
