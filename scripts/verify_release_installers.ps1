@@ -7,18 +7,18 @@ $ErrorActionPreference = 'Stop'
 if (-not $PackageDirectory) { $PackageDirectory = Join-Path (Split-Path -Parent $PSScriptRoot) 'artifacts/release' }
 $directory = (Resolve-Path -LiteralPath $PackageDirectory).Path
 $files = @(Get-ChildItem -LiteralPath $directory -File)
+$releaseVersion = $Version.Trim().TrimStart('v', 'V')
 $expected = @{
-    'win-x64' = '.exe'
-    'linux-x64' = '.deb'
-    'linux-arm64' = '.deb'
-    'osx-x64' = '.dmg'
-    'osx-arm64' = '.dmg'
+    'win-x64' = "Vex-v$releaseVersion-win-x64-setup.exe"
+    'linux-x64' = "Vex-v$releaseVersion-linux-x64.deb"
+    'linux-arm64' = "Vex-v$releaseVersion-linux-arm64.deb"
+    'osx-x64' = "Vex-$releaseVersion-osx-x64.dmg"
+    'osx-arm64' = "Vex-$releaseVersion-osx-arm64.dmg"
 }
 $allowed = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 foreach ($rid in $expected.Keys) {
     $packages = @($files | Where-Object {
-        $_.Extension -eq $expected[$rid] -and $_.Name.Contains($rid, [StringComparison]::Ordinal) -and
-        $_.Name -match ('(?<![0-9])' + [regex]::Escape($Version.TrimStart('v')) + '(?![0-9])')
+        $_.Name.Equals($expected[$rid], [StringComparison]::Ordinal)
     })
     if ($packages.Count -ne 1) { throw "平台 $rid 必须有且只有一个对应版本的安装包，实际数量：$($packages.Count)" }
     $package = $packages[0]
