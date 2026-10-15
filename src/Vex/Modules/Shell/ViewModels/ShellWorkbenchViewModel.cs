@@ -51,9 +51,21 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
         _showLists = settings.Current.MindMapShowLists ?? true;
         document.DocumentChanged += (_, _) => { SynchronizeLive(); QueueMap(); };
         appearance.Changed += (_, _) => ApplyLiveAppearance();
-        CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += (_, _) =>
-        { foreach (var name in new[] { nameof(ViewLabel), nameof(EditingHint), nameof(InstantHint), nameof(MapSummaryLabel), nameof(MapCountLabel), nameof(SelectedSourceLabel), nameof(SelectedKindLabel), nameof(SummaryPreview) }) this.RaisePropertyChanged(name); };
+        CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += OnCultureChanged;
         ApplyLayout(); QueueMap();
+    }
+
+    /// <summary>工作区绑定会同步修改编辑器，语言通知必须在 UI 线程发布。</summary>
+    private void OnCultureChanged(object? sender, EventArgs args)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => OnCultureChanged(sender, args));
+            return;
+        }
+
+        foreach (var name in new[] { nameof(ViewLabel), nameof(EditingHint), nameof(InstantHint), nameof(MapSummaryLabel), nameof(MapCountLabel), nameof(SelectedSourceLabel), nameof(SelectedKindLabel), nameof(SummaryPreview) })
+            this.RaisePropertyChanged(name);
     }
 
     public Avalonia.Thickness ViewIndicatorMargin => new(IsReading ? 88 : IsMindMap ? 176 : 0, 0, 0, 0);

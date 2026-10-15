@@ -79,6 +79,19 @@ if (mode is "vex" or "preferences" or "locale")
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
     ControlLocaleVerification.Run(window, ["zh-CN", "en-US", "zh-Hant", "ja-JP"], app.Resolve<IAppLocalizer>().SetCulture);
+    var languageSelector = window.FindControl<ComboBox>("TitleBarLanguageSelector")!;
+    foreach (var culture in new[] { "en-US", "zh-Hant", "ja-JP", "zh-CN" })
+    {
+        CodeWF.Toolkit.Lang.I18nManager.Instance.Culture = new System.Globalization.CultureInfo(culture);
+        Pump();
+        Check(vm.Appearance.SelectedLanguage?.CultureName == culture && (languageSelector.SelectedItem as LanguageOption)?.CultureName == culture,
+            "Global language synchronizes the actual title bar selection: " + culture);
+        var returnCulture = culture == "zh-CN" ? "en-US" : "zh-CN";
+        languageSelector.SelectedItem = vm.Appearance.LanguageOptions.Single(option => option.CultureName == returnCulture);
+        Pump();
+        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture?.Name == returnCulture,
+            "Title bar selection switches back after global culture changes: " + returnCulture);
+    }
     if (mode == "locale") { window.Close(); return; }
     if (mode == "preferences")
     {
@@ -88,6 +101,18 @@ if (mode is "vex" or "preferences" or "locale")
     Pump();
     VerifyTitleLayout(window);
     VerifyAppearanceControls(window, vm);
+    var associationFolder = Path.Combine(Path.GetDirectoryName(output)!, Path.GetFileName(output) + "-file-associations");
+    Directory.CreateDirectory(associationFolder);
+    var externalPaths = app.Resolve<IShellExternalPathResolver>();
+    foreach (var extension in new[] { ".md", ".markdown", ".mdown" })
+    {
+        var associatedFile = Path.Combine(associationFolder, "markdown example" + extension);
+        File.WriteAllText(associatedFile, "# File association verification\n");
+        Check(externalPaths.ResolveStartupArgument([associatedFile]) == ShellExternalPathResult.File(associatedFile),
+            "Markdown startup path keeps spaces and extension: " + extension);
+        Check(externalPaths.ResolveDroppedPath(associatedFile) == ShellExternalPathResult.File(associatedFile),
+            "Markdown drop path supports the same file extension: " + extension);
+    }
     Check(Math.Abs(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width - 226) < 1,
         "Vex sidebar initially occupies 226 px");
     var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
@@ -105,7 +130,11 @@ if (mode is "vex" or "preferences" or "locale")
     var sampleFolder = Path.Combine(output, "documents");
     Directory.CreateDirectory(sampleFolder);
     foreach (var sample in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "MarkdownSamples"), "*.md"))
-        File.Copy(sample, Path.Combine(sampleFolder, Path.GetFileName(sample)), overwrite: true);
+    {
+        var samplePath = Path.Combine(sampleFolder, Path.GetFileName(sample));
+        File.Copy(sample, samplePath, overwrite: true);
+        File.SetLastWriteTimeUtc(samplePath, DateTime.UtcNow.AddHours(-36));
+    }
     var files = Directory.GetFiles(sampleFolder, "*.md").Order().Take(5).ToArray();
     Check(files.Length == 5, "Vex regression uses five real sample files");
     foreach (var file in files)
@@ -255,15 +284,53 @@ if (mode is "vex" or "preferences" or "locale")
     }
     vm.Appearance.SelectLanguageByCulture("zh-CN"); Pump();
     Capture(window, "vex-980");
+    void VerifyVisibleTable(string view)
+    {
+        var table = window.GetVisualDescendants().OfType<Grid>().SingleOrDefault(grid =>
+            grid.IsEffectivelyVisible && grid.GetType().Name == "MarkdownTableGrid" && grid.ColumnDefinitions.Count == 2);
+        Check(table is not null && table.ColumnDefinitions[0].ActualWidth < table.ColumnDefinitions[1].ActualWidth / 2,
+            view + " allocates natural table widths for short API names and long descriptions");
+        Check(table?.Parent is Border outline &&
+            Math.Abs(outline.Bounds.Width - table.ColumnDefinitions.Sum(column => column.ActualWidth) - 2) <= 2,
+            view + " visible table outline fits the columns without a blank trailing area");
+        if (table is not null)
+        {
+            var scroller = table.GetVisualAncestors().OfType<ScrollViewer>().FirstOrDefault();
+            var offset = scroller?.Offset;
+            table.BringIntoView(); Pump();
+            Capture(window, view.StartsWith("Instant", StringComparison.Ordinal) ? "vex-native-table-instant" : "vex-native-table-read");
+            if (scroller is not null && offset.HasValue) { scroller.Offset = offset.Value; Pump(); }
+        }
+    }
     vm.Workbench.ShowInstant(); Pump();
-    var editableTable = window.GetVisualDescendants().OfType<Grid>().FirstOrDefault(grid => grid.GetType().Name == "MarkdownTableGrid" && grid.ColumnDefinitions.Count == 2);
-    Check(editableTable is not null && editableTable.ColumnDefinitions[0].ActualWidth < editableTable.ColumnDefinitions[1].ActualWidth / 2,
-        "Instant editing allocates natural table widths for short API names and long descriptions");
-    Check(editableTable?.Parent is Border tableOutline &&
-        Math.Abs(tableOutline.Bounds.Width - editableTable.ColumnDefinitions.Sum(column => column.ActualWidth) - 2) <= 2,
-        "Instant table outline fits the actual columns without a blank trailing area");
+    VerifyVisibleTable("Instant editing");
     Capture(window, "vex-native-instant-980");
     vm.Workbench.ShowRead(); Pump(); Capture(window, "vex-native-read-980");
+    var ageFile = vm.DocumentFiles.Single(file => Path.GetFileName(file.Path) == Path.GetFileName(files[3]));
+    var ageLabel = window.GetVisualDescendants().OfType<TextBlock>().Single(block =>
+        block.Classes.Contains("file-muted") && block.DataContext is DocumentFileNode node && ReferenceEquals(node.DocumentFile, ageFile));
+    var filesModel = app.Resolve<ShellFilesViewModel>();
+    var selectedNode = filesModel.SelectedDocumentFileNode;
+    var savedFilter = filesModel.FilterText;
+    var savedMarkdown = vm.Markdown;
+    foreach (var culture in new[] { "en-US", "zh-Hant", "ja-JP", "zh-CN" })
+    {
+        Task.Run(() => CodeWF.Toolkit.Lang.I18nManager.Instance.Culture = new System.Globalization.CultureInfo(culture))
+            .GetAwaiter().GetResult();
+        Pump();
+        Check(vm.Appearance.SelectedLanguage?.CultureName == culture && (languageSelector.SelectedItem as LanguageOption)?.CultureName == culture,
+            "Background global culture synchronizes the visible Markdown reader and title selection: " + culture);
+        Check(ageLabel.Text == app.Resolve<IAppLocalizer>().Get(Vex.VexL.DocumentModifiedYesterday),
+            "The same file time label follows background global culture: " + culture);
+        Check(ReferenceEquals(selectedNode, filesModel.SelectedDocumentFileNode) && savedFilter == filesModel.FilterText && savedMarkdown == vm.Markdown,
+            "File time translation preserves the tree selection, filter and unsaved content: " + culture);
+        var returnCulture = culture == "zh-CN" ? "en-US" : "zh-CN";
+        languageSelector.SelectedItem = vm.Appearance.LanguageOptions.Single(option => option.CultureName == returnCulture);
+        Pump();
+        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture?.Name == returnCulture,
+            "The same language selector switches back after background culture changes: " + returnCulture);
+    }
+    VerifyVisibleTable("Reading");
     vm.Workbench.ShowMindMap(); vm.Workbench.ShowMapSource = false; vm.Workbench.ShowMapSettings = false;
     Pump(); Capture(window, "vex-native-mindmap-980");
     ((Vex.Modules.Shell.Views.MainWindow)window).BeginOnboardingGuide(); Pump();

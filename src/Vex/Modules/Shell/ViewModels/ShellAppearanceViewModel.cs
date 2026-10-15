@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using Avalonia.Threading;
 using CodeWF.Avalonia.Markdown.Themes;
 using CodeWF.Avalonia.Controls.Themes;
 using ReactiveUI;
@@ -96,6 +97,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         PublishTypographyState();
         _isInitializing = false;
         PersistAppearanceSettings();
+        _localizer.CultureChanged += OnCultureChanged;
     }
 
     public ObservableCollection<ThemeOption> ThemeOptions { get; }
@@ -192,6 +194,19 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
                 _statusPublisher.PublishResourceFormat(VexL.StatusLanguageSwitched, value.DisplayName);
             }
         }
+    }
+
+    /// <summary>全局切语时同步语言选择，避免同项重选无法切回。</summary>
+    private void OnCultureChanged(object? sender, EventArgs args)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => OnCultureChanged(sender, args));
+            return;
+        }
+
+        // 直接同步选中项，避免进入业务设置器再次切语或写入偏好。
+        SetProperty(ref _selectedLanguage, FindLanguage(_localizer.Culture.Name), nameof(SelectedLanguage));
     }
 
     public void ToggleCompactLayout()

@@ -24,11 +24,11 @@ public sealed class DocumentFileFactory : IDocumentFileFactory
             path,
             Path.GetFileName(path),
             ResolveFolderName(path, workspaceRoot),
-            ResolveModifiedText(path),
+            GetModifiedText(path),
             ResolvePreview(path));
     }
 
-    private string ResolveModifiedText(string path)
+    public string GetModifiedText(string path)
     {
         if (!File.Exists(path))
         {

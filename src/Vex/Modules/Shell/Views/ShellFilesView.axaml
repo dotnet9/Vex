@@ -35,7 +35,7 @@
                             FontSize="11"
                             VerticalAlignment="Center"
                             IsVisible="{Binding IsDocument}"
-                            Text="{Binding ModifiedText}" />
+                            Text="{Binding DocumentFile.ModifiedText}" />
                     </Grid>
                 </Grid>
             </Border>

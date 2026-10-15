@@ -97,6 +97,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _document = RestoreDraftIfAvailable(_document, out var restoredInitialDraft);
         Markdown = _document.Markdown;
         RefreshDocumentInfo();
+        CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += OnCultureChanged;
         if (restoredInitialDraft)
         {
             _statusPublisher.PublishResource(VexL.StatusRecoveredAutoSaveDraft);
@@ -104,6 +105,19 @@ public sealed class MainWindowViewModel : ReactiveObject
     }
 
     public event EventHandler? CloseWindowRequested;
+
+    /// <summary>只刷新文件时间文案，保留树节点、选择、过滤及未保存内容。</summary>
+    private void OnCultureChanged(object? sender, EventArgs args)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => OnCultureChanged(sender, args));
+            return;
+        }
+
+        foreach (var file in _documentFiles.Concat(_guideDocument?.Files ?? []).Distinct())
+            file.ModifiedText = _documentFileFactory.GetModifiedText(file.Path);
+    }
 
     public ShellAppearanceViewModel Appearance { get; }
     public ShellDocumentInfoViewModel DocumentInfo { get; }
