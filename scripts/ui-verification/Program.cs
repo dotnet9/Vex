@@ -170,7 +170,7 @@ if (mode is "vex" or "preferences")
     foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
     {
         vm.Appearance.SelectLanguageByCulture(culture); Pump();
-        Check(aboutModel.ActionText == app.Resolve<IAppLocalizer>().Get(Vex.VexL.AboutCheckUpdate),
+        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture.Name == culture && aboutModel.ActionText == app.Resolve<IAppLocalizer>().Get(Vex.VexL.AboutCheckUpdate),
             "The open About dialog changes language: " + culture);
         Capture(window, "vex-about-" + culture);
     }
