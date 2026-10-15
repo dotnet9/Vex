@@ -1726,6 +1726,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 @media (max-width: 760px) { body { padding: 0; } .app-window { border-radius: 0; min-height: 480px; } .sidebar, .sidebar-inner { width: 170px; } .document-label { min-width: 0; } .document-title { font-size: 11px; } .work-actions { flex: none; } .work-actions .icon-button, .save-button span { display: none; } .view-switch button, .view-switch::before { width: 58px; } .view-switch[data-active="read"]::before { transform: translateX(60px); } .view-switch[data-active="mindmap"]::before { transform: translateX(120px); } .view-switch .ico { display: none; } .status-right { gap: 9px; } #status-encoding { display: none; } .titlebar { gap: 10px; padding-left: 10px; } .tb-menuitem { padding: 3px 5px; font-size: 11px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 
+.titlebar{gap:12px}.titlebar .caption-btns{margin-left:0;flex:none}.tb-menu{flex:none}.studio-title-controls{margin-left:auto;display:flex;align-items:center;gap:6px;height:32px;flex:none}.studio-modes,.studio-palettes{display:flex;align-items:center;gap:1px}.studio-modes{border:1px solid var(--border);border-radius:6px;background:var(--bg);padding:1px}.studio-title-controls button{display:flex;align-items:center;justify-content:center;height:28px;padding:0;border:0;background:transparent;color:var(--fg);border-radius:4px;cursor:pointer;font:14px Segoe UI}.studio-modes button{width:28px}.studio-title-controls button.on{background:var(--accent-soft);color:var(--accent)}.studio-palettes button{width:22px}.studio-palettes i{width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 1px #8883}.studio-palettes button.on i{outline:2px solid var(--accent);outline-offset:3px}.studio-language{position:relative}.studio-language summary{list-style:none;cursor:pointer;font:12px Segoe UI;height:32px;width:32px;display:flex;align-items:center;justify-content:center;gap:1px}.studio-language summary span{font-size:9px;align-self:flex-end;padding-bottom:6px}.studio-language>div{position:absolute;right:0;top:36px;min-width:148px;padding:5px;z-index:150;background:var(--panel);border:1px solid var(--border);border-radius:6px;box-shadow:var(--shadow-pop)}.studio-language>div button{width:100%;justify-content:flex-start;padding:6px 10px;font-size:12px;height:30px}.studio-title-controls button:hover,.studio-language summary:hover{background:var(--hover)}
+@media(max-width:1100px){.titlebar{gap:6px;padding-left:10px}.tb-menuitem{padding:3px 5px;font-size:11px}.titlebar .caption-btn{width:34px}.brand{font-size:13px}.brand img{width:20px;height:20px}.studio-title-controls{gap:3px}.studio-palettes button{width:20px}.studio-modes button{width:26px}}
+
 </style>
 <style>
 /* 编辑方式、Markdown 排版与统一的文字菜单。 */
@@ -1883,69 +1886,36 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 
 </style>
 <script>
-/* Vex 原型使用与应用一致的八套配色和独立三态模式。 */
+/* 标题栏统一提供三态、八色点和可扩展语言菜单。 */
 (function () {
-  var palettes = [
-    ['dotnet','.NET 紫','#512BD4'], ['aurora','AI 极光','#8968FF'],
-    ['ember','AI 赤陶','#BD674D'], ['default','默认蓝','#0064FA'],
-    ['aquatic','水生','#008D9E'], ['desert','沙漠','#B57532'],
-    ['dusk','黄昏','#7A5CC4'], ['night-sky','夜空','#2B6CB0']
-  ];
-  var modes = [['system','跟随系统'],['light','浅色'],['dark','深色']];
-  var storeKey = 'vex-design-appearance', system = matchMedia('(prefers-color-scheme: dark)');
-  var state = { mode:'system', palette:'dotnet' };
-  try { Object.assign(state, JSON.parse(localStorage.getItem(storeKey) || '{}')); } catch (_) {}
-  var query = new URLSearchParams(location.search), theme = query.get('theme');
-  if (modes.some(item => item[0] === theme)) state.mode = theme;
-  else if (palettes.some(item => item[0] === theme)) state.palette = theme;
-  if (query.has('palette')) state.palette = query.get('palette');
-  function apply() {
-    if (!modes.some(item => item[0] === state.mode)) state.mode = 'system';
-    if (!palettes.some(item => item[0] === state.palette)) state.palette = 'dotnet';
-    document.documentElement.dataset.themeMode = state.mode;
-    document.documentElement.dataset.theme = state.mode === 'system' ? (system.matches ? 'dark' : 'light') : state.mode;
-    document.documentElement.dataset.palette = state.palette;
-    try { localStorage.setItem(storeKey, JSON.stringify(state)); } catch (_) {}
-    document.querySelectorAll('#vex-theme-panel button').forEach(button => {
-      var selected = button.dataset.mode ? button.dataset.mode === state.mode : button.dataset.palette === state.palette;
-      button.classList.toggle('on', selected); button.setAttribute('aria-pressed', String(selected));
-    });
-    var fab = document.getElementById('vex-theme-fab');
-    if (fab) fab.style.background = palettes.find(item => item[0] === state.palette)[2];
+  var palettes=[['dotnet','ThemeDotNet','#512BD4'],['aurora','ThemeAurora','#8968FF'],['ember','ThemeEmber','#BD674D'],['default','ThemeDefault','#0064FA'],['aquatic','ThemeAquatic','#008D9E'],['desert','ThemeDesert','#B57532'],['dusk','ThemeDusk','#7A5CC4'],['night-sky','ThemeNightSky','#2B6CB0']];
+  var modes=[['light','ThemeLight','☀'],['dark','ThemeDark','☾'],['system','ThemeSystem','◐']];
+  var storeKey='vex-design-appearance',system=matchMedia('(prefers-color-scheme: dark)'),state={mode:'system',palette:'dotnet'};
+  try{Object.assign(state,JSON.parse(localStorage.getItem(storeKey)||'{}'));}catch(_){}
+  var query=new URLSearchParams(location.search),theme=query.get('theme');
+  if(modes.some(item=>item[0]===theme))state.mode=theme;else if(palettes.some(item=>item[0]===theme))state.palette=theme;
+  if(query.has('palette'))state.palette=query.get('palette');
+  function word(key){return window.VexL?VexL.get(key):key;}
+  function apply(){
+    if(!modes.some(item=>item[0]===state.mode))state.mode='system';if(!palettes.some(item=>item[0]===state.palette))state.palette='dotnet';
+    document.documentElement.dataset.themeMode=state.mode;document.documentElement.dataset.theme=state.mode==='system'?(system.matches?'dark':'light'):state.mode;document.documentElement.dataset.palette=state.palette;
+    try{localStorage.setItem(storeKey,JSON.stringify(state));}catch(_){}
+    var toggle=document.getElementById('vex-mode-toggle');if(toggle){var selectedMode=modes.find(item=>item[0]===state.mode);toggle.dataset.mode=state.mode;toggle.dataset.resource=selectedMode[1];toggle.textContent=selectedMode[2];}
+    document.querySelectorAll('#vex-theme-panel [data-mode],#vex-theme-panel [data-palette]').forEach(button=>{var active=button.dataset.mode?button.dataset.mode===state.mode:button.dataset.palette===state.palette;button.classList.toggle('on',active);button.setAttribute('aria-pressed',String(active));button.title=word(button.dataset.resource);button.setAttribute('aria-label',button.title);});
+    document.querySelectorAll('#vex-language-menu [data-language]').forEach(button=>{var active=button.dataset.language===window.VexL?.culture;button.setAttribute('aria-checked',String(active));button.classList.toggle('on',active);});
+    var language=document.querySelector('#vex-language-menu>summary');if(language){language.title=word('MenuLanguage');language.setAttribute('aria-label',language.title);}
   }
-  window.VexTheme = {
-    setMode: function(mode) { state.mode = mode; apply(); },
-    setPalette: function(palette) { state.palette = palette; apply(); }
-  };
-  apply();
-  system.addEventListener('change', function() { if (state.mode === 'system') apply(); });
-  window.addEventListener('storage', function(event) {
-    if (event.key !== storeKey) return;
-    try { Object.assign(state, JSON.parse(event.newValue || '{}')); apply(); } catch (_) {}
-  });
-  window.addEventListener('keydown', function(event) {
-    var index = Number(event.key) - 1;
-    if (event.altKey && !event.ctrlKey && index >= 0 && index < palettes.length) window.VexTheme.setPalette(palettes[index][0]);
-  });
-  document.addEventListener('DOMContentLoaded', function() {
-    var style = document.createElement('style');
-    style.textContent = '#vex-theme-fab{position:fixed;right:22px;bottom:22px;width:42px;height:42px;border-radius:50%;border:2px solid #fff8;z-index:999;cursor:pointer}' +
-      '#vex-theme-panel{position:fixed;right:22px;bottom:74px;z-index:999;padding:10px;min-width:230px;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-pop)}' +
-      '#vex-theme-panel[hidden]{display:none}.vtp-modes{display:flex;gap:4px;margin-bottom:8px}.vtp-item{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;border-radius:6px;padding:7px;background:transparent;color:var(--fg);cursor:pointer}.vtp-item:hover{background:var(--hover)}.vtp-item.on{background:var(--accent-soft);color:var(--accent)}.vtp-item i{width:13px;height:13px;border-radius:50%}.vtp-modes button{white-space:nowrap}';
-    document.head.appendChild(style);
-    var panel = document.createElement('div'); panel.id = 'vex-theme-panel'; panel.hidden = true;
-    panel.innerHTML = '<div class="vtp-modes">' + modes.map(item => '<button class="vtp-item" data-mode="'+item[0]+'">'+item[1]+'</button>').join('')+'</div>' +
-      palettes.map(item => '<button class="vtp-item" data-palette="'+item[0]+'"><i style="background:'+item[2]+'"></i>'+item[1]+'</button>').join('');
-    var fab = document.createElement('button'); fab.id = 'vex-theme-fab'; fab.setAttribute('aria-label','切换主题');
-    document.body.append(panel,fab);
-    panel.addEventListener('click', function(event) {
-      var button = event.target.closest('button'); if (!button) return;
-      if (button.dataset.mode) window.VexTheme.setMode(button.dataset.mode);
-      if (button.dataset.palette) window.VexTheme.setPalette(button.dataset.palette);
-    });
-    fab.onclick = function() { panel.hidden = !panel.hidden; };
-    document.addEventListener('click', function(event) { if (!panel.contains(event.target) && event.target !== fab) panel.hidden = true; });
-    apply();
+  window.VexTheme={setMode(value){state.mode=value;apply();},setPalette(value){state.palette=value;apply();}};apply();
+  system.addEventListener('change',()=>{if(state.mode==='system')apply();});
+  window.addEventListener('storage',event=>{if(event.key===storeKey)try{Object.assign(state,JSON.parse(event.newValue||'{}'));apply();}catch(_){}});
+  window.addEventListener('vex-language-changed',apply);
+  window.addEventListener('keydown',event=>{var index=Number(event.key)-1;if(event.altKey&&!event.ctrlKey&&index>=0&&index<palettes.length)VexTheme.setPalette(palettes[index][0]);if(event.key==='Escape'){var menu=document.getElementById('vex-language-menu');if(menu)menu.open=false;}});
+  document.addEventListener('DOMContentLoaded',()=>{
+    var panel=document.createElement('div');panel.id='vex-theme-panel';panel.className='studio-title-controls';
+    panel.innerHTML='<div class="studio-modes" role="group" aria-label="Theme mode">'+'<button type="button" id="vex-mode-toggle" data-mode="system" data-resource="ThemeSystem">◐</button>'+'</div><div class="studio-palettes" role="group" aria-label="Palette">'+palettes.map(item=>'<button type="button" data-palette="'+item[0]+'" data-resource="'+item[1]+'"><i style="background:'+item[2]+'"></i></button>').join('')+'</div><details id="vex-language-menu" class="studio-language"><summary>文<span aria-hidden="true">A</span></summary><div role="menu">'+Object.entries(VEX_DATA.languages).map(([code])=>'<button type="button" role="menuitemradio" data-language="'+code+'">'+({"zh-CN":"简体中文","zh-Hant":"繁體中文","en-US":"English","ja-JP":"日本語"}[code]||code)+'</button>').join('')+'</div></details>';
+    document.getElementById('caption-btns').before(panel);
+    panel.addEventListener('click',event=>{var button=event.target.closest('button');if(!button)return;if(button.dataset.mode)VexTheme.setMode(({system:'light',light:'dark',dark:'system'})[state.mode]);if(button.dataset.palette)VexTheme.setPalette(button.dataset.palette);if(button.dataset.language){VexL.set(button.dataset.language);document.getElementById('vex-language-menu').open=false;}});
+    document.addEventListener('click',event=>{if(!event.target.closest('#vex-language-menu'))document.getElementById('vex-language-menu').open=false;});apply();
   });
 })();
 
@@ -3532,7 +3502,7 @@ window.VEX_DATA = {"languages":{"zh-CN":{"AppName":"Vex","ChineseName":"维刻",
       case 'toggle-topmost': state.topmost = !state.topmost; VexProto.toast(state.topmost ? '窗口置顶（桌面版操作演示）' : '取消置顶（桌面版操作演示）'); break;
       case 'minimize': VexProto.toast('最小化由桌面窗口提供（原型演示）'); break;
       case 'close': confirmSwitch(function () { VexProto.toast('文档已关闭（原型演示）'); }); break;
-      case 'theme': $('vex-theme-fab').click(); break;
+      case 'theme': document.querySelector('#vex-theme-panel button').focus(); break;
       case 'refresh': refreshNow(); break;
       case 'undo': case 'redo':
         instant.finish();

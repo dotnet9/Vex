@@ -495,7 +495,7 @@
       case 'toggle-topmost': state.topmost = !state.topmost; VexProto.toast(state.topmost ? '窗口置顶（桌面版操作演示）' : '取消置顶（桌面版操作演示）'); break;
       case 'minimize': VexProto.toast('最小化由桌面窗口提供（原型演示）'); break;
       case 'close': confirmSwitch(function () { VexProto.toast('文档已关闭（原型演示）'); }); break;
-      case 'theme': $('vex-theme-fab').click(); break;
+      case 'theme': document.querySelector('#vex-theme-panel button').focus(); break;
       case 'refresh': refreshNow(); break;
       case 'undo': case 'redo':
         instant.finish();

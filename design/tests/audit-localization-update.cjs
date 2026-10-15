@@ -13,11 +13,13 @@ const { chromium } = require('playwright');
     await page.goto(standalone.url);
     await page.addStyleTag({content:'*,*::before,*::after{animation:none!important;transition:none!important}'});
     assert.equal(await page.locator('.titlebar .caption-btn').count(),3);
+    assert.equal(await page.locator('#vex-theme-panel [data-palette]').count(),8);
+    assert.equal(await page.locator('#vex-mode-toggle').count(),1);
     assert.ok(await page.locator('.app-window').evaluate(el=>parseFloat(getComputedStyle(el).borderTopWidth)>=1));
     assert.equal(await page.locator('.titlebar').evaluate(el=>Math.round(el.getBoundingClientRect().height)),40);
     const output=process.argv[2];if(output)fs.mkdirSync(output,{recursive:true});
     for(const culture of ['zh-CN','zh-Hant','en-US','ja-JP']) {
-      await page.evaluate(culture=>VexProto.handleAction('language',{arg:culture}),culture);
+      await page.locator('#vex-language-menu summary').click();await page.locator('#vex-language-menu [data-language="'+culture+'"]').click();
       assert.equal(await page.locator('html').getAttribute('lang'),culture);
       assert.equal(await page.locator('.tb-menuitem').first().textContent(), await page.evaluate(()=>VEX_DATA.languages[VexL.culture].MenuFile));
       const untranslated = await page.evaluate(() => {
@@ -56,7 +58,7 @@ const { chromium } = require('playwright');
     await page.locator('#layer-about [data-close]').click();
     await page.reload();assert.equal(await page.locator('html').getAttribute('lang'),'ja-JP');
     assert.deepEqual(errors,[]);await standalone.verify(page);
-    if(output)for(const width of [1280,980]){await page.setViewportSize({width,height:840});await page.screenshot({path:path.join(output,'desktop-'+width+'.png')});}
+    if(output)for(const width of [1280,980]){await page.setViewportSize({width,height:840});assert.ok(await page.evaluate(()=>{const menu=document.querySelector('.tb-menu').getBoundingClientRect(),controls=document.querySelector('#vex-theme-panel').getBoundingClientRect(),caption=document.querySelector('#caption-btns').getBoundingClientRect();return menu.right<=controls.left&&controls.right<=caption.left;}));await page.screenshot({path:path.join(output,'desktop-'+width+'.png')});}
     console.log('PASS: desktop frame, fixed sample timestamp, four real menu/About languages, generated metadata, seven update scenarios, retry, cancellation and offline reload');
   } finally {await browser.close();standalone.dispose();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

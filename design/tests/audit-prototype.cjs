@@ -14,13 +14,13 @@ const { chromium } = require('playwright');
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(standalone.url);
-    await page.locator('#vex-theme-fab').click();
+    const selectMode=async mode=>{for(let i=0;i<3&&await page.locator('html').getAttribute('data-theme-mode')!==mode;i++)await page.locator('#vex-mode-toggle').click();};
     const palettes = await page.locator('#vex-theme-panel [data-palette]').evaluateAll(items => items.map(item => item.dataset.palette));
     assert.equal(palettes.length, 8);
     for (const palette of palettes) {
       await page.locator(`#vex-theme-panel [data-palette="${palette}"]`).click();
       for (const mode of ['light', 'dark']) {
-        await page.locator(`#vex-theme-panel [data-mode="${mode}"]`).click();
+        await selectMode(mode);
         assert.equal(await page.locator('html').getAttribute('data-theme'), mode);
         assert.equal(await page.locator('html').getAttribute('data-palette'), palette);
         assert.equal(await page.locator(`#vex-theme-panel [data-palette="${palette}"]`).getAttribute('aria-pressed'), 'true');
@@ -32,14 +32,13 @@ const { chromium } = require('playwright');
         assert.ok(Math.abs(bounds[0] - bounds[1]) <= 1, 'No blank row between title and workspace');
       }
     }
-    await page.locator('#vex-theme-panel [data-mode="system"]').click();
+    await selectMode('system');
     for (const mode of ['light', 'dark']) {
       await page.emulateMedia({ colorScheme: mode });
       await page.waitForFunction(value => document.documentElement.dataset.theme === value, mode);
       assert.equal(await page.locator('html').getAttribute('data-theme-mode'), 'system');
     }
     // 通过标题菜单点击，避免仅验证悬浮色板而漏掉实际菜单接线。
-    await page.locator('#vex-theme-fab').click();
     const openThemes = async () => {
       await page.locator('.tb-menuitem').filter({ hasText: '视图(V)' }).click();
       await page.locator('.menu-flyout > .flyout > .menu-item').filter({ hasText: '界面配色' }).hover();
