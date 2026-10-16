@@ -1,4 +1,5 @@
 using CodeWF.Avalonia.Markdown.Editor.Controls;
+using CodeWF.Avalonia.Markdown.Editor.Services;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
@@ -190,13 +191,25 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
                 if (focused.Text.Length == 0 || focused.ActiveBlockIndex >= 0) focused.FocusEditor();
                 else focused.Focus();
             }
-            else if (_workbench.LiveEditor is { } live) _ = live.ExecuteAsync(action.ToEditorAction());
+            else if (_workbench.LiveEditor is { } live) _ = ExecuteAndRefocusAsync(live, action.ToEditorAction());
             return;
         }
         if (_workbench.IsSourceEditing && _editor is { } editor)
         {
-            _ = editor.ExecuteAsync(action.ToEditorAction());
+            _ = ExecuteAndRefocusAsync(editor, action.ToEditorAction());
         }
+    }
+
+    /// <summary>格式按钮执行后把焦点还给编辑器，保留当前块或源码选区。</summary>
+    private static async Task ExecuteAndRefocusAsync(MarkdownLiveEditorView editor, MarkdownEditorAction action)
+    {
+        await editor.ExecuteAsync(action);
+        editor.FocusEditor();
+    }
+    private static async Task ExecuteAndRefocusAsync(MarkdownEditorView editor, MarkdownEditorAction action)
+    {
+        await editor.ExecuteAsync(action);
+        editor.FocusEditor();
     }
 
     // 右键菜单绑定：菜单点击后统一走消息总线，与工具栏/标题菜单保持同一条动作通道。

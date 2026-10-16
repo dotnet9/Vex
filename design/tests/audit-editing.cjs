@@ -1,6 +1,5 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const os = require('node:os');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
@@ -28,19 +27,39 @@ const { chromium } = require('playwright');
     assert.equal(await page.locator('#edit-instant').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#instant-pane').isVisible(), true);
     assert.equal(await page.locator('#source-pane').isVisible(), false);
+    const formatButtons = page.locator('#format-toolbar .format-button:not(.format-more)');
+    assert.equal(await formatButtons.count(), 12, '常用格式按钮数量保持稳定');
+    assert.equal(await formatButtons.locator('svg').count(), 12, '格式快捷栏统一使用图标');
+    assert.equal(await page.locator('#format-toolbar .format-button').filter({ hasText: /加粗|斜体|标题|引用|列表|链接|图片|代码块|表格/ }).count(), 0, '格式快捷栏不直接铺开文字');
+    assert.ok(Number.parseFloat(await page.locator('.statusbar').evaluate(element => getComputedStyle(element).fontSize)) >= 11.5, '状态栏字号可读');
     const original = await page.locator('#markdown-input').inputValue();
+    const output = path.join(process.env.CODEWF_TEMP_ROOT || 'E:/github/temp', 'vex-prototype-editing');
+    fs.mkdirSync(output, { recursive: true });
+    // 复制操作不得触发活动块编辑，使用浏览器隔离剪贴板桩验证内容。
+    await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
+      writeText: text => { window.copiedCode = text; return Promise.resolve(); }
+    } }));
+    const code = page.locator('#instant-content .md-code-block').first();
+    assert.equal(await code.locator('.md-code-header span').textContent(), 'markdown');
+    assert.equal(await code.locator('.md-code-lines').textContent(), '1');
+    const copy = code.locator('.md-code-copy');
+    assert.ok((await copy.boundingBox()).height <= 24);
+    await copy.click();
+    assert.equal(await page.evaluate(() => window.copiedCode), await code.locator('code').textContent());
+    assert.equal(await page.locator('.instant-input').count(), 0, 'Copy keeps the code block rendered');
 
     // 真正输入而非直接调用内部方法：编辑块保持光标，排版、源码、导图共享内容。
     await page.locator('.instant-block').filter({ hasText: /^把注意力/ }).click();
     const draft = '新的文字 **加粗内容**，即时确认效果。';
     await page.locator('.instant-input').fill(draft);
-    await page.waitForFunction(() => document.querySelector('.instant-live-preview strong')?.textContent === '加粗内容');
+    assert.equal(await page.locator('.instant-live-preview').count(), 0, 'Active block shows only Markdown source');
+    assert.ok(await page.locator('.instant-block:not(.is-editing) h2').count() > 0, 'Other blocks keep rendered typography');
     assert.equal(await page.locator('.instant-input').inputValue(), draft, 'Live rendering preserves the editing surface');
     assert.match(await page.locator('#markdown-input').inputValue(), /新的文字 \*\*加粗内容\*\*/);
-    await page.screenshot({ path: path.join(os.tmpdir(), 'vex-instant-active-light.png') });
+    await page.screenshot({ path: path.join(output, 'vex-instant-active-light.png') });
     await page.evaluate(() => VexTheme.setMode('dark'));
     await page.waitForTimeout(350);
-    await page.screenshot({ path: path.join(os.tmpdir(), 'vex-instant-active-dark.png') });
+    await page.screenshot({ path: path.join(output, 'vex-instant-active-dark.png') });
     await page.locator('.instant-input').press('Control+Enter');
     assert.equal(await page.locator('.instant-block strong').filter({ hasText: '加粗内容' }).count(), 1);
     const edited = await page.locator('#markdown-input').inputValue();
@@ -80,13 +99,14 @@ const { chromium } = require('playwright');
     await page.locator('#typography-compact').check();
     await page.evaluate(() => VexTheme.setMode('light'));
     await page.waitForTimeout(350);
-    await page.screenshot({ path: path.join(os.tmpdir(), 'vex-typography-gallery.png') });
+    await page.screenshot({ path: path.join(output, 'vex-typography-gallery.png') });
     await page.reload();
     assert.equal(await page.locator('html').getAttribute('data-typography'), 'WeChatFormat');
     assert.equal(await page.locator('html').getAttribute('data-compact'), 'true');
-    await openSub('Markdown 排版');
-    assert.equal(await menuItem('微信公众号').getAttribute('aria-checked'), 'true');
-    await menuItem('科技蓝').click();
+    await page.locator('#edit-options [data-action=typography]').click();
+    assert.equal(await page.locator('[data-typography-key=WeChatFormat]').getAttribute('aria-pressed'), 'true');
+    await page.locator('[data-typography-key=TechnologyBlue]').click();
+    await page.locator('#edit-options [data-action=typography]').click();
     assert.equal(await page.locator('#edit-options [data-typography-label]').textContent(), '科技蓝');
     const headingStyle = await page.locator('.instant-block h2').first().evaluate(element => {
       const css = getComputedStyle(element); return { color: css.color, borderWidth: css.borderLeftWidth };
@@ -126,9 +146,8 @@ const { chromium } = require('playwright');
     assert.match(await page.locator('.proto-toast').last().textContent(), /打印预览/);
     await page.locator('#edit-source').click();
     assert.equal(await page.locator('#source-pane').isVisible(), true);
-    assert.equal(await page.locator('#reading-pane').isVisible(), true);
-    await page.locator('#source-preview-toggle').click();
     assert.equal(await page.locator('#reading-pane').isVisible(), false);
+    assert.equal(await page.locator('#source-preview-toggle').count(), 0);
     await page.locator('#edit-instant').click();
     await page.keyboard.press('F8');
     assert.equal(await page.locator('.statusbar').isVisible(), false);
@@ -144,21 +163,47 @@ const { chromium } = require('playwright');
     await page.keyboard.press('ArrowRight');
     assert.equal(await menuItem('即时渲染').evaluate(element => element === document.activeElement), true);
     await page.keyboard.press('ArrowDown');
-    assert.equal(await menuItem('源码对照').evaluate(element => element === document.activeElement), true);
+    assert.equal(await menuItem('源码').evaluate(element => element === document.activeElement), true);
     await page.keyboard.press('ArrowLeft');
     assert.equal(await menuItem('编辑方式').evaluate(element => element === document.activeElement), true);
     await page.keyboard.press('Escape');
     await page.setViewportSize({ width: 980, height: 640 });
-    await openSub('Markdown 排版');
-    await menuItem('微信公众号').scrollIntoViewIfNeeded();
-    const subBounds = await page.locator('.submenu:visible').evaluate(element => {
+    await mainMenu('插入(I)').click();
+    assert.equal(await page.locator('.menu-flyout > .flyout > .menu-item > .submenu').count(), 0, 'Insert commands are fully flat');
+    await menuItem('清除格式').scrollIntoViewIfNeeded();
+    const subBounds = await page.locator('.menu-flyout > .flyout').evaluate(element => {
       const rect = element.getBoundingClientRect();
       return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, height: innerHeight, width: innerWidth };
     });
     assert.ok(subBounds.left >= 0 && subBounds.right <= subBounds.width && subBounds.top >= 0 && subBounds.bottom <= subBounds.height);
-    await page.screenshot({ path: path.join(os.tmpdir(), 'vex-typography-menu-narrow.png') });
-    await menuItem('微信公众号').click();
+    await page.screenshot({ path: path.join(output, 'vex-typography-menu-narrow.png') });
+    await page.keyboard.press('Escape');
+    await page.locator('#edit-options [data-action=typography]').click();
+    await page.locator('[data-typography-key=WeChatFormat]').click();
+    await page.locator('#edit-options [data-action=typography]').click();
     assert.equal(await page.locator('html').getAttribute('data-typography'), 'WeChatFormat');
+    // 真实指针拖拽、窄宽窗口、收起恢复均使用同一列宽。
+    for (const width of [1280, 980, 1920]) {
+      await page.setViewportSize({width,height:width===980?640:1032});
+      await page.locator('#view-edit').click(); await page.locator('#edit-instant').click();
+      for (const delta of [90,-40,220,-400,70]) {
+        const handle=await page.locator('#sidebar-splitter').boundingBox(),before=await page.locator('.sidebar').boundingBox();
+        await page.mouse.move(handle.x+handle.width/2,handle.y+handle.height/2);await page.mouse.down();
+        await page.mouse.move(handle.x+handle.width/2+delta,handle.y+handle.height/2,{steps:8});await page.mouse.up();
+        const side=await page.locator('.sidebar').boundingBox(),main=await page.locator('.workspace-main').boundingBox();
+        assert.ok(side.width>=200&&side.width<=560);assert.ok(Math.abs(main.x-side.x-side.width-5)<1);
+        assert.ok(main.width>=360);assert.ok(Math.abs(side.width-before.width)>1||side.width===200||side.width===560);
+      }
+      const dragged=(await page.locator('.sidebar').boundingBox()).width;
+      await page.locator('#sidebar-toggle').click();await page.locator('#sidebar-toggle').click();
+      assert.equal((await page.locator('.sidebar').boundingBox()).width,dragged);
+      await page.locator('.side-tab[data-pane=outline]').click();await page.locator('.side-tab[data-pane=files]').click();
+      assert.equal((await page.locator('.sidebar').boundingBox()).width,dragged);
+      if(width===1920){
+        await page.locator('#sidebar-splitter').focus();for(let i=0;i<35;i++)await page.keyboard.press('ArrowLeft');
+        for(const view of ['edit','read']){await page.locator('#view-'+view).click();const article=await page.locator(view==='edit'?'#instant-content':'#markdown-preview').boundingBox();assert.ok(article.width>=1100&&article.width<=1280);}
+      }
+    }
     assert.deepEqual(errors, []);
     console.log('Passed: instant rendering, source/map sync, cancel/undo, block boundaries, eighteen typography themes, export, plain menus, shortcuts and keyboard/narrow layout.');
   } finally { await browser.close(); }

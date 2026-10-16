@@ -545,6 +545,13 @@ namespace Vex
         public static readonly string GuideFeedbackSummary = "Vex.VexL.GuideFeedbackSummary";
         public static readonly string GuideFeedbackSummaryDefault = "Vex.VexL.GuideFeedbackSummaryDefault";
         public static readonly string GuideFeedbackTemporary = "Vex.VexL.GuideFeedbackTemporary";
+        public static readonly string WBFormatting = "Vex.VexL.WBFormatting";
+        public static readonly string WBHeadings = "Vex.VexL.WBHeadings";
+        public static readonly string WBMoreFormatting = "Vex.VexL.WBMoreFormatting";
+        public static readonly string WBPresentation = "Vex.VexL.WBPresentation";
+        public static readonly string WBPresentationExit = "Vex.VexL.WBPresentationExit";
+        public static readonly string WBPresentationLarger = "Vex.VexL.WBPresentationLarger";
+        public static readonly string WBPresentationSmaller = "Vex.VexL.WBPresentationSmaller";
     }
 
 }

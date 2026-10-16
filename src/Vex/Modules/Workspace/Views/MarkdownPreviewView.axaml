@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Vex.Modules.Workspace.Views.MarkdownPreviewView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -31,7 +31,9 @@
             x:Name="PreviewScrollViewer"
             Grid.Row="1"
             HorizontalScrollBarVisibility="Disabled"
-            VerticalScrollBarVisibility="Auto">
+            VerticalScrollBarVisibility="Auto" Focusable="True">
+            <LayoutTransformControl>
+                <LayoutTransformControl.LayoutTransform><ScaleTransform ScaleX="{Binding PresentationZoom}" ScaleY="{Binding PresentationZoom}"/></LayoutTransformControl.LayoutTransform>
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
                 IsTaskEditingEnabled="{Binding IsTaskEditingEnabled}"
@@ -40,6 +42,7 @@
                 Markdown="{Binding Markdown}"
                 TypographySize="{Binding TypographySize}"
                 TypographyTheme="{Binding TypographyTheme}" />
+            </LayoutTransformControl>
         </ScrollViewer>
     </Grid>
 

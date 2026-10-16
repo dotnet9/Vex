@@ -7,6 +7,6 @@ public partial class ShellWorkbenchToolbarView : UserControl
 {
     public event EventHandler? BeginGuideRequested;
     public Control ViewTarget => PerspectiveTarget;
-    public ShellWorkbenchToolbarView() { InitializeComponent(); SizeChanged += (_, _) => DocumentPath.IsVisible = Bounds.Width >= 1100; }
+    public ShellWorkbenchToolbarView() { InitializeComponent(); }
     private void QuickStartClick(object? sender, RoutedEventArgs e) => BeginGuideRequested?.Invoke(this, EventArgs.Empty);
 }

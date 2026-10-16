@@ -45,10 +45,11 @@ git tag -a vX.Y.Z -m "应用名 X.Y.Z
 
 | 平台 | 产物 | 说明 |
 | --- | --- | --- |
-| win-x64 | 安装器或 zip（各仓既有形态） | NativeAOT |
-| win-x86 | 同上 | NativeAOT 不支持 x86 的仓库保持自包含单文件 |
+| win-x64 | `.setup.exe` | NativeAOT |
 | linux-x64 / linux-arm64 | `.deb`（amd64/arm64） | NativeAOT；arm64 在 arm runner 上原生编译 |
 | osx-x64 / osx-arm64 | `.dmg` | NativeAOT；保留符号（Apple ld_classic 不支持压缩调试段） |
+
+仅发布以上五个 RID 的安装包及对应 `.sha256`，不发布 ZIP 或 win-x86 产物。
 
 - 统一配方：`-p:PublishAot=true -p:PublishTrimmed=true -p:PublishSingleFile=false
   -p:IlcGenerateCompleteTypeMetadata=true -p:IlcTrimMetadata=false -p:IlcSingleThreaded=true`。

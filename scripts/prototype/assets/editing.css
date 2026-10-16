@@ -1,4 +1,4 @@
-/* 编辑方式、Markdown 排版与统一的文字菜单。 */
+﻿/* 编辑方式、Markdown 排版与统一的文字菜单。 */
 .workspace-main { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
 .edit-options { height: 42px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 1px solid var(--border); background: var(--panel); }
 .edit-methods { display: flex; gap: 4px; }
@@ -9,16 +9,12 @@
 .typography-trigger [data-typography-label] { font-weight: 600; color: var(--fg); }
 .instant-pane { display: flex; flex-direction: column; flex: 1; min-width: 0; background: var(--bg); }
 .instant-scroll { flex: 1; min-height: 0; overflow: auto; }
-.instant-scroll .md-body { max-width: 810px; padding: 34px 44px 70px; margin: 0 auto; }
+.instant-scroll .md-body { max-width: 1280px; padding: 34px 44px 70px; margin: 0 auto; }
 .instant-block { position: relative; border: 1px solid transparent; border-radius: 5px; margin: 0 -12px; padding: 0 12px; cursor: text; transition: border-color .16s, background .16s; }
 .instant-block:hover { background: color-mix(in srgb, var(--accent) 3%, transparent); }
 .instant-block:focus-visible { outline: 1px solid var(--accent); outline-offset: 0; }
 .instant-block.is-editing { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); background: var(--panel); box-shadow: 0 0 0 3px var(--accent-soft); margin-top: 10px; margin-bottom: 10px; padding: 10px 12px; }
-.instant-input { display: block; width: 100%; border: none; outline: none !important; resize: none; color: var(--fg); background: transparent; font: 13px/1.9 "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace; padding: 0; overflow: hidden; }
-.instant-live-preview { border-top: 1px solid var(--border); margin-top: 10px; padding-top: 9px; pointer-events: none; }
-.instant-live-preview::before { content: '实时效果'; display: block; font: 10px/1.5 "Microsoft YaHei UI", system-ui, sans-serif; color: var(--muted); margin-bottom: 5px; }
-.content-area .instant-live-preview > :first-child { margin-top: 0; }
-.content-area .instant-live-preview > :last-child { margin-bottom: 0; }
+.instant-input { display: block; width: 100%; border: none; outline: none !important; resize: none; color: var(--fg); background: transparent; font: 14px/1.9 "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace; padding: 0; overflow: hidden; }
 .instant-hint { flex: none; font-size: 10px; color: var(--muted); padding: 9px 20px; border-top: 1px solid var(--border); background: var(--panel); }
 .instant-empty { border: none; background: transparent; color: var(--muted); padding: 14px 0; text-align: left; width: 100%; }
 .workspace.source-only .source-pane { width: 100%; border-right: none; }
@@ -32,8 +28,8 @@
 .type-swatch { display: block; width: 36px; height: 17px; margin: 0 auto 6px; border-top: 3px solid var(--swatch); background: linear-gradient(var(--border),var(--border)) 0 7px/36px 1px no-repeat, linear-gradient(var(--border),var(--border)) 0 12px/26px 1px no-repeat; }
 .typography-compact { display: flex; justify-content: space-between; font-size: 11px; padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--border); flex: none; }
 .typography-compact input { accent-color: var(--accent); }
-.content-area .md-body { line-height: 1.95; font-size: 13.5px; }
-.content-area .md-body h1 { color: var(--fg); font-size: 25px; margin: 6px 0 18px; padding-bottom: 14px; }
+.content-area .md-body { line-height: 1.95; font-size: 14.5px; }
+.content-area .md-body h1 { color: var(--fg); font-size: 26px; margin: 6px 0 18px; padding-bottom: 14px; }
 .content-area .md-body h2 { color: var(--typography-accent); margin: 26px 0 12px; }
 .content-area .md-body h3 { color: var(--typography-accent); margin: 18px 0 10px; }
 .content-area .md-body blockquote { border-left-color: var(--typography-accent); background: color-mix(in srgb, var(--typography-accent) 6%, transparent); }
@@ -45,7 +41,7 @@
 :root[data-typography-variant="serif"] .content-area .md-body { font-family: "Noto Serif SC", "Songti SC", SimSun, serif; }
 :root[data-typography-variant="editorial"] .content-area .md-body h1 { text-align: center; border-bottom: none; }
 :root[data-typography-variant="editorial"] .content-area .md-body h2 { text-align: center; padding: 7px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-:root[data-compact="true"] .content-area .md-body { font-size: 12px; line-height: 1.65; }
+:root[data-compact="true"] .content-area .md-body { font-size: 13px; line-height: 1.65; }
 :root[data-compact="true"] .content-area .md-body h2 { margin-top: 18px; margin-bottom: 7px; }
 :root[data-compact="true"] .content-area .md-body h3 { margin-top: 12px; margin-bottom: 6px; }
 .app-window.focus-mode .sidebar { width: 0; opacity: 0; border: none; pointer-events: none; }
@@ -61,3 +57,46 @@
 @media (max-width: 1100px) { .instant-scroll .md-body { padding: 26px 32px 60px; } .edit-method-description { display: none; } .edit-options > .typography-trigger { margin-left: auto; } }
 @media (max-width: 760px) { .edit-options { gap: 4px; padding: 0 8px; } .instant-scroll .md-body { padding: 24px; } .typography-popover { right: 8px; width: min(338px, calc(100% - 16px)); } }
 @media (prefers-reduced-motion: reduce) { .instant-block, .edit-methods button, .typography-card { transition: none; } .typography-popover { animation: none; } }
+
+/* 分隔线占位与命中宽度一致，侧栏内部随列伸缩。 */
+.sidebar { width: var(--sidebar-width, 226px); transition: opacity .2s; border-right: none; }
+.sidebar-inner { width: 100%; min-width: 0; }
+.sidebar-splitter { width: 5px; flex: none; cursor: col-resize; touch-action: none; background: linear-gradient(90deg, transparent 2px, var(--border) 2px, var(--border) 3px, transparent 3px); }
+.sidebar-splitter:hover, .sidebar-splitter:focus-visible { background: var(--accent-soft); outline: none; }
+.sidebar.closed + .sidebar-splitter, .focus-mode .sidebar-splitter { display: none; }
+.sidebar-resizing { cursor: col-resize; user-select: none; }
+.reading-scroll .md-body { max-width: 1280px; }
+.content-area .md-body pre, .content-area .md-body table { max-width: 100%; }
+.content-area .md-body pre { font-size: 14px; line-height: 22px; }
+
+.content-area .md-body pre code { font-size: 14px; line-height: 22px; }
+.content-area .md-body h2 { font-size: 21px; }
+.content-area .md-body h3 { font-size: 17px; }
+
+/* 与原生代码块一致：紧凑操作栏、行号及可横向滚动的代码正文。 */
+.md-code-block { margin: 8px 0 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--code-bg); }
+.md-code-header { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 4px; color: var(--muted); font: 12px/24px "Cascadia Code", Consolas, monospace; }
+.md-code-copy { min-width: 54px; height: 24px; padding: 0 10px; border: none; border-radius: 5px; color: var(--fg); background: transparent; font-family: inherit; font-size: 12px; line-height: 24px; cursor: pointer; }
+.md-code-copy:hover { background: var(--hover); }
+.md-code-copy:focus-visible { outline: 1px solid var(--accent); outline-offset: 1px; }
+.md-code-scroll { display: flex; min-width: 0; overflow-x: auto; }
+.md-code-lines { flex: none; padding-right: 14px; color: var(--muted); text-align: right; white-space: pre; user-select: none; font: 14px/22px "Cascadia Code", Consolas, monospace; }
+.content-area .md-body .md-code-block pre { flex: 1; min-width: max-content; margin: 0; padding: 0; border: none; border-radius: 0; overflow: visible; background: transparent; }
+:root[data-compact="true"] .md-code-lines, :root[data-compact="true"] .content-area .md-body .md-code-block pre code { font-size: 13px; line-height: 20px; }
+
+.format-toolbar { display:flex; align-items:center; gap:2px; min-width:0; margin-left:4px; }
+.format-button { width:28px; height:28px; display:grid; place-items:center; padding:5px; border:0; border-radius:5px; background:transparent; color:var(--fg); cursor:pointer; font-size:11px; }
+.format-button:hover,.format-button:focus-visible { background:var(--hover); color:var(--accent); outline:none; }
+.format-button .ico { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; }
+.format-divider { height:18px; width:1px; background:var(--border); margin:0 3px; }
+.format-more { font-size:16px; letter-spacing:1px; }
+.presentation-tools { position:absolute; z-index:80; right:24px; top:24px; display:flex; gap:3px; padding:5px; border:1px solid var(--border); border-radius:8px; background:color-mix(in srgb,var(--panel) 82%,transparent); opacity:.2; transition:opacity .2s; }
+.presentation-tools:hover,.presentation-tools:focus-within { opacity:1; }
+.presentation-tools button { border:0; border-radius:5px; padding:5px 9px; color:var(--fg); background:transparent; cursor:pointer; }
+.presentation-tools button:hover { background:var(--hover); color:var(--accent); }
+.app-window.presentation-mode .titlebar,.app-window.presentation-mode .sidebar,.app-window.presentation-mode .sidebar-splitter,.app-window.presentation-mode .work-toolbar,.app-window.presentation-mode .edit-options,.app-window.presentation-mode .statusbar { display:none!important; }
+.app-window.presentation-mode .workspace { height:100%; }
+.app-window.presentation-mode .reading-pane { display:flex!important; }
+.app-window.presentation-mode .reading-pane .reading-scroll .md-body { max-width:1000px; font-size:var(--presentation-scale,1.5)em; }
+@media (max-width:1100px) { .format-toolbar { overflow:hidden; } .format-button:nth-of-type(n+9):not(.format-more) { display:none; } .format-more { display:grid; } }
+@media (max-width:760px) { .format-toolbar { gap:0; margin-left:0; } .format-button:nth-of-type(n+6):not(.format-more) { display:none; } }

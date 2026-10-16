@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
 using Avalonia.Controls.Primitives;
@@ -82,6 +82,8 @@ public partial class MainWindow : CodeWFWindow
 
     private void WindowKeyDown(object? sender, KeyEventArgs e)
     {
+        if (DataContext is MainWindowViewModel presentationVm && presentationVm.Workbench.IsPresenting)
+        { e.Handled = presentationVm.Workbench.HandlePresentationKey(e.Key); return; }
         if (WorkbenchGuide.IsVisible && WorkbenchGuide.HandleKey(e)) { e.Handled = true; return; }
         if (e.Key == Key.Escape && DataContext is MainWindowViewModel vm && (vm.Workbench.ShowTypography || vm.Workbench.ShowMapSettings || vm.Workbench.HasSelectedNode))
         { vm.Workbench.ShowTypography = false; vm.Workbench.ShowMapSettings = false; vm.Workbench.CloseInspector(); e.Handled = true; return; }

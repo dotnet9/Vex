@@ -1,4 +1,4 @@
-{
+﻿{
   "language": "繁體中文",
   "description": "中文（繁體）",
   "cultureName": "zh-Hant",
@@ -508,7 +508,6 @@
       "WBReset": "恢復預設",
       "WBWorkspace": "工作區",
       "WBLocalWorkspace": "本機工作區",
-
       "WBTheme": "介面外觀",
       "GuideSkip": "略過",
       "GuidePrevious": "上一步",
@@ -539,7 +538,14 @@
       "GuideFeedbackChooseTheme": "從右側卡片選擇一套主題",
       "GuideFeedbackSummary": "✓ 目前摘要最多 {0} 字",
       "GuideFeedbackSummaryDefault": "預設 30 字；完整內文始終保留",
-      "GuideFeedbackTemporary": "此處是暫時示範文件，儲存和匯出由你主動觸發"
+      "GuideFeedbackTemporary": "此處是暫時示範文件，儲存和匯出由你主動觸發",
+      "WBFormatting": "常用格式",
+      "WBHeadings": "標題",
+      "WBMoreFormatting": "更多格式",
+      "WBPresentation": "展示文件",
+      "WBPresentationExit": "結束展示（Esc）",
+      "WBPresentationLarger": "放大展示字級",
+      "WBPresentationSmaller": "縮小展示字級"
     }
   }
 }

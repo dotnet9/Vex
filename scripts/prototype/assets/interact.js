@@ -86,8 +86,8 @@
     ]},
     { key: 'insert', label: '插入(I)', items: [
       { label: '段落', action: 'insert-paragraph' },
-      { label: '标题', sub: [1,2,3,4,5,6].map(function (level) { return { label: '标题 ' + level, action: 'insert-heading' + level }; }) },
-      { label: '列表', sub: [ { label: '无序列表', action: 'insert-list' }, { label: '有序列表', action: 'insert-ordered' }, { label: '任务列表', action: 'insert-task' } ] },
+      { label: '标题 1', action: 'insert-heading1' }, { label: '标题 2', action: 'insert-heading2' }, { label: '标题 3', action: 'insert-heading3' }, { label: '标题 4', action: 'insert-heading4' }, { label: '标题 5', action: 'insert-heading5' }, { label: '标题 6', action: 'insert-heading6' },
+      { label: '无序列表', action: 'insert-list' }, { label: '有序列表', action: 'insert-ordered' }, { label: '任务列表', action: 'insert-task' },
       { label: '引用', action: 'insert-quote' },
       { sep: true },
       { label: '表格', action: 'insert-table' }, { label: '代码块', action: 'insert-code' },
@@ -101,30 +101,20 @@
       { label: '编辑视图', check: true, action: 'view-edit' }, { label: '阅读视图', check: true, action: 'view-read' },
       { label: '思维导图', check: true, action: 'view-mindmap' },
       { label: '编辑方式', sub: [
-        { label: '即时渲染', check: true, action: 'edit-instant' }, { label: '源码对照', check: true, action: 'edit-source' }
+        { label: '即时渲染', check: true, action: 'edit-instant' }, { label: '源码', check: true, action: 'edit-source' }
       ]},
       { sep: true },
       { label: '文档导航', sub: [
         { label: '侧边栏', check: true, action: 'toggle-sidebar' }, { label: '文档列表', action: 'pane-files' }, { label: '文档大纲', action: 'pane-outline' }
       ]},
       { label: '编辑显示', sub: [
-        { label: '显示预览', check: true, action: 'toggle-source-preview' }, { label: '显示行号', check: true, action: 'toggle-lines' },
+        { label: '显示行号', check: true, action: 'toggle-lines' },
         { label: '自动配对输入', check: true, action: 'toggle-pairs' }, { label: '显示状态栏', check: true, action: 'toggle-status' }
       ]},
       { label: '写作辅助', sub: [
         { label: '专注模式', gesture: 'F8', check: true, action: 'toggle-focus' }, { label: '打字机模式', check: true, action: 'toggle-typewriter' },
         { label: '界面动效', check: true, action: 'toggle-motion' }
       ]},
-      { sep: true },
-      { label: 'Markdown 排版', sub: VexTypography.items.map(function (theme) { return { label: theme.label, check: true, action: 'typography-select', arg: theme.key }; }).concat([
-        { sep: true }, { label: '紧凑布局', check: true, action: 'toggle-compact' }, { label: '查看排版样式…', action: 'typography' }
-      ])},
-      { label: '界面配色', sub: THEME_ITEMS.map(function (t) {
-        return t.sep ? { sep: true } : { label: t.label, check: true, action: t.palette ? 'palette' : 'theme', arg: t.palette || t.theme };
-      })},
-      { label: '界面语言', sub: [['zh-CN','简体中文'],['zh-Hant','繁體中文'],['en-US','English'],['ja-JP','日本語']].map(function (language) {
-        return { label: language[1], check: true, action: 'language', arg: language[0] };
-      })},
       { sep: true },
       { label: '窗口', sub: [
         { label: '全屏', gesture: 'F11', check: true, action: 'toggle-fullscreen' },

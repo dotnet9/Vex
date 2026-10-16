@@ -1,4 +1,4 @@
-﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<Styles xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
     <StreamGeometry x:Key="WBSidebarIcon">M3 3H21V21H3Z M9 3V21</StreamGeometry>
     <StreamGeometry x:Key="WBEditIcon">M11 4H4V20H20V13 M18 2L22 6L12 16L8 17L9 13Z</StreamGeometry>
@@ -22,6 +22,15 @@
   </Style>
   <Style Selector="Button.wb-quiet:pointerover, ToggleButton.wb-quiet:pointerover"><Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/></Style>
   <Style Selector="ToggleButton.wb-quiet:checked"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/></Style>
+  <!-- Semi 在模板层设置交互颜色，这里同步轻量切换按钮的实际呈现状态。 -->
+  <Style Selector="ToggleButton.wb-quiet:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-quiet:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
+  <Style Selector="ToggleButton.wb-quiet:checked /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-quiet:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-quiet:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
   <Style Selector="ToggleButton.wb-view">
     <Setter Property="Width" Value="86"/><Setter Property="Height" Value="28"/><Setter Property="MinHeight" Value="0"/>
     <Setter Property="Padding" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
@@ -29,14 +38,32 @@
   </Style>
   <Style Selector="ToggleButton.wb-view:checked"><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Background" Value="Transparent"/></Style>
   <Style Selector="ToggleButton.wb-view:checked Path.wb-icon"><Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/></Style>
+  <Style Selector="ToggleButton.wb-view:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-view:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
+  <Style Selector="ToggleButton.wb-view:checked /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-view:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-view:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
   <Style Selector="Border.wb-popover">
     <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
     <Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="10"/><Setter Property="BoxShadow" Value="0 8 30 0 #18000000"/>
   </Style>
-  <Style Selector="TextBlock.wb-muted"><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/><Setter Property="FontSize" Value="10.5"/></Style>
+  <Style Selector="TextBlock.wb-muted"><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/><Setter Property="FontSize" Value="11.5"/></Style>
   <Style Selector="Border.pane-head"><Setter Property="Height" Value="44"/><Setter Property="Padding" Value="20,0"/></Style>
   <Style Selector="Border.kbd-chip"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/></Style>
   <Style Selector="ListBox.typography-grid"><Setter Property="Padding" Value="0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/></Style>
   <Style Selector="ListBox.typography-grid ListBoxItem"><Setter Property="Width" Value="98"/><Setter Property="Padding" Value="4"/><Setter Property="Margin" Value="0"/><Setter Property="MinHeight" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Center"/></Style>
   <Style Selector="ListBox.typography-grid ListBoxItem:selected"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="CornerRadius" Value="7"/></Style>
+  <Style Selector="Button.wb-format, Button.wb-format-extra">
+    <Setter Property="Width" Value="28"/><Setter Property="Height" Value="28"/><Setter Property="MinHeight" Value="0"/><Setter Property="MinWidth" Value="0"/>
+    <Setter Property="Padding" Value="5"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/><Setter Property="CornerRadius" Value="5"/>
+  </Style>
+  <Style Selector="Button.wb-format PathIcon"><Setter Property="Width" Value="17"/><Setter Property="Height" Value="17"/></Style>
+  <Style Selector="Button.wb-format-extra"><Setter Property="Width" Value="160"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="FontSize" Value="12"/></Style>
+  <Style Selector="u|ToolBar.wb-formatbar /template/ ToggleButton#button"><Setter Property="Focusable" Value="False"/><Setter Property="ToolTip.Tip" Value="{i18n:I18n {x:Static l:VexL.WBMoreFormatting}}"/></Style>
+  <Style Selector="Border.presentation-tools"><Setter Property="Opacity" Value="0.2"/><Setter Property="Transitions"><Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.2"/></Transitions></Setter></Style>
+  <Style Selector="Border.presentation-tools:pointerover, Border.presentation-tools:focus-within"><Setter Property="Opacity" Value="1"/></Style>
 </Styles>

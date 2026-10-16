@@ -24,9 +24,13 @@ Windows x64 NativeAOT 实际界面：
 
 ![Vex 原生关于与更新入口](docs/media/native-about.png)
 
+![Vex MCP 设置浮层](docs/media/native-settings.png)
+
 [英文关于界面](docs/media/native-about-english.png)
 
 本机已验证文件参数打开、表格自然列宽、动态切语、深色与配色分别保存并在重启后恢复，以及关于与更新流程。Windows 安装器支持三种 Markdown 扩展名的打开候选、右键入口与图标；本轮复核未更改默认应用，Linux/macOS 和多 DPI 仍需各平台验收。
+
+[1.5.9 本机验证记录](docs/verification-v1.5.9.md) 区分应用离屏回归、资源自检和正式 NativeAOT 窗口验收。
 
 ## 下载安装
 
@@ -39,7 +43,7 @@ Windows x64 NativeAOT 实际界面：
 
 ## 仓库规范
 
-- 当前版本：`1.5.8`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
+- 当前版本：`1.5.9`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
 - NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net10.0` / `net10.0-windows`。
 - 根目录 `logo.svg`、`logo.png`、`logo.ico` 是唯一图标源，子工程只通过 MSBuild `Link` 引用，不维护图标副本。
 - 运行时帮助、Markdown 示例、内置备忘录、设计说明等业务文档按功能保留；仓库级入口文档使用根目录 `README.md` 和 `UpdateLog.md`。
@@ -60,9 +64,9 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 ### Markdown 编辑
 
 - 基于 AvaloniaEdit 的 Markdown 源码编辑器。
-- 工作区提供编辑、阅读、导图三个视角；编辑默认即时渲染，点击正文块输入并同步预览，也可切换源码对照。
+- 工作区提供编辑、阅读、导图三个视角；编辑默认即时渲染，活动块显示输入内容，其余块保持排版，也可切换单栏源码。
 - 即时编辑支持跨块撤销重做、菜单格式操作，`Ctrl+Enter` 完成当前块、`Esc` 恢复本次块编辑前的内容。
-- 阅读视图只读；即时编辑、源码预览和阅读共用 18 套正文排版及紧凑布局。
+- 阅读视图只读；即时编辑的非活动块和阅读视图共用 18 套正文排版及紧凑布局。
 - 支持常见 Markdown 编辑动作：标题、引用、列表、任务列表、表格、代码块、链接、图片等插入辅助。
 - 支持从网页粘贴内容：优先读取剪贴板 HTML，并转换为 Markdown；无 HTML 或转换失败时回落到普通粘贴。
 

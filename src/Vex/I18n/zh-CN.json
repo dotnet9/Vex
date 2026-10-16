@@ -1,4 +1,4 @@
-{
+﻿{
   "language": "简体中文",
   "description": "中文（简体）",
   "cultureName": "zh-CN",
@@ -508,7 +508,6 @@
       "WBReset": "恢复默认",
       "WBWorkspace": "工作区",
       "WBLocalWorkspace": "本地工作区",
-
       "WBTheme": "界面外观",
       "GuideSkip": "跳过",
       "GuidePrevious": "上一步",
@@ -539,7 +538,14 @@
       "GuideFeedbackChooseTheme": "从右侧卡片选择一套主题",
       "GuideFeedbackSummary": "✓ 当前摘要最多 {0} 字",
       "GuideFeedbackSummaryDefault": "默认 30 字；完整正文始终保留",
-      "GuideFeedbackTemporary": "此处是临时演示文档，保存和导出由你主动触发"
+      "GuideFeedbackTemporary": "此处是临时演示文档，保存和导出由你主动触发",
+      "WBFormatting": "常用格式",
+      "WBHeadings": "标题",
+      "WBMoreFormatting": "更多格式",
+      "WBPresentation": "演示文档",
+      "WBPresentationExit": "退出演示（Esc）",
+      "WBPresentationLarger": "增大演示字号",
+      "WBPresentationSmaller": "减小演示字号"
     }
   }
 }

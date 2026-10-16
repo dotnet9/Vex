@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -121,7 +121,13 @@ public partial class MarkdownPreviewView : UserControl
         {
             ApplyRemoteImageRefresh(_viewModel?.RemoteImageRefreshVersion ?? 0);
         }
-        else if (e.PropertyName is nameof(MarkdownPreviewViewModel.TypographyTheme)
+        else if (e.PropertyName == nameof(MarkdownPreviewViewModel.IsPresenting))
+        {
+            if (_viewModel?.IsPresenting == true) PreviewScrollViewer.Focus();
+            QueueRestoreReadingPosition();
+        }
+        else if (e.PropertyName is nameof(MarkdownPreviewViewModel.PresentationZoom)
+                 or nameof(MarkdownPreviewViewModel.TypographyTheme)
                  or nameof(MarkdownPreviewViewModel.TypographySize))
         {
             // 主题/排版切换会整篇重渲染并重置滚动，按块位置恢复切换前的阅读位置。

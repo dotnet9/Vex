@@ -9,13 +9,7 @@
       return { start: start, end: start + lines.slice(block.line - 1, block.endLine).join('\n').length };
     }
     function render() {
-      if (active) {
-        active.preview.innerHTML = options.blocks().filter(function (block) {
-          var span = range(block);
-          return span.start >= active.start && span.start < active.start + active.editor.value.length;
-        }).map(options.renderBlock).join('') || '<p class="empty-state">输入内容，预览会同步更新。</p>';
-        return;
-      }
+      if (active) return;
       host.innerHTML = '';
       var blocks = options.blocks();
       blocks.forEach(function (block, index) {
@@ -49,16 +43,14 @@
       else sync();
       var start = active.start;
       active = null; options.refresh(); render();
-      document.getElementById('instant-hint').textContent = '点击内容编辑，输入时同步预览，离开后恢复排版';
+      document.getElementById('instant-hint').textContent = '点击段落就地编辑 · Ctrl+Enter 完成当前块 · Esc 撤销本块改动';
       return start;
     }
     function attach(element, span, original, index) {
       var editor = document.createElement('textarea'); editor.className = 'instant-input'; editor.spellcheck = false;
       editor.setAttribute('aria-label', '编辑当前 Markdown 块'); editor.value = original;
-      var preview = document.createElement('div'); preview.className = 'instant-live-preview'; preview.setAttribute('aria-label', '当前块实时预览');
-      active = { element: element, editor: editor, preview: preview, start: span.start, end: span.end, index: index, original: original, before: options.input.value.slice(0, span.start), after: options.input.value.slice(span.end) };
+      active = { element: element, editor: editor, start: span.start, end: span.end, index: index, original: original, before: options.input.value.slice(0, span.start), after: options.input.value.slice(span.end) };
       element.removeAttribute('role'); element.removeAttribute('tabindex'); element.classList.add('is-editing'); element.innerHTML = ''; element.appendChild(editor);
-      element.appendChild(preview); render();
       editor.oninput = sync;
       editor.onblur = function () { finish(); };
       editor.onkeyup = function () { if (active) { options.input.setSelectionRange(active.start + editor.selectionStart, active.start + editor.selectionEnd); options.cursor(); } };
@@ -88,7 +80,7 @@
       attach(host.firstChild, { start: 0, end: options.input.value.length }, options.input.value, 0);
     }
     host.addEventListener('pointerdown', function (event) {
-      if (event.target.closest('textarea, .instant-empty') || event.button !== 0) return;
+      if (event.target.closest('textarea, button, a') || event.button !== 0) return;
       var block = event.target.closest('.instant-block'); if (!block) return;
       event.preventDefault();
       var index = Number(block.dataset.blockIndex), offset = Number(block.dataset.start);

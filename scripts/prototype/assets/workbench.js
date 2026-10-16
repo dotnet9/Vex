@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); }, MM = window.VexMindMap;
   var sample = [
@@ -24,7 +24,7 @@
     { name: '主题设计笔记.md', text: sample },
     { name: '每周复盘.md', text: '# 每周复盘\n\n## 本周进展\n\n完成写作工作台的第一版原型，把结构梳理融入日常 Markdown 写作。\n\n- [x] 确认三个主要视图\n- [x] 验证导图摘要长度\n- [ ] 收集实际使用反馈\n\n## 遇到的问题\n\n文档变长时，单看大纲很难理解章节的具体内容，需要段落摘要辅助判断。\n\n## 下周计划\n\n先验证原型，再接入原生导图控件，避免在交互未确定时投入大量实现工作。' },
     { name: '读书摘录.md', text: '# 读书摘录\n\n## 写作就是思考\n\n写下来，才能看清一个想法里缺失的环节。结构帮助我们识别重复、跳跃与尚未回答的问题。\n\n> 好的工具应该让想法更清楚。\n\n## 从笔记到文章\n\n### 收集素材\n\n先保留原始材料与出处，避免过早修改。\n\n### 整理结构\n\n把相近的观点放在一起，先确定层级，再补充论据。' },
-    { name: '快速开始.md', text: '# 快速开始\n\n## 编辑\n\n默认使用即时渲染，点击正文编辑当前块，输入时同步预览效果，离开后恢复排版。也可以切换源码对照，一边编辑 Markdown，一边查看正文。两种方式与导图共享内容。\n\n## 阅读\n\n切换到阅读视图，专注于排版后的完整内容。\n\n## 导图\n\n点击顶部导图查看结构，在摘要设置中调整长度，也可以隐藏内容只看标题。\n\n- 点击节点查看全文\n- 点击分支右侧按钮折叠\n- 拖动画布平移\n- Ctrl 加滚轮缩放\n\n## 打开自己的文档\n\n从文件菜单打开 Markdown 文件。保存按钮会下载副本，原文件不会被覆盖。' },
+    { name: '快速开始.md', text: '# 快速开始\n\n## 编辑\n\n默认使用即时渲染，点击正文编辑当前块，当前块显示源码，其他块保持排版，离开后恢复渲染。也可以切换源码，一边编辑 Markdown，一边查看正文。两种方式与导图共享内容。\n\n## 阅读\n\n切换到阅读视图，专注于排版后的完整内容。\n\n## 导图\n\n点击顶部导图查看结构，在摘要设置中调整长度，也可以隐藏内容只看标题。\n\n- 点击节点查看全文\n- 点击分支右侧按钮折叠\n- 拖动画布平移\n- Ctrl 加滚轮缩放\n\n## 打开自己的文档\n\n从文件菜单打开 Markdown 文件。保存按钮会下载副本，原文件不会被覆盖。' },
     { name: '导出指南.md', text: '# 导出指南\n\n## Markdown\n\n保存会下载当前文档的副本。\n\n## HTML\n\n从文件菜单导出 HTML，得到包含正文内容的独立页面。\n\n## PDF 与 Word\n\n这两个入口保留操作演示，正式版本使用文档导出服务。' }
   ];
   var settings = { length: 30, paragraphs: true, lists: true, blocks: false };
@@ -37,7 +37,34 @@
   try { if (localStorage.getItem('vex-design-edit-method') === 'source') editMode = 'source'; } catch (_) {}
   var requestedEdit = new URLSearchParams(location.search).get('edit');
   if (['instant', 'source'].includes(requestedEdit)) editMode = requestedEdit;
-  var state = { view: 'edit', editMode: editMode, sourcePreview: true, autoPair: true, focus: false, typewriter: false, motion: true, topmost: false, language: 'zh-CN', undo: [], redo: [], sidebar: true, source: false, doc: 0, selected: null, collapsed: new Set(), scale: 1, x: 0, y: 0, dirty: false, parsed: null, nodes: [], pending: null };
+  var state = { view: 'edit', editMode: editMode, autoPair: true, focus: false, typewriter: false, motion: true, topmost: false, language: 'zh-CN', undo: [], redo: [], sidebar: true, source: false, doc: 0, selected: null, collapsed: new Set(), scale: 1, presentation: false, presentationScale: 1.5, x: 0, y: 0, dirty: false, parsed: null, nodes: [], pending: null };
+  // 原型只持久化隔离的演示宽度，不接触宿主应用设置。
+  var sidebar = document.querySelector('.sidebar'), splitter = $('sidebar-splitter'), sidebarWidth = 226;
+  try { var storedWidth = Number(localStorage.getItem('vex-design-sidebar-width')); if (storedWidth >= 200 && storedWidth <= 560) sidebarWidth = storedWidth; } catch (_) {}
+  function resizeSidebar(width, persist) {
+    var available = document.querySelector('.workspace').clientWidth;
+    var maximum = Math.min(560, Math.max(200, available - 365));
+    sidebarWidth = Math.max(200, Math.min(maximum, width));
+    sidebar.style.setProperty('--sidebar-width', sidebarWidth + 'px');
+    splitter.setAttribute('aria-valuenow', Math.round(sidebarWidth));
+    if (persist) try { localStorage.setItem('vex-design-sidebar-width', String(sidebarWidth)); } catch (_) {}
+  }
+  resizeSidebar(sidebarWidth, false);
+  var sidebarDrag;
+  splitter.addEventListener('pointerdown', function (event) {
+    if (event.button !== 0) return; event.preventDefault();
+    sidebarDrag = { x: event.clientX, width: sidebar.getBoundingClientRect().width };
+    splitter.setPointerCapture(event.pointerId); document.body.classList.add('sidebar-resizing');
+  });
+  splitter.addEventListener('pointermove', function (event) { if (sidebarDrag) resizeSidebar(sidebarDrag.width + event.clientX - sidebarDrag.x, false); });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (name) {
+    splitter.addEventListener(name, function () { if (!sidebarDrag) return; sidebarDrag = null; document.body.classList.remove('sidebar-resizing'); resizeSidebar(sidebarWidth, true); });
+  });
+  splitter.addEventListener('keydown', function (event) {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault(); resizeSidebar(sidebarWidth + (event.key === 'ArrowRight' ? 10 : -10), true);
+  });
+  window.addEventListener('resize', function () { resizeSidebar(sidebarWidth, false); });
   var canvas = $('map-viewport'), scene = $('map-scene'), input = $('markdown-input'), mapElements = new Map();
   var labels = { heading: '标题', paragraph: '段落', quote: '引用', list: '列表项', code: '代码块', table: '表格' };
   var branchColors = ['var(--accent)', 'var(--success)', 'var(--warning)', 'var(--accent)', 'var(--muted)'];
@@ -109,7 +136,13 @@
       }
       closeList();
       if (block.kind === 'heading') html += '<h' + block.level + attr + '>' + escape(block.text) + '</h' + block.level + '>';
-      else if (block.kind === 'code') html += '<pre' + attr + '><code>' + escape(block.text) + '</code></pre>';
+      else if (block.kind === 'code') {
+        var numbers = block.text.replace(/\n$/, '').split('\n').map(function (_, index) { return index + 1; }).join('\n');
+        html += '<section class="md-code-block"' + attr + '><div class="md-code-header"><span>' + escape(block.language || 'text')
+          + '</span><button class="md-code-copy" type="button" aria-label="复制代码">复制</button></div>'
+          + '<div class="md-code-scroll"><span class="md-code-lines" aria-hidden="true">' + numbers + '</span>'
+          + '<pre><code>' + escape(block.text) + '</code></pre></div></section>';
+      }
       else if (block.kind === 'quote') html += '<blockquote' + attr + '>' + inline(block.text) + '</blockquote>';
       else if (block.kind === 'table') {
         var rows = block.raw.split('\n').filter(function (_, index) { return index !== 1; });
@@ -191,6 +224,23 @@
     }
   });
   function reducedMotion() { return !state.motion || matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  function applyPresentation() {
+    var root = document.querySelector('.app-window');
+    root.classList.toggle('presentation-mode', state.presentation);
+    root.style.setProperty('--presentation-scale', state.presentationScale);
+    $('presentation-tools').hidden = !state.presentation;
+    if (state.presentation) setView('read');
+  }
+  function startPresentation() {
+    if (state.presentation) return;
+    state.presentation = true; state.presentationScale = 1.5;
+    instant.finish(); applyPresentation();
+  }
+  function stopPresentation() {
+    if (!state.presentation) return;
+    state.presentation = false; applyPresentation(); setView('edit');
+  }
+
   function setView(view) {
     if (!['edit', 'read', 'mindmap'].includes(view)) view = 'edit';
     if (view !== 'edit') instant.finish();
@@ -202,17 +252,15 @@
     $('edit-options').hidden = view !== 'edit';
     $('instant-pane').hidden = view !== 'edit' || state.editMode !== 'instant';
     $('source-pane').hidden = !(view === 'edit' && state.editMode === 'source') && !(view === 'mindmap' && state.source);
-    $('reading-pane').hidden = view === 'mindmap' || (view === 'edit' && (state.editMode === 'instant' || !state.sourcePreview));
+    $('reading-pane').hidden = view !== 'read';
     $('map-pane').hidden = view !== 'mindmap';
     $('reading-title').textContent = view === 'read' ? '阅读' : '正文预览';
     $('edit-instant').setAttribute('aria-pressed', String(state.editMode === 'instant'));
     $('edit-source').setAttribute('aria-pressed', String(state.editMode === 'source'));
-    $('edit-method-description').textContent = state.editMode === 'instant' ? '点击内容即可编辑' : 'Markdown 与正文同步';
-    $('source-preview-toggle').hidden = state.editMode !== 'source';
-    $('source-preview-toggle').setAttribute('aria-pressed', String(state.sourcePreview));
-    document.querySelector('.workspace').classList.toggle('source-only', view === 'edit' && state.editMode === 'source' && !state.sourcePreview);
+    $('edit-method-description').textContent = state.editMode === 'instant' ? '点击内容即可编辑' : '编辑 Markdown 源码';
+    document.querySelector('.workspace').classList.toggle('source-only', view === 'edit' && state.editMode === 'source');
     document.querySelectorAll('.content-area > section').forEach(function (pane) { pane.classList.remove('pane-enter'); void pane.offsetWidth; if (!pane.hidden) pane.classList.add('pane-enter'); });
-    $('status-view').textContent = { edit: state.editMode === 'instant' ? '编辑 · 即时渲染' : '编辑 · 源码对照', read: '阅读视图', mindmap: '思维导图' }[view];
+    $('status-view').textContent = { edit: state.editMode === 'instant' ? '编辑 · 即时渲染' : '编辑 · 源码', read: '阅读视图', mindmap: '思维导图' }[view];
     $('cursor-position').hidden = view !== 'edit' && !state.source;
     $('map-settings').hidden = true; $('map-settings-button').setAttribute('aria-expanded', 'false');
     if (view === 'mindmap' && !state.mapVisited) { state.mapVisited = true; requestAnimationFrame(function () { fit(true); }); }
@@ -421,6 +469,19 @@
     } catch (_) { VexProto.toast('无法读取文件，请重新选择'); }
     this.value = '';
   };
+  $('open-folder-input').onchange = async function () {
+    var files = Array.from(this.files || []).filter(function (file) { return /\.(md|markdown|mdown|txt)$/i.test(file.name); });
+    if (!files.length) { VexProto.toast('文件夹中没有可打开的 Markdown 文件'); this.value = ''; return; }
+    try {
+      var loaded = await Promise.all(files.map(async function (file) { return { name: file.name, text: await file.text() }; }));
+      var folder = (files[0].webkitRelativePath || '').split('/')[0] || 'Markdown';
+      confirmSwitch(function () {
+        docs = loaded; state.doc = 0; state.dirty = false; $('workspace-folder').textContent = folder;
+        loadDoc(0); VexProto.toast('已打开文件夹 · ' + loaded.length + ' 个 Markdown 文件');
+      });
+    } catch (_) { VexProto.toast('无法读取文件夹中的 Markdown 文件'); }
+    this.value = '';
+  };
   var snippets = { paragraph: '\n\n新段落\n\n', heading: '\n## 新章节\n\n', list: '\n- 列表项\n', ordered: '\n1. 列表项\n', task: '\n- [ ] 待办事项\n', quote: '\n> 引用内容\n', code: '\n```\n代码内容\n```\n', math: '\n$$\nx^2 + y^2 = z^2\n$$\n', rule: '\n\n---\n\n', 'inline-code': '`代码`', table: '\n| 列一 | 列二 |\n| --- | --- |\n| 内容 | 内容 |\n', link: '[链接文字](https://example.com)', bold: '**文字**', italic: '*文字*', image: '![图片描述](image.png)' };
   [1,2,3,4,5,6].forEach(function (level) { snippets['heading' + level] = '\n' + '#'.repeat(level) + ' 新章节\n\n'; });
   VexProto.handleAction = function (action, item) {
@@ -458,6 +519,7 @@
     switch (action) {
       case 'new': confirmSwitch(function () { docs.push({ name: '未命名文档.md', text: '# 未命名文档\n\n' }); loadDoc(docs.length - 1); setView('edit'); if (state.editMode === 'instant') instant.focusAt(1); else input.focus(); }); break;
       case 'open': $('open-file-input').click(); break;
+      case 'open-folder': $('open-folder-input').click(); break;
       case 'open-sample': confirmSwitch(function () { loadDoc(Math.min(item.arg, docs.length - 1)); }); break;
       case 'quick-open': if (!state.sidebar) VexProto.handleAction('toggle-sidebar'); VexProto.handleAction('pane-files'); $('file-filter').focus(); break;
       case 'save': save(); break;
@@ -480,11 +542,15 @@
       case 'find-next': findNext(); break;
       case 'replace-all': var term = $('find-input').value; if (term) { input.value = input.value.split(term).join($('replace-input').value); input.dispatchEvent(new Event('input')); updateFind(); setView('edit'); } break;
       case 'toggle-lines': document.querySelector('.source-scroll').classList.toggle('no-lines'); break;
-      case 'toggle-source-preview': state.sourcePreview = !state.sourcePreview; setEditMode('source'); break;
       case 'toggle-pairs': state.autoPair = !state.autoPair; break;
       case 'toggle-focus': state.focus = !state.focus; document.querySelector('.app-window').classList.toggle('focus-mode', state.focus); break;
       case 'toggle-typewriter': state.typewriter = !state.typewriter; updateCursor(); break;
       case 'toggle-motion': state.motion = !state.motion; document.documentElement.dataset.motion = String(state.motion); break;
+      case 'presentation': startPresentation(); break;
+      case 'presentation-larger': state.presentationScale = Math.min(2.5, +(state.presentationScale + .1).toFixed(1)); applyPresentation(); break;
+      case 'presentation-smaller': state.presentationScale = Math.max(1, +(state.presentationScale - .1).toFixed(1)); applyPresentation(); break;
+      case 'presentation-exit': stopPresentation(); break;
+      case 'format-more': VexProto.toast('更多格式请从插入菜单选择'); break;
       case 'typography': VexTypography.toggle(); break;
       case 'typography-select': VexTypography.choose(item.arg); break;
       case 'toggle-compact': VexTypography.toggleCompact(); break;
@@ -521,7 +587,7 @@
     instant.finish(); refreshNow(); closeLayers(); VexProto.closeMenu();
     var snapshot = {
       doc: state.doc, text: input.value, dirty: state.dirty, view: state.view, editMode: state.editMode,
-      sidebar: state.sidebar, focus: state.focus, source: state.source, sourcePreview: state.sourcePreview,
+      sidebar: state.sidebar, focus: state.focus, source: state.source,
       sideTab: document.querySelector('.side-tab.on').dataset.pane,
       statusHidden: document.querySelector('.statusbar').hidden, findHidden: $('findbar').hidden,
       typography: Object.assign({}, VexTypography.state), settings: Object.assign({}, settings),
@@ -533,7 +599,7 @@
     state.focus = false; document.querySelector('.app-window').classList.remove('focus-mode');
     document.querySelector('.statusbar').hidden = false; $('findbar').hidden = true;
     if (!state.sidebar) VexProto.handleAction('toggle-sidebar');
-    VexProto.handleAction('pane-files'); state.source = false; state.sourcePreview = true; state.editMode = 'instant';
+    VexProto.handleAction('pane-files'); state.source = false; state.editMode = 'instant';
     settings = { length: 30, paragraphs: true, lists: true, blocks: false };
     snapshot.demo = { name: '一分钟上手 · 演练.md', text: '# 让一个想法，长成一篇文章\n\n我想把零散的想法写下来，再用结构把它们连成一条清晰的线索。先写内容，之后慢慢整理。\n\n## 写下想法\n\n点击这段文字试着修改，也可以用 **加粗** 标记重点。\n\n## 看清结构\n\n标题成为导图的主干，段落提供摘要。显示文字可以变短，完整内容一直保留。\n\n## 准备分享\n\n选择舒服的排版，确认保存状态，再把文章导出给读者。' };
     docs.push(snapshot.demo); loadDoc(docs.length - 1); syncSettings(); setView('edit');
@@ -544,7 +610,7 @@
     instant.finish(); VexProto.closeMenu(); closeLayers();
     var index = docs.indexOf(snapshot.demo); if (index >= 0) docs.splice(index, 1);
     loadDoc(snapshot.doc); input.value = snapshot.text; state.dirty = snapshot.dirty;
-    state.editMode = snapshot.editMode; state.source = snapshot.source; state.sourcePreview = snapshot.sourcePreview;
+    state.editMode = snapshot.editMode; state.source = snapshot.source;
     state.focus = snapshot.focus; document.querySelector('.app-window').classList.toggle('focus-mode', snapshot.focus);
     if (state.sidebar !== snapshot.sidebar) VexProto.handleAction('toggle-sidebar');
     document.querySelector('.side-tab[data-pane="' + snapshot.sideTab + '"]').click();
@@ -578,7 +644,7 @@
   VexProto.isActionChecked = function (action, item) {
     var checks = {
       'edit-instant': state.editMode === 'instant', 'edit-source': state.editMode === 'source',
-      'toggle-source-preview': state.sourcePreview, 'toggle-pairs': state.autoPair, 'toggle-focus': state.focus,
+      'toggle-pairs': state.autoPair, 'toggle-focus': state.focus,
       'toggle-typewriter': state.typewriter, 'toggle-motion': state.motion, 'toggle-topmost': state.topmost,
       'toggle-fullscreen': document.querySelector('.app-window').classList.contains('expanded'),
       'toggle-compact': VexTypography.state.compact, 'typography-select': !!item && VexTypography.state.key === item.arg,
@@ -590,6 +656,14 @@
       : action === 'toggle-status' ? !document.querySelector('.statusbar').hidden : false;
   };
   document.addEventListener('click', function (event) {
+    var copyCode = event.target.closest('.md-code-copy');
+    if (copyCode) {
+      event.stopPropagation();
+      var code = copyCode.closest('.md-code-block').querySelector('code').textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(code).then(function () { VexProto.toast('代码已复制'); }, function () { VexProto.toast('无法访问剪贴板，请选择代码后复制'); });
+      else VexProto.toast('无法访问剪贴板，请选择代码后复制');
+      return;
+    }
     var button = event.target.closest('[data-action]'); if (button) { event.stopPropagation(); VexProto.handleAction(button.dataset.action); }
     else if (!$('map-settings').contains(event.target)) { $('map-settings').hidden = true; $('map-settings-button').setAttribute('aria-expanded', 'false'); }
   });
@@ -619,7 +693,7 @@
   if ($('mcp-save')) $('mcp-save').onclick = function () { closeLayers(); VexProto.toast('MCP 设置已保存（演示）'); };
   if ($('mcp-gen')) $('mcp-gen').onclick = function () { $('mcp-token').value = 'vx_' + crypto.randomUUID().replace(/-/g, ''); };
   document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') { closeLayers(); pendingSwitch = null; $('findbar').hidden = true; $('node-inspector').hidden = true; $('map-settings').hidden = true; $('map-settings-button').setAttribute('aria-expanded', 'false'); }
+    if (event.key === 'Escape') { if (state.presentation) { stopPresentation(); return; } closeLayers(); pendingSwitch = null; $('findbar').hidden = true; $('node-inspector').hidden = true; $('map-settings').hidden = true; $('map-settings-button').setAttribute('aria-expanded', 'false'); }
     if ((event.ctrlKey || event.metaKey) && ['s', 'f', 'h', 'o', 'n', 'w', 'p'].includes(event.key.toLowerCase())) {
       event.preventDefault(); VexProto.handleAction(event.key.toLowerCase() === 'p' ? (event.shiftKey ? 'print' : 'quick-open') : { s: 'save', f: 'find', h: 'replace', o: 'open', n: 'new', w: 'close' }[event.key.toLowerCase()]);
     }

@@ -4,7 +4,7 @@
     '新建文档':'NewDocument','打开文档…':'OpenFile','打开文件夹…':'OpenFolder','最近打开':'OpenRecent','清空最近记录':'ClearRecent',
     '保存全部文档':'SaveAll','关闭文档':'Close','删除文档…':'Delete','文档属性':'Properties','字数统计':'WordCount','MCP 审计':'McpAudit',
     '插入(I)':'WBInsert','工具(T)':'WBTools','编辑视图':'WBEdit','阅读视图':'WBRead','思维导图':'WBMindMap','编辑方式':'WBEdit',
-    '即时渲染':'WBInstant','源码对照':'WBSource','导图显示设置':'WBMapSettings','Markdown 排版':'WBTypographyTitle','显示预览':'WBSourcePreview',
+    '即时渲染':'WBInstant','源码':'WBSource','导图显示设置':'WBMapSettings','Markdown 排版':'WBTypographyTitle',
     '文档大纲':'Outline','文档导航':'WBToggleNavigation','刷新内容':'RefreshPreview','界面语言':'MenuLanguage','界面配色':'WBTheme',
     '保持窗口在最前':'AlwaysOnTop','全屏':'ToggleFullScreen','图片':'Image','行内代码':'InlineCode','打印预览':'Print','查看排版样式…':'WBTypographyTitle'
   };
@@ -35,6 +35,7 @@
   function apply() {
     document.documentElement.lang = culture;
     document.querySelectorAll('[data-l10n]').forEach(el => el.textContent = get(el.dataset.l10n));
+    document.querySelectorAll('[data-l10n-title]').forEach(el => { const value = get(el.dataset.l10nTitle); el.title = value; el.setAttribute('aria-label', value); });
     document.querySelectorAll('[data-proto-label]').forEach(el => el.textContent = label(el.dataset.protoLabel));
     document.querySelectorAll('.tb-menuitem').forEach((el,index) => { const menu = window.VexProto?.menuData[index]; if (menu) { el.textContent = label(menu.label); el.dataset.menu = menu.label; } });
     document.querySelectorAll('.menu-item .menu-label').forEach(el => { const original = el.parentElement.dataset.menuLabel; if (original) el.textContent = label(original); });

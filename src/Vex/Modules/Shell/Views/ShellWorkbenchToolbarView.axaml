@@ -4,9 +4,9 @@
     <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="14">
       <Grid ColumnDefinitions="30,*" ColumnSpacing="14" VerticalAlignment="Center">
         <ToggleButton Classes="wb-quiet" Command="{Binding Layout.ToggleSidebar}" IsChecked="{Binding Layout.IsSidebarVisible, Mode=OneWay}" Padding="7"><Path Classes="wb-icon" Data="{StaticResource WBSidebarIcon}"/></ToggleButton>
-        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-          <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="{Binding DocumentInfo.PropertyNameText}" FontSize="13" FontWeight="SemiBold" MaxWidth="190" TextTrimming="CharacterEllipsis"/><Ellipse Width="5" Height="5" Fill="{DynamicResource VexWarningBrush}" IsVisible="{Binding DocumentInfo.IsModified}" VerticalAlignment="Center"/></StackPanel>
-          <TextBlock x:Name="DocumentPath" HorizontalAlignment="Left" Text="{Binding DocumentInfo.WorkspacePathText}" Classes="wb-muted" MaxWidth="240" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding DocumentInfo.CurrentFilePath}"/>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" ToolTip.Tip="{Binding DocumentInfo.CurrentFilePath}">
+          <TextBlock Text="{Binding DocumentInfo.PropertyNameText}" FontSize="13" FontWeight="SemiBold" MaxWidth="240" TextTrimming="CharacterEllipsis"/>
+          <Ellipse Width="5" Height="5" Fill="{DynamicResource VexWarningBrush}" IsVisible="{Binding DocumentInfo.IsModified}" VerticalAlignment="Center"/>
         </StackPanel>
       </Grid>
       <Border x:Name="PerspectiveTarget" Grid.Column="1" Padding="3" VerticalAlignment="Center" CornerRadius="8" Background="{DynamicResource TextBlockCodeBackground}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="1">

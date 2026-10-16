@@ -83,26 +83,11 @@ const { chromium } = require('playwright');
       await page.waitForFunction(value => document.documentElement.dataset.theme === value, mode);
       assert.equal(await page.locator('html').getAttribute('data-theme-mode'), 'system');
     }
-    // 通过标题菜单点击，避免仅验证悬浮色板而漏掉实际菜单接线。
-    const openThemes = async () => {
-      await page.locator('.tb-menuitem').filter({ hasText: '视图(V)' }).click();
-      await page.locator('.menu-flyout > .flyout > .menu-item').filter({ hasText: '界面配色' }).hover();
-    };
-    const themeItem = label => page.locator('.submenu:visible > .menu-item').filter({
-      has: page.locator('.menu-label').filter({ hasText: new RegExp('^' + label + '$') })
-    });
-    await openThemes();
-    await themeItem('AI 极光').click();
-    assert.equal(await page.locator('html').getAttribute('data-palette'), 'aurora');
-    await openThemes();
-    await themeItem('浅色').click();
-    assert.equal(await page.locator('html').getAttribute('data-theme-mode'), 'light');
-    await openThemes();
-    assert.equal(await themeItem('AI 极光').evaluate(item => item.classList.contains('checked')), true);
-    assert.equal(await themeItem('浅色').evaluate(item => item.classList.contains('checked')), true);
+    // 外观仅保留标题栏快捷入口，视图菜单不重复配置项。
     await page.locator('.tb-menuitem').filter({ hasText: '视图(V)' }).click();
-    await page.emulateMedia({ colorScheme: 'dark' });
-    assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
+    for (const label of ['界面配色','界面语言','Markdown 排版'])
+      assert.equal(await page.locator('.menu-flyout > .flyout > .menu-item > .menu-label').filter({hasText:label}).count(),0);
+    await page.keyboard.press('Escape');
     assert.deepEqual(errors, []);
     await standalone.verify(page);
     console.log('Passed: eight palettes, sixteen light/dark combinations, 96 dialog button states, system mode, menu adapter, and title layout.');

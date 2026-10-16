@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
@@ -11,6 +11,8 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     private readonly IEditorAppearanceState _appearanceState;
     private readonly Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel _workbench;
     public bool IsTaskEditingEnabled => _workbench.IsSourceEditing;
+    public bool IsPresenting => _workbench.IsPresenting;
+    public double PresentationZoom => IsPresenting ? _workbench.PresentationZoom : 1;
     private string? _imageBasePath;
     private string _markdown;
     private string _sourceMarkdown;
@@ -124,6 +126,8 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
 
     private void OnWorkbenchPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom))
+        { this.RaisePropertyChanged(nameof(IsPresenting)); this.RaisePropertyChanged(nameof(PresentationZoom)); }
         if (e.PropertyName == nameof(_workbench.IsSourceEditing))
         {
             this.RaisePropertyChanged(nameof(IsTaskEditingEnabled));

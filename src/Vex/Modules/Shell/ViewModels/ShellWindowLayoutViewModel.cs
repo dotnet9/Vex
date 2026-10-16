@@ -17,7 +17,9 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _isStatusBarVisible = true;
     private bool _isPreviewVisible = true;
     private bool _isAlwaysOnTop;
-    private bool _isFullScreen;
+    private WindowState _windowState;
+    private WindowState _windowStateBeforeFullScreen;
+    private bool _isPresentationMode;
     private bool _isSourceMode = true;
     private bool _enableMotion = true;
     private bool _isFocusMode;
@@ -67,6 +69,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         {
             if (SetProperty(ref _isSidebarVisible, value))
             {
+                OnPropertyChanged(nameof(ShowSidebar));
                 OnPropertyChanged(nameof(SidebarColumnWidth));
                 OnPropertyChanged(nameof(VisibleSidebarWidth));
                 OnPropertyChanged(nameof(SidebarSplitterWidth));
@@ -84,6 +87,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         {
             if (SetProperty(ref _isStatusBarVisible, value))
             {
+                OnPropertyChanged(nameof(ShowStatusBar));
                 PersistLayoutSettings();
             }
         }
@@ -135,12 +139,24 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         get => new(VisibleSidebarWidth);
         set
         {
-            if (IsSidebarVisible && value.IsAbsolute && double.IsFinite(value.Value)) SidebarWidth = value.Value;
+            if (ShowSidebar && value.IsAbsolute && double.IsFinite(value.Value)) SidebarWidth = value.Value;
         }
     }
 
-    public double MinimumVisibleSidebarWidth => IsSidebarVisible ? MinSidebarWidth : 0;
-    public double MaximumVisibleSidebarWidth => IsSidebarVisible ? MaxSidebarWidth : 0;
+    public double MinimumVisibleSidebarWidth => ShowSidebar ? MinSidebarWidth : 0;
+    public double MaximumVisibleSidebarWidth => ShowSidebar ? MaxSidebarWidth : 0;
+    public bool ShowSidebar => IsSidebarVisible && !IsPresentationMode;
+    public bool ShowStatusBar => IsStatusBarVisible && !IsPresentationMode;
+    /// <summary>演示只临时隐藏界面，不改写用户布局偏好。</summary>
+    public bool IsPresentationMode
+    {
+        get => _isPresentationMode;
+        set
+        {
+            if (!SetProperty(ref _isPresentationMode, value)) return;
+            foreach (var name in new[] { nameof(ShowSidebar), nameof(ShowStatusBar), nameof(SidebarColumnWidth), nameof(VisibleSidebarWidth), nameof(SidebarSplitterWidth), nameof(MinimumVisibleSidebarWidth), nameof(MaximumVisibleSidebarWidth) }) OnPropertyChanged(name);
+        }
+    }
 
     private bool _isCompactWindow;
     public bool IsCompactWindow
@@ -148,9 +164,9 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         get => _isCompactWindow;
         set { if (!SetProperty(ref _isCompactWindow, value)) return; OnPropertyChanged(nameof(VisibleSidebarWidth)); OnPropertyChanged(nameof(SidebarColumnWidth)); }
     }
-    public double VisibleSidebarWidth => IsSidebarVisible ? IsCompactWindow && Math.Abs(SidebarWidth - DefaultSidebarWidth) < .01 ? 200 : SidebarWidth : 0;
+    public double VisibleSidebarWidth => ShowSidebar ? IsCompactWindow && Math.Abs(SidebarWidth - DefaultSidebarWidth) < .01 ? 200 : SidebarWidth : 0;
 
-    public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(5) : new GridLength(0);
+    public GridLength SidebarSplitterWidth => ShowSidebar ? new GridLength(5) : new GridLength(0);
 
     public GridLength SourceColumnWidth => IsSourceMode ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
 
@@ -251,17 +267,21 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
     public bool IsFullScreen
     {
-        get => _isFullScreen;
-        set
-        {
-            if (SetProperty(ref _isFullScreen, value))
-            {
-                OnPropertyChanged(nameof(CurrentWindowState));
-            }
-        }
+        get => CurrentWindowState == WindowState.FullScreen;
+        set => CurrentWindowState = value ? WindowState.FullScreen : _windowStateBeforeFullScreen;
     }
 
-    public WindowState CurrentWindowState => IsFullScreen ? WindowState.FullScreen : WindowState.Normal;
+    public WindowState CurrentWindowState
+    {
+        get => _windowState;
+        set
+        {
+            if (_windowState == value) return;
+            if (_windowState != WindowState.FullScreen) _windowStateBeforeFullScreen = _windowState;
+            this.RaiseAndSetIfChanged(ref _windowState, value);
+            OnPropertyChanged(nameof(IsFullScreen));
+        }
+    }
 
     public bool IsSourceMode
     {
@@ -352,6 +372,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
     private void PersistLayoutSettings()
     {
+        if (IsPresentationMode) return;
         _settingsStore.Update(settings => settings with
         {
             IsSidebarVisible = IsSidebarVisible,

@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellTitleMenuView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -104,6 +104,7 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.WBInstant}}" Command="{Binding Workbench.ShowInstant}" IsChecked="{Binding Workbench.IsInstantEditing, Mode=OneWay}" ToggleType="Radio" />
             <MenuItem x:Name="SourceModeMenuItem" Header="{i18n:I18n {x:Static l:VexL.WBSource}}" Command="{Binding Workbench.ShowSource}" IsChecked="{Binding Workbench.IsSourceEditing, Mode=OneWay}" ToggleType="Radio" />
             <Separator/>
+            <MenuItem x:Name="PresentationMenuItem" Header="{i18n:I18n {x:Static l:VexL.WBPresentation}}" Command="{Binding Workbench.StartPresentation}"/>
             <MenuItem x:Name="SidebarMenuItem" Header="{i18n:I18n {x:Static l:VexL.ToggleSidebar}}" Command="{Binding Layout.ToggleSidebar}" IsChecked="{Binding Layout.IsSidebarVisible, Mode=OneWay}" ToggleType="CheckBox" />
             <MenuItem x:Name="OutlineMenuItem" Header="{i18n:I18n {x:Static l:VexL.Outline}}" Command="{Binding Layout.ShowOutline}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.DocumentList}}" Command="{Binding Layout.ShowFiles}" />

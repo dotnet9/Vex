@@ -26,7 +26,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     public ObservableCollection<DocumentFileNode> FilteredDocumentFileNodes { get; } = [];
 
     private string? _workspacePath;
-    public string WorkspaceName => _workspacePath is { Length: > 0 } path ? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) : CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.WBWorkspace) ?? string.Empty;
+    public string WorkspaceName => _workspacePath is { Length: > 0 } path ? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) : CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.SidebarFiles) ?? string.Empty;
 
     private string _filterText = string.Empty;
 
@@ -67,6 +67,9 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     public bool HasSelectedDocumentFile => SelectedDocumentFileNode?.DocumentFile is not null;
 
     public bool HasDocumentFileCommandTarget => GetDocumentFileCommandTarget() is not null;
+
+    /// <summary>请求打开一个 Markdown 文件夹，由 Shell 协调层处理未保存确认和文件读取。</summary>
+    public void OpenFolderAsync() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.OpenFolder));
 
     public void OpenSelectedFile()
     {

@@ -1,6 +1,6 @@
-<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
- xmlns:prism="http://prismlibrary.com/" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.IsStatusBarVisible}" prism:ViewModelLocator.AutoWireViewModel="True">
- <Border Height="30" Background="{DynamicResource VexStatusBarBackgroundBrush}" BorderBrush="{DynamicResource VexStatusBarBorderBrush}" BorderThickness="0,1,0,0" Padding="14,0">
+﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+ xmlns:prism="http://prismlibrary.com/" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}" prism:ViewModelLocator.AutoWireViewModel="True">
+ <Border Height="32" Background="{DynamicResource VexStatusBarBackgroundBrush}" BorderBrush="{DynamicResource VexStatusBarBorderBrush}" BorderThickness="0,1,0,0" Padding="14,0">
   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" ToolTip.Tip="{Binding Status.StatusText}">
     <Ellipse Width="5" Height="5" Fill="{DynamicResource VexSuccessBrush}" IsVisible="{Binding !DocumentInfo.IsModified}"/>
@@ -13,10 +13,10 @@
      <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusLine}}" Classes="wb-muted"/><TextBlock Text="{Binding Status.CaretLine}" Classes="wb-muted"/>
      <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusColumn}}" Classes="wb-muted"/><TextBlock Text="{Binding Status.CaretColumn}" Classes="wb-muted"/>
     </StackPanel>
-    <Button x:Name="StatisticsButton" Classes="wb-quiet" MinHeight="24" Padding="0" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}"><StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{Binding DocumentInfo.Statistics.Characters}" FontSize="10.5"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" FontSize="10.5"/></StackPanel></Button>
+    <Button x:Name="StatisticsButton" Classes="wb-quiet" MinHeight="24" Padding="0" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}"><StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{Binding DocumentInfo.Statistics.Characters}" FontSize="11.5"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" FontSize="11.5"/></StackPanel></Button>
     <TextBlock Text="{Binding DocumentInfo.CurrentEncodingText}" Classes="wb-muted" VerticalAlignment="Center"/>
     <TextBlock Text="{Binding DocumentInfo.LineEndingText}" Classes="wb-muted" VerticalAlignment="Center"/>
-    <Button x:Name="AppearanceButton" Classes="wb-quiet" MinHeight="24" Padding="0" Content="{i18n:I18n {x:Static l:VexL.WBTheme}}" Click="AppearanceClick"/>
+    <Button x:Name="AppearanceButton" Classes="wb-quiet" MinHeight="24" Padding="5" Click="AppearanceClick" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBTheme}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBTheme}}"><PathIcon Width="16" Height="16" Data="{DynamicResource SemiIconColorPalette}"/></Button>
    </StackPanel>
   </Grid>
  </Border>

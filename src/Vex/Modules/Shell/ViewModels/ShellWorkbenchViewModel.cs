@@ -34,6 +34,9 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     private int _mapVersion;
     private string? _mapDocumentPath;
     private int _visibleNodeCount;
+    private bool _isPresenting;
+    private double _presentationZoom = 1.5;
+    private (string View, string Edit, Avalonia.Controls.WindowState WindowState, MarkdownLiveEditorState? LiveState)? _presentationSnapshot;
 
     public ShellWorkbenchViewModel(IWorkspaceDocumentState document, IAppSettingsStore settings,
         IEditorAppearanceState appearance, ShellWindowLayoutViewModel layout, IEditorDisplayState display)
@@ -77,6 +80,55 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     public int MapSpan => ShowMapSource ? 1 : 3;
     public bool HasSelectedNode => SelectedNode is not null;
     public bool IsPreviewVisible => IsReading;
+    public bool IsPresenting => _isPresenting;
+    public bool ShowEditorOptions => !IsMindMap && !IsPresenting;
+    public double PresentationZoom => _presentationZoom;
+    public bool CanIncreasePresentationText => PresentationZoom < 2.5;
+    public bool CanDecreasePresentationText => PresentationZoom > 1;
+    /// <summary>临时进入全屏阅读；编辑状态、布局及偏好保留原值。</summary>
+    public void StartPresentation()
+    {
+        if (IsPresenting) return;
+        _presentationSnapshot = (_view, _edit, _layout.CurrentWindowState, IsInstantEditing ? _live?.CaptureState() : null);
+        _layout.IsPresentationMode = true;
+        _isPresenting = true;
+        _view = "read";
+        ShowTypography = false; ShowMapSettings = false;
+        _presentationZoom = 1.5;
+        _layout.CurrentWindowState = Avalonia.Controls.WindowState.FullScreen;
+        NotifyModes(); NotifyPresentation();
+    }
+    public void StopPresentation()
+    {
+        if (_presentationSnapshot is not { } snapshot) return;
+        _presentationSnapshot = null;
+        _view = snapshot.View; _edit = snapshot.Edit; _isPresenting = false;
+        NotifyModes();
+        _layout.CurrentWindowState = snapshot.WindowState;
+        _layout.IsPresentationMode = false;
+        NotifyPresentation();
+        if (snapshot.LiveState is { } liveState && _live is { } live) live.RestoreState(liveState);
+        else if (IsSourceEditing) CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorActionCommand(EditorActionKind.FocusEditor));
+    }
+    public void IncreasePresentationText() => SetPresentationZoom(PresentationZoom + .1);
+    public void DecreasePresentationText() => SetPresentationZoom(PresentationZoom - .1);
+    private void SetPresentationZoom(double value)
+    {
+        _presentationZoom = Math.Round(Math.Clamp(value, 1, 2.5), 1);
+        NotifyPresentation();
+    }
+    private void NotifyPresentation()
+    {
+        foreach (var name in new[] { nameof(IsPresenting), nameof(ShowEditorOptions), nameof(PresentationZoom), nameof(CanIncreasePresentationText), nameof(CanDecreasePresentationText) }) this.RaisePropertyChanged(name);
+    }
+    public bool HandlePresentationKey(Avalonia.Input.Key key)
+    {
+        if (!IsPresenting) return false;
+        if (key is Avalonia.Input.Key.Escape or Avalonia.Input.Key.F11) { StopPresentation(); return true; }
+        if (key is Avalonia.Input.Key.Add or Avalonia.Input.Key.OemPlus) { IncreasePresentationText(); return true; }
+        if (key is Avalonia.Input.Key.Subtract or Avalonia.Input.Key.OemMinus) { DecreasePresentationText(); return true; }
+        return false;
+    }
     private static string L(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
     public string EditingHint => L(IsInstantEditing ? VexL.WBInstantDescription : IsReading ? VexL.WBReadDescription : VexL.WBSourceDescription);
     public string InstantHint => L(VexL.WBInstantHint);
@@ -154,7 +206,7 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     }
     private void NotifyModes()
     {
-        foreach (var name in new[] { nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions) }) this.RaisePropertyChanged(name);
         ApplyLayout();
     }
     private void ApplyLayout()

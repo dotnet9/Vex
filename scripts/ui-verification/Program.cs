@@ -71,7 +71,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout")
+if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().WithInterFont()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -85,6 +85,7 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
         window.Close();
         return;
     }
+    if (mode == "editing-tools") { VerifyEditingTools(app, window, vm); window.Close(); return; }
     if (mode == "layout") { VerifyWorkspaceLayout(app, window, vm); window.Close(); return; }
     ControlLocaleVerification.Run(window, ["zh-CN", "en-US", "zh-Hant", "ja-JP"], app.Resolve<IAppLocalizer>().SetCulture);
     var languageSelector = window.FindControl<ComboBox>("TitleBarLanguageSelector")!;
@@ -662,7 +663,7 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
         "Workbench and editing context rows are 62 and 42 px");
     wb.ShowSource(); Pump();
     Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && source.Bounds.Width > 1000, "Source mode always presents one full width editor without a parallel preview");
-    Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Count() == 2,
+    Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Count(button => button.Classes.Contains("wb-quiet")) == 2,
         "Editing options offer instant and source modes without a preview toggle");
     wb.ShowRead(); Pump();
     Check(preview.IsEffectivelyVisible && preview.IsReadingMode && !source.IsEffectivelyVisible && !instant.IsEffectivelyVisible, "Read mode has one read only document and no duplicate preview header");
@@ -1028,6 +1029,97 @@ void VerifySourceLineHeight(Window window, MarkdownEditorView source, double exp
     Check(Math.Abs(source.Editor.TextArea.Caret.CalculateCaretRectangle().Top - caretTop - expected) < 1,
         $"{name} Down moves the caret by one visual source row, including wrapped lines");
     source.Editor.CaretOffset = 0;
+}
+
+void VerifyEditingTools(VerificationVexApp app, Window window, MainWindowViewModel vm)
+{
+    var wb = vm.Workbench;
+    var options = window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!;
+    var toolbar = options.FindControl<Ursa.Controls.ToolBar>("FormattingToolbar")!;
+    var source = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
+    var live = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    var doc = app.Resolve<IWorkspaceDocumentState>();
+    window.Width = 1280; window.Height = 820; wb.ShowSource(); Pump();
+    doc.UpdateDocument("alpha beta", null); Pump();
+    source.Editor.Select(0, 5); source.Editor.Focus(); Pump();
+    Click(options.FindControl<Button>("FormatBold")!);
+    Check(vm.Markdown == "**alpha** beta", "Formatting click preserves source selection");
+    doc.UpdateDocument("alpha beta", null); Pump();
+    wb.ShowInstant(); Pump(); live.NavigateToSourceLine(1, true); Pump();
+    var input = live.GetVisualDescendants().OfType<TextBox>().Single(box => box.IsEffectivelyVisible);
+    input.SelectionStart = 0; input.SelectionEnd = 5; input.Focus(); Pump();
+    Click(options.FindControl<Button>("FormatItalic")!);
+    Check(vm.Markdown == "*alpha* beta", "Formatting acts on the current live block selection");
+    var originalSettings = app.Resolve<IAppSettingsStore>().Current;
+    var originalState = live.CaptureState();
+    foreach (var prior in new[] { WindowState.Normal, WindowState.Maximized, WindowState.FullScreen })
+    {
+        vm.Layout.CurrentWindowState = prior; Pump(); wb.StartPresentation(); Pump(); SettleRendering();
+        Check(wb.IsPresenting && wb.IsReading && !toolbar.IsEffectivelyVisible && !window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.IsEffectivelyVisible
+            && !((CodeWF.Avalonia.Controls.Controls.CodeWFWindow)window).IsTitleBarVisible && vm.Layout.SidebarColumnWidth.Value == 0 && !vm.Layout.ShowStatusBar,
+            "Presentation hides chrome and editing controls without replacing the document: " + prior);
+        Check(vm.Layout.CurrentWindowState == WindowState.FullScreen && vm.Markdown == "*alpha* beta", "Presentation uses the current Markdown in full screen");
+        for (var i = 0; i < 30; i++) wb.IncreasePresentationText();
+        Check(wb.PresentationZoom == 2.5 && !wb.CanIncreasePresentationText, "Presentation text caps at 250 percent");
+        for (var i = 0; i < 30; i++) wb.DecreasePresentationText();
+        Check(wb.PresentationZoom == 1 && !wb.CanDecreasePresentationText, "Presentation text has a readable lower bound");
+        window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); window.KeyRelease(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Pump();
+        Check(!wb.IsPresenting && wb.IsInstantEditing && vm.Layout.CurrentWindowState == prior && live.CaptureState().Current == originalState.Current,
+            "Escape restores mode, active block, selection and prior window state: " + prior);
+        Check(app.Resolve<IAppSettingsStore>().Current == originalSettings, "Presentation does not persist layout or typography preferences");
+    }
+    vm.Layout.CurrentWindowState = WindowState.Normal;
+    foreach (var width in new[] { 980, 1280 })
+    {
+        window.Width = width; vm.Layout.SidebarWidth = width == 980 ? 560 : 226; wb.ShowSource(); Pump(); SettleRendering();
+        var origin = toolbar.TranslatePoint(default, options)!.Value;
+        Check(toolbar.Bounds.Height <= 30 && origin.X >= 0 && origin.X + toolbar.Bounds.Width <= options.Bounds.Width,
+            "Formatting remains one compact row inside the available editor width: " + width);
+        var more = toolbar.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(button => button.Name == "button");
+        Check(more.IsEffectivelyVisible && more.Bounds.Width > 0, "More formatting remains reachable with automatic overflow: " + width);
+        if (width == 980) Check(toolbar.Classes.Contains(":overflow"), "Narrow document moves formatting commands into Ursa overflow");
+        Capture(window, "editing-tools-" + width);
+    }
+    window.Width = 1280; vm.Layout.SidebarWidth = 226;
+    foreach (var palette in vm.Appearance.PaletteOptions)
+    foreach (var theme in new[] { "light", "dark" })
+    {
+        vm.Appearance.SelectedPalette = palette; vm.Appearance.SelectThemeByKey(theme); wb.ShowSource(); Pump();
+        InspectToggle(options.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(button => button.Classes.Contains("wb-quiet") && button.IsChecked == true));
+        wb.ShowRead(); Pump();
+        Check(!toolbar.IsEffectivelyVisible && options.FindControl<Button>("StartPresentation")!.IsEffectivelyVisible, "Read view offers presentation without editing formats");
+        InspectToggle(window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(button => button.Classes.Contains("wb-view") && button.IsChecked == true));
+        wb.ShowMindMap(); Pump(); Check(!options.IsEffectivelyVisible, "Mind map keeps the editing row hidden");
+
+        void InspectToggle(Avalonia.Controls.Primitives.ToggleButton toggle)
+        {
+            var center = toggle.TranslatePoint(new Point(toggle.Bounds.Width / 2, toggle.Bounds.Height / 2), window)!.Value;
+            var outside = new Point(2, 2);
+            window.MouseMove(outside); Pump(); Inspect("normal");
+            window.MouseMove(center); Pump(); Inspect("hover");
+            window.MouseDown(center, MouseButton.Left); Pump(); Inspect("pressed");
+            window.MouseMove(outside); window.MouseUp(outside, MouseButton.Left); Pump();
+            void Inspect(string state)
+            {
+                var presenter = toggle.GetVisualDescendants().OfType<ContentPresenter>().Single(control => control.Name == "PART_ContentPresenter");
+                var text = presenter.GetVisualDescendants().OfType<TextBlock>().First();
+                var foreground = ((ISolidColorBrush)text.Foreground!).Color;
+                var background = (presenter.Background as ISolidColorBrush)?.Color ?? Colors.Transparent;
+                if (background.A == 0) background = ((ISolidColorBrush)window.FindResource("VexPanelBackgroundBrush")!).Color;
+                Check(Contrast(foreground, background) >= 4.5, $"Selected mode remains readable {palette.Key}/{theme}/{state}");
+            }
+        }
+    }
+    foreach (var culture in new[] { "zh-CN", "zh-Hant", "en-US", "ja-JP" })
+    {
+        app.Resolve<IAppLocalizer>().SetCulture(culture); wb.ShowSource(); Pump();
+        Check((string?)ToolTip.GetTip(options.FindControl<Button>("FormatBold")!) == CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(Vex.VexL.Bold), "Formatting tooltip follows language: " + culture);
+    }
+    void Click(Button button)
+    {
+        var point = button.TranslatePoint(new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), window)!.Value;
+        window.MouseMove(point); window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Pump();
+    }
 }
 
 void VerifyDialogButtonStates(VerificationVexApp app, Window window, MainWindowViewModel vm, string kind, bool auditOnly = false)

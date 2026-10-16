@@ -8,9 +8,6 @@ namespace Vex.Modules.Shell.Views;
 
 public partial class ShellFilesView : UserControl
 {
-    private async void OpenFolderClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    { if (TopLevel.GetTopLevel(this)?.DataContext is Vex.Modules.Shell.ViewModels.MainWindowViewModel vm) await vm.OpenFolderAsync(); }
-
     public ShellFilesView()
     {
         InitializeComponent();

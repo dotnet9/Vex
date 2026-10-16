@@ -174,8 +174,8 @@
         <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
         <Setter Property="IsExpanded" Value="True" />
         <Setter Property="Padding" Value="0" />
-        <Setter Property="MinHeight" Value="25" />
-        <Setter Property="Margin" Value="0 1" />
+        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="Margin" Value="0" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Top" />
     </Style>
@@ -190,14 +190,14 @@
     </Style>
     <Style Selector="TreeView.side-tree TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron">
         <Setter Property="Width" Value="16" />
-        <Setter Property="Height" Value="25" />
+        <Setter Property="Height" Value="32" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <!-- 文档卡片行（对应原型 .tree-row）：圆角卡片 + 选中主题色左竖条与浅底 -->
     <Style Selector="TreeView.side-tree Border.file-card">
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="5" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Background" Value="Transparent" />
     </Style>
@@ -241,8 +241,8 @@
 
     <Style Selector="TreeView.side-tree Border.file-card TextBlock.file-heading">
         <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
-        <Setter Property="FontSize" Value="12.5" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Normal" />
     </Style>
 
     <Style Selector="TreeView.side-tree Border.file-card.selected TextBlock.file-heading">

@@ -24,9 +24,9 @@
     },
     {
       name: '写作', title: '写的时候，就能看见效果', visual: codeVisual,
-      description: '点击聚光中的段落直接编辑。当前块显示输入与实时效果，其余内容保持排版；离开这一块，正文就恢复排版。',
-      tip: ['编辑有两种方式', '“即时渲染”适合专注写作；“源码对照”适合检查 Markdown。它们都属于编辑视图。'],
-      task: '点击高亮段落，输入几个字或 **加粗**，看看实时效果。',
+      description: '点击聚光中的段落直接编辑。当前块显示 Markdown 源码，其余内容保持排版；离开这一块，正文就恢复排版。',
+      tip: ['编辑有两种方式', '“即时渲染”适合专注写作；“源码”适合检查 Markdown。它们都属于编辑视图。'],
+      task: '点击高亮段落，输入几个字或 **加粗**，完成后查看排版。',
       targets: function () { return ['#instant-content > .instant-block:nth-child(2)']; },
       allow: '#instant-content > .instant-block:nth-child(2), #instant-content > .instant-block:nth-child(2) *', placement: 'left',
       prepare: function () { VexProto.handleAction('edit-instant'); $('.instant-scroll').scrollTop = 0; }
@@ -79,7 +79,7 @@
   function updateFeedback() {
     if (!open || completed) return;
     var feedback = $('.tour-feedback'); if (!feedback) return;
-    var messages = ['已切换视角。内容会一起变化，继续体验写作。', '已看到实时效果。Ctrl+Enter 可以完成当前块。', '排版已更新。选中的样式也会用于正文预览。', '摘要与全文是两回事；改变长度不会改写内容。', '已体验保存 / 导出。日常操作都能从这里找到。'];
+    var messages = ['已切换视角。内容会一起变化，继续体验写作。', '正在编辑当前块源码。Ctrl+Enter 可以完成当前块。', '排版已更新。选中的样式也会用于正文预览。', '摘要与全文是两回事；改变长度不会改写内容。', '已体验保存 / 导出。日常操作都能从这里找到。'];
     feedback.classList.toggle('done', tasks.has(stepIndex));
     var text = tasks.has(stepIndex) ? messages[stepIndex] : steps[stepIndex].task;
     if (feedback.textContent !== text) feedback.textContent = text;

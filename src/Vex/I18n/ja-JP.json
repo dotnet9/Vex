@@ -1,4 +1,4 @@
-{
+﻿{
   "language": "Japanese",
   "description": "日本語",
   "cultureName": "ja-JP",
@@ -508,7 +508,6 @@
       "WBReset": "既定に戻す",
       "WBWorkspace": "ワークスペース",
       "WBLocalWorkspace": "ローカルワークスペース",
-
       "WBTheme": "外観",
       "GuideSkip": "スキップ",
       "GuidePrevious": "戻る",
@@ -539,7 +538,14 @@
       "GuideFeedbackChooseTheme": "右のカードでスタイルを選んでください",
       "GuideFeedbackSummary": "✓ 要約は最大 {0} 文字です",
       "GuideFeedbackSummaryDefault": "既定は 30 文字。全文は保持されます",
-      "GuideFeedbackTemporary": "これは一時的な例です。保存と出力は自分で実行できます。"
+      "GuideFeedbackTemporary": "これは一時的な例です。保存と出力は自分で実行できます。",
+      "WBFormatting": "書式設定",
+      "WBHeadings": "見出し",
+      "WBMoreFormatting": "その他の書式",
+      "WBPresentation": "ドキュメントをプレゼンテーション",
+      "WBPresentationExit": "プレゼンテーションを終了（Esc）",
+      "WBPresentationLarger": "表示文字を大きくする",
+      "WBPresentationSmaller": "表示文字を小さくする"
     }
   }
 }

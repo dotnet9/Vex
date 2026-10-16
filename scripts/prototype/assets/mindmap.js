@@ -35,7 +35,7 @@
         while (i < lines.length && !(new RegExp('^ {0,3}' + marker[0] + '{' + marker.length + ',}\\s*$')).test(lines[i])) i++;
         var content = lines.slice(start + 1, i).join('\n');
         if (i < lines.length) i++;
-        block('code', content, start, i - 1, { label: '代码块' + (language ? ' · ' + language : '') });
+        block('code', content, start, i - 1, { language: language || 'text', label: '代码块' + (language ? ' · ' + language : '') });
       } else if ((match = heading(line))) {
         block('heading', plain(match[2]), i, i, { level: match[1].length }); i++;
       } else if (i + 1 < lines.length && /^ {0,3}(?:=+|-+)\s*$/.test(lines[i + 1])) {

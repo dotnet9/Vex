@@ -1,4 +1,4 @@
-{
+﻿{
   "language": "English",
   "description": "English",
   "cultureName": "en-US",
@@ -508,7 +508,6 @@
       "WBReset": "Reset defaults",
       "WBWorkspace": "Workspace",
       "WBLocalWorkspace": "Local workspace",
-
       "WBTheme": "Appearance",
       "GuideSkip": "Skip",
       "GuidePrevious": "Back",
@@ -539,7 +538,14 @@
       "GuideFeedbackChooseTheme": "Choose a typography card on the right",
       "GuideFeedbackSummary": "✓ Summaries use up to {0} characters",
       "GuideFeedbackSummaryDefault": "30 characters by default; the full text is preserved",
-      "GuideFeedbackTemporary": "This is a temporary sample. Saving and exporting require your action."
+      "GuideFeedbackTemporary": "This is a temporary sample. Saving and exporting require your action.",
+      "WBFormatting": "Formatting",
+      "WBHeadings": "Headings",
+      "WBMoreFormatting": "More formatting",
+      "WBPresentation": "Present document",
+      "WBPresentationExit": "Exit presentation (Esc)",
+      "WBPresentationLarger": "Increase presentation text",
+      "WBPresentationSmaller": "Decrease presentation text"
     }
   }
 }
