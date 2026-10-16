@@ -14,6 +14,8 @@ python -m http.server 8791 --bind 127.0.0.1
 
 支持 URL 参数 `view=edit|read|mindmap`、`edit=instant|source`、`typography=Simple|TechnologyBlue|…`、`palette` 和 `theme=light|dark|system`。
 
+八套配色的主按钮使用 StudioTheme 独立主色、悬停色、按下色和前景令牌，危险按钮使用 Semi 危险色与浅底反馈；原型及实际浮层都回归十六种浅深组合下的普通、悬停和按下状态，避免把用于文字的明亮强调色直接铺成白字按钮底色。
+
 ## 工作台设计
 
 - **编辑**：默认“即时渲染”，点击正文编辑当前块，输入时同步显示排版效果，离开后恢复正文排版；也可切换“源码对照”，并按需关闭右侧预览。编辑方式记住上次选择，三个主视图使用同一份内容。
@@ -87,18 +89,22 @@ python -m http.server 8791 --bind 127.0.0.1
 
 ```text
 design/
-├── index.html              主窗体与独立窗口
-├── assets/
-│   ├── theme.css/js        八套配色、三态模式与基础组件
-│   ├── dialogs.css         独立窗口样式
-│   ├── interact.js         新菜单分类与呼出分发
-│   ├── mindmap.js          原型 Markdown 结构解析与字形截断
-│   ├── instant-editor.js   分块输入、实时效果与源码同步
-│   ├── typography.js       18 套正文主题、持久化与导出样式
-│   ├── editing.css         编辑方式、正文排版与统一菜单
-│   ├── guide.css/js        5 步可操作聚光引导、演练与状态恢复
-│   └── workbench.css/js    工作台布局、视图、编辑与导图交互
-└── tests/                  浏览器自动检查
+├── index.html                      自包含交付原型
+└── tests/                          浏览器自动检查
+scripts/
+├── build_standalone_prototype.ps1   生成及校验交付 HTML
+└── prototype/
+    ├── index.template.html         主窗体与浮层模板
+    └── assets/
+        ├── theme.css/js            八套配色、三态模式与基础组件
+        ├── dialogs.css             浮层样式
+        ├── interact.js             菜单分类与呼出分发
+        ├── mindmap.js              Markdown 结构解析与字形截断
+        ├── instant-editor.js       分块输入、实时效果与源码同步
+        ├── typography.js           18 套正文主题、持久化与导出样式
+        ├── editing.css             编辑方式、正文排版与统一菜单
+        ├── guide.css/js            可操作聚光引导与状态恢复
+        └── workbench.css/js        工作台、编辑与导图交互
 ```
 
 ## 验证与边界

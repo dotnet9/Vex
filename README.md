@@ -171,6 +171,7 @@ dotnet run --project src\Vex\Vex.csproj -f net10.0
 ```powershell
 dotnet run --project scripts/update-verification/UpdateVerification.csproj -c Release
 dotnet run --project scripts/settings-verification/SettingsVerification.csproj -c Release
+dotnet run --project scripts/performance-verification/PerformanceVerification.csproj -c Release -- E:/github/temp/vex-performance
 dotnet run --project scripts/about-visual-verification/AboutVisualVerification.csproj -c Release -- ./artifacts/about-verification
 dotnet run --project scripts/ui-verification/UiVerification.csproj -c Release -- vex ./artifacts/ui-verification
 npm ci --prefix design/tests
