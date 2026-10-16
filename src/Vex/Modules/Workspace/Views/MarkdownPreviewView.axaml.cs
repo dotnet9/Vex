@@ -19,7 +19,7 @@ public partial class MarkdownPreviewView : UserControl
         if (change.Property == IsReadingModeProperty && PreviewMarkdownViewer is not null)
         {
             PaneHeader.IsVisible = !IsReadingMode;
-            PreviewMarkdownViewer.MaxWidth = IsReadingMode ? 692 : double.PositiveInfinity;
+            PreviewMarkdownViewer.MaxWidth = IsReadingMode ? 1192 : double.PositiveInfinity;
             PreviewMarkdownViewer.Margin = IsReadingMode ? new Thickness(44, 44, 44, 60) : new Thickness(30, 22, 30, 30);
         }
     }

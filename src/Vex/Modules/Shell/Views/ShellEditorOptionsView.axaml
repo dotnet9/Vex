@@ -9,7 +9,6 @@
       <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBRead}}" Classes="wb-muted" IsVisible="{Binding Workbench.IsReading}" VerticalAlignment="Center"/>
       <TextBlock x:Name="MethodHint" Grid.Column="1" Text="{Binding Workbench.EditingHint}" Classes="wb-muted" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
       <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-        <ToggleButton Classes="wb-quiet" Content="{i18n:I18n {x:Static l:VexL.PreviewPaneTitle}}" Command="{Binding Workbench.ToggleSourcePreview}" IsChecked="{Binding Workbench.SourcePreviewEnabled, Mode=OneWay}" IsVisible="{Binding Workbench.IsSourceEditing}"/>
         <Button x:Name="TypographyTarget" Classes="wb-quiet" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBTypography}}"/><TextBlock Text="{i18n:I18n {Binding Appearance.SelectedTypography.NameKey}}" FontWeight="SemiBold"/><TextBlock Text="⌄"/></StackPanel></Button>
       </StackPanel>
     </Grid>

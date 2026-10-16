@@ -105,25 +105,21 @@
         </Border>
 
         <shell:ShellWorkbenchToolbarView x:Name="WorkbenchToolbar" Grid.Row="0"/>
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" x:Name="WorkspaceColumns">
             <Grid.ColumnDefinitions>
-                <!-- 侧栏宽度由内层动画容器的 ExpandedSize 与分隔条拖动共同决定 -->
-                <ColumnDefinition Width="Auto" MinWidth="0" />
+                <!-- 列宽是侧栏尺寸的唯一来源，拖动结果直接通过双向绑定进入布局状态。 -->
+                <ColumnDefinition Width="{Binding Layout.SidebarColumnWidth, Mode=TwoWay}"
+                                  MinWidth="{Binding Layout.MinimumVisibleSidebarWidth}"
+                                  MaxWidth="{Binding Layout.MaximumVisibleSidebarWidth}" />
                 <ColumnDefinition Width="{Binding Layout.SidebarSplitterWidth}" />
-                <ColumnDefinition Width="*" MinWidth="0" />
+                <ColumnDefinition Width="*" MinWidth="360" />
             </Grid.ColumnDefinitions>
 
             <Border
                 x:Name="SidebarGuideTarget"
                 Grid.Column="0"
-                Width="{Binding Layout.VisibleSidebarWidth}"
                 ClipToBounds="True"
                 IsHitTestVisible="{Binding Layout.IsSidebarVisible}">
-                <Border.Transitions>
-                    <Transitions>
-                        <DoubleTransition Property="Width" Duration="{DynamicResource MotionDurationMid}" />
-                    </Transitions>
-                </Border.Transitions>
                 <Border Classes="panel">
                     <TabControl
                         Classes="sidebar-tabs"
@@ -138,13 +134,13 @@
                 </Border>
             </Border>
 
-            <!-- 拖动侧栏分隔条即写回宽度（记住到设置）；列宽为 Auto，由动画容器决定 -->
+            <!-- 扩大命中区域，但只绘制细分隔线；窄窗口仍为正文保留最小宽度。 -->
             <GridSplitter
                 x:Name="SidebarSplitter"
                 Grid.Column="1"
                 HorizontalAlignment="Stretch"
                 IsVisible="{Binding Layout.IsSidebarVisible}"
-                ResizeDirection="Columns" />
+                ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
 
             <Grid Grid.Column="2" RowDefinitions="Auto,*">
                 <shell:ShellEditorOptionsView x:Name="EditorOptions"/>

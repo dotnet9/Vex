@@ -30,7 +30,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string McpAccessScope = nameof(AppSettings.McpAccessScope);
     private const string McpAllowedWorkspacePath = nameof(AppSettings.McpAllowedWorkspacePath);
     private const string McpRequireConfirmation = nameof(AppSettings.McpRequireConfirmation);
-    private const string SourcePreviewEnabled = nameof(AppSettings.SourcePreviewEnabled);
     private const string WorkbenchView = nameof(AppSettings.WorkbenchView);
     private const string EditMode = nameof(AppSettings.EditMode);
     private const string MindMapSummaryLength = nameof(AppSettings.MindMapSummaryLength);
@@ -102,7 +101,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
             McpAccessScope = Get<string>(configuration, McpAccessScope),
             McpAllowedWorkspacePath = Get<string>(configuration, McpAllowedWorkspacePath),
             McpRequireConfirmation = Get<bool?>(configuration, McpRequireConfirmation),
-            SourcePreviewEnabled = Get<bool?>(configuration, SourcePreviewEnabled),
             WorkbenchView = Get<string>(configuration, WorkbenchView),
             EditMode = Get<string>(configuration, EditMode),
             MindMapSummaryLength = Get<int?>(configuration, MindMapSummaryLength),
@@ -148,7 +146,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [McpAccessScope] = settings.McpAccessScope,
                 [McpAllowedWorkspacePath] = settings.McpAllowedWorkspacePath,
                 [McpRequireConfirmation] = settings.McpRequireConfirmation,
-                [SourcePreviewEnabled] = settings.SourcePreviewEnabled,
                 [WorkbenchView] = settings.WorkbenchView,
                 [EditMode] = settings.EditMode,
                 [MindMapSummaryLength] = settings.MindMapSummaryLength,

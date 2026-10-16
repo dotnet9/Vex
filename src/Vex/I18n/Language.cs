@@ -514,7 +514,6 @@ namespace Vex
         public static readonly string WBReset = "Vex.VexL.WBReset";
         public static readonly string WBWorkspace = "Vex.VexL.WBWorkspace";
         public static readonly string WBLocalWorkspace = "Vex.VexL.WBLocalWorkspace";
-        public static readonly string WBSourcePreview = "Vex.VexL.WBSourcePreview";
         public static readonly string WBTheme = "Vex.VexL.WBTheme";
         public static readonly string GuideSkip = "Vex.VexL.GuideSkip";
         public static readonly string GuidePrevious = "Vex.VexL.GuidePrevious";

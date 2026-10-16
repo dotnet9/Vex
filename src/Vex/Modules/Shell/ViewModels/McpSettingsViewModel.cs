@@ -39,12 +39,10 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         Load();
     }
 
-    public event EventHandler? CloseRequested;
-
     // 浮层关闭语义：Ursa 对话框要求 VM 实现 IDialogContext。
     public event EventHandler<object?>? RequestClose;
 
-    public void Close() => CloseRequested?.Invoke(this, EventArgs.Empty);
+    public void Close() => RequestClose?.Invoke(this, null);
 
     public bool IsEnabled
     {
@@ -177,12 +175,12 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         _confirmationService.ResetRememberedChoices();
         await _serverHost.ApplySettingsAsync();
         RefreshStatus();
-        CloseRequested?.Invoke(this, EventArgs.Empty);
+        Close();
     }
 
     public void Cancel()
     {
-        CloseRequested?.Invoke(this, EventArgs.Empty);
+        Close();
     }
 
     private void Load()

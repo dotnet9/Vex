@@ -25,6 +25,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool? _sidebarVisibleBeforeFocus;
     private bool? _statusBarVisibleBeforeFocus;
     private double _sidebarWidth = DefaultSidebarWidth;
+    private bool _isSidebarResizing;
 
     /// <summary>侧栏默认宽度，与 design/index.html 主区栅格一致。</summary>
     public const double DefaultSidebarWidth = 226d;
@@ -69,6 +70,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
                 OnPropertyChanged(nameof(SidebarColumnWidth));
                 OnPropertyChanged(nameof(VisibleSidebarWidth));
                 OnPropertyChanged(nameof(SidebarSplitterWidth));
+                OnPropertyChanged(nameof(MinimumVisibleSidebarWidth));
+                OnPropertyChanged(nameof(MaximumVisibleSidebarWidth));
                 PersistLayoutSettings();
             }
         }
@@ -114,11 +117,30 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
             OnPropertyChanged(nameof(SidebarColumnWidth));
             OnPropertyChanged(nameof(VisibleSidebarWidth));
-            PersistLayoutSettings();
+            if (!_isSidebarResizing) PersistLayoutSettings();
         }
     }
 
-    public GridLength SidebarColumnWidth => new(VisibleSidebarWidth);
+    /// <summary>拖动期间即时更新内存布局，结束时统一保存，避免每个像素同步写入配置。</summary>
+    public void BeginSidebarResize() => _isSidebarResizing = true;
+
+    public void CompleteSidebarResize()
+    {
+        _isSidebarResizing = false;
+        if (_settingsStore.Current.SidebarWidth != SidebarWidth) PersistLayoutSettings();
+    }
+
+    public GridLength SidebarColumnWidth
+    {
+        get => new(VisibleSidebarWidth);
+        set
+        {
+            if (IsSidebarVisible && value.IsAbsolute && double.IsFinite(value.Value)) SidebarWidth = value.Value;
+        }
+    }
+
+    public double MinimumVisibleSidebarWidth => IsSidebarVisible ? MinSidebarWidth : 0;
+    public double MaximumVisibleSidebarWidth => IsSidebarVisible ? MaxSidebarWidth : 0;
 
     private bool _isCompactWindow;
     public bool IsCompactWindow
@@ -128,7 +150,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     }
     public double VisibleSidebarWidth => IsSidebarVisible ? IsCompactWindow && Math.Abs(SidebarWidth - DefaultSidebarWidth) < .01 ? 200 : SidebarWidth : 0;
 
-    public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(1) : new GridLength(0);
+    public GridLength SidebarSplitterWidth => IsSidebarVisible ? new GridLength(5) : new GridLength(0);
 
     public GridLength SourceColumnWidth => IsSourceMode ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
 
@@ -183,6 +205,9 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             OnPropertyChanged(nameof(IsStatusBarVisible));
             OnPropertyChanged(nameof(SidebarColumnWidth));
             OnPropertyChanged(nameof(SidebarSplitterWidth));
+            OnPropertyChanged(nameof(VisibleSidebarWidth));
+            OnPropertyChanged(nameof(MinimumVisibleSidebarWidth));
+            OnPropertyChanged(nameof(MaximumVisibleSidebarWidth));
             _statusPublisher.PublishResource(value
                 ? VexL.StatusFocusModeEnabled
                 : VexL.StatusFocusModeDisabled);

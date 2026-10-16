@@ -71,7 +71,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity")
+if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().WithInterFont()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -85,6 +85,7 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
         window.Close();
         return;
     }
+    if (mode == "layout") { VerifyWorkspaceLayout(app, window, vm); window.Close(); return; }
     ControlLocaleVerification.Run(window, ["zh-CN", "en-US", "zh-Hant", "ja-JP"], app.Resolve<IAppLocalizer>().SetCulture);
     var languageSelector = window.FindControl<ComboBox>("TitleBarLanguageSelector")!;
     foreach (var culture in new[] { "en-US", "zh-Hant", "ja-JP", "zh-CN" })
@@ -104,6 +105,7 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
     {
         vm.Workbench.ShowSource(); Pump(); VerifyEditingPreferences(app, window, vm); VerifyLocalizedGuide(window, vm); window.Close(); return;
     }
+
     vm.Workbench.ShowSource();
     Pump();
     VerifyTitleLayout(window);
@@ -229,8 +231,18 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
     Capture(window, "vex-about");
     aboutModel.Close();
     Pump(aboutTask);
+    // 产品可达的关于与设置均使用 Ursa 宿主浮层，不触发 Prism 默认 DialogWindow。
+    var settingsTask = app.Resolve<IShellOverlayService>().ShowMcpSettingsAsync(app.Resolve<McpSettingsViewModel>());
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.McpSettingsOverlayView>().Any());
+    var settingsOverlay = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.McpSettingsOverlayView>().Single();
+    Check(settingsOverlay.IsEffectivelyVisible && !titleMenu.IsEffectivelyEnabled,
+        "Settings opens in the existing Ursa modal host without a Prism dialog window");
+    ((McpSettingsViewModel)settingsOverlay.DataContext!).Cancel(); Pump(settingsTask);
+    Check(!window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.McpSettingsOverlayView>().Any(),
+        "Cancel closes the MCP settings modal through IDialogContext");
     VerifyDialogButtonStates(app, window, vm, "primary");
     VerifyDialogButtonStates(app, window, vm, "danger");
+    vm.Workbench.ShowRead(); Pump(); SettleRendering();
     window.Width = 1280; window.Height = 820; Pump();
     VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
     Check(vm.Appearance.PaletteOptions.Count == 8 && vm.Appearance.ThemeOptions.Count == 3,
@@ -644,18 +656,18 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     var wb = vm.Workbench;
     wb.ShowInstant(); Pump();
     Check(!source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && instant.IsEffectivelyVisible, "Instant mode hides the source and read views");
-    Check(instant.Editor.DocumentMaxWidth == 810 && instant.Editor.EditorFontSize == 13.5, "Instant document uses the prototype reading width and base font");
+    Check(instant.Editor.DocumentMaxWidth == 1280 && instant.Editor.EditorFontSize == 14.5, "Instant document uses the prototype reading width and base font");
     Check(window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.Bounds.Height == 62
         && window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
         "Workbench and editing context rows are 62 and 42 px");
-    wb.ShowSource(); wb.SourcePreviewEnabled = false; Pump();
-    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && source.Bounds.Width > 1000, "Source preview can be disabled for full width editing");
-    Check(app.Resolve<IAppSettingsStore>().Current.SourcePreviewEnabled == false, "Source preview preference is persisted separately from the active view");
+    wb.ShowSource(); Pump();
+    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && source.Bounds.Width > 1000, "Source mode always presents one full width editor without a parallel preview");
+    Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Count() == 2,
+        "Editing options offer instant and source modes without a preview toggle");
     wb.ShowRead(); Pump();
     Check(preview.IsEffectivelyVisible && preview.IsReadingMode && !source.IsEffectivelyVisible && !instant.IsEffectivelyVisible, "Read mode has one read only document and no duplicate preview header");
     app.Resolve<MarkdownEditorViewModel>().ApplySearch(new EditorSearchCommand(EditorSearchAction.Count, "Markdown")); Pump();
     Check(wb.IsReading && vm.Markdown == document, "Counting search matches keeps the reading view and document unchanged");
-    wb.SourcePreviewEnabled = true;
     wb.ShowInstant(); wb.ShowTypography = true; Pump();
     var gallery = window.FindControl<Border>("TypographyGallery")!;
     var cards = gallery.GetVisualDescendants().OfType<Border>().Where(b => b.Width == 90 && b.Height == 58).ToArray();
@@ -701,18 +713,16 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     Check(stats.IsEffectivelyVisible, "Status bar character count opens real document statistics");
     ShellOverlayHost.Dismiss(stats); Pump(statsTask);
     var shell = (Vex.Modules.Shell.Views.MainWindow)window;
-    wb.SourcePreviewEnabled = false;
     shell.BeginOnboardingGuide(); Pump();
     var guide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
     guide.ShowStep(1); Pump();
     Check(guide.SpotlightTargets.Count >= 2, "Instant guide highlights editing options and editable content together");
     var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Source = source.FindControl<MarkdownEditorView>("MarkdownEditor")!.Editor.TextArea, Key = Key.Right };
     Check(!guide.HandleKey(key) && guide.StepIndex == 1, "Guide leaves editor arrow keys available for typing");
-    vm.Appearance.SelectTypographyByKey("OrangeHeart"); wb.SourcePreviewEnabled = true; guide.ShowStep(3); Pump();
+    vm.Appearance.SelectTypographyByKey("OrangeHeart"); guide.ShowStep(3); Pump();
     Check(guide.SpotlightTargets.Count >= 2, "Map guide highlights the settings and canvas together");
     guide.Finish(); Pump();
-    Check(!wb.SourcePreviewEnabled && vm.Appearance.SelectedTypography == typography && vm.Markdown == document, "Guide restores preview, typography and original document after real interactions");
-    wb.SourcePreviewEnabled = true;
+    Check(vm.Appearance.SelectedTypography == typography && vm.Markdown == document, "Guide restores typography and original document after real interactions");
     window.Width = 980; window.Height = 640; Pump();
     Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 200, "Narrow windows use the prototype 200 px default sidebar");
     foreach (var mode in new[] { "instant", "read", "mindmap" })
@@ -856,6 +866,104 @@ void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
     }
     appearance.SelectedTheme = originalTheme; appearance.SelectedPalette = originalPalette; appearance.SelectedLanguage = originalLanguage;
     window.Width = 1280; Pump();
+}
+
+void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowViewModel vm)
+{
+    app.Resolve<IWorkspaceDocumentState>().UpdateDocument("""
+        # Layout sample
+
+        A readable paragraph and a compact table.
+
+        | API | Description |
+        | --- | --- |
+        | Read | A longer description that wraps naturally in a narrow window. |
+
+        ```text
+        project/
+          src/
+          tests/
+        ```
+        """, null);
+    var sidebar = window.FindControl<Border>("SidebarGuideTarget")!;
+    var columns = window.FindControl<Grid>("WorkspaceColumns")!;
+    var splitter = window.FindControl<GridSplitter>("SidebarSplitter")!;
+    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
+    var insert = titleMenu.FindControl<MenuItem>("InsertMenuItem")!;
+    Check(insert.Items.OfType<MenuItem>().Count() == 21 && insert.Items.OfType<MenuItem>().All(item => item.Items.Count == 0),
+        "All insert actions are direct commands without nested groups");
+    var view = titleMenu.FindControl<MenuItem>("ViewMenuItem")!;
+    Check(view.Items.OfType<MenuItem>().All(item => item.Items.Count == 0), "View menu contains no repeated appearance submenus");
+    foreach (var width in new[] { 1280, 980, 1920 })
+    {
+        window.Width = width; window.Height = width == 980 ? 640 : 900; vm.Layout.IsSidebarVisible = true;
+        vm.Layout.SidebarWidth = ShellWindowLayoutViewModel.DefaultSidebarWidth; vm.Workbench.ShowInstant(); Pump();
+        foreach (var delta in new[] { 90d, -40d, 220d, -400d, 70d })
+        {
+            var settings = (MemorySettings)app.Resolve<IAppSettingsStore>();
+            var writesBefore = settings.UpdateCount;
+            var before = sidebar.Bounds.Width;
+            var origin = splitter.TranslatePoint(new Point(splitter.Bounds.Width / 2, splitter.Bounds.Height / 2), window)!.Value;
+            window.MouseMove(origin); window.MouseDown(origin, MouseButton.Left);
+            for (var step = 1; step <= 5; step++) { window.MouseMove(origin + new Vector(delta * step / 5, 0), RawInputModifiers.LeftMouseButton); Pump(); }
+            Check(settings.UpdateCount == writesBefore, "Dragging updates layout without writing settings for every pixel");
+            window.MouseUp(origin + new Vector(delta, 0), MouseButton.Left); Pump();
+            Check(settings.UpdateCount <= writesBefore + 1 && settings.Current.SidebarWidth == vm.Layout.SidebarWidth,
+                "Finishing a drag saves its final width once");
+            Check(Math.Abs(before - sidebar.Bounds.Width) > 1 || sidebar.Bounds.Width <= 200 || sidebar.Bounds.Width >= 560,
+                $"Sidebar responds to actual pointer dragging at width {width}: {before} -> {sidebar.Bounds.Width}");
+            Check(Math.Abs(sidebar.Bounds.Width - columns.ColumnDefinitions[0].ActualWidth) < 1
+                && Math.Abs(sidebar.Bounds.Width - vm.Layout.SidebarWidth) < 1,
+                "One sidebar width is shared by the column, visual and persisted state");
+            var contentLeft = instant.TranslatePoint(default, window)!.Value.X;
+            Check(Math.Abs(contentLeft - sidebar.Bounds.Width - splitter.Bounds.Width) < 1 && instant.Bounds.Width >= 360
+                && contentLeft + instant.Bounds.Width <= window.Bounds.Width + 1,
+                "Sidebar drag leaves no phantom column or clipped document");
+        }
+        var saved = vm.Layout.SidebarWidth;
+        vm.Layout.ShowOutline(); Pump(); vm.Layout.ShowFiles(); Pump();
+        Check(Math.Abs(sidebar.Bounds.Width - saved) < 1, "Files and outline retain the dragged width");
+        vm.Layout.IsSidebarVisible = false; Pump();
+        Check(sidebar.Bounds.Width == 0 && instant.Bounds.Width >= columns.Bounds.Width - 1, $"Collapsing releases the entire sidebar column: side={sidebar.Bounds.Width}; column={columns.ColumnDefinitions[0].Width}/{columns.ColumnDefinitions[0].ActualWidth}; min={columns.ColumnDefinitions[0].MinWidth}; max={columns.ColumnDefinitions[0].MaxWidth}; content={instant.Bounds.Width}; window={window.Bounds.Width}");
+        vm.Layout.IsSidebarVisible = true; Pump();
+        Check(Math.Abs(sidebar.Bounds.Width - saved) < 1 && app.Resolve<IAppSettingsStore>().Current.SidebarWidth == saved,
+            "Reopening restores the actual dragged and persisted width");
+        vm.Layout.SidebarWidth = 226; vm.Workbench.ShowInstant(); Pump();
+        var scroll = instant.Editor.GetVisualDescendants().OfType<ScrollViewer>().First();
+        var document = (Border)scroll.Content!;
+        if (width == 1920) Check(document.Bounds.Width >= 1200, "Wide instant document uses more than 1100 pixels for content and padding");
+        vm.Workbench.ShowRead(); Pump();
+        var rendered = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
+        Check(rendered.Bounds.Width + rendered.Margin.Left + rendered.Margin.Right <= preview.Bounds.Width + 1,
+            "Reading document fits the available width");
+        if (width == 1920) Check(rendered.Bounds.Width >= 1100 && rendered.Bounds.Width <= 1200, "Wide reading document reaches the responsive content cap");
+        Capture(window, $"layout-{width}-read");
+    }
+    window.Width = 1280; window.Height = 900; vm.Workbench.ShowRead(); Pump();
+    var viewer = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
+    foreach (var palette in vm.Appearance.PaletteOptions)
+    foreach (var theme in new[] { "light", "dark" })
+    {
+        vm.Appearance.SelectedPalette = palette; vm.Appearance.SelectThemeByKey(theme); Pump(); SettleRendering();
+        var code = viewer.GetVisualDescendants().OfType<SelectableTextBlock>().Single(block => block.Classes.Contains("MdCodeBlockText"));
+        var frame = code.GetVisualAncestors().OfType<Border>().First(border => border.Classes.Contains("MdCodeBlock"));
+        var brush = (ISolidColorBrush)frame.Background!;
+        preview.TryFindResource("VexPreviewBackgroundBrush", out var pageBackground);
+        var canvas = ((ISolidColorBrush)pageBackground!).Color;
+        var alpha = brush.Color.A / 255d * brush.Opacity;
+        byte Blend(byte front, byte back) => (byte)Math.Round(front * alpha + back * (1 - alpha));
+        var visibleBackground = Color.FromRgb(Blend(brush.Color.R, canvas.R), Blend(brush.Color.G, canvas.G), Blend(brush.Color.B, canvas.B));
+        Check(code.Inlines!.OfType<Avalonia.Controls.Documents.Run>().All(run => Contrast(((ISolidColorBrush)run.Foreground!).Color, visibleBackground) >= 4.5),
+            $"Plain code remains readable on the actual Semi background: {palette.Key}/{theme}");
+        Check(code.FontSize == 14 && code.LineHeight == 22 && viewer.ParagraphFontSize == 14.5,
+            "Rendered code and paragraph use the larger font baseline without a scale transform");
+        var copy = frame.GetVisualDescendants().OfType<Button>().Single(button => button.Classes.Contains("MdCopyButton"));
+        Check(copy.Bounds.Height <= 24 && Contrast(((ISolidColorBrush)copy.Foreground!).Color, visibleBackground) >= 4.5,
+            "Code copy action stays compact and readable without an accent fill");
+        Capture(window, $"code-{palette.Key}-{theme}");
+    }
 }
 
 void VerifyTitleLayout(Window window)
@@ -1044,12 +1152,17 @@ public sealed class VerificationVexApp : Vex.App
 
 public sealed class MemorySettings : IAppSettingsStore
 {
+    public int UpdateCount { get; private set; }
     public AppSettings Current { get; private set; } = new()
     {
         ThemeKey = "light", HasSeenOnboardingGuide = true, EnableMotion = false,
         IsMcpServerEnabled = false, IsSidebarVisible = true
     };
-    public AppSettings Update(Func<AppSettings, AppSettings> update) => Current = update(Current);
+    public AppSettings Update(Func<AppSettings, AppSettings> update)
+    {
+        UpdateCount++;
+        return Current = update(Current);
+    }
 }
 public sealed class MemoryDrafts : IAutoSaveDraftService
 {

@@ -27,7 +27,6 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     private bool _showMapSource;
     private bool _showMapSettings;
     private bool _showTypography;
-    private bool _sourcePreviewEnabled;
     private MarkdownMindMapNode? _root;
     private MarkdownMindMapNode? _selected;
     private MarkdownLiveEditorView? _live;
@@ -44,7 +43,6 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
         _view = settings.Current.WorkbenchView is "read" or "mindmap" ? settings.Current.WorkbenchView : "edit";
         _edit = settings.Current.EditMode == "source" ? "source" : "instant";
         _summaryLength = Math.Clamp(settings.Current.MindMapSummaryLength ?? 30, 1, 120);
-        _sourcePreviewEnabled = settings.Current.SourcePreviewEnabled ?? true;
         _showParagraphs = settings.Current.MindMapShowParagraphs ?? true;
         _showCode = settings.Current.MindMapShowCode ?? false;
         _showTables = settings.Current.MindMapShowTables ?? false;
@@ -78,9 +76,7 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     public int MapColumn => IsMindMap && ShowMapSource ? 2 : 0;
     public int MapSpan => ShowMapSource ? 1 : 3;
     public bool HasSelectedNode => SelectedNode is not null;
-    public bool IsPreviewVisible => IsReading || IsSourceEditing && SourcePreviewEnabled;
-    public bool SourcePreviewEnabled { get => _sourcePreviewEnabled; set { this.RaiseAndSetIfChanged(ref _sourcePreviewEnabled, value); NotifyModes(); _settings.Update(s => s with { SourcePreviewEnabled = value }); } }
-    public void ToggleSourcePreview() => SourcePreviewEnabled = !SourcePreviewEnabled;
+    public bool IsPreviewVisible => IsReading;
     private static string L(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
     public string EditingHint => L(IsInstantEditing ? VexL.WBInstantDescription : IsReading ? VexL.WBReadDescription : VexL.WBSourceDescription);
     public string InstantHint => L(VexL.WBInstantHint);
@@ -98,7 +94,7 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
 
     public Avalonia.Controls.GridLength SourceColumnWidth => !IsReading ? new(1, Avalonia.Controls.GridUnitType.Star) : new(0);
     public Avalonia.Controls.GridLength PreviewColumnWidth => IsPreviewVisible || IsMindMap && ShowMapSource ? new(IsMindMap ? 1.94 : 1.22, Avalonia.Controls.GridUnitType.Star) : new(0);
-    public Avalonia.Controls.GridLength SplitterWidth => IsSourceEditing && SourcePreviewEnabled || IsMindMap && ShowMapSource ? new(1) : new(0);
+    public Avalonia.Controls.GridLength SplitterWidth => IsMindMap && ShowMapSource ? new(1) : new(0);
     public string View => _view;
     public string EditMode => _edit;
     public string ViewLabel => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(IsReading ? VexL.WBRead : IsMindMap ? VexL.WBMap : IsInstantEditing ? VexL.WBInstant : VexL.WBSource) ?? string.Empty;
@@ -141,7 +137,6 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     public void RestorePreferences(Vex.Core.Models.AppSettings? settings, string view, string edit)
     {
         _edit = edit;
-        SourcePreviewEnabled = settings?.SourcePreviewEnabled ?? true;
         _summaryLength = Math.Clamp(settings?.MindMapSummaryLength ?? 30, 1, 120);
         _showParagraphs = settings?.MindMapShowParagraphs ?? true;
         _showCode = settings?.MindMapShowCode ?? false;
