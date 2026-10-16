@@ -1,4 +1,4 @@
-# 在打包边界检查暂存结构；Linux 同时调用真实 dpkg-deb，Windows 仅验证受控边界。
+﻿# 在打包边界检查暂存结构；Linux 同时调用真实 dpkg-deb，Windows 仅验证受控边界。
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ('Vex-deb-test-' + [Guid]::NewGuid().ToString('N'))
@@ -29,6 +29,11 @@ function global:dpkg-deb {
     if (-not $launcher.Contains('"$@"') -or $launcher.Contains([char]13)) { throw '启动参数或 LF 换行错误。' }
     $desktop = [IO.File]::ReadAllText((Join-Path $stage "usr/share/applications/$($context.Command).desktop"))
     if (-not $desktop.Contains("Icon=$($context.Command)") -or -not $desktop.Contains("Exec=$($context.Command)")) { throw '桌面菜单未绑定入口或图标。' }
+    $metadata = Get-Content -LiteralPath (Join-Path $repositoryRoot 'scripts/installer/linux/product.json') -Raw | ConvertFrom-Json
+    foreach ($entry in @("usr/share/metainfo/$($metadata.id).metainfo.xml", "usr/share/doc/$($metadata.package)/copyright")) {
+        if (-not (Test-Path -LiteralPath (Join-Path $stage $entry) -PathType Leaf)) { throw "缺少软件管理器元数据或许可：$entry" }
+    }
+    if (-not $desktop.Contains("Name[zh_CN]=$($metadata.chineseName)") -or -not $desktop.Contains("TryExec=$($metadata.command)")) { throw '本地化桌面入口没有同步。' }
     $control = [IO.File]::ReadAllText((Join-Path $stage 'DEBIAN/control'))
     $actualSize = [Math]::Ceiling(((Get-ChildItem -LiteralPath (Join-Path $stage 'usr') -Recurse -File | Measure-Object Length -Sum).Sum) / 1KB)
     if (-not $control.Contains("Installed-Size: $actualSize")) { throw '安装体积没有按实际运行文件计算。' }

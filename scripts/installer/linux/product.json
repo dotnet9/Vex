@@ -1,0 +1,16 @@
+{
+  "id": "com.codewf.vex",
+  "package": "vex",
+  "command": "vex",
+  "name": "Vex",
+  "chineseName": "维刻 Markdown 编辑器",
+  "summary": "Edit and preview Markdown documents",
+  "chineseSummary": "编辑和预览 Markdown 文档",
+  "description": "A desktop Markdown editor with document editing and rendered previews.",
+  "chineseDescription": "提供文档编辑和渲染预览的 Markdown 桌面编辑器。",
+  "categories": [
+    "Office",
+    "TextEditor"
+  ],
+  "homepage": "https://github.com/dotnet9/Vex"
+}

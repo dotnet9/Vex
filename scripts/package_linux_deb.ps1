@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("linux-x64", "linux-arm64")]
@@ -105,6 +105,8 @@ try {
     if (Test-Path -LiteralPath $packagePath) {
         Remove-Item -LiteralPath $packagePath -Force
     }
+    # 补齐独立安装包的图标、品牌和软件管理器元数据。
+    & (Join-Path $scriptRoot 'installer/linux/Write-LinuxPackageMetadata.ps1') -StagingDirectory $stageRoot -RepositoryRoot $repositoryRoot -Version $cleanVersion
     & dpkg-deb --build --root-owner-group $stageRoot $packagePath
     if ($LASTEXITCODE -ne 0) {
         throw "dpkg-deb failed with exit code $LASTEXITCODE."
