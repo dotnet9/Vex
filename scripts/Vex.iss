@@ -14,6 +14,7 @@
 #endif
 
 [Setup]
+LicenseFile=..\LICENSE
 AppId={{8F8111FF-79BD-4B8A-91F3-C23FAF6906EE}
 AppName=Vex
 AppVersion={#AppVersion}
@@ -45,21 +46,25 @@ Name: "chinesesimplified"; MessagesFile: "Languages\ChineseSimplified.isl"
 [CustomMessages]
 english.OpenWithVex=Open with Vex
 chinesesimplified.OpenWithVex=用 Vex 打开
+english.MarkdownAssociation=Register Vex as an opening option for Markdown files
+chinesesimplified.MarkdownAssociation=注册 Vex 为 Markdown 文件的打开方式候选
+english.FileAssociations=File associations:
+chinesesimplified.FileAssociations=文件关联：
 
 [Registry]
 ; 注册候选、图标与右键入口，默认打开程序由用户在系统设置中选择。
-Root: HKCU; Subkey: "Software\Classes\Vex.Markdown"; ValueType: string; ValueName: ""; ValueData: "Markdown"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Vex.Markdown\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\Vex.exe"",0"
-Root: HKCU; Subkey: "Software\Classes\Vex.Markdown\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Vex.exe"" ""%1"""
-Root: HKCU; Subkey: "Software\Classes\Applications\Vex.exe"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "Vex"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Applications\Vex.exe\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\Vex.exe"",0"
-Root: HKCU; Subkey: "Software\Classes\Applications\Vex.exe\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Vex.exe"" ""%1"""
+Root: HKCU; Subkey: "Software\Classes\Vex.Markdown"; ValueType: string; ValueName: ""; ValueData: "Markdown"; Flags: uninsdeletekey; Tasks: markdownassociation
+Root: HKCU; Subkey: "Software\Classes\Vex.Markdown\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\Vex.exe"",0"; Tasks: markdownassociation
+Root: HKCU; Subkey: "Software\Classes\Vex.Markdown\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Vex.exe"" ""%1"""; Tasks: markdownassociation
+Root: HKCU; Subkey: "Software\Classes\Applications\Vex.exe"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "Vex"; Flags: uninsdeletekey; Tasks: markdownassociation
+Root: HKCU; Subkey: "Software\Classes\Applications\Vex.exe\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\Vex.exe"",0"; Tasks: markdownassociation
+Root: HKCU; Subkey: "Software\Classes\Applications\Vex.exe\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Vex.exe"" ""%1"""; Tasks: markdownassociation
 #sub RegisterMarkdownExtension
-Root: HKCU; Subkey: "Software\Classes\Applications\Vex.exe\SupportedTypes"; ValueType: string; ValueName: "{#MarkdownExtension}"; ValueData: ""
-Root: HKCU; Subkey: "Software\Classes\{#MarkdownExtension}\OpenWithProgids"; ValueType: none; ValueName: "Vex.Markdown"; Flags: uninsdeletevalue
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\{#MarkdownExtension}\shell\OpenWithVex"; ValueType: string; ValueName: ""; ValueData: "{cm:OpenWithVex}"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\{#MarkdownExtension}\shell\OpenWithVex"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\Vex.exe"",0"
-Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\{#MarkdownExtension}\shell\OpenWithVex\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Vex.exe"" ""%1"""
+Root: HKCU; Subkey: "Software\Classes\Applications\Vex.exe\SupportedTypes"; ValueType: string; ValueName: "{#MarkdownExtension}"; ValueData: ""; Tasks: markdownassociation
+Root: HKCU; Subkey: "Software\Classes\{#MarkdownExtension}\OpenWithProgids"; ValueType: none; ValueName: "Vex.Markdown"; Flags: uninsdeletevalue; Tasks: markdownassociation
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\{#MarkdownExtension}\shell\OpenWithVex"; ValueType: string; ValueName: ""; ValueData: "{cm:OpenWithVex}"; Flags: uninsdeletekey; Tasks: markdownassociation
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\{#MarkdownExtension}\shell\OpenWithVex"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\Vex.exe"",0"; Tasks: markdownassociation
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\{#MarkdownExtension}\shell\OpenWithVex\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Vex.exe"" ""%1"""; Tasks: markdownassociation
 #endsub
 #define MarkdownExtension ".md"
 #emit RegisterMarkdownExtension
@@ -70,6 +75,7 @@ Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\{#MarkdownExtension
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "markdownassociation"; Description: "{cm:MarkdownAssociation}"; GroupDescription: "{cm:FileAssociations}"
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -80,3 +86,5 @@ Name: "{autodesktop}\Vex"; Filename: "{app}\Vex.exe"; WorkingDir: "{app}"; Tasks
 
 [Run]
 Filename: "{app}\Vex.exe"; Description: "{cm:LaunchProgram,Vex}"; Flags: nowait postinstall skipifsilent
+
+#include "installer\CodeWF.Setup.iss"
