@@ -12,14 +12,14 @@ on run argv
         set toolbar visible of imageWindow to false
         set statusbar visible of imageWindow to false
         set sidebar width of imageWindow to 0
-        set bounds of imageWindow to {120, 120, 840, 600}
+        set bounds of imageWindow to {120, 120, 720, 530}
         set imageOptions to icon view options of imageWindow
         set arrangement of imageOptions to not arranged
-        set icon size of imageOptions to 100
+        set icon size of imageOptions to 80
         set text size of imageOptions to 14
         set background picture of imageOptions to backgroundFile
-        set position of item appName of mountedFolder to {180, 235}
-        set position of item "Applications" of mountedFolder to {540, 235}
+        set position of item appName of mountedFolder to {170, 210}
+        set position of item "Applications" of mountedFolder to {430, 210}
         close imageWindow
         open mountedFolder
         update mountedFolder without registering applications

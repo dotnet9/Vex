@@ -12,7 +12,9 @@ $definitions = @(Get-ChildItem -LiteralPath $scripts -Filter '*.iss' -File)
 if ($definitions.Count -ne 1) { throw '每仓必须有一个产品安装入口。' }
 $definition = $definitions[0]
 $content = Get-Content -LiteralPath $definition.FullName -Raw -Encoding UTF8
-if ($content -notmatch '(?m)^#include\s+"installer\\CodeWF\.Setup\.iss"\s*$') { throw '安装入口未包含本仓视觉引擎。' }
+$visualEngine = if ($definition.BaseName -eq 'Vex') { 'Vex.Setup.iss' } else { 'CodeWF.Setup.iss' }
+if ($content -notmatch ('(?m)^#include\s+"installer\\' + [regex]::Escape($visualEngine) + '"\s*$')) { throw '安装入口未包含本仓视觉引擎。' }
+if (-not (Test-Path -LiteralPath (Join-Path $scripts ('installer/' + $visualEngine)))) { throw '产品视觉引擎缺失。' }
 if ($content -notmatch '(?m)^LicenseFile=\.\.\\LICENSE\s*$') { throw '安装入口未声明本仓许可。' }
 if ($content -notmatch 'Name: "english"; MessagesFile: "compiler:Default\.isl"') { throw '英文基础资源缺失。' }
 if ($content -notmatch 'Name: "chinesesimplified"; MessagesFile: "Languages\\ChineseSimplified\.isl"') { throw '本仓中文基础资源缺失。' }

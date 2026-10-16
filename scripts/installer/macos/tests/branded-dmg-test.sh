@@ -120,8 +120,13 @@ reset_fixture() {
   rm -f "$TEST_DETACH_COUNT" "$TEST_MOUNT" "$TEST_DEVICE" "$TEST_IMAGE"
 }
 for language in bilingual en zh; do
+  grep -Fq '>Vex</text>' "$asset_root/background-$language.svg"
   grep -Fq '>CodeWF</text>' "$asset_root/background-$language.svg"
-  grep -Fq 'NATIVE APPLICATION · CodeWF' "$asset_root/background-$language.svg"
+  if [[ "$language" == en ]]; then
+    grep -Fq 'Write your thoughts. See the connections.' "$asset_root/background-$language.svg"
+  else
+    grep -Fq '维刻 Vex · 写下想法，看见脉络。' "$asset_root/background-$language.svg"
+  fi
   grep -Fq '>codewf.com</text>' "$asset_root/background-$language.svg"
   ! grep -Fq '.NET' "$asset_root/background-$language.svg"
   reset_fixture
@@ -188,4 +193,4 @@ if FAIL_PHASE=detach bash "$asset_root/create-branded-dmg.sh" "$fixture/stage" '
 [[ ! -e "$fixture/failure-detach.dmg" ]]
 ! grep -q '^convert$' "$TEST_TRACE"
 if CODEWF_DMG_LANGUAGE=invalid bash "$asset_root/create-branded-dmg.sh" "$fixture/stage" 'Test App' "$fixture/invalid.dmg" >"$fixture/invalid.log" 2>&1; then exit 1; fi
-echo 'PASS: three CodeWF languages, stable device detach, partial volume unmount, already-detached proof, conservative unknown state, bounded busy retries, EXIT cleanup and failure propagation.'
+echo 'PASS: three Vex language backgrounds, stable device detach, partial volume unmount, already-detached proof, conservative unknown state, bounded busy retries, EXIT cleanup and failure propagation.'

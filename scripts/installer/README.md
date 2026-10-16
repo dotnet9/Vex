@@ -1,10 +1,20 @@
-# .NET 紫安装器
+# Vex 安装器
+
+Vex 的实际安装包由本目录及 `scripts/Vex.iss` 独立维护，不读取 `design/` 或 `src/` 中正在编辑的文件。应用发布完成后，安装器只消费指定发布目录中的载荷，无需为修改安装界面重新构建应用。
+
+Windows 产品入口使用 `Vex.Setup.iss`：默认约 520 × 366，右下角单切口，系统浅深主题，一键安装，目录与两个安装选项折叠在“自定义安装”。MIT 原文通过可选窗口查看，原生安装引擎继续负责进度、文件占用、取消、回滚与启动应用。维护沿用精确 AppId 探测与已注册卸载器校验；卸载保留系统原生确认与进度窗口。静默安装继续使用 Inno 的命令行参数。
+
+Vex 品牌固定为 **维刻 / Vex**，简体中文 Slogan 为 **维刻 Vex · 写下想法，看见脉络。**。macOS 使用精简的 Finder 拖放背景，Linux 使用标准软件管理器读取的产品元数据。二者的系统授权与复制、安装、移除交互仍由操作系统处理。
+
+独立验证入口：`tests/Vex.Fixture.iss` 与 `tests/verify_vex_fixture.ps1`。夹具只将 LICENSE 复制到指定临时目录，不注册、不建快捷方式、不启动应用；在独立桌面验证，不切换用户桌面。生产脚本可用 `scripts/tests/windows_setup_contract_test.ps1 -Compile -InnoSetupCompiler <ISCC.exe>` 在独立副本中编译受控载荷。
+
+## 共享基础快照
 
 源目录为 CodeWF.Avalonia 的 `scripts/installer`。所有 App 与两个 Demo 在各自仓库保留完整快照，打包不读取相邻仓库。`source-sha256.json` 记录共享源摘要；文本统一 LF，位图保持二进制。
 
 ## Windows
 
-产品 `.iss` 引入 `installer\CodeWF.Setup.iss`，继续定义自身 AppId、版本、权限、目录、任务、文件、图标和启动项。品牌层使用 Inno Setup 6 的原生页面与 Windows GDI，主色为 `#512BD4`，无需 WebView、联网下载或第三方皮肤 DLL。
+保留的 `CodeWF.Setup.iss` 是共享基础快照，以下说明用于其独立夹具与来源校验；Vex 产品入口已切换到上面的专用外观。共享层使用 Inno Setup 6 的原生页面与 Windows GDI，主色为 `#512BD4`，无需 WebView、联网下载或第三方皮肤 DLL。
 
 - 实际窗口区域为凹缺、突出左舱、右切角和阶梯底边。标题栏支持拖动与最小化，按钮保留原生键盘和焦点行为。
 - 深色、浅色、跟随系统循环切换；默认深色。系统外观只读，不修改用户个性化设置。

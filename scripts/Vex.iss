@@ -87,4 +87,4 @@ Name: "{autodesktop}\Vex"; Filename: "{app}\Vex.exe"; WorkingDir: "{app}"; Tasks
 [Run]
 Filename: "{app}\Vex.exe"; Description: "{cm:LaunchProgram,Vex}"; Flags: nowait postinstall skipifsilent
 
-#include "installer\CodeWF.Setup.iss"
+#include "installer\Vex.Setup.iss"

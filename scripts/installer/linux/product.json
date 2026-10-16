@@ -3,11 +3,11 @@
   "package": "vex",
   "command": "vex",
   "name": "Vex",
-  "chineseName": "维刻 Markdown 编辑器",
-  "summary": "Edit and preview Markdown documents",
-  "chineseSummary": "编辑和预览 Markdown 文档",
-  "description": "A desktop Markdown editor with document editing and rendered previews.",
-  "chineseDescription": "提供文档编辑和渲染预览的 Markdown 桌面编辑器。",
+  "chineseName": "维刻 Vex",
+  "summary": "Write your thoughts, see the connections",
+  "chineseSummary": "写下想法，看见脉络",
+  "description": "Vex · Write your thoughts. See the connections. A Markdown editor for writing, reading and exploring document structure.",
+  "chineseDescription": "维刻 Vex · 写下想法，看见脉络。用 Markdown 写作、阅读与梳理文档结构。",
   "categories": [
     "Office",
     "TextEditor"

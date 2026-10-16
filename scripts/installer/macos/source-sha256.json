@@ -1,26 +1,31 @@
 {
   "source_repository": "https://github.com/dotnet9/CodeWF.Avalonia",
   "source_directory": "scripts/installer/macos",
-  "visual_reference": "design/CodeWF.安装器原型.html — sculpted-net-theme/asymmetric-silhouette",
+  "visual_reference": "design/Vex-Installer-macOS.html",
   "style": {
     "brand": "#512BD4",
     "finder_window": [
-      720,
-      480
+      600,
+      410
     ],
-    "icon_size": 100,
+    "background": [
+      600,
+      380
+    ],
+    "icon_size": 80,
     "positions": {
       "app": [
-        180,
-        235
+        170,
+        210
       ],
       "Applications": [
-        540,
-        235
+        430,
+        210
       ]
     },
-    "core_label": "CodeWF",
-    "subtitle": "NATIVE APPLICATION · CodeWF",
+    "product": "Vex",
+    "chinese_name": "维刻",
+    "slogan": "维刻 Vex · 写下想法，看见脉络。",
     "website": "codewf.com",
     "website_interaction": "static background text only"
   },
@@ -31,31 +36,31 @@
     },
     {
       "path": "background-bilingual.png",
-      "sha256": "11924de92e6cfcddd168b1ba582f0e7c8555f38663dbf5678e78d2bbcf59f681"
+      "sha256": "b11fb32eccdcdec1677eef4efc03cf99b3e94c63b32d3e07b8abaac13e505d65"
     },
     {
       "path": "background-bilingual.svg",
-      "sha256": "3dfa8f251fe97ddf83280571d941039db3e891cba216e896853496f36efa4e96"
+      "sha256": "15cdc274775dd2312b5e37408b0da57c0b8158f4e1e05ec82d16be90fdc29556"
     },
     {
       "path": "background-en.png",
-      "sha256": "c8aa9c961f80386b1899b08d408870adfa39270086934fb1f281c5f00b3ecd92"
+      "sha256": "0fc1dbce967867c83ec455c285e7239e0c041cd70e2ebd8694f363e964ab842c"
     },
     {
       "path": "background-en.svg",
-      "sha256": "33a121765a6597ad0b39fb12d3dff43c1ceb629552164ea8d9f652bd6dbff08d"
+      "sha256": "5f13ed64e64aac3b71463bed27698b83e1ce17eaeb94a7dae32c44bee3cb1ba5"
     },
     {
       "path": "background-zh.png",
-      "sha256": "5c5b2d35c2bf68d59a2f19527c7a9ce554f61d478eb9949e1ffff8bd3a9444e8"
+      "sha256": "bf1205eb5c9a56471df064b69cbdc84da5390dadadbda5e1e309e1f7051d09f3"
     },
     {
       "path": "background-zh.svg",
-      "sha256": "9ac12f6d4fe42f75cf5af8305b344fbe32d9116b967bfa97cd847b4e3f38170c"
+      "sha256": "2d2f7c2ac468e4c7689d2ad5e648b1ad38fd60206868f9a8a762005fe2f5807a"
     },
     {
       "path": "configure-finder.applescript",
-      "sha256": "502d3a80d3d342b49ac38a7d727bf1c325af888b69bb6ccb64b07759de5f7c6e"
+      "sha256": "6ace0516fd614b48e108fc5f9d85c813247f961fc9a5e2743736612bdf489dcf"
     },
     {
       "path": "create-branded-dmg.sh",
@@ -63,15 +68,16 @@
     },
     {
       "path": "README.md",
-      "sha256": "0844d6e4fad2426a14fd9f3ce3c81e81aeae6e6c8c01ce6cf3300f4e3423e85b"
+      "sha256": "d46d2a494604b3f1d4466d92e92b6c94237296b06656ea658d310aa80464bd0f"
     },
     {
       "path": "render-backgrounds.cjs",
-      "sha256": "afa3b4dbe2bab484952064b1a5c23eb565f35277188464c86b2af34c0e8cdedd"
+      "sha256": "92d85833b3c376685b367c6962cbb0012cb610a3a4decbb0b2ce0b7a9d06e0c8"
     },
     {
       "path": "tests/branded-dmg-test.sh",
-      "sha256": "b125206dc8c479c60d1f3569de71c29779f60aa63674981bd10d6b975a1768e1"
+      "sha256": "91a63b4537db81113eb90bcbf5e69feebb359f7e39cafddb8e6d1d32cf2b1e4a"
     }
-  ]
+  ],
+  "local_design": "Vex minimal installer; shared packaging engine retained"
 }
