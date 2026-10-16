@@ -28,13 +28,26 @@ hdiutil() {
   [[ "${simulate_failure:-0}" == "0" ]] || return 28
   case "$1" in
     create) printf 'writable image' >"${!#}" ;;
-    attach|detach) : ;;
+    attach) printf 'fixture attach plist' ;;
+    detach) [[ $# == 2 && "$2" == /dev/disk41 ]] ;;
     convert) while [[ $# -gt 0 ]]; do if [[ "$1" == -o ]]; then printf 'compressed image' >"$2"; fi; shift; done ;;
     verify) [[ -s "$2" ]] ;;
     *) return 2 ;;
   esac
 }
-osascript() { printf 'Finder metadata' >"$2/.DS_Store"; }
+# 挂载解析由受控替身提供；状态异常由品牌层专项回归覆盖。
+plutil() {
+  [[ "$1" == -extract && "$2" == system-entities && "$3" == json && "$4" == -o && "$5" == - && -s "$6" ]] || return 31
+  printf '[{"dev-entry":"/dev/disk41s1"},{"dev-entry":"/dev/disk41"}]'
+}
+osascript() {
+  if [[ "$1" == -l ]]; then
+    [[ "$2" == JavaScript && "$3" == -e && $# == 5 ]] || return 32
+    printf '/dev/disk41'
+  else
+    printf 'Finder metadata' >"$2/.DS_Store"
+  fi
+}
 sync() { :; }
 
 app_dir="$(create_app_bundle osx-x64 1.5.5)"
