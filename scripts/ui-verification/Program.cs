@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
@@ -70,7 +71,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "vex" or "preferences" or "locale" or "path-identity")
+if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().WithInterFont()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -78,6 +79,12 @@ if (mode is "vex" or "preferences" or "locale" or "path-identity")
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
+    if (mode is "buttons" or "danger-buttons")
+    {
+        VerifyDialogButtonStates(app, window, vm, mode == "buttons" ? "primary" : "danger", args.Contains("--audit-only"));
+        window.Close();
+        return;
+    }
     ControlLocaleVerification.Run(window, ["zh-CN", "en-US", "zh-Hant", "ja-JP"], app.Resolve<IAppLocalizer>().SetCulture);
     var languageSelector = window.FindControl<ComboBox>("TitleBarLanguageSelector")!;
     foreach (var culture in new[] { "en-US", "zh-Hant", "ja-JP", "zh-CN" })
@@ -222,6 +229,8 @@ if (mode is "vex" or "preferences" or "locale" or "path-identity")
     Capture(window, "vex-about");
     aboutModel.Close();
     Pump(aboutTask);
+    VerifyDialogButtonStates(app, window, vm, "primary");
+    VerifyDialogButtonStates(app, window, vm, "danger");
     window.Width = 1280; window.Height = 820; Pump();
     VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
     Check(vm.Appearance.PaletteOptions.Count == 8 && vm.Appearance.ThemeOptions.Count == 3,
@@ -911,6 +920,92 @@ void VerifySourceLineHeight(Window window, MarkdownEditorView source, double exp
     Check(Math.Abs(source.Editor.TextArea.Caret.CalculateCaretRectangle().Top - caretTop - expected) < 1,
         $"{name} Down moves the caret by one visual source row, including wrapped lines");
     source.Editor.CaretOffset = 0;
+}
+
+void VerifyDialogButtonStates(VerificationVexApp app, Window window, MainWindowViewModel vm, string kind, bool auditOnly = false)
+{
+    Task dialogTask;
+    Control dialog;
+    Action close;
+    if (kind == "primary")
+    {
+        dialogTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
+        PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
+        dialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
+        close = ((ShellAboutViewModel)dialog.DataContext!).Close;
+    }
+    else
+    {
+        dialogTask = app.Resolve<IShellOverlayService>().ConfirmDeleteAsync("Delete verification", "Verification only", Path.Combine(output, "not-a-real-file.md"));
+        PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellDeleteConfirmationOverlayView>().Any());
+        dialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellDeleteConfirmationOverlayView>().Single();
+        close = ((Vex.Modules.Shell.Views.ShellDeleteConfirmationModel)dialog.DataContext!).Close;
+    }
+    var button = dialog.GetVisualDescendants().OfType<Button>().Single(control => control.Classes.Contains(kind));
+    var originalCommand = button.Command;
+    // 只检查实际按钮样式，不在按下测试中启动网络更新。
+    button.Command = null;
+    var originalPalette = vm.Appearance.SelectedPalette;
+    var originalTheme = vm.Appearance.SelectedTheme;
+    var issues = new List<string>();
+    try
+    {
+        foreach (var palette in vm.Appearance.PaletteOptions)
+        foreach (var theme in vm.Appearance.ThemeOptions.Where(option => option.Mode != StudioThemeMode.System))
+        {
+            vm.Appearance.SelectedPalette = palette;
+            vm.Appearance.SelectedTheme = theme;
+            Pump();
+            var scroller = dialog.GetVisualDescendants().OfType<ScrollViewer>().SingleOrDefault();
+            if (scroller is not null) scroller.Offset = default;
+            Pump();
+            var center = button.TranslatePoint(new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), window)!.Value;
+            var outside = new Point(1, 1);
+            window.MouseMove(outside); Pump();
+            Inspect("normal");
+            window.MouseMove(center); Pump();
+            Inspect("hover");
+            window.MouseDown(center, MouseButton.Left); Pump();
+            Inspect("pressed");
+            window.MouseMove(outside);
+            window.MouseUp(outside, MouseButton.Left); Pump();
+
+            void Inspect(string state)
+            {
+                var expectedState = state switch
+                {
+                    "normal" => !button.IsPointerOver && !button.IsPressed,
+                    "hover" => button.IsPointerOver && !button.IsPressed,
+                    _ => button.IsPointerOver && button.IsPressed
+                };
+                if (!expectedState) throw new InvalidOperationException($"The actual {kind} button did not enter {state} state.");
+                var presenter = button.GetVisualDescendants().OfType<ContentPresenter>()
+                    .Single(control => control.Name == "PART_ContentPresenter");
+                var text = presenter.GetVisualDescendants().OfType<TextBlock>().First();
+                var foreground = ((ISolidColorBrush)text.Foreground!).Color;
+                var background = ((ISolidColorBrush)presenter.Background!).Color;
+                if (background.A == 0) background = ((ISolidColorBrush)dialog.GetVisualDescendants().OfType<Border>().First(control => control.Classes.Contains("dialog-card")).Background!).Color;
+                var ratio = Contrast(foreground, background);
+                var description = $"{kind} button {palette.Key}/{theme.Key}/{state}: {foreground} on {background}, contrast {ratio:F2}";
+                Console.WriteLine("AUDIT " + description);
+                if (ratio < 4.5) issues.Add(description);
+                if (auditOnly || state == "hover") Capture(window, $"vex-{kind}-{palette.Key}-{theme.Key}-{state}");
+                if (!auditOnly) Check(ratio >= 4.5, description);
+            }
+        }
+        if (auditOnly) Console.WriteLine($"AUDIT {kind} button states below 4.5 contrast: {issues.Count}");
+    }
+    finally
+    {
+        window.MouseMove(new Point(1, 1));
+        window.MouseUp(new Point(1, 1), MouseButton.Left);
+        button.Command = originalCommand;
+        close();
+        Pump(dialogTask);
+        vm.Appearance.SelectedPalette = originalPalette;
+        vm.Appearance.SelectedTheme = originalTheme;
+        Pump();
+    }
 }
 
 double Contrast(Color first, Color second)

@@ -61,21 +61,23 @@
     <!-- ============================================================
          按钮风险分级（对应原型 btn / btn.primary / btn.danger）
          primary：主题色实心，用于对话框主操作（保存 / 允许执行 / 重命名）
-         danger：红描边，悬停转红底白字，用于删除等危险操作
+         danger：危险色描边，悬停和按下使用浅底反馈，用于删除等危险操作
          ============================================================ -->
     <Style Selector="Button.primary">
-        <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
-        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Background" Value="{DynamicResource StudioPrimary}" />
+        <Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource StudioPrimary}" />
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource VexPressedBrush}" />
-        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Background" Value="{DynamicResource StudioPrimaryHover}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource StudioPrimaryHover}" />
+        <Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}" />
     </Style>
     <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
-        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Background" Value="{DynamicResource StudioPrimaryPressed}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource StudioPrimaryPressed}" />
+        <Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}" />
     </Style>
 
     <Style Selector="Button.danger">
@@ -85,12 +87,14 @@
         <Setter Property="BorderBrush" Value="{DynamicResource VexDangerBrush}" />
     </Style>
     <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource VexDangerBrush}" />
-        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Background" Value="{DynamicResource SemiColorDangerLight}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SemiColorDanger}" />
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorDanger}" />
     </Style>
     <Style Selector="Button.danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource VexPressedBrush}" />
-        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Background" Value="{DynamicResource SemiColorDangerLightActive}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SemiColorDangerActive}" />
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorDangerActive}" />
     </Style>
 
     <!-- ============================================================

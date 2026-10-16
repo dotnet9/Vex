@@ -1,7 +1,7 @@
-﻿/* ============================================================
+/* ============================================================
    Vex 界面原型 · 主题令牌与组件库
-   色值来源：src/Vex.Controls.Themes/Themes/Shared/AppPalette.axaml
-   主题：light / dark / aquatic / desert / dusk / night-sky
+   色值来源：CodeWF.Avalonia.Controls 的 StudioTheme 令牌
+   主题：八套配色，各自支持 light / dark
    ============================================================ */
 
 /* ---------- 主题令牌 ---------- */
@@ -69,7 +69,7 @@
   --fg-disabled: #7D8999;
   --code-bg: #1B2533;
   --selection: #243B55;
-  --danger: #F87171;
+  --danger: #FF828F;
   --danger-soft: #3B1D23;
   --success: #4ADE80;
   --warning: #FBBF24;
@@ -284,19 +284,20 @@ a:hover { text-decoration: underline; }
 .btn:hover { background: var(--hover); }
 .btn:active { background: var(--pressed); }
 .btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-fg);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
   font-weight: 600;
 }
-.btn.primary:hover { background: color-mix(in srgb, var(--accent) 88%, #fff); border-color: color-mix(in srgb, var(--accent) 88%, #fff); }
+.btn.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.btn.primary:active { background: var(--primary-pressed); border-color: var(--primary-pressed); }
 .btn.danger {
   color: var(--danger);
   border-color: color-mix(in srgb, var(--danger) 45%, transparent);
   background: var(--panel);
 }
-.btn.danger:hover { background: var(--danger-soft); }
-.btn.danger.solid { background: var(--danger); border-color: var(--danger); color: #fff; font-weight: 600; }
+.btn.danger:hover { background: var(--danger-hover-bg); color: var(--danger-hover-fg); border-color: var(--danger-hover-fg); }
+.btn.danger:active { background: var(--danger-pressed-bg); color: var(--danger-pressed-fg); border-color: var(--danger-pressed-fg); }
 .btn.ghost { border-color: transparent; background: transparent; }
 .btn.ghost:hover { background: var(--hover); }
 .btn.sm { min-height: 26px; padding: 3px 10px; font-size: 12px; border-radius: 7px; }
@@ -1013,7 +1014,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   pointer-events: none;
 }
 
-/* 与 CodeWF.Avalonia.Controls 12.1.4.13 的 StudioTheme 配色令牌同步。 */
+/* 与 CodeWF.Avalonia.Controls 12.1.4.25 的 StudioTheme 配色令牌同步。 */
 :root[data-theme="light"][data-palette="dotnet"] {
   --bg:#FFFFFF;
   --panel:#FFFFFF;
@@ -1040,6 +1041,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#512BD4;
   --md-code-fg:#512BD4;
   --title-grad:linear-gradient(135deg,#512BD4,#7355DE);
+  --primary:#512BD4;
+  --on-primary:White;
+  --primary-hover:#4927BF;
+  --primary-pressed:#4122AA;
+  --danger-hover-bg:#FDECEC;
+  --danger-hover-fg:#B42318;
+  --danger-pressed-bg:#F9DCDC;
+  --danger-pressed-fg:#912018;
 }
 :root[data-theme="dark"][data-palette="dotnet"] {
   --bg:#12111C;
@@ -1067,6 +1076,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#A78BFA;
   --md-code-fg:#A78BFA;
   --title-grad:linear-gradient(135deg,#512BD4,#7654EA);
+  --primary:#512BD4;
+  --on-primary:White;
+  --primary-hover:#4927BF;
+  --primary-pressed:#4122AA;
+  --danger-hover-bg:#2E1D21;
+  --danger-hover-fg:#FF9AAE;
+  --danger-pressed-bg:#3A2429;
+  --danger-pressed-fg:#FFB5C2;
 }
 :root[data-theme="light"][data-palette="aurora"] {
   --bg:#FFFFFF;
@@ -1094,6 +1111,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#6745D6;
   --md-code-fg:#6745D6;
   --title-grad:linear-gradient(135deg,#8968FF,#1AAFA9);
+  --primary:#512BD4;
+  --on-primary:White;
+  --primary-hover:#4927BF;
+  --primary-pressed:#4122AA;
+  --danger-hover-bg:#FDECEC;
+  --danger-hover-fg:#B42318;
+  --danger-pressed-bg:#F9DCDC;
+  --danger-pressed-fg:#912018;
 }
 :root[data-theme="dark"][data-palette="aurora"] {
   --bg:#101820;
@@ -1121,6 +1146,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#AE96FF;
   --md-code-fg:#AE96FF;
   --title-grad:linear-gradient(135deg,#8968FF,#26D4CC);
+  --primary:#512BD4;
+  --on-primary:White;
+  --primary-hover:#4927BF;
+  --primary-pressed:#4122AA;
+  --danger-hover-bg:#2E1D21;
+  --danger-hover-fg:#FF9AAE;
+  --danger-pressed-bg:#3A2429;
+  --danger-pressed-fg:#FFB5C2;
 }
 :root[data-theme="light"][data-palette="ember"] {
   --bg:#FFFFFF;
@@ -1148,6 +1181,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#A94F36;
   --md-code-fg:#A94F36;
   --title-grad:linear-gradient(135deg,#BD674D,#D09566);
+  --primary:#A94F36;
+  --on-primary:White;
+  --primary-hover:#984731;
+  --primary-pressed:#873F2B;
+  --danger-hover-bg:#FDECEC;
+  --danger-hover-fg:#B42318;
+  --danger-pressed-bg:#F9DCDC;
+  --danger-pressed-fg:#912018;
 }
 :root[data-theme="dark"][data-palette="ember"] {
   --bg:#1B1616;
@@ -1175,6 +1216,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#E6A58F;
   --md-code-fg:#E6A58F;
   --title-grad:linear-gradient(135deg,#BD674D,#E9BD87);
+  --primary:#A94F36;
+  --on-primary:White;
+  --primary-hover:#984731;
+  --primary-pressed:#873F2B;
+  --danger-hover-bg:#2E1D21;
+  --danger-hover-fg:#FF9AAE;
+  --danger-pressed-bg:#3A2429;
+  --danger-pressed-fg:#FFB5C2;
 }
 :root[data-theme="light"][data-palette="default"] {
   --bg:#FFFFFF;
@@ -1202,6 +1251,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#0064FA;
   --md-code-fg:#0064FA;
   --title-grad:linear-gradient(135deg,#0064FA,#4D8EFF);
+  --primary:#0064FA;
+  --on-primary:White;
+  --primary-hover:#005AE1;
+  --primary-pressed:#0050C8;
+  --danger-hover-bg:#FDECEC;
+  --danger-hover-fg:#B42318;
+  --danger-pressed-bg:#F9DCDC;
+  --danger-pressed-fg:#912018;
 }
 :root[data-theme="dark"][data-palette="default"] {
   --bg:#13161C;
@@ -1229,6 +1286,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#6AA8FF;
   --md-code-fg:#6AA8FF;
   --title-grad:linear-gradient(135deg,#0064FA,#4D8EFF);
+  --primary:#0064FA;
+  --on-primary:White;
+  --primary-hover:#005AE1;
+  --primary-pressed:#0050C8;
+  --danger-hover-bg:#2E1D21;
+  --danger-hover-fg:#FF9AAE;
+  --danger-pressed-bg:#3A2429;
+  --danger-pressed-fg:#FFB5C2;
 }
 :root[data-theme="light"][data-palette="aquatic"] {
   --bg:#F4FCFC;
@@ -1256,6 +1321,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#007D8F;
   --md-code-fg:#007D8F;
   --title-grad:linear-gradient(135deg,#007D8F,#159BA5);
+  --primary:#007D8F;
+  --on-primary:White;
+  --primary-hover:#007081;
+  --primary-pressed:#006472;
+  --danger-hover-bg:#FDECEC;
+  --danger-hover-fg:#B42318;
+  --danger-pressed-bg:#F9DCDC;
+  --danger-pressed-fg:#912018;
 }
 :root[data-theme="dark"][data-palette="aquatic"] {
   --bg:#101B20;
@@ -1283,6 +1356,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#62D7DC;
   --md-code-fg:#62D7DC;
   --title-grad:linear-gradient(135deg,#007D8F,#239DA9);
+  --primary:#007D8F;
+  --on-primary:White;
+  --primary-hover:#007081;
+  --primary-pressed:#006472;
+  --danger-hover-bg:#2E1D21;
+  --danger-hover-fg:#FF9AAE;
+  --danger-pressed-bg:#3A2429;
+  --danger-pressed-fg:#FFB5C2;
 }
 :root[data-theme="light"][data-palette="desert"] {
   --bg:#FFFCF5;
@@ -1310,6 +1391,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#9B651E;
   --md-code-fg:#9B651E;
   --title-grad:linear-gradient(135deg,#9B651E,#BD8437);
+  --primary:#9B651E;
+  --on-primary:White;
+  --primary-hover:#8C5B1B;
+  --primary-pressed:#7C5118;
+  --danger-hover-bg:#FDECEC;
+  --danger-hover-fg:#B42318;
+  --danger-pressed-bg:#F9DCDC;
+  --danger-pressed-fg:#912018;
 }
 :root[data-theme="dark"][data-palette="desert"] {
   --bg:#211C16;
@@ -1337,6 +1426,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#E6B96D;
   --md-code-fg:#E6B96D;
   --title-grad:linear-gradient(135deg,#9B651E,#BD8437);
+  --primary:#9B651E;
+  --on-primary:White;
+  --primary-hover:#8C5B1B;
+  --primary-pressed:#7C5118;
+  --danger-hover-bg:#2E1D21;
+  --danger-hover-fg:#FF9AAE;
+  --danger-pressed-bg:#3A2429;
+  --danger-pressed-fg:#FFB5C2;
 }
 :root[data-theme="light"][data-palette="dusk"] {
   --bg:#FAF8FE;
@@ -1364,6 +1461,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#7052B5;
   --md-code-fg:#7052B5;
   --title-grad:linear-gradient(135deg,#7052B5,#9676CC);
+  --primary:#7052B5;
+  --on-primary:White;
+  --primary-hover:#654AA3;
+  --primary-pressed:#5A4291;
+  --danger-hover-bg:#FDECEC;
+  --danger-hover-fg:#B42318;
+  --danger-pressed-bg:#F9DCDC;
+  --danger-pressed-fg:#912018;
 }
 :root[data-theme="dark"][data-palette="dusk"] {
   --bg:#1C1725;
@@ -1391,6 +1496,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#BBA0EB;
   --md-code-fg:#BBA0EB;
   --title-grad:linear-gradient(135deg,#7052B5,#9676CC);
+  --primary:#7052B5;
+  --on-primary:White;
+  --primary-hover:#654AA3;
+  --primary-pressed:#5A4291;
+  --danger-hover-bg:#2E1D21;
+  --danger-hover-fg:#FF9AAE;
+  --danger-pressed-bg:#3A2429;
+  --danger-pressed-fg:#FFB5C2;
 }
 :root[data-theme="light"][data-palette="night-sky"] {
   --bg:#F6F9FF;
@@ -1418,6 +1531,14 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#235FAD;
   --md-code-fg:#235FAD;
   --title-grad:linear-gradient(135deg,#235FAD,#4B84C6);
+  --primary:#235FAD;
+  --on-primary:White;
+  --primary-hover:#20569C;
+  --primary-pressed:#1C4C8A;
+  --danger-hover-bg:#FDECEC;
+  --danger-hover-fg:#B42318;
+  --danger-pressed-bg:#F9DCDC;
+  --danger-pressed-fg:#912018;
 }
 :root[data-theme="dark"][data-palette="night-sky"] {
   --bg:#101724;
@@ -1445,4 +1566,12 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   --accent:#79ADFF;
   --md-code-fg:#79ADFF;
   --title-grad:linear-gradient(135deg,#235FAD,#4B84C6);
+  --primary:#235FAD;
+  --on-primary:White;
+  --primary-hover:#20569C;
+  --primary-pressed:#1C4C8A;
+  --danger-hover-bg:#2E1D21;
+  --danger-hover-fg:#FF9AAE;
+  --danger-pressed-bg:#3A2429;
+  --danger-pressed-fg:#FFB5C2;
 }

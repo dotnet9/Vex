@@ -15,6 +15,42 @@ const { chromium } = require('playwright');
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(standalone.url);
     const selectMode=async mode=>{for(let i=0;i<3&&await page.locator('html').getAttribute('data-theme-mode')!==mode;i++)await page.locator('#vex-mode-toggle').click();};
+    const verifyButtonStates = async (palette, mode) => {
+      for (const [dialog, selector] of [['about', '#vex-update'], ['delete', '#layer-delete .btn.danger']]) {
+        await page.evaluate(name => VexProto.handleAction('dlg-' + name), dialog);
+        const button = page.locator(selector);
+        const inspect = async state => {
+          // 等待原型按钮现有的颜色过渡结束，再读取真实计算样式。
+          await page.waitForTimeout(150);
+          const result = await button.evaluate((element, expected) => {
+            const style = getComputedStyle(element);
+            const channels = color => color.match(/[\d.]+/g).slice(0, 3).map(Number);
+            const luminance = color => channels(color).map(value => {
+              value /= 255;
+              return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+            }).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+            const first = luminance(style.color), second = luminance(style.backgroundColor);
+            return {
+              contrast: (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05),
+              state: expected === 'normal' ? !element.matches(':hover') && !element.matches(':active') :
+                element.matches(':hover') && element.matches(':active') === (expected === 'pressed'),
+            };
+          }, state);
+          assert.ok(result.state, `${dialog} ${palette}/${mode} enters actual ${state} state`);
+          assert.ok(result.contrast >= 4.5, `${dialog} ${palette}/${mode}/${state} contrast ${result.contrast}`);
+        };
+        await page.mouse.move(1, 1);
+        await inspect('normal');
+        await button.hover();
+        await inspect('hover');
+        await page.mouse.down();
+        await inspect('pressed');
+        // 在按钮外释放，避免触发更新或删除原型工作区文档。
+        await page.mouse.move(1, 1);
+        await page.mouse.up();
+        await page.locator(`#layer-${dialog} [data-close]`).first().click();
+      }
+    };
     const palettes = await page.locator('#vex-theme-panel [data-palette]').evaluateAll(items => items.map(item => item.dataset.palette));
     assert.equal(palettes.length, 8);
     assert.deepEqual(palettes,['dotnet','aurora','ember','default','aquatic','desert','dusk','night-sky']);
@@ -38,6 +74,7 @@ const { chromium } = require('playwright');
           return [title.bottom, content.top];
         });
         assert.ok(Math.abs(bounds[0] - bounds[1]) <= 1, 'No blank row between title and workspace');
+        await verifyButtonStates(palette, mode);
       }
     }
     await selectMode('system');
@@ -68,6 +105,6 @@ const { chromium } = require('playwright');
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
     assert.deepEqual(errors, []);
     await standalone.verify(page);
-    console.log('Passed: eight palettes, sixteen light/dark combinations, system mode, menu adapter, and title layout.');
+    console.log('Passed: eight palettes, sixteen light/dark combinations, 96 dialog button states, system mode, menu adapter, and title layout.');
   } finally { await browser.close(); standalone.dispose(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
