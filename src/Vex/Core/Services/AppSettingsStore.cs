@@ -30,6 +30,18 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string McpAccessScope = nameof(AppSettings.McpAccessScope);
     private const string McpAllowedWorkspacePath = nameof(AppSettings.McpAllowedWorkspacePath);
     private const string McpRequireConfirmation = nameof(AppSettings.McpRequireConfirmation);
+    private const string SourcePreviewEnabled = nameof(AppSettings.SourcePreviewEnabled);
+    private const string WorkbenchView = nameof(AppSettings.WorkbenchView);
+    private const string EditMode = nameof(AppSettings.EditMode);
+    private const string MindMapSummaryLength = nameof(AppSettings.MindMapSummaryLength);
+    private const string MindMapShowParagraphs = nameof(AppSettings.MindMapShowParagraphs);
+    private const string MindMapShowCode = nameof(AppSettings.MindMapShowCode);
+    private const string MindMapShowTables = nameof(AppSettings.MindMapShowTables);
+    private const string MindMapShowLists = nameof(AppSettings.MindMapShowLists);
+    private const string EnableAutoPair = nameof(AppSettings.EnableAutoPair);
+    private const string EnableMotion = nameof(AppSettings.EnableMotion);
+    private const string IsFocusMode = nameof(AppSettings.IsFocusMode);
+    private const string IsTypewriterMode = nameof(AppSettings.IsTypewriterMode);
 
     private readonly object _syncRoot = new();
     private AppSettings? _settings;
@@ -62,34 +74,46 @@ public sealed class AppSettingsStore : IAppSettingsStore
 
     private static AppSettings Load()
     {
-        var configPath = AppConfigHelper.GetDefaultConfigPath();
+        var configuration = AppConfigHelper.ReadAll();
         return new AppSettings
         {
-            ThemeKey = Get<string>(configPath, ThemeKey),
-            PaletteKey = Get<string>(configPath, PaletteKey),
-            TypographyKey = Get<string>(configPath, TypographyKey),
-            IsCompactLayout = Get<bool?>(configPath, IsCompactLayout),
-            CultureName = Get<string>(configPath, CultureName),
-            IsSidebarVisible = Get<bool?>(configPath, IsSidebarVisible),
-            SidebarWidth = Get<double?>(configPath, SidebarWidth),
-            IsStatusBarVisible = Get<bool?>(configPath, IsStatusBarVisible),
-            IsPreviewVisible = Get<bool?>(configPath, IsPreviewVisible),
-            IsSourceMode = Get<bool?>(configPath, IsSourceMode),
-            IsAlwaysOnTop = Get<bool?>(configPath, IsAlwaysOnTop),
-            SelectedSidebarTabIndex = Get<int?>(configPath, SelectedSidebarTabIndex),
-            EditorZoom = Get<double?>(configPath, EditorZoom),
-            ShowLineNumbers = Get<bool?>(configPath, ShowLineNumbers),
-            HasSeenOnboardingGuide = Get<bool?>(configPath, HasSeenOnboardingGuide),
-            LastWorkspaceFolderPath = Get<string>(configPath, LastWorkspaceFolderPath),
-            WindowWidth = Get<double?>(configPath, WindowWidth),
-            WindowHeight = Get<double?>(configPath, WindowHeight),
-            IsMcpServerEnabled = Get<bool?>(configPath, IsMcpServerEnabled),
-            McpServerHost = Get<string>(configPath, McpServerHost),
-            McpServerPort = Get<int?>(configPath, McpServerPort),
-            McpAuthorizationToken = Get<string>(configPath, McpAuthorizationToken),
-            McpAccessScope = Get<string>(configPath, McpAccessScope),
-            McpAllowedWorkspacePath = Get<string>(configPath, McpAllowedWorkspacePath),
-            McpRequireConfirmation = Get<bool?>(configPath, McpRequireConfirmation)
+            ThemeKey = Get<string>(configuration, ThemeKey),
+            PaletteKey = Get<string>(configuration, PaletteKey),
+            TypographyKey = Get<string>(configuration, TypographyKey),
+            IsCompactLayout = Get<bool?>(configuration, IsCompactLayout),
+            CultureName = Get<string>(configuration, CultureName),
+            IsSidebarVisible = Get<bool?>(configuration, IsSidebarVisible),
+            SidebarWidth = Get<double?>(configuration, SidebarWidth),
+            IsStatusBarVisible = Get<bool?>(configuration, IsStatusBarVisible),
+            IsPreviewVisible = Get<bool?>(configuration, IsPreviewVisible),
+            IsSourceMode = Get<bool?>(configuration, IsSourceMode),
+            IsAlwaysOnTop = Get<bool?>(configuration, IsAlwaysOnTop),
+            SelectedSidebarTabIndex = Get<int?>(configuration, SelectedSidebarTabIndex),
+            EditorZoom = Get<double?>(configuration, EditorZoom),
+            ShowLineNumbers = Get<bool?>(configuration, ShowLineNumbers),
+            HasSeenOnboardingGuide = Get<bool?>(configuration, HasSeenOnboardingGuide),
+            LastWorkspaceFolderPath = Get<string>(configuration, LastWorkspaceFolderPath),
+            WindowWidth = Get<double?>(configuration, WindowWidth),
+            WindowHeight = Get<double?>(configuration, WindowHeight),
+            IsMcpServerEnabled = Get<bool?>(configuration, IsMcpServerEnabled),
+            McpServerHost = Get<string>(configuration, McpServerHost),
+            McpServerPort = Get<int?>(configuration, McpServerPort),
+            McpAuthorizationToken = Get<string>(configuration, McpAuthorizationToken),
+            McpAccessScope = Get<string>(configuration, McpAccessScope),
+            McpAllowedWorkspacePath = Get<string>(configuration, McpAllowedWorkspacePath),
+            McpRequireConfirmation = Get<bool?>(configuration, McpRequireConfirmation),
+            SourcePreviewEnabled = Get<bool?>(configuration, SourcePreviewEnabled),
+            WorkbenchView = Get<string>(configuration, WorkbenchView),
+            EditMode = Get<string>(configuration, EditMode),
+            MindMapSummaryLength = Get<int?>(configuration, MindMapSummaryLength),
+            MindMapShowParagraphs = Get<bool?>(configuration, MindMapShowParagraphs),
+            MindMapShowCode = Get<bool?>(configuration, MindMapShowCode),
+            MindMapShowTables = Get<bool?>(configuration, MindMapShowTables),
+            MindMapShowLists = Get<bool?>(configuration, MindMapShowLists),
+            EnableAutoPair = Get<bool?>(configuration, EnableAutoPair),
+            EnableMotion = Get<bool?>(configuration, EnableMotion),
+            IsFocusMode = Get<bool?>(configuration, IsFocusMode),
+            IsTypewriterMode = Get<bool?>(configuration, IsTypewriterMode)
         };
     }
 
@@ -97,32 +121,46 @@ public sealed class AppSettingsStore : IAppSettingsStore
     {
         try
         {
-            var configPath = AppConfigHelper.GetDefaultConfigPath();
-            AppConfigHelper.Set(configPath, ThemeKey, settings.ThemeKey);
-            AppConfigHelper.Set(configPath, PaletteKey, settings.PaletteKey);
-            AppConfigHelper.Set(configPath, TypographyKey, settings.TypographyKey);
-            AppConfigHelper.Set(configPath, IsCompactLayout, settings.IsCompactLayout);
-            AppConfigHelper.Set(configPath, CultureName, settings.CultureName);
-            AppConfigHelper.Set(configPath, IsSidebarVisible, settings.IsSidebarVisible);
-            AppConfigHelper.Set(configPath, SidebarWidth, settings.SidebarWidth);
-            AppConfigHelper.Set(configPath, IsStatusBarVisible, settings.IsStatusBarVisible);
-            AppConfigHelper.Set(configPath, IsPreviewVisible, settings.IsPreviewVisible);
-            AppConfigHelper.Set(configPath, IsSourceMode, settings.IsSourceMode);
-            AppConfigHelper.Set(configPath, IsAlwaysOnTop, settings.IsAlwaysOnTop);
-            AppConfigHelper.Set(configPath, SelectedSidebarTabIndex, settings.SelectedSidebarTabIndex);
-            AppConfigHelper.Set(configPath, EditorZoom, settings.EditorZoom);
-            AppConfigHelper.Set(configPath, ShowLineNumbers, settings.ShowLineNumbers);
-            AppConfigHelper.Set(configPath, HasSeenOnboardingGuide, settings.HasSeenOnboardingGuide);
-            AppConfigHelper.Set(configPath, LastWorkspaceFolderPath, settings.LastWorkspaceFolderPath);
-            AppConfigHelper.Set(configPath, WindowWidth, settings.WindowWidth);
-            AppConfigHelper.Set(configPath, WindowHeight, settings.WindowHeight);
-            AppConfigHelper.Set(configPath, IsMcpServerEnabled, settings.IsMcpServerEnabled);
-            AppConfigHelper.Set(configPath, McpServerHost, settings.McpServerHost);
-            AppConfigHelper.Set(configPath, McpServerPort, settings.McpServerPort);
-            AppConfigHelper.Set(configPath, McpAuthorizationToken, settings.McpAuthorizationToken);
-            AppConfigHelper.Set(configPath, McpAccessScope, settings.McpAccessScope);
-            AppConfigHelper.Set(configPath, McpAllowedWorkspacePath, settings.McpAllowedWorkspacePath);
-            AppConfigHelper.Set(configPath, McpRequireConfirmation, settings.McpRequireConfirmation);
+            AppConfigHelper.SetMany(new Dictionary<string, object?>
+            {
+                [ThemeKey] = settings.ThemeKey,
+                [PaletteKey] = settings.PaletteKey,
+                [TypographyKey] = settings.TypographyKey,
+                [IsCompactLayout] = settings.IsCompactLayout,
+                [CultureName] = settings.CultureName,
+                [IsSidebarVisible] = settings.IsSidebarVisible,
+                [SidebarWidth] = settings.SidebarWidth,
+                [IsStatusBarVisible] = settings.IsStatusBarVisible,
+                [IsPreviewVisible] = settings.IsPreviewVisible,
+                [IsSourceMode] = settings.IsSourceMode,
+                [IsAlwaysOnTop] = settings.IsAlwaysOnTop,
+                [SelectedSidebarTabIndex] = settings.SelectedSidebarTabIndex,
+                [EditorZoom] = settings.EditorZoom,
+                [ShowLineNumbers] = settings.ShowLineNumbers,
+                [HasSeenOnboardingGuide] = settings.HasSeenOnboardingGuide,
+                [LastWorkspaceFolderPath] = settings.LastWorkspaceFolderPath,
+                [WindowWidth] = settings.WindowWidth,
+                [WindowHeight] = settings.WindowHeight,
+                [IsMcpServerEnabled] = settings.IsMcpServerEnabled,
+                [McpServerHost] = settings.McpServerHost,
+                [McpServerPort] = settings.McpServerPort,
+                [McpAuthorizationToken] = settings.McpAuthorizationToken,
+                [McpAccessScope] = settings.McpAccessScope,
+                [McpAllowedWorkspacePath] = settings.McpAllowedWorkspacePath,
+                [McpRequireConfirmation] = settings.McpRequireConfirmation,
+                [SourcePreviewEnabled] = settings.SourcePreviewEnabled,
+                [WorkbenchView] = settings.WorkbenchView,
+                [EditMode] = settings.EditMode,
+                [MindMapSummaryLength] = settings.MindMapSummaryLength,
+                [MindMapShowParagraphs] = settings.MindMapShowParagraphs,
+                [MindMapShowCode] = settings.MindMapShowCode,
+                [MindMapShowTables] = settings.MindMapShowTables,
+                [MindMapShowLists] = settings.MindMapShowLists,
+                [EnableAutoPair] = settings.EnableAutoPair,
+                [EnableMotion] = settings.EnableMotion,
+                [IsFocusMode] = settings.IsFocusMode,
+                [IsTypewriterMode] = settings.IsTypewriterMode
+            });
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Xml.XmlException)
         {
@@ -130,9 +168,9 @@ public sealed class AppSettingsStore : IAppSettingsStore
         }
     }
 
-    private static T? Get<T>(string configPath, string key)
+    private static T? Get<T>(IReadOnlyDictionary<string, string> configuration, string key)
     {
-        return AppConfigHelper.TryGet<T>(configPath, key, out var value)
+        return configuration.TryGet<T>(key, out var value)
             ? value
             : default;
     }

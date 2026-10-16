@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
@@ -25,7 +26,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel workbench)
     {
         _workbench = workbench;
-        workbench.PropertyChanged += (_, _) => this.RaisePropertyChanged(nameof(IsTaskEditingEnabled));
+        workbench.PropertyChanged += OnWorkbenchPropertyChanged;
         _appearanceState = appearanceState;
         _imageBasePath = documentState.FilePath;
         _sourceMarkdown = documentState.Markdown;
@@ -97,7 +98,6 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     public void ApplyMarkdownPreviewRefresh(MarkdownPreviewRefreshCommand command)
     {
         SetDocument(command.Markdown, command.FilePath);
-
         // 文档内容与图片地址都没变时（例如同一文件的外部改动），仍要强制重取远程图片。
         RemoteImageRefreshVersion++;
     }
@@ -120,6 +120,14 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         _sourceMarkdown = markdown ?? string.Empty;
         ImageBasePath = filePath;
         Markdown = _sourceMarkdown;
+    }
+
+    private void OnWorkbenchPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(_workbench.IsSourceEditing))
+        {
+            this.RaisePropertyChanged(nameof(IsTaskEditingEnabled));
+        }
     }
 
     private static double CalculatePreviewScrollRatio(int caretLine, int lineCount)

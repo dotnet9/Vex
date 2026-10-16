@@ -227,9 +227,15 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     }
     private void SynchronizeLive()
     {
-        if (_live is null || !IsInstantEditing || _live.Text == _document.Markdown) return;
+        if (_live is null || !IsInstantEditing) return;
+        var sameText = _live.Text == _document.Markdown;
+        if (sameText && string.Equals(_live.ImageBasePath, _document.FilePath, StringComparison.Ordinal)) return;
         _syncingLive = true;
-        try { _live.SetText(_document.Markdown); _live.ImageBasePath = _document.FilePath; }
+        try
+        {
+            if (sameText) _live.ImageBasePath = _document.FilePath;
+            else _live.SetText(_document.Markdown, _document.FilePath);
+        }
         finally { _syncingLive = false; }
     }
     private void ApplyLiveAppearance()
