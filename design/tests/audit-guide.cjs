@@ -5,84 +5,123 @@ const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 
 (async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.VEX_BROWSER_EXECUTABLE || undefined });
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    page.setDefaultTimeout(10000);
     const errors = [], downloads = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('download', download => downloads.push(download.suggestedFilename()));
-    const url = pathToFileURL(path.join(__dirname, '..', 'index.html')).href;
+    const url = pathToFileURL(path.join(__dirname, '..', 'Vex.html')).href;
     const next = () => page.locator('[data-tour="next"]').click();
+    const restart = async () => {
+      await page.locator('.tb-menuitem[data-menu="帮助(H)"]').click();
+      await page.locator('.menu-item[data-menu-action="guide"]').click();
+    };
     const screenshot = async name => {
       await page.waitForTimeout(420);
-      await page.screenshot({ path: path.join(os.tmpdir(), 'vex-guide-' + name + '.png') });
+      await page.screenshot({ path: path.join(process.env.CODEWF_TEMP_ROOT || os.tmpdir(), 'vex-guide-' + name + '.png') });
       const bounds = await page.locator('.tour-card').boundingBox();
-      const viewport = page.viewportSize();
-      assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= viewport.width && bounds.y + bounds.height <= viewport.height, 'Guide card stays inside the viewport');
+      const app = await page.locator('.app-window').boundingBox();
+      assert.ok(bounds.x >= app.x && bounds.y >= app.y && bounds.x + bounds.width <= app.x + app.width && bounds.y + bounds.height <= app.y + app.height, 'Guide card stays inside the application window');
     };
     await page.goto(url + '?palette=aurora&theme=light');
     const original = await page.locator('#markdown-input').inputValue();
+    const originalLayout = await page.evaluate(() => VexWorkspace.current);
     await page.locator('#guide-launch').click();
     assert.equal(await page.locator('#vex-guide').isVisible(), true);
     assert.match(await page.locator('#document-name').textContent(), /演练/);
-    await screenshot('01-perspectives');
-    await page.locator('#view-read').click();
-    assert.equal(await page.locator('#reading-pane').isVisible(), true, 'The spotlight lets users operate real controls');
-    await page.waitForFunction(() => document.querySelector('.tour-feedback').classList.contains('done'));
-    await next();
+    assert.equal(await page.locator('.tour-count').textContent(), '1 / 6');
+    await screenshot('01-writing');
     await page.locator('#instant-content > .instant-block:nth-child(2)').click();
-    await page.locator('.instant-input').fill('在演练文档里输入 **一个新想法**。');
-    assert.equal(await page.locator('.instant-live-preview').count(), 0);
+    await page.locator('.instant-input').fill('在演练文档里输入一个新想法。');
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await page.locator('#vex-guide').getAttribute('data-step'), '1', 'Arrow keys in formatted text move the caret, not the guide');
     assert.match(await page.locator('#markdown-input').inputValue(), /一个新想法/);
-    await screenshot('02-writing');
     await next();
-    await page.locator('[data-typography-key="OrangeHeart"]').click();
-    assert.equal(await page.locator('html').getAttribute('data-typography'), 'OrangeHeart');
-    await screenshot('03-typography');
+    await page.locator('.outline-item').filter({ hasText: '准备分享' }).click();
+    assert.match(await page.locator('.tour-feedback').textContent(), /已定位/);
+    assert.match(await page.locator('.outline-item.on').textContent(), /准备分享/);
+    await page.locator('.side-tab[data-pane="files"]').click();
+    await page.locator('#file-filter').fill('演练');
+    assert.equal(await page.locator('.file-row.selected').isVisible(), true);
+    await screenshot('02-navigation');
     await next();
-    await page.locator('#summary-length').fill('12');
-    assert.equal(await page.locator('#summary-label').textContent(), '摘要 12 字');
-    await screenshot('04-summary');
-    await page.locator('.map-node[data-kind="paragraph"] .map-node-button').first().click();
-    assert.match(await page.locator('#inspector-content').textContent(), /一个新想法/);
-    await page.locator('[data-tour="summary"]').click();
-    await page.locator('[data-tour="fulltext"]').click();
-    await screenshot('04-fulltext');
-    await page.locator('#node-inspector [data-action="locate-source"]').click();
-    assert.equal(await page.locator('#source-pane').isVisible(), true);
-    assert.match(await page.locator('#markdown-input').evaluate(input => input.value.slice(input.selectionStart, input.selectionEnd)), /一个新想法/);
+    assert.equal(await page.locator('#workspace-layout-menu').isVisible(), false);
+    assert.equal(await page.locator('#chapter-headings-only').getAttribute('aria-pressed'), 'true');
+    await screenshot('03-chapters');
+    await page.locator('.map-node[data-kind="heading"]').filter({ hasText: '写下想法' }).locator('.map-node-button').dblclick();
+    await page.locator('.chapter-rename').fill('演练里修改的章节');
+    await page.locator('.chapter-rename').press('Enter');
+    assert.match(await page.locator('#markdown-input').inputValue(), /## 演练里修改的章节/);
+    await page.locator('#node-inspector [data-action="close-inspector"]').click();
+    const moving = page.locator('.map-node[data-kind="heading"]').filter({ hasText: '准备分享' });
+    const target = page.locator('.map-node[data-kind="heading"]').filter({ hasText: '看清结构' });
+    await moving.dragTo(target, { targetPosition: { x: 30, y: 3 } });
+    const reordered = await page.locator('#markdown-input').inputValue();
+    assert.ok(reordered.indexOf('## 准备分享') < reordered.indexOf('## 看清结构'), 'Real chapter dragging works inside the guide');
+    assert.match(await page.locator('.tour-feedback').textContent(), /章节已更新/);
     await next();
-    assert.equal(await page.locator('.menu-flyout').isVisible(), true);
-    await screenshot('05-save');
-    assert.deepEqual(downloads, [], 'Opening and advancing the guide never downloads a file');
-    const [download] = await Promise.all([
-      page.waitForEvent('download'),
-      page.locator('.menu-item[data-menu-label="保存"]').click()
-    ]);
-    assert.match(download.suggestedFilename(), /演练/);
-    await page.locator('[data-tour="exports"]').click();
-    const [htmlExport] = await Promise.all([
-      page.waitForEvent('download'),
-      page.locator('.menu-item[data-menu-action="export-html"]').click()
-    ]);
-    assert.match(htmlExport.suggestedFilename(), /演练\.html$/);
+    await screenshot('04-layouts');
+    const beforeMenu = await page.locator('.tour-card').boundingBox();
+    await page.locator('#workspace-layout').click();
+    await page.locator('[data-layout="source-map"]').click();
+    assert.equal(await page.evaluate(() => VexWorkspace.current), 'source-map');
+    assert.equal(await page.locator('#workspace-layout-menu').isVisible(), true);
+    await page.locator('[data-layout="three"]').click();
+    assert.equal(await page.evaluate(() => VexWorkspace.current), 'three');
+    assert.equal(await page.locator('#workspace-layout-menu').isVisible(), true, 'Layout choices stay open for comparison during the guide');
+    await screenshot('04-layouts-menu');
+    assert.ok(await page.locator('#map-viewport').evaluate(viewport => {
+      const bounds = viewport.getBoundingClientRect();
+      return Array.from(viewport.querySelectorAll('.map-node')).every(node => {
+        const rect = node.getBoundingClientRect();
+        return rect.left >= bounds.left && rect.right <= bounds.right && rect.top >= bounds.top && rect.bottom <= bounds.bottom;
+      });
+    }), 'The combined layout keeps the whole practice map visible');
+    const withMenu = await page.locator('.tour-card').boundingBox();
+    assert.ok(Math.abs(beforeMenu.x - withMenu.x) < 1 && Math.abs(beforeMenu.y - withMenu.y) < 1, 'Opening the layout menu does not move the guide card');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#workspace-layout-menu').isVisible(), false);
+    assert.equal(await page.locator('#vex-guide').isVisible(), true);
     await next();
-    assert.equal(await page.locator('#markdown-input').inputValue(), original, 'Completing restores the original content');
-    assert.equal(await page.locator('html').getAttribute('data-typography'), 'Simple');
+    await page.locator('#edit-options [data-action="typography"]').click();
+    await page.locator('[data-typography-key="InkBlack"]').click();
+    assert.equal(await page.locator('html').getAttribute('data-typography'), 'InkBlack');
+    assert.equal(await page.locator('#typography-panel').isVisible(), true);
+    await page.locator('#typography-compact').check();
+    assert.match(await page.locator('.tour-feedback').textContent(), /间距已更新/);
+    await screenshot('05-typography');
+    await next();
+    assert.equal(await page.locator('#typography-panel').isVisible(), false);
+    await screenshot('06-sharing');
+    await page.locator('.tour-more summary').click();
+    assert.match(await page.locator('.tour-more p').textContent(), /MCP/);
+    assert.deepEqual(downloads, [], 'The guide does not automatically download files');
+    await page.locator('.save-button').click();
+    await page.waitForFunction(() => document.querySelector('.tour-feedback').classList.contains('done'));
+    // HTML export is an explicit user action inside the guide.
+    await page.locator('.tb-menuitem[data-menu="文件(F)"]').click();
+    await page.locator('.menu-item[data-menu-label="导出"]').hover();
+    await page.locator('[data-menu-action="export-html"]').click();
+    await page.waitForTimeout(200);
+    assert.ok(downloads.some(name => /演练.*\.md$/.test(name)));
+    assert.ok(downloads.some(name => /演练.*\.html$/.test(name)));
+    await next();
+    assert.equal(await page.locator('#vex-guide').isVisible(), false);
+    assert.equal(await page.locator('#markdown-input').inputValue(), original);
+    assert.equal(await page.evaluate(() => VexWorkspace.current), originalLayout);
     assert.equal(await page.locator('#summary-label').textContent(), '摘要 30 字');
     assert.equal(await page.locator('.file-row').filter({ hasText: '演练' }).count(), 0);
-    await screenshot('06-ready');
-    await page.locator('.tour-next').click();
-    assert.equal(await page.locator('#vex-guide').isVisible(), false);
     assert.equal(await page.locator('#guide-launch').isVisible(), false);
+    assert.equal(await page.evaluate(() => localStorage.getItem('vex-design-guide')), 'completed');
     await page.reload();
-    assert.equal(await page.locator('#guide-launch').isVisible(), false, 'The first-use entry stays dismissed after reload');
-    await page.locator('.tb-menuitem[data-menu="帮助(H)"]').click();
-    await page.locator('.menu-item[data-menu-action="guide"]').click();
-    assert.equal(await page.locator('#vex-guide').getAttribute('data-step'), '1', 'Help can always restart the guide');
+    assert.equal(await page.locator('#guide-launch').isVisible(), false);
+    await restart();
+    assert.equal(await page.locator('#vex-guide').getAttribute('data-step'), '1');
     await page.keyboard.press('Escape');
 
-    // 中途退出必须保留未保存的正文、原来视图与显示偏好。
+    // 中途退出须保留未保存的正文、撤销历史、原视图与显示偏好。
     await page.locator('#edit-source').click();
     const unsaved = '# 不能丢失的文档\n\n这是进入引导之前尚未保存的文字。';
     await page.locator('#markdown-input').fill(unsaved);
@@ -97,9 +136,10 @@ const { chromium } = require('playwright');
     await page.locator('[data-action="zoom-in"]').click();
     const previousZoom = await page.locator('#zoom-value').textContent();
     await page.evaluate(() => VexTypography.choose('InkBlack'));
-    await page.locator('.tb-menuitem[data-menu="帮助(H)"]').click();
-    await page.locator('.menu-item[data-menu-action="guide"]').click();
-    await page.keyboard.press('ArrowRight');
+    const undo = await page.evaluate(() => VexWorkbench.state.undo.slice());
+    const layoutPreference = await page.evaluate(() => localStorage.getItem('vex-design-layout'));
+    await page.locator('#file-filter').evaluate(el => { el.value = '原来的筛选'; el.dispatchEvent(new Event('input')); });
+    await restart();
     await page.locator('#instant-content > .instant-block:nth-child(2)').click();
     await page.locator('.instant-input').fill('演练中的临时编辑');
     await page.keyboard.press('Escape');
@@ -113,31 +153,34 @@ const { chromium } = require('playwright');
     assert.equal(await page.locator('.side-tab[data-pane="outline"]').evaluate(element => element.classList.contains('on')), true);
     assert.equal(await page.locator('#sidebar-toggle').getAttribute('aria-pressed'), 'false');
     assert.equal(await page.locator('#zoom-value').textContent(), previousZoom);
+    assert.deepEqual(await page.evaluate(() => VexWorkbench.state.undo), undo);
+    assert.equal(await page.evaluate(() => localStorage.getItem('vex-design-layout')), layoutPreference);
+    assert.equal(await page.locator('#file-filter').inputValue(), '原来的筛选');
     await page.keyboard.press('F8');
     await page.locator('#view-edit').click();
     assert.equal(await page.locator('#edit-source').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#reading-pane').isVisible(), false);
 
-    // 窄窗口 / 深色下全部步骤可达；Tab 限于引导与可操作的聚光控件。
+    // 窄窗口 / 深色下六步可达；Tab 限于引导与聚光控件。
     await page.setViewportSize({ width: 980, height: 640 });
     await page.evaluate(() => VexTheme.setMode('dark'));
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.locator('.tb-menuitem[data-menu="帮助(H)"]').click();
-    await page.locator('.menu-item[data-menu-action="guide"]').click();
-    for (let index = 0; index < 5; index++) {
+    await restart();
+    for (let index = 0; index < 6; index++) {
       await screenshot('narrow-dark-' + (index + 1));
       const ringRects = await page.locator('.tour-focus').evaluateAll(items => items.map(item => {
         const rect = item.getBoundingClientRect(); return { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
       }));
+      assert.ok(ringRects.length > 0);
       ringRects.forEach(rect => assert.ok(rect.x >= 0 && rect.y >= 0 && rect.x + rect.width <= 980 && rect.y + rect.height <= 640));
       await page.keyboard.press('Tab');
       assert.equal(await page.evaluate(() => document.activeElement !== document.body), true);
-      if (index < 4) await next();
+      if (index < 5) await next();
     }
     assert.equal(await page.locator('.tour-focus').first().evaluate(element => getComputedStyle(element, '::after').animationName), 'none');
-    await page.keyboard.press('Escape');
+    await page.locator('[data-tour="close"]').last().click();
     assert.equal(await page.locator('#markdown-input').inputValue(), unsaved);
     assert.deepEqual(errors, []);
-    console.log('Passed: five interactive guide steps, real editing/themes/summary, opt-in save, restore on finish/skip, help restart, preference persistence, keyboard and narrow dark layout.');
+    console.log('Passed: six concise guide steps, real writing/navigation/chapter editing/layout comparison/typography/explicit sharing, restore on finish/skip, undo and preference preservation, keyboard and narrow dark layout.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

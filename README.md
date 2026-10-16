@@ -151,7 +151,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - Prism.Avalonia
 - ReactiveUI.Avalonia
 - Ursa.Avalonia / Semi.Avalonia
-- CodeWF.Avalonia.Markdown / Markdown.Lite / Lang
+- CodeWF.Avalonia.Markdown / Lang
 - CodeWF.Toolkit.Core / EventBus / Files
 
 ## 快速开始

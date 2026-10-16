@@ -5,8 +5,8 @@
   "Vex": {
     "VexL": {
       "AppName": "Vex",
-      "ChineseName": "Vex",
-      "Slogan": "最小の力で、美しい文章を",
+      "ChineseName": "维刻",
+      "Slogan": "Vex · 想いを書き、つながりを見つける。",
       "AboutChineseNameLabel": "中国語名",
       "AboutVersionLabel": "バージョン",
       "AboutCompileTimeLabel": "ビルド時刻",
@@ -277,7 +277,7 @@
       "UnsavedDocument": "未保存の文書",
       "DocumentDefaultFileName": "Untitled.md",
       "DocumentDefaultHeading": "無題",
-      "DocumentDefaultBody": "小さな力で、美しく書く。",
+      "DocumentDefaultBody": "Vex · 想いを書き、つながりを見つける。",
       "WordCountFormat": "{0} 語",
       "CharacterCountFormat": "{0} 文字",
       "LineCountFormat": "{0} 行",

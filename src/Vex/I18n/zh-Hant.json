@@ -6,7 +6,7 @@
     "VexL": {
       "AppName": "Vex",
       "ChineseName": "維刻",
-      "Slogan": "極簡之力，妙筆成章",
+      "Slogan": "維刻 Vex · 寫下想法，看見脈絡。",
       "AboutChineseNameLabel": "中文名",
       "AboutVersionLabel": "版本",
       "AboutCompileTimeLabel": "編譯時間",
@@ -277,7 +277,7 @@
       "UnsavedDocument": "未儲存文件",
       "DocumentDefaultFileName": "Untitled.md",
       "DocumentDefaultHeading": "未命名",
-      "DocumentDefaultBody": "極簡之力，妙筆成章。",
+      "DocumentDefaultBody": "維刻 Vex · 寫下想法，看見脈絡。",
       "WordCountFormat": "{0} 詞",
       "CharacterCountFormat": "{0} 字元",
       "LineCountFormat": "{0} 行",

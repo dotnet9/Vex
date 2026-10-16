@@ -5,12 +5,12 @@ const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 
 (async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.VEX_BROWSER_EXECUTABLE || undefined });
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    const url = pathToFileURL(path.join(__dirname, '..', 'index.html')).href;
+    const url = pathToFileURL(path.join(__dirname, '..', 'Vex.html')).href;
     const mainMenu = label => page.locator('.tb-menuitem').filter({ hasText: label });
     const menuItem = label => page.locator('.menu-item:visible').filter({
       has: page.locator(':scope > .menu-label').filter({ hasText: new RegExp('^' + label + '$') })
@@ -48,13 +48,35 @@ const { chromium } = require('playwright');
     assert.equal(await page.evaluate(() => window.copiedCode), await code.locator('code').textContent());
     assert.equal(await page.locator('.instant-input').count(), 0, 'Copy keeps the code block rendered');
 
+    // 点击前后使用同一排版节点，字号、行距、周边位置和滚动位置完全一致。
+    for (const selector of ['.instant-block h1', '.instant-block h2', '.instant-block h3', '.instant-block p', '.instant-block blockquote']) {
+      const target = page.locator(selector).first();
+      await target.scrollIntoViewIfNeeded();
+      const before = await target.evaluate(element => {
+        window.stationaryNode = element;
+        const rect = element.getBoundingClientRect(), css = getComputedStyle(element), block = element.closest('.instant-block');
+        return { x: rect.x, y: rect.y, height: rect.height, blockHeight: block.getBoundingClientRect().height, font: css.font, margin: css.margin, padding: css.padding, scroll: document.querySelector('.instant-scroll').scrollTop };
+      });
+      await target.click({ position: { x: 8, y: 8 } });
+      const after = await target.evaluate(element => {
+        const assertSame = element === window.stationaryNode;
+        const rect = element.getBoundingClientRect(), css = getComputedStyle(element), block = element.closest('.instant-block');
+        return { x: rect.x, y: rect.y, height: rect.height, blockHeight: block.getBoundingClientRect().height, font: css.font, margin: css.margin, padding: css.padding, scroll: document.querySelector('.instant-scroll').scrollTop, same: assertSame };
+      });
+      assert.equal(after.same, true, '点击不替换已排版节点'); delete after.same;
+      assert.deepEqual(after, before, '点击不增加输入框高度或改变文字位置');
+      assert.equal(await page.locator('#instant-pane textarea').count(), 0);
+      assert.equal(await page.locator('#dirty-dot').isVisible(), false, '只放置光标不修改 Markdown');
+    }
+
     // 真正输入而非直接调用内部方法：编辑块保持光标，排版、源码、导图共享内容。
     await page.locator('.instant-block').filter({ hasText: /^把注意力/ }).click();
     const draft = '新的文字 **加粗内容**，即时确认效果。';
     await page.locator('.instant-input').fill(draft);
-    assert.equal(await page.locator('.instant-live-preview').count(), 0, 'Active block shows only Markdown source');
+    assert.equal(await page.locator('.instant-live-preview').count(), 0, '正文原位编辑，不增加预览区域');
     assert.ok(await page.locator('.instant-block:not(.is-editing) h2').count() > 0, 'Other blocks keep rendered typography');
-    assert.equal(await page.locator('.instant-input').inputValue(), draft, 'Live rendering preserves the editing surface');
+    assert.equal(await page.locator('.instant-input').textContent(), '新的文字 加粗内容，即时确认效果。');
+    assert.equal(await page.locator('.instant-input strong').textContent(), '加粗内容', '输入时在原位置显示加粗');
     assert.match(await page.locator('#markdown-input').inputValue(), /新的文字 \*\*加粗内容\*\*/);
     await page.screenshot({ path: path.join(output, 'vex-instant-active-light.png') });
     await page.evaluate(() => VexTheme.setMode('dark'));
@@ -82,7 +104,7 @@ const { chromium } = require('playwright');
     await page.locator('.instant-block').filter({ hasText: /^新的文字/ }).click();
     await page.locator('.instant-input').fill(draft + '\n\n补充段落。\n\n#### 新增标题');
     await page.locator('.instant-block').filter({ hasText: /^降低视觉噪音$/ }).click();
-    assert.equal(await page.locator('.instant-input').inputValue(), '### 降低视觉噪音');
+    assert.equal(await page.locator('.instant-input h3').textContent(), '降低视觉噪音');
     await page.locator('.instant-input').press('Control+Enter');
     assert.equal(await page.locator('.instant-block h4').filter({ hasText: '新增标题' }).count(), 1);
     assert.match(await page.locator('#markdown-input').inputValue(), /补充段落。\n\n#### 新增标题\n\n### 降低视觉噪音/);
@@ -204,6 +226,35 @@ const { chromium } = require('playwright');
         for(const view of ['edit','read']){await page.locator('#view-'+view).click();const article=await page.locator(view==='edit'?'#instant-content':'#markdown-preview').boundingBox();assert.ok(article.width>=1100&&article.width<=1280);}
       }
     }
+    // 使用真实按键验证排版节点直接输入、标题换段、加粗、斜体及中文标点。
+    const writing = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    writing.on('pageerror', error => errors.push(error.message));
+    await writing.goto(url + '?layout=instant&theme=light');
+    const title = writing.locator('.instant-block h1').first();
+    await title.click(); await writing.keyboard.press('End');
+    await writing.keyboard.insertText(' · 继续写作');
+    assert.equal(await writing.locator('.instant-input h1').textContent(), '主题设计笔记 · 继续写作');
+    await writing.keyboard.press('Enter');
+    await writing.keyboard.insertText('标题下面直接写正文');
+    assert.match(await writing.locator('#markdown-input').inputValue(), /^# 主题设计笔记 · 继续写作\n\n标题下面直接写正文/);
+    assert.equal(await writing.locator('.instant-input h1').count(), 1, '标题换行后接正文，不重复创建标题');
+    await writing.keyboard.press('Control+b');
+    await writing.keyboard.insertText('加粗');
+    await writing.keyboard.press('Control+b');
+    await writing.keyboard.insertText('与');
+    await writing.keyboard.press('Control+i');
+    await writing.keyboard.insertText('斜体');
+    await writing.keyboard.press('Control+i');
+    await writing.keyboard.insertText('/中文输入');
+    assert.match(await writing.locator('#markdown-input').inputValue(), /正文\*\*加粗\*\*与\*斜体\*\/中文输入/);
+    assert.equal(await writing.locator('.instant-input').evaluate(element => document.activeElement === element), true, '输入斜杠保持正文光标');
+    await writing.locator('#format-toolbar [data-action="insert-bold"]').click();
+    await writing.keyboard.insertText('工具栏加粗');
+    assert.match(await writing.locator('#markdown-input').inputValue(), /\*\*工具栏加粗\*\*/);
+    await writing.screenshot({ path: path.join(output, 'vex-instant-direct-writing.png') });
+    await writing.keyboard.press('Control+Enter');
+    assert.equal(await writing.locator('#instant-content h1').first().textContent(), '主题设计笔记 · 继续写作');
+    await writing.close();
     assert.deepEqual(errors, []);
     console.log('Passed: instant rendering, source/map sync, cancel/undo, block boundaries, eighteen typography themes, export, plain menus, shortcuts and keyboard/narrow layout.');
   } finally { await browser.close(); }

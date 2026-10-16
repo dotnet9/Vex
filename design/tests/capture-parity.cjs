@@ -1,4 +1,4 @@
-﻿const fs = require('node:fs');
+const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
@@ -6,8 +6,8 @@ const { chromium } = require('playwright');
 (async () => {
   const output = path.resolve(__dirname, '../../artifacts/parity/prototype');
   fs.mkdirSync(output, { recursive: true });
-  const browser = await chromium.launch({ headless: true });
-  const url = pathToFileURL(path.resolve(__dirname, '../index.html')).href;
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.VEX_BROWSER_EXECUTABLE || undefined });
+  const url = pathToFileURL(path.resolve(__dirname, '../Vex.html')).href;
   const records = [];
   try {
     for (const width of [1280, 980]) {

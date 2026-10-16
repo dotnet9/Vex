@@ -6,8 +6,8 @@ const { chromium } = require('playwright');
 
 // 检查真实原型事件与系统主题变化，浏览器在后台运行。
 (async () => {
-  const standalone = standaloneFixture(path.resolve(__dirname, '../index.html'));
-  const browser = await chromium.launch({ headless: true });
+  const standalone = standaloneFixture(path.resolve(__dirname, '../Vex.html'));
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.VEX_BROWSER_EXECUTABLE || undefined });
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await standalone.attach(page);

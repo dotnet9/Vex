@@ -2,10 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vex · 写作与思考工作台</title>
+<title>维刻 Vex · 写下想法，看见脉络。</title>
 <link rel="stylesheet" href="assets/theme.css"><link rel="stylesheet" href="assets/dialogs.css"><link rel="stylesheet" href="assets/workbench.css">
 <link rel="stylesheet" href="assets/editing.css">
 <link rel="stylesheet" href="assets/guide.css">
+<link rel="stylesheet" href="assets/workspace.css">
 <script src="assets/theme.js"></script>
 </head>
 <body data-page="index">
@@ -53,7 +54,7 @@
 </defs></svg>
 <div class="app-window">
   <header class="titlebar">
-    <div class="brand"><img src="../logo.svg" alt="">Vex</div>
+    <div class="brand" title="维刻 Vex · 写下想法，看见脉络。"><img src="../logo.svg" alt="">Vex</div>
     <nav class="tb-menu" aria-label="应用菜单"><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">文件(F)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">编辑(E)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">插入(I)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">视图(V)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">工具(T)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">帮助(H)</button></nav>
     <div class="caption-btns" id="caption-btns">
       <button class="caption-btn" data-action="minimize" title="最小化"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button>
@@ -70,12 +71,12 @@
         <button id="view-read" role="tab" aria-controls="reading-pane" aria-selected="false" data-view="read"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg>阅读</button>
         <button id="view-mindmap" role="tab" aria-controls="map-pane" aria-selected="false" data-view="mindmap"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg>导图</button>
       </div>
-      <div class="work-actions"><button class="guide-launch" data-action="guide" id="guide-launch" title="新手引导 · 5 个重点"><i aria-hidden="true"></i><span>快速上手</span></button><button class="icon-button" data-action="find" title="查找 · Ctrl+F"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg></button><button class="btn sm save-button" data-action="save" title="保存副本 · Ctrl+S"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg><span>保存</span></button></div>
+      <div class="work-actions"><button class="guide-launch" data-action="guide" id="guide-launch" title="新手引导"><i aria-hidden="true"></i><span>快速上手</span></button><button class="icon-button" data-action="find" title="查找 · Ctrl+F"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg></button><button class="btn sm save-button" data-action="save" title="保存副本 · Ctrl+S"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg><span>保存</span></button></div>
     </div>
     <div class="find-strip" id="findbar" hidden><input class="input" id="find-input" placeholder="查找文本"><input class="input" id="replace-input" placeholder="替换为" hidden><button class="btn sm" data-action="find-next">下一个</button><button class="btn sm" data-action="replace-all" id="replace-all" hidden>全部替换</button><small id="find-count">输入查找内容</small><button class="icon-button" data-action="close-find" title="关闭查找"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
     <main class="workspace" data-view="edit">
       <aside class="sidebar" aria-label="文档导航"><div class="sidebar-inner">
-        <div class="side-tabs"><button class="side-tab on" data-pane="files"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg>文档</button><button class="side-tab" data-pane="outline"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>大纲</button></div>
+        <div class="side-tabs"><button class="side-tab on" data-pane="files"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg>文件</button><button class="side-tab" data-pane="outline"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>大纲</button></div>
         <div class="side-pane" data-pane-body="files">
           <label class="sidebar-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="file-filter" placeholder="搜索文档…" aria-label="搜索文档"><kbd style="font-size:9px;opacity:.6">/</kbd></label>
           <div class="folder-row folder-root"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg><span id="workspace-folder">笔记</span><button class="icon-button" data-action="open-folder" title="打开 Markdown 文件夹" aria-label="打开 Markdown 文件夹"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg></button></div>
@@ -114,7 +115,7 @@
       <div class="content-area">
         <section class="instant-pane" id="instant-pane" aria-label="即时渲染编辑器">
           <div class="instant-scroll"><article class="md-body" id="instant-content"></article></div>
-          <div class="instant-hint" id="instant-hint">点击段落就地编辑 · Ctrl+Enter 完成当前块 · Esc 撤销本块改动</div>
+          <div class="instant-hint" id="instant-hint">直接在正文中写作 · Ctrl+B 加粗 · Ctrl+I 斜体</div>
         </section>
         <section class="source-pane" id="source-pane" aria-label="Markdown 源码">
           <div class="pane-head"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg>Markdown<span class="ph-right">可直接编辑 · 实时同步</span></div>
@@ -302,31 +303,16 @@
 
     <!-- 关于 Vex -->
     <div class="overlay win-layer" id="layer-about" hidden>
-      <div class="mini-window about-updated" style="width:580px;max-height:85vh;overflow:auto">
+      <div class="mini-window about-updated" style="width:460px;max-height:85vh;overflow:auto">
         <div class="mini-titlebar"><span data-l10n="AboutVexTitle"></span><button class="caption-btn" data-close aria-label="Close">×</button></div>
-        <div class="about-hero"><span class="about-logo">V</span><div><h2>Vex</h2><div class="slogan" data-l10n="Slogan"></div></div></div>
+        <div class="about-hero"><span class="about-logo">V</span><div class="about-identity"><h2>维刻 Vex</h2><div class="slogan" data-proto-label="维刻 Vex · 写下想法，看见脉络。">维刻 Vex · 写下想法，看见脉络。</div></div></div>
         <div class="about-rows">
-          <section class="proto-update-card"><strong data-l10n="AboutCheckUpdateLabel"></strong><p data-l10n="AboutUpdateHint"></p>
-            <p id="vex-update-status" role="status"></p><progress id="vex-update-progress" hidden max="100" value="65"></progress>
-            <div class="proto-update-actions"><button class="btn primary" id="vex-update"></button><button class="btn" id="vex-update-recheck" data-l10n="AboutCheckUpdate"></button><button class="btn" id="vex-update-cancel" data-l10n="Cancel" hidden></button></div>
-            <a id="vex-release-link" href="https://github.com/dotnet9/Vex/releases/latest" hidden>https://github.com/dotnet9/Vex/releases/latest</a>
-          </section>
-          <div class="about-row"><span class="k" data-l10n="AboutVersionLabel"></span><span class="v ver-badge" id="about-version"></span></div>
-          <div class="about-row"><span class="k" data-l10n="AboutPlatformLabel"></span><span class="v">.NET 10 · Avalonia 12 · Windows / macOS / Linux</span></div>
-          <div class="about-row"><span class="k" data-l10n="AboutCompileTimeLabel"></span><span class="v" id="about-build"></span></div>
+          <div class="about-row"><span class="k" data-l10n="AboutVersionLabel"></span><span class="v about-version"><span class="ver-badge" id="about-version"></span><button class="about-link" data-action="dlg-doc" data-proto-label="更新日志">更新日志</button></span></div>
+          <div class="about-row"><span class="k" data-l10n="AboutPlatformLabel"></span><span class="v">.NET 10，Avalonia</span></div>
           <div class="about-row"><span class="k" data-l10n="AboutAuthorLabel"></span><span class="v" data-l10n="AboutAuthorName"></span></div>
-          <div class="about-row"><span class="k" data-l10n="AboutRepositoryLabel"></span><a class="v" href="https://github.com/dotnet9/Vex">https://github.com/dotnet9/Vex</a></div>
-          <div class="about-row"><span class="k" data-l10n="AboutWebsiteLabel"></span><a class="v" href="https://codewf.com">https://codewf.com</a></div>
-          <div class="about-row"><span class="k" data-l10n="AboutBrandLabel"></span><span class="v" data-l10n="AboutBrandName"></span></div>
-          <div class="about-row"><span class="k" data-l10n="AboutCopyrightLabel"></span><span class="v" id="about-copyright"></span></div>
-          <p data-proto-label="原型生成信息，安装版显示其实际编译时间。"></p>
-          <label><span data-proto-label="离线演示"></span> <select id="vex-update-scenario">
-            <option value="available" data-proto-label="发现新版"></option><option value="current" data-proto-label="已是最新"></option>
-            <option value="check-failed" data-proto-label="检查失败"></option><option value="download-failed" data-proto-label="下载失败"></option>
-            <option value="checksum-failed" data-proto-label="校验失败"></option><option value="install-failed" data-proto-label="安装失败"></option><option value="missing" data-proto-label="缺少安装包"></option>
-          </select></label>
+          <div class="about-row"><span class="k" data-proto-label="链接">链接</span><span class="v about-links"><a href="https://codewf.com" data-proto-label="官网">官网</a><span aria-hidden="true">·</span><a href="https://github.com/dotnet9/Vex" data-proto-label="开源仓库">开源仓库</a></span></div>
         </div>
-        <div class="about-foot"><span data-l10n="AboutDescription"></span></div>
+        <div class="about-footer"><div class="about-foot" id="about-copyright">Copyright © 2026 Vex(维刻)</div><button class="btn primary" id="vex-update"></button><p id="vex-update-status" role="status" hidden></p></div>
       </div>
     </div>
 
@@ -405,16 +391,8 @@
             <span class="caption-btn" data-close><svg class="sym" style="width:11px;height:11px"><use href="#i-x"/></svg></span>
           </span>
         </div>
-        <div class="doc-head">
-          <span class="d-logo">V</span>
-          <div>
-            <h2 id="doc-head-title">更新日志</h2>
-            <div class="sub">随应用分发的官方文档 · Markdown 渲染</div>
-          </div>
-        </div>
         <div class="doc-body">
           <div class="md-body" id="doc-content-changelog">
-            <h1>更新日志</h1>
             <h2>1.2.0 (2026-10-02)</h2>
             <ul>
               <li>✨[新增]-内置 MCP 本地 AI 协作服务：帮助菜单新增 MCP 设置入口，支持启用状态、监听地址、端口、授权 Token、访问范围和确认策略配置。</li>
@@ -430,28 +408,13 @@
               <li>🔨[优化]-补齐根目录 logo.svg、logo.png、logo.ico 三件套，子工程通过 MSBuild Link 引用。</li>
             </ul>
           </div>
-          <div class="md-body" id="doc-content-thanks" hidden>
-            <h1>鸣谢</h1>
-            <p>Vex 感谢下列开源项目及其维护者。它们为跨平台界面、编辑体验、Markdown 解析和应用结构提供了可靠基础。</p>
-            <h2>界面与桌面体验</h2>
-            <ul>
-              <li><a href="#">Avalonia</a></li>
-              <li><a href="#">Semi.Avalonia</a></li>
-              <li><a href="#">Ursa.Avalonia</a></li>
-              <li><a href="#">AvaloniaEdit</a></li>
-            </ul>
-            <h2>应用架构</h2>
-            <ul>
-              <li><a href="#">Prism.Avalonia</a></li>
-              <li><a href="#">CodeWF.EventBus</a></li>
-            </ul>
-            <h2>Markdown</h2>
-            <ul>
-              <li><a href="#">CodeWF.Markdown</a></li>
-              <li><a href="#">Markdig</a></li>
-            </ul>
-            <h2>项目</h2>
-            <p>Vex 由沙漠尽头的狼发起并维护，CodeWF 提供项目支持。</p>
+          <div class="md-body thanks-content" id="doc-content-thanks" hidden>
+            <p>感谢以下开源项目及其维护者对 Vex 的支持。</p>
+            <section class="thanks-group"><h2>界面与编辑</h2><p><a href="https://www.nuget.org/packages/Avalonia" target="_blank" rel="noopener noreferrer">Avalonia</a>, <a href="https://www.nuget.org/packages/Avalonia.AvaloniaEdit" target="_blank" rel="noopener noreferrer">Avalonia.AvaloniaEdit</a>, <a href="https://www.nuget.org/packages/Semi.Avalonia" target="_blank" rel="noopener noreferrer">Semi.Avalonia</a>, <a href="https://www.nuget.org/packages/Irihi.Ursa.Themes.Semi" target="_blank" rel="noopener noreferrer">Irihi.Ursa.Themes.Semi</a>, <a href="https://www.nuget.org/packages/CodeWF.Avalonia.Controls" target="_blank" rel="noopener noreferrer">CodeWF.Avalonia.Controls</a></p></section>
+            <section class="thanks-group"><h2>Markdown 与导图</h2><p><a href="https://www.nuget.org/packages/CodeWF.Avalonia.Markdown" target="_blank" rel="noopener noreferrer">CodeWF.Avalonia.Markdown</a>, <a href="https://www.nuget.org/packages/CodeWF.Avalonia.MindView" target="_blank" rel="noopener noreferrer">CodeWF.Avalonia.MindView</a></p></section>
+            <section class="thanks-group"><h2>应用与基础能力</h2><p><a href="https://www.nuget.org/packages/Prism.DryIoc.Avalonia" target="_blank" rel="noopener noreferrer">Prism.DryIoc.Avalonia</a>, <a href="https://www.nuget.org/packages/ReactiveUI.Avalonia" target="_blank" rel="noopener noreferrer">ReactiveUI.Avalonia</a>, <a href="https://www.nuget.org/packages/System.Reactive" target="_blank" rel="noopener noreferrer">System.Reactive</a>, <a href="https://www.nuget.org/packages/CodeWF.Toolkit.Core" target="_blank" rel="noopener noreferrer">CodeWF.Toolkit.Core</a>, <a href="https://www.nuget.org/packages/CodeWF.Toolkit.EventBus" target="_blank" rel="noopener noreferrer">CodeWF.Toolkit.EventBus</a>, <a href="https://www.nuget.org/packages/CodeWF.Toolkit.Files" target="_blank" rel="noopener noreferrer">CodeWF.Toolkit.Files</a>, <a href="https://www.nuget.org/packages/CodeWF.Avalonia.Lang" target="_blank" rel="noopener noreferrer">CodeWF.Avalonia.Lang</a></p></section>
+            <section class="thanks-group"><h2>Windows 兼容</h2><p><a href="https://www.nuget.org/packages/VC-LTL" target="_blank" rel="noopener noreferrer">VC-LTL</a>, <a href="https://www.nuget.org/packages/YY-Thunks" target="_blank" rel="noopener noreferrer">YY-Thunks</a></p></section>
+            <p class="thanks-support">Vex 由沙漠尽头的狼发起并维护，CodeWF 提供项目支持。</p>
           </div>
         </div>
       </div>
@@ -468,4 +431,4 @@
 <input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
 <input type="file" id="open-folder-input" accept=".md,.markdown,.mdown,.txt" webkitdirectory directory multiple hidden>
 <script src="assets/localization.js"></script><script src="assets/typography.js"></script><script src="assets/interact.js"></script><script src="assets/mindmap.js"></script><script src="assets/instant-editor.js"></script><script src="assets/workbench.js"></script><script src="assets/guide.js"></script>
-<script src="assets/about-update.js"></script></body></html>
+<script src="assets/about-update.js"></script><script src="assets/workspace.js"></script><script src="assets/chapter-editor.js"></script></body></html>

@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $sourceRoot = Join-Path $PSScriptRoot 'prototype'
 $template = Join-Path $sourceRoot 'index.template.html'
-$output = Join-Path $repositoryRoot 'design/index.html'
+$output = Join-Path $repositoryRoot 'design/Vex.html'
 $designRoot = Join-Path $repositoryRoot 'design'
 [xml]$projectMetadata = [IO.File]::ReadAllText((Join-Path $repositoryRoot 'Directory.Build.props'))
 $prototypeResources = [ordered]@{ languages = [ordered]@{}; metadata = [ordered]@{

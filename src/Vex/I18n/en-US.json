@@ -5,8 +5,8 @@
   "Vex": {
     "VexL": {
       "AppName": "Vex",
-      "ChineseName": "Vex",
-      "Slogan": "Minimal power, elegant writing",
+      "ChineseName": "维刻",
+      "Slogan": "Vex · Write your thoughts. See the connections.",
       "AboutChineseNameLabel": "Chinese Name",
       "AboutVersionLabel": "Version",
       "AboutCompileTimeLabel": "Build Time",
@@ -277,7 +277,7 @@
       "UnsavedDocument": "Unsaved document",
       "DocumentDefaultFileName": "Untitled.md",
       "DocumentDefaultHeading": "Untitled",
-      "DocumentDefaultBody": "Minimal power, elegant writing.",
+      "DocumentDefaultBody": "Vex · Write your thoughts. See the connections.",
       "WordCountFormat": "{0} words",
       "CharacterCountFormat": "{0} chars",
       "LineCountFormat": "{0} lines",

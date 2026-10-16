@@ -1,6 +1,6 @@
 ﻿/* ============================================================
    Vex 界面原型 · 交互层（单页版）
-   页面只有一个主窗体（index.html），所有界面通过标题菜单 / 状态栏
+   主窗体为 Vex.html，视图可拆出副窗口；菜单与状态栏的界面
    在窗体内以浮层呼出：
    - VexProto.toast(msg)          操作反馈（对应 App 状态栏提示）
    - VexProto.applyTheme(key)     程序化切主题
@@ -62,7 +62,6 @@
       { sep: true },
       { label: '保存', gesture: 'Ctrl+S', action: 'save' },
       { label: '另存为…', gesture: 'Ctrl+Shift+S', action: 'save' },
-      { label: '保存全部文档', action: 'save-all' },
       { label: '导出', sub: [
         { label: 'HTML', action: 'export-html' }, { label: 'PDF', act: 'dlg-error' },
         { label: 'PNG 长图', toast: 'PNG 长图导出（桌面版操作演示）' },

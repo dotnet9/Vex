@@ -9,22 +9,23 @@
     '保持窗口在最前':'AlwaysOnTop','全屏':'ToggleFullScreen','图片':'Image','行内代码':'InlineCode','打印预览':'Print','查看排版样式…':'WBTypographyTitle'
   };
   const extra = {
+    '维刻 Vex · 写下想法，看见脉络。':['维刻 Vex · 写下想法，看见脉络。','維刻 Vex · 寫下想法，看見脈絡。','Vex · Write your ideas. See the connections.','Vex · 思いを書き、つながりを見つける。'],
     '编辑显示':['编辑显示','編輯顯示','Editor display','エディター表示'],
     '写作辅助':['写作辅助','寫作輔助','Writing tools','執筆補助'],
     '窗口':['窗口','視窗','Window','ウィンドウ'],
     '最大化 / 还原':['最大化 / 还原','最大化 / 還原','Maximize / restore','最大化 / 元に戻す'],
     '列表':['列表','清單','Lists','リスト'], '标题':['标题','標題','Headings','見出し'],
     'PNG 长图':['PNG 长图','PNG 長圖','PNG image','PNG 画像'],
-    '离线演示':['离线演示','離線示範','Offline demo','オフラインデモ'],
-    '检查失败':['检查失败','檢查失敗','Check failure','確認失敗'],
-    '下载失败':['下载失败','下載失敗','Download failure','ダウンロード失敗'],
-    '校验失败':['校验失败','驗證失敗','Checksum failure','チェックサム失敗'],
-    '安装失败':['安装失败','安裝失敗','Install failure','インストール失敗'],
-    '缺少安装包':['缺少安装包','缺少安裝包','Missing installer','インストーラーなし'],
-    '发现新版':['发现新版','發現新版','Update available','更新あり'],
-    '已是最新':['已是最新','已是最新','Up to date','最新バージョン'],
-    '安装演示完成':['安装演示完成','安裝示範完成','Installation demo complete','インストールデモ完了'],
-    '原型生成信息，安装版显示其实际编译时间。':['原型生成信息，安装版显示其实际编译时间。','原型產生資訊，安裝版顯示實際編譯時間。','Prototype build metadata; installed apps show their actual build time.','プロトタイプの生成情報です。インストール版は実際のビルド時刻を表示します。']
+    '链接':['链接','連結','Links','リンク'],
+    '官网':['官网','官網','Website','公式サイト'],
+    '开源仓库':['开源仓库','開源倉庫','Source code','ソースコード'],
+    '重试':['重试','重試','Retry','再試行'],
+    '更新已安装。':['更新已安装。','更新已安裝。','Update installed.','更新をインストールしました。'],
+    '请前往发布页下载安装包。':['请前往发布页下载安装包。','請前往發佈頁下載安裝包。','Download the installer from the release page.','リリースページからインストーラーをダウンロードしてください。'],
+    '检查失败，请重试。':['检查失败，请重试。','檢查失敗，請重試。','Check failed. Please retry.','確認に失敗しました。再試行してください。'],
+    '下载失败，请重试。':['下载失败，请重试。','下載失敗，請重試。','Download failed. Please retry.','ダウンロードに失敗しました。再試行してください。'],
+    '校验失败，请重新下载。':['校验失败，请重新下载。','驗證失敗，請重新下載。','Verification failed. Please download again.','検証に失敗しました。もう一度ダウンロードしてください。'],
+    '安装失败，请重试。':['安装失败，请重试。','安裝失敗，請重試。','Installation failed. Please retry.','インストールに失敗しました。再試行してください。']
   };
   const cultures = ['zh-CN','zh-Hant','en-US','ja-JP'];
   let culture = localStorage.getItem('vex-prototype-language') || 'zh-CN';
@@ -40,8 +41,6 @@
     document.querySelectorAll('.tb-menuitem').forEach((el,index) => { const menu = window.VexProto?.menuData[index]; if (menu) { el.textContent = label(menu.label); el.dataset.menu = menu.label; } });
     document.querySelectorAll('.menu-item .menu-label').forEach(el => { const original = el.parentElement.dataset.menuLabel; if (original) el.textContent = label(original); });
     document.getElementById('about-version').textContent = VEX_DATA.metadata.version;
-    document.getElementById('about-build').textContent = VEX_DATA.metadata.build;
-    document.getElementById('about-copyright').textContent = VEX_DATA.metadata.copyright;
     window.dispatchEvent(new CustomEvent('vex-language-changed'));
   }
   window.VexL = { get, label, set(value) { if (!cultures.includes(value)) return; culture = value; localStorage.setItem('vex-prototype-language', value); apply(); }, get culture() { return culture; } };

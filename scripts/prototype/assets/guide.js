@@ -1,268 +1,223 @@
-/* 聚光引导：操作真实控件，练习内容与进入前的文档隔离。 */
+/* 六步演练使用真实控件；退出时恢复当前文档、布局与偏好。 */
 (function () {
   'use strict';
   var $ = function (selector) { return document.querySelector(selector); };
-  var storageKey = 'vex-design-guide', session = null, stepIndex = 0, open = false, completed = false;
-  var frame = null, tween = null, settledTimer = null, rectangles = [], previousFocus = null, tasks = new Set(), pendingAnimation = false;
-  var layer = document.createElement('div'); layer.className = 'tour-layer'; layer.id = 'vex-guide'; layer.hidden = true;
-  layer.innerHTML = '<svg class="tour-mask" aria-hidden="true"><path class="tour-mask-path"></path><path class="tour-connector"></path></svg><div class="tour-rings"></div><section class="tour-card" role="dialog" aria-modal="false" aria-labelledby="tour-title" aria-describedby="tour-description"></section>';
+  var open = false, preparing = false, completed = false, session = null, stepIndex = 0, previousFocus;
+  var frame, settledTimer, feedback = [], stepText = '';
+  var storageKey = 'vex-design-guide';
+  var layer = document.createElement('div'); layer.id = 'vex-guide'; layer.className = 'tour-layer'; layer.hidden = true;
+  layer.innerHTML = '<svg class="tour-mask" aria-hidden="true"><defs><mask id="tour-cutouts" maskUnits="userSpaceOnUse"><rect width="100%" height="100%" fill="white"></rect><g class="tour-cutouts" fill="black"></g></mask></defs><rect class="tour-scrim" width="100%" height="100%" mask="url(#tour-cutouts)"></rect></svg><div class="tour-rings"></div><section class="tour-card" role="dialog" aria-modal="false" aria-labelledby="tour-title" aria-describedby="tour-description"></section>';
   document.body.appendChild(layer);
-  var card = $('.tour-card'), mask = $('.tour-mask-path'), rings = $('.tour-rings'), connector = $('.tour-connector');
-  var viewsVisual = '<div class="tour-views"><span>编辑</span><i>↔</i><span>阅读</span><i>↔</i><span>导图</span></div>';
-  var codeVisual = '<div class="tour-code-demo"><code>## 一个值得写下来的想法</code><strong>一个值得写下来的想法</strong></div>';
-  var colorVisual = '<div class="tour-color-demo">' + '<span><i></i><b></b><b></b><b></b></span>'.repeat(3) + '</div>';
-  var treeVisual = '<svg class="tour-tree-demo" viewBox="0 0 320 94" aria-hidden="true"><path d="M107 47H135Q146 47 146 26V23H188M146 47V69Q146 72 155 72H188"/><rect class="tree-root" x="30" y="33" width="77" height="28" rx="6"/><text class="tree-root-label" x="43" y="51">你的 Markdown</text><rect x="188" y="11" width="102" height="25" rx="5"/><text x="201" y="27">标题 · 结构主干</text><rect x="188" y="60" width="102" height="25" rx="5" stroke-dasharray="3 3"/><text x="201" y="76">段落 · 内容摘要</text></svg>';
-  var shortcutsVisual = '<div class="tour-shortcuts"><span><kbd>Ctrl+S</kbd>保存</span><span><kbd>Ctrl+P</kbd>快速打开</span><span><kbd>Ctrl+F</kbd>查找</span><span><kbd>F8</kbd>专注模式</span></div>';
+  var card = $('.tour-card'), cutouts = $('.tour-cutouts'), rings = $('.tour-rings');
+  function visible(selector) { var node = $(selector); return !!node && !node.closest('[hidden]') && node.getBoundingClientRect().width > 0; }
   var steps = [
     {
-      name: '视角', title: '一份内容，三个视角', visual: viewsVisual,
-      description: '编辑用来写，阅读用来看，导图用来梳理结构。切换视角时，内容始终是同一份 Markdown。',
-      tip: ['先认识工作台', '左侧放文档和大纲，正文居中；顶部切换视角，底部查看状态。'],
-      task: '试着点击上方“阅读”或“导图”，看看同一份内容。',
-      targets: function () { return ['.view-switch']; }, allow: '.view-switch button', placement: 'bottom',
-      prepare: function () { VexProto.handleAction('view-edit'); }
+      name: '写作', title: '直接写作', description: '点击正文直接写，也可切换源码编辑 Markdown。', tip: '这里是演练文档，结束后会回到原文。',
+      targets: function () { return ['.edit-methods', visible('#instant-pane') ? '#instant-content > .instant-block:nth-child(2)' : '#markdown-input']; },
+      allow: '.edit-methods button, #instant-content .instant-block, #markdown-input',
+      prepare: function () { VexWorkspace.setLayout('instant'); $('.instant-scroll').scrollTop = 0; }
     },
     {
-      name: '写作', title: '写的时候，就能看见效果', visual: codeVisual,
-      description: '点击聚光中的段落直接编辑。当前块显示 Markdown 源码，其余内容保持排版；离开这一块，正文就恢复排版。',
-      tip: ['编辑有两种方式', '“即时渲染”适合专注写作；“源码”适合检查 Markdown。它们都属于编辑视图。'],
-      task: '点击高亮段落，输入几个字或 **加粗**，完成后查看排版。',
-      targets: function () { return ['#instant-content > .instant-block:nth-child(2)']; },
-      allow: '#instant-content > .instant-block:nth-child(2), #instant-content > .instant-block:nth-child(2) *', placement: 'left',
-      prepare: function () { VexProto.handleAction('edit-instant'); $('.instant-scroll').scrollTop = 0; }
+      name: '导航', title: '文件与大纲', description: '文件列表切换当前文档，大纲帮你快速定位章节。', tip: '点一个大纲章节，看看正文定位到哪里。',
+      targets: function () { return ['.side-tabs', '#view-surface'].concat($('.side-tab.on').dataset.pane === 'outline' ? ['#outline-body'] : ['.sidebar-search', '.file-row.selected']); },
+      allow: '.side-tabs button, #outline-body button, #file-filter, .file-row.selected',
+      prepare: function () { VexWorkspace.setLayout('instant'); VexProto.handleAction('pane-outline'); }
     },
     {
-      name: '排版', title: '让正文有自己的气质', visual: colorVisual,
-      description: '选择一种 Markdown 排版，标题、段落和引用会一起变化。即时编辑、阅读和 HTML 导出共用这套排版。',
-      tip: ['正文排版 ≠ 界面配色', '排版决定文章的样子；“视图 → 界面配色”决定工作台的颜色和浅深模式。'],
-      task: '点击右侧任意排版卡片，观察正文标题的变化。',
-      targets: function () { return ['#typography-panel', '#markdown-preview h2']; },
-      allow: '#typography-panel button, #typography-panel input', placement: 'left',
-      extras: [['typography', '打开排版主题']],
-      prepare: function () { VexProto.handleAction('view-read'); $('.reading-scroll').scrollTop = 0; $('#typography-panel').hidden = false; }
+      name: '章节', title: '先梳理，再展开', description: '双击修改标题；拖动章节时，正文和子章节一起移动。', tip: '也可以从节点详情新增同级或子章节。',
+      targets: function () { return ['@chapters'].concat(visible('#node-inspector') ? ['#node-inspector'] : []).concat(visible('#chapter-delete-dialog') ? ['#chapter-delete-dialog > section'] : []); },
+      allow: '#map-viewport, .chapter-toolbar, #node-inspector, #chapter-delete-dialog',
+      prepare: function () {
+        VexWorkspace.setLayout('map');
+        if ($('#chapter-headings-only').getAttribute('aria-pressed') !== 'true') $('#chapter-headings-only').click();
+        requestAnimationFrame(function () { requestAnimationFrame(function () { if (open && stepIndex === 2) fitChapters(); }); });
+      }
     },
     {
-      name: '导图', title: '看见结构，也看见内容', visual: treeVisual,
-      description: '标题组成主干，段落补充摘要。默认最多显示 30 字，可以调整；点击节点查看全文，截断只影响显示。',
-      tip: ['三种常用操作', '点击分支折叠；拖动画布平移；Ctrl + 滚轮缩放。节点详情还可以定位到源码。'],
-      task: '把摘要改成 12 字，或点击高亮节点查看全文。',
-      targets: function () { return [!$('#map-settings').hidden ? '#map-settings' : !$('#node-inspector').hidden ? '#node-inspector' : '#map-settings-button', '.map-node[data-kind="paragraph"]']; },
-      allow: '#map-settings input, #map-settings button, #node-inspector button, #map-settings-button, .map-node[data-kind="paragraph"] button', placement: 'left',
-      extras: [['summary', '摘要设置'], ['fulltext', '查看节点全文']],
-      prepare: function () { VexProto.handleAction('view-mindmap'); VexProto.handleAction('map-settings'); requestAnimationFrame(function () { VexProto.handleAction('map-fit'); }); }
+      name: '布局', title: '边写边看全局', description: '试选视图组合，源码、正文和导图始终同步。', tip: '多屏时，可从布局面板将视图分到独立窗口。',
+      targets: function () { return ['#workspace-layout', '.view-switch', '#view-surface'].concat(visible('#workspace-layout-menu') ? ['#workspace-layout-menu'] : []); },
+      allow: '#workspace-layout, .view-switch button, #workspace-layout-menu .layout-preset, #reset-workspace, #workspace-layout-menu .workspace-menu-heading button',
+      prepare: function () { VexWorkspace.setLayout('instant-map'); fitComparison(); }
     },
     {
-      name: '日常', title: '写完之后，记得保存', visual: shortcutsVisual,
-      description: '“文件”集中放保存、导出和打印。底部的修改状态会告诉你内容是否已保存；Markdown 排版可以随 HTML 一起导出。',
-      tip: ['记住几个入口就够了', 'Ctrl+P 快速打开，Ctrl+F 查找，F8 专注写作。以后从“帮助 → 新手引导”随时重新体验。'],
-      task: '可以保存演练文档的副本，或展开“导出”看看格式。',
-      targets: function () { return $('.menu-flyout').style.display !== 'none' ? ['.menu-item[data-menu-label="保存"]', '.menu-item[data-menu-label="导出"]', '.menu-item[data-menu-action="export-html"]', '#save-status'] : ['.save-button', '#save-status']; },
-      allow: '.tb-menuitem[data-menu="文件(F)"], .save-button, .menu-item[data-menu-action="save"], .menu-item[data-menu-label="导出"], .menu-item[data-menu-action="export-html"]', placement: 'right',
-      extras: [['exports', '查看导出格式']],
-      prepare: function () { VexProto.handleAction('view-read'); $('.tb-menuitem[data-menu="文件(F)"]').click(); }
+      name: '排版', title: '让文章有自己的样子', description: '点击排版试选正文样式，也可以切换紧凑布局。', tip: '正文排版与界面配色分别设置。',
+      targets: function () { return ['#edit-options [data-action="typography"]', '#view-surface'].concat(visible('#typography-panel') ? ['#typography-panel'] : []); },
+      allow: '#edit-options [data-action="typography"], #typography-panel',
+      prepare: function () { VexWorkspace.setLayout('instant'); $('.instant-scroll').scrollTop = 0; }
+    },
+    {
+      name: '分享', title: '保存，也方便分享', description: '保存文档，或将排好版的内容导出、复制到发布平台。', tip: '文件 → 导出；工具 → 复制到公众号等平台。',
+      targets: function () {
+        return ['.save-button', '.tb-menuitem[data-menu="文件(F)"]', '.tb-menuitem[data-menu="工具(T)"]'].concat(visible('.menu-flyout') ? ['.menu-flyout'] : []).concat(visible('.menu-item[data-menu-label="导出"] .submenu') ? ['.menu-item[data-menu-label="导出"] .submenu'] : []);
+      },
+      allow: '.save-button, .tb-menuitem[data-menu="文件(F)"], .tb-menuitem[data-menu="工具(T)"], .menu-item[data-menu-action="save"], .menu-item[data-menu-label="导出"], .menu-item[data-menu-action="export-html"], .menu-item[data-menu-label^="复制到"]',
+      prepare: function () { VexWorkspace.setLayout('read'); $('.reading-scroll').scrollTop = 0; }
     }
   ];
-  function reduced() { return document.documentElement.dataset.motion === 'false' || matchMedia('(prefers-reduced-motion: reduce)').matches; }
-  function storeResult(value) { try { localStorage.setItem(storageKey, value); } catch (_) {} $('#guide-launch').hidden = true; }
   try { $('#guide-launch').hidden = !!localStorage.getItem(storageKey); } catch (_) {}
-  function hideExtras() { ['#typography-panel', '#map-settings', '#node-inspector', '#vex-theme-panel'].forEach(function (selector) { var node = $(selector); if (node) node.hidden = true; }); VexProto.closeMenu(); }
+  function hideExtras() {
+    if (visible('#chapter-delete-dialog')) $('#chapter-delete-cancel').click();
+    ['#typography-panel', '#map-settings', '#node-inspector', '#vex-theme-panel', '#workspace-layout-menu'].forEach(function (selector) { var node = $(selector); if (node) node.hidden = true; });
+    $('#workspace-layout').setAttribute('aria-expanded', 'false'); VexProto.closeMenu();
+  }
+  function mark(index, message) {
+    if (!open || preparing || index !== stepIndex) return;
+    feedback[index] = message;
+    var text = $('.tour-feedback'); if (text) { text.textContent = message; text.classList.add('done'); }
+    schedule();
+  }
   function renderCard() {
     var step = steps[stepIndex];
-    card.classList.remove('tour-completed'); card.setAttribute('aria-modal', 'false');
-    card.innerHTML = '<div class="tour-meta"><span class="tour-wordmark">V</span><span>快速上手</span><span class="tour-count">' + (stepIndex + 1) + ' / 5</span><button class="tour-close" data-tour="close" aria-label="退出引导">×</button></div>' +
-      '<div class="tour-content"><div class="tour-visual">' + step.visual + '</div><h2 id="tour-title">' + step.title + '</h2><p class="tour-description" id="tour-description">' + step.description + '</p><div class="tour-tip"><strong>' + step.tip[0] + '</strong>' + step.tip[1] + '</div><div class="tour-feedback" aria-live="polite">' + step.task + '</div>' +
-      (step.extras ? '<div class="tour-extras">' + step.extras.map(function (extra) { return '<button class="tour-extra" data-tour="' + extra[0] + '">' + extra[1] + '</button>'; }).join('') + '</div>' : '') + '</div>' +
-      '<nav class="tour-progress" aria-label="引导步骤">' + steps.map(function (item, index) { return '<button class="' + (index < stepIndex ? 'passed' : '') + '" data-tour-step="' + index + '" aria-label="第 ' + (index + 1) + ' 步：' + item.name + '"' + (index === stepIndex ? ' aria-current="step"' : '') + '>' + item.name + '</button>'; }).join('') + '</nav>' +
-      '<div class="tour-actions"><button class="tour-skip" data-tour="close">跳过引导</button><button class="tour-previous" data-tour="previous"' + (stepIndex === 0 ? ' hidden' : '') + '>上一步</button><button class="tour-next" data-tour="next">' + (stepIndex === 4 ? '完成体验' : '下一步') + '<span aria-hidden="true">→</span></button></div><div class="tour-footnote">← → 切换步骤 · Esc 退出 · 结束后回到你的文档</div>';
-    card.classList.remove('changing'); void card.offsetWidth; card.classList.add('changing'); updateFeedback();
-  }
-  function updateFeedback() {
-    if (!open || completed) return;
-    var feedback = $('.tour-feedback'); if (!feedback) return;
-    var messages = ['已切换视角。内容会一起变化，继续体验写作。', '正在编辑当前块源码。Ctrl+Enter 可以完成当前块。', '排版已更新。选中的样式也会用于正文预览。', '摘要与全文是两回事；改变长度不会改写内容。', '已体验保存 / 导出。日常操作都能从这里找到。'];
-    feedback.classList.toggle('done', tasks.has(stepIndex));
-    var text = tasks.has(stepIndex) ? messages[stepIndex] : steps[stepIndex].task;
-    if (feedback.textContent !== text) feedback.textContent = text;
-    var typeButton = card.querySelector('[data-tour="typography"]');
-    if (typeButton) typeButton.hidden = !$('#typography-panel').hidden;
+    card.innerHTML = '<div class="tour-meta"><span>快速上手</span><span class="tour-count">' + (stepIndex + 1) + ' / ' + steps.length + '</span><button class="tour-close" data-tour="close" aria-label="退出引导">×</button></div>' +
+      '<h2 id="tour-title">' + step.title + '</h2><p class="tour-description" id="tour-description">' + step.description + '</p>' +
+      '<p class="tour-feedback' + (feedback[stepIndex] ? ' done' : '') + '" aria-live="polite">' + (feedback[stepIndex] || step.tip) + '</p>' +
+      (stepIndex === 5 ? '<details class="tour-more"><summary>还有 AI 协作</summary><p>从“工具 → MCP 设置”连接 AI 客户端，协助整理当前文档。</p></details>' : '') +
+      '<nav class="tour-progress" aria-label="引导步骤">' + steps.map(function (item, index) { return '<button data-tour-step="' + index + '" aria-label="第 ' + (index + 1) + ' 步：' + item.name + '"' + (index === stepIndex ? ' aria-current="step"' : '') + (index < stepIndex ? ' class="passed"' : '') + '></button>'; }).join('') + '</nav>' +
+      '<div class="tour-actions"><button class="tour-skip" data-tour="close">跳过</button><button class="tour-previous" data-tour="previous"' + (stepIndex === 0 ? ' hidden' : '') + '>上一步</button><button class="tour-next" data-tour="next">' + (stepIndex === steps.length - 1 ? '完成' : '下一步') + '<span aria-hidden="true">→</span></button></div>';
   }
   function go(index) {
-    if (!open || completed) return;
-    stepIndex = Math.max(0, Math.min(4, index)); layer.dataset.step = stepIndex + 1;
-    $('.app-window').dataset.guideStep = stepIndex + 1;
-    hideExtras(); steps[stepIndex].prepare(); renderCard(); schedule(true);
+    if (!open) return;
+    preparing = true; hideExtras(); stepIndex = Math.max(0, Math.min(steps.length - 1, index));
+    layer.dataset.step = stepIndex + 1; $('.app-window').dataset.guideStep = stepIndex + 1;
+    steps[stepIndex].prepare(); stepText = VexWorkbench.text; renderCard(); preparing = false; schedule();
     $('.tour-next').focus({ preventScroll: true });
-    clearTimeout(settledTimer); settledTimer = setTimeout(function () { schedule(); }, 380);
+    clearTimeout(settledTimer); settledTimer = setTimeout(schedule, 260);
   }
   function start() {
     if (open) return;
-    previousFocus = document.activeElement; tasks.clear(); completed = false; rectangles = [];
+    previousFocus = document.activeElement; feedback = []; completed = false;
     session = VexProto.beginGuideSession(); open = true; layer.hidden = false; go(0);
-  }
-  function restore() {
-    if (!session) return;
-    var snapshot = session, wasOpen = open; session = null; open = false;
-    try { VexProto.endGuideSession(snapshot); } finally { open = wasOpen; }
   }
   function close() {
     if (!open) return;
-    open = false; clearTimeout(settledTimer); cancelAnimationFrame(frame); cancelAnimationFrame(tween);
-    layer.hidden = true; delete $('.app-window').dataset.guideStep; hideExtras(); restore(); storeResult(completed ? 'completed' : 'skipped');
+    preparing = true; hideExtras(); open = false; preparing = false;
+    clearTimeout(settledTimer); cancelAnimationFrame(frame); layer.hidden = true; delete $('.app-window').dataset.guideStep;
+    var snapshot = session; session = null; if (snapshot) VexProto.endGuideSession(snapshot);
+    try { localStorage.setItem(storageKey, completed ? 'completed' : 'skipped'); } catch (_) {}
+    $('#guide-launch').hidden = true;
     var target = previousFocus && previousFocus.isConnected && previousFocus.getBoundingClientRect().width && !previousFocus.closest('[hidden]') ? previousFocus : $('.tb-menuitem[data-menu="帮助(H)"]');
     if (target) target.focus({ preventScroll: true });
-  }
-  function finish() {
-    completed = true; delete $('.app-window').dataset.guideStep; hideExtras(); restore(); storeResult('completed');
-    card.classList.add('tour-completed'); card.setAttribute('aria-modal', 'true');
-    card.innerHTML = '<div class="tour-meta"><span class="tour-wordmark">V</span><span>准备就绪</span><span class="tour-count">5 / 5</span><button class="tour-close" data-tour="close" aria-label="关闭引导">×</button></div><div class="tour-content"><div class="tour-visual"><div class="tour-success"><b>✓</b></div></div><h2 id="tour-title">现在，写下你的想法</h2><p class="tour-description" id="tour-description">你已经认识了写作、阅读、排版和导图。原来的文档与设置已经恢复，接下来可以继续写，或打开一篇自己的 Markdown。</p><div class="tour-tip"><strong>需要时，随时回来</strong>帮助 → 新手引导。无需记住每个菜单，先把注意力留给内容。</div></div><div class="tour-actions"><button class="tour-previous" data-tour="open">打开 Markdown…</button><button class="tour-next" data-tour="close">回到文档<span aria-hidden="true">→</span></button></div>';
-    schedule(true); $('.tour-next').focus({ preventScroll: true });
   }
   card.addEventListener('click', function (event) {
     event.stopPropagation(); var jump = event.target.closest('[data-tour-step]');
     if (jump) { go(Number(jump.dataset.tourStep)); return; }
     var button = event.target.closest('[data-tour]'); if (!button) return;
-    switch (button.dataset.tour) {
-      case 'close': close(); break;
-      case 'previous': go(stepIndex - 1); break;
-      case 'next': if (stepIndex === 4) finish(); else go(stepIndex + 1); break;
-      case 'summary': $('#node-inspector').hidden = true; if ($('#map-settings').hidden) VexProto.handleAction('map-settings'); schedule(); break;
-      case 'fulltext': var node = $('.map-node[data-kind="paragraph"] .map-node-button'); if (node) { node.click(); tasks.add(3); updateFeedback(); schedule(); } break;
-      case 'typography': $('#typography-panel').hidden = false; schedule(); break;
-      case 'exports':
-        if ($('.menu-flyout').style.display === 'none') $('.tb-menuitem[data-menu="文件(F)"]').click();
-        var item = $('.menu-item[data-menu-label="导出"]');
-        if (item && item._sub.style.display !== 'block') item.click();
-        schedule(); break;
-      case 'open': close(); VexProto.handleAction('open'); break;
-    }
+    if (button.dataset.tour === 'close') close();
+    if (button.dataset.tour === 'previous') go(stepIndex - 1);
+    if (button.dataset.tour === 'next') { if (stepIndex === steps.length - 1) { completed = true; close(); } else go(stepIndex + 1); }
   });
-  function allowed(target) {
-    if (card.contains(target)) return true;
-    if (completed) return false;
-    var matched = target.closest(steps[stepIndex].allow);
-    if (matched && matched.dataset.menuLabel === '导出' && target.closest('.menu-item') !== matched) return false;
-    return !!matched;
-  }
-  ['pointerdown', 'click'].forEach(function (eventName) {
+  function allowed(target) { return card.contains(target) || !!target.closest(steps[stepIndex].allow); }
+  ['pointerdown', 'click', 'dblclick', 'contextmenu'].forEach(function (eventName) {
     document.addEventListener(eventName, function (event) {
-      if (!open || allowed(event.target)) return;
+      if (!open || preparing || allowed(event.target)) return;
       event.preventDefault(); event.stopImmediatePropagation();
     }, true);
   });
   document.addEventListener('click', function (event) {
-    if (!open || completed || card.contains(event.target)) return;
+    if (!open || preparing || card.contains(event.target)) return;
     var target = event.target;
-    if ((stepIndex === 0 && target.closest('.view-switch')) || (stepIndex === 2 && target.closest('[data-typography-key]')) || (stepIndex === 3 && target.closest('.map-node-button')) || (stepIndex === 4 && target.closest('[data-menu-action="save"], [data-menu-action="export-html"]'))) {
-      tasks.add(stepIndex); requestAnimationFrame(updateFeedback);
-    }
+    if (stepIndex === 1 && target.closest('.outline-item')) mark(1, '已定位到该章节，可以继续浏览大纲。');
+    if (stepIndex === 3 && target.closest('.layout-preset, #reset-workspace, .view-switch button')) { fitComparison(); requestAnimationFrame(function () { mark(3, '视图已同步，可继续试选其他组合。'); }); }
+    if (stepIndex === 4 && target.closest('[data-typography-key]')) requestAnimationFrame(function () { mark(4, '正文排版已应用，可继续比较。'); });
+    if (stepIndex === 5 && target.closest('.save-button, [data-menu-action="save"], [data-menu-action="export-html"]')) mark(5, '演练内容已下载为副本。');
     schedule();
   }, true);
-  document.addEventListener('input', function (event) {
-    if (!open || completed) return;
-    if ((stepIndex === 1 && event.target.matches('.instant-input')) || (stepIndex === 3 && event.target.id === 'summary-length' && event.target.validity.valid)) tasks.add(stepIndex);
-    updateFeedback(); schedule();
-  }, true);
+  document.addEventListener('input', function () { schedule(); }, true);
+  document.addEventListener('change', function (event) { if (stepIndex === 4 && event.target.id === 'typography-compact') mark(4, '正文间距已更新。'); }, true);
+  window.addEventListener('vex-content-changed', function () {
+    if (!open || preparing || VexWorkbench.text === stepText) return;
+    if (stepIndex === 0) mark(0, '文字已更新，可以继续写作。');
+    if (stepIndex === 2) mark(2, '章节已更新，正文同步修改。');
+  });
   function focusables() {
-    var selector = 'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex="0"]';
-    return Array.from(document.querySelectorAll(selector)).filter(function (node) {
+    return Array.from(document.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [contenteditable="true"], [tabindex="0"], .tour-more summary')).filter(function (node) {
       return allowed(node) && !node.closest('[hidden]') && node.getBoundingClientRect().width > 0 && getComputedStyle(node).visibility !== 'hidden';
     });
   }
   document.addEventListener('keydown', function (event) {
     if (!open || event.isComposing) return;
-    var editing = event.target.closest('input, textarea');
-    if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); close(); return; }
+    var editing = event.target.closest('input, textarea, [contenteditable="true"]');
+    if (event.key === 'Escape') {
+      if (stepIndex === 3 && visible('#workspace-layout-menu')) { $('#workspace-layout-menu').hidden = true; $('#workspace-layout').setAttribute('aria-expanded', 'false'); schedule(); }
+      else if (stepIndex === 4 && visible('#typography-panel')) { $('#typography-panel').hidden = true; schedule(); }
+      else { close(); }
+      event.preventDefault(); event.stopImmediatePropagation(); return;
+    }
     if (event.key === 'Tab') {
       event.preventDefault(); event.stopImmediatePropagation(); var items = focusables(), index = items.indexOf(document.activeElement);
       if (items.length) items[(index + (event.shiftKey ? items.length - 1 : 1)) % items.length].focus({ preventScroll: true }); return;
     }
-    if (!editing && !event.ctrlKey && !event.metaKey && ['ArrowLeft', 'ArrowRight'].includes(event.key)) {
-      event.preventDefault(); event.stopImmediatePropagation(); if (!completed) go(stepIndex + (event.key === 'ArrowRight' ? 1 : -1)); return;
-    }
-    if ((event.ctrlKey || event.metaKey) && ['s', 'o', 'n', 'w', 'p', 'f', 'h'].includes(event.key.toLowerCase())) {
-      if (!completed && stepIndex === 4 && event.key.toLowerCase() === 's') { tasks.add(4); updateFeedback(); return; }
+    if (!editing && !event.target.closest('.menu-flyout, .view-switch, .tour-more') && !event.ctrlKey && !event.metaKey && ['ArrowLeft', 'ArrowRight'].includes(event.key)) { event.preventDefault(); event.stopImmediatePropagation(); go(stepIndex + (event.key === 'ArrowRight' ? 1 : -1)); return; }
+    if ((event.ctrlKey || event.metaKey) && ['s','o','n','w','p','f','h'].includes(event.key.toLowerCase())) {
+      if (stepIndex === 5 && event.key.toLowerCase() === 's') { mark(5, '演练内容已下载为副本。'); return; }
       event.preventDefault(); event.stopImmediatePropagation();
     }
-    if (['F5', 'F8', 'F11'].includes(event.key) || (event.altKey && event.key === 'Enter')) { event.preventDefault(); event.stopImmediatePropagation(); }
+    if (['F5','F8','F11'].includes(event.key) || (event.altKey && event.key === 'Enter')) { event.preventDefault(); event.stopImmediatePropagation(); }
   }, true);
-  document.addEventListener('focusin', function (event) {
-    if (open && !allowed(event.target)) { var next = $('.tour-next'); if (next) next.focus({ preventScroll: true }); }
-  });
+  document.addEventListener('focusin', function (event) { if (open && !preparing && !allowed(event.target)) $('.tour-next')?.focus({ preventScroll: true }); });
+  function appBounds() { return $('.app-window').getBoundingClientRect(); }
   function targetRect(selector) {
-    var node = $(selector); if (!node || node.closest('[hidden]')) return null;
-    var rect = node.getBoundingClientRect(), x = rect.left, y = rect.top, right = rect.right, bottom = rect.bottom;
-    if (node.matches('#markdown-preview h2')) {
-      var textRange = document.createRange(); textRange.selectNodeContents(node); var textRect = textRange.getBoundingClientRect();
-      x = Math.max(x, textRect.left - 12); right = Math.min(right, textRect.right + 12);
+    if (selector === '@chapters') {
+      var items = Array.from(document.querySelectorAll('.map-node')).map(function (node) { return node.getBoundingClientRect(); });
+      if (!items.length) return null;
+      return clipRect({ left: Math.min.apply(null, items.map(function (r) { return r.left; })), top: Math.min.apply(null, items.map(function (r) { return r.top; })), right: Math.max.apply(null, items.map(function (r) { return r.right; })), bottom: Math.max.apply(null, items.map(function (r) { return r.bottom; })) }, $('#map-viewport').getBoundingClientRect(), 'area');
     }
-    var viewport = node.closest('.instant-scroll, .reading-scroll, #map-viewport');
-    if (viewport) { var bounds = viewport.getBoundingClientRect(); x = Math.max(x, bounds.left); y = Math.max(y, bounds.top); right = Math.min(right, bounds.right); bottom = Math.min(bottom, bounds.bottom); }
-    if (right <= x || bottom <= y) return null;
-    x = Math.max(6, x - 8); y = Math.max(6, y - 8); right = Math.min(innerWidth - 6, right + 8); bottom = Math.min(innerHeight - 6, bottom + 8);
-    return { x: x, y: y, width: right - x, height: bottom - y };
+    if (!visible(selector)) return null;
+    var node = $(selector), viewport = node.closest('.instant-scroll, .reading-scroll, #map-viewport');
+    var kind = node.matches('.instant-block, #markdown-input') ? 'text' : node.id === 'view-surface' ? 'preview' : 'control';
+    return clipRect(node.getBoundingClientRect(), viewport ? viewport.getBoundingClientRect() : appBounds(), kind);
   }
-  function roundedPath(rect) {
-    var x = rect.x, y = rect.y, w = rect.width, h = rect.height, r = Math.min(11, w / 2, h / 2);
-    return 'M' + (x + r) + ' ' + y + 'H' + (x + w - r) + 'Q' + (x + w) + ' ' + y + ' ' + (x + w) + ' ' + (y + r) + 'V' + (y + h - r) + 'Q' + (x + w) + ' ' + (y + h) + ' ' + (x + w - r) + ' ' + (y + h) + 'H' + (x + r) + 'Q' + x + ' ' + (y + h) + ' ' + x + ' ' + (y + h - r) + 'V' + (y + r) + 'Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + 'Z';
+  function clipRect(rect, bounds, kind) {
+    var app = appBounds(), pad = kind === 'text' ? 4 : 6;
+    var x = Math.max(app.left + 4, bounds.left, rect.left - pad), y = Math.max(app.top + 4, bounds.top, rect.top - pad);
+    var right = Math.min(app.right - 4, bounds.right, rect.right + pad), bottom = Math.min(app.bottom - 4, bounds.bottom, rect.bottom + pad);
+    return right > x && bottom > y ? { x:x, y:y, width:right-x, height:bottom-y, kind:kind } : null;
   }
   function draw(rects) {
-    mask.setAttribute('d', 'M0 0H' + innerWidth + 'V' + innerHeight + 'H0Z' + rects.map(roundedPath).join(''));
-    while (rings.children.length > rects.length) rings.lastChild.remove();
-    rects.forEach(function (rect, index) {
-      var ring = rings.children[index]; if (!ring) { ring = document.createElement('div'); ring.className = 'tour-focus'; rings.appendChild(ring); }
-      Object.assign(ring.style, { left: rect.x + 'px', top: rect.y + 'px', width: rect.width + 'px', height: rect.height + 'px' });
+    cutouts.replaceChildren(); rings.replaceChildren();
+    rects.forEach(function (rect) {
+      var hole = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      Object.entries({x:rect.x,y:rect.y,width:rect.width,height:rect.height,rx:rect.kind === 'text' ? 2 : 7}).forEach(function (pair) { hole.setAttribute(pair[0],pair[1]); }); cutouts.appendChild(hole);
+      if (rect.kind === 'preview') return;
+      var ring = document.createElement('div'); ring.className = 'tour-focus'; ring.dataset.kind = rect.kind;
+      Object.assign(ring.style, {left:rect.x+'px',top:rect.y+'px',width:rect.width+'px',height:rect.height+'px'}); rings.appendChild(ring);
     });
   }
-  function overlap(a, b) { return Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y)); }
   function position(rects) {
-    var width = card.getBoundingClientRect().width, height = card.getBoundingClientRect().height, inset = 14;
-    if (!rects.length) { card.style.left = Math.max(inset, (innerWidth - width) / 2) + 'px'; card.style.top = Math.max(inset, (innerHeight - height) / 2) + 'px'; connector.setAttribute('d', ''); return; }
-    var rect = rects[0], candidates = {
-      left: { x: rect.x - width - 24, y: rect.y + rect.height / 2 - height / 2 },
-      right: { x: rect.x + rect.width + 24, y: rect.y + rect.height / 2 - height / 2 },
-      bottom: { x: rect.x + rect.width / 2 - width / 2, y: rect.y + rect.height + 24 },
-      top: { x: rect.x + rect.width / 2 - width / 2, y: rect.y - height - 24 },
-      edgeLeft: { x: inset, y: rect.y + rect.height / 2 - height / 2 },
-      edgeRight: { x: innerWidth - width - inset, y: rect.y + rect.height / 2 - height / 2 }
-    };
-    var preferred = completed ? 'bottom' : steps[stepIndex].placement;
-    var order = [preferred].concat(Object.keys(candidates).filter(function (name) { return name !== preferred; }));
-    var places = order.map(function (name, index) {
-      var raw = candidates[name], place = { x: Math.max(inset, Math.min(innerWidth - width - inset, raw.x)), y: Math.max(inset, Math.min(innerHeight - height - inset, raw.y)), width: width, height: height };
-      place.score = rects.reduce(function (score, target) { return score + overlap(place, target); }, 0) * 10 + index * 50;
-      return place;
-    }).sort(function (a, b) { return a.score - b.score; });
-    var best = places[0]; card.style.left = best.x + 'px'; card.style.top = best.y + 'px';
-    var left = best.x + width / 2 < rect.x + rect.width / 2;
-    var startX = left ? best.x + width : best.x, startY = Math.max(best.y + 36, Math.min(best.y + height - 30, rect.y + rect.height / 2));
-    var endX = left ? rect.x : rect.x + rect.width, endY = Math.max(rect.y + 10, Math.min(rect.y + rect.height - 10, startY));
-    var middle = (startX + endX) / 2;
-    connector.setAttribute('d', overlap(best, rect) ? '' : 'M' + startX + ' ' + startY + 'C' + middle + ' ' + startY + ' ' + middle + ' ' + endY + ' ' + endX + ' ' + endY);
-  }
-  function layout(animate) {
-    if (!open) return;
-    if (!completed && stepIndex === 3) VexProto.arrangeGuideMap();
-    var next = completed ? [] : steps[stepIndex].targets().map(targetRect).filter(Boolean);
-    position(next); cancelAnimationFrame(tween);
-    if (!animate || reduced() || !rectangles.length) { rectangles = next; draw(next); return; }
-    var from = rectangles, startTime = performance.now();
-    function tick(now) {
-      if (!open) return;
-      var progress = Math.min(1, (now - startTime) / 340), ease = 1 - Math.pow(1 - progress, 3);
-      rectangles = next.map(function (target, index) { var old = from[index] || target, rect = {}; ['x', 'y', 'width', 'height'].forEach(function (key) { rect[key] = old[key] + (target[key] - old[key]) * ease; }); return rect; });
-      draw(rectangles); if (progress < 1) tween = requestAnimationFrame(tick);
+    var bounds = appBounds(), size = card.getBoundingClientRect(), margin = 18, left = bounds.left + margin, top = bounds.top + 70;
+    card.style.maxHeight = Math.max(180,bounds.height-2*margin)+'px';
+    if (stepIndex === 1) { top = bounds.bottom - size.height - margin; }
+    else if (stepIndex === 2) { top = $('#map-viewport').getBoundingClientRect().top + 28; }
+    else if (stepIndex === 3 || stepIndex === 4) { top = bounds.bottom - size.height - margin; }
+    else if (stepIndex === 5) { left = bounds.right - size.width - margin; top = $('.workbar').getBoundingClientRect().bottom + 20; }
+    else {
+      var rect = rects.find(function (r) { return r.kind === 'text'; }) || rects[0];
+      if (rect) { left = rect.x + 12; top = rect.y + rect.height + 18; if (top + size.height > bounds.bottom-margin) top = rect.y-size.height-18; }
     }
-    tween = requestAnimationFrame(tick);
+    left = Math.max(bounds.left+margin,Math.min(bounds.right-size.width-margin,left)); top = Math.max(bounds.top+margin,Math.min(bounds.bottom-size.height-margin,top));
+    card.style.left = left+'px'; card.style.top = top+'px';
   }
-  function schedule(animate) {
-    if (!open) return;
-    pendingAnimation = pendingAnimation || !!animate; cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(function () { var requested = pendingAnimation; pendingAnimation = false; updateFeedback(); layout(requested); });
+  function fitChapters() {
+    if (!open || stepIndex !== 2 || !VexWorkbench.state.bounds) return;
+    position([]);
+    var viewport = $('#map-viewport').getBoundingClientRect(), guide = card.getBoundingClientRect(), bounds = VexWorkbench.state.bounds;
+    var left = Math.max(viewport.left,guide.right+24), width = Math.max(200,viewport.right-left-16), height = viewport.height-36;
+    var state = VexWorkbench.state; state.scale = Math.min(1,width/bounds.width,height/bounds.height);
+    state.x = left-viewport.left+(width-bounds.width*state.scale)/2; state.y = (viewport.height-bounds.height*state.scale)/2;
+    VexWorkbench.renderMap(); schedule();
   }
-  new MutationObserver(function () { schedule(); }).observe($('.app-window'), { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'style', 'data-active'] });
-  new ResizeObserver(function () { schedule(); }).observe($('.app-window'));
-  window.addEventListener('resize', function () { schedule(); });
-  document.addEventListener('scroll', function () { schedule(); }, true);
-  window.VexGuide = { start: start, close: close, get active() { return open; } };
+  function fitComparison() {
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      if (open && stepIndex === 3 && visible('#map-pane')) { VexWorkbench.fit(false); schedule(); }
+    }); });
+  }
+  function layout() { if (!open) return; var rects = steps[stepIndex].targets().map(targetRect).filter(Boolean); position(rects); draw(rects); }
+  function schedule() { if (!open) return; cancelAnimationFrame(frame); frame = requestAnimationFrame(layout); }
+  new MutationObserver(schedule).observe($('.app-window'), {subtree:true,childList:true,attributes:true,attributeFilter:['hidden','style','data-active']});
+  new ResizeObserver(schedule).observe($('.app-window'));
+  card.addEventListener('toggle', schedule, true);
+  window.addEventListener('resize', function () { schedule(); if (stepIndex === 2) requestAnimationFrame(fitChapters); });
+  document.addEventListener('scroll', schedule, true);
+  window.VexGuide = {start:start,close:close,get active() {return open;}};
   if (new URLSearchParams(location.search).get('tour') === '1') requestAnimationFrame(start);
 })();

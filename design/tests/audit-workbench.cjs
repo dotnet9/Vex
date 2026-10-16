@@ -4,12 +4,12 @@ const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 
 (async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.VEX_BROWSER_EXECUTABLE || undefined });
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    const url = pathToFileURL(path.join(__dirname, '..', 'index.html')).href;
+    const url = pathToFileURL(path.join(__dirname, '..', 'Vex.html')).href;
     await page.goto(url + '?view=mindmap&palette=aurora&theme=light');
     await page.locator('#view-mindmap').getAttribute('aria-selected').then(value => assert.equal(value, 'true'));
     assert.equal(await page.locator('#source-pane').isVisible(), false);

@@ -10,13 +10,12 @@
 .instant-pane { display: flex; flex-direction: column; flex: 1; min-width: 0; background: var(--bg); }
 .instant-scroll { flex: 1; min-height: 0; overflow: auto; }
 .instant-scroll .md-body { max-width: 1280px; padding: 34px 44px 70px; margin: 0 auto; }
-.instant-block { position: relative; border: 1px solid transparent; border-radius: 5px; margin: 0 -12px; padding: 0 12px; cursor: text; transition: border-color .16s, background .16s; }
-.instant-block:hover { background: color-mix(in srgb, var(--accent) 3%, transparent); }
-.instant-block:focus-visible { outline: 1px solid var(--accent); outline-offset: 0; }
-.instant-block.is-editing { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); background: var(--panel); box-shadow: 0 0 0 3px var(--accent-soft); margin-top: 10px; margin-bottom: 10px; padding: 10px 12px; }
-.instant-input { display: block; width: 100%; border: none; outline: none !important; resize: none; color: var(--fg); background: transparent; font: 14px/1.9 "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace; padding: 0; overflow: hidden; }
+.instant-block { position: relative; display: flow-root; cursor: text; outline: none !important; caret-color: var(--fg); overflow-wrap: anywhere; }
+.instant-block.is-editing { outline: none; }
+.instant-input { outline: none !important; }
 .instant-hint { flex: none; font-size: 10px; color: var(--muted); padding: 9px 20px; border-top: 1px solid var(--border); background: var(--panel); }
-.instant-empty { border: none; background: transparent; color: var(--muted); padding: 14px 0; text-align: left; width: 100%; }
+.instant-empty { min-height: 1.95em; }
+.instant-empty:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
 .workspace.source-only .source-pane { width: 100%; border-right: none; }
 .typography-popover { position: absolute; z-index: 30; right: 18px; top: 108px; width: 338px; max-height: calc(100% - 124px); padding: 18px; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-pop); animation: inspector-in .2s ease; }
 .typography-popover .popover-title { flex: none; margin-bottom: 0; }
