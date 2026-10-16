@@ -5,6 +5,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# 仓内自包含的品牌化 Finder 镜像助手。
+source "$ROOT_DIR/scripts/installer/macos/create-branded-dmg.sh"
 APP_NAME="${APP_NAME:-Vex}"
 EXECUTABLE_NAME="${EXECUTABLE_NAME:-Vex}"
 BUNDLE_ID="${BUNDLE_ID:-com.codewf.vex}"
@@ -208,12 +210,7 @@ create_dmg() {
   ln -s /Applications "$dmg_stage/Applications"
 
   echo "Creating DMG $dmg_path ..." >&2
-  hdiutil create \
-    -volname "$APP_NAME" \
-    -srcfolder "$dmg_stage" \
-    -ov \
-    -format UDZO \
-    "$dmg_path" >/dev/null || die "DMG creation failed."
+  codewf_create_branded_dmg "$dmg_stage" "$APP_NAME" "$dmg_path" "$APP_NAME" || die "Branded DMG creation failed."
 
   local sha
   sha="$(shasum -a 256 "$dmg_path" | awk '{print $1}')" || die "DMG checksum failed."

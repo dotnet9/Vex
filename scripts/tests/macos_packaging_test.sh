@@ -26,9 +26,16 @@ sign_app_bundle() { :; }
 ln() { printf '/Applications' >"${!#}"; }
 hdiutil() {
   [[ "${simulate_failure:-0}" == "0" ]] || return 28
-  local output="${!#}"
-  printf 'disk image' >"$output"
+  case "$1" in
+    create) printf 'writable image' >"${!#}" ;;
+    attach|detach) : ;;
+    convert) while [[ $# -gt 0 ]]; do if [[ "$1" == -o ]]; then printf 'compressed image' >"$2"; fi; shift; done ;;
+    verify) [[ -s "$2" ]] ;;
+    *) return 2 ;;
+  esac
 }
+osascript() { printf 'Finder metadata' >"$2/.DS_Store"; }
+sync() { :; }
 
 app_dir="$(create_app_bundle osx-x64 1.5.5)"
 [[ -f "$app_dir/Contents/MacOS/$APP_NAME" ]] || die "Executable missing."
