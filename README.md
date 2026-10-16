@@ -1,4 +1,4 @@
-# Vex
+﻿# Vex
 
 Vex（维刻）是一个基于 .NET 10 与 Avalonia 12 构建的跨平台 Markdown 编辑器，面向日常写作、技术文档整理、自媒体排版和多格式文档导出。
 
@@ -39,7 +39,7 @@ Windows x64 NativeAOT 实际界面：
 
 ## 仓库规范
 
-- 当前版本：`1.5.7`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
+- 当前版本：`1.5.8`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
 - NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net10.0` / `net10.0-windows`。
 - 根目录 `logo.svg`、`logo.png`、`logo.ico` 是唯一图标源，子工程只通过 MSBuild `Link` 引用，不维护图标副本。
 - 运行时帮助、Markdown 示例、内置备忘录、设计说明等业务文档按功能保留；仓库级入口文档使用根目录 `README.md` 和 `UpdateLog.md`。
@@ -78,7 +78,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - 支持打开文件夹，左侧自动列出目录中的 Markdown/TXT 文档。
 - 直接打开单个文件时，会自动加载同目录下的可编辑文档列表。
 - 支持最近文件、拖拽打开、启动参数打开、文件重命名/删除，以及外部文件变更检测。
-- Windows 安装包和便携注册脚本提供 `.md`、`.markdown`、`.mdown` 图标、打开方式候选和右键入口，保留用户默认程序选择；Linux/macOS 安装包声明 Markdown 文档类型。
+- Windows 安装器通过“注册 Markdown 打开方式候选”选项提供 `.md`、`.markdown`、`.mdown` 图标、打开方式候选和右键入口，默认勾选；取消后启动不会重新注册。便携版可主动执行注册脚本，均保留用户默认程序选择；Linux/macOS 安装包声明 Markdown 文档类型。
 
 ### 大纲、查找与统计
 
@@ -240,3 +240,7 @@ XML 文件统一使用两个空格缩进。`Directory.Packages.props` 统一承�
 ## 发布
 
 标准发布流程与发布说明规范见 [docs/RELEASE.md](docs/RELEASE.md)。
+
+## 统一安装体验
+
+安装包采用统一 .NET 品牌紫设计：Windows 使用异形原生向导、真实进度核心和双语许可；macOS 使用品牌 DMG 背景与 Finder 拖放布局；Linux 提供原生 DEB 及 AppStream 品牌信息。各仓库保存自包含安装器源码，交付 EXE / DEB / DMG 和 SHA-256，不以 ZIP 代替安装包。实现、维护流程与平台验收边界见 [安装器说明](scripts/installer/README.md)。
