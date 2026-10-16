@@ -1,7 +1,5 @@
-using Microsoft.Win32;
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.Versioning;
 using System.Text;
 
 namespace Vex.Core.Services;
@@ -9,10 +7,11 @@ namespace Vex.Core.Services;
 public static class DefaultFileOpeningService
 {
     private const string ApplicationName = "Vex";
-    private static readonly string[] MarkdownExtensions = [".md", ".markdown", ".mdown"];
-
     public static void Configure()
     {
+        // Windows 关联由安装选项或用户主动执行的便携脚本管理，启动时尊重未勾选的选择。
+        if (OperatingSystem.IsWindows()) return;
+
         // 离屏测试和其他宿主引用 Vex 程序集时，不注册宿主程序的路径。
         if (Assembly.GetEntryAssembly() != typeof(DefaultFileOpeningService).Assembly) return;
 
@@ -34,11 +33,6 @@ public static class DefaultFileOpeningService
 
     private static IDefaultFileOpeningIntegration GetPlatformIntegration()
     {
-        if (OperatingSystem.IsWindows())
-        {
-            return new WindowsDefaultFileOpeningIntegration();
-        }
-
         if (OperatingSystem.IsLinux())
         {
             return new LinuxDefaultFileOpeningIntegration();
@@ -63,54 +57,6 @@ public static class DefaultFileOpeningService
 
         public void Configure(string executablePath)
         {
-        }
-    }
-
-    [SupportedOSPlatform("windows")]
-    private sealed class WindowsDefaultFileOpeningIntegration : IDefaultFileOpeningIntegration
-    {
-        private const string ProgId = "Vex.Markdown";
-
-        public void Configure(string executablePath)
-        {
-            RegisterProgId(executablePath);
-            foreach (var extension in MarkdownExtensions)
-            {
-                RegisterExtension(extension);
-            }
-        }
-
-        private static void RegisterProgId(string executablePath)
-        {
-            using var progIdKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{ProgId}");
-            progIdKey?.SetValue(null, "Markdown Document");
-            progIdKey?.SetValue("FriendlyTypeName", "Markdown Document");
-
-            using var defaultIconKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{ProgId}\DefaultIcon");
-            defaultIconKey?.SetValue(null, $"\"{executablePath}\",0");
-
-            using var commandKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{ProgId}\shell\open\command");
-            commandKey?.SetValue(null, $"\"{executablePath}\" \"%1\"");
-
-            var executableName = Path.GetFileName(executablePath);
-            using var appKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\Applications\{executableName}");
-            appKey?.SetValue("FriendlyAppName", ApplicationName);
-
-            using var appIconKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\Applications\{executableName}\DefaultIcon");
-            appIconKey?.SetValue(null, $"\"{executablePath}\",0");
-            using var supportedTypes = Registry.CurrentUser.CreateSubKey($@"Software\Classes\Applications\{executableName}\SupportedTypes");
-            foreach (var extension in MarkdownExtensions) supportedTypes?.SetValue(extension, string.Empty);
-
-            using var appCommandKey = Registry.CurrentUser.CreateSubKey(
-                $@"Software\Classes\Applications\{executableName}\shell\open\command");
-            appCommandKey?.SetValue(null, $"\"{executablePath}\" \"%1\"");
-        }
-
-        private static void RegisterExtension(string extension)
-        {
-            // 仅添加“打开方式”候选，不覆盖扩展名默认值及系统 UserChoice。
-            using var openWithKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{extension}\OpenWithProgids");
-            openWithKey?.SetValue(ProgId, Array.Empty<byte>(), RegistryValueKind.None);
         }
     }
 

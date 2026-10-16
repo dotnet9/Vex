@@ -13,6 +13,8 @@ internal static class RuntimeVerification
     {
         if (RuntimeFeature.IsDynamicCodeSupported)
             throw new InvalidOperationException("Runtime verification requires a NativeAOT executable.");
+        // 走实际启动集成入口，确认 Windows 自检不会重新注册用户取消的打开方式。
+        if (OperatingSystem.IsWindows()) DefaultFileOpeningService.Configure();
         var root = Path.GetFullPath(directory);
         Directory.CreateDirectory(root);
         var resources = Path.Combine(AppContext.BaseDirectory, "I18n");
