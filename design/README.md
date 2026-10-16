@@ -1,5 +1,7 @@
 ﻿# Vex 工作台原型
 
+安装器：[Windows](Vex-Installer-Windows.html)、[Linux](Vex-Installer-Linux.html)、[macOS](Vex-Installer-macOS.html)。各文件均自包含，可离线打开；每个安装原型只显示对应平台的安装窗口与交互，详见[安装器原型说明](安装器原型说明.md)。
+
 本目录是单页、可交互的产品原型。设计以写作、阅读和结构梳理为中心。原生应用已同步三视图工作台、即时渲染、Markdown 导图、菜单与新手引导，回归入口见 `scripts/ui-verification/README.md`。
 
 ## 打开方式

@@ -22,7 +22,7 @@ ISCC.exe scripts/<产品名>.iss /DAppVersion=<版本> /DSourceDir=<NativeAOT发
 
 测试目录中的安装夹具不创建卸载注册、快捷方式或文件关联，也不启动产品。原生 GUI 验证器在独立桌面运行，不切换用户桌面；正式产品安装器只编译，不在开发机替用户执行安装。维护逻辑检查预处理结果，确认夹具排除了真实注册探测和卸载启动。
 
-`design/CodeWF.安装器原型.html` 为当前仓库独立维护的单文件设计，内嵌样式、脚本和产品配置；不读取相邻仓库。各产品可在自己的原型内演进，并同步本仓生产安装器。共享源摘要仅约束本仓安装源码，不要求所有产品原型永远相同。
+`design/Vex-Installer-Windows.html`、`design/Vex-Installer-Linux.html`、`design/Vex-Installer-macOS.html` 分别为 Windows EXE、Linux DEB、macOS DMG 的独立交互原型。每个文件内嵌样式、脚本和 Vex 产品配置，只显示对应平台的安装窗口，不读取相邻仓库或其他平台文件。原混合文件 `design/CodeWF.安装器原型.html` 已拆分移除。共享源摘要仅约束本仓安装源码，不要求所有产品原型永远相同。
 
 ## macOS 与 Linux
 
