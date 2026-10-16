@@ -70,7 +70,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "vex" or "preferences" or "locale")
+if (mode is "vex" or "preferences" or "locale" or "path-identity")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().WithInterFont()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -144,6 +144,8 @@ if (mode is "vex" or "preferences" or "locale")
         PumpUntil(() => vm.DocumentInfo.CurrentFilePath == file);
         Check(!vm.DocumentInfo.IsModified, "Opening an untouched file stays clean: " + Path.GetFileName(file));
     }
+    VerifyPathIdentity(app, window, vm, sampleFolder);
+    if (mode == "path-identity") { window.Close(); return; }
     var editorVm = app.Resolve<MarkdownEditorViewModel>();
     VerifySourceLineHeight(window, window.GetVisualDescendants().OfType<MarkdownEditorView>().Single(), 21.875, "Vex");
     editorVm.InsertText(" regression edit");
@@ -571,6 +573,54 @@ void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel 
     Check(vm.Markdown == changed, "Instant editor redo restores the pre-guide changes");
     ((Vex.Modules.Shell.Views.MainWindow)window).BeginOnboardingGuide(); Pump(); guide.ShowStep(3); Pump(); guide.Finish(); Pump();
     Check(vm.Markdown == changed && vm.Workbench.IsInstantEditing, "Skipping the restarted guide restores state");
+    vm.Workbench.ShowSource(); Pump();
+}
+
+void VerifyPathIdentity(VerificationVexApp app, Window window, MainWindowViewModel vm, string sampleFolder)
+{
+    var state = app.Resolve<IWorkspaceDocumentState>();
+    var markdown = state.Markdown;
+    var originalPath = vm.DocumentInfo.CurrentFilePath!;
+    var lowerDirectory = Path.Combine(sampleFolder, "case-path");
+    var upperDirectory = Path.Combine(sampleFolder, "Case-Path");
+    var lowerPath = Path.Combine(lowerDirectory, "same.md");
+    var upperPath = Path.Combine(upperDirectory, "same.md");
+    Directory.CreateDirectory(lowerDirectory);
+    File.WriteAllText(lowerPath, markdown);
+    var caseSensitive = !File.Exists(upperPath);
+    Directory.CreateDirectory(upperDirectory);
+    File.WriteAllText(upperPath, markdown);
+
+    vm.Workbench.ShowInstant(); Pump();
+    var live = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    state.UpdateDocument(markdown, lowerPath); Pump();
+    var selection = live.Selection;
+    state.UpdateDocument(markdown, upperPath); Pump();
+    Check(state.FilePath == upperPath, "Workspace state preserves a path spelling change with identical Markdown");
+    Check(live.ImageBasePath == upperPath && live.Text == markdown,
+        "Instant synchronization retains case-sensitive image paths for identical Markdown");
+    Check(live.Selection == selection, "Updating only the image base path preserves the instant selection");
+
+    if (caseSensitive)
+    {
+        // 仅在输出文件系统确实支持大小写区分时验证两个真实文件的打开链路。
+        vm.ApplyDocumentFileOpenRequested(new DocumentFileOpenRequestedCommand(
+            new DocumentFile(lowerPath, "same.md", lowerDirectory, string.Empty, string.Empty), null));
+        PumpUntil(() => vm.DocumentInfo.CurrentFilePath == lowerPath);
+        vm.ApplyDocumentFileOpenRequested(new DocumentFileOpenRequestedCommand(
+            new DocumentFile(upperPath, "same.md", upperDirectory, string.Empty, string.Empty), null));
+        PumpUntil(() => vm.DocumentInfo.CurrentFilePath == upperPath);
+        Check(state.FilePath == upperPath && live.ImageBasePath == upperPath,
+            "Opening real case-distinct files with equal Markdown updates the document and image base path");
+        Check(vm.BuildQuickOpenItems().Count(item => item.Path == lowerPath || item.Path == upperPath) == 2,
+            "Quick open retains both real case-distinct document paths");
+        Pump(vm.OpenPathAsync(originalPath));
+    }
+    else
+    {
+        Console.WriteLine("SKIP Real case-distinct file opening: output filesystem is case-insensitive; state and live path spelling checks passed.");
+    }
+    state.UpdateDocument(markdown, originalPath); Pump();
     vm.Workbench.ShowSource(); Pump();
 }
 

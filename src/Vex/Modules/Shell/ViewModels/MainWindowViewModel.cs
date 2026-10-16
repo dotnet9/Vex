@@ -414,7 +414,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     public IReadOnlyList<QuickOpenItem> BuildQuickOpenItems()
     {
         var items = new List<QuickOpenItem>();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seen = new HashSet<string>(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
         foreach (var file in _documentFiles)
         {
@@ -498,7 +498,8 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private async Task OpenDocumentFileAsync(DocumentFile file, DocumentFile? previousSelection)
     {
-        if (DocumentInfo.CurrentFilePath?.Equals(file.Path, StringComparison.OrdinalIgnoreCase) == true)
+        if (DocumentInfo.CurrentFilePath?.Equals(file.Path,
+                OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) == true)
         {
             return;
         }
@@ -1359,11 +1360,12 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         try
         {
-            return Path.GetFullPath(left).Equals(Path.GetFullPath(right), StringComparison.OrdinalIgnoreCase);
+            return Path.GetFullPath(left).Equals(Path.GetFullPath(right),
+                OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
         catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
         {
-            return left.Equals(right, StringComparison.OrdinalIgnoreCase);
+            return left.Equals(right, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
     }
 
@@ -1375,7 +1377,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             var fullDirectory = Path.GetFullPath(directory)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                 + Path.DirectorySeparatorChar;
-            return fullPath.StartsWith(fullDirectory, StringComparison.OrdinalIgnoreCase);
+            return fullPath.StartsWith(fullDirectory, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
         catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
         {

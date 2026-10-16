@@ -18,7 +18,7 @@ public sealed class RecentDocumentStore : IRecentDocumentStore
                 .Select(TryCreateRecentDocument)
                 .OfType<RecentDocument>()
                 .Where(document => File.Exists(document.Path))
-                .DistinctBy(document => document.Path, StringComparer.OrdinalIgnoreCase)
+                .DistinctBy(document => document.Path, OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal)
                 .Take(maxCount)
                 .ToArray();
         }

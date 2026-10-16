@@ -101,7 +101,8 @@ public sealed class ShellRecentDocumentsViewModel : ReactiveObject
     public void AddRecentDocument(string path)
     {
         var fullPath = Path.GetFullPath(path);
-        var existing = RecentDocuments.FirstOrDefault(item => item.Path.Equals(fullPath, StringComparison.OrdinalIgnoreCase));
+        var existing = RecentDocuments.FirstOrDefault(item => item.Path.Equals(fullPath,
+            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
         if (existing is not null)
         {
             RecentDocuments.Remove(existing);
@@ -120,7 +121,8 @@ public sealed class ShellRecentDocumentsViewModel : ReactiveObject
     public void RemoveRecentDocument(string path)
     {
         var fullPath = Path.GetFullPath(path);
-        var existing = RecentDocuments.FirstOrDefault(item => item.Path.Equals(fullPath, StringComparison.OrdinalIgnoreCase));
+        var existing = RecentDocuments.FirstOrDefault(item => item.Path.Equals(fullPath,
+            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
         if (existing is null)
         {
             return;

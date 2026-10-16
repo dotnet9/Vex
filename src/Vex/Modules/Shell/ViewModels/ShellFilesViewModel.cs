@@ -326,14 +326,14 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
     private static bool IsSameOrParentDirectory(string directory, string path)
     {
-        if (path.Equals(directory, StringComparison.OrdinalIgnoreCase))
+        if (path.Equals(directory, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
         {
             return true;
         }
 
         var normalizedDirectory = directory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                                   + Path.DirectorySeparatorChar;
-        return path.StartsWith(normalizedDirectory, StringComparison.OrdinalIgnoreCase);
+        return path.StartsWith(normalizedDirectory, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     private static string? ResolveRelativeDirectory(string rootPath, string? directory)
@@ -424,11 +424,12 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     {
         try
         {
-            return Path.GetFullPath(left).Equals(Path.GetFullPath(right), StringComparison.OrdinalIgnoreCase);
+            return Path.GetFullPath(left).Equals(Path.GetFullPath(right),
+                OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
         catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
         {
-            return left.Equals(right, StringComparison.OrdinalIgnoreCase);
+            return left.Equals(right, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
     }
 
@@ -461,7 +462,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         public string Path { get; }
 
         public SortedDictionary<string, MutableDocumentFolderNode> Folders { get; } =
-            new(StringComparer.OrdinalIgnoreCase);
+            new(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
         public List<DocumentFile> Files { get; } = [];
     }

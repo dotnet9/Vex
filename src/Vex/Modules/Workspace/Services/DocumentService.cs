@@ -199,7 +199,7 @@ public sealed class DocumentService : IDocumentService
 
         var targetName = NormalizeRenameTargetName(path, newName);
         var targetPath = Path.Combine(directory, targetName);
-        if (path.Equals(targetPath, StringComparison.OrdinalIgnoreCase))
+        if (path.Equals(targetPath, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
         {
             return Task.FromResult(path);
         }

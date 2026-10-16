@@ -19,7 +19,8 @@ public sealed class WorkspaceDocumentState : IWorkspaceDocumentState
     {
         var normalized = markdown ?? string.Empty;
         var normalizedPath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
-        if (_markdown == normalized && string.Equals(_filePath, normalizedPath, StringComparison.OrdinalIgnoreCase))
+        // 路径拼写变化也继续广播，避免吞掉大小写敏感文件系统中的文档切换。
+        if (_markdown == normalized && string.Equals(_filePath, normalizedPath, StringComparison.Ordinal))
         {
             return;
         }
