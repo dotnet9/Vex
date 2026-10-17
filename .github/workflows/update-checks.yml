@@ -1,0 +1,52 @@
+name: 更新流程回归
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Vex/**'
+      - 'scripts/update-verification/**'
+      - 'scripts/ui-verification/**'
+      - 'scripts/installer/**'
+      - 'Directory.*.props'
+      - '.github/workflows/update-checks.yml'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  updates:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: 更新状态与启动失败边界
+        shell: pwsh
+        run: dotnet run --project scripts/update-verification -c Release
+      - name: 统一更新浮层与四语布局
+        shell: pwsh
+        run: |
+          dotnet build scripts/ui-verification/UiVerification.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw 'UI verifier build failed' }
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll updates artifacts/update-checks
+          if ($LASTEXITCODE -ne 0) { throw 'Update UI verification failed' }
+      - name: 真实 Inno 夹具窗口交接
+        shell: pwsh
+        run: |
+          $compiler = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6/ISCC.exe'
+          $output = Join-Path $env:RUNNER_TEMP 'vex-update-fixture'
+          New-Item -ItemType Directory -Path $output -Force | Out-Null
+          & $compiler /Qp "/O$output" scripts/installer/tests/Vex.Fixture.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Inno fixture build failed' }
+          ./scripts/installer/tests/verify_vex_fixture.ps1 -Installer "$output/Vex.Installer.Fixture.exe" -Output "$output/verification" -Cancel
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: update-checks
+          path: |
+            artifacts/update-checks
+            ${{ runner.temp }}/vex-update-fixture/verification

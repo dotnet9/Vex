@@ -23,6 +23,8 @@ $window=[IntPtr]::Zero
 $processInfo=[CodeWFSetupFixtureDesktop+ProcessInfo]::new()
 $ownedHandles=[Collections.Generic.Dictionary[uint32,IntPtr]]::new()
 $assertions=[Collections.Generic.List[string]]::new()
+$updateEventName='Local\Vex.Update.'+[guid]::NewGuid().ToString('N')
+$updateReady=[Threading.EventWaitHandle]::new($false,[Threading.EventResetMode]::ManualReset,$updateEventName)
 function Check([bool]$Condition,[string]$Message) {
     if (-not $Condition) { throw $Message }; $assertions.Add($Message); Write-Host "PASS: $Message"
 }
@@ -77,14 +79,17 @@ try {
     $startup.desktop='winsta0\'+$desktopName
     $destination=Join-Path $Output 'fixture payload'
     $command=[Text.StringBuilder]::new('"'+$installerPath+'" /SP- /LANG='+$Language+' /VEXTHEME='+$Theme+' /DIR="'+$destination+'" /LOG="'+(Join-Path $Output 'setup.log')+'"')
+    [void]$command.Append(' /VEXUPDATEREADY='+$updateEventName)
+    Check (-not $updateReady.WaitOne(0)) '安装向导未显示前不会确认就绪'
     if (-not [CodeWFSetupFixtureDesktop]::CreateProcess($installerPath,$command,[IntPtr]::Zero,[IntPtr]::Zero,$false,0,[IntPtr]::Zero,(Split-Path -Parent $installerPath),[ref]$startup,[ref]$processInfo)) { throw '无法启动独立夹具。' }
     $ownedHandles.Add([uint32]$processInfo.processId,$processInfo.process)
     $window=Wait-For { @([CodeWFSetupFixtureDesktop]::Windows($desktop) | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TWizardForm' -and [CodeWFSetupFixtureDesktop]::IsWindowVisible($_) }) | Select-Object -First 1 } '极简安装窗口'
     Register-Processes
+    Check ($updateReady.WaitOne(1000)) '真实 Inno 安装窗口显示后确认更新交接'
     $initial=Bounds $window
     Check ([CodeWFSetupFixtureDesktop]::HasShapedRegion($window)) '原生窗口应用单角切口区域'
     Check ([CodeWFSetupFixtureDesktop]::IsWindowEnabled((Button '^×$'))) '安装前关闭按钮可用'
-    Check (@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TEdit' }).Count -eq 0) '首次打开设置默认折叠'
+    Check (@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -match '^(TEdit|TNewPathEdit)$' }).Count -eq 0) '首次打开设置默认折叠'
     Capture '01-welcome'
     if ($Theme -eq 'dark') {
         Check ([CodeWFSetupFixtureDesktop]::PixelLightness((Join-Path $Output '01-welcome.png'),.5,.04) -lt 80) '深色界面无需修改系统主题'
@@ -113,7 +118,7 @@ try {
         return
     }
     Click (Button '^Custom installation$|^自定义安装$')
-    $edit=Wait-For { @(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TEdit' }) | Select-Object -First 1 } '安装目录输入'
+    $edit=Wait-For { @(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -match '^(TEdit|TNewPathEdit)$' }) | Select-Object -First 1 } '安装目录输入'
     $expanded=Bounds $window
     Check (($expanded.bottom-$expanded.top) -gt ($initial.bottom-$initial.top)) '展开自定义安装后窗口随内容增高'
     $checkboxes=@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TNewCheckBox' })
@@ -165,4 +170,5 @@ try {
     }
     if ($processInfo.thread -ne [IntPtr]::Zero) { [void][CodeWFSetupFixtureDesktop]::CloseHandle($processInfo.thread) }
     if ($desktop -ne [IntPtr]::Zero) { [void][CodeWFSetupFixtureDesktop]::CloseDesktop($desktop) }
+    $updateReady.Dispose()
 }

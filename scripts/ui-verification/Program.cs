@@ -9,6 +9,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Avalonia.ReactiveUI;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using Prism.Ioc;
 using CodeWF.Avalonia.Controls.Themes;
@@ -21,14 +22,16 @@ using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Workspace.ViewModels;
 using Vex.Modules.Workspace.Services;
 using Vex.Core.Messaging;
+using CodeWF.Toolkit.Core.UpdateChecking;
 
 var mode = args.FirstOrDefault() ?? "vex";
+if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
 if (mode == "parity")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = app.Shell!;
@@ -94,14 +97,15 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables")
+if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
+    if (mode == "updates") { VerifyUpdates(app, window, vm); window.Close(); return; }
     if (mode == "html-tables") { VerifyHtmlTables((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "presentation") { VerifyPresentation(app, (Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "pointer-regressions") { VerifyPointerRegressions(app, window, vm); window.Close(); return; }
@@ -246,7 +250,7 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
     foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
     {
         vm.Appearance.SelectLanguageByCulture(culture); Pump();
-        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture.Name == culture && aboutModel.ActionText == app.Resolve<IAppLocalizer>().Get(Vex.VexL.AboutCheckUpdate),
+        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture.Name == culture && about.FindControl<Button>("UpdateAction")!.Content?.ToString() == app.Resolve<IAppLocalizer>().Get(Vex.VexL.AboutCheckUpdate),
             "The open About dialog changes language: " + culture);
         var aboutScroll = about.GetVisualDescendants().OfType<ScrollViewer>().Single();
         VerifyInside(aboutScroll, window, "About viewport fits the minimum window: " + culture);
@@ -2044,13 +2048,63 @@ double Contrast(Color first, Color second)
     return (Math.Max(a, b) + 0.05) / (Math.Min(a, b) + 0.05);
 }
 
+void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm)
+{
+    window.Width = 980; window.Height = 640; Pump();
+    var service = (VerificationUpdates)VerificationVexApp.Updates!;
+    var overlay = app.Resolve<IShellOverlayService>();
+    var menu = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellTitleMenuView>().Single();
+    var menuItem = menu.FindControl<MenuItem>("CheckUpdatesMenuItem")!;
+    Check(menuItem.CommandParameter?.ToString() == "update", "Help menu routes to the shared update action");
+    var menuTask = vm.Help.OpenHelpTopic("update");
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
+    var view = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Single();
+    var model = (ShellUpdateViewModel)view.DataContext!;
+    Check(service.Checks == 1 && model.State == UpdateState.Available, "Menu opens one update view and starts one check");
+    var download = model.AdvanceAsync(); Pump();
+    Check(model.IsDownloading && service.Downloads == 1, "Shared view starts one download");
+    model.Close(); Pump(menuTask);
+    Check(model.IsDownloading, "Closing the view keeps the download active");
+    var aboutTask = overlay.ShowAboutAsync();
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
+    var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
+    about.FindControl<Button>("UpdateAction")!.Command!.Execute(null); Pump();
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
+    view = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Single();
+    Check(ReferenceEquals(model, view.DataContext) && model.IsDownloading && service.Checks == 1 && service.Downloads == 1,
+        "About reopens the same update session and download");
+    var duplicate = overlay.ShowUpdatesAsync();
+    Check(ReferenceEquals(duplicate, overlay.ShowUpdatesAsync()) && window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Count() == 1,
+        "Repeated entry requests reuse one visible dialog");
+    service.CompleteDownload(); Pump(download);
+    Check(model.State == UpdateState.Downloaded && model.HasDownload, "Reopened view receives the completed download");
+    Pump(model.AdvanceAsync());
+    Check(model.State == UpdateState.Failed && model.HasDownload && !aboutTask.IsCompleted, "Failed installation keeps Vex and the update view open");
+    foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
+    foreach (var theme in new[] { "light", "dark" })
+    {
+        vm.Appearance.SelectLanguageByCulture(culture); vm.Appearance.SelectThemeByKey(theme); Pump(); SettleRendering();
+        var scroll = view.GetVisualDescendants().OfType<ScrollViewer>().Single(); scroll.ScrollToEnd(); Pump();
+        VerifyInside(scroll, window, "Update viewport fits: " + culture + "/" + theme);
+        VerifyInside(view.FindControl<Button>("UpdateAction")!, scroll, "Install retry remains reachable: " + culture + "/" + theme);
+        Check(!model.StatusText.StartsWith("Vex.VexL."), "Update text is localized: " + culture);
+        Capture(window, "updates-" + culture + "-" + theme);
+    }
+    model.Close(); Pump(aboutTask); Pump(duplicate);
+    var reopen = overlay.ShowUpdatesAsync(); Pump();
+    Check(model.HasDownload && model.State == UpdateState.Failed && service.Downloads == 1, "Installer failure can be reopened without downloading again");
+    model.Close(); Pump(reopen);
+}
+
 public sealed class VerificationVexApp : Vex.App
 {
+    public static IUpdateService? Updates { get; set; }
     public Window? Shell { get; private set; }
     public T Resolve<T>() => Container.Resolve<T>();
     protected override void RegisterTypes(IContainerRegistry registry)
     {
         base.RegisterTypes(registry);
+        if (Updates is not null) registry.RegisterInstance<IUpdateService>(Updates);
         registry.RegisterInstance<IAppSettingsStore>(new MemorySettings());
         registry.RegisterInstance<IAutoSaveDraftService>(new MemoryDrafts());
         registry.RegisterInstance<IRecentDocumentStore>(new MemoryRecent());
