@@ -25,6 +25,15 @@ Name: "markdownassociation"; Description: "{cm:VAssociation}"
 #include "..\Vex.Setup.iss"
 #include "Fixture.Progress.iss"
 [Code]
+<event('CurPageChanged')>
+procedure VFixtureLaunchVisual(PageID: Integer);
+begin
+  if PageID<>wpFinished then exit;
+  { 只添加无执行项的视觉选项；夹具没有 [Run] 声明，绝不启动应用。 }
+  WizardForm.RunList.AddCheckBox(CustomMessage('VOpen'),'',0,True,True,False,False,nil);
+  VLayout;
+end;
+
 <event('CurStepChanged')>
 procedure VFixtureVerifyTasks(Step: TSetupStep);
 begin
@@ -43,6 +52,17 @@ begin
   CWMRegistrations[0].ScopeName:=CustomMessage('CWMCurrentUser');
   CWMRegistrations[0].AppPath:=CWMRepairPath;
   CWMRegistrations[0].Uninstaller:=AddBackslash(CWMRepairPath)+'unins000.exe';
+  #ifdef VexFixtureUnknownLocation
+    CWMRepairPath:=''; CWMRegistrations[0].AppPath:=''; CWMRegistrations[0].Uninstaller:='';
+    CWMRegistrations[0].ScopeName:=CustomMessage('CWMAllUsers');
+  #endif
+  #ifdef VexFixtureMultiple
+    CWMRegistrationCount:=2;
+    CWMRegistrations[1].ScopeName:=CustomMessage('CWMAllUsers');
+    CWMRegistrations[1].AppPath:='C:\Program Files\Vex';
+    CWMRegistrations[1].Uninstaller:='C:\Program Files\Vex\unins000.exe';
+  #endif
   CWMCreatePage;
+  CWMPage.CheckListBox.OnClickCheck:=@VMaintenanceSelection;
 end;
 #endif

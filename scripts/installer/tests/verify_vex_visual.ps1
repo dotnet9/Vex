@@ -1,0 +1,36 @@
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)][string]$Compiler,
+    [Parameter(Mandatory)][string]$Output,
+    [string]$ReferenceDirectory=''
+)
+$ErrorActionPreference='Stop'
+if (-not $IsWindows) { throw '原生视觉验证仅支持 Windows。' }
+$Output=[IO.Path]::GetFullPath($Output)
+New-Item -ItemType Directory -Path $Output -Force | Out-Null
+$fixtures=@{}
+foreach($kind in @('new','maintenance','unknown','multiple')) {
+    $folder=Join-Path $Output ('bin-'+$kind)
+    New-Item -ItemType Directory -Path $folder -Force | Out-Null
+    $arguments=@('/Qp',('/O'+$folder))
+    if ($kind -ne 'new') { $arguments+='/DVexFixtureMaintenance' }
+    if ($kind -eq 'unknown') { $arguments+='/DVexFixtureUnknownLocation' }
+    if ($kind -eq 'multiple') { $arguments+='/DVexFixtureMultiple' }
+    & $Compiler @arguments (Join-Path $PSScriptRoot 'Vex.Fixture.iss')
+    if ($LASTEXITCODE) { throw "夹具编译失败：$kind" }
+    $fixtures[$kind]=Join-Path $folder 'Vex.Installer.Fixture.exe'
+}
+foreach($language in @('chinesesimplified','english')) {
+    $lang=if($language -eq 'english'){'en'}else{'zh'}
+    foreach($theme in @('light','dark')) {
+        & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.new -Language $language -Theme $theme -Output (Join-Path $Output "$lang-$theme")
+        & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.maintenance -Language $language -Theme $theme -Maintenance -Output (Join-Path $Output "$lang-$theme-maintenance")
+    }
+}
+& (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.unknown -Theme light -Maintenance -UnknownLocation -Output (Join-Path $Output 'unknown-location')
+& (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.multiple -Language english -Theme dark -Maintenance -Multiple -Output (Join-Path $Output 'multiple-scopes')
+if($ReferenceDirectory) {
+    python (Join-Path $PSScriptRoot 'compare_vex_visual.py') --reference $ReferenceDirectory --native $Output
+    if($LASTEXITCODE) { throw '原型截图对照未通过。' }
+}
+Write-Host "PASS: 原生中英文、浅深色与安装维护矩阵通过；证据：$Output"

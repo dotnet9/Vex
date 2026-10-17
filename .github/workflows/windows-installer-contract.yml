@@ -9,6 +9,7 @@ on:
       - 'scripts/installer/**'
       - 'scripts/Languages/**'
       - 'scripts/tests/windows_setup_contract_test.ps1'
+      - 'design/Vex-Installer-Windows.html'
       - 'LICENSE'
   pull_request:
     paths:
@@ -17,6 +18,7 @@ on:
       - 'scripts/installer/**'
       - 'scripts/Languages/**'
       - 'scripts/tests/windows_setup_contract_test.ps1'
+      - 'design/Vex-Installer-Windows.html'
       - 'LICENSE'
   workflow_dispatch:
 
@@ -40,4 +42,25 @@ jobs:
         with:
           name: windows-installer-contract
           path: ${{ runner.temp }}/codewf-installer-contract/**/verification.json
+          if-no-files-found: ignore
+
+  native-visual:
+    name: 安装器原生中英文与浅深色回归
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 编译并运行独立桌面安全夹具
+        shell: pwsh
+        run: |
+          $compiler=Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6/ISCC.exe'
+          ./scripts/installer/tests/verify_vex_visual.ps1 -Compiler $compiler -Output '${{ runner.temp }}/vex-native-visual'
+      - name: 上传原生窗口与交互证据
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-native-visual
+          path: |
+            ${{ runner.temp }}/vex-native-visual/**/*.png
+            ${{ runner.temp }}/vex-native-visual/**/*.json
+            ${{ runner.temp }}/vex-native-visual/**/setup.log
           if-no-files-found: ignore

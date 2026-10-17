@@ -5,7 +5,9 @@ param(
     [string]$Output='',
     [ValidateSet('system','light','dark')][string]$Theme='system',
     [switch]$Cancel,
-    [switch]$Maintenance
+    [switch]$Maintenance,
+    [switch]$UnknownLocation,
+    [switch]$Multiple
 )
 $ErrorActionPreference='Stop'
 if (-not $IsWindows) { throw '原生安装夹具仅支持 Windows。' }
@@ -91,18 +93,31 @@ try {
     Check ([CodeWFSetupFixtureDesktop]::IsWindowEnabled((Button '^×$'))) '安装前关闭按钮可用'
     Check (@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -match '^(TEdit|TNewPathEdit)$' }).Count -eq 0) '首次打开设置默认折叠'
     Capture '01-welcome'
+    $shot=[Drawing.Bitmap]::FromFile((Join-Path $Output '01-welcome.png'))
+    try {
+        $surface=$shot.GetPixel(260,40).ToArgb()
+        foreach($point in @(@(260,0),@(0,100),@(($shot.Width-1),100),@(100,($shot.Height-1)))) {
+            Check ($shot.GetPixel($point[0],$point[1]).ToArgb() -ne $surface) '窗口四边均有独立于背景的可见描边'
+        }
+    } finally { $shot.Dispose() }
     if ($Theme -eq 'dark') {
         Check ([CodeWFSetupFixtureDesktop]::PixelLightness((Join-Path $Output '01-welcome.png'),.5,.04) -lt 80) '深色界面无需修改系统主题'
     }
     if ($Maintenance) {
-        Click (Button '^Install now$|^立即安装$')
-        $list=Wait-For { @(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TNewCheckListBox' }) | Select-Object -First 1 } '已有安装维护入口'
+        Check ($null -ne (Button '^Repair installation$|^修复安装$|^Install for the current user$|^为当前用户安装$')) '已有安装直接呈现原型维护入口'
+        Capture '02-maintenance'
+        Click (Button '^Installation details$|^安装详情$')
+        $list=Wait-For { @(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TNewCheckListBox' }) | Select-Object -First 1 } '可展开已有安装详情'
         $memo=@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TMemo' }) | Select-Object -First 1
-        Check ([CodeWFSetupFixtureDesktop]::Text($memo) -match '维刻 maintenance with spaces') '维护入口完整显示原安装路径'
+        if ($UnknownLocation) {
+            Check ([CodeWFSetupFixtureDesktop]::Text($memo) -match '无法确定|could not be determined') '未知位置明确保留真实安全回退'
+            Check (-not [CodeWFSetupFixtureDesktop]::IsWindowEnabled((Button '^Uninstall$|^卸载$'))) '未知卸载路径不提供可执行的卸载按钮'
+        } else { Check ([CodeWFSetupFixtureDesktop]::Text($memo) -match '维刻 maintenance with spaces') '维护入口完整显示原安装路径' }
+        if ($Multiple) { Check ([CodeWFSetupFixtureDesktop]::Send($list,395) -eq 3) '多作用域安装保留全部维护选项' }
         Check (([CodeWFSetupFixtureDesktop]::GetWindowStyle($memo,-16) -band 2048) -ne 0) '维护安装路径为只读'
         $area=[CodeWFSetupFixtureDesktop]::VisibleBounds($memo,$window)
         Check (($area.bottom-$area.top) -gt 60 -and ($area.right-$area.left) -gt 350) '紧凑维护窗口内路径区域完整可见'
-        Capture '02-maintenance'
+        Capture '03-maintenance-details'
     }
     if ($Cancel -or $Maintenance) {
         Click (Button '^×$')
@@ -117,7 +132,16 @@ try {
         Write-Host "PASS: 取消与维护夹具验证通过；证据：$Output"
         return
     }
-    Click (Button '^Custom installation$|^自定义安装$')
+    Click (Button '^Open source license$|^开源许可$')
+    $license=Wait-For { @(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TRichEditViewer' -and [CodeWFSetupFixtureDesktop]::Text($_) -match 'Permission is hereby granted' }) | Select-Object -First 1 } '原窗口内 MIT 许可浮层'
+    Check ($null -ne $license) '许可浮层保留 MIT 原文'
+    Capture '04-license'
+    $before=[CodeWFSetupFixtureDesktop]::Send($license,206)
+    [void][CodeWFSetupFixtureDesktop]::Send($license,522,-7864320)
+    [void][CodeWFSetupFixtureDesktop]::Send($license,522,-7864320)
+    Check ([CodeWFSetupFixtureDesktop]::Send($license,206) -gt $before) '许可浮层可用滚轮阅读完整原文'
+    Click (Button '^Back$|^返回$')
+    Click (Button '^Customize installation|^自定义安装')
     $edit=Wait-For { @(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -match '^(TEdit|TNewPathEdit)$' }) | Select-Object -First 1 } '安装目录输入'
     $expanded=Bounds $window
     Check (($expanded.bottom-$expanded.top) -gt ($initial.bottom-$initial.top)) '展开自定义安装后窗口随内容增高'
@@ -126,11 +150,11 @@ try {
     $association=@($checkboxes | Where-Object { [CodeWFSetupFixtureDesktop]::Text($_) -match 'Markdown' })[0]
     Check ([CodeWFSetupFixtureDesktop]::Send($association,240) -eq 1) 'Markdown 打开方式候选默认选中'
     Capture '02-custom'
-    Click (Button '^MIT license$|^MIT 开源许可$')
-    $license=Wait-For { @([CodeWFSetupFixtureDesktop]::Windows($desktop) | Where-Object { $_ -ne $window -and [CodeWFSetupFixtureDesktop]::IsWindowVisible($_) -and [CodeWFSetupFixtureDesktop]::Text($_) -match '^MIT ' }) | Select-Object -First 1 } '可选 MIT 许可窗口'
-    Check (@(Controls $license | Where-Object { [CodeWFSetupFixtureDesktop]::Text($_) -match 'Permission is hereby granted' }).Count -gt 0) '许可窗口保留 MIT 原文'
-    Click (Button '^Close$|^关闭$' $license)
-    [void](Wait-For { -not [CodeWFSetupFixtureDesktop]::IsWindow($license) } '许可窗口关闭')
+    $primary=Bounds (Button '^Install now$|^立即安装$')
+    Check (($primary.right-$primary.left) -eq 176 -and ($primary.bottom-$primary.top) -eq 42) '主按钮按原型使用 176×42 像素布局'
+    Click (Button '^Open source license$|^开源许可$')
+    Check (@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Text($_) -match 'Permission is hereby granted' }).Count -gt 0) '展开设置后也能查看许可'
+    Click (Button '^Back$|^返回$')
     [CodeWFSetupFixtureDesktop]::SetText($edit,'relative\path')
     Click (Button '^Install now$|^立即安装$')
     $errorDialog=Wait-For { @([CodeWFSetupFixtureDesktop]::Windows($desktop) | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -match 'MsgBox|#32770|TaskDialog' -and [CodeWFSetupFixtureDesktop]::IsWindowVisible($_) }) | Select-Object -First 1 } '无效目录提示'
@@ -142,8 +166,10 @@ try {
         if ([CodeWFSetupFixtureDesktop]::Send($checkbox,240) -ne $checked) { Click $checkbox }
         Check ([CodeWFSetupFixtureDesktop]::Send($checkbox,240) -eq $checked) '通过真实点击更改安装选项'
     }
-    Click (Button '^Custom installation$|^自定义安装$')
+    Click (Button '^Customize installation|^自定义安装')
     Click (Button '^Install now$|^立即安装$')
+    Check ($null -ne (Button '^Cancel$|^取消$')) '真实安装进度页面提供取消操作'
+    Capture '05-progress'
     $finish=Wait-For { Button '^Close$|^关闭$' } '一键安装直接进入完成页'
     Check (Test-Path -LiteralPath (Join-Path $destination 'LICENSE')) '一键安装把载荷复制到选择的目录'
     Check (@(Get-ChildItem -LiteralPath $destination -Recurse -File).Count -eq 1) '夹具只复制许可，不生成卸载器或其他文件'
