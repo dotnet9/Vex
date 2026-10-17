@@ -30,7 +30,9 @@ Windows x64 NativeAOT 实际界面：
 
 本机已验证文件参数打开、表格自然列宽、动态切语、深色与配色分别保存并在重启后恢复，以及关于与更新流程。Windows 安装器支持三种 Markdown 扩展名的打开候选、右键入口与图标；本轮复核未更改默认应用，Linux/macOS 和多 DPI 仍需各平台验收。
 
-[1.5.9 本机验证记录](docs/verification-v1.5.9.md) 区分应用离屏回归、资源自检和正式 NativeAOT 窗口验收。
+[1.6.0 发布前验证](docs/verification-v1.6.0.md) 记录正式 NuGet 依赖下的构建、回归与安装包门禁；历史 [1.5.9 本机验证记录](docs/verification-v1.5.9.md) 区分离屏、资源自检和 NativeAOT 窗口验收。
+
+[大文件性能与稳定性验证](docs/性能与稳定性验证-20261017.md) 记录混合语法、长代码、密集公式、文档切换与多视图压力测试；原型还原目标及验收边界见 [原型对照验收](design/原型对照验收.md)。
 
 ## 下载安装
 
@@ -43,7 +45,7 @@ Windows x64 NativeAOT 实际界面：
 
 ## 仓库规范
 
-- 当前版本：`1.5.9`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
+- 当前版本：`1.6.0`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
 - NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net10.0` / `net10.0-windows`。
 - 根目录 `logo.svg`、`logo.png`、`logo.ico` 是唯一图标源，子工程只通过 MSBuild `Link` 引用，不维护图标副本。
 - 运行时帮助、Markdown 示例、内置备忘录、设计说明等业务文档按功能保留；仓库级入口文档使用根目录 `README.md` 和 `UpdateLog.md`。
@@ -64,7 +66,9 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 ### Markdown 编辑
 
 - 基于 AvaloniaEdit 的 Markdown 源码编辑器。
-- 工作区提供编辑、阅读、导图三个视角；编辑默认即时渲染，活动块显示输入内容，其余块保持排版，也可切换单栏源码。
+- 一个进程编辑一份当前文档；文件页切换文档时，所有视图及独立窗口同步替换内容。
+- 八种固定布局覆盖即时编辑、源码、阅读、导图，以及源码 + 渲染、源码 + 导图、即时编辑 + 导图、上方源码 / 渲染与下方导图；不使用 Dock。
+- 即时编辑保留正文排版，点击原位放置光标；代码块默认隐藏顶部语言与复制工具，编辑时只在下方显示可修改的代码类型。
 - 即时编辑支持跨块撤销重做、菜单格式操作，`Ctrl+Enter` 完成当前块、`Esc` 恢复本次块编辑前的内容。
 - 阅读视图只读；即时编辑的非活动块和阅读视图共用 18 套正文排版及紧凑布局。
 - 支持常见 Markdown 编辑动作：标题、引用、列表、任务列表、表格、代码块、链接、图片等插入辅助。
@@ -72,9 +76,10 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 
 ### Markdown 导图与上手引导
 
-- 通过 `CodeWF.Avalonia.MindView` 从 Markdown AST 生成只读结构图；标题为主干，段落、引用和列表可作为内容节点。
-- 段落摘要默认 30 字，可配置 1–120 字；点击节点查看全文，双击或 Enter 定位源码。折叠、平移、缩放及显示设置均不改变正文。
-- “帮助 → 新手引导”提供五步可操作演练；完成或跳过后恢复原文、撤销历史、视图、排版与导图偏好，动效可关闭。
+- 通过 `CodeWF.Avalonia.MindView` 从 Markdown AST 生成可编辑章节图；支持改标题及正文、增删章节、调整层级和顺序、拖动整章及子章，共用撤销 / 重做。
+- 段落摘要默认 30 字，可配置 1–120 字；可只看标题、查看全文、定位源码、折叠、平移和缩放。
+- 视图可以分到独立窗口，始终共用当前文档；源码与即时编辑在所有窗口中互斥。
+- “帮助 → 新手引导”提供六步可操作演练；完成或跳过后恢复原文、撤销历史、布局、独立窗口、排版与导图偏好，动效可关闭。
 
 ### 文件工作流
 
@@ -82,7 +87,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - 支持打开文件夹，左侧自动列出目录中的 Markdown/TXT 文档。
 - 直接打开单个文件时，会自动加载同目录下的可编辑文档列表。
 - 支持最近文件、拖拽打开、启动参数打开、文件重命名/删除，以及外部文件变更检测。
-- Windows 安装器通过“注册 Markdown 打开方式候选”选项提供 `.md`、`.markdown`、`.mdown` 图标、打开方式候选和右键入口，默认勾选；取消后启动不会重新注册。便携版可主动执行注册脚本，均保留用户默认程序选择；Linux/macOS 安装包声明 Markdown 文档类型。
+- Windows 安装器通过“注册 Markdown 打开方式候选”选项提供 `.md`、`.markdown`、`.mdown` 图标、打开方式候选和右键入口，默认勾选；取消后启动不会重新注册。文件关联保留用户默认程序选择；Linux/macOS 安装包声明 Markdown 文档类型。
 
 ### 大纲、查找与统计
 
@@ -141,7 +146,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 
 - 支持 `win-x64`、`linux-x64`、`linux-arm64`、`osx-x64`、`osx-arm64` 的 NativeAOT 发布，交付 EXE、DEB、DMG 安装器及 SHA256 校验文件。
 - GitHub Release 资产为安装包：Windows exe（Inno Setup 中文向导）、Linux deb、macOS dmg，均附 `.sha256`。
-- 本地仍可用 `package_all.bat` 生成 `Vex-v<Version>-<RID>.zip` 便携包（排除 `*.pdb`，附 SHA256 与 release manifest）；Windows 也可选生成 MSIX 布局/安装包。
+- 五个平台安装包统一由 GitHub Actions 制作；已移除便携 ZIP 打包脚本。
 
 ## 技术栈
 
@@ -168,7 +173,7 @@ dotnet run --project src\Vex\Vex.csproj -f net10.0
 
 更多使用说明见 [docs/快速开始.md](docs/快速开始.md)。
 
-本地联调通过 `temp_nugets` 环境变量指定的包目录与仓外 NuGet 配置使用真实包；最终提交和 CI 从 nuget.org 恢复，不需要克隆库仓库。普通测试与离屏验收不打开系统浏览器、不注册测试宿主为 Markdown 程序。
+本地联调使用 `scripts/prepare_local_libraries.ps1` 指定的包目录与仓外 NuGet 配置消费真实包；最终提交和 CI 从 nuget.org 恢复，不需要克隆库仓库。普通测试与离屏验收不打开系统浏览器、不注册测试宿主为 Markdown 程序。
 
 验证入口：
 
@@ -188,22 +193,16 @@ pwsh scripts/publish.ps1 -RuntimeIdentifier win-x64
 
 ## 构建与发布
 
+本地开发只发布当前平台的原生目录，用于调试：
+
 ```powershell
 dotnet build Vex.slnx -v:minimal
-.\publish_all.bat
-.\package_all.bat
-.\package_all.bat --force
-.\scripts\package_vex_msix.ps1 -RuntimeIdentifier win-x64 -PrepareOnly
-.\scripts\package_vex_msix.ps1 -RuntimeIdentifier win-x64 -CertificatePath .\cert.pfx
+pwsh scripts/publish.ps1 -RuntimeIdentifier win-x64
 ```
 
-`publish_all.bat` 调用仓库发布脚本，输出到 `artifacts/publish/<RID>/Vex/`。
+正式发布先升级根版本、更新日志并提交推送，再创建并推送同版本的中文附注 tag（例如 `v1.6.0`）。GitHub Actions 在各平台 runner 制作全部五个 RID 的安装包，通过文件名、版本、完整矩阵和 SHA256 门禁后上传 GitHub Release。操作规范见 [发布流程](docs/RELEASE.md)。
 
-`package_all.bat` 会先调用 `publish_all.bat`，再在 `artifacts/release/` 下生成 `Vex-v<Version>-<RID>.zip`、SHA256 文件和 release manifest。
-
-Release 压缩包会排除 `*.pdb` 调试符号文件。已有产物默认不会覆盖；需要覆盖时使用 `package_all.bat --force`，或直接给 PowerShell 脚本传入 `-Force`。
-
-`scripts/package_vex_msix.ps1` 会在 `artifacts/installer/msix-layout/<RID>/` 下创建 Windows MSIX 布局；不传 `-PrepareOnly` 时，会调用 Windows SDK `makeappx.exe` 生成 `artifacts/installer/Vex-<Version>-<RID>.msix`，并在提供 `-CertificatePath` 时使用 `signtool.exe` 签名。
+`package_all.bat` 已停用本地压缩打包，仅提示使用 Actions；`publish_all.bat --package` 不再支持。Release 只包含 EXE / DEB / DMG 及对应 `.sha256`。
 
 ## 文档
 
