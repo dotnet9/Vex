@@ -222,14 +222,14 @@ a:hover { text-decoration: underline; }
 .tb-dot.saved { background: var(--fg-disabled); opacity: 0.55; }
 .caption-btns { display: flex; align-items: center; height: 100%; flex: none; }
 .caption-btn {
-  width: 44px; height: 100%;
+  width: 46px; height: 100%;
   display: inline-flex; align-items: center; justify-content: center;
   color: var(--fg);
   cursor: default;
 }
 .caption-btn:hover { background: var(--hover); }
 .caption-btn.close:hover { background: #DC2626; color: #fff; }
-.caption-btn svg { width: 10px; height: 10px; }
+.caption-btn svg { width: 24px; height: 24px; }
 
 /* ---------- 菜单浮层 ---------- */
 .flyout {
@@ -682,7 +682,7 @@ a:hover { text-decoration: underline; }
   overflow: hidden;
 }
 .mini-titlebar {
-  height: 36px;
+  height: 44px;
   background: var(--panel);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center;

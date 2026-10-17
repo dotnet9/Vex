@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="assets/editing.css">
 <link rel="stylesheet" href="assets/guide.css">
 <link rel="stylesheet" href="assets/workspace.css">
+<link rel="stylesheet" href="assets/dismiss.css">
 <script src="assets/theme.js"></script>
 </head>
 <body data-page="index">
@@ -51,6 +52,8 @@
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
 <symbol id="i-fit" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><rect x="8" y="8" width="8" height="8" rx="1"/></symbol>
 <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="i-inline-code" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5 M16 7l5 5-5 5"/></symbol>
+<symbol id="i-code-block" viewBox="0 0 24 24"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2 M3 8h18 M9 12l-3 3 3 3 M15 12l3 3-3 3"/></symbol>
 </defs></svg>
 <div class="app-window">
   <header class="titlebar">
@@ -71,7 +74,7 @@
         <button id="view-read" role="tab" aria-controls="reading-pane" aria-selected="false" data-view="read"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg>阅读</button>
         <button id="view-mindmap" role="tab" aria-controls="map-pane" aria-selected="false" data-view="mindmap"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg>导图</button>
       </div>
-      <div class="work-actions"><button class="guide-launch" data-action="guide" id="guide-launch" title="新手引导"><i aria-hidden="true"></i><span>快速上手</span></button><button class="icon-button" data-action="find" title="查找 · Ctrl+F"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg></button><button class="btn sm save-button" data-action="save" title="保存副本 · Ctrl+S"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg><span>保存</span></button></div>
+      <div class="work-actions"><button class="toolbar-button" id="present-button" data-action="presentation" title="演示文档 · F6"><svg class="ico" aria-hidden="true"><use href="#i-ext"/></svg><span>演示</span></button><button class="guide-launch" data-action="guide" id="guide-launch" title="新手引导"><i aria-hidden="true"></i><span>快速上手</span></button><button class="icon-button" data-action="find" title="查找 · Ctrl+F"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg></button><button class="btn sm save-button" data-action="save" title="保存副本 · Ctrl+S"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg><span>保存</span></button></div>
     </div>
     <div class="find-strip" id="findbar" hidden><input class="input" id="find-input" placeholder="查找文本"><input class="input" id="replace-input" placeholder="替换为" hidden><button class="btn sm" data-action="find-next">下一个</button><button class="btn sm" data-action="replace-all" id="replace-all" hidden>全部替换</button><small id="find-count">输入查找内容</small><button class="icon-button" data-action="close-find" title="关闭查找"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
     <main class="workspace" data-view="edit">
@@ -104,8 +107,8 @@
             <span class="format-divider"></span>
             <button class="format-button" data-action="insert-link" data-l10n-title="Link" aria-label="链接" title="链接"><svg class="ico"><use href="#i-link"/></svg></button>
             <button class="format-button" data-action="insert-image" data-l10n-title="Image" aria-label="图片" title="图片"><svg class="ico"><use href="#i-image"/></svg></button>
-            <button class="format-button" data-action="insert-inline-code" data-l10n-title="InlineCode" aria-label="行内代码" title="行内代码"><svg class="ico"><use href="#i-code"/></svg></button>
-            <button class="format-button" data-action="insert-code" data-l10n-title="CodeBlock" aria-label="代码块" title="代码块"><svg class="ico"><use href="#i-code"/></svg></button>
+            <button class="format-button" data-action="insert-inline-code" data-l10n-title="InlineCode" aria-label="行内代码" title="行内代码"><svg class="ico"><use href="#i-inline-code"/></svg></button>
+            <button class="format-button" data-action="insert-code" data-l10n-title="CodeBlock" aria-label="代码块" title="代码块"><svg class="ico"><use href="#i-code-block"/></svg></button>
             <button class="format-button" data-action="insert-table" data-l10n-title="Table" aria-label="表格" title="表格"><svg class="ico"><use href="#i-grid"/></svg></button>
             <button class="format-button format-more" data-action="format-more" data-l10n-title="WBMoreFormatting" aria-label="更多格式" title="更多格式"><svg class="ico"><use href="#i-more"/></svg></button>
           </div>
@@ -159,6 +162,17 @@
     <!-- ========== 窗体内浮层 ========== -->
 
     <!-- 未保存更改 -->
+    <div class="overlay win-layer" id="layer-insert-table" hidden>
+      <form class="dialog insert-table-dialog" role="dialog" aria-modal="true" aria-labelledby="insert-table-title">
+        <h2 class="dlg-title" id="insert-table-title" data-l10n="InsertTable">插入表格</h2>
+        <div class="table-dimensions">
+          <label><span data-l10n="TableRows">行数</span><input id="table-rows" type="number" min="1" max="100" step="1" value="3" required></label>
+          <label><span data-l10n="TableColumns">列数</span><input id="table-columns" type="number" min="1" max="20" step="1" value="2" required></label>
+        </div>
+        <p class="dlg-msg" data-l10n="TableHeaderHint">行数包含表头。</p>
+        <div class="dlg-actions"><button type="button" class="btn" data-close="" data-l10n="Cancel">取消</button><button type="submit" class="btn primary" id="confirm-table" data-l10n="Insert">插入</button></div>
+      </form>
+    </div>
     <div class="overlay win-layer" id="layer-unsaved" hidden>
       <div class="dialog">
         <div class="dlg-title">
@@ -423,11 +437,16 @@
 
   </div>
 </div>
-<div class="presentation-tools" id="presentation-tools" hidden>
-  <button data-action="presentation-smaller" aria-label="减小演示字号" title="减小演示字号">A−</button>
-  <button data-action="presentation-larger" aria-label="增大演示字号" title="增大演示字号">A+</button>
-  <button data-action="presentation-exit" aria-label="退出演示" title="退出演示">×</button>
-</div>
+<section id="presentation-stage" class="presentation-stage" aria-label="文档演示" role="dialog" aria-modal="true" hidden>
+  <div class="presentation-tools" id="presentation-tools">
+    <div class="presentation-modes"><button data-action="presentation-document" id="presentation-document-toggle" aria-pressed="true" title="正文 · D">正文</button><button data-action="presentation-outline" id="presentation-outline-toggle" aria-pressed="false" title="文档大纲 · O">文档大纲</button><button data-action="presentation-map" id="presentation-map-toggle" aria-pressed="false" title="导图 · M">导图</button></div>
+    <div class="presentation-paging"><button data-action="presentation-previous" id="presentation-previous" aria-label="上一节" title="上一节 · ← / PageUp">←</button><span id="presentation-progress" aria-live="polite"></span><button data-action="presentation-next" id="presentation-next" aria-label="下一节" title="下一节 · → / PageDown">→</button></div>
+    <div><button data-action="presentation-smaller" id="presentation-smaller" aria-label="减小演示字号">A−</button><button data-action="presentation-larger" id="presentation-larger" aria-label="增大演示字号">A+</button><button class="icon-button" data-action="presentation-exit" aria-label="退出演示" title="退出演示 · Esc"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+  </div>
+  <div id="presentation-reading" class="presentation-reading" tabindex="-1"><article id="presentation-body" class="md-body"></article></div>
+  <div id="presentation-map" class="presentation-map map-viewport" hidden><div id="presentation-map-scene" class="map-scene"><svg id="presentation-map-links" class="map-links" aria-hidden="true"></svg><div id="presentation-map-nodes"></div></div><div class="presentation-map-tools"><button data-action="presentation-map-smaller" aria-label="缩小导图">−</button><span id="presentation-map-zoom">100%</span><button data-action="presentation-map-larger" aria-label="放大导图">+</button><button data-action="presentation-map-fit">适应窗口</button></div></div>
+  <div id="presentation-outline" class="presentation-outline" hidden><h1>文档大纲</h1><div id="presentation-chapters"></div></div>
+</section>
 <input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
 <input type="file" id="open-folder-input" accept=".md,.markdown,.mdown,.txt" webkitdirectory directory multiple hidden>
 <script src="assets/localization.js"></script><script src="assets/typography.js"></script><script src="assets/interact.js"></script><script src="assets/mindmap.js"></script><script src="assets/instant-editor.js"></script><script src="assets/workbench.js"></script><script src="assets/guide.js"></script>

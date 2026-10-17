@@ -84,7 +84,44 @@
   }
   function escape(text) { return text.replace(/[&<>"']/g, function (char) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]; }); }
   function icon(name) { return '<svg class="ico" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
-  function closeLayers() { document.querySelectorAll('.win-layer').forEach(function (layer) { layer.hidden = true; }); }
+  var tableInsertion = null;
+  function closeLayers() {
+    document.querySelectorAll('.win-layer').forEach(function (layer) { layer.hidden = true; });
+    if (tableInsertion) {
+      var saved = tableInsertion; tableInsertion = null;
+      if (state.editMode === 'source') { input.focus(); input.setSelectionRange(saved.start, saved.end); }
+      else instant.focusAt(saved.line);
+    }
+  }
+  function showInsertTable() {
+    instant.finish(); refreshNow();
+    tableInsertion = { start: input.selectionStart, end: input.selectionEnd, text: input.value, doc: state.doc,
+      line: input.value.slice(0, input.selectionStart).split('\n').length };
+    $('table-rows').value = '3'; $('table-columns').value = '2';
+    openLayer('insert-table'); $('table-rows').focus(); $('table-rows').select();
+  }
+  $('layer-insert-table').querySelector('form').onsubmit = function (event) {
+    event.preventDefault();
+    if (!this.reportValidity() || !tableInsertion) return;
+    var saved = tableInsertion; tableInsertion = null; closeLayers();
+    if (saved.text !== input.value || saved.doc !== state.doc) return;
+    var rows = Number($('table-rows').value), columns = Number($('table-columns').value);
+    var header = Array.from({ length: columns }, function (_, i) { return VexL.get('TableColumnTitle').replace('{0}', i + 1); });
+    var lines = ['| ' + header.join(' | ') + ' |', '| ' + Array(columns).fill('---').join(' | ') + ' |'];
+    for (var row = 1; row < rows; row++) lines.push('| ' + Array(columns).fill('').join(' | ') + ' |');
+    var before = input.value.slice(0, saved.start), after = input.value.slice(saved.end);
+    var prefix = !before || before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n';
+    var suffix = after.startsWith('\n\n') ? '' : after.startsWith('\n') ? '\n' : '\n\n';
+    remember(input.value); input.value = before + prefix + lines.join('\n') + suffix + after;
+    input.dispatchEvent(new Event('input')); refreshNow();
+    var offset = before.length + prefix.length + 2;
+    if (state.editMode === 'source') { input.focus(); input.setSelectionRange(offset, offset + header[0].length); }
+    else instant.focusAt(input.value.slice(0, offset).split('\n').length);
+  };
+  $('layer-insert-table').addEventListener('keydown', function (event) {
+    event.stopPropagation();
+    if (event.key === 'Escape') { event.preventDefault(); closeLayers(); }
+  });
   function openLayer(name) {
     document.querySelectorAll('.win-layer').forEach(function (layer) { layer.hidden = layer.id !== 'layer-' + name; });
   }
@@ -140,10 +177,8 @@
       if (block.kind === 'heading') html += '<h' + block.level + attr + '>' + inline(block.text) + '</h' + block.level + '>';
       else if (block.kind === 'code') {
         var numbers = block.text.replace(/\n$/, '').split('\n').map(function (_, index) { return index + 1; }).join('\n');
-        html += '<section class="md-code-block"' + attr + '><div class="md-code-header"><span>' + escape(block.language || 'text')
-          + '</span><button class="md-code-copy" type="button" aria-label="复制代码">复制</button></div>'
-          + '<div class="md-code-scroll"><span class="md-code-lines" aria-hidden="true">' + numbers + '</span>'
-          + '<pre><code>' + escape(block.text) + '</code></pre></div></section>';
+        html += '<section class="md-code-block"' + attr + '><div class="md-code-scroll"><span class="md-code-lines" aria-hidden="true">' + numbers + '</span>'
+          + '<pre><code>' + escape(block.text) + '</code></pre></div><input class="md-code-language" contenteditable="false" aria-label="代码类型" placeholder="text" value="' + escape(block.language || '') + '"></section>';
       }
       else if (block.kind === 'quote') html += '<blockquote' + attr + '>' + inline(block.text) + '</blockquote>';
       else if (block.kind === 'table') {
@@ -228,21 +263,89 @@
     }
   });
   function reducedMotion() { return !state.motion || matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  var presentationPages = [], presentationIndex = 0, presentationOutline = false, presentationFocus, presentationMap = false, presentationMapView = {x:0,y:0,scale:1}, presentationElements = new Map(), presentationCollapsed = new Set(), presentationBounds, presentationSelected;
   function applyPresentation() {
-    var root = document.querySelector('.app-window');
-    root.classList.toggle('presentation-mode', state.presentation);
-    root.style.setProperty('--presentation-scale', state.presentationScale);
-    $('presentation-tools').hidden = !state.presentation;
-    if (state.presentation) setView('read');
+    document.querySelector('.app-window').classList.toggle('presentation-mode', state.presentation);
+    $('presentation-stage').hidden = !state.presentation;
+    if (!state.presentation) return;
+    $('presentation-body').style.fontSize = state.presentationScale + 'em';
+    $('presentation-reading').hidden = presentationOutline || presentationMap;
+    $('presentation-map').hidden = !presentationMap;
+    $('presentation-map-toggle').setAttribute('aria-pressed', String(presentationMap));
+    $('presentation-document-toggle').setAttribute('aria-pressed', String(!presentationOutline && !presentationMap));
+    document.querySelector('.presentation-paging').hidden = presentationOutline || presentationMap;
+    $('presentation-smaller').hidden = presentationOutline || presentationMap;
+    $('presentation-larger').hidden = presentationOutline || presentationMap;
+    $('presentation-outline').hidden = !presentationOutline;
+    $('presentation-outline-toggle').setAttribute('aria-pressed', String(presentationOutline));
+    $('presentation-progress').textContent = (presentationIndex + 1) + ' / ' + presentationPages.length;
+    $('presentation-previous').disabled = presentationIndex === 0;
+    $('presentation-next').disabled = presentationIndex === presentationPages.length - 1;
+    $('presentation-smaller').disabled = state.presentationScale <= 1;
+    $('presentation-larger').disabled = state.presentationScale >= 2.5;
   }
+  function presentPage(index) {
+    if (index < 0 || index >= presentationPages.length) return;
+    presentationIndex = index; presentationOutline = false; presentationMap = false;
+    var page = presentationPages[index];
+    $('presentation-body').innerHTML = Array.from($('markdown-preview').children).filter(function (element) {
+      var line = Number(element.dataset.line || element.querySelector('[data-line]')?.dataset.line || 0);
+      return line >= page.line && line < page.end;
+    }).map(function (element) { return element.outerHTML; }).join('') || '<p>这一节暂时没有正文。</p>';
+    $('presentation-reading').scrollTop = 0;
+    applyPresentation(); $('presentation-reading').focus();
+  }
+  function transformPresentationMap() {
+    $('presentation-map-scene').style.transform = 'translate(' + presentationMapView.x + 'px,' + presentationMapView.y + 'px) scale(' + presentationMapView.scale + ')';
+    $('presentation-map-zoom').textContent = Math.round(presentationMapView.scale * 100) + '%';
+  }
+  function zoomPresentationMap(factor, anchor) {
+    var viewport = $('presentation-map'); anchor = anchor || {x:viewport.clientWidth/2,y:viewport.clientHeight/2};
+    var previous = presentationMapView.scale; presentationMapView.scale = Math.max(.18,Math.min(2.5,previous * factor));
+    presentationMapView.x = anchor.x - (anchor.x - presentationMapView.x) * presentationMapView.scale / previous;
+    presentationMapView.y = anchor.y - (anchor.y - presentationMapView.y) * presentationMapView.scale / previous;
+    transformPresentationMap();
+  }
+  function fitPresentationMap() {
+    var viewport = $('presentation-map');
+    presentationMapView.scale = Math.min(1,Math.max(.18,Math.min((viewport.clientWidth-64)/presentationBounds.width,(viewport.clientHeight-84)/presentationBounds.height)));
+    presentationMapView.x = (viewport.clientWidth-presentationBounds.width*presentationMapView.scale)/2;
+    presentationMapView.y = (viewport.clientHeight-presentationBounds.height*presentationMapView.scale)/2;
+    transformPresentationMap();
+  }
+  function showPresentationMap() {
+    presentationOutline = false; presentationMap = true; applyPresentation();
+    if (!presentationElements.size) { renderMap(true); fitPresentationMap(); }
+  }
+  function openPresentationNode(node) {
+    var index = presentationPages.findLastIndex(function(page){return page.line <= node.line;});
+    presentPage(Math.max(0,index));
+  }
+  var presentationDrag;
+  $('presentation-map').addEventListener('pointerdown',function(event){if(event.target.closest('.presentation-map-tools,button'))return;presentationDrag={x:event.clientX,y:event.clientY,baseX:presentationMapView.x,baseY:presentationMapView.y};this.setPointerCapture(event.pointerId);});
+  $('presentation-map').addEventListener('pointermove',function(event){if(!presentationDrag)return;presentationMapView.x=presentationDrag.baseX+event.clientX-presentationDrag.x;presentationMapView.y=presentationDrag.baseY+event.clientY-presentationDrag.y;transformPresentationMap();});
+  $('presentation-map').addEventListener('pointerup',function(){presentationDrag=null;});
+  $('presentation-map').addEventListener('wheel',function(event){event.preventDefault();if(event.ctrlKey){var rect=this.getBoundingClientRect();zoomPresentationMap(event.deltaY<0?1.1:1/1.1,{x:event.clientX-rect.x,y:event.clientY-rect.y});}else{presentationMapView.x-=event.deltaX;presentationMapView.y-=event.deltaY;transformPresentationMap();}},{passive:false});
   function startPresentation() {
     if (state.presentation) return;
-    state.presentation = true; state.presentationScale = 1.5;
-    instant.finish(); applyPresentation();
+    presentationFocus = document.activeElement;
+    instant.finish(); refreshNow(); closeLayers();
+    presentationPages = state.parsed.blocks.filter(function (block) { return block.kind === 'heading'; }).map(function (block) { return {title: MM.plain(block.text),level: block.level,line: block.line}; });
+    if (!presentationPages.length || presentationPages[0].line > 1) presentationPages.unshift({title: docs[state.doc].name,level: 1,line: 0});
+    presentationPages.forEach(function (page, index) { page.end = presentationPages[index + 1]?.line ?? Infinity; });
+    $('presentation-chapters').innerHTML = '';
+    presentationPages.forEach(function (page, index) {
+      var button = document.createElement('button'); button.dataset.chapter = index;
+      button.style.paddingLeft = (14 + (page.level - 1) * 22) + 'px';
+      button.innerHTML = '<small>H' + page.level + '</small><span>' + escape(page.title) + '</span><span>→</span>';
+      button.onclick = function () { presentPage(index); }; $('presentation-chapters').appendChild(button);
+    });
+    state.presentation = true; state.presentationScale = 1.5; presentationElements.clear(); presentationCollapsed = new Set(state.collapsed); presentationSelected = null; $('presentation-map-nodes').innerHTML=''; presentPage(0); if(window.VexWorkspace?.current==='map')showPresentationMap();
   }
   function stopPresentation() {
     if (!state.presentation) return;
-    state.presentation = false; applyPresentation(); setView('edit');
+    state.presentation = false; applyPresentation();
+    if (presentationFocus && presentationFocus.isConnected) presentationFocus.focus({preventScroll:true});
   }
 
   function setView(view) {
@@ -302,12 +405,18 @@
     MM.characters(content).forEach(function (char) { var charWidth = textMeasure.measureText(char).width; if (used + charWidth > width) { rows++; used = 0; } used += charWidth; });
     return (node.kind === 'heading' ? 40 : 22) + rows * 20;
   }
-  function renderMap() {
+  function renderMap(presenting) {
     if (!state.parsed) return;
+    presenting = presenting === true;
+    var collapsed = presenting ? presentationCollapsed : state.collapsed;
+    var elements = presenting ? presentationElements : mapElements;
+    var targetScene = presenting ? $('presentation-map-scene') : scene;
+    var targetNodes = $(presenting ? 'presentation-map-nodes' : 'map-nodes');
+    var targetLinks = $(presenting ? 'presentation-map-links' : 'map-links');
     var rendered = [], cursor = 54, gap = 14;
     function layout(node, depth) {
       node.width = node.isRoot ? 214 : 224; node.height = height(node); node.x = depth * 272 + 32;
-      var children = state.collapsed.has(node.id) ? [] : visibleChildren(node);
+      var children = collapsed.has(node.id) ? [] : visibleChildren(node);
       if (!children.length) { node.y = cursor; cursor += node.height + gap; }
       else {
         children.forEach(function (child) { layout(child, depth + 1); });
@@ -317,24 +426,37 @@
     }
     layout(state.parsed.root, 0);
     var visible = new Set(rendered.map(function (node) { return node.id; }));
-    mapElements.forEach(function (element, id) { if (!visible.has(id)) { element.remove(); mapElements.delete(id); } });
+    elements.forEach(function (element, id) { if (!visible.has(id)) { element.remove(); elements.delete(id); } });
     var links = '';
     rendered.forEach(function (node, index) {
-      var element = mapElements.get(node.id), isNew = !element;
-      if (isNew) { element = document.createElement('div'); mapElements.set(node.id, element); $('map-nodes').appendChild(element); }
-      element.className = 'map-node' + (node.isRoot ? ' root' : node.kind === 'heading' ? '' : ' content') + (state.selected === node.id ? ' selected' : '') + (isNew ? ' enter' : '');
+      var element = elements.get(node.id), isNew = !element;
+      if (isNew) { element = document.createElement('div'); elements.set(node.id, element); targetNodes.appendChild(element); }
+      element.className = 'map-node' + (node.isRoot ? ' root' : node.kind === 'heading' ? '' : ' content') + ((presenting ? presentationSelected : state.selected) === node.id ? ' selected' : '') + (isNew && !presenting ? ' enter' : '');
       element.dataset.kind = node.kind; element.dataset.line = node.line; element.dataset.nodeId = node.id; element.style.left = node.x + 'px'; element.style.top = node.y + 'px';
       element.style.width = node.width + 'px'; element.style.minHeight = node.height + 'px';
       element.style.setProperty('--branch-color', branchColors[node.branch % branchColors.length]);
       element.style.setProperty('--delay', Math.min(index * 14, 180) + 'ms');
       var kind = node.isRoot ? '文档' : node.kind === 'heading' ? 'H' + node.level : node.label || labels[node.kind];
       element.innerHTML = '<button class="map-node-button" title="' + escape(node.text || kind) + '"><span class="map-node-type">' + escape(kind) + '</span><span class="map-node-text">' + escape(nodeText(node)) + '</span></button>';
-      element.querySelector('button').onclick = function () { selectNode(node); };
+      var nodeButton = element.querySelector('button');
+      nodeButton.onclick = function () {
+        if (!presenting) { selectNode(node); return; }
+        presentationSelected = node.id;
+        targetNodes.querySelectorAll('.selected').forEach(function(item){item.classList.remove('selected');});
+        element.classList.add('selected');
+      };
+      if (presenting) {
+        nodeButton.ondblclick = function(){openPresentationNode(node);};
+        nodeButton.onkeydown = function(event){
+          if(event.key === 'Enter'){event.preventDefault();openPresentationNode(node);}
+          else if(event.key === ' ' && visibleChildren(node).length){event.preventDefault();if(collapsed.has(node.id))collapsed.delete(node.id);else collapsed.add(node.id);renderMap(true);}
+        };
+      }
       var children = visibleChildren(node);
       if (children.length) {
-        var collapse = document.createElement('button'); collapse.className = 'map-collapse'; collapse.textContent = state.collapsed.has(node.id) ? '+' : '−';
-        collapse.setAttribute('aria-label', (state.collapsed.has(node.id) ? '展开' : '折叠') + '：' + node.text); collapse.setAttribute('aria-expanded', String(!state.collapsed.has(node.id)));
-        collapse.onclick = function () { if (state.collapsed.has(node.id)) state.collapsed.delete(node.id); else state.collapsed.add(node.id); $('node-inspector').hidden = true; renderMap(); };
+        var collapse = document.createElement('button'); collapse.className = 'map-collapse'; collapse.textContent = collapsed.has(node.id) ? '+' : '−';
+        collapse.setAttribute('aria-label', (collapsed.has(node.id) ? '展开' : '折叠') + '：' + node.text); collapse.setAttribute('aria-expanded', String(!collapsed.has(node.id)));
+        collapse.onclick = function () { if (collapsed.has(node.id)) collapsed.delete(node.id); else collapsed.add(node.id); if(!presenting)$('node-inspector').hidden = true; renderMap(presenting); };
         element.appendChild(collapse);
       }
       node.visibleChildren.forEach(function (child) {
@@ -342,12 +464,14 @@
         links += '<path style="--branch-color:' + branchColors[child.branch % branchColors.length] + '" d="M' + x1 + ',' + y1 + ' C' + middle + ',' + y1 + ' ' + middle + ',' + y2 + ' ' + x2 + ',' + y2 + '"/>';
       });
     });
-    $('map-links').innerHTML = links;
-    state.bounds = { width: Math.max.apply(null, rendered.map(function (node) { return node.x + node.width; })) + 32, height: cursor + 20 };
-    scene.style.width = state.bounds.width + 'px'; scene.style.height = state.bounds.height + 'px';
-    $('map-links').setAttribute('width', state.bounds.width); $('map-links').setAttribute('height', state.bounds.height);
+    targetLinks.innerHTML = links;
+    var bounds = { width: Math.max.apply(null, rendered.map(function (node) { return node.x + node.width; })) + 32, height: cursor + 20 };
+    targetScene.style.width = bounds.width + 'px'; targetScene.style.height = bounds.height + 'px';
+    targetLinks.setAttribute('width', bounds.width); targetLinks.setAttribute('height', bounds.height);
+    if(presenting){presentationBounds=bounds;return;}
+    state.bounds=bounds;
     $('map-count').textContent = state.nodes.filter(function (node) { return node.kind === 'heading'; }).length + ' 个标题 · ' + rendered.length + ' 个可见节点';
-    $('collapse-all').innerHTML = icon('list') + (state.collapsed.size ? '展开全部' : '收起分支');
+    $('collapse-all').innerHTML = icon('list') + (collapsed.size ? '展开全部' : '收起分支');
     transform();
     window.dispatchEvent(new CustomEvent('vex-map-rendered'));
   }
@@ -501,6 +625,7 @@
   document.getElementById('format-toolbar').addEventListener('mousedown', function (event) { if (event.target.closest('.format-button')) event.preventDefault(); });
   VexProto.handleAction = function (action, item) {
     if (window.VexWorkspace && VexWorkspace.handleAction(action, item)) return true;
+    if (action === 'insert-table') { showInsertTable(); return true; }
     if (action.startsWith('insert-')) { if (state.editMode === 'instant' && instant.format(action.slice(7))) return true; insert(snippets[action.slice(7)] || ''); return true; }
     if (action.startsWith('view-')) { setView(action.slice(5)); return true; }
     if (action === 'edit-instant' || action === 'edit-source') { setEditMode(action.slice(5)); return true; }
@@ -568,6 +693,14 @@
       case 'presentation-larger': state.presentationScale = Math.min(2.5, +(state.presentationScale + .1).toFixed(1)); applyPresentation(); break;
       case 'presentation-smaller': state.presentationScale = Math.max(1, +(state.presentationScale - .1).toFixed(1)); applyPresentation(); break;
       case 'presentation-exit': stopPresentation(); break;
+      case 'presentation-outline': presentationOutline = true; presentationMap = false; applyPresentation(); break;
+      case 'presentation-document': presentationOutline = false; presentationMap = false; applyPresentation(); break;
+      case 'presentation-map': showPresentationMap(); break;
+      case 'presentation-map-smaller': zoomPresentationMap(1/1.1); break;
+      case 'presentation-map-larger': zoomPresentationMap(1.1); break;
+      case 'presentation-map-fit': fitPresentationMap(); break;
+      case 'presentation-previous': presentPage(presentationIndex - 1); break;
+      case 'presentation-next': presentPage(presentationIndex + 1); break;
       case 'format-more': VexProto.toast('更多格式请从插入菜单选择'); break;
       case 'typography': VexTypography.toggle(); break;
       case 'typography-select': VexTypography.choose(item.arg); break;
@@ -727,14 +860,6 @@
       : action === 'toggle-status' ? !document.querySelector('.statusbar').hidden : false;
   };
   document.addEventListener('click', function (event) {
-    var copyCode = event.target.closest('.md-code-copy');
-    if (copyCode) {
-      event.stopPropagation();
-      var code = copyCode.closest('.md-code-block').querySelector('code').textContent;
-      if (navigator.clipboard) navigator.clipboard.writeText(code).then(function () { VexProto.toast('代码已复制'); }, function () { VexProto.toast('无法访问剪贴板，请选择代码后复制'); });
-      else VexProto.toast('无法访问剪贴板，请选择代码后复制');
-      return;
-    }
     var button = event.target.closest('[data-action]'); if (button) { event.stopPropagation(); VexProto.handleAction(button.dataset.action); }
     else if (!$('map-settings').contains(event.target)) { $('map-settings').hidden = true; $('map-settings-button').setAttribute('aria-expanded', 'false'); }
   });
@@ -764,6 +889,22 @@
   if ($('mcp-save')) $('mcp-save').onclick = function () { closeLayers(); VexProto.toast('MCP 设置已保存（演示）'); };
   if ($('mcp-gen')) $('mcp-gen').onclick = function () { $('mcp-token').value = 'vx_' + crypto.randomUUID().replace(/-/g, ''); };
   document.addEventListener('keydown', function (event) {
+    if (state.presentation) {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      var key = event.key;
+      if (['Escape','F6','F11'].includes(key)) stopPresentation();
+      else if (!presentationMap && (['ArrowRight','PageDown'].includes(key) || key === ' ' && !presentationOutline)) presentPage(presentationIndex + 1);
+      else if (!presentationMap && ['ArrowLeft','PageUp'].includes(key)) presentPage(presentationIndex - 1);
+      else if (!presentationMap && key === 'Home') presentPage(0);
+      else if (!presentationMap && key === 'End') presentPage(presentationPages.length - 1);
+      else if (key.toLowerCase() === 'o') { presentationOutline = !presentationOutline; presentationMap = false; applyPresentation(); }
+      else if (key.toLowerCase() === 'm') { if(presentationMap){presentationMap=false;applyPresentation();}else showPresentationMap(); }
+      else if (key.toLowerCase() === 'd') {presentationMap=false;presentationOutline=false;applyPresentation();}
+      else if (key === '+' || key === '-') VexProto.handleAction(presentationMap ? (key === '+' ? 'presentation-map-larger' : 'presentation-map-smaller') : (key === '+' ? 'presentation-larger' : 'presentation-smaller'));
+      else return;
+      event.preventDefault(); return;
+    }
+    if (event.key === 'F6') { event.preventDefault(); startPresentation(); return; }
     if (event.key === 'Escape') { if (state.presentation) { stopPresentation(); return; } closeLayers(); pendingSwitch = null; $('findbar').hidden = true; $('node-inspector').hidden = true; $('map-settings').hidden = true; $('map-settings-button').setAttribute('aria-expanded', 'false'); }
     if ((event.ctrlKey || event.metaKey) && ['s', 'f', 'h', 'o', 'n', 'w', 'p'].includes(event.key.toLowerCase())) {
       event.preventDefault(); VexProto.handleAction(event.key.toLowerCase() === 'p' ? (event.shiftKey ? 'print' : 'quick-open') : { s: 'save', f: 'find', h: 'replace', o: 'open', n: 'new', w: 'close' }[event.key.toLowerCase()]);

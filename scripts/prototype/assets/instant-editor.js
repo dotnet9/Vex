@@ -100,7 +100,7 @@
         element.contentEditable = 'true'; element.spellcheck = false; element.setAttribute('role', 'textbox'); element.setAttribute('aria-multiline', 'true');
         element.setAttribute('aria-label', '编辑第 ' + block.line + ' 行：' + block.text.slice(0, 20));
         element.innerHTML = options.renderBlock(block);
-        element.querySelectorAll('.md-code-header,.md-code-lines').forEach(function (item) { item.contentEditable = 'false'; });
+        element.querySelectorAll('.md-code-language,.md-code-lines').forEach(function (item) { item.contentEditable = 'false'; });
         host.appendChild(element);
       });
       if (!options.blocks().length) {
@@ -123,7 +123,7 @@
         else if (previous.original !== previous.value) options.remember(previous.before + previous.original + previous.after);
       }
       active = null; previous.element.classList.remove('instant-input', 'is-editing');
-      if (document.activeElement === previous.element) previous.element.blur();
+      if (previous.element.contains(document.activeElement)) document.activeElement.blur();
       if (previous.changed) { options.refresh(); render(); }
       return start;
     }
@@ -139,12 +139,22 @@
     });
     host.addEventListener('focusin', function (event) { var element = event.target.closest('.instant-block'); if (element && !event.target.closest('[contenteditable="false"]')) begin(element); });
     host.addEventListener('focusout', function (event) { if (active && !active.element.contains(event.relatedTarget)) finish(); });
-    host.addEventListener('input', function (event) { if (active) { if (!event.isComposing) normalizeInline(); sync(); } });
+    host.addEventListener('input', function (event) {
+      if (!active) return;
+      if (event.target.matches('.md-code-language')) active.block.language = event.target.value.trim().replace(/[`\r\n]/g, '');
+      else if (!event.isComposing) normalizeInline();
+      sync();
+    });
     host.addEventListener('compositionstart', function () { composing = true; });
     host.addEventListener('compositionend', function () { composing = false; normalizeInline(); sync(); });
     host.addEventListener('paste', function (event) { if (!active) return; event.preventDefault(); document.execCommand('insertText', false, event.clipboardData.getData('text/plain')); normalizeInline(); sync(); });
     host.addEventListener('keydown', function (event) {
       if (!active || event.isComposing || composing) return;
+      if (event.target.matches('.md-code-language')) {
+        if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); finish(true); }
+        else if (event.key === 'Enter') { event.preventDefault(); active.element.focus({ preventScroll: true }); }
+        return;
+      }
       var selection = getSelection(), anchor = selection.anchorNode?.parentElement, heading = anchor?.closest('h1,h2,h3,h4,h5,h6');
       if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey && !event.metaKey && heading && active.element.contains(heading)) {
         event.preventDefault();

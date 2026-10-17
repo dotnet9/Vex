@@ -73,11 +73,11 @@
 .content-area .md-body h3 { font-size: 17px; }
 
 /* 与原生代码块一致：紧凑操作栏、行号及可横向滚动的代码正文。 */
-.md-code-block { margin: 8px 0 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--code-bg); }
-.md-code-header { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 4px; color: var(--muted); font: 12px/24px "Cascadia Code", Consolas, monospace; }
-.md-code-copy { min-width: 54px; height: 24px; padding: 0 10px; border: none; border-radius: 5px; color: var(--fg); background: transparent; font-family: inherit; font-size: 12px; line-height: 24px; cursor: pointer; }
-.md-code-copy:hover { background: var(--hover); }
-.md-code-copy:focus-visible { outline: 1px solid var(--accent); outline-offset: 1px; }
+.md-code-block { position: relative; margin: 8px 0 12px; padding: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--code-bg); }
+.instant-block:has(.md-code-block) { padding-bottom: 20px; }
+.md-code-language { display: none; position: absolute; right: 0; top: calc(100% + 3px); width: 180px; height: 24px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 3px; color: var(--fg); background: var(--code-bg); text-align: center; font: 12px/20px "Cascadia Code", Consolas, monospace; }
+.instant-block.is-editing .md-code-language { display: block; }
+.md-code-language:focus { outline: 1px solid var(--accent); }
 .md-code-scroll { display: flex; min-width: 0; overflow-x: auto; }
 .md-code-lines { flex: none; padding-right: 14px; color: var(--muted); text-align: right; white-space: pre; user-select: none; font: 14px/22px "Cascadia Code", Consolas, monospace; }
 .content-area .md-body .md-code-block pre { flex: 1; min-width: max-content; margin: 0; padding: 0; border: none; border-radius: 0; overflow: visible; background: transparent; }
@@ -89,13 +89,28 @@
 .format-button .ico { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; }
 .format-divider { height:18px; width:1px; background:var(--border); margin:0 3px; }
 .format-more { font-size:16px; letter-spacing:1px; }
-.presentation-tools { position:absolute; z-index:80; right:24px; top:24px; display:flex; gap:3px; padding:5px; border:1px solid var(--border); border-radius:8px; background:color-mix(in srgb,var(--panel) 82%,transparent); opacity:.2; transition:opacity .2s; }
+/* 演示保留底层工作区和阅读位置，只切换独立的全屏展示层。 */
+.app-window.presentation-mode { visibility:hidden; }
+.presentation-stage { position:fixed; inset:0; z-index:200; background:var(--panel); color:var(--fg); --presentation-scale:1.5; }
+.presentation-tools { position:absolute; z-index:2; left:24px; right:24px; top:24px; display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:6px; border:1px solid var(--border); border-radius:8px; background:var(--panel); opacity:.75; transition:opacity .2s; }
 .presentation-tools:hover,.presentation-tools:focus-within { opacity:1; }
-.presentation-tools button { border:0; border-radius:5px; padding:5px 9px; color:var(--fg); background:transparent; cursor:pointer; }
-.presentation-tools button:hover { background:var(--hover); color:var(--accent); }
-.app-window.presentation-mode .titlebar,.app-window.presentation-mode .sidebar,.app-window.presentation-mode .sidebar-splitter,.app-window.presentation-mode .work-toolbar,.app-window.presentation-mode .edit-options,.app-window.presentation-mode .statusbar { display:none!important; }
-.app-window.presentation-mode .workspace { height:100%; }
-.app-window.presentation-mode .reading-pane { display:flex!important; }
-.app-window.presentation-mode .reading-pane .reading-scroll .md-body { max-width:1000px; font-size:var(--presentation-scale,1.5)em; }
-@media (max-width:1100px) { .format-toolbar { overflow:hidden; } .format-button:nth-of-type(n+9):not(.format-more) { display:none; } .format-more { display:grid; } }
-@media (max-width:760px) { .format-toolbar { gap:0; margin-left:0; } .format-button:nth-of-type(n+6):not(.format-more) { display:none; } }
+.presentation-tools button { min-width:32px; min-height:32px; border:0; border-radius:5px; padding:5px 9px; color:var(--fg); background:transparent; cursor:pointer; }
+.presentation-tools button:hover,.presentation-tools button[aria-pressed="true"] { background:var(--hover); color:var(--accent); }
+.presentation-tools button:disabled { opacity:.35; cursor:default; }
+.presentation-tools > div { display:flex; align-items:center; gap:3px; }
+.presentation-tools > div:last-child { grid-column:3; justify-self:end; }
+.presentation-tools .presentation-paging { justify-self:center; gap:14px; }
+#presentation-progress { min-width:72px; text-align:center; font-size:13px; }
+.presentation-reading { position:absolute; inset:94px 0 20px; overflow:auto; outline:none; }
+.presentation-reading .md-body { max-width:1192px; padding:40px 44px 60px; margin:auto; }
+.presentation-outline { position:absolute; inset:96px max(24px,calc((100% - 1200px)/2)) 42px; overflow:auto; padding:0 40px; }
+.presentation-outline h1 { font-size:28px; margin:0 14px 22px; }
+#presentation-chapters button { display:grid; grid-template-columns:44px 1fr auto; align-items:center; gap:12px; width:100%; border:0; background:transparent; color:var(--fg); padding:12px 14px; text-align:left; cursor:pointer; border-radius:6px; }
+#presentation-chapters button:hover,#presentation-chapters button:focus-visible { background:var(--hover); }
+#presentation-chapters small { font-size:12px; opacity:.55; }
+#presentation-chapters span { font-size:20px; }
+
+.presentation-map { position:absolute; inset:94px 0 20px; }
+.presentation-map-tools { position:absolute; right:24px; bottom:20px; display:flex; align-items:center; gap:10px; padding:6px; border:1px solid var(--border); border-radius:8px; background:var(--panel); }
+.presentation-map-tools button { min-width:32px; min-height:32px; border:0; border-radius:5px; background:transparent; color:var(--fg); cursor:pointer; }
+.presentation-map-tools button:hover { background:var(--hover); }

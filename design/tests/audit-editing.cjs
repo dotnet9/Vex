@@ -33,20 +33,24 @@ const { chromium } = require('playwright');
     assert.equal(await page.locator('#format-toolbar .format-button').filter({ hasText: /加粗|斜体|标题|引用|列表|链接|图片|代码块|表格/ }).count(), 0, '格式快捷栏不直接铺开文字');
     assert.ok(Number.parseFloat(await page.locator('.statusbar').evaluate(element => getComputedStyle(element).fontSize)) >= 11.5, '状态栏字号可读');
     const original = await page.locator('#markdown-input').inputValue();
-    const output = path.join(process.env.CODEWF_TEMP_ROOT || 'E:/github/temp', 'vex-prototype-editing');
+    const output = path.join(process.env.CODEWF_TEMP_ROOT || require('node:os').tmpdir(), 'vex-prototype-editing');
     fs.mkdirSync(output, { recursive: true });
-    // 复制操作不得触发活动块编辑，使用浏览器隔离剪贴板桩验证内容。
-    await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
-      writeText: text => { window.copiedCode = text; return Promise.resolve(); }
-    } }));
     const code = page.locator('#instant-content .md-code-block').first();
-    assert.equal(await code.locator('.md-code-header span').textContent(), 'markdown');
     assert.equal(await code.locator('.md-code-lines').textContent(), '1');
-    const copy = code.locator('.md-code-copy');
-    assert.ok((await copy.boundingBox()).height <= 24);
-    await copy.click();
-    assert.equal(await page.evaluate(() => window.copiedCode), await code.locator('code').textContent());
-    assert.equal(await page.locator('.instant-input').count(), 0, 'Copy keeps the code block rendered');
+    assert.equal(await page.locator('.md-code-header,.md-code-copy').count(), 0, '代码不显示顶部语言栏或复制按钮');
+    const language = code.locator('.md-code-language');
+    assert.equal(await language.isVisible(), false);
+    await code.scrollIntoViewIfNeeded();
+    const codeBefore = await code.boundingBox();
+    await code.locator('code').click();
+    assert.equal(await language.isVisible(), true, '编辑时才显示代码类型');
+    assert.deepEqual(await code.boundingBox(), codeBefore, '显示代码类型不移动代码或改变代码框高度');
+    assert.ok((await language.boundingBox()).y >= codeBefore.y + codeBefore.height, '代码类型位于渲染块下方');
+    await language.fill('csharp');
+    assert.match(await page.locator('#markdown-input').inputValue(), /```csharp\n/);
+    await language.press('Escape');
+    assert.equal(await language.isVisible(), false);
+    assert.equal(await page.locator('#markdown-input').inputValue(), original, '取消同时恢复代码内容和类型');
 
     // 点击前后使用同一排版节点，字号、行距、周边位置和滚动位置完全一致。
     for (const selector of ['.instant-block h1', '.instant-block h2', '.instant-block h3', '.instant-block p', '.instant-block blockquote']) {
@@ -255,6 +259,41 @@ const { chromium } = require('playwright');
     await writing.keyboard.press('Control+Enter');
     assert.equal(await writing.locator('#instant-content h1').first().textContent(), '主题设计笔记 · 继续写作');
     await writing.close();
+    for (const layout of ['source', 'instant']) {
+      const tablePage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+      tablePage.on('pageerror', error => errors.push(error.message));
+      await tablePage.goto(url + '?layout=' + layout + '&theme=light');
+      assert.notEqual(await tablePage.locator('[data-action="insert-inline-code"] use').getAttribute('href'),
+        await tablePage.locator('[data-action="insert-code"] use').getAttribute('href'), 'Code icons are visibly distinct symbols');
+      if (layout === 'source') {
+        await tablePage.locator('#markdown-input').focus();
+        await tablePage.keyboard.press('Control+End');
+      } else {
+        await tablePage.locator('.instant-block p').first().click();
+        await tablePage.keyboard.press('End');
+      }
+      const tableBefore = await tablePage.locator('#markdown-input').inputValue();
+      await tablePage.locator('[data-action="insert-table"]').click();
+      assert.equal(await tablePage.locator('#layer-insert-table').isVisible(), true);
+      assert.equal(await tablePage.locator('#markdown-input').inputValue(), tableBefore, 'Opening dimensions does not change text');
+      await tablePage.keyboard.press('Escape');
+      assert.equal(await tablePage.locator('#layer-insert-table').isVisible(), false);
+      assert.equal(await tablePage.locator('#markdown-input').inputValue(), tableBefore, 'Cancel leaves text intact');
+      await tablePage.locator('[data-action="insert-table"]').click();
+      const position = await tablePage.locator('#markdown-input').evaluate(input => ({ start: input.selectionStart, end: input.selectionEnd }));
+      await tablePage.locator('#table-rows').fill('4');
+      await tablePage.locator('#table-columns').fill('3');
+      await tablePage.keyboard.press('Enter');
+      assert.equal(await tablePage.locator('#layer-insert-table').isVisible(), false);
+      const inserted = await tablePage.locator('#markdown-input').inputValue();
+      const table = '| 列 1 | 列 2 | 列 3 |\n| --- | --- | --- |\n|  |  |  |\n|  |  |  |\n|  |  |  |';
+      assert.ok(inserted.includes(table), 'Four rows including header and three columns');
+      assert.ok(inserted.startsWith(tableBefore.slice(0, position.start)), 'Original insertion point is retained');
+      assert.ok(inserted.endsWith(tableBefore.slice(position.end)), 'Following text is preserved');
+      await tablePage.keyboard.press('Control+z');
+      assert.equal(await tablePage.locator('#markdown-input').inputValue(), tableBefore, 'Table is one undo step');
+      await tablePage.close();
+    }
     assert.deepEqual(errors, []);
     console.log('Passed: instant rendering, source/map sync, cancel/undo, block boundaries, eighteen typography themes, export, plain menus, shortcuts and keyboard/narrow layout.');
   } finally { await browser.close(); }

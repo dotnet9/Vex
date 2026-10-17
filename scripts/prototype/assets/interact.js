@@ -97,6 +97,7 @@
       { label: '行内代码', action: 'insert-inline-code' }, { label: '清除格式', action: 'clear-format' }
     ]},
     { key: 'view', label: '视图(V)', items: [
+      { label: '演示文档', gesture: 'F6', action: 'presentation' }, { sep: true },
       { label: '编辑视图', check: true, action: 'view-edit' }, { label: '阅读视图', check: true, action: 'view-read' },
       { label: '思维导图', check: true, action: 'view-mindmap' },
       { label: '编辑方式', sub: [
