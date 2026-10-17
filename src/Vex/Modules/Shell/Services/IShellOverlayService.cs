@@ -19,6 +19,8 @@ public interface IShellOverlayService
 
     Task ShowAboutAsync();
 
+    Task ShowUpdatesAsync();
+
     Task ShowDocumentAsync(
         string title,
         string markdown,

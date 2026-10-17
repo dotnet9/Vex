@@ -139,6 +139,7 @@
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Website}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="website" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Feedback}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="feedback" />
+            <MenuItem x:Name="CheckUpdatesMenuItem" Header="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="update" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.About}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="about" />
         </MenuItem>
     </Menu>

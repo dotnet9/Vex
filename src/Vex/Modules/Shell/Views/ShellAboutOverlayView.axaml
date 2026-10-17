@@ -26,10 +26,7 @@
     <Border Margin="32,26,32,0" Padding="0,18,0,22" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}">
      <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="0">
       <TextBlock Text="{Binding CopyrightText}" Classes="muted" FontSize="11" VerticalAlignment="Center"/>
-      <Button x:Name="UpdateAction" Grid.Column="1" Classes="primary" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" MinWidth="110" MinHeight="32" Padding="12,5" FontSize="11" CornerRadius="7"/>
-      <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,10,0,0" Text="{Binding StatusText}" IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" FontSize="12" TextWrapping="Wrap" Classes="muted"/>
-      <ProgressBar Margin="0,10,0,0" Grid.Row="2" Grid.ColumnSpan="2" Height="3" IsVisible="{Binding IsDownloading}" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100"/>
-      <Button Margin="0,10,0,0" Grid.Row="3" Grid.Column="1" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsBusy}" Classes="wb-quiet"/>
+      <Button x:Name="UpdateAction" Grid.Column="1" Classes="primary" Command="{Binding UpdateCommand}" Content="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}" MinWidth="110" MinHeight="32" Padding="12,5" FontSize="11" CornerRadius="7"/>
      </Grid>
     </Border>
    </StackPanel>

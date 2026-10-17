@@ -50,6 +50,7 @@ chinesesimplified.VUninstalling=正在卸载 Vex…
 
 ; 复用已验证的精确 AppId 探测和卸载启动逻辑，不加载旧的视觉引擎。
 #include "CodeWF.Setup.Maintenance.iss"
+#include "Vex.Update.iss"
 
 [Code]
 type
@@ -337,6 +338,7 @@ begin
     end;
   end;
   Result:=VCallProc(VPreviousProc,Window,Message,WParam,LParam);
+  if (Message=$0018) and (WParam<>0) and VInitialized then VSignalUpdateReady;
   if (Message=$001A) and VInitialized then VApplyTheme;
 end;
 

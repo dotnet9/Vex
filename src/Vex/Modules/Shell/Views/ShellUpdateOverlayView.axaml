@@ -1,0 +1,34 @@
+<UserControl x:Class="Vex.Modules.Shell.Views.ShellUpdateOverlayView"
+ xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+ xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellUpdateViewModel">
+ <Border Classes="dialog-card" Width="520" MaxHeight="560" Padding="0" CornerRadius="9" ClipToBounds="True">
+  <Grid RowDefinitions="Auto,*">
+   <Border Height="44" Padding="16,0,6,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}">
+    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+     <TextBlock Text="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}" FontSize="13" VerticalAlignment="Center"/>
+     <Button Grid.Column="1" Classes="vex-dismiss" Click="Close_OnClick" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/>
+    </Grid>
+   </Border>
+   <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="24" Spacing="16">
+     <StackPanel Orientation="Horizontal" Spacing="10">
+      <TextBlock Text="Vex" FontSize="22" FontWeight="Bold"/>
+      <TextBlock Text="{Binding VersionText}" VerticalAlignment="Center" Classes="muted"/>
+     </StackPanel>
+     <TextBlock Text="{i18n:I18n {x:Static l:VexL.AboutUpdateHint}}" TextWrapping="Wrap" Classes="muted" FontSize="12"/>
+     <TextBlock x:Name="UpdateStatus" Text="{Binding StatusText}" TextWrapping="Wrap"/>
+     <ProgressBar Height="4" IsVisible="{Binding IsDownloading}" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100"/>
+     <TextBlock Text="{Binding ReleaseNotes}" IsVisible="{Binding ReleaseNotes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" TextWrapping="Wrap" FontSize="12"/>
+     <SelectableTextBlock Text="{Binding DownloadPath}" IsVisible="{Binding HasDownload}" TextWrapping="Wrap" FontSize="11" Classes="muted"/>
+     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right">
+      <Button Margin="0,0,8,8" Command="{Binding OpenFolderCommand}" Content="{i18n:I18n {x:Static l:VexL.AboutOpenFolder}}" IsVisible="{Binding HasDownload}"/>
+      <Button Margin="0,0,8,8" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsBusy}"/>
+      <Button Margin="0,0,8,8" Command="{Binding CheckCommand}" Content="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}" IsVisible="{Binding CanRecheck}"/>
+      <Button x:Name="UpdateAction" Margin="0,0,0,8" Classes="primary" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" MinWidth="112"/>
+     </WrapPanel>
+    </StackPanel>
+   </ScrollViewer>
+  </Grid>
+ </Border>
+</UserControl>

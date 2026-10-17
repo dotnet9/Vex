@@ -51,6 +51,9 @@ public sealed class ShellHelpViewModel
                     await _helpService.ShowAboutWindowAsync();
                     _statusPublisher.PublishResource(VexL.StatusAboutVex);
                     break;
+                case "update":
+                    await _helpService.ShowUpdatesAsync();
+                    break;
                 default:
                     _statusPublisher.PublishResourceFormat(VexL.StatusHelpQueuedFormat, GetHelpTopicDisplayName(topic));
                     break;
@@ -71,6 +74,7 @@ public sealed class ShellHelpViewModel
             "website" => _localizer.Get(VexL.Website),
             "feedback" => _localizer.Get(VexL.Feedback),
             "about" => _localizer.Get(VexL.About),
+            "update" => _localizer.Get(VexL.AboutCheckUpdate),
             _ => string.IsNullOrWhiteSpace(topic) ? _localizer.Get(VexL.MenuHelp) : topic
         };
     }

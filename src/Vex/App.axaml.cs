@@ -93,10 +93,7 @@ public partial class App : PrismApplication
 
     protected override void RegisterTypes(IContainerRegistry containerRegistry)
     {
-        containerRegistry.RegisterInstance<IUpdateService>(new UpdateService(new UpdateServiceOptions
-        {
-            Owner = "dotnet9", Repository = "Vex", ProductName = "Vex"
-        }));
+        containerRegistry.RegisterSingleton<IUpdateService, VexUpdateService>();
         containerRegistry.RegisterSingleton<IAppSettingsStore, AppSettingsStore>();
         containerRegistry.RegisterSingleton<IAppLocalizer, AppLocalizer>();
         containerRegistry.RegisterSingleton<IDocumentFileFactory, DocumentFileFactory>();

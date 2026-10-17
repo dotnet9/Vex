@@ -62,6 +62,8 @@ public sealed class HelpService : IHelpService
 
     public Task ShowAboutWindowAsync() => _overlay.ShowAboutAsync();
 
+    public Task ShowUpdatesAsync() => _overlay.ShowUpdatesAsync();
+
     private static void Open(string uri)
     {
         Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });

@@ -448,6 +448,8 @@ namespace Vex
         public static readonly string MarkdownDocumentSubtitle = "Vex.VexL.MarkdownDocumentSubtitle";
         public static readonly string AboutCheckUpdateLabel = "Vex.VexL.AboutCheckUpdateLabel";
         public static readonly string AboutCheckUpdate = "Vex.VexL.AboutCheckUpdate";
+        public static readonly string UpdateInstallerReady = "Vex.VexL.UpdateInstallerReady";
+        public static readonly string UpdateInstallerNotReady = "Vex.VexL.UpdateInstallerNotReady";
         public static readonly string AboutCheckingUpdate = "Vex.VexL.AboutCheckingUpdate";
         public static readonly string AboutUpToDate = "Vex.VexL.AboutUpToDate";
         public static readonly string AboutUpdateAvailable = "Vex.VexL.AboutUpdateAvailable";

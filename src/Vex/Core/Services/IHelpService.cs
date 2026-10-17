@@ -11,4 +11,6 @@ public interface IHelpService
     Task ShowDocumentWindowAsync(string title, string fileName);
 
     Task ShowAboutWindowAsync();
+
+    Task ShowUpdatesAsync();
 }

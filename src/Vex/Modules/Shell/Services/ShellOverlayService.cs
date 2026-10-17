@@ -13,10 +13,9 @@ namespace Vex.Modules.Shell.Services;
 
 /// <summary>
 /// 统一把各功能以宿主窗口内的 Ursa 浮层呈现（不再创建独立窗口）。
-/// 重复打开同一浮层时不额外去重：Ursa 的模态浮层栈本身屏蔽下层交互，
-/// 上层关闭后底层仍在，符合「窗内浮层」语义。
+/// 更新浮层复用单一会话并去重，其余浮层由 Ursa 的模态栈管理。
 /// </summary>
-public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer localizer) : IShellOverlayService
+public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer localizer) : IShellOverlayService, IDisposable
 {
     public Task<Vex.Modules.Workspace.Services.TableDimensions?> ShowInsertTableAsync() =>
         OverlayDialog.ShowCustomAsync<Vex.Modules.Workspace.Services.TableDimensions>(
@@ -50,17 +49,38 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
 
     public async Task ShowAboutAsync()
     {
-        using var model = new ShellAboutViewModel(updates, localizer,
-            url => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }),
-            () => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown());
+        using var model = new ShellAboutViewModel(localizer, OpenUrl);
         await ShowAsync(new ShellAboutOverlayView(), model);
-        if (model.WantsChangelog)
+        if (model.WantsUpdates) await ShowUpdatesAsync();
+        else if (model.WantsChangelog)
         {
             var path = Path.Combine(AppContext.BaseDirectory, "docs", "UpdateLog.md");
             if (!File.Exists(path)) path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Resources", "docs", "UpdateLog.md"));
             await ShowDocumentAsync(localizer.Get(VexL.Changelog), await File.ReadAllTextAsync(path), path, "Simple", "Normal");
         }
     }
+
+    private ShellUpdateViewModel? _updateModel;
+    private Task? _updateDialog;
+
+    // 单例持有更新会话；关闭浮层后再次进入，继续显示下载进度和已验证的安装包。
+    public Task ShowUpdatesAsync() => _updateDialog ??= ShowUpdatesCoreAsync();
+
+    private async Task ShowUpdatesCoreAsync()
+    {
+        _updateModel ??= new ShellUpdateViewModel(updates, localizer, OpenUrl,
+            () => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.TryShutdown());
+        try
+        {
+            var dialog = ShowAsync(new ShellUpdateOverlayView(), _updateModel);
+            _ = _updateModel.EnsureCheckedAsync();
+            await dialog;
+        }
+        finally { _updateDialog = null; }
+    }
+
+    private static void OpenUrl(string url) => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+    public void Dispose() => _updateModel?.Dispose();
 
     public Task ShowDocumentAsync(
         string title,
