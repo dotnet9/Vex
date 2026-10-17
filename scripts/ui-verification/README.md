@@ -1,36 +1,79 @@
-﻿# Vex 离屏回归验证
+# Vex 离屏与桌面验证
 
-加载本仓库的实际 App、主窗口、XAML 模板和 ViewModel，通过 Avalonia.Headless 与 Skia 绘制，不操作真实桌面。设置、草稿及最近记录使用内存服务，MCP 关闭，文件关联注册跳过。五份 Markdown 输入位于本目录的 `MarkdownSamples/`，每轮复制到输出目录后再测试保存流程。
+验证器加载实际 App、主窗口、XAML 模板与 ViewModel，通过 Avalonia.Headless + Skia 绘制。设置、草稿及最近记录使用内存服务，MCP 关闭，文件关联注册跳过；测试文件复制到外部输出目录后再编辑和保存。
 
-需要 .NET 10 SDK；自研库通过 `Directory.Packages.props` 指定的 NuGet 包安装，不依赖其他仓库源码。
+需要 .NET 10 SDK。正式版本直接从 nuget.org 还原共享库，不需要克隆库仓库：
 
-```powershell
-dotnet run --project scripts/ui-verification/UiVerification.csproj -c Release `
-    --artifacts-path ./artifacts/verification -- vex ./artifacts/ui-verification
-if ($LASTEXITCODE -ne 0) { throw 'Vex UI verification failed' }
-```
+    dotnet build scripts/ui-verification/UiVerification.csproj -c Release -p:ArtifactsPath=D:/github/temp_files/vex-native/artifacts
+    dotnet D:/github/temp_files/vex-native/artifacts/bin/UiVerification/release/UiVerification.dll vex D:/github/temp_files/vex-native/refined/vex
 
-开发联调时将库打包到环境变量 `temp_nugets` 指定目录，通过仓库外的 NuGet 配置恢复；不提交本地源或绝对路径。日志、截图等临时输出可指定到仓库外临时目录。
+修改共享库时，用 `scripts/prepare_local_libraries.ps1 -PackageVersion <新的本地预览版本>` 生成本地 NuGet 包及仓外配置，再构建验证。五个包输出到 D:\github\temp_nugets，中间产物位于 D:\github\temp_files；Lite 是 Markdown 的传递依赖，禁止跨仓 ProjectReference。已有包可加 `-SkipPack`，脚本拒绝覆盖同版本包，避免旧缓存干扰。提交和正式发布前将中央依赖恢复为 nuget.org 正式版本。
 
-验证范围：
+验证模式：
 
-- 真实窗口标题栏与内容区坐标、1 像素分隔线，避免重复预留标题栏高度；八套配色各自浅深模式及窄窗口。
-- 21.875 像素源码行高、鼠标点击与键盘光标移动；五个文件连续切换。
-- 相同正文仅路径大小写变化时，真实工作区状态和同一即时编辑器同步图片基址、保留选区；输出文件系统支持时再打开两个真实大小写不同的文件，核对快速打开保留两项。
-- 未保存确认的取消、放弃和保存分支；确认期间标题菜单禁用；草稿恢复后的修改状态。
-- 关于浮层在真实主窗口内显示与关闭。
-- 关于主按钮和删除确认按钮在八色浅深组合中的真实普通、悬停、按下状态及文字对比度；共 96 种状态，按下后移出再释放，不执行更新或删除。
-- 文件树层级、16 像素缩进、紧凑行高、图标与箭头对齐、折叠展开、过滤及文字对比度。
-- 侧栏显隐、宽度、菜单勾选与设置持久化。
-- 即时编辑、单栏源码、阅读只读与导图真实视口；摘要设置、折叠与源码定位共用当前正文。
-- 五步引导与跳过恢复：未保存原文、源码文档实例、即时编辑撤销重做、导图缩放和用户偏好。
+| 模式 | 范围 |
+| --- | --- |
+| vex | 完整应用回归，含四语、明暗主题、布局、编辑、浮层与六步引导 |
+| workspace | 单文档八布局、章节操作、真实指针拖动、共享撤销、多窗口同步、引导恢复及 RELAP 样本 |
+| layout | 窗口尺寸、指针连续拖动、正文与代码几何 |
+| editing-tools | 格式命令、表格、演示与编辑偏好 |
+| preferences / locale / path-identity / file-tree | 偏好持久化、语言、路径身份与文件树 |
+| buttons / danger-buttons | 八色浅深、普通 / 悬停 / 按下共 96 种按钮状态 |
+| parity | 同一份文档、1280×820 与 980×640、明暗模式、八布局和浮层截图 |
+| performance | 每次独立进程加载指定布局；记录首帧、所有视图就绪与内存 |
+| pointer-regressions | 首次拖选、跨段正反向选择与替换撤销、长代码选择 / 横向滑块、更新日志宽滚动条往返拖动 |
+| presentation | 正文 / 文档大纲 / 导图演示，标题分页、只读导图、键盘、缩放、阅读位置与原窗口恢复 |
+| html-tables | 最大化 RELAP 五张 HTML 表格，阅读 / 即时编辑跳转后实际单元格进入视口，正文演示与原文哈希 |
+| stress | 五份丰富样本与 RELAP，明暗两轮八布局、导图平移缩放、三窗口换文档、快速并发读取与原文哈希 |
 
-Windows 发布验收使用 `scripts/publish.ps1 -RuntimeIdentifier win-x64`，正式 EXE 可通过 `--verify-runtime <独立目录>` 验证原生运行、输出语言资源与隔离偏好持久化。界面验证器另行以 NativeAOT 发布后执行；两者不注册实际文件关联。不能用框架运行结果代替 NativeAOT。发布构建保留 portable 编译符号，保证 Avalonia XAML 编译链路完整。
+工作区核心约定：每个进程只有一份当前文档；文件与大纲是导航页签；八种布局可组合编辑、阅读和导图。源码与即时编辑全局互斥，独立窗口共用文档。布局与排版选择后保持展开。
 
-任何断言失败均返回非零退出码，PNG 输出到指定目录。离屏结果不替代 Windows 实际窗口、DPI、IME、文件关联和 NativeAOT 运行验收。
+即时编辑检查真实点击前后文字起点和高度、富文本选区、输入与撤销、上下左右跨块与边界合并。代码块默认无顶部工具栏或复制按钮；编辑时在下方显示语言输入框，验证其可见、可点击、改类型及 Esc 恢复。原生中文文字注入不等于完整中文输入法组合验证。
 
-将模式换成 `layout` 可执行窗口宽度、真实指针连续拖动与代码块专项检查。1.5.9 的完整应用 JIT 离屏检查 640 项、布局专项 139 项及正式 NativeAOT 窗口闭环分别记录在 [本机验证](../../docs/verification-v1.5.9.md)。源码模式固定单栏，不提供并排预览偏好。
+源码和即时编辑的正文快捷键使用共享历史；筛选、查找、章节表单及代码类型输入框保留各自的撤销。工作区回归通过真实焦点与键盘事件检查筛选撤销不会改变正文，并验证返回源码后仍可撤销正文。
 
-将运行参数 `vex` 换成 `path-identity` 可单独检查路径身份回归。Windows 默认文件系统上实际双文件分支会明确输出 `SKIP`，其余真实状态与编辑器断言仍执行；该结果不代表已实测 Linux 文件系统。
+章节检查包含 CRLF、Setext、YAML、围栏代码、H6 限制、循环移动保护，以及防抖期间可靠的源码区间映射。删除需确认，并可保留内容。引导完成 / 跳过恢复原文、修改状态、共享历史、布局、偏好、导图视口及原独立窗口实例。
 
-2026-10-16，1.5.8 复核：Windows App 正式脚本 NativeAOT 发布、正式 EXE 四语和隔离偏好自检通过，验证器另行 NativeAOT 发布后实际运行通过 638 项断言，包含同一关于浮层四语动态切换、实际元数据、精确路径与选区同步，以及八色浅深组合中主按钮与危险按钮的 96 种真实输入状态。依赖从仓库外本地 NuGet 源恢复，仓库不保存本地路径。详见 [复核记录](../../docs/UI-REVIEW-20261015.md)。
+对照截图需先生成原型样例：
+
+    $env:VEX_BROWSER_EXECUTABLE='C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+    $env:CODEWF_TEMP_ROOT='D:\github\temp_files'
+    node design/tests/capture-parity.cjs
+    dotnet D:/github/temp_files/vex-native/artifacts/bin/UiVerification/release/UiVerification.dll parity D:/github/temp_files/vex-native/parity/native
+
+长文档性能，最后一个参数可替换为其他只读样本：
+
+    dotnet D:/github/temp_files/vex-native/artifacts/bin/UiVerification/release/UiVerification.dll performance D:/github/temp_files/vex-native/final/performance/instant instant "D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md"
+
+分别对 instant、source、read、map、source-render、source-map、instant-map、three 串行运行，避免其他构建与性能进程争用。校验原文件 SHA256 不变；Headless 数据不能代替实体桌面和 NativeAOT 性能。
+
+丰富样本与持续滚动切换：
+
+    python scripts/generate_stress_documents.py --output-root D:/github/md/mds
+    dotnet D:/github/temp_files/vex-native/artifacts/bin/UiVerification/release/UiVerification.dll stress D:/github/temp_files/vex-native/stress-repeat D:/github/md/mds 2
+    dotnet D:/github/temp_files/vex-native/artifacts/bin/UiVerification/release/UiVerification.dll pointer-regressions D:/github/temp_files/vex-native/pointer-repeat
+
+末尾参数是轮数；每轮反转文件和布局顺序。性能及压力模式先设置为当前屏幕工作区并最大化；Headless 本机为 1920×1280、Scaling 1，结果 JSON 记录实际尺寸。六文档 × 八布局 × 两轮共 96 组合、3,240 个滑块移动步骤。每文档还覆盖正文分页、大纲、六轮导图切换与退出恢复。另验证导图平移、三窗口替换、源码 / 即时编辑互斥与 10 轮每轮六个并发读取请求。JSON 逐组合落到外部输出目录，出现失败时保留已完成记录。结果和边界见 docs/性能与稳定性验证-20261017.md。
+
+演示专项验证：
+
+    dotnet D:/github/temp_files/vex-native/artifacts/bin/UiVerification/release/UiVerification.dll presentation D:/github/temp_files/vex-native/presentation-tests
+    node design/tests/audit-presentation.cjs
+
+压力模式可加 `--trace-presentation` 记录恢复全文前后的物化数及内存，或 `--sample=Vex-02` 缩小诊断范围。演示进入 / 翻页的采样包含固定约 400ms 的异步渲染等待，不能当成纯翻页延迟或桌面 FPS。
+
+vex.25 的演示专项还检查 RELAP 的五张 HTML 表格及即时编辑源码往返，并在最大化窗口连续三次深度滚动、切换正文 / 导图演示和退出，比较块序号与块内比例。虚拟布局估高会改变全文滚动比例，因此不能只比较像素偏移或滚动条比例。
+
+vex.27 补充大纲定位回归：阅读订阅导航事件；即时编辑先物化并完成布局，再按目标实际位置校正滚动，超高表格定位到顶部。`html-tables` 不能只检查控件存在，还要确认目标单元格与视口相交，并生成十张导航截图和一张演示截图。共享库另覆盖 480 余块文档的远距离往返跳转、超高表格顶部可见、不进入编辑和物化数量上限。
+
+    dotnet D:/github/temp_files/vex-native/artifacts-vex27/bin/UiVerification/release/UiVerification.dll html-tables D:/github/temp_files/vex-native/html-tables-vex27
+
+正式发布使用 scripts/publish.ps1，可通过 ArtifactsRoot 与 PublishRoot 将产物定向至上述外部目录。正式 EXE 的 --verify-runtime <独立目录> 检查 NativeAOT、四语资源和隔离偏好；verify_native_publish.ps1 检查 PE CLR 目录为零与窗口响应。编译失败不能用 JIT 结果代替。
+
+本机 .NET 10.0.10 / 10.0.12 的 ILC 使用服务器 GC 时在生成类型信息期间触发 0xc0000409；发布脚本现显式设置 IlcUseServerGc=false，仅调整编译器进程。10.0.12 通过此配置完成编译，正式包使用以下命令复现（编译器包需已安装在对应缓存目录）：
+
+    $vexIlcTargets = Join-Path $env:USERPROFILE '.nuget/packages/microsoft.dotnet.ilcompiler/10.0.12/build/Microsoft.DotNet.ILCompiler.SingleEntry.targets'
+    ./scripts/publish.ps1 -RuntimeIdentifier win-x64 -ArtifactsRoot D:/github/temp_files/vex-native/aot-vex27 -PublishRoot D:/github/temp_files/vex-native/publish-vex27/win-x64 -RuntimeFrameworkVersion 10.0.12 -NativeCompilerTargetsPath $vexIlcTargets
+    ./scripts/verify_native_publish.ps1 -ExecutablePath D:/github/temp_files/vex-native/publish-vex27/win-x64/Vex.exe -OutputPath D:/github/temp_files/vex-native/native-aot-vex27-evidence.json -DocumentPath D:/github/md/mds/Vex-01-综合语法与交互.md
+
+历史版本验证见 docs/verification-v1.5.9.md；当前实现与限制见 design/原型对照验收.md。

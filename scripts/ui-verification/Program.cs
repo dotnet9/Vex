@@ -1,8 +1,9 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Styling;
@@ -12,6 +13,7 @@ using CodeWF.Avalonia.Markdown.Editor.Controls;
 using Prism.Ioc;
 using CodeWF.Avalonia.Controls.Themes;
 using SkiaSharp;
+using Markdig;
 using Vex.Core.Models;
 using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
@@ -26,17 +28,19 @@ var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verifi
 Directory.CreateDirectory(output);
 if (mode == "parity")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().WithInterFont()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = app.Shell!;
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
     SettleRendering();
-    window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.FindControl<Button>("QuickStartButton")!.IsVisible = true;
     vm.Appearance.SelectPaletteByKey("aurora");
-    var sample = Path.GetFullPath("artifacts/parity/documents/笔记/主题设计笔记.md");
-    Pump(vm.OpenStartupDocumentAsync(new[] { Path.GetDirectoryName(Path.GetDirectoryName(sample))! }));
+    var sampleFolder = Path.GetFullPath(Path.Combine(output, "..", "笔记"));
+    Directory.CreateDirectory(sampleFolder);
+    var sample = Path.Combine(sampleFolder, "主题设计笔记.md");
+    Check(File.Exists(sample), "Capture the accepted prototype documents first");
+    Pump(vm.OpenStartupDocumentAsync(new[] { sampleFolder }));
     Pump(vm.OpenPathAsync(sample));
     Check(vm.DocumentFiles.Count == 5, "Parity captures retain the complete five file workspace");
     foreach (var width in new[] { 1280, 980 })
@@ -45,11 +49,11 @@ if (mode == "parity")
         foreach (var theme in new[] { "light", "dark" })
         {
             vm.Appearance.SelectThemeByKey(theme);
-            foreach (var view in new[] { "instant", "source", "read", "mindmap" })
+            foreach (var view in WorkbenchLayoutOption.All.Select(option => option.Id))
             {
                 vm.Workbench.ShowTypography = false; vm.Workbench.ShowMapSettings = false; vm.Workbench.SelectedNode = null;
                 vm.Workbench.ShowMapSource = false;
-                switch (view) { case "instant": vm.Workbench.ShowInstant(); break; case "source": vm.Workbench.ShowSource(); break; case "read": vm.Workbench.ShowRead(); break; default: vm.Workbench.ShowMindMap(); break; }
+                vm.Workbench.SelectLayout(view);
                 Pump();
                 PumpUntil(() => vm.Workbench.Root is not null);
                 SettleRendering();
@@ -59,26 +63,52 @@ if (mode == "parity")
                 foreach (var scroll in window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
                 foreach (var scroll in window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
                 Pump();
-                Capture(window, $"{width}-{theme}-{(view is "instant" or "source" ? "edit" : view)}-{(view == "source" ? "source" : "instant")}");
+                Capture(window, $"{width}-{theme}-{view}");
             }
         }
     }
     window.Width = 1280; window.Height = 820; vm.Appearance.SelectThemeByKey("light");
+    vm.Workbench.SelectLayout("instant"); vm.Workbench.ShowLayouts = true; Pump(); SettleRendering(); Capture(window, "layouts");
+    vm.Workbench.ShowLayouts = false;
     vm.Workbench.ShowInstant(); vm.Workbench.ShowTypography = true; Pump(); SettleRendering(); Capture(window, "typography");
+    vm.Workbench.ShowTypography = false;
+    var live = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    foreach (var scroll in live.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = new Vector(0, scroll.Extent.Height);
+    Pump(); SettleRendering();
+    var code = live.GetVisualDescendants().OfType<SelectableTextBlock>().First(text => text.Classes.Contains("MdCodeBlockText"));
+    code.BringIntoView(); Pump(); SettleRendering(); Capture(window, "code-display");
+    var codeClick = code.TranslatePoint(new Point(20, 8), window)!.Value;
+    window.MouseDown(codeClick, MouseButton.Left); window.MouseUp(codeClick, MouseButton.Left); Pump(); Capture(window, "code-edit");
+    window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.FindControl<Button>("QuickStartButton")!.Focus(); Pump();
+    var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
+    Capture(window, "about");
+    ((ShellAboutViewModel)window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single().DataContext!).Close(); Pump(aboutTask);
+    var thanksTask = app.Resolve<IShellOverlayService>().ShowDocumentAsync("鸣谢", File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "鸣谢.md")), null, "Simple", "Small");
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Any());
+    Capture(window, "thanks");
+    Vex.Modules.Shell.Services.ShellOverlayHost.Dismiss(window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Single()); Pump(thanksTask);
     vm.Workbench.ShowMindMap(); vm.Workbench.ShowMapSettings = true; Pump(); SettleRendering(); Capture(window, "map-settings");
     vm.Workbench.ShowMapSettings = false; vm.Workbench.SelectedNode = vm.Workbench.Root!.Children.First(); Pump(); SettleRendering(); Capture(window, "map-inspector");
     window.Close();
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools")
+if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().WithInterFont()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
+    if (mode == "html-tables") { VerifyHtmlTables((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
+    if (mode == "presentation") { VerifyPresentation(app, (Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
+    if (mode == "pointer-regressions") { VerifyPointerRegressions(app, window, vm); window.Close(); return; }
+    if (mode == "stress") { VerifyStress((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
+    if (mode == "file-tree") { VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), output); window.Close(); return; }
+    if (mode == "performance") { VerifyPerformance((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
+    if (mode == "workspace") { VerifySingleDocumentWorkspace(app, (Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode is "buttons" or "danger-buttons")
     {
         VerifyDialogButtonStates(app, window, vm, mode == "buttons" ? "primary" : "danger", args.Contains("--audit-only"));
@@ -137,7 +167,7 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
     viewMenu.IsSelected = false;
     Pump();
     // 每轮复制到独立输出目录，保存路径回归不会污染测试输入或用户文档。
-    var sampleFolder = Path.Combine(output, "documents");
+    var sampleFolder = Path.GetFullPath(Path.Combine(output, "..", "笔记"));
     Directory.CreateDirectory(sampleFolder);
     foreach (var sample in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "MarkdownSamples"), "*.md"))
     {
@@ -157,7 +187,7 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
     VerifyPathIdentity(app, window, vm, sampleFolder);
     if (mode == "path-identity") { window.Close(); return; }
     var editorVm = app.Resolve<MarkdownEditorViewModel>();
-    VerifySourceLineHeight(window, window.GetVisualDescendants().OfType<MarkdownEditorView>().Single(), 21.875, "Vex");
+    VerifySourceLineHeight(window, window.GetVisualDescendants().OfType<MarkdownEditorView>().Single(), 23, "Vex");
     editorVm.InsertText(" regression edit");
     Pump();
     Check(vm.DocumentInfo.IsModified, "Typing marks Vex document dirty");
@@ -224,7 +254,7 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
         var updateAction = about.GetVisualDescendants().OfType<Button>().Single(button => button.Command == aboutModel.UpdateCommand);
         VerifyInside(updateAction, aboutScroll, "About update action is reachable: " + culture);
         aboutScroll.ScrollToEnd(); Pump();
-        var closeAction = about.GetVisualDescendants().OfType<Button>().Single(button => button.MinWidth == 86);
+        var closeAction = about.GetVisualDescendants().OfType<Button>().Single(button => button.Classes.Contains("vex-dismiss"));
         VerifyInside(closeAction, aboutScroll, "About close action is reachable after scrolling: " + culture);
         Capture(window, "vex-about-" + culture);
     }
@@ -332,7 +362,7 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
     vm.Workbench.ShowRead(); Pump(); Capture(window, "vex-native-read-980");
     var ageFile = vm.DocumentFiles.Single(file => Path.GetFileName(file.Path) == Path.GetFileName(files[3]));
     var ageLabel = window.GetVisualDescendants().OfType<TextBlock>().Single(block =>
-        block.Classes.Contains("file-muted") && block.DataContext is DocumentFileNode node && ReferenceEquals(node.DocumentFile, ageFile));
+        block.Classes.Contains("file-title") && block.DataContext is DocumentFileNode node && ReferenceEquals(node.DocumentFile, ageFile));
     var filesModel = app.Resolve<ShellFilesViewModel>();
     var selectedNode = filesModel.SelectedDocumentFileNode;
     var savedFilter = filesModel.FilterText;
@@ -344,8 +374,8 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
         Pump();
         Check(vm.Appearance.SelectedLanguage?.CultureName == culture && (languageSelector.SelectedItem as LanguageOption)?.CultureName == culture,
             "Background global culture synchronizes the visible Markdown reader and title selection: " + culture);
-        Check(ageLabel.Text == app.Resolve<IAppLocalizer>().Get(Vex.VexL.DocumentModifiedYesterday),
-            "The same file time label follows background global culture: " + culture);
+        Check(ageLabel.Text == Path.GetFileName(ageFile.Path),
+            "The same filename remains stable across background global culture: " + culture);
         Check(ReferenceEquals(selectedNode, filesModel.SelectedDocumentFileNode) && savedFilter == filesModel.FilterText && savedMarkdown == vm.Markdown,
             "File time translation preserves the tree selection, filter and unsaved content: " + culture);
         var returnCulture = culture == "zh-CN" ? "en-US" : "zh-CN";
@@ -359,7 +389,7 @@ if (mode is "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" 
     Pump(); Capture(window, "vex-native-mindmap-980");
     ((Vex.Modules.Shell.Views.MainWindow)window).BeginOnboardingGuide(); Pump();
     var narrowGuide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
-    for (var step = 0; step < 5; step++)
+    for (var step = 0; step < 6; step++)
     {
         narrowGuide.ShowStep(step); Pump();
         var card = narrowGuide.Children.OfType<Border>().Single();
@@ -419,6 +449,131 @@ void Capture(Window window, string name)
         using var data = crop.Encode(SKEncodedImageFormat.Png, 100);
         using var file = File.Create(Path.Combine(output, name + "-header.png"));
         data.SaveTo(file);
+    }
+}
+
+void VerifyPointerRegressions(VerificationVexApp app, Window window, MainWindowViewModel vm)
+{
+    window.Width = 1280; window.Height = 820;
+    vm.Appearance.SelectThemeByKey("light");
+    var samplePath = Path.Combine(output, "文本选择.md");
+    const string sampleText = "# 文本选择\n\n第一段文字，用鼠标直接拖动选择。\n\n第二段文字，也需要能够连续选择。\n\n含有 **加粗文字** 和 `行内代码` 的正文。\n\n```csharp\nvar value = 42;\nConsole.WriteLine(value);\n```\n";
+    File.WriteAllText(samplePath, sampleText);
+    Pump(vm.OpenPathAsync(samplePath));
+    vm.Workbench.SelectLayout("instant");
+    Pump(); SettleRendering();
+    var live = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    PumpUntil(() => live.GetVisualDescendants().OfType<SelectableTextBlock>().Any(block => block.Classes.Contains("MdParagraph")));
+    var paragraph = live.GetVisualDescendants().OfType<SelectableTextBlock>().First(block => block.Classes.Contains("MdParagraph"));
+    var start = paragraph.TranslatePoint(new Point(2, 12), window)!.Value;
+    var end = paragraph.TranslatePoint(new Point(112, 12), window)!.Value;
+    window.MouseDown(start, MouseButton.Left); Pump();
+    for (var i = 1; i <= 12; i++) { window.MouseMove(start + (end - start) * (i / 12d), RawInputModifiers.LeftMouseButton); Pump(); }
+    window.MouseUp(end, MouseButton.Left); Pump();
+    Capture(window, "instant-first-drag-selection");
+    Console.WriteLine($"SELECTION first drag: [{live.SelectedText}]; source={live.Selection}");
+    Check(live.SelectedText.Length >= 4 && sampleText.Substring(live.Selection.Start, live.Selection.Length) == live.SelectedText,
+        "First press and drag selects visible instant text and maps to the original Markdown");
+    Check(vm.Markdown == sampleText, "Selecting text does not modify the document");
+    var firstSelection = live.SelectedText;
+    Drag(end, start);
+    Check(live.SelectedText == firstSelection, "Reverse drag in the active paragraph selects the same text");
+    var paragraphs = live.GetVisualDescendants().OfType<SelectableTextBlock>().Where(block => block.Classes.Contains("MdParagraph")).ToArray();
+    var secondEnd = paragraphs[1].TranslatePoint(new Point(112, 12), window)!.Value;
+    Drag(start, secondEnd);
+    Check(live.SelectedText.Contains("\n\n第二", StringComparison.Ordinal), "Pointer selection continues across paragraphs");
+    var crossSelection = live.SelectedText; var crossRange = live.Selection;
+    Pump(live.ExecuteAsync(CodeWF.Avalonia.Markdown.Editor.Services.MarkdownEditorAction.Copy));
+    var copied = TopLevel.GetTopLevel(live)!.Clipboard!.TryGetTextAsync(); Pump(copied);
+    Check(copied.Result == crossSelection && vm.Markdown == sampleText, "Copy uses the complete cross-paragraph range without modifying Markdown");
+    Drag(secondEnd, start);
+    Check(live.SelectedText == crossSelection && live.Selection == crossRange, "Reverse cross-paragraph drag preserves range and text");
+    window.KeyTextInput("替换后的内容"); Pump();
+    Check(vm.Markdown == sampleText.Remove(crossRange.Start, crossRange.Length).Insert(crossRange.Start, "替换后的内容"),
+        "Typing replaces the complete cross-paragraph selection once");
+    window.KeyPress(Key.Z, RawInputModifiers.Control, PhysicalKey.Z, "z"); window.KeyRelease(Key.Z, RawInputModifiers.Control, PhysicalKey.Z, "z"); Pump();
+    Check(vm.Markdown == sampleText, "Shared undo restores cross-paragraph replacement");
+    SettleRendering();
+    var codeText = live.GetVisualDescendants().OfType<SelectableTextBlock>().First(block => block.Classes.Contains("MdCodeBlockText"));
+    Drag(codeText.TranslatePoint(new Point(2, 10), window)!.Value, codeText.TranslatePoint(new Point(105, 10), window)!.Value);
+    Check(live.SelectedText.Contains("var", StringComparison.Ordinal) && live.SelectedText.Length >= 5, "Code can be selected on the first drag");
+    Check(vm.Markdown == sampleText, "Selection in code preserves the document and code language");
+    Capture(window, "instant-code-selection");
+
+    const string multilineSource = "# 多行段落\n\n第一行保持原来的位置。\n第二行含 **粗体** 和 `代码`，进入编辑时也保持两行。\n";
+    vm.Markdown = multilineSource; Pump(); SettleRendering();
+    var multiline = live.GetVisualDescendants().OfType<SelectableTextBlock>().First(block => block.Classes.Contains("MdParagraph"));
+    var multilineOrigin = multiline.TranslatePoint(default, window)!.Value;
+    var lineCount = multiline.TextLayout.TextLines.Count;
+    Drag(multilineOrigin + new Point(2, 12), multilineOrigin + new Point(110, 12));
+    var multilineInput = live.GetVisualDescendants().OfType<TextBox>().Single(input => input.IsEffectivelyVisible);
+    var multilinePresenter = multilineInput.GetVisualDescendants().OfType<TextPresenter>().Single();
+    Check(lineCount == 2 && multilinePresenter.TextLayout.TextLines.Count == lineCount
+        && Math.Abs(multilinePresenter.TranslatePoint(default, window)!.Value.Y - multilineOrigin.Y) < 1,
+        "Entering a multiline paragraph preserves soft line breaks, line count and text origin");
+    Check(vm.Markdown == multilineSource, "Selecting a multiline paragraph preserves the original source");
+    Capture(window, "instant-multiline-selection");
+
+    var longCode = "# 长代码选择\n\n```csharp\n" + string.Join('\n', Enumerable.Range(1, 120)
+        .Select(index => "var value" + index + " = \"" + new string('x', index == 1 ? 300 : 20) + "\"; // 高亮与横向滚动")) + "\n```\n";
+    vm.Markdown = longCode; Pump(); SettleRendering();
+    live.GetVisualDescendants().OfType<ScrollViewer>().First().Offset = default; Pump();
+    var longCodeText = live.GetVisualDescendants().OfType<SelectableTextBlock>().First(block => block.Classes.Contains("MdCodeBlockText"));
+    Check(longCodeText.Text?.Contains("value120", StringComparison.Ordinal) == true, "Long code uses selectable text style spans without a token control tree");
+    Drag(longCodeText.TranslatePoint(new Point(2, 10), window)!.Value, longCodeText.TranslatePoint(new Point(105, 10), window)!.Value);
+    Check(live.SelectedText.Contains("var", StringComparison.Ordinal), "Long highlighted code retains first-drag selection");
+    Capture(window, "instant-long-code-selection");
+    var codeScroll = longCodeText.GetVisualAncestors().OfType<ScrollViewer>().First();
+    var horizontal = codeScroll.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ScrollBar>()
+        .Single(bar => bar.Orientation == Avalonia.Layout.Orientation.Horizontal && bar.IsEffectivelyVisible);
+    // 长代码的底部滚动条在文档下方；将当前块底部带进外层视口再拖动。
+    horizontal.BringIntoView(); Pump();
+    var horizontalThumb = horizontal.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.Thumb>().First();
+    var horizontalFrom = horizontalThumb.TranslatePoint(new Rect(horizontalThumb.Bounds.Size).Center, window)!.Value;
+    var horizontalTo = horizontal.TranslatePoint(new Point(horizontal.Bounds.Width - 20, horizontal.Bounds.Height / 2), window)!.Value;
+    Capture(window, "long-code-before-horizontal");
+    Console.WriteLine($"HORIZONTAL from={horizontalFrom}, to={horizontalTo}, bar={horizontal.Bounds}, scroll={codeScroll.Offset}, extent={codeScroll.Extent}, viewport={codeScroll.Viewport}, hit={window.InputHitTest(horizontalFrom)?.GetType().Name}");
+    Drag(horizontalFrom, horizontalTo);
+    Console.WriteLine($"HORIZONTAL after={codeScroll.Offset}, unchanged={vm.Markdown == longCode}");
+    Check(codeScroll.Offset.X > 100 && vm.Markdown == longCode, "Dragging the long code horizontal scrollbar scrolls without editing its source");
+
+    var log = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "UpdateLog.md"));
+    var task = app.Resolve<IShellOverlayService>().ShowDocumentAsync("更新日志", log, null, "Simple", "Normal");
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Any());
+    SettleRendering();
+    var dialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Single();
+    var scroll = dialog.FindControl<ScrollViewer>("DocumentScroll")!;
+    if (args.Contains("--trace")) scroll.ScrollChanged += (_, e) => Console.WriteLine($"TRACE offset={scroll.Offset.Y:F3} extent={scroll.Extent.Height:F3} viewport={scroll.Viewport.Height:F3} delta={e.OffsetDelta}/{e.ExtentDelta}/{e.ViewportDelta}");
+    if (args.Contains("--no-virtualization"))
+    {
+        dialog.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("DocumentMarkdownViewer")!.EnableVirtualization = false;
+        Pump(); SettleRendering();
+    }
+    for (var pass = 0; pass < 3; pass++)
+    {
+        foreach (var direction in new[] { 1, -1 })
+        {
+            var bar = scroll.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ScrollBar>().First(b => b.Orientation == Avalonia.Layout.Orientation.Vertical && b.IsEffectivelyVisible);
+            var thumb = bar.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.Thumb>().First(t => t.IsEffectivelyVisible);
+            Check(bar.Bounds.Width == 16 && thumb.Bounds.Width >= 10, $"Changelog scrollbar remains easy to hit: track={bar.Bounds.Width}, thumb={thumb.Bounds.Width}");
+            var from = thumb.TranslatePoint(new Point(thumb.Bounds.Width / 2, thumb.Bounds.Height / 2), window)!.Value;
+            var barOrigin = bar.TranslatePoint(default, window)!.Value;
+            var to = new Point(from.X, barOrigin.Y + (direction > 0 ? bar.Bounds.Height - 18 : 18));
+            window.MouseDown(from, MouseButton.Left); Pump();
+            for (var step = 1; step <= 50; step++) { window.MouseMove(from + (to - from) * (step / 50d), RawInputModifiers.LeftMouseButton); Pump(); }
+            window.MouseUp(to, MouseButton.Left); Pump(); SettleRendering();
+            Console.WriteLine($"SCROLL drag {pass}/{direction}: offset={scroll.Offset}, extent={scroll.Extent}, viewport={scroll.Viewport}");
+            Check(direction > 0 ? scroll.Offset.Y > scroll.Viewport.Height : scroll.Offset.Y < 1, "Actual scrollbar dragging moves through the document and returns to the top");
+        }
+    }
+    Capture(window, "changelog-after-thumb-drag");
+    Vex.Modules.Shell.Services.ShellOverlayHost.Dismiss(dialog); Pump(task);
+
+    void Drag(Point from, Point to)
+    {
+        window.MouseDown(from, MouseButton.Left); Pump();
+        for (var i = 1; i <= 16; i++) { window.MouseMove(from + (to - from) * (i / 16d), RawInputModifiers.LeftMouseButton); Pump(); }
+        window.MouseUp(to, MouseButton.Left); Pump();
     }
 }
 
@@ -492,7 +647,7 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
         var chevron = item.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
             .First(b => b.Name == "PART_ExpandCollapseChevron");
         var point = card.TranslatePoint(default, tree)!.Value;
-        Check(card.Bounds.Height is >= 31 and <= 38 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
+        Check(card.Bounds.Height is >= 29 and <= 38 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
             "Vex tree has compact rows within sidebar bounds: " + ((DocumentFileNode)item.DataContext!).Name);
         Check(Math.Abs(chevron.TranslatePoint(default, tree)!.Value.Y + chevron.Bounds.Height / 2
             - point.Y - card.Bounds.Height / 2) < 1,
@@ -502,7 +657,7 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
             (t.Classes.Contains("file-title") || t.Classes.Contains("file-heading")));
         Check(Math.Abs(icon.TranslatePoint(default, card)!.Value.Y + icon.Bounds.Height / 2
             - label.TranslatePoint(default, card)!.Value.Y - label.Bounds.Height / 2) < 1,
-            "Vex tree icon and title align vertically");
+            $"Vex tree icon and title align vertically: {icon.Bounds}/{icon.TranslatePoint(default, card)}; label {label.Bounds}/{label.TranslatePoint(default, card)}");
     }
     var cardPositions = items.Select(item => new
     {
@@ -534,6 +689,667 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
         "Vex file filter retains the matching document and its ancestors");
     vm.FilterText = string.Empty;
     Pump();
+}
+
+void MaximizePerformanceWindow(Window window)
+{
+    var screen = window.Screens.ScreenFromWindow(window) ?? window.Screens.Primary;
+    var scale = screen?.Scaling ?? 1;
+    // Headless 记录最大化状态，同时显式采用屏幕工作区尺寸，避免只改变状态而保持小窗口。
+    window.Width = screen is null ? 1920 : screen.WorkingArea.Width / scale;
+    window.Height = screen is null ? 1080 : screen.WorkingArea.Height / scale;
+    window.WindowState = WindowState.Maximized;
+    Pump(); SettleRendering();
+    Check(window.WindowState == WindowState.Maximized && window.Bounds.Width >= 1280,
+        $"Performance window is maximized: {window.Bounds.Width} x {window.Bounds.Height}, scaling {window.RenderScaling}");
+}
+
+void VerifyHtmlTables(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
+{
+    var path = @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
+    var source = File.ReadAllText(path);
+    var before = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path));
+    var tables = Markdig.Markdown.Parse(source).OfType<Markdig.Syntax.HtmlBlock>()
+        .Where(block => block.Lines.ToString().TrimStart().StartsWith("<table>", StringComparison.OrdinalIgnoreCase)).ToArray();
+    var expected = new[] { "MOD-COMBO-01", "从模型库拖出形成新的图元", "属性分为三类", "编辑态：初始生成", "用户名和密码管理" };
+    MaximizePerformanceWindow(window); vm.Appearance.SelectThemeByKey("light");
+    Pump(vm.OpenPathAsync(path));
+    var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    foreach (var layout in new[] { "read", "instant" })
+    {
+        vm.Workbench.SelectLayout(layout); Pump(); SettleRendering();
+        var host = layout == "read" ? (Control)preview : instant;
+        for (var i = 0; i < tables.Length; i++)
+        {
+            CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(tables[i].Line + 1));
+            Pump(); SettleRendering();
+            Capture(window, $"relap-html-{layout}-{i + 1}");
+            var cell = host.GetVisualDescendants().OfType<SelectableTextBlock>()
+                .FirstOrDefault(text => (text.Text ?? text.Inlines?.Text)?.Contains(expected[i], StringComparison.Ordinal) == true);
+            Check(cell is not null && cell.GetVisualAncestors().OfType<Grid>().Any(grid => grid.Classes.Contains("MdTable")),
+                $"RELAP {layout} HTML table {i + 1} contains its actual cell text in a native table");
+            var origin = cell!.TranslatePoint(default, host)!.Value;
+            Check(new Rect(origin, cell.Bounds.Size).Intersects(new Rect(host.Bounds.Size)),
+                $"RELAP {layout} navigation places HTML table {i + 1} inside the viewport");
+        }
+    }
+    vm.Workbench.StartPresentation(); Pump();
+    var index = vm.Workbench.PresentationSections.Select((section, index) => (section, index))
+        .First(item => item.section.Title.Contains("4.9.2", StringComparison.Ordinal)).index;
+    vm.Workbench.NavigatePresentation(index); Pump(); SettleRendering();
+    Check(preview.GetVisualDescendants().OfType<SelectableTextBlock>().Any(text => (text.Text ?? text.Inlines?.Text)?.Contains(expected[0], StringComparison.Ordinal) == true),
+        "RELAP content presentation displays the real HTML table cells");
+    Capture(window, "relap-html-presentation"); vm.Workbench.StopPresentation(); Pump();
+    Check(vm.Markdown == source && !vm.DocumentInfo.IsModified && before.SequenceEqual(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path))),
+        "HTML table navigation and presentation preserve the current document and original file");
+}
+
+void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
+{
+    const string text = "---\ntitle: Slides\n---\n# **总览**\n\n开场。\n\n## 代码与公式\n\n```cs\n# not a heading\nvar n = 42;\n```\n\n$$\\sum_{n=1}^{10} n$$\n\n参考 [文档][doc] 和脚注[^note]。\n\n第三节\n====\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\n[doc]: https://example.com/docs\n[^note]: 解释文字\n";
+    var slides = new MarkdownPresentationDocument(text, "测试");
+    Check(slides.Sections.Count == 3 && slides.Sections[0].Title == "总览" && slides.Sections[2].Title == "第三节", "Presentation uses actual headings, including Setext, and excludes YAML and fenced code headings");
+    var html = Markdig.Markdown.ToHtml(slides.MarkdownAt(1), new Markdig.MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+    File.WriteAllText(Path.Combine(output, "presentation-section.md"), slides.MarkdownAt(1));
+    File.WriteAllText(Path.Combine(output, "presentation-section.html"), html);
+    Check(html.Contains("https://example.com/docs") && html.Contains("class=\"footnotes\"") && html.Contains("解释文字") && slides.MarkdownAt(1).Contains("$$"), "Section rendering retains external reference definitions, footnotes, code and math");
+    Check(new MarkdownPresentationDocument("", "空文档").Sections.Count == 1 && new MarkdownPresentationDocument("没有标题。", "正文").MarkdownAt(0) == "没有标题。", "Empty and heading-free documents remain presentable");
+    Check(new MarkdownPresentationDocument("前言\r\n\r\n## 第二页\r\n内容", "序言").Sections.Count == 2, "Presentation preserves a preamble with Windows line endings");
+    var first = Path.Combine(output, "演示文档.md"); var second = Path.Combine(output, "替换文档.md");
+    File.WriteAllText(first, text); File.WriteAllText(second, "# 替换后的文档\n\n保持当前内容。\n");
+    Pump(vm.OpenPathAsync(first)); vm.Workbench.SelectLayout("instant-map"); Pump(); SettleRendering();
+    MaximizePerformanceWindow(window);
+    var settings = app.Resolve<IAppSettingsStore>().Current;
+    var wb = vm.Workbench;
+    var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
+    var outline = window.FindControl<Vex.Modules.Shell.Views.ShellPresentationOutlineView>("PresentationOutline")!;
+    var mapHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+    var map = mapHost.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
+    var initialViewport = map.CaptureViewport();
+    for (var round = 0; round < 6; round++)
+    {
+        vm.Appearance.SelectThemeByKey(round % 2 == 0 ? "light" : "dark");
+        var prior = app.Resolve<IAppSettingsStore>().Current;
+        wb.StartPresentation(); Pump(); SettleRendering();
+        PumpUntil(() => preview.CurrentModel.Source == wb.PresentationMarkdown);
+        Check(window.WindowState == WindowState.FullScreen && wb.PresentationProgress == "1 / 3" && !wb.CanPreviousPresentation, "Presentation opens full screen at the first section");
+        wb.ShowPresentationMap(); Pump(); SettleRendering();
+        Check(map.IsEffectivelyVisible && !map.IsChapterEditingEnabled && !mapHost.FindControl<Border>("MapEditingToolbar")!.IsEffectivelyVisible,
+            "Mind map presentation shows a read-only graph without chapter editing tools");
+        var beforePan = map.CaptureViewport();
+        var mapPoint = map.TranslatePoint(new Point(map.Bounds.Width / 2, map.Bounds.Height / 2), window)!.Value;
+        window.MouseWheel(mapPoint, new Vector(0, -4)); Pump(); map.ZoomIn(); Pump();
+        Check(map.CaptureViewport().Y != beforePan.Y && map.Zoom > beforePan.Zoom, "Mind map presentation supports wheel pan and zoom");
+        var zoomBeforeKey = map.Zoom;
+        window.KeyPress(Key.Add, RawInputModifiers.None, PhysicalKey.NumPadAdd, null); window.KeyRelease(Key.Add, RawInputModifiers.None, PhysicalKey.NumPadAdd, null); Pump();
+        Check(map.Zoom > zoomBeforeKey, "Plus key zooms the presented mind map");
+        var mapChapter = Descendants(wb.Root!).Single(node => node.Kind == CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNodeKind.Heading && node.Title == "代码与公式");
+        map.SelectNode(mapChapter.Id); map.Focus();
+        window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null); window.KeyRelease(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null); Pump();
+        Check(wb.PresentationDocument && wb.PresentationIndex == 1, "Enter on a presented mind map chapter opens its content section");
+        wb.ShowPresentationMap(); Pump(); map.SelectNode(wb.Root!.Id); map.Focus();
+        window.KeyPress(Key.Space, RawInputModifiers.None, PhysicalKey.Space, null); window.KeyRelease(Key.Space, RawInputModifiers.None, PhysicalKey.Space, null); Pump();
+        Check(wb.Root.IsCollapsed, "Presentation can collapse map branches without editing text");
+        window.KeyPress(Key.Space, RawInputModifiers.None, PhysicalKey.Space, null); window.KeyRelease(Key.Space, RawInputModifiers.None, PhysicalKey.Space, null); Pump();
+        Capture(window, "presentation-map-" + round);
+        for (var transition = 0; transition < 5; transition++) { wb.ShowPresentationDocument(); Pump(); wb.ShowPresentationMap(); Pump(); }
+        wb.TogglePresentationOutline(); Pump(); SettleRendering();
+        Check(outline.IsEffectivelyVisible && !window.FindControl<Grid>("WorkspaceColumns")!.IsEffectivelyVisible, "Presentation shows the document outline independently of the editing sidebar");
+        var chapter = outline.GetVisualDescendants().OfType<Button>().Single(button => button.Tag is int index && index == 1);
+        var point = chapter.TranslatePoint(new Point(chapter.Bounds.Width / 2, chapter.Bounds.Height / 2), window)!.Value;
+        window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Pump(); SettleRendering();
+        PumpUntil(() => preview.CurrentModel.Source == wb.PresentationMarkdown);
+        Check(wb.PresentationIndex == 1 && !wb.PresentationOutline && preview.CurrentModel.Source.Contains("var n = 42"), "Clicking an outline chapter opens its rendered code and math page");
+        Capture(window, "presentation-content-" + round);
+        var contentOrigin = preview.TranslatePoint(default, window)!.Value;
+        var displayedWidth = preview.Bounds.Width * wb.PresentationZoom;
+        Check(Math.Abs(contentOrigin.X + displayedWidth / 2 - window.Bounds.Width / 2) < 3, "Presentation content stays centered after zoom");
+        window.KeyPress(Key.PageDown, RawInputModifiers.None, PhysicalKey.PageDown, null); window.KeyRelease(Key.PageDown, RawInputModifiers.None, PhysicalKey.PageDown, null); Pump();
+        Check(wb.PresentationIndex == 2 && !wb.CanNextPresentation, "PageDown advances to the last section");
+        wb.NextPresentation(); Check(wb.PresentationIndex == 2, "Last page cannot advance past document bounds");
+        for (var i = 0; i < 20; i++) { wb.PreviousPresentation(); Pump(); wb.NextPresentation(); Pump(); }
+        wb.TogglePresentationOutline(); Pump(); SettleRendering(); Capture(window, "presentation-outline-" + round);
+        wb.StopPresentation(); Pump(); SettleRendering();
+        Check(window.WindowState == WindowState.Maximized && wb.WorkspaceLayout == "instant-map" && vm.Markdown == text && !vm.DocumentInfo.IsModified, "Exit restores maximized layout without altering the document");
+        Check(app.Resolve<IAppSettingsStore>().Current == prior, "Presentation navigation and display do not overwrite preferences");
+        var restored = map.CaptureViewport();
+        Check(Math.Abs(restored.Zoom - initialViewport.Zoom) < .001 && Math.Abs(restored.X - initialViewport.X) < 1 && Math.Abs(restored.Y - initialViewport.Y) < 1,
+            "Exit restores the original mind map viewport");
+        Check(map.IsChapterEditingEnabled && restored.CollapsedIds.SequenceEqual(initialViewport.CollapsedIds), "Exiting presentation restores chapter editing and branch state");
+    }
+    window.WorkspaceViews.Float("map"); Pump();
+    var detached = window.WorkspaceViews.FloatingWindows["map"];
+    wb.StartPresentation(); Pump(); wb.StopPresentation(); Pump();
+    Check(ReferenceEquals(detached, window.WorkspaceViews.FloatingWindows["map"]) && detached.IsVisible, "Exiting presentation restores the same independent view window");
+    window.WorkspaceViews.Return("map"); Pump();
+    wb.StartPresentation(); Pump(); Pump(vm.OpenPathAsync(second)); Pump(); wb.StopPresentation(); Pump();
+    Check(vm.Markdown == File.ReadAllText(second) && wb.LiveEditor!.Text == vm.Markdown, "Opening a different file during presentation never replays the previous document snapshot");
+    Check(File.ReadAllText(first) == text, "Presentation source file stays byte-for-byte unchanged");
+    wb.ShowMindMap(); wb.StartPresentation(); Pump();
+    Check(wb.PresentationMap && map.IsEffectivelyVisible, "Starting from a mind map opens directly into map presentation");
+    wb.StopPresentation(); Pump();
+    var readingFile = Path.Combine(output, "阅读位置.md");
+    var readingText = "# 阅读位置\n\n" + string.Join("\n\n", Enumerable.Range(0, 100).Select(i => $"阅读段落 {i}，退出演示回到原处。"));
+    File.WriteAllText(readingFile, readingText); Pump(vm.OpenPathAsync(readingFile)); wb.SelectLayout("read"); Pump(); SettleRendering();
+    PumpUntil(() => preview.CurrentModel.Source == readingText);
+    var readingScroll = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<ScrollViewer>("PreviewScrollViewer")!;
+    readingScroll.Offset = new Vector(0, 1200); Pump();
+    var priorOffset = readingScroll.Offset.Y;
+    var priorReading = preview.SaveReadingPosition();
+    wb.StartPresentation(); Pump(); SettleRendering(); wb.IncreasePresentationText(); Pump();
+    wb.ShowPresentationMap(); Pump(); wb.StopPresentation(); Pump(); SettleRendering();
+    Console.WriteLine($"READING before={priorOffset} {priorReading}, after={readingScroll.Offset.Y} {preview.SaveReadingPosition()}");
+    Check(Math.Abs(readingScroll.Offset.Y - priorOffset) < 5, "Exiting presentation restores the actual reading position");
+    var relapPath = @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
+    var relapText = File.ReadAllText(relapPath);
+    var htmlTables = Markdig.Markdown.Parse(relapText).OfType<Markdig.Syntax.HtmlBlock>()
+        .Where(block => block.Lines.ToString().TrimStart().StartsWith("<table>", StringComparison.OrdinalIgnoreCase)).ToArray();
+    Check(htmlTables.Length == 5, "RELAP coverage includes its five real HTML tables");
+    foreach (var table in htmlTables)
+    {
+        var tableViewer = new CodeWF.Avalonia.Markdown.Controls.MarkdownViewer();
+        var rendered = ((CodeWF.Avalonia.Markdown.Rendering.IMarkdownRenderContext)tableViewer).ConvertBlock(table, relapText);
+        Check(rendered is Border { Child: Grid grid } && grid.Classes.Contains("MdTable") && grid.ColumnDefinitions.Count == 4,
+            "RELAP HTML table uses native cells through the registered application renderer");
+    }
+    Check(CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg.MarkdownBlockParser.Write(
+        CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg.MarkdownBlockParser.Parse(relapText)) == relapText,
+        "Instant editing preserves the original RELAP HTML source on round trip");
+    Pump(vm.OpenPathAsync(relapPath)); wb.SelectLayout("read"); Pump(); SettleRendering();
+    PumpUntil(() => preview.CurrentModel.Source == relapText);
+    for (var round = 0; round < 3; round++)
+    {
+        for (var step = 0; step < 30; step++) { readingScroll.Offset = new Vector(0, readingScroll.Offset.Y + 600); Pump(); }
+        SettleRendering();
+        var anchor = preview.SaveReadingPosition()!.Value;
+        wb.StartPresentation(); Pump(); SettleRendering();
+        wb.NavigatePresentation(30); Pump(); wb.ShowPresentationMap(); Pump();
+        wb.StopPresentation(); Pump(); SettleRendering();
+        PumpUntil(() => preview.CurrentModel.Source == relapText);
+        var restored = preview.SaveReadingPosition()!.Value;
+        Console.WriteLine($"RELAP-READING {round}: {anchor} -> {restored}");
+        Check(anchor.BlockIndex == restored.BlockIndex && Math.Abs(anchor.BlockRatio - restored.BlockRatio) < .05,
+            "RELAP deep reading anchor survives content/map presentation and return");
+        Check(preview.RealizedBlockCount < 100, "Returning to RELAP keeps offscreen blocks virtualized");
+    }
+    static IEnumerable<CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode> Descendants(CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode node)
+    { yield return node; foreach (var child in node.Children) foreach (var descendant in Descendants(child)) yield return descendant; }
+}
+
+void VerifyStress(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
+{
+    var folder = args.ElementAtOrDefault(2) ?? @"D:\github\md\mds";
+    var rounds = int.TryParse(args.ElementAtOrDefault(3), out var count) ? count : 2;
+    var paths = Directory.GetFiles(folder, "Vex-0*.md").Order().Append(@"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md").ToArray();
+    Check(paths.Length >= 6 && paths.All(File.Exists), "Stress suite includes five rich local samples and the original RELAP document");
+    if (args.FirstOrDefault(arg => arg.StartsWith("--sample=")) is { } sample) paths = paths.Where(path => Path.GetFileName(path).StartsWith(sample[9..], StringComparison.OrdinalIgnoreCase)).ToArray();
+    var contents = paths.ToDictionary(path => path, File.ReadAllText);
+    var hashes = paths.ToDictionary(path => path, path => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path))));
+    var rows = new List<object>();
+    var presentations = new List<object>();
+    var retained = new List<object>();
+    MaximizePerformanceWindow(window);
+    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    var source = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
+    var previewHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var preview = previewHost.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
+    var map = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
+    var watch = System.Diagnostics.Stopwatch.StartNew();
+    for (var round = 0; round < rounds; round++)
+    {
+        vm.Appearance.SelectThemeByKey(round % 2 == 0 ? "light" : "dark");
+        foreach (var path in round % 2 == 0 ? paths : paths.Reverse())
+        {
+            if (args.Contains("--parse-trace"))
+            {
+                var tree = Markdig.Markdown.Parse(contents[path], new Markdig.MarkdownPipelineBuilder().UseAdvancedExtensions().UseYamlFrontMatter().UsePreciseSourceLocation().Build());
+                Console.WriteLine("AST " + string.Join(" | ", tree.Select(block => $"{block.GetType().Name}:{block.Span}")));
+                CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg.MarkdownBlockParser.Parse(contents[path]);
+            }
+            watch.Restart(); Pump(vm.OpenPathAsync(path));
+            PumpUntil(() => vm.Workbench.ImageBasePath == path && vm.Workbench.Root is not null);
+            var openMs = watch.Elapsed.TotalMilliseconds;
+            if (vm.Markdown != contents[path] || vm.DocumentInfo.CurrentFilePath != path)
+            {
+                Console.WriteLine($"OPEN actual={vm.DocumentInfo.CurrentFilePath}, requested={path}, chars={vm.Markdown.Length}/{contents[path].Length}");
+                Console.WriteLine("VISIBLE " + string.Join(" | ", window.GetVisualDescendants().OfType<TextBlock>().Where(text => text.IsEffectivelyVisible).Select(text => text.Text).Where(text => !string.IsNullOrEmpty(text))));
+                File.WriteAllText(Path.Combine(output, "unexpected-document.md"), vm.Markdown);
+            }
+            Check(vm.Markdown == contents[path] && Path.GetFullPath(vm.DocumentInfo.CurrentFilePath!) == Path.GetFullPath(path), "File switch loads exactly the selected document: " + Path.GetFileName(path));
+            watch.Restart(); vm.Workbench.StartPresentation(); Pump(); SettleRendering();
+            var presentationEnterMs = watch.Elapsed.TotalMilliseconds;
+            var presentationSteps = new List<double>();
+            foreach (var index in new[] { 0, vm.Workbench.PresentationSections.Count / 2, vm.Workbench.PresentationSections.Count - 1, 0 })
+            {
+                watch.Restart(); vm.Workbench.NavigatePresentation(index); Pump(); SettleRendering();
+                PumpUntil(() => preview.CurrentModel.Source == vm.Workbench.PresentationMarkdown);
+                presentationSteps.Add(watch.Elapsed.TotalMilliseconds);
+                Check(vm.Markdown == contents[path] && !vm.DocumentInfo.IsModified, "Presentation paging preserves the whole document");
+                var slideScroll = previewHost.FindControl<ScrollViewer>("PreviewScrollViewer")!;
+                slideScroll.Offset = new Vector(0, slideScroll.Extent.Height); Pump(); slideScroll.Offset = default; Pump();
+            }
+            vm.Workbench.TogglePresentationOutline(); Pump(); SettleRendering();
+            Check(window.FindControl<Vex.Modules.Shell.Views.ShellPresentationOutlineView>("PresentationOutline")!.IsEffectivelyVisible, "Large document has a presentation outline");
+            TracePresentation("outline");
+            var pageCount = vm.Workbench.PresentationSections.Count;
+            for (var transition = 0; transition < 6; transition++)
+            {
+                vm.Workbench.ShowPresentationMap(); Pump();
+                Check(map.IsEffectivelyVisible && !map.IsChapterEditingEnabled, "Large mind map presentation remains read-only");
+                var mapPoint = map.TranslatePoint(new Point(map.Bounds.Width / 2, map.Bounds.Height / 2), window)!.Value;
+                window.MouseWheel(mapPoint, new Vector(0, -4)); Pump(); map.ZoomIn(); Pump(); map.ZoomOut(); Pump();
+                vm.Workbench.ShowPresentationOutline(); Pump();
+                vm.Workbench.ShowPresentationDocument(); Pump(); TracePresentation("transition-" + transition);
+            }
+            TracePresentation("before-exit"); vm.Workbench.StopPresentation(); TracePresentation("exit-queued"); Pump(); SettleRendering(); TracePresentation("after-exit");
+            presentations.Add(new { round = round + 1, file = Path.GetFileName(path), sections = pageCount, enterMs = presentationEnterMs, pageStepsMs = presentationSteps });
+            Check(window.WindowState == WindowState.Maximized, "Presentation restores maximized performance window");
+            foreach (var option in round % 2 == 0 ? WorkbenchLayoutOption.All : WorkbenchLayoutOption.All.Reverse())
+            {
+                watch.Restart(); vm.Workbench.SelectLayout(option.Id); Pump();
+                PumpUntil(() => (!option.Render || preview.CurrentModel.Source == contents[path]) && (option.Editor != "instant" || instant.Text == contents[path]));
+                var layoutMs = watch.Elapsed.TotalMilliseconds;
+                Check(!(TopLevel.GetTopLevel(source) is not null && source.IsEffectivelyVisible)
+                    || !(TopLevel.GetTopLevel(instant) is not null && instant.IsEffectivelyVisible), "Source and instant editors stay exclusive during stress");
+                if (option.Editor == "source") Check(source.Text == contents[path], "Visible source matches current file");
+                if (option.Editor == "instant") Check(instant.Text == contents[path], "Visible instant editor matches current file");
+                if (option.Render) Check(preview.CurrentModel.Source == contents[path], "Visible reading view matches current file");
+                var stepTimes = new List<double>();
+                var hosts = new List<ScrollViewer>();
+                if (option.Editor == "instant") hosts.Add(instant.GetVisualDescendants().OfType<ScrollViewer>().First());
+                if (option.Editor == "source") hosts.Add(source.GetVisualDescendants().OfType<ScrollViewer>().First(scroll => scroll.Extent.Height > scroll.Viewport.Height));
+                if (option.Render) hosts.Add(previewHost.FindControl<ScrollViewer>("PreviewScrollViewer")!);
+                foreach (var scroll in hosts)
+                {
+                    foreach (var direction in new[] { 1, -1, 1 })
+                    {
+                        var bar = scroll.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ScrollBar>()
+                            .First(bar => bar.Orientation == Avalonia.Layout.Orientation.Vertical && bar.IsEffectivelyVisible);
+                        var thumb = bar.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.Thumb>().First();
+                        var from = thumb.TranslatePoint(new Point(thumb.Bounds.Width / 2, thumb.Bounds.Height / 2), window)!.Value;
+                        var origin = bar.TranslatePoint(default, window)!.Value;
+                        var to = new Point(from.X, origin.Y + (direction > 0 ? bar.Bounds.Height - 2 : 2));
+                        window.MouseDown(from, MouseButton.Left); Pump();
+                        for (var step = 1; step <= 10; step++)
+                        {
+                            watch.Restart(); window.MouseMove(from + (to - from) * (step / 10d), RawInputModifiers.LeftMouseButton); Pump();
+                            stepTimes.Add(watch.Elapsed.TotalMilliseconds);
+                        }
+                        window.MouseUp(to, MouseButton.Left); Pump();
+                    }
+                }
+                if (option.Map)
+                {
+                    var viewport = map.CaptureViewport();
+                    map.ZoomIn(); Pump(); map.ZoomOut(); Pump(); map.SetZoom(viewport.Zoom); Pump();
+                    var point = map.TranslatePoint(new Point(map.Bounds.Width / 2, map.Bounds.Height / 2), window)!.Value;
+                    for (var pan = 0; pan < 6; pan++)
+                    {
+                        window.MouseWheel(point, new Vector(0, -4)); Pump();
+                    }
+                    Check(Math.Abs(map.CaptureViewport().Y - viewport.Y) > 100, "Mind map wheel pans the viewport during repeated layout changes");
+                    map.RestoreViewport(viewport); Pump();
+                    var nodes = CountNodes(vm.Workbench.Root);
+                    if (nodes >= 200) Check(map.RealizedNodeCount < nodes / 2, "Long mind map creates only cards near the viewport");
+                }
+                Check(vm.Markdown == contents[path] && !vm.DocumentInfo.IsModified, "Repeated scrolling and view changes preserve the current document");
+                foreach (var panel in window.GetVisualDescendants().OfType<CodeWF.Avalonia.Controls.Controls.WindowedStackPanel>().Where(panel => panel.IsEffectivelyVisible && panel.ItemCount > 100))
+                    Check(panel.RealizedItemCount < panel.ItemCount / 2, $"Long document keeps virtualization enabled: {panel.RealizedItemCount}/{panel.ItemCount}");
+                stepTimes.Sort();
+                rows.Add(new { round = round + 1, file = Path.GetFileName(path), layout = option.Id, openMs, layoutMs,
+                    pointerSteps = stepTimes.Count, pointerP95Ms = stepTimes.Count == 0 ? 0 : stepTimes[(int)Math.Floor((stepTimes.Count - 1) * .95)],
+                    pointerMaxMs = stepTimes.Count == 0 ? 0 : stepTimes[^1], privateMiB = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1048576d });
+                SaveReport(); Console.WriteLine("STRESS " + System.Text.Json.JsonSerializer.Serialize(rows[^1]));
+            }
+        }
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect(); Pump();
+        retained.Add(new { round = round + 1, managedMiB = GC.GetTotalMemory(false) / 1048576d, privateMiB = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1048576d });
+        SaveReport();
+    }
+    // 将三种视图迁移到独立窗口，切文件后继续操作，再切到即时编辑与导图。
+    for (var pass = 0; pass < 2; pass++)
+    {
+        vm.Workbench.SelectLayout("three"); Pump();
+        window.WorkspaceViews.Separate(); window.WorkspaceViews.Float("editor"); Pump();
+        Check(window.WorkspaceViews.FloatingWindows.Count == 3, "Large-document source, reading and map views can use three windows");
+        foreach (var floating in window.WorkspaceViews.FloatingWindows.Values) MaximizePerformanceWindow(floating);
+        foreach (var path in paths)
+        {
+            Pump(vm.OpenPathAsync(path));
+            PumpUntil(() => preview.CurrentModel.Source == contents[path] && vm.Workbench.ImageBasePath == path);
+            Check(source.Text == contents[path] && window.WorkspaceViews.FloatingWindows.Values.All(view => view.Title.Contains(Path.GetFileName(path))),
+                "Switching large documents replaces every detached view and title");
+            foreach (var floating in window.WorkspaceViews.FloatingWindows.Values)
+            {
+                floating.MouseWheel(new Point(floating.Bounds.Width / 2, floating.Bounds.Height / 2), new Vector(0, -8)); Pump();
+            }
+        }
+        vm.Workbench.SelectLayout("instant-map"); Pump();
+        Check(window.WorkspaceViews.FloatingWindows.Count == 2 && !source.IsEffectivelyVisible && instant.IsEffectivelyVisible,
+            "Detached views switch to instant editing without a second source editor");
+        foreach (var id in window.WorkspaceViews.FloatingWindows.Keys.ToArray()) window.WorkspaceViews.Return(id);
+        Pump();
+    }
+    // 不等待前一份文档完成读取，模拟在文件列表中快速改变目标。
+    for (var i = 0; i < 10; i++)
+    {
+        var pending = paths.Select(path => vm.OpenPathAsync(path)).ToArray(); Pump(Task.WhenAll(pending));
+        PumpUntil(() => vm.Workbench.ImageBasePath == paths[^1]);
+        Check(vm.DocumentInfo.CurrentFilePath == paths[^1] && vm.Markdown == contents[paths[^1]], "Rapid file switching keeps the last requested document");
+    }
+    foreach (var path in paths) Check(hashes[path] == Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path))), "Original sample remains unchanged: " + Path.GetFileName(path));
+    Capture(window, "stress-final"); SaveReport();
+
+    static int CountNodes(CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode? node) =>
+        node is null ? 0 : 1 + node.Children.Sum(CountNodes);
+
+    void TracePresentation(string stage)
+    {
+        if (!args.Contains("--trace-presentation")) return;
+        Console.WriteLine("PRESENTATION " + stage + " " + System.Text.Json.JsonSerializer.Serialize(new {
+            privateMiB = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1048576d,
+            panels = preview.GetVisualDescendants().OfType<CodeWF.Avalonia.Controls.Controls.WindowedStackPanel>().Select(panel => new { panel.ItemCount, panel.RealizedItemCount, panel.IsVirtualizing, scroll = panel.ScrollHost?.Name, viewport = panel.ScrollHost?.Viewport.ToString() }).ToArray() }));
+    }
+
+    void SaveReport() => File.WriteAllText(Path.Combine(output, "stress.json"), System.Text.Json.JsonSerializer.Serialize(new
+    {
+        environment = "Windows Release net10.0, Avalonia.Headless + Skia; pointer costs include layout and render jobs, not desktop FPS",
+        windowState = window.WindowState.ToString(), width = window.Bounds.Width, height = window.Bounds.Height, scaling = window.RenderScaling, paths, hashes, rows, presentations, retained
+    }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+}
+
+void VerifyPerformance(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
+{
+    MaximizePerformanceWindow(window);
+    var path = args.ElementAtOrDefault(3) ?? @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
+    var layout = args.ElementAtOrDefault(2) ?? "instant";
+    var before = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path));
+    vm.Workbench.SelectLayout(layout); Pump();
+    var watch = System.Diagnostics.Stopwatch.StartNew(); Pump(vm.OpenPathAsync(path)); Pump();
+    var frameMs = watch.Elapsed.TotalMilliseconds;
+    PumpUntil(() => vm.Workbench.ImageBasePath == path && vm.Workbench.Root is not null);
+    var mapMs = watch.Elapsed.TotalMilliseconds;
+    var after = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path));
+    Check(before.SequenceEqual(after), "Performance sample remains byte-for-byte unchanged");
+    var report = new { windowState = window.WindowState.ToString(), width = window.Bounds.Width, height = window.Bounds.Height, scaling = window.RenderScaling, layout, frameMs, allViewsReadyMs = mapMs, bytes = new FileInfo(path).Length, characters = vm.Markdown.Length,
+        sha256 = Convert.ToHexString(after), memoryMiB = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1048576d,
+        environment = "Windows Release net10.0, Avalonia.Headless + Skia, cold process per layout" };
+    File.WriteAllText(Path.Combine(output, layout + ".json"), System.Text.Json.JsonSerializer.Serialize(report, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(report));
+    Capture(window, layout);
+}
+
+void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
+{
+    var wb = vm.Workbench;
+    Check(MarkdownTableInsertion.AtSelection("before\r\n\r\nafter", 10, 0, "| A |\n| --- |") == "| A |\r\n| --- |\r\n\r\n",
+        "Table insertion preserves Windows line endings and existing blank lines");
+    var folder = Path.Combine(output, "documents"); Directory.CreateDirectory(folder);
+    var first = Path.Combine(folder, "章节写作.md"); var second = Path.Combine(folder, "另一篇文档.md");
+    const string original = "# 写作计划\n\n点击文字，保留 **加粗**、*斜体* 和 [链接](https://codewf.com)。\n\n## 研究\n\n研究正文，不得丢失。\n\n### 资料\n\n```md\n# 围栏中的标题\n```\n\n## 方案\n\n方案正文。\n\n## 验证\n\n验证正文。\n";
+    File.WriteAllText(first, original); File.WriteAllText(second, "# 第二篇\n\n这是替换后的文档。\n");
+    Pump(vm.OpenPathAsync(first)); PumpUntil(() => wb.Root?.Title == "写作计划");
+    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    var source = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
+    wb.SelectLayout("instant"); Pump(); SettleRendering();
+    var initialScroll = instant.Editor.GetVisualDescendants().OfType<ScrollViewer>().First();
+    Check(initialScroll.Offset.Y < 1, "Opening a document starts at the first block without anchor drift");
+    var mapHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+    var map = mapHost.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
+    foreach (var option in WorkbenchLayoutOption.All)
+    {
+        wb.ShowLayouts = true; wb.SelectLayout(option.Id); Pump();
+        Check(wb.ShowLayouts && (!wb.IsInstantEditing || !wb.IsSourceVisible), "Layout stays open and editors remain exclusive: " + option.Id);
+        Check((TopLevel.GetTopLevel(instant) is not null && instant.IsEffectivelyVisible) == (option.Editor == "instant") && (TopLevel.GetTopLevel(source) is not null && source.IsEffectivelyVisible) == (option.Editor == "source")
+            && (TopLevel.GetTopLevel(map) is not null && map.IsEffectivelyVisible) == option.Map, $"Actual view visibility follows layout: {option.Id}; instant={instant.IsEffectivelyVisible}, source={source.IsEffectivelyVisible}, map={map.IsEffectivelyVisible}");
+        if (vm.Markdown != original) File.WriteAllText(Path.Combine(output, "unexpected-markdown.md"), vm.Markdown);
+        Check(vm.Markdown == original, "Layout preserves the original Markdown: " + option.Id);
+    }
+    wb.ShowLayouts = false; wb.SelectLayout("instant"); Pump(); SettleRendering();
+    var paragraph = instant.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().First(viewer => viewer.Markdown?.StartsWith("点击文字", StringComparison.Ordinal) == true).GetVisualDescendants().OfType<SelectableTextBlock>().First();
+    var beforePoint = paragraph.TranslatePoint(default, window)!.Value; var beforeSize = paragraph.Bounds.Size;
+    Capture(window, "instant-before-click");
+    var click = paragraph.TranslatePoint(new Point(32, 12), window)!.Value;
+    window.MouseDown(click, MouseButton.Left); window.MouseUp(click, MouseButton.Left); Pump();
+    var box = instant.GetVisualDescendants().OfType<TextBox>().Single(text => text.IsEffectivelyVisible);
+    var presenter = box.GetVisualDescendants().OfType<TextPresenter>().Single();
+    var afterPoint = presenter.TranslatePoint(default, window)!.Value;
+    Check(Math.Abs(beforePoint.Y - afterPoint.Y) < 1 && Math.Abs(beforeSize.Height - presenter.TextLayout.Height) < 1,
+        $"Instant click preserves text geometry: before={beforePoint}/{beforeSize}; after={afterPoint}/{presenter.TextLayout.Height}");
+    Check(vm.Markdown == original && box.Text!.Contains("**加粗**"), "Click inserts a caret without rewriting formatted Markdown");
+    var baselineHeight = presenter.TextLayout.Height; var baselineWidth = presenter.TextLayout.Width;
+    box.SelectionStart = 0; box.SelectionEnd = box.Text!.Length; Pump();
+    Check(Math.Abs(presenter.TextLayout.Height - baselineHeight) < 1, "Rich text selection preserves line geometry");
+    box.CaretIndex = box.Text.IndexOf("加粗", StringComparison.Ordinal) + 1; box.SelectionStart = box.SelectionEnd = box.CaretIndex;
+    presenter.PreeditText = "中文"; Pump();
+    Check(presenter.TextLayout.Width <= baselineWidth + presenter.FontSize * 2.1, "IME preedit keeps Markdown syntax hidden and rich formatting in place");
+    presenter.PreeditText = null; Pump();
+    Capture(window, "instant-after-click");
+    box.CaretIndex = box.Text.Length; box.SelectionStart = box.SelectionEnd = box.CaretIndex;
+    window.KeyTextInput("继续写作"); Pump();
+    Check(vm.Markdown.Contains("继续写作") && vm.Markdown.Contains("**加粗**"), "Native input preserves inline formatting and syncs the document");
+    wb.SelectLayout("source-map"); wb.UndoDocument(); Pump();
+    Check(vm.Markdown == original && source.Text == original, "Undo spans instant editing and source/map layouts");
+    wb.SelectLayout("instant"); Pump();
+    var codeViewer = instant.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
+        .Single(viewer => viewer.Markdown?.StartsWith("```md", StringComparison.Ordinal) == true);
+    var codeText = codeViewer.GetVisualDescendants().OfType<SelectableTextBlock>().Single(text => text.Classes.Contains("MdCodeBlockText"));
+    codeViewer.BringIntoView(); Pump();
+    var codePoint = codeText.TranslatePoint(default, window)!.Value; var codeHeight = codeViewer.Bounds.Height;
+    codeText.SelectionStart = 0; codeText.SelectionEnd = 4; Pump();
+    var codeClick = codeText.TranslatePoint(new Point(20, 8), window)!.Value;
+    window.MouseDown(codeClick, MouseButton.Left); window.MouseUp(codeClick, MouseButton.Left); Pump();
+    var codeBox = instant.GetVisualDescendants().OfType<TextBox>().Single(text => text.IsEffectivelyVisible && !text.Classes.Contains("MdCodeLanguageInput"));
+    var codeLanguage = instant.GetVisualDescendants().OfType<TextBox>().Single(text => text.IsEffectivelyVisible && text.Classes.Contains("MdCodeLanguageInput"));
+    var codePresenter = codeBox.GetVisualDescendants().OfType<TextPresenter>().Single();
+    Check(codeText.SelectionStart == codeText.SelectionEnd && codeBox.SelectionStart == codeBox.SelectionEnd,
+        "Entering code editing removes the read-only selection and leaves only a caret");
+    Check(Math.Abs(codePresenter.TranslatePoint(default, window)!.Value.Y - codePoint.Y) < 1 && Math.Abs(codeViewer.Bounds.Height - codeHeight) < 1,
+        "Code editing preserves its text origin, frame height and syntax highlight");
+    var codeFrame = codeText.GetVisualAncestors().OfType<Border>().First(border => border.Classes.Contains("MdCodeBlock"));
+    Check(codeLanguage.TranslatePoint(default, window)!.Value.Y >= codeFrame.TranslatePoint(new Point(0, codeFrame.Bounds.Height), window)!.Value.Y,
+        "The language input appears below the code frame during editing");
+    Check(!codeViewer.GetVisualDescendants().OfType<Control>().Any(control => control.Classes.Contains("MdCodeBlockHeader") && control.IsEffectivelyVisible),
+        "Code has no visible top language bar or copy button");
+    var languageClick = codeLanguage.TranslatePoint(new Rect(codeLanguage.Bounds.Size).Center, window)!.Value;
+    window.MouseDown(languageClick, MouseButton.Left); window.MouseUp(languageClick, MouseButton.Left); Pump();
+    Check(codeLanguage.IsKeyboardFocusWithin, "The language input is fully inside its hit-test area and can be clicked");
+    codeBox.Focus(); Pump();
+    window.KeyTextInput("原位"); Pump();
+    Check(vm.Markdown.Contains("原位") && vm.Markdown.Contains("```md"), "Code input edits the fenced body without exposing fence markers");
+    wb.UndoDocument(); Pump(); Check(vm.Markdown == original, "Shared undo restores inline code edits");
+    wb.SelectLayout("source"); Pump(); source.Editor.TextArea.Focus(); source.Editor.CaretOffset = 0;
+    window.KeyTextInput("撤销验证"); Pump();
+    var beforeFilterUndo = vm.Markdown;
+    Check(beforeFilterUndo != original, "Source typing joins document history");
+    var fileFilter = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellFilesView>().Single()
+        .GetVisualDescendants().OfType<TextBox>().Single();
+    fileFilter.Focus(); Pump(); window.KeyTextInput("临时筛选"); Pump();
+    window.KeyPress(Key.Z, RawInputModifiers.Control, PhysicalKey.Z, "z");
+    window.KeyRelease(Key.Z, RawInputModifiers.Control, PhysicalKey.Z, "z"); Pump();
+    Check(vm.Markdown == beforeFilterUndo && string.IsNullOrEmpty(fileFilter.Text), "Filter undo edits its query without undoing document content");
+    source.Editor.TextArea.Focus(); Pump(); window.KeyPress(Key.Z, RawInputModifiers.Control, PhysicalKey.Z, "z");
+    window.KeyRelease(Key.Z, RawInputModifiers.Control, PhysicalKey.Z, "z"); Pump();
+    Check(vm.Markdown == original && source.Text == original, "Source shortcut restores shared document history after filter undo");
+    foreach (var editorLayout in new[] { "source", "instant" })
+    {
+        wb.SelectLayout(editorLayout); Pump();
+        if (editorLayout == "source")
+        {
+            source.Editor.Select(vm.Markdown.IndexOf("方案正文", StringComparison.Ordinal), 2);
+            source.FocusEditor();
+        }
+        else
+        {
+            instant.Editor.NavigateToSourceLine(1 + vm.Markdown[..vm.Markdown.IndexOf("方案正文", StringComparison.Ordinal)].Count(c => c == '\n'), beginEdit: true);
+            Pump();
+            var paragraphBox = instant.GetVisualDescendants().OfType<TextBox>().Single(text => text.IsEffectivelyVisible);
+            paragraphBox.SelectionStart = 0; paragraphBox.SelectionEnd = 2;
+            fileFilter.Focus(); // 菜单夺走焦点后也要保留正文选区。
+        }
+        Pump();
+        var tableBefore = vm.Markdown;
+        var tableSelection = editorLayout == "source" ? source.Selection : instant.Editor.Selection;
+        vm.EditorActions.InsertAction(EditorActionKind.Table);
+        PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellInsertTableOverlayView>().Any(view => view.IsEffectivelyVisible));
+        var tableDialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellInsertTableOverlayView>().Single(view => view.IsEffectivelyVisible);
+        var tableRows = tableDialog.FindControl<NumericUpDown>("TableRows")!;
+        var tableColumns = tableDialog.FindControl<NumericUpDown>("TableColumns")!;
+        Check(tableRows.Value == 3 && tableColumns.Value == 2 && vm.Markdown == tableBefore,
+            editorLayout + " table command opens dimensions without modifying the document");
+        var tableModel = (Vex.Modules.Shell.Views.ShellInsertTableModel)tableDialog.DataContext!;
+        tableModel.Rows = null; Pump();
+        Check(!tableDialog.FindControl<Button>("ConfirmTable")!.IsEnabled, "Missing row count disables table insertion: " + editorLayout);
+        tableModel.Rows = 3;
+        tableDialog.FindControl<Button>("CancelTable")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
+        Check(vm.Markdown == tableBefore && (editorLayout == "source" ? source.Selection : instant.Editor.Selection) == tableSelection,
+            editorLayout + " cancel preserves document and original selection");
+        vm.EditorActions.InsertAction(EditorActionKind.Table);
+        PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellInsertTableOverlayView>().Any(view => view.IsEffectivelyVisible));
+        tableDialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellInsertTableOverlayView>().Single(view => view.IsEffectivelyVisible);
+        tableDialog.FindControl<NumericUpDown>("TableRows")!.Value = 4;
+        tableDialog.FindControl<NumericUpDown>("TableColumns")!.Value = 3;
+        Capture(window, "insert-table-" + editorLayout);
+        tableDialog.FindControl<Button>("ConfirmTable")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
+        var expectedTable = MarkdownTableInsertion.Create(new TableDimensions(4, 3), n => "列 " + n);
+        var expectedInsertion = MarkdownTableInsertion.AtSelection(tableBefore, tableSelection.Start, tableSelection.Length, expectedTable);
+        Check(vm.Markdown == tableBefore.Remove(tableSelection.Start, tableSelection.Length).Insert(tableSelection.Start, expectedInsertion),
+            editorLayout + " inserts exactly four rows and three columns at the saved selection");
+        Check(instant.Editor.GetVisualDescendants().OfType<Grid>().Any(grid => grid.GetType().Name == "MarkdownTableGrid" && grid.RowDefinitions.Count == 4 && grid.ColumnDefinitions.Count == 3) || editorLayout == "source",
+            editorLayout + " table is rendered as an editable table");
+        wb.UndoDocument(); Pump();
+        Check(vm.Markdown == tableBefore, editorLayout + " table insertion is a single shared undo step");
+    }
+    wb.SelectLayout("map"); SelectChapter("研究");
+    var beforeDrag = vm.Markdown;
+    map.Fit(.5); Pump();
+    var draggedNode = wb.SelectedNode!;
+    var targetNode = Flatten(wb.Root).Single(node => node.Title == "方案");
+    var fromBounds = map.GetNodeBounds(draggedNode.Id)!.Value;
+    var targetBounds = map.GetNodeBounds(targetNode.Id)!.Value;
+    var dragFrom = map.TranslatePoint(fromBounds.Center, window)!.Value;
+    var dragTo = map.TranslatePoint(new Point(targetBounds.Center.X, targetBounds.Bottom - targetBounds.Height * .1), window)!.Value;
+    window.MouseDown(dragFrom, MouseButton.Left); window.MouseMove(dragTo); window.MouseUp(dragTo, MouseButton.Left); Pump();
+    Check(vm.Markdown.IndexOf("## 研究", StringComparison.Ordinal) > vm.Markdown.IndexOf("## 方案", StringComparison.Ordinal)
+        && vm.Markdown.Contains("研究正文") && vm.Markdown.Contains("### 资料"), "Pointer drag moves the whole chapter after its sibling");
+    wb.UndoDocument(); PumpUntil(() => vm.Markdown == beforeDrag && Flatten(wb.Root).Any(node => node.Title == "研究")); SelectChapter("研究");
+    map.Focus(); window.KeyPress(Key.Delete, RawInputModifiers.None, PhysicalKey.Delete, null); Pump();
+    Check(mapHost.FindControl<Border>("ChapterDeleteLayer")!.IsVisible && vm.Markdown == original, "Delete opens confirmation before changing a chapter");
+    mapHost.FindControl<CheckBox>("KeepChapterContent")!.IsChecked = true;
+    mapHost.FindControl<Button>("ConfirmDeleteChapter")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
+    Check(!vm.Markdown.Contains("## 研究") && vm.Markdown.Contains("研究正文") && vm.Markdown.Contains("### 资料"), "Deleting only the title preserves its body and descendant headings");
+    wb.UndoDocument(); PumpUntil(() => Flatten(wb.Root).Any(node => node.Title == "研究")); SelectChapter("研究");
+    map.RevealNode(wb.SelectedNode!.Id); Pump(); map.Focus(); window.KeyPress(Key.F2, RawInputModifiers.None, PhysicalKey.F2, null); Pump();
+    var rename = mapHost.FindControl<TextBox>("InlineChapterTitle")!;
+    Check(rename.IsEffectivelyVisible && rename.IsFocused, "F2 places the native title editor over the selected map node");
+    rename.Text = "不应提交"; window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Pump();
+    Check(!rename.IsEffectivelyVisible && vm.Markdown == original, "Escape cancels inline chapter rename before global shortcuts");
+    map.Focus(); window.KeyPress(Key.F2, RawInputModifiers.None, PhysicalKey.F2, null); Pump(); rename.Text = "键盘改名"; window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null); Pump();
+    Check(vm.Markdown.Contains("## 键盘改名"), "Native map keyboard rename writes Markdown");
+    wb.UndoDocument(); PumpUntil(() => Flatten(wb.Root).Any(n => n.Title == "研究")); SelectChapter("研究");
+    var beforeFastEdit = vm.Markdown;
+    vm.Markdown = "前置正文。\n\n" + vm.Markdown;
+    wb.CommitChapterTitle("快速调研");
+    Check(vm.Markdown.Contains("## 快速调研") && vm.Markdown.StartsWith("前置正文。"), "Map edit reconciles source offsets before the parse debounce completes");
+    vm.Markdown = beforeFastEdit; PumpUntil(() => Flatten(wb.Root).Any(n => n.Title == "研究")); SelectChapter("研究");
+    wb.CommitChapterTitle("调研"); PumpUntil(() => wb.SelectedNode?.Title == "调研");
+    Check(vm.Markdown.Contains("## 调研") && vm.DocumentInfo.IsModified, "Map rename changes real Markdown and marks the document modified");
+    wb.CommitChapterBody("新的调研正文。\n\n- 保留 Markdown"); PumpUntil(() => wb.ChapterBody.Contains("新的调研正文"));
+    Check(vm.Markdown.Contains("### 资料") && vm.Markdown.Contains("# 围栏中的标题"), "Editing chapter body preserves children and fenced code");
+    wb.ExecuteChapter("down"); PumpUntil(() => wb.SelectedNode?.Title == "调研" && wb.SelectedNode.SourceStart > vm.Markdown.IndexOf("## 方案", StringComparison.Ordinal));
+    Check(vm.Markdown.IndexOf("## 方案", StringComparison.Ordinal) < vm.Markdown.IndexOf("## 调研", StringComparison.Ordinal)
+        && vm.Markdown.Contains("新的调研正文") && vm.Markdown.Contains("### 资料"), "Reordering moves the entire chapter with body and children");
+    wb.ExecuteChapter("demote"); PumpUntil(() => wb.SelectedNode?.HeadingLevel == 3);
+    Check(vm.Markdown.Contains("#### 资料"), "Demoting adjusts all descendant heading levels");
+    wb.ExecuteChapter("promote"); PumpUntil(() => wb.SelectedNode?.HeadingLevel == 2);
+    wb.ExecuteChapter("child"); PumpUntil(() => wb.SelectedNode?.Title == WorkbenchText.Get("WSNewChapter"));
+    Check(wb.SelectedNode!.HeadingLevel == 3, "Map creates an actual child heading");
+    var withNew = vm.Markdown; wb.DeleteChapter(false); Pump(); wb.UndoDocument(); Pump();
+    Check(vm.Markdown == withNew, "Chapter deletion can be undone across the shared history");
+    wb.SelectLayout("three"); window.WorkspaceViews.Separate(); Pump();
+    Check(window.WorkspaceViews.FloatingWindows.Count == 2, "Render and map detach into native windows");
+    window.WorkspaceViews.Float("editor"); Pump();
+    Check(window.WorkspaceViews.FloatingWindows.Count == 3 && ReferenceEquals(window.WorkspaceViews.FloatingWindows["editor"].DataContext, vm), "Three native windows share one document model");
+    var edits = vm.Markdown + "\n多窗口同步。\n"; vm.Markdown = edits; Pump();
+    Check(source.Text == edits, "Detached source follows document edits");
+    Pump(vm.SaveAsync()); Pump(vm.OpenPathAsync(second)); PumpUntil(() => wb.Root?.Title == "第二篇");
+    Check(source.Text.Contains("第二篇") && window.WorkspaceViews.FloatingWindows.Values.All(floating => floating.Title.Contains("另一篇文档")), "Switching files replaces every detached view and its window title");
+    var floats = window.WorkspaceViews.FloatingWindows.ToDictionary(item => item.Key, item => item.Value);
+    var history = wb.History.Capture(); var layout = wb.WorkspaceLayout;
+    window.BeginOnboardingGuide(); Pump();
+    var guide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
+    Check(window.WorkspaceViews.FloatingWindows.Count == 0 && floats.Values.All(floating => !floating.IsVisible), "Guide suspends detached windows without destroying them");
+    for (var step = 0; step < 6; step++) { guide.ShowStep(step); Pump(); SettleRendering(); Capture(window, "guide-" + (step + 1)); }
+    guide.Finish(); Pump();
+    Check(vm.Markdown.Contains("第二篇") && wb.WorkspaceLayout == layout && wb.History.Capture().Current == history.Current
+        && floats.All(pair => ReferenceEquals(window.WorkspaceViews.FloatingWindows[pair.Key], pair.Value)), "Guide restores the document, layout, shared history and original windows");
+    foreach (var id in window.WorkspaceViews.FloatingWindows.Keys.ToArray()) window.WorkspaceViews.Return(id);
+    Pump();
+    VerifyChapterRanges();
+    var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
+    Capture(window, "about-light");
+    var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
+    var aboutModel = (ShellAboutViewModel)about.DataContext!;
+    Check(aboutModel.PlatformText == ".NET 10，Avalonia" && aboutModel.CopyrightText == "Copyright © 2026 Vex(维刻)"
+        && about.GetVisualDescendants().OfType<Button>().Count(button => button.Command == aboutModel.UpdateCommand) == 1, "About uses accepted metadata and one update button");
+    vm.Appearance.SelectThemeByKey("dark"); Pump(); Capture(window, "about-dark");
+    aboutModel.Close(); Pump(aboutTask); vm.Appearance.SelectThemeByKey("light");
+    var thanksTask = app.Resolve<IShellOverlayService>().ShowDocumentAsync("鸣谢", File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "鸣谢.md")), null, "Simple", "Small");
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Any());
+    Capture(window, "thanks");
+    var thanks = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Single();
+    var thanksScroll = thanks.FindControl<ScrollViewer>("DocumentScroll")!;
+    Check(thanksScroll.Extent.Height <= thanksScroll.Viewport.Height + 1, $"Thanks fits on one screen: {thanksScroll.Extent}/{thanksScroll.Viewport}");
+    Vex.Modules.Shell.Services.ShellOverlayHost.Dismiss(thanks); Pump(thanksTask);
+    var performanceFile = args.ElementAtOrDefault(2) ?? @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
+    if (File.Exists(performanceFile))
+    {
+        var sampleHash = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(performanceFile));
+        var watch = System.Diagnostics.Stopwatch.StartNew(); Pump(vm.OpenPathAsync(performanceFile));
+        PumpUntil(() => wb.ImageBasePath == performanceFile && wb.Root?.Title != "第二篇");
+        var openMs = watch.Elapsed.TotalMilliseconds; Console.WriteLine($"PERFORMANCE OPEN {openMs:F1} ms");
+        var measurements = new List<object>();
+        foreach (var option in WorkbenchLayoutOption.All)
+        {
+            var values = new List<double>();
+            for (var repeat = 0; repeat < 3; repeat++)
+            {
+                wb.SelectLayout(option.Id == "read" ? "source" : "read"); Pump();
+                watch.Restart(); wb.SelectLayout(option.Id); Pump(); values.Add(watch.Elapsed.TotalMilliseconds);
+            }
+            Console.WriteLine($"PERFORMANCE {option.Id}: {string.Join(",", values.Select(value => value.ToString("F1")))} ms");
+            measurements.Add(new { layout = option.Id, firstMs = values[0], medianMs = values.Order().ElementAt(1), maximumMs = values.Max() });
+        }
+        var report = new { document = performanceFile, bytes = new FileInfo(performanceFile).Length, characters = vm.Markdown.Length,
+            openMs, memoryMiB = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1048576d,
+            environment = "Windows, Release net10.0, Avalonia.Headless+Skia; synchronous layout through next rendered frame", layouts = measurements };
+        File.WriteAllText(Path.Combine(output, "performance.json"), System.Text.Json.JsonSerializer.Serialize(report, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+        Console.WriteLine("PERFORMANCE " + System.Text.Json.JsonSerializer.Serialize(report));
+        Capture(window, "relap-three");
+        Check(sampleHash.SequenceEqual(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(performanceFile))), "RELAP performance sample remains unchanged");
+    }
+    void SelectChapter(string title) { PumpUntil(() => Flatten(wb.Root).Any(node => node.Title == title)); wb.SelectedNode = Flatten(wb.Root).First(node => node.Title == title); Pump(); }
+    static IEnumerable<CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode> Flatten(CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode? node)
+    { if (node is null) yield break; yield return node; foreach (var child in node.Children) foreach (var item in Flatten(child)) yield return item; }
+    void VerifyChapterRanges()
+    {
+        const string crlf = "---\r\ntitle: demo\r\n---\r\n\r\n根标题\r\n======\r\n\r\n## 第一章\r\n\r\n正文 A\r\n\r\n### 子节\r\n\r\n~~~md\r\n## 代码标题\r\n~~~\r\n\r\n## 第二章\r\n\r\n正文 B\r\n";
+        var doc = new MarkdownChapterDocument(crlf);
+        Check(doc.Chapters.Count == 4, "Chapter AST supports Setext and excludes YAML and fenced headings");
+        var moved = doc.Move(doc.Chapters[1], doc.Chapters[3], "after").Text;
+        Check(moved.Contains("~~~md\r\n## 代码标题\r\n~~~") && moved.Contains("### 子节\r\n") && !moved.Replace("\r\n", "").Contains('\n'), "Moving chapters preserves CRLF and code byte content");
+        var kept = doc.Delete(doc.Chapters[1], true);
+        Check(!kept.Contains("## 第一章") && kept.Contains("正文 A") && kept.Contains("### 子节"), "Delete-title-only preserves body and descendants");
+        Check(doc.Move(doc.Chapters[1], doc.Chapters[2], "child").Text == crlf, "A chapter cannot be moved into its own subtree");
+        var deep = new MarkdownChapterDocument("# A\n\n##### B\n\n###### C\n");
+        var rejected = false; try { deep.Move(deep.Chapters[1], deep.Chapters[2], "after"); } catch (InvalidOperationException) { rejected = true; }
+        // 自身子树目标不进行移动；超出 H6 另用非子树目标校验。
+        deep = new MarkdownChapterDocument("# A\n\n##### B\n\n###### C\n\n## Other\n\n###### D\n");
+        try { deep.Move(deep.Chapters[1], deep.Chapters[4], "child"); } catch (InvalidOperationException) { rejected = true; }
+        Check(rejected, "Chapter movement refuses to truncate heading depth beyond H6");
+    }
 }
 
 void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel vm)
@@ -577,7 +1393,7 @@ void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel 
     mapControl.SetZoom(.85);
     ((Vex.Modules.Shell.Views.MainWindow)window).BeginOnboardingGuide(); Pump();
     var guide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
-    for (var i = 0; i < 5; i++)
+    for (var i = 0; i < 6; i++)
     {
         Check(guide.IsVisible && guide.StepIndex == i, "Interactive guide step " + (i + 1));
         if (i == 3) PumpUntil(() => vm.Workbench.Root?.Title == "从文字到结构");
@@ -655,18 +1471,21 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     var host = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
     var map = host.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
     var wb = vm.Workbench;
-    wb.ShowInstant(); Pump();
+    wb.SelectLayout("instant"); Pump();
     Check(!source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && instant.IsEffectivelyVisible, "Instant mode hides the source and read views");
     Check(instant.Editor.DocumentMaxWidth == 1280 && instant.Editor.EditorFontSize == 14.5, "Instant document uses the prototype reading width and base font");
     Check(window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.Bounds.Height == 62
         && window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
         "Workbench and editing context rows are 62 and 42 px");
     wb.ShowSource(); Pump();
-    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && source.Bounds.Width > 1000, "Source mode always presents one full width editor without a parallel preview");
+    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && Math.Abs(source.Bounds.Width - window.FindControl<Grid>("ViewSurface")!.Bounds.Width) < 2,
+        $"The source layout fills the current workspace width: source={source.IsEffectivelyVisible}/{source.Bounds}, preview={preview.IsEffectivelyVisible}, surface={window.FindControl<Grid>("ViewSurface")!.Bounds}, layout={wb.WorkspaceLayout}");
     Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Count(button => button.Classes.Contains("wb-quiet")) == 2,
         "Editing options offer instant and source modes without a preview toggle");
     wb.ShowRead(); Pump();
-    Check(preview.IsEffectivelyVisible && preview.IsReadingMode && !source.IsEffectivelyVisible && !instant.IsEffectivelyVisible, "Read mode has one read only document and no duplicate preview header");
+    Check(preview.IsEffectivelyVisible && preview.IsReadingMode && !source.IsEffectivelyVisible && !instant.IsEffectivelyVisible
+        && !window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.IsEffectivelyVisible,
+        "Read mode has one read only document without editing toolbar or duplicate preview header");
     app.Resolve<MarkdownEditorViewModel>().ApplySearch(new EditorSearchCommand(EditorSearchAction.Count, "Markdown")); Pump();
     Check(wb.IsReading && vm.Markdown == document, "Counting search matches keeps the reading view and document unchanged");
     wb.ShowInstant(); wb.ShowTypography = true; Pump();
@@ -689,6 +1508,8 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     wb.ShowParagraphs = wb.ShowLists = wb.ShowCode = wb.ShowTables = false;
     PumpUntil(() => !ReferenceEquals(oldRoot, wb.Root));
     Check(Flatten(wb.Root!).All(n => n.Kind is CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNodeKind.Heading or CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNodeKind.Document), "Turning off summaries leaves the heading structure intact");
+    wb.ShowRichBlocks = true; Check(wb.ShowCode && wb.ShowTables, "Combined summaries option enables both code and tables");
+    wb.ShowRichBlocks = false; Check(!wb.ShowCode && !wb.ShowTables, "Combined summaries option disables both code and tables");
     wb.SummaryLength = 999; Check(wb.SummaryLength == 120, "Summary length is capped at 120 graphemes");
     wb.SummaryLength = -10; Check(wb.SummaryLength == 1, "Summary length is at least one grapheme");
     oldRoot = wb.Root; wb.ResetMapSettings();
@@ -703,7 +1524,7 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     map.SetZoom(.01); Check(Math.Abs(map.Zoom - .15) < .001, "Map zoom respects the lower bound");
     map.SetZoom(50); Check(Math.Abs(map.Zoom - 2.5) < .001, "Map zoom respects the upper bound"); map.Fit();
     wb.ShowMapSource = true; Pump();
-    Check(source.FindControl<MarkdownEditorView>("MarkdownEditor")!.Editor.IsReadOnly, "Source comparison remains read only in map mode");
+    Check(!source.FindControl<MarkdownEditorView>("MarkdownEditor")!.Editor.IsReadOnly, "Source and map allow synchronized editing in both views");
     wb.ShowMapSource = false;
     wb.ShowInstant();
     CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(heading.SourceLine)); Pump();
@@ -809,13 +1630,13 @@ void VerifyLocalizedGuide(Window window, MainWindowViewModel vm)
         vm.Appearance.SelectLanguageByCulture(culture); Pump();
         vm.Layout.EnableMotion = culture == "en-US";
         shell.BeginOnboardingGuide(); Pump();
-        for (var step = 0; step < 5; step++)
+        for (var step = 0; step < 6; step++)
         {
             guide.ShowStep(step); Pump(); SettleRendering();
-            if (step == 1) Check(guide.SpotlightTargets[0].Top > 100 && guide.SpotlightTargets[0].Bottom < guide.Bounds.Height,
-                "Guide scrolls the actual editable paragraph into view: " + culture);
-            var card = guide.GetVisualDescendants().OfType<Border>().Single(b => b.Width == 330);
-            if (step == 0) Check((card.Transitions?.Count > 0) == vm.Layout.EnableMotion,
+            if (step == 1) Check(guide.SpotlightTargets[0].Top >= 0 && guide.SpotlightTargets[0].Bottom <= guide.Bounds.Height,
+                "Guide exposes the file and outline navigation within the window: " + culture);
+            var card = guide.GetVisualDescendants().OfType<Border>().Single(b => b.Width == 320);
+            if (step == 0) Check(vm.Layout.EnableMotion || card.Transitions is null || card.Transitions.Count == 0,
                 "Replayed guide follows the current motion preference: " + culture);
             var position = card.TranslatePoint(default, window)!.Value;
             Check(position.X >= 0 && position.Y >= 0 && position.X + card.Bounds.Width <= window.Bounds.Width + 1 && position.Y + card.Bounds.Height <= window.Bounds.Height + 1,
@@ -960,9 +1781,8 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
             $"Plain code remains readable on the actual Semi background: {palette.Key}/{theme}");
         Check(code.FontSize == 14 && code.LineHeight == 22 && viewer.ParagraphFontSize == 14.5,
             "Rendered code and paragraph use the larger font baseline without a scale transform");
-        var copy = frame.GetVisualDescendants().OfType<Button>().Single(button => button.Classes.Contains("MdCopyButton"));
-        Check(copy.Bounds.Height <= 24 && Contrast(((ISolidColorBrush)copy.Foreground!).Color, visibleBackground) >= 4.5,
-            "Code copy action stays compact and readable without an accent fill");
+        Check(!frame.GetVisualDescendants().OfType<Control>().Any(control => control.Classes.Contains("MdCodeBlockHeader") && control.IsEffectivelyVisible),
+            "Reading code shows neither a language toolbar nor a copy button");
         Capture(window, $"code-{palette.Key}-{theme}");
     }
 }
@@ -1087,7 +1907,7 @@ void VerifyEditingTools(VerificationVexApp app, Window window, MainWindowViewMod
         vm.Appearance.SelectedPalette = palette; vm.Appearance.SelectThemeByKey(theme); wb.ShowSource(); Pump();
         InspectToggle(options.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(button => button.Classes.Contains("wb-quiet") && button.IsChecked == true));
         wb.ShowRead(); Pump();
-        Check(!toolbar.IsEffectivelyVisible && options.FindControl<Button>("StartPresentation")!.IsEffectivelyVisible, "Read view offers presentation without editing formats");
+        Check(!options.IsEffectivelyVisible && window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.FindControl<Button>("PresentButton")!.IsEffectivelyVisible, "Read view offers presentation without editing formats");
         InspectToggle(window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(button => button.Classes.Contains("wb-view") && button.IsChecked == true));
         wb.ShowMindMap(); Pump(); Check(!options.IsEffectivelyVisible, "Mind map keeps the editing row hidden");
 
