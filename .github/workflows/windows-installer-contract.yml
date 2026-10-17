@@ -43,6 +43,21 @@ jobs:
           name: windows-installer-contract
           path: ${{ runner.temp }}/codewf-installer-contract/**/verification.json
           if-no-files-found: ignore
+      - name: 验证跨安装范围迁移
+        shell: pwsh
+        run: |
+          $compiler=Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6/ISCC.exe'
+          python scripts/installer/tests/verify_vex_migration.py --compiler $compiler --output '${{ runner.temp }}/vex-migration'
+          if ($LASTEXITCODE) { throw 'Vex migration verification failed' }
+      - name: 上传迁移证据
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-migration
+          path: |
+            ${{ runner.temp }}/vex-migration/receipt.json
+            ${{ runner.temp }}/vex-migration/assertions.txt
+          if-no-files-found: ignore
 
   native-visual:
     name: 安装器原生中英文与浅深色回归

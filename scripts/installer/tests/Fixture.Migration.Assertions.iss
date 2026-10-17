@@ -1,0 +1,100 @@
+[Code]
+var MTestCount: Integer; MTestReport, MRoot: String;
+procedure MCheck(Value: Boolean; const Name: String);
+begin
+  if not Value then RaiseException('FAIL: '+Name);
+  MTestCount:=MTestCount+1; MTestReport:=MTestReport+'PASS: '+Name+#13#10;
+end;
+procedure MReset;
+begin
+  SetArrayLength(VTestEntries,0);
+  VTestConfirm:=True; VTestStart:=True; VTestCode:=0;
+  VTestKeepRegistration:=False; VTestChangeRegistration:=False; VTestLaunches:=0;
+  VTestBackupRoot:=MRoot+'\backup-'+IntToStr(MTestCount);
+  VMigrationBackup:='';
+end;
+procedure MEntry(const Folder: String; RootKey: Integer);
+var Entry: TCWMRegistration; Count: Integer;
+begin
+  ForceDirectories(Folder);
+  SaveStringToFile(Folder+'\unins000.exe','fixture only; never executed',False);
+  SaveStringToFile(Folder+'\Vex.dll.config','original settings',False);
+  Entry.RootKey:=RootKey; Entry.ScopeName:='fixture all users'; Entry.AppPath:=Folder;
+  Entry.Uninstaller:=Folder+'\unins000.exe'; Entry.UninstallCommand:='"'+Entry.Uninstaller+'"';
+  Count:=GetArrayLength(VTestEntries); SetArrayLength(VTestEntries,Count+1); VTestEntries[Count]:=Entry;
+end;
+<event('InitializeSetup')>
+function MigrationTestInitialize: Boolean;
+var Target,Source: String; Text: AnsiString; A,B: TCWMRegistration; I: Integer;
+begin
+  Result:=False;
+  try
+    MRoot:='{#TestRoot}'; Target:=MRoot+'\current user'; Source:=MRoot+'\old app';
+    MCheck(VPathsOverlap('C:\Vex','c:\vex\child'),'overlap is case insensitive');
+    MCheck(VPathsOverlap('C:\Vex\child','C:\Vex'),'overlap detects ancestor');
+    MCheck(not VPathsOverlap('C:\Vex','C:\Vex-old'),'sibling prefix is separate');
+    MCheck(not VPathsOverlap('','C:\Vex'),'unknown path cannot match');
+    MCheck(VPathsOverlap('C:\A\..\Vex','C:\Vex'),'canonical overlap');
+    MReset;
+    MCheck(VRunMigration(Target,False)='','fresh installation proceeds');
+    MCheck(VTestLaunches=0,'fresh installation launches nothing');
+    MCheck(VRunMigration(ExpandConstant('{commonpf}\Vex'),False)<>'','system program folder blocked');
+    MCheck(VRunMigration(ExpandConstant('{win}\Vex'),False)<>'','Windows folder blocked');
+    MEntry(Source,HKLM64);
+    MCheck(VRunMigration(Source,False)<>'','identical migration target blocked');
+    MCheck(VRunMigration(Source+'\child',False)<>'','nested migration target blocked');
+    MCheck(VRunMigration(MRoot,False)<>'','ancestor migration target blocked');
+    MCheck(VRunMigration(Target,True)=CustomMessage('VMigrationInteractive'),'silent install requires interactive migration');
+    MCheck(VTestLaunches=0,'blocked paths and silent mode launch nothing');
+    VTestConfirm:=False;
+    MCheck(VRunMigration(Target,False)<>'','declined confirmation blocks installation');
+    MCheck((VTestLaunches=0) and (VMigrationBackup=''),'declining does not back up or uninstall');
+    VTestConfirm:=True; VTestEntries[0].Uninstaller:='';
+    MCheck(VRunMigration(Target,False)<>'','unknown uninstaller blocks installation');
+    VTestEntries[0].Uninstaller:=Source+'\missing.exe';
+    MCheck(VRunMigration(Target,False)<>'','missing uninstaller blocks installation');
+    for I:=0 to 4 do begin
+      MReset; MEntry(Source,HKLM64);
+      if I=0 then VTestStart:=False;
+      if I=1 then VTestCode:=2;
+      if I=2 then begin VTestStart:=False; VTestCode:=1223; end;
+      if I=3 then VTestCode:=5;
+      if I=4 then VTestKeepRegistration:=True;
+      MCheck(VRunMigration(Target,False)<>'','start, cancel, UAC, failure or remaining registration blocks: '+IntToStr(I));
+      MCheck(GetArrayLength(VTestEntries)=1,'failed migration preserves registration: '+IntToStr(I));
+      MCheck(FileExists(VMigrationBackup+'\0\Vex.dll.config'),'backup retained on failure: '+IntToStr(I));
+    end;
+    MReset; MEntry(Source,HKLM64); VTestChangeRegistration:=True;
+    MCheck(VRunMigration(Target,False)<>'','changed registration blocks migration');
+    MCheck(VTestLaunches=0,'changed registration never launches an uninstaller');
+    MReset; MEntry(Source,HKLM64);
+    A:=VTestEntries[0]; B:=A;
+    MCheck(VMigrationRegistrationMatches(A,B),'unchanged exact registration accepted');
+    B.UninstallCommand:=B.UninstallCommand+' /silent';
+    MCheck(not VMigrationRegistrationMatches(A,B),'changed uninstall command rejected');
+    B:=A; B.RootKey:=HKCU32;
+    MCheck(not VMigrationRegistrationMatches(A,B),'changed registration scope rejected');
+    MCheck(VRunMigration(Target,False)='','successful migration permits installation');
+    MCheck((VTestLaunches=1) and (GetArrayLength(VTestEntries)=0),'success removes the old registration once');
+    MCheck(FileExists(Target+'\Vex.dll.config'),'settings staged before a possible cancelled payload copy');
+    VRestoreSettingsTo(Target);
+    LoadStringFromFile(Target+'\Vex.dll.config',Text);
+    MCheck(Text='original settings','settings restored before payload copy');
+    SaveStringToFile(Target+'\Vex.dll.config','newer user settings',False);
+    VRestoreSettingsTo(Target); LoadStringFromFile(Target+'\Vex.dll.config',Text);
+    MCheck(Text='newer user settings','current-user preferences win over old machine settings');
+    VMigrationBackup:='';
+    MCheck(VRunMigration(Target,False)='','retry after completed migration retains staged settings');
+    MReset; MEntry(Source,HKLM64); MEntry(Source,HKLM32);
+    MCheck(VRunMigration(Target,False)='','same installation in two registry views migrates');
+    MCheck(VTestLaunches=1,'duplicate views do not launch the same uninstaller twice');
+    MReset; MEntry(Source,HKLM64); MEntry(MRoot+'\other old app',HKLM32);
+    MCheck(VRunMigration(Target,False)='','two different registered machine paths migrate');
+    MCheck(VTestLaunches=2,'each distinct old installation is removed');
+    LoadStringFromFile(Source+'\Vex.dll.config',Text);
+    MCheck(Text='original settings','fixture leaves the original files untouched');
+    SaveStringToFile('{#TestReport}','PASS '+IntToStr(MTestCount)+#13#10+MTestReport,False);
+  except
+    SaveStringToFile('{#TestReport}',GetExceptionMessage,False);
+  end;
+end;

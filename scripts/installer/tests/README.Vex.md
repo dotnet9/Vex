@@ -27,3 +27,8 @@ node scripts/installer/tests/capture_vex_prototype.cjs D:/temp/vex-reference
 `compare_vex_visual.py` 输出未平滑 RGB 分数和两图各做 1px 高斯平滑后的 RGB 分数，公式为 `100 × (1 − RGB 平均绝对误差 / 255)`。后者阈值 98%，用于容许 GDI 与 Chromium 的字体栅格化差异。仅排除窗口区域以外的角落及机器相关路径文字，按钮、维护详情入口和许可正文都参与比较。尺寸最多容许 1px 浏览器取整差异，窗口边缘另有真实像素检查。
 
 该分数不能直接解释为主观视觉或体验的“98%”，尤其不能推及系统确认框、真实产品覆盖安装、不同 DPI 和 Linux/macOS 桌面。它和完整截图、控件几何、交互证据一起评审。Linux 软件管理器和 macOS Finder 的系统外观由操作系统控制。
+## 跨安装范围迁移验证
+
+`python scripts/installer/tests/verify_vex_migration.py --compiler <ISCC.exe> --output <独立输出目录>` 编译并执行 49 项迁移断言。测试使用内存注册和卸载结果，预处理后检查不存在注册 API、ShellExec、Exec、外部 DLL 或安装段；InitializeSetup 返回 False，不创建向导。覆盖取消、UAC 拒绝、退出码、残留注册、双视图去重、两个旧目录、路径重叠、配置恢复和取消复制后的重试。生产入口另行真编译，不在开发机执行产品卸载。
+
+正式安装统一当前用户范围。检测到旧全用户注册时先确认移除，再按注册的卸载器请求管理员权限；失败阻止复制新载荷。迁移前将 `Vex.exe.config` / `Vex.dll.config` 备份到 `%LOCALAPPDATA%\Vex\MigrationBackup`；已有用户级配置优先，未有用户级配置时恢复旧设置。备份不登记进卸载日志。只调用旧安装器的精确文件日志清理，不递归删除旧安装目录，用户自行放入的文件保留。

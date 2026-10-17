@@ -80,6 +80,7 @@ chinesesimplified.VUninstalling=正在卸载 Vex…
 
 ; 复用已验证的精确 AppId 探测和卸载启动逻辑，不加载旧的视觉引擎。
 #include "CodeWF.Setup.Maintenance.iss"
+#include "Vex.Migration.iss"
 #include "Vex.Update.iss"
 
 [Code]
@@ -348,6 +349,7 @@ begin
     VStatus.Caption:=CustomMessage('VMaintenance');
     if CWMRepairPath<>'' then VDescription.Caption:=CustomMessage('VMaintenanceIntro')
     else VDescription.Caption:=CustomMessage('VRegistrationIntro');
+    if VMigrationNeeded then VDescription.Caption:=CustomMessage('VMigrationIntro');
   end;
   VCustom.Visible := Main and (Home or Maintenance);
   if Home then begin
@@ -415,6 +417,7 @@ begin
     if CWMPage.SelectedValueIndex>0 then WizardForm.NextButton.Caption:=CustomMessage('VRemove')
     else if CWMRepairPath<>'' then WizardForm.NextButton.Caption:=CustomMessage('VRepair')
     else WizardForm.NextButton.Caption:=CustomMessage('VContinueInstall');
+    if VMigrationNeeded and (CWMPage.SelectedValueIndex=0) then WizardForm.NextButton.Caption:=CustomMessage('VMigrate');
   end;
   VPaintBackground;
 end;

@@ -62,6 +62,9 @@ begin
     CWMRegistrations[1].AppPath:='C:\Program Files\Vex';
     CWMRegistrations[1].Uninstaller:='C:\Program Files\Vex\unins000.exe';
   #endif
+  #ifdef VexFixtureMigration
+    VMigrationNeeded:=True;
+  #endif
   CWMCreatePage;
   CWMPage.CheckListBox.OnClickCheck:=@VMaintenanceSelection;
 end;

@@ -7,7 +7,8 @@ param(
     [switch]$Cancel,
     [switch]$Maintenance,
     [switch]$UnknownLocation,
-    [switch]$Multiple
+    [switch]$Multiple,
+    [switch]$Migration
 )
 $ErrorActionPreference='Stop'
 if (-not $IsWindows) { throw '原生安装夹具仅支持 Windows。' }
@@ -104,7 +105,8 @@ try {
         Check ([CodeWFSetupFixtureDesktop]::PixelLightness((Join-Path $Output '01-welcome.png'),.5,.04) -lt 80) '深色界面无需修改系统主题'
     }
     if ($Maintenance) {
-        Check ($null -ne (Button '^Repair installation$|^修复安装$|^Install for the current user$|^为当前用户安装$')) '已有安装直接呈现原型维护入口'
+        Check ($null -ne (Button '^Repair installation$|^修复安装$|^Install for the current user$|^为当前用户安装$|^Upgrade and migrate$|^升级并迁移$')) '已有安装直接呈现原型维护入口'
+        if ($Migration) { Check ($null -ne (Button '^Upgrade and migrate$|^升级并迁移$')) '旧全用户安装明确提示升级并迁移' }
         Capture '02-maintenance'
         Click (Button '^Installation details$|^安装详情$')
         $list=Wait-For { @(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TNewCheckListBox' }) | Select-Object -First 1 } '可展开已有安装详情'

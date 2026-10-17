@@ -78,7 +78,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "markdownassociation"; Description: "{cm:MarkdownAssociation}"; GroupDescription: "{cm:FileAssociations}"
 
 [Files]
-Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "*.pdb,Vex.dll.config,Vex.exe.config"; Flags: ignoreversion recursesubdirs createallsubdirs
+; 设置不随升级覆盖，也不随卸载删除；迁移配置在复制载荷前恢复。
+Source: "{#SourceDir}\Vex.dll.config"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall skipifsourcedoesntexist
 
 [Icons]
 Name: "{autoprograms}\Vex"; Filename: "{app}\Vex.exe"; WorkingDir: "{app}"
