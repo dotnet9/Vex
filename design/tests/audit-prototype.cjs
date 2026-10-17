@@ -16,7 +16,7 @@ const { chromium } = require('playwright');
     await page.goto(standalone.url);
     const selectMode=async mode=>{for(let i=0;i<3&&await page.locator('html').getAttribute('data-theme-mode')!==mode;i++)await page.locator('#vex-mode-toggle').click();};
     const verifyButtonStates = async (palette, mode) => {
-      for (const [dialog, selector] of [['about', '#vex-update'], ['delete', '#layer-delete .btn.danger']]) {
+      for (const [dialog, selector] of [['about', '#about-check-updates'], ['delete', '#layer-delete .btn.danger']]) {
         await page.evaluate(name => VexProto.handleAction('dlg-' + name), dialog);
         const button = page.locator(selector);
         const inspect = async state => {

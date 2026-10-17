@@ -326,7 +326,19 @@
           <div class="about-row"><span class="k" data-l10n="AboutAuthorLabel"></span><span class="v" data-l10n="AboutAuthorName"></span></div>
           <div class="about-row"><span class="k" data-proto-label="链接">链接</span><span class="v about-links"><a href="https://codewf.com" data-proto-label="官网">官网</a><span aria-hidden="true">·</span><a href="https://github.com/dotnet9/Vex" data-proto-label="开源仓库">开源仓库</a></span></div>
         </div>
-        <div class="about-footer"><div class="about-foot" id="about-copyright">Copyright © 2026 Vex(维刻)</div><button class="btn primary" id="vex-update"></button><p id="vex-update-status" role="status" hidden></p></div>
+        <div class="about-footer"><div class="about-foot" id="about-copyright">Copyright © 2026 Vex(维刻)</div><button class="btn primary" id="about-check-updates" data-action="dlg-update" data-l10n="AboutCheckUpdate"></button></div>
+      </div>
+    </div>
+
+    <!-- 统一更新界面；所有入口保留同一份更新状态 -->
+    <div class="overlay win-layer" id="layer-update" hidden>
+      <div class="mini-window" style="width:520px;max-height:85vh;overflow:auto">
+        <div class="mini-titlebar"><span data-l10n="AboutCheckUpdate"></span><button class="caption-btn" data-close aria-label="Close">×</button></div>
+        <div style="padding:24px;display:grid;gap:16px">
+          <h2 style="margin:0">Vex</h2><p data-l10n="AboutUpdateHint" style="margin:0"></p>
+          <p id="vex-update-status" role="status" hidden style="margin:0"></p>
+          <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="vex-update-cancel" data-proto-label="取消" hidden>取消</button><button class="btn primary" id="vex-update"></button></div>
+        </div>
       </div>
     </div>
 

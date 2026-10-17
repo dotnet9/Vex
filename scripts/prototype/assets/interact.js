@@ -133,7 +133,7 @@
       { label: '新手引导', action: 'guide' }, { label: '更新日志', act: 'dlg-doc', arg: '更新日志' },
       { label: '鸣谢', act: 'dlg-doc', arg: '鸣谢' }, { sep: true },
       { label: '官方网站', toast: '官方网站：codewf.com' }, { label: '反馈', toast: '反馈入口：github.com/dotnet9/Vex/issues' },
-      { label: '关于 Vex', act: 'dlg-about' }
+      { label: '检查更新', act: 'dlg-update' }, { label: '关于 Vex', act: 'dlg-about' }
     ]}
   ];
   VexProto.menuData = MENUS;

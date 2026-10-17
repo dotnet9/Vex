@@ -62,10 +62,12 @@ const { chromium } = require('playwright');
     await page.setViewportSize({width:1280,height:840});
     await page.locator('#layer-doc [data-close]').click();
     await page.evaluate(()=>VexProto.handleAction('dlg-about'));
+    await page.locator('#about-check-updates').click();
+    assert.equal(await page.locator('#layer-about').isVisible(),false);
+    assert.equal(await page.locator('#layer-update').isVisible(),true);
     for(const scenario of ['available','current','missing','check-failed','download-failed','checksum-failed','install-failed']) {
       await page.evaluate(value=>VexUpdate.setScenario(value),scenario);
-      await page.locator('#vex-update').click();
-      const wait = state=>page.waitForFunction(state=>document.querySelector('#layer-about').dataset.updateState===state,state);
+      const wait = state=>page.waitForFunction(state=>document.querySelector('#layer-update').dataset.updateState===state,state);
       if(scenario==='check-failed'){await wait('failed');await page.locator('#vex-update').click();}
       await wait(scenario==='current'?'current':scenario==='missing'?'manual':'available');
       if(['current','missing'].includes(scenario))continue;
@@ -75,18 +77,23 @@ const { chromium } = require('playwright');
       if(scenario==='install-failed'){await wait('failed');await page.locator('#vex-update').click();}
       await wait('installed');
     }
-    await page.evaluate(()=>VexUpdate.setScenario('available'));await page.locator('#vex-update').click();
-    await page.locator('#layer-about [data-close]').click();
-    await page.waitForTimeout(300);
-    assert.equal(await page.locator('#layer-about').getAttribute('data-update-state'),'canceled');
-    await page.evaluate(()=>VexProto.handleAction('dlg-about'));
-    assert.equal(await page.locator('#vex-update').isEnabled(),true);
+    await page.evaluate(()=>VexUpdate.setScenario('available'));
+    await page.waitForFunction(()=>document.querySelector('#layer-update').dataset.updateState==='available');
     await page.locator('#vex-update').click();
-    await page.waitForFunction(()=>document.querySelector('#layer-about').dataset.updateState==='available');
-    await page.locator('#layer-about [data-close]').click();
+    await page.locator('#layer-update [data-close]').click();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('#layer-update').getAttribute('data-update-state'),'downloaded');
+    await page.evaluate(()=>VexProto.handleAction('dlg-about'));
+    await page.locator('#about-check-updates').click();
+    assert.equal(await page.locator('#vex-update').isEnabled(),true);
+    assert.equal(await page.locator('#layer-update').getAttribute('data-update-state'),'downloaded');
+    await page.locator('#layer-update [data-close]').click();
+    await page.evaluate(()=>VexProto.handleAction('dlg-update'));
+    assert.equal(await page.locator('#layer-update').getAttribute('data-update-state'),'downloaded');
+    await page.locator('#layer-update [data-close]').click();
     await page.reload();assert.equal(await page.locator('html').getAttribute('lang'),'ja-JP');
     assert.deepEqual(errors,[]);await standalone.verify(page);
     if(output)for(const width of [1280,980]){await page.setViewportSize({width,height:840});assert.ok(await page.evaluate(()=>{const menu=document.querySelector('.tb-menu').getBoundingClientRect(),controls=document.querySelector('#vex-theme-panel').getBoundingClientRect(),caption=document.querySelector('#caption-btns').getBoundingClientRect();return menu.right<=controls.left&&controls.right<=caption.left;}));await page.screenshot({path:path.join(output,'desktop-'+width+'.png')});}
-    console.log('PASS: compact About, four languages, generated version, single update action, seven update scenarios, retry, close cancellation and offline reload');
+    console.log('PASS: compact About, four languages, shared update view, seven update scenarios, retry, continued download on close and offline reload');
   } finally {await browser.close();standalone.dispose();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

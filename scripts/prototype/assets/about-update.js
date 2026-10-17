@@ -8,7 +8,8 @@
   function render() {
     $('vex-update').textContent = state === 'failed' ? VexL.label('重试') : VexL.get(labels[state]);
     $('vex-update').disabled = ['checking','downloading','installing'].includes(state);
-    $('layer-about').dataset.updateState = state;
+    $('layer-update').dataset.updateState = state;
+    $('vex-update-cancel').hidden = !['checking','downloading','installing'].includes(state);
     const key = { checking:'AboutCheckingUpdate', available:'AboutUpdateAvailable', downloading:'AboutDownloading', downloaded:'AboutDownloaded', installing:'AboutInstalling', current:'AboutUpToDate', canceled:'AboutCanceled' }[state];
     const message = state === 'failed' ? VexL.label(failureMessages[scenario]) : state === 'installed' ? VexL.label('更新已安装。') : state === 'manual' ? VexL.label('请前往发布页下载安装包。') : key ? VexL.get(key).replace('{0}', '99.0.0') : '';
     $('vex-update-status').textContent = message;
@@ -36,13 +37,14 @@
     else if (state === 'manual') window.open('https://github.com/dotnet9/Vex/releases/latest', '_blank', 'noopener,noreferrer');
     else operation('checking');
   };
-  $('layer-about').querySelector('[data-close]').addEventListener('click', cancel);
-  new MutationObserver(() => { if ($('layer-about').hidden) cancel(); }).observe($('layer-about'), {attributes:true,attributeFilter:['hidden']});
+  $('vex-update-cancel').onclick = cancel;
+  new MutationObserver(() => { if (!$('layer-update').hidden && state === 'idle') operation('checking'); }).observe($('layer-update'), {attributes:true,attributeFilter:['hidden']});
   window.addEventListener('vex-language-changed', render);
   // 自动化验证可选择失败场景；演示开关不进入产品界面。
   window.VexUpdate = { setScenario(value) {
     if (!['available','current','missing','check-failed','download-failed','checksum-failed','install-failed'].includes(value)) return;
     cancel(); scenario = value; state = 'idle'; failures.clear(); render();
+    if (!$('layer-update').hidden) operation('checking');
   } };
   render();
 })();
