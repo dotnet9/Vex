@@ -30,7 +30,7 @@ Windows x64 NativeAOT 实际界面：
 
 本机已验证文件参数打开、表格自然列宽、动态切语、深色与配色分别保存并在重启后恢复，以及关于与更新流程。Windows 安装器支持三种 Markdown 扩展名的打开候选、右键入口与图标；本轮复核未更改默认应用，Linux/macOS 和多 DPI 仍需各平台验收。
 
-[1.6.0 发布前验证](docs/verification-v1.6.0.md) 记录正式 NuGet 依赖下的构建、回归与安装包门禁；历史 [1.5.9 本机验证记录](docs/verification-v1.5.9.md) 区分离屏、资源自检和 NativeAOT 窗口验收。
+[1.6.1 发布前验证](docs/verification-v1.6.1.md) 记录更新流程和 Windows 安装器修复；[1.6.0 发布前验证](docs/verification-v1.6.0.md) 记录正式 NuGet 依赖下的构建、回归与安装包门禁；历史 [1.5.9 本机验证记录](docs/verification-v1.5.9.md) 区分离屏、资源自检和 NativeAOT 窗口验收。
 
 [大文件性能与稳定性验证](docs/性能与稳定性验证-20261017.md) 记录混合语法、长代码、密集公式、文档切换与多视图压力测试；原型还原目标及验收边界见 [原型对照验收](design/原型对照验收.md)。
 
@@ -45,7 +45,7 @@ Windows x64 NativeAOT 实际界面：
 
 ## 仓库规范
 
-- 当前版本：`1.6.0`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
+- 当前版本：`1.6.1`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
 - NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net10.0` / `net10.0-windows`。
 - 根目录 `logo.svg`、`logo.png`、`logo.ico` 是唯一图标源，子工程只通过 MSBuild `Link` 引用，不维护图标副本。
 - 运行时帮助、Markdown 示例、内置备忘录、设计说明等业务文档按功能保留；仓库级入口文档使用根目录 `README.md` 和 `UpdateLog.md`。
@@ -163,7 +163,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 
 应用语言 JSON 保留在输出目录 `I18n/Vex/`，支持中文、英文、繁体中文和日文动态切换；库内默认翻译由 NuGet 程序集提供。修改资源后执行 `dotnet tool restore` 和 `dotnet tool run t4 -- src/Vex/I18n/Language.tt -o src/Vex/I18n/Language.cs` 更新强类型映射。
 
-「帮助 → 关于」提供版本、运行平台、编译时间及检查/下载/取消/安装更新。下载由 Toolkit 验证 SHA256；缺少平台安装包或校验文件时打开发布页。普通构建与发布版本统一来自版本属性，稳定版 .NET 10 SDK 由 `global.json` 选择。
+「帮助 → 检查更新」和「帮助 → 关于 → 检查更新」打开同一个更新界面，统一检查、下载、取消及安装，关闭界面后下载继续，再次打开保留状态。下载由 Toolkit 验证 SHA256；缺少平台安装包或校验文件时打开发布页。Windows 安装器显示窗口并确认就绪后才请求关闭 Vex；启动未确认时保留应用，可重试或打开安装包所在目录，安装器日志为同目录的 `.install.log` 文件。普通构建与发布版本统一来自版本属性，稳定版 .NET 10 SDK 由 `global.json` 选择。
 
 ```powershell
 dotnet restore Vex.slnx
