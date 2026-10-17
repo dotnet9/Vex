@@ -211,10 +211,9 @@ begin
   ExtractTemporaryFile('Vex-License.txt');
   if not LoadStringFromFile(ExpandConstant('{tmp}\Vex-License.txt'),LicenseText) then
     RaiseException('Unable to read the embedded MIT license.');
-  Dialog := CreateCustomForm;
+  Dialog := CreateCustomForm(ScaleX(600), ScaleY(410), False, False);
   try
     Dialog.Caption := CustomMessage('VLicense');
-    Dialog.ClientWidth := ScaleX(600); Dialog.ClientHeight := ScaleY(410);
     Memo := TRichEditViewer.Create(Dialog); Memo.Parent := Dialog;
     Memo.SetBounds(ScaleX(20),ScaleY(20),ScaleX(560),ScaleY(320));
     Memo.ReadOnly := True; Memo.ScrollBars := ssVertical;
