@@ -18,6 +18,10 @@ namespace Vex.Modules.Shell.Services;
 /// </summary>
 public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer localizer) : IShellOverlayService
 {
+    public Task<Vex.Modules.Workspace.Services.TableDimensions?> ShowInsertTableAsync() =>
+        OverlayDialog.ShowCustomAsync<Vex.Modules.Workspace.Services.TableDimensions>(
+            new ShellInsertTableOverlayView(), new ShellInsertTableModel(), options: CreateOptions());
+
     /// <summary>信息型浮层尺寸约束（与宿主窗口尺寸联动，超长内容内部滚动）。</summary>
     private static OverlayDialogOptions CreateOptions(bool fullScreen = false) => new()
     {
@@ -50,6 +54,12 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
             url => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }),
             () => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown());
         await ShowAsync(new ShellAboutOverlayView(), model);
+        if (model.WantsChangelog)
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "docs", "UpdateLog.md");
+            if (!File.Exists(path)) path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Resources", "docs", "UpdateLog.md"));
+            await ShowDocumentAsync(localizer.Get(VexL.Changelog), await File.ReadAllTextAsync(path), path, "Simple", "Normal");
+        }
     }
 
     public Task ShowDocumentAsync(

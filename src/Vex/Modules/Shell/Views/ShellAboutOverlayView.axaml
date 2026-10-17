@@ -1,66 +1,38 @@
-<UserControl
-    x:Class="Vex.Modules.Shell.Views.ShellAboutOverlayView"
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:i18n="https://codewf.com"
-    xmlns:l="clr-namespace:Vex"
-    xmlns:vm="clr-namespace:Vex.Modules.Shell.ViewModels"
-    x:DataType="vm:ShellAboutViewModel">
-    <Border Classes="dialog-card" Width="580" MaxHeight="700">
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="18">
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                    <Image Width="40" Height="40" Source="/Assets/logo.png" />
-                    <StackPanel Grid.Column="1" Spacing="3">
-                        <TextBlock FontSize="20" FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.AppName}}" />
-                        <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutDescription}}" TextWrapping="Wrap" />
-                    </StackPanel>
-                </Grid>
-                <Border Padding="14" CornerRadius="10" Background="{DynamicResource VexAccentSoftBrush}">
-                    <StackPanel Spacing="10">
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                            <StackPanel Spacing="5">
-                                <TextBlock FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.AboutCheckUpdateLabel}}" />
-                                <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutUpdateHint}}" TextWrapping="Wrap" />
-                            </StackPanel>
-                            <Button Grid.Column="1" Classes="primary" VerticalAlignment="Center" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" MinWidth="110" />
-                        </Grid>
-                        <TextBlock Text="{Binding StatusText}" IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" TextWrapping="Wrap" />
-                        <ProgressBar IsVisible="{Binding IsDownloading}" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100" />
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{Binding ProgressText}" IsVisible="{Binding IsDownloading}" />
-                            <Button Grid.Column="1" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsBusy}" />
-                        </Grid>
-                        <Expander Header="{i18n:I18n {x:Static l:VexL.AboutReleaseNotes}}" IsVisible="{Binding ReleaseNotes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                            <TextBlock MaxHeight="160" Text="{Binding ReleaseNotes}" TextWrapping="Wrap" />
-                        </Expander>
-                    </StackPanel>
-                </Border>
-                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="16">
-                    <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutVersionLabel}}" />
-                    <Border Grid.Column="1" Padding="10,2" HorizontalAlignment="Left" Background="{DynamicResource VexAccentSoftBrush}" CornerRadius="9">
-                        <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource VexAccentBrush}" Text="{Binding VersionText}" />
-                    </Border>
-                    <TextBlock Grid.Row="1" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutPlatformLabel}}" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PlatformText}" TextWrapping="Wrap" />
-                    <TextBlock Grid.Row="2" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutCompileTimeLabel}}" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CompileTimeText}" />
-                    <TextBlock Grid.Row="3" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorLabel}}" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorName}}" />
-                    <TextBlock Grid.Row="4" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutRepositoryLabel}}" />
-                    <Button Grid.Row="4" Grid.Column="1" Classes="link" HorizontalAlignment="Left" Command="{Binding RepositoryCommand}" Content="https://github.com/dotnet9/Vex" />
-                    <TextBlock Grid.Row="5" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutWebsiteLabel}}" />
-                    <Button Grid.Row="5" Grid.Column="1" Classes="link" HorizontalAlignment="Left" Command="{Binding WebsiteCommand}" Content="https://codewf.com" />
-                    <TextBlock Grid.Row="6" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutBrandLabel}}" />
-                    <TextBlock Grid.Row="6" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutBrandName}}" />
-                    <TextBlock Grid.Row="7" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.AboutCopyrightLabel}}" />
-                    <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding CopyrightText}" TextWrapping="Wrap" />
-                </Grid>
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
-                    <Button Command="{Binding CheckCommand}" IsVisible="{Binding CanRecheck}" Content="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}" />
-                    <Button Click="Close_OnClick" Content="{i18n:I18n {x:Static l:VexL.Close}}" MinWidth="86" />
-                </StackPanel>
-            </StackPanel>
-        </ScrollViewer>
+<UserControl x:Class="Vex.Modules.Shell.Views.ShellAboutOverlayView"
+ xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellAboutViewModel">
+ <UserControl.Styles>
+  <Style Selector="Button.about-link"><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="Normal"/><Setter Property="Template"><ControlTemplate><ContentPresenter Content="{TemplateBinding Content}" Foreground="{DynamicResource VexAccentBrush}" FontSize="{TemplateBinding FontSize}"/></ControlTemplate></Setter></Style>
+  <Style Selector="Button.about-link:pointerover"><Setter Property="Opacity" Value="0.7"/></Style>
+ </UserControl.Styles>
+ <Border Classes="dialog-card" Width="460" MaxHeight="540" Padding="0" CornerRadius="9" ClipToBounds="True">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+   <StackPanel>
+    <Border Height="44" Padding="14,0,6,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}">
+     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center"><TextBlock Text="{i18n:I18n {x:Static l:VexL.AboutVexTitle}}" FontSize="12" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="vex-dismiss" Click="Close_OnClick" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
     </Border>
+    <Grid Margin="32,28,32,0" ColumnDefinitions="48,*" ColumnSpacing="14">
+     <Border Width="48" Height="48" Background="{DynamicResource VexTitleGradBrush}" CornerRadius="12"><TextBlock Text="V" FontSize="26" FontWeight="ExtraBold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+     <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center"><TextBlock Text="维刻 Vex" FontSize="23" LineHeight="32" FontWeight="Bold"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.Slogan}}" FontSize="12" LineHeight="20.4" Classes="muted" TextWrapping="Wrap"/></StackPanel>
+    </Grid>
+    <Grid Margin="32,26,32,0" ColumnDefinitions="Auto,*" RowDefinitions="23,23,23,23" ColumnSpacing="24" RowSpacing="13">
+     <TextBlock Text="{i18n:I18n {x:Static l:VexL.AboutVersionLabel}}" FontSize="12.5" Classes="muted" VerticalAlignment="Center"/>
+     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center"><Border Padding="10,2" CornerRadius="12" Background="{DynamicResource VexAccentSoftBrush}"><TextBlock Text="{Binding VersionText}" Foreground="{DynamicResource VexAccentBrush}" FontSize="11.5" FontWeight="SemiBold"/></Border><Button Classes="about-link" Content="{i18n:I18n {x:Static l:VexL.Changelog}}" Command="{Binding ChangelogCommand}" Padding="0" MinHeight="0" FontSize="12.5"/></StackPanel>
+     <TextBlock Grid.Row="1" Text="{i18n:I18n {x:Static l:VexL.AboutPlatformLabel}}" FontSize="12.5" Classes="muted"/><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PlatformText}" FontSize="12.5" TextWrapping="Wrap"/>
+     <TextBlock Grid.Row="2" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorLabel}}" FontSize="12.5" Classes="muted"/><TextBlock Grid.Row="2" Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.AboutAuthorName}}" FontSize="12.5" TextWrapping="Wrap"/>
+     <TextBlock Grid.Row="3" Text="{i18n:I18n Vex.VexL.WSLinks}" FontSize="12.5" Classes="muted"/>
+     <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="12"><Button Classes="about-link" Command="{Binding WebsiteCommand}" Content="{i18n:I18n {x:Static l:VexL.Website}}" Padding="0" MinHeight="0" FontSize="12.5"/><TextBlock Text="·" Classes="muted"/><Button Classes="about-link" Command="{Binding RepositoryCommand}" Content="{i18n:I18n Vex.VexL.WSRepository}" Padding="0" MinHeight="0" FontSize="12.5"/></StackPanel>
+    </Grid>
+    <Border Margin="32,26,32,0" Padding="0,18,0,22" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}">
+     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="0">
+      <TextBlock Text="{Binding CopyrightText}" Classes="muted" FontSize="11" VerticalAlignment="Center"/>
+      <Button x:Name="UpdateAction" Grid.Column="1" Classes="primary" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" MinWidth="110" MinHeight="32" Padding="12,5" FontSize="11" CornerRadius="7"/>
+      <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,10,0,0" Text="{Binding StatusText}" IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" FontSize="12" TextWrapping="Wrap" Classes="muted"/>
+      <ProgressBar Margin="0,10,0,0" Grid.Row="2" Grid.ColumnSpan="2" Height="3" IsVisible="{Binding IsDownloading}" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100"/>
+      <Button Margin="0,10,0,0" Grid.Row="3" Grid.Column="1" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsBusy}" Classes="wb-quiet"/>
+     </Grid>
+    </Border>
+   </StackPanel>
+  </ScrollViewer>
+ </Border>
 </UserControl>

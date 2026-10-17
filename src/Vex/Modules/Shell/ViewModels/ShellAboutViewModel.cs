@@ -35,18 +35,21 @@ public sealed class ShellAboutViewModel : ReactiveObject, IDialogContext, IDispo
         _exit = exit;
         assembly ??= typeof(App).Assembly;
         VersionText = UpdateVersion.Display(assembly);
-        PlatformText = $"{RuntimeInformation.FrameworkDescription} · Avalonia {typeof(Avalonia.Application).Assembly.GetName().Version}";
+        PlatformText = ".NET 10，Avalonia";
         CompileTimeText = assembly.CompileTime()?.ToString("yyyy-MM-dd HH:mm:ss", localizer.Culture) ?? "—";
-        CopyrightText = assembly.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright ?? string.Empty;
+        CopyrightText = "Copyright © 2026 Vex(维刻)";
         var available = this.WhenAnyValue(model => model.IsBusy).Select(busy => !busy);
         UpdateCommand = ReactiveCommand.CreateFromTask(AdvanceAsync, available);
         CheckCommand = ReactiveCommand.CreateFromTask(CheckAsync, available);
         CancelCommand = ReactiveCommand.Create(() => _operation?.Cancel());
         RepositoryCommand = ReactiveCommand.Create(() => OpenUrl("https://github.com/dotnet9/Vex"));
         WebsiteCommand = ReactiveCommand.Create(() => OpenUrl("https://codewf.com"));
+        ChangelogCommand = ReactiveCommand.Create(() => { WantsChangelog = true; Close(); });
         _localizer.CultureChanged += OnCultureChanged;
     }
 
+    public bool WantsChangelog { get; private set; }
+    public ReactiveCommand<Unit, Unit> ChangelogCommand { get; }
     public string VersionText { get; }
     public string PlatformText { get; }
     public string CompileTimeText { get; }
@@ -169,6 +172,7 @@ public sealed class ShellAboutViewModel : ReactiveObject, IDialogContext, IDispo
         _lifetime.Cancel();
         _localizer.CultureChanged -= OnCultureChanged;
         _lifetime.Dispose();
+        ChangelogCommand.Dispose();
         UpdateCommand.Dispose();
         CheckCommand.Dispose();
         CancelCommand.Dispose();

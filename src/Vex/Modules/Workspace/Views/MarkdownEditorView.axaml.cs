@@ -21,6 +21,7 @@ public partial class MarkdownEditorView : UserControl
     public MarkdownEditorView()
     {
         InitializeComponent();
+        MarkdownEditor.Editor.FontFamily = Vex.Core.Services.VexFonts.Code;
         DataContextChanged += (_, _) => AttachViewModel();
         AttachedToVisualTree += (_, _) => AttachViewModel();
         DetachedFromVisualTree += (_, _) =>

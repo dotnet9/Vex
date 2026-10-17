@@ -20,41 +20,37 @@
                     ToolTip.Tip="{Binding Preview}" ToolTip.IsEnabled="{Binding IsDocument}">
                 <Grid>
                     <Border Classes="file-bar" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}" HorizontalAlignment="Left" />
-                    <Grid Height="32" Margin="10 0" ColumnDefinitions="15,*,Auto" ColumnSpacing="7">
-                        <Path Classes="stroke-ico tree-ico" IsVisible="{Binding IsFolder}"
+                    <Grid Height="30" Margin="10 0" ColumnDefinitions="15,*,Auto" ColumnSpacing="7">
+                        <Path Classes="stroke-ico tree-ico" VerticalAlignment="Center" IsVisible="{Binding IsFolder}"
                               Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                        <Path Classes="stroke-ico tree-ico" IsVisible="{Binding IsDocument}"
-                              Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8" />
-                        <TextBlock Grid.Column="1" Classes="file-heading" IsVisible="{Binding IsFolder}"
+                        <Path Classes="stroke-ico tree-ico" VerticalAlignment="Center" IsVisible="{Binding IsDocument}"
+                              Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+                        <TextBlock Grid.Column="1" MinHeight="16" Classes="file-heading" IsVisible="{Binding IsFolder}"
                                    VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Grid.Column="1" Classes="file-title" IsVisible="{Binding IsDocument}"
+                        <TextBlock Grid.Column="1" MinHeight="16" Classes="file-title" IsVisible="{Binding IsDocument}"
                                    VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock
-                            Grid.Column="2"
-                            Classes="file-muted"
-                            FontSize="11"
-                            VerticalAlignment="Center"
-                            IsVisible="{Binding IsDocument}"
-                            Text="{Binding DocumentFile.ModifiedText}" />
+
                     </Grid>
                 </Grid>
             </Border>
         </TreeDataTemplate>
     </UserControl.DataTemplates>
 
+    <UserControl.Styles><Style Selector="Path.tree-ico"><Setter Property="Width" Value="13"/><Setter Property="Height" Value="13"/><Setter Property="StrokeThickness" Value="1.5"/></Style></UserControl.Styles>
     <Grid RowDefinitions="Auto,Auto,*">
         <!-- 文件页直接展示当前目录，打开目录入口使用图标避免重复标题占据空间。 -->
-        <Grid Margin="14,6,10,2" ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <TextBlock Text="{Binding WorkspaceName}" FontSize="12" Foreground="{DynamicResource VexMutedBrush}"
+        <Grid Grid.Row="1" Margin="14,4,10,0" ColumnDefinitions="16,*,Auto" ColumnSpacing="8">
+            <Path Classes="stroke-ico" Width="14" Height="14" StrokeThickness="1.5" VerticalAlignment="Center" Data="M22 19H2V5H9L12 8H22Z"/>
+            <TextBlock Grid.Column="1" Text="{Binding WorkspaceName}" FontSize="12" Foreground="{DynamicResource VexMutedBrush}"
                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-            <Button Grid.Column="1" Classes="wb-quiet" Command="{Binding OpenFolderAsync}" Width="28" Height="28" MinHeight="0" Padding="6"
+            <Button Grid.Column="2" Classes="wb-quiet" Command="{Binding OpenFolderAsync}" Width="28" Height="28" MinHeight="0" Padding="6"
                     ToolTip.Tip="{i18n:I18n {x:Static l:VexL.OpenFolder}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.OpenFolder}}">
                 <PathIcon Width="16" Height="16" Data="{DynamicResource SemiIconFolderOpen}" />
             </Button>
         </Grid>
         <TextBox
-            Grid.Row="1"
-            Margin="10 6 10 8"
+            Grid.Row="0"
+            Margin="14 8 14 8"
             MinHeight="30"
             FontSize="11.5"
             Foreground="{DynamicResource VexValueBrush}"

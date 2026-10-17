@@ -31,6 +31,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string McpAllowedWorkspacePath = nameof(AppSettings.McpAllowedWorkspacePath);
     private const string McpRequireConfirmation = nameof(AppSettings.McpRequireConfirmation);
     private const string WorkbenchView = nameof(AppSettings.WorkbenchView);
+    private const string WorkspaceLayout = nameof(AppSettings.WorkspaceLayout);
     private const string EditMode = nameof(AppSettings.EditMode);
     private const string MindMapSummaryLength = nameof(AppSettings.MindMapSummaryLength);
     private const string MindMapShowParagraphs = nameof(AppSettings.MindMapShowParagraphs);
@@ -102,6 +103,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             McpAllowedWorkspacePath = Get<string>(configuration, McpAllowedWorkspacePath),
             McpRequireConfirmation = Get<bool?>(configuration, McpRequireConfirmation),
             WorkbenchView = Get<string>(configuration, WorkbenchView),
+            WorkspaceLayout = Get<string>(configuration, WorkspaceLayout),
             EditMode = Get<string>(configuration, EditMode),
             MindMapSummaryLength = Get<int?>(configuration, MindMapSummaryLength),
             MindMapShowParagraphs = Get<bool?>(configuration, MindMapShowParagraphs),
@@ -147,6 +149,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [McpAllowedWorkspacePath] = settings.McpAllowedWorkspacePath,
                 [McpRequireConfirmation] = settings.McpRequireConfirmation,
                 [WorkbenchView] = settings.WorkbenchView,
+                [WorkspaceLayout] = settings.WorkspaceLayout,
                 [EditMode] = settings.EditMode,
                 [MindMapSummaryLength] = settings.MindMapSummaryLength,
                 [MindMapShowParagraphs] = settings.MindMapShowParagraphs,

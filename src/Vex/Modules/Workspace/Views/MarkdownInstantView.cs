@@ -16,22 +16,16 @@ public sealed class MarkdownInstantView : UserControl
 {
     public MarkdownLiveEditorView Editor { get; } = new()
     {
-        HeaderText = null, ChipText = null, EditorFontSize = 14.5, DocumentMaxWidth = 1280, DocumentBlockSpacing = 7, DocumentPadding = new Thickness(44, 42, 44, 70),
+        HeaderText = null, ChipText = null, EditorFontSize = 14.5, CodeFontFamily = Vex.Core.Services.VexFonts.Code, DocumentMaxWidth = 1280, DocumentBlockSpacing = 0, DocumentPadding = new Thickness(44, 34, 44, 70),
         EditorBackgroundKey = "VexPreviewBackgroundBrush", EditorForegroundKey = "VexEditorForegroundBrush"
     };
     private ShellWorkbenchViewModel? _workbench;
     private ShellWindowLayoutViewModel? _layout;
     public MarkdownInstantView()
     {
-        var hint = new TextBlock { FontSize = 10, Margin = new Thickness(20, 9) };
-        hint.Bind(TextBlock.TextProperty, new Binding("Workbench.InstantHint"));
-        hint.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("VexMutedBrush"));
-        var footer = new Border { Child = hint, BorderThickness = new Thickness(0, 1, 0, 0) };
-        footer.Bind(Border.BorderBrushProperty, this.GetResourceObservable("VexPanelBorderBrush"));
-        footer.Bind(Border.BackgroundProperty, this.GetResourceObservable("VexPanelBackgroundBrush"));
-        var grid = new Grid { RowDefinitions = new RowDefinitions("*,Auto") };
+        var grid = new Grid();
         grid.Bind(BackgroundProperty, this.GetResourceObservable("VexPreviewBackgroundBrush"));
-        grid.Children.Add(Editor); Grid.SetRow(footer, 1); grid.Children.Add(footer); Content = grid;
+        grid.Children.Add(Editor); Content = grid;
         AttachedToVisualTree += (_, _) => EventBus.Default.Subscribe(this);
         DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
         SizeChanged += (_, _) => UpdatePadding();
@@ -76,7 +70,7 @@ public sealed class MarkdownInstantView : UserControl
     private void UpdatePadding()
     {
         var narrow = Bounds.Width < 850;
-        Editor.DocumentPadding = new Thickness(narrow ? 32 : 44, narrow ? 34 : 42,
+        Editor.DocumentPadding = new Thickness(narrow ? 32 : 44, narrow ? 26 : 34,
             narrow ? 32 : 44, _layout?.IsTypewriterMode == true ? Math.Max(70, Editor.Bounds.Height / 2) : narrow ? 60 : 70);
     }
 

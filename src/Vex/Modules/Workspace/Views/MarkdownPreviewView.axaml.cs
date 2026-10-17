@@ -18,18 +18,33 @@ public partial class MarkdownPreviewView : UserControl
         base.OnPropertyChanged(change);
         if (change.Property == IsReadingModeProperty && PreviewMarkdownViewer is not null)
         {
-            PaneHeader.IsVisible = !IsReadingMode;
-            PreviewMarkdownViewer.MaxWidth = IsReadingMode ? 1192 : double.PositiveInfinity;
-            PreviewMarkdownViewer.Margin = IsReadingMode ? new Thickness(44, 44, 44, 60) : new Thickness(30, 22, 30, 30);
+            PaneHeader.IsVisible = false;
+            PreviewMarkdownViewer.Classes.Set("reading-flow", IsReadingMode);
+            ApplyDocumentGeometry();
         }
     }
     private MarkdownPreviewViewModel? _viewModel;
     private MarkdownViewer.MarkdownReadingPosition? _savedReadingPosition;
+    private MarkdownViewer.MarkdownReadingPosition? _presentationReadingPosition;
+    private string? _presentationReadingSource;
     private bool _restoringScrollPosition;
     private int _appliedRefreshVersion;
     private int _appliedNavigationSequence;
     private long _lastReadingPositionSampleTick;
     private int _restoreAttempts;
+    private void ApplyDocumentGeometry()
+    {
+        var presenting = _viewModel?.IsPresenting == true;
+        var zoom = _viewModel?.PresentationZoom ?? 1;
+        DocumentTransform.HorizontalAlignment = presenting ? Avalonia.Layout.HorizontalAlignment.Center : Avalonia.Layout.HorizontalAlignment.Stretch;
+        DocumentTransform.LayoutTransform = presenting ? new Avalonia.Media.ScaleTransform(zoom, zoom) : null;
+        DocumentTransform.Margin = presenting ? new Thickness(44, 40, 44, 60) : default;
+        if (presenting) PreviewMarkdownViewer.Width = Math.Min(1104, Math.Max(100, PreviewScrollViewer.Bounds.Width - 88)) / zoom;
+        else PreviewMarkdownViewer.ClearValue(WidthProperty);
+        PreviewMarkdownViewer.MaxWidth = presenting ? 1104 / zoom : IsReadingMode ? 1192 : double.PositiveInfinity;
+        PreviewMarkdownViewer.Margin = presenting ? default
+            : IsReadingMode ? new Thickness(44, 40, 44, 60) : new Thickness(30, 22, 30, 30);
+    }
 
     public MarkdownPreviewView()
     {
@@ -38,16 +53,19 @@ public partial class MarkdownPreviewView : UserControl
         AttachedToVisualTree += OnAttachedToVisualTree;
         DetachedFromVisualTree += (_, _) => SetViewModel(null);
         PreviewScrollViewer.ScrollChanged += OnPreviewScrollChanged;
-        PreviewMarkdownViewer.TaskWriteBackRequested += OnTaskWriteBackRequested;
+        PreviewScrollViewer.SizeChanged += (_, _) => { if (_viewModel?.IsPresenting == true) ApplyDocumentGeometry(); };
         DetachedFromVisualTree += (_, _) => PreviewMarkdownViewer.TaskWriteBackRequested -= OnTaskWriteBackRequested;
         // 大纲跳转不经过预览视图模型，直接订阅总线，避免被「属性值未变」过滤掉。
-        EventBus.Default.Subscribe(this);
         DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
         SetViewModel(DataContext as MarkdownPreviewViewModel);
     }
 
     private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
+        SetViewModel(DataContext as MarkdownPreviewViewModel);
+        EventBus.Default.Subscribe(this);
+        PreviewMarkdownViewer.TaskWriteBackRequested -= OnTaskWriteBackRequested;
+        PreviewMarkdownViewer.TaskWriteBackRequested += OnTaskWriteBackRequested;
         // 阅读位置由库统一按「块序号 + 块内比例」采集与恢复，这里只需把滚动宿主交给 Viewer。
         PreviewMarkdownViewer.ScrollHost = PreviewScrollViewer;
     }
@@ -63,7 +81,7 @@ public partial class MarkdownPreviewView : UserControl
 
     private void OnPreviewScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
-        if (_restoringScrollPosition)
+        if (_restoringScrollPosition || _viewModel?.IsPresenting == true)
         {
             return;
         }
@@ -111,6 +129,11 @@ public partial class MarkdownPreviewView : UserControl
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown) && _viewModel?.IsPresenting == true)
+        {
+            Dispatcher.UIThread.Post(() => PreviewScrollViewer.Offset = default, DispatcherPriority.Loaded);
+            return;
+        }
         if (e.PropertyName is nameof(MarkdownPreviewViewModel.PreviewSourceLine)
             or nameof(MarkdownPreviewViewModel.PreviewScrollRatio)
             or nameof(MarkdownPreviewViewModel.Markdown))
@@ -123,13 +146,31 @@ public partial class MarkdownPreviewView : UserControl
         }
         else if (e.PropertyName == nameof(MarkdownPreviewViewModel.IsPresenting))
         {
-            if (_viewModel?.IsPresenting == true) PreviewScrollViewer.Focus();
-            QueueRestoreReadingPosition();
+            if (_viewModel?.IsPresenting == true)
+            {
+                _presentationReadingPosition = PreviewMarkdownViewer.SaveReadingPosition();
+                _presentationReadingSource = PreviewMarkdownViewer.CurrentModel.Source;
+            }
+            else
+            {
+                _savedReadingPosition = _viewModel?.Markdown == _presentationReadingSource ? _presentationReadingPosition : null;
+                _presentationReadingPosition = null; _presentationReadingSource = null;
+            }
+            ApplyDocumentGeometry();
+            if (_viewModel?.IsPresenting == true) { PreviewScrollViewer.Focus(); PreviewScrollViewer.Offset = default; }
+            else QueueRestoreReadingPosition();
         }
         else if (e.PropertyName is nameof(MarkdownPreviewViewModel.PresentationZoom)
                  or nameof(MarkdownPreviewViewModel.TypographyTheme)
                  or nameof(MarkdownPreviewViewModel.TypographySize))
         {
+            if (_viewModel?.IsPresenting == true)
+            {
+                var position = PreviewMarkdownViewer.SaveReadingPosition();
+                ApplyDocumentGeometry();
+                if (position is not null) Dispatcher.UIThread.Post(() => PreviewMarkdownViewer.RestoreReadingPosition(position), DispatcherPriority.Loaded);
+                return;
+            }
             // 主题/排版切换会整篇重渲染并重置滚动，按块位置恢复切换前的阅读位置。
             QueueRestoreReadingPosition();
         }
@@ -151,6 +192,7 @@ public partial class MarkdownPreviewView : UserControl
     /// 点击大纲跳转同步预览。重复点击同一项时选中值与光标都不会变化，
     /// 因此按事件序号判断是否为一次新的跳转，保证「点一次就到我这里」。
     /// </summary>
+    [EventHandler]
     private void OnNavigateToLine(NavigateToLineCommand command)
     {
         if (command.Sequence == _appliedNavigationSequence || _viewModel is null)
@@ -184,7 +226,10 @@ public partial class MarkdownPreviewView : UserControl
             return;
         }
 
-        if (PreviewMarkdownViewer.RestoreReadingPosition(_savedReadingPosition))
+        // Markdown 绑定先更新，后台的全文模型稍后才到。不能把全文锚点恢复到
+        // 仍在显示的演示短节上，否则库按短节块数夹取后就会被误认为已完成。
+        if (PreviewMarkdownViewer.CurrentModel.Source == _viewModel?.Markdown
+            && PreviewMarkdownViewer.RestoreReadingPosition(_savedReadingPosition))
         {
             _restoringScrollPosition = false;
             return;
@@ -213,7 +258,7 @@ public partial class MarkdownPreviewView : UserControl
 
     private void ScrollToEditorPosition()
     {
-        if (_viewModel is null || _restoringScrollPosition)
+        if (_viewModel is null || _restoringScrollPosition || _viewModel.IsPresenting)
         {
             return;
         }

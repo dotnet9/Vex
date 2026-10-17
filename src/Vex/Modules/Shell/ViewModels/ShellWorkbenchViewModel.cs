@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Markdown.Editor.Services;
 using CodeWF.Avalonia.MindView.Markdown;
@@ -6,11 +6,12 @@ using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
+using Vex.Core.Models;
 
 namespace Vex.Modules.Shell.ViewModels;
 
 /// <summary>文档始终保存在 Workspace 状态中，三个视图只改变呈现和交互方式。</summary>
-public sealed class ShellWorkbenchViewModel : ReactiveObject
+public sealed partial class ShellWorkbenchViewModel : ReactiveObject
 {
     private readonly IWorkspaceDocumentState _document;
     private readonly IAppSettingsStore _settings;
@@ -19,6 +20,8 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     private readonly ShellWindowLayoutViewModel _layout;
     private string _view;
     private string _edit;
+    private string _workspaceLayout = "instant";
+    private bool _showLayouts;
     private int _summaryLength;
     private bool _showParagraphs;
     private bool _showCode;
@@ -33,8 +36,10 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     private bool _syncingLive;
     private int _mapVersion;
     private string? _mapDocumentPath;
+    private string? _mapMarkdown;
     private int _visibleNodeCount;
     private bool _isPresenting;
+    private bool _reportedPresentationMap;
     private double _presentationZoom = 1.5;
     private (string View, string Edit, Avalonia.Controls.WindowState WindowState, MarkdownLiveEditorState? LiveState)? _presentationSnapshot;
 
@@ -45,12 +50,25 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
         display.Changed += (_, _) => { if (_live is { } live) live.EnableAutoPair = display.EnableAutoPair; };
         _view = settings.Current.WorkbenchView is "read" or "mindmap" ? settings.Current.WorkbenchView : "edit";
         _edit = settings.Current.EditMode == "source" ? "source" : "instant";
+        _workspaceLayout = WorkbenchLayoutOption.All.Any(option => option.Id == settings.Current.WorkspaceLayout)
+            ? settings.Current.WorkspaceLayout! : _view == "mindmap" ? "map" : _view == "read" ? "read" : _edit;
+        if (LayoutOption.Editor is { } initialMode) _edit = initialMode;
         _summaryLength = Math.Clamp(settings.Current.MindMapSummaryLength ?? 30, 1, 120);
         _showParagraphs = settings.Current.MindMapShowParagraphs ?? true;
         _showCode = settings.Current.MindMapShowCode ?? false;
         _showTables = settings.Current.MindMapShowTables ?? false;
         _showLists = settings.Current.MindMapShowLists ?? true;
-        document.DocumentChanged += (_, _) => { SynchronizeLive(); QueueMap(); };
+        History.Reset(document.Markdown);
+        document.DocumentChanged += (_, _) =>
+        {
+            History.Observe(document.Markdown); SynchronizeLive(); QueueMap();
+            if (IsPresenting)
+            {
+                // 演示期间外部打开文件或更新正文，退出时不能重放旧文档的编辑快照。
+                if (_presentationSnapshot is { } snapshot) _presentationSnapshot = (snapshot.View, snapshot.Edit, snapshot.WindowState, null);
+                BuildPresentation(); NotifyPresentation();
+            }
+        };
         appearance.Changed += (_, _) => ApplyLiveAppearance();
         CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += OnCultureChanged;
         ApplyLayout(); QueueMap();
@@ -73,15 +91,21 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     public bool IsEditing => _view == "edit";
     public bool IsReading => _view == "read";
     public bool IsMindMap => _view == "mindmap";
-    public bool IsInstantEditing => IsEditing && _edit == "instant";
-    public bool IsSourceEditing => IsEditing && _edit == "source";
-    public bool IsSourceVisible => IsSourceEditing || IsMindMap && ShowMapSource;
+    public string WorkspaceLayout => _workspaceLayout;
+    public WorkbenchLayoutOption LayoutOption => WorkbenchLayoutOption.All.First(option => option.Id == _workspaceLayout);
+    public bool HasEditor => !IsPresenting && LayoutOption.Editor is not null;
+    public bool IsCombined => !IsPresenting && (LayoutOption.Render && LayoutOption.Map || HasEditor && (LayoutOption.Render || LayoutOption.Map));
+    public bool IsMapVisible => IsPresenting ? PresentationMap : LayoutOption.Map;
+    public bool ShowLayouts { get => _showLayouts; set => this.RaiseAndSetIfChanged(ref _showLayouts, value); }
+    public bool IsInstantEditing => HasEditor && _edit == "instant";
+    public bool IsSourceEditing => HasEditor && _edit == "source";
+    public bool IsSourceVisible => IsSourceEditing;
     public int MapColumn => IsMindMap && ShowMapSource ? 2 : 0;
     public int MapSpan => ShowMapSource ? 1 : 3;
     public bool HasSelectedNode => SelectedNode is not null;
-    public bool IsPreviewVisible => IsReading;
+    public bool IsPreviewVisible => IsPresenting ? PresentationDocument : LayoutOption.Render;
     public bool IsPresenting => _isPresenting;
-    public bool ShowEditorOptions => !IsMindMap && !IsPresenting;
+    public bool ShowEditorOptions => HasEditor && !IsPresenting;
     public double PresentationZoom => _presentationZoom;
     public bool CanIncreasePresentationText => PresentationZoom < 2.5;
     public bool CanDecreasePresentationText => PresentationZoom > 1;
@@ -92,11 +116,14 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
         _presentationSnapshot = (_view, _edit, _layout.CurrentWindowState, IsInstantEditing ? _live?.CaptureState() : null);
         _layout.IsPresentationMode = true;
         _isPresenting = true;
+        _presentationMap = _view == "mindmap";
+        BuildPresentation();
         _view = "read";
-        ShowTypography = false; ShowMapSettings = false;
+        ShowTypography = false; ShowMapSettings = false; ShowLayouts = false; CloseInspector();
         _presentationZoom = 1.5;
         _layout.CurrentWindowState = Avalonia.Controls.WindowState.FullScreen;
-        NotifyModes(); NotifyPresentation();
+        // 先暂停副窗口，再通知布局变化，避免布局整理把原副窗口直接关闭。
+        NotifyPresentation(true); NotifyModes();
     }
     public void StopPresentation()
     {
@@ -106,8 +133,12 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
         NotifyModes();
         _layout.CurrentWindowState = snapshot.WindowState;
         _layout.IsPresentationMode = false;
-        NotifyPresentation();
+        NotifyPresentation(true);
+        _presentationDocument = null;
+        _presentationMarkdown = string.Empty;
+        this.RaisePropertyChanged(nameof(PresentationSections));
         if (snapshot.LiveState is { } liveState && _live is { } live) live.RestoreState(liveState);
+        else if (IsInstantEditing) SynchronizeLive();
         else if (IsSourceEditing) CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorActionCommand(EditorActionKind.FocusEditor));
     }
     public void IncreasePresentationText() => SetPresentationZoom(PresentationZoom + .1);
@@ -117,17 +148,11 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
         _presentationZoom = Math.Round(Math.Clamp(value, 1, 2.5), 1);
         NotifyPresentation();
     }
-    private void NotifyPresentation()
+    private void NotifyPresentation(bool modeChanged = false)
     {
-        foreach (var name in new[] { nameof(IsPresenting), nameof(ShowEditorOptions), nameof(PresentationZoom), nameof(CanIncreasePresentationText), nameof(CanDecreasePresentationText) }) this.RaisePropertyChanged(name);
-    }
-    public bool HandlePresentationKey(Avalonia.Input.Key key)
-    {
-        if (!IsPresenting) return false;
-        if (key is Avalonia.Input.Key.Escape or Avalonia.Input.Key.F11) { StopPresentation(); return true; }
-        if (key is Avalonia.Input.Key.Add or Avalonia.Input.Key.OemPlus) { IncreasePresentationText(); return true; }
-        if (key is Avalonia.Input.Key.Subtract or Avalonia.Input.Key.OemMinus) { DecreasePresentationText(); return true; }
-        return false;
+        if (modeChanged) this.RaisePropertyChanged(nameof(IsPresenting));
+        if (_reportedPresentationMap != PresentationMap) { _reportedPresentationMap = PresentationMap; this.RaisePropertyChanged(nameof(PresentationMap)); }
+        foreach (var name in new[] { nameof(ShowEditorOptions), nameof(PresentationZoom), nameof(CanIncreasePresentationText), nameof(CanDecreasePresentationText), nameof(PresentationMarkdown), nameof(PresentationIndex), nameof(PresentationProgress), nameof(PresentationOutline), nameof(PresentationDocument), nameof(PresentationContentMargin), nameof(CanPreviousPresentation), nameof(CanNextPresentation), nameof(IsMapVisible), nameof(IsPreviewVisible) }) this.RaisePropertyChanged(name);
     }
     private static string L(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
     public string EditingHint => L(IsInstantEditing ? VexL.WBInstantDescription : IsReading ? VexL.WBReadDescription : VexL.WBSourceDescription);
@@ -155,29 +180,46 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
     public MarkdownMindMapNode? SelectedNode
     {
         get => _selected;
-        set { this.RaiseAndSetIfChanged(ref _selected, value); this.RaisePropertyChanged(nameof(HasSelectedNode)); this.RaisePropertyChanged(nameof(SelectedFullText)); this.RaisePropertyChanged(nameof(SelectedSourceLabel)); this.RaisePropertyChanged(nameof(SelectedKindLabel)); this.RaisePropertyChanged(nameof(SelectedTitle)); }
+        set { this.RaiseAndSetIfChanged(ref _selected, value); this.RaisePropertyChanged(nameof(HasSelectedNode)); this.RaisePropertyChanged(nameof(SelectedFullText)); this.RaisePropertyChanged(nameof(SelectedSourceLabel)); this.RaisePropertyChanged(nameof(SelectedKindLabel)); this.RaisePropertyChanged(nameof(SelectedTitle)); NotifyChapter(); }
     }
     public string SelectedFullText => SelectedNode?.FullText ?? string.Empty;
     public string SelectedSourceLabel => SelectedNode is { } node ? string.Format(L(VexL.WBSourceLineFormat), node.SourceLine) : string.Empty;
-    public bool ShowMapSource { get => _showMapSource; set { this.RaiseAndSetIfChanged(ref _showMapSource, value); NotifyModes(); } }
+    public bool ShowMapSource { get => _showMapSource; set { if (value != _showMapSource) SelectLayout(value ? "source-map" : "map"); } }
     public bool ShowMapSettings { get => _showMapSettings; set { this.RaiseAndSetIfChanged(ref _showMapSettings, value); if (value) CloseInspector(); } }
     public bool ShowTypography { get => _showTypography; set => this.RaiseAndSetIfChanged(ref _showTypography, value); }
     public int SummaryLength { get => _summaryLength; set { var length = Math.Clamp(value, 1, 120); if (_summaryLength == length) return; this.RaiseAndSetIfChanged(ref _summaryLength, length); UpdateMapOptions(); } }
     public bool ShowParagraphs { get => _showParagraphs; set { this.RaiseAndSetIfChanged(ref _showParagraphs, value); UpdateMapOptions(); } }
-    public bool ShowCode { get => _showCode; set { this.RaiseAndSetIfChanged(ref _showCode, value); UpdateMapOptions(); } }
-    public bool ShowTables { get => _showTables; set { this.RaiseAndSetIfChanged(ref _showTables, value); UpdateMapOptions(); } }
+    public bool ShowCode { get => _showCode; set { this.RaiseAndSetIfChanged(ref _showCode, value); this.RaisePropertyChanged(nameof(ShowRichBlocks)); UpdateMapOptions(); } }
+    public bool ShowTables { get => _showTables; set { this.RaiseAndSetIfChanged(ref _showTables, value); this.RaisePropertyChanged(nameof(ShowRichBlocks)); UpdateMapOptions(); } }
+    public bool ShowRichBlocks { get => ShowCode && ShowTables; set { ShowCode = value; ShowTables = value; } }
     public bool ShowLists { get => _showLists; set { this.RaiseAndSetIfChanged(ref _showLists, value); UpdateMapOptions(); } }
     public MarkdownLiveEditorView? LiveEditor => _live;
     public event EventHandler<MarkdownMindMapNode>? SourceNavigationRequested;
     public event EventHandler? GuideExitRequested;
     public void ExitGuide() => GuideExitRequested?.Invoke(this, EventArgs.Empty);
+    public bool IsGuiding { get; set; }
+    public int GuideStep { get; set; }
 
     public void ShowEdit() => SelectView("edit");
     public void ShowRead() => SelectView("read");
     public void ShowMindMap() => SelectView("mindmap");
-    public void ShowInstant() { _edit = "instant"; SelectView("edit"); }
-    public void ShowSource() { _edit = "source"; SelectView("edit"); }
-    public void ToggleMapSource() => ShowMapSource = !ShowMapSource;
+    public void ShowInstant() => SelectLayout(IsMapVisible ? "instant-map" : "instant");
+    public void ShowSource() => SelectLayout(IsMapVisible ? IsPreviewVisible ? "three" : "source-map" : IsPreviewVisible && !IsReading ? "source-render" : "source");
+    public void ToggleMapSource() => SelectLayout(HasEditor ? "map" : "source-map");
+    public void ToggleLayouts() => ShowLayouts = !ShowLayouts;
+    public void SelectLayout(string id)
+    {
+        var option = WorkbenchLayoutOption.All.FirstOrDefault(option => option.Id == id);
+        if (option is null) return;
+        History.BreakGroup();
+        _workspaceLayout = id;
+        if (option.Editor is { } mode) _edit = mode;
+        _view = option.Editor is not null ? "edit" : option.Map ? "mindmap" : "read";
+        _showMapSource = option.Map && option.Editor == "source";
+        if (IsInstantEditing) SynchronizeLive();
+        NotifyModes();
+        _settings.Update(s => s with { WorkspaceLayout = id, WorkbenchView = _view, EditMode = _edit });
+    }
     public void ToggleMapSettings() => ShowMapSettings = !ShowMapSettings;
     public void OpenMapSettings() { ShowMindMap(); ShowMapSettings = true; }
     public void ToggleTypography() => ShowTypography = !ShowTypography;
@@ -194,19 +236,17 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
         _showCode = settings?.MindMapShowCode ?? false;
         _showTables = settings?.MindMapShowTables ?? false;
         _showLists = settings?.MindMapShowLists ?? true;
-        foreach (var name in new[] { nameof(SummaryLength), nameof(ShowParagraphs), nameof(ShowCode), nameof(ShowTables), nameof(ShowLists) }) this.RaisePropertyChanged(name);
-        SelectView(view); QueueMap();
+        foreach (var name in new[] { nameof(SummaryLength), nameof(ShowParagraphs), nameof(ShowCode), nameof(ShowTables), nameof(ShowRichBlocks), nameof(ShowLists) }) this.RaisePropertyChanged(name);
+        SelectLayout(settings?.WorkspaceLayout ?? (view == "read" ? "read" : view == "mindmap" ? "map" : edit)); QueueMap();
     }
     private void SelectView(string view)
     {
-        _view = view; ShowTypography = false;
-        if (IsInstantEditing) SynchronizeLive();
-        NotifyModes();
-        _settings.Update(s => s with { WorkbenchView = _view, EditMode = _edit });
+        ShowTypography = false;
+        SelectLayout(view == "read" ? "read" : view == "mindmap" ? "map" : _edit);
     }
     private void NotifyModes()
     {
-        foreach (var name in new[] { nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions) }) this.RaisePropertyChanged(name);
         ApplyLayout();
     }
     private void ApplyLayout()
@@ -239,13 +279,26 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
             var selectedId = sameDocument ? SelectedNode?.Id : null;
             if (!sameDocument) Root = null;
             _mapDocumentPath = documentPath;
+            _mapMarkdown = markdown;
             Root = root;
-            SelectedNode = Find(root, selectedId);
+            SelectedNode = _pendingChapterStart is { } start ? Flatten(root).FirstOrDefault(node => node.Kind == MarkdownMindMapNodeKind.Heading && node.SourceStart == start) : Find(root, selectedId);
+            _pendingChapterStart = null;
             this.RaisePropertyChanged(nameof(ImageBasePath));
             this.RaisePropertyChanged(nameof(SummaryPreview));
         }, DispatcherPriority.Background);
         static MarkdownMindMapNode? Find(MarkdownMindMapNode node, string? id) => node.Id == id ? node
             : node.Children.Select(child => Find(child, id)).FirstOrDefault(child => child is not null);
+    }
+    private void RefreshChapterMap()
+    {
+        ++_mapVersion;
+        var markdown = _document.Markdown;
+        var title = _document.FilePath is { } path ? Path.GetFileNameWithoutExtension(path) : WorkbenchText.Get("Untitled");
+        _mapMarkdown = markdown; _mapDocumentPath = _document.FilePath;
+        Root = MarkdownMindMapDocument.Parse(markdown, title, new MarkdownMindMapOptions
+        { SummaryLength = SummaryLength, ShowParagraphs = ShowParagraphs, ShowCode = ShowCode, ShowTables = ShowTables, ShowLists = ShowLists });
+        SelectedNode = _pendingChapterStart is { } start ? Flatten(Root).FirstOrDefault(node => node.Kind == MarkdownMindMapNodeKind.Heading && node.SourceStart == start) : null;
+        _pendingChapterStart = null;
     }
     public void AttachLiveEditor(MarkdownLiveEditorView editor)
     {
@@ -290,6 +343,6 @@ public sealed class ShellWorkbenchViewModel : ReactiveObject
         if (_live is null) return;
         _live.TypographyTheme = _appearance.TypographyTheme;
         _live.TypographySize = _appearance.TypographySize;
-        _live.DocumentBlockSpacing = _appearance.TypographySize == "Small" ? 3 : 7;
+        _live.DocumentBlockSpacing = _appearance.TypographyTheme == "Simple" ? 0 : _appearance.TypographySize == "Small" ? 3 : 7;
     }
 }

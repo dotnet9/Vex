@@ -44,6 +44,8 @@ public sealed class ShellActionCoordinator
     {
         try
         {
+            if (_shell.Workbench.IsGuiding && (_shell.Workbench.GuideStep != 5
+                || command.Action is not (ShellActionKind.Save or ShellActionKind.SaveAs or ShellActionKind.Export or ShellActionKind.CopyHtml))) return;
             if (command.Action is ShellActionKind.NewDocument or ShellActionKind.Open or ShellActionKind.OpenFolder
                 or ShellActionKind.QuickOpen or ShellActionKind.OpenRecentDocument or ShellActionKind.ReopenWithEncoding
                 or ShellActionKind.CloseDocument or ShellActionKind.Delete)
@@ -153,7 +155,7 @@ public sealed class ShellActionCoordinator
         var path = await _overlay.ShowQuickOpenAsync(viewModel);
         if (!string.IsNullOrWhiteSpace(path))
         {
-            await _shell.OpenPathAsync(path);
+            await _shell.OpenStartupDocumentAsync([path]);
         }
     }
 

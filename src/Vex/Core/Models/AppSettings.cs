@@ -3,6 +3,7 @@ namespace Vex.Core.Models;
 public sealed record AppSettings
 {
     public string? WorkbenchView { get; init; }
+    public string? WorkspaceLayout { get; init; }
     public string? EditMode { get; init; }
     public int? MindMapSummaryLength { get; init; }
     public bool? MindMapShowParagraphs { get; init; }

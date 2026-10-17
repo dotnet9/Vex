@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:model="using:Vex.Modules.Workspace.Services"
+             xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+             x:Class="Vex.Modules.Shell.Views.ShellPresentationOutlineView" x:DataType="vm:MainWindowViewModel">
+  <Grid RowDefinitions="Auto,*" Margin="64,96,64,42" MaxWidth="1200">
+    <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}" FontSize="28" FontWeight="SemiBold" Margin="14,0,0,22"/>
+    <ListBox x:Name="PresentationChapters" Grid.Row="1" ItemsSource="{Binding Workbench.PresentationSections}" SelectedIndex="{Binding Workbench.PresentationIndex, Mode=OneWay}"
+             Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <ListBox.Styles><Style Selector="ListBoxItem"><Setter Property="Padding" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style></ListBox.Styles>
+      <ListBox.ItemTemplate><DataTemplate x:DataType="model:MarkdownPresentationDocument+Section">
+        <Button Classes="wb-quiet" Click="ChapterClick" Tag="{Binding Index}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="14,12" Margin="{Binding Indent}">
+          <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12">
+            <TextBlock Text="{Binding Level, StringFormat='H{0}'}" FontSize="12" Opacity="0.55" VerticalAlignment="Center"/>
+            <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="20" TextWrapping="Wrap"/>
+            <TextBlock Grid.Column="2" Text="→" FontSize="18" Opacity="0.55" VerticalAlignment="Center"/>
+          </Grid>
+        </Button>
+      </DataTemplate></ListBox.ItemTemplate>
+    </ListBox>
+  </Grid>
+</UserControl>

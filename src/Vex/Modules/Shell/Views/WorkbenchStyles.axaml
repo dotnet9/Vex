@@ -56,14 +56,17 @@
   <Style Selector="ListBox.typography-grid"><Setter Property="Padding" Value="0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/></Style>
   <Style Selector="ListBox.typography-grid ListBoxItem"><Setter Property="Width" Value="98"/><Setter Property="Padding" Value="4"/><Setter Property="Margin" Value="0"/><Setter Property="MinHeight" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Center"/></Style>
   <Style Selector="ListBox.typography-grid ListBoxItem:selected"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="CornerRadius" Value="7"/></Style>
+  <Style Selector="Border.typography-card"><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/></Style>
+  <Style Selector="ListBox.typography-grid ListBoxItem:selected Border.typography-card"><Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/></Style>
   <Style Selector="Button.wb-format, Button.wb-format-extra">
     <Setter Property="Width" Value="28"/><Setter Property="Height" Value="28"/><Setter Property="MinHeight" Value="0"/><Setter Property="MinWidth" Value="0"/>
     <Setter Property="Padding" Value="5"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/>
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/><Setter Property="CornerRadius" Value="5"/>
   </Style>
-  <Style Selector="Button.wb-format PathIcon"><Setter Property="Width" Value="17"/><Setter Property="Height" Value="17"/></Style>
+  <Style Selector="Button.wb-format PathIcon"><Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/></Style>
+  <Style Selector="Path.format-stroke"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/><Setter Property="StrokeThickness" Value="1.8"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/></Style>
   <Style Selector="Button.wb-format-extra"><Setter Property="Width" Value="160"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="FontSize" Value="12"/></Style>
   <Style Selector="u|ToolBar.wb-formatbar /template/ ToggleButton#button"><Setter Property="Focusable" Value="False"/><Setter Property="ToolTip.Tip" Value="{i18n:I18n {x:Static l:VexL.WBMoreFormatting}}"/></Style>
-  <Style Selector="Border.presentation-tools"><Setter Property="Opacity" Value="0.2"/><Setter Property="Transitions"><Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.2"/></Transitions></Setter></Style>
+  <Style Selector="Border.presentation-tools"><Setter Property="Opacity" Value="0.75"/><Setter Property="Transitions"><Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.2"/></Transitions></Setter></Style>
   <Style Selector="Border.presentation-tools:pointerover, Border.presentation-tools:focus-within"><Setter Property="Opacity" Value="1"/></Style>
 </Styles>

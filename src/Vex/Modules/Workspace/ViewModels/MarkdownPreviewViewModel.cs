@@ -21,6 +21,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     private int _remoteImageRefreshVersion;
     private string _typographySize;
     private string? _typographyTheme;
+    private double _notifiedPresentationZoom = 1;
 
     public MarkdownPreviewViewModel(
         IWorkspaceDocumentState documentState,
@@ -121,13 +122,17 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     {
         _sourceMarkdown = markdown ?? string.Empty;
         ImageBasePath = filePath;
-        Markdown = _sourceMarkdown;
+        Markdown = IsPresenting ? _workbench.PresentationMarkdown : _sourceMarkdown;
     }
 
     private void OnWorkbenchPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom))
-        { this.RaisePropertyChanged(nameof(IsPresenting)); this.RaisePropertyChanged(nameof(PresentationZoom)); }
+        if (e.PropertyName is nameof(_workbench.PresentationMarkdown) or nameof(_workbench.IsPresenting))
+            Markdown = IsPresenting ? _workbench.PresentationMarkdown : _sourceMarkdown;
+        if (e.PropertyName == nameof(_workbench.IsPresenting)) this.RaisePropertyChanged(nameof(IsPresenting));
+        if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom)
+            && _notifiedPresentationZoom != PresentationZoom)
+        { _notifiedPresentationZoom = PresentationZoom; this.RaisePropertyChanged(nameof(PresentationZoom)); }
         if (e.PropertyName == nameof(_workbench.IsSourceEditing))
         {
             this.RaisePropertyChanged(nameof(IsTaskEditingEnabled));

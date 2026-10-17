@@ -32,8 +32,7 @@
             Grid.Row="1"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto" Focusable="True">
-            <LayoutTransformControl>
-                <LayoutTransformControl.LayoutTransform><ScaleTransform ScaleX="{Binding PresentationZoom}" ScaleY="{Binding PresentationZoom}"/></LayoutTransformControl.LayoutTransform>
+            <LayoutTransformControl x:Name="DocumentTransform">
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
                 IsTaskEditingEnabled="{Binding IsTaskEditingEnabled}"

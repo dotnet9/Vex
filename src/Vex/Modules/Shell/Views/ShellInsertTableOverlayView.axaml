@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+             xmlns:views="using:Vex.Modules.Shell.Views"
+             x:Class="Vex.Modules.Shell.Views.ShellInsertTableOverlayView" x:DataType="views:ShellInsertTableModel">
+  <Border Classes="dialog-card" Width="360">
+    <StackPanel Spacing="20">
+      <TextBlock FontSize="16" FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.InsertTable}}"/>
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="16" RowDefinitions="Auto,Auto" RowSpacing="8">
+        <Label Target="{Binding #TableRows}" Content="{i18n:I18n {x:Static l:VexL.TableRows}}" Padding="0"/>
+        <Label Grid.Column="1" Target="{Binding #TableColumns}" Content="{i18n:I18n {x:Static l:VexL.TableColumns}}" Padding="0"/>
+        <NumericUpDown x:Name="TableRows" Grid.Row="1" Value="{Binding Rows}" Minimum="1" Maximum="100" Increment="1" FormatString="0"/>
+        <NumericUpDown x:Name="TableColumns" Grid.Row="1" Grid.Column="1" Value="{Binding Columns}" Minimum="1" Maximum="20" Increment="1" FormatString="0"/>
+      </Grid>
+      <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.TableHeaderHint}}" FontSize="12"/>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+        <Button x:Name="CancelTable" MinWidth="76" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" Click="Cancel_OnClick"/>
+        <Button x:Name="ConfirmTable" MinWidth="76" Classes="primary" Content="{i18n:I18n {x:Static l:VexL.Insert}}" IsEnabled="{Binding IsValid}" Click="Insert_OnClick"/>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</UserControl>

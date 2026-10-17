@@ -33,6 +33,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     private string _lastSavedMarkdown = string.Empty;
     private string _markdown = string.Empty;
     private long _documentVersion;
+    private long _documentOpenVersion;
     private string? _currentWorkspaceFolderPath;
     private (DocumentSnapshot Document, string LastSaved, long Version, IReadOnlyList<DocumentFile> Files, string? Folder)? _guideDocument;
     private string? _watchedFilePath;
@@ -165,7 +166,7 @@ public sealed class MainWindowViewModel : ReactiveObject
                 _text.BeforeOpeningFile(_document.FileName, target.FileName ?? path),
                 GuardedAction(
                     VexL.ErrorMessageCannotOpenFileFormat,
-                    async () => ApplyDocument(await _documentService.OpenPathAsync(path)),
+                    () => LoadDocumentPathAsync(path),
                     path));
         }
     }
@@ -300,8 +301,7 @@ public sealed class MainWindowViewModel : ReactiveObject
                 VexL.ErrorMessageCannotOpenFileFormat,
                 async () =>
                 {
-                    ApplyDocument(await _documentService.OpenPathAsync(path, encodingName));
-                    opened = true;
+                    opened = await LoadDocumentPathAsync(path, encodingName);
                 },
                 path));
         return opened;
@@ -346,6 +346,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private void NewDocumentCore(bool stopFolderWatcher = true)
     {
+        ++_documentOpenVersion;
         StopCurrentFileWatcher();
         if (stopFolderWatcher)
         {
@@ -359,6 +360,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _text.PublishNewDocumentCreated();
         RefreshDocumentInfo();
         PublishWorkspaceDocumentState();
+        Workbench.ResetHistory();
         EditorActions.FocusEditor();
     }
 
@@ -376,6 +378,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private void CloseDocumentCore()
     {
+        ++_documentOpenVersion;
         StopCurrentFileWatcher();
         StopCurrentFolderWatcher();
         _drafts.Clear(_document);
@@ -388,6 +391,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         _text.PublishDocumentClosed();
         RefreshDocumentInfo();
         PublishWorkspaceDocumentState();
+        Workbench.ResetHistory();
         EditorActions.FocusEditor();
     }
 
@@ -401,8 +405,9 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private async Task OpenAsyncCore()
     {
+        var request = ++_documentOpenVersion;
         var snapshot = await _documentService.OpenAsync();
-        if (snapshot is not null)
+        if (snapshot is not null && request == _documentOpenVersion)
         {
             ApplyDocument(snapshot);
         }
@@ -435,7 +440,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         return items;
     }
 
-    /// <summary>按路径打开文档（快速打开选中项）。</summary>
+    /// <summary>按路径载入文档；交互入口先处理未保存确认。</summary>
     public Task OpenPathAsync(string path) => RunWithErrorOverlayAsync(
         VexL.ErrorMessageCannotOpenFile,
         () => OpenPathCoreAsync(path),
@@ -456,7 +461,25 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private async Task OpenPathCoreAsync(string path)
     {
-        ApplyDocument(await _documentService.OpenPathAsync(path));
+        await LoadDocumentPathAsync(path);
+    }
+
+    // 文件列表连续点击时，慢文件的较早结果不能覆盖用户最后选择的文件。
+    private async Task<bool> LoadDocumentPathAsync(string path, string? encodingName = null)
+    {
+        var request = ++_documentOpenVersion;
+        DocumentSnapshot snapshot;
+        try
+        {
+            snapshot = await _documentService.OpenPathAsync(path, encodingName);
+        }
+        catch when (request != _documentOpenVersion)
+        {
+            return false;
+        }
+        if (request != _documentOpenVersion) return false;
+        ApplyDocument(snapshot);
+        return true;
     }
 
     private async Task OpenFolderPathCoreAsync(string folder)
@@ -501,6 +524,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         if (DocumentInfo.CurrentFilePath?.Equals(file.Path,
                 OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) == true)
         {
+            ++_documentOpenVersion;
             return;
         }
 
@@ -516,8 +540,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private async Task OpenDocumentFileCoreAsync(DocumentFile file)
     {
-        var snapshot = await _documentService.OpenPathAsync(file.Path);
-        ApplyDocument(snapshot);
+        await LoadDocumentPathAsync(file.Path);
     }
 
     public async Task SaveAsync()
@@ -655,12 +678,13 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private async Task ReopenWithEncodingCoreAsync(string path, string encodingName)
     {
-        ApplyDocument(await _documentService.OpenPathAsync(path, encodingName));
-        _text.PublishReopenedWithEncoding(encodingName);
+        if (await LoadDocumentPathAsync(path, encodingName))
+            _text.PublishReopenedWithEncoding(encodingName);
     }
 
     private void ApplyDocument(DocumentSnapshot snapshot, bool updateMarkdown = true, bool restoreDraft = true)
     {
+        ++_documentOpenVersion;
         if (!IsSameDocument(_document, snapshot))
         {
             _drafts.Clear(_document);
@@ -689,6 +713,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         PublishWorkspaceDocumentState();
         StartCurrentFileWatcher();
         _text.PublishOpened(snapshot.FileName);
+        if (updateMarkdown) Workbench.ResetHistory();
         if (restoredDraft)
         {
             _statusPublisher.PublishResource(VexL.StatusRecoveredAutoSaveDraft);
@@ -957,7 +982,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             _text.BeforeOpeningRecent(_document.FileName, recent.DisplayText),
             GuardedAction(
                 VexL.ErrorMessageCannotOpenFileFormat,
-                async () => ApplyDocument(await _documentService.OpenPathAsync(path)),
+                async () => await LoadDocumentPathAsync(path),
                 path));
     }
 

@@ -40,6 +40,7 @@ public partial class App : PrismApplication
         // 在 Avalonia 12.1.3 下只剩分数线、字形全部缺失的问题。
         CodeWF.Avalonia.Markdown.MathRendering.CodeWFMarkdownMathExtensions.UseMath();
         CodeWF.Avalonia.Markdown.Mermaid.CodeWFMarkdownMermaidExtensions.EnsureRegistered();
+        CodeWF.Avalonia.Markdown.CodeWFMarkdownHtmlExtensions.UseHtmlTables();
         AvaloniaXamlLoader.Load(this);
         var langPlugin = new JsonLangPlugin
         {

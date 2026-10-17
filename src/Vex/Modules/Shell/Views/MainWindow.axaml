@@ -1,4 +1,4 @@
-﻿<codewf:CodeWFWindow
+<codewf:CodeWFWindow
     x:Class="Vex.Modules.Shell.Views.MainWindow" x:Name="ShellWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -19,6 +19,7 @@
     MinHeight="640"
     Icon="/Assets/logo.ico"
     TitleBarHeight="40"
+    CaptionButtonWidth="46" CaptionGlyphSize="14"
     IsTitleBarVisible="{Binding !Workbench.IsPresenting}"
     IsManagedResizerVisible="{Binding !Workbench.IsPresenting}"
     Topmost="{Binding Layout.IsAlwaysOnTop}"
@@ -61,6 +62,16 @@
     <codewf:CodeWFWindow.RightContent>
         <StackPanel x:Name="TitleBarAppearance" Orientation="Horizontal" Spacing="8" Margin="0,0,8,0"
                     VerticalAlignment="Center" IsEnabled="{Binding !IsInModalStatus, ElementName=ShellDialogHost}">
+            <ThemeVariantScope x:Name="TitleBarThemeScope"
+                               RequestedThemeVariant="{Binding Appearance.ThemeMode, Mode=TwoWay, Converter={x:Static codewf:StudioThemeModeConverter.Instance}}">
+                <ThemeVariantScope.Resources>
+                    <TextBlock x:Key="STRING_THEME_TOGGLE_SYSTEM" Text="{codewf:I18n {x:Static l:VexL.ThemeSystem}}" />
+                    <TextBlock x:Key="STRING_THEME_TOGGLE_LIGHT" Text="{codewf:I18n {x:Static l:VexL.ThemeLight}}" />
+                    <TextBlock x:Key="STRING_THEME_TOGGLE_DARK" Text="{codewf:I18n {x:Static l:VexL.ThemeDark}}" />
+                </ThemeVariantScope.Resources>
+                <u:ThemeToggleButton x:Name="TitleBarThemeToggle" Width="30" Height="30" IsThreeState="True"
+                                     TargetScope="{Binding #TitleBarThemeScope}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.MenuTheme}}" />
+            </ThemeVariantScope>
             <ListBox x:Name="TitleBarPalettes" ItemsSource="{Binding Appearance.PaletteOptions}"
                      SelectedItem="{Binding Appearance.SelectedPalette}" Background="Transparent" BorderThickness="0" Padding="0"
                      ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ThemeColor}}">
@@ -76,16 +87,6 @@
                     <Ellipse Width="13" Height="13" Fill="{Binding Swatch}" ToolTip.Tip="{i18n:I18n {Binding NameKey}}" />
                 </DataTemplate></ListBox.ItemTemplate>
             </ListBox>
-            <ThemeVariantScope x:Name="TitleBarThemeScope"
-                               RequestedThemeVariant="{Binding Appearance.ThemeMode, Mode=TwoWay, Converter={x:Static codewf:StudioThemeModeConverter.Instance}}">
-                <ThemeVariantScope.Resources>
-                    <TextBlock x:Key="STRING_THEME_TOGGLE_SYSTEM" Text="{codewf:I18n {x:Static l:VexL.ThemeSystem}}" />
-                    <TextBlock x:Key="STRING_THEME_TOGGLE_LIGHT" Text="{codewf:I18n {x:Static l:VexL.ThemeLight}}" />
-                    <TextBlock x:Key="STRING_THEME_TOGGLE_DARK" Text="{codewf:I18n {x:Static l:VexL.ThemeDark}}" />
-                </ThemeVariantScope.Resources>
-                <u:ThemeToggleButton x:Name="TitleBarThemeToggle" Width="30" Height="30" IsThreeState="True"
-                                     TargetScope="{Binding #TitleBarThemeScope}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.MenuTheme}}" />
-            </ThemeVariantScope>
             <ComboBox x:Name="TitleBarLanguageSelector" ItemsSource="{Binding Appearance.LanguageOptions}"
                       SelectedItem="{Binding Appearance.SelectedLanguage}" Width="50" Height="30" MinHeight="0" Padding="6,0"
                       HorizontalContentAlignment="Left" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.MenuLanguage}}">
@@ -107,7 +108,7 @@
         </Border>
 
         <shell:ShellWorkbenchToolbarView x:Name="WorkbenchToolbar" Grid.Row="0" IsVisible="{Binding !Workbench.IsPresenting}"/>
-        <Grid Grid.Row="2" x:Name="WorkspaceColumns">
+        <Grid Grid.Row="2" x:Name="WorkspaceColumns" IsVisible="{Binding !Workbench.PresentationOutline}" Margin="{Binding Workbench.PresentationContentMargin}">
             <Grid.ColumnDefinitions>
                 <!-- 列宽是侧栏尺寸的唯一来源，拖动结果直接通过双向绑定进入布局状态。 -->
                 <ColumnDefinition Width="{Binding Layout.SidebarColumnWidth, Mode=TwoWay}"
@@ -144,9 +145,10 @@
                 IsVisible="{Binding Layout.ShowSidebar}"
                 ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
 
-            <Grid Grid.Column="2" RowDefinitions="Auto,*">
-                <shell:ShellEditorOptionsView x:Name="EditorOptions"/>
-                <Grid Grid.Row="1">
+            <Grid Grid.Column="2" RowDefinitions="Auto,Auto,*">
+                <StackPanel x:Name="FloatingViewShelf" Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="12,4" IsVisible="False"/>
+                <shell:ShellEditorOptionsView x:Name="EditorOptions" Grid.Row="1"/>
+                <Grid x:Name="ViewSurface" Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="{Binding Workbench.SourceColumnWidth}"/>
                     <ColumnDefinition Width="{Binding Workbench.SplitterWidth}"/>
@@ -156,21 +158,23 @@
                 <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" ResizeDirection="Columns" IsVisible="{Binding Workbench.IsSourceVisible}" />
                 <workspace:MarkdownPreviewView x:Name="PreviewGuideTarget" IsReadingMode="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Workbench.IsReading}" Grid.Column="2" IsVisible="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Workbench.IsPreviewVisible}" />
                 <workspace:MarkdownInstantView x:Name="InstantGuideTarget" Grid.ColumnSpan="3" IsVisible="{Binding Workbench.IsInstantEditing}" />
-                <workspace:MarkdownMindMapHost x:Name="MindMapGuideTarget" Grid.Column="{Binding Workbench.MapColumn}" Grid.ColumnSpan="{Binding Workbench.MapSpan}" IsVisible="{Binding Workbench.IsMindMap}" />
+                <workspace:MarkdownMindMapHost x:Name="MindMapGuideTarget" Grid.Column="{Binding Workbench.MapColumn}" Grid.ColumnSpan="{Binding Workbench.MapSpan}" IsVisible="{Binding Workbench.IsMapVisible}" />
                 </Grid>
-                <Border x:Name="TypographyGallery" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="3" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top"
+                <Border x:Name="TypographyGallery" Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="3" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top"
                         Margin="18,48,18,18" Padding="18" Width="338" MaxHeight="520" CornerRadius="10" BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexPanelBackgroundBrush}">
                     <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
-                        <Grid ColumnDefinitions="*,Auto"><StackPanel Spacing="5"><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBTypographyTitle}}" FontSize="13" FontWeight="SemiBold"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBTypographyHint}}" Classes="muted" FontSize="10" TextWrapping="Wrap"/></StackPanel><Button Grid.Column="1" Content="×" Command="{Binding Workbench.ToggleTypography}" Padding="4"/></Grid>
+                        <Grid ColumnDefinitions="*,Auto"><StackPanel Spacing="5"><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBTypographyTitle}}" FontSize="13" FontWeight="SemiBold"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBTypographyHint}}" Classes="muted" FontSize="10" TextWrapping="Wrap"/></StackPanel><Button Grid.Column="1" Classes="vex-dismiss" Command="{Binding Workbench.ToggleTypography}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
                         <ListBox Classes="typography-grid" Grid.Row="1" ItemsSource="{Binding Appearance.TypographyOptions}" SelectedItem="{Binding Appearance.SelectedTypography, Mode=TwoWay}">
                             <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
                             <ListBox.ItemTemplate><DataTemplate x:DataType="model:TypographyOption">
-                                <Border Width="90" Height="58" Padding="6" ClipToBounds="True" BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}" CornerRadius="8">
+                                <Border Classes="typography-card" Width="90" Height="58" Padding="6" ClipToBounds="True" BorderThickness="1" CornerRadius="6">
                                     <StackPanel Spacing="6" HorizontalAlignment="Center"><StackPanel Width="36" Spacing="4"><Border Height="3" Background="{Binding SwatchColor}"/><Border Height="1" Background="{DynamicResource VexPanelBorderBrush}"/><Border Height="1" Width="26" HorizontalAlignment="Left" Background="{DynamicResource VexPanelBorderBrush}"/></StackPanel><TextBlock Text="{i18n:I18n {Binding NameKey}}" FontSize="10" TextAlignment="Center"/></StackPanel>
                                 </Border>
                             </DataTemplate></ListBox.ItemTemplate>
                         </ListBox>
-                        <CheckBox Grid.Row="2" Content="{i18n:I18n {x:Static l:VexL.CompactLayout}}" IsChecked="{Binding Appearance.IsCompactLayout, Mode=TwoWay}" FontSize="11"/>
+                        <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" Padding="0,14,0,0">
+                            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{i18n:I18n {x:Static l:VexL.CompactLayout}}" FontSize="11" VerticalAlignment="Center"/><CheckBox Grid.Column="1" IsChecked="{Binding Appearance.IsCompactLayout, Mode=TwoWay}" MinWidth="0" MinHeight="0"/></Grid>
+                        </Border>
                     </Grid>
                 </Border>
             </Grid>
@@ -180,13 +184,27 @@
             x:Name="StatusBarGuideTarget"
             Grid.Row="3" />
 
-        <Border x:Name="PresentationTools" Classes="presentation-tools" Grid.RowSpan="4" IsVisible="{Binding Workbench.IsPresenting}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="24" Padding="6" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="1" CornerRadius="8">
-            <StackPanel Orientation="Horizontal" Spacing="3">
-                <Button x:Name="PresentationSmaller" Classes="wb-quiet" Command="{Binding Workbench.DecreasePresentationText}" IsEnabled="{Binding Workbench.CanDecreasePresentationText}" Content="A−" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationSmaller}}"/>
-                <Button x:Name="PresentationLarger" Classes="wb-quiet" Command="{Binding Workbench.IncreasePresentationText}" IsEnabled="{Binding Workbench.CanIncreasePresentationText}" Content="A+" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationLarger}}"/>
-                <Button x:Name="PresentationExit" Classes="wb-quiet" Command="{Binding Workbench.StopPresentation}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}"><PathIcon Width="17" Height="17" Data="{DynamicResource SemiIconExit}"/></Button>
+        <shell:ShellPresentationOutlineView x:Name="PresentationOutline" Grid.RowSpan="4" IsVisible="{Binding Workbench.PresentationOutline}"/>
+        <Border x:Name="PresentationTools" Classes="presentation-tools" Grid.RowSpan="4" IsVisible="{Binding Workbench.IsPresenting}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="24" Padding="6" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="1" CornerRadius="8">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                <StackPanel Orientation="Horizontal" Spacing="3">
+                    <ToggleButton x:Name="PresentationDocumentToggle" Classes="wb-quiet" Command="{Binding Workbench.ShowPresentationDocument}" IsChecked="{Binding Workbench.PresentationDocument, Mode=OneWay}" Content="{i18n:I18n {x:Static l:VexL.WBPresentationContent}}" ToolTip.Tip="D"/>
+                    <ToggleButton x:Name="PresentationOutlineToggle" Classes="wb-quiet" Command="{Binding Workbench.ShowPresentationOutline}" IsChecked="{Binding Workbench.PresentationOutline, Mode=OneWay}" Content="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}" ToolTip.Tip="O"/>
+                    <ToggleButton x:Name="PresentationMapToggle" Classes="wb-quiet" Command="{Binding Workbench.ShowPresentationMap}" IsChecked="{Binding Workbench.PresentationMap, Mode=OneWay}" Content="{i18n:I18n {x:Static l:VexL.WBPresentationMap}}" ToolTip.Tip="M"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center" IsVisible="{Binding Workbench.PresentationDocument}">
+                    <Button x:Name="PresentationPrevious" Classes="wb-quiet" Content="←" Command="{Binding Workbench.PreviousPresentation}" IsEnabled="{Binding Workbench.CanPreviousPresentation}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationPrevious}}"/>
+                    <TextBlock Text="{Binding Workbench.PresentationProgress}" VerticalAlignment="Center" MinWidth="72" TextAlignment="Center"/>
+                    <Button x:Name="PresentationNext" Classes="wb-quiet" Content="→" Command="{Binding Workbench.NextPresentation}" IsEnabled="{Binding Workbench.CanNextPresentation}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationNext}}"/>
+                </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="3">
+                <Button x:Name="PresentationSmaller" Classes="wb-quiet" IsVisible="{Binding Workbench.PresentationDocument}" Command="{Binding Workbench.DecreasePresentationText}" IsEnabled="{Binding Workbench.CanDecreasePresentationText}" Content="A−" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationSmaller}}"/>
+                <Button x:Name="PresentationLarger" Classes="wb-quiet" IsVisible="{Binding Workbench.PresentationDocument}" Command="{Binding Workbench.IncreasePresentationText}" IsEnabled="{Binding Workbench.CanIncreasePresentationText}" Content="A+" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationLarger}}"/>
+                <Button x:Name="PresentationExit" Classes="vex-dismiss" Command="{Binding Workbench.StopPresentation}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}"/>
             </StackPanel>
+            </Grid>
         </Border>
+        <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18,56,130,18"/>
         <shell:WorkbenchGuideView x:Name="WorkbenchGuide" Grid.RowSpan="4"/>
         <!-- 自定义窗口不含 UrsaWindow 的默认宿主，显式复用 Ursa 浮层控件。 -->
         <u:OverlayDialogHost x:Name="ShellDialogHost" Grid.RowSpan="4" />

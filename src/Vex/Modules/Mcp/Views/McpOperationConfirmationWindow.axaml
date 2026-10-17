@@ -6,6 +6,7 @@
     xmlns:views="using:Vex.Modules.Mcp.Views"
     x:DataType="views:McpOperationConfirmationWindowModel"
     Title="{Binding Title}"
+    TitleBarHeight="40" CaptionButtonWidth="46" CaptionGlyphSize="14"
     Width="520"
     Height="390"
     MinWidth="480"

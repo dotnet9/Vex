@@ -9,7 +9,8 @@
           <Ellipse Width="5" Height="5" Fill="{DynamicResource VexWarningBrush}" IsVisible="{Binding DocumentInfo.IsModified}" VerticalAlignment="Center"/>
         </StackPanel>
       </Grid>
-      <Border x:Name="PerspectiveTarget" Grid.Column="1" Padding="3" VerticalAlignment="Center" CornerRadius="8" Background="{DynamicResource TextBlockCodeBackground}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="1">
+      <StackPanel Grid.Column="1" Margin="40,0,0,0" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+      <Border x:Name="PerspectiveTarget" Padding="3" VerticalAlignment="Center" CornerRadius="8" Background="{DynamicResource TextBlockCodeBackground}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="1">
         <Grid>
           <Border Width="86" Height="28" CornerRadius="5" HorizontalAlignment="Left" Margin="{Binding Workbench.ViewIndicatorMargin}" Background="{DynamicResource VexPanelBackgroundBrush}" BoxShadow="0 1 4 0 #12000000">
             <Border.Transitions><Transitions><ThicknessTransition Property="Margin" Duration="{DynamicResource MotionDurationMid}"/></Transitions></Border.Transitions>
@@ -21,10 +22,13 @@
           </StackPanel>
         </Grid>
       </Border>
+      <Button x:Name="LayoutButton" Command="{Binding Workbench.ToggleLayouts}" Background="Transparent" BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}" FontSize="11" Padding="12,6" CornerRadius="6"><StackPanel Orientation="Horizontal" Spacing="7"><Path Classes="wb-icon" Data="{StaticResource WBColumnsIcon}"/><TextBlock Text="{i18n:I18n Vex.VexL.WSLayout}"/><TextBlock Text="⌄"/></StackPanel></Button>
+      </StackPanel>
       <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
-        <Button x:Name="QuickStartButton" Classes="wb-quiet" Click="QuickStartClick"><StackPanel Orientation="Horizontal" Spacing="6"><Ellipse Width="5" Height="5" Fill="{DynamicResource VexAccentBrush}" VerticalAlignment="Center"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBQuickStart}}" Foreground="{DynamicResource VexAccentBrush}"/></StackPanel></Button>
+        <Button x:Name="PresentButton" Classes="wb-quiet" Command="{Binding Workbench.StartPresentation}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentation}}"><StackPanel Orientation="Horizontal" Spacing="6"><PathIcon Width="16" Height="16" Data="{DynamicResource SemiIconExpand}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBPresentationStart}}"/></StackPanel></Button>
+        <Button x:Name="QuickStartButton" Classes="wb-quiet" IsVisible="{Binding !Layout.IsCompactWindow}" Click="QuickStartClick"><StackPanel Orientation="Horizontal" Spacing="6"><Ellipse Width="5" Height="5" Fill="{DynamicResource VexAccentBrush}" VerticalAlignment="Center"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBQuickStart}}" Foreground="{DynamicResource VexAccentBrush}"/></StackPanel></Button>
         <Button Classes="wb-quiet" Command="{Binding ShowFindPanel}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Find}}" Padding="7"><Path Classes="wb-icon" Data="{StaticResource WBSearchIcon}"/></Button>
-        <Button Command="{Binding SaveAsync}" FontSize="11" Padding="10,4" MinHeight="28" CornerRadius="6"><StackPanel Orientation="Horizontal" Spacing="7"><Path Classes="wb-icon" Data="{StaticResource WBSaveIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.Save}}"/></StackPanel></Button>
+        <Button x:Name="SaveButton" Command="{Binding SaveAsync}" Background="Transparent" BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}" FontSize="11" Padding="10,4" MinHeight="28" CornerRadius="6"><StackPanel Orientation="Horizontal" Spacing="7"><Path Classes="wb-icon" Data="{StaticResource WBSaveIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.Save}}"/></StackPanel></Button>
       </StackPanel>
     </Grid>
   </Border>

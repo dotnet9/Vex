@@ -22,15 +22,21 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     private double _editorFontSize;
     private bool _showLineNumbers;
     private bool _enableAutoPair = true;
+    private readonly Vex.Modules.Shell.Services.IShellOverlayService _overlays;
+    private readonly IAppLocalizer _localizer;
+    private bool _tableDialogOpen;
 
     public MarkdownEditorViewModel(
         IEditorDisplayState editorDisplayState,
         IWorkspaceDocumentState workspaceDocumentState,
-        Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel workbench)
+        Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel workbench,
+        Vex.Modules.Shell.Services.IShellOverlayService overlays, IAppLocalizer localizer)
     {
         _editorDisplayState = editorDisplayState;
         _workspaceDocumentState = workspaceDocumentState;
         _workbench = workbench;
+        _overlays = overlays;
+        _localizer = localizer;
         workbench.PropertyChanged += (_, _) => { if (_editor is { } source) source.Editor.IsReadOnly = !workbench.IsSourceEditing; };
         workbench.SourceNavigationRequested += (_, node) =>
         {
@@ -184,6 +190,9 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     /// <summary>执行库编辑器动作（Shell 菜单、快捷键与 MCP 都汇到这里）。</summary>
     public void Execute(EditorActionKind action)
     {
+        if (action == EditorActionKind.Table) { _ = InsertTableAsync(); return; }
+        if (action == EditorActionKind.Undo) { _workbench.UndoDocument(); return; }
+        if (action == EditorActionKind.Redo) { _workbench.RedoDocument(); return; }
         if (_workbench.IsInstantEditing)
         {
             if (action == EditorActionKind.FocusEditor && _workbench.LiveEditor is { } focused)
@@ -198,6 +207,45 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
         {
             _ = ExecuteAndRefocusAsync(editor, action.ToEditorAction());
         }
+    }
+
+    private async Task InsertTableAsync()
+    {
+        if (_tableDialogOpen || !_workbench.IsEditing) return;
+        var live = _workbench.IsInstantEditing ? _workbench.LiveEditor : null;
+        var source = _workbench.IsSourceEditing ? _editor : null;
+        if (live is null && source is null) return;
+        var text = _workspaceDocumentState.Markdown;
+        var path = _workspaceDocumentState.FilePath;
+        var selection = live?.Selection ?? source!.Selection;
+        var snapshot = live?.CaptureState();
+        _tableDialogOpen = true;
+        try
+        {
+            var size = await _overlays.ShowInsertTableAsync();
+            // 弹窗期间若文档被外部更新，不能把旧插入点写入新文档。
+            if (_workspaceDocumentState.FilePath != path || _workspaceDocumentState.Markdown != text) return;
+            if (size is null)
+            {
+                if (live is not null && snapshot is not null) live.RestoreState(snapshot);
+                else if (source is not null) { source.Editor.Select(selection.Start, selection.Length); source.FocusEditor(); }
+                return;
+            }
+            var table = MarkdownTableInsertion.Create(size, column => _localizer.Format(VexL.TableColumnTitle, column));
+            var insertion = MarkdownTableInsertion.AtSelection(text, selection.Start, selection.Length, table);
+            _workbench.History.BreakGroup();
+            var changed = text.Remove(selection.Start, selection.Length).Insert(selection.Start, insertion);
+            EventBus.Default.Publish(new MarkdownTextChangedCommand(changed, 1, 1, changed.Count(c => c == '\n') + 1));
+            _workbench.History.BreakGroup();
+            var headerOffset = selection.Start + insertion.IndexOf('|') + 2;
+            if (source is not null)
+            {
+                source.Editor.Select(headerOffset, _localizer.Format(VexL.TableColumnTitle, 1).Length);
+                source.FocusEditor();
+            }
+            else live?.NavigateToSourceLine(1 + changed.AsSpan(0, headerOffset).Count('\n'));
+        }
+        finally { _tableDialogOpen = false; }
     }
 
     /// <summary>格式按钮执行后把焦点还给编辑器，保留当前块或源码选区。</summary>

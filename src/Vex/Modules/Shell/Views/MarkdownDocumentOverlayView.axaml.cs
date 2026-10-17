@@ -24,6 +24,15 @@ public partial class MarkdownDocumentOverlayView : UserControl
         DocumentMarkdownViewer.ImageBasePath = imageBasePath;
         DocumentMarkdownViewer.TypographyTheme = typographyTheme;
         DocumentMarkdownViewer.TypographySize = typographySize;
+        if (title == CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.Thanks) || title == "鸣谢")
+        {
+            DocumentMarkdownViewer.Classes.Add("compact-document");
+            DocumentMarkdownViewer.ParagraphFontSize = 13.5;
+            DocumentMarkdownViewer.ParagraphLineHeight = 24.3;
+            DocumentMarkdownViewer.ParagraphMargin = new Avalonia.Thickness(0);
+            DocumentMarkdownViewer.Heading2FontSize = 13;
+            DocumentMarkdownViewer.BlockSpacing = 0;
+        }
     }
 
     private void Close_OnClick(object? sender, RoutedEventArgs e) => ShellOverlayHost.Dismiss(this);
