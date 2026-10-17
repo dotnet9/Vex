@@ -1,4 +1,4 @@
-﻿<prism:PrismApplication
+<prism:PrismApplication
     x:Class="Vex.App"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -12,13 +12,13 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="Styles/StudioPalette.axaml" />
             </ResourceDictionary.MergedDictionaries>
-            <FontFamily x:Key="ContentControlThemeFontFamily">Inter, Microsoft YaHei UI, Segoe UI</FontFamily>
-            <FontFamily x:Key="ControlContentThemeFontFamily">Inter, Microsoft YaHei UI, Segoe UI</FontFamily>
+            <FontFamily x:Key="ContentControlThemeFontFamily">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC</FontFamily>
+            <FontFamily x:Key="ControlContentThemeFontFamily">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC</FontFamily>
             <x:Double x:Key="ControlContentThemeFontSize">14</x:Double>
             <!-- 由弹出窗口按屏幕工作区限制高度，避免主题默认的 400 像素截断正常菜单。 -->
             <x:Double x:Key="MenuFlyoutMaxHeight">Infinity</x:Double>
             <!-- AvaloniaEdit 的 Simple 主题要求宿主提供这几个字体令牌（Fluent 主题过去自带） -->
-            <FontFamily x:Key="FontFamilyNormal">Inter, Microsoft YaHei UI, Segoe UI</FontFamily>
+            <FontFamily x:Key="FontFamilyNormal">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC</FontFamily>
             <x:Double x:Key="FontSizeNormal">14</x:Double>
             <FontWeight x:Key="FontWeightNormal">Normal</FontWeight>
         </ResourceDictionary>
@@ -38,5 +38,6 @@
         <vexThemes:VexControlsTheme />
         <StyleInclude Source="avares://Vex/Modules/Shell/Views/WorkbenchStyles.axaml" />
         <StyleInclude Source="avares://Vex/Modules/Workspace/Views/MarkdownDocumentStyles.axaml" />
+        <Style Selector="Window"><Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC" /></Style>
     </prism:PrismApplication.Styles>
 </prism:PrismApplication>

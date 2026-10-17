@@ -28,7 +28,7 @@
         <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
     </Style>
     <Style Selector="Window">
-        <Setter Property="FontFamily" Value="Inter, Microsoft YaHei UI, Segoe UI" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}" />
     </Style>
@@ -204,6 +204,35 @@
     </Style>
     <Style Selector="Button.fmt-btn:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+    </Style>
+
+    <!-- 窗体内关闭入口：统一点击面积、叉号和反馈，不受正文/工具栏字体影响。 -->
+    <Style Selector="Button.vex-dismiss">
+        <Setter Property="Width" Value="32"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="MinWidth" Value="32"/>
+        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}">
+                    <Path Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Data="M0 0L12 12 M12 0L0 12" Stretch="Uniform" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6" StrokeLineCap="Round"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="Button.vex-dismiss:pointerover">
+        <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}"/>
+    </Style>
+    <Style Selector="Button.vex-dismiss:pressed">
+        <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
     </Style>
 
     <!-- 大纲面板进出场（对应 .outline-meta / .progress-rail）：淡入上移，不改变布局度量 -->

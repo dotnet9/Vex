@@ -32,6 +32,9 @@ internal static class RuntimeVerification
             if (string.IsNullOrWhiteSpace(text) || text == VexL.MenuLanguage)
                 throw new InvalidOperationException("Published language resources are missing: " + culture);
             labels.Add(text);
+            foreach (var key in new[] { VexL.InsertTable, VexL.TableRows, VexL.TableColumns, VexL.TableHeaderHint })
+                if (manager.GetResource(key) is not { Length: > 0 } translated || translated == key)
+                    throw new InvalidOperationException("Published table dialog translation is missing: " + culture + "/" + key);
         }
         if (labels.Count != 4) throw new InvalidOperationException("All four published languages must switch independently.");
         var config = Path.Combine(root, "runtime-" + Guid.NewGuid().ToString("N") + ".config");
@@ -41,7 +44,7 @@ internal static class RuntimeVerification
         var saved = new AppSettingsStore().Current;
         if (saved.ThemeKey != "system" || saved.PaletteKey != "aurora" || saved.CultureName != "ja-JP")
             throw new InvalidOperationException("Native appearance preferences did not round-trip.");
-        var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; languages=4; preferences=isolated";
+        var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; languages=4; tableDialog=localized; preferences=isolated";
         File.WriteAllText(Path.Combine(root, "runtime-verification.txt"), result);
         Console.WriteLine(result);
     }

@@ -55,4 +55,11 @@
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
     </Styles.Resources>
+    <!-- 常驻的 16px 轨道与 10px 滑块，避免仅 2px 的自动收起态难以命中。 -->
+    <Style Selector="ScrollViewer"><Setter Property="AllowAutoHide" Value="False"/></Style>
+    <Style Selector="ScrollBar"><Setter Property="AllowAutoHide" Value="False"/></Style>
+    <Style Selector="ScrollBar:vertical"><Setter Property="Width" Value="16"/></Style>
+    <Style Selector="ScrollBar:horizontal"><Setter Property="Height" Value="16"/></Style>
+    <Style Selector="ScrollBar:vertical /template/ Thumb#thumb"><Setter Property="Width" Value="10"/><Setter Property="MinHeight" Value="32"/></Style>
+    <Style Selector="ScrollBar:horizontal /template/ Thumb#thumb"><Setter Property="Height" Value="10"/><Setter Property="MinWidth" Value="32"/></Style>
 </Styles>
