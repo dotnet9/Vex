@@ -34,6 +34,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'UI verifier build failed' }
           dotnet artifacts/bin/UiVerification/release/UiVerification.dll updates artifacts/update-checks
           if ($LASTEXITCODE -ne 0) { throw 'Update UI verification failed' }
+      - name: 正文图片与表格自适应排版
+        shell: pwsh
+        run: |
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll media-layout artifacts/media-layout
+          if ($LASTEXITCODE -ne 0) { throw 'Media layout verification failed' }
       - name: 真实 Inno 夹具窗口交接
         shell: pwsh
         run: |
@@ -49,4 +54,5 @@ jobs:
           name: update-checks
           path: |
             artifacts/update-checks
+            artifacts/media-layout/*.png
             ${{ runner.temp }}/vex-update-fixture/verification

@@ -1,4 +1,5 @@
-<Styles xmlns="https://github.com/avaloniaui" xmlns:md="https://codewf.com">
+<Styles xmlns="https://github.com/avaloniaui" xmlns:md="https://codewf.com"
+        xmlns:layout="clr-namespace:CodeWF.Avalonia.Markdown.Rendering;assembly=CodeWF.Avalonia.Markdown.Lite">
 
         <Style Selector="md|MarkdownViewer">
             <Setter Property="ShowCodeBlockHeader" Value="False"/>
@@ -52,7 +53,6 @@
             <Setter Property="MutedTextBrush" Value="{DynamicResource VexMutedBrush}" />
             <Setter Property="AccentBrush" Value="{DynamicResource VexAccentBrush}" />
             <Setter Property="QuoteBackgroundBrush" Value="{DynamicResource VexQuoteBackgroundBrush}" />
-            <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
             <Setter Property="CodeBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
             <Setter Property="InlineCodeBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
             <Setter Property="BorderLineBrush" Value="{DynamicResource VexPanelBorderBrush}" />
@@ -64,6 +64,25 @@
             <Setter Property="ParagraphMargin" Value="0 8" />
             <Setter Property="HeadingMargin" Value="0 6 0 10" />
             <Setter Property="BlockSpacing" Value="7" />
+        </Style>
+        <Style Selector="md|MarkdownViewer">
+            <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexTableHeaderBrush}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView">
+            <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexTableHeaderBrush}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Grid.MdTable, md|MarkdownLiveEditorView Grid.MdTable">
+            <Setter Property="layout:MarkdownTableLayout.FillAvailableWidth" Value="True" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Border.MdTableContainer, md|MarkdownLiveEditorView Border.MdTableContainer">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexTableBorderBrush}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Border.MdTableCell, md|MarkdownViewer Border.MdTableHeaderCell, md|MarkdownLiveEditorView Border.MdTableCell, md|MarkdownLiveEditorView Border.MdTableHeaderCell">
+            <Setter Property="BorderBrush" Value="{DynamicResource VexTableBorderBrush}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Border.MdTableAlternateCell, md|MarkdownLiveEditorView Border.MdTableAlternateCell">
+            <Setter Property="Background" Value="{DynamicResource VexTableStripeBrush}" />
         </Style>
         <!-- 选区可读性：默认浅色选区底 + 芯片浅色文字会撞色，选中时强制深色前景。 -->
         <Style Selector="SelectableTextBlock">

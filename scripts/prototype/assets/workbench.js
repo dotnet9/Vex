@@ -185,8 +185,8 @@
         var rows = block.raw.split('\n').filter(function (_, index) { return index !== 1; });
         html += '<table' + attr + '>' + rows.map(function (row, index) {
           var tag = index === 0 ? 'th' : 'td';
-          return '<tr>' + row.replace(/^\s*\||\|\s*$/g, '').split('|').map(function (cell) { return '<' + tag + '>' + inline(cell.trim()) + '</' + tag + '>'; }).join('') + '</tr>';
-        }).join('') + '</table>';
+          return (index === 0 ? '<thead>' : index === 1 ? '<tbody>' : '') + '<tr>' + row.replace(/^\s*\||\|\s*$/g, '').split('|').map(function (cell) { return '<' + tag + '>' + inline(cell.trim()) + '</' + tag + '>'; }).join('') + '</tr>' + (index === 0 ? '</thead>' : '');
+        }).join('') + (rows.length > 1 ? '</tbody>' : '') + '</table>';
       } else html += '<p' + attr + '>' + inline(block.raw.replace(/\n/g, ' ')) + '</p>';
     });
     closeList(); $('markdown-preview').innerHTML = html || '<p class="empty-state">输入 Markdown，开始写作。</p>';

@@ -97,7 +97,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables")
+if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -106,6 +106,7 @@ if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "dan
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
     if (mode == "updates") { VerifyUpdates(app, window, vm); window.Close(); return; }
+    if (mode == "media-layout") { VerifyMediaLayout((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "html-tables") { VerifyHtmlTables((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "presentation") { VerifyPresentation(app, (Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "pointer-regressions") { VerifyPointerRegressions(app, window, vm); window.Close(); return; }
@@ -706,6 +707,88 @@ void MaximizePerformanceWindow(Window window)
     Pump(); SettleRendering();
     Check(window.WindowState == WindowState.Maximized && window.Bounds.Width >= 1280,
         $"Performance window is maximized: {window.Bounds.Width} x {window.Bounds.Height}, scaling {window.RenderScaling}");
+}
+
+void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
+{
+    var sample = Path.Combine(output, "adaptive.md");
+    File.WriteAllText(Path.Combine(output, "diagram.svg"), """
+        <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="450" viewBox="0 0 1200 450">
+        <rect width="1200" height="450" fill="#f7f7f8"/><path d="M350 225H850" stroke="#5b54d6" stroke-width="5"/>
+        <rect x="80" y="100" width="300" height="250" rx="16" fill="#e4e2fa"/><rect x="820" y="100" width="300" height="250" rx="16" fill="#e4e2fa"/>
+        <text x="155" y="235" font-size="36">Markdown</text><text x="920" y="235" font-size="36">Vex</text></svg>
+        """);
+    using (var bitmap = new SKBitmap(240, 120))
+    {
+        using var canvas = new SKCanvas(bitmap); canvas.Clear(SKColors.Lavender);
+        using var data = bitmap.Encode(SKEncodedImageFormat.Png, 100);
+        using var stream = File.Create(Path.Combine(output, "small.png")); data.SaveTo(stream);
+    }
+    var pipe = """
+        ## 输出服务
+
+        | 编号 | 功能说明 | 实现要点 |
+        | --- | --- | --- |
+        | 1 | 显示操作信息 | 应用服务发布结构化操作消息，包含时间、用户、文档和结果。 |
+        | 2 | 显示语法校验结果 | 保留错误规则、级别及定位信息。 |
+        | 3 | 显示异常信息 | 界面保持可继续操作。 |
+        """;
+    var html = """
+        ## HTML 表格
+
+        <table><tr><th>编号</th><th>功能说明</th><th>实现要点</th></tr><tr><td>1</td><td>显示操作信息</td><td>应用服务发布结构化操作消息，包含时间、用户、文档和结果。</td></tr><tr><td>2</td><td>显示语法校验结果</td><td>保留错误规则、级别及定位信息。</td></tr><tr><td>3</td><td>显示异常信息</td><td>界面保持可继续操作。</td></tr></table>
+        """;
+    Pump(vm.OpenPathAsync(WriteSample(pipe)));
+    var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    window.WindowState = WindowState.Normal;
+    foreach (var width in new[] { 1380, 980 })
+    foreach (var theme in new[] { "light", "dark" })
+    foreach (var layout in new[] { "read", "source-render", "instant" })
+    {
+        window.Width = width; window.Height = 850;
+        vm.Appearance.SelectThemeByKey(theme); vm.Workbench.SelectLayout(layout); Pump(); SettleRendering();
+        var host = layout == "instant" ? (Control)instant : preview;
+        foreach (var (kind, source) in new[] { ("pipe", pipe), ("html", html) })
+        {
+            vm.Markdown = source; Pump(); SettleRendering();
+            PumpUntil(() => host.GetVisualDescendants().OfType<Grid>().Any(grid => grid.Classes.Contains("MdTable")));
+            var grid = host.GetVisualDescendants().OfType<Grid>().Single(grid => grid.Classes.Contains("MdTable"));
+            var documentWidth = grid.GetVisualAncestors().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().FirstOrDefault()?.Bounds.Width
+                ?? grid.GetVisualAncestors().OfType<UserControl>().First().Bounds.Width;
+            Check(Math.Abs(grid.Bounds.Width - documentWidth) < 3,
+                $"{width} {theme} {layout} {kind}: table fills document width ({grid.Bounds.Width:F1}/{documentWidth:F1})");
+            var headers = grid.Children.OfType<Border>().Where(cell => cell.Classes.Contains("MdTableHeaderCell")).ToArray();
+            var cells = grid.Children.OfType<Border>().Where(cell => cell.Classes.Contains("MdTableCell")).ToArray();
+            Check(headers.Length == 3 && headers.All(cell => cell.Background is ISolidColorBrush), "Header has a theme-aware background");
+            Check(cells.Where(cell => Grid.GetRow(cell) == 2).All(cell => cell.Background is ISolidColorBrush)
+                && cells.Where(cell => Grid.GetRow(cell) == 1).All(cell => cell.Background is null), "Body alternates row backgrounds");
+            var borderColor = ((ISolidColorBrush)headers[0].BorderBrush!).Color;
+            Check(borderColor == Color.Parse(theme == "dark" ? "#41454E" : "#DFE2E5"), "Table uses neutral borders independent of accent color");
+            Capture(window, $"{width}-{theme}-{layout}-{kind}");
+        }
+        foreach (var imageName in new[] { "diagram.svg", "small.png" })
+        {
+            vm.Markdown = $"## 自适应图片\n\n![图示]({imageName})\n\n图片与正文宽度对齐。"; Pump();
+            PumpUntil(() => host.GetVisualDescendants().OfType<Image>().Any(image => image.Classes.Contains("MdImageContent") && image.Width > 0));
+            SettleRendering();
+            var image = host.GetVisualDescendants().OfType<Image>().Single(image => image.Classes.Contains("MdImageContent"));
+            var viewer = image.GetVisualAncestors().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().First();
+            Check(Math.Abs(image.Bounds.Width - viewer.Bounds.Width) < 3,
+                $"{width} {theme} {layout} {imageName}: image fills document width ({image.Bounds.Width:F1}/{viewer.Bounds.Width:F1})");
+            Check(Math.Abs(image.Bounds.Height / image.Bounds.Width - (imageName.EndsWith("svg") ? .375 : .5)) < .005,
+                "Image keeps its aspect ratio without a fixed height cap");
+            Capture(window, $"{width}-{theme}-{layout}-{imageName.Replace('.', '-')}");
+        }
+    }
+    vm.Markdown = pipe; vm.Workbench.SelectLayout("read"); Pump();
+    vm.Workbench.StartPresentation(); Pump(); SettleRendering();
+    var presentationGrid = preview.GetVisualDescendants().OfType<Grid>().Single(grid => grid.Classes.Contains("MdTable"));
+    var presentationViewer = presentationGrid.GetVisualAncestors().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().First();
+    Check(Math.Abs(presentationGrid.Bounds.Width - presentationViewer.Bounds.Width) < 3, "Presentation uses the same full-width table layout");
+    Capture(window, "presentation"); vm.Workbench.StopPresentation(); Pump();
+
+    string WriteSample(string text) { File.WriteAllText(sample, text); return sample; }
 }
 
 void VerifyHtmlTables(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)

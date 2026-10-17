@@ -35,6 +35,9 @@
     </LinearGradientBrush>
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="VexTableHeaderBrush" Color="#F7F7F8" />
+            <SolidColorBrush x:Key="VexTableStripeBrush" Color="#F7F7F8" />
+            <SolidColorBrush x:Key="VexTableBorderBrush" Color="#DFE2E5" />
             <SolidColorBrush x:Key="VexDangerBrush" Color="#DC2626" />
             <SolidColorBrush x:Key="VexDangerSoftBrush" Color="#FEECEB" />
             <SolidColorBrush x:Key="VexSuccessBrush" Color="#067647" />
@@ -42,6 +45,9 @@
             <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="VexTableHeaderBrush" Color="#292C32" />
+            <SolidColorBrush x:Key="VexTableStripeBrush" Color="#24272D" />
+            <SolidColorBrush x:Key="VexTableBorderBrush" Color="#41454E" />
             <SolidColorBrush x:Key="VexDangerBrush" Color="#FF828F" />
             <SolidColorBrush x:Key="VexDangerSoftBrush" Color="#3D2328" />
             <SolidColorBrush x:Key="VexSuccessBrush" Color="#63DCB0" />
