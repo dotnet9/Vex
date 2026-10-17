@@ -14,7 +14,7 @@
 
 ```text
 1. 改版本号（Directory.Build.props / csproj）+ 更新 UpdateLog.md + 同步 README 版本行
-2. 提交：chore(release): vX.Y.Z（英文规范提交，仓库另有约定从其约定）
+2. 按修改范围分别用中文提交，最终版本提交使用“发布：升级 X.Y.Z 并更新发布说明”
 3. 打附注 tag —— tag 的附注消息就是 GitHub Release 的发布说明（见下节）：
        git tag -a vX.Y.Z -m "应用名 X.Y.Z\n\n- 要点一\n- 要点二 ..."
 4. 推送分支与 tag：git push origin <branch> && git push origin vX.Y.Z
@@ -52,7 +52,7 @@ git tag -a vX.Y.Z -m "应用名 X.Y.Z
 仅发布以上五个 RID 的安装包及对应 `.sha256`，不发布 ZIP 或 win-x86 产物。
 
 - 统一配方：`-p:PublishAot=true -p:PublishTrimmed=true -p:PublishSingleFile=false
-  -p:IlcGenerateCompleteTypeMetadata=true -p:IlcTrimMetadata=false -p:IlcSingleThreaded=true`。
+  -p:IlcGenerateCompleteTypeMetadata=true -p:IlcTrimMetadata=false -p:IlcSingleThreaded=true -p:IlcUseServerGc=false`。
 - Linux runner 需 `clang zlib1g-dev`；不要在 x64 runner 上交叉编译其他架构的 AOT。
 - 平台相关功能未适配时，应用内以「当前平台功能正在开发中」友好提示，不阻塞发布与启动。
 

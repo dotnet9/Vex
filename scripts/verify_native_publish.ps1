@@ -25,7 +25,7 @@ try {
 }
 finally { $reader.Dispose(); $stream.Dispose() }
 
-$startArguments = @{ FilePath = $executable; WorkingDirectory = [IO.Path]::GetDirectoryName($executable); PassThru = $true }
+$startArguments = @{ FilePath = $executable; WorkingDirectory = [IO.Path]::GetDirectoryName($executable); PassThru = $true; WindowStyle = 'Hidden' }
 if ($DocumentPath) {
     $document = (Resolve-Path -LiteralPath $DocumentPath).Path
     $startArguments.ArgumentList = '"' + $document + '"'

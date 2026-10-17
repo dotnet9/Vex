@@ -1,4 +1,4 @@
-# Vex Markdown 编辑器需求规格说明书
+﻿# Vex Markdown 编辑器需求规格说明书
 
 ## 1. 文档目标
 
@@ -1039,7 +1039,7 @@ AI 继续开发时必须遵守：
 50. 文件重命名失败详情已覆盖四套 i18n 文案，包括空文件名、非法字符、重名和不支持扩展名等边界提示。
 51. 帮助文档缺失错误详情已覆盖四套 i18n 文案。
 52. Folder Publish Profile 不会自动删除 `publish/<RID>/` 中已有文件，避免清理用户未确认的发布产物。
-53. 正式压缩包发布产物已有 `scripts/package_vex_artifacts.ps1`，可生成 zip、SHA256 与 release manifest；`publish_vex_all.bat --package` 可在全部 RID 发布成功后自动打包。
+53. 正式发布由 GitHub Actions 制作五个平台 EXE / DEB / DMG 安装包及 SHA256；已移除便携 ZIP 打包脚本。
 54. PDF/PNG 导出渲染失败详情继续迁移到四套 i18n 文案，覆盖 PDF 创建、位图解码和 SVG 栅格化关键失败路径。
 55. 关于窗口链接和 Shell 浮层遮罩已改用主题资源，暗色主题下链接颜色与遮罩强度单独配置。
 56. 预览滚动比例改用编辑器维护的行数，减少大文件中光标移动触发的全量 Markdown 扫描。

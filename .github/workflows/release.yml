@@ -53,6 +53,10 @@ jobs:
           } else {
             $version = '${{ github.ref_name }}'.TrimStart('v', 'V')
           }
+          [xml] $props = Get-Content -LiteralPath Directory.Build.props -Raw
+          if ($version -ne $props.Project.PropertyGroup.Version) {
+            throw "Release version $version must match Directory.Build.props."
+          }
           "APP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           Write-Host "版本：$version"
@@ -61,25 +65,11 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
 
-      # 与 publish_all.bat 相同的 Profile / TFM 组合；全平台 NativeAOT（完整反射元数据保全 Prism/DryIoc）
+      # 本地与 CI 共用 NativeAOT 配方，各平台在对应架构的 runner 上构建。
       - name: 发布（PublishProfile + NativeAOT）
         shell: pwsh
         run: |
-          $rid = '${{ matrix.rid }}'
-          $tfm = if ($rid.StartsWith('win-', [StringComparison]::OrdinalIgnoreCase)) { 'net10.0-windows' } else { 'net10.0' }
-          # NativeAOT 的 ILC 在 preview SDK 上并行编译可能崩溃，单线程更稳
-          $ilcArgs = @(
-            '-p:PublishAot=true',
-            '-p:PublishTrimmed=true',
-            '-p:PublishSingleFile=false',
-            '-p:IlcGenerateCompleteTypeMetadata=true',
-            '-p:IlcTrimMetadata=false',
-            '-p:IlcSingleThreaded=true'
-          )
-          # macOS 保留符号（ld_classic 不支持压缩调试段）
-          if ($rid.StartsWith('osx-', [StringComparison]::OrdinalIgnoreCase)) { $ilcArgs += '-p:StripSymbols=false' }
-          dotnet publish src/Vex/Vex.csproj -c Release -f $tfm -r $rid $ilcArgs -p:Version=$env:APP_VERSION /p:PublishProfile=FolderProfile__$rid
-          if ($LASTEXITCODE -ne 0) { throw "publish failed for $rid" }
+          ./scripts/publish.ps1 -RuntimeIdentifier '${{ matrix.rid }}' -Version $env:APP_VERSION
 
       - name: 验证正式 Windows 原生产物
         if: runner.os == 'Windows'
