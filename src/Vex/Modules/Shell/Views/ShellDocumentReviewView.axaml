@@ -1,0 +1,20 @@
+<UserControl x:Class="Vex.Modules.Shell.Views.ShellDocumentReviewView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:views="using:Vex.Modules.Shell.Views" x:DataType="views:ShellDocumentReviewModel">
+ <Border x:Name="ReviewCard" Classes="dialog-card" Width="740" MaxWidth="{Binding MaximumWidth}" MaxHeight="{Binding MaximumHeight}">
+  <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="12">
+   <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="SemiBold"/>
+   <StackPanel Grid.Row="1" Spacing="6"><TextBlock Text="{Binding Description}" TextWrapping="Wrap" Classes="wb-muted"/><SelectableTextBlock Text="{Binding Source}" FontSize="12" TextWrapping="Wrap"/></StackPanel>
+   <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="12" MinHeight="120">
+    <Grid RowDefinitions="Auto,*" RowSpacing="8"><TextBlock Text="{i18n:I18n {x:Static l:VexL.ReviewCurrent}}" FontWeight="SemiBold" FontSize="12"/><TextBox Grid.Row="1" VerticalAlignment="Stretch" Text="{Binding Current}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto"/></Grid>
+    <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="8"><TextBlock Text="{Binding IncomingLabel}" FontWeight="SemiBold" FontSize="12"/><TextBox Grid.Row="1" VerticalAlignment="Stretch" Text="{Binding Incoming}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto"/></Grid>
+   </Grid>
+   <TextBlock Grid.Row="3" Text="{Binding Error}" TextWrapping="Wrap" Foreground="{DynamicResource VexDangerBrush}"/>
+   <WrapPanel Grid.Row="4" HorizontalAlignment="Right">
+    <Button x:Name="CancelReview" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" Click="CancelClick" Margin="4"/>
+    <Button IsVisible="{Binding !IsRecovery}" Content="{i18n:I18n {x:Static l:VexL.ReviewKeep}}" Command="{Binding Keep}" Margin="4"/>
+    <Button IsVisible="{Binding !IsRecovery}" Content="{i18n:I18n {x:Static l:VexL.ReviewCopy}}" Command="{Binding CopyAsync}" Margin="4"/>
+    <Button x:Name="LoadReview" Content="{Binding LoadLabel}" Classes="primary" Command="{Binding Load}" Margin="4"/>
+   </WrapPanel>
+  </Grid>
+ </Border>
+</UserControl>

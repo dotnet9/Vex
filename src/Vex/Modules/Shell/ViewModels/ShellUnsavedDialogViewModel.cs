@@ -13,7 +13,8 @@ public enum ShellUnsavedDecision
     Discard = 2,
 
     /// <summary>取消本次流转。</summary>
-    Cancel = 0
+    Cancel = 0,
+    KeepDraft = 3
 }
 
 /// <summary>
@@ -24,11 +25,12 @@ public sealed class ShellUnsavedDialogViewModel : ReactiveObject, IDialogContext
 {
     private ShellUnsavedDecision? _decision;
 
-    public ShellUnsavedDialogViewModel(string title, string message, string path)
+    public ShellUnsavedDialogViewModel(string title, string message, string path, bool canKeepDraft = false)
     {
         Title = title;
         Message = message;
         Path = path;
+        CanKeepDraft = canKeepDraft;
     }
 
     public string Title { get; }
@@ -36,6 +38,8 @@ public sealed class ShellUnsavedDialogViewModel : ReactiveObject, IDialogContext
     public string Message { get; }
 
     public string Path { get; }
+    public bool CanKeepDraft { get; }
+    public void KeepDraft() => Complete(ShellUnsavedDecision.KeepDraft);
 
     public ShellUnsavedDecision Decision => _decision ?? ShellUnsavedDecision.Cancel;
 

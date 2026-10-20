@@ -28,7 +28,8 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
         Func<Task> continuation,
         Action? cancellation = null,
         Func<Task>? saveAsync = null,
-        Func<bool>? isStillModified = null)
+        Func<bool>? isStillModified = null,
+        Func<Task<bool>>? keepDraftAsync = null)
     {
         if (!isModified)
         {
@@ -37,9 +38,12 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
         }
 
         // 这里只负责决策分发，不直接执行文件操作；保存与后续动作由调用方闭包描述。
-        var decision = await ShowUnsavedDialogAsync(title, message, currentFilePath ?? _text.UnsavedDocumentFallback);
+        var decision = await ShowUnsavedDialogAsync(title, message, currentFilePath ?? _text.UnsavedDocumentFallback, keepDraftAsync is not null);
         switch (decision)
         {
+            case ShellUnsavedDecision.KeepDraft:
+                if (keepDraftAsync is not null && await keepDraftAsync()) await continuation();
+                break;
             case ShellUnsavedDecision.Save:
                 if (saveAsync is not null)
                 {
@@ -63,9 +67,9 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
         }
     }
 
-    private static Task<ShellUnsavedDecision> ShowUnsavedDialogAsync(string title, string message, string path)
+    private static Task<ShellUnsavedDecision> ShowUnsavedDialogAsync(string title, string message, string path, bool canKeepDraft)
     {
-        var viewModel = new ShellUnsavedDialogViewModel(title, message, path);
+        var viewModel = new ShellUnsavedDialogViewModel(title, message, path, canKeepDraft);
         return OverlayDialog.ShowCustomAsync<ShellUnsavedDecision>(
             new ShellUnsavedDialogView(),
             viewModel);

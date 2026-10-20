@@ -4,11 +4,14 @@ namespace Vex.Modules.Shell.Services;
 
 public interface IAutoSaveDraftService
 {
+    string? LastError { get; }
+    event EventHandler? StateChanged;
     DocumentSnapshot? TryRestore(DocumentSnapshot document);
 
     void QueueSave(DocumentSnapshot document, string markdown, string lastSavedMarkdown);
 
     void Clear(DocumentSnapshot document);
 
-    void Flush();
+    bool Flush();
+    void ClearRestored(DocumentSnapshot document);
 }

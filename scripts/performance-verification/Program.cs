@@ -241,10 +241,13 @@ public sealed class PerformanceApp : Vex.App
 
 internal sealed class PerformanceDrafts : IAutoSaveDraftService
 {
+    public string? LastError => null;
+    public event EventHandler? StateChanged { add { } remove { } }
     public DocumentSnapshot? TryRestore(DocumentSnapshot document) => null;
     public void QueueSave(DocumentSnapshot document, string markdown, string lastSavedMarkdown) { }
     public void Clear(DocumentSnapshot document) { }
-    public void Flush() { }
+    public bool Flush() => true;
+    public void ClearRestored(DocumentSnapshot document) { }
 }
 
 internal sealed class PerformanceRecent : IRecentDocumentStore

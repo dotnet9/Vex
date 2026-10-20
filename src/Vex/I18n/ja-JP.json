@@ -790,7 +790,20 @@
       "SaveFailureKept": "保存失敗 · 内容は保持されています",
       "ExportFailureKept": "エクスポート失敗 · 内容と組版は保持されています",
       "RetrySave": "保存を再試行",
-      "RetryExport": "エクスポートを再試行"
+      "RetryExport": "エクスポートを再試行",
+      "ReviewRecoveryTitle": "復元用の下書きがあります",
+      "ReviewExternalTitle": "外部の変更を検出 · 比較してください",
+      "ReviewRecoveryHint": "独立した未保存文書として開きます。元のファイルは維持され、現在の変更は先に保存確認します。",
+      "ReviewExternalHint": "両方の全文を比較できます。現在の内容を保持・別名保存するか、外部の版を読み込みます。読み込み後も元に戻せます。",
+      "ReviewCurrent": "現在の編集内容",
+      "ReviewDraft": "下書きを確認",
+      "ReviewExternal": "外部の版",
+      "ReviewCompare": "版を比較…",
+      "ReviewKeep": "現在の版を保持",
+      "ReviewCopy": "現在のコピーを保存",
+      "ReviewLoad": "外部の版を読み込む",
+      "ReviewRecover": "新しい文書として復元",
+      "KeepDraft": "下書きを保持して終了"
     }
   }
 }

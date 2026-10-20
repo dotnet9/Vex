@@ -23,6 +23,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     private readonly IShellExternalPathResolver _externalPaths;
     private readonly IAutoSaveDraftService _drafts;
     private readonly IShellStatusPublisher _statusPublisher;
+    private readonly IShellOverlayService _overlays;
+    private readonly IAppLocalizer _localizer;
     private FileSystemWatcher? _currentFileWatcher;
     private FileSystemWatcher? _currentFolderWatcher;
     private Timer? _currentFileChangeTimer;
@@ -41,7 +43,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     private string? _watchedFilePath;
     private string? _watchedFolderPath;
     private DateTimeOffset? _watchedFileLastWriteTimeUtc;
-    private DateTimeOffset? _lastSkippedExternalWriteTimeUtc;
 
     public MainWindowViewModel(
         IDocumentService documentService,
@@ -67,7 +68,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         IShellDocumentUtilityActions documentUtilities,
         IShellExternalPathResolver externalPaths,
         IAutoSaveDraftService drafts,
-        IShellStatusPublisher statusPublisher)
+        IShellStatusPublisher statusPublisher, IShellOverlayService overlays, IAppLocalizer localizer)
     {
         _documentService = documentService;
         _workspaceDocumentState = workspaceDocumentState;
@@ -93,21 +94,20 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _externalPaths = externalPaths;
         _drafts = drafts;
         _statusPublisher = statusPublisher;
+        _overlays = overlays; _localizer = localizer;
+        _drafts.StateChanged += (_, _) => Dispatcher.UIThread.Post(() => Protection.DraftError = _drafts.LastError);
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
 
         _document = _documentService.CreateNew();
         _lastSavedMarkdown = _document.Markdown;
-        _document = RestoreDraftIfAvailable(_document, out var restoredInitialDraft);
         Markdown = _document.Markdown;
         RefreshDocumentInfo();
+        DiscoverRecoveryDraft(_document);
         CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += OnCultureChanged;
-        if (restoredInitialDraft)
-        {
-            _statusPublisher.PublishResource(VexL.StatusRecoveredAutoSaveDraft);
-        }
     }
 
     public event EventHandler? CloseWindowRequested;
+    public event EventHandler? CommitPendingEditsRequested;
 
     /// <summary>只刷新文件时间文案，保留树节点、选择、过滤及未保存内容。</summary>
     private void OnCultureChanged(object? sender, EventArgs args)
@@ -359,7 +359,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private async Task AutoSaveCurrentAsync()
     {
-        if (_autoSaveInProgress || _settingsStore.Current.AutoSave != true || _guideDocument is not null
+        if (_autoSaveInProgress || Protection.HasExternal || _settingsStore.Current.AutoSave != true || _guideDocument is not null
             || _document.FilePath is not { } path || !DocumentInfo.IsModified || !File.Exists(path)) return;
         // 外部写入应先由文件监控流程处理，自动保存不得覆盖未确认的磁盘改动。
         if (_watchedFileLastWriteTimeUtc is not { } watched || new DateTimeOffset(File.GetLastWriteTimeUtc(path)) != watched) return;
@@ -598,6 +598,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     public async Task SaveAsync()
     {
+        CommitPendingEditsRequested?.Invoke(this, EventArgs.Empty);
+        if (Protection.HasExternal) { await CompareExternalAsync(); return; }
         _retrySaveAs = false;
         await RunWithErrorOverlayAsync(
             VexL.ErrorMessageCannotSaveFormat,
@@ -606,6 +608,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                 var saved = await _documentService.SaveAsync(_document with { Markdown = Markdown });
                 if (saved is not null)
                 {
+                    _drafts.Clear(_document);
+                    CompleteRecoveredSave();
                     ApplyDocument(saved, false, false);
                     Protection.SaveError = null;
                     _text.PublishSaved(saved.FileName);
@@ -616,6 +620,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     public async Task SaveAsAsync()
     {
+        CommitPendingEditsRequested?.Invoke(this, EventArgs.Empty);
         _retrySaveAs = true;
         await RunWithErrorOverlayAsync(
             VexL.ErrorMessageCannotSaveFormat,
@@ -624,6 +629,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                 var saved = await _documentService.SaveAsAsync(_document with { Markdown = Markdown });
                 if (saved is not null)
                 {
+                    _drafts.Clear(_document);
+                    CompleteRecoveredSave();
                     ApplyDocument(saved, false, false);
                     Protection.SaveError = null;
                     _text.PublishSavedAs(saved.FileName);
@@ -747,10 +754,11 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             _drafts.Clear(_document);
             Protection.SaveError = null;
             Protection.ExportError = null;
+            _recoverySource = null;
         }
 
-        var restoredDraft = false;
-        _document = restoreDraft ? RestoreDraftIfAvailable(snapshot, out restoredDraft) : snapshot;
+        _document = snapshot;
+        Protection.External = null;
         _lastSavedMarkdown = snapshot.Markdown;
         if (snapshot.FilePath is { Length: > 0 } path)
         {
@@ -773,10 +781,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         StartCurrentFileWatcher();
         _text.PublishOpened(snapshot.FileName);
         if (updateMarkdown) Workbench.ResetHistory();
-        if (restoredDraft)
-        {
-            _statusPublisher.PublishResource(VexL.StatusRecoveredAutoSaveDraft);
-        }
+        if (restoreDraft) DiscoverRecoveryDraft(snapshot);
 
         EditorActions.FocusEditor();
     }
@@ -1053,21 +1058,37 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                 path));
     }
 
-    public Task BeginWindowCloseAsync()
+    private bool _closeReviewPending;
+    public async Task BeginWindowCloseAsync()
     {
-        _drafts.Flush();
-        return RequestUnsavedConfirmationAsync(
+        CommitPendingEditsRequested?.Invoke(this, EventArgs.Empty);
+        if (_closeReviewPending) return;
+        _closeReviewPending = true;
+        var keepDraft = false;
+        try
+        {
+        await _unsavedChanges.RunAsync(
             _text.TitleBeforeClosingVex,
             _text.BeforeClosingVex(_document.FileName),
+            DocumentInfo.IsModified, DocumentInfo.CurrentFilePath,
             () =>
             {
                 StopCurrentFileWatcher();
                 StopCurrentFolderWatcher();
                 _autoSaveTimer?.Dispose(); _autoSaveTimer = null;
-                _drafts.Clear(_document);
+                if (!keepDraft) _drafts.Clear(_document);
                 CloseWindowRequested?.Invoke(this, EventArgs.Empty);
                 return Task.CompletedTask;
+            }, saveAsync: SaveAsync, isStillModified: () => DocumentInfo.IsModified,
+            keepDraftAsync: () =>
+            {
+                _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
+                keepDraft = _drafts.Flush();
+                Protection.DraftError = _drafts.LastError;
+                return Task.FromResult(keepDraft);
             });
+        }
+        finally { _closeReviewPending = false; }
     }
 
     private static Task PublishAndComplete(Action publish)
@@ -1080,8 +1101,10 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         string title,
         string message,
         Func<Task> continuation,
-        Action? cancellation = null) =>
-        _unsavedChanges.RunAsync(
+        Action? cancellation = null)
+    {
+        CommitPendingEditsRequested?.Invoke(this, EventArgs.Empty);
+        return _unsavedChanges.RunAsync(
             title,
             message,
             DocumentInfo.IsModified,
@@ -1090,6 +1113,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             cancellation,
             () => SaveAsync(),
             () => DocumentInfo.IsModified);
+    }
 
     private Func<Task> GuardedAction(string messageResourceKey, Func<Task> action, params object?[] messageArgs)
     {
@@ -1184,7 +1208,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
         _watchedFilePath = fullPath;
         _watchedFileLastWriteTimeUtc = TryGetLastWriteTimeUtc(fullPath);
-        _lastSkippedExternalWriteTimeUtc = null;
         _currentFileWatcher = new FileSystemWatcher(directory, fileName)
         {
             NotifyFilter = NotifyFilters.FileName
@@ -1242,7 +1265,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _currentFileChangeTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _watchedFilePath = null;
         _watchedFileLastWriteTimeUtc = null;
-        _lastSkippedExternalWriteTimeUtc = null;
     }
 
     private void StopCurrentFolderWatcher()
@@ -1326,36 +1348,15 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             return;
         }
 
-        if (DocumentInfo.IsModified)
-        {
-            if (writeTime is null || _lastSkippedExternalWriteTimeUtc != writeTime)
-            {
-                _lastSkippedExternalWriteTimeUtc = writeTime;
-                _statusPublisher.PublishResource(VexL.StatusExternalFileChangedWithUnsavedEdits);
-            }
-
-            return;
-        }
-
         await RunWithErrorOverlayAsync(
             VexL.ErrorMessageCannotOpenFileFormat,
             async () =>
             {
                 var reloaded = await _documentService.ReloadAsync(_document);
-                _document = reloaded;
-                _lastSavedMarkdown = reloaded.Markdown;
-                if (!MarkdownTextComparer.EqualsNormalizedLineEndings(Markdown, reloaded.Markdown))
-                {
-                    Markdown = reloaded.Markdown;
-                }
-                else
-                {
-                    RefreshDocumentInfo();
-                }
-
+                if (!IsCurrentDocumentPath(watchedPath)) return;
+                if (!MarkdownTextComparer.EqualsNormalizedLineEndings(_lastSavedMarkdown, reloaded.Markdown))
+                    Protection.External = reloaded;
                 _watchedFileLastWriteTimeUtc = TryGetLastWriteTimeUtc(watchedPath);
-                RefreshDocumentFileInList(watchedPath);
-                _text.PublishExternalFileReloaded(reloaded.FileName);
             },
             watchedPath);
     }
@@ -1393,18 +1394,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         PublishDocumentFilesChanged(selected);
     }
 
-    private DocumentSnapshot RestoreDraftIfAvailable(DocumentSnapshot document, out bool restoredDraft)
-    {
-        var restored = _settingsStore.Current.RecoveryDrafts == false ? null : _drafts.TryRestore(document);
-        if (restored is null)
-        {
-            restoredDraft = false;
-            return document;
-        }
-
-        restoredDraft = true;
-        return restored;
-    }
 
     private static bool IsSameDocument(DocumentSnapshot left, DocumentSnapshot right)
     {

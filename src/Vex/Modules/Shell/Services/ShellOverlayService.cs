@@ -17,6 +17,12 @@ namespace Vex.Modules.Shell.Services;
 /// </summary>
 public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer localizer) : IShellOverlayService, IDisposable
 {
+    public Task<DocumentReviewChoice> ShowDocumentReviewAsync(ShellDocumentReviewModel model)
+    {
+        var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        if (window is not null) { model.MaximumWidth = Math.Max(300, window.Bounds.Width - 48); model.MaximumHeight = Math.Max(250, window.Bounds.Height - 100); }
+        return OverlayDialog.ShowCustomAsync<DocumentReviewChoice>(new ShellDocumentReviewView(), model, options: CreateOptions());
+    }
     public Task<Vex.Modules.Workspace.Services.TableDimensions?> ShowInsertTableAsync() =>
         OverlayDialog.ShowCustomAsync<Vex.Modules.Workspace.Services.TableDimensions>(
             new ShellInsertTableOverlayView(), new ShellInsertTableModel(), options: CreateOptions());

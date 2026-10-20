@@ -14,5 +14,6 @@ public interface IShellUnsavedChangesGuard
         Func<Task> continuation,
         Action? cancellation = null,
         Func<Task>? saveAsync = null,
-        Func<bool>? isStillModified = null);
+        Func<bool>? isStillModified = null,
+        Func<Task<bool>>? keepDraftAsync = null);
 }

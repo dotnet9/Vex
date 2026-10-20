@@ -790,7 +790,20 @@
       "SaveFailureKept": "保存失败 · 内容已保留",
       "ExportFailureKept": "导出失败 · 内容与排版已保留",
       "RetrySave": "重试保存",
-      "RetryExport": "重试导出"
+      "RetryExport": "重试导出",
+      "ReviewRecoveryTitle": "发现恢复草稿 · 请先预览",
+      "ReviewExternalTitle": "检测到外部版本 · 请先比较",
+      "ReviewRecoveryHint": "确认后打开为独立的未保存文档。来源文件保持原样，当前文章的修改会先进行保存确认。",
+      "ReviewExternalHint": "比较两个完整版本。保留或另存当前内容，或载入外部版本；载入后仍可撤销。",
+      "ReviewCurrent": "当前编辑内容",
+      "ReviewDraft": "查看草稿",
+      "ReviewExternal": "外部版本",
+      "ReviewCompare": "比较版本…",
+      "ReviewKeep": "保留当前版本",
+      "ReviewCopy": "另存当前副本",
+      "ReviewLoad": "载入外部版本",
+      "ReviewRecover": "恢复为独立文档",
+      "KeepDraft": "保留草稿并退出"
     }
   }
 }

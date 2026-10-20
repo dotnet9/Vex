@@ -789,4 +789,17 @@ public static class VexL
     public static readonly string ExportFailureKept = "Vex.VexL.ExportFailureKept";
     public static readonly string RetrySave = "Vex.VexL.RetrySave";
     public static readonly string RetryExport = "Vex.VexL.RetryExport";
+    public static readonly string ReviewRecoveryTitle = "Vex.VexL.ReviewRecoveryTitle";
+    public static readonly string ReviewExternalTitle = "Vex.VexL.ReviewExternalTitle";
+    public static readonly string ReviewRecoveryHint = "Vex.VexL.ReviewRecoveryHint";
+    public static readonly string ReviewExternalHint = "Vex.VexL.ReviewExternalHint";
+    public static readonly string ReviewCurrent = "Vex.VexL.ReviewCurrent";
+    public static readonly string ReviewDraft = "Vex.VexL.ReviewDraft";
+    public static readonly string ReviewExternal = "Vex.VexL.ReviewExternal";
+    public static readonly string ReviewCompare = "Vex.VexL.ReviewCompare";
+    public static readonly string ReviewKeep = "Vex.VexL.ReviewKeep";
+    public static readonly string ReviewCopy = "Vex.VexL.ReviewCopy";
+    public static readonly string ReviewLoad = "Vex.VexL.ReviewLoad";
+    public static readonly string ReviewRecover = "Vex.VexL.ReviewRecover";
+    public static readonly string KeepDraft = "Vex.VexL.KeepDraft";
 }

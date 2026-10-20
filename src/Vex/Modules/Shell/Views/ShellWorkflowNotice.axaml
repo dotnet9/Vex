@@ -2,6 +2,18 @@
  xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:MainWindowViewModel" IsVisible="{Binding Protection.HasNotice}">
  <Border Padding="18,10" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
   <StackPanel Spacing="8">
+   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasRecovery}">
+    <TextBlock Text="{i18n:I18n {x:Static l:VexL.ReviewRecoveryTitle}}" FontSize="12" VerticalAlignment="Center"/>
+    <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.ReviewDraft}}" Command="{Binding ReviewRecoveryAsync}"/>
+   </Grid>
+   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasExternal}">
+    <TextBlock Text="{i18n:I18n {x:Static l:VexL.ReviewExternalTitle}}" FontSize="12" VerticalAlignment="Center"/>
+    <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.ReviewCompare}}" Command="{Binding CompareExternalAsync}"/>
+   </Grid>
+   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasDraftError}">
+    <TextBlock Text="{Binding Protection.DraftError}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+    <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.RetrySave}}" Command="{Binding RetryDraft}"/>
+   </Grid>
    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasSaveError}">
     <StackPanel Spacing="3"><TextBlock Text="{i18n:I18n {x:Static l:VexL.SaveFailureKept}}" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="{Binding Protection.SaveError}" TextWrapping="Wrap" Classes="wb-muted"/></StackPanel>
     <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.RetrySave}}" Command="{Binding RetrySaveAsync}" VerticalAlignment="Center"/>

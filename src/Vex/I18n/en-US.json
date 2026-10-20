@@ -790,7 +790,20 @@
       "SaveFailureKept": "Save failed · Content preserved",
       "ExportFailureKept": "Export failed · Content and typography preserved",
       "RetrySave": "Retry save",
-      "RetryExport": "Retry export"
+      "RetryExport": "Retry export",
+      "ReviewRecoveryTitle": "Recovery draft found · Preview first",
+      "ReviewExternalTitle": "External changes detected · Compare first",
+      "ReviewRecoveryHint": "Open as a separate unsaved document. The source file stays intact. Unsaved changes in the current article require a choice first.",
+      "ReviewExternalHint": "Compare both complete versions. Keep or save a copy of your content, or load the external version. Loading can be undone.",
+      "ReviewCurrent": "Current content",
+      "ReviewDraft": "Preview draft",
+      "ReviewExternal": "External version",
+      "ReviewCompare": "Compare versions…",
+      "ReviewKeep": "Keep current",
+      "ReviewCopy": "Save current copy",
+      "ReviewLoad": "Load external version",
+      "ReviewRecover": "Recover as a new document",
+      "KeepDraft": "Keep draft and exit"
     }
   }
 }

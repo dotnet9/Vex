@@ -258,7 +258,8 @@ if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "dan
     var drafts = (MemoryDrafts)app.Resolve<IAutoSaveDraftService>();
     drafts.RestoredMarkdown = "# recovered draft";
     Pump(vm.OpenPathAsync(files[1]));
-    Check(vm.DocumentInfo.IsModified, "A recovered draft different from disk remains unsaved");
+    Check(!vm.DocumentInfo.IsModified && vm.Protection.HasRecovery && vm.Markdown != drafts.RestoredMarkdown,
+        "A recovery draft is offered for preview without replacing the opened document");
     drafts.RestoredMarkdown = null;
     Pump(vm.OpenPathAsync(files[0]));
     window.Width = 980; window.Height = 640; Pump();
@@ -2220,11 +2221,15 @@ public sealed class MemorySettings : IAppSettingsStore
 }
 public sealed class MemoryDrafts : IAutoSaveDraftService
 {
+    public string? LastError { get; set; }
+    public event EventHandler? StateChanged;
+    public bool FailFlush { get; set; }
     public string? RestoredMarkdown { get; set; }
     public DocumentSnapshot? TryRestore(DocumentSnapshot document) => RestoredMarkdown is null ? null : document with { Markdown = RestoredMarkdown };
     public void QueueSave(DocumentSnapshot document, string markdown, string lastSavedMarkdown) { }
     public void Clear(DocumentSnapshot document) { }
-    public void Flush() { }
+    public bool Flush() { LastError = FailFlush ? "Draft storage unavailable" : null; StateChanged?.Invoke(this, EventArgs.Empty); return !FailFlush; }
+    public void ClearRestored(DocumentSnapshot document) => RestoredMarkdown = null;
 }
 public sealed class MemoryRecent : IRecentDocumentStore
 {

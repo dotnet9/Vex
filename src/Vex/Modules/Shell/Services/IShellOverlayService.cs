@@ -8,6 +8,7 @@ namespace Vex.Modules.Shell.Services;
 /// </summary>
 public interface IShellOverlayService
 {
+    Task<Vex.Modules.Shell.Views.DocumentReviewChoice> ShowDocumentReviewAsync(Vex.Modules.Shell.Views.ShellDocumentReviewModel model);
     Task<Vex.Modules.Workspace.Services.TableDimensions?> ShowInsertTableAsync();
 
     /// <summary>删除确认浮层；确认删除返回 true，取消/关闭返回 false。</summary>

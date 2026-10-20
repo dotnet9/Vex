@@ -790,7 +790,20 @@
       "SaveFailureKept": "儲存失敗 · 內容已保留",
       "ExportFailureKept": "匯出失敗 · 內容與排版已保留",
       "RetrySave": "重試儲存",
-      "RetryExport": "重試匯出"
+      "RetryExport": "重試匯出",
+      "ReviewRecoveryTitle": "發現復原草稿 · 請先預覽",
+      "ReviewExternalTitle": "偵測到外部版本 · 請先比較",
+      "ReviewRecoveryHint": "確認後開啟為獨立的未儲存文件。來源檔案保持原樣，目前文章的修改會先進行儲存確認。",
+      "ReviewExternalHint": "比較兩個完整版本。保留或另存目前內容，或載入外部版本；載入後仍可復原。",
+      "ReviewCurrent": "目前編輯內容",
+      "ReviewDraft": "檢視草稿",
+      "ReviewExternal": "外部版本",
+      "ReviewCompare": "比較版本…",
+      "ReviewKeep": "保留目前版本",
+      "ReviewCopy": "另存目前副本",
+      "ReviewLoad": "載入外部版本",
+      "ReviewRecover": "復原為獨立文件",
+      "KeepDraft": "保留草稿並退出"
     }
   }
 }

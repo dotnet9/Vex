@@ -82,6 +82,7 @@ public partial class MainWindow : CodeWFWindow
         DataContext = viewModel;
         viewModel.Workbench.GuideExitRequested += (_, _) => WorkbenchGuide.Finish();
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
+        viewModel.CommitPendingEditsRequested += (_, _) => MindMapGuideTarget.FlushInspector();
         Closing += MainWindow_OnClosing;
         Closed += (_, _) => WorkbenchGuide.Finish();
         Opened += MainWindow_OnOpened;
