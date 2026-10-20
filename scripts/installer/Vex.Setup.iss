@@ -364,7 +364,7 @@ begin
   if Installing and VRepairing then VStatus.Caption:=CustomMessage('VRepairing');
   if Finished and VRepairing then VStatus.Caption:=CustomMessage('VRepaired');
   WizardForm.OuterNotebook.Visible:=Main and not Home and not Finished and not Installing and (not Maintenance or VDetailsOpen);
-  VBounds(WizardForm.OuterNotebook,208,220,404,280);
+  VBounds(WizardForm.OuterNotebook,208,242,404,280);
   VBounds(WizardForm.InnerPage,0,0,404,280); VBounds(WizardForm.InnerNotebook,0,0,404,280);
   for I:=0 to WizardForm.InnerNotebook.PageCount-1 do VBounds(WizardForm.InnerNotebook.Pages[I],0,0,404,280);
   if Maintenance then begin
@@ -375,7 +375,7 @@ begin
     VStatus.Caption:=CustomMessage('VMaintenance');
     VBounds(VStatus,209,60,402,34);
     if (CWMRepairPath='') or VMigrationNeeded then begin
-      VDescription.Visible:=Main;
+      VDescription.Visible:=Main and not VDetailsOpen;
       VDescription.Caption:=CustomMessage('VRegistrationIntro');
       if VMigrationNeeded then VDescription.Caption:=CustomMessage('VMigrationIntro');
       VBounds(VDescription,209,228,402,54); VFont(VDescription.Font,12,False);
@@ -383,7 +383,8 @@ begin
   end;
   VInstalled.Visible:=Main and Maintenance; VLocation.Visible:=Main and Maintenance;
   VBounds(VInstalled,209,29,402,18); VBounds(VLocation,222,130,376,48);
-  VLocation.Caption:=CustomMessage('VLocation')+#13#10+CWMDisplayPath(CWMRepairPath);
+  VLocation.Caption:=CustomMessage('VLocation')+#13#10+MinimizePathName(CWMDisplayPath(CWMRepairPath),VLocation.Font,ScaleX(376));
+  VLocation.Hint:=CWMDisplayPath(CWMRepairPath); VLocation.ShowHint:=True;
   if not Home and not Finished and not Installing and not Maintenance then begin
     VStatus.Caption:=WizardForm.PageNameLabel.Caption;
     VDescription.Caption:=WizardForm.PageDescriptionLabel.Caption;
@@ -414,13 +415,16 @@ begin
   WizardForm.BackButton.Visible:=False;
   { Inno 的关闭查询依赖 CancelButton.Visible；安装前保留状态但移到窗口外。 }
   WizardForm.CancelButton.Visible:=not Finished; WizardForm.CancelButton.TabStop:=Main and Installing;
-  VNoLaunch.Visible:=Main and Maintenance and (CWMRepairPath<>'');
+  VNoLaunch.Visible:=Main and Maintenance and (CWMRepairPath<>'') and not VMigrationNeeded;
+  VNoLaunch.Enabled:=FileExists(AddBackslash(CWMRepairPath)+'Vex.exe');
   VNoLaunch.Caption:=CustomMessage('VOpen');
   VRemove.Visible:=Main and Maintenance; VRemove.Enabled:=not CWMBusy and not CWMUninstalled;
   if CWMRegistrationCount=1 then VRemove.Enabled:=VRemove.Enabled and (CWMRegistrations[0].Uninstaller<>'');
   VRemove.Hint:=CustomMessage('CWMInvalidRegistration'); VRemove.ShowHint:=not VRemove.Enabled;
   VClose.Enabled:=VLicenseOpen or not Installing or WizardForm.CancelButton.Enabled;
-  VLicense.Visible:=Main and Home; VWebsite.Visible:=Main and Maintenance; VLicense.Enabled:=True;
+  VLicense.Visible:=Main and Home;
+  VWebsite.Visible:=Main and Maintenance and (CWMRepairPath<>'') and not VMigrationNeeded;
+  VLicense.Enabled:=True;
   ButtonY:=Height-58;
   VBounds(WizardForm.NextButton,507,ButtonY,104,36);
   if Maintenance then VBounds(WizardForm.NextButton,209,202,124,30);
