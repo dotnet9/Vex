@@ -9,12 +9,13 @@ if (-not $IsWindows) { throw '原生视觉验证仅支持 Windows。' }
 $Output=[IO.Path]::GetFullPath($Output)
 New-Item -ItemType Directory -Path $Output -Force | Out-Null
 $fixtures=@{}
-foreach($kind in @('new','maintenance','unknown','multiple','migration')) {
+foreach($kind in @('new','maintenance','missing','unknown','multiple','migration')) {
     $folder=Join-Path $Output ('bin-'+$kind)
     New-Item -ItemType Directory -Path $folder -Force | Out-Null
     $arguments=@('/Qp',('/O'+$folder))
     if ($kind -ne 'new') { $arguments+='/DVexFixtureMaintenance' }
     if ($kind -eq 'unknown') { $arguments+='/DVexFixtureUnknownLocation' }
+    if ($kind -eq 'missing') { $arguments+='/DVexFixtureMissingExecutable' }
     if ($kind -in @('multiple','migration')) { $arguments+='/DVexFixtureMultiple' }
     if ($kind -eq 'migration') { $arguments+='/DVexFixtureMigration' }
     & $Compiler @arguments (Join-Path $PSScriptRoot 'Vex.Fixture.iss')
@@ -29,6 +30,7 @@ foreach($language in @('chinesesimplified','english')) {
     }
 }
 & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.unknown -Theme light -Maintenance -UnknownLocation -Output (Join-Path $Output 'unknown-location')
+& (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.missing -Theme light -Maintenance -MissingExecutable -Output (Join-Path $Output 'missing-executable')
 & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.multiple -Language english -Theme dark -Maintenance -Multiple -Output (Join-Path $Output 'multiple-scopes')
 foreach($language in @('chinesesimplified','english')) {
     & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.migration -Language $language -Theme light -Maintenance -Multiple -Migration -Output (Join-Path $Output ('migration-'+$language))

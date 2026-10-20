@@ -7,6 +7,7 @@ param(
     [switch]$Cancel,
     [switch]$Maintenance,
     [switch]$UnknownLocation,
+    [switch]$MissingExecutable,
     [switch]$Multiple,
     [switch]$Migration
 )
@@ -106,6 +107,9 @@ try {
         Check ([CodeWFSetupFixtureDesktop]::PixelLightness((Join-Path $Output '01-welcome.png'),.5,.04) -lt 80) '深色界面无需修改系统主题'
     }
     if ($Maintenance) {
+        if (-not $UnknownLocation -and -not $Migration) {
+            Check (([bool][CodeWFSetupFixtureDesktop]::IsWindowEnabled((Button '^Open$|^打开$'))) -eq (-not $MissingExecutable)) '打开操作与真实主程序存在性一致'
+        }
         Check ($null -ne (Button '^Repair installation$|^修复安装$|^Install for the current user$|^为当前用户安装$|^Upgrade and migrate$|^升级并迁移$')) '已有安装直接呈现原型维护入口'
         if ($Migration) { Check ($null -ne (Button '^Upgrade and migrate$|^升级并迁移$')) '旧全用户安装明确提示升级并迁移' }
         Capture '02-maintenance'
