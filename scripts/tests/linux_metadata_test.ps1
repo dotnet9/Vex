@@ -25,7 +25,7 @@ try {
     if ($xml.component.id -ne $metadata.id -or $xml.component.project_license -ne 'MIT') { throw 'AppStream 产品或许可错误。' }
     if ($xml.component.launchable.'#text' -ne ($metadata.command + '.desktop')) { throw 'AppStream 未绑定桌面入口。' }
     if (-not $xml.SelectSingleNode('/component/summary[@xml:lang="zh-CN"]', $manager)) { throw 'AppStream 缺少中文说明。' }
-    if (@($xml.component.branding.color | Where-Object { $_.'#text' -eq '#512BD4' }).Count -ne 2) { throw '.NET 紫品牌色没有覆盖明暗两种偏好。' }
+    if (@($xml.component.branding.color | Where-Object { $_.'#text' -eq '#24766B' }).Count -ne 2) { throw '原型绿色品牌没有覆盖明暗两种偏好。' }
     if ($xml.component.screenshots) { throw '不能引用尚未发布的宣传截图。' }
     $png = Get-ChildItem -LiteralPath (Join-Path $fixture 'usr/share/icons/hicolor') -Recurse -File -Filter ($metadata.command + '.png') | Select-Object -First 1
     if (-not $png -or (Get-FileHash -LiteralPath $png.FullName).Hash -ne (Get-FileHash -LiteralPath (Join-Path $repositoryRoot 'logo.png')).Hash) { throw 'hicolor 图标与产品图标不同。' }

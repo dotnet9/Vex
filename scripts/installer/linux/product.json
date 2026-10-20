@@ -4,10 +4,10 @@
   "command": "vex",
   "name": "Vex",
   "chineseName": "维刻 Vex",
-  "summary": "Write your thoughts, see the connections",
-  "chineseSummary": "写下想法，看见脉络",
-  "description": "Vex · Write your thoughts. See the connections. A Markdown editor for writing, reading and exploring document structure.",
-  "chineseDescription": "维刻 Vex · 写下想法，看见脉络。用 Markdown 写作、阅读与梳理文档结构。",
+  "summary": "Markdown writing and document structure",
+  "chineseSummary": "Markdown 写作与文章结构",
+  "description": "Write, read and organize your thoughts in one space. Keep your ideas in local Markdown files.",
+  "chineseDescription": "在同一个空间里写作、阅读与整理脉络。以本地 Markdown 文件保存你的想法。",
   "categories": [
     "Office",
     "TextEditor"

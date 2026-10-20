@@ -1,7 +1,7 @@
 {
   "source": "CodeWF.Avalonia/scripts/installer/linux/Write-LinuxPackageMetadata.ps1",
-  "sha256": "9832b5e69567e204c62bb6561b69a481f6bd04cf32bb6fee4456edfa6e0fb905",
-  "brandColor": "#512BD4",
-  "distribution": "Each repository includes its own script and product metadata; no cross-repository dependency",
+  "sha256": "6cb6db081a93f2d64ceb09b2480549c138a5a594a6eda8f2cfb9ddaf9e3d0d39",
+  "brandColor": "#24766B",
+  "distribution": "Vex prototype override of shared script; no cross-repository dependency",
   "hashEncoding": "UTF-8 without BOM, LF line endings"
 }

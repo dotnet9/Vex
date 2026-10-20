@@ -54,14 +54,14 @@ $appstream = @"
   <summary>$summary</summary>
   <summary xml:lang="zh-CN">$chineseSummary</summary>
   <description><p>$description</p><p xml:lang="zh-CN">$chineseDescription</p></description>
-  <developer id="com.codewf"><name>Dotnet9</name></developer>
+  <developer id="com.codewf"><name>CodeWF</name></developer>
   <url type="homepage">$homepage</url>
   <url type="bugtracker">$homepage/issues</url>
   <launchable type="desktop-id">$($metadata.command).desktop</launchable>
   <icon type="stock">$($metadata.command)</icon>
   <categories>$categories</categories>
   <provides><binary>$($metadata.command)</binary></provides>
-  <branding><color type="primary" scheme_preference="light">#512BD4</color><color type="primary" scheme_preference="dark">#512BD4</color></branding>
+  <branding><color type="primary" scheme_preference="light">#24766B</color><color type="primary" scheme_preference="dark">#24766B</color></branding>
 </component>
 "@
 $metainfo = Join-Path $stage 'usr/share/metainfo'
