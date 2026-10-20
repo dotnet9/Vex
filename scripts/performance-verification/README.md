@@ -3,7 +3,7 @@
 在仓库根目录运行：
 
 ```powershell
-dotnet run --project scripts/performance-verification/PerformanceVerification.csproj -c Release -- E:/github/temp/vex-performance
+dotnet run --project scripts/performance-verification/PerformanceVerification.csproj -c Release -p:ArtifactsPath=E:/github/temp_files/vex-performance/artifacts -- E:/github/temp_files/vex-performance/results
 ```
 
 脚本使用独立配置文件，禁用 MCP，并以空实现替换草稿和最近记录服务，不读取用户文档。它生成包含标题、段落、列表、代码和表格的 12 节、100 节 Markdown，记录配置读取、部分更新、应用初始化，以及即时编辑、阅读和源码视图切换的耗时。结果保存在 `timings.json`，并输出启动及阅读视图 PNG。
@@ -15,7 +15,7 @@ dotnet run --project scripts/performance-verification/PerformanceVerification.cs
 细分即时编辑器成本时，追加 `--profile`；追加 `--atomic` 使用一次载入正文与图片基址的 API。脚本分别记录高亮注册、分块解析、控件构造、派发渲染及布局。布局包装器只统计经过它的 `MeasureOverride` / `ArrangeOverride` 回调，内部子树可能独立重新布局，因此零值不代表整棵控件树没有布局成本；这些数据属于渲染布局总时间的一部分，不能重复相加。
 
 ```powershell
-dotnet run --project scripts/performance-verification/PerformanceVerification.csproj -c Release -- E:/github/temp/vex-profile --profile --atomic
+dotnet run --project scripts/performance-verification/PerformanceVerification.csproj -c Release -p:ArtifactsPath=E:/github/temp_files/vex-profile/artifacts -- E:/github/temp_files/vex-profile/results --profile --atomic
 ```
 
 脚本也可独立发布为 NativeAOT 后运行；结果中的 `runtime` 字段会区别托管与原生离屏宿主。验证器的路径替身通过显式工厂构造，避免额外反射构造保全要求。这仍然属于离屏控件测量，不代表正式桌面窗口的原生冷启动。
@@ -48,3 +48,23 @@ dotnet run --project scripts/performance-verification/PerformanceVerification.cs
 同机存在其他构建与 NativeAOT 编译负载，样本量仅三轮。配置批量读写与长文档即时打开的收益可复现；小文档首次阅读和初始化范围重叠，不能据此声称全面提速。这组数据属于托管离屏宿主，不是桌面冷启动，也不是 NativeAOT 性能对比。
 
 这轮计时完成后，另修正了对话框按钮颜色、大小写敏感文件路径同步和验证宿主的 AOT 构造注册，并补充完整界面回归。计时流程不打开这些浮层，也未使用仅大小写不同的路径；表内数据没有重新统计最终修订后的性能分布。
+
+## 1.7.0 原型更新复测（2026-10-21）
+
+依赖为本地 NuGet 安装的 CodeWF.Avalonia 12.1.4.34。使用当前 Windows 机器、Release 托管离屏宿主连续运行三轮；同机正在进行 NativeAOT 编译，以下是本次状态记录，不与历史版本作提速百分比比较。
+
+验证器新增真实 TextInput 输入：每份文档在实际即时编辑输入框连续输入 30 个中文字符，检查所有字符同步到正文；每次计时包含输入派发及离屏渲染 tick。所有原有正文、图片路径、远程刷新和源码任务交互断言通过。
+
+| 项目 | 三轮中位数（最小–最大），毫秒 |
+| --- | ---: |
+| 12 节、约 3 千字符即时打开 | 578.1（575.0–643.5） |
+| 100 节、约 2.6 万字符即时打开 | 439.2（339.3–502.0） |
+| 长文档首次阅读及 PNG 编码 | 209.8（183.9–224.1） |
+| 长文档切入源码 | 56.9（48.8–59.9） |
+| 长文档返回即时编辑 | 22.4（20.6–24.5） |
+| 小文档输入中位数 | 7.0（6.2–7.7） |
+| 小文档输入 95 分位 | 35.9（25.6–36.5） |
+| 长文档输入中位数 | 12.5（11.1–13.5） |
+| 长文档输入 95 分位 | 37.4（34.3–41.5） |
+
+12 节测试先运行，因此包含首次输入/JIT 成本，其单次最慢输入为 272.9–369.6ms；100 节最慢输入为 34.4–46.5ms。大文档在热进程中后运行，不能根据打开时间反推文档越长越快。以上均不是正式 NativeAOT 桌面冷启动、真实显示器帧率或 macOS/Linux 实机性能。

@@ -37,7 +37,7 @@ var settings = new AppSettingsStore();
 Measure("settings.update.20", () => { for (var i = 0; i < 20; i++) settings.Update(s => s with { PaletteKey = i % 2 == 0 ? "dotnet" : "aurora" }); });
 
 var startup = Stopwatch.StartNew();
-AppBuilder.Configure<PerformanceApp>().UseSkia().WithInterFont()
+AppBuilder.Configure<PerformanceApp>().UseSkia().With(VexFonts.Options)
     .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
 var app = (PerformanceApp)Application.Current!;
 var window = app.Shell!;
@@ -90,6 +90,22 @@ foreach (var sections in new[] { 12, 100 })
     Check(preview.Markdown == vm.Markdown, "Read mode displays the latest document");
     Measure($"document.{sections}.source.firstFrame", () => { vm.Workbench.ShowSource(); Pump(); });
     Measure($"document.{sections}.instant.return", () => { vm.Workbench.ShowInstant(); Pump(); });
+    live.NavigateToSourceLine(1, true); Pump();
+    var input = live.GetVisualDescendants().OfType<TextBox>().Single(box => box.IsEffectivelyVisible);
+    input.CaretIndex = input.Text!.Length; input.SelectionStart = input.SelectionEnd = input.CaretIndex;
+    var typing = new List<double>();
+    for (var i = 0; i < 30; i++)
+    {
+        var clock = Stopwatch.StartNew();
+        window.KeyTextInput("写"); Pump();
+        typing.Add(clock.Elapsed.TotalMilliseconds);
+    }
+    Check(vm.Markdown.Contains(new string('写', 30)), "Native input synchronizes every character without losing document content");
+    typing.Sort();
+    timings.Add(new Measurement($"document.{sections}.typing.median", typing[typing.Count / 2]));
+    timings.Add(new Measurement($"document.{sections}.typing.p95", typing[(int)Math.Ceiling(typing.Count * .95) - 1]));
+    timings.Add(new Measurement($"document.{sections}.typing.max", typing[^1]));
+    vm.Markdown = document; Pump();
 }
 
 if (!args.Skip(1).Contains("--timings-only")) VerifyPreviewSynchronization();
