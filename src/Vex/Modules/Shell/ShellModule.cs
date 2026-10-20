@@ -16,6 +16,6 @@ public sealed class ShellModule : IModule
     {
         var regionManager = containerProvider.Resolve<IRegionManager>();
         regionManager.RegisterViewWithRegion<ShellFilesView>(RegionNames.ShellSidebarRegion);
-        regionManager.RegisterViewWithRegion<ShellOutlineView>(RegionNames.ShellSidebarRegion);
+        regionManager.RegisterViewWithRegion<ShellOutlineView>(RegionNames.ShellOutlineRegion);
     }
 }

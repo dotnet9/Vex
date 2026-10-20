@@ -29,6 +29,17 @@ if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
+if (mode == "desktop-parity")
+{
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+    var app = (VerificationVexApp)Application.Current!;
+    var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
+    window.Show();
+    DesktopParityVerification.Run(app, window, output);
+    window.Close();
+    return;
+}
 if (mode == "parity")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()

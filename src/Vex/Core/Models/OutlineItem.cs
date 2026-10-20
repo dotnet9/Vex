@@ -43,4 +43,6 @@ public sealed class OutlineItem : INotifyPropertyChanged
 
     // 大纲角标（对应原型 H1-H4 标签）：直接展示标题层级 H1-H6
     public string LevelText => "H" + Level;
+
+    public string Number { get; internal set; } = string.Empty;
 }

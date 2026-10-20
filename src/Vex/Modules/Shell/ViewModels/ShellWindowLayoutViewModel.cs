@@ -28,6 +28,12 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool? _statusBarVisibleBeforeFocus;
     private double _sidebarWidth = DefaultSidebarWidth;
     private bool _isSidebarResizing;
+    private bool _isOutlineVisible = true;
+    private double _outlineWidth = 240;
+    private double _workspaceWidth = 1280;
+    private bool _outlineNarrowOverride;
+    private bool? _outlineBeforeFocus;
+    private bool _isOutlineResizing;
 
     /// <summary>侧栏默认宽度，与 design/index.html 主区栅格一致。</summary>
     public const double DefaultSidebarWidth = 226d;
@@ -52,6 +58,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _isTypewriterMode = settings.IsTypewriterMode ?? false;
         _isFocusMode = settings.IsFocusMode ?? false;
         _sidebarWidth = Math.Clamp(settings.SidebarWidth ?? DefaultSidebarWidth, MinSidebarWidth, MaxSidebarWidth);
+        _isOutlineVisible = settings.IsOutlineVisible ?? true;
+        _outlineWidth = Math.Clamp(settings.OutlineWidth ?? 240, 180, 480);
         MotionResources.Apply(_enableMotion);
         if (_isFocusMode)
         {
@@ -75,6 +83,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
                 OnPropertyChanged(nameof(SidebarSplitterWidth));
                 OnPropertyChanged(nameof(MinimumVisibleSidebarWidth));
                 OnPropertyChanged(nameof(MaximumVisibleSidebarWidth));
+                NotifyOutlineLayout();
                 PersistLayoutSettings();
             }
         }
@@ -121,6 +130,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
             OnPropertyChanged(nameof(SidebarColumnWidth));
             OnPropertyChanged(nameof(VisibleSidebarWidth));
+            NotifyOutlineLayout();
             if (!_isSidebarResizing) PersistLayoutSettings();
         }
     }
@@ -147,6 +157,58 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public double MaximumVisibleSidebarWidth => ShowSidebar ? MaxSidebarWidth : 0;
     public bool ShowSidebar => IsSidebarVisible && !IsPresentationMode;
     public bool ShowStatusBar => IsStatusBarVisible && !IsPresentationMode;
+    public bool IsOutlineVisible
+    {
+        get => _isOutlineVisible;
+        set
+        {
+            _outlineNarrowOverride = value;
+            SetProperty(ref _isOutlineVisible, value);
+            NotifyOutlineLayout();
+            PersistLayoutSettings();
+        }
+    }
+
+    public bool ShowOutlineSidebar => IsOutlineVisible && !IsPresentationMode && !IsFocusMode
+        && (!IsOutlineNarrow || _outlineNarrowOverride);
+    private bool IsOutlineNarrow => _workspaceWidth - VisibleSidebarWidth - OutlineWidth < 440;
+    public double WorkspaceWidth
+    {
+        get => _workspaceWidth;
+        set
+        {
+            _workspaceWidth = value;
+            if (!IsOutlineNarrow) _outlineNarrowOverride = false;
+            NotifyOutlineLayout();
+        }
+    }
+
+    public double OutlineWidth
+    {
+        get => _outlineWidth;
+        set
+        {
+            if (!double.IsFinite(value) || !SetProperty(ref _outlineWidth, Math.Clamp(value, 180, 480))) return;
+            NotifyOutlineLayout();
+            if (!_isOutlineResizing) PersistLayoutSettings();
+        }
+    }
+    public GridLength OutlineColumnWidth
+    {
+        get => new(ShowOutlineSidebar ? OutlineWidth : 0);
+        set { if (ShowOutlineSidebar && value.IsAbsolute) OutlineWidth = value.Value; }
+    }
+    public double MinimumOutlineWidth => ShowOutlineSidebar ? 180 : 0;
+    public double MaximumOutlineWidth => ShowOutlineSidebar ? 480 : 0;
+    public GridLength OutlineSplitterWidth => new(ShowOutlineSidebar ? 5 : 0);
+    public void BeginOutlineResize() => _isOutlineResizing = true;
+    public void CompleteOutlineResize() { _isOutlineResizing = false; PersistLayoutSettings(); }
+    public void ToggleOutline() => IsOutlineVisible = !ShowOutlineSidebar;
+    private void NotifyOutlineLayout()
+    {
+        foreach (var name in new[] { nameof(ShowOutlineSidebar), nameof(OutlineColumnWidth), nameof(OutlineSplitterWidth), nameof(MinimumOutlineWidth), nameof(MaximumOutlineWidth) })
+            OnPropertyChanged(name);
+    }
     /// <summary>演示只临时隐藏界面，不改写用户布局偏好。</summary>
     public bool IsPresentationMode
     {
@@ -154,6 +216,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         set
         {
             if (!SetProperty(ref _isPresentationMode, value)) return;
+            NotifyOutlineLayout();
             foreach (var name in new[] { nameof(ShowSidebar), nameof(ShowStatusBar), nameof(SidebarColumnWidth), nameof(VisibleSidebarWidth), nameof(SidebarSplitterWidth), nameof(MinimumVisibleSidebarWidth), nameof(MaximumVisibleSidebarWidth) }) OnPropertyChanged(name);
         }
     }
@@ -206,6 +269,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
             if (value)
             {
+                _outlineBeforeFocus = IsOutlineVisible;
                 _sidebarVisibleBeforeFocus = IsSidebarVisible;
                 _statusBarVisibleBeforeFocus = IsStatusBarVisible;
                 _isSidebarVisible = false;
@@ -213,11 +277,16 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             }
             else
             {
+                _isOutlineVisible = _outlineBeforeFocus ?? true;
                 _isSidebarVisible = _sidebarVisibleBeforeFocus ?? true;
                 _isStatusBarVisible = _statusBarVisibleBeforeFocus ?? true;
             }
 
             OnPropertyChanged(nameof(IsSidebarVisible));
+            OnPropertyChanged(nameof(IsOutlineVisible));
+            OnPropertyChanged(nameof(ShowSidebar));
+            OnPropertyChanged(nameof(ShowStatusBar));
+            NotifyOutlineLayout();
             OnPropertyChanged(nameof(IsStatusBarVisible));
             OnPropertyChanged(nameof(SidebarColumnWidth));
             OnPropertyChanged(nameof(SidebarSplitterWidth));
@@ -319,8 +388,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
     public void ShowOutline()
     {
-        IsSidebarVisible = true;
-        SelectSidebarTab(1);
+        IsOutlineVisible = true;
     }
 
     public void ShowFiles()
@@ -381,6 +449,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             IsSourceMode = IsSourceMode,
             IsAlwaysOnTop = IsAlwaysOnTop,
             SidebarWidth = SidebarWidth,
+            IsOutlineVisible = IsOutlineVisible,
+            OutlineWidth = OutlineWidth,
             EnableMotion = EnableMotion,
             IsFocusMode = IsFocusMode,
             IsTypewriterMode = IsTypewriterMode

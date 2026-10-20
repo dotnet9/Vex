@@ -612,7 +612,14 @@
       "TableColumns": "欄數",
       "TableHeaderHint": "行數包含表頭。",
       "TableColumnTitle": "欄 {0}",
-      "Insert": "插入"
+      "Insert": "插入",
+      "DocumentStructure": "文件結構",
+      "OutlineFilterPlaceholder": "尋找標題…",
+      "CollapseAllFiles": "全部摺疊",
+      "ToggleFileList": "切換樹狀 / 清單",
+      "SortFiles": "切換名稱排序",
+      "OpenInNewWindow": "在新視窗開啟",
+      "FileActions": "檔案操作"
     }
   }
 }

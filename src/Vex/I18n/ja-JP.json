@@ -612,7 +612,14 @@
       "TableColumns": "列数",
       "TableHeaderHint": "行数には見出し行を含みます。",
       "TableColumnTitle": "列 {0}",
-      "Insert": "挿入"
+      "Insert": "挿入",
+      "DocumentStructure": "ドキュメント構造",
+      "OutlineFilterPlaceholder": "見出しを検索…",
+      "CollapseAllFiles": "すべて折りたたむ",
+      "ToggleFileList": "ツリー / リストを切替",
+      "SortFiles": "名前の並び順を切替",
+      "OpenInNewWindow": "新しいウィンドウで開く",
+      "FileActions": "ファイル操作"
     }
   }
 }

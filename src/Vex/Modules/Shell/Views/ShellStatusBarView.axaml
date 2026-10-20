@@ -3,6 +3,9 @@
  <Border Height="32" Background="{DynamicResource VexStatusBarBackgroundBrush}" BorderBrush="{DynamicResource VexStatusBarBorderBrush}" BorderThickness="0,1,0,0" Padding="14,0">
   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" ToolTip.Tip="{Binding Status.StatusText}">
+    <ToggleButton Classes="wb-quiet" IsChecked="{Binding Layout.IsSidebarVisible, Mode=OneWay}" Command="{Binding Layout.ToggleSidebar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.DocumentList}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.DocumentList}}" Padding="4" MinHeight="24"><PathIcon Width="14" Height="14" Data="M3 3H21V21H3Z M8 3V21"/></ToggleButton>
+    <ToggleButton Classes="wb-quiet" IsChecked="{Binding Workbench.IsSourceEditing, Mode=OneWay}" Command="{Binding Workbench.ToggleSourceEditing}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBSource}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBSource}}" Padding="4" MinHeight="24"><PathIcon Width="14" Height="14" Data="M8 5L2 12L8 19 M16 5L22 12L16 19"/></ToggleButton>
+    <ToggleButton Classes="wb-quiet" IsChecked="{Binding Layout.ShowOutlineSidebar, Mode=OneWay}" Command="{Binding Layout.ToggleOutline}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Outline}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Outline}}" Padding="4" MinHeight="24"><PathIcon Width="14" Height="14" Data="M3 3H21V21H3Z M16 3V21"/></ToggleButton>
     <Ellipse Width="5" Height="5" Fill="{DynamicResource VexSuccessBrush}" IsVisible="{Binding !DocumentInfo.IsModified}"/>
     <Ellipse Width="5" Height="5" Fill="{DynamicResource VexWarningBrush}" IsVisible="{Binding DocumentInfo.IsModified}"/>
     <TextBlock Text="{Binding DocumentInfo.DocumentStateText}" Classes="wb-muted"/>

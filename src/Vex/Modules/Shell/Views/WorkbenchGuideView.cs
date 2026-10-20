@@ -49,6 +49,7 @@ public sealed class WorkbenchGuideView : Panel
     private AvaloniaEdit.Document.TextDocument? _sourceDocument;
     private int _sourceCaret;
     private CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.ViewportState? _mapState;
+    private bool _outline;
     private IInputElement? _savedFocus;
     private Vex.Modules.Workspace.ViewModels.MarkdownEditorViewModel? _sourceVm;
     private WorkspaceViewController.FloatingSession? _floatingSession;
@@ -102,7 +103,7 @@ public sealed class WorkbenchGuideView : Panel
         _savedLayouts = vm.Workbench.ShowLayouts;
         _savedMarkdown = vm.Markdown; _savedView = vm.Workbench.View; _savedEdit = vm.Workbench.EditMode;
         _savedTypography = vm.Appearance.SelectedTypography;
-        _sidebar = vm.Layout.IsSidebarVisible; _status = vm.Layout.IsStatusBarVisible; _focus = vm.Layout.IsFocusMode;
+        _outline = vm.Layout.IsOutlineVisible; _sidebar = vm.Layout.IsSidebarVisible; _status = vm.Layout.IsStatusBarVisible; _focus = vm.Layout.IsFocusMode;
         _mapSettings = vm.Workbench.ShowMapSettings; _typography = vm.Workbench.ShowTypography;
         _targets = targets;
         _savedFocus = window.FocusManager?.GetFocusedElement();
@@ -169,7 +170,7 @@ public sealed class WorkbenchGuideView : Panel
         switch (StepIndex)
         {
             case 0: _vm.Workbench.SelectLayout("instant"); break;
-            case 1: _vm.Workbench.SelectLayout("instant"); _vm.Navigation.SelectedSideTabIndex = 1; break;
+            case 1: _vm.Workbench.SelectLayout("instant"); _vm.Layout.ShowOutline(); break;
             case 2:
                 _vm.Workbench.SelectLayout("map"); _vm.Workbench.ShowParagraphs = _vm.Workbench.ShowLists = _vm.Workbench.ShowCode = _vm.Workbench.ShowTables = false;
                 break;
@@ -327,7 +328,7 @@ public sealed class WorkbenchGuideView : Panel
         if (_history is { } history) _vm.Workbench.History.Restore(history);
         if (_floatingSession is { } floating) _window?.WorkspaceViews.RestoreFloating(floating);
         _floatingSession = null;
-        _vm.Layout.IsFocusMode = _focus; _vm.Layout.IsSidebarVisible = _sidebar; _vm.Layout.IsStatusBarVisible = _status;
+        _vm.Layout.IsOutlineVisible = _outline; _vm.Layout.IsFocusMode = _focus; _vm.Layout.IsSidebarVisible = _sidebar; _vm.Layout.IsStatusBarVisible = _status;
         if (_savedSettings is { } saved) _settings?.Update(_ => saved with { HasSeenOnboardingGuide = true });
         if (_window is not null) _window.FindControl<ShellWorkbenchToolbarView>("WorkbenchToolbar")!.QuickStartButton.IsVisible = false;
         var window = _window;

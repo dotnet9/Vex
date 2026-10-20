@@ -204,6 +204,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public void ShowRead() => SelectView("read");
     public void ShowMindMap() => SelectView("mindmap");
     public void ShowInstant() => SelectLayout(IsMapVisible ? "instant-map" : "instant");
+    public void ToggleSourceEditing() { if (IsSourceEditing) ShowInstant(); else ShowSource(); }
     public void ShowSource() => SelectLayout(IsMapVisible ? IsPreviewVisible ? "three" : "source-map" : IsPreviewVisible && !IsReading ? "source-render" : "source");
     public void ToggleMapSource() => SelectLayout(HasEditor ? "map" : "source-map");
     public void ToggleLayouts() => ShowLayouts = !ShowLayouts;

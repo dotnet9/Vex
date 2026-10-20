@@ -612,7 +612,14 @@
       "TableColumns": "Columns",
       "TableHeaderHint": "Row count includes the header.",
       "TableColumnTitle": "Column {0}",
-      "Insert": "Insert"
+      "Insert": "Insert",
+      "DocumentStructure": "Document structure",
+      "OutlineFilterPlaceholder": "Filter headings…",
+      "CollapseAllFiles": "Collapse all folders",
+      "ToggleFileList": "Switch tree / list",
+      "SortFiles": "Reverse name order",
+      "OpenInNewWindow": "Open in new window",
+      "FileActions": "File actions"
     }
   }
 }

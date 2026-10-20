@@ -30,6 +30,26 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     public string? TitleKey { get; } = VexL.SidebarOutline;
 
     public ObservableCollection<OutlineItem> OutlineItems { get; } = [];
+    public ObservableCollection<OutlineItem> FilteredOutlineItems { get; } = [];
+    private string _filterText = string.Empty;
+    public string FilterText
+    {
+        get => _filterText;
+        set { if (SetProperty(ref _filterText, value)) FilterOutline(); }
+    }
+
+    public void ClearFilter() => FilterText = string.Empty;
+
+    private void FilterOutline()
+    {
+        FilteredOutlineItems.Clear();
+        foreach (var item in OutlineItems)
+            if (item.Title.Contains(FilterText.Trim(), StringComparison.CurrentCultureIgnoreCase))
+                FilteredOutlineItems.Add(item);
+        OnPropertyChanged(nameof(IsFilterEmpty));
+    }
+
+    public bool IsFilterEmpty => FilteredOutlineItems.Count == 0;
 
     public bool HasOutlineItems => OutlineItems.Count > 0;
 
@@ -53,11 +73,17 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     {
         // 大纲由 Markdown 派生生成，这里只更新展示状态，跳转仍通过事件总线发给编辑器。
         OutlineItems.Clear();
+        var counters = new int[6];
         foreach (var item in command.Items)
         {
+            var level = Math.Clamp(item.Level, 1, 6);
+            counters[level - 1]++;
+            Array.Clear(counters, level, 6 - level);
+            item.Number = string.Join('.', counters.Take(level));
             OutlineItems.Add(item);
         }
 
+        FilterOutline();
         SelectOutlineItemSilently(null);
         NotifyOutlineChanged();
         UpdateReadingState(_lastCaretLine, _lastLineCount);

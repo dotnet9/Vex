@@ -26,6 +26,11 @@ public sealed record AppSettings
     /// <summary>侧栏宽度（可拖分隔条调整并记忆）。</summary>
     public double? SidebarWidth { get; init; }
 
+    public bool? IsOutlineVisible { get; init; }
+    public double? OutlineWidth { get; init; }
+    public bool? FileListView { get; init; }
+    public bool? FileSortDescending { get; init; }
+
     public bool? IsStatusBarVisible { get; init; }
 
     public bool? IsPreviewVisible { get; init; }

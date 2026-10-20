@@ -619,6 +619,13 @@ namespace Vex
         public static readonly string TableHeaderHint = "Vex.VexL.TableHeaderHint";
         public static readonly string TableColumnTitle = "Vex.VexL.TableColumnTitle";
         public static readonly string Insert = "Vex.VexL.Insert";
+        public static readonly string DocumentStructure = "Vex.VexL.DocumentStructure";
+        public static readonly string OutlineFilterPlaceholder = "Vex.VexL.OutlineFilterPlaceholder";
+        public static readonly string CollapseAllFiles = "Vex.VexL.CollapseAllFiles";
+        public static readonly string ToggleFileList = "Vex.VexL.ToggleFileList";
+        public static readonly string SortFiles = "Vex.VexL.SortFiles";
+        public static readonly string OpenInNewWindow = "Vex.VexL.OpenInNewWindow";
+        public static readonly string FileActions = "Vex.VexL.FileActions";
     }
 
 }

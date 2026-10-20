@@ -31,9 +31,21 @@ public partial class MainWindow : CodeWFWindow
         LayoutGallery.SeparateRequested += (_, _) => WorkspaceViews.Separate();
         SidebarSplitter.DragStarted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.BeginSidebarResize(); };
         SidebarSplitter.DragCompleted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.CompleteSidebarResize(); };
+        OutlineSplitter.DragStarted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.BeginOutlineResize(); };
+        OutlineSplitter.DragCompleted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.CompleteOutlineResize(); };
+        OutlineSplitter.KeyDown += (_, e) =>
+        {
+            if (DataContext is MainWindowViewModel vm && e.Key is Key.Left or Key.Right)
+            { vm.Layout.OutlineWidth += e.Key == Key.Left ? 12 : -12; e.Handled = true; }
+        };
+        SidebarSplitter.KeyDown += (_, e) =>
+        {
+            if (DataContext is MainWindowViewModel vm && e.Key is Key.Left or Key.Right)
+            { vm.Layout.SidebarWidth += e.Key == Key.Right ? 10 : -10; e.Handled = true; }
+        };
         SizeChanged += (_, _) =>
         {
-            if (DataContext is MainWindowViewModel vm) vm.Layout.IsCompactWindow = Bounds.Width < 1100;
+            if (DataContext is MainWindowViewModel vm) { vm.Layout.IsCompactWindow = Bounds.Width < 1100; vm.Layout.WorkspaceWidth = Bounds.Width; }
             LayoutGallery.Margin = Bounds.Width < 1100 ? new Thickness(12, 51, 12, 18) : new Thickness(18, 56, 130, 18);
         };
         TitleMenuView.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
@@ -163,7 +175,7 @@ public partial class MainWindow : CodeWFWindow
     public void BeginOnboardingGuide()
     {
         if (DataContext is MainWindowViewModel vm)
-            WorkbenchGuide.Start(vm, this, _settingsStore, new Control[] { InstantGuideTarget, SidebarGuideTarget, MindMapGuideTarget, WorkbenchToolbar.LayoutTarget, EditorOptions, TitleMenuView.FileMenuTarget });
+            WorkbenchGuide.Start(vm, this, _settingsStore, new Control[] { InstantGuideTarget, OutlineGuideTarget, MindMapGuideTarget, WorkbenchToolbar.LayoutTarget, EditorOptions, TitleMenuView.FileMenuTarget });
     }
 
     private void MainWindow_OnClosing(object? sender, WindowClosingEventArgs e)
