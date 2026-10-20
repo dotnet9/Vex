@@ -1,4 +1,7 @@
-﻿<Styles xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns:motion="using:Vex.Core.Motion" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="FlyoutPresenter, MenuFlyoutPresenter, Border.dialog-card, Border.wb-popover">
+    <Setter Property="motion:EntranceMotion.IsEnabled" Value="True"/>
+  </Style>
   <Styles.Resources>
     <StreamGeometry x:Key="WBSidebarIcon">M3 3H21V21H3Z M9 3V21</StreamGeometry>
     <StreamGeometry x:Key="WBEditIcon">M11 4H4V20H20V13 M18 2L22 6L12 16L8 17L9 13Z</StreamGeometry>
@@ -72,6 +75,6 @@
   <Style Selector="Path.format-stroke"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/><Setter Property="StrokeThickness" Value="1.8"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/></Style>
   <Style Selector="Button.wb-format-extra"><Setter Property="Width" Value="160"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="FontSize" Value="12"/></Style>
   <Style Selector="u|ToolBar.wb-formatbar /template/ ToggleButton#button"><Setter Property="Focusable" Value="False"/><Setter Property="ToolTip.Tip" Value="{i18n:I18n {x:Static l:VexL.WBMoreFormatting}}"/></Style>
-  <Style Selector="Border.presentation-tools"><Setter Property="Opacity" Value="0.75"/><Setter Property="Transitions"><Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.2"/></Transitions></Setter></Style>
+  <Style Selector="Border.presentation-tools"><Setter Property="Opacity" Value="0.75"/><Setter Property="Transitions"><Transitions><DoubleTransition Property="Opacity" Duration="{DynamicResource MotionDurationFast}"/></Transitions></Setter></Style>
   <Style Selector="Border.presentation-tools:pointerover, Border.presentation-tools:focus-within"><Setter Property="Opacity" Value="1"/></Style>
 </Styles>

@@ -15,13 +15,14 @@ public static class MotionResources
 
     private static readonly (string Key, TimeSpan Duration)[] Tokens =
     [
-        (FastKey, TimeSpan.FromMilliseconds(100)),
-        (MidKey, TimeSpan.FromMilliseconds(200)),
-        (SlowKey, TimeSpan.FromMilliseconds(300))
+        (FastKey, TimeSpan.FromMilliseconds(140)),
+        (MidKey, TimeSpan.FromMilliseconds(220)),
+        (SlowKey, TimeSpan.FromMilliseconds(260))
     ];
 
     /// <summary>当前是否启用动效。</summary>
     public static bool IsEnabled { get; private set; } = true;
+    public static event Action? Changed;
 
     /// <summary>按开关状态重写应用级动效 token。</summary>
     public static void Apply(bool enabled)
@@ -31,6 +32,7 @@ public static class MotionResources
         {
             Apply(app.Resources, enabled);
         }
+        Changed?.Invoke();
     }
 
     /// <summary>按开关状态重写指定资源字典中的动效 token（便于测试与局部覆盖）。</summary>

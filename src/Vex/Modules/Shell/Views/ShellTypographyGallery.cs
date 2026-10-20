@@ -98,7 +98,7 @@ public sealed class ShellTypographyGallery : UserControl
         grid.Children.Add(header); var hint = Label(Text("WBTypographyHint")); hint.Classes.Add("muted"); Grid.SetRow(hint, 1); grid.Children.Add(hint);
         Grid.SetRow(filters, 2); grid.Children.Add(filters);
         _scroll = new ScrollViewer { Content = _cards, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled }; Grid.SetRow(_scroll, 3); grid.Children.Add(_scroll);
-        var border = new Border { Child = grid, Padding = new Thickness(16), CornerRadius = new CornerRadius(10), BorderThickness = new Thickness(1), BoxShadow = BoxShadows.Parse("0 8 30 0 #20000000") };
+        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(16), CornerRadius = new CornerRadius(10), BorderThickness = new Thickness(1), BoxShadow = BoxShadows.Parse("0 8 30 0 #20000000") };
         Resource(border, Border.BackgroundProperty, this, "VexPanelBackgroundBrush"); Resource(border, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
         Content = border; Resize(); Changed(null, new(""));
     }

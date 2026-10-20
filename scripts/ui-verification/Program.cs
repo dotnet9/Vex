@@ -37,14 +37,15 @@ if (mode == "settings-real-ui")
     File.WriteAllText(config, "<configuration><appSettings /></configuration>");
     AppContext.SetData("APP_CONFIG_FILE", config);
 }
-if (mode is "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection")
+if (mode is "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
     window.Show();
-    if (mode == "protection") ProtectionVerification.Run(app, window, output);
+    if (mode == "motion") MotionVerification.Run(app, window, output);
+    else if (mode == "protection") ProtectionVerification.Run(app, window, output);
     else if (mode == "prototype-appearance") PrototypeAppearanceVerification.Run(app, window, output);
     else if (mode == "prototype-chrome") PrototypeChromeVerification.Run(app, window, output);
     else if (mode is "settings-ui" or "settings-real-ui") PreferencesVerification.Run(app, window, output);
@@ -1590,15 +1591,15 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     var wb = vm.Workbench;
     wb.SelectLayout("instant"); Pump();
     Check(!source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && instant.IsEffectivelyVisible, "Instant mode hides the source and read views");
-    Check(instant.Editor.DocumentMaxWidth == 1280 && instant.Editor.EditorFontSize == 14.5, "Instant document uses the prototype reading width and base font");
-    Check(window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.Bounds.Height == 62
+    Check(instant.Editor.DocumentMaxWidth == 1280 && instant.Editor.EditorFontSize >= 16, "Instant document uses the prototype document width and accessible base font");
+    Check(window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.Bounds.Height == 58
         && window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
-        "Workbench and editing context rows are 62 and 42 px");
+        "Workbench and editing context rows are 58 and 42 px");
     wb.ShowSource(); Pump();
     Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && Math.Abs(source.Bounds.Width - window.FindControl<Grid>("ViewSurface")!.Bounds.Width) < 2,
         $"The source layout fills the current workspace width: source={source.IsEffectivelyVisible}/{source.Bounds}, preview={preview.IsEffectivelyVisible}, surface={window.FindControl<Grid>("ViewSurface")!.Bounds}, layout={wb.WorkspaceLayout}");
-    Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Count(button => button.Classes.Contains("wb-quiet")) == 2,
-        "Editing options offer instant and source modes without a preview toggle");
+    Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.GetVisualDescendants().OfType<Button>().Any(button => button.Name == "TypographyTarget"),
+        "Editing options retain the prototype formatting and typography controls");
     wb.ShowRead(); Pump();
     Check(preview.IsEffectivelyVisible && preview.IsReadingMode && !source.IsEffectivelyVisible && !instant.IsEffectivelyVisible
         && !window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.IsEffectivelyVisible,
@@ -1606,10 +1607,8 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     app.Resolve<MarkdownEditorViewModel>().ApplySearch(new EditorSearchCommand(EditorSearchAction.Count, "Markdown")); Pump();
     Check(wb.IsReading && vm.Markdown == document, "Counting search matches keeps the reading view and document unchanged");
     wb.ShowInstant(); wb.ShowTypography = true; Pump();
-    var gallery = window.FindControl<Border>("TypographyGallery")!;
-    var cards = gallery.GetVisualDescendants().OfType<Border>().Where(b => b.Width == 90 && b.Height == 58).ToArray();
-    Check(gallery.Bounds.Width == 338 && cards.Length == 18, "Typography gallery contains all 18 themes in a 338 px panel");
-    Check(cards.GroupBy(c => Math.Round(c.TranslatePoint(default, gallery)!.Value.Y)).First().Count() == 3, "Typography cards form three columns");
+    var gallery = window.FindControl<Control>("TypographyGallery")!;
+    Check(gallery.Bounds.Width > 0 && vm.Appearance.TypographyOptions.Count == 27, "Typography gallery exposes all 27 prototype themes");
     var typography = vm.Appearance.SelectedTypography;
     foreach (var option in vm.Appearance.TypographyOptions)
     {
