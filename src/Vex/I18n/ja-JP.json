@@ -781,7 +781,12 @@
       "TypographyPurposeFullStackBlue": "設計文書・青の区切り",
       "TypographyWeChatPaper": "WeChat paper",
       "TypographyPurposeWeChatPaper": "図文コラム・対称見出し",
-      "ClearSearch": "検索をクリア"
+      "ClearSearch": "検索をクリア",
+      "AuxiliaryInfo": "記事情報",
+      "AuxiliaryChapter": "章の詳細",
+      "ChooseChapter": "章を選択",
+      "ChooseChapterHint": "アウトラインまたはマインドマップで章を選択すると、詳細を表示・編集できます。",
+      "DocumentAuxiliary": "文書ツール"
     }
   }
 }

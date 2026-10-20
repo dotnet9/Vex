@@ -34,6 +34,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _outlineNarrowOverride;
     private bool? _outlineBeforeFocus;
     private bool _isOutlineResizing;
+    private string _auxiliaryTab;
 
     /// <summary>侧栏默认宽度，与 design/index.html 主区栅格一致。</summary>
     public const double DefaultSidebarWidth = 226d;
@@ -49,6 +50,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _settingsStore = settingsStore;
         _statusPublisher = statusPublisher;
         var settings = _settingsStore.Current;
+        _auxiliaryTab = settings.AuxiliaryTab is "info" or "chapter" ? settings.AuxiliaryTab : "outline";
         _isSidebarVisible = settings.IsSidebarVisible ?? true;
         _isStatusBarVisible = settings.IsStatusBarVisible ?? true;
         _isPreviewVisible = settings.IsPreviewVisible ?? true;
@@ -168,6 +170,23 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             PersistLayoutSettings();
         }
     }
+
+    public string AuxiliaryTab
+    {
+        get => _auxiliaryTab;
+        private set
+        {
+            if (!SetProperty(ref _auxiliaryTab, value)) return;
+            foreach (var name in new[] { nameof(IsOutlineTab), nameof(IsInfoTab), nameof(IsChapterTab) }) OnPropertyChanged(name);
+            _settingsStore.Update(settings => settings with { AuxiliaryTab = value });
+        }
+    }
+    public bool IsOutlineTab => AuxiliaryTab == "outline";
+    public bool IsInfoTab => AuxiliaryTab == "info";
+    public bool IsChapterTab => AuxiliaryTab == "chapter";
+    public void SelectOutlineTab() => AuxiliaryTab = "outline";
+    public void SelectInfoTab() { AuxiliaryTab = "info"; IsOutlineVisible = true; }
+    public void SelectChapterTab() { AuxiliaryTab = "chapter"; IsOutlineVisible = true; }
 
     public bool ShowOutlineSidebar => IsOutlineVisible && !IsPresentationMode && !IsFocusMode
         && (!IsOutlineNarrow || _outlineNarrowOverride);

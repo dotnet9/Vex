@@ -18,13 +18,33 @@ public partial class MarkdownMindMapHost : UserControl
     public Control GuideSettingsTarget => SettingsTarget;
     private ShellWorkbenchViewModel? _workbench;
     private bool _refreshingInspector;
+    private bool _pointerSelection;
+    private bool _pendingInspector;
     private int? _inspectedStart;
     private int? _renamingStart;
     private (bool Paragraphs, bool Lists, bool Code, bool Tables)? _savedVisibility;
     public MarkdownMindMapHost()
     {
         InitializeComponent();
-        Map.NodeSelected += (_, node) => { if (_workbench?.IsPresenting == true) return; FlushInspector(); if (DataContext is MainWindowViewModel vm) { vm.Workbench.ShowMapSettings = false; vm.Workbench.SelectedNode = node; } };
+        Map.AddHandler(PointerPressedEvent, (_, _) => _pointerSelection = true, RoutingStrategies.Tunnel);
+        Map.AddHandler(PointerReleasedEvent, (_, _) =>
+        {
+            _pointerSelection = false;
+            if (!_pendingInspector) return;
+            _pendingInspector = false;
+            // 松开后再展开辅助栏，避免拖动途中改变导图视口和落点。
+            Dispatcher.UIThread.Post(() => (DataContext as MainWindowViewModel)?.Layout.SelectChapterTab());
+        }, RoutingStrategies.Bubble, handledEventsToo: true);
+        Map.NodeSelected += (_, node) =>
+        {
+            if (_workbench?.IsPresenting == true) return;
+            FlushInspector();
+            if (DataContext is not MainWindowViewModel vm) return;
+            vm.Workbench.ShowMapSettings = false;
+            vm.Workbench.SelectedNode = node;
+            if (_pointerSelection) _pendingInspector = true;
+            else vm.Layout.SelectChapterTab();
+        };
         Map.SourceRequested += (_, node) =>
         {
             if (_workbench?.IsPresenting == true)
@@ -48,7 +68,7 @@ public partial class MarkdownMindMapHost : UserControl
             var wrap = Bounds.Width < 490;
             Grid.SetRow(MapToolsRight, wrap ? 1 : 0); Grid.SetColumn(MapToolsRight, wrap ? 0 : 1);
             Grid.SetColumnSpan(MapToolsRight, wrap ? 2 : 1);
-            NodeInspector.MaxHeight = Math.Max(100, Bounds.Height - 130); SettingsTarget.MaxHeight = Math.Max(100, Bounds.Height - 74);
+            SettingsTarget.MaxHeight = Math.Max(100, Bounds.Height - 74);
         };
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.AccentColorProperty, this.GetResourceObservable("StudioAccentColor").Select(r => r is Color color ? color : Colors.MediumPurple));
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.SuccessColorProperty, this.GetResourceObservable("VexSuccessBrush").Select(r => r is ISolidColorBrush b ? b.Color : Colors.SeaGreen));
@@ -58,6 +78,17 @@ public partial class MarkdownMindMapHost : UserControl
             if (e.Property.Name == "IsVisible" && IsVisible)
                 Avalonia.Threading.Dispatcher.UIThread.Post(Map.EnsureViewport, Avalonia.Threading.DispatcherPriority.Render);
         };
+    }
+    public (Control Inspector, Control Confirmation) DetachInspector()
+    {
+        ((Panel)NodeInspector.Parent!).Children.Remove(NodeInspector);
+        ((Panel)ChapterDeleteLayer.Parent!).Children.Remove(ChapterDeleteLayer);
+        NodeInspector.Width = double.NaN; NodeInspector.MaxHeight = double.PositiveInfinity;
+        NodeInspector.Margin = default; NodeInspector.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+        NodeInspector.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
+        NodeInspector.Classes.Remove("wb-popover"); CloseInspectorButton.IsVisible = false;
+        ChapterBodyInput.MinHeight = 180; ChapterBodyInput.MaxHeight = double.PositiveInfinity;
+        return (NodeInspector, ChapterDeleteLayer);
     }
     private void AttachWorkbench()
     {

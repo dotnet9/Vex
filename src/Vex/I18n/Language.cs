@@ -780,4 +780,9 @@ public static class VexL
     public static readonly string TypographyWeChatPaper = "Vex.VexL.TypographyWeChatPaper";
     public static readonly string TypographyPurposeWeChatPaper = "Vex.VexL.TypographyPurposeWeChatPaper";
     public static readonly string ClearSearch = "Vex.VexL.ClearSearch";
+    public static readonly string AuxiliaryInfo = "Vex.VexL.AuxiliaryInfo";
+    public static readonly string AuxiliaryChapter = "Vex.VexL.AuxiliaryChapter";
+    public static readonly string ChooseChapter = "Vex.VexL.ChooseChapter";
+    public static readonly string ChooseChapterHint = "Vex.VexL.ChooseChapterHint";
+    public static readonly string DocumentAuxiliary = "Vex.VexL.DocumentAuxiliary";
 }

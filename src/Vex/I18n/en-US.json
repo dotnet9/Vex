@@ -781,7 +781,12 @@
       "TypographyPurposeFullStackBlue": "Engineering documents · Blue sections",
       "TypographyWeChatPaper": "WeChat paper",
       "TypographyPurposeWeChatPaper": "Illustrated columns · Symmetric headings",
-      "ClearSearch": "Clear search"
+      "ClearSearch": "Clear search",
+      "AuxiliaryInfo": "Article info",
+      "AuxiliaryChapter": "Chapter details",
+      "ChooseChapter": "Select a chapter",
+      "ChooseChapterHint": "Select a chapter in the outline or mind map to view and edit its details.",
+      "DocumentAuxiliary": "Document tools"
     }
   }
 }

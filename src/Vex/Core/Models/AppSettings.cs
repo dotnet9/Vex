@@ -28,6 +28,7 @@ public sealed record AppSettings
 
     public bool? IsOutlineVisible { get; init; }
     public double? OutlineWidth { get; init; }
+    public string? AuxiliaryTab { get; init; }
     public bool? FileListView { get; init; }
     public bool? FileSortDescending { get; init; }
     public string? CollapsedFolders { get; init; }

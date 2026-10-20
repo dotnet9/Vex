@@ -44,6 +44,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string IsTypewriterMode = nameof(AppSettings.IsTypewriterMode);
     private const string IsOutlineVisible = nameof(AppSettings.IsOutlineVisible);
     private const string OutlineWidth = nameof(AppSettings.OutlineWidth);
+    private const string AuxiliaryTab = nameof(AppSettings.AuxiliaryTab);
     private const string FileListView = nameof(AppSettings.FileListView);
     private const string FileSortDescending = nameof(AppSettings.FileSortDescending);
     private const string CollapsedFolders = nameof(AppSettings.CollapsedFolders);
@@ -119,6 +120,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
         {
             IsOutlineVisible = Get<bool?>(configuration, IsOutlineVisible),
             OutlineWidth = Get<double?>(configuration, OutlineWidth),
+            AuxiliaryTab = Get<string>(configuration, AuxiliaryTab),
             FileListView = Get<bool?>(configuration, FileListView),
             FileSortDescending = Get<bool?>(configuration, FileSortDescending),
             CollapsedFolders = Get<string>(configuration, CollapsedFolders),
@@ -204,6 +206,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             {
                 [IsOutlineVisible] = settings.IsOutlineVisible,
                 [OutlineWidth] = settings.OutlineWidth,
+                [AuxiliaryTab] = settings.AuxiliaryTab,
                 [FileListView] = settings.FileListView,
                 [FileSortDescending] = settings.FileSortDescending,
                 [CollapsedFolders] = settings.CollapsedFolders,

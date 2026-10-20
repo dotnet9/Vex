@@ -781,7 +781,12 @@
       "TypographyPurposeFullStackBlue": "工程文档 · 蓝色分节",
       "TypographyWeChatPaper": "公众号",
       "TypographyPurposeWeChatPaper": "图文专栏 · 对称标题",
-      "ClearSearch": "清空搜索"
+      "ClearSearch": "清空搜索",
+      "AuxiliaryInfo": "文章信息",
+      "AuxiliaryChapter": "章节详情",
+      "ChooseChapter": "选择一个章节",
+      "ChooseChapterHint": "在大纲或导图中选择章节，即可查看和编辑详情。",
+      "DocumentAuxiliary": "文档辅助"
     }
   }
 }

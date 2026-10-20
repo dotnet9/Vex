@@ -27,6 +27,9 @@ public partial class MainWindow : CodeWFWindow
     public MainWindow()
     {
         InitializeComponent();
+        var (inspector, confirmation) = MindMapGuideTarget.DetachInspector();
+        AuxiliaryPanel.SetInspector(inspector);
+        Grid.SetRowSpan(confirmation, 4); ShellGuideRoot.Children.Add(confirmation);
         WorkspaceViews = new WorkspaceViewController(this, ViewSurface, FloatingViewShelf);
         LayoutGallery.SeparateRequested += (_, _) => WorkspaceViews.Separate();
         SidebarSplitter.DragStarted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.BeginSidebarResize(); };
@@ -102,6 +105,8 @@ public partial class MainWindow : CodeWFWindow
 
     private void WindowKeyDown(object? sender, KeyEventArgs e)
     {
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key is Key.S or Key.W or Key.O or Key.N)
+            MindMapGuideTarget.FlushInspector();
         if (e.Source is Visual dialogInput && dialogInput.GetVisualAncestors().Prepend(dialogInput).Any(view => view is ShellInsertTableOverlayView)) return;
         if (DataContext is MainWindowViewModel presentationVm && presentationVm.Workbench.IsPresenting)
         {
@@ -185,6 +190,7 @@ public partial class MainWindow : CodeWFWindow
 
     private void MainWindow_OnClosing(object? sender, WindowClosingEventArgs e)
     {
+        MindMapGuideTarget.FlushInspector();
         WorkbenchGuide.Finish();
         if (_isCloseConfirmed)
         {

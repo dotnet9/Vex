@@ -34,7 +34,7 @@ public sealed class ShellStatusBarViewModel : ReactiveObject
 
     public EditorPreferences Preferences => Workbench.Preferences;
     public ShellAppearanceViewModel Appearance { get; }
-    public Task ShowStatisticsAsync() => _overlays.ShowStatisticsAsync(DocumentInfo);
+    public Task ShowStatisticsAsync() { Layout.SelectInfoTab(); return Task.CompletedTask; }
 
     public ShellStatusViewModel Status { get; }
 

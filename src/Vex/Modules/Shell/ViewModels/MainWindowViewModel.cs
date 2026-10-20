@@ -977,7 +977,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         await Task.CompletedTask;
     }
 
-    public void ShowProperties() => _documentUtilities.ShowProperties(DocumentInfo);
+    public void ShowProperties() => Layout.SelectInfoTab();
     public Task Export(string? format) => RunWithErrorOverlayAsync(
         VexL.ErrorMessageCannotExportFormat,
         () => _documentUtilities.ExportAsync(_document, Markdown, format),

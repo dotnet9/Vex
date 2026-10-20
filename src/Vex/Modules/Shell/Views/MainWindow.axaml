@@ -130,16 +130,7 @@
                           IsVisible="{Binding Layout.ShowOutlineSidebar}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
             <Border x:Name="OutlineGuideTarget" Grid.Column="4" IsVisible="{Binding Layout.ShowOutlineSidebar}"
                     Background="{DynamicResource VexPanelBackgroundBrush}" ClipToBounds="True">
-                <Grid RowDefinitions="Auto,*">
-                    <Grid Margin="14,8,8,4" ColumnDefinitions="*,Auto">
-                        <TextBlock Text="{i18n:I18n {x:Static l:VexL.DocumentStructure}}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <Button Grid.Column="1" Classes="wb-quiet" Command="{Binding Layout.ToggleOutline}" Width="28" Height="28" Padding="6"
-                                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Outline}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Outline}}">
-                            <PathIcon Width="14" Height="14" Data="M9 5L16 12L9 19"/>
-                        </Button>
-                    </Grid>
-                    <ContentControl Grid.Row="1" prism:RegionManager.RegionName="{x:Static regions:RegionNames.ShellOutlineRegion}" />
-                </Grid>
+                <shell:ShellAuxiliaryPanelView x:Name="AuxiliaryPanel"/>
             </Border>
         </Grid>
 
