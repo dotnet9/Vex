@@ -36,14 +36,15 @@ if (mode == "settings-real-ui")
     File.WriteAllText(config, "<configuration><appSettings /></configuration>");
     AppContext.SetData("APP_CONFIG_FILE", config);
 }
-if (mode is "desktop-parity" or "settings-ui" or "settings-real-ui")
+if (mode is "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
     window.Show();
-    if (mode is "settings-ui" or "settings-real-ui") PreferencesVerification.Run(app, window, output);
+    if (mode == "prototype-appearance") PrototypeAppearanceVerification.Run(app, window, output);
+    else if (mode is "settings-ui" or "settings-real-ui") PreferencesVerification.Run(app, window, output);
     else DesktopParityVerification.Run(app, window, output);
     window.Close();
     return;
@@ -142,15 +143,17 @@ if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "dan
     if (mode == "editing-tools") { VerifyEditingTools(app, window, vm); window.Close(); return; }
     if (mode == "layout") { VerifyWorkspaceLayout(app, window, vm); window.Close(); return; }
     ControlLocaleVerification.Run(window, ["zh-CN", "en-US", "zh-Hant", "ja-JP"], app.Resolve<IAppLocalizer>().SetCulture);
-    var languageSelector = window.FindControl<ComboBox>("TitleBarLanguageSelector")!;
+    var languageMenu = window.FindControl<Vex.Modules.Shell.Views.ShellAppearanceMenuView>("AppearanceMenu")!;
     foreach (var culture in new[] { "en-US", "zh-Hant", "ja-JP", "zh-CN" })
     {
         CodeWF.Toolkit.Lang.I18nManager.Instance.Culture = new System.Globalization.CultureInfo(culture);
         Pump();
-        Check(vm.Appearance.SelectedLanguage?.CultureName == culture && (languageSelector.SelectedItem as LanguageOption)?.CultureName == culture,
+        Check(vm.Appearance.SelectedLanguage?.CultureName == culture,
             "Global language synchronizes the actual title bar selection: " + culture);
         var returnCulture = culture == "zh-CN" ? "en-US" : "zh-CN";
-        languageSelector.SelectedItem = vm.Appearance.LanguageOptions.Single(option => option.CultureName == returnCulture);
+        var languageContent = (StackPanel)((Flyout)languageMenu.LanguageButton.Flyout!).Content!;
+        languageContent.Children.OfType<Button>().ElementAt(vm.Appearance.LanguageOptions.ToList().FindIndex(option => option.CultureName == returnCulture))
+            .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
         Pump();
         Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture?.Name == returnCulture,
             "Title bar selection switches back after global culture changes: " + returnCulture);
@@ -300,8 +303,8 @@ if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "dan
     vm.Workbench.ShowRead(); Pump(); SettleRendering();
     window.Width = 1280; window.Height = 820; Pump();
     VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
-    Check(vm.Appearance.PaletteOptions.Count == 8 && vm.Appearance.ThemeOptions.Count == 3,
-        "Vex exposes eight palettes and three independent theme modes");
+    Check(vm.Appearance.PaletteOptions.Count == 16 && vm.Appearance.ThemeOptions.Count == 3,
+        "Vex exposes sixteen palettes and three independent theme modes");
     foreach (var palette in vm.Appearance.PaletteOptions)
     foreach (var modeOption in vm.Appearance.ThemeOptions.Where(option => option.Mode != StudioThemeMode.System))
     {
@@ -396,14 +399,16 @@ if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "dan
         Task.Run(() => CodeWF.Toolkit.Lang.I18nManager.Instance.Culture = new System.Globalization.CultureInfo(culture))
             .GetAwaiter().GetResult();
         Pump();
-        Check(vm.Appearance.SelectedLanguage?.CultureName == culture && (languageSelector.SelectedItem as LanguageOption)?.CultureName == culture,
+        Check(vm.Appearance.SelectedLanguage?.CultureName == culture,
             "Background global culture synchronizes the visible Markdown reader and title selection: " + culture);
         Check(ageLabel.Text == Path.GetFileName(ageFile.Path),
             "The same filename remains stable across background global culture: " + culture);
         Check(ReferenceEquals(selectedNode, filesModel.SelectedDocumentFileNode) && savedFilter == filesModel.FilterText && savedMarkdown == vm.Markdown,
             "File time translation preserves the tree selection, filter and unsaved content: " + culture);
         var returnCulture = culture == "zh-CN" ? "en-US" : "zh-CN";
-        languageSelector.SelectedItem = vm.Appearance.LanguageOptions.Single(option => option.CultureName == returnCulture);
+        var languageContent = (StackPanel)((Flyout)languageMenu.LanguageButton.Flyout!).Content!;
+        languageContent.Children.OfType<Button>().ElementAt(vm.Appearance.LanguageOptions.ToList().FindIndex(option => option.CultureName == returnCulture))
+            .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
         Pump();
         Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture?.Name == returnCulture,
             "The same language selector switches back after background culture changes: " + returnCulture);
@@ -1762,16 +1767,16 @@ void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
     var originalTheme = appearance.SelectedTheme;
     var originalPalette = appearance.SelectedPalette;
     var originalLanguage = appearance.SelectedLanguage;
-    var toggle = window.FindControl<Ursa.Controls.ThemeToggleButton>("TitleBarThemeToggle")!;
-    var language = window.FindControl<ComboBox>("TitleBarLanguageSelector")!;
-    var swatches = window.FindControl<ListBox>("TitleBarPalettes")!;
-    var button = toggle.GetVisualDescendants().OfType<Button>().Single(item => item.Name == "PART_ThemeButton");
+    var menu = window.FindControl<Vex.Modules.Shell.Views.ShellAppearanceMenuView>("AppearanceMenu")!;
     foreach (var palette in appearance.PaletteOptions)
     {
-        swatches.SelectedItem = palette; appearance.ThemeMode = StudioThemeMode.System; Pump();
+        appearance.SelectedPalette = palette; appearance.ThemeMode = StudioThemeMode.System; Pump();
         foreach (var expected in new[] { StudioThemeMode.Light, StudioThemeMode.Dark, StudioThemeMode.System })
         {
-            button.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
+            var content = (Border)((Flyout)menu.AppearanceButton.Flyout!).Content!;
+            var modes = content.GetLogicalDescendants().OfType<Avalonia.Controls.Primitives.UniformGrid>().First();
+            modes.Children.OfType<Button>().ElementAt(appearance.ThemeOptions.ToList().FindIndex(mode => mode.Mode == expected))
+                .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
             Check(appearance.ThemeMode == expected && ReferenceEquals(appearance.SelectedPalette, palette), "Title bar cycles mode and preserves palette: " + palette.Key + "/" + expected);
             var settings = ((VerificationVexApp)Application.Current!).Resolve<IAppSettingsStore>().Current;
             Check(settings.ThemeKey == appearance.SelectedTheme!.Key && settings.PaletteKey == palette.Key, "Title bar persists the shared appearance state");
@@ -1780,13 +1785,12 @@ void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
     foreach (var width in new[] { 980, 1280 })
     foreach (var option in appearance.LanguageOptions)
     {
-        window.Width = width; language.IsDropDownOpen = true; Pump();
-        Check(language.IsDropDownOpen && language.Items.Count == appearance.LanguageOptions.Count, "Language icon opens the complete language menu");
-        language.SelectedItem = option; language.IsDropDownOpen = false; Pump();
+        window.Width = width; menu.LanguageButton.Flyout!.ShowAt(menu.LanguageButton); Pump();
+        var languages = (StackPanel)((Flyout)menu.LanguageButton.Flyout).Content!;
+        Check(languages.Children.Count == appearance.LanguageOptions.Count, "Language icon opens the complete language menu");
+        languages.Children.OfType<Button>().ElementAt(appearance.LanguageOptions.ToList().IndexOf(option))
+            .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
         Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture.Name == option.CultureName, "Title bar language follows the single global manager");
-        Check(ToolTip.GetTip(button) is TextBlock tip && tip.Text == ((VerificationVexApp)Application.Current!).Resolve<IAppLocalizer>().Get(
-            appearance.ThemeMode switch { StudioThemeMode.Light => Vex.VexL.ThemeLight, StudioThemeMode.Dark => Vex.VexL.ThemeDark, _ => Vex.VexL.ThemeSystem }),
-            "Ursa mode tooltip changes with the host language");
         var left = (Control)((CodeWF.Avalonia.Controls.Controls.CodeWFWindow)window).LeftContent!;
         var right = window.FindControl<StackPanel>("TitleBarAppearance")!;
         Check(left.TranslatePoint(new Point(left.Bounds.Width, 0), window)!.Value.X <= right.TranslatePoint(default, window)!.Value.X,

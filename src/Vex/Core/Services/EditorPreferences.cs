@@ -16,7 +16,7 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     public bool RecoveryDrafts { get => settings.Current.RecoveryDrafts ?? true; set => Set(s => s with { RecoveryDrafts = value }); }
     public string DefaultEncoding { get => settings.Current.DefaultEncoding ?? "utf-8"; set => Set(s => s with { DefaultEncoding = value ?? "" }); }
     public string DefaultNewline { get => settings.Current.DefaultNewline ?? "system"; set => Set(s => s with { DefaultNewline = value ?? "" }); }
-    public double BodyFontSize { get => settings.Current.BodyFontSize ?? 14.5; set => Set(s => s with { BodyFontSize = Math.Clamp(value, 12, 24) }); }
+    public double BodyFontSize { get => settings.Current.BodyFontSize ?? 16; set => Set(s => s with { BodyFontSize = Math.Clamp(value, 16, 24) }); }
     public double CodeFontSize { get => settings.Current.CodeFontSize ?? 12.5; set => Set(s => s with { CodeFontSize = Math.Clamp(value, 11, 20) }); }
     public int IndentSize { get => settings.Current.IndentSize ?? 2; set => Set(s => s with { IndentSize = Math.Clamp(value, 2, 8) }); }
     public bool CodeWrap { get => settings.Current.CodeWrap ?? false; set => Set(s => s with { CodeWrap = value }); }
@@ -53,6 +53,8 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
         _ => new FontFamily("Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans CJK SC, sans-serif")
     };
     public double EffectiveBodyFontSize => BodyFontSize * ContentZoom / 100;
+    public double ResolveBodyFontSize(string? typography) => (settings.Current.BodyFontSize
+        ?? CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(typography)?.BodySize ?? 16) * ContentZoom / 100;
     public double EffectiveCodeFontSize => CodeFontSize * ContentZoom / 100;
     private void Set(Func<AppSettings, AppSettings> update, [CallerMemberName] string? name = null)
     {

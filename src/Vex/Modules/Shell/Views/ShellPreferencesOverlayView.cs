@@ -104,7 +104,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 break;
             case "editor":
                 Choice(page, VexL.PrefBodyFont, p, nameof(p.BodyFont), [(L(VexL.PrefSystemFont), "system"), (L(VexL.PrefSerifFont), "serif"), (L(VexL.PrefMonoFont), "mono")]);
-                Number(page, VexL.PrefBodySize, p, nameof(p.BodyFontSize), 12, 24);
+                Number(page, VexL.PrefBodySize, p, nameof(p.BodyFontSize), 16, 24);
                 Number(page, VexL.PrefCodeSize, p, nameof(p.CodeFontSize), 11, 20);
                 Number(page, VexL.PrefIndent, p, nameof(p.IndentSize), 2, 8);
                 Toggle(page, VexL.MenuAutoPair, _model.Display, nameof(_model.Display.EnableAutoPair));

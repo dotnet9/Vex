@@ -348,10 +348,10 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         _live.SyntaxOptions = Preferences.SyntaxOptions;
         _live.CodeFontSize = Preferences.EffectiveCodeFontSize;
         _live.CodeWrap = Preferences.CodeWrap;
-        _live.EditorFontSize = Preferences.EffectiveBodyFontSize;
+        _live.EditorFontSize = Preferences.ResolveBodyFontSize(_appearance.TypographyTheme);
         _live.FontFamily = Preferences.ContentFontFamily;
         _live.TypographyTheme = _appearance.TypographyTheme;
         _live.TypographySize = _appearance.TypographySize;
-        _live.DocumentBlockSpacing = _appearance.TypographyTheme == "Simple" ? 0 : _appearance.TypographySize == "Small" ? 3 : 7;
+        _live.DocumentBlockSpacing = 0;
     }
 }

@@ -2,9 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- 与 StudioTheme 共用动态颜色令牌，不复制 Semi 的整套主题字典。 -->
     <SolidColorBrush x:Key="VexShellBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
-    <SolidColorBrush x:Key="VexPanelBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
-    <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
-    <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
+    <SolidColorBrush x:Key="VexPanelBackgroundBrush" Color="{DynamicResource StudioSurfaceColor}" />
+    <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="{DynamicResource StudioPaperColor}" />
+    <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
+    <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
     <SolidColorBrush x:Key="VexPanelBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <SolidColorBrush x:Key="VexEditorCurrentLineBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <SolidColorBrush x:Key="VexStatusBarBorderBrush" Color="{DynamicResource StudioBorderColor}" />
@@ -14,14 +15,14 @@
     <SolidColorBrush x:Key="VexSplitterBrush" Color="{DynamicResource StudioRaisedColor}" />
     <SolidColorBrush x:Key="VexEditorCurrentLineBackgroundBrush" Color="{DynamicResource StudioRaisedColor}" />
     <SolidColorBrush x:Key="VexHoverBrush" Color="{DynamicResource StudioRaisedColor}" />
-    <SolidColorBrush x:Key="VexPressedBrush" Color="{DynamicResource StudioRaisedColor}" />
-    <SolidColorBrush x:Key="VexAccentSoftBrush" Color="{DynamicResource StudioRaisedColor}" />
+    <SolidColorBrush x:Key="VexPressedBrush" Color="{DynamicResource StudioPressedColor}" />
+    <SolidColorBrush x:Key="VexAccentSoftBrush" Color="{DynamicResource StudioSelectedColor}" />
     <SolidColorBrush x:Key="VexEditorForegroundBrush" Color="{DynamicResource StudioTextColor}" />
     <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="{DynamicResource StudioTextColor}" />
     <SolidColorBrush x:Key="VexValueBrush" Color="{DynamicResource StudioTextColor}" />
     <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="{DynamicResource StudioMutedColor}" />
     <SolidColorBrush x:Key="VexMutedBrush" Color="{DynamicResource StudioMutedColor}" />
-    <SolidColorBrush x:Key="VexDisabledBrush" Color="{DynamicResource StudioMutedColor}" />
+    <SolidColorBrush x:Key="VexDisabledBrush" Color="{DynamicResource StudioDisabledColor}" />
     <SolidColorBrush x:Key="VexQuoteBrush" Color="{DynamicResource StudioMutedColor}" />
     <SolidColorBrush x:Key="VexMarkerBrush" Color="{DynamicResource StudioMutedColor}" />
     <SolidColorBrush x:Key="VexAccentBrush" Color="{DynamicResource StudioAccentColor}" />

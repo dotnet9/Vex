@@ -8,17 +8,10 @@ public sealed record ThemeOption(string Key, StudioThemeMode Mode);
 
 public sealed record PaletteOption(string Key, StudioPalette Palette)
 {
-    public string NameKey => Palette switch
-    {
-        StudioPalette.DotNet => VexL.ThemeDotNet,
-        StudioPalette.Aurora => VexL.ThemeAurora,
-        StudioPalette.Ember => VexL.ThemeEmber,
-        StudioPalette.Default => VexL.ThemeDefault,
-        StudioPalette.Aquatic => VexL.ThemeAquatic,
-        StudioPalette.Desert => VexL.ThemeDesert,
-        StudioPalette.Dusk => VexL.ThemeDusk,
-        _ => VexL.ThemeNightSky,
-    };
+    public StudioPaletteInfo Definition => StudioPaletteCatalog.All.First(item => item.Palette == Palette);
+    public string NameKey => "Vex.VexL.Palette" + Palette;
+    public string PurposeKey => "Vex.VexL.PalettePurpose" + Palette;
+    public bool IsRecommended => Definition.Recommended;
 
     public IBrush Swatch => global::Avalonia.Application.Current is { } app
         && app.TryFindResource($"StudioSwatch{Palette}", out var resource) && resource is IBrush brush

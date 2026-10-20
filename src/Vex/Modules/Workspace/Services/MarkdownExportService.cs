@@ -254,6 +254,9 @@ public sealed class MarkdownExportService : IMarkdownExportService
         var printScript = mode == HtmlDocumentMode.PrintPreview ? PrintPreviewScript : string.Empty;
         var startFragment = includeFragmentMarkers ? "              <!--StartFragment-->" : string.Empty;
         var endFragment = includeFragmentMarkers ? "              <!--EndFragment-->" : string.Empty;
+        var typography = ArticleTypographyCatalog.Find(_preferences.HtmlStyle ? _appearanceState.TypographyTheme : "Simple");
+        var typographyCss = typography is null ? "" : (_appearanceState.TypographySize == "Small"
+            ? typography.CompactExportCss : typography.ExportCss).Replace("body", "article");
         return $$"""
             <!doctype html>
             <html lang="{{language}}">
@@ -277,11 +280,12 @@ public sealed class MarkdownExportService : IMarkdownExportService
                 pre { overflow: auto; background: {{style.CodeBackgroundColor}}; color: {{style.CodeForegroundColor}}; border-radius: 8px; padding: 16px; }
                 pre code { background: transparent; color: inherit; padding: 0; white-space: {{(_preferences.CodeWrap ? "pre-wrap" : "pre")}}; overflow-wrap: {{(_preferences.CodeWrap ? "anywhere" : "normal")}}; }
                 blockquote { border-left: 4px solid {{style.QuoteBorderColor}}; color: {{style.MutedColor}}; padding-left: 16px; }
-                table { border-collapse: collapse; width: 100%; }
+                table { border-collapse: collapse; width: max-content; max-width: 100%; display: block; overflow-x: auto; }
                 th, td { border: 1px solid {{style.BorderColor}}; padding: 8px 10px; }
                 th { background: {{style.TableHeaderBackgroundColor}}; }
                 a { color: {{style.LinkColor}}; }
                 img { max-width: 100%; }
+                {{typographyCss}}
                 {{printStyles}}
                 {{(!includeFragmentMarkers ? BuildWatermarkCss() : "")}}
               </style>
@@ -291,7 +295,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
             {{printToolbar}}
             {{printMetadata}}
             {{startFragment}}
-              <article data-vex-copy-target="{{targetName}}" style="max-width: {{layout.MaxWidth}}px; margin: 0 auto; padding: {{layout.PaddingTop}}px {{layout.PaddingX}}px {{layout.PaddingBottom}}px; color: {{style.BodyColor}}; background: {{style.PageBackgroundColor}}; font-family: {{cssBodyFont}}; font-size: {{bodyFontSize}}px; line-height: {{lineHeight}};">
+              <article data-vex-copy-target="{{targetName}}" style="max-width: {{layout.MaxWidth}}px; margin: 0 auto; padding: {{layout.PaddingTop}}px {{layout.PaddingX}}px {{layout.PaddingBottom}}px;">
             {{body}}
               </article>
             {{endFragment}}

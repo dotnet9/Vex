@@ -9,27 +9,6 @@
         <Style Selector="Button.MdCopyButton">
             <Setter Property="BorderThickness" Value="0" />
         </Style>
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdH1Border">
-            <Setter Property="BorderThickness" Value="0 0 0 1" />
-            <Setter Property="Padding" Value="0 0 0 22" />
-            <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
-            <Setter Property="Margin" Value="0 6 0 10" />
-        </Style>
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdH2Border">
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Margin" Value="0 28 0 20" />
-        </Style>
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdH3Border">
-            <Setter Property="Margin" Value="0 16 0 8" />
-        </Style>
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple] Border.MdQuote">
-            <Setter Property="BorderThickness" Value="3 0 0 0" />
-            <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
-            <Setter Property="Padding" Value="14 6" />
-            <Setter Property="Margin" Value="0 10" />
-            <Setter Property="CornerRadius" Value="0 8 8 0" />
-        </Style>
         <Style Selector="CheckBox.MdTaskMarkerBox">
             <Setter Property="Template">
                 <ControlTemplate>
@@ -47,24 +26,6 @@
             <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
         </Style>
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple]">
-            <Setter Property="ContentFontFamily" Value="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC"/>
-            <Setter Property="TextBrush" Value="{DynamicResource VexValueBrush}" />
-            <Setter Property="MutedTextBrush" Value="{DynamicResource VexMutedBrush}" />
-            <Setter Property="AccentBrush" Value="{DynamicResource VexAccentBrush}" />
-            <Setter Property="QuoteBackgroundBrush" Value="{DynamicResource VexQuoteBackgroundBrush}" />
-            <Setter Property="CodeBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
-            <Setter Property="InlineCodeBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
-            <Setter Property="BorderLineBrush" Value="{DynamicResource VexPanelBorderBrush}" />
-            <Setter Property="ParagraphFontSize" Value="14.5" />
-            <Setter Property="ParagraphLineHeight" Value="28" />
-            <Setter Property="Heading1FontSize" Value="26" />
-            <Setter Property="Heading2FontSize" Value="21" />
-            <Setter Property="Heading3FontSize" Value="17" />
-            <Setter Property="ParagraphMargin" Value="0 8" />
-            <Setter Property="HeadingMargin" Value="0 6 0 10" />
-            <Setter Property="BlockSpacing" Value="7" />
-        </Style>
         <Style Selector="md|MarkdownViewer">
             <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexTableHeaderBrush}" />
         </Style>
@@ -72,10 +33,10 @@
             <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexTableHeaderBrush}" />
         </Style>
         <Style Selector="md|MarkdownViewer Grid.MdTable, md|MarkdownLiveEditorView Grid.MdTable">
-            <Setter Property="layout:MarkdownTableLayout.FillAvailableWidth" Value="True" />
+            <Setter Property="layout:MarkdownTableLayout.FillAvailableWidth" Value="False" />
         </Style>
         <Style Selector="md|MarkdownViewer Border.MdTableContainer, md|MarkdownLiveEditorView Border.MdTableContainer">
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="BorderBrush" Value="{DynamicResource VexTableBorderBrush}" />
         </Style>
         <Style Selector="md|MarkdownViewer Border.MdTableCell, md|MarkdownViewer Border.MdTableHeaderCell, md|MarkdownLiveEditorView Border.MdTableCell, md|MarkdownLiveEditorView Border.MdTableHeaderCell">
@@ -89,72 +50,6 @@
             <Setter Property="SelectionForegroundBrush" Value="#1D2129" />
         </Style>
 
-        <Style Selector="md|MarkdownViewer[TypographyTheme=Simple][TypographySize=Small]">
-            <Setter Property="ParagraphFontSize" Value="13"/><Setter Property="ParagraphLineHeight" Value="22"/>
-            <Setter Property="Heading1FontSize" Value="24"/><Setter Property="Heading2FontSize" Value="19"/><Setter Property="ParagraphMargin" Value="0 5"/>
-        </Style>
 
-        <!-- 阅读视图使用更紧凑的段间留白，与原型的连续文档排版一致。 -->
-        <Style Selector="md|MarkdownViewer.reading-flow[TypographyTheme=Simple]">
-            <Setter Property="BlockSpacing" Value="0"/><Setter Property="ParagraphMargin" Value="0 4"/>
-            <Setter Property="UnorderedListMarkerWidth" Value="14"/>
-        </Style>
-        <Style Selector="md|MarkdownViewer.reading-flow[TypographyTheme=Simple] StackPanel.MdList">
-            <Setter Property="Margin" Value="0 8 0 4"/><Setter Property="Spacing" Value="0"/>
-        </Style>
-        <Style Selector="md|MarkdownViewer.reading-flow[TypographyTheme=Simple] Grid.MdListItem">
-            <Setter Property="Margin" Value="0"/>
-        </Style>
-        <Style Selector="md|MarkdownViewer.reading-flow[TypographyTheme=Simple] Border.MdH1Border">
-            <Setter Property="Margin" Value="0 6 0 17"/>
-        </Style>
-        <Style Selector="md|MarkdownViewer.reading-flow[TypographyTheme=Simple] Border.MdH2Border">
-            <Setter Property="Margin" Value="0 25 0 12"/>
-        </Style>
-        <Style Selector="md|MarkdownViewer.reading-flow[TypographyTheme=Simple] Border.MdH3Border">
-            <Setter Property="Margin" Value="0 16 0 13"/>
-        </Style>
-
-        <!-- 即时编辑的每个块独立排版，按原型的行高与上下留白累计，不额外插入块间距。 -->
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple]">
-            <Setter Property="ParagraphLineHeight" Value="28.275"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple] Border.MdH1Border">
-            <Setter Property="Margin" Value="0 6 0 18"/><Setter Property="Padding" Value="0 0 0 14"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple] SelectableTextBlock.MdH1">
-            <Setter Property="LineHeight" Value="50.7"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple] Border.MdH2Border">
-            <Setter Property="Margin" Value="0 26 0 12"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple] SelectableTextBlock.MdH2">
-            <Setter Property="LineHeight" Value="40.95"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple] Border.MdH3Border">
-            <Setter Property="Margin" Value="0 18 0 10"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple] SelectableTextBlock.MdH3">
-            <Setter Property="LineHeight" Value="33.15"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple][TypographySize=Small]">
-            <Setter Property="ParagraphLineHeight" Value="21.45"/>
-            <Setter Property="ParagraphMargin" Value="0 8"/>
-            <Setter Property="Heading1FontSize" Value="26"/><Setter Property="Heading2FontSize" Value="21"/><Setter Property="Heading3FontSize" Value="17"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple][TypographySize=Small] SelectableTextBlock.MdH1">
-            <Setter Property="LineHeight" Value="42.9"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple][TypographySize=Small] SelectableTextBlock.MdH2">
-            <Setter Property="LineHeight" Value="34.65"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple][TypographySize=Small] SelectableTextBlock.MdH3">
-            <Setter Property="LineHeight" Value="28.05"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple][TypographySize=Small] Border.MdH2Border">
-            <Setter Property="Margin" Value="0 18 0 7"/>
-        </Style>
-        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer[TypographyTheme=Simple][TypographySize=Small] Border.MdH3Border">
-            <Setter Property="Margin" Value="0 12 0 6"/>
-        </Style>
+<!-- 即时编辑的每个块独立排版，按原型的行高与上下留白累计，不额外插入块间距。 -->
 </Styles>

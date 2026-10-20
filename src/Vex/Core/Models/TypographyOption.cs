@@ -2,6 +2,10 @@ namespace Vex.Core.Models;
 
 public sealed record TypographyOption(string Name, string? Key)
 {
+    public CodeWF.Avalonia.Markdown.Themes.ArticleTypography Definition =>
+        CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(Key)!;
+    public string PurposeKey => "Vex.VexL.TypographyPurpose" + Key;
+    public bool IsRecommended => Definition.Recommended;
     public string SwatchColor => Key switch
     {
         "OrangeHeart" => "#F59E7F", "ColorfulPurple" or "RosePurple" => "#9574CD",

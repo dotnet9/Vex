@@ -9,6 +9,7 @@ namespace Vex.Modules.Workspace.ViewModels;
 public sealed class MarkdownPreviewViewModel : ReactiveObject
 {
     public EditorPreferences Preferences { get; }
+    public double BodyFontSize => Preferences.ResolveBodyFontSize(TypographyTheme);
     private readonly IEditorAppearanceState _appearanceState;
     private readonly Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel _workbench;
     public bool IsTaskEditingEnabled => _workbench.IsSourceEditing;
@@ -31,6 +32,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel workbench)
     {
         Preferences = preferences;
+        preferences.PreferencesChanged += (_, _) => this.RaisePropertyChanged(nameof(BodyFontSize));
         _workbench = workbench;
         workbench.PropertyChanged += OnWorkbenchPropertyChanged;
         _appearanceState = appearanceState;
@@ -91,7 +93,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     public string? TypographyTheme
     {
         get => _typographyTheme;
-        private set => this.RaiseAndSetIfChanged(ref _typographyTheme, value);
+        private set { this.RaiseAndSetIfChanged(ref _typographyTheme, value); this.RaisePropertyChanged(nameof(BodyFontSize)); }
     }
 
     [EventHandler]

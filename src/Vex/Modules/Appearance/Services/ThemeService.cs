@@ -15,13 +15,8 @@ public sealed class ThemeService : IThemeService, IDisposable
         new("light", StudioThemeMode.Light),
         new("dark", StudioThemeMode.Dark),
     ];
-    private static readonly PaletteOption[] Palettes =
-    [
-        new("dotnet", StudioPalette.DotNet), new("aurora", StudioPalette.Aurora),
-        new("ember", StudioPalette.Ember), new("default", StudioPalette.Default),
-        new("aquatic", StudioPalette.Aquatic), new("desert", StudioPalette.Desert),
-        new("dusk", StudioPalette.Dusk), new("night-sky", StudioPalette.NightSky),
-    ];
+    private static readonly PaletteOption[] Palettes = StudioPaletteCatalog.All
+        .Select(palette => new PaletteOption(palette.Key, palette.Palette)).ToArray();
 
     public IReadOnlyList<ThemeOption> GetThemeOptions() => Modes;
     public IReadOnlyList<PaletteOption> GetPaletteOptions() => Palettes;

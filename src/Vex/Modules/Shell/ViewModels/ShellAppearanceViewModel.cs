@@ -13,27 +13,7 @@ namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellAppearanceViewModel : ReactiveObject
 {
-    private static readonly string[] TypographyKeys =
-    [
-        MarkdownTypographyThemes.Basic,
-        MarkdownTypographyThemes.Simple,
-        MarkdownTypographyThemes.OrangeHeart,
-        MarkdownTypographyThemes.InkBlack,
-        MarkdownTypographyThemes.ColorfulPurple,
-        MarkdownTypographyThemes.TenderGreen,
-        MarkdownTypographyThemes.Verdant,
-        MarkdownTypographyThemes.RedScarlet,
-        MarkdownTypographyThemes.BlueGlow,
-        MarkdownTypographyThemes.TechnologyBlue,
-        MarkdownTypographyThemes.LanQing,
-        MarkdownTypographyThemes.Yamabuki,
-        MarkdownTypographyThemes.FrontendPeak,
-        MarkdownTypographyThemes.GeekBlack,
-        MarkdownTypographyThemes.RosePurple,
-        MarkdownTypographyThemes.CuteGreen,
-        MarkdownTypographyThemes.FullStackBlue,
-        MarkdownTypographyThemes.WeChatFormat
-    ];
+    private static readonly string[] TypographyKeys = ArticleTypographyCatalog.All.Select(item => item.Key).ToArray();
 
     private readonly IAppLocalizer _localizer;
     private readonly IEditorAppearanceState _editorAppearanceState;

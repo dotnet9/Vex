@@ -32,7 +32,7 @@
         <codewf:ACSemiTheme />
         <codewf:StudioTheme />
         <codewf:MindViewThemes />
-        <!-- 完整包样式入口（CodeWF.Avalonia.Markdown.Themes）：在 Lite.Themes 的控件模板与 18 套排版主题之上
+        <!-- 完整包样式入口（CodeWF.Avalonia.Markdown.Themes）：在 Lite.Themes 的控件模板与 27 套排版主题之上
              叠加图片能力控件与编辑器控件外观。 -->
         <markdownThemes:MarkdownFullThemes TypographyTheme="Simple" />
         <vexThemes:VexControlsTheme />

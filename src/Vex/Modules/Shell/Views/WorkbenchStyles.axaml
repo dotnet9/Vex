@@ -10,6 +10,11 @@
     <StreamGeometry x:Key="WBColumnsIcon">M3 3H21V21H3Z M12 3V21</StreamGeometry>
     <StreamGeometry x:Key="WBCloseIcon">M6 6L18 18 M18 6L6 18</StreamGeometry>
   </Styles.Resources>
+  <Style Selector="Button.selected-choice /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+  </Style>
   <Style Selector="Path.wb-icon">
     <Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/>
     <Setter Property="Stretch" Value="Uniform"/><Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/>
