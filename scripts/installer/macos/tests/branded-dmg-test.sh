@@ -100,7 +100,8 @@ fi
 printf 'layout\n' >>"$TEST_TRACE"
 [[ "${FAIL_PHASE:-}" != layout ]] || exit 29
 [[ -f "$1" && "$3" == 'Test App.app' ]]
-grep -q '720' "$1" || grep -q '840, 600' "$1"
+grep -Fq '{120, 120, 860, 556}' "$1"
+grep -Fq 'icon size of imageOptions to 88' "$1"
 if [[ "${FAIL_PHASE:-}" != missing-layout ]]; then printf 'Finder metadata' >"$2/.DS_Store"; fi
 STUB
 cat >"$fixture/bin/sync" <<'STUB'
@@ -120,12 +121,13 @@ reset_fixture() {
   rm -f "$TEST_DETACH_COUNT" "$TEST_MOUNT" "$TEST_DEVICE" "$TEST_IMAGE"
 }
 for language in bilingual en zh; do
-  grep -Fq '>Vex</text>' "$asset_root/background-$language.svg"
-  grep -Fq '>CodeWF</text>' "$asset_root/background-$language.svg"
+  grep -Fq 'width="740" height="406"' "$asset_root/background-$language.svg"
+  grep -Fq '>Vex · CodeWF</text>' "$asset_root/background-$language.svg"
   if [[ "$language" == en ]]; then
-    grep -Fq 'Write your thoughts. See the connections.' "$asset_root/background-$language.svg"
+    grep -Fq 'Move Vex into your applications.' "$asset_root/background-$language.svg"
+    grep -Fq 'Drag the icon on the left to Applications.' "$asset_root/background-$language.svg"
   else
-    grep -Fq '维刻 Vex · 写下想法，看见脉络。' "$asset_root/background-$language.svg"
+    grep -Fq '把维刻，放进你的应用程序。' "$asset_root/background-$language.svg"
   fi
   grep -Fq '>codewf.com</text>' "$asset_root/background-$language.svg"
   ! grep -Fq '.NET' "$asset_root/background-$language.svg"

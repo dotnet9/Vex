@@ -3,24 +3,24 @@
   "source_directory": "scripts/installer/macos",
   "visual_reference": "https://github.com/dotnet9/Vex/blob/main/design/Vex-Installer-macOS.html",
   "style": {
-    "brand": "#512BD4",
+    "brand": "#24766B",
     "finder_window": [
-      600,
-      410
+      740,
+      436
     ],
     "background": [
-      600,
-      380
+      740,
+      406
     ],
-    "icon_size": 80,
+    "icon_size": 88,
     "positions": {
       "app": [
-        170,
-        210
+        235,
+        220
       ],
       "Applications": [
-        430,
-        210
+        505,
+        220
       ]
     },
     "product": "Vex",
@@ -36,31 +36,31 @@
     },
     {
       "path": "background-bilingual.png",
-      "sha256": "b11fb32eccdcdec1677eef4efc03cf99b3e94c63b32d3e07b8abaac13e505d65"
+      "sha256": "bbe6c28ec01c49e25d7e5b34abc80f12ab7706cfcad2807bf833ca91b5a5e8f9"
     },
     {
       "path": "background-bilingual.svg",
-      "sha256": "15cdc274775dd2312b5e37408b0da57c0b8158f4e1e05ec82d16be90fdc29556"
+      "sha256": "0ed3b1604add9198860d34790e5ead973f1ce907b90e515eae20764f782a03bc"
     },
     {
       "path": "background-en.png",
-      "sha256": "0fc1dbce967867c83ec455c285e7239e0c041cd70e2ebd8694f363e964ab842c"
+      "sha256": "8bb98cce78feb8f43b1ad09a182a9ad77a426f8fd8939c0816dc7783dbe87cd9"
     },
     {
       "path": "background-en.svg",
-      "sha256": "5f13ed64e64aac3b71463bed27698b83e1ce17eaeb94a7dae32c44bee3cb1ba5"
+      "sha256": "402d8f85016c9e16d6c8b052bb2f7c953aed82e70415d99c59554cd2fa947439"
     },
     {
       "path": "background-zh.png",
-      "sha256": "bf1205eb5c9a56471df064b69cbdc84da5390dadadbda5e1e309e1f7051d09f3"
+      "sha256": "ac85d3bf23763648fc8aa9896e7e8a6b4edcdcf5b2286e066150692936d65b7f"
     },
     {
       "path": "background-zh.svg",
-      "sha256": "2d2f7c2ac468e4c7689d2ad5e648b1ad38fd60206868f9a8a762005fe2f5807a"
+      "sha256": "83f47211c1d6778c17a5e800d03d6f801a85fd47b237c89a23774ccf9175c961"
     },
     {
       "path": "configure-finder.applescript",
-      "sha256": "6ace0516fd614b48e108fc5f9d85c813247f961fc9a5e2743736612bdf489dcf"
+      "sha256": "d89cdbc0d518fb04f5491c1e26f6bed8db6105d73ef4f67281b38e4a4853da8a"
     },
     {
       "path": "create-branded-dmg.sh",
@@ -68,16 +68,16 @@
     },
     {
       "path": "README.md",
-      "sha256": "d46d2a494604b3f1d4466d92e92b6c94237296b06656ea658d310aa80464bd0f"
+      "sha256": "b76600e3393ea99ef3c0f07681621a5b96d2480bec7f236972c0ca848222b7c2"
     },
     {
       "path": "render-backgrounds.cjs",
-      "sha256": "92d85833b3c376685b367c6962cbb0012cb610a3a4decbb0b2ce0b7a9d06e0c8"
+      "sha256": "d77dc922a704b87a8bfa66bb569b5418fb5dce1dc9995381116f0b18f4a29ccd"
     },
     {
       "path": "tests/branded-dmg-test.sh",
-      "sha256": "91a63b4537db81113eb90bcbf5e69feebb359f7e39cafddb8e6d1d32cf2b1e4a"
+      "sha256": "7b2a49e115b0d6416e411b8b88ae6f01cfb7f812c796246efd970bad3f51d9b1"
     }
   ],
-  "local_design": "Vex minimal installer; shared packaging engine retained"
+  "local_design": "Vex design/Vex-Installer-macOS.html overrides the shared visual assets; shared packaging engine retained"
 }

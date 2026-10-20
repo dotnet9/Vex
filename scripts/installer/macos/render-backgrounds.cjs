@@ -1,36 +1,32 @@
 // 仅用于生成离线安装资源；正式打包直接读取 PNG。
 const fs = require('node:fs');
 const path = require('node:path');
-const { chromium } = require('playwright');
+const sharp = require('sharp');
 const copies = {
-  zh: ['维刻 Vex · 写下想法，看见脉络。', '拖入 Applications，即可安装'],
-  en: ['Vex · Write your thoughts. See the connections.', 'Drag to Applications to install'],
-  bilingual: ['维刻 Vex · 写下想法，看见脉络。', '拖入 Applications · Drag to Applications'],
+  zh: ['把维刻，放进你的应用程序。', '将左侧图标拖到右侧「应用程序」。', '复制完成后，从「应用程序」打开维刻，并推出此磁盘映像。'],
+  en: ['Move Vex into your applications.', 'Drag the icon on the left to Applications.', 'After copying, open Vex from Applications and eject this disk image.'],
+  bilingual: ['把维刻，放进你的应用程序。', 'Drag Vex to Applications · 拖入右侧应用程序', 'Open from Applications, then eject · 复制完成后打开维刻并推出磁盘映像'],
 };
-function svg([slogan, instruction]) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="380" viewBox="0 0 600 380">
-<rect width="600" height="380" fill="#FAF9FC"/>
-<g font-family="Segoe UI,Microsoft YaHei,Arial,sans-serif" text-anchor="middle">
-  <text x="300" y="62" fill="#262137" font-size="30" font-weight="600">Vex</text>
-  <text x="300" y="95" fill="#706780" font-size="13">${slogan}</text>
-  <text x="300" y="320" fill="#706780" font-size="13">${instruction}</text>
-  <text x="300" y="359" fill="#91889F" font-size="10">CodeWF</text>
+function svg([title, description, instruction]) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="740" height="406" viewBox="0 0 740 406">
+<defs><radialGradient id="paper" cx="15%" cy="100%" r="75%"><stop stop-color="#24766B" stop-opacity=".05"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient></defs>
+<rect width="740" height="406" fill="#FFFFFF"/><rect width="740" height="406" fill="url(#paper)"/>
+<g font-family="Microsoft YaHei UI,PingFang SC,Segoe UI,Arial,sans-serif" text-anchor="middle">
+  <text x="370" y="78" fill="#253530" font-size="28" font-weight="500">${title}</text>
+  <text x="370" y="120" fill="#747C78" font-size="14">${description}</text>
+  <text x="370" y="365" fill="#747C78" font-size="12">${instruction}</text>
+  <text x="370" y="395" fill="#747C78" font-size="10">Vex · CodeWF</text>
 </g>
-<g fill="none" stroke="#A899C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M275 210H325M317 202L325 210L317 218"/>
+<g fill="none" stroke="#A1AAA6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M351 226H389M381 218L389 226L381 234"/>
 </g>
-<text x="578" y="359" text-anchor="end" fill="#91889F" font-size="9" font-family="Segoe UI,Arial,sans-serif">codewf.com</text>
+<text x="718" y="395" text-anchor="end" fill="#747C78" font-size="9" font-family="Segoe UI,Arial,sans-serif">codewf.com</text>
 </svg>`;
 }
 (async () => {
-  const browser = await chromium.launch({headless: true, executablePath: process.env.VEX_BROWSER_EXECUTABLE || undefined});
-  try {
-    const page = await browser.newPage({viewport:{width:600,height:380},deviceScaleFactor:1});
     for (const [language, copy] of Object.entries(copies)) {
       const source = svg(copy);
       fs.writeFileSync(path.join(__dirname, `background-${language}.svg`), source + '\n');
-      await page.setContent('<style>html,body{margin:0;width:600px;height:380px;overflow:hidden}</style>' + source);
-      await page.screenshot({path:path.join(__dirname, `background-${language}.png`)});
+      await sharp(Buffer.from(source)).png().toFile(path.join(__dirname, `background-${language}.png`));
     }
-  } finally { await browser.close(); }
 })().catch(error => {console.error(error); process.exitCode = 1;});
