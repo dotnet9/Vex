@@ -22,13 +22,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--reference', type=Path, required=True)
     parser.add_argument('--native', type=Path, required=True)
+    parser.add_argument('--languages', nargs='+', choices=('zh', 'en'), default=['zh'])
+    parser.add_argument('--pages', nargs='+', choices=('welcome', 'custom', 'license', 'progress', 'complete', 'maintenance'),
+                        default=['welcome', 'custom', 'progress', 'complete', 'maintenance'])
     args = parser.parse_args()
     results = []
     pages = {'welcome': '01-welcome', 'custom': '02-custom', 'license': '04-license',
              'progress': '05-progress', 'complete': '03-complete', 'maintenance': '02-maintenance'}
-    for lang in ('zh', 'en'):
+    for lang in args.languages:
         for theme in ('light', 'dark'):
             for page, filename in pages.items():
+                if page not in args.pages:
+                    continue
                 expected = Image.open(args.reference / f'{lang}-{theme}-{page}.png').convert('RGB')
                 folder = f'{lang}-{theme}' + ('-maintenance' if page == 'maintenance' else '')
                 actual = Image.open(args.native / folder / f'{filename}.png').convert('RGB')
@@ -45,7 +50,9 @@ def main():
                     draw.rectangle(box, fill=0)
                 if page == 'custom':
                     # The real temporary installation path is machine-specific.
-                    draw.rectangle((65, 354, 379, 376), fill=0)
+                    draw.rectangle((234, 148, 520, 168), fill=0)
+                if page == 'maintenance':
+                    draw.rectangle((222, 151, 598, 178), fill=0)
                 raw = similarity(expected, actual, mask)
                 tolerant = similarity(expected, actual, mask, blur=1)
                 results.append(dict(language=lang, theme=theme, page=page, raw_rgb_percent=raw,
@@ -53,6 +60,8 @@ def main():
                 print(f'{lang}/{theme}/{page}: raw {raw:.2f}%, 1px raster tolerance {tolerant:.2f}%')
     report = dict(metric='1 - mean absolute RGB error / 255; 1px Gaussian raster tolerance',
                   threshold_percent=98, masks=['outside window corners', 'machine-specific path text'],
+                  coverage=dict(languages=args.languages, pages=args.pages,
+                                exclusions='The Chinese prototype has no English state; full MIT text is verified by native interaction.'),
                   comparisons=results, passed=all(row['passed'] for row in results))
     (args.native / 'visual-comparison.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
     if not report['passed']:

@@ -135,7 +135,7 @@ try {
         Write-Host "PASS: 取消与维护夹具验证通过；证据：$Output"
         return
     }
-    Click (Button '^Open source license$|^开源许可$')
+    Click (Button '^Open source under MIT$|^基于 MIT 协议开源$')
     $license=Wait-For { @(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TRichEditViewer' -and [CodeWFSetupFixtureDesktop]::Text($_) -match 'Permission is hereby granted' }) | Select-Object -First 1 } '原窗口内 MIT 许可浮层'
     Check ($null -ne $license) '许可浮层保留 MIT 原文'
     Capture '04-license'
@@ -147,7 +147,7 @@ try {
     Click (Button '^Customize installation|^自定义安装')
     $edit=Wait-For { @(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -match '^(TEdit|TNewPathEdit)$' }) | Select-Object -First 1 } '安装目录输入'
     $expanded=Bounds $window
-    Check (($expanded.bottom-$expanded.top) -gt ($initial.bottom-$initial.top)) '展开自定义安装后窗口随内容增高'
+    Check (($expanded.bottom-$expanded.top) -eq ($initial.bottom-$initial.top)) '展开自定义安装仍保持原型的 640×360 窗口'
     $checkboxes=@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TNewCheckBox' })
     Check ($checkboxes.Count -eq 2) '提供桌面快捷方式与 Markdown 候选选项'
     $association=@($checkboxes | Where-Object { [CodeWFSetupFixtureDesktop]::Text($_) -match 'Markdown' })[0]
@@ -155,7 +155,7 @@ try {
     Capture '02-custom'
     $primary=Bounds (Button '^Install now$|^立即安装$')
     Check (($primary.right-$primary.left) -eq 104 -and ($primary.bottom-$primary.top) -eq 36) '主按钮按原型使用 104×36 像素布局'
-    Click (Button '^Open source license$|^开源许可$')
+    Click (Button '^Open source under MIT$|^基于 MIT 协议开源$')
     Check (@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Text($_) -match 'Permission is hereby granted' }).Count -gt 0) '展开设置后也能查看许可'
     Click (Button '^Back$|^返回$')
     [CodeWFSetupFixtureDesktop]::SetText($edit,'relative\path')
@@ -171,9 +171,9 @@ try {
     }
     Click (Button '^Customize installation|^自定义安装')
     Click (Button '^Install now$|^立即安装$')
-    Check ($null -ne (Button '^Cancel$|^取消$')) '真实安装进度页面提供取消操作'
+    Check ($null -ne (Button '^Cancel installation$|^取消安装$')) '真实安装进度页面提供取消操作'
     Capture '05-progress'
-    $finish=Wait-For { Button '^Close$|^关闭$' } '一键安装直接进入完成页'
+    $finish=Wait-For { Button '^Start writing$|^写点什么$|^Close$|^关闭$' } '一键安装直接进入完成页'
     Check (Test-Path -LiteralPath (Join-Path $destination 'LICENSE')) '一键安装把载荷复制到选择的目录'
     Check (@(Get-ChildItem -LiteralPath $destination -Recurse -File).Count -eq 1) '夹具只复制许可，不生成卸载器或其他文件'
     $log=Get-Content -LiteralPath (Join-Path $Output 'setup.log') -Raw

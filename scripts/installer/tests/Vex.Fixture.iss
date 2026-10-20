@@ -30,7 +30,7 @@ procedure VFixtureLaunchVisual(PageID: Integer);
 begin
   if PageID<>wpFinished then exit;
   { 只添加无执行项的视觉选项；夹具没有 [Run] 声明，绝不启动应用。 }
-  WizardForm.RunList.AddCheckBox(CustomMessage('VOpen'),'',0,True,True,False,False,nil);
+  WizardForm.RunList.AddCheckBox(CustomMessage('VOpen'),'',0,False,True,False,False,nil);
   VLayout;
 end;
 

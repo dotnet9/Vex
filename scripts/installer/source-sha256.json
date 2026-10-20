@@ -10,7 +10,7 @@
     {
       "path": "README.md",
       "mode": "normalized-lf",
-      "sha256": "9f501ebbcfb00675ffba625c1f4ec67fcd1d8e41a84907c103e704763656a4ad"
+      "sha256": "75efa8f9b462c4ec2fe9d47287fb25960aea8cdd6be9b350ad5b677cddb60561"
     },
     {
       "path": "generate_assets.py",
@@ -72,5 +72,6 @@
       "mode": "binary",
       "sha256": "18144b31461ecb6efe184eae734491ee36bbef92b1195a79847118d53150322e"
     }
-  ]
+  ],
+  "local_design": "README.md documents Vex local overrides; shared installer engines and bitmaps retain their source hashes."
 }

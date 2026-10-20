@@ -3,8 +3,11 @@
 #ifndef VexLicensePath
 #define VexLicensePath "..\LICENSE"
 #endif
+#define VexBrandDirectory ExtractFilePath(__PATHFILENAME__)
 [Files]
 Source: "{#VexLicensePath}"; DestName: "Vex-License.txt"; Flags: dontcopy
+Source: "{#VexBrandDirectory}vex-brand-light.bmp"; Flags: dontcopy
+Source: "{#VexBrandDirectory}vex-brand-dark.bmp"; Flags: dontcopy
 
 [Setup]
 #if VER >= EncodeVer(7,0,0)
@@ -21,16 +24,16 @@ LanguageDetectionMethod=uilanguage
 [CustomMessages]
 english.VTitle=Vex Setup
 chinesesimplified.VTitle=维刻 Vex 安装
-english.VSlogan=Vex · Write your thoughts. See the connections.
-chinesesimplified.VSlogan=维刻 Vex · 写下想法，看见脉络。
-english.VWelcome=Install Vex
-chinesesimplified.VWelcome=安装维刻 Vex
+english.VSlogan=Write your thoughts. See the connections.
+chinesesimplified.VSlogan=写下想法，看见脉络。
+english.VWelcome=Let your ideas take shape.
+chinesesimplified.VWelcome=让想法，慢慢成形。
 english.VMeta=Version {#AppVersion} · Current user
 chinesesimplified.VMeta=版本 {#AppVersion} · 仅为当前用户安装
 english.VInstall=Install now
 chinesesimplified.VInstall=立即安装
 english.VCustom=Customize installation
-chinesesimplified.VCustom=自定义安装
+chinesesimplified.VCustom=自定义安装选项
 english.VLocation=Installation folder
 chinesesimplified.VLocation=安装位置
 english.VBrowse=Browse…
@@ -39,16 +42,18 @@ english.VDesktop=Create a desktop shortcut
 chinesesimplified.VDesktop=创建桌面快捷方式
 english.VScope=Install for the current user
 chinesesimplified.VScope=仅为当前用户安装
-english.VAssociation=Add Markdown opening options
-chinesesimplified.VAssociation=添加 Markdown 打开方式
-english.VLicense=Open source license
-chinesesimplified.VLicense=开源许可
+english.VAssociation=Register a Markdown opening option
+chinesesimplified.VAssociation=注册 Markdown 打开方式候选
+english.VLicense=Open source under MIT
+chinesesimplified.VLicense=基于 MIT 协议开源
 english.VLicenseTitle=MIT open source license
 chinesesimplified.VLicenseTitle=MIT 开源许可
 english.VAssociationHint=Keeps your default app unchanged
 chinesesimplified.VAssociationHint=不改变系统默认应用
-english.VMaintenance=Vex is already installed
-chinesesimplified.VMaintenance=维刻 Vex 已安装
+english.VMaintenance=Continue your writing.
+chinesesimplified.VMaintenance=继续你的写作。
+english.VInstalled=Installed · {#AppVersion}
+chinesesimplified.VInstalled=已安装 · {#AppVersion}
 english.VMaintenanceIntro=Repair the installation or remove the app.
 chinesesimplified.VMaintenanceIntro=可以修复安装，或移除此应用。
 english.VRepair=Repair installation
@@ -63,20 +68,28 @@ english.VRemove=Uninstall
 chinesesimplified.VRemove=卸载
 english.VProgress=Installation progress
 chinesesimplified.VProgress=安装进度
+english.VCancelInstall=Cancel installation
+chinesesimplified.VCancelInstall=取消安装
 english.VBack=Back
 chinesesimplified.VBack=返回
 english.VClose=Close
 chinesesimplified.VClose=关闭
-english.VOpen=Open Vex
-chinesesimplified.VOpen=打开 Vex
-english.VInstalling=Installing Vex…
-chinesesimplified.VInstalling=正在安装 Vex…
-english.VFinished=Installation complete
-chinesesimplified.VFinished=安装完成
-english.VRepairing=Repairing Vex…
-chinesesimplified.VRepairing=正在修复 Vex…
-english.VRepaired=Repair complete
-chinesesimplified.VRepaired=修复完成
+english.VOpen=Open
+chinesesimplified.VOpen=打开
+english.VStartWriting=Start writing
+chinesesimplified.VStartWriting=写点什么
+english.VInstalling=Installing
+chinesesimplified.VInstalling=正在安装
+english.VInstallingIntro=Just a moment, then you can start writing.
+chinesesimplified.VInstallingIntro=稍等片刻，即可开始写作。
+english.VFinished=All set,%nlet your ideas grow.
+chinesesimplified.VFinished=一切就绪，%n让想法开始生长。
+english.VFinishedIntro=Your own Markdown space is ready.
+chinesesimplified.VFinishedIntro=你的专属 Markdown 空间已准备完毕。
+english.VRepairing=Repairing
+chinesesimplified.VRepairing=正在修复
+english.VRepaired=All set,%nlet your ideas grow.
+chinesesimplified.VRepaired=一切就绪，%n让想法开始生长。
 english.VPathError=Choose an absolute local folder outside Windows and the drive root.
 chinesesimplified.VPathError=请选择有效的本地绝对路径，不能使用系统目录或磁盘根目录。
 english.VUninstalling=Uninstalling Vex…
@@ -152,6 +165,12 @@ function VGetFocus: LongWord;
   external 'GetFocus@user32.dll stdcall';
 function VSelectObject(DC, Obj: LongWord): LongWord;
   external 'SelectObject@gdi32.dll stdcall';
+function VSaveDC(DC: LongWord): Integer;
+  external 'SaveDC@gdi32.dll stdcall';
+function VRestoreDC(DC: LongWord; Saved: Integer): Boolean;
+  external 'RestoreDC@gdi32.dll stdcall';
+function VClipRect(DC: LongWord; Left, Top, Right, Bottom: Integer): Integer;
+  external 'IntersectClipRect@gdi32.dll stdcall';
 function VCreateFont(Height, Width, Escapement, Orientation, Weight: Integer;
   Italic, Underline, StrikeOut, CharSet, OutPrecision, ClipPrecision, Quality, Pitch: LongWord; Face: String): LongWord;
   external 'CreateFontW@gdi32.dll stdcall';
@@ -186,7 +205,7 @@ function VSendRect(Window, Message, WParam: LongWord; var Bounds: TVRect): Longi
 
 var
   VTitle, VName, VSlogan, VPathLabel, VScope, VPercent, VStatus, VDescription,
-    VAssociationHint, VProgressLabel, VModalTitle: TLabel;
+    VAssociationHint, VProgressLabel, VModalTitle, VInstalled, VLocation: TLabel;
   VBack, VMark, VProgressBar: TBitmapImage;
   VCustom, VLicense, VClose, VWebsite, VNoLaunch, VRemove, VModalBack: TNewButton;
   VLicenseMemo: TRichEditViewer;
@@ -201,7 +220,7 @@ var
   VPreviousProc, VSurfaceBrush, VSoftBrush: LongWord;
   VExpanded, VInitialized, VDetailsOpen, VLicenseOpen, VRepairing: Boolean;
   VHover, VProgressValue, VModalY: Integer;
-  VSurface, VText, VMuted, VField, VSoft, VLine, VAccent: TColor;
+  VSurface, VText, VMuted, VField, VSoft, VLine, VAccent, VBrand, VBrandText, VOnAccent, VAccentHover, VAccentSoft: TColor;
 
 procedure VBounds(Control: TControl; X, Y, Width, Height: Integer);
 begin
@@ -250,8 +269,14 @@ begin
   VBounds(Result, X, Y, Width, Height);
 end;
 
+function VIsMaintenance: Boolean;
+begin
+  Result:=False;
+  if CWMPage<>nil then Result:=WizardForm.CurPageID=CWMPage.ID;
+end;
+
 procedure VPaintBackground;
-var Region, Brush: LongWord; Canvas: TCanvas;
+var Region, Brush: LongWord; Canvas: TCanvas; Saved: Integer;
 begin
   VBack.Bitmap.Width:=WizardForm.ClientWidth; VBack.Bitmap.Height:=WizardForm.ClientHeight;
   Canvas:=VBack.Bitmap.Canvas;
@@ -260,14 +285,29 @@ begin
   Region:=VRegion(VBack.Bitmap.Width,VBack.Bitmap.Height); Brush:=VBrush(VLine);
   VFrameRegion(Canvas.Handle,Region,Brush,ScaleX(1),ScaleY(1));
   VDeleteObject(Brush); VDeleteObject(Region);
-  Canvas.Brush.Color:=VSoft; Canvas.Pen.Color:=VSoft;
+  Canvas.Brush.Color:=VBrand; Canvas.Pen.Color:=VBrand;
   Canvas.Rectangle(ScaleX(1),ScaleY(1),ScaleX(180),VBack.Bitmap.Height-ScaleY(1));
-  Canvas.Pen.Color:=VLine;
-  Canvas.MoveTo(ScaleX(180),ScaleY(1)); Canvas.LineTo(ScaleX(180),VBack.Bitmap.Height-ScaleY(1));
+  Saved:=VSaveDC(Canvas.Handle);
+  VClipRect(Canvas.Handle,ScaleX(1),ScaleY(1),ScaleX(180),VBack.Bitmap.Height-ScaleY(1));
+  Canvas.Brush.Style:=bsClear;
+  Canvas.Pen.Color:=$DAE4D7;
+  if VSurface<>clWhite then Canvas.Pen.Color:=$32402A;
+  Canvas.Ellipse(ScaleX(-179),VBack.Bitmap.Height-ScaleY(210),ScaleX(261),VBack.Bitmap.Height+ScaleY(230));
+  VRestoreDC(Canvas.Handle,Saved); Canvas.Brush.Style:=bsSolid;
   if (WizardForm.CurPageID=wpWelcome) and VExpanded and not VLicenseOpen then begin
-    VRound(Canvas.Handle,ScaleX(208),ScaleY(208),ScaleX(404),ScaleY(204),7,VSoft,False);
-    VRound(Canvas.Handle,ScaleX(220),ScaleY(246),ScaleX(300),ScaleY(36),6,VField,False);
-    VRound(Canvas.Handle,ScaleX(220),ScaleY(246),ScaleX(300),ScaleY(36),6,VLine,True);
+    VRound(Canvas.Handle,ScaleX(209),ScaleY(82),ScaleX(402),ScaleY(177),7,VLine,True);
+    Canvas.Pen.Color:=VLine; Canvas.MoveTo(ScaleX(210),ScaleY(125)); Canvas.LineTo(ScaleX(610),ScaleY(125));
+    VRound(Canvas.Handle,ScaleX(222),ScaleY(138),ScaleX(310),ScaleY(38),8,VField,False);
+    VRound(Canvas.Handle,ScaleX(222),ScaleY(138),ScaleX(310),ScaleY(38),8,VLine,True);
+  end;
+  if VIsMaintenance and not VLicenseOpen then begin
+    VRound(Canvas.Handle,ScaleX(209),ScaleY(118),ScaleX(402),ScaleY(72),8,VSoft,False);
+    VRound(Canvas.Handle,ScaleX(209),ScaleY(118),ScaleX(402),ScaleY(72),8,VLine,True);
+  end;
+  if (WizardForm.CurPageID=wpFinished) and not VLicenseOpen then begin
+    VRound(Canvas.Handle,ScaleX(392),ScaleY(74),ScaleX(36),ScaleY(36),18,VAccentSoft,False);
+    VFont(Canvas.Font,20,False); Canvas.Font.Color:=VAccent; Canvas.Brush.Color:=VAccentSoft;
+    Canvas.TextOut(ScaleX(401),ScaleY(78),'✓');
   end;
   if VLicenseOpen then
     VRound(Canvas.Handle,ScaleX(208),ScaleY(88),ScaleX(404),ScaleY(202),7,VSoft,False);
@@ -275,21 +315,19 @@ begin
 end;
 
 procedure VDrawProgress;
+var Position: Integer;
 begin
-  VProgressBar.Bitmap.Width:=ScaleX(404); VProgressBar.Bitmap.Height:=ScaleY(5);
+  Position:=VProgressValue*402 div 100;
+  if Position<18 then Position:=18; if Position>384 then Position:=384;
+  VBounds(VPercent,209+Position-18,120,36,18);
+  VProgressBar.Bitmap.Width:=ScaleX(402); VProgressBar.Bitmap.Height:=ScaleY(5);
   VProgressBar.Bitmap.Canvas.Brush.Color:=VSurface;
   VProgressBar.Bitmap.Canvas.Pen.Color:=VSurface;
   VProgressBar.Bitmap.Canvas.Rectangle(0,0,ScaleX(404),ScaleY(5));
   VRound(VProgressBar.Bitmap.Canvas.Handle,0,0,ScaleX(404),ScaleY(5),3,VSoft,False);
   if VProgressValue>0 then
-    VRound(VProgressBar.Bitmap.Canvas.Handle,0,0,(ScaleX(404)*VProgressValue div 100),ScaleY(5),3,$D42B51,False);
+    VRound(VProgressBar.Bitmap.Canvas.Handle,0,0,(ScaleX(404)*VProgressValue div 100),ScaleY(5),3,VAccent,False);
   VProgressBar.Repaint;
-end;
-
-function VIsMaintenance: Boolean;
-begin
-  Result:=False;
-  if CWMPage<>nil then Result:=WizardForm.CurPageID=CWMPage.ID;
 end;
 
 procedure VLayout;
@@ -301,7 +339,6 @@ begin
   Home:=Page=wpWelcome; Finished:=Page=wpFinished; Installing:=Page=wpInstalling;
   Maintenance:=VIsMaintenance; Main:=not VLicenseOpen;
   Height:=360;
-  if Home and VExpanded then Height:=500;
   if Maintenance and VDetailsOpen then Height:=620;
   if not Home and not Finished and not Installing and not Maintenance then Height:=560;
   WizardForm.ClientHeight:=ScaleY(Height);
@@ -309,21 +346,21 @@ begin
   if VSetRegion(WizardForm.Handle,Region,True)=0 then VDeleteObject(Region);
   VBounds(VBack,0,0,640,Height);
   VTitle.Visible:=False;
-  BrandY:=(Height-104) div 2;
+  BrandY:=(Height-135) div 2;
   VMark.Visible:=True; VName.Visible:=True;
-  VBounds(VMark,62,BrandY,56,56); VBounds(VName,16,BrandY+74,148,30);
-  VName.Caption:='Vex'; VName.Alignment:=taCenter; VFont(VName.Font,20,True);
+  VBounds(VMark,63,BrandY,56,56); VBounds(VName,17,BrandY+74,148,30);
+  VName.Caption:='维刻 Vex'; VName.Alignment:=taCenter; VFont(VName.Font,20,True);
   VBounds(VClose,594,0,46,32);
-  VSlogan.Visible:=Main; VSlogan.Alignment:=taLeftJustify; VSlogan.WordWrap:=True;
-  VBounds(VSlogan,208,80,404,40); VFont(VSlogan.Font,14,False);
+  VSlogan.Visible:=True; VSlogan.Alignment:=taCenter; VSlogan.WordWrap:=True;
+  VBounds(VSlogan,17,BrandY+119,148,34); VFont(VSlogan.Font,12,False);
   VStatus.Visible:=Main; VStatus.Alignment:=taLeftJustify; VFont(VStatus.Font,22,True);
-  VBounds(VStatus,208,38,404,34);
-  VDescription.Visible:=Main and (Home or Maintenance);
-  VDescription.Alignment:=taLeftJustify; VFont(VDescription.Font,12,False);
-  VBounds(VDescription,208,122,404,30);
-  if Home then begin VStatus.Caption:=CustomMessage('VWelcome'); VDescription.Caption:=CustomMessage('VMeta'); end;
-  if Installing then VStatus.Caption:=CustomMessage('VInstalling');
-  if Finished then VStatus.Caption:=CustomMessage('VFinished');
+  VBounds(VStatus,209,30,402,34);
+  VDescription.Visible:=Main and (Installing or Finished);
+  VDescription.Alignment:=taLeftJustify; VFont(VDescription.Font,14,False);
+  VBounds(VDescription,209,71,402,26);
+  if Home then VStatus.Caption:=CustomMessage('VWelcome');
+  if Installing then begin VStatus.Caption:=CustomMessage('VInstalling'); VDescription.Caption:=CustomMessage('VInstallingIntro'); end;
+  if Finished then begin VStatus.Caption:=CustomMessage('VFinished'); VDescription.Caption:=CustomMessage('VFinishedIntro'); end;
   if Installing and VRepairing then VStatus.Caption:=CustomMessage('VRepairing');
   if Finished and VRepairing then VStatus.Caption:=CustomMessage('VRepaired');
   WizardForm.OuterNotebook.Visible:=Main and not Home and not Finished and not Installing and (not Maintenance or VDetailsOpen);
@@ -336,11 +373,17 @@ begin
     VBounds(CWMLocationLabel,0,94,404,20); VFont(CWMLocationLabel.Font,12,False);
     VBounds(CWMLocation,0,120,404,136); VFont(CWMLocation.Font,12,False);
     VStatus.Caption:=CustomMessage('VMaintenance');
-    if CWMRepairPath<>'' then VDescription.Caption:=CustomMessage('VMaintenanceIntro')
-    else VDescription.Caption:=CustomMessage('VRegistrationIntro');
-    if VMigrationNeeded then VDescription.Caption:=CustomMessage('VMigrationIntro');
-    VBounds(VDescription,208,122,404,44);
+    VBounds(VStatus,209,60,402,34);
+    if (CWMRepairPath='') or VMigrationNeeded then begin
+      VDescription.Visible:=Main;
+      VDescription.Caption:=CustomMessage('VRegistrationIntro');
+      if VMigrationNeeded then VDescription.Caption:=CustomMessage('VMigrationIntro');
+      VBounds(VDescription,209,228,402,54); VFont(VDescription.Font,12,False);
+    end;
   end;
+  VInstalled.Visible:=Main and Maintenance; VLocation.Visible:=Main and Maintenance;
+  VBounds(VInstalled,209,29,402,18); VBounds(VLocation,222,130,376,48);
+  VLocation.Caption:=CustomMessage('VLocation')+#13#10+CWMDisplayPath(CWMRepairPath);
   if not Home and not Finished and not Installing and not Maintenance then begin
     VStatus.Caption:=WizardForm.PageNameLabel.Caption;
     VDescription.Caption:=WizardForm.PageDescriptionLabel.Caption;
@@ -349,40 +392,48 @@ begin
   end;
   VCustom.Visible:=Main and (Home or Maintenance);
   if Home then begin
-    if VExpanded then VCustom.Caption:=CustomMessage('VCustom')+'  ⌃'
-    else VCustom.Caption:=CustomMessage('VCustom')+'  ⌄';
+    VCustom.Caption:=CustomMessage('VCustom');
   end else VCustom.Caption:=CustomMessage('VDetails');
-  VBounds(VCustom,208,164,404,40);
+  VBounds(VCustom,209,82,402,44);
+  if Maintenance then VBounds(VCustom,338,197,100,30);
   WizardForm.DirEdit.Visible:=Main and Home and VExpanded;
   WizardForm.DirBrowseButton.Visible:=Main and Home and VExpanded;
-  VPathLabel.Visible:=Main and Home and VExpanded; VScope.Visible:=Main and Home and VExpanded;
+  VPathLabel.Visible:=False; VScope.Visible:=False;
   VDesktop.Visible:=Main and Home and VExpanded; VAssociation.Visible:=Main and Home and VExpanded;
-  VAssociationHint.Visible:=Main and Home and VExpanded;
-  VBounds(VPathLabel,220,220,380,18); VBounds(WizardForm.DirEdit,230,254,280,20);
-  VBounds(WizardForm.DirBrowseButton,528,246,72,36); VBounds(VScope,220,294,380,18);
-  VBounds(VDesktop,220,326,380,20); VBounds(VAssociation,220,357,380,20);
-  VBounds(VAssociationHint,242,383,358,18);
+  VAssociationHint.Visible:=False;
+  VBounds(WizardForm.DirEdit,234,148,286,20);
+  VBounds(WizardForm.DirBrowseButton,538,138,60,38);
+  VBounds(VDesktop,222,190,376,24); VBounds(VAssociation,222,222,376,24);
   WizardForm.ProgressGauge.Visible:=False; WizardForm.StatusLabel.Visible:=False; WizardForm.FilenameLabel.Visible:=False;
-  VPercent.Visible:=Main and Installing; VProgressLabel.Visible:=Main and Installing; VProgressBar.Visible:=Main and Installing;
-  VBounds(VProgressLabel,208,155,300,18); VBounds(VPercent,548,155,64,18); VBounds(VProgressBar,208,185,404,5);
+  VPercent.Visible:=Main and Installing; VProgressLabel.Visible:=False; VProgressBar.Visible:=Main and Installing;
+  I:=VProgressValue*402 div 100;
+  if I<18 then I:=18; if I>384 then I:=384;
+  VPercent.Alignment:=taCenter;
+  VBounds(VPercent,209+I-18,120,36,18); VBounds(VProgressBar,209,146,402,5);
   if Installing then VDrawProgress;
   WizardForm.BackButton.Visible:=False;
   { Inno 的关闭查询依赖 CancelButton.Visible；安装前保留状态但移到窗口外。 }
   WizardForm.CancelButton.Visible:=not Finished; WizardForm.CancelButton.TabStop:=Main and Installing;
-  VNoLaunch.Visible:=Main and Finished and (WizardForm.RunList.Items.Count>0);
+  VNoLaunch.Visible:=Main and Maintenance and (CWMRepairPath<>'');
+  VNoLaunch.Caption:=CustomMessage('VOpen');
   VRemove.Visible:=Main and Maintenance; VRemove.Enabled:=not CWMBusy and not CWMUninstalled;
   if CWMRegistrationCount=1 then VRemove.Enabled:=VRemove.Enabled and (CWMRegistrations[0].Uninstaller<>'');
   VRemove.Hint:=CustomMessage('CWMInvalidRegistration'); VRemove.ShowHint:=not VRemove.Enabled;
   VClose.Enabled:=VLicenseOpen or not Installing or WizardForm.CancelButton.Enabled;
-  VLicense.Visible:=Main; VWebsite.Visible:=True; VLicense.Enabled:=True;
+  VLicense.Visible:=Main and Home; VWebsite.Visible:=Main and Maintenance; VLicense.Enabled:=True;
   ButtonY:=Height-58;
-  VBounds(WizardForm.NextButton,508,ButtonY,104,36);
-  if Maintenance then VBounds(WizardForm.NextButton,448,ButtonY,164,36);
+  VBounds(WizardForm.NextButton,507,ButtonY,104,36);
+  if Maintenance then VBounds(WizardForm.NextButton,209,202,124,30);
+  if Maintenance and (ActiveLanguage='chinesesimplified') then VBounds(WizardForm.NextButton,209,197,74,30);
+  if Maintenance and ((CWMRepairPath='') or VMigrationNeeded) then VBounds(WizardForm.NextButton,447,ButtonY,164,36);
   if not Main then VBounds(WizardForm.NextButton,-300,-100,104,36);
   if Main and Installing then VBounds(WizardForm.CancelButton,508,ButtonY,104,36)
   else VBounds(WizardForm.CancelButton,-200,-100,104,36);
-  VBounds(VNoLaunch,430,ButtonY,68,36); VBounds(VRemove,370,ButtonY,68,36);
+  if Installing then WizardForm.CancelButton.Caption:=CustomMessage('VCancelInstall');
+  VBounds(VNoLaunch,507,ButtonY,104,36); VBounds(VRemove,333,202,48,30);
+  if Maintenance and (ActiveLanguage='chinesesimplified') then VBounds(VRemove,293,197,32,30);
   VBounds(VWebsite,16,Height-36,148,25); VBounds(VLicense,208,ButtonY,170,36);
+  if Maintenance then begin VBounds(VWebsite,429,ButtonY,68,36); VWebsite.Caption:=CustomMessage('VClose'); end;
   VBounds(VModalTitle,208,38,404,34); VBounds(VLicenseMemo,220,100,380,178);
   VLicenseMemo.Width:=ScaleX(380)+VSystemMetric(2);
   Region:=VRectRegion(0,0,ScaleX(380),VLicenseMemo.Height);
@@ -397,9 +448,10 @@ begin
   if Home then WizardForm.NextButton.Caption:=CustomMessage('VInstall');
   if Finished then begin
     WizardForm.RunList.Visible:=False;
-    VStatus.Alignment:=taCenter; VSlogan.Alignment:=taCenter;
-    VBounds(VStatus,208,145,404,36); VBounds(VSlogan,208,194,404,40);
-    if WizardForm.RunList.Items.Count>0 then WizardForm.NextButton.Caption:=CustomMessage('VOpen')
+    VStatus.Alignment:=taCenter; VDescription.Alignment:=taCenter;
+    VBounds(VStatus,209,126,402,66); VBounds(VDescription,209,203,402,27);
+    VBounds(WizardForm.NextButton,358,252,104,38);
+    if WizardForm.RunList.Items.Count>0 then WizardForm.NextButton.Caption:=CustomMessage('VStartWriting')
     else WizardForm.NextButton.Caption:=CustomMessage('VClose');
   end;
   if Maintenance then begin
@@ -472,8 +524,16 @@ begin
 end;
 
 procedure VFinishWithoutLaunch(Sender: TObject);
-var I: Integer;
+var I, Code: Integer; Executable: String;
 begin
+  if VIsMaintenance then begin
+    Executable:=AddBackslash(CWMRepairPath)+'Vex.exe';
+    #ifndef CodeWFSetupFixture
+      if (CWMRepairPath<>'') and FileExists(Executable) then
+        ShellExec('open',Executable,'',CWMRepairPath,SW_SHOWNORMAL,ewNoWait,Code);
+    #endif
+    exit;
+  end;
   for I := 0 to WizardForm.RunList.Items.Count-1 do WizardForm.RunList.Checked[I] := False;
   WizardForm.NextButton.OnClick(WizardForm.NextButton);
 end;
@@ -481,6 +541,7 @@ end;
 procedure VVisitWebsite(Sender: TObject);
 var Code: Integer;
 begin
+  if VIsMaintenance then begin VExit(Sender); exit; end;
   #ifndef CodeWFSetupFixture
     ShellExec('open','https://codewf.com','','',SW_SHOWNORMAL,ewNoWait,Code);
   #endif
@@ -505,16 +566,16 @@ begin
   if (Message=$000F) or (Message=$0317) or (Message=$0318) then begin
     if Message=$000F then DC:=VBeginPaint(Window,Paint) else DC:=WParam;
     Bounds.Left:=0; Bounds.Top:=0; Bounds.Right:=Check.Width; Bounds.Bottom:=Check.Height;
-    Brush:=VBrush(VSoft); VFill(DC,Bounds,Brush); VDeleteObject(Brush);
+    Brush:=VBrush(VSurface); VFill(DC,Bounds,Brush); VDeleteObject(Brush);
     VRound(DC,0,ScaleY(3),ScaleX(13),ScaleY(13),2,VField,False);
     VRound(DC,0,ScaleY(3),ScaleX(13),ScaleY(13),2,$767676,True);
     if Check.Checked then begin
-      VRound(DC,0,ScaleY(3),ScaleX(13),ScaleY(13),2,$D42B51,False);
-      Pen:=VCreatePen(0,ScaleX(2),clWhite); Previous:=VSelectObject(DC,Pen);
+      VRound(DC,0,ScaleY(5),ScaleX(14),ScaleY(14),2,VAccent,False);
+      Pen:=VCreatePen(0,ScaleX(2),VOnAccent); Previous:=VSelectObject(DC,Pen);
       VMove(DC,ScaleX(3),ScaleY(10),0); VLineTo(DC,ScaleX(6),ScaleY(13)); VLineTo(DC,ScaleX(11),ScaleY(7));
       VSelectObject(DC,Previous); VDeleteObject(Pen);
     end;
-    Bounds.Left:=ScaleX(22); VTextColor(DC,VText); VTextMode(DC,1);
+    Bounds.Left:=ScaleX(22); VTextColor(DC,VMuted); VTextMode(DC,1);
     Previous:=VSelectObject(DC,VCheckFont); VDrawText(DC,Check.Caption,-1,Bounds,$24); VSelectObject(DC,Previous);
     if VGetFocus=Window then VRound(DC,0,ScaleY(2),ScaleX(14),ScaleY(15),2,VAccent,True);
     if Message=$000F then VEndPaint(Window,Paint);
@@ -579,11 +640,15 @@ begin
     if ExpandConstant('{param:VEXTHEME|}')='light' then Light:=1;
   #endif
   if Light = 0 then begin
-    VSurface:=$2C1A21; VText:=$FFF1F6; VMuted:=$C9ADB9;
-    VField:=$331E26; VSoft:=$3B222B; VLine:=$4F3340; VAccent:=$FFABC2;
+    VSurface:=$23291C; VText:=$DEE6DC; VMuted:=$96A190;
+    VField:=$1E2217; VSoft:=$272D20; VLine:=$323B2C; VAccent:=$B3C88A;
+    VBrand:=$2D3A24; VBrandText:=$CFDEC9; VOnAccent:=$202814;
+    VAccentHover:=$C4D8A1; VAccentSoft:=$333E28;
   end else begin
-    VSurface:=clWhite; VText:=$322129; VMuted:=$806B74;
-    VField:=clWhite; VSoft:=$FBF2F5; VLine:=$EFE2E8; VAccent:=$D42B51;
+    VSurface:=clWhite; VText:=$313825; VMuted:=$80887B;
+    VField:=clWhite; VSoft:=$F1F5F3; VLine:=$E3EAE5; VAccent:=$6B7624;
+    VBrand:=$E5EEE8; VBrandText:=$364525; VOnAccent:=clWhite;
+    VAccentHover:=$58611C; VAccentSoft:=$E9F0E5;
   end;
   if VSurfaceBrush<>0 then VDeleteObject(VSurfaceBrush);
   VSurfaceBrush:=VBrush(VSurface);
@@ -592,25 +657,22 @@ begin
   WizardForm.Color:=VSurface; WizardForm.Font.Color:=VText;
   VStyleChildren(WizardForm);
   VTitle.Font.Color:=VMuted; VSlogan.Font.Color:=VMuted;
+  VName.Font.Color:=VBrandText; VInstalled.Font.Color:=VMuted; VLocation.Font.Color:=VMuted;
   VScope.Font.Color:=VMuted; VAssociationHint.Font.Color:=VMuted;
   VDescription.Font.Color:=VMuted; VProgressLabel.Font.Color:=VMuted; VPercent.Font.Color:=VMuted;
   WizardForm.DirEdit.Color:=VField; WizardForm.DirEdit.Font.Color:=VText;
-  VDesktop.Color:=VSoft; VAssociation.Color:=VSoft;
+  VDesktop.Color:=VSurface; VAssociation.Color:=VSurface;
   VDesktop.Font.Color:=VText; VAssociation.Font.Color:=VText;
   VLicenseMemo.Color:=VSoft; VLicenseMemo.Font.Color:=VText;
   if Light=0 then VSetWindowTheme(VLicenseMemo.Handle,'DarkMode_Explorer','')
   else VSetWindowTheme(VLicenseMemo.Handle,'Explorer','');
   VApplyLicenseColor;
   VPaintBackground;
-  VMark.Bitmap.Canvas.Brush.Color:=VSoft;
-  VMark.Bitmap.Canvas.Pen.Color:=VSoft;
-  VMark.Bitmap.Canvas.Rectangle(0,0,ScaleX(54),ScaleY(54));
-  VRound(VMark.Bitmap.Canvas.Handle,0,0,ScaleX(54),ScaleY(54),15,$D42B51,False);
-  VMark.Bitmap.Canvas.Brush.Color:=$D42B51;
-  VFont(VMark.Bitmap.Canvas.Font,30,True);
-  VMark.Bitmap.Canvas.Font.Name:='Segoe UI Semibold'; VMark.Bitmap.Canvas.Font.Style:=[];
-  VMark.Bitmap.Canvas.Font.Color:=clWhite;
-  VMark.Bitmap.Canvas.TextOut(ScaleX(17),ScaleY(7),'V');
+  if Light=0 then begin
+    ExtractTemporaryFile('vex-brand-dark.bmp'); VMark.Bitmap.LoadFromFile(ExpandConstant('{tmp}\vex-brand-dark.bmp'));
+  end else begin
+    ExtractTemporaryFile('vex-brand-light.bmp'); VMark.Bitmap.LoadFromFile(ExpandConstant('{tmp}\vex-brand-light.bmp'));
+  end;
   WizardForm.Repaint;
 end;
 
@@ -633,33 +695,40 @@ begin
     VCopyItem(Item,LParam,48);
     for I := 0 to 9 do if (VButtons[I] <> nil) and (Item.ItemWindow = VButtons[I].Handle) then begin
       Bounds:=Item.Bounds; Color:=VSurface; Foreground:=VMuted;
-      if I=0 then begin Color:=$D42B51; Foreground:=clWhite; end;
-      if (I=1) or (I=7) then begin Color:=VSoft; Foreground:=VText; end;
+      if ((I=0) and not VIsMaintenance) or ((I=5) and VIsMaintenance) then begin Color:=VAccent; Foreground:=VOnAccent; end;
       if I=9 then begin Color:=VSoft; Foreground:=VText; end;
       if (I=VHover) or ((Item.ItemState and 1)<>0) then begin
         Color:=VSoft; Foreground:=VAccent;
-        if I=0 then begin Color:=$BD2045; Foreground:=clWhite; end;
+        if ((I=0) and not VIsMaintenance) or ((I=5) and VIsMaintenance) then begin Color:=VAccentHover; Foreground:=VOnAccent; end;
+        if I=3 then begin Color:=$1C2BC4; Foreground:=clWhite; end;
       end;
       if (Item.ItemState and 4)<>0 then begin Color:=VSoft; Foreground:=VMuted; end;
-      if I=4 then Color:=VSoft;
-      Brush:=VBrush(VSurface); if I=4 then begin VDeleteObject(Brush); Brush:=VBrush(VSoft); end;
+      Brush:=VBrush(VSurface);
       VFill(Item.DC,Bounds,Brush); VDeleteObject(Brush);
       VRound(Item.DC,0,0,Bounds.Right,Bounds.Bottom,8,Color,False);
-      if I=7 then VRound(Item.DC,0,0,Bounds.Right,Bounds.Bottom,6,VLine,True);
+      if (I=1) and not VIsMaintenance then VRound(Item.DC,0,0,Bounds.Right,Bounds.Bottom,7,VLine,True);
       VTextColor(Item.DC,Foreground); VTextMode(Item.DC,1);
       PreviousFont:=VSelectObject(Item.DC,VButtonFonts[I]);
       TextBounds:=Bounds;
       if I=3 then begin
         Pen:=VCreatePen(0,ScaleX(1),Foreground); OldPen:=VSelectObject(Item.DC,Pen);
-        VMove(Item.DC,ScaleX(10),ScaleY(10),0); VLineTo(Item.DC,ScaleX(22),ScaleY(22));
-        VMove(Item.DC,ScaleX(22),ScaleY(10),0); VLineTo(Item.DC,ScaleX(10),ScaleY(22));
+        VMove(Item.DC,ScaleX(19),ScaleY(12),0); VLineTo(Item.DC,ScaleX(27),ScaleY(20));
+        VMove(Item.DC,ScaleX(27),ScaleY(12),0); VLineTo(Item.DC,ScaleX(19),ScaleY(20));
         VSelectObject(Item.DC,OldPen); VDeleteObject(Pen);
       end
-      else if I=4 then VDrawText(Item.DC,VButtons[I].Caption,-1,TextBounds,$24)
+      else if (I=1) and not VIsMaintenance then begin
+        TextBounds.Left:=ScaleX(13); VDrawText(Item.DC,VButtons[I].Caption,-1,TextBounds,$24);
+        Pen:=VCreatePen(0,ScaleX(1),Foreground); OldPen:=VSelectObject(Item.DC,Pen);
+        X:=Bounds.Right-ScaleX(22); Y:=ScaleY(22);
+        if VExpanded then begin VMove(Item.DC,X-ScaleX(4),Y+ScaleY(2),0); VLineTo(Item.DC,X,Y-ScaleY(2)); VLineTo(Item.DC,X+ScaleX(4),Y+ScaleY(2)); end
+        else begin VMove(Item.DC,X-ScaleX(4),Y-ScaleY(2),0); VLineTo(Item.DC,X,Y+ScaleY(2)); VLineTo(Item.DC,X+ScaleX(4),Y-ScaleY(2)); end;
+        VSelectObject(Item.DC,OldPen); VDeleteObject(Pen);
+      end
+      else if (I=4) and not VIsMaintenance then VDrawText(Item.DC,VButtons[I].Caption,-1,TextBounds,$24)
       else if I=2 then VDrawText(Item.DC,VButtons[I].Caption,-1,TextBounds,$24)
       else VDrawText(Item.DC,VButtons[I].Caption,-1,TextBounds,$25);
       VSelectObject(Item.DC,PreviousFont);
-      { 保留键盘焦点提示，使用与原型一致的紫色圆角线，替换系统虚线框。 }
+      { 保留键盘焦点提示，使用当前主题的强调色圆角线。 }
       if ((Item.ItemState and $10)<>0) and ((Item.ItemState and $200)=0) then begin
         VRound(Item.DC,2,2,Bounds.Right-5,Bounds.Bottom-5,6,VAccent,True);
       end;
@@ -706,6 +775,8 @@ begin
   VSlogan:=VLabel(38,168,444,20,13,CustomMessage('VSlogan')); VSlogan.Alignment:=taCenter;
   VStatus:=VLabel(88,215,344,26,17,''); VStatus.Alignment:=taCenter; VFont(VStatus.Font,17,True);
   VDescription:=VLabel(60,250,400,40,12,''); VDescription.Alignment:=taCenter; VDescription.WordWrap:=True;
+  VInstalled:=VLabel(209,29,402,18,12,CustomMessage('VInstalled'));
+  VLocation:=VLabel(222,130,376,48,13,''); VLocation.WordWrap:=True;
   VCustom:=VButton(156,262,208,30,CustomMessage('VCustom'),@VToggle);
   VLicense:=VButton(360,323,128,24,CustomMessage('VLicense'),@VShowLicense);
   VWebsite:=VButton(28,323,170,25,'CodeWF · {#AppVersion}',@VVisitWebsite);
@@ -715,11 +786,11 @@ begin
   VScope:=VLabel(54,393,412,17,11,CustomMessage('VScope'));
   WizardForm.DirEdit.Parent:=WizardForm; VBounds(WizardForm.DirEdit,65,356,314,20);
   WizardForm.DirEdit.BorderStyle:=bsNone;
-  VFont(WizardForm.DirEdit.Font,12,False); WizardForm.DirEdit.Font.Name:='Consolas';
+  VFont(WizardForm.DirEdit.Font,14,False);
   WizardForm.DirBrowseButton.Parent:=WizardForm; VBounds(WizardForm.DirBrowseButton,397,346,69,37);
   VDesktop:=TNewCheckBox.Create(WizardForm); VDesktop.Parent:=WizardForm;
   VDesktop.Caption:=CustomMessage('VDesktop'); VBounds(VDesktop,54,423,412,20); VFont(VDesktop.Font,12,False);
-  VDesktop.Checked:=False;
+  VDesktop.Checked:=True;
   VAssociation:=TNewCheckBox.Create(WizardForm); VAssociation.Parent:=WizardForm;
   VAssociation.Caption:=CustomMessage('VAssociation'); VBounds(VAssociation,54,454,412,20); VFont(VAssociation.Font,12,False);
   VAssociation.Checked:=True;
@@ -745,8 +816,8 @@ begin
     Pixels:=13; Weight:=400; Face:='Segoe UI';
     if I=0 then begin Weight:=600; Face:='Segoe UI Semibold'; end;
     if ActiveLanguage='chinesesimplified' then Face:='Microsoft YaHei UI';
-    if (I=1) or (I=7) then Pixels:=12;
-    if (I=2) or (I=4) then Pixels:=11;
+    if I=7 then Pixels:=14;
+    if I=2 then Pixels:=12;
     if I=3 then Pixels:=20;
     VButtonFonts[I]:=VCreateFont(-ScaleY(Pixels),0,0,0,Weight,0,0,0,1,0,0,5,0,Face);
     VSetLong(VButtons[I].Handle,-16,(VGetLong(VButtons[I].Handle,-16) and not $F) or $B);
@@ -757,7 +828,7 @@ begin
   VFont(WizardForm.DirBrowseButton.Font,12,False);
   WizardForm.DirBrowseButton.Caption:=CustomMessage('VBrowse');
   Face:='Segoe UI'; if ActiveLanguage='chinesesimplified' then Face:='Microsoft YaHei UI';
-  VCheckFont:=VCreateFont(-ScaleY(12),0,0,0,400,0,0,0,1,0,0,5,0,Face);
+  VCheckFont:=VCreateFont(-ScaleY(14),0,0,0,400,0,0,0,1,0,0,5,0,Face);
   VCheckProcs[0]:=VSetLong(VDesktop.Handle,-4,CreateCallback(@VCheckProc));
   VCheckProcs[1]:=VSetLong(VAssociation.Handle,-4,CreateCallback(@VCheckProc));
   if CWMPage<>nil then CWMPage.CheckListBox.OnClickCheck:=@VMaintenanceSelection;
