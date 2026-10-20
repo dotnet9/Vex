@@ -1,6 +1,6 @@
 # Vex 安装器
 
-Vex 的实际安装包由本目录及 `scripts/Vex.iss` 独立维护，不读取 `design/` 或 `src/` 中正在编辑的文件。应用发布完成后，安装器只消费指定发布目录中的载荷，无需为修改安装界面重新构建应用。
+Vex 的实际安装包由本目录及 `scripts/Vex.iss` 独立维护，只消费发布目录载荷，不读取相邻仓库或应用源码。应用发布完成后，安装器只消费指定发布目录中的载荷，无需为修改安装界面重新构建应用。
 
 Windows 产品入口使用 `Vex.Setup.iss`：默认约 520 × 366，右下角单切口，系统浅深主题，一键安装，目录与两个安装选项折叠在“自定义安装”。MIT 原文通过可选窗口查看，原生安装引擎继续负责进度、文件占用、取消、回滚与启动应用。维护沿用精确 AppId 探测与已注册卸载器校验；卸载保留系统原生确认与进度窗口。静默安装继续使用 Inno 的命令行参数。
 
@@ -32,7 +32,7 @@ ISCC.exe scripts/<产品名>.iss /DAppVersion=<版本> /DSourceDir=<NativeAOT发
 
 测试目录中的安装夹具不创建卸载注册、快捷方式或文件关联，也不启动产品。原生 GUI 验证器在独立桌面运行，不切换用户桌面；正式产品安装器只编译，不在开发机替用户执行安装。维护逻辑检查预处理结果，确认夹具排除了真实注册探测和卸载启动。
 
-`design/Vex-Installer-Windows.html`、`design/Vex-Installer-Linux.html`、`design/Vex-Installer-macOS.html` 分别为 Windows EXE、Linux DEB、macOS DMG 的独立交互原型。每个文件内嵌样式、脚本和 Vex 产品配置，只显示对应平台的安装窗口，不读取相邻仓库或其他平台文件。原混合文件 `design/CodeWF.安装器原型.html` 已拆分移除。共享源摘要仅约束本仓安装源码，不要求所有产品原型永远相同。
+Windows、Linux、macOS 的安装器原型只维护在 [Vex-Flutter/design](https://github.com/dotnet9/Vex-Flutter/tree/main/design)。本仓库保留真实安装器实现和原生验证；发布及 CI 不要求克隆 Vex-Flutter。
 
 ## macOS 与 Linux
 

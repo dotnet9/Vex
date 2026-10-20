@@ -1,4 +1,4 @@
-﻿# Vex
+# Vex
 
 Vex（维刻）是一个基于 .NET 10 与 Avalonia 12 构建的跨平台 Markdown 编辑器，面向日常写作、技术文档整理、自媒体排版和多格式文档导出。
 
@@ -8,11 +8,7 @@ Slogan：维刻 Vex · 写下想法，看见脉络。
 出品：码坊 CodeWF  
 网站：https://codewf.com
 
-原型预览（实际程序截图见下文）：
-
-![Vex 主窗口原型](docs/media/design-main.png)
-
-![Vex 界面轮播](docs/media/design-tour.gif)
+桌面及 Windows / Linux / macOS 安装器原型统一维护在 [Vex-Flutter/design](https://github.com/dotnet9/Vex-Flutter/tree/main/design)，本仓库只保留 Avalonia 实现、安装源码与原生验证，不维护原型副本或生成流程。
 
 Windows x64 NativeAOT 实际界面：
 
@@ -32,7 +28,7 @@ Windows x64 NativeAOT 实际界面：
 
 [1.6.1 发布前验证](docs/verification-v1.6.1.md) 记录更新流程和 Windows 安装器修复；[1.6.0 发布前验证](docs/verification-v1.6.0.md) 记录正式 NuGet 依赖下的构建、回归与安装包门禁；历史 [1.5.9 本机验证记录](docs/verification-v1.5.9.md) 区分离屏、资源自检和 NativeAOT 窗口验收。
 
-[大文件性能与稳定性验证](docs/性能与稳定性验证-20261017.md) 记录混合语法、长代码、密集公式、文档切换与多视图压力测试；原型还原目标及验收边界见 [原型对照验收](design/原型对照验收.md)。
+[大文件性能与稳定性验证](docs/性能与稳定性验证-20261017.md) 记录混合语法、长代码、密集公式、文档切换与多视图压力测试；原型还原目标及验收边界见 [历史原生验收](docs/历史原生验收.md)。
 
 ## 下载安装
 
@@ -45,7 +41,7 @@ Windows x64 NativeAOT 实际界面：
 
 ## 仓库规范
 
-- 当前版本：`1.6.1`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
+- 当前版本：`1.6.4`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
 - NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net10.0` / `net10.0-windows`。
 - 根目录 `logo.svg`、`logo.png`、`logo.ico` 是唯一图标源，子工程只通过 MSBuild `Link` 引用，不维护图标副本。
 - 运行时帮助、Markdown 示例、内置备忘录、设计说明等业务文档按功能保留；仓库级入口文档使用根目录 `README.md` 和 `UpdateLog.md`。
@@ -183,12 +179,10 @@ dotnet run --project scripts/settings-verification/SettingsVerification.csproj -
 dotnet run --project scripts/performance-verification/PerformanceVerification.csproj -c Release -- E:/github/temp/vex-performance
 dotnet run --project scripts/about-visual-verification/AboutVisualVerification.csproj -c Release -- ./artifacts/about-verification
 dotnet run --project scripts/ui-verification/UiVerification.csproj -c Release -- vex ./artifacts/ui-verification
-npm ci --prefix design/tests
-npm test --prefix design/tests
 pwsh scripts/publish.ps1 -RuntimeIdentifier win-x64
 ```
 
-离屏回归覆盖八套配色的浅深组合、四语关于、标题栏紧接工作区、未保存确认的保存/放弃/取消与表格自然列宽；实际桌面和 NativeAOT 验收单独记录，边界见 [设计说明](design/README.md)。
+离屏回归覆盖八套配色的浅深组合、四语关于、标题栏紧接工作区、未保存确认的保存/放弃/取消与表格自然列宽；实际桌面和 NativeAOT 验收单独记录，边界见 [离屏与桌面验证说明](scripts/ui-verification/README.md)。
 
 
 ## 构建与发布

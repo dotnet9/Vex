@@ -8,11 +8,9 @@ Windows 首屏为 520×366，展开设置为 520×572，维护为 520×448。单
 
 ## 运行
 
-需要 PowerShell 7、Inno Setup 6；截图参考另外需要 Node、`design/tests` 的 npm 依赖、Chromium/Edge 和 Pillow。
+需要 PowerShell 7、Inno Setup 6；如对照外部参考截图，另外需要 Pillow；参考图从 Vex-Flutter 原型获取，保存到仓外目录。
 
 ```powershell
-$env:VEX_BROWSER_EXECUTABLE='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
-node scripts/installer/tests/capture_vex_prototype.cjs D:/temp/vex-reference
 ./scripts/installer/tests/verify_vex_visual.ps1 `
   -Compiler 'C:/Program Files (x86)/Inno Setup 6/ISCC.exe' `
   -Output D:/temp/vex-native -ReferenceDirectory D:/temp/vex-reference

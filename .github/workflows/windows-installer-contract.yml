@@ -9,7 +9,6 @@ on:
       - 'scripts/installer/**'
       - 'scripts/Languages/**'
       - 'scripts/tests/windows_setup_contract_test.ps1'
-      - 'design/Vex-Installer-Windows.html'
       - 'LICENSE'
   pull_request:
     paths:
@@ -18,7 +17,6 @@ on:
       - 'scripts/installer/**'
       - 'scripts/Languages/**'
       - 'scripts/tests/windows_setup_contract_test.ps1'
-      - 'design/Vex-Installer-Windows.html'
       - 'LICENSE'
   workflow_dispatch:
 

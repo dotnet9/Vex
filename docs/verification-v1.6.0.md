@@ -10,4 +10,4 @@
 
 日志和截图位于 `D:/github/temp_files/vex-native/`：`library-release-12.1.4.28.log`、`release160-build.log`、`release160-verifier-build.log`、`release160-vex.log`、`release160-html-tables.log`、`prototype-release-1.6.0.log` 及 `release160-html-tables/`。
 
-正式安装包由 `v1.6.0` 触发 GitHub Actions，分别制作 Windows x64 EXE、Linux x64 / arm64 DEB、macOS x64 / arm64 DMG 及 SHA256。发布门禁拒绝额外 ZIP。上述离屏及结构检查不代替正式 NativeAOT 构建、真实安装和各平台桌面验收；此前本地原生调试验证的范围见[原型对照验收](../design/原型对照验收.md)。
+正式安装包由 `v1.6.0` 触发 GitHub Actions，分别制作 Windows x64 EXE、Linux x64 / arm64 DEB、macOS x64 / arm64 DMG 及 SHA256。发布门禁拒绝额外 ZIP。上述离屏及结构检查不代替正式 NativeAOT 构建、真实安装和各平台桌面验收；此前本地原生调试验证的范围见[原型对照验收](历史原生验收.md)。

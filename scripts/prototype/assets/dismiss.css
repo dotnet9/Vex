@@ -1,9 +1,0 @@
-/* 沿用现有独立窗口样式，主工作台由 workbench.css 定义。 */
-/* 所有关闭入口采用同一 32px 点击区域和描边叉号。 */
-.mini-titlebar .caption-btn,.popover-title .icon-button,.workspace-menu-heading .icon-button,.inspector-head .icon-button,.tour-close{position:relative;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;min-width:32px;min-height:32px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--muted);font-size:0;line-height:1;flex:none;cursor:pointer}
-.mini-titlebar .caption-btn{margin-right:6px;margin-left:auto}
-.mini-titlebar .caption-btn svg,.popover-title .icon-button svg,.workspace-menu-heading .icon-button svg,.inspector-head .icon-button svg{display:none}
-.mini-titlebar .caption-btn::before,.mini-titlebar .caption-btn::after,.popover-title .icon-button::before,.popover-title .icon-button::after,.workspace-menu-heading .icon-button::before,.workspace-menu-heading .icon-button::after,.inspector-head .icon-button::before,.inspector-head .icon-button::after,.tour-close::before,.tour-close::after{content:'';position:absolute;width:16px;height:1.6px;border-radius:1px;background:currentColor;transform:rotate(45deg)}
-.mini-titlebar .caption-btn::after,.popover-title .icon-button::after,.workspace-menu-heading .icon-button::after,.inspector-head .icon-button::after,.tour-close::after{transform:rotate(-45deg)}
-.mini-titlebar .caption-btn:hover,.popover-title .icon-button:hover,.workspace-menu-heading .icon-button:hover,.inspector-head .icon-button:hover,.tour-close:hover{background:var(--hover);color:var(--fg)}
-.mini-titlebar .caption-btn:active,.popover-title .icon-button:active,.workspace-menu-heading .icon-button:active,.inspector-head .icon-button:active,.tour-close:active{background:var(--accent-soft);color:var(--accent)}

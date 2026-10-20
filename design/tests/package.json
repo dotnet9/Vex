@@ -1,9 +1,0 @@
-{
-  "name": "vex-prototype-audit",
-  "private": true,
-  "scripts": {
-    "test": "node audit-prototype.cjs && node audit-workbench.cjs && node audit-editing.cjs && node audit-guide.cjs && node audit-localization-update.cjs && node audit-workspace.cjs && node audit-presentation.cjs",
-    "test:installers": "node audit-installers.cjs"
-  },
-  "devDependencies": { "playwright": "1.62.1" }
-}

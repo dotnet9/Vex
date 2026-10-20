@@ -27,7 +27,7 @@
 | media-layout | 1380 / 980 宽度、浅深主题、阅读 / 即时 / 源码并排的管道表格与 HTML 表格铺满、表头和隔行底色、PNG / SVG 等比例铺满、正文演示 |
 | stress | 五份丰富样本与 RELAP，明暗两轮八布局、导图平移缩放、三窗口换文档、快速并发读取与原文哈希 |
 
-工作区核心约定：每个进程只有一份当前文档；文件与大纲是导航页签；八种布局可组合编辑、阅读和导图。源码与即时编辑全局互斥，独立窗口共用文档。布局与排版选择后保持展开。
+工作区核心约定：每个进程只有一份当前文档；文件在左侧、大纲在独立右侧栏；八种布局可组合编辑、阅读和导图。源码与即时编辑全局互斥，独立窗口共用文档。布局与排版选择后保持展开。
 
 即时编辑检查真实点击前后文字起点和高度、富文本选区、输入与撤销、上下左右跨块与边界合并。代码块默认无顶部工具栏或复制按钮；编辑时在下方显示语言输入框，验证其可见、可点击、改类型及 Esc 恢复。原生中文文字注入不等于完整中文输入法组合验证。
 
@@ -35,12 +35,7 @@
 
 章节检查包含 CRLF、Setext、YAML、围栏代码、H6 限制、循环移动保护，以及防抖期间可靠的源码区间映射。删除需确认，并可保留内容。引导完成 / 跳过恢复原文、修改状态、共享历史、布局、偏好、导图视口及原独立窗口实例。
 
-对照截图需先生成原型样例：
-
-    $env:VEX_BROWSER_EXECUTABLE='C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-    $env:CODEWF_TEMP_ROOT='D:\github\temp_files'
-    node design/tests/capture-parity.cjs
-    dotnet D:/github/temp_files/vex-native/artifacts/bin/UiVerification/release/UiVerification.dll parity D:/github/temp_files/vex-native/parity/native
+对照参考只来自 [Vex-Flutter/design](https://github.com/dotnet9/Vex-Flutter/tree/main/design)，截图和样本文档存到仓外验收目录。本仓库的 `desktop-parity` 模式验证真实 Avalonia 布局，不生成或维护 HTML 原型。
 
 长文档性能，最后一个参数可替换为其他只读样本：
 
@@ -59,7 +54,6 @@
 演示专项验证：
 
     dotnet D:/github/temp_files/vex-native/artifacts/bin/UiVerification/release/UiVerification.dll presentation D:/github/temp_files/vex-native/presentation-tests
-    node design/tests/audit-presentation.cjs
 
 压力模式可加 `--trace-presentation` 记录恢复全文前后的物化数及内存，或 `--sample=Vex-02` 缩小诊断范围。演示进入 / 翻页的采样包含固定约 400ms 的异步渲染等待，不能当成纯翻页延迟或桌面 FPS。
 
@@ -77,4 +71,4 @@ vex.27 补充大纲定位回归：阅读订阅导航事件；即时编辑先物�
     ./scripts/publish.ps1 -RuntimeIdentifier win-x64 -ArtifactsRoot D:/github/temp_files/vex-native/aot-vex27 -PublishRoot D:/github/temp_files/vex-native/publish-vex27/win-x64 -RuntimeFrameworkVersion 10.0.12 -NativeCompilerTargetsPath $vexIlcTargets
     ./scripts/verify_native_publish.ps1 -ExecutablePath D:/github/temp_files/vex-native/publish-vex27/win-x64/Vex.exe -OutputPath D:/github/temp_files/vex-native/native-aot-vex27-evidence.json -DocumentPath D:/github/md/mds/Vex-01-综合语法与交互.md
 
-历史版本验证见 docs/verification-v1.5.9.md；当前实现与限制见 design/原型对照验收.md。
+历史版本验证见 docs/verification-v1.5.9.md；当前实现与限制见 docs/历史原生验收.md。
