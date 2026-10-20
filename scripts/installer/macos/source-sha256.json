@@ -1,7 +1,7 @@
 {
   "source_repository": "https://github.com/dotnet9/CodeWF.Avalonia",
   "source_directory": "scripts/installer/macos",
-  "visual_reference": "design/Vex-Installer-macOS.html",
+  "visual_reference": "https://github.com/dotnet9/Vex-Flutter/blob/main/design/Vex-Installer-macOS.html",
   "style": {
     "brand": "#512BD4",
     "finder_window": [
