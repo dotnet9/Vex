@@ -19,6 +19,9 @@ internal static class PrototypeAppearanceVerification
     public static void Run(VerificationVexApp app, MainWindow window, string output)
     {
         var vm = (MainWindowViewModel)window.DataContext!;
+        FontManager.Current.TryMatchCharacter('文', FontStyle.Normal, FontWeight.Normal, FontStretch.Normal,
+            vm.Workbench.Preferences.ContentFontFamily, System.Globalization.CultureInfo.GetCultureInfo("zh-CN"), out var chineseTypeface);
+        Console.WriteLine("CJK BODY FONT " + chineseTypeface.FontFamily.Name);
         void Check(bool condition, string text)
         {
             if (!condition) throw new InvalidOperationException(text);
@@ -26,6 +29,7 @@ internal static class PrototypeAppearanceVerification
         }
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         void Click(Button button) { button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render(); }
+        if (OperatingSystem.IsWindows()) Check(chineseTypeface.FontFamily.Name == "Microsoft YaHei UI", "Chinese body text uses the system sans-serif fallback");
         Check(vm.Appearance.PaletteOptions.Count == 16 && vm.Appearance.TypographyOptions.Count == 27, "Native catalog matches 16 palettes and 27 typography styles");
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("weft"); vm.Appearance.SelectThemeByKey("light");
         var original = app.Resolve<IWorkspaceDocumentState>().Markdown;

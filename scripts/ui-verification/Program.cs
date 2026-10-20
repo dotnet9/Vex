@@ -38,7 +38,7 @@ if (mode == "settings-real-ui")
 }
 if (mode is "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
@@ -52,7 +52,7 @@ if (mode is "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototyp
 }
 if (mode == "parity")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = app.Shell!;
@@ -120,7 +120,7 @@ if (mode == "parity")
 }
 if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
