@@ -6,16 +6,9 @@
     </Style>
   </UserControl.Styles>
   <Border Height="42" Padding="18,0" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
-    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-      <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding Workbench.IsEditing}">
-        <ToggleButton Classes="wb-quiet" Content="{i18n:I18n {x:Static l:VexL.WBInstant}}" Command="{Binding Workbench.ShowInstant}" IsChecked="{Binding Workbench.IsInstantEditing, Mode=OneWay}"/>
-        <ToggleButton Classes="wb-quiet" Content="{i18n:I18n {x:Static l:VexL.WBSource}}" Command="{Binding Workbench.ShowSource}" IsChecked="{Binding Workbench.IsSourceEditing, Mode=OneWay}"/>
-      </StackPanel>
-      <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBRead}}" Classes="wb-muted" IsVisible="{Binding Workbench.IsReading}" VerticalAlignment="Center"/>
-      <TextBlock Grid.Column="1" Text="{Binding Workbench.EditingHint}" Classes="wb-muted" VerticalAlignment="Center" IsVisible="{Binding Workbench.IsReading}" TextTrimming="CharacterEllipsis"/>
-      <TextBlock x:Name="EditingHint" Grid.Column="1" Text="{Binding Workbench.EditingHint}" Classes="wb-muted" VerticalAlignment="Center" IsVisible="{Binding Workbench.IsEditing}" IsHitTestVisible="False"/>
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
       <!-- 复用 Ursa 的溢出工具栏，窄工作区将后续操作收进更多面板。 -->
-      <u:ToolBar x:Name="FormattingToolbar" Grid.Column="1" Classes="wb-formatbar" HorizontalAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding Workbench.IsEditing}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBFormatting}}">
+      <u:ToolBar x:Name="FormattingToolbar" Classes="wb-formatbar" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding Workbench.IsEditing}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBFormatting}}">
         <Button x:Name="FormatBold" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Bold}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Bold}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M6 4h7a4 4 0 0 1 0 8H6z M6 12h8a4 4 0 0 1 0 8H6z"/></Canvas></Viewbox></Button>
         <Button x:Name="FormatItalic" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Italic}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Italic}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M10 4h8 M6 20h8 M14 4l-4 16"/></Canvas></Viewbox></Button>
         <u:ToolBarSeparator />
@@ -42,7 +35,7 @@
         <Button Classes="wb-format-extra" Focusable="False" u:ToolBar.OverflowMode="Always" Content="{i18n:I18n {x:Static l:VexL.MathBlock}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.MathBlock}"/>
         <Button Classes="wb-format-extra" Focusable="False" u:ToolBar.OverflowMode="Always" Content="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}"/>
       </u:ToolBar>
-      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
         <Button x:Name="TypographyTarget" Classes="wb-quiet" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><TextBlock Text="{i18n:I18n {Binding Appearance.SelectedTypography.NameKey}}" FontWeight="SemiBold"/><TextBlock Text="⌄"/></StackPanel></Button>
       </StackPanel>
     </Grid>

@@ -28,7 +28,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool? _statusBarVisibleBeforeFocus;
     private double _sidebarWidth = DefaultSidebarWidth;
     private bool _isSidebarResizing;
-    private bool _isOutlineVisible = true;
+    private bool _isOutlineVisible;
     private double _outlineWidth = 240;
     private double _workspaceWidth = 1280;
     private bool _outlineNarrowOverride;
@@ -58,7 +58,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _isTypewriterMode = settings.IsTypewriterMode ?? false;
         _isFocusMode = settings.IsFocusMode ?? false;
         _sidebarWidth = Math.Clamp(settings.SidebarWidth ?? DefaultSidebarWidth, MinSidebarWidth, MaxSidebarWidth);
-        _isOutlineVisible = settings.IsOutlineVisible ?? true;
+        _isOutlineVisible = settings.IsOutlineVisible ?? false;
         _outlineWidth = Math.Clamp(settings.OutlineWidth ?? 240, 180, 480);
         MotionResources.Apply(_enableMotion);
         if (_isFocusMode)
@@ -162,7 +162,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         get => _isOutlineVisible;
         set
         {
-            _outlineNarrowOverride = value;
+            _outlineNarrowOverride = value && IsOutlineNarrow;
             SetProperty(ref _isOutlineVisible, value);
             NotifyOutlineLayout();
             PersistLayoutSettings();

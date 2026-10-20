@@ -14,6 +14,10 @@ const traditional=s=>s.replace(/[观记录写让温图体绿蓝细线书术简�
 for(const culture of Object.keys(extra)){
  const file=path.join(root,'src/Vex/I18n',culture+'.json'),data=JSON.parse(fs.readFileSync(file,'utf8')),strings=data.Vex.VexL;
  Object.assign(strings,extra[culture]);
+ Object.assign(strings,{
+   SidebarFilesFilterPlaceholder: {'zh-CN':'按文件名查找…','zh-Hant':'依檔名尋找…','en-US':'Find by filename…','ja-JP':'ファイル名で検索…'}[culture],
+   ClearSearch: {'zh-CN':'清空搜索','zh-Hant':'清除搜尋','en-US':'Clear search','ja-JP':'検索をクリア'}[culture]
+ });
  context.VexPalettes.forEach((p,i)=>{const name=paletteNames[p.key];strings['Palette'+name]=culture==='zh-CN'?p.label:culture==='zh-Hant'?traditional(p.label):p.en;strings['PalettePurpose'+name]=culture.startsWith('zh')? (culture==='zh-Hant'?traditional(p.note):p.note):p.en+' · '+(['Everyday writing','Focused work','Technical work','Long reading','Personal notes','Creative work','Calm reading','Ideas and sketches'][i%8]);});
  context.VexTypes.forEach((t,i)=>{strings['Typography'+t.key]=culture==='zh-CN'?t.label:culture==='zh-Hant'?traditional(t.label):t.en;strings['TypographyPurpose'+t.key]=culture==='zh-CN'?t.note:culture==='zh-Hant'?traditional(t.note):culture==='ja-JP'?purposeJa[i]:purposeEn[i];});
  fs.writeFileSync(file,JSON.stringify(data,null,2)+'\n');

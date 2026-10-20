@@ -38,9 +38,8 @@
 
     <UserControl.Styles><Style Selector="TreeViewItem" x:DataType="models:DocumentFileNode"><Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/></Style><Style Selector="Path.tree-ico"><Setter Property="Width" Value="13"/><Setter Property="Height" Value="13"/><Setter Property="StrokeThickness" Value="1.5"/></Style></UserControl.Styles>
     <Grid RowDefinitions="Auto,*,Auto">
+        <Grid Grid.Row="0" Margin="14 12 14 8" ColumnDefinitions="*,Auto">
         <TextBox
-            Grid.Row="0"
-            Margin="14 8 14 8"
             MinHeight="30"
             FontSize="11.5"
             Foreground="{DynamicResource VexValueBrush}"
@@ -49,6 +48,8 @@
             PlaceholderText="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}"
             Text="{Binding FilterText, Mode=TwoWay}"
             TextWrapping="NoWrap" />
+        <Button Grid.Column="1" Classes="wb-quiet" Command="{Binding ClearFilter}" Content="×" Padding="4" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ClearSearch}}"/>
+        </Grid>
         <TreeView
             Grid.Row="1"
             Classes="side-tree"
@@ -123,8 +124,8 @@
         </Border>
 
         <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" Padding="8,5">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="2">
-                <Button Classes="wb-quiet" Command="{Binding NewDocument}" Width="28" Height="28" Padding="5" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.NewDocument}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NewDocument}}"><Path Classes="stroke-ico" Data="M12 5V19 M5 12H19"/></Button>
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="2">
+                <Button Classes="wb-quiet" Command="{Binding NewDocument}" Height="28" Padding="5" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.NewDocument}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NewDocument}}"><StackPanel Orientation="Horizontal" Spacing="4"><Path Classes="stroke-ico" Width="14" Height="14" Data="M12 5V19 M5 12H19"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.NewDocument}}" FontSize="12"/></StackPanel></Button>
                 <Button Grid.Column="1" Classes="wb-quiet" Command="{Binding OpenFolderAsync}" HorizontalContentAlignment="Left" Padding="4" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.OpenFolder}}"><TextBlock Text="{Binding WorkspaceName}" TextTrimming="CharacterEllipsis" FontSize="11"/></Button>
                 <Button Grid.Column="2" Classes="wb-quiet" Width="26" Height="28" Padding="5" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FileActions}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FileActions}}">
                     <Path Classes="stroke-ico" Data="M4 12H5 M11 12H12 M18 12H19"/>
@@ -134,10 +135,10 @@
                         <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}"/>
                         <MenuItem Header="{i18n:I18n {x:Static l:VexL.RefreshPreview}}" Command="{Binding RefreshFiles}"/>
                         <MenuItem Header="{i18n:I18n {x:Static l:VexL.SortFiles}}" Command="{Binding ToggleSort}"/>
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}" Command="{Binding CollapseAll}" IsEnabled="{Binding CanCollapseAll}"/>
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.ToggleFileList}}" Command="{Binding ToggleListView}" ToggleType="CheckBox" IsChecked="{Binding IsListView, Mode=OneWay}"/>
                     </MenuFlyout></Button.Flyout>
                 </Button>
-                <Button x:Name="CollapseFilesButton" Grid.Column="3" Classes="wb-quiet" Width="26" Height="28" Padding="5" Command="{Binding CollapseAll}" IsEnabled="{Binding CanCollapseAll}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}"><Path Classes="stroke-ico" Data="M4 4H20 M4 20H20 M8 8L12 11L16 8 M8 16L12 13L16 16"/></Button>
-                <ToggleButton Grid.Column="4" Classes="wb-quiet" Width="26" Height="28" Padding="5" Command="{Binding ToggleListView}" IsChecked="{Binding IsListView, Mode=OneWay}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ToggleFileList}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ToggleFileList}}"><Path Classes="stroke-ico" Data="M8 6H21 M8 12H21 M8 18H21 M3 6H4 M3 12H4 M3 18H4"/></ToggleButton>
             </Grid>
         </Border>
     </Grid>

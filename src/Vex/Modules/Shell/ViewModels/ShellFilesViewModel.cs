@@ -254,7 +254,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         }
 
         var flat = Enumerate(DocumentFileNodes).Where(node => node.IsDocument && (string.IsNullOrEmpty(filter)
-            || node.Name.Contains(filter, StringComparison.OrdinalIgnoreCase) || node.Preview.Contains(filter, StringComparison.OrdinalIgnoreCase)));
+            || node.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)));
         foreach (var node in _sortDescending ? flat.OrderByDescending(node => node.Name, StringComparer.OrdinalIgnoreCase) : flat.OrderBy(node => node.Name, StringComparer.OrdinalIgnoreCase))
             FlatDocumentFileNodes.Add(node);
 
@@ -279,8 +279,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
                 : null;
         }
 
-        var matches = string.IsNullOrEmpty(filter) || node.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)
-            || node.Preview.Contains(filter, StringComparison.OrdinalIgnoreCase);
+        var matches = string.IsNullOrEmpty(filter) || node.Name.Contains(filter, StringComparison.OrdinalIgnoreCase);
         return matches ? node : null;
     }
 

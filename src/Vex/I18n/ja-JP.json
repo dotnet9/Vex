@@ -238,7 +238,7 @@
       "Feedback": "フィードバック",
       "About": "バージョン情報",
       "SidebarFiles": "ファイル",
-      "SidebarFilesFilterPlaceholder": "フォルダ内のドキュメントを絞り込み…",
+      "SidebarFilesFilterPlaceholder": "ファイル名で検索…",
       "SidebarOutline": "アウトライン",
       "EmptyNoFiles": "ファイルがありません",
       "EmptyNoHeadings": "見出しがありません",
@@ -780,7 +780,8 @@
       "TypographyPurposeCuteGreen": "科学解説・緑の角丸背景",
       "TypographyPurposeFullStackBlue": "設計文書・青の区切り",
       "TypographyWeChatPaper": "WeChat paper",
-      "TypographyPurposeWeChatPaper": "図文コラム・対称見出し"
+      "TypographyPurposeWeChatPaper": "図文コラム・対称見出し",
+      "ClearSearch": "検索をクリア"
     }
   }
 }

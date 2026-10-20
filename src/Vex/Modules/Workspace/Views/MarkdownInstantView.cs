@@ -16,7 +16,7 @@ public sealed class MarkdownInstantView : UserControl
 {
     public MarkdownLiveEditorView Editor { get; } = new()
     {
-        HeaderText = null, ChipText = null, EditorFontSize = 16, CodeFontFamily = Vex.Core.Services.VexFonts.Code, DocumentMaxWidth = 860, DocumentBlockSpacing = 0, DocumentPadding = new Thickness(44, 34, 44, 70),
+        HeaderText = null, ChipText = null, EditorFontSize = 16, CodeFontFamily = Vex.Core.Services.VexFonts.Code, DocumentMaxWidth = 1280, DocumentBlockSpacing = 0, DocumentPadding = new Thickness(76, 36, 76, 80),
         EditorBackgroundKey = "VexPreviewBackgroundBrush", EditorForegroundKey = "VexEditorForegroundBrush"
     };
     private ShellWorkbenchViewModel? _workbench;
@@ -74,9 +74,11 @@ public sealed class MarkdownInstantView : UserControl
 
     private void UpdatePadding()
     {
-        var narrow = Bounds.Width < 850;
-        Editor.DocumentPadding = new Thickness(narrow ? 32 : 44, narrow ? 26 : 34,
-            narrow ? 32 : 44, _layout?.IsTypewriterMode == true ? Math.Max(70, Editor.Bounds.Height / 2) : narrow ? 60 : 70);
+        var width = TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280;
+        var combined = _workbench?.IsCombined == true;
+        var padding = combined ? 36 : width <= 850 ? 28 : Math.Clamp(width * .06, 28, 88);
+        Editor.DocumentPadding = new Thickness(padding, combined ? 26 : width <= 850 ? 28 : 36,
+            padding, _layout?.IsTypewriterMode == true ? Math.Max(80, Editor.Bounds.Height / 2) : 80);
     }
 
     private void CenterCaret()

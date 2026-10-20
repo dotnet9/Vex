@@ -238,7 +238,7 @@
       "Feedback": "回饋",
       "About": "關於",
       "SidebarFiles": "檔案",
-      "SidebarFilesFilterPlaceholder": "過濾目前目錄文件…",
+      "SidebarFilesFilterPlaceholder": "依檔名尋找…",
       "SidebarOutline": "大綱",
       "EmptyNoFiles": "暫無檔案",
       "EmptyNoHeadings": "暫無標題",
@@ -780,7 +780,8 @@
       "TypographyPurposeCuteGreen": "轻松科普 · 綠调圓角",
       "TypographyPurposeFullStackBlue": "工程文档 · 藍色分节",
       "TypographyWeChatPaper": "公众号",
-      "TypographyPurposeWeChatPaper": "圖文專欄 · 对称标题"
+      "TypographyPurposeWeChatPaper": "圖文專欄 · 对称标题",
+      "ClearSearch": "清除搜尋"
     }
   }
 }

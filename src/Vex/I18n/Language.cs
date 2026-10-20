@@ -779,4 +779,5 @@ public static class VexL
     public static readonly string TypographyPurposeFullStackBlue = "Vex.VexL.TypographyPurposeFullStackBlue";
     public static readonly string TypographyWeChatPaper = "Vex.VexL.TypographyWeChatPaper";
     public static readonly string TypographyPurposeWeChatPaper = "Vex.VexL.TypographyPurposeWeChatPaper";
+    public static readonly string ClearSearch = "Vex.VexL.ClearSearch";
 }

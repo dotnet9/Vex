@@ -86,7 +86,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
             return;
         }
 
-        foreach (var name in new[] { nameof(ViewLabel), nameof(EditingHint), nameof(InstantHint), nameof(MapSummaryLabel), nameof(MapCountLabel), nameof(SelectedSourceLabel), nameof(SelectedKindLabel), nameof(SummaryPreview) })
+        foreach (var name in new[] { nameof(ViewLabel), nameof(LayoutName), nameof(EditingHint), nameof(InstantHint), nameof(MapSummaryLabel), nameof(MapCountLabel), nameof(SelectedSourceLabel), nameof(SelectedKindLabel), nameof(SummaryPreview) })
             this.RaisePropertyChanged(name);
     }
 
@@ -95,6 +95,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public bool IsReading => _view == "read";
     public bool IsMindMap => _view == "mindmap";
     public string WorkspaceLayout => _workspaceLayout;
+    public string LayoutName => LayoutOption.Name;
     public WorkbenchLayoutOption LayoutOption => WorkbenchLayoutOption.All.First(option => option.Id == _workspaceLayout);
     public bool HasEditor => !IsPresenting && LayoutOption.Editor is not null;
     public bool IsCombined => !IsPresenting && (LayoutOption.Render && LayoutOption.Map || HasEditor && (LayoutOption.Render || LayoutOption.Map));
@@ -250,7 +251,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     }
     private void NotifyModes()
     {
-        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions) }) this.RaisePropertyChanged(name);
         ApplyLayout();
     }
     private void ApplyLayout()

@@ -18,10 +18,14 @@ public sealed class WorkspaceLayoutGallery : Border
     public WorkspaceLayoutGallery()
     {
         Classes.Add("wb-popover"); Width = 548; Padding = new Thickness(18); CornerRadius = new CornerRadius(12);
+        AttachedToVisualTree += (_, _) => { if (TopLevel.GetTopLevel(this) is { } window) { window.SizeChanged += WindowResized; Fit(window); } };
+        DetachedFromVisualTree += (_, _) => { if (TopLevel.GetTopLevel(this) is { } window) window.SizeChanged -= WindowResized; };
         DataContextChanged += (_, _) => Attach();
         AttachedToVisualTree += (_, _) => { CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += CultureChanged; Attach(); };
         DetachedFromVisualTree += (_, _) => { CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged -= CultureChanged; if (_workbench is not null) _workbench.PropertyChanged -= Changed; };
     }
+    private void WindowResized(object? sender, SizeChangedEventArgs e) { if (sender is TopLevel window) Fit(window); }
+    private void Fit(TopLevel window) { Width = Math.Min(548, window.ClientSize.Width - 24); MaxHeight = Math.Max(160, window.ClientSize.Height - 120); }
     private void CultureChanged(object? sender, EventArgs e) => Avalonia.Threading.Dispatcher.UIThread.Post(Build);
     private void Attach()
     {
@@ -44,6 +48,7 @@ public sealed class WorkspaceLayoutGallery : Border
         var note = new TextBlock { Text = WorkbenchText.Get("WSLayoutHint"), FontSize = 11.5, Margin = new Thickness(0, 3, 0, 16), TextWrapping = TextWrapping.Wrap };
         note.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("VexMutedBrush")); stack.Children.Add(note);
         var options = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*,*"), RowDefinitions = new RowDefinitions("Auto,Auto"), ColumnSpacing = 8, RowSpacing = 8 };
+        DesignSelectionControls.Navigation(options, () => 4);
         foreach (var (option, index) in WorkbenchLayoutOption.All.Select((value, index) => (value, index)))
         {
             var selected = option.Id == _workbench.WorkspaceLayout;
@@ -52,7 +57,7 @@ public sealed class WorkspaceLayoutGallery : Border
             button.Bind(BackgroundProperty, this.GetResourceObservable(selected ? "VexAccentSoftBrush" : "VexPanelBackgroundBrush"));
             var content = new StackPanel { Spacing = 5 };
             content.Children.Add(Miniature(option.Diagram));
-            content.Children.Add(new TextBlock { Text = option.Name, FontSize = 11, LineHeight = 16, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, MinHeight = 32 });
+            content.Children.Add(new TextBlock { Text = option.Name + (selected ? " ✓" : ""), FontSize = 12, LineHeight = 16, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, MinHeight = 32 });
             var hint = new TextBlock { Text = option.Description, FontSize = 10, LineHeight = 15, TextWrapping = TextWrapping.Wrap };
             hint.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("VexMutedBrush")); content.Children.Add(hint);
             button.Content = content; button.Tag = option.Id; button.Click += (_, _) => _workbench.SelectLayout(option.Id);
@@ -67,7 +72,7 @@ public sealed class WorkspaceLayoutGallery : Border
         reset.Click += (_, _) => _workbench.SelectLayout("instant"); Grid.SetColumn(reset, 1); footer.Children.Add(reset);
         var footerBorder = new Border { Child = footer, Margin = new Thickness(0, 14, 0, 0), Padding = new Thickness(0, 10, 0, 0), BorderThickness = new Thickness(0, 1, 0, 0) };
         footerBorder.Bind(BorderBrushProperty, this.GetResourceObservable("VexPanelBorderBrush")); stack.Children.Add(footerBorder);
-        Child = stack;
+        Child = new ScrollViewer { Content = stack, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
     }
     private Control Miniature(string diagram)
     {

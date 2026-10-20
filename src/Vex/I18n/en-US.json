@@ -238,7 +238,7 @@
       "Feedback": "Feedback",
       "About": "About",
       "SidebarFiles": "Files",
-      "SidebarFilesFilterPlaceholder": "Filter documents in folder…",
+      "SidebarFilesFilterPlaceholder": "Find by filename…",
       "SidebarOutline": "Outline",
       "EmptyNoFiles": "No files",
       "EmptyNoHeadings": "No headings",
@@ -780,7 +780,8 @@
       "TypographyPurposeCuteGreen": "Popular science · Rounded green panels",
       "TypographyPurposeFullStackBlue": "Engineering documents · Blue sections",
       "TypographyWeChatPaper": "WeChat paper",
-      "TypographyPurposeWeChatPaper": "Illustrated columns · Symmetric headings"
+      "TypographyPurposeWeChatPaper": "Illustrated columns · Symmetric headings",
+      "ClearSearch": "Clear search"
     }
   }
 }

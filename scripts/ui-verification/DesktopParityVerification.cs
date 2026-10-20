@@ -29,9 +29,11 @@ internal static class DesktopParityVerification
         }
         window.Width = 1280; window.Height = 820; Render();
         Check(window.GetVisualDescendants().OfType<ShellFilesView>().Count() == 1, "Left file navigation resolves once");
-        Check(window.GetVisualDescendants().OfType<ShellOutlineView>().Count() == 1, "Right outline resolves once");
         var files = window.FindControl<Border>("SidebarGuideTarget")!;
         var right = window.FindControl<Border>("OutlineGuideTarget")!;
+        Check(!layout.IsOutlineVisible, "New workspace keeps the auxiliary outline closed by default");
+        layout.ShowOutline(); Render();
+        Check(window.GetVisualDescendants().OfType<ShellOutlineView>().Count() == 1, "Right outline resolves once");
         Check(files.Bounds.Width >= 200 && right.Bounds.Width >= 180, "Both independent sidebars are visible");
         var fileX = files.TranslatePoint(default, window)!.Value.X;
         Check(right.TranslatePoint(default, window)!.Value.X > fileX + 500, "Outline sits to the right of the document");
@@ -89,7 +91,9 @@ internal static class DesktopParityVerification
         navigation.ToggleSort();
         Check(navigation.FlatDocumentFileNodes[0].Name == "zeta.md", "Sort applies to flattened file list");
         navigation.FilterText = "first";
-        Check(navigation.FlatDocumentFileNodes.Count == 1 && navigation.FlatDocumentFileNodes[0].Name == "alpha.md", "File search includes document summaries in both views");
+        Check(navigation.FlatDocumentFileNodes.Count == 0, "File search follows the prototype and only matches names");
+        navigation.FilterText = "alpha";
+        Check(navigation.FlatDocumentFileNodes.Count == 1 && navigation.FlatDocumentFileNodes[0].Name == "alpha.md", "File search keeps matching filenames and their ancestors");
         navigation.ClearFilter();
         navigation.SelectDocumentFileForContextMenu(navigation.DocumentFileNodes.First(node => node.IsFolder));
         Check(navigation.HasPathCommandTarget && !navigation.HasDocumentFileCommandTarget, "Folder context supports path actions without file mutation actions");

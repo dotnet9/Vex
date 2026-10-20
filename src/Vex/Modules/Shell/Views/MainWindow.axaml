@@ -18,7 +18,7 @@
     MinWidth="800"
     MinHeight="480"
     Icon="/Assets/logo.ico"
-    TitleBarHeight="40"
+    TitleBarHeight="32"
     CaptionButtonWidth="46" CaptionGlyphSize="14"
     IsTitleBarVisible="{Binding !Workbench.IsPresenting}"
     IsManagedResizerVisible="{Binding !Workbench.IsPresenting}"
@@ -29,7 +29,7 @@
     <codewf:CodeWFWindow.LeftContent>
         <StackPanel
             Margin="12 0 10 0"
-            Height="40"
+            Height="32"
             Orientation="Horizontal"
             Spacing="8"
             VerticalAlignment="Center"
@@ -109,7 +109,7 @@
                 IsVisible="{Binding Layout.ShowSidebar}"
                 ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
 
-            <Grid Grid.Column="2" RowDefinitions="Auto,Auto,*">
+            <Grid Grid.Column="2" RowDefinitions="Auto,Auto,*,Auto">
                 <StackPanel x:Name="FloatingViewShelf" Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="12,4" IsVisible="False"/>
                 <shell:ShellEditorOptionsView x:Name="EditorOptions" Grid.Row="1"/>
                 <Grid x:Name="ViewSurface" Grid.Row="2">
@@ -124,6 +124,7 @@
                 <workspace:MarkdownInstantView x:Name="InstantGuideTarget" Grid.ColumnSpan="3" IsVisible="{Binding Workbench.IsInstantEditing}" />
                 <workspace:MarkdownMindMapHost x:Name="MindMapGuideTarget" Grid.Column="{Binding Workbench.MapColumn}" Grid.ColumnSpan="{Binding Workbench.MapSpan}" IsVisible="{Binding Workbench.IsMapVisible}" />
                 </Grid>
+                <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="3" />
             </Grid>
             <GridSplitter x:Name="OutlineSplitter" Grid.Column="3" HorizontalAlignment="Stretch"
                           IsVisible="{Binding Layout.ShowOutlineSidebar}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
@@ -141,10 +142,6 @@
                 </Grid>
             </Border>
         </Grid>
-
-        <shell:ShellStatusBarView
-            x:Name="StatusBarGuideTarget"
-            Grid.Row="3" />
 
         <shell:ShellPresentationOutlineView x:Name="PresentationOutline" Grid.RowSpan="4" IsVisible="{Binding Workbench.PresentationOutline}"/>
         <Border x:Name="PresentationTools" Classes="presentation-tools" Grid.RowSpan="4" IsVisible="{Binding Workbench.IsPresenting}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="24" Padding="6" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="1" CornerRadius="8">
@@ -167,7 +164,7 @@
             </Grid>
         </Border>
         <shell:ShellTypographyGallery x:Name="TypographyGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12,56,12,12"/>
-        <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18,56,130,18"/>
+        <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="12,58,12,12"/>
         <shell:WorkbenchGuideView x:Name="WorkbenchGuide" Grid.RowSpan="4"/>
         <!-- 自定义窗口不含 UrsaWindow 的默认宿主，显式复用 Ursa 浮层控件。 -->
         <u:OverlayDialogHost x:Name="ShellDialogHost" Grid.RowSpan="4" />

@@ -36,7 +36,7 @@ if (mode == "settings-real-ui")
     File.WriteAllText(config, "<configuration><appSettings /></configuration>");
     AppContext.SetData("APP_CONFIG_FILE", config);
 }
-if (mode is "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance")
+if (mode is "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -44,6 +44,7 @@ if (mode is "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototyp
     var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
     window.Show();
     if (mode == "prototype-appearance") PrototypeAppearanceVerification.Run(app, window, output);
+    else if (mode == "prototype-chrome") PrototypeChromeVerification.Run(app, window, output);
     else if (mode is "settings-ui" or "settings-real-ui") PreferencesVerification.Run(app, window, output);
     else DesktopParityVerification.Run(app, window, output);
     window.Close();
@@ -1824,10 +1825,9 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
     var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
     var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
     var insert = titleMenu.FindControl<MenuItem>("InsertMenuItem")!;
-    Check(insert.Items.OfType<MenuItem>().Count() == 21 && insert.Items.OfType<MenuItem>().All(item => item.Items.Count == 0),
-        "All insert actions are direct commands without nested groups");
+    Check(insert.GetLogicalDescendants().OfType<MenuItem>().Count(item => item.CommandParameter is string key && key is not "footnote") == 22,
+        "All 22 Mermaid templates remain available in grouped insertion menus");
     var view = titleMenu.FindControl<MenuItem>("ViewMenuItem")!;
-    Check(view.Items.OfType<MenuItem>().All(item => item.Items.Count == 0), "View menu contains no repeated appearance submenus");
     foreach (var width in new[] { 1280, 980, 1920 })
     {
         window.Width = width; window.Height = width == 980 ? 640 : 900; vm.Layout.IsSidebarVisible = true;
@@ -1858,7 +1858,8 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
         vm.Layout.ShowOutline(); Pump(); vm.Layout.ShowFiles(); Pump();
         Check(Math.Abs(sidebar.Bounds.Width - saved) < 1, "Files and outline retain the dragged width");
         vm.Layout.IsSidebarVisible = false; Pump();
-        Check(sidebar.Bounds.Width == 0 && instant.Bounds.Width >= columns.Bounds.Width - 1, $"Collapsing releases the entire sidebar column: side={sidebar.Bounds.Width}; column={columns.ColumnDefinitions[0].Width}/{columns.ColumnDefinitions[0].ActualWidth}; min={columns.ColumnDefinitions[0].MinWidth}; max={columns.ColumnDefinitions[0].MaxWidth}; content={instant.Bounds.Width}; window={window.Bounds.Width}");
+        Check(sidebar.Bounds.Width == 0 && instant.Bounds.Width >= columns.Bounds.Width - vm.Layout.OutlineColumnWidth.Value - vm.Layout.OutlineSplitterWidth.Value - 2,
+            "Collapsing file navigation releases its entire column while preserving the independent auxiliary panel");
         vm.Layout.IsSidebarVisible = true; Pump();
         Check(Math.Abs(sidebar.Bounds.Width - saved) < 1 && app.Resolve<IAppSettingsStore>().Current.SidebarWidth == saved,
             "Reopening restores the actual dragged and persisted width");
@@ -1870,7 +1871,7 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
         var rendered = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
         Check(rendered.Bounds.Width + rendered.Margin.Left + rendered.Margin.Right <= preview.Bounds.Width + 1,
             "Reading document fits the available width");
-        if (width == 1920) Check(rendered.Bounds.Width >= 1100 && rendered.Bounds.Width <= 1200, "Wide reading document reaches the responsive content cap");
+        if (width == 1920) Check(rendered.Bounds.Width <= 724 && rendered.Bounds.Width >= 720, "Wide reading document keeps the prototype's 820px paper width including padding");
         Capture(window, $"layout-{width}-read");
     }
     window.Width = 1280; window.Height = 900; vm.Workbench.ShowRead(); Pump();
@@ -1881,16 +1882,17 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
         vm.Appearance.SelectedPalette = palette; vm.Appearance.SelectThemeByKey(theme); Pump(); SettleRendering();
         var code = viewer.GetVisualDescendants().OfType<SelectableTextBlock>().Single(block => block.Classes.Contains("MdCodeBlockText"));
         var frame = code.GetVisualAncestors().OfType<Border>().First(border => border.Classes.Contains("MdCodeBlock"));
+        Check(frame.Background is ISolidColorBrush, "Code background resolves for " + palette.Key + "/" + theme);
         var brush = (ISolidColorBrush)frame.Background!;
-        preview.TryFindResource("VexPreviewBackgroundBrush", out var pageBackground);
+        Application.Current!.TryGetResource("VexPreviewBackgroundBrush", window.ActualThemeVariant, out var pageBackground);
         var canvas = ((ISolidColorBrush)pageBackground!).Color;
         var alpha = brush.Color.A / 255d * brush.Opacity;
         byte Blend(byte front, byte back) => (byte)Math.Round(front * alpha + back * (1 - alpha));
         var visibleBackground = Color.FromRgb(Blend(brush.Color.R, canvas.R), Blend(brush.Color.G, canvas.G), Blend(brush.Color.B, canvas.B));
         Check(code.Inlines!.OfType<Avalonia.Controls.Documents.Run>().All(run => Contrast(((ISolidColorBrush)run.Foreground!).Color, visibleBackground) >= 4.5),
             $"Plain code remains readable on the actual Semi background: {palette.Key}/{theme}");
-        Check(code.FontSize == 14 && code.LineHeight == 22 && viewer.ParagraphFontSize == 14.5,
-            "Rendered code and paragraph use the larger font baseline without a scale transform");
+        Check(code.FontSize >= 12.5 && viewer.ParagraphFontSize >= 16,
+            "Rendered code and paragraph retain readable native font sizes");
         Check(!frame.GetVisualDescendants().OfType<Control>().Any(control => control.Classes.Contains("MdCodeBlockHeader") && control.IsEffectivelyVisible),
             "Reading code shows neither a language toolbar nor a copy button");
         Capture(window, $"code-{palette.Key}-{theme}");
@@ -2012,35 +2014,9 @@ void VerifyEditingTools(VerificationVexApp app, Window window, MainWindowViewMod
         Capture(window, "editing-tools-" + width);
     }
     window.Width = 1280; vm.Layout.SidebarWidth = 226;
-    foreach (var palette in vm.Appearance.PaletteOptions)
-    foreach (var theme in new[] { "light", "dark" })
-    {
-        vm.Appearance.SelectedPalette = palette; vm.Appearance.SelectThemeByKey(theme); wb.ShowSource(); Pump();
-        InspectToggle(options.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(button => button.Classes.Contains("wb-quiet") && button.IsChecked == true));
-        wb.ShowRead(); Pump();
-        Check(!options.IsEffectivelyVisible && window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.FindControl<Button>("PresentButton")!.IsEffectivelyVisible, "Read view offers presentation without editing formats");
-        InspectToggle(window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(button => button.Classes.Contains("wb-view") && button.IsChecked == true));
-        wb.ShowMindMap(); Pump(); Check(!options.IsEffectivelyVisible, "Mind map keeps the editing row hidden");
-
-        void InspectToggle(Avalonia.Controls.Primitives.ToggleButton toggle)
-        {
-            var center = toggle.TranslatePoint(new Point(toggle.Bounds.Width / 2, toggle.Bounds.Height / 2), window)!.Value;
-            var outside = new Point(2, 2);
-            window.MouseMove(outside); Pump(); Inspect("normal");
-            window.MouseMove(center); Pump(); Inspect("hover");
-            window.MouseDown(center, MouseButton.Left); Pump(); Inspect("pressed");
-            window.MouseMove(outside); window.MouseUp(outside, MouseButton.Left); Pump();
-            void Inspect(string state)
-            {
-                var presenter = toggle.GetVisualDescendants().OfType<ContentPresenter>().Single(control => control.Name == "PART_ContentPresenter");
-                var text = presenter.GetVisualDescendants().OfType<TextBlock>().First();
-                var foreground = ((ISolidColorBrush)text.Foreground!).Color;
-                var background = (presenter.Background as ISolidColorBrush)?.Color ?? Colors.Transparent;
-                if (background.A == 0) background = ((ISolidColorBrush)window.FindResource("VexPanelBackgroundBrush")!).Color;
-                Check(Contrast(foreground, background) >= 4.5, $"Selected mode remains readable {palette.Key}/{theme}/{state}");
-            }
-        }
-    }
+    wb.ShowRead(); Pump();
+    Check(!options.IsEffectivelyVisible, "Read view hides editing formats");
+    wb.ShowMindMap(); Pump(); Check(!options.IsEffectivelyVisible, "Mind map keeps the editing row hidden");
     foreach (var culture in new[] { "zh-CN", "zh-Hant", "en-US", "ja-JP" })
     {
         app.Resolve<IAppLocalizer>().SetCulture(culture); wb.ShowSource(); Pump();

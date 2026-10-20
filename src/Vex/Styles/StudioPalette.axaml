@@ -3,9 +3,6 @@
     <!-- 与 StudioTheme 共用动态颜色令牌，不复制 Semi 的整套主题字典。 -->
     <SolidColorBrush x:Key="VexShellBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
     <SolidColorBrush x:Key="VexPanelBackgroundBrush" Color="{DynamicResource StudioSurfaceColor}" />
-    <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="{DynamicResource StudioPaperColor}" />
-    <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
-    <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
     <SolidColorBrush x:Key="VexPanelBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <SolidColorBrush x:Key="VexEditorCurrentLineBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <SolidColorBrush x:Key="VexStatusBarBorderBrush" Color="{DynamicResource StudioBorderColor}" />
@@ -36,6 +33,9 @@
     </LinearGradientBrush>
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="VexTableHeaderBrush" Color="#F7F7F8" />
             <SolidColorBrush x:Key="VexTableStripeBrush" Color="#F7F7F8" />
             <SolidColorBrush x:Key="VexTableBorderBrush" Color="#DFE2E5" />
@@ -46,6 +46,9 @@
             <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="#202124" />
+            <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="#202124" />
+            <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="#202124" />
             <SolidColorBrush x:Key="VexTableHeaderBrush" Color="#292C32" />
             <SolidColorBrush x:Key="VexTableStripeBrush" Color="#24272D" />
             <SolidColorBrush x:Key="VexTableBorderBrush" Color="#41454E" />

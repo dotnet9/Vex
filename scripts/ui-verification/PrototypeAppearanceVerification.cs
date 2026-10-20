@@ -64,8 +64,8 @@ internal static class PrototypeAppearanceVerification
         {
             vm.Appearance.SelectedPalette = palette; vm.Appearance.SelectThemeByKey(mode); Render();
             var variant = mode == "light" ? ThemeVariant.Light : ThemeVariant.Dark;
-            Application.Current!.TryGetResource("StudioPaperColor", window.ActualThemeVariant, out var paperResource);
-            var paper = (Color)paperResource!;
+            Application.Current!.TryGetResource("VexDocumentPaperBrush", window.ActualThemeVariant, out var paperResource);
+            var paper = ((ISolidColorBrush)paperResource!).Color;
             Application.Current.TryGetResource("StudioSelected", window.ActualThemeVariant, out var selectedBrush);
             Application.Current.TryGetResource("VexAccentSoftBrush", window.ActualThemeVariant, out var applicationSelected);
             Check(((ISolidColorBrush)selectedBrush!).Color == ((ISolidColorBrush)applicationSelected!).Color,

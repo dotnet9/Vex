@@ -9,7 +9,6 @@ public partial class ShellEditorOptionsView : UserControl
         InitializeComponent();
         SizeChanged += (_, _) =>
         {
-            EditingHint.Opacity = Bounds.Width >= 900 ? 1 : 0;
             Classes.Set("compact-formatting", Bounds.Width < 850);
         };
     }

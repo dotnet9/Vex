@@ -27,11 +27,13 @@
     </Style>
 
     <Style Selector="MenuFlyoutPresenter">
+        <Setter Property="Width" Value="248" />
         <Setter Property="Background" Value="{DynamicResource MenuFlyoutBackground}" />
         <Setter Property="BorderBrush" Value="{DynamicResource MenuFlyoutBorderBrush}" />
     </Style>
 
     <Style Selector="ContextMenu">
+        <Setter Property="Width" Value="248" />
         <Setter Property="Background" Value="{DynamicResource MenuFlyoutBackground}" />
         <Setter Property="BorderBrush" Value="{DynamicResource MenuFlyoutBorderBrush}" />
     </Style>

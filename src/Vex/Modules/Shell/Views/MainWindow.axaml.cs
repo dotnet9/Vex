@@ -46,7 +46,6 @@ public partial class MainWindow : CodeWFWindow
         SizeChanged += (_, _) =>
         {
             if (DataContext is MainWindowViewModel vm) { vm.Layout.IsCompactWindow = Bounds.Width < 1100; vm.Layout.WorkspaceWidth = Bounds.Width; }
-            LayoutGallery.Margin = Bounds.Width < 1100 ? new Thickness(12, 51, 12, 18) : new Thickness(18, 56, 130, 18);
         };
         TitleMenuView.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
         WorkbenchToolbar.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
@@ -119,7 +118,13 @@ public partial class MainWindow : CodeWFWindow
         var editingMapTitle = e.Source is Visual input && input.GetVisualAncestors().Prepend(input).Any(item => item is TextBox)
             && input.GetVisualAncestors().Any(item => item is Vex.Modules.Workspace.Views.MarkdownMindMapHost);
         if (e.Key == Key.Escape && !editingMapTitle && DataContext is MainWindowViewModel vm && (vm.Workbench.ShowTypography || vm.Workbench.ShowLayouts || vm.Workbench.ShowMapSettings || vm.Workbench.HasSelectedNode))
-        { vm.Workbench.ShowLayouts = false; vm.Workbench.ShowTypography = false; vm.Workbench.ShowMapSettings = false; vm.Workbench.CloseInspector(); e.Handled = true; return; }
+        {
+            var layouts = vm.Workbench.ShowLayouts; var typography = vm.Workbench.ShowTypography;
+            vm.Workbench.ShowLayouts = false; vm.Workbench.ShowTypography = false; vm.Workbench.ShowMapSettings = false; vm.Workbench.CloseInspector();
+            if (layouts) WorkbenchToolbar.LayoutTarget.Focus();
+            else if (typography) EditorOptions.FindControl<Button>("TypographyTarget")?.Focus();
+            e.Handled = true; return;
+        }
         e.Handled = _keyboardShortcuts?.HandleKeyDown(e.Key, e.KeyModifiers) == true;
     }
 

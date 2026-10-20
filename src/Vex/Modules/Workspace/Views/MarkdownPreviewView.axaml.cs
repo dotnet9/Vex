@@ -41,9 +41,10 @@ public partial class MarkdownPreviewView : UserControl
         DocumentTransform.Margin = presenting ? new Thickness(44, 40, 44, 60) : default;
         if (presenting) PreviewMarkdownViewer.Width = Math.Min(1104, Math.Max(100, PreviewScrollViewer.Bounds.Width - 88)) / zoom;
         else PreviewMarkdownViewer.ClearValue(WidthProperty);
-        PreviewMarkdownViewer.MaxWidth = presenting ? 1104 / zoom : IsReadingMode ? 1192 : double.PositiveInfinity;
+        var padding = (TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280) <= 1100 ? 36 : 48;
+        PreviewMarkdownViewer.MaxWidth = presenting ? 1104 / zoom : IsReadingMode ? 820 - padding * 2 : double.PositiveInfinity;
         PreviewMarkdownViewer.Margin = presenting ? default
-            : IsReadingMode ? new Thickness(44, 40, 44, 60) : new Thickness(30, 22, 30, 30);
+            : IsReadingMode ? new Thickness(padding, 24, padding, 80) : new Thickness(30, 22, 30, 30);
     }
 
     public MarkdownPreviewView()
@@ -53,7 +54,7 @@ public partial class MarkdownPreviewView : UserControl
         AttachedToVisualTree += OnAttachedToVisualTree;
         DetachedFromVisualTree += (_, _) => SetViewModel(null);
         PreviewScrollViewer.ScrollChanged += OnPreviewScrollChanged;
-        PreviewScrollViewer.SizeChanged += (_, _) => { if (_viewModel?.IsPresenting == true) ApplyDocumentGeometry(); };
+        PreviewScrollViewer.SizeChanged += (_, _) => ApplyDocumentGeometry();
         DetachedFromVisualTree += (_, _) => PreviewMarkdownViewer.TaskWriteBackRequested -= OnTaskWriteBackRequested;
         // 大纲跳转不经过预览视图模型，直接订阅总线，避免被「属性值未变」过滤掉。
         DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
