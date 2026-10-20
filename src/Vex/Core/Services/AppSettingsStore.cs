@@ -42,6 +42,12 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string EnableMotion = nameof(AppSettings.EnableMotion);
     private const string IsFocusMode = nameof(AppSettings.IsFocusMode);
     private const string IsTypewriterMode = nameof(AppSettings.IsTypewriterMode);
+    private const string IsOutlineVisible = nameof(AppSettings.IsOutlineVisible);
+    private const string OutlineWidth = nameof(AppSettings.OutlineWidth);
+    private const string FileListView = nameof(AppSettings.FileListView);
+    private const string FileSortDescending = nameof(AppSettings.FileSortDescending);
+    private const string CollapsedFolders = nameof(AppSettings.CollapsedFolders);
+    private const string CollapsedOutlineSections = nameof(AppSettings.CollapsedOutlineSections);
 
     private const string RestoreWorkspace = nameof(AppSettings.RestoreWorkspace);
     private const string AutoSave = nameof(AppSettings.AutoSave);
@@ -111,6 +117,12 @@ public sealed class AppSettingsStore : IAppSettingsStore
         var configuration = AppConfigHelper.ReadAll();
         return new AppSettings
         {
+            IsOutlineVisible = Get<bool?>(configuration, IsOutlineVisible),
+            OutlineWidth = Get<double?>(configuration, OutlineWidth),
+            FileListView = Get<bool?>(configuration, FileListView),
+            FileSortDescending = Get<bool?>(configuration, FileSortDescending),
+            CollapsedFolders = Get<string>(configuration, CollapsedFolders),
+            CollapsedOutlineSections = Get<string>(configuration, CollapsedOutlineSections),
             RestoreWorkspace = Get<bool?>(configuration, RestoreWorkspace),
             AutoSave = Get<bool?>(configuration, AutoSave),
             AutoSaveDelay = Get<int?>(configuration, AutoSaveDelay),
@@ -190,6 +202,12 @@ public sealed class AppSettingsStore : IAppSettingsStore
         {
             AppConfigHelper.SetMany(new Dictionary<string, object?>
             {
+                [IsOutlineVisible] = settings.IsOutlineVisible,
+                [OutlineWidth] = settings.OutlineWidth,
+                [FileListView] = settings.FileListView,
+                [FileSortDescending] = settings.FileSortDescending,
+                [CollapsedFolders] = settings.CollapsedFolders,
+                [CollapsedOutlineSections] = settings.CollapsedOutlineSections,
                 [RestoreWorkspace] = settings.RestoreWorkspace,
                 [AutoSave] = settings.AutoSave,
                 [AutoSaveDelay] = settings.AutoSaveDelay,

@@ -17,6 +17,13 @@
         <DataTemplate DataType="models:OutlineItem">
             <!-- 层级角标 + 渐进缩进；IsCurrent = 光标所在章节高亮 -->
             <StackPanel Margin="{Binding IndentMargin}" Orientation="Horizontal" Spacing="6">
+                <Button Classes="wb-quiet" Width="18" Height="24" MinHeight="0" Padding="2"
+                        IsVisible="{Binding HasChildren}"
+                        Click="ToggleSection" AutomationProperties.Name="{Binding Title}">
+                    <TextBlock Text="›" FontSize="16" RenderTransformOrigin="50%,50%" Classes.expanded="{Binding IsExpanded}">
+                        <TextBlock.Styles><Style Selector="TextBlock"><Setter Property="RenderTransform"><RotateTransform Angle="0"/></Setter></Style><Style Selector="TextBlock.expanded"><Setter Property="RenderTransform"><RotateTransform Angle="90"/></Setter></Style></TextBlock.Styles>
+                    </TextBlock>
+                </Button>
                 <Border Classes="lvl-badge" Classes.on="{Binding IsCurrent}">
                     <TextBlock Text="{Binding Number}" />
                 </Border>
@@ -51,6 +58,7 @@
             Classes="side-list"
             IsVisible="{Binding HasOutlineItems}"
             ItemsSource="{Binding FilteredOutlineItems}"
+            KeyDown="OutlineKeyDown"
             SelectedItem="{Binding SelectedOutlineItem, Mode=TwoWay}" />
         <!-- 阅读进度条（新增能力，随光标更新） -->
         <Border

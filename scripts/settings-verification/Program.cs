@@ -3,7 +3,7 @@ using CodeWF.Toolkit.Files.Helpers;
 using System.Xml.Linq;
 
 // 使用隔离配置验证真实存储，不读取用户设置。
-var directory = Path.Combine(Path.GetTempPath(), "Vex.SettingsVerification", Guid.NewGuid().ToString("N"));
+var directory = Path.Combine(args.FirstOrDefault() ?? "E:/github/temp_files/vex-prototype/settings", Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(directory);
 var path = Path.Combine(directory, "verification.config");
 AppContext.SetData("APP_CONFIG_FILE", path);
@@ -48,6 +48,9 @@ try
         DefaultEncoding = "utf-8-bom", DefaultNewline = "CRLF", BodyFont = "serif", ExportFormat = "Word",
         WatermarkPreview = true, WatermarkExport = true, WatermarkText = "test <&> 维刻", WatermarkOpacity = 18,
         PdfSize = "Letter", PdfMargin = 25, HtmlStyle = false,
+        IsOutlineVisible = false, OutlineWidth = 286, FileListView = true, FileSortDescending = true,
+        CollapsedFolders = "E%3A%5C笔记%5C目录\nE%3A%5C其他目录",
+        CollapsedOutlineSections = "document/2:章节:0\ndocument/2:同名章节:1",
         EnableAutoPair = false, EnableMotion = false, IsFocusMode = true, IsTypewriterMode = true
     });
     if (new AppSettingsStore().Current != expected)

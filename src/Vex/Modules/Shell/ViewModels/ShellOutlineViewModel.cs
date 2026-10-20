@@ -19,11 +19,16 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     private double _readingPercent;
     private int _lastCaretLine = 1;
     private int _lastLineCount = 1;
+    private readonly IAppSettingsStore? _settingsStore;
+    private readonly IWorkspaceDocumentState? _document;
 
-    public ShellOutlineViewModel(IShellStatusPublisher statusPublisher, IAppLocalizer localizer)
+    public ShellOutlineViewModel(IShellStatusPublisher statusPublisher, IAppLocalizer localizer,
+        IAppSettingsStore? settingsStore = null, IWorkspaceDocumentState? document = null)
     {
         _statusPublisher = statusPublisher;
         _localizer = localizer;
+        _settingsStore = settingsStore;
+        _document = document;
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 
@@ -43,9 +48,19 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     private void FilterOutline()
     {
         FilteredOutlineItems.Clear();
+        var hiddenBelow = 7;
         foreach (var item in OutlineItems)
-            if (item.Title.Contains(FilterText.Trim(), StringComparison.CurrentCultureIgnoreCase))
-                FilteredOutlineItems.Add(item);
+        {
+            if (!string.IsNullOrWhiteSpace(FilterText))
+            {
+                if (item.Title.Contains(FilterText.Trim(), StringComparison.CurrentCultureIgnoreCase))
+                    FilteredOutlineItems.Add(item);
+                continue;
+            }
+            if (item.Level > hiddenBelow) continue;
+            hiddenBelow = item.IsExpanded ? 7 : item.Level;
+            FilteredOutlineItems.Add(item);
+        }
         OnPropertyChanged(nameof(IsFilterEmpty));
     }
 
@@ -74,12 +89,36 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
         // 大纲由 Markdown 派生生成，这里只更新展示状态，跳转仍通过事件总线发给编辑器。
         OutlineItems.Clear();
         var counters = new int[6];
+        var collapsed = NavigationExpansionState.Read(_settingsStore?.Current.CollapsedOutlineSections);
+        var documentKey = NavigationExpansionState.Encode(_document?.FilePath is { Length: > 0 } path
+            ? NavigationExpansionState.PathKey(path) : "untitled");
+        var ancestors = new Stack<OutlineItem>();
+        var occurrences = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var item in command.Items)
         {
             var level = Math.Clamp(item.Level, 1, 6);
             counters[level - 1]++;
             Array.Clear(counters, level, 6 - level);
             item.Number = string.Join('.', counters.Take(level));
+            while (ancestors.Count > 0 && ancestors.Peek().Level >= item.Level) ancestors.Pop();
+            var parentKey = ancestors.Count > 0 ? ancestors.Peek().ExpansionKey : documentKey;
+            var key = parentKey + "/" + level + ":" + NavigationExpansionState.Encode(item.Title);
+            occurrences.TryGetValue(key, out var occurrence);
+            occurrences[key] = occurrence + 1;
+            item.ExpansionKey = key + ":" + occurrence;
+            item.IsExpanded = !collapsed.Contains(item.ExpansionKey);
+            if (ancestors.Count > 0) ancestors.Peek().HasChildren = true;
+            ancestors.Push(item);
+            item.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName != nameof(OutlineItem.IsExpanded)) return;
+                _settingsStore?.Update(settings => settings with
+                {
+                    CollapsedOutlineSections = NavigationExpansionState.Set(settings.CollapsedOutlineSections,
+                        item.ExpansionKey, !item.IsExpanded)
+                });
+                FilterOutline();
+            };
             OutlineItems.Add(item);
         }
 

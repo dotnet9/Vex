@@ -30,6 +30,8 @@ public sealed record AppSettings
     public double? OutlineWidth { get; init; }
     public bool? FileListView { get; init; }
     public bool? FileSortDescending { get; init; }
+    public string? CollapsedFolders { get; init; }
+    public string? CollapsedOutlineSections { get; init; }
 
     public bool? IsStatusBarVisible { get; init; }
 

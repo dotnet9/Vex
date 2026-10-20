@@ -54,7 +54,9 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     }
     public void CollapseAll()
     {
-        foreach (var node in Enumerate(FilteredDocumentFileNodes).Where(node => node.IsFolder)) node.IsExpanded = false;
+        // 操作源节点；搜索生成的临时展开副本不应覆盖真实折叠偏好。
+        foreach (var node in Enumerate(DocumentFileNodes).Where(node => node.IsFolder)) node.IsExpanded = false;
+        RebuildFilteredNodes();
         OnPropertyChanged(nameof(CanCollapseAll));
     }
     private static IEnumerable<DocumentFileNode> Enumerate(IEnumerable<DocumentFileNode> nodes)
@@ -173,7 +175,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         // 文件列表只接收 Shell 发布的快照，不直接调用主 ViewModel 的文件打开流程。
         _workspacePath = command.WorkspaceRootPath;
         OnPropertyChanged(nameof(WorkspaceName));
-        var expansion = Enumerate(DocumentFileNodes).Where(node => node.IsFolder).ToDictionary(node => node.Path, node => node.IsExpanded);
+        var collapsed = NavigationExpansionState.Read(_settingsStore?.Current.CollapsedFolders);
         DocumentFileNodes.Clear();
         foreach (var node in BuildDocumentFileNodes(command.Files, command.WorkspaceRootPath))
         {
@@ -182,8 +184,17 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
         foreach (var node in Enumerate(DocumentFileNodes).Where(node => node.IsFolder))
         {
-            if (expansion.TryGetValue(node.Path, out var expanded)) node.IsExpanded = expanded;
-            node.PropertyChanged += (_, _) => OnPropertyChanged(nameof(CanCollapseAll));
+            node.IsExpanded = !collapsed.Contains(NavigationExpansionState.Encode(NavigationExpansionState.PathKey(node.Path)));
+            node.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName != nameof(DocumentFileNode.IsExpanded)) return;
+                var key = NavigationExpansionState.Encode(NavigationExpansionState.PathKey(node.Path));
+                _settingsStore?.Update(settings => settings with
+                {
+                    CollapsedFolders = NavigationExpansionState.Set(settings.CollapsedFolders, key, !node.IsExpanded)
+                });
+                OnPropertyChanged(nameof(CanCollapseAll));
+            };
         }
 
         RebuildFilteredNodes();

@@ -59,6 +59,17 @@ internal static class DesktopParityVerification
         Check(outline.FilteredOutlineItems.Count == 1 && outline.FilteredOutlineItems[0].Line == 4, "Outline filter keeps source positions");
         outline.ClearFilter();
         Check(outline.FilteredOutlineItems.Count == 5, "Clearing heading filter restores the outline");
+        outline.OutlineItems[0].IsExpanded = false;
+        Check(outline.FilteredOutlineItems.Count == 2, "Collapsing a section hides all descendants including skipped levels");
+        outline.FilterText = "细节";
+        Check(outline.FilteredOutlineItems.Count == 1, "Search reveals a heading under a collapsed section");
+        outline.ClearFilter();
+        Check(outline.FilteredOutlineItems.Count == 2, "Clearing search preserves the collapsed section");
+        var restoredOutline = new ShellOutlineViewModel(app.Resolve<IShellStatusPublisher>(), app.Resolve<IAppLocalizer>(),
+            app.Resolve<IAppSettingsStore>(), app.Resolve<IWorkspaceDocumentState>());
+        restoredOutline.ApplyOutlineItemsChanged(new OutlineItemsChangedCommand([
+            new(1, "第一章", 3), new(3, "细节", 6), new(3, "补充", 9), new(2, "第二节", 12), new(1, "下一章", 14)]));
+        Check(restoredOutline.FilteredOutlineItems.Count == 2, "New outline instance restores collapse after source lines shift");
         var navigation = app.Resolve<ShellFilesViewModel>();
         var root = Path.Combine(output, "navigation");
         var documents = new[] {
@@ -70,6 +81,9 @@ internal static class DesktopParityVerification
         Check(!navigation.CanCollapseAll && !navigation.DocumentFileNodes[0].IsExpanded, "Collapse updates actual tree expansion state");
         navigation.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(documents, workspaceRootPath: root));
         Check(!navigation.DocumentFileNodes[0].IsExpanded, "Folder refresh preserves collapsed state");
+        var restoredNavigation = new ShellFilesViewModel(app.Resolve<IAppSettingsStore>());
+        restoredNavigation.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(documents, workspaceRootPath: root));
+        Check(!restoredNavigation.DocumentFileNodes[0].IsExpanded, "New file navigation instance restores collapsed folders from settings");
         navigation.ToggleListView(); Render();
         Check(navigation.IsListView && navigation.FlatDocumentFileNodes.Count == 2, "List view flattens nested files");
         navigation.ToggleSort();

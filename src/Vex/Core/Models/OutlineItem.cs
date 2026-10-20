@@ -20,6 +20,19 @@ public sealed class OutlineItem : INotifyPropertyChanged
     public int Line { get; }
 
     public Thickness IndentMargin { get; }
+    public string ExpansionKey { get; internal set; } = string.Empty;
+    public bool HasChildren { get; internal set; }
+    private bool _isExpanded = true;
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            if (_isExpanded == value) return;
+            _isExpanded = value;
+            PropertyChanged?.Invoke(this, new(nameof(IsExpanded)));
+        }
+    }
 
     private bool _isCurrent;
 
