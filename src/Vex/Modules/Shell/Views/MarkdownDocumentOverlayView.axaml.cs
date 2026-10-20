@@ -31,6 +31,8 @@ public partial class MarkdownDocumentOverlayView : UserControl
             DocumentMarkdownViewer.ParagraphLineHeight = 24.3;
             DocumentMarkdownViewer.ParagraphMargin = new Avalonia.Thickness(0);
             DocumentMarkdownViewer.Heading2FontSize = 13;
+            DocumentMarkdownViewer.Resources["CodeWFMarkdownHeading2Margin"] = new Avalonia.Thickness(0, 13, 0, 4);
+            DocumentMarkdownViewer.Resources["CodeWFMarkdownHeading2LineHeight"] = 20.8;
             DocumentMarkdownViewer.BlockSpacing = 0;
         }
     }

@@ -120,7 +120,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
+if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -137,6 +137,7 @@ if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "dan
     if (mode == "file-tree") { VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), output); window.Close(); return; }
     if (mode == "performance") { VerifyPerformance((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "workspace") { VerifySingleDocumentWorkspace(app, (Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
+    if (mode == "workbench") { VerifyWorkbench(app, window, vm); window.Close(); return; }
     if (mode is "buttons" or "danger-buttons")
     {
         VerifyDialogButtonStates(app, window, vm, mode == "buttons" ? "primary" : "danger", args.Contains("--audit-only"));
@@ -309,6 +310,7 @@ if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "dan
     VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
     Check(vm.Appearance.PaletteOptions.Count == 16 && vm.Appearance.ThemeOptions.Count == 3,
         "Vex exposes sixteen palettes and three independent theme modes");
+    vm.Layout.ShowOutline(); vm.Layout.SelectOutlineTab();
     foreach (var palette in vm.Appearance.PaletteOptions)
     foreach (var modeOption in vm.Appearance.ThemeOptions.Where(option => option.Mode != StudioThemeMode.System))
     {
@@ -1498,7 +1500,7 @@ void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel 
     Capture(window, "vex-native-mindmap");
     vm.Workbench.ShowInstant(); Pump(); Capture(window, "vex-native-instant");
     vm.Workbench.ShowTypography = true; Pump();
-    var typographyGallery = window.FindControl<Border>("TypographyGallery")!;
+    var typographyGallery = window.FindControl<Vex.Modules.Shell.Views.ShellTypographyGallery>("TypographyGallery")!;
     Check(typographyGallery.GetVisualDescendants().OfType<TextBlock>().Any(text => text.Text == app.Resolve<IAppLocalizer>().Get(Vex.VexL.TypographySimple)),
         "Typography cards use the same localized names as the menu");
     vm.Workbench.ShowTypography = false;
@@ -1939,12 +1941,12 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
     Check(outline.TranslatePoint(default, window)!.Value.X > files.TranslatePoint(default, window)!.Value.X + files.Bounds.Width,
         "Vex Outline remains to the right of the document under " + theme);
     var heading = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdH1Border"));
-    Check(heading.BorderThickness.Bottom == 1 && SameBrush(heading.BorderBrush, divider.BorderBrush),
-        "Vex H1 uses the normal border color under " + theme);
+    var type = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(((MainWindowViewModel)window.DataContext!).Appearance.SelectedTypography?.Key)!;
+    Check(heading.BorderThickness == Thickness.Parse(type.Headings[0].Border),
+        "Vex H1 follows the selected article decoration under " + theme);
     var quote = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdQuote"));
-    Application.Current!.TryGetResource("VexAccentBrush", theme, out var accent);
-    Check(SameBrush(quote.BorderBrush, (IBrush)accent!) && quote.BorderThickness.Left == 3,
-        "Vex quote uses a 3 px accent border under " + theme);
+    Check(quote.BorderThickness == Thickness.Parse(type.Quote.Border),
+        "Vex quote follows the selected article border under " + theme);
 }
 
 bool SameBrush(IBrush? first, IBrush? second) => first is ISolidColorBrush a && second is ISolidColorBrush b && a.Color == b.Color;
