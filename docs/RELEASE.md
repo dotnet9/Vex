@@ -12,27 +12,37 @@
 
 ## 2. 标准发布流程
 
+开发联调使用本地 NuGet 包，不等待 NuGet 平台发布，不用 Tag 验证尚未完成的功能。
+可用 `scripts/prepare_local_libraries.ps1 -PackageVersion <新版本>` 在仓外打包并还原；
+临时源配置与产物不提交。本地恢复使用该脚本输出的 `NuGet.local.config`，避免添加跨仓项目引用。
+
 ```text
 1. 改版本号（Directory.Build.props / csproj）+ 更新 UpdateLog.md + 同步 README 版本行
-2. 按修改范围分别用中文提交，最终版本提交使用“发布：升级 X.Y.Z 并更新发布说明”
-3. 打附注 tag —— tag 的附注消息就是 GitHub Release 的发布说明（见下节）：
-       git tag -a vX.Y.Z -m "应用名 X.Y.Z\n\n- 要点一\n- 要点二 ..."
-4. 推送分支与 tag：git push origin <branch> && git push origin vX.Y.Z
-5. CI（release.yml）自动：测试 → 全平台 NativeAOT 发布 → 制作安装包 → 创建 GitHub Release
-6. 到 Release 页确认：说明可读、各平台安装包齐全（win exe / linux deb / mac dmg）
+2. 使用本地共享库包完成编译、功能回归、Windows NativeAOT 运行和安装器门禁；记录其他平台尚待真实验收的边界
+3. 全部本地验证通过后，按修改范围分别用中文提交，最终版本提交使用“发布：升级 X.Y.Z 并更新发布说明”
+4. 将完整发布说明保存为仓外 UTF-8 文本，再打附注 tag（见下节）：
+       git tag -a vX.Y.Z -F <发布说明文件路径>
+5. 推送分支与 tag：git push origin <branch> && git push origin vX.Y.Z
+6. CI（release.yml）自动：测试 → 全平台 NativeAOT 发布 → 制作安装包 → 创建 GitHub Release
+7. 到 Release 页确认：说明可读、各平台安装包齐全（win exe / linux deb / mac dmg）
 ```
+
+共享库有新版本时，在上述本地验证完成后才推送共享库 Tag。正式 Vex 发布 CI 使用线上包，
+因此发布阶段先确认对应包已可还原，再推送 Vex Tag；这一步不阻塞开发和本地验证。
 
 ## 3. 发布说明规范（重要）
 
 **Release 页的说明来自附注 tag 的消息**。打 tag 时必须写清楚：
 
-```bash
-git tag -a vX.Y.Z -m "应用名 X.Y.Z
+发布说明文件使用真实换行，例如：
+
+```text
+应用名 X.Y.Z
 
 本版本做了什么（第一段概览）
 
 - 变更要点 1
-- 变更要点 2"
+- 变更要点 2
 ```
 
 - 工作流的「准备发布说明」步骤会按以下优先级取内容：

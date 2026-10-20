@@ -26,7 +26,7 @@ Windows x64 NativeAOT 实际界面：
 
 本机已验证文件参数打开、表格自然列宽、动态切语、深色与配色分别保存并在重启后恢复，以及关于与更新流程。Windows 安装器支持三种 Markdown 扩展名的打开候选、右键入口与图标；本轮复核未更改默认应用，Linux/macOS 和多 DPI 仍需各平台验收。
 
-[1.6.1 发布前验证](docs/verification-v1.6.1.md) 记录更新流程和 Windows 安装器修复；[1.6.0 发布前验证](docs/verification-v1.6.0.md) 记录正式 NuGet 依赖下的构建、回归与安装包门禁；历史 [1.5.9 本机验证记录](docs/verification-v1.5.9.md) 区分离屏、资源自检和 NativeAOT 窗口验收。
+[1.6.5 验证记录](docs/verification-v1.6.5.md) 记录本地 NuGet 联调、分类设置、自动保存、原生发布与安装器门禁；[1.6.1 发布前验证](docs/verification-v1.6.1.md) 记录更新流程和 Windows 安装器修复；历史 [1.5.9 本机验证记录](docs/verification-v1.5.9.md) 区分离屏、资源自检和 NativeAOT 窗口验收。
 
 [大文件性能与稳定性验证](docs/性能与稳定性验证-20261017.md) 记录混合语法、长代码、密集公式、文档切换与多视图压力测试；原型还原目标及验收边界见 [历史原生验收](docs/历史原生验收.md)。
 
@@ -41,7 +41,7 @@ Windows x64 NativeAOT 实际界面：
 
 ## 仓库规范
 
-- 当前版本：`1.6.4`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
+- 当前版本：`1.6.5`，版本号统一维护在根目录 `Directory.Build.props` 的 `<Version>` 节点。
 - NuGet 包项目统一支持 `net8.0;net10.0`；Demo、App、测试与内部应用项目统一使用 `net10.0` / `net10.0-windows`。
 - 根目录 `logo.svg`、`logo.png`、`logo.ico` 是唯一图标源，子工程只通过 MSBuild `Link` 引用，不维护图标副本。
 - 运行时帮助、Markdown 示例、内置备忘录、设计说明等业务文档按功能保留；仓库级入口文档使用根目录 `README.md` 和 `UpdateLog.md`。
@@ -68,6 +68,7 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - 即时编辑支持跨块撤销重做、菜单格式操作，`Ctrl+Enter` 完成当前块、`Esc` 恢复本次块编辑前的内容。
 - 阅读视图只读；即时编辑的非活动块和阅读视图共用 18 套正文排版及紧凑布局。
 - 支持常见 Markdown 编辑动作：标题、引用、列表、任务列表、表格、代码块、链接、图片等插入辅助。
+- 文件、编辑、段落、格式、视图、工具、帮助七组菜单，支持删除线、高亮、上下标、脚注和 22 种 Mermaid 模板，插入可一次撤销。
 - 支持从网页粘贴内容：优先读取剪贴板 HTML，并转换为 Markdown；无 HTML 或转换失败时回落到普通粘贴。
 
 ### Markdown 导图与上手引导
@@ -95,9 +96,11 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 ### 导出与分享
 
 - 导出 HTML。
+- 导出 Markdown，并可设置默认导出格式、目录及完成后定位文件。
 - 打印预览。
 - 导出 PNG 长图。
 - 导出 PDF，正文文本可选择、可复制，并支持页眉页脚。
+- HTML 与 PDF 可包含文字水印；PDF 支持 A4、Letter、A5 纸张及毫米页边距。
 - 导出 Word `.docx`，保留基础 Markdown 结构并嵌入图片。
 - 复制到微信公众号、知乎、稀土掘金，生成适合网页编辑器粘贴的富 HTML 剪贴板内容。
 - PDF、PNG 和 Word 导出复用 `CodeWF.Avalonia.Markdown` 的 `MarkdownDocumentExporter` / `ExportKind` 能力，支持本地相对图、`data:image`、HTTP(S) 图片、SVG/GIF/WebP 转 PNG。
@@ -109,6 +112,16 @@ Vex 希望提供一个轻量、清爽、可离线使用的 Markdown 写作环境
 - 支持行号、状态栏、窗口置顶等视图选项。
 - 内置简体中文、繁体中文、英文、日文界面资源。
 - 帮助文档、快速开始、更新日志和鸣谢文档会随发布产物一起输出。
+
+### 偏好设置
+
+通过“工具 → 偏好设置”或 `Ctrl+,`（macOS 为 `⌘+,`）打开七类设置。常规偏好即时保存，MCP 服务设置点击保存后生效。
+
+- 调整工作区恢复、已有文件自动保存、恢复草稿、新文档编码和换行。
+- 调整正文字体、正文及代码字号、缩进、代码换行与内容缩放，修改不重置正文及撤销历史。
+- 独立开关数学、化学、Mermaid、上下标、高亮、自动链接和软换行；图片支持资源目录复制、相对路径和同名文件保留。
+- 保留八套配色、18 套排版及三态明暗主题；支持字数显示、预览水印和导出偏好。
+- MCP 提供服务、可复制客户端 HTTP 配置与操作审计三个页签。
 
 ### MCP 与 AI 协作
 
@@ -194,7 +207,7 @@ dotnet build Vex.slnx -v:minimal
 pwsh scripts/publish.ps1 -RuntimeIdentifier win-x64
 ```
 
-正式发布先升级根版本、更新日志并提交推送，再创建并推送同版本的中文附注 tag（例如 `v1.6.0`）。GitHub Actions 在各平台 runner 制作全部五个 RID 的安装包，通过文件名、版本、完整矩阵和 SHA256 门禁后上传 GitHub Release。操作规范见 [发布流程](docs/RELEASE.md)。
+开发联调先通过 `scripts/prepare_local_libraries.ps1 -PackageVersion <新版本>` 打包并使用本地共享库 NuGet，无需等待平台发布。完成全部本地功能、NativeAOT 和安装器门禁后，再创建并推送同版本的中文附注 Tag。GitHub Actions 在各平台 runner 制作全部五个 RID 的安装包，通过文件名、版本、完整矩阵和 SHA256 门禁后上传 GitHub Release。操作规范见 [发布流程](docs/RELEASE.md)。
 
 `package_all.bat` 已停用本地压缩打包，仅提示使用 Actions；`publish_all.bat --package` 不再支持。Release 只包含 EXE / DEB / DMG 及对应 `.sha256`。
 

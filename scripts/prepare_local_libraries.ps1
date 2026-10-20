@@ -2,14 +2,16 @@
 param(
     [Parameter(Mandatory)][string] $PackageVersion,
     [string] $LibraryRoot = "",
-    [string] $WorkRoot = "D:\github\temp_files\vex-libraries",
-    [string] $PackageRoot = "D:\github\temp_nugets",
+    [string] $WorkRoot = "",
+    [string] $PackageRoot = "",
     [switch] $SkipPack
 )
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 if (!$LibraryRoot) { $LibraryRoot = Join-Path $repositoryRoot '../../libs/CodeWF.Avalonia' }
+if (!$WorkRoot) { $WorkRoot = Join-Path $repositoryRoot '../../temp_files/vex-libraries' }
+if (!$PackageRoot) { $PackageRoot = Join-Path $repositoryRoot '../../temp_nugets' }
 $LibraryRoot = (Resolve-Path -LiteralPath $LibraryRoot).Path
 $PackageRoot = [IO.Path]::GetFullPath($PackageRoot)
 $WorkRoot = [IO.Path]::GetFullPath($WorkRoot)
@@ -51,6 +53,6 @@ $escapedPackageRoot = [Security.SecurityElement]::Escape($PackageRoot)
 </packageSources></configuration>
 "@)
 dotnet restore (Join-Path $repositoryRoot 'scripts/ui-verification/UiVerification.csproj') `
-    --configfile $configPath "-p:ArtifactsPath=D:/github/temp_files/vex-native/artifacts"
+    --configfile $configPath "-p:ArtifactsPath=$WorkRoot/vex-artifacts"
 if ($LASTEXITCODE -ne 0) { throw 'Vex 本地 NuGet 还原失败。' }
 Write-Host "已通过 NuGet 接入 $PackageVersion；未添加跨仓项目引用。"
