@@ -29,14 +29,21 @@ if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
-if (mode is "desktop-parity" or "settings-ui")
+if (mode == "settings-real-ui")
+{
+    VerificationVexApp.UseRealSettings = true;
+    var config = Path.Combine(output, "settings.config");
+    File.WriteAllText(config, "<configuration><appSettings /></configuration>");
+    AppContext.SetData("APP_CONFIG_FILE", config);
+}
+if (mode is "desktop-parity" or "settings-ui" or "settings-real-ui")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
     window.Show();
-    if (mode == "settings-ui") PreferencesVerification.Run(app, window, output);
+    if (mode is "settings-ui" or "settings-real-ui") PreferencesVerification.Run(app, window, output);
     else DesktopParityVerification.Run(app, window, output);
     window.Close();
     return;
@@ -2194,6 +2201,7 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
 
 public sealed class VerificationVexApp : Vex.App
 {
+    public static bool UseRealSettings { get; set; }
     public static IUpdateService? Updates { get; set; }
     public Window? Shell { get; private set; }
     public T Resolve<T>() => Container.Resolve<T>();
@@ -2201,7 +2209,7 @@ public sealed class VerificationVexApp : Vex.App
     {
         base.RegisterTypes(registry);
         if (Updates is not null) registry.RegisterInstance<IUpdateService>(Updates);
-        registry.RegisterInstance<IAppSettingsStore>(new MemorySettings());
+        registry.RegisterInstance<IAppSettingsStore>(UseRealSettings ? new AppSettingsStore() : new MemorySettings());
         registry.RegisterInstance<IAutoSaveDraftService>(new MemoryDrafts());
         registry.RegisterInstance<IRecentDocumentStore>(new MemoryRecent());
     }

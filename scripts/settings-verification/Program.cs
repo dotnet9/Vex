@@ -22,6 +22,11 @@ try
     second.Update(settings => settings with { ThemeKey = "dark" });
     first.Update(settings => settings with { ShowLineNumbers = true });
     var restored = new AppSettingsStore().Current;
+    var defaults = new EditorPreferences(new AppSettingsStore());
+    if (defaults.DefaultEncoding != "utf-8" || defaults.DefaultNewline != "system" || defaults.BodyFont != "system"
+        || defaults.ExportFormat != "HTML" || defaults.PdfSize != "A4" || defaults.ImageFolder != "assets" || defaults.WatermarkText != "维刻 Vex")
+        throw new InvalidOperationException("An unrelated settings update lost effective preference defaults.");
+    Console.WriteLine("PASS: real storage preserves default choices and watermark after unrelated updates.");
     if (restored.ThemeKey != "dark" || restored.PaletteKey != "aurora" || restored.ShowLineNumbers != true)
         throw new InvalidOperationException("A partial update discarded persisted appearance settings.");
 
@@ -40,6 +45,7 @@ try
         WorkbenchView = "mindmap", EditMode = "source", MindMapSummaryLength = 42,
         MindMapShowParagraphs = false, MindMapShowCode = true, MindMapShowTables = true, MindMapShowLists = false,
         SyntaxMath = false, SyntaxSoftBreaks = false, BodyFontSize = 18, ImageFolder = "images", AutoSave = true,
+        DefaultEncoding = "utf-8-bom", DefaultNewline = "CRLF", BodyFont = "serif", ExportFormat = "Word",
         WatermarkPreview = true, WatermarkExport = true, WatermarkText = "test <&> 维刻", WatermarkOpacity = 18,
         PdfSize = "Letter", PdfMargin = 25, HtmlStyle = false,
         EnableAutoPair = false, EnableMotion = false, IsFocusMode = true, IsTypewriterMode = true
@@ -49,6 +55,18 @@ try
 
     Console.WriteLine("PASS: batch settings preserve typed values, external keys and unrelated XML sections.");
     Console.WriteLine("PASS: all workbench, mind map, editing and motion preferences survive a new store.");
+    AppConfigHelper.SetMany(path, new Dictionary<string, object?>
+    {
+        ["DefaultEncoding"] = "", ["DefaultNewline"] = "", ["BodyFont"] = "", ["ExportFormat"] = "", ["PdfSize"] = ""
+    });
+    var normalized = new EditorPreferences(new AppSettingsStore());
+    if (normalized.DefaultEncoding != "utf-8" || normalized.DefaultNewline != "system" || normalized.BodyFont != "system"
+        || normalized.ExportFormat != "HTML" || normalized.PdfSize != "A4")
+        throw new InvalidOperationException("Empty legacy choice values were not normalized.");
+    second.Update(settings => settings with { WatermarkText = "", ExportFolder = "", ImageFolder = "" });
+    if (new AppSettingsStore().Current is not { WatermarkText: "", ExportFolder: "", ImageFolder: "" })
+        throw new InvalidOperationException("An explicitly cleared text preference was replaced by a default.");
+    Console.WriteLine("PASS: empty choice values recover defaults while explicitly cleared text remains empty.");
 }
 finally
 {

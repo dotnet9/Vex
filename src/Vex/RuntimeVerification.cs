@@ -44,6 +44,10 @@ internal static class RuntimeVerification
         var saved = new AppSettingsStore().Current;
         if (saved.ThemeKey != "system" || saved.PaletteKey != "aurora" || saved.CultureName != "ja-JP")
             throw new InvalidOperationException("Native appearance preferences did not round-trip.");
+        var preferences = new EditorPreferences(new AppSettingsStore());
+        if (preferences.DefaultEncoding != "utf-8" || preferences.DefaultNewline != "system" || preferences.BodyFont != "system"
+            || preferences.ExportFormat != "HTML" || preferences.PdfSize != "A4")
+            throw new InvalidOperationException("Native default preference choices did not survive real storage.");
         var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; languages=4; tableDialog=localized; preferences=isolated";
         File.WriteAllText(Path.Combine(root, "runtime-verification.txt"), result);
         Console.WriteLine(result);

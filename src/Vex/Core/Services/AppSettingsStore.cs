@@ -115,13 +115,13 @@ public sealed class AppSettingsStore : IAppSettingsStore
             AutoSave = Get<bool?>(configuration, AutoSave),
             AutoSaveDelay = Get<int?>(configuration, AutoSaveDelay),
             RecoveryDrafts = Get<bool?>(configuration, RecoveryDrafts),
-            DefaultEncoding = Get<string>(configuration, DefaultEncoding),
-            DefaultNewline = Get<string>(configuration, DefaultNewline),
+            DefaultEncoding = Choice(configuration, DefaultEncoding, "utf-8", "utf-8-bom", "GB18030"),
+            DefaultNewline = Choice(configuration, DefaultNewline, "system", "LF", "CRLF"),
             BodyFontSize = Get<double?>(configuration, BodyFontSize),
             CodeFontSize = Get<double?>(configuration, CodeFontSize),
             IndentSize = Get<int?>(configuration, IndentSize),
             CodeWrap = Get<bool?>(configuration, CodeWrap),
-            BodyFont = Get<string>(configuration, BodyFont),
+            BodyFont = Choice(configuration, BodyFont, "system", "serif", "mono"),
             SyntaxMath = Get<bool?>(configuration, SyntaxMath),
             SyntaxChemistry = Get<bool?>(configuration, SyntaxChemistry),
             SyntaxDiagrams = Get<bool?>(configuration, SyntaxDiagrams),
@@ -131,18 +131,18 @@ public sealed class AppSettingsStore : IAppSettingsStore
             SyntaxSoftBreaks = Get<bool?>(configuration, SyntaxSoftBreaks),
             ImageCopy = Get<bool?>(configuration, ImageCopy),
             ImageRelative = Get<bool?>(configuration, ImageRelative),
-            ImageFolder = Get<string>(configuration, ImageFolder),
+            ImageFolder = Get<string>(configuration, ImageFolder) ?? "assets",
             WordCountVisible = Get<bool?>(configuration, WordCountVisible),
             ContentZoom = Get<double?>(configuration, ContentZoom),
-            ExportFormat = Get<string>(configuration, ExportFormat),
+            ExportFormat = Choice(configuration, ExportFormat, "HTML", "PDF", "Markdown", "PNG", "Word"),
             ExportFolder = Get<string>(configuration, ExportFolder),
             ExportOpen = Get<bool?>(configuration, ExportOpen),
             HtmlStyle = Get<bool?>(configuration, HtmlStyle),
             WatermarkPreview = Get<bool?>(configuration, WatermarkPreview),
             WatermarkExport = Get<bool?>(configuration, WatermarkExport),
-            WatermarkText = Get<string?>(configuration, WatermarkText),
+            WatermarkText = Get<string?>(configuration, WatermarkText) ?? "维刻 Vex",
             WatermarkOpacity = Get<double?>(configuration, WatermarkOpacity),
-            PdfSize = Get<string?>(configuration, PdfSize),
+            PdfSize = Choice(configuration, PdfSize, "A4", "Letter", "A5"),
             PdfMargin = Get<double?>(configuration, PdfMargin),
             ThemeKey = Get<string>(configuration, ThemeKey),
             PaletteKey = Get<string>(configuration, PaletteKey),
@@ -266,6 +266,12 @@ public sealed class AppSettingsStore : IAppSettingsStore
         {
             // 用户设置保存失败不应打断当前编辑流程，后续可接入统一错误提示。
         }
+    }
+
+    private static string Choice(IReadOnlyDictionary<string, string> configuration, string key, string fallback, params string[] values)
+    {
+        var value = Get<string>(configuration, key);
+        return value is not null && values.Contains(value, StringComparer.Ordinal) ? value : fallback;
     }
 
     private static T? Get<T>(IReadOnlyDictionary<string, string> configuration, string key)

@@ -18,6 +18,7 @@
 | layout | 窗口尺寸、指针连续拖动、正文与代码几何 |
 | editing-tools | 格式命令、表格、演示与编辑偏好 |
 | settings-ui | 七类偏好、四语窄窗、MCP 三页签、语法、水印、图片路径、编码、自动保存与外部冲突 |
+| settings-real-ui | 同样的设置界面回归，使用仓外真实 XML 配置，验证初始化、部分更新及重新加载默认值 |
 | preferences / locale / path-identity / file-tree | 偏好持久化、语言、路径身份与文件树 |
 | buttons / danger-buttons | 八色浅深、普通 / 悬停 / 按下共 96 种按钮状态 |
 | parity | 同一份文档、1280×820 与 980×640、明暗模式、八布局和浮层截图 |
