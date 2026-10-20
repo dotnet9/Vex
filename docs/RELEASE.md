@@ -1,11 +1,10 @@
 # 发布流程规范（RELEASE）
 
-> 本文档是各仓库统一的标准发布流程。**每次发版都按本文档执行**，避免出现
-> 「Release 页只有 Full Changelog 链接」「安装包缺失」「版本号不一致」这类不规范情况。
+> 本文维护 Vex 的正式发布流程。日常原型和文档整理不自动触发提交、Tag 或发布。
 
 ## 1. 版本号约定
 
-- 版本号唯一来源：根目录 `Directory.Build.props` 的 `<Version>`（个别仓库在主 csproj，如 IEditor/QuickApp）。
+- 版本号唯一来源：根目录 `Directory.Build.props` 的 `<Version>`。
 - 发布 tag 必须与该版本一致：`<Version>1.2.3</Version>` ↔ tag `v1.2.3`。
 - README 的「当前版本」行（如有）同步更新。
 - 更新日志：有 `UpdateLog.md` 的仓库，发布前新增对应版本条目（`## 版本 (YYYY-MM-DD)`）。
@@ -56,7 +55,7 @@
 
 | 平台 | 产物 | 说明 |
 | --- | --- | --- |
-| win-x64 | `.setup.exe` | NativeAOT |
+| win-x64 | `Vex-v<版本>-win-x64-setup.exe` | NativeAOT |
 | linux-x64 / linux-arm64 | `.deb`（amd64/arm64） | NativeAOT；arm64 在 arm runner 上原生编译 |
 | osx-x64 / osx-arm64 | `.dmg` | NativeAOT；保留符号（Apple ld_classic 不支持压缩调试段） |
 

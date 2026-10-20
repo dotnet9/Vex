@@ -1,0 +1,57 @@
+/* One Mermaid configuration for reading and editable previews. Measure text
+ * with the same local font stack that is used to paint the finished SVG. */
+(() => {
+  'use strict';
+  const font = '"Segoe UI", "Microsoft YaHei UI", "PingFang SC", sans-serif';
+  const tokens = {'#d1e2f3':'--accent-soft','#253647':'--fg','#456789':'--accent','#e2d3c4':'--code-bg','#f3e4d5':'--panel','#647586':'--muted','#b4c5d6':'--border'};
+  let initialized = false;
+  function initialize() {
+    if (initialized) return;
+    const c4 = {useMaxWidth:false,diagramMarginX:24,c4ShapeMargin:32,c4ShapePadding:18,width:216,messageFontSize:14,messageFontFamily:font};
+    for (const name of ['person','external_person','system','external_system','system_db','external_system_db','system_queue','external_system_queue','boundary','container','external_container','container_db','external_container_db','container_queue','external_container_queue','component','external_component','component_db','external_component_db','component_queue','external_component_queue']) c4[name+'FontFamily'] = font;
+    mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',suppressErrorRendering:true,fontFamily:font,fontSize:14,
+      gantt:{useMaxWidth:false,useWidth:960,barHeight:30,barGap:10,topPadding:64,leftPadding:100,rightPadding:48,fontSize:14,sectionFontSize:14,axisFormat:'%m/%d'},
+      c4,
+      xyChart:{useMaxWidth:false,width:760,height:480,titleFontSize:22,titlePadding:20,xAxis:{labelFontSize:14,labelPadding:10,titleFontSize:16,titlePadding:14},yAxis:{labelFontSize:14,labelPadding:10,titleFontSize:16,titlePadding:14}},
+      themeVariables:{darkMode:false,fontFamily:font,fontSize:'14px',primaryColor:'#d1e2f3',primaryTextColor:'#253647',primaryBorderColor:'#456789',secondaryColor:'#e2d3c4',tertiaryColor:'#f3e4d5',lineColor:'#647586',textColor:'#253647',mainBkg:'#d1e2f3',nodeBorder:'#456789',clusterBkg:'#f3e4d5',clusterBorder:'#b4c5d6',edgeLabelBackground:'#f3e4d5',actorBkg:'#d1e2f3',actorBorder:'#456789',actorTextColor:'#253647',actorLineColor:'#647586',signalColor:'#253647',signalTextColor:'#253647',labelBoxBkgColor:'#f3e4d5',labelTextColor:'#253647',
+        xyChart:{backgroundColor:'#f3e4d5',titleColor:'#253647',xAxisTitleColor:'#253647',xAxisLabelColor:'#253647',xAxisTickColor:'#647586',xAxisLineColor:'#647586',yAxisTitleColor:'#253647',yAxisLabelColor:'#253647',yAxisTickColor:'#647586',yAxisLineColor:'#647586',plotColorPalette:'#456789,#647586'}
+      }});
+    initialized = true;
+  }
+  function themed(svg) {
+    return svg.replace(/#[\da-f]{6}\b/gi, color => tokens[color.toLowerCase()] ? 'var('+tokens[color.toLowerCase()]+')' : color)
+      .replace(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/g,(color,r,g,b,alpha)=>{
+        const token=tokens['#'+[r,g,b].map(x=>Number(x).toString(16).padStart(2,'0')).join('')];
+        return token ? alpha && Number(alpha)<1 ? 'color-mix(in srgb, var('+token+') '+Number(alpha)*100+'%, transparent)' : 'var('+token+')' : color;
+      });
+  }
+  async function render(id, source) {initialize(); const result=await mermaid.render(id,source);return themed(result.svg);}
+  function mount(host, source, label) {
+    const svg=host.querySelector('svg');
+    if (!svg) return;
+    svg.setAttribute('role','img');svg.setAttribute('aria-label',label || VexMermaid.label(source));
+    if (/^\s*gantt\b/m.test(source)) for (const text of svg.querySelectorAll('.tick text')) text.style.fontSize='13px';
+    // C4's hard-coded textLength compresses the stereotype glyphs. Keep their
+    // original centre, but let the chosen font use its natural letter widths.
+    if (/^\s*C4/m.test(source)) {
+      for (const text of svg.querySelectorAll('text[textLength]')) {
+        text.setAttribute('x',Number(text.getAttribute('x'))+Number(text.getAttribute('textLength'))/2);
+        text.setAttribute('text-anchor','middle');text.removeAttribute('textLength');text.removeAttribute('lengthAdjust');
+        text.setAttribute('font-style','normal');text.setAttribute('font-size','14');
+        text.setAttribute('font-family',font);
+      }
+      for (const text of svg.querySelectorAll('text')) if (text.getAttribute('fill')==='#444444') text.setAttribute('fill','var(--fg)');
+      for (const shape of svg.querySelectorAll('[fill="#999999"]')) shape.setAttribute('fill','#586572');
+      for (const edge of svg.querySelectorAll('[stroke="#444444"], [stroke="#444"]')) edge.setAttribute('stroke','var(--muted)');
+      for (const arrow of svg.querySelectorAll('marker [fill="#444444"], marker [fill="#444"]')) arrow.setAttribute('fill','var(--muted)');
+    }
+    const box=svg.viewBox.baseVal;
+    if (box.width>0 && box.height>0) {
+      svg.style.width=box.width+'px';svg.style.height=box.height+'px';svg.style.maxWidth='none';
+      svg.setAttribute('width',box.width);svg.setAttribute('height',box.height);
+    }
+    host.tabIndex=0;
+    host.setAttribute('aria-label',(label || VexMermaid.label(source))+'，宽图可横向滚动');
+  }
+  window.VexDiagramRendering={render,mount};
+})();

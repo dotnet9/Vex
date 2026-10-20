@@ -1,0 +1,60 @@
+/* 一处品牌、一个主标题、一个主操作。所有状态保留相同窗口与操作位置。 */
+body[data-platform="windows"] .windows-minimal { width:640px; height:360px; min-height:360px; border-radius:8px; }
+body[data-platform="windows"] .windows-minimal .installer-layout { height:358px; min-height:358px; }
+.windows-minimal .window-close { position:absolute; top:0; right:0; z-index:2; display:grid; place-items:center; width:46px; height:32px; padding:0; color:var(--muted); border-radius:0; }
+.windows-minimal .window-close:hover { background:#c42b1c; color:#fff; }
+.windows-minimal .window-close:active { background:#a92317; color:#fff; }
+.windows-minimal .window-close:focus-visible { outline-offset:-3px; }
+body[data-platform="windows"] .windows-minimal .brand-panel { width:180px; padding:24px 16px; justify-content:center; align-items:center; }
+.windows-minimal .brand-panel::before { top:auto; bottom:-230px; left:-180px; width:440px; height:440px; border-color:#24766b16; }
+.windows-minimal .brand-panel::after { display:none; }
+.windows-minimal .brand-identity { display:flex; flex-direction:column; align-items:center; gap:18px; position:relative; z-index:1; }
+body[data-platform="windows"] .windows-minimal .hero-icon { width:56px; height:56px; margin:0; filter:none; }
+body[data-platform="windows"] .windows-minimal .brand-panel h1 { font-size:20px; font-weight:600; letter-spacing:0; margin:0; }
+body[data-platform="windows"] .windows-minimal .installer-content { padding:28px 28px 22px; min-width:0; }
+body[data-platform="windows"] .windows-minimal .installer-content h2 { font-size:22px; font-weight:650; margin:0 0 8px; line-height:1.5; }
+body[data-platform="windows"] .windows-minimal .description { font-size:14px; margin:0; line-height:1.8; }
+body[data-platform="windows"] .windows-minimal .install-meta { font-size:12px; line-height:20px; color:var(--muted); margin:12px 0 20px; display:block; }
+body[data-platform="windows"] .windows-minimal .install-details { margin:0; border-radius:7px; }
+body[data-platform="windows"] .windows-minimal .install-details summary { padding:11px 12px; font-size:13px; align-items:center; gap:12px; }
+.windows-minimal .install-details summary::after { display:none; }
+.windows-minimal .install-chevron { width:20px; height:20px; flex:0 0 20px; transition:transform 180ms cubic-bezier(.2,.8,.2,1); }
+.windows-minimal .install-details[open] .install-chevron { transform:rotate(180deg); }
+body[data-platform="windows"] .windows-minimal .install-actions { margin-top:auto; padding-top:20px; gap:10px; align-items:center; }
+.windows-minimal .action-spacer { flex:1; }
+.windows-minimal .license-link { font-size:12px; color:var(--muted); text-decoration:none; white-space:nowrap; }
+.windows-minimal .license-link:hover { color:var(--accent); text-decoration:underline; }
+body[data-platform="windows"] .windows-minimal .install-actions .btn { min-width:68px; min-height:36px; font-size:13px; font-weight:500; }
+body[data-platform="windows"] .windows-minimal .install-actions .primary { min-width:104px; font-weight:600; }
+body[data-platform="windows"] .windows-minimal .step-caption { font-size:12px; margin:0 0 14px; }
+.windows-minimal .information-card { font-size:13px; line-height:1.8; margin:16px 0 8px; padding:12px; }
+.windows-minimal .information-card .install-file { font:inherit; color:inherit; }
+.windows-minimal .maintenance-links { display:flex; gap:10px; }
+.windows-minimal .maintenance-links .btn { font-size:12px; padding:6px 2px; min-height:30px; }
+.windows-minimal .install-file { font-size:12px; overflow-wrap:anywhere; }
+.windows-minimal .progress-wrap { transition:--install-progress .2s linear; }
+.windows-minimal .progress-header { position:relative; height:18px; margin:28px 0 8px; font-size:12px; }
+.windows-minimal .progress-track span { transition:none; }
+body[data-platform="windows"] .windows-minimal .installer-content:has(.install-details[open]) .install-details { flex:0 0 auto; }
+.windows-minimal .detail-body { padding:0 14px 16px; }
+body[data-platform="windows"] .windows-minimal .detail-body { padding:12px; }
+body[data-platform="windows"] .windows-minimal .detail-body label { font-size:14px; }
+body[data-platform="windows"] .windows-minimal .detail-body .option-row { display:flex; min-height:24px; margin:8px 0 0; }
+body[data-platform="windows"] .windows-minimal .directory-row .btn { font-size:14px; }
+body[data-platform="windows"] .windows-minimal .directory-row .field { font-size:14px; }
+.windows-minimal .option-row input { margin:0; width:14px; height:14px; flex-shrink:0; }
+.windows-minimal .progress-header > span { display:none; }
+.windows-minimal .progress-header strong { position:absolute; left:clamp(18px,var(--install-progress),calc(100% - 18px)); width:36px; margin:0; line-height:18px; text-align:center; white-space:nowrap; font-variant-numeric:tabular-nums; transform:translateX(-50%); }
+body[data-platform="windows"] .system-dialog > img { display:none; }
+.windows-minimal .success-symbol,.windows-minimal .error-symbol { width:36px; height:36px; font-size:20px; margin:0 0 16px; }
+#installer-root[data-state="ready"] .windows-minimal .installer-content h2 { margin-bottom:20px; }
+#installer-root[data-state="done"] .windows-minimal .installer-content { justify-content:center; align-items:center; text-align:center; }
+#installer-root[data-state="done"] .windows-minimal .installer-content h2 { margin-bottom:0; }
+#installer-root[data-state="done"] .windows-minimal .description { margin-top:10px; text-wrap:balance; }
+#installer-root[data-state="done"] .windows-minimal .install-actions { margin-top:24px; padding-top:0; justify-content:center; }
+#installer-root[data-state="done"] .windows-minimal .action-spacer { display:none; }
+@media(max-width:600px) {
+  body[data-platform="windows"] .windows-minimal { min-height:100dvh; height:100dvh; }
+  body[data-platform="windows"] .windows-minimal .installer-layout { min-height:100dvh; height:100dvh; }
+  body[data-platform="windows"] .windows-minimal .installer-content { padding:40px 24px 24px; }
+}

@@ -39,7 +39,7 @@
 
 章节检查包含 CRLF、Setext、YAML、围栏代码、H6 限制、循环移动保护，以及防抖期间可靠的源码区间映射。删除需确认，并可保留内容。引导完成 / 跳过恢复原文、修改状态、共享历史、布局、偏好、导图视口及原独立窗口实例。
 
-对照参考只来自 [Vex-Flutter/design](https://github.com/dotnet9/Vex-Flutter/tree/main/design)，截图和样本文档存到仓外验收目录。本仓库的 `desktop-parity` 模式验证真实 Avalonia 布局，不生成或维护 HTML 原型。
+设计对照使用 [本仓库原型](../../design/index.html)。`desktop-parity` 验证真实 Avalonia 布局；原型预览与检查入口见 [设计说明](../../docs/design/原型设计.md)。截图输出使用独立验收目录。
 
 长文档性能，最后一个参数可替换为其他只读样本：
 

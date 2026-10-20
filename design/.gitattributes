@@ -1,0 +1,3 @@
+# Preserve published third-party bytes, including whitespace in string literals.
+assets/vendor/** -text -whitespace linguist-vendored
+assets/fonts/** -text -whitespace linguist-vendored

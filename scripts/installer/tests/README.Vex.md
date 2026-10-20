@@ -8,7 +8,7 @@ Windows 首屏为 520×366，展开设置为 520×572，维护为 520×448。单
 
 ## 运行
 
-需要 PowerShell 7、Inno Setup 6；如对照外部参考截图，另外需要 Pillow；参考图从 Vex-Flutter 原型获取，保存到仓外目录。
+需要 PowerShell 7、Inno Setup 6；如对照外部参考截图，另外需要 Pillow；参考图从 [本仓库原型](../../../design/index.html) 获取，保存到仓外目录。
 
 ```powershell
 ./scripts/installer/tests/verify_vex_visual.ps1 `

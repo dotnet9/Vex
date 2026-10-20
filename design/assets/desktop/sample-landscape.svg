@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="360" viewBox="0 0 1000 360" role="img" aria-label="山间湖畔的日出">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#e4eee7"/><stop offset="1" stop-color="#f5e8cf"/></linearGradient>
+    <linearGradient id="lake" x2="0" y2="1"><stop stop-color="#a4c3b6"/><stop offset="1" stop-color="#d7e2d8"/></linearGradient>
+  </defs>
+  <rect width="1000" height="360" rx="14" fill="url(#sky)"/>
+  <circle cx="733" cy="101" r="41" fill="#efd59f"/>
+  <path d="M0 213 150 102 290 196 443 68 610 205 793 119 1000 205V360H0Z" fill="#9cb5a8"/>
+  <path d="m350 143 93-75 83 68-56-12-30-30-42 45Z" fill="#e4e9dc"/>
+  <path d="M0 235 197 166 360 229 569 149 774 237 1000 171V360H0Z" fill="#648c7b"/>
+  <path d="M0 252Q250 226 500 253T1000 248V360H0Z" fill="url(#lake)"/>
+  <path d="M510 283h239m-199 17h253m-210 18h115" fill="none" stroke="#edf0dd" stroke-width="3" stroke-linecap="round"/>
+  <path d="M0 318q100-35 196 9t170 33H0Z" fill="#3a6352"/>
+</svg>

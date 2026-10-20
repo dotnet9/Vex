@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>维刻 Vex · 原型评审清单</title><link rel="icon" href="assets/vex-logo.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:light;--ink:#233c36;--muted:#64766f;--accent:#24766b;--line:#dce5df;--paper:#fff;--bg:#f3f6f3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.75 system-ui,"Microsoft YaHei UI",sans-serif}main{max-width:1080px;margin:40px auto;padding:0 24px 40px}header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:42px}header a{color:var(--muted);font-size:13px}.brand{display:flex;align-items:center;gap:10px;font-weight:700}.brand img{width:30px;height:30px}h1{font-size:32px;line-height:1.4;margin:12px 0}h2{font-size:16px;margin:0 0 9px}p{margin:8px 0;color:var(--muted)}.lead{max-width:720px}.eyebrow{font-size:12px;color:var(--accent)}.primary{display:inline-block;margin:18px 0 8px;padding:10px 19px;border-radius:7px;background:var(--accent);color:white;text-decoration:none;font-weight:600}.notice{font-size:12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:30px}.card{padding:22px;border:1px solid var(--line);background:var(--paper);border-radius:10px}.card a,.scenarios a{color:var(--accent);font-size:13px;text-underline-offset:3px}.step{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;background:#e6f0eb;color:var(--accent);border-radius:6px;margin-right:8px;font-size:12px}.scenarios{margin-top:26px;padding:24px;background:var(--paper);border:1px solid var(--line);border-radius:10px}.scenario-links{display:flex;flex-wrap:wrap;gap:9px 20px;margin-top:14px}footer{margin-top:25px;font-size:12px;color:var(--muted)}@media(max-width:700px){main{margin-top:24px;padding:0 16px 24px}.grid{grid-template-columns:1fr}h1{font-size:27px}header{margin-bottom:25px}.card{padding:18px}}
+</style>
+</head>
+<body><main>
+<header><div class="brand"><img src="assets/vex-logo.svg" alt="">维刻 Vex · 原型验证</div><a href="index.html">返回原型导航</a></header>
+<div class="eyebrow">工作区 · 外观 · 异常流程</div><h1>让文章回到界面中心</h1>
+<p class="lead">顶部统一选择视图，左侧查找文件，右侧按需查看大纲、文章信息与章节详情。先走一遍写作路径，再检查多视图和边界场景。每个入口使用隔离的默认显示设置。</p>
+<a class="primary" href="Vex.html?preview=1">打开桌面原型 →</a>
+<p class="notice">内容只保留在当前页面，刷新会重置；“保存副本”通过浏览器下载，不写回来源文件。</p>
+<div class="grid">
+<article class="card"><h2><span class="step">1</span>视图只从一个入口选</h2><p>顶部中央显示当前视图；即时编辑、源码、阅读、导图及组合共八种选项。选择后自动收起菜单，多视图中的当前操作栏轻度强调。</p><a href="Vex.html?preview=1&amp;layout=three">检查八种视图与键盘切换</a></article>
+<article class="card"><h2><span class="step">2</span>看清修改与保存状态</h2><p>修改后查看文件名下的“未保存修改”；点击状态查看来源、下载位置与时间。下载失败时保留内容并可重试。</p><a href="Vex.html?preview=1&amp;scenario=save-error">检查首次下载失败 → 重试</a></article>
+<article class="card"><h2><span class="step">3</span>文件栏更清楚</h2><p>浅色背景、宽松行距与清晰选中态；底部保留新建、文件夹和更多。折叠与列表切换收进更多。左侧按文件名查找，Ctrl+F 查正文。</p><a href="Vex.html?preview=1&amp;scenario=long-files">检查同名文件、深目录和搜索</a></article>
+<article class="card"><h2><span class="step">4</span>正文与工具各就其位</h2><p>编辑工具留在编辑栏，阅读限制行宽，源码和表格充分用宽。减少边框与阴影，保留墨青色。新手引导从帮助菜单打开。</p><a href="Vex.html?preview=1">检查默认写作界面</a></article>
+<article class="card"><h2><span class="step">5</span>联动由自己掌控</h2><p>在多视图底栏切换“联动开启／自由浏览”，查看另一章节后，点击“回到编辑位置”找回写作位置。</p><a href="Vex.html?preview=1&amp;scenario=long-document&amp;layout=source-render">检查长文自由浏览与返回</a></article>
+<article class="card"><h2><span class="step">6</span>辅助信息集中到右侧</h2><p>大纲、文章信息、章节详情共用可关闭的面板，默认收起。导图选中章节后，在这里编辑标题和正文，移动、升降级与撤销仍可用。</p><a href="Vex.html?preview=1&amp;layout=map">检查章节详情、拖动与撤销</a></article>
+<article class="card"><h2><span class="step">7</span>底栏更轻，小窗口也能写</h2><p>左侧只留文件、大纲；右侧显示字数和选区统计，点击查看文章信息。窄窗口辅助面板覆盖显示，点击正文或 Escape 收起，正文宽度保持稳定。</p><a href="Vex.html?preview=1&amp;layout=source">检查底栏、面板与窄窗口</a></article>
+<article class="card"><h2><span class="step">8</span>换成自己的文章也能判断</h2><p>空白、无标题、长文和深目录均可验证。字数说明中文按字、英文按词，并支持选区统计；正文排版卡片直接显示各自的标题、正文与引用；默认推荐六套，可一键查看全部二十七套。</p><a href="Vex.html?preview=1&amp;scenario=new">检查空白文档与独立排版预览</a></article>
+<article class="card"><h2><span class="step">9</span>先推荐，再看全部</h2><p>配色推荐五套、排版推荐六套，全部方案保留。用途说明帮助选择，勾选表达当前方案；明暗与配色只修改软件内部。</p><a href="Vex.html?preview=1&amp;layout=read">检查推荐、用途与全部方案</a></article>
+<article class="card"><h2><span class="step">10</span>外部变更先比较</h2><p>模拟外部修改后，比较当前与外部版本；可保留当前、下载副本或载入外部版本。取消保持位置，载入后可以撤销。</p><a href="Vex.html?preview=1&amp;scenario=external-change&amp;layout=source">检查比较、取消与撤销</a></article>
+<article class="card"><h2><span class="step">11</span>导出失败也能继续</h2><p>从文件菜单导出 HTML，首次失败后显示持续提示；重试保留正文、排版与 Markdown 的未保存状态。</p><a href="Vex.html?preview=1&amp;scenario=export-error&amp;layout=read">检查导出 HTML 与重试</a></article>
+<article class="card"><h2><span class="step">12</span>后续调整有据可依</h2><p>统一颜色角色、对比度、文字层级、控件状态、键盘、菜单宽度和数据保护要求，并列出可执行验收门槛。</p><a href="原型设计准则.md">阅读原型设计准则</a></article>
+</div>
+<section class="scenarios"><h2>边界场景直达</h2><div class="scenario-links">
+<a href="Vex.html?preview=1&amp;scenario=empty">首次空工作区</a><a href="Vex.html?preview=1&amp;scenario=new">未命名空白文档</a><a href="Vex.html?preview=1&amp;scenario=no-headings&amp;layout=map">没有标题的导图</a><a href="Vex.html?preview=1&amp;scenario=long-document&amp;layout=three">长文三视图</a><a href="Vex.html?preview=1&amp;scenario=long-files">长文件名与深目录</a><a href="Vex.html?preview=1&amp;scenario=draft">草稿恢复</a><a href="Vex.html?preview=1&amp;scenario=save-error">下载失败与重试</a><a href="Vex.html?preview=1&amp;scenario=export-error">导出失败与重试</a><a href="Vex.html?preview=1&amp;scenario=external-change">外部版本比较</a><a href="Vex.html?preview=1&amp;theme=dark&amp;layout=three">深色三视图</a>
+</div></section>
+<footer>建议走一遍：打开文档 → 修改一段 → 调整章节 → 撤销 → 保存副本并确认下载 → 导出 HTML 并检查内容。原型与应用的差异见设计说明；应用行为需在对应平台验证。</footer>
+</main></body></html>

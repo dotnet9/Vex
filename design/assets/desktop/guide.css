@@ -1,0 +1,76 @@
+/* 引导卡片留在应用窗口内；练习正文保持原有排版。 */
+.guide-launch { display:inline-flex; align-items:center; gap:7px; padding:5px 8px; border:0; border-radius:5px; color:var(--accent); background:transparent; font-size:11px; white-space:nowrap; }
+.guide-launch:hover { background:var(--accent-soft); }
+.guide-launch i { width:5px; height:5px; border-radius:50%; background:currentColor; }
+.app-window.guide-restoring .sidebar { transition:none!important; }
+.tour-layer { position:fixed; inset:0; z-index:2000; pointer-events:none; }
+.tour-mask { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.tour-scrim { fill:#10182b88; }
+:root[data-theme="dark"] .tour-scrim { fill:#02050ba8; }
+.tour-focus { position:fixed; pointer-events:none; border:1px solid color-mix(in srgb,var(--accent) 65%,transparent); border-radius:7px; box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 9%,transparent); }
+.tour-focus[data-kind="text"] { border:0; border-left:3px solid var(--accent); border-radius:0; box-shadow:none; background:color-mix(in srgb,var(--accent) 3%,transparent); }
+.tour-focus[data-kind="area"] { border-color:color-mix(in srgb,var(--accent) 25%,transparent); box-shadow:none; }
+.tour-card { position:fixed; width:320px; max-width:calc(100vw - 36px); overflow:auto; border-radius:11px; padding:18px; color:var(--fg); background:var(--panel); border:1px solid var(--border); box-shadow:0 14px 48px #0004; pointer-events:auto; }
+.tour-meta { display:flex; align-items:center; gap:8px; margin-bottom:13px; font-size:11px; color:var(--muted); }
+.tour-count { margin-left:auto; font-variant-numeric:tabular-nums; }
+.tour-close { background:none; border:0; padding:3px; color:var(--muted); font-size:18px; line-height:1; border-radius:4px; }
+.tour-close:hover { color:var(--fg); background:var(--hover); }
+.tour-card h2 { margin:0 0 9px; font-size:18px; font-weight:650; line-height:1.4; }
+.tour-description { font-size:12.5px; line-height:1.8; color:var(--fg); margin:0; }
+.tour-feedback { font-size:11px; line-height:1.75; min-height:38px; color:var(--muted); margin:10px 0 0; }
+.tour-feedback.done { color:var(--success); }
+.tour-feedback.done::before { content:'✓ '; }
+.tour-progress { display:flex; gap:5px; margin-top:12px; }
+.tour-progress button { flex:1; height:12px; padding:4px 0; border:0; background:transparent; }
+.tour-progress button::before { content:''; display:block; height:3px; background:var(--border); border-radius:3px; }
+.tour-progress button.passed::before { background:color-mix(in srgb,var(--accent) 40%,var(--border)); }
+.tour-progress button[aria-current="step"]::before { background:var(--accent); }
+.tour-actions { display:flex; align-items:center; gap:8px; margin-top:12px; }
+.tour-actions button { font-size:11px; min-height:31px; border-radius:6px; padding:6px 12px; }
+.tour-skip { color:var(--muted); border:0; background:transparent; margin-right:auto; padding-left:0!important; }
+.tour-previous { color:var(--fg); background:var(--panel); border:1px solid var(--border); }
+.tour-next { color:var(--accent-fg); background:var(--accent); border:1px solid var(--accent); display:flex; align-items:center; gap:13px; }
+.tour-next:hover { filter:brightness(1.08); }
+.tour-more { color:var(--muted); font-size:11px; line-height:1.75; margin-top:6px; }
+.tour-more summary { cursor:pointer; color:var(--accent); }
+.tour-more p { margin:6px 0 0; }
+/* 成都慢游演示：动作期间保持短提示，成果阶段再展开说明。 */
+.story-tour .story-card { box-sizing:border-box; width:376px; padding:22px 24px 20px; border-radius:14px; border-color:color-mix(in srgb,var(--accent) 16%,var(--border)); background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 96%,var(--accent) 4%),var(--panel)); box-shadow:0 20px 54px #0005; }
+.story-tour .story-card[data-mode="intro"],
+.story-tour .story-card[data-mode="result"] { width:408px; max-width:calc(100vw - 32px); }
+.story-tour .story-card h2 { margin:7px 0 8px; font-size:21px; letter-spacing:-.02em; line-height:1.35; }
+.story-tour .story-meta .story-titlebar { margin:0; font-size:18px; font-weight:750; line-height:1.25; }
+.story-tour .story-card .tour-description { color:var(--muted); font-size:14px; line-height:1.75; }
+.story-meta { display:flex; align-items:center; justify-content:space-between; min-height:28px; margin:0; color:var(--muted); font-size:11px; }
+.story-titlebar { color:var(--fg); font-size:18px; font-weight:750; line-height:1.25; letter-spacing:-.02em; }
+.story-heading { display:flex; align-items:baseline; gap:10px; min-width:0; }
+.story-meta .story-count { display:inline-flex; flex:0 0 auto; color:var(--muted); font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; letter-spacing:.02em; }
+.story-meta .story-heading .story-titlebar { min-width:0; }
+.story-meta .tour-close { position:static; flex:0 0 28px; width:28px; height:28px; margin-left:auto; padding:0; display:grid; place-items:center; border-radius:50%; font-size:17px; }
+.story-meta .tour-close:hover { background:var(--accent-soft); color:var(--accent); }
+.story-intro-copy { margin:13px 0 0; color:var(--muted); font-size:12px; line-height:1.85; }
+.story-live { min-height:0; margin-top:7px; color:var(--fg); font-size:14px; line-height:1.75; }
+.story-tour .story-card.demo-hidden { visibility:hidden; pointer-events:none; }
+.story-tour .tour-light-tip { position:fixed; z-index:4; box-sizing:border-box; max-width:min(360px,calc(100vw - 24px)); padding:7px 11px; border:1px solid color-mix(in srgb,var(--accent) 28%,var(--border)); border-radius:999px; color:var(--fg); background:color-mix(in srgb,var(--panel) 94%,var(--accent) 6%); box-shadow:0 8px 24px #0004; font-size:12px; line-height:1.45; white-space:nowrap; pointer-events:none; }
+.story-actions { position:relative; display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px; padding-top:15px; border-top:1px solid color-mix(in srgb,var(--border) 78%,transparent); }
+.story-actions .tour-skip { margin-right:auto; }
+.story-actions .action-count { position:absolute; left:50%; transform:translateX(-50%); color:var(--muted); font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; }
+.story-actions .tour-previous { flex:0 0 auto; }
+.story-next-note { margin:14px 0 0; padding:10px 12px; border-radius:7px; background:var(--accent-soft); color:var(--muted); font-size:11px; line-height:1.7; }
+.tour-cursor { position:fixed; z-index:3; width:18px; height:18px; display:grid; place-items:center; border-radius:50%; color:var(--accent-fg); background:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent),0 5px 16px #0004; font-size:12px; line-height:1; pointer-events:none; transition:left .25s ease,top .25s ease; }
+.story-tour[data-mode="intro"] .tour-scrim { fill:#10182b66; }
+.story-tour[data-mode="result"] .tour-scrim,
+.story-tour[data-mode="final"] .tour-scrim { fill:#10182b3d; }
+.story-tour[data-mode="intro"] .tour-card { box-shadow:0 18px 58px #0005; }
+.story-tour[data-mode="result"] .tour-card { box-shadow:0 18px 58px #0005; }
+/* 演练期间把布局选择压缩为小面板，正文仍可用于比较；面板开关不移动引导卡片。 */
+.app-window[data-guide-step="4"] .workspace-layout-menu { right:16px; width:420px; padding:14px; }
+.app-window[data-guide-step="4"] .workspace-layout-menu>p { margin-bottom:10px; }
+.app-window[data-guide-step="4"] .layout-preset { padding:7px; gap:3px; }
+.app-window[data-guide-step="4"] .layout-preset small { display:none; }
+.app-window[data-guide-step="4"] .layout-preset strong { min-height:28px; font-size:10px; line-height:14px; }
+.app-window[data-guide-step="4"] .layout-miniature { height:34px; margin-bottom:0; padding:3px; }
+.app-window[data-guide-step="4"] .workspace-layout-footer { margin-top:10px; padding-top:8px; }
+@media (max-width:760px) { .guide-launch span { display:none; } .tour-card { width:292px; padding:16px; } }
+@media (max-width:760px) { .story-tour .story-card, .story-tour .story-card[data-mode="intro"], .story-tour .story-card[data-mode="result"] { width:calc(100vw - 32px); } .story-actions { flex-wrap:wrap; } .story-actions .action-count { position:static; transform:none; margin-left:auto; flex:0 0 auto; } }
+@media (prefers-reduced-motion:reduce) { .tour-layer * { animation:none!important; transition:none!important; } }

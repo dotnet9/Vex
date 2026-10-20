@@ -1,6 +1,6 @@
 # Vex 1.6.5 验证记录
 
-日期：2026-10-20。Windows 本机开发与验证使用 CodeWF.Avalonia 12.1.4.33 本地 NuGet 包，五个包位于 `E:/github/temp_nugets`，通过仓外临时 NuGet 配置还原。无跨仓项目引用；本仓 `design`、`scripts/prototype`、原型构建工作流及原型截图均已删除，唯一设计源为 [Vex-Flutter/design](https://github.com/dotnet9/Vex-Flutter/tree/main/design)。
+日期：2026-10-20。Windows 本机开发与验证使用 CodeWF.Avalonia 12.1.4.33 本地 NuGet 包，五个包位于 `E:/github/temp_nugets`，通过仓外临时 NuGet 配置还原。无跨仓项目引用。本记录保留当时的功能、原生和发布证据；当前原型入口见 [设计说明](design/原型设计.md)。
 
 另将被 Git 忽略的 `artifacts/parity/prototype` 旧截图与样本文档、四份原型生成日志移至仓外验收目录，仓内不再保留第二处原型产物。
 

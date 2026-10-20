@@ -1,0 +1,24 @@
+/* Shared by every typography: column widths follow content, not column count. */
+.md-table-scroll {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  margin: 1em 0;
+}
+.md-table-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.app-window .md-body table,
+.typography-reading .type-document table,
+.review-paper .md-body table,
+.markdown-body table {
+  table-layout: auto;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+}
+.md-body :is(th, td), .type-document :is(th, td) {
+  width: auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
