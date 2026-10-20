@@ -56,7 +56,13 @@ public sealed class ShellActionCoordinator
                     await _shell.NewDocument();
                     break;
                 case ShellActionKind.NewWindow:
-                    OpenNewWindow();
+                    Process.Start(ShellProcessLauncher.CreateStartInfo(command.Parameter));
+                    break;
+                case ShellActionKind.RefreshFiles:
+                    await _shell.RefreshFilesAsync();
+                    break;
+                case ShellActionKind.OpenPathLocation:
+                    if (command.Parameter is { Length: > 0 } location) await _shell.OpenPathLocationAsync(location);
                     break;
                 case ShellActionKind.Open:
                     await _shell.OpenAsync();
@@ -137,14 +143,6 @@ public sealed class ShellActionCoordinator
         return int.TryParse(indexText, out var index)
             ? _shell.OpenRecentDocumentAsync(index)
             : Task.CompletedTask;
-    }
-
-    private static void OpenNewWindow()
-    {
-        if (!string.IsNullOrWhiteSpace(Environment.ProcessPath))
-        {
-            Process.Start(new ProcessStartInfo(Environment.ProcessPath) { UseShellExecute = true });
-        }
     }
 
     private async Task ShowQuickOpenAsync()

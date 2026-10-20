@@ -1,6 +1,6 @@
 namespace Vex.Core.Models;
 
-public sealed class DocumentFileNode
+public sealed class DocumentFileNode : System.ComponentModel.INotifyPropertyChanged
 {
     public DocumentFileNode(
         string name,
@@ -31,4 +31,17 @@ public sealed class DocumentFileNode
     public string ModifiedText => DocumentFile?.ModifiedText ?? string.Empty;
 
     public string Preview => DocumentFile?.Preview ?? string.Empty;
+
+    private bool _isExpanded = true;
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            if (_isExpanded == value) return;
+            _isExpanded = value;
+            PropertyChanged?.Invoke(this, new(nameof(IsExpanded)));
+        }
+    }
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
 }

@@ -133,6 +133,16 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ShellRecentDocumentsViewModel Recent { get; }
     public ShellStatusViewModel Status { get; }
 
+    public Task OpenPathLocationAsync(string path) => OpenFileLocationCoreAsync(path);
+    public async Task RefreshFilesAsync()
+    {
+        if (_currentWorkspaceFolderPath is not { Length: > 0 } folder || !Directory.Exists(folder)) return;
+        var files = await _documentService.OpenFolderPathAsync(folder);
+        _documentFiles = files;
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(files,
+            files.FirstOrDefault(file => file.Path == _document.FilePath), folder));
+    }
+
     public async Task OpenStartupDocumentAsync(IEnumerable<string> arguments)
     {
         var normalizedArguments = arguments.ToArray();

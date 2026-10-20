@@ -24,5 +24,7 @@ public enum ShellActionKind
     ShowReplacePanel,
     WordCount,
     ShowMcpSettings,
-    ShowMcpAudit
+    ShowMcpAudit,
+    RefreshFiles,
+    OpenPathLocation
 }

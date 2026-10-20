@@ -5,6 +5,7 @@ using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Models;
 using Vex.Core.Regions;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
@@ -12,9 +13,15 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 {
     private DocumentFileNode? _selectedDocumentFileNode;
     private DocumentFileNode? _contextDocumentFileNode;
+    private readonly IAppSettingsStore? _settingsStore;
+    private bool _isListView;
+    private bool _sortDescending;
 
-    public ShellFilesViewModel()
+    public ShellFilesViewModel(IAppSettingsStore? settingsStore = null)
     {
+        _settingsStore = settingsStore;
+        _isListView = settingsStore?.Current.FileListView ?? false;
+        _sortDescending = settingsStore?.Current.FileSortDescending ?? false;
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 
@@ -24,6 +31,42 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
     // 侧栏过滤（对应原型「侧栏内搜索」）：TreeView 绑定过滤后的列表，主列表保留用于选中恢复
     public ObservableCollection<DocumentFileNode> FilteredDocumentFileNodes { get; } = [];
+    public ObservableCollection<DocumentFileNode> FlatDocumentFileNodes { get; } = [];
+    public bool IsListView => _isListView;
+    public bool IsTreeView => !_isListView;
+    public bool CanCollapseAll => IsTreeView && Enumerate(FilteredDocumentFileNodes).Any(node => node.IsFolder && node.IsExpanded);
+    public bool HasPathCommandTarget => (_contextDocumentFileNode ?? SelectedDocumentFileNode) is not null;
+    public void NewDocument() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.NewDocument));
+    public void QuickOpen() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.QuickOpen));
+    public void RefreshFiles() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.RefreshFiles));
+    public void ClearFilter() => FilterText = string.Empty;
+    public void ToggleListView()
+    {
+        _isListView = !_isListView;
+        OnPropertyChanged(nameof(IsListView)); OnPropertyChanged(nameof(IsTreeView)); OnPropertyChanged(nameof(CanCollapseAll));
+        _settingsStore?.Update(settings => settings with { FileListView = _isListView });
+    }
+    public void ToggleSort()
+    {
+        _sortDescending = !_sortDescending;
+        RebuildFilteredNodes();
+        _settingsStore?.Update(settings => settings with { FileSortDescending = _sortDescending });
+    }
+    public void CollapseAll()
+    {
+        foreach (var node in Enumerate(FilteredDocumentFileNodes).Where(node => node.IsFolder)) node.IsExpanded = false;
+        OnPropertyChanged(nameof(CanCollapseAll));
+    }
+    private static IEnumerable<DocumentFileNode> Enumerate(IEnumerable<DocumentFileNode> nodes)
+    {
+        foreach (var node in nodes) { yield return node; foreach (var child in Enumerate(node.Children)) yield return child; }
+    }
+    public void OpenInNewWindow()
+    {
+        if ((_contextDocumentFileNode ?? SelectedDocumentFileNode) is not { } node) return;
+        ClearContextDocumentFile();
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.NewWindow, node.Path));
+    }
 
     private string? _workspacePath;
     public string WorkspaceName => _workspacePath is { Length: > 0 } path ? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) : CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.SidebarFiles) ?? string.Empty;
@@ -56,6 +99,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
             {
                 OnPropertyChanged(nameof(HasSelectedDocumentFile));
                 OnPropertyChanged(nameof(HasDocumentFileCommandTarget));
+                OnPropertyChanged(nameof(HasPathCommandTarget));
                 if (value?.DocumentFile is { } file)
                 {
                     CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFileOpenRequestedCommand(file, previousSelection));
@@ -96,13 +140,13 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
     public void OpenSelectedFileLocation()
     {
-        if (GetDocumentFileCommandTarget() is not { } file)
+        if ((_contextDocumentFileNode ?? SelectedDocumentFileNode) is not { } node)
         {
             return;
         }
 
         ClearContextDocumentFile();
-        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFileOpenLocationRequestedCommand(file));
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.OpenPathLocation, node.Path));
     }
 
     public void DeleteSelectedFile()
@@ -120,6 +164,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     {
         _contextDocumentFileNode = documentFileNode;
         OnPropertyChanged(nameof(HasDocumentFileCommandTarget));
+        OnPropertyChanged(nameof(HasPathCommandTarget));
     }
 
     [EventHandler]
@@ -128,10 +173,17 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         // 文件列表只接收 Shell 发布的快照，不直接调用主 ViewModel 的文件打开流程。
         _workspacePath = command.WorkspaceRootPath;
         OnPropertyChanged(nameof(WorkspaceName));
+        var expansion = Enumerate(DocumentFileNodes).Where(node => node.IsFolder).ToDictionary(node => node.Path, node => node.IsExpanded);
         DocumentFileNodes.Clear();
         foreach (var node in BuildDocumentFileNodes(command.Files, command.WorkspaceRootPath))
         {
             DocumentFileNodes.Add(node);
+        }
+
+        foreach (var node in Enumerate(DocumentFileNodes).Where(node => node.IsFolder))
+        {
+            if (expansion.TryGetValue(node.Path, out var expanded)) node.IsExpanded = expanded;
+            node.PropertyChanged += (_, _) => OnPropertyChanged(nameof(CanCollapseAll));
         }
 
         RebuildFilteredNodes();
@@ -156,7 +208,7 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     }
 
     private DocumentFile? GetDocumentFileCommandTarget() =>
-        _contextDocumentFileNode?.DocumentFile ?? SelectedDocumentFileNode?.DocumentFile;
+        (_contextDocumentFileNode ?? SelectedDocumentFileNode)?.DocumentFile;
 
     private void ClearContextDocumentFile()
     {
@@ -173,14 +225,16 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     {
         OnPropertyChanged(nameof(HasDocumentFiles));
         OnPropertyChanged(nameof(IsDocumentFilesEmpty));
+        OnPropertyChanged(nameof(CanCollapseAll));
     }
 
     // 按名称 / 摘要过滤文档；文件夹保留仍有命中的子树。命中文档节点复用主列表实例，保证选中绑定不受影响。
     private void RebuildFilteredNodes()
     {
         FilteredDocumentFileNodes.Clear();
+        FlatDocumentFileNodes.Clear();
         var filter = _filterText?.Trim();
-        foreach (var node in DocumentFileNodes)
+        foreach (var node in _sortDescending ? DocumentFileNodes.Reverse() : DocumentFileNodes)
         {
             if (BuildFilteredNode(node, filter) is { } filtered)
             {
@@ -188,30 +242,42 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
             }
         }
 
+        var flat = Enumerate(DocumentFileNodes).Where(node => node.IsDocument && (string.IsNullOrEmpty(filter)
+            || node.Name.Contains(filter, StringComparison.OrdinalIgnoreCase) || node.Preview.Contains(filter, StringComparison.OrdinalIgnoreCase)));
+        foreach (var node in _sortDescending ? flat.OrderByDescending(node => node.Name, StringComparer.OrdinalIgnoreCase) : flat.OrderBy(node => node.Name, StringComparer.OrdinalIgnoreCase))
+            FlatDocumentFileNodes.Add(node);
+
         NotifyDocumentFilesChanged();
     }
 
-    private static DocumentFileNode? BuildFilteredNode(DocumentFileNode node, string? filter)
+    private DocumentFileNode? BuildFilteredNode(DocumentFileNode node, string? filter)
     {
-        if (string.IsNullOrEmpty(filter))
+        if (string.IsNullOrEmpty(filter) && !_sortDescending)
         {
             return node;
         }
 
         if (node.IsFolder)
         {
-            var children = node.Children
+            var children = (_sortDescending ? node.Children.Reverse() : node.Children)
                 .Select(child => BuildFilteredNode(child, filter))
                 .OfType<DocumentFileNode>()
                 .ToList();
             return children.Count > 0
-                ? new DocumentFileNode(node.Name, node.Path, true, children)
+                ? CreateFilteredFolder(node, children, !string.IsNullOrEmpty(filter))
                 : null;
         }
 
-        var matches = node.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)
+        var matches = string.IsNullOrEmpty(filter) || node.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)
             || node.Preview.Contains(filter, StringComparison.OrdinalIgnoreCase);
         return matches ? node : null;
+    }
+
+    private DocumentFileNode CreateFilteredFolder(DocumentFileNode source, IReadOnlyList<DocumentFileNode> children, bool expand)
+    {
+        var node = new DocumentFileNode(source.Name, source.Path, true, children) { IsExpanded = expand || source.IsExpanded };
+        node.PropertyChanged += (_, _) => { if (!expand) source.IsExpanded = node.IsExpanded; OnPropertyChanged(nameof(CanCollapseAll)); };
+        return node;
     }
 
     private static IReadOnlyList<DocumentFileNode> BuildDocumentFileNodes(

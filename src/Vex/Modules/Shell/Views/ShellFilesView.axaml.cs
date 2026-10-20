@@ -15,7 +15,7 @@ public partial class ShellFilesView : UserControl
 
     private void SelectItemOnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not TreeView treeView)
+        if (sender is not Control treeView)
         {
             return;
         }
@@ -31,7 +31,7 @@ public partial class ShellFilesView : UserControl
             return;
         }
 
-        var item = source.FindAncestorOfType<TreeViewItem>();
+        var item = (Control?)source.FindAncestorOfType<TreeViewItem>() ?? source.FindAncestorOfType<ListBoxItem>();
         if (item?.DataContext is DocumentFileNode documentFileNode
             && DataContext is ShellFilesViewModel viewModel)
         {
