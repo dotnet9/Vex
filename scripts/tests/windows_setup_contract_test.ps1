@@ -96,6 +96,7 @@ Copy-Item -LiteralPath $definition.FullName -Destination $isolatedScripts
 Copy-Item -LiteralPath $installerPath -Destination $isolatedScripts -Recurse
 Copy-Item -LiteralPath $languagePath -Destination $isolatedScripts -Recurse
 Copy-Item -LiteralPath $license -Destination $isolated
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'logo.ico') -Destination $isolated
 if ($content -notmatch 'Filename: "\{app\}\\([^"\\]+)"') { throw '安装入口未声明目标程序。' }
 # 编译夹具不执行；载荷仅验证安装源码的解析与资源封装。
 [IO.File]::WriteAllText((Join-Path $payload $Matches[1]), 'MZ controlled compile fixture only')
