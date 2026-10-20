@@ -4,8 +4,9 @@
 
 需要 .NET 10 SDK。正式版本直接从 nuget.org 还原共享库，不需要克隆库仓库：
 
-    dotnet build scripts/ui-verification/UiVerification.csproj -c Release -p:ArtifactsPath=D:/github/temp_files/vex-native/artifacts
-    dotnet D:/github/temp_files/vex-native/artifacts/bin/UiVerification/release/UiVerification.dll vex D:/github/temp_files/vex-native/refined/vex
+    $verificationRoot = Join-Path $env:TEMP 'VexVerification'
+    dotnet build scripts/ui-verification/UiVerification.csproj -c Release "-p:ArtifactsPath=$verificationRoot/artifacts"
+    dotnet "$verificationRoot/artifacts/bin/UiVerification/release/UiVerification.dll" vex "$verificationRoot/vex"
 
 修改共享库时，用 `scripts/prepare_local_libraries.ps1 -PackageVersion <新版本>` 生成本地 NuGet 包及仓外配置，再构建验证。默认输出到工作区上两级的 `temp_nugets` 与 `temp_files/vex-libraries`，可通过 `PackageRoot` / `WorkRoot` 指定位置；构建时沿用 `WorkRoot/vex-artifacts`。Lite 是 Markdown 的传递依赖，禁止跨仓 ProjectReference。已有包可加 `-SkipPack`，脚本拒绝覆盖同版本包，避免旧缓存干扰。开发与本地验证无需等待线上包；全部本地验证通过后再打共享库 Tag，正式 Vex 发布 CI 使用同版本线上包。
 
@@ -19,6 +20,7 @@
 | editing-tools | 格式命令、表格、演示与编辑偏好 |
 | settings-ui | 七类偏好、四语窄窗、MCP 三页签、语法、水印、图片路径、编码、自动保存与外部冲突 |
 | settings-real-ui | 同样的设置界面回归，使用仓外真实 XML 配置，验证初始化、部分更新及重新加载默认值 |
+| updates | 更新浮层四语与明暗布局、安装失败提示、关闭后重开及复用已验证下载 |
 | preferences / locale / path-identity / file-tree | 偏好持久化、语言、路径身份与文件树 |
 | buttons / danger-buttons | 八色浅深、普通 / 悬停 / 按下共 96 种按钮状态 |
 | parity | 同一份文档、1280×820 与 980×640、明暗模式、八布局和浮层截图 |
