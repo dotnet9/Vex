@@ -32,6 +32,7 @@ public partial class MarkdownPreviewView : UserControl
     private int _appliedNavigationSequence;
     private long _lastReadingPositionSampleTick;
     private int _restoreAttempts;
+    private int _scrollRequestVersion;
     private void ApplyDocumentGeometry()
     {
         var presenting = _viewModel?.IsPresenting == true;
@@ -132,9 +133,17 @@ public partial class MarkdownPreviewView : UserControl
     {
         if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown) && _viewModel?.IsPresenting == true)
         {
-            Dispatcher.UIThread.Post(() => PreviewScrollViewer.Offset = default, DispatcherPriority.Loaded);
+            var version = _scrollRequestVersion;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_viewModel?.IsPresenting == true && version == _scrollRequestVersion)
+                    PreviewScrollViewer.Offset = default;
+            }, DispatcherPriority.Loaded);
             return;
         }
+        // 退出演示先恢复全文，再发 IsPresenting 通知；不能排入旧编辑光标定位覆盖阅读锚点。
+        if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown) && _presentationReadingPosition is not null)
+            return;
         if (e.PropertyName is nameof(MarkdownPreviewViewModel.PreviewSourceLine)
             or nameof(MarkdownPreviewViewModel.PreviewScrollRatio)
             or nameof(MarkdownPreviewViewModel.Markdown))
@@ -147,6 +156,7 @@ public partial class MarkdownPreviewView : UserControl
         }
         else if (e.PropertyName == nameof(MarkdownPreviewViewModel.IsPresenting))
         {
+            _scrollRequestVersion++;
             if (_viewModel?.IsPresenting == true)
             {
                 _presentationReadingPosition = PreviewMarkdownViewer.SaveReadingPosition();
@@ -169,7 +179,10 @@ public partial class MarkdownPreviewView : UserControl
             {
                 var position = PreviewMarkdownViewer.SaveReadingPosition();
                 ApplyDocumentGeometry();
-                if (position is not null) Dispatcher.UIThread.Post(() => PreviewMarkdownViewer.RestoreReadingPosition(position), DispatcherPriority.Loaded);
+                if (position is not null) Dispatcher.UIThread.Post(() =>
+                {
+                    if (_viewModel?.IsPresenting == true) PreviewMarkdownViewer.RestoreReadingPosition(position);
+                }, DispatcherPriority.Loaded);
                 return;
             }
             // 主题/排版切换会整篇重渲染并重置滚动，按块位置恢复切换前的阅读位置。
@@ -215,6 +228,7 @@ public partial class MarkdownPreviewView : UserControl
         }
 
         _restoringScrollPosition = true;
+        _scrollRequestVersion++;
         _restoreAttempts = 0;
         Dispatcher.UIThread.Post(RestoreReadingPosition, DispatcherPriority.Background);
     }
@@ -254,7 +268,12 @@ public partial class MarkdownPreviewView : UserControl
 
     private void QueueScrollToEditorPosition()
     {
-        Dispatcher.UIThread.Post(ScrollToEditorPosition, DispatcherPriority.Background);
+        if (_restoringScrollPosition || _viewModel?.IsPresenting == true) return;
+        var version = ++_scrollRequestVersion;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (version == _scrollRequestVersion) ScrollToEditorPosition();
+        }, DispatcherPriority.Background);
     }
 
     private void ScrollToEditorPosition()

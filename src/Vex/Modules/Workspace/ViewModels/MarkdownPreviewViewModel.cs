@@ -132,9 +132,12 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
 
     private void OnWorkbenchPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        // 入场先让视图保存全文阅读锚点，再替换成演示章节；退出则先恢复全文。
+        var enteringPresentation = e.PropertyName == nameof(_workbench.IsPresenting) && IsPresenting;
+        if (enteringPresentation) this.RaisePropertyChanged(nameof(IsPresenting));
         if (e.PropertyName is nameof(_workbench.PresentationMarkdown) or nameof(_workbench.IsPresenting))
             Markdown = IsPresenting ? _workbench.PresentationMarkdown : _sourceMarkdown;
-        if (e.PropertyName == nameof(_workbench.IsPresenting)) this.RaisePropertyChanged(nameof(IsPresenting));
+        if (e.PropertyName == nameof(_workbench.IsPresenting) && !enteringPresentation) this.RaisePropertyChanged(nameof(IsPresenting));
         if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom)
             && _notifiedPresentationZoom != PresentationZoom)
         { _notifiedPresentationZoom = PresentationZoom; this.RaisePropertyChanged(nameof(PresentationZoom)); }

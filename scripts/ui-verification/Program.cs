@@ -959,21 +959,24 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     wb.ShowPresentationMap(); Pump(); wb.StopPresentation(); Pump(); SettleRendering();
     Console.WriteLine($"READING before={priorOffset} {priorReading}, after={readingScroll.Offset.Y} {preview.SaveReadingPosition()}");
     Check(Math.Abs(readingScroll.Offset.Y - priorOffset) < 5, "Exiting presentation restores the actual reading position");
-    var relapPath = @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
-    var relapText = File.ReadAllText(relapPath);
+    var relapPath = Path.Combine(output, "long-html-tables.md");
+    var relapText = "# 长文档与 HTML 表格\n\n" + string.Join("\n\n", Enumerable.Range(1, 150).Select(i =>
+        $"## 章节 {i}\n\n用于验证阅读锚点、虚拟化和演示返回的本地正文。\n\n- 第一个项目\n- 第二个项目" +
+        (i % 30 == 0 ? $"\n\n<table><tr><th>章节</th><th>内容</th><th>状态</th><th>备注</th></tr><tr><td>{i}</td><td>本地测试</td><td>有效</td><td>四列表格</td></tr></table>" : "")));
+    File.WriteAllText(relapPath, relapText);
     var htmlTables = Markdig.Markdown.Parse(relapText).OfType<Markdig.Syntax.HtmlBlock>()
         .Where(block => block.Lines.ToString().TrimStart().StartsWith("<table>", StringComparison.OrdinalIgnoreCase)).ToArray();
-    Check(htmlTables.Length == 5, "RELAP coverage includes its five real HTML tables");
+    Check(htmlTables.Length == 5, "Portable long-document fixture includes five HTML tables");
     foreach (var table in htmlTables)
     {
         var tableViewer = new CodeWF.Avalonia.Markdown.Controls.MarkdownViewer();
         var rendered = ((CodeWF.Avalonia.Markdown.Rendering.IMarkdownRenderContext)tableViewer).ConvertBlock(table, relapText);
         Check(rendered is Border { Child: Grid grid } && grid.Classes.Contains("MdTable") && grid.ColumnDefinitions.Count == 4,
-            "RELAP HTML table uses native cells through the registered application renderer");
+            "HTML table uses native cells through the registered application renderer");
     }
     Check(CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg.MarkdownBlockParser.Write(
         CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg.MarkdownBlockParser.Parse(relapText)) == relapText,
-        "Instant editing preserves the original RELAP HTML source on round trip");
+        "Instant editing preserves the original HTML source on round trip");
     Pump(vm.OpenPathAsync(relapPath)); wb.SelectLayout("read"); Pump(); SettleRendering();
     PumpUntil(() => preview.CurrentModel.Source == relapText);
     for (var round = 0; round < 3; round++)
@@ -986,10 +989,10 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
         wb.StopPresentation(); Pump(); SettleRendering();
         PumpUntil(() => preview.CurrentModel.Source == relapText);
         var restored = preview.SaveReadingPosition()!.Value;
-        Console.WriteLine($"RELAP-READING {round}: {anchor} -> {restored}");
+        Console.WriteLine($"LONG-DOCUMENT-READING {round}: {anchor} -> {restored}");
         Check(anchor.BlockIndex == restored.BlockIndex && Math.Abs(anchor.BlockRatio - restored.BlockRatio) < .05,
-            "RELAP deep reading anchor survives content/map presentation and return");
-        Check(preview.RealizedBlockCount < 100, "Returning to RELAP keeps offscreen blocks virtualized");
+            "Deep reading anchor survives content/map presentation and return");
+        Check(preview.RealizedBlockCount < 100, "Returning to the long document keeps offscreen blocks virtualized");
     }
     static IEnumerable<CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode> Descendants(CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode node)
     { yield return node; foreach (var child in node.Children) foreach (var descendant in Descendants(child)) yield return descendant; }
@@ -1645,11 +1648,10 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     wb.ShowInstant();
     CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(heading.SourceLine)); Pump();
     Check(wb.IsInstantEditing && !source.IsEffectivelyVisible && vm.Markdown == document, "Outline navigation in instant mode scrolls without activating hidden source");
-    var statsTask = app.Resolve<ShellStatusBarViewModel>().ShowStatisticsAsync();
-    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellStatisticsOverlayView>().Any());
-    var stats = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellStatisticsOverlayView>().Single();
-    Check(stats.IsEffectivelyVisible, "Status bar character count opens real document statistics");
-    ShellOverlayHost.Dismiss(stats); Pump(statsTask);
+    Pump(app.Resolve<ShellStatusBarViewModel>().ShowStatisticsAsync());
+    Check(vm.Layout.IsInfoTab && vm.Layout.ShowOutlineSidebar,
+        "Status bar character count opens real article information in the shared auxiliary panel");
+    vm.Layout.IsOutlineVisible = false; Pump();
     var shell = (Vex.Modules.Shell.Views.MainWindow)window;
     shell.BeginOnboardingGuide(); Pump();
     var guide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
@@ -1708,7 +1710,7 @@ void VerifyEditingPreferences(VerificationVexApp app, Window window, MainWindowV
     live.NavigateToSourceLine(400, beginEdit: true); Pump();
     CheckLiveCaretCentered("Typewriter instant mode centers the last paragraph caret");
     vm.Layout.IsTypewriterMode = false; Pump();
-    Check(live.DocumentPadding.Bottom <= 70 && vm.Markdown == text,
+    Check(live.DocumentPadding.Bottom == 80 && vm.Markdown == text,
         "Turning off instant typewriter restores normal padding without changing Markdown");
     foreach (var enabled in new[] { false, true })
     {
