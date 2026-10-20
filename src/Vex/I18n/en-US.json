@@ -786,7 +786,11 @@
       "AuxiliaryChapter": "Chapter details",
       "ChooseChapter": "Select a chapter",
       "ChooseChapterHint": "Select a chapter in the outline or mind map to view and edit its details.",
-      "DocumentAuxiliary": "Document tools"
+      "DocumentAuxiliary": "Document tools",
+      "SaveFailureKept": "Save failed · Content preserved",
+      "ExportFailureKept": "Export failed · Content and typography preserved",
+      "RetrySave": "Retry save",
+      "RetryExport": "Retry export"
     }
   }
 }

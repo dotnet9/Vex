@@ -786,7 +786,11 @@
       "AuxiliaryChapter": "章節詳情",
       "ChooseChapter": "選擇一個章節",
       "ChooseChapterHint": "在大綱或導圖中選擇章節，即可查看和編輯詳情。",
-      "DocumentAuxiliary": "文件輔助"
+      "DocumentAuxiliary": "文件輔助",
+      "SaveFailureKept": "儲存失敗 · 內容已保留",
+      "ExportFailureKept": "匯出失敗 · 內容與排版已保留",
+      "RetrySave": "重試儲存",
+      "RetryExport": "重試匯出"
     }
   }
 }

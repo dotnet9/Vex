@@ -74,7 +74,10 @@
         Background="{DynamicResource VexShellBackgroundBrush}"
         RowDefinitions="Auto,Auto,*,Auto">
         <Border Grid.Row="1" IsVisible="{Binding !Workbench.IsPresenting}">
-            <shell:ShellFindBarView DataContext="{Binding FindBar}" />
+            <StackPanel>
+                <shell:ShellWorkflowNotice/>
+                <shell:ShellFindBarView DataContext="{Binding FindBar}" />
+            </StackPanel>
         </Border>
 
         <shell:ShellWorkbenchToolbarView x:Name="WorkbenchToolbar" Grid.Row="0" IsVisible="{Binding !Workbench.IsPresenting}"/>

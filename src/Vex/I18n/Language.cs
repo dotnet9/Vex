@@ -785,4 +785,8 @@ public static class VexL
     public static readonly string ChooseChapter = "Vex.VexL.ChooseChapter";
     public static readonly string ChooseChapterHint = "Vex.VexL.ChooseChapterHint";
     public static readonly string DocumentAuxiliary = "Vex.VexL.DocumentAuxiliary";
+    public static readonly string SaveFailureKept = "Vex.VexL.SaveFailureKept";
+    public static readonly string ExportFailureKept = "Vex.VexL.ExportFailureKept";
+    public static readonly string RetrySave = "Vex.VexL.RetrySave";
+    public static readonly string RetryExport = "Vex.VexL.RetryExport";
 }

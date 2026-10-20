@@ -7,7 +7,7 @@ public interface IShellDocumentUtilityActions
 {
     void ShowProperties(ShellDocumentInfoViewModel documentInfo);
 
-    Task ExportAsync(DocumentSnapshot document, string markdown, string? format);
+    Task<bool> ExportAsync(DocumentSnapshot document, string markdown, string? format);
 
     Task CopyHtmlAsync(DocumentSnapshot document, string markdown, string? target);
 

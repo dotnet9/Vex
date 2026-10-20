@@ -18,6 +18,10 @@ for(const culture of Object.keys(extra)){
    SidebarFilesFilterPlaceholder: {'zh-CN':'按文件名查找…','zh-Hant':'依檔名尋找…','en-US':'Find by filename…','ja-JP':'ファイル名で検索…'}[culture],
    ClearSearch: {'zh-CN':'清空搜索','zh-Hant':'清除搜尋','en-US':'Clear search','ja-JP':'検索をクリア'}[culture]
    ,DocumentAuxiliary: {'zh-CN':'文档辅助','zh-Hant':'文件輔助','en-US':'Document tools','ja-JP':'文書ツール'}[culture]
+   ,SaveFailureKept: {'zh-CN':'保存失败 · 内容已保留','zh-Hant':'儲存失敗 · 內容已保留','en-US':'Save failed · Content preserved','ja-JP':'保存失敗 · 内容は保持されています'}[culture]
+   ,ExportFailureKept: {'zh-CN':'导出失败 · 内容与排版已保留','zh-Hant':'匯出失敗 · 內容與排版已保留','en-US':'Export failed · Content and typography preserved','ja-JP':'エクスポート失敗 · 内容と組版は保持されています'}[culture]
+   ,RetrySave: {'zh-CN':'重试保存','zh-Hant':'重試儲存','en-US':'Retry save','ja-JP':'保存を再試行'}[culture]
+   ,RetryExport: {'zh-CN':'重试导出','zh-Hant':'重試匯出','en-US':'Retry export','ja-JP':'エクスポートを再試行'}[culture]
    ,AuxiliaryInfo: {'zh-CN':'文章信息','zh-Hant':'文章資訊','en-US':'Article info','ja-JP':'記事情報'}[culture]
    ,AuxiliaryChapter: {'zh-CN':'章节详情','zh-Hant':'章節詳情','en-US':'Chapter details','ja-JP':'章の詳細'}[culture]
    ,ChooseChapter: {'zh-CN':'选择一个章节','zh-Hant':'選擇一個章節','en-US':'Select a chapter','ja-JP':'章を選択'}[culture]

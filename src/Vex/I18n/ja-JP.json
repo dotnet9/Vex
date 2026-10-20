@@ -786,7 +786,11 @@
       "AuxiliaryChapter": "章の詳細",
       "ChooseChapter": "章を選択",
       "ChooseChapterHint": "アウトラインまたはマインドマップで章を選択すると、詳細を表示・編集できます。",
-      "DocumentAuxiliary": "文書ツール"
+      "DocumentAuxiliary": "文書ツール",
+      "SaveFailureKept": "保存失敗 · 内容は保持されています",
+      "ExportFailureKept": "エクスポート失敗 · 内容と組版は保持されています",
+      "RetrySave": "保存を再試行",
+      "RetryExport": "エクスポートを再試行"
     }
   }
 }

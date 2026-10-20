@@ -8,7 +8,7 @@ using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
-public sealed class MainWindowViewModel : ReactiveObject
+public sealed partial class MainWindowViewModel : ReactiveObject
 {
     private static readonly TimeSpan MarkdownDerivedStateDebounce = TimeSpan.FromMilliseconds(220);
     private readonly IDocumentService _documentService;
@@ -134,6 +134,9 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ShellNavigationViewModel Navigation { get; }
     public ShellRecentDocumentsViewModel Recent { get; }
     public ShellStatusViewModel Status { get; }
+    public ShellDocumentProtection Protection { get; } = new();
+    private bool _retrySaveAs;
+    private string? _retryExportFormat;
 
     public Task OpenPathLocationAsync(string path) => OpenFileLocationCoreAsync(path);
     public async Task RefreshFilesAsync()
@@ -367,6 +370,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             if (!await _documentService.TryAutoSaveAsync(snapshot, _lastSavedMarkdown)) return;
             if (_document.FilePath != path) return;
             _lastSavedMarkdown = snapshot.Markdown;
+            Protection.SaveError = null;
             _watchedFileLastWriteTimeUtc = new DateTimeOffset(File.GetLastWriteTimeUtc(path));
             RefreshDocumentState();
             if (!DocumentInfo.IsModified) _drafts.Clear(_document);
@@ -374,6 +378,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
+            Protection.SaveError = exception.Message;
             // 保留修改状态和恢复草稿，由用户通过普通保存流程处理磁盘错误。
             _statusPublisher.PublishResource(VexL.ErrorMessageActionFailed);
         }
@@ -593,6 +598,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public async Task SaveAsync()
     {
+        _retrySaveAs = false;
         await RunWithErrorOverlayAsync(
             VexL.ErrorMessageCannotSaveFormat,
             async () =>
@@ -601,6 +607,7 @@ public sealed class MainWindowViewModel : ReactiveObject
                 if (saved is not null)
                 {
                     ApplyDocument(saved, false, false);
+                    Protection.SaveError = null;
                     _text.PublishSaved(saved.FileName);
                 }
             },
@@ -609,6 +616,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     public async Task SaveAsAsync()
     {
+        _retrySaveAs = true;
         await RunWithErrorOverlayAsync(
             VexL.ErrorMessageCannotSaveFormat,
             async () =>
@@ -617,6 +625,7 @@ public sealed class MainWindowViewModel : ReactiveObject
                 if (saved is not null)
                 {
                     ApplyDocument(saved, false, false);
+                    Protection.SaveError = null;
                     _text.PublishSavedAs(saved.FileName);
                 }
             },
@@ -736,6 +745,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         if (!IsSameDocument(_document, snapshot))
         {
             _drafts.Clear(_document);
+            Protection.SaveError = null;
+            Protection.ExportError = null;
         }
 
         var restoredDraft = false;
@@ -978,10 +989,17 @@ public sealed class MainWindowViewModel : ReactiveObject
     }
 
     public void ShowProperties() => Layout.SelectInfoTab();
-    public Task Export(string? format) => RunWithErrorOverlayAsync(
-        VexL.ErrorMessageCannotExportFormat,
-        () => _documentUtilities.ExportAsync(_document, Markdown, format),
-        string.IsNullOrWhiteSpace(format) ? _document.FileName : format);
+    public async Task Export(string? format)
+    {
+        _retryExportFormat = format;
+        await RunWithErrorOverlayAsync(VexL.ErrorMessageCannotExportFormat, async () =>
+        {
+            if (await _documentUtilities.ExportAsync(_document, Markdown, format)) Protection.ExportError = null;
+        }, string.IsNullOrWhiteSpace(format) ? _document.FileName : format);
+    }
+    public Task RetrySaveAsync() => _retrySaveAs ? SaveAsAsync() : SaveAsync();
+    public Task RetryExportAsync() => Export(_retryExportFormat);
+    public void DismissOperationErrors() { Protection.SaveError = null; Protection.ExportError = null; }
 
     public Task CopyHtml(string? target) => RunWithErrorOverlayAsync(
         VexL.ErrorMessageCannotCopyHtmlFormat,
@@ -1086,6 +1104,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
         catch (Exception exception)
         {
+            if (messageResourceKey == VexL.ErrorMessageCannotSaveFormat) { Protection.SaveError = exception.Message; return; }
+            if (messageResourceKey == VexL.ErrorMessageCannotExportFormat) { Protection.ExportError = exception.Message; return; }
             Dialogs.ShowError(messageResourceKey, exception, messageArgs);
         }
     }

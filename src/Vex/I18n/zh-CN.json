@@ -786,7 +786,11 @@
       "AuxiliaryChapter": "章节详情",
       "ChooseChapter": "选择一个章节",
       "ChooseChapterHint": "在大纲或导图中选择章节，即可查看和编辑详情。",
-      "DocumentAuxiliary": "文档辅助"
+      "DocumentAuxiliary": "文档辅助",
+      "SaveFailureKept": "保存失败 · 内容已保留",
+      "ExportFailureKept": "导出失败 · 内容与排版已保留",
+      "RetrySave": "重试保存",
+      "RetryExport": "重试导出"
     }
   }
 }

@@ -4,7 +4,8 @@
     <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12">
       <StackPanel VerticalAlignment="Center" Spacing="4" ToolTip.Tip="{Binding DocumentInfo.CurrentFilePath}">
         <TextBlock Text="{Binding DocumentInfo.PropertyNameText}" FontSize="13" FontWeight="SemiBold" MaxWidth="280" HorizontalAlignment="Left" TextTrimming="CharacterEllipsis"/>
-        <TextBlock Text="{Binding DocumentInfo.DocumentStateText}" FontSize="12" Foreground="{DynamicResource VexMutedBrush}"/>
+        <TextBlock IsVisible="{Binding !Protection.HasSaveError}" Text="{Binding DocumentInfo.DocumentStateText}" FontSize="12" Foreground="{DynamicResource VexMutedBrush}"/>
+        <TextBlock IsVisible="{Binding Protection.HasSaveError}" Text="{i18n:I18n {x:Static l:VexL.SaveFailureKept}}" FontSize="12" Foreground="{DynamicResource VexDangerBrush}" TextTrimming="CharacterEllipsis" MaxWidth="280"/>
       </StackPanel>
       <Button x:Name="LayoutButton" Grid.Column="1" Classes="wb-quiet" Command="{Binding Workbench.ToggleLayouts}" VerticalAlignment="Center" Padding="12,6" FontSize="12">
         <StackPanel Orientation="Horizontal" Spacing="8"><Path Classes="wb-icon" Data="{StaticResource WBColumnsIcon}"/><TextBlock Text="{Binding Workbench.LayoutName}"/><TextBlock Text="⌄"/></StackPanel>

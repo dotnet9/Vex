@@ -40,7 +40,7 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
             documentInfo.PropertyLocationText);
     }
 
-    public async Task ExportAsync(DocumentSnapshot document, string markdown, string? format)
+    public async Task<bool> ExportAsync(DocumentSnapshot document, string markdown, string? format)
     {
         if (format?.Equals("Markdown", StringComparison.OrdinalIgnoreCase) == true)
         {
@@ -50,7 +50,7 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
                 _text.PublishExportedMarkdownTo(Path.GetFileName(path));
                 if (_preferences.ExportOpen) OpenFileLocation(path);
             }
-            return;
+            return path is not null;
         }
         if (format?.Equals("HTML", StringComparison.OrdinalIgnoreCase) == true)
         {
@@ -65,7 +65,7 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
                 if (_preferences.ExportOpen) OpenFileLocation(path);
             }
 
-            return;
+            return path is not null;
         }
 
         if (format?.Equals("PDF", StringComparison.OrdinalIgnoreCase) == true)
@@ -81,7 +81,7 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
                 if (_preferences.ExportOpen) OpenFileLocation(path);
             }
 
-            return;
+            return path is not null;
         }
 
         if (format?.Equals("PNG", StringComparison.OrdinalIgnoreCase) == true)
@@ -97,7 +97,7 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
                 if (_preferences.ExportOpen) OpenFileLocation(path);
             }
 
-            return;
+            return path is not null;
         }
 
         if (format?.Equals("Word", StringComparison.OrdinalIgnoreCase) == true
@@ -114,10 +114,11 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
                 if (_preferences.ExportOpen) OpenFileLocation(path);
             }
 
-            return;
+            return path is not null;
         }
 
         _text.PublishExportNotImplemented(format);
+        return false;
     }
 
     public async Task CopyHtmlAsync(DocumentSnapshot document, string markdown, string? target)
