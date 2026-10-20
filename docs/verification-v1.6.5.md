@@ -36,6 +36,13 @@ Windows NativeAOT 最终构建、四语和隔离偏好自检、文件关联不�
 
 发布阶段五个正式 `12.1.4.33` 包已从 nuget.org 成功还原到独立缓存，包内源码提交均为 `31246a1`。Vex 使用这些正式包重新还原、Release 编译，并通过真实 XML 设置界面 58 项及更新浮层 33 项复核；其他依赖复用既有缓存，未混用本地 `.33` 包。证据位于 `official33/restore.log`、`official33/vex-restore.log`、`official33/vex-build.log`、`official33/settings-real-ui.log` 与 `official33/updates.log`。
 
+## CI 与正式发布
+
+- 共享库 [主分支 CI](https://github.com/dotnet9/CodeWF.Avalonia/actions/runs/39403935849) 通过，包含构建测试、生成物审计、打包合同和 AOT 冒烟；[12.1.4.33 五平台 Demo 发布](https://github.com/dotnet9/CodeWF.Avalonia/actions/runs/39403052560) 成功，Release 包含五个安装包及五个 SHA256 文件。
+- Vex [NuGet 发布](https://github.com/dotnet9/Vex/actions/runs/39405017999) 与 [主分支更新回归](https://github.com/dotnet9/Vex/actions/runs/39405008910) 通过；更新回归包含状态、四语浮层、媒体布局和真实 Inno 夹具交接。
+- Vex [1.6.5 五平台发布](https://github.com/dotnet9/Vex/actions/runs/39405018132) 成功，包含 Windows 正式 NativeAOT 产物运行自检、安装器预检及五平台资产门禁；[正式 Release](https://github.com/dotnet9/Vex/releases/tag/v1.6.5) 已生成。本机未下载正式安装包复核 SHA256。
+- 发布后发现 CI 将本地轻量引用的提交标题误当成附注 Tag 说明；改为读取远端标签对象并检查类型，补充精选说明和仅同步 Release 正文的流程。六组本地回归通过，覆盖附注标签、轻量标签兜底、远端对象恢复、精选优先、空说明和缺失说明；夹具验证远端及既有本地标签未被改写。
+
 ## 证据与边界
 
 仓外证据根目录：`E:/github/temp_files/vex-parity`。共享库：`library-final-tests33.log`、`library-all-tests33.log`、`library-build33.log`、`local33-pack.log`；界面与设置：`final33-*.log`、`final33/settings-ui/*.png`、`settings-real-ui.log`、`settings-final33.log`；原生：`native165-publish-verified.log`、`native165-ui-verified.log`、`native165/desktop/receipt.json`、`native165/runtime-verified`、`native165/pe-receipt.json`；安装器：`native165-installer-verified.log`、`native165/installer`、`installer-matrix`、`migration/receipt.json`、`final33-setup-contract.log`；平台门禁：`final33-linux-contract.log`、`final33-macos-contract.log`、`final33-dmg-contract.log`、`final33-release-contract.log`。

@@ -1,0 +1,54 @@
+name: 同步发布说明
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/release-notes/*.md']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '需要同步说明的已发布版本，例如 1.6.5'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 验证发布说明读取
+        shell: pwsh
+        run: ./scripts/tests/release_notes_test.ps1
+      - name: 同步已存在的 Release 正文
+        shell: pwsh
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = $env:INPUT_VERSION
+          if (-not $version) {
+            [xml] $props = Get-Content -LiteralPath Directory.Build.props -Raw
+            $version = [string] $props.Project.PropertyGroup.Version
+          }
+          ./scripts/prepare_release_notes.ps1 -Version $version -OutputPath artifacts/release-body.md
+          $tag = 'v' + $version.TrimStart('v')
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json' }
+          $base = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/releases"
+          try { $release = Invoke-RestMethod -Uri "$base/tags/$tag" -Headers $headers }
+          catch {
+            if ($_.Exception.Response.StatusCode.value__ -eq 404) {
+              Write-Host '该版本尚未发布，完整说明将在正式发布时读取。'
+              exit 0
+            }
+            throw
+          }
+          $body = (Get-Content -LiteralPath artifacts/release-body.md -Raw -Encoding utf8).Trim()
+          $changelog = [regex]::Match($release.body, '(?m)^.*Full Changelog.*$').Value.Trim()
+          if ($changelog -and -not $body.Contains('Full Changelog')) { $body += "`n`n$changelog" }
+          $payload = @{ body = $body } | ConvertTo-Json
+          $updated = Invoke-RestMethod -Method Patch -Uri "$base/$($release.id)" -Headers $headers -ContentType 'application/json; charset=utf-8' -Body $payload
+          if ($updated.body -ne $body) { throw '发布说明写回不一致。' }
+          Write-Host "完整发布说明已同步：$($updated.html_url)；安装包和标签未修改。"
