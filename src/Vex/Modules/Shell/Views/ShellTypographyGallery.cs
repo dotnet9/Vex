@@ -39,7 +39,15 @@ public sealed class ShellTypographyGallery : UserControl
         if (vm is null) return;
         vm.Appearance.PropertyChanged += Changed; I18nManager.Instance.CultureChanged += CultureChanged; Build();
     }
-    private void CultureChanged(object? sender, EventArgs e) => Build();
+    private void CultureChanged(object? sender, EventArgs e)
+    {
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (_vm is not null) Build(); });
+            return;
+        }
+        Build();
+    }
     private void Resize()
     {
         Width = Math.Min(880, (_window?.ClientSize.Width ?? 1280) - 24);

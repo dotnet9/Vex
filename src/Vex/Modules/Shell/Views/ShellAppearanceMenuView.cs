@@ -42,7 +42,15 @@ public sealed class ShellAppearanceMenuView : UserControl
         Build();
     }
 
-    private void CultureChanged(object? sender, EventArgs e) => Build();
+    private void CultureChanged(object? sender, EventArgs e)
+    {
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (_vm is not null) Build(); });
+            return;
+        }
+        Build();
+    }
     private void Changed(object? sender, PropertyChangedEventArgs e)
     {
         if (_vm is null) return;
