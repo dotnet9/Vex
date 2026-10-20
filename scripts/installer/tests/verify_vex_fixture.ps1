@@ -90,7 +90,8 @@ try {
     Register-Processes
     Check ($updateReady.WaitOne(1000)) '真实 Inno 安装窗口显示后确认更新交接'
     $initial=Bounds $window
-    Check ([CodeWFSetupFixtureDesktop]::HasShapedRegion($window)) '原生窗口应用单角切口区域'
+    Check (($initial.right-$initial.left) -eq 640 -and ($initial.bottom-$initial.top) -eq 360) '默认窗口与统一原型一致为 640×360'
+    Check ([CodeWFSetupFixtureDesktop]::HasShapedRegion($window)) '原生窗口应用圆角区域'
     Check ([CodeWFSetupFixtureDesktop]::IsWindowEnabled((Button '^×$'))) '安装前关闭按钮可用'
     Check (@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -match '^(TEdit|TNewPathEdit)$' }).Count -eq 0) '首次打开设置默认折叠'
     Capture '01-welcome'
@@ -153,7 +154,7 @@ try {
     Check ([CodeWFSetupFixtureDesktop]::Send($association,240) -eq 1) 'Markdown 打开方式候选默认选中'
     Capture '02-custom'
     $primary=Bounds (Button '^Install now$|^立即安装$')
-    Check (($primary.right-$primary.left) -eq 176 -and ($primary.bottom-$primary.top) -eq 42) '主按钮按原型使用 176×42 像素布局'
+    Check (($primary.right-$primary.left) -eq 104 -and ($primary.bottom-$primary.top) -eq 36) '主按钮按原型使用 104×36 像素布局'
     Click (Button '^Open source license$|^开源许可$')
     Check (@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Text($_) -match 'Permission is hereby granted' }).Count -gt 0) '展开设置后也能查看许可'
     Click (Button '^Back$|^返回$')
