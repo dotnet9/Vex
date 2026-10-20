@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Data.Converters;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -195,9 +196,18 @@ public sealed class ShellPreferencesOverlayView : UserControl
     }
     private void Choice(StackPanel page, string label, object source, string property, IEnumerable<(string Label, object Value)> choices)
     {
-        var combo = new ComboBox { Name = property, MaxWidth = 200, MinWidth = 130, ItemsSource = choices.Select(x => new ChoiceItem(x.Label, x.Value)).ToArray(),
-            SelectedValueBinding = new Binding(nameof(ChoiceItem.Value)), ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<ChoiceItem>((x, _) => new TextBlock { Text = x?.Label }) };
-        combo.Bind(ComboBox.SelectedValueProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, combo);
+        var items = choices.Select(x => new ChoiceItem(x.Label, x.Value)).ToArray();
+        var combo = new ComboBox { Name = property, MaxWidth = 200, MinWidth = 130, ItemsSource = items,
+            ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<ChoiceItem>((x, _) => new TextBlock { Text = x?.Label }) };
+        // 显式映射选项，避免 NativeAOT 对私有记录的反射路径及初始化空选区写回设置。
+        combo.Bind(ComboBox.SelectedItemProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay, Converter = new ChoiceSelectionConverter(items) }); Row(page, label, combo);
     }
     private sealed record ChoiceItem(string Label, object Value);
+    private sealed class ChoiceSelectionConverter(ChoiceItem[] items) : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture) =>
+            items.FirstOrDefault(item => Equals(item.Value, value));
+        public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture) =>
+            value is ChoiceItem item ? item.Value : BindingOperations.DoNothing;
+    }
 }

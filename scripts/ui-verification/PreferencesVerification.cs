@@ -41,9 +41,11 @@ internal static class PreferencesVerification
         var view = window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Single();
         T Control<T>(string name) where T : Control => view.GetVisualDescendants().OfType<T>().Single(x => x.Name == name);
         Check(view.GetVisualDescendants().OfType<ListBox>().Single().ItemCount == 7, "Preferences has seven real categories");
+        Check(Control<ComboBox>(nameof(preferences.DefaultEncoding)).SelectedIndex == 0, "Default encoding has a visible initial choice");
+        Check(Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex == 0, "Default line ending has a visible initial choice");
         Control<ToggleSwitch>(nameof(preferences.RestoreWorkspace)).IsChecked = false; Render();
         Check(!preferences.RestoreWorkspace, "General toggle updates typed preference");
-        Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedValue = "CRLF"; Render();
+        Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex = 2; Render();
         Check(preferences.DefaultNewline == "CRLF", "Choice selection updates preference");
         view.SelectCategory("editor"); Render();
         Control<NumericUpDown>(nameof(preferences.CodeFontSize)).Value = 17; Render();
@@ -71,7 +73,7 @@ internal static class PreferencesVerification
         {
             localizer.SetCulture(culture); view.SelectCategory("general"); Render();
             Check(view.SelectedCategory == "general" && view.Bounds.Height <= window.Bounds.Height, "Localized settings fits narrow window: " + culture);
-            Check(Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedValue?.Equals("CRLF") == true, "Locale switch preserves selected preference");
+            Check(Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex == 2, "Locale switch preserves selected preference");
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-narrow-" + culture + ".png"));
         }
         Check(vm.Markdown == original, "Settings and locale changes preserve document text");
