@@ -22,6 +22,9 @@ public interface IDocumentService
 
     Task<DocumentSnapshot?> SaveAsync(DocumentSnapshot document);
 
+    /// <summary>仅磁盘内容仍等于上次保存文本时自动保存；外部改动返回 false。</summary>
+    Task<bool> TryAutoSaveAsync(DocumentSnapshot document, string lastSavedMarkdown);
+
     Task<DocumentSnapshot?> SaveAsAsync(DocumentSnapshot document);
 
     Task DeleteAsync(string path);

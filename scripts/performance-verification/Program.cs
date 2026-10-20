@@ -134,11 +134,11 @@ void VerifyPreviewSynchronization()
 
     vm.Workbench.ShowSource(); Pump();
     Check(previewViewModel.IsTaskEditingEnabled, "Source preview retains task editing");
-    vm.Workbench.SourcePreviewEnabled = false; Pump();
+    vm.Workbench.ShowInstant(); Pump();
     vm.Markdown = text + "\nUpdated while source preview is hidden.\n"; Pump();
     Check(preview.Markdown == vm.Markdown, "Hidden source preview retains the latest document");
-    vm.Workbench.SourcePreviewEnabled = true; Pump();
-    Check(preview.Markdown == vm.Markdown, "Re-enabling source preview displays the latest text");
+    vm.Workbench.ShowSource(); Pump();
+    Check(preview.Markdown == vm.Markdown, "Returning to source mode displays the latest text");
 
     refreshVersion = previewViewModel.RemoteImageRefreshVersion;
     previewViewModel.ApplyMarkdownPreviewRefresh(new MarkdownPreviewRefreshCommand(vm.Markdown, vm.DocumentInfo.CurrentFilePath, 2));

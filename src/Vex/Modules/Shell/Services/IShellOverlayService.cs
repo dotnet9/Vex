@@ -28,6 +28,8 @@ public interface IShellOverlayService
         string? typographyTheme,
         string typographySize);
 
+    Task ShowPreferencesAsync(ShellPreferencesViewModel viewModel, string category = "general");
+
     Task ShowMcpSettingsAsync(McpSettingsViewModel viewModel);
 
     Task ShowMcpAuditAsync(Vex.Modules.Mcp.Services.IMcpOperationAuditService auditService, string title, string refreshText, string emptyText);

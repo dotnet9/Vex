@@ -16,7 +16,7 @@
      <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusLine}}" Classes="wb-muted"/><TextBlock Text="{Binding Status.CaretLine}" Classes="wb-muted"/>
      <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusColumn}}" Classes="wb-muted"/><TextBlock Text="{Binding Status.CaretColumn}" Classes="wb-muted"/>
     </StackPanel>
-    <Button x:Name="StatisticsButton" Classes="wb-quiet" MinHeight="24" Padding="0" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}"><StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{Binding DocumentInfo.Statistics.Characters}" FontSize="11.5"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" FontSize="11.5"/></StackPanel></Button>
+    <Button x:Name="StatisticsButton" IsVisible="{Binding Preferences.WordCountVisible}" Classes="wb-quiet" MinHeight="24" Padding="0" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}"><StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{Binding DocumentInfo.Statistics.Characters}" FontSize="11.5"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" FontSize="11.5"/></StackPanel></Button>
     <TextBlock Text="{Binding DocumentInfo.CurrentEncodingText}" Classes="wb-muted" VerticalAlignment="Center"/>
     <TextBlock Text="{Binding DocumentInfo.LineEndingText}" Classes="wb-muted" VerticalAlignment="Center"/>
     <Button x:Name="AppearanceButton" Classes="wb-quiet" MinHeight="24" Padding="5" Click="AppearanceClick" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBTheme}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBTheme}}"><PathIcon Width="16" Height="16" Data="{DynamicResource SemiIconColorPalette}"/></Button>

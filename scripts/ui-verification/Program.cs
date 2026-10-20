@@ -29,14 +29,15 @@ if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
-if (mode == "desktop-parity")
+if (mode is "desktop-parity" or "settings-ui")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
     window.Show();
-    DesktopParityVerification.Run(app, window, output);
+    if (mode == "settings-ui") PreferencesVerification.Run(app, window, output);
+    else DesktopParityVerification.Run(app, window, output);
     window.Close();
     return;
 }
@@ -1915,11 +1916,12 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
         Check(pixel.Red == borderColor.R && pixel.Green == borderColor.G && pixel.Blue == borderColor.B,
             "Vex screenshot contains the title border pixel under " + theme);
     }
-    var tabs = window.GetVisualDescendants().OfType<TabItem>().Where(t => t.IsEffectivelyVisible).ToArray();
-    Check(tabs.Length == 2 && tabs.All(t => t.Bounds.Height <= 44 && t.Bounds.Width < 100),
-        "Vex sidebar uses compact tabs under " + theme);
-    Check(tabs.All(t => t.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Any()),
-        "Vex Files and Outline tabs include icons under " + theme);
+    var files = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellFilesView>().Single();
+    var outline = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellOutlineView>().Single();
+    Check(files.IsEffectivelyVisible && outline.IsEffectivelyVisible,
+        "Vex independent Files and Outline panels remain visible under " + theme);
+    Check(outline.TranslatePoint(default, window)!.Value.X > files.TranslatePoint(default, window)!.Value.X + files.Bounds.Width,
+        "Vex Outline remains to the right of the document under " + theme);
     var heading = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdH1Border"));
     Check(heading.BorderThickness.Bottom == 1 && SameBrush(heading.BorderBrush, divider.BorderBrush),
         "Vex H1 uses the normal border color under " + theme);

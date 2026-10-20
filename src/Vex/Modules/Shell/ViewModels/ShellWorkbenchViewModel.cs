@@ -14,6 +14,7 @@ namespace Vex.Modules.Shell.ViewModels;
 public sealed partial class ShellWorkbenchViewModel : ReactiveObject
 {
     private readonly IWorkspaceDocumentState _document;
+    public EditorPreferences Preferences { get; }
     private readonly IAppSettingsStore _settings;
     private readonly IEditorAppearanceState _appearance;
     private readonly IEditorDisplayState _display;
@@ -44,8 +45,10 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private (string View, string Edit, Avalonia.Controls.WindowState WindowState, MarkdownLiveEditorState? LiveState)? _presentationSnapshot;
 
     public ShellWorkbenchViewModel(IWorkspaceDocumentState document, IAppSettingsStore settings,
-        IEditorAppearanceState appearance, ShellWindowLayoutViewModel layout, IEditorDisplayState display)
+        IEditorAppearanceState appearance, ShellWindowLayoutViewModel layout, IEditorDisplayState display, EditorPreferences preferences)
     {
+        Preferences = preferences;
+        preferences.PreferencesChanged += (_, _) => ApplyLiveAppearance();
         _document = document; _settings = settings; _appearance = appearance; _layout = layout; _display = display;
         display.Changed += (_, _) => { if (_live is { } live) live.EnableAutoPair = display.EnableAutoPair; };
         _view = settings.Current.WorkbenchView is "read" or "mindmap" ? settings.Current.WorkbenchView : "edit";
@@ -342,6 +345,11 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private void ApplyLiveAppearance()
     {
         if (_live is null) return;
+        _live.SyntaxOptions = Preferences.SyntaxOptions;
+        _live.CodeFontSize = Preferences.EffectiveCodeFontSize;
+        _live.CodeWrap = Preferences.CodeWrap;
+        _live.EditorFontSize = Preferences.EffectiveBodyFontSize;
+        _live.FontFamily = Preferences.ContentFontFamily;
         _live.TypographyTheme = _appearance.TypographyTheme;
         _live.TypographySize = _appearance.TypographySize;
         _live.DocumentBlockSpacing = _appearance.TypographyTheme == "Simple" ? 0 : _appearance.TypographySize == "Small" ? 3 : 7;

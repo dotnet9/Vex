@@ -4,6 +4,8 @@ namespace Vex.Core.Services;
 
 public interface IMarkdownExportService
 {
+    Task<string?> ExportMarkdownAsync(DocumentSnapshot document);
+
     Task<string?> ExportHtmlAsync(DocumentSnapshot document);
 
     Task<string?> ExportPdfAsync(DocumentSnapshot document);

@@ -43,6 +43,40 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string IsFocusMode = nameof(AppSettings.IsFocusMode);
     private const string IsTypewriterMode = nameof(AppSettings.IsTypewriterMode);
 
+    private const string RestoreWorkspace = nameof(AppSettings.RestoreWorkspace);
+    private const string AutoSave = nameof(AppSettings.AutoSave);
+    private const string AutoSaveDelay = nameof(AppSettings.AutoSaveDelay);
+    private const string RecoveryDrafts = nameof(AppSettings.RecoveryDrafts);
+    private const string DefaultEncoding = nameof(AppSettings.DefaultEncoding);
+    private const string DefaultNewline = nameof(AppSettings.DefaultNewline);
+    private const string BodyFontSize = nameof(AppSettings.BodyFontSize);
+    private const string CodeFontSize = nameof(AppSettings.CodeFontSize);
+    private const string IndentSize = nameof(AppSettings.IndentSize);
+    private const string CodeWrap = nameof(AppSettings.CodeWrap);
+    private const string BodyFont = nameof(AppSettings.BodyFont);
+    private const string SyntaxMath = nameof(AppSettings.SyntaxMath);
+    private const string SyntaxChemistry = nameof(AppSettings.SyntaxChemistry);
+    private const string SyntaxDiagrams = nameof(AppSettings.SyntaxDiagrams);
+    private const string SyntaxSubscript = nameof(AppSettings.SyntaxSubscript);
+    private const string SyntaxHighlight = nameof(AppSettings.SyntaxHighlight);
+    private const string SyntaxAutoLinks = nameof(AppSettings.SyntaxAutoLinks);
+    private const string SyntaxSoftBreaks = nameof(AppSettings.SyntaxSoftBreaks);
+    private const string ImageCopy = nameof(AppSettings.ImageCopy);
+    private const string ImageRelative = nameof(AppSettings.ImageRelative);
+    private const string ImageFolder = nameof(AppSettings.ImageFolder);
+    private const string WordCountVisible = nameof(AppSettings.WordCountVisible);
+    private const string ContentZoom = nameof(AppSettings.ContentZoom);
+    private const string ExportFormat = nameof(AppSettings.ExportFormat);
+    private const string ExportFolder = nameof(AppSettings.ExportFolder);
+    private const string ExportOpen = nameof(AppSettings.ExportOpen);
+    private const string HtmlStyle = nameof(AppSettings.HtmlStyle);
+    private const string WatermarkPreview = nameof(AppSettings.WatermarkPreview);
+    private const string WatermarkExport = nameof(AppSettings.WatermarkExport);
+    private const string WatermarkText = nameof(AppSettings.WatermarkText);
+    private const string WatermarkOpacity = nameof(AppSettings.WatermarkOpacity);
+    private const string PdfSize = nameof(AppSettings.PdfSize);
+    private const string PdfMargin = nameof(AppSettings.PdfMargin);
+
     private readonly object _syncRoot = new();
     private AppSettings? _settings;
 
@@ -77,6 +111,39 @@ public sealed class AppSettingsStore : IAppSettingsStore
         var configuration = AppConfigHelper.ReadAll();
         return new AppSettings
         {
+            RestoreWorkspace = Get<bool?>(configuration, RestoreWorkspace),
+            AutoSave = Get<bool?>(configuration, AutoSave),
+            AutoSaveDelay = Get<int?>(configuration, AutoSaveDelay),
+            RecoveryDrafts = Get<bool?>(configuration, RecoveryDrafts),
+            DefaultEncoding = Get<string>(configuration, DefaultEncoding),
+            DefaultNewline = Get<string>(configuration, DefaultNewline),
+            BodyFontSize = Get<double?>(configuration, BodyFontSize),
+            CodeFontSize = Get<double?>(configuration, CodeFontSize),
+            IndentSize = Get<int?>(configuration, IndentSize),
+            CodeWrap = Get<bool?>(configuration, CodeWrap),
+            BodyFont = Get<string>(configuration, BodyFont),
+            SyntaxMath = Get<bool?>(configuration, SyntaxMath),
+            SyntaxChemistry = Get<bool?>(configuration, SyntaxChemistry),
+            SyntaxDiagrams = Get<bool?>(configuration, SyntaxDiagrams),
+            SyntaxSubscript = Get<bool?>(configuration, SyntaxSubscript),
+            SyntaxHighlight = Get<bool?>(configuration, SyntaxHighlight),
+            SyntaxAutoLinks = Get<bool?>(configuration, SyntaxAutoLinks),
+            SyntaxSoftBreaks = Get<bool?>(configuration, SyntaxSoftBreaks),
+            ImageCopy = Get<bool?>(configuration, ImageCopy),
+            ImageRelative = Get<bool?>(configuration, ImageRelative),
+            ImageFolder = Get<string>(configuration, ImageFolder),
+            WordCountVisible = Get<bool?>(configuration, WordCountVisible),
+            ContentZoom = Get<double?>(configuration, ContentZoom),
+            ExportFormat = Get<string>(configuration, ExportFormat),
+            ExportFolder = Get<string>(configuration, ExportFolder),
+            ExportOpen = Get<bool?>(configuration, ExportOpen),
+            HtmlStyle = Get<bool?>(configuration, HtmlStyle),
+            WatermarkPreview = Get<bool?>(configuration, WatermarkPreview),
+            WatermarkExport = Get<bool?>(configuration, WatermarkExport),
+            WatermarkText = Get<string?>(configuration, WatermarkText),
+            WatermarkOpacity = Get<double?>(configuration, WatermarkOpacity),
+            PdfSize = Get<string?>(configuration, PdfSize),
+            PdfMargin = Get<double?>(configuration, PdfMargin),
             ThemeKey = Get<string>(configuration, ThemeKey),
             PaletteKey = Get<string>(configuration, PaletteKey),
             TypographyKey = Get<string>(configuration, TypographyKey),
@@ -123,6 +190,39 @@ public sealed class AppSettingsStore : IAppSettingsStore
         {
             AppConfigHelper.SetMany(new Dictionary<string, object?>
             {
+                [RestoreWorkspace] = settings.RestoreWorkspace,
+                [AutoSave] = settings.AutoSave,
+                [AutoSaveDelay] = settings.AutoSaveDelay,
+                [RecoveryDrafts] = settings.RecoveryDrafts,
+                [DefaultEncoding] = settings.DefaultEncoding,
+                [DefaultNewline] = settings.DefaultNewline,
+                [BodyFontSize] = settings.BodyFontSize,
+                [CodeFontSize] = settings.CodeFontSize,
+                [IndentSize] = settings.IndentSize,
+                [CodeWrap] = settings.CodeWrap,
+                [BodyFont] = settings.BodyFont,
+                [SyntaxMath] = settings.SyntaxMath,
+                [SyntaxChemistry] = settings.SyntaxChemistry,
+                [SyntaxDiagrams] = settings.SyntaxDiagrams,
+                [SyntaxSubscript] = settings.SyntaxSubscript,
+                [SyntaxHighlight] = settings.SyntaxHighlight,
+                [SyntaxAutoLinks] = settings.SyntaxAutoLinks,
+                [SyntaxSoftBreaks] = settings.SyntaxSoftBreaks,
+                [ImageCopy] = settings.ImageCopy,
+                [ImageRelative] = settings.ImageRelative,
+                [ImageFolder] = settings.ImageFolder,
+                [WordCountVisible] = settings.WordCountVisible,
+                [ContentZoom] = settings.ContentZoom,
+                [ExportFormat] = settings.ExportFormat,
+                [ExportFolder] = settings.ExportFolder,
+                [ExportOpen] = settings.ExportOpen,
+                [HtmlStyle] = settings.HtmlStyle,
+                [WatermarkPreview] = settings.WatermarkPreview,
+                [WatermarkExport] = settings.WatermarkExport,
+                [WatermarkText] = settings.WatermarkText,
+                [WatermarkOpacity] = settings.WatermarkOpacity,
+                [PdfSize] = settings.PdfSize,
+                [PdfMargin] = settings.PdfMargin,
                 [ThemeKey] = settings.ThemeKey,
                 [PaletteKey] = settings.PaletteKey,
                 [TypographyKey] = settings.TypographyKey,

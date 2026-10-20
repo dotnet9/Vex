@@ -15,11 +15,13 @@ public sealed class DocumentService : IDocumentService
     private static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
     private readonly IDocumentFileFactory _documentFileFactory;
     private readonly IAppLocalizer _localizer;
+    private readonly EditorPreferences _preferences;
 
-    public DocumentService(IDocumentFileFactory documentFileFactory, IAppLocalizer localizer)
+    public DocumentService(IDocumentFileFactory documentFileFactory, IAppLocalizer localizer, EditorPreferences preferences)
     {
         _documentFileFactory = documentFileFactory;
         _localizer = localizer;
+        _preferences = preferences;
     }
 
     public string? LastOpenedFolderPath { get; private set; }
@@ -28,7 +30,9 @@ public sealed class DocumentService : IDocumentService
     {
         var markdown = $"# {_localizer.Get(VexL.DocumentDefaultHeading)}\n\n{_localizer.Get(VexL.DocumentDefaultBody)}\n";
 
-        return new DocumentSnapshot(null, _localizer.Get(VexL.DocumentDefaultFileName), markdown, Utf8NoBom, true);
+        var newline = _preferences.DefaultNewline == "CRLF" ? "\r\n" : _preferences.DefaultNewline == "LF" ? "\n" : Environment.NewLine;
+        markdown = markdown.Replace("\n", newline);
+        return new DocumentSnapshot(null, _localizer.Get(VexL.DocumentDefaultFileName), markdown, ResolveEncoding(_preferences.DefaultEncoding), true);
     }
 
     public async Task<DocumentSnapshot?> OpenAsync()
@@ -53,8 +57,9 @@ public sealed class DocumentService : IDocumentService
     public async Task<DocumentSnapshot> OpenPathAsync(string path, string? encodingName = null)
     {
         var encoding = ResolveEncoding(encodingName);
-        var markdown = await FileHelper.SafeReadAllTextAsync(path, encoding);
-        return new DocumentSnapshot(path, Path.GetFileName(path), markdown, encoding, false);
+        using var reader = new StreamReader(path, encoding, detectEncodingFromByteOrderMarks: true);
+        var markdown = await reader.ReadToEndAsync();
+        return new DocumentSnapshot(path, Path.GetFileName(path), markdown, reader.CurrentEncoding, false);
     }
 
     public async Task<DocumentSnapshot> ReloadAsync(DocumentSnapshot document)
@@ -141,6 +146,23 @@ public sealed class DocumentService : IDocumentService
 
         await File.WriteAllTextAsync(document.FilePath, document.Markdown, document.Encoding);
         return document with { IsNew = false };
+    }
+
+    public async Task<bool> TryAutoSaveAsync(DocumentSnapshot document, string lastSavedMarkdown)
+    {
+        if (document.FilePath is not { } path || !File.Exists(path)) return false;
+        // 校验和写入持有同一文件句柄；Windows 上禁止其他写入及替换，避免校验后覆盖外部修改。
+        await using var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, useAsync: true);
+        using (var reader = new StreamReader(stream, document.Encoding, detectEncodingFromByteOrderMarks: true, leaveOpen: true))
+            if (await reader.ReadToEndAsync() != lastSavedMarkdown) return false;
+        var preamble = document.Encoding.GetPreamble();
+        var bytes = document.Encoding.GetBytes(document.Markdown);
+        stream.Position = 0;
+        await stream.WriteAsync(preamble);
+        await stream.WriteAsync(bytes);
+        stream.SetLength(stream.Position);
+        await stream.FlushAsync();
+        return true;
     }
 
     public async Task<DocumentSnapshot?> SaveAsAsync(DocumentSnapshot document)

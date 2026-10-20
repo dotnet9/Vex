@@ -153,6 +153,19 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         await SetClipboardTextAsync(Token);
     }
 
+    public string ClientConfiguration
+    {
+        get
+        {
+            var saved = _settingsStore.Current;
+            var endpoint = $"http://{FormatEndpointHost(NormalizeHost(saved.McpServerHost))}:{Math.Clamp(saved.McpServerPort ?? 17891, 1, 65535)}/mcp/";
+            static string Escape(string value) => System.Text.Json.JsonEncodedText.Encode(value).ToString();
+            return "{\n  \"mcpServers\": {\n    \"vex\": {\n      \"url\": \"" + Escape(endpoint) + "\",\n      \"headers\": {\n        \"Authorization\": \"" + Escape("Bearer " + (saved.McpAuthorizationToken ?? "")) + "\"\n      }\n    }\n  }\n}";
+        }
+    }
+
+    public Task CopyClientConfigurationAsync() => SetClipboardTextAsync(ClientConfiguration);
+
     public async Task SaveAsync()
     {
         var normalizedHost = NormalizeHost(Host);
@@ -174,6 +187,7 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         Token = normalizedToken;
         _confirmationService.ResetRememberedChoices();
         await _serverHost.ApplySettingsAsync();
+        this.RaisePropertyChanged(nameof(ClientConfiguration));
         RefreshStatus();
         Close();
     }

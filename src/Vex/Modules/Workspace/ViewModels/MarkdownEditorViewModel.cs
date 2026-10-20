@@ -15,6 +15,7 @@ namespace Vex.Modules.Workspace.ViewModels;
 public sealed class MarkdownEditorViewModel : ReactiveObject
 {
     private readonly IEditorDisplayState _editorDisplayState;
+    private readonly EditorPreferences _preferences;
     private readonly IWorkspaceDocumentState _workspaceDocumentState;
     private readonly Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel _workbench;
     private MarkdownEditorView? _editor;
@@ -25,18 +26,27 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     private readonly Vex.Modules.Shell.Services.IShellOverlayService _overlays;
     private readonly IAppLocalizer _localizer;
     private bool _tableDialogOpen;
+    private bool _imageDialogOpen;
+    private readonly Vex.Modules.Shell.Services.IShellDocumentUtilityActions _documentUtilities;
+    private readonly Vex.Modules.Shell.Services.IShellStatusPublisher _status;
 
     public MarkdownEditorViewModel(
         IEditorDisplayState editorDisplayState,
+        EditorPreferences preferences,
         IWorkspaceDocumentState workspaceDocumentState,
         Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel workbench,
-        Vex.Modules.Shell.Services.IShellOverlayService overlays, IAppLocalizer localizer)
+        Vex.Modules.Shell.Services.IShellOverlayService overlays, IAppLocalizer localizer,
+        Vex.Modules.Shell.Services.IShellDocumentUtilityActions documentUtilities,
+        Vex.Modules.Shell.Services.IShellStatusPublisher status)
     {
         _editorDisplayState = editorDisplayState;
+        _preferences = preferences; preferences.PreferencesChanged += (_, _) => ApplyPreferences();
         _workspaceDocumentState = workspaceDocumentState;
         _workbench = workbench;
         _overlays = overlays;
         _localizer = localizer;
+        _documentUtilities = documentUtilities;
+        _status = status;
         workbench.PropertyChanged += (_, _) => { if (_editor is { } source) source.Editor.IsReadOnly = !workbench.IsSourceEditing; };
         workbench.SourceNavigationRequested += (_, node) =>
         {
@@ -105,10 +115,20 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
         editor.ShowLineNumbers = ShowLineNumbers;
         editor.EditorFontSize = EditorFontSize;
         editor.HighlightCurrentLine = HighlightCurrentLine;
+        ApplyPreferences();
 
         // 挂载即对齐当前文档：切换文件时视图是同一实例，只能靠这里补上新正文。
         SyncTextFromDocument();
         PublishTextChanged();
+    }
+
+    private void ApplyPreferences()
+    {
+        if (_editor is null) return;
+        EditorFontSize = _preferences.EffectiveCodeFontSize;
+        _editor.Editor.WordWrap = _preferences.CodeWrap;
+        _editor.Editor.Options.IndentationSize = _preferences.IndentSize;
+        _editor.Editor.Options.ConvertTabsToSpaces = true;
     }
 
     public void DetachEditor(MarkdownEditorView editor)
@@ -191,6 +211,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     public void Execute(EditorActionKind action)
     {
         if (action == EditorActionKind.Table) { _ = InsertTableAsync(); return; }
+        if (action == EditorActionKind.Image) { _ = InsertImageAsync(); return; }
         if (action == EditorActionKind.Undo) { _workbench.UndoDocument(); return; }
         if (action == EditorActionKind.Redo) { _workbench.RedoDocument(); return; }
         if (_workbench.IsInstantEditing)
@@ -207,6 +228,67 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
         {
             _ = ExecuteAndRefocusAsync(editor, action.ToEditorAction());
         }
+    }
+
+    [EventHandler]
+    public void InsertSnippet(EditorSnippetCommand command)
+    {
+        if (MarkdownTemplates.Get(command.Key) is { } snippet) InsertMarkdown(snippet);
+    }
+
+    private void InsertMarkdown(string insertion)
+    {
+        if (!_workbench.IsEditing) return;
+        var selection = _workbench.IsInstantEditing ? _workbench.LiveEditor?.Selection : _editor?.Selection;
+        if (selection is not { } range) return;
+        var text = _workspaceDocumentState.Markdown;
+        if (range.Start < 0 || range.Start + range.Length > text.Length) return;
+        _workbench.History.BreakGroup();
+        var changed = text.Remove(range.Start, range.Length).Insert(range.Start, insertion);
+        EventBus.Default.Publish(new MarkdownTextChangedCommand(changed, 1, 1, changed.Count(c => c == '\n') + 1));
+        _workbench.History.BreakGroup();
+    }
+
+    private async Task InsertImageAsync()
+    {
+        if (_imageDialogOpen || !_workbench.IsEditing) return;
+        var live = _workbench.IsInstantEditing ? _workbench.LiveEditor : null;
+        var source = _workbench.IsSourceEditing ? _editor : null;
+        var control = (Avalonia.Controls.Control?)live ?? source;
+        var owner = control is null ? null : Avalonia.Controls.TopLevel.GetTopLevel(control);
+        if (owner is null) return;
+        var text = _workspaceDocumentState.Markdown;
+        var path = _workspaceDocumentState.FilePath;
+        var selection = live?.Selection ?? source!.Selection;
+        var snapshot = live?.CaptureState();
+        _imageDialogOpen = true;
+        try
+        {
+            var files = await owner.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+            {
+                Title = _localizer.Get(VexL.Image), AllowMultiple = false,
+                FileTypeFilter = [Avalonia.Platform.Storage.FilePickerFileTypes.ImageAll]
+            });
+            if (_workspaceDocumentState.FilePath != path || _workspaceDocumentState.Markdown != text || !_workbench.IsEditing) return;
+            if (files.FirstOrDefault() is { } file && Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(file) is { } image)
+            {
+                var resource = _documentUtilities.CopyImageToAssets(path, image);
+                if (resource is null) return;
+                var insertion = $"![]({resource})";
+                _workbench.History.BreakGroup();
+                var changed = text.Remove(selection.Start, selection.Length).Insert(selection.Start, insertion);
+                EventBus.Default.Publish(new MarkdownTextChangedCommand(changed, 1, 1, changed.Count(c => c == '\n') + 1));
+                _workbench.History.BreakGroup();
+            }
+            else if (live is not null && snapshot is not null) live.RestoreState(snapshot);
+            else source?.Editor.Select(selection.Start, selection.Length);
+            if (live is not null) live.FocusEditor(); else source?.FocusEditor();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            _status.PublishResource(VexL.ErrorMessageImageDropFailed);
+        }
+        finally { _imageDialogOpen = false; }
     }
 
     private async Task InsertTableAsync()

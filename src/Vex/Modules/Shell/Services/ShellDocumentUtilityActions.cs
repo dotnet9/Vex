@@ -13,15 +13,18 @@ namespace Vex.Modules.Shell.Services;
 public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
 {
     private readonly IMarkdownExportService _exportService;
+    private readonly EditorPreferences _preferences;
     private readonly IShellDocumentWorkflowText _text;
     private readonly IShellOverlayService _overlay;
 
     public ShellDocumentUtilityActions(
         IMarkdownExportService exportService,
+        EditorPreferences preferences,
         IShellDocumentWorkflowText text,
         IShellOverlayService overlay)
     {
         _exportService = exportService;
+        _preferences = preferences;
         _text = text;
         _overlay = overlay;
     }
@@ -39,6 +42,16 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
 
     public async Task ExportAsync(DocumentSnapshot document, string markdown, string? format)
     {
+        if (format?.Equals("Markdown", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            var path = await _exportService.ExportMarkdownAsync(document with { Markdown = markdown });
+            if (path is not null)
+            {
+                _text.PublishExportedMarkdownTo(Path.GetFileName(path));
+                if (_preferences.ExportOpen) OpenFileLocation(path);
+            }
+            return;
+        }
         if (format?.Equals("HTML", StringComparison.OrdinalIgnoreCase) == true)
         {
             var path = await _exportService.ExportHtmlAsync(document with { Markdown = markdown });
@@ -49,7 +62,7 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
             else
             {
                 _text.PublishExportedHtmlTo(Path.GetFileName(path));
-                OpenFileLocation(path);
+                if (_preferences.ExportOpen) OpenFileLocation(path);
             }
 
             return;
@@ -65,7 +78,7 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
             else
             {
                 _text.PublishExportedPdfTo(Path.GetFileName(path));
-                OpenFileLocation(path);
+                if (_preferences.ExportOpen) OpenFileLocation(path);
             }
 
             return;
@@ -81,7 +94,7 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
             else
             {
                 _text.PublishExportedPngTo(Path.GetFileName(path));
-                OpenFileLocation(path);
+                if (_preferences.ExportOpen) OpenFileLocation(path);
             }
 
             return;
@@ -98,7 +111,7 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
             else
             {
                 _text.PublishExportedWordTo(Path.GetFileName(path));
-                OpenFileLocation(path);
+                if (_preferences.ExportOpen) OpenFileLocation(path);
             }
 
             return;
@@ -136,34 +149,46 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
 
 
     /// <summary>
-    /// 把拖入的本地图片复制到文档所在目录的 assets/ 下，返回插入 Markdown 的相对路径；
-    /// 同名文件已存在时复用，不覆盖用户已有素材。
+    /// 按图片偏好准备资源路径；同名内容不同的图片使用新文件名，不覆盖已有素材。
     /// </summary>
     public string? CopyImageToAssets(string? documentPath, string imagePath)
     {
-        if (string.IsNullOrWhiteSpace(documentPath) || string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
+        if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
         {
             return null;
         }
 
-        var documentDirectory = Path.GetDirectoryName(documentPath);
-        if (string.IsNullOrWhiteSpace(documentDirectory))
+        var documentDirectory = string.IsNullOrWhiteSpace(documentPath) ? null : Path.GetDirectoryName(Path.GetFullPath(documentPath));
+        var targetPath = Path.GetFullPath(imagePath);
+        if (_preferences.ImageCopy && documentDirectory is not null)
         {
-            return null;
+            var folder = string.IsNullOrWhiteSpace(_preferences.ImageFolder) ? "assets" : _preferences.ImageFolder.Trim();
+            if (Path.IsPathRooted(folder)) throw new IOException("Image folder must be relative to the document.");
+            var assetsDirectory = Path.GetFullPath(Path.Combine(documentDirectory, folder));
+            var relativeFolder = Path.GetRelativePath(documentDirectory, assetsDirectory);
+            if (relativeFolder == ".." || relativeFolder.StartsWith(".." + Path.DirectorySeparatorChar))
+                throw new IOException("Image folder must remain within the document directory.");
+            Directory.CreateDirectory(assetsDirectory);
+            var fileName = Path.GetFileName(imagePath);
+            targetPath = Path.Combine(assetsDirectory, fileName);
+            var suffix = 1;
+            while (File.Exists(targetPath) && !SameImage(imagePath, targetPath))
+                targetPath = Path.Combine(assetsDirectory, $"{Path.GetFileNameWithoutExtension(fileName)}-{suffix++}{Path.GetExtension(fileName)}");
+            if (!File.Exists(targetPath)) File.Copy(imagePath, targetPath);
         }
+        if (!_preferences.ImageRelative || documentDirectory is null) return new Uri(targetPath).AbsoluteUri;
+        var relative = Path.GetRelativePath(documentDirectory, targetPath);
+        if (Path.IsPathRooted(relative)) return new Uri(targetPath).AbsoluteUri;
+        return string.Join('/', relative.Replace('\\', '/').Split('/').Select(Uri.EscapeDataString));
+    }
 
-        var assetsDirectory = Path.Combine(documentDirectory, "assets");
-        Directory.CreateDirectory(assetsDirectory);
-
-        var fileName = Path.GetFileName(imagePath);
-        var targetPath = Path.Combine(assetsDirectory, fileName);
-        if (!File.Exists(targetPath))
-        {
-            File.Copy(imagePath, targetPath);
-        }
-
-        // 无论来源在哪，源码里统一写 assets/<文件名> 相对路径。
-        return "assets/" + fileName;
+    private static bool SameImage(string left, string right)
+    {
+        if (string.Equals(Path.GetFullPath(left), Path.GetFullPath(right), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)) return true;
+        if (new FileInfo(left).Length != new FileInfo(right).Length) return false;
+        using var source = File.OpenRead(left);
+        using var target = File.OpenRead(right);
+        return System.Security.Cryptography.SHA256.HashData(source).AsSpan().SequenceEqual(System.Security.Cryptography.SHA256.HashData(target));
     }
     private static void OpenFileLocation(string path)
     {

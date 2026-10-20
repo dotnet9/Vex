@@ -85,6 +85,8 @@ public interface IShellDocumentWorkflowText
 
     void PublishExportedHtmlTo(string fileName);
 
+    void PublishExportedMarkdownTo(string fileName);
+
     void PublishPdfExportCanceled();
 
     void PublishExportedPdfTo(string fileName);

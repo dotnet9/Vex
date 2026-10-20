@@ -32,6 +32,7 @@ public sealed class ShellStatusBarViewModel : ReactiveObject
         RefreshMcpStatus();
     }
 
+    public EditorPreferences Preferences => Workbench.Preferences;
     public ShellAppearanceViewModel Appearance { get; }
     public Task ShowStatisticsAsync() => _overlays.ShowStatisticsAsync(DocumentInfo);
 

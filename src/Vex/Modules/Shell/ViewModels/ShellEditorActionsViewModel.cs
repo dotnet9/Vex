@@ -49,6 +49,9 @@ public sealed class ShellEditorActionsViewModel
         Publish(action);
     }
 
+    public void InsertSnippet(string key) =>
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorSnippetCommand(key));
+
     private void Publish(EditorActionKind action)
     {
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));

@@ -17,8 +17,7 @@ public interface IShellDocumentUtilityActions
     void WordCount(ShellDocumentInfoViewModel documentInfo);
 
     /// <summary>
-    /// 把拖入的本地图片复制到文档所在目录的 assets/ 下，返回插入 Markdown 的相对路径；
-    /// 文档未保存或无目录时返回 null。
+    /// 按图片偏好复制资源并返回 Markdown 路径；未保存文档使用绝对文件 URI。
     /// </summary>
     string? CopyImageToAssets(string? documentPath, string imagePath);
 

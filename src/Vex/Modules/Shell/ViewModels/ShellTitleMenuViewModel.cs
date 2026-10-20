@@ -91,6 +91,10 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
 
     public void WordCount() => Publish(ShellActionKind.WordCount);
 
+    public void ShowPreferences() => Publish(ShellActionKind.ShowPreferences);
+
+    public void ShowAppearancePreferences() => Publish(ShellActionKind.ShowPreferences, "appearance");
+
     public void ShowMcpSettings() => Publish(ShellActionKind.ShowMcpSettings);
 
     public void ShowMcpAudit() => Publish(ShellActionKind.ShowMcpAudit);

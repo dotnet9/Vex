@@ -20,6 +20,11 @@ public static class EditorActionMapper
         EditorActionKind.CopyPlainText => MarkdownEditorAction.CopyPlainText,
         EditorActionKind.Bold => MarkdownEditorAction.Bold,
         EditorActionKind.Italic => MarkdownEditorAction.Italic,
+        EditorActionKind.Strikethrough => MarkdownEditorAction.Strikethrough,
+        EditorActionKind.Highlight => MarkdownEditorAction.Highlight,
+        EditorActionKind.Superscript => MarkdownEditorAction.Superscript,
+        EditorActionKind.Subscript => MarkdownEditorAction.Subscript,
+
         EditorActionKind.InlineCode => MarkdownEditorAction.InlineCode,
         EditorActionKind.Link => MarkdownEditorAction.Link,
         EditorActionKind.Image => MarkdownEditorAction.Image,

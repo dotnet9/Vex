@@ -11,16 +11,20 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
     private readonly IEditorDisplayState _editorDisplayState;
     private readonly IAppSettingsStore _settingsStore;
     private readonly IShellStatusPublisher _statusPublisher;
+    private readonly EditorPreferences _preferences;
     private bool _showLineNumbers;
     private bool _enableAutoPair = true;
 
     public ShellEditorDisplayViewModel(
         IEditorDisplayState editorDisplayState,
         IAppSettingsStore settingsStore,
+        EditorPreferences preferences,
         IShellStatusPublisher statusPublisher)
     {
         _editorDisplayState = editorDisplayState;
         _settingsStore = settingsStore;
+        _preferences = preferences;
+        preferences.PreferencesChanged += (_, _) => { this.RaisePropertyChanged(nameof(EditorFontSize)); PublishDisplayState(); };
         _statusPublisher = statusPublisher;
         var settings = _settingsStore.Current;
         _showLineNumbers = settings.ShowLineNumbers ?? true;
@@ -28,7 +32,7 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
         PublishDisplayState();
     }
 
-    public double EditorFontSize => 12.5d;
+    public double EditorFontSize => _preferences.EffectiveCodeFontSize;
 
     public bool ShowLineNumbers
     {

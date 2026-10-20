@@ -25,7 +25,12 @@ public sealed class MarkdownInstantView : UserControl
     {
         var grid = new Grid();
         grid.Bind(BackgroundProperty, this.GetResourceObservable("VexPreviewBackgroundBrush"));
-        grid.Children.Add(Editor); Content = grid;
+        grid.Children.Add(Editor);
+        var watermark = new WatermarkOverlay();
+        watermark.Bind(IsVisibleProperty, new Binding("Workbench.Preferences.WatermarkPreview"));
+        watermark.Bind(WatermarkOverlay.TextProperty, new Binding("Workbench.Preferences.WatermarkText"));
+        watermark.Bind(WatermarkOverlay.StrengthProperty, new Binding("Workbench.Preferences.WatermarkOpacity"));
+        grid.Children.Add(watermark); Content = grid;
         AttachedToVisualTree += (_, _) => EventBus.Default.Subscribe(this);
         DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
         SizeChanged += (_, _) => UpdatePadding();

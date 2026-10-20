@@ -13,6 +13,7 @@ namespace Vex.Modules.Shell.Services;
 public sealed class ShellActionCoordinator
 {
     private readonly MainWindowViewModel _shell;
+    private readonly ShellPreferencesViewModel _preferences;
     private readonly McpSettingsViewModel _mcpSettings;
     private readonly IShellOverlayService _overlay;
     private readonly IMcpOperationAuditService _auditService;
@@ -20,12 +21,14 @@ public sealed class ShellActionCoordinator
 
     public ShellActionCoordinator(
         MainWindowViewModel shell,
+        ShellPreferencesViewModel preferences,
         McpSettingsViewModel mcpSettings,
         IMcpOperationAuditService auditService,
         IAppLocalizer localizer,
         IShellOverlayService overlay)
     {
         _shell = shell;
+        _preferences = preferences;
         _mcpSettings = mcpSettings;
         _auditService = auditService;
         _localizer = localizer;
@@ -121,6 +124,9 @@ public sealed class ShellActionCoordinator
                 case ShellActionKind.WordCount:
                     _shell.WordCount();
                     break;
+                case ShellActionKind.ShowPreferences:
+                    await _overlay.ShowPreferencesAsync(_preferences, command.Parameter ?? "general");
+                    break;
                 case ShellActionKind.ShowMcpSettings:
                     ShowMcpSettings();
                     break;
@@ -157,7 +163,7 @@ public sealed class ShellActionCoordinator
         }
     }
 
-    private void ShowMcpSettings() => _ = _overlay.ShowMcpSettingsAsync(_mcpSettings);
+    private void ShowMcpSettings() => _ = _overlay.ShowPreferencesAsync(_preferences, "mcp");
 
     private void ShowMcpAudit() => _ = _overlay.ShowMcpAuditAsync(
         _auditService,

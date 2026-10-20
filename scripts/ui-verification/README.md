@@ -7,7 +7,7 @@
     dotnet build scripts/ui-verification/UiVerification.csproj -c Release -p:ArtifactsPath=D:/github/temp_files/vex-native/artifacts
     dotnet D:/github/temp_files/vex-native/artifacts/bin/UiVerification/release/UiVerification.dll vex D:/github/temp_files/vex-native/refined/vex
 
-修改共享库时，用 `scripts/prepare_local_libraries.ps1 -PackageVersion <新的本地预览版本>` 生成本地 NuGet 包及仓外配置，再构建验证。五个包输出到 D:\github\temp_nugets，中间产物位于 D:\github\temp_files；Lite 是 Markdown 的传递依赖，禁止跨仓 ProjectReference。已有包可加 `-SkipPack`，脚本拒绝覆盖同版本包，避免旧缓存干扰。提交和正式发布前将中央依赖恢复为 nuget.org 正式版本。
+修改共享库时，用 `scripts/prepare_local_libraries.ps1 -PackageVersion <新版本>` 生成本地 NuGet 包及仓外配置，再构建验证。默认输出到工作区上两级的 `temp_nugets` 与 `temp_files/vex-libraries`，可通过 `PackageRoot` / `WorkRoot` 指定位置；构建时沿用 `WorkRoot/vex-artifacts`。Lite 是 Markdown 的传递依赖，禁止跨仓 ProjectReference。已有包可加 `-SkipPack`，脚本拒绝覆盖同版本包，避免旧缓存干扰。开发与本地验证无需等待线上包；全部本地验证通过后再打共享库 Tag，正式 Vex 发布 CI 使用同版本线上包。
 
 验证模式：
 
@@ -17,6 +17,7 @@
 | workspace | 单文档八布局、章节操作、真实指针拖动、共享撤销、多窗口同步、引导恢复及 RELAP 样本 |
 | layout | 窗口尺寸、指针连续拖动、正文与代码几何 |
 | editing-tools | 格式命令、表格、演示与编辑偏好 |
+| settings-ui | 七类偏好、四语窄窗、MCP 三页签、语法、水印、图片路径、编码、自动保存与外部冲突 |
 | preferences / locale / path-identity / file-tree | 偏好持久化、语言、路径身份与文件树 |
 | buttons / danger-buttons | 八色浅深、普通 / 悬停 / 按下共 96 种按钮状态 |
 | parity | 同一份文档、1280×820 与 980×640、明暗模式、八布局和浮层截图 |

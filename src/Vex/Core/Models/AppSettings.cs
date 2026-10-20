@@ -78,4 +78,39 @@ public sealed record AppSettings
 
     /// <summary>打字机模式：光标行垂直居中。</summary>
     public bool? IsTypewriterMode { get; init; }
+
+    // 统一偏好设置；空值沿用升级前默认行为。
+    public bool? RestoreWorkspace { get; init; }
+    public bool? AutoSave { get; init; }
+    public int? AutoSaveDelay { get; init; }
+    public bool? RecoveryDrafts { get; init; }
+    public string? DefaultEncoding { get; init; }
+    public string? DefaultNewline { get; init; }
+    public double? BodyFontSize { get; init; }
+    public double? CodeFontSize { get; init; }
+    public int? IndentSize { get; init; }
+    public bool? CodeWrap { get; init; }
+    public string? BodyFont { get; init; }
+    public bool? SyntaxMath { get; init; }
+    public bool? SyntaxChemistry { get; init; }
+    public bool? SyntaxDiagrams { get; init; }
+    public bool? SyntaxSubscript { get; init; }
+    public bool? SyntaxHighlight { get; init; }
+    public bool? SyntaxAutoLinks { get; init; }
+    public bool? SyntaxSoftBreaks { get; init; }
+    public bool? ImageCopy { get; init; }
+    public bool? ImageRelative { get; init; }
+    public string? ImageFolder { get; init; }
+    public bool? WordCountVisible { get; init; }
+    public double? ContentZoom { get; init; }
+    public string? ExportFormat { get; init; }
+    public string? ExportFolder { get; init; }
+    public bool? ExportOpen { get; init; }
+    public bool? HtmlStyle { get; init; }
+    public bool? WatermarkPreview { get; init; }
+    public bool? WatermarkExport { get; init; }
+    public string? WatermarkText { get; init; }
+    public double? WatermarkOpacity { get; init; }
+    public string? PdfSize { get; init; }
+    public double? PdfMargin { get; init; }
 }

@@ -18,16 +18,31 @@ namespace Vex.Modules.Workspace.Services;
 public sealed class MarkdownExportService : IMarkdownExportService
 {
     private static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
-    private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
-        .UseAdvancedExtensions()
-        .Build();
     private readonly IEditorAppearanceState _appearanceState;
     private readonly IAppLocalizer _localizer;
+    private readonly EditorPreferences _preferences;
 
-    public MarkdownExportService(IAppLocalizer localizer, IEditorAppearanceState appearanceState)
+    public MarkdownExportService(IAppLocalizer localizer, IEditorAppearanceState appearanceState, EditorPreferences preferences)
     {
         _localizer = localizer;
+        _preferences = preferences;
         _appearanceState = appearanceState;
+    }
+
+    public async Task<string?> ExportMarkdownAsync(DocumentSnapshot document)
+    {
+        var owner = GetMainWindow();
+        if (owner is null) return null;
+        var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Markdown", SuggestedStartLocation = await ResolveExportFolderAsync(owner, document),
+            SuggestedFileName = document.FileName, DefaultExtension = "md",
+            FileTypeChoices = [new FilePickerFileType("Markdown") { Patterns = ["*.md"] }]
+        });
+        var path = file?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(path)) return null;
+        await File.WriteAllTextAsync(path, document.Markdown, document.Encoding);
+        return path;
     }
 
     public async Task<string?> ExportHtmlAsync(DocumentSnapshot document)
@@ -41,6 +56,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
         var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = _localizer.Get(VexL.DialogExportHtmlTitle),
+            SuggestedStartLocation = await ResolveExportFolderAsync(owner, document),
             SuggestedFileName = Path.ChangeExtension(document.FileName, ".html"),
             DefaultExtension = "html",
             FileTypeChoices = CreateHtmlFileTypes()
@@ -67,6 +83,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
         var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = _localizer.Get(VexL.DialogExportPdfTitle),
+            SuggestedStartLocation = await ResolveExportFolderAsync(owner, document),
             SuggestedFileName = Path.ChangeExtension(document.FileName, ".pdf"),
             DefaultExtension = "pdf",
             FileTypeChoices = CreatePdfFileTypes()
@@ -85,7 +102,11 @@ public sealed class MarkdownExportService : IMarkdownExportService
             ResolveExportStyle(),
             new MarkdownPdfExportOptions(
                 _localizer.Get(VexL.DocumentDefaultHeading),
-                _localizer.Get(VexL.DocumentDefaultFileName)));
+                _localizer.Get(VexL.DocumentDefaultFileName),
+                PageSize: _preferences.PdfSize, MarginMillimeters: _preferences.PdfMargin,
+                WatermarkText: _preferences.WatermarkExport ? _preferences.WatermarkText : null,
+                WatermarkOpacity: _preferences.WatermarkOpacity / 100,
+                SyntaxOptions: _preferences.SyntaxOptions));
         return path;
     }
 
@@ -100,6 +121,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
         var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = _localizer.Get(VexL.DialogExportPngTitle),
+            SuggestedStartLocation = await ResolveExportFolderAsync(owner, document),
             SuggestedFileName = Path.ChangeExtension(document.FileName, ".png"),
             DefaultExtension = "png",
             FileTypeChoices = CreatePngFileTypes()
@@ -126,6 +148,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
         var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = _localizer.Get(VexL.ExportWord),
+            SuggestedStartLocation = await ResolveExportFolderAsync(owner, document),
             SuggestedFileName = Path.ChangeExtension(document.FileName, ".docx"),
             DefaultExtension = "docx",
             FileTypeChoices = CreateWordFileTypes()
@@ -149,12 +172,11 @@ public sealed class MarkdownExportService : IMarkdownExportService
             return false;
         }
 
-        if (await clipboard.TrySetMarkdownHtmlAsync(
-                document.Markdown,
-                _appearanceState.TypographyTheme,
-                target,
-                _appearanceState.TypographySize))
+        if (MarkdownSocialCopyProfiles.TryResolve(target, out var profile))
         {
+            var content = MarkdownSocialCopyRenderer.Render(ToExportDocument(document), profile, ResolveExportStyle(),
+                new MarkdownSocialCopyOptions { SyntaxOptions = _preferences.SyntaxOptions });
+            await MarkdownHtmlClipboard.SetHtmlAsync(clipboard, content);
             return true;
         }
 
@@ -219,7 +241,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
         var title = WebUtility.HtmlEncode(Path.GetFileNameWithoutExtension(document.FileName));
         var body = RenderMarkdownHtml(document);
         var language = WebUtility.HtmlEncode(_localizer.Culture.Name);
-        var style = ResolveExportStyle();
+        var style = ResolveExportStyle(html: true);
         var cssBodyFont = FormatCssFontFamily(style.BodyFontFamily);
         var cssMonoFont = FormatCssFontFamily(style.MonoFontFamily);
         var bodyFontSize = FormatCssNumber(style.BodyFontSize);
@@ -253,7 +275,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
                 p, ul, ol, blockquote, pre, table { margin: 0 0 1em; }
                 code { background: {{style.InlineCodeBackgroundColor}}; color: {{style.InlineCodeForegroundColor}}; border-radius: 4px; padding: .12em .32em; font-family: {{cssMonoFont}}; font-size: {{FormatCssNumber(style.CodeFontSize)}}px; }
                 pre { overflow: auto; background: {{style.CodeBackgroundColor}}; color: {{style.CodeForegroundColor}}; border-radius: 8px; padding: 16px; }
-                pre code { background: transparent; color: inherit; padding: 0; }
+                pre code { background: transparent; color: inherit; padding: 0; white-space: {{(_preferences.CodeWrap ? "pre-wrap" : "pre")}}; overflow-wrap: {{(_preferences.CodeWrap ? "anywhere" : "normal")}}; }
                 blockquote { border-left: 4px solid {{style.QuoteBorderColor}}; color: {{style.MutedColor}}; padding-left: 16px; }
                 table { border-collapse: collapse; width: 100%; }
                 th, td { border: 1px solid {{style.BorderColor}}; padding: 8px 10px; }
@@ -261,6 +283,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
                 a { color: {{style.LinkColor}}; }
                 img { max-width: 100%; }
                 {{printStyles}}
+                {{(!includeFragmentMarkers ? BuildWatermarkCss() : "")}}
               </style>
               {{printScript}}
             </head>
@@ -283,9 +306,18 @@ public sealed class MarkdownExportService : IMarkdownExportService
         return new MarkdownHtmlCopyContent(html, html);
     }
 
-    private MarkdownExportStyle ResolveExportStyle()
+    private string BuildWatermarkCss()
     {
-        return MarkdownThemes.CreateExportStyle(_appearanceState.TypographyTheme, _appearanceState.TypographySize);
+        if (!_preferences.WatermarkExport || string.IsNullOrWhiteSpace(_preferences.WatermarkText)) return "";
+        var text = System.Security.SecurityElement.Escape(_preferences.WatermarkText);
+        var svg = $"<svg xmlns='http://www.w3.org/2000/svg' width='280' height='180'><text x='20' y='100' transform='rotate(-25 140 90)' font-family='sans-serif' font-size='20' fill='#24766b'>{text}</text></svg>";
+        var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(svg));
+        return $"article {{ position: relative; }} article::after {{ content: ''; position: absolute; inset: 0; pointer-events: none; opacity: {FormatCssNumber(_preferences.WatermarkOpacity / 100)}; background-image: url('data:image/svg+xml;base64,{encoded}'); }}";
+    }
+
+    private MarkdownExportStyle ResolveExportStyle(bool html = false)
+    {
+        return MarkdownThemes.CreateExportStyle(html && !_preferences.HtmlStyle ? "Simple" : _appearanceState.TypographyTheme, _appearanceState.TypographySize);
     }
 
     private static MarkdownExportDocument ToExportDocument(DocumentSnapshot document)
@@ -522,11 +554,20 @@ public sealed class MarkdownExportService : IMarkdownExportService
               </script>
     """;
 
-    private static string RenderMarkdownHtml(DocumentSnapshot document)
+    private async Task<IStorageFolder?> ResolveExportFolderAsync(Window owner, DocumentSnapshot document)
     {
-        var parsed = Markdig.Markdown.Parse(document.Markdown ?? string.Empty, Pipeline);
+        var folder = string.IsNullOrWhiteSpace(_preferences.ExportFolder)
+            ? Path.GetDirectoryName(document.FilePath) : _preferences.ExportFolder;
+        return !string.IsNullOrWhiteSpace(folder) && Path.IsPathFullyQualified(folder) && Directory.Exists(folder)
+            ? await owner.StorageProvider.TryGetFolderFromPathAsync(folder) : null;
+    }
+
+    private string RenderMarkdownHtml(DocumentSnapshot document)
+    {
+        var pipeline = _preferences.SyntaxOptions.CreatePipeline();
+        var parsed = Markdig.Markdown.Parse(document.Markdown ?? string.Empty, pipeline);
         EmbedLocalImages(parsed, document.FilePath);
-        return Markdig.Markdown.ToHtml(parsed, Pipeline);
+        return Markdig.Markdown.ToHtml(parsed, pipeline);
     }
 
     private static void EmbedLocalImages(ContainerBlock container, string? documentPath)

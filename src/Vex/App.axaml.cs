@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -95,6 +95,8 @@ public partial class App : PrismApplication
     {
         containerRegistry.RegisterSingleton<IUpdateService, VexUpdateService>();
         containerRegistry.RegisterSingleton<IAppSettingsStore, AppSettingsStore>();
+        containerRegistry.RegisterSingleton<EditorPreferences>();
+        containerRegistry.RegisterSingleton<ShellPreferencesViewModel>();
         containerRegistry.RegisterSingleton<IAppLocalizer, AppLocalizer>();
         containerRegistry.RegisterSingleton<IDocumentFileFactory, DocumentFileFactory>();
         containerRegistry.RegisterSingleton<IDocumentService, DocumentService>();

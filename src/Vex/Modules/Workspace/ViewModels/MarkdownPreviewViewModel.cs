@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
@@ -8,6 +8,7 @@ namespace Vex.Modules.Workspace.ViewModels;
 
 public sealed class MarkdownPreviewViewModel : ReactiveObject
 {
+    public EditorPreferences Preferences { get; }
     private readonly IEditorAppearanceState _appearanceState;
     private readonly Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel _workbench;
     public bool IsTaskEditingEnabled => _workbench.IsSourceEditing;
@@ -25,9 +26,11 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
 
     public MarkdownPreviewViewModel(
         IWorkspaceDocumentState documentState,
+        EditorPreferences preferences,
         IEditorAppearanceState appearanceState,
         Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel workbench)
     {
+        Preferences = preferences;
         _workbench = workbench;
         workbench.PropertyChanged += OnWorkbenchPropertyChanged;
         _appearanceState = appearanceState;

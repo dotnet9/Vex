@@ -1,4 +1,4 @@
-﻿using Vex.Core.Services;
+using Vex.Core.Services;
 using CodeWF.Toolkit.Files.Helpers;
 using System.Xml.Linq;
 
@@ -37,8 +37,11 @@ try
     Console.WriteLine("PASS: real settings persist independent mode and palette across instances and partial updates.");
     var expected = second.Update(settings => settings with
     {
-        SourcePreviewEnabled = false, WorkbenchView = "mindmap", EditMode = "source", MindMapSummaryLength = 42,
+        WorkbenchView = "mindmap", EditMode = "source", MindMapSummaryLength = 42,
         MindMapShowParagraphs = false, MindMapShowCode = true, MindMapShowTables = true, MindMapShowLists = false,
+        SyntaxMath = false, SyntaxSoftBreaks = false, BodyFontSize = 18, ImageFolder = "images", AutoSave = true,
+        WatermarkPreview = true, WatermarkExport = true, WatermarkText = "test <&> 维刻", WatermarkOpacity = 18,
+        PdfSize = "Letter", PdfMargin = 25, HtmlStyle = false,
         EnableAutoPair = false, EnableMotion = false, IsFocusMode = true, IsTypewriterMode = true
     });
     if (new AppSettingsStore().Current != expected)

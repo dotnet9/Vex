@@ -28,6 +28,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     private Timer? _currentFileChangeTimer;
     private Timer? _currentFolderChangeTimer;
     private Timer? _markdownDerivedStateTimer;
+    private Timer? _autoSaveTimer;
+    private bool _autoSaveInProgress;
     private DocumentSnapshot _document;
     private IReadOnlyList<DocumentFile> _documentFiles = [];
     private string _lastSavedMarkdown = string.Empty;
@@ -149,7 +151,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         var target = _externalPaths.ResolveStartupArgument(normalizedArguments);
         if (target.Path is not { Length: > 0 } path)
         {
-            if (normalizedArguments.Length == 0)
+            if (normalizedArguments.Length == 0 && _settingsStore.Current.RestoreWorkspace != false)
             {
                 await RestoreLastWorkspaceFolderAsync();
             }
@@ -328,6 +330,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         this.RaiseAndSetIfChanged(ref _markdown, normalized);
         _document = _document with { Markdown = _markdown };
         _documentVersion++;
+        ScheduleAutoSave();
 
         if (refreshImmediately)
         {
@@ -338,8 +341,43 @@ public sealed class MainWindowViewModel : ReactiveObject
 
         RefreshDocumentState();
         PublishWorkspaceDocumentState();
-        if (_guideDocument is null) _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
+        if (_guideDocument is null && _settingsStore.Current.RecoveryDrafts != false) _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
         ScheduleMarkdownDerivedStateRefresh();
+    }
+
+    private void ScheduleAutoSave()
+    {
+        _autoSaveTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        if (_settingsStore.Current.AutoSave != true || _guideDocument is not null || _document.FilePath is null) return;
+        _autoSaveTimer ??= new Timer(state => Dispatcher.UIThread.Post(() => _ = AutoSaveCurrentAsync()), null,
+            Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _autoSaveTimer.Change(TimeSpan.FromSeconds(Math.Clamp(_settingsStore.Current.AutoSaveDelay ?? 2, 2, 60)), Timeout.InfiniteTimeSpan);
+    }
+
+    private async Task AutoSaveCurrentAsync()
+    {
+        if (_autoSaveInProgress || _settingsStore.Current.AutoSave != true || _guideDocument is not null
+            || _document.FilePath is not { } path || !DocumentInfo.IsModified || !File.Exists(path)) return;
+        // 外部写入应先由文件监控流程处理，自动保存不得覆盖未确认的磁盘改动。
+        if (_watchedFileLastWriteTimeUtc is not { } watched || new DateTimeOffset(File.GetLastWriteTimeUtc(path)) != watched) return;
+        var snapshot = _document with { Markdown = Markdown };
+        _autoSaveInProgress = true;
+        try
+        {
+            if (!await _documentService.TryAutoSaveAsync(snapshot, _lastSavedMarkdown)) return;
+            if (_document.FilePath != path) return;
+            _lastSavedMarkdown = snapshot.Markdown;
+            _watchedFileLastWriteTimeUtc = new DateTimeOffset(File.GetLastWriteTimeUtc(path));
+            RefreshDocumentState();
+            if (!DocumentInfo.IsModified) _drafts.Clear(_document);
+            else ScheduleAutoSave();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // 保留修改状态和恢复草稿，由用户通过普通保存流程处理磁盘错误。
+            _statusPublisher.PublishResource(VexL.ErrorMessageActionFailed);
+        }
+        finally { _autoSaveInProgress = false; }
     }
 
     public Task NewDocument()
@@ -850,7 +888,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     private void RefreshDocumentInfo()
     {
         DocumentInfo.Refresh(_document, Markdown, _lastSavedMarkdown, _statisticsService.Count(Markdown));
-        if (_guideDocument is null) _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
+        if (_guideDocument is null && _settingsStore.Current.RecoveryDrafts != false) _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
     }
 
     private void SyncDocumentFileList(string path)
@@ -918,6 +956,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     // 文本变更仍走 EventBus 的编辑器通道，撤销栈保持一致。
     private async Task HandleImageDroppedAsync(string sourcePath)
     {
+        if (!Workbench.IsEditing) return;
         try
         {
             var relativePath = _documentUtilities.CopyImageToAssets(_workspaceDocumentState.FilePath, sourcePath);
@@ -1006,6 +1045,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             {
                 StopCurrentFileWatcher();
                 StopCurrentFolderWatcher();
+                _autoSaveTimer?.Dispose(); _autoSaveTimer = null;
                 _drafts.Clear(_document);
                 CloseWindowRequested?.Invoke(this, EventArgs.Empty);
                 return Task.CompletedTask;
@@ -1335,7 +1375,7 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private DocumentSnapshot RestoreDraftIfAvailable(DocumentSnapshot document, out bool restoredDraft)
     {
-        var restored = _drafts.TryRestore(document);
+        var restored = _settingsStore.Current.RecoveryDrafts == false ? null : _drafts.TryRestore(document);
         if (restored is null)
         {
             restoredDraft = false;

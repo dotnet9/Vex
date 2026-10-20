@@ -25,6 +25,10 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
         var hasAlt = keyModifiers.HasFlag(KeyModifiers.Alt);
 
         // 窗口级快捷键只做意图路由，文件 I/O 与未保存确认继续由 ShellActionCoordinator 统一处理。
+        if ((hasControl || keyModifiers.HasFlag(KeyModifiers.Meta)) && key == Key.OemComma)
+            return PublishShellAction(ShellActionKind.ShowPreferences);
+        if (hasControl && hasShift && key == Key.N) return PublishShellAction(ShellActionKind.NewWindow);
+
         if (hasControl && !hasShift && key == Key.N)
         {
             return PublishShellAction(ShellActionKind.NewDocument);

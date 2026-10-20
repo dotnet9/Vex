@@ -92,6 +92,9 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
             new MarkdownDocumentOverlayView(title, markdown, imageBasePath, typographyTheme, typographySize),
             null);
 
+    public Task ShowPreferencesAsync(ShellPreferencesViewModel viewModel, string category = "general") =>
+        ShowAsync(new ShellPreferencesOverlayView(viewModel, localizer, category), viewModel);
+
     public Task ShowMcpSettingsAsync(McpSettingsViewModel viewModel) =>
         ShowAsync(new McpSettingsOverlayView(), viewModel);
 

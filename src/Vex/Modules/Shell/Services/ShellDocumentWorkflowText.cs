@@ -131,6 +131,8 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
 
     public void PublishExportedHtmlTo(string fileName) => PublishToast(VexL.StatusExportedHtmlToFormat, fileName);
 
+    public void PublishExportedMarkdownTo(string fileName) => PublishToast(VexL.StatusExportedMarkdownToFormat, fileName);
+
     public void PublishPdfExportCanceled() => Publish(VexL.StatusPdfExportCanceled);
 
     public void PublishExportedPdfTo(string fileName) => PublishToast(VexL.StatusExportedPdfToFormat, fileName);
