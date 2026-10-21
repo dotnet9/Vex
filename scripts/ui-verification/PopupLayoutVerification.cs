@@ -107,7 +107,7 @@ internal static class PopupLayoutVerification
             var track = toggle.GetVisualDescendants().OfType<Border>().First(b => b.Name == "SwitchBackgroundBorder");
             var knob = toggle.GetVisualDescendants().OfType<Border>().First(b => b.Name == "SwitchKnobIndicator");
             var point = knob.TranslatePoint(default, track)!.Value;
-            Check(point.X >= 0 && point.Y >= 0 && point.X + knob.Bounds.Width <= track.Bounds.Width && point.Y + knob.Bounds.Height <= track.Bounds.Height, "Preference switch knob remains inside its track: " + toggle.Name);
+            Check(point.X >= 0 && point.Y >= 0 && point.X + knob.Bounds.Width <= track.Bounds.Width && point.Y + knob.Bounds.Height <= track.Bounds.Height, $"Preference switch knob remains inside its track: {toggle.Name} ({point}, {knob.Bounds.Size}, {track.Bounds.Size})");
         }
         Capture(preferenceCard, "preferences");
         ((ShellPreferencesViewModel)preferences.DataContext!).Close(); Render();

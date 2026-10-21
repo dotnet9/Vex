@@ -31,8 +31,8 @@
   <Style Selector="ListBox.preferences-navigation ListBoxItem TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem:selected TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem:selected Path"><Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/></Style>
-  <Style Selector="ToggleSwitch.pref-toggle /template/ Border#SwitchBackgroundBorder"><Setter Property="Width" Value="34"/><Setter Property="Height" Value="20"/><Setter Property="CornerRadius" Value="10"/></Style>
-  <Style Selector="ToggleSwitch.pref-toggle /template/ Canvas#PART_SwitchKnob"><Setter Property="Width" Value="20"/><Setter Property="Height" Value="20"/></Style>
+  <Style Selector="ToggleSwitch.pref-toggle /template/ Border#SwitchBackgroundBorder"><Setter Property="Width" Value="34"/><Setter Property="Height" Value="20"/><Setter Property="CornerRadius" Value="10"/><Setter Property="BorderThickness" Value="0"/></Style>
+  <Style Selector="ToggleSwitch.pref-toggle /template/ Canvas#PART_SwitchKnob"><Setter Property="Width" Value="14"/><Setter Property="Height" Value="20"/></Style>
   <Style Selector="ToggleSwitch.pref-toggle /template/ Panel#PART_MovingKnobs"><Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/><Setter Property="Margin" Value="3"/></Style>
   <Style Selector="ToggleSwitch.pref-toggle:checked /template/ Border#SwitchBackgroundBorder"><Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/></Style>
   <Style Selector="Path.wb-icon">
