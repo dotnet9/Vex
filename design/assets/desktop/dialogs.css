@@ -48,7 +48,6 @@
   .about-links > span { color: var(--muted); }
   .about-footer { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; margin: 26px 32px 0; padding: 18px 0 22px; border-top: 1px solid var(--border); }
   #vex-update { min-width: 110px; }
-  #vex-update-status { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
   .about-foot { font-size: 11px; color: var(--muted); line-height: 1.8; }
 
   .set-head { padding: 20px 24px 4px; display: flex; align-items: center; gap: 14px; }

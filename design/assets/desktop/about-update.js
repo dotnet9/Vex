@@ -100,7 +100,7 @@
         break;
       case 'available': {
         setHero('发现新版本 ' + latest.version,
-          latest.date + ' 发布 · ' + (newer.length > 1 ? '共 ' + newer.length + ' 个版本' : (typedEntries(latest.body)[0] || { text: '修复已知问题，提升稳定性' }).text.slice(0, 18)),
+          latest.date + ' 发布' + (newer.length > 1 ? ' · 共 ' + newer.length + ' 个版本' : ''),
           'up', false);
         setActions([{ label: '下载更新', primary: true, onClick: () => operation('downloading') }]);
         setProgress(null); showChanges(false);
@@ -111,7 +111,7 @@
         setActions([{ label: '取消', onClick: cancelDownload }]);
         break;
       case 'downloaded':
-        setHero('下载完成', '新版本 ' + latest.version + ' 已下载完成，准备安装。', 'check', false);
+        setHero('下载完成', '新版本 ' + latest.version + ' 已通过校验，可以安装。', 'check', false);
         setActions([
           { label: '稍后安装', onClick: () => { closeLayer(); } },
           { label: '立即安装', primary: true, onClick: () => operation('installing') },
@@ -138,11 +138,6 @@
         setProgress(null); showChanges(false);
         break;
     }
-    const latestVersion = latest ? latest.version : '99.0.0';
-    const key = { available:'AboutUpdateAvailable', downloading:'AboutDownloading', downloaded:'AboutDownloaded', installing:'AboutInstalling' }[state];
-    const message = key ? VexL.get(key).replace('{0}', latestVersion) : '';
-    $('vex-update-status').textContent = message;
-    $('vex-update-status').hidden = !message;
   }
 
   function closeLayer() { $('layer-update').hidden = true; }
@@ -182,7 +177,6 @@
       if (scenario === 'current') {
         newer.length = 0;
         state = 'current'; render();
-        VexProto.toast(VexL.get('AboutUpToDate'));
         return;
       }
       if (scenario === 'missing') { state = 'manual'; render(); window.open('https://github.com/dotnet9/Vex/releases/latest', '_blank', 'noopener,noreferrer'); return; }
@@ -217,6 +211,7 @@
       const ratio = download.done / download.total;
       const minutes = Math.max(1, Math.round((DOWNLOAD_TICKS - tick) * 0.12 * 10) / 10);
       $('update-phase-sub').textContent = '已下载 ' + download.done.toFixed(1) + ' MB / ' + download.total.toFixed(1) + ' MB · 约 ' + minutes + ' 分钟';
+      $('update-phase-sub').hidden = false;
       setProgress(ratio);
       if (scenario === 'download-failed' && tick === 4 && !failures.has(scenario)) { clearInterval(progressTimer); failures.add(scenario); state = 'failed'; render(); setProgress(null); return; }
       if (scenario === 'checksum-failed' && tick === DOWNLOAD_TICKS && !failures.has(scenario)) { clearInterval(progressTimer); failures.add(scenario); state = 'failed'; render(); setProgress(null); return; }

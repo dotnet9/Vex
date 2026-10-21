@@ -328,11 +328,11 @@
     <!-- 关于 Vex -->
     <div class="overlay win-layer" id="layer-update" hidden>
       <div class="mini-window" role="dialog" aria-modal="true" aria-labelledby="update-title" style="width:540px;max-height:85vh;overflow:auto">
-        <div class="mini-titlebar"><span data-proto-label="检查更新">检查更新</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="mini-titlebar"><span id="update-title" data-proto-label="检查更新">检查更新</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
         <div class="update-body">
           <div class="update-hero">
             <span class="update-icon" id="update-icon" aria-hidden="true"><svg class="ico"><use href="#i-up"/></svg></span>
-            <div class="update-copy">
+            <div class="update-copy" role="status" aria-live="polite" aria-atomic="true">
               <strong id="update-phase-title">正在检查更新...</strong>
               <span class="update-sub" id="update-phase-sub">正在连接服务器，请稍候...</span>
             </div>
@@ -346,7 +346,6 @@
             <summary>更新内容（点击展开）</summary>
             <div class="update-list" id="update-list"></div>
           </details>
-          <span id="vex-update-status" role="status" hidden></span>
         </div>
       </div>
     </div>
