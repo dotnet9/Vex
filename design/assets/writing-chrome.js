@@ -38,7 +38,7 @@
     docs.map((doc, index) => ({doc, index})).sort((a,b) => (descending ? -1 : 1) * a.doc.name.localeCompare(b.doc.name, 'zh-CN'))
       .filter(({doc}) => doc.name.toLowerCase().includes(query.toLowerCase().trim())).forEach(({doc, index}) => {
         let parent = root, path = '';
-        if (mode === 'tree') (doc.path || doc.name).split('/').slice(0,-1).forEach(part => {
+        if (mode === 'tree') (doc.treePath || doc.path || doc.name).split('/').slice(0,-1).forEach(part => {
           path += '/' + part;
           if (!folders.has(path)) folders.set(path, directory(parent, part, path));
           parent = folders.get(path);

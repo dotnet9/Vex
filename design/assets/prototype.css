@@ -71,7 +71,8 @@ body.device-phone .mobile-more { width:44px; height:44px; }
 .md-code-language:hover,.md-code-language:focus { border-color:var(--border); background:var(--panel,var(--surface)); color:var(--fg,var(--text)); }
 .instant-block:has(>.md-code-block),.md-block:has(>pre) { padding-bottom:0; }
 .instant-block>.md-code-block pre,.md-block>pre { margin-bottom:0; }
-.diagram-editor { border:1px solid var(--border); border-radius:6px; margin:18px 0; overflow:hidden; background:var(--panel,var(--surface)); }
+.diagram-editor { border:1px solid transparent; border-radius:6px; margin:18px 0; overflow:hidden; background:transparent; }
+.diagram-editor:hover,.diagram-editor:focus-within,.diagram-editor.is-expanded { border-color:var(--border); }
 .diagram-source-shell { display:grid; grid-template-rows:0fr; opacity:0; transition:grid-template-rows var(--vex-duration) var(--vex-ease),opacity var(--vex-duration); }
 .diagram-source-shell>div { min-height:0; overflow:hidden; }
 .diagram-editor.is-expanded .diagram-source-shell { grid-template-rows:1fr; opacity:1; }

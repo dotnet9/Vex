@@ -33,6 +33,15 @@
     </LinearGradientBrush>
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidBackground" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidForeground" Color="#302C3C" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidAccent" Color="#8B7CF6" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidDefault" Color="#8B7CF6" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidLine" Color="#777382" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidBorder" Color="#B8A7DF" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidSurface" Color="#EEEAFD" />
+            <x:String x:Key="CodeWFMarkdownMermaidDataPalette">#8B7CF6,#D9AD53,#70A98B,#C583B5,#62A5C2,#D58585,#7E9ECB,#A9B568</x:String>
+            <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#EEEAFD,#FFF4D6,#E5F2E5,#F5E4F1,#E0F0F7,#FAE6E3,#E7EEF9,#EFF2D9</x:String>
             <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="#FFFFFF" />
@@ -46,6 +55,15 @@
             <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidBackground" Color="#202124" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidForeground" Color="#EDE8F5" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidAccent" Color="#B6A6FF" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidDefault" Color="#B6A6FF" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidLine" Color="#B5ADBF" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidBorder" Color="#8C7DA9" />
+            <SolidColorBrush x:Key="CodeWFMarkdownMermaidSurface" Color="#38304E" />
+            <x:String x:Key="CodeWFMarkdownMermaidDataPalette">#B6A6FF,#E8C778,#93CFAC,#DFA2D0,#8AC8E0,#E8AAA3,#A7BFE7,#C4CE8E</x:String>
+            <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#71628F,#897444,#547C65,#855A79,#4D778A,#8B5D5D,#5C7194,#737D50</x:String>
             <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="#202124" />
             <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="#202124" />
             <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="#202124" />

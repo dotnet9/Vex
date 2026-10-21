@@ -31,7 +31,8 @@ public partial class MarkdownPreviewView : UserControl
     private int _appliedRefreshVersion;
     private int _appliedNavigationSequence;
     private long _lastReadingPositionSampleTick;
-    private int _restoreAttempts;
+    private bool _restoreQueued;
+    private string? _restoreSource;
     private int _scrollRequestVersion;
     private void ApplyDocumentGeometry()
     {
@@ -131,6 +132,12 @@ public partial class MarkdownPreviewView : UserControl
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown) && _viewModel?.IsPresenting != true
+            && _restoringScrollPosition && _restoreSource != _viewModel?.Markdown)
+        {
+            _restoringScrollPosition = false;
+            _savedReadingPosition = null;
+        }
         if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown) && _viewModel?.IsPresenting == true)
         {
             var version = _scrollRequestVersion;
@@ -228,9 +235,23 @@ public partial class MarkdownPreviewView : UserControl
         }
 
         _restoringScrollPosition = true;
+        _restoreSource = _viewModel?.Markdown;
         _scrollRequestVersion++;
-        _restoreAttempts = 0;
+        LayoutUpdated -= OnRestoreLayoutUpdated;
+        LayoutUpdated += OnRestoreLayoutUpdated;
         Dispatcher.UIThread.Post(RestoreReadingPosition, DispatcherPriority.Background);
+    }
+
+    private void OnRestoreLayoutUpdated(object? sender, EventArgs e)
+    {
+        if (!_restoringScrollPosition) { LayoutUpdated -= OnRestoreLayoutUpdated; return; }
+        if (_restoreQueued || PreviewMarkdownViewer.CurrentModel.Source != _restoreSource) return;
+        _restoreQueued = true;
+        Dispatcher.UIThread.Post(() =>
+        {
+            try { if (_restoringScrollPosition) RestoreReadingPosition(); }
+            finally { _restoreQueued = false; }
+        }, DispatcherPriority.Background);
     }
 
     private void RestoreReadingPosition()
@@ -238,6 +259,7 @@ public partial class MarkdownPreviewView : UserControl
         if (_savedReadingPosition is null)
         {
             _restoringScrollPosition = false;
+            LayoutUpdated -= OnRestoreLayoutUpdated;
             return;
         }
 
@@ -247,23 +269,10 @@ public partial class MarkdownPreviewView : UserControl
             && PreviewMarkdownViewer.RestoreReadingPosition(_savedReadingPosition))
         {
             _restoringScrollPosition = false;
+            LayoutUpdated -= OnRestoreLayoutUpdated;
             return;
         }
-
-        // 渲染异步完成，块尚未布局时短暂重试，最多 5 次后放弃（不阻塞 UI）。
-        if (++_restoreAttempts >= 5)
-        {
-            _restoringScrollPosition = false;
-            return;
-        }
-
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
-        timer.Tick += (_, _) =>
-        {
-            timer.Stop();
-            RestoreReadingPosition();
-        };
-        timer.Start();
+        // Resume when the asynchronously rebuilt document has an actual layout.
     }
 
     private void QueueScrollToEditorPosition()

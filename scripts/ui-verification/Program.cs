@@ -120,7 +120,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "documents" or "document-open-child" or "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
+if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -128,6 +128,7 @@ if (mode is "documents" or "document-open-child" or "updates" or "vex" or "prefe
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
+    if (mode == "mermaid") { VerifyMermaidWorkspace((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "documents") { VerifyDocumentWindows(app, window, vm); window.Close(); return; }
     if (mode == "document-open-child")
     {
@@ -955,7 +956,7 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     var mapHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
     var map = mapHost.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
     var initialViewport = map.CaptureViewport();
-    for (var round = 0; round < 6; round++)
+    for (var round = 0; round < (args.Contains("--anchors-only") ? 0 : 6); round++)
     {
         vm.Appearance.SelectThemeByKey(round % 2 == 0 ? "light" : "dark");
         var prior = app.Resolve<IAppSettingsStore>().Current;
@@ -1250,6 +1251,81 @@ void VerifyStress(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel
     }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
 }
 
+void VerifyMermaidWorkspace(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
+{
+    window.Width = 1280; window.Height = 820;
+    var file = Path.Combine(BundledDocuments.SamplesFolder,"Mermaid 图表图鉴.md");
+    var text = File.ReadAllText(file);
+    var originalHash = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(file));
+    var previewView = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var preview = previewView.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
+    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    Border[] Diagrams(Control host) => host.GetVisualDescendants().OfType<Border>().Where(border => border.Classes.Contains("MdMermaid")).ToArray();
+    bool Ready(Control host) => Diagrams(host).Any(border => border.Child is Image { Source: not null });
+    vm.Workbench.SelectLayout("source"); Pump();
+    var previousPreview = preview.Markdown;
+    var timer = System.Diagnostics.Stopwatch.StartNew(); Pump(vm.OpenPathAsync(file)); Pump();
+    var sourceFrameMs = timer.Elapsed.TotalMilliseconds;
+    Check(preview.Markdown == previousPreview && preview.Markdown != text,"Hidden reading view keeps its old snapshot without parsing the diagram document");
+    timer.Restart(); vm.Workbench.SelectLayout("instant"); Pump();
+    var instantFrameMs = timer.Elapsed.TotalMilliseconds;
+    PumpUntil(() => Ready(instant)); var instantFirstDiagramMs = timer.Elapsed.TotalMilliseconds;
+    var initialDiagrams = Diagrams(instant).Length;
+    if (!args.Contains("--measure-only")) Check(initialDiagrams < 22,"First screen does not instantiate all 22 diagrams");
+    Capture(window,"mermaid-full-instant");
+    timer.Restart();vm.Workbench.SelectLayout("read");Pump();
+    PumpUntil(() => preview.CurrentModel.Source == text && Ready(preview));
+    var readingReadyMs = timer.Elapsed.TotalMilliseconds;
+    Check(preview.Markdown == text,"Showing reading view synchronizes the latest document");
+    var blocks = Markdown.Parse(text).OfType<Markdig.Syntax.FencedCodeBlock>().Where(block => block.Info?.Trim() == "mermaid").ToArray();
+    Check(blocks.Length == 22,"The shipped catalog contains all 22 diagrams");
+    var warmSwitchMs = new List<double>();
+    vm.Workbench.SelectLayout("instant");Pump();
+    for (var pass=0;pass<3;pass++)
+    {
+        vm.Markdown="# 另一篇\n\n切换验证。\n";Pump();timer.Restart();vm.Markdown=text;Pump();
+        warmSwitchMs.Add(timer.Elapsed.TotalMilliseconds);PumpUntil(()=>Ready(instant));
+    }
+    if (args.Contains("--measure-only"))
+    {
+        var measurements = new {sourceFrameMs,instantFrameMs,instantFirstDiagramMs,readingReadyMs,initialDiagrams,warmSwitchMs};
+        File.WriteAllText(Path.Combine(output,"mermaid-performance.json"),System.Text.Json.JsonSerializer.Serialize(measurements));
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(measurements));return;
+    }
+    var checks = 0;
+    foreach (var theme in new[]{"light","dark"})
+    {
+        vm.Appearance.SelectThemeByKey(theme);Pump();
+        foreach (var layout in new[]{"read","instant"})
+        {
+            vm.Workbench.SelectLayout(layout);Pump();
+            foreach (var pair in blocks.Select((block,index)=>(block,index)))
+            {
+                // Isolate each real fence so a neighbouring diagram cannot hide a renderer failure.
+                var source = text.Substring(pair.block.Span.Start,pair.block.Span.Length);
+                var document = "# 图表验证\n\n"+source+"\n";
+                vm.Markdown = document;Pump();
+                var host = layout == "read" ? (Control)preview : instant;
+                PumpUntil(() => (layout == "read" ? preview.CurrentModel.Source == document : instant.Editor.Text == document) && Ready(host) && !host.GetVisualDescendants().OfType<Border>().Any(border => border.Classes.Contains("MdMermaidFallback")));
+                foreach (var border in Diagrams(host))
+                {
+                    if (border.Child is not Image { Source: not null } image) continue;
+                    Check(image.Bounds.Width <= border.Bounds.Width+1 && image.Bounds.Height>0,$"{theme}/{layout}/{pair.index}: complete diagram fits its block");
+                }
+                Check(!host.GetVisualDescendants().OfType<ScrollViewer>().Any(scroll => scroll.IsEffectivelyVisible && scroll.HorizontalScrollBarVisibility != Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled && scroll.Extent.Width > scroll.Viewport.Width+1),$"{theme}/{layout}/{pair.index}: no diagram scrollbar");
+                if (pair.index is 0 or 15 or 16 or 19 or 20 or 21) Capture(window,$"mermaid-{theme}-{layout}-{pair.index}");
+                checks++;
+            }
+        }
+    }
+    vm.Workbench.SelectLayout("source");Pump();vm.Markdown=text;Pump();
+    vm.Workbench.SelectLayout("read");PumpUntil(()=>preview.CurrentModel.Source==text);
+    Check(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(file)).SequenceEqual(originalHash),"Rendering never rewrites the shipped catalog");
+    var report = new {sourceFrameMs,instantFrameMs,instantFirstDiagramMs,readingReadyMs,initialDiagrams,warmSwitchMs,checks};
+    File.WriteAllText(Path.Combine(output,"mermaid-performance.json"),System.Text.Json.JsonSerializer.Serialize(report));
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(report));
+}
+
 void VerifyPerformance(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
 {
     MaximizePerformanceWindow(window);
@@ -1263,7 +1339,8 @@ void VerifyPerformance(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
     var mapMs = watch.Elapsed.TotalMilliseconds;
     var after = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path));
     Check(before.SequenceEqual(after), "Performance sample remains byte-for-byte unchanged");
-    var report = new { windowState = window.WindowState.ToString(), width = window.Bounds.Width, height = window.Bounds.Height, scaling = window.RenderScaling, layout, frameMs, allViewsReadyMs = mapMs, bytes = new FileInfo(path).Length, characters = vm.Markdown.Length,
+    var diagrams = window.GetVisualDescendants().OfType<Border>().Where(border => border.Classes.Contains("MdMermaid")).ToArray();
+    var report = new { windowState = window.WindowState.ToString(), width = window.Bounds.Width, height = window.Bounds.Height, scaling = window.RenderScaling, layout, frameMs, allViewsReadyMs = mapMs, diagrams = diagrams.Length, visibleDiagrams = diagrams.Count(border => border.IsEffectivelyVisible), bytes = new FileInfo(path).Length, characters = vm.Markdown.Length,
         sha256 = Convert.ToHexString(after), memoryMiB = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1048576d,
         environment = "Windows Release net10.0, Avalonia.Headless + Skia, cold process per layout" };
     File.WriteAllText(Path.Combine(output, layout + ".json"), System.Text.Json.JsonSerializer.Serialize(report, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
@@ -1484,7 +1561,9 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
     var aboutModel = (ShellAboutViewModel)about.DataContext!;
     Check(aboutModel.PlatformText == ".NET 10，Avalonia" && aboutModel.CopyrightText == "Copyright © 2026 CodeWF · 维刻 Vex"
-        && about.GetVisualDescendants().OfType<Button>().Count(button => button.Command == aboutModel.UpdateCommand) == 1, "About uses accepted metadata and one update button");
+        && about.GetVisualDescendants().OfType<Button>().Count(button => button.Command == aboutModel.ReleaseCommand) == 1
+        && about.GetVisualDescendants().OfType<Button>().Count(button => button.Command == aboutModel.WebsiteCommand || button.Command == aboutModel.RepositoryCommand) == 2,
+        "About uses accepted metadata, one release badge and both product links");
     vm.Appearance.SelectThemeByKey("dark"); Pump(); Capture(window, "about-dark");
     aboutModel.Close(); Pump(aboutTask); vm.Appearance.SelectThemeByKey("light");
     Pump(vm.OpenStartupDocumentAsync([BundledDocuments.GetPath("鸣谢.md")]));

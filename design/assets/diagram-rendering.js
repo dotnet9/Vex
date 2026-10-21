@@ -3,7 +3,16 @@
 (() => {
   'use strict';
   const font = '"Segoe UI", "Microsoft YaHei UI", "PingFang SC", sans-serif';
-  const tokens = {'#d1e2f3':'--accent-soft','#253647':'--fg','#456789':'--accent','#e2d3c4':'--code-bg','#f3e4d5':'--panel','#647586':'--muted','#b4c5d6':'--border'};
+  const tokens = {'#d1e2f3':'--diagram-node','#253647':'--diagram-text','#456789':'--diagram-accent','#e2d3c4':'--diagram-secondary','#f3e4d5':'--diagram-paper','#647586':'--diagram-line','#b4c5d6':'--diagram-border'};
+  const series = ['#8b7cf6','#d9ad53','#70a98b','#c583b5','#62a5c2','#d58585','#7e9ecb','#a9b568'];
+  const soft = ['#eeeafd','#fff4d6','#e5f2e5','#f5e4f1','#e0f0f7','#fae6e3','#e7eef9','#eff2d9'];
+  const palette = {};
+  ['#4e79a7','#f28e2c','#e15759','#76b7b2','#59a14f','#edc949','#af7aa1','#ff9da7','#9c755f','#bab0ab'].forEach((color,index) => { tokens[color]='--diagram-series-'+(index%series.length); });
+  series.forEach((color,index) => {
+    tokens[color]='--diagram-series-'+index; tokens[soft[index]]='--diagram-soft-'+index;
+    palette['pie'+(index+1)]=soft[index];palette['git'+index]=color;palette['cScale'+index]=soft[index];
+    palette['cScaleLabel'+index]='#253647';palette['cScaleInv'+index]=color;
+  });
   let initialized = false;
   function initialize() {
     if (initialized) return;
@@ -13,8 +22,8 @@
       gantt:{useMaxWidth:false,useWidth:960,barHeight:30,barGap:10,topPadding:64,leftPadding:100,rightPadding:48,fontSize:14,sectionFontSize:14,axisFormat:'%m/%d'},
       c4,
       xyChart:{useMaxWidth:false,width:760,height:480,titleFontSize:22,titlePadding:20,xAxis:{labelFontSize:14,labelPadding:10,titleFontSize:16,titlePadding:14},yAxis:{labelFontSize:14,labelPadding:10,titleFontSize:16,titlePadding:14}},
-      themeVariables:{darkMode:false,fontFamily:font,fontSize:'14px',primaryColor:'#d1e2f3',primaryTextColor:'#253647',primaryBorderColor:'#456789',secondaryColor:'#e2d3c4',tertiaryColor:'#f3e4d5',lineColor:'#647586',textColor:'#253647',mainBkg:'#d1e2f3',nodeBorder:'#456789',clusterBkg:'#f3e4d5',clusterBorder:'#b4c5d6',edgeLabelBackground:'#f3e4d5',actorBkg:'#d1e2f3',actorBorder:'#456789',actorTextColor:'#253647',actorLineColor:'#647586',signalColor:'#253647',signalTextColor:'#253647',labelBoxBkgColor:'#f3e4d5',labelTextColor:'#253647',
-        xyChart:{backgroundColor:'#f3e4d5',titleColor:'#253647',xAxisTitleColor:'#253647',xAxisLabelColor:'#253647',xAxisTickColor:'#647586',xAxisLineColor:'#647586',yAxisTitleColor:'#253647',yAxisLabelColor:'#253647',yAxisTickColor:'#647586',yAxisLineColor:'#647586',plotColorPalette:'#456789,#647586'}
+      themeVariables:{...palette,darkMode:false,fontFamily:font,fontSize:'14px',primaryColor:'#d1e2f3',primaryTextColor:'#253647',primaryBorderColor:'#456789',secondaryColor:'#e2d3c4',tertiaryColor:'#f3e4d5',lineColor:'#647586',textColor:'#253647',mainBkg:'#d1e2f3',nodeBorder:'#456789',clusterBkg:'#f3e4d5',clusterBorder:'#b4c5d6',edgeLabelBackground:'#f3e4d5',actorBkg:'#d1e2f3',actorBorder:'#456789',actorTextColor:'#253647',actorLineColor:'#647586',signalColor:'#253647',signalTextColor:'#253647',labelBoxBkgColor:'#f3e4d5',labelTextColor:'#253647',
+        xyChart:{backgroundColor:'#f3e4d5',titleColor:'#253647',xAxisTitleColor:'#253647',xAxisLabelColor:'#253647',xAxisTickColor:'#647586',xAxisLineColor:'#647586',yAxisTitleColor:'#253647',yAxisLabelColor:'#253647',yAxisTickColor:'#647586',yAxisLineColor:'#647586',plotColorPalette:'#eeeafd,#7e9ecb'}
       }});
     initialized = true;
   }
@@ -79,6 +88,14 @@
     const svg=host.querySelector('svg');
     if (!svg) return;
     svg.setAttribute('role','img');svg.setAttribute('aria-label',label || VexMermaid.label(source));
+    if (/^\s*sankey/m.test(source)) {
+      // Multiplication turns translucent ribbons almost black on dark paper.
+      for (const element of svg.querySelectorAll('[style*="mix-blend-mode"]')) element.style.mixBlendMode='normal';
+    }
+    if (/^\s*packet/m.test(source)) {
+      host.dataset.diagramType='packet';
+      for (const text of svg.querySelectorAll('text')) text.style.fill='var(--diagram-text)';
+    }
     if (/^\s*gantt\b/m.test(source)) for (const text of svg.querySelectorAll('.tick text')) text.style.fontSize='13px';
     // C4's hard-coded textLength compresses the stereotype glyphs. Keep their
     // original centre, but let the chosen font use its natural letter widths.

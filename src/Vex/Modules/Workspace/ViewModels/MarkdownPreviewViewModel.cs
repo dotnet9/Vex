@@ -18,12 +18,14 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     private string? _imageBasePath;
     private string _markdown;
     private string _sourceMarkdown;
+    private string? _sourceImageBasePath;
     private int _previewSourceLine = 1;
     private double _previewScrollRatio;
     private int _remoteImageRefreshVersion;
     private string _typographySize;
     private string? _typographyTheme;
     private double _notifiedPresentationZoom = 1;
+    private bool _notifiedIsPresenting;
 
     public MarkdownPreviewViewModel(
         IWorkspaceDocumentState documentState,
@@ -34,11 +36,13 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         Preferences = preferences;
         preferences.PreferencesChanged += (_, _) => this.RaisePropertyChanged(nameof(BodyFontSize));
         _workbench = workbench;
+        _notifiedIsPresenting = workbench.IsPresenting;
         workbench.PropertyChanged += OnWorkbenchPropertyChanged;
         _appearanceState = appearanceState;
-        _imageBasePath = documentState.FilePath;
+        _sourceImageBasePath = documentState.FilePath;
+        _imageBasePath = workbench.IsPreviewVisible ? _sourceImageBasePath : null;
         _sourceMarkdown = documentState.Markdown;
-        _markdown = _sourceMarkdown;
+        _markdown = workbench.IsPreviewVisible ? _sourceMarkdown : string.Empty;
         _typographySize = appearanceState.TypographySize;
         _typographyTheme = appearanceState.TypographyTheme;
         _appearanceState.Changed += OnAppearanceChanged;
@@ -126,7 +130,15 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     private void SetDocument(string? markdown, string? filePath)
     {
         _sourceMarkdown = markdown ?? string.Empty;
-        ImageBasePath = filePath;
+        _sourceImageBasePath = filePath;
+        SynchronizeVisibleDocument();
+    }
+
+    private void SynchronizeVisibleDocument()
+    {
+        // Keep the latest source while hidden without parsing or building another document tree.
+        if (!_workbench.IsPreviewVisible && !IsPresenting) return;
+        ImageBasePath = _sourceImageBasePath;
         Markdown = IsPresenting ? _workbench.PresentationMarkdown : _sourceMarkdown;
     }
 
@@ -135,8 +147,12 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         // 入场先让视图保存全文阅读锚点，再替换成演示章节；退出则先恢复全文。
         var enteringPresentation = e.PropertyName == nameof(_workbench.IsPresenting) && IsPresenting;
         if (enteringPresentation) this.RaisePropertyChanged(nameof(IsPresenting));
-        if (e.PropertyName is nameof(_workbench.PresentationMarkdown) or nameof(_workbench.IsPresenting))
-            Markdown = IsPresenting ? _workbench.PresentationMarkdown : _sourceMarkdown;
+        // StopPresentation restores layout before publishing IsPresenting. Wait for that
+        // boundary so the view can preserve its reading anchor before restoring the full text.
+        if (e.PropertyName is nameof(_workbench.PresentationMarkdown) or nameof(_workbench.IsPresenting)
+            || e.PropertyName == nameof(_workbench.IsPreviewVisible) && _notifiedIsPresenting == IsPresenting)
+            SynchronizeVisibleDocument();
+        if (e.PropertyName == nameof(_workbench.IsPresenting)) _notifiedIsPresenting = IsPresenting;
         if (e.PropertyName == nameof(_workbench.IsPresenting) && !enteringPresentation) this.RaisePropertyChanged(nameof(IsPresenting));
         if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom)
             && _notifiedPresentationZoom != PresentationZoom)

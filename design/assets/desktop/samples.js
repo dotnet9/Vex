@@ -2,31 +2,37 @@
 window.VexSamples = [
   {
     "name": "排版与写作.md",
+    "treePath": "排版与写作.md",
     "path": "../docs/演示文档/排版与写作.md",
     "text": "# 在文字之间，理清思路\n\n一篇文章，从一个想法开始。这里保留几份演示文档，试试**加粗**、*斜体*、~~删除线~~与 `行内代码`，也可以从左侧切换图文、公式和流程图。\n\n## 写作，让想法有迹可循\n\n先记下观察，再整理线索。标题帮助文章建立层级，段落让每一个观点都有呼吸的空间。\n\n> 好的工具，让注意力回到内容本身。\n\n### 今天的小计划\n\n- [x] 写下一个值得记录的想法\n- [x] 为文章梳理清晰的章节\n- [ ] 留一点时间，重新阅读\n\n## 用表格整理比较\n\n| 视图 | 适合做什么 | 操作 |\n| --- | --- | --- |\n| 即时渲染 | 边写边看排版 | 点击正文编辑 |\n| 源码 | 精确调整 Markdown | 直接修改语法 |\n| 导图 | 梳理文章的结构 | 双击节点改名 |\n\n## 一小段代码\n\n```csharp\nstring Greeting(string name) => $\"你好，{name}\";\nConsole.WriteLine(Greeting(\"维刻\"));\n```\n\n---\n\n继续阅读 [Markdown 指南](https://www.markdownguide.org/)，或打开左侧的其他演示文档。\n"
   },
   {
     "name": "图文与链接.md",
+    "treePath": "图文与链接.md",
     "path": "../docs/演示文档/图文与链接.md",
     "text": "# 把风景写进文章\n\n图片保留直观印象，文字记录当时的想法。下面的插图随应用保存在本地，离线也能查看。\n\n![山间湖畔，日出照亮远山](../docs/演示文档/图片/山间湖畔.png)\n\n## 留下线索，也留下出处\n\n阅读 [Markdown 排版指南](https://www.markdownguide.org/basic-syntax/)，也可以浏览 [Vex 开源仓库](https://github.com/dotnet9/Vex)。\n\n> 写下眼前的景色，也写下它让你想起的事情。\n\n## 旅行备忘\n\n1. 清晨沿湖边散步\n2. 为喜欢的景色拍照\n3. 晚上把照片与文字整理成文\n\n**地点**：山间湖畔　 **天气**：晴，微风\n"
   },
   {
     "name": "数学与化学.md",
+    "treePath": "数学与化学.md",
     "path": "../docs/演示文档/数学与化学.md",
     "text": "# 用公式表达规律\n\n## 从行内公式开始\n\n圆的面积为 $A = \\pi r^2$，质能关系为 $E = mc^2$。行内公式与正文共同排版。\n\n## 数学方程\n\n一元二次方程 $ax^2 + bx + c = 0$ 的求根公式：\n\n$$\nx = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}\n$$\n\n高斯积分与矩阵：\n\n$$\n\\int_{-\\infty}^{+\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\n$$\n\n$$\n\\mathbf{A} = \\begin{bmatrix}1 & 2 \\\\ 3 & 4\\end{bmatrix}\n$$\n\n## 化学表达式\n\n水 $\\ce{H2O}$、硫酸根离子 $\\ce{SO4^{2-}}$，以及配平后的化学反应：\n\n$$\n\\ce{2H2 + O2 -> 2H2O}\n$$\n\n$$\n\\ce{N2 + 3H2 <=> 2NH3}\n$$\n\n> 切换源码可查看 LaTeX 与 mhchem 写法；修改后，阅读与即时渲染会同步更新。\n"
   },
   {
     "name": "Markdown 功能示例.md",
+    "treePath": "Markdown 功能示例.md",
     "path": "../docs/演示文档/Markdown 功能示例.md",
     "text": "# Markdown 功能示例\n\n[TOC]\n\n## 列表层级\n\n- 无序列表 1\n- 无序列表 2\n  - 无序列表 2.1\n  - 无序列表 2.2\n\n## 表格与提示\n\n| 功能 | 说明 |\n| --- | --- |\n| 表格 | 默认表头与列均左对齐 |\n| Callout | 用于提示信息或警告 |\n\n> [!INFO]\n> 这是一个信息提示框。\n\n> [!WARNING]\n> 这是一个警告提示框。\n\n## 脚注\n\n这里有一个脚注引用[^1]。\n\n[^1]: 这是脚注内容，点击右侧箭头可以回到正文。\n"
   },
   {
     "name": "Mermaid 图表图鉴.md",
+    "treePath": "Mermaid 图表图鉴.md",
     "path": "../docs/演示文档/Mermaid 图表图鉴.md",
     "text": "# Mermaid 图表图鉴\n\n## 流程图\n\n```mermaid\nflowchart LR\n  A[记录想法] --> B[梳理结构]\n  B --> C{再次阅读}\n  C -->|调整| B\n  C -->|完成| D[导出分享]\n```\n\n\n## 时序图\n\n```mermaid\nsequenceDiagram\n  participant W as 写作者\n  participant E as 编辑器\n  participant P as 预览\n  W->>E: 输入 Markdown\n  E->>P: 同步内容\n  P-->>W: 显示结果\n```\n\n\n## 状态图\n\n```mermaid\nstateDiagram-v2\n  [*] --> Draft\n  Draft --> Review: 提交\n  Review --> Draft: 修改\n  Review --> Published: 发布\n  Published --> [*]\n```\n\n\n## 用户旅程图\n\n```mermaid\njourney\n  title 一次写作的旅程\n  section 构思\n    记录灵感: 5: 写作者\n    整理提纲: 4: 写作者\n  section 完成\n    撰写正文: 4: 写作者\n    校对分享: 5: 写作者, 读者\n```\n\n\n## 甘特图\n\n```mermaid\ngantt\n  title 写作计划\n  dateFormat YYYY-MM-DD\n  axisFormat %m/%d\n  tickInterval 1day\n  section 初稿\n    构思提纲 :done, a, 2026-10-17, 2d\n    撰写正文 :active, b, after a, 3d\n  section 发布\n    校对 :c, after b, 2d\n    发布 :milestone, after c, 0d\n```\n\n\n## 时间线\n\n```mermaid\ntimeline\n  title 文章的成长\n  2026-10-17 : 收集灵感\n  2026-10-19 : 完成提纲\n  2026-10-22 : 写成初稿\n  2026-10-24 : 校对发布\n```\n\n\n## Git 分支图\n\n```mermaid\ngitGraph\n  commit id: \"初稿\"\n  branch revise\n  checkout revise\n  commit id: \"补充论据\"\n  checkout main\n  merge revise\n  commit id: \"发布\"\n```\n\n\n## 看板\n\n```mermaid\nkanban\n  todo[待办]\n    a[收集资料]\n  doing[进行中]\n    b[撰写初稿]\n  done[已完成]\n    c[整理提纲]\n```\n\n\n## 类图\n\n```mermaid\nclassDiagram\n  class Document {\n    +String title\n    +String content\n    +save()\n  }\n  class Workspace {\n    +openDocument()\n  }\n  Workspace \"1\" o-- \"*\" Document : 管理\n```\n\n\n## 实体关系图\n\n```mermaid\nerDiagram\n  WORKSPACE ||--o{ DOCUMENT : contains\n  DOCUMENT ||--o{ SECTION : includes\n  DOCUMENT {\n    string title\n    string content\n  }\n  SECTION {\n    string heading\n  }\n```\n\n\n## 需求图\n\n```mermaid\nrequirementDiagram\n  requirement local_files {\n    id: 1\n    text: Local Markdown files\n    risk: low\n    verifymethod: test\n  }\n  element editor {\n    type: application\n  }\n  editor - satisfies -> local_files\n```\n\n\n## 思维导图\n\n```mermaid\nmindmap\n  root((写作))\n    构思\n      观察\n      灵感\n    整理\n      提纲\n      论据\n    表达\n      初稿\n      校对\n```\n\n\n## 块图\n\n```mermaid\nblock-beta\n  columns 3\n  a[\"编辑器\"] space b[\"预览\"]\n  a --> b\n  c[\"本地 Markdown 文件\"]:3\n```\n\n\n## C4 架构图\n\n```mermaid\nC4Context\n  title 本地写作空间\n  Person(writer, \"写作者\", \"记录与整理想法\")\n  System(vex, \"维刻 Vex\", \"Markdown 工作区\")\n  System_Ext(files, \"本地文件\", \"Markdown 文档\")\n  Rel(writer, vex, \"写作\")\n  Rel(vex, files, \"读写\")\n```\n\n\n## 架构图\n\n```mermaid\narchitecture-beta\n  group app(cloud)[Workspace]\n  service editor(server)[Editor] in app\n  service files(disk)[Files] in app\n  editor:R -- L:files\n```\n\n\n## 数据包图\n\n```mermaid\npacket-beta\n  title 文档消息头\n  0-7: \"Version\"\n  8-15: \"Type\"\n  16-31: \"Length\"\n  32-63: \"Document ID\"\n```\n\n\n## 饼图\n\n```mermaid\npie showData\n  title 写作时间分配\n  \"构思\" : 25\n  \"写作\" : 50\n  \"校对\" : 25\n```\n\n\n## 象限图\n\n```mermaid\nquadrantChart\n  title 选题优先级\n  x-axis Low effort --> High effort\n  y-axis Low value --> High value\n  quadrant-1 Plan\n  quadrant-2 Do first\n  quadrant-3 Later\n  quadrant-4 Reconsider\n  Note: [0.25, 0.8]\n  Essay: [0.7, 0.75]\n```\n\n\n## XY 坐标图\n\n```mermaid\nxychart-beta\n  title \"每周写作量\"\n  x-axis \"星期\" [\"周一\", \"周二\", \"周三\", \"周四\", \"周五\"]\n  y-axis \"字数\" 0 --> 1000\n  bar [300, 500, 450, 800, 600]\n  line [300, 500, 450, 800, 600]\n```\n\n\n## 桑基图\n\n```mermaid\nsankey-beta\n\nIdeas,Draft,40\nIdeas,Notes,20\nDraft,Published,30\nDraft,Revision,10\n```\n\n\n## 雷达图\n\n```mermaid\nradar-beta\n  title \"写作自评\"\n  axis clarity[\"清晰\"], structure[\"结构\"], detail[\"细节\"], rhythm[\"节奏\"]\n  curve draft[\"初稿\"]{3, 4, 3, 2}\n  curve revised[\"修订\"]{5, 4, 4, 4}\n  max 5\n```\n\n\n## 矩形树图\n\n```mermaid\ntreemap-beta\n  \"文章\"\n    \"构思\"\n      \"灵感\": 20\n      \"提纲\": 15\n    \"正文\"\n      \"论述\": 45\n      \"案例\": 20\n```\n\n\n"
   },
   {
     "name": "主题设计笔记.md",
+    "treePath": "主题设计笔记.md",
     "path": "../docs/演示文档/主题设计笔记.md",
     "text": "# 主题设计笔记\n\n让写作、阅读与结构梳理共享同一份 Markdown，切换视角时保留正在关注的内容。\n\n## 设计原则\n\n### 保持沉浸感\n\n把注意力留给内容。写作时保留必要工具，让文档占据更多空间。\n\n### 降低视觉噪音\n\n用层级、留白和少量强调色表达关系。\n\n## 主题色体系\n\n浅色与深色独立选择，十六套配色共用语义令牌。\n\n## 排版与字距\n\n正文以舒适阅读为先，标题层级清晰，段落之间留有呼吸。\n\n## 导出一致性\n\n> 同一份内容，在编辑、阅读与导出中保留清晰的结构。\n"
   }

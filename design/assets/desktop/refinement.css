@@ -97,7 +97,7 @@ body { font-family:var(--font); font-size:14px; }
 .about-framework { color:var(--muted); font-size:12px; }
 .about-foot,.ver-badge { font-size:12px; }
 .md-body img { display:block; max-width:100%; height:auto; margin:18px auto; border-radius:10px; }
-.md-diagram { margin:20px 0; padding:20px; border:1px solid var(--border); border-radius:10px; background:var(--panel); text-align:center; }
+.md-diagram { margin:24px 0; padding:12px 0; text-align:center; }
 .md-diagram svg { max-width:100%; height:auto; }
 .md-math-block { overflow-x:auto; margin:18px 0; padding:8px 0; }
 .md-render-error { color:var(--danger); }

@@ -44,6 +44,11 @@ jobs:
         run: |
           dotnet artifacts/bin/UiVerification/release/UiVerification.dll documents artifacts/document-windows
           if ($LASTEXITCODE -ne 0) { throw 'Document window verification failed' }
+      - name: 图表按需加载与明暗配色
+        shell: pwsh
+        run: |
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll mermaid artifacts/mermaid
+          if ($LASTEXITCODE -ne 0) { throw 'Mermaid verification failed' }
       - name: 真实 Inno 夹具窗口交接
         shell: pwsh
         run: |

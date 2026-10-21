@@ -1,7 +1,11 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using CodeWF.Toolkit.Lang;
 using CodeWF.Toolkit.Lang.Json;
+using Mermaider;
+using Mermaider.Models;
 using Vex.Core.Services;
 
 namespace Vex;
@@ -20,6 +24,20 @@ internal static class RuntimeVerification
         var samples = Directory.GetFiles(BundledDocuments.SamplesFolder, "*.md");
         if (samples.Length != 6 || !File.Exists(Path.Combine(BundledDocuments.SamplesFolder, "图片", "山间湖畔.png")))
             throw new InvalidOperationException("Published sample documents or their offline image are missing.");
+        var catalog = File.ReadAllText(Path.Combine(BundledDocuments.SamplesFolder, "Mermaid 图表图鉴.md"));
+        var diagrams = Regex.Matches(catalog, @"(?m)^```mermaid\s*\r?\n([\s\S]*?)^```\s*$");
+        if (diagrams.Count != 22)
+            throw new InvalidOperationException("Published Mermaid catalog must contain all 22 diagram examples.");
+        foreach (Match diagram in diagrams)
+        {
+            var svg = MermaidRenderer.RenderSvg(diagram.Groups[1].Value, new RenderOptions
+            {
+                Bg = "#FFFFFF", Fg = "#302C3C", Accent = "#8B7CF6", Transparent = true,
+                DataPalette = ["#8B7CF6", "#D9AD53", "#70A98B", "#C583B5", "#62A5C2"]
+            });
+            if (XDocument.Parse(svg).Root?.Name.LocalName != "svg")
+                throw new InvalidOperationException("Native Mermaid rendering did not produce an SVG diagram.");
+        }
         // 走实际启动集成入口，确认 Windows 自检不会重新注册用户取消的打开方式。
         if (OperatingSystem.IsWindows()) DefaultFileOpeningService.Configure();
         var root = Path.GetFullPath(directory);
@@ -55,7 +73,7 @@ internal static class RuntimeVerification
         if (preferences.DefaultEncoding != "utf-8" || preferences.DefaultNewline != "system" || preferences.BodyFont != "system"
             || preferences.ExportFormat != "HTML" || preferences.PdfSize != "A4")
             throw new InvalidOperationException("Native default preference choices did not survive real storage.");
-        var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; website={ProjectLinks.Website}; languages=4; tableDialog=localized; samples={samples.Length}; preferences=isolated";
+        var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; website={ProjectLinks.Website}; languages=4; tableDialog=localized; samples={samples.Length}; mermaid={diagrams.Count}; preferences=isolated";
         File.WriteAllText(Path.Combine(root, "runtime-verification.txt"), result);
         Console.WriteLine(result);
     }
