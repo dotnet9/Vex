@@ -25,7 +25,56 @@
         return token ? alpha && Number(alpha)<1 ? 'color-mix(in srgb, var('+token+') '+Number(alpha)*100+'%, transparent)' : 'var('+token+')' : color;
       });
   }
-  async function render(id, source) {initialize(); const result=await mermaid.render(id,source);return themed(result.svg);}
+  const cache = new Map(), jobs = new Map(), ready = new Set();
+  let cacheSerial = 0, draining = false;
+  // Reading and editing share layouts, but every mounted SVG owns its IDs.
+  async function render(id, source) {
+    let entry = cache.get(source);
+    if (!entry) {
+      initialize();
+      entry = mermaid.render('vex-cached-' + (++cacheSerial), source).then(result => {
+        const svg = themed(result.svg), ids = [...svg.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
+        const escaped = [...new Set(ids)].sort((a,b) => b.length-a.length).map(value => value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+        return {svg, ids, references:new RegExp('(#|id=["\'])(' + escaped.join('|') + ')(?![\\w-])','g')};
+      });
+      cache.set(source,entry);
+      entry.catch(() => { if (cache.get(source) === entry) cache.delete(source); });
+      while (cache.size > 48) cache.delete(cache.keys().next().value);
+    } else { cache.delete(source); cache.set(source,entry); }
+    const result = await entry, ids = new Map(result.ids.map((value,index) => [value,id+'-'+index]));
+    return result.svg.replace(result.references,(_,prefix,value) => prefix+ids.get(value));
+  }
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) ready.add(entry.target); else ready.delete(entry.target);
+    }
+    drain();
+  }, {rootMargin:'160px 0px'});
+  function prune() {
+    for (const host of jobs.keys()) if (!host.isConnected) { observer.unobserve(host); jobs.delete(host); ready.delete(host); }
+  }
+  function schedule(host, callback) {
+    prune(); jobs.set(host,callback); observer.observe(host);
+    // Replacing an already observed job (for example editing) needs no new IO event.
+    if (ready.has(host)) drain();
+  }
+  async function drain() {
+    if (draining) return;
+    draining = true;
+    try {
+      while (ready.size) {
+        // Give input, navigation and paint a turn between CPU-heavy layouts.
+        await new Promise(resolve => setTimeout(resolve,0));
+        prune();
+        const hosts = [...ready].filter(host => jobs.has(host) && host.getClientRects().length);
+        hosts.sort((a,b) => Math.abs(a.getBoundingClientRect().top)-Math.abs(b.getBoundingClientRect().top));
+        const host = hosts[0];
+        if (!host) break;
+        const callback = jobs.get(host); jobs.delete(host); ready.delete(host); observer.unobserve(host);
+        await callback();
+      }
+    } finally { draining = false; }
+  }
   function mount(host, source, label) {
     const svg=host.querySelector('svg');
     if (!svg) return;
@@ -47,11 +96,11 @@
     }
     const box=svg.viewBox.baseVal;
     if (box.width>0 && box.height>0) {
-      svg.style.width=box.width+'px';svg.style.height=box.height+'px';svg.style.maxWidth='none';
+      svg.style.width=box.width+'px';svg.style.height='auto';svg.style.maxWidth='100%';
       svg.setAttribute('width',box.width);svg.setAttribute('height',box.height);
     }
     host.tabIndex=0;
-    host.setAttribute('aria-label',(label || VexMermaid.label(source))+'，宽图可横向滚动');
+    host.setAttribute('aria-label',label || VexMermaid.label(source));
   }
-  window.VexDiagramRendering={render,mount};
+  window.VexDiagramRendering={render,mount,schedule};
 })();

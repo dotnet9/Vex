@@ -1,5 +1,6 @@
 /* Diagram text must not inherit paragraph leading or typography decorations. */
-.md-diagram, .diagram-preview { max-width:100%; min-width:0; overflow:auto; overscroll-behavior-x:contain; }
-.md-diagram svg, .diagram-preview svg { display:block; flex:none; max-width:none; margin-inline:auto; line-height:normal; letter-spacing:normal; }
+.md-diagram, .diagram-preview { max-width:100%; min-width:0; overflow:visible; }
+.md-diagram[data-rendered="queued"], .diagram-preview:empty { min-height:180px; }
+.md-diagram svg, .diagram-preview svg { display:block; flex:none; max-width:100%; height:auto; margin-inline:auto; line-height:normal; letter-spacing:normal; }
 .md-diagram svg text, .diagram-preview svg text { line-height:normal; letter-spacing:normal; }
 .md-diagram:focus-visible, .diagram-preview:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }

@@ -76,7 +76,7 @@ body.device-phone .mobile-more { width:44px; height:44px; }
 .diagram-source-shell>div { min-height:0; overflow:hidden; }
 .diagram-editor.is-expanded .diagram-source-shell { grid-template-rows:1fr; opacity:1; }
 .diagram-source { display:block; box-sizing:border-box; resize:vertical; width:100%; min-height:128px; max-height:360px; padding:15px 18px; border:0; border-bottom:1px solid var(--border); outline-offset:-3px; border-radius:0; background:var(--code-bg,var(--surface)); color:var(--fg,var(--text)); font:13px/1.7 var(--mono,monospace); tab-size:2; }
-.diagram-preview { min-height:120px; padding:22px; overflow:auto; text-align:center; position:relative; }
+.diagram-preview { min-height:120px; padding:22px; text-align:center; position:relative; }
 .diagram-preview svg { max-width:100%; height:auto; display:block; margin:auto; }
 .diagram-preview[data-loading=true]::after { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background:var(--accent); animation:vex-progress 1s ease-in-out infinite; }
 .diagram-preview[data-stale=true] svg { opacity:.35; }

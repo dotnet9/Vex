@@ -38,28 +38,22 @@
     return html
       .replace(/\u0001(\d+)\u0002/g, function (_, index) { return tokens[index]; });
   }
-  var serial = 0, pending = false, requested = false;
+  var serial = 0;
   function diagrams() {
-    requested = true;
-    if (pending) return;
-    pending = true;
-    requestAnimationFrame(async function () {
-      requested = false;
-      var elements = Array.from(document.querySelectorAll('.md-diagram:not([data-rendered])'));
-      for (var element of elements) {
-        if (!element.isConnected || element.dataset.rendered) continue;
+    document.querySelectorAll('.md-diagram:not([data-rendered])').forEach(function (element) {
+      element.dataset.rendered = 'queued';
+      VexDiagramRendering.schedule(element, async function () {
+        if (!element.isConnected) return;
         element.dataset.rendered = 'pending';
         try {
           var svgText = await VexDiagramRendering.render('vex-diagram-' + (++serial), element.dataset.source);
-          if (!element.isConnected) continue;
+          if (!element.isConnected) return;
           element.innerHTML = svgText; element.dataset.rendered = 'true';
           VexDiagramRendering.mount(element, element.dataset.source, element.dataset.label);
         } catch (_) {
           if (element.isConnected) { element.dataset.rendered = 'error'; element.innerHTML = '<p class="md-render-error">图表语法有误，请切换源码检查。</p><pre><code>' + escape(element.dataset.source) + '</code></pre>'; }
         }
-      }
-      pending = false;
-      if (requested) diagrams();
+      });
     });
   }
   function special(block) { return block.kind === 'math' || (block.kind === 'code' && block.language.toLowerCase() === 'mermaid'); }

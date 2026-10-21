@@ -62,7 +62,7 @@
     textarea.addEventListener('compositionend',() => {composing = false;sync();});
     textarea.addEventListener('input',() => {if (!composing) sync();});
     node.addEventListener('focusout',event => {if (!node.contains(event.relatedTarget)) close();});
-    render();
+    VexDiagramRendering.schedule(preview,render);
   }
   document.addEventListener('pointerdown',event => {
     for (const session of sessions) { if (!session.element.isConnected) {sessions.delete(session);continue;} if (!session.element.contains(event.target)) session.close(); }
