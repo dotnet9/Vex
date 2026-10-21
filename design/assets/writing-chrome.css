@@ -17,7 +17,13 @@
 .file-navigation-footer .folder-trigger{flex:1;min-width:0;justify-content:flex-start;font-size:12px}
 .folder-trigger span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .file-navigation-footer svg{width:18px;height:18px;flex:none}
-.file-navigation-menu{position:absolute;left:6px;bottom:42px;z-index:30;min-width:210px;padding:5px;border:1px solid var(--border);background:var(--panel,var(--surface));box-shadow:0 6px 24px #0002;border-radius:6px}
+.file-navigation-footer{position:relative}
+.files-toolbar{display:flex;gap:2px;padding:9px 14px 4px;align-items:center}
+.files-toolbar button{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border:0;border-radius:5px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
+.files-toolbar button:hover{background:var(--hover);color:var(--fg)}
+.files-toolbar button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.files-toolbar .sort-arrow{margin-left:2px;font-weight:600}
+.file-navigation-menu{position:absolute;left:0;bottom:40px;z-index:30;min-width:210px;padding:5px;border:1px solid var(--border);background:var(--panel,var(--surface));box-shadow:0 6px 24px #0002;border-radius:6px}
 .file-navigation-menu button{width:100%;justify-content:flex-start;font-size:13px;height:34px}
 .file-directory>summary{display:flex;align-items:center;gap:7px;list-style:none;padding:7px 8px;cursor:pointer;font-size:13px;color:var(--muted);min-height:34px}
 .file-directory>summary:before{content:'›';width:10px;transform:rotate(90deg);font:18px/18px system-ui}

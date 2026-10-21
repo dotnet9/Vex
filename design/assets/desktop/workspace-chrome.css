@@ -1,13 +1,17 @@
 /* 克制的工作区层级；编辑内容与辅助信息各有固定位置。 */
 .app-window{border-radius:10px;box-shadow:0 8px 32px color-mix(in srgb,var(--fg) 7%,transparent)}
 .app-window>.titlebar{border-top:0;border-bottom-color:color-mix(in srgb,var(--border) 65%,transparent)}
+.titlebar{position:relative}
+.titlebar-document{flex:none;flex-direction:row;gap:8px;max-width:300px;min-width:0;justify-content:flex-start;align-items:center;white-space:nowrap}
+.document-statusbar{position:relative;align-items:center}
+.document-statusbar #workspace-layout{margin:0 auto}
 .workbar{height:58px;min-height:58px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:18px;background:var(--bg);padding:0 18px}
 .document-label{min-width:0;display:flex}.document-title{font-size:13px;font-weight:550}#document-save-status{font-size:12px;color:var(--muted)}
 .work-actions{min-width:0;margin:0;gap:6px;justify-self:end;display:flex}.work-actions .guide-launch{display:none}
 .workspace-layout-button{height:32px;max-width:240px;border-color:transparent;background:transparent;border-radius:6px;font-weight:550;gap:8px}
 .workspace-layout-button>.ico:first-child{width:14px;height:14px;color:var(--muted)}.workspace-layout-button:hover,.workspace-layout-button[aria-expanded=true]{border-color:transparent;background:var(--hover);color:var(--fg)}
 .save-button{border-color:var(--border);background:var(--bg);box-shadow:none;border-radius:6px;font-size:12px}.save-button:hover{background:var(--hover)}
-.workspace-layout-menu{left:50%;right:auto;top:52px;transform:translateX(-50%);width:568px;border-radius:8px;padding:18px}
+.workspace-layout-menu{width:568px;border-radius:8px;padding:18px}
 .workspace-menu-heading strong{font-size:13px}.layout-preset{border-color:transparent;background:transparent;border-radius:6px;gap:3px;padding:10px}
 .layout-preset strong{min-height:16px;font-weight:550}.layout-preset[aria-pressed=true]{border-color:var(--accent);box-shadow:none;background:var(--accent-soft)}
 .layout-miniature{height:44px;border-color:color-mix(in srgb,var(--border) 65%,transparent)}.workspace-layout-menu>p{line-height:1.7}
@@ -65,4 +69,4 @@
 .focus-mode .structure-sidebar,.focus-mode .structure-splitter{display:none}
 @media(max-width:1100px){.workbar{gap:12px}.document-label{min-width:0}.workspace-layout-button{max-width:220px}.view-panel .reading-scroll .md-body{padding:24px 26px 60px}.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:24px 36px 70px}.document-statusbar{gap:10px}#view-follow-driver{display:none}}
 @media(max-width:850px){.workbar{padding:0 12px;gap:10px}.workspace-layout-button{max-width:200px;font-size:12px;padding:0 7px}.document-title{font-size:13px}#document-save-status{font-size:12px}.document-statusbar{height:auto;min-height:34px;gap:0 8px}#view-follow-controls{gap:2px}.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding:28px}.view-panel .map-toolbar{padding:4px 6px}}
-@media(max-width:760px){.workbar{grid-template-columns:minmax(90px,1fr) auto auto;gap:6px}.document-label{display:flex}.work-actions .icon-button{display:inline-flex}.workspace-layout-button{max-width:158px}.workspace-layout-menu{left:50%;right:auto;top:52px}.save-button{min-width:30px;padding:6px}.save-button span{display:none}.document-statusbar .document-corner-actions button{padding:4px}.document-statusbar .document-word-count{font-size:12px}.view-panel .reading-scroll .md-body,.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:20px 24px 60px}}
+@media(max-width:900px){.titlebar-document{display:none}.workbar{grid-template-columns:minmax(90px,1fr) auto auto;gap:6px}.document-label{display:flex}.work-actions .icon-button{display:inline-flex}.workspace-layout-button{max-width:158px}.save-button{min-width:30px;padding:6px}.save-button span{display:none}.document-statusbar .document-corner-actions button{padding:4px}.document-statusbar .document-word-count{font-size:12px}.view-panel .reading-scroll .md-body,.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:20px 24px 60px}}

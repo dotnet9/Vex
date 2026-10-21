@@ -23,7 +23,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .ico { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .document-label { display: flex; flex-direction: column; gap: 2px; min-width: 120px; flex: 1; }
 .document-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
-.document-title .doc-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--warning); }
+.document-title .doc-dot { width: auto; height: auto; border-radius: 0; background: transparent; font-style: normal; font-size: 15px; font-weight: 700; line-height: 1; color: var(--warning); }
+.document-title .doc-dot::before { content: "*"; }
 .view-switch { position: relative; display: flex; padding: 3px; border: 1px solid var(--border); border-radius: 8px; background: var(--code-bg); gap: 2px; flex: none; }
 .view-switch::before { content: ''; position: absolute; left: 3px; top: 3px; width: 86px; bottom: 3px; border-radius: 5px; background: var(--panel); box-shadow: 0 1px 4px #00000012; transition: transform .24s cubic-bezier(.2,.8,.2,1); }
 .view-switch[data-active="read"]::before { transform: translateX(88px); }

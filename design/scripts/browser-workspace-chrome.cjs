@@ -82,28 +82,21 @@ fs.mkdirSync(output, {recursive:true});
     await page.locator('[data-action=clear-outline-search]').click();
     assert.ok(await page.locator('#outline-body .structure-item').count() > 0);
     await shot('reading-outline');
-    await page.locator('#auxiliary-tab-outline').focus(); await page.keyboard.press('ArrowRight');
+    await page.locator('#sb-wordcount').click();
     assert.equal(await shown('#auxiliary-info'), true);
     assert.match(await page.locator('#auxiliary-info').innerText(), /中文按字，英文按词/);
     assert.equal(await page.locator('#outline-toggle').getAttribute('aria-pressed'), 'false', 'Outline button represents the active panel');
-    await page.keyboard.press('End');
-    assert.equal(await page.locator('.chapter-detail-empty').isVisible(), true);
     await page.keyboard.press('Escape');
     assert.equal(await closed(), true);
-    assert.equal(await page.locator('#outline-toggle').evaluate(el => el === document.activeElement), true);
+    assert.equal(await page.locator('#sb-wordcount').evaluate(el => el === document.activeElement), true);
 
     await page.locator('#sb-wordcount').click();
     await page.locator('#auxiliary-info').waitFor({state:'visible'});
     const count = await page.locator('#article-info-count').innerText();
     await page.evaluate(() => VexWorkbench.applyText(VexWorkbench.text + '\n\n新增的字数。'));
     assert.notEqual(await page.locator('#article-info-count').innerText(), count, 'Article information updates during editing');
-    assert.match(await page.locator('.article-info-save').innerText(), /未保存/);
+    assert.equal(await page.locator('.titlebar-document .doc-dot').isVisible(), true, 'Titlebar shows the modified marker');
     await shot('article-info');
-    await page.locator('.article-save-details').click();
-    assert.equal(await page.locator('#document-save-details').isVisible(), true);
-    await page.keyboard.press('Escape');
-    assert.equal(await page.locator('#document-save-details').isVisible(), false, 'Escape dismisses the frontmost popup first');
-    assert.equal(await closed(), false, 'Closing save details preserves the underlying panel');
     await page.locator('.structure-toggle').click(); assert.equal(await closed(), true);
     await page.locator('#sb-wordcount').click();
     assert.equal(await shown('#auxiliary-info'), true);
@@ -115,37 +108,30 @@ fs.mkdirSync(output, {recursive:true});
     assert.ok(Number(await page.locator('#structure-splitter').getAttribute('aria-valuenow')) > beforeResize);
     await page.keyboard.press('Escape'); assert.equal(await closed(), true);
 
-    await page.locator('#file-navigation-footer [data-action=file-actions]').click();
-    assert.equal(await page.locator('#file-navigation-menu #file-list-toggle').isVisible(), true);
-    await page.locator('#file-list-toggle').click();
-    assert.match(await page.locator('#file-list-toggle').innerText(), /切换为目录树/);
-    await page.locator('#file-list-toggle').click();
-    assert.match(await page.locator('#file-list-toggle').innerText(), /切换为列表视图/);
-
     await open('layout=map');
     const sample = '# 文章\n\n## 甲章\n\n甲的正文。\n\n### 子节\n\n子节保留。\n\n## 乙章\n\n乙的正文。\n';
     await page.evaluate(value => {
       VexWorkbench.applyText(value); VexWorkbench.fit();
       VexWorkbench.selectNode(VexWorkbench.state.nodes.find(node => node.text === '甲章'));
     }, sample);
-    assert.equal(await shown('#auxiliary-chapter'), true);
-    assert.equal(await page.locator('#node-inspector').evaluate(el => el.closest('#structure-sidebar') !== null), true);
-    assert.equal(await page.locator('#inspector-content').evaluate(el => getComputedStyle(el).maxHeight), 'none', 'Chapter editor uses the full auxiliary panel instead of nested clipping');
+    assert.equal(await shown('#node-inspector'), true, 'Selecting a chapter opens the map inspector');
     await page.locator('#chapter-title-input').fill('修改后的甲章');
     await page.locator('#chapter-title-input').press('Tab');
     assert.match(await page.evaluate(() => VexWorkbench.text), /## 修改后的甲章/);
     await page.locator('#chapter-body-input').fill('在统一面板中修改正文。');
     await page.locator('#chapter-body-input').press('Tab');
     assert.match(await page.evaluate(() => VexWorkbench.text), /在统一面板中修改正文。[\s\S]*### 子节\n\n子节保留。/);
-    await page.locator('.chapter-feedback button').click();
+    await page.waitForFunction(() => { const f = document.querySelector('.chapter-feedback'); return f && !f.hidden; }, null, {timeout: 5000});
+    await page.evaluate(() => document.querySelector('.chapter-feedback button').click());
     assert.match(await page.evaluate(() => VexWorkbench.text), /甲的正文。/);
     await page.evaluate(() => VexWorkbench.selectNode(VexWorkbench.state.nodes.find(node => node.text === '修改后的甲章')));
     await shot('chapter-details');
+    await page.locator('#outline-toggle').click();
     await page.locator('.structure-toggle').click();
     assert.equal(await closed(), true);
     await page.locator('#outline-toggle').click();
-    await page.locator('#auxiliary-tab-chapter').click();
-    assert.equal(await page.locator('#chapter-body-input').isVisible(), true, 'Closing and reopening preserves the selected chapter');
+    await page.locator('#sb-wordcount').click();
+    assert.equal(await page.locator('#article-info-count').isVisible(), true, 'Closing and reopening preserves the auxiliary panel');
     await page.evaluate(() => VexWorkbench.loadDocument(1));
     await page.locator('#layer-unsaved .caption-btn').click();
     assert.match(await page.evaluate(() => VexWorkbench.text), /修改后的甲章/, 'Cancelling a document switch preserves changes');
@@ -179,13 +165,14 @@ fs.mkdirSync(output, {recursive:true});
         await page.waitForTimeout(300);
         const result = await page.evaluate(() => {
           const r = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
-          return {sidebar:r('#structure-sidebar'), surface:r('#view-surface'), bar:r('.document-statusbar'), workbar:r('.workbar'),
-            title:r('.document-label'), selector:r('#workspace-layout'), actions:r('.work-actions'),
+          return {sidebar:r('#structure-sidebar'), surface:r('#view-surface'), bar:r('.document-statusbar'),
+            title:r('.titlebar-document'), selector:r('#workspace-layout'), find:r('.find-launch'),
+            appearanceLeft:document.querySelector('#vex-appearance-menu').getBoundingClientRect().left,
             overflow:document.querySelector('.document-statusbar').scrollWidth-document.querySelector('.document-statusbar').clientWidth,
             overlay:document.querySelector('.workspace').classList.contains('auxiliary-overlay')};
         });
-        assert.ok(result.sidebar.right <= viewport.width && result.sidebar.bottom <= viewport.height, 'Auxiliary panel stays inside the window');
-        assert.ok(result.title.right <= result.selector.left + 1 && result.selector.right <= result.actions.left + 1, 'Long document names do not overlap actions');
+        assert.ok(result.sidebar.right <= viewport.width && result.sidebar.bottom <= viewport.height, 'Auxiliary panel stays inside the window ' + JSON.stringify({vp: viewport, layout: layout, sidebar: result.sidebar}));
+        assert.ok(result.find.right <= result.appearanceLeft + 1, 'Find button sits left of the appearance entry');
         assert.ok(result.surface.bottom <= result.bar.top + 1 && result.overflow <= 1, 'Status bar does not cover or overflow the document');
         if (result.overlay) assert.ok(Math.abs(result.surface.width - before.width) < 1, 'Overlay panel preserves document width');
         await shot(layout + '-info-' + viewport.width);

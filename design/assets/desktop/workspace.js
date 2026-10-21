@@ -30,7 +30,7 @@
   makePanel('editor', ['source-pane', 'instant-pane']); makePanel('render', ['reading-pane']); makePanel('map', ['map-pane']);
   var parking = document.createElement('div'); parking.hidden = true; parking.id = 'view-parking'; area.appendChild(parking);
   var surface = document.createElement('div'); surface.className = 'view-surface'; surface.id = 'view-surface'; area.appendChild(surface);
-  var workbar = document.querySelector('.workbar'), actions = document.querySelector('.work-actions');
+  var statusbar = document.querySelector('.document-statusbar'), wordCount = document.getElementById('sb-wordcount');
   var typeButton=$('edit-options').querySelector('[data-action="typography"]');
   typeButton.setAttribute('aria-haspopup','dialog');typeButton.setAttribute('aria-controls','typography-panel');typeButton.title='正文排版';
   panels.editor.querySelector('.view-heading').appendChild(typeButton);
@@ -45,17 +45,16 @@
   layoutButton.setAttribute('aria-haspopup', 'dialog'); layoutButton.setAttribute('aria-expanded', 'false');
   layoutButton.setAttribute('aria-controls', 'workspace-layout-menu');
   layoutButton.innerHTML = icon('columns') + '<span id="current-layout-label">即时编辑</span>' + icon('chevron-down');
-  layoutButton.lastElementChild.classList.add('vex-expand-icon','layout-chevron'); workbar.insertBefore(layoutButton, actions);
+  layoutButton.lastElementChild.classList.add('vex-expand-icon','layout-chevron'); statusbar.insertBefore(layoutButton, wordCount);
   var layoutMenu = document.createElement('section'); layoutMenu.className = 'workspace-layout-menu'; layoutMenu.id = 'workspace-layout-menu'; layoutMenu.hidden = true;
   layoutMenu.setAttribute('role', 'dialog'); layoutMenu.setAttribute('aria-label', '工作区视图');
-  layoutMenu.innerHTML = '<div class="workspace-menu-heading"><strong>选择视图</strong><button class="icon-button" aria-label="关闭布局菜单">' + icon('x') + '</button></div><p>专注写作，或打开多种视图对照。同一篇文章，内容同步。</p><div class="layout-preset-grid"></div><div class="workspace-layout-footer"><span>底栏可打开文件、大纲和文章信息</span><button id="reset-workspace">回到即时编辑</button></div>';
-  document.querySelector('.window-body').appendChild(layoutMenu);
+  layoutMenu.innerHTML = '<div class="workspace-menu-heading"><strong>选择视图</strong><button class="icon-button" aria-label="关闭布局菜单">' + icon('x') + '</button></div><p>专注写作，或打开多种视图对照。同一篇文章，内容同步。</p><div class="layout-preset-grid"></div>';
+  statusbar.appendChild(layoutMenu);
   function miniature(node) { return typeof node === 'string' ? '<i class="mini-pane mini-' + node + '"></i>' : '<span class="mini-split mini-' + node[0] + '">' + miniature(node[1]) + miniature(node[2]) + '</span>'; }
   presets.forEach(function (preset) { var button = document.createElement('button'); button.className = 'layout-preset'; button.dataset.layout = preset.id; button.innerHTML = '<span class="layout-miniature">' + miniature(preset.tree) + '</span><strong>' + preset.title + '</strong><small>' + preset.note + '</small><span class="preset-check">✓</span>'; button.onclick = function () { setLayout(preset.id); closeMenus(true); }; layoutMenu.querySelector('.layout-preset-grid').appendChild(button); });
   function closeMenus(restore) { var wasOpen = !layoutMenu.hidden; layoutMenu.hidden = true; layoutButton.setAttribute('aria-expanded', 'false'); if (restore && wasOpen) layoutButton.focus(); }
   layoutButton.onclick = function () { var show = layoutMenu.hidden; closeMenus(); layoutMenu.hidden = !show; layoutButton.setAttribute('aria-expanded', String(show)); if (show) layoutMenu.querySelector('[data-layout="' + current + '"]').focus(); };
   layoutMenu.querySelector('.workspace-menu-heading button').onclick = function () { closeMenus(true); };
-  $('reset-workspace').onclick = function () { setLayout('instant'); closeMenus(true); };
   layoutMenu.addEventListener('keydown', function (event) {
     var buttons = Array.from(layoutMenu.querySelectorAll('.layout-preset')), index = buttons.indexOf(document.activeElement);
     if (index >= 0 && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) {

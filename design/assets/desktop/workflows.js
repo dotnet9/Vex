@@ -3,7 +3,7 @@
   'use strict';
   const W=VexWorkbench,host=document.querySelector('.window-body');
   const notice=document.createElement('section');notice.className='workflow-notice';notice.hidden=true;notice.setAttribute('aria-label','文档操作提示');
-  document.querySelector('.workbar').after(notice);
+  document.querySelector('.titlebar').after(notice);
   const dialog=document.createElement('dialog');dialog.className='workflow-dialog';dialog.setAttribute('aria-labelledby','workflow-title');host.append(dialog);
   const esc=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let drafts=[],draftError=false,origin=null;

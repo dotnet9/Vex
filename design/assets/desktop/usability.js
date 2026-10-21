@@ -2,11 +2,11 @@
 (function () {
   'use strict';
   var W = window.VexWorkbench, $ = function (id) { return document.getElementById(id); };
-  var status = $('document-save-status'), details = document.createElement('section');
+  var status = null, details = document.createElement('section');
   details.id = 'document-save-details'; details.className = 'save-details'; details.hidden = true;
   details.setAttribute('role', 'dialog'); details.setAttribute('aria-label', '文档与保存状态');
   details.innerHTML = '<div class="usability-panel-heading"><strong>文档与保存状态</strong><button type="button" class="icon-button" aria-label="关闭保存详情">×</button></div><dl><dt>当前文件</dt><dd id="save-file-name"></dd><dt>来源位置</dt><dd id="save-source-location"></dd><dt>副本位置</dt><dd>浏览器下载目录，具体位置由浏览器设置决定</dd><dt>最近一次下载</dt><dd id="save-last-export"></dd><dt>恢复草稿</dt><dd id="save-draft-state"></dd></dl><p>本原型通过下载保存 Markdown 副本，不写回来源文件。下载发起后，请在浏览器下载记录中确认完成。</p><button class="btn primary" type="button" id="save-details-retry">保存 Markdown 副本</button>';
-  document.querySelector('.window-body').appendChild(details); status.setAttribute('aria-controls', details.id);
+  document.querySelector('.window-body').appendChild(details);
   function updateSaveDetails() {
     var doc = W.documents[W.state.doc];
     $('save-file-name').textContent = doc.name;
@@ -16,11 +16,12 @@
     $('save-details-retry').textContent = doc.saveError ? '重试下载副本' : '保存 Markdown 副本';
     $('save-details-retry').disabled = !!doc.readOnly || W.state.emptyWorkspace;
   }
-  function closeSaveDetails(restore) { details.hidden = true; status.setAttribute('aria-expanded', 'false'); if (restore) status.focus(); }
-  status.onclick = function () { var open = details.hidden; closeSaveDetails(); details.hidden = !open; status.setAttribute('aria-expanded', String(open)); if (open) { updateSaveDetails(); details.querySelector('button').focus(); } };
+  function openSaveDetails() { if (details.hidden) { updateSaveDetails(); details.hidden = false; details.querySelector('button').focus(); } else { details.hidden = true; } }
+  function closeSaveDetails() { details.hidden = true; }
+  window.addEventListener('vex-open-save-details', openSaveDetails);
   details.querySelector('.icon-button').onclick = function () { closeSaveDetails(true); };
   $('save-details-retry').onclick = function () { VexProto.handleAction('save'); updateSaveDetails(); };
-  document.addEventListener('pointerdown', function (event) { if (!details.contains(event.target) && !status.contains(event.target)) closeSaveDetails(); });
+  document.addEventListener('pointerdown', function (event) { if (!details.contains(event.target)) closeSaveDetails(); });
   document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !details.hidden) closeSaveDetails(true); });
   window.addEventListener('vex-save-state-changed', updateSaveDetails);
 
@@ -34,8 +35,6 @@
   $('view-follow-toggle').onclick = function () { W.setFollow(!W.state.followViews); };
   $('return-to-editing').onclick = function () { VexWorkspace.openPanel('editor'); W.returnToEditing(); };
   window.addEventListener('vex-follow-changed', updateFollow); updateFollow();
-  document.querySelector('#file-navigation-footer [data-action="new"]').insertAdjacentHTML('beforeend', '<span>新建</span>');
-  document.querySelector('#file-navigation-menu [data-action="quick-open"]').textContent = '按文件名查找 · Ctrl+P';
   function focusPanel(target) {
     var active = target.closest('.view-panel'); if (!active) return;
     document.querySelectorAll('.view-panel').forEach(function (panel) { panel.classList.toggle('active-view', panel === active); });
@@ -56,8 +55,7 @@
     document.querySelector('.workspace-main').classList.toggle('workspace-empty', empty); welcome.hidden = !empty;
     blankNote.hidden = empty || !!W.text.trim();
     mapEmpty.hidden = empty || W.state.parsed.blocks.some(function (block) { return block.kind === 'heading'; });
-    document.querySelector('.save-button').disabled = empty || !!W.documents[W.state.doc].readOnly;
-    $('document-save-status').hidden = empty;
+    var saveButton = document.querySelector('.save-button'); if (saveButton) saveButton.disabled = empty || !!W.documents[W.state.doc].readOnly;
     $('document-name').textContent = empty ? '未打开文档' : W.name;
   }
   window.addEventListener('vex-content-changed', updateEmptyState); window.addEventListener('vex-document-loaded', updateEmptyState); updateEmptyState();

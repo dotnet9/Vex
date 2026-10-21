@@ -21,7 +21,7 @@
     if (cache.size >= 40) cache.delete(cache.keys().next().value);
     cache.set(source, result); return result;
   }
-  function renderFiles({container, docs, current, folder, mode, descending, query, onOpen, icon}) {
+  function renderFiles({container, docs, current, folder, mode, descending, query, sort, onOpen, icon}) {
     const collapsed = new Set([...container.querySelectorAll('details:not([open])')].map(el => el.dataset.path));
     container.replaceChildren(); container.classList.toggle('file-excerpts', mode === 'list');
     const folders = new Map();
@@ -35,7 +35,9 @@
     }
     const root = mode === 'tree' ? directory(container, folder, '') : container;
     folders.set('', root);
-    docs.map((doc, index) => ({doc, index})).sort((a,b) => (descending ? -1 : 1) * a.doc.name.localeCompare(b.doc.name, 'zh-CN'))
+    docs.map((doc, index) => ({doc, index})).sort(sort === 'asc' ? (a,b) => (a.doc.name < b.doc.name ? -1 : a.doc.name > b.doc.name ? 1 : 0)
+        : sort === 'desc' ? (a,b) => (a.doc.name < b.doc.name ? 1 : a.doc.name > b.doc.name ? -1 : 0)
+        : (a,b) => a.index - b.index)
       .filter(({doc}) => doc.name.toLowerCase().includes(query.toLowerCase().trim())).forEach(({doc, index}) => {
         let parent = root, path = '';
         if (mode === 'tree') (doc.treePath || doc.path || doc.name).split('/').slice(0,-1).forEach(part => {

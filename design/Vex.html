@@ -88,6 +88,7 @@
   <header class="titlebar">
     <div class="brand" title="维刻 Vex · 写下想法，看见脉络。"><img src="assets/vex-logo.svg" alt="">Vex</div>
     <nav class="tb-menu" aria-label="应用菜单"><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">文件(F)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">编辑(E)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">插入(I)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">视图(V)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">工具(T)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">帮助(H)</button></nav>
+    <div class="document-label titlebar-document"><div class="document-title"><span id="document-name">主题设计笔记.md</span><i class="doc-dot" id="dirty-dot" hidden></i></div></div>
     <div class="caption-btns" id="caption-btns">
       <button class="caption-btn" data-action="minimize" title="最小化"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button>
       <button class="caption-btn" data-action="maximize" title="最大化 / 还原"><svg class="ico" aria-hidden="true"><use href="#i-max"/></svg></button>
@@ -95,19 +96,16 @@
     </div>
   </header>
   <div class="window-body">
-    <div class="workbar">
-      <div class="document-label"><div class="document-title"><span id="document-name">主题设计笔记.md</span><i class="doc-dot" id="dirty-dot" hidden></i></div><button id="document-save-status" type="button" aria-haspopup="dialog" aria-expanded="false">未导出副本</button></div>
-      <div class="work-actions"><button class="guide-launch" data-action="guide" id="guide-launch" title="新手引导"><i aria-hidden="true"></i><span>快速上手</span></button><button class="icon-button" data-action="find" title="查找当前正文 · Ctrl+F" aria-label="查找当前正文"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg></button><button class="btn sm save-button" data-action="save" title="保存 Markdown 副本 · Ctrl+S"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg><span>保存副本</span></button></div>
-    </div>
     <main class="workspace" data-view="edit">
-      <aside class="sidebar" aria-label="文档导航"><div class="sidebar-inner">
+      <aside class="sidebar" aria-label="文件列表"><div class="sidebar-inner">
 
         <div class="side-pane" id="files-pane">
+          <div class="files-toolbar" role="toolbar" aria-label="文件列表工具"><button type="button" data-action="files-mode" aria-pressed="true" title="按文件夹分类"><svg class="ico"><use href="#i-folder"/></svg></button><button type="button" data-action="files-sort" title="按名称排序：默认"><svg class="ico"><use href="#i-list"/></svg><span class="sort-arrow" hidden>↑</span></button><button type="button" data-action="files-fold" title="全部折叠"><svg class="ico"><use href="#i-fold"/></svg></button></div>
           <label class="sidebar-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="file-filter" placeholder="按文件名查找…" aria-label="按文件名查找" title="只匹配文件名，不搜索正文 · Ctrl+P"><button class="clear-search" data-action="clear-file-search" title="清除文件名筛选" aria-label="清除文件名筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
           <div class="file-list" id="file-list"></div><div class="empty-state" id="file-empty" hidden>没有匹配的文档</div>
         </div>
 
-        <footer class="file-navigation-footer" id="file-navigation-footer"><button data-action="new" title="新建" aria-label="新建"><svg class="ico"><use href="#i-plus"/></svg></button><button class="folder-trigger" data-action="open-folder" title="打开文件夹"><svg class="ico"><use href="#i-folder"/></svg><span id="folder-name">演示文档</span></button><button data-action="file-actions" title="文件操作" aria-label="文件操作" aria-expanded="false"><svg class="ico"><use href="#i-more"/></svg></button><button data-action="collapse-files" id="collapse-files" title="全部折叠" aria-label="全部折叠" disabled><svg class="ico"><use href="#i-fold"/></svg></button><button data-action="file-list-toggle" id="file-list-toggle" title="切换为列表视图" aria-label="切换为列表视图"><svg class="ico"><use href="#i-list"/></svg></button><div class="file-navigation-menu" id="file-navigation-menu" hidden><button data-action="new">新建</button><button data-action="quick-open">搜索文档</button><button data-action="open-folder">打开文件夹…</button><button data-action="refresh-files">刷新文件</button><button data-action="sort-files">切换名称排序</button></div></footer>
+        
       </div></aside>
       <div class="sidebar-splitter" id="sidebar-splitter" role="separator" aria-label="调整文档导航宽度" aria-orientation="vertical" aria-valuemin="200" aria-valuemax="560" aria-valuenow="226" tabindex="0"></div>
       <div class="workspace-main">
@@ -128,7 +126,7 @@
             <button class="format-button" data-action="insert-inline-code" data-l10n-title="InlineCode" aria-label="行内代码" title="行内代码"><svg class="ico"><use href="#i-inline-code"/></svg></button>
             <button class="format-button" data-action="insert-code" data-l10n-title="CodeBlock" aria-label="代码块" title="代码块"><svg class="ico"><use href="#i-code-block"/></svg></button>
             <button class="format-button" data-action="insert-table" data-l10n-title="Table" aria-label="表格" title="表格"><svg class="ico"><use href="#i-grid"/></svg></button>
-            <button class="format-button format-more" data-action="format-more" data-l10n-title="WBMoreFormatting" aria-label="更多格式" title="更多格式"><svg class="ico"><use href="#i-more"/></svg></button>
+            
           </div>
 
           <button class="toolbar-button typography-trigger" data-action="typography" title="Markdown 排版主题">排版 <span data-typography-label>简</span><svg class="ico vex-expand-icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>

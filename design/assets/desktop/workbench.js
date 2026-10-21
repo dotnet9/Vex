@@ -26,6 +26,25 @@
     }
   }
   var fileListMode = bundledDocument ? 'list' : VexStorage.getItem('vex-design-file-list-mode') || 'tree', fileDescending = false;
+  var alphaSort = 'default'; /* default | asc | desc，ASCII 序；default 跟随分类（树形） */
+  var outlineFolded = false;
+  function syncFilesToolbar() {
+    var mode = document.querySelector('[data-action="files-mode"]');
+    var sort = document.querySelector('[data-action="files-sort"]');
+    var fold = document.querySelector('[data-action="files-fold"]');
+    if (mode) mode.setAttribute('aria-pressed', String(fileListMode === 'tree' && alphaSort === 'default'));
+    if (sort) {
+      var arrow = sort.querySelector('.sort-arrow');
+      if (arrow) { arrow.textContent = alphaSort === 'asc' ? '↑' : alphaSort === 'desc' ? '↓' : '↑↓'; arrow.hidden = false; }
+      sort.setAttribute('aria-pressed', String(alphaSort !== 'default'));
+      sort.title = '按名称排序：' + (alphaSort === 'asc' ? '升序' : alphaSort === 'desc' ? '降序' : '默认（点击切换）');
+    }
+    if (fold) {
+      var anyOpen = document.querySelectorAll('#file-list details.file-directory[open]').length > 0;
+      fold.setAttribute('aria-pressed', String(fileListMode === 'tree' && !anyOpen));
+      fold.title = anyOpen ? '全部折叠' : '全部展开';
+    }
+  }
   var settings = { length: 30, paragraphs: false, lists: false, blocks: false, layout: 'right' };
   try {
     var saved = JSON.parse(VexStorage.getItem('vex-design-mindmap') || '{}');
@@ -202,12 +221,14 @@
     window.dispatchEvent(new CustomEvent('vex-document-loaded'));
   }
   function renderFiles() {
-    $('folder-name').textContent = workspaceFolder;
-    $('file-list-toggle').innerHTML = icon(fileListMode === 'tree' ? 'list' : 'map') + ($('file-list-toggle').closest('#file-navigation-menu') ? '<span>' + (fileListMode === 'tree' ? '切换为列表视图' : '切换为目录树') + '</span>' : '');
-    $('file-list-toggle').title = $('file-list-toggle').ariaLabel = fileListMode === 'tree' ? '切换为列表视图' : '切换为树视图';
+    if ($('folder-name')) $('folder-name').textContent = workspaceFolder;
+
+
     var visibleDocs = docs.map(function (doc, index) { return index === state.doc ? Object.assign({}, doc, {text:input.value}) : doc; });
     VexWriting.renderFiles({container:$('file-list'), docs:state.emptyWorkspace ? [] : visibleDocs, current:visibleDocs[state.doc], folder:workspaceFolder, mode:fileListMode, descending:fileDescending, query:$('file-filter').value, icon:icon,
+      sort:alphaSort === 'default' ? null : alphaSort,
       onOpen:function (_, index) { if (index !== state.doc) confirmSwitch(function () { loadDoc(index); }); }});
+    syncFilesToolbar();
     var empty = $('file-list').querySelector('.empty-state');
     if (empty) {
       empty.textContent = state.emptyWorkspace ? '还没有打开文档。新建一篇，或打开本地文件开始。' : '当前文件名没有匹配项。此处不搜索正文。';
@@ -216,7 +237,7 @@
         var find = document.createElement('button'); find.type = 'button'; find.textContent = '查找当前正文'; find.onclick = function () { VexProto.handleAction('find'); }; empty.appendChild(find);
       }
     }
-    $('folder-name').parentElement.title = '打开文件夹 · 当前：' + workspaceFolder;
+
     $('file-empty').hidden = true;
     var collapseFiles = $('collapse-files');
     if (collapseFiles) {
@@ -229,8 +250,8 @@
   $('file-filter').oninput = filterFiles;
   $('outline-filter').oninput = renderOutline;
 
-  document.addEventListener('pointerdown', function (event) { if (!event.target.closest('.file-navigation-footer')) $('file-navigation-menu').hidden = true; });
-  document.addEventListener('keydown', function (event) { if (event.key === 'Escape') $('file-navigation-menu').hidden = true; });
+
+
   var fileContextMenu = document.createElement('div'), fileContextTarget = null;
   fileContextMenu.className = 'file-context-menu'; fileContextMenu.hidden = true; fileContextMenu.setAttribute('role', 'menu');
   document.body.appendChild(fileContextMenu);
@@ -514,7 +535,8 @@
   function renderOutline() {
     $('outline-body').innerHTML = '';
     var query = $('outline-filter').value.trim().toLowerCase();
-    var headings = state.nodes.filter(function (node) { return node.kind === 'heading' && node.level > 0 && node.text.toLowerCase().includes(query); });
+    var maxLevel = outlineFolded ? 2 : 6;
+    var headings = state.nodes.filter(function (node) { return node.kind === 'heading' && node.level > 0 && node.level <= maxLevel && node.text.toLowerCase().includes(query); });
     var counters = [0, 0, 0, 0, 0, 0];
     headings.forEach(function (node) {
       counters[node.level - 1]++; for (var i = node.level; i < 6; i++) counters[i] = 0;
@@ -541,6 +563,7 @@
     });
     if (!headings.length) $('outline-body').innerHTML = '<div class="empty-state">' + (query ? '没有匹配的标题' : '添加标题后，会在这里显示大纲。') + '</div>';
     activateOutlineAtLine(activeOutlineLine, false);
+    syncFilesToolbar();
   }
   bindOutlineViewSync();
   function refresh() {
@@ -563,9 +586,6 @@
   }
   function updateSaveStatus() {
     $('dirty-dot').hidden = !state.dirty;
-    var doc = docs[state.doc], status = $('document-save-status');
-    status.textContent = doc.saveError ? '下载失败 · 内容已保留' : state.dirty ? '未保存修改' : doc.lastExport ? '副本下载已发起 · ' + doc.lastExport : input.readOnly ? '内置只读文档' : doc.isNew ? '未命名 · 未保存' : doc.path ? '已打开 · 未修改' : '示例文档 · 未导出';
-    status.dataset.status = doc.saveError ? 'error' : state.dirty || doc.isNew && !doc.lastExport ? 'dirty' : 'clean';
     window.dispatchEvent(new CustomEvent('vex-save-state-changed'));
   }
   function refreshNow() { clearTimeout(state.pending); refresh(); }
@@ -931,11 +951,14 @@
         showStructure(structureSidebar.classList.contains('collapsed'));
         break;
       }
-      case 'file-list-toggle': fileListMode = fileListMode === 'tree' ? 'list' : 'tree'; if (!bundledDocument) VexStorage.setItem('vex-design-file-list-mode', fileListMode); renderFiles(); break;
+      case 'files-mode': fileListMode = 'tree'; alphaSort = 'default'; if (!bundledDocument) VexStorage.setItem('vex-design-file-list-mode', 'tree'); renderFiles(); break;
+      case 'files-sort': alphaSort = alphaSort === 'default' ? 'asc' : alphaSort === 'asc' ? 'desc' : 'default'; fileListMode = alphaSort === 'default' ? 'tree' : 'list'; if (!bundledDocument) VexStorage.setItem('vex-design-file-list-mode', fileListMode); renderFiles(); break;
+      case 'files-fold': { var groups = document.querySelectorAll('#file-list details.file-directory'); var anyOpen = Array.prototype.some.call(groups, function (g) { return g.open; }); groups.forEach(function (g) { g.open = !anyOpen; }); syncFilesToolbar(); break; }
+      case 'outline-fold': outlineFolded = !outlineFolded; renderOutline(); var ofBtn = document.querySelector('[data-action="outline-fold"]'); if (ofBtn) { ofBtn.setAttribute('aria-pressed', String(outlineFolded)); ofBtn.title = outlineFolded ? '全部展开' : '全部折叠'; } break;
       case 'file-actions': $('file-navigation-menu').hidden = !$('file-navigation-menu').hidden; document.querySelector('[data-action=file-actions]').setAttribute('aria-expanded', String(!$('file-navigation-menu').hidden)); break;
-      case 'refresh-files': renderFiles(); $('file-navigation-menu').hidden = true; break;
+      case 'refresh-files': renderFiles(); break;
       case 'collapse-files': document.querySelectorAll('#file-list details.file-directory[open]').forEach(function (group) { group.open = false; }); renderFiles(); break;
-      case 'sort-files': fileDescending = !fileDescending; renderFiles(); $('file-navigation-menu').hidden = true; break;
+      case 'sort-files': fileDescending = !fileDescending; renderFiles(); break;
       case 'new': if (state.emptyWorkspace) { state.emptyWorkspace = false; docs[0].placeholder = false; loadDoc(0); window.dispatchEvent(new CustomEvent('vex-content-changed')); } else if (!VexDocumentWindow.open({document:{name:'未命名文档.md',text:'',isNew:true}})) VexProto.toast('请允许弹出窗口后重试'); break;
       case 'new-window': if (!VexDocumentWindow.open({document:{name:'未命名文档.md',text:''}})) VexProto.toast('请允许弹出窗口后重试'); break;
       case 'document-window': instant.finish(); if (!VexDocumentWindow.open({document:{name:docs[state.doc].name,text:input.value,readOnly:!!docs[state.doc].readOnly}})) VexProto.toast('请允许弹出窗口后重试'); break;
@@ -979,7 +1002,7 @@
       case 'presentation-larger': state.presentationScale = Math.min(2.5, +(state.presentationScale + .1).toFixed(1)); applyPresentation(); break;
       case 'presentation-smaller': state.presentationScale = Math.max(1, +(state.presentationScale - .1).toFixed(1)); applyPresentation(); break;
       case 'presentation-exit': stopPresentation(); break;
-      case 'format-more': document.querySelector('.tb-menuitem[data-menu="格式(O)"]')?.click(); break;
+
       case 'typography': VexTypography.toggle(Array.from(document.querySelectorAll('[data-action="typography"]')).find(function(button){return button.getClientRects().length&&!button.hidden;})); break;
       case 'typography-select': VexTypography.choose(item.arg); break;
       case 'toggle-compact': VexTypography.toggleCompact(); break;
@@ -1265,7 +1288,7 @@
     blocks:function () { return state.parsed.blocks; }, readOnly:function () { return input.readOnly; }, touch:function () { return false; },
     finish:function () { instant.finish(); }, applyText:function (text) { VexWorkbench.applyText(text); },
     beforeOpen:function () { VexProto.closeMenu(); }, toast:VexProto.toast,
-    entries:[document.getElementById('edit-options'),document.querySelector('#reading-pane .ph-right')],
+    
     findBlock:function (line) { return Array.from($('instant-content').children).find(function (el) { return state.parsed.blocks[Number(el.dataset.blockIndex)]?.line === line; }); },
     focus:function (line,sourceActive) { if(sourceActive)input.focus({preventScroll:true}); else document.querySelector('#instant-content [data-line="' + line + '"]')?.closest('.instant-block')?.focus({preventScroll:true}); },
     editSource:function (line) { VexWorkspace.locateEditor(line); }
