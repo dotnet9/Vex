@@ -3,6 +3,21 @@
 
 CODEWF_DMG_ASSET_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# CI 机器上 Spotlight / DiskArbitration 会短暂占用新建镜像，create/attach/convert/verify 偶发 Resource busy。
+codewf_hdiutil_retry() {
+  local attempt=1 delay=2
+  while true; do
+    if "$@"; then
+      return 0
+    fi
+    [[ "$attempt" -lt 4 ]] || return 1
+    echo "hdiutil busy; retry $((attempt + 1))/4 in ${delay}s: $*" >&2
+    sleep "$delay" || return 1
+    attempt=$((attempt + 1))
+    delay=$((delay * 2))
+  done
+}
+
 codewf_create_branded_dmg() (
   set -euo pipefail
   [[ $# -eq 3 || $# -eq 4 ]] || { echo 'Usage: codewf_create_branded_dmg <stage> <app-name> <output.dmg> [volume-name]' >&2; exit 2; }
@@ -122,8 +137,8 @@ codewf_create_branded_dmg() (
   mkdir -p "$local_stage/.background" "$local_mount" || exit 1
   cp "$CODEWF_DMG_ASSET_ROOT/background-$local_language.png" "$local_stage/.background/codewf.png" || exit 1
   # 先创建可写 HFS+，让 Finder 写入 .DS_Store，再转换为只读压缩镜像。
-  hdiutil create -volname "$local_volume" -srcfolder "$local_stage" -fs HFS+ -format UDRW -ov "$local_rw" >/dev/null || exit 1
-  hdiutil attach -plist -readwrite -noverify -noautoopen -mountpoint "$local_mount" "$local_rw" >"$local_work/attach.plist" || exit 1
+  codewf_hdiutil_retry hdiutil create -volname "$local_volume" -srcfolder "$local_stage" -fs HFS+ -format UDRW -ov "$local_rw" >/dev/null || exit 1
+  codewf_hdiutil_retry hdiutil attach -plist -readwrite -noverify -noautoopen -mountpoint "$local_mount" "$local_rw" >"$local_work/attach.plist" || exit 1
   local_mounted=1
   local_entities="$(plutil -extract system-entities json -o - "$local_work/attach.plist")" || { local_attachment_unknown=1; exit 1; }
   local_device="$(osascript -l JavaScript -e '
@@ -142,8 +157,8 @@ codewf_create_branded_dmg() (
   [[ -s "$local_mount/.DS_Store" ]] || { echo 'Finder did not persist the DMG layout (.DS_Store missing).' >&2; exit 1; }
   sync || exit 1
   detach_brand_dmg || exit 1
-  hdiutil convert "$local_rw" -format UDZO -imagekey zlib-level=9 -ov -o "$local_output" >/dev/null || exit 1
-  hdiutil verify "$local_output" >/dev/null || exit 1
+  codewf_hdiutil_retry hdiutil convert "$local_rw" -format UDZO -imagekey zlib-level=9 -ov -o "$local_output" >/dev/null || exit 1
+  codewf_hdiutil_retry hdiutil verify "$local_output" >/dev/null || exit 1
   [[ -s "$local_output" ]] || { echo 'Branded DMG output is missing or empty.' >&2; exit 1; }
 )
 
