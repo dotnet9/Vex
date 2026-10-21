@@ -12,7 +12,7 @@
     <Platform>Any CPU</Platform>
     <SelfContained>true</SelfContained>
     <PublishUrl>$(PublishDir)</PublishUrl>
-    <PublishDir>$(ArtifactsPath)publish\$(RuntimeIdentifier)\$(MSBuildProjectName)\</PublishDir>
+    <PublishDir>$(MSBuildProjectDirectory)\..\..\artifacts\publish\$(RuntimeIdentifier)\$(MSBuildProjectName)\</PublishDir>
     <_TargetId>Folder</_TargetId>
   </PropertyGroup>
 

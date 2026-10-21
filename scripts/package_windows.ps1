@@ -16,7 +16,7 @@ if (-not $Version) {
 if ($Version -notmatch '^\d+\.\d+\.\d+(?:\.\d+)?$') { throw '安装包版本必须是三段或四段数字。' }
 if (-not $WorkRoot) { $WorkRoot = Join-Path $repositoryRoot '../../temp_files/vex-windows' }
 $WorkRoot = [IO.Path]::GetFullPath($WorkRoot)
-if (-not $OutputDirectory) { $OutputDirectory = Join-Path $WorkRoot 'packages' }
+if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repositoryRoot 'artifacts/release' }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 
 # 先检查打包工具，避免完成耗时 AOT 编译后才发现无法生成安装包。
@@ -49,13 +49,26 @@ if (-not (Get-Command dotnet -CommandType Application -ErrorAction SilentlyConti
 
 # 每次使用独立构建目录，手工改代码后重做不会混入上次发布遗留的文件。
 $runRoot = Join-Path $WorkRoot ('builds/' + [guid]::NewGuid().ToString('N'))
-$publishRoot = Join-Path $runRoot 'publish/win-x64/Vex'
+$publishRoot = Join-Path $repositoryRoot 'artifacts/publish/win-x64/Vex'
 $artifactsRoot = Join-Path $runRoot 'artifacts'
+# 只清理固定发布目录，确保手工重新制作时不会混入旧版本载荷。
+if (Test-Path -LiteralPath $publishRoot) {
+    $resolvedPublishRoot = (Resolve-Path -LiteralPath $publishRoot).Path
+    $expectedPublishRoot = [IO.Path]::GetFullPath((Join-Path $repositoryRoot 'artifacts/publish/win-x64/Vex'))
+    if ($resolvedPublishRoot -ne $expectedPublishRoot) { throw '发布目录解析结果与仓库固定路径不一致。' }
+    Remove-Item -LiteralPath $resolvedPublishRoot -Recurse -Force
+}
 [IO.Directory]::CreateDirectory($runRoot) | Out-Null
 [IO.Directory]::CreateDirectory($OutputDirectory) | Out-Null
 $previousProcessorCount = $env:DOTNET_PROCESSOR_COUNT
+$previousTemp = $env:TEMP
+$previousTmp = $env:TMP
 try {
     $env:DOTNET_PROCESSOR_COUNT = '4'
+    $temporaryDirectory = Join-Path $runRoot 'tmp'
+    [IO.Directory]::CreateDirectory($temporaryDirectory) | Out-Null
+    $env:TEMP = $temporaryDirectory
+    $env:TMP = $temporaryDirectory
     & (Join-Path $PSScriptRoot 'publish.ps1') -RuntimeIdentifier win-x64 -Version $Version -ArtifactsRoot $artifactsRoot -PublishRoot $publishRoot
     $executable = Join-Path $publishRoot 'Vex.exe'
     if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) { throw '发布目录缺少 Vex.exe。' }
@@ -96,4 +109,8 @@ try {
     Write-Host "SHA-256：$sha"
     Write-Host "构建记录：$runRoot"
 }
-finally { $env:DOTNET_PROCESSOR_COUNT = $previousProcessorCount }
+finally {
+    $env:DOTNET_PROCESSOR_COUNT = $previousProcessorCount
+    $env:TEMP = $previousTemp
+    $env:TMP = $previousTmp
+}
