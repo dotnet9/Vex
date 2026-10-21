@@ -14,7 +14,7 @@ namespace Vex.Modules.Shell.Views;
 /// <summary>在独立演示文档中完成六项真实操作；结束后恢复未保存文档与显示偏好。</summary>
 public sealed class WorkbenchGuideView : Panel
 {
-    private const string Demo = "# 从文字到结构\n\n在这里输入一句话，观察 Markdown 即时渲染。\n\n## 把想法整理清楚\n\n这是一段保留完整正文的演示内容。导图默认最多显示三十个字，你可以调整摘要长度，再点击节点查看全文。\n\n- 写下想法\n  - 补充细节\n- 梳理结构\n- 分享成果\n\n## 下一步\n\n**重点**、[链接](https://codewf.com)与引用，都可以在编辑模式中调整。\n\n> 保存 Markdown，或者导出带排版的文档。";
+    private static readonly string Demo = $"# 从文字到结构\n\n在这里输入一句话，观察 Markdown 即时渲染。\n\n## 把想法整理清楚\n\n这是一段保留完整正文的演示内容。导图默认最多显示三十个字，你可以调整摘要长度，再点击节点查看全文。\n\n- 写下想法\n  - 补充细节\n- 梳理结构\n- 分享成果\n\n## 下一步\n\n**重点**、[链接]({Vex.Core.Services.ProjectLinks.Website})与引用，都可以在编辑模式中调整。\n\n> 保存 Markdown，或者导出带排版的文档。";
     private readonly Spotlight _mask = new() { IsHitTestVisible = false };
     private readonly Border _card = new() { Width = 320, Padding = new Thickness(18), CornerRadius = new CornerRadius(11), BorderThickness = new Thickness(1), BoxShadow = BoxShadows.Parse("0 16 60 0 #40000000") };
     private readonly TextBlock _counter = new() { FontSize = 11 };

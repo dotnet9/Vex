@@ -26,7 +26,7 @@ public sealed class HelpService : IHelpService
 
     public Task OpenWebsiteAsync()
     {
-        Open("https://codewf.com");
+        Open(ProjectLinks.Website);
         return Task.CompletedTask;
     }
 

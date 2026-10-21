@@ -19,7 +19,7 @@ public sealed class ShellAboutViewModel : ReactiveObject, IDialogContext, IDispo
         CopyrightText = "Copyright © 2026 CodeWF · 维刻 Vex";
         ReleaseCommand = ReactiveCommand.Create(() => openUrl("https://github.com/dotnet9/Vex/releases/tag/v" + VersionText.TrimStart('v')));
         RepositoryCommand = ReactiveCommand.Create(() => openUrl("https://github.com/dotnet9/Vex"));
-        WebsiteCommand = ReactiveCommand.Create(() => openUrl("https://codewf.com"));
+        WebsiteCommand = ReactiveCommand.Create(() => openUrl(ProjectLinks.Website));
         ChangelogCommand = ReactiveCommand.Create(() => { WantsChangelog = true; Close(); });
         UpdateCommand = ReactiveCommand.Create(() => { WantsUpdates = true; Close(); });
     }

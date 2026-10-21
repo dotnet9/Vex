@@ -13,6 +13,8 @@ internal static class RuntimeVerification
     {
         if (RuntimeFeature.IsDynamicCodeSupported)
             throw new InvalidOperationException("Runtime verification requires a NativeAOT executable.");
+        if (!Uri.TryCreate(ProjectLinks.Website, UriKind.Absolute, out var website) || website.Scheme != Uri.UriSchemeHttps)
+            throw new InvalidOperationException("Published website metadata is missing or invalid.");
         // 走实际启动集成入口，确认 Windows 自检不会重新注册用户取消的打开方式。
         if (OperatingSystem.IsWindows()) DefaultFileOpeningService.Configure();
         var root = Path.GetFullPath(directory);
@@ -48,7 +50,7 @@ internal static class RuntimeVerification
         if (preferences.DefaultEncoding != "utf-8" || preferences.DefaultNewline != "system" || preferences.BodyFont != "system"
             || preferences.ExportFormat != "HTML" || preferences.PdfSize != "A4")
             throw new InvalidOperationException("Native default preference choices did not survive real storage.");
-        var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; languages=4; tableDialog=localized; preferences=isolated";
+        var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; website={ProjectLinks.Website}; languages=4; tableDialog=localized; preferences=isolated";
         File.WriteAllText(Path.Combine(root, "runtime-verification.txt"), result);
         Console.WriteLine(result);
     }

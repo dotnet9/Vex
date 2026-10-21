@@ -18,7 +18,7 @@
     <Description>极简之力，妙笔成章 | Markdown 编辑器</Description>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/dotnet9/Vex</RepositoryUrl>
-    <PackageProjectUrl>https://codewf.com</PackageProjectUrl>
+    <PackageProjectUrl>https://vex.codewf.com/</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Copyright>Copyright © 2026 Vex(维刻) - CodeWF(码坊) https://codewf.com</Copyright>

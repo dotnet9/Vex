@@ -491,6 +491,13 @@ void Capture(Window window, string name)
 
 void VerifyPointerRegressions(VerificationVexApp app, Window window, MainWindowViewModel vm)
 {
+    string? openedWebsite = null;
+    using (var about = new ShellAboutViewModel(app.Resolve<IAppLocalizer>(), url => openedWebsite = url))
+    {
+        about.WebsiteCommand.Execute().Subscribe();
+        Check(openedWebsite == "https://vex.codewf.com/" && openedWebsite == ProjectLinks.Website,
+            "About opens the configured Vex website");
+    }
     window.Width = 1280; window.Height = 820;
     vm.Appearance.SelectThemeByKey("light");
     var samplePath = Path.Combine(output, "文本选择.md");
