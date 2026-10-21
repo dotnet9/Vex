@@ -20,7 +20,6 @@ AppName=Vex
 AppVersion={#AppVersion}
 AppPublisher=CodeWF
 SetupIconFile=..\logo.ico
-AppPublisherURL=https://github.com/dotnet9/Vex
 AppSupportURL=https://github.com/dotnet9/Vex/issues
 DefaultDirName={autopf}\Vex
 DefaultGroupName=Vex

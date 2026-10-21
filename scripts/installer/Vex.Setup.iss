@@ -4,12 +4,14 @@
 #define VexLicensePath "..\LICENSE"
 #endif
 #define VexBrandDirectory ExtractFilePath(__PATHFILENAME__)
+#define VexWebsite "https://vex.codewf.com/"
 [Files]
 Source: "{#VexLicensePath}"; DestName: "Vex-License.txt"; Flags: dontcopy
 Source: "{#VexBrandDirectory}vex-brand-light.bmp"; Flags: dontcopy
 Source: "{#VexBrandDirectory}vex-brand-dark.bmp"; Flags: dontcopy
 
 [Setup]
+AppPublisherURL={#VexWebsite}
 #if VER >= EncodeVer(7,0,0)
 SetupArchitecture=x86
 #endif
@@ -52,8 +54,10 @@ english.VAssociationHint=Keeps your default app unchanged
 chinesesimplified.VAssociationHint=不改变系统默认应用
 english.VMaintenance=Continue your writing.
 chinesesimplified.VMaintenance=继续你的写作。
-english.VInstalled=Installed · {#AppVersion}
-chinesesimplified.VInstalled=已安装 · {#AppVersion}
+english.VInstalled=Installed · %1
+chinesesimplified.VInstalled=已安装 · %1
+english.VInstalledUnknown=Installed · Version unavailable
+chinesesimplified.VInstalledUnknown=已安装 · 版本未知
 english.VMaintenanceIntro=Repair the installation or remove the app.
 chinesesimplified.VMaintenanceIntro=可以修复安装，或移除此应用。
 english.VRepair=Repair installation
@@ -99,6 +103,7 @@ chinesesimplified.VUninstalling=正在卸载 Vex…
 #include "CodeWF.Setup.Maintenance.iss"
 #include "Vex.Migration.iss"
 #include "Vex.Update.iss"
+#include "Vex.Drawing.iss"
 
 [Code]
 type
@@ -157,10 +162,10 @@ function VDrawText(DC: LongWord; Text: String; Length: Integer; var Bounds: TVRe
   external 'DrawTextW@user32.dll stdcall';
 function VFillRegion(DC, Region, Brush: LongWord): Boolean;
   external 'FillRgn@gdi32.dll stdcall';
-function VFrameRegion(DC, Region, Brush: LongWord; Width, Height: Integer): Boolean;
-  external 'FrameRgn@gdi32.dll stdcall';
 function VInvalidate(Window, Rect: LongWord; Erase: Boolean): Boolean;
   external 'InvalidateRect@user32.dll stdcall';
+function VRedraw(Window, Rect, Region, Flags: LongWord): Boolean;
+  external 'RedrawWindow@user32.dll stdcall';
 function VGetFocus: LongWord;
   external 'GetFocus@user32.dll stdcall';
 function VSelectObject(DC, Obj: LongWord): LongWord;
@@ -202,11 +207,16 @@ function VSendCharFormat(Window, Message, Flags: LongWord; var Format: TVCharFor
   external 'SendMessageW@user32.dll stdcall';
 function VSendRect(Window, Message, WParam: LongWord; var Bounds: TVRect): Longint;
   external 'SendMessageW@user32.dll stdcall';
+function VTickCount: LongWord;
+  external 'GetTickCount@kernel32.dll stdcall';
+function VProgressRatio(Value, Scale, Maximum: Integer): Integer;
+  external 'MulDiv@kernel32.dll stdcall';
 
 var
   VTitle, VName, VSlogan, VPathLabel, VScope, VPercent, VStatus, VDescription,
     VAssociationHint, VProgressLabel, VModalTitle, VInstalled, VLocation: TLabel;
   VBack, VMark, VProgressBar: TBitmapImage;
+  VProgressFrame: TBitmap;
   VCustom, VLicense, VClose, VWebsite, VNoLaunch, VRemove, VModalBack: TNewButton;
   VLicenseMemo: TRichEditViewer;
   VDesktop, VAssociation: TNewCheckBox;
@@ -219,8 +229,14 @@ var
   VWheelDelta: Integer;
   VPreviousProc, VSurfaceBrush, VSoftBrush: LongWord;
   VExpanded, VInitialized, VDetailsOpen, VLicenseOpen, VRepairing: Boolean;
-  VHover, VProgressValue, VModalY: Integer;
+  VHover, VModalY: Integer;
+  VProgressShown, VProgressTarget, VProgressFrom, VProgressPixel, VProgressPercent: Integer;
+  VProgressStarted: LongWord;
+  VProgressAnimated: Boolean;
   VSurface, VText, VMuted, VField, VSoft, VLine, VAccent, VBrand, VBrandText, VOnAccent, VAccentHover, VAccentSoft: TColor;
+#ifdef CodeWFSetupFixture
+  VFixtureVersions: array[0..3] of String;
+#endif
 
 procedure VBounds(Control: TControl; X, Y, Width, Height: Integer);
 begin
@@ -233,13 +249,8 @@ begin
 end;
 
 procedure VRound(DC: LongWord; X,Y,Width,Height,Radius: Integer; Color: TColor; Outline: Boolean);
-var Region, Brush: LongWord;
 begin
-  Region:=VRoundedRegion(X,Y,X+Width+1,Y+Height+1,ScaleX(Radius*2),ScaleY(Radius*2));
-  Brush:=VBrush(Color);
-  if Outline then VFrameRegion(DC,Region,Brush,ScaleX(1),ScaleY(1))
-  else VFillRegion(DC,Region,Brush);
-  VDeleteObject(Brush); VDeleteObject(Region);
+  VDrawingRound(DC,X,Y,Width,Height,Radius,Color,Outline);
 end;
 
 procedure VFont(Font: TFont; Pixels: Integer; Strong: Boolean);
@@ -275,16 +286,43 @@ begin
   if CWMPage<>nil then Result:=WizardForm.CurPageID=CWMPage.ID;
 end;
 
+function VSelectedRegistration: Integer;
+var I: Integer;
+begin
+  Result:=-1;
+  if (CWMPage<>nil) and (CWMPage.SelectedValueIndex>0) then begin
+    if CWMPage.SelectedValueIndex<=CWMRegistrationCount then Result:=CWMPage.SelectedValueIndex-1;
+    exit;
+  end;
+  for I:=0 to CWMRegistrationCount-1 do
+    if (CWMRepairPath<>'') and (CompareText(CWMRegistrations[I].AppPath,CWMRepairPath)=0) then begin
+      Result:=I; exit;
+    end;
+  if CWMRegistrationCount=1 then Result:=0;
+end;
+
+function VRegisteredVersion(Index: Integer): String;
+var Path: String;
+begin
+  Result:='';
+  if (Index<0) or (Index>=CWMRegistrationCount) then exit;
+#ifdef CodeWFSetupFixture
+  Result:=VFixtureVersions[Index];
+#else
+  RegQueryStringValue(CWMRegistrations[Index].RootKey,CWMUninstallKey,'DisplayVersion',Result);
+  Result:=Trim(Result);
+  Path:=CWMRegistrations[Index].AppPath;
+  if (Result='') and (Path<>'') then GetVersionNumbersString(AddBackslash(Path)+'Vex.exe',Result);
+#endif
+end;
+
 procedure VPaintBackground;
-var Region, Brush: LongWord; Canvas: TCanvas; Saved: Integer;
+var Canvas: TCanvas; Saved, I: Integer;
 begin
   VBack.Bitmap.Width:=WizardForm.ClientWidth; VBack.Bitmap.Height:=WizardForm.ClientHeight;
   Canvas:=VBack.Bitmap.Canvas;
   Canvas.Brush.Color:=VSurface; Canvas.Pen.Color:=VSurface;
   Canvas.Rectangle(0,0,VBack.Bitmap.Width,VBack.Bitmap.Height);
-  Region:=VRegion(VBack.Bitmap.Width,VBack.Bitmap.Height); Brush:=VBrush(VLine);
-  VFrameRegion(Canvas.Handle,Region,Brush,ScaleX(1),ScaleY(1));
-  VDeleteObject(Brush); VDeleteObject(Region);
   Canvas.Brush.Color:=VBrand; Canvas.Pen.Color:=VBrand;
   Canvas.Rectangle(ScaleX(1),ScaleY(1),ScaleX(180),VBack.Bitmap.Height-ScaleY(1));
   Saved:=VSaveDC(Canvas.Handle);
@@ -311,28 +349,55 @@ begin
   end;
   if VLicenseOpen then
     VRound(Canvas.Handle,ScaleX(208),ScaleY(88),ScaleX(404),ScaleY(202),7,VSoft,False);
-  VBack.Repaint;
+  VRound(Canvas.Handle,0,0,VBack.Bitmap.Width,VBack.Bitmap.Height,8,VLine,True);
+  { 布局完成后统一请求下一帧，避免同步重画背景覆盖尚未失效的自绘按钮。 }
+  VInvalidate(WizardForm.Handle,0,False);
+  for I:=0 to 9 do
+    if (VButtons[I]<>nil) and VButtons[I].Visible then VInvalidate(VButtons[I].Handle,0,False);
 end;
 
 procedure VDrawProgress;
-var Position: Integer;
+var Position, Pixel, Percent: Integer;
 begin
-  Position:=VProgressValue*402 div 100;
+  Pixel:=VProgressShown*ScaleX(402) div 10000;
+  Percent:=VProgressShown div 100;
+  if (Pixel=VProgressPixel) and (Percent=VProgressPercent) then exit;
+  VProgressPixel:=Pixel; VProgressPercent:=Percent;
+  VPercent.Caption:=IntToStr(Percent)+'%';
+  Position:=VProgressShown*402 div 10000;
   if Position<18 then Position:=18; if Position>384 then Position:=384;
   VBounds(VPercent,209+Position-18,120,36,18);
-  VProgressBar.Bitmap.Width:=ScaleX(402); VProgressBar.Bitmap.Height:=ScaleY(5);
-  VProgressBar.Bitmap.Canvas.Brush.Color:=VSurface;
-  VProgressBar.Bitmap.Canvas.Pen.Color:=VSurface;
-  VProgressBar.Bitmap.Canvas.Rectangle(0,0,ScaleX(404),ScaleY(5));
-  VRound(VProgressBar.Bitmap.Canvas.Handle,0,0,ScaleX(404),ScaleY(5),3,VSoft,False);
-  if VProgressValue>0 then
-    VRound(VProgressBar.Bitmap.Canvas.Handle,0,0,(ScaleX(404)*VProgressValue div 100),ScaleY(5),3,VAccent,False);
-  VProgressBar.Repaint;
+  if VProgressFrame.Width<>ScaleX(402) then VProgressFrame.Width:=ScaleX(402);
+  if VProgressFrame.Height<>ScaleY(5) then VProgressFrame.Height:=ScaleY(5);
+  VProgressFrame.Canvas.Brush.Color:=VSurface;
+  VProgressFrame.Canvas.Pen.Color:=VSurface;
+  VProgressFrame.Canvas.Rectangle(0,0,VProgressFrame.Width,VProgressFrame.Height);
+  VRound(VProgressFrame.Canvas.Handle,0,0,VProgressFrame.Width,VProgressFrame.Height,3,VSoft,False);
+  if Pixel>0 then VRound(VProgressFrame.Canvas.Handle,0,0,Pixel,VProgressFrame.Height,3,VAccent,False);
+  { 在离屏位图完成整帧后只提交一次，避免清空、画轨道、画进度分别暴露到屏幕。 }
+  VProgressBar.Bitmap.Assign(VProgressFrame);
+#ifdef CodeWFSetupFixture
+  Log('VEX FIXTURE progress='+IntToStr(VProgressShown)+' target='+IntToStr(VProgressTarget));
+#endif
+end;
+
+procedure VAdvanceProgress;
+var Elapsed: LongWord; T, Remaining: Extended;
+begin
+  Elapsed:=VTickCount-VProgressStarted;
+  if (Elapsed>=160) or not VProgressAnimated then begin
+    VProgressShown:=VProgressTarget;
+    VKillTimer(WizardForm.Handle,42);
+  end else begin
+    T:=Elapsed/160.0; Remaining:=1-T;
+    VProgressShown:=VProgressFrom+Round((VProgressTarget-VProgressFrom)*(1-Remaining*Remaining*Remaining));
+  end;
+  VDrawProgress;
 end;
 
 procedure VLayout;
 var Page, Height, I, ButtonY, BrandY: Integer; Home, Finished, Installing, Maintenance, Main: Boolean;
-  Region: LongWord; TextBounds: TVRect;
+  Region: LongWord; TextBounds: TVRect; InstalledVersion, InstalledPath: String;
 begin
   if not VInitialized then exit;
   Page:=WizardForm.CurPageID;
@@ -383,8 +448,17 @@ begin
   end;
   VInstalled.Visible:=Main and Maintenance; VLocation.Visible:=Main and Maintenance;
   VBounds(VInstalled,209,29,402,18); VBounds(VLocation,222,130,376,48);
-  VLocation.Caption:=CustomMessage('VLocation')+#13#10+MinimizePathName(CWMDisplayPath(CWMRepairPath),VLocation.Font,ScaleX(376));
-  VLocation.Hint:=CWMDisplayPath(CWMRepairPath); VLocation.ShowHint:=True;
+  InstalledPath:=CWMRepairPath;
+  I:=VSelectedRegistration;
+  if I>=0 then InstalledPath:=CWMRegistrations[I].AppPath;
+  InstalledVersion:=VRegisteredVersion(I);
+  if InstalledVersion<>'' then VInstalled.Caption:=FmtMessage(CustomMessage('VInstalled'),[InstalledVersion])
+  else VInstalled.Caption:=CustomMessage('VInstalledUnknown');
+#ifdef CodeWFSetupFixture
+  if Maintenance then Log('VEX FIXTURE installed='+VInstalled.Caption);
+#endif
+  VLocation.Caption:=CustomMessage('VLocation')+#13#10+MinimizePathName(CWMDisplayPath(InstalledPath),VLocation.Font,ScaleX(376));
+  VLocation.Hint:=CWMDisplayPath(InstalledPath); VLocation.ShowHint:=True;
   if not Home and not Finished and not Installing and not Maintenance then begin
     VStatus.Caption:=WizardForm.PageNameLabel.Caption;
     VDescription.Caption:=WizardForm.PageDescriptionLabel.Caption;
@@ -407,11 +481,11 @@ begin
   VBounds(VDesktop,222,190,376,24); VBounds(VAssociation,222,222,376,24);
   WizardForm.ProgressGauge.Visible:=False; WizardForm.StatusLabel.Visible:=False; WizardForm.FilenameLabel.Visible:=False;
   VPercent.Visible:=Main and Installing; VProgressLabel.Visible:=False; VProgressBar.Visible:=Main and Installing;
-  I:=VProgressValue*402 div 100;
+  I:=VProgressShown*402 div 10000;
   if I<18 then I:=18; if I>384 then I:=384;
   VPercent.Alignment:=taCenter;
   VBounds(VPercent,209+I-18,120,36,18); VBounds(VProgressBar,209,146,402,5);
-  if Installing then VDrawProgress;
+  if Installing then begin VProgressPixel:=-1; VDrawProgress; end;
   WizardForm.BackButton.Visible:=False;
   { Inno 的关闭查询依赖 CancelButton.Visible；安装前保留状态但移到窗口外。 }
   WizardForm.CancelButton.Visible:=not Finished; WizardForm.CancelButton.TabStop:=Main and Installing;
@@ -465,6 +539,8 @@ begin
     if VMigrationNeeded and (CWMPage.SelectedValueIndex=0) then WizardForm.NextButton.Caption:=CustomMessage('VMigrate');
   end;
   VPaintBackground;
+  { 仅在页面布局完成时提交所有子控件；进度更新不进入此路径。 }
+  VRedraw(WizardForm.Handle,0,0,$0181);
 end;
 
 procedure VToggle(Sender: TObject);
@@ -547,18 +623,91 @@ var Code: Integer;
 begin
   if VIsMaintenance then begin VExit(Sender); exit; end;
   #ifndef CodeWFSetupFixture
-    ShellExec('open','https://codewf.com','','',SW_SHOWNORMAL,ewNoWait,Code);
+    ShellExec('open','{#VexWebsite}','','',SW_SHOWNORMAL,ewNoWait,Code);
   #endif
 end;
 
-function VButtonProc(Window, Message, WParam, LParam: LongWord): Longint;
-var I: Integer;
+procedure VPaintButton(I: Integer; DC: LongWord; Bounds: TVRect; State: LongWord);
+var X,Y: Integer; TextBounds,ButtonBounds,WindowBounds: TVRect;
+  Brush,Color,Foreground,PreviousFont,Pen,OldPen: LongWord; Saved: Integer;
 begin
-  if Message = $00F4 then WParam := (WParam and not $F) or $B;
-  if Message = $000F then VSetLong(Window,-16,(VGetLong(Window,-16) and not $F) or $B);
-  Result := 0;
-  for I := 0 to 9 do if (VButtons[I] <> nil) and (Window = VButtons[I].Handle) then begin
-    Result := VCallProc(VButtonProcs[I],Window,Message,WParam,LParam); exit;
+  Saved:=VSaveDC(DC);
+  try
+      Color:=VSurface; Foreground:=VMuted;
+      if ((I=0) and not VIsMaintenance) or ((I=5) and VIsMaintenance) then begin Color:=VAccent; Foreground:=VOnAccent; end;
+      if I=9 then begin Color:=VSoft; Foreground:=VText; end;
+      if (I=VHover) or ((State and 1)<>0) then begin
+        Color:=VSoft; Foreground:=VAccent;
+        if ((I=0) and not VIsMaintenance) or ((I=5) and VIsMaintenance) then begin Color:=VAccentHover; Foreground:=VOnAccent; end;
+        if I=3 then begin Color:=$1C2BC4; Foreground:=clWhite; end;
+      end;
+      if (State and 4)<>0 then begin Color:=VSoft; Foreground:=VMuted; end;
+      VGetRect(VButtons[I].Handle,ButtonBounds); VGetRect(WizardForm.Handle,WindowBounds);
+      X:=ButtonBounds.Left-WindowBounds.Left; Y:=ButtonBounds.Top-WindowBounds.Top;
+      VDrawingCopy(DC,0,0,Bounds.Right,Bounds.Bottom,VBack.Bitmap.Canvas.Handle,X,Y,$00CC0020);
+      if I<>3 then VRound(DC,0,0,Bounds.Right,Bounds.Bottom,8,Color,False)
+      else if Color<>VSurface then begin
+        Brush:=VBrush(Color); VFill(DC,Bounds,Brush); VDeleteObject(Brush);
+        VRound(DC,-X,-Y,WizardForm.ClientWidth,WizardForm.ClientHeight,8,VLine,True);
+      end;
+      if (I=1) and not VIsMaintenance then VRound(DC,0,0,Bounds.Right,Bounds.Bottom,7,VLine,True);
+      VTextColor(DC,Foreground); VTextMode(DC,1);
+      PreviousFont:=VSelectObject(DC,VButtonFonts[I]);
+      TextBounds:=Bounds;
+      if I=3 then begin
+        Pen:=VCreatePen(0,ScaleX(1),Foreground); OldPen:=VSelectObject(DC,Pen);
+        VMove(DC,ScaleX(19),ScaleY(12),0); VLineTo(DC,ScaleX(27),ScaleY(20));
+        VMove(DC,ScaleX(27),ScaleY(12),0); VLineTo(DC,ScaleX(19),ScaleY(20));
+        VSelectObject(DC,OldPen); VDeleteObject(Pen);
+      end
+      else if (I=1) and not VIsMaintenance then begin
+        TextBounds.Left:=ScaleX(13); VDrawText(DC,VButtons[I].Caption,-1,TextBounds,$24);
+        Pen:=VCreatePen(0,ScaleX(1),Foreground); OldPen:=VSelectObject(DC,Pen);
+        X:=Bounds.Right-ScaleX(22); Y:=ScaleY(22);
+        if VExpanded then begin VMove(DC,X-ScaleX(4),Y+ScaleY(2),0); VLineTo(DC,X,Y-ScaleY(2)); VLineTo(DC,X+ScaleX(4),Y+ScaleY(2)); end
+        else begin VMove(DC,X-ScaleX(4),Y-ScaleY(2),0); VLineTo(DC,X,Y+ScaleY(2)); VLineTo(DC,X+ScaleX(4),Y-ScaleY(2)); end;
+        VSelectObject(DC,OldPen); VDeleteObject(Pen);
+      end
+      else if (I=4) and not VIsMaintenance then VDrawText(DC,VButtons[I].Caption,-1,TextBounds,$24)
+      else if I=2 then VDrawText(DC,VButtons[I].Caption,-1,TextBounds,$24)
+      else VDrawText(DC,VButtons[I].Caption,-1,TextBounds,$25);
+      VSelectObject(DC,PreviousFont);
+      { 保留键盘焦点提示，使用当前主题的强调色圆角线。 }
+      if ((State and $10)<>0) and ((State and $200)=0) then begin
+        VRound(DC,2,2,Bounds.Right-5,Bounds.Bottom-5,6,VAccent,True);
+      end;
+  finally
+    VRestoreDC(DC,Saved);
+  end;
+end;
+
+function VButtonProc(Window, Message, WParam, LParam: LongWord): Longint;
+var I: Integer; DC, State, ButtonState: LongWord; Paint: TVPaint; Bounds: TVRect;
+begin
+  Result:=0;
+  for I:=0 to 9 do if (VButtons[I]<>nil) and (Window=VButtons[I].Handle) then begin
+    if Message=$0014 then begin Result:=1; exit; end;
+    if (Message=$000F) or (Message=$0317) or (Message=$0318) then begin
+      if Message=$000F then DC:=VBeginPaint(Window,Paint) else DC:=WParam;
+      try
+        Bounds.Left:=0; Bounds.Top:=0;
+        Bounds.Right:=VButtons[I].Width; Bounds.Bottom:=VButtons[I].Height;
+        State:=0; ButtonState:=VSend(Window,$00F2,0,0);
+        if (ButtonState and 4)<>0 then State:=State or 1;
+        if not VButtons[I].Enabled then State:=State or 4;
+        if VGetFocus=Window then begin
+          State:=State or $10;
+          if (VSend(Window,$0129,0,0) and 1)<>0 then State:=State or $200;
+        end;
+        VPaintButton(I,DC,Bounds,State);
+      finally
+        if Message=$000F then VEndPaint(Window,Paint);
+      end;
+      exit;
+    end;
+    if Message=$00F4 then WParam:=(WParam and not $F) or $B;
+    Result:=VCallProc(VButtonProcs[I],Window,Message,WParam,LParam);
+    exit;
   end;
 end;
 
@@ -668,6 +817,7 @@ begin
   VDesktop.Color:=VSurface; VAssociation.Color:=VSurface;
   VDesktop.Font.Color:=VText; VAssociation.Font.Color:=VText;
   VLicenseMemo.Color:=VSoft; VLicenseMemo.Font.Color:=VText;
+  VProgressPixel:=-1;
   if Light=0 then VSetWindowTheme(VLicenseMemo.Handle,'DarkMode_Explorer','')
   else VSetWindowTheme(VLicenseMemo.Handle,'Explorer','');
   VApplyLicenseColor;
@@ -681,9 +831,18 @@ begin
 end;
 
 function VWindowProc(Window, Message, WParam, LParam: LongWord): Longint;
-var Item: TVDrawItem; I, X, Y, Hover: Integer; Bounds, TextBounds: TVRect;
-  Brush, Color, Foreground, PreviousFont, Pen, OldPen: LongWord; Point: TVPoint;
+var I, X, Y, Hover: Integer; Bounds: TVRect; Point: TVPoint; Item: TVDrawItem;
 begin
+  if Message=$002B then begin
+    VCopyItem(Item,LParam,48);
+    for I:=0 to 9 do if (VButtons[I]<>nil) and (Item.ItemWindow=VButtons[I].Handle) then begin
+      VPaintButton(I,Item.DC,Item.Bounds,Item.ItemState);
+      Result:=1; exit;
+    end;
+  end;
+  if (Message=$0113) and (WParam=42) and VInitialized then begin
+    VAdvanceProgress; Result:=0; exit;
+  end;
   if ((Message=$0135) or (Message=$0138)) and
     ((LParam=VDesktop.Handle) or (LParam=VAssociation.Handle)) then begin
     VTextColor(WParam,VText); VBackgroundColor(WParam,VSoft);
@@ -694,50 +853,6 @@ begin
     X := LParam and $FFFF; if X >= $8000 then X := X-$10000;
     Y := (LParam shr 16) and $FFFF; if Y >= $8000 then Y := Y-$10000;
     if (Y-Bounds.Top < ScaleY(38)) and (X-Bounds.Left < ScaleX(594)) then begin Result:=2; exit; end;
-  end;
-  if Message = $002B then begin
-    VCopyItem(Item,LParam,48);
-    for I := 0 to 9 do if (VButtons[I] <> nil) and (Item.ItemWindow = VButtons[I].Handle) then begin
-      Bounds:=Item.Bounds; Color:=VSurface; Foreground:=VMuted;
-      if ((I=0) and not VIsMaintenance) or ((I=5) and VIsMaintenance) then begin Color:=VAccent; Foreground:=VOnAccent; end;
-      if I=9 then begin Color:=VSoft; Foreground:=VText; end;
-      if (I=VHover) or ((Item.ItemState and 1)<>0) then begin
-        Color:=VSoft; Foreground:=VAccent;
-        if ((I=0) and not VIsMaintenance) or ((I=5) and VIsMaintenance) then begin Color:=VAccentHover; Foreground:=VOnAccent; end;
-        if I=3 then begin Color:=$1C2BC4; Foreground:=clWhite; end;
-      end;
-      if (Item.ItemState and 4)<>0 then begin Color:=VSoft; Foreground:=VMuted; end;
-      Brush:=VBrush(VSurface);
-      VFill(Item.DC,Bounds,Brush); VDeleteObject(Brush);
-      VRound(Item.DC,0,0,Bounds.Right,Bounds.Bottom,8,Color,False);
-      if (I=1) and not VIsMaintenance then VRound(Item.DC,0,0,Bounds.Right,Bounds.Bottom,7,VLine,True);
-      VTextColor(Item.DC,Foreground); VTextMode(Item.DC,1);
-      PreviousFont:=VSelectObject(Item.DC,VButtonFonts[I]);
-      TextBounds:=Bounds;
-      if I=3 then begin
-        Pen:=VCreatePen(0,ScaleX(1),Foreground); OldPen:=VSelectObject(Item.DC,Pen);
-        VMove(Item.DC,ScaleX(19),ScaleY(12),0); VLineTo(Item.DC,ScaleX(27),ScaleY(20));
-        VMove(Item.DC,ScaleX(27),ScaleY(12),0); VLineTo(Item.DC,ScaleX(19),ScaleY(20));
-        VSelectObject(Item.DC,OldPen); VDeleteObject(Pen);
-      end
-      else if (I=1) and not VIsMaintenance then begin
-        TextBounds.Left:=ScaleX(13); VDrawText(Item.DC,VButtons[I].Caption,-1,TextBounds,$24);
-        Pen:=VCreatePen(0,ScaleX(1),Foreground); OldPen:=VSelectObject(Item.DC,Pen);
-        X:=Bounds.Right-ScaleX(22); Y:=ScaleY(22);
-        if VExpanded then begin VMove(Item.DC,X-ScaleX(4),Y+ScaleY(2),0); VLineTo(Item.DC,X,Y-ScaleY(2)); VLineTo(Item.DC,X+ScaleX(4),Y+ScaleY(2)); end
-        else begin VMove(Item.DC,X-ScaleX(4),Y-ScaleY(2),0); VLineTo(Item.DC,X,Y+ScaleY(2)); VLineTo(Item.DC,X+ScaleX(4),Y-ScaleY(2)); end;
-        VSelectObject(Item.DC,OldPen); VDeleteObject(Pen);
-      end
-      else if (I=4) and not VIsMaintenance then VDrawText(Item.DC,VButtons[I].Caption,-1,TextBounds,$24)
-      else if I=2 then VDrawText(Item.DC,VButtons[I].Caption,-1,TextBounds,$24)
-      else VDrawText(Item.DC,VButtons[I].Caption,-1,TextBounds,$25);
-      VSelectObject(Item.DC,PreviousFont);
-      { 保留键盘焦点提示，使用当前主题的强调色圆角线。 }
-      if ((Item.ItemState and $10)<>0) and ((Item.ItemState and $200)=0) then begin
-        VRound(Item.DC,2,2,Bounds.Right-5,Bounds.Bottom-5,6,VAccent,True);
-      end;
-      Result:=1; exit;
-    end;
   end;
   if (Message=$0113) and (WParam=41) and VInitialized then begin
     Hover:=-1;
@@ -758,13 +873,18 @@ end;
 
 <event('InitializeWizard')>
 procedure VInitialize;
-var I, Pixels, Weight: Integer; Face: String;
+var I, Pixels, Weight: Integer; Face: String; Motion: Cardinal;
 begin
   if WizardSilent then exit;
   WizardForm.BorderStyle:=bsNone;
   VSetClassLong(WizardForm.Handle,-26,VGetClassLong(WizardForm.Handle,-26) or $20000);
   WizardForm.ClientWidth:=ScaleX(640); WizardForm.ClientHeight:=ScaleY(360);
   VFont(WizardForm.Font,14,False); VHover:=-1;
+  VProgressFrame:=TBitmap.Create; VProgressPixel:=-1; VProgressPercent:=-1;
+  Motion:=1; VParameters($1042,0,Motion,0); VProgressAnimated:=Motion<>0;
+#ifdef CodeWFSetupFixture
+  VProgressAnimated:=ExpandConstant('{param:VEXMOTION|on}')<>'off';
+#endif
   WizardForm.Position:=poScreenCenter;
   WizardForm.MainPanel.Visible:=False; WizardForm.Bevel.Visible:=False;
   WizardForm.Bevel1.Visible:=False; WizardForm.BeveledLabel.Visible:=False;
@@ -875,17 +995,28 @@ end;
 procedure VPageChanged(PageID: Integer);
 begin
   if WizardSilent then exit;
+  if PageID<>wpInstalling then VKillTimer(WizardForm.Handle,42);
   if (CWMPage<>nil) and (PageID=CWMPage.ID) then CWMMaintenancePageChanged(PageID);
   VLayout;
 end;
 
 <event('CurInstallProgressChanged')>
 procedure VProgressChanged(Current, Maximum: Integer);
+var Target: Integer;
 begin
   if VInitialized and (Maximum>0) then begin
-    VPercent.Caption:=IntToStr((Current*100) div Maximum)+'%';
-    VProgressValue:=(Current*100) div Maximum; VDrawProgress;
-    if WizardForm.CurPageID=wpInstalling then VClose.Enabled:=WizardForm.CancelButton.Enabled;
+    Target:=VProgressRatio(Current,10000,Maximum);
+    if Target<0 then Target:=0;
+    if Target>10000 then Target:=10000;
+    if Target<>VProgressTarget then begin
+      VProgressTarget:=Target; VProgressFrom:=VProgressShown; VProgressStarted:=VTickCount;
+      if VProgressTarget<>VProgressShown then begin
+        if VProgressAnimated then VSetTimer(WizardForm.Handle,42,16,0)
+        else VAdvanceProgress;
+      end;
+    end;
+    if (WizardForm.CurPageID=wpInstalling) and (VClose.Enabled<>WizardForm.CancelButton.Enabled) then
+      VClose.Enabled:=WizardForm.CancelButton.Enabled;
   end;
 end;
 
@@ -896,6 +1027,7 @@ begin
   if not VInitialized then exit;
   VInitialized:=False;
   VKillTimer(WizardForm.Handle,41);
+  VKillTimer(WizardForm.Handle,42);
   if VPreviousProc<>0 then VSetLong(WizardForm.Handle,-4,VPreviousProc);
   for I:=0 to 9 do if VButtonProcs[I]<>0 then begin
     if VIsWindow(VButtons[I].Handle) then VSetLong(VButtons[I].Handle,-4,VButtonProcs[I]);
@@ -907,6 +1039,8 @@ begin
   if VCheckProcs[1]<>0 then VSetLong(VAssociation.Handle,-4,VCheckProcs[1]);
   if VCheckFont<>0 then VDeleteObject(VCheckFont);
   if VLicenseProc<>0 then VSetLong(VLicenseMemo.Handle,-4,VLicenseProc);
+  if VProgressFrame<>nil then VProgressFrame.Free;
+  if VDrawingToken<>0 then begin VDrawingShutdown(VDrawingToken); VDrawingToken:=0; end;
 end;
 
 <event('InitializeUninstallProgressForm')>

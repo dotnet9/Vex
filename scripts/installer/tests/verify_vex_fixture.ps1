@@ -9,7 +9,8 @@ param(
     [switch]$UnknownLocation,
     [switch]$MissingExecutable,
     [switch]$Multiple,
-    [switch]$Migration
+    [switch]$Migration,
+    [switch]$ReduceMotion
 )
 $ErrorActionPreference='Stop'
 if (-not $IsWindows) { throw '原生安装夹具仅支持 Windows。' }
@@ -84,6 +85,7 @@ try {
     $destination=Join-Path $Output 'fixture payload'
     $command=[Text.StringBuilder]::new('"'+$installerPath+'" /SP- /LANG='+$Language+' /VEXTHEME='+$Theme+' /DIR="'+$destination+'" /LOG="'+(Join-Path $Output 'setup.log')+'"')
     [void]$command.Append(' /VEXUPDATEREADY='+$updateEventName)
+    if ($ReduceMotion) { [void]$command.Append(' /VEXMOTION=off') }
     Check (-not $updateReady.WaitOne(0)) '安装向导未显示前不会确认就绪'
     if (-not [CodeWFSetupFixtureDesktop]::CreateProcess($installerPath,$command,[IntPtr]::Zero,[IntPtr]::Zero,$false,0,[IntPtr]::Zero,(Split-Path -Parent $installerPath),[ref]$startup,[ref]$processInfo)) { throw '无法启动独立夹具。' }
     $ownedHandles.Add([uint32]$processInfo.processId,$processInfo.process)
@@ -98,15 +100,48 @@ try {
     Capture '01-welcome'
     $shot=[Drawing.Bitmap]::FromFile((Join-Path $Output '01-welcome.png'))
     try {
-        $surface=$shot.GetPixel(260,40).ToArgb()
-        foreach($point in @(@(260,0),@(0,100),@(($shot.Width-1),100),@(100,($shot.Height-1)))) {
+        $surface=$shot.GetPixel(260,10).ToArgb()
+        foreach($point in @(@(260,0),@(610,0),@(0,100),@(($shot.Width-1),16),@(($shot.Width-1),100),@(100,($shot.Height-1)))) {
             Check ($shot.GetPixel($point[0],$point[1]).ToArgb() -ne $surface) '窗口四边均有独立于背景的可见描边'
         }
+    } finally { $shot.Dispose() }
+    $primary=Button '^Install now$|^立即安装$|^Open$|^打开$'
+    if ($primary -and [CodeWFSetupFixtureDesktop]::IsWindowEnabled($primary)) {
+        $primaryArea=Bounds $primary
+        $windowArea=Bounds $window
+        $left=$primaryArea.left-$windowArea.left; $top=$primaryArea.top-$windowArea.top
+        $shot=[Drawing.Bitmap]::FromFile((Join-Path $Output '01-welcome.png'))
+        try {
+            $surface=$shot.GetPixel($left-1,$top+10).ToArgb()
+            $fill=$shot.GetPixel($left+20,$top+2).ToArgb()
+            $edgeColors=[Collections.Generic.HashSet[int]]::new()
+            for ($edgeY=0; $edgeY -lt 8; $edgeY++) {
+                for ($edgeX=0; $edgeX -lt 8; $edgeX++) {
+                    $color=$shot.GetPixel($left+$edgeX,$top+$edgeY).ToArgb()
+                    if ($color -ne $surface -and $color -ne $fill) { [void]$edgeColors.Add($color) }
+                }
+            }
+            Check ($edgeColors.Count -ge 3) '主按钮圆角具有连续抗锯齿过渡'
+        } finally { $shot.Dispose() }
+    }
+    [void][CodeWFSetupFixtureDesktop]::Send((Button '^×$'),243,1)
+    Capture 'close-pressed'
+    [void][CodeWFSetupFixtureDesktop]::Send((Button '^×$'),243,0)
+    $shot=[Drawing.Bitmap]::FromFile((Join-Path $Output 'close-pressed.png'))
+    try {
+        Check ($shot.GetPixel(610,0).ToArgb() -ne $shot.GetPixel(600,10).ToArgb() -and
+            $shot.GetPixel(639,16).ToArgb() -ne $shot.GetPixel(630,16).ToArgb()) '关闭按钮按下时仍保留右上方完整边框'
     } finally { $shot.Dispose() }
     if ($Theme -eq 'dark') {
         Check ([CodeWFSetupFixtureDesktop]::PixelLightness((Join-Path $Output '01-welcome.png'),.5,.04) -lt 80) '深色界面无需修改系统主题'
     }
     if ($Maintenance) {
+        $versionLog=Get-Content -LiteralPath (Join-Path $Output 'setup.log') -Raw
+        if ($UnknownLocation) {
+            Check ($versionLog -match 'VEX FIXTURE installed=(已安装 · 版本未知|Installed · Version unavailable)') '无法读取已安装版本时明确显示未知，不冒用安装包版本'
+        } else {
+            Check ($versionLog -match 'VEX FIXTURE installed=(已安装|Installed) · 0\.9\.0') '维护页显示已安装的 0.9.0，与安装包 1.0.0 区分'
+        }
         if (-not $UnknownLocation -and -not $Migration) {
             Check (([bool][CodeWFSetupFixtureDesktop]::IsWindowEnabled((Button '^Open$|^打开$'))) -eq (-not $MissingExecutable)) '打开操作与真实主程序存在性一致'
         }
@@ -120,7 +155,14 @@ try {
             Check ([CodeWFSetupFixtureDesktop]::Text($memo) -match '无法确定|could not be determined') '未知位置明确保留真实安全回退'
             Check (-not [CodeWFSetupFixtureDesktop]::IsWindowEnabled((Button '^Uninstall$|^卸载$'))) '未知卸载路径不提供可执行的卸载按钮'
         } else { Check ([CodeWFSetupFixtureDesktop]::Text($memo) -match '维刻 maintenance with spaces') '维护入口完整显示原安装路径' }
-        if ($Multiple) { Check ([CodeWFSetupFixtureDesktop]::Send($list,395) -eq 3) '多作用域安装保留全部维护选项' }
+        if ($Multiple) {
+            Check ([CodeWFSetupFixtureDesktop]::Send($list,395) -eq 3) '多作用域安装保留全部维护选项'
+            [void][CodeWFSetupFixtureDesktop]::Send($list,390,2)
+            [void][CodeWFSetupFixtureDesktop]::Send($list,256,32)
+            [void][CodeWFSetupFixtureDesktop]::Send($list,257,32)
+            [void](Wait-For { (Get-Content -LiteralPath (Join-Path $Output 'setup.log') -Raw) -match 'VEX FIXTURE installed=(已安装|Installed) · 0\.8\.0' } '切换安装记录后刷新已安装版本')
+            Check ([CodeWFSetupFixtureDesktop]::Text($memo) -match 'C:\\Program Files\\Vex') '所选安装记录的版本和路径保持一致'
+        }
         Check (([CodeWFSetupFixtureDesktop]::GetWindowStyle($memo,-16) -band 2048) -ne 0) '维护安装路径为只读'
         $area=[CodeWFSetupFixtureDesktop]::VisibleBounds($memo,$window)
         Check (($area.bottom-$area.top) -gt 60 -and ($area.right-$area.left) -gt 350) '紧凑维护窗口内路径区域完整可见'
@@ -159,6 +201,14 @@ try {
     Capture '02-custom'
     $primary=Bounds (Button '^Install now$|^立即安装$')
     Check (($primary.right-$primary.left) -eq 104 -and ($primary.bottom-$primary.top) -eq 36) '主按钮按原型使用 104×36 像素布局'
+    $shot=[Drawing.Bitmap]::FromFile((Join-Path $Output '02-custom.png'))
+    try {
+        $windowArea=Bounds $window
+        $left=$primary.left-$windowArea.left; $top=$primary.top-$windowArea.top
+        $surface=$shot.GetPixel($left-2,$top+12).ToArgb()
+        Check ($shot.GetPixel($left+16,$top+12).ToArgb() -ne $surface -and
+            $shot.GetPixel($left+88,$top+12).ToArgb() -ne $surface) '展开设置后主按钮完整绘制，没有被背景覆盖'
+    } finally { $shot.Dispose() }
     Click (Button '^Open source under MIT$|^基于 MIT 协议开源$')
     Check (@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Text($_) -match 'Permission is hereby granted' }).Count -gt 0) '展开设置后也能查看许可'
     Click (Button '^Back$|^返回$')
@@ -177,10 +227,36 @@ try {
     Click (Button '^Install now$|^立即安装$')
     Check ($null -ne (Button '^Cancel installation$|^取消安装$')) '真实安装进度页面提供取消操作'
     Capture '05-progress'
+    $frameDirectory=Join-Path $Output 'progress-frames'
+    New-Item -ItemType Directory -Path $frameDirectory -Force | Out-Null
+    $frameClock=[Diagnostics.Stopwatch]::StartNew()
+    $frameNumber=0
+    while ($frameClock.ElapsedMilliseconds -lt 850) {
+        [CodeWFSetupFixtureDesktop]::Capture($window,(Join-Path $frameDirectory ('frame-{0:D3}.png' -f $frameNumber)))
+        $frameNumber++
+        Start-Sleep -Milliseconds 16
+    }
+    $trackVisible=$true
+    foreach ($frameFile in Get-ChildItem -LiteralPath $frameDirectory -Filter '*.png') {
+        $shot=[Drawing.Bitmap]::FromFile($frameFile.FullName)
+        try {
+            if ($shot.GetPixel(410,148).ToArgb() -eq $shot.GetPixel(410,141).ToArgb()) { $trackVisible=$false }
+        } finally { $shot.Dispose() }
+    }
+    Check ($frameNumber -ge 8 -and $trackVisible) '连续进度帧始终保留轨道，无白色空帧'
     $finish=Wait-For { Button '^Start writing$|^写点什么$|^Close$|^关闭$' } '一键安装直接进入完成页'
     Check (Test-Path -LiteralPath (Join-Path $destination 'LICENSE')) '一键安装把载荷复制到选择的目录'
     Check (@(Get-ChildItem -LiteralPath $destination -Recurse -File).Count -eq 1) '夹具只复制许可，不生成卸载器或其他文件'
     $log=Get-Content -LiteralPath (Join-Path $Output 'setup.log') -Raw
+    $animatedValues=@([regex]::Matches($log,'VEX FIXTURE progress=(\d+) target=7000') | ForEach-Object { [int]$_.Groups[1].Value })
+    $intermediateFrames=@($animatedValues | Where-Object { $_ -gt 0 -and $_ -lt 7000 }).Count
+    if ($ReduceMotion) { Check ($intermediateFrames -eq 0 -and $animatedValues -contains 7000) '关闭动画后直接显示真实进度，不生成过渡帧' }
+    else { Check ($intermediateFrames -ge 3) '稀疏安装进度回调会产生多个平滑过渡帧' }
+    $monotonic=$true
+    for ($frameIndex=1; $frameIndex -lt $animatedValues.Count; $frameIndex++) {
+        if ($animatedValues[$frameIndex] -lt $animatedValues[$frameIndex-1]) { $monotonic=$false }
+    }
+    Check $monotonic '安装进度平滑前进，不回退'
     Check ($log.Contains('VEX FIXTURE desktop=1') -and $log.Contains('VEX FIXTURE association=0')) '折叠设置中的选项准确传给安装引擎'
     Capture '03-complete'
     Click $finish

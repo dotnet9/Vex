@@ -56,15 +56,18 @@ begin
   #endif
   CWMRegistrations[0].ScopeName:=CustomMessage('CWMCurrentUser');
   CWMRegistrations[0].AppPath:=CWMRepairPath;
+  VFixtureVersions[0]:='0.9.0';
   CWMRegistrations[0].Uninstaller:=AddBackslash(CWMRepairPath)+'unins000.exe';
   #ifdef VexFixtureUnknownLocation
     CWMRepairPath:=''; CWMRegistrations[0].AppPath:=''; CWMRegistrations[0].Uninstaller:='';
+    VFixtureVersions[0]:='';
     CWMRegistrations[0].ScopeName:=CustomMessage('CWMAllUsers');
   #endif
   #ifdef VexFixtureMultiple
     CWMRegistrationCount:=2;
     CWMRegistrations[1].ScopeName:=CustomMessage('CWMAllUsers');
     CWMRegistrations[1].AppPath:='C:\Program Files\Vex';
+    VFixtureVersions[1]:='0.8.0';
     CWMRegistrations[1].Uninstaller:='C:\Program Files\Vex\unins000.exe';
   #endif
   #ifdef VexFixtureMigration

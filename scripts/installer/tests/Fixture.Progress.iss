@@ -38,9 +38,14 @@ end;
 procedure CWFixtureProgressChanged(Current, Maximum: Integer);
 begin
   if CWFixtureWaiting or (Maximum <= 0) then exit;
-  if (Current = 0) and not CWFixtureStartObserved then begin
+  if not CWFixtureStartObserved then begin
     CWFixtureStartObserved := True;
+    VProgressChanged(0,100);
     CWFixtureObserveFrame;
+    { 稀疏进度回调仍应生成连续帧；仅夹具调用，不改变真实安装引擎进度。 }
+    VProgressChanged(70,100);
+    CWFixtureObserveFrame;
+    VProgressChanged(Current,Maximum);
   end else if (Current >= Maximum) and not CWFixtureEndObserved then begin
     CWFixtureEndObserved := True;
     CWFixtureObserveFrame;

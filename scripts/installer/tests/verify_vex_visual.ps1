@@ -32,6 +32,7 @@ foreach($language in @('chinesesimplified','english')) {
 & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.unknown -Theme light -Maintenance -UnknownLocation -Output (Join-Path $Output 'unknown-location')
 & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.missing -Theme light -Maintenance -MissingExecutable -Output (Join-Path $Output 'missing-executable')
 & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.multiple -Language english -Theme dark -Maintenance -Multiple -Output (Join-Path $Output 'multiple-scopes')
+& (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.new -Theme light -ReduceMotion -Output (Join-Path $Output 'reduced-motion')
 foreach($language in @('chinesesimplified','english')) {
     & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.migration -Language $language -Theme light -Maintenance -Multiple -Migration -Output (Join-Path $Output ('migration-'+$language))
 }
