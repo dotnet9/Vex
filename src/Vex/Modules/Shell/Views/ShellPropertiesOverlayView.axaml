@@ -6,70 +6,28 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellDocumentInfoViewModel">
-    <Border Classes="dialog-card" Width="520" Padding="0" CornerRadius="9" ClipToBounds="True">
-        <Grid RowDefinitions="Auto,*">
-            <Border Height="44" Padding="14,0,6,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}">
-                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                    <TextBlock VerticalAlignment="Center" FontSize="12" Text="{i18n:I18n {x:Static l:VexL.Properties}}" />
-                    <Button Grid.Column="1" Classes="vex-dismiss" Click="Close_OnClick"
-                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}" />
+    <Border Classes="dialog-card" Width="520" Padding="0" CornerRadius="8" ClipToBounds="True">
+        <StackPanel>
+            <Border Height="36" Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+                <Grid ColumnDefinitions="*,46" VerticalAlignment="Center">
+                    <TextBlock FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Text="{i18n:I18n Vex.VexL.Properties}"/>
+                    <Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Click="Close_OnClick" AutomationProperties.Name="{i18n:I18n Vex.VexL.Close}"/>
                 </Grid>
             </Border>
-
-            <Grid
-                Grid.Row="1"
-                Margin="24,20,24,24"
-                ColumnDefinitions="Auto,*"
-                RowDefinitions="Auto,Auto,Auto,Auto,Auto"
-                ColumnSpacing="16"
-                RowSpacing="12">
-                <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.PropertyNameLabel}}" />
-                <SelectableTextBlock
-                    Grid.Column="1"
-                    FontWeight="SemiBold"
-                    Text="{Binding PropertyNameText}"
-                    TextWrapping="Wrap" />
-                <TextBlock Grid.Row="1" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.StatusState}}" />
-                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="0">
-                    <!-- 已保存：绿色胶囊；未保存：主题色徽章（对应原型 pill-ok / Badge.accent） -->
-                    <Border Classes="pill-ok" IsVisible="{Binding !IsModified}">
-                        <StackPanel Orientation="Horizontal" Spacing="5">
-                            <Ellipse />
-                            <TextBlock Text="{Binding DocumentStateText}" />
-                        </StackPanel>
-                    </Border>
-                    <Border
-                        Padding="9 2"
-                        HorizontalAlignment="Left"
-                        Background="{DynamicResource VexAccentSoftBrush}"
-                        CornerRadius="9"
-                        IsVisible="{Binding IsModified}">
-                        <TextBlock
-                            FontSize="11.5"
-                            FontWeight="SemiBold"
-                            Foreground="{DynamicResource VexAccentBrush}"
-                            Text="{Binding DocumentStateText}" />
-                    </Border>
-                </StackPanel>
-                <TextBlock Grid.Row="2" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.StatusEncoding}}" />
-                <SelectableTextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CurrentEncodingText}" TextWrapping="Wrap" />
-                <TextBlock Grid.Row="3" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.PropertySizeLabel}}" />
-                <SelectableTextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PropertySizeText}" TextWrapping="Wrap" />
-                <TextBlock Grid.Row="4" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.PropertyPathLabel}}" />
-                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                    <SelectableTextBlock
-                        VerticalAlignment="Center"
-                        FontFamily="Consolas, Cascadia Mono, Microsoft YaHei UI"
-                        Text="{Binding PropertyLocationText}"
-                        TextWrapping="Wrap" />
-                    <Button
-                        Padding="8 2"
-                        VerticalAlignment="Center"
-                        Click="CopyPath_OnClick"
-                        Content="{i18n:I18n {x:Static l:VexL.Copy}}" />
-                </StackPanel>
+            <Grid Margin="24,20,24,14" ColumnDefinitions="44,*" ColumnSpacing="14">
+                <Border Width="44" Height="44" CornerRadius="11" Background="{DynamicResource VexAccentSoftBrush}"><Path Classes="stroke-ico" Stroke="{DynamicResource VexAccentBrush}" Width="21" Height="21" Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V8Z M14 2V8H20 M8 13H16 M8 17H14"/></Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3"><TextBlock FontSize="15.5" FontWeight="Bold" Text="{Binding PropertyNameText}" TextTrimming="CharacterEllipsis"/><TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n Vex.VexL.PropertyDocumentType}"/></StackPanel>
             </Grid>
-
-        </Grid>
+            <StackPanel Margin="24,4,24,22">
+                <Border Padding="0,9" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="76,*" ColumnSpacing="14"><TextBlock Classes="muted" FontSize="12.5" Text="{i18n:I18n Vex.VexL.StatusState}"/>
+                        <StackPanel Grid.Column="1">
+                            <Border Classes="pill-ok" IsVisible="{Binding !IsModified}"><StackPanel Orientation="Horizontal" Spacing="5"><Ellipse/><TextBlock Text="{Binding DocumentStateText}"/></StackPanel></Border>
+                            <TextBlock IsVisible="{Binding IsModified}" Foreground="{DynamicResource VexAccentBrush}" Text="{Binding DocumentStateText}"/>
+                        </StackPanel></Grid></Border>
+<Border Padding="0,9" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="76,*" ColumnSpacing="14"><TextBlock Classes="muted" FontSize="12.5" Text="{i18n:I18n Vex.VexL.StatusEncoding}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" Text="{Binding CurrentEncodingText}" TextWrapping="Wrap"/></Grid></Border>
+<Border Padding="0,9" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="76,*" ColumnSpacing="14"><TextBlock Classes="muted" FontSize="12.5" Text="{i18n:I18n Vex.VexL.PropertySizeLabel}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" Text="{Binding PropertySizeText}" TextWrapping="Wrap"/></Grid></Border>
+<Border Padding="0,9" BorderThickness="0,0,0,0" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="76,*" ColumnSpacing="14"><TextBlock Classes="muted" FontSize="12.5" Text="{i18n:I18n Vex.VexL.PropertyPathLabel}"/><Grid Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8"><SelectableTextBlock Text="{Binding PropertyLocationText}" TextWrapping="Wrap" FontSize="11.5" Foreground="{DynamicResource VexMutedBrush}"/><Button Grid.Column="1" VerticalAlignment="Top" Padding="7,2" FontSize="11" Click="CopyPath_OnClick" Content="{i18n:I18n Vex.VexL.Copy}"/></Grid></Grid></Border>
+            </StackPanel>
+        </StackPanel>
     </Border>
 </UserControl>

@@ -6,9 +6,9 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:md="https://codewf.com">
     <Border x:Name="DocumentCard" Classes="dialog-card" Width="620" MaxHeight="540" Padding="0" CornerRadius="9" ClipToBounds="True">
-      <Grid RowDefinitions="44,*">
-        <Border Padding="14,0,6,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}">
-          <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center"><TextBlock x:Name="DocumentTitleText" FontSize="12" VerticalAlignment="Center"/><Button Grid.Column="1" Click="Close_OnClick" Classes="vex-dismiss" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
+      <Grid RowDefinitions="36,*">
+        <Border Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+          <Grid ColumnDefinitions="*,46" VerticalAlignment="Center"><TextBlock x:Name="DocumentTitleText" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" Click="Close_OnClick" Classes="vex-dismiss" Width="46" Height="32" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
         </Border>
         <ScrollViewer x:Name="DocumentScroll" Grid.Row="1" Padding="24" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" MaxHeight="496">
           <md:MarkdownViewer x:Name="DocumentMarkdownViewer" DocumentBottomPadding="0"/>

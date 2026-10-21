@@ -117,6 +117,33 @@ internal static class PopupLayoutVerification
         Check(aboutCard.Bounds.Width == 420 && ((Grid)aboutCard.Child!).Children[0].Bounds.Height == 36, "About uses the prototype's 420px frame and 36px title bar");
         Capture(aboutCard, "about");
         ((ShellAboutViewModel)about.DataContext!).Close(); Render();
+        foreach (var (show, type, width, name) in new (Func<Task>, Type, double, string)[]
+        {
+            (() => overlay.ShowPropertiesAsync(vm.DocumentInfo), typeof(ShellPropertiesOverlayView), 520, "properties"),
+            (() => overlay.ShowStatisticsAsync(vm.DocumentInfo), typeof(ShellStatisticsOverlayView), 360, "statistics"),
+            (() => overlay.ConfirmDeleteAsync("确定要删除「读书摘录.md」吗？", "此操作会从磁盘永久删除该文件，且无法从回收站恢复。", @"D:\Notes\笔记\读书摘录.md"), typeof(ShellDeleteConfirmationOverlayView), 480, "delete")
+        })
+        {
+            var pending = show(); Render();
+            var view = window.GetVisualDescendants().OfType<Control>().Single(control => control.GetType() == type);
+            var frame = view.GetVisualDescendants().OfType<Border>().Single(border => border.Classes.Contains("dialog-card"));
+            Check(frame.Bounds.Width == width, "Document dialog retains prototype width: " + name);
+            var heading = frame.GetVisualDescendants().OfType<Border>().First(border => border.Height == 36);
+            Check(heading.Bounds.Height == 36, "Document dialog retains 36px title bar: " + name);
+            Capture(frame, name);
+            ShellOverlayHost.Dismiss(view); Render();
+            Check(pending.IsCompleted, "Document dialog closes without changing the document: " + name);
+        }
+        var renameModel = new ShellRenameDialogViewModel(app.Resolve<IAppLocalizer>(), @"D:\Notes\笔记\主题设计笔记.md", "主题设计笔记.md");
+        var renamePending = Ursa.Controls.OverlayDialog.ShowCustomAsync<string?>(new ShellRenameDialogView(), renameModel,
+            options: new Ursa.Controls.OverlayDialogOptions { IsCloseButtonVisible = false, CanDragMove = false });
+        Render();
+        var renameView = window.GetVisualDescendants().OfType<ShellRenameDialogView>().Single();
+        var renameCard = renameView.GetVisualDescendants().OfType<Border>().Single(border => border.Classes.Contains("dialog-card"));
+        Check(renameCard.Bounds.Width == 430, "Rename retains its 430px prototype frame");
+        Check(renameView.FindControl<TextBox>("NameTextBox")!.Bounds.Height == 34, "Rename input retains its 34px height");
+        Capture(renameCard, "rename"); renameModel.Cancel(); Render();
+        Check(renamePending.IsCompleted, "Rename cancellation completes without changing the file");
         foreach (var width in new[] { 980, 1280, 980 })
         foreach (var mode in new[] { "instant", "read" })
         {

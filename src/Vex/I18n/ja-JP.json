@@ -294,6 +294,8 @@
       "StatisticsHeadings": "見出し",
       "StatisticsReading": "読了時間",
       "ReadingMinutesFormat": "{0} 分",
+      "DeleteConfirmationTitle": "削除の確認",
+      "PropertyDocumentType": "ローカル文書 · Markdown",
       "PropertyNameLabel": "名前",
       "PropertySizeLabel": "サイズ",
       "PropertyPathLabel": "パス",

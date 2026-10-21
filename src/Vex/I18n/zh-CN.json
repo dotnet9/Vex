@@ -294,6 +294,8 @@
       "StatisticsHeadings": "标题",
       "StatisticsReading": "阅读时间",
       "ReadingMinutesFormat": "{0} 分钟",
+      "DeleteConfirmationTitle": "删除确认",
+      "PropertyDocumentType": "本地文档 · Markdown",
       "PropertyNameLabel": "名称",
       "PropertySizeLabel": "大小",
       "PropertyPathLabel": "路径",

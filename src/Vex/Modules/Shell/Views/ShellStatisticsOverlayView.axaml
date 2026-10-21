@@ -6,20 +6,19 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellDocumentInfoViewModel">
-    <Border Classes="dialog-card" Width="420" MaxHeight="560" Padding="0" CornerRadius="9" ClipToBounds="True">
+    <Border Classes="dialog-card" Width="360" MaxHeight="560" Padding="0" CornerRadius="8" ClipToBounds="True">
         <Grid RowDefinitions="Auto,*">
-            <Border Height="44" Padding="14,0,6,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}">
-                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                    <TextBlock VerticalAlignment="Center" FontSize="12" Text="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}" />
-                    <Button Grid.Column="1" Classes="vex-dismiss" Click="Close_OnClick"
-                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}" />
+            <Border Height="36" Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+                <Grid ColumnDefinitions="*,46" VerticalAlignment="Center">
+                    <TextBlock FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Text="{i18n:I18n Vex.VexL.StatisticsTitle}"/>
+                    <Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Click="Close_OnClick" AutomationProperties.Name="{i18n:I18n Vex.VexL.Close}"/>
                 </Grid>
             </Border>
 
-            <ScrollViewer Grid.Row="1" Margin="22">
+            <ScrollViewer Grid.Row="1">
                 <Grid RowDefinitions="Auto,*">
                     <!-- 核心指标卡：词数 / 字符大数字（对应原型 stat-card，tabular-nums 防跳动） -->
-                    <Grid ColumnDefinitions="*,12,*">
+                    <Grid ColumnDefinitions="*,10,*" Margin="24,18,24,4">
                         <Border
                             Padding="14 12 14 10"
                             Background="{DynamicResource TextBlockCodeBackground}"
@@ -60,43 +59,14 @@
                             </StackPanel>
                         </Border>
                     </Grid>
-                    <!-- 其余指标两列排布 -->
-                    <Grid
-                        Grid.Row="1"
-                        Margin="0 14 0 0"
-                        ColumnDefinitions="*,*"
-                        RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
-                        ColumnSpacing="22">
-                        <Grid.Styles>
-                            <Style Selector="Grid > SelectableTextBlock">
-                                <Setter Property="HorizontalAlignment" Value="Left" />
-                            </Style>
-                        </Grid.Styles>
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.StatisticsLines}}" />
-                            <SelectableTextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding Statistics.Lines}" />
-                        </Grid>
-                        <Grid Grid.Column="1" ColumnDefinitions="*,Auto">
-                            <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.StatisticsParagraphs}}" />
-                            <SelectableTextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding Statistics.Paragraphs}" />
-                        </Grid>
-                        <Grid Grid.Row="1" Margin="0 8 0 0" ColumnDefinitions="*,Auto">
-                            <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.StatisticsHeadings}}" />
-                            <SelectableTextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding Statistics.Headings}" />
-                        </Grid>
-                        <Grid Grid.Row="1" Grid.Column="1" Margin="0 8 0 0" ColumnDefinitions="*,Auto">
-                            <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.StatisticsReading}}" />
-                            <SelectableTextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding ReadingMinutesText}" />
-                        </Grid>
-                        <Grid Grid.Row="2" Margin="0 8 0 0" ColumnDefinitions="*,Auto">
-                            <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.StatusEncoding}}" />
-                            <SelectableTextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding CurrentEncodingText}" />
-                        </Grid>
-                        <Grid Grid.Row="2" Grid.Column="1" Margin="0 8 0 0" ColumnDefinitions="*,Auto">
-                            <TextBlock Classes="muted" Text="{i18n:I18n {x:Static l:VexL.StatusState}}" />
-                            <SelectableTextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding DocumentStateText}" />
-                        </Grid>
-                    </Grid>
+<Grid Grid.Row="1" Margin="24,12,24,20" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="22">
+<Border Grid.Row="0" Grid.Column="0" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsLines}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding Statistics.Lines}"/></Grid></Border>
+<Border Grid.Row="0" Grid.Column="1" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsParagraphs}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding Statistics.Paragraphs}"/></Grid></Border>
+<Border Grid.Row="1" Grid.Column="0" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsHeadings}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding Statistics.Headings}"/></Grid></Border>
+<Border Grid.Row="1" Grid.Column="1" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsReading}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding ReadingMinutesText}"/></Grid></Border>
+<Border Grid.Row="2" Grid.Column="0" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatusEncoding}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding CurrentEncodingText}"/></Grid></Border>
+<Border Grid.Row="2" Grid.Column="1" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatusState}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding DocumentStateText}"/></Grid></Border>
+</Grid>
                 </Grid>
             </ScrollViewer>
 

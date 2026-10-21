@@ -6,8 +6,15 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:views="using:Vex.Modules.Shell.Views"
     x:DataType="views:ShellDeleteConfirmationModel">
-    <Border Classes="dialog-card" Width="480">
-        <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
+    <Border Classes="dialog-card" Width="480" Padding="0" CornerRadius="8" ClipToBounds="True">
+        <Grid RowDefinitions="36,Auto">
+            <Border Height="36" Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+                <Grid ColumnDefinitions="*,46" VerticalAlignment="Center">
+                    <TextBlock FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Text="{i18n:I18n Vex.VexL.DeleteConfirmationTitle}"/>
+                    <Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Click="Cancel_OnClick" AutomationProperties.Name="{i18n:I18n Vex.VexL.Close}"/>
+                </Grid>
+            </Border>
+        <Grid Grid.Row="1" Margin="22" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <Border Classes="dlg-ico warn">
                     <Path Classes="stroke-ico" Data="M3 6h18 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6 m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2 M10 11v6 M14 11v6" />
@@ -42,6 +49,7 @@
                     Content="{i18n:I18n {x:Static l:VexL.Delete}}"
                     MinWidth="86" />
             </StackPanel>
+        </Grid>
         </Grid>
     </Border>
 </UserControl>

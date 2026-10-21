@@ -294,6 +294,8 @@
       "StatisticsHeadings": "Headings",
       "StatisticsReading": "Reading",
       "ReadingMinutesFormat": "{0} min",
+      "DeleteConfirmationTitle": "Confirm deletion",
+      "PropertyDocumentType": "Local document · Markdown",
       "PropertyNameLabel": "Name",
       "PropertySizeLabel": "Size",
       "PropertyPathLabel": "Path",
