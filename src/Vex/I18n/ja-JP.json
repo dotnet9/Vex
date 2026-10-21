@@ -284,8 +284,8 @@
       "FindBarText": "テキスト",
       "FindBarReplace": "置換",
       "FindBarNext": "次へ",
-      "FindBarAll": "すべて",
-      "FindBarClose": "閉じる",
+      "FindBarAll": "すべて置換",
+      "FindBarClose": "検索を閉じる",
       "FindBarMatchCase": "大文字と小文字を区別",
       "FindBarWholeWord": "単語単位",
       "FindBarRegex": "正規表現",
@@ -849,7 +849,10 @@
       "PrefAutoPair": "記号の自動ペア",
       "PrefCompactSpacing": "コンパクトな行間",
       "McpServerEnabledNote": "ローカル アドレスのみでリッスンし、Bearer トークンで認証します",
-      "OutlineNoMatch": "一致する見出しはありません"
+      "OutlineNoMatch": "一致する見出しはありません",
+      "FindBarScope": "現在の本文",
+      "FindBarFindPlaceholder": "本文を検索…",
+      "FindBarReplacePlaceholder": "置換後のテキスト"
     }
   }
 }

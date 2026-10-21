@@ -284,8 +284,8 @@
       "FindBarText": "Text",
       "FindBarReplace": "Replace",
       "FindBarNext": "Next",
-      "FindBarAll": "All",
-      "FindBarClose": "Close",
+      "FindBarAll": "Replace All",
+      "FindBarClose": "Close find",
       "FindBarMatchCase": "Match case",
       "FindBarWholeWord": "Whole word",
       "FindBarRegex": "Regular expression",
@@ -849,7 +849,10 @@
       "PrefAutoPair": "Auto-pair symbols",
       "PrefCompactSpacing": "Compact spacing",
       "McpServerEnabledNote": "Loopback only, authenticated with a Bearer token",
-      "OutlineNoMatch": "No matching headings"
+      "OutlineNoMatch": "No matching headings",
+      "FindBarScope": "Current document",
+      "FindBarFindPlaceholder": "Find in document…",
+      "FindBarReplacePlaceholder": "Replace with"
     }
   }
 }

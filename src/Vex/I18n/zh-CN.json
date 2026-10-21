@@ -284,8 +284,8 @@
       "FindBarText": "文本",
       "FindBarReplace": "替换",
       "FindBarNext": "下一个",
-      "FindBarAll": "全部",
-      "FindBarClose": "关闭",
+      "FindBarAll": "全部替换",
+      "FindBarClose": "关闭查找",
       "FindBarMatchCase": "区分大小写",
       "FindBarWholeWord": "整词匹配",
       "FindBarRegex": "正则匹配",
@@ -849,7 +849,10 @@
       "PrefAutoPair": "自动配对符号",
       "PrefCompactSpacing": "紧凑间距",
       "McpServerEnabledNote": "仅监听本机地址，通过 Bearer Token 鉴权",
-      "OutlineNoMatch": "没有匹配的标题"
+      "OutlineNoMatch": "没有匹配的标题",
+      "FindBarScope": "当前正文",
+      "FindBarFindPlaceholder": "查找当前正文…",
+      "FindBarReplacePlaceholder": "替换为"
     }
   }
 }

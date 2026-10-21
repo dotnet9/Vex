@@ -24,10 +24,10 @@
             BorderBrush="{DynamicResource VexPanelBorderBrush}"
             BorderThickness="0 0 0 1"
             Padding="12 8">
-            <Grid ColumnDefinitions="Auto,220,Auto,220,Auto,Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="Auto,220,220,Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
             <TextBlock
                 Classes="muted"
-                Text="{i18n:I18n {x:Static l:VexL.FindBarFind}}"
+                Text="{i18n:I18n Vex.VexL.FindBarScope}"
                 VerticalAlignment="Center" />
             <!-- 查找框：命中计数以内嵌徽章叠在输入框右侧（对应原型 .fb-count） -->
             <Grid Grid.Column="1">
@@ -37,7 +37,7 @@
                     MaxLength="200"
                     MinHeight="30"
                     Padding="0 0 56 0"
-                    PlaceholderText="{i18n:I18n {x:Static l:VexL.FindBarText}}"
+                    PlaceholderText="{i18n:I18n Vex.VexL.FindBarFindPlaceholder}"
                     TextWrapping="NoWrap"
                     Text="{Binding SearchText, Mode=TwoWay}" />
                 <Border
@@ -54,61 +54,58 @@
                         Text="{Binding SearchResultText}" />
                 </Border>
             </Grid>
-            <TextBlock
-                Grid.Column="2"
-                Classes="muted"
-                IsVisible="{Binding IsReplaceVisible}"
-                Text="{i18n:I18n {x:Static l:VexL.FindBarReplace}}"
-                VerticalAlignment="Center" />
             <TextBox
-                Grid.Column="3"
+                Grid.Column="2"
                 AcceptsReturn="False"
                 IsVisible="{Binding IsReplaceVisible}"
                 MaxLength="200"
                 MinHeight="30"
-                PlaceholderText="{i18n:I18n {x:Static l:VexL.FindBarText}}"
+                PlaceholderText="{i18n:I18n Vex.VexL.FindBarReplacePlaceholder}"
                 TextWrapping="NoWrap"
                 Text="{Binding ReplacementText, Mode=TwoWay}" />
             <Button
-                Grid.Column="4"
+                Grid.Column="3"
                 Classes="primary"
                 Command="{Binding FindNext}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarNext}}"
                 MinWidth="72" />
             <Button
-                Grid.Column="5"
+                Grid.Column="4"
                 Command="{Binding ReplaceNext}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarReplace}}"
                 IsVisible="{Binding IsReplaceVisible}"
                 MinWidth="82" />
             <Button
-                Grid.Column="6"
+                Grid.Column="5"
                 Command="{Binding ReplaceAll}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarAll}}"
                 IsVisible="{Binding IsReplaceVisible}"
                 MinWidth="64" />
             <Button
-                Grid.Column="8"
+                Grid.Column="7"
                 Command="{Binding CloseFindPanel}"
-                Content="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
-                MinWidth="42" />
+                Content="×"
+                FontSize="14"
+                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
+                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
+                MinWidth="30" />
             <!-- Aa / W / .* 图标化开关：激活态主题色底（对应原型 .opt-toggle） -->
             <ToggleButton
-                Grid.Column="9"
+                Grid.Column="8"
                 Classes="opt-toggle"
                 Content="Aa"
                 IsChecked="{Binding IsMatchCase, Mode=TwoWay}"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarMatchCase}}"
                 VerticalAlignment="Center" />
             <ToggleButton
-                Grid.Column="10"
+                Grid.Column="9"
                 Classes="opt-toggle"
                 Content="W"
                 IsChecked="{Binding IsWholeWord, Mode=TwoWay}"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
                 VerticalAlignment="Center" />
             <ToggleButton
-                Grid.Column="11"
+                Grid.Column="10"
                 Classes="opt-toggle"
                 Content=".*"
                 IsChecked="{Binding IsRegex, Mode=TwoWay}"
