@@ -16,7 +16,7 @@ namespace Vex.Modules.Shell.Views;
 public sealed class ShellTypographyGallery : UserControl
 {
     private MainWindowViewModel? _vm;
-    private readonly Grid _cards = new() { ColumnSpacing = 12, RowSpacing = 12 };
+    private readonly TypographyCardPanel _cards = new();
     private readonly Dictionary<TypographyOption, (Button Button, MarkdownViewer Preview, TextBlock Check)> _items = [];
     private bool _all;
     private int _columns = 3;
@@ -25,9 +25,6 @@ public sealed class ShellTypographyGallery : UserControl
     private Button? _recommended;
     private Button? _allChoices;
     private CheckBox? _compact;
-    private bool _arrangePending;
-    private int _arrangedColumns;
-    private Button[] _arrangedButtons = [];
     public ShellTypographyGallery()
     {
         DataContextChanged += (_, _) => Attach();
@@ -70,24 +67,46 @@ public sealed class ShellTypographyGallery : UserControl
     }
     private void ArrangeCards()
     {
-        // 窗口尺寸和主题通知可能来自布局过程，延后批量重排，避免修改 Grid 正在测量的单元格集合。
-        if (_arrangePending) return;
-        _arrangePending = true;
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-            _arrangePending = false;
-            if (_vm is not null) ArrangeCardsCore();
-        }, Avalonia.Threading.DispatcherPriority.Background);
+        _cards.Columns = _columns;
+        _cards.InvalidateMeasure();
     }
-    private void ArrangeCardsCore()
+
+    // 直接测量卡片并统一同行高度，筛选和窗口缩放只请求布局，不替换正在测量的行列定义。
+    private sealed class TypographyCardPanel : Panel
     {
-        var visible = _items.Values.Where(item => item.Button.IsVisible).Select(item => item.Button).ToArray();
-        if (_arrangedColumns == _columns && visible.SequenceEqual(_arrangedButtons)) return;
-        _arrangedColumns = _columns;
-        _arrangedButtons = visible;
-        _cards.ColumnDefinitions = new ColumnDefinitions(string.Join(',', Enumerable.Repeat("*", _columns)));
-        _cards.RowDefinitions = new RowDefinitions(string.Join(',', Enumerable.Repeat("Auto", (visible.Length + _columns - 1) / _columns)));
-        for (var i = 0; i < visible.Length; i++) { Grid.SetColumn(visible[i], i % _columns); Grid.SetRow(visible[i], i / _columns); }
+        private const double Gap = 12;
+        private double[] _heights = [];
+        public int Columns { get; set; } = 3;
+
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            var width = double.IsFinite(availableSize.Width) ? availableSize.Width : 846;
+            var cardWidth = Math.Max(0, (width - Gap * (Columns - 1)) / Columns);
+            var visible = Children.Where(child => child.IsVisible).ToArray();
+            var heights = new double[(visible.Length + Columns - 1) / Columns];
+            for (var i = 0; i < visible.Length; i++)
+            {
+                visible[i].Measure(new Size(cardWidth, double.PositiveInfinity));
+                heights[i / Columns] = Math.Max(heights[i / Columns], visible[i].DesiredSize.Height);
+            }
+            _heights = heights;
+            return new Size(width, heights.Sum() + Gap * Math.Max(0, heights.Length - 1));
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            var cardWidth = Math.Max(0, (finalSize.Width - Gap * (Columns - 1)) / Columns);
+            var index = 0;
+            var y = 0d;
+            foreach (var child in Children.Where(child => child.IsVisible))
+            {
+                var row = index / Columns;
+                var height = row < _heights.Length ? _heights[row] : child.DesiredSize.Height;
+                child.Arrange(new Rect((index % Columns) * (cardWidth + Gap), y, cardWidth, height));
+                if (++index % Columns == 0) y += height + Gap;
+            }
+            return finalSize;
+        }
     }
     private void Changed(object? sender, PropertyChangedEventArgs e)
     {
