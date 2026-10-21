@@ -651,7 +651,7 @@
       "TableColumnTitle": "列 {0}",
       "Insert": "插入",
       "DocumentStructure": "文档结构",
-      "OutlineFilterPlaceholder": "查找标题…",
+      "OutlineFilterPlaceholder": "筛选当前标题…",
       "CollapseAllFiles": "全部折叠",
       "ToggleFileList": "切换为列表视图",
       "SortFiles": "切换名称排序",
