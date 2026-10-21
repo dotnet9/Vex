@@ -62,9 +62,13 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
             FilteredOutlineItems.Add(item);
         }
         OnPropertyChanged(nameof(IsFilterEmpty));
+        OnPropertyChanged(nameof(IsFilterNoMatch));
     }
 
     public bool IsFilterEmpty => FilteredOutlineItems.Count == 0;
+
+    /// <summary>原型区分两种空态：文档没有标题给引导文案，筛选无结果给无匹配文案。</summary>
+    public bool IsFilterNoMatch => HasOutlineItems && !string.IsNullOrWhiteSpace(FilterText) && IsFilterEmpty;
 
     public bool HasOutlineItems => OutlineItems.Count > 0;
 
@@ -223,6 +227,7 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     {
         OnPropertyChanged(nameof(HasOutlineItems));
         OnPropertyChanged(nameof(IsOutlineEmpty));
+        OnPropertyChanged(nameof(IsFilterNoMatch));
     }
 
     private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)

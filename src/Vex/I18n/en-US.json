@@ -276,7 +276,7 @@
       "SidebarFilesFilterPlaceholder": "Find by filename…",
       "SidebarOutline": "Outline",
       "EmptyNoFiles": "No files",
-      "EmptyNoHeadings": "No headings",
+      "EmptyNoHeadings": "Add a heading to see the outline here.",
       "OutlineCurrentFormat": "Current: {0} · {1}%",
       "OutlineNoCurrentChapter": "No headings yet",
       "RecentNoFiles": "No recent files",
@@ -848,7 +848,8 @@
       "WBMapDisplay": "Map Display",
       "PrefAutoPair": "Auto-pair symbols",
       "PrefCompactSpacing": "Compact spacing",
-      "McpServerEnabledNote": "Loopback only, authenticated with a Bearer token"
+      "McpServerEnabledNote": "Loopback only, authenticated with a Bearer token",
+      "OutlineNoMatch": "No matching headings"
     }
   }
 }

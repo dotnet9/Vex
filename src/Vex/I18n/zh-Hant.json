@@ -276,7 +276,7 @@
       "SidebarFilesFilterPlaceholder": "依檔名尋找…",
       "SidebarOutline": "大綱",
       "EmptyNoFiles": "暫無檔案",
-      "EmptyNoHeadings": "暫無標題",
+      "EmptyNoHeadings": "新增標題後，會在這裡顯示大綱。",
       "OutlineCurrentFormat": "目前章節：{0} · {1}%",
       "OutlineNoCurrentChapter": "暫無標題",
       "RecentNoFiles": "暫無最近檔案",
@@ -848,7 +848,8 @@
       "WBMapDisplay": "導圖顯示",
       "PrefAutoPair": "自動配對符號",
       "PrefCompactSpacing": "緊湊間距",
-      "McpServerEnabledNote": "僅監聽本機位址，透過 Bearer Token 驗證"
+      "McpServerEnabledNote": "僅監聽本機位址，透過 Bearer Token 驗證",
+      "OutlineNoMatch": "沒有符合的標題"
     }
   }
 }

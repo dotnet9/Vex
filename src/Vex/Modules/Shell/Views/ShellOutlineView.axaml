@@ -77,12 +77,22 @@
         </Border>
         <Border
             Grid.Row="2"
-            IsVisible="{Binding IsFilterEmpty}"
+            IsVisible="{Binding IsOutlineEmpty}"
             Padding="18"
             VerticalAlignment="Top">
             <TextBlock
                 Classes="muted"
                 Text="{i18n:I18n {x:Static l:VexL.EmptyNoHeadings}}"
+                TextAlignment="Center" />
+        </Border>
+        <Border
+            Grid.Row="2"
+            IsVisible="{Binding IsFilterNoMatch}"
+            Padding="18"
+            VerticalAlignment="Top">
+            <TextBlock
+                Classes="muted"
+                Text="{i18n:I18n Vex.VexL.OutlineNoMatch}"
                 TextAlignment="Center" />
         </Border>
     </Grid>

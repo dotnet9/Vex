@@ -276,7 +276,7 @@
       "SidebarFilesFilterPlaceholder": "按文件名查找…",
       "SidebarOutline": "大纲",
       "EmptyNoFiles": "暂无文件",
-      "EmptyNoHeadings": "暂无标题",
+      "EmptyNoHeadings": "添加标题后，会在这里显示大纲。",
       "OutlineCurrentFormat": "当前章节：{0} · {1}%",
       "OutlineNoCurrentChapter": "暂无标题",
       "RecentNoFiles": "暂无最近文件",
@@ -848,7 +848,8 @@
       "WBMapDisplay": "导图显示",
       "PrefAutoPair": "自动配对符号",
       "PrefCompactSpacing": "紧凑间距",
-      "McpServerEnabledNote": "仅监听本机地址，通过 Bearer Token 鉴权"
+      "McpServerEnabledNote": "仅监听本机地址，通过 Bearer Token 鉴权",
+      "OutlineNoMatch": "没有匹配的标题"
     }
   }
 }

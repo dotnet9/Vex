@@ -276,7 +276,7 @@
       "SidebarFilesFilterPlaceholder": "ファイル名で検索…",
       "SidebarOutline": "アウトライン",
       "EmptyNoFiles": "ファイルがありません",
-      "EmptyNoHeadings": "見出しがありません",
+      "EmptyNoHeadings": "見出しを追加すると、ここにアウトラインが表示されます。",
       "OutlineCurrentFormat": "現在の章：{0} · {1}%",
       "OutlineNoCurrentChapter": "見出しはまだありません",
       "RecentNoFiles": "最近使ったファイルはありません",
@@ -848,7 +848,8 @@
       "WBMapDisplay": "マップ表示",
       "PrefAutoPair": "記号の自動ペア",
       "PrefCompactSpacing": "コンパクトな行間",
-      "McpServerEnabledNote": "ローカル アドレスのみでリッスンし、Bearer トークンで認証します"
+      "McpServerEnabledNote": "ローカル アドレスのみでリッスンし、Bearer トークンで認証します",
+      "OutlineNoMatch": "一致する見出しはありません"
     }
   }
 }
