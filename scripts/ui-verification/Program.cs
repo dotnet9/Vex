@@ -1483,8 +1483,8 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
         var expectedTable = MarkdownTableInsertion.Create(new TableDimensions(4, 3), n => "列 " + n);
         var expectedInsertion = MarkdownTableInsertion.AtSelection(tableBefore, tableSelection.Start, tableSelection.Length, expectedTable);
         Check(vm.Markdown == tableBefore.Remove(tableSelection.Start, tableSelection.Length).Insert(tableSelection.Start, expectedInsertion),
-            editorLayout + " inserts exactly four rows and three columns at the saved selection");
-        Check(instant.Editor.GetVisualDescendants().OfType<Grid>().Any(grid => grid.GetType().Name == "MarkdownTableGrid" && grid.RowDefinitions.Count == 4 && grid.ColumnDefinitions.Count == 3) || editorLayout == "source",
+            editorLayout + " inserts exactly header plus four content rows and three columns at the saved selection");
+        Check(instant.Editor.GetVisualDescendants().OfType<Grid>().Any(grid => grid.GetType().Name == "MarkdownTableGrid" && grid.RowDefinitions.Count == 5 && grid.ColumnDefinitions.Count == 3) || editorLayout == "source",
             editorLayout + " table is rendered as an editable table");
         wb.UndoDocument(); Pump();
         Check(vm.Markdown == tableBefore, editorLayout + " table insertion is a single shared undo step");

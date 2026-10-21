@@ -2,7 +2,7 @@ namespace Vex.Modules.Workspace.Services;
 
 public sealed record TableDimensions(int Rows, int Columns);
 
-/// <summary>行数包含表头；分隔行属于 Markdown 语法，不计入行数。</summary>
+/// <summary>行数为内容行数，不含表头；分隔行属于 Markdown 语法，不计入行数。</summary>
 public static class MarkdownTableInsertion
 {
     public static string Create(TableDimensions size, Func<int, string> columnTitle)
@@ -14,7 +14,7 @@ public static class MarkdownTableInsertion
             "| " + string.Join(" | ", Enumerable.Range(1, size.Columns).Select(columnTitle)) + " |",
             "| " + string.Join(" | ", Enumerable.Repeat("---", size.Columns)) + " |"
         };
-        for (var row = 1; row < size.Rows; row++)
+        for (var row = 0; row < size.Rows; row++)
             lines.Add("| " + string.Join(" | ", Enumerable.Repeat("", size.Columns)) + " |");
         return string.Join('\n', lines);
     }

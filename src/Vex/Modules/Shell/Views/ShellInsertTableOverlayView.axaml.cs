@@ -33,7 +33,7 @@ public partial class ShellInsertTableOverlayView : UserControl
 public sealed class ShellInsertTableModel : ReactiveObject, Irihi.Avalonia.Shared.Contracts.IDialogContext
 {
     private decimal? _rows = 3;
-    private decimal? _columns = 2;
+    private decimal? _columns = 3;
     public decimal? Rows { get => _rows; set { this.RaiseAndSetIfChanged(ref _rows, value); this.RaisePropertyChanged(nameof(IsValid)); } }
     public decimal? Columns { get => _columns; set { this.RaiseAndSetIfChanged(ref _columns, value); this.RaisePropertyChanged(nameof(IsValid)); } }
     public bool IsValid => Rows is >= 1 and <= 100 && Columns is >= 1 and <= 20
