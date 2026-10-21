@@ -19,6 +19,7 @@
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFile}}" Command="{Binding OpenAsync}" InputGesture="Ctrl+O" />
             <MenuItem x:Name="OpenFolderMenuItem" Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuSamples}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="samples" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.QuickOpen}}" Command="{Binding QuickOpenAsync}" InputGesture="Ctrl+P" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenRecent}}" IsEnabled="{Binding Recent.HasRecentDocuments}">
                 <MenuItem Header="{Binding Recent.RecentDocument1Text}" Command="{Binding OpenRecentDocument1Async}" IsVisible="{Binding Recent.HasRecentDocument1}" ToolTip.Tip="{Binding Recent.RecentDocument1ToolTip}" />

@@ -28,6 +28,7 @@
 | [src/Vex](../src/Vex) | 桌面主程序、视图模型、文件服务、国际化、MCP |
 | [src/Vex.Controls](../src/Vex.Controls) | 应用控件、主题资源和统一样式入口 |
 | [design](../design/index.html) | 可离线预览的桌面、Windows / Linux / macOS 安装原型 |
+| [演示文档](演示文档) | 随程序发布的六份可编辑样例与本地插图，也是原型的样例来源 |
 | [scripts](../scripts) | 验证器、共享库打包联调、发布与安装器源码 |
 | [.github/workflows](../.github/workflows) | 检查、NuGet 发布和五 RID 原生安装包发布 |
 | [Vex.slnx](../Vex.slnx) | 两个生产项目的解决方案入口 |

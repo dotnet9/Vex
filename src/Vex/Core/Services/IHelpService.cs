@@ -8,6 +8,8 @@ public interface IHelpService
 
     Task OpenDocumentAsync(string fileName);
 
+    Task OpenSamplesAsync();
+
     Task ShowAboutWindowAsync();
 
     Task ShowUpdatesAsync();

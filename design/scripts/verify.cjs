@@ -35,6 +35,15 @@ for (const [key, file] of [['thanks','docs/鸣谢.md'], ['changelog','docs/更�
   assert.equal(sandbox.window.VexDocuments[key].text, fs.readFileSync(path.join(root, '..', file), 'utf8').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n'));
 }
 const changelog = sandbox.window.VexDocuments.changelog.text;
+vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/desktop/samples.js'), 'utf8'), sandbox);
+assert.equal(sandbox.window.VexSamples.length, 6, 'Six samples are shared with the installed app');
+for (const sample of sandbox.window.VexSamples) {
+  const file = path.resolve(root, sample.path);
+  const text = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n').replaceAll('(图片/', '(../docs/演示文档/图片/');
+  assert.equal(sample.text, text, 'Prototype and packaged sample stay in sync: '+sample.name);
+  for (const image of sample.text.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g))
+    assert.ok(fs.existsSync(path.resolve(root, image[1])), 'Local sample image exists');
+}
 const dates = [...changelog.matchAll(/^## V\d+(?:\.\d+)+（(\d{4}-\d{2}-\d{2})）$/gm)].map(match => match[1]);
 assert.ok(dates.length > 0, 'Changelog has dated version groups');
 assert.equal(new Set(dates).size, dates.length, 'Each date has one changelog group');

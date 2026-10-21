@@ -15,6 +15,11 @@ internal static class RuntimeVerification
             throw new InvalidOperationException("Runtime verification requires a NativeAOT executable.");
         if (!Uri.TryCreate(ProjectLinks.Website, UriKind.Absolute, out var website) || website.Scheme != Uri.UriSchemeHttps)
             throw new InvalidOperationException("Published website metadata is missing or invalid.");
+        foreach (var file in new[] { "更新日志.md", "鸣谢.md", "快速开始.md" })
+            _ = BundledDocuments.GetPath(file);
+        var samples = Directory.GetFiles(BundledDocuments.SamplesFolder, "*.md");
+        if (samples.Length != 6 || !File.Exists(Path.Combine(BundledDocuments.SamplesFolder, "图片", "山间湖畔.png")))
+            throw new InvalidOperationException("Published sample documents or their offline image are missing.");
         // 走实际启动集成入口，确认 Windows 自检不会重新注册用户取消的打开方式。
         if (OperatingSystem.IsWindows()) DefaultFileOpeningService.Configure();
         var root = Path.GetFullPath(directory);
@@ -50,7 +55,7 @@ internal static class RuntimeVerification
         if (preferences.DefaultEncoding != "utf-8" || preferences.DefaultNewline != "system" || preferences.BodyFont != "system"
             || preferences.ExportFormat != "HTML" || preferences.PdfSize != "A4")
             throw new InvalidOperationException("Native default preference choices did not survive real storage.");
-        var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; website={ProjectLinks.Website}; languages=4; tableDialog=localized; preferences=isolated";
+        var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; website={ProjectLinks.Website}; languages=4; tableDialog=localized; samples={samples.Length}; preferences=isolated";
         File.WriteAllText(Path.Combine(root, "runtime-verification.txt"), result);
         Console.WriteLine(result);
     }

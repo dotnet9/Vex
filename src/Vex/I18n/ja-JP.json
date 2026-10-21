@@ -51,6 +51,7 @@
       "AboutBrandName": "CodeWF",
       "AboutDescription": "Avalonia、Prism、CodeWF ライブラリで構築された Markdown エディターです。",
       "AboutVexTitle": "Vex について",
+      "MenuSamples": "サンプル文書",
       "MenuFile": "ファイル(F)",
       "MenuEdit": "編集(E)",
       "MenuParagraph": "段落",

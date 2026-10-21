@@ -46,11 +46,12 @@
       { sep: true },
       { label: '打开…', gesture: 'Ctrl+O', action: 'open' },
       { label: '打开文件夹…', action: 'open-folder' },
+      { label: '演示文档', action: 'open-samples' },
       { label: '快速打开…', gesture: 'Ctrl+P', action: 'quick-open' },
       { label: '最近打开', sub: [
-        { label: '主题设计笔记.md', action: 'open-sample', arg: 0 },
-        { label: '每周复盘.md', action: 'open-sample', arg: 1 },
-        { label: '读书摘录.md', action: 'open-sample', arg: 2 },
+        { label: '排版与写作.md', action: 'open-sample', arg: 0 },
+        { label: '图文与链接.md', action: 'open-sample', arg: 1 },
+        { label: '数学与化学.md', action: 'open-sample', arg: 2 },
         { sep: true }, { label: '清空最近记录', toast: '最近记录已清空（演示）' }
       ]},
       { sep: true },

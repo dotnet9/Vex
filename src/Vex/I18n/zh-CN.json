@@ -51,6 +51,7 @@
       "AboutBrandName": "CodeWF（码坊）",
       "AboutDescription": "由 Avalonia、Prism 和 CodeWF 自研库驱动的 Markdown 编辑器。",
       "AboutVexTitle": "关于 Vex",
+      "MenuSamples": "演示文档",
       "MenuFile": "文件(F)",
       "MenuEdit": "编辑(E)",
       "MenuParagraph": "段落",

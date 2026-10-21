@@ -943,6 +943,7 @@
       case 'open': if (!VexDocumentWindow.open({intent:'open-file'})) VexProto.toast('请允许弹出窗口后重试'); break;
       case 'open-folder': if (!VexDocumentWindow.open({intent:'open-folder'})) VexProto.toast('请允许弹出窗口后重试'); break;
       case 'open-sample': confirmSwitch(function () { loadDoc(Math.min(item.arg, docs.length - 1)); }); break;
+      case 'open-samples': if (!VexDocumentWindow.open({intent:'samples'})) VexProto.toast('请允许弹出窗口后重试'); break;
       case 'quick-open': if (!state.sidebar) VexProto.handleAction('toggle-sidebar'); VexProto.handleAction('pane-files'); $('file-filter').focus(); break;
       case 'save': save(); break;
       case 'save-all': save(); break;

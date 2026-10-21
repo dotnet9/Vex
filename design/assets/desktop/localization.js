@@ -9,6 +9,7 @@ window.VEX_DATA = {"languages":{"zh-CN":{"AppName":"Vex","ChineseName":"维刻",
     '保持窗口在最前':'AlwaysOnTop','全屏':'ToggleFullScreen','图片':'Image','行内代码':'InlineCode','打印预览':'Print','查看排版样式…':'WBTypographyTitle'
   };
   const extra = {
+    '演示文档':['演示文档','示範文件','Sample documents','サンプル文書'],
     '导出':['导出','匯出','Export','書き出し'],
     '文档操作':['文档操作','文件操作','Document actions','文書の操作'],
     '编辑方式':['编辑方式','編輯方式','Editing mode','編集モード'],

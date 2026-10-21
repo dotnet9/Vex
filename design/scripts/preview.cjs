@@ -14,7 +14,7 @@ const server = http.createServer((req,res) => {
     try { prepareDocuments(); } catch (error) { console.error(error.message);res.writeHead(500).end('Document preparation failed');return; }
   }
   const isDesign = pathname.startsWith('/design/');
-  const isDocument = pathname.startsWith('/docs/') && path.extname(pathname) === '.md';
+  const isDocument = pathname.startsWith('/docs/') && ['.md','.png','.svg'].includes(path.extname(pathname));
   if (!isDesign && !isDocument) {res.writeHead(404).end();return;}
   const target = path.resolve(root,'.' + pathname);
   const allowedRoot = path.resolve(root, isDesign ? 'design' : 'docs');

@@ -51,6 +51,7 @@
       "AboutBrandName": "CodeWF",
       "AboutDescription": "Markdown editor powered by Avalonia, Prism, and CodeWF libraries.",
       "AboutVexTitle": "About Vex",
+      "MenuSamples": "Sample documents",
       "MenuFile": "File(F)",
       "MenuEdit": "Edit(E)",
       "MenuParagraph": "Paragraph",

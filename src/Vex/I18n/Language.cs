@@ -15,6 +15,7 @@ public static class VexL
     public static readonly string AboutBrandName = "Vex.VexL.AboutBrandName";
     public static readonly string AboutDescription = "Vex.VexL.AboutDescription";
     public static readonly string AboutVexTitle = "Vex.VexL.AboutVexTitle";
+    public static readonly string MenuSamples = "Vex.VexL.MenuSamples";
     public static readonly string MenuFile = "Vex.VexL.MenuFile";
     public static readonly string MenuEdit = "Vex.VexL.MenuEdit";
     public static readonly string MenuParagraph = "Vex.VexL.MenuParagraph";

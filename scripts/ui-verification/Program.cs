@@ -665,6 +665,15 @@ void VerifyDocumentWindows(VerificationVexApp app, Window window, MainWindowView
     vm.Markdown += "\n普通文档允许编辑。";
     Check(vm.DocumentInfo.IsModified, "Bundled documents have no special read-only restriction");
     vm.Markdown = File.ReadAllText(BundledDocuments.GetPath("更新日志.md"));
+    Pump(vm.Help.OpenHelpTopic("samples"));
+    Check(launcher.Paths.Last() == BundledDocuments.SamplesFolder, "Sample menu launches the real packaged directory");
+    Pump(vm.OpenStartupDocumentAsync([BundledDocuments.SamplesFolder]));
+    Check(vm.WorkspaceFolderPath == BundledDocuments.SamplesFolder && vm.DocumentFiles.Count == 6, "Opening samples loads all six actual files into the ordinary file tree");
+    foreach (var file in vm.DocumentFiles)
+        Check(File.Exists(file.Path) && file.Path.StartsWith(BundledDocuments.SamplesFolder), "Sample tree contains packaged files: " + file.Name);
+    Pump(vm.OpenStartupDocumentAsync([Path.Combine(BundledDocuments.SamplesFolder, "图文与链接.md")]));
+    Check(vm.Markdown.Contains("图片/山间湖畔.png") && File.Exists(Path.Combine(BundledDocuments.SamplesFolder, "图片", "山间湖畔.png")), "Sample image resolves from the published document directory without a network");
+    vm.Workbench.ShowRead(); Pump(); SettleRendering(); Capture(window, "packaged-samples");
     Console.WriteLine("PASS: document menu and about routes, process arguments, independent editable workspace and parent preservation");
 }
 

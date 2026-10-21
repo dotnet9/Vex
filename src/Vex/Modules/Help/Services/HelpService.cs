@@ -46,6 +46,14 @@ public sealed class HelpService : IHelpService
 
     public Task ShowAboutWindowAsync() => _overlay.ShowAboutAsync();
 
+    public Task OpenSamplesAsync()
+    {
+        var folder = BundledDocuments.SamplesFolder;
+        if (!Directory.Exists(folder)) throw new DirectoryNotFoundException(_localizer.Get(VexL.HelpDetailDocumentNotFound));
+        _windows.Open(folder);
+        return Task.CompletedTask;
+    }
+
     public Task ShowUpdatesAsync() => _overlay.ShowUpdatesAsync();
 
     private static void Open(string uri)

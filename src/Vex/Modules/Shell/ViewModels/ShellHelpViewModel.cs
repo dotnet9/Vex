@@ -29,6 +29,9 @@ public sealed class ShellHelpViewModel
         {
             switch (topic)
             {
+                case "samples":
+                    await _helpService.OpenSamplesAsync();
+                    break;
                 case "changelog":
                     await _helpService.OpenDocumentAsync("更新日志.md");
                     _statusPublisher.PublishResource(VexL.StatusOpenedChangelog);
@@ -65,6 +68,7 @@ public sealed class ShellHelpViewModel
     {
         return topic switch
         {
+            "samples" => _localizer.Get(VexL.MenuSamples),
             "changelog" => _localizer.Get(VexL.Changelog),
             "thanks" => _localizer.Get(VexL.Thanks),
             "website" => _localizer.Get(VexL.Website),
