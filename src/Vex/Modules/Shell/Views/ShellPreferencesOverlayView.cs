@@ -128,7 +128,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Number(page, VexL.PrefBodySize, p, nameof(p.BodyFontSize), 16, 24);
                 Number(page, VexL.PrefCodeSize, p, nameof(p.CodeFontSize), 11, 20);
                 Number(page, VexL.PrefIndent, p, nameof(p.IndentSize), 2, 8);
-                Toggle(page, VexL.MenuAutoPair, _model.Display, nameof(_model.Display.EnableAutoPair));
+                Toggle(page, L("Vex.VexL.PrefAutoPair"), _model.Display, nameof(_model.Display.EnableAutoPair));
                 Toggle(page, VexL.PrefWrap, p, nameof(p.CodeWrap));
                 Toggle(page, VexL.ShowLineNumbers, _model.Display, nameof(_model.Display.ShowLineNumbers));
                 Toggle(page, VexL.MenuFocusMode, _model.Layout, nameof(_model.Layout.IsFocusMode));
@@ -159,7 +159,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 }
                 Row(page, VexL.WBTheme, colors);
                 Choice(page, VexL.WBTypography, _model.Appearance, nameof(_model.Appearance.SelectedTypography), _model.Appearance.TypographyOptions.Select(x => (L(x.NameKey), (object)x)));
-                Toggle(page, VexL.CompactLayout, _model.Appearance, nameof(_model.Appearance.IsCompactLayout));
+                Toggle(page, L("Vex.VexL.PrefCompactSpacing"), _model.Appearance, nameof(_model.Appearance.IsCompactLayout));
                 Number(page, VexL.PrefZoom, p, nameof(p.ContentZoom), 50, 200, 10);
                 Toggle(page, VexL.PrefWordCount, p, nameof(p.WordCountVisible));
                 Toggle(page, VexL.MenuMotion, _model.Layout, nameof(_model.Layout.EnableMotion));
