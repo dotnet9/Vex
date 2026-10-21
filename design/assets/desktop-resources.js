@@ -2346,18 +2346,8 @@ window.VexDesktopResources = {
 
 (function () {
   const resource = window.VexDesktopResources;
-  const style = document.createElement('style'); style.id='desktop-resource-tokens';
-  const css=[];
-  for (const p of resource.palettes) {
-    const l=p.light,d=p.dark;
-    VexPalettes.push({key:p.key,label:p.label,en:p.en,light:l.StudioAccentColor,dark:d.StudioAccentColor,bg:l.StudioBackgroundColor,paper:l.StudioBackgroundColor,panel:l.StudioSurfaceColor,fg:l.StudioTextColor,muted:l.StudioMutedColor,darkBg:d.StudioBackgroundColor,darkPaper:d.StudioBackgroundColor,darkPanel:d.StudioSurfaceColor,darkFg:d.StudioTextColor,darkMuted:d.StudioMutedColor});
-    for (const mode of ['light','dark']) {
-      const t=p[mode],c={stage:t.StudioSurfaceColor,bg:t.StudioBackgroundColor,panel:t.StudioSurfaceColor,surface:t.StudioBackgroundColor,paper:t.StudioBackgroundColor,sidebar:t.StudioSurfaceColor,field:t.StudioBackgroundColor,border:t.StudioBorderColor,line:t.StudioBorderColor,splitter:t.StudioRaisedColor,'editor-bg':t.StudioBackgroundColor,'editor-fg':t.StudioTextColor,fg:t.StudioTextColor,value:t.StudioTextColor,muted:t.StudioMutedColor,subtle:t.StudioMutedColor,'fg-disabled':t.StudioMutedColor,'md-marker':t.StudioMutedColor,'md-quote':t.StudioMutedColor,'currentline-bg':t.StudioRaisedColor,'currentline-border':t.StudioBorderColor,'statusbar-bg':t.StudioSurfaceColor,'badge-bg':t.StudioSurfaceColor,'badge-border':t.StudioBorderColor,accent:t.StudioAccentColor,'accent-fg':t.StudioOnPrimary,'on-accent':t.StudioOnPrimary,'accent-soft':t.StudioRaisedColor,hover:t.StudioRaisedColor,pressed:t.StudioRaisedColor,'code-bg':t.StudioSurfaceColor,code:t.StudioSurfaceColor,selection:t.StudioRaisedColor,'md-code-fg':t.StudioAccentColor,primary:t.StudioPrimaryColor,'on-primary':t.StudioOnPrimary,'primary-hover':t.StudioPrimaryHover,'accent-hover':t.StudioPrimaryHover,'primary-pressed':t.StudioPrimaryPressed,'title-grad':'linear-gradient(135deg,'+t.StudioGradientStartColor+','+t.StudioSecondaryColor+')'};
-      css.push(':root[data-theme="'+mode+'"][data-palette="'+p.key+'"]{color-scheme:'+mode+';'+Object.entries(c).map(([k,v])=>'--'+k+':'+v).join(';')+'}');
-    }
-  }
-  const aliases={teal:'weft',blue:'ocean',plum:'iris',ochre:'sand'};
-  window.VexPaletteKey = key => aliases[key] || key;
+  /* 配色已不再从本快照注入：界面配色统一由 palette-rules 生成器产出（palettes.js/palettes.css）。
+   * 本快照仅继续提供正文排版目录（typographies）。 */
   const decorations={Foundation:'underline',Clear:'plain',OrangeHeart:'bar',InkNight:'double',ColorfulPurple:'tint',TenderGreen:'plain',Verdant:'bar',RedScarlet:'underline',BlueGlow:'tint',TechAzure:'bar',LanQing:'underline',Yamabuki:'tint',FrontendPeak:'badge',GeekBlack:'mono',RosePurple:'double',CuteGreen:'pill',FullStackBlue:'bar',WeChatPaper:'center'};
   for(const t of resource.typographies){
     const m=t.metrics,size=Number(m.CodeWFMarkdownParagraphFontSize)||16,leading=(Number(m.CodeWFMarkdownParagraphLineHeight)||28)/size;
@@ -2376,5 +2366,4 @@ window.VexDesktopResources = {
   window.VexTypeRules=function(key,compact){const t=VexTypes.find(t=>t.key===key)||VexTypes[0];return originalRules(key,compact)+'BODY{--type-accent-light:'+t.light+';--type-accent-dark:'+t.dark+';--typography-accent:light-dark(var(--type-accent-light),var(--type-accent-dark));--type-on-accent:light-dark(#fff,#17211c)}';};
   // Exports use light paper regardless of the workspace mode.
   window.VexTypeExport=function(key,compact){const t=VexTypes.find(t=>t.key===key)||VexTypes[0];return VexTypeRules(key,compact).replaceAll('BODY','body')+'.md-table-scroll{max-width:100%;overflow-x:auto}table{table-layout:auto;width:max-content;max-width:100%}th,td{width:auto;overflow-wrap:anywhere}body{color-scheme:light;--document-bg:#fff;--fg:#30343b;--muted:#606770;--border:#dde1e5;--typography-accent:'+t.light+';--type-on-accent:#fff}';};
-  style.textContent=css.join('\n');document.head.append(style);
 })();

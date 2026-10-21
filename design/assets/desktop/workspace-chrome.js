@@ -6,17 +6,16 @@
   var active = 'outline', opener = $('outline-toggle'), inspector = $('node-inspector');
 
   sidebar.setAttribute('aria-label', '文档辅助');
-  sidebar.querySelector('.structure-title').textContent = '文档辅助';
-  sidebar.querySelector('.structure-toggle').innerHTML = '<svg class="ico" aria-hidden="true"><use href="#i-x"/></svg>';
-  sidebar.querySelector('.structure-toggle').dataset.action = 'close-auxiliary';
+  /* 用户要求：去掉"文档辅助"标题栏（含右侧关闭按钮），内容直接顶格。 */
+  var structureHead = sidebar.querySelector('.structure-head');
+  if (structureHead) structureHead.remove();
   var labels = { outline:'大纲', info:'文章信息' }, panels = {};
   Object.keys(labels).forEach(function (id) {
     var panel = document.createElement('section'); panel.id = 'auxiliary-' + id; panel.className = 'auxiliary-content';
     panel.setAttribute('role', 'tabpanel'); panel.setAttribute('aria-label', labels[id]); panels[id] = panel;
   });
-  var outlineTools = document.createElement('div'); outlineTools.className = 'files-toolbar'; outlineTools.setAttribute('role', 'toolbar'); outlineTools.setAttribute('aria-label', '大纲工具');
-  outlineTools.innerHTML = '<button type="button" data-action="outline-fold" aria-pressed="false" title="全部折叠"><svg class="ico"><use href="#i-fold"/></svg></button>';
-  panels.outline.append(outlineTools, inner.querySelector('.structure-search'), $('outline-body'));
+  /* 大纲面板不再提供"全部折叠"工具按钮（大纲本身不支持折叠，按钮徒增理解成本）。 */
+  panels.outline.append(inner.querySelector('.structure-search'), $('outline-body'));
   panels.info.innerHTML = '<div class="article-info-name"></div><div class="article-info-kind">Markdown · UTF-8</div><div class="article-info-hero"><strong id="article-info-count">0</strong><span>字</span><small id="article-info-reading"></small></div><dl class="article-info-metrics"></dl><p class="article-count-rule">字数规则：中文按字，英文按词，不计 Markdown 标记与空白。图片计入替代文字。</p>';
 
   inspector.setAttribute('aria-label', '章节内容');

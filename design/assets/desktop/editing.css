@@ -1,6 +1,7 @@
 ﻿/* 编辑方式、Markdown 排版与统一的文字菜单。 */
 .workspace-main { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
 .edit-options { height: 42px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 1px solid var(--border); background: var(--panel); }
+.edit-options > .typography-trigger { margin-left: auto; }
 .edit-methods { display: flex; gap: 4px; }
 .edit-methods button { border: none; border-radius: 5px; padding: 5px 10px; background: transparent; font-size: 11px; color: var(--muted); transition: background .18s, color .18s; }
 .edit-methods button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }

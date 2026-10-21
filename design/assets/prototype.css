@@ -184,7 +184,7 @@ body.device-phone .modal .stat-card strong { font-size:20px; }
 .md-body,.markdown-body { font-size:var(--vex-writing-size,var(--writing-size,16px)); zoom:var(--vex-content-zoom,1); }
 :root[data-writing-font=serif] .md-body,:root[data-writing-font=serif] .markdown-body { font-family:var(--serif,serif); }
 :root[data-writing-font=mono] .md-body,:root[data-writing-font=mono] .markdown-body { font-family:var(--mono,monospace); }
-.content-area .md-body .md-code-block pre,.content-area .md-body .md-code-block pre code,.markdown-body pre,.markdown-body pre code { font-size:var(--vex-code-size,13px); }
+.content-area .md-body .md-code-block pre,.content-area .md-body .md-code-block pre code,.markdown-body pre,.markdown-body pre code { font-size:calc(var(--vex-writing-size,15px) * .87); }
 :root[data-code-wrap=true] .md-body pre,:root[data-code-wrap=true] .md-body pre code,:root[data-code-wrap=true] .markdown-body pre { white-space:pre-wrap; overflow-wrap:anywhere; }
 .vex-range { display:flex; align-items:center; gap:8px; }
 .vex-watermarked,.vex-watermark-sample { background-image:var(--vex-watermark-light); background-repeat:repeat; background-size:280px 180px; }

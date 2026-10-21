@@ -33,13 +33,16 @@
   var statusbar = document.querySelector('.document-statusbar'), wordCount = document.getElementById('sb-wordcount');
   var typeButton=$('edit-options').querySelector('[data-action="typography"]');
   typeButton.setAttribute('aria-haspopup','dialog');typeButton.setAttribute('aria-controls','typography-panel');typeButton.title='正文排版';
-  panels.editor.querySelector('.view-heading').appendChild(typeButton);
+  /* 排版入口与格式工具栏同处一条悬浮条（右对齐），标题行隐藏。 */
+  $('edit-options').appendChild(typeButton);
   panels.editor.insertBefore($('edit-options'),panels.editor.querySelector('.view-body'));
   var readingTypeButton=typeButton.cloneNode(true);panels.render.querySelector('.view-heading').appendChild(readingTypeButton);
   $('reading-pane').querySelector('[data-action="typography"]').remove();
   var mapButton=document.createElement('button');mapButton.className='map-appearance-trigger';mapButton.dataset.action='map-appearance';mapButton.hidden=true;
   mapButton.setAttribute('aria-haspopup','dialog');mapButton.setAttribute('aria-expanded','false');mapButton.setAttribute('aria-controls','map-appearance-panel');mapButton.title='导图样式';
-  mapButton.innerHTML=icon('map')+'<span>导图样式</span>'+icon('chevron-down');panels.map.querySelector('.view-heading').appendChild(mapButton);
+  mapButton.innerHTML=icon('map')+'<span>导图样式</span>'+icon('chevron-down');
+  /* 导图样式并入快捷工具栏右侧（对照源码旁），随工具栏悬浮显示。 */
+  panels.map.querySelector('.map-toolbar').appendChild(mapButton);
   var mapAppearance=VexMapAppearance.create({parent:document.querySelector('.window-body'),scene:$('map-scene'),getLayout:function(){return $('map-layout').value;},setLayout:function(key){$('map-layout').value=key;$('map-layout').dispatchEvent(new Event('change'));},isTemporary:function(){return guideActive;},beforeOpen:function(){VexTypography.close();closeMenus();$('map-settings').hidden=true;}});
   var layoutButton = document.createElement('button'); layoutButton.className = 'workspace-layout-button'; layoutButton.id = 'workspace-layout';
   layoutButton.setAttribute('aria-haspopup', 'dialog'); layoutButton.setAttribute('aria-expanded', 'false');

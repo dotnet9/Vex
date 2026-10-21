@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="assets/desktop/guide.css">
 <link rel="stylesheet" href="assets/desktop/workspace.css">
 <link rel="stylesheet" href="assets/desktop/branding.css">
-<link rel="stylesheet" href="assets/palettes.css"><link rel="stylesheet" href="assets/typography.css">
+<link rel="stylesheet" href="assets/palettes.css"><link rel="stylesheet" href="assets/density.css"><link rel="stylesheet" href="assets/typography.css">
 <link rel="stylesheet" href="assets/desktop/refinement.css">
 <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
 <link rel="stylesheet" href="assets/prototype.css"><link rel="stylesheet" href="assets/element-menu.css">
@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="assets/desktop/workspace-chrome.css">
 <script src="assets/palettes.js"></script><script src="assets/typography-catalog.js"></script>
 <script src="assets/desktop-resources.js"></script><script src="assets/design-system.js"></script><script src="assets/typography-preview.js"></script><script src="assets/social-copy.js"></script>
-<script src="assets/desktop/theme.js"></script>
+<script src="assets/palette-rules.js"></script><script src="assets/generated/palette-rules-data.js"></script><script src="assets/table-tools.js"></script><script src="assets/desktop/theme.js"></script>
 <script src="assets/vendor/d3-hierarchy/d3-hierarchy.min.js"></script><script src="assets/map-layout.js"></script><script src="assets/map-appearance.js"></script><script src="assets/document-window.js"></script><script src="assets/exit-dialog.js"></script>
 <script src="assets/overlay.js"></script><script src="assets/mermaid-catalog.js"></script><script src="assets/generated/documents-data.js"></script><script src="assets/watermark.js"></script><script src="assets/preferences.js"></script><script src="assets/tour-placement.js"></script><script src="assets/diagram-editor.js"></script>
 <link rel="stylesheet" href="assets/table-layout.css"><link rel="stylesheet" href="assets/diagram-layout.css"><link rel="stylesheet" href="assets/design-system.css"></head>
@@ -100,9 +100,9 @@
       <aside class="sidebar" aria-label="文件列表"><div class="sidebar-inner">
 
         <div class="side-pane" id="files-pane">
-          <div class="files-toolbar" role="toolbar" aria-label="文件列表工具"><button type="button" data-action="files-mode" aria-pressed="true" title="按文件夹分类"><svg class="ico"><use href="#i-folder"/></svg></button><button type="button" data-action="files-sort" title="按名称排序：默认"><svg class="ico"><use href="#i-list"/></svg><span class="sort-arrow" hidden>↑</span></button><button type="button" data-action="files-fold" title="全部折叠"><svg class="ico"><use href="#i-fold"/></svg></button></div>
           <label class="sidebar-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="file-filter" placeholder="按文件名查找…" aria-label="按文件名查找" title="只匹配文件名，不搜索正文 · Ctrl+P"><button class="clear-search" data-action="clear-file-search" title="清除文件名筛选" aria-label="清除文件名筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
           <div class="file-list" id="file-list"></div><div class="empty-state" id="file-empty" hidden>没有匹配的文档</div>
+          <div class="files-toolbar files-toolbar-bottom" role="toolbar" aria-label="文件列表工具"><button type="button" data-action="files-mode" aria-pressed="true" title="按文件夹分类"><svg class="ico"><use href="#i-folder"/></svg></button><button type="button" data-action="files-sort" title="按名称排序：默认"><svg class="ico"><use href="#i-list"/></svg><span class="sort-arrow" hidden>↑</span></button><button type="button" data-action="files-fold" title="全部折叠"><svg class="ico"><use href="#i-fold"/></svg></button></div>
         </div>
 
         
@@ -173,7 +173,7 @@
           </aside>
         </section>
       </div>
-      <footer class="document-statusbar"><div class="document-corner-actions" aria-label="辅助面板"><button class="on" data-action="toggle-sidebar" id="sidebar-toggle" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true"><svg class="ico"><use href="#i-sidebar"/></svg><span>文件</span></button><button data-action="toggle-structure" id="outline-toggle" title="展开文档大纲" aria-label="展开文档大纲" aria-pressed="false" aria-controls="structure-sidebar"><svg class="ico" style="transform:scaleX(-1)"><use href="#i-sidebar"/></svg><span>大纲</span></button></div><div id="view-follow-controls" hidden><button id="view-follow-toggle" type="button" aria-pressed="true">联动开启</button><span id="view-follow-driver">跟随编辑位置</span><button id="return-to-editing" type="button">回到编辑位置</button></div><button class="document-word-count" id="sb-wordcount" data-action="dlg-statistics" aria-controls="structure-sidebar" title="查看文章信息与字数统计">字数 0</button></footer>
+      <footer class="document-statusbar"><div class="document-corner-actions" aria-label="辅助面板"><button class="on" data-action="toggle-sidebar" id="sidebar-toggle" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true"><svg class="ico"><use href="#i-sidebar"/></svg><span>文件</span></button><button data-action="toggle-structure" id="outline-toggle" title="展开文档大纲" aria-label="展开文档大纲" aria-pressed="false" aria-controls="structure-sidebar"><svg class="ico" style="transform:scaleX(-1)"><use href="#i-sidebar"/></svg><span>大纲</span></button></div><button class="document-word-count" id="sb-wordcount" data-action="dlg-statistics" aria-controls="structure-sidebar" title="查看文章信息与字数统计">字数 0</button></footer>
       </div>
     <div class="structure-splitter" id="structure-splitter" role="separator" aria-label="调整文档大纲宽度" aria-orientation="vertical" aria-valuemin="180" aria-valuemax="480" aria-valuenow="240" tabindex="0"></div>
     <aside class="structure-sidebar" id="structure-sidebar" aria-label="文档结构"><div class="structure-inner">

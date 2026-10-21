@@ -1,9 +1,9 @@
 /* 桌面体验修订：真实尺寸文字与明确的操作层级，不使用 transform 缩放界面。 */
 :root { --font:'Microsoft YaHei UI','Segoe UI','PingFang SC','Noto Sans CJK SC',sans-serif; }
-body { font-family:var(--font); font-size:14px; }
+body { font-family:var(--font); font-size:var(--fs-body,14px); }
 :root { --window-control-width:46px; --window-control-height:32px; --window-control-icon:14px; --dialog-titlebar-height:36px; }
 .app-window > .titlebar { height:33px; min-height:33px; flex:none; gap:12px; }
-.tb-menuitem { display:flex; align-items:center; min-height:28px; padding:0 9px; font-size:14px; line-height:20px; }
+.tb-menuitem { display:flex; align-items:center; min-height:var(--control-h-sm,28px); padding:0 9px; font-size:var(--fs-body,14px); line-height:20px; }
 /* 右侧控件独立占位：引导或弹窗改变可见性时也不能回流到菜单后。 */
 .app-window > .titlebar > .caption-btns { margin-left:auto; height:32px; }
 .app-window > .titlebar > .studio-title-controls { margin-left:auto; }
@@ -24,8 +24,8 @@ body { font-family:var(--font); font-size:14px; }
 .dialog-content { padding:22px; }
 .dialog-content > .dlg-msg:first-child { margin-top:0; }
 .menu-flyout,.submenu { min-width:272px; padding:7px; border-radius:9px; }
-.menu-item { min-height:36px; padding:7px 12px; font-size:14px; line-height:22px; }
-.menu-item .shortcut,.menu-item kbd { font-size:12px; margin-left:32px; }
+.menu-item { min-height:var(--control-h-md,36px); padding:7px 12px; font-size:var(--fs-body,14px); line-height:22px; }
+.menu-item .shortcut,.menu-item kbd { font-size:var(--fs-caption,12px); margin-left:32px; }
 .workbar { min-height:66px; }
 .side-tab,.file-row,.input,.btn,.set-body { font-size:14px; }
 .side-tabs { display:flex; height:44px; padding:0; gap:0; border-bottom:1px solid var(--border); }

@@ -113,15 +113,11 @@
       { label: '演示模式', gesture: 'F5', action: 'presentation' },
       { label: '专注模式', gesture: 'F8', check: true, action: 'toggle-focus' }, { label: '打字机模式', check: true, action: 'toggle-typewriter' },
       { sep: true },
-      { label: '界面配色', sub: THEME_ITEMS },
-      { label: 'Markdown 排版', sub: VexTypes.map(function(t){return {label:t.label,action:'typography-select',arg:t.key,check:true};}).concat([{sep:true},{label:'紧凑布局',action:'toggle-compact',check:true}]) },
-      { label: '导图样式…', action: 'map-appearance' },
-      { sep: true },
       { label: '全屏', gesture: 'F11', check: true, action: 'toggle-fullscreen' },
       { label: '保持窗口在最前', check: true, action: 'toggle-topmost' }, { label: '最大化 / 还原', action: 'maximize' }
     ]},
     { key: 'tools', label: '工具(T)', items: [
-      { label: '导图显示设置', action: 'map-settings' }, { label: '字数统计', act: 'dlg-statistics' },
+      { label: '字数统计', act: 'dlg-statistics' },
       { label: '刷新内容', action: 'refresh' }, { sep: true },
       { label: '复制到微信公众号', action: 'copy-wechat' },
       { label: '复制到知乎', action: 'copy-zhihu' },

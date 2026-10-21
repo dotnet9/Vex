@@ -1,4 +1,4 @@
-/* Shared by every typography: column widths follow content, not column count. */
+/* Shared by every typography: tables fill the render area; column widths still follow content. */
 .md-table-scroll {
   max-width: 100%;
   min-width: 0;
@@ -12,7 +12,7 @@
 .review-paper .md-body table,
 .markdown-body table {
   table-layout: auto;
-  width: max-content;
+  width: 100%;
   max-width: 100%;
   min-width: 0;
 }
@@ -22,3 +22,23 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
+
+/* 表格工具栏（ZCode 式）：复制 Markdown / 下载 CSV / 预览表格。JS 增强见 table-tools.js。 */
+.md-table-block { margin: 1em 0; }
+.md-table-block .md-table-scroll { margin: 0; }
+.md-table-toolbar { display: flex; justify-content: flex-end; gap: 2px; margin-bottom: 4px; }
+.md-table-toolbar button {
+  font-size: var(--fs-caption, 12px); line-height: 1.2; padding: 5px 9px;
+  border: 1px solid transparent; border-radius: var(--radius-sm, 5px);
+  background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap;
+}
+.md-table-toolbar button:hover { background: var(--hover); color: var(--fg); border-color: var(--border); }
+.md-table-toolbar button:disabled { opacity: .7; cursor: default; }
+.md-table-toolbar button:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 1px; }
+#vex-table-preview { position: fixed; inset: 0; z-index: 400; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 32px; }
+.table-preview-card { display: flex; flex-direction: column; width: min(1200px, 92vw); max-height: calc(100dvh - 64px); background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius-lg, 10px); box-shadow: var(--shadow-window); overflow: hidden; }
+.table-preview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--panel); flex: none; }
+.table-preview-head strong { font-size: var(--fs-body, 14px); }
+.table-preview-close { font-size: var(--fs-caption, 12px); padding: 5px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm, 5px); background: var(--panel); color: var(--fg); cursor: pointer; }
+.table-preview-close:hover { background: var(--hover); }
+.table-preview-body { overflow: auto; padding: 20px 24px; }

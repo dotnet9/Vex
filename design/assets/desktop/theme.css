@@ -1,88 +1,21 @@
 @import url("../fonts.css");
 /* ============================================================
    Vex 界面原型 · 主题令牌与组件库
-   布局参考 Vex，配色由 ../palettes.css 统一定义
-   主题：八套配色，各自支持 light / dark
+   布局参考 Vex；配色令牌全部由 ../palettes.css 生成器产出
+   （scripts/palette-rules.cjs ← CodeWF.Avalonia 配色与排版令牌规则.md），
+   本文件只保留与配色无关的模式级常量（阴影）与组件样式。
    ============================================================ */
 
-/* ---------- 主题令牌 ---------- */
+/* ---------- 模式级常量（非配色） ---------- */
 :root[data-theme="light"] {
-  --stage: #E7E9EE;
-  --bg: #FDFDFD;
-  --panel: #FFFFFF;
-  --border: #E4E7EC;
-  --splitter: #F2F4F7;
-  --editor-bg: #FFFFFF;
-  --editor-fg: #101828;
-  --currentline-bg: #F4F7FB;
-  --currentline-border: #E4E9F2;
-  --statusbar-bg: #F7F8FA;
-  --badge-bg: #F8FAFC;
-  --badge-border: #D8DEE8;
-  --muted: #667085;
-  --value: #1D2939;
-  --accent: #1677FF;
-  --accent-fg: #FFFFFF;
-  --accent-soft: #E8F1FF;
-  --hover: #F2F4F7;
-  --pressed: #E8F1FF;
-  --fg: #101828;
-  --fg-disabled: #98A2B3;
-  --code-bg: #F8FAFC;
-  --selection: #D9EAFD;
-  --danger: #DC2626;
-  --danger-soft: #FEECEB;
-  --success: #067647;
-  --warning: #B54708;
-  --scrim: rgba(0, 0, 0, 0.40);
-  --tooltip-bg: #111827;
-  --tooltip-fg: #F8FAFC;
   --shadow-window: 0 24px 64px rgba(16, 24, 40, 0.22), 0 4px 16px rgba(16, 24, 40, 0.10);
   --shadow-pop: 0 12px 32px rgba(16, 24, 40, 0.16), 0 2px 8px rgba(16, 24, 40, 0.08);
-  --md-marker: #98A2B3;
-  --md-code-fg: #B42318;
-  --md-quote: #667085;
-  --title-grad: linear-gradient(135deg, #1677FF, #69B1FF);
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --stage: #0A0D14;
-  --bg: #111827;
-  --panel: #151B26;
-  --border: #2B3443;
-  --splitter: #232B38;
-  --editor-bg: #111827;
-  --editor-fg: #E5E7EB;
-  --currentline-bg: #1B2533;
-  --currentline-border: #334155;
-  --statusbar-bg: #151B26;
-  --badge-bg: #1B2533;
-  --badge-border: #334155;
-  --muted: #AAB4C3;
-  --value: #F3F4F6;
-  --accent: #60A5FA;
-  --accent-fg: #111827;
-  --accent-soft: #1D3A5F;
-  --hover: #263244;
-  --pressed: #1D3A5F;
-  --fg: #E5E7EB;
-  --fg-disabled: #7D8999;
-  --code-bg: #1B2533;
-  --selection: #243B55;
-  --danger: #FF828F;
-  --danger-soft: #3B1D23;
-  --success: #4ADE80;
-  --warning: #FBBF24;
-  --scrim: rgba(0, 0, 0, 0.60);
-  --tooltip-bg: #F8FAFC;
-  --tooltip-fg: #111827;
   --shadow-window: 0 24px 64px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
   --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.50), 0 2px 8px rgba(0, 0, 0, 0.30);
-  --md-marker: #7D8999;
-  --md-code-fg: #FBBF77;
-  --md-quote: #AAB4C3;
-  --title-grad: linear-gradient(135deg, #60A5FA, #A5C8FF);
   color-scheme: dark;
 }
 
@@ -101,7 +34,7 @@ html, body { height: 100%; }
 
 body {
   font-family: -apple-system, "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "PingFang SC", "Noto Sans SC", sans-serif;
-  font-size: 13px;
+  font-size: var(--fs-body, 13px);
   line-height: 1.6;
   color: var(--fg);
   background: var(--stage);

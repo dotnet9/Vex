@@ -19,6 +19,9 @@
 .file-navigation-footer svg{width:18px;height:18px;flex:none}
 .file-navigation-footer{position:relative}
 .files-toolbar{display:flex;gap:2px;padding:9px 14px 4px;align-items:center}
+/* 文件列表工具条置于侧栏底部（用户要求），上方列表自然占满。 */
+/* 与右侧文档状态栏同高（34px，workspace-chrome.css §44），底栏水平居中对齐。 */
+.files-toolbar-bottom{height:34px;min-height:34px;padding:0 14px;border-top:1px solid var(--border);flex:none;align-items:center}
 .files-toolbar button{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border:0;border-radius:5px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
 .files-toolbar button:hover{background:var(--hover);color:var(--fg)}
 .files-toolbar button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}

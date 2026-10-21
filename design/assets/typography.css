@@ -1,4 +1,8 @@
 /* Document rules are generated from typography-catalog.js for every surface. */
+/* 正文字号三档（Markdown 尺寸档，规则 §11）：只提供基准 BodySize，与界面密度独立、不联动。 */
+:root{--writing-size:15px}
+:root[data-mdsize="compact"]{--writing-size:13px}
+:root[data-mdsize="relaxed"]{--writing-size:17px}
 .typography-popover{position:absolute;right:18px;background:var(--panel,var(--surface));border:1px solid var(--border,var(--line));box-shadow:var(--shadow-pop,var(--pop-shadow));color:var(--fg)}
 .typography-grid{display:grid;min-height:0}
 .typography-card{cursor:pointer;min-width:0}
@@ -15,8 +19,45 @@
 #typography-close:hover{background:var(--hover);color:var(--fg)}
 #typography-close .ico{width:16px;height:16px}
 #typography-panel .typography-note{flex:none;font-size:12px;line-height:1.6;margin:4px 0 12px;color:var(--muted)}
-#typography-panel .typography-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));grid-auto-rows:max-content;flex:1;min-height:0;max-height:none;align-content:start;align-items:stretch;gap:12px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding:2px 4px 2px 2px}
-#typography-panel .typography-card{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:10px;min-height:332px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);text-align:left;box-shadow:none;transform:none}
+#typography-panel .typography-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));grid-auto-rows:max-content;flex:1;min-height:0;max-height:none;align-content:start;align-items:stretch;gap:10px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding:2px 4px 2px 2px}
+#typography-panel .typography-card{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:8px;min-height:236px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);text-align:left;box-shadow:none;transform:none}
+/* 自定义排版卡（div 容器 + 应用按钮 + 编辑/删除工具）与"+"新增块。 */
+#typography-panel .typography-card-apply{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;min-width:0}
+#typography-panel [data-custom-card]{position:relative}
+#typography-panel [data-custom-card].current{border-color:var(--accent)}
+#typography-panel [data-custom-card].current .typography-card-selected{visibility:visible}
+#typography-panel .typography-card-tools{position:absolute;top:8px;right:8px;display:flex;gap:3px;opacity:0;transition:opacity .15s}
+#typography-panel [data-custom-card]:hover .typography-card-tools,#typography-panel [data-custom-card]:focus-within .typography-card-tools{opacity:1}
+#typography-panel .typography-card-tools button{width:22px;height:22px;display:grid;place-items:center;border:1px solid var(--border);border-radius:5px;background:var(--panel);color:var(--muted);font-size:12px;cursor:pointer}
+#typography-panel .typography-card-tools button:hover{color:var(--fg);background:var(--hover)}
+#typography-panel .typography-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:236px;border:1px dashed var(--border);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
+#typography-panel .typography-add:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+#typography-panel .typography-add span{font-size:34px;line-height:1}
+#typography-panel .typography-add small{font-size:11px}
+/* 新增/编辑排版对话框（独立于弹出层）。 */
+#typography-dialog{position:fixed;inset:0;z-index:420;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:24px}
+#typography-dialog[hidden]{display:none}
+.typography-dialog-card{width:min(430px,100%);display:flex;flex-direction:column;gap:12px;padding:20px;background:var(--paper);border:1px solid var(--border);border-radius:var(--radius-lg,10px);box-shadow:var(--shadow-window);font-size:12px;color:var(--fg)}
+.typography-dialog-card>strong{font-size:14px}
+.td-row{display:flex;gap:8px;flex-wrap:wrap}
+.td-row label{display:flex;flex-direction:column;gap:4px;color:var(--muted)}
+.td-row input[type="text"]{min-height:28px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--fg)}
+.td-row input[type="color"]{width:52px;height:26px;padding:0;border:1px solid var(--border);border-radius:5px;background:none;cursor:pointer}
+.td-row select{min-height:28px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--fg);cursor:pointer}
+.td-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+/* 排版弹层顶部：渲染密度行（控件样式与外观菜单一致，作用于 Markdown 渲染）。 */
+#typography-panel .typography-density{display:flex;align-items:center;gap:10px;flex:none;padding:2px 2px 10px;border-bottom:1px solid var(--border,var(--line))}
+#typography-panel .typography-density strong{font-size:11px;color:var(--muted);font-weight:600}
+/* 自定义排版编辑器（规则 §8/§13 编写层）：与内置卡同网格，行式表单。 */
+.typography-editor{display:flex;flex-direction:column;gap:8px;min-height:0;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);text-align:left;font-size:11px}
+.typography-editor strong{font-size:12px}
+.typography-editor small{color:var(--muted);line-height:1.5}
+.typography-editor-row{display:flex;gap:8px;flex-wrap:wrap}
+.typography-editor-row label{display:flex;flex-direction:column;gap:3px;color:var(--muted);min-width:0}
+.typography-editor-row input[type="color"]{width:44px;height:24px;padding:0;border:1px solid var(--border);border-radius:5px;background:none;cursor:pointer}
+.typography-editor-row select{min-height:24px;font-size:11px;border:1px solid var(--border);border-radius:5px;background:var(--panel);color:var(--fg);cursor:pointer}
+.typography-editor-actions{display:flex;gap:6px;margin-top:2px}
+.typography-editor-actions .btn{min-height:26px;padding:4px 10px;font-size:11px}
 #typography-panel .typography-card:hover{border-color:var(--accent);background:var(--surface);box-shadow:0 2px 9px color-mix(in srgb,var(--fg) 6%,transparent)}
 #typography-panel .typography-card[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
 #typography-panel .typography-card:focus-visible{outline:2px solid var(--accent);outline-offset:1px}

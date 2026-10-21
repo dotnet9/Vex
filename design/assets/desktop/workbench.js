@@ -105,9 +105,11 @@
     structureSidebar.inert = !expanded;
     structureSplitter.hidden = !expanded || narrow || crowded;
     var toggle = structureSidebar.querySelector('.structure-toggle');
-    toggle.setAttribute('aria-expanded', String(expanded));
-    toggle.title = expanded ? '收起辅助面板' : '展开辅助面板';
-    toggle.setAttribute('aria-label', toggle.title);
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', String(expanded));
+      toggle.title = expanded ? '收起辅助面板' : '展开辅助面板';
+      toggle.setAttribute('aria-label', toggle.title);
+    }
     $('outline-toggle').setAttribute('aria-pressed', String(expanded));
     $('outline-toggle').title = $('outline-toggle').ariaLabel = expanded ? '收起文档大纲' : '展开文档大纲';
     if (window.VexAuxiliary) VexAuxiliary.sync();
@@ -954,7 +956,6 @@
       case 'files-mode': fileListMode = 'tree'; alphaSort = 'default'; if (!bundledDocument) VexStorage.setItem('vex-design-file-list-mode', 'tree'); renderFiles(); break;
       case 'files-sort': alphaSort = alphaSort === 'default' ? 'asc' : alphaSort === 'asc' ? 'desc' : 'default'; fileListMode = alphaSort === 'default' ? 'tree' : 'list'; if (!bundledDocument) VexStorage.setItem('vex-design-file-list-mode', fileListMode); renderFiles(); break;
       case 'files-fold': { var groups = document.querySelectorAll('#file-list details.file-directory'); var anyOpen = Array.prototype.some.call(groups, function (g) { return g.open; }); groups.forEach(function (g) { g.open = !anyOpen; }); syncFilesToolbar(); break; }
-      case 'outline-fold': outlineFolded = !outlineFolded; renderOutline(); var ofBtn = document.querySelector('[data-action="outline-fold"]'); if (ofBtn) { ofBtn.setAttribute('aria-pressed', String(outlineFolded)); ofBtn.title = outlineFolded ? '全部展开' : '全部折叠'; } break;
       case 'file-actions': $('file-navigation-menu').hidden = !$('file-navigation-menu').hidden; document.querySelector('[data-action=file-actions]').setAttribute('aria-expanded', String(!$('file-navigation-menu').hidden)); break;
       case 'refresh-files': renderFiles(); break;
       case 'collapse-files': document.querySelectorAll('#file-list details.file-directory[open]').forEach(function (group) { group.open = false; }); renderFiles(); break;
@@ -1262,9 +1263,10 @@
       if (key === 'theme') VexTheme.setMode(value);
       if (key === 'palette') VexTheme.setPalette(value);
       if (key === 'typography') VexTypography.choose(value);
+      if (key === 'uiDensity') VexTheme.setDensity(value);
+      if (key === 'mdSize') VexTheme.setMdSize(value);
       if (key === 'compact' && VexTypography.state.compact !== value) VexTypography.toggleCompact();
       if (key === 'language') VexL.set(value);
-      if (key === 'size') document.documentElement.style.setProperty('--vex-writing-size',value + 'px');
       if (key === 'font') document.documentElement.dataset.writingFont = value;
       if (key === 'zoom') document.documentElement.style.setProperty('--vex-content-zoom',value / 100);
       if (key === 'lineNumbers') document.querySelector('.source-scroll').classList.toggle('no-lines',!value);

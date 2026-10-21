@@ -17,8 +17,10 @@
 .empty-state button{display:block;margin:10px auto 0;border:0;background:transparent;color:var(--accent);font-size:11px;cursor:pointer}
 .find-scope{font-size:11px;color:var(--muted);white-space:nowrap}.find-strip .input{min-width:0}.find-strip #find-count{white-space:nowrap}
 #vex-appearance-menu{position:relative}#vex-appearance-menu>summary{list-style:none;display:flex;align-items:center;gap:5px;padding:3px 7px;border-radius:5px;font-size:11px;cursor:pointer}#vex-appearance-menu>summary .ico{width:15px;height:15px}#vex-appearance-menu[open]>summary{background:var(--accent-soft);color:var(--accent)}
-.appearance-choices{position:absolute;right:0;top:35px;z-index:150;width:430px;padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:9px;box-shadow:var(--shadow-pop)}
-.appearance-choices>.studio-modes{display:flex;border:0;background:transparent;padding:0 0 12px;gap:8px;flex-wrap:wrap}.studio-modes>span,.appearance-choices>strong{font-size:12px;font-weight:600}.studio-modes small{flex-basis:100%;color:var(--muted);font-size:11px}.appearance-choices .studio-palettes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}.appearance-choices .studio-palettes button{position:relative;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:7px;width:auto;height:auto;padding:8px;font-size:11px;text-align:left}.appearance-choices .studio-palettes button>i{flex:none;width:100%;height:18px;border-radius:4px}.appearance-choices .studio-palettes .palette-label{display:flex;min-width:0;flex-direction:column;gap:1px;padding-right:16px}.appearance-choices .studio-palettes .palette-label b{white-space:nowrap}.appearance-choices .studio-palettes .palette-label small{font-size:10.5px;line-height:1.45}.appearance-choices .studio-palettes button::after{position:absolute;right:6px;bottom:6px;margin:0;font-size:12px}.palette-badge{position:absolute;top:6px;right:6px;z-index:1;font:600 10px/1 var(--font);font-style:normal;padding:2px 4px;border-radius:4px;background:var(--accent);color:#fff;pointer-events:none}
+.appearance-choices{position:absolute;right:0;top:35px;z-index:150;width:430px;padding:14px 16px 16px;background:var(--panel);border:1px solid var(--border);border-radius:9px;box-shadow:var(--shadow-pop);overflow:visible}
+.appearance-choices>.studio-modes{display:flex;border:0;background:transparent;padding:0 0 10px;gap:8px;flex-wrap:wrap}.studio-modes>span,.appearance-choices>strong{font-size:12px;font-weight:600}.studio-modes small{flex-basis:100%;color:var(--muted);font-size:11px}.appearance-choices .studio-palettes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:7px}.appearance-choices .studio-palettes button{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:6px;width:auto;height:auto;padding:7px;font-size:11px;text-align:left;border:1px solid var(--border);border-radius:6px;background:var(--paper);color:var(--fg)}
+.appearance-choices .studio-palettes button:hover{background:var(--hover);border-color:var(--accent)}
+.appearance-choices .studio-palettes button.on,.appearance-choices .studio-palettes button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--paper)}.appearance-choices .studio-palettes button .swatch-dots{display:grid;grid-template-columns:repeat(4,auto);gap:4px;padding-right:24px}.appearance-choices .studio-palettes button .swatch-dots i{width:16px;height:16px;border-radius:50%;border:1px solid var(--border);flex:none}.appearance-choices .studio-palettes .palette-label{display:flex;min-width:0;flex-direction:column;gap:1px;padding-right:16px}.appearance-choices .studio-palettes .palette-label b{white-space:nowrap}.appearance-choices .studio-palettes .palette-label small{font-size:10px;line-height:1.4}.appearance-choices .studio-palettes button::after{position:absolute;right:5px;bottom:5px;margin:0;font-size:11px}.palette-badge{position:absolute;top:5px;right:5px;z-index:1;font:600 9px/1 var(--font);font-style:normal;padding:2px 4px;border-radius:4px;background:var(--accent);color:#fff;pointer-events:none}
 .chapter-feedback{display:flex;align-items:center;gap:10px;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--accent-soft);color:var(--fg);font-size:11px;flex:none}.chapter-feedback span{flex:1}.chapter-feedback button{color:var(--accent);background:transparent;border:0;font-size:11px;white-space:nowrap;cursor:pointer}
 .chapter-drop-preview{position:absolute;top:12px;left:12px;right:12px;z-index:15;padding:9px 12px;background:var(--panel);border:1px solid var(--accent);border-radius:6px;font-size:12px;box-shadow:var(--shadow-pop);pointer-events:none}
 .workspace-welcome{display:flex;flex:1;align-items:center;justify-content:center;text-align:center;padding:32px;background:var(--bg)}.workspace-welcome h1{font-size:27px;margin:14px 0}.workspace-welcome p{font-size:14px;line-height:1.9;color:var(--muted)}.welcome-kicker{font-size:12px;color:var(--accent)}.workspace-welcome small{display:block;font-size:11px;line-height:1.7;color:var(--muted);margin-top:24px}.workspace-welcome .btn{margin:4px}
@@ -38,3 +40,37 @@
 .theme-mode-options label:has(input:checked){color:var(--accent);background:var(--accent-soft)}
 .theme-mode-options input{accent-color:var(--accent);width:14px;height:14px;margin:0;cursor:pointer}
 .theme-mode-options input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* Density tiers (assets/density.css, generated) expose one row of toggles in the appearance popup. */
+.density-options{display:flex;gap:6px;margin-top:9px}
+.density-options button{flex:1;min-height:var(--control-h-sm,30px);padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-sm,5px);background:var(--panel);color:var(--muted);font-size:var(--fs-caption,12px);cursor:pointer}
+.density-options button:hover{background:var(--hover);color:var(--fg)}
+.density-options button.on{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
+.appearance-choices .density-options{margin:6px 0 2px}
+/* 自定义配色编辑（规则 §7 编写层 4 色）与对比度报告。 */
+.appearance-custom{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0 0}
+.appearance-custom label{display:flex;flex-direction:column;gap:4px;font-size:10.5px;color:var(--muted);text-align:center}
+.appearance-custom input{width:100%;height:24px;padding:0;border:1px solid var(--border);border-radius:5px;background:none;cursor:pointer}
+.custom-palette-actions{margin-top:6px}
+.custom-palette-report{margin:6px 0 0;font-size:11px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
+/* 自定义配色卡（工具钮）与"+"新增块；新增/编辑对话框（双明暗 8 色）。 */
+.appearance-choices .palette-wrap{position:relative;display:flex;flex-direction:column}
+.appearance-choices .palette-card-tools{position:absolute;top:5px;right:5px;display:flex;gap:3px;opacity:0;transition:opacity .15s;z-index:1}
+.appearance-choices .palette-wrap:hover .palette-card-tools,.appearance-choices .palette-wrap:focus-within .palette-card-tools{opacity:1}
+.appearance-choices .palette-card-tools button{width:20px;height:20px;display:grid;place-items:center;padding:0;border:1px solid var(--border);border-radius:5px;background:var(--panel);color:var(--muted);font-size:11px;cursor:pointer}
+.appearance-choices .palette-card-tools button:hover{color:var(--fg);background:var(--hover)}
+.appearance-choices .studio-palettes .palette-add{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px;width:100%;min-height:92px;border:1px dashed var(--border);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer}
+.appearance-choices .palette-add:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.appearance-choices .palette-add span{font-size:26px;line-height:1}
+.appearance-choices .palette-add small{font-size:10px}
+#palette-dialog{position:fixed;inset:0;z-index:420;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:24px}
+#palette-dialog[hidden]{display:none}
+.palette-dialog-card{width:min(420px,100%);display:flex;flex-direction:column;gap:12px;padding:20px;background:var(--paper);border:1px solid var(--border);border-radius:var(--radius-lg,10px);box-shadow:var(--shadow-window);font-size:12px;color:var(--fg)}
+.palette-dialog-card>strong{font-size:14px}
+.pd-group strong{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600}
+.pd-field{display:flex;flex-direction:column;gap:4px;color:var(--muted)}
+.pd-field input[type="text"]{min-height:28px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--fg)}
+.pd-colors{display:flex;gap:10px;flex-wrap:wrap}
+.pd-colors label{display:flex;flex-direction:column;gap:4px;color:var(--muted)}
+.pd-colors input[type="color"]{width:52px;height:26px;padding:0;border:1px solid var(--border);border-radius:5px;background:none;cursor:pointer}
+.pd-report{margin:0;font-size:11px;line-height:1.6;color:var(--muted)}
+.pd-actions{display:flex;justify-content:flex-end;gap:8px}

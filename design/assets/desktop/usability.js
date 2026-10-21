@@ -25,16 +25,20 @@
   document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !details.hidden) closeSaveDetails(true); });
   window.addEventListener('vex-save-state-changed', updateSaveDetails);
 
-  function updateFollow() {
-    var following = W.state.followViews;
-    $('view-follow-toggle').textContent = following ? '联动开启' : '自由浏览';
-    $('view-follow-toggle').setAttribute('aria-pressed', String(following));
-    $('view-follow-toggle').title = following ? '暂停视图联动，各栏独立浏览' : '恢复视图联动，并回到编辑位置';
-    $('view-follow-driver').textContent = following ? '跟随' + (W.state.followDriver || '编辑位置') : '各栏独立浏览';
+  /* 视图联动保持默认开启；状态栏不再展示"自由浏览 / 各栏独立浏览 / 回到编辑位置"三个入口（降低理解负担）。 */
+  var followToggle = $('view-follow-toggle');
+  if (followToggle) {
+    function updateFollow() {
+      var following = W.state.followViews;
+      followToggle.textContent = following ? '联动开启' : '自由浏览';
+      followToggle.setAttribute('aria-pressed', String(following));
+      followToggle.title = following ? '暂停视图联动，各栏独立浏览' : '恢复视图联动，并回到编辑位置';
+      $('view-follow-driver').textContent = following ? '跟随' + (W.state.followDriver || '编辑位置') : '各栏独立浏览';
+    }
+    followToggle.onclick = function () { W.setFollow(!W.state.followViews); };
+    $('return-to-editing').onclick = function () { VexWorkspace.openPanel('editor'); W.returnToEditing(); };
+    window.addEventListener('vex-follow-changed', updateFollow); updateFollow();
   }
-  $('view-follow-toggle').onclick = function () { W.setFollow(!W.state.followViews); };
-  $('return-to-editing').onclick = function () { VexWorkspace.openPanel('editor'); W.returnToEditing(); };
-  window.addEventListener('vex-follow-changed', updateFollow); updateFollow();
   function focusPanel(target) {
     var active = target.closest('.view-panel'); if (!active) return;
     document.querySelectorAll('.view-panel').forEach(function (panel) { panel.classList.toggle('active-view', panel === active); });

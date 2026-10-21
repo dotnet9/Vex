@@ -46,6 +46,8 @@
       '<footer><small></small><div><span class="deck-tools"><button type="button" data-deck="smaller">A−</button><span class="deck-zoom"></span><button type="button" data-deck="larger">A+</button><button type="button" data-deck="fit">⊡</button></span><span class="deck-spacer"></span>' +
       '<span class="deck-pages"><button type="button" data-deck="previous">←</button><output aria-live="polite"></output><button type="button" data-deck="next">→</button></span></div></footer><progress max="1"></progress>';
     var nav = root.querySelector('nav'), body = root.querySelector('article'), scroll = root.querySelector('.deck-scroll');
+    /* 水印开启即全场景显示（含演示），见 watermark.js。 */
+    if (window.VexWatermark && VexWatermark.active) body.classList.toggle('vex-watermarked', VexWatermark.active());
     var map = root.querySelector('.deck-map'), scene = root.querySelector('.deck-map-scene');
     var mapWidth = geometry.width, mapHeight = geometry.height;
     scene.dataset.layout = VexMapLayout.valid(options.mapLayout?.()) ? options.mapLayout() : 'right';

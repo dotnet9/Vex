@@ -36,8 +36,8 @@
 .format-toolbar{gap:2px}.format-button{border-color:transparent;background:transparent;box-shadow:none;border-radius:5px;color:var(--muted)}
 .format-button:hover{color:var(--fg);background:var(--hover)}
 #edit-options>.vex-element-entry{width:auto;gap:5px;flex:none;padding:5px 7px;font-size:12px;margin-left:0}#edit-options>.vex-element-entry .ico{width:12px;height:12px}
-.view-panel .reading-scroll .md-body{width:100%;max-width:800px;margin:0 auto;padding:30px 42px 72px}
-.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{max-width:820px;margin:0 auto;padding:24px 48px 80px}
+.view-panel .reading-scroll .md-body{width:100%;max-width:max(800px,42vw);margin:0 auto;padding:30px 42px 72px}
+.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{max-width:max(820px,50vw);margin:0 auto;padding:24px 48px 80px}
 .view-panel .instant-scroll .md-body{max-width:none;margin:0;padding:26px 36px 72px}.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding:36px clamp(28px,6vw,88px) 80px}
 .view-panel .map-toolbar{background:var(--bg);border-color:color-mix(in srgb,var(--border) 65%,transparent)}
 .map-controls{box-shadow:none;border-radius:6px}.map-legend{opacity:.75}
@@ -70,3 +70,12 @@
 @media(max-width:1100px){.workbar{gap:12px}.document-label{min-width:0}.workspace-layout-button{max-width:220px}.view-panel .reading-scroll .md-body{padding:24px 26px 60px}.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:24px 36px 70px}.document-statusbar{gap:10px}#view-follow-driver{display:none}}
 @media(max-width:850px){.workbar{padding:0 12px;gap:10px}.workspace-layout-button{max-width:200px;font-size:12px;padding:0 7px}.document-title{font-size:13px}#document-save-status{font-size:12px}.document-statusbar{height:auto;min-height:34px;gap:0 8px}#view-follow-controls{gap:2px}.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding:28px}.view-panel .map-toolbar{padding:4px 6px}}
 @media(max-width:900px){.titlebar-document{display:none}.workbar{grid-template-columns:minmax(90px,1fr) auto auto;gap:6px}.document-label{display:flex}.work-actions .icon-button{display:inline-flex}.workspace-layout-button{max-width:158px}.save-button{min-width:30px;padding:6px}.save-button span{display:none}.document-statusbar .document-corner-actions button{padding:4px}.document-statusbar .document-word-count{font-size:12px}.view-panel .reading-scroll .md-body,.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:20px 24px 60px}}
+/* 快捷工具栏悬浮于内容区之上（不占布局空间）：默认近透明（0.01），
+   悬浮或键盘聚焦即显现，移开 2 秒后淡出。覆盖：编辑器格式工具栏、
+   各面板标题行（排版入口）、导图快捷工具栏（含导图样式入口）。 */
+.view-panel{position:relative}
+#edit-options,.view-panel .view-heading,.map-pane .map-toolbar{position:absolute;top:0;left:0;right:0;z-index:6;opacity:.01;transition:opacity .25s ease 2s}
+#edit-options:hover,.view-panel .view-heading:hover,.map-pane .map-toolbar:hover,
+#edit-options:focus-within,.view-panel .view-heading:focus-within,.map-pane .map-toolbar:focus-within{opacity:1;transition-delay:0s}
+/* 编辑器：排版入口并入格式工具栏同一悬浮条，空标题行隐藏 */
+.view-panel[data-document="editor"] .view-heading{display:none}
