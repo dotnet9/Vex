@@ -17,6 +17,9 @@ int exits = 0;
 using (var about = new ShellAboutViewModel(localizer, opened.Add))
 {
     Check(about.PlatformText.Contains("Avalonia"), "runtime metadata");
+    about.WebsiteCommand.Execute().Subscribe();
+    Check(opened.Single() == "https://vex.codewf.com/", "About uses the configured website");
+    opened.Clear();
     about.UpdateCommand.Execute().Subscribe();
     Check(about.WantsUpdates, "About requests the shared update view");
     Check(service.Checks == 0 && service.Downloads == 0, "About has no check or download path");
