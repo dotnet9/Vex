@@ -63,6 +63,11 @@
         { label: '导出 PNG 长图', toast: 'PNG 长图导出（桌面版操作演示）' },
         { label: '导出 Word（.docx）', toast: 'Word 导出（桌面版操作演示）' }
       ]},
+      { label: '导入', sub: [
+        { label: '从 HTML 导入…', toast: 'HTML 导入（桌面版操作演示）' },
+        { label: '从 PDF 导入…', toast: 'PDF 导入（桌面版操作演示）' },
+        { label: '从 Word 导入…', toast: 'Word 导入（桌面版操作演示）' }
+      ]},
       { label: '打印预览', gesture: 'Ctrl+Shift+P', action: 'print' },
       { sep: true },
       { label: '文档操作', sub: [
