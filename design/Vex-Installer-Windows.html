@@ -1,2 +1,163 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>维刻 Vex · Windows 安装原型</title><link rel="icon" href="assets/vex-logo.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/tokens.css"><link rel="stylesheet" href="assets/installer.css"><link rel="stylesheet" href="assets/installer-windows.css"><link rel="stylesheet" href="assets/prototype.css"></head><body data-platform="windows"><main id="installer-root"></main><div class="system-modal" id="system-modal" hidden></div><script src="assets/project-info.js"></script><script src="assets/installer.js"></script></body></html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>维刻 Vex · Windows 安装原型</title><link rel="icon" href="assets/vex-logo.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/tokens.css"><link rel="stylesheet" href="assets/installer.css"><link rel="stylesheet" href="assets/installer-windows.css"><link rel="stylesheet" href="assets/prototype.css"></head><body data-platform="windows"><main id="installer-root"></main><div class="system-modal" id="system-modal" hidden></div><script src="assets/project-info.js"></script><script src="assets/installer.js"></script><script>
+/* 卸载演示页签（?scenario=uninstall）：确认 / 进行 / 完成三屏，与安装 / 维护等场景页签并列。
+   切换机制与安装原型一致：URL 参数（scenario / theme / lang），如 Vex-Installer-Windows.html?scenario=uninstall&theme=dark&lang=en。 */
+(() => {
+ 'use strict';
+ const DICT={
+  'zh-CN':{
+   demoTabs:'演示页签',
+   tabInstall:'安装',
+   tabUninstall:'卸载',
+   brandTagline:'写下想法，看见脉络。',
+   close:'关闭',
+   confirmTitle:'确定要卸载维刻 Vex 吗？',
+   confirmLede:'有点舍不得。Vex 是免费的开源软件，还在持续成长——如果遇到了问题，告诉我们，也许马上就能解决。',
+   keepData:'保留我的文档与设置',
+   keepDataHint:'配置位于 %APPDATA%\\Vex，文档不受卸载影响。',
+   feedbackBefore:'卸载前反馈问题 »',
+   keepVex:'保留 Vex',
+   continueUninstall:'继续卸载',
+   progressTitle:'正在卸载',
+   progressDesc:'正在移除应用文件，很快完成。',
+   progressLabel:'卸载进度',
+   progressCancel:'取消',
+   doneTitle:'已卸载维刻 Vex',
+   doneThanks:'感谢你使用维刻 Vex——你的每一次反馈，都会让下一版更好。',
+   doneNoteKept:'你的文档未被删除；配置已按你的选择保留。',
+   doneNoteCleared:'你的文档未被删除；配置已随卸载一并清除。',
+   doneFeedback:'反馈卸载原因',
+   doneWebsite:'访问官网',
+   doneFinish:'完成',
+   toastCancelled:'已取消卸载（演示）'
+  },
+  'en-US':{
+   demoTabs:'Prototype tabs',
+   tabInstall:'Install',
+   tabUninstall:'Uninstall',
+   brandTagline:'Write it down, see it connect.',
+   close:'Close',
+   confirmTitle:'Uninstall Vex?',
+   confirmLede:'It’s hard to let go. Vex is free, open-source software that keeps growing — if you ran into a problem, tell us and it might be fixed right away.',
+   keepData:'Keep my documents and settings',
+   keepDataHint:'Settings live in %APPDATA%\\Vex; your documents are not affected by uninstalling.',
+   feedbackBefore:'Report an issue before uninstalling »',
+   keepVex:'Keep Vex',
+   continueUninstall:'Uninstall',
+   progressTitle:'Uninstalling',
+   progressDesc:'Removing application files. This only takes a moment.',
+   progressLabel:'Uninstall progress',
+   progressCancel:'Cancel',
+   doneTitle:'Vex has been uninstalled',
+   doneThanks:'Thank you for using Vex — every piece of feedback makes the next release better.',
+   doneNoteKept:'Your documents were not deleted; your settings were kept, as you chose.',
+   doneNoteCleared:'Your documents were not deleted; your settings were removed along with the app.',
+   doneFeedback:'Tell us why you uninstalled',
+   doneWebsite:'Visit website',
+   doneFinish:'Done',
+   toastCancelled:'Uninstall cancelled (demo)'
+  }
+ };
+ const FEEDBACK_URL='https://github.com/dotnet9/Vex/issues/new?template=uninstall-feedback.md';
+ const params=new URLSearchParams(location.search);
+ let lang=({en:'en-US',zh:'zh-CN'})[params.get('lang')]||'zh-CN';
+ let t=DICT[lang];
+ const active=params.get('scenario')==='uninstall';
+ let screen=['confirm','progress','done'].includes(params.get('screen'))?params.get('screen'):'confirm';
+ let keepData=true,progress=0,timer=null;
+ const host=document.getElementById('installer-root');
+ const reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ const stop=()=>{clearInterval(timer);timer=null;};
+ const withParams=edit=>{const p=new URLSearchParams(location.search);edit(p);const query=p.toString();return location.pathname+(query?'?'+query:'');};
+ const syncUrl=()=>{try{history.replaceState(null,'',withParams(p=>p.set('lang',lang==='en-US'?'en':'zh')));}catch{}};
+ function toast(text){document.querySelector('.installer-toast')?.remove();const el=document.createElement('div');el.className='installer-toast';el.textContent=text;document.body.append(el);setTimeout(()=>el.remove(),2600);}
+ const closeSVG='<svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+ const confirmHTML=()=>`
+   <h2 data-i18n="confirmTitle"></h2>
+   <p class="description" data-i18n="confirmLede"></p>
+   <label class="uninstall-keep-row"><input type="checkbox" id="uninstall-keep" ${keepData?'checked':''}><span><span data-i18n="keepData"></span><small data-i18n="keepDataHint"></small></span></label>
+   <a class="uninstall-feedback-link" data-i18n="feedbackBefore" data-link="feedback" target="_blank" rel="noopener"></a>
+   <div class="install-actions"><button type="button" class="btn quiet" data-uninstall="continue" data-i18n="continueUninstall"></button><button type="button" class="btn primary" data-uninstall="keep" data-i18n="keepVex"></button></div>`;
+ const progressHTML=()=>`
+   <h2 data-i18n="progressTitle"></h2>
+   <p class="description" data-i18n="progressDesc"></p>
+   <div class="progress-wrap" style="--install-progress:${progress}%"><div class="progress-header"><strong>${progress}%</strong></div><div class="progress-track" role="progressbar" data-i18n-aria="progressLabel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><span style="width:var(--install-progress)"></span></div></div>
+   <div class="install-actions"><button type="button" class="btn quiet" data-uninstall="cancel-progress" data-i18n="progressCancel"></button></div>`;
+ const doneHTML=()=>`
+   <div class="success-symbol">✓</div>
+   <h2 data-i18n="doneTitle"></h2>
+   <p class="description" data-i18n="doneThanks"></p>
+   <p class="uninstall-note" data-note></p>
+   <div class="install-actions"><a class="btn quiet" data-i18n="doneFeedback" data-link="feedback" target="_blank" rel="noopener"></a><a class="btn quiet" data-i18n="doneWebsite" data-link="website" target="_blank" rel="noopener"></a><button type="button" class="btn primary" data-uninstall="finish" data-i18n="doneFinish"></button></div>`;
+ const shell=inner=>`<div class="scene"><section class="install-window windows-minimal">
+   <button type="button" class="window-close" data-uninstall="keep" data-i18n-aria="close" data-i18n-title="close">${closeSVG}</button>
+   <div class="installer-layout">
+     <aside class="brand-panel"><div class="brand-identity"><img class="hero-icon" src="assets/vex-logo.svg" alt=""><h1>维刻 Vex</h1><p data-i18n="brandTagline"></p></div></aside>
+     <div class="installer-content">${inner}</div>
+   </div>
+ </section></div>`;
+ function applyI18n(){
+   document.documentElement.lang=lang==='en-US'?'en':'zh-CN';
+   document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t[el.dataset.i18n]??'';});
+   document.querySelectorAll('[data-i18n-aria]').forEach(el=>{el.setAttribute('aria-label',t[el.dataset.i18nAria]??'');});
+   document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t[el.dataset.i18nTitle]??'';});
+ }
+ function startProgress(){
+   stop();progress=0;
+   timer=setInterval(()=>{
+     progress=Math.min(100,progress+4+Math.floor(Math.random()*6));
+     const wrap=host.querySelector('.progress-wrap');
+     if(wrap){
+       wrap.style.setProperty('--install-progress',progress+'%');
+       const strong=wrap.querySelector('.progress-header strong');if(strong)strong.textContent=progress+'%';
+       const track=wrap.querySelector('.progress-track');if(track)track.setAttribute('aria-valuenow',String(progress));
+     }
+     if(progress>=100){stop();setTimeout(()=>{if(screen==='progress')show('done');},550);}
+   },260);
+ }
+ function render(){
+   if(!active)return;
+   host.dataset.state=screen==='done'?'done':'uninstall';
+   host.innerHTML=shell(screen==='confirm'?confirmHTML():screen==='progress'?progressHTML():doneHTML());
+   host.querySelectorAll('[data-link=feedback]').forEach(el=>el.href=FEEDBACK_URL);
+   host.querySelectorAll('[data-link=website]').forEach(el=>el.href=window.VexProject.website);
+   const note=host.querySelector('[data-note]');if(note)note.textContent=t[keepData?'doneNoteKept':'doneNoteCleared'];
+   applyI18n();
+   if(!reduceMotion)host.querySelector('.installer-content')?.animate?.([{opacity:.3,translate:'0 5px'},{opacity:1,translate:'0 0'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)'});
+   if(screen==='progress')startProgress();
+ }
+ function show(next){screen=next;render();}
+ /* 演示页签：与安装原型的场景参数机制一致，保留 theme / lang 等参数跳转。 */
+ const bar=document.createElement('nav');
+ bar.className='uninstall-demo-tabs';
+ bar.dataset.i18nAria='demoTabs';
+ bar.innerHTML='<a data-nav="install" data-i18n="tabInstall"></a><a data-nav="uninstall" data-i18n="tabUninstall"></a><button type="button" data-uninstall-lang></button>';
+ const installLink=bar.querySelector('[data-nav=install]'),uninstallLink=bar.querySelector('[data-nav=uninstall]'),langButton=bar.querySelector('[data-uninstall-lang]');
+ installLink.href=withParams(p=>{p.delete('scenario');p.delete('screen');});
+ uninstallLink.href=withParams(p=>{p.set('scenario','uninstall');p.delete('screen');});
+ (active?uninstallLink:installLink).setAttribute('aria-current','page');
+ langButton.textContent=lang==='zh-CN'?'English':'中文';
+ document.body.append(bar);
+ applyI18n();
+ if(active)render();
+ document.addEventListener('click',event=>{
+   const langBtn=event.target.closest('[data-uninstall-lang]');
+   if(langBtn){
+     lang=lang==='zh-CN'?'en-US':'zh-CN';t=DICT[lang];
+     langButton.textContent=lang==='zh-CN'?'English':'中文';
+     syncUrl();
+     if(screen==='progress')applyI18n();else render();
+     return;
+   }
+   const el=event.target.closest('[data-uninstall]');
+   if(!el)return;
+   event.preventDefault();
+   switch(el.dataset.uninstall){
+     case 'keep':stop();keepData=true;show('confirm');toast(t.toastCancelled);break;
+     case 'continue':keepData=host.querySelector('#uninstall-keep')?.checked??keepData;show('progress');break;
+     case 'cancel-progress':stop();show('confirm');break;
+     case 'finish':stop();keepData=true;progress=0;show('confirm');break;
+   }
+ });
+})();
+</script></body></html>
