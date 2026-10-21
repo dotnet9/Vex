@@ -3,11 +3,10 @@
 
   var $ = function (selector) { return document.querySelector(selector); };
   var open = false, running = false, paused = false, automating = false, session = null;
-  var pendingContinue = null;
+  var pendingContinue = null, gate = null;
   var stepIndex = -1, previousFocus = null, runToken = 0, timers = [];
   var focusTargets = [], focusKind = 'control', focusPreferred = 'bottom';
   var resultTargets = [], resultKind = 'control', resultPreferred = 'bottom';
-  var totalGuideSteps = 9;
   var layer = document.createElement('div');
   layer.id = 'vex-guide'; layer.className = 'tour-layer story-tour'; layer.hidden = true;
   layer.innerHTML = '<svg class="tour-mask" aria-hidden="true"><defs><mask id="tour-cutouts" maskUnits="userSpaceOnUse"><rect width="100%" height="100%" fill="white"></rect><g class="tour-cutouts" fill="black"></g></mask></defs><rect class="tour-scrim" width="100%" height="100%" mask="url(#tour-cutouts)"></rect></svg><div class="tour-rings"></div><div class="tour-cursor" aria-hidden="true">↗</div><div class="tour-light-tip" role="status" aria-live="polite" aria-hidden="true" hidden></div><section class="tour-card story-card" role="dialog" aria-modal="false" aria-labelledby="tour-title" aria-describedby="tour-description"></section>';
@@ -16,92 +15,53 @@
   var app = function () { return $('.app-window'); };
   var guideSeenKey = 'vex-design-guide-seen';
 
+  // 引导文案统一进 VEX_DATA（Guide* 键，四语言），zh 兜底，保证离线可跑。
+  function g(key, zh) {
+    try {
+      var culture = window.VexL && window.VexL.culture ? window.VexL.culture : 'zh-CN';
+      var value = window.VEX_DATA.languages[culture]['Guide' + key];
+      if (typeof value === 'string' && value) return value;
+    } catch (error) { /* 字典缺失时退回中文 */ }
+    return zh;
+  }
+  function actTitle(act) { return g(act.titleKey, act.titleFallback); }
+  function actSummary(act) { return g(act.summaryKey, act.summaryFallback); }
+
   var stage0 = '# 成都，慢慢走\n\n这个周末，去成都。把脚步放慢一点，给茶香和街巷多留些时间。\n';
   var stage1 = '# 成都，慢慢走\n\n这个周末，去成都。先喝一碗盖碗茶，给茶香和街巷多留些时间。\n\n## 出发清单\n\n- [ ] 带上相机\n- [ ] 预订车票\n\n## 第一天行程\n\n### 人民公园\n\n坐在茶社里，喝一碗盖碗茶。\n\n### 宽窄巷子\n\n沿着青砖小巷，看看老院子。\n\n## 第二天行程\n\n### 熊猫基地\n\n早一点出发，去看大熊猫。\n\n## 锦里夜游\n\n等灯笼亮起来，再去锦里走走。\n\n### 旅途随手记\n\n记下今天最喜欢的一碗茶和一条巷子。\n';
   var stage1WithEnding = stage1 + '\n沿着这条路线，慢慢走。';
   var route = '\n## 成都慢游路线\n\n\`\`\`mermaid\nflowchart LR\n  A[人民公园] --> B[宽窄巷子]\n  B --> C[锦里夜游]\n\`\`\`\n';
   var stage2 = stage1WithEnding + route;
   var routeEdited = stage1WithEnding + route.replace('B[宽窄巷子]', 'B[宽窄巷子 · 喝茶漫步]');
+
+  /* 六幕：写作过程程序演示，关键入口由用户亲手点（门）。 */
   var acts = [
     {
-      name: '第一幕', title: '即时模式', short: '直接输入，实时看到排版。',
-      resultTitle: '即时模式', result: '直接输入，实时看到排版。',
+      titleKey: 'Title1', titleFallback: '即时与源码',
+      summaryKey: 'Act1Summary', summaryFallback: '同一篇游记，两种方式都能继续写。',
       prepare: function () {
         setLayout('instant');
         withAutomation(function () { VexWorkbench.applyText('', { history: false }); });
         focusTargets = ['#instant-pane']; focusKind = 'area'; focusPreferred = 'top';
       },
       run: function (done) {
-        pauseForContinue('在这里写下游记。', ['#instant-pane'], 'area', function () {
-          cue('写下这趟旅行的标题。', ['#instant-pane']);
-          typeText('# 成都，慢慢走\n\n', 28, function () {
-            cue('内容会即时呈现。', ['#instant-pane']);
+        typeText('# 成都，慢慢走\n\n', 28, function () {
+          pauseForContinue(g('Act1Step1', '写下这趟旅行的标题，内容会即时呈现。'), ['#instant-pane'], 'area', function () {
             typeText(stage0, 28, function () {
-              pauseForContinue('内容已经写下，先读一遍刚才的结果。', ['#instant-pane'], 'area', done);
-            });
-          });
-        });
-      }
-    },
-    {
-      name: '第二幕', title: '两种写法', short: '支持源码模式与即时模式',
-      resultTitle: '两种写法', result: '支持源码模式与即时模式',
-      prepare: function () { ensureText(stage0); setLayout('instant'); focusTargets = ['#workspace-layout']; focusKind = 'control'; focusPreferred = 'bottom'; },
-      run: function (done) {
-        ensureText(stage0); setLayout('instant');
-        pauseForContinue('从顶部视图菜单选择源码编辑，也能打开多视图对照。', ['#workspace-layout'], 'control', function () {
-          chooseLayout('source');
-          cue('切到源码，刚才的文字都在这里。', ['#workspace-layout'], 'control');
-          later(500, function () {
-            cue('在源码里，也能继续修改。', ['#markdown-input'], 'text');
-            transitionText(stage0, '# 成都，慢慢走\n\n这个周末，去成都。先喝一碗盖碗茶，给茶香和街巷多留些时间。\n', 26, function () {
-              cue('加一份清单，再把行程写下来。', ['#markdown-input'], 'text');
-              typeText(stage1, 8, function () {
-                pauseForContinue('从同一入口选择即时编辑，继续直接写作。', ['#workspace-layout'], 'control', function () {
-                chooseLayout('instant');
-                cue('切回即时渲染，继续直接写一段。', ['#instant-pane'], 'area');
-                later(450, function () {
-                  typeText(stage1WithEnding, 34, function () {
-                    pauseForContinue('同一篇游记，两种方式都能继续写。', ['#instant-pane'], 'area', done);
-                  });
-                });
-              });
-              });
-            });
-          });
-        });
-      }
-    },
-    {
-      name: '第三幕', title: '大纲与导图', short: '定位章节，整理文章结构。',
-      resultTitle: '大纲与导图', result: '定位章节，整理文章结构。',
-      prepare: function () {
-        ensureText(stage1WithEnding); setLayout('instant'); closeLayers();
-        focusTargets = ['#outline-toggle']; focusKind = 'control'; focusPreferred = 'top';
-      },
-      run: function (done) {
-        ensureText(stage1WithEnding); setLayout('instant');
-        pauseForContinue('点击底栏“大纲”，展开右侧辅助面板。', ['#outline-toggle'], 'control', function () {
-          withAutomation(function () { VexAuxiliary.show('outline', $('#outline-toggle'), false); });
-          later(280, function () {
-            pauseForContinue('大纲会列出标题，点击“第一天行程”定位内容。', ['#outline-body'], 'control', function () {
-              clickOutline('第一天行程');
-              later(280, function () {
-                pauseForContinue('从顶部视图菜单选择思维导图，查看全局结构。', ['#workspace-layout'], 'control', function () {
-                  withAutomation(function () { VexAuxiliary.close(false); }); chooseLayout('map');
-                  later(420, function () {
-                    pauseForContinue('导图把标题关系画在这里。', ['#map-viewport'], 'area', function () {
-                      var source = chapterSelector('锦里夜游'), target = chapterSelector('第一天行程');
-                      pauseForContinue('把锦里夜游安排到第一天晚上。', [source, target], 'control', function () {
-                        later(650, function () {
-                          var sourceNode = chapterNode('锦里夜游'), targetNode = chapterNode('第一天行程');
-                          if (sourceNode && targetNode && window.VexChapters) {
-                            withAutomation(function () { VexChapters.move(sourceNode, targetNode, 'child'); });
-                          }
-                          if ($('#node-inspector')) $('#node-inspector').hidden = true;
-                          pauseForContinue('章节和下面的随手记，一起移动了。', [chapterSelector('锦里夜游'), chapterSelector('第一天行程')], 'control', function () {
-                            withAutomation(function () { VexWorkbench.history('undo'); });
-                            pauseForContinue('想比较一下，也可以撤销回来。', ['#map-viewport'], 'area', done);
+              pauseForContinue(g('Act1Step2', '内容已经写下，先读一遍刚才的结果。'), ['#instant-pane'], 'area', function () {
+                waitForClick(['#workspace-layout'], g('GateLayout', '点这里更换视图'), function () {
+                  later(260, function () {
+                    waitForClick(['#workspace-layout-menu [data-layout="source"]'], g('GateLayoutSource', '选择「源码编辑」'), { scope: '#workspace-layout-menu' }, function () {
+                      later(350, function () {
+                        transitionText(stage0, stage1, 10, function () {
+                          pauseForContinue(g('Act1Step3', '刚才的文字都在这里——源码里也能继续修改。'), ['#markdown-input'], 'text', function () {
+                            waitForClick(['#workspace-layout'], g('GateLayoutInstant', '再切换回「即时编辑」'), function () {
+                              later(260, function () {
+                                waitForClick(['#workspace-layout-menu [data-layout="instant"]'], g('GateLayoutInstant', '再切换回「即时编辑」'), { scope: '#workspace-layout-menu' }, function () {
+                                  typeText(stage1WithEnding, 24, done);
+                                });
+                              });
+                            });
                           });
                         });
                       });
@@ -115,27 +75,28 @@
       }
     },
     {
-      name: '第四幕', title: '导图布局', short: '切换布局和样式，查看全局。',
-      resultTitle: '导图布局', result: '切换布局和样式，查看全局。',
-      anchor: '#map-appearance-panel',
-      prepare: function () { ensureText(stage1WithEnding); setLayout('map'); closeLayers(); focusTargets = ['.map-appearance-trigger:not([hidden])']; focusKind = 'control'; focusPreferred = 'bottom'; },
+      titleKey: 'Title2', titleFallback: '大纲与导图',
+      summaryKey: 'Act2Summary', summaryFallback: '章节与全局，随时切换视角。',
+      prepare: function () {
+        ensureText(stage1WithEnding); setLayout('instant'); closeLayers();
+        focusTargets = ['#outline-toggle']; focusKind = 'control'; focusPreferred = 'top';
+      },
       run: function (done) {
-        ensureText(stage1WithEnding); setLayout('map');
-        pauseForContinue('点击右侧“导图样式”，看看布局。', ['.map-appearance-trigger:not([hidden])'], 'control', function () {
-          click('.map-appearance-trigger:not([hidden])');
-          later(260, function () {
-            cycleMapLayouts(['right', 'balanced', 'radial', 'down'], function () {
-              pauseForContinue('结构布局可以随时切换。', ['#map-appearance-panel [data-map-layout]'], 'control', function () {
-                click('#map-tab-style');
-                later(220, function () {
-                  cycleMapStyles(['quiet', 'colorful', 'mono'], function () {
-                    pauseForContinue('风格也可以一键切换。', ['#map-appearance-panel [data-map-style-choice]'], 'control', function () {
-                      VexWorkspace.closeAppearance();
-                      pauseForContinue('需要查看节点摘要时，打开这里。', ['#map-settings-button'], 'control', function () {
-                        VexProto.handleAction('map-settings');
-                        pauseForContinue('摘要已经显示在节点下方。', ['#map-settings'], 'control', function () {
-                          VexWorkbench.fit();
-                          pauseForContinue('拉远一点，把全局装进视野。', ['#map-viewport'], 'area', done);
+        ensureText(stage1WithEnding); setLayout('instant');
+        waitForClick(['#outline-toggle'], g('GateOutline', '点底栏「大纲」，查看文档大纲'), function () {
+          later(280, function () {
+            pauseForContinue(g('Act2Step1', '大纲会列出所有标题。'), ['#outline-body'], 'control', function () {
+              clickOutline('第一天行程');
+              later(420, function () {
+                pauseForContinue(g('Act2Step2', '大纲点一下，正文就到位。'), ['#instant-pane'], 'area', function () {
+                  waitForClick(['#workspace-layout'], g('GateLayout', '点这里更换视图'), function () {
+                    later(260, function () {
+                      waitForClick(['#workspace-layout-menu [data-layout="map"]'], g('GateLayoutMap', '切换到「思维导图」'), { scope: '#workspace-layout-menu' }, function () {
+                        later(450, function () {
+                          cue(g('Act2Step3', '导图把标题关系画在这里。'), ['#map-viewport'], 'area');
+                          later(1500, function () {
+                            pauseForContinue(g('Act2Step4', '点击节点可看全文，摘要入口在「工具」菜单。'), ['#map-viewport'], 'area', done);
+                          });
                         });
                       });
                     });
@@ -148,45 +109,39 @@
       }
     },
     {
-      name: '第五幕', title: '正文排版', short: '调整标题、段落和列表。',
-      resultTitle: '正文排版', result: '调整标题、段落和列表。',
+      titleKey: 'Title3', titleFallback: '正文排版',
+      summaryKey: 'Act3Summary', summaryFallback: '排版会同步应用到阅读和导出。',
       anchor: '#typography-panel',
       prepare: function () { ensureText(stage1WithEnding); setLayout('read'); closeLayers(); focusTargets = ['[data-action="typography"]:not([hidden])']; focusKind = 'control'; focusPreferred = 'bottom'; },
       run: function (done) {
         ensureText(stage1WithEnding); setLayout('read'); $('.reading-scroll').scrollTop = 0;
-        pauseForContinue('点击“排版”，选择正文样式。', ['[data-action="typography"]:not([hidden])'], 'control', function () {
-          var anchor = Array.from(document.querySelectorAll('[data-action="typography"]')).find(visible);
-          VexTypography.toggle(anchor);
-          later(220, function () {
+        waitForClick(['[data-action="typography"]:not([hidden])'], g('GateTypography', '点「排版」，给文字选一套样式'), function () {
+          later(300, function () {
             cycleTypography(['Simple', 'InkBlack', 'Column', 'WeChatFormat'], function () {
-              pauseForContinue('排版会同步应用到阅读和导出。', ['#typography-panel [data-typography-key]'], 'control', function () {
-                VexTypography.close();
-                pauseForContinue('回到正文，继续打磨内容。', ['#markdown-preview'], 'area', done);
-              });
+              VexTypography.close();
+              later(300, done);
             });
           });
         });
       }
     },
     {
-      name: '第六幕', title: 'Mermaid 图表', short: '用文字生成路线图，修改内容同步更新。',
-      resultTitle: 'Mermaid 图表', result: '用文字生成路线图，修改内容同步更新。',
+      titleKey: 'Title4', titleFallback: 'Mermaid 图表',
+      summaryKey: 'Act4Summary', summaryFallback: '想加图表时，一段文字就够。',
       prepare: function () { ensureText(stage1WithEnding); setLayout('source'); focusTargets = ['#markdown-input']; focusPreferred = 'right'; },
       run: function (done) {
         ensureText(stage1WithEnding); setLayout('source');
-        pauseForContinue('把几个想去的地方，连成一条路线。', ['#markdown-input'], 'text', function () {
-          var head = stage1WithEnding + '\n## 成都慢游路线\n\n';
-          typeText(head, 8, function () {
-            // Keep the incomplete fence out of the demo: the chart appears only
-            // once the Markdown block is complete, as it does in the app.
+        pauseForContinue(g('Act4Step1', '接下来的图表，完全用文字写成。'), ['#markdown-input'], 'text', function () {
+          typeText(stage1WithEnding + '\n## 成都慢游路线\n\n', 8, function () {
+            // 不完整的围栏不进演示：图表只在 Markdown 块完整后出现，与桌面端一致。
             withAutomation(function () { VexWorkbench.applyText(stage2, { history: false }); });
             setLayout('source-render');
             $('.source-scroll').scrollTop = $('.source-scroll').scrollHeight;
             $('.reading-scroll').scrollTop = $('.reading-scroll').scrollHeight;
-            pauseForContinue('一段文字，变成了清楚的路线。', ['#markdown-preview'], 'area', function () {
-              cue('给这一站，补上想做的事情。', ['#markdown-input']);
+            pauseForContinue(g('Act4Step2', '一段文字，变成了清楚的路线。'), ['#markdown-preview'], 'area', function () {
+              cue(g('Act4Step3', '图里的这一站，也跟着更新了。'), ['#markdown-input'], 'text');
               transitionText(stage2, routeEdited, 20, function () {
-                pauseForContinue('图里的这一站，也跟着更新了。', ['#markdown-preview'], 'area', done);
+                pauseForContinue(g('Act4Step3', '图里的这一站，也跟着更新了。'), ['#markdown-preview'], 'area', done);
               });
             });
           });
@@ -194,20 +149,20 @@
       }
     },
     {
-      name: '第七幕', title: '演示模式', short: '从正文切到导图，按章节讲解。',
-      resultTitle: '演示模式', result: '从正文切到导图，按章节讲解。',
+      titleKey: 'Title5', titleFallback: '演示模式',
+      summaryKey: 'Act5Summary', summaryFallback: '讲完以后，回到游记继续完善。',
       prepare: function () { ensureText(routeEdited); setLayout('read'); focusTargets = ['#markdown-preview']; focusPreferred = 'left'; },
       run: function (done) {
         ensureText(routeEdited); setLayout('read');
-        pauseForContinue('这篇游记，也可以直接拿来讲。', ['#markdown-preview'], 'area', function () {
+        pauseForContinue(g('Act5Step1', '这篇游记，也可以直接拿来讲。'), ['#markdown-preview'], 'area', function () {
           withAutomation(function () { VexProto.handleAction('presentation'); });
-          pauseForContinue('沿着章节，一段一段展开。', ['.vex-deck'], 'area', function () {
-          click('.vex-deck [data-deck="next"]');
-            pauseForContinue('想先讲全局，也可以从导图开始。', ['.vex-deck [data-deck="map"]'], 'control', function () {
-          click('.vex-deck [data-deck="map"]');
-              pauseForContinue('导图能先把全局讲清楚。', ['.vex-deck'], 'area', function () {
-            click('.vex-deck [data-deck="exit"]');
-                pauseForContinue('讲完以后，回到游记继续完善。', ['#markdown-preview'], 'area', done);
+          pauseForContinue(g('Act5Step2', '沿着章节，一段一段展开。'), ['.vex-deck'], 'area', function () {
+            click('.vex-deck [data-deck="next"]');
+            pauseForContinue(g('Act5Step3', '想先讲全局，也可以从导图开始。'), ['.vex-deck [data-deck="map"]'], 'control', function () {
+              click('.vex-deck [data-deck="map"]');
+              pauseForContinue(g('Act5Summary', '讲完以后，回到游记继续完善。'), ['.vex-deck'], 'area', function () {
+                click('.vex-deck [data-deck="exit"]');
+                later(420, done);
               });
             });
           });
@@ -215,20 +170,20 @@
       }
     },
     {
-      name: '第八幕', title: '保存与分享', short: '保存、导出或分享作品。',
-      resultTitle: '保存与分享', result: '保存、导出或分享作品。', final: true,
+      titleKey: 'Title6', titleFallback: '保存与分享',
+      summaryKey: 'Act6Summary', summaryFallback: '一篇游记已经成形。', final: true,
       prepare: function () { ensureText(routeEdited); setLayout('read'); focusTargets = ['.tb-menuitem[data-menu^="文件"]']; focusPreferred = 'bottom'; },
       run: function (done) {
         ensureText(routeEdited); setLayout('read');
-        pauseForContinue('想继续写，可以保存这份 Markdown。', ['.tb-menuitem[data-menu^="文件"]'], 'control', function () {
+        pauseForContinue(g('Act6Step1', '想继续写，可以保存这份 Markdown。'), ['.tb-menuitem[data-menu^="文件"]'], 'control', function () {
           openMenu('文件(F)');
-          pauseForContinue('这里是保存入口。', ['.menu-flyout [data-menu-action="save"]'], 'control', function () {
+          pauseForContinue(g('Act6Step1', '想继续写，可以保存这份 Markdown。'), ['.menu-flyout [data-menu-action="save"]'], 'control', function () {
             click('.menu-flyout [data-menu-label="导出"]');
-            pauseForContinue('想交给别人阅读，也能选择合适的格式。', ['.submenu [data-menu-action="export-html"]', '.submenu [data-menu-action="export-pdf"]', '.submenu [data-menu-label="导出 PNG 长图"]', '.submenu [data-menu-label="导出 Word（.docx）"]'], 'control', function () {
+            pauseForContinue(g('Act6Step2', '想交给别人阅读，有现成的格式。'), ['.submenu [data-menu-action="export-html"]', '.submenu [data-menu-action="export-pdf"]', '.submenu [data-menu-label="导出 PNG 长图"]', '.submenu [data-menu-label="导出 Word（.docx）"]'], 'control', function () {
               closeMenu(); openMenu('工具(T)');
-              pauseForContinue('准备发布时，从这里选择对应的平台。', ['.menu-flyout [data-menu-action^="copy-"]'], 'control', function () {
+              pauseForContinue(g('Act6Step3', '准备发布时，从这里选择对应的平台。'), ['.menu-flyout [data-menu-action^="copy-"]'], 'control', function () {
                 closeMenu();
-                pauseForContinue('一篇游记已经成形。', ['#markdown-preview'], 'area', done);
+                pauseForContinue(g('Act6Summary', '一篇游记已经成形。'), ['#markdown-preview'], 'area', done);
               });
             });
           });
@@ -236,6 +191,7 @@
       }
     }
   ];
+  var totalGuideSteps = acts.length + 1;
 
   function visible(node) { return !!node && !node.closest('[hidden]') && node.getBoundingClientRect().width > 0 && node.getBoundingClientRect().height > 0; }
   function setLayout(id) { if (window.VexWorkspace) VexWorkspace.setLayout(id); }
@@ -279,24 +235,6 @@
     }
     next();
   }
-  function cycleMapLayouts(keys, done, index) {
-    index = index || 0;
-    if (!open || !running || index >= keys.length) { if (done) done(); return; }
-    var key = keys[index], selector = '#map-appearance-panel [data-map-layout="' + key + '"]', button = $(selector);
-    if (!button) { cycleMapLayouts(keys, done, index + 1); return; }
-    click(selector);
-    cue('布局：' + button.textContent.trim(), [selector], 'control');
-    later(1200, function () { cycleMapLayouts(keys, done, index + 1); });
-  }
-  function cycleMapStyles(keys, done, index) {
-    index = index || 0;
-    if (!open || !running || index >= keys.length) { if (done) done(); return; }
-    var key = keys[index], selector = '#map-appearance-panel [data-map-style-choice="' + key + '"]', button = $(selector);
-    if (!button) { cycleMapStyles(keys, done, index + 1); return; }
-    click(selector);
-    cue('风格：' + button.textContent.trim(), [selector], 'control');
-    later(1200, function () { cycleMapStyles(keys, done, index + 1); });
-  }
   function cycleTypography(keys, done, index) {
     index = index || 0;
     if (!open || !running || index >= keys.length) { if (done) done(); return; }
@@ -315,8 +253,61 @@
     var button = $('.tour-next');
     if (button) {
       button.disabled = false;
-      button.innerHTML = '继续 <span aria-hidden="true">→</span>';
+      button.innerHTML = g('Next', '继续') + ' <span aria-hidden="true">→</span>';
     }
+  }
+  /* 门：等待用户亲手点目标；「继续」= 程序代点；两级门内点错项给纠正提示。 */
+  function waitForClick(allowed, message, options, done) {
+    if (typeof options === 'function') { done = options; options = {}; }
+    if (!open || !running) return;
+    cancelTimers();
+    paused = false; pendingContinue = null;
+    options = options || {};
+    gate = { allowed: Array.isArray(allowed) ? allowed : [allowed], scope: options.scope || '', kind: options.kind || 'control', done: done };
+    cue(message, allowed, gate.kind, { showCard: true });
+    enableNextForGate();
+  }
+  function enableNextForGate() {
+    var button = $('.tour-next');
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = g('Next', '继续') + ' <span aria-hidden="true">→</span>';
+    }
+  }
+  function completeGate() {
+    if (!gate) return;
+    var done = gate.done;
+    gate = null;
+    later(120, done);
+  }
+  function proxyGate() {
+    if (!gate) return;
+    var selector = gate.allowed[0];
+    withAutomation(function () { var node = document.querySelector(selector); if (node) node.click(); });
+    later(120, completeGate);
+  }
+  function correctGate() {
+    if (!gate) return;
+    var expected = '';
+    var node = document.querySelector(gate.allowed[0]);
+    if (node) expected = (node.textContent || '').trim();
+    cue(g('GateWrongFormat', '这次选「{0}」').replace('{0}', expected), gate.allowed, gate.kind, { showCard: true });
+    enableNextForGate();
+  }
+  function gateAllows(target) {
+    if (!gate) return false;
+    return gate.allowed.some(function (selector) {
+      var nodes = document.querySelectorAll(selector);
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i] === target || nodes[i].contains(target)) return true;
+      }
+      return false;
+    });
+  }
+  function gateWrong(target) {
+    if (!gate || !gate.scope) return false;
+    var scope = document.querySelector(gate.scope);
+    return !!scope && (scope === target || scope.contains(target));
   }
   function continueGuide() {
     if (!open || !running || !paused || typeof pendingContinue !== 'function') return;
@@ -326,7 +317,7 @@
     var button = $('.tour-next');
     if (button) {
       button.disabled = true;
-      button.innerHTML = '演示中… <span aria-hidden="true">→</span>';
+      button.innerHTML = g('Running', '演示中…') + ' <span aria-hidden="true">→</span>';
     }
     next();
   }
@@ -336,7 +327,7 @@
     lightTip.textContent = '';
   }
   function storyMeta(title) {
-    return '<div class="story-meta"><h2 id="tour-title" class="story-titlebar">' + title + '</h2><button class="tour-close" data-tour="close" aria-label="退出引导">×</button></div>';
+    return '<div class="story-meta"><h2 id="tour-title" class="story-titlebar">' + title + '</h2><button class="tour-close" data-tour="close" aria-label="' + g('IntroSkip', '退出引导') + '">×</button></div>';
   }
   function storyCount(count) {
     return '<span class="story-count action-count" aria-label="第 ' + count.replace('/', ' / ') + ' 步">' + count + '</span>';
@@ -358,7 +349,7 @@
     cursor.hidden = true;
     pointer.hidden = true;
     card.dataset.mode = 'live';
-    card.innerHTML = storyMeta(acts[stepIndex].title) + '<p class="tour-feedback story-live" aria-live="polite">' + message + '</p><div class="story-actions"><button class="tour-skip" data-tour="skip">跳过本段</button>' + storyCount((stepIndex + 2) + '/' + totalGuideSteps) + (stepIndex ? '<button class="tour-previous" data-tour="previous">← 上一步</button>' : '') + '<button class="tour-next" data-tour="next">' + (paused ? '继续' : '演示中…') + ' <span aria-hidden="true">→</span></button></div>';
+    card.innerHTML = storyMeta(actTitle(acts[stepIndex])) + '<p class="tour-feedback story-live" aria-live="polite">' + message + '</p><div class="story-actions"><button class="tour-skip" data-tour="skip">' + g('Skip', '跳过本段') + '</button>' + storyCount((stepIndex + 2) + '/' + totalGuideSteps) + (stepIndex ? '<button class="tour-previous" data-tour="previous">← ' + g('Previous', '上一步') + '</button>' : '') + '<button class="tour-next" data-tour="next">' + (paused ? g('Next', '继续') : g('Running', '演示中…')) + ' <span aria-hidden="true">→</span></button></div>';
     compactCard('live');
     $('.tour-next').disabled = !paused; layout();
   }
@@ -366,7 +357,7 @@
     hideLightTip();
     layer.classList.remove('demo-running'); card.classList.remove('demo-hidden'); card.removeAttribute('aria-hidden');
     layer.dataset.mode = 'intro'; card.dataset.mode = 'intro'; focusTargets = []; cursor.hidden = true; layer.hidden = false;
-    card.innerHTML = storyMeta('快速上手') + '<p class="tour-description" id="tour-description">运行软件即可立即创作哟，跟着演示看一遍核心功能。</p><div class="story-actions intro-actions">' + storyCount('1/' + totalGuideSteps) + '<button class="tour-skip" data-tour="close">先不看</button><button class="tour-next" data-tour="start">开始吧 <span aria-hidden="true">→</span></button></div>';
+    card.innerHTML = storyMeta(g('IntroTitle', '快速上手')) + '<p class="tour-description" id="tour-description">' + g('IntroText', '运行软件即可立即创作哟，跟着演示看一遍核心功能。') + '</p><div class="story-actions intro-actions">' + storyCount('1/' + totalGuideSteps) + '<button class="tour-skip" data-tour="close">' + g('IntroSkip', '先不看') + '</button><button class="tour-next" data-tour="start">' + g('IntroStart', '开始吧') + ' <span aria-hidden="true">→</span></button></div>';
     compactCard('intro');
     centerCard();
   }
@@ -376,7 +367,7 @@
     hideLightTip();
     layer.classList.remove('demo-running'); card.classList.remove('demo-hidden'); card.removeAttribute('aria-hidden');
     card.dataset.mode = 'result'; focusTargets = resultTargets.slice(); focusKind = resultKind; focusPreferred = resultPreferred; cursor.hidden = true; pointer.hidden = true; layer.dataset.mode = final ? 'final' : 'result';
-    card.innerHTML = storyMeta(act.resultTitle) + '<p class="tour-description" id="tour-description">' + act.result + '</p><div class="story-actions">' + storyCount((final ? totalGuideSteps : stepIndex + 2) + '/' + totalGuideSteps) + (stepIndex ? '<button class="tour-previous" data-tour="previous">← 上一步</button>' : '') + '<button class="tour-next" data-tour="next">' + (final ? '开始自己的写作' : '下一步') + ' <span aria-hidden="true">→</span></button></div>';
+    card.innerHTML = storyMeta(actTitle(act)) + '<p class="tour-description" id="tour-description">' + actSummary(act) + '</p><div class="story-actions">' + storyCount((final ? totalGuideSteps : stepIndex + 2) + '/' + totalGuideSteps) + (stepIndex ? '<button class="tour-previous" data-tour="previous">← ' + g('Previous', '上一步') + '</button>' : '') + '<button class="tour-next" data-tour="next">' + (final ? g('Start', '开始自己的写作') : g('Next', '继续')) + ' <span aria-hidden="true">→</span></button></div>';
     compactCard('result');
     layout();
   }
@@ -394,7 +385,7 @@
       var introTitle = card.querySelector('#tour-title');
       var introDescription = card.querySelector('.tour-description');
       var introCopy = card.querySelector('.story-intro-copy');
-      if (introDescription) introDescription.textContent = '运行软件即可立即创作哟，跟着演示看一遍核心功能。';
+      if (introDescription) introDescription.textContent = g('IntroText', '运行软件即可立即创作哟，跟着演示看一遍核心功能。');
       if (introCopy) introCopy.remove();
       return;
     }
@@ -403,7 +394,7 @@
     var previous = card.querySelector('[data-tour="previous"]');
     if (nextNote) nextNote.remove();
     if (replay) replay.remove();
-    if (previous) previous.textContent = '← 上一步';
+    if (previous) previous.textContent = '← ' + g('Previous', '上一步');
   }
   function centerCard() {
     var bounds = app().getBoundingClientRect(), width = Math.min(card.offsetWidth || 420, bounds.width - 32), height = card.offsetHeight || 230;
@@ -421,18 +412,18 @@
     y = Math.max(bounds.top + 12, Math.min(y, bounds.bottom - height - 12));
     lightTip.style.left = Math.round(x) + 'px'; lightTip.style.top = Math.round(y) + 'px';
   }
-  function finishAct(skipped) { if (!open) return; cancelTimers(); running = false; paused = false; pendingContinue = null; closeLayers(); if (acts[stepIndex].final) renderResult(skipped); else startAct(stepIndex + 1); }
-  function baselineFor(index) { return [stage0, stage0, stage1WithEnding, stage1WithEnding, stage1WithEnding, stage1WithEnding, routeEdited, routeEdited][index] || stage0; }
+  function finishAct(skipped) { if (!open) return; cancelTimers(); running = false; paused = false; pendingContinue = null; gate = null; closeLayers(); if (acts[stepIndex].final) renderResult(skipped); else startAct(stepIndex + 1); }
+  function baselineFor(index) { return [stage0, stage1WithEnding, stage1WithEnding, stage1WithEnding, routeEdited, routeEdited][index] || stage0; }
   function startAct(index) {
     if (!open) return;
-    cancelTimers(); running = true; paused = false; pendingContinue = null; stepIndex = Math.max(0, Math.min(acts.length - 1, index)); layer.dataset.step = String(stepIndex + 1); if (app()) app().dataset.guideStep = String(stepIndex + 1);
+    cancelTimers(); running = true; paused = false; pendingContinue = null; gate = null; stepIndex = Math.max(0, Math.min(acts.length - 1, index)); layer.dataset.step = String(stepIndex + 1); if (app()) app().dataset.guideStep = String(stepIndex + 1);
     closeLayers(); acts[stepIndex].prepare();
     later(260, function () { acts[stepIndex].run(function () { finishAct(false); }); });
   }
   function skipAct() {
     if (!running) return;
     if (acts[stepIndex].final) { finishAct(true); return; }
-    cancelTimers(); running = false; paused = false; pendingContinue = null; withAutomation(function () { VexWorkbench.applyText(baselineFor(stepIndex), { history: false }); }); closeLayers(); if (acts[stepIndex].final) renderResult(true); else startAct(stepIndex + 1);
+    cancelTimers(); running = false; paused = false; pendingContinue = null; gate = null; withAutomation(function () { VexWorkbench.applyText(baselineFor(stepIndex), { history: false }); }); closeLayers(); if (acts[stepIndex].final) renderResult(true); else startAct(stepIndex + 1);
   }
   function startStory() {
     if (!open || session) return;
@@ -440,7 +431,7 @@
   }
   function close() {
     if (!open) return;
-    cancelTimers(); running = false; paused = false; pendingContinue = null; open = false; hideLightTip(); layer.classList.remove('demo-running'); card.classList.remove('demo-hidden'); card.removeAttribute('aria-hidden'); layer.hidden = true; cursor.hidden = true; pointer.hidden = true; if (app()) delete app().dataset.guideStep; closeLayers();
+    cancelTimers(); running = false; paused = false; pendingContinue = null; gate = null; open = false; hideLightTip(); layer.classList.remove('demo-running'); card.classList.remove('demo-hidden'); card.removeAttribute('aria-hidden'); layer.hidden = true; cursor.hidden = true; pointer.hidden = true; if (app()) delete app().dataset.guideStep; closeLayers();
     var snapshot = session; session = null; if (snapshot) VexProto.endGuideSession(snapshot);
     var target = previousFocus && previousFocus.isConnected && visible(previousFocus) ? previousFocus : $('#workspace-layout');
     if (target) target.focus({ preventScroll: true });
@@ -513,12 +504,24 @@
     else if (action === 'skip') skipAct();
     else if (action === 'replay') startAct(stepIndex);
     else if (action === 'previous') startAct(stepIndex - 1);
+    else if (action === 'next' && running && gate) proxyGate();
     else if (action === 'next' && running && paused) continueGuide();
     else if (action === 'next' && !running) { if (acts[stepIndex].final) close(); else startAct(stepIndex + 1); }
   });
   ['pointerdown', 'click', 'dblclick', 'contextmenu'].forEach(function (eventName) {
     document.addEventListener(eventName, function (event) {
       if (!open || automating || card.contains(event.target)) return;
+      if (gate) {
+        if (gateAllows(event.target)) {
+          // 放行目标点击，让应用自身处理；点击完成后进入下一段。
+          if (eventName === 'click') later(0, completeGate);
+          return;
+        }
+        if (gateWrong(event.target)) {
+          if (eventName === 'click') { event.preventDefault(); event.stopImmediatePropagation(); correctGate(); }
+          return;
+        }
+      }
       event.preventDefault(); event.stopImmediatePropagation();
     }, true);
   });
