@@ -53,7 +53,7 @@ public partial class ShellTitleMenuView : UserControl
                 () => appearance.SelectedTheme == mode, () => appearance.SelectedTheme = mode);
         ThemeMenuItem.Items.Add(new Separator());
         foreach (var palette in appearance.PaletteOptions)
-            AddChoice(ThemeMenuItem, () => DesignSelectionControls.Text(palette.NameKey), () => appearance.SelectedPalette == palette, () => appearance.SelectedPalette = palette);
+            AddChoice(ThemeMenuItem, () => palette.Name, () => appearance.SelectedPalette == palette, () => appearance.SelectedPalette = palette);
         foreach (var typography in appearance.TypographyOptions)
             AddChoice(TypographyMenuItem, () => DesignSelectionControls.Text(typography.NameKey), () => appearance.SelectedTypography == typography, () => appearance.SelectedTypography = typography);
         TypographyMenuItem.Items.Add(new Separator());

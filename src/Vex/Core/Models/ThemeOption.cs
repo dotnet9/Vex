@@ -1,19 +1,15 @@
-﻿using CodeWF.Avalonia.Controls.Themes;
-using Avalonia.Controls;
+using CodeWF.Avalonia.Controls.Themes;
 using Avalonia.Media;
 
 namespace Vex.Core.Models;
 
 public sealed record ThemeOption(string Key, StudioThemeMode Mode);
 
-public sealed record PaletteOption(string Key, StudioPalette Palette)
+/// <summary>界面配色选项（规则 §13 注册表驱动：内置九套 + 用户配色，名称/描述为注册表直出文案）。</summary>
+public sealed record PaletteOption(
+    string Key, string Name, string Purpose, bool IsRecommended, IBrush Swatch, StudioPaletteDefinition Definition)
 {
-    public StudioPaletteInfo Definition => StudioPaletteCatalog.All.First(item => item.Palette == Palette);
-    public string NameKey => "Vex.VexL.Palette" + Palette;
-    public string PurposeKey => "Vex.VexL.PalettePurpose" + Palette;
-    public bool IsRecommended => Definition.Recommended;
-
-    public IBrush Swatch => global::Avalonia.Application.Current is { } app
-        && app.TryFindResource($"StudioSwatch{Palette}", out var resource) && resource is IBrush brush
-            ? brush : Brushes.Transparent;
+    /// <summary>兼容保留：注册表名称为直接文案，视图不再经 i18n。</summary>
+    public string NameKey => Name;
+    public string PurposeKey => Purpose;
 }

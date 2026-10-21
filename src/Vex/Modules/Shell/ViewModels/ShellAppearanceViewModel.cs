@@ -159,7 +159,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
     public string? CurrentTypographyTheme => SelectedTypography?.Key;
 
     public string CurrentTypographySize => IsCompactLayout
-        ? MarkdownTypographySizes.Small
+        ? MarkdownTypographySizes.Compact
         : MarkdownTypographySizes.Normal;
 
     public LanguageOption? SelectedLanguage

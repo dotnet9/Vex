@@ -71,7 +71,7 @@ public sealed class ShellAppearanceMenuView : UserControl
             if (button.Content is Grid grid && grid.Children[^1] is TextBlock check) check.Text = option == _vm.SelectedLanguage ? "✓" : "";
         if (_recommended is not null) { _recommended.Classes.Set("choice-filter-selected", !_all); _recommended.Content = (!_all ? "✓ " : "") + Text("ChoiceRecommended"); }
         if (_allChoices is not null) { _allChoices.Classes.Set("choice-filter-selected", _all); _allChoices.Content = (_all ? "✓ " : "") + Text("AllPalettes"); }
-        if (_selection is not null) _selection.Text = string.Format(Text("PaletteSelectionSummary"), Text(_vm.SelectedPalette!.NameKey), _vm.PaletteOptions.Count(p => p.IsRecommended), _vm.PaletteOptions.Count);
+        if (_selection is not null) _selection.Text = string.Format(Text("PaletteSelectionSummary"), _vm.SelectedPalette!.Name, _vm.PaletteOptions.Count(p => p.IsRecommended), _vm.PaletteOptions.Count);
     }
 
     private void Build()
@@ -104,8 +104,8 @@ public sealed class ShellAppearanceMenuView : UserControl
         foreach (var palette in _vm.PaletteOptions)
         {
             var labels = new StackPanel { Spacing = 2 };
-            var name = Label(Text(palette.NameKey), 13); name.FontWeight = FontWeight.SemiBold; labels.Children.Add(name);
-            var purpose = Label(Text(palette.PurposeKey)); purpose.LineHeight = 16.8; purpose.Classes.Add("muted"); labels.Children.Add(purpose);
+            var name = Label(palette.Name, 13); name.FontWeight = FontWeight.SemiBold; labels.Children.Add(name);
+            var purpose = Label(palette.Purpose); purpose.LineHeight = 16.8; purpose.Classes.Add("muted"); labels.Children.Add(purpose);
             var grid = new Grid { ColumnDefinitions = new("12,*,13"), ColumnSpacing = 9 };
             grid.Children.Add(new Border { Width = 12, Height = 12, CornerRadius = new CornerRadius(6), Background = palette.Swatch, VerticalAlignment = VerticalAlignment.Center });
             Grid.SetColumn(labels, 1); grid.Children.Add(labels);
@@ -113,7 +113,7 @@ public sealed class ShellAppearanceMenuView : UserControl
             var button = Button("", () => _vm.SelectedPalette = palette);
             button.Content = grid; button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
             button.HorizontalAlignment = HorizontalAlignment.Stretch;
-            button.Name = "Palette_" + palette.Palette; button.MinHeight = 42; button.Padding = new Thickness(10, 4);
+            button.Name = "Palette_" + palette.Key; button.MinHeight = 42; button.Padding = new Thickness(10, 4);
             _paletteButtons[palette] = button; _palettes.Children.Add(button);
         }
         var content = new StackPanel { Width = MenuWidth - 34 };

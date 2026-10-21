@@ -81,6 +81,7 @@ public partial class App : PrismApplication
                      ?? options.First(item => item.Key.Equals("system", StringComparison.OrdinalIgnoreCase));
         var palette = themeService.GetPaletteOptions().FirstOrDefault(item =>
             item.Key.Equals(settings.PaletteKey ?? settings.ThemeKey, StringComparison.OrdinalIgnoreCase))
+            ?? themeService.GetPaletteOptions().FirstOrDefault(item => item.Key == "indigo")
             ?? themeService.GetPaletteOptions()[0];
         themeService.ApplyTheme(option, palette);
     }
