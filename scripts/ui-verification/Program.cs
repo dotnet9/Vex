@@ -761,14 +761,14 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
 
         | 编号 | 功能说明 | 实现要点 |
         | --- | --- | --- |
-        | 1 | 显示操作信息 | 应用服务发布结构化操作消息，包含时间、用户、文档和结果。 |
+        | 1 | 显示操作信息 | 应用服务发布结构化操作消息，包含时间、用户、文档和结果。长说明在有限的正文宽度内自动换行，编号和功能名称保留适合内容的宽度，调整窗口后各列仍应保持完整可读。阅读、源码预览和即时编辑均使用一致的内容布局。 |
         | 2 | 显示语法校验结果 | 保留错误规则、级别及定位信息。 |
         | 3 | 显示异常信息 | 界面保持可继续操作。 |
         """;
     var html = """
         ## HTML 表格
 
-        <table><tr><th>编号</th><th>功能说明</th><th>实现要点</th></tr><tr><td>1</td><td>显示操作信息</td><td>应用服务发布结构化操作消息，包含时间、用户、文档和结果。</td></tr><tr><td>2</td><td>显示语法校验结果</td><td>保留错误规则、级别及定位信息。</td></tr><tr><td>3</td><td>显示异常信息</td><td>界面保持可继续操作。</td></tr></table>
+        <table><tr><th>编号</th><th>功能说明</th><th>实现要点</th></tr><tr><td>1</td><td>显示操作信息</td><td>应用服务发布结构化操作消息，包含时间、用户、文档和结果。长说明在有限的正文宽度内自动换行，编号和功能名称保留适合内容的宽度，调整窗口后各列仍应保持完整可读。阅读、源码预览和即时编辑均使用一致的内容布局。</td></tr><tr><td>2</td><td>显示语法校验结果</td><td>保留错误规则、级别及定位信息。</td></tr><tr><td>3</td><td>显示异常信息</td><td>界面保持可继续操作。</td></tr></table>
         """;
     Pump(vm.OpenPathAsync(WriteSample(pipe)));
     var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
@@ -786,8 +786,7 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
             vm.Markdown = source; Pump(); SettleRendering();
             PumpUntil(() => host.GetVisualDescendants().OfType<Grid>().Any(grid => grid.Classes.Contains("MdTable")));
             var grid = host.GetVisualDescendants().OfType<Grid>().Single(grid => grid.Classes.Contains("MdTable"));
-            var documentWidth = grid.GetVisualAncestors().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().FirstOrDefault()?.Bounds.Width
-                ?? grid.GetVisualAncestors().OfType<UserControl>().First().Bounds.Width;
+            var documentWidth = DocumentWidth(grid);
             Check(Math.Abs(grid.Bounds.Width - documentWidth) < 3,
                 $"{width} {theme} {layout} {kind}: table fills document width ({grid.Bounds.Width:F1}/{documentWidth:F1})");
             var headers = grid.Children.OfType<Border>().Where(cell => cell.Classes.Contains("MdTableHeaderCell")).ToArray();
@@ -799,15 +798,19 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
             Check(borderColor == Color.Parse(theme == "dark" ? "#41454E" : "#DFE2E5"), "Table uses neutral borders independent of accent color");
             Capture(window, $"{width}-{theme}-{layout}-{kind}");
         }
+        vm.Markdown = "| 编号 | 名称 |\n| --- | --- |\n| 1 | Vex |"; Pump(); SettleRendering();
+        var compactTable = host.GetVisualDescendants().OfType<Grid>().Single(grid => grid.Classes.Contains("MdTable"));
+        Check(compactTable.Bounds.Width > 0 && compactTable.Bounds.Width < DocumentWidth(compactTable) / 2,
+            $"{width} {theme} {layout}: short tables keep their natural width as in the prototype");
         foreach (var imageName in new[] { "diagram.svg", "small.png" })
         {
             vm.Markdown = $"## 自适应图片\n\n![图示]({imageName})\n\n图片与正文宽度对齐。"; Pump();
             PumpUntil(() => host.GetVisualDescendants().OfType<Image>().Any(image => image.Classes.Contains("MdImageContent") && image.Width > 0));
             SettleRendering();
             var image = host.GetVisualDescendants().OfType<Image>().Single(image => image.Classes.Contains("MdImageContent"));
-            var viewer = image.GetVisualAncestors().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().First();
-            Check(Math.Abs(image.Bounds.Width - viewer.Bounds.Width) < 3,
-                $"{width} {theme} {layout} {imageName}: image fills document width ({image.Bounds.Width:F1}/{viewer.Bounds.Width:F1})");
+            var documentWidth = DocumentWidth(image);
+            Check(Math.Abs(image.Bounds.Width - documentWidth) < 3,
+                $"{width} {theme} {layout} {imageName}: image fills document width ({image.Bounds.Width:F1}/{documentWidth:F1})");
             Check(Math.Abs(image.Bounds.Height / image.Bounds.Width - (imageName.EndsWith("svg") ? .375 : .5)) < .005,
                 "Image keeps its aspect ratio without a fixed height cap");
             Capture(window, $"{width}-{theme}-{layout}-{imageName.Replace('.', '-')}");
@@ -816,11 +819,14 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
     vm.Markdown = pipe; vm.Workbench.SelectLayout("read"); Pump();
     vm.Workbench.StartPresentation(); Pump(); SettleRendering();
     var presentationGrid = preview.GetVisualDescendants().OfType<Grid>().Single(grid => grid.Classes.Contains("MdTable"));
-    var presentationViewer = presentationGrid.GetVisualAncestors().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().First();
-    Check(Math.Abs(presentationGrid.Bounds.Width - presentationViewer.Bounds.Width) < 3, "Presentation uses the same full-width table layout");
+    Check(Math.Abs(presentationGrid.Bounds.Width - DocumentWidth(presentationGrid)) < 3, "Presentation uses the same full-width table layout");
     Capture(window, "presentation"); vm.Workbench.StopPresentation(); Pump();
 
     string WriteSample(string text) { File.WriteAllText(sample, text); return sample; }
+
+    // 阅读与即时编辑共用正文块宿主，以其可用宽度排除外围留白。
+    double DocumentWidth(Control control) => control.GetVisualAncestors()
+        .OfType<CodeWF.Avalonia.Controls.Controls.WindowedStackPanel>().First().Bounds.Width;
 }
 
 void VerifyHtmlTables(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
