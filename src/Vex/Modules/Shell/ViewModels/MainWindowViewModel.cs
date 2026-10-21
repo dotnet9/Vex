@@ -154,7 +154,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         var target = _externalPaths.ResolveStartupArgument(normalizedArguments);
         if (target.Path is not { Length: > 0 } path)
         {
-            if (normalizedArguments.Length == 0 && _settingsStore.Current.RestoreWorkspace != false)
+            if (normalizedArguments.Length == 0 && _settingsStore.Current.RestoreWorkspace == true)
             {
                 await RestoreLastWorkspaceFolderAsync();
             }

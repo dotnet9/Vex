@@ -97,7 +97,19 @@ internal static class PopupLayoutVerification
         var overlay = app.Resolve<IShellOverlayService>();
         var task = overlay.ShowPreferencesAsync(app.Resolve<ShellPreferencesViewModel>(), "general"); Render();
         var preferences = window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Single();
-        Capture(preferences.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card")), "preferences");
+        var preferenceCard = preferences.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
+        Check(preferenceCard.Bounds.Size == new Size(675, 700), "Preferences retains the prototype's 675 by 700 frame");
+        Check(preferences.GetVisualDescendants().OfType<ListBox>().Single().Bounds.Width == 148, "Preferences navigation is 148px wide");
+        var preferenceGrid = (Grid)preferenceCard.Child!;
+        Check(preferenceGrid.Children[0].Bounds.Height == 36 && preferenceGrid.Children[2].Bounds.Height == 54, "Preferences title and fixed footer retain their 36px and 54px heights");
+        foreach (var toggle in preferences.GetVisualDescendants().OfType<ToggleSwitch>())
+        {
+            var track = toggle.GetVisualDescendants().OfType<Border>().First(b => b.Name == "SwitchBackgroundBorder");
+            var knob = toggle.GetVisualDescendants().OfType<Border>().First(b => b.Name == "SwitchKnobIndicator");
+            var point = knob.TranslatePoint(default, track)!.Value;
+            Check(point.X >= 0 && point.Y >= 0 && point.X + knob.Bounds.Width <= track.Bounds.Width && point.Y + knob.Bounds.Height <= track.Bounds.Height, "Preference switch knob remains inside its track: " + toggle.Name);
+        }
+        Capture(preferenceCard, "preferences");
         ((ShellPreferencesViewModel)preferences.DataContext!).Close(); Render();
     }
 }

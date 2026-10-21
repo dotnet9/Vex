@@ -10,7 +10,7 @@ namespace Vex.Core.Services;
 public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObject
 {
     public event EventHandler? PreferencesChanged;
-    public bool RestoreWorkspace { get => settings.Current.RestoreWorkspace ?? true; set => Set(s => s with { RestoreWorkspace = value }); }
+    public bool RestoreWorkspace { get => settings.Current.RestoreWorkspace ?? false; set => Set(s => s with { RestoreWorkspace = value }); }
     public bool AutoSave { get => settings.Current.AutoSave ?? false; set => Set(s => s with { AutoSave = value }); }
     public int AutoSaveDelay { get => settings.Current.AutoSaveDelay ?? 2; set => Set(s => s with { AutoSaveDelay = Math.Clamp(value, 2, 60) }); }
     public bool RecoveryDrafts { get => settings.Current.RecoveryDrafts ?? true; set => Set(s => s with { RecoveryDrafts = value }); }

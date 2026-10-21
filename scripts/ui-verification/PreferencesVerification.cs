@@ -43,8 +43,8 @@ internal static class PreferencesVerification
         Check(view.GetVisualDescendants().OfType<ListBox>().Single().ItemCount == 7, "Preferences has seven real categories");
         Check(Control<ComboBox>(nameof(preferences.DefaultEncoding)).SelectedIndex == 0, "Default encoding has a visible initial choice");
         Check(Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex == 0, "Default line ending has a visible initial choice");
-        Control<ToggleSwitch>(nameof(preferences.RestoreWorkspace)).IsChecked = false; Render();
-        Check(!preferences.RestoreWorkspace, "General toggle updates typed preference");
+        Control<ComboBox>(nameof(preferences.RestoreWorkspace)).SelectedIndex = 0; Render();
+        Check(!preferences.RestoreWorkspace, "Startup choice updates the typed workspace preference");
         Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex = 2; Render();
         Check(preferences.DefaultNewline == "CRLF", "Choice selection updates preference");
         view.SelectCategory("editor"); Render();
