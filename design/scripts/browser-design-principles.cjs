@@ -89,9 +89,9 @@ fs.mkdirSync(out,{recursive:true});
  assert.equal(await page.locator('.prototype-draft').count(),0,'There is only one recovery flow');
  // Open a real repository article and verify the downloaded Markdown and HTML.
  await open('layout=source');
- const realFile=path.resolve(__dirname,'../../docs/design/工作区与交互.md');
+ const realFile=path.resolve(__dirname,'../../docs/原型与资源.md');
  const realText=fs.readFileSync(realFile,'utf8').replace(/\r\n/g,'\n');
- await page.locator('#open-file-input').setInputFiles(realFile);await page.waitForFunction(()=>VexWorkbench.name==='工作区与交互.md');
+ await page.locator('#open-file-input').setInputFiles(realFile);await page.waitForFunction(name=>VexWorkbench.name===name,path.basename(realFile));
  assert.equal((await page.evaluate(()=>VexWorkbench.text)).replace(/\r\n/g,'\n'),realText);
  await page.evaluate(()=>VexWorkbench.applyText(VexWorkbench.text+'\n\n这是一段用于验收的真实写作记录。\n'));
  await page.evaluate(()=>{const input=document.querySelector('#markdown-input');input.focus();input.setSelectionRange(600,610);document.querySelector('.source-scroll').scrollTop=140;});await page.waitForTimeout(80);

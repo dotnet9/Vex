@@ -13,9 +13,12 @@ const server = http.createServer((req,res) => {
   if (pathname === '/design/assets/generated/documents-data.js' || pathname === '/design/assets/project-info.js') {
     try { prepareDocuments(); } catch (error) { console.error(error.message);res.writeHead(500).end('Document preparation failed');return; }
   }
-  if (!pathname.startsWith('/design/')) {res.writeHead(404).end();return;}
+  const isDesign = pathname.startsWith('/design/');
+  const isDocument = pathname.startsWith('/docs/') && path.extname(pathname) === '.md';
+  if (!isDesign && !isDocument) {res.writeHead(404).end();return;}
   const target = path.resolve(root,'.' + pathname);
-  const allowed = target.startsWith(path.resolve(root,'design') + path.sep);
+  const allowedRoot = path.resolve(root, isDesign ? 'design' : 'docs');
+  const allowed = target.startsWith(allowedRoot + path.sep);
   if (!allowed) {res.writeHead(403).end();return;}
   fs.readFile(target,(error,data) => {if (error) {res.writeHead(404).end();return;}res.writeHead(200,{'Content-Type':types[path.extname(target)] || 'application/octet-stream','Cache-Control':'no-store'}).end(data);});
 });

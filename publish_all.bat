@@ -11,7 +11,7 @@ set "NUGET_AUDIT=false"
 
 if not "%~1"=="" (
     echo Usage: publish_all.bat
-    echo Release installers are built by GitHub Actions. See docs/RELEASE.md.
+    echo Release installers are built by GitHub Actions. See docs/README.md.
     exit /b 2
 )
 

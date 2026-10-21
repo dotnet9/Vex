@@ -1,5 +1,5 @@
 /* Desktop resource snapshot. Shared semantic keys; each style supplies values.
- * Source: CodeWF.Avalonia 12.1.4.33. See docs/resources/外观资源.md.
+ * Source: CodeWF.Avalonia 12.1.4.33. See docs/原型与资源.md.
  * This file is self-contained and works with file:// previews.
  */
 window.VexDesktopResources = {

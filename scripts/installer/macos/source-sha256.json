@@ -68,7 +68,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "b76600e3393ea99ef3c0f07681621a5b96d2480bec7f236972c0ca848222b7c2"
+      "sha256": "d8597335e5b8f9ca781b3e3c77f045e180ad060c3c8d87344f907e1aeea144ef"
     },
     {
       "path": "render-backgrounds.cjs",
@@ -79,5 +79,5 @@
       "sha256": "7b2a49e115b0d6416e411b8b88ae6f01cfb7f812c796246efd970bad3f51d9b1"
     }
   ],
-  "local_design": "Vex design/Vex-Installer-macOS.html overrides the shared visual assets; shared packaging engine retained"
+  "local_design": "Vex design/Vex-Installer-macOS.html overrides the shared visual assets; shared packaging engine retained; README.md is a local navigation document consolidated into docs"
 }
