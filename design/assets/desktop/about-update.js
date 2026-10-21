@@ -142,25 +142,13 @@
 
   function closeLayer() { $('layer-update').hidden = true; }
 
-  // Browser prototype cannot launch a local installer or close the desktop process.
-  // Model the hand-off and app-exit screen without falsely claiming installation succeeded.
+  // 更新交接后继续在当前标签页演示对应平台的安装流程。
   function showInstallerHandoff() {
-    closeLayer();
-    const app = document.querySelector('.app-window') || document.body;
-    app.querySelector('.prototype-window-closed')?.remove();
-    const overlay = document.createElement('section');
-    overlay.className = 'prototype-window-closed installer-handoff';
-    overlay.setAttribute('role', 'status');
-    overlay.setAttribute('aria-live', 'polite');
-    overlay.innerHTML = '<img src="assets/vex-logo.svg" alt=""><span class="handoff-kicker">VEX UPDATE</span><h2>正在启动安装程序…</h2><p>更新包已准备就绪。Vex 即将退出，后续步骤将在安装程序中完成。</p><div class="handoff-progress" aria-hidden="true"><span></span></div>';
-    app.appendChild(overlay);
-    // Use a separate hand-off timer: hiding the update dialog triggers its observer,
-    // which intentionally invalidates update-operation timers.
-    setTimeout(() => {
-      if (!overlay.isConnected) return;
-      overlay.innerHTML = '<img src="assets/vex-logo.svg" alt=""><span class="handoff-kicker">VEX UPDATE</span><h2>安装程序已启动</h2><p>在真实桌面应用中，Vex 会在此时关闭。请在独立安装程序中完成更新。</p><p class="handoff-note">原型预览无法启动本机安装包或关闭浏览器标签页，此处仅演示交接与退出状态。</p><button type="button" class="handoff-return">返回原型预览</button>';
-      overlay.querySelector('.handoff-return').addEventListener('click', () => overlay.remove());
-    }, 850);
+    const query = new URLSearchParams(location.search);
+    const installers = { windows:'Vex-Installer-Windows.html', macos:'Vex-Installer-macOS.html', linux:'Vex-Installer-Linux.html' };
+    const target = new URL(installers[query.get('platform')] || installers.windows, location.href);
+    ['theme','palette','lang'].forEach(key => { const value = query.get(key); if (value) target.searchParams.set(key, value); });
+    location.assign(target.href);
   }
   function cancelDownload() {
     generation++; clearTimeout(timer); clearInterval(progressTimer);
