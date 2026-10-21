@@ -68,11 +68,6 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
             return true;
         }
 
-        if (key == Key.F5)
-        {
-            return PublishShellAction(ShellActionKind.RefreshPreview);
-        }
-
         if (hasAlt && key == Key.Enter)
         {
             return PublishShellAction(ShellActionKind.ShowProperties);

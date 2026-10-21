@@ -37,14 +37,15 @@ if (mode == "settings-real-ui")
     File.WriteAllText(config, "<configuration><appSettings /></configuration>");
     AppContext.SetData("APP_CONFIG_FILE", config);
 }
-if (mode is "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection")
+if (mode is "popup-layout" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
     window.Show();
-    if (mode == "motion") MotionVerification.Run(app, window, output);
+    if (mode == "popup-layout") PopupLayoutVerification.Run(app, window, output);
+    else if (mode == "motion") MotionVerification.Run(app, window, output);
     else if (mode == "protection") ProtectionVerification.Run(app, window, output);
     else if (mode == "prototype-appearance") PrototypeAppearanceVerification.Run(app, window, output);
     else if (mode == "prototype-chrome") PrototypeChromeVerification.Run(app, window, output);

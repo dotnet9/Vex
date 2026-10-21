@@ -4,6 +4,16 @@
   "cultureName": "en-US",
   "Vex": {
     "VexL": {
+      "MenuExportPng": "Export PNG image",
+      "MenuWatermark": "Show document watermark",
+      "MenuMapAppearance": "Mind map appearance…",
+      "MenuMaximize": "Maximize / Restore",
+      "MenuCloseDocument": "Close document",
+      "MenuDeleteDocument": "Delete document…",
+      "MenuEditView": "Editing view",
+      "MenuReadView": "Reading view",
+      "MenuMindMap": "Mind map",
+      "MenuMermaid": "Mermaid diagrams",
       "AppName": "Vex",
       "ChineseName": "维刻",
       "Slogan": "Vex · Write your thoughts. See the connections.",

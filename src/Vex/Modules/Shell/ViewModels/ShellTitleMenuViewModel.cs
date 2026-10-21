@@ -13,7 +13,8 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
         ShellHelpViewModel help,
         ShellWindowLayoutViewModel layout,
         ShellWorkbenchViewModel workbench,
-        ShellRecentDocumentsViewModel recent)
+        ShellRecentDocumentsViewModel recent,
+        Vex.Core.Services.EditorPreferences preferences)
     {
         Appearance = appearance;
         DocumentInfo = documentInfo;
@@ -23,6 +24,7 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
         Layout = layout;
         Workbench = workbench;
         Recent = recent;
+        Preferences = preferences;
     }
 
     public ShellAppearanceViewModel Appearance { get; }
@@ -39,6 +41,9 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
     public ShellWorkbenchViewModel Workbench { get; }
 
     public ShellRecentDocumentsViewModel Recent { get; }
+    public Vex.Core.Services.EditorPreferences Preferences { get; }
+    public void ToggleWordCount() => Preferences.WordCountVisible = !Preferences.WordCountVisible;
+    public void ToggleWatermark() => Preferences.WatermarkPreview = !Preferences.WatermarkPreview;
 
     public void NewDocument() => Publish(ShellActionKind.NewDocument);
 

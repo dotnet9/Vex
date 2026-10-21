@@ -447,6 +447,9 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         IsFullScreen = !IsFullScreen;
     }
 
+    public void ToggleMaximize() => CurrentWindowState = CurrentWindowState == WindowState.Maximized
+        ? WindowState.Normal : WindowState.Maximized;
+
     private void FocusEditor()
     {
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorActionCommand(EditorActionKind.FocusEditor));

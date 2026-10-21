@@ -4,6 +4,16 @@
   "cultureName": "ja-JP",
   "Vex": {
     "VexL": {
+      "MenuExportPng": "PNG 画像を書き出し",
+      "MenuWatermark": "文書の透かしを表示",
+      "MenuMapAppearance": "マインドマップの外観…",
+      "MenuMaximize": "最大化 / 元に戻す",
+      "MenuCloseDocument": "文書を閉じる",
+      "MenuDeleteDocument": "文書を削除…",
+      "MenuEditView": "編集ビュー",
+      "MenuReadView": "閲覧ビュー",
+      "MenuMindMap": "マインドマップ",
+      "MenuMermaid": "Mermaid 図表",
       "AppName": "Vex",
       "ChineseName": "维刻",
       "Slogan": "Vex · 想いを書き、つながりを見つける。",

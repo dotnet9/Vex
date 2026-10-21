@@ -4,6 +4,16 @@
   "cultureName": "zh-Hant",
   "Vex": {
     "VexL": {
+      "MenuExportPng": "匯出 PNG 長圖",
+      "MenuWatermark": "顯示文件浮水印",
+      "MenuMapAppearance": "心智圖樣式…",
+      "MenuMaximize": "最大化 / 還原",
+      "MenuCloseDocument": "關閉文件",
+      "MenuDeleteDocument": "刪除文件…",
+      "MenuEditView": "編輯檢視",
+      "MenuReadView": "閱讀檢視",
+      "MenuMindMap": "心智圖",
+      "MenuMermaid": "Mermaid 圖表",
       "AppName": "Vex",
       "ChineseName": "維刻",
       "Slogan": "維刻 Vex · 寫下想法，看見脈絡。",
