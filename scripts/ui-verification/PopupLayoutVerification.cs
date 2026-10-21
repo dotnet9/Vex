@@ -9,6 +9,8 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Interactivity;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
+using Vex.Core.Services;
+using Vex.Modules.Shell.Services;
 
 internal static class PopupLayoutVerification
 {
@@ -21,6 +23,13 @@ internal static class PopupLayoutVerification
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
         var title = window.FindControl<ShellTitleMenuView>("TitleMenuView")!;
+        void Capture(Control control, string name)
+        {
+            Render();
+            using var bitmap = new RenderTargetBitmap(new PixelSize((int)control.Bounds.Width, (int)control.Bounds.Height));
+            bitmap.Render(control); bitmap.Save(Path.Combine(output, name + ".png"));
+            Console.WriteLine($"CAPTURE {name}: {control.Bounds}");
+        }
         var file = title.FileMenuTarget;
         Check(file.Items.Count == 16, "File menu matches the prototype's four groups and has no Save All row");
         var theme = title.FindControl<MenuItem>("ThemeMenuItem")!;
@@ -63,5 +72,32 @@ internal static class PopupLayoutVerification
             typography.IsSubMenuOpen = false; Render();
             view.IsSubMenuOpen = false; Render();
         }
+        vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("weft"); Render();
+        var appearance = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
+        foreach (var (button, name) in new[] { (appearance.AppearanceButton, "appearance"), (appearance.LanguageButton, "language") })
+        {
+            ((Flyout)button.Flyout!).ShowAt(button); Render();
+            var content = (Control)((Flyout)button.Flyout).Content!;
+            var presenter = content.GetVisualAncestors().OfType<FlyoutPresenter>().First();
+            var frame = presenter.GetVisualDescendants().OfType<Border>().First(b => b.Name == "LayoutRoot");
+            Check(Math.Abs(frame.Bounds.Width - 248) < 1, "Title picker uses the same 248px visible frame: " + name);
+            Capture(presenter, name); button.Flyout.Hide(); Render();
+        }
+        vm.Workbench.ShowTypography = true; Render();
+        var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
+        var cardScroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
+        var compact = gallery.GetVisualDescendants().OfType<CheckBox>().Single();
+        Check(compact.TranslatePoint(default, gallery)!.Value.Y > cardScroll.TranslatePoint(default, gallery)!.Value.Y + cardScroll.Bounds.Height, "Compact layout stays in the fixed footer below the scrolling cards");
+        var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true && b.IsVisible).Take(3).ToArray();
+        Check(cards.Max(c => c.Bounds.Height) - cards.Min(c => c.Bounds.Height) < 1, "Typography cards in a row stretch to the same height");
+        Capture(gallery, "typography");
+        vm.Workbench.ShowTypography = false; vm.Workbench.ShowLayouts = true; Render();
+        Capture(window.FindControl<WorkspaceLayoutGallery>("LayoutGallery")!, "layouts");
+        vm.Workbench.ShowLayouts = false;
+        var overlay = app.Resolve<IShellOverlayService>();
+        var task = overlay.ShowPreferencesAsync(app.Resolve<ShellPreferencesViewModel>(), "general"); Render();
+        var preferences = window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Single();
+        Capture(preferences.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card")), "preferences");
+        ((ShellPreferencesViewModel)preferences.DataContext!).Close(); Render();
     }
 }

@@ -11,7 +11,7 @@ public sealed record WorkbenchLayoutOption(string Id, string Label, string Hint,
         new("map", "WSMap", "WSMapHint", "map", null, false, true),
         new("source-render", "WSSourceRender", "WSCompareHint", "editor,render", "source", true, false),
         new("source-map", "WSSourceMap", "WSStructureHint", "editor,map", "source", false, true),
-        new("instant-map", "WSInstantMap", "WSStructureHint", "editor,map", "instant", false, true),
+        new("instant-map", "WSInstantMap", "WSInstantMapHint", "editor,map", "instant", false, true),
         new("three", "WSThree", "WSThreeHint", "editor,render;map", "source", true, true)
     ];
     public string Name => WorkbenchText.Get(Label);

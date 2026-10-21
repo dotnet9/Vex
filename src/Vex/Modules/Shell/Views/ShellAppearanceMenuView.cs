@@ -17,14 +17,19 @@ public sealed class ShellAppearanceMenuView : UserControl
     private bool _all;
     private readonly StackPanel _palettes = new() { Spacing = 4 };
     private readonly Dictionary<PaletteOption, Button> _paletteButtons = [];
-    private readonly Dictionary<ThemeOption, Button> _modeButtons = [];
+    private readonly Dictionary<ThemeOption, RadioButton> _modeButtons = [];
     private readonly Dictionary<LanguageOption, Button> _languageButtons = [];
+    private Button? _recommended;
+    private Button? _allChoices;
+    private TextBlock? _selection;
+    private ScrollViewer? _scroll;
     public Button AppearanceButton { get; private set; } = null!;
     public Button LanguageButton { get; private set; } = null!;
     public const double MenuWidth = 248;
 
     public ShellAppearanceMenuView()
     {
+        Navigation(_palettes, () => 1);
         DataContextChanged += (_, _) => Attach();
         AttachedToVisualTree += (_, _) => Attach();
         DetachedFromVisualTree += (_, _) => { if (_vm is not null) _vm.PropertyChanged -= Changed; I18nManager.Instance.CultureChanged -= CultureChanged; _vm = null; };
@@ -61,8 +66,12 @@ public sealed class ShellAppearanceMenuView : UserControl
             if (button.Content is Grid grid && grid.Children[^1] is TextBlock check) check.Text = selected ? "✓" : "";
             button.IsVisible = _all || option.IsRecommended || selected;
         }
-        foreach (var (option, button) in _modeButtons) button.Classes.Set("selected-choice", option == _vm.SelectedTheme);
-        foreach (var (option, button) in _languageButtons) button.Content = option.NativeName + (option == _vm.SelectedLanguage ? "  ✓" : "");
+        foreach (var (option, button) in _modeButtons) button.IsChecked = option == _vm.SelectedTheme;
+        foreach (var (option, button) in _languageButtons)
+            if (button.Content is Grid grid && grid.Children[^1] is TextBlock check) check.Text = option == _vm.SelectedLanguage ? "✓" : "";
+        if (_recommended is not null) { _recommended.Classes.Set("choice-filter-selected", !_all); _recommended.Content = (!_all ? "✓ " : "") + Text("ChoiceRecommended"); }
+        if (_allChoices is not null) { _allChoices.Classes.Set("choice-filter-selected", _all); _allChoices.Content = (_all ? "✓ " : "") + Text("AllPalettes"); }
+        if (_selection is not null) _selection.Text = string.Format(Text("PaletteSelectionSummary"), Text(_vm.SelectedPalette!.NameKey), _vm.PaletteOptions.Count(p => p.IsRecommended), _vm.PaletteOptions.Count);
     }
 
     private void Build()
@@ -78,43 +87,59 @@ public sealed class ShellAppearanceMenuView : UserControl
         }};
         AppearanceButton.Name = "TitleBarAppearanceButton";
         LanguageButton = Button("文ᴬ", () => { }); LanguageButton.Name = "TitleBarLanguageButton";
-        var modes = new UniformGrid { Columns = 3 };
-        foreach (var mode in _vm.ThemeOptions)
+        var modes = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 16) };
+        foreach (var mode in _vm.ThemeOptions.OrderBy(m => m.Key == "light" ? 0 : m.Key == "dark" ? 1 : 2))
         {
-            var button = Button(Text(mode.Key switch { "light" => "ThemeLight", "dark" => "ThemeDark", _ => "ThemeSystem" }), () => _vm.SelectedTheme = mode);
+            var button = new RadioButton { Content = Text(mode.Key switch { "light" => "ThemeLight", "dark" => "ThemeDark", _ => "ThemeSystem" }), GroupName = "TitleThemeMode", FontSize = 12, MinHeight = 32, Padding = new Thickness(4, 3), Margin = new Thickness(0, 0, 4, 0) };
+            button.IsCheckedChanged += (_, _) => { if (button.IsChecked == true && _vm is not null) _vm.SelectedTheme = mode; };
             _modeButtons[mode] = button; modes.Children.Add(button);
         }
         var filters = new UniformGrid { Columns = 2, Margin = new Thickness(0, 8) };
-        var recommended = Button(Text("ChoiceRecommended"), () => { _all = false; Changed(null, new("")); });
-        var all = Button(Text("AllPalettes"), () => { _all = true; Changed(null, new("")); });
-        filters.Children.Add(recommended); filters.Children.Add(all);
+        _recommended = Button(Text("ChoiceRecommended"), () => { _all = false; Changed(null, new("")); });
+        _allChoices = Button(Text("AllPalettes"), () => { _all = true; Changed(null, new("")); });
+        _recommended.HorizontalAlignment = HorizontalAlignment.Stretch; _allChoices.HorizontalAlignment = HorizontalAlignment.Stretch;
+        filters.Children.Add(_recommended); filters.Children.Add(_allChoices);
+        filters.Margin = default;
+        var filterFrame = new Border { Classes = { "choice-filter" }, Child = filters, Margin = new Thickness(0, 8) };
         foreach (var palette in _vm.PaletteOptions)
         {
             var labels = new StackPanel { Spacing = 2 };
-            labels.Children.Add(Label(Text(palette.NameKey), 13));
-            var purpose = Label(Text(palette.PurposeKey)); purpose.Classes.Add("muted"); labels.Children.Add(purpose);
-            var grid = new Grid { ColumnDefinitions = new("16,*,18"), ColumnSpacing = 8 };
+            var name = Label(Text(palette.NameKey), 13); name.FontWeight = FontWeight.SemiBold; labels.Children.Add(name);
+            var purpose = Label(Text(palette.PurposeKey)); purpose.LineHeight = 16.8; purpose.Classes.Add("muted"); labels.Children.Add(purpose);
+            var grid = new Grid { ColumnDefinitions = new("12,*,13"), ColumnSpacing = 9 };
             grid.Children.Add(new Border { Width = 12, Height = 12, CornerRadius = new CornerRadius(6), Background = palette.Swatch, VerticalAlignment = VerticalAlignment.Center });
             Grid.SetColumn(labels, 1); grid.Children.Add(labels);
-            var check = Label(""); Grid.SetColumn(check, 2); grid.Children.Add(check);
+            var check = Label(""); check.VerticalAlignment = VerticalAlignment.Center; Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush"); Grid.SetColumn(check, 2); grid.Children.Add(check);
             var button = Button("", () => _vm.SelectedPalette = palette);
             button.Content = grid; button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
-            button.Name = "Palette_" + palette.Palette; button.MinHeight = 46;
+            button.HorizontalAlignment = HorizontalAlignment.Stretch;
+            button.Name = "Palette_" + palette.Palette; button.MinHeight = 42; button.Padding = new Thickness(10, 4);
             _paletteButtons[palette] = button; _palettes.Children.Add(button);
         }
-        Navigation(_palettes, () => 1);
-        var content = new StackPanel { Spacing = 6, Margin = new Thickness(8) };
-        content.Children.Add(Label(Text("Appearance"), 13)); content.Children.Add(modes); content.Children.Add(filters); content.Children.Add(_palettes);
-        var scroll = new ScrollViewer { Content = content, MaxHeight = Math.Max(180, (TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 820) - 80), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
-        AppearanceButton.Flyout = new Flyout { Content = new Border { Width = MenuWidth - 24, Child = scroll }, Placement = PlacementMode.BottomEdgeAlignedRight };
-        var languages = new StackPanel { Width = MenuWidth - 24, Spacing = 4 };
+        var content = new StackPanel { Width = MenuWidth - 34 };
+        var modeTitle = Label(Text("AppearanceModeTitle")); modeTitle.FontWeight = FontWeight.SemiBold;
+        var paletteTitle = Label(Text("WBTheme")); paletteTitle.FontWeight = FontWeight.SemiBold;
+        content.Children.Add(modeTitle); content.Children.Add(modes); content.Children.Add(paletteTitle); content.Children.Add(filterFrame); content.Children.Add(_palettes);
+        _selection = Label(""); _selection.Classes.Add("muted"); _selection.LineHeight = 18; _selection.Margin = new Thickness(0, 10, 0, 0); content.Children.Add(_selection);
+        _scroll = new ScrollViewer { Content = content, MaxHeight = 646, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+        var appearanceFlyout = new Flyout { Content = _scroll, Placement = PlacementMode.BottomEdgeAlignedRight };
+        appearanceFlyout.FlyoutPresenterClasses.Add("design-title-picker");
+        appearanceFlyout.Opening += (_, _) => _scroll.MaxHeight = Math.Max(140, Math.Min(646, (TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 820) - 114));
+        AppearanceButton.Flyout = appearanceFlyout;
+        var languages = new StackPanel { Width = MenuWidth - 12 };
         foreach (var language in _vm.LanguageOptions)
         {
-            var button = Button(language.NativeName, () => { LanguageButton.Flyout?.Hide(); _vm.SelectedLanguage = language; });
+            var grid = new Grid { ColumnDefinitions = new("*,Auto") };
+            grid.Children.Add(Label(language.CultureName switch { "zh-CN" => "简体中文", "zh-Hant" => "繁體中文", "ja-JP" => "日本語", _ => "English" }));
+            var check = Label(""); Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush"); Grid.SetColumn(check, 1); grid.Children.Add(check);
+            var button = Button("", () => { LanguageButton.Flyout?.Hide(); _vm.SelectedLanguage = language; });
+            button.Content = grid; button.Height = 30; button.Padding = new Thickness(10, 6);
+            button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
             button.HorizontalAlignment = HorizontalAlignment.Stretch; _languageButtons[language] = button; languages.Children.Add(button);
         }
         Navigation(languages, () => 1);
-        LanguageButton.Flyout = new Flyout { Content = languages, Placement = PlacementMode.BottomEdgeAlignedRight };
+        var languageFlyout = new Flyout { Content = languages, Placement = PlacementMode.BottomEdgeAlignedRight };
+        languageFlyout.FlyoutPresenterClasses.Add("design-language-picker"); LanguageButton.Flyout = languageFlyout;
         Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { AppearanceButton, LanguageButton } };
         Changed(null, new(""));
     }

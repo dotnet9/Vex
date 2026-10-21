@@ -14,10 +14,9 @@ public sealed class WorkspaceLayoutGallery : Border
 {
     protected override Type StyleKeyOverride => typeof(Border);
     private ShellWorkbenchViewModel? _workbench;
-    public event EventHandler? SeparateRequested;
     public WorkspaceLayoutGallery()
     {
-        Classes.Add("wb-popover"); Width = 548; Padding = new Thickness(18); CornerRadius = new CornerRadius(12);
+        Classes.Add("wb-popover"); Width = 568; Padding = new Thickness(18); CornerRadius = new CornerRadius(8);
         AttachedToVisualTree += (_, _) => { if (TopLevel.GetTopLevel(this) is { } window) { window.SizeChanged += WindowResized; Fit(window); } };
         DetachedFromVisualTree += (_, _) => { if (TopLevel.GetTopLevel(this) is { } window) window.SizeChanged -= WindowResized; };
         DataContextChanged += (_, _) => Attach();
@@ -25,7 +24,7 @@ public sealed class WorkspaceLayoutGallery : Border
         DetachedFromVisualTree += (_, _) => { CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged -= CultureChanged; if (_workbench is not null) _workbench.PropertyChanged -= Changed; };
     }
     private void WindowResized(object? sender, SizeChangedEventArgs e) { if (sender is TopLevel window) Fit(window); }
-    private void Fit(TopLevel window) { Width = Math.Min(548, window.ClientSize.Width - 24); MaxHeight = Math.Max(160, window.ClientSize.Height - 120); }
+    private void Fit(TopLevel window) { Width = Math.Min(568, window.ClientSize.Width - 24); MaxHeight = Math.Max(160, window.ClientSize.Height - 100); Margin = new Thickness(12, 84, 12, 12); }
     private void CultureChanged(object? sender, EventArgs e) => Avalonia.Threading.Dispatcher.UIThread.Post(Build);
     private void Attach()
     {
@@ -41,23 +40,23 @@ public sealed class WorkspaceLayoutGallery : Border
         if (_workbench is null) return;
         var stack = new StackPanel { Spacing = 0 };
         var heading = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        heading.Children.Add(new TextBlock { Text = WorkbenchText.Get("WSLayoutTitle"), FontWeight = FontWeight.SemiBold, FontSize = 14, VerticalAlignment = VerticalAlignment.Center });
+        heading.Children.Add(new TextBlock { Text = WorkbenchText.Get("WSLayoutTitle"), FontWeight = FontWeight.SemiBold, FontSize = 13, VerticalAlignment = VerticalAlignment.Center });
         var close = new Button { Classes = { "vex-dismiss" } };
         AutomationProperties.SetName(close, CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.Close));
         close.Click += (_, _) => _workbench.ShowLayouts = false; Grid.SetColumn(close, 1); heading.Children.Add(close); stack.Children.Add(heading);
-        var note = new TextBlock { Text = WorkbenchText.Get("WSLayoutHint"), FontSize = 11.5, Margin = new Thickness(0, 3, 0, 16), TextWrapping = TextWrapping.Wrap };
+        var note = new TextBlock { Text = WorkbenchText.Get("WSLayoutHint"), FontSize = 12, LineHeight = 20.4, Margin = new Thickness(0, 3, 0, 18), TextWrapping = TextWrapping.Wrap };
         note.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("VexMutedBrush")); stack.Children.Add(note);
         var options = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*,*"), RowDefinitions = new RowDefinitions("Auto,Auto"), ColumnSpacing = 8, RowSpacing = 8 };
         DesignSelectionControls.Navigation(options, () => 4);
         foreach (var (option, index) in WorkbenchLayoutOption.All.Select((value, index) => (value, index)))
         {
             var selected = option.Id == _workbench.WorkspaceLayout;
-            var button = new Button { Padding = new Thickness(selected ? 8 : 9, selected ? 10 : 11, selected ? 8 : 9, selected ? 9 : 10), HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Top, CornerRadius = new CornerRadius(7), BorderThickness = new Thickness(selected ? 2 : 1), MinHeight = 0 };
-            button.Bind(BorderBrushProperty, this.GetResourceObservable(selected ? "VexAccentBrush" : "VexPanelBorderBrush"));
-            button.Bind(BackgroundProperty, this.GetResourceObservable(selected ? "VexAccentSoftBrush" : "VexPanelBackgroundBrush"));
-            var content = new StackPanel { Spacing = 5 };
+            var button = new Button { Padding = new Thickness(10), HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Top, CornerRadius = new CornerRadius(6), BorderThickness = new Thickness(1), MinHeight = 0 };
+            button.BorderBrush = selected ? null : Brushes.Transparent; if (selected) button.Bind(BorderBrushProperty, this.GetResourceObservable("VexAccentBrush"));
+            button.Background = selected ? null : Brushes.Transparent; if (selected) button.Bind(BackgroundProperty, this.GetResourceObservable("VexAccentSoftBrush"));
+            var content = new StackPanel { Spacing = 3 };
             content.Children.Add(Miniature(option.Diagram));
-            content.Children.Add(new TextBlock { Text = option.Name + (selected ? " ✓" : ""), FontSize = 12, LineHeight = 16, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, MinHeight = 32 });
+            content.Children.Add(new TextBlock { Text = option.Name, FontSize = 12, LineHeight = 16, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, MinHeight = 16 });
             var hint = new TextBlock { Text = option.Description, FontSize = 10, LineHeight = 15, TextWrapping = TextWrapping.Wrap };
             hint.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("VexMutedBrush")); content.Children.Add(hint);
             button.Content = content; button.Tag = option.Id; button.Click += (_, _) => _workbench.SelectLayout(option.Id);
@@ -65,10 +64,9 @@ public sealed class WorkspaceLayoutGallery : Border
         }
         stack.Children.Add(options);
         var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        var separate = new Button { Name = "SeparateViewsButton", Classes = { "wb-quiet" }, Content = "↗ " + WorkbenchText.Get("WSSeparate"), HorizontalAlignment = HorizontalAlignment.Left };
-        separate.Click += (_, _) => { _workbench.ShowLayouts = false; SeparateRequested?.Invoke(this, EventArgs.Empty); };
-        footer.Children.Add(separate);
-        var reset = new Button { Classes = { "wb-quiet" }, Content = WorkbenchText.Get("WSDefault") };
+        var noteLabel = new TextBlock { Text = DesignSelectionControls.Text("WSLayoutFooter"), FontSize = 10.5, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
+        noteLabel.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("VexMutedBrush")); footer.Children.Add(noteLabel);
+        var reset = new Button { Classes = { "wb-quiet" }, Content = WorkbenchText.Get("WSDefault"), FontSize = 10.5, Padding = new Thickness(0, 3) };
         reset.Click += (_, _) => _workbench.SelectLayout("instant"); Grid.SetColumn(reset, 1); footer.Children.Add(reset);
         var footerBorder = new Border { Child = footer, Margin = new Thickness(0, 14, 0, 0), Padding = new Thickness(0, 10, 0, 0), BorderThickness = new Thickness(0, 1, 0, 0) };
         footerBorder.Bind(BorderBrushProperty, this.GetResourceObservable("VexPanelBorderBrush")); stack.Children.Add(footerBorder);
@@ -90,7 +88,7 @@ public sealed class WorkspaceLayoutGallery : Border
             }
             Grid.SetRow(line,rowIndex); grid.Children.Add(line);
         }
-        var frame = new Border { Height = 47, Padding = new Thickness(5), Child = grid, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 0, 0, 3) };
+        var frame = new Border { Height = 44, Padding = new Thickness(5), Child = grid, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 0, 0, 3) };
         frame.Bind(BorderBrushProperty, this.GetResourceObservable("VexPanelBorderBrush"));
         frame.Bind(BackgroundProperty, this.GetResourceObservable("VexPanelBackgroundBrush"));
         return frame;

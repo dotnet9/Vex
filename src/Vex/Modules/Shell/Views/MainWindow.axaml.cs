@@ -31,7 +31,11 @@ public partial class MainWindow : CodeWFWindow
         AuxiliaryPanel.SetInspector(inspector);
         Grid.SetRowSpan(confirmation, 4); ShellGuideRoot.Children.Add(confirmation);
         WorkspaceViews = new WorkspaceViewController(this, ViewSurface, FloatingViewShelf);
-        LayoutGallery.SeparateRequested += (_, _) => WorkspaceViews.Separate();
+        var separateViews = new MenuItem();
+        separateViews.Header = DesignSelectionControls.Text("WSSeparate");
+        separateViews.Click += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Workbench.ShowLayouts = false; WorkspaceViews.Separate(); };
+        WorkbenchToolbar.LayoutTarget.ContextMenu = new ContextMenu { Items = { separateViews } };
+        WorkbenchToolbar.LayoutTarget.ContextMenu.Opening += (_, _) => separateViews.Header = DesignSelectionControls.Text("WSSeparate");
         SidebarSplitter.DragStarted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.BeginSidebarResize(); };
         SidebarSplitter.DragCompleted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.CompleteSidebarResize(); };
         OutlineSplitter.DragStarted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.BeginOutlineResize(); };
