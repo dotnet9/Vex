@@ -131,9 +131,9 @@
                     <Path Classes="stroke-ico" Data="M4 12H5 M11 12H12 M18 12H19"/>
                     <Button.Flyout><MenuFlyout>
                         <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}"/>
-                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.QuickOpen}}" Command="{Binding QuickOpen}"/>
+                        <MenuItem Header="{i18n:I18n Vex.VexL.SearchDocuments}" Command="{Binding QuickOpen}"/>
                         <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}"/>
-                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.RefreshPreview}}" Command="{Binding RefreshFiles}"/>
+                        <MenuItem Header="{i18n:I18n Vex.VexL.RefreshFiles}" Command="{Binding RefreshFiles}"/>
                         <MenuItem Header="{i18n:I18n {x:Static l:VexL.SortFiles}}" Command="{Binding ToggleSort}"/>
                         <MenuItem Header="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}" Command="{Binding CollapseAll}" IsEnabled="{Binding CanCollapseAll}"/>
                         <MenuItem Header="{i18n:I18n {x:Static l:VexL.ToggleFileList}}" Command="{Binding ToggleListView}" ToggleType="CheckBox" IsChecked="{Binding IsListView, Mode=OneWay}"/>
