@@ -14,6 +14,8 @@ public sealed class EntranceMotion : AvaloniaObject
 {
     public static readonly AttachedProperty<bool> IsEnabledProperty =
         AvaloniaProperty.RegisterAttached<EntranceMotion, Control, bool>("IsEnabled");
+    public static readonly AttachedProperty<bool> FadeOnlyProperty =
+        AvaloniaProperty.RegisterAttached<EntranceMotion, Control, bool>("FadeOnly");
     private static readonly AttachedProperty<State?> StateProperty =
         AvaloniaProperty.RegisterAttached<EntranceMotion, Control, State?>("State");
 
@@ -25,6 +27,8 @@ public sealed class EntranceMotion : AvaloniaObject
 
     public static bool GetIsEnabled(Control control) => control.GetValue(IsEnabledProperty);
     public static void SetIsEnabled(Control control, bool value) => control.SetValue(IsEnabledProperty, value);
+    public static bool GetFadeOnly(Control control) => control.GetValue(FadeOnlyProperty);
+    public static void SetFadeOnly(Control control, bool value) => control.SetValue(FadeOnlyProperty, value);
 
     private sealed class State : IDisposable
     {
@@ -32,6 +36,8 @@ public sealed class EntranceMotion : AvaloniaObject
         private CancellationTokenSource? _run;
         private bool _attached;
         private bool _visible;
+        private bool _checkPending;
+        private bool _disposed;
         private readonly List<Visual> _ancestors = [];
 
         public State(Control control)
@@ -53,7 +59,7 @@ public sealed class EntranceMotion : AvaloniaObject
                 current.PropertyChanged += VisibilityChanged;
             }
             MotionResources.Changed += MotionChanged;
-            Dispatcher.UIThread.Post(CheckVisibility, DispatcherPriority.Loaded);
+            QueueVisibilityCheck();
         }
         private void Detached(object? sender, VisualTreeAttachmentEventArgs e) => Detach();
         private void Detach()
@@ -68,7 +74,17 @@ public sealed class EntranceMotion : AvaloniaObject
         private void VisibilityChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (e.Property == Visual.IsVisibleProperty)
-                Dispatcher.UIThread.Post(CheckVisibility, DispatcherPriority.Loaded);
+                QueueVisibilityCheck();
+        }
+        private void QueueVisibilityCheck()
+        {
+            if (_checkPending || _disposed) return;
+            _checkPending = true;
+            Dispatcher.UIThread.Post(() =>
+            {
+                _checkPending = false;
+                if (!_disposed) CheckVisibility();
+            }, DispatcherPriority.Loaded);
         }
         private void CheckVisibility()
         {
@@ -83,23 +99,23 @@ public sealed class EntranceMotion : AvaloniaObject
         {
             Cancel();
             if (!MotionResources.IsEnabled) return;
+            var dialog = _control.Classes.Contains("dialog-card");
+            var first = new KeyFrame { Cue = new Cue(0), Setters = { new Setter(Visual.OpacityProperty, 0d) } };
+            var last = new KeyFrame { Cue = new Cue(1), Setters = { new Setter(Visual.OpacityProperty, 1d) } };
+            if (!GetFadeOnly(_control) && _control is not MenuFlyoutPresenter)
+            {
+                first.Setters.Add(new Setter(TranslateTransform.YProperty, dialog ? 9d : -4d));
+                first.Setters.Add(new Setter(ScaleTransform.ScaleXProperty, dialog ? .99 : .985));
+                first.Setters.Add(new Setter(ScaleTransform.ScaleYProperty, dialog ? .99 : .985));
+                last.Setters.Add(new Setter(TranslateTransform.YProperty, 0d));
+                last.Setters.Add(new Setter(ScaleTransform.ScaleXProperty, 1d));
+                last.Setters.Add(new Setter(ScaleTransform.ScaleYProperty, 1d));
+            }
             var animation = new Animation
             {
-                Duration = TimeSpan.FromMilliseconds(_control.Classes.Contains("dialog-card") ? 220 : 140),
+                Duration = TimeSpan.FromMilliseconds(dialog ? 220 : 140),
                 Easing = new SplineEasing { X1 = .2, Y1 = .8, X2 = .2, Y2 = 1 },
-                Children =
-                {
-                    new KeyFrame { Cue = new Cue(0), Setters =
-                    {
-                        new Setter(Visual.OpacityProperty, 0d),
-                        new Setter(TranslateTransform.YProperty, 6d)
-                    } },
-                    new KeyFrame { Cue = new Cue(1), Setters =
-                    {
-                        new Setter(Visual.OpacityProperty, 1d),
-                        new Setter(TranslateTransform.YProperty, 0d)
-                    } }
-                }
+                Children = { first, last }
             };
             _run = new CancellationTokenSource();
             _ = Run(animation, _run.Token);
@@ -111,6 +127,7 @@ public sealed class EntranceMotion : AvaloniaObject
         }
         public void Dispose()
         {
+            _disposed = true;
             Detach();
             _control.AttachedToVisualTree -= Attached;
             _control.DetachedFromVisualTree -= Detached;

@@ -3,18 +3,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:anim="using:Avalonia.Animation.Easings"
     xmlns:sys="using:System">
-    <!--
-        Motion Token 体系（Ant Design Design Tokens 规范，MIT）
-        三档时长 + 三条缓动曲线，供控件样式与自研动效控件统一引用；
-        全局动效开关见 Vex.Core.Motion.MotionResources（关闭时三档时长归零）。
-        说明：Avalonia 12.1.3 的 SplineEasing 只在构造函数接收控制点、无法在 XAML 里赋值，
-        这里退用 CubicEase 族（同属三次曲线族），按 Ant Design 的「入场缓出、出场缓入」取向对应。
-    -->
-
-    <!-- 时长 Token（100 / 200 / 300 ms） -->
-    <sys:TimeSpan x:Key="MotionDurationFast">0:0:0.1</sys:TimeSpan>
-    <sys:TimeSpan x:Key="MotionDurationMid">0:0:0.2</sys:TimeSpan>
-    <sys:TimeSpan x:Key="MotionDurationSlow">0:0:0.3</sys:TimeSpan>
+    <!-- Vex 控件的三档动效时长，与 MotionResources 保持一致；关闭动效时统一归零。 -->
+    <sys:TimeSpan x:Key="MotionDurationFast">0:0:0.14</sys:TimeSpan>
+    <sys:TimeSpan x:Key="MotionDurationMid">0:0:0.22</sys:TimeSpan>
+    <sys:TimeSpan x:Key="MotionDurationSlow">0:0:0.26</sys:TimeSpan>
 
     <!-- 缓动曲线：InOut 用于常规过渡，Out 用于入场，In 用于出场 -->
     <anim:CubicEaseInOut x:Key="MotionEaseInOut" />

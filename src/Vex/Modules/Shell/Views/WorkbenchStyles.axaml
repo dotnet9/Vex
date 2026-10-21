@@ -2,6 +2,11 @@
   <Style Selector="FlyoutPresenter, MenuFlyoutPresenter, Border.dialog-card, Border.wb-popover">
     <Setter Property="motion:EntranceMotion.IsEnabled" Value="True"/>
   </Style>
+  <Style Selector="MenuItem /template/ Popup#PART_Popup > Border">
+    <Setter Property="motion:EntranceMotion.IsEnabled" Value="True"/>
+    <Setter Property="motion:EntranceMotion.FadeOnly" Value="True"/>
+  </Style>
+  <Style Selector="FlyoutPresenter, Border.wb-popover"><Setter Property="RenderTransformOrigin" Value="0%,0%"/></Style>
   <Styles.Resources>
     <StreamGeometry x:Key="WBSidebarIcon">M3 3H21V21H3Z M9 3V21</StreamGeometry>
     <StreamGeometry x:Key="WBEditIcon">M11 4H4V20H20V13 M18 2L22 6L12 16L8 17L9 13Z</StreamGeometry>
