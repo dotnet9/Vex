@@ -23,8 +23,9 @@ try {
     Invoke-CheckedGit -C $checkout config user.name 'Release test'
     Invoke-CheckedGit -C $checkout config user.email 'release-test@example.invalid'
     Invoke-CheckedGit -C $checkout config core.autocrlf false
-    Set-Content -LiteralPath (Join-Path $checkout 'UpdateLog.md') -Encoding utf8 -Value "# 更新日志`n`n## 1.2.30`n错误版本内容`n`n## 1.2.3（2026-10-20）`n正确版本内容`n`n## 1.2.2`n旧版内容"
-    Invoke-CheckedGit -C $checkout add UpdateLog.md
+    New-Item -ItemType Directory -Path (Join-Path $checkout 'docs') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $checkout 'docs/更新日志.md') -Encoding utf8 -Value "# 更新日志`n`n## V1.2.30（2026-10-20）`n`n- 😄[新增]-错误版本内容`n- 🐛[修复]-正确版本内容（v1.2.3）`n- ❌[删除]-移除重复入口（v1.2.3）`n- 🔨[优化]-旧版内容（v1.2.2）"
+    Invoke-CheckedGit -C $checkout add docs/更新日志.md
     Invoke-CheckedGit -C $checkout commit --quiet -m '无关提交标题'
     $tagBody = "Vex 1.2.3`n`n完整中文附注说明`n`n- 第一项`n- 第二项"
     $tagFile = Join-Path $fixture 'tag.md'
@@ -43,9 +44,14 @@ try {
     & $prepare -RepositoryRoot $checkout -Version 1.2.3 -OutputPath $output
     $fallback = Get-Content -LiteralPath $output -Raw
     Assert-Contains $fallback '正确版本内容'
+    Assert-Contains $fallback '❌[删除]-移除重复入口'
     foreach ($unexpected in @('无关提交标题', '错误版本内容', '旧版内容')) {
         if ($fallback.Contains($unexpected)) { throw "更新日志兜底混入无关内容：$unexpected" }
     }
+    & $prepare -RepositoryRoot $checkout -Version 1.2.30 -OutputPath $output
+    $latest = Get-Content -LiteralPath $output -Raw
+    Assert-Contains $latest '错误版本内容'
+    if ($latest.Contains('正确版本内容') -or $latest.Contains('旧版内容')) { throw '同日版本混入最新版本发布说明。' }
 
     & $prepare -RepositoryRoot $checkout -Version v1.2.3 -OutputPath $output -FetchTag
     if ((Get-Content -LiteralPath $output -Raw).Trim() -ne $tagBody) { throw '远端附注说明未恢复。' }

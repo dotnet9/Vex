@@ -4,9 +4,9 @@
 
 Vex 是基于 .NET 10 与 Avalonia 12 的桌面 Markdown 编辑器，支持 **Windows、Linux、macOS**，围绕本地文件提供即时编辑、源码、阅读、章节导图、导出与本机 MCP 协作。
 
-作者：沙漠尽头的狼 · 出品：[码坊 CodeWF](https://codewf.com) · 当前版本：**1.7.1**
+作者：沙漠尽头的狼 · 出品：[码坊 CodeWF](https://codewf.com) · 当前版本：**1.7.2**
 
-![Vex 桌面工作区](docs/media/native-main.png)
+![Vex 桌面工作区](docs/图片/主界面.png)
 
 ## 下载
 
@@ -31,7 +31,7 @@ Vex 是基于 .NET 10 与 Avalonia 12 的桌面 Markdown 编辑器，支持 **Wi
 - [需求文档](docs/需求文档.md) · [概要设计](docs/概要设计.md) · [详细设计](docs/详细设计.md)
 - [原型与资源](docs/原型与资源.md) · [Markdown 示例](docs/Markdown功能示例.md)
 - [开发与验证](docs/开发与验证.md) · [发布流程](docs/安装与发布.md)
-- [MCP 使用与接口](docs/MCP接口.md) · [更新日志](UpdateLog.md) · [鸣谢](docs/鸣谢.md)
+- [MCP 使用与接口](docs/MCP接口.md) · [更新日志](docs/更新日志.md) · [鸣谢](docs/鸣谢.md)
 
 ## 运行
 

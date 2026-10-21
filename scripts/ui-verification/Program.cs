@@ -574,7 +574,7 @@ void VerifyPointerRegressions(VerificationVexApp app, Window window, MainWindowV
     Console.WriteLine($"HORIZONTAL after={codeScroll.Offset}, unchanged={vm.Markdown == longCode}");
     Check(codeScroll.Offset.X > 100 && vm.Markdown == longCode, "Dragging the long code horizontal scrollbar scrolls without editing its source");
 
-    var log = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "UpdateLog.md"));
+    var log = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "更新日志.md"));
     var task = app.Resolve<IShellOverlayService>().ShowDocumentAsync("更新日志", log, null, "Simple", "Normal");
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Any());
     SettleRendering();

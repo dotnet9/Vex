@@ -60,8 +60,8 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
         if (model.WantsUpdates) await ShowUpdatesAsync();
         else if (model.WantsChangelog)
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "docs", "UpdateLog.md");
-            if (!File.Exists(path)) path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Resources", "docs", "UpdateLog.md"));
+            var path = Path.Combine(AppContext.BaseDirectory, "docs", "更新日志.md");
+            if (!File.Exists(path)) path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Resources", "docs", "更新日志.md"));
             await ShowDocumentAsync(localizer.Get(VexL.Changelog), await File.ReadAllTextAsync(path), path, "Simple", "Normal");
         }
     }

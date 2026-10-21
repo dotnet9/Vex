@@ -92,6 +92,7 @@ body { font-family:var(--font); font-size:14px; }
 .update-tag { flex:0 0 auto; padding:1px 7px; border-radius:999px; font-size:11px; font-weight:600; color:#fff; }
 .update-tag.tag-new { background:#1f9d63; }
 .update-tag.tag-opt { background:#3b82d6; }
+.update-tag.tag-remove { background:#bd3f3f; }
 .update-tag.tag-fix { background:#d68a3b; }.about-footer { grid-template-columns:minmax(0,1fr); gap:4px; margin-top:22px; padding-top:14px; padding-bottom:20px; }
 .about-framework { color:var(--muted); font-size:12px; }
 .about-foot,.ver-badge { font-size:12px; }

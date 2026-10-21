@@ -31,7 +31,14 @@ const preferences = fs.readFileSync(path.join(root, 'assets/preferences.js'), 'u
 assert.ok(preferences.includes('autoSave:false'));
 const sandbox = {window:{}};
 vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/generated/documents-data.js'), 'utf8'), sandbox);
-for (const [key, file] of [['thanks','docs/鸣谢.md'], ['changelog','UpdateLog.md']]) {
+for (const [key, file] of [['thanks','docs/鸣谢.md'], ['changelog','docs/更新日志.md']]) {
   assert.equal(sandbox.window.VexDocuments[key].text, fs.readFileSync(path.join(root, '..', file), 'utf8').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n'));
+}
+const changelog = sandbox.window.VexDocuments.changelog.text;
+const dates = [...changelog.matchAll(/^## V\d+(?:\.\d+)+（(\d{4}-\d{2}-\d{2})）$/gm)].map(match => match[1]);
+assert.ok(dates.length > 0, 'Changelog has dated version groups');
+assert.equal(new Set(dates).size, dates.length, 'Each date has one changelog group');
+for (const line of changelog.split('\n').filter(line => line.startsWith('- '))) {
+  assert.match(line, /^- (?:😄\[新增\]|🔨\[优化\]|🐛\[修复\]|❌\[删除\])-.+$/, 'User-facing change category');
 }
 console.log(`PASS: ${scripts} scripts, local HTML assets, ink-teal V logo, default auto-save and bundled Markdown.`);

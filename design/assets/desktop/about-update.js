@@ -10,14 +10,14 @@
   let tick = 0;
 
   const failureMessages = { 'check-failed':'检查失败，请重试。', 'download-failed':'下载失败，请重试。', 'checksum-failed':'校验失败，请重新下载。', 'install-failed':'安装失败，请重试。' };
-  const TAGS = { '新增':'tag-new', '优化':'tag-opt', '修复':'tag-fix' };
+  const TAGS = { '新增':'tag-new', '优化':'tag-opt', '修复':'tag-fix', '删除':'tag-remove' };
 
   function escapeHtml(text) { return text.replace(/[&<>"]/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ch])); }
 
   function releaseIndex() {
     const text = (window.VexDocuments && VexDocuments.changelog && VexDocuments.changelog.text) || '';
     const sections = [];
-    const pattern = /^## V(\d+\.\d+\.\d+)（([^）\n]+)）\n([\s\S]*?)(?=\n## V\d+\.\d+\.\d+（|$)/gm;
+    const pattern = /^## V(\d+(?:\.\d+)+)（([^）\n]+)）\n([\s\S]*?)(?=\n## V\d+(?:\.\d+)+（|$)/gm;
     let match;
     while ((match = pattern.exec(text))) sections.push({ version: match[1], date: match[2].trim(), body: match[3].trim() });
     return sections;
@@ -35,7 +35,7 @@
   // 把一版更新日志解析为类型化条目：😄[新增] → 新增，🔨[优化] → 优化，🐛[修复] → 修复。
   function typedEntries(body) {
     return body.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
-      const m = /^- (?:😄|🔨|🐛)\[(新增|优化|修复)\]-(.*)$/.exec(line);
+      const m = /^- (?:😄|🔨|🐛|❌)\[(新增|优化|修复|删除)\]-(.*)$/.exec(line);
       return m ? { tag: m[1], text: m[2] } : { tag: null, text: line.replace(/^- /, '') };
     });
   }

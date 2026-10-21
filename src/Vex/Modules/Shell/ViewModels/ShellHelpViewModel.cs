@@ -32,7 +32,7 @@ public sealed class ShellHelpViewModel
                 case "changelog":
                     await _helpService.ShowDocumentWindowAsync(
                         _localizer.Get(VexL.Changelog),
-                        "UpdateLog.md");
+                        "更新日志.md");
                     _statusPublisher.PublishResource(VexL.StatusOpenedChangelog);
                     break;
                 case "thanks":

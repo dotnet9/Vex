@@ -34,18 +34,30 @@ else {
         }
     }
     if ([string]::IsNullOrWhiteSpace($body)) {
-        $updateLog = Join-Path $root 'UpdateLog.md'
+        $updateLog = Join-Path $root 'docs/更新日志.md'
         if (Test-Path -LiteralPath $updateLog -PathType Leaf) {
             $lines = [Collections.Generic.List[string]]::new()
-            $capture = $false
+            $groupVersion = ''
+            $groupDate = ''
             foreach ($line in Get-Content -LiteralPath $updateLog -Encoding utf8) {
-                if ($line -match ('^#{1,6}\s+v?' + [regex]::Escape($releaseVersion) + '(?:\s|[（(]|$)')) {
-                    $capture = $true
-                    $lines.Add($line)
+                if ($line -match '^## V(?<version>\d+(?:\.\d+)+)（(?<date>\d{4}-\d{2}-\d{2})）$') {
+                    $groupVersion = $Matches.version
+                    $groupDate = $Matches.date
                     continue
                 }
-                if ($capture -and $line -match '^#{1,6}\s') { break }
-                if ($capture) { $lines.Add($line) }
+                if (-not $groupVersion -or $line -notmatch '^- ') { continue }
+                $entryVersion = $groupVersion
+                $entry = $line
+                if ($line -match '（v(?<version>\d+(?:\.\d+)+)）$') {
+                    $entryVersion = $Matches.version
+                    $entry = $line.Substring(0, $line.Length - $Matches[0].Length)
+                }
+                if ($entryVersion -ne $releaseVersion) { continue }
+                if ($lines.Count -eq 0) {
+                    $lines.Add("## V$releaseVersion（$groupDate）")
+                    $lines.Add('')
+                }
+                $lines.Add($entry)
             }
             $body = $lines -join "`n"
         }
