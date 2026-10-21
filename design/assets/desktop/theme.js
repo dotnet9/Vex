@@ -1,6 +1,7 @@
 /* 外观集中在折叠面板中，保留三态、十六套配色和语言入口。 */
 (function () {
-  var palettes=VexPalettes.map(function(p){return [p.key,p.label,p.light];});
+  /* 推荐配色置顶（角标标识），其余按原顺序跟随。 */
+  var palettes=[].concat(VexPalettes.filter(function(p){return p.recommended;}),VexPalettes.filter(function(p){return !p.recommended;})).map(function(p){return [p.key,p.label,p.light];});
   var modes=[['light','ThemeLight','☀'],['dark','ThemeDark','☾'],['system','ThemeSystem','◐']];
   var storeKey='vex-design-appearance',system=matchMedia('(prefers-color-scheme: dark)'),state={mode:'light',palette:'weft'};
   try{Object.assign(state,JSON.parse(VexStorage.getItem(storeKey)||'{}'));}catch(_){}
@@ -9,16 +10,6 @@
   if(query.has('palette'))state.palette=query.get('palette');state.palette=VexPaletteKey(state.palette);
   function word(key){return window.VexL?VexL.get(key):key;}
   var themeFrame = 0;
-  var paletteScope = 'recommended';
-  function filterPalettes() {
-    document.querySelectorAll('#vex-theme-panel [data-palette]').forEach(button=>{
-      var item=VexPalettes.find(p=>p.key===button.dataset.palette);
-      button.hidden=paletteScope==='recommended'&&!item.recommended&&item.key!==state.palette;
-    });
-    document.querySelectorAll('[data-palette-scope]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.paletteScope===paletteScope)));
-    var label=document.querySelector('.palette-selection'),current=VexPalettes.find(p=>p.key===state.palette);
-    if(label)label.textContent='当前：'+current.label+' · '+(paletteScope==='recommended'?'推荐 5 套，可查看全部 16 套':'全部 16 套');
-  }
   function apply(syncLanguage){
     if(!modes.some(item=>item[0]===state.mode))state.mode='system';
     if(!palettes.some(item=>item[0]===state.palette))state.palette='weft';
@@ -55,7 +46,6 @@
         button.classList.toggle('on',active);button.setAttribute('aria-pressed',String(active));
       }
     });
-    filterPalettes();
     // Language controls do not need to be walked on every palette/mode switch.
     if(syncLanguage){
       document.querySelectorAll('#vex-language-menu [data-language]').forEach(button=>{
@@ -76,10 +66,10 @@
     windowPanel.querySelector('button').onclick=()=>{document.querySelector('.app-window').hidden=false;windowPanel.hidden=true;document.querySelector('#caption-btns button').focus();};
     document.getElementById('caption-btns').addEventListener('click',event=>{var button=event.target.closest('[data-action]');if(!button)return;event.stopImmediatePropagation();var app=document.querySelector('.app-window'),action=button.dataset.action;if((action==='close'||action==='exit-app')&&window.VexProto){VexProto.handleAction('exit-app');return;}if(action==='maximize'){app.classList.toggle('expanded');return;}var words=({'zh-CN':['窗口已最小化','窗口已关闭','还原窗口','重新打开'],'zh-Hant':['視窗已最小化','視窗已關閉','還原視窗','重新開啟'],'en-US':['Window minimized','Window closed','Restore window','Reopen'],'ja-JP':['ウィンドウを最小化しました','ウィンドウを閉じました','ウィンドウを復元','もう一度開く']})[VexL.culture];app.hidden=true;windowPanel.dataset.state=action;windowPanel.querySelector('p').textContent=words[action==='close'?1:0];windowPanel.querySelector('button').textContent=words[action==='close'?3:2];windowPanel.hidden=false;windowPanel.querySelector('button').focus();},true);
     var panel=document.createElement('div');panel.id='vex-theme-panel';panel.className='studio-title-controls';
-    panel.innerHTML='<details id="vex-appearance-menu"><summary title="外观：主题与配色"><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg><span>外观</span></summary><div class="appearance-choices"><fieldset class="studio-modes"><legend>明暗模式</legend><div class="theme-mode-options">'+modes.map(item=>'<label><input type="radio" name="vex-theme-mode" value="'+item[0]+'" data-mode="'+item[0]+'" data-resource="'+item[1]+'"><span>'+word(item[1])+'</span></label>').join('')+'</div></fieldset><strong>界面配色</strong><div class="choice-filter" role="group" aria-label="配色范围"><button type="button" data-palette-scope="recommended" aria-pressed="true">推荐</button><button type="button" data-palette-scope="all" aria-pressed="false">全部 16 套</button></div><div class="studio-palettes" role="group" aria-label="Palette">'+palettes.map(item=>'<button type="button" data-palette="'+item[0]+'" aria-label="'+item[1]+'"><i style="background:'+item[2]+'"></i><span class="palette-label"><b>'+item[1]+'</b><small>'+VexPalettes.find(p=>p.key===item[0]).note+'</small></span></button>').join('')+'</div><p class="palette-selection" aria-live="polite"></p></div></details><details id="vex-language-menu" class="studio-language"><summary>文<span aria-hidden="true">A</span></summary><div role="menu">'+Object.entries(VEX_DATA.languages).map(([code])=>'<button type="button" role="menuitemradio" data-language="'+code+'">'+({"zh-CN":"简体中文","zh-Hant":"繁體中文","en-US":"English","ja-JP":"日本語"}[code]||code)+'</button>').join('')+'</div></details>';
+    panel.innerHTML='<button type="button" class="icon-button find-launch" data-action="find" title="查找当前正文 · Ctrl+F" aria-label="查找当前正文"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg></button><details id="vex-appearance-menu"><summary title="外观：主题与配色"><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg><span>外观</span></summary><div class="appearance-choices"><fieldset class="studio-modes"><legend>明暗模式</legend><div class="theme-mode-options">'+modes.map(item=>'<label><input type="radio" name="vex-theme-mode" value="'+item[0]+'" data-mode="'+item[0]+'" data-resource="'+item[1]+'"><span>'+word(item[1])+'</span></label>').join('')+'</div></fieldset><strong>界面配色</strong><div class="studio-palettes" role="group" aria-label="Palette">'+palettes.map(item=>{var info=VexPalettes.find(p=>p.key===item[0]);return '<button type="button" data-palette="'+item[0]+'" aria-label="'+item[1]+'">'+(info.recommended?'<em class="palette-badge">推荐</em>':'')+'<i style="background:'+item[2]+'"></i><span class="palette-label"><b>'+item[1]+'</b><small>'+info.note+'</small></span></button>';}).join('')+'</div></div></details><details id="vex-language-menu" class="studio-language"><summary>文<span aria-hidden="true">A</span></summary><div role="menu">'+Object.entries(VEX_DATA.languages).map(([code])=>'<button type="button" role="menuitemradio" data-language="'+code+'">'+({"zh-CN":"简体中文","zh-Hant":"繁體中文","en-US":"English","ja-JP":"日本語"}[code]||code)+'</button>').join('')+'</div></details>';
     document.getElementById('caption-btns').before(panel);
     panel.addEventListener('change',event=>{var input=event.target;if(input.matches('input[name="vex-theme-mode"]'))VexTheme.setMode(input.value);});
-    panel.addEventListener('click',event=>{var button=event.target.closest('button');if(!button)return;if(button.dataset.paletteScope){paletteScope=button.dataset.paletteScope;filterPalettes();}if(button.dataset.palette)VexTheme.setPalette(button.dataset.palette);if(button.dataset.language){VexL.set(button.dataset.language);document.getElementById('vex-language-menu').open=false;}});
+    panel.addEventListener('click',event=>{var button=event.target.closest('button');if(!button)return;if(button.dataset.palette)VexTheme.setPalette(button.dataset.palette);if(button.dataset.language){VexL.set(button.dataset.language);document.getElementById('vex-language-menu').open=false;}});
     document.addEventListener('click',event=>{if(!event.target.closest('#vex-language-menu'))document.getElementById('vex-language-menu').open=false;if(!event.target.closest('#vex-appearance-menu'))document.getElementById('vex-appearance-menu').open=false;});
     document.addEventListener('keydown',event=>{if(event.key==='Escape'){var menu=document.getElementById('vex-appearance-menu');if(menu.open){menu.open=false;menu.querySelector('summary').focus();}}});apply(true);
   });

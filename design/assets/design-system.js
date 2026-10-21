@@ -20,7 +20,9 @@
     default:'晴空亮蓝 · 清晰明快',dotnet:'浓郁紫罗兰 · 开发工作','studio-ember':'高饱和赤陶 · 鲜明活力','night-sky':'深空蓝紫 · 理性思考',aurora:'极光紫调 · 创意表达',dusk:'暮色暖紫 · 安静阅读',
     aquatic:'清透水青 · 轻快记录',desert:'大地暖棕 · 温润沉静'
   };
-  const recommendedPalettes = ['weft','graphite','ocean','sand','default'];
+  /* 精简为 6 套高对比度配色：品牌墨青 / 石墨 / 海蓝 / 沙金 / .NET 紫 / 星夜。 */
+  const keptPalettes = ['weft','graphite','ocean','sand','dotnet','night-sky'];
+  const recommendedPalettes = ['weft','graphite','ocean','sand'];
   const recommendedTypes = ['Simple','InkBlack','TechnologyBlue','Column','Academic','WeChatFormat'];
   const typeNotes = {
     Simple:'日常写作 · 简洁留白',Basic:'工作文档 · 清晰层级',InkBlack:'长文阅读 · 书卷宋体',TechnologyBlue:'技术文档 · 条理分明',
@@ -56,6 +58,9 @@
       css.push(':root[data-theme="'+mode+'"][data-palette="'+p.key+'"]{'+Object.entries(tokens).map(([key,value])=>'--'+key+':'+value).join(';')+'}');
     }
   }
+  window.VexPalettes = VexPalettes.filter(p => keptPalettes.includes(p.key));
+  /* 精选 9 套高对比度排版：简约 / 文档 / 书卷 / 专栏 / 刊物 / 学术 / 橙心 / 极客黑 / 萌绿，3×3 网格。 */
+  const keptTypes = ['Simple','Basic','InkBlack','Column','WeChatFormat','Academic','OrangeHeart','GeekBlack','CuteGreen'];
   const style=document.createElement('style');style.id='design-system-tokens';style.textContent=css.join('\n');document.head.append(style);
   const originalRules=window.VexTypeRules;
   const typeTokens={};
@@ -68,6 +73,7 @@
       typeTokens[t.key][mode]={text,decoration,solid:decoration,on:onSolid(decoration)};
     }
   }
+  window.VexTypes = VexTypes.filter(t => keptTypes.includes(t.key));
   function typeProperties(t,exporting){
     const a=typeTokens[t.key].light,b=typeTokens[t.key].dark;
     const value=key=>exporting?a[key]:'light-dark('+a[key]+','+b[key]+')';

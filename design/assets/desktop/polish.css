@@ -105,8 +105,13 @@ body > .submenu.flyout {
   position: fixed;
   backdrop-filter: none;
 }
-/* All titlebar popups share the original File menu width. */
-.app-window .titlebar .appearance-choices,
+/* Titlebar popups share the original File menu width;
+   the appearance panel needs a wider canvas for the 3-column palette grid. */
+.app-window .titlebar .appearance-choices {
+  width: 430px;
+  min-width: 0;
+  max-width: calc(100vw - 16px);
+}
 .app-window .titlebar .studio-language > [role="menu"] {
   width: var(--title-menu-width);
   min-width: 0;

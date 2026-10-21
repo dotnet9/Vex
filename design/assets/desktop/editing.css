@@ -23,6 +23,8 @@
 .typography-popover { position: absolute; z-index: 30; right: 18px; top: 108px; width: 338px; max-height: calc(100% - 124px); padding: 18px; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-pop); animation: inspector-in .2s ease; }
 .typography-popover .popover-title { flex: none; margin-bottom: 0; }
 .typography-note { font-size: 10px; color: var(--muted); margin: 3px 0 14px; }
+#typography-panel .type-swatch{height:150px}
+#typography-panel .type-swatch .type-document{--type-size:13px;transform:scale(.45)}
 .typography-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow: auto; min-height: 0; }
 .typography-card { position: relative; border: 1px solid var(--border); background: var(--bg); padding: 9px 6px 7px; border-radius: 6px; color: var(--muted); font-size: 10px; min-width: 0; transition: border-color .16s, background .16s; }
 .typography-card:hover { border-color: var(--accent); }

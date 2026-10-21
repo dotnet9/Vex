@@ -12,19 +12,10 @@
   if (items.some(function (item) { return item.key === requested; })) state.key = requested;
   var panel = document.createElement('section'); panel.id = 'typography-panel'; panel.className = 'typography-popover'; panel.hidden = true;
   panel.setAttribute('aria-labelledby', 'typography-title'); panel.setAttribute('role', 'dialog');
-  panel.innerHTML = '<div class="popover-title"><strong id="typography-title">正文排版</strong><button class="icon-button" id="typography-close" aria-label="关闭排版"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div><p class="typography-note">每张卡片都是独立效果预览，点击应用。方向键浏览，Enter 确认。</p><div class="choice-filter" role="group" aria-label="排版范围"><button type="button" data-type-scope="recommended" aria-pressed="true">推荐</button><button type="button" data-type-scope="all" aria-pressed="false">全部 27 套</button></div><div class="typography-grid" role="group" aria-label="排版效果预览">' + items.map(function (item) {
+  panel.innerHTML = '<div class="popover-title"><strong id="typography-title">正文排版</strong><button class="icon-button" id="typography-close" aria-label="关闭排版"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div><p class="typography-note">每张卡片都是独立效果预览，点击应用。方向键浏览，Enter 确认。</p><div class="typography-grid" role="group" aria-label="排版效果预览">' + items.map(function (item) {
     return '<button type="button" class="typography-card" data-typography-key="' + item.key + '" aria-label="' + item.label + '，' + item.note + '，应用此正文排版"><span class="typography-card-heading"><strong class="typography-card-name">' + item.label + '</strong><span class="typography-card-selected" aria-hidden="true">✓ 当前</span></span><span class="typography-card-purpose">' + item.note + '</span>' + VexTypeCardPreview(item.key) + '</button>';
   }).join('') + '</div><label class="typography-compact">紧凑布局<input type="checkbox" id="typography-compact"></label>';
   document.querySelector('.window-body').appendChild(panel);
-  var scope = 'recommended';
-  function filter() {
-    panel.querySelectorAll('[data-typography-key]').forEach(function(button){
-      var item=items.find(function(item){return item.key===button.dataset.typographyKey;});
-      button.hidden=scope==='recommended'&&!item.recommended&&item.key!==state.key;
-    });
-    panel.querySelectorAll('[data-type-scope]').forEach(function(button){button.setAttribute('aria-pressed',String(button.dataset.typeScope===scope));});
-  }
-  panel.querySelector('.choice-filter').onclick=function(event){var button=event.target.closest('[data-type-scope]');if(!button)return;scope=button.dataset.typeScope;filter();panel.querySelector('.typography-grid').scrollTop=0;};
   function apply() {
     var theme = items.find(function (item) { return item.key === state.key; }), root = document.documentElement;
     root.dataset.typography = theme.key; root.dataset.typographyVariant = theme.variant; root.dataset.compact = String(state.compact);
@@ -34,7 +25,6 @@
       button.setAttribute('aria-pressed', String(button.dataset.typographyKey === state.key));
     });
     document.getElementById('typography-compact').checked = state.compact;
-    filter();
     try { VexStorage.setItem('vex-design-typography', JSON.stringify(state)); } catch (_) {}
   }
   panel.querySelector('.typography-grid').onclick = function (event) {
