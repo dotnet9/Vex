@@ -32,7 +32,7 @@
                                 <TextBlock
                                     Classes="muted"
                                     FontSize="11.5"
-                                    Text="{i18n:I18n {x:Static l:VexL.McpSettingsDescription}}"
+                                    Text="{i18n:I18n Vex.VexL.McpServerEnabledNote}"
                                     TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                             <ToggleSwitch
