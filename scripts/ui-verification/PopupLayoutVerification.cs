@@ -111,5 +111,21 @@ internal static class PopupLayoutVerification
         }
         Capture(preferenceCard, "preferences");
         ((ShellPreferencesViewModel)preferences.DataContext!).Close(); Render();
+        var aboutTask = overlay.ShowAboutAsync(); Render();
+        var about = window.GetVisualDescendants().OfType<ShellAboutOverlayView>().Single();
+        var aboutCard = about.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
+        Check(aboutCard.Bounds.Width == 420 && ((Grid)aboutCard.Child!).Children[0].Bounds.Height == 36, "About uses the prototype's 420px frame and 36px title bar");
+        Capture(aboutCard, "about");
+        ((ShellAboutViewModel)about.DataContext!).Close(); Render();
+        foreach (var width in new[] { 980, 1280, 980 })
+        foreach (var mode in new[] { "instant", "read" })
+        {
+            window.Width = width; window.Height = width == 980 ? 640 : 820;
+            vm.Workbench.SelectLayout(mode); vm.Workbench.ShowTypography = true; Render();
+            vm.Appearance.SelectedTypography = vm.Appearance.TypographyOptions.Last(); Render();
+            var position = gallery.TranslatePoint(default, window)!.Value;
+            Check(position.X >= 0 && position.Y >= 0 && position.X + gallery.Bounds.Width <= window.ClientSize.Width && position.Y + gallery.Bounds.Height <= window.ClientSize.Height, $"Typography reflows without measure mutation and fits {width}px/{mode}: {position}, {gallery.Bounds.Size}, host {window.ClientSize}");
+            vm.Workbench.ShowTypography = false; Render();
+        }
     }
 }

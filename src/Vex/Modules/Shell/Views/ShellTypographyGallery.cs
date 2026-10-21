@@ -25,6 +25,9 @@ public sealed class ShellTypographyGallery : UserControl
     private Button? _recommended;
     private Button? _allChoices;
     private CheckBox? _compact;
+    private bool _arrangePending;
+    private int _arrangedColumns;
+    private Button[] _arrangedButtons = [];
     public ShellTypographyGallery()
     {
         DataContextChanged += (_, _) => Attach();
@@ -59,17 +62,32 @@ public sealed class ShellTypographyGallery : UserControl
         Width = Math.Min(880, (_window?.ClientSize.Width ?? 1280) - 24);
         var anchor = (_window as MainWindow)?.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "TypographyTarget" && b.IsEffectivelyVisible);
         var top = anchor?.TranslatePoint(new Point(0, anchor.Bounds.Height + 8), _window!)?.Y ?? 126;
-        Margin = new Thickness(12, top, 12, 12);
+        var parentTop = _window is not null ? this.GetVisualParent()?.TranslatePoint(default, _window)?.Y ?? 0 : 0;
+        Margin = new Thickness(12, Math.Max(0, top - parentTop), 12, 12);
         Height = Math.Max(140, Math.Min(680, (_window?.ClientSize.Height ?? 820) - top - 12));
         _columns = Width >= 820 ? 3 : Width >= 550 ? 2 : 1;
         ArrangeCards();
     }
     private void ArrangeCards()
     {
+        // 窗口尺寸和主题通知可能来自布局过程，延后批量重排，避免修改 Grid 正在测量的单元格集合。
+        if (_arrangePending) return;
+        _arrangePending = true;
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            _arrangePending = false;
+            if (_vm is not null) ArrangeCardsCore();
+        }, Avalonia.Threading.DispatcherPriority.Background);
+    }
+    private void ArrangeCardsCore()
+    {
+        var visible = _items.Values.Where(item => item.Button.IsVisible).Select(item => item.Button).ToArray();
+        if (_arrangedColumns == _columns && visible.SequenceEqual(_arrangedButtons)) return;
+        _arrangedColumns = _columns;
+        _arrangedButtons = visible;
         _cards.ColumnDefinitions = new ColumnDefinitions(string.Join(',', Enumerable.Repeat("*", _columns)));
-        var visible = _items.Values.Where(item => item.Button.IsVisible).ToArray();
         _cards.RowDefinitions = new RowDefinitions(string.Join(',', Enumerable.Repeat("Auto", (visible.Length + _columns - 1) / _columns)));
-        for (var i = 0; i < visible.Length; i++) { Grid.SetColumn(visible[i].Button, i % _columns); Grid.SetRow(visible[i].Button, i / _columns); }
+        for (var i = 0; i < visible.Length; i++) { Grid.SetColumn(visible[i], i % _columns); Grid.SetRow(visible[i], i / _columns); }
     }
     private void Changed(object? sender, PropertyChangedEventArgs e)
     {

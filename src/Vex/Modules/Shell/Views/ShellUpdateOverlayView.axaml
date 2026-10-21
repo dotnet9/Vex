@@ -2,31 +2,52 @@
  xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
  xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellUpdateViewModel">
- <Border Classes="dialog-card" Width="520" MaxHeight="560" Padding="0" CornerRadius="9" ClipToBounds="True">
-  <Grid RowDefinitions="Auto,*">
-   <Border Height="44" Padding="16,0,6,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}">
-    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-     <TextBlock Text="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}" FontSize="13" VerticalAlignment="Center"/>
-     <Button Grid.Column="1" Classes="vex-dismiss" Click="Close_OnClick" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/>
+ <UserControl.Styles>
+  <Style Selector="Expander.update-notes">
+   <Setter Property="Template"><ControlTemplate><StackPanel>
+    <ToggleButton Classes="update-notes-toggle" MinHeight="0" Padding="0" HorizontalContentAlignment="Left" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+     <Grid ColumnDefinitions="8,*" ColumnSpacing="6"><Path Data="M0 0L6 4L0 8Z" Width="6" Height="8" Fill="{DynamicResource VexValueBrush}" VerticalAlignment="Center" RenderTransformOrigin="50%,50%"/><ContentPresenter Grid.Column="1" Content="{TemplateBinding Header}" FontSize="13" FontWeight="SemiBold"/></Grid>
+    </ToggleButton>
+    <ContentPresenter Content="{TemplateBinding Content}" IsVisible="{TemplateBinding IsExpanded}"/>
+   </StackPanel></ControlTemplate></Setter>
+  </Style>
+  <Style Selector="ToggleButton.update-notes-toggle"><Setter Property="HorizontalAlignment" Value="Left"/><Setter Property="Template"><ControlTemplate><ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalAlignment="Left"/></ControlTemplate></Setter></Style>
+  <Style Selector="ToggleButton.update-notes-toggle:checked Path"><Setter Property="RenderTransform" Value="rotate(90deg)"/></Style>
+  <Style Selector="Button"><Setter Property="CornerRadius" Value="8"/></Style>
+ </UserControl.Styles>
+ <Border Classes="dialog-card" Width="580" MaxHeight="760" Padding="0" CornerRadius="14" ClipToBounds="True">
+  <Grid RowDefinitions="36,*">
+   <Border Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+    <Grid ColumnDefinitions="*,46" VerticalAlignment="Center">
+     <TextBlock Text="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+     <Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Click="Close_OnClick" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/>
     </Grid>
    </Border>
    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-    <StackPanel Margin="24" Spacing="16">
-     <StackPanel Orientation="Horizontal" Spacing="10">
-      <TextBlock Text="Vex" FontSize="22" FontWeight="Bold"/>
-      <TextBlock Text="{Binding VersionText}" VerticalAlignment="Center" Classes="muted"/>
-     </StackPanel>
-     <TextBlock Text="{i18n:I18n {x:Static l:VexL.AboutUpdateHint}}" TextWrapping="Wrap" Classes="muted" FontSize="12"/>
-     <TextBlock x:Name="UpdateStatus" Text="{Binding StatusText}" TextWrapping="Wrap"/>
-     <ProgressBar Height="4" IsVisible="{Binding IsDownloading}" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100"/>
-     <TextBlock Text="{Binding ReleaseNotes}" IsVisible="{Binding ReleaseNotes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" TextWrapping="Wrap" FontSize="12"/>
-     <SelectableTextBlock Text="{Binding DownloadPath}" IsVisible="{Binding HasDownload}" TextWrapping="Wrap" FontSize="11" Classes="muted"/>
-     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right">
-      <Button Margin="0,0,8,8" Command="{Binding OpenFolderCommand}" Content="{i18n:I18n {x:Static l:VexL.AboutOpenFolder}}" IsVisible="{Binding HasDownload}"/>
-      <Button Margin="0,0,8,8" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsBusy}"/>
-      <Button Margin="0,0,8,8" Command="{Binding CheckCommand}" Content="{i18n:I18n {x:Static l:VexL.AboutCheckUpdate}}" IsVisible="{Binding CanRecheck}"/>
-      <Button x:Name="UpdateAction" Margin="0,0,0,8" Classes="primary" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" MinWidth="112"/>
+    <StackPanel Margin="30,28,30,26" Spacing="20">
+     <Grid ColumnDefinitions="48,*" ColumnSpacing="17">
+      <Border Width="48" Height="48" CornerRadius="24" Background="{DynamicResource VexAccentBrush}" VerticalAlignment="Top">
+       <Viewbox Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"><Canvas Width="24" Height="24"><Path Stroke="White" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" Data="{Binding PhaseIcon}"/></Canvas></Viewbox>
+      </Border>
+      <StackPanel Grid.Column="1" Spacing="6" Margin="0,2,0,0">
+       <TextBlock x:Name="UpdateStatus" Text="{Binding PhaseTitle}" FontSize="19" LineHeight="26.6" FontWeight="Bold" TextWrapping="Wrap"/>
+       <TextBlock Text="{Binding PhaseDetail}" FontSize="13" LineHeight="22.75" TextWrapping="Wrap" Classes="muted"/>
+      </StackPanel>
+     </Grid>
+     <Grid ColumnDefinitions="*,48" ColumnSpacing="14" IsVisible="{Binding IsDownloading}">
+      <ProgressBar Height="8" CornerRadius="4" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100" VerticalAlignment="Center" Foreground="{DynamicResource VexAccentBrush}"/>
+      <TextBlock Grid.Column="1" Text="{Binding ProgressText}" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Classes="muted"/>
+     </Grid>
+     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
+      <Button Margin="0,0,10,0" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsDownloading}" MinWidth="104" MinHeight="38" Padding="16,8" FontSize="13"/>
+      <Button Margin="0,0,10,0" Click="Close_OnClick" Content="{i18n:I18n Vex.VexL.UpdateLater}" IsVisible="{Binding ShowLater}" MinWidth="104" MinHeight="38" Padding="16,8" FontSize="13"/>
+      <Button x:Name="UpdateAction" Classes.primary="{Binding IsPrimaryAction}" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" IsVisible="{Binding ShowAction}" MinWidth="104" MinHeight="38" Padding="16,8" FontSize="13"/>
      </WrapPanel>
+     <Border IsVisible="{Binding HasReleaseNotes}" Padding="15,14" BorderThickness="1" CornerRadius="10" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+      <Expander x:Name="UpdateNotes" Classes="update-notes" IsExpanded="{Binding AreNotesExpanded, Mode=TwoWay}" Header="{i18n:I18n Vex.VexL.UpdateNotesTitle}" HorizontalContentAlignment="Stretch" FontSize="13" FontWeight="SemiBold">
+       <SelectableTextBlock Text="{Binding ReleaseNotes}" TextWrapping="Wrap" FontSize="13" LineHeight="21.45" FontWeight="Normal" Margin="0,12,0,0"/>
+      </Expander>
+     </Border>
     </StackPanel>
    </ScrollViewer>
   </Grid>

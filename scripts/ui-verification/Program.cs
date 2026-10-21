@@ -280,16 +280,16 @@ if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "dan
     foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
     {
         vm.Appearance.SelectLanguageByCulture(culture); Pump();
-        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture.Name == culture && about.FindControl<Button>("UpdateAction")!.Content?.ToString() == app.Resolve<IAppLocalizer>().Get(Vex.VexL.AboutCheckUpdate),
+        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture.Name == culture && about.GetVisualDescendants().OfType<TextBlock>().Any(text => text.Text == app.Resolve<IAppLocalizer>().Get("Vex.VexL.AboutDialogTitle")),
             "The open About dialog changes language: " + culture);
         var aboutScroll = about.GetVisualDescendants().OfType<ScrollViewer>().Single();
         VerifyInside(aboutScroll, window, "About viewport fits the minimum window: " + culture);
         aboutScroll.Offset = default; Pump();
-        var updateAction = about.GetVisualDescendants().OfType<Button>().Single(button => button.Command == aboutModel.UpdateCommand);
-        VerifyInside(updateAction, aboutScroll, "About update action is reachable: " + culture);
+        var releaseAction = about.GetVisualDescendants().OfType<Button>().Single(button => button.Command == aboutModel.ReleaseCommand);
+        VerifyInside(releaseAction, aboutScroll, "About version link is reachable: " + culture);
         aboutScroll.ScrollToEnd(); Pump();
         var closeAction = about.GetVisualDescendants().OfType<Button>().Single(button => button.Classes.Contains("vex-dismiss"));
-        VerifyInside(closeAction, aboutScroll, "About close action is reachable after scrolling: " + culture);
+        VerifyInside(closeAction, window, "About fixed close action is reachable after scrolling: " + culture);
         Capture(window, "vex-about-" + culture);
     }
     vm.Appearance.SelectLanguageByCulture("zh-CN"); Pump();
@@ -1781,10 +1781,11 @@ void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
         appearance.SelectedPalette = palette; appearance.ThemeMode = StudioThemeMode.System; Pump();
         foreach (var expected in new[] { StudioThemeMode.Light, StudioThemeMode.Dark, StudioThemeMode.System })
         {
-            var content = (Border)((Flyout)menu.AppearanceButton.Flyout!).Content!;
-            var modes = content.GetLogicalDescendants().OfType<Avalonia.Controls.Primitives.UniformGrid>().First();
-            modes.Children.OfType<Button>().ElementAt(appearance.ThemeOptions.ToList().FindIndex(mode => mode.Mode == expected))
-                .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
+            var content = (Control)((Flyout)menu.AppearanceButton.Flyout!).Content!;
+            var modes = content.GetLogicalDescendants().OfType<RadioButton>().ToArray();
+            var index = expected switch { StudioThemeMode.Light => 0, StudioThemeMode.Dark => 1, _ => 2 };
+            modes[index].IsChecked = true;
+            modes[index].RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
             Check(appearance.ThemeMode == expected && ReferenceEquals(appearance.SelectedPalette, palette), "Title bar cycles mode and preserves palette: " + palette.Key + "/" + expected);
             var settings = ((VerificationVexApp)Application.Current!).Resolve<IAppSettingsStore>().Current;
             Check(settings.ThemeKey == appearance.SelectedTheme!.Key && settings.PaletteKey == palette.Key, "Title bar persists the shared appearance state");
@@ -2043,10 +2044,10 @@ void VerifyDialogButtonStates(VerificationVexApp app, Window window, MainWindowV
     Action close;
     if (kind == "primary")
     {
-        dialogTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
-        PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
-        dialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
-        close = ((ShellAboutViewModel)dialog.DataContext!).Close;
+        dialogTask = app.Resolve<IShellOverlayService>().ShowInsertTableAsync();
+        PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellInsertTableOverlayView>().Any());
+        dialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellInsertTableOverlayView>().Single();
+        close = ((Vex.Modules.Shell.Views.ShellInsertTableModel)dialog.DataContext!).Close;
     }
     else
     {
@@ -2057,7 +2058,7 @@ void VerifyDialogButtonStates(VerificationVexApp app, Window window, MainWindowV
     }
     var button = dialog.GetVisualDescendants().OfType<Button>().Single(control => control.Classes.Contains(kind));
     var originalCommand = button.Command;
-    // 只检查实际按钮样式，不在按下测试中启动网络更新。
+    // 只检查实际按钮样式；指针释放在按钮外，避免执行文档操作。
     button.Command = null;
     var originalPalette = vm.Appearance.SelectedPalette;
     var originalTheme = vm.Appearance.SelectedTheme;
@@ -2070,7 +2071,7 @@ void VerifyDialogButtonStates(VerificationVexApp app, Window window, MainWindowV
             vm.Appearance.SelectedPalette = palette;
             vm.Appearance.SelectedTheme = theme;
             Pump();
-            var scroller = dialog.GetVisualDescendants().OfType<ScrollViewer>().SingleOrDefault();
+            var scroller = button.GetVisualAncestors().OfType<ScrollViewer>().FirstOrDefault();
             if (scroller is not null) scroller.Offset = default;
             Pump();
             var center = button.TranslatePoint(new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), window)!.Value;
@@ -2151,14 +2152,21 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     var view = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Single();
     var model = (ShellUpdateViewModel)view.DataContext!;
     Check(service.Checks == 1 && model.State == UpdateState.Available, "Menu opens one update view and starts one check");
+    SettleRendering();
+    var updateCard = view.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
+    Check(updateCard.Bounds.Width == 580 && ((Grid)updateCard.Child!).Children[0].Bounds.Height == 36, "Update uses the prototype's 580px frame and fixed 36px title bar");
+    Check(!view.FindControl<Expander>("UpdateNotes")!.IsExpanded, "Available update keeps release notes collapsed");
+    Capture(window, "updates-available");
     var download = model.AdvanceAsync(); Pump();
     Check(model.IsDownloading && service.Downloads == 1, "Shared view starts one download");
+    Check(!view.FindControl<Button>("UpdateAction")!.IsVisible, "Download state exposes cancellation without a disabled primary action");
+    Capture(window, "updates-downloading");
     model.Close(); Pump(menuTask);
     Check(model.IsDownloading, "Closing the view keeps the download active");
     var aboutTask = overlay.ShowAboutAsync();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
-    about.FindControl<Button>("UpdateAction")!.Command!.Execute(null); Pump();
+    ((ShellAboutViewModel)about.DataContext!).UpdateCommand.Execute().Subscribe(); Pump();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
     view = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Single();
     Check(ReferenceEquals(model, view.DataContext) && model.IsDownloading && service.Checks == 1 && service.Downloads == 1,
@@ -2168,6 +2176,8 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
         "Repeated entry requests reuse one visible dialog");
     service.CompleteDownload(); Pump(download);
     Check(model.State == UpdateState.Downloaded && model.HasDownload, "Reopened view receives the completed download");
+    Check(view.FindControl<Expander>("UpdateNotes")!.IsExpanded, "Downloaded update expands the release notes");
+    Capture(window, "updates-downloaded");
     Pump(model.AdvanceAsync());
     Check(model.State == UpdateState.Failed && model.HasDownload && !aboutTask.IsCompleted, "Failed installation keeps Vex and the update view open");
     foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })

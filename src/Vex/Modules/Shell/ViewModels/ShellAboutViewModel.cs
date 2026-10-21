@@ -16,7 +16,8 @@ public sealed class ShellAboutViewModel : ReactiveObject, IDialogContext, IDispo
         VersionText = UpdateVersion.Display(assembly);
         PlatformText = ".NET 10，Avalonia";
         CompileTimeText = assembly.CompileTime()?.ToString("yyyy-MM-dd HH:mm:ss", localizer.Culture) ?? "—";
-        CopyrightText = "Copyright © 2026 Vex(维刻)";
+        CopyrightText = "Copyright © 2026 CodeWF · 维刻 Vex";
+        ReleaseCommand = ReactiveCommand.Create(() => openUrl("https://github.com/dotnet9/Vex/releases/tag/v" + VersionText.TrimStart('v')));
         RepositoryCommand = ReactiveCommand.Create(() => openUrl("https://github.com/dotnet9/Vex"));
         WebsiteCommand = ReactiveCommand.Create(() => openUrl("https://codewf.com"));
         ChangelogCommand = ReactiveCommand.Create(() => { WantsChangelog = true; Close(); });
@@ -32,6 +33,7 @@ public sealed class ShellAboutViewModel : ReactiveObject, IDialogContext, IDispo
     public ReactiveCommand<Unit, Unit> ChangelogCommand { get; }
     public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
     public ReactiveCommand<Unit, Unit> RepositoryCommand { get; }
+    public ReactiveCommand<Unit, Unit> ReleaseCommand { get; }
     public ReactiveCommand<Unit, Unit> WebsiteCommand { get; }
     public event EventHandler<object?>? RequestClose;
     public void Close() => RequestClose?.Invoke(this, null);
@@ -40,6 +42,7 @@ public sealed class ShellAboutViewModel : ReactiveObject, IDialogContext, IDispo
         ChangelogCommand.Dispose();
         UpdateCommand.Dispose();
         RepositoryCommand.Dispose();
+        ReleaseCommand.Dispose();
         WebsiteCommand.Dispose();
     }
 }

@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using CodeWF.Toolkit.Core.UpdateChecking;
 using Irihi.Avalonia.Shared.Contracts;
 using ReactiveUI;
+using Avalonia.Media;
 using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
@@ -22,6 +23,7 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
     private UpdateInstallResult? _install;
     private double? _progress;
     private bool _disposed;
+    private bool _areNotesExpanded;
 
     public ShellUpdateViewModel(IUpdateService updates, IAppLocalizer localizer,
         Action<string> openUrl, Action exit)
@@ -51,6 +53,41 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
     public UpdateState State => _state;
     public bool IsBusy => _state is UpdateState.Checking or UpdateState.Downloading or UpdateState.Installing;
     public bool IsDownloading => _state == UpdateState.Downloading;
+    public bool ShowAction => !IsBusy;
+    public bool ShowLater => HasDownload && !IsBusy;
+    public bool IsPrimaryAction => _state is not (UpdateState.Idle or UpdateState.Current or UpdateState.Canceled or UpdateState.Installed);
+    public bool HasReleaseNotes => !string.IsNullOrWhiteSpace(ReleaseNotes);
+    public bool AreNotesExpanded { get => _areNotesExpanded; set => this.RaiseAndSetIfChanged(ref _areNotesExpanded, value); }
+    public string PhaseTitle => _state switch
+    {
+        UpdateState.Idle or UpdateState.Checking => _localizer.Get(VexL.AboutCheckingUpdate),
+        UpdateState.Downloading => _localizer.Get(VexL.AboutDownloading),
+        UpdateState.Downloaded => _localizer.Get("Vex.VexL.UpdateDownloadComplete"),
+        UpdateState.Installing => _localizer.Get(VexL.AboutInstalling),
+        UpdateState.Installed => _localizer.Get("Vex.VexL.UpdateFinished"),
+        _ => StatusText
+    };
+    public string PhaseDetail => _state switch
+    {
+        UpdateState.Idle or UpdateState.Checking => _localizer.Get("Vex.VexL.UpdateConnecting"),
+        UpdateState.Available => VersionText + " → " + _update!.Tag,
+        UpdateState.Downloading => ProgressText,
+        UpdateState.Downloaded => _localizer.Get(VexL.AboutDownloaded),
+        UpdateState.Installing => _localizer.Get("Vex.VexL.UpdateInstallingHint"),
+        UpdateState.Installed => _install?.Message ?? string.Empty,
+        _ => _localizer.Format("Vex.VexL.UpdateCurrentVersion", VersionText)
+    };
+    private static readonly Geometry UpIcon = Geometry.Parse("M6 14L12 8L18 14");
+    private static readonly Geometry CheckIcon = Geometry.Parse("M5 12L10 17L20 7");
+    private static readonly Geometry DownloadIcon = Geometry.Parse("M12 3V16 M6 10L12 16L18 10 M4 17V21H20V17");
+    private static readonly Geometry RefreshIcon = Geometry.Parse("M20 7V3 M20 7H16 M20 7A9 9 0 1 0 21 15");
+    public Geometry PhaseIcon => _state switch
+    {
+        UpdateState.Current or UpdateState.Downloaded or UpdateState.Installed => CheckIcon,
+        UpdateState.Downloading => DownloadIcon,
+        UpdateState.Checking or UpdateState.Installing or UpdateState.Failed => RefreshIcon,
+        _ => UpIcon
+    };
     public bool CanRecheck => !IsBusy && _update is not null;
     public bool IsIndeterminate => !_progress.HasValue;
     public double Progress => _progress ?? 0;
@@ -98,6 +135,7 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
     public Task CheckAsync() => RunAsync(UpdateState.Checking, async token =>
     {
         _update = null;
+        AreNotesExpanded = false;
         _download = null;
         _install = null;
         var result = await _updates.CheckAsync(cancellationToken: token);
@@ -117,6 +155,7 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
         });
         _download = await _updates.DownloadAsync(_update!, progress, token);
         token.ThrowIfCancellationRequested();
+        AreNotesExpanded = true;
         SetState(UpdateState.Downloaded);
     });
 
@@ -158,7 +197,8 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
     private void Refresh()
     {
         foreach (var property in new[] { nameof(State), nameof(IsBusy), nameof(IsDownloading), nameof(CanRecheck), nameof(IsIndeterminate),
-                     nameof(Progress), nameof(ProgressText), nameof(ActionText), nameof(StatusText), nameof(ReleaseNotes), nameof(DownloadPath), nameof(HasDownload) })
+                     nameof(Progress), nameof(ProgressText), nameof(ActionText), nameof(StatusText), nameof(ReleaseNotes), nameof(DownloadPath), nameof(HasDownload),
+                     nameof(ShowAction), nameof(ShowLater), nameof(IsPrimaryAction), nameof(HasReleaseNotes), nameof(PhaseTitle), nameof(PhaseDetail), nameof(PhaseIcon) })
             this.RaisePropertyChanged(property);
     }
 
