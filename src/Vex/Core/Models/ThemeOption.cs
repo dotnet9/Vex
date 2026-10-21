@@ -8,8 +8,4 @@ public sealed record ThemeOption(string Key, StudioThemeMode Mode);
 /// <summary>界面配色选项（规则 §13 注册表驱动：内置九套 + 用户配色，名称/描述为注册表直出文案）。</summary>
 public sealed record PaletteOption(
     string Key, string Name, string Purpose, bool IsRecommended, IBrush Swatch, StudioPaletteDefinition Definition)
-{
-    /// <summary>兼容保留：注册表名称为直接文案，视图不再经 i18n。</summary>
-    public string NameKey => Name;
-    public string PurposeKey => Purpose;
 }
