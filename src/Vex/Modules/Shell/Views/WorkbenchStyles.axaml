@@ -1,10 +1,24 @@
-<Styles xmlns:motion="using:Vex.Core.Motion" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Style Selector="FlyoutPresenter, MenuFlyoutPresenter, Border.dialog-card, Border.wb-popover">
     <Setter Property="motion:EntranceMotion.IsEnabled" Value="True"/>
+    <Setter Property="motion:EntranceMotion.Animate" Value="{DynamicResource VexMotionEnabled}"/>
+    <Setter Property="motion:EntranceMotion.Duration" Value="{DynamicResource MotionDurationFast}"/>
+    <Setter Property="motion:EntranceMotion.Easing"><anim:SplineEasing X1=".2" Y1=".8" X2=".2" Y2="1"/></Setter>
+  </Style>
+  <Style Selector="FlyoutPresenter, Border.wb-popover">
+    <Setter Property="motion:EntranceMotion.OffsetY" Value="-4"/>
+    <Setter Property="motion:EntranceMotion.InitialScale" Value=".985"/>
+  </Style>
+  <Style Selector="Border.dialog-card">
+    <Setter Property="motion:EntranceMotion.Duration" Value="{DynamicResource MotionDurationMid}"/>
+    <Setter Property="motion:EntranceMotion.OffsetY" Value="9"/>
+    <Setter Property="motion:EntranceMotion.InitialScale" Value=".99"/>
   </Style>
   <Style Selector="MenuItem /template/ Popup#PART_Popup > Border">
     <Setter Property="motion:EntranceMotion.IsEnabled" Value="True"/>
-    <Setter Property="motion:EntranceMotion.FadeOnly" Value="True"/>
+    <Setter Property="motion:EntranceMotion.Animate" Value="{DynamicResource VexMotionEnabled}"/>
+    <Setter Property="motion:EntranceMotion.Duration" Value="{DynamicResource MotionDurationFast}"/>
+    <Setter Property="motion:EntranceMotion.Easing"><anim:SplineEasing X1=".2" Y1=".8" X2=".2" Y2="1"/></Setter>
   </Style>
   <Style Selector="FlyoutPresenter, Border.wb-popover"><Setter Property="RenderTransformOrigin" Value="0%,0%"/></Style>
   <Styles.Resources>

@@ -12,6 +12,7 @@ public static class MotionResources
     public const string FastKey = "MotionDurationFast";
     public const string MidKey = "MotionDurationMid";
     public const string SlowKey = "MotionDurationSlow";
+    public const string EnabledKey = "VexMotionEnabled";
 
     private static readonly (string Key, TimeSpan Duration)[] Tokens =
     [
@@ -38,6 +39,7 @@ public static class MotionResources
     /// <summary>按开关状态重写指定资源字典中的动效 token（便于测试与局部覆盖）。</summary>
     public static void Apply(IResourceDictionary resources, bool enabled)
     {
+        resources[EnabledKey] = enabled;
         foreach (var (key, duration) in Tokens)
         {
             resources[key] = enabled ? duration : TimeSpan.Zero;

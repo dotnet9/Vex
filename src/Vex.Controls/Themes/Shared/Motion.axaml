@@ -4,6 +4,7 @@
     xmlns:anim="using:Avalonia.Animation.Easings"
     xmlns:sys="using:System">
     <!-- Vex 控件的三档动效时长，与 MotionResources 保持一致；关闭动效时统一归零。 -->
+    <x:Boolean x:Key="VexMotionEnabled">True</x:Boolean>
     <sys:TimeSpan x:Key="MotionDurationFast">0:0:0.14</sys:TimeSpan>
     <sys:TimeSpan x:Key="MotionDurationMid">0:0:0.22</sys:TimeSpan>
     <sys:TimeSpan x:Key="MotionDurationSlow">0:0:0.26</sys:TimeSpan>

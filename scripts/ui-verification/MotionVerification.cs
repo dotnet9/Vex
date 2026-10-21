@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Vex.Core.Motion;
+using CodeWF.Avalonia.Controls.Animations;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
