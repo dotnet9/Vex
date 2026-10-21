@@ -26,11 +26,11 @@
 | 目录 / 文件 | 内容 |
 | --- | --- |
 | [src/Vex](../src/Vex) | 桌面主程序、视图模型、文件服务、国际化、MCP |
-| [src/Vex.Controls](../src/Vex.Controls)、[src/Vex.Controls.Themes](../src/Vex.Controls.Themes) | 应用控件及其主题资源 |
+| [src/Vex.Controls](../src/Vex.Controls) | 应用控件、主题资源和统一样式入口 |
 | [design](../design/index.html) | 可离线预览的桌面、Windows / Linux / macOS 安装原型 |
 | [scripts](../scripts) | 验证器、共享库打包联调、发布与安装器源码 |
 | [.github/workflows](../.github/workflows) | 检查、NuGet 发布和五 RID 原生安装包发布 |
-| [Vex.slnx](../Vex.slnx) | 三个生产项目的解决方案入口 |
+| [Vex.slnx](../Vex.slnx) | 两个生产项目的解决方案入口 |
 | [Directory.Build.props](../Directory.Build.props) / [Directory.Packages.props](../Directory.Packages.props) | 产品版本与构建属性 / 中央 NuGet 版本 |
 | [UpdateLog.md](../UpdateLog.md) | 对外版本变更，同时供应用帮助、原型及发布说明生成使用 |
 

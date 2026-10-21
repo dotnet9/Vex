@@ -1,5 +1,5 @@
 <Styles
-    x:Class="Vex.Controls.Themes.VexControlsTheme"
+    x:Class="Vex.Controls.VexControlsTheme"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Styles.Resources>

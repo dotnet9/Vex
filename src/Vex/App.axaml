@@ -5,8 +5,7 @@
     xmlns:codewf="https://codewf.com"
     xmlns:markdownThemes="https://codewf.com"
     xmlns:prism="http://prismlibrary.com/"
-    xmlns:semi="https://irihi.tech/semi"
-    xmlns:vexThemes="https://codewf.com">
+    xmlns:semi="https://irihi.tech/semi">
     <prism:PrismApplication.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -34,7 +33,7 @@
         <!-- 完整包样式入口（CodeWF.Avalonia.Markdown.Themes）：在 Lite.Themes 的控件模板与 27 套排版主题之上
              叠加图片能力控件与编辑器控件外观。 -->
         <markdownThemes:MarkdownFullThemes TypographyTheme="Simple" />
-        <vexThemes:VexControlsTheme />
+        <codewf:VexControlsTheme />
         <StyleInclude Source="avares://Vex/Modules/Shell/Views/WorkbenchStyles.axaml" />
         <StyleInclude Source="avares://Vex/Modules/Workspace/Views/MarkdownDocumentStyles.axaml" />
         <Style Selector="Window"><Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC" /></Style>

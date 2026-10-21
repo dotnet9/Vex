@@ -1,7 +1,6 @@
 <linker>
   <assembly fullname="Vex" preserve="all" />
   <assembly fullname="Vex.Controls" preserve="all" />
-  <assembly fullname="Vex.Controls.Themes" preserve="all" />
 
   <assembly fullname="CodeWF.Toolkit.EventBus" preserve="all" />
   <assembly fullname="CodeWF.Avalonia.Controls" preserve="all" />

@@ -52,11 +52,10 @@ jobs:
       - name: Pack
         shell: pwsh
         run: |
-          # 只 pack 两个控件库项目（Vex 主程序 IsPackable=false）；
+          # 控件及主题资源统一发布为 Vex.Controls（Vex 主程序 IsPackable=false）；
           # 新版 SDK 的 pack 不再隐式构建，须先 Build 再 --no-build Pack
           $projects = @(
-            'src/Vex.Controls/Vex.Controls.csproj',
-            'src/Vex.Controls.Themes/Vex.Controls.Themes.csproj'
+            'src/Vex.Controls/Vex.Controls.csproj'
           )
 
           foreach ($project in $projects) {

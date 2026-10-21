@@ -3,7 +3,7 @@
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <Title>Vex.Controls</Title>
-    <Description>Vex product controls for Avalonia applications.</Description>
+    <Description>Vex product controls and theme resources for Avalonia applications.</Description>
     <PackageId>Vex.Controls</PackageId>
     <AssemblyName>Vex.Controls</AssemblyName>
     <RootNamespace>Vex.Controls</RootNamespace>
@@ -12,5 +12,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
     <PackageReference Include="Avalonia" />
+    <PackageReference Include="Semi.Avalonia" />
   </ItemGroup>
 </Project>
