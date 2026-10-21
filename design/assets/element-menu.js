@@ -11,13 +11,17 @@
   ];
   let current;
   function tableItems() {
+    /* Typora 式平铺：插入 → 行 → 列 → 移动 → 对齐 → 删除行/列 → 复制/格式化 → 删除表格 */
     const items=tableCommands.filter(([label])=>label).map(([label,action])=>({label,action:'element-table-'+action,disabled:()=>!current?.canTable(action),danger:action==='delete'}));
-    const group=(label,actions)=>({label,sub:actions.map(action=>items.find(item=>item.action==='element-table-'+action))});
+    const pick=actions=>actions.map(action=>items.find(item=>item.action==='element-table-'+action));
     return [{label:'插入表格…',action:'element-insert-table',disabled:()=>!current?.editable()},{sep:true},
-      group('行操作',['row-above','row-below','row-up','row-down','row-delete']),
-      group('列操作',['col-before','col-after','col-left','col-right','col-delete']),
-      group('列对齐',['align-left','align-center','align-right']),{sep:true},
-      ...items.filter(item=>['element-table-copy','element-table-format','element-table-delete'].includes(item.action))];
+      ...pick(['row-above','row-below']),{sep:true},
+      ...pick(['col-before','col-after']),{sep:true},
+      ...pick(['row-up','row-down','col-left','col-right']),{sep:true},
+      ...pick(['align-left','align-center','align-right']),{sep:true},
+      ...pick(['row-delete','col-delete']),{sep:true},
+      ...pick(['copy','format']),{sep:true},
+      items.find(item=>item.action==='element-table-delete')];
   }
   function mount(options) {
     const source = options.source, roots = options.roots, scope = VexOverlay.scope();
@@ -273,7 +277,7 @@
     roots.forEach(root=>root.element.addEventListener('contextmenu',event=>{if(pointerType==='touch')return;event.preventDefault();event.stopPropagation();open(event.target,{x:event.clientX,y:event.clientY});}));
     source.addEventListener('contextmenu',event=>{if(pointerType==='touch')return;event.preventDefault();event.stopPropagation();open(source,{x:event.clientX,y:event.clientY});});
     document.addEventListener('keydown',event=>{if(menuLayer||dialogLayer)return;if((event.key==='ContextMenu'||event.shiftKey&&event.key==='F10')&&(rootFor(document.activeElement)||document.activeElement===source)){event.preventDefault();open(document.activeElement,document.activeElement);}},true);
-    options.entries.forEach(entry=>{const button=document.createElement('button');button.className='vex-element-entry';button.type='button';button.title='当前元素操作';button.setAttribute('aria-label','当前元素操作');button.dataset.elementOpen='';button.innerHTML=icon('more');entry.append(button);button.onclick=event=>{event.stopPropagation();open(null,button);};});
+    (options.entries||[]).forEach(entry=>{const button=document.createElement('button');button.className='vex-element-entry';button.type='button';button.title='当前元素操作';button.setAttribute('aria-label','当前元素操作');button.dataset.elementOpen='';button.innerHTML=icon('more');entry.append(button);button.onclick=event=>{event.stopPropagation();open(null,button);};});
     window.addEventListener('resize',()=>{closeMenu();closeDialog();});
     const api={editable,canTable,tableItems,openCurrent:(anchor,tableOnly=false)=>open(null,anchor,tableOnly),handleAction(action,anchor){if(!action.startsWith('element-'))return false;if(!snapshot)save(null);if(action==='element-table')open(null,anchor,true);else run(action.slice(8));return true;},capture:save};
     current=api;return api;

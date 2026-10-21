@@ -70,14 +70,12 @@
       ]},
       { label: '打印预览', gesture: 'Ctrl+Shift+P', action: 'print' },
       { sep: true },
-      { label: '文档操作', sub: [
-        { label: '文档属性', gesture: 'Alt+Enter', act: 'dlg-properties' },
-        { label: '打开文件位置', toast: '在系统文件管理器中定位（桌面版操作演示）' },
-        { label: '选择编码重新打开', sub: ['UTF-8', 'UTF-8 BOM', 'GB18030', 'Big5'].map(function (label) {
-          return { label: label, toast: '按 ' + label + ' 重新读取（桌面版操作演示）' };
-        })},
-        { sep: true }, { label: '删除文档…', danger: true, act: 'dlg-delete' }
-      ]},
+      { label: '文档属性', gesture: 'Alt+Enter', act: 'dlg-properties' },
+      { label: '打开文件位置', toast: '在系统文件管理器中定位（桌面版操作演示）' },
+      { label: '选择编码重新打开', sub: ['UTF-8', 'UTF-8 BOM', 'GB18030', 'Big5'].map(function (label) {
+        return { label: label, toast: '按 ' + label + ' 重新读取（桌面版操作演示）' };
+      })},
+      { sep: true }, { label: '删除文档…', danger: true, act: 'dlg-delete' },
       { label: '关闭文档', gesture: 'Ctrl+W', action: 'close' }
     ]},
     { key: 'edit', label: '编辑(E)', items: [
@@ -107,16 +105,10 @@
       { label: '编辑视图', check: true, action: 'view-edit' }, { label: '阅读视图', check: true, action: 'view-read' },
       { label: '思维导图', check: true, action: 'view-mindmap' },
       { sep: true },
-      { label: '编辑方式', sub: [
-        { label: '即时渲染', check: true, action: 'edit-instant' }, { label: '源码', check: true, action: 'edit-source' }
-      ]},
-      { label: '侧栏与大纲', sub: [
-        { label: '侧边栏', check: true, action: 'toggle-sidebar' }, { label: '文档列表', action: 'pane-files' }, { label: '文档大纲', action: 'pane-outline' }
-      ]},
-      { label: '编辑显示', sub: [
-        { label: '显示行号', check: true, action: 'toggle-lines' }, { label: '显示词数', check: true, action: 'toggle-word-count' },
-        { label: '显示文档水印', check: true, action: 'toggle-watermark' }, { label: '界面动效', check: true, action: 'toggle-motion' }
-      ]},
+      { label: '即时渲染', check: true, action: 'edit-instant' }, { label: '源码', check: true, action: 'edit-source' },
+      { label: '侧边栏', check: true, action: 'toggle-sidebar' }, { label: '文档列表', action: 'pane-files' }, { label: '文档大纲', action: 'pane-outline' },
+      { label: '显示行号', check: true, action: 'toggle-lines' }, { label: '显示词数', check: true, action: 'toggle-word-count' },
+      { label: '显示文档水印', check: true, action: 'toggle-watermark' }, { label: '界面动效', check: true, action: 'toggle-motion' },
       { sep: true },
       { label: '演示模式', gesture: 'F5', action: 'presentation' },
       { label: '专注模式', gesture: 'F8', check: true, action: 'toggle-focus' }, { label: '打字机模式', check: true, action: 'toggle-typewriter' },
@@ -125,10 +117,8 @@
       { label: 'Markdown 排版', sub: VexTypes.map(function(t){return {label:t.label,action:'typography-select',arg:t.key,check:true};}).concat([{sep:true},{label:'紧凑布局',action:'toggle-compact',check:true}]) },
       { label: '导图样式…', action: 'map-appearance' },
       { sep: true },
-      { label: '窗口', sub: [
-        { label: '全屏', gesture: 'F11', check: true, action: 'toggle-fullscreen' },
-        { label: '保持窗口在最前', check: true, action: 'toggle-topmost' }, { label: '最大化 / 还原', action: 'maximize' }
-      ]}
+      { label: '全屏', gesture: 'F11', check: true, action: 'toggle-fullscreen' },
+      { label: '保持窗口在最前', check: true, action: 'toggle-topmost' }, { label: '最大化 / 还原', action: 'maximize' }
     ]},
     { key: 'tools', label: '工具(T)', items: [
       { label: '导图显示设置', action: 'map-settings' }, { label: '字数统计', act: 'dlg-statistics' },
@@ -147,14 +137,14 @@
   ];
   var originalInsert = MENUS[2].items;
   var paragraphItems = originalInsert.filter(function (item) { return item.action && !['insert-link','insert-image','insert-bold','insert-italic','insert-inline-code','clear-format'].includes(item.action); });
-  var headingItems = paragraphItems.filter(function (item) { return /^insert-heading/.test(item.action); });
   var paragraphItem = function (action) { return paragraphItems.find(function (item) { return item.action === action; }); };
-  var diagramGroups = Array.from(new Set(VexMermaid.items.map(function (item) { return item.group; })));
   MENUS[2] = { key:'paragraph', label:'段落(P)', items:[
-    paragraphItem('insert-paragraph'), {label:'标题',sub:headingItems}, {sep:true},
+    paragraphItem('insert-paragraph'),
+    paragraphItem('insert-heading1'), paragraphItem('insert-heading2'), paragraphItem('insert-heading3'),
+    paragraphItem('insert-heading4'), paragraphItem('insert-heading5'), paragraphItem('insert-heading6'), {sep:true},
     paragraphItem('insert-list'), paragraphItem('insert-ordered'), paragraphItem('insert-task'), paragraphItem('insert-quote'), {sep:true},
     paragraphItem('insert-table'), paragraphItem('insert-code'), paragraphItem('insert-math'),
-    {label:'Mermaid 图表',sub:diagramGroups.map(function (group) {return {label:group,sub:VexMermaid.items.filter(function (item) {return item.group === group;}).map(function (item) {return {label:item.label,action:'insert-mermaid-'+item.key};})};})},
+    {label:'Mermaid 图表',sub:VexMermaid.items.map(function (item) {return {label:item.label,action:'insert-mermaid-'+item.key};})},
     {sep:true}, paragraphItem('insert-rule'), {label:'脚注',action:'insert-footnote'}
   ]};
   MENUS.splice(3,0,{key:'format',label:'格式(O)',items:[{label:'加粗',gesture:'Ctrl+B',action:'insert-bold'},{label:'斜体',gesture:'Ctrl+I',action:'insert-italic'},{label:'删除线',action:'insert-strike'},{label:'高亮',action:'insert-highlight'},{label:'上标',action:'insert-superscript'},{label:'下标',action:'insert-subscript'},{label:'行内代码',action:'insert-inline-code'},{sep:true},{label:'链接',action:'insert-link'},{label:'图片',action:'insert-image'},{sep:true},{label:'清除格式',action:'clear-format'}]});

@@ -8,7 +8,8 @@
 :where(input:not([type=radio]):not([type=checkbox]),textarea,select){border-color:var(--control-border,var(--border))}
 .app-window .input,.app-window select,.app-window textarea:not(#markdown-input),.app-window input:not([type=radio]):not([type=checkbox]){border-color:var(--control-border)}
 :where(button,input,textarea,select):disabled,.menu-item[aria-disabled=true],.file-navigation-menu button:disabled{opacity:1;color:var(--fg-disabled);cursor:not-allowed;box-shadow:none}
-:where(button):disabled,.menu-item[aria-disabled=true]{background:var(--panel);border-style:dashed}
+:where(button):disabled{background:var(--panel);border-style:dashed}
+.menu-item[aria-disabled=true]{background:transparent;border-color:transparent}
 :where(input,textarea)[readonly]{border-style:dashed;cursor:default}
 :where(input,textarea)[aria-invalid=true]{border-color:var(--status-error)}
 .app-window button:focus-visible,.menu-item:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
@@ -23,12 +24,14 @@
 .choice-filter button[aria-pressed=true]::before{content:'✓ ';color:var(--accent)}
 .studio-palettes button::after{content:'✓';margin-left:auto;color:var(--accent);visibility:hidden;font-size:13px}
 .studio-palettes button[aria-pressed=true]::after{visibility:visible}
-#vex-appearance-menu .studio-palettes{display:flex;flex-direction:column;gap:4px}
-#vex-appearance-menu .studio-palettes button{width:100%;min-height:42px;gap:9px;text-align:left}
+#vex-appearance-menu .studio-palettes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#vex-appearance-menu .studio-palettes button{position:relative;width:100%;min-height:0;flex-direction:column;align-items:stretch;gap:6px;padding:8px;text-align:left}
+#vex-appearance-menu .studio-palettes button>i{width:100%;height:16px;border-radius:4px}
+#vex-appearance-menu .studio-palettes button::after{position:absolute;right:7px;bottom:7px;margin:0;font-size:12px}
+.palette-badge{position:absolute;top:6px;right:6px;font:600 10px/1 var(--font);font-style:normal;padding:2px 4px;border-radius:4px;background:var(--accent);color:#fff;pointer-events:none}
 .palette-label{display:flex;min-width:0;flex:1;flex-direction:column;gap:2px}
 .palette-label b{font-size:13px;font-weight:550}.palette-label small{font-size:12px;line-height:1.4;color:var(--muted);white-space:normal}
 #vex-appearance-menu .appearance-choices{max-height:min(680px,calc(100dvh - 80px));overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
-#vex-appearance-menu .choice-filter{margin:8px 0}.appearance-choices>.palette-selection{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.5}
 #vex-language-menu [aria-checked=true]::after{content:'✓';margin-left:auto;color:var(--accent)}
 #typography-panel .choice-filter{align-self:flex-start;width:240px;max-width:100%;margin:0 0 12px}
 #typography-panel .typography-card{gap:8px}
