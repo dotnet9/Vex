@@ -6,7 +6,10 @@
     <File Path="UpdateLog.md" />
     <File Path="docs/快速开始.md" />
     <File Path="docs/鸣谢.md" />
-    <File Path="docs/Vex需求文档.md" />
+    <File Path="docs/README.md" />
+    <File Path="docs/需求文档.md" />
+    <File Path="docs/概要设计.md" />
+    <File Path="docs/详细设计.md" />
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
