@@ -1,9 +1,16 @@
 using System.Diagnostics;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.Services;
 
-public static class ShellProcessLauncher
+public sealed class ShellProcessLauncher : IDocumentWindowLauncher
 {
+    public void Open(string path)
+    {
+        using var process = Process.Start(CreateStartInfo(path))
+            ?? throw new InvalidOperationException("Cannot start the document window.");
+    }
+
     public static ProcessStartInfo CreateStartInfo(string? path = null)
     {
         var executable = Environment.ProcessPath ?? throw new InvalidOperationException("Application executable is unavailable.");

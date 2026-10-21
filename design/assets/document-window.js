@@ -4,7 +4,7 @@
   function read() {
     var query=new URLSearchParams(location.search), file=query.get('file');
     var builtin=Object.values(window.VexDocuments||{}).find(function (doc) {return doc.file===file;});
-    if(builtin)return {name:builtin.name,text:builtin.text,readOnly:true,path:file,builtin:true};
+    if(builtin)return {name:builtin.name,text:builtin.text,readOnly:false,path:file,builtin:true};
     var token=query.get('launch');if(!token)return null;
     try {var payload=JSON.parse(sessionStorage.getItem('vex-document-launch:'+token));return payload&&typeof payload.text==='string'&&typeof payload.name==='string'?payload:null;}catch(_){return null;}
   }

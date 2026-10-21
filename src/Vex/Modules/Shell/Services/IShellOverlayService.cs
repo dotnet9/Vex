@@ -3,8 +3,7 @@ using Vex.Modules.Shell.ViewModels;
 namespace Vex.Modules.Shell.Services;
 
 /// <summary>
-/// 窗内浮层服务：把原先各自为政的独立窗口统一收敛为宿主窗口内的 Ursa 浮层，
-/// 调用方只描述「要显示什么」，不再持有 Window、不再自行拼 Show(owner)。
+/// 设置、确认和检查更新的窗内浮层服务。
 /// </summary>
 public interface IShellOverlayService
 {
@@ -21,13 +20,6 @@ public interface IShellOverlayService
     Task ShowAboutAsync();
 
     Task ShowUpdatesAsync();
-
-    Task ShowDocumentAsync(
-        string title,
-        string markdown,
-        string? imageBasePath,
-        string? typographyTheme,
-        string typographySize);
 
     Task ShowPreferencesAsync(ShellPreferencesViewModel viewModel, string category = "general");
 

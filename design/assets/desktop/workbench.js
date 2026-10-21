@@ -6,7 +6,7 @@
   var builtin = window.VexDocuments?.[new URLSearchParams(location.search).get('document')];
   var launched = VexDocumentWindow.read();
   if (launched) docs = [launched];
-  else if (builtin) docs = [{name:builtin.name,text:builtin.text,readOnly:true}];
+  else if (builtin) docs = [{name:builtin.name,text:builtin.text,readOnly:false}];
   var bundledDocument = !!builtin || !!launched?.builtin;
   var workspaceFolder = bundledDocument ? '内置文档' : '演示文档';
   var scenario = new URLSearchParams(location.search).get('scenario');

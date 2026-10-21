@@ -39,6 +39,11 @@ jobs:
         run: |
           dotnet artifacts/bin/UiVerification/release/UiVerification.dll media-layout artifacts/media-layout
           if ($LASTEXITCODE -ne 0) { throw 'Media layout verification failed' }
+      - name: 独立文档进程与普通编辑保存
+        shell: pwsh
+        run: |
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll documents artifacts/document-windows
+          if ($LASTEXITCODE -ne 0) { throw 'Document window verification failed' }
       - name: 真实 Inno 夹具窗口交接
         shell: pwsh
         run: |

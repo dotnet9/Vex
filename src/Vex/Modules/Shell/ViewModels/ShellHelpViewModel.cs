@@ -30,15 +30,11 @@ public sealed class ShellHelpViewModel
             switch (topic)
             {
                 case "changelog":
-                    await _helpService.ShowDocumentWindowAsync(
-                        _localizer.Get(VexL.Changelog),
-                        "更新日志.md");
+                    await _helpService.OpenDocumentAsync("更新日志.md");
                     _statusPublisher.PublishResource(VexL.StatusOpenedChangelog);
                     break;
                 case "thanks":
-                    await _helpService.ShowDocumentWindowAsync(
-                        _localizer.Get(VexL.Thanks),
-                        "鸣谢.md");
+                    await _helpService.OpenDocumentAsync("鸣谢.md");
                     _statusPublisher.PublishResource(VexL.StatusOpenedAcknowledgements);
                     break;
                 case "website":

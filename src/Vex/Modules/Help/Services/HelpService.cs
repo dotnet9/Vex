@@ -6,22 +6,18 @@ namespace Vex.Modules.Help.Services;
 
 public sealed class HelpService : IHelpService
 {
-    private static readonly string DocumentsFolder = OperatingSystem.IsMacOS() &&
-        Directory.Exists(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Resources", "docs")))
-        ? Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Resources", "docs"))
-        : Path.Combine(AppContext.BaseDirectory, "docs");
-    private readonly IEditorAppearanceState _appearanceState;
     private readonly IAppLocalizer _localizer;
     private readonly IShellOverlayService _overlay;
+    private readonly IDocumentWindowLauncher _windows;
 
     public HelpService(
-        IEditorAppearanceState appearanceState,
         IAppLocalizer localizer,
-        IShellOverlayService overlay)
+        IShellOverlayService overlay,
+        IDocumentWindowLauncher windows)
     {
-        _appearanceState = appearanceState;
         _localizer = localizer;
         _overlay = overlay;
+        _windows = windows;
     }
 
     public Task OpenWebsiteAsync()
@@ -38,26 +34,14 @@ public sealed class HelpService : IHelpService
 
     public Task OpenDocumentAsync(string fileName)
     {
-        var path = Path.Combine(DocumentsFolder, fileName);
+        var path = Path.Combine(BundledDocuments.Folder, fileName);
         if (!File.Exists(path))
         {
             throw new FileNotFoundException(_localizer.Get(VexL.HelpDetailDocumentNotFound), path);
         }
 
-        Open(path);
+        _windows.Open(path);
         return Task.CompletedTask;
-    }
-
-    public Task ShowDocumentWindowAsync(string title, string fileName)
-    {
-        var path = GetDocumentPath(fileName);
-        var markdown = File.ReadAllText(path);
-        return _overlay.ShowDocumentAsync(
-            title,
-            markdown,
-            path,
-            _appearanceState.TypographyTheme,
-            _appearanceState.TypographySize);
     }
 
     public Task ShowAboutWindowAsync() => _overlay.ShowAboutAsync();
@@ -68,19 +52,5 @@ public sealed class HelpService : IHelpService
     {
         Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
     }
-
-    private string GetDocumentPath(string fileName)
-    {
-        var path = Path.Combine(DocumentsFolder, fileName);
-        if (!File.Exists(path))
-        {
-            throw new FileNotFoundException(_localizer.Get(VexL.HelpDetailDocumentNotFound), path);
-        }
-
-        return path;
-    }
-
-
-
 
 }

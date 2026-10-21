@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
@@ -112,17 +112,15 @@ if (mode == "parity")
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     Capture(window, "about");
     ((ShellAboutViewModel)window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single().DataContext!).Close(); Pump(aboutTask);
-    var thanksTask = app.Resolve<IShellOverlayService>().ShowDocumentAsync("鸣谢", File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "鸣谢.md")), null, "Simple", "Small");
-    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Any());
-    Capture(window, "thanks");
-    Vex.Modules.Shell.Services.ShellOverlayHost.Dismiss(window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Single()); Pump(thanksTask);
+    Pump(vm.OpenStartupDocumentAsync([BundledDocuments.GetPath("鸣谢.md")]));
+    vm.Workbench.ShowRead(); Pump(); SettleRendering(); Capture(window, "thanks");
     vm.Workbench.ShowMindMap(); vm.Workbench.ShowMapSettings = true; Pump(); SettleRendering(); Capture(window, "map-settings");
     vm.Workbench.ShowMapSettings = false; vm.Workbench.SelectedNode = vm.Workbench.Root!.Children.First(); Pump(); SettleRendering(); Capture(window, "map-inspector");
     window.Close();
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
+if (mode is "documents" or "document-open-child" or "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -130,6 +128,17 @@ if (mode is "updates" or "vex" or "preferences" or "locale" or "buttons" or "dan
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
+    if (mode == "documents") { VerifyDocumentWindows(app, window, vm); window.Close(); return; }
+    if (mode == "document-open-child")
+    {
+        Pump(vm.OpenStartupDocumentAsync([args[2]]));
+        Check(vm.DocumentInfo.CurrentFilePath == args[2], "Child process opens the supplied ordinary document");
+        vm.Markdown += "\n\n独立进程编辑并保存。\n";
+        Pump(vm.SaveAsync());
+        Check(!vm.DocumentInfo.IsModified, "Child process uses ordinary save workflow");
+        File.WriteAllText(Path.Combine(output, "child-pid.txt"), Environment.ProcessId.ToString());
+        window.Close(); return;
+    }
     if (mode == "updates") { VerifyUpdates(app, window, vm); window.Close(); return; }
     if (mode == "media-layout") { VerifyMediaLayout((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "html-tables") { VerifyHtmlTables((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
@@ -581,18 +590,11 @@ void VerifyPointerRegressions(VerificationVexApp app, Window window, MainWindowV
     Console.WriteLine($"HORIZONTAL after={codeScroll.Offset}, unchanged={vm.Markdown == longCode}");
     Check(codeScroll.Offset.X > 100 && vm.Markdown == longCode, "Dragging the long code horizontal scrollbar scrolls without editing its source");
 
-    var log = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "更新日志.md"));
-    var task = app.Resolve<IShellOverlayService>().ShowDocumentAsync("更新日志", log, null, "Simple", "Normal");
-    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Any());
-    SettleRendering();
-    var dialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Single();
-    var scroll = dialog.FindControl<ScrollViewer>("DocumentScroll")!;
-    if (args.Contains("--trace")) scroll.ScrollChanged += (_, e) => Console.WriteLine($"TRACE offset={scroll.Offset.Y:F3} extent={scroll.Extent.Height:F3} viewport={scroll.Viewport.Height:F3} delta={e.OffsetDelta}/{e.ExtentDelta}/{e.ViewportDelta}");
-    if (args.Contains("--no-virtualization"))
-    {
-        dialog.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("DocumentMarkdownViewer")!.EnableVirtualization = false;
-        Pump(); SettleRendering();
-    }
+    vm.Markdown = sampleText;
+    Pump(vm.OpenStartupDocumentAsync([BundledDocuments.GetPath("更新日志.md")]));
+    vm.Workbench.ShowRead(); Pump(); SettleRendering();
+    var preview = window.GetVisualDescendants().OfType<Vex.Modules.Workspace.Views.MarkdownPreviewView>().Single();
+    var scroll = preview.FindControl<ScrollViewer>("PreviewScrollViewer")!;
     for (var pass = 0; pass < 3; pass++)
     {
         foreach (var direction in new[] { 1, -1 })
@@ -611,7 +613,6 @@ void VerifyPointerRegressions(VerificationVexApp app, Window window, MainWindowV
         }
     }
     Capture(window, "changelog-after-thumb-drag");
-    Vex.Modules.Shell.Services.ShellOverlayHost.Dismiss(dialog); Pump(task);
 
     void Drag(Point from, Point to)
     {
@@ -619,6 +620,52 @@ void VerifyPointerRegressions(VerificationVexApp app, Window window, MainWindowV
         for (var i = 1; i <= 16; i++) { window.MouseMove(from + (to - from) * (i / 16d), RawInputModifiers.LeftMouseButton); Pump(); }
         window.MouseUp(to, MouseButton.Left); Pump();
     }
+}
+
+void VerifyDocumentWindows(VerificationVexApp app, Window window, MainWindowViewModel vm)
+{
+    var launcher = (VerificationDocumentWindows)app.Resolve<IDocumentWindowLauncher>();
+    var initialMarkdown = vm.Markdown;
+    vm.Markdown = "# 主窗口尚未保存\n\n打开帮助文档不能替换本窗口。";
+    var original = vm.GetCurrentDocumentSnapshot();
+    foreach (var (topic, file) in new[] { ("changelog", "更新日志.md"), ("thanks", "鸣谢.md") })
+    {
+        Pump(vm.Help.OpenHelpTopic(topic));
+        Check(launcher.Paths.Last() == BundledDocuments.GetPath(file), "Help launches the packaged document: " + topic);
+        Check(vm.GetCurrentDocumentSnapshot() == original && vm.DocumentInfo.IsModified, "Launching a document preserves the unsaved parent");
+    }
+    var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
+    var about = (ShellAboutViewModel)window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single().DataContext!;
+    ((System.Windows.Input.ICommand)about.ChangelogCommand).Execute(null); Pump(aboutTask);
+    Check(launcher.Paths.Count == 3 && launcher.Paths.Last() == BundledDocuments.GetPath("更新日志.md"), "About uses the same independent document launcher");
+    Check(!window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any(), "About closes before launching the document");
+    var copyFolder = Path.Combine(output, "中文 空格文档"); Directory.CreateDirectory(copyFolder);
+    var copyPath = Path.Combine(copyFolder, "更新日志 副本.md");
+    File.Copy(BundledDocuments.GetPath("更新日志.md"), copyPath, true);
+    var start = ShellProcessLauncher.CreateStartInfo(copyPath);
+    Check(!start.UseShellExecute && start.ArgumentList.Last() == copyPath, "Document launch targets Vex with a single unescaped path argument");
+    if (Path.GetFileNameWithoutExtension(Environment.ProcessPath).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+        Check(start.ArgumentList.First() == typeof(Vex.App).Assembly.Location, "Development launch invokes the Vex assembly");
+    var child = new System.Diagnostics.ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+    if (Path.GetFileNameWithoutExtension(Environment.ProcessPath).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+        child.ArgumentList.Add(typeof(VerificationVexApp).Assembly.Location);
+    child.ArgumentList.Add("document-open-child"); child.ArgumentList.Add(copyFolder); child.ArgumentList.Add(copyPath);
+    using var process = System.Diagnostics.Process.Start(child)!;
+    var stdout = process.StandardOutput.ReadToEndAsync(); var stderr = process.StandardError.ReadToEndAsync();
+    Check(process.WaitForExit(60000), "Independent document process exits without affecting the parent");
+    Check(process.ExitCode == 0, "Independent document process succeeds: " + stdout.GetAwaiter().GetResult() + stderr.GetAwaiter().GetResult());
+    Check(File.ReadAllText(Path.Combine(copyFolder, "child-pid.txt")) != Environment.ProcessId.ToString(), "Document workspace runs in a separate process");
+    Check(File.ReadAllText(copyPath).EndsWith("独立进程编辑并保存。\n"), "The new process can edit and save an ordinary document");
+    Check(vm.GetCurrentDocumentSnapshot() == original && vm.DocumentInfo.IsModified, "Closing the child preserves the parent and its edits");
+    vm.Markdown = initialMarkdown;
+    Pump(vm.OpenStartupDocumentAsync([BundledDocuments.GetPath("更新日志.md")]));
+    vm.Workbench.ShowRead(); Pump(); SettleRendering(); Capture(window, "changelog-workspace");
+    Check(vm.Markdown == File.ReadAllText(BundledDocuments.GetPath("更新日志.md")), "Full workspace loads the real packaged changelog");
+    vm.Markdown += "\n普通文档允许编辑。";
+    Check(vm.DocumentInfo.IsModified, "Bundled documents have no special read-only restriction");
+    vm.Markdown = File.ReadAllText(BundledDocuments.GetPath("更新日志.md"));
+    Console.WriteLine("PASS: document menu and about routes, process arguments, independent editable workspace and parent preservation");
 }
 
 void SettleRendering()
@@ -1427,17 +1474,13 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     Capture(window, "about-light");
     var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
     var aboutModel = (ShellAboutViewModel)about.DataContext!;
-    Check(aboutModel.PlatformText == ".NET 10，Avalonia" && aboutModel.CopyrightText == "Copyright © 2026 Vex(维刻)"
+    Check(aboutModel.PlatformText == ".NET 10，Avalonia" && aboutModel.CopyrightText == "Copyright © 2026 CodeWF · 维刻 Vex"
         && about.GetVisualDescendants().OfType<Button>().Count(button => button.Command == aboutModel.UpdateCommand) == 1, "About uses accepted metadata and one update button");
     vm.Appearance.SelectThemeByKey("dark"); Pump(); Capture(window, "about-dark");
     aboutModel.Close(); Pump(aboutTask); vm.Appearance.SelectThemeByKey("light");
-    var thanksTask = app.Resolve<IShellOverlayService>().ShowDocumentAsync("鸣谢", File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "鸣谢.md")), null, "Simple", "Small");
-    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Any());
-    Capture(window, "thanks");
-    var thanks = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.MarkdownDocumentOverlayView>().Single();
-    var thanksScroll = thanks.FindControl<ScrollViewer>("DocumentScroll")!;
-    Check(thanksScroll.Extent.Height <= thanksScroll.Viewport.Height + 1, $"Thanks fits on one screen: {thanksScroll.Extent}/{thanksScroll.Viewport}");
-    Vex.Modules.Shell.Services.ShellOverlayHost.Dismiss(thanks); Pump(thanksTask);
+    Pump(vm.OpenStartupDocumentAsync([BundledDocuments.GetPath("鸣谢.md")]));
+    vm.Workbench.ShowRead(); Pump(); SettleRendering(); Capture(window, "thanks");
+    Check(vm.DocumentInfo.CurrentFilePath == BundledDocuments.GetPath("鸣谢.md"), "Thanks uses the ordinary workspace document flow");
     var performanceFile = args.ElementAtOrDefault(2) ?? @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
     if (File.Exists(performanceFile))
     {
@@ -2224,12 +2267,19 @@ public sealed class VerificationVexApp : Vex.App
         registry.RegisterInstance<IAppSettingsStore>(UseRealSettings ? new AppSettingsStore() : new MemorySettings());
         registry.RegisterInstance<IAutoSaveDraftService>(new MemoryDrafts());
         registry.RegisterInstance<IRecentDocumentStore>(new MemoryRecent());
+        registry.RegisterInstance<IDocumentWindowLauncher>(new VerificationDocumentWindows());
     }
     protected override AvaloniaObject CreateShell()
     {
         Shell = (Window)base.CreateShell();
         return Shell;
     }
+}
+
+public sealed class VerificationDocumentWindows : IDocumentWindowLauncher
+{
+    public List<string> Paths { get; } = [];
+    public void Open(string path) => Paths.Add(path);
 }
 
 public sealed class MemorySettings : IAppSettingsStore

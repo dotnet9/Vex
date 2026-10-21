@@ -12,10 +12,9 @@ using System.Diagnostics;
 namespace Vex.Modules.Shell.Services;
 
 /// <summary>
-/// 统一把各功能以宿主窗口内的 Ursa 浮层呈现（不再创建独立窗口）。
-/// 更新浮层复用单一会话并去重，其余浮层由 Ursa 的模态栈管理。
+/// 设置、确认和检查更新使用窗内浮层；内置文档交给独立工作台进程打开。
 /// </summary>
-public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer localizer) : IShellOverlayService, IDisposable
+public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer localizer, IDocumentWindowLauncher windows) : IShellOverlayService, IDisposable
 {
     public Task<DocumentReviewChoice> ShowDocumentReviewAsync(ShellDocumentReviewModel model)
     {
@@ -60,9 +59,7 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
         if (model.WantsUpdates) await ShowUpdatesAsync();
         else if (model.WantsChangelog)
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "docs", "更新日志.md");
-            if (!File.Exists(path)) path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Resources", "docs", "更新日志.md"));
-            await ShowDocumentAsync(localizer.Get(VexL.Changelog), await File.ReadAllTextAsync(path), path, "Simple", "Normal");
+            windows.Open(BundledDocuments.GetPath("更新日志.md"));
         }
     }
 
@@ -87,16 +84,6 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
 
     private static void OpenUrl(string url) => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
     public void Dispose() => _updateModel?.Dispose();
-
-    public Task ShowDocumentAsync(
-        string title,
-        string markdown,
-        string? imageBasePath,
-        string? typographyTheme,
-        string typographySize) =>
-        ShowAsync(
-            new MarkdownDocumentOverlayView(title, markdown, imageBasePath, typographyTheme, typographySize),
-            null);
 
     public Task ShowPreferencesAsync(ShellPreferencesViewModel viewModel, string category = "general") =>
         ShowAsync(new ShellPreferencesOverlayView(viewModel, localizer, category), viewModel);
