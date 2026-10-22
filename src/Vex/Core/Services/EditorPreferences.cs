@@ -60,7 +60,7 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     };
     public double EffectiveBodyFontSize => BodyFontSize * ContentZoom / 100;
     public double ResolveBodyFontSize(string? typography) => (settings.Current.BodyFontSize
-        ?? CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(typography)?.BodySize ?? 16) * ContentZoom / 100;
+        ?? CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(typography)?.BodySize ?? 16) * ContentZoom / 100;
     public double EffectiveCodeFontSize => CodeFontSize * ContentZoom / 100;
     private void Set(Func<AppSettings, AppSettings> update, [CallerMemberName] string? name = null)
     {

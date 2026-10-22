@@ -247,6 +247,10 @@ namespace Vex
         public static readonly string StyleVein = "Vex.VexL.StyleVein";
         public static readonly string StyleMono = "Vex.VexL.StyleMono";
         public static readonly string WBMapStyleButton = "Vex.VexL.WBMapStyleButton";
+        public static readonly string MenuSaveAll = "Vex.VexL.MenuSaveAll";
+        public static readonly string DeleteCustomTypography = "Vex.VexL.DeleteCustomTypography";
+        public static readonly string AddCustomTypography = "Vex.VexL.AddCustomTypography";
+        public static readonly string AddCustomTypographyNote = "Vex.VexL.AddCustomTypographyNote";
         public static readonly string EditCustomPalette = "Vex.VexL.EditCustomPalette";
         public static readonly string DeleteCustomPalette = "Vex.VexL.DeleteCustomPalette";
         public static readonly string AddCustomPalette = "Vex.VexL.AddCustomPalette";

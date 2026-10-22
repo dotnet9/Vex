@@ -87,6 +87,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string CustomPalettes = nameof(AppSettings.CustomPalettes);
     private const string MindMapLayout = nameof(AppSettings.MindMapLayout);
     private const string MindMapStyle = nameof(AppSettings.MindMapStyle);
+    private const string CustomTypographies = nameof(AppSettings.CustomTypographies);
     private const string PdfSize = nameof(AppSettings.PdfSize);
     private const string PdfMargin = nameof(AppSettings.PdfMargin);
 
@@ -168,6 +169,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             CustomPalettes = Get<string?>(configuration, CustomPalettes),
             MindMapLayout = Get<string?>(configuration, MindMapLayout),
             MindMapStyle = Get<string?>(configuration, MindMapStyle),
+            CustomTypographies = Get<string?>(configuration, CustomTypographies),
             PdfSize = Choice(configuration, PdfSize, "A4", "Letter", "A5"),
             PdfMargin = Get<double?>(configuration, PdfMargin),
             ThemeKey = Get<string>(configuration, ThemeKey),
@@ -260,6 +262,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [CustomPalettes] = settings.CustomPalettes,
                 [MindMapLayout] = settings.MindMapLayout,
                 [MindMapStyle] = settings.MindMapStyle,
+                [CustomTypographies] = settings.CustomTypographies,
                 [PdfSize] = settings.PdfSize,
                 [PdfMargin] = settings.PdfMargin,
                 [ThemeKey] = settings.ThemeKey,

@@ -111,6 +111,7 @@ public sealed record AppSettings
     public string? CustomPalettes { get; init; }
     public string? MindMapLayout { get; init; }
     public string? MindMapStyle { get; init; }
+    public string? CustomTypographies { get; init; }
     public double? ContentZoom { get; init; }
     public string? ExportFormat { get; init; }
     public string? ExportFolder { get; init; }

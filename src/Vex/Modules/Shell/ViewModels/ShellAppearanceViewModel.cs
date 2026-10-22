@@ -13,7 +13,7 @@ namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellAppearanceViewModel : ReactiveObject
 {
-    private static readonly string[] TypographyKeys = ArticleTypographyCatalog.All.Select(item => item.Key).ToArray();
+    private static string[] TypographyKeys() => CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.All.Select(item => item.Key!).ToArray();
 
     private readonly IAppLocalizer _localizer;
     private readonly IEditorAppearanceState _editorAppearanceState;
@@ -43,7 +43,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         ThemeOptions = new ObservableCollection<ThemeOption>(_themeService.GetThemeOptions());
         PaletteOptions = new ObservableCollection<PaletteOption>(_themeService.GetPaletteOptions());
         TypographyOptions = new ObservableCollection<TypographyOption>(
-            TypographyKeys.Select(theme => new TypographyOption(theme, theme)));
+            TypographyKeys().Select(theme => new TypographyOption(theme, theme)));
         LanguageOptions = new ObservableCollection<LanguageOption>
         {
             new("zh-CN", _localizer.Get(VexL.LanguageSimplifiedChinese), _localizer.Get(VexL.LanguageSimplifiedChinese)),
@@ -137,6 +137,71 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
                 PersistAppearanceSettings();
             }
         }
+    }
+
+    /// <summary>新增（key 为空）或编辑用户排版：注册后刷新目录并选中，随设置持久化。</summary>
+    public string RegisterCustomTypography(string key, string name, string accentLight, string accentDark,
+        string decorationLight, string decorationDark, string font, double leading)
+    {
+        key = string.IsNullOrWhiteSpace(key) ? "user:" + Guid.NewGuid().ToString("N")[..8] : key;
+        var typography = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.CreateCustom(
+            key, name, accentLight, accentDark, decorationLight, decorationDark, font, leading);
+        CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Register(typography);
+        ReloadTypographyOptions(key);
+        PersistCustomTypographies();
+        return key;
+    }
+
+    public bool RemoveCustomTypography(string key)
+    {
+        if (!CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Remove(key)) return false;
+        ReloadTypographyOptions("Simple");
+        PersistCustomTypographies();
+        return true;
+    }
+
+    private void ReloadTypographyOptions(string preferredKey)
+    {
+        var current = SelectedTypography?.Key;
+        TypographyOptions.Clear();
+        foreach (var option in CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.All
+                     .Select(item => new TypographyOption(item.Key!, item.Key!)))
+        {
+            TypographyOptions.Add(option);
+        }
+        SelectedTypography = TypographyOptions.FirstOrDefault(item => item.Key == current)
+            ?? TypographyOptions.FirstOrDefault(item => item.Key == preferredKey)
+            ?? TypographyOptions.FirstOrDefault();
+        OnPropertyChanged(nameof(TypographyOptions));
+    }
+
+    private void PersistCustomTypographies()
+    {
+        var records = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.All
+            .Where(item => item.Key != null && item.Key.StartsWith("user:", StringComparison.Ordinal))
+            .Select(item => string.Join('|', item.Key, item.Name,
+                item.LightText, item.DarkText, item.LightDecoration, item.DarkDecoration, item.Font, item.Leading.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        _settingsStore.Update(settings => settings with { CustomTypographies = string.Join(';', records) });
+    }
+
+    /// <summary>启动时恢复用户排版。</summary>
+    public void LoadCustomTypographies(string? persisted)
+    {
+        if (string.IsNullOrWhiteSpace(persisted)) return;
+        foreach (var record in persisted.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var fields = record.Split('|');
+            if (fields.Length != 8 || !fields[0].StartsWith("user:", StringComparison.Ordinal)) continue;
+            try
+            {
+                var typography = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.CreateCustom(
+                    fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6],
+                    double.Parse(fields[7], System.Globalization.CultureInfo.InvariantCulture));
+                CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Register(typography);
+            }
+            catch { /* 单条损坏不阻塞其余排版 */ }
+        }
+        ReloadTypographyOptions(SelectedTypography?.Key ?? "Simple");
     }
 
     public void SelectPaletteByKey(string? key)

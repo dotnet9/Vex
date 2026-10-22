@@ -135,6 +135,85 @@ public sealed class ShellTypographyGallery : UserControl
             Resource(button, TemplatedControl.BorderBrushProperty, this, "VexPanelBorderBrush");
             _items[option] = (button, preview, check); _cards.Children.Add(button);
         }
+        // 用户排版卡带「删除」；目录尾部「＋ 新增排版」（对应原型 typography-add）。
+        foreach (var option in _vm.Appearance.TypographyOptions.Where(item => item.Key?.StartsWith("user:", StringComparison.Ordinal) == true).ToArray())
+        {
+            if (_items[option].Button.Content is StackPanel stack && stack.Children.FirstOrDefault() is Grid heading)
+            {
+                var remove = new Button { Classes = { "wb-quiet" }, Padding = new Thickness(4, 0), MinHeight = 20, FontSize = 12, Content = "×" };
+                ToolTip.SetTip(remove, Text("DeleteCustomTypography"));
+                var captured = option.Key!;
+                remove.Click += (_, _) => _vm.Appearance.RemoveCustomTypography(captured);
+                Grid.SetColumn(remove, 1);
+                heading.Children.Add(remove);
+            }
+        }
+        var addCard = Button("", OpenTypographyDialog);
+        addCard.Name = "AddCustomTypography";
+        addCard.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+        addCard.Padding = new Thickness(12); addCard.MinHeight = 56;
+        addCard.BorderThickness = new Thickness(1); addCard.CornerRadius = new CornerRadius(8);
+        Resource(addCard, TemplatedControl.BorderBrushProperty, this, "VexPanelBorderBrush");
+        var addRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        addRow.Children.Add(new TextBlock { Text = "＋", FontSize = 17, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+        var addLabels = new StackPanel { Spacing = 1, VerticalAlignment = VerticalAlignment.Center };
+        addLabels.Children.Add(Label(Text("AddCustomTypography"), 13));
+        addLabels.Children.Add(Label(Text("AddCustomTypographyNote")));
+        addRow.Children.Add(addLabels);
+        addCard.Content = addRow;
+        _cards.Children.Add(addCard);
+        async void OpenTypographyDialog()
+        {
+            var model = new ShellTypographyEditModel(null);
+            var applied = await Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(new ShellTypographyEditView(model), model,
+                options: new Ursa.Controls.OverlayDialogOptions { CanLightDismiss = true, CanDragMove = false, CanResize = false, IsCloseButtonVisible = false });
+            if (!applied || model.Result is not { } result) return;
+            _vm.Appearance.RegisterCustomTypography("", result.Name, result.AccentLight, result.AccentDark, result.DecoLight, result.DecoDark, result.Font, result.Leading);
+            RebuildCards();
+        }
+
+        void RebuildCards()
+        {
+            _items.Clear(); _cards.Children.Clear();
+            foreach (var option in _vm.Appearance.TypographyOptions)
+            {
+                var heading = new Grid { ColumnDefinitions = new("*,Auto") };
+                heading.MinHeight = 22; var name = Label(Text(option.NameKey), 13); name.FontWeight = FontWeight.SemiBold;
+                heading.Children.Add(name); var check = Label("", 11); Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush"); Grid.SetColumn(check, 1); heading.Children.Add(check);
+                var preview = new MarkdownViewer { Markdown = Text("TypographyPreviewMarkdown"), TypographyTheme = option.Key,
+                    FontWeight = FontWeight.Normal,
+                    TypographySize = _vm.Appearance.CurrentTypographySize, IsHitTestVisible = false, Margin = new Thickness(16),
+                    DocumentBottomPadding = 0, EnableVirtualization = false };
+                var previewBorder = new Border { Child = preview, MinHeight = 274, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), ClipToBounds = true };
+                Resource(previewBorder, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
+                Resource(previewBorder, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
+                var stack = new StackPanel { Spacing = 8 };
+                stack.Children.Add(heading); var purpose = Label(Text(option.PurposeKey)); purpose.Classes.Add("muted"); stack.Children.Add(purpose); stack.Children.Add(previewBorder);
+                var button = Button("", () => _vm.Appearance.SelectedTypography = option);
+                button.Name = "Typography_" + option.Key; button.Content = stack; button.Padding = new Thickness(12); button.MinHeight = 332;
+                button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
+                button.VerticalContentAlignment = VerticalAlignment.Top; button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+                button.BorderThickness = new Thickness(1); button.CornerRadius = new CornerRadius(8);
+                Resource(button, TemplatedControl.BorderBrushProperty, this, "VexPanelBorderBrush");
+                _items[option] = (button, preview, check); _cards.Children.Add(button);
+            }
+            var addAgain = Button("", OpenTypographyDialog);
+            addAgain.Name = "AddCustomTypography";
+            addAgain.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+            addAgain.Padding = new Thickness(12); addAgain.MinHeight = 56;
+            addAgain.BorderThickness = new Thickness(1); addAgain.CornerRadius = new CornerRadius(8);
+            Resource(addAgain, TemplatedControl.BorderBrushProperty, this, "VexPanelBorderBrush");
+            var addRowAgain = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            addRowAgain.Children.Add(new TextBlock { Text = "＋", FontSize = 17, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+            var addLabelsAgain = new StackPanel { Spacing = 1, VerticalAlignment = VerticalAlignment.Center };
+            addLabelsAgain.Children.Add(Label(Text("AddCustomTypography"), 13));
+            addLabelsAgain.Children.Add(Label(Text("AddCustomTypographyNote")));
+            addRowAgain.Children.Add(addLabelsAgain);
+            addAgain.Content = addRowAgain;
+            _cards.Children.Add(addAgain);
+            ArrangeCards(); Changed(null, new(""));
+        }
+
         var grid = new Grid { RowDefinitions = new("Auto,Auto,Auto,*,Auto") };
         grid.Children.Add(header); var hint = Label(Text("WBTypographyHint")); hint.Classes.Add("muted"); hint.LineHeight = 19.2; hint.Margin = new Thickness(0, 4, 0, 12); Grid.SetRow(hint, 1); grid.Children.Add(hint);
         Grid.SetRow(filterFrame, 2); grid.Children.Add(filterFrame);

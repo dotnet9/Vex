@@ -33,6 +33,7 @@
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Save}}" Command="{Binding SaveAsync}" InputGesture="Ctrl+S" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.SaveAs}}" Command="{Binding SaveAsAsync}" InputGesture="Ctrl+Shift+S" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuSaveAll}}" Command="{Binding SaveAllAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.MenuSaveAll}}" />
             <Separator />
             <MenuItem x:Name="ExportMenuItem" Header="{i18n:I18n {x:Static l:VexL.Export}}">
                 <MenuItem Header="{i18n:I18n Vex.VexL.DialogExportHtmlTitle}" Command="{Binding Export}" CommandParameter="HTML" />
