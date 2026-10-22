@@ -43,7 +43,7 @@
     root.setAttribute('aria-modal', 'true');
     root.innerHTML = '<header><button type="button" data-deck="outline">☷</button><strong></strong><button type="button" data-deck="markdown"></button><button type="button" data-deck="map"></button><button type="button" data-deck="exit">×</button></header>' +
       '<div class="deck-stage"><nav></nav><div class="deck-scroll"><article class="md-body markdown-body"></article></div><div class="deck-map"><div class="deck-map-scene"></div></div></div>' +
-      '<footer><small></small><div><span class="deck-tools"><button type="button" data-deck="smaller">A−</button><span class="deck-zoom"></span><button type="button" data-deck="larger">A+</button><button type="button" data-deck="fit">⊡</button></span><span class="deck-spacer"></span>' +
+      '<footer><small></small><div><span class="deck-tools"><span class="deck-scale-label" aria-hidden="true">A−</span><input type="range" data-deck="scale" min="1" max="2.5" step="0.1" value="' + scale + '" aria-label="演示字号"><span class="deck-scale-label" aria-hidden="true">A+</span><span class="deck-zoom"></span><button type="button" data-deck="fit">⊡</button></span><span class="deck-spacer"></span>' +
       '<span class="deck-pages"><button type="button" data-deck="previous">←</button><output aria-live="polite"></output><button type="button" data-deck="next">→</button></span></div></footer><progress max="1"></progress>';
     var nav = root.querySelector('nav'), body = root.querySelector('article'), scroll = root.querySelector('.deck-scroll');
     /* 水印开启即全场景显示（含演示），见 watermark.js。 */
@@ -86,12 +86,17 @@
       scroll.inert = narrow && outline;
       map.inert = narrow && outline;
       root.style.setProperty('--deck-scale', scale);
-      ['outline', 'previous', 'next', 'smaller', 'larger', 'exit'].forEach(function (name) {
+      /* 内联字号：压过 md-body 的全局字号规则，保证 A± 拖动条真实缩放讲稿。 */
+      body.style.fontSize = 'calc(15px * ' + scale + ')';
+      /* 拖动条随模式切换量程：页面 1–2.5，导图 0.15–3。 */
+      var slider = root.querySelector('[data-deck="scale"]');
+      slider.min = mapMode ? '0.15' : '1'; slider.max = mapMode ? '3' : '2.5'; slider.step = mapMode ? '0.05' : '0.1';
+      slider.value = mapMode ? mapScale : scale;
+      ['outline', 'previous', 'next', 'exit'].forEach(function (name) {
         var b = root.querySelector('[data-deck="' + name + '"]');
-        var key = { outline: 'presentationOutline', previous: 'presentationPrevious', next: 'presentationNext',
-          smaller: 'presentationSmaller', larger: 'presentationLarger', exit: 'exitPresentation' }[name];
+        var key = { outline: 'presentationOutline', previous: 'presentationPrevious', next: 'presentationNext', exit: 'exitPresentation' }[name];
         b.title = l[key]; b.setAttribute('aria-label', l[key]);
-        b.disabled = name === 'previous' && page === 0 || name === 'next' && page === pages.length - 1 || !mapMode && (name === 'smaller' && scale <= 1 || name === 'larger' && scale >= 2.5);
+        b.disabled = name === 'previous' && page === 0 || name === 'next' && page === pages.length - 1;
       });
       root.querySelector('[data-deck="outline"]').setAttribute('aria-expanded', String(outline));
       nav.replaceChildren();
@@ -106,10 +111,10 @@
       nav.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
       if (reset) { body.innerHTML = pages[page].html; scroll.scrollTop = 0; VexRendering.diagrams(); }
       scene.querySelectorAll('[data-map-page]').forEach(function (node) { node.classList.toggle('selected', +node.dataset.mapPage === page); });
-      root.querySelector('[data-deck="smaller"]').innerHTML = mapMode && narrow ? controlIcon('min') : mapMode ? '−' : 'A−';
-      root.querySelector('[data-deck="larger"]').innerHTML = mapMode && narrow ? controlIcon('plus') : mapMode ? '+' : 'A+';
       root.querySelector('[data-deck="previous"]').innerHTML = narrow ? controlIcon('arrow') : '←';
       root.querySelector('[data-deck="next"]').innerHTML = narrow ? controlIcon('arrow') : '→';
+      var scaleSlider = root.querySelector('[data-deck="scale"]');
+      scaleSlider.value = mapMode ? mapScale : scale;
       if (mapMode && reset) focusMap();
     }
     function controlIcon(name) { return '<svg class="deck-control-icon" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
@@ -158,10 +163,11 @@
       if (action === 'outline') { outline = !outline; render(false); }
       if (action === 'map' || action === 'markdown') { mapMode = action === 'map'; render(true); }
       if (action === 'fit') { mapScale = fitScale(); mapX = (map.clientWidth - mapWidth * mapScale) / 2; mapY = (map.clientHeight - mapHeight * mapScale) / 2; transformMap(); }
-      if (action === 'larger' || action === 'smaller') {
-        if (mapMode) zoomMap(action === 'larger' ? 1.15 : 1 / 1.15);
-        else { scale = Math.round(Math.max(1, Math.min(2.5, scale + (action === 'larger' ? .1 : -.1))) * 10) / 10; render(false); }
-      }
+    });
+    root.querySelector('[data-deck="scale"]').addEventListener('input', function () {
+      var value = Number(this.value);
+      if (mapMode) { mapScale = Math.max(0.15, Math.min(3, value)); transformMap(); }
+      else { scale = Math.max(1, Math.min(2.5, value)); render(false); }
     });
     map.addEventListener('dblclick', function (event) { var index = event.target.closest('[data-map-page]')?.dataset.mapPage; if (index != null) { page = +index; mapMode = false; render(true); } });
     map.addEventListener('wheel', function (event) { event.preventDefault(); zoomMap(event.deltaY > 0 ? 1 / 1.15 : 1.15); }, { passive: false });

@@ -79,3 +79,128 @@
 #edit-options:focus-within,.view-panel .view-heading:focus-within,.map-pane .map-toolbar:focus-within{opacity:1;transition-delay:0s}
 /* 编辑器：排版入口并入格式工具栏同一悬浮条，空标题行隐藏 */
 .view-panel[data-document="editor"] .view-heading{display:none}
+
+/* ===== 质感 pass（规则 §15 装饰语言基线）：边框退位 · 圆角升档 · 字重层级 · 强调活力 ===== */
+/* 画布全白：侧栏与内容同底，层级交给表面色阶与轻阴影，不再依赖 1px 边框。 */
+.sidebar{background:var(--bg)}
+/* 搜索框：与查找条输入框同一填充风格——面板灰填充、无边框，聚焦转白底描边。 */
+.sidebar-search{background:var(--panel);border:1px solid transparent;border-radius:8px;padding:6px 10px;transition:border-color .15s,background .15s}
+.sidebar-search:focus-within{border-color:var(--accent);background:var(--bg)}
+.sidebar-search .clear-search{border:0;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;width:18px;height:18px;border-radius:4px;padding:0}
+.sidebar-search .clear-search:hover{color:var(--fg);background:var(--hover)}
+/* 查找计数：轻量药丸。 */
+#find-count{font-size:11px;color:var(--muted);background:var(--panel);border-radius:10px;padding:3px 9px}
+/* 卡片：去边框，灰阶表面 + 轻阴影分层；选中用 accent 环。 */
+#vex-appearance-menu .studio-palettes button:not(.palette-add){border-color:transparent;background:var(--panel);box-shadow:0 1px 5px color-mix(in srgb,var(--fg) 5%,transparent);border-radius:8px}
+#vex-appearance-menu .studio-palettes button:hover:not(.palette-add){border-color:transparent;background:var(--hover);box-shadow:0 2px 9px color-mix(in srgb,var(--fg) 7%,transparent)}
+#vex-appearance-menu .studio-palettes button.on,#vex-appearance-menu .studio-palettes button[aria-pressed="true"]{border-color:transparent;background:var(--panel);box-shadow:0 0 0 1.5px var(--accent)}
+#typography-panel .typography-card{border:0;background:var(--panel);border-radius:10px;box-shadow:0 1px 5px color-mix(in srgb,var(--fg) 5%,transparent)}
+#typography-panel .typography-card:hover{border:0;box-shadow:0 2px 9px color-mix(in srgb,var(--fg) 7%,transparent)}
+#typography-panel .typography-card[aria-pressed=true]{border:0;box-shadow:0 0 0 1.5px var(--accent);background:var(--panel)}
+#typography-panel .typography-add{border-radius:10px}
+/* 对话框与弹层：去边框，圆角升档。 */
+.vex-settings{border:0;border-radius:12px}
+.vex-export-dialog{border:0;border-radius:12px}
+.appearance-choices{border:0;border-radius:12px}
+.typography-popover{border:0;border-radius:12px}
+.menu-flyout > .flyout{border:0;border-radius:10px}
+.workspace-layout-menu{border:0;border-radius:12px}
+/* 控件圆角与主按钮渐变（全界面唯一渐变，§15）。 */
+.vex-button{border-radius:8px}
+.btn{border-radius:8px}
+.icon-button{border-radius:6px}
+.vex-button.primary,.btn.primary{background:var(--action-gradient,var(--accent));border-color:transparent}
+.vex-mcp-tabs{border-radius:8px}
+.vex-mcp-tabs button{border-radius:6px}
+/* 空状态：给一点品牌活力。 */
+.chapter-detail-empty>.ico{color:var(--accent)}
+/* 标题字重层级（§15 字重三档 400/550/650）。 */
+.vex-settings-title h2{font-weight:650}
+
+/* ===== 年轻化：胶囊控件 · 大圆角 · 图标品牌色块 ===== */
+/* 状态栏正中：源码 / 阅读 / 导图 / 更多 四段直选（iOS 分段样式）。 */
+.workspace-viewswitch{display:flex;gap:2px;margin:0 auto;padding:3px;background:var(--panel);border-radius:999px}
+.workspace-viewswitch button{min-height:26px;padding:3px 14px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.workspace-viewswitch button:hover{color:var(--fg)}
+.workspace-viewswitch button[aria-pressed=true]{background:var(--bg);color:var(--fg);font-weight:600;box-shadow:0 1px 4px color-mix(in srgb,var(--fg) 12%,transparent)}
+.workspace-viewswitch .ico{width:12px;height:12px}
+/* 全胶囊按钮与输入框。 */
+.btn,.vex-button{border-radius:999px;min-height:32px;padding:5px 16px}
+.btn.sm{min-height:26px;padding:2px 12px}
+.input,.sidebar-search{border-radius:999px}
+.sidebar-search{padding:5px 12px}
+.vex-mcp-tabs,.density-options{border-radius:999px}
+.vex-mcp-tabs button,.density-options button,.vex-mcp-tabs button:hover,.density-options button:hover{border-radius:999px}
+.density-options button.on{background:var(--accent);color:var(--on-accent,#fff);border-color:var(--accent)}
+/* 弹层与对话框圆角再升档。 */
+.vex-settings,.vex-export-dialog,.appearance-choices,.typography-popover,.workspace-layout-menu{border-radius:16px}
+.menu-flyout > .flyout{border-radius:14px}
+.typography-card,.typography-add{border-radius:12px}
+/* 图标悬停：品牌色块代替灰底。 */
+.icon-button:hover,.format-button:hover{background:var(--accent-soft);color:var(--accent)}
+.document-statusbar .document-corner-actions button:hover{color:var(--accent);background:var(--accent-soft)}
+
+/* ===== 圆角补全：国际化菜单 / 导图样式弹层与其余弹层统一 ===== */
+.map-appearance-popover{border:0;border-radius:16px}
+.studio-language > div{border:0;border-radius:14px}
+
+/* ===== 年轻化续：字号与间距升档 · 空状态品牌化 ===== */
+.content-area .md-body{font-size:15px}
+.content-area .md-body h1{font-size:28px}
+.view-panel .reading-scroll .md-body{padding:36px 48px 84px}
+.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:30px 52px 88px}
+.view-panel .instant-scroll .md-body{padding:30px 40px 76px}
+.vex-settings-content{padding:26px 24px}
+.appearance-choices{padding:18px}
+#typography-panel{padding:18px}
+/* 空状态：品牌渐变图标块与渐变圆点。 */
+.chapter-detail-empty>.ico{width:46px;height:46px;padding:11px;border-radius:14px;background:var(--action-gradient,var(--accent));color:#fff}
+.empty-state{display:flex;align-items:center;gap:8px}
+.empty-state::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--action-gradient,var(--accent))}
+
+/* ===== 语言菜单名片化 + 章节空状态点阵插画 ===== */
+.studio-language > div{padding:6px}
+.studio-language [role="menuitemradio"]{display:flex;align-items:center;gap:10px;min-height:38px;padding:6px 10px;border-radius:10px;color:var(--fg)}
+.studio-language [role="menuitemradio"]:hover{background:var(--hover)}
+.studio-language [role="menuitemradio"][aria-checked=true]{background:var(--accent-soft);color:var(--accent)}
+.studio-language [role="menuitemradio"][aria-checked=true]::after{content:'✓';margin-left:auto;font-weight:650}
+.studio-language .lang-chip{width:24px;height:24px;flex:none;display:grid;place-items:center;border-radius:7px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-size:11px;font-weight:650;font-style:normal}
+.studio-language [role="menuitemradio"][aria-checked=true] .lang-chip{background:var(--accent);color:var(--on-accent,#fff)}
+/* 章节空状态：点阵底 + 渐变图标块（已应用），补一层呼吸感留白。 */
+.chapter-detail-empty{background-image:radial-gradient(color-mix(in srgb,var(--accent) 10%,transparent) 1px,transparent 1px);background-size:18px 18px;border-radius:12px}
+
+/* ===== 悬浮工具条"钉住"：默认钉住为普通工具行；取消钉住回到悬浮自动隐藏 ===== */
+#edit-options,.view-panel[data-document=editor] .view-heading,.view-panel[data-document=render] .view-heading,.map-pane .map-toolbar{position:static;opacity:1;transition:none;gap:6px}
+:root[data-pin-editor=false] #edit-options{position:absolute;top:0;left:0;right:0;opacity:.01;transition:opacity .25s ease 2s}
+:root[data-pin-render=false] .view-panel[data-document=render] .view-heading{position:absolute;top:0;left:0;right:0;opacity:.01;transition:opacity .25s ease 2s}
+:root[data-pin-map=false] .map-pane .map-toolbar{position:absolute;top:0;left:0;right:0;opacity:.01;transition:opacity .25s ease 2s}
+:root[data-pin-editor=false] #edit-options:hover,:root[data-pin-editor=false] #edit-options:focus-within{opacity:1;transition-delay:0s}
+:root[data-pin-render=false] .view-panel[data-document=render] .view-heading:hover,:root[data-pin-render=false] .view-panel[data-document=render] .view-heading:focus-within{opacity:1;transition-delay:0s}
+:root[data-pin-map=false] .map-pane .map-toolbar:hover,:root[data-pin-map=false] .map-pane .map-toolbar:focus-within{opacity:1;transition-delay:0s}
+.view-panel .view-heading{padding:0 10px}
+.map-pane .map-toolbar{padding:6px 10px}
+:root[data-toolbar-pin="false"] #edit-options,:root[data-toolbar-pin="false"] .view-panel .view-heading,:root[data-toolbar-pin="false"] .map-pane .map-toolbar{position:absolute;top:0;left:0;right:0;opacity:.01;transition:opacity .25s ease 2s}
+:root[data-toolbar-pin="false"] #edit-options:hover,:root[data-toolbar-pin="false"] .view-panel .view-heading:hover,:root[data-toolbar-pin="false"] .map-pane .map-toolbar:hover,:root[data-toolbar-pin="false"] #edit-options:focus-within,:root[data-toolbar-pin="false"] .view-panel .view-heading:focus-within,:root[data-toolbar-pin="false"] .map-pane .map-toolbar:focus-within{opacity:1;transition-delay:0s}
+/* 图钉按钮：钉住=竖直图钉；悬浮态=倾斜淡化。 */
+.toolbar-pin{color:var(--muted)}
+.toolbar-pin[aria-pressed="false"]{opacity:.55}
+.toolbar-pin:hover{background:var(--accent-soft);color:var(--accent)}
+
+/* ===== 年轻化补丁：演示缩放生效 + 高亮环加粗 + 图钉双态图标 ===== */
+/* 演示模式 A−/A+：deck 缩放必须压过 md-body 的全局字号规则。 */
+.vex-deck article.md-body{font-size:calc(15px * var(--deck-scale,1.5));zoom:1}
+/* 引导高亮环：2px 品牌实线圆角框，多按钮同框时各自成框而非细线。 */
+.tour-focus{border:2px solid var(--accent)!important;border-radius:8px!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)!important}
+.tour-focus[data-kind="text"]{border:0!important;border-left:3px solid var(--accent)!important;border-radius:0!important;box-shadow:none!important}
+/* 图钉双态：钉住=竖直实心图钉；悬浮=斜置空心图钉。 */
+.toolbar-pin .pin-off{display:none}
+.toolbar-pin .pin-on .pin-head{fill:currentColor;stroke:none}
+.toolbar-pin svg{width:14px;height:14px}
+#edit-options .toolbar-pin svg{width:17px;height:17px}
+.toolbar-pin[aria-pressed="false"] .pin-on{display:none}
+.toolbar-pin[aria-pressed="false"] .pin-off{display:inline}
+.toolbar-pin[aria-pressed="false"] .pin-off path{opacity:.6}
+
+/* 引导卡动作行：继续（品牌胶囊）与下一步（跳转整幕）并排。 */
+.story-tour .tour-continue { color:var(--accent-fg,var(--on-accent,#fff)); background:var(--accent); border:1px solid var(--accent); display:inline-flex; align-items:center; }
+.story-tour .tour-continue:hover { filter:brightness(1.08); }

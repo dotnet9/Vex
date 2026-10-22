@@ -26,6 +26,7 @@
 .vex-deck .deck-control-icon { display:block; width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .vex-deck .deck-spacer { flex:1; }
 .vex-deck .deck-zoom { font-size:11px; }
+.vex-deck .deck-scale-label { font-size:11px; line-height:1; color:var(--muted,var(--text-soft,#6b7570)); font-weight:600; letter-spacing:.02em; user-select:none; }
 .vex-deck output { min-width:70px; text-align:center; font-size:13px; }
 .vex-deck .deck-map { display:none; flex:1; min-width:0; overflow:hidden; position:relative; touch-action:none; background:radial-gradient(var(--border,var(--line,#dce3de)) 1px,transparent 1px) 0 0/20px 20px; }
 .vex-deck.deck-map-mode .deck-map { display:block; }
@@ -55,7 +56,9 @@
 .vex-deck[data-narrow=true] output { min-width:54px; }
 .vex-deck[data-narrow=true] .deck-pages output { min-width:44px; padding:0 2px; font-variant-numeric:tabular-nums; }
 .vex-deck[data-narrow=true] [data-deck=previous] .deck-control-icon { transform:rotate(180deg); }
-.vex-deck[data-narrow=true] footer small,.vex-deck[data-narrow=true] .deck-zoom { display:none; }
+.vex-deck[data-narrow=true] footer small,.vex-deck[data-narrow=true] .deck-zoom,.vex-deck[data-narrow=true] .deck-scale-label { display:none; }
 .vex-deck[data-narrow=true] article.md-body { padding:24px 22px 40px; font-size:calc(15px * var(--deck-scale)); }
 .vex-deck[data-narrow=true].deck-outline nav { width:100%; }
 .vex-deck[data-narrow=true].deck-outline .deck-scroll,.vex-deck[data-narrow=true].deck-outline .deck-map { display:none; }
+/* 字号拖动条：A−/A+ 的替代，量程随模式切换（页面 1–2.5 / 导图 0.15–3）。 */
+.deck-tools input[type="range"] { width: 150px; accent-color: var(--accent, #24766b); }

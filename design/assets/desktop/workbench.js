@@ -866,7 +866,7 @@
     var term = $('find-input').value;
     if (!term) return;
     var index = input.value.indexOf(term, input.selectionEnd); if (index < 0) index = input.value.indexOf(term);
-    if (index < 0) { $('find-count').textContent = '没有匹配内容'; return; }
+    if (index < 0) { var miss = $('find-count'); miss.textContent = '没有匹配内容'; miss.hidden = false; return; }
     input.setSelectionRange(index, index + term.length);
     if (input.getClientRects().length) input.focus();
     var line = input.value.slice(0, index).split('\n').length;
@@ -880,7 +880,9 @@
   }
   function updateFind() {
     var term = $('find-input').value, count = term ? input.value.split(term).length - 1 : 0;
-    $('find-count').textContent = term ? count ? count + ' 处匹配' : '当前正文无匹配' : '输入查找内容';
+    var badge = $('find-count');
+    badge.textContent = term ? (count ? count + ' 处匹配' : '当前正文无匹配') : '';
+    badge.hidden = !badge.textContent;
   }
   $('find-input').oninput = updateFind; $('find-input').onkeydown = function (event) { if (event.key === 'Enter') findNext(); };
   $('open-file-input').onchange = async function () {
@@ -1274,6 +1276,7 @@
       if (key === 'autoPair') state.autoPair = value;
       if (key === 'typewriter') { state.typewriter = value; typewriter.refresh(); }
       if (key === 'focus') { state.focus = value; document.querySelector('.app-window').classList.toggle('focus-mode',value); }
+      if (key === 'toolbarPin') document.documentElement.dataset.toolbarPin = String(value !== false);
       if (['math','chemistry','mermaid','highlight','subscript','softBreak'].includes(key)) { state.lastText = null; cancelAnimationFrame(state.prefRefresh); state.prefRefresh = requestAnimationFrame(refreshNow); }
     }
   });

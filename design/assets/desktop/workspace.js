@@ -28,6 +28,33 @@
     panel.append(head, body); panels[id] = panel; area.appendChild(panel);
   }
   makePanel('editor', ['source-pane', 'instant-pane']); makePanel('render', ['reading-pane']); makePanel('map', ['map-pane']);
+  /* 悬浮工具条钉住开关：每条独立持久化（源码/阅读/导图），默认全部钉住为普通工具行。 */
+  var pinKeys = { editor: 'pinEditor', render: 'pinReading', map: 'pinMap' };
+  function barPinned(id) { return VexPreferences.values[pinKeys[id]] !== false; }
+  function applyToolbarPin() {
+    Object.keys(pinKeys).forEach(function (id) {
+      var pinned = barPinned(id);
+      document.documentElement.dataset['pin' + id.charAt(0).toUpperCase() + id.slice(1)] = String(pinned);
+      var entry = pinBars.find(function (item) { return item[0] === id; });
+      if (entry && entry[2]) {
+        entry[2].setAttribute('aria-pressed', String(pinned));
+        entry[2].title = pinned ? '工具条已钉住，点击取消钉住' : '钉住工具条';
+      }
+    });
+  }
+  window.addEventListener('vex-preference-changed', function (event) {
+    if (event.detail && event.detail.key && Object.keys(pinKeys).some(function (id) { return pinKeys[id] === event.detail.key; })) applyToolbarPin();
+  });
+  var PIN_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="pin-on"><path class="pin-head" d="M8 3h8l-1 8H9l-1-8z"/><path d="M12 11v9"/></g><g class="pin-off"><g transform="rotate(45 12 11)"><path d="M8 3h8l-1 8H9l-1-8z"/><path d="M12 11v9"/></g></g></svg>';
+  function buildPinButton(bar, id) {
+    var pin = document.createElement('button'); pin.type = 'button'; pin.className = 'icon-button toolbar-pin';
+    pin.title = '钉住工具条（取消后悬浮自动隐藏）';
+    pin.innerHTML = PIN_SVG;
+    pin.setAttribute('aria-pressed', String(barPinned(id)));
+    pin.onclick = function () { VexPreferences.set(pinKeys[id], VexPreferences.values[pinKeys[id]] === false); applyToolbarPin(); };
+    bar.appendChild(pin);
+    return pin;
+  }
   var parking = document.createElement('div'); parking.hidden = true; parking.id = 'view-parking'; area.appendChild(parking);
   var surface = document.createElement('div'); surface.className = 'view-surface'; surface.id = 'view-surface'; area.appendChild(surface);
   var statusbar = document.querySelector('.document-statusbar'), wordCount = document.getElementById('sb-wordcount');
@@ -43,12 +70,31 @@
   mapButton.innerHTML=icon('map')+'<span>导图样式</span>'+icon('chevron-down');
   /* 导图样式并入快捷工具栏右侧（对照源码旁），随工具栏悬浮显示。 */
   panels.map.querySelector('.map-toolbar').appendChild(mapButton);
+  /* 三个悬浮工具条各加一枚"钉"：独立持久化；默认全部钉住为普通工具行。 */
+  var pinBars = [
+    ['editor', $('edit-options')],
+    ['render', panels.render.querySelector('.view-heading')],
+    ['map', panels.map.querySelector('.map-toolbar')]
+  ];
+  pinBars.forEach(function (entry) { entry.push(buildPinButton(entry[1], entry[0])); });
+  applyToolbarPin();
   var mapAppearance=VexMapAppearance.create({parent:document.querySelector('.window-body'),scene:$('map-scene'),getLayout:function(){return $('map-layout').value;},setLayout:function(key){$('map-layout').value=key;$('map-layout').dispatchEvent(new Event('change'));},isTemporary:function(){return guideActive;},beforeOpen:function(){VexTypography.close();closeMenus();$('map-settings').hidden=true;}});
-  var layoutButton = document.createElement('button'); layoutButton.className = 'workspace-layout-button'; layoutButton.id = 'workspace-layout';
+  /* 状态栏正中：源码 / 阅读 / 导图 三段直选 + "更多"打开完整布局菜单（即时编辑与组合视图都在里面）。 */
+  var viewSwitch = document.createElement('div'); viewSwitch.className = 'workspace-viewswitch'; viewSwitch.setAttribute('role', 'group'); viewSwitch.setAttribute('aria-label', '视图切换');
+  [['source', '源码'], ['read', '阅读'], ['map', '导图']].forEach(function (segment) {
+    var button = document.createElement('button'); button.type = 'button';
+    button.dataset.viewLink = segment[0]; button.textContent = segment[1];
+    button.setAttribute('aria-pressed', 'false');
+    button.onclick = function () { setLayout(segment[0]); };
+    viewSwitch.appendChild(button);
+  });
+  var layoutButton = document.createElement('button'); layoutButton.className = 'workspace-viewswitch-more'; layoutButton.id = 'workspace-layout';
   layoutButton.setAttribute('aria-haspopup', 'dialog'); layoutButton.setAttribute('aria-expanded', 'false');
   layoutButton.setAttribute('aria-controls', 'workspace-layout-menu');
-  layoutButton.innerHTML = icon('columns') + '<span id="current-layout-label">即时编辑</span>' + icon('chevron-down');
-  layoutButton.lastElementChild.classList.add('vex-expand-icon','layout-chevron'); statusbar.insertBefore(layoutButton, wordCount);
+  layoutButton.innerHTML = '更多' + icon('chevron-down');
+  layoutButton.lastElementChild.classList.add('vex-expand-icon','layout-chevron');
+  viewSwitch.appendChild(layoutButton);
+  statusbar.insertBefore(viewSwitch, wordCount);
   var layoutMenu = document.createElement('section'); layoutMenu.className = 'workspace-layout-menu'; layoutMenu.id = 'workspace-layout-menu'; layoutMenu.hidden = true;
   layoutMenu.setAttribute('role', 'dialog'); layoutMenu.setAttribute('aria-label', '工作区视图');
   layoutMenu.innerHTML = '<div class="workspace-menu-heading"><strong>选择视图</strong><button class="icon-button" aria-label="关闭布局菜单">' + icon('x') + '</button></div><p>专注写作，或打开多种视图对照。同一篇文章，内容同步。</p><div class="layout-preset-grid"></div>';
@@ -87,7 +133,11 @@
     W.state.source = displayed.includes('editor') && source; $('map-source-toggle').setAttribute('aria-pressed', String(W.state.source)); $('map-source-toggle').classList.toggle('on', W.state.source);
     document.querySelector('.workspace').classList.toggle('source-only', source && displayed.length === 1); area.dataset.paneCount = displayed.length;
     var preset = presets.find(function (item) { return item.id === current; });
-    $('current-layout-label').textContent = preset.title;
+    /* 四段直选的激活态：源码/阅读/导图各对应一个预设，其余（即时编辑与组合视图）落在"更多"。 */
+    var segment = ({ source: 'source', read: 'read', map: 'map' })[current] || 'more';
+    viewSwitch.querySelectorAll('[data-view-link]').forEach(function (button) {
+      button.setAttribute('aria-pressed', String(button.dataset.viewLink === segment));
+    });
     layoutButton.setAttribute('aria-label', '当前视图：' + preset.title + '，点击更换');
     /* 状态栏已移除联动入口（usability.js 注明），这里只在旧布局仍提供该容器时同步可见性。 */
     if ($('view-follow-controls')) $('view-follow-controls').hidden = displayed.length < 2;

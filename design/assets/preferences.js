@@ -3,7 +3,7 @@
   'use strict';
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const query = new URLSearchParams(location.search), isolated = query.get('preview') === '1';
-  const defaults = {language:'zh-CN', startup:'empty', autoSave:false, saveDelay:2, recovery:true, encoding:'UTF-8', newline:'system', size:16, font:'system', codeSize:13, indent:2, autoPair:true, codeWrap:false, lineNumbers:true, focus:false, typewriter:false, math:true, chemistry:true, mermaid:true, subscript:true, highlight:true, autoLink:true, softBreak:true, imageCopy:true, imageRelative:true, imageFolder:'assets', theme:'light', palette:'indigo', typography:'Simple', compact:false, zoom:100, wordCountVisible:true, motion:true, exportFormat:'html', exportFolder:'文档所在目录', exportOpen:true, pdfSize:'A4', pdfMargin:20, htmlStyle:true, mcpEnabled:false, mcpPort:17891, mcpToken:'vx_preview_local_token_for_demo', mcpScope:'document', mcpFolder:'', mcpConfirm:true};
+  const defaults = {language:'zh-CN', startup:'empty', autoSave:false, saveDelay:2, recovery:true, encoding:'UTF-8', newline:'system', size:16, font:'system', codeSize:13, indent:2, autoPair:true, codeWrap:false, lineNumbers:true, focus:false, typewriter:false, math:true, chemistry:true, mermaid:true, subscript:true, highlight:true, autoLink:true, softBreak:true, imageCopy:true, imageRelative:true, imageFolder:'assets', theme:'light', palette:'indigo', typography:'Simple', compact:false, zoom:100, wordCountVisible:true, motion:true, toolbarPin:true, exportFormat:'html', exportFolder:'文档所在目录', exportOpen:true, pdfSize:'A4', pdfMargin:20, htmlStyle:true, mcpEnabled:false, mcpPort:17891, mcpToken:'vx_preview_local_token_for_demo', mcpScope:'document', mcpFolder:'', mcpConfirm:true};
   Object.assign(defaults,{watermarkPreview:false,watermarkExport:false,watermarkText:'维刻 Vex',watermarkOpacity:12,watermarkFontSize:21,watermarkColor:'#24766B',watermarkWeight:400});
   /* 界面密度与正文字号的真实源在 theme.js（外观菜单同源），这里仅镜像值用于偏好呈现与回放。 */
   Object.assign(defaults,{uiDensity:window.VexTheme ? VexTheme.state.density : 'normal',mdSize:window.VexTheme ? VexTheme.state.mdsize : 'normal'});
@@ -16,7 +16,7 @@
   if (query.has('lang')) values.language = ({en:'en-US',zh:'zh-CN'})[query.get('lang')] || query.get('lang');
   let adapter = {}, host, releaseOverlay, section = 'general', tab = 'server', closeTimer, testTimer, generation = 0;
   let mcpState = 'stopped', mcpMessage = '服务已停止', audit = [], request = null, mcpDraft, mcpSaveTimer, serviceTimer, serviceRevision = 0, mcpError = '';
-  const categories = [['general','通用与文件','file'],['editor','编辑器','edit'],['markdown','Markdown','code'],['images','图片','image'],['appearance','外观','palette'],['export','导出','export'],['mcp','MCP','terminal']];
+  const categories = [['general','通用与文件','file'],['editor','编辑器','edit'],['images','图片','image'],['appearance','外观','palette'],['export','导出','export'],['mcp','MCP','terminal']];
   const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const control = (key, label, options, note = '') => {
     const value = values[key], prefix = `<label class="vex-pref-row"><span>${label}${note ? `<small>${note}</small>` : ''}</span>`;
@@ -28,12 +28,11 @@
   const heading = text => `<h4 class="vex-settings-section">${text}</h4>`;
   function content() {
     switch (section) {
-      case 'general': return control('language','界面语言',[['zh-CN','简体中文'],['zh-Hant','繁體中文'],['en-US','English'],['ja-JP','日本語']]) + control('startup','启动时',[['empty','空白工作区'],['recent','恢复上次工作区']]) + control('autoSave','自动保存') + control('saveDelay','停止输入后保存',[[2,'2 秒'],[5,'5 秒'],[10,'10 秒']]) + control('recovery','保留恢复草稿',null,'未命名文档也可恢复') + heading('新文档默认值') + control('encoding','编码',['UTF-8','UTF-8 BOM','GB18030']) + control('newline','换行符',[['system','跟随系统'],['LF','LF'],['CRLF','CRLF']]);
-      case 'editor': return control('font','正文字体',[['system','系统默认'],['serif','系统衬线'],['mono','等宽']]) + control('indent','缩进',[[2,'2 空格'],[4,'4 空格'],[8,'8 空格']]) + control('autoPair','自动配对符号') + heading('代码与源码') + control('codeWrap','代码自动换行') + control('lineNumbers','显示源码行号') + heading('写作') + control('focus','专注模式') + control('typewriter','打字机模式');
-      case 'markdown': return control('math','数学公式') + control('chemistry','化学表达式') + control('mermaid','Mermaid 图表') + heading('行内语法') + control('subscript','上下标') + control('highlight','高亮标记') + control('autoLink','自动识别链接') + control('softBreak','单次换行显示为换行');
+      case 'general': return control('language','界面语言',[['zh-CN','简体中文'],['zh-Hant','繁體中文'],['en-US','English'],['ja-JP','日本語']]) + control('startup','启动时',[['empty','空白工作区'],['recent','恢复上次工作区']]) + control('autoSave','自动保存') + control('saveDelay','停止输入后保存',[[2,'2 秒'],[5,'5 秒'],[10,'10 秒']]) + control('recovery','保留恢复草稿') + heading('新文档默认值') + control('encoding','编码',['UTF-8','UTF-8 BOM','GB18030']) + control('newline','换行符',[['system','跟随系统'],['LF','LF'],['CRLF','CRLF']]);
+      case 'editor': return control('font','编辑区字体',[['system','系统默认'],['serif','系统衬线'],['mono','等宽']]) + control('indent','缩进',[[2,'2 空格'],[4,'4 空格'],[8,'8 空格']]) + heading('代码与源码') + control('codeWrap','代码自动换行') + control('lineNumbers','显示源码行号');
       case 'images': return control('imageCopy','插入时复制图片') + control('imageRelative','使用相对路径') + control('imageFolder','资源目录',{},'相对于当前文档');
-      case 'appearance': return control('uiDensity','界面密度',[['compact','紧凑'],['normal','正常'],['relaxed','宽松']]) + control('zoom','内容缩放',[[90,'90%'],[100,'100%'],[110,'110%'],[125,'125%']]) + control('wordCountVisible','显示词数') + control('motion','界面动效') + heading('文档水印') + control('watermarkPreview','开启水印',null,'阅读 / 即时 / 演示 / 导出均显示') + control('watermarkText','水印文字',{maxlength:60}) + control('watermarkFontSize','水印字号',{range:true,min:12,max:36,unit:' px'}) + control('watermarkColor','前景色',{type:'color'}) + control('watermarkWeight','粗细',[[300,'细'],[400,'常规'],[700,'粗']]) + control('watermarkOpacity','不透明度',{range:true,min:0,max:50,unit:'%'}) + '<div class="vex-watermark-sample" aria-label="水印样式预览"><strong>写下想法，看见脉络。</strong><span>维刻 Vex</span></div>';
-      case 'export': return control('exportFormat','默认格式',[['html','HTML'],['pdf','PDF'],['markdown','Markdown'],['docx','Word'],['png','导图 PNG']]) + control('exportFolder','默认目录',{}) + control('exportOpen','导出后打开') + heading('文档水印') + control('watermarkExport','导出时包含',null,'HTML / PDF') + '<button class="vex-button" data-vex-section="appearance">水印样式…</button>' + heading('PDF') + control('pdfSize','纸张',['A4','Letter','A5']) + control('pdfMargin','页边距',{range:true,min:10,max:30,unit:' mm'}) + heading('HTML') + control('htmlStyle','保留当前文档排版');
+      case 'appearance': return control('motion','界面动效') + heading('文档水印') + control('watermarkPreview','开启水印',null,'阅读 / 即时 / 演示 / 导出均显示') + control('watermarkText','水印文字',{maxlength:60}) + control('watermarkFontSize','水印字号',{range:true,min:12,max:36,unit:' px'}) + control('watermarkColor','前景色',{type:'color'}) + control('watermarkWeight','粗细',[[300,'细'],[400,'常规'],[700,'粗']]) + control('watermarkOpacity','不透明度',{range:true,min:0,max:50,unit:'%'}) + '<div class="vex-watermark-sample" aria-label="水印样式预览"><strong>写下想法，看见脉络。</strong><span>维刻 Vex</span></div>';
+      case 'export': return control('exportOpen','导出后打开') + heading('文档水印') + control('watermarkExport','导出时包含',null,'HTML / PDF') + '<button class="vex-button" data-vex-section="appearance">水印样式…</button>' + heading('PDF') + control('pdfSize','纸张',['A4','Letter','A5']) + control('pdfMargin','页边距',{range:true,min:10,max:30,unit:' mm'}) + heading('HTML') + control('htmlStyle','保留当前文档排版');
       case 'mcp': return mcpContent();
       default: return '';
     }
@@ -45,18 +44,23 @@
     const value = mcpDraft[key];
     return `<label class="vex-pref-row"><span>${label}</span><input data-mcp-field="${key}" type="${type}" value="${esc(value)}" ${type === 'number' ? 'min="1024" max="65535"' : ''}></label>`;
   }
-  function mcpContent() {
-    if (adapter.mobile) return '<p>当前设备不提供常驻 MCP 服务。</p>';
-    if (query.get('child') === '1') return '<p>文档窗口不运行 MCP 服务。</p>';
-    const tabs = `<div class="vex-mcp-tabs" role="tablist" aria-label="MCP"><button role="tab" data-mcp-tab="server" aria-selected="${tab === 'server'}">服务</button><button role="tab" data-mcp-tab="clients" aria-selected="${tab === 'clients'}">客户端</button><button role="tab" data-mcp-tab="audit" aria-selected="${tab === 'audit'}">审计</button></div>`;
+  function mcpTabsHtml() {
+    return `<div class="vex-mcp-tabs" role="tablist" aria-label="MCP">${[['server','服务'],['clients','客户端'],['audit','审计']].map(([key,label]) => `<button role="tab" data-mcp-tab="${key}" aria-selected="${tab === key}">${label}</button>`).join('')}</div>`;
+  }
+  function mcpBody() {
     const status = `<div class="vex-mcp-status" data-state="${mcpState}" role="status"><i></i><span>${esc(mcpMessage)}</span><small style="margin-left:auto;color:var(--muted)">原型演示</small></div>`;
-    if (tab === 'server') return tabs + `<label class="vex-pref-row"><span>启用 MCP 服务<small>仅监听 127.0.0.1</small></span><input type="checkbox" role="switch" data-mcp-field="mcpEnabled" ${mcpDraft.mcpEnabled ? 'checked' : ''}></label>` + status + draftRow('mcpPort','端口','number') + `<div class="vex-pref-row"><span>访问令牌</span><span class="vex-token-field"><input data-mcp-field="mcpToken" aria-label="访问令牌" type="password" value="${esc(mcpDraft.mcpToken)}"><span class="vex-token-actions"><button class="vex-icon-button" data-mcp-action="reveal" title="显示或隐藏令牌" aria-label="显示或隐藏令牌" aria-pressed="false">${icon('eye')}</button><button class="vex-icon-button" data-mcp-action="token" title="重新生成令牌" aria-label="重新生成令牌">${icon('refresh')}</button></span></span></div>` + `<label class="vex-pref-row"><span>授权范围</span><select data-mcp-field="mcpScope">${[['document','当前文档'],['folder','当前文件夹'],['custom','指定目录']].map(([v,t])=>`<option value="${v}" ${mcpDraft.mcpScope === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>` + (mcpDraft.mcpScope === 'custom' ? draftRow('mcpFolder','授权目录') : '') + `<label class="vex-pref-row"><span>修改前确认</span><input type="checkbox" role="switch" data-mcp-field="mcpConfirm" ${mcpDraft.mcpConfirm ? 'checked' : ''}></label><p id="vex-mcp-error" class="vex-field-error" role="alert" ${mcpError ? '' : 'hidden'}>${esc(mcpError)}</p>`;
+    if (tab === 'server') return `<label class="vex-pref-row"><span>启用 MCP 服务<small>仅监听 127.0.0.1</small></span><input type="checkbox" role="switch" data-mcp-field="mcpEnabled" ${mcpDraft.mcpEnabled ? 'checked' : ''}></label>` + status + draftRow('mcpPort','端口','number') + `<div class="vex-pref-row"><span>访问令牌</span><span class="vex-token-field"><input data-mcp-field="mcpToken" aria-label="访问令牌" type="password" value="${esc(mcpDraft.mcpToken)}"><span class="vex-token-actions"><button class="vex-icon-button" data-mcp-action="reveal" title="显示或隐藏令牌" aria-label="显示或隐藏令牌" aria-pressed="false">${icon('eye')}</button><button class="vex-icon-button" data-mcp-action="token" title="重新生成令牌" aria-label="重新生成令牌">${icon('refresh')}</button></span></span></div>` + `<label class="vex-pref-row"><span>授权范围</span><select data-mcp-field="mcpScope">${[['document','当前文档'],['folder','当前文件夹'],['custom','指定目录']].map(([v,t])=>`<option value="${v}" ${mcpDraft.mcpScope === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>` + (mcpDraft.mcpScope === 'custom' ? draftRow('mcpFolder','授权目录') : '') + `<label class="vex-pref-row"><span>修改前确认</span><input type="checkbox" role="switch" data-mcp-field="mcpConfirm" ${mcpDraft.mcpConfirm ? 'checked' : ''}></label><p id="vex-mcp-error" class="vex-field-error" role="alert" ${mcpError ? '' : 'hidden'}>${esc(mcpError)}</p>`;
     if (tab === 'clients') {
       const endpoint = `http://127.0.0.1:${values.mcpPort}/mcp/`;
       const config = JSON.stringify({mcpServers:{vex:{url:endpoint,headers:{Authorization:'Bearer ' + values.mcpToken}}}},null,2);
-      return tabs + status + '<h4 class="vex-settings-section">HTTP 客户端配置</h4><pre class="vex-code" id="vex-client-config">' + esc(config) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="copy-config">复制配置</button><button class="vex-button primary" data-mcp-action="test">测试连接</button></div><p id="vex-test-result" role="status"></p><h4 class="vex-settings-section">stdio 桥接</h4><pre class="vex-code">' + esc(JSON.stringify({mcpServers:{vex:{command:'vex',args:['mcp','bridge','--endpoint',endpoint],env:{VEX_MCP_TOKEN:values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="read">读取当前文档</button><button class="vex-button" data-mcp-action="write">请求修改文档</button></div><div id="vex-mcp-request"></div>';
+      return status + '<h4 class="vex-settings-section">HTTP 客户端配置</h4><pre class="vex-code" id="vex-client-config">' + esc(config) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="copy-config">复制配置</button><button class="vex-button primary" data-mcp-action="test">测试连接</button></div><p id="vex-test-result" role="status"></p><h4 class="vex-settings-section">stdio 桥接</h4><pre class="vex-code">' + esc(JSON.stringify({mcpServers:{vex:{command:'vex',args:['mcp','bridge','--endpoint',endpoint],env:{VEX_MCP_TOKEN:values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="read">读取当前文档</button><button class="vex-button" data-mcp-action="write">请求修改文档</button></div><div id="vex-mcp-request"></div>';
     }
-    return tabs + status + `<table class="vex-audit"><thead><tr><th>时间</th><th>操作</th><th>结果</th></tr></thead><tbody>${audit.length ? audit.map(a => `<tr><td>${a.time}</td><td>${esc(a.action)}</td><td>${esc(a.result)}</td></tr>`).join('') : '<tr><td colspan="3">暂无调用记录</td></tr>'}</tbody></table>`;
+    return status + `<table class="vex-audit"><thead><tr><th>时间</th><th>操作</th><th>结果</th></tr></thead><tbody>${audit.length ? audit.map(a => `<tr><td>${a.time}</td><td>${esc(a.action)}</td><td>${esc(a.result)}</td></tr>`).join('') : '<tr><td colspan="3">暂无调用记录</td></tr>'}</tbody></table>`;
+  }
+  function mcpContent() {
+    if (adapter.mobile) return '<p>当前设备不提供常驻 MCP 服务。</p>';
+    if (query.get('child') === '1') return '<p>文档窗口不运行 MCP 服务。</p>';
+    return mcpTabsHtml() + '<div class="vex-mcp-body">' + mcpBody() + '</div>';
   }
   function render(animate = false) {
     if (!host) return;
@@ -77,7 +81,6 @@
     if (key.startsWith('watermark')) VexWatermark.apply(values);
     adapter.apply?.(key,value,values);
     window.dispatchEvent(new CustomEvent('vex-preference-changed',{detail:{key,value}}));
-    const status = host?.querySelector('.vex-settings-status'); if (status) status.textContent = mcpError ? '未保存：' + mcpError : '设置已保存';
   }
   function close() {
     if (!host || host.hidden) return;
@@ -91,7 +94,7 @@
     Object.assign(values,adapter.currentAppearance?.() || {});
     if (!host) {
       host = document.createElement('div'); host.className = 'vex-settings-host'; host.hidden = true;
-      host.innerHTML = `<section class="vex-settings" role="dialog" aria-modal="true" aria-labelledby="vex-settings-title"><header class="vex-settings-title"><button class="vex-icon-button" data-vex-back aria-label="返回设置分类" hidden>${icon('arrow-left')}</button><h2 id="vex-settings-title">偏好设置</h2><button class="vex-icon-button" data-vex-close aria-label="关闭偏好设置">${icon('x')}</button></header><div class="vex-settings-layout"><nav class="vex-settings-nav" role="tablist" aria-label="设置分类">${categories.map(([key,label,name]) => `<button role="tab" data-vex-section="${key}" aria-selected="false">${icon(name)}<span>${label}</span></button>`).join('')}</nav><div class="vex-settings-content" role="tabpanel" aria-labelledby="vex-section-title"></div></div><footer class="vex-settings-footer"><span class="vex-settings-status" role="status">设置已保存</span><button class="vex-button" data-vex-close>完成</button></footer></section>`;
+      host.innerHTML = `<section class="vex-settings" role="dialog" aria-modal="true" aria-labelledby="vex-settings-title"><header class="vex-settings-title"><button class="vex-icon-button" data-vex-back aria-label="返回设置分类" hidden>${icon('arrow-left')}</button><h2 id="vex-settings-title">偏好设置</h2><button class="vex-icon-button" data-vex-close aria-label="关闭偏好设置">${icon('x')}</button></header><div class="vex-settings-layout"><nav class="vex-settings-nav" role="tablist" aria-label="设置分类">${categories.map(([key,label,name]) => `<button role="tab" data-vex-section="${key}" aria-selected="false">${icon(name)}<span>${label}</span></button>`).join('')}</nav><div class="vex-settings-content" role="tabpanel" aria-labelledby="vex-section-title"></div></div></section>`;
       VexOverlay.mount(host);
       host.addEventListener('click',event => {
         if (event.target === host || event.target.closest('[data-vex-close]')) { close(); return; }
@@ -99,7 +102,15 @@
         if (nav) { section = nav.dataset.vexSection; render(true); detail(true); if (smallScreen()) host.querySelector('[data-vex-back]').focus(); return; }
         if (event.target.closest('[data-vex-back]')) { detail(false); host.querySelector('.vex-settings-nav [aria-selected=true]').focus(); return; }
         const swatch = event.target.closest('[data-vex-palette]'); if (swatch) { set('palette',swatch.dataset.vexPalette); render(); return; }
-        const t = event.target.closest('[data-mcp-tab]'); if (t) { tab = t.dataset.mcpTab; render(true); return; }
+        const t = event.target.closest('[data-mcp-tab]');
+        if (t) {
+          /* 页签切换只更新内容体，页签条保持稳定，避免整块重渲染造成的抖动。 */
+          tab = t.dataset.mcpTab;
+          host.querySelectorAll('.vex-mcp-tabs [data-mcp-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mcpTab === tab)));
+          const body = host.querySelector('.vex-mcp-body');
+          if (body) body.innerHTML = mcpBody();
+          return;
+        }
         const action = event.target.closest('[data-mcp-action]'); if (action) mcpAction(action.dataset.mcpAction);
       });
       host.addEventListener('input',event => {
@@ -112,7 +123,6 @@
         if (el.dataset.mcpField && !['checkbox','select-one'].includes(el.type)) {
           mcpDraft[el.dataset.mcpField] = el.value;
           clearTimeout(mcpSaveTimer);
-          host.querySelector('.vex-settings-status').textContent = '正在保存…';
           mcpSaveTimer = setTimeout(saveMcp,400);
         }
       });
@@ -151,8 +161,6 @@
     if (toggle) toggle.checked = mcpDraft.mcpEnabled;
     const error = host?.querySelector('#vex-mcp-error');
     if (error) { error.hidden = !mcpError; error.textContent = mcpError; }
-    const saved = host?.querySelector('.vex-settings-status');
-    if (saved) saved.textContent = mcpError ? '未保存：' + mcpError : '设置已保存';
   }
   function saveMcp() {
     clearTimeout(mcpSaveTimer);
@@ -191,7 +199,7 @@
     }
     refreshMcpStatus();
   }
-  async function copy(text) { try { await navigator.clipboard.writeText(text); host.querySelector('.vex-settings-status').textContent = '已复制'; } catch { adapter.toast?.('复制不可用，请选择配置文本复制'); } }
+  async function copy(text) { try { await navigator.clipboard.writeText(text); adapter.toast?.('已复制到剪贴板'); } catch { adapter.toast?.('复制不可用，请选择配置文本复制'); } }
   function mcpAction(action) {
     if (adapter.mobile || query.get('child') === '1') return;
     if (action === 'reveal') { const input = host.querySelector('[data-mcp-field=mcpToken]'); input.type = input.type === 'password' ? 'text' : 'password'; host.querySelector('[data-mcp-action=reveal]').setAttribute('aria-pressed',String(input.type === 'text')); return; }

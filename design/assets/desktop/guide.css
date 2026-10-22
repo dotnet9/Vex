@@ -34,8 +34,9 @@
 .tour-more { color:var(--muted); font-size:11px; line-height:1.75; margin-top:6px; }
 .tour-more summary { cursor:pointer; color:var(--accent); }
 .tour-more p { margin:6px 0 0; }
-/* 成都慢游演示：动作期间保持短提示，成果阶段再展开说明。 */
-.story-tour .story-card { box-sizing:border-box; width:376px; padding:22px 24px 20px; border-radius:14px; border-color:color-mix(in srgb,var(--accent) 16%,var(--border)); background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 96%,var(--accent) 4%),var(--panel)); box-shadow:0 20px 54px #0005; }
+/* 成都慢游演示：动作期间保持短提示，成果阶段再展开说明。卡片带品牌渐变封面条（§15 唯一渐变）。 */
+.story-tour .story-card { box-sizing:border-box; position:relative; overflow:hidden; width:376px; padding:22px 24px 20px; border-radius:16px; border:0; background:var(--menu-bg,var(--panel)); box-shadow:0 24px 70px #0005; }
+.story-tour .story-card::before { content:''; position:absolute; left:0; top:0; right:0; height:6px; background:var(--action-gradient,var(--accent)); }
 .story-tour .story-card[data-mode="intro"],
 .story-tour .story-card[data-mode="result"] { width:408px; max-width:calc(100vw - 32px); }
 .story-tour .story-card h2 { margin:7px 0 8px; font-size:21px; letter-spacing:-.02em; line-height:1.35; }
@@ -74,3 +75,17 @@
 @media (max-width:760px) { .guide-launch span { display:none; } .tour-card { width:292px; padding:16px; } }
 @media (max-width:760px) { .story-tour .story-card, .story-tour .story-card[data-mode="intro"], .story-tour .story-card[data-mode="result"] { width:calc(100vw - 32px); } .story-actions { flex-wrap:wrap; } .story-actions .action-count { position:static; transform:none; margin-left:auto; flex:0 0 auto; } }
 @media (prefers-reduced-motion:reduce) { .tour-layer * { animation:none!important; transition:none!important; } }
+
+/* ===== 引导卡年轻化：点状进度 + 胶囊按钮 + 品牌渐变封面条（参考评审稿） ===== */
+.story-tour .story-card { overflow:hidden; }
+.story-tour .story-card::before { content:''; position:absolute; left:0; top:0; right:0; height:6px; background:var(--action-gradient,var(--accent)); pointer-events:none; }
+.story-dots { display:inline-flex; align-items:center; gap:5px; margin-right:auto; }
+.story-dot { width:7px; height:7px; border-radius:999px; background:var(--border); transition:width .2s ease, background .2s ease; }
+.story-dot.passed { background:color-mix(in srgb,var(--accent) 45%,var(--border)); }
+.story-dot.current { width:18px; background:var(--accent); }
+.story-flex { flex:1 1 auto; }
+.story-tour .story-actions button { border-radius:999px; min-height:30px; padding:5px 14px; font-size:12px; }
+.story-tour .story-actions .tour-continue { background:var(--accent); border:1px solid var(--accent); color:var(--accent-fg,var(--on-accent,#fff)); font-weight:600; }
+.story-tour .story-actions .tour-continue:hover { filter:brightness(1.08); }
+.story-tour .story-actions .tour-previous,.story-tour .story-actions .tour-skip { color:var(--muted); background:var(--panel); border:1px solid var(--border); }
+.story-tour .story-actions .tour-previous:hover,.story-tour .story-actions .tour-skip:hover { color:var(--fg); border-color:var(--accent); }
