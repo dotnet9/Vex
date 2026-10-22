@@ -33,10 +33,10 @@
             <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexTableHeaderBrush}" />
         </Style>
         <Style Selector="md|MarkdownViewer Grid.MdTable, md|MarkdownLiveEditorView Grid.MdTable">
-            <Setter Property="layout:MarkdownTableLayout.FillAvailableWidth" Value="False" />
+            <Setter Property="layout:MarkdownTableLayout.FillAvailableWidth" Value="True" />
         </Style>
         <Style Selector="md|MarkdownViewer Border.MdTableContainer, md|MarkdownLiveEditorView Border.MdTableContainer">
-            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="BorderBrush" Value="{DynamicResource VexTableBorderBrush}" />
         </Style>
         <Style Selector="md|MarkdownViewer Border.MdTableCell, md|MarkdownViewer Border.MdTableHeaderCell, md|MarkdownLiveEditorView Border.MdTableCell, md|MarkdownLiveEditorView Border.MdTableHeaderCell">

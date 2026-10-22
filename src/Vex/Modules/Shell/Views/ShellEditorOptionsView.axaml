@@ -36,13 +36,13 @@
         <Button Classes="wb-format-extra" Focusable="False" u:ToolBar.OverflowMode="Always" Content="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}"/>
       </u:ToolBar>
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-        <Button x:Name="TypographyTarget" Classes="wb-quiet" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><TextBlock Text="{i18n:I18n {Binding Appearance.SelectedTypography.NameKey}}" FontWeight="SemiBold"/><TextBlock Text="⌄"/></StackPanel></Button>
         <ToggleButton x:Name="PinEditor" Classes="toolbar-pin" IsChecked="{Binding Workbench.Preferences.PinEditorToolbar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
           <Panel Width="17" Height="17">
             <Viewbox Classes="pin-on"><Canvas Width="24" Height="24"><Path Classes="pin-head" Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
             <Viewbox Classes="pin-off"><Canvas Width="24" Height="24"><Canvas.RenderTransform><RotateTransform Angle="45" CenterX="12" CenterY="11"/></Canvas.RenderTransform><Path Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
           </Panel>
         </ToggleButton>
+        <Button x:Name="TypographyTarget" Classes="wb-quiet" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><TextBlock Text="{i18n:I18n {Binding Appearance.SelectedTypography.NameKey}}" FontWeight="SemiBold"/><TextBlock Text="⌄"/></StackPanel></Button>
       </StackPanel>
     </Grid>
   </Border>

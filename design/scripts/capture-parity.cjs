@@ -30,6 +30,15 @@ const SAMPLE = [
   await page.waitForTimeout(400);
   // 与原生截图器对齐：注入同一段样例文档。
   await page.evaluate(text => { if (window.VexWorkbench && VexWorkbench.applyText) VexWorkbench.applyText(text); }, SAMPLE);
+  // 数据顺序不在对比范围（原生列真实磁盘目录）：把原型文件行按名称排序后再截图。
+  await page.evaluate(() => {
+    const tree = document.querySelector('#file-tree, .file-tree, [class*=file-list]');
+    if (!tree) return;
+    const rows = Array.from(tree.querySelectorAll(':scope > *'));
+    if (rows.length < 2) return;
+    rows.sort((a, b) => (a.textContent || '').trim().localeCompare((b.textContent || '').trim(), 'zh-Hans-CN'));
+    rows.forEach(row => tree.appendChild(row));
+  });
 
   // 通过「更多」布局菜单切换八布局；三段按钮只负责 source/read/map 直选。
   const layoutMenu = async key => {
