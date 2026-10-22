@@ -132,6 +132,11 @@ public partial class MarkdownPreviewView : UserControl
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown))
+        {
+            // 渲染是分批异步的：稍等一拍再挂表格工具，重复挂载有去重保护。
+            Dispatcher.UIThread.Post(() => TableTools.Attach(PreviewMarkdownViewer), DispatcherPriority.Background);
+        }
         if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown) && _viewModel?.IsPresenting != true
             && _restoringScrollPosition && _restoreSource != _viewModel?.Markdown)
         {

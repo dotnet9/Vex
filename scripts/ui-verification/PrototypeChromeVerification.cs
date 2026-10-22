@@ -128,6 +128,18 @@ internal static class PrototypeChromeVerification
         Check(app.Resolve<IAppSettingsStore>().Current.MindMapLayout == "fishbone" && app.Resolve<IAppSettingsStore>().Current.MindMapStyle == "mono",
             "Map layout and style persist to settings");
         vm.Workbench.MindMapLayout = "right"; vm.Workbench.MindMapStyle = "quiet"; Render();
+        // 表格工具：阅读视图的渲染表格可提取并还原 Markdown / CSV。
+        vm.Workbench.SelectLayout("read"); Render();
+        var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+        var previewScroll = preview.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+        if (previewScroll is not null) { previewScroll.Offset = new Vector(0, previewScroll.Extent.Height); Render(); previewScroll.Offset = new Vector(0, previewScroll.Extent.Height); Render(); }
+        var tableContainer = window.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("MdTableContainer"));
+        Check(tableContainer is not null, "Reading view renders table containers");
+        var extracted = Vex.Modules.Workspace.Views.TableTools.Extract(tableContainer!);
+        Check(extracted.Length >= 2 && extracted[0][0] == "API", "Table tools extract rendered cells");
+        Check(Vex.Modules.Workspace.Views.TableTools.ToMarkdown(extracted).StartsWith("| API | 说明 |"), "Table tools rebuild markdown");
+        Check(Vex.Modules.Workspace.Views.TableTools.ToCsv(extracted).Contains("Read,读取文档"), "Table tools build csv");
+        previewScroll!.Offset = default; Render();
         foreach (var culture in vm.Appearance.LanguageOptions)
         {
             vm.Appearance.SelectedLanguage = culture; Render();
