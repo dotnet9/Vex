@@ -95,6 +95,12 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public bool IsReading => _view == "read";
     public bool IsMindMap => _view == "mindmap";
     public string WorkspaceLayout => _workspaceLayout;
+
+    /// <summary>状态栏三段直选：仅单一视图布局高亮对应段，组合布局落在「更多」。</summary>
+    public bool IsSourceSegmentActive => _workspaceLayout == "source";
+    public bool IsReadSegmentActive => _workspaceLayout == "read";
+    public bool IsMapSegmentActive => _workspaceLayout == "map";
+    public void ShowSourceView() => SelectLayout("source");
     public string LayoutName => LayoutOption.Name;
     public WorkbenchLayoutOption LayoutOption => WorkbenchLayoutOption.All.First(option => option.Id == _workspaceLayout);
     public bool HasEditor => !IsPresenting && LayoutOption.Editor is not null;
@@ -251,7 +257,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     }
     private void NotifyModes()
     {
-        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions), nameof(IsSourceSegmentActive), nameof(IsReadSegmentActive), nameof(IsMapSegmentActive) }) this.RaisePropertyChanged(name);
         ApplyLayout();
     }
     private void ApplyLayout()

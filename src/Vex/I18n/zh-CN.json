@@ -223,7 +223,12 @@
       "McpAuditEmpty": "暂无审计记录。",
       "StatusMcpRunning": "服务运行中",
       "StatusMcpStopped": "已停止",
-      "Changelog": "更新日志",
+      "StatusViewSource": "源码",
+      "StatusViewRead": "阅读",
+      "StatusViewMap": "导图",
+      "StatusViewMore": "更多",
+      
+            "Changelog": "更新日志",
       "QuickStart": "快速开始（引导）",
       "OnboardingGuide": "新手引导",
       "GuideActionPrevious": "上一步",

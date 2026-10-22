@@ -59,6 +59,39 @@
    <Setter Property="StrokeJoin" Value="Round" />
   </Style>
 
+  <!-- 对应原型 .workspace-viewswitch：胶囊容器 + 三段直选 + 「更多」打开完整布局画廊。 -->
+  <Style Selector="Border.view-switch">
+   <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+   <Setter Property="CornerRadius" Value="999" />
+   <Setter Property="Padding" Value="3,2" />
+  </Style>
+  <Style Selector="Button.view-segment">
+   <Setter Property="Height" Value="26" />
+   <Setter Property="MinHeight" Value="0" />
+   <Setter Property="MinWidth" Value="0" />
+   <Setter Property="Padding" Value="14,3" />
+   <Setter Property="CornerRadius" Value="999" />
+   <Setter Property="BorderThickness" Value="0" />
+   <Setter Property="Background" Value="Transparent" />
+   <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+   <Setter Property="FontSize" Value="12" />
+   <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.view-segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+   <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.view-segment:pointerover">
+   <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+  </Style>
+  <Style Selector="Button.view-segment.active /template/ ContentPresenter#PART_ContentPresenter">
+   <Setter Property="Background" Value="{DynamicResource VexDocumentPaperBrush}" />
+   <Setter Property="BoxShadow" Value="0 1 4 #14000000" />
+  </Style>
+  <Style Selector="Button.view-segment.active">
+   <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+   <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
   <!-- 对应原型 .document-word-count：12px 静音文字，悬停转主题色。 -->
   <Style Selector="Button.sb-word">
    <Setter Property="MinHeight" Value="0" />
@@ -95,13 +128,19 @@
      </StackPanel>
     </ToggleButton>
    </StackPanel>
-   <Button x:Name="LayoutButton" Classes="sb-layout" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{Binding Workbench.ToggleLayouts}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WSLayoutTitle}}">
-    <StackPanel Orientation="Horizontal" Spacing="6">
-     <Path Width="14" Height="14" Data="M5 4H19A2 2 0 0 1 21 6V18A2 2 0 0 1 19 20H5A2 2 0 0 1 3 18V6A2 2 0 0 1 5 4Z M12 4V20" />
-     <TextBlock Text="{Binding Workbench.LayoutName}" VerticalAlignment="Center" />
-     <Path Width="11" Height="11" Margin="3,0,0,0" Data="M6 9L12 15L18 9" />
+   <Border x:Name="ViewSwitch" Classes="view-switch" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal" Spacing="2">
+     <Button x:Name="SourceSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsSourceSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" Command="{Binding Workbench.ShowSourceView}" />
+     <Button x:Name="ReadSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsReadSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" Command="{Binding Workbench.ShowRead}" />
+     <Button x:Name="MapSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsMapSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewMap}}" Command="{Binding Workbench.ShowMindMap}" />
+     <Button x:Name="LayoutButton" Classes="view-segment view-more" Command="{Binding Workbench.ToggleLayouts}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WSLayoutTitle}}">
+      <StackPanel Orientation="Horizontal" Spacing="4">
+       <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusViewMore}}" VerticalAlignment="Center" />
+       <Path Width="11" Height="11" VerticalAlignment="Center" Data="M6 9L12 15L18 9" />
+      </StackPanel>
+     </Button>
     </StackPanel>
-   </Button>
+   </Border>
    <Button x:Name="StatisticsButton" Classes="sb-word" HorizontalAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding Preferences.WordCountVisible}" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}">
     <TextBlock Text="{Binding DocumentInfo.StatusWordCountText}" FontSize="12" />
    </Button>

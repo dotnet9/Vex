@@ -32,9 +32,23 @@ internal static class PrototypeChromeVerification
             }
             vm.Workbench.SelectLayout("instant"); Render();
             var statusChrome = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!;
-            var center = layoutButton.TranslatePoint(new Point(layoutButton.Bounds.Width / 2, 0), statusChrome)!.Value.X;
-            Check(Math.Abs(center - statusChrome.Bounds.Width / 2) < 2,
-                $"One layout trigger stays centered at {size.Width}: center={center}, status={statusChrome.Bounds.Width}");
+            var viewSwitch = statusChrome.FindControl<Border>("ViewSwitch")!;
+            var sourceSegment = statusChrome.FindControl<Button>("SourceSegment")!;
+            var readSegment = statusChrome.FindControl<Button>("ReadSegment")!;
+            var mapSegment = statusChrome.FindControl<Button>("MapSegment")!;
+            var switchCenter = viewSwitch.TranslatePoint(new Point(viewSwitch.Bounds.Width / 2, 0), statusChrome)!.Value.X;
+            Check(Math.Abs(switchCenter - statusChrome.Bounds.Width / 2) < 2,
+                $"View switch group stays centered at {size.Width}: center={switchCenter}, status={statusChrome.Bounds.Width}");
+            Check(!sourceSegment.Classes.Contains("active") && !readSegment.Classes.Contains("active") && !mapSegment.Classes.Contains("active"),
+                "Combined layouts keep every status segment inactive");
+            sourceSegment.Command!.Execute(null); Render();
+            Check(vm.Workbench.WorkspaceLayout == "source" && sourceSegment.Classes.Contains("active") && !readSegment.Classes.Contains("active") && !mapSegment.Classes.Contains("active"),
+                "Source segment selects the pure source view and highlights itself");
+            mapSegment.Command!.Execute(null); Render();
+            Check(vm.Workbench.WorkspaceLayout == "map" && mapSegment.Classes.Contains("active"), "Map segment selects the mind map view");
+            readSegment.Command!.Execute(null); Render();
+            Check(vm.Workbench.WorkspaceLayout == "read" && readSegment.Classes.Contains("active"), "Read segment selects the reading view");
+            vm.Workbench.SelectLayout("instant"); Render();
             var formatting = formats.FindControl<Ursa.Controls.ToolBar>("FormattingToolbar")!;
             var origin = formatting.TranslatePoint(default, formats);
             Check(origin is not null && origin.Value.X >= 0 && formatting.Bounds.Width <= formats.Bounds.Width,
