@@ -137,6 +137,23 @@ public sealed class DocumentService : IDocumentService
                || extension.Equals(".txt", StringComparison.OrdinalIgnoreCase);
     }
 
+    // 逐路径写入锁：同一文档的保存/另存串行，避免并发保存交叉写坏内容。
+    private static readonly Dictionary<string, SemaphoreSlim> WriteLocks = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly object WriteLocksGate = new();
+
+    private static SemaphoreSlim WriteLock(string path)
+    {
+        lock (WriteLocksGate)
+        {
+            if (!WriteLocks.TryGetValue(path, out var semaphore))
+            {
+                semaphore = new SemaphoreSlim(1, 1);
+                WriteLocks[path] = semaphore;
+            }
+            return semaphore;
+        }
+    }
+
     public async Task<DocumentSnapshot?> SaveAsync(DocumentSnapshot document)
     {
         if (string.IsNullOrWhiteSpace(document.FilePath))
@@ -144,7 +161,16 @@ public sealed class DocumentService : IDocumentService
             return await SaveAsAsync(document);
         }
 
-        await File.WriteAllTextAsync(document.FilePath, document.Markdown, document.Encoding);
+        var semaphore = WriteLock(document.FilePath);
+        await semaphore.WaitAsync();
+        try
+        {
+            await File.WriteAllTextAsync(document.FilePath, document.Markdown, document.Encoding);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
         return document with { IsNew = false };
     }
 
@@ -187,7 +213,16 @@ public sealed class DocumentService : IDocumentService
             return null;
         }
 
-        await File.WriteAllTextAsync(path, document.Markdown, document.Encoding);
+        var saveLock = WriteLock(path);
+        await saveLock.WaitAsync();
+        try
+        {
+            await File.WriteAllTextAsync(path, document.Markdown, document.Encoding);
+        }
+        finally
+        {
+            saveLock.Release();
+        }
         return document with
         {
             FilePath = path,

@@ -15,7 +15,10 @@ internal sealed class Program
             RuntimeVerification.Run(directory);
             return;
         }
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        if (Core.Services.SingleInstance.TryAcquire(args))
+        {
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
     }
 
     public static AppBuilder BuildAvaloniaApp()
