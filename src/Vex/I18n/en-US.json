@@ -229,6 +229,8 @@
       "StatusViewMore": "More",
       "WBPinToolbar": "Pin toolbar (unpin to auto-hide)",
       "WBPresentationZoom": "Presentation text size",
+      "GuideGateAppearance": "Click \"Appearance\" in the title bar to open palettes and density",
+      "GuideAct3Appearance": "This is where you adjust interface density and colors.",
             "Changelog": "Changelog",
       "QuickStart": "Quick Start",
       "OnboardingGuide": "New User Guide",

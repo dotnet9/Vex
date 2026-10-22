@@ -208,6 +208,14 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public bool ShowMapSource { get => _showMapSource; set { if (value != _showMapSource) SelectLayout(value ? "source-map" : "map"); } }
     public bool ShowMapSettings { get => _showMapSettings; set { this.RaiseAndSetIfChanged(ref _showMapSettings, value); if (value) CloseInspector(); } }
     public bool ShowTypography { get => _showTypography; set => this.RaiseAndSetIfChanged(ref _showTypography, value); }
+
+    /// <summary>标题栏「外观」弹出层的开合状态，由 ShellAppearanceMenuView 回写；引导门控据此判定展开完成。</summary>
+    public bool IsAppearanceMenuOpen { get => _isAppearanceMenuOpen; set => this.RaiseAndSetIfChanged(ref _isAppearanceMenuOpen, value); }
+
+    /// <summary>引导「继续」代点：请求打开外观弹出层，实际显示由视图完成。</summary>
+    public event EventHandler? AppearanceMenuRequested;
+    public void RequestAppearanceMenu() => AppearanceMenuRequested?.Invoke(this, EventArgs.Empty);
+    private bool _isAppearanceMenuOpen;
     public int SummaryLength { get => _summaryLength; set { var length = Math.Clamp(value, 1, 120); if (_summaryLength == length) return; this.RaiseAndSetIfChanged(ref _summaryLength, length); UpdateMapOptions(); } }
     public bool ShowParagraphs { get => _showParagraphs; set { this.RaiseAndSetIfChanged(ref _showParagraphs, value); UpdateMapOptions(); } }
     public bool ShowCode { get => _showCode; set { this.RaiseAndSetIfChanged(ref _showCode, value); this.RaisePropertyChanged(nameof(ShowRichBlocks)); UpdateMapOptions(); } }

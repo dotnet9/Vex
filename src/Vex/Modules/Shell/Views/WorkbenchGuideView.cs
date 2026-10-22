@@ -69,21 +69,23 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         header.Children.Add(_title); Grid.SetColumn(_skip, 1); header.Children.Add(_skip); _skip.Click += (_, _) => Finish();
         stack.Children.Add(header);
         stack.Children.Add(_description); stack.Children.Add(_feedback);
-        var steps = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, HorizontalAlignment = HorizontalAlignment.Center };
+        // 点状进度：每幕一颗，当前幕加长高亮（对应原型 story-dots），可点击直接跳幕。
+        var dotsRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
         for (var i = 0; i < 6; i++)
         {
             var index = i;
-            var button = new Button { Width = 39, Height = 12, MinHeight = 0, MinWidth = 0,
+            var button = new Button { Height = 14, MinHeight = 0, MinWidth = 0, VerticalAlignment = VerticalAlignment.Center,
                 Padding = new Thickness(0), Background = Brushes.Transparent, BorderThickness = new Thickness(0),
-                Content = new Border { Height = 3, Width = 39, CornerRadius = new CornerRadius(2) } };
+                Content = new Border { Height = 6, Width = 8, CornerRadius = new CornerRadius(3) } };
             button.Click += (_, _) => { if (IsVisible) _vm.StartAct(index); };
-            _steps[i] = button; steps.Children.Add(button);
+            _steps[i] = button; dotsRow.Children.Add(button);
         }
-        stack.Children.Add(steps);
-        var actions = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,*"), ColumnSpacing = 8 };
+        dotsRow.Children.Add(_counter);
+        stack.Children.Add(dotsRow);
+        // 动作行：左侧结束导览/跳过本段，右侧上一步 + 继续/下一步（主胶囊），无箭头。
+        var actions = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto,Auto"), ColumnSpacing = 8 };
         _skipBottom.Click += (_, _) => { if (_vm.Phase == WorkbenchGuideViewModel.GuidePhase.Intro) Finish(); else _vm.SkipAct(); };
         actions.Children.Add(_skipBottom);
-        actions.Children.Add(_counter); Grid.SetColumn(_counter, 1);
         Grid.SetColumn(_previous, 2); actions.Children.Add(_previous);
         Grid.SetColumn(_next, 3); actions.Children.Add(_next);
         stack.Children.Add(actions);
@@ -161,8 +163,11 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
     {
         for (var i = 0; i < _steps.Length; i++)
         {
-            if (_steps[i].Content is Border segment)
-                segment.Background = FindBrush(i == StepIndex ? "VexAccentBrush" : "VexPanelBorderBrush", "#DFE1EB");
+            if (_steps[i].Content is Border dot)
+            {
+                dot.Background = FindBrush(i == StepIndex ? "VexAccentBrush" : "VexPanelBorderBrush", i == StepIndex ? "#7457E8" : "#DFE1EB");
+                dot.Width = i == StepIndex ? 20 : 8;
+            }
         }
         _card.Background = FindBrush("VexPanelBackgroundBrush", "#FFFFFF");
         _card.BorderBrush = FindBrush("VexPanelBorderBrush", "#DFE1EB");
@@ -194,6 +199,8 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
             WorkbenchGuideViewModel.Anchor.LayoutButton => _window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")?.FindControl<Button>("LayoutButton"),
             WorkbenchGuideViewModel.Anchor.LayoutGallery => _window.FindControl<WorkspaceLayoutGallery>("LayoutGallery"),
             WorkbenchGuideViewModel.Anchor.PresentationTools => _window.FindControl<Control>("PresentationTools"),
+            WorkbenchGuideViewModel.Anchor.AppearanceButton => _window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")?.AppearanceButton,
+            WorkbenchGuideViewModel.Anchor.AppearanceMenu => _window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")?.MenuContent,
             WorkbenchGuideViewModel.Anchor.MenuItemFile => _window.FindControl<ShellTitleMenuView>("TitleMenuView")?.FileMenuTarget,
             WorkbenchGuideViewModel.Anchor.MenuTools => _window.FindControl<ShellTitleMenuView>("TitleMenuView")?.FindControl<MenuItem>("ToolsMenuItem"),
             WorkbenchGuideViewModel.Anchor.MenuStrip => _window.FindControl<ShellTitleMenuView>("TitleMenuView"),
@@ -217,6 +224,27 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         var scroll = view.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
         if (scroll is null) return;
         scroll.Offset = top ? default : new Vector(scroll.Offset.X, Math.Max(0, scroll.Extent.Height - scroll.Viewport.Height));
+    }
+
+    /// <summary>轮询预览里的 Mermaid 图表块，出图（Image.Source 就绪）才放行；5 秒超时降级，保证引导不被卡死。</summary>
+    void WorkbenchGuideViewModel.IStage.WaitForDiagrams(Action done)
+    {
+        var preview = _window?.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget");
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        var token = _vm?.RunToken ?? 0;
+        var poll = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
+        poll.Tick += (_, _) =>
+        {
+            var ready = preview is not null && preview.GetVisualDescendants()
+                .OfType<Border>().Any(border => border.Classes.Contains("MdMermaid")
+                    && border.Child is Image { Source: not null });
+            if (ready || DateTime.UtcNow > deadline || token != _vm?.RunToken)
+            {
+                poll.Stop();
+                if (token == _vm?.RunToken) done();
+            }
+        };
+        poll.Start();
     }
 
     void WorkbenchGuideViewModel.IStage.FitMap(double scale) =>

@@ -14,6 +14,8 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
     {
         void SetSpotlight(string[] anchors);
         void ScrollAnchor(string anchor, bool top);
+        /// <summary>等待预览中的 Mermaid 图表真正出图（超时 5 秒降级放行，不卡死引导）。</summary>
+        void WaitForDiagrams(Action done);
         void FitMap(double scale);
         void SelectOutlineItem(string title);
         void OpenFileMenu();
@@ -31,6 +33,8 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
         public const string OutlinePanel = "outline-panel";
         public const string OutlineToggle = "outline-toggle";
         public const string TypographyButton = "typography-button";
+        public const string AppearanceButton = "appearance-button";
+        public const string AppearanceMenu = "appearance-menu";
         public const string LayoutButton = "layout-button";
         public const string LayoutGallery = "layout-gallery";
         public const string PresentationTools = "presentation-tools";
@@ -59,6 +63,8 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
     private Action? _pendingContinue;
     private GuideGate? _gate;
     private int _runToken;
+    /// <summary>引导会话代号：每轮开始/结束递增，视图侧的轮询定时器据此作废。</summary>
+    public int RunToken => _runToken;
     private readonly List<DispatcherTimer> _timers = [];
 
     public GuidePhase Phase => _phase;
@@ -226,7 +232,19 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
     {
         EnterGate(T("GuideGateTypography"), [Anchor.TypographyButton], null, string.Empty,
             () => _shell!.Workbench.ShowTypography, () => _shell!.Workbench.ShowTypography = true, () =>
-                Later(300, () => CycleTypography(0, FinishAct)));
+                Later(300, () => CycleTypography(0, RunAppearanceStep)));
+    }
+
+    /// <summary>第 3 幕收尾：真实展开「外观」弹出层，提示密度与配色入口后收起。</summary>
+    private void RunAppearanceStep()
+    {
+        EnterGate(T("GuideGateAppearance"), [Anchor.AppearanceButton], null, string.Empty,
+            () => _shell!.Workbench.IsAppearanceMenuOpen, () => _shell!.Workbench.RequestAppearanceMenu(), () =>
+                Later(360, () => Pause(T("GuideAct3Appearance"), [Anchor.AppearanceMenu], () =>
+                {
+                    if (_shell!.Workbench.IsAppearanceMenuOpen) _shell.Workbench.RequestAppearanceMenu();
+                    Later(260, FinishAct);
+                })));
     }
 
     private void CycleTypography(int index, Action done)
@@ -255,7 +273,8 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
             {
                 PublishText(Stage2);
                 _shell!.Workbench.SelectLayout("source-render");
-                Later(420, () =>
+                // 等图表真正出图再继续，避免高亮落在还没渲染的空白预览上。
+                _stage.WaitForDiagrams(() =>
                 {
                     _stage.ScrollAnchor(Anchor.Preview, top: false);
                     Pause(T("GuideAct4Step2"), [Anchor.Preview], () =>
@@ -268,28 +287,31 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
             }));
     }
 
-    /// <summary>第 5 幕 · 演示模式。</summary>
+    /// <summary>第 5 幕 · 演示模式：开演用卡片确认，行进中只用轻提示不打断（对应原型第 5 幕）。</summary>
     private void RunAct5()
     {
         Pause(T("GuideAct5Step1"), [Anchor.Preview], () =>
         {
             _shell!.Workbench.StartPresentation();
             Later(420, () =>
-                Pause(T("GuideAct5Step2"), [Anchor.Preview, Anchor.PresentationTools], () =>
+            {
+                Cue(T("GuideAct5Step2"), [Anchor.Preview, Anchor.PresentationTools]);
+                Later(1900, () =>
                 {
                     _shell.Workbench.NextPresentation();
-                    Later(420, () =>
-                        Pause(T("GuideAct5Step3"), [Anchor.PresentationTools], () =>
+                    Cue(T("GuideAct5Step3"), [Anchor.PresentationTools]);
+                    Later(1900, () =>
+                    {
+                        _shell.Workbench.ShowPresentationMap();
+                        Cue(T("GuideAct5Summary"), [Anchor.PresentationTools]);
+                        Later(1900, () =>
                         {
-                            _shell.Workbench.ShowPresentationMap();
-                            Later(420, () =>
-                                Pause(T("GuideAct5Summary"), [Anchor.Preview], () =>
-                                {
-                                    _shell.Workbench.StopPresentation();
-                                    Later(420, FinishAct);
-                                }));
-                        }));
-                }));
+                            _shell.Workbench.StopPresentation();
+                            Later(420, FinishAct);
+                        });
+                    });
+                });
+            });
         });
     }
 

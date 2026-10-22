@@ -44,8 +44,30 @@ public sealed class ShellAppearanceMenuView : UserControl
         _vm = vm;
         if (vm is null) return;
         vm.PropertyChanged += Changed; I18nManager.Instance.CultureChanged += CultureChanged;
+        if (DataContext is MainWindowViewModel shell)
+        {
+            shell.Workbench.AppearanceMenuRequested -= OnAppearanceMenuRequested;
+            shell.Workbench.AppearanceMenuRequested += OnAppearanceMenuRequested;
+        }
         Build();
     }
+
+    /// <summary>弹出层开合状态回写给工作台，引导门控据此判定「外观已展开」。</summary>
+    private void SetAppearanceMenuOpen(bool open)
+    {
+        if (DataContext is MainWindowViewModel shell) shell.Workbench.IsAppearanceMenuOpen = open;
+    }
+
+    /// <summary>引导「继续」代点开合外观弹出层。</summary>
+    private void OnAppearanceMenuRequested(object? sender, EventArgs e)
+    {
+        var flyout = AppearanceButton.Flyout;
+        if (flyout is null) return;
+        if (flyout.IsOpen) flyout.Hide(); else flyout.ShowAt(AppearanceButton);
+    }
+
+    /// <summary>弹出层内容区，作为引导步骤的高亮目标。</summary>
+    public Control MenuContent => _scroll ?? throw new InvalidOperationException("Appearance menu is not built yet");
 
     private void CultureChanged(object? sender, EventArgs e)
     {
@@ -133,6 +155,8 @@ public sealed class ShellAppearanceMenuView : UserControl
         var appearanceFlyout = new Flyout { Content = _scroll, Placement = PlacementMode.BottomEdgeAlignedRight };
         appearanceFlyout.FlyoutPresenterClasses.Add("design-title-picker");
         appearanceFlyout.Opening += (_, _) => _scroll.MaxHeight = Math.Max(140, Math.Min(646, (TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 820) - 114));
+        appearanceFlyout.Opened += (_, _) => SetAppearanceMenuOpen(true);
+        appearanceFlyout.Closed += (_, _) => SetAppearanceMenuOpen(false);
         AppearanceButton.Flyout = appearanceFlyout;
         var languages = new StackPanel { Width = MenuWidth - 12 };
         foreach (var language in _vm.LanguageOptions)
