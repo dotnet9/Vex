@@ -30,14 +30,18 @@ const SAMPLE = [
   await page.waitForTimeout(400);
   // 与原生截图器对齐：注入同一段样例文档。
   await page.evaluate(text => { if (window.VexWorkbench && VexWorkbench.applyText) VexWorkbench.applyText(text); }, SAMPLE);
-  // 数据顺序不在对比范围（原生列真实磁盘目录）：把原型文件行按名称排序后再截图。
+  // 数据形态不在对比范围（原生列真实磁盘目录）：拍平原型分组树并按名称排序后再截图。
   await page.evaluate(() => {
-    const tree = document.querySelector('#file-tree, .file-tree, [class*=file-list]');
+    const tree = document.querySelector('#file-tree, .file-tree, [class*=file-list]') || document.querySelector('.sidebar .file-list, nav');
     if (!tree) return;
-    const rows = Array.from(tree.querySelectorAll(':scope > *'));
-    if (rows.length < 2) return;
-    rows.sort((a, b) => (a.textContent || '').trim().localeCompare((b.textContent || '').trim(), 'zh-Hans-CN'));
-    rows.forEach(row => tree.appendChild(row));
+    const group = tree.querySelector('details, .file-directory');
+    const rows = group ? Array.from(group.querySelectorAll('.file-children > *')) : Array.from(tree.children);
+    if (group) group.remove();
+    const flat = tree.querySelector('.file-children');
+    const host = flat && flat.parentElement === tree ? flat : tree;
+    rows.forEach(row => host.appendChild(row));
+    const ordered = Array.from(host.children).sort((a, b) => (a.textContent || '').trim() < (b.textContent || '').trim() ? -1 : 1);
+    ordered.forEach(row => host.appendChild(row));
   });
 
   // 通过「更多」布局菜单切换八布局；三段按钮只负责 source/read/map 直选。

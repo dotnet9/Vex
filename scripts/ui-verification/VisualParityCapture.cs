@@ -49,7 +49,13 @@ internal static class VisualParityCapture
         vm.Appearance.SelectedTypography = vm.Appearance.TypographyOptions.First(option => option.Key == "Simple");
         vm.Layout.IsSidebarVisible = true;
         vm.Layout.IsOutlineVisible = false;
-        app.Resolve<IWorkspaceDocumentState>().UpdateDocument(SampleDocument, null);
+        // 与输入通道一致地写正文（事件总线会刷新统计、文件列表与预览），避免状态栏残留旧文档字数。
+        const char cNewline = (char)10;
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
+            new Vex.Core.Messaging.MarkdownTextChangedCommand(SampleDocument, 1, 1, SampleDocument.Count(character => character == cNewline) + 1));
+        Render();
+        // 统计与派生状态是防抖刷新：等待真实时间窗口再继续，保证状态栏字数为样例文档的。
+        Thread.Sleep(900);
         Render();
 
         Capture("01-instant", () => Select(vm, "instant"));
