@@ -6,7 +6,7 @@
 .typography-card>strong{font-size:13px;margin-top:9px;line-height:20px;font-weight:600}
 .typography-card[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
 .type-swatch{height:180px;margin:0;background:var(--document-bg);border:0;border-radius:2px}
-.type-swatch .type-document{box-sizing:border-box;width:344px;height:370px;transform:scale(.5);padding:14px 16px;font-size:var(--type-size,16px);--writing-size:var(--type-size,16px)}
+.type-swatch .type-document{box-sizing:border-box;width:344px;height:370px;transform:scale(.5);padding:14px 16px}
 .type-swatch .type-document h1{white-space:nowrap}
 .type-swatch .type-document h2{margin-top:1em}
 .type-swatch .type-document h3{margin-top:.9em}
@@ -62,7 +62,7 @@
 .exit-dialog{display:flex;flex-direction:column;width:650px;max-width:100%;max-height:100%;background:var(--panel,var(--surface));color:var(--fg);border:1px solid var(--border,var(--line));border-radius:8px;box-shadow:0 18px 70px #0003;overflow:hidden;animation:vex-dialog-in 200ms var(--vex-ease) both}
 .exit-dialog-titlebar{height:38px;min-height:38px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border,var(--line));padding-left:20px;font-size:14px;font-weight:600}
 .exit-dialog-titlebar button{border-radius:0;width:46px;height:38px}
-.exit-dialog-titlebar button:hover{background:#c43d3d;color:#fff}
+.exit-dialog-titlebar button:hover{background:var(--danger);color:var(--on-accent)}
 .exit-dialog-body{padding:24px 24px 20px;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .exit-dialog-body h2{font-size:19px;line-height:1.5;font-weight:600;margin:0 0 8px}
 .exit-dialog-body>p{font-size:13px;color:var(--muted);line-height:1.8;margin:0 0 18px}
@@ -173,9 +173,8 @@ body.device-phone .map-appearance-trigger>span{display:none}
   padding: 14px 16px;
   transform: scale(.72);
   transform-origin: top left;
-  font-size: 17px;
+  font-size: var(--writing-size, 15px);
   line-height: 1.55;
-  --writing-size: 17px;
 }
 .type-swatch .type-document h1 {
   font-size: 1.65em;
@@ -212,7 +211,7 @@ body.device-phone .map-appearance-trigger>span{display:none}
   .type-swatch { height: 172px; }
   .type-swatch .type-document {
     transform: scale(.58);
-    font-size: 17px;
+    font-size: var(--writing-size, 15px);
   }
   .typography-card { padding: 9px; }
 }

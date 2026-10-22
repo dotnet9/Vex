@@ -11,16 +11,16 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
  async function open(query=''){await page.goto(base+'Vex.html?preview=1&'+query);await page.waitForFunction(()=>window.VexWorkbench&&window.VexTypography);await page.waitForTimeout(150)}
  async function shot(name){await page.waitForTimeout(300);await page.screenshot({path:out+'/'+name+'.png'});}
  await open('layout=read');
- assert.equal(await page.evaluate(()=>new Set(VexPalettes.map(x=>x.key)).size),16);
- assert.equal(await page.evaluate(()=>new Set(VexTypes.map(x=>x.key)).size),27);
+ assert.equal(await page.evaluate(()=>new Set(VexPalettes.map(x=>x.key)).size),9);
+ assert.equal(await page.evaluate(()=>new Set(VexTypes.map(x=>x.key)).size),12);
  const palette=await page.evaluate(()=>{
   const list=[];for(const mode of ['light','dark'])for(const p of VexPalettes){VexTheme.setMode(mode);VexTheme.setPalette(p.key);const s=getComputedStyle(document.documentElement),keys=['--bg','--fg','--muted','--accent','--on-accent','--border','--panel'];list.push({mode,key:p.key,values:keys.map(k=>s.getPropertyValue(k).trim())})}return list;
  });
- assert.equal(palette.length,32);for(const x of palette)assert(x.values.every(v=>v&&!/undefined|StaticResource/.test(v)),JSON.stringify(x));
+ assert.equal(palette.length,18);for(const x of palette)assert(x.values.every(v=>v&&!/undefined|StaticResource/.test(v)),JSON.stringify(x));
  const text='# 文档\n\n正文保持一致。\n\n## 负责方与职责\n\n| 负责方 | 职责 | 示例 |\n| --- | --- | --- |\n| 编辑器 | 接收输入、处理选区和中文候选，生成可撤销的编辑动作 | 即时编辑、源码、查找替换与表格 |\n| 应用 | 文件读写、偏好、窗口、导出与本机协作 | 已有文件自动保存；保存失败时保留内容 |\n\n> 写下想法。\n';
- await page.evaluate(t=>{VexTheme.setMode('light');VexTheme.setPalette('weft');VexWorkspace.setLayout('read');VexWorkbench.applyText(t)},text);
+ await page.evaluate(t=>{VexTheme.setMode('light');VexTheme.setPalette('indigo');VexWorkspace.setLayout('read');VexWorkbench.applyText(t)},text);
  const types=await page.evaluate(()=>VexTypes.map(t=>{VexTypography.choose(t.key);const body=document.querySelector('#markdown-preview'),h=body.querySelector('h2'),s=getComputedStyle(h),b=getComputedStyle(body);return {key:t.key,color:s.color,fontSize:b.fontSize,headingSize:s.fontSize,border:s.borderLeftWidth+' '+s.borderBottomStyle,background:s.backgroundColor,align:s.textAlign,font:s.fontFamily}}));
- assert.equal(new Set(types.map(({key,...v})=>JSON.stringify(v))).size,27,'Each typography needs a distinct rendered signature');
+ assert.equal(new Set(types.map(({key,...v})=>JSON.stringify(v))).size,12,'Each typography needs a distinct rendered signature');
  assert.equal(await page.evaluate(()=>VexWorkbench.text),text);
  await page.evaluate(()=>VexTypography.choose('Simple'));
  const widths=await page.locator('#markdown-preview th').evaluateAll(els=>els.map(x=>x.getBoundingClientRect().width));
@@ -28,9 +28,9 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
  await page.locator('#vex-appearance-menu>summary').click();await shot('titlebar-appearance');
  for(const size of [{width:800,height:480},{width:1024,height:768}]){
   await page.setViewportSize(size);await page.locator('#vex-appearance-menu').evaluate(el=>el.open=true);
-  await page.locator('[data-palette-scope=all]').click();
-  await page.locator('#vex-theme-panel [data-palette="night-sky"]').scrollIntoViewIfNeeded();
-  const rect=await page.locator('#vex-theme-panel [data-palette="night-sky"]').boundingBox();assert(rect.y+rect.height<size.height);await shot('palette-menu-'+size.width);
+  assert.equal(await page.locator('#vex-appearance-menu [data-palette]').count(),9);
+  await page.locator('#vex-theme-panel [data-palette="terracotta"]').scrollIntoViewIfNeeded();
+  const rect=await page.locator('#vex-theme-panel [data-palette="terracotta"]').boundingBox();assert(rect.y+rect.height<size.height);await shot('palette-menu-'+size.width);
  }
  await page.setViewportSize({width:1600,height:1000});
  for(const platform of ['windows','linux','macos']){
@@ -40,9 +40,13 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
  }
  await open('layout=read');
  await page.evaluate(()=>{VexWorkspace.setLayout('read');VexWorkbench.applyText('# 图表图鉴\n\n'+VexMermaid.items.map(x=>'## '+x.label+'\n'+VexMermaid.snippet(x.key)).join('\n'));});
- await page.waitForFunction(()=>document.querySelectorAll('#markdown-preview .md-diagram[data-rendered="true"]').length===22,null,{timeout:30000});
- const diagram=await page.evaluate(()=>[...document.querySelectorAll('#markdown-preview .md-diagram')].map(el=>({label:el.dataset.label,width:el.querySelector('svg').getBoundingClientRect().width,viewBox:el.querySelector('svg').viewBox.baseVal.width,overflow:getComputedStyle(el).overflowX})));
- for(const d of diagram)assert(Math.abs(d.width-d.viewBox)<1,JSON.stringify(d));
+ // 图表按 IntersectionObserver 懒渲染：逐张滚入视口，直到 22 张全部完成。
+ const hosts=page.locator('#markdown-preview .md-diagram');
+ for(let index=0;index<await hosts.count();index++)await hosts.nth(index).scrollIntoViewIfNeeded();
+ await page.waitForFunction(()=>{const nodes=[...document.querySelectorAll('#markdown-preview .md-diagram')];return nodes.length===22&&nodes.every(node=>node.dataset.rendered==='true');},null,{timeout:120000});
+ const diagram=await page.evaluate(()=>[...document.querySelectorAll('#markdown-preview .md-diagram')].map(el=>{const svg=el.querySelector('svg'),box=svg.viewBox.baseVal,rect=svg.getBoundingClientRect();return {label:el.dataset.label,width:rect.width,height:rect.height,viewBox:box.width,viewBoxHeight:box.height,overflow:getComputedStyle(el).overflowX};}));
+ // 图表按原生尺寸绘制，正文更窄时等比缩放（max-width:100%），不得裁切或变形。
+ for(const d of diagram)assert(d.width>0&&d.width<=d.viewBox+1&&Math.abs(d.height/d.width-d.viewBoxHeight/d.viewBox)<0.01,JSON.stringify(d));
  for(const mode of ['light','dark']){
   await page.evaluate(m=>VexTheme.setMode(m),mode);
   for(const label of ['甘特图','C4 架构图','XY 坐标图']){
@@ -58,7 +62,7 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
   return [...svg.querySelectorAll('text')].filter(t=>{const r=t.getBoundingClientRect();return r.left<rect.left-.5||r.right>rect.right+.5||r.top<rect.top-.5||r.bottom>rect.bottom+.5}).map(x=>x.textContent);
  });assert.deepEqual(clipping,[],'XY labels fit the SVG');
  await page.setViewportSize({width:800,height:480});await shot('diagrams-narrow');
- assert(await page.locator('#markdown-preview .md-diagram').filter({has:page.locator('svg[aria-label="甘特图"]')}).evaluate(el=>el.scrollWidth>el.clientWidth));
+ assert(await page.locator('#markdown-preview .md-diagram').filter({has:page.locator('svg[aria-label="甘特图"]')}).evaluate(el=>{const svg=el.querySelector('svg');return svg.getBoundingClientRect().width<=el.getBoundingClientRect().width+.5&&el.scrollWidth<=el.clientWidth+1;}),'Narrow pane scales diagrams instead of clipping them');
  await page.setViewportSize({width:1600,height:1000});
  await page.evaluate(()=>{VexWorkspace.setLayout('instant');VexWorkbench.applyText('# 即时图表\n'+['gantt','c4','xy'].map(k=>VexMermaid.snippet(k)).join('\n'));});
  await page.waitForFunction(()=>document.querySelectorAll('#instant-content .diagram-preview svg').length===3,null,{timeout:15000}).catch(async()=>{console.log('instant surfaces',await page.locator('.diagram-preview').count());throw Error('instant diagrams missing')});
@@ -78,10 +82,10 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
   }
   if(scenario==='ready')await shot('installer-'+platform);
  }
- await page.goto(base+'Appearance.html');await page.waitForTimeout(200);assert.equal(await page.locator('[data-type]').count(),27);
+ await page.goto(base+'Appearance.html');await page.waitForTimeout(200);assert.equal(await page.locator('[data-type]').count(),12);
  await shot('appearance-comparison');
  assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);
  fs.writeFileSync(out+'/results.json',JSON.stringify({palette,types,widths,diagram,hint,errors,missing},null,2));
- console.log('PASS: 16 palettes × 2 modes; 27 distinct typographies; content-sized table; 22 diagrams; XY bounds; editable diagrams; titlebar alignment on 3 platforms; inline map hints; 12 installer scenarios.');
+ console.log('PASS: 9 palettes × 2 modes; 12 distinct typographies; content-sized table; 22 diagrams; XY bounds; editable diagrams; titlebar alignment on 3 platforms; inline map hints; 12 installer scenarios.');
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

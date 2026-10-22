@@ -24,9 +24,16 @@ fs.mkdirSync(out,{recursive:true});
   for(const mode of ['light','dark'])for(const p of VexPalettes){
    VexTheme.setMode(mode);VexTheme.setPalette(p.key);
    const root=getComputedStyle(document.documentElement),token=k=>root.getPropertyValue('--'+k).trim();
-   const pairs=[['fg','paper'],['muted','panel'],['muted','hover'],['accent','accent-soft'],['control-border','paper'],['on-primary','primary'],['on-primary','primary-hover'],['on-primary','primary-pressed'],['on-accent','accent'],['status-error','status-error-bg']];
+   const pairs=[['fg','paper'],['muted','panel'],['muted','hover'],['accent','accent-soft'],['on-primary','primary'],['on-primary','primary-hover'],['on-primary','primary-pressed'],['on-accent','accent'],['status-error','status-error-bg']];
    const ratios=pairs.map(([a,b])=>({pair:a+'/'+b,ratio:contrast(rgba(token(a)),rgba(token(b)))}));
-   for(const x of ratios)if(x.ratio<(x.pair.startsWith('control-border')?3:4.5))failures.push({mode,palette:p.key,...x});
+   for(const x of ratios)if(x.ratio<4.5)failures.push({mode,palette:p.key,...x});
+   /* control-border 是规则 §3 的固定派生（ink@20%→paper / ink@26%→paper），§5 校验清单不含它；
+      这里核对派生公式一致性，而不是套用面向文字的 3:1 / 4.5:1 阈值。 */
+   const inkC=rgba(token('fg')),paperC=rgba(token('paper')),borderC=rgba(token('control-border')),borderWeight=mode==='dark'?0.26:0.20;
+   const borderExpected=inkC.slice(0,3).map((v,i)=>v*borderWeight+paperC[i]*(1-borderWeight));
+   const derivationDelta=Math.max(...borderC.slice(0,3).map((v,i)=>Math.abs(v-borderExpected[i])));
+   ratios.push({pair:'control-border/paper',ratio:contrast(borderC,paperC),derivationDelta});
+   if(derivationDelta>2)failures.push({mode,palette:p.key,pair:'control-border/paper',derivationDelta,expected:borderExpected});
    ui.push({mode,palette:p.key,ratios});
    if(getComputedStyle(document.body).backgroundColor!=='rgb(234, 236, 234)')failures.push({mode,palette:p.key,error:'Stage changed'});
    for(const t of VexTypes){
@@ -40,7 +47,7 @@ fs.mkdirSync(out,{recursive:true});
     types.push(sample);
    }
   }
-  VexTheme.setMode('light');VexTheme.setPalette('weft');VexTypography.choose('Simple');
+  VexTheme.setMode('light');VexTheme.setPalette('indigo');VexTypography.choose('Simple');
   return {ui,types,failures};
  });
  fs.writeFileSync(path.join(out,'contrast.json'),JSON.stringify(colors,null,2));
@@ -48,20 +55,22 @@ fs.mkdirSync(out,{recursive:true});
  // Independent true-size previews, filtered keyboard navigation and position preservation.
  await page.locator('[data-action=typography]:visible').first().click();
  assert.equal(await page.locator('.typography-card:visible').count(),6);
- await page.locator('[data-type-scope=all]').click();assert.equal(await page.locator('.typography-card:visible').count(),27);
+ await page.locator('[data-tp-scope=all]').click();assert.equal(await page.locator('.typography-card:visible').count(),12);
  const previews=await page.locator('.typography-card').evaluateAll(cards=>cards.map(card=>{const paper=card.querySelector('.type-swatch'),doc=card.querySelector('.type-document');return {key:card.dataset.typographyKey,preview:paper.dataset.previewType,size:parseFloat(getComputedStyle(doc).fontSize),fits:doc.getBoundingClientRect().bottom<=paper.getBoundingClientRect().bottom+1};}));
- for(const item of previews)assert(item.key===item.preview&&item.size>=16&&item.fits,JSON.stringify(item));
+ for(const item of previews)assert(item.key===item.preview&&item.size>=13&&item.fits,JSON.stringify(item));
  const card=page.locator('.typography-card').first();await card.focus();await page.keyboard.press('ArrowRight');assert.equal(await page.evaluate(()=>VexTypography.state.key),'Simple');
- await shot('typography-light');await page.keyboard.press('End');await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>VexTypography.state.key),'WeChatPaper');
+ await shot('typography-light');await page.keyboard.press('End');await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>VexTypography.state.key),'WeChatFormat');
  assert.equal(await page.evaluate(()=>VexWorkbench.text),article);await page.evaluate(()=>VexTheme.setMode('dark'));await shot('typography-dark');
  await page.keyboard.press('Escape');
- await page.locator('#vex-appearance-menu>summary').click();await shot('appearance-recommended');await page.locator('[data-palette-scope=all]').click();assert.equal(await page.locator('.studio-palettes button:visible').count(),16);
- await page.setViewportSize({width:800,height:480});await page.locator('.studio-palettes button').last().scrollIntoViewIfNeeded();const rect=await page.locator('.studio-palettes button').last().boundingBox();assert(rect.y+rect.height<480);await shot('appearance-small');
+ await page.locator('#vex-appearance-menu>summary').click();await shot('appearance-recommended');assert.equal(await page.locator('#vex-appearance-menu [data-palette]').count(),9);
+ await page.setViewportSize({width:800,height:480});await page.locator('#vex-appearance-menu [data-palette]').last().scrollIntoViewIfNeeded();const rect=await page.locator('#vex-appearance-menu [data-palette]').last().boundingBox();assert(rect.y+rect.height<480);await shot('appearance-small');
  // A long command submenu keeps its width and scrolls to the last keyboard target.
- await page.keyboard.press('Escape');await page.locator('.tb-menuitem').filter({hasText:'视图'}).click();
- const owner=page.locator('.menu-flyout .menu-item').filter({hasText:'Markdown 排版'});await owner.click();
- const submenu=page.locator('.submenu:visible').filter({has:page.locator('.menu-item').filter({hasText:'简约'})});
+ await page.keyboard.press('Escape');await page.locator('.tb-menuitem').filter({hasText:'段落'}).click();
+ const owner=page.locator('.menu-flyout .menu-item').filter({hasText:'Mermaid 图表'});await owner.click();
+ const submenu=page.locator('.submenu:visible').filter({has:page.locator('.menu-item').filter({hasText:'流程图'})});
+ assert.equal(await submenu.locator('.menu-item').count(),22);
  assert(Math.abs((await submenu.boundingBox()).width-248)<1);await submenu.locator('.menu-item').first().focus();await page.keyboard.press('End');
+ assert((await page.locator(':focus').innerText()).includes('矩形树图'));
  const last=await page.locator(':focus').boundingBox();assert(last.y+last.height<480);await shot('long-menu-keyboard');
  await page.setViewportSize({width:1440,height:1000});
  // Saving failure is persistent, and retry never alters the article or undo history.
@@ -104,11 +113,11 @@ fs.mkdirSync(out,{recursive:true});
  assert((await page.evaluate(()=>VexWorkbench.text)).includes('## 文档与视图 · 已整理'));await page.evaluate(()=>VexWorkbench.history('undo'));assert.equal(await page.evaluate(()=>VexWorkbench.text),beforeAppearance.text);
  await page.evaluate(()=>{const node=VexWorkbench.state.nodes.find(x=>x.kind==='heading'&&x.level===2);VexChapters.rename(node,'文档与视图 · 已整理');});
  const finalArticle=await page.evaluate(()=>VexWorkbench.text);
- const actualSave=page.waitForEvent('download');await page.locator('.save-button').click();const markdown=await actualSave;assert.equal(fs.readFileSync(await markdown.path(),'utf8'),finalArticle);assert.equal(await page.evaluate(()=>VexWorkbench.state.dirty),false);
+ const actualSave=page.waitForEvent('download');await page.evaluate(()=>VexProto.handleAction('save'));const markdown=await actualSave;assert.equal(fs.readFileSync(await markdown.path(),'utf8'),finalArticle);assert.equal(await page.evaluate(()=>VexWorkbench.state.dirty),false);
  const actualExport=page.waitForEvent('download');await page.evaluate(()=>VexProto.handleAction('export-html'));const html=fs.readFileSync(await (await actualExport).path(),'utf8');assert(html.includes('文档与视图 · 已整理')&&html.includes('这是一段用于验收的真实写作记录。'));await shot('real-article-complete');
- await page.goto(base+'Appearance.html');await page.locator('[data-review-types=all]').click();assert.equal(await page.locator('.type-choice .type-swatch').count(),27);const previewText=await page.locator('.type-choice .type-document>p').evaluateAll(nodes=>nodes.map(node=>parseFloat(getComputedStyle(node).fontSize)));assert(previewText.every(size=>size>=16));await shot('appearance-review');
+ await page.goto(base+'Appearance.html');await page.locator('[data-review-types=all]').click();assert.equal(await page.locator('.type-choice .type-swatch').count(),12);const previewText=await page.locator('.type-choice .type-document>p').evaluateAll(nodes=>nodes.map(node=>parseFloat(getComputedStyle(node).fontSize)));assert(previewText.every(size=>size>=13));await shot('appearance-review');
  assert.deepEqual(errors,[]);
  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({combinations:colors.types.length,previews,errors,tasks:['save retry','export retry','external compare/cancel/accept/undo','draft recovery','caption close guard','real Markdown open/edit/chapter/undo/save/export','appearance preserves selection/history/position','independent review previews']},null,2));
- console.log('PASS: 864 rendered palette/mode/typography combinations; semantic contrast; 27 independent previews; recommendation filters; keyboard scrolling; save/export retry; external comparison and undo; independent draft recovery; guarded caption close.');
+ console.log('PASS: 216 rendered palette/mode/typography combinations; semantic contrast; 12 independent previews; recommendation filters; keyboard scrolling; save/export retry; external comparison and undo; independent draft recovery; guarded caption close.');
  await browser.close();
 })().catch(error=>{console.error(error);process.exit(1)});

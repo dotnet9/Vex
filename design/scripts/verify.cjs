@@ -30,6 +30,24 @@ assert.ok(logo.includes('M64 62 L128 198 L192 62'));
 const preferences = fs.readFileSync(path.join(root, 'assets/preferences.js'), 'utf8');
 assert.ok(preferences.includes('autoSave:false'));
 const sandbox = {window:{}};
+vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/generated/palette-rules-data.js'), 'utf8'), sandbox);
+assert.ok(Number.isInteger(sandbox.window.VexPaletteRulesData.ruleVersion), 'Palette data carries a ruleVersion stamp');
+const paletteStamp = /\(ruleVersion (\d+)\)/.exec(fs.readFileSync(path.join(root, 'assets/palettes.css'), 'utf8'));
+assert.ok(paletteStamp, 'palettes.css is generated with a ruleVersion stamp');
+for (const generated of ['assets/palettes.css','assets/palettes.js','assets/density.css','assets/generated/palette-rules-data.js']) {
+  const header = fs.readFileSync(path.join(root, generated), 'utf8').split('\n', 1)[0];
+  assert.match(header, new RegExp(`ruleVersion ${sandbox.window.VexPaletteRulesData.ruleVersion}`), `${generated} matches the generated ruleVersion`);
+}
+assert.equal(Object.keys(sandbox.window.VexPaletteRulesData.palettes).length, 9, 'Nine palettes come from rule appendix A');
+const prototype = {VexStorage:{getItem:()=>null}};
+prototype.window = prototype;
+vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/typography-catalog.js'), 'utf8'), prototype);
+assert.equal(prototype.VexTypes.length, 5, 'Base typography catalog keeps the five independent native styles');
+for (const asset of ['palettes.js','desktop-resources.js','design-system.js']) {
+  vm.runInNewContext(fs.readFileSync(path.join(root, 'assets', asset), 'utf8'), prototype);
+}
+assert.equal(prototype.VexTypes.length, 12, 'Prototype exposes the twelve finalized typographies');
+assert.equal(prototype.VexPalettes.length, 9, 'Prototype exposes the nine finalized palettes');
 vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/generated/documents-data.js'), 'utf8'), sandbox);
 for (const [key, file] of [['thanks','docs/鸣谢.md'], ['changelog','docs/更新日志.md']]) {
   assert.equal(sandbox.window.VexDocuments[key].text, fs.readFileSync(path.join(root, '..', file), 'utf8').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n'));

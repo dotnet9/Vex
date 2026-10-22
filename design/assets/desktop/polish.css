@@ -1,6 +1,5 @@
 /* Vex design polish: coherent theme surfaces, quiet depth, and readable Markdown samples. */
 :root[data-theme][data-palette] {
-  --title-grad: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 62%, var(--bg)));
   --document-bg: var(--paper);
   --document-fg: var(--fg);
   --document-muted: var(--muted);

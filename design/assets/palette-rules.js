@@ -1,6 +1,6 @@
 /* 配色派生规则 · 共享模块（UMD：Node 生成器与浏览器自定义配色编辑共用）。
  * 公式与常数的唯一事实源是 CodeWF.Avalonia docs/配色与排版令牌规则.md 附录 A；
- * 本模块只实现公式引擎与"原型变量映射层"，禁止在任何一侧另抄公式或常数。 */
+ * 本模块只实现公式引擎、"收敛步骤"与"原型变量映射层"，禁止在任何一侧另抄公式或常数。 */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.VexPaletteRules = factory();
@@ -65,12 +65,111 @@
 
   var STATUS_KEYS = ['danger', 'success', 'warning', 'info'];
 
+  function alphaOf(formula) {
+    var match = formula.match(/@([\d.]+)%$/);
+    return match ? Number(match[1]) / 100 : 0.64;
+  }
+
+  function mixSpec(formula) {
+    var match = formula.match(/^mix\(([a-z]+)->([a-z]+),\s*([\d.]+)%\)$/i);
+    return match ? { from: match[1], to: match[2], weight: Number(match[3]) / 100 } : null;
+  }
+
+  /* 渐变全插值区间可读性（§3 行动渐变端点约束）：只检查采样点，避免只校验端点。 */
+  function gradientReadable(text, start, end) {
+    for (var t = 0; t <= 1.0001; t += 0.05) {
+      if (contrast(text, mix(start, end, t)) < 4.5) return false;
+    }
+    return true;
+  }
+
+  /* mix 派生向起点收敛：权重每次减少 0.5%，直到文字在目标色（或整段渐变）上达到 4.5:1。 */
+  function convergeMix(formula, base, text, sampleGradient) {
+    var spec = mixSpec(formula);
+    if (!spec) return resolveFormula(formula, base, function (key) { return base[key] || base.paper; });
+    var from = colorOf(spec.from, base), to = colorOf(spec.to, base);
+    var weight = spec.weight, value = mix(from, to, weight);
+    function passes(candidate) {
+      return sampleGradient ? gradientReadable(text, from, candidate) : contrast(text, candidate) >= 4.5;
+    }
+    while (!passes(value) && weight > 0.005) {
+      weight -= 0.005;
+      value = mix(from, to, weight);
+    }
+    return value;
+  }
+
+  /* muted：ink@64% 起，对 bg/surface/raised/hover 任一工作面不足 4.5 时按 1% 步进加深（规则 §3）。 */
+  function mutedFor(base, constants) {
+    var alpha = alphaOf(constants.muted);
+    var muted = alphaOver(base.ink, alpha, base.paper);
+    var bg = mix(base.paper, base.surface, 0.30);
+    var raised = alphaOver(base.ink, alphaOf(constants.raised), base.paper);
+    var hover = alphaOver(base.ink, alphaOf(constants.hover), base.surface);
+    while (alpha < 0.90 && (contrast(muted, bg) < 4.5 || contrast(muted, base.surface) < 4.5 || contrast(muted, raised) < 4.5 || contrast(muted, hover) < 4.5)) {
+      alpha += 0.01;
+      muted = alphaOver(base.ink, alpha, base.paper);
+    }
+    return muted;
+  }
+
+  /* 强调软底（§3）：accent 作为文字落在 accentSoft 上不足 4.5 时，浅色态降低透明度、深色态提高（同状态软底约束）。 */
+  function accentSoftFor(base, alpha, dark) {
+    var a = alpha;
+    var soft = alphaOver(base.accent, a, base.paper);
+    while (contrast(base.accent, soft) < 4.5 && a > (dark ? 0.40 : 0.03)) {
+      a += dark ? 0.01 : -0.01;
+      soft = alphaOver(base.accent, a, base.paper);
+    }
+    return soft;
+  }
+
+  /* 状态软底（§3）：文字与软底不足 4.5 时，浅色态降低透明度、深色态提高透明度。 */
+  function statusSoftFor(base, status, alpha, dark) {
+    var a = alpha;
+    var soft = alphaOver(status, a, base.paper);
+    while (contrast(status, soft) < 4.5 && a > (dark ? 0.40 : 0.03)) {
+      a += dark ? 0.01 : -0.01;
+      soft = alphaOver(status, a, base.paper);
+    }
+    return soft;
+  }
+
+  /* 状态色可读性（§3/§5 状态四键）：作为文字在 paper 与 surface 上不足 4.5 时，
+     浅色态向 ink、深色态向白按 1% 步进收敛；statusSoft 以收敛值派生。 */
+  function statusColor(base, status, dark) {
+    if (contrast(status, base.paper) >= 4.5 && contrast(status, base.surface) >= 4.5) return status;
+    var target = dark ? '#FFFFFF' : base.ink;
+    for (var step = 1; step <= 100; step++) {
+      var candidate = mix(status, target, step / 100);
+      if (contrast(candidate, base.paper) >= 4.5 && contrast(candidate, base.surface) >= 4.5) return candidate;
+    }
+    return target;
+  }
+
+  /* 把任意目标色向可读方向移动（Markdown 主题文字色校正用）：返回首个满足全部背景的插值。 */
+  function readable(color, backgrounds, minimum) {
+    minimum = minimum || 4.5;
+    if (backgrounds.every(function (bg) { return contrast(color, bg) >= minimum; })) return color;
+    var endpoint = luminance(backgrounds[0]) > 0.4 ? '#111820' : '#FFFFFF';
+    for (var i = 1; i <= 100; i++) {
+      var next = mix(color, endpoint, i / 100);
+      if (backgrounds.every(function (bg) { return contrast(next, bg) >= minimum; })) return next;
+    }
+    return endpoint;
+  }
+
   /* 原型变量映射层：规则语义键 → 原型 CSS 变量词汇表（§4 消费契约的原型投影）。 */
   function deriveVars(base, mode, constants) {
     var dark = mode === 'dark';
     var resolved = resolveConstants(constants, base);
-    var on = onAccent(base.accent, base.ink);
-    var softAlpha = Number(String(constants.statusSoft).match(/@([\d.]+)%/)[1]) / 100;
+    var on = onAccent(base.accent);
+    /* §3 的四处收敛：muted 步进加深、primaryHover/gradientEnd 向 accent 收敛、强调软底与状态软底按明暗反向调整。 */
+    resolved.muted = mutedFor(base, constants);
+    resolved.accentSoft = accentSoftFor(base, alphaOf(constants.accentSoft), dark);
+    resolved.primaryHover = convergeMix(constants.primaryHover, base, on, false);
+    resolved.gradientEnd = convergeMix(constants.gradientEnd, base, on, true);
+    var softAlpha = alphaOf(constants.statusSoft);
     var vars = {
       stage: alphaOver(base.ink, dark ? 0.10 : 0.08, base.paper),
       bg: mix(base.paper, base.surface, 0.30),
@@ -98,43 +197,75 @@
     };
     STATUS_KEYS.forEach(function (key) {
       if (!base[key]) return;
-      var soft = alphaOver(base[key], softAlpha, base.paper);
-      vars[key] = base[key];
+      var status = statusColor(base, base[key], dark);
+      var soft = statusSoftFor(base, status, softAlpha, dark);
+      vars[key] = status;
       vars[key + '-soft'] = soft;
       vars[key + '-hover-bg'] = soft;
-      vars[key + '-hover-fg'] = base[key];
-      vars[key + '-pressed-bg'] = alphaOver(base[key], softAlpha + 0.04, base.paper);
-      vars[key + '-pressed-fg'] = base[key];
+      vars[key + '-hover-fg'] = status;
+      vars[key + '-pressed-bg'] = statusSoftFor(base, status, softAlpha + 0.04, dark);
+      vars[key + '-pressed-fg'] = status;
     });
     vars['status-error'] = vars.danger; vars['status-error-bg'] = vars['danger-soft'];
     vars['status-success'] = vars.success; vars['status-warning'] = vars.warning;
     return vars;
   }
 
-  /* §5 校验：返回问题清单（空数组 = 通过）。 */
-  function validate(base, mode, statusDefaults) {
+  /* §5 校验 + §3 收敛结果复核：返回问题清单（空数组 = 通过）。 */
+  function validate(base, mode, statusDefaults, derivation) {
     var issues = [];
     var dark = mode === 'dark';
+    var defaults = (statusDefaults && statusDefaults[mode]) || {};
     var merged = {};
-    STATUS_KEYS.forEach(function (key) { merged[key] = base[key] || (statusDefaults && statusDefaults[mode] && statusDefaults[mode][key]); });
-    merged.paper = base.paper; merged.ink = base.ink; merged.accent = base.accent;
-    var muted = alphaOver(base.ink, 0.64, base.paper);
+    STATUS_KEYS.forEach(function (key) { merged[key] = base[key] || defaults[key]; });
+    merged.paper = base.paper; merged.surface = base.surface; merged.ink = base.ink; merged.accent = base.accent;
     function need(pair, minimum, label) {
       var ratio = contrast(pair[0], pair[1]);
       if (ratio < minimum) issues.push(label + ' 对比度 ' + ratio.toFixed(2) + ':1，需 ≥ ' + minimum + ':1');
     }
     need([merged.ink, merged.paper], 10, '正文 ink/paper');
-    need([muted, merged.paper], 4.5, '次要文字 muted/paper');
     need([merged.accent, merged.paper], 4.5, 'accent 作为文字/paper');
-    need([merged.accent, base.surface], 4.5, 'accent 作为文字/surface');
-    var on = onAccent(merged.accent, merged.ink);
+    need([merged.accent, merged.surface], 4.5, 'accent 作为文字/surface');
+    var on = onAccent(merged.accent);
     need([on, merged.accent], 4.5, 'onAccent/accent');
-    STATUS_KEYS.forEach(function (key) { if (merged[key]) need([merged[key], merged.paper], 4.5, key + '/paper'); });
+    STATUS_KEYS.forEach(function (key) {
+      if (!merged[key]) return;
+      var status = statusColor(merged, merged[key], dark);
+      need([status, merged.paper], 4.5, key + '/paper');
+      need([status, merged.surface], 4.5, key + '/surface');
+    });
+    if (derivation) {
+      /* 收敛后的派生值复核：规则 §3 的收敛约束 + 软底可读性。 */
+      var muted = mutedFor(merged, derivation);
+      need([muted, merged.paper], 4.5, '次要文字 muted/paper');
+      need([muted, mix(merged.paper, merged.surface, 0.30)], 4.5, '次要文字 muted/bg');
+      need([muted, merged.surface], 4.5, '次要文字 muted/surface');
+      need([muted, alphaOver(merged.ink, alphaOf(derivation.raised), merged.paper)], 4.5, '次要文字 muted/raised');
+      need([muted, alphaOver(merged.ink, alphaOf(derivation.hover), merged.surface)], 4.5, '次要文字 muted/hover');
+      need([merged.accent, accentSoftFor(merged, alphaOf(derivation.accentSoft), dark)], 4.5, '强调文字 accent/accentSoft');
+      var hover = convergeMix(derivation.primaryHover, merged, on, false);
+      need([on, hover], 4.5, 'onAccent/primaryHover');
+      var pressed = resolveFormula(derivation.primaryPressed, merged, function (key) { return merged[key] || merged.paper; });
+      need([on, pressed], 4.5, 'onAccent/primaryPressed');
+      var end = convergeMix(derivation.gradientEnd, merged, on, true);
+      var worst = 4.5;
+      for (var t = 0; t <= 1.0001; t += 0.05) worst = Math.min(worst, contrast(on, mix(merged.accent, end, t)));
+      if (worst < 4.5) issues.push('onAccent/行动渐变 最低 ' + worst.toFixed(2) + ':1，需 ≥ 4.5:1');
+      var softAlpha = alphaOf(derivation.statusSoft);
+      STATUS_KEYS.forEach(function (key) {
+        if (!merged[key]) return;
+        var status = statusColor(merged, merged[key], dark);
+        need([status, statusSoftFor(merged, status, softAlpha, dark)], 4.5, key + '/soft');
+      });
+    } else {
+      var mutedFallback = alphaOver(merged.ink, 0.64, merged.paper);
+      need([mutedFallback, merged.paper], 4.5, '次要文字 muted/paper');
+    }
     var paperLum = luminance(merged.paper);
     if (dark ? paperLum > 0.12 : paperLum < 0.90) issues.push('Paper 相对亮度 ' + paperLum.toFixed(3) + '，超出' + (dark ? '深色态 ≤ 0.12' : '浅色态 ≥ 0.90') + ' 区间');
     return issues;
   }
 
   return { rgb: rgb, hex: hex, mix: mix, alphaOver: alphaOver, luminance: luminance, contrast: contrast,
-    onAccent: onAccent, resolveFormula: resolveFormula, deriveVars: deriveVars, validate: validate };
+    onAccent: onAccent, resolveFormula: resolveFormula, readable: readable, statusColor: statusColor, deriveVars: deriveVars, validate: validate };
 });

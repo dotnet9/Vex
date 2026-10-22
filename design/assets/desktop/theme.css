@@ -121,7 +121,7 @@ a:hover { text-decoration: underline; }
   width: 20px; height: 20px;
   border-radius: 6px;
   background: var(--title-grad);
-  color: #fff;
+  color: var(--on-accent);
   display: inline-flex; align-items: center; justify-content: center;
   font-size: 11px; font-weight: 700;
   flex: none;
@@ -162,7 +162,7 @@ a:hover { text-decoration: underline; }
   cursor: default;
 }
 .caption-btn:hover { background: var(--hover); }
-.caption-btn.close:hover { background: #DC2626; color: #fff; }
+.caption-btn.close:hover { background: var(--danger); color: var(--on-accent); }
 .caption-btn svg { width: 10px; height: 10px; }
 
 /* ---------- 菜单浮层 ---------- */

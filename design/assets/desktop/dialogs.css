@@ -32,7 +32,7 @@
   .pill-ok::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
 
   .about-hero { display: flex; align-items: center; gap: 14px; padding: 28px 32px 0; }
-  .about-logo { width: 48px; height: 48px; border-radius: 12px; background: var(--title-grad); color: #fff; font-size: 26px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .about-logo { width: 48px; height: 48px; border-radius: 12px; background: var(--title-grad); color: var(--on-accent); font-size: 26px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: none; }
   .about-identity { min-width: 0; }
   .about-hero h2 { margin: 0 0 4px; font-size: 23px; font-weight: 700; letter-spacing: .2px; }
   .about-hero .slogan { font-size: 12px; line-height: 1.7; color: var(--muted); }

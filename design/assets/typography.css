@@ -48,6 +48,10 @@
 /* 排版弹层顶部：渲染密度行（控件样式与外观菜单一致，作用于 Markdown 渲染）。 */
 #typography-panel .typography-density{display:flex;align-items:center;gap:10px;flex:none;padding:2px 2px 10px;border-bottom:1px solid var(--border,var(--line))}
 #typography-panel .typography-density strong{font-size:11px;color:var(--muted);font-weight:600}
+/* 推荐 / 全部（规则 §9）：与桌面 App 的六张推荐卡一致；当前方案与自定义排版始终可见。 */
+#typography-panel .typography-scope{display:flex;align-items:center;gap:10px;flex:none;padding:0 2px 10px;border-bottom:1px solid var(--border,var(--line))}
+#typography-panel .typography-scope strong{font-size:11px;color:var(--muted);font-weight:600}
+#typography-panel .typography-grid [hidden]{display:none}
 /* 自定义排版编辑器（规则 §8/§13 编写层）：与内置卡同网格，行式表单。 */
 .typography-editor{display:flex;flex-direction:column;gap:8px;min-height:0;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);text-align:left;font-size:11px}
 .typography-editor strong{font-size:12px}
@@ -66,7 +70,7 @@
 #typography-panel .typography-card-selected{visibility:hidden;flex:none;color:var(--accent);font-size:11px}
 #typography-panel [aria-pressed=true] .typography-card-selected{visibility:visible}
 #typography-panel .type-swatch{display:block;flex:0 0 auto;width:100%;height:auto;min-height:274px;padding:0;margin:0;border:1px solid var(--border);border-radius:5px;background:var(--paper);overflow:hidden;pointer-events:none}
-#typography-panel .type-swatch .type-document{display:block;box-sizing:border-box;width:100%;height:auto;min-height:100%;padding:16px;transform:none;--writing-size:var(--type-size,16px);color:var(--fg)}
+#typography-panel .type-swatch .type-document{display:block;box-sizing:border-box;width:100%;height:auto;min-height:100%;padding:16px;transform:none;color:var(--fg)}
 #typography-panel .type-document h1{white-space:normal}
 #typography-panel .type-document blockquote:last-child{margin-bottom:0}
 #typography-panel .typography-compact{display:flex;align-items:center;justify-content:space-between;flex:none;margin:12px 0 0;padding:12px 0 0;font-size:13px;color:var(--fg)}

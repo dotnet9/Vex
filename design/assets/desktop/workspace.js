@@ -89,7 +89,8 @@
     var preset = presets.find(function (item) { return item.id === current; });
     $('current-layout-label').textContent = preset.title;
     layoutButton.setAttribute('aria-label', '当前视图：' + preset.title + '，点击更换');
-    $('view-follow-controls').hidden = displayed.length < 2;
+    /* 状态栏已移除联动入口（usability.js 注明），这里只在旧布局仍提供该容器时同步可见性。 */
+    if ($('view-follow-controls')) $('view-follow-controls').hidden = displayed.length < 2;
     document.body.classList.toggle('workspace-multiple', displayed.length > 1);
     if (W.syncStructure) W.syncStructure();
     Object.values(panels).forEach(function (panel) { panel.classList.remove('active-view'); });

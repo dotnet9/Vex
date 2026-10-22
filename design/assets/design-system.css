@@ -1,6 +1,5 @@
 /* Shared interaction states; color tokens are generated into palettes.css (scripts/palette-rules.cjs). */
-/* 排版卡预览固定用最小档基准（紧凑 13px，规则 §11 尺寸档），一屏可多看几种样式。 */
-.type-swatch .type-document{font-size:12px!important;--type-size:12px!important;--writing-size:12px!important}
+/* 排版卡预览跟随尺寸档（规则 §11：13/15/17），与源码编辑区同档；主题只提供比例。 */
 :where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--focus-ring,var(--accent));outline-offset:2px}
 :where(button,a,input,select,textarea,summary){scroll-margin:8px}
 :where(button):not(:disabled):not([aria-disabled=true]):active{background-color:var(--pressed)}
@@ -33,7 +32,7 @@
 #vex-appearance-menu .studio-palettes button .swatch-dots{display:grid;grid-template-columns:repeat(4,auto);gap:4px;padding-right:24px}
 #vex-appearance-menu .studio-palettes button .swatch-dots i{width:16px;height:16px;border-radius:50%;border:1px solid var(--border);flex:none}
 #vex-appearance-menu .studio-palettes button::after{position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0;font-size:14px;font-weight:700;color:var(--accent)}
-.palette-badge{position:absolute;top:6px;right:6px;font:600 10px/1 var(--font);font-style:normal;padding:2px 4px;border-radius:4px;background:var(--accent);color:#fff;pointer-events:none}
+.palette-badge{position:absolute;top:6px;right:6px;font:600 10px/1 var(--font);font-style:normal;padding:2px 4px;border-radius:4px;background:var(--accent);color:var(--on-accent);pointer-events:none}
 .palette-label{display:flex;min-width:0;flex:1;flex-direction:column;gap:2px}
 .palette-label b{font-size:13px;font-weight:550}.palette-label small{font-size:12px;line-height:1.4;color:var(--muted);white-space:normal}
 /* 下拉菜单不出现滚动条：菜单整体自适应内容，靠紧凑分组控制在视口内。 */
@@ -58,7 +57,7 @@
 .review-controls .type-choice[aria-pressed=true]{background:var(--accent-soft)}
 .review-controls .type-choice[hidden],.review-controls .palette-choice[hidden]{display:none}
 .review-controls .type-swatch{margin-top:6px;border:1px solid var(--border);border-radius:5px;background:var(--paper);width:100%;flex:none}
-.review-controls .type-document{display:block;padding:14px;--writing-size:var(--type-size,16px);transform:none}
+.review-controls .type-document{display:block;padding:14px;transform:none}
 .review-controls .type-document p{font-size:inherit;line-height:inherit;color:inherit}
 .review-controls .palette-choice{align-items:flex-start}.review-controls .palette-choice i{margin-top:3px;width:12px;height:12px}
 .review-controls .palette-label b{font-size:12px}.review-controls .palette-label small{font-size:12px;line-height:1.6}

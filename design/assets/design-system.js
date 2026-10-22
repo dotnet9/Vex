@@ -26,18 +26,15 @@
       surfaces[mode].push(bg,paper,panel,mix(panel,decoration,.07),mix(panel,decoration,.12));
     }
   }
-  const recommendedTypes = ['Simple','InkBlack','TechnologyBlue','Column','Academic','WeChatFormat'];
+  /* 规则 §9 定稿的 12 套：原型目录只暴露这份名单，快照中的其余键不再进入选择器。 */
+  const recommendedTypes = ['Simple','InkBlack','TechnologyBlue','GeekBlack','OrangeHeart','WeChatFormat'];
   const typeNotes = {
-    Simple:'日常写作 · 简洁留白',Basic:'工作文档 · 清晰层级',InkBlack:'长文阅读 · 书卷宋体',TechnologyBlue:'技术文档 · 条理分明',
-    Column:'观点专栏 · 强调结构',WeChatFormat:'刊物文章 · 居中标题',Academic:'研究论文 · 稳重宋体',Journal:'散文手札 · 舒缓叙述',Handbook:'操作手册 · 分节易查',
-    Foundation:'通用文档 · 细线分节',Clear:'轻量笔记 · 无饰标题',OrangeHeart:'生活随笔 · 暖橙边线',InkNight:'长文阅读 · 墨色双线',
-    ColorfulPurple:'创意专栏 · 紫调浅底',TenderGreen:'日常记录 · 柔绿轻盈',Verdant:'知识整理 · 翠绿侧线',RedScarlet:'观点文章 · 朱红下划线',
-    BlueGlow:'项目笔记 · 冷蓝浅底',TechAzure:'技术报告 · 湛蓝侧线',LanQing:'文化随笔 · 蓝青细线',Yamabuki:'生活专栏 · 山吹暖底',
-    FrontendPeak:'开发教程 · 蓝色实底标题',GeekBlack:'代码手册 · 等宽标题',RosePurple:'创作笔记 · 玫紫双线',CuteGreen:'轻松科普 · 绿调圆角',
-    FullStackBlue:'工程文档 · 蓝色分节',WeChatPaper:'图文专栏 · 对称标题'
+    Basic:'工作文档 · 清晰层级',Simple:'日常写作 · 简洁留白',InkBlack:'长文阅读 · 书卷宋体',GeekBlack:'代码手册 · 等宽标题',
+    OrangeHeart:'生活随笔 · 暖橙边线',RedScarlet:'观点文章 · 朱红下划线',ColorfulPurple:'创意专栏 · 紫调浅底',
+    Yamabuki:'生活专栏 · 山吹暖底',TechnologyBlue:'技术文档 · 条理分明',LanQing:'文化随笔 · 蓝青细线',
+    TenderGreen:'日常记录 · 柔绿轻盈',WeChatFormat:'刊物文章 · 居中标题'
   };
-  /* 精选 9 套高对比度排版：简约 / 文档 / 书卷 / 专栏 / 刊物 / 学术 / 橙心 / 极客黑 / 萌绿，3×3 网格。 */
-  const keptTypes = ['Simple','Basic','InkBlack','Column','WeChatFormat','Academic','OrangeHeart','GeekBlack','CuteGreen'];
+  const keptTypes = ['Basic','Simple','InkBlack','GeekBlack','OrangeHeart','RedScarlet','ColorfulPurple','Yamabuki','TechnologyBlue','LanQing','TenderGreen','WeChatFormat'];
   const originalRules=window.VexTypeRules;
   const typeTokens={};
   /* 用户自定义排版（数组，键 user-<id>）：用各自编写层双明暗值注册令牌，对比度校正照跑。 */
@@ -56,7 +53,8 @@
       typeTokens[t.key][mode]={text,decoration,solid:decoration,on:onSolid(decoration)};
     }
   }
-  window.VexTypes = VexTypes.filter(t => keptTypes.includes(t.key));
+  const typeByKey=new Map(VexTypes.map(t=>[t.key,t]));
+  window.VexTypes = keptTypes.map(key=>typeByKey.get(key)).filter(Boolean);
   function typeProperties(t,exporting){
     const a=typeTokens[t.key].light,b=typeTokens[t.key].dark;
     const value=key=>exporting?a[key]:'light-dark('+a[key]+','+b[key]+')';
@@ -64,9 +62,8 @@
   }
   function rules(key,compact,exporting){
     const t=VexTypes.find(t=>t.key===key)||VexTypes[0];
-    const solidHeading=['Handbook','FrontendPeak'].includes(t.key)?'BODY h2{background:var(--type-solid);color:var(--type-on-accent)}':'';
-    return originalRules(t.key,compact)+'BODY{'+typeProperties(t,exporting)+';--type-size:'+Math.max(16,Number(t.rules.match(/--type-size:(\d+)/)?.[1]||16))+'px;'+(compact?'font-size:max(16px,calc(var(--writing-size,var(--type-size,16px)) * .93))':'')+'}'+
-      'BODY a{color:var(--typography-accent);text-decoration:underline;text-underline-offset:.18em}BODY blockquote{color:var(--fg);background:color-mix(in srgb,var(--type-decoration) 6%,transparent)}'+solidHeading;
+    return originalRules(t.key,compact)+'BODY{'+typeProperties(t,exporting)+';--type-size:'+Number(t.rules.match(/--type-size:(\d+)/)?.[1]||16)+'px;'+(compact?'font-size:calc(var(--writing-size,var(--type-size,16px)) * .93)':'')+'}'+
+      'BODY a{color:var(--typography-accent);text-decoration:underline;text-underline-offset:.18em}BODY blockquote{color:var(--fg);background:color-mix(in srgb,var(--type-decoration) 6%,transparent)}';
   }
   window.VexTypeRules=(key,compact)=>rules(key,compact,false);
   window.VexTypeExport=(key,compact)=>rules(key,compact,true).replaceAll('BODY','body')+

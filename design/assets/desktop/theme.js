@@ -179,8 +179,8 @@
     paletteDialog.querySelector('#pd-apply').onclick=function(){
       var pick=function(mode){var base={};['paper','surface','ink','accent'].forEach(function(key){base[key]=pdField(mode+'-'+key).value.toUpperCase();});return base;};
       var saved={name:pdField('name').value.trim()||'自定义',note:pdField('note').value.trim(),light:pick('light'),dark:pick('dark')};
-      var issues=VexPaletteRules.validate(customFull(saved.light,'light'),'light',VexPaletteRulesData.statusDefaults)
-        .concat(VexPaletteRules.validate(customFull(saved.dark,'dark'),'dark',VexPaletteRulesData.statusDefaults));
+      var issues=VexPaletteRules.validate(customFull(saved.light,'light'),'light',VexPaletteRulesData.statusDefaults,VexPaletteRulesData.derivation.light)
+        .concat(VexPaletteRules.validate(customFull(saved.dark,'dark'),'dark',VexPaletteRulesData.statusDefaults,VexPaletteRulesData.derivation.dark));
       var report=paletteDialog.querySelector('#palette-dialog-report');
       if(!window.VexTheme.applyCustomPalette(saved)){report.textContent='⚠ 保存失败，请重试';return;}
       if(window.VexPreferences)VexPreferences.set('palette',CUSTOM);

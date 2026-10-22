@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var items = VexTypes;
-  var state = { key: 'Simple', compact: false };
+  var state = { key: 'Simple', compact: false, scope: 'recommended' };
   /* 用户自定义排版（规则 §8/§13）：支持多个，存储为数组；卡上编辑/删除，"+"块新增，均走对话框。 */
   var customStore = 'vex-custom-typographics';
   var customs = [];
@@ -46,6 +46,7 @@
   try {
     var saved = JSON.parse(VexStorage.getItem('vex-design-typography') || '{}');
     if (typeof saved.compact === 'boolean') state.compact = saved.compact;
+    if (saved.scope === 'all' || saved.scope === 'recommended') state.scope = saved.scope;
     if (typeof saved.key === 'string') state.key = saved.key; /* 合法性在 sync 后校验 */
   } catch (_) {}
   var requested = new URLSearchParams(location.search).get('typography');
@@ -65,8 +66,20 @@
   function renderGrid() {
     panel.querySelector('.typography-grid').innerHTML = items.map(cardHtml).join('')
       + '<button type="button" class="typography-add" id="add-custom-type" aria-label="新增自定义排版" title="新增自定义排版"><span>＋</span><small>新增排版</small></button>';
+    applyScope();
   }
-  panel.innerHTML = '<div class="popover-title"><strong id="typography-title">正文排版</strong><button class="icon-button" id="typography-close" aria-label="关闭排版"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="typography-density"><strong>渲染密度</strong><div class="density-options" role="group" aria-label="Markdown 渲染密度">' + [['compact','紧凑'],['normal','正常'],['relaxed','宽松']].map(function (item) { return '<button type="button" data-tp-mdsize="' + item[0] + '" title="作用于 Markdown 渲染（基准字号 13/15/17）">' + item[1] + '</button>'; }).join('') + '</div></div><div class="typography-grid" role="group" aria-label="排版效果预览"></div>';
+  /* 推荐 / 全部（规则 §9）：当前方案与自定义排版始终可见，避免选中项被筛选隐藏。 */
+  function applyScope() {
+    panel.querySelectorAll('.typography-grid [data-typography-key]').forEach(function (button) {
+      var item = items.find(function (candidate) { return candidate.key === button.dataset.typographyKey; });
+      var hidden = state.scope === 'recommended' && item && !item.custom && !item.recommended && item.key !== state.key;
+      if (hidden) button.setAttribute('hidden', ''); else button.removeAttribute('hidden');
+    });
+    panel.querySelectorAll('[data-tp-scope]').forEach(function (button) {
+      button.setAttribute('aria-pressed', String(button.dataset.tpScope === state.scope));
+    });
+  }
+  panel.innerHTML = '<div class="popover-title"><strong id="typography-title">正文排版</strong><button class="icon-button" id="typography-close" aria-label="关闭排版"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="typography-density"><strong>渲染密度</strong><div class="density-options" role="group" aria-label="Markdown 渲染密度">' + [['compact','紧凑'],['normal','正常'],['relaxed','宽松']].map(function (item) { return '<button type="button" data-tp-mdsize="' + item[0] + '" title="作用于 Markdown 渲染（基准字号 13/15/17）">' + item[1] + '</button>'; }).join('') + '</div></div><div class="typography-scope"><strong>方案范围</strong><div class="density-options" role="group" aria-label="排版范围"><button type="button" data-tp-scope="recommended">推荐</button><button type="button" data-tp-scope="all">全部 ' + items.filter(function (item) { return item.key.indexOf('user-') !== 0; }).length + ' 套</button></div></div><div class="typography-grid" role="group" aria-label="排版效果预览"></div>';
   renderGrid();
   document.querySelector('.window-body').appendChild(panel);
 
@@ -130,6 +143,7 @@
     panel.querySelectorAll('[data-tp-mdsize]').forEach(function (button) {
       button.classList.toggle('on', button.dataset.tpMdsize === currentMdSize);
     });
+    applyScope();
     try { VexStorage.setItem('vex-design-typography', JSON.stringify(state)); } catch (_) {}
     /* 偏好启动回放会重放 typography（workbench configure→apply），这里同步写入避免覆盖（与自定义配色同模式）。 */
     if (window.VexPreferences && VexPreferences.values.typography !== state.key) VexPreferences.set('typography', state.key);
@@ -137,6 +151,10 @@
   panel.querySelector('.typography-density').onclick = function (event) {
     var size = event.target.closest('[data-tp-mdsize]');
     if (size) { if (window.VexTheme) VexTheme.setMdSize(size.dataset.tpMdsize); apply(); }
+  };
+  panel.querySelector('.typography-scope').onclick = function (event) {
+    var scope = event.target.closest('[data-tp-scope]');
+    if (scope) { state.scope = scope.dataset.tpScope; apply(); }
   };
   panel.querySelector('.typography-grid').onclick = function (event) {
     var edit = event.target.closest('[data-edit-type]');

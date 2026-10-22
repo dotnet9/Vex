@@ -117,7 +117,7 @@
         ensureText(stage1WithEnding); setLayout('read'); $('.reading-scroll').scrollTop = 0;
         waitForClick(['[data-action="typography"]:not([hidden])'], g('GateTypography', '点「排版」，给文字选一套样式'), function () {
           later(300, function () {
-            cycleTypography(['Simple', 'InkBlack', 'Column', 'WeChatFormat'], function () {
+            cycleTypography(['Simple', 'InkBlack', 'GeekBlack', 'WeChatFormat'], function () {
               VexTypography.close();
               later(300, done);
             });

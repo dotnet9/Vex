@@ -1,6 +1,6 @@
 /* 从 CodeWF.Avalonia《配色与排版令牌规则.md》附录 A 生成原型配色与密度令牌。
  * 单一事实源：规则文档。本脚本产出（均带版本戳，禁止手写，见规则 §14）：
- *   assets/palettes.css                          8 套配色 × 明暗 + 默认回退块
+ *   assets/palettes.css                          9 套配色 × 明暗 + 默认回退块
  *   assets/palettes.js                           VexPalettes 数据与旧 Key 别名
  *   assets/density.css                           密度三档显式值表（§6）
  *   assets/generated/palette-rules-data.js       供浏览器自定义配色编辑器使用
@@ -12,8 +12,18 @@ const Rules = require('../assets/palette-rules.js');
 const root = path.resolve(__dirname, '..');
 const args = process.argv.slice(2);
 const flag = name => args.indexOf(name);
-const rulesPath = flag('--rules') >= 0 ? path.resolve(args[flag('--rules') + 1])
-  : (process.env.VEX_RULES_DOC || 'D:/github/libs/CodeWF.Avalonia/docs/配色与排版令牌规则.md');
+/* 规则文档是三仓（Vex / CodeWF.Avalonia / CodeWF.Toolkit）共识的外部事实源，不在本仓内。
+ * 依次尝试：显式参数 → 环境变量 → 本仓同级 Libs → 旧机器路径，避免每个仓手填绝对路径。 */
+function rulesDoc(explicit, envName, candidates) {
+  const tries = [explicit, process.env[envName]].filter(Boolean).concat(candidates);
+  const found = tries.map(p => path.resolve(p)).find(p => fs.existsSync(p));
+  if (!found) throw new Error('未找到《配色与排版令牌规则.md》，请用 --rules 指定：\n  ' + tries.join('\n  '));
+  return found;
+}
+const rulesPath = rulesDoc(flag('--rules') >= 0 ? args[flag('--rules') + 1] : null, 'VEX_RULES_DOC', [
+  path.resolve(root, '../../../Libs/CodeWF.Avalonia/docs/配色与排版令牌规则.md'),
+  'D:/github/libs/CodeWF.Avalonia/docs/配色与排版令牌规则.md'
+]);
 const libRoot = path.dirname(path.dirname(rulesPath));
 
 const doc = fs.readFileSync(rulesPath, 'utf8');
@@ -61,7 +71,7 @@ for (const [key, palette] of Object.entries(data.palettes)) {
   const summary = { key, label: palette.label, en: palette.en, note: palette.note, recommended: !!palette.recommended, swatch: swatchOf(palette) };
   for (const mode of ['light', 'dark']) {
     const base = baseOf(palette, mode);
-    const report = Rules.validate(base, mode, data.statusDefaults);
+    const report = Rules.validate(base, mode, data.statusDefaults, data.derivation[mode]);
     report.forEach(message => issues.push(key + '/' + mode + ': ' + message));
     const vars = Rules.deriveVars(base, mode, data.derivation[mode]);
     paletteCss.push(cssBlock(mode, key, vars));
@@ -128,6 +138,8 @@ const rulesDataJs = '// ' + stamp + '\n'
     ruleVersion: data.ruleVersion, source: 'CodeWF.Avalonia ' + version,
     derivation: data.derivation, statusDefaults: data.statusDefaults,
     density: data.density, markdownSizeTiers: data.markdownSizeTiers,
+    componentOverrides: data.componentOverrides, derivedComponentKeys: data.derivedComponentKeys,
+    markdownNeutralLadder: data.markdownNeutralLadder,
     default: data.default, palettes: data.palettes
   }, null, 2) + ';\n';
 
