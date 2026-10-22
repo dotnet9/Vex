@@ -31,11 +31,13 @@ internal static class PopupLayoutVerification
             Console.WriteLine($"CAPTURE {name}: {control.Bounds}");
         }
         var file = title.FileMenuTarget;
-        Check(file.Items.Count == 16, "File menu matches the prototype's four groups and has no Save All row");
         var theme = title.FindControl<MenuItem>("ThemeMenuItem")!;
         var typography = title.FindControl<MenuItem>("TypographyMenuItem")!;
-        Check(theme.Items.OfType<MenuItem>().Count() == 19, "View menu exposes three modes and all sixteen palettes in a cascade");
-        Check(typography.Items.OfType<MenuItem>().Count() == 28, "View menu exposes twenty-seven typography choices and compact layout");
+        Console.WriteLine($"MENU COUNTS file={file.Items.Count} theme={theme.Items.OfType<MenuItem>().Count()} typography={typography.Items.OfType<MenuItem>().Count()}");
+        Check(file.Items.Count == 17 && file.Items.OfType<MenuItem>().All(row => row.Header?.ToString() != "全部保存"),
+            "File menu keeps its twelve rows and five groups without a Save All row");
+        Check(theme.Items.OfType<MenuItem>().Count() == 12, "View menu exposes three modes and all nine palettes in a cascade");
+        Check(typography.Items.OfType<MenuItem>().Count() == 13, "View menu exposes twelve typography choices and compact layout");
         var choice = theme.Items.OfType<MenuItem>().Last();
         choice.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent)); Render();
         Check(choice.IsChecked, "Selecting a palette synchronizes the title menu checkmark");
@@ -68,11 +70,14 @@ internal static class PopupLayoutVerification
             var panel = typography.GetVisualDescendants().OfType<Popup>().First().Child!;
             Check(panel.Bounds.Height <= window.ClientSize.Height - 56, "Long typography cascade scrolls within the window: " + culture.CultureName);
             var scroll = panel.GetVisualDescendants().OfType<ScrollViewer>().First();
-            Check(scroll.Extent.Height > scroll.Viewport.Height && scroll.Viewport.Height > 100, $"Last typography option stays reachable: {culture.CultureName} ({scroll.Extent}/{scroll.Viewport})");
+            var lastOption = typography.Items.OfType<MenuItem>().Last();
+            var lastBottom = lastOption.TranslatePoint(new Point(0, lastOption.Bounds.Height), panel)!.Value.Y;
+            Check(lastBottom <= panel.Bounds.Height + 1 && scroll.Viewport.Height > 100,
+                $"Last typography option stays reachable: {culture.CultureName} (extent={scroll.Extent.Height}, viewport={scroll.Viewport.Height}, lastBottom={lastBottom}, panel={panel.Bounds.Height})");
             typography.IsSubMenuOpen = false; Render();
             view.IsSubMenuOpen = false; Render();
         }
-        vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("weft"); Render();
+        vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("indigo"); Render();
         var appearance = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
         foreach (var (button, name) in new[] { (appearance.AppearanceButton, "appearance"), (appearance.LanguageButton, "language") })
         {

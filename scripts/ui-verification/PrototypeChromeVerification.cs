@@ -20,8 +20,7 @@ internal static class PrototypeChromeVerification
         Check(!vm.Layout.IsOutlineVisible, "Auxiliary panel starts closed for a new workspace");
         app.Resolve<IWorkspaceDocumentState>().UpdateDocument("# 在文字之间，理清思路\n\n一篇文章，从一个想法开始。这里保留完整的原文。\n\n## 写作，让想法有迹可循\n\n先记下观察，再整理线索。\n\n> 好的工具，让注意力回到内容本身。\n\n| API | 说明 |\n| --- | --- |\n| Read | 读取文档 |", null);
         var original = vm.Markdown; var history = vm.Workbench.History.Capture();
-        var toolbar = window.FindControl<ShellWorkbenchToolbarView>("WorkbenchToolbar")!;
-        var layoutButton = toolbar.FindControl<Button>("LayoutButton")!;
+        var layoutButton = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!.FindControl<Button>("LayoutButton")!;
         var formats = window.FindControl<ShellEditorOptionsView>("EditorOptions")!;
         foreach (var size in new[] { new Size(800,480), new Size(1024,768), new Size(1440,1000) })
         {
@@ -32,8 +31,10 @@ internal static class PrototypeChromeVerification
                 Check(vm.Workbench.LayoutName == layout.Name && vm.Markdown == original, "Current layout and document stay synchronized: " + size.Width + "/" + layout.Id);
             }
             vm.Workbench.SelectLayout("instant"); Render();
-            var center = layoutButton.TranslatePoint(new Point(layoutButton.Bounds.Width / 2, 0), window)!.Value.X;
-            Check(Math.Abs(center - window.ClientSize.Width / 2) < 2, "One layout trigger stays centered at " + size.Width);
+            var statusChrome = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!;
+            var center = layoutButton.TranslatePoint(new Point(layoutButton.Bounds.Width / 2, 0), statusChrome)!.Value.X;
+            Check(Math.Abs(center - statusChrome.Bounds.Width / 2) < 2,
+                $"One layout trigger stays centered at {size.Width}: center={center}, status={statusChrome.Bounds.Width}");
             var formatting = formats.FindControl<Ursa.Controls.ToolBar>("FormattingToolbar")!;
             Check(formatting.TranslatePoint(default, formats)!.Value.X >= 0 && formatting.Bounds.Width <= formats.Bounds.Width,
                 "Formatting toolbar stays inside the document at " + size.Width);

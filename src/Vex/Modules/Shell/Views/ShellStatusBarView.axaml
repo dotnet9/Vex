@@ -1,12 +1,15 @@
 <UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
  xmlns:prism="http://prismlibrary.com/" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}" prism:ViewModelLocator.AutoWireViewModel="True">
  <Border Height="32" Background="{DynamicResource VexDocumentPaperBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,1,0,0" Padding="12,0">
-  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-   <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+  <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="8">
+   <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="4" VerticalAlignment="Center">
     <ToggleButton x:Name="FilesToggle" Classes="wb-quiet" IsChecked="{Binding Layout.IsSidebarVisible, Mode=OneWay}" Command="{Binding Layout.ToggleSidebar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.DocumentList}}" Padding="6,3" MinHeight="24"><StackPanel Orientation="Horizontal" Spacing="5"><Path Classes="stroke-ico" Width="13" Height="13" Data="M3 3H21V21H3Z M8 3V21"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.SidebarFiles}}" FontSize="12"/></StackPanel></ToggleButton>
     <ToggleButton x:Name="OutlineToggle" Classes="wb-quiet" IsChecked="{Binding Layout.ShowOutlineSidebar, Mode=OneWay}" Command="{Binding Layout.ToggleOutline}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Outline}}" Padding="6,3" MinHeight="24"><StackPanel Orientation="Horizontal" Spacing="5"><Path Classes="stroke-ico" Width="13" Height="13" Data="M3 3H21V21H3Z M16 3V21"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.Outline}}" FontSize="12"/></StackPanel></ToggleButton>
    </StackPanel>
-   <Button x:Name="StatisticsButton" Grid.Column="1" IsVisible="{Binding Preferences.WordCountVisible}" Classes="wb-quiet" MinHeight="24" Padding="0" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}"><StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" FontSize="12"/><TextBlock Text="{Binding DocumentInfo.Statistics.Characters}" FontSize="12"/></StackPanel></Button>
+   <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Button x:Name="LayoutButton" Classes="wb-quiet" Command="{Binding Workbench.ToggleLayouts}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WSLayoutTitle}}" Padding="10,3" MinHeight="24" FontSize="12"><StackPanel Orientation="Horizontal" Spacing="7"><Path Classes="wb-icon" Data="{StaticResource WBColumnsIcon}"/><TextBlock Text="{Binding Workbench.LayoutName}"/><TextBlock Text="⌄" FontSize="10"/></StackPanel></Button>
+   </StackPanel>
+   <Button x:Name="StatisticsButton" Grid.Column="2" HorizontalAlignment="Right" IsVisible="{Binding Preferences.WordCountVisible}" Classes="wb-quiet" MinHeight="24" Padding="0" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}"><StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" FontSize="12"/><TextBlock Text="{Binding DocumentInfo.Statistics.Characters}" FontSize="12"/></StackPanel></Button>
   </Grid>
  </Border>
 </UserControl>

@@ -39,7 +39,7 @@ internal static class ProtectionVerification
         {
             Pump(vm.SaveAsync());
             Check(vm.Protection.HasSaveError && vm.DocumentInfo.IsModified && vm.Markdown == beforeFailure,
-                "Real locked-file failure preserves content and unsaved state");
+                $"Real locked-file failure preserves content and unsaved state: error={vm.Protection.HasSaveError}, modified={vm.DocumentInfo.IsModified}, unchanged={vm.Markdown == beforeFailure}");
             Check(vm.Workbench.History.Capture().Current == history.Current, "Failed save preserves shared undo history");
             vm.Markdown += "\nContinue editing"; Pump();
             Check(vm.Protection.HasSaveError && window.GetVisualDescendants().OfType<ShellWorkflowNotice>().Single().IsVisible,

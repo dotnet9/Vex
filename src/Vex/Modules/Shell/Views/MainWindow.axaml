@@ -62,9 +62,21 @@
     <codewf:CodeWFWindow.RightContent>
         <StackPanel x:Name="TitleBarAppearance" Orientation="Horizontal" Spacing="8" Margin="0,0,8,0"
                     VerticalAlignment="Center" IsEnabled="{Binding !IsInModalStatus, ElementName=ShellDialogHost}">
+            <Button x:Name="QuickStartButton" IsVisible="False" Classes="wb-quiet" Click="QuickStartClick" VerticalAlignment="Center" MinHeight="26" Padding="9,4" FontSize="12">
+                <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBQuickStart}}" />
+            </Button>
+            <Button Classes="wb-quiet" Command="{Binding ShowFindPanel}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Find}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Find}}" VerticalAlignment="Center" MinHeight="26" Padding="7">
+                <Path Classes="wb-icon" Data="{StaticResource WBSearchIcon}" />
+            </Button>
             <shell:ShellAppearanceMenuView x:Name="AppearanceMenu"/>
         </StackPanel>
     </codewf:CodeWFWindow.RightContent>
+
+    <codewf:CodeWFWindow.TitleBarContent>
+        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+            <TextBlock Text="{Binding DocumentInfo.CurrentDocumentTitle}" FontSize="12" FontWeight="SemiBold" MaxWidth="420" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" AutomationProperties.Name="{Binding DocumentInfo.CurrentDocumentTitle}" />
+        </StackPanel>
+    </codewf:CodeWFWindow.TitleBarContent>
 
     <!-- CodeWFWindow 模板已预留标题栏高度，内容只添加 1 像素分隔线。 -->
     <Border x:Name="ShellTitleDivider"
@@ -72,16 +84,15 @@
     <Grid
         x:Name="ShellGuideRoot"
         Background="{DynamicResource VexShellBackgroundBrush}"
-        RowDefinitions="Auto,Auto,*,Auto">
-        <Border Grid.Row="1" IsVisible="{Binding !Workbench.IsPresenting}">
+        RowDefinitions="Auto,*,Auto">
+        <Border Grid.Row="0" IsVisible="{Binding !Workbench.IsPresenting}">
             <StackPanel>
                 <shell:ShellWorkflowNotice/>
                 <shell:ShellFindBarView DataContext="{Binding FindBar}" />
             </StackPanel>
         </Border>
 
-        <shell:ShellWorkbenchToolbarView x:Name="WorkbenchToolbar" Grid.Row="0" IsVisible="{Binding !Workbench.IsPresenting}"/>
-        <Grid Grid.Row="2" x:Name="WorkspaceColumns" IsVisible="{Binding !Workbench.PresentationOutline}" Margin="{Binding Workbench.PresentationContentMargin}">
+        <Grid Grid.Row="1" x:Name="WorkspaceColumns" IsVisible="{Binding !Workbench.PresentationOutline}" Margin="{Binding Workbench.PresentationContentMargin}">
             <Grid.ColumnDefinitions>
                 <!-- 列宽是侧栏尺寸的唯一来源，拖动结果直接通过双向绑定进入布局状态。 -->
                 <ColumnDefinition Width="{Binding Layout.SidebarColumnWidth, Mode=TwoWay}"

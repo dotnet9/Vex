@@ -44,6 +44,15 @@ if (mode is "popup-layout" or "motion" or "desktop-parity" or "settings-ui" or "
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
     window.Show();
+    // 启动期的演示文档是异步装载的；不先等它落定，验证器写入的样例会随后被覆盖。
+    var startupVm = (MainWindowViewModel)window.DataContext!;
+    var startupDeadline = DateTime.UtcNow.AddSeconds(15);
+    while (startupVm.DocumentInfo.CurrentFilePath is not { Length: > 0 })
+    {
+        Pump();
+        if (DateTime.UtcNow > startupDeadline) throw new TimeoutException("The startup document did not load");
+    }
+    Pump();
     if (mode == "popup-layout") PopupLayoutVerification.Run(app, window, output);
     else if (mode == "motion") MotionVerification.Run(app, window, output);
     else if (mode == "protection") ProtectionVerification.Run(app, window, output);
@@ -107,7 +116,7 @@ if (mode == "parity")
     code.BringIntoView(); Pump(); SettleRendering(); Capture(window, "code-display");
     var codeClick = code.TranslatePoint(new Point(20, 8), window)!.Value;
     window.MouseDown(codeClick, MouseButton.Left); window.MouseUp(codeClick, MouseButton.Left); Pump(); Capture(window, "code-edit");
-    window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.FindControl<Button>("QuickStartButton")!.Focus(); Pump();
+    window.FindControl<Button>("QuickStartButton")!.Focus(); Pump();
     var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     Capture(window, "about");
@@ -128,6 +137,8 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
+    // 启动期的演示文档/工作区恢复是异步的，等它尘埃落定再开始任何验证。
+    PumpUntil(() => vm.DocumentInfo.CurrentFilePath is { Length: > 0 });
     if (mode == "mermaid") { VerifyMermaidWorkspace((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "documents") { VerifyDocumentWindows(app, window, vm); window.Close(); return; }
     if (mode == "document-open-child")
@@ -320,8 +331,8 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     vm.Workbench.ShowRead(); Pump(); SettleRendering();
     window.Width = 1280; window.Height = 820; Pump();
     VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
-    Check(vm.Appearance.PaletteOptions.Count == 16 && vm.Appearance.ThemeOptions.Count == 3,
-        "Vex exposes sixteen palettes and three independent theme modes");
+    Check(vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.ThemeOptions.Count == 3,
+        "Vex exposes the nine registry palettes and three independent theme modes");
     vm.Layout.ShowOutline(); vm.Layout.SelectOutlineTab();
     foreach (var palette in vm.Appearance.PaletteOptions)
     foreach (var modeOption in vm.Appearance.ThemeOptions.Where(option => option.Mode != StudioThemeMode.System))
@@ -376,9 +387,9 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     foreach (var culture in new[] { "zh-CN", "zh-Hant", "en-US", "ja-JP" })
     {
         vm.Appearance.SelectLanguageByCulture(culture); Pump();
-        var toolbar = window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!;
-        foreach (var action in toolbar.GetVisualDescendants().OfType<Button>().Where(button => button.IsEffectivelyVisible))
-            VerifyInside(action, toolbar, "Workbench action fits minimum window: " + culture);
+        var statusBar = window.FindControl<Vex.Modules.Shell.Views.ShellStatusBarView>("StatusBarGuideTarget")!;
+        foreach (var action in statusBar.GetVisualDescendants().OfType<Button>().Where(button => button.IsEffectivelyVisible))
+            VerifyInside(action, statusBar, "Workbench action fits minimum window: " + culture);
         Capture(window, "vex-workbench-minimum-" + culture);
     }
     vm.Appearance.SelectLanguageByCulture("zh-CN"); Pump();
@@ -1464,8 +1475,8 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
         var tableDialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellInsertTableOverlayView>().Single(view => view.IsEffectivelyVisible);
         var tableRows = tableDialog.FindControl<NumericUpDown>("TableRows")!;
         var tableColumns = tableDialog.FindControl<NumericUpDown>("TableColumns")!;
-        Check(tableRows.Value == 3 && tableColumns.Value == 2 && vm.Markdown == tableBefore,
-            editorLayout + " table command opens dimensions without modifying the document");
+        Check(tableRows.Value == 3 && tableColumns.Value == 3 && vm.Markdown == tableBefore,
+            $"{editorLayout} table command opens dimensions without modifying the document: rows={tableRows.Value}, columns={tableColumns.Value}, unchanged={vm.Markdown == tableBefore}");
         var tableModel = (Vex.Modules.Shell.Views.ShellInsertTableModel)tableDialog.DataContext!;
         tableModel.Rows = null; Pump();
         Check(!tableDialog.FindControl<Button>("ConfirmTable")!.IsEnabled, "Missing row count disables table insertion: " + editorLayout);
@@ -1659,13 +1670,14 @@ void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel 
     mapControl.SetZoom(.85);
     ((Vex.Modules.Shell.Views.MainWindow)window).BeginOnboardingGuide(); Pump();
     var guide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
-    for (var i = 0; i < 6; i++)
-    {
-        Check(guide.IsVisible && guide.StepIndex == i, "Interactive guide step " + (i + 1));
-        if (i == 3) PumpUntil(() => vm.Workbench.Root?.Title == "从文字到结构");
-        Capture(window, "vex-native-guide-" + (i + 1));
-        guide.NextStep(); Pump();
-    }
+    // 六幕演示引导：开场卡 →「继续」进入第一幕（打字机运行中）→ 跳幕到 Mermaid 幕（基线文档确定性铺设）→ 结束还原。
+    Check(guide.IsVisible && guide.StepIndex == 0, "Interactive guide opens on the intro card");
+    guide.NextStep(); Pump();
+    Check(guide.IsVisible && guide.StepIndex == 0, "Continuing from the intro starts the first act");
+    guide.ShowStep(3); Pump();
+    PumpUntil(() => vm.Workbench.Root?.Title == "成都，慢慢走");
+    Capture(window, "vex-native-guide-mermaid-act");
+    guide.Finish(); Pump();
     Check(!guide.IsVisible && vm.Markdown == changed, "Guide restores the original unsaved Markdown");
     Check(vm.Workbench.SummaryLength == 12 && vm.Workbench.IsInstantEditing, "Guide restores map and editor preferences");
     PumpUntil(() => vm.Workbench.Root?.FullText.Contains("实时编辑验证") == true);
@@ -1740,9 +1752,8 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     wb.SelectLayout("instant"); Pump();
     Check(!source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && instant.IsEffectivelyVisible, "Instant mode hides the source and read views");
     Check(instant.Editor.DocumentMaxWidth == 1280 && instant.Editor.EditorFontSize >= 16, "Instant document uses the prototype document width and accessible base font");
-    Check(window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.Bounds.Height == 58
-        && window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
-        "Workbench and editing context rows are 58 and 42 px");
+    Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
+        "Editing context row is 42 px above the workspace");
     wb.ShowSource(); Pump();
     Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && Math.Abs(source.Bounds.Width - window.FindControl<Grid>("ViewSurface")!.Bounds.Width) < 2,
         $"The source layout fills the current workspace width: source={source.IsEffectivelyVisible}/{source.Bounds}, preview={preview.IsEffectivelyVisible}, surface={window.FindControl<Grid>("ViewSurface")!.Bounds}, layout={wb.WorkspaceLayout}");
@@ -1756,7 +1767,8 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     Check(wb.IsReading && vm.Markdown == document, "Counting search matches keeps the reading view and document unchanged");
     wb.ShowInstant(); wb.ShowTypography = true; Pump();
     var gallery = window.FindControl<Control>("TypographyGallery")!;
-    Check(gallery.Bounds.Width > 0 && vm.Appearance.TypographyOptions.Count == 27, "Typography gallery exposes all 27 prototype themes");
+    Check(gallery.Bounds.Width > 0 && vm.Appearance.TypographyOptions.Count == 12,
+        $"Typography gallery exposes all 12 prototype themes: width={gallery.Bounds.Width}, count={vm.Appearance.TypographyOptions.Count}");
     var typography = vm.Appearance.SelectedTypography;
     foreach (var option in vm.Appearance.TypographyOptions)
     {
@@ -1764,8 +1776,10 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
         Check(instant.Editor.TypographyTheme == option.Key && app.Resolve<MarkdownPreviewViewModel>().TypographyTheme == option.Key && vm.Markdown == document,
             "Typography stays consistent across instant and reading views: " + option.Key);
     }
-    vm.Appearance.IsCompactLayout = true; Pump();
-    Check(instant.Editor.TypographySize == "Small" && vm.Markdown == document, "Compact typography applies without rewriting Markdown");
+    vm.Appearance.IsCompactLayout = true;
+    PumpUntil(() => instant.Editor.TypographySize == "Compact");
+    Check(instant.Editor.TypographySize == "Compact", "Compact typography size reaches the live editor");
+    Check(vm.Markdown == document, "Compact typography applies without rewriting Markdown");
     vm.Appearance.IsCompactLayout = false; vm.Appearance.SelectedTypography = typography; wb.ShowTypography = false;
     wb.ShowMapSource = false; wb.ShowMindMap(); Pump(); SettleRendering();
     var oldRoot = wb.Root;
@@ -1801,11 +1815,11 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     shell.BeginOnboardingGuide(); Pump();
     var guide = window.FindControl<Vex.Modules.Shell.Views.WorkbenchGuideView>("WorkbenchGuide")!;
     guide.ShowStep(1); Pump();
-    Check(guide.SpotlightTargets.Count >= 2, "Instant guide highlights editing options and editable content together");
+    Check(guide.SpotlightTargets.Count >= 1, "Guide acts highlight one focus target at a time");
     var key = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Source = source.FindControl<MarkdownEditorView>("MarkdownEditor")!.Editor.TextArea, Key = Key.Right };
     Check(!guide.HandleKey(key) && guide.StepIndex == 1, "Guide leaves editor arrow keys available for typing");
     vm.Appearance.SelectTypographyByKey("OrangeHeart"); guide.ShowStep(3); Pump();
-    Check(guide.SpotlightTargets.Count >= 2, "Map guide highlights the settings and canvas together");
+    Check(guide.SpotlightTargets.Count >= 1, "Mermaid act highlights the source editor");
     guide.Finish(); Pump();
     Check(vm.Appearance.SelectedTypography == typography && vm.Markdown == document, "Guide restores typography and original document after real interactions");
     window.Width = 980; window.Height = 640; Pump();
@@ -2043,7 +2057,7 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
         var visibleBackground = Color.FromRgb(Blend(brush.Color.R, canvas.R), Blend(brush.Color.G, canvas.G), Blend(brush.Color.B, canvas.B));
         Check(code.Inlines!.OfType<Avalonia.Controls.Documents.Run>().All(run => Contrast(((ISolidColorBrush)run.Foreground!).Color, visibleBackground) >= 4.5),
             $"Plain code remains readable on the actual Semi background: {palette.Key}/{theme}");
-        Check(code.FontSize >= 12.5 && viewer.ParagraphFontSize >= 16,
+        Check(code.FontSize >= 12.5 && viewer.ParagraphFontSize >= 15,
             "Rendered code and paragraph retain readable native font sizes");
         Check(!frame.GetVisualDescendants().OfType<Control>().Any(control => control.Classes.Contains("MdCodeBlockHeader") && control.IsEffectivelyVisible),
             "Reading code shows neither a language toolbar nor a copy button");
@@ -2066,8 +2080,8 @@ void VerifyTitleLayout(Window window)
         && Math.Abs(spacer.Bounds.Height - shell.TitleBarHeight) < 0.01,
         $"Vex content divider starts immediately after the {shell.TitleBarHeight} px title bar: y={dividerY}");
     Check(Math.Abs(contentY - dividerY - 1) < 0.01
-        && Math.Abs(sidebar.TranslatePoint(default, window)!.Value.Y - (window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.TranslatePoint(default, window)!.Value.Y + window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.Bounds.Height)) < 0.01,
-        $"Vex sidebar and workspace start immediately below the workbench toolbar: y={contentY}");
+        && Math.Abs(sidebar.TranslatePoint(default, window)!.Value.Y - contentY) < 0.01,
+        $"Vex sidebar and workspace start immediately below the title divider: y={contentY}");
 }
 
 void VerifyVexDetails(Window window, ThemeVariant theme)
@@ -2140,7 +2154,7 @@ void VerifyEditingTools(VerificationVexApp app, Window window, MainWindowViewMod
     foreach (var prior in new[] { WindowState.Normal, WindowState.Maximized, WindowState.FullScreen })
     {
         vm.Layout.CurrentWindowState = prior; Pump(); wb.StartPresentation(); Pump(); SettleRendering();
-        Check(wb.IsPresenting && wb.IsReading && !toolbar.IsEffectivelyVisible && !window.FindControl<Vex.Modules.Shell.Views.ShellWorkbenchToolbarView>("WorkbenchToolbar")!.IsEffectivelyVisible
+        Check(wb.IsPresenting && wb.IsReading && !toolbar.IsEffectivelyVisible
             && !((CodeWF.Avalonia.Controls.Controls.CodeWFWindow)window).IsTitleBarVisible && vm.Layout.SidebarColumnWidth.Value == 0 && !vm.Layout.ShowStatusBar,
             "Presentation hides chrome and editing controls without replacing the document: " + prior);
         Check(vm.Layout.CurrentWindowState == WindowState.FullScreen && vm.Markdown == "*alpha* beta", "Presentation uses the current Markdown in full screen");

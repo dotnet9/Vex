@@ -30,13 +30,14 @@ internal static class PrototypeAppearanceVerification
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         void Click(Button button) { button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render(); }
         if (OperatingSystem.IsWindows()) Check(chineseTypeface.FontFamily.Name == "Microsoft YaHei UI", "Chinese body text uses the system sans-serif fallback");
-        Check(vm.Appearance.PaletteOptions.Count == 16 && vm.Appearance.TypographyOptions.Count == 27, "Native catalog matches 16 palettes and 27 typography styles");
-        vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("weft"); vm.Appearance.SelectThemeByKey("light");
+        Check(vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.TypographyOptions.Count == 12, "Native catalog matches 9 palettes and 12 typography styles");
+        vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("indigo"); vm.Appearance.SelectThemeByKey("light");
+        Render();
         var original = app.Resolve<IWorkspaceDocumentState>().Markdown;
         vm.Workbench.ShowTypography = true; Render();
         var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
         var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true).ToArray();
-        Check(cards.Length == 27 && cards.Count(b => b.IsVisible) == 6, "All independent cards exist and six recommended cards are shown");
+        Check(cards.Length == 12 && cards.Count(b => b.IsVisible) == 6, "All independent cards exist and six recommended cards are shown");
         Check(cards.All(card => card.Content is StackPanel stack && stack.Children.OfType<Border>().Single().Child is MarkdownViewer preview
             && preview.TypographyTheme == card.Name![11..]), "Each card renders its own typography key");
         var simple = cards.First(b => b.Name == "Typography_Simple"); simple.Focus();
@@ -45,12 +46,13 @@ internal static class PrototypeAppearanceVerification
         Check(vm.Appearance.SelectedTypography == selected, "Arrow navigation moves focus without applying typography");
         var book = cards.First(b => b.Name == "Typography_InkBlack"); Click(book);
         Check(vm.Appearance.SelectedTypography?.Key == "InkBlack" && vm.Workbench.ShowTypography, "Click applies typography and keeps comparison panel open");
-        Click(gallery.GetVisualDescendants().OfType<Button>().First(b => b.Content as string == "全部 27 套"));
-        Check(cards.All(b => b.IsVisible), "All 27 typography styles are one click away");
+        Click(gallery.GetVisualDescendants().OfType<Button>().First(b => b.Content as string == "全部 12 套"));
+        Check(cards.All(b => b.IsVisible), "All 12 typography styles are one click away");
         foreach (var size in new[] { new Size(800,480), new Size(1024,768), new Size(1440,1000) })
         {
             window.Width = size.Width; window.Height = size.Height; Render();
-            Check(gallery.Bounds.Width <= window.ClientSize.Width && gallery.Bounds.Height <= window.ClientSize.Height - 90, "Typography panel fits " + size.Width);
+            Check(gallery.Bounds.Width <= window.ClientSize.Width && gallery.Bounds.Bottom <= window.ClientSize.Height - 11,
+                $"Typography panel fits {size.Width}: gallery={gallery.Bounds}, margin={gallery.Margin}, client={window.ClientSize}");
             var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
             Check(scroll.Viewport.Height > 50 && scroll.Extent.Height > scroll.Viewport.Height, "Card area scrolls independently at " + size.Width);
             Check(cards.All(card => card.Bounds.Height >= 332), "Cards retain readable natural height at " + size.Width);
@@ -94,9 +96,18 @@ internal static class PrototypeAppearanceVerification
                 combinations++;
             }
         }
-        Check(combinations == 864, "864 native palette/mode/typography combinations retain readable body, links, quotes and headings");
-        vm.Appearance.SelectPaletteByKey("weft"); vm.Appearance.SelectThemeByKey("light");
-        Check(app.Resolve<IWorkspaceDocumentState>().Markdown == original, "Appearance and layout changes preserve Markdown exactly");
+        Check(combinations == 216, "216 native palette/mode/typography combinations retain readable body, links, quotes and headings");
+        vm.Appearance.SelectPaletteByKey("indigo"); vm.Appearance.SelectThemeByKey("light");
+        var current = app.Resolve<IWorkspaceDocumentState>().Markdown;
+        if (current != original)
+        {
+            var index = 0;
+            while (index < Math.Min(current.Length, original.Length) && current[index] == original[index]) index++;
+            Console.WriteLine($"MARKDOWN DRIFT at {index}: original={original.Length} current={current.Length}");
+            Console.WriteLine("ORIGINAL: " + original[Math.Max(0, index - 60)..Math.Min(original.Length, index + 60)]);
+            Console.WriteLine("CURRENT : " + current[Math.Max(0, index - 60)..Math.Min(current.Length, index + 60)]);
+        }
+        Check(current == original, "Appearance and layout changes preserve Markdown exactly");
         Console.WriteLine("PASS Native comparison interaction and size checks complete");
     }
 

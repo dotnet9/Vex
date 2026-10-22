@@ -34,8 +34,8 @@ public partial class MainWindow : CodeWFWindow
         var separateViews = new MenuItem();
         separateViews.Header = DesignSelectionControls.Text("WSSeparate");
         separateViews.Click += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Workbench.ShowLayouts = false; WorkspaceViews.Separate(); };
-        WorkbenchToolbar.LayoutTarget.ContextMenu = new ContextMenu { Items = { separateViews } };
-        WorkbenchToolbar.LayoutTarget.ContextMenu.Opening += (_, _) => separateViews.Header = DesignSelectionControls.Text("WSSeparate");
+        LayoutTarget.ContextMenu = new ContextMenu { Items = { separateViews } };
+        LayoutTarget.ContextMenu.Opening += (_, _) => separateViews.Header = DesignSelectionControls.Text("WSSeparate");
         SidebarSplitter.DragStarted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.BeginSidebarResize(); };
         SidebarSplitter.DragCompleted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.CompleteSidebarResize(); };
         OutlineSplitter.DragStarted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.BeginOutlineResize(); };
@@ -55,7 +55,6 @@ public partial class MainWindow : CodeWFWindow
             if (DataContext is MainWindowViewModel vm) { vm.Layout.IsCompactWindow = Bounds.Width < 1100; vm.Layout.WorkspaceWidth = Bounds.Width; }
         };
         TitleMenuView.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
-        WorkbenchToolbar.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
         AddHandler(KeyDownEvent, WindowKeyDown, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, WorkbenchPointerPressed, RoutingStrategies.Tunnel);
         DragDrop.SetAllowDrop(this, true);
@@ -102,9 +101,15 @@ public partial class MainWindow : CodeWFWindow
     private void WorkbenchPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm || e.Source is not Visual source) return;
-        if (WorkbenchGuide.IsVisible && !WorkbenchGuide.AllowsPointer(source)) { e.Handled = true; return; }
+        if (WorkbenchGuide.IsVisible)
+        {
+            if (WorkbenchGuide.AllowsPointer(source)) return;
+            WorkbenchGuide.PointerRejected(source);
+            e.Handled = true;
+            return;
+        }
         var ancestors = source.GetVisualAncestors().Prepend(source).ToArray();
-        if (vm.Workbench.ShowLayouts && !ancestors.Contains(LayoutGallery) && !ancestors.Contains(WorkbenchToolbar.LayoutTarget)) vm.Workbench.ShowLayouts = false;
+        if (vm.Workbench.ShowLayouts && !ancestors.Contains(LayoutGallery) && !ancestors.Contains(LayoutTarget)) vm.Workbench.ShowLayouts = false;
         if (vm.Workbench.ShowTypography && !ancestors.Contains(TypographyGallery) && !ancestors.Contains(EditorOptions)) vm.Workbench.ShowTypography = false;
     }
 
@@ -113,6 +118,8 @@ public partial class MainWindow : CodeWFWindow
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key is Key.S or Key.W or Key.O or Key.N)
             MindMapGuideTarget.FlushInspector();
         if (e.Source is Visual dialogInput && dialogInput.GetVisualAncestors().Prepend(dialogInput).Any(view => view is ShellInsertTableOverlayView)) return;
+        // 引导按键优先：演示中的 Esc/翻页等在引导第 5 幕期间由引导接管。
+        if (WorkbenchGuide.IsVisible && WorkbenchGuide.HandleKey(e)) { e.Handled = true; return; }
         if (DataContext is MainWindowViewModel presentationVm && presentationVm.Workbench.IsPresenting)
         {
             if (presentationVm.Workbench.PresentationMap && e.Key is Key.Add or Key.OemPlus or Key.Subtract or Key.OemMinus)
@@ -122,7 +129,6 @@ public partial class MainWindow : CodeWFWindow
         }
         if (e.Key == Key.F5 && e.KeyModifiers == KeyModifiers.None && DataContext is MainWindowViewModel startVm)
         { startVm.Workbench.StartPresentation(); e.Handled = true; return; }
-        if (WorkbenchGuide.IsVisible && WorkbenchGuide.HandleKey(e)) { e.Handled = true; return; }
         if (e.Key == Key.Escape && MindMapGuideTarget.HandleEscape()) { e.Handled = true; return; }
         if (RouteWorkspaceHistory(e)) return;
         var editingMapTitle = e.Source is Visual input && input.GetVisualAncestors().Prepend(input).Any(item => item is TextBox)
@@ -131,7 +137,7 @@ public partial class MainWindow : CodeWFWindow
         {
             var layouts = vm.Workbench.ShowLayouts; var typography = vm.Workbench.ShowTypography;
             vm.Workbench.ShowLayouts = false; vm.Workbench.ShowTypography = false; vm.Workbench.ShowMapSettings = false; vm.Workbench.CloseInspector();
-            if (layouts) WorkbenchToolbar.LayoutTarget.Focus();
+            if (layouts) LayoutTarget.Focus();
             else if (typography) EditorOptions.FindControl<Button>("TypographyTarget")?.Focus();
             e.Handled = true; return;
         }
@@ -182,15 +188,20 @@ public partial class MainWindow : CodeWFWindow
 
     private void QueueFirstRunOnboardingGuide()
     {
-        WorkbenchToolbar.QuickStartButton.IsVisible = _settingsStore?.Current.HasSeenOnboardingGuide != true;
+        QuickStartButton.IsVisible = _settingsStore?.Current.HasSeenOnboardingGuide != true;
     }
 
     private void TitleMenuView_OnBeginGuideRequested(object? sender, EventArgs e) => BeginOnboardingGuide();
 
+    /// <summary>原型把布局切换入口放在状态栏中央（原第二行工具栏已并入标题栏与状态栏）。</summary>
+    public Button LayoutTarget => StatusBarGuideTarget.FindControl<Button>("LayoutButton")!;
+
+    private void QuickStartClick(object? sender, RoutedEventArgs e) => BeginOnboardingGuide();
+
     public void BeginOnboardingGuide()
     {
         if (DataContext is MainWindowViewModel vm)
-            WorkbenchGuide.Start(vm, this, _settingsStore, new Control[] { InstantGuideTarget, OutlineGuideTarget, MindMapGuideTarget, WorkbenchToolbar.LayoutTarget, EditorOptions, TitleMenuView.FileMenuTarget });
+            WorkbenchGuide.Start(vm, this, _settingsStore, new Control[] { InstantGuideTarget, OutlineGuideTarget, MindMapGuideTarget, LayoutTarget, EditorOptions, TitleMenuView.FileMenuTarget });
     }
 
     private void MainWindow_OnClosing(object? sender, WindowClosingEventArgs e)

@@ -91,10 +91,11 @@
         <Setter Property="BorderBrush" Value="{DynamicResource SemiColorDanger}" />
         <Setter Property="Foreground" Value="{DynamicResource SemiColorDanger}" />
     </Style>
+    <!-- 按下态文字用强危险色：部分调色板（如石墨）的 DangerActive 与软底同值，弱色落在软底上对比度不足。 -->
     <Style Selector="Button.danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource SemiColorDangerLightActive}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource SemiColorDangerActive}" />
-        <Setter Property="Foreground" Value="{DynamicResource SemiColorDangerActive}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SemiColorDanger}" />
+        <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}" />
     </Style>
 
     <!-- ============================================================
