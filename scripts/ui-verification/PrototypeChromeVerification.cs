@@ -92,6 +92,14 @@ internal static class PrototypeChromeVerification
         pins.PinReadingToolbar = true; pins.PinMapToolbar = true; Render();
         Check(Grid.GetRow(readingHeader) == 0 && !readingHeader.Classes.Contains("floating") && Grid.GetRow(mapBar) == 0 && !mapBar.Classes.Contains("floating"),
             "Re-pinning docks both toolbars back into the layout");
+        // 演示字号拖动条：拖动实时改字号，百分比读数随动，1.0–2.5。
+        vm.Workbench.StartPresentation(); Render();
+        var zoomSlider = window.FindControl<Slider>("PresentationZoomSlider")!;
+        zoomSlider.Value = 2.5; Render();
+        Check(Math.Abs(vm.Workbench.PresentationZoom - 2.5) < 0.001 && vm.Workbench.PresentationZoomText == "250%", "Slider raises presentation zoom to 250 percent");
+        zoomSlider.Value = 1; Render();
+        Check(vm.Workbench.PresentationZoom == 1 && vm.Workbench.PresentationZoomText == "100%", "Slider restores presentation zoom to 100 percent");
+        vm.Workbench.StopPresentation(); Render();
         vm.Workbench.SelectLayout("instant"); Render();
         foreach (var culture in vm.Appearance.LanguageOptions)
         {

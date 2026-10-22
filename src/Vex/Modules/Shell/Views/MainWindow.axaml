@@ -176,8 +176,10 @@
                     <Button x:Name="PresentationNext" Classes="wb-quiet" Content="→" Command="{Binding Workbench.NextPresentation}" IsEnabled="{Binding Workbench.CanNextPresentation}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationNext}}"/>
                 </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="3">
-                <Button x:Name="PresentationSmaller" Classes="wb-quiet" IsVisible="{Binding Workbench.PresentationDocument}" Command="{Binding Workbench.DecreasePresentationText}" IsEnabled="{Binding Workbench.CanDecreasePresentationText}" Content="A−" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationSmaller}}"/>
-                <Button x:Name="PresentationLarger" Classes="wb-quiet" IsVisible="{Binding Workbench.PresentationDocument}" Command="{Binding Workbench.IncreasePresentationText}" IsEnabled="{Binding Workbench.CanIncreasePresentationText}" Content="A+" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationLarger}}"/>
+                <TextBlock x:Name="PresentationSmallerLabel" Text="A−" IsVisible="{Binding Workbench.PresentationDocument}" VerticalAlignment="Center" Margin="4,0,6,0" FontSize="11" Foreground="{DynamicResource VexMutedBrush}"/>
+                <Slider x:Name="PresentationZoomSlider" Width="150" Minimum="1" Maximum="2.5" SmallChange="0.1" IsVisible="{Binding Workbench.PresentationDocument}" Value="{Binding Workbench.PresentationZoomValue}" VerticalAlignment="Center" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationZoom}}"/>
+                <TextBlock x:Name="PresentationLargerLabel" Text="A+" IsVisible="{Binding Workbench.PresentationDocument}" VerticalAlignment="Center" Margin="2,0,6,0" FontSize="11" Foreground="{DynamicResource VexMutedBrush}"/>
+                <TextBlock Text="{Binding Workbench.PresentationZoomText}" IsVisible="{Binding Workbench.PresentationDocument}" VerticalAlignment="Center" MinWidth="40" FontSize="11" Foreground="{DynamicResource VexMutedBrush}"/>
                 <Button x:Name="PresentationExit" Classes="vex-dismiss" Command="{Binding Workbench.StopPresentation}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}"/>
             </StackPanel>
             </Grid>

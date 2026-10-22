@@ -126,6 +126,10 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public double PresentationZoom => _presentationZoom;
     public bool CanIncreasePresentationText => PresentationZoom < 2.5;
     public bool CanDecreasePresentationText => PresentationZoom > 1;
+
+    /// <summary>演示字号拖动条的双向绑定：取值经 SetPresentationZoom 收敛到 0.1 步长。</summary>
+    public double PresentationZoomValue { get => PresentationZoom; set => SetPresentationZoom(value); }
+    public string PresentationZoomText => $"{Math.Round(PresentationZoom * 100)}%";
     /// <summary>临时进入全屏阅读；编辑状态、布局及偏好保留原值。</summary>
     public void StartPresentation()
     {
@@ -169,7 +173,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     {
         if (modeChanged) this.RaisePropertyChanged(nameof(IsPresenting));
         if (_reportedPresentationMap != PresentationMap) { _reportedPresentationMap = PresentationMap; this.RaisePropertyChanged(nameof(PresentationMap)); }
-        foreach (var name in new[] { nameof(ShowEditorOptions), nameof(PresentationZoom), nameof(CanIncreasePresentationText), nameof(CanDecreasePresentationText), nameof(PresentationMarkdown), nameof(PresentationIndex), nameof(PresentationProgress), nameof(PresentationOutline), nameof(PresentationDocument), nameof(PresentationContentMargin), nameof(CanPreviousPresentation), nameof(CanNextPresentation), nameof(IsMapVisible), nameof(IsPreviewVisible) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(ShowEditorOptions), nameof(PresentationZoom), nameof(PresentationZoomText), nameof(CanIncreasePresentationText), nameof(CanDecreasePresentationText), nameof(PresentationMarkdown), nameof(PresentationIndex), nameof(PresentationProgress), nameof(PresentationOutline), nameof(PresentationDocument), nameof(PresentationContentMargin), nameof(CanPreviousPresentation), nameof(CanNextPresentation), nameof(IsMapVisible), nameof(IsPreviewVisible) }) this.RaisePropertyChanged(name);
     }
     private static string L(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
     public string EditingHint => L(IsInstantEditing ? VexL.WBInstantDescription : IsReading ? VexL.WBReadDescription : VexL.WBSourceDescription);

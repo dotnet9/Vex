@@ -234,6 +234,7 @@ namespace Vex
         public static readonly string StatusViewMap = "Vex.VexL.StatusViewMap";
         public static readonly string StatusViewMore = "Vex.VexL.StatusViewMore";
         public static readonly string WBPinToolbar = "Vex.VexL.WBPinToolbar";
+        public static readonly string WBPresentationZoom = "Vex.VexL.WBPresentationZoom";
         public static readonly string Changelog = "Vex.VexL.Changelog";
         public static readonly string QuickStart = "Vex.VexL.QuickStart";
         public static readonly string OnboardingGuide = "Vex.VexL.OnboardingGuide";
