@@ -749,6 +749,13 @@ namespace Vex
         public static readonly string PrefWatermarkExport = "Vex.VexL.PrefWatermarkExport";
         public static readonly string PrefWatermarkText = "Vex.VexL.PrefWatermarkText";
         public static readonly string PrefWatermarkOpacity = "Vex.VexL.PrefWatermarkOpacity";
+        public static readonly string PrefWatermarkPreviewNote = "Vex.VexL.PrefWatermarkPreviewNote";
+        public static readonly string PrefWatermarkFontSize = "Vex.VexL.PrefWatermarkFontSize";
+        public static readonly string PrefWatermarkColor = "Vex.VexL.PrefWatermarkColor";
+        public static readonly string PrefWatermarkWeight = "Vex.VexL.PrefWatermarkWeight";
+        public static readonly string PrefWeightLight = "Vex.VexL.PrefWeightLight";
+        public static readonly string PrefWeightRegular = "Vex.VexL.PrefWeightRegular";
+        public static readonly string PrefWeightBold = "Vex.VexL.PrefWeightBold";
         public static readonly string PrefPdfSize = "Vex.VexL.PrefPdfSize";
         public static readonly string PrefPdfMargin = "Vex.VexL.PrefPdfMargin";
         public static readonly string PrefMcpServer = "Vex.VexL.PrefMcpServer";

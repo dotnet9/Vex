@@ -34,7 +34,8 @@ public sealed class ShellStatusBarViewModel : ReactiveObject
 
     public EditorPreferences Preferences => Workbench.Preferences;
     public ShellAppearanceViewModel Appearance { get; }
-    public Task ShowStatisticsAsync() { Layout.SelectInfoTab(); return Task.CompletedTask; }
+    /// <summary>状态栏字数入口：打开文章信息统计浮层（对应原型 sb-wordcount → dlg-statistics）。</summary>
+    public Task ShowStatisticsAsync() => _overlays.ShowStatisticsAsync(DocumentInfo);
 
     public ShellStatusViewModel Status { get; }
 

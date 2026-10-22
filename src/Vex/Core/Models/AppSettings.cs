@@ -117,6 +117,9 @@ public sealed record AppSettings
     public bool? WatermarkExport { get; init; }
     public string? WatermarkText { get; init; }
     public double? WatermarkOpacity { get; init; }
+    public double? WatermarkFontSize { get; init; }
+    public string? WatermarkColor { get; init; }
+    public int? WatermarkWeight { get; init; }
     public string? PdfSize { get; init; }
     public double? PdfMargin { get; init; }
 }

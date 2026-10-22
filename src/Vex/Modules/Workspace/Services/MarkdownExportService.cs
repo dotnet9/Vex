@@ -314,7 +314,11 @@ public sealed class MarkdownExportService : IMarkdownExportService
     {
         if (!_preferences.WatermarkExport || string.IsNullOrWhiteSpace(_preferences.WatermarkText)) return "";
         var text = System.Security.SecurityElement.Escape(_preferences.WatermarkText);
-        var svg = $"<svg xmlns='http://www.w3.org/2000/svg' width='280' height='180'><text x='20' y='100' transform='rotate(-25 140 90)' font-family='sans-serif' font-size='20' fill='#24766b'>{text}</text></svg>";
+        var color = System.Text.RegularExpressions.Regex.IsMatch(_preferences.WatermarkColor, "^#[0-9a-fA-F]{6}$")
+            ? _preferences.WatermarkColor.ToLowerInvariant() : "#24766b";
+        var weight = _preferences.WatermarkWeight switch { 300 => "300", 700 => "700", _ => "400" };
+        var size = FormatCssNumber(Math.Clamp(_preferences.WatermarkFontSize, 12, 36));
+        var svg = $"<svg xmlns='http://www.w3.org/2000/svg' width='280' height='180'><text x='20' y='100' transform='rotate(-25 140 90)' font-family='sans-serif' font-size='{size}' font-weight='{weight}' fill='{color}'>{text}</text></svg>";
         var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(svg));
         return $"article {{ position: relative; }} article::after {{ content: ''; position: absolute; inset: 0; pointer-events: none; opacity: {FormatCssNumber(_preferences.WatermarkOpacity / 100)}; background-image: url('data:image/svg+xml;base64,{encoded}'); }}";
     }

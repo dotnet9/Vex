@@ -44,6 +44,9 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     public bool WatermarkExport { get => settings.Current.WatermarkExport ?? false; set => Set(s => s with { WatermarkExport = value }); }
     public string WatermarkText { get => settings.Current.WatermarkText ?? "维刻 Vex"; set => Set(s => s with { WatermarkText = string.Concat((value ?? "").EnumerateRunes().Take(60).Select(r => r.ToString())) }); }
     public double WatermarkOpacity { get => settings.Current.WatermarkOpacity ?? 12; set => Set(s => s with { WatermarkOpacity = Math.Clamp(value, 0, 50) }); }
+    public double WatermarkFontSize { get => settings.Current.WatermarkFontSize ?? 21; set => Set(s => s with { WatermarkFontSize = Math.Clamp(value, 12, 36) }); }
+    public string WatermarkColor { get => settings.Current.WatermarkColor ?? "#24766B"; set => Set(s => s with { WatermarkColor = value ?? "" }); }
+    public int WatermarkWeight { get => settings.Current.WatermarkWeight ?? 400; set => Set(s => s with { WatermarkWeight = value is 300 or 700 ? value : 400 }); }
     public string PdfSize { get => settings.Current.PdfSize ?? "A4"; set => Set(s => s with { PdfSize = value is "A5" or "Letter" ? value : "A4" }); }
     public double PdfMargin { get => settings.Current.PdfMargin ?? 20; set => Set(s => s with { PdfMargin = Math.Clamp(value, 10, 30) }); }
 

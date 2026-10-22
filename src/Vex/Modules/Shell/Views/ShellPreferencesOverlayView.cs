@@ -19,10 +19,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private readonly ListBox _navigation = new() { Classes = { "preferences-navigation" }, Width = 148, Padding = new Thickness(10, 18), Background = Brushes.Transparent, BorderThickness = new Thickness(0) };
     private readonly ScrollViewer _scroll = new() { Padding = new Thickness(20, 22), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
     private readonly TextBlock _title = new() { FontSize = 14, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
-    private readonly TextBlock _saved = new() { Classes = { "muted" }, FontSize = 12 };
     private readonly Border _card;
     private Window? _owner;
-    private readonly Button _done = new() { FontSize = 12, MinHeight = 32, Padding = new Thickness(12, 6), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(5) };
     private readonly (string Id, string Key)[] _categories =
     [ ("general", VexL.PrefGeneral), ("editor", VexL.PrefEditor), ("markdown", "Markdown"),
       ("images", VexL.PrefImages), ("appearance", VexL.PrefAppearance), ("export", VexL.Export), ("mcp", "MCP") ];
@@ -31,7 +29,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         _model = model; _localizer = localizer; DataContext = model;
         BindResource(this, ForegroundProperty, "VexValueBrush");
-        var grid = new Grid { RowDefinitions = new RowDefinitions("36,*,54") };
+        var grid = new Grid { RowDefinitions = new RowDefinitions("36,*") };
         var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         header.Margin = new Thickness(16, 0, 0, 0);
         header.Children.Add(_title);
@@ -44,14 +42,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
         BindResource(navigationFrame, Border.BackgroundProperty, "VexShellBackgroundBrush");
         body.Children.Add(navigationFrame); Grid.SetColumn(_scroll, 1); body.Children.Add(_scroll);
         Grid.SetRow(body, 1); grid.Children.Add(body);
-        var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        var status = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, VerticalAlignment = VerticalAlignment.Center };
-        var dot = new Border { Width = 5, Height = 5, CornerRadius = new CornerRadius(3), VerticalAlignment = VerticalAlignment.Center };
-        BindResource(dot, Border.BackgroundProperty, "VexAccentBrush"); status.Children.Add(dot); status.Children.Add(_saved); footer.Children.Add(status);
-        _done.Click += (_, _) => model.Close(); Grid.SetColumn(_done, 1); footer.Children.Add(_done);
-        BindResource(_done, Button.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(_done, Button.BackgroundProperty, "VexShellBackgroundBrush");
-        var footerFrame = Frame(footer, new Thickness(0, 1, 0, 0)); footerFrame.Padding = new Thickness(18, 10);
-        Grid.SetRow(footerFrame, 2); grid.Children.Add(footerFrame);
+        // 改值即生效：去掉「设置已保存 / 完成」页脚（对应原型偏好浮层）。
         _card = new Border { Classes = { "dialog-card" }, Width = 675, Height = 700, Padding = default, CornerRadius = new CornerRadius(8), ClipToBounds = true, Child = grid };
         Content = _card;
         _navigation.SelectionChanged += (_, _) => ShowCategory();
@@ -92,7 +83,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private void RefreshLabels()
     {
         var selected = Math.Max(0, _navigation.SelectedIndex);
-        _title.Text = L(VexL.Preferences); _saved.Text = L(VexL.PrefSaved); _done.Content = L("Vex.VexL.PrefDone");
+        _title.Text = L(VexL.Preferences);
         string[] icons = ["M7 2H15L20 7V22H4V2Z M14 2V8H20", "M12 4H4V20H20V12 M18 2L22 6L12 16L8 17L9 13Z", "M8 7L3 12L8 17 M16 7L21 12L16 17 M14 5L10 19", "M3 3H21V21H3Z M3 17L9 10L14 15L17 12L21 17 M15 7H15.1", "M12 3A9 9 0 1 0 21 12H16A3 3 0 0 1 13 9 M8 7H8.1 M6 12H6.1 M10 17H10.1", "M12 3V15 M7 10L12 15L17 10 M4 16V21H20V16", "M4 5L10 11L4 17 M12 19H21"];
         _navigation.ItemsSource = _categories.Select((c, i) =>
         {
@@ -106,7 +97,6 @@ public sealed class ShellPreferencesOverlayView : UserControl
     }
     private void ShowCategory()
     {
-        _saved.Text = L(SelectedCategory == "mcp" ? VexL.PrefMcpSave : VexL.PrefSaved);
         var page = new StackPanel { Spacing = 0 };
         _scroll.Content = page; _scroll.Offset = default;
         var p = _model.Preferences;
@@ -131,6 +121,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Toggle(page, L("Vex.VexL.PrefAutoPair"), _model.Display, nameof(_model.Display.EnableAutoPair));
                 Toggle(page, VexL.PrefWrap, p, nameof(p.CodeWrap));
                 Toggle(page, VexL.ShowLineNumbers, _model.Display, nameof(_model.Display.ShowLineNumbers));
+                Number(page, VexL.PrefZoom, p, nameof(p.ContentZoom), 50, 200, 10);
+                Toggle(page, VexL.PrefWordCount, p, nameof(p.WordCountVisible));
                 Toggle(page, VexL.MenuFocusMode, _model.Layout, nameof(_model.Layout.IsFocusMode));
                 Toggle(page, VexL.MenuTypewriterMode, _model.Layout, nameof(_model.Layout.IsTypewriterMode));
                 break;
@@ -145,29 +137,16 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Text(page, VexL.PrefImageFolder, p, nameof(p.ImageFolder));
                 break;
             case "appearance":
-                Choice(page, VexL.WBTheme, _model.Appearance, nameof(_model.Appearance.SelectedTheme), _model.Appearance.ThemeOptions.Select(x => (L(x.Key == "light" ? VexL.ThemeLight : x.Key == "dark" ? VexL.ThemeDark : VexL.ThemeSystem), (object)x)));
-                var colors = new UniformGrid { Columns = 8, Width = 224 };
-                foreach (var palette in _model.Appearance.PaletteOptions)
-                {
-                    var swatch = new Button { Width = 22, Height = 22, MinHeight = 0, MinWidth = 0, Padding = default, Margin = new Thickness(3), Background = palette.Swatch, CornerRadius = new CornerRadius(11), BorderThickness = new Thickness(2), BorderBrush = _model.Appearance.SelectedPalette == palette ? palette.Swatch : Brushes.Transparent, Tag = palette };
-                    ToolTip.SetTip(swatch, palette.Name); swatch.Click += (_, _) =>
-                    {
-                        _model.Appearance.SelectedPalette = palette;
-                        foreach (var button in colors.Children.OfType<Button>()) button.BorderBrush = Equals(button.Tag, palette) ? palette.Swatch : Brushes.Transparent;
-                    };
-                    colors.Children.Add(swatch);
-                }
-                Row(page, VexL.WBTheme, colors);
-                Choice(page, VexL.WBTypography, _model.Appearance, nameof(_model.Appearance.SelectedTypography), _model.Appearance.TypographyOptions.Select(x => (L(x.NameKey), (object)x)));
-                Toggle(page, L("Vex.VexL.PrefCompactSpacing"), _model.Appearance, nameof(_model.Appearance.IsCompactLayout));
-                Number(page, VexL.PrefZoom, p, nameof(p.ContentZoom), 50, 200, 10);
-                Toggle(page, VexL.PrefWordCount, p, nameof(p.WordCountVisible));
+                // 对应原型外观页：界面动效 + 完整水印参数与实时样例；配色与排版入口在标题栏「外观」。
                 Toggle(page, VexL.MenuMotion, _model.Layout, nameof(_model.Layout.EnableMotion));
                 Heading(page, VexL.PrefWatermark);
-                Toggle(page, VexL.PrefWatermarkPreview, p, nameof(p.WatermarkPreview));
-                Toggle(page, VexL.PrefWatermarkExport, p, nameof(p.WatermarkExport));
+                Toggle(page, VexL.PrefWatermarkPreview, p, nameof(p.WatermarkPreview), "Vex.VexL.PrefWatermarkPreviewNote");
                 Text(page, VexL.PrefWatermarkText, p, nameof(p.WatermarkText));
-                Number(page, VexL.PrefWatermarkOpacity, p, nameof(p.WatermarkOpacity), 0, 50);
+                Range(page, VexL.PrefWatermarkFontSize, p, nameof(p.WatermarkFontSize), 12, 36, " px");
+                ColorChoice(page, VexL.PrefWatermarkColor, p);
+                Choice(page, VexL.PrefWatermarkWeight, p, nameof(p.WatermarkWeight), [(L("Vex.VexL.PrefWeightLight"), 300), (L("Vex.VexL.PrefWeightRegular"), 400), (L("Vex.VexL.PrefWeightBold"), 700)]);
+                Range(page, VexL.PrefWatermarkOpacity, p, nameof(p.WatermarkOpacity), 0, 50, "%");
+                page.Children.Add(BuildWatermarkSample());
                 break;
             case "export":
                 Choice(page, VexL.PrefExportFormat, p, nameof(p.ExportFormat), [("HTML", "HTML"), ("PDF", "PDF"), ("Markdown", "Markdown"), ("PNG", "PNG"), ("Word", "Word")]);
@@ -221,6 +200,68 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var toggle = new ToggleSwitch { Name = property, Classes = { "pref-toggle" }, OnContent = null, OffContent = null, MinWidth = 34 };
         toggle.Bind(ToggleSwitch.IsCheckedProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, toggle, note);
+    }
+    private void Range(StackPanel page, string label, object source, string property, double minimum, double maximum, string suffix)
+    {
+        var slider = new Slider { Minimum = minimum, Maximum = maximum, Width = 150, VerticalAlignment = VerticalAlignment.Center };
+        slider.Bind(Slider.ValueProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay });
+        var value = new TextBlock { FontSize = 13, VerticalAlignment = VerticalAlignment.Center, MinWidth = 48, TextAlignment = TextAlignment.Right };
+        value.Bind(TextBlock.TextProperty, new Binding(property) { Source = source, StringFormat = "{}{0:0}" + suffix });
+        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+        panel.Children.Add(slider); panel.Children.Add(value);
+        Row(page, label, panel);
+    }
+    private void ColorChoice(StackPanel page, string label, Vex.Core.Services.EditorPreferences preferences)
+    {
+        var fill = new Border { Height = 18, Width = 164, CornerRadius = new CornerRadius(4) };
+        fill.Bind(Border.BackgroundProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkColor)) { Source = preferences, Converter = HexToBrushConverter.Instance });
+        var swatch = new Button { Width = 180, Height = 26, Padding = default, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), Content = fill };
+        BindResource(swatch, Button.BorderBrushProperty, "VexPanelBorderBrush");
+        var presets = new UniformGrid { Columns = 8, Width = 224, Margin = new Thickness(8) };
+        foreach (var hex in new[] { "#24766B", "#2E5851", "#3A6EA5", "#4C6FE8", "#7457E8", "#C2417B", "#B3261E", "#D96C2C", "#8A6D3B", "#5F5347", "#6B7280", "#374151", "#111111", "#E8E4DA", "#88B04B", "#2477A8" })
+        {
+            var item = new Button { Width = 22, Height = 22, Margin = new Thickness(2), CornerRadius = new CornerRadius(11), Padding = default, BorderThickness = new Thickness(0), Background = new SolidColorBrush(Color.Parse(hex)), Tag = hex };
+            ToolTip.SetTip(item, hex);
+            item.Click += (_, _) => preferences.WatermarkColor = hex;
+            presets.Children.Add(item);
+        }
+        swatch.Flyout = new Flyout { Content = presets, Placement = PlacementMode.BottomEdgeAlignedLeft };
+        Row(page, label, swatch);
+    }
+    /// <summary>水印实时样例：标语 + 按当前参数叠加的水印（对应原型外观页底部样例卡）。</summary>
+    private Control BuildWatermarkSample()
+    {
+        var p = _model.Preferences;
+        var slogan = new TextBlock { Text = L(VexL.Slogan), TextWrapping = TextWrapping.Wrap };
+        slogan.Bind(TextBlock.FontSizeProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkFontSize)) { Source = p });
+        BindResource(slogan, TextBlock.ForegroundProperty, "VexEditorForegroundBrush");
+        var byline = new TextBlock { Text = "维刻 Vex", FontSize = 11, Margin = new Thickness(0, 6, 0, 0) };
+        BindResource(byline, TextBlock.ForegroundProperty, "VexMutedBrush");
+        var content = new StackPanel { Margin = new Thickness(18, 16) };
+        content.Children.Add(slogan); content.Children.Add(byline);
+        var watermark = new Vex.Modules.Workspace.Views.WatermarkOverlay();
+        watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.TextProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkText)) { Source = p });
+        watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.StrengthProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkOpacity)) { Source = p });
+        watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.FontSizeProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkFontSize)) { Source = p });
+        watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.HexInkProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkColor)) { Source = p });
+        watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.WeightValueProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkWeight)) { Source = p });
+        var host = new Grid { MinHeight = 128, ClipToBounds = true };
+        host.Children.Add(content); host.Children.Add(watermark);
+        var frame = Frame(host, new Thickness(1));
+        frame.CornerRadius = new CornerRadius(6); frame.Margin = new Thickness(0, 16, 0, 0);
+        BindResource(frame, Border.BackgroundProperty, "VexDocumentPaperBrush");
+        return frame;
+    }
+
+    private sealed class HexToBrushConverter : IValueConverter
+    {
+        public static readonly HexToBrushConverter Instance = new();
+        public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        {
+            try { return value is string hex ? new SolidColorBrush(Color.Parse(hex)) : null; }
+            catch { return null; }
+        }
+        public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture) => BindingOperations.DoNothing;
     }
     private void Number(StackPanel page, string label, object source, string property, decimal minimum, decimal maximum, decimal step = 1)
     {

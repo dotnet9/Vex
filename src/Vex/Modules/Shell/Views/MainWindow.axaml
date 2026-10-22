@@ -18,7 +18,7 @@
     MinWidth="800"
     MinHeight="480"
     Icon="/Assets/logo.ico"
-    TitleBarHeight="32"
+    TitleBarHeight="33"
     TitleBarBackground="{DynamicResource VexPanelBackgroundBrush}"
     CaptionButtonWidth="46" CaptionGlyphSize="14"
     IsTitleBarVisible="{Binding !Workbench.IsPresenting}"
@@ -30,7 +30,7 @@
     <codewf:CodeWFWindow.LeftContent>
         <StackPanel
             Margin="8 0 10 0"
-            Height="32"
+            Height="33"
             Orientation="Horizontal"
             Spacing="12"
             VerticalAlignment="Center"
@@ -188,7 +188,8 @@
         <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="12,58,12,12"/>
         <shell:WorkbenchGuideView x:Name="WorkbenchGuide" Grid.RowSpan="4"/>
         <!-- 自定义窗口不含 UrsaWindow 的默认宿主，显式复用 Ursa 浮层控件。 -->
-        <u:OverlayDialogHost x:Name="ShellDialogHost" Grid.RowSpan="4" />
+        <!-- 遮罩对齐原型 .vex-settings-host：#0B1729 28% 透明度。 -->
+        <u:OverlayDialogHost x:Name="ShellDialogHost" Grid.RowSpan="4" OverlayMaskBrush="#470B1729" />
     </Grid>
     </Border>
 </codewf:CodeWFWindow>

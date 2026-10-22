@@ -51,7 +51,9 @@
             </LayoutTransformControl>
         </ScrollViewer>
         <views:WatermarkOverlay Grid.Row="1" IsVisible="{Binding Preferences.WatermarkPreview}"
-                                Text="{Binding Preferences.WatermarkText}" Strength="{Binding Preferences.WatermarkOpacity}" />
+                                Text="{Binding Preferences.WatermarkText}" Strength="{Binding Preferences.WatermarkOpacity}"
+                                FontSize="{Binding Preferences.WatermarkFontSize}" HexInk="{Binding Preferences.WatermarkColor}"
+                                WeightValue="{Binding Preferences.WatermarkWeight}" />
     </Grid>
 
 

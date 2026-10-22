@@ -30,6 +30,9 @@ public sealed class MarkdownInstantView : UserControl
         watermark.Bind(IsVisibleProperty, new Binding("Workbench.Preferences.WatermarkPreview"));
         watermark.Bind(WatermarkOverlay.TextProperty, new Binding("Workbench.Preferences.WatermarkText"));
         watermark.Bind(WatermarkOverlay.StrengthProperty, new Binding("Workbench.Preferences.WatermarkOpacity"));
+        watermark.Bind(WatermarkOverlay.FontSizeProperty, new Binding("Workbench.Preferences.WatermarkFontSize"));
+        watermark.Bind(WatermarkOverlay.HexInkProperty, new Binding("Workbench.Preferences.WatermarkColor"));
+        watermark.Bind(WatermarkOverlay.WeightValueProperty, new Binding("Workbench.Preferences.WatermarkWeight"));
         grid.Children.Add(watermark); Content = grid;
         AttachedToVisualTree += (_, _) => EventBus.Default.Subscribe(this);
         DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);

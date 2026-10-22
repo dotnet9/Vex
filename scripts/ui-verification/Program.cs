@@ -37,7 +37,12 @@ if (mode == "settings-real-ui")
     File.WriteAllText(config, "<configuration><appSettings /></configuration>");
     AppContext.SetData("APP_CONFIG_FILE", config);
 }
-if (mode is "popup-layout" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection")
+if (mode == "parity-score")
+{
+    VisualParityScore.Run(args.Skip(1).ToArray());
+    return;
+}
+if (mode is "popup-layout" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -58,6 +63,7 @@ if (mode is "popup-layout" or "motion" or "desktop-parity" or "settings-ui" or "
     else if (mode == "protection") ProtectionVerification.Run(app, window, output);
     else if (mode == "prototype-appearance") PrototypeAppearanceVerification.Run(app, window, output);
     else if (mode == "prototype-chrome") PrototypeChromeVerification.Run(app, window, output);
+    else if (mode == "visual") VisualParityCapture.Run(app, window, output);
     else if (mode is "settings-ui" or "settings-real-ui") PreferencesVerification.Run(app, window, output);
     else DesktopParityVerification.Run(app, window, output);
     window.Close();
@@ -1822,9 +1828,11 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     wb.ShowInstant();
     CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(heading.SourceLine)); Pump();
     Check(wb.IsInstantEditing && !source.IsEffectivelyVisible && vm.Markdown == document, "Outline navigation in instant mode scrolls without activating hidden source");
-    Pump(app.Resolve<ShellStatusBarViewModel>().ShowStatisticsAsync());
-    Check(vm.Layout.IsInfoTab && vm.Layout.ShowOutlineSidebar,
-        "Status bar character count opens real article information in the shared auxiliary panel");
+    // ShowStatisticsAsync 的任务在浮层关闭后才完成，这里只触发并泵渲染。
+    _ = app.Resolve<ShellStatusBarViewModel>().ShowStatisticsAsync(); Pump();
+    Check(window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellStatisticsOverlayView>().Any(v => v.IsVisible),
+        "Status bar character count opens the statistics overlay");
+    window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Pump();
     vm.Layout.IsOutlineVisible = false; Pump();
     var shell = (Vex.Modules.Shell.Views.MainWindow)window;
     shell.BeginOnboardingGuide(); Pump();
