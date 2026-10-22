@@ -302,6 +302,7 @@
       "StatusLine": "Line",
       "StatusColumn": "Col",
       "StatusWords": "Words",
+      "StatusWordCount": "Words",
       "StatusCharacters": "Chars",
       "DocumentStateModified": "Modified",
       "DocumentStateSaved": "Saved",

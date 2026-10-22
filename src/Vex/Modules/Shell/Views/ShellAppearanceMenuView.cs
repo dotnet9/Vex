@@ -82,11 +82,19 @@ public sealed class ShellAppearanceMenuView : UserControl
         AppearanceButton = Button("", () => { });
         AppearanceButton.Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, Children =
         {
-            new PathIcon { Width = 14, Height = 14, Data = Geometry.Parse("M8 1a7 7 0 1 0 0 14h1a2 2 0 0 0 1-3.7.8.8 0 0 1 .4-1.5H12a3 3 0 0 0 3-3C15 3.5 12 1 8 1Z M4.5 6h.1 M7 3.5h.1 M10.5 4h.1 M12 6.5h.1") },
-            Label(Text("Appearance"), 12)
+            new PathIcon { Width = 15, Height = 15, Data = Geometry.Parse("M8 1a7 7 0 1 0 0 14h1a2 2 0 0 0 1-3.7.8.8 0 0 1 .4-1.5H12a3 3 0 0 0 3-3C15 3.5 12 1 8 1Z M4.5 6h.1 M7 3.5h.1 M10.5 4h.1 M12 6.5h.1") },
+            Label(Text("Appearance"), 11)
         }};
+        // 原型 .studio-title-controls：外观摘要为 56×32 / 11px / 左右 7px 的扁平按钮。
+        AppearanceButton.Height = 32; AppearanceButton.MinHeight = 0; AppearanceButton.MinWidth = 0;
+        AppearanceButton.Padding = new Thickness(7, 0); AppearanceButton.CornerRadius = new CornerRadius(5);
+        AppearanceButton.FontSize = 11;
         AppearanceButton.Name = "TitleBarAppearanceButton";
-        LanguageButton = Button("文ᴬ", () => { }); LanguageButton.Name = "TitleBarLanguageButton";
+        LanguageButton = Button("文ᴬ", () => { });
+        LanguageButton.Width = 32; LanguageButton.Height = 32; LanguageButton.MinHeight = 0;
+        LanguageButton.Padding = new Thickness(0); LanguageButton.CornerRadius = new CornerRadius(4);
+        LanguageButton.FontSize = 12;
+        LanguageButton.Name = "TitleBarLanguageButton";
         var modes = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 16) };
         foreach (var mode in _vm.ThemeOptions.OrderBy(m => m.Key == "light" ? 0 : m.Key == "dark" ? 1 : 2))
         {

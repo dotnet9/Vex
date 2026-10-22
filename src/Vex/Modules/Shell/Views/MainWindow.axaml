@@ -19,6 +19,7 @@
     MinHeight="480"
     Icon="/Assets/logo.ico"
     TitleBarHeight="32"
+    TitleBarBackground="{DynamicResource VexPanelBackgroundBrush}"
     CaptionButtonWidth="46" CaptionGlyphSize="14"
     IsTitleBarVisible="{Binding !Workbench.IsPresenting}"
     IsManagedResizerVisible="{Binding !Workbench.IsPresenting}"
@@ -28,55 +29,64 @@
 
     <codewf:CodeWFWindow.LeftContent>
         <StackPanel
-            Margin="12 0 10 0"
+            Margin="8 0 10 0"
             Height="32"
             Orientation="Horizontal"
-            Spacing="8"
+            Spacing="12"
             VerticalAlignment="Center"
             IsEnabled="{Binding !IsInModalStatus, ElementName=ShellDialogHost}">
-            <!-- 对应原型 .tb-logo：20×20 绿色圆角方块。 -->
-            <Border
-                Width="20"
-                Height="20"
-                CornerRadius="6"
-                Background="#24766B"
-                VerticalAlignment="Center">
+            <!-- 对应原型 .brand：22×22 圆角标识 + 15px/750 字标，间距 7。 -->
+            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                <Border
+                    Width="22"
+                    Height="22"
+                    CornerRadius="5"
+                    Background="#24766B"
+                    VerticalAlignment="Center">
+                    <Canvas Width="22" Height="22">
+                        <Path
+                            Data="M5.5 5.3 L11 17 L16.5 5.3"
+                            Stroke="#FFFFFF"
+                            StrokeThickness="3.9"
+                            StrokeLineCap="Round"
+                            StrokeJoin="Round" />
+                    </Canvas>
+                </Border>
                 <TextBlock
-                    Text="V"
-                    FontSize="11"
+                    Classes="titlebar-text"
+                    FontSize="15"
                     FontWeight="Bold"
-                    Foreground="#FFFFFF"
-                    HorizontalAlignment="Center"
+                    LetterSpacing="-0.4"
+                    Text="Vex"
                     VerticalAlignment="Center" />
-            </Border>
+            </StackPanel>
+            <shell:ShellTitleMenuView x:Name="TitleMenuView" VerticalAlignment="Center" />
+            <!-- 原型把文档名放在菜单之后左对齐，而不是标题栏正中。 -->
             <TextBlock
-                Classes="titlebar-text"
+                x:Name="TitleDocumentLabel"
+                Text="{Binding DocumentInfo.CurrentDocumentTitle}"
                 FontSize="12"
                 FontWeight="SemiBold"
-                Text="Vex"
-                VerticalAlignment="Center" />
-            <shell:ShellTitleMenuView x:Name="TitleMenuView" Margin="4 0 0 0" />
+                MaxWidth="300"
+                TextTrimming="CharacterEllipsis"
+                VerticalAlignment="Center"
+                IsHitTestVisible="False"
+                AutomationProperties.Name="{Binding DocumentInfo.CurrentDocumentTitle}" />
         </StackPanel>
     </codewf:CodeWFWindow.LeftContent>
 
     <codewf:CodeWFWindow.RightContent>
-        <StackPanel x:Name="TitleBarAppearance" Orientation="Horizontal" Spacing="8" Margin="0,0,8,0"
+        <StackPanel x:Name="TitleBarAppearance" Orientation="Horizontal" Spacing="6" Margin="0,0,8,0"
                     VerticalAlignment="Center" IsEnabled="{Binding !IsInModalStatus, ElementName=ShellDialogHost}">
             <Button x:Name="QuickStartButton" IsVisible="False" Classes="wb-quiet" Click="QuickStartClick" VerticalAlignment="Center" MinHeight="26" Padding="9,4" FontSize="12">
                 <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBQuickStart}}" />
             </Button>
-            <Button Classes="wb-quiet" Command="{Binding ShowFindPanel}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Find}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Find}}" VerticalAlignment="Center" MinHeight="26" Padding="7">
+            <Button x:Name="FindButton" Classes="tb-icon" Command="{Binding ShowFindPanel}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Find}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Find}}" VerticalAlignment="Center">
                 <Path Classes="wb-icon" Data="{StaticResource WBSearchIcon}" />
             </Button>
             <shell:ShellAppearanceMenuView x:Name="AppearanceMenu"/>
         </StackPanel>
     </codewf:CodeWFWindow.RightContent>
-
-    <codewf:CodeWFWindow.TitleBarContent>
-        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
-            <TextBlock Text="{Binding DocumentInfo.CurrentDocumentTitle}" FontSize="12" FontWeight="SemiBold" MaxWidth="420" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" AutomationProperties.Name="{Binding DocumentInfo.CurrentDocumentTitle}" />
-        </StackPanel>
-    </codewf:CodeWFWindow.TitleBarContent>
 
     <!-- CodeWFWindow 模板已预留标题栏高度，内容只添加 1 像素分隔线。 -->
     <Border x:Name="ShellTitleDivider"
@@ -123,10 +133,10 @@
                 IsVisible="{Binding Layout.ShowSidebar}"
                 ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
 
-            <Grid Grid.Column="2" RowDefinitions="Auto,Auto,*,Auto">
+            <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
                 <StackPanel x:Name="FloatingViewShelf" Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="12,4" IsVisible="False"/>
-                <shell:ShellEditorOptionsView x:Name="EditorOptions" Grid.Row="1"/>
-                <Grid x:Name="ViewSurface" Grid.Row="2">
+                <Panel Grid.Row="1">
+                <Grid x:Name="ViewSurface">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="{Binding Workbench.SourceColumnWidth}"/>
                     <ColumnDefinition Width="{Binding Workbench.SplitterWidth}"/>
@@ -138,7 +148,11 @@
                 <workspace:MarkdownInstantView x:Name="InstantGuideTarget" Grid.ColumnSpan="3" IsVisible="{Binding Workbench.IsInstantEditing}" />
                 <workspace:MarkdownMindMapHost x:Name="MindMapGuideTarget" Grid.Column="{Binding Workbench.MapColumn}" Grid.ColumnSpan="{Binding Workbench.MapSpan}" IsVisible="{Binding Workbench.IsMapVisible}" />
                 </Grid>
-                <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="3" />
+                <!-- 对应原型 #edit-options：叠在正文顶端的悬浮条，静默 1% 不透明度，悬停/聚焦时显现。
+                     必须与 ViewSurface 同级，工作区重建会清空 ViewSurface 的子级。 -->
+                <shell:ShellEditorOptionsView x:Name="EditorOptions" VerticalAlignment="Top" HorizontalAlignment="Stretch" />
+                </Panel>
+                <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="2" />
             </Grid>
             <GridSplitter x:Name="OutlineSplitter" Grid.Column="3" HorizontalAlignment="Stretch"
                           IsVisible="{Binding Layout.ShowOutlineSidebar}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />

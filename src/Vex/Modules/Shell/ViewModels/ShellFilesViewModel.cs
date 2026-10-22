@@ -50,8 +50,11 @@ public sealed class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     {
         _sortDescending = !_sortDescending;
         RebuildFilteredNodes();
+        OnPropertyChanged(nameof(SortArrow));
         _settingsStore?.Update(settings => settings with { FileSortDescending = _sortDescending });
     }
+    /// <summary>对应原型 .sort-arrow：默认不显示箭头，倒序时显示 ↑。</summary>
+    public string SortArrow => _sortDescending ? "↑" : string.Empty;
     public void CollapseAll()
     {
         // 操作源节点；搜索生成的临时展开副本不应覆盖真实折叠偏好。

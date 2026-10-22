@@ -50,6 +50,7 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
             if (SetProperty(ref _statistics, value))
             {
                 OnPropertyChanged(nameof(WordCountText));
+                OnPropertyChanged(nameof(StatusWordCountText));
                 OnPropertyChanged(nameof(CharacterCountText));
                 OnPropertyChanged(nameof(LineCountText));
                 OnPropertyChanged(nameof(ReadingMinutesText));
@@ -58,6 +59,9 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
     }
 
     public string WordCountText => _localizer.Format(VexL.WordCountFormat, Statistics.Words);
+
+    // 状态栏沿用原型「字数 N」的排布，而不是信息面板的「N 词」。
+    public string StatusWordCountText => $"{_localizer.Get(VexL.StatusWordCount)} {Statistics.Words}";
 
     public string CharacterCountText => _localizer.Format(VexL.CharacterCountFormat, Statistics.Characters);
 
@@ -116,6 +120,7 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
         // 这些字段是从当前文档派生出来的展示文案，语言切换时必须主动通知绑定刷新。
         OnPropertyChanged(nameof(DocumentStateText));
         OnPropertyChanged(nameof(WordCountText));
+        OnPropertyChanged(nameof(StatusWordCountText));
         OnPropertyChanged(nameof(CharacterCountText));
         OnPropertyChanged(nameof(LineCountText));
         OnPropertyChanged(nameof(ReadingMinutesText));

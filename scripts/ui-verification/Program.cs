@@ -753,6 +753,21 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     var tree = window.GetVisualDescendants().OfType<TreeView>().Single(t => t.Classes.Contains("side-tree"));
     var items = tree.GetVisualDescendants().OfType<TreeViewItem>().Where(i => i.IsEffectivelyVisible).ToArray();
     Check(items.Length == 6, "Vex tree renders root, sibling and nested documents");
+    foreach (var selected in items.Where(i => i.IsSelected))
+    {
+        foreach (var probe in new Control[] { selected }.Concat(selected.GetVisualDescendants().OfType<Control>()))
+        {
+            var background = probe switch
+            {
+                Border border => border.Background,
+                ContentPresenter presenter => presenter.Background,
+                Panel panel => panel.Background,
+                _ => null
+            };
+            if (background is ISolidColorBrush brush && brush.Color.A > 0)
+                Console.WriteLine($"PROBE {probe.GetType().Name}#{probe.Name} bg={brush.Color} bounds={probe.Bounds}");
+        }
+    }
     foreach (var item in items)
     {
         var card = item.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("file-card"));

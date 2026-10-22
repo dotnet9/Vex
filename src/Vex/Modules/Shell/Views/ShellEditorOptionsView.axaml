@@ -5,7 +5,7 @@
       <Setter Property="u:ToolBar.OverflowMode" Value="Always"/>
     </Style>
   </UserControl.Styles>
-  <Border Height="42" Padding="18,0" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
+  <Border Classes="edit-options" Height="42" Padding="14,0" Background="{DynamicResource VexShellBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
       <!-- 复用 Ursa 的溢出工具栏，窄工作区将后续操作收进更多面板。 -->
       <u:ToolBar x:Name="FormattingToolbar" Classes="wb-formatbar" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding Workbench.IsEditing}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBFormatting}}">

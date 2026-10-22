@@ -302,6 +302,7 @@
       "StatusLine": "行",
       "StatusColumn": "列",
       "StatusWords": "词数",
+      "StatusWordCount": "字数",
       "StatusCharacters": "字符",
       "DocumentStateModified": "已修改",
       "DocumentStateSaved": "已保存",

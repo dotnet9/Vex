@@ -36,10 +36,11 @@ internal static class PrototypeChromeVerification
             Check(Math.Abs(center - statusChrome.Bounds.Width / 2) < 2,
                 $"One layout trigger stays centered at {size.Width}: center={center}, status={statusChrome.Bounds.Width}");
             var formatting = formats.FindControl<Ursa.Controls.ToolBar>("FormattingToolbar")!;
-            Check(formatting.TranslatePoint(default, formats)!.Value.X >= 0 && formatting.Bounds.Width <= formats.Bounds.Width,
-                "Formatting toolbar stays inside the document at " + size.Width);
+            var origin = formatting.TranslatePoint(default, formats);
+            Check(origin is not null && origin.Value.X >= 0 && formatting.Bounds.Width <= formats.Bounds.Width,
+                $"Formatting toolbar stays inside the document at {size.Width}: origin={origin?.ToString() ?? "null"} toolbar={formatting.Bounds} host={formats.Bounds}");
             var status = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!;
-            Check(status.TranslatePoint(default, window)!.Value.X >= 200 && Math.Abs(status.Bounds.Height - 32) < 1,
+            Check(status.TranslatePoint(default, window)!.Value.X >= 200 && Math.Abs(status.Bounds.Height - 34) < 1,
                 $"Document corner controls leave file navigation full height: {status.TranslatePoint(default, window)} / {status.Bounds}");
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "workspace-" + size.Width + ".png"));
             vm.Workbench.ShowLayouts = true; Render();

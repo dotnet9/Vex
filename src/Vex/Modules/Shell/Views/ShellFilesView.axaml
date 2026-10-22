@@ -17,39 +17,91 @@
         <TreeDataTemplate DataType="models:DocumentFileNode" ItemsSource="{Binding Children}">
             <!-- 文件树使用原型的单行布局，摘要放入提示，避免文件夹空摘要撑高行。 -->
             <Border Classes="file-card" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"
+                    Classes.folder="{Binding IsFolder}"
                     ToolTip.Tip="{Binding Preview}" ToolTip.IsEnabled="{Binding IsDocument}">
-                <Grid>
-                    <Border Classes="file-bar" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}" HorizontalAlignment="Left" />
-                    <Grid Height="30" Margin="10 0" ColumnDefinitions="15,*,Auto" ColumnSpacing="7">
-                        <Path Classes="stroke-ico tree-ico" VerticalAlignment="Center" IsVisible="{Binding IsFolder}"
-                              Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                        <Path Classes="stroke-ico tree-ico" VerticalAlignment="Center" IsVisible="{Binding IsDocument}"
-                              Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
-                        <TextBlock Grid.Column="1" MinHeight="16" Classes="file-heading" IsVisible="{Binding IsFolder}"
-                                   VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Grid.Column="1" MinHeight="16" Classes="file-title" IsVisible="{Binding IsDocument}"
-                                   VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-
-                    </Grid>
+                <Grid Classes="file-row" ColumnDefinitions="14,*,Auto" ColumnSpacing="6">
+                    <Path Classes="tree-ico" VerticalAlignment="Center" IsVisible="{Binding IsFolder}"
+                          Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                    <Path Classes="tree-ico" VerticalAlignment="Center" IsVisible="{Binding IsDocument}"
+                          Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+                    <TextBlock Grid.Column="1" Classes="file-heading" IsVisible="{Binding IsFolder}"
+                               VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Classes="file-title" IsVisible="{Binding IsDocument}"
+                               VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                 </Grid>
             </Border>
         </TreeDataTemplate>
     </UserControl.DataTemplates>
 
-    <UserControl.Styles><Style Selector="TreeViewItem" x:DataType="models:DocumentFileNode"><Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/></Style><Style Selector="Path.tree-ico"><Setter Property="Width" Value="13"/><Setter Property="Height" Value="13"/><Setter Property="StrokeThickness" Value="1.5"/></Style></UserControl.Styles>
+    <UserControl.Styles>
+        <Style Selector="TreeViewItem" x:DataType="models:DocumentFileNode">
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+        </Style>
+        <!-- 对应原型 .files-toolbar button：26×26、5px 圆角、按下为 accent-soft。 -->
+        <Style Selector="Button.files-tool, ToggleButton.files-tool">
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.files-tool:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.files-tool:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+        </Style>
+        <Style Selector="ToggleButton.files-tool:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
+        <Style Selector="ToggleButton.files-tool:checked Path">
+            <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
+    </UserControl.Styles>
+
     <Grid RowDefinitions="Auto,*,Auto">
-        <Grid Grid.Row="0" Margin="14 12 14 8" ColumnDefinitions="*,Auto">
-        <TextBox
-            MinHeight="30"
-            FontSize="11.5"
-            Foreground="{DynamicResource VexValueBrush}"
-            PlaceholderForeground="{DynamicResource VexMutedBrush}"
-            BorderBrush="{DynamicResource VexPanelBorderBrush}"
-            PlaceholderText="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}"
-            Text="{Binding FilterText, Mode=TwoWay}"
-            TextWrapping="NoWrap" />
-        <Button Grid.Column="1" Classes="wb-quiet" Command="{Binding ClearFilter}" Content="×" Padding="4" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ClearSearch}}"/>
-        </Grid>
+        <!-- 对应原型 .sidebar-search：40px 高、6px 圆角、内嵌搜索图标与清除按钮。 -->
+        <Border
+            Grid.Row="0"
+            Height="40"
+            Margin="12,14,12,12"
+            Padding="8,0"
+            CornerRadius="6"
+            BorderThickness="1"
+            BorderBrush="Transparent"
+            Background="{DynamicResource VexHoverBrush}">
+            <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" VerticalAlignment="Center">
+                <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
+                      VerticalAlignment="Center"
+                      Data="M17 10A7 7 0 1 1 3 10A7 7 0 1 1 17 10 M15 15L22 22" />
+                <TextBox
+                    Grid.Column="1"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="0"
+                    MinHeight="0"
+                    FontSize="12"
+                    VerticalContentAlignment="Center"
+                    Foreground="{DynamicResource VexValueBrush}"
+                    PlaceholderForeground="{DynamicResource VexMutedBrush}"
+                    PlaceholderText="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}"
+                    Text="{Binding FilterText, Mode=TwoWay}"
+                    TextWrapping="NoWrap"
+                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}" />
+                <Button Grid.Column="2" Classes="files-tool" Width="20" Height="20" Padding="2"
+                        Command="{Binding ClearFilter}"
+                        IsVisible="{Binding FilterText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ClearSearch}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ClearSearch}}">
+                    <Path Classes="stroke-ico" Width="11" Height="11" StrokeThickness="1.6" Data="M6 6L18 18 M18 6L6 18" />
+                </Button>
+            </Grid>
+        </Border>
+
         <TreeView
             Grid.Row="1"
             Classes="side-tree"
@@ -72,7 +124,11 @@
                     <MenuItem
                         Header="{i18n:I18n {x:Static l:VexL.OpenFileLocation}}"
                         Command="{Binding OpenSelectedFileLocation}"
-                        IsEnabled="{Binding HasPathCommandTarget}" />
+                        IsEnabled="{Binding HasPathCommandTarget}"/>
+                    <Separator />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}"/>
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}"/>
+                    <MenuItem Header="{i18n:I18n Vex.VexL.RefreshFiles}" Command="{Binding RefreshFiles}"/>
                     <Separator />
                     <MenuItem
                         Header="{i18n:I18n {x:Static l:VexL.Delete}}"
@@ -85,11 +141,11 @@
                  ItemsSource="{Binding FlatDocumentFileNodes}" SelectedItem="{Binding SelectedDocumentFileNode, Mode=TwoWay}" PointerPressed="SelectItemOnPointerPressed">
             <ListBox.ItemTemplate><DataTemplate x:DataType="models:DocumentFileNode">
                 <Grid RowDefinitions="Auto,Auto" Margin="4,5" ToolTip.Tip="{Binding Path}">
-                    <TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Grid.Row="1" Text="{Binding Preview}" FontSize="10.5" Classes="muted" MaxHeight="32" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Name}" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Row="1" Text="{Binding Preview}" FontSize="11" Classes="muted" MaxHeight="32" TextWrapping="Wrap"/>
                 </Grid>
             </DataTemplate></ListBox.ItemTemplate>
-            <ListBox.ContextMenu>                <ContextMenu>
+            <ListBox.ContextMenu><ContextMenu>
                     <MenuItem
                         Header="{i18n:I18n {x:Static l:VexL.OpenFile}}"
                         Command="{Binding OpenSelectedFile}"
@@ -103,7 +159,11 @@
                     <MenuItem
                         Header="{i18n:I18n {x:Static l:VexL.OpenFileLocation}}"
                         Command="{Binding OpenSelectedFileLocation}"
-                        IsEnabled="{Binding HasPathCommandTarget}" />
+                        IsEnabled="{Binding HasPathCommandTarget}"/>
+                    <Separator />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}"/>
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" ToolTip.Tip="{Binding WorkspaceName}"/>
+                    <MenuItem Header="{i18n:I18n Vex.VexL.RefreshFiles}" Command="{Binding RefreshFiles}"/>
                     <Separator />
                     <MenuItem
                         Header="{i18n:I18n {x:Static l:VexL.Delete}}"
@@ -118,28 +178,41 @@
             VerticalAlignment="Top">
             <TextBlock
                 Classes="muted"
-                FontSize="11.5"
+                FontSize="12"
                 Text="{i18n:I18n {x:Static l:VexL.EmptyNoFiles}}"
                 TextAlignment="Center" />
         </Border>
 
-        <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" Padding="8,5">
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="2">
-                <Button Classes="wb-quiet" Command="{Binding NewDocument}" Height="28" Padding="5" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.NewDocument}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NewDocument}}"><StackPanel Orientation="Horizontal" Spacing="4"><Path Classes="stroke-ico" Width="14" Height="14" Data="M12 5V19 M5 12H19"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.NewDocument}}" FontSize="12"/></StackPanel></Button>
-                <Button Grid.Column="1" Classes="wb-quiet" Command="{Binding OpenFolderAsync}" HorizontalContentAlignment="Left" Padding="4" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.OpenFolder}}"><TextBlock Text="{Binding WorkspaceName}" TextTrimming="CharacterEllipsis" FontSize="11"/></Button>
-                <Button Grid.Column="2" Classes="wb-quiet" Width="26" Height="28" Padding="5" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FileActions}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FileActions}}">
-                    <Path Classes="stroke-ico" Data="M4 12H5 M11 12H12 M18 12H19"/>
-                    <Button.Flyout><MenuFlyout>
-                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}"/>
-                        <MenuItem Header="{i18n:I18n Vex.VexL.SearchDocuments}" Command="{Binding QuickOpen}"/>
-                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}"/>
-                        <MenuItem Header="{i18n:I18n Vex.VexL.RefreshFiles}" Command="{Binding RefreshFiles}"/>
-                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.SortFiles}}" Command="{Binding ToggleSort}"/>
-                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}" Command="{Binding CollapseAll}" IsEnabled="{Binding CanCollapseAll}"/>
-                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.ToggleFileList}}" Command="{Binding ToggleListView}" ToggleType="CheckBox" IsChecked="{Binding IsListView, Mode=OneWay}"/>
-                    </MenuFlyout></Button.Flyout>
+        <!-- 对应原型 .files-toolbar-bottom：34px 高、顶部 1px 分隔线、三个 26×26 图标按钮。 -->
+        <Border Grid.Row="2" Height="34" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" Padding="14,0">
+            <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                <ToggleButton x:Name="FilesModeButton" Classes="files-tool"
+                              IsChecked="{Binding IsTreeView, Mode=OneWay}"
+                              Command="{Binding ToggleListView}"
+                              ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}"
+                              AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFiles}}">
+                    <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.6"
+                          Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                </ToggleButton>
+                <Button x:Name="FilesSortButton" Classes="files-tool" Command="{Binding ToggleSort}"
+                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SortFiles}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}">
+                    <Grid>
+                        <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.6"
+                              Data="M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01" />
+                        <TextBlock Text="{Binding SortArrow}" FontSize="9" FontWeight="SemiBold"
+                                   HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-2,-3"
+                                   Classes="muted" />
+                    </Grid>
                 </Button>
-            </Grid>
+                <Button x:Name="FilesFoldButton" Classes="files-tool" Command="{Binding CollapseAll}"
+                        IsEnabled="{Binding CanCollapseAll}"
+                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}">
+                    <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.6"
+                          Data="M4 9L12 15L20 9 M4 15L12 21L20 15" />
+                </Button>
+            </StackPanel>
         </Border>
     </Grid>
 </UserControl>

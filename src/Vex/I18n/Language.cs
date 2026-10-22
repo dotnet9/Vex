@@ -300,6 +300,7 @@ public static class VexL
     public static readonly string StatusLine = "Vex.VexL.StatusLine";
     public static readonly string StatusColumn = "Vex.VexL.StatusColumn";
     public static readonly string StatusWords = "Vex.VexL.StatusWords";
+    public static readonly string StatusWordCount = "Vex.VexL.StatusWordCount";
     public static readonly string StatusCharacters = "Vex.VexL.StatusCharacters";
     public static readonly string DocumentStateModified = "Vex.VexL.DocumentStateModified";
     public static readonly string DocumentStateSaved = "Vex.VexL.DocumentStateSaved";
