@@ -81,6 +81,12 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string WatermarkExport = nameof(AppSettings.WatermarkExport);
     private const string WatermarkText = nameof(AppSettings.WatermarkText);
     private const string WatermarkOpacity = nameof(AppSettings.WatermarkOpacity);
+    private const string WatermarkFontSize = nameof(AppSettings.WatermarkFontSize);
+    private const string WatermarkColor = nameof(AppSettings.WatermarkColor);
+    private const string WatermarkWeight = nameof(AppSettings.WatermarkWeight);
+    private const string CustomPalettes = nameof(AppSettings.CustomPalettes);
+    private const string MindMapLayout = nameof(AppSettings.MindMapLayout);
+    private const string MindMapStyle = nameof(AppSettings.MindMapStyle);
     private const string PdfSize = nameof(AppSettings.PdfSize);
     private const string PdfMargin = nameof(AppSettings.PdfMargin);
 
@@ -156,6 +162,12 @@ public sealed class AppSettingsStore : IAppSettingsStore
             WatermarkExport = Get<bool?>(configuration, WatermarkExport),
             WatermarkText = Get<string?>(configuration, WatermarkText) ?? "维刻 Vex",
             WatermarkOpacity = Get<double?>(configuration, WatermarkOpacity),
+            WatermarkFontSize = Get<double?>(configuration, WatermarkFontSize),
+            WatermarkColor = Get<string?>(configuration, WatermarkColor),
+            WatermarkWeight = Get<int?>(configuration, WatermarkWeight),
+            CustomPalettes = Get<string?>(configuration, CustomPalettes),
+            MindMapLayout = Get<string?>(configuration, MindMapLayout),
+            MindMapStyle = Get<string?>(configuration, MindMapStyle),
             PdfSize = Choice(configuration, PdfSize, "A4", "Letter", "A5"),
             PdfMargin = Get<double?>(configuration, PdfMargin),
             ThemeKey = Get<string>(configuration, ThemeKey),
@@ -242,6 +254,12 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [WatermarkExport] = settings.WatermarkExport,
                 [WatermarkText] = settings.WatermarkText,
                 [WatermarkOpacity] = settings.WatermarkOpacity,
+                [WatermarkFontSize] = settings.WatermarkFontSize,
+                [WatermarkColor] = settings.WatermarkColor,
+                [WatermarkWeight] = settings.WatermarkWeight,
+                [CustomPalettes] = settings.CustomPalettes,
+                [MindMapLayout] = settings.MindMapLayout,
+                [MindMapStyle] = settings.MindMapStyle,
                 [PdfSize] = settings.PdfSize,
                 [PdfMargin] = settings.PdfMargin,
                 [ThemeKey] = settings.ThemeKey,

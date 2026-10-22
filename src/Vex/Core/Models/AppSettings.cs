@@ -108,6 +108,9 @@ public sealed record AppSettings
     public bool? PinEditorToolbar { get; init; }
     public bool? PinReadingToolbar { get; init; }
     public bool? PinMapToolbar { get; init; }
+    public string? CustomPalettes { get; init; }
+    public string? MindMapLayout { get; init; }
+    public string? MindMapStyle { get; init; }
     public double? ContentZoom { get; init; }
     public string? ExportFormat { get; init; }
     public string? ExportFolder { get; init; }

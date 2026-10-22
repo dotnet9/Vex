@@ -76,6 +76,7 @@ public partial class App : PrismApplication
     {
         var settings = Container.Resolve<IAppSettingsStore>().Current;
         var themeService = Container.Resolve<IThemeService>();
+        if (themeService is Vex.Modules.Appearance.Services.ThemeService concrete) concrete.LoadCustomPalettes(settings.CustomPalettes);
         var options = themeService.GetThemeOptions();
         var option = options.FirstOrDefault(item => item.Key.Equals(settings.ThemeKey, StringComparison.OrdinalIgnoreCase))
                      ?? options.First(item => item.Key.Equals("system", StringComparison.OrdinalIgnoreCase));

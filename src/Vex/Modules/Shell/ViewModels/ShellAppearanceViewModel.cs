@@ -145,6 +145,39 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             SelectedPalette = option;
     }
 
+    /// <summary>新增（key 为空）或编辑用户配色：注册后刷新目录并选中。</summary>
+    public string RegisterCustomPalette(string key, string name, string note,
+        string lightPaper, string lightSurface, string lightInk, string lightAccent,
+        string darkPaper, string darkSurface, string darkInk, string darkAccent)
+    {
+        var saved = _themeService.RegisterCustomPalette(key, name, note,
+            lightPaper, lightSurface, lightInk, lightAccent, darkPaper, darkSurface, darkInk, darkAccent);
+        ReloadPaletteOptions();
+        SelectPaletteByKey(saved);
+        return saved;
+    }
+
+    /// <summary>删除用户配色；删除当前选中项时回退默认配色。</summary>
+    public bool RemoveCustomPalette(string key)
+    {
+        if (!_themeService.RemoveCustomPalette(key)) return false;
+        ReloadPaletteOptions();
+        if (SelectedPalette?.Key == key) SelectPaletteByKey("indigo");
+        return true;
+    }
+
+    private void ReloadPaletteOptions()
+    {
+        _themeService.InvalidatePaletteOptions();
+        var current = SelectedPalette?.Key;
+        PaletteOptions.Clear();
+        foreach (var option in _themeService.GetPaletteOptions()) PaletteOptions.Add(option);
+        SelectedPalette = PaletteOptions.FirstOrDefault(item => item.Key == current)
+            ?? PaletteOptions.FirstOrDefault(item => item.Key == "indigo")
+            ?? PaletteOptions.FirstOrDefault();
+        OnPropertyChanged(nameof(PaletteOptions));
+    }
+
     public TypographyOption? SelectedTypography
     {
         get => _selectedTypography;

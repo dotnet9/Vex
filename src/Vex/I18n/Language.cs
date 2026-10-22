@@ -234,6 +234,10 @@ namespace Vex
         public static readonly string StatusViewMap = "Vex.VexL.StatusViewMap";
         public static readonly string StatusViewMore = "Vex.VexL.StatusViewMore";
         public static readonly string WBPinToolbar = "Vex.VexL.WBPinToolbar";
+        public static readonly string EditCustomPalette = "Vex.VexL.EditCustomPalette";
+        public static readonly string DeleteCustomPalette = "Vex.VexL.DeleteCustomPalette";
+        public static readonly string AddCustomPalette = "Vex.VexL.AddCustomPalette";
+        public static readonly string AddCustomPaletteNote = "Vex.VexL.AddCustomPaletteNote";
         public static readonly string WBPresentationZoom = "Vex.VexL.WBPresentationZoom";
         public static readonly string GuideGateAppearance = "Vex.VexL.GuideGateAppearance";
         public static readonly string GuideAct3Appearance = "Vex.VexL.GuideAct3Appearance";

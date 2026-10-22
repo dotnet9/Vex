@@ -101,6 +101,14 @@ internal static class PrototypeChromeVerification
         Check(vm.Workbench.PresentationZoom == 1 && vm.Workbench.PresentationZoomText == "100%", "Slider restores presentation zoom to 100 percent");
         vm.Workbench.StopPresentation(); Render();
         vm.Workbench.SelectLayout("instant"); Render();
+        // 自定义配色：注册→进目录并选中→持久化；删除后回退默认配色。
+        var customKey = vm.Appearance.RegisterCustomPalette("", "陶土暖纸", "验证用配色",
+            "#FFFFFF", "#F5F1EA", "#26201A", "#B4642D", "#12100E", "#1C1917", "#E8E1D8", "#D8973C");
+        Check(customKey.StartsWith("user:") && vm.Appearance.PaletteOptions.Count == 10 && vm.Appearance.SelectedPalette!.Key == customKey,
+            "Custom palette registers, joins the catalog and becomes selected");
+        Check((app.Resolve<IAppSettingsStore>().Current.CustomPalettes ?? "").Contains(customKey), "Custom palette persists to settings");
+        Check(vm.Appearance.RemoveCustomPalette(customKey) && vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.SelectedPalette!.Key == "indigo",
+            "Removing the custom palette falls back to the default palette");
         foreach (var culture in vm.Appearance.LanguageOptions)
         {
             vm.Appearance.SelectedLanguage = culture; Render();

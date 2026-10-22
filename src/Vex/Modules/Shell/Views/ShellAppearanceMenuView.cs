@@ -52,6 +52,23 @@ public sealed class ShellAppearanceMenuView : UserControl
         Build();
     }
 
+    /// <summary>新增/编辑用户配色：对话框确认后注册并应用（对应原型 openPaletteDialog）。</summary>
+    private async void OpenPaletteDialog(Vex.Core.Models.PaletteOption? editing)
+    {
+        var definition = editing?.Definition;
+        var colors = definition is null
+            ? null
+            : new[] { definition.Light.Paper, definition.Light.Surface, definition.Light.Ink, definition.Light.Accent,
+                      definition.Dark.Paper, definition.Dark.Surface, definition.Dark.Ink, definition.Dark.Accent };
+        var model = new ShellPaletteEditModel(editing?.Key, definition?.Name ?? "", definition?.Note ?? "", colors);
+        var applied = await Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(new ShellPaletteEditView(model), model,
+            options: new Ursa.Controls.OverlayDialogOptions { CanLightDismiss = true, CanDragMove = false, CanResize = false, IsCloseButtonVisible = false });
+        if (!applied || model.Result is not { } result) return;
+        var key = editing?.Key ?? "user:" + Guid.NewGuid().ToString("N")[..8];
+        _vm.RegisterCustomPalette(key, result.Name, result.Note, result.Colors[0], result.Colors[1], result.Colors[2], result.Colors[3],
+            result.Colors[4], result.Colors[5], result.Colors[6], result.Colors[7]);
+    }
+
     /// <summary>弹出层开合状态回写给工作台，引导门控据此判定「外观已展开」。</summary>
     private void SetAppearanceMenuOpen(bool open)
     {
@@ -146,6 +163,38 @@ public sealed class ShellAppearanceMenuView : UserControl
             button.Name = "Palette_" + palette.Key; button.MinHeight = 42; button.Padding = new Thickness(10, 4);
             _paletteButtons[palette] = button; _palettes.Children.Add(button);
         }
+        // 用户配色卡带编辑/删除工具；目录尾部「＋ 新增配色」（对应原型 palette-card-tools / palette-add）。
+        foreach (var palette in _vm.PaletteOptions.Where(option => option.Key.StartsWith("user:", StringComparison.Ordinal)).ToArray())
+        {
+            var button = _paletteButtons[palette];
+            var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
+            var edit = new Button { Classes = { "wb-quiet" }, Padding = new Thickness(4, 1), MinHeight = 22, FontSize = 12, Content = "✎", Tag = palette };
+            ToolTip.SetTip(edit, Text("EditCustomPalette"));
+            edit.Click += (_, _) => OpenPaletteDialog(palette);
+            var remove = new Button { Classes = { "wb-quiet" }, Padding = new Thickness(4, 1), MinHeight = 22, FontSize = 12, Content = "×", Tag = palette };
+            ToolTip.SetTip(remove, Text("DeleteCustomPalette"));
+            remove.Click += (_, _) => _vm.RemoveCustomPalette(palette.Key);
+            tools.Children.Add(edit); tools.Children.Add(remove);
+            if (button.Content is Grid grid)
+            {
+                grid.ColumnDefinitions = new("12,*,Auto");
+                Grid.SetColumn(tools, 2);
+                grid.Children.Add(tools);
+            }
+        }
+        var addCard = Button("", () => OpenPaletteDialog(null));
+        addCard.Name = "AddCustomPalette";
+        addCard.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+        addCard.HorizontalAlignment = HorizontalAlignment.Stretch;
+        addCard.MinHeight = 38; addCard.Padding = new Thickness(10, 6);
+        var addRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        addRow.Children.Add(new TextBlock { Text = "＋", FontSize = 15, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+        var addLabels = new StackPanel { Spacing = 1, VerticalAlignment = VerticalAlignment.Center };
+        addLabels.Children.Add(Label(Text("AddCustomPalette"), 13));
+        addLabels.Children.Add(Label(Text("AddCustomPaletteNote")));
+        addRow.Children.Add(addLabels);
+        addCard.Content = addRow;
+        _palettes.Children.Add(addCard);
         var content = new StackPanel { Width = MenuWidth - 34 };
         var modeTitle = Label(Text("AppearanceModeTitle")); modeTitle.FontWeight = FontWeight.SemiBold;
         var paletteTitle = Label(Text("WBTheme")); paletteTitle.FontWeight = FontWeight.SemiBold;
