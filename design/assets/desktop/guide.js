@@ -297,9 +297,13 @@
     if (!gate) return;
     var expected = '';
     var node = document.querySelector(gate.allowed[0]);
-    if (node) expected = (node.textContent || '').trim();
+    if (node) {
+      /* 布局卡片的 textContent 含说明与勾选符号，纠正文案只取按钮主标题。 */
+      var label = node.querySelector('strong');
+      expected = (label ? label.textContent : node.getAttribute('aria-label') || node.textContent || '').trim();
+    }
+    /* 「继续」按钮由 cue() 依据 gate 状态直接渲染，无需额外更新按钮。 */
     cue(g('GateWrongFormat', '这次选「{0}」').replace('{0}', expected), gate.allowed, gate.kind, { showCard: true });
-    enableNextForGate();
   }
   function gateAllows(target) {
     if (!gate) return false;
