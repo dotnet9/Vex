@@ -329,7 +329,7 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
         vm.Appearance.SelectedPalette = palette;
         vm.Appearance.SelectedTheme = modeOption;
         var theme = Application.Current!.ActualThemeVariant;
-        Check(theme == StudioTheme.GetVariant(palette.Palette, modeOption.Mode == StudioThemeMode.Dark),
+        Check(theme == StudioTheme.GetVariant(palette.Key, modeOption.Mode == StudioThemeMode.Dark),
             "Vex selected mode and palette reach the shared theme controller: " + theme);
         Check(app.Resolve<IAppSettingsStore>().Current is { } settings
             && settings.ThemeKey == modeOption.Key && settings.PaletteKey == palette.Key,
