@@ -42,6 +42,8 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private bool _isPresenting;
     private bool _reportedPresentationMap;
     private double _presentationZoom = 1.5;
+    private string _mindMapLayout = "right";
+    private string _mindMapStyle = "quiet";
     private (string View, string Edit, Avalonia.Controls.WindowState WindowState, MarkdownLiveEditorState? LiveState)? _presentationSnapshot;
 
     public ShellWorkbenchViewModel(IWorkspaceDocumentState document, IAppSettingsStore settings,
@@ -61,6 +63,8 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
             ? settings.Current.WorkspaceLayout! : _view == "mindmap" ? "map" : _view == "read" ? "read" : _edit;
         if (LayoutOption.Editor is { } initialMode) _edit = initialMode;
         _summaryLength = Math.Clamp(settings.Current.MindMapSummaryLength ?? 30, 1, 120);
+        _mindMapLayout = settings.Current.MindMapLayout is { } savedLayout && MindMapLayoutKeys.Contains(savedLayout) ? savedLayout : "right";
+        _mindMapStyle = settings.Current.MindMapStyle is { } savedStyle && MindMapStyleKeys.Contains(savedStyle) ? savedStyle : "quiet";
         _showParagraphs = settings.Current.MindMapShowParagraphs ?? true;
         _showCode = settings.Current.MindMapShowCode ?? false;
         _showTables = settings.Current.MindMapShowTables ?? false;
@@ -90,7 +94,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
             return;
         }
 
-        foreach (var name in new[] { nameof(ViewLabel), nameof(LayoutName), nameof(EditingHint), nameof(InstantHint), nameof(MapSummaryLabel), nameof(MapCountLabel), nameof(SelectedSourceLabel), nameof(SelectedKindLabel), nameof(SummaryPreview) })
+        foreach (var name in new[] { nameof(ViewLabel), nameof(LayoutName), nameof(EditingHint), nameof(InstantHint), nameof(MapSummaryLabel), nameof(MapCountLabel), nameof(SelectedSourceLabel), nameof(SelectedKindLabel), nameof(SummaryPreview), nameof(MindMapLayoutLabel), nameof(MindMapStyleLabel) })
             this.RaisePropertyChanged(name);
     }
 
@@ -206,6 +210,54 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public string SelectedFullText => SelectedNode?.FullText ?? string.Empty;
     public string SelectedSourceLabel => SelectedNode is { } node ? string.Format(L(VexL.WBSourceLineFormat), node.SourceLine) : string.Empty;
     public bool ShowMapSource { get => _showMapSource; set { if (value != _showMapSource) SelectLayout(value ? "source-map" : "map"); } }
+
+    public static readonly string[] MindMapLayoutKeys = ["right", "balanced", "radial", "down", "outline", "fishbone"];
+    public static readonly string[] MindMapStyleKeys = ["quiet", "colorful", "outline", "capsule", "underline", "mono"];
+
+    /// <summary>导图布局（right/balanced/radial/down/outline/fishbone），随设置持久化。</summary>
+    public string MindMapLayout
+    {
+        get => _mindMapLayout;
+        set
+        {
+            if (!MindMapLayoutKeys.Contains(value) || value == _mindMapLayout) return;
+            _mindMapLayout = value;
+            this.RaisePropertyChanged(nameof(MindMapLayout));
+            this.RaisePropertyChanged(nameof(MapLayoutKind));
+            _settings.Update(s => s with { MindMapLayout = value });
+        }
+    }
+
+    /// <summary>导图样式（quiet/colorful/frame/capsule/vein/mono），随设置持久化。</summary>
+    public string MindMapStyle
+    {
+        get => _mindMapStyle;
+        set
+        {
+            if (!MindMapStyleKeys.Contains(value) || value == _mindMapStyle) return;
+            _mindMapStyle = value;
+            this.RaisePropertyChanged(nameof(MindMapStyle));
+            this.RaisePropertyChanged(nameof(MapStyleKind));
+            _settings.Update(s => s with { MindMapStyle = value });
+        }
+    }
+
+    public CodeWF.Avalonia.MindView.MindMapLayoutKind MapLayoutKind =>
+        Enum.TryParse(_mindMapLayout, true, out CodeWF.Avalonia.MindView.MindMapLayoutKind kind) ? kind : CodeWF.Avalonia.MindView.MindMapLayoutKind.Right;
+    public CodeWF.Avalonia.MindView.MindMapStyleKind MapStyleKind =>
+        Enum.TryParse(_mindMapStyle, true, out CodeWF.Avalonia.MindView.MindMapStyleKind style) ? style : CodeWF.Avalonia.MindView.MindMapStyleKind.Quiet;
+    public string MindMapLayoutLabel => MindMapLayoutKeyLabel(_mindMapLayout);
+    public string MindMapStyleLabel => MindMapStyleKeyLabel(_mindMapStyle);
+    public static string MindMapLayoutKeyLabel(string key) => L(key switch
+    {
+        "balanced" => VexL.LayoutBalanced, "radial" => VexL.LayoutRadial, "down" => VexL.LayoutDown,
+        "outline" => VexL.LayoutOutline, "fishbone" => VexL.LayoutFishbone, _ => VexL.LayoutRight,
+    });
+    public static string MindMapStyleKeyLabel(string key) => L(key switch
+    {
+        "colorful" => VexL.StyleColorful, "outline" => VexL.StyleFrame, "capsule" => VexL.StyleCapsule,
+        "underline" => VexL.StyleVein, "mono" => VexL.StyleMono, _ => VexL.StyleQuiet,
+    });
     public bool ShowMapSettings { get => _showMapSettings; set { this.RaiseAndSetIfChanged(ref _showMapSettings, value); if (value) CloseInspector(); } }
     public bool ShowTypography { get => _showTypography; set => this.RaiseAndSetIfChanged(ref _showTypography, value); }
 

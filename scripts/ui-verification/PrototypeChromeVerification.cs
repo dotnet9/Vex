@@ -109,6 +109,25 @@ internal static class PrototypeChromeVerification
         Check((app.Resolve<IAppSettingsStore>().Current.CustomPalettes ?? "").Contains(customKey), "Custom palette persists to settings");
         Check(vm.Appearance.RemoveCustomPalette(customKey) && vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.SelectedPalette!.Key == "indigo",
             "Removing the custom palette falls back to the default palette");
+        // 导图布局与样式：六种布局切换不改变节点数；样式与布局随设置持久化。
+        var mapHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+        var map = mapHost.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
+        vm.Workbench.SelectLayout("map"); Render();
+        var beforeCount = map.RealizedNodeCount;
+        foreach (var layout in ShellWorkbenchViewModel.MindMapLayoutKeys)
+        {
+            vm.Workbench.MindMapLayout = layout; Render();
+            var bounds = map.RealizedNodeCount;
+            Check(bounds >= beforeCount - 1, "Layout switch keeps nodes realized: " + layout);
+        }
+        Check(vm.Workbench.MindMapLayout == "fishbone", "Last layout stays selected");
+        foreach (var style in ShellWorkbenchViewModel.MindMapStyleKeys)
+        {
+            vm.Workbench.MindMapStyle = style; Render();
+        }
+        Check(app.Resolve<IAppSettingsStore>().Current.MindMapLayout == "fishbone" && app.Resolve<IAppSettingsStore>().Current.MindMapStyle == "mono",
+            "Map layout and style persist to settings");
+        vm.Workbench.MindMapLayout = "right"; vm.Workbench.MindMapStyle = "quiet"; Render();
         foreach (var culture in vm.Appearance.LanguageOptions)
         {
             vm.Appearance.SelectedLanguage = culture; Render();

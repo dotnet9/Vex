@@ -34,6 +34,74 @@ public partial class MarkdownMindMapHost : UserControl
         MapEditingToolbar.Classes.Set("floating", !pinned);
     }
 
+
+    /// <summary>「导图样式」入口：六种布局 + 六种样式的单选弹层（对应原型导图样式按钮）。</summary>
+    private void BuildMapStyleFlyout()
+    {
+        var button = new Button
+        {
+            Classes = { "wb-quiet", "map-tool" },
+            Content = BuildMapStyleButtonContent(),
+        };
+        ToolTip.SetTip(button, CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式");
+        var panel = new StackPanel { Spacing = 6, MinWidth = 168 };
+        var layoutsTitle = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, FontSize = 12, Margin = new Thickness(4, 2) };
+        var layoutList = new StackPanel { Spacing = 2 };
+        var stylesTitle = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, FontSize = 12, Margin = new Thickness(4, 6, 2, 2) };
+        var styleList = new StackPanel { Spacing = 2 };
+        var refresh = () =>
+        {
+            if (DataContext is not MainWindowViewModel shell) return;
+            var vm = shell.Workbench;
+            layoutsTitle.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapDisplay") ?? "导图显示";
+            stylesTitle.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式";
+            layoutList.Children.Clear();
+            foreach (var key in ShellWorkbenchViewModel.MindMapLayoutKeys)
+            {
+                var captured = key;
+                var item = new RadioButton { GroupName = "map-layout", Content = ShellWorkbenchViewModel.MindMapLayoutKeyLabel(key), Padding = new Thickness(8, 4), FontSize = 12.5 };
+                item.IsChecked = vm.MindMapLayout == key;
+                item.Click += (_, _) => vm.MindMapLayout = captured;
+                layoutList.Children.Add(item);
+            }
+            styleList.Children.Clear();
+            foreach (var key in ShellWorkbenchViewModel.MindMapStyleKeys)
+            {
+                var captured = key;
+                var item = new RadioButton { GroupName = "map-style", Content = ShellWorkbenchViewModel.MindMapStyleKeyLabel(key), Padding = new Thickness(8, 4), FontSize = 12.5 };
+                item.IsChecked = vm.MindMapStyle == key;
+                item.Click += (_, _) => vm.MindMapStyle = captured;
+                styleList.Children.Add(item);
+            }
+        };
+        var content = new StackPanel { Spacing = 4 };
+        content.Children.Add(layoutsTitle); content.Children.Add(layoutList);
+        content.Children.Add(stylesTitle); content.Children.Add(styleList);
+        panel.Children.Add(content);
+        var flyout = new Flyout { Content = panel, Placement = PlacementMode.BottomEdgeAlignedLeft };
+        flyout.Opening += (_, _) => refresh();
+        button.Flyout = flyout;
+        DataContextChanged += (_, _) => refresh();
+        MapToolsRight.Children.Insert(0, button);
+    }
+
+    private static StackPanel BuildMapStyleButtonContent()
+    {
+        var panel = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 4 };
+        panel.Children.Add(new TextBlock { Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式" });
+        panel.Children.Add(new Avalonia.Controls.Shapes.Path
+        {
+            Width = 10,
+            Height = 10,
+            Stretch = Avalonia.Media.Stretch.Uniform,
+            Data = Avalonia.Media.Geometry.Parse("M6 9L12 15L18 9"),
+            Stroke = Avalonia.Media.Brushes.Gray,
+            StrokeThickness = 1.7,
+            StrokeLineCap = Avalonia.Media.PenLineCap.Round,
+        });
+        return panel;
+    }
+
     private void OnMapPinContextChanged(object? sender, EventArgs e)
     {
         if (_pinPreferences is not null)
@@ -57,6 +125,7 @@ public partial class MarkdownMindMapHost : UserControl
         // 取消钉住时工具条悬浮于导图之上；声明顺序在后会盖住内容，这里用 ZIndex 提升。
         MapEditingToolbar.ZIndex = 1;
         DataContextChanged += OnMapPinContextChanged;
+        BuildMapStyleFlyout();
         Map.AddHandler(PointerPressedEvent, (_, _) => _pointerSelection = true, RoutingStrategies.Tunnel);
         Map.AddHandler(PointerReleasedEvent, (_, _) =>
         {
