@@ -150,7 +150,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 foreach (var palette in _model.Appearance.PaletteOptions)
                 {
                     var swatch = new Button { Width = 22, Height = 22, MinHeight = 0, MinWidth = 0, Padding = default, Margin = new Thickness(3), Background = palette.Swatch, CornerRadius = new CornerRadius(11), BorderThickness = new Thickness(2), BorderBrush = _model.Appearance.SelectedPalette == palette ? palette.Swatch : Brushes.Transparent, Tag = palette };
-                    ToolTip.SetTip(swatch, L(palette.NameKey)); swatch.Click += (_, _) =>
+                    ToolTip.SetTip(swatch, palette.Name); swatch.Click += (_, _) =>
                     {
                         _model.Appearance.SelectedPalette = palette;
                         foreach (var button in colors.Children.OfType<Button>()) button.BorderBrush = Equals(button.Tag, palette) ? palette.Swatch : Brushes.Transparent;
