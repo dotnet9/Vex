@@ -521,6 +521,47 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         () => OpenPathCoreAsync(path),
         Path.GetFileName(path));
 
+    /// <summary>从 HTML / Word / PDF 导入为未保存文档：转换写入临时 md 后按普通文档打开。</summary>
+    public async Task ImportAsync(object? parameter)
+    {
+        var kind = parameter as string ?? "html";
+        var patterns = kind switch
+        {
+            "docx" => new[] { "*.docx" },
+            "pdf" => new[] { "*.pdf" },
+            _ => new[] { "*.html", "*.htm" },
+        };
+        var window = (Avalonia.Controls.Window?)Avalonia.Application.Current?.ApplicationLifetime
+            is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime lifetime ? lifetime.MainWindow : null;
+        if (window is null) return;
+        var files = await window.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+        {
+            AllowMultiple = false,
+            FileTypeFilter = [new Avalonia.Platform.Storage.FilePickerFileType(kind.ToUpperInvariant()) { Patterns = patterns }],
+        });
+        if (files.Count == 0) return;
+        var source = files[0];
+        await using var stream = await source.OpenReadAsync();
+        using var reader = new BinaryReader(stream);
+        var bytes = reader.ReadBytes((int)stream.Length);
+        var markdown = kind switch
+        {
+            "docx" => Vex.Modules.Workspace.Services.MarkdownImportService.ConvertDocx(bytes),
+            "pdf" => Vex.Modules.Workspace.Services.MarkdownImportService.ConvertPdf(bytes),
+            _ => Vex.Modules.Workspace.Services.MarkdownImportService.ConvertHtml(System.Text.Encoding.UTF8.GetString(bytes)),
+        };
+        if (string.IsNullOrWhiteSpace(markdown)) return;
+        var target = Path.Combine(Path.GetTempPath(), "Vex-import-" + Guid.NewGuid().ToString("N")[..8] + ".md");
+        await File.WriteAllTextAsync(target, markdown, new System.Text.UTF8Encoding(false));
+        var request = ++_documentOpenVersion;
+        var snapshot = await _documentService.OpenPathAsync(target);
+        if (snapshot is not null && request == _documentOpenVersion)
+        {
+            snapshot = snapshot with { FilePath = null, FileName = Path.GetFileNameWithoutExtension(source.Name) + ".md" };
+            ApplyDocument(snapshot);
+        }
+    }
+
     public async Task OpenFolderAsync()
     {
         await RequestUnsavedConfirmationAsync(

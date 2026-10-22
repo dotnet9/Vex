@@ -248,6 +248,11 @@ namespace Vex
         public static readonly string StyleMono = "Vex.VexL.StyleMono";
         public static readonly string WBMapStyleButton = "Vex.VexL.WBMapStyleButton";
         public static readonly string MenuSaveAll = "Vex.VexL.MenuSaveAll";
+        public static readonly string MenuImport = "Vex.VexL.MenuImport";
+        public static readonly string ImportHtml = "Vex.VexL.ImportHtml";
+        public static readonly string ImportWord = "Vex.VexL.ImportWord";
+        public static readonly string ImportPdf = "Vex.VexL.ImportPdf";
+        public static readonly string ImportDone = "Vex.VexL.ImportDone";
         public static readonly string DeleteCustomTypography = "Vex.VexL.DeleteCustomTypography";
         public static readonly string AddCustomTypography = "Vex.VexL.AddCustomTypography";
         public static readonly string AddCustomTypographyNote = "Vex.VexL.AddCustomTypographyNote";

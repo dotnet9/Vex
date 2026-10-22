@@ -147,6 +147,21 @@ internal static class PrototypeChromeVerification
         Check((app.Resolve<IAppSettingsStore>().Current.CustomTypographies ?? "").Contains(typeKey), "Custom typography persists to settings");
         Check(vm.Appearance.RemoveCustomTypography(typeKey) && vm.Appearance.TypographyOptions.Count == 12 && vm.Appearance.SelectedTypography!.Key == "Simple",
             "Removing the custom typography falls back to Simple");
+        // 导入：HTML 走共享转换器；docx 解包 OOXML 读取标题与段落。
+        var htmlMarkdown = Vex.Modules.Workspace.Services.MarkdownImportService.ConvertHtml("<h1>导入标题</h1><p>导入段落文本</p>");
+        Check(htmlMarkdown.Contains("# 导入标题") && htmlMarkdown.Contains("导入段落文本"), "HTML import converts headings and paragraphs");
+        var docxBuffer = new MemoryStream();
+        using (var zip = new System.IO.Compression.ZipArchive(docxBuffer, System.IO.Compression.ZipArchiveMode.Create, true))
+        using (var entry = zip.CreateEntry("word/document.xml").Open())
+        {
+            var xml = "<?xml version=\"1.0\"?><w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">"
+                + "<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr><w:r><w:t>导入标题</w:t></w:r></w:p>"
+                + "<w:p><w:r><w:t>正文段落</w:t></w:r></w:p></w:document>";
+            var bytes = System.Text.Encoding.UTF8.GetBytes(xml);
+            entry.Write(bytes, 0, bytes.Length);
+        }
+        var docxMarkdown = Vex.Modules.Workspace.Services.MarkdownImportService.ConvertDocx(docxBuffer.ToArray());
+        Check(docxMarkdown.Contains("# 导入标题") && docxMarkdown.Contains("正文段落"), "Word import reads headings and text");
         foreach (var culture in vm.Appearance.LanguageOptions)
         {
             vm.Appearance.SelectedLanguage = culture; Render();
