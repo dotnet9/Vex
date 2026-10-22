@@ -43,7 +43,9 @@ for (const p of palettes) for (const mode of ['light','dark']) {
   write(path.join(tokens,names[p.key]+(dark?'Dark':'Light')+'.axaml'),text);
 }
 let index='<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:themes="using:CodeWF.Avalonia.Controls.Themes">\n<ResourceDictionary.ThemeDictionaries>\n';
-index+='<ResourceInclude x:Key="Default" Source="DefaultLight.axaml"/>\n<ResourceInclude x:Key="Light" Source="DefaultLight.axaml"/>\n<ResourceInclude x:Key="Dark" Source="DefaultDark.axaml"/>\n';
+/* Default/Light/Dark 指向 indigo（库默认配色），与库生成器 generate-studio-cs.cjs 的 _index 约定一致；
+ * 本脚本不产出 Default*.axaml，指向不存在的文件会让库编译失败（AVLN2000）。 */
+index+='<ResourceInclude x:Key="Default" Source="IndigoLight.axaml"/>\n<ResourceInclude x:Key="Light" Source="IndigoLight.axaml"/>\n<ResourceInclude x:Key="Dark" Source="IndigoDark.axaml"/>\n';
 for(const p of palettes) for(const mode of ['Light','Dark']) if(names[p.key]!=='Default') index+=`<ResourceInclude x:Key="{x:Static themes:StudioTheme.${names[p.key]+mode}}" Source="${names[p.key]+mode}.axaml"/>\n`;
 index+='</ResourceDictionary.ThemeDictionaries>\n';
 for(const p of palettes) index+=`<SolidColorBrush x:Key="StudioSwatch${names[p.key]}">${p.light}</SolidColorBrush>\n`;

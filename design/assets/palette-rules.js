@@ -31,6 +31,12 @@
   function onAccent(accent) {
     return contrast('#FFFFFF', accent) > contrast('#000000', accent) ? '#FFFFFF' : '#000000';
   }
+  /* §5.1 画布中性化：paper/surface 去色温、保留相对明度（海拔差不变），色相只留在墨、强调与交互态。 */
+  function neutral(color) {
+    var c = rgb(color);
+    var luma = Math.round(0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]);
+    return hex([luma, luma, luma]);
+  }
 
   var KEYWORDS = { white: '#FFFFFF', black: '#000000' };
   function colorOf(key, base) { return KEYWORDS[key] || base[key]; }
@@ -162,6 +168,8 @@
   /* 原型变量映射层：规则语义键 → 原型 CSS 变量词汇表（§4 消费契约的原型投影）。 */
   function deriveVars(base, mode, constants) {
     var dark = mode === 'dark';
+    /* §5.1 画布中性化：先剥掉 paper/surface 的色温再派生，大面积画布不随色板染色。 */
+    base = Object.assign({}, base, { paper: neutral(base.paper), surface: neutral(base.surface) });
     var resolved = resolveConstants(constants, base);
     var on = onAccent(base.accent);
     /* §3 的四处收敛：muted 步进加深、primaryHover/gradientEnd 向 accent 收敛、强调软底与状态软底按明暗反向调整。 */
@@ -218,7 +226,8 @@
     var defaults = (statusDefaults && statusDefaults[mode]) || {};
     var merged = {};
     STATUS_KEYS.forEach(function (key) { merged[key] = base[key] || defaults[key]; });
-    merged.paper = base.paper; merged.surface = base.surface; merged.ink = base.ink; merged.accent = base.accent;
+    /* §5.1 画布中性化：校验对象与消费层一致，使用去色温后的画布值。 */
+    merged.paper = neutral(base.paper); merged.surface = neutral(base.surface); merged.ink = base.ink; merged.accent = base.accent;
     function need(pair, minimum, label) {
       var ratio = contrast(pair[0], pair[1]);
       if (ratio < minimum) issues.push(label + ' 对比度 ' + ratio.toFixed(2) + ':1，需 ≥ ' + minimum + ':1');
@@ -267,5 +276,5 @@
   }
 
   return { rgb: rgb, hex: hex, mix: mix, alphaOver: alphaOver, luminance: luminance, contrast: contrast,
-    onAccent: onAccent, resolveFormula: resolveFormula, readable: readable, statusColor: statusColor, deriveVars: deriveVars, validate: validate };
+    onAccent: onAccent, neutral: neutral, resolveFormula: resolveFormula, readable: readable, statusColor: statusColor, deriveVars: deriveVars, validate: validate };
 });
