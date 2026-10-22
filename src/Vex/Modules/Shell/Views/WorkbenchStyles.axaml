@@ -144,4 +144,73 @@
       <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.2"/></Transitions>
     </Setter>
   </Style>
+
+  <!-- ===== 悬浮工具条「钉住」（对应原型 data-pin-*）：钉住=占位常驻；取消钉住=悬浮静默、悬停/聚焦显现。 ===== -->
+  <Style Selector="Border.edit-options.pinned">
+    <Setter Property="Opacity" Value="1"/>
+    <Setter Property="Transitions">
+      <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.2"/></Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Border.pane-head.floating, Border.map-topbar.floating">
+    <Setter Property="Opacity" Value="0.01"/>
+    <Setter Property="Transitions">
+      <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.25" Delay="0:0:2"/></Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Border.pane-head.floating:pointerover, Border.pane-head.floating:focus-within, Border.map-topbar.floating:pointerover, Border.map-topbar.floating:focus-within">
+    <Setter Property="Opacity" Value="1"/>
+    <Setter Property="Transitions">
+      <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.2"/></Transitions>
+    </Setter>
+  </Style>
+
+  <!-- 图钉双态：钉住=竖直实心图钉；取消钉住=45° 空心并整体淡化。 -->
+  <Style Selector="ToggleButton.toolbar-pin">
+    <Setter Property="MinWidth" Value="0"/>
+    <Setter Property="MinHeight" Value="0"/>
+    <Setter Property="Padding" Value="4,3"/>
+    <Setter Property="CornerRadius" Value="4"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="ToggleButton.toolbar-pin /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="ToggleButton.toolbar-pin:checked /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="ToggleButton.toolbar-pin:not(:checked)">
+    <Setter Property="Opacity" Value="0.55"/>
+  </Style>
+  <Style Selector="ToggleButton.toolbar-pin:pointerover">
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+  </Style>
+  <Style Selector="ToggleButton.toolbar-pin Path">
+    <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="StrokeThickness" Value="1.7"/>
+    <Setter Property="StrokeLineCap" Value="Round"/>
+    <Setter Property="StrokeJoin" Value="Round"/>
+  </Style>
+  <Style Selector="ToggleButton.toolbar-pin Path.pin-head">
+    <Setter Property="Fill" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="StrokeThickness" Value="0"/>
+  </Style>
+  <Style Selector="ToggleButton.toolbar-pin:pointerover Path">
+    <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="ToggleButton.toolbar-pin:pointerover Path.pin-head">
+    <Setter Property="Fill" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="ToggleButton.toolbar-pin:checked Viewbox.pin-off">
+    <Setter Property="IsVisible" Value="False"/>
+  </Style>
+  <Style Selector="ToggleButton.toolbar-pin:not(:checked) Viewbox.pin-on">
+    <Setter Property="IsVisible" Value="False"/>
+  </Style>
 </Styles>

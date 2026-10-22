@@ -32,6 +32,9 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     public bool ImageRelative { get => settings.Current.ImageRelative ?? true; set => Set(s => s with { ImageRelative = value }); }
     public string ImageFolder { get => settings.Current.ImageFolder ?? "assets"; set => Set(s => s with { ImageFolder = value ?? "" }); }
     public bool WordCountVisible { get => settings.Current.WordCountVisible ?? true; set => Set(s => s with { WordCountVisible = value }); }
+    public bool PinEditorToolbar { get => settings.Current.PinEditorToolbar ?? true; set => Set(s => s with { PinEditorToolbar = value }); }
+    public bool PinReadingToolbar { get => settings.Current.PinReadingToolbar ?? true; set => Set(s => s with { PinReadingToolbar = value }); }
+    public bool PinMapToolbar { get => settings.Current.PinMapToolbar ?? true; set => Set(s => s with { PinMapToolbar = value }); }
     public double ContentZoom { get => settings.Current.ContentZoom ?? 100; set => Set(s => s with { ContentZoom = Math.Clamp(value, 50, 200) }); }
     public string ExportFormat { get => settings.Current.ExportFormat ?? "HTML"; set => Set(s => s with { ExportFormat = value ?? "" }); }
     public string ExportFolder { get => settings.Current.ExportFolder ?? ""; set => Set(s => s with { ExportFolder = value ?? "" }); }

@@ -23,9 +23,40 @@ public partial class MarkdownMindMapHost : UserControl
     private int? _inspectedStart;
     private int? _renamingStart;
     private (bool Paragraphs, bool Lists, bool Code, bool Tables)? _savedVisibility;
+    private Vex.Core.Services.EditorPreferences? _pinPreferences;
+
+    /// <summary>钉住 = 工具条占位行；取消钉住 = 悬浮在导图顶端，静默至悬停或聚焦。</summary>
+    private void ApplyMapPin()
+    {
+        var pinned = _pinPreferences?.PinMapToolbar ?? true;
+        Grid.SetRow(MapEditingToolbar, pinned ? 0 : 1);
+        MapEditingToolbar.VerticalAlignment = pinned ? Avalonia.Layout.VerticalAlignment.Stretch : Avalonia.Layout.VerticalAlignment.Top;
+        MapEditingToolbar.Classes.Set("floating", !pinned);
+    }
+
+    private void OnMapPinContextChanged(object? sender, EventArgs e)
+    {
+        if (_pinPreferences is not null)
+        {
+            _pinPreferences.PreferencesChanged -= OnMapPinPreferenceChanged;
+            _pinPreferences = null;
+        }
+        if (DataContext is MainWindowViewModel vm)
+        {
+            _pinPreferences = vm.Workbench.Preferences;
+            _pinPreferences.PreferencesChanged += OnMapPinPreferenceChanged;
+        }
+        ApplyMapPin();
+    }
+
+    private void OnMapPinPreferenceChanged(object? sender, EventArgs e) => ApplyMapPin();
+
     public MarkdownMindMapHost()
     {
         InitializeComponent();
+        // 取消钉住时工具条悬浮于导图之上；声明顺序在后会盖住内容，这里用 ZIndex 提升。
+        MapEditingToolbar.ZIndex = 1;
+        DataContextChanged += OnMapPinContextChanged;
         Map.AddHandler(PointerPressedEvent, (_, _) => _pointerSelection = true, RoutingStrategies.Tunnel);
         Map.AddHandler(PointerReleasedEvent, (_, _) =>
         {

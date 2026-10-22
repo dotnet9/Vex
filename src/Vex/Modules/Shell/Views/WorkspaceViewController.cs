@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -22,8 +23,39 @@ public sealed class WorkspaceViewController
     private readonly Dictionary<string, CodeWFWindow> _floating = [];
     private readonly StackPanel _shelf;
     private MainWindowViewModel? _vm;
+    private Vex.Core.Services.EditorPreferences? _pinPreferences;
     private bool _arranging;
     private bool _closing;
+
+    /// <summary>阅读窗格头（控制器自建），承载「钉」按钮；钉住状态由偏好驱动。</summary>
+    public Border ReadingHeader => _headers["render"];
+    public ToggleButton? ReadingPin { get; private set; }
+
+    /// <summary>钉住 = 窗格头占位行；取消钉住 = 悬浮于阅读区顶端，静默至悬停或聚焦。</summary>
+    private void ApplyReadingPin()
+    {
+        if (ReadingPin is null) return;
+        var pinned = _pinPreferences?.PinReadingToolbar ?? true;
+        var header = ReadingHeader;
+        Grid.SetRow(header, pinned ? 0 : 1);
+        header.VerticalAlignment = pinned ? VerticalAlignment.Stretch : VerticalAlignment.Top;
+        header.Classes.Set("floating", !pinned);
+    }
+
+    private void OnPinPreferenceChanged(object? sender, EventArgs e) => ApplyReadingPin();
+
+    private static Panel BuildPinIcon(double size)
+    {
+        static Viewbox State(string className)
+        {
+            var canvas = new Canvas { Width = 24, Height = 24 };
+            canvas.Children.Add(new Avalonia.Controls.Shapes.Path { Classes = { "pin-head" }, Data = Geometry.Parse("M8 3h8l-1 8H9l-1-8z") });
+            canvas.Children.Add(new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse("M12 11v9") });
+            if (className == "pin-off") canvas.RenderTransform = new RotateTransform(45, 12, 11);
+            return new Viewbox { Classes = { className }, Child = canvas };
+        }
+        return new Panel { Width = size, Height = size, Children = { State("pin-on"), State("pin-off") } };
+    }
     public sealed record FloatingSession(IReadOnlyDictionary<string, CodeWFWindow> Windows);
     private FloatingSession? _presentationSession;
     private (CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.ViewportState Viewport, object? Root)? _presentationMapState;
@@ -57,8 +89,15 @@ public sealed class WorkspaceViewController
     private void Attach()
     {
         if (_vm is not null) { _vm.Workbench.PropertyChanged -= Changed; _vm.DocumentInfo.PropertyChanged -= DocumentChanged; }
+        if (_pinPreferences is not null) _pinPreferences.PreferencesChanged -= OnPinPreferenceChanged;
         _vm = _window.DataContext as MainWindowViewModel;
         if (_vm is not null) { _vm.Workbench.PropertyChanged += Changed; _vm.DocumentInfo.PropertyChanged += DocumentChanged; }
+        _pinPreferences = _vm?.Workbench.Preferences;
+        if (_pinPreferences is not null)
+        {
+            _pinPreferences.PreferencesChanged += OnPinPreferenceChanged;
+            ReadingPin?.Bind(ToggleButton.IsCheckedProperty, new Binding("PinReadingToolbar") { Source = _pinPreferences });
+        }
         Arrange();
     }
     private void Changed(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -98,7 +137,25 @@ public sealed class WorkspaceViewController
         label.Bind(TextBlock.ForegroundProperty, _window.GetResourceObservable("VexMutedBrush")); bar.Children.Add(label);
         var detach = new Button { Content = new global::Avalonia.Controls.Shapes.Path { Classes = { "wb-icon" }, Width = 12, Height = 12,
             Data = Geometry.Parse("M14 3H21V10 M21 3L10 14 M11 3H3V21H21V13") }, Classes = { "wb-quiet" }, Padding = new Thickness(5, 0), MinHeight = 22 };
-        ToolTip.SetTip(detach, WorkbenchText.Get("WSFloat")); detach.Click += (_, _) => Float(id); Grid.SetColumn(detach, 2); bar.Children.Add(detach);
+        ToolTip.SetTip(detach, WorkbenchText.Get("WSFloat")); detach.Click += (_, _) => Float(id);
+        // 阅读窗格头带「钉」：钉住=占位行；取消=悬浮静默（对应原型阅读视图 .view-heading 的 data-pin-render）。
+        if (id == "render")
+        {
+            var pin = new ToggleButton { Classes = { "toolbar-pin" }, Padding = new Thickness(4, 2), VerticalAlignment = VerticalAlignment.Center };
+            pin.Content = BuildPinIcon(14);
+            ToolTip.SetTip(pin, WorkbenchText.Get("WBPinToolbar"));
+            Avalonia.Automation.AutomationProperties.SetName(pin, WorkbenchText.Get("WBPinToolbar"));
+            ReadingPin = pin;
+            var pinHost = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto"), VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(pin, 0); pinHost.Children.Add(pin);
+            Grid.SetColumn(detach, 1); pinHost.Children.Add(detach);
+            Grid.SetColumn(pinHost, 2); bar.Children.Add(pinHost);
+        }
+        else
+        {
+            Grid.SetColumn(detach, 2); bar.Children.Add(detach);
+        }
+        header.ZIndex = 1;
         header.Child = bar; _headers[id] = header; layout.Children.Add(header); Grid.SetRow(content, 1); layout.Children.Add(content);
         var frame = new Border { Child = layout, ClipToBounds = true, BorderThickness = new Thickness(0), Tag = id };
         frame.Bind(Border.BorderBrushProperty, _window.GetResourceObservable("VexPanelBorderBrush")); _frames[id] = frame;
@@ -122,6 +179,7 @@ public sealed class WorkspaceViewController
                 frame.IsVisible = wanted.Contains(id);
                 if (!_floating.ContainsKey(id) && frame.Parent is null) _surface.Children.Add(frame);
             }
+            ApplyReadingPin();
             var local = wanted.Where(id => !_floating.ContainsKey(id)).ToArray();
             _surface.ColumnDefinitions[1].Width = local.Length >= 2 ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
             _surface.RowDefinitions[1].Height = local.Length == 3 ? new GridLength(1, GridUnitType.Star) : new GridLength(0);

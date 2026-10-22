@@ -105,6 +105,9 @@ public sealed record AppSettings
     public bool? ImageRelative { get; init; }
     public string? ImageFolder { get; init; }
     public bool? WordCountVisible { get; init; }
+    public bool? PinEditorToolbar { get; init; }
+    public bool? PinReadingToolbar { get; init; }
+    public bool? PinMapToolbar { get; init; }
     public double? ContentZoom { get; init; }
     public string? ExportFormat { get; init; }
     public string? ExportFolder { get; init; }

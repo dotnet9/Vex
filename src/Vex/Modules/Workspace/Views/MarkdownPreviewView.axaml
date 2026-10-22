@@ -12,7 +12,8 @@
     prism:ViewModelLocator.AutoWireViewModel="True">
 
     <Grid RowDefinitions="Auto,*" Background="{DynamicResource VexPreviewBackgroundBrush}">
-        <!-- 预览窗格头：标注窗格身份 + 当前排版主题（对应原型 .pane-head + .kbd） -->
+        <!-- 预览窗格头：标注窗格身份 + 当前排版主题（对应原型 .pane-head + .kbd）。
+             工作台组合布局下由 WorkspaceViewController 统一提供窗格头，此处作为独立使用时的兜底。 -->
         <Border x:Name="PaneHeader" Classes="pane-head">
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Orientation="Horizontal" Spacing="8">

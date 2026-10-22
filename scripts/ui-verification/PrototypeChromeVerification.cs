@@ -66,6 +66,33 @@ internal static class PrototypeChromeVerification
             window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Render();
             Check(!vm.Workbench.ShowLayouts && layoutButton.IsFocused, "Escape closes layout panel and returns focus");
         }
+        // 工具条钉住：默认钉住为占位行；取消钉住回到悬浮静默，并随偏好写入配置。
+        var pins = vm.Workbench.Preferences;
+        var editorOptions = window.FindControl<ShellEditorOptionsView>("EditorOptions")!;
+        var editOptionsBorder = editorOptions.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("edit-options"));
+        Check(editOptionsBorder.Classes.Contains("pinned") && vm.Workbench.EditorSurfaceMargin == new Thickness(0, 42, 0, 0),
+            "Pinned editor toolbar docks the workspace below it");
+        pins.PinEditorToolbar = false; Render();
+        Check(!editOptionsBorder.Classes.Contains("pinned") && vm.Workbench.EditorSurfaceMargin == default(Thickness),
+            "Unpinned editor toolbar floats without pushing content");
+        pins.PinEditorToolbar = true; Render();
+        vm.Workbench.SelectLayout("source-render"); Render();
+        var readingHeader = window.WorkspaceViews.ReadingHeader;
+        var pinToggle = window.WorkspaceViews.ReadingPin!;
+        var mapBar = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!.FindControl<Border>("MapEditingToolbar")!;
+        Check(pinToggle.IsChecked == true && pinToggle.GetVisualDescendants().OfType<Viewbox>().First(v => v.Classes.Contains("pin-on")).IsVisible,
+            "Pin button shows the pinned icon by default");
+        pins.PinReadingToolbar = false; pins.PinMapToolbar = false; Render();
+        Check(Grid.GetRow(readingHeader) == 1 && readingHeader.Classes.Contains("floating"), "Unpinned reading header floats above content");
+        Check(Grid.GetRow(mapBar) == 1 && mapBar.Classes.Contains("floating"), "Unpinned map toolbar floats above content");
+        Check(pinToggle.GetVisualDescendants().OfType<Viewbox>().First(v => v.Classes.Contains("pin-off")).IsVisible,
+            "Unpinned pin button swaps to the tilted icon");
+        Check(app.Resolve<IAppSettingsStore>().Current.PinReadingToolbar == false && app.Resolve<IAppSettingsStore>().Current.PinMapToolbar == false,
+            "Pin states persist to settings");
+        pins.PinReadingToolbar = true; pins.PinMapToolbar = true; Render();
+        Check(Grid.GetRow(readingHeader) == 0 && !readingHeader.Classes.Contains("floating") && Grid.GetRow(mapBar) == 0 && !mapBar.Classes.Contains("floating"),
+            "Re-pinning docks both toolbars back into the layout");
+        vm.Workbench.SelectLayout("instant"); Render();
         foreach (var culture in vm.Appearance.LanguageOptions)
         {
             vm.Appearance.SelectedLanguage = culture; Render();

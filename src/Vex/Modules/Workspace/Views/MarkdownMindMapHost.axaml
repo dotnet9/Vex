@@ -5,7 +5,7 @@
     <Style Selector="Button.map-tool, ToggleButton.map-tool"><Setter Property="FontSize" Value="10.5"/><Setter Property="Padding" Value="7,4"/><Setter Property="MinHeight" Value="26"/></Style>
   </UserControl.Styles>
   <Grid RowDefinitions="Auto,*">
-    <Border x:Name="MapEditingToolbar" IsVisible="{Binding !Workbench.IsPresenting}" MinHeight="36" Padding="10,4" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
+    <Border x:Name="MapEditingToolbar" Classes="map-topbar" IsVisible="{Binding !Workbench.IsPresenting}" MinHeight="36" Padding="10,4" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
       <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
         <StackPanel x:Name="MapTitle" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center"><Path Classes="wb-icon" Data="{StaticResource WBMapIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.DocumentStructure}}" Classes="wb-muted"/><TextBlock Text="{Binding Workbench.MapCountLabel}" Classes="wb-muted"/></StackPanel>
         <Grid x:Name="MapToolbarGrid" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
@@ -18,6 +18,12 @@
           <ToggleButton x:Name="SummarySettingsButton" Classes="wb-quiet map-tool" Content="{Binding Workbench.MapSummaryLabel}" IsChecked="{Binding Workbench.ShowMapSettings, Mode=OneWay}" Command="{Binding Workbench.ToggleMapSettings}"/>
           <Button x:Name="CollapseBranchesButton" Classes="wb-quiet map-tool" Content="{i18n:I18n {x:Static l:VexL.WBCollapse}}" Click="CollapseClick"/>
           <ToggleButton x:Name="MapSourceButton" Classes="wb-quiet map-tool" IsChecked="{Binding Workbench.ShowMapSource, Mode=OneWay}" Command="{Binding Workbench.ToggleMapSource}"><StackPanel Orientation="Horizontal" Spacing="5"><Path Classes="wb-icon" Width="11" Height="11" Data="{StaticResource WBColumnsIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBMapSource}}"/></StackPanel></ToggleButton>
+          <ToggleButton x:Name="PinMap" Classes="toolbar-pin" Margin="4,0,0,0" IsChecked="{Binding Workbench.Preferences.PinMapToolbar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
+            <Panel Width="14" Height="14">
+              <Viewbox Classes="pin-on"><Canvas Width="24" Height="24"><Path Classes="pin-head" Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
+              <Viewbox Classes="pin-off"><Canvas Width="24" Height="24"><Canvas.RenderTransform><RotateTransform Angle="45" CenterX="12" CenterY="11"/></Canvas.RenderTransform><Path Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
+            </Panel>
+          </ToggleButton>
         </StackPanel>
         </Grid>
       </Grid>

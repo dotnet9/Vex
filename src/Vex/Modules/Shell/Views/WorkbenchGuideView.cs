@@ -46,6 +46,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
     private bool _focus;
     private bool _mapSettings;
     private bool _typography;
+    private (bool Editor, bool Reading, bool Map)? _savedPins;
     private CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownLiveEditorState? _liveState;
     private AvaloniaEdit.Document.TextDocument? _sourceDocument;
     private int _sourceCaret;
@@ -108,6 +109,10 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         _savedTypography = vm.Appearance.SelectedTypography;
         _outline = vm.Layout.IsOutlineVisible; _sidebar = vm.Layout.IsSidebarVisible; _status = vm.Layout.IsStatusBarVisible; _focus = vm.Layout.IsFocusMode;
         _mapSettings = vm.Workbench.ShowMapSettings; _typography = vm.Workbench.ShowTypography;
+        // 引导门控要高亮工具条内的入口，全程钉住三处工具条，避免目标悬浮隐藏成空高亮。
+        var preferences = vm.Workbench.Preferences;
+        _savedPins = (preferences.PinEditorToolbar, preferences.PinReadingToolbar, preferences.PinMapToolbar);
+        preferences.PinEditorToolbar = true; preferences.PinReadingToolbar = true; preferences.PinMapToolbar = true;
         _savedFocus = window.FocusManager?.GetFocusedElement();
         _liveState = vm.Workbench.LiveEditor?.CaptureState();
         var sourceView = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!;
@@ -301,6 +306,11 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         if (_liveState is { } live && _shellVm.Workbench.LiveEditor is { } editor) editor.RestoreState(live);
         _shellVm.Workbench.RestorePreferences(_savedSettings, _savedView, _savedEdit);
         _shellVm.Workbench.ShowMapSettings = _mapSettings; _shellVm.Workbench.ShowTypography = _typography;
+        if (_savedPins is { } pins)
+        {
+            var preferences = _shellVm.Workbench.Preferences;
+            preferences.PinEditorToolbar = pins.Editor; preferences.PinReadingToolbar = pins.Reading; preferences.PinMapToolbar = pins.Map;
+        }
         _shellVm.Workbench.ShowLayouts = _savedLayouts;
         _shellVm.Navigation.SelectedSideTabIndex = _sidebarTab;
         if (_history is { } history) _shellVm.Workbench.History.Restore(history);

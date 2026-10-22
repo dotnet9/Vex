@@ -5,7 +5,7 @@
       <Setter Property="u:ToolBar.OverflowMode" Value="Always"/>
     </Style>
   </UserControl.Styles>
-  <Border Classes="edit-options" Height="42" Padding="14,0" Background="{DynamicResource VexShellBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
+  <Border Classes="edit-options" Classes.pinned="{Binding Workbench.Preferences.PinEditorToolbar}" Height="42" Padding="14,0" Background="{DynamicResource VexShellBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
       <!-- 复用 Ursa 的溢出工具栏，窄工作区将后续操作收进更多面板。 -->
       <u:ToolBar x:Name="FormattingToolbar" Classes="wb-formatbar" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding Workbench.IsEditing}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBFormatting}}">
@@ -37,6 +37,12 @@
       </u:ToolBar>
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
         <Button x:Name="TypographyTarget" Classes="wb-quiet" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><TextBlock Text="{i18n:I18n {Binding Appearance.SelectedTypography.NameKey}}" FontWeight="SemiBold"/><TextBlock Text="⌄"/></StackPanel></Button>
+        <ToggleButton x:Name="PinEditor" Classes="toolbar-pin" IsChecked="{Binding Workbench.Preferences.PinEditorToolbar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
+          <Panel Width="17" Height="17">
+            <Viewbox Classes="pin-on"><Canvas Width="24" Height="24"><Path Classes="pin-head" Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
+            <Viewbox Classes="pin-off"><Canvas Width="24" Height="24"><Canvas.RenderTransform><RotateTransform Angle="45" CenterX="12" CenterY="11"/></Canvas.RenderTransform><Path Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
+          </Panel>
+        </ToggleButton>
       </StackPanel>
     </Grid>
   </Border>
