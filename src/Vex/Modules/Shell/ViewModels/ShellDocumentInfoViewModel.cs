@@ -22,9 +22,9 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
         _localizer.CultureChanged += OnCultureChanged;
     }
 
-    public string WindowTitle => $"{(IsModified ? "*" : string.Empty)}{_document.FileName} - Vex";
+    public string WindowTitle => $"{_document.FileName}{(IsModified ? " *" : string.Empty)} - Vex";
 
-    public string CurrentDocumentTitle => $"{(IsModified ? "*" : string.Empty)}{_document.FileName}";
+    public string CurrentDocumentTitle => $"{_document.FileName}{(IsModified ? " *" : string.Empty)}";
 
     public string WorkspacePathText => CurrentFilePath is { } path ? Path.GetDirectoryName(path) ?? string.Empty : _localizer.Get(VexL.DocumentDefaultFileName);
 
