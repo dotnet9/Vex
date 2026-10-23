@@ -42,7 +42,7 @@ if (mode == "parity-score")
     VisualParityScore.Run(args.Skip(1).ToArray());
     return;
 }
-if (mode is "popup-layout" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual")
+if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -59,6 +59,7 @@ if (mode is "popup-layout" or "motion" or "desktop-parity" or "settings-ui" or "
     }
     Pump();
     if (mode == "popup-layout") PopupLayoutVerification.Run(app, window, output);
+    else if (mode == "elements") ElementVerification.Run(app, window, output);
     else if (mode == "motion") MotionVerification.Run(app, window, output);
     else if (mode == "protection") ProtectionVerification.Run(app, window, output);
     else if (mode == "prototype-appearance") PrototypeAppearanceVerification.Run(app, window, output);
