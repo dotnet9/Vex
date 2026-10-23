@@ -37,8 +37,8 @@ internal static class PrototypeAppearanceVerification
         vm.Workbench.ShowTypography = true; Render();
         var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
         var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true).ToArray();
-        Check(cards.Length == 12 && cards.Count(b => b.IsVisible) == 6, "All independent cards exist and six recommended cards are shown");
-        Check(cards.All(card => card.Content is StackPanel stack && stack.Children.OfType<Border>().Single().Child is MarkdownViewer preview
+        Check(cards.Length == 12 && cards.All(b => b.IsVisible), "All twelve typography cards are shown without a filter (prototype redesign)");
+        Check(cards.All(card => card.Content is Panel panel && panel.Children.OfType<Border>().First().Child is MarkdownViewer preview
             && preview.TypographyTheme == card.Name![11..]), "Each card renders its own typography key");
         var simple = cards.First(b => b.Name == "Typography_Simple"); simple.Focus();
         var selected = vm.Appearance.SelectedTypography;
@@ -46,16 +46,15 @@ internal static class PrototypeAppearanceVerification
         Check(vm.Appearance.SelectedTypography == selected, "Arrow navigation moves focus without applying typography");
         var book = cards.First(b => b.Name == "Typography_InkBlack"); Click(book);
         Check(vm.Appearance.SelectedTypography?.Key == "InkBlack" && vm.Workbench.ShowTypography, "Click applies typography and keeps comparison panel open");
-        Click(gallery.GetVisualDescendants().OfType<Button>().First(b => b.Content as string == "全部 12 套"));
-        Check(cards.All(b => b.IsVisible), "All 12 typography styles are one click away");
+        Check(gallery.GetVisualDescendants().OfType<Button>().Count(b => b.Classes.Contains("appearance-pill")) == 3, "Render density pills offer the three prototype sizes");
         foreach (var size in new[] { new Size(800,480), new Size(1024,768), new Size(1440,1000) })
         {
             window.Width = size.Width; window.Height = size.Height; Render();
             Check(gallery.Bounds.Width <= window.ClientSize.Width && gallery.Bounds.Bottom <= window.ClientSize.Height - 11,
                 $"Typography panel fits {size.Width}: gallery={gallery.Bounds}, margin={gallery.Margin}, client={window.ClientSize}");
             var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
-            Check(scroll.Viewport.Height > 50 && scroll.Extent.Height > scroll.Viewport.Height, "Card area scrolls independently at " + size.Width);
-            Check(cards.All(card => card.Bounds.Height >= 332), "Cards retain readable natural height at " + size.Width);
+            Check(scroll.Viewport.Height > 50 && scroll.Extent.Height > scroll.Viewport.Height, $"Card area scrolls independently at {size.Width}: viewport={scroll.Viewport.Height:0.#}, extent={scroll.Extent.Height:0.#}, gallery={gallery.Bounds}");
+            Check(cards.All(card => card.Bounds.Height >= 261 && card.Bounds.Height <= 263), "Cards keep the prototype's 262px height at " + size.Width + ": " + string.Join(",", cards.Select(c => c.Bounds.Height.ToString("0.#"))));
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "typography-" + size.Width + ".png"));
         }
         foreach (var language in vm.Appearance.LanguageOptions)

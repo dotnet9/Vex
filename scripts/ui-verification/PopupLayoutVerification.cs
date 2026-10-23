@@ -67,20 +67,21 @@ internal static class PopupLayoutVerification
         // 排版级联已迁到外观弹层（ShellAppearanceMenuView），滚动可达性由 prototype-appearance 模式覆盖。
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("indigo"); Render();
         var appearance = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
-        foreach (var (button, name) in new[] { (appearance.AppearanceButton, "appearance"), (appearance.LanguageButton, "language") })
+        foreach (var (button, name, width) in new[] { (appearance.AppearanceButton, "appearance", (double)ShellAppearanceMenuView.MenuWidth), (appearance.LanguageButton, "language", 248.0) })
         {
             ((Flyout)button.Flyout!).ShowAt(button); Render();
             var content = (Control)((Flyout)button.Flyout).Content!;
             var presenter = content.GetVisualAncestors().OfType<FlyoutPresenter>().First();
             var frame = presenter.GetVisualDescendants().OfType<Border>().First(b => b.Name == "LayoutRoot");
-            Check(Math.Abs(frame.Bounds.Width - 248) < 1, "Title picker uses the same 248px visible frame: " + name);
+            Check(Math.Abs(frame.Bounds.Width - width) < 1, $"Menu uses its {width:0}px visible frame: " + name);
             Capture(presenter, name); button.Flyout.Hide(); Render();
         }
         vm.Workbench.ShowTypography = true; Render();
         var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
         var cardScroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
-        var compact = gallery.GetVisualDescendants().OfType<CheckBox>().Single();
-        Check(compact.TranslatePoint(default, gallery)!.Value.Y > cardScroll.TranslatePoint(default, gallery)!.Value.Y + cardScroll.Bounds.Height, "Compact layout stays in the fixed footer below the scrolling cards");
+        // 原型 #typography-panel：渲染密度胶囊在顶部（卡片滚动区之上），页脚复选框已随原型移除。
+        var densityPill = gallery.GetVisualDescendants().OfType<Button>().First(b => b.Classes.Contains("appearance-pill"));
+        Check(densityPill.TranslatePoint(default, gallery)!.Value.Y < cardScroll.TranslatePoint(default, gallery)!.Value.Y, "Render density pills sit above the scrolling cards");
         var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true && b.IsVisible).Take(3).ToArray();
         Check(cards.Max(c => c.Bounds.Height) - cards.Min(c => c.Bounds.Height) < 1, "Typography cards in a row stretch to the same height");
         Capture(gallery, "typography");
@@ -96,10 +97,10 @@ internal static class PopupLayoutVerification
         var preferenceGrid = (Grid)preferenceCard.Child!;
         Check(preferenceGrid.Children[0].Bounds.Height == 36 && preferenceGrid.RowDefinitions.Count == 2,
             "Preferences title keeps its 36px header without a fixed footer");
-        foreach (var toggle in preferences.GetVisualDescendants().OfType<ToggleSwitch>())
+        foreach (var toggle in preferences.GetVisualDescendants().OfType<ToggleButton>().Where(t => t.Classes.Contains("pref-switch")))
         {
-            var track = toggle.GetVisualDescendants().OfType<Border>().First(b => b.Name == "SwitchBackgroundBorder");
-            var knob = toggle.GetVisualDescendants().OfType<Border>().First(b => b.Name == "SwitchKnobIndicator");
+            var track = toggle.GetVisualDescendants().OfType<Border>().First(b => b.Name == "SwitchTrack");
+            var knob = toggle.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Ellipse>().First(b => b.Name == "SwitchKnob");
             var point = knob.TranslatePoint(default, track)!.Value;
             Check(point.X >= 0 && point.Y >= 0 && point.X + knob.Bounds.Width <= track.Bounds.Width && point.Y + knob.Bounds.Height <= track.Bounds.Height, $"Preference switch knob remains inside its track: {toggle.Name} ({point}, {knob.Bounds.Size}, {track.Bounds.Size})");
         }

@@ -46,9 +46,9 @@ try
         MindMapShowParagraphs = false, MindMapShowCode = true, MindMapShowTables = true, MindMapShowLists = false,
         SyntaxMath = false, SyntaxSoftBreaks = false, BodyFontSize = 18, ImageFolder = "images", AutoSave = true,
         DefaultEncoding = "utf-8-bom", DefaultNewline = "CRLF", BodyFont = "serif", ExportFormat = "Word",
-        WatermarkPreview = true, WatermarkExport = true, WatermarkText = "test <&> 维刻", WatermarkOpacity = 18,
+        WatermarkPreview = true, WatermarkText = "test <&> 维刻", WatermarkOpacity = 18,
         PdfSize = "Letter", PdfMargin = 25, HtmlStyle = false,
-        IsOutlineVisible = false, OutlineWidth = 286, AuxiliaryTab = "chapter", FileListView = true, FileSortDescending = true,
+        IsOutlineVisible = false, OutlineWidth = 286, FileListView = true, FileSortDescending = true,
         CollapsedFolders = "E%3A%5C笔记%5C目录\nE%3A%5C其他目录",
         CollapsedOutlineSections = "document/2:章节:0\ndocument/2:同名章节:1",
         EnableAutoPair = false, EnableMotion = false, IsFocusMode = true, IsTypewriterMode = true

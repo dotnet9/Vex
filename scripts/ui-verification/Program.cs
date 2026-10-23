@@ -42,7 +42,7 @@ if (mode == "parity-score")
     VisualParityScore.Run(args.Skip(1).ToArray());
     return;
 }
-if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual")
+if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -65,6 +65,7 @@ if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "set
     else if (mode == "prototype-appearance") PrototypeAppearanceVerification.Run(app, window, output);
     else if (mode == "prototype-chrome") PrototypeChromeVerification.Run(app, window, output);
     else if (mode == "visual") VisualParityCapture.Run(app, window, output);
+    else if (mode == "render-geometry") RenderGeometryProbe.Run(app, window, output);
     else if (mode is "settings-ui" or "settings-real-ui") PreferencesVerification.Run(app, window, output);
     else DesktopParityVerification.Run(app, window, output);
     window.Close();
@@ -340,7 +341,7 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
     Check(vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.ThemeOptions.Count == 3,
         "Vex exposes the nine registry palettes and three independent theme modes");
-    vm.Layout.ShowOutline(); vm.Layout.SelectOutlineTab();
+    vm.Layout.ShowOutline();
     foreach (var palette in vm.Appearance.PaletteOptions)
     foreach (var modeOption in vm.Appearance.ThemeOptions.Where(option => option.Mode != StudioThemeMode.System))
     {

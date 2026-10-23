@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Avalonia.Threading;
 using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
@@ -74,6 +75,8 @@ internal static class VisualParityCapture
         Capture("08-preferences", () =>
         {
             CloseFlyout(window);
+            // 原型偏好页「界面动效」默认开启（motion:true），截图需呈现同样的开态。
+            vm.Layout.EnableMotion = true;
             _ = app.Resolve<IShellOverlayService>().ShowPreferencesAsync(app.Resolve<ShellPreferencesViewModel>(), "appearance");
             Render();
         });
@@ -96,9 +99,35 @@ internal static class VisualParityCapture
         {
             setup();
             Render();
+            ResetScrolls();
+            Render();
+            // 布局切换会异步恢复光标并再滚动一次：截图前最后再归位一遍。
+            ResetScrolls();
             Dispatcher.UIThread.RunJobs();
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, name + ".png"));
             Console.WriteLine("CAPTURED " + name);
+        }
+
+        // 原型截图器注入样例后各面板都停在文档顶部；原生侧文本注入会把光标滚到首行之后，
+        // 逐面板回滚到顶，保证与原型同一视口起点。
+        void ResetScrolls()
+        {
+            if (window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")
+                    ?.FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor") is { } source)
+            {
+                source.Editor.CaretOffset = 0;
+                source.Editor.ScrollToHome();
+                foreach (var scroll in source.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
+            }
+            foreach (Control? host in new Control?[]
+            {
+                window.FindControl<Control>("PreviewGuideTarget"),
+                window.FindControl<Control>("InstantGuideTarget"),
+            })
+            {
+                if (host is null) continue;
+                foreach (var scroll in host.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
+            }
         }
 
         static void Select(MainWindowViewModel vm, string layout)

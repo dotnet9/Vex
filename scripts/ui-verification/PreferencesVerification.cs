@@ -67,7 +67,7 @@ internal static class PreferencesVerification
         // 对齐原型 editor 页：缩进改为 2/4/8 空格下拉，页面只有 字体/缩进/自动换行/源码行号 四项。
         Control<ComboBox>(nameof(preferences.IndentSize)).SelectedIndex = 1; Render();
         Check(preferences.IndentSize == 4, "Indent choice updates the typed preference");
-        Control<ToggleSwitch>(nameof(preferences.CodeWrap)).IsChecked = true; Render();
+        Control<Avalonia.Controls.Primitives.ToggleButton>(nameof(preferences.CodeWrap)).IsChecked = true; Render();
         var source = window.GetVisualDescendants().OfType<MarkdownEditorView>().Single();
         Check(source.Editor.WordWrap, "Editor settings update the attached source editor");
         view.SelectCategory("images"); Render();

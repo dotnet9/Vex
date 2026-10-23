@@ -99,13 +99,9 @@ internal static class DesktopParityVerification
         Check(navigation.HasPathCommandTarget && !navigation.HasDocumentFileCommandTarget, "Folder context supports path actions without file mutation actions");
         var launch = ShellProcessLauncher.CreateStartInfo(Path.Combine(root, "a b.md"));
         Check(launch.ArgumentList[^1] == Path.Combine(root, "a b.md"), "New-window launch passes paths as a single argument");
-        layout.SelectInfoTab(); Render();
-        Check(layout.IsInfoTab && layout.ShowOutlineSidebar && app.Resolve<IAppSettingsStore>().Current.AuxiliaryTab == "info", "Article information uses the shared auxiliary panel and persists its tab");
-        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "desktop-info.png"));
-        layout.SelectChapterTab(); Render();
-        Check(layout.IsChapterTab && new ShellWindowLayoutViewModel(app.Resolve<IAppSettingsStore>(), app.Resolve<IShellStatusPublisher>()).IsChapterTab,
-            "Chapter details tab survives a new layout instance");
-        layout.SelectOutlineTab(); Render();
+        layout.IsOutlineVisible = true; Render();
+        Check(layout.ShowOutlineSidebar && new ShellWindowLayoutViewModel(app.Resolve<IAppSettingsStore>(), app.Resolve<IShellStatusPublisher>()).IsOutlineVisible,
+            "The outline sidebar is a single panel without tabs and its visibility persists");
         Render(); window.CaptureRenderedFrame()?.Save(Path.Combine(output, "desktop-outline.png"));
     }
 }
