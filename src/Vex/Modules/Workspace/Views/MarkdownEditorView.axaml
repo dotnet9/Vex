@@ -71,22 +71,22 @@
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.Table}}">
                         <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Table}" Header="{i18n:I18n {x:Static l:VexL.InsertTable}}" />
                         <Separator />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.RowAbove}" Header="{i18n:I18n Vex.VexL.TableRowAbove}" />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.RowBelow}" Header="{i18n:I18n Vex.VexL.TableRowBelow}" />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.ColBefore}" Header="{i18n:I18n Vex.VexL.TableColumnBefore}" />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.ColAfter}" Header="{i18n:I18n Vex.VexL.TableColumnAfter}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowAbove}" Header="{i18n:I18n Vex.VexL.TableRowAbove}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowBelow}" Header="{i18n:I18n Vex.VexL.TableRowBelow}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColBefore}" Header="{i18n:I18n Vex.VexL.TableColumnBefore}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColAfter}" Header="{i18n:I18n Vex.VexL.TableColumnAfter}" />
                         <Separator />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.RowUp}" Header="{i18n:I18n Vex.VexL.TableRowUp}" />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.RowDown}" Header="{i18n:I18n Vex.VexL.TableRowDown}" />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.ColLeft}" Header="{i18n:I18n Vex.VexL.TableColumnLeft}" />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.ColRight}" Header="{i18n:I18n Vex.VexL.TableColumnRight}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowUp}" Header="{i18n:I18n Vex.VexL.TableRowUp}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowDown}" Header="{i18n:I18n Vex.VexL.TableRowDown}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColLeft}" Header="{i18n:I18n Vex.VexL.TableColumnLeft}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColRight}" Header="{i18n:I18n Vex.VexL.TableColumnRight}" />
                         <Separator />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.AlignLeft}" Header="{i18n:I18n Vex.VexL.TableColumnAlignLeft}" />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.AlignCenter}" Header="{i18n:I18n Vex.VexL.TableColumnAlignCenter}" />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.AlignRight}" Header="{i18n:I18n Vex.VexL.TableColumnAlignRight}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.AlignLeft}" Header="{i18n:I18n Vex.VexL.TableColumnAlignLeft}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.AlignCenter}" Header="{i18n:I18n Vex.VexL.TableColumnAlignCenter}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.AlignRight}" Header="{i18n:I18n Vex.VexL.TableColumnAlignRight}" />
                         <Separator />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.RowDelete}" Header="{i18n:I18n Vex.VexL.TableRowDelete}" />
-                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static services:MarkdownTableAction.ColDelete}" Header="{i18n:I18n Vex.VexL.TableColumnDelete}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowDelete}" Header="{i18n:I18n Vex.VexL.TableRowDelete}" />
+                        <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColDelete}" Header="{i18n:I18n Vex.VexL.TableColumnDelete}" />
                         <Separator />
                         <MenuItem Command="{Binding FormatTable}" Header="{i18n:I18n Vex.VexL.TableFormat}" />
                         <MenuItem Command="{Binding DeleteBlock}" Header="{i18n:I18n Vex.VexL.TableDelete}" />

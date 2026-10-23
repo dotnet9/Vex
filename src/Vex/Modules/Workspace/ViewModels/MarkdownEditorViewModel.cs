@@ -542,21 +542,25 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     [EventHandler]
     public void ApplyTaskWriteBack(MarkdownTaskWriteBackCommand command) => ApplyExternalEdit(command.Markdown, command.Start, command.Length);
 
-    /// <summary>即时渲染块的元素菜单：块行号换算成文档偏移后走统一的文本操作。</summary>
+    /// <summary>即时渲染块的元素菜单：块行号换算成文档偏移后走统一的文本操作；SourceLine 非正时用编辑器当前光标。</summary>
     [EventHandler]
     public void ApplyElementCommand(MarkdownElementCommand command)
     {
         var text = _workspaceDocumentState.Markdown;
         var newline = text.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
-        var offset = 0;
-        for (var line = 1; line < command.SourceLine && offset <= text.Length; line++)
+        int? caret = null;
+        if (command.SourceLine > 0)
         {
-            var next = text.IndexOf('\n', offset);
-            if (next < 0) { offset = text.Length; break; }
-            offset = next + 1;
+            var offset = 0;
+            for (var line = 1; line < command.SourceLine && offset <= text.Length; line++)
+            {
+                var next = text.IndexOf('\n', offset);
+                if (next < 0) { offset = text.Length; break; }
+                offset = next + 1;
+            }
+            if (offset > text.Length) return;
+            caret = Math.Min(offset, text.Length);
         }
-        if (offset > text.Length) return;
-        var caret = Math.Min(offset, text.Length);
         switch (command.Operation)
         {
             case MarkdownElementOperation.Table when command.TableAction is { } action:

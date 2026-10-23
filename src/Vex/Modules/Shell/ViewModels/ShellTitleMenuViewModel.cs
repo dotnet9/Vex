@@ -5,6 +5,8 @@ namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellTitleMenuViewModel : ReactiveObject
 {
+    private readonly Vex.Modules.Shell.Services.IShellStatusPublisher _status;
+
     public ShellTitleMenuViewModel(
         ShellAppearanceViewModel appearance,
         ShellDocumentInfoViewModel documentInfo,
@@ -14,7 +16,8 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
         ShellWindowLayoutViewModel layout,
         ShellWorkbenchViewModel workbench,
         ShellRecentDocumentsViewModel recent,
-        Vex.Core.Services.EditorPreferences preferences)
+        Vex.Core.Services.EditorPreferences preferences,
+        Vex.Modules.Shell.Services.IShellStatusPublisher status)
     {
         Appearance = appearance;
         DocumentInfo = documentInfo;
@@ -25,6 +28,7 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
         Workbench = workbench;
         Recent = recent;
         Preferences = preferences;
+        _status = status;
     }
 
     public ShellAppearanceViewModel Appearance { get; }
@@ -81,6 +85,27 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
     public void DeleteAsync() => Publish(ShellActionKind.Delete);
 
     public void Export(string? format) => Publish(ShellActionKind.Export, format);
+
+    /// <summary>导入入口（HTML/PDF/Word）：原型当前为演示位，先给状态反馈。</summary>
+    public void ImportFrom(string? format) =>
+        _status.PublishResourceFormat(VexL.StatusImportUnavailable, format ?? string.Empty);
+
+    // 段落菜单的表格结构操作：走元素命令通道，SourceLine=0 表示作用于编辑器当前光标。
+    public void ElementTable(MarkdownTableAction action) =>
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
+            new MarkdownElementCommand(MarkdownElementOperation.Table, 0, tableAction: action));
+
+    public void ElementFormatTable() =>
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
+            new MarkdownElementCommand(MarkdownElementOperation.FormatTable, 0));
+
+    public void ElementCopyBlock() =>
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
+            new MarkdownElementCommand(MarkdownElementOperation.CopyBlock, 0));
+
+    public void ElementDeleteBlock() =>
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
+            new MarkdownElementCommand(MarkdownElementOperation.DeleteBlock, 0));
 
     public void CopyHtml(string? target) => Publish(ShellActionKind.CopyHtml, target);
 
