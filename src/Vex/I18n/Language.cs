@@ -860,6 +860,37 @@ namespace Vex
         public static readonly string PalettePurposeCrimson = "Vex.VexL.PalettePurposeCrimson";
         public static readonly string PaletteViolet = "Vex.VexL.PaletteViolet";
         public static readonly string PalettePurposeViolet = "Vex.VexL.PalettePurposeViolet";
+        public static readonly string ElementMenuConvertTo = "Vex.VexL.ElementMenuConvertTo";
+        public static readonly string TableRowAbove = "Vex.VexL.TableRowAbove";
+        public static readonly string TableRowBelow = "Vex.VexL.TableRowBelow";
+        public static readonly string TableColumnBefore = "Vex.VexL.TableColumnBefore";
+        public static readonly string TableColumnAfter = "Vex.VexL.TableColumnAfter";
+        public static readonly string TableRowUp = "Vex.VexL.TableRowUp";
+        public static readonly string TableRowDown = "Vex.VexL.TableRowDown";
+        public static readonly string TableColumnLeft = "Vex.VexL.TableColumnLeft";
+        public static readonly string TableColumnRight = "Vex.VexL.TableColumnRight";
+        public static readonly string TableColumnAlignLeft = "Vex.VexL.TableColumnAlignLeft";
+        public static readonly string TableColumnAlignCenter = "Vex.VexL.TableColumnAlignCenter";
+        public static readonly string TableColumnAlignRight = "Vex.VexL.TableColumnAlignRight";
+        public static readonly string TableRowDelete = "Vex.VexL.TableRowDelete";
+        public static readonly string TableColumnDelete = "Vex.VexL.TableColumnDelete";
+        public static readonly string TableCopy = "Vex.VexL.TableCopy";
+        public static readonly string TableFormat = "Vex.VexL.TableFormat";
+        public static readonly string TableDelete = "Vex.VexL.TableDelete";
+        public static readonly string InsertParagraphAbove = "Vex.VexL.InsertParagraphAbove";
+        public static readonly string InsertParagraphBelow = "Vex.VexL.InsertParagraphBelow";
+        public static readonly string ToggleTask = "Vex.VexL.ToggleTask";
+        public static readonly string DeleteBlock = "Vex.VexL.DeleteBlock";
+        public static readonly string CopyBlock = "Vex.VexL.CopyBlock";
+        public static readonly string PastePlainText = "Vex.VexL.PastePlainText";
+        public static readonly string ShareTo = "Vex.VexL.ShareTo";
+        public static readonly string ShareWeChat = "Vex.VexL.ShareWeChat";
+        public static readonly string ShareZhihu = "Vex.VexL.ShareZhihu";
+        public static readonly string ShareJuejin = "Vex.VexL.ShareJuejin";
+        public static readonly string StatusBlockCopied = "Vex.VexL.StatusBlockCopied";
+        public static readonly string StatusShareRichCopied = "Vex.VexL.StatusShareRichCopied";
+        public static readonly string StatusShareMarkdownCopied = "Vex.VexL.StatusShareMarkdownCopied";
+        public static readonly string StatusShareUnavailable = "Vex.VexL.StatusShareUnavailable";
     }
 
 }
