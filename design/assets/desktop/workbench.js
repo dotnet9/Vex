@@ -1237,9 +1237,10 @@
   document.querySelector('.window-body').appendChild(closedWindow);
   var exitGuard = VexExitDialog.create({
     parent:document.querySelector('.window-body'),
-    description:'下载 Markdown 副本，或保留恢复草稿。下载发起后，请在浏览器下载记录中确认完成。',saveLabel:'下载副本并退出',saveAllLabel:'下载全部副本',
+    description:'下载 Markdown 副本，或保留恢复草稿。下载发起后，请在浏览器下载记录中确认完成。',saveLabel:'下载副本并退出',
     beforeOpen:function(){instant.finish();refreshNow();closeLayers();VexProto.closeMenu();VexTypography.close();window.VexWorkspace?.closeAppearance();},
-    documents:function(){return docs.map(function(doc,index){return {index:index,name:doc.name,path:doc.path,text:index===state.doc?input.value:doc.pendingText??doc.text,savedText:doc.text};}).filter(function(doc){return doc.text!==doc.savedText;});},
+    /* 单文档定位：切换文档必经保存确认，退出时只有当前文档可能未保存。 */
+    documents:function(){return state.dirty?[{index:state.doc,name:docs[state.doc].name,path:docs[state.doc].path,text:input.value,savedText:docs[state.doc].text}]:[];},
     edit:function(doc){docs[state.doc].pendingText=input.value;if(doc.index!==state.doc)loadDoc(doc.index);if(window.VexWorkspace)VexWorkspace.setLayout('instant');else setView('edit');},
     save:function(changed){if(state.failNextSave){state.failNextSave=false;throw new Error('Download could not start');}changed.forEach(function(doc){download(doc.text,doc.name);docs[doc.index].text=doc.text;delete docs[doc.index].pendingText;});state.dirty=false;VexStorage.removeItem('vex-design-exit-drafts');refreshNow();},
     keepDrafts:function(changed){var value=JSON.stringify(changed);VexStorage.setItem('vex-design-exit-drafts',value);if(VexStorage.getItem('vex-design-exit-drafts')!==value)throw new Error('Draft storage unavailable');},
@@ -1252,7 +1253,7 @@
     if(stored){try{var recovered=JSON.parse(stored);if(!Array.isArray(recovered)||!recovered.every(function(doc){return typeof doc.name==='string'&&typeof doc.text==='string';}))throw new Error('Invalid draft');window.VexWorkflows?.showDrafts(recovered);VexProto.toast('已找到恢复草稿，可先查看再恢复为独立文档');}catch(_){VexProto.toast('草稿无法读取，请保留浏览器数据并重试');}}
   };
   VexProto.previewUnsavedExit=function(){
-    docs=[{name:'产品构想.md',path:'写作手记 / 产品构想.md',text:'# 产品构想\n',pendingText:'# 产品构想\n\n让写作更轻松。\n'},{name:'一篇文章的诞生.md',path:'写作手记 / 一篇文章的诞生.md',text:'# 一篇文章的诞生\n',pendingText:'# 一篇文章的诞生\n\n记住这次灵感。\n'}];
+    docs=[{name:'产品构想.md',path:'写作手记 / 产品构想.md',text:'# 产品构想\n',pendingText:'# 产品构想\n\n让写作更轻松。\n'}];
     loadDoc(0);input.value=docs[0].pendingText;state.dirty=true;refreshNow();exitGuard.open();
   };
   syncSettings(); loadDoc(0); setView(new URLSearchParams(location.search).get('view') || 'edit');
