@@ -17,8 +17,9 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private readonly ShellPreferencesViewModel _model;
     private readonly IAppLocalizer _localizer;
     private readonly ListBox _navigation = new() { Classes = { "preferences-navigation" }, Width = 148, Padding = new Thickness(10, 18), Background = Brushes.Transparent, BorderThickness = new Thickness(0) };
-    // 原型两栏背景：左栏 --panel、右栏 --bg，浅深主题下有明暗差。
-    private readonly ScrollViewer _scroll = new() { Padding = new Thickness(20, 22), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
+    // 原型两栏背景：左栏 --panel、右栏 --bg，浅深主题下有明暗差。浏览器侧是覆盖式滚动条，
+    // 截图不占位；原生用 Hidden 保持同宽内容列（滚轮/触摸板仍可滚动）。
+    private readonly ScrollViewer _scroll = new() { Padding = new Thickness(24, 26), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Hidden };
     private readonly TextBlock _title = new() { FontSize = 14, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
     private readonly Border _card;
     private Window? _owner;
@@ -45,7 +46,9 @@ public sealed class ShellPreferencesOverlayView : UserControl
         body.Children.Add(navigationFrame); Grid.SetColumn(_scroll, 1); body.Children.Add(_scroll);
         Grid.SetRow(body, 1); grid.Children.Add(body);
         // 改值即生效：去掉「设置已保存 / 完成」页脚（对应原型偏好浮层）。
-        _card = new Border { Classes = { "dialog-card" }, Width = 675, Height = 700, Padding = default, CornerRadius = new CornerRadius(8), ClipToBounds = true, Child = grid };
+        // 宿主挂在 CodeWFWindow.OverlayContent 整窗浮层槽（含标题条），与原型
+        // .vex-settings-host 同几何：卡片直接在整窗内居中，无需负边距补偿。
+        _card = new Border { Classes = { "dialog-card" }, Width = 675, Height = 700, Padding = new Thickness(0), CornerRadius = new CornerRadius(8), ClipToBounds = true, Child = grid };
         Content = _card;
         _navigation.SelectionChanged += (_, _) => ShowCategory();
         RefreshLabels();
@@ -85,8 +88,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private void RefreshLabels()
     {
         var selected = Math.Max(0, _navigation.SelectedIndex);
-        _title.Text = L(VexL.Preferences);
-        string[] icons = ["M7 2H15L20 7V22H4V2Z M14 2V8H20", "M12 4H4V20H20V12 M18 2L22 6L12 16L8 17L9 13Z", "M8 7L3 12L8 17 M16 7L21 12L16 17 M14 5L10 19", "M3 3H21V21H3Z M3 17L9 10L14 15L17 12L21 17 M15 7H15.1", "M12 3A9 9 0 1 0 21 12H16A3 3 0 0 1 13 9 M8 7H8.1 M6 12H6.1 M10 17H10.1", "M12 3V15 M7 10L12 15L17 10 M4 16V21H20V16", "M4 5L10 11L4 17 M12 19H21"];
+        _title.Text = L(VexL.PreferencesTitle);
+        string[] icons = ["M7 2H15L20 7V22H4V2Z M14 2V8H20", "M12 4H4V20H20V12 M18 2L22 6L12 16L8 17L9 13Z", "M8 7L3 12L8 17 M16 7L21 12L16 17 M14 5L10 19", "M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h3.5a5.5 5.5 0 0 0 0-11H12Z M7.5 9h.1 M11 6.5h.1 M16 7.5h.1", "M3 5H21V19H3Z M8 11A1.5 1.5 0 1 0 8 11.01 M5 17L10 12L13 15L16 12L19 15", "M12 3V15 M7 10L12 15L17 10 M4 16V21H20V16", "M5 7L10 12L5 17 M13 17H20"];
         _navigation.ItemsSource = _categories.Select((c, i) =>
         {
             var row = new Grid { ColumnDefinitions = new ColumnDefinitions("17,*"), ColumnSpacing = 10 };
@@ -105,7 +108,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
         switch (SelectedCategory)
         {
             case "general":
-                Choice(page, VexL.PrefLanguage, _model.Appearance, nameof(_model.Appearance.SelectedLanguage), _model.Appearance.LanguageOptions.Select(x => (x.DisplayName, (object)x)));
+                // 界面语言入口收敛到标题栏语言菜单，偏好「通用与文件」不再重复放置。
                 Choice(page, "Vex.VexL.PrefStartup", p, nameof(p.RestoreWorkspace), [(L("Vex.VexL.PrefEmptyWorkspace"), false), (L("Vex.VexL.PrefRecentWorkspace"), true)]);
                 Toggle(page, VexL.PrefAutoSave, p, nameof(p.AutoSave));
                 Choice(page, VexL.PrefSaveDelay, p, nameof(p.AutoSaveDelay), [("2 " + L("Vex.VexL.PrefSeconds"), 2), ("5 " + L("Vex.VexL.PrefSeconds"), 5), ("10 " + L("Vex.VexL.PrefSeconds"), 10)]);
@@ -264,18 +267,30 @@ public sealed class ShellPreferencesOverlayView : UserControl
     }
     private void Toggle(StackPanel page, string label, object source, string property, string? note = null)
     {
-        var toggle = new ToggleSwitch { Name = property, Classes = { "pref-toggle" }, OnContent = null, OffContent = null, MinWidth = 34 };
-        toggle.Bind(ToggleSwitch.IsCheckedProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, toggle, note);
+        var toggle = new ToggleButton { Name = property, Classes = { "pref-switch" } };
+        toggle.Bind(ToggleButton.IsCheckedProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, toggle, note);
     }
     private void Range(StackPanel page, string label, object source, string property, double minimum, double maximum, string suffix)
     {
-        var slider = new Slider { Minimum = minimum, Maximum = maximum, Width = 150, VerticalAlignment = VerticalAlignment.Center };
+        var slider = new Slider { Classes = { "pref-range" }, Minimum = minimum, Maximum = maximum, Width = 135, VerticalAlignment = VerticalAlignment.Center };
         slider.Bind(Slider.ValueProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay });
-        var value = new TextBlock { FontSize = 13, VerticalAlignment = VerticalAlignment.Center, MinWidth = 48, TextAlignment = TextAlignment.Right };
-        value.Bind(TextBlock.TextProperty, new Binding(property) { Source = source, StringFormat = "{}{0:0}" + suffix });
-        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+        var value = new TextBlock { FontSize = 13, VerticalAlignment = VerticalAlignment.Center, MinWidth = 44, TextAlignment = TextAlignment.Right };
+        value.Bind(TextBlock.TextProperty, new Binding(property) { Source = source, Converter = RangeValueConverter.Instance, ConverterParameter = suffix });
+        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         panel.Children.Add(slider); panel.Children.Add(value);
         Row(page, label, panel);
+    }
+
+    private sealed class RangeValueConverter : IValueConverter
+    {
+        public static readonly RangeValueConverter Instance = new();
+        public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value is null) return null;
+            var number = value is IFormattable formattable ? formattable.ToString("0", culture) : value.ToString();
+            return number + (parameter as string ?? "");
+        }
+        public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture) => BindingOperations.DoNothing;
     }
     private void ColorChoice(StackPanel page, string label, Vex.Core.Services.EditorPreferences preferences)
     {
@@ -306,12 +321,12 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private Control BuildWatermarkSample()
     {
         var p = _model.Preferences;
-        var slogan = new TextBlock { Text = L(VexL.Slogan), TextWrapping = TextWrapping.Wrap };
-        slogan.Bind(TextBlock.FontSizeProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkFontSize)) { Source = p });
+        // 原型 .vex-watermark-sample：strong 固定 17px/500，span 12px muted，列间距 10。
+        var slogan = new TextBlock { Text = L(VexL.AboutShortSlogan), FontSize = 17, FontWeight = FontWeight.Medium, TextWrapping = TextWrapping.Wrap };
         BindResource(slogan, TextBlock.ForegroundProperty, "VexEditorForegroundBrush");
-        var byline = new TextBlock { Text = "维刻 Vex", FontSize = 11, Margin = new Thickness(0, 6, 0, 0) };
+        var byline = new TextBlock { Text = "维刻 Vex", FontSize = 12 };
         BindResource(byline, TextBlock.ForegroundProperty, "VexMutedBrush");
-        var content = new StackPanel { Margin = new Thickness(18, 16) };
+        var content = new StackPanel { Margin = new Thickness(20, 26), Spacing = 10, VerticalAlignment = VerticalAlignment.Center };
         content.Children.Add(slogan); content.Children.Add(byline);
         var watermark = new Vex.Modules.Workspace.Views.WatermarkOverlay();
         watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.TextProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkText)) { Source = p });
@@ -319,10 +334,10 @@ public sealed class ShellPreferencesOverlayView : UserControl
         watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.FontSizeProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkFontSize)) { Source = p });
         watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.HexInkProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkColor)) { Source = p });
         watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.WeightValueProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkWeight)) { Source = p });
-        var host = new Grid { MinHeight = 128, ClipToBounds = true };
+        var host = new Grid { MinHeight = 140, ClipToBounds = true };
         host.Children.Add(content); host.Children.Add(watermark);
         var frame = Frame(host, new Thickness(1));
-        frame.CornerRadius = new CornerRadius(6); frame.Margin = new Thickness(0, 16, 0, 0);
+        frame.CornerRadius = new CornerRadius(5); frame.Margin = new Thickness(0, 18, 0, 0);
         BindResource(frame, Border.BackgroundProperty, "VexDocumentPaperBrush");
         return frame;
     }

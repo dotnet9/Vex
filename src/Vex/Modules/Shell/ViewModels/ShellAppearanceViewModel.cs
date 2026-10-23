@@ -26,6 +26,8 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
     private PaletteOption? _selectedPalette;
     private TypographyOption? _selectedTypography;
     private LanguageOption? _selectedLanguage;
+    private string _selectedDensity;
+    private string _markdownDensity;
 
     public ShellAppearanceViewModel(
         IAppLocalizer localizer,
@@ -66,6 +68,11 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
                               ?? FindTypography(MarkdownTypographyThemes.Simple)
                               ?? TypographyOptions.FirstOrDefault();
         _isCompactLayout = settings.IsCompactLayout ?? false;
+        _selectedDensity = settings.UiDensity is "compact" or "relaxed" ? settings.UiDensity : "normal";
+        // 未落盘的旧设置用 IsCompactLayout 迁移出初始档，保持升级前后正文大小一致。
+        _markdownDensity = settings.MdSize is "compact" or "normal" or "relaxed"
+            ? settings.MdSize
+            : (settings.IsCompactLayout == true ? "compact" : "normal");
         _selectedLanguage = FindLanguage(GetInitialCulture(settings.CultureName));
         if (_selectedTheme is not null)
         {
@@ -134,6 +141,36 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             if (SetProperty(ref _selectedPalette, value) && value is not null)
             {
                 _themeService.ApplyTheme(SelectedTheme!, value);
+                PersistAppearanceSettings();
+            }
+        }
+    }
+
+    /// <summary>界面密度三档（对应原型 data-density）；当前仅持久化选择，控件令牌全面接入见验收文档缺口。</summary>
+    public string SelectedDensity
+    {
+        get => _selectedDensity;
+        set
+        {
+            if (value is not ("compact" or "normal" or "relaxed")) return;
+            if (SetProperty(ref _selectedDensity, value))
+            {
+                PersistAppearanceSettings();
+            }
+        }
+    }
+
+    /// <summary>Markdown 渲染密度三档（对应原型 data-mdsize，基准正文 13/15/17）。</summary>
+    public string MarkdownDensity
+    {
+        get => _markdownDensity;
+        set
+        {
+            if (value is not ("compact" or "normal" or "relaxed")) return;
+            if (SetProperty(ref _markdownDensity, value))
+            {
+                OnPropertyChanged(nameof(CurrentTypographySize));
+                PublishTypographyState();
                 PersistAppearanceSettings();
             }
         }
@@ -259,9 +296,12 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
 
     public string? CurrentTypographyTheme => SelectedTypography?.Key;
 
-    public string CurrentTypographySize => IsCompactLayout
-        ? MarkdownTypographySizes.Compact
-        : MarkdownTypographySizes.Normal;
+    public string CurrentTypographySize => MarkdownDensity switch
+    {
+        "compact" => MarkdownTypographySizes.Compact,
+        "relaxed" => MarkdownTypographySizes.Relaxed,
+        _ => MarkdownTypographySizes.Normal,
+    };
 
     public LanguageOption? SelectedLanguage
     {
@@ -365,6 +405,8 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             ThemeKey = SelectedTheme?.Key,
             PaletteKey = SelectedPalette?.Key,
             TypographyKey = SelectedTypography?.Key,
+            UiDensity = SelectedDensity,
+            MdSize = MarkdownDensity,
             IsCompactLayout = IsCompactLayout,
             CultureName = SelectedLanguage?.CultureName
         });

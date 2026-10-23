@@ -36,13 +36,66 @@
     <StreamGeometry x:Key="WBFitIcon">M3 9V3H9 M15 3H21V9 M21 15V21H15 M9 21H3V15 M8 8H16V16H8Z</StreamGeometry>
     <StreamGeometry x:Key="WBColumnsIcon">M3 3H21V21H3Z M12 3V21</StreamGeometry>
     <StreamGeometry x:Key="WBCloseIcon">M6 6L18 18 M18 6L6 18</StreamGeometry>
+    <StreamGeometry x:Key="WBGearIcon">M15 12A3 3 0 1 1 9 12A3 3 0 1 1 15 12 M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z</StreamGeometry>
   </Styles.Resources>
   <Style Selector="Button.selected-choice /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
   </Style>
-  <Style Selector="FlyoutPresenter.design-title-picker"><Setter Property="Padding" Value="16"/><Setter Property="CornerRadius" Value="8"/><Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/></Style>
+  <Style Selector="FlyoutPresenter.design-title-picker"><Setter Property="Padding" Value="18"/><Setter Property="CornerRadius" Value="16"/><Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderThickness" Value="0"/></Style>
+  <!-- 原型 .density-options：30 高分段胶囊；选中=实底强调色（workspace-chrome 999px 圆角）。 -->
+  <Style Selector="Button.appearance-pill">
+    <Setter Property="Height" Value="28"/><Setter Property="MinHeight" Value="0"/><Setter Property="CornerRadius" Value="15"/>
+    <Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="10,4"/><Setter Property="FontSize" Value="12"/>
+    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <Style Selector="Button.appearance-pill:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+  </Style>
+  <Style Selector="Button.appearance-pill-on /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/><Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}"/><Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <!-- 原型 .studio-palettes button：1px #E2E2E4 边框、6px 圆角、7px 内边距的纸面卡片。 -->
+  <Style Selector="Button.palette-card">
+    <Setter Property="Padding" Value="7"/><Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="BorderThickness" Value="1"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/>
+  </Style>
+  <Style Selector="Button.palette-card /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BoxShadow" Value="0 1 5 0 #0D000000"/>
+  </Style>
+  <!-- 原型选中态：border-color:transparent + box-shadow 0 0 0 1.5px accent；阴影色随配色变化，由代码按 VexAccentBrush 回放。 -->
+  <Style Selector="Button.palette-card-on">
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
+  <Style Selector="Button.palette-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+  </Style>
+  <Style Selector="Button.palette-add-card">
+    <Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="8"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <Style Selector="Button.palette-add-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <!-- 原型 .studio-language 行：透明底、hover 灰底，选中着色由代码按主题画刷回放。 -->
+  <Style Selector="Button.language-item">
+    <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="MinHeight" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+  </Style>
+  <Style Selector="Button.language-item:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+  </Style>
+  <!-- 原型 aria-checked 行：accent-soft 底色，文字/徽标强调色由代码回放。 -->
+  <Style Selector="Button.language-item-on /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+  </Style>
+  <!-- 原型 #vex-appearance-menu[open]>summary：弹出层打开时外观按钮呈选中态。 -->
+  <Style Selector="Button.title-picker-open /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
   <Style Selector="FlyoutPresenter.design-language-picker"><Setter Property="Padding" Value="5"/><Setter Property="CornerRadius" Value="8"/><Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/></Style>
   <Style Selector="Border.choice-filter"><Setter Property="Padding" Value="3"/><Setter Property="CornerRadius" Value="6"/><Setter Property="BorderThickness" Value="1"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/><Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/></Style>
   <Style Selector="Button.choice-filter-selected /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="BoxShadow" Value="0 1 3 0 #12000000"/></Style>
@@ -55,10 +108,23 @@
   <Style Selector="ListBox.preferences-navigation ListBoxItem TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem:selected TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem:selected Path"><Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/></Style>
-  <Style Selector="ToggleSwitch.pref-toggle /template/ Border#SwitchBackgroundBorder"><Setter Property="Width" Value="34"/><Setter Property="Height" Value="20"/><Setter Property="CornerRadius" Value="10"/><Setter Property="BorderThickness" Value="0"/></Style>
-  <Style Selector="ToggleSwitch.pref-toggle /template/ Canvas#PART_SwitchKnob"><Setter Property="Width" Value="14"/><Setter Property="Height" Value="20"/></Style>
-  <Style Selector="ToggleSwitch.pref-toggle /template/ Panel#PART_MovingKnobs"><Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/><Setter Property="Margin" Value="3"/></Style>
-  <Style Selector="ToggleSwitch.pref-toggle:checked /template/ Border#SwitchBackgroundBorder"><Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/></Style>
+  <!-- 原型 .vex-pref-row input[type=checkbox]：34x20 轨道、14 圆钮、选中 accent -->
+  <Style Selector="ToggleButton.pref-switch">
+    <Setter Property="Width" Value="34"/><Setter Property="Height" Value="20"/><Setter Property="Padding" Value="0"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="SwitchTrack" Width="34" Height="20" CornerRadius="10" Background="{DynamicResource VexPanelBorderBrush}">
+          <Canvas>
+            <Ellipse Name="SwitchKnob" Width="14" Height="14" Canvas.Left="3" Canvas.Top="3" Fill="White">
+              <Ellipse.Effect><DropShadowEffect OffsetX="0" OffsetY="1" BlurRadius="1.5" Opacity="0.13"/></Ellipse.Effect>
+            </Ellipse>
+          </Canvas>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="ToggleButton.pref-switch:checked /template/ Border#SwitchTrack"><Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/></Style>
+  <Style Selector="ToggleButton.pref-switch:checked /template/ Ellipse#SwitchKnob"><Setter Property="(Canvas.Left)" Value="17"/></Style>
   <Style Selector="Path.wb-icon">
     <Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/>
     <Setter Property="Stretch" Value="Uniform"/><Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/>
@@ -106,7 +172,7 @@
     <Setter Property="BorderBrush" Value="Transparent"/>
   </Style>
   <Style Selector="Border.wb-popover">
-    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexElevatedBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
     <Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="10"/><Setter Property="BoxShadow" Value="0 8 30 0 #18000000"/>
   </Style>
   <Style Selector="TextBlock.wb-muted"><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/><Setter Property="FontSize" Value="11.5"/></Style>
@@ -117,15 +183,13 @@
   <Style Selector="ListBox.typography-grid ListBoxItem:selected"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="CornerRadius" Value="7"/></Style>
   <Style Selector="Border.typography-card"><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/></Style>
   <Style Selector="ListBox.typography-grid ListBoxItem:selected Border.typography-card"><Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/></Style>
-  <Style Selector="Button.wb-format, Button.wb-format-extra">
+  <Style Selector="Button.wb-format">
     <Setter Property="Width" Value="28"/><Setter Property="Height" Value="28"/><Setter Property="MinHeight" Value="0"/><Setter Property="MinWidth" Value="0"/>
     <Setter Property="Padding" Value="5"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/>
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/><Setter Property="CornerRadius" Value="5"/>
   </Style>
   <Style Selector="Button.wb-format PathIcon"><Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/></Style>
   <Style Selector="Path.format-stroke"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/><Setter Property="StrokeThickness" Value="1.8"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/></Style>
-  <Style Selector="Button.wb-format-extra"><Setter Property="Width" Value="160"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="FontSize" Value="12"/></Style>
-  <Style Selector="u|ToolBar.wb-formatbar /template/ ToggleButton#button"><Setter Property="Focusable" Value="False"/><Setter Property="ToolTip.Tip" Value="{i18n:I18n {x:Static l:VexL.WBMoreFormatting}}"/></Style>
   <Style Selector="Border.presentation-tools"><Setter Property="Opacity" Value="0.75"/><Setter Property="Transitions"><Transitions><DoubleTransition Property="Opacity" Duration="{DynamicResource MotionDurationFast}"/></Transitions></Setter></Style>
   <Style Selector="Border.presentation-tools:pointerover, Border.presentation-tools:focus-within"><Setter Property="Opacity" Value="1"/></Style>
   <!-- 对应原型 #edit-options：静默 1%，悬停或聚焦后立即显现，离开 2 秒后淡出。 -->
@@ -217,5 +281,13 @@
   </Style>
   <Style Selector="ToggleButton.toolbar-pin:not(:checked) Viewbox.pin-on">
     <Setter Property="IsVisible" Value="False"/>
+  </Style>
+
+  <!-- 原型偏好滑块是浏览器 range+accent-color 观感：已选段实心强调色。
+       Semi Slider 模板的填充段取 Foreground、未选段取 Background，直接覆这两个画刷即可，
+       不能用 Style 覆 Template（ControlTheme 优先级更高，覆不动）。 -->
+  <Style Selector="Slider.pref-range">
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexPanelBorderBrush}"/>
   </Style>
 </Styles>
