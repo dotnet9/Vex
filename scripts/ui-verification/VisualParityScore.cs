@@ -88,8 +88,8 @@ internal static class VisualParityScore
             results.Add((name, score, width, height));
             using (var stream = File.OpenWrite(Path.Combine(nativeDir, "diff-" + name)))
                 heat.Encode(stream, SKEncodedImageFormat.Png, 100);
-            using (var stream = File.OpenWrite(Path.Combine(nativeDir, "fail-" + name)))
-                overlay.Encode(stream, SKEncodedImageFormat.Png, 100);
+            using (var stream = File.OpenWrite(Path.Combine(nativeDir, "fail-" + name.Replace(".png", ".jpg"))))
+                overlay.Encode(stream, SKEncodedImageFormat.Jpeg, 90);
             Console.WriteLine($"{score,6:0.00}%  {name}");
         }
         Console.WriteLine("DELTA-HISTOGRAM(first scene, buckets of 16): " + string.Join(",", histogram));

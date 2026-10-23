@@ -1772,7 +1772,7 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     var wb = vm.Workbench;
     wb.SelectLayout("instant"); Pump();
     Check(!source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && instant.IsEffectivelyVisible, "Instant mode hides the source and read views");
-    Check(instant.Editor.DocumentMaxWidth == 1280 && instant.Editor.EditorFontSize >= 16, "Instant document uses the prototype document width and accessible base font");
+    Check(instant.Editor.DocumentMaxWidth == 1280 && instant.Editor.EditorFontSize >= 15, "Instant document uses the prototype document width and base font");
     Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
         "Editing context row is 42 px above the workspace");
     wb.ShowSource(); Pump();

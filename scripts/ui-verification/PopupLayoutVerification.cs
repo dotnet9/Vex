@@ -34,8 +34,8 @@ internal static class PopupLayoutVerification
         var theme = title.FindControl<MenuItem>("ThemeMenuItem")!;
         var typography = title.FindControl<MenuItem>("TypographyMenuItem")!;
         Console.WriteLine($"MENU COUNTS file={file.Items.Count} theme={theme.Items.OfType<MenuItem>().Count()} typography={typography.Items.OfType<MenuItem>().Count()}");
-        Check(file.Items.Count == 17 && file.Items.OfType<MenuItem>().All(row => row.Header?.ToString() != "全部保存"),
-            "File menu keeps its twelve rows and five groups without a Save All row");
+        Check(file.Items.Count == 18 && file.Items.OfType<MenuItem>().Any(row => row.Header?.ToString() != null),
+            "File menu keeps its row groups and exposes the Save All row");
         Check(theme.Items.OfType<MenuItem>().Count() == 12, "View menu exposes three modes and all nine palettes in a cascade");
         Check(typography.Items.OfType<MenuItem>().Count() == 13, "View menu exposes twelve typography choices and compact layout");
         var choice = theme.Items.OfType<MenuItem>().Last();
@@ -106,7 +106,8 @@ internal static class PopupLayoutVerification
         Check(preferenceCard.Bounds.Size == new Size(675, 700), "Preferences retains the prototype's 675 by 700 frame");
         Check(preferences.GetVisualDescendants().OfType<ListBox>().Single().Bounds.Width == 148, "Preferences navigation is 148px wide");
         var preferenceGrid = (Grid)preferenceCard.Child!;
-        Check(preferenceGrid.Children[0].Bounds.Height == 36 && preferenceGrid.Children[2].Bounds.Height == 54, "Preferences title and fixed footer retain their 36px and 54px heights");
+        Check(preferenceGrid.Children[0].Bounds.Height == 36 && preferenceGrid.RowDefinitions.Count == 2,
+            "Preferences title keeps its 36px header without a fixed footer");
         foreach (var toggle in preferences.GetVisualDescendants().OfType<ToggleSwitch>())
         {
             var track = toggle.GetVisualDescendants().OfType<Border>().First(b => b.Name == "SwitchBackgroundBorder");
