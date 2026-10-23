@@ -1,3 +1,5 @@
+using Avalonia;
+using Avalonia.Input.Platform;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Markdown.Editor.Services;
 using CodeWF.Toolkit.EventBus;
@@ -357,6 +359,150 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
 
     public void InsertAction(EditorActionKind action) => PublishEditorAction(action);
 
+    // —— 元素菜单：表格结构、段落转换与块操作（文档文本级，源码与即时共用一条通道）。 ——
+
+    /// <summary>当前编辑文本与光标偏移；不在编辑态或拿不到选区时返回 null。</summary>
+    private (string Text, int Caret)? EditingCaret(int? caret = null)
+    {
+        if (!_workbench.IsEditing) return null;
+        var resolved = caret ?? (_workbench.IsInstantEditing ? _workbench.LiveEditor?.Selection : _editor?.Selection)?.Start;
+        if (resolved is not { } position || position < 0) return null;
+        var text = _workspaceDocumentState.Markdown;
+        return position <= text.Length ? (text, position) : null;
+    }
+
+    private Avalonia.Controls.Control? EditingControl() => _workbench.IsInstantEditing
+        ? (Avalonia.Controls.Control?)_workbench.LiveEditor : _editor;
+
+    private void ReplaceSpan(string text, int start, int length, string insertion)
+    {
+        _workbench.History.BreakGroup();
+        var changed = text.Remove(start, length).Insert(start, insertion);
+        EventBus.Default.Publish(new MarkdownTextChangedCommand(changed, 1, 1, changed.Count(c => c == '\n') + 1));
+        _workbench.History.BreakGroup();
+    }
+
+    /// <summary>光标（或命中块）处于表格内时才可用的表格结构操作。</summary>
+    public bool HasTableAt(int? caret = null) => EditingCaret(caret) is { } editing
+        && MarkdownElementOperations.FindTableAt(editing.Text, editing.Caret) is not null;
+
+    public void TableAction(MarkdownTableAction action) => TableAction(action, null);
+
+    public void TableAction(MarkdownTableAction action, int? caret)
+    {
+        if (EditingCaret(caret) is not { } editing) return;
+        if (MarkdownElementOperations.FindTableAt(editing.Text, editing.Caret) is not { } hit) return;
+        if (MarkdownElementOperations.ParseTable(hit.Raw) is not { } parsed) return;
+        if (MarkdownElementOperations.ChangeTable(parsed, action, hit.Row, hit.Column) is not { } changed) return;
+        ReplaceSpan(editing.Text, hit.Start, hit.Length, changed.Raw);
+        // 源码模式把光标带回操作后的单元格，支持连续的行/列操作。
+        if (_editor is { } editor)
+        {
+            editor.Editor.Select(hit.Start + MarkdownElementOperations.CellOffset(changed.Raw, changed.Row, changed.Column), 0);
+        }
+    }
+
+    /// <summary>格式化光标所在表格：重排分隔行对齐标记并按内容宽度补齐各列。</summary>
+    public void FormatTable() => FormatTable(null);
+
+    public void FormatTable(int? caret)
+    {
+        if (EditingCaret(caret) is not { } editing) return;
+        if (MarkdownElementOperations.FindTableAt(editing.Text, editing.Caret) is not { } hit) return;
+        if (MarkdownElementOperations.ParseTable(hit.Raw) is not { } parsed) return;
+        ReplaceSpan(editing.Text, hit.Start, hit.Length, MarkdownElementOperations.SerializeTable(parsed));
+    }
+
+    public void ConvertBlock(string kind, int? caret = null)
+    {
+        if (EditingCaret(caret) is not { } editing) return;
+        var (start, length) = MarkdownElementOperations.FindBlockAt(editing.Text, editing.Caret);
+        var converted = MarkdownElementOperations.ConvertBlock(editing.Text.Substring(start, length), kind);
+        ReplaceSpan(editing.Text, start, length, converted);
+        _editor?.Editor.Select(start + converted.Length, 0);
+    }
+
+    public void InsertParagraphAbove() => InsertParagraphAbove(null);
+
+    public void InsertParagraphAbove(int? caret)
+    {
+        if (EditingCaret(caret) is not { } editing) return;
+        var (start, _) = MarkdownElementOperations.FindBlockAt(editing.Text, editing.Caret);
+        var newline = editing.Text.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+        ReplaceSpan(editing.Text, start, 0, newline + newline);
+    }
+
+    public void InsertParagraphBelow() => InsertParagraphBelow(null);
+
+    public void InsertParagraphBelow(int? caret)
+    {
+        if (EditingCaret(caret) is not { } editing) return;
+        var (start, length) = MarkdownElementOperations.FindBlockAt(editing.Text, editing.Caret);
+        var newline = editing.Text.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+        ReplaceSpan(editing.Text, start + length, 0, newline + newline);
+    }
+
+    public void ToggleTask() => ToggleTask(null);
+
+    /// <summary>切换光标所在列表项的任务状态；非任务列表项先升级为任务。</summary>
+    public void ToggleTask(int? caret)
+    {
+        if (EditingCaret(caret) is not { } editing) return;
+        var lineStart = editing.Text.LastIndexOf('\n', Math.Max(0, editing.Caret - 1)) + 1;
+        var lineEnd = editing.Text.IndexOf('\n', lineStart);
+        if (lineEnd < 0) lineEnd = editing.Text.Length;
+        var line = editing.Text[lineStart..lineEnd];
+        var changed = System.Text.RegularExpressions.Regex.Replace(line,
+            @"^(\s*(?:[-+*]|\d+[.)])\s+)\[[ xX]\]\s*", match => match.Groups[1].Value + (match.Value.Contains("[ ]") ? "[x] " : "[ ] "));
+        if (changed == line)
+            changed = System.Text.RegularExpressions.Regex.Replace(line, @"^(\s*(?:[-+*]|\d+[.)])\s+)", "$1[ ] ");
+        if (changed == line) return;
+        ReplaceSpan(editing.Text, lineStart, line.Length, changed);
+        _editor?.Editor.Select(lineStart + changed.Length, 0);
+    }
+
+    public void DeleteBlock() => DeleteBlock(null);
+
+    /// <summary>删除光标所在块，并吞掉块后（或块前）的一个换行避免留下连续空行。</summary>
+    public void DeleteBlock(int? caret)
+    {
+        if (EditingCaret(caret) is not { } editing) return;
+        var (start, length) = MarkdownElementOperations.FindBlockAt(editing.Text, editing.Caret);
+        var newline = editing.Text.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+        if (start + length < editing.Text.Length && editing.Text.AsSpan(start + length).StartsWith(newline))
+            length += newline.Length;
+        else if (start > 0 && editing.Text.AsSpan(start - newline.Length, newline.Length).SequenceEqual(newline))
+        { start -= newline.Length; length += newline.Length; }
+        ReplaceSpan(editing.Text, start, length, string.Empty);
+    }
+
+    public void CopyBlock() => CopyBlock(null);
+
+    public async void CopyBlock(int? caret)
+    {
+        if (EditingCaret(caret) is not { } editing) return;
+        var (start, length) = MarkdownElementOperations.FindBlockAt(editing.Text, editing.Caret);
+        var control = EditingControl();
+        var owner = control is null ? null : Avalonia.Controls.TopLevel.GetTopLevel(control);
+        if (owner?.Clipboard is not { } clipboard) return;
+        await clipboard.SetTextAsync(editing.Text.Substring(start, length));
+        _status.PublishResource(VexL.StatusBlockCopied);
+    }
+
+    /// <summary>粘贴剪贴板纯文本，丢弃来源富文本格式。</summary>
+    public async void PasteAsPlainTextAsync()
+    {
+        if (EditingCaret() is not { } editing) return;
+        var control = EditingControl();
+        var owner = control is null ? null : Avalonia.Controls.TopLevel.GetTopLevel(control);
+        if (owner?.Clipboard is not { } clipboard) return;
+        var plain = await clipboard.TryGetTextAsync();
+        if (string.IsNullOrEmpty(plain)) return;
+        var selection = _workbench.IsInstantEditing ? _workbench.LiveEditor?.Selection : _editor?.Selection;
+        if (selection is not { } range) return;
+        ReplaceSpan(editing.Text, range.Start, range.Length, plain);
+    }
+
     private void OnDocumentChanged(object? sender, MarkdownDocumentChangedCommand command) => SyncTextFromDocument();
 
     /// <summary>把当前文档正文写入编辑控件；期间抑制回抛，避免把「载入」当成用户编辑。</summary>
@@ -395,6 +541,50 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
 
     [EventHandler]
     public void ApplyTaskWriteBack(MarkdownTaskWriteBackCommand command) => ApplyExternalEdit(command.Markdown, command.Start, command.Length);
+
+    /// <summary>即时渲染块的元素菜单：块行号换算成文档偏移后走统一的文本操作。</summary>
+    [EventHandler]
+    public void ApplyElementCommand(MarkdownElementCommand command)
+    {
+        var text = _workspaceDocumentState.Markdown;
+        var newline = text.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+        var offset = 0;
+        for (var line = 1; line < command.SourceLine && offset <= text.Length; line++)
+        {
+            var next = text.IndexOf('\n', offset);
+            if (next < 0) { offset = text.Length; break; }
+            offset = next + 1;
+        }
+        if (offset > text.Length) return;
+        var caret = Math.Min(offset, text.Length);
+        switch (command.Operation)
+        {
+            case MarkdownElementOperation.Table when command.TableAction is { } action:
+                TableAction(action, caret);
+                break;
+            case MarkdownElementOperation.FormatTable:
+                FormatTable(caret);
+                break;
+            case MarkdownElementOperation.Convert when command.ConvertKind is { } kind:
+                ConvertBlock(kind, caret);
+                break;
+            case MarkdownElementOperation.InsertParagraphAbove:
+                InsertParagraphAbove(caret);
+                break;
+            case MarkdownElementOperation.InsertParagraphBelow:
+                InsertParagraphBelow(caret);
+                break;
+            case MarkdownElementOperation.ToggleTask:
+                ToggleTask(caret);
+                break;
+            case MarkdownElementOperation.CopyBlock:
+                CopyBlock(caret);
+                break;
+            case MarkdownElementOperation.DeleteBlock:
+                DeleteBlock(caret);
+                break;
+        }
+    }
 
     [EventHandler]
     public void ApplySearch(EditorSearchCommand command)
