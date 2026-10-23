@@ -114,7 +114,7 @@
       "HorizontalRule": "水平分割线",
       "Bold": "加粗",
       "Italic": "斜体",
-      "InlineCode": "代码",
+      "InlineCode": "行内代码",
       "Link": "链接",
       "Image": "图像",
       "ClearFormatting": "清除格式",
@@ -701,7 +701,7 @@
       "PrefRecovery": "保留恢复草稿",
       "PrefEncoding": "编码",
       "PrefNewline": "换行符",
-      "PrefBodyFont": "正文字体",
+      "PrefBodyFont": "编辑区字体",
       "PrefSystemFont": "系统默认",
       "PrefSerifFont": "系统衬线",
       "PrefMonoFont": "等宽",
@@ -884,7 +884,21 @@
       "StatusBlockCopied": "块已复制",
       "StatusShareRichCopied": "富文本已复制，可粘贴到{0}",
       "StatusShareMarkdownCopied": "Markdown 已复制，可粘贴到稀土掘金",
-      "StatusShareUnavailable": "未能访问剪贴板，请允许复制后重试"
+      "StatusShareUnavailable": "未能访问剪贴板，请允许复制后重试",
+      "MenuImportHtml": "从 HTML 导入…",
+      "MenuImportPdf": "从 PDF 导入…",
+      "MenuImportWord": "从 Word 导入…",
+      "StatusImportUnavailable": "暂不支持{0}导入",
+      "PrefSourceLineNumbers": "显示源码行号",
+      "PrefSpaceUnit": "{0} 空格",
+      "PrefCodeAndSource": "代码与源码",
+      "PrefWatermarkExportNote": "HTML / PDF",
+      "McpHttpConfig": "HTTP 客户端配置",
+      "McpStdioBridge": "stdio 桥接",
+      "McpTestConnection": "测试连接",
+      "McpReadDocument": "读取当前文档",
+      "McpWriteDocument": "请求修改文档",
+      "McpClientHintMobile": "文档窗口不提供 MCP 服务。"
     }
   }
 }

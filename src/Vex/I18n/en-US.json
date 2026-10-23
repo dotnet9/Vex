@@ -114,7 +114,7 @@
       "HorizontalRule": "Horizontal Rule",
       "Bold": "Bold",
       "Italic": "Italic",
-      "InlineCode": "Code",
+      "InlineCode": "Inline code",
       "Link": "Link",
       "Image": "Image",
       "ClearFormatting": "Clear Formatting",
@@ -701,7 +701,7 @@
       "PrefRecovery": "Keep recovery drafts",
       "PrefEncoding": "New document encoding",
       "PrefNewline": "New document line endings",
-      "PrefBodyFont": "Body font",
+      "PrefBodyFont": "Editor font",
       "PrefSystemFont": "System default",
       "PrefSerifFont": "System serif",
       "PrefMonoFont": "Monospace",
@@ -884,7 +884,21 @@
       "StatusBlockCopied": "Block copied",
       "StatusShareRichCopied": "Rich text copied, ready to paste into {0}",
       "StatusShareMarkdownCopied": "Markdown copied, ready to paste into Juejin",
-      "StatusShareUnavailable": "Clipboard unavailable, please allow copying and retry"
+      "StatusShareUnavailable": "Clipboard unavailable, please allow copying and retry",
+      "MenuImportHtml": "Import from HTML…",
+      "MenuImportPdf": "Import from PDF…",
+      "MenuImportWord": "Import from Word…",
+      "StatusImportUnavailable": "{0} import is not supported yet",
+      "PrefSourceLineNumbers": "Show source line numbers",
+      "PrefSpaceUnit": "{0} spaces",
+      "PrefCodeAndSource": "Code & source",
+      "PrefWatermarkExportNote": "HTML / PDF",
+      "McpHttpConfig": "HTTP client configuration",
+      "McpStdioBridge": "stdio bridge",
+      "McpTestConnection": "Test connection",
+      "McpReadDocument": "Read current document",
+      "McpWriteDocument": "Request document changes",
+      "McpClientHintMobile": "Document windows do not host the MCP service."
     }
   }
 }

@@ -114,7 +114,7 @@
       "HorizontalRule": "水平線",
       "Bold": "太字",
       "Italic": "斜体",
-      "InlineCode": "コード",
+      "InlineCode": "インラインコード",
       "Link": "リンク",
       "Image": "画像",
       "ClearFormatting": "書式をクリア",
@@ -701,7 +701,7 @@
       "PrefRecovery": "復元用下書きを保持",
       "PrefEncoding": "新規文書の文字コード",
       "PrefNewline": "新規文書の改行コード",
-      "PrefBodyFont": "本文フォント",
+      "PrefBodyFont": "エディターのフォント",
       "PrefSystemFont": "システム標準",
       "PrefSerifFont": "セリフ体",
       "PrefMonoFont": "等幅",
@@ -884,7 +884,21 @@
       "StatusBlockCopied": "ブロックをコピーしました",
       "StatusShareRichCopied": "リッチテキストをコピーしました。{0}に貼り付けできます",
       "StatusShareMarkdownCopied": "Markdown をコピーしました。Juejin に貼り付けできます",
-      "StatusShareUnavailable": "クリップボードにアクセスできません。許可してから再試行してください"
+      "StatusShareUnavailable": "クリップボードにアクセスできません。許可してから再試行してください",
+      "MenuImportHtml": "HTML からインポート…",
+      "MenuImportPdf": "PDF からインポート…",
+      "MenuImportWord": "Word からインポート…",
+      "StatusImportUnavailable": "{0}インポートはまだサポートされていません",
+      "PrefSourceLineNumbers": "ソース行番号を表示",
+      "PrefSpaceUnit": "{0} スペース",
+      "PrefCodeAndSource": "コードとソース",
+      "PrefWatermarkExportNote": "HTML / PDF",
+      "McpHttpConfig": "HTTP クライアント設定",
+      "McpStdioBridge": "stdio ブリッジ",
+      "McpTestConnection": "接続テスト",
+      "McpReadDocument": "現在の文書を読み取る",
+      "McpWriteDocument": "文書の変更を依頼",
+      "McpClientHintMobile": "文書ウィンドウでは MCP サービスを提供しません。"
     }
   }
 }

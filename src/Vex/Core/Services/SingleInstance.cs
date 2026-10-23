@@ -57,8 +57,10 @@ public static class SingleInstance
                 var paths = payload.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                     .Where(File.Exists).ToArray();
                 // 复用启动参数通道：主实例按既有逻辑打开文件。
-                CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
-                    new Vex.Core.Messaging.ShellStartupArgumentsCommand(paths));
+                // 管道线程不得直接触碰 Avalonia 对象：命令必须投递到 UI 线程处理。
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
+                        new Vex.Core.Messaging.ShellStartupArgumentsCommand(paths)));
             }
             catch
             {

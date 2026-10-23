@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Vex.Core.Services;
+using Vex.Modules.Help.Views;
 using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Help.Services;
@@ -40,7 +41,11 @@ public sealed class HelpService : IHelpService
             throw new FileNotFoundException(_localizer.Get(VexL.HelpDetailDocumentNotFound), path);
         }
 
-        _windows.Open(path);
+        // 原型 dlg-doc：更新日志与鸣谢在独立只读窗体中打开，不占用主窗口文档位。
+        var window = new HelpDocumentWindow(
+            Path.GetFileNameWithoutExtension(fileName),
+            File.ReadAllText(path));
+        window.Show();
         return Task.CompletedTask;
     }
 

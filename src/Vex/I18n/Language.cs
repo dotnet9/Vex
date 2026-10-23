@@ -891,6 +891,20 @@ namespace Vex
         public static readonly string StatusShareRichCopied = "Vex.VexL.StatusShareRichCopied";
         public static readonly string StatusShareMarkdownCopied = "Vex.VexL.StatusShareMarkdownCopied";
         public static readonly string StatusShareUnavailable = "Vex.VexL.StatusShareUnavailable";
+        public static readonly string MenuImportHtml = "Vex.VexL.MenuImportHtml";
+        public static readonly string MenuImportPdf = "Vex.VexL.MenuImportPdf";
+        public static readonly string MenuImportWord = "Vex.VexL.MenuImportWord";
+        public static readonly string StatusImportUnavailable = "Vex.VexL.StatusImportUnavailable";
+        public static readonly string PrefSourceLineNumbers = "Vex.VexL.PrefSourceLineNumbers";
+        public static readonly string PrefSpaceUnit = "Vex.VexL.PrefSpaceUnit";
+        public static readonly string PrefCodeAndSource = "Vex.VexL.PrefCodeAndSource";
+        public static readonly string PrefWatermarkExportNote = "Vex.VexL.PrefWatermarkExportNote";
+        public static readonly string McpHttpConfig = "Vex.VexL.McpHttpConfig";
+        public static readonly string McpStdioBridge = "Vex.VexL.McpStdioBridge";
+        public static readonly string McpTestConnection = "Vex.VexL.McpTestConnection";
+        public static readonly string McpReadDocument = "Vex.VexL.McpReadDocument";
+        public static readonly string McpWriteDocument = "Vex.VexL.McpWriteDocument";
+        public static readonly string McpClientHintMobile = "Vex.VexL.McpClientHintMobile";
     }
 
 }
