@@ -18,8 +18,6 @@ public partial class MarkdownMindMapHost : UserControl
     public Control GuideSettingsTarget => SettingsTarget;
     private ShellWorkbenchViewModel? _workbench;
     private bool _refreshingInspector;
-    private bool _pointerSelection;
-    private bool _pendingInspector;
     private int? _inspectedStart;
     private int? _renamingStart;
     private (bool Paragraphs, bool Lists, bool Code, bool Tables)? _savedVisibility;
@@ -82,23 +80,16 @@ public partial class MarkdownMindMapHost : UserControl
         flyout.Opening += (_, _) => refresh();
         button.Flyout = flyout;
         DataContextChanged += (_, _) => refresh();
-        MapToolsRight.Children.Insert(0, button);
+        // 原型顺序：设置 | 收起分支 | 对照源码 | 导图样式⌄ | 钉住。
+        MapToolsRight.Children.Insert(MapToolsRight.Children.IndexOf(MapSourceButton) + 1, button);
     }
 
     private static StackPanel BuildMapStyleButtonContent()
     {
         var panel = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 4 };
-        panel.Children.Add(new TextBlock { Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式" });
-        panel.Children.Add(new Avalonia.Controls.Shapes.Path
-        {
-            Width = 10,
-            Height = 10,
-            Stretch = Avalonia.Media.Stretch.Uniform,
-            Data = Avalonia.Media.Geometry.Parse("M6 9L12 15L18 9"),
-            Stroke = Avalonia.Media.Brushes.Gray,
-            StrokeThickness = 1.7,
-            StrokeLineCap = Avalonia.Media.PenLineCap.Round,
-        });
+        panel.Children.Add(new TextBlock { Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式", VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center });
+        // 与排版/状态栏触发器共用 .expand-chevron 统一箭头（14px 盒、currentColor、垂直居中）。
+        panel.Children.Add(new Avalonia.Controls.Shapes.Path { Classes = { "expand-chevron" }, Data = Avalonia.Media.Geometry.Parse("M6 9L12 15L18 9") });
         return panel;
     }
 
@@ -126,15 +117,6 @@ public partial class MarkdownMindMapHost : UserControl
         MapEditingToolbar.ZIndex = 1;
         DataContextChanged += OnMapPinContextChanged;
         BuildMapStyleFlyout();
-        Map.AddHandler(PointerPressedEvent, (_, _) => _pointerSelection = true, RoutingStrategies.Tunnel);
-        Map.AddHandler(PointerReleasedEvent, (_, _) =>
-        {
-            _pointerSelection = false;
-            if (!_pendingInspector) return;
-            _pendingInspector = false;
-            // 松开后再展开辅助栏，避免拖动途中改变导图视口和落点。
-            Dispatcher.UIThread.Post(() => (DataContext as MainWindowViewModel)?.Layout.SelectChapterTab());
-        }, RoutingStrategies.Bubble, handledEventsToo: true);
         Map.NodeSelected += (_, node) =>
         {
             if (_workbench?.IsPresenting == true) return;
@@ -142,8 +124,6 @@ public partial class MarkdownMindMapHost : UserControl
             if (DataContext is not MainWindowViewModel vm) return;
             vm.Workbench.ShowMapSettings = false;
             vm.Workbench.SelectedNode = node;
-            if (_pointerSelection) _pendingInspector = true;
-            else vm.Layout.SelectChapterTab();
         };
         Map.SourceRequested += (_, node) =>
         {
@@ -179,16 +159,11 @@ public partial class MarkdownMindMapHost : UserControl
                 Avalonia.Threading.Dispatcher.UIThread.Post(Map.EnsureViewport, Avalonia.Threading.DispatcherPriority.Render);
         };
     }
-    public (Control Inspector, Control Confirmation) DetachInspector()
+    // 节点详情按原型保持悬浮在导图右上角（.node-inspector）；仅删除确认遮罩需要提升到窗口层。
+    public Control DetachConfirmation()
     {
-        ((Panel)NodeInspector.Parent!).Children.Remove(NodeInspector);
         ((Panel)ChapterDeleteLayer.Parent!).Children.Remove(ChapterDeleteLayer);
-        NodeInspector.Width = double.NaN; NodeInspector.MaxHeight = double.PositiveInfinity;
-        NodeInspector.Margin = default; NodeInspector.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-        NodeInspector.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
-        NodeInspector.Classes.Remove("wb-popover"); CloseInspectorButton.IsVisible = false;
-        ChapterBodyInput.MinHeight = 180; ChapterBodyInput.MaxHeight = double.PositiveInfinity;
-        return (NodeInspector, ChapterDeleteLayer);
+        return ChapterDeleteLayer;
     }
     private void AttachWorkbench()
     {
@@ -274,7 +249,7 @@ public partial class MarkdownMindMapHost : UserControl
         if (_workbench is not { } state) return;
         var only = HeadingsOnlyButton.IsChecked == true;
         if (only) { _savedVisibility = (state.ShowParagraphs, state.ShowLists, state.ShowCode, state.ShowTables); state.ShowParagraphs = state.ShowLists = state.ShowCode = state.ShowTables = false; }
-        else { var saved = _savedVisibility ?? (true, true, false, false); state.ShowParagraphs = saved.Item1; state.ShowLists = saved.Item2; state.ShowCode = saved.Item3; state.ShowTables = saved.Item4; }
+        else { var saved = _savedVisibility ?? (false, false, false, false); state.ShowParagraphs = saved.Item1; state.ShowLists = saved.Item2; state.ShowCode = saved.Item3; state.ShowTables = saved.Item4; }
     }
     private void RefreshHeadingsOnly()
     {

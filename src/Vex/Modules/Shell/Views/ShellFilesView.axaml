@@ -64,13 +64,13 @@
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto">
-        <!-- 对应原型 .sidebar-search：40px 高、6px 圆角、内嵌搜索图标与清除按钮。 -->
+        <!-- 对应原型 .sidebar-search：32px 高、8px 圆角、内嵌搜索图标与常显清除按钮。 -->
         <Border
             Grid.Row="0"
-            Height="40"
+            Height="32"
             Margin="12,14,12,12"
             Padding="8,0"
-            CornerRadius="6"
+            CornerRadius="8"
             BorderThickness="1"
             BorderBrush="Transparent"
             Background="{DynamicResource VexHoverBrush}">
@@ -92,9 +92,8 @@
                     Text="{Binding FilterText, Mode=TwoWay}"
                     TextWrapping="NoWrap"
                     AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}" />
-                <Button Grid.Column="2" Classes="files-tool" Width="20" Height="20" Padding="2"
+                <Button Grid.Column="2" Classes="files-tool" Width="18" Height="18" Padding="3"
                         Command="{Binding ClearFilter}"
-                        IsVisible="{Binding FilterText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                         ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ClearSearch}}"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ClearSearch}}">
                     <Path Classes="stroke-ico" Width="11" Height="11" StrokeThickness="1.6" Data="M6 6L18 18 M18 6L6 18" />

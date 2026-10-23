@@ -8,6 +8,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string ThemeKey = nameof(AppSettings.ThemeKey);
     private const string PaletteKey = nameof(AppSettings.PaletteKey);
     private const string TypographyKey = nameof(AppSettings.TypographyKey);
+    private const string UiDensity = nameof(AppSettings.UiDensity);
+    private const string MdSize = nameof(AppSettings.MdSize);
     private const string IsCompactLayout = nameof(AppSettings.IsCompactLayout);
     private const string CultureName = nameof(AppSettings.CultureName);
     private const string IsSidebarVisible = nameof(AppSettings.IsSidebarVisible);
@@ -44,7 +46,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string IsTypewriterMode = nameof(AppSettings.IsTypewriterMode);
     private const string IsOutlineVisible = nameof(AppSettings.IsOutlineVisible);
     private const string OutlineWidth = nameof(AppSettings.OutlineWidth);
-    private const string AuxiliaryTab = nameof(AppSettings.AuxiliaryTab);
     private const string FileListView = nameof(AppSettings.FileListView);
     private const string FileSortDescending = nameof(AppSettings.FileSortDescending);
     private const string CollapsedFolders = nameof(AppSettings.CollapsedFolders);
@@ -126,7 +127,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
         {
             IsOutlineVisible = Get<bool?>(configuration, IsOutlineVisible),
             OutlineWidth = Get<double?>(configuration, OutlineWidth),
-            AuxiliaryTab = Get<string>(configuration, AuxiliaryTab),
             FileListView = Get<bool?>(configuration, FileListView),
             FileSortDescending = Get<bool?>(configuration, FileSortDescending),
             CollapsedFolders = Get<string>(configuration, CollapsedFolders),
@@ -173,6 +173,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
             ThemeKey = Get<string>(configuration, ThemeKey),
             PaletteKey = Get<string>(configuration, PaletteKey),
             TypographyKey = Get<string>(configuration, TypographyKey),
+            UiDensity = Choice(configuration, UiDensity, "normal", "compact", "normal", "relaxed"),
+            MdSize = Choice(configuration, MdSize, "normal", "compact", "normal", "relaxed"),
             IsCompactLayout = Get<bool?>(configuration, IsCompactLayout),
             CultureName = Get<string>(configuration, CultureName),
             IsSidebarVisible = Get<bool?>(configuration, IsSidebarVisible),
@@ -218,7 +220,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
             {
                 [IsOutlineVisible] = settings.IsOutlineVisible,
                 [OutlineWidth] = settings.OutlineWidth,
-                [AuxiliaryTab] = settings.AuxiliaryTab,
                 [FileListView] = settings.FileListView,
                 [FileSortDescending] = settings.FileSortDescending,
                 [CollapsedFolders] = settings.CollapsedFolders,
@@ -265,6 +266,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [ThemeKey] = settings.ThemeKey,
                 [PaletteKey] = settings.PaletteKey,
                 [TypographyKey] = settings.TypographyKey,
+                [UiDensity] = settings.UiDensity,
+                [MdSize] = settings.MdSize,
                 [IsCompactLayout] = settings.IsCompactLayout,
                 [CultureName] = settings.CultureName,
                 [IsSidebarVisible] = settings.IsSidebarVisible,

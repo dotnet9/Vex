@@ -6,6 +6,7 @@
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:regions="using:Vex.Core.Regions"
+    xmlns:conv="using:Vex.Core.Converters"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:shell="using:Vex.Modules.Shell.Views"
     xmlns:workspace="using:Vex.Modules.Workspace.Views"
@@ -18,6 +19,7 @@
     MinWidth="800"
     MinHeight="480"
     Icon="/Assets/logo.ico"
+    BorderBrush="{DynamicResource VexPanelBorderBrush}"
     TitleBarHeight="33"
     TitleBarBackground="{DynamicResource VexPanelBackgroundBrush}"
     CaptionButtonWidth="46" CaptionGlyphSize="14"
@@ -26,6 +28,10 @@
     Topmost="{Binding Layout.IsAlwaysOnTop}"
     WindowState="{Binding Layout.CurrentWindowState, Mode=TwoWay}"
     WindowStartupLocation="CenterScreen">
+
+    <codewf:CodeWFWindow.Resources>
+        <conv:FirstPositiveWidthConverter x:Key="FirstPositiveWidth" />
+    </codewf:CodeWFWindow.Resources>
 
     <codewf:CodeWFWindow.LeftContent>
         <StackPanel
@@ -88,6 +94,13 @@
         </StackPanel>
     </codewf:CodeWFWindow.RightContent>
 
+    <!-- 自定义窗口不含 UrsaWindow 的默认宿主，显式复用 Ursa 浮层控件。
+         放在整窗浮层槽（12.2.8 OverlayContent）里，遮罩才能像原型 .vex-settings-host 一样盖住标题条；
+         遮罩色对齐原型：#0B1729 28% 透明度。 -->
+    <codewf:CodeWFWindow.OverlayContent>
+        <u:OverlayDialogHost x:Name="ShellDialogHost" OverlayMaskBrush="#470B1729" />
+    </codewf:CodeWFWindow.OverlayContent>
+
     <!-- CodeWFWindow 模板已预留标题栏高度，内容只添加 1 像素分隔线。 -->
     <Border x:Name="ShellTitleDivider"
             BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0 1 0 0">
@@ -136,21 +149,32 @@
             <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
                 <StackPanel x:Name="FloatingViewShelf" Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="12,4" IsVisible="False"/>
                 <Panel Grid.Row="1">
-                <Grid x:Name="ViewSurface" Margin="{Binding Workbench.EditorSurfaceMargin}">
+                <!-- 原型：钉住的格式条只占源码列顶部，阅读/导图窗格从工作区顶端起排，
+                     所以 42px 让位只加在编辑/即时视图上，而不是整个 ViewSurface。 -->
+                <Grid x:Name="ViewSurface">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="{Binding Workbench.SourceColumnWidth}"/>
                     <ColumnDefinition Width="{Binding Workbench.SplitterWidth}"/>
                     <ColumnDefinition Width="{Binding Workbench.PreviewColumnWidth}"/>
                 </Grid.ColumnDefinitions>
-                <workspace:MarkdownEditorView x:Name="EditorGuideTarget" Grid.Column="0" IsVisible="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Workbench.IsSourceVisible}" />
+                <workspace:MarkdownEditorView x:Name="EditorGuideTarget" Grid.Column="0" Margin="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Workbench.EditorSurfaceMargin}" IsVisible="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Workbench.IsSourceVisible}" />
                 <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" ResizeDirection="Columns" IsVisible="{Binding Workbench.IsSourceVisible}" />
                 <workspace:MarkdownPreviewView x:Name="PreviewGuideTarget" IsReadingMode="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Workbench.IsReading}" Grid.Column="2" IsVisible="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Workbench.IsPreviewVisible}" />
-                <workspace:MarkdownInstantView x:Name="InstantGuideTarget" Grid.ColumnSpan="3" IsVisible="{Binding Workbench.IsInstantEditing}" />
+                <workspace:MarkdownInstantView x:Name="InstantGuideTarget" Grid.ColumnSpan="3" Margin="{Binding Workbench.EditorSurfaceMargin}" IsVisible="{Binding Workbench.IsInstantEditing}" />
                 <workspace:MarkdownMindMapHost x:Name="MindMapGuideTarget" Grid.Column="{Binding Workbench.MapColumn}" Grid.ColumnSpan="{Binding Workbench.MapSpan}" IsVisible="{Binding Workbench.IsMapVisible}" />
                 </Grid>
                 <!-- 对应原型 #edit-options：叠在正文顶端的悬浮条，静默 1% 不透明度，悬停/聚焦时显现。
-                     必须与 ViewSurface 同级，工作区重建会清空 ViewSurface 的子级。 -->
-                <shell:ShellEditorOptionsView x:Name="EditorOptions" VerticalAlignment="Top" HorizontalAlignment="Stretch" />
+                     必须与 ViewSurface 同级，工作区重建会清空 ViewSurface 的子级。
+                     宽度跟随源码列（原型格式条只横跨编辑窗格），源码窗格隐藏时回退满宽。 -->
+                <shell:ShellEditorOptionsView x:Name="EditorOptions" VerticalAlignment="Top" HorizontalAlignment="Left">
+                    <shell:ShellEditorOptionsView.Width>
+                        <MultiBinding Converter="{StaticResource FirstPositiveWidth}">
+                            <Binding Path="IsVisible" ElementName="EditorGuideTarget"/>
+                            <Binding Path="Bounds.Width" ElementName="EditorGuideTarget"/>
+                            <Binding Path="Bounds.Width" ElementName="ViewSurface"/>
+                        </MultiBinding>
+                    </shell:ShellEditorOptionsView.Width>
+                </shell:ShellEditorOptionsView>
                 </Panel>
                 <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="2" />
             </Grid>
@@ -158,7 +182,7 @@
                           IsVisible="{Binding Layout.ShowOutlineSidebar}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
             <Border x:Name="OutlineGuideTarget" Grid.Column="4" IsVisible="{Binding Layout.ShowOutlineSidebar}"
                     Background="{DynamicResource VexPanelBackgroundBrush}" ClipToBounds="True">
-                <shell:ShellAuxiliaryPanelView x:Name="AuxiliaryPanel"/>
+                <shell:ShellAuxiliaryPanelView/>
             </Border>
         </Grid>
 
@@ -188,9 +212,6 @@
         <!-- 对齐原型：选择视图面板锚定底栏「更多」按钮上方，轻量关闭由代码后置处理。 -->
         <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12,12,24,44"/>
         <shell:WorkbenchGuideView x:Name="WorkbenchGuide" Grid.RowSpan="4"/>
-        <!-- 自定义窗口不含 UrsaWindow 的默认宿主，显式复用 Ursa 浮层控件。 -->
-        <!-- 遮罩对齐原型 .vex-settings-host：#0B1729 28% 透明度。 -->
-        <u:OverlayDialogHost x:Name="ShellDialogHost" Grid.RowSpan="4" OverlayMaskBrush="#470B1729" />
     </Grid>
     </Border>
 </codewf:CodeWFWindow>

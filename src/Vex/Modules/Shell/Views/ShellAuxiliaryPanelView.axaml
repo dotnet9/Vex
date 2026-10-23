@@ -1,41 +1,14 @@
 <UserControl x:Class="Vex.Modules.Shell.Views.ShellAuxiliaryPanelView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:prism="http://prismlibrary.com/" xmlns:regions="using:Vex.Core.Regions" x:DataType="vm:MainWindowViewModel">
- <Grid RowDefinitions="Auto,Auto,*">
-  <Grid Margin="14,8,8,4" ColumnDefinitions="*,Auto">
-   <TextBlock Text="{i18n:I18n {x:Static l:VexL.DocumentAuxiliary}}" FontSize="12" VerticalAlignment="Center"/>
-   <Button Grid.Column="1" Classes="vex-dismiss" Command="{Binding Layout.ToggleOutline}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}"/>
+ <!-- 对应原型 .structure-sidebar：头部（文档结构 + 收起钮）+ 大纲列表，无页签条。 -->
+ <Grid RowDefinitions="Auto,*">
+  <Grid Margin="14,13,10,6" ColumnDefinitions="*,Auto">
+   <TextBlock Text="{i18n:I18n {x:Static l:VexL.StructureTitle}}" FontSize="12" FontWeight="Medium" VerticalAlignment="Center"/>
+   <Button Grid.Column="1" Classes="wb-quiet" MinHeight="0" Width="22" Height="22" Padding="3" CornerRadius="5"
+           Command="{Binding Layout.ToggleOutline}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseStructure}}">
+    <Path Classes="expand-chevron" Data="M6 9L12 15L18 9"/>
+   </Button>
   </Grid>
-  <Border Grid.Row="1" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1" Padding="8,0">
-   <UniformGrid x:Name="Tabs" Columns="3">
-    <ToggleButton Classes="wb-quiet" Content="{i18n:I18n {x:Static l:VexL.Outline}}" IsChecked="{Binding Layout.IsOutlineTab, Mode=OneWay}" Command="{Binding Layout.SelectOutlineTab}"/>
-    <ToggleButton Classes="wb-quiet" Content="{i18n:I18n {x:Static l:VexL.AuxiliaryInfo}}" IsChecked="{Binding Layout.IsInfoTab, Mode=OneWay}" Command="{Binding Layout.SelectInfoTab}"/>
-    <ToggleButton Classes="wb-quiet" Content="{i18n:I18n {x:Static l:VexL.AuxiliaryChapter}}" IsChecked="{Binding Layout.IsChapterTab, Mode=OneWay}" Command="{Binding Layout.SelectChapterTab}"/>
-   </UniformGrid>
-  </Border>
-  <ContentControl Grid.Row="2" IsVisible="{Binding Layout.IsOutlineTab}" prism:RegionManager.RegionName="{x:Static regions:RegionNames.ShellOutlineRegion}"/>
-  <ScrollViewer Grid.Row="2" IsVisible="{Binding Layout.IsInfoTab}" HorizontalScrollBarVisibility="Disabled">
-   <StackPanel Margin="18,20" Spacing="12">
-    <SelectableTextBlock Text="{Binding DocumentInfo.PropertyNameText}" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap"/>
-    <TextBlock Text="Markdown" Classes="wb-muted"/>
-    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,10,0,4"><TextBlock Text="{Binding DocumentInfo.Statistics.Characters}" FontSize="32"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" Classes="wb-muted" VerticalAlignment="Bottom" Margin="0,0,0,5"/></StackPanel>
-    <Border BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,1,0,0" Padding="0,16,0,0">
-     <StackPanel Spacing="12">
-      <TextBlock Text="{Binding DocumentInfo.WordCountText}" FontSize="12"/><TextBlock Text="{Binding DocumentInfo.LineCountText}" FontSize="12"/>
-      <TextBlock Text="{Binding DocumentInfo.ReadingMinutesText}" FontSize="12"/><TextBlock Text="{Binding DocumentInfo.CurrentEncodingText}" Classes="wb-muted"/>
-      <TextBlock Text="{Binding DocumentInfo.LineEndingText}" Classes="wb-muted"/><TextBlock Text="{Binding DocumentInfo.PropertySizeText}" Classes="wb-muted"/>
-     </StackPanel>
-    </Border>
-    <TextBlock Text="{Binding DocumentInfo.DocumentStateText}" FontSize="12"/>
-    <SelectableTextBlock Text="{Binding DocumentInfo.PropertyLocationText}" FontSize="12" TextWrapping="Wrap"/>
-   </StackPanel>
-  </ScrollViewer>
-  <Grid Grid.Row="2" IsVisible="{Binding Layout.IsChapterTab}">
-   <ContentControl x:Name="InspectorSlot" IsVisible="{Binding Workbench.HasSelectedNode}"/>
-   <StackPanel IsVisible="{Binding !Workbench.HasSelectedNode}" Margin="24,48" Spacing="12">
-    <TextBlock Text="{i18n:I18n {x:Static l:VexL.ChooseChapter}}" FontSize="13" FontWeight="SemiBold" TextAlignment="Center"/>
-    <TextBlock Text="{i18n:I18n {x:Static l:VexL.ChooseChapterHint}}" Classes="wb-muted" TextWrapping="Wrap" TextAlignment="Center"/>
-    <Button Classes="wb-quiet" Content="{i18n:I18n {x:Static l:VexL.Outline}}" Command="{Binding Layout.SelectOutlineTab}" HorizontalAlignment="Center"/>
-   </StackPanel>
-  </Grid>
+  <ContentControl Grid.Row="1" prism:RegionManager.RegionName="{x:Static regions:RegionNames.ShellOutlineRegion}"/>
  </Grid>
 </UserControl>

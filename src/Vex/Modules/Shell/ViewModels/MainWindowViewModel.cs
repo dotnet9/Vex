@@ -1069,7 +1069,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         await Task.CompletedTask;
     }
 
-    public void ShowProperties() => Layout.SelectInfoTab();
+    public void ShowProperties() => _documentUtilities.ShowProperties(DocumentInfo);
     public async Task Export(string? format)
     {
         _retryExportFormat = format;

@@ -17,6 +17,12 @@ public sealed record AppSettings
 
     public string? TypographyKey { get; init; }
 
+    /// <summary>界面密度三档（compact/normal/relaxed），对应原型 data-density。</summary>
+    public string? UiDensity { get; init; }
+
+    /// <summary>Markdown 渲染密度三档（基准正文 13/15/17），对应原型 data-mdsize。</summary>
+    public string? MdSize { get; init; }
+
     public bool? IsCompactLayout { get; init; }
 
     public string? CultureName { get; init; }
@@ -28,7 +34,6 @@ public sealed record AppSettings
 
     public bool? IsOutlineVisible { get; init; }
     public double? OutlineWidth { get; init; }
-    public string? AuxiliaryTab { get; init; }
     public bool? FileListView { get; init; }
     public bool? FileSortDescending { get; init; }
     public string? CollapsedFolders { get; init; }

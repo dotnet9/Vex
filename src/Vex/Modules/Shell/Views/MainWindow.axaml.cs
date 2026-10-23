@@ -27,8 +27,7 @@ public partial class MainWindow : CodeWFWindow
     public MainWindow()
     {
         InitializeComponent();
-        var (inspector, confirmation) = MindMapGuideTarget.DetachInspector();
-        AuxiliaryPanel.SetInspector(inspector);
+        var confirmation = MindMapGuideTarget.DetachConfirmation();
         Grid.SetRowSpan(confirmation, 4); ShellGuideRoot.Children.Add(confirmation);
         WorkspaceViews = new WorkspaceViewController(this, ViewSurface, FloatingViewShelf);
         var separateViews = new MenuItem();
