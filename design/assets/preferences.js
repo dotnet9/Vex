@@ -32,7 +32,7 @@
       case 'editor': return control('font','编辑区字体',[['system','系统默认'],['serif','系统衬线'],['mono','等宽']]) + control('indent','缩进',[[2,'2 空格'],[4,'4 空格'],[8,'8 空格']]) + heading('代码与源码') + control('codeWrap','代码自动换行') + control('lineNumbers','显示源码行号');
       case 'images': return control('imageCopy','插入时复制图片') + control('imageRelative','使用相对路径') + control('imageFolder','资源目录',{},'相对于当前文档');
       case 'appearance': return control('motion','界面动效') + heading('文档水印') + control('watermarkPreview','开启水印',null,'阅读 / 即时 / 演示 / 导出均显示') + control('watermarkText','水印文字',{maxlength:60}) + control('watermarkFontSize','水印字号',{range:true,min:12,max:36,unit:' px'}) + control('watermarkColor','前景色',{type:'color'}) + control('watermarkWeight','粗细',[[300,'细'],[400,'常规'],[700,'粗']]) + control('watermarkOpacity','不透明度',{range:true,min:0,max:50,unit:'%'}) + '<div class="vex-watermark-sample" aria-label="水印样式预览"><strong>写下想法，看见脉络。</strong><span>维刻 Vex</span></div>';
-      case 'export': return control('exportOpen','导出后打开') + heading('文档水印') + control('watermarkExport','导出时包含',null,'HTML / PDF') + '<button class="vex-button" data-vex-section="appearance">水印样式…</button>' + heading('PDF') + control('pdfSize','纸张',['A4','Letter','A5']) + control('pdfMargin','页边距',{range:true,min:10,max:30,unit:' mm'}) + heading('HTML') + control('htmlStyle','保留当前文档排版');
+      case 'export': return control('exportOpen','导出后打开') + heading('PDF') + control('pdfSize','纸张',['A4','Letter','A5']) + control('pdfMargin','页边距',{range:true,min:10,max:30,unit:' mm'}) + heading('HTML') + control('htmlStyle','保留当前文档排版');
       case 'mcp': return mcpContent();
       default: return '';
     }

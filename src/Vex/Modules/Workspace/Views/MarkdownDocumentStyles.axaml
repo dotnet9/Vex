@@ -32,6 +32,10 @@
         <Style Selector="md|MarkdownLiveEditorView">
             <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexTableHeaderBrush}" />
         </Style>
+        <!-- 任务复选框与首行文字垂直居中：行高 28.5，框 14 → 顶部偏移 7（两模式一致）。 -->
+        <Style Selector="CheckBox.MdTaskMarkerBox">
+            <Setter Property="Margin" Value="0,7,0,0" />
+        </Style>
         <Style Selector="md|MarkdownViewer Grid.MdTable, md|MarkdownLiveEditorView Grid.MdTable">
             <Setter Property="layout:MarkdownTableLayout.FillAvailableWidth" Value="True" />
         </Style>

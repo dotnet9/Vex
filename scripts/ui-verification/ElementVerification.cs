@@ -160,8 +160,7 @@ internal static class ElementVerification
         CheckBox? instantProbe() => instantHost.Editor.GetVisualDescendants()
             .OfType<CheckBox>().FirstOrDefault(x => x.Classes.Contains("MdTaskMarkerBox"));
         var instantBox = WaitBox(instantProbe);
-        var allInstantBoxes = instantHost.Editor.GetVisualDescendants().OfType<CheckBox>().Count();
-        Console.WriteLine($"DEBUG instant checkboxes total={allInstantBoxes} marked={instantProbe() is not null}");
+        Pump(); window.CaptureRenderedFrame()?.Save(Path.Combine(output, "list-alignment-instant.png"));
         vm.Workbench.ShowRead(); Pump(); Pump();
         var previewHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var readViewer = previewHost.GetVisualDescendants()
@@ -171,6 +170,17 @@ internal static class ElementVerification
         Check((int)instantBox.Bounds.Width == (int)readBox.Bounds.Width
             && (int)instantBox.Bounds.Height == (int)readBox.Bounds.Height,
             $"两模式任务框同尺寸（即时={instantBox.Bounds.Width:0.#}x{instantBox.Bounds.Height:0.#} 阅读={readBox.Bounds.Width:0.#}x{readBox.Bounds.Height:0.#}）");
+        // 分段条「更多」：组合布局时显示布局名并高亮；单一布局回落「更多」。
+        vm.Workbench.SelectLayout("source-render"); Pump();
+        Check(vm.Workbench.IsMoreSegmentActive && vm.Workbench.MoreSegmentLabel == vm.Workbench.LayoutOption.Name,
+            "组合布局时更多段显示布局名并高亮");
+        vm.Workbench.SelectLayout("source"); Pump();
+        Check(!vm.Workbench.IsMoreSegmentActive, "单一布局时更多段回落为更多");
+        vm.Workbench.ShowRead(); Pump(); Pump();
+        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "segment-read.png"));
+        vm.Workbench.SelectLayout("source-render"); Pump();
+        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "segment-source-render.png"));
+        vm.Workbench.SelectLayout("source"); Pump(); Pump();
 
         // 导入引擎：HTML → Markdown（文件菜单导入组的核心转换）。
         var imported = DocumentImportService.FromHtml("<h1>导入标题</h1><p>正文 <strong>加粗</strong></p>");
