@@ -57,6 +57,9 @@ const SAMPLE = [
   };
   const shot = async name => {
     await page.waitForTimeout(350);
+    // 布局菜单点击后焦点会落回「更多」段，产生原生没有的焦点环：截图前失焦。
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.waitForTimeout(120);
     // 原型窗口卡片固定内缩 24px：对卡片元素截图得到与原生客户端区一致的 1440x900。
     await page.locator('.app-window').screenshot({path:path.join(output, name + '.png')});
     console.log('CAPTURED ' + name);

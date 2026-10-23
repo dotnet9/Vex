@@ -138,6 +138,13 @@
     viewSwitch.querySelectorAll('[data-view-link]').forEach(function (button) {
       button.setAttribute('aria-pressed', String(button.dataset.viewLink === segment));
     });
+    /* 非三段直选时"更多"段显示当前布局名并高亮（与原生底栏 MoreSegmentLabel 一致）。 */
+    layoutButton.setAttribute('aria-pressed', String(segment === 'more'));
+    var moreLabel = segment === 'more' ? preset.title : '更多';
+    if (layoutButton.dataset.moreLabel !== moreLabel) {
+      layoutButton.dataset.moreLabel = moreLabel;
+      layoutButton.firstChild.textContent = moreLabel;
+    }
     layoutButton.setAttribute('aria-label', '当前视图：' + preset.title + '，点击更换');
     /* 状态栏已移除联动入口（usability.js 注明），这里只在旧布局仍提供该容器时同步可见性。 */
     if ($('view-follow-controls')) $('view-follow-controls').hidden = displayed.length < 2;
