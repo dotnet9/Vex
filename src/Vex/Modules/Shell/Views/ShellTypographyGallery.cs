@@ -2,10 +2,12 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using CodeWF.Avalonia.Markdown.Controls;
+using CodeWF.Avalonia.Markdown.Themes;
 using CodeWF.Avalonia.Controls.Controls;
 using CodeWF.Toolkit.Lang;
 using Vex.Core.Models;
@@ -14,26 +16,27 @@ using static Vex.Modules.Shell.Views.DesignSelectionControls;
 
 namespace Vex.Modules.Shell.Views;
 
+/// <summary>正文排版弹层（对齐原型 #typography-panel）：标题 + 渲染密度分段条 + 3 列真实排版预览卡。</summary>
 public sealed class ShellTypographyGallery : UserControl
 {
     private MainWindowViewModel? _vm;
-    private readonly EqualHeightWrapPanel _cards = new() { Columns = 3, ColumnSpacing = 12, RowSpacing = 12 };
-    private readonly Dictionary<TypographyOption, (Button Button, MarkdownViewer Preview, TextBlock Check)> _items = [];
-    private bool _all;
-    private int _columns = 3;
+    private readonly UniformGrid _cards = new() { Columns = 3, RowSpacing = 10, ColumnSpacing = 10 };
+    private readonly Dictionary<TypographyOption, (Button Button, Border Ring, Border Badge, TextBlock BadgeText, MarkdownViewer Preview)> _items = [];
+    private readonly Dictionary<string, Button> _densityPills = [];
+    private readonly StackPanel _header = new() { Spacing = 0 };
     private TopLevel? _window;
     private ScrollViewer? _scroll;
-    private Button? _recommended;
-    private Button? _allChoices;
-    private CheckBox? _compact;
+
     public ShellTypographyGallery()
     {
         DataContextChanged += (_, _) => Attach();
         AttachedToVisualTree += (_, _) => { Attach(); _window = TopLevel.GetTopLevel(this); if (_window is not null) _window.SizeChanged += WindowSizeChanged; Resize(); };
         DetachedFromVisualTree += (_, _) => { if (_vm is not null) { _vm.Appearance.PropertyChanged -= Changed; _vm.Workbench.PropertyChanged -= WorkbenchChanged; } I18nManager.Instance.CultureChanged -= CultureChanged; if (_window is not null) _window.SizeChanged -= WindowSizeChanged; _vm = null; _window = null; };
-        Navigation(_cards, () => _columns);
+        Navigation(_cards, () => 3);
     }
+
     private void WindowSizeChanged(object? sender, SizeChangedEventArgs e) => Resize();
+
     private void Attach()
     {
         var vm = DataContext as MainWindowViewModel;
@@ -44,8 +47,10 @@ public sealed class ShellTypographyGallery : UserControl
         if (vm is null) return;
         vm.Appearance.PropertyChanged += Changed; vm.Workbench.PropertyChanged += WorkbenchChanged; I18nManager.Instance.CultureChanged += CultureChanged; Build();
     }
+
     private void WorkbenchChanged(object? sender, PropertyChangedEventArgs e)
     { if (e.PropertyName == nameof(ShellWorkbenchViewModel.ShowTypography) && _vm?.Workbench.ShowTypography == true) Resize(); }
+
     private void CultureChanged(object? sender, EventArgs e)
     {
         if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
@@ -55,6 +60,7 @@ public sealed class ShellTypographyGallery : UserControl
         }
         Build();
     }
+
     private void Resize()
     {
         Width = Math.Min(880, (_window?.ClientSize.Width ?? 1280) - 24);
@@ -63,164 +69,160 @@ public sealed class ShellTypographyGallery : UserControl
         var parentTop = _window is not null ? this.GetVisualParent()?.TranslatePoint(default, _window)?.Y ?? 0 : 0;
         Margin = new Thickness(12, Math.Max(0, top - parentTop), 12, 12);
         Height = Math.Max(140, Math.Min(680, (_window?.ClientSize.Height ?? 820) - top - 12));
-        _columns = Width >= 820 ? 3 : Width >= 550 ? 2 : 1;
-        ArrangeCards();
-    }
-    private void ArrangeCards()
-    {
-        _cards.Columns = _columns;
-        _cards.InvalidateMeasure();
     }
 
     private void Changed(object? sender, PropertyChangedEventArgs e)
     {
         if (_vm is null) return;
+        if (e.PropertyName is nameof(ShellAppearanceViewModel.MarkdownDensity) or null or "")
+            foreach (var (key, pill) in _densityPills) PaintDensity(pill, key == _vm.Appearance.MarkdownDensity);
         foreach (var (option, item) in _items)
         {
             var selected = option == _vm.Appearance.SelectedTypography;
-            item.Button.Classes.Set("selected-choice", selected);
-            item.Check.Text = selected ? "✓ " + Text("ChoiceCurrent") : "";
-            item.Button.IsVisible = _all || option.IsRecommended || selected;
+            item.Ring.IsVisible = selected;
+            var badgeText = selected ? "✓ " + Text("ChoiceCurrent") : option.IsRecommended ? Text("ChoiceRecommended") : "";
+            item.BadgeText.Text = badgeText; item.Badge.IsVisible = badgeText.Length > 0;
             item.Preview.TypographySize = _vm.Appearance.CurrentTypographySize;
         }
-        if (_recommended is not null) { _recommended.Content = (!_all ? "✓ " : "") + Text("ChoiceRecommended"); _recommended.Classes.Set("choice-filter-selected", !_all); }
-        if (_allChoices is not null) { _allChoices.Content = (_all ? "✓ " : "") + Text("AllTypographies"); _allChoices.Classes.Set("choice-filter-selected", _all); }
-        if (_compact is not null) _compact.IsChecked = _vm.Appearance.IsCompactLayout;
-        ArrangeCards();
     }
+
+    private void PaintDensity(Button pill, bool on)
+    {
+        pill.Classes.Set("appearance-pill-on", on);
+        pill.Background = on ? null! : Brushes.Transparent;
+    }
+
     private void Build()
     {
         if (_vm is null) return;
+        // 重建时字段级容器仍挂在上一版树上，先摘除再入新树。
+        if (_header.Parent is Panel oldHeaderHost) oldHeaderHost.Children.Remove(_header);
         if (_scroll is not null) _scroll.Content = null;
-        _items.Clear(); _cards.Children.Clear();
-        var header = new Grid { ColumnDefinitions = new("*,Auto") };
-        var title = Label(Text("WBTypographyTitle"), 15); title.FontWeight = FontWeight.SemiBold; title.VerticalAlignment = VerticalAlignment.Center; header.Children.Add(title);
+        _items.Clear(); _densityPills.Clear(); _cards.Children.Clear(); _header.Children.Clear();
+
+        var titleRow = new Grid { ColumnDefinitions = new("*,Auto") };
+        var title = Label(Text("WBTypographyTitle"), 15); title.FontWeight = FontWeight.SemiBold; title.VerticalAlignment = VerticalAlignment.Center; titleRow.Children.Add(title);
         var close = new Button { Classes = { "vex-dismiss" }, Width = 30, Height = 30 };
         Avalonia.Automation.AutomationProperties.SetName(close, Text("Close"));
         close.Click += (_, _) => { _vm.Workbench.ShowTypography = false; (_window as MainWindow)?.FindControl<ShellEditorOptionsView>("EditorOptions")?.FindControl<Button>("TypographyTarget")?.Focus(); };
-        Grid.SetColumn(close, 1); header.Children.Add(close);
-        var filters = new UniformGrid { Columns = 2 };
-        _recommended = Button(Text("ChoiceRecommended"), () => { _all = false; Changed(null, new("")); if (_scroll is not null) _scroll.Offset = default; });
-        _allChoices = Button(Text("AllTypographies"), () => { _all = true; Changed(null, new("")); if (_scroll is not null) _scroll.Offset = default; });
-        _recommended.HorizontalAlignment = HorizontalAlignment.Stretch; _allChoices.HorizontalAlignment = HorizontalAlignment.Stretch;
-        filters.Children.Add(_recommended); filters.Children.Add(_allChoices);
-        var filterFrame = new Border { Classes = { "choice-filter" }, Width = 240, HorizontalAlignment = HorizontalAlignment.Left, Child = filters, Margin = new Thickness(0, 0, 0, 12) };
-        _compact = new CheckBox { IsChecked = _vm.Appearance.IsCompactLayout, FontSize = 13, MinHeight = 20 };
-        Avalonia.Automation.AutomationProperties.SetName(_compact, Text("CompactLayout"));
-        _compact.IsCheckedChanged += (_, _) => _vm.Appearance.IsCompactLayout = _compact.IsChecked == true;
-        var footer = new Grid { ColumnDefinitions = new("*,Auto") };
-        var compactLabel = Label(Text("CompactLayout"), 13); compactLabel.VerticalAlignment = VerticalAlignment.Center; footer.Children.Add(compactLabel);
-        Grid.SetColumn(_compact, 1); footer.Children.Add(_compact);
-        var footerFrame = new Border { Child = footer, BorderThickness = new Thickness(0, 1, 0, 0), Margin = new Thickness(0, 12, 0, 0), Padding = new Thickness(0, 12, 0, 0) };
-        Resource(footerFrame, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
-        foreach (var option in _vm.Appearance.TypographyOptions)
-        {
-            var heading = new Grid { ColumnDefinitions = new("*,Auto") };
-            heading.MinHeight = 22; var name = Label(Text(option.NameKey), 13); name.FontWeight = FontWeight.SemiBold;
-            heading.Children.Add(name); var check = Label("", 11); Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush"); Grid.SetColumn(check, 1); heading.Children.Add(check);
-            var preview = new MarkdownViewer { Markdown = Text("TypographyPreviewMarkdown"), TypographyTheme = option.Key,
-                FontWeight = FontWeight.Normal,
-                TypographySize = _vm.Appearance.CurrentTypographySize, IsHitTestVisible = false, Margin = new Thickness(16),
-                DocumentBottomPadding = 0, EnableVirtualization = false };
-            var previewBorder = new Border { Child = preview, MinHeight = 274, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), ClipToBounds = true };
-            Resource(previewBorder, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
-            Resource(previewBorder, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
-            var stack = new StackPanel { Spacing = 8 };
-            stack.Children.Add(heading); var purpose = Label(Text(option.PurposeKey)); purpose.Classes.Add("muted"); stack.Children.Add(purpose); stack.Children.Add(previewBorder);
-            var button = Button("", () => _vm.Appearance.SelectedTypography = option);
-            button.Name = "Typography_" + option.Key; button.Content = stack; button.Padding = new Thickness(12); button.MinHeight = 332;
-            button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
-            button.VerticalContentAlignment = VerticalAlignment.Top; button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
-            button.BorderThickness = new Thickness(1); button.CornerRadius = new CornerRadius(8);
-            Resource(button, TemplatedControl.BorderBrushProperty, this, "VexPanelBorderBrush");
-            _items[option] = (button, preview, check); _cards.Children.Add(button);
-        }
-        // 用户排版卡带「删除」；目录尾部「＋ 新增排版」（对应原型 typography-add）。
-        foreach (var option in _vm.Appearance.TypographyOptions.Where(item => item.Key?.StartsWith("user:", StringComparison.Ordinal) == true).ToArray())
-        {
-            if (_items[option].Button.Content is StackPanel stack && stack.Children.FirstOrDefault() is Grid heading)
-            {
-                var remove = new Button { Classes = { "wb-quiet" }, Padding = new Thickness(4, 0), MinHeight = 20, FontSize = 12, Content = "×" };
-                ToolTip.SetTip(remove, Text("DeleteCustomTypography"));
-                var captured = option.Key!;
-                remove.Click += (_, _) => _vm.Appearance.RemoveCustomTypography(captured);
-                Grid.SetColumn(remove, 1);
-                heading.Children.Add(remove);
-            }
-        }
-        var addCard = Button("", OpenTypographyDialog);
-        addCard.Name = "AddCustomTypography";
-        addCard.HorizontalContentAlignment = HorizontalAlignment.Stretch;
-        addCard.Padding = new Thickness(12); addCard.MinHeight = 56;
-        addCard.BorderThickness = new Thickness(1); addCard.CornerRadius = new CornerRadius(8);
-        Resource(addCard, TemplatedControl.BorderBrushProperty, this, "VexPanelBorderBrush");
-        var addRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        addRow.Children.Add(new TextBlock { Text = "＋", FontSize = 17, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center });
-        var addLabels = new StackPanel { Spacing = 1, VerticalAlignment = VerticalAlignment.Center };
-        addLabels.Children.Add(Label(Text("AddCustomTypography"), 13));
-        addLabels.Children.Add(Label(Text("AddCustomTypographyNote")));
-        addRow.Children.Add(addLabels);
-        addCard.Content = addRow;
-        _cards.Children.Add(addCard);
-        async void OpenTypographyDialog()
-        {
-            var model = new ShellTypographyEditModel(null);
-            var applied = await Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(new ShellTypographyEditView(model), model,
-                options: new Ursa.Controls.OverlayDialogOptions { CanLightDismiss = true, CanDragMove = false, CanResize = false, IsCloseButtonVisible = false });
-            if (!applied || model.Result is not { } result) return;
-            _vm.Appearance.RegisterCustomTypography("", result.Name, result.AccentLight, result.AccentDark, result.DecoLight, result.DecoDark, result.Font, result.Leading);
-            RebuildCards();
-        }
+        Grid.SetColumn(close, 1); titleRow.Children.Add(close);
+        _header.Children.Add(titleRow);
 
-        void RebuildCards()
+        // 渲染密度：与外观菜单同款胶囊分段条（紧凑/正常/宽松 → Markdown 基准字号 13/15/17）。
+        var densityRow = new Grid { ColumnDefinitions = new("Auto,*"), ColumnSpacing = 10, Height = 52 };
+        var densityLabel = new TextBlock { Text = Text("RenderDensityTitle"), FontSize = 11, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+        Resource(densityLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush"); densityRow.Children.Add(densityLabel);
+        // 三枚等宽胶囊（flex:1）：紧贴标签右侧，均分 320px。
+        var pills = new UniformGrid { Columns = 3, Width = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
+        Grid.SetColumn(pills, 1);
+        foreach (var (key, labelKey) in new[] { ("compact", "DensityCompact"), ("normal", "DensityNormal"), ("relaxed", "DensityRelaxed") })
         {
-            _items.Clear(); _cards.Children.Clear();
-            foreach (var option in _vm.Appearance.TypographyOptions)
-            {
-                var heading = new Grid { ColumnDefinitions = new("*,Auto") };
-                heading.MinHeight = 22; var name = Label(Text(option.NameKey), 13); name.FontWeight = FontWeight.SemiBold;
-                heading.Children.Add(name); var check = Label("", 11); Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush"); Grid.SetColumn(check, 1); heading.Children.Add(check);
-                var preview = new MarkdownViewer { Markdown = Text("TypographyPreviewMarkdown"), TypographyTheme = option.Key,
-                    FontWeight = FontWeight.Normal,
-                    TypographySize = _vm.Appearance.CurrentTypographySize, IsHitTestVisible = false, Margin = new Thickness(16),
-                    DocumentBottomPadding = 0, EnableVirtualization = false };
-                var previewBorder = new Border { Child = preview, MinHeight = 274, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), ClipToBounds = true };
-                Resource(previewBorder, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
-                Resource(previewBorder, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
-                var stack = new StackPanel { Spacing = 8 };
-                stack.Children.Add(heading); var purpose = Label(Text(option.PurposeKey)); purpose.Classes.Add("muted"); stack.Children.Add(purpose); stack.Children.Add(previewBorder);
-                var button = Button("", () => _vm.Appearance.SelectedTypography = option);
-                button.Name = "Typography_" + option.Key; button.Content = stack; button.Padding = new Thickness(12); button.MinHeight = 332;
-                button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
-                button.VerticalContentAlignment = VerticalAlignment.Top; button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
-                button.BorderThickness = new Thickness(1); button.CornerRadius = new CornerRadius(8);
-                Resource(button, TemplatedControl.BorderBrushProperty, this, "VexPanelBorderBrush");
-                _items[option] = (button, preview, check); _cards.Children.Add(button);
-            }
-            var addAgain = Button("", OpenTypographyDialog);
-            addAgain.Name = "AddCustomTypography";
-            addAgain.HorizontalContentAlignment = HorizontalAlignment.Stretch;
-            addAgain.Padding = new Thickness(12); addAgain.MinHeight = 56;
-            addAgain.BorderThickness = new Thickness(1); addAgain.CornerRadius = new CornerRadius(8);
-            Resource(addAgain, TemplatedControl.BorderBrushProperty, this, "VexPanelBorderBrush");
-            var addRowAgain = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-            addRowAgain.Children.Add(new TextBlock { Text = "＋", FontSize = 17, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center });
-            var addLabelsAgain = new StackPanel { Spacing = 1, VerticalAlignment = VerticalAlignment.Center };
-            addLabelsAgain.Children.Add(Label(Text("AddCustomTypography"), 13));
-            addLabelsAgain.Children.Add(Label(Text("AddCustomTypographyNote")));
-            addRowAgain.Children.Add(addLabelsAgain);
-            addAgain.Content = addRowAgain;
-            _cards.Children.Add(addAgain);
-            ArrangeCards(); Changed(null, new(""));
+            var pill = new Button { Classes = { "appearance-pill" }, Content = Text(labelKey), HorizontalAlignment = HorizontalAlignment.Stretch };
+            var captured = key;
+            pill.Click += (_, _) => _vm.Appearance.MarkdownDensity = captured;
+            _densityPills[key] = pill; pills.Children.Add(pill);
         }
+        densityRow.Children.Add(pills);
+        var densityFrame = new Border { Child = densityRow, BorderThickness = new Thickness(0, 0, 0, 1) };
+        Resource(densityFrame, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
+        _header.Children.Add(densityFrame);
 
-        var grid = new Grid { RowDefinitions = new("Auto,Auto,Auto,*,Auto") };
-        grid.Children.Add(header); var hint = Label(Text("WBTypographyHint")); hint.Classes.Add("muted"); hint.LineHeight = 19.2; hint.Margin = new Thickness(0, 4, 0, 12); Grid.SetRow(hint, 1); grid.Children.Add(hint);
-        Grid.SetRow(filterFrame, 2); grid.Children.Add(filterFrame);
-        _scroll = new ScrollViewer { Content = _cards, Padding = new Thickness(2, 2, 4, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled }; Grid.SetRow(_scroll, 3); grid.Children.Add(_scroll);
-        Grid.SetRow(footerFrame, 4); grid.Children.Add(footerFrame);
-        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(16), CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1), BoxShadow = BoxShadows.Parse("0 8 30 0 #20000000") };
-        Resource(border, Border.BackgroundProperty, this, "VexPanelBackgroundBrush"); Resource(border, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
-        Content = border; Resize(); Changed(null, new(""));
+        foreach (var option in _vm.Appearance.TypographyOptions) _cards.Children.Add(BuildCard(option));
+        _cards.Children.Add(BuildAddCard());
+
+        // 右侧预留约 15px 滚动条槽（原型 scrollbar-gutter:stable），保证三列卡宽 269。
+        _scroll = new ScrollViewer { Content = _cards, Padding = new Thickness(2, 2, 15, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
+        var grid = new Grid { RowDefinitions = new("Auto,*") };
+        grid.Children.Add(_header); Grid.SetRow(_scroll, 1); grid.Children.Add(_scroll);
+        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16), BorderThickness = new Thickness(0), BoxShadow = BoxShadows.Parse("0 12 32 0 #29101828, 0 2 8 0 #14101828") };
+        Resource(border, Border.BackgroundProperty, this, "VexElevatedBackgroundBrush");
+        Content = border;
+        Resize(); Changed(null, new(""));
+    }
+
+    /// <summary>卡片即预览：以该排版真实样式渲染「## 名称 / 说明 / ### 维刻 Vex / 引用」。</summary>
+    private Control BuildCard(TypographyOption option)
+    {
+        var preview = new MarkdownViewer
+        {
+            Markdown = $"## {Text(option.NameKey)}\n\n{Text(option.PurposeKey)}\n\n### 维刻 Vex\n\n> {Text("AboutShortSlogan")}",
+            TypographyTheme = option.Key,
+            FontWeight = FontWeight.Normal,
+            TypographySize = MarkdownTypographySizes.Compact,
+            IsHitTestVisible = false,
+            Margin = new Thickness(14, 12),
+            DocumentBottomPadding = 0,
+            EnableVirtualization = false
+        };
+        var paper = new Border { Child = preview, ClipToBounds = true, CornerRadius = new CornerRadius(10) };
+        Resource(paper, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
+        var badgeText = new TextBlock { FontSize = 9, FontWeight = FontWeight.SemiBold, Foreground = Brushes.White };
+        var badge = new Border
+        {
+            Child = badgeText,
+            HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(0, 5, 5, 0), Padding = new Thickness(4, 2),
+            CornerRadius = new CornerRadius(4), IsHitTestVisible = false
+        };
+        Resource(badge, Border.BackgroundProperty, this, "VexAccentBrush");
+        // 原型选中态：box-shadow 0 0 0 1.5px accent，环在卡片边缘外侧。
+        var ring = new Border { BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(11.5), Margin = new Thickness(-1.5), IsHitTestVisible = false };
+        Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
+        var content = new Panel { Children = { paper, ring, badge } };
+        var button = Button("", () => _vm!.Appearance.SelectedTypography = option);
+        button.Name = "Typography_" + option.Key;
+        button.Content = content; button.Padding = default; button.MinHeight = 262; button.Height = 262;
+        button.ClipToBounds = false;
+        button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
+        button.HorizontalContentAlignment = HorizontalAlignment.Stretch; button.VerticalContentAlignment = VerticalAlignment.Stretch;
+        button.BorderThickness = new Thickness(0); button.CornerRadius = new CornerRadius(10);
+        Resource(button, TemplatedControl.BackgroundProperty, this, "VexPanelBackgroundBrush");
+        _items[option] = (button, ring, badge, badgeText, preview);
+        if (option.Key?.StartsWith("user:", StringComparison.Ordinal) == true)
+        {
+            var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 8, 8, 0), IsVisible = false };
+            var captured = option.Key!;
+            var remove = new Button { Classes = { "wb-quiet" }, Width = 22, Height = 22, Padding = default, FontSize = 12, Content = "×" };
+            ToolTip.SetTip(remove, Text("DeleteCustomTypography"));
+            remove.Click += (_, _) => _vm!.Appearance.RemoveCustomTypography(captured);
+            tools.Children.Add(remove);
+            ((Panel)button.Content!).Children.Add(tools);
+            button.PointerEntered += (_, _) => { if (button.Content is Panel p) foreach (var c in p.Children.OfType<StackPanel>()) c.IsVisible = true; };
+            button.PointerExited += (_, _) => { if (button.Content is Panel p) foreach (var c in p.Children.OfType<StackPanel>()) c.IsVisible = false; };
+        }
+        return button;
+    }
+
+    /// <summary>虚线「＋ 新增排版」整卡（原型 .typography-add：262 高、虚线框、居中）。</summary>
+    private Control BuildAddCard()
+    {
+        var stack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Spacing = 6 };
+        var plus = new TextBlock { Text = "＋", FontSize = 34, LineHeight = 34, HorizontalAlignment = HorizontalAlignment.Center };
+        var addLabel = new TextBlock { Text = Text("AddCustomTypography"), FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center };
+        Resource(plus, TextBlock.ForegroundProperty, this, "VexMutedBrush"); Resource(addLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush");
+        stack.Children.Add(plus);
+        stack.Children.Add(addLabel);
+        var dash = new Avalonia.Controls.Shapes.Rectangle { StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 4, 3 }, RadiusX = 10, RadiusY = 10, StrokeThickness = 1, IsHitTestVisible = false };
+        Resource(dash, Avalonia.Controls.Shapes.Shape.StrokeProperty, this, "VexPanelBorderBrush");
+        var card = Button("", OpenTypographyDialog);
+        card.Name = "AddCustomTypography";
+        card.Content = new Panel { Children = { dash, stack } };
+        card.Padding = default; card.MinHeight = 262; card.Height = 262;
+        card.HorizontalContentAlignment = HorizontalAlignment.Stretch; card.VerticalContentAlignment = VerticalAlignment.Stretch;
+        card.HorizontalAlignment = HorizontalAlignment.Stretch; card.VerticalAlignment = VerticalAlignment.Stretch;
+        card.BorderThickness = new Thickness(0); card.CornerRadius = new CornerRadius(10);
+        card.Classes.Add("palette-add-card");
+        return card;
+    }
+
+    async void OpenTypographyDialog()
+    {
+        if (_vm is null) return;
+        var model = new ShellTypographyEditModel(null);
+        var applied = await Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(new ShellTypographyEditView(model), model,
+            options: new Ursa.Controls.OverlayDialogOptions { CanLightDismiss = true, CanDragMove = false, CanResize = false, IsCloseButtonVisible = false });
+        if (!applied || model.Result is not { } result) return;
+        _vm.Appearance.RegisterCustomTypography("", result.Name, result.AccentLight, result.AccentDark, result.DecoLight, result.DecoDark, result.Font, result.Leading);
+        Build();
     }
 }
