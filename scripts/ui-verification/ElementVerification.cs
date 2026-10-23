@@ -233,6 +233,19 @@ internal static class ElementVerification
         editorBox.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
         Pump(); Pump();
         Check(vm.Markdown.Contains("A --> Z", StringComparison.Ordinal), "收起图表编辑写回正文");
+
+        // 面板视觉核对：外观弹层 / 语言弹层 / 搜索条（对照原型截图）。
+        var appearanceMenu = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
+        appearanceMenu.AppearanceButton.Flyout!.ShowAt(appearanceMenu.AppearanceButton); Pump();
+        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "panel-appearance.png"));
+        appearanceMenu.AppearanceButton.Flyout!.Hide(); Pump();
+        appearanceMenu.LanguageButton.Flyout!.ShowAt(appearanceMenu.LanguageButton); Pump();
+        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "panel-language.png"));
+        appearanceMenu.LanguageButton.Flyout!.Hide(); Pump();
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
+            new ShellActionCommand(ShellActionKind.ShowFindPanel));
+        Pump(); Pump();
+        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "panel-find.png"));
     }
 
     private static string TableText(string markdown)

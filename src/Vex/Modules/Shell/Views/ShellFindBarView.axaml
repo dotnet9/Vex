@@ -24,7 +24,7 @@
             BorderBrush="{DynamicResource VexPanelBorderBrush}"
             BorderThickness="0 0 0 1"
             Padding="12 8">
-            <Grid ColumnDefinitions="Auto,220,220,Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="Auto,240,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
             <TextBlock
                 Classes="muted"
                 Text="{i18n:I18n Vex.VexL.FindBarScope}"
@@ -56,6 +56,7 @@
             </Grid>
             <TextBox
                 Grid.Column="2"
+                Width="220"
                 AcceptsReturn="False"
                 IsVisible="{Binding IsReplaceVisible}"
                 MaxLength="200"
@@ -71,16 +72,16 @@
                 MinWidth="72" />
             <Button
                 Grid.Column="4"
+                Width="82"
                 Command="{Binding ReplaceNext}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarReplace}}"
-                IsVisible="{Binding IsReplaceVisible}"
-                MinWidth="82" />
+                IsVisible="{Binding IsReplaceVisible}" />
             <Button
                 Grid.Column="5"
+                Width="64"
                 Command="{Binding ReplaceAll}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarAll}}"
-                IsVisible="{Binding IsReplaceVisible}"
-                MinWidth="64" />
+                IsVisible="{Binding IsReplaceVisible}" />
             <Button
                 Grid.Column="7"
                 Command="{Binding CloseFindPanel}"
@@ -89,7 +90,7 @@
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
                 AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
                 MinWidth="30" />
-            <!-- Aa / W / .* 图标化开关：激活态主题色底（对应原型 .opt-toggle） -->
+            <!-- Aa / W 图标化开关：激活态主题色底（对应原型 .opt-toggle） -->
             <ToggleButton
                 Grid.Column="8"
                 Classes="opt-toggle"
@@ -103,13 +104,6 @@
                 Content="W"
                 IsChecked="{Binding IsWholeWord, Mode=TwoWay}"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
-                VerticalAlignment="Center" />
-            <ToggleButton
-                Grid.Column="10"
-                Classes="opt-toggle"
-                Content=".*"
-                IsChecked="{Binding IsRegex, Mode=TwoWay}"
-                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarRegex}}"
                 VerticalAlignment="Center" />
             </Grid>
         </Border>
