@@ -94,7 +94,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
             return;
         }
 
-        foreach (var name in new[] { nameof(ViewLabel), nameof(LayoutName), nameof(EditingHint), nameof(InstantHint), nameof(MapSummaryLabel), nameof(MapCountLabel), nameof(SelectedSourceLabel), nameof(SelectedKindLabel), nameof(SummaryPreview), nameof(MindMapLayoutLabel), nameof(MindMapStyleLabel) })
+        foreach (var name in new[] { nameof(ViewLabel), nameof(LayoutName), nameof(EditingHint), nameof(InstantHint), nameof(MapSummaryLabel), nameof(MapCountLabel), nameof(SelectedSourceLabel), nameof(SelectedKindLabel), nameof(SummaryPreview), nameof(MindMapLayoutLabel), nameof(MindMapStyleLabel), nameof(MoreSegmentLabel) })
             this.RaisePropertyChanged(name);
     }
 
@@ -108,6 +108,11 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public bool IsSourceSegmentActive => _workspaceLayout == "source";
     public bool IsReadSegmentActive => _workspaceLayout == "read";
     public bool IsMapSegmentActive => _workspaceLayout == "map";
+
+    /// <summary>「更多」段：组合布局时显示当前布局名并高亮，否则回落为「更多」。</summary>
+    public bool IsMoreSegmentActive => !IsSourceSegmentActive && !IsReadSegmentActive && !IsMapSegmentActive;
+    public string MoreSegmentLabel => IsMoreSegmentActive ? LayoutOption.Name : LocalizedMore;
+    private static string LocalizedMore => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.StatusViewMore);
     public void ShowSourceView() => SelectLayout("source");
     public string LayoutName => LayoutOption.Name;
     public WorkbenchLayoutOption LayoutOption => WorkbenchLayoutOption.All.First(option => option.Id == _workspaceLayout);
@@ -328,7 +333,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     }
     private void NotifyModes()
     {
-        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions), nameof(EditorSurfaceMargin), nameof(IsSourceSegmentActive), nameof(IsReadSegmentActive), nameof(IsMapSegmentActive) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions), nameof(EditorSurfaceMargin), nameof(IsSourceSegmentActive), nameof(IsReadSegmentActive), nameof(IsMapSegmentActive), nameof(IsMoreSegmentActive), nameof(MoreSegmentLabel) }) this.RaisePropertyChanged(name);
         ApplyLayout();
     }
     private void ApplyLayout()

@@ -78,6 +78,8 @@
 .exit-dialog-actions{display:flex;align-items:center;gap:8px;padding:16px 20px;border-top:1px solid var(--border,var(--line));flex:none;background:var(--bg)}
 .exit-dialog-actions>span{flex:1}
 .exit-dialog-actions button{min-height:36px;white-space:nowrap;font-size:13px;cursor:pointer}
+.exit-dialog-ico{width:26px;height:26px;border-radius:13px;background:#FDEBD7;color:#B54708;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+.exit-dialog-actions .danger-outline{background:transparent;border:1px solid var(--danger,#B42318);color:var(--danger,#B42318)}
 .exit-continue,.exit-discard{padding:6px;border:0;border-radius:4px;background:transparent;color:var(--muted)}
 .exit-continue:hover{background:var(--hover,var(--accent-soft));color:var(--fg)}
 .exit-discard{color:var(--danger,#b74444)}

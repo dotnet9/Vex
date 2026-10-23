@@ -903,7 +903,15 @@
       "DialogUnsavedHint": "请保存文档",
       "DialogSaveAndExit": "保存并退出",
       "ImportMarkdownTitle": "导入为 Markdown",
-      "ImportEmptyResult": "导入结果为空，请检查源文件。"
+      "ImportEmptyResult": "导入结果为空，请检查源文件。",
+      "DialogExitTitle": "有未保存的更改",
+      "DialogExitHint": "退出后，尚未保存的修改将会丢失。",
+      "DialogContinueEditing": "继续编辑",
+      "DialogDiscardAndExit": "放弃修改并退出",
+      "DialogSwitchTitle": "当前文件有未保存的修改",
+      "DialogSwitchHint": "切换文件后，当前文件的修改将会丢失。",
+      "DialogDiscardAndSwitch": "不保存，直接切换",
+      "DialogSaveAndSwitch": "保存并切换"
     }
   }
 }

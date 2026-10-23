@@ -53,6 +53,7 @@
             <SolidColorBrush x:Key="VexSuccessBrush" Color="#067647" />
             <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A067647" />
             <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
+            <SolidColorBrush x:Key="VexWarningSoftBrush" Color="#FDEBD7" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidBackground" Color="#202124" />
@@ -75,6 +76,7 @@
             <SolidColorBrush x:Key="VexSuccessBrush" Color="#63DCB0" />
             <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A63DCB0" />
             <SolidColorBrush x:Key="VexWarningBrush" Color="#EFBA6B" />
+            <SolidColorBrush x:Key="VexWarningSoftBrush" Color="#3D2F1E" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

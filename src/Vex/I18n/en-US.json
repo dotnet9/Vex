@@ -903,7 +903,15 @@
       "DialogUnsavedHint": "Save your document",
       "DialogSaveAndExit": "Save & exit",
       "ImportMarkdownTitle": "Import as Markdown",
-      "ImportEmptyResult": "Import produced no content, please check the source file."
+      "ImportEmptyResult": "Import produced no content, please check the source file.",
+      "DialogExitTitle": "Unsaved changes",
+      "DialogExitHint": "Your unsaved changes will be lost after exiting.",
+      "DialogContinueEditing": "Keep editing",
+      "DialogDiscardAndExit": "Discard & exit",
+      "DialogSwitchTitle": "This file has unsaved changes",
+      "DialogSwitchHint": "Switching files will lose the current changes.",
+      "DialogDiscardAndSwitch": "Discard & switch",
+      "DialogSaveAndSwitch": "Save & switch"
     }
   }
 }

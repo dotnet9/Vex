@@ -1162,7 +1162,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                 keepDraft = _drafts.Flush();
                 Protection.DraftError = _drafts.LastError;
                 return Task.FromResult(keepDraft);
-            });
+            },
+            flow: ShellUnsavedFlow.Exit);
         }
         finally { _closeReviewPending = false; }
     }

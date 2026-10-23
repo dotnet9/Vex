@@ -135,6 +135,13 @@
    <Setter Property="FontWeight" Value="SemiBold" />
    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
   </Style>
+  <Style Selector="Button.view-segment:pointerover">
+   <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+   <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+  </Style>
+  <Style Selector="Button.view-segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+   <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+  </Style>
  </UserControl.Styles>
 
  <!-- 对应原型 .document-statusbar：34px 高、底纸色、上边框为 65% 边框色。 -->
@@ -160,9 +167,9 @@
      <Button x:Name="SourceSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsSourceSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" Command="{Binding Workbench.ShowSourceView}" />
      <Button x:Name="ReadSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsReadSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" Command="{Binding Workbench.ShowRead}" />
      <Button x:Name="MapSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsMapSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewMap}}" Command="{Binding Workbench.ShowMindMap}" />
-     <Button x:Name="LayoutButton" Classes="view-segment view-more" Command="{Binding Workbench.ToggleLayouts}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WSLayoutTitle}}">
+     <Button x:Name="LayoutButton" Classes="view-segment view-more" Classes.active="{Binding Workbench.IsMoreSegmentActive}" Command="{Binding Workbench.ToggleLayouts}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WSLayoutTitle}}">
       <StackPanel Orientation="Horizontal" Spacing="4">
-       <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusViewMore}}" VerticalAlignment="Center" />
+       <TextBlock Text="{Binding Workbench.MoreSegmentLabel}" VerticalAlignment="Center" />
        <Path Width="11" Height="11" VerticalAlignment="Center" Data="M6 9L12 15L18 9" />
       </StackPanel>
      </Button>

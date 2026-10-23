@@ -27,6 +27,9 @@ internal static class ElementVerification
         "普通段落文本\n\n" +
         "- [ ] 未完成任务\n";
 
+    private const string ListSample =
+        "- [ ] 写下一个值得记录的想法\n- [ ] 为文章梳理清晰的章节\n- [ ] 留一点时间，重新阅读\n";
+
     private const string TableOnlySample =
         "| 时间 | 地点 |\n| --- | --- |\n| 09:00 | 人民公园 |\n";
 
@@ -140,6 +143,35 @@ internal static class ElementVerification
         Pump();
         Check(MarkdownElementOperations.ParseTable(TableText(vm.Markdown))!.Align[0] == "right", "元素菜单执行表格列对齐");
 
+        // 列表渲染一致性：即时与阅读的任务框尺寸、列表字号必须一致（回归：两模式样式漂移）。
+        SetDocument(ListSample);
+        vm.Workbench.ShowInstant(); Pump(); Pump();
+        var instantHost = window.GetVisualDescendants().OfType<MarkdownInstantView>().Single();
+        CheckBox WaitBox(Func<CheckBox?> probe)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(10);
+            while (DateTime.UtcNow < deadline)
+            {
+                if (probe() is { } found) return found;
+                Pump(); Thread.Sleep(20);
+            }
+            throw new TimeoutException("任务框未渲染");
+        }
+        CheckBox? instantProbe() => instantHost.Editor.GetVisualDescendants()
+            .OfType<CheckBox>().FirstOrDefault(x => x.Classes.Contains("MdTaskMarkerBox"));
+        var instantBox = WaitBox(instantProbe);
+        var allInstantBoxes = instantHost.Editor.GetVisualDescendants().OfType<CheckBox>().Count();
+        Console.WriteLine($"DEBUG instant checkboxes total={allInstantBoxes} marked={instantProbe() is not null}");
+        vm.Workbench.ShowRead(); Pump(); Pump();
+        var previewHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+        var readViewer = previewHost.GetVisualDescendants()
+            .OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().First();
+        var readBox = WaitBox(() => readViewer.GetVisualDescendants()
+            .OfType<CheckBox>().FirstOrDefault(x => x.Classes.Contains("MdTaskMarkerBox")));
+        Check((int)instantBox.Bounds.Width == (int)readBox.Bounds.Width
+            && (int)instantBox.Bounds.Height == (int)readBox.Bounds.Height,
+            $"两模式任务框同尺寸（即时={instantBox.Bounds.Width:0.#}x{instantBox.Bounds.Height:0.#} 阅读={readBox.Bounds.Width:0.#}x{readBox.Bounds.Height:0.#}）");
+
         // 导入引擎：HTML → Markdown（文件菜单导入组的核心转换）。
         var imported = DocumentImportService.FromHtml("<h1>导入标题</h1><p>正文 <strong>加粗</strong></p>");
         Check(imported.StartsWith("# 导入标题", StringComparison.Ordinal) && imported.Contains("**加粗**", StringComparison.Ordinal),
@@ -147,10 +179,18 @@ internal static class ElementVerification
 
         // 即时表格：点击单元格应出现就地编辑框（回归：点击无响应）。
         SetDocument(TableOnlySample);
-        Pump(); Pump();
+        vm.Workbench.ShowInstant(); Pump(); Pump(); Pump();
         var instant2 = window.GetVisualDescendants().OfType<MarkdownInstantView>().Single();
-        var cell = instant2.Editor.GetVisualDescendants()
-            .OfType<Border>().FirstOrDefault(border => border.Classes.Contains("MdTableCell"));
+        var cellDeadline = DateTime.UtcNow.AddSeconds(10);
+        Border? cell = null;
+        while (cell is null)
+        {
+            Pump();
+            cell = instant2.Editor.GetVisualDescendants()
+                .OfType<Border>().FirstOrDefault(border => border.Classes.Contains("MdTableCell"));
+            if (DateTime.UtcNow > cellDeadline) throw new TimeoutException("即时表格单元格未渲染");
+            Thread.Sleep(20);
+        }
         Check(cell is not null, "即时表格渲染出可编辑单元格");
         if (cell is not null)
         {

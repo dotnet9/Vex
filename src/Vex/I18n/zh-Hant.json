@@ -903,7 +903,15 @@
       "DialogUnsavedHint": "請儲存文件",
       "DialogSaveAndExit": "儲存並結束",
       "ImportMarkdownTitle": "匯入為 Markdown",
-      "ImportEmptyResult": "匯入結果為空，請檢查來源檔案。"
+      "ImportEmptyResult": "匯入結果為空，請檢查來源檔案。",
+      "DialogExitTitle": "有未儲存的變更",
+      "DialogExitHint": "結束後，尚未儲存的變更將會遺失。",
+      "DialogContinueEditing": "繼續編輯",
+      "DialogDiscardAndExit": "放棄修改並結束",
+      "DialogSwitchTitle": "目前文件有未儲存的修改",
+      "DialogSwitchHint": "切換文件後，目前文件的變更將會遺失。",
+      "DialogDiscardAndSwitch": "不儲存，直接切換",
+      "DialogSaveAndSwitch": "儲存並切換"
     }
   }
 }

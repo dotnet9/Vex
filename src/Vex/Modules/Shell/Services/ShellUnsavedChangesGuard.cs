@@ -29,7 +29,8 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
         Action? cancellation = null,
         Func<Task>? saveAsync = null,
         Func<bool>? isStillModified = null,
-        Func<Task<bool>>? keepDraftAsync = null)
+        Func<Task<bool>>? keepDraftAsync = null,
+        ShellUnsavedFlow flow = ShellUnsavedFlow.Switch)
     {
         if (!isModified)
         {
@@ -38,7 +39,8 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
         }
 
         // 这里只负责决策分发，不直接执行文件操作；保存与后续动作由调用方闭包描述。
-        var decision = await ShowUnsavedDialogAsync(title, message, currentFilePath ?? _text.UnsavedDocumentFallback, keepDraftAsync is not null);
+        // 退出流不提供保存按钮（用户可取消后自行保存），切换流提供 保存并切换。
+        var decision = await ShowUnsavedDialogAsync(flow);
         switch (decision)
         {
             case ShellUnsavedDecision.KeepDraft:
@@ -67,9 +69,9 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
         }
     }
 
-    private static Task<ShellUnsavedDecision> ShowUnsavedDialogAsync(string title, string message, string path, bool canKeepDraft)
+    private static Task<ShellUnsavedDecision> ShowUnsavedDialogAsync(ShellUnsavedFlow flow)
     {
-        var viewModel = new ShellUnsavedDialogViewModel(title, message, path, canKeepDraft);
+        var viewModel = new ShellUnsavedDialogViewModel(flow);
         return OverlayDialog.ShowCustomAsync<ShellUnsavedDecision>(
             new ShellUnsavedDialogView(),
             viewModel);

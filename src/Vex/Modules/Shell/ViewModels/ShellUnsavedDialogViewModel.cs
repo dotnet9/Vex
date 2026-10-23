@@ -17,6 +17,13 @@ public enum ShellUnsavedDecision
     KeepDraft = 3
 }
 
+/// <summary>未保存确认的两种场景：退出应用 / 切换文档，问法与按钮组不同。</summary>
+public enum ShellUnsavedFlow
+{
+    Switch,
+    Exit,
+}
+
 /// <summary>
 /// 未保存确认自定义对话框（Ursa OverlayDialog）的 UI 状态。
 /// RequestClose 的参数即决策；右上角关闭/Esc 视为 Cancel。
@@ -25,25 +32,18 @@ public sealed class ShellUnsavedDialogViewModel : ReactiveObject, IDialogContext
 {
     private ShellUnsavedDecision? _decision;
 
-    public ShellUnsavedDialogViewModel(string title, string message, string path, bool canKeepDraft = false)
+    public ShellUnsavedDialogViewModel(ShellUnsavedFlow flow)
     {
-        Title = title;
-        Message = message;
-        Path = path;
-        CanKeepDraft = canKeepDraft;
+        Flow = flow;
     }
 
-    public string Title { get; }
-
-    public string Message { get; }
-
-    public string Path { get; }
-    public bool CanKeepDraft { get; }
-    public void KeepDraft() => Complete(ShellUnsavedDecision.KeepDraft);
+    public ShellUnsavedFlow Flow { get; }
 
     public ShellUnsavedDecision Decision => _decision ?? ShellUnsavedDecision.Cancel;
 
     public event EventHandler<object?>? RequestClose;
+
+    public void KeepDraft() => Complete(ShellUnsavedDecision.KeepDraft);
 
     public void Save() => Complete(ShellUnsavedDecision.Save);
 

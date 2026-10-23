@@ -910,6 +910,14 @@ namespace Vex
         public static readonly string DialogSaveAndExit = "Vex.VexL.DialogSaveAndExit";
         public static readonly string ImportMarkdownTitle = "Vex.VexL.ImportMarkdownTitle";
         public static readonly string ImportEmptyResult = "Vex.VexL.ImportEmptyResult";
+        public static readonly string DialogExitTitle = "Vex.VexL.DialogExitTitle";
+        public static readonly string DialogExitHint = "Vex.VexL.DialogExitHint";
+        public static readonly string DialogContinueEditing = "Vex.VexL.DialogContinueEditing";
+        public static readonly string DialogDiscardAndExit = "Vex.VexL.DialogDiscardAndExit";
+        public static readonly string DialogSwitchTitle = "Vex.VexL.DialogSwitchTitle";
+        public static readonly string DialogSwitchHint = "Vex.VexL.DialogSwitchHint";
+        public static readonly string DialogDiscardAndSwitch = "Vex.VexL.DialogDiscardAndSwitch";
+        public static readonly string DialogSaveAndSwitch = "Vex.VexL.DialogSaveAndSwitch";
     }
 
 }

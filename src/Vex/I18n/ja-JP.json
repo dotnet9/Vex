@@ -903,7 +903,15 @@
       "DialogUnsavedHint": "文書を保存してください",
       "DialogSaveAndExit": "保存して終了",
       "ImportMarkdownTitle": "Markdown としてインポート",
-      "ImportEmptyResult": "インポート結果が空です。ソースファイルを確認してください。"
+      "ImportEmptyResult": "インポート結果が空です。ソースファイルを確認してください。",
+      "DialogExitTitle": "未保存の変更があります",
+      "DialogExitHint": "終了すると、未保存の変更は失われます。",
+      "DialogContinueEditing": "編集を続ける",
+      "DialogDiscardAndExit": "変更を破棄して終了",
+      "DialogSwitchTitle": "このファイルには未保存の変更があります",
+      "DialogSwitchHint": "ファイルを切り替えると、現在の変更は失われます。",
+      "DialogDiscardAndSwitch": "保存せずに切り替え",
+      "DialogSaveAndSwitch": "保存して切り替え"
     }
   }
 }
