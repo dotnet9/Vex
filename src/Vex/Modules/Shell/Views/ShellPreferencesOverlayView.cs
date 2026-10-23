@@ -17,12 +17,13 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private readonly ShellPreferencesViewModel _model;
     private readonly IAppLocalizer _localizer;
     private readonly ListBox _navigation = new() { Classes = { "preferences-navigation" }, Width = 148, Padding = new Thickness(10, 18), Background = Brushes.Transparent, BorderThickness = new Thickness(0) };
+    // 原型两栏背景：左栏 --panel、右栏 --bg，浅深主题下有明暗差。
     private readonly ScrollViewer _scroll = new() { Padding = new Thickness(20, 22), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
     private readonly TextBlock _title = new() { FontSize = 14, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
     private readonly Border _card;
     private Window? _owner;
     private readonly (string Id, string Key)[] _categories =
-    [ ("general", VexL.PrefGeneral), ("editor", VexL.PrefEditor), ("markdown", "Markdown"),
+    [ ("general", VexL.PrefGeneral), ("editor", VexL.PrefEditor),
       ("images", VexL.PrefImages), ("appearance", VexL.PrefAppearance), ("export", VexL.Export), ("mcp", "MCP") ];
 
     public ShellPreferencesOverlayView(ShellPreferencesViewModel model, IAppLocalizer localizer, string category)
@@ -39,7 +40,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
         grid.Children.Add(Frame(header, new Thickness(0, 0, 0, 1)));
         var body = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
         var navigationFrame = Frame(_navigation, new Thickness(0, 0, 1, 0));
-        BindResource(navigationFrame, Border.BackgroundProperty, "VexShellBackgroundBrush");
+        BindResource(navigationFrame, Border.BackgroundProperty, "VexPanelBackgroundBrush");
+        BindResource(_scroll, BackgroundProperty, "VexShellBackgroundBrush");
         body.Children.Add(navigationFrame); Grid.SetColumn(_scroll, 1); body.Children.Add(_scroll);
         Grid.SetRow(body, 1); grid.Children.Add(body);
         // 改值即生效：去掉「设置已保存 / 完成」页脚（对应原型偏好浮层）。
@@ -105,36 +107,24 @@ public sealed class ShellPreferencesOverlayView : UserControl
             case "general":
                 Choice(page, VexL.PrefLanguage, _model.Appearance, nameof(_model.Appearance.SelectedLanguage), _model.Appearance.LanguageOptions.Select(x => (x.DisplayName, (object)x)));
                 Choice(page, "Vex.VexL.PrefStartup", p, nameof(p.RestoreWorkspace), [(L("Vex.VexL.PrefEmptyWorkspace"), false), (L("Vex.VexL.PrefRecentWorkspace"), true)]);
-                Heading(page, "Vex.VexL.PrefSaveRecovery");
-                Toggle(page, VexL.PrefAutoSave, p, nameof(p.AutoSave), "Vex.VexL.PrefAutoSaveNote");
+                Toggle(page, VexL.PrefAutoSave, p, nameof(p.AutoSave));
                 Choice(page, VexL.PrefSaveDelay, p, nameof(p.AutoSaveDelay), [("2 " + L("Vex.VexL.PrefSeconds"), 2), ("5 " + L("Vex.VexL.PrefSeconds"), 5), ("10 " + L("Vex.VexL.PrefSeconds"), 10)]);
-                Toggle(page, VexL.PrefRecovery, p, nameof(p.RecoveryDrafts), "Vex.VexL.PrefRecoveryNote");
+                Toggle(page, VexL.PrefRecovery, p, nameof(p.RecoveryDrafts));
                 Heading(page, "Vex.VexL.PrefNewDefaults");
                 Choice(page, VexL.PrefEncoding, p, nameof(p.DefaultEncoding), [("UTF-8", "utf-8"), ("UTF-8 BOM", "utf-8-bom"), ("GB18030", "GB18030")]);
                 Choice(page, VexL.PrefNewline, p, nameof(p.DefaultNewline), [(L(VexL.PrefSystemFont), "system"), ("LF", "LF"), ("CRLF", "CRLF")]);
                 break;
             case "editor":
+                // 对齐原型 editor 页：仅 编辑区字体、缩进 与「代码与源码」组（自动换行、源码行号）。
                 Choice(page, VexL.PrefBodyFont, p, nameof(p.BodyFont), [(L(VexL.PrefSystemFont), "system"), (L(VexL.PrefSerifFont), "serif"), (L(VexL.PrefMonoFont), "mono")]);
-                Number(page, VexL.PrefBodySize, p, nameof(p.BodyFontSize), 16, 24);
-                Number(page, VexL.PrefCodeSize, p, nameof(p.CodeFontSize), 11, 20);
-                Number(page, VexL.PrefIndent, p, nameof(p.IndentSize), 2, 8);
-                Toggle(page, L("Vex.VexL.PrefAutoPair"), _model.Display, nameof(_model.Display.EnableAutoPair));
+                Choice(page, VexL.PrefIndent, p, nameof(p.IndentSize), [(LF("Vex.VexL.PrefSpaceUnit", 2), 2), (LF("Vex.VexL.PrefSpaceUnit", 4), 4), (LF("Vex.VexL.PrefSpaceUnit", 8), 8)]);
+                Heading(page, "Vex.VexL.PrefCodeAndSource");
                 Toggle(page, VexL.PrefWrap, p, nameof(p.CodeWrap));
-                Toggle(page, VexL.ShowLineNumbers, _model.Display, nameof(_model.Display.ShowLineNumbers));
-                Number(page, VexL.PrefZoom, p, nameof(p.ContentZoom), 50, 200, 10);
-                Toggle(page, VexL.PrefWordCount, p, nameof(p.WordCountVisible));
-                Toggle(page, VexL.MenuFocusMode, _model.Layout, nameof(_model.Layout.IsFocusMode));
-                Toggle(page, VexL.MenuTypewriterMode, _model.Layout, nameof(_model.Layout.IsTypewriterMode));
-                break;
-            case "markdown":
-                Toggle(page, VexL.PrefMath, p, nameof(p.SyntaxMath)); Toggle(page, VexL.PrefChemistry, p, nameof(p.SyntaxChemistry));
-                Toggle(page, VexL.PrefDiagrams, p, nameof(p.SyntaxDiagrams)); Toggle(page, VexL.PrefSubscript, p, nameof(p.SyntaxSubscript));
-                Toggle(page, VexL.PrefHighlight, p, nameof(p.SyntaxHighlight)); Toggle(page, VexL.PrefAutoLinks, p, nameof(p.SyntaxAutoLinks));
-                Toggle(page, VexL.PrefSoftBreaks, p, nameof(p.SyntaxSoftBreaks));
+                Toggle(page, "Vex.VexL.PrefSourceLineNumbers", _model.Display, nameof(_model.Display.ShowLineNumbers));
                 break;
             case "images":
                 Toggle(page, VexL.PrefImageCopy, p, nameof(p.ImageCopy)); Toggle(page, VexL.PrefImageRelative, p, nameof(p.ImageRelative));
-                Text(page, VexL.PrefImageFolder, p, nameof(p.ImageFolder));
+                FolderRow(page, VexL.PrefImageFolder, p, nameof(p.ImageFolder));
                 break;
             case "appearance":
                 // 对应原型外观页：界面动效 + 完整水印参数与实时样例；配色与排版入口在标题栏「外观」。
@@ -149,34 +139,112 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 page.Children.Add(BuildWatermarkSample());
                 break;
             case "export":
-                Choice(page, VexL.PrefExportFormat, p, nameof(p.ExportFormat), [("HTML", "HTML"), ("PDF", "PDF"), ("Markdown", "Markdown"), ("PNG", "PNG"), ("Word", "Word")]);
-                Text(page, VexL.PrefExportFolder, p, nameof(p.ExportFolder));
-                Toggle(page, VexL.PrefExportOpen, p, nameof(p.ExportOpen)); Toggle(page, VexL.PrefHtmlStyle, p, nameof(p.HtmlStyle));
-                Toggle(page, VexL.PrefWatermarkExport, p, nameof(p.WatermarkExport));
+                // 对齐原型 export 页：导出后打开 + 水印包含 + PDF（纸张、页边距拖拽） + HTML 排版保留。
+                Toggle(page, VexL.PrefExportOpen, p, nameof(p.ExportOpen));
+                Heading(page, VexL.PrefWatermark);
+                Toggle(page, VexL.PrefWatermarkExport, p, nameof(p.WatermarkExport), "Vex.VexL.PrefWatermarkExportNote");
                 Heading(page, "PDF");
                 Choice(page, VexL.PrefPdfSize, p, nameof(p.PdfSize), [("A4", "A4"), ("Letter", "Letter"), ("A5", "A5")]);
-                Number(page, VexL.PrefPdfMargin, p, nameof(p.PdfMargin), 10, 30);
-                var export = new Button { Content = L(VexL.Export), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 16, 0, 0) };
-                export.Click += (_, _) => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new Vex.Core.Messaging.ShellActionCommand(Vex.Core.Messaging.ShellActionKind.Export, p.ExportFormat));
-                page.Children.Add(export);
+                Range(page, VexL.PrefPdfMargin, p, nameof(p.PdfMargin), 10, 30, " mm");
+                Heading(page, "HTML");
+                Toggle(page, VexL.PrefHtmlStyle, p, nameof(p.HtmlStyle));
                 break;
             case "mcp":
-                var tabs = new TabControl { Name = "McpTabs" };
-                tabs.Items.Add(new TabItem { Header = L(VexL.PrefMcpServer), Content = new McpSettingsOverlayView(embedded: true) { DataContext = _model.Mcp } });
-                var clients = new StackPanel { Spacing = 12, Margin = new Thickness(0, 12) };
-                clients.Children.Add(new TextBlock { Text = L(VexL.PrefMcpClientHint), TextWrapping = TextWrapping.Wrap, Classes = { "muted" } });
-                var config = new TextBox { Name = "McpClientConfiguration", IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, FontFamily = VexFonts.Code, MinHeight = 240 };
-                config.Bind(TextBox.TextProperty, new Binding(nameof(_model.Mcp.ClientConfiguration)) { Source = _model.Mcp });
-                clients.Children.Add(config);
-                var copy = new Button { Content = L(VexL.PrefMcpCopyConfig), HorizontalAlignment = HorizontalAlignment.Left };
-                copy.Click += async (_, _) => await _model.Mcp.CopyClientConfigurationAsync(); clients.Children.Add(copy);
-                tabs.Items.Add(new TabItem { Header = L(VexL.PrefMcpClients), Content = clients });
-                tabs.Items.Add(new TabItem { Header = L(VexL.McpAudit), Content = new McpAuditOverlayView(_model.Audit, L(VexL.McpAudit), L(VexL.RefreshPreview), L(VexL.McpAuditEmpty), embedded: true) });
-                page.Children.Add(tabs);
+                // 对齐原型 MCP 页：分段式 服务/客户端/审计 标签（非经典 TabControl）。
+                var mcpRoot = new StackPanel { Spacing = 12 };
+                var mcpHost = new ContentControl { Margin = new Thickness(0, 12, 0, 0) };
+                var tabBar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+                var mcpPeers = new List<Button>();
+                Control BuildServer() => new McpSettingsOverlayView(embedded: true) { DataContext = _model.Mcp };
+                Control BuildClients() => BuildMcpClientsPage();
+                Control BuildAudit() => new McpAuditOverlayView(_model.Audit, L(VexL.McpAudit), L(VexL.RefreshPreview), L(VexL.McpAuditEmpty), embedded: true);
+                void SelectTab(Button selected, Func<Control> build)
+                {
+                    foreach (var peer in mcpPeers)
+                    {
+                        var isSelected = ReferenceEquals(peer, selected);
+                        peer.Background = isSelected && TryResource("VexAccentSoftBrush", out var accent) ? accent : Brushes.Transparent;
+                        if (isSelected) peer.Foreground = TryResource("VexValueBrush", out var fg) ? fg : Brushes.Transparent;
+                    }
+                    mcpHost.Content = build();
+                }
+                foreach (var (name, label, build) in new (string, string, Func<Control>)[]
+                {
+                    ("McpTabServer", L(VexL.PrefMcpServer), BuildServer),
+                    ("McpTabClients", L(VexL.PrefMcpClients), BuildClients),
+                    ("McpTabAudit", L(VexL.McpAudit), BuildAudit),
+                })
+                {
+                    var tab = new Button { Name = name, Content = label, MinHeight = 32, Padding = new Thickness(16, 5), CornerRadius = new CornerRadius(6), HorizontalContentAlignment = HorizontalAlignment.Center };
+                    tab.Bind(Button.ForegroundProperty, tab.GetResourceObservable("VexValueBrush"));
+                    tab.Click += (_, _) => SelectTab(tab, build);
+                    mcpPeers.Add(tab); tabBar.Children.Add(tab);
+                }
+                SelectTab(mcpPeers[0], BuildServer);
+                mcpRoot.Children.Add(tabBar); mcpRoot.Children.Add(mcpHost);
+                page.Children.Add(mcpRoot);
                 break;
         }
     }
     private void BindResource(AvaloniaObject target, AvaloniaProperty property, string key) => DesignSelectionControls.Resource(target, property, this, key);
+    private bool TryResource(string key, out IBrush? brush)
+    {
+        if (this.TryGetResource(key, null, out var value) && value is IBrush found) { brush = found; return true; }
+        brush = null; return false;
+    }
+    private string LF(string key, params object?[] args) => _localizer.Format(key, args);
+
+    /// <summary>MCP 客户端页（对齐原型）：HTTP 配置 + 测试连接，stdio 桥接预览与读写入口。</summary>
+    private Control BuildMcpClientsPage()
+    {
+        var mcp = _model.Mcp;
+        var page = new StackPanel { Spacing = 10 };
+        page.Children.Add(new TextBlock { Text = L(VexL.McpHttpConfig), FontSize = 12, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 8, 0, 2) });
+        var config = new TextBox { Name = "McpClientConfiguration", IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, FontFamily = VexFonts.Code, MinHeight = 180 };
+        config.Bind(TextBox.TextProperty, new Binding(nameof(McpSettingsViewModel.ClientConfiguration)) { Source = mcp });
+        page.Children.Add(config);
+        var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        var copy = new Button { Content = L(VexL.PrefMcpCopyConfig) };
+        copy.Click += async (_, _) => await mcp.CopyClientConfigurationAsync();
+        var test = new Button { Content = L(VexL.McpTestConnection), Classes = { "primary" } };
+        test.Click += async (_, _) => await mcp.TestConnectionAsync();
+        actions.Children.Add(copy); actions.Children.Add(test);
+        page.Children.Add(actions);
+        page.Children.Add(new TextBlock { Text = L(VexL.McpStdioBridge), FontSize = 12, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 12, 0, 2) });
+        var stdio = new TextBox { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, FontFamily = VexFonts.Code, MinHeight = 160 };
+        stdio.Bind(TextBox.TextProperty, new Binding(nameof(McpSettingsViewModel.StdioConfiguration)) { Source = mcp });
+        page.Children.Add(stdio);
+        var bridge = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        foreach (var label in new[] { L(VexL.McpReadDocument), L(VexL.McpWriteDocument) })
+        {
+            var captured = label;
+            var button = new Button { Content = captured };
+            button.Click += (_, _) => mcp.RequestBridgeAction(captured);
+            bridge.Children.Add(button);
+        }
+        page.Children.Add(bridge);
+        return page;
+    }
+
+    /// <summary>目录字段行：输入框 + 「…」浏览按钮（资源目录、授权目录等）。</summary>
+    private void FolderRow(StackPanel page, string label, object source, string property)
+    {
+        var text = new TextBox { Name = property, Width = 164, Height = 34, FontSize = 14, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1) };
+        BindResource(text, TextBox.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(text, TextBox.BackgroundProperty, "VexShellBackgroundBrush");
+        text.Bind(TextBox.TextProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay });
+        var browse = new Button { Content = "…", Width = 34, Height = 34, Padding = default, CornerRadius = new CornerRadius(5), HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center };
+        BindResource(browse, Button.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(browse, Button.BackgroundProperty, "VexShellBackgroundBrush");
+        browse.Click += async (_, _) =>
+        {
+            if (TopLevel.GetTopLevel(this) is not { } owner) return;
+            var folders = await owner.StorageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions { AllowMultiple = false, Title = L(label) });
+            if (Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(folders.FirstOrDefault()) is { } folder)
+                source.GetType().GetProperty(property)?.SetValue(source, folder);
+        };
+        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        panel.Children.Add(text); panel.Children.Add(browse);
+        Row(page, label, panel);
+    }
     private Border Frame(Control child, Thickness border)
     {
         var frame = new Border { Child = child, BorderThickness = border };
@@ -225,7 +293,15 @@ public sealed class ShellPreferencesOverlayView : UserControl
             item.Click += (_, _) => preferences.WatermarkColor = hex;
             presets.Children.Add(item);
         }
-        swatch.Flyout = new Flyout { Content = presets, Placement = PlacementMode.BottomEdgeAlignedLeft };
+        // 对齐原型 type=color：预设色板之上提供完整颜色选择器（光谱 + 分量）。
+        var pickerPanel = new StackPanel { Margin = new Thickness(8) };
+        var picker = new ColorPicker { Width = 280, HorizontalAlignment = HorizontalAlignment.Left };
+        try { picker.Color = Color.Parse(preferences.WatermarkColor); } catch { /* 默认色即可 */ }
+        picker.ColorChanged += (_, args) => preferences.WatermarkColor = args.NewColor.ToString();
+        pickerPanel.Children.Add(picker);
+        presets.Margin = new Thickness(8, 4, 8, 8);
+        pickerPanel.Children.Add(presets);
+        swatch.Flyout = new Flyout { Content = pickerPanel, Placement = PlacementMode.BottomEdgeAlignedLeft };
         Row(page, label, swatch);
     }
     /// <summary>水印实时样例：标语 + 按当前参数叠加的水印（对应原型外观页底部样例卡）。</summary>

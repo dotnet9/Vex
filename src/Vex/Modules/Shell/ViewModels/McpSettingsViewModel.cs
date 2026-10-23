@@ -166,6 +166,48 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
 
     public Task CopyClientConfigurationAsync() => SetClipboardTextAsync(ClientConfiguration);
 
+    /// <summary>stdio 桥接配置（对应原型 clients 页第二段）：命令行客户端经 vex mcp bridge 访问本机服务。</summary>
+    public string StdioConfiguration
+    {
+        get
+        {
+            var endpoint = Endpoint;
+            static string Escape(string value) => System.Text.Json.JsonEncodedText.Encode(value).ToString();
+            return "{\n  \"mcpServers\": {\n    \"vex\": {\n      \"command\": \"vex\",\n      \"args\": [\"mcp\", \"bridge\", \"--endpoint\", \"" + Escape(endpoint) + "\"],\n      \"env\": {\n        \"VEX_MCP_TOKEN\": \"" + Escape(Token) + "\"\n      }\n    }\n  }\n}";
+        }
+    }
+
+    /// <summary>测试连接：对服务端点发一次 MCP initialize 请求，按 HTTP 结果刷新状态。</summary>
+    public async Task TestConnectionAsync()
+    {
+        try
+        {
+            using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            using var request = new System.Net.Http.HttpRequestMessage(
+                System.Net.Http.HttpMethod.Post, Endpoint);
+            request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + Token);
+            request.Content = new System.Net.Http.StringContent(
+                "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"vex\",\"version\":\"1.0\"}}}",
+                System.Text.Encoding.UTF8, "application/json");
+            using var response = await client.SendAsync(request);
+            StatusText = response.IsSuccessStatusCode
+                ? $"连接成功（HTTP {(int)response.StatusCode}）"
+                : $"服务已响应（HTTP {(int)response.StatusCode}），请核对令牌";
+        }
+        catch (Exception exception)
+        {
+            StatusText = string.IsNullOrWhiteSpace(Token)
+                ? "无法连接服务：服务未启用或地址不可达。"
+                : $"无法连接服务：{exception.Message}";
+        }
+    }
+
+    /// <summary>stdio 桥接读写按钮：桥接客户端工具尚未随本版本提供，先反馈计划。</summary>
+    public void RequestBridgeAction(string action)
+    {
+        StatusText = $"「{action}」需要独立桥接客户端，当前版本尚未内置。";
+    }
+
     public async Task SaveAsync()
     {
         var normalizedHost = NormalizeHost(Host);

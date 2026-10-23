@@ -101,7 +101,23 @@
                                     Content="{i18n:I18n {x:Static l:VexL.McpScopeCustomFolder}}"
                                     GroupName="McpAccessScope"
                                     IsChecked="{Binding IsCustomFolderScope}" />
-                                <TextBox Text="{Binding AllowedWorkspacePath}" PlaceholderText="{i18n:I18n {x:Static l:VexL.McpCustomFolderWatermark}}" />
+                                <!-- 原型语义：仅「指定目录」时出现授权目录行，输入框旁带「…」目录选择。 -->
+                                <Grid
+                                    ColumnDefinitions="*,Auto"
+                                    ColumnSpacing="8"
+                                    IsVisible="{Binding IsCustomFolderScope}">
+                                    <TextBox Text="{Binding AllowedWorkspacePath}" PlaceholderText="{i18n:I18n {x:Static l:VexL.McpCustomFolderWatermark}}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Width="34"
+                                        Height="34"
+                                        Padding="0"
+                                        Content="…"
+                                        FontSize="14"
+                                        HorizontalContentAlignment="Center"
+                                        VerticalContentAlignment="Center"
+                                        Click="OnBrowseAllowedFolderClick" />
+                                </Grid>
                             </StackPanel>
                         </Border>
 

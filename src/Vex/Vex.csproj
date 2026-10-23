@@ -46,6 +46,7 @@
   <ItemGroup>
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.AvaloniaEdit" />
+    <PackageReference Include="Avalonia.Controls.ColorPicker" />
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="CodeWF.Avalonia.Controls" />
     <PackageReference Include="CodeWF.Avalonia.MindView" />
@@ -57,6 +58,7 @@
     <PackageReference Include="Prism.DryIoc.Avalonia" />
     <PackageReference Include="ReactiveUI.Avalonia" />
     <PackageReference Include="Semi.Avalonia" />
+    <PackageReference Include="Semi.Avalonia.ColorPicker" />
     <PackageReference Include="System.Reactive" />
     <PackageReference Include="VC-LTL" />
     <PackageReference Include="YY-Thunks" />

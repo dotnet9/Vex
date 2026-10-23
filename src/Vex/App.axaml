@@ -5,7 +5,8 @@
     xmlns:codewf="https://codewf.com"
     xmlns:markdownThemes="https://codewf.com"
     xmlns:prism="http://prismlibrary.com/"
-    xmlns:semi="https://irihi.tech/semi">
+    xmlns:semi="https://irihi.tech/semi"
+    xmlns:semiCp="using:Semi.Avalonia.ColorPicker">
     <prism:PrismApplication.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -26,6 +27,7 @@
     <prism:PrismApplication.Styles>
         <semi:SemiTheme Locale="zh-CN" />
         <semi:UrsaSemiTheme Locale="zh-CN" />
+        <semiCp:ColorPickerSemiTheme />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Simple/AvaloniaEdit.xaml" />
         <codewf:ACSemiTheme />
         <codewf:StudioTheme />

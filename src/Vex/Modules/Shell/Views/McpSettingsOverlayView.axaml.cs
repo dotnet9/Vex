@@ -1,4 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
+using Vex.Modules.Shell.ViewModels;
 
 namespace Vex.Modules.Shell.Views;
 
@@ -15,5 +18,15 @@ public partial class McpSettingsOverlayView : UserControl
     public McpSettingsOverlayView()
     {
         InitializeComponent();
+    }
+
+    /// <summary>「…」目录选择：把用户选中的目录写回授权目录（对应原型的授权目录行）。</summary>
+    public async void OnBrowseAllowedFolderClick(object? sender, RoutedEventArgs args)
+    {
+        if (TopLevel.GetTopLevel(this) is not { } owner) return;
+        if (DataContext is not McpSettingsViewModel model) return;
+        var folders = await owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { AllowMultiple = false });
+        if (StorageProviderExtensions.TryGetLocalPath(folders.FirstOrDefault()) is { } folder)
+            model.AllowedWorkspacePath = folder;
     }
 }
