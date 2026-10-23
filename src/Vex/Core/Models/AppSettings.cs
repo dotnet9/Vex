@@ -118,7 +118,6 @@ public sealed record AppSettings
     public bool? ExportOpen { get; init; }
     public bool? HtmlStyle { get; init; }
     public bool? WatermarkPreview { get; init; }
-    public bool? WatermarkExport { get; init; }
     public string? WatermarkText { get; init; }
     public double? WatermarkOpacity { get; init; }
     public double? WatermarkFontSize { get; init; }

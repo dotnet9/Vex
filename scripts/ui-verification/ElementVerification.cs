@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -25,6 +26,9 @@ internal static class ElementVerification
         "| 时间 | 地点 |\n| --- | --- |\n| 09:00 | 人民公园 |\n\n" +
         "普通段落文本\n\n" +
         "- [ ] 未完成任务\n";
+
+    private const string TableOnlySample =
+        "| 时间 | 地点 |\n| --- | --- |\n| 09:00 | 人民公园 |\n";
 
     public static void Run(VerificationVexApp app, MainWindow window, string output)
     {
@@ -135,6 +139,27 @@ internal static class ElementVerification
             MarkdownElementOperation.Table, 3, tableAction: MarkdownTableAction.AlignRight));
         Pump();
         Check(MarkdownElementOperations.ParseTable(TableText(vm.Markdown))!.Align[0] == "right", "元素菜单执行表格列对齐");
+
+        // 导入引擎：HTML → Markdown（文件菜单导入组的核心转换）。
+        var imported = DocumentImportService.FromHtml("<h1>导入标题</h1><p>正文 <strong>加粗</strong></p>");
+        Check(imported.StartsWith("# 导入标题", StringComparison.Ordinal) && imported.Contains("**加粗**", StringComparison.Ordinal),
+            "HTML 导入转换为 Markdown");
+
+        // 即时表格：点击单元格应出现就地编辑框（回归：点击无响应）。
+        SetDocument(TableOnlySample);
+        Pump(); Pump();
+        var instant2 = window.GetVisualDescendants().OfType<MarkdownInstantView>().Single();
+        var cell = instant2.Editor.GetVisualDescendants()
+            .OfType<Border>().FirstOrDefault(border => border.Classes.Contains("MdTableCell"));
+        Check(cell is not null, "即时表格渲染出可编辑单元格");
+        if (cell is not null)
+        {
+            var origin = cell.TranslatePoint(new Point(cell.Bounds.Width / 2, cell.Bounds.Height / 2), window)!.Value;
+            window.MouseDown(origin, MouseButton.Left); window.MouseUp(origin, MouseButton.Left); Pump(); Pump();
+            var cellEditor = cell.GetVisualDescendants().OfType<TextBox>().Any()
+                || instant2.Editor.GetVisualDescendants().OfType<TextBox>().Any(box => box.Name is null && box.IsEffectivelyVisible);
+            Check(cellEditor, "点击单元格进入就地编辑");
+        }
 
         // 图表原位编辑：展开、源码编辑、Esc 收起并写回。
         vm.Workbench.ShowRead(); Pump(); Pump();

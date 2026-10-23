@@ -54,6 +54,59 @@ public sealed class DocumentService : IDocumentService
         return !string.IsNullOrWhiteSpace(path) ? await OpenPathAsync(path) : null;
     }
 
+    /// <summary>导入 HTML/PDF/Word：拾取源文件、转换为 Markdown、选择保存位置后落盘并返回快照。</summary>
+    public async Task<DocumentSnapshot?> ImportAsync(string format)
+    {
+        var owner = GetMainWindow();
+        if (owner is null)
+        {
+            return null;
+        }
+
+        var picker = new FilePickerOpenOptions
+        {
+            Title = _localizer.Get(VexL.MenuImport),
+            AllowMultiple = false,
+            FileTypeFilter = [new FilePickerFileType(format.ToUpperInvariant())
+            {
+                Patterns = [format switch { "PDF" => "*.pdf", "Word" => "*.docx", _ => "*.html;*.htm" }],
+            }],
+        };
+        var sources = await owner.StorageProvider.OpenFilePickerAsync(picker);
+        var sourcePath = sources.Count > 0 ? sources[0].TryGetLocalPath() : null;
+        if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
+        {
+            return null;
+        }
+
+        var markdown = format switch
+        {
+            "PDF" => DocumentImportService.FromPdf(sourcePath),
+            "Word" => DocumentImportService.FromWord(sourcePath),
+            _ => DocumentImportService.FromHtml(await File.ReadAllTextAsync(sourcePath)),
+        };
+        if (string.IsNullOrWhiteSpace(markdown))
+        {
+            throw new InvalidDataException(_localizer.Get(VexL.ImportEmptyResult));
+        }
+
+        var saved = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = _localizer.Get(VexL.ImportMarkdownTitle),
+            SuggestedFileName = Path.GetFileNameWithoutExtension(sourcePath),
+            DefaultExtension = "md",
+            FileTypeChoices = CreateMarkdownFileTypes(),
+        });
+        var target = saved?.TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            return null;
+        }
+
+        await File.WriteAllTextAsync(target, markdown, Utf8NoBom);
+        return await OpenPathAsync(target);
+    }
+
     public async Task<DocumentSnapshot> OpenPathAsync(string path, string? encodingName = null)
     {
         var encoding = ResolveEncoding(encodingName);

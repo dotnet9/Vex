@@ -78,7 +78,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string ExportOpen = nameof(AppSettings.ExportOpen);
     private const string HtmlStyle = nameof(AppSettings.HtmlStyle);
     private const string WatermarkPreview = nameof(AppSettings.WatermarkPreview);
-    private const string WatermarkExport = nameof(AppSettings.WatermarkExport);
     private const string WatermarkText = nameof(AppSettings.WatermarkText);
     private const string WatermarkOpacity = nameof(AppSettings.WatermarkOpacity);
     private const string WatermarkFontSize = nameof(AppSettings.WatermarkFontSize);
@@ -160,7 +159,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
             ExportOpen = Get<bool?>(configuration, ExportOpen),
             HtmlStyle = Get<bool?>(configuration, HtmlStyle),
             WatermarkPreview = Get<bool?>(configuration, WatermarkPreview),
-            WatermarkExport = Get<bool?>(configuration, WatermarkExport),
             WatermarkText = Get<string?>(configuration, WatermarkText) ?? "维刻 Vex",
             WatermarkOpacity = Get<double?>(configuration, WatermarkOpacity),
             WatermarkFontSize = Get<double?>(configuration, WatermarkFontSize),
@@ -253,7 +251,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [ExportOpen] = settings.ExportOpen,
                 [HtmlStyle] = settings.HtmlStyle,
                 [WatermarkPreview] = settings.WatermarkPreview,
-                [WatermarkExport] = settings.WatermarkExport,
                 [WatermarkText] = settings.WatermarkText,
                 [WatermarkOpacity] = settings.WatermarkOpacity,
                 [WatermarkFontSize] = settings.WatermarkFontSize,

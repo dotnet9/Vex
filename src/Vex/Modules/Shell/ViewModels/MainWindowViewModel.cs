@@ -478,6 +478,19 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             GuardedAction(VexL.ErrorMessageCannotOpenFile, OpenAsyncCore));
     }
 
+    /// <summary>导入 HTML/PDF/Word：转换落盘后按常规打开流程载入。</summary>
+    public async Task ImportAsync(string? format)
+    {
+        await RequestUnsavedConfirmationAsync(
+            _text.TitleBeforeOpening,
+            _text.BeforeOpeningAnotherFile(_document.FileName),
+            GuardedAction(VexL.ErrorMessageCannotOpenFile, async () =>
+            {
+                var snapshot = await _documentService.ImportAsync(format ?? "HTML");
+                if (snapshot is not null) ApplyDocument(snapshot);
+            }));
+    }
+
     private async Task OpenAsyncCore()
     {
         var request = ++_documentOpenVersion;

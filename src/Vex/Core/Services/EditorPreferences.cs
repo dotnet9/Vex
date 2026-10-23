@@ -41,7 +41,6 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     public bool ExportOpen { get => settings.Current.ExportOpen ?? true; set => Set(s => s with { ExportOpen = value }); }
     public bool HtmlStyle { get => settings.Current.HtmlStyle ?? true; set => Set(s => s with { HtmlStyle = value }); }
     public bool WatermarkPreview { get => settings.Current.WatermarkPreview ?? false; set => Set(s => s with { WatermarkPreview = value }); }
-    public bool WatermarkExport { get => settings.Current.WatermarkExport ?? false; set => Set(s => s with { WatermarkExport = value }); }
     public string WatermarkText { get => settings.Current.WatermarkText ?? "维刻 Vex"; set => Set(s => s with { WatermarkText = string.Concat((value ?? "").EnumerateRunes().Take(60).Select(r => r.ToString())) }); }
     public double WatermarkOpacity { get => settings.Current.WatermarkOpacity ?? 12; set => Set(s => s with { WatermarkOpacity = Math.Clamp(value, 0, 50) }); }
     public double WatermarkFontSize { get => settings.Current.WatermarkFontSize ?? 21; set => Set(s => s with { WatermarkFontSize = Math.Clamp(value, 12, 36) }); }

@@ -108,6 +108,33 @@
   <Style Selector="Button.sb-word:pointerover">
    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
   </Style>
+  <!-- 对应原型 .view-switch：3px 内衬、1px 边框、8px 圆角、raised 底；选中段 accent 文字 + 面板底。 -->
+  <Style Selector="Border.view-switch">
+   <Setter Property="Padding" Value="3" />
+   <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+   <Setter Property="BorderThickness" Value="1" />
+   <Setter Property="CornerRadius" Value="8" />
+   <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+  </Style>
+  <Style Selector="Button.view-segment">
+   <Setter Property="MinWidth" Value="86" />
+   <Setter Property="Height" Value="28" />
+   <Setter Property="Padding" Value="0" />
+   <Setter Property="CornerRadius" Value="5" />
+   <Setter Property="Background" Value="Transparent" />
+   <Setter Property="BorderThickness" Value="0" />
+   <Setter Property="FontSize" Value="12" />
+   <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+   <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.view-segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+   <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.view-segment.active">
+   <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+   <Setter Property="FontWeight" Value="SemiBold" />
+   <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+  </Style>
  </UserControl.Styles>
 
  <!-- 对应原型 .document-statusbar：34px 高、底纸色、上边框为 65% 边框色。 -->

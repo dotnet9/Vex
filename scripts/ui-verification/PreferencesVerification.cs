@@ -37,6 +37,21 @@ internal static class PreferencesVerification
         vm.Markdown = "# Preferences\n\nText ==highlight== and ~sub~.\n";
         vm.Workbench.ShowSource(); Render();
         var original = vm.Markdown;
+        // 复刻真实菜单触发路径：经事件总线由协调层打开，而不仅直调浮层服务。
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.ShowPreferences));
+        Render(); Render();
+        // 复刻真实菜单触发路径：总线 → 协调层 → 浮层，验证偏好设置能弹出。
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.ShowPreferences));
+        var menuDeadline = DateTime.UtcNow.AddSeconds(10);
+        while (!window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Any())
+        {
+            Render();
+            if (DateTime.UtcNow > menuDeadline) throw new TimeoutException("Menu-triggered preferences did not open");
+            Thread.Sleep(20);
+        }
+        Check(true, "Preferences opens through the menu action bus path");
+        foreach (var stale in window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().ToArray()) ((ShellPreferencesViewModel)stale.DataContext!).Close();
+        Render();
         var dialog = app.Resolve<IShellOverlayService>().ShowPreferencesAsync(model);
         Render();
         var view = window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Single();
@@ -122,13 +137,13 @@ internal static class PreferencesVerification
         var buildHtml = exporter.GetType().GetMethod("BuildHtml", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
         string Html(DocumentSnapshot document) => (string)buildHtml.Invoke(exporter, new object?[] { document }.Concat(buildHtml.GetParameters().Skip(1).Select(x => x.DefaultValue)).ToArray())!;
         var htmlDocument = new DocumentSnapshot(null, "export.md", "==marked==", Encoding.UTF8, true);
-        preferences.WatermarkExport = false; preferences.SyntaxHighlight = false;
+        preferences.WatermarkPreview = false; preferences.SyntaxHighlight = false;
         var plainHtml = Html(htmlDocument);
         Check(plainHtml.Contains("==marked==") && !plainHtml.Contains("article::after"), "HTML respects disabled syntax and watermark settings");
-        preferences.WatermarkExport = true; preferences.SyntaxHighlight = true;
+        preferences.WatermarkPreview = true; preferences.SyntaxHighlight = true;
         var markedHtml = Html(htmlDocument);
         Check(markedHtml.Contains("<mark>marked</mark>") && markedHtml.Contains("article::after"), "HTML enables document syntax and embedded watermark");
-        preferences.WatermarkExport = false;
+        preferences.WatermarkPreview = false;
 
         var documents = app.Resolve<IDocumentService>();
         preferences.DefaultEncoding = "utf-8-bom";

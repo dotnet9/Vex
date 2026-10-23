@@ -10,6 +10,9 @@ public interface IDocumentService
 
     Task<DocumentSnapshot?> OpenAsync();
 
+    /// <summary>导入 HTML/PDF/Word：拾取源文件并转换为 Markdown 落盘（format 取 Export 菜单的 HTML/PDF/Word）。</summary>
+    Task<DocumentSnapshot?> ImportAsync(string format);
+
     Task<DocumentSnapshot> OpenPathAsync(string path, string? encodingName = null);
 
     Task<DocumentSnapshot> ReloadAsync(DocumentSnapshot document);

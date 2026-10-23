@@ -7,6 +7,7 @@ public enum ShellActionKind
     Open,
     OpenFolder,
     QuickOpen,
+    Import,
     OpenRecentDocument,
     ReopenWithEncoding,
     Save,

@@ -44,7 +44,8 @@ public partial class MarkdownPreviewView : UserControl
         if (presenting) PreviewMarkdownViewer.Width = Math.Min(1104, Math.Max(100, PreviewScrollViewer.Bounds.Width - 88)) / zoom;
         else PreviewMarkdownViewer.ClearValue(WidthProperty);
         var padding = (TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280) <= 1100 ? 36 : 48;
-        PreviewMarkdownViewer.MaxWidth = presenting ? 1104 / zoom : IsReadingMode ? 820 - padding * 2 : double.PositiveInfinity;
+        // 原型阅读区 md-body max-width:none：内容随窗体铺满，只留两侧页边距。
+        PreviewMarkdownViewer.MaxWidth = presenting ? 1104 / zoom : double.PositiveInfinity;
         PreviewMarkdownViewer.Margin = presenting ? default
             : IsReadingMode ? new Thickness(padding, 24, padding, 80) : new Thickness(30, 22, 30, 30);
     }

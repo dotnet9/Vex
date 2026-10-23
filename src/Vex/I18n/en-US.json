@@ -898,7 +898,12 @@
       "McpTestConnection": "Test connection",
       "McpReadDocument": "Read current document",
       "McpWriteDocument": "Request document changes",
-      "McpClientHintMobile": "Document windows do not host the MCP service."
+      "McpClientHintMobile": "Document windows do not host the MCP service.",
+      "DialogUnsavedTitle": "Unsaved document",
+      "DialogUnsavedHint": "Save your document",
+      "DialogSaveAndExit": "Save & exit",
+      "ImportMarkdownTitle": "Import as Markdown",
+      "ImportEmptyResult": "Import produced no content, please check the source file."
     }
   }
 }

@@ -905,6 +905,11 @@ namespace Vex
         public static readonly string McpReadDocument = "Vex.VexL.McpReadDocument";
         public static readonly string McpWriteDocument = "Vex.VexL.McpWriteDocument";
         public static readonly string McpClientHintMobile = "Vex.VexL.McpClientHintMobile";
+        public static readonly string DialogUnsavedTitle = "Vex.VexL.DialogUnsavedTitle";
+        public static readonly string DialogUnsavedHint = "Vex.VexL.DialogUnsavedHint";
+        public static readonly string DialogSaveAndExit = "Vex.VexL.DialogSaveAndExit";
+        public static readonly string ImportMarkdownTitle = "Vex.VexL.ImportMarkdownTitle";
+        public static readonly string ImportEmptyResult = "Vex.VexL.ImportEmptyResult";
     }
 
 }

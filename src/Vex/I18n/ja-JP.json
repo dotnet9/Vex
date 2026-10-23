@@ -898,7 +898,12 @@
       "McpTestConnection": "接続テスト",
       "McpReadDocument": "現在の文書を読み取る",
       "McpWriteDocument": "文書の変更を依頼",
-      "McpClientHintMobile": "文書ウィンドウでは MCP サービスを提供しません。"
+      "McpClientHintMobile": "文書ウィンドウでは MCP サービスを提供しません。",
+      "DialogUnsavedTitle": "未保存の文書があります",
+      "DialogUnsavedHint": "文書を保存してください",
+      "DialogSaveAndExit": "保存して終了",
+      "ImportMarkdownTitle": "Markdown としてインポート",
+      "ImportEmptyResult": "インポート結果が空です。ソースファイルを確認してください。"
     }
   }
 }

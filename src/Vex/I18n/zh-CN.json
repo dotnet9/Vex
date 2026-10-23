@@ -898,7 +898,12 @@
       "McpTestConnection": "测试连接",
       "McpReadDocument": "读取当前文档",
       "McpWriteDocument": "请求修改文档",
-      "McpClientHintMobile": "文档窗口不提供 MCP 服务。"
+      "McpClientHintMobile": "文档窗口不提供 MCP 服务。",
+      "DialogUnsavedTitle": "有文档未保存",
+      "DialogUnsavedHint": "请保存文档",
+      "DialogSaveAndExit": "保存并退出",
+      "ImportMarkdownTitle": "导入为 Markdown",
+      "ImportEmptyResult": "导入结果为空，请检查源文件。"
     }
   }
 }

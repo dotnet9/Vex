@@ -86,9 +86,8 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
 
     public void Export(string? format) => Publish(ShellActionKind.Export, format);
 
-    /// <summary>导入入口（HTML/PDF/Word）：原型当前为演示位，先给状态反馈。</summary>
-    public void ImportFrom(string? format) =>
-        _status.PublishResourceFormat(VexL.StatusImportUnavailable, format ?? string.Empty);
+    /// <summary>导入入口（HTML/PDF/Word）：拾取源文件转换为 Markdown 后打开。</summary>
+    public void ImportFrom(string? format) => Publish(ShellActionKind.Import, format);
 
     // 段落菜单的表格结构操作：走元素命令通道，SourceLine=0 表示作用于编辑器当前光标。
     public void ElementTable(MarkdownTableAction action) =>

@@ -104,7 +104,8 @@ public sealed class MarkdownExportService : IMarkdownExportService
                 _localizer.Get(VexL.DocumentDefaultHeading),
                 _localizer.Get(VexL.DocumentDefaultFileName),
                 PageSize: _preferences.PdfSize, MarginMillimeters: _preferences.PdfMargin,
-                WatermarkText: _preferences.WatermarkExport ? _preferences.WatermarkText : null,
+                // 所见即所得：文档开着水印（WatermarkPreview），导出即包含。
+                WatermarkText: _preferences.WatermarkPreview ? _preferences.WatermarkText : null,
                 WatermarkOpacity: _preferences.WatermarkOpacity / 100,
                 SyntaxOptions: _preferences.SyntaxOptions));
         return path;
@@ -312,7 +313,7 @@ public sealed class MarkdownExportService : IMarkdownExportService
 
     private string BuildWatermarkCss()
     {
-        if (!_preferences.WatermarkExport || string.IsNullOrWhiteSpace(_preferences.WatermarkText)) return "";
+        if (!_preferences.WatermarkPreview || string.IsNullOrWhiteSpace(_preferences.WatermarkText)) return "";
         var text = System.Security.SecurityElement.Escape(_preferences.WatermarkText);
         var color = System.Text.RegularExpressions.Regex.IsMatch(_preferences.WatermarkColor, "^#[0-9a-fA-F]{6}$")
             ? _preferences.WatermarkColor.ToLowerInvariant() : "#24766b";

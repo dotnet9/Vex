@@ -56,7 +56,9 @@
     <PackageReference Include="Irihi.Ursa.Themes.Semi" />
     <PackageReference Include="CodeWF.Avalonia.Lang" />
     <PackageReference Include="Prism.DryIoc.Avalonia" />
+    <PackageReference Include="PdfPig" />
     <PackageReference Include="ReactiveUI.Avalonia" />
+    <PackageReference Include="ReverseMarkdown" />
     <PackageReference Include="Semi.Avalonia" />
     <PackageReference Include="Semi.Avalonia.ColorPicker" />
     <PackageReference Include="System.Reactive" />

@@ -139,10 +139,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 page.Children.Add(BuildWatermarkSample());
                 break;
             case "export":
-                // 对齐原型 export 页：导出后打开 + 水印包含 + PDF（纸张、页边距拖拽） + HTML 排版保留。
+                // 对齐原型 export 页；水印「所见即所得」——文档显示水印导出即包含，不再单设开关。
                 Toggle(page, VexL.PrefExportOpen, p, nameof(p.ExportOpen));
-                Heading(page, VexL.PrefWatermark);
-                Toggle(page, VexL.PrefWatermarkExport, p, nameof(p.WatermarkExport), "Vex.VexL.PrefWatermarkExportNote");
                 Heading(page, "PDF");
                 Choice(page, VexL.PrefPdfSize, p, nameof(p.PdfSize), [("A4", "A4"), ("Letter", "Letter"), ("A5", "A5")]);
                 Range(page, VexL.PrefPdfMargin, p, nameof(p.PdfMargin), 10, 30, " mm");

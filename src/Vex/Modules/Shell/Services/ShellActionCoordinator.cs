@@ -70,6 +70,9 @@ public sealed class ShellActionCoordinator
                 case ShellActionKind.Open:
                     await _shell.OpenAsync();
                     break;
+                case ShellActionKind.Import:
+                    await _shell.ImportAsync(command.Parameter);
+                    break;
                 case ShellActionKind.OpenFolder:
                     await _shell.OpenFolderAsync();
                     break;
