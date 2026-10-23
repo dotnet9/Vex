@@ -280,6 +280,18 @@
         <Setter Property="Height" Value="18" />
         <Setter Property="Stretch" Value="Uniform" />
     </Style>
+    <!-- 原型 svg.vex-expand-icon：14px 盒、viewBox 24 内 m6 9 6 6 6-6，实际可见约 7×3.5px、描边 ≈1px、
+         currentColor 跟随触发器文字色；导图样式/排版/状态栏等弹出层触发器的下拉箭头统一用它，并与文字垂直居中。 -->
+    <Style Selector="Path.expand-chevron">
+        <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+        <Setter Property="StrokeThickness" Value="0.9" />
+        <Setter Property="StrokeJoin" Value="Round" />
+        <Setter Property="StrokeLineCap" Value="Round" />
+        <Setter Property="Width" Value="14" />
+        <Setter Property="Height" Value="7" />
+        <Setter Property="Stretch" Value="Uniform" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
     <Style Selector="Border.dlg-ico > Path.stroke-ico">
         <Setter Property="Width" Value="18" />
         <Setter Property="Height" Value="18" />

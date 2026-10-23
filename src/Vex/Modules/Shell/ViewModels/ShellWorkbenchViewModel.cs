@@ -65,10 +65,11 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         _summaryLength = Math.Clamp(settings.Current.MindMapSummaryLength ?? 30, 1, 120);
         _mindMapLayout = settings.Current.MindMapLayout is { } savedLayout && MindMapLayoutKeys.Contains(savedLayout) ? savedLayout : "right";
         _mindMapStyle = settings.Current.MindMapStyle is { } savedStyle && MindMapStyleKeys.Contains(savedStyle) ? savedStyle : "quiet";
-        _showParagraphs = settings.Current.MindMapShowParagraphs ?? true;
+        // 原型默认（workbench.js §settings）：导图仅显示章节标题，段落/列表/富块默认关闭。
+        _showParagraphs = settings.Current.MindMapShowParagraphs ?? false;
         _showCode = settings.Current.MindMapShowCode ?? false;
         _showTables = settings.Current.MindMapShowTables ?? false;
-        _showLists = settings.Current.MindMapShowLists ?? true;
+        _showLists = settings.Current.MindMapShowLists ?? false;
         History.Reset(document.Markdown);
         document.DocumentChanged += (_, _) =>
         {
@@ -187,7 +188,10 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private static string L(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
     public string EditingHint => L(IsInstantEditing ? VexL.WBInstantDescription : IsReading ? VexL.WBReadDescription : VexL.WBSourceDescription);
     public string InstantHint => L(VexL.WBInstantHint);
-    public string MapSummaryLabel => string.Format(L(VexL.WBSummaryFormat), SummaryLength);
+    // 原型：段落/列表/富块全关时，设置按钮显示「仅标题」，否则显示摘要长度。
+    public string MapSummaryLabel => !ShowParagraphs && !ShowLists && !ShowRichBlocks
+        ? L(VexL.WSHeadingsOnly)
+        : string.Format(L(VexL.WBSummaryFormat), SummaryLength);
     public int VisibleNodeCount { get => _visibleNodeCount; set { this.RaiseAndSetIfChanged(ref _visibleNodeCount, value); this.RaisePropertyChanged(nameof(MapCountLabel)); } }
     public string MapCountLabel => string.Format(L(VexL.WBNodeCountFormat), VisibleNodeCount);
     public string SummaryPreview => MarkdownMindMapDocument.Summarize(Flatten(Root).FirstOrDefault(n => n.Kind == MarkdownMindMapNodeKind.Paragraph)?.FullText ?? L(VexL.WBSummarySample), SummaryLength);
@@ -196,8 +200,9 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private static IEnumerable<MarkdownMindMapNode> Flatten(MarkdownMindMapNode? node)
     { if (node is null) yield break; yield return node; foreach (var c in node.Children) foreach (var n in Flatten(c)) yield return n; }
     public void CloseInspector() => SelectedNode = null;
+    // 原型 reset-settings：恢复「仅标题」默认（段落/列表/富块全关）。
     public void ResetMapSettings()
-    { SummaryLength = 30; ShowParagraphs = true; ShowLists = true; ShowCode = false; ShowTables = false; }
+    { SummaryLength = 30; ShowParagraphs = false; ShowLists = false; ShowCode = false; ShowTables = false; }
 
     public Avalonia.Controls.GridLength SourceColumnWidth => !IsReading ? new(1, Avalonia.Controls.GridUnitType.Star) : new(0);
     public Avalonia.Controls.GridLength PreviewColumnWidth => IsPreviewVisible || IsMindMap && ShowMapSource ? new(IsMindMap ? 1.94 : 1.22, Avalonia.Controls.GridUnitType.Star) : new(0);
@@ -319,10 +324,10 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     {
         _edit = edit;
         _summaryLength = Math.Clamp(settings?.MindMapSummaryLength ?? 30, 1, 120);
-        _showParagraphs = settings?.MindMapShowParagraphs ?? true;
+        _showParagraphs = settings?.MindMapShowParagraphs ?? false;
         _showCode = settings?.MindMapShowCode ?? false;
         _showTables = settings?.MindMapShowTables ?? false;
-        _showLists = settings?.MindMapShowLists ?? true;
+        _showLists = settings?.MindMapShowLists ?? false;
         foreach (var name in new[] { nameof(SummaryLength), nameof(ShowParagraphs), nameof(ShowCode), nameof(ShowTables), nameof(ShowRichBlocks), nameof(ShowLists) }) this.RaisePropertyChanged(name);
         SelectLayout(settings?.WorkspaceLayout ?? (view == "read" ? "read" : view == "mindmap" ? "map" : edit)); QueueMap();
     }

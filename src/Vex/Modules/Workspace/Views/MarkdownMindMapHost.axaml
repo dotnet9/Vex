@@ -15,7 +15,13 @@
           <ToggleButton x:Name="HeadingsOnlyButton" Classes="wb-quiet map-tool" Content="{i18n:I18n Vex.VexL.WSHeadingsOnly}" Click="HeadingsOnlyClick"/>
         </StackPanel>
         <StackPanel x:Name="MapToolsRight" Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="2">
-          <ToggleButton x:Name="SummarySettingsButton" Classes="wb-quiet map-tool" Content="{Binding Workbench.MapSummaryLabel}" IsChecked="{Binding Workbench.ShowMapSettings, Mode=OneWay}" Command="{Binding Workbench.ToggleMapSettings}"/>
+          <!-- 原型：⚙图标 + 当前显示模式标签（仅标题 / 摘要 N 字）。 -->
+          <ToggleButton x:Name="SummarySettingsButton" Classes="wb-quiet map-tool" IsChecked="{Binding Workbench.ShowMapSettings, Mode=OneWay}" Command="{Binding Workbench.ToggleMapSettings}">
+            <StackPanel Orientation="Horizontal" Spacing="5">
+              <Path Classes="wb-icon" Width="11" Height="11" Data="{StaticResource WBGearIcon}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Workbench.MapSummaryLabel}" VerticalAlignment="Center" />
+            </StackPanel>
+          </ToggleButton>
           <Button x:Name="CollapseBranchesButton" Classes="wb-quiet map-tool" Content="{i18n:I18n {x:Static l:VexL.WBCollapse}}" Click="CollapseClick"/>
           <ToggleButton x:Name="MapSourceButton" Classes="wb-quiet map-tool" IsChecked="{Binding Workbench.ShowMapSource, Mode=OneWay}" Command="{Binding Workbench.ToggleMapSource}"><StackPanel Orientation="Horizontal" Spacing="5"><Path Classes="wb-icon" Width="11" Height="11" Data="{StaticResource WBColumnsIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBMapSource}}"/></StackPanel></ToggleButton>
           <ToggleButton x:Name="PinMap" Classes="toolbar-pin" Margin="4,0,0,0" IsChecked="{Binding Workbench.Preferences.PinMapToolbar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">

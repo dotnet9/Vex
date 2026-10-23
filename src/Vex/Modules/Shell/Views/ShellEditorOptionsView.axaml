@@ -1,13 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:u="https://irihi.tech/ursa" xmlns:core="using:Vex.Core.Messaging"
              x:Class="Vex.Modules.Shell.Views.ShellEditorOptionsView" x:DataType="vm:MainWindowViewModel" IsVisible="{Binding Workbench.ShowEditorOptions}">
-  <UserControl.Styles>
-    <Style Selector="UserControl.compact-formatting Button#FormatImage, UserControl.compact-formatting Button#FormatInlineCode, UserControl.compact-formatting Button#FormatCodeFence, UserControl.compact-formatting Button#FormatTable">
-      <Setter Property="u:ToolBar.OverflowMode" Value="Always"/>
-    </Style>
-  </UserControl.Styles>
+  <!-- 原型格式条固定 12 键、无溢出按钮：多余命令由菜单栏（公式块/分割线）与右键菜单（段落/清除格式）承载。 -->
   <Border Classes="edit-options" Classes.pinned="{Binding Workbench.Preferences.PinEditorToolbar}" Height="42" Padding="14,0" Background="{DynamicResource VexShellBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-      <!-- 复用 Ursa 的溢出工具栏，窄工作区将后续操作收进更多面板。 -->
       <u:ToolBar x:Name="FormattingToolbar" Classes="wb-formatbar" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding Workbench.IsEditing}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBFormatting}}">
         <Button x:Name="FormatBold" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Bold}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Bold}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M6 4h7a4 4 0 0 1 0 8H6z M6 12h8a4 4 0 0 1 0 8H6z"/></Canvas></Viewbox></Button>
         <Button x:Name="FormatItalic" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Italic}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Italic}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M10 4h8 M6 20h8 M14 4l-4 16"/></Canvas></Viewbox></Button>
@@ -30,10 +25,6 @@
         <Button x:Name="FormatInlineCode" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.InlineCode}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.InlineCode}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M8 7l-5 5 5 5 M16 7l5 5-5 5"/></Canvas></Viewbox></Button>
         <Button x:Name="FormatCodeFence" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.CodeFence}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CodeBlock}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CodeBlock}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2 M3 8h18 M9 12l-3 3 3 3 M15 12l3 3-3 3"/></Canvas></Viewbox></Button>
         <Button x:Name="FormatTable" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Table}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Table}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Table}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z M3 10h18 M3 15h18 M9 4v16 M16 4v16"/></Canvas></Viewbox></Button>
-        <Button x:Name="FormatHorizontalRule" Classes="wb-format" u:ToolBar.OverflowMode="Always" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.HorizontalRule}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.HorizontalRule}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.HorizontalRule}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M4 12h16"/></Canvas></Viewbox></Button>
-        <Button Classes="wb-format-extra" Focusable="False" u:ToolBar.OverflowMode="Always" Content="{i18n:I18n {x:Static l:VexL.Paragraph}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Paragraph}"/>
-        <Button Classes="wb-format-extra" Focusable="False" u:ToolBar.OverflowMode="Always" Content="{i18n:I18n {x:Static l:VexL.MathBlock}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.MathBlock}"/>
-        <Button Classes="wb-format-extra" Focusable="False" u:ToolBar.OverflowMode="Always" Content="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}"/>
       </u:ToolBar>
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
         <ToggleButton x:Name="PinEditor" Classes="toolbar-pin" IsChecked="{Binding Workbench.Preferences.PinEditorToolbar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
@@ -42,7 +33,8 @@
             <Viewbox Classes="pin-off"><Canvas Width="24" Height="24"><Canvas.RenderTransform><RotateTransform Angle="45" CenterX="12" CenterY="11"/></Canvas.RenderTransform><Path Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
           </Panel>
         </ToggleButton>
-        <Button x:Name="TypographyTarget" Classes="wb-quiet" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><TextBlock Text="{i18n:I18n {Binding Appearance.SelectedTypography.NameKey}}" FontWeight="SemiBold"/><TextBlock Text="⌄"/></StackPanel></Button>
+        <!-- 原型：源码模式下格式条不带排版入口，改由阅读窗格头居中提供（WorkspaceViewController）。 -->
+        <Button x:Name="TypographyTarget" Classes="wb-quiet" IsVisible="{Binding Workbench.IsInstantEditing}" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><TextBlock Text="{i18n:I18n {Binding Appearance.SelectedTypography.NameKey}}" FontWeight="SemiBold"/><Path Classes="expand-chevron" Data="M6 9L12 15L18 9"/></StackPanel></Button>
       </StackPanel>
     </Grid>
   </Border>
