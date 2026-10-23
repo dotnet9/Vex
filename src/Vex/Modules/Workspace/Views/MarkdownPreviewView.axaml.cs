@@ -38,16 +38,34 @@ public partial class MarkdownPreviewView : UserControl
     {
         var presenting = _viewModel?.IsPresenting == true;
         var zoom = _viewModel?.PresentationZoom ?? 1;
-        DocumentTransform.HorizontalAlignment = presenting ? Avalonia.Layout.HorizontalAlignment.Center : Avalonia.Layout.HorizontalAlignment.Stretch;
         DocumentTransform.LayoutTransform = presenting ? new Avalonia.Media.ScaleTransform(zoom, zoom) : null;
         DocumentTransform.Margin = presenting ? new Thickness(44, 40, 44, 60) : default;
         if (presenting) PreviewMarkdownViewer.Width = Math.Min(1104, Math.Max(100, PreviewScrollViewer.Bounds.Width - 88)) / zoom;
         else PreviewMarkdownViewer.ClearValue(WidthProperty);
-        var padding = (TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280) <= 1100 ? 36 : 48;
-        // 原型阅读区 md-body max-width:none：内容随窗体铺满，只留两侧页边距。
-        PreviewMarkdownViewer.MaxWidth = presenting ? 1104 / zoom : double.PositiveInfinity;
-        PreviewMarkdownViewer.Margin = presenting ? default
-            : IsReadingMode ? new Thickness(padding, 24, padding, 80) : new Thickness(30, 22, 30, 30);
+        var clientWidth = TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280;
+        // 原型 .md-body 留白：单栏阅读 max(820px,50vw) 居中、padding 30/52/88；分栏 padding 36/48/84 铺满。
+        // 限宽/居中放在包裹层 LayoutTransformControl 上（ScrollViewer 直接子级会被强制拉伸）。
+        if (presenting)
+        {
+            DocumentTransform.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
+            DocumentTransform.MaxWidth = double.PositiveInfinity;
+            PreviewMarkdownViewer.MaxWidth = 1104 / zoom;
+            PreviewMarkdownViewer.Margin = default;
+        }
+        else if (IsReadingMode)
+        {
+            DocumentTransform.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
+            DocumentTransform.MaxWidth = Math.Max(820, clientWidth * 0.5);
+            PreviewMarkdownViewer.MaxWidth = double.PositiveInfinity;
+            PreviewMarkdownViewer.Margin = new Thickness(52, 30, 52, 88);
+        }
+        else
+        {
+            DocumentTransform.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+            DocumentTransform.MaxWidth = double.PositiveInfinity;
+            PreviewMarkdownViewer.MaxWidth = double.PositiveInfinity;
+            PreviewMarkdownViewer.Margin = clientWidth <= 1100 ? new Thickness(36, 36, 36, 84) : new Thickness(48, 36, 48, 84);
+        }
     }
 
     public MarkdownPreviewView()

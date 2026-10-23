@@ -34,6 +34,8 @@
             Grid.Row="1"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto" Focusable="True">
+            <!-- 包裹层：ScrollViewer 会拉伸直接子级，居中限宽需交给内层 Grid 的对齐处理。 -->
+            <Grid HorizontalAlignment="Stretch">
             <LayoutTransformControl x:Name="DocumentTransform">
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
@@ -49,6 +51,7 @@
                 TypographySize="{Binding TypographySize}"
                 TypographyTheme="{Binding TypographyTheme}" />
             </LayoutTransformControl>
+            </Grid>
         </ScrollViewer>
         <views:WatermarkOverlay Grid.Row="1" IsVisible="{Binding Preferences.WatermarkPreview}"
                                 Text="{Binding Preferences.WatermarkText}" Strength="{Binding Preferences.WatermarkOpacity}"

@@ -1,16 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.Media;
-using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Media;
 using Avalonia.VisualTree;
 
 namespace Vex.Modules.Workspace.Views;
 
 /// <summary>
-/// 阅读视图表格工具（对应原型 table-tools）：悬停表格出现
-/// 复制 Markdown / 下载 CSV / 预览表格 三个动作。数据从渲染后的表格提取。
+/// 阅读视图表格工具（对应原型 .md-table-toolbar）：表格上方常驻一行
+/// 右对齐的纯文字动作（复制 Markdown / 下载 CSV / 预览表格）。数据从渲染后的表格提取。
 /// </summary>
 public static class TableTools
 {
@@ -18,43 +16,38 @@ public static class TableTools
     public const string DownloadCsvLabel = "下载 CSV";
     public const string PreviewLabel = "预览表格";
 
-    /// <summary>给阅读视图挂上表格悬停工具；重复调用安全。</summary>
+    /// <summary>给阅读视图的每张表格上方插入常驻工具条；重复调用安全。</summary>
     public static void Attach(Control root)
     {
         foreach (var container in root.GetVisualDescendants().OfType<Border>()
-                     .Where(border => border.Classes.Contains(CodeWF.Avalonia.Markdown.MarkdownStyleKeys.TableContainer)))
+                     .Where(border => border.Classes.Contains(CodeWF.Avalonia.Markdown.MarkdownStyleKeys.TableContainer))
+                     .ToList())
         {
             if (container.GetValue(AttachedProperty)) continue;
             container.SetValue(AttachedProperty, true);
+            if (container.Parent is not Panel panel) continue;
+            // 原型 .md-table-block 中工具条与表格同组：块顶距归工具条，表格只留底距。
             var toolbar = BuildToolbar(container);
-            toolbar.IsVisible = false;
-            container.PointerEntered += (_, _) =>
+            toolbar.Margin = new Thickness(0, container.Margin.Top, 0, 4);
+            container.Margin = new Thickness(0, 0, 0, container.Margin.Bottom);
+            // 文档宿主是虚拟化面板时必须走它的登记 API：直接插 Children 会让
+            // 子项位置与面板内部条目映射错位，表格排到工具条的高度被裁。
+            if (panel is not CodeWF.Avalonia.Controls.Controls.WindowedStackPanel windowed
+                || !windowed.InsertItemBefore(container, toolbar))
             {
-                if (toolbar.Parent is null) OverlayLayer.GetOverlayLayer(container)?.Children.Add(toolbar);
-                Position(toolbar, container);
-                toolbar.IsVisible = true;
-            };
-            container.PointerExited += (_, _) => toolbar.IsVisible = false;
-            container.DetachedFromVisualTree += (_, _) => toolbar.IsVisible = false;
+                panel.Children.Insert(panel.Children.IndexOf(container), toolbar);
+            }
         }
     }
 
     private static readonly AttachedProperty<bool> AttachedProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>("TableToolsAttached", typeof(TableTools));
 
-    private static void Position(Control toolbar, Border container)
-    {
-        var topLeft = container.TranslatePoint(new Point(0, 0), OverlayLayer.GetOverlayLayer(container));
-        if (topLeft is not { } point) return;
-        Canvas.SetLeft(toolbar, point.X + Math.Max(0, container.Bounds.Width - toolbar.Width - 10));
-        Canvas.SetTop(toolbar, point.Y - 30);
-    }
-
     private static Control BuildToolbar(Border container)
     {
-        var copy = new Button { Classes = { "wb-quiet" }, FontSize = 11, Padding = new Thickness(7, 3), MinHeight = 24, Content = CopyMarkdownLabel };
-        var csv = new Button { Classes = { "wb-quiet" }, FontSize = 11, Padding = new Thickness(7, 3), MinHeight = 24, Content = DownloadCsvLabel };
-        var preview = new Button { Classes = { "wb-quiet" }, FontSize = 11, Padding = new Thickness(7, 3), MinHeight = 24, Content = PreviewLabel };
+        var copy = new Button { Classes = { "md-table-tool" }, Content = CopyMarkdownLabel };
+        var csv = new Button { Classes = { "md-table-tool" }, Content = DownloadCsvLabel };
+        var preview = new Button { Classes = { "md-table-tool" }, Content = PreviewLabel };
         copy.Click += async (_, _) =>
         {
             var markdown = ToMarkdown(Extract(container));
@@ -80,20 +73,14 @@ public static class TableTools
             }
         };
         preview.Click += (_, _) => OpenPreview(container);
-        var panel = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 2 };
-        panel.Children.Add(copy); panel.Children.Add(csv); panel.Children.Add(preview);
-        var host = new Border
+        // 原型：flex justify-end、间距 2px 的一行裸按钮，无边框底衬。
+        return new StackPanel
         {
-            Child = panel,
-            Padding = new Thickness(3),
-            CornerRadius = new CornerRadius(6),
-            Background = Brushes.White,
-            BorderBrush = Brushes.Gray,
-            BorderThickness = new Thickness(1),
-            BoxShadow = BoxShadows.Parse("0 4 14 0 #22000000"),
-            Width = 262,
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            Spacing = 2,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+            Children = { copy, csv, preview },
         };
-        return host;
     }
 
     /// <summary>从渲染表格提取单元格文本：按行分组（Y 坐标），行内按 X 排序。</summary>

@@ -32,9 +32,12 @@
         <Style Selector="md|MarkdownLiveEditorView">
             <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexTableHeaderBrush}" />
         </Style>
-        <!-- 任务复选框与首行文字垂直居中：行高 28.5，框 14 → 顶部偏移 7（两模式一致）。 -->
+        <!-- 任务复选框与首行文字垂直居中：行高 28.5，框 14 → 顶部偏移 7（两模式一致）。
+             Semi 默认 MinHeight 32 会把任务行撑高，压回 14 与模板同高。 -->
         <Style Selector="CheckBox.MdTaskMarkerBox">
             <Setter Property="Margin" Value="0,7,0,0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Height" Value="14" />
         </Style>
         <Style Selector="md|MarkdownViewer Grid.MdTable, md|MarkdownLiveEditorView Grid.MdTable">
             <Setter Property="layout:MarkdownTableLayout.FillAvailableWidth" Value="True" />
@@ -52,6 +55,24 @@
         <!-- 选区可读性：默认浅色选区底 + 芯片浅色文字会撞色，选中时强制深色前景。 -->
         <Style Selector="SelectableTextBlock">
             <Setter Property="SelectionForegroundBrush" Value="#1D2129" />
+        </Style>
+
+        <!-- 原型阅读节奏由库的 Simple 排版资源承担（12.2.4 对齐 design 原型实测值）。 -->
+        <!-- 原型 .md-table-toolbar 按钮：12px 纯文字，透明描边，hover 出底色与边框。 -->
+        <Style Selector="Button.md-table-tool">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="9 5" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        </Style>
+        <Style Selector="Button.md-table-tool:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource VexEditorForegroundBrush}" />
         </Style>
 
 

@@ -26,6 +26,10 @@ public sealed class WorkspaceViewController
     private Vex.Core.Services.EditorPreferences? _pinPreferences;
     private bool _arranging;
     private bool _closing;
+    private StackPanel? _renderCaption;
+    private TextBlock? _renderLabel;
+    private TextBlock? _renderTypographyPrefix;
+    private TextBlock? _renderTypographyName;
 
     /// <summary>阅读窗格头（控制器自建），承载「钉」按钮；钉住状态由偏好驱动。</summary>
     public Border ReadingHeader => _headers["render"];
@@ -124,39 +128,43 @@ public sealed class WorkspaceViewController
     {
         content.ClearValue(Grid.ColumnProperty); content.ClearValue(Grid.ColumnSpanProperty); content.ClearValue(Grid.RowProperty);
         var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*") };
-        var header = new Border { Padding = new Thickness(18, 0), Height = 32, BorderThickness = new Thickness(0, 0, 0, 1) };
-        header.Bind(Border.BorderBrushProperty, _window.GetResourceObservable("VexPanelBorderBrush"));
-        var bar = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"), VerticalAlignment = VerticalAlignment.Center };
-        var icon = new global::Avalonia.Controls.Shapes.Path { Classes = { "wb-icon" }, Width = 12, Height = 12,
-            Data = Geometry.Parse(id == "map" ? "M2 9H8V15H2Z M16 2H22V8H16Z M16 16H22V22H16Z M8 12H12V5H16 M12 12V19H16"
-                : id == "render" ? "M2 12C7 3 17 3 22 12C17 21 7 21 2 12Z M15 12A3 3 0 1 1 9 12A3 3 0 1 1 15 12"
-                : "M11 4H4V20H20V13 M18 2L22 6L12 16L8 17L9 13Z"), VerticalAlignment = VerticalAlignment.Center };
-        bar.Children.Add(icon);
-        var label = new TextBlock { FontSize = 11, Margin = new Thickness(7, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Tag = id };
-        Grid.SetColumn(label, 1);
-        label.Bind(TextBlock.ForegroundProperty, _window.GetResourceObservable("VexMutedBrush")); bar.Children.Add(label);
-        var detach = new Button { Content = new global::Avalonia.Controls.Shapes.Path { Classes = { "wb-icon" }, Width = 12, Height = 12,
-            Data = Geometry.Parse("M14 3H21V10 M21 3L10 14 M11 3H3V21H21V13") }, Classes = { "wb-quiet" }, Padding = new Thickness(5, 0), MinHeight = 22 };
-        ToolTip.SetTip(detach, WorkbenchText.Get("WSFloat")); detach.Click += (_, _) => Float(id);
-        // 阅读窗格头带「钉」：钉住=占位行；取消=悬浮静默（对应原型阅读视图 .view-heading 的 data-pin-render）。
         if (id == "render")
         {
-            var pin = new ToggleButton { Classes = { "toolbar-pin" }, Padding = new Thickness(4, 2), VerticalAlignment = VerticalAlignment.Center };
+            // 原型 .view-heading：36px、--bg 底、65% 底边；题注居左、排版入口居中、钉按钮居右。编辑器与导图窗格按原型不设标题行。
+            var header = new Border { Height = 36, BorderThickness = new Thickness(0, 0, 0, 1) };
+            header.Bind(Border.BackgroundProperty, _window.GetResourceObservable("VexShellBackgroundBrush"));
+            header.Bind(Border.BorderBrushProperty, _window.GetResourceObservable("VexPaneHeadBorderBrush"));
+            var bar = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto,*"), VerticalAlignment = VerticalAlignment.Center };
+            var caption = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            var icon = new global::Avalonia.Controls.Shapes.Path { Classes = { "wb-icon" }, Width = 12, Height = 12,
+                Data = Geometry.Parse("M2 12C7 3 17 3 22 12C17 21 7 21 2 12Z M15 12A3 3 0 1 1 9 12A3 3 0 1 1 15 12"), VerticalAlignment = VerticalAlignment.Center };
+            caption.Children.Add(icon);
+            var label = new TextBlock { FontSize = 12, VerticalAlignment = VerticalAlignment.Center, Tag = id };
+            label.Bind(TextBlock.ForegroundProperty, _window.GetResourceObservable("VexMutedBrush"));
+            caption.Children.Add(label);
+            Grid.SetColumn(caption, 0); bar.Children.Add(caption);
+            _renderCaption = caption; _renderLabel = label;
+            var typography = new Button { Classes = { "wb-quiet" }, VerticalAlignment = VerticalAlignment.Center };
+            typography.Bind(Button.CommandProperty, new Binding("Workbench.ToggleTypography"));
+            _renderTypographyPrefix = new TextBlock { Text = WorkbenchText.Get("Typography"), VerticalAlignment = VerticalAlignment.Center };
+            _renderTypographyName = new TextBlock { FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+            var trigger = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+            trigger.Children.Add(_renderTypographyPrefix); trigger.Children.Add(_renderTypographyName);
+            trigger.Children.Add(new global::Avalonia.Controls.Shapes.Path { Classes = { "expand-chevron" }, Data = Geometry.Parse("M6 9L12 15L18 9") });
+            typography.Content = trigger;
+            Grid.SetColumn(typography, 1); bar.Children.Add(typography);
+            var pin = new ToggleButton { Classes = { "toolbar-pin" }, Padding = new Thickness(4, 2), Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right };
             pin.Content = BuildPinIcon(14);
             ToolTip.SetTip(pin, WorkbenchText.Get("WBPinToolbar"));
             Avalonia.Automation.AutomationProperties.SetName(pin, WorkbenchText.Get("WBPinToolbar"));
             ReadingPin = pin;
-            var pinHost = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto"), VerticalAlignment = VerticalAlignment.Center };
-            Grid.SetColumn(pin, 0); pinHost.Children.Add(pin);
-            Grid.SetColumn(detach, 1); pinHost.Children.Add(detach);
-            Grid.SetColumn(pinHost, 2); bar.Children.Add(pinHost);
+            Grid.SetColumn(pin, 2); bar.Children.Add(pin);
+            header.ZIndex = 1;
+            header.Child = bar; _headers[id] = header; layout.Children.Add(header); Grid.SetRow(content, 1);
         }
-        else
-        {
-            Grid.SetColumn(detach, 2); bar.Children.Add(detach);
-        }
-        header.ZIndex = 1;
-        header.Child = bar; _headers[id] = header; layout.Children.Add(header); Grid.SetRow(content, 1); layout.Children.Add(content);
+        layout.Children.Add(content);
+        // 窗格内容一律占第二行（*）：Auto 行只留给题注，否则无期望高度的窗格（导图）会被压扁。
+        Grid.SetRow(content, 1);
         var frame = new Border { Child = layout, ClipToBounds = true, BorderThickness = new Thickness(0), Tag = id };
         frame.Bind(Border.BorderBrushProperty, _window.GetResourceObservable("VexPanelBorderBrush")); _frames[id] = frame;
     }
@@ -174,11 +182,23 @@ public sealed class WorkspaceViewController
             foreach (var (id, frame) in _frames)
             {
                 frame.DataContext = _vm;
-                var label = ((Grid)_headers[id].Child!).Children.OfType<TextBlock>().Single(); label.Text = Label(id);
-                _headers[id].IsVisible = wanted.Length > 1 && !_floating.ContainsKey(id);
                 frame.IsVisible = wanted.Contains(id);
                 if (!_floating.ContainsKey(id) && frame.Parent is null) _surface.Children.Add(frame);
             }
+            // 原型只为阅读窗格保留标题行：多窗格带题注与底边，单窗格题注隐藏、无边框右对齐。
+            if (_headers.TryGetValue("render", out var renderHeader) && renderHeader.Child is Grid renderBar)
+            {
+                _renderLabel!.Text = Label("render");
+                _renderTypographyPrefix!.Text = WorkbenchText.Get("Typography");
+                // NameKey 已含完整 Vex.VexL. 前缀，直接查资源，避免 WorkbenchText.Get 二次拼接。
+                _renderTypographyName!.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(_vm.Appearance.SelectedTypography?.NameKey ?? "Vex.VexL.TypographyBasic") ?? string.Empty;
+                renderHeader.IsVisible = wanted.Contains("render") && !state.IsPresenting && !_floating.ContainsKey("render");
+                _renderCaption!.IsVisible = wanted.Length > 1;
+                renderHeader.BorderThickness = wanted.Length > 1 ? new Thickness(0, 0, 0, 1) : new Thickness(0);
+                // 多窗格 space-between（入口居中）；单窗格 justify-end（入口与钉一起靠右）。
+                renderBar.ColumnDefinitions[2].Width = wanted.Length > 1 ? new GridLength(1, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+            }
+            // 阅读正文留白/限宽由 MarkdownPreviewView.ApplyDocumentGeometry 统一处理。
             ApplyReadingPin();
             var local = wanted.Where(id => !_floating.ContainsKey(id)).ToArray();
             _surface.ColumnDefinitions[1].Width = local.Length >= 2 ? new GridLength(1, GridUnitType.Star) : new GridLength(0);

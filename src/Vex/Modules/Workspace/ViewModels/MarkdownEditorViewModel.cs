@@ -106,8 +106,8 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
         }
     }
 
-    /// <summary>焦点模式（Focus Mode）：高亮当前行。</summary>
-    public bool HighlightCurrentLine => true;
+    /// <summary>原型源码视图是纯 textarea，无当前行底色带；对齐原型保持关闭。</summary>
+    public bool HighlightCurrentLine => false;
 
     public void AttachEditor(MarkdownEditorView editor)
     {
