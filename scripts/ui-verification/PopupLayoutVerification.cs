@@ -31,16 +31,18 @@ internal static class PopupLayoutVerification
             Console.WriteLine($"CAPTURE {name}: {control.Bounds}");
         }
         var file = title.FileMenuTarget;
-        var theme = title.FindControl<MenuItem>("ThemeMenuItem")!;
-        var typography = title.FindControl<MenuItem>("TypographyMenuItem")!;
-        Console.WriteLine($"MENU COUNTS file={file.Items.Count} theme={theme.Items.OfType<MenuItem>().Count()} typography={typography.Items.OfType<MenuItem>().Count()}");
-        Check(file.Items.Count == 18 && file.Items.OfType<MenuItem>().Any(row => row.Header?.ToString() != null),
-            "File menu keeps its row groups and exposes the Save All row");
-        Check(theme.Items.OfType<MenuItem>().Count() == 12, "View menu exposes three modes and all nine palettes in a cascade");
-        Check(typography.Items.OfType<MenuItem>().Count() == 13, "View menu exposes twelve typography choices and compact layout");
-        var choice = theme.Items.OfType<MenuItem>().Last();
-        choice.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent)); Render();
-        Check(choice.IsChecked, "Selecting a palette synchronizes the title menu checkmark");
+        Console.WriteLine($"MENU COUNTS file={file.Items.Count}");
+        // 菜单树对齐原型 interact.js 的 MENUS：无「保存全部」，配色/排版入口在外观弹层而非菜单。
+        var localizer = app.Resolve<Vex.Core.Services.IAppLocalizer>();
+        string HeaderText(object? header) => header?.ToString() ?? string.Empty;
+        var fileHeaders = file.Items.OfType<MenuItem>().Select(row => HeaderText(row.Header)).ToArray();
+        Check(fileHeaders.Contains(localizer.Get(Vex.VexL.Save)) && !fileHeaders.Contains(localizer.Get(Vex.VexL.MenuSaveAll))
+            && fileHeaders.Contains(localizer.Get(Vex.VexL.MenuImport)),
+            "File menu matches the prototype groups: save without Save All, import submenu present");
+        Check(title.FindControl<MenuItem>("ThemeMenuItem") is null && title.FindControl<MenuItem>("TypographyMenuItem") is null,
+            "Palette and typography entries stay in the appearance flyout, not the title menu");
+        Check(file.Items.OfType<MenuItem>().Count(row => row.Items.Count > 0) >= 4,
+            "File menu exposes recent/export/import/reopen submenus");
         foreach (var item in ((Menu)title.Content!).Items.OfType<MenuItem>())
         {
             item.IsSubMenuOpen = true; Render();
@@ -51,7 +53,8 @@ internal static class PopupLayoutVerification
             foreach (var row in item.Items.OfType<MenuItem>())
             {
                 var header = row.GetVisualDescendants().OfType<ContentPresenter>().First(c => c.Name == "PART_HeaderPresenter");
-                Check(Math.Abs(header.TranslatePoint(default, panel)!.Value.X - 41) < 1, "Every menu row reserves the state column: " + row.Header);
+                var headerX = header.TranslatePoint(default, panel)!.Value.X;
+                Check(Math.Abs(headerX - 41) < 1, $"Every menu row reserves the state column (x={headerX:0.##}): " + row.Header);
             }
             var name = item.Name ?? item.Header?.ToString() ?? "menu";
             using var image = new RenderTargetBitmap(new PixelSize((int)panel.Bounds.Width, (int)panel.Bounds.Height));
@@ -61,22 +64,7 @@ internal static class PopupLayoutVerification
             Console.WriteLine($"CAPTURE {name}: {panel.Bounds}");
             item.IsSubMenuOpen = false; Render();
         }
-        foreach (var culture in vm.Appearance.LanguageOptions)
-        {
-            vm.Appearance.SelectedLanguage = culture; Render();
-            var view = title.FindControl<MenuItem>("ViewMenuItem")!;
-            view.IsSubMenuOpen = true; Render();
-            typography.IsSubMenuOpen = true; Render();
-            var panel = typography.GetVisualDescendants().OfType<Popup>().First().Child!;
-            Check(panel.Bounds.Height <= window.ClientSize.Height - 56, "Long typography cascade scrolls within the window: " + culture.CultureName);
-            var scroll = panel.GetVisualDescendants().OfType<ScrollViewer>().First();
-            var lastOption = typography.Items.OfType<MenuItem>().Last();
-            var lastBottom = lastOption.TranslatePoint(new Point(0, lastOption.Bounds.Height), panel)!.Value.Y;
-            Check(lastBottom <= panel.Bounds.Height + 1 && scroll.Viewport.Height > 100,
-                $"Last typography option stays reachable: {culture.CultureName} (extent={scroll.Extent.Height}, viewport={scroll.Viewport.Height}, lastBottom={lastBottom}, panel={panel.Bounds.Height})");
-            typography.IsSubMenuOpen = false; Render();
-            view.IsSubMenuOpen = false; Render();
-        }
+        // 排版级联已迁到外观弹层（ShellAppearanceMenuView），滚动可达性由 prototype-appearance 模式覆盖。
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("indigo"); Render();
         var appearance = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
         foreach (var (button, name) in new[] { (appearance.AppearanceButton, "appearance"), (appearance.LanguageButton, "language") })

@@ -1,5 +1,6 @@
 using System.Text;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Headless;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -40,7 +41,7 @@ internal static class PreferencesVerification
         Render();
         var view = window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Single();
         T Control<T>(string name) where T : Control => view.GetVisualDescendants().OfType<T>().Single(x => x.Name == name);
-        Check(view.GetVisualDescendants().OfType<ListBox>().Single().ItemCount == 7, "Preferences has seven real categories");
+        Check(view.GetVisualDescendants().OfType<ListBox>().Single().ItemCount == 6, "Preferences has six prototype categories");
         Check(Control<ComboBox>(nameof(preferences.DefaultEncoding)).SelectedIndex == 0, "Default encoding has a visible initial choice");
         Check(Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex == 0, "Default line ending has a visible initial choice");
         Control<ComboBox>(nameof(preferences.RestoreWorkspace)).SelectedIndex = 0; Render();
@@ -48,20 +49,19 @@ internal static class PreferencesVerification
         Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex = 2; Render();
         Check(preferences.DefaultNewline == "CRLF", "Choice selection updates preference");
         view.SelectCategory("editor"); Render();
-        Control<NumericUpDown>(nameof(preferences.CodeFontSize)).Value = 17; Render();
+        // 对齐原型 editor 页：缩进改为 2/4/8 空格下拉，页面只有 字体/缩进/自动换行/源码行号 四项。
+        Control<ComboBox>(nameof(preferences.IndentSize)).SelectedIndex = 1; Render();
+        Check(preferences.IndentSize == 4, "Indent choice updates the typed preference");
         Control<ToggleSwitch>(nameof(preferences.CodeWrap)).IsChecked = true; Render();
         var source = window.GetVisualDescendants().OfType<MarkdownEditorView>().Single();
-        Check(preferences.CodeFontSize == 17 && source.EditorFontSize == 17 && source.Editor.WordWrap, "Editor settings update the attached source editor");
-        view.SelectCategory("markdown"); Render();
-        Control<ToggleSwitch>(nameof(preferences.SyntaxHighlight)).IsChecked = false; Render();
-        Check(!preferences.SyntaxOptions.Highlight, "Markdown toggle updates document pipeline");
+        Check(source.Editor.WordWrap, "Editor settings update the attached source editor");
         view.SelectCategory("images"); Render();
         Control<TextBox>(nameof(preferences.ImageFolder)).Text = "media"; Render();
         Check(preferences.ImageFolder == "media", "Image directory edits persist");
         foreach (var theme in new[] { "light", "dark" })
         {
             vm.Appearance.SelectThemeByKey(theme);
-            foreach (var category in new[] { "general", "editor", "markdown", "images", "appearance", "export", "mcp" })
+            foreach (var category in new[] { "general", "editor", "images", "appearance", "export", "mcp" })
             {
                 view.SelectCategory(category); Render();
                 Check(view.Bounds.Width <= window.Bounds.Width && view.Bounds.Height <= window.Bounds.Height, "Settings fits window: " + category);
@@ -78,13 +78,13 @@ internal static class PreferencesVerification
         }
         Check(vm.Markdown == original, "Settings and locale changes preserve document text");
         view.SelectCategory("mcp"); Render();
-        var tabs = Control<TabControl>("McpTabs");
-        Check(tabs.ItemCount == 3, "MCP exposes server, clients and audit tabs");
-        tabs.SelectedIndex = 1; Render();
+        // MCP 页：分段式标签（服务/客户端/审计），客户端页配置为已保存端点的合法 JSON。
+        Check(!view.GetVisualDescendants().OfType<TabControl>().Any(), "MCP page uses segmented tabs instead of a classic TabControl");
+        Control<Button>("McpTabClients").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
         using (var config = System.Text.Json.JsonDocument.Parse(Control<TextBox>("McpClientConfiguration").Text!))
             Check(config.RootElement.GetProperty("mcpServers").GetProperty("vex").GetProperty("url").GetString() == "http://127.0.0.1:17891/mcp/", "MCP client configuration is valid JSON using saved endpoint");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-clients.png"));
-        tabs.SelectedIndex = 2; Render();
+        Control<Button>("McpTabAudit").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-audit.png"));
         model.Close(); Pump(dialog);
         window.Width = 1280; window.Height = 820; vm.Appearance.SelectThemeByKey("light"); Render();
@@ -115,7 +115,7 @@ internal static class PreferencesVerification
         vm.Workbench.ShowInstant(); preferences.WatermarkPreview = true; preferences.WatermarkText = "Private 维刻"; Render();
         Check(window.GetVisualDescendants().OfType<Vex.Modules.Workspace.Views.WatermarkOverlay>().Any(x => x.IsEffectivelyVisible && x.Text == preferences.WatermarkText), "Instant document shows configured watermark without changing text");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-watermark.png"));
-        Check(vm.Workbench.LiveEditor!.CodeFontSize == 17, "Instant code font uses independent code preference");
+        Check(vm.Workbench.LiveEditor!.CodeFontSize == preferences.CodeFontSize, "Instant code font uses independent code preference");
         preferences.WatermarkPreview = false;
 
         var exporter = app.Resolve<IMarkdownExportService>();
