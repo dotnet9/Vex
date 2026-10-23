@@ -12,14 +12,18 @@ using Vex.Core.Messaging;
 namespace Vex.Modules.Workspace.Views;
 
 /// <summary>
-/// Mermaid 图表编辑器（对应原型 diagram-editor）：双击阅读视图中的图表，
-/// 源码 + 实时预览 + 语法回退提示；保存经 MarkdownTextChangedCommand 写回正文（可撤销）。
+/// Mermaid 图表编辑器（对应原型 diagram-editor）：单击阅读视图中的图表块原位展开——
+/// 上方源码、下方实时预览与语法提示；收起（Esc/Ctrl+Enter/点击块外）时一次性写回正文（可撤销）。
 /// </summary>
 public static class DiagramEditor
 {
     private const string FenceMarker = "```mermaid";
 
-    /// <summary>给阅读视图挂上图表双击编辑；重复调用安全。</summary>
+    private static Border? _openBorder;
+    private static Control? _openContent;
+    private static Action? _closeActive;
+
+    /// <summary>给阅读视图挂上图表原位编辑；重复调用安全。</summary>
     public static void Attach(Control root)
     {
         var index = 0;
@@ -30,13 +34,124 @@ public static class DiagramEditor
             border.Cursor = new Cursor(StandardCursorType.Hand);
             if (border.GetValue(AttachedProperty)) continue;
             border.SetValue(AttachedProperty, true);
-            ToolTip.SetTip(border, "双击编辑图表源码");
-            border.DoubleTapped += (_, _) => OpenEditor(root, fenceIndex);
+            ToolTip.SetTip(border, "点击编辑图表源码");
+            border.Tapped += (_, _) => OpenInPlace(root, border, fenceIndex);
         }
+    }
+
+    /// <summary>原位展开某个图表块的编辑面板（供视图与验证器直接调用）。</summary>
+    public static void OpenInPlace(Control root, Border border, int fenceIndex)
+    {
+        _closeActive?.Invoke();
+        var markdown = root.GetVisualDescendants().OfType<MarkdownViewer>().FirstOrDefault()?.Markdown
+            ?? string.Empty;
+        var source = GetFenceSource(markdown, fenceIndex);
+        if (source is null) return;
+
+        var input = new TextBox
+        {
+            Text = source,
+            AcceptsReturn = true,
+            FontFamily = VexFonts.Code,
+            FontSize = 12.5,
+            MinHeight = 128,
+            MaxHeight = 360,
+            TextWrapping = TextWrapping.NoWrap,
+        };
+        var previewHost = new ContentControl { MinHeight = 120 };
+        var status = new TextBlock { FontSize = 11.5, Opacity = 0.75, Margin = new Thickness(0, 6, 0, 0) };
+        var surface = new StackPanel { Spacing = 6 };
+        surface.Children.Add(input);
+        surface.Children.Add(previewHost);
+        surface.Children.Add(status);
+        surface.Children.Add(new TextBlock
+        {
+            Text = "Esc 或点击块外完成编辑",
+            FontSize = 11,
+            Opacity = 0.6,
+            Margin = new Thickness(0, 2, 0, 0),
+        });
+
+        DispatcherTimer? previewTimer = null;
+        void RenderPreview()
+        {
+            previewHost.Content = new MarkdownViewer
+            {
+                Markdown = "```mermaid\n" + input.Text.TrimEnd() + "\n```",
+            };
+            status.Text = "预览由渲染器出图；语法有误时保留源码显示。";
+        }
+        input.PropertyChanged += (_, args) =>
+        {
+            if (args.Property != TextBox.TextProperty) return;
+            previewTimer?.Stop();
+            previewTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+            previewTimer.Tick += (_, _) => { previewTimer?.Stop(); RenderPreview(); };
+            previewTimer.Start();
+        };
+
+        void Collapse()
+        {
+            _closeActive = null;
+            var (openBorder, openContent) = (_openBorder, _openContent);
+            _openBorder = null;
+            _openContent = null;
+            if (openBorder.GetValue(OpenFenceIndexProperty) is { } index
+                && openBorder.GetValue(OpenRootProperty) is { } openRoot
+                && openBorder.GetValue(OpenMarkdownProperty) is { } original)
+            {
+                var edited = ReplaceFence(original, index, input.Text);
+                if (edited != original)
+                {
+                    EventBus.Default.Publish(new MarkdownTextChangedCommand(edited, 1, 1,
+                        edited.Count(character => character == '\n') + 1));
+                }
+            }
+            if (ReferenceEquals(openBorder.Child, surface)) openBorder.Child = openContent;
+            input.KeyDown -= OnInputKeyDown;
+            root.PointerPressed -= OnRootPointerPressed;
+        }
+
+        void OnInputKeyDown(object? sender, KeyEventArgs args)
+        {
+            if (args.Key == Key.Escape || (args.Key == Key.Enter && args.KeyModifiers.HasFlag(KeyModifiers.Control)))
+            {
+                args.Handled = true;
+                Collapse();
+                border.Focus();
+            }
+        }
+
+        void OnRootPointerPressed(object? sender, PointerPressedEventArgs args)
+        {
+            var position = args.GetPosition(surface);
+            if (position.X < 0 || position.Y < 0 || position.X > surface.Bounds.Width || position.Y > surface.Bounds.Height) Collapse();
+        }
+
+        input.KeyDown += OnInputKeyDown;
+        root.PointerPressed += OnRootPointerPressed;
+        border.SetValue(OpenFenceIndexProperty, fenceIndex);
+        border.SetValue(OpenRootProperty, root);
+        border.SetValue(OpenMarkdownProperty, markdown);
+        _openBorder = border;
+        _openContent = border.Child;
+        border.Child = surface;
+        RenderPreview();
+        _closeActive = Collapse;
+        input.Focus();
     }
 
     private static readonly AttachedProperty<bool> AttachedProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>("DiagramEditorAttached", typeof(DiagramEditor));
+
+    private static readonly AttachedProperty<int> OpenFenceIndexProperty =
+        AvaloniaProperty.RegisterAttached<Border, int>("DiagramOpenFenceIndex", typeof(DiagramEditor));
+
+    private static readonly AttachedProperty<Control?> OpenRootProperty =
+        AvaloniaProperty.RegisterAttached<Border, Control?>("DiagramOpenRoot", typeof(DiagramEditor));
+
+    private static readonly AttachedProperty<string?> OpenMarkdownProperty =
+        AvaloniaProperty.RegisterAttached<Border, string?>("DiagramOpenMarkdown", typeof(DiagramEditor));
 
     /// <summary>按文档顺序取第 index 个 mermaid 围栏；越界返回 null。</summary>
     public static string? GetFenceSource(string markdown, int index)
@@ -86,73 +201,4 @@ public static class DiagramEditor
         return fences;
     }
 
-    private static void OpenEditor(Control root, int fenceIndex)
-    {
-        var markdown = root.GetVisualDescendants().OfType<MarkdownViewer>().FirstOrDefault()?.Markdown
-            ?? string.Empty;
-        var source = GetFenceSource(markdown, fenceIndex);
-        if (source is null) return;
-
-        var input = new TextBox
-        {
-            Text = source,
-            AcceptsReturn = true,
-            FontFamily = VexFonts.Code,
-            FontSize = 12.5,
-            MinHeight = 180,
-            TextWrapping = TextWrapping.NoWrap,
-        };
-        var previewHost = new ContentControl { MinHeight = 120 };
-        var status = new TextBlock { FontSize = 11.5, Opacity = 0.75, Margin = new Thickness(0, 6, 0, 0) };
-        var apply = new Button { Content = "保存并写回", Classes = { "primary" }, MinHeight = 30, Padding = new Thickness(14, 4) };
-        var cancel = new Button { Content = "取消", Classes = { "wb-quiet" }, MinHeight = 30, Padding = new Thickness(14, 4) };
-        var actions = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right, Margin = new Thickness(0, 10, 0, 0) };
-        actions.Children.Add(cancel);
-        actions.Children.Add(apply);
-
-        var stack = new StackPanel { Spacing = 8, Margin = new Thickness(2) };
-        stack.Children.Add(new TextBlock { Text = "编辑 Mermaid 图表", FontSize = 15, FontWeight = FontWeight.SemiBold });
-        stack.Children.Add(input);
-        stack.Children.Add(new TextBlock { Text = "实时预览", FontSize = 12, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 4, 0, 0) });
-        stack.Children.Add(previewHost);
-        stack.Children.Add(status);
-        stack.Children.Add(actions);
-        var scroll = new ScrollViewer { Content = stack, MaxHeight = 560, MaxWidth = 760, MinWidth = 520, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
-
-        DispatcherTimer? previewTimer = null;
-        void RenderPreview()
-        {
-            previewHost.Content = new MarkdownViewer
-            {
-                Markdown = "```mermaid\n" + input.Text.TrimEnd() + "\n```",
-                Width = 700,
-            };
-            status.Text = "预览由渲染器出图；语法有误时保留源码显示。";
-        }
-        input.PropertyChanged += (_, args) =>
-        {
-            if (args.Property != TextBox.TextProperty) return;
-            previewTimer?.Stop();
-            previewTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
-            previewTimer.Tick += (_, _) => { previewTimer?.Stop(); RenderPreview(); };
-            previewTimer.Start();
-        };
-        RenderPreview();
-
-        var finished = new TaskCompletionSource<bool>();
-        apply.Click += (_, _) => finished.TrySetResult(true);
-        cancel.Click += (_, _) => finished.TrySetResult(false);
-        _ = Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(scroll, new object(),
-            options: new Ursa.Controls.OverlayDialogOptions
-            {
-                CanLightDismiss = true, CanDragMove = false, CanResize = true, IsCloseButtonVisible = false,
-            });
-        _ = finished.Task.ContinueWith(task =>
-        {
-            if (!task.Result) return;
-            Dispatcher.UIThread.Post(() =>
-                EventBus.Default.Publish(new MarkdownTextChangedCommand(
-                    ReplaceFence(markdown, fenceIndex, input.Text), 1, 1, 1)));
-        }, TaskScheduler.FromCurrentSynchronizationContext());
-    }
 }
