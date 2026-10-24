@@ -16,7 +16,7 @@ namespace Vex.Modules.Shell.Views;
 public sealed class ShellAppearanceMenuView : UserControl
 {
     private ShellAppearanceViewModel? _vm;
-    private readonly Grid _palettes = new() { ColumnDefinitions = new("*,*,*"), ColumnSpacing = 6, RowSpacing = 6, Margin = new Thickness(2), ClipToBounds = false }; // Margin 容纳选中 Ring 外扩，防边缘裁切
+    private readonly Grid _palettes = new() { ColumnDefinitions = new("*,*,*"), ColumnSpacing = 6, RowSpacing = 6 };
     private readonly Dictionary<PaletteOption, (Button Button, TextBlock Check, Border Ring)> _paletteButtons = [];
     private readonly Dictionary<ThemeOption, Button> _modeButtons = [];
     private readonly Dictionary<string, Button> _densityButtons = [];
@@ -60,14 +60,14 @@ public sealed class ShellAppearanceMenuView : UserControl
     private async void OpenPaletteDialog(Vex.Core.Models.PaletteOption? editing)
     {
         var definition = editing?.Definition;
-        var colors = definition is null
+        string[]? seed = definition is null
             ? null
-            : new[] { definition.Light.Paper, definition.Light.Surface, definition.Light.Ink, definition.Light.Accent,
-                      definition.Dark.Paper, definition.Dark.Surface, definition.Dark.Ink, definition.Dark.Accent };
-        var model = new ShellPaletteEditModel(editing?.Key, definition?.Name ?? "", definition?.Note ?? "", colors);
+            : [definition.Light.Paper, definition.Light.Surface, definition.Light.Ink, definition.Light.Accent,
+               definition.Dark.Paper, definition.Dark.Surface, definition.Dark.Ink, definition.Dark.Accent];
+        var model = new ShellPaletteEditModel(editing?.Key, definition?.Name ?? "", definition?.Note ?? "", seed);
         var applied = await Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(new ShellPaletteEditView(model), model,
             options: new Ursa.Controls.OverlayDialogOptions { CanLightDismiss = true, CanDragMove = false, CanResize = false, IsCloseButtonVisible = false });
-        if (!applied || model.Result is not { } result) return;
+        if (_vm is null || !applied || model.Result is not { Colors.Length: >= 8 } result) return;
         var key = editing?.Key ?? "user:" + Guid.NewGuid().ToString("N")[..8];
         _vm.RegisterCustomPalette(key, result.Name, result.Note, result.Colors[0], result.Colors[1], result.Colors[2], result.Colors[3],
             result.Colors[4], result.Colors[5], result.Colors[6], result.Colors[7]);
@@ -179,11 +179,6 @@ public sealed class ShellAppearanceMenuView : UserControl
             (Text("DensityCompact"), () => _vm.SelectedDensity = "compact", "density-compact"),
             (Text("DensityNormal"), () => _vm.SelectedDensity = "normal", "density-normal"),
             (Text("DensityRelaxed"), () => _vm.SelectedDensity = "relaxed", "density-relaxed"));
-        foreach (var button in densityRow.Children.OfType<Button>())
-        {
-            Avalonia.Automation.AutomationProperties.SetName(button, button.Content?.ToString() ?? "");
-            Avalonia.Automation.AutomationProperties.SetAutomationId(button, "Density_" + button.Content);
-        }
         var modeRow = PillRow(_vm.ThemeOptions
             .OrderBy(m => m.Key == "light" ? 0 : m.Key == "dark" ? 1 : 2)
             .Select(mode => (Text(mode.Key switch { "light" => "ThemeLight", "dark" => "ThemeDark", _ => "ThemeSystem" }),
@@ -233,7 +228,7 @@ public sealed class ShellAppearanceMenuView : UserControl
             var chipText = new TextBlock { Text = language.CultureName switch { "zh-CN" => "中", "zh-Hant" => "繁", "ja-JP" => "日", _ => "EN" }, FontSize = 11, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
             var chip = new Border { Width = 24, Height = 24, CornerRadius = new CornerRadius(7), Child = chipText };
             var name = Label(language.CultureName switch { "zh-CN" => "简体中文", "zh-Hant" => "繁體中文", "ja-JP" => "日本語", _ => "English" }, 13); name.Margin = new Thickness(10, 0, 0, 0); name.VerticalAlignment = VerticalAlignment.Center;
-            var check = Label("✓"); check.IsVisible = false; check.VerticalAlignment = VerticalAlignment.Center; check.Margin = new Thickness(8, 0, 0, 0);
+            var check = Label("✓", 13); check.IsVisible = false; check.VerticalAlignment = VerticalAlignment.Center; check.Margin = new Thickness(8, 0, 0, 0);
             var grid = new Grid { ColumnDefinitions = new("Auto,*,Auto"), Children = { chip, name, check } };
             Grid.SetColumn(name, 1); Grid.SetColumn(check, 2);
             var button = Button("", () => { LanguageButton.Flyout?.Hide(); _vm.SelectedLanguage = language; });
@@ -266,7 +261,7 @@ public sealed class ShellAppearanceMenuView : UserControl
             dots.Children.Add(dot);
         }
         var labels = new StackPanel { Spacing = 1 };
-        var name = Label(palette.Name); name.FontWeight = FontWeight.SemiBold; name.TextWrapping = TextWrapping.NoWrap; name.LineHeight = 19; labels.Children.Add(name);
+        var name = Label(palette.Name, 13); name.FontWeight = FontWeight.SemiBold; name.TextWrapping = TextWrapping.NoWrap; name.LineHeight = 19; labels.Children.Add(name);
         var purpose = Label(palette.Purpose); purpose.FontSize = 10; purpose.LineHeight = 14; purpose.Classes.Add("muted"); labels.Children.Add(purpose);
         var body = new StackPanel { Spacing = 6 }; body.Children.Add(dots); body.Children.Add(labels);
         // 原型 .studio-palettes button::after：✓ 固定在卡片右缘垂直居中（right 6px、14px/700 强调色），
@@ -290,7 +285,8 @@ public sealed class ShellAppearanceMenuView : UserControl
         Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush");
         root.Children.Add(check);
         // 原型选中态 = 透明边框 + 外扩 1.5px 强调色环，由 .palette-card-on 与 Ring 覆层呈现。
-        if (palette.Key.StartsWith("user:", StringComparison.Ordinal))
+        var paletteKey = palette.Key;
+        if (paletteKey?.StartsWith("user:", StringComparison.Ordinal) == true)
         {
             var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 0, 4, 0) };
             var edit = new Button { Classes = { "wb-quiet" }, Padding = new Thickness(4, 1), MinHeight = 22, FontSize = 12, Content = "✎" };
@@ -298,18 +294,16 @@ public sealed class ShellAppearanceMenuView : UserControl
             edit.Click += (_, _) => OpenPaletteDialog(palette);
             var remove = new Button { Classes = { "wb-quiet" }, Padding = new Thickness(4, 1), MinHeight = 22, FontSize = 12, Content = "×" };
             ToolTip.SetTip(remove, Text("DeleteCustomPalette"));
-            remove.Click += (_, _) => _vm.RemoveCustomPalette(palette.Key);
+            remove.Click += (_, _) => _vm?.RemoveCustomPalette(paletteKey);
             tools.Children.Add(edit); tools.Children.Add(remove);
             root.Children.Add(tools);
         }
-        var card = new Button { Classes = { "palette-card" }, Content = root, Height = 92, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "Palette_" + palette.Key };
-        Avalonia.Automation.AutomationProperties.SetName(card, palette.Name + "，" + palette.Purpose);
-        Avalonia.Automation.AutomationProperties.SetAutomationId(card, "PaletteCard_" + palette.Key);
-        card.Click += (_, _) => _vm.SelectedPalette = palette;
+        var card = new Button { Classes = { "palette-card" }, Content = root, Height = 92, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "Palette_" + (paletteKey ?? "unknown") };
+        card.Click += (_, _) => { if (_vm is not null) _vm.SelectedPalette = palette; };
         // 原型选中环 box-shadow:0 0 0 1.5px var(--accent)：Button 无 BoxShadow 属性，用外扩 1.5px 的描边 Border 覆层等效呈现。
         var ring = new Border { BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(7.5), Margin = new Thickness(-1.5), IsHitTestVisible = false, IsVisible = false };
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
-        var host = new Grid { Margin = new Thickness(2), ClipToBounds = false }; // 余量容纳 Ring 的 -1.5 外扩，避免边缘裁切
+        var host = new Grid();
         host.Children.Add(card); host.Children.Add(ring);
         _paletteButtons[palette] = (card, check, ring);
         return host;
@@ -329,7 +323,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         content.Children.Add(label);
         var panel = new Panel();
         panel.Children.Add(dash); panel.Children.Add(content);
-        var card = new Button { Classes = { "palette-add-card" }, Content = panel, Height = 92, VerticalAlignment = VerticalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Stretch, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "AddCustomPalette" };
+        var card = new Button { Classes = { "palette-add-card" }, Content = panel, Height = 92, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "AddCustomPalette" };
         card.Click += (_, _) => OpenPaletteDialog(null);
         ToolTip.SetTip(card, Text("AddCustomPalette"));
         return card;

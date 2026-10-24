@@ -27,7 +27,7 @@ public sealed class ThemeService : IThemeService, IDisposable
         _toastPublisher = toastPublisher;
     }
 
-    private StudioThemeController Controller => _controller ??= new StudioThemeController(Application.Current);
+    private StudioThemeController Controller => _controller ??= new StudioThemeController(Application.Current ?? throw new InvalidOperationException("主题控制器需要在应用启动后使用。"));
 
     public IReadOnlyList<ThemeOption> GetThemeOptions() => Modes;
 

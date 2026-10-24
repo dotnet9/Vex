@@ -344,7 +344,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
         {
             if (TopLevel.GetTopLevel(this) is not { } owner) return;
             var folders = await owner.StorageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions { AllowMultiple = false, Title = L(label) });
-            if (Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(folders.FirstOrDefault()) is { } folder)
+            if (folders.FirstOrDefault() is { } selected && Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(selected) is { } folder)
                 source.GetType().GetProperty(property)?.SetValue(source, folder);
         };
         var panel = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 8 };
