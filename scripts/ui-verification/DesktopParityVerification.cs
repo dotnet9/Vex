@@ -78,6 +78,8 @@ internal static class DesktopParityVerification
             new DocumentFile(Path.Combine(root, "folder", "alpha.md"), "alpha.md", "folder", "", "first"),
             new DocumentFile(Path.Combine(root, "zeta.md"), "zeta.md", "navigation", "", "second") };
         navigation.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(documents, workspaceRootPath: root)); Render();
+        Check(!navigation.CanCollapseAll && !navigation.DocumentFileNodes[0].IsExpanded, "New file workspace starts collapsed");
+        navigation.DocumentFileNodes[0].IsExpanded = true; Render();
         Check(navigation.CanCollapseAll, "Expanded folders enable collapse action");
         navigation.CollapseAll(); Render();
         Check(!navigation.CanCollapseAll && !navigation.DocumentFileNodes[0].IsExpanded, "Collapse updates actual tree expansion state");
