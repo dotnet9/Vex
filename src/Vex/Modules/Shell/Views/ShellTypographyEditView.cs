@@ -56,7 +56,7 @@ public sealed class ShellTypographyEditView : UserControl
 
     private static TextBox Field(ShellTypographyEditModel model, string label, int maxLength, string property)
     {
-        var box = new TextBox { Watermark = label, MaxLength = maxLength, Height = 32, FontSize = 13, CornerRadius = new CornerRadius(5), Text = label == "名称" ? model.Name : "" };
+        var box = new TextBox { PlaceholderText = label, MaxLength = maxLength, Height = 32, FontSize = 13, CornerRadius = new CornerRadius(5), Text = label == "名称" ? model.Name : "" };
         box.PropertyChanged += (_, args) =>
         {
             if (args.Property == TextBox.TextProperty && property == nameof(ShellTypographyEditModel.Name)) model.Name = box.Text ?? "";
