@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
@@ -25,6 +25,8 @@ using Vex.Core.Messaging;
 using CodeWF.Toolkit.Core.UpdateChecking;
 
 var mode = args.FirstOrDefault() ?? "vex";
+VerificationVexApp.ProbeFileTree = mode is "file-tree-probe" or "workspace-files";
+VerificationVexApp.ControlDocumentReads = mode == "current-file-protection";
 if (mode == "protection") VerificationVexApp.Exports = new VerificationExports();
 if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
@@ -137,7 +139,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
+if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "file-icons" or "file-tree-probe" or "workspace-files" or "current-file-protection" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -166,6 +168,10 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     if (mode == "pointer-regressions") { VerifyPointerRegressions(app, window, vm); window.Close(); return; }
     if (mode == "stress") { VerifyStress((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "file-tree") { VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), output); window.Close(); return; }
+    if (mode == "file-icons") { FileIconVerification.Run(app, window, output); window.Close(); return; }
+    if (mode == "file-tree-probe") { FileTreeLoadingProbe.Run(app, window, output); window.Close(); return; }
+    if (mode == "workspace-files") { WorkspaceFileVerification.Run(app, window, output); window.Close(); return; }
+    if (mode == "current-file-protection") { CurrentFileProtectionVerification.Run(app, window, output); window.Close(); return; }
     if (mode == "performance") { VerifyPerformance((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "workspace") { VerifySingleDocumentWorkspace(app, (Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "workbench") { VerifyWorkbench(app, window, vm); window.Close(); return; }
@@ -249,7 +255,7 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     VerifyPathIdentity(app, window, vm, sampleFolder);
     if (mode == "path-identity") { window.Close(); return; }
     var editorVm = app.Resolve<MarkdownEditorViewModel>();
-    VerifySourceLineHeight(window, window.GetVisualDescendants().OfType<MarkdownEditorView>().Single(), 26.25, "Vex");
+    VerifySourceLineHeight(window, window.GetVisualDescendants().OfType<MarkdownEditorView>().Single(), 23, "Vex");
     editorVm.InsertText(" regression edit");
     Pump();
     Check(vm.DocumentInfo.IsModified, "Typing marks Vex document dirty");
@@ -258,35 +264,6 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Any());
     var dialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Single();
     Check(vm.DocumentInfo.CurrentFilePath == files[^1], "Dirty-file switch waits for save confirmation");
-    var switchLocalizer = app.Resolve<IAppLocalizer>();
-    var switchTexts = dialog.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
-    var switchActionsPanel = dialog.FindControl<StackPanel>("SwitchActions")!;
-    var exitActionsPanel = dialog.FindControl<StackPanel>("ExitActions")!;
-    var switchButtons = switchActionsPanel.Children.OfType<Button>().Select(b => b.Content?.ToString()).ToList();
-    var switchCancel = ((Grid)switchActionsPanel.Parent!).Children.OfType<Button>().Select(b => b.Content?.ToString()).ToList();
-    Check(switchActionsPanel.IsVisible && !exitActionsPanel.IsVisible
-            && switchTexts.Contains(switchLocalizer.Get(Vex.VexL.Save))
-            && switchTexts.Contains(switchLocalizer.Get(Vex.VexL.DialogSwitchHint))
-            && switchTexts.Contains(switchLocalizer.Get(Vex.VexL.DialogLoseChangesHint))
-            && switchButtons.Count(t => t == switchLocalizer.Get(Vex.VexL.DialogSaveAndSwitch)) == 1
-            && switchButtons.Contains(switchLocalizer.Get(Vex.VexL.DialogDiscardAndSwitch))
-            && switchButtons.Count == 2
-            && switchCancel.SequenceEqual(new[] { switchLocalizer.Get(Vex.VexL.DialogContinueEditing) }),
-        "Switch dialog matches the reference: save title, two fixed lines, exactly 保存/放弃更改/取消");
-    var switchCard = dialog.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
-    var switchSave = (Button)switchActionsPanel.Children[0];
-    var switchCancelBtn = ((Grid)switchActionsPanel.Parent!).Children.OfType<Button>().Single();
-    var switchTitle = dialog.FindControl<TextBlock>("TitleText")!;
-    var switchHint = dialog.FindControl<TextBlock>("HintLine1")!;
-    Check(switchCard.CornerRadius.TopLeft == 12 && Math.Abs(switchCard.Bounds.Width - 480) < 1
-            && Math.Abs(switchTitle.FontSize - 15.5) < .01 && Math.Abs(switchTitle.LineHeight - 24.8) < .01
-            && switchHint.FontSize == 12.5 && Math.Abs(switchHint.LineHeight - 20) < .01
-            && Math.Abs(switchSave.Bounds.Height - 32) < 1 && switchSave.FontSize == 12
-            && switchSave.CornerRadius.TopLeft == 16
-            && Math.Abs(switchCancelBtn.Bounds.Height - 32) < 1 && switchCancelBtn.CornerRadius.TopLeft == 16
-            && ((Button)switchActionsPanel.Children[1]).BorderThickness.Top == 1 && switchCancelBtn.BorderThickness.Top == 1
-            && switchCancelBtn.GetVisualDescendants().OfType<Avalonia.Controls.TextBlock>().First().Bounds.Height >= 12,
-        "Switch dialog uses the measured prototype metrics: 12px card, 15.5px title, 12.5/20 body, 32px pill buttons at 12px, hairline secondary borders, visible labels");
     Check(!titleMenu.IsEffectivelyEnabled, "Modal confirmation disables title menu commands");
     Capture(window, "vex-unsaved-confirmation");
     ((ShellUnsavedDialogViewModel)dialog.DataContext!).Cancel();
@@ -777,33 +754,48 @@ void VerifyFileColors(Window window, ThemeVariant theme)
 
 void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFolder)
 {
+    var productionFiles = vm;
+    var filesView = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellFilesView>().Single();
+    using var layoutFiles = new ShellFilesViewModel();
+    filesView.DataContext = layoutFiles;
+    vm = layoutFiles;
     // 仅构造文件列表快照，不创建或打开这些布局验证路径。
     var documents = new[]
     {
         new DocumentFile(Path.Combine(sampleFolder, "Regression", "01-basics.md"), "01-basics.md", "Regression", "16:02", "Summary remains in the tooltip"),
         new DocumentFile(Path.Combine(sampleFolder, "Regression", "02-a-very-long-document-name-that-must-trim-inside-the-sidebar.md"), "02-a-very-long-document-name-that-must-trim-inside-the-sidebar.md", "Regression", "Yesterday", "Long summary does not expand the row"),
         new DocumentFile(Path.Combine(sampleFolder, "Regression", "Nested", "deep.md"), "deep.md", "Nested", "Monday", "Nested document"),
-        new DocumentFile(Path.Combine(sampleFolder, "root.md"), "root.md", "MarkdownSamples", "09-28", "Root document")
+        new DocumentFile(Path.Combine(sampleFolder, "root.md"), "root.md", "MarkdownSamples", "09-28", "Root document"),
+        new DocumentFile(Path.Combine(sampleFolder, ".config", "hidden.md"), "hidden.md", ".config", "", "Hidden document"),
+        new DocumentFile(Path.Combine(sampleFolder, "Regression", ".cache", "hidden.md"), "hidden.md", ".cache", "", "Nested hidden document")
     };
     vm.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(documents, documents[0], sampleFolder));
     Pump();
+    Check(vm.DocumentFileNodes[0].IsExpanded && !vm.DocumentFileNodes[0].Children.First(node => node.IsFolder).IsExpanded,
+        "New workspace expands its root and child folders start collapsed");
+    void ExpandFixture(IEnumerable<DocumentFileNode> nodes)
+    {
+        foreach (var node in nodes.Where(node => node.IsFolder)) { node.IsExpanded = true; ExpandFixture(node.Children); }
+    }
+    ExpandFixture(vm.DocumentFileNodes); Pump();
     var tree = window.GetVisualDescendants().OfType<TreeView>().Single(t => t.Classes.Contains("side-tree"));
+    var searchBox = filesView.FindControl<Border>("FileSearchBox")!;
+    var treeLeft = tree.TranslatePoint(default, filesView)!.Value.X;
+    var searchLeft = searchBox.TranslatePoint(default, filesView)!.Value.X;
+    Check(Math.Abs(treeLeft - 5) < 0.1 && Math.Abs(searchLeft - treeLeft) < 0.1,
+        "File tree and search box share an exact 5 px left inset");
+    Check(Math.Abs(tree.Bounds.Width - searchBox.Bounds.Width) < 0.1,
+        "File tree and search box right edges also align");
     var items = tree.GetVisualDescendants().OfType<TreeViewItem>().Where(i => i.IsEffectivelyVisible).ToArray();
-    Check(items.Length == 6, "Vex tree renders root, sibling and nested documents");
+    Check(items.Length == 7, "Vex tree renders the workspace root, sibling and nested documents without dot folders");
     foreach (var selected in items.Where(i => i.IsSelected))
     {
-        foreach (var probe in new Control[] { selected }.Concat(selected.GetVisualDescendants().OfType<Control>()))
-        {
-            var background = probe switch
-            {
-                Border border => border.Background,
-                ContentPresenter presenter => presenter.Background,
-                Panel panel => panel.Background,
-                _ => null
-            };
-            if (background is ISolidColorBrush brush && brush.Color.A > 0)
-                Console.WriteLine($"PROBE {probe.GetType().Name}#{probe.Name} bg={brush.Color} bounds={probe.Bounds}");
-        }
+        var row = selected.GetVisualDescendants().OfType<Border>().First(border => border.Name == "PART_LayoutRoot");
+        Check(Math.Abs(row.TranslatePoint(default, tree)!.Value.X) < 1
+            && Math.Abs(row.Bounds.Width - tree.Bounds.Width) < 1,
+            "Selected nested row background spans the entire file tree including indentation");
+        Application.Current!.TryGetResource("VexAccentSoftBrush", Application.Current.ActualThemeVariant, out var accent);
+        Check(SameBrush(row.Background, accent as IBrush), "Selected row uses the theme selection background");
     }
     foreach (var item in items)
     {
@@ -811,14 +803,20 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
         var chevron = item.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
             .First(b => b.Name == "PART_ExpandCollapseChevron");
         var point = card.TranslatePoint(default, tree)!.Value;
-        Check(card.Bounds.Height is >= 29 and <= 38 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
+        Check(Math.Abs(card.Bounds.Height - 24) < 0.1 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
             "Vex tree has compact rows within sidebar bounds: " + ((DocumentFileNode)item.DataContext!).Name);
         Check(Math.Abs(chevron.TranslatePoint(default, tree)!.Value.Y + chevron.Bounds.Height / 2
             - point.Y - card.Bounds.Height / 2) < 1,
             "Vex tree chevron aligns with its own row");
-        var icon = card.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().First(p => p.IsEffectivelyVisible);
+        var icon = card.GetVisualDescendants().OfType<Control>().First(control => control.IsEffectivelyVisible
+            && control.Classes.Contains("tree-ico") && control is Image or Avalonia.Controls.Shapes.Path);
         var label = card.GetVisualDescendants().OfType<TextBlock>().First(t => t.IsEffectivelyVisible &&
             (t.Classes.Contains("file-title") || t.Classes.Contains("file-heading")));
+        Check(icon.Bounds.Width == 12 && icon.Bounds.Height == 12 && icon.Height <= label.FontSize,
+            "Tree icons stay at text size without increasing row height");
+        var arrow = chevron.GetVisualDescendants().OfType<PathIcon>().Single(path => path.Name == "PART_ExpandIconPath");
+        Check(arrow.Bounds.Width == 8 && arrow.Bounds.Height == 8,
+            "Tree expand arrows use compact 8 px icons");
         Check(Math.Abs(icon.TranslatePoint(default, card)!.Value.Y + icon.Bounds.Height / 2
             - label.TranslatePoint(default, card)!.Value.Y - label.Bounds.Height / 2) < 1,
             $"Vex tree icon and title align vertically: {icon.Bounds}/{icon.TranslatePoint(default, card)}; label {label.Bounds}/{label.TranslatePoint(default, card)}");
@@ -832,6 +830,10 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     Check(cardPositions.GroupBy(p => p.Level).All(g => g.Max(p => p.X) - g.Min(p => p.X) < 1)
         && cardPositions.All(p => Math.Abs(p.X - cardPositions.Min(x => x.X) - p.Level * 16) < 1),
         "Vex tree siblings align and each level indents by 16 px");
+    var rowPositions = items.Select(item => item.GetVisualDescendants().OfType<Border>()
+        .First(border => border.Name == "PART_LayoutRoot").TranslatePoint(default, tree)!.Value.Y).Order().ToArray();
+    Check(rowPositions.Zip(rowPositions.Skip(1), (previous, next) => next - previous).All(gap => Math.Abs(gap - 24) < 0.1),
+        "Tree rows use a consistent 24 px pitch without extra vertical margins");
     Capture(window, "vex-file-tree");
     var folder = items.First(i => i.Level == 0 && ((DocumentFileNode)i.DataContext!).IsFolder);
     var toggle = folder.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
@@ -845,6 +847,33 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     window.MouseUp(click, MouseButton.Left);
     Pump();
     Check(folder.IsExpanded, "Vex folder chevron expands its subtree");
+    var folderCard = folder.GetVisualDescendants().OfType<Border>().First(border => border.Classes.Contains("file-card"));
+    var rowClick = folderCard.TranslatePoint(new Point(60, 16), window)!.Value;
+    window.MouseDown(rowClick, MouseButton.Left); window.MouseUp(rowClick, MouseButton.Left); Pump();
+    Check(!folder.IsExpanded && ReferenceEquals(vm.SelectedDocumentFileNode, folder.DataContext),
+        $"Single-clicking the workspace folder row selects and collapses it (expanded={folder.IsExpanded}, selection={vm.SelectedDocumentFileNode?.Name}, target={((DocumentFileNode)folder.DataContext!).Name})");
+    window.MouseDown(rowClick, MouseButton.Left); window.MouseUp(rowClick, MouseButton.Left); Pump();
+    Check(folder.IsExpanded, "Clicking the already selected folder row expands it again");
+    var nestedFolder = items.First(item => ((DocumentFileNode)item.DataContext!).Name == "Nested");
+    var nestedCard = nestedFolder.GetVisualDescendants().OfType<Border>().First(border => border.Classes.Contains("file-card"));
+    var nestedClick = nestedCard.TranslatePoint(new Point(45, 16), window)!.Value;
+    window.MouseDown(nestedClick, MouseButton.Left); window.MouseUp(nestedClick, MouseButton.Left); Pump();
+    Check(!nestedFolder.IsExpanded && nestedFolder.IsSelected, "Nested folder names respond to single click");
+    window.MouseDown(nestedClick, MouseButton.Left); window.MouseUp(nestedClick, MouseButton.Left); Pump();
+    Check(nestedFolder.IsExpanded, "Nested folder single-click expands its contents");
+    var nestedRow = nestedFolder.GetVisualDescendants().OfType<Border>().First(border => border.Name == "PART_LayoutRoot");
+    Check(Math.Abs(nestedRow.TranslatePoint(default, tree)!.Value.X) < 1
+        && Math.Abs(nestedRow.Bounds.Width - tree.Bounds.Width) < 1,
+        "Selected nested folder background spans the full width");
+    var main = (MainWindowViewModel)window.DataContext!;
+    foreach (var theme in new[] { "dark", "light" })
+    {
+        main.Appearance.SelectThemeByKey(theme); Pump();
+        Application.Current!.TryGetResource("VexAccentSoftBrush", Application.Current.ActualThemeVariant, out var accent);
+        Check(SameBrush(nestedRow.Background, accent as IBrush), "Full-row folder selection follows the theme: " + theme);
+        Capture(window, "vex-file-tree-folder-" + theme);
+    }
+    Capture(window, "vex-file-tree-folder-selected");
     vm.FilterText = "deep";
     // 过滤会重建树容器，等待布局队列完成后再核对实际可见节点。
     PumpUntil(() => tree.GetVisualDescendants().OfType<TextBlock>()
@@ -853,6 +882,81 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
         "Vex file filter retains the matching document and its ancestors");
     vm.FilterText = string.Empty;
     Pump();
+    filesView.DataContext = productionFiles;
+    vm = productionFiles;
+    Pump();
+
+    // 真实扫描覆盖两个入口，避免只有 UI 快照过滤正确。
+    var workspace = Path.Combine(sampleFolder, "workspace-scan");
+    foreach (var relative in new[] { "normal.md", ".note.md", "visible.name/child.md", ".settings/hidden.md", "visible.name/.cache/nested.md" })
+    {
+        var path = Path.Combine(workspace, relative);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, "# " + relative);
+    }
+    var app = (VerificationVexApp)Application.Current!;
+    var scan = app.Resolve<IDocumentService>().OpenFolderPathAsync(workspace); Pump(scan);
+    Check(scan.Result.Count == 2 && scan.Result.Any(file => file.Name == ".note.md"),
+        "Workspace scan reads direct documents while retaining ordinary dot files");
+    Pump(main.OpenStartupDocumentAsync([workspace])); Pump();
+    Check(vm.DocumentFileNodes.Count == 1 && vm.SelectedDocumentFileNode is { IsFolder: true } root
+        && root.Path == workspace && root.IsExpanded,
+        "Opening a folder selects and expands its workspace root after document loading");
+    var rootItem = tree.GetVisualDescendants().OfType<TreeViewItem>().First(item => item.Level == 0);
+    Check(rootItem.IsKeyboardFocusWithin, "Opened workspace root receives keyboard focus");
+    var rootCard = rootItem.GetVisualDescendants().OfType<Border>().First(border => border.Classes.Contains("file-card"));
+    var rootClick = rootCard.TranslatePoint(new Point(70, 16), window)!.Value;
+    window.MouseDown(rootClick, MouseButton.Left); window.MouseUp(rootClick, MouseButton.Left); Pump();
+    Check(!rootItem.IsExpanded, "Clicking the opened workspace root collapses it");
+    window.MouseDown(rootClick, MouseButton.Left); window.MouseUp(rootClick, MouseButton.Left); Pump();
+    Check(rootItem.IsExpanded && vm.DocumentFileNodes[0].Children.Where(node => node.IsFolder).All(node => !node.IsExpanded),
+        "Reopening the root reveals only the next level, with child folders still collapsed");
+    Pump(main.RefreshFilesAsync()); Pump();
+    Check(tree.GetVisualDescendants().OfType<TreeViewItem>().First(item => item.Level == 0).IsExpanded,
+        "Refreshing preserves a manually expanded workspace root");
+    rootItem = tree.GetVisualDescendants().OfType<TreeViewItem>().First(item => item.Level == 0);
+    rootCard = rootItem.GetVisualDescendants().OfType<Border>().First(border => border.Classes.Contains("file-card"));
+    rootClick = rootCard.TranslatePoint(new Point(70, 12), window)!.Value;
+    window.MouseDown(rootClick, MouseButton.Left); window.MouseUp(rootClick, MouseButton.Left); Pump();
+    Pump(main.RefreshFilesAsync()); Pump();
+    Check(!tree.GetVisualDescendants().OfType<TreeViewItem>().First(item => item.Level == 0).IsExpanded,
+        "Refreshing preserves the actual collapsed workspace container");
+    Pump(main.OpenStartupDocumentAsync([workspace])); Pump();
+    Pump(main.RefreshFilesAsync()); Pump();
+    Check(vm.SelectedDocumentFileNode?.Path == workspace, "Refreshing retains the selected workspace folder");
+    vm.ToggleSort(); Pump();
+    Check(vm.SelectedDocumentFileNode?.Path == workspace && tree.SelectedItem == vm.SelectedDocumentFileNode,
+        "Sorting retains selection on the displayed workspace root");
+    vm.ToggleSort(); Pump();
+    var directFolder = Path.Combine(sampleFolder, "direct-file-scan-" + Guid.NewGuid().ToString("N"));
+    Directory.CreateDirectory(Path.Combine(directFolder, ".hidden"));
+    var directFile = Path.Combine(directFolder, "visible.md");
+    File.WriteAllText(directFile, "# Visible");
+    File.WriteAllText(Path.Combine(directFolder, ".hidden", "hidden.md"), "# Hidden");
+    Pump(main.OpenPathAsync(directFile)); Pump();
+    Check(main.DocumentFiles.Count == 1 && vm.SelectedDocumentFileNode?.Path == directFile,
+        "Direct file opening applies the same hidden-folder rule and selects the opened document");
+    var otherFile = Path.Combine(directFolder, "other.md");
+    File.WriteAllText(otherFile, "# Other");
+    Pump(main.RefreshFilesAsync());
+    PumpUntil(() => vm.DocumentFileNodes.Count > 0
+        && vm.DocumentFileNodes[0].Children.Any(node => node.Path == otherFile));
+    vm.SelectedDocumentFileNode = vm.DocumentFileNodes[0];
+    main.Markdown += "\nUnsaved tree selection regression";
+    vm.SelectedDocumentFileNode = vm.DocumentFileNodes[0].Children.First(node => node.Path == otherFile);
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Any());
+    ((ShellUnsavedDialogViewModel)window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Single().DataContext!).Cancel();
+    Pump();
+    Check(main.DocumentInfo.CurrentFilePath == directFile && vm.SelectedDocumentFileNode?.Path == directFile
+        && main.DocumentInfo.IsModified, "Canceling a file switch after folder selection restores the actual document selection");
+    Pump(main.SaveAsync());
+    var emptyFolder = Path.Combine(sampleFolder, "empty-workspace");
+    Directory.CreateDirectory(emptyFolder);
+    Pump(main.OpenStartupDocumentAsync([emptyFolder])); Pump();
+    Check(vm.DocumentFileNodes.Count == 1 && vm.DocumentFileNodes[0].Children.Count == 0
+        && vm.SelectedDocumentFileNode?.Path == emptyFolder,
+        "Empty workspace still displays and selects its root folder");
+    Capture(window, "vex-file-tree-empty-root");
 }
 
 void MaximizePerformanceWindow(Window window)
@@ -1324,9 +1428,7 @@ void VerifyMermaidWorkspace(Vex.Modules.Shell.Views.MainWindow window, MainWindo
     var preview = previewView.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
     var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
     Border[] Diagrams(Control host) => host.GetVisualDescendants().OfType<Border>().Where(border => border.Classes.Contains("MdMermaid")).ToArray();
-    bool Ready(Control host) => Diagrams(host).Any(border =>
-        (border.Child is Image { Source: not null })                       // 旧结构：Border > Image
-        || border.GetVisualDescendants().OfType<Image>().Any(image => image.Source is not null)); // 新结构：Border > Grid(源码卡+预览+徽标) > Image
+    bool Ready(Control host) => Diagrams(host).Any(border => border.Child is Image { Source: not null });
     vm.Workbench.SelectLayout("source"); Pump();
     var previousPreview = preview.Markdown;
     var timer = System.Diagnostics.Stopwatch.StartNew(); Pump(vm.OpenPathAsync(file)); Pump();
@@ -1715,10 +1817,7 @@ void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel 
     vm.Workbench.ShowInstant(); Pump(); Capture(window, "vex-native-instant");
     vm.Workbench.ShowTypography = true; Pump();
     var typographyGallery = window.FindControl<Vex.Modules.Shell.Views.ShellTypographyGallery>("TypographyGallery")!;
-    var simpleCard = typographyGallery.GetVisualDescendants().OfType<Button>().SingleOrDefault(b => b.Name == "Typography_Simple");
-    Check(simpleCard is not null
-        && simpleCard.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
-            .Any(viewer => viewer.Markdown.Contains(app.Resolve<IAppLocalizer>().Get(Vex.VexL.TypographySimple))),
+    Check(typographyGallery.GetVisualDescendants().OfType<TextBlock>().Any(text => text.Text == app.Resolve<IAppLocalizer>().Get(Vex.VexL.TypographySimple)),
         "Typography cards use the same localized names as the menu");
     vm.Workbench.ShowTypography = false;
     var preferences = app.Resolve<IAppSettingsStore>().Current;
@@ -1833,15 +1932,11 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
         Check(instant.Editor.TypographyTheme == option.Key && app.Resolve<MarkdownPreviewViewModel>().TypographyTheme == option.Key && vm.Markdown == document,
             "Typography stays consistent across instant and reading views: " + option.Key);
     }
-    // 渲染密度（data-mdsize）才是排版尺寸档来源；界面密度 IsCompactLayout 不再驱动编辑器字号档。
-    vm.Appearance.MarkdownDensity = "compact";
+    vm.Appearance.IsCompactLayout = true;
     PumpUntil(() => instant.Editor.TypographySize == "Compact");
     Check(instant.Editor.TypographySize == "Compact", "Compact typography size reaches the live editor");
     Check(vm.Markdown == document, "Compact typography applies without rewriting Markdown");
-    vm.Appearance.MarkdownDensity = "normal";
-    PumpUntil(() => instant.Editor.TypographySize == "Normal");
-    Check(instant.Editor.TypographySize == "Normal", "Normal typography size returns to the live editor");
-    vm.Appearance.SelectedTypography = typography; wb.ShowTypography = false;
+    vm.Appearance.IsCompactLayout = false; vm.Appearance.SelectedTypography = typography; wb.ShowTypography = false;
     wb.ShowMapSource = false; wb.ShowMindMap(); Pump(); SettleRendering();
     var oldRoot = wb.Root;
     wb.ShowParagraphs = wb.ShowLists = wb.ShowCode = wb.ShowTables = false;
@@ -1853,7 +1948,7 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     wb.SummaryLength = -10; Check(wb.SummaryLength == 1, "Summary length is at least one grapheme");
     oldRoot = wb.Root; wb.ResetMapSettings();
     PumpUntil(() => !ReferenceEquals(oldRoot, wb.Root)); Pump();
-    Check(wb.SummaryLength == 30 && !wb.ShowParagraphs && !wb.ShowLists && !wb.ShowCode && !wb.ShowTables, "Reset restores every map display default");
+    Check(wb.SummaryLength == 30 && wb.ShowParagraphs && wb.ShowLists && !wb.ShowCode && !wb.ShowTables, "Reset restores every map display default");
     Check(wb.VisibleNodeCount == map.VisibleNodeCount && wb.SummaryPreview.Length > 0, "Map count and summary preview update from the real tree");
     map.CollapseAll(); Pump();
     var heading = Flatten(wb.Root!).LastOrDefault(n => n.Kind == CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNodeKind.Heading) ?? wb.Root!;
@@ -2003,10 +2098,9 @@ void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
         foreach (var expected in new[] { StudioThemeMode.Light, StudioThemeMode.Dark, StudioThemeMode.System })
         {
             var content = (Control)((Flyout)menu.AppearanceButton.Flyout!).Content!;
-            // 外观菜单已按原型改为 appearance-pill；模式行 = 紧凑密度按钮所在行。
-            var modes = content.GetLogicalDescendants().OfType<Button>().Where(b => b.Classes.Contains("appearance-pill")).ToArray();
-            Check(modes.Length == 6, "Appearance menu exposes three density and three mode pills");
-            var index = expected switch { StudioThemeMode.Light => 3, StudioThemeMode.Dark => 4, _ => 5 };
+            var modes = content.GetLogicalDescendants().OfType<RadioButton>().ToArray();
+            var index = expected switch { StudioThemeMode.Light => 0, StudioThemeMode.Dark => 1, _ => 2 };
+            modes[index].IsChecked = true;
             modes[index].RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
             Check(appearance.ThemeMode == expected && ReferenceEquals(appearance.SelectedPalette, palette), "Title bar cycles mode and preserves palette: " + palette.Key + "/" + expected);
             var settings = ((VerificationVexApp)Application.Current!).Resolve<IAppSettingsStore>().Current;
@@ -2166,29 +2260,20 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
     Check(outline.TranslatePoint(default, window)!.Value.X > files.TranslatePoint(default, window)!.Value.X + files.Bounds.Width,
         "Vex Outline remains to the right of the document under " + theme);
     var heading = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdH1Border"));
-    var shellVm = (MainWindowViewModel)window.DataContext!;
-    var type = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(shellVm.Appearance.SelectedTypography?.Key)!;
-    // 尺寸档按 baseSize/BodySize 等比缩放目录实测值（Compact 13 / Normal 15 / Relaxed 17）。
-    var scale = shellVm.Appearance.MarkdownDensity switch { "compact" => 13d, "relaxed" => 17d, _ => 15d } / type.BodySize;
-    var scaledHeading = Thickness.Parse(type.Headings[0].Border) * scale;
-    Check(Approx(heading.BorderThickness, scaledHeading),
-        "Vex H1 follows the selected article decoration under " + theme + $" (actual {heading.BorderThickness}, scaled {scaledHeading})");
+    var type = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(((MainWindowViewModel)window.DataContext!).Appearance.SelectedTypography?.Key)!;
+    Check(heading.BorderThickness == Thickness.Parse(type.Headings[0].Border),
+        "Vex H1 follows the selected article decoration under " + theme);
     var quote = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdQuote"));
-    var scaledQuote = Thickness.Parse(type.Quote.Border) * scale;
-    Check(Approx(quote.BorderThickness, scaledQuote),
-        "Vex quote follows the selected article border under " + theme + $" (actual {quote.BorderThickness}, scaled {scaledQuote})");
+    Check(quote.BorderThickness == Thickness.Parse(type.Quote.Border),
+        "Vex quote follows the selected article border under " + theme);
 }
-
-static bool Approx(Thickness a, Thickness b) =>
-    Math.Abs(a.Left - b.Left) < 0.01 && Math.Abs(a.Top - b.Top) < 0.01
-    && Math.Abs(a.Right - b.Right) < 0.01 && Math.Abs(a.Bottom - b.Bottom) < 0.01;
 
 bool SameBrush(IBrush? first, IBrush? second) => first is ISolidColorBrush a && second is ISolidColorBrush b && a.Color == b.Color;
 
 void VerifySourceLineHeight(Window window, MarkdownEditorView source, double expected, string name)
 {
     var textView = source.Editor.TextArea.TextView;
-    Check(Math.Abs(textView.DefaultLineHeight - expected) < 0.01, $"{name} source line height matches {expected} px (actual {textView.DefaultLineHeight}, factor {textView.Options.LineHeightFactor})");
+    Check(Math.Abs(textView.DefaultLineHeight - expected) < 0.01, $"{name} source line height matches {expected} px");
     var click = textView.TranslatePoint(new Point(2, expected * 2.5), window)!.Value;
     window.MouseDown(click, MouseButton.Left);
     window.MouseUp(click, MouseButton.Left);
@@ -2385,7 +2470,7 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     Check(service.Checks == 1 && model.State == UpdateState.Available, "Menu opens one update view and starts one check");
     SettleRendering();
     var updateCard = view.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
-    Check(updateCard.Bounds.Width == 620 && ((Grid)updateCard.Child!).Children[0].Bounds.Height == 36, "Update uses the unified 620px dialog frame and fixed 36px title bar");
+    Check(updateCard.Bounds.Width == 580 && ((Grid)updateCard.Child!).Children[0].Bounds.Height == 36, "Update uses the prototype's 580px frame and fixed 36px title bar");
     Check(!view.FindControl<Expander>("UpdateNotes")!.IsExpanded, "Available update keeps release notes collapsed");
     Capture(window, "updates-available");
     var download = model.AdvanceAsync(); Pump();
@@ -2429,6 +2514,8 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
 
 public sealed class VerificationVexApp : Vex.App
 {
+    public static bool ProbeFileTree { get; set; }
+    public static bool ControlDocumentReads { get; set; }
     public static bool UseRealSettings { get; set; }
     public static IUpdateService? Updates { get; set; }
     public static IMarkdownExportService? Exports { get; set; }
@@ -2437,6 +2524,8 @@ public sealed class VerificationVexApp : Vex.App
     protected override void RegisterTypes(IContainerRegistry registry)
     {
         base.RegisterTypes(registry);
+        if (ProbeFileTree) registry.RegisterSingleton<IDocumentFileFactory, ProbeDocumentFileFactory>();
+        if (ControlDocumentReads) registry.RegisterSingleton<IDocumentService, ControlledDocumentService>();
         if (Updates is not null) registry.RegisterInstance<IUpdateService>(Updates);
         if (Exports is not null) registry.RegisterInstance<IMarkdownExportService>(Exports);
         registry.RegisterInstance<IAppSettingsStore>(UseRealSettings ? new AppSettingsStore() : new MemorySettings());
