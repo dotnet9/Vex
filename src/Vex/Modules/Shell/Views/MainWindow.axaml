@@ -101,9 +101,9 @@
         <u:OverlayDialogHost x:Name="ShellDialogHost" OverlayMaskBrush="#470B1729" />
     </codewf:CodeWFWindow.OverlayContent>
 
-    <!-- CodeWFWindow 模板已预留标题栏高度，内容只添加 1 像素分隔线。 -->
+    <!-- CodeWFWindow 模板已预留标题栏高度；标题栏下方不再绘制分隔线。 -->
     <Border x:Name="ShellTitleDivider"
-            BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0 1 0 0">
+            BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0">
     <Grid
         x:Name="ShellGuideRoot"
         Background="{DynamicResource VexShellBackgroundBrush}"

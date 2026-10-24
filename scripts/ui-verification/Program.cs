@@ -736,7 +736,7 @@ void VerifyFileColors(Window window, ThemeVariant theme)
         var background = (card.Background as ISolidColorBrush)?.Color ?? Colors.Transparent;
         if (background.A == 0)
         {
-            Application.Current!.TryGetResource("VexShellBackgroundBrush", theme, out var resource);
+            Application.Current!.TryGetResource("VexPanelBackgroundBrush", theme, out var resource);
             background = ((ISolidColorBrush)resource!).Color;
         }
         if (card.Classes.Contains("selected"))
@@ -2234,12 +2234,12 @@ void VerifyTitleLayout(Window window)
     var titleBottom = spacer.TranslatePoint(default, window)!.Value.Y + spacer.Bounds.Height;
     var dividerY = divider.TranslatePoint(default, window)!.Value.Y;
     var contentY = content.TranslatePoint(default, window)!.Value.Y;
-    Check(divider.BorderThickness.Top == 1 && Math.Abs(dividerY - titleBottom) < 0.01
+    Check(divider.BorderThickness == default && Math.Abs(dividerY - titleBottom) < 0.01
         && Math.Abs(spacer.Bounds.Height - shell.TitleBarHeight) < 0.01,
-        $"Vex content divider starts immediately after the {shell.TitleBarHeight} px title bar: y={dividerY}");
-    Check(Math.Abs(contentY - dividerY - 1) < 0.01
+        $"Vex content starts immediately after the {shell.TitleBarHeight} px title bar: y={dividerY}");
+    Check(Math.Abs(contentY - dividerY) < 0.01
         && Math.Abs(sidebar.TranslatePoint(default, window)!.Value.Y - contentY) < 0.01,
-        $"Vex sidebar and workspace start immediately below the title divider: y={contentY}");
+        $"Vex sidebar and workspace start immediately below the title bar: y={contentY}");
 }
 
 void VerifyVexDetails(Window window, ThemeVariant theme)
@@ -2248,10 +2248,13 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
     var divider = window.FindControl<Border>("ShellTitleDivider")!;
     using (var bitmap = SKBitmap.Decode(Path.Combine(output, "vex-" + theme + ".png")))
     {
-        var pixel = bitmap.GetPixel(1000, (int)divider.TranslatePoint(default, window)!.Value.Y);
+        var y = (int)divider.TranslatePoint(default, window)!.Value.Y;
+        var above = bitmap.GetPixel(1000, Math.Max(0, y - 1));
+        var pixel = bitmap.GetPixel(1000, y);
         var borderColor = ((ISolidColorBrush)divider.BorderBrush!).Color;
-        Check(pixel.Red == borderColor.R && pixel.Green == borderColor.G && pixel.Blue == borderColor.B,
-            "Vex screenshot contains the title border pixel under " + theme);
+        Check(pixel.Red != borderColor.R || pixel.Green != borderColor.G || pixel.Blue != borderColor.B
+            || (pixel.Red == above.Red && pixel.Green == above.Green && pixel.Blue == above.Blue),
+            "Vex screenshot has no title separator under " + theme);
     }
     var files = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellFilesView>().Single();
     var outline = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellOutlineView>().Single();
