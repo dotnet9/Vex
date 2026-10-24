@@ -6,7 +6,7 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:McpSettingsViewModel">
-    <Border Classes="dialog-card" Width="640" MaxHeight="720">
+    <Border Classes="dialog-card" Width="620" MaxHeight="720">
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <Border Classes="dlg-ico info">

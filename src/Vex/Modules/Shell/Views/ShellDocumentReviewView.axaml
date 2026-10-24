@@ -1,6 +1,6 @@
 <UserControl x:Class="Vex.Modules.Shell.Views.ShellDocumentReviewView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:views="using:Vex.Modules.Shell.Views" x:DataType="views:ShellDocumentReviewModel">
- <Border x:Name="ReviewCard" Classes="dialog-card" Width="740" MaxWidth="{Binding MaximumWidth}" MaxHeight="{Binding MaximumHeight}">
+ <Border x:Name="ReviewCard" Classes="dialog-card" Width="620" MaxWidth="{Binding MaximumWidth}" MaxHeight="{Binding MaximumHeight}">
   <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="12">
    <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="SemiBold"/>
    <StackPanel Grid.Row="1" Spacing="6"><TextBlock Text="{Binding Description}" TextWrapping="Wrap" Classes="wb-muted"/><SelectableTextBlock Text="{Binding Source}" FontSize="12" TextWrapping="Wrap"/></StackPanel>

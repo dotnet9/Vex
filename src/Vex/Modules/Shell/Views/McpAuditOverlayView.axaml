@@ -5,7 +5,7 @@
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:mcp="using:Vex.Modules.Mcp.Models">
-    <Border Classes="dialog-card" Width="720" MaxHeight="640">
+    <Border Classes="dialog-card" Width="620" MaxHeight="640">
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock

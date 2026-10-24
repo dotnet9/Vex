@@ -6,7 +6,7 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellQuickOpenViewModel">
-    <Border Classes="dialog-card" Width="560" MaxHeight="520">
+    <Border Classes="dialog-card" Width="620" MaxHeight="520">
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
             <TextBox
                 x:Name="QueryBox"

@@ -5,7 +5,7 @@
   <Style Selector="Button.about-link"><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="Normal"/><Setter Property="Template"><ControlTemplate><ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}" FontSize="{TemplateBinding FontSize}"/></ControlTemplate></Setter></Style>
   <Style Selector="Button.about-link:pointerover"><Setter Property="Opacity" Value="0.7"/></Style>
  </UserControl.Styles>
- <Border Classes="dialog-card" Width="420" MaxHeight="600" Padding="0" CornerRadius="8" ClipToBounds="True">
+ <Border Classes="dialog-card" Width="480" MaxHeight="600" Padding="0" CornerRadius="8" ClipToBounds="True">
   <Grid RowDefinitions="36,*">
    <Border Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
     <Grid ColumnDefinitions="*,46" VerticalAlignment="Center"><TextBlock Text="{i18n:I18n Vex.VexL.AboutDialogTitle}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Click="Close_OnClick" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>

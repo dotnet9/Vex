@@ -6,7 +6,7 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellRenameDialogViewModel">
-    <Border Classes="dialog-card" Width="430" Padding="0" CornerRadius="8" ClipToBounds="True">
+    <Border Classes="dialog-card" Width="480" Padding="0" CornerRadius="8" ClipToBounds="True">
         <Grid RowDefinitions="36,Auto">
             <Border Height="36" Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
                 <Grid ColumnDefinitions="*,46" VerticalAlignment="Center">

@@ -15,7 +15,7 @@
   <Style Selector="ToggleButton.update-notes-toggle:checked Path"><Setter Property="RenderTransform" Value="rotate(90deg)"/></Style>
   <Style Selector="Button"><Setter Property="CornerRadius" Value="8"/></Style>
  </UserControl.Styles>
- <Border Classes="dialog-card" Width="580" MaxHeight="760" Padding="0" CornerRadius="14" ClipToBounds="True">
+ <Border Classes="dialog-card" Width="620" MaxHeight="760" Padding="0" CornerRadius="14" ClipToBounds="True">
   <Grid RowDefinitions="36,*">
    <Border Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
     <Grid ColumnDefinitions="*,46" VerticalAlignment="Center">

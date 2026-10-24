@@ -2,7 +2,7 @@
              xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
              xmlns:views="using:Vex.Modules.Shell.Views"
              x:Class="Vex.Modules.Shell.Views.ShellInsertTableOverlayView" x:DataType="views:ShellInsertTableModel">
-  <Border Classes="dialog-card" Width="360">
+  <Border Classes="dialog-card" Width="480">
     <StackPanel Spacing="20">
       <TextBlock FontSize="16" FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.InsertTable}}"/>
       <Grid ColumnDefinitions="*,*" ColumnSpacing="16" RowDefinitions="Auto,Auto" RowSpacing="8">
