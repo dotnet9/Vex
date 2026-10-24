@@ -14,4 +14,14 @@
         <Setter Property="Foreground" Value="{DynamicResource ToolTipForeground}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+
+    <Style Selector="ToolTip.file-preview">
+        <Setter Property="TextBlock.FontWeight" Value="Normal" />
+    </Style>
+    <Style Selector="ToolTip.file-preview TextBlock">
+        <Setter Property="FontWeight" Value="Normal" />
+    </Style>
+    <Style Selector="ToolTip.file-preview /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="TextBlock.FontWeight" Value="Normal" />
+    </Style>
 </Styles>

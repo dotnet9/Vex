@@ -1,65 +1,83 @@
 <Styles
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:semi="https://irihi.tech/semi">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Styles.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="ScrollBarButtonDefaultForeground" Color="#98A2B3" />
-                    <SolidColorBrush x:Key="ScrollBarButtonPointeroverForeground" Color="#667085" />
-                    <SolidColorBrush x:Key="ScrollBarThumbForeground" Color="#D0D5DD" />
-                    <SolidColorBrush x:Key="ScrollBarThumbPointeroverForeground" Color="#98A2B3" />
-                    <SolidColorBrush x:Key="ScrollBarBackground" Color="Transparent" />
-                </ResourceDictionary>
-
-                <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="ScrollBarButtonDefaultForeground" Color="#7D8999" />
-                    <SolidColorBrush x:Key="ScrollBarButtonPointeroverForeground" Color="#AAB4C3" />
-                    <SolidColorBrush x:Key="ScrollBarThumbForeground" Color="#334155" />
-                    <SolidColorBrush x:Key="ScrollBarThumbPointeroverForeground" Color="#667085" />
-                    <SolidColorBrush x:Key="ScrollBarBackground" Color="Transparent" />
-                </ResourceDictionary>
-
-                <ResourceDictionary x:Key="{x:Static semi:SemiTheme.Aquatic}">
-                    <SolidColorBrush x:Key="ScrollBarButtonDefaultForeground" Color="#7A99A1" />
-                    <SolidColorBrush x:Key="ScrollBarButtonPointeroverForeground" Color="#5C7880" />
-                    <SolidColorBrush x:Key="ScrollBarThumbForeground" Color="#CDE9EF" />
-                    <SolidColorBrush x:Key="ScrollBarThumbPointeroverForeground" Color="#7A99A1" />
-                    <SolidColorBrush x:Key="ScrollBarBackground" Color="Transparent" />
-                </ResourceDictionary>
-
-                <ResourceDictionary x:Key="{x:Static semi:SemiTheme.Desert}">
-                    <SolidColorBrush x:Key="ScrollBarButtonDefaultForeground" Color="#9A856D" />
-                    <SolidColorBrush x:Key="ScrollBarButtonPointeroverForeground" Color="#7A6752" />
-                    <SolidColorBrush x:Key="ScrollBarThumbForeground" Color="#E8D9C2" />
-                    <SolidColorBrush x:Key="ScrollBarThumbPointeroverForeground" Color="#9A856D" />
-                    <SolidColorBrush x:Key="ScrollBarBackground" Color="Transparent" />
-                </ResourceDictionary>
-
-                <ResourceDictionary x:Key="{x:Static semi:SemiTheme.Dusk}">
-                    <SolidColorBrush x:Key="ScrollBarButtonDefaultForeground" Color="#8A7A98" />
-                    <SolidColorBrush x:Key="ScrollBarButtonPointeroverForeground" Color="#72637F" />
-                    <SolidColorBrush x:Key="ScrollBarThumbForeground" Color="#DDD7EA" />
-                    <SolidColorBrush x:Key="ScrollBarThumbPointeroverForeground" Color="#8A7A98" />
-                    <SolidColorBrush x:Key="ScrollBarBackground" Color="Transparent" />
-                </ResourceDictionary>
-
-                <ResourceDictionary x:Key="{x:Static semi:SemiTheme.NightSky}">
-                    <SolidColorBrush x:Key="ScrollBarButtonDefaultForeground" Color="#7F8CA3" />
-                    <SolidColorBrush x:Key="ScrollBarButtonPointeroverForeground" Color="#AAB6C8" />
-                    <SolidColorBrush x:Key="ScrollBarThumbForeground" Color="#3A4A66" />
-                    <SolidColorBrush x:Key="ScrollBarThumbPointeroverForeground" Color="#AAB6C8" />
-                    <SolidColorBrush x:Key="ScrollBarBackground" Color="Transparent" />
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
+            <SolidColorBrush x:Key="ScrollBarThumbForeground" Color="{DynamicResource StudioMutedColor}" Opacity="0.35" />
+            <SolidColorBrush x:Key="ScrollBarThumbPointeroverForeground" Color="{DynamicResource StudioMutedColor}" Opacity="0.55" />
+            <SolidColorBrush x:Key="VexScrollBarThumbPressedForeground" Color="{DynamicResource StudioMutedColor}" Opacity="0.75" />
+            <SolidColorBrush x:Key="ScrollBarBackground" Color="Transparent" />
+            <CornerRadius x:Key="ScrollBarThumbCornerRadius">3</CornerRadius>
         </ResourceDictionary>
     </Styles.Resources>
-    <!-- 常驻的 16px 轨道与 10px 滑块，避免仅 2px 的自动收起态难以命中。 -->
-    <Style Selector="ScrollViewer"><Setter Property="AllowAutoHide" Value="False"/></Style>
-    <Style Selector="ScrollBar"><Setter Property="AllowAutoHide" Value="False"/></Style>
-    <Style Selector="ScrollBar:vertical"><Setter Property="Width" Value="16"/></Style>
-    <Style Selector="ScrollBar:horizontal"><Setter Property="Height" Value="16"/></Style>
-    <Style Selector="ScrollBar:vertical /template/ Thumb#thumb"><Setter Property="Width" Value="10"/><Setter Property="MinHeight" Value="32"/></Style>
-    <Style Selector="ScrollBar:horizontal /template/ Thumb#thumb"><Setter Property="Height" Value="10"/><Setter Property="MinWidth" Value="32"/></Style>
+    <!-- 菜单默认使用上下箭头模板，替换为相同的滚动轨道并保留原生内容宿主。 -->
+    <Style Selector="MenuItem /template/ Popup > Border > ScrollViewer, ContextMenu /template/ ScrollViewer, MenuFlyoutPresenter /template/ ScrollViewer">
+        <Setter Property="IsScrollChainingEnabled" Value="False"/>
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="Template">
+            <ControlTemplate TargetType="ScrollViewer">
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto">
+                    <ScrollContentPresenter
+                        Name="PART_ContentPresenter"
+                        Padding="{TemplateBinding Padding}"
+                        Background="{TemplateBinding Background}"
+                        HorizontalSnapPointsAlignment="{TemplateBinding HorizontalSnapPointsAlignment}"
+                        HorizontalSnapPointsType="{TemplateBinding HorizontalSnapPointsType}"
+                        VerticalSnapPointsAlignment="{TemplateBinding VerticalSnapPointsAlignment}"
+                        VerticalSnapPointsType="{TemplateBinding VerticalSnapPointsType}"
+                        ScrollViewer.IsScrollInertiaEnabled="{TemplateBinding IsScrollInertiaEnabled}">
+                        <ScrollContentPresenter.GestureRecognizers>
+                            <ScrollGestureRecognizer
+                                CanHorizontallyScroll="{Binding CanHorizontallyScroll, ElementName=PART_ContentPresenter}"
+                                CanVerticallyScroll="{Binding CanVerticallyScroll, ElementName=PART_ContentPresenter}"
+                                IsScrollInertiaEnabled="{Binding (ScrollViewer.IsScrollInertiaEnabled), ElementName=PART_ContentPresenter}"
+                                Offset="{Binding Offset, ElementName=PART_ContentPresenter}"
+                                Viewport="{Binding Viewport, ElementName=PART_ContentPresenter}"
+                                Extent="{Binding Extent, ElementName=PART_ContentPresenter}"/>
+                        </ScrollContentPresenter.GestureRecognizers>
+                    </ScrollContentPresenter>
+                    <ScrollBar Name="PART_HorizontalScrollBar" Grid.Row="1" Orientation="Horizontal"/>
+                    <ScrollBar Name="PART_VerticalScrollBar" Grid.Column="1" Orientation="Vertical"/>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <!-- 固定轨道尺寸，仅切换透明度，防止显隐时内容跳动；保留原生拖动中的展开状态。 -->
+    <Style Selector="ScrollViewer"><Setter Property="AllowAutoHide" Value="True"/></Style>
+    <Style Selector="ScrollBar">
+        <Setter Property="AllowAutoHide" Value="True"/>
+        <Setter Property="ShowDelay" Value="0:0:0"/>
+        <Setter Property="HideDelay" Value="0:0:0"/>
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity"
+                                  Duration="{DynamicResource MotionDurationMid}"
+                                  Easing="{StaticResource MotionEaseInOut}"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="ScrollViewer:pointerover /template/ ScrollBar, ScrollBar:pointerover, ScrollBar[IsExpanded=True]">
+        <Setter Property="Opacity" Value="1"/>
+    </Style>
+    <Style Selector="ScrollBar:vertical"><Setter Property="Width" Value="10"/></Style>
+    <Style Selector="ScrollBar:horizontal"><Setter Property="Height" Value="10"/></Style>
+    <Style Selector="ScrollBar /template/ RepeatButton#PART_LineUpButton, ScrollBar /template/ RepeatButton#PART_LineDownButton">
+        <Setter Property="IsVisible" Value="False"/>
+    </Style>
+    <!-- 覆盖 Semi 收起态的 2px 宽度，显隐过程中滑块始终为 6px。 -->
+    <Style Selector="ScrollBar:vertical /template/ Thumb#thumb, ScrollBar:vertical[IsExpanded=False] /template/ Thumb#thumb">
+        <Setter Property="Width" Value="6"/>
+        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="ScrollBar:horizontal /template/ Thumb#thumb, ScrollBar:horizontal[IsExpanded=False] /template/ Thumb#thumb">
+        <Setter Property="Height" Value="6"/>
+        <Setter Property="MinWidth" Value="32"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="ScrollBar /template/ Thumb#thumb:pressed">
+        <Setter Property="Foreground" Value="{DynamicResource VexScrollBarThumbPressedForeground}"/>
+    </Style>
 </Styles>

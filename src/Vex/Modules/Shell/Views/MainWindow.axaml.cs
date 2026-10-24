@@ -10,6 +10,7 @@ using Vex.Core.Services;
 using Vex.Modules.Mcp.Services;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
+using Vex.Controls;
 
 namespace Vex.Modules.Shell.Views;
 
@@ -31,9 +32,11 @@ public partial class MainWindow : CodeWFWindow
         Grid.SetRowSpan(confirmation, 4); ShellGuideRoot.Children.Add(confirmation);
         WorkspaceViews = new WorkspaceViewController(this, ViewSurface, FloatingViewShelf);
         var separateViews = new MenuItem();
+        MenuIconCatalog.SetKey(separateViews, "panels-top-left");
         separateViews.Header = DesignSelectionControls.Text("WSSeparate");
         separateViews.Click += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Workbench.ShowLayouts = false; WorkspaceViews.Separate(); };
         LayoutTarget.ContextMenu = new ContextMenu { Items = { separateViews } };
+        MenuIconCatalog.Apply(LayoutTarget.ContextMenu);
         LayoutTarget.ContextMenu.Opening += (_, _) => separateViews.Header = DesignSelectionControls.Text("WSSeparate");
         SidebarSplitter.DragStarted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.BeginSidebarResize(); };
         SidebarSplitter.DragCompleted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.CompleteSidebarResize(); };

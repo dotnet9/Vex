@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using CodeWF.Toolkit.EventBus;
 using CodeWF.Avalonia.MindView.Markdown;
 using Vex.Core.Messaging;
+using Vex.Controls;
 using Vex.Modules.Shell.ViewModels;
 
 namespace Vex.Modules.Shell.Views;
@@ -11,6 +12,7 @@ public partial class ShellAuxiliaryPanelView : UserControl
     public ShellAuxiliaryPanelView()
     {
         InitializeComponent();
+        CollapseOutlineIcon.Data = MenuIconCatalog.Get("panel-right-close");
         AttachedToVisualTree += (_, _) => EventBus.Default.Subscribe(this);
         DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
     }

@@ -146,8 +146,8 @@ public sealed class WorkspaceViewController
             _renderCaption = caption; _renderLabel = label;
             var typography = new Button { Classes = { "wb-quiet" }, VerticalAlignment = VerticalAlignment.Center };
             typography.Bind(Button.CommandProperty, new Binding("Workbench.ToggleTypography"));
-            _renderTypographyPrefix = new TextBlock { Text = WorkbenchText.Get("Typography"), VerticalAlignment = VerticalAlignment.Center };
-            _renderTypographyName = new TextBlock { FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+            _renderTypographyPrefix = new TextBlock { Text = WorkbenchText.Get("Typography"), FontWeight = FontWeight.Normal, VerticalAlignment = VerticalAlignment.Center };
+            _renderTypographyName = new TextBlock { FontWeight = FontWeight.Normal, VerticalAlignment = VerticalAlignment.Center };
             var trigger = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
             trigger.Children.Add(_renderTypographyPrefix); trigger.Children.Add(_renderTypographyName);
             trigger.Children.Add(new global::Avalonia.Controls.Shapes.Path { Classes = { "expand-chevron" }, Data = Geometry.Parse("M6 9L12 15L18 9") });

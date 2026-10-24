@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using CodeWF.Toolkit.Lang;
 using Vex.Modules.Shell.ViewModels;
+using Vex.Controls;
 
 namespace Vex.Modules.Shell.Views;
 
@@ -12,7 +13,9 @@ public partial class ShellTitleMenuView : UserControl
     public ShellTitleMenuView()
     {
         InitializeComponent();
-        foreach (var item in ((Menu)Content!).Items.OfType<MenuItem>()) Configure(item, true);
+        var menu = (Menu)Content!;
+        MenuIconCatalog.Apply(menu);
+        foreach (var item in menu.Items.OfType<MenuItem>()) Configure(item, true);
         AttachedToVisualTree += (_, _) => I18nManager.Instance.CultureChanged += CultureChanged;
         DetachedFromVisualTree += (_, _) => I18nManager.Instance.CultureChanged -= CultureChanged;
     }

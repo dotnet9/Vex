@@ -686,7 +686,8 @@
       "DocumentStructure": "Document structure",
       "OutlineFilterPlaceholder": "Filter headings…",
       "CollapseAllFiles": "Collapse all folders",
-      "ToggleFileList": "Switch to List View",
+      "ToggleFileList": "Switch to flat view",
+      "ToggleFileTree": "Switch to tree view",
       "SortFiles": "Reverse name order",
       "OpenInNewWindow": "Open in new window",
       "FileActions": "File actions",
@@ -814,7 +815,7 @@
 
       "SidebarFilesRetry": "Retry",
       "StructureTitle": "Document Structure",
-      "CollapseStructure": "Collapse document structure",
+      "CollapseStructure": "Hide outline panel",
       "AuxiliaryInfo": "Article info",
       "AuxiliaryChapter": "Chapter details",
       "ChooseChapter": "Select a chapter",

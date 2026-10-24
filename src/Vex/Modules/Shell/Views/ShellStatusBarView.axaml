@@ -12,6 +12,7 @@
    <Setter Property="Background" Value="Transparent" />
    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
    <Setter Property="FontSize" Value="12" />
+   <Setter Property="FontWeight" Value="Normal" />
    <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
   <Style Selector="ToggleButton.corner-action:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -34,7 +35,7 @@
    <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
   </Style>
 
-  <!-- 对应原型 .workspace-layout-button：32px 高、6px 圆角、12px/550 居中。 -->
+  <!-- 对应原型 .workspace-layout-button：32px 高、6px 圆角、12px 常规字重居中。 -->
   <Style Selector="Button.sb-layout">
    <Setter Property="Height" Value="32" />
    <Setter Property="MinHeight" Value="0" />
@@ -45,7 +46,7 @@
    <Setter Property="Background" Value="Transparent" />
    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
    <Setter Property="FontSize" Value="12" />
-   <Setter Property="FontWeight" Value="SemiBold" />
+   <Setter Property="FontWeight" Value="Normal" />
    <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
   <Style Selector="Button.sb-layout:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -75,6 +76,7 @@
    <Setter Property="Background" Value="Transparent" />
    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
    <Setter Property="FontSize" Value="12" />
+   <Setter Property="FontWeight" Value="Normal" />
    <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
   <Style Selector="Button.view-segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -89,7 +91,7 @@
   </Style>
   <Style Selector="Button.view-segment.active">
    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
-   <Setter Property="FontWeight" Value="SemiBold" />
+   <Setter Property="FontWeight" Value="Normal" />
   </Style>
 
   <!-- 对应原型 .document-word-count：12px 静音文字，悬停转主题色。 -->
@@ -101,6 +103,7 @@
    <Setter Property="Background" Value="Transparent" />
    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
    <Setter Property="FontSize" Value="12" />
+   <Setter Property="FontWeight" Value="Normal" />
   </Style>
   <Style Selector="Button.sb-word:pointerover /template/ ContentPresenter#PART_ContentPresenter">
    <Setter Property="Background" Value="Transparent" />
@@ -132,7 +135,7 @@
   </Style>
   <Style Selector="Button.view-segment.active">
    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
-   <Setter Property="FontWeight" Value="SemiBold" />
+   <Setter Property="FontWeight" Value="Normal" />
    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
   </Style>
   <Style Selector="Button.view-segment:pointerover">

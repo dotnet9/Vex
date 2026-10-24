@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Vex.Core.Models;
 using Vex.Modules.Shell.ViewModels;
+using Vex.Controls;
 
 namespace Vex.Modules.Shell.Views;
 
@@ -16,6 +17,12 @@ public partial class ShellFilesView : UserControl
     public ShellFilesView()
     {
         InitializeComponent();
+        FilesModeIcon.Data = MenuIconCatalog.Get("list-tree");
+        FilesListModeIcon.Data = MenuIconCatalog.Get("grid-2x2");
+        FilesSortIcon.Data = MenuIconCatalog.Get("list");
+        FilesFoldIcon.Data = MenuIconCatalog.Get("chevrons-up");
+        MenuIconCatalog.Apply((ContextMenu)FileTree.ContextMenu!);
+        MenuIconCatalog.Apply((ContextMenu)FileList.ContextMenu!);
         // 隧道路由先于 TreeView 默认处理，文件夹行只响应一次左键操作。
         AddHandler(PointerPressedEvent, ToggleFolderOnPointerPressed, RoutingStrategies.Tunnel);
         FileTree.SelectionChanged += RevealSelectedItem;

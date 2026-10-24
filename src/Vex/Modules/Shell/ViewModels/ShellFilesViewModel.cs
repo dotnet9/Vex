@@ -43,6 +43,8 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     public ObservableCollection<DocumentFileNode> FlatDocumentFileNodes { get; } = [];
     public bool IsListView => _isListView;
     public bool IsTreeView => !_isListView;
+    /// <summary>提示下一次点击将切换到的文件显示模式。</summary>
+    public string DisplayModeHintKey => IsTreeView ? VexL.ToggleFileList : VexL.ToggleFileTree;
     public bool CanCollapseAll => IsTreeView && Enumerate(FilteredDocumentFileNodes).Any(node => node.IsFolder && node.IsExpanded);
     public bool HasPathCommandTarget => (_contextDocumentFileNode ?? SelectedDocumentFileNode) is { IsPlaceholder: false };
     public void NewDocument() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.NewDocument));
@@ -53,6 +55,7 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     {
         _isListView = !_isListView;
         OnPropertyChanged(nameof(IsListView)); OnPropertyChanged(nameof(IsTreeView)); OnPropertyChanged(nameof(CanCollapseAll));
+        OnPropertyChanged(nameof(DisplayModeHintKey));
         RebuildFilteredNodes();
         _settingsStore?.Update(settings => settings with { FileListView = _isListView });
     }

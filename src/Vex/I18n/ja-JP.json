@@ -686,7 +686,8 @@
       "DocumentStructure": "ドキュメント構造",
       "OutlineFilterPlaceholder": "見出しを絞り込み…",
       "CollapseAllFiles": "すべて折りたたむ",
-      "ToggleFileList": "リスト表示に切り替え",
+      "ToggleFileList": "フラット表示に切り替え",
+      "ToggleFileTree": "ツリー表示に切り替え",
       "SortFiles": "名前の並び順を切替",
       "OpenInNewWindow": "新しいウィンドウで開く",
       "FileActions": "ファイル操作",
@@ -814,7 +815,7 @@
 
       "SidebarFilesRetry": "再試行",
       "StructureTitle": "ドキュメント構造",
-      "CollapseStructure": "ドキュメント構造を折りたたむ",
+      "CollapseStructure": "アウトラインパネルを非表示",
       "AuxiliaryInfo": "記事情報",
       "AuxiliaryChapter": "章の詳細",
       "ChooseChapter": "章を選択",
