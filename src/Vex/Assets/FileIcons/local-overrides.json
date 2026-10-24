@@ -1,0 +1,17 @@
+{
+  "fileExtensions": {
+    "md": "markdown",
+    "markdown": "markdown",
+    "mdown": "markdown",
+    "txt": "document",
+    "axaml": "xaml",
+    "axaml.cs": "csharp",
+    "csproj": "visualstudio",
+    "slnx": "visualstudio"
+  },
+  "fileNames": {
+    "readme.md": "readme",
+    "directory.build.props": "visualstudio",
+    "directory.packages.props": "nuget"
+  }
+}

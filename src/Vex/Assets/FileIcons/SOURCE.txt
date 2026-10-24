@@ -1,0 +1,6 @@
+File icons are generated from Material Icon Theme.
+Package: material-icon-theme@5.35.0
+Repository: https://github.com/material-extensions/vscode-material-icon-theme
+License: MIT
+
+Runtime loads icons from this local folder. To add or override icons, add PNG files under icons/ and update icon-theme.json.
