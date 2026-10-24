@@ -49,7 +49,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
     private readonly List<McpEditSnapshot> _undoStack = [];
     private readonly List<McpEditSnapshot> _redoStack = [];
 
-    private sealed record McpEditSnapshot(string FilePath, string Markdown);
+    private sealed record McpEditSnapshot(string? FilePath, string Markdown);
 
     public McpToolDispatcher(
         MainWindowViewModel shell,
