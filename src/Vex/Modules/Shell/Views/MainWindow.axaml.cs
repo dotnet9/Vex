@@ -97,6 +97,7 @@ public partial class MainWindow : CodeWFWindow
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
+        InstallCaptionIcons(e.NameScope);
         _toastPublisher?.Install(e.NameScope.Find<VisualLayerManager>("PART_VisualLayerManager"));
     }
 
