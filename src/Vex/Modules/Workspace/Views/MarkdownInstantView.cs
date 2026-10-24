@@ -182,6 +182,16 @@ public sealed class MarkdownInstantView : UserControl
     {
         if (_workbench?.IsInstantEditing == true) Editor.NavigateToSourceLine(command.Line);
     }
+
+    [EventHandler]
+    public void OnDocumentSwitched(MarkdownDocumentSwitchedCommand command)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            var scroll = Editor?.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+            if (scroll is not null) scroll.Offset = new Avalonia.Vector(scroll.Offset.X, 0);
+        }, DispatcherPriority.Loaded);
+    }
     private void Attach()
     {
         var layout = (DataContext as MainWindowViewModel)?.Layout;

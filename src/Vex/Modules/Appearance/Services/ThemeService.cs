@@ -3,6 +3,7 @@ using Avalonia;
 using CodeWF.Avalonia.Controls.Themes;
 using Vex.Core.Models;
 using Vex.Core.Services;
+using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Appearance.Services;
 
@@ -11,6 +12,7 @@ public sealed class ThemeService : IThemeService, IDisposable
 {
     private StudioThemeController? _controller;
     private PaletteOption[]? _palettes;
+    private readonly IShellToastPublisher? _toastPublisher;
     private readonly IAppSettingsStore? _settings;
     private static readonly ThemeOption[] Modes =
     [
@@ -19,7 +21,11 @@ public sealed class ThemeService : IThemeService, IDisposable
         new("dark", StudioThemeMode.Dark),
     ];
 
-    public ThemeService(IAppSettingsStore settings) => _settings = settings;
+    public ThemeService(IAppSettingsStore settings, Modules.Shell.Services.IShellToastPublisher? toastPublisher = null)
+    {
+        _settings = settings;
+        _toastPublisher = toastPublisher;
+    }
 
     private StudioThemeController Controller => _controller ??= new StudioThemeController(Application.Current);
 
@@ -45,6 +51,27 @@ public sealed class ThemeService : IThemeService, IDisposable
         var controller = Controller;
         controller.PaletteKey = palette.Key;
         controller.Mode = theme.Mode;
+        if (palette.Key.StartsWith("user:", StringComparison.Ordinal)) AuditCustomPalette(palette, theme.Mode == StudioThemeMode.Dark);
+    }
+
+    /// <summary>明暗切换后复核用户自定义色板对比度（规则 §5），不达标经 Toast 提示。</summary>
+    private void AuditCustomPalette(PaletteOption palette, bool dark)
+    {
+        if (_toastPublisher is null) return;
+        var baseColors = dark ? palette.Definition.Dark : palette.Definition.Light;
+        var paper = Avalonia.Media.Color.Parse(baseColors.Paper);
+        var accent = Avalonia.Media.Color.Parse(baseColors.Accent);
+        var ink = Avalonia.Media.Color.Parse(baseColors.Ink);
+        var muted = CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.Derive(palette.Key, palette.Definition, dark)["StudioMutedColor"];
+        var issues = new System.Collections.Generic.List<string>();
+        if (CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.ContrastRatio(ink, paper) < 10) issues.Add("正文对比度不足");
+        if (CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.ContrastRatio(muted, paper) < 4.5) issues.Add("次要文字对比度不足");
+        if (CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.ContrastRatio(accent, paper) < 4.5) issues.Add("强调色对比度不足");
+        if (issues.Count > 0)
+        {
+            _toastPublisher.Publish($"自定义配色「{palette.Name}」({(dark ? "深色" : "浅色")})：{string.Join("；", issues)}",
+                Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
     }
 
     public string RegisterCustomPalette(string key, string name, string note,

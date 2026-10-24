@@ -242,6 +242,16 @@ public partial class MarkdownPreviewView : UserControl
     /// 因此按事件序号判断是否为一次新的跳转，保证「点一次就到我这里」。
     /// </summary>
     [EventHandler]
+    private void OnDocumentSwitched(MarkdownDocumentSwitchedCommand command)
+    {
+        _restoringScrollPosition = false;
+        _savedReadingPosition = null;
+        _lastReadingPositionSampleTick = 0;
+        Dispatcher.UIThread.Post(() => { if (!_viewModel?.IsPresenting ?? false) PreviewScrollViewer.Offset = default; },
+            DispatcherPriority.Loaded);
+    }
+
+    [EventHandler]
     private void OnNavigateToLine(NavigateToLineCommand command)
     {
         if (command.Sequence == _appliedNavigationSequence || _viewModel is null)

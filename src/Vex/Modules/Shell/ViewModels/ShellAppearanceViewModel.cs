@@ -69,6 +69,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
                               ?? TypographyOptions.FirstOrDefault();
         _isCompactLayout = settings.IsCompactLayout ?? false;
         _selectedDensity = settings.UiDensity is "compact" or "relaxed" ? settings.UiDensity : "normal";
+        ApplyUiDensity(_selectedDensity);
         // 未落盘的旧设置用 IsCompactLayout 迁移出初始档，保持升级前后正文大小一致。
         _markdownDensity = settings.MdSize is "compact" or "normal" or "relaxed"
             ? settings.MdSize
@@ -147,7 +148,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         }
     }
 
-    /// <summary>界面密度三档（对应原型 data-density）；当前仅持久化选择，控件令牌全面接入见验收文档缺口。</summary>
+    /// <summary>界面密度三档（对应原型 data-density）：切档即把 density.css 的显式值表写入应用资源。</summary>
     public string SelectedDensity
     {
         get => _selectedDensity;
@@ -156,9 +157,38 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             if (value is not ("compact" or "normal" or "relaxed")) return;
             if (SetProperty(ref _selectedDensity, value))
             {
+                ApplyUiDensity(value);
                 PersistAppearanceSettings();
             }
         }
+    }
+
+    /// <summary>UI 密度令牌（规则 §6 显式值表）：字号/控件高/间距/圆角写入应用资源供全控件消费。</summary>
+    private static void ApplyUiDensity(string density)
+    {
+        if (global::Avalonia.Application.Current is not { } app) return;
+        var (caption, body, subtitle, title, display, hSm, hMd, hLg, padSm, padMd, padLg, radSm, radMd, radLg, rowH, icon) = density switch
+        {
+            "compact" => (11.0, 12.0, 14.0, 17.0, 22.0, 24.0, 28.0, 34.0, 4.0, 8.0, 12.0, 4.0, 6.0, 8.0, 26.0, 14.0),
+            "relaxed" => (12.0, 15.0, 17.0, 21.0, 28.0, 32.0, 36.0, 44.0, 8.0, 12.0, 18.0, 8.0, 10.0, 12.0, 36.0, 18.0),
+            _ => (12.0, 14.0, 16.0, 20.0, 26.0, 28.0, 32.0, 38.0, 6.0, 10.0, 14.0, 6.0, 8.0, 10.0, 30.0, 16.0),
+        };
+        app.Resources["VexDensityFontSizeCaption"] = caption;
+        app.Resources["VexDensityFontSizeBody"] = body;
+        app.Resources["VexDensityFontSizeSubtitle"] = subtitle;
+        app.Resources["VexDensityFontSizeTitle"] = title;
+        app.Resources["VexDensityFontSizeDisplay"] = display;
+        app.Resources["VexDensityControlHeightSm"] = hSm;
+        app.Resources["VexDensityControlHeightMd"] = hMd;
+        app.Resources["VexDensityControlHeightLg"] = hLg;
+        app.Resources["VexDensityPaddingSm"] = padSm;
+        app.Resources["VexDensityPaddingMd"] = padMd;
+        app.Resources["VexDensityPaddingLg"] = padLg;
+        app.Resources["VexDensityCornerRadiusSm"] = radSm;
+        app.Resources["VexDensityCornerRadiusMd"] = radMd;
+        app.Resources["VexDensityCornerRadiusLg"] = radLg;
+        app.Resources["VexDensityRowHeight"] = rowH;
+        app.Resources["VexDensityIconSize"] = icon;
     }
 
     /// <summary>Markdown 渲染密度三档（对应原型 data-mdsize，基准正文 13/15/17）。</summary>

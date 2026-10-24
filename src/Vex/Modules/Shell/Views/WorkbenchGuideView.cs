@@ -17,7 +17,8 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
 {
     private readonly WorkbenchGuideViewModel _vm = new();
     private readonly Spotlight _mask = new() { IsHitTestVisible = false };
-    private readonly Border _card = new() { Width = 320, Padding = new Thickness(18), CornerRadius = new CornerRadius(11), BorderThickness = new Thickness(1), BoxShadow = BoxShadows.Parse("0 16 60 0 #40000000") };
+    private readonly Border _brandBar = new() { Height = 6, VerticalAlignment = VerticalAlignment.Top };
+    private readonly Border _card = new() { Width = 376, Padding = new Thickness(24, 22, 24, 20), CornerRadius = new CornerRadius(16), BorderThickness = new Thickness(0), BoxShadow = BoxShadows.Parse("0 24 70 0 #50000000"), ClipToBounds = true };
     private readonly ContentControl _bubbleHost = new() { IsVisible = false, IsHitTestVisible = false };
     private readonly Border _bubble = new() { Padding = new Thickness(12, 8), CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1) };
     private readonly TextBlock _bubbleText = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap, MaxWidth = 260 };
@@ -70,26 +71,35 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         stack.Children.Add(header);
         stack.Children.Add(_description); stack.Children.Add(_feedback);
         // 点状进度：每幕一颗，当前幕加长高亮（对应原型 story-dots），可点击直接跳幕。
-        var dotsRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        var dotsRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
         for (var i = 0; i < 6; i++)
         {
             var index = i;
-            var button = new Button { Height = 14, MinHeight = 0, MinWidth = 0, VerticalAlignment = VerticalAlignment.Center,
+            var button = new Button { Height = 16, MinHeight = 0, MinWidth = 0, VerticalAlignment = VerticalAlignment.Center,
                 Padding = new Thickness(0), Background = Brushes.Transparent, BorderThickness = new Thickness(0),
-                Content = new Border { Height = 6, Width = 8, CornerRadius = new CornerRadius(3) } };
+                Content = new Border { Height = 6, Width = 6, CornerRadius = new CornerRadius(3) } };
             button.Click += (_, _) => { if (IsVisible) _vm.StartAct(index); };
             _steps[i] = button; dotsRow.Children.Add(button);
         }
-        dotsRow.Children.Add(_counter);
+        var countText = new TextBlock { FontSize = 11, Opacity = 0.7, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) };
+        _counter = countText;
+        dotsRow.Children.Add(countText);
         stack.Children.Add(dotsRow);
-        // 动作行：左侧结束导览/跳过本段，右侧上一步 + 继续/下一步（主胶囊），无箭头。
-        var actions = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto,Auto"), ColumnSpacing = 8 };
+        // 动作行（对齐原型）：左「跳过本段」/ 右「继续」，文字按钮两端对齐。
+        var actions = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         _skipBottom.Click += (_, _) => { if (_vm.Phase == WorkbenchGuideViewModel.GuidePhase.Intro) Finish(); else _vm.SkipAct(); };
-        actions.Children.Add(_skipBottom);
-        Grid.SetColumn(_previous, 2); actions.Children.Add(_previous);
-        Grid.SetColumn(_next, 3); actions.Children.Add(_next);
+        Grid.SetColumn(_skipBottom, 0); actions.Children.Add(_skipBottom);
+        Grid.SetColumn(_next, 1); actions.Children.Add(_next);
         stack.Children.Add(actions);
         _card.Child = new ScrollViewer { Content = stack, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
+        // 顶部品牌渐变条（§15 全界面唯一渐变），随主题 accent 回放。
+        _brandBar.SetValue(Layoutable.MarginProperty, new Thickness(0));
+        _brandBar.Background = FindBrush("VexTitleGradBrush", "#7466E0");
+        var cardLayout = new Grid { RowDefinitions = new RowDefinitions("Auto,*") };
+        cardLayout.Children.Add(_brandBar);
+        var scroll = new ScrollViewer { Content = stack, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
+        Grid.SetRow(scroll, 1); cardLayout.Children.Add(scroll);
+        _card.Child = cardLayout;
         Children.Add(_mask); Children.Add(_card); Children.Add(_bubbleHost);
         _next.Click += (_, _) => _vm.Advance();
         _previous.Click += (_, _) => { if (_vm.CanGoPrevious) _vm.StartAct(_vm.StepIndex - 1); };

@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using System.Reactive.Linq;
 using CodeWF.Toolkit.EventBus;
 using Vex.Core.Messaging;
@@ -42,41 +43,81 @@ public partial class MarkdownMindMapHost : UserControl
             Content = BuildMapStyleButtonContent(),
         };
         ToolTip.SetTip(button, CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式");
-        var panel = new StackPanel { Spacing = 6, MinWidth = 168 };
-        var layoutsTitle = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, FontSize = 12, Margin = new Thickness(4, 2) };
-        var layoutList = new StackPanel { Spacing = 2 };
-        var stylesTitle = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, FontSize = 12, Margin = new Thickness(4, 6, 2, 2) };
-        var styleList = new StackPanel { Spacing = 2 };
+        // 对齐原型截图：标题栏（导图样式 + ×）→ 结构/风格双页签 → 卡片缩略图网格。
+        var panel = new StackPanel { Spacing = 10, MinWidth = 430 };
+        var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+        var headerTitle = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, FontSize = 14, VerticalAlignment = VerticalAlignment.Center };
+        var closeButton = new Button { Classes = { "vex-dismiss" }, Content = "×", Width = 26, Height = 26, Padding = new Thickness(0) };
+        header.Children.Add(headerTitle); Grid.SetColumn(closeButton, 1); header.Children.Add(closeButton);
+        panel.Children.Add(header);
+
+        var tabs = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,*"), ColumnSpacing = 4 };
+        var layoutTab = new RadioButton { GroupName = "map-popup-tab", Classes = { "map-popup-tab" }, Content = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapDisplay") ?? "结构" };
+        var styleTab = new RadioButton { GroupName = "map-popup-tab", Classes = { "map-popup-tab" }, Content = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "风格", IsChecked = true };
+        Grid.SetColumn(layoutTab, 0); tabs.Children.Add(layoutTab);
+        Grid.SetColumn(styleTab, 1); tabs.Children.Add(styleTab);
+        panel.Children.Add(tabs);
+
+        var layoutPage = new StackPanel { Spacing = 8 };
+        var stylePage = new StackPanel { Spacing = 8 };
+        panel.Children.Add(layoutPage); panel.Children.Add(stylePage);
+
+        var layoutCards = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 8, RowSpacing = 8 };
+        var styleCards = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 8, RowSpacing = 8 };
+        layoutPage.Children.Add(layoutCards); stylePage.Children.Add(styleCards);
+
+        var flyoutHost = new ContentControl();
+        var flyout = new Flyout { Content = flyoutHost, Placement = PlacementMode.BottomEdgeAlignedLeft };
+        closeButton.Click += (_, _) => flyout.Hide();
+
+        void ShowPage(bool layout)
+        {
+            layoutPage.IsVisible = layout; stylePage.IsVisible = !layout;
+            layoutTab.IsChecked = layout; styleTab.IsChecked = !layout;
+        }
+        layoutTab.Click += (_, _) => ShowPage(true);
+        styleTab.Click += (_, _) => ShowPage(false);
+
         var refresh = () =>
         {
             if (DataContext is not MainWindowViewModel shell) return;
             var vm = shell.Workbench;
-            layoutsTitle.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapDisplay") ?? "导图显示";
-            stylesTitle.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式";
-            layoutList.Children.Clear();
+            headerTitle.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式";
+            layoutCards.Children.Clear(); styleCards.Children.Clear();
             foreach (var key in ShellWorkbenchViewModel.MindMapLayoutKeys)
             {
                 var captured = key;
-                var item = new RadioButton { GroupName = "map-layout", Content = ShellWorkbenchViewModel.MindMapLayoutKeyLabel(key), Padding = new Thickness(8, 4), FontSize = 12.5 };
-                item.IsChecked = vm.MindMapLayout == key;
-                item.Click += (_, _) => vm.MindMapLayout = captured;
-                layoutList.Children.Add(item);
+                var selected = vm.MindMapLayout == key;
+                var card = new RadioButton
+                {
+                    GroupName = "map-layout", IsChecked = selected,
+                    Classes = { "map-style-card" },
+                    Content = BuildStyleCard(ShellWorkbenchViewModel.MindMapLayoutKeyLabel(key), selected, StyleGlyph(key, layout: true)),
+                };
+                card.Click += (_, _) => vm.MindMapLayout = captured;
+                Grid.SetRow(card, layoutCards.RowDefinitions.Count);
+                layoutCards.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+                Grid.SetColumn(card, layoutCards.Children.Count % 3);
+                layoutCards.Children.Add(card);
             }
-            styleList.Children.Clear();
             foreach (var key in ShellWorkbenchViewModel.MindMapStyleKeys)
             {
                 var captured = key;
-                var item = new RadioButton { GroupName = "map-style", Content = ShellWorkbenchViewModel.MindMapStyleKeyLabel(key), Padding = new Thickness(8, 4), FontSize = 12.5 };
-                item.IsChecked = vm.MindMapStyle == key;
-                item.Click += (_, _) => vm.MindMapStyle = captured;
-                styleList.Children.Add(item);
+                var selected = vm.MindMapStyle == key;
+                var card = new RadioButton
+                {
+                    GroupName = "map-style", IsChecked = selected,
+                    Classes = { "map-style-card" },
+                    Content = BuildStyleCard(ShellWorkbenchViewModel.MindMapStyleKeyLabel(key), selected, StyleGlyph(key, layout: false)),
+                };
+                card.Click += (_, _) => vm.MindMapStyle = captured;
+                Grid.SetRow(card, styleCards.RowDefinitions.Count);
+                styleCards.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+                Grid.SetColumn(card, styleCards.Children.Count % 3);
+                styleCards.Children.Add(card);
             }
         };
-        var content = new StackPanel { Spacing = 4 };
-        content.Children.Add(layoutsTitle); content.Children.Add(layoutList);
-        content.Children.Add(stylesTitle); content.Children.Add(styleList);
-        panel.Children.Add(content);
-        var flyout = new Flyout { Content = panel, Placement = PlacementMode.BottomEdgeAlignedLeft };
+        flyout.Opening += (_, _) => { refresh(); ShowPage(styleTab.IsChecked == true); flyoutHost.Content = panel; };
         flyout.Opening += (_, _) => refresh();
         button.Flyout = flyout;
         DataContextChanged += (_, _) => refresh();
@@ -276,4 +317,78 @@ public partial class MarkdownMindMapHost : UserControl
         CollapseBranchesButton.Content = WorkbenchText.Get(HasCollapsed(Map.Root) ? "WBExpand" : "WBCollapse");
         static bool HasCollapsed(MarkdownMindMapNode? node) => node is not null && (node.IsCollapsed || node.Children.Any(HasCollapsed));
     }
+
+    /// <summary>卡片缩略图线稿：双层树形示意（布局差异以方向表达，风格差异以描边/填充表达）。</summary>
+    private static StackPanel BuildStyleCard(string label, bool selected, (bool Vertical, bool Fill, bool Dashed) glyph)
+    {
+        var canvas = new Canvas { Width = 120, Height = 64, HorizontalAlignment = HorizontalAlignment.Center };
+        SolidColorBrush stroke = glyph.Fill ? new SolidColorBrush(Color.Parse("#8B7CF6")) : new SolidColorBrush(Color.Parse("#B0B0B8"));
+        var nodeFill = glyph.Fill ? (IBrush)new SolidColorBrush(Color.Parse("#ECE7FB")) : (IBrush)Brushes.White;
+        void Node(double x, double y, double w, double h, bool root)
+        {
+            var rect = new Border
+            {
+                Width = w, Height = h,
+                CornerRadius = new CornerRadius(glyph.Vertical ? 3 : 4),
+                BorderThickness = new Thickness(1.2),
+                BorderBrush = stroke,
+                Background = root ? new SolidColorBrush(Color.Parse("#3A3A40")) : nodeFill,
+            };
+            Canvas.SetLeft(rect, x); Canvas.SetTop(rect, y);
+            canvas.Children.Add(rect);
+        }
+        void Link(double x1, double y1, double x2, double y2)
+        {
+            var line = new Avalonia.Controls.Shapes.Path
+            {
+                Stroke = glyph.Fill ? stroke : new SolidColorBrush(Color.Parse("#B8B8C0")),
+                StrokeThickness = glyph.Fill ? 2 : 1.2,
+                Data = Geometry.Parse(glyph.Vertical
+                    ? $"M {x1},{y1} L {x2},{y2}"
+                    : $"M {x1},{y1} C {x1 + 14},{y1} {x2 - 14},{y2} {x2},{y2}"),
+            };
+            canvas.Children.Add(line);
+        }
+        if (glyph.Vertical)
+        {
+            Node(52, 6, 24, 10, root: true);
+            Link(64, 16, 24, 34); Link(64, 16, 64, 34); Link(64, 16, 100, 34);
+            Node(12, 34, 24, 10, false); Node(52, 34, 24, 10, false); Node(88, 34, 24, 10, false);
+            Node(12, 50, 24, 10, false); Node(88, 50, 24, 10, false);
+        }
+        else
+        {
+            Node(8, 26, 26, 11, root: true);
+            Link(34, 31, 52, 16); Link(34, 31, 52, 46); Link(34, 31, 52, 31);
+            Node(52, 10, 26, 11, false); Node(52, 40, 26, 11, false); Node(52, 25, 26, 11, false);
+            Link(78, 15, 94, 12); Link(78, 45, 94, 50); Link(78, 30, 94, 30);
+            Node(94, 6, 22, 10, false); Node(94, 45, 22, 10, false); Node(94, 25, 22, 10, false);
+        }
+        var name = new TextBlock { Text = label, FontSize = 11.5, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 4, 0, 0) };
+        var stack = new StackPanel { Spacing = 2 };
+        stack.Children.Add(canvas); stack.Children.Add(name);
+        return stack;
+    }
+
+    /// <summary>布局/风格的缩略线稿参数。</summary>
+    private static (bool Vertical, bool Fill, bool Dashed) StyleGlyph(string key, bool layout) => layout
+        ? key switch
+        {
+            "balanced" => (false, false, false),
+            "radial" => (true, false, false),
+            "down" => (true, false, false),
+            "outline" => (true, false, true),
+            "fishbone" => (false, false, true),
+            _ => (false, false, false),
+        }
+        : key switch
+        {
+            "colorful" => (false, true, false),
+            "outline" => (false, false, false),
+            "capsule" => (false, false, false),
+            "underline" => (false, false, false),
+            "mono" => (false, false, true),
+            _ => (false, false, false),
+        };
+
 }

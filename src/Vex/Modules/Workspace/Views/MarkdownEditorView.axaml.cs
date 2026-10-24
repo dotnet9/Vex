@@ -38,6 +38,20 @@ public partial class MarkdownEditorView : UserControl
                 new EditorSearchResultCommand(result.Message, result.CurrentIndex, result.TotalCount));
         MarkdownEditor.Navigated += (_, caret) =>
             ViewModel?.PublishSelectionChanged(caret.Line, caret.Column, caret.LineCount);
+        EventBus.Default.Subscribe<MarkdownDocumentSwitchedCommand>(OnDocumentSwitched);
+    }
+
+    private void OnDocumentSwitched(MarkdownDocumentSwitchedCommand command)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            var editor = MarkdownEditor.Editor;
+            if (editor.Document is null) return;
+            editor.CaretOffset = 0;
+            editor.TextArea.Caret.BringCaretToView();
+            var scroll = editor.FindAncestorOfType<ScrollViewer>(true);
+            if (scroll is not null) scroll.Offset = new Avalonia.Vector(scroll.Offset.X, 0);
+        }, DispatcherPriority.Loaded);
     }
 
     private MarkdownEditorViewModel? ViewModel => DataContext as MarkdownEditorViewModel;

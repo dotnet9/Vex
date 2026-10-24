@@ -797,7 +797,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     private void ApplyDocument(DocumentSnapshot snapshot, bool updateMarkdown = true, bool restoreDraft = true)
     {
         ++_documentOpenVersion;
-        if (!IsSameDocument(_document, snapshot))
+        var switchedFromOtherDocument = !IsSameDocument(_document, snapshot);
+        if (switchedFromOtherDocument)
         {
             _drafts.Clear(_document);
             Protection.SaveError = null;
@@ -828,6 +829,12 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         PublishWorkspaceDocumentState();
         StartCurrentFileWatcher();
         _text.PublishOpened(snapshot.FileName);
+        // 文件真实切换时广播，阅读/即时/源码视图把滚动条与光标复位到顶部。
+        if (switchedFromOtherDocument)
+        {
+            CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
+                new Vex.Core.Messaging.MarkdownDocumentSwitchedCommand(snapshot.FileName));
+        }
         if (updateMarkdown) Workbench.ResetHistory();
         if (restoreDraft) DiscoverRecoveryDraft(snapshot);
 

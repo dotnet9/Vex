@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- 与 StudioTheme 共用动态颜色令牌，不复制 Semi 的整套主题字典。 -->
     <SolidColorBrush x:Key="VexShellBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
-    <SolidColorBrush x:Key="VexPanelBackgroundBrush" Color="{DynamicResource StudioSurfaceColor}" />
+    <SolidColorBrush x:Key="VexPanelBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
     <SolidColorBrush x:Key="VexPanelBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <!-- 原型 .view-heading 底边：border 65% 透明度。 -->
     <SolidColorBrush x:Key="VexPaneHeadBorderBrush" Color="{DynamicResource StudioBorderColor}" Opacity="0.65" />
