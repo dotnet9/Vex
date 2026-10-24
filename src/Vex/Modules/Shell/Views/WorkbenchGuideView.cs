@@ -18,7 +18,8 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
     private readonly WorkbenchGuideViewModel _vm = new();
     private readonly Spotlight _mask = new() { IsHitTestVisible = false };
     private readonly Border _brandBar = new() { Height = 6, VerticalAlignment = VerticalAlignment.Top };
-    private readonly Border _card = new() { Width = 376, Padding = new Thickness(24, 22, 24, 20), CornerRadius = new CornerRadius(16), BorderThickness = new Thickness(0), BoxShadow = BoxShadows.Parse("0 24 70 0 #50000000"), ClipToBounds = true };
+    private readonly Border _arrow = new() { Width = 18, Height = 18, CornerRadius = new CornerRadius(3), BorderThickness = new Thickness(1), IsHitTestVisible = false };
+    private readonly Border _card = new() { Width = 376, Padding = new Thickness(24, 22, 24, 20), CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), BoxShadow = BoxShadows.Parse("0 24 70 0 #50000000"), ClipToBounds = false };
     private readonly ContentControl _bubbleHost = new() { IsVisible = false, IsHitTestVisible = false };
     private readonly Border _bubble = new() { Padding = new Thickness(12, 8), CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1) };
     private readonly TextBlock _bubbleText = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap, MaxWidth = 260 };
@@ -97,10 +98,11 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         _brandBar.Background = FindBrush("VexTitleGradBrush", "#7466E0");
         var cardLayout = new Grid { RowDefinitions = new RowDefinitions("Auto,*") };
         cardLayout.Children.Add(_brandBar);
+
         var scroll = new ScrollViewer { Content = stack, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
         Grid.SetRow(scroll, 1); cardLayout.Children.Add(scroll);
         _card.Child = cardLayout;
-        Children.Add(_mask); Children.Add(_card); Children.Add(_bubbleHost);
+        Children.Add(_mask); Children.Add(_card); Children.Add(_arrow); Children.Add(_bubbleHost);
         _next.Click += (_, _) => _vm.Advance();
         _previous.Click += (_, _) => { if (_vm.CanGoPrevious) _vm.StartAct(_vm.StepIndex - 1); };
         _vm.FinishRequested += Finish;
@@ -404,6 +406,8 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         }
         _card.MaxHeight = Math.Max(100, Bounds.Height - 40);
         _card.HorizontalAlignment = HorizontalAlignment.Left; _card.VerticalAlignment = VerticalAlignment.Top;
+        var arrowVisible = _vm.Phase != WorkbenchGuideViewModel.GuidePhase.Intro && highlights.Count > 0;
+        _arrow.IsVisible = arrowVisible;
         Rect placement;
         if (_vm.Phase == WorkbenchGuideViewModel.GuidePhase.Intro || highlights.Count == 0)
         {
@@ -426,6 +430,23 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         }
         _card.Margin = new Thickness(placement.X, placement.Y, 0, 0);
         _mask.Card = placement;
+
+        // 指向箭头：卡片贴目标侧时置于目标与卡片之间的缝隙，旋转 45° 菱形指向目标。
+        if (_arrow.IsVisible)
+        {
+            var cardRect = new Rect(placement.X, placement.Y, width, height);
+            var target = highlights[0];
+            var below = cardRect.Y >= target.Bottom;
+            var arrowSize = _arrow.Width;
+            var ax = Math.Clamp(target.X + target.Width / 2 - arrowSize / 2, cardRect.Left + 24, cardRect.Right - arrowSize - 24);
+            var ay = below ? cardRect.Top - arrowSize / 2 : cardRect.Bottom - arrowSize / 2;
+            _arrow.HorizontalAlignment = HorizontalAlignment.Left; _arrow.VerticalAlignment = VerticalAlignment.Top;
+            _arrow.Margin = new Thickness(ax, ay, 0, 0);
+            _arrow.RenderTransform = new RotateTransform(below ? 45 : 225);
+            var arrowBrush = FindBrush("VexPanelBackgroundBrush", "#FFFFFF");
+            _arrow.Background = arrowBrush;
+            _arrow.BorderBrush = FindBrush("VexPanelBorderBrush", "#DFE1EB");
+        }
 
         void AddTarget(Control control, List<Rect> list)
         {

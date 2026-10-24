@@ -82,6 +82,8 @@ public partial class MarkdownMindMapHost : UserControl
 
         var flyoutHost = new ContentControl();
         var flyout = new Flyout { Content = flyoutHost, Placement = PlacementMode.BottomEdgeAlignedLeft };
+        // 触发钮插入工具栏（对照源码旁，原型顺序），随工具条悬浮显示。
+        MapToolsRight.Children.Insert(MapToolsRight.Children.IndexOf(MapSourceButton) + 1, button);
         closeButton.Click += (_, _) => flyout.Hide();
 
         void ShowPage(bool layout)

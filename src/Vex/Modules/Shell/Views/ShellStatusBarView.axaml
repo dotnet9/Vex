@@ -88,9 +88,13 @@
    <Setter Property="BoxShadow" Value="0 1 4 #14000000" />
   </Style>
   <Style Selector="Button.view-segment.active">
-   <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
-   <Setter Property="FontWeight" Value="SemiBold" />
-  </Style>
+    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    </Style>
 
   <!-- 对应原型 .document-word-count：12px 静音文字，悬停转主题色。 -->
   <Style Selector="Button.sb-word">
@@ -111,7 +115,7 @@
   <!-- 对应原型 .view-switch：3px 内衬、1px 边框、8px 圆角、raised 底；选中段 accent 文字 + 面板底。
        R-10 精致化：高度/圆角/字号走密度令牌（规则 §6）。 -->
   <Style Selector="Border.view-switch">
-   <Setter Property="Padding" Value="3" />
+   <Setter Property="Padding" Value="4" />
    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
    <Setter Property="BorderThickness" Value="1" />
    <Setter Property="CornerRadius" Value="8" />
