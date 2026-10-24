@@ -158,12 +158,27 @@ public sealed class ShellActionCoordinator
     {
         var viewModel = new ShellQuickOpenViewModel(
             _shell.BuildQuickOpenItems(),
-            _localizer.Get(VexL.QuickOpen));
+            _localizer.Get(VexL.QuickOpen)) { IsLoading = true };
+        using var cancellation = new CancellationTokenSource();
+        var populate = PopulateQuickOpenAsync(viewModel, cancellation.Token);
         var path = await _overlay.ShowQuickOpenAsync(viewModel);
+        cancellation.Cancel();
+        await populate;
         if (!string.IsNullOrWhiteSpace(path))
         {
             await _shell.OpenStartupDocumentAsync([path]);
         }
+    }
+
+    private async Task PopulateQuickOpenAsync(ShellQuickOpenViewModel viewModel, CancellationToken cancellationToken)
+    {
+        try { viewModel.UpdateItems(await _shell.BuildQuickOpenItemsAsync(cancellationToken)); }
+        catch (OperationCanceledException) { }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            if (!cancellationToken.IsCancellationRequested) viewModel.LoadError = _localizer.Get(VexL.SidebarFilesLoadFailed);
+        }
+        finally { viewModel.IsLoading = false; }
     }
 
     private void ShowMcpSettings() => _ = _overlay.ShowPreferencesAsync(_preferences, "mcp");

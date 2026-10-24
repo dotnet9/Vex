@@ -787,6 +787,12 @@
       "TypographyPurposeYamabuki": "生活專欄 · 山吹暖底",
       "TypographyPurposeGeekBlack": "代码手册 · 等宽标题",
       "ClearSearch": "清除搜尋",
+
+      "SidebarFilesLoading": "正在載入…",
+
+      "SidebarFilesLoadFailed": "載入失敗",
+
+      "SidebarFilesRetry": "重試",
       "StructureTitle": "文檔結構",
       "CollapseStructure": "收起文檔結構",
       "AuxiliaryInfo": "文章資訊",

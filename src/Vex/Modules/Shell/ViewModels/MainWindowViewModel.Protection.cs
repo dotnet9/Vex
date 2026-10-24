@@ -45,19 +45,37 @@ public sealed partial class MainWindowViewModel
 
     public async Task CompareExternalAsync()
     {
-        if (Protection.External is not { } incoming) return;
-        var path = _document.FilePath;
-        var choice = await _overlays.ShowDocumentReviewAsync(new ShellDocumentReviewModel(_localizer, false,
-            incoming.FilePath ?? incoming.FileName, Markdown, incoming.Markdown,
-            async () => { await _documentService.SaveAsAsync(_document with { Markdown = Markdown }); }));
-        if (choice == DocumentReviewChoice.Cancel || !ReferenceEquals(Protection.External, incoming) || _document.FilePath != path) return;
-        Protection.External = null;
-        if (choice == DocumentReviewChoice.Keep) return;
-        _document = incoming;
-        _lastSavedMarkdown = incoming.Markdown;
-        // 通过统一内容通道载入，保留已有历史，撤销可找回载入前的内容。
-        Markdown = incoming.Markdown;
-        RefreshDocumentInfo();
-        RefreshDocumentFileInList(path!);
+        while (Protection.External is { } incoming)
+        {
+            CommitPendingEditsRequested?.Invoke(this, EventArgs.Empty);
+            var path = _document.FilePath;
+            var documentVersion = _documentOpenVersion;
+            var editRevision = _documentVersion;
+            var candidateRevision = _externalCandidateRevision;
+            var eventRevision = Interlocked.Read(ref _fileEventRevision);
+            var choice = await _overlays.ShowDocumentReviewAsync(new ShellDocumentReviewModel(_localizer, false,
+                incoming.FilePath ?? incoming.FileName, Markdown, incoming.Markdown,
+                async () => { CommitPendingEditsRequested?.Invoke(this, EventArgs.Empty); await _documentService.SaveAsAsync(_document with { Markdown = Markdown }); }));
+            if (choice == DocumentReviewChoice.Cancel || documentVersion != _documentOpenVersion || _document.FilePath != path) return;
+            CommitPendingEditsRequested?.Invoke(this, EventArgs.Empty);
+            // 弹窗期间输入或磁盘候选变化，旧决定失效，重新展示两个最新版本。
+            if (editRevision != _documentVersion || candidateRevision != _externalCandidateRevision
+                || !ReferenceEquals(Protection.External, incoming)) continue;
+            if (eventRevision != Interlocked.Read(ref _fileEventRevision))
+            {
+                await ReloadWatchedFileAsync();
+                continue;
+            }
+            if (Protection.HasFileReadError) return;
+            Protection.External = null;
+            if (choice == DocumentReviewChoice.Keep) return;
+            _document = incoming;
+            _lastSavedMarkdown = incoming.Markdown;
+            // 通过统一内容通道载入，保留已有历史，撤销可找回载入前的内容。
+            Markdown = incoming.Markdown;
+            RefreshDocumentInfo();
+            RefreshDocumentFileInList(path!);
+            return;
+        }
     }
 }

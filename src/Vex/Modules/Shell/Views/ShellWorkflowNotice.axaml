@@ -14,6 +14,10 @@
     <TextBlock Text="{Binding Protection.DraftError}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
     <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.RetrySave}}" Command="{Binding RetryDraft}"/>
    </Grid>
+   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasFileReadError}">
+    <TextBlock Text="{Binding Protection.FileReadError}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+    <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.SidebarFilesRetry}}" Command="{Binding RetryCurrentFileAsync}"/>
+   </Grid>
    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasSaveError}">
     <StackPanel Spacing="3"><TextBlock Text="{i18n:I18n {x:Static l:VexL.SaveFailureKept}}" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="{Binding Protection.SaveError}" TextWrapping="Wrap" Classes="wb-muted"/></StackPanel>
     <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.RetrySave}}" Command="{Binding RetrySaveAsync}" VerticalAlignment="Center"/>
