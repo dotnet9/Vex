@@ -46,7 +46,7 @@ dotnet run --project src/Vex/Vex.csproj -f net10.0 --no-restore "-p:ArtifactsPat
 
 版本与编译属性在 Directory.Build.props，NuGet 中央包版本在 Directory.Packages.props，SDK 由 global.json 选择。应用图标以根目录 logo.svg、logo.png、logo.ico 为源；共享库经 NuGet 消费，本地联调和五 RID NativeAOT 发布见开发文档。
 
-发布入口 `publish_all.bat` 默认只列出平台，与 `publish_all.bat list` 相同；传入 `Win`、`Linux`、`osx` 按本机架构发布安装包，也可指定完整 RID。Linux/macOS 使用 `pwsh ./publish.ps1 Linux` 或 `pwsh ./publish.ps1 osx`。NativeAOT 需在匹配的系统和架构上执行，详见 [发布流程](docs/安装与发布.md)。
+发布入口 `publish_all.bat` 默认只列出平台，与 `publish_all.bat list` 相同；传入 `Win`、`Linux`、`osx` 按本机架构发布安装包，也可指定完整 RID。`publish_all.bat all` 依次发布全部五个 RID，并为每个载荷生成 zip 与校验文件。Linux/macOS 使用 `pwsh ./publish.ps1 Linux` 或 `pwsh ./publish.ps1 osx`。NativeAOT 需在匹配的系统和架构上执行，详见 [发布流程](docs/安装与发布.md)。
 
 ## 许可证
 
