@@ -10,23 +10,59 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+function Update-ProjectVersion {
+    param(
+        [Parameter(Mandatory)] [string] $PropsPath,
+        [string] $RequestedVersion
+    )
+
+    $bytes = [IO.File]::ReadAllBytes($PropsPath)
+    $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
+    $offset = if ($hasBom) { 3 } else { 0 }
+    $text = [Text.Encoding]::UTF8.GetString($bytes, $offset, $bytes.Length - $offset)
+    $match = [regex]::Match($text, '<Version>(?<version>\d+\.\d+\.\d+(?:\.\d+)?)</Version>')
+    if (-not $match.Success) { throw "Directory.Build.props does not contain a numeric Version." }
+    $current = $match.Groups['version'].Value
+    $requested = $RequestedVersion.Trim().TrimStart('v', 'V')
+    if ([string]::IsNullOrWhiteSpace($requested)) {
+        $parts = $current.Split('.')
+        $parts[-1] = [string]([int] $parts[-1] + 1)
+        $next = $parts -join '.'
+    }
+    else {
+        if ($requested -notmatch '^\d+\.\d+\.\d+(?:\.\d+)?$') {
+            throw "Version must be three or four numeric parts: $RequestedVersion"
+        }
+        $next = $requested
+    }
+    if ($next -eq $current) { throw "Version $current is already current. Omit -Version to bump it, or pass a different version." }
+
+    $updated = [regex]::Replace($text, '<Version>[^<]+</Version>', "<Version>$next</Version>", 1)
+    $encoding = [Text.UTF8Encoding]::new($hasBom)
+    [IO.File]::WriteAllText($PropsPath, $updated, $encoding)
+    Write-Host "Version updated: $current -> $next"
+    return $next
+}
+
 $platforms = [ordered]@{
     win = @('win-x64')
     linux = @('linux-x64', 'linux-arm64')
     osx = @('osx-x64', 'osx-arm64')
 }
 [xml] $props = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Directory.Build.props'))
-if (-not $Version) { $Version = [string] $props.Project.PropertyGroup.Version }
+$displayVersion = if ($Version) { $Version } else { [string] $props.Project.PropertyGroup.Version }
 $target = $Platform.Trim().ToLowerInvariant()
 if ($target -eq 'list') {
-    Write-Output "Vex $Version - available release platforms:"
+    Write-Output "Vex $displayVersion - available release platforms:"
     foreach ($name in $platforms.Keys) {
         Write-Output ('  {0,-7} {1}' -f $name, ($platforms[$name] -join ', '))
     }
     Write-Output ''
     Write-Output 'Usage: publish_all.bat [list|Win|Linux|osx|RID] [options]'
-    Write-Output '       pwsh ./publish.ps1 [list|Win|Linux|osx|RID] [options]'
+    Write-Output '       pwsh ./publish.ps1 [list|Win|Linux|osx|RID] [-Version x.y.z] [options]'
     Write-Output 'Platform names select the current OS architecture; an exact RID selects one release.'
+    Write-Output 'A release updates Directory.Build.props before packaging. Omit -Version to bump the last number.'
     Write-Output 'NativeAOT releases require the matching OS/architecture and PowerShell 7.'
     Write-Output 'Windows: EXE installer; Linux: DEB; macOS: DMG. No arguments only lists platforms.'
     return
@@ -45,10 +81,9 @@ if ($targetPlatform[0] -ne $hostPlatform -or $runtimeIdentifier -ne "$hostPlatfo
 if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'Publishing requires PowerShell 7 (pwsh). Listing platforms works in Windows PowerShell.' }
 if (-not (Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue)) { throw 'Publishing requires the .NET 10 SDK.' }
 if ($hostPlatform -ne 'win' -and $InnoSetupCompiler) { throw '-InnoSetupCompiler is only valid for Windows.' }
-if ($hostPlatform -eq 'osx' -and $Version -ne [string] $props.Project.PropertyGroup.Version) {
-    throw 'The macOS package version must match Directory.Build.props.'
-}
 
+$propsPath = Join-Path $PSScriptRoot 'Directory.Build.props'
+$Version = Update-ProjectVersion -PropsPath $propsPath -RequestedVersion $Version
 $packageParameters = @{ Version = $Version }
 if ($WorkRoot) { $packageParameters.WorkRoot = [IO.Path]::GetFullPath($WorkRoot) }
 if ($OutputDirectory) { $packageParameters.OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory) }
