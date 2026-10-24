@@ -51,8 +51,8 @@ public static class TableTools
         copy.Click += async (_, _) =>
         {
             var markdown = ToMarkdown(Extract(container));
-            if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime { MainWindow: { } main })
-                await main.Clipboard.SetTextAsync(markdown);
+            if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime { MainWindow.Clipboard: { } clipboard })
+                await clipboard.SetTextAsync(markdown);
         };
         csv.Click += async (_, _) =>
         {
