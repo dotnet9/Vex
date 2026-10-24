@@ -38,10 +38,10 @@
     <AvaloniaResource Include="..\..\logo.png" Link="Assets\logo.png" />
     <AvaloniaResource Include="..\..\logo.svg" Link="Assets\logo.svg" />
     <TrimmerRootDescriptor Include="Properties\Trimming\TrimmerRoots.xml" />
-    <Content Include="..\..\docs\更新日志.md" Link="docs\更新日志.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="..\..\docs\快速开始.md" Link="docs\快速开始.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="..\..\docs\鸣谢.md" Link="docs\鸣谢.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="..\..\docs\演示文档\**\*" Link="docs\演示文档\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\更新日志.md" Link="docs\更新日志.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
+    <Content Include="..\..\docs\快速开始.md" Link="docs\快速开始.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
+    <Content Include="..\..\docs\鸣谢.md" Link="docs\鸣谢.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
+    <Content Include="..\..\docs\演示文档\**\*" Link="docs\演示文档\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" />
