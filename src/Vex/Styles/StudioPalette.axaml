@@ -43,7 +43,7 @@
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidBorder" Color="#B8A7DF" />
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidSurface" Color="#EEEAFD" />
             <x:String x:Key="CodeWFMarkdownMermaidDataPalette">#8B7CF6,#D9AD53,#70A98B,#C583B5,#62A5C2,#D58585,#7E9ECB,#A9B568</x:String>
-            <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#EEEAFD,#FFF4D6,#E5F2E5,#F5E4F1,#E0F0F7,#FAE6E3,#E7EEF9,#EFF2D9</x:String>
+            <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#7466E0,#D9AD53,#70A98B,#C583B5,#62A5C2,#D58585,#7E9ECB,#A9B568</x:String>
             <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="#FFFFFF" />
             <!-- 原型 elevated 令牌：弹层/对话框浮起底色（surface 88% + panel 12%）。 -->
             <SolidColorBrush x:Key="VexElevatedBackgroundBrush" Color="#FCFCFC" />
@@ -68,7 +68,7 @@
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidBorder" Color="#8C7DA9" />
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidSurface" Color="#38304E" />
             <x:String x:Key="CodeWFMarkdownMermaidDataPalette">#B6A6FF,#E8C778,#93CFAC,#DFA2D0,#8AC8E0,#E8AAA3,#A7BFE7,#C4CE8E</x:String>
-            <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#71628F,#897444,#547C65,#855A79,#4D778A,#8B5D5D,#5C7194,#737D50</x:String>
+            <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#B6A6FF,#E8C778,#93CFAC,#DFA2D0,#8AC8E0,#E8AAA3,#A7BFE7,#C4CE8E</x:String>
             <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="#202124" />
             <SolidColorBrush x:Key="VexElevatedBackgroundBrush" Color="#1F2021" />
             <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="#202124" />

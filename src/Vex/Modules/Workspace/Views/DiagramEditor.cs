@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Input;
 using Avalonia.Media;
 using Vex.Core.Services;
@@ -23,7 +24,7 @@ public static class DiagramEditor
     private static Control? _openContent;
     private static Action? _closeActive;
 
-    /// <summary>给阅读视图挂上图表原位编辑；重复调用安全。</summary>
+    /// <summary>给阅读视图挂上图表交互：点图表切换源码卡片（对齐原型），卡片内“编辑”进入原位编辑；重复调用安全。</summary>
     public static void Attach(Control root)
     {
         var index = 0;
@@ -34,8 +35,77 @@ public static class DiagramEditor
             border.Cursor = new Cursor(StandardCursorType.Hand);
             if (border.GetValue(AttachedProperty)) continue;
             border.SetValue(AttachedProperty, true);
-            ToolTip.SetTip(border, "点击编辑图表源码");
-            border.Tapped += (_, _) => OpenInPlace(root, border, fenceIndex);
+
+            // 结构对齐原型：源码卡片（默认折叠）+ 原内容 + mermaid 徽标（预览右上角悬浮）。
+            var original = border.Child;
+            var sourceCard = new Border
+            {
+                IsVisible = false,
+                Padding = new Thickness(14, 12),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+            };
+            if (Application.Current is { } app)
+            {
+                sourceCard.Bind(Border.BackgroundProperty, app.GetResourceObservable("VexTableStripeBrush"));
+                sourceCard.Bind(Border.BorderBrushProperty, app.GetResourceObservable("VexTableBorderBrush"));
+            }
+            var sourceText = new TextBlock
+            {
+                FontFamily = VexFonts.Code,
+                FontSize = 13.5,
+                LineHeight = 24,
+                TextWrapping = TextWrapping.NoWrap,
+                Text = GetFenceSource(root.GetVisualDescendants().OfType<MarkdownViewer>().FirstOrDefault()?.Markdown ?? string.Empty, fenceIndex) ?? string.Empty,
+            };
+            sourceCard.Child = new ScrollViewer
+            {
+                HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
+                Content = sourceText,
+            };
+            var editButton = new Button
+            {
+                Content = "编辑",
+                FontSize = 11.5,
+                Padding = new Thickness(10, 3),
+                HorizontalAlignment = HorizontalAlignment.Right,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+            };
+            editButton.Tapped += (_, _) =>
+            {
+                sourceCard.IsVisible = false;
+                OpenInPlace(root, border, fenceIndex);
+            };
+            sourceCard.Child = new StackPanel { Spacing = 8, Children = { sourceText, editButton } };
+
+            var badge = new Button
+            {
+                Content = "mermaid",
+                FontSize = 12,
+                Padding = new Thickness(12, 3),
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 10, 10, 0),
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+            };
+            ToolTip.SetTip(badge, "查看 / 隐藏源码");
+
+            var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto") };
+            Grid.SetRow(sourceCard, 0);
+            Grid.SetRow(original, 1);
+            layout.Children.Add(sourceCard);
+            layout.Children.Add(original);
+            Grid.SetRow(badge, 1);
+            layout.Children.Add(badge);
+            border.Child = layout;
+
+            void Toggle()
+            {
+                sourceCard.IsVisible = !sourceCard.IsVisible;
+            }
+            badge.Tapped += (_, _) => Toggle();
+            border.Tapped += (_, _) => Toggle();
         }
     }
 
@@ -152,6 +222,7 @@ public static class DiagramEditor
 
     private static readonly AttachedProperty<string?> OpenMarkdownProperty =
         AvaloniaProperty.RegisterAttached<Border, string?>("DiagramOpenMarkdown", typeof(DiagramEditor));
+
 
     /// <summary>按文档顺序取第 index 个 mermaid 围栏；越界返回 null。</summary>
     public static string? GetFenceSource(string markdown, int index)

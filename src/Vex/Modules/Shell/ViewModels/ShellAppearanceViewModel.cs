@@ -73,6 +73,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         _markdownDensity = settings.MdSize is "compact" or "normal" or "relaxed"
             ? settings.MdSize
             : (settings.IsCompactLayout == true ? "compact" : "normal");
+        ApplyDiagramDensity(_markdownDensity);
         _selectedLanguage = FindLanguage(GetInitialCulture(settings.CultureName));
         if (_selectedTheme is not null)
         {
@@ -172,8 +173,24 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
                 OnPropertyChanged(nameof(CurrentTypographySize));
                 PublishTypographyState();
                 PersistAppearanceSettings();
+                ApplyDiagramDensity(value);
             }
         }
+    }
+
+    /// <summary>把渲染密度传导给 Mermaid 图表（Mermaider FontSize/间距，规则 §11 图表与正文同档）。</summary>
+    private static void ApplyDiagramDensity(string density)
+    {
+        if (global::Avalonia.Application.Current is not { } app) return;
+        var (fontSize, nodeSpacing, layerSpacing) = density switch
+        {
+            "compact" => (12.0, 22.0, 24.0),
+            "relaxed" => (15.5, 34.0, 38.0),
+            _ => (13.5, 28.0, 30.0),
+        };
+        app.Resources["CodeWFMarkdownMermaidFontSize"] = fontSize;
+        app.Resources["CodeWFMarkdownMermaidNodeSpacing"] = nodeSpacing;
+        app.Resources["CodeWFMarkdownMermaidLayerSpacing"] = layerSpacing;
     }
 
     /// <summary>新增（key 为空）或编辑用户排版：注册后刷新目录并选中，随设置持久化。</summary>
