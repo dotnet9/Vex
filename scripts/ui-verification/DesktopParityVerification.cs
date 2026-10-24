@@ -72,22 +72,26 @@ internal static class DesktopParityVerification
         restoredOutline.ApplyOutlineItemsChanged(new OutlineItemsChangedCommand([
             new(1, "第一章", 3), new(3, "细节", 6), new(3, "补充", 9), new(2, "第二节", 12), new(1, "下一章", 14)]));
         Check(restoredOutline.FilteredOutlineItems.Count == 2, "New outline instance restores collapse after source lines shift");
-        var navigation = app.Resolve<ShellFilesViewModel>();
+        var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
+        var productionFiles = filesView.DataContext;
+        using var navigation = new ShellFilesViewModel(app.Resolve<IAppSettingsStore>());
+        filesView.DataContext = navigation;
         var root = Path.Combine(output, "navigation");
         var documents = new[] {
             new DocumentFile(Path.Combine(root, "folder", "alpha.md"), "alpha.md", "folder", "", "first"),
             new DocumentFile(Path.Combine(root, "zeta.md"), "zeta.md", "navigation", "", "second") };
         navigation.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(documents, workspaceRootPath: root)); Render();
-        Check(!navigation.CanCollapseAll && !navigation.DocumentFileNodes[0].IsExpanded, "New file workspace starts collapsed");
-        navigation.DocumentFileNodes[0].IsExpanded = true; Render();
+        Check(navigation.CanCollapseAll && navigation.DocumentFileNodes[0].IsExpanded
+            && navigation.DocumentFileNodes[0].Children.Where(node => node.IsFolder).All(node => !node.IsExpanded),
+            "New file workspace expands only its root");
         Check(navigation.CanCollapseAll, "Expanded folders enable collapse action");
         navigation.CollapseAll(); Render();
         Check(!navigation.CanCollapseAll && !navigation.DocumentFileNodes[0].IsExpanded, "Collapse updates actual tree expansion state");
         navigation.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(documents, workspaceRootPath: root));
-        Check(!navigation.DocumentFileNodes[0].IsExpanded, "Folder refresh preserves collapsed state");
-        var restoredNavigation = new ShellFilesViewModel(app.Resolve<IAppSettingsStore>());
+        Check(!navigation.DocumentFileNodes[0].IsExpanded, "Folder refresh preserves the manually collapsed root state");
+        using var restoredNavigation = new ShellFilesViewModel(app.Resolve<IAppSettingsStore>());
         restoredNavigation.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(documents, workspaceRootPath: root));
-        Check(!restoredNavigation.DocumentFileNodes[0].IsExpanded, "New file navigation instance restores collapsed folders from settings");
+        Check(restoredNavigation.DocumentFileNodes[0].IsExpanded, "New file navigation starts with the root expanded despite old collapse settings");
         navigation.ToggleListView(); Render();
         Check(navigation.IsListView && navigation.FlatDocumentFileNodes.Count == 2, "List view flattens nested files");
         navigation.ToggleSort();
@@ -105,5 +109,6 @@ internal static class DesktopParityVerification
         Check(layout.ShowOutlineSidebar && new ShellWindowLayoutViewModel(app.Resolve<IAppSettingsStore>(), app.Resolve<IShellStatusPublisher>()).IsOutlineVisible,
             "The outline sidebar is a single panel without tabs and its visibility persists");
         Render(); window.CaptureRenderedFrame()?.Save(Path.Combine(output, "desktop-outline.png"));
+        filesView.DataContext = productionFiles;
     }
 }

@@ -9,6 +9,7 @@ using Vex.Core.Messaging;
 using Vex.Core.Models;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
+using Vex.Modules.Shell.Views;
 
 internal static class FileIconVerification
 {
@@ -54,7 +55,10 @@ internal static class FileIconVerification
             && Path.GetFileName(catalog.ResolveIconFilePath("settings.toml", false)) == "toml.png", "Theme-specific light variants resolve independently");
 
         VerifyOverridesAndFailures(iconRoot, output, Check);
-        var files = app.Resolve<ShellFilesViewModel>();
+        var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
+        var productionFiles = filesView.DataContext;
+        using var files = new ShellFilesViewModel();
+        filesView.DataContext = files;
         var samples = new[] { "note.md", "README.md", "plain.txt", "snippet.axaml.cs", "settings.toml", "unknown.vex-unmapped" }
             .Select(name => new DocumentFile(Path.Combine(output, "docs", name), name, "docs", "", "Icon verification")).ToArray();
         files.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(samples, samples[0], output));
@@ -85,6 +89,7 @@ internal static class FileIconVerification
                 .All(image => image.Bounds.Width == 12 && image.Bounds.Height == 12), "Themed icons preserve compact 12 px layout");
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "file-icons-" + themeName + ".png"), new PngBitmapEncoderOptions());
         }
+        filesView.DataContext = productionFiles;
     }
 
     private static void VerifyOverridesAndFailures(string iconRoot, string output, Action<bool, string> check)

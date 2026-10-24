@@ -6,7 +6,7 @@ using Vex.Core.Services;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Workspace.Services;
 
-/// <summary>通过真实打开和磁盘事件记录文件树扫描范围，不改变产品加载策略。</summary>
+/// <summary>以真实工作区和磁盘事件验证按层加载、缓存和监控的读取范围。</summary>
 internal static class FileTreeLoadingProbe
 {
     public static void Run(VerificationVexApp app, Window window, string output)
@@ -56,46 +56,102 @@ internal static class FileTreeLoadingProbe
         var factory = (ProbeDocumentFileFactory)app.Resolve<IDocumentFileFactory>();
         var main = (MainWindowViewModel)window.DataContext!;
         var tree = app.Resolve<ShellFilesViewModel>();
+        var collectionChangesOffUiThread = 0;
+        tree.DocumentFileNodes.CollectionChanged += TrackCollection;
+        void TrackCollection(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs args)
+        {
+            if (!Dispatcher.UIThread.CheckAccess()) Interlocked.Increment(ref collectionChangesOffUiThread);
+            if (args.NewItems is null) return;
+            foreach (DocumentFileNode node in args.NewItems)
+            {
+                node.Children.CollectionChanged += TrackCollection;
+            }
+        }
+        if (tree.IsListView) { tree.ToggleListView(); Pump(); }
+        tree.FilterText = string.Empty;
+        var service = (WorkspaceFileService)app.Resolve<IWorkspaceFileService>();
         var before = factory.CreateCount;
+        var previewBefore = factory.PreviewReadCount;
+        var diagnostics = service.Diagnostics;
         var watch = Stopwatch.StartNew();
         Pump(main.OpenStartupDocumentAsync([workspace]));
+        Until(() => tree.DocumentFileNodes.Count == 1 && tree.DocumentFileNodes[0].Children.Count == 9);
         watch.Stop();
+        var root = tree.DocumentFileNodes.Single();
         Report($"INITIAL: disk documents=241; factory calls={factory.CreateCount - before}; model documents={CountFiles(tree.DocumentFileNodes)}; root expanded={tree.DocumentFileNodes[0].IsExpanded}; elapsed={watch.Elapsed.TotalMilliseconds:F1}ms");
-        if (factory.CreateCount - before != 241 || CountFiles(tree.DocumentFileNodes) != 241 || tree.DocumentFileNodes[0].IsExpanded)
-            throw new InvalidOperationException("Unexpected initial loading observation.");
-        Report($"PREVIEWS: populated={main.DocumentFiles.Count(file => file.Preview.Length > 0)}; first-level documents=1; nested documents=240");
+        Check(factory.CreateCount - before == 1 && CountFiles(tree.DocumentFileNodes) == 1 && root.IsExpanded,
+            "Opening 241 documents loads only the root's direct file and expands only the root");
+        Check(root.Children.Where(node => node.IsFolder).All(node => !node.IsExpanded), "Every child folder starts collapsed");
+        Check(service.Diagnostics.DirectoryEnumerationCount - diagnostics.DirectoryEnumerationCount == 1,
+            "The initial tree enumerates exactly one directory");
+        Check(service.Diagnostics.IndexScanCount == diagnostics.IndexScanCount && factory.PreviewReadCount == previewBefore,
+            "Opening the tree does not request an index or document summaries");
+        Report($"PREVIEWS: reads={factory.PreviewReadCount - previewBefore}; first-level documents=1; nested documents=240");
         before = factory.CreateCount;
-        tree.DocumentFileNodes[0].IsExpanded = true; Pump();
-        tree.DocumentFileNodes[0].Children.First(node => node.IsFolder).IsExpanded = true; Pump();
-        Report($"EXPAND: additional factory calls={factory.CreateCount - before}; model already contains all 241 documents");
+        diagnostics = service.Diagnostics;
+        var section = root.Children.Single(node => node.Name == "section-00");
+        section.IsExpanded = true;
+        Until(() => section.Children.Count == 6 && section.Children.All(node => node.IsFolder));
+        Check(factory.CreateCount == before && service.Diagnostics.DirectoryEnumerationCount - diagnostics.DirectoryEnumerationCount == 1,
+            "Expanding the first level reads only its six child directories");
+        var sub = section.Children.Single(node => node.Name == "sub-00");
+        sub.IsExpanded = true;
+        Until(() => sub.Children.Count == 5 && sub.Children.All(node => node.IsDocument));
+        Check(factory.CreateCount - before == 5 && CountFiles(tree.DocumentFileNodes) == 6,
+            "Only the selected second-level folder creates its five document models");
+        diagnostics = service.Diagnostics;
+        section.IsExpanded = false; Pump(); section.IsExpanded = true; Pump();
+        sub.IsExpanded = false; Pump(); sub.IsExpanded = true; Pump();
+        ObserveFor(100);
+        Check(service.Diagnostics.DirectoryEnumerationCount == diagnostics.DirectoryEnumerationCount && factory.PreviewReadCount == previewBefore,
+            "Expanding valid cached folders performs no extra enumeration or summary reads");
+        Report($"EXPAND: additional factory calls={factory.CreateCount - before}; model documents={CountFiles(tree.DocumentFileNodes)}; repeated expansion scans=0");
 
         var added = Path.Combine(workspace, "section-00", "sub-00", "watch-added.md");
         before = factory.CreateCount;
         File.WriteAllText(added, "# Added from outside\n");
-        Until(() => main.DocumentFiles.Any(file => file.Path == added));
+        Until(() => sub.Children.Any(node => node.Path == added));
         ObserveFor(700);
-        Report($"WATCHER CREATE: nested document detected; factory calls={factory.CreateCount - before}; total documents={main.DocumentFiles.Count}");
+        Check(CountFiles(tree.DocumentFileNodes) == 7 && ReferenceEquals(root, tree.DocumentFileNodes.Single())
+            && ReferenceEquals(section, root.Children.Single(node => node.Name == "section-00")),
+            "Creation updates the loaded target directory while retaining unrelated nodes");
+        Report($"WATCHER CREATE: loaded nested document detected; factory calls={factory.CreateCount - before}; model documents={CountFiles(tree.DocumentFileNodes)}");
         var renamed = Path.Combine(Path.GetDirectoryName(added)!, "watch-renamed.md");
         before = factory.CreateCount;
         File.Move(added, renamed);
-        Until(() => main.DocumentFiles.Any(file => file.Path == renamed) && main.DocumentFiles.All(file => file.Path != added));
+        Until(() => sub.Children.Any(node => node.Path == renamed) && sub.Children.All(node => node.Path != added));
         ObserveFor(700);
         Report($"WATCHER RENAME: detected; factory calls={factory.CreateCount - before}");
         before = factory.CreateCount;
         File.Delete(renamed);
-        Until(() => main.DocumentFiles.All(file => file.Path != renamed));
+        Until(() => sub.Children.All(node => node.Path != renamed));
         ObserveFor(700);
         Report($"WATCHER DELETE: detected; factory calls={factory.CreateCount - before}");
 
+        diagnostics = service.Diagnostics;
         before = factory.CreateCount;
+        var unloadedChange = Path.Combine(workspace, "section-01", "sub-00", "not-loaded.md");
+        File.WriteAllText(unloadedChange, "# Do not preload\n");
+        ObserveFor(1600);
+        Check(service.Diagnostics.DirectoryEnumerationCount == diagnostics.DirectoryEnumerationCount && factory.CreateCount == before,
+            "Changes in an unexpanded directory do not enumerate or create its tree nodes");
+
+        before = factory.CreateCount;
+        diagnostics = service.Diagnostics;
         File.WriteAllText(Path.Combine(workspace, "not-a-document.json"), "{}");
         ObserveFor(1600);
-        Report($"WATCHER NON-DOCUMENT: factory calls={factory.CreateCount - before}; unchanged document count={main.DocumentFiles.Count}");
+        Check(factory.CreateCount == before && service.Diagnostics.DirectoryEnumerationCount == diagnostics.DirectoryEnumerationCount,
+            "An unrelated JSON file triggers no tree enumeration");
+        Report($"WATCHER NON-DOCUMENT: factory calls={factory.CreateCount - before}; scans=0");
         before = factory.CreateCount;
         Directory.CreateDirectory(Path.Combine(workspace, ".ignored"));
         File.WriteAllText(Path.Combine(workspace, ".ignored", "hidden.md"), "# Hidden");
         ObserveFor(1600);
-        Report($"WATCHER HIDDEN DIRECTORY: factory calls={factory.CreateCount - before}; hidden document excluded={main.DocumentFiles.All(file => !file.Path.Contains(".ignored"))}");
+        Check(factory.CreateCount == before && service.Diagnostics.DirectoryEnumerationCount == diagnostics.DirectoryEnumerationCount,
+            "A hidden directory and its contents trigger no tree enumeration");
+        Check(service.Diagnostics.IndexScanCount == diagnostics.IndexScanCount && factory.PreviewReadCount == previewBefore,
+            "Watcher changes do not initialize an unused index or summaries");
+        Report($"WATCHER HIDDEN DIRECTORY: factory calls={factory.CreateCount - before}; scans=0; index scans=0");
 
         var direct = Path.Combine(output, "direct-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(direct);
@@ -104,12 +160,24 @@ internal static class FileTreeLoadingProbe
         File.WriteAllText(Path.Combine(direct, "other.md"), "# Other\n");
         before = factory.UiThreadCreateCount;
         Pump(main.OpenPathAsync(current));
+        Until(() => tree.DocumentFileNodes.Count == 1 && tree.DocumentFileNodes[0].Path == direct
+            && tree.DocumentFileNodes[0].Children.Count == 2);
+        Check(factory.UiThreadCreateCount == before, "Direct file opening performs directory model creation off the UI thread");
         Report($"DIRECT OPEN: document factory calls on UI thread={factory.UiThreadCreateCount - before}");
         var sibling = Path.Combine(direct, "new-sibling.md");
         File.WriteAllText(sibling, "# New sibling\n");
-        ObserveFor(2000);
-        Report($"DIRECT OPEN WATCHER: newly created sibling detected={main.DocumentFiles.Any(file => file.Path == sibling)}; expected with a folder watcher=True");
+        Until(() => tree.DocumentFileNodes.Single().Children.Any(node => node.Path == sibling));
+        Check(tree.DocumentFileNodes.Single().IsExpanded, "The parent workspace remains expanded after direct file opening");
+        Check(collectionChangesOffUiThread == 0, "All observed tree collection updates run on the UI thread");
+        Report("DIRECT OPEN WATCHER: newly created sibling detected=True");
+        tree.DocumentFileNodes.CollectionChanged -= TrackCollection;
         File.WriteAllLines(Path.Combine(output, "observations.txt"), observations);
+
+        void Check(bool condition, string message)
+        {
+            if (!condition) throw new InvalidOperationException(message);
+            Report("PASS " + message);
+        }
     }
 }
 
@@ -118,8 +186,10 @@ public sealed class ProbeDocumentFileFactory(IAppLocalizer localizer) : IDocumen
     private readonly DocumentFileFactory _inner = new(localizer);
     private int _createCount;
     private int _uiThreadCreateCount;
+    private int _previewReadCount;
     public int CreateCount => Volatile.Read(ref _createCount);
     public int UiThreadCreateCount => Volatile.Read(ref _uiThreadCreateCount);
+    public int PreviewReadCount => Volatile.Read(ref _previewReadCount);
 
     public DocumentFile Create(string path, string? workspaceRoot = null)
     {
@@ -129,4 +199,10 @@ public sealed class ProbeDocumentFileFactory(IAppLocalizer localizer) : IDocumen
     }
 
     public string GetModifiedText(string path) => _inner.GetModifiedText(path);
+
+    public string ReadPreview(string path)
+    {
+        Interlocked.Increment(ref _previewReadCount);
+        return _inner.ReadPreview(path);
+    }
 }
