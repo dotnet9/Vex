@@ -16,12 +16,14 @@
 
             <ScrollViewer Grid.Row="1" MinHeight="120">
                 <StackPanel Spacing="2">
+                    <TextBlock Classes="muted" IsVisible="{Binding IsLoading}" Text="{i18n:I18n {x:Static l:VexL.SidebarFilesLoading}}" />
+                    <TextBlock Classes="muted" IsVisible="{Binding HasLoadError}" Text="{Binding LoadError}" />
                     <TextBlock
                         Classes="muted"
                         HorizontalAlignment="Center"
                         Margin="0 18 0 0"
                         Text="{i18n:I18n {x:Static l:VexL.QuickOpenEmpty}}"
-                        IsVisible="{Binding !HasResults}" />
+                        IsVisible="{Binding IsEmpty}" />
                     <ListBox
                         x:Name="ResultsList"
                         ItemsSource="{Binding Items}"

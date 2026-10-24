@@ -807,6 +807,12 @@
       "TypographyPurposeYamabuki": "Lifestyle columns · Warm panels",
       "TypographyPurposeGeekBlack": "Code handbooks · Monospace headings",
       "ClearSearch": "Clear search",
+
+      "SidebarFilesLoading": "Loading…",
+
+      "SidebarFilesLoadFailed": "Loading failed",
+
+      "SidebarFilesRetry": "Retry",
       "StructureTitle": "Document Structure",
       "CollapseStructure": "Collapse document structure",
       "AuxiliaryInfo": "Article info",

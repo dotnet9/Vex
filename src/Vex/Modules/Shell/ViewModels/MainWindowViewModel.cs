@@ -25,10 +25,9 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     private readonly IShellStatusPublisher _statusPublisher;
     private readonly IShellOverlayService _overlays;
     private readonly IAppLocalizer _localizer;
+    private readonly IWorkspaceFileService _workspaceFiles;
     private FileSystemWatcher? _currentFileWatcher;
-    private FileSystemWatcher? _currentFolderWatcher;
     private Timer? _currentFileChangeTimer;
-    private Timer? _currentFolderChangeTimer;
     private Timer? _markdownDerivedStateTimer;
     private Timer? _autoSaveTimer;
     private bool _autoSaveInProgress;
@@ -68,7 +67,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         IShellDocumentUtilityActions documentUtilities,
         IShellExternalPathResolver externalPaths,
         IAutoSaveDraftService drafts,
-        IShellStatusPublisher statusPublisher, IShellOverlayService overlays, IAppLocalizer localizer)
+        IShellStatusPublisher statusPublisher, IShellOverlayService overlays, IAppLocalizer localizer,
+        IWorkspaceFileService workspaceFiles)
     {
         _documentService = documentService;
         _workspaceDocumentState = workspaceDocumentState;
@@ -95,6 +95,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _drafts = drafts;
         _statusPublisher = statusPublisher;
         _overlays = overlays; _localizer = localizer;
+        _workspaceFiles = workspaceFiles;
+        _workspaceFiles.Changed += WorkspaceFilesChanged;
         _drafts.StateChanged += (_, _) => Dispatcher.UIThread.Post(() => Protection.DraftError = _drafts.LastError);
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
 
@@ -139,13 +141,10 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     private string? _retryExportFormat;
 
     public Task OpenPathLocationAsync(string path) => OpenFileLocationCoreAsync(path);
-    public async Task RefreshFilesAsync()
+    public Task RefreshFilesAsync()
     {
-        if (_currentWorkspaceFolderPath is not { Length: > 0 } folder || !Directory.Exists(folder)) return;
-        var files = await _documentService.OpenFolderPathAsync(folder);
-        _documentFiles = files;
-        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(files,
-            files.FirstOrDefault(file => file.Path == _document.FilePath), folder));
+        if (_workspaceFiles.RootPath is not null) _workspaceFiles.Refresh();
+        return Task.CompletedTask;
     }
 
     public async Task OpenStartupDocumentAsync(IEnumerable<string> arguments)
@@ -306,6 +305,10 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     public IReadOnlyList<DocumentFile> DocumentFiles => _documentFiles;
 
+    /// <summary>完整清单只供搜索、快速打开和 MCP 按需请求。</summary>
+    public Task<IReadOnlyList<DocumentFile>> GetWorkspaceFilesAsync(CancellationToken cancellationToken = default)
+        => _workspaceFiles.RootPath is null ? Task.FromResult(_documentFiles) : _workspaceFiles.GetFilesAsync(cancellationToken);
+
     public string? WorkspaceFolderPath => _currentWorkspaceFolderPath;
 
     public DocumentSnapshot GetCurrentDocumentSnapshot()
@@ -381,7 +384,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private async Task AutoSaveCurrentAsync()
     {
-        if (_autoSaveInProgress || Protection.HasExternal || _settingsStore.Current.AutoSave != true || _guideDocument is not null
+        if (_autoSaveInProgress || Protection.HasExternal || Protection.HasFileReadError || _settingsStore.Current.AutoSave != true || _guideDocument is not null
             || _document.FilePath is not { } path || !DocumentInfo.IsModified || !File.Exists(path)) return;
         // 外部写入应先由文件监控流程处理，自动保存不得覆盖未确认的磁盘改动。
         if (_watchedFileLastWriteTimeUtc is not { } watched || new DateTimeOffset(File.GetLastWriteTimeUtc(path)) != watched) return;
@@ -423,10 +426,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     {
         ++_documentOpenVersion;
         StopCurrentFileWatcher();
-        if (stopFolderWatcher)
-        {
-            StopCurrentFolderWatcher();
-        }
 
         _drafts.Clear(_document);
         _document = _documentService.CreateNew();
@@ -528,6 +527,15 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         return items;
     }
 
+    public async Task<IReadOnlyList<QuickOpenItem>> BuildQuickOpenItemsAsync(CancellationToken cancellationToken = default)
+    {
+        var files = await GetWorkspaceFilesAsync(cancellationToken);
+        return files.Select(file => new QuickOpenItem(file.Path, file.Name, file.FolderName))
+            .Concat(BuildQuickOpenItems())
+            .DistinctBy(item => item.Path, OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal)
+            .ToArray();
+    }
+
     /// <summary>按路径载入文档；交互入口先处理未保存确认。</summary>
     public Task OpenPathAsync(string path) => RunWithErrorOverlayAsync(
         VexL.ErrorMessageCannotOpenFile,
@@ -594,7 +602,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     }
 
     // 文件列表连续点击时，慢文件的较早结果不能覆盖用户最后选择的文件。
-    private async Task<bool> LoadDocumentPathAsync(string path, string? encodingName = null)
+    private async Task<bool> LoadDocumentPathAsync(string path, string? encodingName = null, bool revealPath = true)
     {
         var request = ++_documentOpenVersion;
         DocumentSnapshot snapshot;
@@ -607,7 +615,10 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             return false;
         }
         if (request != _documentOpenVersion) return false;
-        ApplyDocument(snapshot);
+        try { await EnsureDocumentWorkspaceAsync(path); }
+        catch (OperationCanceledException) { return false; }
+        if (request != _documentOpenVersion) return false;
+        ApplyDocument(snapshot, revealPath: revealPath);
         return true;
     }
 
@@ -631,7 +642,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
         _documentFiles = files.ToArray();
         var firstFile = _documentFiles.FirstOrDefault();
-        PublishDocumentFilesChanged(firstFile);
+        PublishDocumentFilesChanged(firstFile, focusWorkspaceRoot: true);
+        var workspaceGeneration = _workspaceFiles.Generation;
         StartCurrentFolderWatcher(_currentWorkspaceFolderPath);
 
         _text.PublishLoadedMarkdownFiles(_documentFiles.Count);
@@ -639,7 +651,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         {
             if (bypassUnsavedPrompt)
             {
-                await OpenDocumentFileCoreAsync(firstFile);
+                await LoadDocumentPathAsync(firstFile.Path, revealPath: false);
             }
             else
             {
@@ -648,7 +660,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         }
 
         // 文件载入会同步文档选择；最后再将导航焦点落在本次打开的文件夹。
-        PublishDocumentFilesChanged(firstFile, focusWorkspaceRoot: true);
+        if (workspaceGeneration == _workspaceFiles.Generation)
+            PublishDocumentFilesChanged(firstFile, focusWorkspaceRoot: true);
     }
 
     private async Task OpenDocumentFileAsync(DocumentFile file, DocumentFile? previousSelection)
@@ -684,12 +697,16 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             VexL.ErrorMessageCannotSaveFormat,
             async () =>
             {
-                var saved = await _documentService.SaveAsync(_document with { Markdown = Markdown });
+                var source = _document with { Markdown = Markdown };
+                var version = _documentOpenVersion;
+                var saved = await _documentService.SaveAsync(source);
                 if (saved is not null)
                 {
+                    if (version != _documentOpenVersion) return;
                     _drafts.Clear(_document);
                     CompleteRecoveredSave();
                     ApplyDocument(saved, false, false);
+                    ScheduleCurrentFileCheck();
                     Protection.SaveError = null;
                     _text.PublishSaved(saved.FileName);
                 }
@@ -705,12 +722,15 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             VexL.ErrorMessageCannotSaveFormat,
             async () =>
             {
+                var version = _documentOpenVersion;
                 var saved = await _documentService.SaveAsAsync(_document with { Markdown = Markdown });
                 if (saved is not null)
                 {
+                    if (version != _documentOpenVersion) return;
                     _drafts.Clear(_document);
                     CompleteRecoveredSave();
                     ApplyDocument(saved, false, false);
+                    ScheduleCurrentFileCheck();
                     Protection.SaveError = null;
                     _text.PublishSavedAs(saved.FileName);
                 }
@@ -825,7 +845,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             _text.PublishReopenedWithEncoding(encodingName);
     }
 
-    private void ApplyDocument(DocumentSnapshot snapshot, bool updateMarkdown = true, bool restoreDraft = true)
+    private void ApplyDocument(DocumentSnapshot snapshot, bool updateMarkdown = true, bool restoreDraft = true, bool revealPath = true)
     {
         ++_documentOpenVersion;
         if (!IsSameDocument(_document, snapshot))
@@ -838,6 +858,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
         _document = snapshot;
         Protection.External = null;
+        Protection.FileReadError = null;
         _lastSavedMarkdown = snapshot.Markdown;
         if (snapshot.FilePath is { Length: > 0 } path)
         {
@@ -847,7 +868,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             }
 
             Recent.AddRecentDocument(path);
-            SyncDocumentFileList(path);
+            SyncDocumentFileList(path, revealPath && updateMarkdown);
         }
 
         if (updateMarkdown)
@@ -987,40 +1008,14 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         if (_guideDocument is null && _settingsStore.Current.RecoveryDrafts != false) _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
     }
 
-    private void SyncDocumentFileList(string path)
+    private void SyncDocumentFileList(string path, bool revealPath = true)
     {
         var selected = _documentFiles.FirstOrDefault(file => PathsEqual(file.Path, path));
-        if (selected is not null)
-        {
-            CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFileSelectionChangedCommand(selected));
-            return;
-        }
-
-        var directory = Path.GetDirectoryName(path);
-        if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
-        {
-            selected = _documentFileFactory.Create(path);
-            _documentFiles = [selected];
-            _currentWorkspaceFolderPath = null;
-            PublishDocumentFilesChanged(selected);
-            return;
-        }
-
-        UpdateCurrentWorkspaceFolder(directory, true);
-        _documentFiles = WorkspaceFileEnumeration.EnumerateFiles(directory)
-            .Where(_documentService.IsSupportedDocumentPath)
-            .OrderBy(filePath => filePath, StringComparer.OrdinalIgnoreCase)
-            .Select(filePath => _documentFileFactory.Create(filePath, directory))
-            .ToArray();
-
-        selected = _documentFiles.FirstOrDefault(file => PathsEqual(file.Path, path))
-                   ?? _documentFileFactory.Create(path, directory);
-        if (!_documentFiles.Any(file => PathsEqual(file.Path, selected.Path)))
-        {
-            _documentFiles = [.. _documentFiles, selected];
-        }
-
-        PublishDocumentFilesChanged(selected);
+        // 已打开的深层文档不要求整棵树预先存在，也不在 UI 线程扫描目录。
+        selected ??= new DocumentFile(path, Path.GetFileName(path), Path.GetFileName(Path.GetDirectoryName(path)) ?? string.Empty, string.Empty, string.Empty);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFileSelectionChangedCommand(selected, revealPath: revealPath));
+        if (_workspaceFiles.RootPath is not { } root || !IsPathUnderDirectory(path, root))
+            _ = InitializeDocumentWorkspaceAsync(path);
     }
 
     private DocumentFile? FindCurrentDocumentFile()
@@ -1284,7 +1279,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
         _watchedFilePath = fullPath;
         _watchedFileLastWriteTimeUtc = TryGetLastWriteTimeUtc(fullPath);
-        _currentFileWatcher = new FileSystemWatcher(directory, fileName)
+        _currentFileWatcher = new FileSystemWatcher(directory)
         {
             NotifyFilter = NotifyFilters.FileName
                            | NotifyFilters.LastWrite
@@ -1295,146 +1290,9 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _currentFileWatcher.Created += HandleWatchedFileChanged;
         _currentFileWatcher.Deleted += HandleWatchedFileChanged;
         _currentFileWatcher.Renamed += HandleWatchedFileChanged;
+        _currentFileWatcher.Error += HandleCurrentFileWatcherError;
         _currentFileWatcher.EnableRaisingEvents = true;
-    }
-
-    // 文件夹视图监听已打开目录，文件增删改名后复用现有扫描流程刷新左侧列表。
-    private void StartCurrentFolderWatcher(string? folderPath)
-    {
-        StopCurrentFolderWatcher();
-        if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
-        {
-            return;
-        }
-
-        var fullPath = Path.GetFullPath(folderPath);
-        _watchedFolderPath = fullPath;
-        _currentFolderWatcher = new FileSystemWatcher(fullPath)
-        {
-            IncludeSubdirectories = true,
-            NotifyFilter = NotifyFilters.FileName
-                           | NotifyFilters.DirectoryName
-                           | NotifyFilters.LastWrite
-                           | NotifyFilters.Size
-                           | NotifyFilters.CreationTime
-        };
-        _currentFolderWatcher.Changed += HandleWatchedFolderChanged;
-        _currentFolderWatcher.Created += HandleWatchedFolderChanged;
-        _currentFolderWatcher.Deleted += HandleWatchedFolderChanged;
-        _currentFolderWatcher.Renamed += HandleWatchedFolderChanged;
-        _currentFolderWatcher.EnableRaisingEvents = true;
-    }
-
-    private void StopCurrentFileWatcher()
-    {
-        if (_currentFileWatcher is not null)
-        {
-            _currentFileWatcher.EnableRaisingEvents = false;
-            _currentFileWatcher.Changed -= HandleWatchedFileChanged;
-            _currentFileWatcher.Created -= HandleWatchedFileChanged;
-            _currentFileWatcher.Deleted -= HandleWatchedFileChanged;
-            _currentFileWatcher.Renamed -= HandleWatchedFileChanged;
-            _currentFileWatcher.Dispose();
-            _currentFileWatcher = null;
-        }
-
-        _currentFileChangeTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        _watchedFilePath = null;
-        _watchedFileLastWriteTimeUtc = null;
-    }
-
-    private void StopCurrentFolderWatcher()
-    {
-        if (_currentFolderWatcher is not null)
-        {
-            _currentFolderWatcher.EnableRaisingEvents = false;
-            _currentFolderWatcher.Changed -= HandleWatchedFolderChanged;
-            _currentFolderWatcher.Created -= HandleWatchedFolderChanged;
-            _currentFolderWatcher.Deleted -= HandleWatchedFolderChanged;
-            _currentFolderWatcher.Renamed -= HandleWatchedFolderChanged;
-            _currentFolderWatcher.Dispose();
-            _currentFolderWatcher = null;
-        }
-
-        _currentFolderChangeTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        _watchedFolderPath = null;
-    }
-
-    private void HandleWatchedFileChanged(object sender, FileSystemEventArgs e)
-    {
-        if (_watchedFilePath is null)
-        {
-            return;
-        }
-
-        _currentFileChangeTimer ??= new Timer(
-            _ => Dispatcher.UIThread.Post(() => _ = ReloadWatchedFileAsync()),
-            null,
-            Timeout.InfiniteTimeSpan,
-            Timeout.InfiniteTimeSpan);
-        _currentFileChangeTimer.Change(TimeSpan.FromMilliseconds(500), Timeout.InfiniteTimeSpan);
-    }
-
-    private void HandleWatchedFolderChanged(object sender, FileSystemEventArgs e)
-    {
-        if (_watchedFolderPath is null)
-        {
-            return;
-        }
-
-        _currentFolderChangeTimer ??= new Timer(
-            _ => Dispatcher.UIThread.Post(() => _ = ReloadWatchedFolderAsync()),
-            null,
-            Timeout.InfiniteTimeSpan,
-            Timeout.InfiniteTimeSpan);
-        _currentFolderChangeTimer.Change(TimeSpan.FromMilliseconds(500), Timeout.InfiniteTimeSpan);
-    }
-
-    private async Task ReloadWatchedFolderAsync()
-    {
-        if (_watchedFolderPath is not { Length: > 0 } watchedFolder || !Directory.Exists(watchedFolder))
-        {
-            return;
-        }
-
-        await RunWithErrorOverlayAsync(
-            VexL.ErrorMessageCannotOpenFolderFormat,
-            () => ApplyFolderFilesAsync(watchedFolder),
-            watchedFolder);
-    }
-
-    private async Task ReloadWatchedFileAsync()
-    {
-        if (_watchedFilePath is not { Length: > 0 } watchedPath || !IsCurrentDocumentPath(watchedPath))
-        {
-            return;
-        }
-
-        if (!File.Exists(watchedPath))
-        {
-            _statusPublisher.PublishResource(VexL.StatusCurrentFileUnavailable);
-            return;
-        }
-
-        var writeTime = TryGetLastWriteTimeUtc(watchedPath);
-        if (writeTime is not null
-            && _watchedFileLastWriteTimeUtc is not null
-            && writeTime.Value <= _watchedFileLastWriteTimeUtc.Value)
-        {
-            return;
-        }
-
-        await RunWithErrorOverlayAsync(
-            VexL.ErrorMessageCannotOpenFileFormat,
-            async () =>
-            {
-                var reloaded = await _documentService.ReloadAsync(_document);
-                if (!IsCurrentDocumentPath(watchedPath)) return;
-                if (!MarkdownTextComparer.EqualsNormalizedLineEndings(_lastSavedMarkdown, reloaded.Markdown))
-                    Protection.External = reloaded;
-                _watchedFileLastWriteTimeUtc = TryGetLastWriteTimeUtc(watchedPath);
-            },
-            watchedPath);
+        ScheduleCurrentFileCheck();
     }
 
     private void RefreshDocumentFileInList(string path)
@@ -1448,26 +1306,18 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             return;
         }
 
-        var refreshed = _documentFileFactory.Create(path);
-        var file = new DocumentFile(
-            refreshed.Path,
-            refreshed.Name,
-            existing.FolderName,
-            refreshed.ModifiedText,
-            refreshed.Preview);
-        _documentFiles = _documentFiles
-            .Select(item => PathsEqual(item.Path, path) ? file : item)
-            .ToArray();
-        PublishDocumentFilesChanged(file);
+        // 外部版本载入只失效当前摘要，保留稳定的 DocumentFile 实例和树节点引用。
+        existing.ModifiedText = _documentFileFactory.GetModifiedText(path);
+        existing.Preview = string.Empty;
+        PublishDocumentFilesChanged(existing);
     }
 
-    private async Task ApplyFolderFilesAsync(string folderPath)
+    private async Task ApplyFolderFilesAsync(string folderPath, bool refresh = false)
     {
-        var files = await _documentService.OpenFolderPathAsync(folderPath);
-        UpdateCurrentWorkspaceFolder(_documentService.LastOpenedFolderPath ?? folderPath, false);
-        _documentFiles = files.ToArray();
-        var selected = FindCurrentDocumentFile() ?? _documentFiles.FirstOrDefault();
-        PublishDocumentFilesChanged(selected);
+        var snapshot = await _workspaceFiles.GetDirectoryAsync(folderPath, refresh);
+        if (!_workspaceFiles.IsCurrent(snapshot)) return;
+        _documentFiles = snapshot.Entries.Select(entry => entry.DocumentFile).OfType<DocumentFile>().ToArray();
+        PublishDocumentFilesChanged(FindCurrentDocumentFile());
     }
 
 
