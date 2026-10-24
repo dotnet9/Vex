@@ -70,10 +70,10 @@
   <Style Selector="Button.appearance-pill-on /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/><Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}"/><Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
-  <!-- 原型 .studio-palettes button：1px #E2E2E4 边框、6px 圆角、7px 内边距的纸面卡片。 -->
+  <!-- 原型最新（workspace-chrome）：卡片去边框、灰阶表面 + 轻阴影，选中 accent 环。 -->
   <Style Selector="Button.palette-card">
-    <Setter Property="Padding" Value="7"/><Setter Property="CornerRadius" Value="6"/>
-    <Setter Property="BorderThickness" Value="1"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Padding" Value="7"/><Setter Property="CornerRadius" Value="8"/>
+    <Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/>
   </Style>
   <Style Selector="Button.palette-card /template/ ContentPresenter#PART_ContentPresenter">
@@ -85,6 +85,12 @@
   </Style>
   <Style Selector="Button.palette-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+  </Style>
+  <Style Selector="Border.typography-card-shadow">
+    <Setter Property="BoxShadow" Value="0 1 5 0 #0D000000"/>
+  </Style>
+  <Style Selector="Border.typography-card-shadow:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BoxShadow" Value="0 2 9 0 #12000000"/>
   </Style>
   <Style Selector="Button.palette-add-card">
     <Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="8"/><Setter Property="BorderThickness" Value="0"/>

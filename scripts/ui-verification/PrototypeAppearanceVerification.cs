@@ -54,7 +54,7 @@ internal static class PrototypeAppearanceVerification
                 $"Typography panel fits {size.Width}: gallery={gallery.Bounds}, margin={gallery.Margin}, client={window.ClientSize}");
             var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
             Check(scroll.Viewport.Height > 50 && scroll.Extent.Height > scroll.Viewport.Height, $"Card area scrolls independently at {size.Width}: viewport={scroll.Viewport.Height:0.#}, extent={scroll.Extent.Height:0.#}, gallery={gallery.Bounds}");
-            Check(cards.All(card => card.Bounds.Height >= 261 && card.Bounds.Height <= 263), "Cards keep the prototype's 262px height at " + size.Width + ": " + string.Join(",", cards.Select(c => c.Bounds.Height.ToString("0.#"))));
+            Check(cards.All(card => card.Bounds.Height >= 205 && card.Bounds.Height <= 208), "Cards keep the prototype's 206px height at " + size.Width + ": " + string.Join(",", cards.Select(c => c.Bounds.Height.ToString("0.#"))));
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "typography-" + size.Width + ".png"));
         }
         foreach (var language in vm.Appearance.LanguageOptions)

@@ -154,7 +154,7 @@ public sealed class ShellTypographyGallery : UserControl
             DocumentBottomPadding = 0,
             EnableVirtualization = false
         };
-        var paper = new Border { Child = preview, ClipToBounds = true, CornerRadius = new CornerRadius(10) };
+        var paper = new Border { Child = preview, ClipToBounds = true, CornerRadius = new CornerRadius(10), BoxShadow = BoxShadows.Parse("0 1 5 0 #0D000000") };
         Resource(paper, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
         var badgeText = new TextBlock { FontSize = 9, FontWeight = FontWeight.SemiBold, Foreground = Brushes.White };
         var badge = new Border
@@ -171,10 +171,12 @@ public sealed class ShellTypographyGallery : UserControl
         var content = new Panel { Children = { paper, ring, badge } };
         var button = Button("", () => _vm!.Appearance.SelectedTypography = option);
         button.Name = "Typography_" + option.Key;
-        button.Content = content; button.Padding = default; button.MinHeight = 262; button.Height = 262;
+        button.Content = content; button.Padding = default;
+        button.MinHeight = 206; button.Height = 206;
         button.ClipToBounds = false;
         button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
         button.HorizontalContentAlignment = HorizontalAlignment.Stretch; button.VerticalContentAlignment = VerticalAlignment.Stretch;
+        // 原型最新（workspace-chrome）：无框灰阶表面 + 轻阴影；高度随内容自适应，不再定高 262。
         button.BorderThickness = new Thickness(0); button.CornerRadius = new CornerRadius(10);
         Resource(button, TemplatedControl.BackgroundProperty, this, "VexPanelBackgroundBrush");
         _items[option] = (button, ring, badge, badgeText, preview);
@@ -207,7 +209,7 @@ public sealed class ShellTypographyGallery : UserControl
         var card = Button("", OpenTypographyDialog);
         card.Name = "AddCustomTypography";
         card.Content = new Panel { Children = { dash, stack } };
-        card.Padding = default; card.MinHeight = 262; card.Height = 262;
+        card.Padding = default; card.MinHeight = 206; card.Height = 206;
         card.HorizontalContentAlignment = HorizontalAlignment.Stretch; card.VerticalContentAlignment = VerticalAlignment.Stretch;
         card.HorizontalAlignment = HorizontalAlignment.Stretch; card.VerticalAlignment = VerticalAlignment.Stretch;
         card.BorderThickness = new Thickness(0); card.CornerRadius = new CornerRadius(10);
