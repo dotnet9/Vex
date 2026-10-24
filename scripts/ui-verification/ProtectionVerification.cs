@@ -1,7 +1,11 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
+using Avalonia.Interactivity;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Vex;
 using Vex.Core.Models;
 using Vex.Core.Services;
 using Vex.Modules.Shell.ViewModels;
@@ -22,6 +26,23 @@ internal static class ProtectionVerification
             task?.GetAwaiter().GetResult(); Dispatcher.UIThread.RunJobs();
         }
         void Check(bool value, string message) { if (!value) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
+        void SaveFrame(string name)
+        {
+            var path = Path.Combine(output, name + ".png");
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            if (window.CaptureRenderedFrame() is { } frame)
+            {
+                using (frame) frame.Save(path);
+                return;
+            }
+            var scale = window.RenderScaling;
+            using var bitmap = new Avalonia.Media.Imaging.RenderTargetBitmap(
+                new PixelSize(Math.Max(1, (int)(window.Bounds.Width * scale)), Math.Max(1, (int)(window.Bounds.Height * scale))),
+                new Vector(96 * scale, 96 * scale));
+            bitmap.Render(window);
+            bitmap.Save(path);
+        }
         void Until(Func<bool> condition)
         {
             var deadline = DateTime.UtcNow.AddSeconds(15);
@@ -44,7 +65,7 @@ internal static class ProtectionVerification
             vm.Markdown += "\nContinue editing"; Pump();
             Check(vm.Protection.HasSaveError && window.GetVisualDescendants().OfType<ShellWorkflowNotice>().Single().IsVisible,
                 "Save failure stays visible while editing continues");
-            window.CaptureRenderedFrame()?.Save(Path.Combine(output, "save-failure.png"));
+            SaveFrame("save-failure");
         }
         Pump(vm.RetrySaveAsync());
         Check(!vm.Protection.HasSaveError && !vm.DocumentInfo.IsModified && File.ReadAllText(path) == vm.Markdown,
@@ -71,7 +92,7 @@ internal static class ProtectionVerification
         var compareTask = vm.CompareExternalAsync(); Pump();
         Check(Review().Current == current && Review().Incoming.Contains("Disk change"), "Comparison exposes both complete versions");
         window.Width = 800; window.Height = 480; Pump();
-        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "external-comparison.png"));
+        SaveFrame("external-comparison");
         Review().Close(); Pump(compareTask);
         Check(vm.Markdown == current && vm.Protection.HasExternal && vm.Workbench.History.Capture().Current == beforeCompare.Current,
             "Cancel keeps content, undo history and the pending external version");
@@ -93,7 +114,7 @@ internal static class ProtectionVerification
         var recoveryTask = vm.ReviewRecoveryAsync(); Pump(); Review().Close(); Pump(recoveryTask);
         Check(vm.Markdown == current && vm.Protection.HasRecovery, "Canceling recovery keeps both source and draft");
         recoveryTask = vm.ReviewRecoveryAsync(); Pump();
-        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "recovery-preview.png"));
+        SaveFrame("recovery-preview");
         Review().Load(); Pump(recoveryTask);
         Check(vm.DocumentInfo.CurrentFilePath is null && vm.DocumentInfo.IsModified && vm.Markdown.Contains("Recovered content")
             && File.ReadAllText(path) == current, "Recovery creates an independent unsaved document and never writes the source file");
@@ -103,8 +124,41 @@ internal static class ProtectionVerification
         using (File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
             var closeTask = vm.BeginWindowCloseAsync(); Pump();
-            var dialog = (ShellUnsavedDialogViewModel)window.GetVisualDescendants().OfType<ShellUnsavedDialogView>().Single().DataContext!;
-            dialog.Save(); Pump(closeTask);
+            var exitView = window.GetVisualDescendants().OfType<ShellUnsavedDialogView>().Single();
+            var exitActions = exitView.FindControl<StackPanel>("ExitActions")!;
+            var switchActions = exitView.FindControl<StackPanel>("SwitchActions")!;
+            var localizer = app.Resolve<IAppLocalizer>();
+            var texts = exitView.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
+            var actionGrid = (Grid)exitActions.Parent!;
+            var exitButtons = exitActions.Children.OfType<Button>().Select(b => b.Content?.ToString()).ToList();
+            var cancelButtons = actionGrid.Children.OfType<Button>().Select(b => b.Content?.ToString()).ToList();
+            Check(exitActions.IsVisible && !switchActions.IsVisible && exitActions.Children.Count == 2
+                    && texts.Contains(localizer.Get(VexL.Save))
+                    && texts.Contains(localizer.Get(VexL.DialogExitHint))
+                    && texts.Contains(localizer.Get(VexL.DialogLoseChangesHint))
+                    && exitButtons.Count(t => t == localizer.Get(VexL.DialogSaveAndExit)) == 1
+                    && exitButtons.Contains(localizer.Get(VexL.DialogDiscardAndExit))
+                    && cancelButtons.SequenceEqual(new[] { localizer.Get(VexL.DialogContinueEditing) })
+                    && exitButtons.Count == 2,
+                "Exit dialog matches the reference: save title, two fixed lines, exactly 保存/丢弃/取消");
+            var exitCard = exitView.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
+            Check(Math.Abs(exitCard.Bounds.Width - 480) < 1, $"Exit dialog renders at the unified 480px width: {exitCard.Bounds.Width}");
+            var exitSave = (Button)exitActions.Children[0];
+            var saveText = exitSave.GetVisualDescendants().OfType<Avalonia.Controls.TextBlock>().First();
+            var exitCancel = actionGrid.Children.OfType<Button>().Single();
+            var hintBlock = exitView.FindControl<TextBlock>("HintLine1")!;
+            var titleBlock = exitView.FindControl<TextBlock>("TitleText")!;
+            Check(exitCard.CornerRadius.TopLeft == 8
+                    && titleBlock.FontSize == 16 && Math.Abs(titleBlock.LineHeight - 25.6) < .01
+                    && hintBlock.FontSize == 13 && Math.Abs(hintBlock.LineHeight - 23.4) < .01
+                    && Math.Abs(exitSave.Bounds.Height - 36) < 1 && exitSave.FontSize == 12
+                    && exitSave.CornerRadius.TopLeft == 18 && exitSave.CornerRadius.TopLeft == exitCancel.CornerRadius.TopLeft
+                    && exitCancel.BorderThickness.Top == 1 && ((Button)exitActions.Children[1]).BorderThickness.Top == 1
+                    && saveText.Bounds.Height >= 12 && exitSave.Bounds.Width > 40,
+                "Exit dialog uses the measured prototype metrics: 8px card, 16px title, 13/23.4 body, 36px pill buttons at 12px, hairline secondary borders, visible labels");
+            SaveFrame("exit-unsaved-dialog");
+            ((Button)exitActions.Children[0]).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Pump(closeTask);
             Check(window.IsVisible && vm.DocumentInfo.IsModified && vm.Protection.HasSaveError, "Failed save keeps the actual application window open");
         }
         memoryDrafts.FailFlush = true;
@@ -121,6 +175,7 @@ internal static class ProtectionVerification
     private static void VerifyDraftStorage(string output, Action<bool, string> check)
     {
         var root = Path.Combine(output, "real-draft-store");
+        if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
         Directory.CreateDirectory(root);
         var blocked = Path.Combine(root, "blocked-root"); File.WriteAllText(blocked, "not a directory");
         var first = new AutoSaveDraftService { StorageDirectory = blocked };

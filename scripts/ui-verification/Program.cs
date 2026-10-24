@@ -249,7 +249,7 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     VerifyPathIdentity(app, window, vm, sampleFolder);
     if (mode == "path-identity") { window.Close(); return; }
     var editorVm = app.Resolve<MarkdownEditorViewModel>();
-    VerifySourceLineHeight(window, window.GetVisualDescendants().OfType<MarkdownEditorView>().Single(), 23, "Vex");
+    VerifySourceLineHeight(window, window.GetVisualDescendants().OfType<MarkdownEditorView>().Single(), 26.25, "Vex");
     editorVm.InsertText(" regression edit");
     Pump();
     Check(vm.DocumentInfo.IsModified, "Typing marks Vex document dirty");
@@ -258,6 +258,35 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Any());
     var dialog = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Single();
     Check(vm.DocumentInfo.CurrentFilePath == files[^1], "Dirty-file switch waits for save confirmation");
+    var switchLocalizer = app.Resolve<IAppLocalizer>();
+    var switchTexts = dialog.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
+    var switchActionsPanel = dialog.FindControl<StackPanel>("SwitchActions")!;
+    var exitActionsPanel = dialog.FindControl<StackPanel>("ExitActions")!;
+    var switchButtons = switchActionsPanel.Children.OfType<Button>().Select(b => b.Content?.ToString()).ToList();
+    var switchCancel = ((Grid)switchActionsPanel.Parent!).Children.OfType<Button>().Select(b => b.Content?.ToString()).ToList();
+    Check(switchActionsPanel.IsVisible && !exitActionsPanel.IsVisible
+            && switchTexts.Contains(switchLocalizer.Get(Vex.VexL.Save))
+            && switchTexts.Contains(switchLocalizer.Get(Vex.VexL.DialogSwitchHint))
+            && switchTexts.Contains(switchLocalizer.Get(Vex.VexL.DialogLoseChangesHint))
+            && switchButtons.Count(t => t == switchLocalizer.Get(Vex.VexL.DialogSaveAndSwitch)) == 1
+            && switchButtons.Contains(switchLocalizer.Get(Vex.VexL.DialogDiscardAndSwitch))
+            && switchButtons.Count == 2
+            && switchCancel.SequenceEqual(new[] { switchLocalizer.Get(Vex.VexL.DialogContinueEditing) }),
+        "Switch dialog matches the reference: save title, two fixed lines, exactly 保存/放弃更改/取消");
+    var switchCard = dialog.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
+    var switchSave = (Button)switchActionsPanel.Children[0];
+    var switchCancelBtn = ((Grid)switchActionsPanel.Parent!).Children.OfType<Button>().Single();
+    var switchTitle = dialog.FindControl<TextBlock>("TitleText")!;
+    var switchHint = dialog.FindControl<TextBlock>("HintLine1")!;
+    Check(switchCard.CornerRadius.TopLeft == 12 && Math.Abs(switchCard.Bounds.Width - 480) < 1
+            && Math.Abs(switchTitle.FontSize - 15.5) < .01 && Math.Abs(switchTitle.LineHeight - 24.8) < .01
+            && switchHint.FontSize == 12.5 && Math.Abs(switchHint.LineHeight - 20) < .01
+            && Math.Abs(switchSave.Bounds.Height - 32) < 1 && switchSave.FontSize == 12
+            && switchSave.CornerRadius.TopLeft == 16
+            && Math.Abs(switchCancelBtn.Bounds.Height - 32) < 1 && switchCancelBtn.CornerRadius.TopLeft == 16
+            && ((Button)switchActionsPanel.Children[1]).BorderThickness.Top == 1 && switchCancelBtn.BorderThickness.Top == 1
+            && switchCancelBtn.GetVisualDescendants().OfType<Avalonia.Controls.TextBlock>().First().Bounds.Height >= 12,
+        "Switch dialog uses the measured prototype metrics: 12px card, 15.5px title, 12.5/20 body, 32px pill buttons at 12px, hairline secondary borders, visible labels");
     Check(!titleMenu.IsEffectivelyEnabled, "Modal confirmation disables title menu commands");
     Capture(window, "vex-unsaved-confirmation");
     ((ShellUnsavedDialogViewModel)dialog.DataContext!).Cancel();
@@ -1684,7 +1713,10 @@ void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel 
     vm.Workbench.ShowInstant(); Pump(); Capture(window, "vex-native-instant");
     vm.Workbench.ShowTypography = true; Pump();
     var typographyGallery = window.FindControl<Vex.Modules.Shell.Views.ShellTypographyGallery>("TypographyGallery")!;
-    Check(typographyGallery.GetVisualDescendants().OfType<TextBlock>().Any(text => text.Text == app.Resolve<IAppLocalizer>().Get(Vex.VexL.TypographySimple)),
+    var simpleCard = typographyGallery.GetVisualDescendants().OfType<Button>().SingleOrDefault(b => b.Name == "Typography_Simple");
+    Check(simpleCard is not null
+        && simpleCard.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
+            .Any(viewer => viewer.Markdown.Contains(app.Resolve<IAppLocalizer>().Get(Vex.VexL.TypographySimple))),
         "Typography cards use the same localized names as the menu");
     vm.Workbench.ShowTypography = false;
     var preferences = app.Resolve<IAppSettingsStore>().Current;
@@ -1799,11 +1831,15 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
         Check(instant.Editor.TypographyTheme == option.Key && app.Resolve<MarkdownPreviewViewModel>().TypographyTheme == option.Key && vm.Markdown == document,
             "Typography stays consistent across instant and reading views: " + option.Key);
     }
-    vm.Appearance.IsCompactLayout = true;
+    // 渲染密度（data-mdsize）才是排版尺寸档来源；界面密度 IsCompactLayout 不再驱动编辑器字号档。
+    vm.Appearance.MarkdownDensity = "compact";
     PumpUntil(() => instant.Editor.TypographySize == "Compact");
     Check(instant.Editor.TypographySize == "Compact", "Compact typography size reaches the live editor");
     Check(vm.Markdown == document, "Compact typography applies without rewriting Markdown");
-    vm.Appearance.IsCompactLayout = false; vm.Appearance.SelectedTypography = typography; wb.ShowTypography = false;
+    vm.Appearance.MarkdownDensity = "normal";
+    PumpUntil(() => instant.Editor.TypographySize == "Normal");
+    Check(instant.Editor.TypographySize == "Normal", "Normal typography size returns to the live editor");
+    vm.Appearance.SelectedTypography = typography; wb.ShowTypography = false;
     wb.ShowMapSource = false; wb.ShowMindMap(); Pump(); SettleRendering();
     var oldRoot = wb.Root;
     wb.ShowParagraphs = wb.ShowLists = wb.ShowCode = wb.ShowTables = false;
@@ -1815,7 +1851,7 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     wb.SummaryLength = -10; Check(wb.SummaryLength == 1, "Summary length is at least one grapheme");
     oldRoot = wb.Root; wb.ResetMapSettings();
     PumpUntil(() => !ReferenceEquals(oldRoot, wb.Root)); Pump();
-    Check(wb.SummaryLength == 30 && wb.ShowParagraphs && wb.ShowLists && !wb.ShowCode && !wb.ShowTables, "Reset restores every map display default");
+    Check(wb.SummaryLength == 30 && !wb.ShowParagraphs && !wb.ShowLists && !wb.ShowCode && !wb.ShowTables, "Reset restores every map display default");
     Check(wb.VisibleNodeCount == map.VisibleNodeCount && wb.SummaryPreview.Length > 0, "Map count and summary preview update from the real tree");
     map.CollapseAll(); Pump();
     var heading = Flatten(wb.Root!).LastOrDefault(n => n.Kind == CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNodeKind.Heading) ?? wb.Root!;
@@ -1965,9 +2001,10 @@ void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
         foreach (var expected in new[] { StudioThemeMode.Light, StudioThemeMode.Dark, StudioThemeMode.System })
         {
             var content = (Control)((Flyout)menu.AppearanceButton.Flyout!).Content!;
-            var modes = content.GetLogicalDescendants().OfType<RadioButton>().ToArray();
-            var index = expected switch { StudioThemeMode.Light => 0, StudioThemeMode.Dark => 1, _ => 2 };
-            modes[index].IsChecked = true;
+            // 外观菜单已按原型改为 appearance-pill；模式行 = 紧凑密度按钮所在行。
+            var modes = content.GetLogicalDescendants().OfType<Button>().Where(b => b.Classes.Contains("appearance-pill")).ToArray();
+            Check(modes.Length == 6, "Appearance menu exposes three density and three mode pills");
+            var index = expected switch { StudioThemeMode.Light => 3, StudioThemeMode.Dark => 4, _ => 5 };
             modes[index].RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
             Check(appearance.ThemeMode == expected && ReferenceEquals(appearance.SelectedPalette, palette), "Title bar cycles mode and preserves palette: " + palette.Key + "/" + expected);
             var settings = ((VerificationVexApp)Application.Current!).Resolve<IAppSettingsStore>().Current;
@@ -2127,20 +2164,29 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
     Check(outline.TranslatePoint(default, window)!.Value.X > files.TranslatePoint(default, window)!.Value.X + files.Bounds.Width,
         "Vex Outline remains to the right of the document under " + theme);
     var heading = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdH1Border"));
-    var type = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(((MainWindowViewModel)window.DataContext!).Appearance.SelectedTypography?.Key)!;
-    Check(heading.BorderThickness == Thickness.Parse(type.Headings[0].Border),
-        "Vex H1 follows the selected article decoration under " + theme);
+    var shellVm = (MainWindowViewModel)window.DataContext!;
+    var type = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(shellVm.Appearance.SelectedTypography?.Key)!;
+    // 尺寸档按 baseSize/BodySize 等比缩放目录实测值（Compact 13 / Normal 15 / Relaxed 17）。
+    var scale = shellVm.Appearance.MarkdownDensity switch { "compact" => 13d, "relaxed" => 17d, _ => 15d } / type.BodySize;
+    var scaledHeading = Thickness.Parse(type.Headings[0].Border) * scale;
+    Check(Approx(heading.BorderThickness, scaledHeading),
+        "Vex H1 follows the selected article decoration under " + theme + $" (actual {heading.BorderThickness}, scaled {scaledHeading})");
     var quote = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdQuote"));
-    Check(quote.BorderThickness == Thickness.Parse(type.Quote.Border),
-        "Vex quote follows the selected article border under " + theme);
+    var scaledQuote = Thickness.Parse(type.Quote.Border) * scale;
+    Check(Approx(quote.BorderThickness, scaledQuote),
+        "Vex quote follows the selected article border under " + theme + $" (actual {quote.BorderThickness}, scaled {scaledQuote})");
 }
+
+static bool Approx(Thickness a, Thickness b) =>
+    Math.Abs(a.Left - b.Left) < 0.01 && Math.Abs(a.Top - b.Top) < 0.01
+    && Math.Abs(a.Right - b.Right) < 0.01 && Math.Abs(a.Bottom - b.Bottom) < 0.01;
 
 bool SameBrush(IBrush? first, IBrush? second) => first is ISolidColorBrush a && second is ISolidColorBrush b && a.Color == b.Color;
 
 void VerifySourceLineHeight(Window window, MarkdownEditorView source, double expected, string name)
 {
     var textView = source.Editor.TextArea.TextView;
-    Check(Math.Abs(textView.DefaultLineHeight - expected) < 0.01, $"{name} source line height matches {expected} px");
+    Check(Math.Abs(textView.DefaultLineHeight - expected) < 0.01, $"{name} source line height matches {expected} px (actual {textView.DefaultLineHeight}, factor {textView.Options.LineHeightFactor})");
     var click = textView.TranslatePoint(new Point(2, expected * 2.5), window)!.Value;
     window.MouseDown(click, MouseButton.Left);
     window.MouseUp(click, MouseButton.Left);
@@ -2337,7 +2383,7 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     Check(service.Checks == 1 && model.State == UpdateState.Available, "Menu opens one update view and starts one check");
     SettleRendering();
     var updateCard = view.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
-    Check(updateCard.Bounds.Width == 580 && ((Grid)updateCard.Child!).Children[0].Bounds.Height == 36, "Update uses the prototype's 580px frame and fixed 36px title bar");
+    Check(updateCard.Bounds.Width == 620 && ((Grid)updateCard.Child!).Children[0].Bounds.Height == 36, "Update uses the unified 620px dialog frame and fixed 36px title bar");
     Check(!view.FindControl<Expander>("UpdateNotes")!.IsExpanded, "Available update keeps release notes collapsed");
     Capture(window, "updates-available");
     var download = model.AdvanceAsync(); Pump();

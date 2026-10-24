@@ -109,13 +109,13 @@ internal static class PopupLayoutVerification
         var aboutTask = overlay.ShowAboutAsync(); Render();
         var about = window.GetVisualDescendants().OfType<ShellAboutOverlayView>().Single();
         var aboutCard = about.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
-        Check(aboutCard.Bounds.Width == 420 && ((Grid)aboutCard.Child!).Children[0].Bounds.Height == 36, "About uses the prototype's 420px frame and 36px title bar");
+        Check(aboutCard.Bounds.Width == 480 && ((Grid)aboutCard.Child!).Children[0].Bounds.Height == 36, "About uses the unified 480px dialog frame and 36px title bar");
         Capture(aboutCard, "about");
         ((ShellAboutViewModel)about.DataContext!).Close(); Render();
         foreach (var (show, type, width, name) in new (Func<Task>, Type, double, string)[]
         {
-            (() => overlay.ShowPropertiesAsync(vm.DocumentInfo), typeof(ShellPropertiesOverlayView), 520, "properties"),
-            (() => overlay.ShowStatisticsAsync(vm.DocumentInfo), typeof(ShellStatisticsOverlayView), 360, "statistics"),
+            (() => overlay.ShowPropertiesAsync(vm.DocumentInfo), typeof(ShellPropertiesOverlayView), 480, "properties"),
+            (() => overlay.ShowStatisticsAsync(vm.DocumentInfo), typeof(ShellStatisticsOverlayView), 480, "statistics"),
             (() => overlay.ConfirmDeleteAsync("确定要删除「读书摘录.md」吗？", "此操作会从磁盘永久删除该文件，且无法从回收站恢复。", @"D:\Notes\笔记\读书摘录.md"), typeof(ShellDeleteConfirmationOverlayView), 480, "delete")
         })
         {
@@ -135,7 +135,7 @@ internal static class PopupLayoutVerification
         Render();
         var renameView = window.GetVisualDescendants().OfType<ShellRenameDialogView>().Single();
         var renameCard = renameView.GetVisualDescendants().OfType<Border>().Single(border => border.Classes.Contains("dialog-card"));
-        Check(renameCard.Bounds.Width == 430, "Rename retains its 430px prototype frame");
+        Check(renameCard.Bounds.Width == 480, "Rename retains the unified 480px dialog frame");
         Check(renameView.FindControl<TextBox>("NameTextBox")!.Bounds.Height == 34, "Rename input retains its 34px height");
         Capture(renameCard, "rename"); renameModel.Cancel(); Render();
         Check(renamePending.IsCompleted, "Rename cancellation completes without changing the file");
