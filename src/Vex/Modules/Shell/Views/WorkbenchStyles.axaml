@@ -56,10 +56,11 @@
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
   </Style>
   <Style Selector="FlyoutPresenter.design-title-picker"><Setter Property="Padding" Value="18"/><Setter Property="CornerRadius" Value="16"/><Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderThickness" Value="0"/></Style>
-  <!-- 原型 .density-options：30 高分段胶囊；选中=实底强调色（workspace-chrome 999px 圆角）。 -->
+  <!-- 原型 .density-options：30 高分段胶囊；选中=实底强调色（workspace-chrome 999px 圆角）。
+       高度/圆角/字号走密度令牌（规则 §6），切档即时缩放。 -->
   <Style Selector="Button.appearance-pill">
-    <Setter Property="Height" Value="28"/><Setter Property="MinHeight" Value="0"/><Setter Property="CornerRadius" Value="15"/>
-    <Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="10,4"/><Setter Property="FontSize" Value="12"/>
+    <Setter Property="Height" Value="{DynamicResource VexDensityControlHeightSm}"/><Setter Property="MinHeight" Value="0"/><Setter Property="CornerRadius" Value="15"/>
+    <Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="10,4"/><Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}"/>
     <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
     <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
   </Style>
@@ -109,6 +110,43 @@
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
   <Style Selector="FlyoutPresenter.design-language-picker"><Setter Property="Padding" Value="5"/><Setter Property="CornerRadius" Value="8"/><Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/></Style>
+  <!-- R-10 状态栏精致化：视图切换分段胶囊（一体容器 + 选中白底浮起加粗）与文件/大纲按钮紧凑内嵌徽标。密度字号/高度走密度令牌。 -->
+  <Style Selector="Border.view-switch">
+    <Setter Property="Height" Value="{DynamicResource VexDensityControlHeightSm}"/>
+    <Setter Property="Padding" Value="3"/><Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusMd}"/>
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
+  <Style Selector="Border.view-switch Button">
+    <Setter Property="MinHeight" Value="0"/><Setter Property="Padding" Value="10,2"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/>
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}"/>
+    <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <Style Selector="Border.view-switch Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+  </Style>
+  <Style Selector="Border.view-switch Button.checked /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style Selector="Button.statusbar-file">
+    <Setter Property="MinHeight" Value="0"/><Setter Property="Padding" Value="6,2"/>
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}"/>
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style Selector="Button.statusbar-quiet">
+    <Setter Property="MinHeight" Value="0"/><Setter Property="Padding" Value="6,2"/>
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}"/>
+    <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <Style Selector="Button.statusbar-quiet:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+  </Style>
   <Style Selector="Border.choice-filter"><Setter Property="Padding" Value="3"/><Setter Property="CornerRadius" Value="6"/><Setter Property="BorderThickness" Value="1"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/><Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/></Style>
   <Style Selector="Button.choice-filter-selected /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="BoxShadow" Value="0 1 3 0 #12000000"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem">

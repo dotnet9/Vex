@@ -24,6 +24,12 @@ public partial class MarkdownMindMapHost : UserControl
     private (bool Paragraphs, bool Lists, bool Code, bool Tables)? _savedVisibility;
     private Vex.Core.Services.EditorPreferences? _pinPreferences;
 
+    public MarkdownMindMapHost()
+    {
+        InitializeComponent();
+        BuildMapStyleFlyout();
+    }
+
     /// <summary>钉住 = 工具条占位行；取消钉住 = 悬浮在导图顶端，静默至悬停或聚焦。</summary>
     private void ApplyMapPin()
     {
@@ -40,7 +46,15 @@ public partial class MarkdownMindMapHost : UserControl
         var button = new Button
         {
             Classes = { "wb-quiet", "map-tool" },
-            Content = BuildMapStyleButtonContent(),
+            Content = new StackPanel
+            {
+                Orientation = Orientation.Horizontal, Spacing = 4,
+                Children =
+                {
+                    new TextBlock { Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式", VerticalAlignment = VerticalAlignment.Center },
+                    new Avalonia.Controls.Shapes.Path { Classes = { "expand-chevron" }, Data = Avalonia.Media.Geometry.Parse("M6 9L12 15L18 9") },
+                },
+            },
         };
         ToolTip.SetTip(button, CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式");
         // 对齐原型截图：标题栏（导图样式 + ×）→ 结构/风格双页签 → 卡片缩略图网格。
@@ -118,54 +132,6 @@ public partial class MarkdownMindMapHost : UserControl
             }
         };
         flyout.Opening += (_, _) => { refresh(); ShowPage(styleTab.IsChecked == true); flyoutHost.Content = panel; };
-        flyout.Opening += (_, _) => refresh();
-        button.Flyout = flyout;
-        DataContextChanged += (_, _) => refresh();
-        // 原型顺序：设置 | 收起分支 | 对照源码 | 导图样式⌄ | 钉住。
-        MapToolsRight.Children.Insert(MapToolsRight.Children.IndexOf(MapSourceButton) + 1, button);
-    }
-
-    private static StackPanel BuildMapStyleButtonContent()
-    {
-        var panel = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 4 };
-        panel.Children.Add(new TextBlock { Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式", VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center });
-        // 与排版/状态栏触发器共用 .expand-chevron 统一箭头（14px 盒、currentColor、垂直居中）。
-        panel.Children.Add(new Avalonia.Controls.Shapes.Path { Classes = { "expand-chevron" }, Data = Avalonia.Media.Geometry.Parse("M6 9L12 15L18 9") });
-        return panel;
-    }
-
-    private void OnMapPinContextChanged(object? sender, EventArgs e)
-    {
-        if (_pinPreferences is not null)
-        {
-            _pinPreferences.PreferencesChanged -= OnMapPinPreferenceChanged;
-            _pinPreferences = null;
-        }
-        if (DataContext is MainWindowViewModel vm)
-        {
-            _pinPreferences = vm.Workbench.Preferences;
-            _pinPreferences.PreferencesChanged += OnMapPinPreferenceChanged;
-        }
-        ApplyMapPin();
-    }
-
-    private void OnMapPinPreferenceChanged(object? sender, EventArgs e) => ApplyMapPin();
-
-    public MarkdownMindMapHost()
-    {
-        InitializeComponent();
-        // 取消钉住时工具条悬浮于导图之上；声明顺序在后会盖住内容，这里用 ZIndex 提升。
-        MapEditingToolbar.ZIndex = 1;
-        DataContextChanged += OnMapPinContextChanged;
-        BuildMapStyleFlyout();
-        Map.NodeSelected += (_, node) =>
-        {
-            if (_workbench?.IsPresenting == true) return;
-            FlushInspector();
-            if (DataContext is not MainWindowViewModel vm) return;
-            vm.Workbench.ShowMapSettings = false;
-            vm.Workbench.SelectedNode = node;
-        };
         Map.SourceRequested += (_, node) =>
         {
             if (_workbench?.IsPresenting == true)
@@ -203,7 +169,7 @@ public partial class MarkdownMindMapHost : UserControl
     // 节点详情按原型保持悬浮在导图右上角（.node-inspector）；仅删除确认遮罩需要提升到窗口层。
     public Control DetachConfirmation()
     {
-        ((Panel)ChapterDeleteLayer.Parent!).Children.Remove(ChapterDeleteLayer);
+        if (ChapterDeleteLayer.Parent is Panel host) host.Children.Remove(ChapterDeleteLayer);
         return ChapterDeleteLayer;
     }
     private void AttachWorkbench()

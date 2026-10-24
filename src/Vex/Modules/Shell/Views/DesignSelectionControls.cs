@@ -17,7 +17,13 @@ internal static class DesignSelectionControls
         var button = new Button { Content = text, FontSize = 12, Padding = new Thickness(8, 5), MinHeight = 30 };
         button.Classes.Add("wb-quiet"); button.Click += (_, _) => action(); return button;
     }
-    internal static TextBlock Label(string text, double size = 12) => new() { Text = text, FontSize = size, TextWrapping = TextWrapping.Wrap };
+    internal static TextBlock Label(string text, double? size = null) => new()
+    {
+        Text = text,
+        // 密度联动（规则 §6）：未显式指定字号时跟随正文密度档。
+        FontSize = size ?? Application.Current?.Resources["VexDensityFontSizeCaption"] as double? ?? 12,
+        TextWrapping = TextWrapping.Wrap,
+    };
     internal static void Navigation(Panel panel, Func<int> columns)
     {
         panel.AddHandler(InputElement.KeyDownEvent, (_, e) =>

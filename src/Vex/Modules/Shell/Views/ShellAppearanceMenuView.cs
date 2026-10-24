@@ -233,7 +233,7 @@ public sealed class ShellAppearanceMenuView : UserControl
             var chipText = new TextBlock { Text = language.CultureName switch { "zh-CN" => "中", "zh-Hant" => "繁", "ja-JP" => "日", _ => "EN" }, FontSize = 11, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
             var chip = new Border { Width = 24, Height = 24, CornerRadius = new CornerRadius(7), Child = chipText };
             var name = Label(language.CultureName switch { "zh-CN" => "简体中文", "zh-Hant" => "繁體中文", "ja-JP" => "日本語", _ => "English" }, 13); name.Margin = new Thickness(10, 0, 0, 0); name.VerticalAlignment = VerticalAlignment.Center;
-            var check = Label("✓", 13); check.IsVisible = false; check.VerticalAlignment = VerticalAlignment.Center; check.Margin = new Thickness(8, 0, 0, 0);
+            var check = Label("✓"); check.IsVisible = false; check.VerticalAlignment = VerticalAlignment.Center; check.Margin = new Thickness(8, 0, 0, 0);
             var grid = new Grid { ColumnDefinitions = new("Auto,*,Auto"), Children = { chip, name, check } };
             Grid.SetColumn(name, 1); Grid.SetColumn(check, 2);
             var button = Button("", () => { LanguageButton.Flyout?.Hide(); _vm.SelectedLanguage = language; });
@@ -266,7 +266,7 @@ public sealed class ShellAppearanceMenuView : UserControl
             dots.Children.Add(dot);
         }
         var labels = new StackPanel { Spacing = 1 };
-        var name = Label(palette.Name, 13); name.FontWeight = FontWeight.SemiBold; name.TextWrapping = TextWrapping.NoWrap; name.LineHeight = 19; labels.Children.Add(name);
+        var name = Label(palette.Name); name.FontWeight = FontWeight.SemiBold; name.TextWrapping = TextWrapping.NoWrap; name.LineHeight = 19; labels.Children.Add(name);
         var purpose = Label(palette.Purpose); purpose.FontSize = 10; purpose.LineHeight = 14; purpose.Classes.Add("muted"); labels.Children.Add(purpose);
         var body = new StackPanel { Spacing = 6 }; body.Children.Add(dots); body.Children.Add(labels);
         // 原型 .studio-palettes button::after：✓ 固定在卡片右缘垂直居中（right 6px、14px/700 强调色），

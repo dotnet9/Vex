@@ -6,7 +6,7 @@
    <Setter Property="Height" Value="28" />
    <Setter Property="MinHeight" Value="0" />
    <Setter Property="MinWidth" Value="0" />
-   <Setter Property="Padding" Value="4,7" />
+   <Setter Property="Padding" Value="6,2" />
    <Setter Property="CornerRadius" Value="4" />
    <Setter Property="BorderThickness" Value="0" />
    <Setter Property="Background" Value="Transparent" />
@@ -67,14 +67,14 @@
   </Style>
   <Style Selector="Button.view-segment">
    <Setter Property="Height" Value="26" />
-   <Setter Property="MinHeight" Value="0" />
+   <Setter Property="MinHeight" Value="{DynamicResource VexDensityControlHeightSm}" />
    <Setter Property="MinWidth" Value="0" />
    <Setter Property="Padding" Value="14,3" />
    <Setter Property="CornerRadius" Value="999" />
    <Setter Property="BorderThickness" Value="0" />
    <Setter Property="Background" Value="Transparent" />
    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
-   <Setter Property="FontSize" Value="12" />
+   <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
    <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
   <Style Selector="Button.view-segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -108,7 +108,8 @@
   <Style Selector="Button.sb-word:pointerover">
    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
   </Style>
-  <!-- 对应原型 .view-switch：3px 内衬、1px 边框、8px 圆角、raised 底；选中段 accent 文字 + 面板底。 -->
+  <!-- 对应原型 .view-switch：3px 内衬、1px 边框、8px 圆角、raised 底；选中段 accent 文字 + 面板底。
+       R-10 精致化：高度/圆角/字号走密度令牌（规则 §6）。 -->
   <Style Selector="Border.view-switch">
    <Setter Property="Padding" Value="3" />
    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
