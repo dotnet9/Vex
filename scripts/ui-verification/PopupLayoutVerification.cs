@@ -49,7 +49,9 @@ internal static class PopupLayoutVerification
             var popup = item.GetVisualDescendants().OfType<Popup>().First();
             var panel = popup.Child!;
             Check(panel.Bounds.Width == 248, "Menu panel is 248px: " + item.Header);
-            Check(item.Items.OfType<MenuItem>().All(row => row.Bounds.Height >= 32), "Menu rows retain the prototype's 32px target: " + item.Header);
+            Check(Math.Abs(item.FontSize - 12) < 0.1, "Title menu uses the prototype 12px caption size: " + item.Header);
+            Check(item.Items.OfType<MenuItem>().All(row => Math.Abs(row.FontSize - 12) < 0.1 && row.Bounds.Height >= 32),
+                "Menu rows use 12px text and retain the 32px target: " + item.Header);
             foreach (var row in item.Items.OfType<MenuItem>())
             {
                 var header = row.GetVisualDescendants().OfType<ContentPresenter>().First(c => c.Name == "PART_HeaderPresenter");
