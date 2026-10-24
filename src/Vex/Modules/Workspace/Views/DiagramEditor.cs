@@ -96,18 +96,21 @@ public static class DiagramEditor
             var (openBorder, openContent) = (_openBorder, _openContent);
             _openBorder = null;
             _openContent = null;
-            if (openBorder.GetValue(OpenFenceIndexProperty) is { } index
-                && openBorder.GetValue(OpenRootProperty) is { } openRoot
-                && openBorder.GetValue(OpenMarkdownProperty) is { } original)
+            if (openBorder is not null)
             {
-                var edited = ReplaceFence(original, index, input.Text);
-                if (edited != original)
+                if (openBorder.GetValue(OpenFenceIndexProperty) is { } index
+                    && openBorder.GetValue(OpenRootProperty) is { } openRoot
+                    && openBorder.GetValue(OpenMarkdownProperty) is { } original)
                 {
-                    EventBus.Default.Publish(new MarkdownTextChangedCommand(edited, 1, 1,
-                        edited.Count(character => character == '\n') + 1));
+                    var edited = ReplaceFence(original, index, input.Text);
+                    if (edited != original)
+                    {
+                        EventBus.Default.Publish(new MarkdownTextChangedCommand(edited, 1, 1,
+                            edited.Count(character => character == '\n') + 1));
+                    }
                 }
+                if (ReferenceEquals(openBorder.Child, surface)) openBorder.Child = openContent;
             }
-            if (ReferenceEquals(openBorder.Child, surface)) openBorder.Child = openContent;
             input.KeyDown -= OnInputKeyDown;
             root.PointerPressed -= OnRootPointerPressed;
         }

@@ -12,12 +12,10 @@ public static class DocumentImportService
 {
     public static string FromHtml(string html)
     {
-        var converter = new ReverseMarkdown.Converter(new ReverseMarkdown.Config
-        {
-            GithubFlavored = true,
-            RemoveComments = true,
-            SmartHrefHandling = true,
-        });
+        var config = new ReverseMarkdown.Config { GithubFlavored = true };
+        config.Formatting.RemoveComments = true;
+        config.Links.SmartHref = true;
+        var converter = new ReverseMarkdown.Converter(config);
         return Normalize(converter.Convert(html));
     }
 
