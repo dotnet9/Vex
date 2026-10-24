@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:editor="using:CodeWF.Avalonia.Markdown.Editor.Controls"
     xmlns:i18n="https://codewf.com"
+    xmlns:icons="using:Vex.Controls"
     xmlns:l="clr-namespace:Vex"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
@@ -46,17 +47,17 @@
             SeparatorKey="VexPanelBorderBrush" DangerKey="VexDangerBrush" WarningKey="VexWarningBrush">
             <editor:MarkdownEditorView.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Undo}}" Command="{Binding Undo}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Redo}}" Command="{Binding Redo}" />
+                    <MenuItem icons:MenuIconCatalog.Key="undo" Header="{i18n:I18n {x:Static l:VexL.Undo}}" Command="{Binding Undo}" />
+                    <MenuItem icons:MenuIconCatalog.Key="redo" Header="{i18n:I18n {x:Static l:VexL.Redo}}" Command="{Binding Redo}" />
                     <Separator />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Cut}}" Command="{Binding Cut}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Copy}}" Command="{Binding Copy}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Paste}}" Command="{Binding Paste}" />
-                    <MenuItem Command="{Binding PasteAsPlainTextAsync}" Header="{i18n:I18n Vex.VexL.PastePlainText}" />
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.SelectAll}}" Command="{Binding SelectAll}" />
-                    <MenuItem Click="OnCopyPlainTextClick" Header="{i18n:I18n {x:Static l:VexL.CopyPlainText}}" />
+                    <MenuItem icons:MenuIconCatalog.Key="cut" Header="{i18n:I18n {x:Static l:VexL.Cut}}" Command="{Binding Cut}" />
+                    <MenuItem icons:MenuIconCatalog.Key="copy" Header="{i18n:I18n {x:Static l:VexL.Copy}}" Command="{Binding Copy}" />
+                    <MenuItem icons:MenuIconCatalog.Key="clipboard" Header="{i18n:I18n {x:Static l:VexL.Paste}}" Command="{Binding Paste}" />
+                    <MenuItem icons:MenuIconCatalog.Key="clipboard" Command="{Binding PasteAsPlainTextAsync}" Header="{i18n:I18n Vex.VexL.PastePlainText}" />
+                    <MenuItem icons:MenuIconCatalog.Key="square-dashed" Header="{i18n:I18n {x:Static l:VexL.SelectAll}}" Command="{Binding SelectAll}" />
+                    <MenuItem icons:MenuIconCatalog.Key="copy" Click="OnCopyPlainTextClick" Header="{i18n:I18n {x:Static l:VexL.CopyPlainText}}" />
                     <Separator />
-                    <MenuItem Header="{i18n:I18n Vex.VexL.ElementMenuConvertTo}">
+                    <MenuItem icons:MenuIconCatalog.Key="replace" Header="{i18n:I18n Vex.VexL.ElementMenuConvertTo}">
                         <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Paragraph}" Header="{i18n:I18n {x:Static l:VexL.Paragraph}}" />
                         <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading1}" Header="{i18n:I18n {x:Static l:VexL.Heading1}}" />
                         <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading2}" Header="{i18n:I18n {x:Static l:VexL.Heading2}}" />
@@ -69,7 +70,7 @@
                         <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.OrderedList}" Header="{i18n:I18n {x:Static l:VexL.OrderedList}}" />
                         <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.TaskList}" Header="{i18n:I18n {x:Static l:VexL.TaskList}}" />
                     </MenuItem>
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Table}}">
+                    <MenuItem icons:MenuIconCatalog.Key="table" Header="{i18n:I18n {x:Static l:VexL.Table}}">
                         <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Table}" Header="{i18n:I18n {x:Static l:VexL.InsertTable}}" />
                         <Separator />
                         <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowAbove}" Header="{i18n:I18n Vex.VexL.TableRowAbove}" />
@@ -89,15 +90,15 @@
                         <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowDelete}" Header="{i18n:I18n Vex.VexL.TableRowDelete}" />
                         <MenuItem Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColDelete}" Header="{i18n:I18n Vex.VexL.TableColumnDelete}" />
                         <Separator />
-                        <MenuItem Command="{Binding FormatTable}" Header="{i18n:I18n Vex.VexL.TableFormat}" />
-                        <MenuItem Command="{Binding DeleteBlock}" Header="{i18n:I18n Vex.VexL.TableDelete}" />
+                        <MenuItem icons:MenuIconCatalog.Key="table" Command="{Binding FormatTable}" Header="{i18n:I18n Vex.VexL.TableFormat}" />
+                        <MenuItem icons:MenuIconCatalog.Key="trash" Command="{Binding DeleteBlock}" Header="{i18n:I18n Vex.VexL.TableDelete}" />
                     </MenuItem>
                     <Separator />
-                    <MenuItem Command="{Binding InsertParagraphAbove}" Header="{i18n:I18n Vex.VexL.InsertParagraphAbove}" />
-                    <MenuItem Command="{Binding InsertParagraphBelow}" Header="{i18n:I18n Vex.VexL.InsertParagraphBelow}" />
-                    <MenuItem Command="{Binding ToggleTask}" Header="{i18n:I18n Vex.VexL.ToggleTask}" />
-                    <MenuItem Command="{Binding CopyBlock}" Header="{i18n:I18n Vex.VexL.CopyBlock}" />
-                    <MenuItem Command="{Binding DeleteBlock}" Header="{i18n:I18n Vex.VexL.DeleteBlock}" />
+                    <MenuItem icons:MenuIconCatalog.Key="arrow-up-to-line" Command="{Binding InsertParagraphAbove}" Header="{i18n:I18n Vex.VexL.InsertParagraphAbove}" />
+                    <MenuItem icons:MenuIconCatalog.Key="arrow-down-to-line" Command="{Binding InsertParagraphBelow}" Header="{i18n:I18n Vex.VexL.InsertParagraphBelow}" />
+                    <MenuItem icons:MenuIconCatalog.Key="list-check" Command="{Binding ToggleTask}" Header="{i18n:I18n Vex.VexL.ToggleTask}" />
+                    <MenuItem icons:MenuIconCatalog.Key="copy" Command="{Binding CopyBlock}" Header="{i18n:I18n Vex.VexL.CopyBlock}" />
+                    <MenuItem icons:MenuIconCatalog.Key="trash" Command="{Binding DeleteBlock}" Header="{i18n:I18n Vex.VexL.DeleteBlock}" />
                     <Separator />
                     <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}" Header="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" />
                 </ContextMenu>

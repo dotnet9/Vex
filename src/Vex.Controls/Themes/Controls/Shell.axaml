@@ -221,7 +221,7 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Border Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}">
-                    <Path Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    <Path Width="10" Height="10" HorizontalAlignment="Center" VerticalAlignment="Center"
                           Data="M0 0L12 12 M12 0L0 12" Stretch="Uniform" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6" StrokeLineCap="Round"/>
                 </Border>
             </ControlTemplate>

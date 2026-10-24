@@ -12,6 +12,7 @@ using CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg;
 using Vex.Core.Services;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Workspace.Services;
+using Vex.Controls;
 
 namespace Vex.Modules.Workspace.Views;
 
@@ -85,35 +86,70 @@ public sealed class MarkdownInstantView : UserControl
         var menu = new ContextMenu();
         var items = new List<object>
         {
-            SubMenu(Localizer.Get(VexL.ElementMenuConvertTo), ConvertItems()),
-            SubMenu(Localizer.Get(VexL.Table), TableItems()),
+            SubMenu(Localizer.Get(VexL.ElementMenuConvertTo), "replace", ConvertItems()),
+            SubMenu(Localizer.Get(VexL.Table), "table", TableItems()),
             Separator(),
-            ElementItem(VexL.InsertParagraphAbove, new MarkdownElementCommand(MarkdownElementOperation.InsertParagraphAbove, SourceLineOrCaret())),
-            ElementItem(VexL.InsertParagraphBelow, new MarkdownElementCommand(MarkdownElementOperation.InsertParagraphBelow, SourceLineOrCaret())),
-            ElementItem(VexL.ToggleTask, new MarkdownElementCommand(MarkdownElementOperation.ToggleTask, SourceLineOrCaret())),
-            ElementItem(VexL.CopyBlock, new MarkdownElementCommand(MarkdownElementOperation.CopyBlock, SourceLineOrCaret())),
-            ElementItem(VexL.DeleteBlock, new MarkdownElementCommand(MarkdownElementOperation.DeleteBlock, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.InsertParagraphAbove), new MarkdownElementCommand(MarkdownElementOperation.InsertParagraphAbove, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.InsertParagraphBelow), new MarkdownElementCommand(MarkdownElementOperation.InsertParagraphBelow, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.ToggleTask), new MarkdownElementCommand(MarkdownElementOperation.ToggleTask, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.CopyBlock), new MarkdownElementCommand(MarkdownElementOperation.CopyBlock, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.DeleteBlock), new MarkdownElementCommand(MarkdownElementOperation.DeleteBlock, SourceLineOrCaret())),
         };
         menu.ItemsSource = items;
+        foreach (var item in items.OfType<MenuItem>()) MenuIconCatalog.Apply(item);
         return menu;
     }
 
-    private static MenuItem SubMenu(string header, List<object> items) => new()
+    private static MenuItem SubMenu(string header, string iconKey, List<object> items)
     {
-        Header = header, ItemsSource = items,
-    };
+        var item = new MenuItem { Header = header, ItemsSource = items };
+        MenuIconCatalog.SetKey(item, iconKey);
+        return item;
+    }
 
     private static Separator Separator() => new();
 
-    private MenuItem ElementItem(string header, MarkdownElementCommand command) => new()
+    private MenuItem ElementItem(string header, MarkdownElementCommand command)
     {
-        Header = header,
-        Command = new DelegateCommand(() => EventBus.Default.Publish(command)),
-    };
+        var item = new MenuItem
+        {
+            Header = header,
+            Command = new DelegateCommand(() => EventBus.Default.Publish(command)),
+        };
+        // 委托闭包没有公开动作参数，显式传递图标语义以保证不同语言下使用相同图形。
+        var key = command.Operation switch
+        {
+            MarkdownElementOperation.Convert => command.ConvertKind switch
+            {
+                "paragraph" => "pilcrow", "quote" => "quote", "list" => "list",
+                "ordered" => "list-ordered", "task" => "list-check", _ => "heading",
+            },
+            MarkdownElementOperation.Table => command.TableAction switch
+            {
+                MarkdownTableAction.RowAbove => "arrow-up-to-line", MarkdownTableAction.RowBelow => "arrow-down-to-line",
+                MarkdownTableAction.ColBefore or MarkdownTableAction.ColLeft => "arrow-left",
+                MarkdownTableAction.ColAfter or MarkdownTableAction.ColRight => "arrow-right",
+                MarkdownTableAction.RowUp => "arrow-up", MarkdownTableAction.RowDown => "arrow-down",
+                MarkdownTableAction.AlignLeft => "align-left", MarkdownTableAction.AlignCenter => "align-center",
+                MarkdownTableAction.AlignRight => "align-right", MarkdownTableAction.RowDelete => "table-rows-split",
+                MarkdownTableAction.ColDelete => "table-columns-split", _ => "table",
+            },
+            MarkdownElementOperation.FormatTable => "table",
+            MarkdownElementOperation.InsertParagraphAbove => "arrow-up-to-line",
+            MarkdownElementOperation.InsertParagraphBelow => "arrow-down-to-line",
+            MarkdownElementOperation.ToggleTask => "list-check",
+            MarkdownElementOperation.CopyBlock => "copy",
+            MarkdownElementOperation.DeleteBlock => "trash",
+            _ => "help",
+        };
+        MenuIconCatalog.SetKey(item, key);
+        return item;
+    }
 
     private MenuItem EditorActionItem(string header, EditorActionKind action) => new()
     {
         Header = header,
+        CommandParameter = action,
         Command = new DelegateCommand(() => EventBus.Default.Publish(new EditorActionCommand(action))),
     };
 

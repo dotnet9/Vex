@@ -11,6 +11,8 @@ using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
 using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
+using Vex.Controls;
+using Vex.Modules.Workspace.Views;
 
 internal static class PopupLayoutVerification
 {
@@ -22,6 +24,16 @@ internal static class PopupLayoutVerification
         vm.Appearance.SelectedLanguage = vm.Appearance.LanguageOptions.First(x => x.CultureName == "zh-CN");
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
+        static IEnumerable<MenuItem> MenuItems(System.Collections.IEnumerable items)
+        {
+            foreach (var item in items.OfType<MenuItem>())
+            {
+                yield return item;
+                foreach (var child in MenuItems(item.Items)) yield return child;
+                if (item.ItemsSource is System.Collections.IEnumerable source)
+                    foreach (var child in MenuItems(source)) yield return child;
+            }
+        }
         var title = window.FindControl<ShellTitleMenuView>("TitleMenuView")!;
         void Capture(Control control, string name)
         {
@@ -43,20 +55,61 @@ internal static class PopupLayoutVerification
             "Palette and typography entries stay in the appearance flyout, not the title menu");
         Check(file.Items.OfType<MenuItem>().Count(row => row.Items.Count > 0) >= 4,
             "File menu exposes recent/export/import/reopen submenus");
+        var titleItems = MenuItems(((Menu)title.Content!).Items).ToArray();
+        var topLevelItems = ((Menu)title.Content!).Items.OfType<MenuItem>().ToArray();
+        Check(topLevelItems.Where(item => item.ToggleType == MenuItemToggleType.None).All(item => item.Icon is Viewbox { Width: 12, Height: 12 } host && host.Child is Avalonia.Controls.Shapes.Path { Width: 24, Height: 24 }),
+            "顶级菜单入口使用 12px Lucide 图标");
+        Check(titleItems.Where(item => item.ToggleType == MenuItemToggleType.None).All(item => item.Icon is Viewbox host && (host.Width == 12 || host.Width == 14) && (host.Height == 12 || host.Height == 14) && host.Child is Avalonia.Controls.Shapes.Path { Width: 24, Height: 24 }),
+            "普通顶部菜单项使用固定 Viewbox Lucide 图标");
+        Check(titleItems.Where(item => item.ToggleType != MenuItemToggleType.None).All(item => item.Icon is null),
+            "勾选和单选菜单项不配置操作图标");
+        Check(titleItems.All(item => Math.Abs(item.FontSize - 13) < 0.1),
+            "顶部菜单及级联菜单统一使用 13px 字号");
+        var help = title.FindControl<MenuItem>("HelpMenuItem")!;
+        var helpIconKeys = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [localizer.Get(Vex.VexL.OnboardingGuide)] = "book-open",
+            [localizer.Get(Vex.VexL.Changelog)] = "history",
+            [localizer.Get(Vex.VexL.Thanks)] = "heart",
+            [localizer.Get(Vex.VexL.Website)] = "external",
+            [localizer.Get(Vex.VexL.Feedback)] = "message-circle",
+            [localizer.Get(Vex.VexL.AboutCheckUpdate)] = "refresh",
+            [localizer.Get(Vex.VexL.About)] = "info",
+        };
+        foreach (var item in help.Items.OfType<MenuItem>())
+        {
+            if (!helpIconKeys.TryGetValue(HeaderText(item.Header), out var key)) continue;
+            Check(MenuIconVerification.HasIcon(item, key),
+                $"帮助菜单“{item.Header}”使用语义图标 {key}");
+        }
+        var paragraph = title.FindControl<MenuItem>("InsertMenuItem")!;
+        var paragraphIconKeys = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [localizer.Get(Vex.VexL.UnorderedList)] = "list",
+            [localizer.Get(Vex.VexL.OrderedList)] = "list-ordered",
+            [localizer.Get(Vex.VexL.TaskList)] = "list-check",
+            [localizer.Get(Vex.VexL.Quote)] = "quote",
+        };
+        foreach (var item in paragraph.Items.OfType<MenuItem>())
+        {
+            if (!paragraphIconKeys.TryGetValue(HeaderText(item.Header), out var key)) continue;
+            Check(MenuIconVerification.HasIcon(item, key),
+                $"段落菜单“{item.Header}”使用语义图标 {key}");
+        }
         foreach (var item in ((Menu)title.Content!).Items.OfType<MenuItem>())
         {
             item.IsSubMenuOpen = true; Render();
             var popup = item.GetVisualDescendants().OfType<Popup>().First();
             var panel = popup.Child!;
             Check(panel.Bounds.Width == 248, "Menu panel is 248px: " + item.Header);
-            Check(Math.Abs(item.FontSize - 12) < 0.1, "Title menu uses the prototype 12px caption size: " + item.Header);
-            Check(item.Items.OfType<MenuItem>().All(row => Math.Abs(row.FontSize - 12) < 0.1 && row.Bounds.Height >= 32),
-                "Menu rows use 12px text and retain the 32px target: " + item.Header);
+            Check(Math.Abs(item.FontSize - 13) < 0.1, "Title menu uses the unified 13px caption size: " + item.Header);
+            Check(item.Items.OfType<MenuItem>().All(row => Math.Abs(row.FontSize - 13) < 0.1 && row.Bounds.Height >= 32),
+                "Menu rows use 13px text and retain the 32px target: " + item.Header);
             foreach (var row in item.Items.OfType<MenuItem>())
             {
                 var header = row.GetVisualDescendants().OfType<ContentPresenter>().First(c => c.Name == "PART_HeaderPresenter");
                 var headerX = header.TranslatePoint(default, panel)!.Value.X;
-                Check(Math.Abs(headerX - 41) < 1, $"Every menu row reserves the state column (x={headerX:0.##}): " + row.Header);
+                Check(Math.Abs(headerX - 35) < 1, $"Every menu row reserves the state column (x={headerX:0.##}): " + row.Header);
             }
             var name = item.Name ?? item.Header?.ToString() ?? "menu";
             using var image = new RenderTargetBitmap(new PixelSize((int)panel.Bounds.Width, (int)panel.Bounds.Height));
@@ -66,6 +119,30 @@ internal static class PopupLayoutVerification
             Console.WriteLine($"CAPTURE {name}: {panel.Bounds}");
             item.IsSubMenuOpen = false; Render();
         }
+        var files = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
+        foreach (var menu in new[] { files.FindControl<TreeView>("FileTree")!.ContextMenu!, files.FindControl<ListBox>("FileList")!.ContextMenu! })
+            Check(MenuItems(menu.Items).Where(item => item.ToggleType == MenuItemToggleType.None).All(item => item.Icon is Viewbox { Width: 14, Height: 14 } host && host.Child is Avalonia.Controls.Shapes.Path { Width: 24, Height: 24 }),
+                "文件树和平铺列表右键菜单使用 Lucide 图标");
+        var editor = window.FindControl<MarkdownEditorView>("EditorGuideTarget")!;
+        var editorMenu = editor.FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor")!.ContextMenu!;
+        Check(MenuItems(editorMenu.Items).All(item => Math.Abs(item.FontSize - 13) < 0.1),
+            "源码编辑器右键菜单统一使用 13px 字号");
+        var instant = window.FindControl<MarkdownInstantView>("InstantGuideTarget")!;
+        Check(MenuItems(instant.Editor.ContextMenu!.Items).Where(item => item.ToggleType == MenuItemToggleType.None).All(item => item.Icon is Viewbox { Width: 14, Height: 14 } host && host.Child is Avalonia.Controls.Shapes.Path { Width: 24, Height: 24 }),
+            "即时编辑器动态右键菜单使用共享 Lucide 映射");
+        var instantHeaders = MenuItems(instant.Editor.ContextMenu.Items).Select(item => HeaderText(item.Header)).ToArray();
+        Check(instantHeaders.Length > 0 && instantHeaders.All(header => !header.StartsWith("Vex.VexL.", StringComparison.Ordinal)),
+            "即时编辑器右键菜单及子菜单不显示本地化资源键");
+        var elementActionKeys = new[]
+        {
+            Vex.VexL.InsertParagraphAbove, Vex.VexL.InsertParagraphBelow, Vex.VexL.ToggleTask,
+            Vex.VexL.CopyBlock, Vex.VexL.DeleteBlock,
+        };
+        Check(elementActionKeys.All(key => localizer.Get(key) != key && instantHeaders.Contains(localizer.Get(key))),
+            "插入段落、切换任务、复制块和删除块显示当前语言的菜单名称");
+        var separateMenu = window.FindControl<MainWindow>("ShellWindow")!.LayoutTarget.ContextMenu!;
+        Check(MenuItems(separateMenu.Items).All(item => item.Icon is Viewbox { Width: 14, Height: 14 } host && host.Child is Avalonia.Controls.Shapes.Path { Width: 24, Height: 24 }), "分离视图动态菜单使用 Lucide 图标");
+        MenuIconVerification.Run(window, output);
         // 排版级联已迁到外观弹层（ShellAppearanceMenuView），滚动可达性由 prototype-appearance 模式覆盖。
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("indigo"); Render();
         var appearance = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;

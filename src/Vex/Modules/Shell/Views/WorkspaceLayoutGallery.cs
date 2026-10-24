@@ -16,7 +16,7 @@ public sealed class WorkspaceLayoutGallery : Border
     private ShellWorkbenchViewModel? _workbench;
     public WorkspaceLayoutGallery()
     {
-        Classes.Add("wb-popover"); Width = 568; Padding = new Thickness(18); CornerRadius = new CornerRadius(8);
+        Classes.Add("wb-popover"); Width = 568; Padding = new Thickness(18);
         AttachedToVisualTree += (_, _) => { if (TopLevel.GetTopLevel(this) is { } window) { window.SizeChanged += WindowResized; Fit(window); } };
         DetachedFromVisualTree += (_, _) => { if (TopLevel.GetTopLevel(this) is { } window) window.SizeChanged -= WindowResized; };
         DataContextChanged += (_, _) => Attach();
@@ -24,7 +24,7 @@ public sealed class WorkspaceLayoutGallery : Border
         DetachedFromVisualTree += (_, _) => { CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged -= CultureChanged; if (_workbench is not null) _workbench.PropertyChanged -= Changed; };
     }
     private void WindowResized(object? sender, SizeChangedEventArgs e) { if (sender is TopLevel window) Fit(window); }
-    private void Fit(TopLevel window) { Width = Math.Min(568, window.ClientSize.Width - 24); MaxHeight = Math.Max(160, window.ClientSize.Height - 120); Margin = new Thickness(12, 12, 24, 44); }
+    private void Fit(TopLevel window) { Width = Math.Min(568, window.ClientSize.Width - 36); MaxHeight = Math.Max(160, window.ClientSize.Height - 132); Margin = new Thickness(18, 18, 30, 52); }
     private void CultureChanged(object? sender, EventArgs e) => Avalonia.Threading.Dispatcher.UIThread.Post(Build);
     private void Attach()
     {

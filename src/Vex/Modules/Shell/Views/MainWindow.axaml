@@ -72,7 +72,7 @@
                 x:Name="TitleDocumentLabel"
                 Text="{Binding DocumentInfo.CurrentDocumentTitle}"
                 FontSize="12"
-                FontWeight="SemiBold"
+                FontWeight="Normal"
                 MaxWidth="300"
                 TextTrimming="CharacterEllipsis"
                 VerticalAlignment="Center"
@@ -208,9 +208,9 @@
             </StackPanel>
             </Grid>
         </Border>
-        <shell:ShellTypographyGallery x:Name="TypographyGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12,56,12,12"/>
+        <shell:ShellTypographyGallery x:Name="TypographyGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18,62,18,18"/>
         <!-- 对齐原型：选择视图面板锚定底栏「更多」按钮上方，轻量关闭由代码后置处理。 -->
-        <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12,12,24,44"/>
+        <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="18,18,30,52"/>
         <shell:WorkbenchGuideView x:Name="WorkbenchGuide" Grid.RowSpan="4"/>
     </Grid>
     </Border>

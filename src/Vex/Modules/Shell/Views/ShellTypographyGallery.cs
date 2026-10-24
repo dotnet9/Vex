@@ -29,6 +29,8 @@ public sealed class ShellTypographyGallery : UserControl
 
     public ShellTypographyGallery()
     {
+        // UserControl 默认裁剪子内容。阴影画在弹层边界外，裁剪后看起来就像没有阴影。
+        ClipToBounds = false;
         DataContextChanged += (_, _) => Attach();
         AttachedToVisualTree += (_, _) => { Attach(); _window = TopLevel.GetTopLevel(this); if (_window is not null) _window.SizeChanged += WindowSizeChanged; Resize(); };
         DetachedFromVisualTree += (_, _) => { if (_vm is not null) { _vm.Appearance.PropertyChanged -= Changed; _vm.Workbench.PropertyChanged -= WorkbenchChanged; } I18nManager.Instance.CultureChanged -= CultureChanged; if (_window is not null) _window.SizeChanged -= WindowSizeChanged; _vm = null; _window = null; };
@@ -63,12 +65,12 @@ public sealed class ShellTypographyGallery : UserControl
 
     private void Resize()
     {
-        Width = Math.Min(880, (_window?.ClientSize.Width ?? 1280) - 24);
+        Width = Math.Min(880, (_window?.ClientSize.Width ?? 1280) - 36);
         var anchor = (_window as MainWindow)?.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "TypographyTarget" && b.IsEffectivelyVisible);
-        var top = anchor?.TranslatePoint(new Point(0, anchor.Bounds.Height + 8), _window!)?.Y ?? 126;
+        var top = anchor?.TranslatePoint(new Point(0, anchor.Bounds.Height + 14), _window!)?.Y ?? 132;
         var parentTop = _window is not null ? this.GetVisualParent()?.TranslatePoint(default, _window)?.Y ?? 0 : 0;
-        Margin = new Thickness(12, Math.Max(0, top - parentTop), 12, 12);
-        Height = Math.Max(140, Math.Min(680, (_window?.ClientSize.Height ?? 820) - top - 12));
+        Margin = new Thickness(18, Math.Max(0, top - parentTop), 18, 18);
+        Height = Math.Max(140, Math.Min(680, (_window?.ClientSize.Height ?? 820) - top - 18));
     }
 
     private void Changed(object? sender, PropertyChangedEventArgs e)
@@ -101,8 +103,8 @@ public sealed class ShellTypographyGallery : UserControl
         _items.Clear(); _densityPills.Clear(); _cards.Children.Clear(); _header.Children.Clear();
 
         var titleRow = new Grid { ColumnDefinitions = new("*,Auto") };
-        var title = Label(Text("WBTypographyTitle"), 15); title.FontWeight = FontWeight.SemiBold; title.VerticalAlignment = VerticalAlignment.Center; titleRow.Children.Add(title);
-        var close = new Button { Classes = { "vex-dismiss" }, Width = 30, Height = 30 };
+        var title = Label(Text("WBTypographyTitle"), 15); title.FontWeight = FontWeight.Normal; title.VerticalAlignment = VerticalAlignment.Center; titleRow.Children.Add(title);
+        var close = new Button { Classes = { "vex-dismiss" } };
         Avalonia.Automation.AutomationProperties.SetName(close, Text("Close"));
         close.Click += (_, _) => { _vm.Workbench.ShowTypography = false; (_window as MainWindow)?.FindControl<ShellEditorOptionsView>("EditorOptions")?.FindControl<Button>("TypographyTarget")?.Focus(); };
         Grid.SetColumn(close, 1); titleRow.Children.Add(close);
@@ -110,14 +112,14 @@ public sealed class ShellTypographyGallery : UserControl
 
         // 渲染密度：与外观菜单同款胶囊分段条（紧凑/正常/宽松 → Markdown 基准字号 13/15/17）。
         var densityRow = new Grid { ColumnDefinitions = new("Auto,*"), ColumnSpacing = 10, Height = 52 };
-        var densityLabel = new TextBlock { Text = Text("RenderDensityTitle"), FontSize = 11, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+        var densityLabel = new TextBlock { Text = Text("RenderDensityTitle"), FontSize = 11, FontWeight = FontWeight.Normal, VerticalAlignment = VerticalAlignment.Center };
         Resource(densityLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush"); densityRow.Children.Add(densityLabel);
         // 三枚等宽胶囊（flex:1）：紧贴标签右侧，均分 320px。
         var pills = new UniformGrid { Columns = 3, Width = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
         Grid.SetColumn(pills, 1);
         foreach (var (key, labelKey) in new[] { ("compact", "DensityCompact"), ("normal", "DensityNormal"), ("relaxed", "DensityRelaxed") })
         {
-            var pill = new Button { Classes = { "appearance-pill" }, Content = Text(labelKey), HorizontalAlignment = HorizontalAlignment.Stretch };
+            var pill = new Button { Classes = { "appearance-pill", "typography-density" }, Content = Text(labelKey), FontWeight = FontWeight.Normal, HorizontalAlignment = HorizontalAlignment.Stretch };
             var captured = key;
             pill.Click += (_, _) => _vm.Appearance.MarkdownDensity = captured;
             _densityPills[key] = pill; pills.Children.Add(pill);
@@ -134,27 +136,37 @@ public sealed class ShellTypographyGallery : UserControl
         _scroll = new ScrollViewer { Content = _cards, Padding = new Thickness(2, 2, 15, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
         var grid = new Grid { RowDefinitions = new("Auto,*") };
         grid.Children.Add(_header); Grid.SetRow(_scroll, 1); grid.Children.Add(_scroll);
-        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16), BorderThickness = new Thickness(0), BoxShadow = BoxShadows.Parse("0 12 32 0 #29101828, 0 2 8 0 #14101828") };
+        // 圆角、边框和阴影交给 Border.wb-popover，与底部布局弹层保持同一套样式。
+        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18) };
         Resource(border, Border.BackgroundProperty, this, "VexElevatedBackgroundBrush");
         Content = border;
         Resize(); Changed(null, new(""));
     }
 
-    /// <summary>卡片即预览：以该排版真实样式渲染「## 名称 / 说明 / ### 维刻 Vex / 引用」。</summary>
+    /// <summary>卡片即预览：名称用普通字重，正文按该排版真实样式渲染说明、三级标题和引用。</summary>
     private Control BuildCard(TypographyOption option)
     {
         var preview = new MarkdownViewer
         {
-            Markdown = $"## {Text(option.NameKey)}\n\n{Text(option.PurposeKey)}\n\n### 维刻 Vex\n\n> {Text("AboutShortSlogan")}",
+            Markdown = $"{Text(option.PurposeKey)}\n\n### 维刻 Vex\n\n> {Text("AboutShortSlogan")}",
             TypographyTheme = option.Key,
             FontWeight = FontWeight.Normal,
             TypographySize = MarkdownTypographySizes.Compact,
             IsHitTestVisible = false,
-            Margin = new Thickness(14, 12),
+            Margin = new Thickness(14, 2, 14, 12),
             DocumentBottomPadding = 0,
             EnableVirtualization = false
         };
-        var paper = new Border { Child = preview, ClipToBounds = true, CornerRadius = new CornerRadius(10) };
+        var name = new TextBlock
+        {
+            Text = Text(option.NameKey),
+            FontSize = 13,
+            FontWeight = FontWeight.Normal,
+            Margin = new Thickness(14, 10, 14, 0),
+            TextTrimming = TextTrimming.CharacterEllipsis,
+        };
+        Resource(name, TextBlock.ForegroundProperty, this, "VexValueBrush");
+        var paper = new Border { Child = new StackPanel { Children = { name, preview } }, ClipToBounds = true, CornerRadius = new CornerRadius(10) };
         Resource(paper, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
         var badgeText = new TextBlock { FontSize = 9, FontWeight = FontWeight.SemiBold, Foreground = Brushes.White };
         var badge = new Border

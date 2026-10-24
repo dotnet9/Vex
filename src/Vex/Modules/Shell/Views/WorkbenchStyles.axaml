@@ -70,6 +70,20 @@
   <Style Selector="Button.appearance-pill-on /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/><Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}"/><Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
+  <!-- 排版面板的密度选项默认不加粗，选中后保留加粗。FontWeight 只存在于按钮和文字，不能设到 ContentPresenter。 -->
+  <Style Selector="Button.typography-density">
+    <Setter Property="FontWeight" Value="Normal"/>
+  </Style>
+  <Style Selector="Button.typography-density TextBlock">
+    <Setter Property="FontWeight" Value="Normal"/>
+  </Style>
+  <Style Selector="Button.typography-density.appearance-pill-on">
+    <Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style Selector="Button.typography-density.appearance-pill-on TextBlock">
+    <Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+
   <!-- 原型 .studio-palettes button：1px #E2E2E4 边框、6px 圆角、7px 内边距的纸面卡片。 -->
   <Style Selector="Button.palette-card">
     <Setter Property="Padding" Value="7"/><Setter Property="CornerRadius" Value="6"/>
@@ -104,6 +118,12 @@
   <!-- 原型 aria-checked 行：accent-soft 底色，文字/徽标强调色由代码回放。 -->
   <Style Selector="Button.language-item-on /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+  </Style>
+  <Style Selector="Button#TitleBarAppearanceButton">
+    <Setter Property="FontWeight" Value="Normal"/>
+  </Style>
+  <Style Selector="Button#TitleBarAppearanceButton TextBlock">
+    <Setter Property="FontWeight" Value="Normal"/>
   </Style>
   <!-- 原型 #vex-appearance-menu[open]>summary：弹出层打开时外观按钮呈选中态。 -->
   <Style Selector="Button.title-picker-open /template/ ContentPresenter#PART_ContentPresenter">
@@ -180,10 +200,36 @@
     <Setter Property="Stretch" Value="Uniform"/><Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/>
     <Setter Property="StrokeThickness" Value="1.6"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/>
   </Style>
+  <Style Selector="Border.sidebar-search">
+    <Setter Property="CornerRadius" Value="2"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+  </Style>
+  <Style Selector="Border.sidebar-search:focus-within">
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <!-- 底线搜索框保持透明，覆盖 Semi 输入模板的悬停和按下背景。 -->
+  <Style Selector="TextBox.sidebar-search-input /template/ Border#PART_ContentPresenterBorder, TextBox.sidebar-search-input:pointerover /template/ Border#PART_ContentPresenterBorder, TextBox.sidebar-search-input:pressed /template/ Border#PART_ContentPresenterBorder">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="Button.sidebar-search-clear">
+    <Setter Property="Width" Value="20"/><Setter Property="Height" Value="20"/>
+    <Setter Property="MinWidth" Value="0"/><Setter Property="MinHeight" Value="0"/>
+    <Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="2"/>
+    <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="Button.sidebar-search-clear:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.sidebar-search-clear:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
   <Style Selector="Button.wb-quiet, ToggleButton.wb-quiet">
-    <Setter Property="FontSize" Value="11"/><Setter Property="MinHeight" Value="28"/><Setter Property="Padding" Value="8,4"/>
+    <Setter Property="FontSize" Value="11"/><Setter Property="FontWeight" Value="Normal"/><Setter Property="MinHeight" Value="28"/><Setter Property="Padding" Value="8,4"/>
     <Setter Property="CornerRadius" Value="5"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <Style Selector="Button.wb-quiet TextBlock, ToggleButton.wb-quiet TextBlock">
+    <Setter Property="FontWeight" Value="Normal"/>
   </Style>
   <!-- 对应原型标题栏 .studio-title-controls button：30×28、4px 圆角、透明底。 -->
   <Style Selector="Button.tb-icon">
@@ -223,7 +269,9 @@
   </Style>
   <Style Selector="Border.wb-popover">
     <Setter Property="Background" Value="{DynamicResource VexElevatedBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
-    <Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="10"/><Setter Property="BoxShadow" Value="0 8 30 0 #18000000"/>
+    <Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="10"/>
+    <Setter Property="BoxShadow" Value="0 8 30 0 #18000000"/>
+    <Setter Property="ClipToBounds" Value="False"/>
   </Style>
   <Style Selector="TextBlock.wb-muted"><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/><Setter Property="FontSize" Value="11.5"/></Style>
   <Style Selector="Border.pane-head"><Setter Property="Height" Value="44"/><Setter Property="Padding" Value="20,0"/></Style>

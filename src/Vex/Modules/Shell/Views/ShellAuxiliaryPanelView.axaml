@@ -4,9 +4,12 @@
  <Grid RowDefinitions="Auto,*">
   <Grid Margin="14,13,10,6" ColumnDefinitions="*,Auto">
    <TextBlock Text="{i18n:I18n {x:Static l:VexL.StructureTitle}}" FontSize="12" FontWeight="Medium" VerticalAlignment="Center"/>
-   <Button Grid.Column="1" Classes="wb-quiet" MinHeight="0" Width="22" Height="22" Padding="3" CornerRadius="5"
-           Command="{Binding Layout.ToggleOutline}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseStructure}}">
-    <Path Classes="expand-chevron" Data="M6 9L12 15L18 9"/>
+   <Button x:Name="CollapseOutlineButton" Grid.Column="1" Classes="wb-quiet" MinHeight="0" Width="22" Height="22" Padding="3" CornerRadius="5"
+           Command="{Binding Layout.ToggleOutline}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseStructure}}"
+           AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseStructure}}">
+    <Viewbox Width="14" Height="14">
+     <Path x:Name="CollapseOutlineIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="None"/>
+    </Viewbox>
    </Button>
   </Grid>
   <ContentControl Grid.Row="1" prism:RegionManager.RegionName="{x:Static regions:RegionNames.ShellOutlineRegion}"/>

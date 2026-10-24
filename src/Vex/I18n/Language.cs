@@ -665,6 +665,7 @@ public static class VexL
     public static readonly string OutlineFilterPlaceholder = "Vex.VexL.OutlineFilterPlaceholder";
     public static readonly string CollapseAllFiles = "Vex.VexL.CollapseAllFiles";
     public static readonly string ToggleFileList = "Vex.VexL.ToggleFileList";
+    public static readonly string ToggleFileTree = "Vex.VexL.ToggleFileTree";
     public static readonly string SortFiles = "Vex.VexL.SortFiles";
     public static readonly string OpenInNewWindow = "Vex.VexL.OpenInNewWindow";
     public static readonly string FileActions = "Vex.VexL.FileActions";

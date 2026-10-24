@@ -8,6 +8,7 @@ using CodeWF.Avalonia.Markdown.Editor.Controls;
 using Vex.Core.Messaging;
 using Vex.Modules.Workspace.ViewModels;
 using Vex.Modules.Shell.ViewModels;
+using Vex.Controls;
 
 namespace Vex.Modules.Workspace.Views;
 
@@ -21,6 +22,7 @@ public partial class MarkdownEditorView : UserControl
     public MarkdownEditorView()
     {
         InitializeComponent();
+        MenuIconCatalog.Apply((ContextMenu)MarkdownEditor.ContextMenu!);
         MarkdownEditor.Editor.FontFamily = Vex.Core.Services.VexFonts.Code;
         DataContextChanged += (_, _) => AttachViewModel();
         AttachedToVisualTree += (_, _) => AttachViewModel();
