@@ -1,6 +1,9 @@
 @echo off
 setlocal
-echo Local publishing builds the win-x64 NativeAOT application and Windows installer.
-echo All five platforms are built on their native GitHub Actions runners when a release tag is pushed.
-call "%~dp0package_win_x64.bat" %*
+where pwsh >nul 2>nul
+if errorlevel 1 (
+    powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0publish.ps1" %*
+) else (
+    pwsh -NoLogo -NoProfile -File "%~dp0publish.ps1" %*
+)
 exit /b %ERRORLEVEL%

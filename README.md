@@ -35,6 +35,8 @@ Vex 是基于 .NET 10 与 Avalonia 12 的桌面 Markdown 编辑器，支持 **Wi
 
 ## 运行
 
+在 Windows 根目录运行 `start.bat`，自动还原、构建并启动桌面程序做本地测试；可传入文档路径，例如 `start.bat "docs\快速开始.md"`。跨平台使用 `pwsh ./start.ps1`，Release 模式使用 `-Configuration Release`。中间产物默认位于仓库根目录相对路径 `../../temp_files/vex-start`，避免与其他构建共用输出，也可用 `-ArtifactsPath <目录>` 指定。
+
 ~~~powershell
 $vexWorkRoot = 'E:/github/temp_files/vex-learning'
 dotnet restore Vex.slnx "-p:ArtifactsPath=$vexWorkRoot/artifacts"
@@ -43,6 +45,8 @@ dotnet run --project src/Vex/Vex.csproj -f net10.0 --no-restore "-p:ArtifactsPat
 ~~~
 
 版本与编译属性在 Directory.Build.props，NuGet 中央包版本在 Directory.Packages.props，SDK 由 global.json 选择。应用图标以根目录 logo.svg、logo.png、logo.ico 为源；共享库经 NuGet 消费，本地联调和五 RID NativeAOT 发布见开发文档。
+
+发布入口 `publish_all.bat` 默认只列出平台，与 `publish_all.bat list` 相同；传入 `Win`、`Linux`、`osx` 按本机架构发布安装包，也可指定完整 RID。Linux/macOS 使用 `pwsh ./publish.ps1 Linux` 或 `pwsh ./publish.ps1 osx`。NativeAOT 需在匹配的系统和架构上执行，详见 [发布流程](docs/安装与发布.md)。
 
 ## 许可证
 
