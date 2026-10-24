@@ -4,14 +4,16 @@
   'use strict';
   const font = '"Segoe UI", "Microsoft YaHei UI", "PingFang SC", sans-serif';
   const tokens = {'#d1e2f3':'--diagram-node','#253647':'--diagram-text','#456789':'--diagram-accent','#e2d3c4':'--diagram-secondary','#f3e4d5':'--diagram-paper','#647586':'--diagram-line','#b4c5d6':'--diagram-border'};
-  const series = ['#8b7cf6','#d9ad53','#70a98b','#c583b5','#62a5c2','#d58585','#7e9ecb','#a9b568'];
+  const series = ['#7466e0','#d9ad53','#70a98b','#c583b5','#62a5c2','#d58585','#7e9ecb','#a9b568'];
   const soft = ['#eeeafd','#fff4d6','#e5f2e5','#f5e4f1','#e0f0f7','#fae6e3','#e7eef9','#eff2d9'];
+  // 实色底上的可读前景：紫/青/蓝/红取白，黄/绿/粉/橄榄取深（对齐参考图的 mindmap/timeline）。
+  const onSeries = ['#ffffff','#253647','#253647','#253647','#ffffff','#ffffff','#ffffff','#253647'];
   const palette = {};
   ['#4e79a7','#f28e2c','#e15759','#76b7b2','#59a14f','#edc949','#af7aa1','#ff9da7','#9c755f','#bab0ab'].forEach((color,index) => { tokens[color]='--diagram-series-'+(index%series.length); });
   series.forEach((color,index) => {
     tokens[color]='--diagram-series-'+index; tokens[soft[index]]='--diagram-soft-'+index;
-    palette['pie'+(index+1)]=soft[index];palette['git'+index]=color;palette['cScale'+index]=soft[index];
-    palette['cScaleLabel'+index]='#253647';palette['cScaleInv'+index]=color;
+    palette['pie'+(index+1)]=color;palette['git'+index]=color;palette['cScale'+index]=color;
+    palette['cScaleLabel'+index]=onSeries[index];palette['cScaleInv'+index]=color;
   });
   let initialized = false;
   function initialize() {
@@ -88,6 +90,38 @@
     const svg=host.querySelector('svg');
     if (!svg) return;
     svg.setAttribute('role','img');svg.setAttribute('aria-label',label || VexMermaid.label(source));
+    // 阅读视图：把 SVG 包进预览容器，加"mermaid"徽标（右上角）与可切换的源码块（点图表看源码）。
+    if (!host.classList.contains('diagram-preview') && !host.querySelector('.diagram-preview')) {
+      const preview=document.createElement('div');preview.className='diagram-preview';
+      svg.replaceWith(preview);preview.append(svg);
+      const sourceView=document.createElement('pre');
+      sourceView.className='diagram-source-view';sourceView.hidden=true;
+      sourceView.setAttribute('aria-label','Mermaid 源码');
+      const code=document.createElement('code');code.textContent=source;sourceView.append(code);
+      host.prepend(sourceView);
+      const badge=document.createElement('button');
+      badge.className='diagram-badge';badge.type='button';
+      badge.textContent='mermaid';
+      badge.setAttribute('aria-expanded','false');
+      badge.setAttribute('aria-label','查看图表源码');
+      badge.title='查看 / 隐藏源码';
+      preview.append(badge);
+      const toggle=()=>{
+        const show=sourceView.hidden;
+        sourceView.hidden=!show;
+        host.classList.toggle('show-source',show);
+        badge.setAttribute('aria-expanded',String(show));
+      };
+      badge.addEventListener('click',event=>{event.stopPropagation();toggle();});
+      host.addEventListener('click',event=>{if(event.target.closest('.diagram-badge'))return;toggle();});
+      host.addEventListener('keydown',event=>{
+        if(event.target===host&&(event.key==='Enter'||event.key===' ')){event.preventDefault();toggle();}
+      });
+    }
+    if (/^\s*mindmap/m.test(source)) {
+      // 参考样式：mindmap 分支线为 4px 粗彩线（section 色由 cScale 提供）。
+      for (const edge of svg.querySelectorAll('[class*="section-edge"], .edge path')) edge.style.strokeWidth = '4';
+    }
     if (/^\s*sankey/m.test(source)) {
       // Multiplication turns translucent ribbons almost black on dark paper.
       for (const element of svg.querySelectorAll('[style*="mix-blend-mode"]')) element.style.mixBlendMode='normal';

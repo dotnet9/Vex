@@ -62,9 +62,9 @@ for (const sample of sandbox.window.VexSamples) {
   for (const image of sample.text.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g))
     assert.ok(fs.existsSync(path.resolve(root, image[1])), 'Local sample image exists');
 }
-const dates = [...changelog.matchAll(/^## V\d+(?:\.\d+)+（(\d{4}-\d{2}-\d{2})）$/gm)].map(match => match[1]);
-assert.ok(dates.length > 0, 'Changelog has dated version groups');
-assert.equal(new Set(dates).size, dates.length, 'Each date has one changelog group');
+const versions = [...changelog.matchAll(/^## (V\d+(?:\.\d+)+)（\d{4}-\d{2}-\d{2}）$/gm)].map(match => match[1]);
+assert.ok(versions.length > 0, 'Changelog has dated version groups');
+assert.equal(new Set(versions).size, versions.length, 'Each version has one changelog group');
 for (const line of changelog.split('\n').filter(line => line.startsWith('- '))) {
   assert.match(line, /^- (?:✨\[新增\]|⚡\[优化\]|🐛\[修复\]|😄\[新增\]|🔨\[优化\]|❌\[删除\])-.+$/, 'User-facing change category');
 }

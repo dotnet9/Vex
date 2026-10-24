@@ -10,7 +10,7 @@
     const node = element.querySelector('.md-diagram') || element;
     node.className = 'diagram-editor'; node.contentEditable = 'false'; node.tabIndex = 0;
     node.setAttribute('role','group'); node.setAttribute('aria-label','Mermaid 图表'); node.setAttribute('aria-expanded','false');
-    node.innerHTML = '<div class="diagram-source-shell" inert><div><textarea class="diagram-source" spellcheck="false" aria-label="Mermaid 源码"></textarea></div></div><div class="diagram-preview" role="img" aria-label="图表预览"></div><p class="diagram-error" role="status" hidden></p>';
+    node.innerHTML = '<div class="diagram-source-shell" inert><div><textarea class="diagram-source" spellcheck="false" aria-label="Mermaid 源码"></textarea></div></div><div class="diagram-preview" role="img" aria-label="图表预览"><span class="diagram-badge" aria-hidden="true">mermaid</span></div><p class="diagram-error" role="status" hidden></p>';
     const textarea = node.querySelector('textarea'), shell = node.querySelector('.diagram-source-shell'), preview = node.querySelector('.diagram-preview'), error = node.querySelector('.diagram-error');
     textarea.value = fence.code;
     let expanded = false, closing = false, revision = 0, timer, closeTimer, raw = original, composing = false;
