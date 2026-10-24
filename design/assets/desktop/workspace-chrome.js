@@ -5,7 +5,7 @@
   var sidebar = $('structure-sidebar'), inner = sidebar.querySelector('.structure-inner');
   var active = 'outline', opener = $('outline-toggle'), inspector = $('node-inspector');
 
-  sidebar.setAttribute('aria-label', '文档辅助');
+  sidebar.setAttribute('aria-label', VexL.t('文档辅助'));
   /* 用户要求：去掉"文档辅助"标题栏（含右侧关闭按钮），内容直接顶格。 */
   var structureHead = sidebar.querySelector('.structure-head');
   if (structureHead) structureHead.remove();
@@ -18,10 +18,10 @@
   panels.outline.append(inner.querySelector('.structure-search'), $('outline-body'));
   panels.info.innerHTML = '<div class="article-info-name"></div><div class="article-info-kind">Markdown · UTF-8</div><div class="article-info-hero"><strong id="article-info-count">0</strong><span>字</span><small id="article-info-reading"></small></div><dl class="article-info-metrics"></dl><p class="article-count-rule">字数规则：中文按字，英文按词，不计 Markdown 标记与空白。图片计入替代文字。</p>';
 
-  inspector.setAttribute('aria-label', '章节内容');
+  inspector.setAttribute('aria-label', VexL.t('章节内容'));
   inspector.querySelector('[data-action="close-inspector"]').remove();
   Object.values(panels).forEach(function (panel) { inner.appendChild(panel); });
-  $('structure-splitter').setAttribute('aria-label', '调整辅助面板宽度');
+  $('structure-splitter').setAttribute('aria-label', VexL.t('调整辅助面板宽度'));
   $('structure-splitter').setAttribute('aria-valuemin', '280');
 
   function updateInfo() {
@@ -38,7 +38,7 @@
     var open = !sidebar.classList.contains('collapsed'), overlay = document.querySelector('.workspace').classList.contains('auxiliary-overlay');
     sidebar.setAttribute('role', overlay ? 'dialog' : 'complementary');
     $('outline-toggle').setAttribute('aria-pressed', String(open && active === 'outline'));
-    $('outline-toggle').title = $('outline-toggle').ariaLabel = open && active === 'outline' ? '收起文档大纲' : '展开文档大纲';
+    $('outline-toggle').title = $('outline-toggle').ariaLabel = VexL.t(open && active === 'outline' ? '收起文档大纲' : '展开文档大纲');
     $('sb-wordcount').setAttribute('aria-expanded', String(open && active === 'info'));
     $('sb-wordcount').classList.toggle('on', open && active === 'info');
     Object.keys(panels).forEach(function (id) { panels[id].hidden = id !== active; });
@@ -67,7 +67,7 @@
     return false;
   }
 
-  ['vex-content-changed', 'vex-save-state-changed', 'vex-document-loaded'].forEach(function (name) { window.addEventListener(name, updateInfo); });
+  ['vex-content-changed', 'vex-save-state-changed', 'vex-document-loaded', 'vex-language-changed'].forEach(function (name) { window.addEventListener(name, updateInfo); });
   document.addEventListener('pointerdown', function (event) {
     if (!sidebar.classList.contains('collapsed') && document.querySelector('.workspace').classList.contains('auxiliary-overlay') && event.target.closest('#view-surface, .sidebar')) close(false);
   });

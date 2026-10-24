@@ -136,7 +136,15 @@
       if (event.isComposing) return;
       var handled = true;
       switch (event.key) {
-        case 'Escape': case 'F5': close(); break;
+        case 'Escape': case 'F6': close(); break;
+        /* 演示内 D / O / M 切正文·大纲·导图，+ / - 调字号（与 docs/快速开始.md 一致）。 */
+        case 'd': case 'D': case 'o': case 'O': case 'm': case 'M': {
+          var key = event.key.toLowerCase();
+          if (key === 'o') outline = !outline; else mapMode = key === 'm';
+          render(key === 'm' || key === 'd'); break;
+        }
+        case '+': case '=': scale = Math.min(2.5, +(scale + .1).toFixed(1)); render(false); root.querySelector('[data-deck="scale"]').value = scale; break;
+        case '-': case '_': scale = Math.max(1, +(scale - .1).toFixed(1)); render(false); root.querySelector('[data-deck="scale"]').value = scale; break;
         case 'ArrowRight': case 'PageDown': go(page + 1); break;
         case 'ArrowLeft': case 'PageUp': go(page - 1); break;
         case ' ': go(page + (event.shiftKey ? -1 : 1)); break;

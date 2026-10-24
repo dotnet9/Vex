@@ -59,7 +59,7 @@
   var surface = document.createElement('div'); surface.className = 'view-surface'; surface.id = 'view-surface'; area.appendChild(surface);
   var statusbar = document.querySelector('.document-statusbar'), wordCount = document.getElementById('sb-wordcount');
   var typeButton=$('edit-options').querySelector('[data-action="typography"]');
-  typeButton.setAttribute('aria-haspopup','dialog');typeButton.setAttribute('aria-controls','typography-panel');typeButton.title='正文排版';
+  typeButton.setAttribute('aria-haspopup','dialog');typeButton.setAttribute('aria-controls','typography-panel');typeButton.title=VexL.t('正文排版');
   /* 排版入口与格式工具栏同处一条悬浮条（右对齐），标题行隐藏。 */
   $('edit-options').appendChild(typeButton);
   panels.editor.insertBefore($('edit-options'),panels.editor.querySelector('.view-body'));

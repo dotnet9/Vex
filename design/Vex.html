@@ -39,7 +39,7 @@
   <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
   <symbol id="i-fold" viewBox="0 0 24 24"><path d="m17 11-5-5-5 5"/><path d="m17 18-5-5-5 5"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
-  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol><symbol id="i-export" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
   <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
   <symbol id="i-bold" viewBox="0 0 24 24"><path d="M6 4h7a4 4 0 0 1 0 8H6zm0 8h8a4 4 0 0 1 0 8H6z"/></symbol>
@@ -71,35 +71,37 @@
 <symbol id="i-fit" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><rect x="8" y="8" width="8" height="8" rx="1"/></symbol>
 <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
 <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+<symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></symbol>
+<symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></symbol>
 </defs></svg>
 <div class="app-window">
   <header class="titlebar">
-    <div class="brand" title="维刻 Vex · 写下想法，看见脉络。"><img src="assets/vex-logo.svg" alt="">Vex</div>
-    <nav class="tb-menu" aria-label="应用菜单"><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">文件(F)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">编辑(E)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">插入(I)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">视图(V)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">工具(T)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">帮助(H)</button></nav>
+    <div class="brand" data-l10n-tip="维刻 Vex · 写下想法，看见脉络。" title="维刻 Vex · 写下想法，看见脉络。"><img src="assets/vex-logo.svg" alt="">Vex</div>
+    <nav class="tb-menu" data-l10n-label="应用菜单" aria-label="应用菜单"><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">文件(F)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">编辑(E)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">段落(P)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">格式(O)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">视图(V)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">工具(T)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">帮助(H)</button></nav>
     <div class="document-label titlebar-document"><div class="document-title"><span id="document-name">主题设计笔记.md</span><i class="doc-dot" id="dirty-dot" hidden></i></div></div>
     <div class="caption-btns" id="caption-btns">
-      <button class="caption-btn" data-action="minimize" title="最小化"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button>
-      <button class="caption-btn" data-action="maximize" title="最大化 / 还原"><svg class="ico" aria-hidden="true"><use href="#i-max"/></svg></button>
-      <button class="caption-btn close" data-action="exit-app" title="关闭窗口"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+      <button class="caption-btn" data-action="minimize" data-l10n-name="最小化" title="最小化"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button>
+      <button class="caption-btn" data-action="maximize" data-l10n-name="最大化 / 还原" title="最大化 / 还原"><svg class="ico" aria-hidden="true"><use href="#i-max"/></svg></button>
+      <button class="caption-btn close" data-action="exit-app" data-l10n-name="关闭窗口" title="关闭窗口"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
   </header>
   <div class="window-body">
     <main class="workspace" data-view="edit">
-      <aside class="sidebar" aria-label="文件列表"><div class="sidebar-inner">
+      <aside class="sidebar" data-l10n-label="文件列表" aria-label="文件列表"><div class="sidebar-inner">
 
         <div class="side-pane" id="files-pane">
-          <label class="sidebar-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="file-filter" placeholder="按文件名查找…" aria-label="按文件名查找" title="只匹配文件名，不搜索正文 · Ctrl+P"><button class="clear-search" data-action="clear-file-search" title="清除文件名筛选" aria-label="清除文件名筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
+          <label class="sidebar-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="file-filter" data-l10n-placeholder="按文件名查找…" data-l10n-label="按文件名查找" data-l10n-tip="只匹配文件名，不搜索正文 · Ctrl+P" placeholder="按文件名查找…" aria-label="按文件名查找" title="只匹配文件名，不搜索正文 · Ctrl+P"><button class="clear-search" data-action="clear-file-search" data-l10n-name="清除文件名筛选" title="清除文件名筛选" aria-label="清除文件名筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
           <div class="file-list" id="file-list"></div><div class="empty-state" id="file-empty" hidden>没有匹配的文档</div>
-          <div class="files-toolbar files-toolbar-bottom" role="toolbar" aria-label="文件列表工具"><button type="button" data-action="files-mode" aria-pressed="true" title="按文件夹分类"><svg class="ico"><use href="#i-folder"/></svg></button><button type="button" data-action="files-sort" title="按名称排序：默认"><svg class="ico"><use href="#i-list"/></svg><span class="sort-arrow" hidden>↑</span></button><button type="button" data-action="files-fold" title="全部折叠"><svg class="ico"><use href="#i-fold"/></svg></button></div>
+          <div class="files-toolbar files-toolbar-bottom" role="toolbar" data-l10n-label="文件列表工具" aria-label="文件列表工具"><button type="button" data-action="files-mode" aria-pressed="true" data-l10n-tip="按文件夹分类" title="按文件夹分类"><svg class="ico"><use href="#i-folder"/></svg></button><button type="button" data-action="files-sort" data-l10n-tip="按名称排序：默认" title="按名称排序：默认"><svg class="ico"><use href="#i-list"/></svg><span class="sort-arrow" hidden>↑</span></button><button type="button" data-action="files-fold" data-l10n-tip="全部折叠" title="全部折叠"><svg class="ico"><use href="#i-fold"/></svg></button></div>
         </div>
 
         
       </div></aside>
-      <div class="sidebar-splitter" id="sidebar-splitter" role="separator" aria-label="调整文档导航宽度" aria-orientation="vertical" aria-valuemin="200" aria-valuemax="560" aria-valuenow="226" tabindex="0"></div>
+      <div class="sidebar-splitter" id="sidebar-splitter" role="separator" data-l10n-label="调整文档导航宽度" aria-label="调整文档导航宽度" aria-orientation="vertical" aria-valuemin="200" aria-valuemax="560" aria-valuenow="226" tabindex="0"></div>
       <div class="workspace-main">
-        <div class="find-strip" id="findbar" hidden><input class="input" id="find-input" placeholder="查找当前正文…" aria-label="查找当前正文"><input class="input" id="replace-input" placeholder="替换为" aria-label="替换内容" hidden><button class="btn sm" data-action="find-prev">上一个</button><button class="btn sm" data-action="find-next">下一个</button><button class="btn sm" data-action="replace-all" id="replace-all" hidden>全部替换</button><small id="find-count" role="status" aria-live="polite" hidden></small><button class="icon-button" data-action="close-find" title="关闭查找" aria-label="关闭查找"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+        <div class="find-strip" id="findbar" hidden><input class="input" id="find-input" data-l10n-placeholder="查找当前正文…" data-l10n-label="查找当前正文" placeholder="查找当前正文…" aria-label="查找当前正文"><input class="input" id="replace-input" data-l10n-placeholder="替换为" data-l10n-label="替换内容" placeholder="替换为" aria-label="替换内容" hidden><button class="btn sm" data-action="find-prev">上一个</button><button class="btn sm" data-action="find-next">下一个</button><button class="btn sm" data-action="replace-all" id="replace-all" hidden>全部替换</button><small id="find-count" role="status" aria-live="polite" hidden></small><button class="icon-button" data-action="close-find" data-l10n-name="关闭查找" title="关闭查找" aria-label="关闭查找"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
         <div class="edit-options" id="edit-options">
-          <div class="format-toolbar" id="format-toolbar" role="toolbar" aria-label="常用格式">
+          <div class="format-toolbar" id="format-toolbar" role="toolbar" data-l10n-label="常用格式" aria-label="常用格式">
             <button class="format-button" data-action="insert-bold" data-l10n-title="Bold" aria-label="加粗" title="加粗"><svg class="ico"><use href="#i-bold"/></svg></button>
             <button class="format-button" data-action="insert-italic" data-l10n-title="Italic" aria-label="斜体" title="斜体"><svg class="ico"><use href="#i-italic"/></svg></button>
             <span class="format-divider"></span>
@@ -117,35 +119,35 @@
             
           </div>
 
-          <button class="toolbar-button typography-trigger" data-action="typography" title="Markdown 排版主题">排版 <span data-typography-label>简</span><svg class="ico vex-expand-icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+          <button class="toolbar-button typography-trigger" data-action="typography" data-l10n-tip="正文排版" title="正文排版">排版 <span data-typography-label>简</span><svg class="ico vex-expand-icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
         </div>
       <div class="content-area">
-        <section class="instant-pane" id="instant-pane" aria-label="即时渲染编辑器">
+        <section class="instant-pane" id="instant-pane" data-l10n-label="即时编辑区" aria-label="即时编辑区">
           <div class="instant-scroll"><article class="md-body" id="instant-content"></article></div>
           <div class="instant-hint" id="instant-hint">直接在正文中写作 · Ctrl+B 加粗 · Ctrl+I 斜体</div>
         </section>
-        <section class="source-pane" id="source-pane" aria-label="Markdown 源码">
+        <section class="source-pane" id="source-pane" data-l10n-label="Markdown 源码" aria-label="Markdown 源码">
           <div class="pane-head"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg>Markdown<span class="ph-right">可直接编辑 · 实时同步</span></div>
-          <div class="source-scroll"><div class="line-numbers" aria-hidden="true" id="line-numbers"></div><textarea id="markdown-input" aria-label="Markdown 内容" spellcheck="false" wrap="off"></textarea></div>
+          <div class="source-scroll"><div class="line-numbers" aria-hidden="true" id="line-numbers"></div><pre class="source-highlight" id="source-highlight" aria-hidden="true"></pre><textarea id="markdown-input" data-l10n-label="Markdown 内容" aria-label="Markdown 内容" spellcheck="false" wrap="off"></textarea></div>
         </section>
-        <section class="reading-pane" id="reading-pane" aria-label="正文预览">
+        <section class="reading-pane" id="reading-pane" data-l10n-label="正文预览" aria-label="正文预览">
           <div class="pane-head"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg><span id="reading-title">正文预览</span><span class="ph-right"><button class="toolbar-button typography-trigger" data-action="typography">排版 <span data-typography-label>简</span><svg class="ico vex-expand-icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button></span></div><div class="reading-scroll"><article class="md-body" id="markdown-preview"></article></div>
         </section>
-        <section class="map-pane" id="map-pane" aria-label="Markdown 思维导图" hidden>
+        <section class="map-pane" id="map-pane" data-l10n-label="Markdown 思维导图" aria-label="Markdown 思维导图" hidden>
           <div class="map-toolbar"><div class="map-toolbar-title"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg><span id="map-count">文档结构</span></div>
-            <select class="map-layout-select" id="map-layout" aria-label="导图布局" title="导图布局" hidden></select>
+            <select class="map-layout-select" id="map-layout" data-l10n-name="导图布局" aria-label="导图布局" title="导图布局" hidden></select>
             <button class="toolbar-button" data-action="map-settings" id="map-settings-button" aria-expanded="false" aria-controls="map-settings"><svg class="ico" aria-hidden="true"><use href="#i-gear"/></svg><span id="summary-label">摘要 30 字</span></button>
             <span class="toolbar-divider"></span><button class="toolbar-button" data-action="map-collapse" id="collapse-all"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>收起分支</button>
             <button class="toolbar-button" data-action="map-source" id="map-source-toggle" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-columns"/></svg>对照源码</button>
           </div>
-          <div class="map-viewport" id="map-viewport" tabindex="0" aria-label="导图画布，拖动平移，Ctrl 加滚轮缩放">
+          <div class="map-viewport" id="map-viewport" tabindex="0" data-l10n-label="导图画布，拖动平移，Ctrl 加滚轮缩放" aria-label="导图画布，拖动平移，Ctrl 加滚轮缩放">
             <div class="map-scene" id="map-scene"><svg class="map-links" id="map-links" aria-hidden="true"></svg><div id="map-nodes"></div></div>
             <div class="map-legend"><span><i></i>标题</span><span><i class="content-key"></i>内容摘要</span></div>
             <span class="map-hint">拖动画布平移 · Ctrl + 滚轮缩放 · 点击节点查看全文</span>
-            <div class="map-controls"><button class="icon-button" data-action="zoom-out" title="缩小"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button><span class="zoom-value" id="zoom-value">100%</span><button class="icon-button" data-action="zoom-in" title="放大"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button><span class="toolbar-divider"></span><button class="icon-button" data-action="map-fit" title="适应画布"><svg class="ico" aria-hidden="true"><use href="#i-fit"/></svg></button></div>
+            <div class="map-controls"><button class="icon-button" data-action="zoom-out" data-l10n-tip="缩小" title="缩小"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button><span class="zoom-value" id="zoom-value">100%</span><button class="icon-button" data-action="zoom-in" data-l10n-tip="放大" title="放大"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button><span class="toolbar-divider"></span><button class="icon-button" data-action="map-fit" data-l10n-tip="适应画布" title="适应画布"><svg class="ico" aria-hidden="true"><use href="#i-fit"/></svg></button></div>
           </div>
-          <section class="settings-popover" id="map-settings" aria-label="导图显示设置" hidden>
-            <div class="popover-title">导图显示<button class="icon-button" data-action="close-settings" title="关闭设置"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+          <section class="settings-popover" id="map-settings" data-l10n-label="导图显示设置" aria-label="导图显示设置" hidden>
+            <div class="popover-title">导图显示<button class="icon-button" data-action="close-settings" data-l10n-name="关闭设置" title="关闭设置"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
             <label class="setting-label" for="summary-length">内容摘要长度 <span><input id="summary-length" type="number" min="1" max="120" value="30"> 字</span></label>
             <p class="setting-note">默认 30 字，可设置 1–120 字。按可见字符截取，省略号不计入；全文始终保留。</p>
             <label class="setting-label">显示段落与引用 <input id="show-paragraphs" type="checkbox" checked></label>
@@ -154,19 +156,19 @@
             <div class="summary-example"><small>摘要预览</small><span id="summary-example"></span></div>
             <button class="settings-reset" data-action="reset-settings">恢复默认设置</button>
           </section>
-          <aside class="node-inspector" id="node-inspector" aria-label="节点全文" hidden>
-            <div class="inspector-head"><svg class="ico" aria-hidden="true"><use href="#i-file"/></svg><span id="inspector-kind">段落</span><button class="icon-button" data-action="close-inspector" title="关闭节点详情"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+          <aside class="node-inspector" id="node-inspector" data-l10n-label="章节内容" aria-label="章节内容" hidden>
+            <div class="inspector-head"><svg class="ico" aria-hidden="true"><use href="#i-file"/></svg><span id="inspector-kind">段落</span><button class="icon-button" data-action="close-inspector" data-l10n-name="关闭节点详情" title="关闭节点详情"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
             <div class="inspector-body"><h3 id="inspector-title"></h3><div class="inspector-content" id="inspector-content"></div></div>
             <div class="inspector-foot"><span id="inspector-line"></span><button class="btn sm" data-action="locate-source"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg>定位源码</button></div>
           </aside>
         </section>
       </div>
-      <footer class="document-statusbar"><div class="document-corner-actions" aria-label="辅助面板"><button class="on" data-action="toggle-sidebar" id="sidebar-toggle" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true"><svg class="ico"><use href="#i-sidebar"/></svg><span>文件</span></button><button data-action="toggle-structure" id="outline-toggle" title="展开文档大纲" aria-label="展开文档大纲" aria-pressed="false" aria-controls="structure-sidebar"><svg class="ico" style="transform:scaleX(-1)"><use href="#i-sidebar"/></svg><span>大纲</span></button></div><button class="document-word-count" id="sb-wordcount" data-action="dlg-statistics" aria-controls="structure-sidebar" title="查看文章信息与字数统计">字数 0</button></footer>
+      <footer class="document-statusbar"><div class="document-corner-actions" data-l10n-label="辅助面板" aria-label="辅助面板"><button class="on" data-action="toggle-sidebar" id="sidebar-toggle" data-l10n-name="收起文件导航" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true"><svg class="ico"><use href="#i-sidebar"/></svg><span>文件</span></button><button data-action="toggle-structure" id="outline-toggle" data-l10n-name="展开文档大纲" title="展开文档大纲" aria-label="展开文档大纲" aria-pressed="false" aria-controls="structure-sidebar"><svg class="ico" style="transform:scaleX(-1)"><use href="#i-sidebar"/></svg><span>大纲</span></button></div><button class="document-word-count" id="sb-wordcount" data-action="dlg-statistics" aria-controls="structure-sidebar" data-l10n-tip="查看文章信息与字数统计" title="查看文章信息与字数统计">字数 0</button></footer>
       </div>
-    <div class="structure-splitter" id="structure-splitter" role="separator" aria-label="调整文档大纲宽度" aria-orientation="vertical" aria-valuemin="280" aria-valuemax="480" aria-valuenow="312" tabindex="0"></div>
-    <aside class="structure-sidebar" id="structure-sidebar" aria-label="文档结构"><div class="structure-inner">
-        <div class="structure-head"><span class="structure-title">文档结构</span><button class="structure-toggle" data-action="toggle-structure" title="收起文档结构" aria-label="收起文档结构" aria-expanded="true"><svg class="ico" aria-hidden="true"><use href="#i-chevron-down"/></svg></button></div>
-        <label class="sidebar-search structure-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="outline-filter" placeholder="筛选当前标题…" aria-label="筛选当前文档标题" title="只筛选当前文档的大纲标题"><button class="clear-search" data-action="clear-outline-search" title="清除标题筛选" aria-label="清除标题筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
+    <div class="structure-splitter" id="structure-splitter" role="separator" data-l10n-label="调整辅助面板宽度" aria-label="调整辅助面板宽度" aria-orientation="vertical" aria-valuemin="280" aria-valuemax="480" aria-valuenow="312" tabindex="0"></div>
+    <aside class="structure-sidebar" id="structure-sidebar" data-l10n-label="文档辅助" aria-label="文档辅助"><div class="structure-inner">
+        <div class="structure-head"><span class="structure-title">文档结构</span><button class="structure-toggle" data-action="toggle-structure" data-l10n-name="收起文档结构" title="收起文档结构" aria-label="收起文档结构" aria-expanded="true"><svg class="ico" aria-hidden="true"><use href="#i-chevron-down"/></svg></button></div>
+        <label class="sidebar-search structure-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="outline-filter" data-l10n-placeholder="筛选当前标题…" data-l10n-label="筛选当前文档标题" data-l10n-tip="只筛选当前文档的大纲标题" placeholder="筛选当前标题…" aria-label="筛选当前文档标题" title="只筛选当前文档的大纲标题"><button class="clear-search" data-action="clear-outline-search" data-l10n-name="清除标题筛选" title="清除标题筛选" aria-label="清除标题筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
         <div class="outline-list structure-list" id="outline-body"></div>
       </div></aside>
       </main>
@@ -234,7 +236,7 @@
 
     <!-- 删除确认 -->
     <div class="overlay win-layer" id="layer-delete" hidden>
-      <div class="mini-window" role="dialog" aria-modal="true" aria-label="删除确认">
+      <div class="mini-window" role="dialog" aria-modal="true" data-l10n-label="删除确认" aria-label="删除确认">
         <div class="mini-titlebar">
           删除确认
           <span class="caption-btns">
@@ -244,13 +246,13 @@
         <div style="padding: 22px;">
           <div class="dlg-title" style="font-size:15.5px;">
             <span class="dlg-ico warn"><svg style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><use href="#i-trash"/></svg></span>
-            确定要删除「读书摘录.md」吗？
+            从工作区移除「读书摘录.md」？
           </div>
-          <p class="dlg-msg">此操作会从磁盘永久删除该文件，且无法从回收站恢复（仅 Windows 直接删除）。</p>
+          <p class="dlg-msg">原型仅把该文档从工作区列表移除，磁盘上的原文件不会改动。移除后可通过「打开文件夹」重新载入。</p>
           <div class="dlg-path mono">D:\Notes\笔记\读书摘录.md</div>
           <div class="dlg-actions">
             <button class="btn" data-close="已取消，文件安全">取消</button>
-            <button class="btn danger" data-close="已删除「读书摘录.md」（演示）">删除</button>
+            <button class="btn danger" data-close="已从工作区移除「读书摘录.md」，原文件未改动（演示）">移除</button>
           </div>
         </div>
       </div>
@@ -258,7 +260,7 @@
 
     <!-- 文件属性 -->
     <div class="overlay win-layer" id="layer-properties" hidden>
-      <div class="mini-window" role="dialog" aria-modal="true" aria-label="文件属性">
+      <div class="mini-window" role="dialog" aria-modal="true" data-l10n-label="文件属性" aria-label="文件属性">
         <div class="mini-titlebar">
           属性
           <span class="caption-btns">
@@ -291,7 +293,7 @@
 
     <!-- 字数统计 -->
     <div class="overlay win-layer" id="layer-statistics" hidden>
-      <div class="mini-window" role="dialog" aria-modal="true" aria-label="字数统计">
+      <div class="mini-window" role="dialog" aria-modal="true" data-l10n-label="字数统计" aria-label="字数统计">
         <div class="mini-titlebar">
           统计
           <span class="caption-btns">
@@ -342,7 +344,7 @@
         <div class="mini-titlebar"><span data-proto-label="关于">关于</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
         <div class="about-hero"><img class="about-logo" src="assets/vex-logo.svg" alt=""><div class="about-identity"><h2 id="about-title">维刻 Vex</h2><div class="slogan" data-proto-label="写下想法，看见脉络。">写下想法，看见脉络。</div></div></div>
         <div class="about-rows">
-          <div class="about-row"><span class="k" data-l10n="AboutVersionLabel"></span><span class="v about-version"><a class="ver-badge" id="about-version" href="https://github.com/dotnet9/Vex/releases/latest" target="_blank" rel="noopener" title="查看此版本的发布与下载"></a></span></div>
+          <div class="about-row"><span class="k" data-l10n="AboutVersionLabel"></span><span class="v about-version"><a class="ver-badge" id="about-version" href="https://github.com/dotnet9/Vex/releases/latest" target="_blank" rel="noopener" data-l10n-tip="查看此版本的发布与下载" title="查看此版本的发布与下载"></a></span></div>
           <div class="about-row"><span class="k" data-l10n="AboutAuthorLabel"></span><span class="v" data-l10n="AboutAuthorName"></span></div>
           <div class="about-row"><span class="k" data-l10n="ProjectLicenseLabel"></span><span class="v">MIT License</span></div>
           <div class="about-row"><span class="k" data-proto-label="链接">链接</span><span class="v about-links"><a data-project-website data-proto-label="官网">官网</a><span aria-hidden="true">·</span><a href="https://github.com/dotnet9/Vex" data-proto-label="开源仓库">开源仓库</a></span></div>
@@ -353,7 +355,7 @@
 
     <!-- MCP 设置 -->
     <div class="overlay win-layer" id="layer-mcp" hidden>
-      <div class="mini-window wide" role="dialog" aria-modal="true" aria-label="MCP 设置">
+      <div class="mini-window wide" role="dialog" aria-modal="true" data-l10n-label="MCP 设置" aria-label="MCP 设置">
         <div class="mini-titlebar">
           MCP 设置
           <span class="caption-btns">
@@ -372,7 +374,7 @@
             <div class="et">启用 MCP Server</div>
             <div class="ed">仅监听本机地址，通过 Bearer Token 鉴权</div>
           </div>
-          <button class="switch on" id="mcp-switch" role="switch" aria-checked="true" aria-label="启用 MCP Server"></button>
+          <button class="switch on" id="mcp-switch" role="switch" aria-checked="true" data-l10n-label="启用 MCP Server" aria-label="启用 MCP Server"></button>
         </div>
         <div class="set-body" id="mcp-form">
           <div class="form-grid">
@@ -398,7 +400,7 @@
               <label class="radio"><input type="radio" name="scope" checked><span class="dot"></span>仅当前文档</label>
               <label class="radio"><input type="radio" name="scope"><span class="dot"></span>当前打开文件夹</label>
               <label class="radio"><input type="radio" name="scope"><span class="dot"></span>自定义目录</label>
-              <input class="input mono" placeholder="自定义目录路径，例如 D:\Notes" style="max-width: 360px;">
+              <input class="input mono" data-l10n-placeholder="自定义目录路径，例如 D:\Notes" placeholder="自定义目录路径，例如 D:\Notes" style="max-width: 360px;">
             </div>
           </div>
           <label class="check" style="margin-top: 2px;">
@@ -420,13 +422,13 @@
   </div>
 </div>
 <div class="presentation-tools" id="presentation-tools" hidden>
-  <button data-action="presentation-smaller" aria-label="减小演示字号" title="减小演示字号">A−</button>
-  <button data-action="presentation-larger" aria-label="增大演示字号" title="增大演示字号">A+</button>
-  <button data-action="presentation-exit" aria-label="退出演示" title="退出演示">×</button>
+  <button data-action="presentation-smaller" data-l10n-name="减小演示字号" aria-label="减小演示字号" title="减小演示字号">A−</button>
+  <button data-action="presentation-larger" data-l10n-name="增大演示字号" aria-label="增大演示字号" title="增大演示字号">A+</button>
+  <button data-action="presentation-exit" data-l10n-name="退出演示" aria-label="退出演示" title="退出演示">×</button>
 </div>
 <link rel="stylesheet" href="assets/presentation.css">
 <script src="assets/document-operations.js"></script><script src="assets/editor.js"></script><script src="assets/writing-chrome.js"></script><script src="assets/element-menu.js"></script><script src="assets/presentation-labels.js"></script><script src="assets/presentation.js"></script>
 <input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
 <input type="file" id="open-folder-input" accept=".md,.markdown,.mdown,.txt" webkitdirectory directory multiple hidden>
-<script src="assets/desktop/localization.js"></script><script src="assets/project-info.js"></script><script src="assets/desktop/typography.js"></script><script src="assets/desktop/interact.js"></script><script src="assets/desktop/mindmap.js"></script><script src="assets/code-fence.js"></script><script src="assets/vendor/katex/katex.min.js"></script><script src="assets/vendor/katex/mhchem.min.js"></script><script src="assets/vendor/mermaid/mermaid.min.js"></script><script src="assets/diagram-rendering.js"></script><script src="assets/desktop/rendering.js"></script><script src="assets/desktop/samples.js"></script><script src="assets/desktop/typewriter.js"></script><script src="assets/desktop/instant-editor.js"></script><script src="assets/desktop/workbench.js"></script><script src="assets/desktop/guide.js"></script>
+<script src="assets/desktop/localization.js"></script><script src="assets/project-info.js"></script><script src="assets/desktop/typography.js"></script><script src="assets/desktop/interact.js"></script><script src="assets/desktop/mindmap.js"></script><script src="assets/code-fence.js"></script><script src="assets/vendor/katex/katex.min.js"></script><script src="assets/vendor/katex/mhchem.min.js"></script><script src="assets/vendor/mermaid/mermaid.min.js"></script><script src="assets/diagram-rendering.js"></script><script src="assets/desktop/rendering.js"></script><script src="assets/desktop/samples.js"></script><script src="assets/desktop/typewriter.js"></script><script src="assets/desktop/instant-editor.js"></script><script src="assets/desktop/source-highlight.js"></script><script src="assets/desktop/workbench.js"></script><script src="assets/desktop/guide.js"></script>
 <script src="assets/desktop/about-update.js"></script><script src="assets/desktop/workspace.js"></script><script src="assets/desktop/chapter-editor.js"></script><script src="assets/desktop/usability.js"></script><script src="assets/desktop/workspace-chrome.js"></script><script src="assets/desktop/workflows.js"></script><script src="assets/desktop/preview.js"></script></body></html>

@@ -280,6 +280,8 @@
     document.addEventListener('keydown',event=>{if(menuLayer||dialogLayer)return;if((event.key==='ContextMenu'||event.shiftKey&&event.key==='F10')&&(rootFor(document.activeElement)||document.activeElement===source)){event.preventDefault();open(document.activeElement,document.activeElement);}},true);
     (options.entries||[]).forEach(entry=>{const button=document.createElement('button');button.className='vex-element-entry';button.type='button';button.title='当前元素操作';button.setAttribute('aria-label','当前元素操作');button.dataset.elementOpen='';button.innerHTML=icon('more');entry.append(button);button.onclick=event=>{event.stopPropagation();open(null,button);};});
     window.addEventListener('resize',()=>{closeMenu();closeDialog();});
+    /* 视图、文档或导图源码栏一变，菜单锚定的元素已不在：收起菜单与对话框且不抢回焦点，避免残留。 */
+    ['vex-view-changed','vex-document-loaded','vex-source-toggled'].forEach(name=>window.addEventListener(name,()=>{closeMenu(false);closeDialog();}));
     const api={editable,canTable,tableItems,openCurrent:(anchor,tableOnly=false)=>open(null,anchor,tableOnly),handleAction(action,anchor){if(!action.startsWith('element-'))return false;if(!snapshot)save(null);if(action==='element-table')open(null,anchor,true);else run(action.slice(8));return true;},capture:save};
     current=api;return api;
   }

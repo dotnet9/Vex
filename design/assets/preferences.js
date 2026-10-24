@@ -21,7 +21,7 @@
   if (query.get('child') === '1') values.mcpEnabled = false;
   for (const key of ['theme','palette','typography']) if (query.has(key)) values[key] = query.get(key);
   if (query.has('lang')) values.language = ({en:'en-US',zh:'zh-CN'})[query.get('lang')] || query.get('lang');
-  let adapter = {}, host, releaseOverlay, section = 'general', tab = 'server', closeTimer, testTimer, generation = 0;
+  let adapter = {}, host, releaseOverlay, section = 'general', tab = 'server', clientTab = 'http', closeTimer, testTimer, generation = 0;
   let mcpState = 'stopped', mcpMessage = '服务已停止', audit = [], request = null, mcpDraft, mcpSaveTimer, serviceTimer, serviceRevision = 0, mcpError = '';
   const categories = [['general','通用与文件','file'],['editor','编辑器','edit'],['images','图片','image'],['appearance','外观','palette'],['export','导出','export'],['mcp','MCP','terminal']];
   const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><use href="#i-${name}"/></svg>`;
@@ -33,12 +33,14 @@
     return prefix + `<input data-vex-pref="${key}" type="${options.type || 'text'}" value="${esc(value)}" ${options.maxlength ? `maxlength="${options.maxlength}"` : ''} ${options.min ? `min="${options.min}" max="${options.max}"` : ''}></label>`;
   };
   const heading = text => `<h4 class="vex-settings-section">${text}</h4>`;
+  /* 目录行与桌面版 FolderRow 对齐：输入框 + 「…」浏览按钮。 */
+  const folderControl = (key, label) => `<div class="vex-pref-row"><span>${label}</span><span class="vex-pref-folder"><input data-vex-pref="${key}" type="text" aria-label="${esc(label)}" value="${esc(values[key])}"><button type="button" class="vex-icon-button" data-vex-browse="${key}" title="选择目录" aria-label="选择目录">…</button></span></div>`;
   function content() {
     switch (section) {
       case 'general': return control('startup','启动时',[['empty','空白工作区'],['recent','恢复上次工作区']]) + control('autoSave','自动保存') + control('saveDelay','停止输入后保存',[[2,'2 秒'],[5,'5 秒'],[10,'10 秒']]) + control('recovery','保留恢复草稿') + heading('新文档默认值') + control('encoding','编码',['UTF-8','UTF-8 BOM','GB18030']) + control('newline','换行符',[['system','跟随系统'],['LF','LF'],['CRLF','CRLF']]);
       case 'editor': return control('font','编辑区字体',[['system','系统默认'],['serif','系统衬线'],['mono','等宽']]) + control('indent','缩进',[[2,'2 空格'],[4,'4 空格'],[8,'8 空格']]) + heading('代码与源码') + control('codeWrap','代码自动换行') + control('lineNumbers','显示源码行号');
-      case 'images': return control('imageCopy','插入时复制图片') + control('imageRelative','使用相对路径') + control('imageFolder','资源目录',{},'相对于当前文档');
-      case 'appearance': return control('motion','界面动效') + heading('文档水印') + control('watermarkPreview','开启水印',null,'阅读 / 即时 / 演示 / 导出均显示') + control('watermarkText','水印文字',{maxlength:60}) + control('watermarkFontSize','水印字号',{range:true,min:12,max:36,unit:' px'}) + control('watermarkColor','前景色',{type:'color'}) + control('watermarkWeight','粗细',[[300,'细'],[400,'常规'],[700,'粗']]) + control('watermarkOpacity','不透明度',{range:true,min:0,max:50,unit:'%'}) + '<div class="vex-watermark-sample" aria-label="水印样式预览"><strong>写下想法，看见脉络。</strong><span>维刻 Vex</span></div>';
+      case 'images': return control('imageCopy','插入时复制图片') + control('imageRelative','使用相对路径') + folderControl('imageFolder','资源目录');
+      case 'appearance': return control('motion','界面动效') + heading('文档水印') + control('watermarkText','水印文字',{maxlength:60}) + control('watermarkFontSize','水印字号',{range:true,min:12,max:36,unit:' px'}) + control('watermarkColor','前景色',{type:'color'}) + control('watermarkWeight','粗细',[[300,'细'],[400,'常规'],[700,'粗']]) + control('watermarkOpacity','不透明度',{range:true,min:0,max:50,unit:'%'}) + '<div class="vex-watermark-sample" aria-label="水印样式预览"><strong>写下想法，看见脉络。</strong><span>维刻 Vex</span></div>';
       case 'export': return control('exportOpen','导出后打开') + heading('PDF') + control('pdfSize','纸张',['A4','Letter','A5']) + control('pdfMargin','页边距',{range:true,min:10,max:30,unit:' mm'}) + heading('HTML') + control('htmlStyle','保留当前文档排版');
       case 'mcp': return mcpContent();
       default: return '';
@@ -54,13 +56,17 @@
   function mcpTabsHtml() {
     return `<div class="vex-mcp-tabs" role="tablist" aria-label="MCP">${[['server','服务'],['clients','客户端'],['audit','审计']].map(([key,label]) => `<button role="tab" data-mcp-tab="${key}" aria-selected="${tab === key}">${label}</button>`).join('')}</div>`;
   }
+  function mcpClientPane() {
+    const endpoint = `http://127.0.0.1:${values.mcpPort}/mcp/`;
+    if (clientTab === 'http') return '<pre class="vex-code" id="vex-client-config">' + esc(JSON.stringify({mcpServers:{vex:{url:endpoint,headers:{Authorization:'Bearer ' + values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="copy-config">复制配置</button><button class="vex-button primary" data-mcp-action="test">测试连接</button></div><p id="vex-test-result" role="status"></p>';
+    return '<pre class="vex-code">' + esc(JSON.stringify({mcpServers:{vex:{command:'vex',args:['mcp','bridge','--endpoint',endpoint],env:{VEX_MCP_TOKEN:values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="read">读取当前文档</button><button class="vex-button" data-mcp-action="write">请求修改文档</button></div><div id="vex-mcp-request"></div>';
+  }
   function mcpBody() {
     const status = `<div class="vex-mcp-status" data-state="${mcpState}" role="status"><i></i><span>${esc(mcpMessage)}</span><small style="margin-left:auto;color:var(--muted)">原型演示</small></div>`;
     if (tab === 'server') return `<label class="vex-pref-row"><span>启用 MCP 服务<small>仅监听 127.0.0.1</small></span><input type="checkbox" role="switch" data-mcp-field="mcpEnabled" ${mcpDraft.mcpEnabled ? 'checked' : ''}></label>` + status + draftRow('mcpPort','端口','number') + `<div class="vex-pref-row"><span>访问令牌</span><span class="vex-token-field"><input data-mcp-field="mcpToken" aria-label="访问令牌" type="password" value="${esc(mcpDraft.mcpToken)}"><span class="vex-token-actions"><button class="vex-icon-button" data-mcp-action="reveal" title="显示或隐藏令牌" aria-label="显示或隐藏令牌" aria-pressed="false">${icon('eye')}</button><button class="vex-icon-button" data-mcp-action="token" title="重新生成令牌" aria-label="重新生成令牌">${icon('refresh')}</button></span></span></div>` + `<label class="vex-pref-row"><span>授权范围</span><select data-mcp-field="mcpScope">${[['document','当前文档'],['folder','当前文件夹'],['custom','指定目录']].map(([v,t])=>`<option value="${v}" ${mcpDraft.mcpScope === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>` + (mcpDraft.mcpScope === 'custom' ? draftRow('mcpFolder','授权目录') : '') + `<label class="vex-pref-row"><span>修改前确认</span><input type="checkbox" role="switch" data-mcp-field="mcpConfirm" ${mcpDraft.mcpConfirm ? 'checked' : ''}></label><p id="vex-mcp-error" class="vex-field-error" role="alert" ${mcpError ? '' : 'hidden'}>${esc(mcpError)}</p>`;
     if (tab === 'clients') {
-      const endpoint = `http://127.0.0.1:${values.mcpPort}/mcp/`;
-      const config = JSON.stringify({mcpServers:{vex:{url:endpoint,headers:{Authorization:'Bearer ' + values.mcpToken}}}},null,2);
-      return status + '<h4 class="vex-settings-section">HTTP 客户端配置</h4><pre class="vex-code" id="vex-client-config">' + esc(config) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="copy-config">复制配置</button><button class="vex-button primary" data-mcp-action="test">测试连接</button></div><p id="vex-test-result" role="status"></p><h4 class="vex-settings-section">stdio 桥接</h4><pre class="vex-code">' + esc(JSON.stringify({mcpServers:{vex:{command:'vex',args:['mcp','bridge','--endpoint',endpoint],env:{VEX_MCP_TOKEN:values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="read">读取当前文档</button><button class="vex-button" data-mcp-action="write">请求修改文档</button></div><div id="vex-mcp-request"></div>';
+      const subtabs = `<div class="vex-mcp-tabs vex-mcp-subtabs" role="tablist" aria-label="客户端接入方式">${[['http','HTTP 客户端配置'],['stdio','stdio 桥接']].map(([key,label]) => `<button role="tab" data-mcp-sub="${key}" aria-selected="${clientTab === key}">${label}</button>`).join('')}</div>`;
+      return status + subtabs + '<div class="vex-mcp-subbody">' + mcpClientPane() + '</div>';
     }
     return status + `<table class="vex-audit"><thead><tr><th>时间</th><th>操作</th><th>结果</th></tr></thead><tbody>${audit.length ? audit.map(a => `<tr><td>${a.time}</td><td>${esc(a.action)}</td><td>${esc(a.result)}</td></tr>`).join('') : '<tr><td colspan="3">暂无调用记录</td></tr>'}</tbody></table>`;
   }
@@ -109,6 +115,16 @@
         if (nav) { section = nav.dataset.vexSection; render(true); detail(true); if (smallScreen()) host.querySelector('[data-vex-back]').focus(); return; }
         if (event.target.closest('[data-vex-back]')) { detail(false); host.querySelector('.vex-settings-nav [aria-selected=true]').focus(); return; }
         const swatch = event.target.closest('[data-vex-palette]'); if (swatch) { set('palette',swatch.dataset.vexPalette); render(); return; }
+        const browse = event.target.closest('[data-vex-browse]'); if (browse) { pickFolder(browse.dataset.vexBrowse); return; }
+        const sub = event.target.closest('[data-mcp-sub]');
+        if (sub) {
+          /* 与一级页签同理：页签条保持稳定，只换内容体，避免整块重渲染抖动。 */
+          clientTab = sub.dataset.mcpSub;
+          host.querySelectorAll('.vex-mcp-subtabs [data-mcp-sub]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mcpSub === clientTab)));
+          const body = host.querySelector('.vex-mcp-subbody');
+          if (body) body.innerHTML = mcpClientPane();
+          return;
+        }
         const t = event.target.closest('[data-mcp-tab]');
         if (t) {
           /* 页签切换只更新内容体，页签条保持稳定，避免整块重渲染造成的抖动。 */
@@ -208,6 +224,16 @@
     }
     refreshMcpStatus();
   }
+  /* 浏览器只能取到目录名、取不到绝对路径，所以写回名称并说明桌面版的差异，不假装读到了完整路径。 */
+  async function pickFolder(key) {
+    if (!window.showDirectoryPicker) { adapter.toast?.('当前浏览器不支持目录选择，请直接输入路径'); return; }
+    let handle;
+    try { handle = await window.showDirectoryPicker(); }
+    catch (error) { if (error?.name !== 'AbortError') adapter.toast?.('未能读取所选目录'); return; }
+    set(key, handle.name);
+    const field = host.querySelector(`[data-vex-pref="${key}"]`); if (field) field.value = values[key];
+    adapter.toast?.(`已选择目录「${handle.name}」，桌面版会写入完整路径`);
+  }
   async function copy(text) { try { await navigator.clipboard.writeText(text); adapter.toast?.('已复制到剪贴板'); } catch { adapter.toast?.('复制不可用，请选择配置文本复制'); } }
   function mcpAction(action) {
     if (adapter.mobile || query.get('child') === '1') return;
@@ -220,8 +246,8 @@
       testTimer = setTimeout(() => { if (revision !== generation || !output.isConnected) return; const scenario = query.get('mcpScenario'); const result = mcpState !== 'running' ? '连接失败：服务未启动' : scenario === 'unauthorized' ? '连接失败：令牌验证失败' : scenario === 'timeout' ? '连接超时，请重试' : '连接成功 · 已完成初始化'; output.textContent = result; record('测试连接',result); },500); return;
     }
     if (action === 'read' || action === 'write') {
-      if (mcpState !== 'running') { host.querySelector('#vex-test-result').textContent = '请先启动服务'; return; }
       const area = host.querySelector('#vex-mcp-request');
+      if (mcpState !== 'running') { if (area) area.innerHTML = '<p class="vex-field-error">请先启动服务</p>'; return; }
       if (action === 'read') { area.innerHTML = '<pre class="vex-code">' + esc((adapter.getText?.() || '# 当前文档').slice(0,700)) + '</pre>'; record('读取当前文档','成功'); return; }
       request = {text:adapter.getText?.() || ''};
       area.innerHTML = '<div class="vex-mcp-request"><strong>客户端请求修改当前文档</strong><p>在文档末尾追加一个段落。</p><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="reject">拒绝</button><button class="vex-button primary" data-mcp-action="approve">允许本次修改</button></div></div>';

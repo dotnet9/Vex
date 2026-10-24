@@ -93,11 +93,25 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .pane-head { height: 44px; padding: 0 20px; display: flex; align-items: center; gap: 7px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 11px; flex: none; }
 .pane-head .ph-right { margin-left: auto; font-size: 10px; display: flex; align-items: center; gap: 5px; }
 .source-scroll { position: relative; flex: 1; overflow: auto; }
-.source-scroll textarea { width: 100%; min-height: 100%; border: none; outline: none; resize: none; padding: 22px 24px 60px 54px; color: var(--editor-fg); background: transparent; font: var(--vex-writing-size,var(--writing-size,16px))/1.75 "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace; tab-size: 2; white-space: pre; overflow: hidden; }
+.source-scroll textarea,.source-scroll .source-highlight { width: 100%; min-height: 100%; border: none; outline: none; resize: none; padding: 22px 24px 60px 54px; color: var(--editor-fg); background: transparent; font: var(--vex-writing-size,var(--writing-size,16px))/1.75 "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace; tab-size: 2; white-space: pre; overflow: hidden; }
 /* 行号行高与正文同源计算（字号档 × 1.75），任意渲染密度下都与内容逐行对齐。 */
 .line-numbers { position: absolute; top: 22px; left: 0; width: 40px; text-align: right; font-family: Consolas, monospace; font-size: 12px; line-height: calc(var(--vex-writing-size,var(--writing-size,15px)) * 1.75); color: var(--md-marker); user-select: none; pointer-events: none; }
 .source-scroll.no-lines textarea { padding-left: 24px; }
 .source-scroll.no-lines .line-numbers { display: none; }
+/* 源码高亮镜像层：与输入框同字号、同行高、同内边距，只上色不改字形度量，保证逐字符对齐。 */
+.source-scroll .source-highlight { position: absolute; top: 0; left: 0; margin: 0; pointer-events: none; user-select: none; }
+.source-scroll.no-lines .source-highlight { padding-left: 24px; }
+.source-scroll.typewriter-on .source-highlight { padding-top: var(--typewriter-space) !important; padding-bottom: var(--typewriter-space) !important; }
+.source-highlight .sh-marker { color: var(--md-marker); }
+.source-highlight .sh-heading { color: var(--accent); }
+.source-highlight .sh-quote { color: var(--md-quote); }
+.source-highlight .sh-code,.source-highlight .sh-lang,.source-highlight .sh-math { color: var(--md-code-fg); }
+.source-highlight .sh-strike { color: var(--md-quote); text-decoration: line-through; }
+.source-highlight .sh-mark { background: var(--accent-soft); }
+.source-highlight .sh-link { color: var(--accent); }
+.source-highlight .sh-url { color: var(--md-marker); text-decoration: underline; }
+.source-highlighted textarea { color: transparent; caret-color: var(--editor-fg); }
+.source-highlighted textarea::selection { color: transparent; background: var(--selection); }
 .reading-pane { min-width: 0; display: flex; flex-direction: column; flex: 1; background: var(--bg); }
 .reading-scroll { flex: 1; min-height: 0; overflow: auto; }
 .reading-scroll .md-body { max-width: none; margin: 0; padding: 36px 48px 70px; font-size:var(--writing-size,15px); line-height: 1.95; }

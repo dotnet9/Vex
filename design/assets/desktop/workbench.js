@@ -37,12 +37,12 @@
       var arrow = sort.querySelector('.sort-arrow');
       if (arrow) { arrow.textContent = alphaSort === 'asc' ? '↑' : alphaSort === 'desc' ? '↓' : '↑↓'; arrow.hidden = false; }
       sort.setAttribute('aria-pressed', String(alphaSort !== 'default'));
-      sort.title = '按名称排序：' + (alphaSort === 'asc' ? '升序' : alphaSort === 'desc' ? '降序' : '默认（点击切换）');
+      sort.title = VexL.t(alphaSort === 'asc' ? '按名称排序：升序' : alphaSort === 'desc' ? '按名称排序：降序' : '按名称排序：默认');
     }
     if (fold) {
       var anyOpen = document.querySelectorAll('#file-list details.file-directory[open]').length > 0;
       fold.setAttribute('aria-pressed', String(fileListMode === 'tree' && !anyOpen));
-      fold.title = anyOpen ? '全部折叠' : '全部展开';
+      fold.title = VexL.t(anyOpen ? '全部折叠' : '全部展开');
     }
   }
   var settings = { length: 30, paragraphs: true, lists: true, blocks: false, layout: 'right' };
@@ -109,11 +109,11 @@
     var toggle = structureSidebar.querySelector('.structure-toggle');
     if (toggle) {
       toggle.setAttribute('aria-expanded', String(expanded));
-      toggle.title = expanded ? '收起辅助面板' : '展开辅助面板';
+      toggle.title = VexL.t(expanded ? '收起辅助面板' : '展开辅助面板');
       toggle.setAttribute('aria-label', toggle.title);
     }
     $('outline-toggle').setAttribute('aria-pressed', String(expanded));
-    $('outline-toggle').title = $('outline-toggle').ariaLabel = expanded ? '收起文档大纲' : '展开文档大纲';
+    $('outline-toggle').title = $('outline-toggle').ariaLabel = VexL.t(expanded ? '收起文档大纲' : '展开文档大纲');
     if (window.VexAuxiliary) VexAuxiliary.sync();
   }
   function showStructure(expanded) {
@@ -196,6 +196,15 @@
     if (state.undo[state.undo.length - 1] !== text) state.undo.push(text);
     if (state.undo.length > 100) state.undo.shift(); state.redo = [];
   }
+  // 撤销/重做保留光标位置，替换整篇正文后不跳到文末。
+  function restoreHistory(from, to) {
+    var caret = input.selectionStart;
+    to.push(input.value); input.value = from.pop();
+    var at = Math.min(caret, input.value.length);
+    input.setSelectionRange(at, at);
+    input.dispatchEvent(new Event('input')); refreshNow();
+    if (input.getClientRects().length) input.focus({ preventScroll: true });
+  }
   function escape(text) { return text.replace(/[&<>"']/g, function (char) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]; }); }
   function icon(name) { return '<svg class="ico" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
   var layerFocusOrigin = null;
@@ -204,6 +213,8 @@
     document.querySelectorAll('.win-layer').forEach(function (layer) { layer.hidden = true; });
     if (wasOpen && layerFocusOrigin && layerFocusOrigin.isConnected) { var origin = layerFocusOrigin; layerFocusOrigin = null; requestAnimationFrame(function () { origin.focus({ preventScroll: true }); }); }
   }
+  // 弹层、菜单、设置页或元素菜单开着时，编辑类快捷键交给弹层自身，不越层操作正文。
+  function overlayOpen() { return !!document.querySelector('.win-layer:not([hidden]), .menu-flyout:not([hidden]), .vex-settings-host:not([hidden]), .vex-element-layer'); }
   function openLayer(name) {
     var target = $('layer-' + name);
     var allClosed = Array.prototype.every.call(document.querySelectorAll('.win-layer'), function (layer) { return layer.hidden; });
@@ -612,6 +623,8 @@
     clearTimeout(state.pending); state.pending = setTimeout(refresh, 180);
   });
   input.addEventListener('beforeinput', function () { remember(input.value); });
+  // 源码视图上色：镜像层跟随输入框刷新，异常时退回纯文本。
+  VexSourceHighlight.attach($('source-highlight'), input);
   function updateCursor() {
     if (state.typewriter) typewriter.request();
   }
@@ -847,6 +860,26 @@
       docs[state.doc].saveError = true; updateMeta(); window.dispatchEvent(new CustomEvent('vex-workflow-result',{detail:{kind:'save',ok:false}})); VexProto.toast('副本下载失败，修改仍保留。点击“重试保存副本”继续。'); return false;
     }
   }
+  /* 另存为：浏览器无系统保存框，用文件名输入代替目的地选择；取消不产生成功提示。 */
+  function saveAs() {
+    instant.finish();
+    refreshNow();
+    var name = window.prompt('另存为（副本将以下述文件名下载）', docs[state.doc].name);
+    if (name === null) return false;
+    name = name.trim();
+    if (!name) { VexProto.toast('文件名为空，已取消另存为'); return false; }
+    if (!/\.(md|markdown|mdown|txt)$/i.test(name)) name += '.md';
+    try {
+      if (state.failNextSave) { state.failNextSave = false; throw new Error('下载未能开始'); }
+      download(input.value, name);
+      docs[state.doc].lastExport = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      VexProto.toast('已按「' + name + '」发起副本下载，原文件未被覆盖'); return true;
+    } catch (_) {
+      docs[state.doc].saveError = true; updateMeta();
+      window.dispatchEvent(new CustomEvent('vex-workflow-result', { detail: { kind: 'save', ok: false } }));
+      VexProto.toast('另存为失败，修改仍保留。点击“重试保存副本”继续。'); return false;
+    }
+  }
   function exportHtml() {
     try {
       instant.finish();refreshNow();
@@ -940,7 +973,7 @@
   VexProto.handleAction = function (action, item) {
     if (elementMenu && elementMenu.handleAction(action === 'insert-table' ? 'element-insert-table' : action)) return true;
     if (action === 'preferences' || action === 'preferences-mcp' || action === 'mcp-audit' || action === 'dlg-mcp') { VexPreferences.open(action === 'preferences' ? 'general' : 'mcp'); if (action === 'mcp-audit') document.querySelector('[data-mcp-tab=audit]')?.click(); return true; }
-    if (input.readOnly && (action.startsWith('insert-') || ['save','save-all','undo','redo','cut','paste','replace-all','clear-format','rename','delete-chapter','add-child','add-sibling','move-up','move-down','promote','demote'].includes(action))) { VexProto.toast('此文档为只读'); return true; }
+    if (input.readOnly && (action.startsWith('insert-') || ['save','save-as','save-all','undo','redo','cut','paste','replace-all','clear-format','rename','delete-chapter','add-child','add-sibling','move-up','move-down','promote','demote'].includes(action))) { VexProto.toast('此文档为只读'); return true; }
     if (window.VexWorkspace && VexWorkspace.handleAction(action, item)) return true;
     if (action.startsWith('insert-')) { if (state.editMode === 'instant' && instant.format(action.slice(7))) return true; insert(snippets[action.slice(7)] || ''); return true; }
     if (action.startsWith('view-')) { setView(action.slice(5)); return true; }
@@ -998,6 +1031,7 @@
       case 'open-samples': if (!VexDocumentWindow.open({intent:'samples'})) VexProto.toast('请允许弹出窗口后重试'); break;
       case 'quick-open': if (!state.sidebar) VexProto.handleAction('toggle-sidebar'); VexProto.handleAction('pane-files'); $('file-filter').focus(); break;
       case 'save': save(); break;
+      case 'save-as': saveAs(); break;
       case 'save-all': save(); break;
       case 'copy-wechat': case 'copy-zhihu': case 'copy-juejin':
         instant.finish(); refreshNow();
@@ -1005,7 +1039,7 @@
       case 'export-html': exportHtml(); break;
       case 'export-pdf': instant.finish(); refreshNow(); VexWatermark.preview('PDF · ' + docs[state.doc].name,$('markdown-preview').innerHTML); break;
       case 'toggle-watermark': VexPreferences.set('watermarkPreview',!VexPreferences.values.watermarkPreview); break;
-      case 'toggle-sidebar': state.sidebar = !state.sidebar; document.querySelector('.sidebar').classList.toggle('closed', !state.sidebar); sidebar.inert = !state.sidebar; if (!state.sidebar) sidebar.style.removeProperty('width'); $('sidebar-toggle').classList.toggle('on', state.sidebar); $('sidebar-toggle').setAttribute('aria-pressed', String(state.sidebar)); $('sidebar-toggle').title = $('sidebar-toggle').ariaLabel = state.sidebar ? '收起文件导航' : '展开文件导航'; syncStructureVisibility(); break;
+      case 'toggle-sidebar': state.sidebar = !state.sidebar; document.querySelector('.sidebar').classList.toggle('closed', !state.sidebar); sidebar.inert = !state.sidebar; if (!state.sidebar) sidebar.style.removeProperty('width'); $('sidebar-toggle').classList.toggle('on', state.sidebar); $('sidebar-toggle').setAttribute('aria-pressed', String(state.sidebar)); $('sidebar-toggle').title = $('sidebar-toggle').ariaLabel = VexL.t(state.sidebar ? '收起文件导航' : '展开文件导航'); syncStructureVisibility(); break;
       case 'pane-outline': showStructure(true); renderOutline(); break;
       case 'pane-files': if (!state.sidebar) VexProto.handleAction('toggle-sidebar'); break;
       case 'map-source': state.source = !state.source; applySource(); break;
@@ -1048,7 +1082,7 @@
       case 'undo': case 'redo':
         instant.finish();
         var from = action === 'undo' ? state.undo : state.redo, to = action === 'undo' ? state.redo : state.undo;
-        if (from.length) { to.push(input.value); input.value = from.pop(); input.dispatchEvent(new Event('input')); refreshNow(); }
+        if (from.length) restoreHistory(from, to);
         break;
       case 'copy': case 'copy-plain': case 'cut':
         var selected = input.value.slice(input.selectionStart, input.selectionEnd), copied = selected || input.value;
@@ -1100,7 +1134,7 @@
       instant.finish(); var from = action === 'undo' ? state.undo : state.redo;
       var to = action === 'undo' ? state.redo : state.undo;
       if (!from.length) return;
-      to.push(input.value); input.value = from.pop(); input.dispatchEvent(new Event('input')); refreshNow();
+      restoreHistory(from, to);
     },
     snapshot: function () { return { name: docs[state.doc].name, text: input.value, savedText: docs[state.doc].text, index: state.doc, dirty: state.dirty }; },
     receive: function (snapshot) {
@@ -1248,7 +1282,7 @@
   if ($('mcp-save')) $('mcp-save').onclick = function () { closeLayers(); VexProto.toast('MCP 设置已保存（演示）'); };
   if ($('mcp-gen')) $('mcp-gen').onclick = function () { $('mcp-token').value = 'vx_' + crypto.randomUUID().replace(/-/g, ''); };
   document.addEventListener('keydown', function (event) {
-    if (event.key === 'F5' && !event.isComposing) { event.preventDefault(); startPresentation(); return; }
+    if (event.key === 'F6' && !event.isComposing) { event.preventDefault(); startPresentation(); return; }
     if (event.key === 'Escape') {
       if (event.defaultPrevented) return;
       if (state.presentation) { event.preventDefault(); stopPresentation(); return; }
@@ -1259,7 +1293,15 @@
       if (!$('findbar').hidden) { event.preventDefault(); $('findbar').hidden = true; if (window.VexWorkbench) VexWorkbench.returnToEditing(); }
     }
     if ((event.ctrlKey || event.metaKey) && ['s', 'f', 'h', 'o', 'n', 'w', 'p', 'b', 'i'].includes(event.key.toLowerCase())) {
-      event.preventDefault(); VexProto.handleAction(event.key.toLowerCase() === 'p' ? (event.shiftKey ? 'print' : 'quick-open') : event.key.toLowerCase() === 'n' && event.shiftKey ? 'new-window' : { s: 'save', f: 'find', h: 'replace', o: 'open', n: 'new', w: 'close', b: 'insert-bold', i: 'insert-italic' }[event.key.toLowerCase()]);
+      event.preventDefault(); VexProto.handleAction(event.key.toLowerCase() === 'p' ? (event.shiftKey ? 'print' : 'quick-open') : event.key.toLowerCase() === 'n' && event.shiftKey ? 'new-window' : event.key.toLowerCase() === 's' && event.shiftKey ? 'save-as' : { s: 'save', f: 'find', h: 'replace', o: 'open', n: 'new', w: 'close', b: 'insert-bold', i: 'insert-italic' }[event.key.toLowerCase()]);
+    }
+    /* 菜单里写出的编辑快捷键要真的能用：正文编辑区内交给浏览器原生，正文之外由应用动作兜底。 */
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.isComposing && !overlayOpen() && !window.VexPresentation?.active) {
+      var editKey = event.key.toLowerCase();
+      var inDocument = event.target === input || $('instant-content').contains(event.target);
+      if (inDocument && !event.shiftKey && (editKey === 'z' || editKey === 'y')) { event.preventDefault(); VexProto.handleAction(editKey === 'z' ? 'undo' : 'redo'); return; }
+      if (inDocument && event.shiftKey && editKey === 'c') { event.preventDefault(); VexProto.handleAction('copy-plain'); return; }
+      if (!event.shiftKey && ['x', 'c', 'v', 'a'].includes(editKey) && !event.target.closest('input, textarea, select, [contenteditable="true"]')) { event.preventDefault(); VexProto.handleAction({ x: 'cut', c: 'copy', v: 'paste', a: 'select-all' }[editKey]); return; }
     }
     if (event.key === 'F8') { event.preventDefault(); VexProto.handleAction('toggle-focus'); }
     if (event.key === 'F11') { event.preventDefault(); VexProto.handleAction('toggle-fullscreen'); }
@@ -1340,5 +1382,5 @@
       if (picker) picker.click();
     }, 320);
   }
-  platformShortcutLabels(); window.addEventListener('vex-language-changed',platformShortcutLabels);
+  platformShortcutLabels(); window.addEventListener('vex-language-changed',function () { platformShortcutLabels(); syncFilesToolbar(); syncStructureVisibility(); });
 })();

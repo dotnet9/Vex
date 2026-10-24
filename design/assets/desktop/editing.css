@@ -74,8 +74,9 @@
 @media (prefers-reduced-motion: reduce) { .instant-block, .edit-methods button, .typography-card { transition: none; } .typography-popover { animation: none; } }
 
 /* 分隔线占位与命中宽度一致，侧栏内部随列伸缩。 */
-.sidebar { width: var(--sidebar-width, 226px); transition: opacity .2s; border-right: none; }
-.sidebar-inner { width: 100%; min-width: 0; }
+.sidebar { width: var(--sidebar-width, 226px); transition: width .24s ease, opacity .2s; border-right: none; }
+/* 内容宽度锁在用户设定的栏宽上，收起时由容器裁切，动画才是平移滑出而非把列表挤扁（与右侧大纲栏一致）。 */
+.sidebar-inner { width: var(--sidebar-width, 226px); min-width: 0; }
 .sidebar-splitter { width: 5px; flex: none; cursor: col-resize; touch-action: none; background: linear-gradient(90deg, transparent 2px, var(--border) 2px, var(--border) 3px, transparent 3px); }
 .sidebar-splitter:hover, .sidebar-splitter:focus-visible { background: var(--accent-soft); outline: none; }
 .sidebar.closed + .sidebar-splitter, .focus-mode .sidebar-splitter { display: none; }

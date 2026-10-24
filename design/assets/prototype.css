@@ -178,10 +178,14 @@ body.device-phone .modal .stat-card strong { font-size:20px; }
 .vex-pref-row input[type=checkbox]:checked::before { transform:translateX(14px); }
 .vex-pref-row input[type=range] { width:135px; accent-color:var(--accent); }
 .vex-pref-row output { width:44px; text-align:right; font-variant-numeric:tabular-nums; }
+.vex-pref-folder { display:flex; align-items:center; gap:8px; max-width:48%; min-width:0; }
+.vex-pref-folder input { flex:1 1 auto; width:auto; min-width:70px; max-width:none; }
+.vex-pref-folder .vex-icon-button { width:34px; height:34px; padding:0; border:1px solid var(--border); border-radius:5px; background:var(--bg,var(--surface)); font-size:16px; line-height:1; }
+.vex-pref-folder .vex-icon-button:hover { border-color:var(--accent); color:var(--accent); }
 .vex-palette-swatches { display:grid; grid-template-columns:repeat(8,22px); gap:6px; }
 .vex-swatch { width:22px; height:22px; padding:0; border-radius:50%; border:3px solid var(--panel,var(--surface)); background:var(--swatch); box-shadow:0 0 0 1px transparent; cursor:pointer; }
 .vex-swatch[aria-pressed=true] { box-shadow:0 0 0 1px var(--swatch); }
-.md-body,.markdown-body { font-size:var(--vex-writing-size,var(--writing-size,16px)); zoom:var(--vex-content-zoom,1); }
+.md-body,.markdown-body { font-size:var(--vex-writing-size,var(--writing-size,15px)); zoom:var(--vex-content-zoom,1); }
 :root[data-writing-font=serif] .md-body,:root[data-writing-font=serif] .markdown-body { font-family:var(--serif,serif); }
 :root[data-writing-font=mono] .md-body,:root[data-writing-font=mono] .markdown-body { font-family:var(--mono,monospace); }
 .content-area .md-body .md-code-block pre,.content-area .md-body .md-code-block pre code,.markdown-body pre,.markdown-body pre code { font-size:calc(var(--vex-writing-size,15px) * .87); }
@@ -220,6 +224,11 @@ body.device-phone .app-window .guide-card { width:310px; left:var(--vex-tour-lef
 .vex-mcp-tabs button { flex:1; min-height:28px; background:transparent; color:var(--muted); border:0; border-radius:5px; padding:4px 10px; cursor:pointer; font-size:12px; }
 .vex-mcp-tabs button:hover { color:var(--fg); }
 .vex-mcp-tabs button[aria-selected=true] { background:var(--accent); color:var(--on-accent); font-weight:600; }
+/* 二级切换用下划线式页签，和一级分段条在视觉上分层。 */
+.vex-mcp-tabs.vex-mcp-subtabs { display:flex; gap:18px; margin:0 0 14px; padding:0; background:transparent; border:0; border-bottom:1px solid var(--border); border-radius:0; }
+.vex-mcp-tabs.vex-mcp-subtabs button { flex:none; position:relative; min-height:32px; padding:6px 2px 9px; border-radius:0; font-size:13px; }
+.vex-mcp-tabs.vex-mcp-subtabs button[aria-selected=true] { background:transparent; color:var(--accent); font-weight:600; }
+.vex-mcp-tabs.vex-mcp-subtabs button[aria-selected=true]::after { content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--accent); border-radius:2px; }
 .vex-mcp-status { display:flex; align-items:center; gap:8px; font-size:13px; margin:0 0 18px; }
 .vex-pref-row + .vex-mcp-status { margin-top:12px; }
 .vex-mcp-status > span { flex:1; min-width:0; overflow-wrap:anywhere; }

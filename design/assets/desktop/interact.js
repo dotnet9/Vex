@@ -58,7 +58,7 @@
       ]},
       { sep: true },
       { label: '保存', gesture: 'Ctrl+S', action: 'save' },
-      { label: '另存为…', gesture: 'Ctrl+Shift+S', action: 'save' },
+      { label: '另存为…', gesture: 'Ctrl+Shift+S', action: 'save-as' },
       { sep: true },
       { label: '导出', sub: [
         { label: '导出 HTML', action: 'export-html' }, { label: '导出 PDF', action: 'export-pdf' },
@@ -77,7 +77,7 @@
       { label: '选择编码重新打开', sub: ['UTF-8', 'UTF-8 BOM', 'GB18030', 'Big5'].map(function (label) {
         return { label: label, toast: '按 ' + label + ' 重新读取（桌面版操作演示）' };
       })},
-      { sep: true }, { label: '删除文档…', danger: true, act: 'dlg-delete' },
+      { sep: true }, { label: '从工作区移除…', danger: true, act: 'dlg-delete' },
       { label: '关闭文档', gesture: 'Ctrl+W', action: 'close' }
     ]},
     { key: 'edit', label: '编辑(E)', items: [
@@ -107,12 +107,12 @@
       { label: '编辑视图', check: true, action: 'view-edit' }, { label: '阅读视图', check: true, action: 'view-read' },
       { label: '思维导图', check: true, action: 'view-mindmap' },
       { sep: true },
-      { label: '即时渲染', check: true, action: 'edit-instant' }, { label: '源码', check: true, action: 'edit-source' },
+      { label: '即时编辑', check: true, action: 'edit-instant' }, { label: '源码编辑', check: true, action: 'edit-source' },
       { label: '侧边栏', check: true, action: 'toggle-sidebar' }, { label: '文档列表', action: 'pane-files' }, { label: '文档大纲', action: 'pane-outline' },
       { label: '显示行号', check: true, action: 'toggle-lines' }, { label: '显示词数', check: true, action: 'toggle-word-count' },
       { label: '显示文档水印', check: true, action: 'toggle-watermark' }, { label: '界面动效', check: true, action: 'toggle-motion' },
       { sep: true },
-      { label: '演示模式', gesture: 'F5', action: 'presentation' },
+      { label: '演示模式', gesture: 'F6', action: 'presentation' },
       { label: '专注模式', gesture: 'F8', check: true, action: 'toggle-focus' }, { label: '打字机模式', check: true, action: 'toggle-typewriter' },
       { sep: true },
       { label: '全屏', gesture: 'F11', check: true, action: 'toggle-fullscreen' },
