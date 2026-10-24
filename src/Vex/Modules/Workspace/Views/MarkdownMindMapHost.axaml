@@ -35,9 +35,12 @@
       </Grid>
     </Border>
     <Grid Grid.Row="1">
+      <!-- 原型 .map-viewport：底色之上叠 18px 点阵（workbench.css:140），画布本身改为透明以透出这两层。 -->
+      <Border Background="{DynamicResource VexPreviewBackgroundBrush}"/>
+      <Border x:Name="MapDotGrid" IsHitTestVisible="False"/>
       <mind:MarkdownMindMapView x:Name="Map" IsChapterEditingEnabled="True" PreserveViewportOnRootChange="True" Root="{Binding Workbench.Root}" EnableMotion="{Binding Layout.EnableMotion}"
           LayoutKind="{Binding Workbench.MapLayoutKind}" StyleKind="{Binding Workbench.MapStyleKind}"
-          CanvasBrush="{DynamicResource VexPreviewBackgroundBrush}" CardBrush="{DynamicResource VexPanelBackgroundBrush}" TextBrush="{DynamicResource VexValueBrush}"
+          CanvasBrush="Transparent" CardBrush="{DynamicResource VexPanelBackgroundBrush}" TextBrush="{DynamicResource VexValueBrush}"
           LineBrush="{DynamicResource VexPanelBorderBrush}" DotBrush="{DynamicResource VexPanelBorderBrush}"/>
       <StackPanel Orientation="Horizontal" Spacing="15" Margin="16,13" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False">
         <StackPanel Orientation="Horizontal" Spacing="5"><Border Width="7" Height="7" CornerRadius="2" BorderThickness="1" BorderBrush="{DynamicResource VexAccentBrush}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBHeadingNode}}" Classes="wb-muted"/></StackPanel>

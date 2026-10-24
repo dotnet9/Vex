@@ -63,7 +63,7 @@ public sealed class ShellTypographyGallery : UserControl
 
     private void Resize()
     {
-        Width = Math.Min(880, (_window?.ClientSize.Width ?? 1280) - 24);
+        Width = Math.Min(720, (_window?.ClientSize.Width ?? 1280) - 24);
         var anchor = (_window as MainWindow)?.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "TypographyTarget" && b.IsEffectivelyVisible);
         var top = anchor?.TranslatePoint(new Point(0, anchor.Bounds.Height + 8), _window!)?.Y ?? 126;
         var parentTop = _window is not null ? this.GetVisualParent()?.TranslatePoint(default, _window)?.Y ?? 0 : 0;
@@ -134,8 +134,7 @@ public sealed class ShellTypographyGallery : UserControl
         _scroll = new ScrollViewer { Content = _cards, Padding = new Thickness(2, 2, 15, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
         var grid = new Grid { RowDefinitions = new("Auto,*") };
         grid.Children.Add(_header); Grid.SetRow(_scroll, 1); grid.Children.Add(_scroll);
-        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16), BorderThickness = new Thickness(0), BoxShadow = BoxShadows.Parse("0 12 32 0 #29101828, 0 2 8 0 #14101828") };
-        Resource(border, Border.BackgroundProperty, this, "VexElevatedBackgroundBrush");
+        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16), BoxShadow = BoxShadows.Parse("0 12 32 0 #29101828, 0 2 8 0 #14101828") };
         Content = border;
         Resize(); Changed(null, new(""));
     }

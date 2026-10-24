@@ -126,7 +126,7 @@ public partial class MainWindow : CodeWFWindow
             else if (e.KeyModifiers == KeyModifiers.None) e.Handled = presentationVm.Workbench.HandlePresentationKey(e.Key);
             return;
         }
-        if (e.Key == Key.F5 && e.KeyModifiers == KeyModifiers.None && DataContext is MainWindowViewModel startVm)
+        if (e.Key == Key.F6 && e.KeyModifiers == KeyModifiers.None && DataContext is MainWindowViewModel startVm)
         { startVm.Workbench.StartPresentation(); e.Handled = true; return; }
         if (e.Key == Key.Escape && MindMapGuideTarget.HandleEscape()) { e.Handled = true; return; }
         if (RouteWorkspaceHistory(e)) return;
@@ -159,7 +159,7 @@ public partial class MainWindow : CodeWFWindow
     }
     internal void ForwardWorkspaceShortcut(KeyEventArgs e)
     {
-        if (e.Key == Key.F5 && e.KeyModifiers == KeyModifiers.None && DataContext is MainWindowViewModel vm)
+        if (e.Key == Key.F6 && e.KeyModifiers == KeyModifiers.None && DataContext is MainWindowViewModel vm)
         { vm.Workbench.StartPresentation(); e.Handled = true; return; }
         if (e.Key == Key.Escape && MindMapGuideTarget.HandleEscape()) { e.Handled = true; return; }
         if (RouteWorkspaceHistory(e)) return;

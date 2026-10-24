@@ -177,7 +177,7 @@
             <MenuItem Header="{i18n:I18n Vex.VexL.MenuWatermark}" Command="{Binding ToggleWatermark}" IsChecked="{Binding Preferences.WatermarkPreview, Mode=OneWay}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuMotion}}" Command="{Binding Layout.ToggleMotion}" IsChecked="{Binding Layout.EnableMotion, Mode=OneWay}" ToggleType="CheckBox" />
             <Separator />
-            <MenuItem x:Name="PresentationMenuItem" Header="{i18n:I18n {x:Static l:VexL.WBPresentation}}" Command="{Binding Workbench.StartPresentation}" InputGesture="F5"/>
+            <MenuItem x:Name="PresentationMenuItem" Header="{i18n:I18n {x:Static l:VexL.WBPresentation}}" Command="{Binding Workbench.StartPresentation}" InputGesture="F6"/>
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuFocusMode}}" Command="{Binding Layout.ToggleFocusMode}" InputGesture="F8" IsChecked="{Binding Layout.IsFocusMode}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuTypewriterMode}}" Command="{Binding Layout.ToggleTypewriterMode}" IsChecked="{Binding Layout.IsTypewriterMode}" ToggleType="CheckBox" />
             <Separator />

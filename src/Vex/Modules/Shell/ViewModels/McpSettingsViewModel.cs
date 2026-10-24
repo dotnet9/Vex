@@ -1,7 +1,8 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
 using Avalonia.Input.Platform;
+using Avalonia.Threading;
+using System.Reactive.Linq;
 using ReactiveUI;
 using Vex.Core.Services;
 using Vex.Modules.Mcp.Models;
@@ -9,32 +10,53 @@ using Vex.Modules.Mcp.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
+/// <summary>MCP 服务配置：对应原型偏好页 MCP 三个页签的数据与动作（服务、客户端、审计）。</summary>
 public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared.Contracts.IDialogContext
 {
+    private const int MinimumPort = 1024;
+    private const int MaximumPort = 65535;
+    private const int MinimumTokenLength = 24;
+    private const int PreviewCharacterLimit = 700;
+    private static readonly string BridgeAppendText = "\n\n通过 MCP 追加的段落。\n";
+
     private readonly IAppSettingsStore _settingsStore;
     private readonly IMcpServerHost _serverHost;
     private readonly IMcpOperationConfirmationService _confirmationService;
+    private readonly IMcpToolDispatcher _toolDispatcher;
     private readonly IAppLocalizer _localizer;
+    private IDisposable? _autoApplySubscription;
+    private bool _isApplying;
     private bool _isEnabled;
     private string _host = "127.0.0.1";
+    private string _portText = "17891";
     private int _port = 17891;
     private string _token = string.Empty;
     private string _accessScope = McpAccessScope.CurrentDocument;
     private string _allowedWorkspacePath = string.Empty;
     private bool _requireConfirmation = true;
+    private bool _isTokenRevealed;
     private string _statusText = string.Empty;
+    private string _validationError = string.Empty;
+    private string _testResult = string.Empty;
+    private string _requestMessage = string.Empty;
+    private string _requestCode = string.Empty;
 
     public McpSettingsViewModel(
         IAppSettingsStore settingsStore,
         IMcpServerHost serverHost,
         IMcpOperationConfirmationService confirmationService,
+        IMcpToolDispatcher toolDispatcher,
         IAppLocalizer localizer)
     {
         _settingsStore = settingsStore;
         _serverHost = serverHost;
         _confirmationService = confirmationService;
+        _toolDispatcher = toolDispatcher;
         _localizer = localizer;
-        _localizer.CultureChanged += (_, _) => RefreshStatus();
+        _localizer.CultureChanged += (_, _) =>
+        {
+            RefreshStatus();
+        };
         _serverHost.StatusChanged += (_, _) => Dispatcher.UIThread.Post(RefreshStatus);
         Load();
     }
@@ -47,40 +69,89 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
     public bool IsEnabled
     {
         get => _isEnabled;
-        set => this.RaiseAndSetIfChanged(ref _isEnabled, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isEnabled, value);
+            RefreshStatus();
+        }
     }
 
     public string Host
     {
         get => _host;
+        set => this.RaiseAndSetIfChanged(ref _host, value);
+    }
+
+    /// <summary>端口输入框的原始文本：原型用普通 number 输入 + 校验文案，而不是步进器。</summary>
+    public string PortText
+    {
+        get => _portText;
         set
         {
-            this.RaiseAndSetIfChanged(ref _host, value);
-            this.RaisePropertyChanged(nameof(Endpoint));
+            if (_portText == value)
+            {
+                return;
+            }
+
+            this.RaiseAndSetIfChanged(ref _portText, value);
+            if (TryParsePort(value, out var port))
+            {
+                _port = port;
+                this.RaisePropertyChanged(nameof(Port));
+                this.RaisePropertyChanged(nameof(Endpoint));
+            }
         }
     }
 
-    public int Port
-    {
-        get => _port;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _port, value);
-            this.RaisePropertyChanged(nameof(Endpoint));
-        }
-    }
+    public int Port => _port;
 
     public string Token
     {
         get => _token;
-        set => this.RaiseAndSetIfChanged(ref _token, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _token, value);
+            this.RaisePropertyChanged(nameof(StdioConfiguration));
+        }
     }
 
     public string AccessScope
     {
         get => _accessScope;
-        set => this.RaiseAndSetIfChanged(ref _accessScope, value);
+        set
+        {
+            if (_accessScope == value)
+            {
+                return;
+            }
+
+            this.RaiseAndSetIfChanged(ref _accessScope, value);
+            this.RaisePropertyChanged(nameof(IsCustomFolderScope));
+            this.RaisePropertyChanged(nameof(AccessScopeIndex));
+        }
     }
+
+    /// <summary>授权范围下拉框选中项：0 当前文档 / 1 当前文件夹 / 2 指定目录（对应原型 select）。</summary>
+    public int AccessScopeIndex
+    {
+        get => AccessScope switch
+        {
+            McpAccessScope.CurrentFolder => 1,
+            McpAccessScope.CustomFolder => 2,
+            _ => 0
+        };
+        set
+        {
+            AccessScope = value switch
+            {
+                1 => McpAccessScope.CurrentFolder,
+                2 => McpAccessScope.CustomFolder,
+                _ => McpAccessScope.CurrentDocument
+            };
+        }
+    }
+
+    public bool IsCustomFolderScope => AccessScope == McpAccessScope.CustomFolder;
 
     public string AllowedWorkspacePath
     {
@@ -94,63 +165,102 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         set => this.RaiseAndSetIfChanged(ref _requireConfirmation, value);
     }
 
+    public bool IsTokenRevealed
+    {
+        get => _isTokenRevealed;
+        set => this.RaiseAndSetIfChanged(ref _isTokenRevealed, value);
+    }
+
     public string StatusText
     {
         get => _statusText;
         private set => this.RaiseAndSetIfChanged(ref _statusText, value);
     }
 
-    public string Endpoint => $"http://{FormatEndpointHost(NormalizeHost(Host))}:{Math.Clamp(Port, 1, 65535)}/mcp/";
+    public bool IsStatusRunning { get; private set; }
 
-    public bool IsCurrentDocumentScope
+    public bool IsStatusStarting { get; private set; }
+
+    public bool IsStatusError { get; private set; }
+
+    /// <summary>校验错误条（对应原型 #vex-mcp-error）：为空时整行隐藏。</summary>
+    public string ValidationError
     {
-        get => AccessScope == McpAccessScope.CurrentDocument;
-        set
+        get => _validationError;
+        private set
         {
-            if (value)
-            {
-                AccessScope = McpAccessScope.CurrentDocument;
-            }
+            this.RaiseAndSetIfChanged(ref _validationError, value);
+            this.RaisePropertyChanged(nameof(HasValidationError));
         }
     }
 
-    public bool IsCurrentFolderScope
+    public bool HasValidationError => !string.IsNullOrEmpty(ValidationError);
+
+    /// <summary>测试连接结果（对应原型 #vex-test-result）。</summary>
+    public string TestResult
     {
-        get => AccessScope == McpAccessScope.CurrentFolder;
-        set
+        get => _testResult;
+        private set
         {
-            if (value)
-            {
-                AccessScope = McpAccessScope.CurrentFolder;
-            }
+            this.RaiseAndSetIfChanged(ref _testResult, value);
+            this.RaisePropertyChanged(nameof(HasTestResult));
         }
     }
 
-    public bool IsCustomFolderScope
+    public bool HasTestResult => !string.IsNullOrEmpty(TestResult);
+
+    /// <summary>stdio 页请求区的提示文本：原型对「请先启动服务」用红色校验条，对动作结果用正文，两者共用一个位置。</summary>
+    public string RequestMessage
     {
-        get => AccessScope == McpAccessScope.CustomFolder;
-        set
+        get => _requestMessage;
+        private set
         {
-            if (value)
-            {
-                AccessScope = McpAccessScope.CustomFolder;
-            }
+            this.RaiseAndSetIfChanged(ref _requestMessage, value);
+            this.RaisePropertyChanged(nameof(HasRequestError));
+            this.RaisePropertyChanged(nameof(HasRequestNote));
         }
     }
 
-    public void GenerateToken()
+    private bool _requestIsError;
+
+    /// <summary>置请求提示；isError 决定它按红色校验条还是普通正文渲染。</summary>
+    private void SetRequestMessage(string text, bool isError)
+    {
+        _requestIsError = isError;
+        RequestMessage = text;
+    }
+
+    public bool HasRequestError => _requestIsError && !string.IsNullOrEmpty(RequestMessage);
+
+    public bool HasRequestNote => !_requestIsError && !string.IsNullOrEmpty(RequestMessage);
+
+    /// <summary>stdio 页请求区的文档预览（对应原型把文档正文塞进 pre.vex-code）。</summary>
+    public string RequestCode
+    {
+        get => _requestCode;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _requestCode, value);
+            this.RaisePropertyChanged(nameof(HasRequestCode));
+        }
+    }
+
+    public bool HasRequestCode => !string.IsNullOrEmpty(RequestCode);
+
+    public string Endpoint => $"http://{FormatEndpointHost(NormalizeHost(Host))}:{Math.Clamp(Port, MinimumPort, MaximumPort)}/mcp/";
+
+    /// <summary>服务可用 = 本地监听已就绪；stdio 页的两个动作都先做这道门。</summary>
+    public bool IsServiceReady => _serverHost.IsRunning;
+
+    public void RegenerateToken()
     {
         Token = McpTokenGenerator.Generate();
     }
 
-    public async Task CopyEndpointAsync()
+    /// <summary>眼睛按钮：在掩码与明文之间切换（原型 aria-pressed 的 .vex-token-actions）。</summary>
+    public void ToggleTokenReveal()
     {
-        await SetClipboardTextAsync(Endpoint);
-    }
-
-    public async Task CopyTokenAsync()
-    {
-        await SetClipboardTextAsync(Token);
+        IsTokenRevealed = !IsTokenRevealed;
     }
 
     public string ClientConfiguration
@@ -158,7 +268,7 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         get
         {
             var saved = _settingsStore.Current;
-            var endpoint = $"http://{FormatEndpointHost(NormalizeHost(saved.McpServerHost))}:{Math.Clamp(saved.McpServerPort ?? 17891, 1, 65535)}/mcp/";
+            var endpoint = $"http://{FormatEndpointHost(NormalizeHost(saved.McpServerHost))}:{Math.Clamp(saved.McpServerPort ?? 17891, MinimumPort, MaximumPort)}/mcp/";
             static string Escape(string value) => System.Text.Json.JsonEncodedText.Encode(value).ToString();
             return "{\n  \"mcpServers\": {\n    \"vex\": {\n      \"url\": \"" + Escape(endpoint) + "\",\n      \"headers\": {\n        \"Authorization\": \"" + Escape("Bearer " + (saved.McpAuthorizationToken ?? "")) + "\"\n      }\n    }\n  }\n}";
         }
@@ -166,7 +276,7 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
 
     public Task CopyClientConfigurationAsync() => SetClipboardTextAsync(ClientConfiguration);
 
-    /// <summary>stdio 桥接配置（对应原型 clients 页第二段）：命令行客户端经 vex mcp bridge 访问本机服务。</summary>
+    /// <summary>stdio 桥接配置：命令行客户端经 vex mcp bridge 访问本机服务。</summary>
     public string StdioConfiguration
     {
         get
@@ -177,66 +287,234 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         }
     }
 
-    /// <summary>测试连接：对服务端点发一次 MCP initialize 请求，按 HTTP 结果刷新状态。</summary>
+    /// <summary>测试连接：对服务端点发一次 MCP initialize 请求，结果写进 #vex-test-result。</summary>
     public async Task TestConnectionAsync()
     {
+        TestResult = _localizer.Get(VexL.McpTestConnecting);
         try
         {
             using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-            using var request = new System.Net.Http.HttpRequestMessage(
-                System.Net.Http.HttpMethod.Post, Endpoint);
+            using var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Post, Endpoint);
             request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + Token);
             request.Content = new System.Net.Http.StringContent(
                 "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"vex\",\"version\":\"1.0\"}}}",
-                System.Text.Encoding.UTF8, "application/json");
+                System.Text.Encoding.UTF8,
+                "application/json");
             using var response = await client.SendAsync(request);
-            StatusText = response.IsSuccessStatusCode
-                ? $"连接成功（HTTP {(int)response.StatusCode}）"
-                : $"服务已响应（HTTP {(int)response.StatusCode}），请核对令牌";
+            TestResult = response.StatusCode switch
+            {
+                System.Net.HttpStatusCode.Unauthorized => _localizer.Get(VexL.McpTestUnauthorized),
+                var code when code is >= System.Net.HttpStatusCode.BadRequest => _localizer.Format(VexL.McpTestFailedHttp, (int)code),
+                _ => _localizer.Get(VexL.McpTestSuccess)
+            };
         }
-        catch (Exception exception)
+        catch (System.Net.Http.HttpRequestException)
         {
-            StatusText = string.IsNullOrWhiteSpace(Token)
-                ? "无法连接服务：服务未启用或地址不可达。"
-                : $"无法连接服务：{exception.Message}";
+            TestResult = _localizer.Get(VexL.McpTestNotRunning);
+        }
+        catch (OperationCanceledException)
+        {
+            TestResult = _localizer.Get(VexL.McpTestTimeout);
         }
     }
 
-    /// <summary>stdio 桥接读写按钮：桥接客户端工具尚未随本版本提供，先反馈计划。</summary>
-    public void RequestBridgeAction(string action)
+    /// <summary>stdio「读取当前文档」：直接走 MCP 工具链，正文以代码块回显（原型截断到 700 字）。</summary>
+    public async Task ReadDocumentAsync()
     {
-        StatusText = $"「{action}」需要独立桥接客户端，当前版本尚未内置。";
+        if (!PrepareRequestArea())
+        {
+            return;
+        }
+
+        var result = await _toolDispatcher.CallToolAsync("vex_get_current_document", null);
+        var text = result.Content.Count > 0 ? result.Content[0].Text : string.Empty;
+        if (result.IsError)
+        {
+            RequestCode = string.Empty;
+            SetRequestMessage(text, true);
+        }
+        else
+        {
+            SetRequestMessage(string.Empty, false);
+            RequestCode = text.Length > PreviewCharacterLimit ? text[..PreviewCharacterLimit] : text;
+        }
     }
+
+    /// <summary>stdio「请求修改文档」：与真实 MCP 客户端走同一条路径，
+    /// 同意与否由应用的 MCP 确认对话框决定，页内只回显结果。</summary>
+    public async Task RequestDocumentEditAsync()
+    {
+        if (!PrepareRequestArea())
+        {
+            return;
+        }
+
+        var arguments = System.Text.Json.JsonSerializer.SerializeToElement(new { text = BridgeAppendText });
+        var result = await _toolDispatcher.CallToolAsync("vex_insert_text", arguments);
+        var text = result.Content.Count > 0 ? result.Content[0].Text : string.Empty;
+        RequestCode = string.Empty;
+        SetRequestMessage(
+            result.IsError || text.Contains("canceled", StringComparison.OrdinalIgnoreCase)
+                ? _localizer.Get(VexL.McpRequestRejected)
+                : _localizer.Get(VexL.McpRequestApproved),
+            result.IsError);
+    }
+
+    /// <summary>原型语义：未启动服务时请求区只给一条红色提示，其余动作不再执行。</summary>
+    private bool PrepareRequestArea()
+    {
+        RequestCode = string.Empty;
+        if (!IsServiceReady)
+        {
+            SetRequestMessage(_localizer.Get(VexL.McpServiceRequired), true);
+            return false;
+        }
+
+        SetRequestMessage(string.Empty, false);
+        return true;
+    }
+
+    /// <summary>偏好页内嵌模式：改动去抖后自动落盘并重启服务（原型这一页没有「保存」按钮）。</summary>
+    public void EnableAutoApply()
+    {
+        if (_autoApplySubscription is not null)
+        {
+            return;
+        }
+
+        _autoApplySubscription = this
+            .WhenAnyValue(
+                model => model.IsEnabled,
+                model => model.PortText,
+                model => model.Token,
+                model => model.AccessScope,
+                model => model.AllowedWorkspacePath,
+                model => model.RequireConfirmation)
+            .Throttle(TimeSpan.FromMilliseconds(300), RxApp.MainThreadScheduler)
+            .Subscribe(changes => _ = ApplyAsync());
+    }
+
+    /// <summary>离开页面时把还在去抖窗口里的改动写掉，避免关窗丢最后一次修改。</summary>
+    public Task FlushAutoApplyAsync() => _autoApplySubscription is null ? Task.CompletedTask : ApplyAsync();
+
+    public void CancelAutoApply()
+    {
+        _autoApplySubscription?.Dispose();
+        _autoApplySubscription = null;
+    }
+
+    /// <summary>独立对话框的「取消」：只关窗，不落盘。</summary>
+    public void Cancel() => Close();
 
     public async Task SaveAsync()
     {
-        var normalizedHost = NormalizeHost(Host);
-        var normalizedPort = Math.Clamp(Port, 1, 65535);
-        var normalizedToken = string.IsNullOrWhiteSpace(Token) ? McpTokenGenerator.Generate() : Token.Trim();
-        _settingsStore.Update(settings => settings with
-        {
-            IsMcpServerEnabled = IsEnabled,
-            McpServerHost = normalizedHost,
-            McpServerPort = normalizedPort,
-            McpAuthorizationToken = normalizedToken,
-            McpAccessScope = AccessScope,
-            McpAllowedWorkspacePath = string.IsNullOrWhiteSpace(AllowedWorkspacePath) ? null : AllowedWorkspacePath.Trim(),
-            McpRequireConfirmation = RequireConfirmation
-        });
-
-        Host = normalizedHost;
-        Port = normalizedPort;
-        Token = normalizedToken;
-        _confirmationService.ResetRememberedChoices();
-        await _serverHost.ApplySettingsAsync();
-        this.RaisePropertyChanged(nameof(ClientConfiguration));
-        RefreshStatus();
+        await ApplyAsync();
         Close();
     }
 
-    public void Cancel()
+    /// <summary>校验 + 落盘 + 重启监听；失败时把原因写进校验条并返回 false（不关闭对话框）。</summary>
+    public async Task<bool> ApplyAsync()
     {
-        Close();
+        if (!TryNormalize(out var normalizedToken, out var normalizedPath, out var error))
+        {
+            ValidationError = error;
+            return false;
+        }
+
+        ValidationError = string.Empty;
+        if (HasUnsavedChanges(normalizedToken, normalizedPath))
+        {
+            await PersistAsync(normalizedToken, normalizedPath);
+        }
+
+        return true;
+    }
+
+    private bool HasUnsavedChanges(string normalizedToken, string normalizedPath)
+    {
+        var saved = _settingsStore.Current;
+        return saved.IsMcpServerEnabled != _isEnabled
+            || (saved.McpServerPort ?? 0) != _port
+            || !string.Equals(saved.McpAuthorizationToken, normalizedToken, StringComparison.Ordinal)
+            || !string.Equals(saved.McpAccessScope, _accessScope, StringComparison.Ordinal)
+            || !string.Equals(saved.McpAllowedWorkspacePath ?? string.Empty, normalizedPath, StringComparison.Ordinal)
+            || saved.McpRequireConfirmation != _requireConfirmation;
+    }
+
+    private async Task PersistAsync(string normalizedToken, string normalizedPath)
+    {
+        _settingsStore.Update(settings => settings with
+        {
+            IsMcpServerEnabled = _isEnabled,
+            McpServerHost = NormalizeHost(Host),
+            McpServerPort = _port,
+            McpAuthorizationToken = normalizedToken,
+            McpAccessScope = _accessScope,
+            McpAllowedWorkspacePath = NullIfEmpty(normalizedPath),
+            McpRequireConfirmation = _requireConfirmation
+        });
+
+        _confirmationService.ResetRememberedChoices();
+        this.RaisePropertyChanged(nameof(ClientConfiguration));
+        _isApplying = true;
+        RefreshStatus();
+        try
+        {
+            await _serverHost.ApplySettingsAsync();
+        }
+        finally
+        {
+            _isApplying = false;
+            RefreshStatus();
+        }
+    }
+
+    private bool TryNormalize(out string normalizedToken, out string normalizedPath, out string error)
+    {
+        normalizedToken = Token.Trim();
+        normalizedPath = AllowedWorkspacePath.Trim();
+        if (!TryParsePort(PortText, out var port))
+        {
+            error = _localizer.Get(VexL.McpErrorPortRange);
+            return false;
+        }
+
+        _port = port;
+        PortText = port.ToString();
+        if (normalizedToken.Length < MinimumTokenLength)
+        {
+            error = _localizer.Get(VexL.McpErrorTokenShort);
+            return false;
+        }
+
+        if (_accessScope == McpAccessScope.CustomFolder && !IsAbsolutePath(normalizedPath))
+        {
+            error = _localizer.Get(VexL.McpErrorFolderAbsolute);
+            return false;
+        }
+
+        error = string.Empty;
+        return true;
+    }
+
+    private void RefreshStatus()
+    {
+        IsStatusStarting = _isApplying;
+        IsStatusRunning = !_isApplying && _serverHost.State == McpServerState.Running;
+        IsStatusError = !_isApplying && _serverHost.State == McpServerState.Faulted;
+        this.RaisePropertyChanged(nameof(IsStatusStarting));
+        this.RaisePropertyChanged(nameof(IsStatusRunning));
+        this.RaisePropertyChanged(nameof(IsStatusError));
+        this.RaisePropertyChanged(nameof(IsServiceReady));
+        if (_isApplying)
+        {
+            StatusText = _localizer.Get(VexL.McpStatusStarting);
+            return;
+        }
+
+        StatusText = _serverHost.State == McpServerState.Running
+            ? _localizer.Format(VexL.McpStatusRunningFormat, Endpoint)
+            : _serverHost.StatusText;
     }
 
     private void Load()
@@ -244,7 +522,8 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         var settings = _settingsStore.Current;
         _isEnabled = settings.IsMcpServerEnabled ?? false;
         _host = NormalizeHost(settings.McpServerHost);
-        _port = Math.Clamp(settings.McpServerPort ?? 17891, 1, 65535);
+        _port = Math.Clamp(settings.McpServerPort ?? 17891, MinimumPort, MaximumPort);
+        _portText = _port.ToString();
         _token = string.IsNullOrWhiteSpace(settings.McpAuthorizationToken)
             ? McpTokenGenerator.Generate()
             : settings.McpAuthorizationToken;
@@ -254,31 +533,23 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         RefreshStatus();
     }
 
-    private void RefreshStatus()
-    {
-        StatusText = _serverHost.IsRunning
-            ? _localizer.Format(VexL.McpStatusRunningFormat, Endpoint)
-            : _serverHost.StatusText;
-    }
+    private static bool TryParsePort(string? text, out int port) =>
+        int.TryParse(text, out port) && port >= MinimumPort && port <= MaximumPort;
 
-    private static string NormalizeHost(string? host)
-    {
-        return string.IsNullOrWhiteSpace(host) ? "127.0.0.1" : host.Trim();
-    }
+    private static bool IsAbsolutePath(string path) =>
+        path.Length > 0 && (Path.IsPathRooted(path) || System.Text.RegularExpressions.Regex.IsMatch(path, @"^[a-z]:[\\/]"));
 
-    private static string FormatEndpointHost(string host)
-    {
-        return host.Contains(':', StringComparison.Ordinal) && !host.StartsWith("[", StringComparison.Ordinal)
+    private static string? NullIfEmpty(string value) => string.IsNullOrWhiteSpace(value) ? null : value;
+
+    private static string NormalizeHost(string? host) => string.IsNullOrWhiteSpace(host) ? "127.0.0.1" : host.Trim();
+
+    private static string FormatEndpointHost(string host) =>
+        host.Contains(':', StringComparison.Ordinal) && !host.StartsWith("[", StringComparison.Ordinal)
             ? $"[{host}]"
             : host;
-    }
 
-    private static string NormalizeAccessScope(string? scope)
-    {
-        return scope is McpAccessScope.CurrentFolder or McpAccessScope.CustomFolder
-            ? scope
-            : McpAccessScope.CurrentDocument;
-    }
+    private static string NormalizeAccessScope(string? scope) =>
+        scope is McpAccessScope.CurrentFolder or McpAccessScope.CustomFolder ? scope : McpAccessScope.CurrentDocument;
 
     private static async Task SetClipboardTextAsync(string text)
     {

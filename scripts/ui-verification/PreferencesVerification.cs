@@ -1,5 +1,7 @@
 using System.Text;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Headless;
 using Avalonia.Threading;
@@ -95,10 +97,22 @@ internal static class PreferencesVerification
         view.SelectCategory("mcp"); Render();
         // MCP 页：分段式标签（服务/客户端/审计），客户端页配置为已保存端点的合法 JSON。
         Check(!view.GetVisualDescendants().OfType<TabControl>().Any(), "MCP page uses segmented tabs instead of a classic TabControl");
+        // 元素级对齐原型：.vex-pref-row 58 间距、input 180x34、控件右边缘与正文列对齐。
+        var portField = view.GetVisualDescendants().OfType<TextBox>().First(t => t.Classes.Contains("pref-field"));
+        var portRow = portField.GetVisualAncestors().OfType<Border>().First(b => b.Classes.Contains("pref-row"));
+        Check(Math.Abs(portField.Bounds.Width - 180) < 0.6 && Math.Abs(portField.Bounds.Height - 34) < 0.6,
+            "MCP form field keeps the prototype 180x34 box");
+        Check(Math.Abs(portRow.Bounds.Height - 58) < 1.5, "MCP form row keeps the prototype 58px pitch");
+        // TranslatePoint 的入参是控件自身坐标系里的点，取右上角要用 Width 而不是 Bounds.Right。
+        var portRight = portField.TranslatePoint(new Point(portField.Bounds.Width, 0), view)!.Value.X;
+        var rowRight = portRow.TranslatePoint(new Point(portRow.Bounds.Width, 0), view)!.Value.X;
+        Check(Math.Abs(portRight - rowRight) < 0.6, "MCP form controls sit flush with the content column");
         Control<Button>("McpTabClients").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
-        using (var config = System.Text.Json.JsonDocument.Parse(Control<TextBox>("McpClientConfiguration").Text!))
+        using (var config = System.Text.Json.JsonDocument.Parse(Control<SelectableTextBlock>("McpClientConfiguration").Text!))
             Check(config.RootElement.GetProperty("mcpServers").GetProperty("vex").GetProperty("url").GetString() == "http://127.0.0.1:17891/mcp/", "MCP client configuration is valid JSON using saved endpoint");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-clients.png"));
+        Control<Button>("McpSubStdio").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
+        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-stdio.png"));
         Control<Button>("McpTabAudit").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-audit.png"));
         model.Close(); Pump(dialog);

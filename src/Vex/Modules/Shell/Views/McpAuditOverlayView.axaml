@@ -5,9 +5,10 @@
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:mcp="using:Vex.Modules.Mcp.Models">
+    <!-- 原型 table.vex-audit：时间/操作/结果三列，12 号字、单元格 11x6、每行一条底边线；空态是一整行「暂无调用记录」而不是居中大字。 -->
     <Border Classes="dialog-card" Width="620" MaxHeight="640">
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid x:Name="HeaderRow" ColumnDefinitions="*,Auto">
                 <TextBlock
                     x:Name="TitleText"
                     VerticalAlignment="Center"
@@ -20,62 +21,50 @@
                     MinWidth="86" />
             </Grid>
             <ScrollViewer Grid.Row="1">
-                <StackPanel Spacing="4">
-                    <TextBlock
-                        x:Name="EmptyTextBlock"
-                        Classes="muted"
-                        Margin="0,24,0,0"
-                        HorizontalAlignment="Center"
-                        TextWrapping="Wrap" />
+                <StackPanel Spacing="0">
+                    <Border Classes="audit-row">
+                        <Grid Classes="audit-head" ColumnDefinitions="Auto,*,*" ColumnSpacing="12">
+                            <TextBlock Text="{i18n:I18n {x:Static l:VexL.McpAuditTime}}" />
+                            <TextBlock Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.McpAuditAction}}" />
+                            <TextBlock Grid.Column="2" Text="{i18n:I18n {x:Static l:VexL.McpAuditResult}}" />
+                        </Grid>
+                    </Border>
                     <ItemsControl x:Name="RecordsItemsControl">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="mcp:McpOperationRecord">
-                                <Border
-                                    Margin="0,2"
-                                    Padding="10,6"
-                                    Background="{DynamicResource VexStatusBadgeBackgroundBrush}"
-                                    CornerRadius="6">
-                                    <StackPanel Spacing="2">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock
-                                                Classes="muted"
-                                                FontSize="11"
-                                                Text="{Binding Timestamp}" />
-                                            <TextBlock
-                                                FontWeight="SemiBold"
-                                                Text="{Binding ToolName}" />
-                                            <TextBlock
-                                                Classes="muted"
-                                                FontSize="12"
-                                                Text="{Binding OperationType}" />
+                                <Border Classes="audit-row">
+                                    <Grid ColumnDefinitions="Auto,*,*" ColumnSpacing="12">
+                                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding ToolName}" TextWrapping="Wrap" />
+                                        <StackPanel
+                                            Grid.Column="2"
+                                            Orientation="Horizontal"
+                                            Spacing="4">
                                             <TextBlock
                                                 IsVisible="{Binding Succeeded}"
-                                                Foreground="{DynamicResource VexSuccessBrush}"
-                                                Text="✓" />
+                                                Text="{i18n:I18n {x:Static l:VexL.McpAuditSuccess}}" />
                                             <TextBlock
                                                 Foreground="{DynamicResource VexDangerBrush}"
                                                 IsVisible="{Binding !Succeeded}"
-                                                Text="✗" />
+                                                Text="{i18n:I18n {x:Static l:VexL.McpAuditFailed}}" />
+                                            <TextBlock
+                                                Foreground="{DynamicResource VexDangerBrush}"
+                                                IsVisible="{Binding HasError}"
+                                                Text="{Binding Error}"
+                                                TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <TextBlock
-                                            Classes="muted"
-                                            FontSize="11"
-                                            Text="{Binding Target}"
-                                            TextTrimming="CharacterEllipsis" />
-                                        <TextBlock
-                                            FontSize="11"
-                                            Foreground="{DynamicResource VexDangerBrush}"
-                                            IsVisible="{Binding HasError}"
-                                            Text="{Binding Error}"
-                                            TextWrapping="Wrap" />
-                                    </StackPanel>
+                                    </Grid>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    <Border x:Name="EmptyRow" Classes="audit-row">
+                        <TextBlock x:Name="EmptyTextBlock" TextWrapping="Wrap" />
+                    </Border>
                 </StackPanel>
             </ScrollViewer>
             <StackPanel
+                x:Name="FooterRow"
                 Grid.Row="2"
                 HorizontalAlignment="Right"
                 Orientation="Horizontal"

@@ -1,5 +1,7 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Vex.Modules.Mcp.Models;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Mcp.Services;
 
@@ -29,16 +31,21 @@ public partial class McpAuditOverlayView : UserControl
         LoadRecords();
         if (embedded && Content is Border border && border.Child is Grid grid)
         {
+            // 偏好页里的审计就是一张表：标题行与关闭页脚都不属于原型，连同它们的行高一起收掉。
             border.Classes.Remove("dialog-card"); border.Width = double.NaN; border.MaxHeight = double.PositiveInfinity;
-            grid.Children[^1].IsVisible = false;
+            grid.RowDefinitions[0].Height = new GridLength(); grid.RowDefinitions[2].Height = new GridLength();
+            HeaderRow.IsVisible = false; FooterRow.IsVisible = false;
         }
     }
 
     private void LoadRecords()
     {
+        // 原型 record() 用 unshift：最近一次调用排在表头下面第一行。
         var records = _auditService?.GetRecent() ?? [];
-        RecordsItemsControl.ItemsSource = records;
-        EmptyTextBlock.IsVisible = records.Count == 0;
+        var newestFirst = new List<McpOperationRecord>(records);
+        newestFirst.Reverse();
+        RecordsItemsControl.ItemsSource = newestFirst;
+        EmptyRow.IsVisible = newestFirst.Count == 0;
     }
 
     private void Refresh_OnClick(object? sender, RoutedEventArgs e) => LoadRecords();

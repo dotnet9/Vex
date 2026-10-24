@@ -15,6 +15,7 @@ internal static class RenderGeometryProbe
             Avalonia.Threading.Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
             Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            LayoutSettle.Run();
             window.UpdateLayout();
             Avalonia.Threading.Dispatcher.UIThread.RunJobs();
         }

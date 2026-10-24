@@ -6,9 +6,10 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:McpSettingsViewModel">
+    <!-- 原型 MCP 服务页就是一列 .vex-pref-row：左标签（可带注释）、右控件、行间分隔线；不再有卡片分组与保存按钮。 -->
     <Border Classes="dialog-card" Width="620" MaxHeight="720">
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
-            <StackPanel Orientation="Horizontal" Spacing="12">
+            <StackPanel x:Name="HeaderRow" Orientation="Horizontal" Spacing="12">
                 <Border Classes="dlg-ico info">
                     <Path Classes="stroke-ico" Data="M4 17l6-6-6-6 M12 19h8" />
                 </Border>
@@ -23,127 +24,141 @@
             </StackPanel>
 
             <ScrollViewer Grid.Row="1">
-                <StackPanel Spacing="14">
-                    <!-- 启用开关卡片：底色随启用状态染色（对应原型升级点） -->
-                    <Border Classes="mcp-enable" Classes.tinted="{Binding IsEnabled}">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <StackPanel VerticalAlignment="Center" Spacing="1">
-                                <TextBlock FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.McpServerEnabled}}" />
-                                <TextBlock
-                                    Classes="muted"
-                                    FontSize="11.5"
-                                    Text="{i18n:I18n Vex.VexL.McpServerEnabledNote}"
-                                    TextTrimming="CharacterEllipsis" />
+                <StackPanel Spacing="0">
+                    <!-- 启用行：注释「仅监听 127.0.0.1」随标签排在左侧，开关 34x20 靠右。 -->
+                    <Border Classes="pref-row">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Classes="pref-label" Text="{i18n:I18n {x:Static l:VexL.McpServerEnabled}}" />
+                                <TextBlock Classes="pref-note" Text="{i18n:I18n {x:Static l:VexL.McpServerEnabledNote}}" />
                             </StackPanel>
-                            <ToggleSwitch
+                            <ToggleButton
                                 Grid.Column="1"
-                                Classes="Small"
-                                IsChecked="{Binding IsEnabled}"
-                                VerticalAlignment="Center" />
+                                Classes="pref-switch"
+                                IsChecked="{Binding IsEnabled}" />
                         </Grid>
                     </Border>
 
-                    <StackPanel Spacing="14" Classes.form-disabled="{Binding !IsEnabled}">
-                        <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
-                            <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpServerAddress}}" />
-                            <TextBox Grid.Column="1" Text="{Binding Host}" />
+                    <!-- 状态行紧跟启用行（原型 .vex-pref-row + .vex-mcp-status：上 12 下 18）。 -->
+                    <StackPanel Classes="mcp-status follow-row" Classes.error="{Binding IsStatusError}">
+                        <Ellipse Classes="mcp-dot" Classes.on="{Binding IsStatusRunning}" />
+                        <TextBlock Text="{Binding StatusText}" />
+                    </StackPanel>
 
-                            <TextBlock Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpServerPort}}" />
-                            <NumericUpDown
-                                Grid.Row="1"
+                    <Border Classes="pref-row">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                            <TextBlock
+                                Classes="pref-label"
+                                VerticalAlignment="Center"
+                                Text="{i18n:I18n {x:Static l:VexL.McpServerPort}}" />
+                            <!-- 原型用原生 number 输入 + 校验文案，不用步进器：端口越界交给下方校验条提示。 -->
+                            <TextBox
                                 Grid.Column="1"
-                                Minimum="1"
-                                Maximum="65535"
-                                Value="{Binding Port}" />
+                                Classes="pref-field"
+                                Text="{Binding PortText}" />
+                        </Grid>
+                    </Border>
 
-                            <TextBlock Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpAuthorizationToken}}" />
-                            <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                                <TextBox Text="{Binding Token}" PasswordChar="●" />
-                                <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.McpGenerateToken}}" Command="{Binding GenerateToken}" />
-                                <Button Grid.Column="2" Content="{i18n:I18n {x:Static l:VexL.McpCopyToken}}" Command="{Binding CopyTokenAsync}" />
-                            </Grid>
+                    <Border Classes="pref-row">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                            <TextBlock
+                                Classes="pref-label"
+                                VerticalAlignment="Center"
+                                Text="{i18n:I18n {x:Static l:VexL.McpAuthorizationToken}}" />
+                            <!-- 眼睛与重新生成两个 28x28 图标按钮叠在输入框右端（原型 .vex-token-actions）。 -->
+                            <Panel Grid.Column="1" Width="180" Height="34">
+                                <TextBox
+                                    Classes="pref-field"
+                                    Padding="9,5,65,5"
+                                    PasswordChar="•"
+                                    RevealPassword="{Binding IsTokenRevealed}"
+                                    Text="{Binding Token}" />
+                                <StackPanel
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal"
+                                    Spacing="1">
+                                    <Button
+                                        Classes="mcp-icon"
+                                        Classes.on="{Binding IsTokenRevealed}"
+                                        Command="{Binding ToggleTokenReveal}"
+                                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.McpRevealToken}}">
+                                        <Path Data="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                                    </Button>
+                                    <Button
+                                        Classes="mcp-icon"
+                                        Command="{Binding RegenerateToken}"
+                                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.McpGenerateToken}}">
+                                        <Path Data="M23 4L23 10 17 10 M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                                    </Button>
+                                </StackPanel>
+                            </Panel>
+                        </Grid>
+                    </Border>
 
-                            <TextBlock Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center" Classes="muted" Text="{i18n:I18n {x:Static l:VexL.McpEndpoint}}" />
-                            <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <Border Classes="dlg-path" Padding="10 5 6 5">
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                        <SelectableTextBlock
-                                            VerticalAlignment="Center"
-                                            Text="{Binding Endpoint}"
-                                            TextWrapping="NoWrap"
-                                            TextTrimming="CharacterEllipsis" />
-                                        <Button
-                                            Grid.Column="1"
-                                            Padding="8 2"
-                                            Content="{i18n:I18n {x:Static l:VexL.McpCopyEndpoint}}"
-                                            Command="{Binding CopyEndpointAsync}" />
-                                    </Grid>
-                                </Border>
+                    <Border Classes="pref-row">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                            <TextBlock
+                                Classes="pref-label"
+                                VerticalAlignment="Center"
+                                Text="{i18n:I18n {x:Static l:VexL.McpAllowedWorkspace}}" />
+                            <ComboBox
+                                Grid.Column="1"
+                                Classes="pref-field"
+                                SelectedIndex="{Binding AccessScopeIndex}">
+                                <ComboBoxItem>
+                                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.McpScopeCurrentDocument}}" />
+                                </ComboBoxItem>
+                                <ComboBoxItem>
+                                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.McpScopeCurrentFolder}}" />
+                                </ComboBoxItem>
+                                <ComboBoxItem>
+                                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.McpScopeCustomFolder}}" />
+                                </ComboBoxItem>
+                            </ComboBox>
+                        </Grid>
+                    </Border>
+
+                    <!-- 只有「指定目录」才出现授权目录行，输入框吃满剩余宽度并带「…」选择器。 -->
+                    <Border Classes="pref-row" IsVisible="{Binding IsCustomFolderScope}">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="24">
+                            <TextBlock
+                                Classes="pref-label"
+                                VerticalAlignment="Center"
+                                Text="{i18n:I18n {x:Static l:VexL.McpAllowedFolder}}" />
+                            <Grid Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <TextBox Classes="pref-field-fill" Text="{Binding AllowedWorkspacePath}" />
+                                <Button
+                                    Grid.Column="1"
+                                    Classes="pref-browse"
+                                    Click="OnBrowseAllowedFolderClick"
+                                    Content="…" />
                             </Grid>
                         </Grid>
+                    </Border>
 
-                        <Border
-                            BorderBrush="{DynamicResource VexPanelBorderBrush}"
-                            BorderThickness="1"
-                            Padding="14"
-                            CornerRadius="8">
-                            <StackPanel Spacing="10">
-                                <TextBlock FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.McpAllowedWorkspace}}" />
-                                <RadioButton
-                                    Content="{i18n:I18n {x:Static l:VexL.McpScopeCurrentDocument}}"
-                                    GroupName="McpAccessScope"
-                                    IsChecked="{Binding IsCurrentDocumentScope}" />
-                                <RadioButton
-                                    Content="{i18n:I18n {x:Static l:VexL.McpScopeCurrentFolder}}"
-                                    GroupName="McpAccessScope"
-                                    IsChecked="{Binding IsCurrentFolderScope}" />
-                                <RadioButton
-                                    Content="{i18n:I18n {x:Static l:VexL.McpScopeCustomFolder}}"
-                                    GroupName="McpAccessScope"
-                                    IsChecked="{Binding IsCustomFolderScope}" />
-                                <!-- 原型语义：仅「指定目录」时出现授权目录行，输入框旁带「…」目录选择。 -->
-                                <Grid
-                                    ColumnDefinitions="*,Auto"
-                                    ColumnSpacing="8"
-                                    IsVisible="{Binding IsCustomFolderScope}">
-                                    <TextBox Text="{Binding AllowedWorkspacePath}" PlaceholderText="{i18n:I18n {x:Static l:VexL.McpCustomFolderWatermark}}" />
-                                    <Button
-                                        Grid.Column="1"
-                                        Width="34"
-                                        Height="34"
-                                        Padding="0"
-                                        Content="…"
-                                        FontSize="14"
-                                        HorizontalContentAlignment="Center"
-                                        VerticalContentAlignment="Center"
-                                        Click="OnBrowseAllowedFolderClick" />
-                                </Grid>
-                            </StackPanel>
-                        </Border>
+                    <Border Classes="pref-row">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                            <TextBlock
+                                Classes="pref-label"
+                                VerticalAlignment="Center"
+                                Text="{i18n:I18n {x:Static l:VexL.McpRequireConfirmation}}" />
+                            <ToggleButton
+                                Grid.Column="1"
+                                Classes="pref-switch"
+                                IsChecked="{Binding RequireConfirmation}" />
+                        </Grid>
+                    </Border>
 
-                        <CheckBox
-                            Content="{i18n:I18n {x:Static l:VexL.McpRequireConfirmation}}"
-                            IsChecked="{Binding RequireConfirmation}" />
-                    </StackPanel>
-
-                    <!-- 运行状态指示灯：绿点 = 启用 -->
-                    <StackPanel Orientation="Horizontal" Spacing="7">
-                        <Ellipse
-                            Width="8"
-                            Height="8"
-                            VerticalAlignment="Center"
-                            Classes="status-dot"
-                            Classes.on="{Binding IsEnabled}" />
-                        <TextBlock
-                            Classes="muted"
-                            Text="{Binding StatusText}"
-                            TextWrapping="Wrap"
-                            VerticalAlignment="Center" />
-                    </StackPanel>
+                    <!-- 校验条（原型 #vex-mcp-error）：仅在提交被拒时出现。 -->
+                    <TextBlock
+                        Classes="pref-error"
+                        IsVisible="{Binding HasValidationError}"
+                        Text="{Binding ValidationError}" />
                 </StackPanel>
             </ScrollViewer>
 
             <StackPanel
+                x:Name="FooterRow"
                 Grid.Row="2"
                 HorizontalAlignment="Right"
                 Orientation="Horizontal"

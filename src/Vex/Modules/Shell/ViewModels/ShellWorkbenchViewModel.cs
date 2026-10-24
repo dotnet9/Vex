@@ -67,11 +67,11 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         _summaryLength = Math.Clamp(settings.Current.MindMapSummaryLength ?? 30, 1, 120);
         _mindMapLayout = settings.Current.MindMapLayout is { } savedLayout && MindMapLayoutKeys.Contains(savedLayout) ? savedLayout : "right";
         _mindMapStyle = settings.Current.MindMapStyle is { } savedStyle && MindMapStyleKeys.Contains(savedStyle) ? savedStyle : "quiet";
-        // 原型默认（workbench.js §settings）：导图仅显示章节标题，段落/列表/富块默认关闭。
-        _showParagraphs = settings.Current.MindMapShowParagraphs ?? false;
+        // 原型默认（workbench.js §settings）：段落与列表摘要默认开，富块（代码/表格）默认关。
+        _showParagraphs = settings.Current.MindMapShowParagraphs ?? true;
         _showCode = settings.Current.MindMapShowCode ?? false;
         _showTables = settings.Current.MindMapShowTables ?? false;
-        _showLists = settings.Current.MindMapShowLists ?? false;
+        _showLists = settings.Current.MindMapShowLists ?? true;
         History.Reset(document.Markdown);
         document.DocumentChanged += (_, _) =>
         {
@@ -202,9 +202,9 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private static IEnumerable<MarkdownMindMapNode> Flatten(MarkdownMindMapNode? node)
     { if (node is null) yield break; yield return node; foreach (var c in node.Children) foreach (var n in Flatten(c)) yield return n; }
     public void CloseInspector() => SelectedNode = null;
-    // 原型 reset-settings：恢复「仅标题」默认（段落/列表/富块全关）。
+    // 原型 reset-settings（workbench.js:1048）：回到段落/列表开、富块关的默认。
     public void ResetMapSettings()
-    { SummaryLength = 30; ShowParagraphs = false; ShowLists = false; ShowCode = false; ShowTables = false; }
+    { SummaryLength = 30; ShowParagraphs = true; ShowLists = true; ShowCode = false; ShowTables = false; }
 
     public Avalonia.Controls.GridLength SourceColumnWidth => !IsReading ? new(1, Avalonia.Controls.GridUnitType.Star) : new(0);
     public Avalonia.Controls.GridLength PreviewColumnWidth => IsPreviewVisible || IsMindMap && ShowMapSource ? new(IsMindMap ? 1.94 : 1.22, Avalonia.Controls.GridUnitType.Star) : new(0);
@@ -326,10 +326,10 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     {
         _edit = edit;
         _summaryLength = Math.Clamp(settings?.MindMapSummaryLength ?? 30, 1, 120);
-        _showParagraphs = settings?.MindMapShowParagraphs ?? false;
+        _showParagraphs = settings?.MindMapShowParagraphs ?? true;
         _showCode = settings?.MindMapShowCode ?? false;
         _showTables = settings?.MindMapShowTables ?? false;
-        _showLists = settings?.MindMapShowLists ?? false;
+        _showLists = settings?.MindMapShowLists ?? true;
         foreach (var name in new[] { nameof(SummaryLength), nameof(ShowParagraphs), nameof(ShowCode), nameof(ShowTables), nameof(ShowRichBlocks), nameof(ShowLists) }) this.RaisePropertyChanged(name);
         SelectLayout(settings?.WorkspaceLayout ?? (view == "read" ? "read" : view == "mindmap" ? "map" : edit)); QueueMap();
     }

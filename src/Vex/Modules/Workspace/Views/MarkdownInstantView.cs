@@ -47,10 +47,15 @@ public sealed class MarkdownInstantView : UserControl
         // 右键先记录命中块，元素菜单据此把操作对准被点击的块（与原型 element-menu 同一语义）。
         Editor.PointerPressed += OnEditorPointerPressed;
         Editor.ContextMenu = BuildElementMenu();
+        // 菜单标签在构造时解析，切换语言要重建（原型 element-menu 随语言即时刷新）。
+        Localizer.CultureChanged += ElementMenuCultureChanged;
+        // 切换视图后正文块已重排，残留的右键菜单会指向错误段落（对应原型 element-menu 的切换即收起）。
+        PropertyChanged += (_, e) => { if (e.Property == IsVisibleProperty && !IsVisible) CloseElementMenu(); };
         DataContextChanged += (_, _) => Attach();
         AttachedToVisualTree += (_, _) => Attach();
         DetachedFromVisualTree += (_, _) =>
         {
+            Localizer.CultureChanged -= ElementMenuCultureChanged;
             _workbench?.DetachLiveEditor(Editor); _workbench = null;
             if (_layout is not null) _layout.PropertyChanged -= LayoutChanged;
             _layout = null;
@@ -88,11 +93,11 @@ public sealed class MarkdownInstantView : UserControl
             SubMenu(Localizer.Get(VexL.ElementMenuConvertTo), ConvertItems()),
             SubMenu(Localizer.Get(VexL.Table), TableItems()),
             Separator(),
-            ElementItem(VexL.InsertParagraphAbove, new MarkdownElementCommand(MarkdownElementOperation.InsertParagraphAbove, SourceLineOrCaret())),
-            ElementItem(VexL.InsertParagraphBelow, new MarkdownElementCommand(MarkdownElementOperation.InsertParagraphBelow, SourceLineOrCaret())),
-            ElementItem(VexL.ToggleTask, new MarkdownElementCommand(MarkdownElementOperation.ToggleTask, SourceLineOrCaret())),
-            ElementItem(VexL.CopyBlock, new MarkdownElementCommand(MarkdownElementOperation.CopyBlock, SourceLineOrCaret())),
-            ElementItem(VexL.DeleteBlock, new MarkdownElementCommand(MarkdownElementOperation.DeleteBlock, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.InsertParagraphAbove), () => new(MarkdownElementOperation.InsertParagraphAbove, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.InsertParagraphBelow), () => new(MarkdownElementOperation.InsertParagraphBelow, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.ToggleTask), () => new(MarkdownElementOperation.ToggleTask, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.CopyBlock), () => new(MarkdownElementOperation.CopyBlock, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.DeleteBlock), () => new(MarkdownElementOperation.DeleteBlock, SourceLineOrCaret())),
         };
         menu.ItemsSource = items;
         return menu;
@@ -105,10 +110,11 @@ public sealed class MarkdownInstantView : UserControl
 
     private static Separator Separator() => new();
 
-    private MenuItem ElementItem(string header, MarkdownElementCommand command) => new()
+    private MenuItem ElementItem(string header, Func<MarkdownElementCommand> command) => new()
     {
         Header = header,
-        Command = new DelegateCommand(() => EventBus.Default.Publish(command)),
+        // 行号在点击时才取值：菜单只在构造时建一次，右键命中的块每次不同。
+        Command = new DelegateCommand(() => EventBus.Default.Publish(command())),
     };
 
     private MenuItem EditorActionItem(string header, EditorActionKind action) => new()
@@ -119,51 +125,65 @@ public sealed class MarkdownInstantView : UserControl
 
     private List<object> ConvertItems() => new()
     {
-        ElementItem(Localizer.Get(VexL.Paragraph), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "paragraph")),
-        ElementItem(Localizer.Get(VexL.Heading1), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading1")),
-        ElementItem(Localizer.Get(VexL.Heading2), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading2")),
-        ElementItem(Localizer.Get(VexL.Heading3), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading3")),
-        ElementItem(Localizer.Get(VexL.Heading4), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading4")),
-        ElementItem(Localizer.Get(VexL.Heading5), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading5")),
-        ElementItem(Localizer.Get(VexL.Heading6), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading6")),
-        ElementItem(Localizer.Get(VexL.Quote), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "quote")),
-        ElementItem(Localizer.Get(VexL.UnorderedList), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "list")),
-        ElementItem(Localizer.Get(VexL.OrderedList), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "ordered")),
-        ElementItem(Localizer.Get(VexL.TaskList), new MarkdownElementCommand(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "task")),
+        ElementItem(Localizer.Get(VexL.Paragraph), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "paragraph")),
+        ElementItem(Localizer.Get(VexL.Heading1), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading1")),
+        ElementItem(Localizer.Get(VexL.Heading2), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading2")),
+        ElementItem(Localizer.Get(VexL.Heading3), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading3")),
+        ElementItem(Localizer.Get(VexL.Heading4), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading4")),
+        ElementItem(Localizer.Get(VexL.Heading5), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading5")),
+        ElementItem(Localizer.Get(VexL.Heading6), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "heading6")),
+        ElementItem(Localizer.Get(VexL.Quote), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "quote")),
+        ElementItem(Localizer.Get(VexL.UnorderedList), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "list")),
+        ElementItem(Localizer.Get(VexL.OrderedList), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "ordered")),
+        ElementItem(Localizer.Get(VexL.TaskList), () => new(MarkdownElementOperation.Convert, SourceLineOrCaret(), convertKind: "task")),
     };
 
     private List<object> TableItems()
     {
-        var line = SourceLineOrCaret();
         MarkdownElementCommand Table(MarkdownTableAction action) =>
-            new(MarkdownElementOperation.Table, line, tableAction: action);
+            new(MarkdownElementOperation.Table, SourceLineOrCaret(), tableAction: action);
         return new List<object>
         {
             EditorActionItem(Localizer.Get(VexL.InsertTable), EditorActionKind.Table),
             Separator(),
-            ElementItem(Localizer.Get(VexL.TableRowAbove), Table(MarkdownTableAction.RowAbove)),
-            ElementItem(Localizer.Get(VexL.TableRowBelow), Table(MarkdownTableAction.RowBelow)),
-            ElementItem(Localizer.Get(VexL.TableColumnBefore), Table(MarkdownTableAction.ColBefore)),
-            ElementItem(Localizer.Get(VexL.TableColumnAfter), Table(MarkdownTableAction.ColAfter)),
+            ElementItem(Localizer.Get(VexL.TableRowAbove), () => Table(MarkdownTableAction.RowAbove)),
+            ElementItem(Localizer.Get(VexL.TableRowBelow), () => Table(MarkdownTableAction.RowBelow)),
+            ElementItem(Localizer.Get(VexL.TableColumnBefore), () => Table(MarkdownTableAction.ColBefore)),
+            ElementItem(Localizer.Get(VexL.TableColumnAfter), () => Table(MarkdownTableAction.ColAfter)),
             Separator(),
-            ElementItem(Localizer.Get(VexL.TableRowUp), Table(MarkdownTableAction.RowUp)),
-            ElementItem(Localizer.Get(VexL.TableRowDown), Table(MarkdownTableAction.RowDown)),
-            ElementItem(Localizer.Get(VexL.TableColumnLeft), Table(MarkdownTableAction.ColLeft)),
-            ElementItem(Localizer.Get(VexL.TableColumnRight), Table(MarkdownTableAction.ColRight)),
+            ElementItem(Localizer.Get(VexL.TableRowUp), () => Table(MarkdownTableAction.RowUp)),
+            ElementItem(Localizer.Get(VexL.TableRowDown), () => Table(MarkdownTableAction.RowDown)),
+            ElementItem(Localizer.Get(VexL.TableColumnLeft), () => Table(MarkdownTableAction.ColLeft)),
+            ElementItem(Localizer.Get(VexL.TableColumnRight), () => Table(MarkdownTableAction.ColRight)),
             Separator(),
-            ElementItem(Localizer.Get(VexL.TableColumnAlignLeft), Table(MarkdownTableAction.AlignLeft)),
-            ElementItem(Localizer.Get(VexL.TableColumnAlignCenter), Table(MarkdownTableAction.AlignCenter)),
-            ElementItem(Localizer.Get(VexL.TableColumnAlignRight), Table(MarkdownTableAction.AlignRight)),
+            ElementItem(Localizer.Get(VexL.TableColumnAlignLeft), () => Table(MarkdownTableAction.AlignLeft)),
+            ElementItem(Localizer.Get(VexL.TableColumnAlignCenter), () => Table(MarkdownTableAction.AlignCenter)),
+            ElementItem(Localizer.Get(VexL.TableColumnAlignRight), () => Table(MarkdownTableAction.AlignRight)),
             Separator(),
-            ElementItem(Localizer.Get(VexL.TableRowDelete), Table(MarkdownTableAction.RowDelete)),
-            ElementItem(Localizer.Get(VexL.TableColumnDelete), Table(MarkdownTableAction.ColDelete)),
+            ElementItem(Localizer.Get(VexL.TableRowDelete), () => Table(MarkdownTableAction.RowDelete)),
+            ElementItem(Localizer.Get(VexL.TableColumnDelete), () => Table(MarkdownTableAction.ColDelete)),
             Separator(),
-            ElementItem(Localizer.Get(VexL.TableFormat), new MarkdownElementCommand(MarkdownElementOperation.FormatTable, line)),
-            ElementItem(Localizer.Get(VexL.TableDelete), new MarkdownElementCommand(MarkdownElementOperation.DeleteBlock, line)),
+            ElementItem(Localizer.Get(VexL.TableFormat), () => new(MarkdownElementOperation.FormatTable, SourceLineOrCaret())),
+            ElementItem(Localizer.Get(VexL.TableDelete), () => new(MarkdownElementOperation.DeleteBlock, SourceLineOrCaret())),
         };
     }
 
     private int SourceLineOrCaret() => _elementMenuSourceLine ?? 1;
+
+    private void ElementMenuCultureChanged(object? sender, EventArgs e)
+    {
+        // 语言可在后台任务里切换（I18nManager.Culture setter），而 ContextMenu 受线程亲和约束，必须回 UI 线程重建。
+        Dispatcher.UIThread.Post(() =>
+        {
+            CloseElementMenu();
+            Editor.ContextMenu = BuildElementMenu();
+        });
+    }
+
+    private void CloseElementMenu()
+    {
+        if (Editor.ContextMenu is { IsOpen: true } menu) menu.Close();
+    }
 
     private sealed class DelegateCommand(Action execute) : System.Windows.Input.ICommand
     {
@@ -186,6 +206,7 @@ public sealed class MarkdownInstantView : UserControl
     [EventHandler]
     public void OnDocumentSwitched(MarkdownDocumentSwitchedCommand command)
     {
+        CloseElementMenu();
         Dispatcher.UIThread.Post(() =>
         {
             var scroll = Editor?.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();

@@ -47,7 +47,7 @@ public sealed partial class ShellWorkbenchViewModel
     public bool HandlePresentationKey(Key key)
     {
         if (!IsPresenting) return false;
-        if (key is Key.Escape or Key.F11 or Key.F5) { StopPresentation(); return true; }
+        if (key is Key.Escape or Key.F11 or Key.F6) { StopPresentation(); return true; }
         if (key is Key.Add or Key.OemPlus) { IncreasePresentationText(); return true; }
         if (key is Key.Subtract or Key.OemMinus) { DecreasePresentationText(); return true; }
         if (key == Key.O) { TogglePresentationOutline(); return true; }

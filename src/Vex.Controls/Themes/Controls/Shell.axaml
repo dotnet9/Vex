@@ -263,7 +263,7 @@
         <Setter Property="Padding" Value="22" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource VexElevatedBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12" />

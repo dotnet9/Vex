@@ -110,7 +110,7 @@ public sealed class DocumentFileFactory : IDocumentFileFactory
             var trimmed = line.Trim().TrimStart('#', '-', '*', '>', ' ');
             if (!string.IsNullOrWhiteSpace(trimmed))
             {
-                return trimmed.Length > PreviewTextLength ? $"{trimmed[..PreviewTextLength]}..." : trimmed;
+                return trimmed.Length > PreviewTextLength ? $"{trimmed[..PreviewTextLength]}…" : trimmed;
             }
         }
 

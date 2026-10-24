@@ -19,6 +19,9 @@
   --branch-secondary: color-mix(in srgb, var(--accent) 60%, var(--success));
   --branch-tertiary: color-mix(in srgb, var(--accent) 55%, var(--warning));
 }
+/* 弹层（菜单/浮层/对话框）不跟随纸面底色：纸面会随配色偏米黄，弹层要的是干净的 UI 面。 */
+:root[data-theme="light"] { --menu-bg:#ffffff; }
+:root[data-theme="dark"] { --menu-bg:var(--surface,var(--panel)); }
 ::selection { background: var(--selection); color: var(--fg); }
 :root.theme-switching *,
 :root.theme-switching *::before,

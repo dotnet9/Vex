@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -89,7 +90,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var selected = Math.Max(0, _navigation.SelectedIndex);
         _title.Text = L(VexL.PreferencesTitle);
-        string[] icons = ["M7 2H15L20 7V22H4V2Z M14 2V8H20", "M12 4H4V20H20V12 M18 2L22 6L12 16L8 17L9 13Z", "M8 7L3 12L8 17 M16 7L21 12L16 17 M14 5L10 19", "M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h3.5a5.5 5.5 0 0 0 0-11H12Z M7.5 9h.1 M11 6.5h.1 M16 7.5h.1", "M3 5H21V19H3Z M8 11A1.5 1.5 0 1 0 8 11.01 M5 17L10 12L13 15L16 12L19 15", "M12 3V15 M7 10L12 15L17 10 M4 16V21H20V16", "M5 7L10 12L5 17 M13 17H20"];
+        // 字形与 _categories 逐项对应：文件、编辑、图片、调色板、导出（向上箭头，同原型 i-export）、终端。
+        string[] icons = ["M7 2H15L20 7V22H4V2Z M14 2V8H20", "M12 4H4V20H20V12 M18 2L22 6L12 16L8 17L9 13Z", "M3 5H21V19H3Z M8 11A1.5 1.5 0 1 0 8 11.01 M5 17L10 12L13 15L16 12L19 15", "M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h3.5a5.5 5.5 0 0 0 0-11H12Z M7.5 9h.1 M11 6.5h.1 M16 7.5h.1", "M21 15V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V15 M17 8L12 3L7 8 M12 3V15", "M5 7L10 12L5 17 M13 17H20"];
         _navigation.ItemsSource = _categories.Select((c, i) =>
         {
             var row = new Grid { ColumnDefinitions = new ColumnDefinitions("17,*"), ColumnSpacing = 10 };
@@ -131,9 +133,9 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 break;
             case "appearance":
                 // 对应原型外观页：界面动效 + 完整水印参数与实时样例；配色与排版入口在标题栏「外观」。
+                // 水印开关只在视图菜单出现一处，偏好页不重复放置。
                 Toggle(page, VexL.MenuMotion, _model.Layout, nameof(_model.Layout.EnableMotion));
                 Heading(page, VexL.PrefWatermark);
-                Toggle(page, VexL.PrefWatermarkPreview, p, nameof(p.WatermarkPreview), "Vex.VexL.PrefWatermarkPreviewNote");
                 Text(page, VexL.PrefWatermarkText, p, nameof(p.WatermarkText));
                 Range(page, VexL.PrefWatermarkFontSize, p, nameof(p.WatermarkFontSize), 12, 36, " px");
                 ColorChoice(page, VexL.PrefWatermarkColor, p);
@@ -151,21 +153,36 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Toggle(page, VexL.PrefHtmlStyle, p, nameof(p.HtmlStyle));
                 break;
             case "mcp":
-                // 对齐原型 MCP 页：分段式 服务/客户端/审计 标签（非经典 TabControl）。
-                var mcpRoot = new StackPanel { Spacing = 12 };
-                var mcpHost = new ContentControl { Margin = new Thickness(0, 12, 0, 0) };
-                var tabBar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+                // 对齐原型 .vex-mcp-tabs（workspace-chrome 把轨道覆盖成胶囊）：等宽三段、999 圆角、
+                // 选中实心底 + 主色上文字并加粗，页签与内容之间留 16。
+                var mcpRoot = new StackPanel { Spacing = 16 };
+                var mcpHost = new ContentControl();
+                var tabTrack = new Border { Padding = new Thickness(3), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(999) };
+                BindResource(tabTrack, Border.BackgroundProperty, "VexElevatedBackgroundBrush");
+                BindResource(tabTrack, Border.BorderBrushProperty, "VexPanelBorderBrush");
+                var tabBar = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 4 };
+                tabTrack.Child = tabBar;
                 var mcpPeers = new List<Button>();
                 Control BuildServer() => new McpSettingsOverlayView(embedded: true) { DataContext = _model.Mcp };
                 Control BuildClients() => BuildMcpClientsPage();
-                Control BuildAudit() => new McpAuditOverlayView(_model.Audit, L(VexL.McpAudit), L(VexL.RefreshPreview), L(VexL.McpAuditEmpty), embedded: true);
+                Control BuildAudit() => new StackPanel { Spacing = 0, Children = { BuildMcpStatusRow(), new McpAuditOverlayView(_model.Audit, L(VexL.McpAudit), L(VexL.McpAuditRefresh), L(VexL.McpAuditEmpty), embedded: true) } };
                 void SelectTab(Button selected, Func<Control> build)
                 {
                     foreach (var peer in mcpPeers)
                     {
                         var isSelected = ReferenceEquals(peer, selected);
-                        peer.Background = isSelected && TryResource("VexAccentSoftBrush", out var accent) ? accent : Brushes.Transparent;
-                        if (isSelected) peer.Foreground = TryResource("VexValueBrush", out var fg) ? fg : Brushes.Transparent;
+                        // 构造期弹层还没挂树，主题色必须走延迟绑定，否则选中态永远没有颜色。
+                        peer.FontWeight = isSelected ? FontWeight.SemiBold : FontWeight.Normal;
+                        if (isSelected)
+                        {
+                            BindResource(peer, Button.BackgroundProperty, "VexAccentBrush");
+                            BindResource(peer, Button.ForegroundProperty, "StudioOnPrimary");
+                        }
+                        else
+                        {
+                            peer.Background = Brushes.Transparent;
+                            BindResource(peer, Button.ForegroundProperty, "VexMutedBrush");
+                        }
                     }
                     mcpHost.Content = build();
                 }
@@ -173,64 +190,152 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 {
                     ("McpTabServer", L(VexL.PrefMcpServer), BuildServer),
                     ("McpTabClients", L(VexL.PrefMcpClients), BuildClients),
-                    ("McpTabAudit", L(VexL.McpAudit), BuildAudit),
+                    ("McpTabAudit", L(VexL.McpTabAudit), BuildAudit),
                 })
                 {
-                    var tab = new Button { Name = name, Content = label, MinHeight = 32, Padding = new Thickness(16, 5), CornerRadius = new CornerRadius(6), HorizontalContentAlignment = HorizontalAlignment.Center };
-                    tab.Bind(Button.ForegroundProperty, tab.GetResourceObservable("VexValueBrush"));
+                    var tab = new Button { Name = name, Content = label, FontSize = 12, MinHeight = 28, Padding = new Thickness(10, 4), CornerRadius = new CornerRadius(999), HorizontalContentAlignment = HorizontalAlignment.Center };
+                    Grid.SetColumn(tab, mcpPeers.Count);
                     tab.Click += (_, _) => SelectTab(tab, build);
                     mcpPeers.Add(tab); tabBar.Children.Add(tab);
                 }
                 SelectTab(mcpPeers[0], BuildServer);
-                mcpRoot.Children.Add(tabBar); mcpRoot.Children.Add(mcpHost);
+                mcpRoot.Children.Add(tabTrack); mcpRoot.Children.Add(mcpHost);
                 page.Children.Add(mcpRoot);
                 break;
         }
     }
     private void BindResource(AvaloniaObject target, AvaloniaProperty property, string key) => DesignSelectionControls.Resource(target, property, this, key);
-    private bool TryResource(string key, out IBrush? brush)
-    {
-        if (this.TryGetResource(key, null, out var value) && value is IBrush found) { brush = found; return true; }
-        brush = null; return false;
-    }
     private string LF(string key, params object?[] args) => _localizer.Format(key, args);
 
-    /// <summary>MCP 客户端页（对齐原型）：HTTP 配置 + 测试连接，stdio 桥接预览与读写入口。</summary>
-    private Control BuildMcpClientsPage()
+    /// <summary>服务状态行（原型 .vex-mcp-status）：三个 MCP 子页共用，绿灯与红字跟着模型属性走。</summary>
+    private Control BuildMcpStatusRow()
     {
         var mcp = _model.Mcp;
-        var page = new StackPanel { Spacing = 10 };
-        page.Children.Add(new TextBlock { Text = L(VexL.McpHttpConfig), FontSize = 12, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 8, 0, 2) });
-        var config = new TextBox { Name = "McpClientConfiguration", IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, FontFamily = VexFonts.Code, MinHeight = 180 };
-        config.Bind(TextBox.TextProperty, new Binding(nameof(McpSettingsViewModel.ClientConfiguration)) { Source = mcp });
-        page.Children.Add(config);
-        var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        var copy = new Button { Content = L(VexL.PrefMcpCopyConfig) };
-        copy.Click += async (_, _) => await mcp.CopyClientConfigurationAsync();
-        var test = new Button { Content = L(VexL.McpTestConnection), Classes = { "primary" } };
-        test.Click += async (_, _) => await mcp.TestConnectionAsync();
-        actions.Children.Add(copy); actions.Children.Add(test);
-        page.Children.Add(actions);
-        page.Children.Add(new TextBlock { Text = L(VexL.McpStdioBridge), FontSize = 12, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 12, 0, 2) });
-        var stdio = new TextBox { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, FontFamily = VexFonts.Code, MinHeight = 160 };
-        stdio.Bind(TextBox.TextProperty, new Binding(nameof(McpSettingsViewModel.StdioConfiguration)) { Source = mcp });
-        page.Children.Add(stdio);
-        var bridge = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        foreach (var label in new[] { L(VexL.McpReadDocument), L(VexL.McpWriteDocument) })
+        var dot = new Avalonia.Controls.Shapes.Ellipse { Classes = { "mcp-dot" } };
+        var text = new TextBlock();
+        text.Bind(TextBlock.TextProperty, new Binding(nameof(McpSettingsViewModel.StatusText)) { Source = mcp });
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Classes = { "mcp-status" } };
+        row.Children.Add(dot); row.Children.Add(text);
+        void Sync()
         {
-            var captured = label;
-            var button = new Button { Content = captured };
-            button.Click += (_, _) => mcp.RequestBridgeAction(captured);
-            bridge.Children.Add(button);
+            dot.Classes.Set("on", mcp.IsStatusRunning);
+            row.Classes.Set("error", mcp.IsStatusError);
         }
-        page.Children.Add(bridge);
-        return page;
+        // 样式类只能命令式改，所以订阅跟着视觉树挂卸：切换页签重建页面时不会留下旧行的订阅。
+        void Changed(object? sender, PropertyChangedEventArgs args) => Sync();
+        row.AttachedToVisualTree += (_, _) => { mcp.PropertyChanged += Changed; Sync(); };
+        row.DetachedFromVisualTree += (_, _) => mcp.PropertyChanged -= Changed;
+        return row;
     }
 
-    /// <summary>目录字段行：输入框 + 「…」浏览按钮（资源目录、授权目录等）。</summary>
+    /// <summary>配置正文块（原型 pre.vex-code：12 号等宽、可整段选中复制）。</summary>
+    private Border BuildMcpCode(string? name, string property, object source, string? visibleProperty = null)
+    {
+        var text = new SelectableTextBlock { Name = name ?? string.Empty };
+        text.Bind(TextBlock.TextProperty, new Binding(property) { Source = source });
+        var block = new Border { Classes = { "mcp-code" }, Child = text };
+        if (visibleProperty is not null) block.Bind(IsVisibleProperty, new Binding(visibleProperty) { Source = source });
+        return block;
+    }
+
+    /// <summary>MCP 客户端页（对齐原型 .vex-mcp-subtabs）：状态行 + 下划线二级页签 + 对应配置正文。</summary>
+    private Control BuildMcpClientsPage()
+    {
+        var page = new StackPanel { Spacing = 0 };
+        var host = new ContentControl();
+        var bar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 18 };
+        var peers = new List<Button>();
+        void SelectTab(Button selected, Func<Control> build)
+        {
+            foreach (var peer in peers)
+            {
+                var isSelected = ReferenceEquals(peer, selected);
+                // 二级页签选中态只换字色与字重（原型 600），2 像素下划线始终占位，切换不跳字。
+                BindResource(peer, Button.ForegroundProperty, isSelected ? "VexAccentBrush" : "VexMutedBrush");
+                peer.FontWeight = isSelected ? FontWeight.SemiBold : FontWeight.Normal;
+                if (isSelected) BindResource(peer, Button.BorderBrushProperty, "VexAccentBrush");
+                else peer.BorderBrush = Brushes.Transparent;
+            }
+            host.Content = build();
+        }
+        foreach (var (name, label, build) in new (string, string, Func<Control>)[]
+        {
+            ("McpSubHttp", L(VexL.McpHttpConfig), BuildMcpHttpPane),
+            ("McpSubStdio", L(VexL.McpStdioBridge), BuildMcpStdioPane),
+        })
+        {
+            var tab = new Button
+            {
+                Name = name,
+                Content = label,
+                FontSize = 13,
+                MinHeight = 32,
+                Padding = new Thickness(2, 6, 2, 9),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0, 0, 0, 2),
+                CornerRadius = default,
+            };
+            tab.Click += (_, _) => SelectTab(tab, build);
+            peers.Add(tab); bar.Children.Add(tab);
+        }
+        SelectTab(peers[0], BuildMcpHttpPane);
+        // 容器底边一条分隔线，选中页签的 2px 下划线正好压在上面（原型 bottom:-1px）。
+        var rule = new Border { BorderThickness = new Thickness(0, 0, 0, 1), Child = bar, Margin = new Thickness(0, 0, 0, 14) };
+        BindResource(rule, Border.BorderBrushProperty, "VexPanelBorderBrush");
+        page.Children.Add(BuildMcpStatusRow());
+        page.Children.Add(rule);
+        page.Children.Add(host);
+        return page;
+    }
+    private Control BuildMcpHttpPane()
+    {
+        var mcp = _model.Mcp;
+        var pane = new StackPanel { Spacing = 0 };
+        pane.Children.Add(BuildMcpCode("McpClientConfiguration", nameof(McpSettingsViewModel.ClientConfiguration), mcp));
+        var actions = new StackPanel { Classes = { "mcp-actions" } };
+        var copy = new Button { Classes = { "mcp-pill" }, Content = L(VexL.PrefMcpCopyConfig) };
+        copy.Click += async (_, _) => await mcp.CopyClientConfigurationAsync();
+        var test = new Button { Classes = { "mcp-pill", "primary" }, Content = L(VexL.McpTestConnection) };
+        test.Click += async (_, _) => await mcp.TestConnectionAsync();
+        actions.Children.Add(copy); actions.Children.Add(test);
+        pane.Children.Add(actions);
+        // 原型 #vex-test-result：连接结果原地回显，不另弹提示。
+        var result = new TextBlock { FontSize = 13, Margin = new Thickness(0, 12, 0, 0), TextWrapping = TextWrapping.Wrap };
+        result.Bind(TextBlock.TextProperty, new Binding(nameof(McpSettingsViewModel.TestResult)) { Source = mcp });
+        result.Bind(IsVisibleProperty, new Binding(nameof(McpSettingsViewModel.HasTestResult)) { Source = mcp });
+        pane.Children.Add(result);
+        return pane;
+    }
+    private Control BuildMcpStdioPane()
+    {
+        var mcp = _model.Mcp;
+        var pane = new StackPanel { Spacing = 0 };
+        pane.Children.Add(BuildMcpCode("McpStdioConfiguration", nameof(McpSettingsViewModel.StdioConfiguration), mcp));
+        var actions = new StackPanel { Classes = { "mcp-actions" } };
+        var read = new Button { Classes = { "mcp-pill" }, Content = L(VexL.McpReadDocument) };
+        read.Click += async (_, _) => await mcp.ReadDocumentAsync();
+        var write = new Button { Classes = { "mcp-pill" }, Content = L(VexL.McpWriteDocument) };
+        write.Click += async (_, _) => await mcp.RequestDocumentEditAsync();
+        actions.Children.Add(read); actions.Children.Add(write);
+        pane.Children.Add(actions);
+        // 请求区（原型 #vex-mcp-request）：正文预览走 .vex-code，提示文字按校验条/正文两种语言渲染。
+        var error = new TextBlock { FontSize = 12, LineHeight = 19.2, Margin = new Thickness(0, 14, 0, 0), TextWrapping = TextWrapping.Wrap };
+        BindResource(error, TextBlock.ForegroundProperty, "VexDangerBrush");
+        error.Bind(TextBlock.TextProperty, new Binding(nameof(McpSettingsViewModel.RequestMessage)) { Source = mcp });
+        error.Bind(IsVisibleProperty, new Binding(nameof(McpSettingsViewModel.HasRequestError)) { Source = mcp });
+        pane.Children.Add(error);
+        var note = new TextBlock { FontSize = 13, Margin = new Thickness(0, 14, 0, 0), TextWrapping = TextWrapping.Wrap };
+        note.Bind(TextBlock.TextProperty, new Binding(nameof(McpSettingsViewModel.RequestMessage)) { Source = mcp });
+        note.Bind(IsVisibleProperty, new Binding(nameof(McpSettingsViewModel.HasRequestNote)) { Source = mcp });
+        pane.Children.Add(note);
+        pane.Children.Add(BuildMcpCode(null, nameof(McpSettingsViewModel.RequestCode), mcp, nameof(McpSettingsViewModel.HasRequestCode)));
+        return pane;
+    }
+
+    /// <summary>目录字段行：输入框 + 「…」浏览按钮（资源目录、授权目录等）。路径可能很长，输入框占满剩余宽度。</summary>
     private void FolderRow(StackPanel page, string label, object source, string property)
     {
-        var text = new TextBox { Name = property, Width = 164, Height = 34, FontSize = 14, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1) };
+        var text = new TextBox { Name = property, MinWidth = 240, Height = 34, FontSize = 14, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), HorizontalAlignment = HorizontalAlignment.Stretch };
         BindResource(text, TextBox.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(text, TextBox.BackgroundProperty, "VexShellBackgroundBrush");
         text.Bind(TextBox.TextProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay });
         var browse = new Button { Content = "…", Width = 34, Height = 34, Padding = default, CornerRadius = new CornerRadius(5), HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center };
@@ -242,9 +347,9 @@ public sealed class ShellPreferencesOverlayView : UserControl
             if (Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(folders.FirstOrDefault()) is { } folder)
                 source.GetType().GetProperty(property)?.SetValue(source, folder);
         };
-        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        panel.Children.Add(text); panel.Children.Add(browse);
-        Row(page, label, panel);
+        var panel = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 8 };
+        panel.Children.Add(text); Grid.SetColumn(browse, 1); panel.Children.Add(browse);
+        Row(page, label, panel, fill: true);
     }
     private Border Frame(Control child, Thickness border)
     {
@@ -256,9 +361,10 @@ public sealed class ShellPreferencesOverlayView : UserControl
         var text = new TextBlock { Text = L(label), FontSize = 12, LineHeight = 18, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 24, 0, 8) };
         BindResource(text, TextBlock.ForegroundProperty, "VexMutedBrush"); page.Children.Add(text);
     }
-    private void Row(StackPanel page, string label, Control control, string? note = null)
+    private void Row(StackPanel page, string label, Control control, string? note = null, bool fill = false)
     {
-        var row = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 24, MinHeight = 33 };
+        // fill = 控件吃满剩余宽度（路径类输入框），否则按内容自适应并靠右。
+        var row = new Grid { ColumnDefinitions = new ColumnDefinitions(fill ? "Auto,*" : "*,Auto"), ColumnSpacing = 24, MinHeight = 33 };
         var labels = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         labels.Children.Add(new TextBlock { Text = L(label), FontSize = 14, LineHeight = 21, TextWrapping = TextWrapping.Wrap });
         if (note is not null) labels.Children.Add(new TextBlock { Text = L(note), FontSize = 12, LineHeight = 19.2, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap, Classes = { "muted" } });

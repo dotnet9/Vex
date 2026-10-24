@@ -28,7 +28,9 @@ public sealed class McpServerHost : IMcpServerHost
         SetStatus(VexL.McpStatusStopped);
     }
 
-    public bool IsRunning { get; private set; }
+    public McpServerState State { get; private set; } = McpServerState.Stopped;
+
+    public bool IsRunning => State == McpServerState.Running;
 
     public event EventHandler? StatusChanged;
 
@@ -40,14 +42,14 @@ public sealed class McpServerHost : IMcpServerHost
         var settings = _settingsStore.Current;
         if (settings.IsMcpServerEnabled != true)
         {
-            IsRunning = false;
+            State = McpServerState.Stopped;
             SetStatus(VexL.McpStatusStopped);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(settings.McpAuthorizationToken))
         {
-            IsRunning = false;
+            State = McpServerState.Faulted;
             SetStatus(VexL.McpStatusTokenMissing);
             return;
         }
@@ -56,7 +58,7 @@ public sealed class McpServerHost : IMcpServerHost
         var port = Math.Clamp(settings.McpServerPort ?? 17891, 1, 65535);
         if (host is not "127.0.0.1" and not "localhost" and not "::1")
         {
-            IsRunning = false;
+            State = McpServerState.Faulted;
             SetStatus(VexL.McpStatusLoopbackOnly);
             return;
         }
@@ -68,14 +70,22 @@ public sealed class McpServerHost : IMcpServerHost
             _listener.Prefixes.Add($"http://{FormatEndpointHost(host)}:{port}/mcp/");
             _listener.Start();
             _listenTask = Task.Run(() => ListenAsync(_cts.Token));
-            IsRunning = true;
+            State = McpServerState.Running;
             SetStatus(VexL.McpStatusRunningFormat, $"http://{FormatEndpointHost(host)}:{port}/mcp/");
         }
         catch (Exception exception) when (exception is HttpListenerException or InvalidOperationException)
         {
-            IsRunning = false;
-            SetRawStatus(exception.Message);
+            // 先释放监听器再落状态：StopAsync 会把状态改回「已停止」，失败原因必须写在它之后。
             await StopAsync();
+            State = McpServerState.Faulted;
+            if (exception is HttpListenerException)
+            {
+                SetStatus(VexL.McpStatusPortBusy);
+            }
+            else
+            {
+                SetRawStatus(exception.Message);
+            }
         }
     }
 
@@ -112,7 +122,7 @@ public sealed class McpServerHost : IMcpServerHost
         _cts?.Dispose();
         _cts = null;
         _listenTask = null;
-        IsRunning = false;
+        State = McpServerState.Stopped;
         SetStatus(VexL.McpStatusStopped);
     }
 
@@ -160,7 +170,7 @@ public sealed class McpServerHost : IMcpServerHost
                     return;
                 }
 
-                IsRunning = false;
+                State = McpServerState.Faulted;
                 SetRawStatus(exception.Message);
                 return;
             }

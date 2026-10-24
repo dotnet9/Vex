@@ -34,6 +34,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _outlineNarrowOverride;
     private bool? _outlineBeforeFocus;
     private bool _isOutlineResizing;
+    private readonly WidthAnimator _sidebarAnimator;
+    private readonly WidthAnimator _outlineAnimator;
 
     /// <summary>侧栏默认宽度，与 design/index.html 主区栅格一致。</summary>
     public const double DefaultSidebarWidth = 226d;
@@ -46,6 +48,12 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         IAppSettingsStore settingsStore,
         IShellStatusPublisher statusPublisher)
     {
+        _sidebarAnimator = new WidthAnimator(() =>
+        {
+            foreach (var name in new[] { nameof(VisibleSidebarWidth), nameof(SidebarColumnWidth), nameof(MinimumVisibleSidebarWidth), nameof(MaximumVisibleSidebarWidth) })
+                OnPropertyChanged(name);
+        });
+        _outlineAnimator = new WidthAnimator(NotifyOutlineLayout);
         _settingsStore = settingsStore;
         _statusPublisher = statusPublisher;
         var settings = _settingsStore.Current;
@@ -75,17 +83,17 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         get => _isSidebarVisible;
         set
         {
-            if (SetProperty(ref _isSidebarVisible, value))
-            {
-                OnPropertyChanged(nameof(ShowSidebar));
-                OnPropertyChanged(nameof(SidebarColumnWidth));
-                OnPropertyChanged(nameof(VisibleSidebarWidth));
-                OnPropertyChanged(nameof(SidebarSplitterWidth));
-                OnPropertyChanged(nameof(MinimumVisibleSidebarWidth));
-                OnPropertyChanged(nameof(MaximumVisibleSidebarWidth));
-                NotifyOutlineLayout();
-                PersistLayoutSettings();
-            }
+            var widthBefore = VisibleSidebarWidth;
+            if (!SetProperty(ref _isSidebarVisible, value)) return;
+            OnPropertyChanged(nameof(ShowSidebar));
+            OnPropertyChanged(nameof(SidebarColumnWidth));
+            OnPropertyChanged(nameof(VisibleSidebarWidth));
+            OnPropertyChanged(nameof(SidebarSplitterWidth));
+            OnPropertyChanged(nameof(MinimumVisibleSidebarWidth));
+            OnPropertyChanged(nameof(MaximumVisibleSidebarWidth));
+            _sidebarAnimator.Animate(widthBefore, SidebarTargetWidth, MotionResources.Mid);
+            NotifyOutlineLayout();
+            PersistLayoutSettings();
         }
     }
 
@@ -149,12 +157,13 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         get => new(VisibleSidebarWidth);
         set
         {
-            if (ShowSidebar && value.IsAbsolute && double.IsFinite(value.Value)) SidebarWidth = value.Value;
+            // 动画期间的插值宽度不回写用户设定宽度。
+            if (ShowSidebar && _sidebarAnimator.Value is null && value.IsAbsolute && double.IsFinite(value.Value)) SidebarWidth = value.Value;
         }
     }
 
-    public double MinimumVisibleSidebarWidth => ShowSidebar ? MinSidebarWidth : 0;
-    public double MaximumVisibleSidebarWidth => ShowSidebar ? MaxSidebarWidth : 0;
+    public double MinimumVisibleSidebarWidth => ShowSidebar && _sidebarAnimator.Value is null ? MinSidebarWidth : 0;
+    public double MaximumVisibleSidebarWidth => ShowSidebar || _sidebarAnimator.Value is not null ? MaxSidebarWidth : 0;
     public bool ShowSidebar => IsSidebarVisible && !IsPresentationMode;
     public bool ShowStatusBar => IsStatusBarVisible && !IsPresentationMode;
     public bool IsOutlineVisible
@@ -162,9 +171,11 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         get => _isOutlineVisible;
         set
         {
+            var widthBefore = VisibleOutlineWidth;
             _outlineNarrowOverride = value && IsOutlineNarrow;
             SetProperty(ref _isOutlineVisible, value);
             NotifyOutlineLayout();
+            _outlineAnimator.Animate(widthBefore, OutlineTargetWidth, MotionResources.Mid);
             PersistLayoutSettings();
         }
     }
@@ -193,13 +204,16 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             if (!_isOutlineResizing) PersistLayoutSettings();
         }
     }
+    private double VisibleOutlineWidth => _outlineAnimator.Value ?? OutlineTargetWidth;
+    private double OutlineTargetWidth => ShowOutlineSidebar ? OutlineWidth : 0;
     public GridLength OutlineColumnWidth
     {
-        get => new(ShowOutlineSidebar ? OutlineWidth : 0);
-        set { if (ShowOutlineSidebar && value.IsAbsolute) OutlineWidth = value.Value; }
+        get => new(VisibleOutlineWidth);
+        // 动画期间的插值宽度不回写用户设定宽度。
+        set { if (ShowOutlineSidebar && _outlineAnimator.Value is null && value.IsAbsolute) OutlineWidth = value.Value; }
     }
-    public double MinimumOutlineWidth => ShowOutlineSidebar ? 180 : 0;
-    public double MaximumOutlineWidth => ShowOutlineSidebar ? 480 : 0;
+    public double MinimumOutlineWidth => ShowOutlineSidebar && _outlineAnimator.Value is null ? 180 : 0;
+    public double MaximumOutlineWidth => ShowOutlineSidebar || _outlineAnimator.Value is not null ? 480 : 0;
     public GridLength OutlineSplitterWidth => new(ShowOutlineSidebar ? 5 : 0);
     public void BeginOutlineResize() => _isOutlineResizing = true;
     public void CompleteOutlineResize() { _isOutlineResizing = false; PersistLayoutSettings(); }
@@ -227,7 +241,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         get => _isCompactWindow;
         set { if (!SetProperty(ref _isCompactWindow, value)) return; OnPropertyChanged(nameof(VisibleSidebarWidth)); OnPropertyChanged(nameof(SidebarColumnWidth)); }
     }
-    public double VisibleSidebarWidth => ShowSidebar ? IsCompactWindow && Math.Abs(SidebarWidth - DefaultSidebarWidth) < .01 ? 200 : SidebarWidth : 0;
+    private double SidebarTargetWidth => ShowSidebar ? IsCompactWindow && Math.Abs(SidebarWidth - DefaultSidebarWidth) < .01 ? 200 : SidebarWidth : 0;
+    public double VisibleSidebarWidth => _sidebarAnimator.Value ?? SidebarTargetWidth;
 
     public GridLength SidebarSplitterWidth => ShowSidebar ? new GridLength(5) : new GridLength(0);
 

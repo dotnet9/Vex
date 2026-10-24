@@ -42,6 +42,8 @@ internal static class ElementVerification
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
             Dispatcher.UIThread.RunJobs();
+            LayoutSettle.Run();
+            window.UpdateLayout();
         }
         void Check(bool value, string message) { if (!value) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
         void SetDocument(string text)

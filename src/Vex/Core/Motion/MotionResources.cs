@@ -14,10 +14,13 @@ public static class MotionResources
     public const string SlowKey = "MotionDurationSlow";
     public const string EnabledKey = "VexMotionEnabled";
 
+    /// <summary>中档动效时长：资源 token 与无法使用 Transitions 的逐帧动画（如列宽）共用同一档位。</summary>
+    public static readonly TimeSpan Mid = TimeSpan.FromMilliseconds(220);
+
     private static readonly (string Key, TimeSpan Duration)[] Tokens =
     [
         (FastKey, TimeSpan.FromMilliseconds(140)),
-        (MidKey, TimeSpan.FromMilliseconds(220)),
+        (MidKey, Mid),
         (SlowKey, TimeSpan.FromMilliseconds(260))
     ];
 

@@ -7,7 +7,7 @@
   </Style>
   <!-- 原型所有弹出层为面板白（随主题明暗）：Flyout/MenuFlyout 统一面板底。 -->
   <Style Selector="FlyoutPresenter">
-    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+    <Setter Property="Background" Value="{DynamicResource VexElevatedBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
   </Style>
   <Style Selector="FlyoutPresenter, Border.wb-popover">
@@ -134,8 +134,10 @@
     <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
   </Style>
   <Style Selector="Border.view-switch Button.checked /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexElevatedBackgroundBrush}"/>
     <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/>
+    <!-- 原型 .view-switch::before 用 0 1px 3px 阴影把选中段从轨道里托起来，纯色填充在浅色主题下几乎看不出来。 -->
+    <Setter Property="BoxShadow" Value="0 1 3 0 #17000000"/>
   </Style>
   <Style Selector="Button.statusbar-file">
     <Setter Property="MinHeight" Value="0"/><Setter Property="Padding" Value="6,2"/>
@@ -345,5 +347,198 @@
   <Style Selector="Slider.pref-range">
     <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexPanelBorderBrush}"/>
+  </Style>
+
+  <!-- 偏好表单行（原型 .vex-pref-row）：58 最小高、上下 12 内边距、底部一条分隔线，左标签右控件。 -->
+  <Style Selector="Border.pref-row">
+    <Setter Property="MinHeight" Value="58"/>
+    <Setter Property="Padding" Value="0,12"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+  </Style>
+  <Style Selector="TextBlock.pref-label">
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="LineHeight" Value="21"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+  <!-- 原型 .vex-pref-row small：12/1.6 muted，与主标签隔 4 像素，最宽 340。 -->
+  <Style Selector="TextBlock.pref-note">
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="LineHeight" Value="19.2"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="Margin" Value="0,4,0,0"/>
+    <Setter Property="MaxWidth" Value="340"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <!-- 原型 .vex-pref-row input / select：180x34、圆角 5、内边距 5 9。 -->
+  <Style Selector="TextBox.pref-field">
+    <Setter Property="Width" Value="180"/>
+    <Setter Property="Height" Value="34"/>
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="Padding" Value="9,5"/>
+    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="ComboBox.pref-field">
+    <Setter Property="Width" Value="180"/>
+    <Setter Property="Height" Value="34"/>
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="Padding" Value="9,5"/>
+    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+  </Style>
+  <!-- 目录行（原型 .vex-pref-folder）：控件吃满剩余宽度并靠右，路径再长也不被 180 截断。 -->
+  <Style Selector="TextBox.pref-field-fill">
+    <Setter Property="MinWidth" Value="240"/>
+    <Setter Property="Height" Value="34"/>
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="Padding" Value="9,5"/>
+    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+  </Style>
+  <Style Selector="Button.pref-browse">
+    <Setter Property="Width" Value="34"/>
+    <Setter Property="Height" Value="34"/>
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="FontSize" Value="16"/>
+    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
+    <Setter Property="HorizontalAlignment" Value="Center"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+  <!-- 校验条（原型 .vex-field-error）与状态行（原型 .vex-mcp-status：7 点 + 13 字，隔 8）。 -->
+  <Style Selector="TextBlock.pref-error">
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="LineHeight" Value="19.2"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}"/>
+    <Setter Property="Margin" Value="0,8"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <Style Selector="StackPanel.mcp-status">
+    <Setter Property="Orientation" Value="Horizontal"/>
+    <Setter Property="Spacing" Value="8"/>
+    <Setter Property="Margin" Value="0,0,0,18"/>
+  </Style>
+  <Style Selector="StackPanel.mcp-status.follow-row">
+    <Setter Property="Margin" Value="0,12,0,18"/>
+  </Style>
+  <Style Selector="StackPanel.mcp-status TextBlock">
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <Style Selector="Ellipse.mcp-dot">
+    <Setter Property="Width" Value="7"/>
+    <Setter Property="Height" Value="7"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="Fill" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <Style Selector="Ellipse.mcp-dot.on">
+    <Setter Property="Fill" Value="{DynamicResource VexSuccessBrush}"/>
+  </Style>
+  <Style Selector="StackPanel.mcp-status.error TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}"/>
+  </Style>
+  <!-- 令牌框内联按钮（原型 .vex-token-actions：28x28，压在输入框右端）。 -->
+  <Style Selector="Button.mcp-icon">
+    <Setter Property="Width" Value="28"/>
+    <Setter Property="Height" Value="28"/>
+    <Setter Property="Padding" Value="6"/>
+    <Setter Property="CornerRadius" Value="4"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="HorizontalAlignment" Value="Center"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="Button.mcp-icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+  </Style>
+  <Style Selector="Button.mcp-icon.on /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+  </Style>
+  <Style Selector="Button.mcp-icon Path">
+    <Setter Property="Width" Value="14"/>
+    <Setter Property="Height" Value="14"/>
+    <Setter Property="Stretch" Value="Uniform"/>
+    <Setter Property="Fill" Value="Transparent"/>
+    <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="StrokeThickness" Value="1.7"/>
+    <Setter Property="StrokeLineCap" Value="Round"/>
+    <Setter Property="StrokeJoin" Value="Round"/>
+  </Style>
+  <Style Selector="Button.mcp-icon:pointerover Path">
+    <Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/>
+  </Style>
+  <Style Selector="Button.mcp-icon.on Path">
+    <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <!-- 客户端配置块（原型 pre.vex-code：16 内边距、上下 14、12/1.8 等宽、可换行）。 -->
+  <Style Selector="Border.mcp-code">
+    <Setter Property="Margin" Value="0,14"/>
+    <Setter Property="Padding" Value="16"/>
+    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
+  </Style>
+  <Style Selector="Border.mcp-code SelectableTextBlock">
+    <Setter Property="FontFamily" Value="Cascadia Code, Cascadia Mono, Consolas, JetBrains Mono, Microsoft YaHei UI, monospace"/>
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="LineHeight" Value="21.6"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <!-- 动作按钮（原型 .vex-mcp-actions + workspace-chrome 的胶囊覆盖：32 高、5 16、全圆角）。 -->
+  <Style Selector="StackPanel.mcp-actions">
+    <Setter Property="Orientation" Value="Horizontal"/>
+    <Setter Property="Spacing" Value="8"/>
+    <Setter Property="Margin" Value="0,18,0,0"/>
+  </Style>
+  <Style Selector="Button.mcp-pill">
+    <Setter Property="MinHeight" Value="32"/>
+    <Setter Property="Padding" Value="5,16"/>
+    <Setter Property="CornerRadius" Value="999"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+  <!-- 请求回显卡（原型 .vex-mcp-request：左侧 2 像素主色竖条 + 主色淡底）。 -->
+  <Style Selector="Border.mcp-request">
+    <Setter Property="Margin" Value="0,18"/>
+    <Setter Property="Padding" Value="10,16"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="BorderThickness" Value="2,0,0,0"/>
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+  </Style>
+  <Style Selector="Border.mcp-request TextBlock">
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="LineHeight" Value="20.8"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <!-- 审计表（原型 table.vex-audit：12 号字、11x6 单元格、表头 muted 500、行间分隔线）。 -->
+  <Style Selector="Grid.audit-head TextBlock, Border.audit-row TextBlock">
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="LineHeight" Value="19.2"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="Grid.audit-head TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <Style Selector="Border.audit-row">
+    <Setter Property="Padding" Value="6,11"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="0,0,0,1"/>
   </Style>
 </Styles>

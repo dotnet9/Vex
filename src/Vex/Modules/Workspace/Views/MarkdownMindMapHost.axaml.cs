@@ -27,8 +27,28 @@ public partial class MarkdownMindMapHost : UserControl
     public MarkdownMindMapHost()
     {
         InitializeComponent();
+        // 取消钉住时工具条悬浮于导图之上；声明顺序在后会盖住内容，这里用 ZIndex 提升。
+        MapEditingToolbar.ZIndex = 1;
+        DataContextChanged += OnMapPinContextChanged;
         BuildMapStyleFlyout();
     }
+
+    private void OnMapPinContextChanged(object? sender, EventArgs e)
+    {
+        if (_pinPreferences is not null)
+        {
+            _pinPreferences.PreferencesChanged -= OnMapPinPreferenceChanged;
+            _pinPreferences = null;
+        }
+        if (DataContext is MainWindowViewModel vm)
+        {
+            _pinPreferences = vm.Workbench.Preferences;
+            _pinPreferences.PreferencesChanged += OnMapPinPreferenceChanged;
+        }
+        ApplyMapPin();
+    }
+
+    private void OnMapPinPreferenceChanged(object? sender, EventArgs e) => ApplyMapPin();
 
     /// <summary>钉住 = 工具条占位行；取消钉住 = 悬浮在导图顶端，静默至悬停或聚焦。</summary>
     private void ApplyMapPin()
@@ -134,6 +154,15 @@ public partial class MarkdownMindMapHost : UserControl
             }
         };
         flyout.Opening += (_, _) => { refresh(); ShowPage(styleTab.IsChecked == true); flyoutHost.Content = panel; };
+        button.Flyout = flyout;
+        Map.NodeSelected += (_, node) =>
+        {
+            if (_workbench?.IsPresenting == true) return;
+            FlushInspector();
+            if (DataContext is not MainWindowViewModel vm) return;
+            vm.Workbench.ShowMapSettings = false;
+            vm.Workbench.SelectedNode = node;
+        };
         Map.SourceRequested += (_, node) =>
         {
             if (_workbench?.IsPresenting == true)
@@ -162,12 +191,26 @@ public partial class MarkdownMindMapHost : UserControl
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.AccentColorProperty, this.GetResourceObservable("StudioAccentColor").Select(r => r is Color color ? color : Colors.MediumPurple));
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.SuccessColorProperty, this.GetResourceObservable("VexSuccessBrush").Select(r => r is ISolidColorBrush b ? b.Color : Colors.SeaGreen));
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.WarningColorProperty, this.GetResourceObservable("VexWarningBrush").Select(r => r is ISolidColorBrush b ? b.Color : Colors.Orange));
+        MapDotGrid.Bind(Border.BackgroundProperty, this.GetResourceObservable("VexMutedBrush").Select(MapDotGridBrush));
         PropertyChanged += (_, e) =>
         {
             if (e.Property.Name == "IsVisible" && IsVisible)
                 Avalonia.Threading.Dispatcher.UIThread.Post(Map.EnsureViewport, Avalonia.Threading.DispatcherPriority.Render);
         };
     }
+    /// <summary>原型 .map-viewport 的点阵底纹：muted 21% 的 1.4px 圆点，18px 网格重复一次。</summary>
+    /// <remarks>SourceRect 必须与 DestinationRect 同尺寸，否则圆点会被拉伸到整个网格。</remarks>
+    private static IBrush MapDotGridBrush(object? resource) => new DrawingBrush
+    {
+        TileMode = TileMode.Tile,
+        SourceRect = new RelativeRect(0, 0, 18, 18, RelativeUnit.Absolute),
+        DestinationRect = new RelativeRect(0, 0, 18, 18, RelativeUnit.Absolute),
+        Drawing = new GeometryDrawing
+        {
+            Brush = resource is ISolidColorBrush muted ? new SolidColorBrush(muted.Color, 0.21) : Brushes.Transparent,
+            Geometry = new EllipseGeometry(new Rect(0.2, 0.2, 1.4, 1.4))
+        }
+    };
     // 节点详情按原型保持悬浮在导图右上角（.node-inspector）；仅删除确认遮罩需要提升到窗口层。
     public Control DetachConfirmation()
     {

@@ -26,6 +26,7 @@ internal static class DesktopParityVerification
         {
             Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
             Dispatcher.UIThread.RunJobs();
+            LayoutSettle.Run(); window.UpdateLayout();
         }
         window.Width = 1280; window.Height = 820; Render();
         Check(window.GetVisualDescendants().OfType<ShellFilesView>().Count() == 1, "Left file navigation resolves once");

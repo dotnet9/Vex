@@ -19,7 +19,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
     private readonly Spotlight _mask = new() { IsHitTestVisible = false };
     private readonly Border _brandBar = new() { Height = 6, VerticalAlignment = VerticalAlignment.Top };
     private readonly Border _arrow = new() { Width = 18, Height = 18, CornerRadius = new CornerRadius(3), BorderThickness = new Thickness(1), IsHitTestVisible = false };
-    private readonly Border _card = new() { Width = 376, Padding = new Thickness(24, 22, 24, 20), CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), BoxShadow = BoxShadows.Parse("0 24 70 0 #50000000"), ClipToBounds = false };
+    private readonly Border _card = new() { Name = "GuideCard", Width = 376, Padding = new Thickness(24, 22, 24, 20), CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), BoxShadow = BoxShadows.Parse("0 24 70 0 #50000000"), ClipToBounds = false };
     private readonly ContentControl _bubbleHost = new() { IsVisible = false, IsHitTestVisible = false };
     private readonly Border _bubble = new() { Padding = new Thickness(12, 8), CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1) };
     private readonly TextBlock _bubbleText = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap, MaxWidth = 260 };
@@ -323,7 +323,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
             return true;
         }
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key is Key.O or Key.N or Key.W or Key.P or Key.F or Key.H or Key.S) return true;
-        if (e.Key is Key.F5 or Key.F8 or Key.F11 || e.KeyModifiers.HasFlag(KeyModifiers.Alt) && e.Key == Key.Enter) return true;
+        if (e.Key is Key.F6 or Key.F8 or Key.F11 || e.KeyModifiers.HasFlag(KeyModifiers.Alt) && e.Key == Key.Enter) return true;
         var input = e.Source as Visual;
         var editing = input is TextBox or AvaloniaEdit.Editing.TextArea || input?.GetVisualAncestors().Any(view => view is TextBox or AvaloniaEdit.Editing.TextArea) == true;
         if (e.Key == Key.Escape && !editing) { Finish(); return true; }

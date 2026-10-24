@@ -12,16 +12,16 @@
 .type-swatch{display:block;position:relative;overflow:hidden;pointer-events:none}
 
 /* Compare every style before applying it. Only the card grid scrolls. */
-#typography-panel{width:min(880px,calc(100% - 24px));height:680px;padding:16px;overflow:hidden;display:flex;flex-direction:column;gap:0}
+#typography-panel{width:min(720px,calc(100% - 24px));height:680px;padding:16px;overflow:hidden;display:flex;flex-direction:column;gap:0}
 #typography-panel .popover-title{display:flex;align-items:center;justify-content:space-between;flex:none;padding:0;margin:0;font-size:15px}
 #typography-title{font-weight:600}
 #typography-close{display:grid;place-items:center;width:30px;height:30px;border-radius:5px;padding:0;color:var(--muted)}
 #typography-close:hover{background:var(--hover);color:var(--fg)}
 #typography-close .ico{width:16px;height:16px}
 #typography-panel .typography-note{flex:none;font-size:12px;line-height:1.6;margin:4px 0 12px;color:var(--muted)}
-#typography-panel .typography-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));grid-auto-rows:max-content;flex:1;min-height:0;max-height:none;align-content:start;align-items:stretch;gap:10px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding:2px 4px 2px 2px}
+#typography-panel .typography-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));grid-auto-rows:max-content;flex:1;min-height:0;max-height:none;align-content:start;align-items:stretch;gap:10px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding:2px 4px 2px 2px}
 /* 卡片直接渲染该排版的真实效果（## 名称 / 说明 / ### 维刻 Vex / 引用），角标标注"推荐"与"✓ 当前"。 */
-#typography-panel .typography-card{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-height:0;height:262px;padding:0;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);text-align:left;box-shadow:none;transform:none;overflow:hidden}
+#typography-panel .typography-card{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-height:0;height:206px;padding:0;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);text-align:left;box-shadow:none;transform:none;overflow:hidden}
 #typography-panel .typography-card .palette-badge{z-index:2}
 /* 自定义排版卡（div 容器 + 应用按钮 + 编辑/删除工具）与"+"新增块。 */
 #typography-panel .typography-card-apply{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;min-width:0}
@@ -32,7 +32,7 @@
 #typography-panel [data-custom-card]:hover .typography-card-tools,#typography-panel [data-custom-card]:focus-within .typography-card-tools{opacity:1}
 #typography-panel .typography-card-tools button{width:22px;height:22px;display:grid;place-items:center;border:1px solid var(--border);border-radius:5px;background:var(--panel);color:var(--muted);font-size:12px;cursor:pointer}
 #typography-panel .typography-card-tools button:hover{color:var(--fg);background:var(--hover)}
-#typography-panel .typography-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:262px;border:1px dashed var(--border);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
+#typography-panel .typography-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:206px;border:1px dashed var(--border);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
 #typography-panel .typography-add:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 #typography-panel .typography-add span{font-size:34px;line-height:1}
 #typography-panel .typography-add small{font-size:11px}

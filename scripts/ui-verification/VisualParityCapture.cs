@@ -38,6 +38,7 @@ internal static class VisualParityCapture
         {
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
+            LayoutSettle.Run();
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
             Dispatcher.UIThread.RunJobs();

@@ -487,7 +487,7 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     for (var step = 0; step < 6; step++)
     {
         narrowGuide.ShowStep(step); Pump();
-        var card = narrowGuide.Children.OfType<Border>().Single();
+        var card = narrowGuide.Children.OfType<Border>().Single(b => b.Name == "GuideCard");
         var origin = card.TranslatePoint(default, window)!.Value;
         Check(origin.X >= 0 && origin.Y >= 0 && origin.X + card.Bounds.Width <= window.Bounds.Width + 1
             && origin.Y + card.Bounds.Height <= window.Bounds.Height + 1,
@@ -529,6 +529,7 @@ void Pump(Task? pending = null)
     pending?.GetAwaiter().GetResult();
     Dispatcher.UIThread.RunJobs();
     AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+    LayoutSettle.Run();
 }
 
 void Capture(Window window, string name)
@@ -1853,7 +1854,7 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     wb.SummaryLength = -10; Check(wb.SummaryLength == 1, "Summary length is at least one grapheme");
     oldRoot = wb.Root; wb.ResetMapSettings();
     PumpUntil(() => !ReferenceEquals(oldRoot, wb.Root)); Pump();
-    Check(wb.SummaryLength == 30 && !wb.ShowParagraphs && !wb.ShowLists && !wb.ShowCode && !wb.ShowTables, "Reset restores every map display default");
+    Check(wb.SummaryLength == 30 && wb.ShowParagraphs && wb.ShowLists && !wb.ShowCode && !wb.ShowTables, "Reset restores the prototype's map display defaults");
     Check(wb.VisibleNodeCount == map.VisibleNodeCount && wb.SummaryPreview.Length > 0, "Map count and summary preview update from the real tree");
     map.CollapseAll(); Pump();
     var heading = Flatten(wb.Root!).LastOrDefault(n => n.Kind == CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNodeKind.Heading) ?? wb.Root!;
@@ -1975,7 +1976,7 @@ void VerifyLocalizedGuide(Window window, MainWindowViewModel vm)
             guide.ShowStep(step); Pump(); SettleRendering();
             if (step == 1) Check(guide.SpotlightTargets[0].Top >= 0 && guide.SpotlightTargets[0].Bottom <= guide.Bounds.Height,
                 "Guide exposes the file and outline navigation within the window: " + culture);
-            var card = guide.GetVisualDescendants().OfType<Border>().Single(b => b.Width == 320);
+            var card = guide.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "GuideCard");
             if (step == 0) Check(vm.Layout.EnableMotion || card.Transitions is null || card.Transitions.Count == 0,
                 "Replayed guide follows the current motion preference: " + culture);
             var position = card.TranslatePoint(default, window)!.Value;
@@ -2101,7 +2102,13 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
         var rendered = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
         Check(rendered.Bounds.Width + rendered.Margin.Left + rendered.Margin.Right <= preview.Bounds.Width + 1,
             "Reading document fits the available width");
-        if (width == 1920) Check(rendered.Bounds.Width <= 724 && rendered.Bounds.Width >= 720, "Wide reading document keeps the prototype's 820px paper width including padding");
+        if (width == 1920)
+        {
+            // 原型 .md-body 是 border-box：单栏阅读纸面 max(820px,50vw) 含 padding，不是固定 820。
+            var paper = rendered.Bounds.Width + rendered.Margin.Left + rendered.Margin.Right;
+            Check(Math.Abs(paper - Math.Max(820, window.ClientSize.Width * 0.5)) <= 2,
+                "Wide reading document keeps the prototype's max(820px, 50vw) paper width including padding");
+        }
         Capture(window, $"layout-{width}-read");
     }
     window.Width = 1280; window.Height = 900; vm.Workbench.ShowRead(); Pump();
@@ -2247,9 +2254,17 @@ void VerifyEditingTools(VerificationVexApp app, Window window, MainWindowViewMod
         var origin = toolbar.TranslatePoint(default, options)!.Value;
         Check(toolbar.Bounds.Height <= 30 && origin.X >= 0 && origin.X + toolbar.Bounds.Width <= options.Bounds.Width,
             "Formatting remains one compact row inside the available editor width: " + width);
-        var more = toolbar.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(button => button.Name == "button");
-        Check(more.IsEffectivelyVisible && more.Bounds.Width > 0, "More formatting remains reachable with automatic overflow: " + width);
-        if (width == 980) Check(toolbar.Classes.Contains(":overflow"), "Narrow document moves formatting commands into Ursa overflow");
+        // 原型格式条固定 12 键：宽屏一行放得下就没有溢出按钮，窄屏才由 Ursa 自动折叠，命令始终可达。
+        var more = toolbar.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
+            .SingleOrDefault(button => button.Name == "button");
+        var visibleFormats = toolbar.GetVisualDescendants().OfType<Button>()
+            .Count(button => button.Classes.Contains("wb-format") && button.IsEffectivelyVisible && button.Bounds.Width > 0);
+        if (width == 980)
+        {
+            Check(toolbar.Classes.Contains(":overflow"), "Narrow document moves formatting commands into Ursa overflow");
+            Check(more is { IsEffectivelyVisible: true } && more!.Bounds.Width > 0, "More formatting remains reachable with automatic overflow");
+        }
+        else Check(visibleFormats == 12 && more is not { IsEffectivelyVisible: true }, "Wide document keeps all twelve format keys in one row");
         Capture(window, "editing-tools-" + width);
     }
     window.Width = 1280; vm.Layout.SidebarWidth = 226;
