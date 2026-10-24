@@ -32,7 +32,7 @@ public sealed class DocumentFileNode : System.ComponentModel.INotifyPropertyChan
 
     public string Preview => DocumentFile?.Preview ?? string.Empty;
 
-    private bool _isExpanded = true;
+    private bool _isExpanded;
     public bool IsExpanded
     {
         get => _isExpanded;
