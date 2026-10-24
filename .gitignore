@@ -23,6 +23,12 @@ mono_crash.*
 [Rr]elease/
 [Rr]eleases/
 
+# Local tool and repository metadata directories
+/.github/
+/.config/
+/.codemap/
+/.agents/
+
 [Dd]ebug/x64/
 [Dd]ebugPublic/x64/
 [Rr]elease/x64/
