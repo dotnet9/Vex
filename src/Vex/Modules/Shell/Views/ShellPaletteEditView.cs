@@ -68,7 +68,7 @@ public sealed class ShellPaletteEditView : UserControl
 
     private static TextBox Field(string label, string value, int maxLength, Action<string> write)
     {
-        var box = new TextBox { Watermark = label, MaxLength = maxLength, Height = 32, FontSize = 13, CornerRadius = new CornerRadius(5), Text = value };
+        var box = new TextBox { PlaceholderText = label, MaxLength = maxLength, Height = 32, FontSize = 13, CornerRadius = new CornerRadius(5), Text = value };
         box.PropertyChanged += (_, args) => { if (args.Property == TextBox.TextProperty) write(box.Text ?? ""); };
         return box;
     }

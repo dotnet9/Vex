@@ -26,7 +26,7 @@ public partial class McpSettingsOverlayView : UserControl
         if (TopLevel.GetTopLevel(this) is not { } owner) return;
         if (DataContext is not McpSettingsViewModel model) return;
         var folders = await owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { AllowMultiple = false });
-        if (StorageProviderExtensions.TryGetLocalPath(folders.FirstOrDefault()) is { } folder)
+        if (folders.FirstOrDefault() is { } selected && StorageProviderExtensions.TryGetLocalPath(selected) is { } folder)
             model.AllowedWorkspacePath = folder;
     }
 }

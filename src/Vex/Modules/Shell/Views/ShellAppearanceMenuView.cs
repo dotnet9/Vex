@@ -60,14 +60,14 @@ public sealed class ShellAppearanceMenuView : UserControl
     private async void OpenPaletteDialog(Vex.Core.Models.PaletteOption? editing)
     {
         var definition = editing?.Definition;
-        var colors = definition is null
+        string[]? seed = definition is null
             ? null
-            : new[] { definition.Light.Paper, definition.Light.Surface, definition.Light.Ink, definition.Light.Accent,
-                      definition.Dark.Paper, definition.Dark.Surface, definition.Dark.Ink, definition.Dark.Accent };
-        var model = new ShellPaletteEditModel(editing?.Key, definition?.Name ?? "", definition?.Note ?? "", colors);
+            : [definition.Light.Paper, definition.Light.Surface, definition.Light.Ink, definition.Light.Accent,
+               definition.Dark.Paper, definition.Dark.Surface, definition.Dark.Ink, definition.Dark.Accent];
+        var model = new ShellPaletteEditModel(editing?.Key, definition?.Name ?? "", definition?.Note ?? "", seed);
         var applied = await Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(new ShellPaletteEditView(model), model,
             options: new Ursa.Controls.OverlayDialogOptions { CanLightDismiss = true, CanDragMove = false, CanResize = false, IsCloseButtonVisible = false });
-        if (!applied || model.Result is not { } result) return;
+        if (_vm is null || !applied || model.Result is not { Colors.Length: >= 8 } result) return;
         var key = editing?.Key ?? "user:" + Guid.NewGuid().ToString("N")[..8];
         _vm.RegisterCustomPalette(key, result.Name, result.Note, result.Colors[0], result.Colors[1], result.Colors[2], result.Colors[3],
             result.Colors[4], result.Colors[5], result.Colors[6], result.Colors[7]);
@@ -285,7 +285,8 @@ public sealed class ShellAppearanceMenuView : UserControl
         Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush");
         root.Children.Add(check);
         // 原型选中态 = 透明边框 + 外扩 1.5px 强调色环，由 .palette-card-on 与 Ring 覆层呈现。
-        if (palette.Key.StartsWith("user:", StringComparison.Ordinal))
+        var paletteKey = palette.Key;
+        if (paletteKey?.StartsWith("user:", StringComparison.Ordinal) == true)
         {
             var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 0, 4, 0) };
             var edit = new Button { Classes = { "wb-quiet" }, Padding = new Thickness(4, 1), MinHeight = 22, FontSize = 12, Content = "✎" };
@@ -293,12 +294,12 @@ public sealed class ShellAppearanceMenuView : UserControl
             edit.Click += (_, _) => OpenPaletteDialog(palette);
             var remove = new Button { Classes = { "wb-quiet" }, Padding = new Thickness(4, 1), MinHeight = 22, FontSize = 12, Content = "×" };
             ToolTip.SetTip(remove, Text("DeleteCustomPalette"));
-            remove.Click += (_, _) => _vm.RemoveCustomPalette(palette.Key);
+            remove.Click += (_, _) => _vm?.RemoveCustomPalette(paletteKey);
             tools.Children.Add(edit); tools.Children.Add(remove);
             root.Children.Add(tools);
         }
-        var card = new Button { Classes = { "palette-card" }, Content = root, Height = 92, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "Palette_" + palette.Key };
-        card.Click += (_, _) => _vm.SelectedPalette = palette;
+        var card = new Button { Classes = { "palette-card" }, Content = root, Height = 92, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "Palette_" + (paletteKey ?? "unknown") };
+        card.Click += (_, _) => { if (_vm is not null) _vm.SelectedPalette = palette; };
         // 原型选中环 box-shadow:0 0 0 1.5px var(--accent)：Button 无 BoxShadow 属性，用外扩 1.5px 的描边 Border 覆层等效呈现。
         var ring = new Border { BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(7.5), Margin = new Thickness(-1.5), IsHitTestVisible = false, IsVisible = false };
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
