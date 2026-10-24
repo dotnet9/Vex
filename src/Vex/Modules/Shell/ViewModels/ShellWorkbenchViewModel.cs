@@ -56,6 +56,8 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(EditorSurfaceMargin));
         };
         _document = document; _settings = settings; _appearance = appearance; _layout = layout; _display = display;
+        // 排版主题/尺寸档变化要即时重放到实时编辑器，而不是只在挂载时应用一次。
+        appearance.Changed += (_, _) => ApplyLiveAppearance();
         display.Changed += (_, _) => { if (_live is { } live) live.EnableAutoPair = display.EnableAutoPair; };
         _view = settings.Current.WorkbenchView is "read" or "mindmap" ? settings.Current.WorkbenchView : "edit";
         _edit = settings.Current.EditMode == "source" ? "source" : "instant";
