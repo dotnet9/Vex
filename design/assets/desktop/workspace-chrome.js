@@ -73,7 +73,7 @@
   });
   document.addEventListener('keydown', function (event) {
     if (event.key !== 'Escape' || sidebar.classList.contains('collapsed') || event.defaultPrevented) return;
-    var popup = Array.from(document.querySelectorAll('[role="dialog"], .overlay, .vex-overlay, .typography-popover, .settings-popover, .chapter-delete-dialog, .file-navigation-menu, .file-context-menu, .menu-flyout, .vex-element-menu, details[open]#vex-appearance-menu')).some(function (element) { return !sidebar.contains(element) && element.getClientRects().length > 0; });
+    var popup = Array.from(document.querySelectorAll('[role="dialog"], .overlay, .vex-overlay, .typography-popover, .settings-popover, .chapter-delete-dialog, .file-navigation-menu, .file-context-menu, .menu-flyout, .vex-element-menu, .save-details, details[open]#vex-appearance-menu')).some(function (element) { return !sidebar.contains(element) && element.getClientRects().length > 0; });
     if (event.target.closest('.chapter-title-input') || popup) return;
     event.preventDefault(); event.stopPropagation(); close(true);
   }, true);

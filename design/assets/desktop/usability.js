@@ -22,7 +22,7 @@
   details.querySelector('.icon-button').onclick = function () { closeSaveDetails(true); };
   $('save-details-retry').onclick = function () { VexProto.handleAction('save'); updateSaveDetails(); };
   document.addEventListener('pointerdown', function (event) { if (!details.contains(event.target)) closeSaveDetails(); });
-  document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !details.hidden) closeSaveDetails(true); });
+  document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !details.hidden) { event.preventDefault(); closeSaveDetails(true); } }, true);
   window.addEventListener('vex-save-state-changed', updateSaveDetails);
 
   /* 视图联动保持默认开启；状态栏不再展示"自由浏览 / 各栏独立浏览 / 回到编辑位置"三个入口（降低理解负担）。 */

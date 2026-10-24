@@ -131,7 +131,7 @@
   system.addEventListener('change',()=>{if(state.mode==='system')apply(false);});
   window.addEventListener('storage',event=>{if(event.key===storeKey)try{Object.assign(state,JSON.parse(event.newValue||'{}'));apply(true);}catch(_){}});
   window.addEventListener('vex-language-changed',()=>apply(true));
-  window.addEventListener('keydown',event=>{var index=Number(event.key)-1;if(event.altKey&&!event.ctrlKey&&index>=0&&index<palettes.length)VexTheme.setPalette(palettes[index][0]);if(event.key==='Escape'){var menu=document.getElementById('vex-language-menu');if(menu)menu.open=false;}});
+  window.addEventListener('keydown',event=>{var index=Number(event.key)-1;if(event.altKey&&!event.ctrlKey&&index>=0&&index<palettes.length)VexTheme.setPalette(palettes[index][0]);if(event.key==='Escape'){var menu=document.getElementById('vex-language-menu');if(menu&&menu.open){event.preventDefault();menu.open=false;}}},true);
   document.addEventListener('DOMContentLoaded',()=>{
     var windowPanel=document.createElement('section');windowPanel.id='prototype-window-state';windowPanel.hidden=true;windowPanel.innerHTML='<p></p><button type="button" id="restore-window"></button>';document.body.append(windowPanel);
     windowPanel.querySelector('button').onclick=()=>{document.querySelector('.app-window').hidden=false;windowPanel.hidden=true;document.querySelector('#caption-btns button').focus();};
@@ -191,6 +191,6 @@
     };
     renderPaletteGrid();
     document.addEventListener('click',event=>{if(!event.target.closest('#vex-language-menu'))document.getElementById('vex-language-menu').open=false;if(!event.target.closest('#vex-appearance-menu')&&!event.target.closest('#palette-dialog'))document.getElementById('vex-appearance-menu').open=false;});
-    document.addEventListener('keydown',event=>{if(event.key==='Escape'){var menu=document.getElementById('vex-appearance-menu');if(menu.open){menu.open=false;menu.querySelector('summary').focus();}}});apply(true);
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'){var menu=document.getElementById('vex-appearance-menu');if(menu&&menu.open){event.preventDefault();menu.open=false;menu.querySelector('summary').focus();}}},true);apply(true);
   });
 })();

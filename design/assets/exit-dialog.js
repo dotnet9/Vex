@@ -12,9 +12,9 @@
       adapter.beforeOpen?.();documents=adapter.documents();
       if(!documents.length){adapter.close();return;}
       var doc=documents[0];
-      host.innerHTML='<section class="exit-dialog" role="dialog" aria-modal="true" aria-labelledby="exit-dialog-title"><header class="exit-dialog-titlebar"><span class="exit-dialog-ico" aria-hidden="true">!</span><span id="exit-dialog-title">有未保存的更改</span><button class="vex-icon-button" data-exit="cancel" aria-label="继续编辑"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div class="exit-dialog-body"><h2>'+esc(doc.name)+'</h2><p id="exit-dialog-description">退出后，尚未保存的修改将会丢失。</p></div><footer class="exit-dialog-actions"><button class="exit-continue" data-exit="cancel">继续编辑</button><button class="exit-discard danger-outline" data-exit="discard">放弃修改并退出</button></footer></section>';
+      host.innerHTML='<section class="exit-dialog" role="dialog" aria-modal="true" aria-labelledby="exit-dialog-title"><h2 class="exit-dialog-title" id="exit-dialog-title">保存</h2><div class="exit-dialog-body"><p id="exit-dialog-description">关闭 Vex 前，是否保存更改？<br>如果不保存，您的更改将会丢失。</p><p class="exit-dialog-error" role="alert" hidden></p></div><footer class="exit-dialog-actions"><button class="btn primary" data-exit="save">'+esc(adapter.saveLabel||'保存')+'</button><button class="btn" data-exit="discard">丢弃</button><span></span><button class="btn" data-exit="cancel">取消</button></footer></section>';
       host.hidden=false;release=VexOverlay.lock(host);
-      requestAnimationFrame(function(){host.querySelector('[data-exit=save]').focus({preventScroll:true});});
+      requestAnimationFrame(function(){const target=host.querySelector('[data-exit=save]')||host.querySelector('[data-exit=cancel]');target?.focus({preventScroll:true});});
     }
     host.onclick=async function(event){
       if(busy)return;
@@ -24,12 +24,11 @@
       busy=true;host.querySelectorAll('button').forEach(function(button){button.disabled=true;});
       try {
         if(action==='save')await adapter.save(documents);
-        if(action==='draft')await adapter.keepDrafts(documents);
         if(action==='discard')await adapter.discard?.(documents);
         busy=false;cancel();adapter.close();
       } catch(error) {
         busy=false;host.querySelectorAll('button').forEach(function(button){button.disabled=false;});
-        var message=host.querySelector('.exit-dialog-error');message.hidden=false;message.textContent=action==='draft'?'草稿未能保留，窗口没有关闭。请先保存文档。':'保存未完成，窗口没有关闭。请重试或返回编辑。';
+        var message=host.querySelector('.exit-dialog-error');message.hidden=false;message.textContent='保存未完成，窗口没有关闭。请重试或返回编辑。';
       }
     };
     document.addEventListener('keydown',function(event){if(event.key==='Escape'&&!host.hidden){event.preventDefault();event.stopImmediatePropagation();cancel();}},true);

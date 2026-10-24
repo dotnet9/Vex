@@ -169,7 +169,7 @@
           const button=document.createElement('button');button.type='button';button.className='vex-element-row'+(item.danger?' danger':'');button.disabled=!!item.disabled;button.setAttribute('role','menuitem');button.innerHTML=`<span>${esc(item.label)}</span>${item.children?icon('chevron'):''}`;
           if(item.children){button.setAttribute('aria-haspopup','menu');button.setAttribute('aria-expanded','false');}
           button.onclick=()=>{if(item.children)flyout(item.label,item.children(),button,true);else run(item.action);};
-          button.onmouseenter=()=>{if(item.children&&!button.disabled)flyout(item.label,item.children(),button);else clearBranches(depth+1);};element.append(button);
+          button.onmouseenter=()=>{if(item.children&&!button.disabled){clearTimeout(button._openTimer);button._openTimer=setTimeout(()=>flyout(item.label,item.children(),button),120);}else{clearTimeout(button._openTimer);clearBranches(depth+1);}};button.onmouseleave=()=>clearTimeout(button._openTimer);element.append(button);
         }
         fitMenu(element);
         const bounds=menuBounds(),r=parent.getBoundingClientRect(),row=owner.getBoundingClientRect(),right=r.right-bounds.left+4,left=r.left-bounds.left-element.offsetWidth-4;
@@ -187,7 +187,8 @@
           const button=document.createElement('button');button.type='button';button.className='vex-element-row'+(item.danger?' danger':'');button.disabled=!!item.disabled;button.setAttribute('role','menuitem');button.innerHTML=`<span>${esc(item.label)}</span>${item.children?icon('chevron'):''}`;
           if(item.children)button.setAttribute('aria-haspopup','menu');
           button.onclick=()=>{if(item.children){if(!sheet){flyout(item.label,item.children(),button,true);return;}stack.push({title,items});page(item.label,item.children(),true);}else run(item.action);};
-          if(!sheet)button.onmouseenter=()=>{if(item.children&&!button.disabled)flyout(item.label,item.children(),button);else clearBranches();};content.append(button);
+          if(!sheet)button.onmouseenter=()=>{if(item.children&&!button.disabled){clearTimeout(button._openTimer);button._openTimer=setTimeout(()=>flyout(item.label,item.children(),button),120);}else{clearTimeout(button._openTimer);clearBranches();}};
+          if(!sheet)button.onmouseleave=()=>clearTimeout(button._openTimer);content.append(button);
         }
         if(sheet&&VexPreferences.values.motion&&!matchMedia('(prefers-reduced-motion:reduce)').matches)content.animate([{opacity:.4,transform:'translateX(8px)'},{opacity:1,transform:'translateX(0)'}],{duration:180,easing:'ease-out'});
         if(!sheet){fitMenu(menu);place();}menu.querySelector('button:not(:disabled)')?.focus({preventScroll:true});

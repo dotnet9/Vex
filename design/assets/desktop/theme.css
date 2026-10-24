@@ -7,6 +7,12 @@
    ============================================================ */
 
 /* ---------- 模式级常量（非配色） ---------- */
+:root {
+  /* 对话框统一宽度刻度：消息/确认类用 --dialog-w，内容密集型用 --dialog-w-lg */
+  --dialog-w: 480px;
+  --dialog-w-lg: 620px;
+}
+
 :root[data-theme="light"] {
   --shadow-window: 0 24px 64px rgba(16, 24, 40, 0.22), 0 4px 16px rgba(16, 24, 40, 0.10);
   --shadow-pop: 0 12px 32px rgba(16, 24, 40, 0.16), 0 2px 8px rgba(16, 24, 40, 0.08);
@@ -572,7 +578,7 @@ a:hover { text-decoration: underline; }
   border-radius: 12px;
   box-shadow: var(--shadow-window);
   padding: 22px;
-  width: 440px;
+  width: var(--dialog-w);
   max-width: calc(100vw - 48px);
 }
 .dlg-title {
@@ -580,6 +586,7 @@ a:hover { text-decoration: underline; }
   font-weight: 600;
   display: flex; align-items: center; gap: 10px;
 }
+.dlg-heading { margin: 0; font-size: 15.5px; font-weight: 600; }
 .dlg-ico {
   width: 34px; height: 34px;
   border-radius: 10px;
@@ -606,6 +613,9 @@ a:hover { text-decoration: underline; }
   justify-content: flex-end;
   gap: 8px;
 }
+/* 参考系统保存框：主/破坏性动作靠左成组，取消靠右。 */
+.dlg-actions.split { justify-content: space-between; }
+.dlg-actions.split > span { display: flex; gap: 8px; }
 
 /* ---------- 独立小窗口（统计/属性等） ---------- */
 .mini-window {
@@ -614,7 +624,10 @@ a:hover { text-decoration: underline; }
   border-radius: 10px;
   box-shadow: var(--shadow-window);
   overflow: hidden;
+  width: var(--dialog-w);
+  max-width: calc(100vw - 48px);
 }
+.mini-window.wide { width: var(--dialog-w-lg); }
 .mini-titlebar {
   height: 36px;
   background: var(--panel);
@@ -793,7 +806,6 @@ a:hover { text-decoration: underline; }
 .tb-sep { width: 1px; height: 16px; background: var(--border); margin: 0 5px; flex: none; }
 
 /* ---------- 图标辅助 ---------- */
-.ico { width: 15px; height: 15px; flex: none; }
 svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
 .tb-btn svg, .dlg-ico svg, .caption-btn svg, .tree-row .tr-title svg {
   fill: none;

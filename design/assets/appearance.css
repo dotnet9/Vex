@@ -59,13 +59,10 @@
 .ver-badge,.about-release-version{color:var(--accent);text-decoration:none;border-bottom:1px dotted currentColor;cursor:pointer}
 .ver-badge:hover,.about-release-version:hover{border-bottom-style:solid}
 .exit-dialog-host{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:#0b211e66;z-index:350;animation:vex-fade-in 140ms ease both}
-.exit-dialog{display:flex;flex-direction:column;width:650px;max-width:100%;max-height:100%;background:var(--panel,var(--surface));color:var(--fg);border:1px solid var(--border,var(--line));border-radius:8px;box-shadow:0 18px 70px #0003;overflow:hidden;animation:vex-dialog-in 200ms var(--vex-ease) both}
-.exit-dialog-titlebar{height:38px;min-height:38px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border,var(--line));padding-left:20px;font-size:14px;font-weight:600}
-.exit-dialog-titlebar button{border-radius:0;width:46px;height:38px}
-.exit-dialog-titlebar button:hover{background:var(--danger);color:var(--on-accent)}
-.exit-dialog-body{padding:24px 24px 20px;min-height:0;overflow-y:auto;overscroll-behavior:contain}
-.exit-dialog-body h2{font-size:19px;line-height:1.5;font-weight:600;margin:0 0 8px}
-.exit-dialog-body>p{font-size:13px;color:var(--muted);line-height:1.8;margin:0 0 18px}
+.exit-dialog{display:flex;flex-direction:column;width:var(--dialog-w,480px);max-width:100%;max-height:100%;background:var(--panel,var(--surface));color:var(--fg);border:1px solid var(--border,var(--line));border-radius:8px;box-shadow:0 18px 70px #0003;overflow:hidden;animation:vex-dialog-in 200ms var(--vex-ease) both}
+.exit-dialog-title{margin:0;padding:22px 24px 0;font-size:16px;font-weight:600}
+.exit-dialog-body{padding:10px 24px 6px;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.exit-dialog-body>p{font-size:13px;color:var(--muted);line-height:1.8;margin:0}
 .exit-document-list{margin:0;padding:0;list-style:none;border:1px solid var(--border,var(--line));border-radius:5px;overflow:hidden}
 .exit-document-list li+li{border-top:1px solid var(--border,var(--line))}
 .exit-document-list button{width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border:0;text-align:left;color:var(--fg);background:var(--bg);cursor:pointer}
@@ -75,15 +72,9 @@
 .exit-document-list strong{display:block;font-size:14px;font-weight:500;overflow-wrap:anywhere;line-height:1.6}
 .exit-document-list small{display:block;font-size:12px;color:var(--muted);line-height:1.7;overflow-wrap:anywhere}
 .exit-document-list em{font-size:12px;font-style:normal;color:var(--muted);flex:none}
-.exit-dialog-actions{display:flex;align-items:center;gap:8px;padding:16px 20px;border-top:1px solid var(--border,var(--line));flex:none;background:var(--bg)}
+.exit-dialog-actions{display:flex;align-items:center;gap:8px;padding:14px 24px 22px;flex:none}
 .exit-dialog-actions>span{flex:1}
 .exit-dialog-actions button{min-height:36px;white-space:nowrap;font-size:13px;cursor:pointer}
-.exit-dialog-ico{width:26px;height:26px;border-radius:13px;background:#FDEBD7;color:#B54708;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
-.exit-dialog-actions .danger-outline{background:transparent;border:1px solid var(--danger,#B42318);color:var(--danger,#B42318)}
-.exit-continue,.exit-discard{padding:6px;border:0;border-radius:4px;background:transparent;color:var(--muted)}
-.exit-continue:hover{background:var(--hover,var(--accent-soft));color:var(--fg)}
-.exit-discard{color:var(--danger,#b74444)}
-.exit-discard:hover{background:color-mix(in srgb,var(--danger,#b74444) 9%,transparent)}
 .exit-dialog-body>.exit-dialog-error{color:var(--danger,#b74444);margin:14px 0 0}
 .prototype-window-closed{position:absolute;inset:0;z-index:200;display:grid;place-content:center;justify-items:center;gap:18px;background:var(--bg);color:var(--fg)}
 .prototype-window-closed img{width:48px;height:48px}
@@ -105,7 +96,6 @@ body.device-tablet .workbar-actions{gap:6px;flex:none}
 body.device-tablet .workbar-actions .typography-trigger>span:not(.type-symbol),body.device-tablet .workbar-actions .map-appearance-trigger>span{display:none}
 body.device-phone .exit-dialog-host{padding:12px}
 body.device-phone .exit-dialog-body{padding:20px 16px}
-body.device-phone .exit-dialog-body h2{font-size:18px}
 body.device-phone .exit-document-list button{padding:12px 10px;gap:9px}
 body.device-phone .exit-dialog-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:14px;gap:8px}
 body.device-phone .exit-dialog-actions>span{display:none}

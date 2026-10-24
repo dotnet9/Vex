@@ -68,7 +68,7 @@
       if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();selectTab(event.key==='Home'?'structure':event.key==='End'?'style':tab==='style'?'structure':'style');panel.querySelector('[data-map-tab="'+tab+'"]').focus();
     };
     document.addEventListener('pointerdown',function (event) {if(!panel.contains(event.target)&&!event.target.closest('[data-action="map-appearance"], .tour-card'))close();});
-    document.addEventListener('keydown',function (event) {if(event.key==='Escape'&&!panel.hidden){close();trigger?.focus({preventScroll:true});}});
+    document.addEventListener('keydown',function (event) {if(event.key==='Escape'&&!panel.hidden){event.preventDefault();close();trigger?.focus({preventScroll:true});}},true);
     window.addEventListener('resize',position);apply();selectTab(tab);
     return {toggle:toggle,close:close,choose:choose,sync:apply,get style(){return style;}};
   }

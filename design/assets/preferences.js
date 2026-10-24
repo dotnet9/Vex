@@ -9,7 +9,14 @@
   Object.assign(defaults,{uiDensity:window.VexTheme ? VexTheme.state.density : 'normal',mdSize:window.VexTheme ? VexTheme.state.mdsize : 'normal'});
   const values = {...defaults};
   for (const key of Object.keys(values)) {
-    try { const saved = isolated ? null : localStorage.getItem('vex-prototype-pref:' + key); if (saved !== null) values[key] = JSON.parse(saved); } catch {}
+    try {
+      const saved = isolated ? null : localStorage.getItem('vex-prototype-pref:' + key);
+      if (saved === null) continue;
+      const parsed = JSON.parse(saved);
+      if (typeof parsed !== typeof defaults[key]) continue;
+      if (typeof parsed === 'number' && !Number.isFinite(parsed)) continue;
+      values[key] = parsed;
+    } catch {}
   }
   if (query.get('child') === '1') values.mcpEnabled = false;
   for (const key of ['theme','palette','typography']) if (query.has(key)) values[key] = query.get(key);
@@ -137,7 +144,9 @@
     host.dataset.small = String(smallScreen());
     if (!releaseOverlay) releaseOverlay = VexOverlay.lock(host);
     detail(!smallScreen() || category !== 'general');
-    render(); host.querySelector('[data-vex-close]').focus();
+    render();
+    var opener = Array.from(host.querySelectorAll('button:not([disabled]), input, select')).find(function (el) { return !el.closest('[inert]') && !el.matches('[data-vex-close], [data-vex-back]'); });
+    (opener || host.querySelector('[data-vex-close]')).focus();
   }
   function smallScreen() { return VexOverlay.width() <= 650 || adapter.phone; }
   function detail(show) {

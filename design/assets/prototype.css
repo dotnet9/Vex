@@ -108,7 +108,7 @@ body.device-phone .map-toolbar [data-action=chapter-child] span { display:none; 
 body.device-phone .map-toolbar .map-layout-select { height:44px; width:120px; }
 body.device-phone .map-toolbar .icon-btn { width:44px; height:44px; flex:none; }
 body.device-phone .map-toolbar .toolbar-spacer { min-width:0; }
-.app-window .modal:has(.vex-about) { width:min(100%,360px); }
+.app-window .modal:has(.vex-about) { width:min(100%,var(--dialog-w,480px)); }
 .vex-about .about-brand { gap:16px; margin:4px 0 24px; }
 .vex-about .about-brand img { width:64px; height:64px; flex:none; }
 .vex-about .about-brand h1 { font-size:24px; margin:0 0 4px; letter-spacing:0; }

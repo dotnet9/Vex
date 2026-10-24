@@ -138,7 +138,7 @@ fs.mkdirSync(output, {recursive:true});
     await page.locator('#sb-wordcount').click();
     assert.equal(await page.locator('#article-info-count').isVisible(), true, 'Closing and reopening preserves the auxiliary panel');
     await page.evaluate(() => VexWorkbench.loadDocument(1));
-    await page.locator('#layer-unsaved .caption-btn').click();
+    await page.locator('#layer-unsaved [data-intent=cancel]').click();
     assert.match(await page.evaluate(() => VexWorkbench.text), /修改后的甲章/, 'Cancelling a document switch preserves changes');
 
     await open('layout=read');

@@ -21,6 +21,8 @@
     if (!toastWrap) {
       toastWrap = document.createElement('div');
       toastWrap.className = 'proto-toast-wrap';
+      toastWrap.setAttribute('role', 'status');
+      toastWrap.setAttribute('aria-live', 'polite');
       document.body.appendChild(toastWrap);
     }
     var t = document.createElement('div');
@@ -161,10 +163,8 @@
   var submenus = [];
   function hideSubmenu(sub) {
     clearTimeout(sub._openTimer); clearTimeout(sub._hideTimer);
-    var visible = !sub.hidden;
     sub.hidden = true; sub._owner.setAttribute('aria-expanded','false');
     submenus.filter(function (item) { return item._owner.closest('.submenu') === sub; }).forEach(hideSubmenu);
-    if (visible) window.dispatchEvent(new CustomEvent('vex-menu-positioned'));
   }
   function clearSubmenus() { submenus.forEach(function (sub) { clearTimeout(sub._openTimer); clearTimeout(sub._hideTimer); sub.remove(); }); submenus = []; }
   function closeOpenMenu(restoreFocus) {
@@ -176,7 +176,6 @@
     document.querySelectorAll('.tb-menuitem.open').forEach(function (m) { m.classList.remove('open'); });
     document.querySelectorAll('.tb-menuitem').forEach(function (m) { m.setAttribute('aria-expanded', 'false'); });
     if (restoreFocus === true && trigger?.isConnected) trigger.focus({preventScroll:true});
-    window.dispatchEvent(new CustomEvent('vex-menu-positioned'));
   }
   VexProto.closeMenu = closeOpenMenu;
 
@@ -273,7 +272,6 @@
         sub.style.left = Math.max(bounds.left, Math.min(flip ? left : right, bounds.right - sub.offsetWidth)) + 'px';
         sub.style.top = Math.max(bounds.top, Math.min(r.top - 6, bounds.bottom - sub.offsetHeight)) + 'px';
         el.setAttribute('aria-expanded','true');
-        window.dispatchEvent(new CustomEvent('vex-menu-positioned'));
       }
       function branchHovered(menu) { return menu.matches(':hover') || submenus.some(function (child) { return child._owner.closest('.submenu') === menu && !child.hidden && branchHovered(child); }); }
       function scheduleHide() { clearTimeout(sub._hideTimer); sub._hideTimer = setTimeout(function () { if (!window.VexGuide?.active && !branchHovered(sub) && !el.matches(':hover')) hideSubmenu(sub); },220); }
@@ -357,7 +355,6 @@
       host.style.left = Math.max(app.left, Math.min(bounds.left, app.right - bounds.width)) - bar.getBoundingClientRect().left + 'px';
       openMenuKey = data.key;
       menuTrigger = item; hoverSwitch = !!fromHover; activate(item);
-      window.dispatchEvent(new CustomEvent('vex-menu-positioned'));
     }
 
     nav.querySelectorAll('.tb-menuitem').forEach(function (item, index) {

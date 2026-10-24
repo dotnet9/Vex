@@ -58,7 +58,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .tour-description { font-size:var(--fs-body,14px); line-height:1.8; }
 .tour-feedback,.tour-meta,.tour-actions button { font-size:var(--fs-caption,12px); }
 .tour-actions button { min-height:var(--control-h-md,32px); }
-.about-updated { width:420px; max-width:calc(100vw - 32px); }
+.about-updated { width:min(var(--dialog-w,480px),calc(100vw - 32px)); }
 .about-hero { margin:0; padding:28px 32px 0; gap:18px; background:none; border:0; border-radius:0; }
 .about-hero .about-logo { width:64px; height:64px; flex:none; }
 .about-identity h2 { font-size:24px; letter-spacing:0; }
@@ -115,7 +115,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 
 /* Update flow: clearer hierarchy, generous spacing and safe sizing on smaller windows. */
 #layer-update > .mini-window {
-  width: min(580px, calc(100vw - 32px)) !important;
+  width: min(var(--dialog-w-lg,620px), calc(100vw - 32px)) !important;
   max-height: min(86vh, 760px) !important;
   overflow: auto;
   border: 1px solid color-mix(in srgb, var(--line) 80%, var(--accent) 20%);

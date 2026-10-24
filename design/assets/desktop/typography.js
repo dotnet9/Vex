@@ -190,7 +190,7 @@
   document.addEventListener('click', function (event) {
     if (!panel.contains(event.target) && !event.target.closest('#typography-dialog') && !event.target.closest('[data-action="typography"]') && !event.target.closest('.menu-flyout')) close();
   });
-  document.addEventListener('keydown', function (event) { if (event.key === 'Escape') close(true); });
+  document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && (!panel.hidden || !dialog.hidden)) { event.preventDefault(); close(true); } }, true);
   document.addEventListener('vex-layout-rendered', function () { if (!document.querySelector('[data-action="typography"]:not([hidden])')) close(); });
   window.VexTypography = {
     items: items, state: state, apply: apply, choose: choose,
