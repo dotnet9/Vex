@@ -17,7 +17,7 @@ public enum ShellUnsavedDecision
     KeepDraft = 3
 }
 
-/// <summary>未保存确认的两种场景：退出应用 / 切换文档，问法与按钮组不同。</summary>
+/// <summary>未保存确认的两种场景：退出应用 / 切换文档；文案严格按系统保存框参考图，唯一差异是丢弃按钮标签。</summary>
 public enum ShellUnsavedFlow
 {
     Switch,

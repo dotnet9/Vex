@@ -20,7 +20,7 @@ public sealed partial class MainWindowViewModel
         var choice = await _overlays.ShowDocumentReviewAsync(new ShellDocumentReviewModel(_localizer, true,
             draft.FilePath ?? draft.FileName, Markdown, draft.Markdown));
         if (choice != DocumentReviewChoice.Load || !ReferenceEquals(Protection.Recovery, draft)) return;
-        await RequestUnsavedConfirmationAsync(_text.TitleSaveChanges, _text.BeforeClosingDocument(_document.FileName), () =>
+        await RequestUnsavedConfirmationAsync(() =>
         {
             // 独立未保存文档，来源路径绝不作为恢复文档的保存目标。
             ApplyDocument(new DocumentSnapshot(null, Path.GetFileNameWithoutExtension(draft.FileName) + ".恢复.md", draft.Markdown, new UTF8Encoding(false), true), restoreDraft: false);

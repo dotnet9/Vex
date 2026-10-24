@@ -173,8 +173,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         if (target.Kind == ShellExternalPathKind.Folder)
         {
             await RequestUnsavedConfirmationAsync(
-                _text.TitleBeforeOpeningFolder,
-                _text.BeforeOpeningFolder(_document.FileName),
                 GuardedAction(
                     VexL.ErrorMessageCannotOpenFolderFormat,
                     async () => await ApplyDocumentFilesAsync(await _documentService.OpenFolderPathAsync(path), true),
@@ -185,8 +183,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         if (target.Kind == ShellExternalPathKind.File)
         {
             await RequestUnsavedConfirmationAsync(
-                _text.TitleBeforeOpening,
-                _text.BeforeOpeningFile(_document.FileName, target.FileName ?? path),
                 GuardedAction(
                     VexL.ErrorMessageCannotOpenFileFormat,
                     () => LoadDocumentPathAsync(path),
@@ -223,8 +219,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         }
 
         await RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeOpeningFolder,
-            _text.BeforeOpeningFolder(_document.FileName),
             GuardedAction(
                 VexL.ErrorMessageCannotOpenFolderFormat,
                 () => OpenFolderPathCoreAsync(folderPath),
@@ -252,8 +246,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         if (target.Kind == ShellExternalPathKind.Folder)
         {
             return RequestUnsavedConfirmationAsync(
-                _text.TitleBeforeOpeningFolder,
-                _text.BeforeOpeningDroppedFolder(_document.FileName),
                 GuardedAction(
                     VexL.ErrorMessageCannotOpenFolderFormat,
                     () => OpenFolderPathCoreAsync(resolvedPath),
@@ -261,8 +253,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         }
 
         return RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeOpening,
-            _text.BeforeOpeningFile(_document.FileName, target.FileName ?? resolvedPath),
             GuardedAction(
                 VexL.ErrorMessageCannotOpenFileFormat,
                 () => OpenPathCoreAsync(resolvedPath),
@@ -332,8 +322,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     {
         var opened = false;
         await RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeOpening,
-            _text.BeforeOpeningFile(_document.FileName, Path.GetFileName(path)),
             GuardedAction(
                 VexL.ErrorMessageCannotOpenFileFormat,
                 async () =>
@@ -410,8 +398,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     public Task NewDocument()
     {
         return RequestUnsavedConfirmationAsync(
-            _text.TitleSaveChanges,
-            _text.BeforeNewDocument(_document.FileName),
             () =>
             {
                 NewDocumentCore();
@@ -442,8 +428,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     public Task CloseDocument()
     {
         return RequestUnsavedConfirmationAsync(
-            _text.TitleSaveChanges,
-            _text.BeforeClosingDocument(_document.FileName),
             () =>
             {
                 CloseDocumentCore();
@@ -473,8 +457,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     public async Task OpenAsync()
     {
         await RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeOpening,
-            _text.BeforeOpeningAnotherFile(_document.FileName),
             GuardedAction(VexL.ErrorMessageCannotOpenFile, OpenAsyncCore));
     }
 
@@ -482,8 +464,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     public async Task ImportAsync(string? format)
     {
         await RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeOpening,
-            _text.BeforeOpeningAnotherFile(_document.FileName),
             GuardedAction(VexL.ErrorMessageCannotOpenFile, async () =>
             {
                 var snapshot = await _documentService.ImportAsync(format ?? "HTML");
@@ -578,8 +558,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     public async Task OpenFolderAsync()
     {
         await RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeOpeningFolder,
-            _text.BeforeOpeningFolder(_document.FileName),
             GuardedAction(VexL.ErrorMessageCannotOpenFolder, OpenFolderAsyncCore));
     }
 
@@ -658,8 +636,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         }
 
         await RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeSwitchingFiles,
-            _text.BeforeSwitchingFile(_document.FileName, file.Name),
             GuardedAction(
                 VexL.ErrorMessageCannotOpenFileFormat,
                 () => OpenDocumentFileCoreAsync(file),
@@ -753,8 +729,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         }
 
         await RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeDeleting,
-            _text.BeforeDeleting(_document.FileName),
             async () =>
             {
                 if (await Dialogs.ShowDeleteConfirmationAsync(path))
@@ -808,8 +782,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         }
 
         await RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeReopening,
-            _text.BeforeReopeningWithEncoding(_document.FileName, encodingName),
             GuardedAction(
                 VexL.ErrorMessageCannotOpenFileFormat,
                 () => ReopenWithEncodingCoreAsync(path, encodingName),
@@ -1126,8 +1098,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         }
 
         await RequestUnsavedConfirmationAsync(
-            _text.TitleBeforeOpeningRecent,
-            _text.BeforeOpeningRecent(_document.FileName, recent.DisplayText),
             GuardedAction(
                 VexL.ErrorMessageCannotOpenFileFormat,
                 async () => await LoadDocumentPathAsync(path),
@@ -1144,8 +1114,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         try
         {
         await _unsavedChanges.RunAsync(
-            _text.TitleBeforeClosingVex,
-            _text.BeforeClosingVex(_document.FileName),
             DocumentInfo.IsModified, DocumentInfo.CurrentFilePath,
             () =>
             {
@@ -1175,15 +1143,11 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     }
 
     private Task RequestUnsavedConfirmationAsync(
-        string title,
-        string message,
         Func<Task> continuation,
         Action? cancellation = null)
     {
         CommitPendingEditsRequested?.Invoke(this, EventArgs.Empty);
         return _unsavedChanges.RunAsync(
-            title,
-            message,
             DocumentInfo.IsModified,
             DocumentInfo.CurrentFilePath,
             continuation,

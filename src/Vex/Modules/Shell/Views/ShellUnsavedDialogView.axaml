@@ -6,92 +6,85 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellUnsavedDialogViewModel">
-    <!-- 对齐原型截图：圆形图标 + 左对齐标题 + 右上角 ×，一句提示，右下按钮组。
-         退出流与切换流的文案/按钮组不同，由代码后置按 Flow 切换可见性。 -->
-    <Border Classes="dialog-card" Width="600" MaxWidth="680" Padding="24,20">
-        <StackPanel Spacing="14">
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                <Border Classes="dlg-ico warn" VerticalAlignment="Center">
-                    <Panel>
-                        <Path x:Name="ExitIcon" Classes="stroke-ico" Data="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01" />
-                        <Path x:Name="SwitchIcon" Classes="stroke-ico" IsVisible="False" Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M8 13h8 M8 17h5" />
-                    </Panel>
-                </Border>
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                    <TextBlock
-                        x:Name="ExitTitle"
-                        FontSize="16"
-                        FontWeight="SemiBold"
-                        Text="{i18n:I18n Vex.VexL.DialogExitTitle}" />
-                    <TextBlock
-                        x:Name="SwitchTitle"
-                        IsVisible="False"
-                        FontSize="16"
-                        FontWeight="SemiBold"
-                        Text="{i18n:I18n Vex.VexL.DialogSwitchTitle}" />
+    <!-- 严格按系统保存框参考图：标题「保存」、两行内容「是否保存更改？/如果不保存，您的更改将会丢失。」、
+         三按钮「保存(主)+丢弃 靠左、取消靠右」。退出流与切换流文案唯一差异是丢弃按钮（丢弃 / 放弃更改），
+         由代码后置按 Flow 切换两组按钮的可见性。尺寸全部取原型实测值：480 宽卡片、外衬 24/22、
+         标题→正文 10、正文→按钮 20、按钮 12px 字号胶囊（左右 16、上下 5 内衬）；两流字号/圆角/按钮高度差异由 ApplyFlow 切换。 -->
+    <Border x:Name="DialogCard" Classes="dialog-card" Width="480" MaxWidth="560" Padding="24,22">
+        <StackPanel Spacing="0">
+            <TextBlock
+                x:Name="TitleText"
+                FontSize="16"
+                LineHeight="25.6"
+                FontWeight="SemiBold"
+                Text="{i18n:I18n {x:Static l:VexL.Save}}" />
+            <StackPanel x:Name="BodyPanel" Margin="0,10,0,6" Spacing="0">
+                <TextBlock
+                    x:Name="HintLine1"
+                    FontSize="13"
+                    LineHeight="23.4"
+                    Classes="muted"
+                    TextWrapping="Wrap"
+                    Text="{i18n:I18n Vex.VexL.DialogExitHint}" />
+                <TextBlock
+                    x:Name="HintLine2"
+                    FontSize="13"
+                    LineHeight="23.4"
+                    Classes="muted"
+                    TextWrapping="Wrap"
+                    Text="{i18n:I18n Vex.VexL.DialogLoseChangesHint}" />
+            </StackPanel>
+            <Grid x:Name="ActionsGrid" ColumnDefinitions="*,Auto" Margin="0,14,0,0">
+                <StackPanel x:Name="ExitActions" Orientation="Horizontal" Spacing="8">
+                    <Button
+                        Classes="primary"
+                        Click="OnSaveClicked"
+                        Content="{i18n:I18n Vex.VexL.DialogSaveAndExit}"
+                        FontSize="12"
+                        Height="36"
+                        Padding="16,5"
+                        CornerRadius="18" />
+                    <Button
+                        Classes="dialog-secondary"
+                        Click="OnDiscardClicked"
+                        Content="{i18n:I18n Vex.VexL.DialogDiscardAndExit}"
+                        FontSize="12"
+                        Height="36"
+                        Padding="16,5"
+                        CornerRadius="18"
+                        BorderThickness="1" />
+                </StackPanel>
+                <StackPanel x:Name="SwitchActions" IsVisible="False" Orientation="Horizontal" Spacing="8">
+                    <Button
+                        Classes="primary"
+                        Click="OnSaveClicked"
+                        Content="{i18n:I18n Vex.VexL.DialogSaveAndSwitch}"
+                        FontSize="12"
+                        Height="32"
+                        Padding="16,5"
+                        CornerRadius="16" />
+                    <Button
+                        Classes="dialog-secondary"
+                        Click="OnDiscardClicked"
+                        Content="{i18n:I18n Vex.VexL.DialogDiscardAndSwitch}"
+                        FontSize="12"
+                        Height="32"
+                        Padding="16,5"
+                        CornerRadius="16"
+                        BorderThickness="1" />
                 </StackPanel>
                 <Button
-                    Grid.Column="2"
-                    Classes="vex-dismiss"
-                    Width="40"
-                    Height="30"
-                    Click="OnCancelClicked" />
-            </Grid>
-            <TextBlock
-                x:Name="ExitHint"
-                FontSize="13.5"
-                LineHeight="21"
-                Classes="muted"
-                TextWrapping="Wrap"
-                Text="{i18n:I18n Vex.VexL.DialogExitHint}" />
-            <TextBlock
-                x:Name="SwitchHint"
-                IsVisible="False"
-                FontSize="13.5"
-                LineHeight="21"
-                Classes="muted"
-                TextWrapping="Wrap"
-                Text="{i18n:I18n Vex.VexL.DialogSwitchHint}" />
-            <StackPanel x:Name="ExitActions" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
-                <Button
-                    Command="{Binding Cancel}"
+                    x:Name="CancelButton"
+                    Grid.Column="1"
+                    Classes="dialog-secondary"
+                    Click="OnCancelClicked"
                     Content="{i18n:I18n Vex.VexL.DialogContinueEditing}"
-                    MinHeight="34"
-                    Padding="14,5"
-                    CornerRadius="6" />
-                <Button
-                    Click="OnDiscardClicked"
-                    Content="{i18n:I18n Vex.VexL.DialogDiscardAndExit}"
-                    MinWidth="120"
-                    MinHeight="34"
-                    Padding="14,5"
-                    CornerRadius="6"
-                    Background="Transparent"
-                    BorderBrush="{DynamicResource VexDangerBrush}"
-                    BorderThickness="1"
-                    Foreground="{DynamicResource VexDangerBrush}" />
-            </StackPanel>
-            <StackPanel x:Name="SwitchActions" IsVisible="False" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
-                <Button
-                    Command="{Binding Cancel}"
-                    Content="{i18n:I18n {x:Static l:VexL.Cancel}}"
-                    MinHeight="34"
-                    Padding="14,5"
-                    CornerRadius="6" />
-                <Button
-                    Click="OnDiscardClicked"
-                    Content="{i18n:I18n Vex.VexL.DialogDiscardAndSwitch}"
-                    MinHeight="34"
-                    Padding="14,5"
-                    CornerRadius="6" />
-                <Button
-                    Classes="primary"
-                    Command="{Binding Save}"
-                    Content="{i18n:I18n Vex.VexL.DialogSaveAndSwitch}"
-                    MinHeight="34"
-                    Padding="14,5"
-                    CornerRadius="6" />
-            </StackPanel>
+                    FontSize="12"
+                    Height="36"
+                    Padding="16,5"
+                    CornerRadius="18"
+                    BorderThickness="1" />
+            </Grid>
         </StackPanel>
     </Border>
 </UserControl>

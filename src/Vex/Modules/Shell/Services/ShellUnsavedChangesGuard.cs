@@ -21,8 +21,6 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
     }
 
     public async Task RunAsync(
-        string title,
-        string message,
         bool isModified,
         string? currentFilePath,
         Func<Task> continuation,
@@ -39,7 +37,7 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
         }
 
         // 这里只负责决策分发，不直接执行文件操作；保存与后续动作由调用方闭包描述。
-        // 退出流不提供保存按钮（用户可取消后自行保存），切换流提供 保存并切换。
+        // 对话框严格按系统保存框参考图：标题「保存」+ 两行内容 + 三按钮（保存·主 / 丢弃 靠左，取消 靠右）；保留草稿仍作为可编程决策保留。
         var decision = await ShowUnsavedDialogAsync(flow);
         switch (decision)
         {
@@ -74,6 +72,7 @@ public sealed class ShellUnsavedChangesGuard : IShellUnsavedChangesGuard
         var viewModel = new ShellUnsavedDialogViewModel(flow);
         return OverlayDialog.ShowCustomAsync<ShellUnsavedDecision>(
             new ShellUnsavedDialogView(),
-            viewModel);
+            viewModel,
+            options: new Ursa.Controls.OverlayDialogOptions { CanDragMove = false, IsCloseButtonVisible = false });
     }
 }

@@ -22,57 +22,6 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
         _toastPublisher = toastPublisher;
     }
 
-    public string UnsavedDocumentFallback => Text(VexL.UnsavedDocument);
-
-    public string TitleSaveChanges => Text(VexL.UnsavedTitleSaveChanges);
-
-    public string TitleBeforeOpeningFolder => Text(VexL.UnsavedTitleBeforeOpeningFolder);
-
-    public string TitleBeforeOpening => Text(VexL.UnsavedTitleBeforeOpening);
-
-    public string TitleBeforeSwitchingFiles => Text(VexL.UnsavedTitleBeforeSwitchingFiles);
-
-    public string TitleBeforeDeleting => Text(VexL.UnsavedTitleBeforeDeleting);
-
-    public string TitleBeforeReopening => Text(VexL.UnsavedTitleBeforeReopening);
-
-    public string TitleBeforeOpeningRecent => Text(VexL.UnsavedTitleBeforeOpeningRecent);
-
-    public string TitleBeforeClosingVex => Text(VexL.UnsavedTitleBeforeClosingVex);
-
-    public string BeforeOpeningDroppedFolder(string documentName) =>
-        Format(VexL.UnsavedMessageBeforeOpeningDroppedFolderFormat, documentName);
-
-    public string BeforeOpeningFile(string documentName, string fileName) =>
-        Format(VexL.UnsavedMessageBeforeOpeningFileFormat, documentName, fileName);
-
-    public string BeforeNewDocument(string documentName) =>
-        Format(VexL.UnsavedMessageBeforeNewDocumentFormat, documentName);
-
-    public string BeforeClosingDocument(string documentName) =>
-        Format(VexL.UnsavedMessageBeforeClosingDocumentFormat, documentName);
-
-    public string BeforeOpeningAnotherFile(string documentName) =>
-        Format(VexL.UnsavedMessageBeforeOpeningAnotherFileFormat, documentName);
-
-    public string BeforeOpeningFolder(string documentName) =>
-        Format(VexL.UnsavedMessageBeforeOpeningFolderFormat, documentName);
-
-    public string BeforeSwitchingFile(string documentName, string fileName) =>
-        Format(VexL.UnsavedMessageBeforeSwitchingFileFormat, documentName, fileName);
-
-    public string BeforeDeleting(string documentName) =>
-        Format(VexL.UnsavedMessageBeforeDeletingFormat, documentName);
-
-    public string BeforeReopeningWithEncoding(string documentName, string encodingName) =>
-        Format(VexL.UnsavedMessageBeforeReopeningWithEncodingFormat, documentName, encodingName);
-
-    public string BeforeOpeningRecent(string documentName, string recentName) =>
-        Format(VexL.UnsavedMessageBeforeOpeningRecentFormat, documentName, recentName);
-
-    public string BeforeClosingVex(string documentName) =>
-        Format(VexL.UnsavedMessageBeforeClosingVexFormat, documentName);
-
     public void PublishDroppedItemUnavailable() => Publish(VexL.StatusDroppedItemUnavailable);
 
     public void PublishDropMarkdownOrTextFile() => Publish(VexL.StatusDropMarkdownOrTextFile);

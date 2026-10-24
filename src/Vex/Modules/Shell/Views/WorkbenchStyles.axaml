@@ -38,6 +38,18 @@
     <StreamGeometry x:Key="WBCloseIcon">M6 6L18 18 M18 6L6 18</StreamGeometry>
     <StreamGeometry x:Key="WBGearIcon">M15 12A3 3 0 1 1 9 12A3 3 0 1 1 15 12 M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z</StreamGeometry>
   </Styles.Resources>
+  <!-- 原型 .exit-dialog-actions .btn（非 primary）：面板底 + 1px #E2E2E4 细边 + 前景文字；
+       Semi 主题模板 ContentPresenter 会覆盖按钮本地值，必须走 /template/ 选择器。 -->
+  <Style Selector="Button.dialog-secondary /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+  </Style>
+  <Style Selector="Button.dialog-secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+  </Style>
   <Style Selector="Button.selected-choice /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
