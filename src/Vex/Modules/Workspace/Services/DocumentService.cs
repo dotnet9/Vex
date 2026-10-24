@@ -4,7 +4,6 @@ using System.Text;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-using CodeWF.Toolkit.Core.FileExtensions;
 using Vex.Core.Models;
 using Vex.Core.Services;
 
@@ -13,13 +12,14 @@ namespace Vex.Modules.Workspace.Services;
 public sealed class DocumentService : IDocumentService
 {
     private static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
-    private readonly IDocumentFileFactory _documentFileFactory;
+    private readonly IWorkspaceFileService _workspaceFiles;
     private readonly IAppLocalizer _localizer;
     private readonly EditorPreferences _preferences;
 
-    public DocumentService(IDocumentFileFactory documentFileFactory, IAppLocalizer localizer, EditorPreferences preferences)
+    public DocumentService(IDocumentFileFactory documentFileFactory, IAppLocalizer localizer, EditorPreferences preferences,
+        IWorkspaceFileService? workspaceFiles = null)
     {
-        _documentFileFactory = documentFileFactory;
+        _workspaceFiles = workspaceFiles ?? new WorkspaceFileService(documentFileFactory);
         _localizer = localizer;
         _preferences = preferences;
     }
@@ -122,7 +122,8 @@ public sealed class DocumentService : IDocumentService
             throw new InvalidOperationException(_localizer.Get(VexL.DocumentDetailFilePathMissing));
         }
 
-        var markdown = await FileHelper.SafeReadAllTextAsync(path, document.Encoding);
+        using var reader = new StreamReader(path, document.Encoding, detectEncodingFromByteOrderMarks: true);
+        var markdown = await reader.ReadToEndAsync();
         return document with
         {
             FilePath = path,
@@ -153,34 +154,25 @@ public sealed class DocumentService : IDocumentService
             : await OpenFolderPathAsync(folder);
     }
 
-    public Task<IReadOnlyList<DocumentFile>> OpenFolderPathAsync(string folder)
+    public async Task<IReadOnlyList<DocumentFile>> OpenFolderPathAsync(string folder)
     {
         if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder))
         {
             LastOpenedFolderPath = null;
-            return Task.FromResult<IReadOnlyList<DocumentFile>>([]);
+            return [];
         }
 
-        LastOpenedFolderPath = Path.GetFullPath(folder);
-
-        return Task.Run<IReadOnlyList<DocumentFile>>(() =>
-        {
-            return WorkspaceFileEnumeration.EnumerateFiles(folder)
-                // 与文件选择器保持一致，文件夹扫描也识别常见 Markdown 扩展名。
-                .Where(IsSupportedDocumentPath)
-                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
-                .Select(path => _documentFileFactory.Create(path, folder))
-                .ToList();
-        });
+        var root = Path.GetFullPath(folder);
+        _workspaceFiles.Open(root);
+        LastOpenedFolderPath = root;
+        var snapshot = await _workspaceFiles.GetDirectoryAsync(root);
+        if (!_workspaceFiles.IsCurrent(snapshot)) throw new OperationCanceledException("工作区已切换。");
+        return snapshot.Entries.Where(entry => !entry.IsDirectory).Select(entry => entry.DocumentFile!).ToArray();
     }
 
     public bool IsSupportedDocumentPath(string path)
     {
-        var extension = Path.GetExtension(path);
-        return extension.Equals(".md", StringComparison.OrdinalIgnoreCase)
-               || extension.Equals(".markdown", StringComparison.OrdinalIgnoreCase)
-               || extension.Equals(".mdown", StringComparison.OrdinalIgnoreCase)
-               || extension.Equals(".txt", StringComparison.OrdinalIgnoreCase);
+        return WorkspaceFileEnumeration.IsSupportedDocumentPath(path);
     }
 
     // 逐路径写入锁：同一文档的保存/另存串行，避免并发保存交叉写坏内容。

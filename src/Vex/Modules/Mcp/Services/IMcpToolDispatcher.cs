@@ -7,7 +7,7 @@ public interface IMcpToolDispatcher
 {
     McpToolsListResult ListTools();
 
-    ResourceListResult ListResources();
+    Task<ResourceListResult> ListResourcesAsync();
 
     ResourceReadResult ReadResource(string uri);
 
