@@ -38,6 +38,7 @@ public static class DiagramEditor
 
             // 结构对齐原型：源码卡片（默认折叠）+ 原内容 + mermaid 徽标（预览右上角悬浮）。
             var original = border.Child;
+            border.Child = null; // 先摘离原内容，再挂入布局（Avalonia 不允许控件同时有两个视觉父级）。
             var sourceCard = new Border
             {
                 IsVisible = false,

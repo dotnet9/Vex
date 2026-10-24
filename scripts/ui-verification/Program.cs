@@ -1324,7 +1324,9 @@ void VerifyMermaidWorkspace(Vex.Modules.Shell.Views.MainWindow window, MainWindo
     var preview = previewView.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
     var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
     Border[] Diagrams(Control host) => host.GetVisualDescendants().OfType<Border>().Where(border => border.Classes.Contains("MdMermaid")).ToArray();
-    bool Ready(Control host) => Diagrams(host).Any(border => border.Child is Image { Source: not null });
+    bool Ready(Control host) => Diagrams(host).Any(border =>
+        (border.Child is Image { Source: not null })                       // 旧结构：Border > Image
+        || border.GetVisualDescendants().OfType<Image>().Any(image => image.Source is not null)); // 新结构：Border > Grid(源码卡+预览+徽标) > Image
     vm.Workbench.SelectLayout("source"); Pump();
     var previousPreview = preview.Markdown;
     var timer = System.Diagnostics.Stopwatch.StartNew(); Pump(vm.OpenPathAsync(file)); Pump();
