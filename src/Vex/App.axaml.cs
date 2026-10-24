@@ -102,6 +102,7 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<ShellPreferencesViewModel>();
         containerRegistry.RegisterSingleton<IAppLocalizer, AppLocalizer>();
         containerRegistry.RegisterSingleton<IDocumentFileFactory, DocumentFileFactory>();
+        containerRegistry.RegisterSingleton<IWorkspaceFileService, WorkspaceFileService>();
         containerRegistry.RegisterSingleton<IDocumentService, DocumentService>();
         containerRegistry.RegisterSingleton<IEditorAppearanceState, EditorAppearanceState>();
         containerRegistry.RegisterSingleton<IWorkspaceDocumentState, WorkspaceDocumentState>();
