@@ -1,4 +1,44 @@
 <Styles xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- ===== 块状工作区（原型 workspace-chrome.css）：灰画布 + 圆角描边白块，外缘 10px、块间 4px ===== -->
+  <Style Selector="Border.workspace-block">
+    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="ClipToBounds" Value="True" />
+    <!-- 原型 block-shadow：0 1px 3px fg 5%。 -->
+    <Setter Property="BoxShadow" Value="0 1 3 0 #0D000000" />
+  </Style>
+  <!-- 分栏把手本体即 4px 间隙，负外边距把命中区扩到 12px；悬停或拖动时显出握柄。 -->
+  <Style Selector="GridSplitter.workspace-gap">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="Transparent">
+          <Border Name="Grip" Opacity="0" CornerRadius="2" HorizontalAlignment="Center" VerticalAlignment="Center" Background="{DynamicResource VexSplitterBrush}" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="GridSplitter.workspace-gap:pointerover /template/ Border#Grip, GridSplitter.workspace-gap:pressed /template/ Border#Grip">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector="GridSplitter.gap-horizontal">
+    <Setter Property="Margin" Value="-4,0" />
+    <Setter Property="Cursor" Value="SizeWestEast" />
+  </Style>
+  <Style Selector="GridSplitter.gap-horizontal /template/ Border#Grip">
+    <Setter Property="Width" Value="3" />
+    <Setter Property="Height" Value="38" />
+  </Style>
+  <Style Selector="GridSplitter.gap-vertical">
+    <Setter Property="Margin" Value="0,-4" />
+    <Setter Property="Cursor" Value="SizeNorthSouth" />
+  </Style>
+  <Style Selector="GridSplitter.gap-vertical /template/ Border#Grip">
+    <Setter Property="Width" Value="38" />
+    <Setter Property="Height" Value="3" />
+  </Style>
   <Style Selector="FlyoutPresenter, MenuFlyoutPresenter, Border.dialog-card, Border.wb-popover">
     <Setter Property="motion:EntranceMotion.IsEnabled" Value="True"/>
     <Setter Property="motion:EntranceMotion.Animate" Value="{DynamicResource VexMotionEnabled}"/>

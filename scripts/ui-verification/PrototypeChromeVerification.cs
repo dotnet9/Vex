@@ -70,11 +70,12 @@ internal static class PrototypeChromeVerification
         var pins = vm.Workbench.Preferences;
         var editorOptions = window.FindControl<ShellEditorOptionsView>("EditorOptions")!;
         var editOptionsBorder = editorOptions.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("edit-options"));
-        Check(editOptionsBorder.Classes.Contains("pinned") && vm.Workbench.EditorSurfaceMargin == new Thickness(0, 42, 0, 0),
-            "Pinned editor toolbar docks the workspace below it");
+        Check(editOptionsBorder.Classes.Contains("pinned") && Grid.GetRow(editorOptions) == 0
+            && editorOptions.GetVisualAncestors().OfType<Border>().Any(b => b.Classes.Contains("workspace-block")),
+            "Pinned editor toolbar docks as the editing block's own first row");
         pins.PinEditorToolbar = false; Render();
-        Check(!editOptionsBorder.Classes.Contains("pinned") && vm.Workbench.EditorSurfaceMargin == default(Thickness),
-            "Unpinned editor toolbar floats without pushing content");
+        Check(!editOptionsBorder.Classes.Contains("pinned") && Grid.GetRow(editorOptions) == 1,
+            "Unpinned editor toolbar floats over the content without taking a row");
         pins.PinEditorToolbar = true; Render();
         vm.Workbench.SelectLayout("source-render"); Render();
         var readingHeader = window.WorkspaceViews.ReadingHeader;

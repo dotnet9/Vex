@@ -6,6 +6,11 @@
     <SolidColorBrush x:Key="VexPanelBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <!-- 原型 .view-heading 底边：border 65% 透明度。 -->
     <SolidColorBrush x:Key="VexPaneHeadBorderBrush" Color="{DynamicResource StudioBorderColor}" Opacity="0.65" />
+    <!-- 原型 .app-window>.titlebar 底边：border 55% 透明度。 -->
+    <SolidColorBrush x:Key="VexTitleDividerBrush" Color="{DynamicResource StudioBorderColor}" Opacity="0.55" />
+    <!-- 原型 .app-window 画布底 = 块面（paper），明暗各按规则叠一层色把块顶出来，见下方明暗字典。 -->
+    <SolidColorBrush x:Key="VexWorkspaceCanvasBrush" Color="{DynamicResource StudioPaperColor}" />
+    <!-- 原型 .workspace 画布（块与块之间的底）：浅色 = 纸面掺 5% 墨，深色 = 纸面掺 30% 面板色。 -->
     <SolidColorBrush x:Key="VexEditorCurrentLineBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <SolidColorBrush x:Key="VexStatusBarBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <SolidColorBrush x:Key="VexStatusBadgeBorderBrush" Color="{DynamicResource StudioBorderColor}" />
@@ -44,11 +49,14 @@
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidSurface" Color="#EEEAFD" />
             <x:String x:Key="CodeWFMarkdownMermaidDataPalette">#8B7CF6,#D9AD53,#70A98B,#C583B5,#62A5C2,#D58585,#7E9ECB,#A9B568</x:String>
             <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#7466E0,#D9AD53,#70A98B,#C583B5,#62A5C2,#D58585,#7E9ECB,#A9B568</x:String>
-            <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="#FFFFFF" />
+            <!-- 原型块内不另铺底色：正文纸面即块面（editor-bg 与 surface 同值），随配色一起走。 -->
+            <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="{DynamicResource StudioPaperColor}" />
+            <!-- 原型画布底 = 纸面掺 5% 墨（color-mix fg 5% paper），把画布压暗一档与白块拉开。 -->
+            <SolidColorBrush x:Key="VexCanvasInkTintBrush" Color="{DynamicResource StudioTextColor}" Opacity="0.05" />
             <!-- 弹层/对话框浮起底色：浅色主题统一纯白，不随配色纸面偏米黄。 -->
             <SolidColorBrush x:Key="VexElevatedBackgroundBrush" Color="#FFFFFF" />
-            <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="#FFFFFF" />
-            <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
+            <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexTableHeaderBrush" Color="#F7F7F8" />
             <SolidColorBrush x:Key="VexTableStripeBrush" Color="#F7F7F8" />
             <SolidColorBrush x:Key="VexTableBorderBrush" Color="#DFE2E5" />
@@ -69,10 +77,13 @@
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidSurface" Color="#38304E" />
             <x:String x:Key="CodeWFMarkdownMermaidDataPalette">#B6A6FF,#E8C778,#93CFAC,#DFA2D0,#8AC8E0,#E8AAA3,#A7BFE7,#C4CE8E</x:String>
             <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#B6A6FF,#E8C778,#93CFAC,#DFA2D0,#8AC8E0,#E8AAA3,#A7BFE7,#C4CE8E</x:String>
-            <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="#202124" />
+            <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="{DynamicResource StudioPaperColor}" />
+            <!-- 原型深色画布要比块亮一档（bg = mix paper, panel 30%）；Studio 的 surface 反而更深，
+                 所以取最浅的中性上浮色按 40% 叠在纸面上，随配色自适应地抬起画布。 -->
+            <SolidColorBrush x:Key="VexCanvasInkTintBrush" Color="{DynamicResource StudioRaisedColor}" Opacity="0.4" />
             <SolidColorBrush x:Key="VexElevatedBackgroundBrush" Color="#1F2021" />
-            <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="#202124" />
-            <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="#202124" />
+            <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
+            <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexTableHeaderBrush" Color="#292C32" />
             <SolidColorBrush x:Key="VexTableStripeBrush" Color="#24272D" />
             <SolidColorBrush x:Key="VexTableBorderBrush" Color="#41454E" />

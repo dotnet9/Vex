@@ -1813,7 +1813,8 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
         "Editing context row is 42 px above the workspace");
     wb.ShowSource(); Pump();
-    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && Math.Abs(source.Bounds.Width - window.FindControl<Grid>("ViewSurface")!.Bounds.Width) < 2,
+    // 视图块左右各 1px 描边：正文比块面窄 2px，仍算铺满当前工作区宽度。
+    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && Math.Abs(window.FindControl<Grid>("ViewSurface")!.Bounds.Width - source.Bounds.Width - 2) < 1,
         $"The source layout fills the current workspace width: source={source.IsEffectivelyVisible}/{source.Bounds}, preview={preview.IsEffectivelyVisible}, surface={window.FindControl<Grid>("ViewSurface")!.Bounds}, layout={wb.WorkspaceLayout}");
     Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.GetVisualDescendants().OfType<Button>().Any(button => button.Name == "TypographyTarget"),
         "Editing options retain the prototype formatting and typography controls");
@@ -2081,9 +2082,14 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
                 && Math.Abs(sidebar.Bounds.Width - vm.Layout.SidebarWidth) < 1,
                 "One sidebar width is shared by the column, visual and persisted state");
             var contentLeft = instant.TranslatePoint(default, window)!.Value.X;
-            Check(Math.Abs(contentLeft - sidebar.Bounds.Width - splitter.Bounds.Width) < 1 && instant.Bounds.Width >= 360
+            // 块状工作区：视图块外缘 = 侧栏块外缘 + 侧栏列宽 + 4px 间隙，正文再让出块自身 1px 描边；
+            // 分栏把手的负外边距只扩命中区，不参与列宽。
+            var surfaceLeft = window.FindControl<Grid>("ViewSurface")!.TranslatePoint(default, window)!.Value.X;
+            var expectedSurface = sidebar.TranslatePoint(default, window)!.Value.X + sidebar.Bounds.Width + ShellWindowLayoutViewModel.BlockGap;
+            Check(Math.Abs(surfaceLeft - expectedSurface) < 1
+                && Math.Abs(contentLeft - surfaceLeft - 1) < 1 && instant.Bounds.Width >= 360
                 && contentLeft + instant.Bounds.Width <= window.Bounds.Width + 1,
-                "Sidebar drag leaves no phantom column or clipped document");
+                $"Sidebar drag leaves no phantom column or clipped document: surface={surfaceLeft} expected={expectedSurface} content={contentLeft}");
         }
         var saved = vm.Layout.SidebarWidth;
         vm.Layout.ShowOutline(); Pump(); vm.Layout.ShowFiles(); Pump();
@@ -2143,6 +2149,8 @@ void VerifyTitleLayout(Window window)
     var divider = window.FindControl<Border>("ShellTitleDivider")!;
     var content = window.FindControl<Grid>("ShellGuideRoot")!;
     var sidebar = window.FindControl<Border>("SidebarGuideTarget")!;
+    var canvas = window.FindControl<Grid>("WorkspaceColumns")!;
+    var canvasY = canvas.TranslatePoint(default, window)!.Value.Y;
     var spacer = window.GetVisualDescendants().OfType<Border>().Single(border => border.Name == "PART_TitleBarSpacer");
     var titleBottom = spacer.TranslatePoint(default, window)!.Value.Y + spacer.Bounds.Height;
     var dividerY = divider.TranslatePoint(default, window)!.Value.Y;
@@ -2151,8 +2159,9 @@ void VerifyTitleLayout(Window window)
         && Math.Abs(spacer.Bounds.Height - shell.TitleBarHeight) < 0.01,
         $"Vex content divider starts immediately after the {shell.TitleBarHeight} px title bar: y={dividerY}");
     Check(Math.Abs(contentY - dividerY - 1) < 0.01
-        && Math.Abs(sidebar.TranslatePoint(default, window)!.Value.Y - contentY) < 0.01,
-        $"Vex sidebar and workspace start immediately below the title divider: y={contentY}");
+        && Math.Abs(sidebar.TranslatePoint(default, window)!.Value.Y - canvasY) < 0.01
+        && canvasY - contentY >= canvas.Margin.Top && canvasY - contentY < shell.TitleBarHeight,
+        $"Vex blocks start on the canvas below the title divider, without re-reserving the {shell.TitleBarHeight} px title bar: content={contentY} canvas={canvasY}");
 }
 
 void VerifyVexDetails(Window window, ThemeVariant theme)
@@ -2161,10 +2170,19 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
     var divider = window.FindControl<Border>("ShellTitleDivider")!;
     using (var bitmap = SKBitmap.Decode(Path.Combine(output, "vex-" + theme + ".png")))
     {
-        var pixel = bitmap.GetPixel(1000, (int)divider.TranslatePoint(default, window)!.Value.Y);
-        var borderColor = ((ISolidColorBrush)divider.BorderBrush!).Color;
-        Check(pixel.Red == borderColor.R && pixel.Green == borderColor.G && pixel.Blue == borderColor.B,
-            "Vex screenshot contains the title border pixel under " + theme);
+        var dividerY = (int)divider.TranslatePoint(default, window)!.Value.Y;
+        var pixel = bitmap.GetPixel(1000, dividerY);
+        var brush = (ISolidColorBrush)divider.BorderBrush!;
+        var borderColor = brush.Color;
+        // 原型 .titlebar 底边是边框色 55% 叠底：分隔线画在窗体模板底色上，截图里出现的是混合值。
+        var backdrop = ((ISolidColorBrush)window.FindResource("VexShellBackgroundBrush")!).Color;
+        var alpha = brush.Opacity * borderColor.A / 255d;
+        static int Mix(byte border, byte below, double a) => (int)Math.Round(border * a + below * (1 - a));
+        Check(Math.Abs(pixel.Red - Mix(borderColor.R, backdrop.R, alpha)) <= 1
+            && Math.Abs(pixel.Green - Mix(borderColor.G, backdrop.G, alpha)) <= 1
+            && Math.Abs(pixel.Blue - Mix(borderColor.B, backdrop.B, alpha)) <= 1,
+            "Vex screenshot contains the 55% title border pixel under " + theme
+            + $" (pixel={pixel}, border={borderColor} x{alpha:0.##}, backdrop={backdrop})");
     }
     var files = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellFilesView>().Single();
     var outline = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellOutlineView>().Single();

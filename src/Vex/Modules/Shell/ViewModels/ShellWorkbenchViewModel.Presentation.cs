@@ -18,7 +18,8 @@ public sealed partial class ShellWorkbenchViewModel
     public bool PresentationOutline => IsPresenting && _presentationOutline;
     public bool PresentationMap => IsPresenting && _presentationMap;
     public bool PresentationDocument => IsPresenting && !_presentationOutline && !_presentationMap;
-    public Avalonia.Thickness PresentationContentMargin => IsPresenting ? new(0, 70, 0, 20) : default;
+    /// <summary>原型 .workspace：常规布局四周留 10px 画布，演示整幅出血并让出顶栏与底缘。</summary>
+    public Avalonia.Thickness WorkspaceContentMargin => IsPresenting ? new(0, 70, 0, 20) : new(10);
     public bool CanPreviousPresentation => _presentationIndex > 0;
     public bool CanNextPresentation => _presentationIndex + 1 < PresentationSections.Count;
     public void TogglePresentationOutline() { _presentationOutline = !_presentationOutline; _presentationMap = false; NotifyPresentation(); }

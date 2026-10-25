@@ -40,6 +40,9 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     /// <summary>侧栏默认宽度，与 design/index.html 主区栅格一致。</summary>
     public const double DefaultSidebarWidth = 226d;
 
+    /// <summary>原型 --block-gap：块之间的间隙宽度，分栏把手本体即这段间隙。</summary>
+    public const double BlockGap = 4d;
+
     private const double MinSidebarWidth = 200d;
 
     private const double MaxSidebarWidth = 560d;
@@ -214,7 +217,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     }
     public double MinimumOutlineWidth => ShowOutlineSidebar && _outlineAnimator.Value is null ? 180 : 0;
     public double MaximumOutlineWidth => ShowOutlineSidebar || _outlineAnimator.Value is not null ? 480 : 0;
-    public GridLength OutlineSplitterWidth => new(ShowOutlineSidebar ? 5 : 0);
+    public GridLength OutlineSplitterWidth => new(ShowOutlineSidebar ? BlockGap : 0);
     public void BeginOutlineResize() => _isOutlineResizing = true;
     public void CompleteOutlineResize() { _isOutlineResizing = false; PersistLayoutSettings(); }
     public void ToggleOutline() => IsOutlineVisible = !ShowOutlineSidebar;
@@ -244,7 +247,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private double SidebarTargetWidth => ShowSidebar ? IsCompactWindow && Math.Abs(SidebarWidth - DefaultSidebarWidth) < .01 ? 200 : SidebarWidth : 0;
     public double VisibleSidebarWidth => _sidebarAnimator.Value ?? SidebarTargetWidth;
 
-    public GridLength SidebarSplitterWidth => ShowSidebar ? new GridLength(5) : new GridLength(0);
+    public GridLength SidebarSplitterWidth => ShowSidebar ? new GridLength(BlockGap) : new GridLength(0);
 
     public GridLength SourceColumnWidth => IsSourceMode ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
 

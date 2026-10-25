@@ -50,11 +50,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         IEditorAppearanceState appearance, ShellWindowLayoutViewModel layout, IEditorDisplayState display, EditorPreferences preferences)
     {
         Preferences = preferences;
-        preferences.PreferencesChanged += (_, _) =>
-        {
-            ApplyLiveAppearance();
-            this.RaisePropertyChanged(nameof(EditorSurfaceMargin));
-        };
+        preferences.PreferencesChanged += (_, _) => ApplyLiveAppearance();
         _document = document; _settings = settings; _appearance = appearance; _layout = layout; _display = display;
         // 排版主题/尺寸档变化要即时重放到实时编辑器，而不是只在挂载时应用一次。
         appearance.Changed += (_, _) => ApplyLiveAppearance();
@@ -133,8 +129,6 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public bool IsPresenting => _isPresenting;
     public bool ShowEditorOptions => HasEditor && !IsPresenting;
 
-    /// <summary>钉住的编辑工具条为占位行：工作区整体让出工具条高度；取消钉住时悬浮不占位。</summary>
-    public Avalonia.Thickness EditorSurfaceMargin => ShowEditorOptions && Preferences.PinEditorToolbar ? new(0, 42, 0, 0) : default;
     public double PresentationZoom => _presentationZoom;
     public bool CanIncreasePresentationText => PresentationZoom < 2.5;
     public bool CanDecreasePresentationText => PresentationZoom > 1;
@@ -185,7 +179,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     {
         if (modeChanged) this.RaisePropertyChanged(nameof(IsPresenting));
         if (_reportedPresentationMap != PresentationMap) { _reportedPresentationMap = PresentationMap; this.RaisePropertyChanged(nameof(PresentationMap)); }
-        foreach (var name in new[] { nameof(ShowEditorOptions), nameof(PresentationZoom), nameof(PresentationZoomText), nameof(CanIncreasePresentationText), nameof(CanDecreasePresentationText), nameof(PresentationMarkdown), nameof(PresentationIndex), nameof(PresentationProgress), nameof(PresentationOutline), nameof(PresentationDocument), nameof(PresentationContentMargin), nameof(CanPreviousPresentation), nameof(CanNextPresentation), nameof(IsMapVisible), nameof(IsPreviewVisible) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(ShowEditorOptions), nameof(PresentationZoom), nameof(PresentationZoomText), nameof(CanIncreasePresentationText), nameof(CanDecreasePresentationText), nameof(PresentationMarkdown), nameof(PresentationIndex), nameof(PresentationProgress), nameof(PresentationOutline), nameof(PresentationDocument), nameof(WorkspaceContentMargin), nameof(CanPreviousPresentation), nameof(CanNextPresentation), nameof(IsMapVisible), nameof(IsPreviewVisible) }) this.RaisePropertyChanged(name);
     }
     private static string L(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
     public string EditingHint => L(IsInstantEditing ? VexL.WBInstantDescription : IsReading ? VexL.WBReadDescription : VexL.WBSourceDescription);
@@ -340,7 +334,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     }
     private void NotifyModes()
     {
-        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions), nameof(EditorSurfaceMargin), nameof(IsSourceSegmentActive), nameof(IsReadSegmentActive), nameof(IsMapSegmentActive), nameof(IsMoreSegmentActive), nameof(MoreSegmentLabel) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions), nameof(IsSourceSegmentActive), nameof(IsReadSegmentActive), nameof(IsMapSegmentActive), nameof(IsMoreSegmentActive), nameof(MoreSegmentLabel) }) this.RaisePropertyChanged(name);
         ApplyLayout();
     }
     private void ApplyLayout()

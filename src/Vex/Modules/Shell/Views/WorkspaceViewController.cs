@@ -30,6 +30,17 @@ public sealed class WorkspaceViewController
     private TextBlock? _renderLabel;
     private TextBlock? _renderTypographyPrefix;
     private TextBlock? _renderTypographyName;
+    private Grid? _editorLayout;
+    private Control? _editorOptions;
+
+    /// <summary>原型 #edit-options 是编辑块的第一个子级：钉住=占位行，取消钉住=悬浮在正文顶端。</summary>
+    private void ApplyEditorPin()
+    {
+        if (_editorOptions is null || _editorLayout is null) return;
+        var pinned = _pinPreferences?.PinEditorToolbar ?? true;
+        Grid.SetRow(_editorOptions, pinned ? 0 : 1);
+        _editorOptions.VerticalAlignment = pinned ? VerticalAlignment.Stretch : VerticalAlignment.Top;
+    }
 
     /// <summary>阅读窗格头（控制器自建），承载「钉」按钮；钉住状态由偏好驱动。</summary>
     public Border ReadingHeader => _headers["render"];
@@ -46,7 +57,7 @@ public sealed class WorkspaceViewController
         header.Classes.Set("floating", !pinned);
     }
 
-    private void OnPinPreferenceChanged(object? sender, EventArgs e) => ApplyReadingPin();
+    private void OnPinPreferenceChanged(object? sender, EventArgs e) { ApplyReadingPin(); ApplyEditorPin(); }
 
     private static Panel BuildPinIcon(double size)
     {
@@ -64,6 +75,11 @@ public sealed class WorkspaceViewController
     private FloatingSession? _presentationSession;
     private (CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.ViewportState Viewport, object? Root)? _presentationMapState;
     private readonly TextBlock _empty = new() { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+    // 原型 .view-split：分栏把手本体即 4px 间隙，块由间隙两侧各自留出边框。
+    private readonly GridSplitter _horizontalSplit = new() { Classes = { "workspace-gap", "gap-horizontal" }, ResizeDirection = GridResizeDirection.Columns, ResizeBehavior = GridResizeBehavior.PreviousAndNext };
+    private readonly GridSplitter _verticalSplit = new() { Classes = { "workspace-gap", "gap-vertical" }, ResizeDirection = GridResizeDirection.Rows, ResizeBehavior = GridResizeBehavior.PreviousAndNext };
+    private static GridLength Gap => new(ShellWindowLayoutViewModel.BlockGap);
+    private static GridLength NoGap => new(0);
     public IReadOnlyDictionary<string, CodeWFWindow> FloatingWindows => _floating;
     public WorkspaceViewController(MainWindow window, Grid surface, StackPanel shelf)
     {
@@ -72,11 +88,26 @@ public sealed class WorkspaceViewController
         var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
         var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var map = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
-        surface.Children.Clear(); surface.ColumnDefinitions = new ColumnDefinitions("*,0"); surface.RowDefinitions = new RowDefinitions("*,0");
+        surface.Children.Clear();
+        surface.ColumnDefinitions = new ColumnDefinitions("*,4,*");
+        surface.RowDefinitions = new RowDefinitions("*,4,*");
+        _horizontalSplit.ZIndex = 9; _verticalSplit.ZIndex = 9;
+        Grid.SetColumn(_horizontalSplit, 1); Grid.SetColumnSpan(_horizontalSplit, 1); Grid.SetRow(_horizontalSplit, 0);
+        Grid.SetColumn(_verticalSplit, 0); Grid.SetColumnSpan(_verticalSplit, 3); Grid.SetRow(_verticalSplit, 1);
+        surface.Children.Add(_horizontalSplit); surface.Children.Add(_verticalSplit);
         source.FindControl<Border>("SourceHeader")!.IsVisible = false;
         preview.FindControl<Border>("PaneHeader")!.IsVisible = false;
         var editors = new Grid(); editors.Children.Add(source); editors.Children.Add(instant);
         Add("editor", editors); Add("render", preview); Add("map", map);
+        // 原型把格式条移进编辑块（panels.editor.insertBefore(..., .view-body)）：块内才能被圆角裁切，
+        // 也让浮动窗格带走工具条。声明仍在 MainWindow 命名空间里，这里只迁走宿主。
+        _editorOptions = window.FindControl<Control>("EditorOptions");
+        if (_editorOptions is not null && _editorLayout is not null)
+        {
+            (_editorOptions.Parent as Panel)?.Children.Remove(_editorOptions);
+            _editorOptions.ZIndex = 2;
+            _editorLayout.Children.Add(_editorOptions);
+        }
         window.DataContextChanged += (_, _) => Attach();
         window.Closed += (_, _) =>
         {
@@ -128,11 +159,13 @@ public sealed class WorkspaceViewController
     {
         content.ClearValue(Grid.ColumnProperty); content.ClearValue(Grid.ColumnSpanProperty); content.ClearValue(Grid.RowProperty);
         var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*") };
+        if (id == "editor") _editorLayout = layout;
+        // Border 的圆角不裁子级：窗格自绘底色（编辑器/预览纸面）会顶穿块的四角，内层按内圆角 9px 裁切。
+        layout.SizeChanged += (_, e) => layout.Clip = new RectangleGeometry(new Rect(default, e.NewSize), 9, 9);
         if (id == "render")
         {
-            // 原型 .view-heading：36px、--bg 底、65% 底边；题注居左、排版入口居中、钉按钮居右。编辑器与导图窗格按原型不设标题行。
+            // 原型 .view-heading：36px、随块底透明、65% 底边；题注居左、排版入口居中、钉按钮居右。编辑器与导图窗格按原型不设标题行。
             var header = new Border { Height = 36, BorderThickness = new Thickness(0, 0, 0, 1) };
-            header.Bind(Border.BackgroundProperty, _window.GetResourceObservable("VexShellBackgroundBrush"));
             header.Bind(Border.BorderBrushProperty, _window.GetResourceObservable("VexPaneHeadBorderBrush"));
             var bar = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto,*"), VerticalAlignment = VerticalAlignment.Center };
             var caption = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
@@ -165,7 +198,7 @@ public sealed class WorkspaceViewController
         layout.Children.Add(content);
         // 窗格内容一律占第二行（*）：Auto 行只留给题注，否则无期望高度的窗格（导图）会被压扁。
         Grid.SetRow(content, 1);
-        var frame = new Border { Child = layout, ClipToBounds = true, BorderThickness = new Thickness(0), Tag = id };
+        var frame = new Border { Classes = { "workspace-block" }, Child = layout, Tag = id };
         frame.Bind(Border.BorderBrushProperty, _window.GetResourceObservable("VexPanelBorderBrush")); _frames[id] = frame;
     }
     public void Arrange()
@@ -199,18 +232,22 @@ public sealed class WorkspaceViewController
                 renderBar.ColumnDefinitions[2].Width = wanted.Length > 1 ? new GridLength(1, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
             }
             // 阅读正文留白/限宽由 MarkdownPreviewView.ApplyDocumentGeometry 统一处理。
-            ApplyReadingPin();
+            ApplyReadingPin(); ApplyEditorPin();
             var local = wanted.Where(id => !_floating.ContainsKey(id)).ToArray();
-            _surface.ColumnDefinitions[1].Width = local.Length >= 2 ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
-            _surface.RowDefinitions[1].Height = local.Length == 3 ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
-            if (local.Length == 3)
-            {
-                Place("editor",0,0); Place("render",1,0); Place("map",0,1,2);
-            }
-            else
-            {
-                for(var i=0;i<local.Length;i++) Place(local[i],i,0);
-            }
+            // 原型视图网格 = */间隙/*：上下两行时导图横向铺满，未启用的槽位与间隙收成 0。
+            var top = local.Length == 3 ? local[..2] : local;
+            var twoUp = local.Length >= 2;
+            var stacked = local.Length == 3;
+            var column = _surface.ColumnDefinitions[2];
+            if (twoUp) { if (!column.Width.IsStar) column.Width = new GridLength(1, GridUnitType.Star); } else column.Width = new GridLength(0);
+            var tail = _surface.RowDefinitions[2];
+            if (stacked) { if (!tail.Height.IsStar) tail.Height = new GridLength(1, GridUnitType.Star); } else tail.Height = new GridLength(0);
+            _surface.ColumnDefinitions[1].Width = twoUp ? Gap : NoGap;
+            _surface.RowDefinitions[1].Height = stacked ? Gap : NoGap;
+            _horizontalSplit.IsVisible = twoUp;
+            _verticalSplit.IsVisible = stacked;
+            for (var i = 0; i < top.Length; i++) Place(top[i], i * 2, 0);
+            if (stacked) Place("map", 0, 2, 3);
             if (local.Length == 0) { _empty.Text = WorkbenchText.Get("WSSeparate"); _surface.Children.Add(_empty); }
             _shelf.Children.Clear(); _shelf.IsVisible = _floating.Count > 0;
             foreach (var (id, floating) in _floating)
@@ -226,7 +263,7 @@ public sealed class WorkspaceViewController
     private void Place(string id,int column,int row,int span=1)
     {
         var frame=_frames[id]; Grid.SetColumn(frame,column); Grid.SetRow(frame,row); Grid.SetColumnSpan(frame,span);
-        frame.BorderThickness=new Thickness(column>0?1:0,row>0?1:0,0,0); if (!_surface.Children.Contains(frame)) _surface.Children.Add(frame);
+        if (!_surface.Children.Contains(frame)) _surface.Children.Add(frame);
     }
     public void Float(string id)
     {
