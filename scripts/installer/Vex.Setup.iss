@@ -471,6 +471,11 @@ begin
     { ExtractTemporaryFile 的返回值不是布尔，解包后直接读文件本身。 }
     ExtractTemporaryFile('Vex-Changelog.txt');
     if LoadStringFromFile(ExpandConstant('{tmp}\Vex-Changelog.txt'),Raw) then begin
+      { 探针：原始字节头（应为 35,35,32…「## 」）与解码机制自检（#$E4#$B8#$AD 经 1252 往返
+        恰为「中」的 UTF-8 字节，解码成功应回「中」、长度 1），分辨输入有损还是机制损坏。 }
+      Log('VEX FIXTURE rawhead='+IntToStr(Ord(Raw[1]))+','+IntToStr(Ord(Raw[2]))+','+IntToStr(Ord(Raw[3]))+
+        ' rawlen='+IntToStr(Length(Raw))+' probe=['+VUtf8DecodeBytes(#$E4#$B8#$AD)+']'+
+        ' probelen='+IntToStr(Length(VUtf8DecodeBytes(#$E4#$B8#$AD))));
       { 补一个换行收尾，循环内就不用在 or 之后再判长度（Inno 的 or 不保证短路）。 }
       Text:=VUtf8DecodeBytes(Raw)+#10; Line:='';
       for I:=1 to Length(Text) do
