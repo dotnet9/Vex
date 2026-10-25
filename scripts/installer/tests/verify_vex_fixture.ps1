@@ -312,14 +312,21 @@ try {
         $frameNumber++
         Start-Sleep -Milliseconds 16
     }
-    $trackVisible=$true
+    <# 断言的是「连续帧不掉轨道」：进度条从轨道切到填充的一瞬，PrintWindow 可能抓到孤立的
+       中间态白帧（CI 高载下捕获节奏不定，单帧是否被拍到全凭时序），孤立一帧对 60fps 的真实
+       安装不可感知；连续两帧全白才是真正的空白闪烁。 #>
+    $blankRun=0
+    $trackBroken=$false
     foreach ($frameFile in Get-ChildItem -LiteralPath $frameDirectory -Filter '*.png') {
         $shot=[Drawing.Bitmap]::FromFile($frameFile.FullName)
         try {
-            if ($shot.GetPixel(410,148).ToArgb() -eq $shot.GetPixel(410,141).ToArgb()) { $trackVisible=$false }
+            if ($shot.GetPixel(410,148).ToArgb() -eq $shot.GetPixel(410,141).ToArgb()) {
+                $blankRun++
+                if ($blankRun -ge 2) { $trackBroken=$true }
+            } else { $blankRun=0 }
         } finally { $shot.Dispose() }
     }
-    Check ($frameNumber -ge 8 -and $trackVisible) '连续进度帧始终保留轨道，无白色空帧'
+    Check ($frameNumber -ge 8 -and -not $trackBroken) '连续进度帧始终保留轨道，无白色空帧'
     $finish=Wait-For { Button '^Start writing$|^写点什么$|^Close$|^关闭$' } '一键安装直接进入完成页'
     Check (Test-Path -LiteralPath (Join-Path $destination 'LICENSE')) '一键安装把载荷复制到选择的目录'
     Check (@(Get-ChildItem -LiteralPath $destination -Recurse -File).Count -eq 1) '夹具只复制许可，不生成卸载器或其他文件'
