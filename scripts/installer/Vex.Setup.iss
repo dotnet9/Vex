@@ -454,6 +454,7 @@ begin
       MultiByteToWideChar（PascalScript 外部 String 参数编组带 1252 最佳适配往返，
       全角括号会变半角），Chr 又只到字节域。许可文件是纯 ASCII，不受此限。 }
     if LoadStringsFromFile(ExpandConstant('{tmp}\Vex-Changelog.txt'),Lines) then begin
+      Log('VEX FIXTURE lines0='+Copy(Lines[0],1,24)+' lines2='+Copy(Lines[2],1,24)+' linecount='+IntToStr(GetArrayLength(Lines)));
       for I:=0 to GetArrayLength(Lines)-1 do begin
         Line:=Lines[I];
         if Copy(Line,1,4)='## V' then VAddRelease(Line)
