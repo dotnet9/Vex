@@ -913,7 +913,9 @@
       "DensityCompact": "Compact",
       "DensityNormal": "Normal",
       "DensityRelaxed": "Relaxed",
-      "DialogLoseChangesHint": "If you don’t save, your changes will be lost."
+      "DialogLoseChangesHint": "If you don’t save, your changes will be lost.",
+      "ViewSplitHorizontal": "Adjust side-by-side view widths",
+      "ViewSplitVertical": "Adjust stacked view heights"
     }
   }
 }

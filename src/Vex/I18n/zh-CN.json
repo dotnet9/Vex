@@ -913,7 +913,9 @@
       "DensityCompact": "紧凑",
       "DensityNormal": "正常",
       "DensityRelaxed": "宽松",
-      "DialogLoseChangesHint": "如果不保存，您的更改将会丢失。"
+      "DialogLoseChangesHint": "如果不保存，您的更改将会丢失。",
+      "ViewSplitHorizontal": "调整左右视图宽度",
+      "ViewSplitVertical": "调整上下视图高度"
     }
   }
 }

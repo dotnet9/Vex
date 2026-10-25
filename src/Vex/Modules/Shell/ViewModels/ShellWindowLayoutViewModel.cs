@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -37,6 +38,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _isOutlineResizing;
     private readonly WidthAnimator _sidebarAnimator;
     private readonly WidthAnimator _outlineAnimator;
+    private readonly Dictionary<string, double> _splitRatios;
 
     /// <summary>侧栏默认宽度，与 design/index.html 主区栅格一致。</summary>
     public const double DefaultSidebarWidth = 226d;
@@ -75,6 +77,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _sidebarWidth = Math.Clamp(settings.SidebarWidth ?? DefaultSidebarWidth, MinSidebarWidth, MaxSidebarWidth);
         _isOutlineVisible = settings.IsOutlineVisible ?? false;
         _outlineWidth = Math.Clamp(settings.OutlineWidth ?? 240, 180, 480);
+        _splitRatios = ParseRatios(settings.ViewSplitRatios);
         MotionResources.Apply(_enableMotion);
         if (_isFocusMode)
         {
@@ -198,6 +201,35 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
 
     /// <summary>原型 focus/presentation 态：两种模式下块角折叠钮与悬浮胶囊同进退。</summary>
     public bool ShowPaneCollapses => !IsPresentationMode && !IsFocusMode;
+
+    /// <summary>原型 .split-handle：分屏比例限 20%–80%，键盘方向键每次走 5%。</summary>
+    public const double SplitRatioMin = .2, SplitRatioMax = .8, SplitRatioStep = .05;
+
+    /// <summary>原型 vex-design-split-ratio：按「视图预设 + 轴向」记住每处分屏的比例，缺省对半。</summary>
+    public double SplitRatio(string key) => _splitRatios.TryGetValue(key, out var ratio) ? ratio : .5;
+
+    public void SetSplitRatio(string key, double value)
+    {
+        var clamped = Math.Clamp(value, SplitRatioMin, SplitRatioMax);
+        if (_splitRatios.TryGetValue(key, out var current) && Math.Abs(current - clamped) < .0005) return;
+        _splitRatios[key] = clamped;
+        PersistLayoutSettings();
+    }
+
+    private static string SerializeRatios(Dictionary<string, double> ratios) => string.Join(';',
+        ratios.Select(pair => pair.Key + "=" + pair.Value.ToString("0.###", CultureInfo.InvariantCulture)));
+
+    private static Dictionary<string, double> ParseRatios(string? stored)
+    {
+        var parsed = new Dictionary<string, double>();
+        foreach (var entry in (stored ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var split = entry.IndexOf('=');
+            if (split <= 0 || !double.TryParse(entry[(split + 1)..], NumberStyles.Float, CultureInfo.InvariantCulture, out var value)) continue;
+            parsed[entry[..split]] = Math.Clamp(value, SplitRatioMin, SplitRatioMax);
+        }
+        return parsed;
+    }
 
     // 对齐方向决定让位落在哪一侧：左钮靠左对齐故偏移写在左边距，右钮相反；折叠时归零即贴画布窗边。
     private static Thickness PaneCollapseMargin(bool open, double columnWidth, bool right)
@@ -511,7 +543,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             OutlineWidth = OutlineWidth,
             EnableMotion = EnableMotion,
             IsFocusMode = IsFocusMode,
-            IsTypewriterMode = IsTypewriterMode
+            IsTypewriterMode = IsTypewriterMode,
+            ViewSplitRatios = SerializeRatios(_splitRatios)
         });
     }
 

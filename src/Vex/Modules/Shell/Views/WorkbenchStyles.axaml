@@ -47,7 +47,7 @@
   <!-- 箭头朝向：左栏展开朝左（收起方向）、折叠朝右；右栏相反。横向落点由 Layout 的块宽算出的外边距决定。 -->
   <Style Selector="Button.pane-collapse.left.on Path"><Setter Property="Data" Value="M7.5 2L3.5 6L7.5 10" /></Style>
   <Style Selector="Button.pane-collapse.right:not(.on) Path"><Setter Property="Data" Value="M7.5 2L3.5 6L7.5 10" /></Style>
-  <!-- 分栏把手本体即 4px 间隙，负外边距把命中区扩到 12px；悬停或拖动时显出握柄。 -->
+  <!-- 分栏把手本体即 4px 间隙，负外边距把命中区扩到 12px；悬停、键盘聚焦或拖动时显出握柄（原型 :hover/:focus-visible/.split-resizing）。 -->
   <Style Selector="GridSplitter.workspace-gap">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Template">
@@ -58,7 +58,7 @@
       </ControlTemplate>
     </Setter>
   </Style>
-  <Style Selector="GridSplitter.workspace-gap:pointerover /template/ Border#Grip, GridSplitter.workspace-gap:pressed /template/ Border#Grip">
+  <Style Selector="GridSplitter.workspace-gap:pointerover /template/ Border#Grip, GridSplitter.workspace-gap:pressed /template/ Border#Grip, GridSplitter.workspace-gap:focus-visible /template/ Border#Grip">
     <Setter Property="Opacity" Value="1" />
   </Style>
   <Style Selector="GridSplitter.gap-horizontal">

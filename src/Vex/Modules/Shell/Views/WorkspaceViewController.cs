@@ -81,6 +81,74 @@ public sealed class WorkspaceViewController
     private static GridLength Gap => new(ShellWindowLayoutViewModel.BlockGap);
     private static GridLength NoGap => new(0);
     public IReadOnlyDictionary<string, CodeWFWindow> FloatingWindows => _floating;
+    // 原型 makeHandle() 的 key = 「视图预设 : 轴向」：同一预设下左右与上下各存一份比例。
+    private string SplitKey(bool vertical) => (_vm?.Workbench.WorkspaceLayout ?? "edit") + (vertical ? ":v" : ":h");
+    private static GridLength Star(double value) => new(value, GridUnitType.Star);
+
+    /// <summary>未分栏的一侧收成 0、另一侧独占；分栏时按持久化比例分配星值。</summary>
+    private void ApplySplit(bool vertical, bool enabled)
+    {
+        var ratio = enabled && _vm is not null ? _vm.Layout.SplitRatio(SplitKey(vertical)) : 1d;
+        if (vertical)
+        {
+            _surface.RowDefinitions[0].Height = Star(enabled ? ratio : 1);
+            _surface.RowDefinitions[2].Height = enabled ? Star(1 - ratio) : NoGap;
+        }
+        else
+        {
+            _surface.ColumnDefinitions[0].Width = Star(enabled ? ratio : 1);
+            _surface.ColumnDefinitions[2].Width = enabled ? Star(1 - ratio) : NoGap;
+        }
+    }
+
+    /// <summary>把手聚焦时方向键按 5% 步进，Home/End 撞到 20%/80% 边界（原型 keydown 分支）。</summary>
+    private void OnSplitKeyDown(bool vertical, KeyEventArgs e)
+    {
+        if (_vm is null) return;
+        var step = (vertical, e.Key) switch
+        {
+            (false, Key.Left) => -ShellWindowLayoutViewModel.SplitRatioStep,
+            (false, Key.Right) => ShellWindowLayoutViewModel.SplitRatioStep,
+            (true, Key.Up) => -ShellWindowLayoutViewModel.SplitRatioStep,
+            (true, Key.Down) => ShellWindowLayoutViewModel.SplitRatioStep,
+            _ => 0d,
+        };
+        if (step == 0 && e.Key is not (Key.Home or Key.End)) return;
+        var key = SplitKey(vertical);
+        _vm.Layout.SetSplitRatio(key, step != 0
+            ? _vm.Layout.SplitRatio(key) + step
+            : e.Key == Key.Home ? ShellWindowLayoutViewModel.SplitRatioMin : ShellWindowLayoutViewModel.SplitRatioMax);
+        e.Handled = true;
+        Arrange();
+    }
+
+    private string[] _topIds = [];
+
+    /// <summary>拖拽落点后按实测块宽反推比例：GridSplitter 会把星值改写成像素值，只有量块不受单位影响。</summary>
+    private void CaptureSplitRatio(bool vertical)
+    {
+        if (_vm is null) return;
+        _surface.UpdateLayout();
+        double first, second;
+        if (vertical)
+        {
+            if (_topIds.Length < 1 || !_frames.TryGetValue("map", out var map)) return;
+            first = _frames[_topIds[0]].Bounds.Height; second = map.Bounds.Height;
+        }
+        else
+        {
+            if (_topIds.Length < 2) return;
+            first = _frames[_topIds[0]].Bounds.Width; second = _frames[_topIds[1]].Bounds.Width;
+        }
+        if (first > 0 && second > 0) _vm.Layout.SetSplitRatio(SplitKey(vertical), first / (first + second));
+    }
+
+    private static void NameSplit(GridSplitter splitter, string key)
+    {
+        var text = WorkbenchText.Get(key);
+        ToolTip.SetTip(splitter, text);
+        Avalonia.Automation.AutomationProperties.SetName(splitter, text);
+    }
     public WorkspaceViewController(MainWindow window, Grid surface, StackPanel shelf)
     {
         _window = window; _surface = surface; _shelf = shelf;
@@ -92,6 +160,12 @@ public sealed class WorkspaceViewController
         surface.ColumnDefinitions = new ColumnDefinitions("*,4,*");
         surface.RowDefinitions = new RowDefinitions("*,4,*");
         _horizontalSplit.ZIndex = 9; _verticalSplit.ZIndex = 9;
+        _horizontalSplit.Focusable = _verticalSplit.Focusable = true;
+        _horizontalSplit.DragCompleted += (_, _) => CaptureSplitRatio(false);
+        _verticalSplit.DragCompleted += (_, _) => CaptureSplitRatio(true);
+        _horizontalSplit.AddHandler(InputElement.KeyDownEvent, (_, e) => OnSplitKeyDown(false, e), global::Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        _verticalSplit.AddHandler(InputElement.KeyDownEvent, (_, e) => OnSplitKeyDown(true, e), global::Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        NameSplit(_horizontalSplit, "ViewSplitHorizontal"); NameSplit(_verticalSplit, "ViewSplitVertical");
         Grid.SetColumn(_horizontalSplit, 1); Grid.SetColumnSpan(_horizontalSplit, 1); Grid.SetRow(_horizontalSplit, 0);
         Grid.SetColumn(_verticalSplit, 0); Grid.SetColumnSpan(_verticalSplit, 3); Grid.SetRow(_verticalSplit, 1);
         surface.Children.Add(_horizontalSplit); surface.Children.Add(_verticalSplit);
@@ -120,7 +194,12 @@ public sealed class WorkspaceViewController
         CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += CultureChanged;
         Attach();
     }
-    private void CultureChanged(object? sender, EventArgs e) => Dispatcher.UIThread.Post(Arrange);
+    // 语言切换可能来自后台线程，把手文案与 ToolTip 都必须在 UI 线程写入。
+    private void CultureChanged(object? sender, EventArgs e) => Dispatcher.UIThread.Post(() =>
+    {
+        NameSplit(_horizontalSplit, "ViewSplitHorizontal"); NameSplit(_verticalSplit, "ViewSplitVertical");
+        Arrange();
+    });
     private void Attach()
     {
         if (_vm is not null) { _vm.Workbench.PropertyChanged -= Changed; _vm.DocumentInfo.PropertyChanged -= DocumentChanged; }
@@ -238,10 +317,9 @@ public sealed class WorkspaceViewController
             var top = local.Length == 3 ? local[..2] : local;
             var twoUp = local.Length >= 2;
             var stacked = local.Length == 3;
-            var column = _surface.ColumnDefinitions[2];
-            if (twoUp) { if (!column.Width.IsStar) column.Width = new GridLength(1, GridUnitType.Star); } else column.Width = new GridLength(0);
-            var tail = _surface.RowDefinitions[2];
-            if (stacked) { if (!tail.Height.IsStar) tail.Height = new GridLength(1, GridUnitType.Star); } else tail.Height = new GridLength(0);
+            _topIds = top;
+            // 原型 makeHandle().apply()：比例来自持久化的「预设 : 轴向」记录，未分栏的一侧收成 0。
+            ApplySplit(false, twoUp); ApplySplit(true, stacked);
             _surface.ColumnDefinitions[1].Width = twoUp ? Gap : NoGap;
             _surface.RowDefinitions[1].Height = stacked ? Gap : NoGap;
             _horizontalSplit.IsVisible = twoUp;

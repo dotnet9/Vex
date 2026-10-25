@@ -913,7 +913,9 @@
       "DensityCompact": "コンパクト",
       "DensityNormal": "標準",
       "DensityRelaxed": "ゆったり",
-      "DialogLoseChangesHint": "保存しない場合、変更は失われます。"
+      "DialogLoseChangesHint": "保存しない場合、変更は失われます。",
+      "ViewSplitHorizontal": "左右のビューの幅を調整",
+      "ViewSplitVertical": "上下のビューの高さを調整"
     }
   }
 }

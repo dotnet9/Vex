@@ -166,6 +166,61 @@ internal static class PrototypeChromeVerification
         Check(Vex.Modules.Workspace.Views.TableTools.ToMarkdown(extracted).StartsWith("| API | 说明 |"), "Table tools rebuild markdown");
         Check(Vex.Modules.Workspace.Views.TableTools.ToCsv(extracted).Contains("Read,读取文档"), "Table tools build csv");
         previewScroll!.Offset = default; Render();
+        // 原型 makeHandle()：视图分栏把手即 4px 间隙，支持拖拽与方向键，按「预设 : 轴向」持久化。
+        var surface = window.FindControl<Grid>("ViewSurface")!;
+        var columnSplit = surface.GetVisualChildren().OfType<GridSplitter>().Single(split => split.ResizeDirection == GridResizeDirection.Columns);
+        var rowSplit = surface.GetVisualChildren().OfType<GridSplitter>().Single(split => split.ResizeDirection == GridResizeDirection.Rows);
+        Check(Avalonia.Automation.AutomationProperties.GetName(columnSplit) == "调整左右视图宽度"
+            && Avalonia.Automation.AutomationProperties.GetName(rowSplit) == "调整上下视图高度",
+            "View split handles carry the prototype resize labels");
+        Border Block(string pane) => window.FindControl<Control>(pane)!
+            .GetVisualAncestors().OfType<Border>().First(block => block.Classes.Contains("workspace-block"));
+        vm.Workbench.SelectLayout("source-render"); Render();
+        columnSplit.Focus();
+        window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null); Render();
+        Check(Math.Abs(vm.Layout.SplitRatio("source-render:h") - .55) < .001, "Right arrow widens the left view by one 5% step");
+        window.KeyPress(Key.Home, RawInputModifiers.None, PhysicalKey.Home, null); Render();
+        window.KeyPress(Key.End, RawInputModifiers.None, PhysicalKey.End, null); Render();
+        Check(Math.Abs(vm.Layout.SplitRatio("source-render:h") - ShellWindowLayoutViewModel.SplitRatioMax) < .001, "End clamps the split at the 80% ceiling");
+        var keyboardSplit = Block("EditorGuideTarget").Bounds.Width
+            / (Block("EditorGuideTarget").Bounds.Width + Block("PreviewGuideTarget").Bounds.Width);
+        Check(Math.Abs(keyboardSplit - .8) < .02, $"Keyboard resize reaches the block geometry: ratio={keyboardSplit:0.###}");
+        Check((app.Resolve<IAppSettingsStore>().Current.ViewSplitRatios ?? "").Contains("source-render:h=0.8"),
+            "Keyboard resize persists the ratio per layout preset");
+        var splitSettings = (MemorySettings)app.Resolve<IAppSettingsStore>();
+        var splitWrites = splitSettings.UpdateCount;
+        var handlePoint = columnSplit.TranslatePoint(new Point(columnSplit.Bounds.Width / 2, columnSplit.Bounds.Height / 2), window)!.Value;
+        var dropPoint = surface.TranslatePoint(new Point(surface.Bounds.Width * .35, surface.Bounds.Height / 2), window)!.Value;
+        window.MouseDown(handlePoint, MouseButton.Left);
+        for (var step = 1; step <= 5; step++)
+        {
+            window.MouseMove(handlePoint + (dropPoint - handlePoint) * step / 5, RawInputModifiers.LeftMouseButton); Render();
+        }
+        Check(splitSettings.UpdateCount == splitWrites, "Dragging the view split writes no settings while the pointer moves");
+        window.MouseUp(dropPoint, MouseButton.Left); Render();
+        Check(Math.Abs(vm.Layout.SplitRatio("source-render:h") - .35) < .03
+            && splitSettings.UpdateCount == splitWrites + 1,
+            $"Dropping the handle persists one final ratio: {vm.Layout.SplitRatio("source-render:h"):0.###}");
+        var dragSplit = Block("EditorGuideTarget").Bounds.Width
+            / (Block("EditorGuideTarget").Bounds.Width + Block("PreviewGuideTarget").Bounds.Width);
+        Check(Math.Abs(dragSplit - vm.Layout.SplitRatio("source-render:h")) < .02,
+            $"Block widths follow the dragged ratio: blocks={dragSplit:0.###} stored={vm.Layout.SplitRatio("source-render:h"):0.###}");
+        vm.Workbench.SelectLayout("read"); Render();
+        vm.Workbench.SelectLayout("source-render"); Render();
+        Check(Math.Abs(vm.Layout.SplitRatio("source-render:h") - .35) < .03
+            && Math.Abs(Block("EditorGuideTarget").Bounds.Width / (Block("EditorGuideTarget").Bounds.Width + Block("PreviewGuideTarget").Bounds.Width) - .35) < .03,
+            "Leaving and returning to the preset restores its own split ratio");
+        vm.Workbench.SelectLayout("three"); Render();
+        Check(rowSplit.IsVisible && columnSplit.IsVisible, "Three-pane layout shows both split handles");
+        rowSplit.Focus();
+        window.KeyPress(Key.Down, RawInputModifiers.None, PhysicalKey.ArrowDown, null); Render();
+        var mapBlock = Block("MindMapGuideTarget").Bounds.Height;
+        var topBlock = Block("EditorGuideTarget").Bounds.Height;
+        Check(Math.Abs(vm.Layout.SplitRatio("three:v") - .55) < .001 && Math.Abs(topBlock / (topBlock + mapBlock) - .55) < .02
+            && Math.Abs(vm.Layout.SplitRatio("source-render:h") - .35) < .03,
+            $"Vertical split is a separate ratio from the horizontal one: v={vm.Layout.SplitRatio("three:v")} h={vm.Layout.SplitRatio("source-render:h")} blocks={topBlock:0}x{mapBlock:0}");
+        vm.Workbench.SelectLayout("instant"); Render();
+        Check(!columnSplit.IsVisible && !rowSplit.IsVisible, "A single view hides both split handles");
         // 自定义排版：注册→目录出现并可选中→持久化；删除回退简约。
         var typeKey = vm.Appearance.RegisterCustomTypography("", "暖纸手记", "#B4642D", "#D8973C", "#8A5A2B", "#C89A6B", "serif", 2.1);
         Check(typeKey.StartsWith("user:") && vm.Appearance.TypographyOptions.Count == 13, "Custom typography joins the catalog");

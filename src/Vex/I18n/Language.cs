@@ -912,4 +912,6 @@ public static class VexL
     public static readonly string DensityNormal = "Vex.VexL.DensityNormal";
     public static readonly string DensityRelaxed = "Vex.VexL.DensityRelaxed";
     public static readonly string DialogLoseChangesHint = "Vex.VexL.DialogLoseChangesHint";
+    public static readonly string ViewSplitHorizontal = "Vex.VexL.ViewSplitHorizontal";
+    public static readonly string ViewSplitVertical = "Vex.VexL.ViewSplitVertical";
 }
