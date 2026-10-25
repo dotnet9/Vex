@@ -47,16 +47,48 @@ internal static class PrototypeAppearanceVerification
         var book = cards.First(b => b.Name == "Typography_InkBlack"); Click(book);
         Check(vm.Appearance.SelectedTypography?.Key == "InkBlack" && vm.Workbench.ShowTypography, "Click applies typography and keeps comparison panel open");
         Check(gallery.GetVisualDescendants().OfType<Button>().Count(b => b.Classes.Contains("appearance-pill")) == 3, "Render density pills offer the three prototype sizes");
-        foreach (var size in new[] { new Size(800,480), new Size(1024,768), new Size(1440,1000) })
+        var startWidth = window.Width; var startHeight = window.Height;
+        window.Width = 1440; window.Height = 1000; Render();
+        var addStrip = gallery.GetVisualDescendants().OfType<Button>().First(b => b.Name == "AddCustomTypography");
+        // 原型 a1a9013：弹层尺寸不变，卡片区改 4 列 3 行（预览固定 13px 基准，卡高不随密度变），新增条降到 44px 整行。
+        foreach (var density in new[] { "compact", "normal", "relaxed" })
+        {
+            vm.Appearance.MarkdownDensity = density; Render();
+            const double height = 162;
+            var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
+            var tops = cards.Select(c => Math.Round(c.TranslatePoint(default, scroll)!.Value.Y)).Distinct().ToArray();
+            var lefts = cards.Select(c => Math.Round(c.TranslatePoint(default, scroll)!.Value.X)).Distinct().ToArray();
+            Check(tops.Length == 3 && lefts.Length == 4, $"Cards form 4 columns x 3 rows at {density}: {lefts.Length}x{tops.Length}");
+            Check(cards.All(card => Math.Abs(card.Bounds.Height - height) < 1), $"Cards are {height:0}px tall at {density}: " + string.Join(",", cards.Select(c => c.Bounds.Height.ToString("0.#"))));
+            Check(cards.Average(card => card.Bounds.Width) is > 150 and < 175, $"Narrow cards keep the prototype's ~161px width at {density}: " + cards[0].Bounds.Width.ToString("0.#"));
+            Check(scroll.Extent.Height <= scroll.Viewport.Height + 1, $"Card grid does not scroll at {density}: extent={scroll.Extent.Height:0.#}, viewport={scroll.Viewport.Height:0.#}");
+            var stripBottom = addStrip.TranslatePoint(new Point(0, addStrip.Bounds.Height), gallery)!.Value.Y;
+            var scrollBottom = scroll.TranslatePoint(new Point(0, scroll.Bounds.Height), gallery)!.Value.Y;
+            Check(addStrip.Bounds.Width > cards[0].Bounds.Width * 3 && stripBottom <= scrollBottom + 1,
+                $"Add strip spans the grid and stays fully visible at {density}: {addStrip.Bounds.Width:0.#}x{addStrip.Bounds.Height:0.#}, bottom={stripBottom:0.#}, scrollBottom={scrollBottom:0.#}, extent={scroll.Extent.Height:0.#}");
+            // 原型 line-clamp：标题与说明各 1 行、引用 2 行，引用整行落在卡片内（不截断就会被挤出卡片）。
+            bool InQuote(TextBlock t) => t.GetVisualAncestors().OfType<StyledElement>().Any(e => e.Classes.Contains("MdQuote"));
+            Check(cards.All(card =>
+            {
+                var blocks = card.GetVisualDescendants().OfType<TextBlock>().Where(t => t.GetType() != typeof(TextBlock)).ToArray();
+                var quote = blocks.FirstOrDefault(InQuote);
+                return quote is { MaxLines: 2 } && blocks.Where(t => !InQuote(t)).All(t => t is { MaxLines: 1 })
+                    && quote.TranslatePoint(new Point(0, quote.Bounds.Height), card)!.Value.Y <= card.Bounds.Height + .5;
+            }), $"Preview lines stay clamped and the quote fits the card at {density}");
+            window.CaptureRenderedFrame()?.Save(Path.Combine(output, "typography-" + density + ".png"));
+        }
+        vm.Appearance.MarkdownDensity = "normal"; Render();
+        foreach (var size in new[] { new Size(800, 480), new Size(1024, 768) })
         {
             window.Width = size.Width; window.Height = size.Height; Render();
             Check(gallery.Bounds.Width <= window.ClientSize.Width && gallery.Bounds.Bottom <= window.ClientSize.Height - 11,
                 $"Typography panel fits {size.Width}: gallery={gallery.Bounds}, margin={gallery.Margin}, client={window.ClientSize}");
             var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
-            Check(scroll.Viewport.Height > 50 && scroll.Extent.Height > scroll.Viewport.Height, $"Card area scrolls independently at {size.Width}: viewport={scroll.Viewport.Height:0.#}, extent={scroll.Extent.Height:0.#}, gallery={gallery.Bounds}");
-            Check(cards.All(card => card.Bounds.Height >= 205 && card.Bounds.Height <= 208), "Cards keep the prototype's 206px height at " + size.Width + ": " + string.Join(",", cards.Select(c => c.Bounds.Height.ToString("0.#"))));
-            window.CaptureRenderedFrame()?.Save(Path.Combine(output, "typography-" + size.Width + ".png"));
+            if (size.Width <= 800) Check(scroll.Viewport.Height > 50 && scroll.Extent.Height > scroll.Viewport.Height, $"Card area scrolls independently in a short window at {size.Width}: viewport={scroll.Viewport.Height:0.#}, extent={scroll.Extent.Height:0.#}, gallery={gallery.Bounds}");
+            else Check(scroll.Viewport.Height > 500, $"A laptop-height window shows nearly all three rows at {size.Width}: viewport={scroll.Viewport.Height:0.#}, extent={scroll.Extent.Height:0.#}, gallery={gallery.Bounds}");
+            window.CaptureRenderedFrame()?.Save(Path.Combine(output, "typography-" + size.Width + "x" + size.Height + ".png"));
         }
+        window.Width = startWidth; window.Height = startHeight; Render();
         foreach (var language in vm.Appearance.LanguageOptions)
         {
             vm.Appearance.SelectedLanguage = language; Render();

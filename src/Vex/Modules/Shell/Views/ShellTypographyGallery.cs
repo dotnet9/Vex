@@ -16,12 +16,12 @@ using static Vex.Modules.Shell.Views.DesignSelectionControls;
 
 namespace Vex.Modules.Shell.Views;
 
-/// <summary>正文排版弹层（对齐原型 #typography-panel）：标题 + 渲染密度分段条 + 3 列真实排版预览卡。</summary>
+/// <summary>正文排版弹层（对齐原型 #typography-panel）：标题 + 渲染密度分段条 + 4 列 3 行真实排版预览卡。</summary>
 public sealed class ShellTypographyGallery : UserControl
 {
     private MainWindowViewModel? _vm;
-    private readonly UniformGrid _cards = new() { Columns = 3, RowSpacing = 10, ColumnSpacing = 10 };
-    private readonly Dictionary<TypographyOption, (Button Button, Border Ring, Border Badge, TextBlock BadgeText, MarkdownViewer Preview)> _items = [];
+    private readonly UniformGrid _cards = new() { Columns = 4, RowSpacing = 8, ColumnSpacing = 8 };
+    private readonly Dictionary<TypographyOption, (Button Button, Border Ring, Border Badge, TextBlock BadgeText)> _items = [];
     private readonly Dictionary<string, Button> _densityPills = [];
     private readonly StackPanel _header = new() { Spacing = 0 };
     private TopLevel? _window;
@@ -32,10 +32,16 @@ public sealed class ShellTypographyGallery : UserControl
         DataContextChanged += (_, _) => Attach();
         AttachedToVisualTree += (_, _) => { Attach(); _window = TopLevel.GetTopLevel(this); if (_window is not null) _window.SizeChanged += WindowSizeChanged; Resize(); };
         DetachedFromVisualTree += (_, _) => { if (_vm is not null) { _vm.Appearance.PropertyChanged -= Changed; _vm.Workbench.PropertyChanged -= WorkbenchChanged; } I18nManager.Instance.CultureChanged -= CultureChanged; if (_window is not null) _window.SizeChanged -= WindowSizeChanged; _vm = null; _window = null; };
-        Navigation(_cards, () => 3);
+        Navigation(_cards, () => 4);
     }
 
     private void WindowSizeChanged(object? sender, SizeChangedEventArgs e) => Resize();
+
+    /// <summary>
+    /// 原型卡片预览固定 13px 基准（.type-document{--type-size:13px}），渲染密度只作用于正文；
+    /// 三行 162 卡 + 8 间隙 + 44 新增条 = 558，落在弹层 561 的滚动区内，任何密度都不滚动。
+    /// </summary>
+    private const double CardHeight = 162;
 
     private void Attach()
     {
@@ -82,7 +88,6 @@ public sealed class ShellTypographyGallery : UserControl
             item.Ring.IsVisible = selected;
             var badgeText = selected ? "✓ " + Text("ChoiceCurrent") : option.IsRecommended ? Text("ChoiceRecommended") : "";
             item.BadgeText.Text = badgeText; item.Badge.IsVisible = badgeText.Length > 0;
-            item.Preview.TypographySize = _vm.Appearance.CurrentTypographySize;
         }
     }
 
@@ -98,6 +103,8 @@ public sealed class ShellTypographyGallery : UserControl
         // 重建时字段级容器仍挂在上一版树上，先摘除再入新树。
         if (_header.Parent is Panel oldHeaderHost) oldHeaderHost.Children.Remove(_header);
         if (_scroll is not null) _scroll.Content = null;
+        // 网格与新增条同挂在重建的 body 下，摘掉旧父级才能再次入树。
+        if (_cards.Parent is Panel oldBody) oldBody.Children.Remove(_cards);
         _items.Clear(); _densityPills.Clear(); _cards.Children.Clear(); _header.Children.Clear();
 
         var titleRow = new Grid { ColumnDefinitions = new("*,Auto") };
@@ -128,32 +135,54 @@ public sealed class ShellTypographyGallery : UserControl
         _header.Children.Add(densityFrame);
 
         foreach (var option in _vm.Appearance.TypographyOptions) _cards.Children.Add(BuildCard(option));
-        _cards.Children.Add(BuildAddCard());
 
-        // 右侧预留约 15px 滚动条槽（原型 scrollbar-gutter:stable），保证三列卡宽 269。
-        _scroll = new ScrollViewer { Content = _cards, Padding = new Thickness(2, 2, 15, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
+        // 原型 .typography-add 用 grid-column:1/-1 横跨整行；UniformGrid 不能跨列，故把新增条挂在网格下方同宽。
+        var body = new StackPanel { Spacing = 8 };
+        body.Children.Add(_cards);
+        body.Children.Add(BuildAddCard());
+
+        // 右侧预留约 15px 滚动条槽（原型 scrollbar-gutter:stable），保证四列卡宽 ~161。
+        _scroll = new ScrollViewer { Content = body, Padding = new Thickness(2, 2, 15, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
         var grid = new Grid { RowDefinitions = new("Auto,*") };
         grid.Children.Add(_header); Grid.SetRow(_scroll, 1); grid.Children.Add(_scroll);
-        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16), BoxShadow = BoxShadows.Parse("0 12 32 0 #29101828, 0 2 8 0 #14101828") };
+        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(16), CornerRadius = new CornerRadius(16), BoxShadow = BoxShadows.Parse("0 12 32 0 #29101828, 0 2 8 0 #14101828") };
         Content = border;
         Resize(); Changed(null, new(""));
     }
 
-    /// <summary>卡片即预览：以该排版真实样式渲染「## 名称 / 说明 / ### 维刻 Vex / 引用」。</summary>
+    /// <summary>卡片即预览：以该排版真实样式渲染「## 名称 / 说明 / 引用」（原型已去掉 ### 行，窄卡才装得下三行）。</summary>
     private Control BuildCard(TypographyOption option)
     {
+        var name = Text(option.NameKey);
+        var purpose = Text(option.PurposeKey);
+        var quote = Text("AboutShortSlogan");
         var preview = new MarkdownViewer
         {
-            Markdown = $"## {Text(option.NameKey)}\n\n{Text(option.PurposeKey)}\n\n### 维刻 Vex\n\n> {Text("AboutShortSlogan")}",
+            Markdown = $"## {name}\n\n{purpose}\n\n> {quote}",
             TypographyTheme = option.Key,
             FontWeight = FontWeight.Normal,
             TypographySize = MarkdownTypographySizes.Compact,
             IsHitTestVisible = false,
-            Margin = new Thickness(14, 12),
+            Margin = new Thickness(11, 6),
             DocumentBottomPadding = 0,
             EnableVirtualization = false
         };
-        var paper = new Border { Child = preview, ClipToBounds = true, CornerRadius = new CornerRadius(10), BoxShadow = BoxShadows.Parse("0 1 5 0 #0D000000") };
+        // 原型窄卡把说明降成标签字号并压掉块间距（首块无上外边距、h2 下 5px、段落 0 0 7px），三行卡片才装得下。
+        preview.HeadingMargin = new Thickness(0, 0, 0, 5);
+        preview.ParagraphMargin = new Thickness(0, 0, 0, 7);
+        preview.ParagraphFontSize = 12;
+        preview.ParagraphLineHeight = 18;
+        preview.BlockSpacing = 0;
+        EventHandler clamp = null!;
+        var clamped = false;
+        clamp = (_, _) =>
+        {
+            if (clamped) return;
+            clamped = ClampPreviewLines(preview);
+            if (clamped) preview.LayoutUpdated -= clamp;
+        };
+        preview.LayoutUpdated += clamp;
+        var paper = new Border { Child = preview, ClipToBounds = true, CornerRadius = new CornerRadius(12), BoxShadow = BoxShadows.Parse("0 1 5 0 #0D000000") };
         Resource(paper, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
         var badgeText = new TextBlock { FontSize = 9, FontWeight = FontWeight.SemiBold, Foreground = Brushes.White };
         var badge = new Border
@@ -165,20 +194,20 @@ public sealed class ShellTypographyGallery : UserControl
         };
         Resource(badge, Border.BackgroundProperty, this, "VexAccentBrush");
         // 原型选中态：box-shadow 0 0 0 1.5px accent，环在卡片边缘外侧。
-        var ring = new Border { BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(11.5), Margin = new Thickness(-1.5), IsHitTestVisible = false };
+        var ring = new Border { BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(13.5), Margin = new Thickness(-1.5), IsHitTestVisible = false };
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
         var content = new Panel { Children = { paper, ring, badge } };
         var button = Button("", () => _vm!.Appearance.SelectedTypography = option);
         button.Name = "Typography_" + option.Key;
         button.Content = content; button.Padding = default;
-        button.MinHeight = 206; button.Height = 206;
+        button.MinHeight = CardHeight; button.Height = CardHeight;
         button.ClipToBounds = false;
         button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
         button.HorizontalContentAlignment = HorizontalAlignment.Stretch; button.VerticalContentAlignment = VerticalAlignment.Stretch;
-        // 原型最新（workspace-chrome）：无框灰阶表面 + 轻阴影；高度随内容自适应，不再定高 262。
-        button.BorderThickness = new Thickness(0); button.CornerRadius = new CornerRadius(10);
+        // 原型 workspace-chrome：卡片 12px 圆角、无框灰阶表面 + 轻阴影。
+        button.BorderThickness = new Thickness(0); button.CornerRadius = new CornerRadius(12);
         Resource(button, TemplatedControl.BackgroundProperty, this, "VexPanelBackgroundBrush");
-        _items[option] = (button, ring, badge, badgeText, preview);
+        _items[option] = (button, ring, badge, badgeText);
         if (option.Key?.StartsWith("user:", StringComparison.Ordinal) == true)
         {
             var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 8, 8, 0), IsVisible = false };
@@ -194,24 +223,46 @@ public sealed class ShellTypographyGallery : UserControl
         return button;
     }
 
-    /// <summary>虚线「＋ 新增排版」整卡（原型 .typography-add：262 高、虚线框、居中）。</summary>
+    /// <summary>
+    /// 原型窄卡用 -webkit-line-clamp 截断（标题、说明各 1 行，引用 2 行），MarkdownViewer 自己排版文本，
+    /// 只能在块渲染出来后按块类型回填 MaxLines，否则换行会把引用挤出卡片。返回是否三类块都已截断。
+    /// </summary>
+    private static bool ClampPreviewLines(MarkdownViewer preview)
+    {
+        var seen = 0;
+        foreach (var block in preview.GetVisualDescendants().OfType<TextBlock>())
+        {
+            if (block.GetType() == typeof(TextBlock)) continue; // 渲染器的空占位文本块
+            var ancestors = block.GetVisualAncestors().OfType<StyledElement>().ToArray();
+            bool Class(string name) => ancestors.Any(element => element.Classes.Contains(name));
+            // 标题 1 行、引用 2 行、其余（说明段落）1 行，与原型 #typography-panel 的 line-clamp 一致。
+            var maxLines = Class("MdHeadingBorder") ? 1 : Class("MdQuote") ? 2 : 1;
+            seen |= Class("MdHeadingBorder") ? 1 : Class("MdQuote") ? 4 : 2;
+            if (block.MaxLines != maxLines) block.MaxLines = maxLines;
+            if (block.TextTrimming != TextTrimming.CharacterEllipsis) block.TextTrimming = TextTrimming.CharacterEllipsis;
+        }
+        return seen == 7;
+    }
+
+    /// <summary>整行虚线「＋ 新增排版」条（原型 .typography-add：44 高、横向排布、占满网格宽度）。</summary>
     private Control BuildAddCard()
     {
-        var stack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Spacing = 6 };
-        var plus = new TextBlock { Text = "＋", FontSize = 34, LineHeight = 34, HorizontalAlignment = HorizontalAlignment.Center };
-        var addLabel = new TextBlock { Text = Text("AddCustomTypography"), FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center };
+        var stack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        var plus = new TextBlock { Text = "＋", FontSize = 18, LineHeight = 18, VerticalAlignment = VerticalAlignment.Center };
+        var addLabel = new TextBlock { Text = Text("AddCustomTypography"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
         Resource(plus, TextBlock.ForegroundProperty, this, "VexMutedBrush"); Resource(addLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush");
         stack.Children.Add(plus);
         stack.Children.Add(addLabel);
-        var dash = new Avalonia.Controls.Shapes.Rectangle { StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 4, 3 }, RadiusX = 10, RadiusY = 10, StrokeThickness = 1, IsHitTestVisible = false };
+        var dash = new Avalonia.Controls.Shapes.Rectangle { StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 4, 3 }, RadiusX = 12, RadiusY = 12, StrokeThickness = 1, IsHitTestVisible = false };
         Resource(dash, Avalonia.Controls.Shapes.Shape.StrokeProperty, this, "VexPanelBorderBrush");
         var card = Button("", OpenTypographyDialog);
         card.Name = "AddCustomTypography";
         card.Content = new Panel { Children = { dash, stack } };
-        card.Padding = default; card.MinHeight = 206; card.Height = 206;
+        card.Padding = default; card.MinHeight = 44; card.Height = 44;
+        card.MaxHeight = 44;
+        card.HorizontalAlignment = HorizontalAlignment.Stretch; card.VerticalAlignment = VerticalAlignment.Top;
         card.HorizontalContentAlignment = HorizontalAlignment.Stretch; card.VerticalContentAlignment = VerticalAlignment.Stretch;
-        card.HorizontalAlignment = HorizontalAlignment.Stretch; card.VerticalAlignment = VerticalAlignment.Stretch;
-        card.BorderThickness = new Thickness(0); card.CornerRadius = new CornerRadius(10);
+        card.BorderThickness = new Thickness(0); card.CornerRadius = new CornerRadius(12);
         card.Classes.Add("palette-add-card");
         return card;
     }
