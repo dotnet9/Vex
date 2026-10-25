@@ -464,7 +464,7 @@ begin
 end;
 
 function VChangelogLoad: Boolean;
-var Raw: AnsiString; Text, Line: String; I: Integer;
+var Raw: AnsiString; Text, Line, VProbeText: String; I, VProbeCode: Integer;
 begin
   if not VChangelogLoaded then begin
     VChangelogLoaded:=True;
@@ -479,6 +479,18 @@ begin
       { 补一个换行收尾，循环内就不用在 or 之后再判长度（Inno 的 or 不保证短路）。 }
       Text:=VUtf8DecodeBytes(Raw)+#10; Line:='';
       Log('VEX FIXTURE textsample='+Copy(Text,1,30)+' declen='+IntToStr(Length(Text)));
+      { 探针三连：① Chr 对 BMP 码点（安=23433）的支持情况；② String:=AnsiString 直接赋值
+        的解码效果（若新版 Inno 的 AnsiString 带 UTF-8 代码页则此路即正解）；③ 已知坏的
+        外部调用基线。外部 String 参数在编组边界有 1252 最佳适配往返（全角括号变半角即指纹），
+        之前的 GetClassNameW「实证」只传了 ASCII，往返隐形。 }
+      VProbeCode:=23433;
+      try
+        Log('VEX FIXTURE chrprobe='+IntToStr(Ord(Chr(VProbeCode))));
+      except
+        Log('VEX FIXTURE chrprobe=FAILED');
+      end;
+      VProbeText:=Raw;
+      Log('VEX FIXTURE assignprobe='+Copy(VProbeText,1,16)+' assignlen='+IntToStr(Length(VProbeText)));
       for I:=1 to Length(Text) do
         if Text[I]=#10 then begin
           if Copy(Line,1,4)='## V' then VAddRelease(Line)
