@@ -22078,6 +22078,17 @@ end;
 
 
 
+{ 手写空白裁剪：此运行时的 Trim 会把字符串经 1252 最佳适配往返（CI 探针
+  trimord5=63 实证），任何含非 ASCII 的字符串（更新日志正文、用户输入的中文安装路径）
+  一过 Trim 即损坏；仅用字符比较与 Copy 实现，语义为裁剪空格与制表换行。 }
+function VTrimText(const S: String): String;
+var A, B: Integer;
+begin
+  A:=1; B:=Length(S);
+  while (A<=B) and ((S[A]=#32) or (S[A]=#9) or (S[A]=#10) or (S[A]=#13)) do A:=A+1;
+  while (B>=A) and ((S[B]=#32) or (S[B]=#9) or (S[B]=#10) or (S[B]=#13)) do B:=B-1;
+  Result:=Copy(S,A,B-A+1);
+end;
 function VRegisteredVersion(Index: Integer): String;
 
 
@@ -22654,7 +22665,7 @@ begin
 
 
 
-  Result:=Trim(Result);
+  Result:=VTrimText(Result);
 
 
 
@@ -26174,7 +26185,7 @@ begin
 
 
 
-  Stamp:=Trim(Stamp);
+  Stamp:=VTrimText(Stamp);
 
 
 
@@ -27582,7 +27593,7 @@ begin
 
 
 
-  Body:=Trim(Copy(Header,5,Length(Header)));
+  Body:=VTrimText(Copy(Header,5,Length(Header)));
 
 
 
@@ -27838,7 +27849,7 @@ begin
 
 
 
-    Date:=Trim(Copy(Body,Open+1,Close-Open-1));
+    Date:=VTrimText(Copy(Body,Open+1,Close-Open-1));
 
 
 
@@ -27902,7 +27913,7 @@ begin
 
 
 
-    Body:=Trim(Copy(Body,1,Open-1));
+    Body:=VTrimText(Copy(Body,1,Open-1));
 
 
 
@@ -29364,7 +29375,7 @@ begin
 
     VChangelogLoaded:=True;
     Log('VEX FIXTURE constprobe=ord5='+IntToStr(Ord(VChangelogEmbedded[5]))+' len='+IntToStr(Length(VChangelogEmbedded))+
-      ' trimord5='+IntToStr(Ord(Trim(VChangelogEmbedded)[5])));
+      ' trimord5='+IntToStr(Ord(VTrimText(VChangelogEmbedded)[5])));
 
     Text:=VChangelogEmbedded+#10;
 
@@ -29374,9 +29385,9 @@ begin
 
         if Copy(Line,1,4)='## V' then VAddRelease(Line)
 
-        else if (VReleaseCount>0) and (Copy(Trim(Line),1,2)='- ') then
+        else if (VReleaseCount>0) and (Copy(VTrimText(Line),1,2)='- ') then
 
-          VReleaseBodies[VReleaseCount-1]:=VReleaseBodies[VReleaseCount-1]+Trim(Line)+#10;
+          VReleaseBodies[VReleaseCount-1]:=VReleaseBodies[VReleaseCount-1]+VTrimText(Line)+#10;
 
         Line:='';
 
@@ -32462,7 +32473,7 @@ begin
 
 
 
-  Text:=Trim(Copy(Line,3,Length(Line)));
+  Text:=VTrimText(Copy(Line,3,Length(Line)));
 
 
 
@@ -32718,7 +32729,7 @@ begin
 
 
 
-    Tag:=Trim(Copy(Text,Open+1,Close-Open-1));
+    Tag:=VTrimText(Copy(Text,Open+1,Close-Open-1));
 
 
 
@@ -32782,7 +32793,7 @@ begin
 
 
 
-    Rest:=Trim(Copy(Text,Close+1,Length(Text)));
+    Rest:=VTrimText(Copy(Text,Close+1,Length(Text)));
 
 
 
@@ -32910,7 +32921,7 @@ begin
 
 
 
-    if Copy(Rest,1,1)='-' then Rest:=Trim(Copy(Rest,2,Length(Rest)));
+    if Copy(Rest,1,1)='-' then Rest:=VTrimText(Copy(Rest,2,Length(Rest)));
 
 
 
@@ -85438,7 +85449,7 @@ begin
 
 
 
-  Path:=CWMNormalizePath(Trim(WizardForm.DirEdit.Text));
+  Path:=CWMNormalizePath(VTrimText(WizardForm.DirEdit.Text));
 
 
 
