@@ -154,17 +154,10 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         var target = _externalPaths.ResolveStartupArgument(normalizedArguments);
         if (target.Path is not { Length: > 0 } path)
         {
-            if (normalizedArguments.Length == 0)
+            // 未带参数时保持启动时的空白文档：文件列表里有什么，只由用户自己打开决定（帮助菜单另有「演示文档」入口）。
+            if (normalizedArguments.Length == 0 && _settingsStore.Current.RestoreWorkspace == true)
             {
-                if (_settingsStore.Current.RestoreWorkspace == true)
-                {
-                    await RestoreLastWorkspaceFolderAsync();
-                }
-                else
-                {
-                    // 首次使用（未开启工作区恢复）时打开随附演示文档，对齐原型的首启观感。
-                    await OpenDemoDocumentsAsync();
-                }
+                await RestoreLastWorkspaceFolderAsync();
             }
 
             return;
@@ -187,20 +180,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                     VexL.ErrorMessageCannotOpenFileFormat,
                     () => LoadDocumentPathAsync(path),
                     path));
-        }
-    }
-
-    /// <summary>打开随应用分发的演示文档文件夹，并落在《排版与写作》。</summary>
-    private async Task OpenDemoDocumentsAsync()
-    {
-        var folder = Vex.Core.Services.BundledDocuments.SamplesFolder;
-        if (!Directory.Exists(folder)) return;
-        var files = await _documentService.OpenFolderPathAsync(folder);
-        await ApplyDocumentFilesAsync(files, true);
-        var featured = files.FirstOrDefault(file => file.Name == "排版与写作.md");
-        if (featured is not null && !string.Equals(DocumentInfo.CurrentFilePath, featured.Path, StringComparison.OrdinalIgnoreCase))
-        {
-            await OpenDocumentFileCoreAsync(featured);
         }
     }
 

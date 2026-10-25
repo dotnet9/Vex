@@ -49,14 +49,17 @@ if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "set
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
     window.Show();
-    // 启动期的演示文档是异步装载的；不先等它落定，验证器写入的样例会随后被覆盖。
+    // 无参数启动不再加载任何文件；这些模式需要画面素材，改为显式装载随包演示文档。
     var startupVm = (MainWindowViewModel)window.DataContext!;
-    var startupDeadline = DateTime.UtcNow.AddSeconds(15);
-    while (startupVm.DocumentInfo.CurrentFilePath is not { Length: > 0 })
+    Check(startupVm.DocumentFiles.Count == 0 && startupVm.DocumentInfo.CurrentFilePath is not { Length: > 0 },
+        "未带参数启动时不加载任何文档");
+    if (mode == "protection")
     {
-        Pump();
-        if (DateTime.UtcNow > startupDeadline) throw new TimeoutException("The startup document did not load");
+        // 空白启动态留一张证据图；protection 的输出目录不参与原型比对，不会引入无对照的截图。
+        SettleRendering();
+        Capture(window, "startup-blank");
     }
+    LoadBundledSamples(startupVm);
     Pump();
     if (mode == "popup-layout") PopupLayoutVerification.Run(app, window, output);
     else if (mode == "elements") ElementVerification.Run(app, window, output);
@@ -145,8 +148,8 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
-    // 启动期的演示文档/工作区恢复是异步的，等它尘埃落定再开始任何验证。
-    PumpUntil(() => vm.DocumentInfo.CurrentFilePath is { Length: > 0 });
+    // 真实程序无参数启动不再加载任何文件，验证画面需要的素材由夹具显式装载。
+    LoadBundledSamples(vm);
     if (mode == "mermaid") { VerifyMermaidWorkspace((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "documents") { VerifyDocumentWindows(app, window, vm); window.Close(); return; }
     if (mode == "document-open-child")
@@ -688,14 +691,23 @@ void VerifyDocumentWindows(VerificationVexApp app, Window window, MainWindowView
     foreach (var (topic, file) in new[] { ("changelog", "更新日志.md"), ("thanks", "鸣谢.md") })
     {
         Pump(vm.Help.OpenHelpTopic(topic));
-        Check(launcher.Paths.Last() == BundledDocuments.GetPath(file), "Help launches the packaged document: " + topic);
+        // 帮助文档改在独立只读窗体里呈现：既不起新进程，也不占用主窗口的文档位。
+        Check(launcher.Paths.Count == 0, $"打开帮助文档不再另起文档进程：{topic}");
         Check(vm.GetCurrentDocumentSnapshot() == original && vm.DocumentInfo.IsModified, "Launching a document preserves the unsaved parent");
+        var documentWindow = new Vex.Modules.Help.Views.HelpDocumentWindow(
+            Path.GetFileNameWithoutExtension(file), File.ReadAllText(BundledDocuments.GetPath(file)));
+        documentWindow.Show();
+        Pump();
+        Check(documentWindow.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
+            .Any(viewer => viewer.Markdown.Length > 0), "帮助文档窗体渲染随包正文：" + file);
+        documentWindow.Close();
+        Pump();
     }
     var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     var about = (ShellAboutViewModel)window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single().DataContext!;
     ((System.Windows.Input.ICommand)about.ChangelogCommand).Execute(null); Pump(aboutTask);
-    Check(launcher.Paths.Count == 3 && launcher.Paths.Last() == BundledDocuments.GetPath("更新日志.md"), "About uses the same independent document launcher");
+    Check(launcher.Paths.Count == 1 && launcher.Paths.Last() == BundledDocuments.GetPath("更新日志.md"), "About uses the same independent document launcher");
     Check(!window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any(), "About closes before launching the document");
     var copyFolder = Path.Combine(output, "中文 空格文档"); Directory.CreateDirectory(copyFolder);
     var copyPath = Path.Combine(copyFolder, "更新日志 副本.md");
@@ -743,6 +755,13 @@ void SettleRendering()
         Pump();
         Thread.Sleep(10);
     }
+}
+
+void LoadBundledSamples(MainWindowViewModel vm)
+{
+    Pump(vm.OpenStartupDocumentAsync([BundledDocuments.SamplesFolder]));
+    Pump(vm.OpenPathAsync(Path.Combine(BundledDocuments.SamplesFolder, "排版与写作.md")));
+    PumpUntil(() => vm.DocumentInfo.CurrentFilePath?.EndsWith("排版与写作.md") == true);
 }
 
 void PumpUntil(Func<bool> completed)
