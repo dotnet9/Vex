@@ -478,6 +478,7 @@ begin
         ' probelen='+IntToStr(Length(VUtf8DecodeBytes(#$E4#$B8#$AD))));
       { 补一个换行收尾，循环内就不用在 or 之后再判长度（Inno 的 or 不保证短路）。 }
       Text:=VUtf8DecodeBytes(Raw)+#10; Line:='';
+      Log('VEX FIXTURE textsample='+Copy(Text,1,30)+' declen='+IntToStr(Length(Text)));
       for I:=1 to Length(Text) do
         if Text[I]=#10 then begin
           if Copy(Line,1,4)='## V' then VAddRelease(Line)
