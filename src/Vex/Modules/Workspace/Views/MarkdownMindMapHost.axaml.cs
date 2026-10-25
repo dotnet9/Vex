@@ -1,12 +1,16 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using System.Collections.Concurrent;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using CodeWF.Toolkit.EventBus;
 using Vex.Core.Messaging;
 using CodeWF.Avalonia.MindView.Markdown;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Vex.Modules.Shell.ViewModels;
@@ -198,19 +202,52 @@ public partial class MarkdownMindMapHost : UserControl
                 Avalonia.Threading.Dispatcher.UIThread.Post(Map.EnsureViewport, Avalonia.Threading.DispatcherPriority.Render);
         };
     }
-    /// <summary>原型 .map-viewport 的点阵底纹：muted 21% 的 1.4px 圆点，18px 网格重复一次。</summary>
-    /// <remarks>SourceRect 必须与 DestinationRect 同尺寸，否则圆点会被拉伸到整个网格。</remarks>
-    private static IBrush MapDotGridBrush(object? resource) => new DrawingBrush
+    /// <summary>原型 .map-viewport 的点阵底纹：muted 21% 的圆点，18px 网格重复一次。</summary>
+    /// <remarks>DrawingBrush 在 Native AOT 下会让 libSkiaSharp 崩溃（启动即 0xC0000005），
+    /// 故把贴片按 CSS 的 farthest-corner 停止点烘焙成位图，交给 ImageBrush 平铺。</remarks>
+    private static readonly ConcurrentDictionary<Color, IImageBrushSource> DotTiles = new();
+
+    private static IBrush MapDotGridBrush(object? resource) => new ImageBrush
     {
         TileMode = TileMode.Tile,
-        SourceRect = new RelativeRect(0, 0, 18, 18, RelativeUnit.Absolute),
+        Source = DotTiles.GetOrAdd(resource is ISolidColorBrush muted ? muted.Color : Colors.Gray, CreateDotTile),
         DestinationRect = new RelativeRect(0, 0, 18, 18, RelativeUnit.Absolute),
-        Drawing = new GeometryDrawing
-        {
-            Brush = resource is ISolidColorBrush muted ? new SolidColorBrush(muted.Color, 0.21) : Brushes.Transparent,
-            Geometry = new EllipseGeometry(new Rect(0.2, 0.2, 1.4, 1.4))
-        }
     };
+
+    private static IImageBrushSource CreateDotTile(Color muted)
+    {
+        const int size = 18;
+        var buffer = new byte[size * size * 4];
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                float coverage = 0;
+                for (var sy = 0; sy < 4; sy++)
+                {
+                    for (var sx = 0; sx < 4; sx++)
+                    {
+                        var dx = x + (sx + .5f) / 4 - size / 2f;
+                        var dy = y + (sy + .5f) / 4 - size / 2f;
+                        coverage += Math.Clamp((.9f - MathF.Sqrt(dx * dx + dy * dy)) / .2f, 0, 1);
+                    }
+                }
+                var alpha = coverage / 16 * .21f;
+                var offset = (y * size + x) * 4;
+                // Bgra8888 预乘：通道值需先乘自身 alpha。
+                buffer[offset] = (byte)(muted.B * alpha);
+                buffer[offset + 1] = (byte)(muted.G * alpha);
+                buffer[offset + 2] = (byte)(muted.R * alpha);
+                buffer[offset + 3] = (byte)(alpha * 255);
+            }
+        }
+        var tile = new WriteableBitmap(new PixelSize(size, size), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Premul);
+        using (var framebuffer = tile.Lock())
+        {
+            Marshal.Copy(buffer, 0, framebuffer.Address, buffer.Length);
+        }
+        return tile;
+    }
     // 节点详情按原型保持悬浮在导图右上角（.node-inspector）；仅删除确认遮罩需要提升到窗口层。
     public Control DetachConfirmation()
     {
