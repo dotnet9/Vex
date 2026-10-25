@@ -4,11 +4,17 @@
  const device='desktop';
  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const version=window.VexProject.version;
+ /* 维护页要区分“升级到新版本”和“修复当前版本”：?installed=1.9.0 表示本机已装版本，缺省视为与安装包相同。 */
+ const installedVersion=params.get('installed')??version;
+ const knownInstalled=installedVersion!=='';
+ const segments=s=>String(s).split(/[.\-_+]/).map(Number).filter(Number.isFinite);
+ const compareVersions=(a,b)=>{const x=segments(a),y=segments(b);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d;}return 0;};
+ const canUpgrade=knownInstalled&&compareVersions(installedVersion,version)<0;
  const theme=params.get('theme')||'light';document.documentElement.dataset.theme=theme;document.body.classList.toggle('dark',theme==='dark');
  let state=['installed','done','installing'].includes(params.get('scenario'))?params.get('scenario'):'ready',progress=state==='installing'?Math.max(0,Math.min(100,params.has('progress')?Number(params.get('progress'))||0:46)):0,timer=null,operation='install',fail=params.get('scenario')==='error',directory='C:\\Users\\你\\AppData\\Local\\Programs\\Vex',custom=false,shortcut=true,association=true;
  const img='<img src="assets/vex-logo.svg" alt="维刻 Vex">',btn=(label,act,primary=false,other='')=>`<button class="btn ${primary?'primary':'quiet'}" data-action="${act}" ${other}>${label}</button>`;
  const chrome=(title,mac=false)=>`<header class="installer-chrome ${mac?'mac-chrome':''}">${mac?'<div class="traffic-lights"><i></i><i></i><i></i></div>':img}<span>${title}</span>${mac?'':`<button data-action="cancel" aria-label="关闭">×</button>`}</header>`;
- const progressHTML=()=>`<div class="progress-wrap" style="--install-progress:${progress}%"><div class="progress-header"><strong>${progress}%</strong></div><div class="progress-track" role="progressbar" aria-label="${operation==='remove'?'移除进度':operation==='repair'?'修复进度':'安装进度'}" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100"><span style="width:var(--install-progress)"></span></div></div>`;
+ const progressHTML=()=>`<div class="progress-wrap" style="--install-progress:${progress}%"><div class="progress-header"><strong>${progress}%</strong></div><div class="progress-track" role="progressbar" aria-label="${operation==='remove'?'移除进度':operation==='repair'?(canUpgrade?'升级进度':'修复进度'):'安装进度'}" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100"><span style="width:var(--install-progress)"></span></div></div>`;
  const footer=()=>`<footer class="install-footer"><span>CodeWF · ${version}</span><a href="${esc(window.VexProject.website)}" target="_blank" rel="noopener">${esc(new URL(window.VexProject.website).hostname)} ↗</a>${platform==='windows'?btn('关闭','cancel'):''}</footer>`;
  const complete=()=>operation==='remove'?'维刻已移除':'准备好，写下新想法';
  function toast(text){document.querySelector('.installer-toast')?.remove();const el=document.createElement('div');el.className='installer-toast';el.textContent=text;document.body.append(el);setTimeout(()=>el.remove(),3000);}
@@ -49,13 +55,14 @@
        </div>
      </details>${actions('install','立即安装','')}`;
    else if(state==='installing') content=`
-     <h2>${operation==='remove'?'正在移除':operation==='repair'?'正在修复':'正在安装'}</h2>
+     <h2>${operation==='remove'?'正在移除':operation==='repair'?(canUpgrade?'正在升级':'正在修复'):'正在安装'}</h2>
      <p class="description">稍等片刻，即可开始写作。</p>${progressHTML()}
      ${actions('','','取消安装')}`;
    else if(state==='installed') content=`
-     <div class="step-caption">已安装 · ${version}</div><h2>继续你的写作。</h2>
+     <div class="step-caption">已安装 · ${knownInstalled?esc(installedVersion):'版本未知'}${canUpgrade?` → ${version}`:''}</div><h2>${canUpgrade?`升级到 ${version}。`:'继续你的写作。'}</h2>
      <div class="information-card">安装位置<br><span class="install-file">${esc(directory)}</span></div>
-     <div class="maintenance-links">${btn('修复安装','repair')}${btn('卸载','remove')}</div>${actions('open','打开')}`;
+     <div class="maintenance-links">${btn(canUpgrade?'升级':'修复安装','repair',canUpgrade)}${btn('卸载','remove')}</div>
+     ${canUpgrade?`<div class="install-actions"><span class="action-spacer"></span>${btn('关闭','cancel')}${btn('打开','open')}</div>`:actions('open','打开')}`;
    else if(state==='error') content=`
      <div class="error-symbol">!</div><h2>安装未完成</h2>
      <p class="description">检查安装位置和可用空间后重试。</p>

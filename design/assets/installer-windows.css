@@ -31,6 +31,8 @@ body[data-platform="windows"] .windows-minimal .step-caption { font-size:12px; m
 .windows-minimal .information-card .install-file { font:inherit; color:inherit; }
 .windows-minimal .maintenance-links { display:flex; gap:10px; }
 .windows-minimal .maintenance-links .btn { font-size:12px; padding:6px 2px; min-height:30px; }
+/* 可升级时主操作落在维护行的第一个按钮上，与安装器里 Next 按钮的位置一致。 */
+.windows-minimal .maintenance-links .btn.primary { min-width:74px; padding:6px 14px; font-size:13px; font-weight:600; }
 .windows-minimal .install-file { font-size:12px; overflow-wrap:anywhere; }
 .windows-minimal .progress-wrap { transition:--install-progress .2s linear; }
 .windows-minimal .progress-header { position:relative; height:18px; margin:28px 0 8px; font-size:12px; }
