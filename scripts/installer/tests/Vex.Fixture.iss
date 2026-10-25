@@ -57,6 +57,10 @@ begin
   CWMRegistrations[0].ScopeName:=CustomMessage('CWMCurrentUser');
   CWMRegistrations[0].AppPath:=CWMRepairPath;
   VFixtureVersions[0]:='0.9.0';
+  #ifdef VexFixtureCurrentVersion
+    { 已安装版本与安装包一致：维护页必须回到「修复安装」，不能谎报升级。 }
+    VFixtureVersions[0]:='{#AppVersion}';
+  #endif
   CWMRegistrations[0].Uninstaller:=AddBackslash(CWMRepairPath)+'unins000.exe';
   #ifdef VexFixtureUnknownLocation
     CWMRepairPath:=''; CWMRegistrations[0].AppPath:=''; CWMRegistrations[0].Uninstaller:='';

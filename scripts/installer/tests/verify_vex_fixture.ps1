@@ -6,6 +6,7 @@ param(
     [ValidateSet('system','light','dark')][string]$Theme='system',
     [switch]$Cancel,
     [switch]$Maintenance,
+    [switch]$CurrentVersion,
     [switch]$UnknownLocation,
     [switch]$MissingExecutable,
     [switch]$Multiple,
@@ -54,6 +55,11 @@ function Bounds([IntPtr]$Control) {
     $bounds=[CodeWFSetupFixtureDesktop+Rect]::new()
     [void][CodeWFSetupFixtureDesktop]::GetWindowRect($Control,[ref]$bounds)
     $bounds
+}
+# 取样点贴按钮左上角内侧：既避开居中文字，也落在 8px 圆角之内。
+function FillOf([Drawing.Bitmap]$Shot,[IntPtr]$Control) {
+    $controlBounds=Bounds $Control; $windowBounds=Bounds $window
+    $Shot.GetPixel($controlBounds.left-$windowBounds.left+9,$controlBounds.top-$windowBounds.top+4).ToArgb()
 }
 function Register-Processes {
     if ($processInfo.process -eq [IntPtr]::Zero) { return }
@@ -105,7 +111,9 @@ try {
             Check ($shot.GetPixel($point[0],$point[1]).ToArgb() -ne $surface) '窗口四边均有独立于背景的可见描边'
         }
     } finally { $shot.Dispose() }
-    $primary=Button '^Install now$|^立即安装$|^Open$|^打开$'
+    # 抗锯齿检查只针对真正填色的主按钮：维护页可升级时是「升级」，否则是「打开」。
+    $primary=if ($Maintenance) { Button '^Upgrade$|^升级$' } else { Button '^Install now$|^立即安装$' }
+    if (-not $primary) { $primary=Button '^Open$|^打开$' }
     if ($primary -and [CodeWFSetupFixtureDesktop]::IsWindowEnabled($primary)) {
         $primaryArea=Bounds $primary
         $windowArea=Bounds $window
@@ -137,17 +145,39 @@ try {
     }
     if ($Maintenance) {
         $versionLog=Get-Content -LiteralPath (Join-Path $Output 'setup.log') -Raw
+        $installedLine=@($versionLog -split "`r?`n" | Where-Object { $_ -match 'VEX FIXTURE installed=' })[0]
+        $canUpgrade=[bool]((-not $UnknownLocation) -and (-not $CurrentVersion))
         if ($UnknownLocation) {
-            Check ($versionLog -match 'VEX FIXTURE installed=(已安装 · 版本未知|Installed · Version unavailable)') '无法读取已安装版本时明确显示未知，不冒用安装包版本'
+            Check ($installedLine -match 'VEX FIXTURE installed=(已安装 · 版本未知|Installed · Version unavailable)') '无法读取已安装版本时明确显示未知，不冒用安装包版本'
+        } elseif ($CurrentVersion) {
+            Check ($installedLine -match 'VEX FIXTURE installed=(已安装|Installed) · 1\.0\.0$') '已安装版本与安装包一致时按当前版本呈现'
         } else {
-            Check ($versionLog -match 'VEX FIXTURE installed=(已安装|Installed) · 0\.9\.0') '维护页显示已安装的 0.9.0，与安装包 1.0.0 区分'
+            Check ($installedLine -match 'VEX FIXTURE installed=(已安装 · 0\.9\.0 → 1\.0\.0|Installed · 0\.9\.0 → 1\.0\.0)') '落后的已安装版本显示 0.9.0 → 1.0.0，与安装包区分'
         }
+        Check (([bool]($installedLine -match '→')) -eq $canUpgrade) '只有确实落后的已安装版本才标注升级箭头'
         if (-not $UnknownLocation -and -not $Migration) {
             Check (([bool][CodeWFSetupFixtureDesktop]::IsWindowEnabled((Button '^Open$|^打开$'))) -eq (-not $MissingExecutable)) '打开操作与真实主程序存在性一致'
         }
-        Check ($null -ne (Button '^Repair installation$|^修复安装$|^Install for the current user$|^为当前用户安装$|^Upgrade and migrate$|^升级并迁移$')) '已有安装直接呈现原型维护入口'
-        if ($Migration) { Check ($null -ne (Button '^Upgrade and migrate$|^升级并迁移$')) '旧全用户安装明确提示升级并迁移' }
+        Check ($null -ne (Button '^Repair installation$|^修复安装$|^Install for the current user$|^为当前用户安装$|^Upgrade and migrate$|^升级并迁移$|^Upgrade$|^升级$')) '已有安装直接呈现原型维护入口'
+        $nextPattern=if ($Migration) { '^Upgrade and migrate$|^升级并迁移$' }
+        elseif ($UnknownLocation) { '^Install for the current user$|^为当前用户安装$' }
+        elseif ($canUpgrade) { '^Upgrade$|^升级$' }
+        else { '^Repair installation$|^修复安装$' }
+        Check ($null -ne (Button $nextPattern)) "维护页主按钮按版本关系给出动作：$nextPattern"
+        # 标签控件没有可读文本，标题按既有约定通过夹具日志核对。
+        $headingLine=@($versionLog -split "`r?`n" | Where-Object { $_ -match 'VEX FIXTURE heading=' })[0]
+        $headingPattern=if ($canUpgrade) { 'VEX FIXTURE heading=升级到 1\.0\.0。|VEX FIXTURE heading=Upgrade to 1\.0\.0\.$' } else { 'VEX FIXTURE heading=继续你的写作。|VEX FIXTURE heading=Continue your writing\.$' }
+        Check ($headingLine -match $headingPattern) "维护页标题跟随升级判定：$headingPattern"
         Capture '02-maintenance'
+        if (-not $UnknownLocation -and -not $Migration -and -not $MissingExecutable) {
+            $shot=[Drawing.Bitmap]::FromFile((Join-Path $Output '02-maintenance.png'))
+            try {
+                $background=$shot.GetPixel(400,260).ToArgb()
+                $nextFill=FillOf $shot (Button '^Repair installation$|^修复安装$|^Upgrade$|^升级$')
+                $openFill=FillOf $shot (Button '^Open$|^打开$')
+                Check ((($nextFill -ne $background) -and ($openFill -eq $background)) -eq $canUpgrade) '强调填充跟随升级判定：可升级高亮升级，否则高亮打开'
+            } finally { $shot.Dispose() }
+        }
         Click (Button '^Installation details$|^安装详情$')
         $list=Wait-For { @(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TNewCheckListBox' }) | Select-Object -First 1 } '可展开已有安装详情'
         $memo=@(Controls | Where-Object { [CodeWFSetupFixtureDesktop]::Class($_) -eq 'TMemo' }) | Select-Object -First 1

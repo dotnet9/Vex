@@ -9,11 +9,12 @@ if (-not $IsWindows) { throw '原生视觉验证仅支持 Windows。' }
 $Output=[IO.Path]::GetFullPath($Output)
 New-Item -ItemType Directory -Path $Output -Force | Out-Null
 $fixtures=@{}
-foreach($kind in @('new','maintenance','missing','unknown','multiple','migration')) {
+foreach($kind in @('new','maintenance','current','missing','unknown','multiple','migration')) {
     $folder=Join-Path $Output ('bin-'+$kind)
     New-Item -ItemType Directory -Path $folder -Force | Out-Null
     $arguments=@('/Qp',('/O'+$folder))
     if ($kind -ne 'new') { $arguments+='/DVexFixtureMaintenance' }
+    if ($kind -eq 'current') { $arguments+='/DVexFixtureCurrentVersion' }
     if ($kind -eq 'unknown') { $arguments+='/DVexFixtureUnknownLocation' }
     if ($kind -eq 'missing') { $arguments+='/DVexFixtureMissingExecutable' }
     if ($kind -in @('multiple','migration')) { $arguments+='/DVexFixtureMultiple' }
@@ -28,6 +29,11 @@ foreach($language in @('chinesesimplified','english')) {
         & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.new -Language $language -Theme $theme -Output (Join-Path $Output "$lang-$theme")
         & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.maintenance -Language $language -Theme $theme -Maintenance -Output (Join-Path $Output "$lang-$theme-maintenance")
     }
+}
+# 已安装版本与安装包一致时必须回到「修复安装」，两种语言各跑一遍浅色列。
+foreach($language in @('chinesesimplified','english')) {
+    $lang=if($language -eq 'english'){'en'}else{'zh'}
+    & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.current -Language $language -Theme light -Maintenance -CurrentVersion -Output (Join-Path $Output "$lang-light-maintenance-current")
 }
 & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.unknown -Theme light -Maintenance -UnknownLocation -Output (Join-Path $Output 'unknown-location')
 & (Join-Path $PSScriptRoot 'verify_vex_fixture.ps1') -Installer $fixtures.missing -Theme light -Maintenance -MissingExecutable -Output (Join-Path $Output 'missing-executable')

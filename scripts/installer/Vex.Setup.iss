@@ -54,14 +54,20 @@ english.VAssociationHint=Keeps your default app unchanged
 chinesesimplified.VAssociationHint=不改变系统默认应用
 english.VMaintenance=Continue your writing.
 chinesesimplified.VMaintenance=继续你的写作。
+english.VUpgradeHeading=Upgrade to %1.
+chinesesimplified.VUpgradeHeading=升级到 %1。
 english.VInstalled=Installed · %1
 chinesesimplified.VInstalled=已安装 · %1
+english.VInstalledUpgrade=Installed · %1 → %2
+chinesesimplified.VInstalledUpgrade=已安装 · %1 → %2
 english.VInstalledUnknown=Installed · Version unavailable
 chinesesimplified.VInstalledUnknown=已安装 · 版本未知
 english.VMaintenanceIntro=Repair the installation or remove the app.
 chinesesimplified.VMaintenanceIntro=可以修复安装，或移除此应用。
 english.VRepair=Repair installation
 chinesesimplified.VRepair=修复安装
+english.VUpgrade=Upgrade
+chinesesimplified.VUpgrade=升级
 english.VContinueInstall=Install for the current user
 chinesesimplified.VContinueInstall=为当前用户安装
 english.VRegistrationIntro=An installation record exists. You can install for the current user.
@@ -92,6 +98,8 @@ english.VFinishedIntro=Your own Markdown space is ready.
 chinesesimplified.VFinishedIntro=你的专属 Markdown 空间已准备完毕。
 english.VRepairing=Repairing
 chinesesimplified.VRepairing=正在修复
+english.VUpgrading=Upgrading
+chinesesimplified.VUpgrading=正在升级
 english.VRepaired=All set,%nlet your ideas grow.
 chinesesimplified.VRepaired=一切就绪，%n让想法开始生长。
 english.VPathError=Choose an absolute local folder outside Windows and the drive root.
@@ -229,6 +237,7 @@ var
   VWheelDelta: Integer;
   VPreviousProc, VSurfaceBrush, VSoftBrush: LongWord;
   VExpanded, VInitialized, VDetailsOpen, VLicenseOpen, VRepairing: Boolean;
+  VUpgradeAvailable: Boolean;
   VHover, VModalY: Integer;
   VProgressShown, VProgressTarget, VProgressFrom, VProgressPixel, VProgressPercent: Integer;
   VProgressStarted: LongWord;
@@ -314,6 +323,35 @@ begin
   Path:=CWMRegistrations[Index].AppPath;
   if (Result='') and (Path<>'') then GetVersionNumbersString(AddBackslash(Path)+'Vex.exe',Result);
 #endif
+end;
+
+{ 逐段取版本号数字，跳过 . - _ + 等分隔符；串尾之后恒为 0，便于 1.7 与 1.7.0 比较。 }
+function VVersionPart(const Source: String; var Position: Integer): Integer;
+var Digits: String;
+begin
+  Digits:='';
+  while (Position<=Length(Source)) and (Source[Position]>='0') and (Source[Position]<='9') do begin
+    Digits:=Digits+Source[Position]; Position:=Position+1;
+  end;
+  Result:=StrToIntDef(Digits,0);
+  while (Position<=Length(Source)) and
+    not ((Source[Position]>='0') and (Source[Position]<='9')) do Position:=Position+1;
+end;
+
+{ 只有读得到数字版本且确实落后于本安装包时才算升级；版本未知或更新时保持修复入口。 }
+function VIsOlderVersion(const Installed: String): Boolean;
+var Package: String; I,J,Left,Right: Integer;
+begin
+  Result:=False;
+  Package:='{#AppVersion}';
+  { Inno 的 or 不保证短路，空串取 [1] 会越界，因此先行退出。 }
+  if Installed='' then exit;
+  if not ((Installed[1]>='0') and (Installed[1]<='9')) then exit;
+  I:=1; J:=1;
+  while (I<=Length(Installed)) or (J<=Length(Package)) do begin
+    Left:=VVersionPart(Installed,I); Right:=VVersionPart(Package,J);
+    if Left<>Right then begin Result:=Left<Right; exit; end;
+  end;
 end;
 
 procedure VPaintBackground;
@@ -423,10 +461,18 @@ begin
   VDescription.Visible:=Main and (Installing or Finished);
   VDescription.Alignment:=taLeftJustify; VFont(VDescription.Font,14,False);
   VBounds(VDescription,209,71,402,26);
+  InstalledPath:=CWMRepairPath;
+  I:=VSelectedRegistration;
+  if I>=0 then InstalledPath:=CWMRegistrations[I].AppPath;
+  InstalledVersion:=VRegisteredVersion(I);
+  VUpgradeAvailable:=VIsOlderVersion(InstalledVersion);
   if Home then VStatus.Caption:=CustomMessage('VWelcome');
   if Installing then begin VStatus.Caption:=CustomMessage('VInstalling'); VDescription.Caption:=CustomMessage('VInstallingIntro'); end;
   if Finished then begin VStatus.Caption:=CustomMessage('VFinished'); VDescription.Caption:=CustomMessage('VFinishedIntro'); end;
-  if Installing and VRepairing then VStatus.Caption:=CustomMessage('VRepairing');
+  if Installing and VRepairing then begin
+    if VUpgradeAvailable then VStatus.Caption:=CustomMessage('VUpgrading')
+    else VStatus.Caption:=CustomMessage('VRepairing');
+  end;
   if Finished and VRepairing then VStatus.Caption:=CustomMessage('VRepaired');
   WizardForm.OuterNotebook.Visible:=Main and not Home and not Finished and not Installing and (not Maintenance or VDetailsOpen);
   VBounds(WizardForm.OuterNotebook,208,242,404,280);
@@ -437,8 +483,12 @@ begin
     VBounds(CWMPage.CheckListBox,0,0,404,85); VFont(CWMPage.CheckListBox.Font,12,False);
     VBounds(CWMLocationLabel,0,94,404,20); VFont(CWMLocationLabel.Font,12,False);
     VBounds(CWMLocation,0,120,404,136); VFont(CWMLocation.Font,12,False);
-    VStatus.Caption:=CustomMessage('VMaintenance');
+    if VUpgradeAvailable then VStatus.Caption:=FmtMessage(CustomMessage('VUpgradeHeading'),['{#AppVersion}'])
+    else VStatus.Caption:=CustomMessage('VMaintenance');
     VBounds(VStatus,209,60,402,34);
+#ifdef CodeWFSetupFixture
+    if Maintenance then Log('VEX FIXTURE heading='+VStatus.Caption);
+#endif
     if (CWMRepairPath='') or VMigrationNeeded then begin
       VDescription.Visible:=Main and not VDetailsOpen;
       VDescription.Caption:=CustomMessage('VRegistrationIntro');
@@ -448,12 +498,10 @@ begin
   end;
   VInstalled.Visible:=Main and Maintenance; VLocation.Visible:=Main and Maintenance;
   VBounds(VInstalled,209,29,402,18); VBounds(VLocation,222,130,376,48);
-  InstalledPath:=CWMRepairPath;
-  I:=VSelectedRegistration;
-  if I>=0 then InstalledPath:=CWMRegistrations[I].AppPath;
-  InstalledVersion:=VRegisteredVersion(I);
-  if InstalledVersion<>'' then VInstalled.Caption:=FmtMessage(CustomMessage('VInstalled'),[InstalledVersion])
-  else VInstalled.Caption:=CustomMessage('VInstalledUnknown');
+  if InstalledVersion='' then VInstalled.Caption:=CustomMessage('VInstalledUnknown')
+  else if VUpgradeAvailable then
+    VInstalled.Caption:=FmtMessage(CustomMessage('VInstalledUpgrade'),[InstalledVersion,'{#AppVersion}'])
+  else VInstalled.Caption:=FmtMessage(CustomMessage('VInstalled'),[InstalledVersion]);
 #ifdef CodeWFSetupFixture
   if Maintenance then Log('VEX FIXTURE installed='+VInstalled.Caption);
 #endif
@@ -534,8 +582,9 @@ begin
   end;
   if Maintenance then begin
     if CWMPage.SelectedValueIndex>0 then WizardForm.NextButton.Caption:=CustomMessage('VRemove')
-    else if CWMRepairPath<>'' then WizardForm.NextButton.Caption:=CustomMessage('VRepair')
-    else WizardForm.NextButton.Caption:=CustomMessage('VContinueInstall');
+    else if CWMRepairPath='' then WizardForm.NextButton.Caption:=CustomMessage('VContinueInstall')
+    else if VUpgradeAvailable then WizardForm.NextButton.Caption:=CustomMessage('VUpgrade')
+    else WizardForm.NextButton.Caption:=CustomMessage('VRepair');
     if VMigrationNeeded and (CWMPage.SelectedValueIndex=0) then WizardForm.NextButton.Caption:=CustomMessage('VMigrate');
   end;
   VPaintBackground;
@@ -627,6 +676,14 @@ begin
   #endif
 end;
 
+{ 强调色只落在主操作上：非维护页与可升级时都是 Next 按钮，普通维护页留给「打开」。 }
+function VIsPrimaryButton(I: Integer): Boolean;
+begin
+  if I=0 then Result:=(not VIsMaintenance) or VUpgradeAvailable
+  else if I=5 then Result:=VIsMaintenance and not VUpgradeAvailable
+  else Result:=False;
+end;
+
 procedure VPaintButton(I: Integer; DC: LongWord; Bounds: TVRect; State: LongWord);
 var X,Y: Integer; TextBounds,ButtonBounds,WindowBounds: TVRect;
   Brush,Color,Foreground,PreviousFont,Pen,OldPen: LongWord; Saved: Integer;
@@ -634,11 +691,11 @@ begin
   Saved:=VSaveDC(DC);
   try
       Color:=VSurface; Foreground:=VMuted;
-      if ((I=0) and not VIsMaintenance) or ((I=5) and VIsMaintenance) then begin Color:=VAccent; Foreground:=VOnAccent; end;
+      if VIsPrimaryButton(I) then begin Color:=VAccent; Foreground:=VOnAccent; end;
       if I=9 then begin Color:=VSoft; Foreground:=VText; end;
       if (I=VHover) or ((State and 1)<>0) then begin
         Color:=VSoft; Foreground:=VAccent;
-        if ((I=0) and not VIsMaintenance) or ((I=5) and VIsMaintenance) then begin Color:=VAccentHover; Foreground:=VOnAccent; end;
+        if VIsPrimaryButton(I) then begin Color:=VAccentHover; Foreground:=VOnAccent; end;
         if I=3 then begin Color:=$1C2BC4; Foreground:=clWhite; end;
       end;
       if (State and 4)<>0 then begin Color:=VSoft; Foreground:=VMuted; end;
