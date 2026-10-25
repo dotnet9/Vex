@@ -409,13 +409,23 @@ begin
   Result:=IntToStr(Y)+'-'+VPad2(M)+'-'+VPad2(D);
 end;
 
+{ Inno 的 Pos 把非 ASCII 字符按两个单元计数，而 Copy/Length 按一个字符计，
+  所以搜中文或全角符号会给出越界下标；逐字符比较才与 Copy 同一套坐标。 }
+function VCharPos(const S: String; const Need: String): Integer;
+var I: Integer;
+begin
+  Result:=0;
+  for I:=1 to Length(S) do
+    if Copy(S,I,Length(Need))=Need then begin Result:=I; exit; end;
+end;
+
 { 随包的 docs/更新日志.md 按「## V版本（日期）」切成小节：标题行的发布日期与右侧日志栏同源。 }
 procedure VAddRelease(const Header: String);
 var Body, Date: String; Open, Close: Integer;
 begin
   if VReleaseCount>High(VReleaseVersions) then exit;
   Body:=Trim(Copy(Header,5,Length(Header)));
-  Open:=Pos('（',Body); Close:=Pos('）',Body);
+  Open:=VCharPos(Body,'（'); Close:=VCharPos(Body,'）');
   Date:='';
   if (Open>0) and (Close>Open) then begin
     Date:=Trim(Copy(Body,Open+1,Close-Open-1));
@@ -496,18 +506,21 @@ end;
 
 { 「- ✨[新增]-正文」渲染成带色标签加正文；跨版本升级时更早的小节默认收起。 }
 function VRTFBullet(const Line: String): String;
-var Tag, Text: String; Open, Close, Color: Integer;
+var Tag, Text, Rest: String; Open, Close, Color: Integer;
 begin
   Text:=Trim(Copy(Line,3,Length(Line)));
   Result:='\pard\sa70\fs18';
-  Open:=Pos('[',Text); Close:=Pos(']',Text);
+  Open:=VCharPos(Text,'['); Close:=VCharPos(Text,']');
   if (Open>0) and (Open<=3) and (Close>Open) then begin
     Tag:=Trim(Copy(Text,Open+1,Close-Open-1));
+    Rest:=Trim(Copy(Text,Close+1,Length(Text)));
+    { 源文档写作「✨[新增]-正文」，标签后的连字符只是分隔符，留着会和标签连读成正文开头。 }
+    if Copy(Rest,1,1)='-' then Rest:=Trim(Copy(Rest,2,Length(Rest)));
     Color:=2;
     if Tag='新增' then Color:=3;
     if Tag='修复' then Color:=4;
-    Result:=Result+'\cf'+IntToStr(Color)+' ['+VRTFText(Tag)+']\cf1 '+
-      VRTFText(Trim(Copy(Text,Close+1,Length(Text))));
+    { 控制字后的第一个空格会被 RTF 当分隔符吃掉，标签与正文之间要留两个才剩一个。 }
+    Result:=Result+'\cf'+IntToStr(Color)+' ['+VRTFText(Tag)+']\cf1  '+VRTFText(Rest);
   end else Result:=Result+'\cf1 '+VRTFText(Text);
   Result:=Result+'\par ';
 end;

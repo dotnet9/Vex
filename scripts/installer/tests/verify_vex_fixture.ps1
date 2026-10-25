@@ -185,6 +185,11 @@ try {
         elseif ($CurrentVersion) { '^(安装包|Package) 1\.0\.0 · (1\.0\.0 之后|since 1\.0\.0)$' }
         else { '^(安装包|Package) 1\.0\.0 · (0\.9\.0 之后|since 0\.9\.0)$' }
         Check ($changelog.Groups[3].Value -match $metaPattern) "日志栏说明本安装包与本机版本的来源：$metaPattern"
+        # 随包日志是中文文档，两语渲染同一份正文；逐字核对切分结果，防止 Pos 的宽字符偏移把字吃掉。
+        $memoText=[CodeWFSetupFixtureDesktop]::Text($logMemo)
+        Check ($memoText -match 'V1\.10\.0 2026-10-25(\s|$)') '小节标题的发布日期干净收尾，不残留全角括号'
+        Check ($memoText -match '新增\] 窗口改成块状布局') '标签后的连字符不混进正文，条目首字也没被切掉'
+        Check (-not ($memoText -match '\[[^\]]*\]-')) '正文里不再出现 [标签]- 这种源文档写法'
         $more=Wait-For { Button '^View [0-9]+ earlier release|^查看更早' } '折叠中的更早版本入口'
         Click $more
         [void](Wait-For { (Get-Content -LiteralPath (Join-Path $Output 'setup.log') -Raw) -match 'changelog releases=\d+ earlier=1' } '展开更早版本')
