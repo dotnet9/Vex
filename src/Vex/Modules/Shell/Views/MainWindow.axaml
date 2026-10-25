@@ -22,7 +22,7 @@
     BorderBrush="{DynamicResource VexPanelBorderBrush}"
     TitleBarHeight="33"
     TitleBarBackground="{DynamicResource VexPanelBackgroundBrush}"
-    CaptionButtonWidth="46" CaptionGlyphSize="14"
+    CaptionButtonWidth="46" CaptionGlyphSize="16"
     IsTitleBarVisible="{Binding !Workbench.IsPresenting}"
     IsManagedResizerVisible="{Binding !Workbench.IsPresenting}"
     Topmost="{Binding Layout.IsAlwaysOnTop}"
