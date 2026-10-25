@@ -134,10 +134,10 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         SynchronizeVisibleDocument();
     }
 
-    private void SynchronizeVisibleDocument()
+    private void SynchronizeVisibleDocument(bool restoreHidden = false)
     {
         // Keep the latest source while hidden without parsing or building another document tree.
-        if (!_workbench.IsPreviewVisible && !IsPresenting) return;
+        if (!restoreHidden && !_workbench.IsPreviewVisible && !IsPresenting) return;
         ImageBasePath = _sourceImageBasePath;
         Markdown = IsPresenting ? _workbench.PresentationMarkdown : _sourceMarkdown;
     }
@@ -151,7 +151,9 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         // boundary so the view can preserve its reading anchor before restoring the full text.
         if (e.PropertyName is nameof(_workbench.PresentationMarkdown) or nameof(_workbench.IsPresenting)
             || e.PropertyName == nameof(_workbench.IsPreviewVisible) && _notifiedIsPresenting == IsPresenting)
-            SynchronizeVisibleDocument();
+            // 退出演示时正文列可能已经隐藏（例如回到即时视图）：这里必须无条件回落全文，
+            // 否则演示章节会留在正文里，后续任何不再触发上面事件的显露都只重绘出那一节。
+            SynchronizeVisibleDocument(restoreHidden: !IsPresenting && _notifiedIsPresenting);
         if (e.PropertyName == nameof(_workbench.IsPresenting)) _notifiedIsPresenting = IsPresenting;
         if (e.PropertyName == nameof(_workbench.IsPresenting) && !enteringPresentation) this.RaisePropertyChanged(nameof(IsPresenting));
         if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom)

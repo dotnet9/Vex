@@ -15,6 +15,7 @@ internal static class PrototypeChromeVerification
     public static void Run(VerificationVexApp app, MainWindow window, string output)
     {
         var vm = (MainWindowViewModel)window.DataContext!;
+        var documentState = app.Resolve<IWorkspaceDocumentState>();
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         void Check(bool value, string message) { if (!value) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
         Check(!vm.Layout.IsOutlineVisible, "Auxiliary panel starts closed for a new workspace");
@@ -296,5 +297,23 @@ internal static class PrototypeChromeVerification
             }
         }
         Check(vm.Markdown == original && vm.Workbench.History.Capture().Undo.SequenceEqual(history.Undo), "Layout and language changes preserve text and undo history");
+        // 演示退出：正文可能在退出那一刻仍不可见（回到即时视图），全文必须当场回落，
+        // 否则残留的演示章节会在下一次显露时直接渲染出来——阅读块只剩首个标题。
+        var previewViewModel = (Vex.Modules.Workspace.ViewModels.MarkdownPreviewViewModel)preview.DataContext!;
+        int RenderedBlocks(string className) => preview.GetVisualDescendants().OfType<Border>().Count(b => b.Classes.Contains(className));
+        vm.Workbench.SelectLayout("instant"); Render();
+        Check(previewViewModel.Markdown == documentState.Markdown && RenderedBlocks("MdTableContainer") == 1,
+            "Reading pane keeps the full document while hidden in the instant view");
+        vm.Workbench.StartPresentation(); Render();
+        Check(previewViewModel.Markdown.Length < documentState.Markdown.Length && vm.Workbench.IsPresenting,
+            "Presentation swaps the pane to a single section");
+        vm.Workbench.NextPresentation(); Render();
+        vm.Workbench.StopPresentation(); Render();
+        Check(!vm.Workbench.IsPresenting && !vm.Workbench.IsPreviewVisible, "Exiting the presentation hides the section pane again");
+        Check(previewViewModel.Markdown == documentState.Markdown,
+            "Exiting the presentation restores the whole document even while the pane stays hidden");
+        vm.Workbench.SelectLayout("read"); Render();
+        Check(RenderedBlocks("MdTableContainer") == 1 && RenderedBlocks("MdHeadingBorder") >= 2,
+            "Reading view after the presentation renders the tail blocks, not the last section");
     }
 }
