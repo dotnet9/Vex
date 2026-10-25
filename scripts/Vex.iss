@@ -87,6 +87,9 @@ Name: "{autoprograms}\Vex"; Filename: "{app}\Vex.exe"; WorkingDir: "{app}"
 Name: "{autodesktop}\Vex"; Filename: "{app}\Vex.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Vex.exe"; Description: "{cm:LaunchProgram,Vex}"; Flags: nowait postinstall skipifsilent
+; WorkingDirectory must point at {app}: the default makes the child inherit the folder the
+; setup EXE was run from (downloads/temp), where Avalonia+SkiaSharp can crash on init
+; (finish-page Open crash vs Start menu OK). runasoriginaluser matches Start menu semantics.
+Filename: "{app}\Vex.exe"; WorkingDirectory: "{app}"; Description: "{cm:LaunchProgram,Vex}"; Flags: runasoriginaluser nowait postinstall skipifsilent
 
 #include "installer\Vex.Setup.iss"
