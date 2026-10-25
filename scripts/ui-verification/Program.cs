@@ -218,16 +218,22 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     Check(Math.Abs(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width - 226) < 1,
         "Vex sidebar initially occupies 226 px");
     var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
+    var localizer = app.Resolve<IAppLocalizer>();
+    string Header(MenuItem item) => item.Header?.ToString() ?? string.Empty;
     var viewMenu = titleMenu.FindControl<MenuItem>("ViewMenuItem")!;
-    viewMenu.IsSubMenuOpen = true;
-    Pump();
-    var sidebarMenu = titleMenu.FindControl<MenuItem>("SidebarMenuItem")!;
-    Check(sidebarMenu.IsChecked, "Vex Sidebar menu is initially checked");
-    Check(sidebarMenu.Header?.ToString() == app.Resolve<IAppLocalizer>().Get(Vex.VexL.ToggleSidebar),
-        "Vex Sidebar menu label is localized");
-    viewMenu.IsSubMenuOpen = false;
-    viewMenu.IsSelected = false;
-    Pump();
+    // 原型 483dbd3：视图菜单去掉与布局预设重复的视图开关与侧栏/大纲条目，只剩显示、演示、窗口三组九项。
+    var viewRows = viewMenu.Items.OfType<MenuItem>().Select(Header).ToArray();
+    Check(viewRows.SequenceEqual([
+        localizer.Get(Vex.VexL.ShowLineNumbers), localizer.Get(Vex.VexL.PrefWordCount), localizer.Get(Vex.VexL.MenuWatermark),
+        localizer.Get(Vex.VexL.MenuMotion), localizer.Get(Vex.VexL.WBPresentation), localizer.Get(Vex.VexL.MenuFocusMode),
+        localizer.Get(Vex.VexL.MenuTypewriterMode), localizer.Get(Vex.VexL.ToggleFullScreen), localizer.Get(Vex.VexL.AlwaysOnTop)]),
+        "View menu holds exactly the prototype's nine entries: " + string.Join(" / ", viewRows));
+    // 「工具」不再单列，偏好设置与平台复制、MCP 条目整块并入文件菜单。
+    var fileRows = titleMenu.FileMenuTarget.Items.OfType<MenuItem>().Select(Header).ToArray();
+    foreach (var key in new[] { Vex.VexL.Preferences, Vex.VexL.WordCount, Vex.VexL.RefreshPreview, Vex.VexL.CopyToWechat,
+        Vex.VexL.CopyToZhihu, Vex.VexL.CopyToJuejin, Vex.VexL.McpSettings, Vex.VexL.McpAudit })
+        Check(fileRows.Contains(localizer.Get(key)), "File menu carries the merged tools entry: " + key);
+    Check(titleMenu.FindControl<MenuItem>("ToolsMenuItem") is null, "The title bar no longer has a standalone tools menu");
     // 每轮复制到独立输出目录，保存路径回归不会污染测试输入或用户文档。
     var sampleFolder = Path.GetFullPath(Path.Combine(output, "..", "笔记"));
     Directory.CreateDirectory(sampleFolder);
@@ -410,13 +416,14 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     vm.Layout.IsSidebarVisible = false;
     Pump();
     Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 0, "Vex sidebar collapses");
-    Check(!sidebarMenu.IsChecked && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == false,
-        "Sidebar check and persisted state follow collapse");
+    var sidebarCollapse = window.FindControl<Button>("SidebarCollapseButton")!;
+    Check(!sidebarCollapse.Classes.Contains("on") && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == false,
+        "Block-corner collapse button and persisted state follow collapse");
     vm.Layout.IsSidebarVisible = true;
     Pump();
     Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 226, "Vex sidebar reopens");
-    Check(sidebarMenu.IsChecked && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == true,
-        "Sidebar check and persisted state follow reopening");
+    Check(sidebarCollapse.Classes.Contains("on") && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == true,
+        "Block-corner collapse button and persisted state follow reopening");
     window.Width = 980;
     window.Height = 640;
     Pump();
@@ -2059,7 +2066,6 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
     var insert = titleMenu.FindControl<MenuItem>("InsertMenuItem")!;
     Check(insert.GetLogicalDescendants().OfType<MenuItem>().Count(item => item.CommandParameter is string key && key is not "footnote") == 22,
         "All 22 Mermaid templates remain available in grouped insertion menus");
-    var view = titleMenu.FindControl<MenuItem>("ViewMenuItem")!;
     foreach (var width in new[] { 1280, 980, 1920 })
     {
         window.Width = width; window.Height = width == 980 ? 640 : 900; vm.Layout.IsSidebarVisible = true;

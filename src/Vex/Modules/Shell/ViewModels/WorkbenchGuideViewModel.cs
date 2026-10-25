@@ -39,7 +39,6 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
         public const string LayoutGallery = "layout-gallery";
         public const string PresentationTools = "presentation-tools";
         public const string MenuItemFile = "menu-file";
-        public const string MenuTools = "menu-tools";
         public const string MenuStrip = "menu-strip";
         public static string LayoutOption(string id) => "layout-option:" + id;
     }
@@ -330,11 +329,15 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
                         {
                             _stage.CloseMenus();
                             Later(200, () =>
-                                Pause(T("GuideAct6Step3"), [Anchor.MenuTools, Anchor.MenuStrip], () =>
+                            {
+                                // 「工具」并入文件后，发布平台复制条目就在文件菜单里，引导第三段重新展开它。
+                                _stage.OpenFileMenu();
+                                Pause(T("GuideAct6Step3"), [Anchor.MenuItemFile, Anchor.MenuStrip], () =>
                                 {
                                     _stage.CloseMenus();
                                     Pause(T("GuideAct6Summary"), [Anchor.Preview], FinishAct);
-                                }));
+                                });
+                            });
                         }));
                 }));
         });

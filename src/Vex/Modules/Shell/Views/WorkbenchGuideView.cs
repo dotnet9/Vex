@@ -215,7 +215,6 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
             WorkbenchGuideViewModel.Anchor.AppearanceButton => _window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")?.AppearanceButton,
             WorkbenchGuideViewModel.Anchor.AppearanceMenu => _window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")?.MenuContent,
             WorkbenchGuideViewModel.Anchor.MenuItemFile => _window.FindControl<ShellTitleMenuView>("TitleMenuView")?.FileMenuTarget,
-            WorkbenchGuideViewModel.Anchor.MenuTools => _window.FindControl<ShellTitleMenuView>("TitleMenuView")?.FindControl<MenuItem>("ToolsMenuItem"),
             WorkbenchGuideViewModel.Anchor.MenuStrip => _window.FindControl<ShellTitleMenuView>("TitleMenuView"),
             var key when key.StartsWith("layout-option:", StringComparison.Ordinal) => _window.FindControl<WorkspaceLayoutGallery>("LayoutGallery")?
                 .GetVisualDescendants().OfType<Button>().FirstOrDefault(button => button.Tag as string == key["layout-option:".Length..]),
@@ -285,9 +284,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
 
     void WorkbenchGuideViewModel.IStage.CloseMenus()
     {
-        if (_window?.FindControl<ShellTitleMenuView>("TitleMenuView") is not { } menu) return;
-        if (menu.FileMenuTarget is { } file) file.IsSubMenuOpen = false;
-        if (menu.FindControl<MenuItem>("ToolsMenuItem") is { } tools) tools.IsSubMenuOpen = false;
+        if (_window?.FindControl<ShellTitleMenuView>("TitleMenuView")?.FileMenuTarget is { } file) file.IsSubMenuOpen = false;
     }
 
     private bool Hit(string anchor, Visual source)
@@ -467,9 +464,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
 
     private void CloseMenus()
     {
-        if (_window?.FindControl<ShellTitleMenuView>("TitleMenuView") is not { } menu) return;
-        if (menu.FileMenuTarget is { } file) file.IsSubMenuOpen = false;
-        if (menu.FindControl<MenuItem>("ToolsMenuItem") is { } tools) tools.IsSubMenuOpen = false;
+        if (_window?.FindControl<ShellTitleMenuView>("TitleMenuView")?.FileMenuTarget is { } file) file.IsSubMenuOpen = false;
     }
 
     private sealed class Spotlight : Control

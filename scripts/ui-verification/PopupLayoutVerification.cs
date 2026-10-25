@@ -48,7 +48,11 @@ internal static class PopupLayoutVerification
             item.IsSubMenuOpen = true; Render();
             var popup = item.GetVisualDescendants().OfType<Popup>().First();
             var panel = popup.Child!;
+            Console.WriteLine($"MENU PANEL {item.Header}: {panel.GetType().Name} {panel.Bounds} scroll={(panel is ScrollViewer ? 1 : 0) + panel.GetVisualDescendants().OfType<ScrollViewer>().Count()}");
             Check(panel.Bounds.Width == 248, "Menu panel is 248px: " + item.Header);
+            // 原型 .menu-flyout > .flyout{max-height:calc(100vh - 76px);overflow-y:auto}：文件菜单并入工具条目后必须可滚动，不能裁掉尾部条目。
+            Check(panel.Bounds.Height <= 820 - 56 + 1 && (panel is ScrollViewer || panel.GetVisualDescendants().OfType<ScrollViewer>().Any()),
+                "Menu panel caps at the window height and scrolls: " + item.Header + " " + panel.Bounds.Height);
             Check(item.Items.OfType<MenuItem>().All(row => row.Bounds.Height >= 32), "Menu rows retain the prototype's 32px target: " + item.Header);
             foreach (var row in item.Items.OfType<MenuItem>())
             {

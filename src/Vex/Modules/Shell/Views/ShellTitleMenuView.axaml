@@ -10,8 +10,8 @@
     prism:ViewModelLocator.AutoWireViewModel="True"
     xmlns:prism="http://prismlibrary.com/">
     <Menu x:Name="TitleMenuBar" Classes="title-menu" VerticalAlignment="Center">
-        <!-- 菜单树严格对齐原型 interact.js 的 MENUS：七个顶级菜单全部扁平展开，
-             不设「文档操作/标题/编辑方式/侧栏与大纲/编辑显示/窗口」等二级聚合组。 -->
+        <!-- 菜单树严格对齐原型 interact.js 的 MENUS：六个顶级菜单（文件/编辑/段落/格式/视图/帮助）全部扁平展开，
+             「工具」并入文件，不设「文档操作/标题/编辑方式/侧栏与大纲/编辑显示/窗口」等二级聚合组。 -->
         <MenuItem x:Name="FileMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuFile}}">
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}" InputGesture="Ctrl+N" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewWindow}}" Command="{Binding NewWindow}" InputGesture="Ctrl+Shift+N" />
@@ -45,6 +45,19 @@
                 <MenuItem Header="{i18n:I18n Vex.VexL.MenuImportWord}" Command="{Binding ImportFrom}" CommandParameter="Word" />
             </MenuItem>
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Print}}" Command="{Binding Print}" InputGesture="Ctrl+Shift+P" />
+            <!-- 「工具」不再单列：偏好设置、字数统计、平台复制与 MCP 整块展开并入文件菜单（原型 interact.js 483dbd3）。 -->
+            <Separator />
+            <MenuItem x:Name="PreferencesMenuItem" Header="{i18n:I18n {x:Static l:VexL.Preferences}}" Command="{Binding ShowPreferences}" InputGesture="Ctrl+," />
+            <Separator />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.WordCount}}" Command="{Binding WordCount}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.RefreshPreview}}" Command="{Binding RefreshPreview}" />
+            <Separator />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToWechat}}" Command="{Binding CopyHtml}" CommandParameter="wechat" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToZhihu}}" Command="{Binding CopyHtml}" CommandParameter="zhihu" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToJuejin}}" Command="{Binding CopyHtml}" CommandParameter="juejin" />
+            <Separator />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.McpSettings}}" Command="{Binding ShowMcpSettings}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.McpAudit}}" Command="{Binding ShowMcpAudit}" />
             <Separator />
             <MenuItem Header="{i18n:I18n Vex.VexL.MenuProperties}" Command="{Binding ShowProperties}" InputGesture="Alt+Enter" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFileLocation}}" Command="{Binding OpenFileLocationAsync}" IsEnabled="{Binding DocumentInfo.HasCurrentFile}" />
@@ -162,16 +175,8 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}" />
         </MenuItem>
 
+        <!-- 视图菜单只留原型「显示/演示/窗口」三组：编辑/阅读/导图与侧栏、大纲开关已由布局预设分段条和块角按钮承担。 -->
         <MenuItem x:Name="ViewMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuView}}">
-            <MenuItem Header="{i18n:I18n Vex.VexL.MenuEditView}" Command="{Binding Workbench.ShowEdit}" IsChecked="{Binding Workbench.IsEditing, Mode=OneWay}" ToggleType="Radio"/>
-            <MenuItem Header="{i18n:I18n Vex.VexL.MenuReadView}" Command="{Binding Workbench.ShowRead}" IsChecked="{Binding Workbench.IsReading, Mode=OneWay}" ToggleType="Radio"/>
-            <MenuItem Header="{i18n:I18n Vex.VexL.MenuMindMap}" Command="{Binding Workbench.ShowMindMap}" IsChecked="{Binding Workbench.IsMindMap, Mode=OneWay}" ToggleType="Radio"/>
-            <Separator/>
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.WBInstant}}" Command="{Binding Workbench.ShowInstant}" IsChecked="{Binding Workbench.IsInstantEditing, Mode=OneWay}" ToggleType="Radio" />
-            <MenuItem x:Name="SourceModeMenuItem" Header="{i18n:I18n {x:Static l:VexL.WBSource}}" Command="{Binding Workbench.ShowSource}" IsChecked="{Binding Workbench.IsSourceEditing, Mode=OneWay}" ToggleType="Radio" />
-            <MenuItem x:Name="SidebarMenuItem" Header="{i18n:I18n {x:Static l:VexL.ToggleSidebar}}" Command="{Binding Layout.ToggleSidebar}" IsChecked="{Binding Layout.IsSidebarVisible, Mode=OneWay}" ToggleType="CheckBox" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.DocumentList}}" Command="{Binding Layout.ShowFiles}" />
-            <MenuItem x:Name="OutlineMenuItem" Header="{i18n:I18n {x:Static l:VexL.Outline}}" Command="{Binding Layout.ShowOutline}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowLineNumbers}}" Command="{Binding EditorDisplay.ToggleLineNumbers}" IsChecked="{Binding EditorDisplay.ShowLineNumbers}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n Vex.VexL.PrefWordCount}" Command="{Binding ToggleWordCount}" IsChecked="{Binding Preferences.WordCountVisible, Mode=OneWay}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n Vex.VexL.MenuWatermark}" Command="{Binding ToggleWatermark}" IsChecked="{Binding Preferences.WatermarkPreview, Mode=OneWay}" ToggleType="CheckBox" />
@@ -183,20 +188,6 @@
             <Separator />
             <MenuItem x:Name="FullScreenMenuItem" Header="{i18n:I18n {x:Static l:VexL.ToggleFullScreen}}" Command="{Binding Layout.ToggleFullScreen}" InputGesture="F11" ToggleType="CheckBox" IsChecked="{Binding Layout.IsFullScreen, Mode=OneWay}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.AlwaysOnTop}}" Command="{Binding Layout.ToggleAlwaysOnTop}" IsChecked="{Binding Layout.IsAlwaysOnTop}" ToggleType="CheckBox" />
-        </MenuItem>
-
-        <MenuItem x:Name="ToolsMenuItem" Header="{i18n:I18n {x:Static l:VexL.WBTools}}">
-            <MenuItem x:Name="PreferencesMenuItem" Header="{i18n:I18n {x:Static l:VexL.Preferences}}" Command="{Binding ShowPreferences}" InputGesture="Ctrl+," />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.WordCount}}" Command="{Binding WordCount}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.RefreshPreview}}" Command="{Binding RefreshPreview}" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToWechat}}" Command="{Binding CopyHtml}" CommandParameter="wechat" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToZhihu}}" Command="{Binding CopyHtml}" CommandParameter="zhihu" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToJuejin}}" Command="{Binding CopyHtml}" CommandParameter="juejin" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.McpSettings}}" Command="{Binding ShowMcpSettings}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.McpAudit}}" Command="{Binding ShowMcpAudit}" />
         </MenuItem>
 
         <MenuItem x:Name="HelpMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuHelp}}">
