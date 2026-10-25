@@ -441,8 +441,13 @@ begin
   VReleaseCount:=VReleaseCount+1;
 end;
 
+{ 诊断：外部调用的输出参数换 WideString 类型（若编组是纯 UTF-16 指针则无 1252 往返），
+  输入侧 AnsiString→AnsiString 本就是指针拷贝；同时探字符串字面量 #NNNN 数字转义的码域。 }
+function VMultiByteToWideW(CodePage: Integer; Flags: LongWord; Mbs: AnsiString; MbLen: Integer; var WideBuf: WideString; WideLen: Integer): Integer;
+  external 'MultiByteToWideChar@kernel32.dll stdcall';
+
 function VChangelogLoad: Boolean;
-var Lines: TArrayOfString; Line: String; I: Integer;
+var Lines: TArrayOfString; Line: String; I: Integer; W: WideString; WideLen: Integer; Raw: AnsiString;
 begin
   if not VChangelogLoaded then begin
     VChangelogLoaded:=True;
@@ -455,6 +460,12 @@ begin
       全角括号会变半角），Chr 又只到字节域。许可文件是纯 ASCII，不受此限。 }
     if LoadStringsFromFile(ExpandConstant('{tmp}\Vex-Changelog.txt'),Lines) then begin
       Log('VEX FIXTURE lines0='+Copy(Lines[0],1,24)+' lines2='+Copy(Lines[2],1,24)+' linecount='+IntToStr(GetArrayLength(Lines)));
+      { 诊断：WideString 输出参数的解码与 #NNNN 转义码域。 }
+      Raw:=#$E4#$B8#$AD;
+      WideLen:=VMultiByteToWideW(65001, 0, Raw, 3, W, 0);
+      SetLength(W, WideLen);
+      WideLen:=VMultiByteToWideW(65001, 0, Raw, 3, W, WideLen);
+      Log('VEX FIXTURE widetest=['+W+'] wlen='+IntToStr(WideLen)+' numesc=['+#23433+']');
       for I:=0 to GetArrayLength(Lines)-1 do begin
         Line:=Lines[I];
         if Copy(Line,1,4)='## V' then VAddRelease(Line)
