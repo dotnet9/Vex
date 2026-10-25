@@ -165,6 +165,10 @@ function VSetLong(Window: LongWord; Index: Integer; Value: Longint): Longint;
   external 'SetWindowLongW@user32.dll stdcall';
 function VGetClassLong(Window: LongWord; Index: Integer): LongWord;
   external 'GetClassLongW@user32.dll stdcall';
+function VProbeClassName(Window: LongWord; Buffer: String; Max: Integer): Integer;
+  external 'GetClassNameW@user32.dll stdcall';
+function VProbeModule(Name: String): LongWord;
+  external 'GetModuleHandleW@kernel32.dll stdcall';
 function VSetClassLong(Window: LongWord; Index: Integer; Value: LongWord): LongWord;
   external 'SetClassLongW@user32.dll stdcall';
 function VCallProc(Previous, Window, Message, WParam, LParam: LongWord): Longint;
@@ -645,7 +649,7 @@ procedure VLayout;
 var Page, Height, Width, I, ButtonY, BrandY, NextWidth, PillWidth, PillX, TextWidth: Integer;
   Home, Finished, Installing, Maintenance, Main, Panel: Boolean;
   Region: LongWord; TextBounds: TVRect; Selected: Integer;
-  InstalledVersion, InstalledPath, InstalledOn, PackageDate, VFixLog: String;
+  InstalledVersion, InstalledPath, InstalledOn, PackageDate, VFixLog, VFixClass: String;
 begin
   if not VInitialized then exit;
   Page:=WizardForm.CurPageID;
@@ -771,6 +775,13 @@ begin
       StringChangeEx(VFixLog,#10,' ',True);
       Log('VEX FIXTURE newestbody='+VFixLog);
     end;
+    { 探针：日志栏 RichEdit 的窗口类与已加载的 RichEdit DLL，用于定位 \u 转义失效的层级。 }
+    SetLength(VFixClass,64);
+    SetLength(VFixClass,VProbeClassName(VLogMemo.Handle,VFixClass,64));
+    Log('VEX FIXTURE richeditclass='+VFixClass+
+      ' riched20='+IntToStr(Ord(VProbeModule('riched20.dll')<>0))+
+      ' msftedit='+IntToStr(Ord(VProbeModule('msftedit.dll')<>0))+
+      ' esclen='+IntToStr(Length(VRTFText('安'))));
 #endif
   end;
   if not Home and not Finished and not Installing and not Maintenance then begin
