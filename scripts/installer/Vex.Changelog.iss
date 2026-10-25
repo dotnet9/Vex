@@ -1,14 +1,14 @@
 // 由 docs/更新日志.md 生成：' 双写为 ''，行间以裸 #10 转义连接，分块尾部亦补 #10（分块按源行，永不切断转义）。
 
-; 维护页更新日志栏的文本源。运行时 UTF-8 解码在 CI 的 Inno 6.7.1 上全数判死：UTF8Decode 的
+// 维护页更新日志栏的文本源。运行时 UTF-8 解码在 CI 的 Inno 6.7.1 上全数判死：UTF8Decode 的
 
-; 返回值再赋 String 按 1252 盲宽化、LoadStringsFromFile 实测同样吐 1252 最佳适配指纹（（变半角）、
+// 返回值再赋 String 按 1252 盲宽化、LoadStringsFromFile 实测同样吐 1252 最佳适配指纹（（变半角）、
 
-; 外部 String/WideString 参数编组有 1252 往返、Chr 截断字节域），唯有字面量 #NNNN 转义实证支持
+// 外部 String/WideString 参数编组有 1252 往返、Chr 截断字节域），唯有字面量 #NNNN 转义实证支持
 
-; 宽码点（numesc=[安]），故编译期内嵌。改完 docs/更新日志.md 后按同样规则重出此文件；漂移会被
+// 宽码点（numesc=[安]），故编译期内嵌。改完 docs/更新日志.md 后按同样规则重出此文件；漂移会被
 
-; windows-installer-contract 的更新日志逐字断言当场抓住（夹具 PS 侧期望值取自 md 原文）。
+// windows-installer-contract 的更新日志逐字断言当场抓住（夹具 PS 侧期望值取自 md 原文）。
 
 function VChangelogEmbedded: String;
 
