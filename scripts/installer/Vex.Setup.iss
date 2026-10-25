@@ -423,28 +423,6 @@ begin
     if Copy(S,I,Length(Need))=Need then begin Result:=I; exit; end;
 end;
 
-{ 字节级 UTF-8 解码：CI/新版 Inno 的 UTF8Decode 返回 AnsiString，会把已解码的宽字符再过一遍
-  系统 ANSI 代码页（1252 有损转换），中文全部退成「?」而 —· 等拉丁扩展字符幸存——CI 探针
-  newestbody 里的正是这种指纹。PascalScript 的 Chr 又只保证字节域，不赌它对 BMP 的支持，
-  直接调 kernel32 的 MultiByteToWideChar(65001)：缓冲编组走本脚本已验证的 SetLength+外部
-  调用模式（GetClassNameW 探针同款），不依赖任何 Inno 版本行为；非法序列退「?」。 }
-function VMultiByteToWide(CodePage: Integer; Flags: LongWord; Mbs: AnsiString; MbLen: Integer; WideBuf: String; WideLen: Integer): Integer;
-  external 'MultiByteToWideChar@kernel32.dll stdcall';
-
-function VUtf8DecodeBytes(const Raw: AnsiString): String;
-var WideLen: Integer;
-begin
-  Result:='';
-  WideLen:=VMultiByteToWide(65001, 0, Raw, Length(Raw), '', 0);
-  if WideLen<=0 then exit;
-  SetLength(Result, WideLen);
-  WideLen:=VMultiByteToWide(65001, 0, Raw, Length(Raw), Result, WideLen);
-  if WideLen<=0 then begin Result:=''; exit; end;
-  SetLength(Result, WideLen);
-  { 去掉 UTF-8 BOM（若有），解析只认「## V」行首。 }
-  if (Length(Result)>0) and (Ord(Result[1])=$FEFF) then Result:=Copy(Result,2,Length(Result));
-end;
-
 { 随包的 docs/更新日志.md 按「## V版本（日期）」切成小节：标题行的发布日期与右侧日志栏同源。 }
 procedure VAddRelease(const Header: String);
 var Body, Date: String; Open, Close: Integer;
@@ -464,33 +442,19 @@ begin
 end;
 
 function VChangelogLoad: Boolean;
-var Raw: AnsiString; Text, Line, VProbeText: String; I, VProbeCode: Integer;
+var URaw: UTF8String; Text, Line: String; I: Integer;
 begin
   if not VChangelogLoaded then begin
     VChangelogLoaded:=True;
     { ExtractTemporaryFile 的返回值不是布尔，解包后直接读文件本身。 }
     ExtractTemporaryFile('Vex-Changelog.txt');
-    if LoadStringFromFile(ExpandConstant('{tmp}\Vex-Changelog.txt'),Raw) then begin
-      { 探针：原始字节头（应为 35,35,32…「## 」）与解码机制自检（#$E4#$B8#$AD 经 1252 往返
-        恰为「中」的 UTF-8 字节，解码成功应回「中」、长度 1），分辨输入有损还是机制损坏。 }
-      Log('VEX FIXTURE rawhead='+IntToStr(Ord(Raw[1]))+','+IntToStr(Ord(Raw[2]))+','+IntToStr(Ord(Raw[3]))+
-        ' rawlen='+IntToStr(Length(Raw))+' probe=['+VUtf8DecodeBytes(#$E4#$B8#$AD)+']'+
-        ' probelen='+IntToStr(Length(VUtf8DecodeBytes(#$E4#$B8#$AD))));
+    { 文件读进 UTF8String（字节原样），再赋给 String 按 UTF-8 代码页宽化——这是唯一
+      在新版 Inno 上正确的解码路径：UTF8Decode 返回 AnsiString 会被 1252 有损转换，
+      外部 MultiByteToWideChar 的 String 参数编组有 1252 最佳适配往返（全角括号变半角
+      即指纹），PascalScript 的 Chr 又只到字节域。要求 Inno 6.3+ 的 UTF8String。 }
+    if LoadStringFromFile(ExpandConstant('{tmp}\Vex-Changelog.txt'),URaw) then begin
       { 补一个换行收尾，循环内就不用在 or 之后再判长度（Inno 的 or 不保证短路）。 }
-      Text:=VUtf8DecodeBytes(Raw)+#10; Line:='';
-      Log('VEX FIXTURE textsample='+Copy(Text,1,30)+' declen='+IntToStr(Length(Text)));
-      { 探针三连：① Chr 对 BMP 码点（安=23433）的支持情况；② String:=AnsiString 直接赋值
-        的解码效果（若新版 Inno 的 AnsiString 带 UTF-8 代码页则此路即正解）；③ 已知坏的
-        外部调用基线。外部 String 参数在编组边界有 1252 最佳适配往返（全角括号变半角即指纹），
-        之前的 GetClassNameW「实证」只传了 ASCII，往返隐形。 }
-      VProbeCode:=23433;
-      try
-        Log('VEX FIXTURE chrprobe='+IntToStr(Ord(Chr(VProbeCode))));
-      except
-        Log('VEX FIXTURE chrprobe=FAILED');
-      end;
-      VProbeText:=Raw;
-      Log('VEX FIXTURE assignprobe='+Copy(VProbeText,1,16)+' assignlen='+IntToStr(Length(VProbeText)));
+      Text:=URaw+#10; Line:='';
       for I:=1 to Length(Text) do
         if Text[I]=#10 then begin
           if Copy(Line,1,4)='## V' then VAddRelease(Line)
@@ -928,12 +892,12 @@ begin
 end;
 
 procedure VShowLicense(Sender: TObject);
-var LicenseText: AnsiString; Plain, RTF: String; I, Code: Integer; Format: TVCharFormat;
+var LicenseText: UTF8String; Plain, RTF: String; I, Code: Integer; Format: TVCharFormat;
 begin
   ExtractTemporaryFile('Vex-License.txt');
   if not LoadStringFromFile(ExpandConstant('{tmp}\Vex-License.txt'),LicenseText) then
     RaiseException('Unable to read the embedded MIT license.');
-  Plain:=VUtf8DecodeBytes(LicenseText);
+  Plain:=LicenseText;
   RTF:='{\rtf1\ansi\deff0{\fonttbl{\f0 Consolas;}}\uc1\pard\li0\ri0\fi0\sb0\sa0\sl297\slmult0\f0\fs16 ';
   for I:=1 to Length(Plain) do begin
     Code:=Ord(Plain[I]);
