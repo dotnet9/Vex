@@ -63,7 +63,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*">
         <!-- 对应原型 .sidebar-search：32px 高、8px 圆角、内嵌搜索图标与常显清除按钮。 -->
         <Border
             Grid.Row="0"
@@ -102,7 +102,7 @@
         </Border>
 
         <TreeView
-            Grid.Row="1"
+            Grid.Row="2"
             Classes="side-tree"
             IsVisible="{Binding IsTreeView}"
             ItemsSource="{Binding FilteredDocumentFileNodes}"
@@ -136,7 +136,7 @@
                 </ContextMenu>
             </TreeView.ContextMenu>
         </TreeView>
-        <ListBox x:Name="FileList" Grid.Row="1" Classes="side-list" IsVisible="{Binding IsListView}"
+        <ListBox x:Name="FileList" Grid.Row="2" Classes="side-list" IsVisible="{Binding IsListView}"
                  ItemsSource="{Binding FlatDocumentFileNodes}" SelectedItem="{Binding SelectedDocumentFileNode, Mode=TwoWay}" PointerPressed="SelectItemOnPointerPressed">
             <ListBox.ItemTemplate><DataTemplate x:DataType="models:DocumentFileNode">
                 <Grid RowDefinitions="Auto,Auto" Margin="4,5" ToolTip.Tip="{Binding Path}">
@@ -171,7 +171,7 @@
                 </ContextMenu></ListBox.ContextMenu>
         </ListBox>
         <Border
-            Grid.Row="1"
+            Grid.Row="2"
             IsVisible="{Binding IsDocumentFilesEmpty}"
             Padding="18"
             VerticalAlignment="Top">
@@ -182,9 +182,10 @@
                 TextAlignment="Center" />
         </Border>
 
-        <!-- 对应原型 .files-toolbar-bottom：34px 高、顶部 1px 分隔线、三个 26×26 图标按钮。 -->
-        <Border Grid.Row="2" Height="34" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" Padding="14,0">
-            <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+        <!-- 对应原型 .files-toolbar（workspace-chrome.css:262）：紧跟搜索框下方，右对齐、无分隔线，
+             行高 34、下内距 8、以 -6 外边距贴紧搜索框的 12px 下边距。 -->
+        <Border x:Name="FilesToolbar" Grid.Row="1" Height="34" Margin="0,-6,0,0" Padding="12,0,12,8">
+            <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <ToggleButton x:Name="FilesModeButton" Classes="files-tool"
                               IsChecked="{Binding IsTreeView, Mode=OneWay}"
                               Command="{Binding ToggleListView}"

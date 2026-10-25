@@ -12,19 +12,45 @@
     behaviors:FocusOnVisible.SelectAll="True"
     IsVisible="{Binding IsVisible}">
 
+    <UserControl.Styles>
+        <!-- 原型 .find-strip .btn.sm：26px 高、7px 圆角、12px 字号、左右内距 12。 -->
+        <Style Selector="Button.find-action, ToggleButton.find-action">
+            <Setter Property="Height" Value="26" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="12,2" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <!-- 原型 .icon-button：30×30、6px 圆角、无底色，悬停才浮出底色。 -->
+        <Style Selector="Button.find-close">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </UserControl.Styles>
+
+    <!-- 展开动画按 ExpandedSize-4 排版子级（实测 64→60、46→42），故原型 46px 的查找条写 50。 -->
     <ac:ContentExpansionAnimator
         Animate="{Binding IsVisible}"
         CollapsedSize="0"
         Duration="{DynamicResource MotionDurationMid}"
-        ExpandedSize="64"
+        ExpandedSize="50"
         IsExpanded="{Binding IsVisible}"
         Orientation="Vertical">
+        <!-- 原型 .find-strip 独立成块（workspace-chrome.css:215/222）：1px 描边 + 10px 圆角，内距 7×12，整条 46px。 -->
         <Border
-            Background="{DynamicResource VexPanelBackgroundBrush}"
-            BorderBrush="{DynamicResource VexPanelBorderBrush}"
-            BorderThickness="0 0 0 1"
-            Padding="12 8">
-            <Grid ColumnDefinitions="Auto,240,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+            x:Name="FindStrip"
+            Classes="workspace-block"
+            Margin="0,0,0,4"
+            Padding="12 7">
+            <Grid ColumnDefinitions="Auto,220,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
             <TextBlock
                 Classes="muted"
                 Text="{i18n:I18n Vex.VexL.FindBarScope}"
@@ -34,6 +60,7 @@
                 <TextBox
                     x:Name="FindTextBox"
                     AcceptsReturn="False"
+                    Height="30"
                     MaxLength="200"
                     MinHeight="30"
                     Padding="0 0 56 0"
@@ -54,9 +81,11 @@
                         Text="{Binding SearchResultText}" />
                 </Border>
             </Grid>
+            <!-- 原型 .btn.sm：26px 高、7px 圆角、12px 字号；关闭钮 30×30 无边框（.icon-button）。 -->
             <TextBox
                 Grid.Column="2"
                 Width="220"
+                Height="30"
                 AcceptsReturn="False"
                 IsVisible="{Binding IsReplaceVisible}"
                 MaxLength="200"
@@ -66,41 +95,43 @@
                 Text="{Binding ReplacementText, Mode=TwoWay}" />
             <Button
                 Grid.Column="3"
-                Classes="primary"
+                Classes="primary find-action"
                 Command="{Binding FindNext}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarNext}}"
                 MinWidth="72" />
             <Button
                 Grid.Column="4"
+                Classes="find-action"
                 Width="82"
                 Command="{Binding ReplaceNext}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarReplace}}"
                 IsVisible="{Binding IsReplaceVisible}" />
             <Button
                 Grid.Column="5"
+                Classes="find-action"
                 Width="64"
                 Command="{Binding ReplaceAll}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarAll}}"
                 IsVisible="{Binding IsReplaceVisible}" />
             <Button
                 Grid.Column="7"
+                Classes="find-close"
                 Command="{Binding CloseFindPanel}"
                 Content="×"
                 FontSize="14"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
-                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
-                MinWidth="30" />
+                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarClose}}" />
             <!-- Aa / W 图标化开关：激活态主题色底（对应原型 .opt-toggle） -->
             <ToggleButton
                 Grid.Column="8"
-                Classes="opt-toggle"
+                Classes="opt-toggle find-action"
                 Content="Aa"
                 IsChecked="{Binding IsMatchCase, Mode=TwoWay}"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarMatchCase}}"
                 VerticalAlignment="Center" />
             <ToggleButton
                 Grid.Column="9"
-                Classes="opt-toggle"
+                Classes="opt-toggle find-action"
                 Content="W"
                 IsChecked="{Binding IsWholeWord, Mode=TwoWay}"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"

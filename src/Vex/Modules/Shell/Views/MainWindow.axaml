@@ -106,10 +106,7 @@
         <!-- 原型 .app-window：整窗即画布，块浮在其上（浅色掺 5% 墨，深色掺 30% 面板色）。 -->
         <Border Grid.RowSpan="3" Background="{DynamicResource VexCanvasInkTintBrush}" IsHitTestVisible="False" />
         <Border Grid.Row="0" IsVisible="{Binding !Workbench.IsPresenting}">
-            <StackPanel>
-                <shell:ShellWorkflowNotice/>
-                <shell:ShellFindBarView DataContext="{Binding FindBar}" />
-            </StackPanel>
+            <shell:ShellWorkflowNotice/>
         </Border>
 
         <Grid Grid.Row="1" x:Name="WorkspaceColumns" IsVisible="{Binding !Workbench.PresentationOutline}" Margin="{Binding Workbench.WorkspaceContentMargin}">
@@ -145,9 +142,12 @@
                 IsVisible="{Binding Layout.ShowSidebar}"
                 ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
 
-            <Grid Grid.Column="2" RowDefinitions="Auto,*">
+            <Grid x:Name="DocumentColumn" Grid.Column="2" RowDefinitions="Auto,Auto,*">
                 <StackPanel x:Name="FloatingViewShelf" Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="12,4" IsVisible="False"/>
-                <Panel Grid.Row="1">
+                <!-- 原型 .find-strip 是正文列的第一个块（workspace-chrome.css:215/222），与视图块同宽、以 4px 间隙相接，
+                     不再横贯整窗顶部。 -->
+                <shell:ShellFindBarView Grid.Row="1" DataContext="{Binding FindBar}" />
+                <Panel Grid.Row="2">
                 <!-- 原型：钉住的格式条只占源码列顶部，阅读/导图窗格从工作区顶端起排，
                      所以 42px 让位只加在编辑/即时视图上，而不是整个 ViewSurface。
                      网格列/行与分栏把手由 WorkspaceViewController 按块状布局重建，这里只声明窗格本身。 -->
@@ -162,7 +162,7 @@
                 <shell:ShellEditorOptionsView x:Name="EditorOptions" />
                 </Panel>
                 <!-- 原型 .workspace-main .document-statusbar：状态栏不再占行，改为浮在正文列底部居中的胶囊。 -->
-                <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="1" ZIndex="34"
+                <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="2" ZIndex="34"
                                           HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,16" />
             </Grid>
             <GridSplitter x:Name="OutlineSplitter" Grid.Column="3" Classes="workspace-gap gap-horizontal" ZIndex="9" HorizontalAlignment="Stretch"

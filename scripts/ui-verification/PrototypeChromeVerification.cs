@@ -91,6 +91,46 @@ internal static class PrototypeChromeVerification
             window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Render();
             Check(!vm.Workbench.ShowLayouts && layoutButton.IsFocused, "Escape closes layout panel and returns focus");
         }
+        // 原型 d2be540：文件列表快捷钮移到搜索框下方（右对齐、无分隔线），查找条独立成正文列的首个块。
+        window.Width = 1440; window.Height = 1000; Render();
+        var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
+        var filterBox = filesView.GetVisualDescendants().OfType<Border>().First(b => Math.Abs(b.Bounds.Height - 32) < 1);
+        var filesToolbar = filesView.FindControl<Border>("FilesToolbar")!;
+        var toolButtons = filesToolbar.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("files-tool")).ToArray();
+        var toolbarTop = filesToolbar.TranslatePoint(default, filesView)!.Value.Y;
+        var filterBottom = filterBox.TranslatePoint(new Point(0, filterBox.Bounds.Height), filesView)!.Value.Y;
+        var toolbarRight = filesToolbar.TranslatePoint(new Point(filesToolbar.Bounds.Width - 12, 0), filesView)!.Value.X;
+        Check(toolButtons.Length == 3 && toolButtons.All(b => b.Bounds.Height == 26)
+            && Math.Abs(toolbarTop - filterBottom - 6) < 1 && filesToolbar.BorderThickness.Bottom == 0
+            && Math.Abs(toolButtons.Max(b => b.TranslatePoint(new Point(b.Bounds.Width, 0), filesView)!.Value.X) - toolbarRight) < 1,
+            $"File tools dock right under the filter as a borderless right-aligned row: top={toolbarTop:0.#}, filter bottom={filterBottom:0.#}, right={toolbarRight:0.#}");
+        var fileTree = filesView.GetVisualDescendants().OfType<TreeView>().First();
+        Check(Math.Abs(fileTree.TranslatePoint(default, filesView)!.Value.Y - (toolbarTop + filesToolbar.Bounds.Height)) < 1,
+            "The list starts where the tool row ends instead of above it");
+        vm.FindBar.ShowFindPanel(); Render();
+        var findStrip = window.GetVisualDescendants().OfType<ShellFindBarView>().Single().FindControl<Border>("FindStrip")!;
+        var viewColumn = window.FindControl<Grid>("DocumentColumn")!;
+        var stripOrigin = findStrip.TranslatePoint(default, viewColumn)!.Value;
+        var viewBlock = viewColumn.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("workspace-block") && !ReferenceEquals(b, findStrip));
+        Check(findStrip.Classes.Contains("workspace-block") && findStrip.BorderThickness == new Thickness(1)
+            && findStrip.CornerRadius.TopLeft == 10 && Math.Abs(findStrip.Bounds.Width - viewColumn.Bounds.Width) < 1
+            && Math.Abs(stripOrigin.X) < 1 && Math.Abs(stripOrigin.Y) < 1,
+            $"Find bar is the document column's own rounded block: origin={stripOrigin} size={findStrip.Bounds.Size} radius={findStrip.CornerRadius.TopLeft}");
+        // 原型 .find-strip 整条 46px：输入框 30、.btn.sm 动作钮 26、关闭钮 30×30。
+        var findInputs = findStrip.GetVisualDescendants().OfType<TextBox>().Where(t => t.IsVisible).ToArray();
+        var findActions = findStrip.GetVisualDescendants().OfType<Control>()
+            .Where(c => (c is Button || c is ToggleButton) && c.Classes.Contains("find-action") && c.IsVisible).ToArray();
+        var findClose = findStrip.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("find-close"));
+        Check(Math.Abs(findStrip.Bounds.Height - 46) < 1 && findInputs.All(t => t.Bounds.Height == 30) && findInputs.Length > 0
+            && findActions.All(b => b.Bounds.Height == 26) && findActions.Length > 0
+            && findClose.Bounds.Width == 30 && findClose.Bounds.Height == 30,
+            $"Find strip keeps the prototype's 46px row: strip={findStrip.Bounds.Height:0.#}, inputs={string.Join(",", findInputs.Select(t => t.Bounds.Height.ToString("0.#")))}, actions={string.Join(",", findActions.Select(b => b.Bounds.Height.ToString("0.#")))}, close={findClose.Bounds.Size}");
+        Check(Math.Abs(viewBlock.TranslatePoint(default, viewColumn)!.Value.Y - (stripOrigin.Y + findStrip.Bounds.Height + 4)) < 1,
+            $"The view block sits 4px below the find block: strip bottom={stripOrigin.Y + findStrip.Bounds.Height:0.#}, block top={viewBlock.TranslatePoint(default, viewColumn)!.Value.Y:0.#}");
+        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "find-strip.png"));
+        vm.FindBar.CloseFindPanel(); Render();
+        Check(Math.Abs(viewBlock.TranslatePoint(default, viewColumn)!.Value.Y - stripOrigin.Y) < 1,
+            "Closing the find bar returns the view block to the column top");
         // 工具条钉住：默认钉住为占位行；取消钉住回到悬浮静默，并随偏好写入配置。
         var pins = vm.Workbench.Preferences;
         var editorOptions = window.FindControl<ShellEditorOptionsView>("EditorOptions")!;
