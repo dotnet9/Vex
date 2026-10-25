@@ -7,7 +7,10 @@ function sync() {
   const version = text('Directory.Build.props').match(/<Version>([^<]+)<\/Version>/)[1];
   const website = text('Directory.Build.props').match(/<PackageProjectUrl>([^<]+)<\/PackageProjectUrl>/)[1];
   const packages = [...text('Directory.Packages.props').matchAll(/<PackageVersion Include="([^"]+)"/g)].map(m => m[1]);
-  const project = {version, website, copyright:'Copyright © 2026 沙漠尽头的狼 / CodeWF', repository:'https://github.com/dotnet9/Vex', license:'MIT', components:packages};
+  const changelog = text('docs/更新日志.md');
+  /* 安装包的“更新日期”就是更新日志里本版本的发布日期，安装包与维护页共用同一个来源。 */
+  const releaseDate = (changelog.match(new RegExp('^## V' + version.replace(/\./g, '\\.') + '（([^）]+)）', 'm')) || [])[1]?.trim() || '';
+  const project = {version, releaseDate, website, copyright:'Copyright © 2026 沙漠尽头的狼 / CodeWF', repository:'https://github.com/dotnet9/Vex', license:'MIT', components:packages};
   const documents = Object.fromEntries([
     ['thanks','鸣谢.md','docs/鸣谢.md'], ['changelog','更新日志.md','docs/更新日志.md']
   ].map(([key,name,file]) => [key,{name,file:'../'+file,text:text(file)}]));

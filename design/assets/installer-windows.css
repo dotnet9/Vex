@@ -31,8 +31,26 @@ body[data-platform="windows"] .windows-minimal .step-caption { font-size:12px; m
 .windows-minimal .information-card .install-file { font:inherit; color:inherit; }
 .windows-minimal .maintenance-links { display:flex; gap:10px; }
 .windows-minimal .maintenance-links .btn { font-size:12px; padding:6px 2px; min-height:30px; }
-/* 可升级时主操作落在维护行的第一个按钮上，与安装器里 Next 按钮的位置一致。 */
-.windows-minimal .maintenance-links .btn.primary { min-width:74px; padding:6px 14px; font-size:13px; font-weight:600; }
+/* 维护行只做操作选择，整页唯一的强调色留给右下角那颗执行按钮（选中卸载时退回文字按钮）。 */
+/* 维护页信息行：安装包版本与发布日期同行，更新日志入口用强调色胶囊；展开安装详情后窗口长高，右下角按钮跟随下方单选。 */
+.windows-minimal .package-heading { display:flex; align-items:center; gap:12px; margin:0 0 4px; }
+.windows-minimal .package-heading h2 { margin:0; }
+.windows-minimal .package-meta { margin-left:auto; display:flex; align-items:center; gap:10px; }
+.windows-minimal .release-date { font-size:12px; color:var(--muted); white-space:nowrap; }
+.windows-minimal .chip-link { display:inline-flex; align-items:center; padding:5px 11px; border:1px solid color-mix(in srgb,var(--accent) 24%,transparent); border-radius:99px; background:var(--accent-soft); color:var(--accent); font-size:12px; font-weight:600; }
+.windows-minimal .chip-link:hover { background:color-mix(in srgb,var(--accent) 16%,var(--surface)); }
+.windows-minimal .maintenance-links .install-chevron { width:14px; height:14px; transition:transform 180ms cubic-bezier(.2,.8,.2,1); }
+.windows-minimal .maintenance-links .install-chevron.open { transform:rotate(180deg); }
+.windows-minimal .maintenance-details { display:grid; gap:9px; margin-top:16px; }
+.windows-minimal .maintenance-option { display:flex; align-items:center; gap:8px; font-size:13px; }
+.windows-minimal .maintenance-option input { width:14px; height:14px; margin:0; accent-color:var(--accent); }
+.windows-minimal .details-label { margin-top:5px; font-size:12px; font-weight:500; color:var(--muted); }
+.windows-minimal .location-list { max-height:92px; overflow:auto; padding:6px; border:1px solid var(--line); border-radius:7px; background:var(--field); font-size:12px; }
+.windows-minimal .location-item { display:block; padding:6px 8px; border-radius:5px; overflow-wrap:anywhere; }
+.windows-minimal .location-item.selected { color:var(--accent); background:var(--accent-soft); }
+body[data-platform="windows"] .windows-minimal { transition:height 180ms cubic-bezier(.2,.8,.2,1); }
+#installer-root[data-details="open"] .windows-minimal { height:480px; }
+#installer-root[data-details="open"] .windows-minimal .installer-layout { height:478px; min-height:478px; }
 .windows-minimal .install-file { font-size:12px; overflow-wrap:anywhere; }
 .windows-minimal .progress-wrap { transition:--install-progress .2s linear; }
 .windows-minimal .progress-header { position:relative; height:18px; margin:28px 0 8px; font-size:12px; }
