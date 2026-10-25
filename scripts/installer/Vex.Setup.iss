@@ -423,6 +423,28 @@ begin
     if Copy(S,I,Length(Need))=Need then begin Result:=I; exit; end;
 end;
 
+{ 字节级 UTF-8 解码：CI/新版 Inno 的 UTF8Decode 返回 AnsiString，会把已解码的宽字符再过一遍
+  系统 ANSI 代码页（1252 有损转换），中文全部退成「?」而 —· 等拉丁扩展字符幸存——CI 探针
+  newestbody 里的正是这种指纹。PascalScript 的 Chr 又只保证字节域，不赌它对 BMP 的支持，
+  直接调 kernel32 的 MultiByteToWideChar(65001)：缓冲编组走本脚本已验证的 SetLength+外部
+  调用模式（GetClassNameW 探针同款），不依赖任何 Inno 版本行为；非法序列退「?」。 }
+function VMultiByteToWide(CodePage: Integer; Flags: LongWord; Mbs: AnsiString; MbLen: Integer; WideBuf: String; WideLen: Integer): Integer;
+  external 'MultiByteToWideChar@kernel32.dll stdcall';
+
+function VUtf8DecodeBytes(const Raw: AnsiString): String;
+var WideLen: Integer;
+begin
+  Result:='';
+  WideLen:=VMultiByteToWide(65001, 0, Raw, Length(Raw), '', 0);
+  if WideLen<=0 then exit;
+  SetLength(Result, WideLen);
+  WideLen:=VMultiByteToWide(65001, 0, Raw, Length(Raw), Result, WideLen);
+  if WideLen<=0 then begin Result:=''; exit; end;
+  SetLength(Result, WideLen);
+  { 去掉 UTF-8 BOM（若有），解析只认「## V」行首。 }
+  if (Length(Result)>0) and (Ord(Result[1])=$FEFF) then Result:=Copy(Result,2,Length(Result));
+end;
+
 { 随包的 docs/更新日志.md 按「## V版本（日期）」切成小节：标题行的发布日期与右侧日志栏同源。 }
 procedure VAddRelease(const Header: String);
 var Body, Date: String; Open, Close: Integer;
@@ -450,7 +472,7 @@ begin
     ExtractTemporaryFile('Vex-Changelog.txt');
     if LoadStringFromFile(ExpandConstant('{tmp}\Vex-Changelog.txt'),Raw) then begin
       { 补一个换行收尾，循环内就不用在 or 之后再判长度（Inno 的 or 不保证短路）。 }
-      Text:=UTF8Decode(Raw)+#10; Line:='';
+      Text:=VUtf8DecodeBytes(Raw)+#10; Line:='';
       for I:=1 to Length(Text) do
         if Text[I]=#10 then begin
           if Copy(Line,1,4)='## V' then VAddRelease(Line)
@@ -893,7 +915,7 @@ begin
   ExtractTemporaryFile('Vex-License.txt');
   if not LoadStringFromFile(ExpandConstant('{tmp}\Vex-License.txt'),LicenseText) then
     RaiseException('Unable to read the embedded MIT license.');
-  Plain:=UTF8Decode(LicenseText);
+  Plain:=VUtf8DecodeBytes(LicenseText);
   RTF:='{\rtf1\ansi\deff0{\fonttbl{\f0 Consolas;}}\uc1\pard\li0\ri0\fi0\sb0\sa0\sl297\slmult0\f0\fs16 ';
   for I:=1 to Length(Plain) do begin
     Code:=Ord(Plain[I]);
