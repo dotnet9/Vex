@@ -442,27 +442,25 @@ begin
 end;
 
 function VChangelogLoad: Boolean;
-var URaw: UTF8String; Text, Line: String; I: Integer;
+var Lines: TArrayOfString; Line: String; I: Integer;
 begin
   if not VChangelogLoaded then begin
     VChangelogLoaded:=True;
     { ExtractTemporaryFile 的返回值不是布尔，解包后直接读文件本身。 }
     ExtractTemporaryFile('Vex-Changelog.txt');
-    { 文件读进 UTF8String（字节原样），再赋给 String 按 UTF-8 代码页宽化——这是唯一
-      在新版 Inno 上正确的解码路径：UTF8Decode 返回 AnsiString 会被 1252 有损转换，
-      外部 MultiByteToWideChar 的 String 参数编组有 1252 最佳适配往返（全角括号变半角
-      即指纹），PascalScript 的 Chr 又只到字节域。要求 Inno 6.3+ 的 UTF8String。 }
-    if LoadStringFromFile(ExpandConstant('{tmp}\Vex-Changelog.txt'),URaw) then begin
-      { 补一个换行收尾，循环内就不用在 or 之后再判长度（Inno 的 or 不保证短路）。 }
-      Text:=URaw+#10; Line:='';
-      for I:=1 to Length(Text) do
-        if Text[I]=#10 then begin
-          if Copy(Line,1,4)='## V' then VAddRelease(Line)
-          else if (VReleaseCount>0) and (Copy(Trim(Line),1,2)='- ') then
-            VReleaseBodies[VReleaseCount-1]:=VReleaseBodies[VReleaseCount-1]+Trim(Line)+#10;
-          Line:='';
-        end else if Text[I]<>#13 then Line:=Line+Text[I];
+    { 按 UTF-8 解码只能走 LoadStringsFromFile：Inno 6.3 起它支持无 BOM 的 UTF-8 文件且按行
+      返回宽字符串。别用 UTF8Decode（6.3 引入，返回「UTF-8 编码的 AnsiString」，再赋给
+      String 会被按 1252 盲宽化成 mojibake，CI 实测中文全成 ?）；也别用外部
+      MultiByteToWideChar（PascalScript 外部 String 参数编组带 1252 最佳适配往返，
+      全角括号会变半角），Chr 又只到字节域。许可文件是纯 ASCII，不受此限。 }
+    if LoadStringsFromFile(ExpandConstant('{tmp}\Vex-Changelog.txt'),Lines) then begin
+      for I:=0 to GetArrayLength(Lines)-1 do begin
+        Line:=Lines[I];
+        if Copy(Line,1,4)='## V' then VAddRelease(Line)
+        else if (VReleaseCount>0) and (Copy(Trim(Line),1,2)='- ') then
+          VReleaseBodies[VReleaseCount-1]:=VReleaseBodies[VReleaseCount-1]+Trim(Line)+#10;
       end;
+    end;
   end;
   Result:=VReleaseCount>0;
 end;
@@ -892,7 +890,7 @@ begin
 end;
 
 procedure VShowLicense(Sender: TObject);
-var LicenseText: UTF8String; Plain, RTF: String; I, Code: Integer; Format: TVCharFormat;
+var LicenseText: AnsiString; Plain, RTF: String; I, Code: Integer; Format: TVCharFormat;
 begin
   ExtractTemporaryFile('Vex-License.txt');
   if not LoadStringFromFile(ExpandConstant('{tmp}\Vex-License.txt'),LicenseText) then
