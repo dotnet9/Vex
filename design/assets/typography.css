@@ -19,9 +19,11 @@
 #typography-close:hover{background:var(--hover);color:var(--fg)}
 #typography-close .ico{width:16px;height:16px}
 #typography-panel .typography-note{flex:none;font-size:12px;line-height:1.6;margin:4px 0 12px;color:var(--muted)}
-#typography-panel .typography-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));grid-auto-rows:max-content;flex:1;min-height:0;max-height:none;align-content:start;align-items:stretch;gap:10px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding:2px 4px 2px 2px}
-/* 卡片直接渲染该排版的真实效果（## 名称 / 说明 / ### 维刻 Vex / 引用），角标标注"推荐"与"✓ 当前"。 */
-#typography-panel .typography-card{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-height:0;height:206px;padding:0;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);text-align:left;box-shadow:none;transform:none;overflow:hidden}
+#typography-panel .typography-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:max-content;flex:1;min-height:0;max-height:none;align-content:start;align-items:stretch;gap:8px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding:2px 4px 2px 2px}
+/* 卡片首块不再预留顶部外边距：角标浮在名称行右上角，不再单独占一行空白。 */
+#typography-panel .type-document>:first-child{margin-top:0}
+/* 卡片直接渲染该排版的真实效果（## 名称 / 说明 / 引用），角标浮在右上角标注"推荐"与"✓ 当前"。 */
+#typography-panel .typography-card{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-height:0;height:auto;padding:0;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);text-align:left;box-shadow:none;transform:none;overflow:hidden}
 #typography-panel .typography-card .palette-badge{z-index:2}
 /* 自定义排版卡（div 容器 + 应用按钮 + 编辑/删除工具）与"+"新增块。 */
 #typography-panel .typography-card-apply{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;min-width:0}
@@ -32,10 +34,10 @@
 #typography-panel [data-custom-card]:hover .typography-card-tools,#typography-panel [data-custom-card]:focus-within .typography-card-tools{opacity:1}
 #typography-panel .typography-card-tools button{width:22px;height:22px;display:grid;place-items:center;border:1px solid var(--border);border-radius:5px;background:var(--panel);color:var(--muted);font-size:12px;cursor:pointer}
 #typography-panel .typography-card-tools button:hover{color:var(--fg);background:var(--hover)}
-#typography-panel .typography-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:206px;border:1px dashed var(--border);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
+#typography-panel .typography-add{grid-column:1/-1;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:8px;min-height:0;height:44px;border:1px dashed var(--border);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
 #typography-panel .typography-add:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
-#typography-panel .typography-add span{font-size:34px;line-height:1}
-#typography-panel .typography-add small{font-size:11px}
+#typography-panel .typography-add span{font-size:18px;line-height:1}
+#typography-panel .typography-add small{font-size:12px}
 /* 新增/编辑排版对话框（独立于弹出层）。 */
 #typography-dialog{position:fixed;inset:0;z-index:420;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:24px}
 #typography-dialog[hidden]{display:none}
@@ -69,7 +71,12 @@
 #typography-panel .typography-card:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 /* 卡片预览：以主题真实排版渲染，去独立标题行；名称作为预览的 h2。 */
 #typography-panel .type-swatch{display:block;flex:1 1 auto;width:100%;height:auto;min-height:0;padding:0;margin:0;border:0;border-top:1px solid var(--border);border-radius:0;background:var(--paper);overflow:hidden;pointer-events:none}
-#typography-panel .type-swatch .type-document{display:block;box-sizing:border-box;width:100%;height:auto;min-height:100%;padding:12px 14px;transform:none;--type-size:13px;color:var(--fg)}
+#typography-panel .type-swatch .type-document{display:block;box-sizing:border-box;width:100%;height:auto;min-height:100%;padding:8px 11px;transform:none;--type-size:13px;color:var(--fg)}
+/* 4 列窄卡：标题与说明各占一行（说明降为标签字号），引用两行截断，保证三行卡片与新增条完整可见。 */
+#typography-panel .type-document>:is(h2,p,blockquote){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+#typography-panel .type-document h2{-webkit-line-clamp:1;margin-bottom:5px}
+#typography-panel .type-document p{-webkit-line-clamp:1;margin:0 0 7px;font-size:12px;line-height:1.5;color:var(--muted)}
+#typography-panel .type-document blockquote{margin-top:0;padding:6px 9px}
 #typography-panel .type-document h1{white-space:normal}
 #typography-panel .type-document h2{white-space:normal}
 #typography-panel .type-document blockquote:last-child{margin-bottom:0}
