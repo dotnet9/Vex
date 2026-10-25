@@ -29,7 +29,7 @@ public partial class MainWindow
         var icon = new CaptionPath
         {
             Width = 24, Height = 24, Stretch = Stretch.None,
-            Data = CaptionGeometry(iconKey), StrokeThickness = 1.875,
+            Data = Geometry.Parse(MenuIconGeometry.Data[iconKey]), StrokeThickness = 2,
             StrokeJoin = PenLineJoin.Round, StrokeLineCap = PenLineCap.Round
         };
         icon.Classes.Add("window-caption-icon");
@@ -40,17 +40,6 @@ public partial class MainWindow
         viewport.Bind(HeightProperty, this.GetObservable(CaptionGlyphSizeProperty));
         button.Content = viewport;
         return icon;
-    }
-
-    /// <summary>按几何边界统一视觉尺寸，避免横线和叉号在相同视口中显得过小。</summary>
-    private static Geometry CaptionGeometry(string iconKey)
-    {
-        var geometry = MenuIconCatalog.Get(iconKey);
-        var bounds = geometry.Bounds;
-        var scale = 18 / Math.Max(bounds.Width, bounds.Height);
-        geometry.Transform = new MatrixTransform(new Matrix(scale, 0, 0, scale,
-            12 - bounds.Center.X * scale, 12 - bounds.Center.Y * scale));
-        return geometry;
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -66,7 +55,8 @@ public partial class MainWindow
     {
         if (_maximizeRestoreIcon is not null)
         {
-            _maximizeRestoreIcon.Data = CaptionGeometry(WindowState == WindowState.Maximized ? "window-restore" : "square");
+            // 原型 svg 视口 24，图标按 Lucide 原生边界呈现，不再归一化到固定尺寸。
+            _maximizeRestoreIcon.Data = Geometry.Parse(MenuIconGeometry.Data[WindowState == WindowState.Maximized ? "window-restore" : "square"]);
         }
     }
 }

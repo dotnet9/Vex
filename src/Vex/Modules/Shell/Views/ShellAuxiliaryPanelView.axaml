@@ -20,7 +20,7 @@
            Command="{Binding Layout.ToggleOutline}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseStructure}}"
            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseStructure}}">
     <Viewbox Width="14" Height="14">
-     <Path x:Name="CollapseOutlineIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="None"/>
+     <Path x:Name="CollapseOutlineIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="None" Data="M6 9L12 15L18 9"/>
     </Viewbox>
    </Button>
   </Grid>
