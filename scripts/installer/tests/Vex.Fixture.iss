@@ -49,11 +49,8 @@ begin
   { 安装注册仅为内存样例，CodeWFSetupFixture 已在编译期移除真实注册探测与卸载启动。 }
   CWMRegistrationCount:=1;
   CWMRepairPath:=ExpandConstant('{tmp}\维刻 maintenance with spaces');
-  #ifndef VexFixtureMissingExecutable
-    { 仅用于验证已安装主程序存在性；生产启动路径在夹具中已移除。 }
-    ForceDirectories(CWMRepairPath);
-    SaveStringToFile(AddBackslash(CWMRepairPath)+'Vex.exe','Vex visual fixture - not an executable',False);
-  #endif
+  ForceDirectories(CWMRepairPath);
+  { 卸载器文件故意不创建：夹具只验证维护入口的呈现，卸载启动已在编译期移除。 }
   CWMRegistrations[0].ScopeName:=CustomMessage('CWMCurrentUser');
   CWMRegistrations[0].AppPath:=CWMRepairPath;
   VFixtureVersions[0]:='0.9.0';

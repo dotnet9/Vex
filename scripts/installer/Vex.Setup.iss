@@ -4,9 +4,12 @@
 #define VexLicensePath "..\LICENSE"
 #endif
 #define VexBrandDirectory ExtractFilePath(__PATHFILENAME__)
+#define VexChangelogPath ExtractFilePath(__PATHFILENAME__) + "..\..\docs\更新日志.md"
 #define VexWebsite "https://vex.codewf.com/"
 [Files]
 Source: "{#VexLicensePath}"; DestName: "Vex-License.txt"; Flags: dontcopy
+; 维护页右侧的更新日志栏读这份随包文档，与安装包内嵌版本永远同源。
+Source: "{#VexChangelogPath}"; DestName: "Vex-Changelog.txt"; Flags: dontcopy
 Source: "{#VexBrandDirectory}vex-brand-light.bmp"; Flags: dontcopy
 Source: "{#VexBrandDirectory}vex-brand-dark.bmp"; Flags: dontcopy
 
@@ -52,18 +55,32 @@ english.VLicenseTitle=MIT open source license
 chinesesimplified.VLicenseTitle=MIT 开源许可
 english.VAssociationHint=Keeps your default app unchanged
 chinesesimplified.VAssociationHint=不改变系统默认应用
-english.VMaintenance=Continue your writing.
-chinesesimplified.VMaintenance=继续你的写作。
-english.VUpgradeHeading=Upgrade to %1.
-chinesesimplified.VUpgradeHeading=升级到 %1。
 english.VInstalled=Installed · %1
 chinesesimplified.VInstalled=已安装 · %1
-english.VInstalledUpgrade=Installed · %1 → %2
-chinesesimplified.VInstalledUpgrade=已安装 · %1 → %2
+english.VInstalledOn=Installed · %1 · installed on %2
+chinesesimplified.VInstalledOn=已安装 · %1 · 安装于 %2
 english.VInstalledUnknown=Installed · Version unavailable
 chinesesimplified.VInstalledUnknown=已安装 · 版本未知
-english.VMaintenanceIntro=Repair the installation or remove the app.
-chinesesimplified.VMaintenanceIntro=可以修复安装，或移除此应用。
+english.VPackage=Setup package %1
+chinesesimplified.VPackage=安装包 %1
+english.VReleased=%1 release
+chinesesimplified.VReleased=%1 发布
+english.VChangelog=View changelog
+chinesesimplified.VChangelog=查看更新日志
+english.VChangelogHide=Hide changelog
+chinesesimplified.VChangelogHide=收起更新日志
+english.VChangelogHeading=Changelog
+chinesesimplified.VChangelogHeading=更新日志
+english.VChangelogSince=Package %1
+chinesesimplified.VChangelogSince=安装包 %1
+english.VChangelogSinceInstalled=Package %1 · since %2
+chinesesimplified.VChangelogSinceInstalled=安装包 %1 · %2 之后
+english.VChangelogEarlier=View %1 earlier release(s)
+chinesesimplified.VChangelogEarlier=查看更早 %1 个版本
+english.VChangelogCollapse=Hide earlier releases
+chinesesimplified.VChangelogCollapse=收起更早版本
+english.VChangelogEmpty=This package carries no changelog.
+chinesesimplified.VChangelogEmpty=这个安装包没有附带更新日志。
 english.VRepair=Repair installation
 chinesesimplified.VRepair=修复安装
 english.VUpgrade=Upgrade
@@ -222,27 +239,33 @@ function VProgressRatio(Value, Scale, Maximum: Integer): Integer;
 
 var
   VTitle, VName, VSlogan, VPathLabel, VScope, VPercent, VStatus, VDescription,
-    VAssociationHint, VProgressLabel, VModalTitle, VInstalled, VLocation: TLabel;
+    VAssociationHint, VProgressLabel, VModalTitle, VInstalled, VLocation,
+    VReleasedLabel, VLogTitle, VLogMeta: TLabel;
   VBack, VMark, VProgressBar: TBitmapImage;
   VProgressFrame: TBitmap;
-  VCustom, VLicense, VClose, VWebsite, VNoLaunch, VRemove, VModalBack: TNewButton;
-  VLicenseMemo: TRichEditViewer;
+  VCustom, VLicense, VClose, VWebsite, VLog, VLogMore, VModalBack: TNewButton;
+  VLicenseMemo, VLogMemo: TRichEditViewer;
   VDesktop, VAssociation: TNewCheckBox;
   VButtons: array[0..9] of TNewButton;
   VButtonProcs: array[0..9] of LongWord;
   VButtonFonts: array[0..9] of LongWord;
   VCheckProcs: array[0..1] of LongWord;
   VCheckFont: LongWord;
-  VLicenseProc: LongWord;
+  VLicenseProc, VLogProc: LongWord;
   VWheelDelta: Integer;
   VPreviousProc, VSurfaceBrush, VSoftBrush: LongWord;
   VExpanded, VInitialized, VDetailsOpen, VLicenseOpen, VRepairing: Boolean;
+  VChangelogOpen, VChangelogEarlier, VChangelogLoaded: Boolean;
   VUpgradeAvailable: Boolean;
-  VHover, VModalY: Integer;
+  VHover, VModalY, VWindowWidth: Integer;
   VProgressShown, VProgressTarget, VProgressFrom, VProgressPixel, VProgressPercent: Integer;
   VProgressStarted: LongWord;
   VProgressAnimated: Boolean;
-  VSurface, VText, VMuted, VField, VSoft, VLine, VAccent, VBrand, VBrandText, VOnAccent, VAccentHover, VAccentSoft: TColor;
+  VReleaseCount, VShownCount: Integer;
+  VReleaseVersions, VReleaseDates, VReleaseBodies: array[0..23] of String;
+  VShownReleases: array[0..23] of Integer;
+  VLogRenderedFor, VInstalledVersion: String;
+  VSurface, VText, VMuted, VField, VSoft, VLine, VAccent, VBrand, VBrandText, VOnAccent, VAccentHover, VAccentSoft, VDanger: TColor;
 #ifdef CodeWFSetupFixture
   VFixtureVersions: array[0..3] of String;
 #endif
@@ -262,12 +285,17 @@ begin
   VDrawingRound(DC,X,Y,Width,Height,Radius,Color,Outline);
 end;
 
+function VFontFace(Strong: Boolean): String;
+begin
+  Result:='Segoe UI';
+  if Strong then Result:='Segoe UI Semibold';
+  if ActiveLanguage='chinesesimplified' then Result:='Microsoft YaHei UI';
+end;
+
 procedure VFont(Font: TFont; Pixels: Integer; Strong: Boolean);
 begin
-  Font.Name:='Segoe UI';
-  if Strong then Font.Name:='Segoe UI Semibold';
+  Font.Name:=VFontFace(Strong);
   if ActiveLanguage='chinesesimplified' then begin
-    Font.Name:='Microsoft YaHei UI';
     if Strong then Font.Style:=[fsBold] else Font.Style:=[];
   end;
   Font.Height:=-ScaleY(Pixels);
@@ -339,19 +367,175 @@ begin
 end;
 
 { 只有读得到数字版本且确实落后于本安装包时才算升级；版本未知或更新时保持修复入口。 }
-function VIsOlderVersion(const Installed: String): Boolean;
-var Package: String; I,J,Left,Right: Integer;
+function VIsOlder(const Left, Right: String): Boolean;
+var I,J,LeftPart,RightPart: Integer;
 begin
   Result:=False;
-  Package:='{#AppVersion}';
   { Inno 的 or 不保证短路，空串取 [1] 会越界，因此先行退出。 }
-  if Installed='' then exit;
-  if not ((Installed[1]>='0') and (Installed[1]<='9')) then exit;
+  if Left='' then exit;
+  if not ((Left[1]>='0') and (Left[1]<='9')) then exit;
   I:=1; J:=1;
-  while (I<=Length(Installed)) or (J<=Length(Package)) do begin
-    Left:=VVersionPart(Installed,I); Right:=VVersionPart(Package,J);
-    if Left<>Right then begin Result:=Left<Right; exit; end;
+  while (I<=Length(Left)) or (J<=Length(Right)) do begin
+    LeftPart:=VVersionPart(Left,I); RightPart:=VVersionPart(Right,J);
+    if LeftPart<>RightPart then begin Result:=LeftPart<RightPart; exit; end;
   end;
+end;
+
+function VIsOlderVersion(const Installed: String): Boolean;
+begin
+  Result:=VIsOlder(Installed,'{#AppVersion}');
+end;
+
+{ 本机安装日期取卸载注册写入的 InstallDate；读不到就不编造日期。 }
+function VPad2(Value: Integer): String;
+begin
+  Result:=IntToStr(Value);
+  if Length(Result)<2 then Result:='0'+Result;
+end;
+
+function VInstalledOn(RootKey: Integer): String;
+var Stamp: String; Y,M,D: Integer;
+begin
+  Result:='';
+  #ifdef CodeWFSetupFixture
+    Result:=ExpandConstant('{param:VEXINSTALLEDON|2026-10-20}');
+    exit;
+  #endif
+  if not RegQueryStringValue(RootKey,CWMUninstallKey,'InstallDate',Stamp) then exit;
+  Stamp:=Trim(Stamp);
+  if Length(Stamp)<>8 then exit;
+  Y:=StrToIntDef(Copy(Stamp,1,4),0); M:=StrToIntDef(Copy(Stamp,5,2),0); D:=StrToIntDef(Copy(Stamp,7,2),0);
+  if (Y<1990) or (M<1) or (M>12) or (D<1) or (D>31) then exit;
+  Result:=IntToStr(Y)+'-'+VPad2(M)+'-'+VPad2(D);
+end;
+
+{ 随包的 docs/更新日志.md 按「## V版本（日期）」切成小节：标题行的发布日期与右侧日志栏同源。 }
+procedure VAddRelease(const Header: String);
+var Body, Date: String; Open, Close: Integer;
+begin
+  if VReleaseCount>High(VReleaseVersions) then exit;
+  Body:=Trim(Copy(Header,5,Length(Header)));
+  Open:=Pos('（',Body); Close:=Pos('）',Body);
+  Date:='';
+  if (Open>0) and (Close>Open) then begin
+    Date:=Trim(Copy(Body,Open+1,Close-Open-1));
+    Body:=Trim(Copy(Body,1,Open-1));
+  end;
+  VReleaseVersions[VReleaseCount]:=Body;
+  VReleaseDates[VReleaseCount]:=Date;
+  VReleaseBodies[VReleaseCount]:='';
+  VReleaseCount:=VReleaseCount+1;
+end;
+
+function VChangelogLoad: Boolean;
+var Raw: AnsiString; Text, Line: String; I: Integer;
+begin
+  if not VChangelogLoaded then begin
+    VChangelogLoaded:=True;
+    { ExtractTemporaryFile 的返回值不是布尔，解包后直接读文件本身。 }
+    ExtractTemporaryFile('Vex-Changelog.txt');
+    if LoadStringFromFile(ExpandConstant('{tmp}\Vex-Changelog.txt'),Raw) then begin
+      { 补一个换行收尾，循环内就不用在 or 之后再判长度（Inno 的 or 不保证短路）。 }
+      Text:=UTF8Decode(Raw)+#10; Line:='';
+      for I:=1 to Length(Text) do
+        if Text[I]=#10 then begin
+          if Copy(Line,1,4)='## V' then VAddRelease(Line)
+          else if (VReleaseCount>0) and (Copy(Trim(Line),1,2)='- ') then
+            VReleaseBodies[VReleaseCount-1]:=VReleaseBodies[VReleaseCount-1]+Trim(Line)+#10;
+          Line:='';
+        end else if Text[I]<>#13 then Line:=Line+Text[I];
+      end;
+  end;
+  Result:=VReleaseCount>0;
+end;
+
+{ 只列比本机版本新的小节；本机版本读不到时全列，没有可列的则退回本版本自己。 }
+function VVisibleReleases(const Installed: String): Integer;
+var I: Integer;
+begin
+  Result:=0;
+  if not VChangelogLoad then exit;
+  for I:=0 to VReleaseCount-1 do
+    if (Installed='') or VIsOlder(Installed,VReleaseVersions[I]) then begin
+      if Result>High(VShownReleases) then break;
+      VShownReleases[Result]:=I; Result:=Result+1;
+    end;
+  if Result=0 then
+    for I:=0 to VReleaseCount-1 do
+      if VReleaseVersions[I]='{#AppVersion}' then begin VShownReleases[0]:=I; Result:=1; break; end;
+end;
+
+function VPackageReleaseDate: String;
+var I: Integer;
+begin
+  Result:='';
+  if not VChangelogLoad then exit;
+  for I:=0 to VReleaseCount-1 do
+    if VReleaseVersions[I]='{#AppVersion}' then begin Result:=VReleaseDates[I]; exit; end;
+end;
+
+function VRTFColor(Color: TColor): String;
+begin
+  Result:='\red'+IntToStr(Color and $FF)+'\green'+IntToStr((Color shr 8) and $FF)+'\blue'+IntToStr((Color shr 16) and $FF);
+end;
+
+function VRTFText(const Text: String): String;
+var I, Code: Integer;
+begin
+  Result:='';
+  for I:=1 to Length(Text) do
+    if (Text[I]='\') or (Text[I]='{') or (Text[I]='}') then Result:=Result+'\'+Text[I]
+    else begin
+      Code:=Ord(Text[I]);
+      if Code>127 then begin
+        if Code>32767 then Code:=Code-65536;
+        Result:=Result+'\u'+IntToStr(Code)+'?';
+      end else Result:=Result+Text[I];
+    end;
+end;
+
+{ 「- ✨[新增]-正文」渲染成带色标签加正文；跨版本升级时更早的小节默认收起。 }
+function VRTFBullet(const Line: String): String;
+var Tag, Text: String; Open, Close, Color: Integer;
+begin
+  Text:=Trim(Copy(Line,3,Length(Line)));
+  Result:='\pard\sa70\fs18';
+  Open:=Pos('[',Text); Close:=Pos(']',Text);
+  if (Open>0) and (Open<=3) and (Close>Open) then begin
+    Tag:=Trim(Copy(Text,Open+1,Close-Open-1));
+    Color:=2;
+    if Tag='新增' then Color:=3;
+    if Tag='修复' then Color:=4;
+    Result:=Result+'\cf'+IntToStr(Color)+' ['+VRTFText(Tag)+']\cf1 '+
+      VRTFText(Trim(Copy(Text,Close+1,Length(Text))));
+  end else Result:=Result+'\cf1 '+VRTFText(Text);
+  Result:=Result+'\par ';
+end;
+
+procedure VRenderChangelog(const Installed: String);
+var RTF, Body, Line, Key: String; I, J, Index, Shown: Integer;
+begin
+  VShownCount:=VVisibleReleases(Installed);
+  Shown:=VShownCount;
+  if (not VChangelogEarlier) and (Shown>1) then Shown:=1;
+  Key:=Installed+'|'+IntToStr(Shown);
+  if VLogRenderedFor=Key then exit;
+  VLogRenderedFor:=Key;
+  RTF:='{\rtf1\ansi\deff0\uc1{\colortbl;'+VRTFColor(VText)+';'+VRTFColor(VMuted)+';'+
+    VRTFColor(VAccent)+';'+VRTFColor(VDanger)+'}{\fonttbl{\f0 '+VFontFace(False)+';}}\f0\fs18 ';
+  if VShownCount=0 then RTF:=RTF+'\pard\sa70\cf2 '+VRTFText(CustomMessage('VChangelogEmpty'))+'\par '
+  else for I:=0 to Shown-1 do begin
+    Index:=VShownReleases[I];
+    RTF:=RTF+'\pard\sb180\sa80\fs20\cf3\b '+VRTFText('V'+VReleaseVersions[Index])+
+      '\b0\cf2  '+VRTFText(VReleaseDates[Index])+'\par ';
+    Body:=VReleaseBodies[Index]+#10; Line:='';
+    for J:=1 to Length(Body) do
+      if Body[J]=#10 then begin
+        if Line<>'' then RTF:=RTF+VRTFBullet(Line);
+        Line:='';
+      end else if Body[J]<>#13 then Line:=Line+Body[J];
+  end;
+  VLogMemo.RTFText:=RTF+'}';
 end;
 
 procedure VPaintBackground;
@@ -379,6 +563,17 @@ begin
   if VIsMaintenance and not VLicenseOpen then begin
     VRound(Canvas.Handle,ScaleX(209),ScaleY(118),ScaleX(402),ScaleY(72),8,VSoft,False);
     VRound(Canvas.Handle,ScaleX(209),ScaleY(118),ScaleX(402),ScaleY(72),8,VLine,True);
+  end;
+  if VIsMaintenance and VChangelogOpen and not VLicenseOpen then begin
+    { 右侧日志栏是一整块浅底，与正文列之间只留一条分隔线。 }
+    Canvas.Brush.Color:=VSoft; Canvas.Pen.Color:=VSoft;
+    Canvas.Rectangle(ScaleX(640),ScaleY(1),VBack.Bitmap.Width,VBack.Bitmap.Height-ScaleY(1));
+    Canvas.Pen.Color:=VLine; Canvas.MoveTo(ScaleX(640),ScaleY(1));
+    Canvas.LineTo(ScaleX(640),VBack.Bitmap.Height-ScaleY(1));
+    if VLogMore.Visible then begin
+      Canvas.MoveTo(ScaleX(656),VBack.Bitmap.Height-ScaleY(46));
+      Canvas.LineTo(VBack.Bitmap.Width-ScaleX(16),VBack.Bitmap.Height-ScaleY(46));
+    end;
   end;
   if (WizardForm.CurPageID=wpFinished) and not VLicenseOpen then begin
     VRound(Canvas.Handle,ScaleX(392),ScaleY(74),ScaleX(36),ScaleY(36),18,VAccentSoft,False);
@@ -434,8 +629,10 @@ begin
 end;
 
 procedure VLayout;
-var Page, Height, I, ButtonY, BrandY: Integer; Home, Finished, Installing, Maintenance, Main: Boolean;
-  Region: LongWord; TextBounds: TVRect; InstalledVersion, InstalledPath: String;
+var Page, Height, Width, I, ButtonY, BrandY, NextWidth, PillWidth, PillX, TextWidth: Integer;
+  Home, Finished, Installing, Maintenance, Main, Panel: Boolean;
+  Region: LongWord; TextBounds: TVRect; Selected: Integer;
+  InstalledVersion, InstalledPath, InstalledOn, PackageDate: String;
 begin
   if not VInitialized then exit;
   Page:=WizardForm.CurPageID;
@@ -444,16 +641,22 @@ begin
   Height:=360;
   if Maintenance and VDetailsOpen then Height:=620;
   if not Home and not Finished and not Installing and not Maintenance then Height:=560;
+  { 更新日志栏在正文列右侧展开：正文列恒为 640，窗口按整栏宽度加长。 }
+  Width:=640;
+  Panel:=Main and Maintenance and VChangelogOpen;
+  if Panel then Width:=960;
+  VWindowWidth:=Width;
   WizardForm.ClientHeight:=ScaleY(Height);
+  WizardForm.ClientWidth:=ScaleX(Width);
   Region:=VRegion(WizardForm.ClientWidth,WizardForm.ClientHeight);
   if VSetRegion(WizardForm.Handle,Region,True)=0 then VDeleteObject(Region);
-  VBounds(VBack,0,0,640,Height);
+  VBounds(VBack,0,0,Width,Height);
   VTitle.Visible:=False;
   BrandY:=(Height-135) div 2;
   VMark.Visible:=True; VName.Visible:=True;
   VBounds(VMark,63,BrandY,56,56); VBounds(VName,17,BrandY+74,148,30);
   VName.Caption:='维刻 Vex'; VName.Alignment:=taCenter; VFont(VName.Font,20,True);
-  VBounds(VClose,594,0,46,32);
+  VBounds(VClose,Width-46,0,46,32);
   VSlogan.Visible:=True; VSlogan.Alignment:=taCenter; VSlogan.WordWrap:=True;
   VBounds(VSlogan,17,BrandY+119,148,34); VFont(VSlogan.Font,12,False);
   VStatus.Visible:=Main; VStatus.Alignment:=taLeftJustify; VFont(VStatus.Font,22,True);
@@ -462,9 +665,10 @@ begin
   VDescription.Alignment:=taLeftJustify; VFont(VDescription.Font,14,False);
   VBounds(VDescription,209,71,402,26);
   InstalledPath:=CWMRepairPath;
-  I:=VSelectedRegistration;
-  if I>=0 then InstalledPath:=CWMRegistrations[I].AppPath;
-  InstalledVersion:=VRegisteredVersion(I);
+  { 所选注册项要用独立变量：I 随后会被内层页面的遍历复用。 }
+  Selected:=VSelectedRegistration;
+  if Selected>=0 then InstalledPath:=CWMRegistrations[Selected].AppPath;
+  InstalledVersion:=VRegisteredVersion(Selected);
   VUpgradeAvailable:=VIsOlderVersion(InstalledVersion);
   if Home then VStatus.Caption:=CustomMessage('VWelcome');
   if Installing then begin VStatus.Caption:=CustomMessage('VInstalling'); VDescription.Caption:=CustomMessage('VInstallingIntro'); end;
@@ -483,9 +687,8 @@ begin
     VBounds(CWMPage.CheckListBox,0,0,404,85); VFont(CWMPage.CheckListBox.Font,12,False);
     VBounds(CWMLocationLabel,0,94,404,20); VFont(CWMLocationLabel.Font,12,False);
     VBounds(CWMLocation,0,120,404,136); VFont(CWMLocation.Font,12,False);
-    if VUpgradeAvailable then VStatus.Caption:=FmtMessage(CustomMessage('VUpgradeHeading'),['{#AppVersion}'])
-    else VStatus.Caption:=CustomMessage('VMaintenance');
-    VBounds(VStatus,209,60,402,34);
+    VStatus.Caption:=FmtMessage(CustomMessage('VPackage'),['{#AppVersion}']);
+    VBounds(VStatus,209,56,240,34);
 #ifdef CodeWFSetupFixture
     if Maintenance then Log('VEX FIXTURE heading='+VStatus.Caption);
 #endif
@@ -498,15 +701,57 @@ begin
   end;
   VInstalled.Visible:=Main and Maintenance; VLocation.Visible:=Main and Maintenance;
   VBounds(VInstalled,209,29,402,18); VBounds(VLocation,222,130,376,48);
+  InstalledOn:='';
+  if Selected>=0 then InstalledOn:=VInstalledOn(CWMRegistrations[Selected].RootKey);
+  VInstalledVersion:=InstalledVersion;
   if InstalledVersion='' then VInstalled.Caption:=CustomMessage('VInstalledUnknown')
-  else if VUpgradeAvailable then
-    VInstalled.Caption:=FmtMessage(CustomMessage('VInstalledUpgrade'),[InstalledVersion,'{#AppVersion}'])
-  else VInstalled.Caption:=FmtMessage(CustomMessage('VInstalled'),[InstalledVersion]);
+  else if InstalledOn='' then VInstalled.Caption:=FmtMessage(CustomMessage('VInstalled'),[InstalledVersion])
+  else VInstalled.Caption:=FmtMessage(CustomMessage('VInstalledOn'),[InstalledVersion,InstalledOn]);
 #ifdef CodeWFSetupFixture
   if Maintenance then Log('VEX FIXTURE installed='+VInstalled.Caption);
 #endif
   VLocation.Caption:=CustomMessage('VLocation')+#13#10+MinimizePathName(CWMDisplayPath(InstalledPath),VLocation.Font,ScaleX(376));
   VLocation.Hint:=CWMDisplayPath(InstalledPath); VLocation.ShowHint:=True;
+  { 第二行右侧：安装包发布日期 + 查看更新日志胶囊，胶囊贴正文列右缘。 }
+  PackageDate:=VPackageReleaseDate;
+  VReleasedLabel.Visible:=Main and Maintenance and (PackageDate<>'');
+  VLog.Visible:=Main and Maintenance;
+  VReleasedLabel.Caption:=FmtMessage(CustomMessage('VReleased'),[PackageDate]);
+  VReleasedLabel.Alignment:=taRightJustify; VFont(VReleasedLabel.Font,12,False);
+  if VLog.Visible then begin
+    if VChangelogOpen then VLog.Caption:=CustomMessage('VChangelogHide')
+    else VLog.Caption:=CustomMessage('VChangelog');
+    VFont(VBack.Bitmap.Canvas.Font,12,False);
+    PillWidth:=VBack.Bitmap.Canvas.TextWidth(VLog.Caption)+ScaleX(26);
+    PillX:=ScaleX(640)-ScaleX(16)-PillWidth;
+    VLog.SetBounds(PillX,ScaleY(58),PillWidth,ScaleY(28));
+    if VReleasedLabel.Visible then begin
+      TextWidth:=VBack.Bitmap.Canvas.TextWidth(VReleasedLabel.Caption)+ScaleX(4);
+      VReleasedLabel.SetBounds(PillX-ScaleX(10)-TextWidth,ScaleY(63),TextWidth,ScaleY(18));
+    end;
+  end;
+  VRenderChangelog(InstalledVersion);
+  VLogTitle.Visible:=Panel; VLogMeta.Visible:=Panel; VLogMemo.Visible:=Panel;
+  VLogMore.Visible:=Panel and (VShownCount>1);
+  if Panel then begin
+    VLogTitle.Caption:=CustomMessage('VChangelogHeading');
+    if InstalledVersion='' then VLogMeta.Caption:=FmtMessage(CustomMessage('VChangelogSince'),['{#AppVersion}'])
+    else VLogMeta.Caption:=FmtMessage(CustomMessage('VChangelogSinceInstalled'),['{#AppVersion}',InstalledVersion]);
+    VBounds(VLogTitle,656,14,90,18); VBounds(VLogMeta,748,17,Width-748-16,18);
+    if VLogMore.Visible then begin
+      if VChangelogEarlier then VLogMore.Caption:=CustomMessage('VChangelogCollapse')
+      else VLogMore.Caption:=FmtMessage(CustomMessage('VChangelogEarlier'),[IntToStr(VShownCount-1)]);
+      VBounds(VLogMore,656,Height-38,Width-656-16,24);
+    end;
+    VBounds(VLogMemo,656,54,Width-656-16,Height-54-46);
+    VLogMemo.Width:=ScaleX(Width-656-16)+VSystemMetric(2);
+    Region:=VRectRegion(0,0,ScaleX(Width-656-16),VLogMemo.Height);
+    if VSetRegion(VLogMemo.Handle,Region,True)=0 then VDeleteObject(Region);
+#ifdef CodeWFSetupFixture
+    Log('VEX FIXTURE changelog releases='+IntToStr(VShownCount)+' earlier='+IntToStr(Ord(VChangelogEarlier))+
+      ' meta='+VLogMeta.Caption);
+#endif
+  end;
   if not Home and not Finished and not Installing and not Maintenance then begin
     VStatus.Caption:=WizardForm.PageNameLabel.Caption;
     VDescription.Caption:=WizardForm.PageDescriptionLabel.Caption;
@@ -518,7 +763,7 @@ begin
     VCustom.Caption:=CustomMessage('VCustom');
   end else VCustom.Caption:=CustomMessage('VDetails');
   VBounds(VCustom,209,82,402,44);
-  if Maintenance then VBounds(VCustom,338,197,100,30);
+  if Maintenance then VBounds(VCustom,209,196,110,26);
   WizardForm.DirEdit.Visible:=Main and Home and VExpanded;
   WizardForm.DirBrowseButton.Visible:=Main and Home and VExpanded;
   VPathLabel.Visible:=False; VScope.Visible:=False;
@@ -537,29 +782,23 @@ begin
   WizardForm.BackButton.Visible:=False;
   { Inno 的关闭查询依赖 CancelButton.Visible；安装前保留状态但移到窗口外。 }
   WizardForm.CancelButton.Visible:=not Finished; WizardForm.CancelButton.TabStop:=Main and Installing;
-  VNoLaunch.Visible:=Main and Maintenance and (CWMRepairPath<>'') and not VMigrationNeeded;
-  VNoLaunch.Enabled:=FileExists(AddBackslash(CWMRepairPath)+'Vex.exe');
-  VNoLaunch.Caption:=CustomMessage('VOpen');
-  VRemove.Visible:=Main and Maintenance; VRemove.Enabled:=not CWMBusy and not CWMUninstalled;
-  if CWMRegistrationCount=1 then VRemove.Enabled:=VRemove.Enabled and (CWMRegistrations[0].Uninstaller<>'');
-  VRemove.Hint:=CustomMessage('CWMInvalidRegistration'); VRemove.ShowHint:=not VRemove.Enabled;
   VClose.Enabled:=VLicenseOpen or not Installing or WizardForm.CancelButton.Enabled;
   VLicense.Visible:=Main and Home;
-  VWebsite.Visible:=Main and Maintenance and (CWMRepairPath<>'') and not VMigrationNeeded;
   VLicense.Enabled:=True;
+  VWebsite.Visible:=Main and Maintenance;
   ButtonY:=Height-58;
-  VBounds(WizardForm.NextButton,507,ButtonY,104,36);
-  if Maintenance then VBounds(WizardForm.NextButton,209,202,124,30);
-  if Maintenance and (ActiveLanguage='chinesesimplified') then VBounds(WizardForm.NextButton,209,197,74,30);
-  if Maintenance and ((CWMRepairPath='') or VMigrationNeeded) then VBounds(WizardForm.NextButton,447,ButtonY,164,36);
-  if not Main then VBounds(WizardForm.NextButton,-300,-100,104,36);
+  { 整页唯一的强调色落在右下角的执行按钮上；「为当前用户安装」「升级并迁移」文案更长，给到 134。 }
+  NextWidth:=104;
+  if Maintenance and ((CWMRepairPath='') or VMigrationNeeded) then NextWidth:=134;
+  VBounds(WizardForm.NextButton,640-16-NextWidth,ButtonY,NextWidth,36);
+  if not Main then VBounds(WizardForm.NextButton,-300,-100,NextWidth,36);
   if Main and Installing then VBounds(WizardForm.CancelButton,508,ButtonY,104,36)
   else VBounds(WizardForm.CancelButton,-200,-100,104,36);
   if Installing then WizardForm.CancelButton.Caption:=CustomMessage('VCancelInstall');
-  VBounds(VNoLaunch,507,ButtonY,104,36); VBounds(VRemove,333,202,48,30);
-  if Maintenance and (ActiveLanguage='chinesesimplified') then VBounds(VRemove,293,197,32,30);
   VBounds(VWebsite,16,Height-36,148,25); VBounds(VLicense,208,ButtonY,170,36);
-  if Maintenance then begin VBounds(VWebsite,429,ButtonY,68,36); VWebsite.Caption:=CustomMessage('VClose'); end;
+  if Maintenance then begin
+    VBounds(VWebsite,640-16-NextWidth-8-68,ButtonY,68,36); VWebsite.Caption:=CustomMessage('VClose');
+  end;
   VBounds(VModalTitle,208,38,404,34); VBounds(VLicenseMemo,220,100,380,178);
   VLicenseMemo.Width:=ScaleX(380)+VSystemMetric(2);
   Region:=VRectRegion(0,0,ScaleX(380),VLicenseMemo.Height);
@@ -598,6 +837,24 @@ begin
   VLayout;
 end;
 
+{ 胶囊切换右侧日志栏；收起时连同「更早版本」的展开状态一起复位。 }
+procedure VToggleChangelog(Sender: TObject);
+begin
+  VChangelogOpen:=not VChangelogOpen;
+  if not VChangelogOpen then VChangelogEarlier:=False;
+  VLogRenderedFor:='';
+  VLayout;
+  WizardForm.ActiveControl:=VLog;
+end;
+
+procedure VToggleEarlier(Sender: TObject);
+begin
+  VChangelogEarlier:=not VChangelogEarlier;
+  VLogRenderedFor:='';
+  VLayout;
+  WizardForm.ActiveControl:=VLogMore;
+end;
+
 procedure VShowLicense(Sender: TObject);
 var LicenseText: AnsiString; Plain, RTF: String; I, Code: Integer; Format: TVCharFormat;
 begin
@@ -633,14 +890,6 @@ end;
 procedure VMaintenanceSelection(Sender: TObject);
 begin CWMSelectionChanged(Sender); VLayout; end;
 
-procedure VUninstall(Sender: TObject);
-begin
-  if CWMRegistrationCount=1 then begin
-    CWMUninstallSelected(0);
-    if not CWMUninstalled then VLayout;
-  end else begin VDetailsOpen:=True; VLayout; WizardForm.ActiveControl:=CWMPage.CheckListBox; end;
-end;
-
 procedure VExit(Sender: TObject);
 var I: Integer;
 begin
@@ -652,21 +901,6 @@ begin
   else if WizardForm.CancelButton.Enabled then WizardForm.CancelButton.OnClick(WizardForm.CancelButton);
 end;
 
-procedure VFinishWithoutLaunch(Sender: TObject);
-var I, Code: Integer; Executable: String;
-begin
-  if VIsMaintenance then begin
-    Executable:=AddBackslash(CWMRepairPath)+'Vex.exe';
-    #ifndef CodeWFSetupFixture
-      if (CWMRepairPath<>'') and FileExists(Executable) then
-        ShellExec('open',Executable,'',CWMRepairPath,SW_SHOWNORMAL,ewNoWait,Code);
-    #endif
-    exit;
-  end;
-  for I := 0 to WizardForm.RunList.Items.Count-1 do WizardForm.RunList.Checked[I] := False;
-  WizardForm.NextButton.OnClick(WizardForm.NextButton);
-end;
-
 procedure VVisitWebsite(Sender: TObject);
 var Code: Integer;
 begin
@@ -676,33 +910,44 @@ begin
   #endif
 end;
 
-{ 强调色只落在主操作上：非维护页与可升级时都是 Next 按钮，普通维护页留给「打开」。 }
+{ 强调色只给真正执行操作的按钮：选择「卸载」时它退回文字按钮，避免用主色诱导移除。 }
 function VIsPrimaryButton(I: Integer): Boolean;
 begin
-  if I=0 then Result:=(not VIsMaintenance) or VUpgradeAvailable
-  else if I=5 then Result:=VIsMaintenance and not VUpgradeAvailable
-  else Result:=False;
+  Result:=I=0;
+  if Result and VIsMaintenance then Result:=(CWMPage=nil) or (CWMPage.SelectedValueIndex<=0);
 end;
 
 procedure VPaintButton(I: Integer; DC: LongWord; Bounds: TVRect; State: LongWord);
-var X,Y: Integer; TextBounds,ButtonBounds,WindowBounds: TVRect;
+var X,Y,Radius: Integer; Open: Boolean; TextBounds,ButtonBounds,WindowBounds: TVRect;
   Brush,Color,Foreground,PreviousFont,Pen,OldPen: LongWord; Saved: Integer;
 begin
   Saved:=VSaveDC(DC);
   try
       Color:=VSurface; Foreground:=VMuted;
-      if VIsPrimaryButton(I) then begin Color:=VAccent; Foreground:=VOnAccent; end;
-      if I=9 then begin Color:=VSoft; Foreground:=VText; end;
+      { 「查看更新日志」胶囊平时是浅强调底，展开后与主按钮同样强调；「更早版本」始终是文字按钮。 }
+      if I=5 then begin
+        Color:=VAccentSoft; Foreground:=VAccent;
+        if VChangelogOpen then begin Color:=VAccent; Foreground:=VOnAccent; end;
+      end
+      else if I=8 then begin Color:=VSurface; Foreground:=VMuted; end
+      else if I=9 then begin Color:=VSoft; Foreground:=VText; end
+      else if VIsPrimaryButton(I) then begin Color:=VAccent; Foreground:=VOnAccent; end;
       if (I=VHover) or ((State and 1)<>0) then begin
         Color:=VSoft; Foreground:=VAccent;
         if VIsPrimaryButton(I) then begin Color:=VAccentHover; Foreground:=VOnAccent; end;
+        if (I=5) and VChangelogOpen then begin Color:=VAccentHover; Foreground:=VOnAccent; end
+        else if I=5 then begin Color:=VAccentSoft; Foreground:=VAccentHover; end
+        else if I=8 then begin Color:=VSurface; Foreground:=VAccent; end;
         if I=3 then begin Color:=$1C2BC4; Foreground:=clWhite; end;
       end;
       if (State and 4)<>0 then begin Color:=VSoft; Foreground:=VMuted; end;
       VGetRect(VButtons[I].Handle,ButtonBounds); VGetRect(WizardForm.Handle,WindowBounds);
       X:=ButtonBounds.Left-WindowBounds.Left; Y:=ButtonBounds.Top-WindowBounds.Top;
       VDrawingCopy(DC,0,0,Bounds.Right,Bounds.Bottom,VBack.Bitmap.Canvas.Handle,X,Y,$00CC0020);
-      if I<>3 then VRound(DC,0,0,Bounds.Right,Bounds.Bottom,8,Color,False)
+      Radius:=8; if I=5 then Radius:=Bounds.Bottom div 2;
+      { 「查看更早版本」是栏内文字按钮：保留刚拷贝来的栏底色，只画字。 }
+      if I=8 then begin end
+      else if I<>3 then VRound(DC,0,0,Bounds.Right,Bounds.Bottom,Radius,Color,False)
       else if Color<>VSurface then begin
         Brush:=VBrush(Color); VFill(DC,Bounds,Brush); VDeleteObject(Brush);
         VRound(DC,-X,-Y,WizardForm.ClientWidth,WizardForm.ClientHeight,8,VLine,True);
@@ -717,11 +962,15 @@ begin
         VMove(DC,ScaleX(27),ScaleY(12),0); VLineTo(DC,ScaleX(19),ScaleY(20));
         VSelectObject(DC,OldPen); VDeleteObject(Pen);
       end
-      else if (I=1) and not VIsMaintenance then begin
-        TextBounds.Left:=ScaleX(13); VDrawText(DC,VButtons[I].Caption,-1,TextBounds,$24);
+      else if (I=1) or (I=8) then begin
+        TextBounds.Left:=ScaleX(13);
+        if I=8 then TextBounds.Left:=ScaleX(2);
+        VDrawText(DC,VButtons[I].Caption,-1,TextBounds,$24);
         Pen:=VCreatePen(0,ScaleX(1),Foreground); OldPen:=VSelectObject(DC,Pen);
-        X:=Bounds.Right-ScaleX(22); Y:=ScaleY(22);
-        if VExpanded then begin VMove(DC,X-ScaleX(4),Y+ScaleY(2),0); VLineTo(DC,X,Y-ScaleY(2)); VLineTo(DC,X+ScaleX(4),Y+ScaleY(2)); end
+        X:=Bounds.Right-ScaleX(22); Y:=Bounds.Bottom div 2;
+        if (I=8) then Open:=VChangelogEarlier
+        else if VIsMaintenance then Open:=VDetailsOpen else Open:=VExpanded;
+        if Open then begin VMove(DC,X-ScaleX(4),Y+ScaleY(2),0); VLineTo(DC,X,Y-ScaleY(2)); VLineTo(DC,X+ScaleX(4),Y+ScaleY(2)); end
         else begin VMove(DC,X-ScaleX(4),Y-ScaleY(2),0); VLineTo(DC,X,Y+ScaleY(2)); VLineTo(DC,X+ScaleX(4),Y-ScaleY(2)); end;
         VSelectObject(DC,OldPen); VDeleteObject(Pen);
       end
@@ -794,8 +1043,9 @@ begin
   Result:=VCallProc(VCheckProcs[Index],Window,Message,WParam,LParam);
 end;
 
-function VLicenseWindowProc(Window, Message, WParam, LParam: LongWord): Longint;
-var Delta, I, Command: Integer; Lines: Cardinal;
+{ 富文本控件只在获得焦点时才响应滚轮；许可浮层与更新日志栏共用这套按悬停滚动的处理。 }
+function VMemoWindowProc(Window, Message, WParam, LParam: LongWord): Longint;
+var Delta, I, Command: Integer; Lines: Cardinal; Previous: LongWord;
 begin
   if (Message=$020A) and ((WParam and 8)=0) then begin
     Delta:=(WParam shr 16) and $FFFF; if Delta>=$8000 then Delta:=Delta-$10000;
@@ -809,7 +1059,8 @@ begin
     end;
     Result:=0; exit;
   end;
-  Result:=VCallProc(VLicenseProc,Window,Message,WParam,LParam);
+  if Window=VLogMemo.Handle then Previous:=VLogProc else Previous:=VLicenseProc;
+  Result:=VCallProc(Previous,Window,Message,WParam,LParam);
 end;
 
 procedure VStyleChildren(Parent: TWinControl);
@@ -853,12 +1104,12 @@ begin
     VSurface:=$23291C; VText:=$DEE6DC; VMuted:=$96A190;
     VField:=$1E2217; VSoft:=$272D20; VLine:=$323B2C; VAccent:=$B3C88A;
     VBrand:=$2D3A24; VBrandText:=$CFDEC9; VOnAccent:=$202814;
-    VAccentHover:=$C4D8A1; VAccentSoft:=$333E28;
+    VAccentHover:=$C4D8A1; VAccentSoft:=$333E28; VDanger:=$8995E4;
   end else begin
     VSurface:=clWhite; VText:=$313825; VMuted:=$80887B;
     VField:=clWhite; VSoft:=$F1F5F3; VLine:=$E3EAE5; VAccent:=$6B7624;
     VBrand:=$E5EEE8; VBrandText:=$364525; VOnAccent:=clWhite;
-    VAccentHover:=$58611C; VAccentSoft:=$E9F0E5;
+    VAccentHover:=$58611C; VAccentSoft:=$E9F0E5; VDanger:=$535BBD;
   end;
   if VSurfaceBrush<>0 then VDeleteObject(VSurfaceBrush);
   VSurfaceBrush:=VBrush(VSurface);
@@ -874,10 +1125,21 @@ begin
   VDesktop.Color:=VSurface; VAssociation.Color:=VSurface;
   VDesktop.Font.Color:=VText; VAssociation.Font.Color:=VText;
   VLicenseMemo.Color:=VSoft; VLicenseMemo.Font.Color:=VText;
+  { 更新日志栏与折叠背景同色，深色下也要让原生滚动条跟随，否则白边会破坏描边。 }
+  VReleasedLabel.Font.Color:=VMuted; VLogMeta.Font.Color:=VMuted;
+  VLogTitle.Font.Color:=VText; VLogMemo.Color:=VSoft; VLogMemo.Font.Color:=VText;
   VProgressPixel:=-1;
-  if Light=0 then VSetWindowTheme(VLicenseMemo.Handle,'DarkMode_Explorer','')
-  else VSetWindowTheme(VLicenseMemo.Handle,'Explorer','');
+  if Light=0 then begin
+    VSetWindowTheme(VLicenseMemo.Handle,'DarkMode_Explorer','');
+    VSetWindowTheme(VLogMemo.Handle,'DarkMode_Explorer','');
+  end else begin
+    VSetWindowTheme(VLicenseMemo.Handle,'Explorer','');
+    VSetWindowTheme(VLogMemo.Handle,'Explorer','');
+  end;
   VApplyLicenseColor;
+  { RTF 里的调色板是渲染时取色的，换肤必须重渲染一次才能拿到新色。 }
+  VLogRenderedFor:='';
+  if VLogMemo.Visible then VRenderChangelog(VInstalledVersion);
   VPaintBackground;
   if Light=0 then begin
     ExtractTemporaryFile('vex-brand-dark.bmp'); VMark.Bitmap.LoadFromFile(ExpandConstant('{tmp}\vex-brand-dark.bmp'));
@@ -909,7 +1171,7 @@ begin
     VGetRect(Window,Bounds);
     X := LParam and $FFFF; if X >= $8000 then X := X-$10000;
     Y := (LParam shr 16) and $FFFF; if Y >= $8000 then Y := Y-$10000;
-    if (Y-Bounds.Top < ScaleY(38)) and (X-Bounds.Left < ScaleX(594)) then begin Result:=2; exit; end;
+    if (Y-Bounds.Top < ScaleY(38)) and (X-Bounds.Left < ScaleX(VWindowWidth-46)) then begin Result:=2; exit; end;
   end;
   if (Message=$0113) and (WParam=41) and VInitialized then begin
     Hover:=-1;
@@ -958,11 +1220,21 @@ begin
   VDescription:=VLabel(60,250,400,40,12,''); VDescription.Alignment:=taCenter; VDescription.WordWrap:=True;
   VInstalled:=VLabel(209,29,402,18,12,CustomMessage('VInstalled'));
   VLocation:=VLabel(222,130,376,48,13,''); VLocation.WordWrap:=True;
+  VReleasedLabel:=VLabel(400,63,114,18,12,''); VReleasedLabel.Alignment:=taRightJustify;
+  VLog:=VButton(514,58,94,28,CustomMessage('VChangelog'),@VToggleChangelog);
+  VLogTitle:=VLabel(656,14,90,18,13,CustomMessage('VChangelogHeading')); VFont(VLogTitle.Font,13,True);
+  VLogMeta:=VLabel(748,17,196,18,11,''); VFont(VLogMeta.Font,11,False);
+  VLogMemo:=TRichEditViewer.Create(WizardForm); VLogMemo.Parent:=WizardForm;
+  VLogMemo.ReadOnly:=True; VLogMemo.ScrollBars:=ssVertical; VLogMemo.BorderStyle:=bsNone; VLogMemo.WordWrap:=True;
+  VFont(VLogMemo.Font,12,False);
+  VLogProc:=VSetLong(VLogMemo.Handle,-4,CreateCallback(@VMemoWindowProc));
+  VLogMemo.Visible:=False;
+  VLogMore:=VButton(656,320,288,24,CustomMessage('VChangelogEarlier'),@VToggleEarlier);
+  VLogMore.Visible:=False;
   VCustom:=VButton(156,262,208,30,CustomMessage('VCustom'),@VToggle);
   VLicense:=VButton(360,323,128,24,CustomMessage('VLicense'),@VShowLicense);
   VWebsite:=VButton(28,323,170,25,'CodeWF · {#AppVersion}',@VVisitWebsite);
   VClose:=VButton(472,8,32,32,'×',@VExit); VClose.Hint:=CustomMessage('VClose'); VClose.ShowHint:=True;
-  VNoLaunch:=VButton(210,270,100,30,CustomMessage('VClose'),@VFinishWithoutLaunch);
   VPathLabel:=VLabel(54,322,412,18,12,CustomMessage('VLocation'));
   VScope:=VLabel(54,393,412,17,11,CustomMessage('VScope'));
   WizardForm.DirEdit.Parent:=WizardForm; VBounds(WizardForm.DirEdit,65,356,314,20);
@@ -979,17 +1251,16 @@ begin
   VProgressLabel:=VLabel(88,262,260,18,12,CustomMessage('VProgress'));
   VPercent:=VLabel(348,262,84,18,12,'0%'); VPercent.Alignment:=taRightJustify;
   VProgressBar:=TBitmapImage.Create(WizardForm); VProgressBar.Parent:=WizardForm; VBounds(VProgressBar,88,288,344,5);
-  VRemove:=VButton(210,341,100,40,CustomMessage('VRemove'),@VUninstall);
   VModalTitle:=VLabel(31,80,458,29,19,CustomMessage('VLicenseTitle')); VFont(VModalTitle.Font,19,True);
   VLicenseMemo:=TRichEditViewer.Create(WizardForm); VLicenseMemo.Parent:=WizardForm;
   VLicenseMemo.ReadOnly:=True; VLicenseMemo.ScrollBars:=ssVertical; VLicenseMemo.BorderStyle:=bsNone; VLicenseMemo.WordWrap:=True;
   VFont(VLicenseMemo.Font,11,False); VLicenseMemo.Font.Name:='Consolas';
-  VLicenseProc:=VSetLong(VLicenseMemo.Handle,-4,CreateCallback(@VLicenseWindowProc));
+  VLicenseProc:=VSetLong(VLicenseMemo.Handle,-4,CreateCallback(@VMemoWindowProc));
   VModalBack:=VButton(389,358,100,40,CustomMessage('VBack'),@VDismissLicense);
   VButtons[0]:=WizardForm.NextButton; VButtons[1]:=VCustom; VButtons[2]:=VLicense;
-  VButtons[3]:=VClose; VButtons[4]:=VWebsite; VButtons[5]:=VNoLaunch;
+  VButtons[3]:=VClose; VButtons[4]:=VWebsite; VButtons[5]:=VLog;
   VButtons[6]:=WizardForm.CancelButton; VButtons[7]:=WizardForm.DirBrowseButton;
-  VButtons[8]:=VRemove; VButtons[9]:=VModalBack;
+  VButtons[8]:=VLogMore; VButtons[9]:=VModalBack;
   VPreviousProc:=VSetLong(WizardForm.Handle,-4,CreateCallback(@VWindowProc));
   for I:=0 to 9 do begin
     VFont(VButtons[I].Font,13,False);
@@ -998,7 +1269,7 @@ begin
     if I=0 then begin Weight:=600; Face:='Segoe UI Semibold'; end;
     if ActiveLanguage='chinesesimplified' then Face:='Microsoft YaHei UI';
     if I=7 then Pixels:=14;
-    if I=2 then Pixels:=12;
+    if (I=2) or (I=5) or (I=8) then Pixels:=12;
     if I=3 then Pixels:=20;
     VButtonFonts[I]:=VCreateFont(-ScaleY(Pixels),0,0,0,Weight,0,0,0,1,0,0,5,0,Face);
     VSetLong(VButtons[I].Handle,-16,(VGetLong(VButtons[I].Handle,-16) and not $F) or $B);
@@ -1096,6 +1367,7 @@ begin
   if VCheckProcs[1]<>0 then VSetLong(VAssociation.Handle,-4,VCheckProcs[1]);
   if VCheckFont<>0 then VDeleteObject(VCheckFont);
   if VLicenseProc<>0 then VSetLong(VLicenseMemo.Handle,-4,VLicenseProc);
+  if VLogProc<>0 then VSetLong(VLogMemo.Handle,-4,VLogProc);
   if VProgressFrame<>nil then VProgressFrame.Free;
   if VDrawingToken<>0 then begin VDrawingShutdown(VDrawingToken); VDrawingToken:=0; end;
 end;

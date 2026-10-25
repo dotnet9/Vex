@@ -97,6 +97,9 @@ Copy-Item -LiteralPath $installerPath -Destination $isolatedScripts -Recurse
 Copy-Item -LiteralPath $languagePath -Destination $isolatedScripts -Recurse
 Copy-Item -LiteralPath $license -Destination $isolated
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'logo.ico') -Destination $isolated
+New-Item -ItemType Directory -Path (Join-Path $isolated 'docs') -Force | Out-Null
+# 维护页的更新日志栏读这份随包文档，缺了它编译期就会因 Source 不存在而失败。
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\更新日志.md') -Destination (Join-Path $isolated 'docs')
 if ($content -notmatch 'Filename: "\{app\}\\([^"\\]+)"') { throw '安装入口未声明目标程序。' }
 # 编译夹具不执行；载荷仅验证安装源码的解析与资源封装。
 [IO.File]::WriteAllText((Join-Path $payload $Matches[1]), 'MZ controlled compile fixture only')
