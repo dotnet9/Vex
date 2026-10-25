@@ -171,11 +171,21 @@ try {
             } finally { $shot.Dispose() }
         }
         # 更新日志栏：胶囊点击后窗口加宽一栏，读随包日志，更早版本默认折叠。
+        # 随包日志就是仓库这份文档，断言从它自己取最新版本，升级版本号时不用再来改测试。
+        $changelogSource=Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\..\..\docs\更新日志.md') -Raw
+        $changelogSections=[regex]::Matches($changelogSource,'(?m)^## (V\d+\.\d+\.\d+)（(\d{4}-\d{2}-\d{2})）\s*$')
+        Check ($changelogSections.Count -ge 2) '随包日志至少有两个小节，折叠与展开都有东西可看'
+        $newestSection=$changelogSections[0]; $previousSection=$changelogSections[1]
+        $newestVersion=[regex]::Escape($newestSection.Groups[1].Value)
+        $previousVersion=[regex]::Escape($previousSection.Groups[1].Value)
+        $newestBody=$changelogSource.Substring($newestSection.Index+$newestSection.Length)
+        $firstBullet=[regex]::Match($newestBody,'(?m)^- \S+\[([^\]]+)\]-(.{0,12})')
+        Check ($firstBullet.Success) '随包日志最新一节有可核对的条目'
         $pill=Wait-For { Button '^View changelog$|^查看更新日志$' } '安装包行的查看更新日志胶囊'
         Click $pill
         [void](Wait-For { $area=Bounds $window; (($area.right-$area.left) -eq 960) } '日志栏展开后窗口加宽到 960')
         $logMemo=Wait-For { @(Controls | Where-Object { ([CodeWFSetupFixtureDesktop]::Class($_) -eq 'TRichEditViewer') -and
-            ([CodeWFSetupFixtureDesktop]::Text($_) -match 'V1\.10\.0') }) | Select-Object -First 1 } '右侧日志栏渲染随包的更新日志'
+            ([CodeWFSetupFixtureDesktop]::Text($_) -match $newestVersion) }) | Select-Object -First 1 } '右侧日志栏渲染随包的更新日志'
         $changelogLog=Get-Content -LiteralPath (Join-Path $Output 'setup.log') -Raw
         $changelogMatch=[regex]::Matches($changelogLog,'VEX FIXTURE changelog releases=(\d+) earlier=(\d) meta=([^\r\n]+)')
         $changelog=$changelogMatch[$changelogMatch.Count-1]
@@ -187,14 +197,14 @@ try {
         Check ($changelog.Groups[3].Value -match $metaPattern) "日志栏说明本安装包与本机版本的来源：$metaPattern"
         # 随包日志是中文文档，两语渲染同一份正文；逐字核对切分结果，防止 Pos 的宽字符偏移把字吃掉。
         $memoText=[CodeWFSetupFixtureDesktop]::Text($logMemo)
-        Check ($memoText -match 'V1\.10\.0 2026-10-25(\s|$)') '小节标题的发布日期干净收尾，不残留全角括号'
-        Check ($memoText -match '新增\] 窗口改成块状布局') '标签后的连字符不混进正文，条目首字也没被切掉'
+        Check ($memoText -match "$newestVersion $($newestSection.Groups[2].Value)(\s|$)") '小节标题的发布日期干净收尾，不残留全角括号'
+        Check ($memoText -match [regex]::Escape("$($firstBullet.Groups[1].Value)] $($firstBullet.Groups[2].Value)")) '标签后的连字符不混进正文，条目首字也没被切掉'
         Check (-not ($memoText -match '\[[^\]]*\]-')) '正文里不再出现 [标签]- 这种源文档写法'
         $more=Wait-For { Button '^View [0-9]+ earlier release|^查看更早' } '折叠中的更早版本入口'
         Click $more
         [void](Wait-For { (Get-Content -LiteralPath (Join-Path $Output 'setup.log') -Raw) -match 'changelog releases=\d+ earlier=1' } '展开更早版本')
         Check ($null -ne (Button '^Hide earlier releases$|^收起更早版本$')) '展开后入口改为收起'
-        Check ([CodeWFSetupFixtureDesktop]::Text($logMemo) -match 'V1\.9\.0') '展开后渲染出更早小节'
+        Check ([CodeWFSetupFixtureDesktop]::Text($logMemo) -match $previousVersion) '展开后渲染出更早小节'
         Capture 'maintenance-changelog'
         Click (Button '^Hide changelog$|^收起更新日志$')
         [void](Wait-For { $area=Bounds $window; (($area.right-$area.left) -eq 640) } '收起日志栏后窗口回到 640')
