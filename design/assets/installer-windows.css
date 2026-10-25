@@ -48,9 +48,28 @@ body[data-platform="windows"] .windows-minimal .step-caption { font-size:12px; m
 .windows-minimal .location-list { max-height:92px; overflow:auto; padding:6px; border:1px solid var(--line); border-radius:7px; background:var(--field); font-size:12px; }
 .windows-minimal .location-item { display:block; padding:6px 8px; border-radius:5px; overflow-wrap:anywhere; }
 .windows-minimal .location-item.selected { color:var(--accent); background:var(--accent-soft); }
-body[data-platform="windows"] .windows-minimal { transition:height 180ms cubic-bezier(.2,.8,.2,1); }
+body[data-platform="windows"] .windows-minimal { transition:width 200ms cubic-bezier(.2,.8,.2,1),height 180ms cubic-bezier(.2,.8,.2,1); }
 #installer-root[data-details="open"] .windows-minimal { height:480px; }
 #installer-root[data-details="open"] .windows-minimal .installer-layout { height:478px; min-height:478px; }
+/* 更新日志栏：安装包自带的那份日志就地展开在右侧，窗口加宽而不是跳走。 */
+.windows-minimal .chip-link.on { color:var(--on-accent); background:var(--accent); border-color:var(--accent); }
+.windows-minimal .chip-link.on:hover { background:var(--accent-hover); }
+#installer-root[data-changelog="open"] .windows-minimal { width:960px; }
+.windows-minimal .changelog-panel { flex:0 0 320px; width:320px; display:flex; flex-direction:column; min-width:0; border-left:1px solid var(--line); background:var(--bg); }
+.windows-minimal .changelog-head { display:flex; align-items:baseline; gap:8px; padding:16px 12px 8px 16px; }
+.windows-minimal .changelog-head strong { font-size:13px; font-weight:600; }
+.windows-minimal .changelog-head span { flex:1; min-width:0; font-size:11px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.windows-minimal .changelog-body { flex:1; min-height:0; overflow:auto; padding:0 16px 18px; }
+.windows-minimal .changelog-release+.changelog-release { margin-top:16px; }
+.windows-minimal .changelog-release>header { display:flex; align-items:baseline; gap:8px; margin-bottom:7px; }
+.windows-minimal .changelog-release>header strong { font-size:12px; }
+.windows-minimal .changelog-release>header span { font-size:11px; color:var(--subtle); }
+.windows-minimal .changelog-release ul { display:grid; gap:7px; margin:0; padding:0; list-style:none; }
+.windows-minimal .changelog-release li { display:flex; align-items:flex-start; gap:6px; font-size:12px; line-height:1.7; color:var(--muted); }
+.windows-minimal .changelog-release .tag { flex:0 0 auto; margin-top:2px; padding:1px 5px; border-radius:4px; background:var(--panel); color:var(--muted); font-size:10px; font-style:normal; }
+.windows-minimal .changelog-release .tag.new { color:var(--accent); background:var(--accent-soft); }
+.windows-minimal .changelog-release .tag.fix { color:var(--danger); background:var(--danger-soft); }
+.windows-minimal .changelog-empty { font-size:12px; color:var(--subtle); margin:0; }
 .windows-minimal .install-file { font-size:12px; overflow-wrap:anywhere; }
 .windows-minimal .progress-wrap { transition:--install-progress .2s linear; }
 .windows-minimal .progress-header { position:relative; height:18px; margin:28px 0 8px; font-size:12px; }

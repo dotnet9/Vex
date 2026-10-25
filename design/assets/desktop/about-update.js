@@ -17,9 +17,10 @@
   function releaseIndex() {
     const text = (window.VexDocuments && VexDocuments.changelog && VexDocuments.changelog.text) || '';
     const sections = [];
-    const pattern = /^## V(\d+(?:\.\d+)+)（([^）\n]+)）\n([\s\S]*?)(?=\n## V\d+(?:\.\d+)+（|$)/gm;
+    // 带 /m 的 $ 会匹配到空行的行尾，正文被截成空串；改成显式前置换行 + 串尾判断。
+    const pattern = /\n## V(\d+(?:\.\d+)+)（([^）\n]+)）\n([\s\S]*?)(?=\n## V\d+(?:\.\d+)+（|$)/g;
     let match;
-    while ((match = pattern.exec(text))) sections.push({ version: match[1], date: match[2].trim(), body: match[3].trim() });
+    while ((match = pattern.exec('\n' + text))) sections.push({ version: match[1], date: match[2].trim(), body: match[3].trim() });
     return sections;
   }
   function compareVersion(a, b) {
