@@ -9,6 +9,7 @@
 [Files]
 Source: "{#VexLicensePath}"; DestName: "Vex-License.txt"; Flags: dontcopy
 ; 维护页右侧的更新日志栏读这份随包文档，与安装包内嵌版本永远同源。
+; （正文现已由 ISPP 在编译期内嵌，此随包副本保留作存证与对照。）
 Source: "{#VexChangelogPath}"; DestName: "Vex-Changelog.txt"; Flags: dontcopy
 Source: "{#VexBrandDirectory}vex-brand-light.bmp"; Flags: dontcopy
 Source: "{#VexBrandDirectory}vex-brand-dark.bmp"; Flags: dontcopy
@@ -441,38 +442,23 @@ begin
   VReleaseCount:=VReleaseCount+1;
 end;
 
-{ 诊断：外部调用的输出参数换 WideString 类型（若编组是纯 UTF-16 指针则无 1252 往返），
-  输入侧 AnsiString→AnsiString 本就是指针拷贝；同时探字符串字面量 #NNNN 数字转义的码域。 }
-function VMultiByteToWideW(CodePage: Integer; Flags: LongWord; Mbs: AnsiString; MbLen: Integer; var WideBuf: WideString; WideLen: Integer): Integer;
-  external 'MultiByteToWideChar@kernel32.dll stdcall';
+{ 随包更新日志的文本在编译期内嵌（见 Vex.Changelog.iss）：运行时所有 UTF-8 解码路径在
+  CI 的 Inno 6.7.1 上已全数判死，字面量 #NNNN 转义是唯一实证支持宽码点的通道。 }
+#include "Vex.Changelog.iss"
 
 function VChangelogLoad: Boolean;
-var Lines: TArrayOfString; Line: String; I: Integer; W: WideString; WideLen: Integer; Raw: AnsiString;
+var Text, Line: String; I: Integer;
 begin
   if not VChangelogLoaded then begin
     VChangelogLoaded:=True;
-    { ExtractTemporaryFile 的返回值不是布尔，解包后直接读文件本身。 }
-    ExtractTemporaryFile('Vex-Changelog.txt');
-    { 按 UTF-8 解码只能走 LoadStringsFromFile：Inno 6.3 起它支持无 BOM 的 UTF-8 文件且按行
-      返回宽字符串。别用 UTF8Decode（6.3 引入，返回「UTF-8 编码的 AnsiString」，再赋给
-      String 会被按 1252 盲宽化成 mojibake，CI 实测中文全成 ?）；也别用外部
-      MultiByteToWideChar（PascalScript 外部 String 参数编组带 1252 最佳适配往返，
-      全角括号会变半角），Chr 又只到字节域。许可文件是纯 ASCII，不受此限。 }
-    if LoadStringsFromFile(ExpandConstant('{tmp}\Vex-Changelog.txt'),Lines) then begin
-      Log('VEX FIXTURE lines0='+Copy(Lines[0],1,24)+' lines2='+Copy(Lines[2],1,24)+' linecount='+IntToStr(GetArrayLength(Lines)));
-      { 诊断：WideString 输出参数的解码与 #NNNN 转义码域。 }
-      Raw:=#$E4#$B8#$AD;
-      WideLen:=VMultiByteToWideW(65001, 0, Raw, 3, W, 0);
-      SetLength(W, WideLen);
-      WideLen:=VMultiByteToWideW(65001, 0, Raw, 3, W, WideLen);
-      Log('VEX FIXTURE widetest=['+W+'] wlen='+IntToStr(WideLen)+' numesc=['+#23433+']');
-      for I:=0 to GetArrayLength(Lines)-1 do begin
-        Line:=Lines[I];
+    Text:=VChangelogEmbedded+#10;
+    for I:=1 to Length(Text) do
+      if Text[I]=#10 then begin
         if Copy(Line,1,4)='## V' then VAddRelease(Line)
         else if (VReleaseCount>0) and (Copy(Trim(Line),1,2)='- ') then
           VReleaseBodies[VReleaseCount-1]:=VReleaseBodies[VReleaseCount-1]+Trim(Line)+#10;
-      end;
-    end;
+        Line:='';
+      end else if Text[I]<>#13 then Line:=Line+Text[I];
   end;
   Result:=VReleaseCount>0;
 end;
