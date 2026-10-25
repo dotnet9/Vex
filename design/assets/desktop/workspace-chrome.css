@@ -204,3 +204,71 @@
 /* 引导卡动作行：继续（品牌胶囊）与下一步（跳转整幕）并排。 */
 .story-tour .tour-continue { color:var(--accent-fg,var(--on-accent,#fff)); background:var(--accent); border:1px solid var(--accent); display:inline-flex; align-items:center; }
 .story-tour .tour-continue:hover { filter:brightness(1.08); }
+
+/* ===== 块状工作区：灰画布 · 圆角描边白块 · 外缘 10px／块间 4px · 悬浮分段条 ===== */
+:root{--block-edge:10px;--block-gap:4px;--block-hit:12px;--block-radius:10px;--block-bg:var(--surface);--canvas-bg:color-mix(in srgb,var(--fg) 5%,var(--paper))}
+:root[data-theme=dark]{--canvas-bg:var(--bg)}
+.app-window{background:var(--canvas-bg)}
+.app-window>.titlebar{background:var(--block-bg);border-bottom-color:color-mix(in srgb,var(--border) 55%,transparent)}
+.workspace{position:relative;gap:0;padding:var(--block-edge)}
+/* 同一套块语言：白卡 + 细描边 + 圆角 + 极浅投影；主区只当容器，视图本身才是块。 */
+.sidebar,.structure-sidebar,.view-panel,.find-strip{border:1px solid var(--border);border-radius:var(--block-radius);background:var(--block-bg);box-shadow:0 1px 3px color-mix(in srgb,var(--fg) 5%,transparent)}
+.workspace-main{position:relative;background:transparent;border:0;box-shadow:none}
+.content-area,.view-surface{background:transparent}
+.sidebar.closed,.structure-sidebar.collapsed{border-width:0;box-shadow:none}
+/* 块内不再另铺底色：内容直接落在白卡上。 */
+.edit-options,.view-panel .view-heading,.view-panel .map-toolbar,.structure-inner{background:transparent}
+/* 查找条独立成块，与下方视图块之间留同一条间隙。 */
+.find-strip{padding:7px 12px;gap:6px;margin:0 0 var(--block-gap)}
+/* 分栏把手：把手本体就是 4px 间隙，透明伪元素把命中区扩到 12px。 */
+.sidebar-splitter,.structure-splitter{width:var(--block-gap);flex:none;margin:0;background:transparent;position:relative;z-index:9;cursor:col-resize}
+.sidebar-splitter::before,.structure-splitter::before{content:'';position:absolute;top:0;bottom:0;left:calc((var(--block-gap) - var(--block-hit)) / 2);right:calc((var(--block-gap) - var(--block-hit)) / 2)}
+.sidebar-splitter::after,.structure-splitter::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:3px;height:38px;border-radius:999px;background:color-mix(in srgb,var(--fg) 24%,transparent);opacity:0;transition:opacity .15s}
+.sidebar-splitter:hover::after,.sidebar-splitter:focus-visible::after,.sidebar-resizing .sidebar-splitter::after,
+.structure-splitter:hover::after,.structure-splitter:focus-visible::after,.structure-resizing .structure-splitter::after{opacity:1}
+/* 视图分屏把手：左右分栏用竖柄，上下分栏用横柄；两块各自描边，中间只留间隙。 */
+.view-split{gap:0;background:transparent}
+.split-handle{position:relative;z-index:7;flex:none;touch-action:none;outline:none;background:transparent}
+.view-horizontal>.split-handle{width:var(--block-gap);cursor:col-resize}
+.view-vertical>.split-handle{height:var(--block-gap);cursor:row-resize}
+.view-horizontal>.split-handle::before{content:'';position:absolute;top:0;bottom:0;left:calc((var(--block-gap) - var(--block-hit)) / 2);right:calc((var(--block-gap) - var(--block-hit)) / 2)}
+.view-vertical>.split-handle::before{content:'';position:absolute;left:0;right:0;top:calc((var(--block-gap) - var(--block-hit)) / 2);bottom:calc((var(--block-gap) - var(--block-hit)) / 2)}
+.split-handle::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:999px;background:color-mix(in srgb,var(--fg) 24%,transparent);opacity:0;transition:opacity .15s}
+.view-horizontal>.split-handle::after{width:3px;height:38px}
+.view-vertical>.split-handle::after{height:3px;width:38px}
+.split-handle:hover::after,.split-handle:focus-visible::after,.split-resizing .split-handle::after{opacity:1}
+.split-resizing{user-select:none}
+/* 状态栏退役：源码/阅读/导图分段改为悬浮胶囊，右端挂字数。 */
+.workspace-main{position:relative}
+.workspace-main .document-statusbar{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:34;display:flex;flex-wrap:nowrap;align-items:center;width:auto;max-width:calc(100% - 28px);height:auto;min-height:0;gap:4px;padding:4px 6px;border:1px solid var(--border);border-radius:999px;background:var(--block-bg);box-shadow:var(--pop-shadow,0 10px 30px #00000022)}
+.workspace-main .document-statusbar button{white-space:nowrap}
+.workspace-main .document-statusbar .workspace-viewswitch{flex:none}
+.workspace-main .document-statusbar .workspace-viewswitch,.workspace-main .document-statusbar #workspace-layout{margin:0}
+.workspace-main .document-statusbar .document-word-count{margin-left:0}
+/* 正文底部留出悬浮胶囊的高度，最后一行不被遮住。 */
+.view-panel .reading-scroll .md-body,.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding-bottom:104px}
+.view-panel .instant-scroll .md-body,.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding-bottom:104px}
+.source-scroll{padding-bottom:56px}
+/* 折叠按钮：从状态栏迁到块角（展开在块内、折叠贴窗边），圆形带箭头，位置由 JS 按块宽算出。 */
+.pane-collapse{position:absolute;bottom:18px;z-index:36;width:24px;height:24px;display:grid;place-items:center;padding:0;margin:0;line-height:0;border:1px solid color-mix(in srgb,var(--fg) 14%,var(--border));border-radius:50%;background:var(--block-bg);color:var(--muted);box-shadow:0 1px 4px color-mix(in srgb,var(--fg) 14%,transparent);cursor:pointer;transition:color .15s,border-color .15s}
+.pane-collapse:hover{color:var(--accent);border-color:var(--accent)}
+.pane-collapse span{display:none}
+.pane-collapse .ico{width:12px;height:12px;display:block;transition:transform .2s ease}
+/* 箭头指向面板收起的方向：左栏展开朝左、收起朝右；右栏相反。 */
+.pane-collapse-left.on .ico{transform:scaleX(-1)}
+.pane-collapse-right:not(.on) .ico{transform:scaleX(-1)}
+.pane-collapse[hidden]{display:none}
+/* 文件列表快捷钮移到搜索框下方、列表上方，整行右对齐并与搜索框同缩进。 */
+#files-pane .files-toolbar{flex:none;justify-content:flex-end;padding:0 12px 8px;margin-top:-6px}
+/* 专注/演示态与状态栏胶囊同进退。 */
+.focus-mode .pane-collapse,.presentation-mode .pane-collapse{display:none}
+/* 窄屏：胶囊整体收紧，宁可少显示字数也不换行成块。 */
+@media(max-width:900px){
+  .workspace-main .document-statusbar{gap:2px;padding:3px 4px;bottom:12px}
+  .workspace-main .document-statusbar .workspace-viewswitch{padding:2px}
+  .workspace-main .document-statusbar .workspace-viewswitch button{padding:3px 9px}
+  .workspace-main .document-statusbar .document-word-count{display:none}
+}
+@media(max-width:680px){
+  .workspace-main .document-statusbar .workspace-viewswitch button{padding:3px 7px}
+}

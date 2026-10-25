@@ -4,6 +4,7 @@
   var W = window.VexWorkbench, $ = function (id) { return document.getElementById(id); };
   var query = new URLSearchParams(location.search), current = 'instant', editorMode = W.state.editMode, tree, changing = false, guideActive = false;
   var panels = {}, area = document.querySelector('.content-area');
+  var splitRatios = {}; try { splitRatios = JSON.parse(VexStorage.getItem('vex-design-split-ratio') || '{}'); } catch (_) {}
   var labels = { editor: '编辑', render: '阅读', map: '思维导图' }, icons = { editor: 'edit', render: 'eye', map: 'map' };
   var presets = [
     { id: 'instant', title: '即时编辑', note: '专注连续写作', mode: 'instant', tree: 'editor' },
@@ -116,10 +117,59 @@
       if (event.shiftKey && at === 0 || !event.shiftKey && at === controls.length - 1) { event.preventDefault(); controls[event.shiftKey ? controls.length - 1 : 0].focus(); }
     }
   });
-  function build(node) { if (typeof node === 'string') return panels[node]; var split = document.createElement('div'); split.className = 'view-split view-' + node[0]; split.append(build(node[1]), build(node[2])); return split; }
+  function build(node, path) {
+    if (typeof node === 'string') return panels[node];
+    var split = document.createElement('div'); split.className = 'view-split view-' + node[0];
+    var vertical = node[0] === 'vertical';
+    var first = build(node[1], path + '0'), second = build(node[2], path + '1');
+    split.append(first, makeHandle(split, vertical, current + ':' + path, first, second), second);
+    return split;
+  }
+  /* 分屏比例：按「视图预设 + 路径」持久化，把手悬浮/聚焦时显出握柄，支持方向键。 */
+  function makeHandle(split, vertical, key, first, second) {
+    var handle = document.createElement('div');
+    handle.className = 'split-handle'; handle.tabIndex = 0;
+    handle.setAttribute('role', 'separator');
+    handle.setAttribute('aria-orientation', vertical ? 'horizontal' : 'vertical');
+    handle.setAttribute('aria-valuemin', '20'); handle.setAttribute('aria-valuemax', '80');
+    handle.setAttribute('aria-label', VexL.t(vertical ? '调整上下视图高度' : '调整左右视图宽度'));
+    function ratio() { return splitRatios[key] || .5; }
+    function apply(value, persist) {
+      value = Math.max(.2, Math.min(.8, value));
+      splitRatios[key] = value;
+      first.style.flex = '0 0 ' + (value * 100).toFixed(2) + '%';
+      second.style.flex = '';
+      handle.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+      if (persist) try { VexStorage.setItem('vex-design-split-ratio', JSON.stringify(splitRatios)); } catch (_) {}
+    }
+    apply(ratio(), false);
+    handle.addEventListener('pointerdown', function (event) {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      var rect = split.getBoundingClientRect(), size = vertical ? rect.height : rect.width;
+      handle.setPointerCapture(event.pointerId);
+      document.body.classList.add('split-resizing');
+      function move(event) { apply(vertical ? (event.clientY - rect.top) / size : (event.clientX - rect.left) / size, false); }
+      function stop() {
+        document.body.classList.remove('split-resizing');
+        handle.removeEventListener('pointermove', move);
+        apply(ratio(), true);
+      }
+      handle.addEventListener('pointermove', move);
+      ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (name) { handle.addEventListener(name, stop, { once: true }); });
+    });
+    handle.addEventListener('keydown', function (event) {
+      var step = { ArrowLeft:-.05, ArrowRight:.05, ArrowUp:-.05, ArrowDown:.05 }[event.key];
+      if (step) apply(ratio() + step, true);
+      else if (event.key === 'Home' || event.key === 'End') apply(event.key === 'Home' ? .2 : .8, true);
+      else return;
+      event.preventDefault();
+    });
+    return handle;
+  }
   function renderLayout() {
     var source = editorMode === 'source', displayed = leaves(tree);
-    Object.values(panels).forEach(function (panel) { panel.style.flex = ''; parking.appendChild(panel); }); surface.replaceChildren(build(tree));
+    Object.values(panels).forEach(function (panel) { panel.style.flex = ''; parking.appendChild(panel); }); surface.replaceChildren(build(tree, ''));
     $('source-pane').hidden = !source || !displayed.includes('editor'); $('instant-pane').hidden = source || !displayed.includes('editor');
     $('reading-pane').hidden = !displayed.includes('render'); $('map-pane').hidden = !displayed.includes('map');
     panels.editor.querySelector('.view-title').textContent = source ? '源码' : '即时编辑'; panels.render.querySelector('.view-title').textContent = '阅读'; panels.map.querySelector('.view-title').textContent = '思维导图';

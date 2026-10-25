@@ -83,3 +83,50 @@
   window.VexAuxiliary = {show:show, close:close, sync:sync, handleAction:handleAction, get active() { return active; }};
   sync();
 })();
+
+/* 块状工作区：折叠按钮从状态栏迁到块角／窗边，随块宽每帧重算位置。 */
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var workspace = document.querySelector('.workspace'), statusbar = document.querySelector('.document-statusbar');
+  var SIZE = 24, INSET = 8, EDGE = 10;
+  /* 展开时按钮落在所属块的内侧下角，折叠时贴到窗体内边框的同侧下角；箭头指向面板收起的方向。 */
+  var panes = [
+    { btn: $('sidebar-toggle'), side: 'left', pane: document.querySelector('.sidebar'), hidden: 'closed' },
+    { btn: $('outline-toggle'), side: 'right', pane: $('structure-sidebar'), hidden: 'collapsed' }
+  ];
+
+  panes.forEach(function (entry) {
+    var btn = entry.btn;
+    btn.classList.add('pane-collapse', 'pane-collapse-' + entry.side);
+    btn.querySelector('span').remove();
+    var svg = btn.querySelector('.ico');
+    svg.removeAttribute('style');
+    svg.innerHTML = '<use href="#i-chevron"></use>';
+    workspace.appendChild(btn);
+  });
+  var corners = statusbar.querySelector('.document-corner-actions');
+  if (corners) corners.remove();
+
+  function place() {
+    var host = workspace.getBoundingClientRect();
+    panes.forEach(function (entry) {
+      var open = !entry.pane.classList.contains(entry.hidden), rect = open ? entry.pane.getBoundingClientRect() : host;
+      entry.btn.classList.toggle('on', open);
+      entry.btn.style.left = (entry.side === 'left'
+        ? open ? rect.right - host.left - SIZE - INSET : EDGE
+        : open ? rect.left - host.left + INSET : host.width - EDGE - SIZE) + 'px';
+    });
+  }
+
+  new ResizeObserver(place).observe(workspace);
+  window.addEventListener('resize', place);
+  /* 块宽是渐变的：跟随每一帧重算，按钮才不会停在收起前的旧位置。 */
+  var paneWatcher = new ResizeObserver(place);
+  panes.forEach(function (entry) {
+    paneWatcher.observe(entry.pane);
+    new MutationObserver(place).observe(entry.pane, { attributes: true, attributeFilter: ['class', 'style'] });
+    new MutationObserver(place).observe(entry.btn, { attributes: true, attributeFilter: ['aria-pressed'] });
+  });
+  place();
+})();
