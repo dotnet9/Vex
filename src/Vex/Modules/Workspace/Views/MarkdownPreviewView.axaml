@@ -37,10 +37,11 @@
             <!-- 包裹层：ScrollViewer 会拉伸直接子级，居中限宽需交给内层 Grid 的对齐处理。 -->
             <Grid HorizontalAlignment="Stretch">
             <LayoutTransformControl x:Name="DocumentTransform">
+            <!-- 原型 .reading-scroll .md-body 底部留 104px：正文最后一行不被悬浮胶囊盖住。 -->
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
                 IsTaskEditingEnabled="{Binding IsTaskEditingEnabled}"
-                Margin="30 22 30 30"
+                Margin="30 22 30 104"
                 ImageBasePath="{Binding ImageBasePath}"
                 Markdown="{Binding Markdown}"
                 SyntaxOptions="{Binding Preferences.SyntaxOptions}"

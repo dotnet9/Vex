@@ -1,73 +1,16 @@
 <UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
  xmlns:prism="http://prismlibrary.com/" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}" prism:ViewModelLocator.AutoWireViewModel="True">
  <UserControl.Styles>
-  <!-- 对应原型 .document-statusbar .document-corner-actions button：28px 高、4px 圆角、12px 文字。 -->
-  <Style Selector="ToggleButton.corner-action">
-   <Setter Property="Height" Value="28" />
-   <Setter Property="MinHeight" Value="0" />
-   <Setter Property="MinWidth" Value="0" />
-   <Setter Property="Padding" Value="6,2" />
-   <Setter Property="CornerRadius" Value="4" />
-   <Setter Property="BorderThickness" Value="0" />
-   <Setter Property="Background" Value="Transparent" />
-   <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
-   <Setter Property="FontSize" Value="12" />
-   <Setter Property="VerticalContentAlignment" Value="Center" />
-  </Style>
-  <Style Selector="ToggleButton.corner-action:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-   <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
-  </Style>
-  <Style Selector="ToggleButton.corner-action:pointerover">
-   <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
-  </Style>
-  <Style Selector="ToggleButton.corner-action:checked">
-   <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
-  </Style>
-  <Style Selector="ToggleButton.corner-action Path">
-   <Setter Property="Stretch" Value="Uniform" />
-   <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
-   <Setter Property="StrokeThickness" Value="1.7" />
-   <Setter Property="StrokeLineCap" Value="Round" />
-   <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <Style Selector="ToggleButton.corner-action:pointerover Path, ToggleButton.corner-action:checked Path">
-   <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
-  </Style>
-
-  <!-- 对应原型 .workspace-layout-button：32px 高、6px 圆角、12px/550 居中。 -->
-  <Style Selector="Button.sb-layout">
-   <Setter Property="Height" Value="32" />
-   <Setter Property="MinHeight" Value="0" />
-   <Setter Property="MinWidth" Value="0" />
-   <Setter Property="Padding" Value="0,10" />
-   <Setter Property="CornerRadius" Value="6" />
-   <Setter Property="BorderThickness" Value="0" />
-   <Setter Property="Background" Value="Transparent" />
-   <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
-   <Setter Property="FontSize" Value="12" />
-   <Setter Property="FontWeight" Value="SemiBold" />
-   <Setter Property="VerticalContentAlignment" Value="Center" />
-  </Style>
-  <Style Selector="Button.sb-layout:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-   <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
-  </Style>
-  <Style Selector="Button.sb-layout Path">
-   <Setter Property="Stretch" Value="Uniform" />
-   <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
-   <Setter Property="StrokeThickness" Value="1.7" />
-   <Setter Property="StrokeLineCap" Value="Round" />
-   <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-
-  <!-- 对应原型 .workspace-viewswitch：胶囊容器 + 三段直选 + 「更多」打开完整布局画廊。 -->
+  <!-- 对应原型 .workspace-viewswitch：内层胶囊用比块面深一档的上浮色，段与段之间 2px。 -->
   <Style Selector="Border.view-switch">
    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
    <Setter Property="CornerRadius" Value="999" />
-   <Setter Property="Padding" Value="3,2" />
+   <Setter Property="Padding" Value="3" />
   </Style>
+  <!-- 对应原型 .workspace-viewswitch button：26px 高、整胶囊、12px 静音文字。 -->
   <Style Selector="Button.view-segment">
-   <Setter Property="Height" Value="26" />
    <Setter Property="MinHeight" Value="{DynamicResource VexDensityControlHeightSm}" />
+   <Setter Property="Height" Value="26" />
    <Setter Property="MinWidth" Value="0" />
    <Setter Property="Padding" Value="14,3" />
    <Setter Property="CornerRadius" Value="999" />
@@ -76,35 +19,44 @@
    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
    <Setter Property="VerticalContentAlignment" Value="Center" />
+   <Setter Property="HorizontalContentAlignment" Value="Center" />
   </Style>
+  <!-- 对应原型 button:hover：只提亮文字，不换底。 -->
   <Style Selector="Button.view-segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
    <Setter Property="Background" Value="Transparent" />
   </Style>
   <Style Selector="Button.view-segment:pointerover">
    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
   </Style>
+  <!-- 对应原型 button[aria-pressed=true]：浮起一档纸面底 + 正文色 + 600 字重 + 轻投影。 -->
   <Style Selector="Button.view-segment.active /template/ ContentPresenter#PART_ContentPresenter">
    <Setter Property="Background" Value="{DynamicResource VexDocumentPaperBrush}" />
-   <Setter Property="BoxShadow" Value="0 1 4 #14000000" />
+   <Setter Property="BoxShadow" Value="0 1 4 #1F000000" />
   </Style>
   <Style Selector="Button.view-segment.active">
-    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/>
-    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
-    <Setter Property="FontWeight" Value="SemiBold"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
-    <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="CornerRadius" Value="6"/>
-    </Style>
+   <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+   <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.view-segment Path">
+   <Setter Property="Width" Value="12" />
+   <Setter Property="Height" Value="12" />
+   <Setter Property="Stretch" Value="Uniform" />
+   <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
+   <Setter Property="StrokeThickness" Value="1.7" />
+   <Setter Property="StrokeLineCap" Value="Round" />
+   <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
 
   <!-- 对应原型 .document-word-count：12px 静音文字，悬停转主题色。 -->
   <Style Selector="Button.sb-word">
    <Setter Property="MinHeight" Value="0" />
-   <Setter Property="Padding" Value="3,0" />
-   <Setter Property="CornerRadius" Value="4" />
+   <Setter Property="Padding" Value="6,0" />
+   <Setter Property="CornerRadius" Value="999" />
    <Setter Property="BorderThickness" Value="0" />
    <Setter Property="Background" Value="Transparent" />
    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
-   <Setter Property="FontSize" Value="12" />
+   <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
+   <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
   <Style Selector="Button.sb-word:pointerover /template/ ContentPresenter#PART_ContentPresenter">
    <Setter Property="Background" Value="Transparent" />
@@ -112,62 +64,15 @@
   <Style Selector="Button.sb-word:pointerover">
    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
   </Style>
-  <!-- 对应原型 .view-switch：3px 内衬、1px 边框、8px 圆角、raised 底；选中段 accent 文字 + 面板底。
-       R-10 精致化：高度/圆角/字号走密度令牌（规则 §6）。 -->
-  <Style Selector="Border.view-switch">
-   <Setter Property="Padding" Value="4" />
-   <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
-   <Setter Property="BorderThickness" Value="1" />
-   <Setter Property="CornerRadius" Value="8" />
-   <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
-  </Style>
-  <Style Selector="Button.view-segment">
-   <Setter Property="MinWidth" Value="86" />
-   <Setter Property="Height" Value="28" />
-   <Setter Property="Padding" Value="0" />
-   <Setter Property="CornerRadius" Value="5" />
-   <Setter Property="Background" Value="Transparent" />
-   <Setter Property="BorderThickness" Value="0" />
-   <Setter Property="FontSize" Value="12" />
-   <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
-   <Setter Property="HorizontalContentAlignment" Value="Center" />
-  </Style>
-  <Style Selector="Button.view-segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-   <Setter Property="Background" Value="Transparent" />
-  </Style>
-  <Style Selector="Button.view-segment.active">
-   <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
-   <Setter Property="FontWeight" Value="SemiBold" />
-   <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
-  </Style>
-  <Style Selector="Button.view-segment:pointerover">
-   <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
-   <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
-  </Style>
-  <Style Selector="Button.view-segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-   <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
-  </Style>
  </UserControl.Styles>
 
- <!-- 对应原型 .document-statusbar：34px 高、底纸色、上边框为 65% 边框色。 -->
- <Border Height="34" Background="{DynamicResource VexShellBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,1,0,0">
-  <!-- 单格三层叠放：原型用 auto 外边距居中，这里直接让布局按钮落在状态栏正中。 -->
-  <Grid Margin="10,0">
-   <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-    <ToggleButton x:Name="FilesToggle" Classes="corner-action" IsChecked="{Binding Layout.IsSidebarVisible, Mode=OneWay}" Command="{Binding Layout.ToggleSidebar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.DocumentList}}">
-     <StackPanel Orientation="Horizontal" Spacing="5">
-      <Path Width="15" Height="15" Data="M5 4H19A2 2 0 0 1 21 6V18A2 2 0 0 1 19 20H5A2 2 0 0 1 3 18V6A2 2 0 0 1 5 4Z M9 4V20" />
-      <TextBlock Text="{i18n:I18n {x:Static l:VexL.SidebarFiles}}" FontSize="12" VerticalAlignment="Center" />
-     </StackPanel>
-    </ToggleButton>
-    <ToggleButton x:Name="OutlineToggle" Classes="corner-action" IsChecked="{Binding Layout.ShowOutlineSidebar, Mode=OneWay}" Command="{Binding Layout.ToggleOutline}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Outline}}">
-     <StackPanel Orientation="Horizontal" Spacing="5">
-      <Path Width="15" Height="15" Data="M5 4H19A2 2 0 0 1 21 6V18A2 2 0 0 1 19 20H5A2 2 0 0 1 3 18V6A2 2 0 0 1 5 4Z M15 4V20" />
-      <TextBlock Text="{i18n:I18n {x:Static l:VexL.Outline}}" FontSize="12" VerticalAlignment="Center" />
-     </StackPanel>
-    </ToggleButton>
-   </StackPanel>
-   <Border x:Name="ViewSwitch" Classes="view-switch" HorizontalAlignment="Center" VerticalAlignment="Center">
+ <!-- 对应原型 .workspace-main .document-statusbar：状态栏退役为悬浮胶囊——块面底 + 1px 描边 + 整胶囊圆角，
+      宽度随内容收缩，靠 MainWindow 的右下角定位（bottom 16、水平居中于正文列）。 -->
+ <Border Classes="status-pill" Padding="6,4" CornerRadius="999" BorderThickness="1"
+         Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
+         BoxShadow="0 10 30 #22000000">
+  <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+   <Border x:Name="ViewSwitch" Classes="view-switch">
     <StackPanel Orientation="Horizontal" Spacing="2">
      <Button x:Name="SourceSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsSourceSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" Command="{Binding Workbench.ShowSourceView}" />
      <Button x:Name="ReadSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsReadSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" Command="{Binding Workbench.ShowRead}" />
@@ -180,9 +85,9 @@
      </Button>
     </StackPanel>
    </Border>
-   <Button x:Name="StatisticsButton" Classes="sb-word" HorizontalAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding Preferences.WordCountVisible}" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}">
-    <TextBlock Text="{Binding DocumentInfo.StatusWordCountText}" FontSize="12" />
+   <Button x:Name="StatisticsButton" Classes="sb-word" IsVisible="{Binding Preferences.WordCountVisible}" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}">
+    <TextBlock Text="{Binding DocumentInfo.StatusWordCountText}" FontSize="{DynamicResource VexDensityFontSizeCaption}" />
    </Button>
-  </Grid>
+  </StackPanel>
  </Border>
 </UserControl>

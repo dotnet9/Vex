@@ -36,9 +36,14 @@ internal static class PrototypeChromeVerification
             var sourceSegment = statusChrome.FindControl<Button>("SourceSegment")!;
             var readSegment = statusChrome.FindControl<Button>("ReadSegment")!;
             var mapSegment = statusChrome.FindControl<Button>("MapSegment")!;
-            var switchCenter = viewSwitch.TranslatePoint(new Point(viewSwitch.Bounds.Width / 2, 0), statusChrome)!.Value.X;
-            Check(Math.Abs(switchCenter - statusChrome.Bounds.Width / 2) < 2,
-                $"View switch group stays centered at {size.Width}: center={switchCenter}, status={statusChrome.Bounds.Width}");
+            // 原型 .document-statusbar：整条状态栏退役为悬浮胶囊，水平居中于正文列、底边留 16px，不再占行高。
+            var documentColumn = (Control)statusChrome.Parent!;
+            var pillOrigin = statusChrome.TranslatePoint(default, documentColumn)!.Value;
+            Check(Math.Abs(documentColumn.Bounds.Height - pillOrigin.Y - statusChrome.Bounds.Height - 16) < 1
+                && Math.Abs(pillOrigin.X + statusChrome.Bounds.Width / 2 - documentColumn.Bounds.Width / 2) < 2
+                && statusChrome.Bounds.Height is > 30 and <= 44
+                && viewSwitch.Bounds.Width < statusChrome.Bounds.Width,
+                $"Status bar floats as a centered pill over the document column at {size.Width}: origin={pillOrigin} size={statusChrome.Bounds.Size} capsule={viewSwitch.Bounds.Size}");
             Check(!sourceSegment.Classes.Contains("active") && !readSegment.Classes.Contains("active") && !mapSegment.Classes.Contains("active"),
                 "Combined layouts keep every status segment inactive");
             sourceSegment.Command!.Execute(null); Render();
@@ -53,9 +58,29 @@ internal static class PrototypeChromeVerification
             var origin = formatting.TranslatePoint(default, formats);
             Check(origin is not null && origin.Value.X >= 0 && formatting.Bounds.Width <= formats.Bounds.Width,
                 $"Formatting toolbar stays inside the document at {size.Width}: origin={origin?.ToString() ?? "null"} toolbar={formatting.Bounds} host={formats.Bounds}");
-            var status = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!;
-            Check(status.TranslatePoint(default, window)!.Value.X >= 200 && Math.Abs(status.Bounds.Height - 34) < 1,
-                $"Document corner controls leave file navigation full height: {status.TranslatePoint(default, window)} / {status.Bounds}");
+            // 原型 .pane-collapse：折叠钮从状态栏迁到块角——展开贴在所属块内侧下角（内缩 8px），折叠贴画布窗边，底边恒 18px。
+            var columns = window.FindControl<Grid>("WorkspaceColumns")!;
+            void CheckCollapse(string name, string blockName, bool open, bool left)
+            {
+                var button = window.FindControl<Button>(name)!;
+                var block = window.FindControl<Border>(blockName)!;
+                var spot = button.TranslatePoint(default, columns)!.Value;
+                var expectedX = open
+                    ? block.TranslatePoint(new Point(left ? block.Bounds.Width - 8 - 24 : 8, 0), columns)!.Value.X
+                    : left ? 0 : columns.Bounds.Width - 24;
+                Check(button.Bounds.Width == 24 && button.Bounds.Height == 24
+                    && Math.Abs(spot.X - expectedX) < 1
+                    && Math.Abs(columns.Bounds.Height - spot.Y - 24 - 18) < 1,
+                    $"{name} docks at the {(open ? "block corner" : "window edge")} at {size.Width}: x={spot.X} expected={expectedX} y={spot.Y} bounds={button.Bounds.Size} height={columns.Bounds.Height}");
+            }
+            CheckCollapse("SidebarCollapseButton", "SidebarGuideTarget", vm.Layout.ShowSidebar, true);
+            CheckCollapse("OutlineCollapseButton", "OutlineGuideTarget", vm.Layout.ShowOutlineSidebar, false);
+            // 列宽逐帧插值：动画没走完就量几何，读到的是起点。
+            void Settle() { LayoutSettle.Run(); Render(); }
+            vm.Layout.IsOutlineVisible = true; Settle();
+            CheckCollapse("OutlineCollapseButton", "OutlineGuideTarget", vm.Layout.ShowOutlineSidebar, false);
+            vm.Layout.IsOutlineVisible = false; Settle();
+            CheckCollapse("OutlineCollapseButton", "OutlineGuideTarget", vm.Layout.ShowOutlineSidebar, false);
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "workspace-" + size.Width + ".png"));
             vm.Workbench.ShowLayouts = true; Render();
             var gallery = window.FindControl<WorkspaceLayoutGallery>("LayoutGallery")!;

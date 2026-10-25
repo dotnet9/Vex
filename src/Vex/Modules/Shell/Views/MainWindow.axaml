@@ -145,7 +145,7 @@
                 IsVisible="{Binding Layout.ShowSidebar}"
                 ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
 
-            <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
+            <Grid Grid.Column="2" RowDefinitions="Auto,*">
                 <StackPanel x:Name="FloatingViewShelf" Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="12,4" IsVisible="False"/>
                 <Panel Grid.Row="1">
                 <!-- 原型：钉住的格式条只占源码列顶部，阅读/导图窗格从工作区顶端起排，
@@ -161,7 +161,9 @@
                      由 WorkspaceViewController 在构造时移入块内，才能随圆角一起裁切；这里只是声明宿主。 -->
                 <shell:ShellEditorOptionsView x:Name="EditorOptions" />
                 </Panel>
-                <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="2" />
+                <!-- 原型 .workspace-main .document-statusbar：状态栏不再占行，改为浮在正文列底部居中的胶囊。 -->
+                <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="1" ZIndex="34"
+                                          HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,16" />
             </Grid>
             <GridSplitter x:Name="OutlineSplitter" Grid.Column="3" Classes="workspace-gap gap-horizontal" ZIndex="9" HorizontalAlignment="Stretch"
                           IsVisible="{Binding Layout.ShowOutlineSidebar}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
@@ -170,6 +172,23 @@
                     ClipToBounds="True">
                 <shell:ShellAuxiliaryPanelView/>
             </Border>
+            <!-- 原型 .pane-collapse：跨整行浮在块层之上，横向位置由块宽（含动画每帧）算出的外边距决定。 -->
+            <Button x:Name="SidebarCollapseButton" Grid.ColumnSpan="5" Classes="pane-collapse left"
+                    Classes.on="{Binding Layout.ShowSidebar}" IsVisible="{Binding Layout.ShowPaneCollapses}"
+                    HorizontalAlignment="Left" Margin="{Binding Layout.SidebarCollapseMargin}"
+                    Command="{Binding Layout.ToggleSidebar}"
+                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFiles}}"
+                    ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SidebarFiles}}">
+                <Path />
+            </Button>
+            <Button x:Name="OutlineCollapseButton" Grid.ColumnSpan="5" Classes="pane-collapse right"
+                    Classes.on="{Binding Layout.ShowOutlineSidebar}" IsVisible="{Binding Layout.ShowPaneCollapses}"
+                    HorizontalAlignment="Right" Margin="{Binding Layout.OutlineCollapseMargin}"
+                    Command="{Binding Layout.ToggleOutline}"
+                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Outline}}"
+                    ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Outline}}">
+                <Path />
+            </Button>
         </Grid>
 
         <shell:ShellPresentationOutlineView x:Name="PresentationOutline" Grid.RowSpan="4" IsVisible="{Binding Workbench.PresentationOutline}"/>
@@ -195,8 +214,8 @@
             </Grid>
         </Border>
         <shell:ShellTypographyGallery x:Name="TypographyGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12,56,12,12"/>
-        <!-- 对齐原型：选择视图面板锚定底栏「更多」按钮上方，轻量关闭由代码后置处理。 -->
-        <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12,12,24,44"/>
+        <!-- 原型 .workspace-layout-menu：悬浮在分段胶囊正上方（bottom = 画布 10 + 胶囊 16 + 胶囊高 42 + 10）。 -->
+        <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,78"/>
         <shell:WorkbenchGuideView x:Name="WorkbenchGuide" Grid.RowSpan="4"/>
     </Grid>
     </Border>

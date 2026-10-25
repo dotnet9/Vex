@@ -2190,6 +2190,14 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
         "Vex independent Files and Outline panels remain visible under " + theme);
     Check(outline.TranslatePoint(default, window)!.Value.X > files.TranslatePoint(default, window)!.Value.X + files.Bounds.Width,
         "Vex Outline remains to the right of the document under " + theme);
+    // 原型 .pane-collapse：大纲展开时折叠钮贴在块内左下角，主题逐一切换后仍要跟着块宽走。
+    var columnsGrid = window.FindControl<Grid>("WorkspaceColumns")!;
+    var outlineBlock = window.FindControl<Border>("OutlineGuideTarget")!;
+    var outlineCollapse = window.FindControl<Button>("OutlineCollapseButton")!;
+    Check(Math.Abs(outlineCollapse.TranslatePoint(default, columnsGrid)!.Value.X
+            - outlineBlock.TranslatePoint(new Point(8, 0), columnsGrid)!.Value.X) < 1,
+        "Vex outline collapse button docks at the open block's inner corner under " + theme
+        + $" (x={outlineCollapse.TranslatePoint(default, columnsGrid)} margin={outlineCollapse.Margin})");
     var heading = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdH1Border"));
     var shellVm = (MainWindowViewModel)window.DataContext!;
     var type = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(shellVm.Appearance.SelectedTypography?.Key)!;
