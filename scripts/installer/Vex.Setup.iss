@@ -645,7 +645,7 @@ procedure VLayout;
 var Page, Height, Width, I, ButtonY, BrandY, NextWidth, PillWidth, PillX, TextWidth: Integer;
   Home, Finished, Installing, Maintenance, Main, Panel: Boolean;
   Region: LongWord; TextBounds: TVRect; Selected: Integer;
-  InstalledVersion, InstalledPath, InstalledOn, PackageDate: String;
+  InstalledVersion, InstalledPath, InstalledOn, PackageDate, VFixLog: String;
 begin
   if not VInitialized then exit;
   Page:=WizardForm.CurPageID;
@@ -763,6 +763,14 @@ begin
 #ifdef CodeWFSetupFixture
     Log('VEX FIXTURE changelog releases='+IntToStr(VShownCount)+' earlier='+IntToStr(Ord(VChangelogEarlier))+
       ' meta='+VLogMeta.Caption);
+    { 诊断：最新一节正文的原始解析文本落 setup.log，与 PowerShell 从文档提取的期望正文比对，
+      解析切分错位与 RichEdit 渲染错位由此各负其责（渲染侧文本由夹具经 WM_GETTEXT 读取上报）。 }
+    if VShownCount>0 then begin
+      VFixLog:=Copy(VReleaseBodies[VShownReleases[0]],1,240);
+      StringChangeEx(VFixLog,#13,' ',True);
+      StringChangeEx(VFixLog,#10,' ',True);
+      Log('VEX FIXTURE newestbody='+VFixLog);
+    end;
 #endif
   end;
   if not Home and not Finished and not Installing and not Maintenance then begin

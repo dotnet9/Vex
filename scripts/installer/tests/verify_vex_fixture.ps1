@@ -197,6 +197,9 @@ try {
         Check ($changelog.Groups[3].Value -match $metaPattern) "日志栏说明本安装包与本机版本的来源：$metaPattern"
         # 随包日志是中文文档，两语渲染同一份正文；逐字核对切分结果，防止 Pos 的宽字符偏移把字吃掉。
         $memoText=[CodeWFSetupFixtureDesktop]::Text($logMemo)
+        # 诊断：把夹具读到的纯文本与期望正文都落进步日志，切分断言失败时可直接比对。
+        Write-Host ("VEX FIXTURE ps-memotext=" + ($memoText -replace "`r|`n", ' '))
+        Write-Host ("VEX FIXTURE ps-expected=" + ($firstBullet.Groups[1].Value + '] ' + $firstBullet.Groups[2].Value))
         Check ($memoText -match "$newestVersion $($newestSection.Groups[2].Value)(\s|$)") '小节标题的发布日期干净收尾，不残留全角括号'
         Check ($memoText -match [regex]::Escape("$($firstBullet.Groups[1].Value)] $($firstBullet.Groups[2].Value)")) '标签后的连字符不混进正文，条目首字也没被切掉'
         Check (-not ($memoText -match '\[[^\]]*\]-')) '正文里不再出现 [标签]- 这种源文档写法'
