@@ -16,7 +16,7 @@ namespace Vex.Modules.Shell.Views;
 public sealed class ShellAppearanceMenuView : UserControl
 {
     private ShellAppearanceViewModel? _vm;
-    private readonly Grid _palettes = new() { ColumnDefinitions = new("*,*,*"), ColumnSpacing = 6, RowSpacing = 6 };
+    private readonly Grid _palettes = new() { ColumnDefinitions = new("*,*,*"), ColumnSpacing = 6, RowSpacing = 6, Margin = new Thickness(2), ClipToBounds = false }; // Margin 容纳选中 Ring 外扩，防边缘裁切
     private readonly Dictionary<PaletteOption, (Button Button, TextBlock Check, Border Ring)> _paletteButtons = [];
     private readonly Dictionary<ThemeOption, Button> _modeButtons = [];
     private readonly Dictionary<string, Button> _densityButtons = [];
@@ -179,6 +179,11 @@ public sealed class ShellAppearanceMenuView : UserControl
             (Text("DensityCompact"), () => _vm.SelectedDensity = "compact", "density-compact"),
             (Text("DensityNormal"), () => _vm.SelectedDensity = "normal", "density-normal"),
             (Text("DensityRelaxed"), () => _vm.SelectedDensity = "relaxed", "density-relaxed"));
+        foreach (var button in densityRow.Children.OfType<Button>())
+        {
+            Avalonia.Automation.AutomationProperties.SetName(button, button.Content?.ToString() ?? "");
+            Avalonia.Automation.AutomationProperties.SetAutomationId(button, "Density_" + button.Content);
+        }
         var modeRow = PillRow(_vm.ThemeOptions
             .OrderBy(m => m.Key == "light" ? 0 : m.Key == "dark" ? 1 : 2)
             .Select(mode => (Text(mode.Key switch { "light" => "ThemeLight", "dark" => "ThemeDark", _ => "ThemeSystem" }),
@@ -299,11 +304,13 @@ public sealed class ShellAppearanceMenuView : UserControl
             root.Children.Add(tools);
         }
         var card = new Button { Classes = { "palette-card" }, Content = root, Height = 92, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "Palette_" + (paletteKey ?? "unknown") };
+        Avalonia.Automation.AutomationProperties.SetName(card, palette.Name + "，" + palette.Purpose);
+        Avalonia.Automation.AutomationProperties.SetAutomationId(card, "PaletteCard_" + paletteKey);
         card.Click += (_, _) => { if (_vm is not null) _vm.SelectedPalette = palette; };
         // 原型选中环 box-shadow:0 0 0 1.5px var(--accent)：Button 无 BoxShadow 属性，用外扩 1.5px 的描边 Border 覆层等效呈现。
         var ring = new Border { BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(7.5), Margin = new Thickness(-1.5), IsHitTestVisible = false, IsVisible = false };
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
-        var host = new Grid();
+        var host = new Grid { Margin = new Thickness(2), ClipToBounds = false }; // 余量容纳 Ring 的 -1.5 外扩，避免边缘裁切
         host.Children.Add(card); host.Children.Add(ring);
         _paletteButtons[palette] = (card, check, ring);
         return host;
@@ -323,7 +330,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         content.Children.Add(label);
         var panel = new Panel();
         panel.Children.Add(dash); panel.Children.Add(content);
-        var card = new Button { Classes = { "palette-add-card" }, Content = panel, Height = 92, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "AddCustomPalette" };
+        var card = new Button { Classes = { "palette-add-card" }, Content = panel, Height = 92, VerticalAlignment = VerticalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Stretch, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "AddCustomPalette" };
         card.Click += (_, _) => OpenPaletteDialog(null);
         ToolTip.SetTip(card, Text("AddCustomPalette"));
         return card;
