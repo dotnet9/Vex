@@ -2309,7 +2309,6 @@ begin
   Result:=VReleaseCount>0;
 end;
 
-procedure VRenderChangelog
 procedure VRenderChangelog(const Installed: String);
 
 
