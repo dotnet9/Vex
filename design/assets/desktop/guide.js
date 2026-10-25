@@ -192,8 +192,8 @@
           later(2000, function () {
             click('.menu-flyout [data-menu-label="导出"]');
             pauseForContinue(g('Act6Step2', '想交给别人阅读，有现成的格式。'), ['.menu-flyout .submenu'], 'control', function () {
-              closeMenu(); openMenu('工具(T)');
-              cue(g('Act6Step3', '准备发布时，从这里选择对应的平台。'), ['.menu-flyout'], 'control');
+              closeMenu(); openMenu('文件(F)');
+              cue(g('Act6Step3', '准备发布时，从这里选择对应的平台。'), ['.menu-flyout [data-menu-label="复制到微信公众号"]'], 'control');
               later(2000, function () {
                 closeMenu();
                 pauseForContinue(g('Act6Summary', '一篇游记已经成形。'), ['#markdown-preview'], 'area', done);

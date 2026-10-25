@@ -104,11 +104,6 @@
       { label: '行内代码', action: 'insert-inline-code' }, { label: '清除格式', action: 'clear-format' }
     ]},
     { key: 'view', label: '视图(V)', items: [
-      { label: '编辑视图', check: true, action: 'view-edit' }, { label: '阅读视图', check: true, action: 'view-read' },
-      { label: '思维导图', check: true, action: 'view-mindmap' },
-      { sep: true },
-      { label: '即时编辑', check: true, action: 'edit-instant' }, { label: '源码编辑', check: true, action: 'edit-source' },
-      { label: '侧边栏', check: true, action: 'toggle-sidebar' }, { label: '文档列表', action: 'pane-files' }, { label: '文档大纲', action: 'pane-outline' },
       { label: '显示行号', check: true, action: 'toggle-lines' }, { label: '显示词数', check: true, action: 'toggle-word-count' },
       { label: '显示文档水印', check: true, action: 'toggle-watermark' }, { label: '界面动效', check: true, action: 'toggle-motion' },
       { sep: true },
@@ -116,7 +111,7 @@
       { label: '专注模式', gesture: 'F8', check: true, action: 'toggle-focus' }, { label: '打字机模式', check: true, action: 'toggle-typewriter' },
       { sep: true },
       { label: '全屏', gesture: 'F11', check: true, action: 'toggle-fullscreen' },
-      { label: '保持窗口在最前', check: true, action: 'toggle-topmost' }, { label: '最大化 / 还原', action: 'maximize' }
+      { label: '保持窗口在最前', check: true, action: 'toggle-topmost' }
     ]},
     { key: 'tools', label: '工具(T)', items: [
       { label: '字数统计', act: 'dlg-statistics' },
@@ -149,6 +144,11 @@
   var toolsMenu = MENUS.find(function (menu) { return menu.key === 'tools'; });
   toolsMenu.items.unshift({label:'偏好设置…',gesture:'Ctrl+,',action:'preferences'},{sep:true});
   toolsMenu.items = toolsMenu.items.map(function (item) { return item.label === 'MCP 设置' ? {label:'MCP 设置',action:'preferences-mcp'} : item.label === 'MCP 审计' ? {label:'MCP 审计',action:'mcp-audit'} : item; });
+  /* 「工具」不再单列：整块展开并入「文件」的导出/导入之后，不折叠成子菜单。 */
+  var fileItems = MENUS.find(function (menu) { return menu.key === 'file'; }).items;
+  var toolsIndex = MENUS.indexOf(toolsMenu);
+  Array.prototype.splice.apply(fileItems, [fileItems.findIndex(function (item) { return item.action === 'print'; }) + 1, 0, { sep: true }].concat(toolsMenu.items));
+  MENUS.splice(toolsIndex, 1);
   if (new URLSearchParams(location.search).get('platform') === 'macos') MENUS.unshift({key:'app',label:'Vex',items:[{label:'关于 Vex',act:'dlg-about'},{label:'偏好设置…',gesture:'⌘,',action:'preferences'},{sep:true},{label:'退出 Vex',gesture:'⌘Q',action:'exit-app'}]});
   VexProto.menuData = MENUS;
   var menuNav = document.querySelector('.tb-menu');

@@ -75,9 +75,9 @@ const SAMPLE = [
   await layoutMenu('instant');
   await page.evaluate(() => document.querySelector('#vex-appearance-menu > summary').click());
   await shot('07-appearance-menu');
-  // 08 偏好设置：工具菜单 → 偏好设置… → 外观分类
+  // 08 偏好设置：文件菜单 → 偏好设置… → 外观分类
   await page.evaluate(() => document.querySelector('#vex-appearance-menu > summary').click());
-  await page.getByText('工具(T)').first().click();
+  await page.getByText('文件(F)').first().click();
   await page.waitForTimeout(300);
   await page.getByText('偏好设置…').first().click();
   await page.waitForTimeout(600);
