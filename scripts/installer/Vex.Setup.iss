@@ -2028,6 +2028,23 @@ begin
 
 end;
 
+function VChangelogLoad: Boolean;
+var Text, Line: String; I: Integer;
+begin
+  if not VChangelogLoaded then begin
+    VChangelogLoaded:=True;
+    Text:=VChangelogEmbedded+#10;
+    for I:=1 to Length(Text) do
+      if Text[I]=#10 then begin
+        if Copy(Line,1,4)='## V' then VAddRelease(Line)
+        else if (VReleaseCount>0) and (Copy(Trim(Line),1,2)='- ') then
+          VReleaseBodies[VReleaseCount-1]:=VReleaseBodies[VReleaseCount-1]+Trim(Line)+#10;
+        Line:='';
+      end else if Text[I]<>#13 then Line:=Line+Text[I];
+  end;
+  Result:=VReleaseCount>0;
+end;
+
 
 
 
@@ -2292,22 +2309,7 @@ begin
 
 end;
 
-function VChangelogLoad: Boolean;
-var Text, Line: String; I: Integer;
-begin
-  if not VChangelogLoaded then begin
-    VChangelogLoaded:=True;
-    Text:=VChangelogEmbedded+#10;
-    for I:=1 to Length(Text) do
-      if Text[I]=#10 then begin
-        if Copy(Line,1,4)='## V' then VAddRelease(Line)
-        else if (VReleaseCount>0) and (Copy(Trim(Line),1,2)='- ') then
-          VReleaseBodies[VReleaseCount-1]:=VReleaseBodies[VReleaseCount-1]+Trim(Line)+#10;
-        Line:='';
-      end else if Text[I]<>#13 then Line:=Line+Text[I];
-  end;
-  Result:=VReleaseCount>0;
-end;
+
 
 procedure VRenderChangelog(const Installed: String);
 
