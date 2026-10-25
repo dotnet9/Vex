@@ -70,6 +70,11 @@ body[data-platform="windows"] .windows-minimal { transition:width 200ms cubic-be
 .windows-minimal .changelog-release .tag.new { color:var(--accent); background:var(--accent-soft); }
 .windows-minimal .changelog-release .tag.fix { color:var(--danger); background:var(--danger-soft); }
 .windows-minimal .changelog-empty { font-size:12px; color:var(--subtle); margin:0; }
+/* 更早版本默认收起，靠这颗按钮就地展开；分隔线让它读起来是栏内的次要动作。 */
+.windows-minimal .changelog-more { display:flex; align-items:center; gap:6px; width:100%; margin-top:14px; padding:8px 2px 0; border-top:1px solid var(--line); color:var(--muted); font-size:12px; text-align:left; }
+.windows-minimal .changelog-more:hover { color:var(--accent); }
+.windows-minimal .changelog-more .install-chevron { width:14px; height:14px; margin-left:auto; transition:transform 180ms cubic-bezier(.2,.8,.2,1); }
+.windows-minimal .changelog-more .install-chevron.open { transform:rotate(180deg); }
 .windows-minimal .install-file { font-size:12px; overflow-wrap:anywhere; }
 .windows-minimal .progress-wrap { transition:--install-progress .2s linear; }
 .windows-minimal .progress-header { position:relative; height:18px; margin:28px 0 8px; font-size:12px; }
