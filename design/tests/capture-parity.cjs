@@ -1,13 +1,13 @@
 /* 与桌面端逐场景离屏对比的原型截图器（配套 scripts/ui-verification 的 visual 模式）。
  * 同尺寸 1440x900、同语言、同明暗、同配色与排版、同文档内容。
  * 需要 Playwright 与运行中的预览服务：node design/scripts/preview.cjs
- * NODE_PATH=CodeWF.Avalonia/design/tests/node_modules node design/scripts/capture-parity.cjs <输出目录>
+ * NODE_PATH=CodeWF.Avalonia/design/tests/node_modules node design/tests/capture-parity.cjs <输出目录>
  */
 const fs = require('node:fs');
 const path = require('node:path');
 const {chromium} = require('playwright');
 const base = process.env.VEX_PREVIEW_URL || 'http://127.0.0.1:4317/design/';
-const output = path.resolve(process.argv[2] || 'artifacts/prototype-parity');
+const output = path.resolve(process.argv[2] || path.join(__dirname, '../../artifacts/prototype-parity'));
 fs.mkdirSync(output, {recursive:true});
 
 const SAMPLE = [

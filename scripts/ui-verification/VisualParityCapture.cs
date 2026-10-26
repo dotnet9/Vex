@@ -12,7 +12,7 @@ using Vex.Modules.Shell.Views;
 
 /// <summary>
 /// 与 design 原型逐场景离屏对比的截图器：同尺寸(1440x900)、同语言、同明暗、
-/// 同配色与排版、同文档内容。原型侧由 design/scripts/capture-parity.cjs 产出同名单。
+/// 同配色与排版、同文档内容。原型侧由 design/tests/capture-parity.cjs 产出同名单。
 /// </summary>
 internal static class VisualParityCapture
 {
