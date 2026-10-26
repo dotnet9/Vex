@@ -46,6 +46,7 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     /// <summary>提示下一次点击将切换到的文件显示模式。</summary>
     public string DisplayModeHintKey => IsTreeView ? VexL.ToggleFileList : VexL.ToggleFileTree;
     public bool CanCollapseAll => IsTreeView && Enumerate(FilteredDocumentFileNodes).Any(node => node.IsFolder && node.IsExpanded);
+    public bool IsSortDescending => _sortDescending;
     public bool HasPathCommandTarget => (_contextDocumentFileNode ?? SelectedDocumentFileNode) is { IsPlaceholder: false };
     public void NewDocument() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.NewDocument));
     public void QuickOpen() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.QuickOpen));
@@ -64,6 +65,7 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         _sortDescending = !_sortDescending;
         RebuildFilteredNodes();
         OnPropertyChanged(nameof(SortArrow));
+        OnPropertyChanged(nameof(IsSortDescending));
         _settingsStore?.Update(settings => settings with { FileSortDescending = _sortDescending });
     }
     /// <summary>对应原型 .sort-arrow：默认不显示箭头，倒序时显示 ↑。</summary>

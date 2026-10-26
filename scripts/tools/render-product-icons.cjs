@@ -4,8 +4,8 @@ const path = require('node:path');
 const sharp = require('sharp');
 async function main() {
   const root = path.resolve(__dirname, '..');
-  const svg = path.join(root, 'logo.svg');
-  await sharp(svg).resize(256, 256).png().toFile(path.join(root, 'logo.png'));
+  const svg = path.join(root, 'assets', 'logo.svg');
+  await sharp(svg).resize(256, 256).png().toFile(path.join(root, 'assets', 'logo.png'));
   const sizes = [16, 24, 32, 48, 64, 128, 256];
   const frames = await Promise.all(sizes.map(size => sharp(svg).resize(size, size).png().toBuffer()));
   const header = Buffer.alloc(6 + sizes.length * 16);
@@ -18,6 +18,6 @@ async function main() {
     header.writeUInt32LE(frames[i].length, at + 8); header.writeUInt32LE(offset, at + 12);
     offset += frames[i].length;
   });
-  await fs.writeFile(path.join(root, 'logo.ico'), Buffer.concat([header, ...frames]));
+  await fs.writeFile(path.join(root, 'assets', 'logo.ico'), Buffer.concat([header, ...frames]));
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

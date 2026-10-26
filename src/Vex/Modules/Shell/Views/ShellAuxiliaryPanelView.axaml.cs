@@ -12,7 +12,6 @@ public partial class ShellAuxiliaryPanelView : UserControl
     public ShellAuxiliaryPanelView()
     {
         InitializeComponent();
-        CollapseOutlineIcon.Data = MenuIconCatalog.Get("panel-right-close");
         AttachedToVisualTree += (_, _) => EventBus.Default.Subscribe(this);
         DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
     }

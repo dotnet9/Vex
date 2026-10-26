@@ -65,12 +65,12 @@ public sealed class ShellTypographyGallery : UserControl
 
     private void Resize()
     {
-        Width = Math.Min(880, (_window?.ClientSize.Width ?? 1280) - 36);
+        Width = Math.Min(680, (_window?.ClientSize.Width ?? 1280) - 36);
         var anchor = (_window as MainWindow)?.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "TypographyTarget" && b.IsEffectivelyVisible);
         var top = anchor?.TranslatePoint(new Point(0, anchor.Bounds.Height + 14), _window!)?.Y ?? 132;
         var parentTop = _window is not null ? this.GetVisualParent()?.TranslatePoint(default, _window)?.Y ?? 0 : 0;
         Margin = new Thickness(18, Math.Max(0, top - parentTop), 18, 18);
-        Height = Math.Max(140, Math.Min(680, (_window?.ClientSize.Height ?? 820) - top - 18));
+        Height = Math.Max(140, Math.Min(500, (_window?.ClientSize.Height ?? 820) - top - 18));
     }
 
     private void Changed(object? sender, PropertyChangedEventArgs e)
@@ -111,8 +111,8 @@ public sealed class ShellTypographyGallery : UserControl
         _header.Children.Add(titleRow);
 
         // 三枚等宽胶囊（flex:1）：从排版弹层内容左侧对齐。
-        var densityRow = new Grid { ColumnDefinitions = new("*"), Height = 52 };
-        var pills = new UniformGrid { Columns = 3, Width = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
+        var densityRow = new Grid { ColumnDefinitions = new("*"), Height = 38 };
+        var pills = new UniformGrid { Columns = 3, Width = 250, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
         foreach (var (key, labelKey) in new[] { ("compact", "DensityCompact"), ("normal", "DensityNormal"), ("relaxed", "DensityRelaxed") })
         {
             var pill = new Button { Classes = { "appearance-pill", "typography-density" }, Content = Text(labelKey), FontWeight = FontWeight.Normal, HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -129,11 +129,11 @@ public sealed class ShellTypographyGallery : UserControl
         _cards.Children.Add(BuildAddCard());
 
         // 右侧预留约 15px 滚动条槽（原型 scrollbar-gutter:stable），保证三列卡宽 269。
-        _scroll = new ScrollViewer { Content = _cards, Padding = new Thickness(2, 2, 15, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
+        _scroll = new ScrollViewer { Content = _cards, Padding = new Thickness(1, 1, 8, 1), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
         var grid = new Grid { RowDefinitions = new("Auto,*") };
         grid.Children.Add(_header); Grid.SetRow(_scroll, 1); grid.Children.Add(_scroll);
         // 圆角、边框和阴影交给 Border.wb-popover，与底部布局弹层保持同一套样式。
-        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18) };
+        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(10) };
         Resource(border, Border.BackgroundProperty, this, "VexElevatedBackgroundBrush");
         Content = border;
         Resize(); Changed(null, new(""));
@@ -147,18 +147,18 @@ public sealed class ShellTypographyGallery : UserControl
             Markdown = $"{Text(option.PurposeKey)}\n\n### 维刻 Vex\n\n> {Text("AboutShortSlogan")}",
             TypographyTheme = option.Key,
             FontWeight = FontWeight.Normal,
-            TypographySize = MarkdownTypographySizes.Compact,
+            TypographySize = _vm?.Appearance.CurrentTypographySize ?? MarkdownTypographySizes.Normal,
             IsHitTestVisible = false,
-            Margin = new Thickness(14, 2, 14, 12),
+            Margin = new Thickness(8, 1, 8, 4),
             DocumentBottomPadding = 0,
             EnableVirtualization = false
         };
         var name = new TextBlock
         {
             Text = Text(option.NameKey),
-            FontSize = 13,
+            FontSize = 12,
             FontWeight = FontWeight.Normal,
-            Margin = new Thickness(14, 10, 14, 0),
+            Margin = new Thickness(8, 5, 8, 0),
             TextTrimming = TextTrimming.CharacterEllipsis,
         };
         Resource(name, TextBlock.ForegroundProperty, this, "VexValueBrush");
@@ -178,8 +178,9 @@ public sealed class ShellTypographyGallery : UserControl
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
         var content = new Panel { Children = { paper, ring, badge } };
         var button = Button("", () => _vm!.Appearance.SelectedTypography = option);
+        button.Classes.Add("typography-card-button");
         button.Name = "Typography_" + option.Key;
-        button.Content = content; button.Padding = default; button.MinHeight = 262; button.Height = 262;
+        button.Content = content; button.Padding = default; button.MinHeight = 192; button.Height = 192;
         button.ClipToBounds = false;
         button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
         button.HorizontalContentAlignment = HorizontalAlignment.Stretch; button.VerticalContentAlignment = VerticalAlignment.Stretch;
@@ -201,11 +202,11 @@ public sealed class ShellTypographyGallery : UserControl
         return button;
     }
 
-    /// <summary>虚线「＋ 新增排版」整卡（原型 .typography-add：262 高、虚线框、居中）。</summary>
+    /// <summary>虚线「＋ 新增排版」整卡，与排版预览卡保持同高并居中显示。</summary>
     private Control BuildAddCard()
     {
         var stack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Spacing = 6 };
-        var plus = new TextBlock { Text = "＋", FontSize = 34, LineHeight = 34, HorizontalAlignment = HorizontalAlignment.Center };
+        var plus = new TextBlock { Text = "＋", FontSize = 22, LineHeight = 22, HorizontalAlignment = HorizontalAlignment.Center };
         var addLabel = new TextBlock { Text = Text("AddCustomTypography"), FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center };
         Resource(plus, TextBlock.ForegroundProperty, this, "VexMutedBrush"); Resource(addLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush");
         stack.Children.Add(plus);
@@ -215,7 +216,7 @@ public sealed class ShellTypographyGallery : UserControl
         var card = Button("", OpenTypographyDialog);
         card.Name = "AddCustomTypography";
         card.Content = new Panel { Children = { dash, stack } };
-        card.Padding = default; card.MinHeight = 262; card.Height = 262;
+        card.Padding = default; card.MinHeight = 192; card.Height = 192;
         card.HorizontalContentAlignment = HorizontalAlignment.Stretch; card.VerticalContentAlignment = VerticalAlignment.Stretch;
         card.HorizontalAlignment = HorizontalAlignment.Stretch; card.VerticalAlignment = VerticalAlignment.Stretch;
         card.BorderThickness = new Thickness(0); card.CornerRadius = new CornerRadius(10);

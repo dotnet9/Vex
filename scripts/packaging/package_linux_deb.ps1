@@ -47,7 +47,7 @@ New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
 New-Item -ItemType Directory -Path $appPath, $binPath, $desktopPath, $iconPath, $controlPath -Force | Out-Null
 
 try {
-    Copy-Item -LiteralPath (Join-Path $repositoryRoot "logo.png") -Destination (Join-Path $iconPath "vex.png")
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "assets\logo.png") -Destination (Join-Path $iconPath "vex.png")
     # 调试符号不进入安装器，保留宿主语言资源和运行依赖。
     Get-ChildItem -LiteralPath $sourcePath -Recurse -File -Force | ForEach-Object {
         $relative = [IO.Path]::GetRelativePath($sourcePath, $_.FullName)

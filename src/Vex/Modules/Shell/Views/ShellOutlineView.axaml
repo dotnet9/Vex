@@ -43,7 +43,7 @@
             Classes="sidebar-search"
             Grid.Row="0"
             Height="32"
-            Margin="12,14,12,10"
+            Margin="12,12,12,10"
             Padding="8,0">
             <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" VerticalAlignment="Center">
                 <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"

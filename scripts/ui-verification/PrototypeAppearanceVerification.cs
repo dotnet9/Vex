@@ -38,7 +38,8 @@ internal static class PrototypeAppearanceVerification
         var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
         var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true).ToArray();
         Check(cards.Length == 12 && cards.All(b => b.IsVisible), "All twelve typography cards are shown without a filter (prototype redesign)");
-        Check(cards.All(card => card.Content is Panel panel && panel.Children.OfType<Border>().First().Child is MarkdownViewer preview
+        Check(cards.All(card => card.Content is Panel panel && panel.Children.OfType<Border>().First().Child is StackPanel stack
+            && stack.Children.OfType<MarkdownViewer>().FirstOrDefault() is { } preview
             && preview.TypographyTheme == card.Name![11..]), "Each card renders its own typography key");
         var simple = cards.First(b => b.Name == "Typography_Simple"); simple.Focus();
         var selected = vm.Appearance.SelectedTypography;
@@ -54,7 +55,7 @@ internal static class PrototypeAppearanceVerification
                 $"Typography panel fits {size.Width}: gallery={gallery.Bounds}, margin={gallery.Margin}, client={window.ClientSize}");
             var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
             Check(scroll.Viewport.Height > 50 && scroll.Extent.Height > scroll.Viewport.Height, $"Card area scrolls independently at {size.Width}: viewport={scroll.Viewport.Height:0.#}, extent={scroll.Extent.Height:0.#}, gallery={gallery.Bounds}");
-            Check(cards.All(card => card.Bounds.Height >= 261 && card.Bounds.Height <= 263), "Cards keep the prototype's 262px height at " + size.Width + ": " + string.Join(",", cards.Select(c => c.Bounds.Height.ToString("0.#"))));
+            Check(cards.All(card => card.Bounds.Height >= 191 && card.Bounds.Height <= 193), "Typography cards keep the compact 192px height at " + size.Width + ": " + string.Join(",", cards.Select(c => c.Bounds.Height.ToString("0.#"))));
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "typography-" + size.Width + ".png"));
         }
         foreach (var language in vm.Appearance.LanguageOptions)
@@ -63,6 +64,27 @@ internal static class PrototypeAppearanceVerification
             Check(gallery.GetVisualDescendants().OfType<TextBlock>().All(t => t.Text?.StartsWith("Vex.VexL.") != true), "Typography labels resolve in " + language.CultureName);
         }
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Workbench.ShowTypography = false;
+        var appearanceMenu = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
+        appearanceMenu.AppearanceButton.Flyout!.ShowAt(appearanceMenu.AppearanceButton); Render();
+        var paletteContent = (Control)((Flyout)appearanceMenu.AppearanceButton.Flyout).Content!;
+        var paletteCards = paletteContent.GetVisualDescendants().OfType<Button>()
+            .Where(button => button.Classes.Contains("palette-card") || button.Classes.Contains("palette-add-card")).ToArray();
+        Check(paletteCards.Length == vm.Appearance.PaletteOptions.Count + 1, "Appearance menu renders every palette and the add card");
+        var regularPalette = paletteCards.First(button => button.Classes.Contains("palette-card"));
+        var addPalette = paletteCards.Single(button => button.Classes.Contains("palette-add-card"));
+        Check(Math.Abs(regularPalette.Bounds.Height - addPalette.Bounds.Height) < 0.1
+            && Math.Abs(regularPalette.Bounds.Width - addPalette.Bounds.Width) < 0.1,
+            $"Add palette card matches palette card size: regular={regularPalette.Bounds}, add={addPalette.Bounds}");
+        var addDash = addPalette.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Rectangle>().Single();
+        Check(Math.Abs(addDash.Bounds.Height - addPalette.Bounds.Height) < 0.1
+            && Math.Abs(addDash.Bounds.Width - addPalette.Bounds.Width) < 0.1,
+            $"Add palette dashed frame fills the card: dash={addDash.Bounds}, card={addPalette.Bounds}");
+        var regularTop = regularPalette.TranslatePoint(default, paletteContent)!.Value.Y;
+        var addTop = addPalette.TranslatePoint(default, paletteContent)!.Value.Y;
+        Check(Math.Abs((addTop - regularTop) - 3 * (92 + 6)) < 0.1,
+            $"Add palette card occupies the next fixed-height grid row: regularTop={regularTop:0.#}, addTop={addTop:0.#}");
+        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "appearance-palettes.png"));
+        appearanceMenu.AppearanceButton.Flyout.Hide(); Render();
         var combinations = 0;
         foreach (var palette in vm.Appearance.PaletteOptions)
         foreach (var mode in new[] { "light", "dark" })

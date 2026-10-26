@@ -1,4 +1,4 @@
-﻿<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:semi="https://irihi.tech/semi">
     <!-- 独立控件主题保留浅深默认资源；Vex 应用在自身资源中映射共享 Studio 配色。 -->
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
@@ -80,6 +80,18 @@
             <SolidColorBrush x:Key="VexQuoteBrush" Color="#AAB4C3" />
             <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="#0F60A5FA" />
             <SolidColorBrush x:Key="VexMarkerBrush" Color="#7D8999" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="{x:Static semi:SemiTheme.Aquatic}">
+            <SolidColorBrush x:Key="VexHoverBrush" Color="#EFF8FA" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="{x:Static semi:SemiTheme.Desert}">
+            <SolidColorBrush x:Key="VexHoverBrush" Color="#FFF5E8" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="{x:Static semi:SemiTheme.Dusk}">
+            <SolidColorBrush x:Key="VexHoverBrush" Color="#F3F1FA" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="{x:Static semi:SemiTheme.NightSky}">
+            <SolidColorBrush x:Key="VexHoverBrush" Color="#1E2A3F" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

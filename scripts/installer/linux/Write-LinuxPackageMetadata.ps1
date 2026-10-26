@@ -10,12 +10,12 @@ $metadata = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'product.json') -R
 $stage = (Resolve-Path -LiteralPath $StagingDirectory).Path
 $desktopPath = Join-Path $stage "usr/share/applications/$($metadata.command).desktop"
 $controlPath = Join-Path $stage 'DEBIAN/control'
-foreach ($required in @($desktopPath, $controlPath, (Join-Path $RepositoryRoot 'LICENSE'), (Join-Path $RepositoryRoot 'logo.png'))) {
+foreach ($required in @($desktopPath, $controlPath, (Join-Path $RepositoryRoot 'LICENSE'), (Join-Path $RepositoryRoot 'assets\logo.png'))) {
     if (-not (Test-Path -LiteralPath $required -PathType Leaf)) { throw "Linux 安装元数据缺少输入：$required" }
 }
 
 # 保留产品图标；标准图标主题目录供应用菜单和软件管理器读取。
-$png = [IO.File]::ReadAllBytes((Join-Path $RepositoryRoot 'logo.png'))
+$png = [IO.File]::ReadAllBytes((Join-Path $RepositoryRoot 'assets\logo.png'))
 if ($png.Length -lt 24 -or [Convert]::ToHexString($png[0..7]) -ne '89504E470D0A1A0A') { throw '产品图标不是有效的 PNG 文件。' }
 $width = ([int]$png[16] -shl 24) -bor ([int]$png[17] -shl 16) -bor ([int]$png[18] -shl 8) -bor [int]$png[19]
 $height = ([int]$png[20] -shl 24) -bor ([int]$png[21] -shl 16) -bor ([int]$png[22] -shl 8) -bor [int]$png[23]
@@ -23,7 +23,7 @@ if ($width -ne $height -or $width -le 0) { throw 'Linux 应用图标应为正方
 $iconDirectory = Join-Path $stage "usr/share/icons/hicolor/${width}x${height}/apps"
 New-Item -ItemType Directory -Path $iconDirectory -Force | Out-Null
 [IO.File]::WriteAllBytes((Join-Path $iconDirectory ($metadata.command + '.png')), $png)
-$svg = Join-Path $RepositoryRoot 'logo.svg'
+$svg = Join-Path $RepositoryRoot 'assets\logo.svg'
 if (Test-Path -LiteralPath $svg -PathType Leaf) {
     $scalable = Join-Path $stage 'usr/share/icons/hicolor/scalable/apps'
     New-Item -ItemType Directory -Path $scalable -Force | Out-Null

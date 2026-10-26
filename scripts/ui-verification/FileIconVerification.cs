@@ -86,8 +86,31 @@ internal static class FileIconVerification
             Check(ReferenceEquals(Icon("settings.toml").Source, FileIconCatalog.Default.Resolve("settings.toml", false, light: themeName == "light")),
                 "Live tree images follow the active theme: " + themeName);
             Check(tree.GetVisualDescendants().OfType<Image>().Where(image => image.IsEffectivelyVisible)
-                .All(image => image.Bounds.Width == 12 && image.Bounds.Height == 12), "Themed icons preserve compact 12 px layout");
+                .All(image => image.Bounds.Width == 13 && image.Bounds.Height == 13), "Themed icons match the 13 px file tree text size");
+            Check(tree.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>()
+                .Where(path => path.IsEffectivelyVisible && path.Classes.Contains("tree-ico"))
+                .All(path => path.Bounds.Width == 13 && path.Bounds.Height == 13),
+                "Fallback vector icons also use the 13 px file tree size");
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "file-icons-" + themeName + ".png"), new PngBitmapEncoderOptions());
+
+            // 反复切换模式，验证真正显示的 Path，而不是仅检查隐藏的树状图标。
+            foreach (var listMode in new[] { false, true, false })
+            {
+                if (files.IsListView != listMode) files.ToggleListView();
+                Render();
+                var modeName = listMode ? "list" : "tree";
+                var visibleIcon = filesView.FindControl<Avalonia.Controls.Shapes.Path>(listMode ? "FilesListModeIcon" : "FilesModeIcon")!;
+                var hiddenIcon = filesView.FindControl<Avalonia.Controls.Shapes.Path>(listMode ? "FilesModeIcon" : "FilesListModeIcon")!;
+                Check(visibleIcon.Data is { Bounds.Width: > 0, Bounds.Height: > 0 } && visibleIcon.IsEffectivelyVisible,
+                    $"{themeName} {modeName} mode displays a nonempty toolbar icon");
+                Check(!hiddenIcon.IsEffectivelyVisible, $"{themeName} {modeName} mode hides the other toolbar icon");
+                Check(visibleIcon.GetVisualAncestors().OfType<Viewbox>().First().Bounds.Size == new Size(15, 15),
+                    $"{themeName} {modeName} mode preserves the 15 px icon viewport");
+                var toolbar = (Control)filesView.FindControl<Button>("FilesModeButton")!.Parent!;
+                using var bitmap = new RenderTargetBitmap(new PixelSize((int)toolbar.Bounds.Width, (int)toolbar.Bounds.Height));
+                bitmap.Render(toolbar);
+                bitmap.Save(Path.Combine(output, $"file-toolbar-{themeName}-{modeName}.png"), new PngBitmapEncoderOptions());
+            }
         }
         filesView.DataContext = productionFiles;
     }

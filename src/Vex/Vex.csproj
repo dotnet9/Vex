@@ -4,7 +4,7 @@
     <IsPackable>false</IsPackable>
     <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>..\..\logo.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\assets\logo.ico</ApplicationIcon>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <Title>Vex</Title>
     <Description>Vex Markdown editor.</Description>
@@ -59,15 +59,23 @@
     <AvaloniaResource Include="Assets\**" Exclude="Assets\FileIcons\**" />
     <Content Include="Assets\FileIcons\**\*" Link="file-icons\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-    <AvaloniaResource Include="..\..\logo.ico" Link="Assets\logo.ico" />
-    <AvaloniaResource Include="..\..\logo.png" Link="Assets\logo.png" />
-    <AvaloniaResource Include="..\..\logo.svg" Link="Assets\logo.svg" />
+    <AvaloniaResource Include="..\..\assets\logo.ico" Link="Assets\logo.ico" />
+    <AvaloniaResource Include="..\..\assets\logo.png" Link="Assets\logo.png" />
+    <AvaloniaResource Include="..\..\assets\logo.svg" Link="Assets\logo.svg" />
     <TrimmerRootDescriptor Include="Properties\Trimming\TrimmerRoots.xml" />
-    <Content Include="..\..\docs\更新日志.md" Link="docs\更新日志.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
-    <Content Include="..\..\docs\快速开始.md" Link="docs\快速开始.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
-    <Content Include="..\..\docs\鸣谢.md" Link="docs\鸣谢.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
+    <Content Include="..\..\docs\项目管理\更新日志.md" Link="docs\更新日志.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
+    <Content Include="..\..\docs\开发文档\快速开始.md" Link="docs\快速开始.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
+    <Content Include="..\..\docs\项目管理\鸣谢.md" Link="docs\鸣谢.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
     <Content Include="..\..\docs\演示文档\**\*" Link="docs\演示文档\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
   </ItemGroup>
+
+  <!-- Native AOT 配置：保留 Prism 完整元数据，绕过 DialogWindow 的反射绑定检查 -->
+  <ItemGroup Condition="'$(PublishAot)' == 'true'">
+    <TrimmerRootAssembly Include="Prism.Avalonia" />
+    <TrimmerRootAssembly Include="Prism.DryIoc.Avalonia" />
+    <TrimmerRootAssembly Include="DryIoc" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.AvaloniaEdit" />

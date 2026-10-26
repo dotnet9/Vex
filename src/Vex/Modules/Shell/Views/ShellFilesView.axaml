@@ -22,17 +22,15 @@
 
     <UserControl.DataTemplates>
         <TreeDataTemplate DataType="models:DocumentFileNode" ItemsSource="{Binding Children}">
-            <!-- 文件树使用原型的单行布局，摘要放入提示，避免文件夹空摘要撑高行。 -->
+            <!-- 文件树保持单行布局，悬停提示仅显示完整名称。 -->
             <Border Classes="file-card" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"
                     DoubleTapped="OnFileRowDoubleTapped"
                     Classes.folder="{Binding IsFolder}"
-                    ToolTip.IsEnabled="{Binding IsDocument}">
-                <ToolTip.Tip>
-                    <ToolTip Classes="file-preview" Content="{Binding PreviewDisplay}" />
-                </ToolTip.Tip>
-                <Grid Classes="file-row" ColumnDefinitions="12,*,Auto" ColumnSpacing="6">
-                    <Panel Width="12" Height="12" VerticalAlignment="Center">
-                        <Image x:Name="FileTypeIcon" Classes="tree-ico" Width="12" Height="12" Stretch="Uniform"
+                    ToolTip.IsEnabled="{Binding !IsPlaceholder}"
+                    ToolTip.Tip="{Binding Name}">
+                <Grid Classes="file-row" ColumnDefinitions="13,*,Auto" ColumnSpacing="6">
+                    <Panel Width="13" Height="13" VerticalAlignment="Center">
+                        <Image x:Name="FileTypeIcon" Classes="tree-ico" Width="13" Height="13" Stretch="Uniform"
                                IsVisible="{Binding #FileTypeIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNotNull}}">
                             <Image.Source>
                                 <MultiBinding Converter="{StaticResource FileIconConverter}">
@@ -241,24 +239,19 @@
                         AutomationProperties.Name="{i18n:I18n {Binding DisplayModeHintKey}}">
                     <Grid>
                         <Viewbox Width="15" Height="15" IsVisible="{Binding IsTreeView}">
-                            <Path x:Name="FilesModeIcon" Classes="stroke-ico files-mode-tree-icon" Width="24" Height="24" Stretch="Uniform" />
+                            <Path x:Name="FilesModeIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="Uniform" />
                         </Viewbox>
                         <Viewbox Width="15" Height="15" IsVisible="{Binding IsListView}">
-                            <Path x:Name="FilesListModeIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="None" />
+                            <Path x:Name="FilesListModeIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="Uniform" />
                         </Viewbox>
                     </Grid>
                 </Button>
                 <Button x:Name="FilesSortButton" Classes="files-tool" Command="{Binding ToggleSort}"
                         ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SortFiles}}"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}">
-                    <Grid>
-                        <Viewbox Width="15" Height="15">
-                            <Path x:Name="FilesSortIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="Uniform" />
-                        </Viewbox>
-                        <TextBlock Text="{Binding SortArrow}" FontSize="9" FontWeight="SemiBold"
-                                   HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-2,-3"
-                                   Classes="muted" />
-                    </Grid>
+                    <Viewbox Width="15" Height="15">
+                        <Path x:Name="FilesSortIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="Uniform" />
+                    </Viewbox>
                 </Button>
                 <Button x:Name="FilesFoldButton" Classes="files-tool" Command="{Binding CollapseAll}"
                         IsEnabled="{Binding CanCollapseAll}"

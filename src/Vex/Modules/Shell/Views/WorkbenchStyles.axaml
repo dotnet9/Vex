@@ -49,7 +49,7 @@
   <!-- 原型 .density-options：30 高分段胶囊；选中=实底强调色（workspace-chrome 999px 圆角）。 -->
   <Style Selector="Button.appearance-pill">
     <Setter Property="Height" Value="28"/><Setter Property="MinHeight" Value="0"/><Setter Property="CornerRadius" Value="15"/>
-    <Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="10,4"/><Setter Property="FontSize" Value="12"/>
+    <Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="10,4"/><Setter Property="FontSize" Value="12"/><Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
     <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
   </Style>
@@ -57,7 +57,13 @@
     <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
   </Style>
   <Style Selector="Button.appearance-pill-on /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/><Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}"/><Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/><Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}"/><Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style Selector="Button.appearance-pill-on">
+    <Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style Selector="Button.appearance-pill-on TextBlock">
+    <Setter Property="FontWeight" Value="SemiBold"/>
   </Style>
   <!-- 排版面板的密度选项默认不加粗，选中后保留加粗。FontWeight 只存在于按钮和文字，不能设到 ContentPresenter。 -->
   <Style Selector="Button.typography-density">
@@ -88,6 +94,12 @@
   </Style>
   <Style Selector="Button.palette-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
+  <Style Selector="Button.palette-card:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
   </Style>
   <Style Selector="Button.palette-add-card">
     <Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="8"/><Setter Property="BorderThickness" Value="0"/>
@@ -95,6 +107,12 @@
   </Style>
   <Style Selector="Button.palette-add-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
+  <Style Selector="Button.palette-add-card:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
   </Style>
   <!-- 原型 .studio-language 行：透明底、hover 灰底，选中着色由代码按主题画刷回放。 -->
   <Style Selector="Button.language-item">
@@ -252,6 +270,11 @@
   <Style Selector="ListBox.typography-grid ListBoxItem:selected"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="CornerRadius" Value="7"/></Style>
   <Style Selector="Border.typography-card"><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/></Style>
   <Style Selector="ListBox.typography-grid ListBoxItem:selected Border.typography-card"><Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/></Style>
+  <Style Selector="Button.typography-card-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
   <Style Selector="Button.wb-format">
     <Setter Property="Width" Value="28"/><Setter Property="Height" Value="28"/><Setter Property="MinHeight" Value="0"/><Setter Property="MinWidth" Value="0"/>
     <Setter Property="Padding" Value="5"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/>

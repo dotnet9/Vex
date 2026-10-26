@@ -124,7 +124,7 @@ function Ensure-MsixAssets([string]$LayoutRoot, [string]$RepoRoot) {
         return
     }
 
-    $sourceLogoPath = Join-Path $RepoRoot "src\Vex\Assets\logo.png"
+    $sourceLogoPath = Join-Path $RepoRoot "assets\logo.png"
     if (-not (Test-Path -LiteralPath $sourceLogoPath -PathType Leaf)) {
         throw "MSIX logo asset was not found in the publish output or source tree."
     }

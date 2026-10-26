@@ -77,7 +77,7 @@ dotnet publish src/Vex/Vex.csproj -c Release -r win-x64 -p:PublishAot=false
 ### 测试脚本
 项目根目录提供了测试脚本：
 ```bash
-./test-native-aot-publish.sh
+./scripts/testing/test-native-aot-publish.sh
 ```
 
 ## ⚠️ 注意事项

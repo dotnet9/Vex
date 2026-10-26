@@ -13,7 +13,8 @@
     <SolidColorBrush x:Key="VexStatusBadgeBackgroundBrush" Color="{DynamicResource StudioSurfaceColor}" />
     <SolidColorBrush x:Key="VexSplitterBrush" Color="{DynamicResource StudioRaisedColor}" />
     <SolidColorBrush x:Key="VexEditorCurrentLineBackgroundBrush" Color="{DynamicResource StudioRaisedColor}" />
-    <SolidColorBrush x:Key="VexHoverBrush" Color="{DynamicResource StudioRaisedColor}" />
+    <!-- 悬停用前景色低透明度叠层：面板底色与 raised 色几乎相同，实色悬停会看不出来。 -->
+    <SolidColorBrush x:Key="VexHoverBrush" Color="{DynamicResource StudioTextColor}" Opacity="0.05" />
     <SolidColorBrush x:Key="VexPressedBrush" Color="{DynamicResource StudioPressedColor}" />
     <SolidColorBrush x:Key="VexAccentSoftBrush" Color="{DynamicResource StudioSelectedColor}" />
     <SolidColorBrush x:Key="VexEditorForegroundBrush" Color="{DynamicResource StudioTextColor}" />

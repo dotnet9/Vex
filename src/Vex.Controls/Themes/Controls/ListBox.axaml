@@ -181,16 +181,28 @@
     </Style>
 
     <!-- 在模板行上绘制背景，覆盖展开箭头、层级缩进和整行剩余宽度。 -->
-    <Style Selector="TreeView.side-tree TreeViewItem, TreeView.side-tree TreeViewItem:selected, TreeView.side-tree TreeViewItem:pointerover, TreeView.side-tree TreeViewItem:selected:pointerover">
+    <Style Selector="TreeView.side-tree TreeViewItem">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="TreeView.side-tree TreeViewItem:selected">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="TreeView.side-tree TreeViewItem:pointerover">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="TreeView.side-tree TreeViewItem:selected:pointerover">
         <Setter Property="Background" Value="Transparent" />
     </Style>
     <Style Selector="TreeView.side-tree TreeViewItem /template/ Border#PART_LayoutRoot">
         <Setter Property="Background" Value="Transparent" />
     </Style>
-    <Style Selector="TreeView.side-tree TreeViewItem /template/ Border#PART_LayoutRoot:pointerover">
+    <Style Selector="TreeView.side-tree TreeViewItem:pointerover /template/ Border#PART_LayoutRoot">
         <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
     </Style>
-    <Style Selector="TreeView.side-tree TreeViewItem:selected /template/ Border#PART_LayoutRoot, TreeView.side-tree TreeViewItem:selected /template/ Border#PART_LayoutRoot:pointerover">
+    <Style Selector="TreeView.side-tree TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+    </Style>
+    <Style Selector="TreeView.side-tree TreeViewItem:selected:pointerover /template/ Border#PART_LayoutRoot">
         <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
     </Style>
     <Style Selector="TreeView.side-tree TreeViewItem /template/ ContentPresenter#PART_HeaderPresenter">
@@ -218,7 +230,7 @@
 
     <Style Selector="TreeView.side-tree Border.file-card TextBlock.file-title">
         <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="13" />
     </Style>
     <Style Selector="TreeView.side-tree Border.file-card.selected TextBlock.file-title">
         <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
@@ -234,8 +246,8 @@
     </Style>
 
     <Style Selector="TreeView.side-tree Path.tree-ico">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
+        <Setter Property="Width" Value="13" />
+        <Setter Property="Height" Value="13" />
         <Setter Property="Stretch" Value="Uniform" />
         <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
         <Setter Property="StrokeThickness" Value="1.4" />
@@ -247,7 +259,7 @@
 
     <Style Selector="TreeView.side-tree Border.file-card TextBlock.file-heading">
         <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Normal" />
     </Style>
 

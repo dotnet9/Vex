@@ -18,6 +18,7 @@ namespace Vex.Modules.Shell.Views;
 
 public sealed class ShellAppearanceMenuView : UserControl
 {
+    private const double PaletteCardHeight = 92;
     private ShellAppearanceViewModel? _vm;
     private MainWindowViewModel? _shell;
     private readonly Grid _palettes = new() { ColumnDefinitions = new("*,*,*"), ColumnSpacing = 6, RowSpacing = 6 };
@@ -197,15 +198,10 @@ public sealed class ShellAppearanceMenuView : UserControl
         _paletteButtons.Clear(); _modeButtons.Clear(); _densityButtons.Clear(); _languageRows.Clear(); _palettes.Children.Clear();
         AppearanceButton = Button("", () => { });
         AppearanceButton.Classes.Add("titlebar-action");
-        AppearanceButton.Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, Children =
-        {
-            new PathIcon { Width = 15, Height = 15, Data = Geometry.Parse("M8 1a7 7 0 1 0 0 14h1a2 2 0 0 0 1-3.7.8.8 0 0 1 .4-1.5H12a3 3 0 0 0 3-3C15 3.5 12 1 8 1Z M4.5 6h.1 M7 3.5h.1 M10.5 4h.1 M12 6.5h.1") },
-            Label(Text("Appearance"), 11)
-        }};
+        AppearanceButton.Content = new PathIcon { Width = 15, Height = 15, Data = Geometry.Parse("M8 1a7 7 0 1 0 0 14h1a2 2 0 0 0 1-3.7.8.8 0 0 1 .4-1.5H12a3 3 0 0 0 3-3C15 3.5 12 1 8 1Z M4.5 6h.1 M7 3.5h.1 M10.5 4h.1 M12 6.5h.1") };
         // 原型 .studio-title-controls：外观摘要为 56×32 / 11px / 左右 7px 的扁平按钮。
         AppearanceButton.Height = 32; AppearanceButton.MinHeight = 0; AppearanceButton.MinWidth = 0;
-        AppearanceButton.Padding = new Thickness(7, 0); AppearanceButton.CornerRadius = new CornerRadius(5);
-        AppearanceButton.FontSize = 11;
+        AppearanceButton.Padding = new Thickness(0); AppearanceButton.CornerRadius = new CornerRadius(5);
         AppearanceButton.Name = "TitleBarAppearanceButton";
         ToolTip.SetTip(AppearanceButton, Text("Appearance"));
         AutomationProperties.SetName(AppearanceButton, Text("Appearance"));
@@ -241,15 +237,16 @@ public sealed class ShellAppearanceMenuView : UserControl
         }
         _addCard = BuildAddCard();
         Grid.SetRow(_addCard, (ordered.Length + 2) / 3); Grid.SetColumn(_addCard, 0);
-        _palettes.RowDefinitions = new RowDefinitions(string.Join(",", Enumerable.Repeat("Auto", (ordered.Length + 3) / 3 + 1)));
+        // 每行固定 92px；新增卡片紧随最后一个配色行，避免 Auto 行把虚线卡片拉高。
+        var paletteRows = (ordered.Length + 2) / 3 + 1;
+        _palettes.RowDefinitions = new RowDefinitions(string.Join(",", Enumerable.Repeat(PaletteCardHeight.ToString(System.Globalization.CultureInfo.InvariantCulture), paletteRows)));
         _palettes.Children.Add(_addCard);
         var content = new StackPanel { Width = MenuWidth - 36, Margin = default };
-        content.Children.Add(SectionTitle(Text("AppearanceDensityTitle"), 4));
+        densityRow.Margin = new Thickness(0);
         content.Children.Add(densityRow);
-        content.Children.Add(SectionTitle(Text("AppearanceModeTitle")));
+        modeRow.Margin = new Thickness(0, 8, 0, 0);
         content.Children.Add(modeRow);
-        content.Children.Add(SectionTitle(Text("WBTheme")));
-        _palettes.Margin = new Thickness(0, 10, 0, 0);
+        _palettes.Margin = new Thickness(0, 8, 0, 0);
         // 重建时 _palettes 仍挂在上一版内容面板上，先摘除再入新树。
         if (_palettes.Parent is Panel previousHost) previousHost.Children.Remove(_palettes);
         content.Children.Add(_palettes);
@@ -317,7 +314,7 @@ public sealed class ShellAppearanceMenuView : UserControl
             dots.Children.Add(dot);
         }
         var labels = new StackPanel { Spacing = 1 };
-        var name = Label(palette.Name, 13); name.FontWeight = FontWeight.SemiBold; name.TextWrapping = TextWrapping.NoWrap; name.LineHeight = 19; labels.Children.Add(name);
+        var name = Label(palette.Name, 13); name.FontWeight = FontWeight.Normal; name.TextWrapping = TextWrapping.NoWrap; name.LineHeight = 19; labels.Children.Add(name);
         var purpose = Label(palette.Purpose); purpose.FontSize = 10; purpose.LineHeight = 14; purpose.Classes.Add("muted"); labels.Children.Add(purpose);
         var body = new StackPanel { Spacing = 6 }; body.Children.Add(dots); body.Children.Add(labels);
         // 原型 .studio-palettes button::after：✓ 固定在卡片右缘垂直居中（right 6px、14px/700 强调色），
@@ -359,7 +356,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         // 原型选中环 box-shadow:0 0 0 1.5px var(--accent)：Button 无 BoxShadow 属性，用外扩 1.5px 的描边 Border 覆层等效呈现。
         var ring = new Border { BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(7.5), Margin = new Thickness(-1.5), IsHitTestVisible = false, IsVisible = false };
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
-        var host = new Grid();
+        var host = new Grid { Height = PaletteCardHeight };
         host.Children.Add(card); host.Children.Add(ring);
         _paletteButtons[palette] = (card, check, ring);
         return host;
@@ -379,7 +376,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         content.Children.Add(label);
         var panel = new Panel();
         panel.Children.Add(dash); panel.Children.Add(content);
-        var card = new Button { Classes = { "palette-add-card" }, Content = panel, Height = 92, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "AddCustomPalette" };
+        var card = new Button { Classes = { "palette-add-card" }, Content = panel, Height = PaletteCardHeight, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "AddCustomPalette" };
         card.Click += (_, _) => OpenPaletteDialog(null);
         ToolTip.SetTip(card, Text("AddCustomPalette"));
         return card;

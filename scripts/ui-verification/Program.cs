@@ -788,6 +788,21 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
         "File tree and search box right edges also align");
     var items = tree.GetVisualDescendants().OfType<TreeViewItem>().Where(i => i.IsEffectivelyVisible).ToArray();
     Check(items.Length == 7, "Vex tree renders the workspace root, sibling and nested documents without dot folders");
+    // 悬停底色必须能从侧栏底色中分辨出来：面板色与 raised 色接近，实色 hover 会看不出来。
+    void CheckRowHover(string name, string theme)
+    {
+        var item = items.First(i => ((DocumentFileNode)i.DataContext!).Name == name);
+        var card = item.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("file-card"));
+        window.MouseMove(card.TranslatePoint(new Point(30, 10), window)!.Value); Pump();
+        Application.Current!.TryGetResource("VexPanelBackgroundBrush", Application.Current.ActualThemeVariant, out var panelResource);
+        var panel = ((ISolidColorBrush)panelResource!).Color;
+        var hoverRow = item.GetVisualDescendants().OfType<Border>().First(b => b.Name == "PART_LayoutRoot");
+        var hover = CompositeOver((ISolidColorBrush)hoverRow.Background!, panel);
+        Check(item.IsPointerOver && ColorDistance(hover, panel) >= 12,
+            $"File tree hover row stands out from the sidebar under {theme}: hover={hover} panel={panel}");
+        window.MouseMove(new Point(1, 1)); Pump();
+    }
+    CheckRowHover("root.md", "light");
     foreach (var selected in items.Where(i => i.IsSelected))
     {
         var row = selected.GetVisualDescendants().OfType<Border>().First(border => border.Name == "PART_LayoutRoot");
@@ -800,6 +815,9 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     foreach (var item in items)
     {
         var card = item.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("file-card"));
+        var node = (DocumentFileNode)item.DataContext!;
+        Check(ToolTip.GetTip(card) is string tip && tip == node.Name,
+            "Tree tooltip contains only the file or folder name: " + node.Name);
         var chevron = item.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
             .First(b => b.Name == "PART_ExpandCollapseChevron");
         var point = card.TranslatePoint(default, tree)!.Value;
@@ -812,8 +830,9 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
             && control.Classes.Contains("tree-ico") && control is Image or Avalonia.Controls.Shapes.Path);
         var label = card.GetVisualDescendants().OfType<TextBlock>().First(t => t.IsEffectivelyVisible &&
             (t.Classes.Contains("file-title") || t.Classes.Contains("file-heading")));
-        Check(icon.Bounds.Width == 12 && icon.Bounds.Height == 12 && icon.Height <= label.FontSize,
-            "Tree icons stay at text size without increasing row height");
+        Check(label.FontSize == 13, "Tree file and folder names use 13 px text");
+        Check(icon.Bounds.Width == 13 && icon.Bounds.Height == 13 && icon.Height <= label.FontSize,
+            "Tree icons match 13 px text without increasing row height");
         var arrow = chevron.GetVisualDescendants().OfType<PathIcon>().Single(path => path.Name == "PART_ExpandIconPath");
         Check(arrow.Bounds.Width == 8 && arrow.Bounds.Height == 8,
             "Tree expand arrows use compact 8 px icons");
@@ -869,6 +888,7 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     foreach (var theme in new[] { "dark", "light" })
     {
         main.Appearance.SelectThemeByKey(theme); Pump();
+        CheckRowHover("deep.md", theme);
         Application.Current!.TryGetResource("VexAccentSoftBrush", Application.Current.ActualThemeVariant, out var accent);
         Check(SameBrush(nestedRow.Background, accent as IBrush), "Full-row folder selection follows the theme: " + theme);
         Capture(window, "vex-file-tree-folder-" + theme);
@@ -2272,6 +2292,16 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
 }
 
 bool SameBrush(IBrush? first, IBrush? second) => first is ISolidColorBrush a && second is ISolidColorBrush b && a.Color == b.Color;
+
+Color CompositeOver(ISolidColorBrush brush, Color background)
+{
+    var alpha = brush.Opacity;
+    byte Mix(byte foreground, byte back) => (byte)Math.Round(foreground * alpha + back * (1 - alpha));
+    return Color.FromArgb(255, Mix(brush.Color.R, background.R), Mix(brush.Color.G, background.G), Mix(brush.Color.B, background.B));
+}
+
+int ColorDistance(Color first, Color second) =>
+    Math.Abs(first.R - second.R) + Math.Abs(first.G - second.G) + Math.Abs(first.B - second.B);
 
 void VerifySourceLineHeight(Window window, MarkdownEditorView source, double expected, string name)
 {
