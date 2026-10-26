@@ -104,6 +104,11 @@ internal static class MenuIconVerification
         foreach (var theme in new[] { "light", "dark" })
         {
             vm.Appearance.SelectThemeByKey(theme);
+            // 段落与格式已并入「编辑」，三级面板要先展开一级菜单才会实例化。
+            var edit = title.FindControl<MenuItem>("EditMenuItem")!;
+            edit.IsSubMenuOpen = true;
+            Render(window);
+            CapturePopup(edit, $"edit-{theme}");
             var paragraph = title.FindControl<MenuItem>("InsertMenuItem")!;
             paragraph.IsSubMenuOpen = true;
             Render(window);
@@ -118,6 +123,8 @@ internal static class MenuIconVerification
             Render(window);
             CapturePopup(format, $"format-{theme}");
             format.IsSubMenuOpen = false;
+            edit.IsSubMenuOpen = false;
+            Render(window);
         }
         vm.Appearance.SelectThemeByKey("light");
         Render(window);

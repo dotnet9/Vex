@@ -11,6 +11,7 @@ using CodeWF.Avalonia.Markdown.Controls;
 using CodeWF.Avalonia.Markdown;
 using CodeWF.Avalonia.Markdown.Themes;
 using Vex.Core.Services;
+using Vex.Controls;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
 
@@ -65,6 +66,27 @@ internal static class PrototypeAppearanceVerification
         }
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Workbench.ShowTypography = false;
         var appearanceMenu = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
+        var appearanceIcon = appearanceMenu.AppearanceButton.Content as Avalonia.Controls.Shapes.Path;
+        Check(appearanceIcon is not null && appearanceIcon.Data?.ToString() == MenuIconCatalog.Get("palette").ToString(),
+            "Appearance button uses the shared Lucide palette outline instead of a filled PathIcon");
+        foreach (var theme in new[] { "light", "dark" })
+        {
+            vm.Appearance.SelectThemeByKey(theme); Render();
+            window.MouseMove(new Point(1, window.ClientSize.Height - 1)); Render();
+            Application.Current!.TryGetResource("VexMutedBrush", window.ActualThemeVariant, out var normalIconBrush);
+            Check(appearanceIcon!.Bounds.Size == new Size(15, 15)
+                && appearanceIcon.Stroke is ISolidColorBrush normalStroke && normalIconBrush is ISolidColorBrush normalBrush
+                && normalStroke.Color == normalBrush.Color, "Palette icon keeps its 15px size and theme stroke under " + theme);
+            var button = appearanceMenu.AppearanceButton;
+            window.MouseMove(button.TranslatePoint(new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), window)!.Value); Render();
+            Application.Current.TryGetResource("VexAccentBrush", window.ActualThemeVariant, out var hoverIconBrush);
+            Check(button.IsPointerOver && appearanceIcon.Stroke is ISolidColorBrush hoverStroke
+                && hoverIconBrush is ISolidColorBrush hoverBrush && hoverStroke.Color == hoverBrush.Color,
+                "Palette icon follows the title bar theme hover color under " + theme);
+            window.CaptureRenderedFrame()?.Save(Path.Combine(output, "appearance-icon-hover-" + theme + ".png"));
+        }
+        window.MouseMove(new Point(1, window.ClientSize.Height - 1));
+        vm.Appearance.SelectThemeByKey("light"); Render();
         appearanceMenu.AppearanceButton.Flyout!.ShowAt(appearanceMenu.AppearanceButton); Render();
         var paletteContent = (Control)((Flyout)appearanceMenu.AppearanceButton.Flyout).Content!;
         var paletteCards = paletteContent.GetVisualDescendants().OfType<Button>()

@@ -198,9 +198,13 @@ public sealed class ShellAppearanceMenuView : UserControl
         _paletteButtons.Clear(); _modeButtons.Clear(); _densityButtons.Clear(); _languageRows.Clear(); _palettes.Children.Clear();
         AppearanceButton = Button("", () => { });
         AppearanceButton.Classes.Add("titlebar-action");
-        AppearanceButton.Content = new PathIcon { Width = 15, Height = 15, Data = Geometry.Parse("M8 1a7 7 0 1 0 0 14h1a2 2 0 0 0 1-3.7.8.8 0 0 1 .4-1.5H12a3 3 0 0 0 3-3C15 3.5 12 1 8 1Z M4.5 6h.1 M7 3.5h.1 M10.5 4h.1 M12 6.5h.1") };
+        AppearanceButton.Content = new ShapePath
+        {
+            Classes = { "wb-icon" }, Width = 15, Height = 15,
+            Data = MenuIconCatalog.Get("palette"), Fill = Brushes.Transparent, Stretch = Stretch.Uniform
+        };
         // 原型 .studio-title-controls：外观摘要为 56×32 / 11px / 左右 7px 的扁平按钮。
-        AppearanceButton.Height = 32; AppearanceButton.MinHeight = 0; AppearanceButton.MinWidth = 0;
+        AppearanceButton.Width = 32; AppearanceButton.Height = 32; AppearanceButton.MinHeight = 0; AppearanceButton.MinWidth = 0;
         AppearanceButton.Padding = new Thickness(0); AppearanceButton.CornerRadius = new CornerRadius(5);
         AppearanceButton.Name = "TitleBarAppearanceButton";
         ToolTip.SetTip(AppearanceButton, Text("Appearance"));

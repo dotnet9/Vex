@@ -66,7 +66,7 @@
                     Text="Vex"
                     VerticalAlignment="Center" />
             </StackPanel>
-            <!-- 文件树切换按钮：面板分隔线在左侧，箭头方向提示操作 -->
+            <!-- 文件树切换按钮：使用 panel-right-open/close SVG 的水平镜像，面板分隔线位于左侧。 -->
             <ToggleButton
                 x:Name="SidebarToggleButton"
                 Classes="tb-icon titlebar-action"
@@ -78,14 +78,20 @@
                 <Panel>
                     <!-- 文件树折叠时：箭头向右（展开提示） -->
                     <Path
-                        Classes="wb-icon"
+                        x:Name="SidebarCollapsedIcon"
+                        Classes="wb-icon titlebar-outline-icon"
+                        Width="15"
+                        Height="15"
                         IsVisible="{Binding !Layout.IsSidebarVisible}"
-                        Data="M3 4H19A2 2 0 0 1 21 6V18A2 2 0 0 1 19 20H3A2 2 0 0 1 1 18V6A2 2 0 0 1 3 4Z M8 4V20 M11 10L14 12L11 14" />
+                        />
                     <!-- 文件树展开时：箭头向左（收起提示） -->
                     <Path
-                        Classes="wb-icon"
+                        x:Name="SidebarExpandedIcon"
+                        Classes="wb-icon titlebar-outline-icon"
+                        Width="15"
+                        Height="15"
                         IsVisible="{Binding Layout.IsSidebarVisible}"
-                        Data="M3 4H19A2 2 0 0 1 21 6V18A2 2 0 0 1 19 20H3A2 2 0 0 1 1 18V6A2 2 0 0 1 3 4Z M8 4V20 M13 10L10 12L13 14" />
+                        />
                 </Panel>
             </ToggleButton>
             <shell:ShellTitleMenuView x:Name="TitleMenuView" VerticalAlignment="Center" />
@@ -113,28 +119,6 @@
                 <Path Classes="wb-icon" Data="{StaticResource WBSearchIcon}" />
             </Button>
             <shell:ShellAppearanceMenuView x:Name="AppearanceMenu"/>
-            <!-- 大纲面板切换按钮：面板分隔线在右侧，与文件树按钮 180° 对称 -->
-            <ToggleButton
-                x:Name="OutlineToggleButton"
-                Classes="tb-icon titlebar-action"
-                IsChecked="{Binding Layout.ShowOutlineSidebar, Mode=OneWay}"
-                Command="{Binding Layout.ToggleOutline}"
-                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Outline}}"
-                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Outline}}"
-                VerticalAlignment="Center">
-                <Panel>
-                    <!-- 大纲折叠时：箭头向左（展开提示） -->
-                    <Path
-                        Classes="wb-icon"
-                        IsVisible="{Binding !Layout.ShowOutlineSidebar}"
-                        Data="M3 4H19A2 2 0 0 1 21 6V18A2 2 0 0 1 19 20H3A2 2 0 0 1 1 18V6A2 2 0 0 1 3 4Z M14 4V20 M11 10L8 12L11 14" />
-                    <!-- 大纲展开时：箭头向右（收起提示） -->
-                    <Path
-                        Classes="wb-icon"
-                        IsVisible="{Binding Layout.ShowOutlineSidebar}"
-                        Data="M3 4H19A2 2 0 0 1 21 6V18A2 2 0 0 1 19 20H3A2 2 0 0 1 1 18V6A2 2 0 0 1 3 4Z M14 4V20 M9 10L12 12L9 14" />
-                </Panel>
-            </ToggleButton>
         </StackPanel>
     </codewf:CodeWFWindow.RightContent>
 

@@ -17,6 +17,19 @@ internal static class PrototypeChromeVerification
         var vm = (MainWindowViewModel)window.DataContext!;
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         void Check(bool value, string message) { if (!value) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
+        // 一级菜单直接展开；三级面板要先展开它的一级宿主才会实例化。
+        void CheckMenuPanel(ShellTitleMenuView title, string parentName, string? childName, string culture)
+        {
+            var parent = title.FindControl<MenuItem>(parentName)!;
+            parent.IsSubMenuOpen = true; Render();
+            var item = childName is null ? parent : title.FindControl<MenuItem>(childName)!;
+            if (childName is not null) { item.IsSubMenuOpen = true; Render(); }
+            var popup = item.GetVisualDescendants().OfType<Popup>().FirstOrDefault();
+            Check(popup?.Child is { Bounds.Width: 248 },
+                $"Title menu has a 248px panel: {culture}/{parentName}" + (childName is null ? "" : ">" + childName));
+            if (childName is not null) { item.IsSubMenuOpen = false; Render(); }
+            parent.IsSubMenuOpen = false; Render();
+        }
         Check(!vm.Layout.IsOutlineVisible, "Auxiliary panel starts closed for a new workspace");
         app.Resolve<IWorkspaceDocumentState>().UpdateDocument("# 在文字之间，理清思路\n\n一篇文章，从一个想法开始。这里保留完整的原文。\n\n## 写作，让想法有迹可循\n\n先记下观察，再整理线索。\n\n> 好的工具，让注意力回到内容本身。\n\n| API | 说明 |\n| --- | --- |\n| Read | 读取文档 |", null);
         var original = vm.Markdown; var history = vm.Workbench.History.Capture();
@@ -165,14 +178,14 @@ internal static class PrototypeChromeVerification
         foreach (var culture in vm.Appearance.LanguageOptions)
         {
             vm.Appearance.SelectedLanguage = culture; Render();
-            foreach (var name in new[] { "FileMenuItem", "InsertMenuItem", "HelpMenuItem" })
+            var titleMenu = window.FindControl<ShellTitleMenuView>("TitleMenuView")!;
+            foreach (var name in new[] { "FileMenuItem", "ToolsMenuItem", "HelpMenuItem" })
             {
-                var item = window.FindControl<ShellTitleMenuView>("TitleMenuView")!.FindControl<MenuItem>(name)!;
-                item.IsSubMenuOpen = true; Render();
-                var popup = item.GetVisualDescendants().OfType<Popup>().FirstOrDefault();
-                Check(popup?.Child is { Bounds.Width: 248 }, "Title menu has a 248px panel: " + culture.CultureName + "/" + name);
-                item.IsSubMenuOpen = false; Render();
+                CheckMenuPanel(titleMenu, name, null, culture.CultureName);
             }
+            // 段落和格式现在是编辑下的二级子菜单，其三级面板同样要满足 248px。
+            CheckMenuPanel(titleMenu, "EditMenuItem", "InsertMenuItem", culture.CultureName);
+            CheckMenuPanel(titleMenu, "EditMenuItem", "FormatMenuItem", culture.CultureName);
         }
         Check(vm.Markdown == original && vm.Workbench.History.Capture().Undo.SequenceEqual(history.Undo), "Layout and language changes preserve text and undo history");
     }

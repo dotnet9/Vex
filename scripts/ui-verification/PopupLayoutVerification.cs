@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
+using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -44,7 +45,8 @@ internal static class PopupLayoutVerification
         }
         var file = title.FileMenuTarget;
         Console.WriteLine($"MENU COUNTS file={file.Items.Count}");
-        // 菜单树对齐原型 interact.js 的 MENUS：无「保存全部」，配色/排版入口在外观弹层而非菜单。
+        // 菜单树有意偏离原型 interact.js 的 MENUS：无「保存全部」，配色/排版入口在外观弹层而非菜单，
+        // 段落与格式并入「工具」（原型仍是七个扁平菜单）。
         var localizer = app.Resolve<Vex.Core.Services.IAppLocalizer>();
         string HeaderText(object? header) => header?.ToString() ?? string.Empty;
         var fileHeaders = file.Items.OfType<MenuItem>().Select(row => HeaderText(row.Header)).ToArray();
@@ -66,6 +68,22 @@ internal static class PopupLayoutVerification
         Check(titleItems.All(item => Math.Abs(item.FontSize - 13) < 0.1),
             "顶部菜单及级联菜单统一使用 13px 字号");
         var help = title.FindControl<MenuItem>("HelpMenuItem")!;
+        var editMenu = title.FindControl<MenuItem>("EditMenuItem")!;
+        // 段落与格式按语义降级为编辑下的二级入口：一级菜单只剩五项，工具紧跟编辑之后。
+        var tools = title.FindControl<MenuItem>("ToolsMenuItem")!;
+        var paragraphMenu = title.FindControl<MenuItem>("InsertMenuItem")!;
+        var formatMenu = title.FindControl<MenuItem>("FormatMenuItem")!;
+        Check(topLevelItems.Length == 5 && topLevelItems[0] == file && topLevelItems[1] == editMenu
+            && topLevelItems[2] == tools && topLevelItems[4] == help,
+            "标题栏只剩 文件/编辑/工具/视图/帮助 五个一级菜单，工具排在编辑之后");
+        Check(editMenu.Items.OfType<MenuItem>().Take(2).SequenceEqual(new[] { paragraphMenu, formatMenu }),
+            "段落与格式是编辑菜单的前两项");
+        Check(paragraphMenu.Items.Count > 10 && formatMenu.Items.Count > 5
+            && paragraphMenu.Items.OfType<MenuItem>().Any(row => row.Name == "TableMenuItem")
+            && paragraphMenu.Items.OfType<MenuItem>().Any(row => row.Name == "MermaidMenuItem"),
+            "段落与格式的原有条目和分组仍挂在各自子菜单下");
+        Check(!tools.Items.OfType<MenuItem>().Contains(paragraphMenu) && !tools.Items.OfType<MenuItem>().Contains(formatMenu),
+            "工具菜单恢复原有条目，不再包含段落与格式");
         var helpIconKeys = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             [localizer.Get(Vex.VexL.OnboardingGuide)] = "book-open",
@@ -118,6 +136,34 @@ internal static class PopupLayoutVerification
                 .Select(c => $"{c.GetType().Name} {c.Name} {c.Bounds} {(c is TextBlock t ? t.Text : "")}"));
             Console.WriteLine($"CAPTURE {name}: {panel.Bounds}");
             item.IsSubMenuOpen = false; Render();
+        }
+        // 三级面板（编辑 > 段落 / 格式）沿用同一套 248px、13px 与 32px 行规范。
+        foreach (var nested in new[] { paragraphMenu, formatMenu })
+        {
+            editMenu.IsSubMenuOpen = true; Render();
+            nested.IsSubMenuOpen = true; Render();
+            var nestedPopup = nested.GetVisualDescendants().OfType<Popup>().FirstOrDefault();
+            if (nestedPopup?.Child is not { } nestedPanel) throw new InvalidOperationException("三级菜单面板未实例化：" + nested.Header);
+            Check(nestedPanel.Bounds.Width == 248, "第三个层级的面板仍是 248px: " + nested.Header);
+            Check(Math.Abs(nested.FontSize - 13) < 0.1, "第三个层级沿用 13px 字号: " + nested.Header);
+            Check(nested.Items.OfType<MenuItem>().All(row => Math.Abs(row.FontSize - 13) < 0.1 && row.Bounds.Height >= 32),
+                "第三个层级的行保持 13px 文本与 32px 目标: " + nested.Header);
+            foreach (var row in nested.Items.OfType<MenuItem>())
+            {
+                var header = row.GetVisualDescendants().OfType<ContentPresenter>().First(c => c.Name == "PART_HeaderPresenter");
+                Check(Math.Abs(header.TranslatePoint(default, nestedPanel)!.Value.X - 35) < 1,
+                    "三级菜单行同样保留状态列: " + row.Header);
+            }
+            // 下沉层级后命令绑定必须仍然继承标题菜单的数据上下文，否则点击会失效。
+            Check(nested.DataContext is not null && nested.Items.OfType<MenuItem>().Where(row => row.Command is not null)
+                    .All(row => ReferenceEquals(row.DataContext, nested.DataContext)),
+                "三级菜单行仍继承标题菜单数据上下文: " + nested.Header);
+            using (var nestedImage = new RenderTargetBitmap(new PixelSize((int)nestedPanel.Bounds.Width, (int)nestedPanel.Bounds.Height)))
+            {
+                nestedImage.Render(nestedPanel); nestedImage.Save(Path.Combine(output, nested.Name + ".png"));
+            }
+            Console.WriteLine($"CAPTURE {nested.Name}: {nestedPanel.Bounds}");
+            nested.IsSubMenuOpen = false; editMenu.IsSubMenuOpen = false; Render();
         }
         var files = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
         foreach (var menu in new[] { files.FindControl<TreeView>("FileTree")!.ContextMenu!, files.FindControl<ListBox>("FileList")!.ContextMenu! })
@@ -228,5 +274,50 @@ internal static class PopupLayoutVerification
             Check(position.X >= 0 && position.Y >= 0 && position.X + gallery.Bounds.Width <= window.ClientSize.Width && position.Y + gallery.Bounds.Height <= window.ClientSize.Height, $"Typography reflows without measure mutation and fits {width}px/{mode}: {position}, {gallery.Bounds.Size}, host {window.ClientSize}");
             vm.Workbench.ShowTypography = false; Render();
         }
+        // 真机点击路径：标题栏点开「编辑」，再划过并点击面板里的命令行，
+        // 确认降级后的层级仍然能被真实指针驱动，命令也确实被触发。
+        var autoPairRow = editMenu.Items.OfType<MenuItem>().FirstOrDefault(row => row.ToggleType == MenuItemToggleType.CheckBox);
+        if (autoPairRow is null) throw new InvalidOperationException("编辑菜单缺少自动配对命令行");
+        void Click(Point point, MouseButton button = MouseButton.Left)
+        {
+            window.MouseMove(point); Render();
+            window.MouseDown(point, button); Render();
+            window.MouseUp(point, button); Render();
+        }
+
+        // 弹出层内容挂在独立 TopLevel 上时无法换算成窗口坐标，只有同根控件能直接点击。
+        Point? WindowPoint(Control control) => TopLevel.GetTopLevel(control) != window
+            ? null
+            : control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), window);
+
+        if (WindowPoint(editMenu) is not { } editPoint) throw new InvalidOperationException("标题栏编辑入口不可点击");
+        Click(editPoint);
+        Check(editMenu.IsSubMenuOpen, "鼠标点击标题栏「编辑」展开菜单面板");
+        var paragraphPoint = WindowPoint(paragraphMenu);
+        var formatPoint = WindowPoint(formatMenu);
+        var autoPairPoint = WindowPoint(autoPairRow);
+        if (paragraphPoint is { } paragraphRowPoint && autoPairPoint is { } rowPoint)
+        {
+            Click(paragraphRowPoint);
+            Check(paragraphMenu.IsSubMenuOpen, "鼠标点击「段落」展开三级菜单");
+            editMenu.IsSubMenuOpen = true; Render();
+            if (formatPoint is { } formatRowPoint)
+            {
+                Click(formatRowPoint);
+                Check(formatMenu.IsSubMenuOpen && !paragraphMenu.IsSubMenuOpen, "鼠标点击「格式」切换三级菜单");
+                editMenu.IsSubMenuOpen = true; Render();
+            }
+            var enabled = vm.EditorDisplay.EnableAutoPair;
+            Click(rowPoint);
+            Check(vm.EditorDisplay.EnableAutoPair != enabled, "鼠标点击面板里的命令行真的执行了命令");
+            editMenu.IsSubMenuOpen = true; Render();
+            Click(rowPoint);
+            Check(vm.EditorDisplay.EnableAutoPair == enabled, "再次点击还原自动配对开关");
+        }
+        else
+        {
+            Console.WriteLine("SKIP 菜单行位于独立弹出根，无法换算窗口坐标点击");
+        }
+        editMenu.IsSubMenuOpen = false; Render();
     }
 }
