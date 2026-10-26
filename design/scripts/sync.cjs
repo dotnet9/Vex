@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 function sync() {
-  const text = file => fs.readFileSync(path.join(root, file), 'utf8').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+  const text = file => fs.readFileSync(path.join(root, file), 'utf8').replace(/^\uFEFF/, '').replace(/\r\n|\r/g, '\n');
   const version = text('Directory.Build.props').match(/<Version>([^<]+)<\/Version>/)[1];
   const website = text('Directory.Build.props').match(/<PackageProjectUrl>([^<]+)<\/PackageProjectUrl>/)[1];
   const packages = [...text('Directory.Packages.props').matchAll(/<PackageVersion Include="([^"]+)"/g)].map(m => m[1]);
