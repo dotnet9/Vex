@@ -26,6 +26,9 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
 
     public string CurrentDocumentTitle => $"{_document.FileName}{(IsModified ? " *" : string.Empty)}";
 
+    /// <summary>原型演示标题栏（.vex-deck header strong）用 <code>docs[doc].name</code>：只给文件名，未保存的「*」留在窗口标题栏。</summary>
+    public string CurrentDocumentName => _document.FileName;
+
     public string WorkspacePathText => CurrentFilePath is { } path ? Path.GetDirectoryName(path) ?? string.Empty : _localizer.Get(VexL.DocumentDefaultFileName);
 
     public string? CurrentFilePath => _document.FilePath;
@@ -103,6 +106,7 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
         // 刷新时一次性广播所有派生属性，避免调用方遗漏标题、属性面板或状态栏字段。
         OnPropertyChanged(nameof(WindowTitle));
         OnPropertyChanged(nameof(CurrentDocumentTitle));
+        OnPropertyChanged(nameof(CurrentDocumentName));
         OnPropertyChanged(nameof(CurrentFilePath));
         OnPropertyChanged(nameof(WorkspacePathText));
         OnPropertyChanged(nameof(HasCurrentFile));

@@ -2,20 +2,32 @@
              xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:model="using:Vex.Modules.Workspace.Services"
              xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
              x:Class="Vex.Modules.Shell.Views.ShellPresentationOutlineView" x:DataType="vm:MainWindowViewModel">
-  <Grid RowDefinitions="Auto,*" Margin="64,96,64,42" MaxWidth="1200">
-    <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}" FontSize="28" FontWeight="SemiBold" Margin="14,0,0,22"/>
-    <ListBox x:Name="PresentationChapters" Grid.Row="1" ItemsSource="{Binding Workbench.PresentationSections}" SelectedIndex="{Binding Workbench.PresentationIndex, Mode=OneWay}"
-             Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-      <ListBox.Styles><Style Selector="ListBoxItem"><Setter Property="Padding" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style></ListBox.Styles>
+  <UserControl.Styles>
+    <!-- 原型 .vex-deck nav button：整列宽、无圆角；当前页（aria-current）是 accent-soft 底 + 主题色文字。 -->
+    <Style Selector="ListBox.deck-nav ListBoxItem">
+      <Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0"/>
+      <Setter Property="CornerRadius" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+    <Style Selector="ListBox.deck-nav ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+    </Style>
+    <Style Selector="ListBox.deck-nav ListBoxItem:selected Button.deck-nav-row">
+      <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+  </UserControl.Styles>
+  <!-- 原型 .vex-deck nav：右侧大纲列——面板底色、左缘 1px 描边，宽度与正文让位同源（DeckNavWidth）。 -->
+  <Border Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
+          BorderThickness="1,0,0,0">
+    <ListBox x:Name="PresentationChapters" Classes="deck-nav" ItemsSource="{Binding Workbench.PresentationSections}"
+             SelectedIndex="{Binding Workbench.PresentationIndex, Mode=OneWay}"
+             Background="Transparent" BorderThickness="0"
+             AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
       <ListBox.ItemTemplate><DataTemplate x:DataType="model:MarkdownPresentationDocument+Section">
-        <Button Classes="wb-quiet" Click="ChapterClick" Tag="{Binding Index}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="14,12" Margin="{Binding Indent}">
-          <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12">
-            <TextBlock Text="{Binding Level, StringFormat='H{0}'}" FontSize="12" Opacity="0.55" VerticalAlignment="Center"/>
-            <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="20" TextWrapping="Wrap"/>
-            <TextBlock Grid.Column="2" Text="→" FontSize="18" Opacity="0.55" VerticalAlignment="Center"/>
-          </Grid>
+        <Button Classes="deck-nav-row" Click="ChapterClick" Tag="{Binding Index}" Margin="{Binding Indent}">
+          <TextBlock Text="{Binding NavLabel}" TextTrimming="CharacterEllipsis"/>
         </Button>
       </DataTemplate></ListBox.ItemTemplate>
     </ListBox>
-  </Grid>
+  </Border>
 </UserControl>

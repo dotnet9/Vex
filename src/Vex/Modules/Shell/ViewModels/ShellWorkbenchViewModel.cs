@@ -42,6 +42,8 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private bool _isPresenting;
     private bool _reportedPresentationMap;
     private double _presentationZoom = 1.5;
+    private double _presentationInitialZoom = 1.5;
+    private double _presentationMapScale = 1;
     private string _mindMapLayout = "right";
     private string _mindMapStyle = "quiet";
     private (string View, string Edit, Avalonia.Controls.WindowState WindowState, MarkdownLiveEditorState? LiveState)? _presentationSnapshot;
@@ -69,6 +71,25 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         _showTables = settings.Current.MindMapShowTables ?? false;
         _showLists = settings.Current.MindMapShowLists ?? true;
         History.Reset(document.Markdown);
+        _presentationZoom = Preferences.PresentationScale;
+        // 右栏显隐由布局模型掌握，这里只转发一个开关：右下角悬浮件据此在 12 与 31 之间让位。
+        layout.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ShellWindowLayoutViewModel.ShowOutlineSidebar))
+            {
+                this.RaisePropertyChanged(nameof(ShowOutlineSidebar));
+                this.RaisePropertyChanged(nameof(MapDockMargin));
+            }
+            // 大纲列宽按窗宽 25% 现算，窗口拖动时整套演示悬浮件要跟着重排。
+            if (e.PropertyName == nameof(ShellWindowLayoutViewModel.WorkspaceWidth))
+            {
+                this.RaisePropertyChanged(nameof(DeckNavWidth));
+                this.RaisePropertyChanged(nameof(DeckChromeMargin));
+                this.RaisePropertyChanged(nameof(DeckDockMargin));
+                this.RaisePropertyChanged(nameof(DeckOutlineToggleMargin));
+                this.RaisePropertyChanged(nameof(WorkspaceContentMargin));
+            }
+        };
         document.DocumentChanged += (_, _) =>
         {
             History.Observe(document.Markdown); SynchronizeLive(); QueueMap();
@@ -133,6 +154,43 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public bool CanIncreasePresentationText => PresentationZoom < 2.5;
     public bool CanDecreasePresentationText => PresentationZoom > 1;
 
+    /// <summary>原型 .map-controls：主窗体导图缩放坞读数（1–200 百分比），随偏好持久化。</summary>
+    public double MapZoomPercent
+    {
+        get => Preferences.MapZoom;
+        set
+        {
+            var percent = Math.Round(Math.Clamp(value, 1, 200));
+            if (Math.Abs(Preferences.MapZoom - percent) < .5) return;
+            Preferences.MapZoom = percent;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    /// <summary>原型 [data-deck="scale"] 在导图档换成 0.15–3 倍率；演示内不持久化，翻页会重新聚焦。</summary>
+    public double PresentationMapScale
+    {
+        get => _presentationMapScale;
+        set
+        {
+            var scale = Math.Clamp(value, .15, 3);
+            if (Math.Abs(_presentationMapScale - scale) < .005) return;
+            _presentationMapScale = scale;
+            this.RaisePropertyChanged();
+            this.RaisePropertyChanged(nameof(DeckScale));
+        }
+    }
+
+    /// <summary>画布量程随场景切换：原型主窗体走到 1%，演示导图走到 300%。</summary>
+    public double MapZoomFloor => IsPresenting ? .15 : .01;
+    public double MapZoomCeiling => IsPresenting ? 3 : 2;
+
+    /// <summary>原型 .app-window:has(.structure-sidebar.collapsed) .map-controls{right:31px}。</summary>
+    public Avalonia.Thickness MapDockMargin => new(0, 0, ShowOutlineSidebar ? 12 : 31, 0);
+
+    /// <summary>原型 .app-window:has(.structure-sidebar.collapsed)：右栏收起后折叠钮贴到窗边，右下角悬浮件要给它让位。</summary>
+    public bool ShowOutlineSidebar => _layout.ShowOutlineSidebar;
+
     /// <summary>演示字号拖动条的双向绑定：取值经 SetPresentationZoom 收敛到 0.1 步长。</summary>
     public double PresentationZoomValue { get => PresentationZoom; set => SetPresentationZoom(value); }
     public string PresentationZoomText => $"{Math.Round(PresentationZoom * 100)}%";
@@ -145,9 +203,13 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         _isPresenting = true;
         _presentationMap = _view == "mindmap";
         BuildPresentation();
+        // 原型 deck 在宽屏默认展开大纲（outline = !narrow），本实现只按桌面档处理。
+        _presentationOutline = true;
         _view = "read";
         ShowTypography = false; ShowMapSettings = false; ShowLayouts = false; CloseInspector();
-        _presentationZoom = 1.5;
+        _presentationZoom = Preferences.PresentationScale;
+        _presentationInitialZoom = _presentationZoom;
+        _presentationMapScale = 1;
         _layout.CurrentWindowState = Avalonia.Controls.WindowState.FullScreen;
         // 先暂停副窗口，再通知布局变化，避免布局整理把原副窗口直接关闭。
         NotifyPresentation(true); NotifyModes();
@@ -172,14 +234,18 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public void DecreasePresentationText() => SetPresentationZoom(PresentationZoom - .1);
     private void SetPresentationZoom(double value)
     {
-        _presentationZoom = Math.Round(Math.Clamp(value, 1, 2.5), 1);
+        var zoom = Math.Round(Math.Clamp(value, 1, 2.5), 1);
+        if (Math.Abs(_presentationZoom - zoom) < .001) return;
+        _presentationZoom = zoom;
+        // 演示字号跨会话保留（原型每次进入重置 1.5，这里按需求持久化）。
+        Preferences.PresentationScale = zoom;
         NotifyPresentation();
     }
     private void NotifyPresentation(bool modeChanged = false)
     {
         if (modeChanged) this.RaisePropertyChanged(nameof(IsPresenting));
         if (_reportedPresentationMap != PresentationMap) { _reportedPresentationMap = PresentationMap; this.RaisePropertyChanged(nameof(PresentationMap)); }
-        foreach (var name in new[] { nameof(ShowEditorOptions), nameof(PresentationZoom), nameof(PresentationZoomText), nameof(CanIncreasePresentationText), nameof(CanDecreasePresentationText), nameof(PresentationMarkdown), nameof(PresentationIndex), nameof(PresentationProgress), nameof(PresentationOutline), nameof(PresentationDocument), nameof(WorkspaceContentMargin), nameof(CanPreviousPresentation), nameof(CanNextPresentation), nameof(IsMapVisible), nameof(IsPreviewVisible) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(ShowEditorOptions), nameof(PresentationZoom), nameof(PresentationZoomText), nameof(PresentationMapScale), nameof(DeckScale), nameof(DeckZoomMin), nameof(DeckZoomMax), nameof(DeckZoomStep), nameof(DeckZoomLabel), nameof(DeckResetLabel), nameof(DeckNavWidth), nameof(DeckChromeMargin), nameof(DeckDockMargin), nameof(DeckOutlineToggleMargin), nameof(MapZoomFloor), nameof(MapZoomCeiling), nameof(CanIncreasePresentationText), nameof(CanDecreasePresentationText), nameof(PresentationMarkdown), nameof(PresentationIndex), nameof(PresentationProgress), nameof(PresentationProgressValue), nameof(PresentationOutline), nameof(PresentationDocument), nameof(WorkspaceContentMargin), nameof(CanPreviousPresentation), nameof(CanNextPresentation), nameof(IsMapVisible), nameof(IsPreviewVisible) }) this.RaisePropertyChanged(name);
     }
     private static string L(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
     public string EditingHint => L(IsInstantEditing ? VexL.WBInstantDescription : IsReading ? VexL.WBReadDescription : VexL.WBSourceDescription);

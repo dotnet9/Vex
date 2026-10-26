@@ -11,7 +11,11 @@ public sealed class MarkdownPresentationDocument
 {
     public sealed record Section(int Index, string Title, int Level, int Start, int End)
     {
-        public Thickness Indent => new(Math.Max(0, Level - 1) * 22, 0, 0, 0);
+        /// <summary>原型 nav button：左内距 12 + 每降一级再进 10，这里只记增量，基础 12 由行样式给。</summary>
+        public Thickness Indent => new(Math.Max(0, Level - 1) * 10, 0, 0, 0);
+
+        /// <summary>原型按钮文本是「页码␣␣标题」。</summary>
+        public string NavLabel => $"{Index + 1}  {Title}";
     }
 
     private readonly string _source;

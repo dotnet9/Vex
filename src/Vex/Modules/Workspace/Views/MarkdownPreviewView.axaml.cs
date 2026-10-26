@@ -34,6 +34,9 @@ public partial class MarkdownPreviewView : UserControl
     private bool _restoreQueued;
     private string? _restoreSource;
     private int _scrollRequestVersion;
+    private int _restoreAttempts;
+    private bool _restoreSettleQueued;
+    private const int MaxRestoreAttempts = 24;
     private void ApplyDocumentGeometry()
     {
         var presenting = _viewModel?.IsPresenting == true;
@@ -71,6 +74,8 @@ public partial class MarkdownPreviewView : UserControl
     public MarkdownPreviewView()
     {
         InitializeComponent();
+        // 还原钮没有可绑的命令属性类型差异，直接走控件事件；坞实例随模板固定，挂一次即可。
+        ReadingZoomDock.ResetRequested += (_, _) => _viewModel?.ResetReadingZoom();
         DataContextChanged += OnDataContextChanged;
         AttachedToVisualTree += OnAttachedToVisualTree;
         DetachedFromVisualTree += (_, _) => SetViewModel(null);
@@ -273,6 +278,8 @@ public partial class MarkdownPreviewView : UserControl
         }
 
         _restoringScrollPosition = true;
+        _restoreAttempts = 0;
+        _restoreSettleQueued = false;
         _restoreSource = _viewModel?.Markdown;
         _scrollRequestVersion++;
         LayoutUpdated -= OnRestoreLayoutUpdated;
@@ -294,24 +301,49 @@ public partial class MarkdownPreviewView : UserControl
 
     private void RestoreReadingPosition()
     {
-        if (_savedReadingPosition is null)
+        if (_savedReadingPosition is not { } anchor)
         {
-            _restoringScrollPosition = false;
-            LayoutUpdated -= OnRestoreLayoutUpdated;
+            StopReadingRestore();
             return;
         }
 
         // Markdown 绑定先更新，后台的全文模型稍后才到。不能把全文锚点恢复到
         // 仍在显示的演示短节上，否则库按短节块数夹取后就会被误认为已完成。
-        if (PreviewMarkdownViewer.CurrentModel.Source == _viewModel?.Markdown
-            && PreviewMarkdownViewer.RestoreReadingPosition(_savedReadingPosition))
+        if (PreviewMarkdownViewer.CurrentModel.Source != _viewModel?.Markdown) return;
+        if (ReadingAnchorLanded(anchor))
         {
-            _restoringScrollPosition = false;
-            LayoutUpdated -= OnRestoreLayoutUpdated;
+            // 落锚不等于收尾：长文档的离屏块还按估高排布，随后的布局仍会把视口顶回前几节。
+            // 等调度队列空一次（全文建完）再复验，期间的偏移由这条路径继续纠正。
+            if (_restoreSettleQueued) return;
+            _restoreSettleQueued = true;
+            Dispatcher.UIThread.Post(() =>
+            {
+                _restoreSettleQueued = false;
+                if (!_restoringScrollPosition) return;
+                if (_savedReadingPosition is { } held && !ReadingAnchorLanded(held)) RestoreReadingPosition();
+                else StopReadingRestore();
+            }, DispatcherPriority.ContextIdle);
             return;
         }
-        // Resume when the asynchronously rebuilt document has an actual layout.
+
+        // 偏移收敛后还没量测完的块会继续挪位，因此按块序号回读对不上就重新定位，次数封顶防死循环。
+        if (++_restoreAttempts >= MaxRestoreAttempts)
+        {
+            StopReadingRestore();
+            return;
+        }
+        PreviewMarkdownViewer.RestoreReadingPosition(anchor);
     }
+
+    private void StopReadingRestore()
+    {
+        _restoringScrollPosition = false;
+        LayoutUpdated -= OnRestoreLayoutUpdated;
+    }
+
+    // 库按「视口中心落在哪个块」采样；中心块序号对上，块内比例自然一致。
+    private bool ReadingAnchorLanded(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer.MarkdownReadingPosition anchor) =>
+        PreviewMarkdownViewer.SaveReadingPosition() is { } probe && probe.BlockIndex == anchor.BlockIndex;
 
     private void QueueScrollToEditorPosition()
     {

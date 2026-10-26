@@ -184,11 +184,22 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         app.Resources["VexDensityPaddingSm"] = padSm;
         app.Resources["VexDensityPaddingMd"] = padMd;
         app.Resources["VexDensityPaddingLg"] = padLg;
-        app.Resources["VexDensityCornerRadiusSm"] = radSm;
-        app.Resources["VexDensityCornerRadiusMd"] = radMd;
-        app.Resources["VexDensityCornerRadiusLg"] = radLg;
+        // 圆角令牌必须以 CornerRadius 装箱：样式里的 DynamicResource 直传属性存储，不做 double 隐式转换，
+        // 否则 VexZoomDock 模板的气球圆角会在装载时报 Unable to cast Double to CornerRadius。
+        app.Resources["VexDensityCornerRadiusSm"] = new Avalonia.CornerRadius(radSm);
+        app.Resources["VexDensityCornerRadiusMd"] = new Avalonia.CornerRadius(radMd);
+        app.Resources["VexDensityCornerRadiusLg"] = new Avalonia.CornerRadius(radLg);
         app.Resources["VexDensityRowHeight"] = rowH;
         app.Resources["VexDensityIconSize"] = icon;
+        // 缩放坞（原型 .vex-zoomdock）几何：坞高=控件中档、内缩=pad-sm 减 1px 描边、条宽=坞高×1.875、
+        // 还原钮=坞高减 9、其左分隔线再减 8（原型 top/bottom 各 4）、图标=密度图标加 2。
+        app.Resources["VexZoomDockHeight"] = hMd;
+        app.Resources["VexZoomDockPadding"] = new Avalonia.Thickness(padSm - 1, 0);
+        app.Resources["VexZoomDockGap"] = padSm;
+        app.Resources["VexZoomDockSliderWidth"] = hMd * 1.875;
+        app.Resources["VexZoomDockResetHeight"] = hMd - 9;
+        app.Resources["VexZoomDockDividerHeight"] = hMd - 17;
+        app.Resources["VexZoomDockIconSize"] = icon + 2;
     }
 
     /// <summary>Markdown 渲染密度三档（对应原型 data-mdsize，基准正文 13/15/17）。</summary>

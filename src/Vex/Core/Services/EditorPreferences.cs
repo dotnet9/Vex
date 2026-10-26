@@ -36,6 +36,10 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     public bool PinReadingToolbar { get => settings.Current.PinReadingToolbar ?? true; set => Set(s => s with { PinReadingToolbar = value }); }
     public bool PinMapToolbar { get => settings.Current.PinMapToolbar ?? true; set => Set(s => s with { PinMapToolbar = value }); }
     public double ContentZoom { get => settings.Current.ContentZoom ?? 100; set => Set(s => s with { ContentZoom = Math.Clamp(value, 50, 200) }); }
+    /// <summary>主窗体导图缩放坞读数（原型 .map-controls 的 1–200 百分比）。</summary>
+    public double MapZoom { get => settings.Current.MapZoom ?? 100; set => Set(s => s with { MapZoom = Math.Clamp(value, 1, 200) }); }
+    /// <summary>演示正文缩放坞读数（原型 [data-deck="scale"] 的 1–2.5 倍率），退出演示不回落。</summary>
+    public double PresentationScale { get => settings.Current.PresentationScale ?? 1.5; set => Set(s => s with { PresentationScale = Math.Clamp(value, 1, 2.5) }); }
     public string ExportFormat { get => settings.Current.ExportFormat ?? "HTML"; set => Set(s => s with { ExportFormat = value ?? "" }); }
     public string ExportFolder { get => settings.Current.ExportFolder ?? ""; set => Set(s => s with { ExportFolder = value ?? "" }); }
     public bool ExportOpen { get => settings.Current.ExportOpen ?? true; set => Set(s => s with { ExportOpen = value }); }

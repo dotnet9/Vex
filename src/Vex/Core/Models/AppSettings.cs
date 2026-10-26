@@ -121,6 +121,10 @@ public sealed record AppSettings
     public string? MindMapStyle { get; init; }
     public string? CustomTypographies { get; init; }
     public double? ContentZoom { get; init; }
+    /// <summary>主窗体导图缩放坞的百分比读数（原型 .map-controls，1–200）。</summary>
+    public double? MapZoom { get; init; }
+    /// <summary>演示正文缩放坞的字号倍率（原型 [data-deck="scale"]，1–2.5）。</summary>
+    public double? PresentationScale { get; init; }
     public string? ExportFormat { get; init; }
     public string? ExportFolder { get; init; }
     public bool? ExportOpen { get; init; }

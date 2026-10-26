@@ -75,6 +75,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string ImageFolder = nameof(AppSettings.ImageFolder);
     private const string WordCountVisible = nameof(AppSettings.WordCountVisible);
     private const string ContentZoom = nameof(AppSettings.ContentZoom);
+    private const string MapZoom = nameof(AppSettings.MapZoom);
+    private const string PresentationScale = nameof(AppSettings.PresentationScale);
     private const string ExportFormat = nameof(AppSettings.ExportFormat);
     private const string ExportFolder = nameof(AppSettings.ExportFolder);
     private const string ExportOpen = nameof(AppSettings.ExportOpen);
@@ -156,6 +158,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
             ImageFolder = Get<string>(configuration, ImageFolder) ?? "assets",
             WordCountVisible = Get<bool?>(configuration, WordCountVisible),
             ContentZoom = Get<double?>(configuration, ContentZoom),
+            MapZoom = Get<double?>(configuration, MapZoom),
+            PresentationScale = Get<double?>(configuration, PresentationScale),
             ExportFormat = Choice(configuration, ExportFormat, "HTML", "PDF", "Markdown", "PNG", "Word"),
             ExportFolder = Get<string>(configuration, ExportFolder),
             ExportOpen = Get<bool?>(configuration, ExportOpen),
@@ -250,6 +254,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [ImageFolder] = settings.ImageFolder,
                 [WordCountVisible] = settings.WordCountVisible,
                 [ContentZoom] = settings.ContentZoom,
+                [MapZoom] = settings.MapZoom,
+                [PresentationScale] = settings.PresentationScale,
                 [ExportFormat] = settings.ExportFormat,
                 [ExportFolder] = settings.ExportFolder,
                 [ExportOpen] = settings.ExportOpen,

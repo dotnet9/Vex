@@ -27,6 +27,13 @@ public partial class MainWindow : CodeWFWindow
     public MainWindow()
     {
         InitializeComponent();
+        // 原型 deck 的还原钮语义随档位切换：正文档回进入演示时的字号，导图档适应画布（与主窗体 .map-controls 同款）。
+        PresentationDeckDock.ResetRequested += (_, _) =>
+        {
+            if (DataContext is not MainWindowViewModel shell) return;
+            if (shell.Workbench.PresentationMap) MindMapGuideTarget.FitMap();
+            else shell.Workbench.ResetPresentationZoom();
+        };
         var confirmation = MindMapGuideTarget.DetachConfirmation();
         Grid.SetRowSpan(confirmation, 4); ShellGuideRoot.Children.Add(confirmation);
         WorkspaceViews = new WorkspaceViewController(this, ViewSurface, FloatingViewShelf);

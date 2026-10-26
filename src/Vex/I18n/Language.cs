@@ -716,6 +716,9 @@ public static class VexL
     public static readonly string PrefImageRelative = "Vex.VexL.PrefImageRelative";
     public static readonly string PrefImageFolder = "Vex.VexL.PrefImageFolder";
     public static readonly string PrefZoom = "Vex.VexL.PrefZoom";
+    public static readonly string ZoomRestoreFont = "Vex.VexL.ZoomRestoreFont";
+    public static readonly string ZoomMap = "Vex.VexL.ZoomMap";
+    public static readonly string ZoomPresentation = "Vex.VexL.ZoomPresentation";
     public static readonly string PrefWordCount = "Vex.VexL.PrefWordCount";
     public static readonly string PrefExportFormat = "Vex.VexL.PrefExportFormat";
     public static readonly string PrefExportFolder = "Vex.VexL.PrefExportFolder";

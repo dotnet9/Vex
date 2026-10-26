@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Avalonia;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
@@ -100,6 +101,18 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         private set { this.RaiseAndSetIfChanged(ref _typographyTheme, value); this.RaisePropertyChanged(nameof(BodyFontSize)); }
     }
 
+    /// <summary>
+    /// 原型 .reading-zoom 的横向落点：坞离块右缘 12px，右栏收起时折叠钮贴到窗边，让开一枚钮宽加 8px 缝到 31px。
+    /// 纵向不写在这里，由 vex:VexBottomAxis 按 --vex-axis-view 把中心拉回底部轴线上。
+    /// </summary>
+    public Thickness ReadingDockMargin => new(0, 0, _workbench.ShowOutlineSidebar ? 12 : 31, 0);
+
+    /// <summary>演示态的缩放在演示 chrome 自己的坞上，正文坞让位（原型 .presentation-mode 不渲染阅读坞）。</summary>
+    public bool ShowReadingDock => !IsPresenting;
+
+    /// <summary>原型还原钮：正文缩放回到 100%。</summary>
+    public void ResetReadingZoom() => Preferences.ContentZoom = 100;
+
     [EventHandler]
     public void ApplyMarkdownDocumentChanged(MarkdownDocumentChangedCommand command)
     {
@@ -155,6 +168,8 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
             // 否则演示章节会留在正文里，后续任何不再触发上面事件的显露都只重绘出那一节。
             SynchronizeVisibleDocument(restoreHidden: !IsPresenting && _notifiedIsPresenting);
         if (e.PropertyName == nameof(_workbench.IsPresenting)) _notifiedIsPresenting = IsPresenting;
+        if (e.PropertyName == nameof(_workbench.IsPresenting)) this.RaisePropertyChanged(nameof(ShowReadingDock));
+        if (e.PropertyName == nameof(_workbench.ShowOutlineSidebar)) this.RaisePropertyChanged(nameof(ReadingDockMargin));
         if (e.PropertyName == nameof(_workbench.IsPresenting) && !enteringPresentation) this.RaisePropertyChanged(nameof(IsPresenting));
         if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom)
             && _notifiedPresentationZoom != PresentationZoom)

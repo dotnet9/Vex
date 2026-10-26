@@ -1,5 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
-             xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:mind="https://codewf.com"
+             xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:mind="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls"
              x:DataType="vm:MainWindowViewModel" x:Class="Vex.Modules.Workspace.Views.MarkdownMindMapHost">
   <UserControl.Styles>
     <Style Selector="Button.map-tool, ToggleButton.map-tool"><Setter Property="FontSize" Value="10.5"/><Setter Property="Padding" Value="7,4"/><Setter Property="MinHeight" Value="26"/></Style>
@@ -40,6 +40,7 @@
       <Border x:Name="MapDotGrid" IsHitTestVisible="False"/>
       <mind:MarkdownMindMapView x:Name="Map" IsChapterEditingEnabled="True" PreserveViewportOnRootChange="True" Root="{Binding Workbench.Root}" EnableMotion="{Binding Layout.EnableMotion}"
           LayoutKind="{Binding Workbench.MapLayoutKind}" StyleKind="{Binding Workbench.MapStyleKind}"
+          MinZoom="{Binding Workbench.MapZoomFloor}" MaxZoom="{Binding Workbench.MapZoomCeiling}"
           CanvasBrush="Transparent" CardBrush="{DynamicResource VexPanelBackgroundBrush}" TextBrush="{DynamicResource VexValueBrush}"
           LineBrush="{DynamicResource VexPanelBorderBrush}" DotBrush="{DynamicResource VexPanelBorderBrush}"/>
       <StackPanel Orientation="Horizontal" Spacing="15" Margin="16,13" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False">
@@ -107,14 +108,21 @@
           </StackPanel>
         </Border>
       </Border>
-      <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12" Classes="wb-popover" Padding="3">
-        <StackPanel Orientation="Horizontal" Spacing="1">
-          <Button Classes="wb-quiet" Content="−" Click="ZoomOutClick" Padding="9,4"/>
-          <Button x:Name="ZoomLabel" Classes="wb-quiet" Content="100%" Click="ResetZoomClick" Padding="6,4"/>
-          <Button Classes="wb-quiet" Content="+" Click="ZoomInClick" Padding="9,4"/>
-          <Button Classes="wb-quiet" Click="FitClick" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBFit}}" Padding="8,4"><Path Classes="wb-icon" Data="{StaticResource WBFitIcon}"/></Button>
-        </StackPanel>
-      </Border>
+      <!-- 原型 .map-controls：导图画布右下角的悬浮缩放坞（1–200，步长 1，还原钮=适应画布）。
+           纵向交给 VexBottomAxis 按令牌 vex-axis-view 把坞中心拉回底部轴线；横向 12/31 由视图模型按右栏显隐让位。 -->
+      <vex:VexZoomDock x:Name="MapZoomDock"
+          HorizontalAlignment="Right"
+          VerticalAlignment="Bottom"
+          IsVisible="{Binding !Workbench.IsPresenting}"
+          Margin="{Binding Workbench.MapDockMargin}"
+          Minimum="1"
+          Maximum="200"
+          Step="1"
+          Value="{Binding Workbench.MapZoomPercent, Mode=TwoWay}"
+          Label="{i18n:I18n {x:Static l:VexL.ZoomMap}}"
+          ResetLabel="{i18n:I18n {x:Static l:VexL.WBFit}}"
+          ResetGeometry="{StaticResource WBFitIcon}"
+          vex:VexBottomAxis.CenterFromBottom="19" />
     </Grid>
   </Grid>
 </UserControl>

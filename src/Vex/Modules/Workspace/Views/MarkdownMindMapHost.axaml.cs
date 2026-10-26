@@ -23,6 +23,7 @@ public partial class MarkdownMindMapHost : UserControl
     public Control GuideSettingsTarget => SettingsTarget;
     private ShellWorkbenchViewModel? _workbench;
     private bool _refreshingInspector;
+    private bool _applyingMapZoom;
     private int? _inspectedStart;
     private int? _renamingStart;
     private (bool Paragraphs, bool Lists, bool Code, bool Tables)? _savedVisibility;
@@ -34,6 +35,8 @@ public partial class MarkdownMindMapHost : UserControl
         // 取消钉住时工具条悬浮于导图之上；声明顺序在后会盖住内容，这里用 ZIndex 提升。
         MapEditingToolbar.ZIndex = 1;
         DataContextChanged += OnMapPinContextChanged;
+        // 原型 .map-controls 的还原钮写的是 map-fit：适应画布，而不是回到 100%。
+        MapZoomDock.ResetRequested += (_, _) => Map.Fit();
         BuildMapStyleFlyout();
     }
 
@@ -172,13 +175,13 @@ public partial class MarkdownMindMapHost : UserControl
             if (_workbench?.IsPresenting == true)
             {
                 var section = _workbench.PresentationSections.LastOrDefault(section => section.Start <= node.SourceStart) ?? _workbench.PresentationSections.FirstOrDefault();
-                if (section is not null) _workbench.NavigatePresentation(section.Index);
+                if (section is not null) { _workbench.NavigatePresentation(section.Index); _workbench.ShowPresentationDocument(); }
             }
             else (DataContext as MainWindowViewModel)?.Workbench.LocateSource(node);
         };
         Map.ChapterActionRequested += (_, action) => { if (_workbench is null) return; _workbench.SelectedNode = action.Node; if (action.Action == "rename") BeginRename(action.Node); else ExecuteChapter(action.Action); };
         Map.ChapterMoveRequested += (_, move) => { FlushInspector(); _workbench?.MoveChapter(move.Node.SourceStart, move.Target.SourceStart, move.Position); };
-        Map.ZoomChanged += (_, _) => ZoomLabel.Content = $"{Map.Zoom:P0}";
+        Map.ZoomChanged += (_, _) => PublishMapZoom();
         Map.VisibleNodesChanged += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Workbench.VisibleNodeCount = Map.VisibleNodeCount; };
         DataContextChanged += (_, _) => AttachWorkbench();
         AttachedToVisualTree += (_, _) => { EventBus.Default.Subscribe(this); AttachWorkbench(); };
@@ -260,13 +263,37 @@ public partial class MarkdownMindMapHost : UserControl
         _workbench = (DataContext as MainWindowViewModel)?.Workbench;
         if (_workbench is not null) _workbench.PropertyChanged += WorkbenchChanged;
         Map.IsChapterEditingEnabled = _workbench?.IsPresenting != true;
+        ApplyMapZoom(ActiveMapScale());
         RefreshInspector();
         RefreshHeadingsOnly();
     }
+
+    /// <summary>缩放的真值在视图模型（主窗体走偏好、演示走临时态），画布只是它的另一张脸。</summary>
+    private double ActiveMapScale() => _workbench is { } state
+        ? state.PresentationMap ? state.PresentationMapScale : state.MapZoomPercent / 100
+        : 1;
+
+    private void PublishMapZoom()
+    {
+        if (_applyingMapZoom || _workbench is not { } state) return;
+        if (state.PresentationMap) state.PresentationMapScale = Map.Zoom;
+        else state.MapZoomPercent = Map.Zoom * 100;
+    }
+
+    private void ApplyMapZoom(double scale)
+    {
+        if (Math.Abs(Map.Zoom - scale) < .005) return;
+        _applyingMapZoom = true;
+        try { Map.SetZoom(scale); }
+        finally { _applyingMapZoom = false; }
+    }
+
     private void WorkbenchChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ShellWorkbenchViewModel.IsPresenting))
         { MapHint.IsVisible = Bounds.Width >= 480 && _workbench?.IsPresenting != true; Map.IsChapterEditingEnabled = _workbench?.IsPresenting != true; }
+        if (e.PropertyName is nameof(ShellWorkbenchViewModel.MapZoomPercent) or nameof(ShellWorkbenchViewModel.PresentationMapScale) or nameof(ShellWorkbenchViewModel.PresentationMap))
+            ApplyMapZoom(ActiveMapScale());
         if (e.PropertyName == nameof(ShellWorkbenchViewModel.SelectedNode))
         { Map.SelectNode(_workbench?.SelectedNode?.Id); RefreshInspector(); }
         if (e.PropertyName is nameof(ShellWorkbenchViewModel.ShowParagraphs) or nameof(ShellWorkbenchViewModel.ShowLists) or nameof(ShellWorkbenchViewModel.ShowCode) or nameof(ShellWorkbenchViewModel.ShowTables))
@@ -353,11 +380,9 @@ public partial class MarkdownMindMapHost : UserControl
         Map.RevealNode(node.Id);
         static IEnumerable<MarkdownMindMapNode> Flatten(MarkdownMindMapNode n) { yield return n; foreach (var c in n.Children) foreach (var d in Flatten(c)) yield return d; }
     }
-    private void ZoomOutClick(object? sender, RoutedEventArgs e) => Map.ZoomOut();
     public void ZoomPresentation(bool increase) { if (increase) Map.ZoomIn(); else Map.ZoomOut(); }
-    private void ZoomInClick(object? sender, RoutedEventArgs e) => Map.ZoomIn();
-    private void ResetZoomClick(object? sender, RoutedEventArgs e) => Map.ResetZoom();
-    private void FitClick(object? sender, RoutedEventArgs e) => Map.Fit();
+    /// <summary>演示缩放坞的导图文档位：还原=适应画布，语义同 .map-controls 的 map-fit。</summary>
+    public void FitMap() => Map.Fit();
     private void ExpandClick(object? sender, RoutedEventArgs e) => Map.ExpandAll();
     private void CollapseClick(object? sender, RoutedEventArgs e)
     {

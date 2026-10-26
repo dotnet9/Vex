@@ -55,6 +55,8 @@
             <SolidColorBrush x:Key="VexCanvasInkTintBrush" Color="{DynamicResource StudioTextColor}" Opacity="0.05" />
             <!-- 弹层/对话框浮起底色：浅色主题统一纯白，不随配色纸面偏米黄。 -->
             <SolidColorBrush x:Key="VexElevatedBackgroundBrush" Color="#FFFFFF" />
+            <!-- 原型令牌 on-accent：实底强调色上的文字，浅色纯白、深色纯黑。 -->
+            <SolidColorBrush x:Key="VexOnAccentBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexTableHeaderBrush" Color="#F7F7F8" />
@@ -82,6 +84,8 @@
                  所以取最浅的中性上浮色按 40% 叠在纸面上，随配色自适应地抬起画布。 -->
             <SolidColorBrush x:Key="VexCanvasInkTintBrush" Color="{DynamicResource StudioRaisedColor}" Opacity="0.4" />
             <SolidColorBrush x:Key="VexElevatedBackgroundBrush" Color="#1F2021" />
+            <!-- 原型令牌 on-accent：深色主题的强调色本身是浅色，实底上的文字要转纯黑。 -->
+            <SolidColorBrush x:Key="VexOnAccentBrush" Color="#000000" />
             <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexTableHeaderBrush" Color="#292C32" />
