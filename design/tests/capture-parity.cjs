@@ -88,10 +88,20 @@ const SAMPLE = [
   await page.waitForTimeout(300);
   await page.evaluate(() => { const trigger = document.querySelector('[data-action="typography"]'); if (trigger) trigger.click(); });
   await shot('09-typography-gallery');
-  // 10 演示：Esc 关画廊，F5 进演示
+  // 10 演示：Esc 关画廊，F6 进演示（workbench.js 的 startPresentation 绑在 F6，不是 F5）
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
-  await page.keyboard.press('F5');
-  await shot('10-presentation');
+  await page.keyboard.press('F6');
+  await page.waitForTimeout(600);
+  // deck 是 position:fixed 铺满浏览器视口的全屏层，用内缩 24px 的窗口卡片裁它会切掉标题栏。
+  // 改用 CDP 把视口仿真成原生客户区的 1440x900（setViewportSize 在无头窗口上会被拒绝），
+  // inset:0 的 deck 随之与原生同框同尺寸，再整视口截图。
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setDeviceMetricsOverride', {width:1440, height:900, deviceScaleFactor:1, mobile:false});
+  await page.waitForTimeout(400);
+  await page.evaluate(() => document.activeElement && document.activeElement.blur());
+  await page.waitForTimeout(120);
+  await page.screenshot({path:path.join(output, '10-presentation.png')});
+  console.log('CAPTURED 10-presentation');
   await browser.close();
 })().catch(error => { console.error(error); process.exit(1); });
