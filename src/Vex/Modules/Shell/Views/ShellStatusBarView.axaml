@@ -147,8 +147,8 @@
   </Style>
  </UserControl.Styles>
 
- <!-- 对应原型 .document-statusbar：34px 高、底纸色、上边框为 65% 边框色。 -->
- <Border Height="34" Background="{DynamicResource VexShellBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,1,0,0">
+ <!-- 对应原型 .document-statusbar：34px 高、底纸色。 -->
+ <Border Height="34" Background="{DynamicResource VexShellBackgroundBrush}" BorderThickness="0">
   <!-- 单格三层叠放：原型用 auto 外边距居中，这里直接让布局按钮落在状态栏正中。 -->
   <Grid Margin="10,0">
    <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">

@@ -230,8 +230,8 @@
             <Button Command="{Binding RetryIndex}" Content="{i18n:I18n {x:Static l:VexL.SidebarFilesRetry}}" />
         </StackPanel>
 
-        <!-- 对应原型 .files-toolbar-bottom：34px 高、顶部 1px 分隔线、三个 26×26 图标按钮。 -->
-        <Border Grid.Row="2" Height="34" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" Padding="14,0">
+        <!-- 对应原型 .files-toolbar-bottom：34px 高、三个 26×26 图标按钮。 -->
+        <Border Grid.Row="2" Height="34" BorderThickness="0" Padding="14,0">
             <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
                 <Button x:Name="FilesModeButton" Classes="files-tool"
                         Command="{Binding ToggleListView}"
