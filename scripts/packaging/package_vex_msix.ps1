@@ -17,7 +17,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 function Get-RepoRoot {
-    return (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
+    return (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "../..")).Path
 }
 
 function Get-BuildVersion([string]$RepoRoot) {

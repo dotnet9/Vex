@@ -85,7 +85,7 @@ if ($target -eq 'list') {
     }
     Write-Output ''
     Write-Output 'Usage: publish_all.bat [list|all|Win|Linux|osx|RID] [options]'
-    Write-Output '       pwsh ./publish.ps1 [list|all|Win|Linux|osx|RID] [-Version x.y.z] [options]'
+    Write-Output '       pwsh ./scripts/release/publish.ps1 [list|all|Win|Linux|osx|RID] [-Version x.y.z] [options]'
     Write-Output 'Platform names select the current OS architecture; an exact RID selects one release.'
     Write-Output 'all publishes every release RID, then writes one zip and checksum for each payload.'
     Write-Output 'A release updates Directory.Build.props before packaging. Omit -Version to bump the last number.'
@@ -102,7 +102,7 @@ if ($target -eq 'all') {
     $publishParameters = @{ RuntimeIdentifier = 'all'; Version = $Version }
     if ($WorkRoot) { $publishParameters.ArtifactsRoot = [IO.Path]::GetFullPath($WorkRoot) }
     if ($OutputDirectory) { $publishParameters.OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory) }
-    & (Join-Path $PSScriptRoot 'scripts/publish.ps1') @publishParameters
+    & (Join-Path $PSScriptRoot '../build/publish.ps1') @publishParameters
     return
 }
 
@@ -127,25 +127,25 @@ if ($WorkRoot) { $packageParameters.WorkRoot = [IO.Path]::GetFullPath($WorkRoot)
 if ($OutputDirectory) { $packageParameters.OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory) }
 if ($hostPlatform -eq 'win') {
     if ($InnoSetupCompiler) { $packageParameters.InnoSetupCompiler = $InnoSetupCompiler }
-    & (Join-Path $PSScriptRoot 'scripts/package_windows.ps1') @packageParameters
+    & (Join-Path $PSScriptRoot '../packaging/package_windows.ps1') @packageParameters
     return
 }
 
 # Publish and package the same RID; retain the existing native packaging recipes.
-if (-not $WorkRoot) { $WorkRoot = Join-Path $PSScriptRoot '../../temp_files/vex-release' }
+if (-not $WorkRoot) { $WorkRoot = Join-Path $PSScriptRoot '../../../temp_files/vex-release' }
 $artifactsRoot = Join-Path ([IO.Path]::GetFullPath($WorkRoot)) $runtimeIdentifier
-& (Join-Path $PSScriptRoot 'scripts/publish.ps1') -RuntimeIdentifier $runtimeIdentifier -Version $Version -ArtifactsRoot $artifactsRoot
+& (Join-Path $PSScriptRoot '../build/publish.ps1') -RuntimeIdentifier $runtimeIdentifier -Version $Version -ArtifactsRoot $artifactsRoot
 if ($hostPlatform -eq 'linux') {
     $packageParameters.Remove('WorkRoot')
-    & (Join-Path $PSScriptRoot 'scripts/package_linux_deb.ps1') -RuntimeIdentifier $runtimeIdentifier @packageParameters -Force
+    & (Join-Path $PSScriptRoot '../packaging/package_linux_deb.ps1') -RuntimeIdentifier $runtimeIdentifier @packageParameters -Force
 }
 else {
     $previousArtifactsRoot = $env:ARTIFACTS_ROOT
     $previousPublishRoot = $env:PUBLISH_ROOT
     try {
-        $env:ARTIFACTS_ROOT = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $PSScriptRoot 'artifacts/release' }
-        $env:PUBLISH_ROOT = Join-Path $PSScriptRoot 'artifacts/publish'
-        & bash (Join-Path $PSScriptRoot 'scripts/package_macos.sh') $runtimeIdentifier
+        $env:ARTIFACTS_ROOT = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $PSScriptRoot '../../artifacts/release' }
+        $env:PUBLISH_ROOT = Join-Path $PSScriptRoot '../../artifacts/publish'
+        & bash (Join-Path $PSScriptRoot '../packaging/package_macos.sh') $runtimeIdentifier
         if ($LASTEXITCODE -ne 0) { throw "macOS packaging failed: $LASTEXITCODE" }
     }
     finally {

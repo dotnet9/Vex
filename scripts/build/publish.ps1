@@ -172,7 +172,7 @@ if ($requested -eq 'list') {
         Write-Output ('  {0,-7} {1}' -f $name, ($releasePlatforms[$name] -join ', '))
     }
     Write-Output ''
-    Write-Output 'Usage: pwsh scripts/publish.ps1 [list|all|Win|Linux|osx|RID] [-Version x.y.z] [options]'
+    Write-Output 'Usage: pwsh scripts/build/publish.ps1 [list|all|Win|Linux|osx|RID] [-Version x.y.z] [options]'
     Write-Output 'Platform names select the current OS architecture; an exact RID selects one payload.'
     Write-Output 'all publishes every release RID, then writes one zip and checksum for each payload.'
     Write-Output 'Options: -ArtifactsRoot/-WorkRoot -PublishRoot -OutputDirectory -RuntimeFrameworkVersion -NativeCompilerTargetsPath'

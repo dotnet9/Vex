@@ -52,14 +52,14 @@ try {
     [IO.File]::WriteAllText((Join-Path $source 'I18n/en-US.json'), '{}')
     foreach ($symbol in 'fixture.pdb', 'fixture.dbg', 'fixture.dSYM/Contents/symbol') { [IO.File]::WriteAllText((Join-Path $source $symbol), 'symbols') }
     foreach ($rid in 'linux-x64', 'linux-arm64') {
-        & (Join-Path $repositoryRoot 'scripts/package_linux_deb.ps1') -RuntimeIdentifier $rid -Version 1.2.3 -SourceDirectory $source -OutputDirectory $output -Force
+        & (Join-Path $repositoryRoot 'scripts/packaging/package_linux_deb.ps1') -RuntimeIdentifier $rid -Version 1.2.3 -SourceDirectory $source -OutputDirectory $output -Force
         $package = Join-Path $output "Vex-v1.2.3-$rid.deb"
         $expected = (Get-FileHash -LiteralPath $package -Algorithm SHA256).Hash.ToLowerInvariant()
         if (-not ([IO.File]::ReadAllText("$package.sha256")).StartsWith("$expected  ")) { throw '安装包校验和错误。' }
     }
     $global:CodeWFDebFixture.Fail = $true
     $failed = $false
-    try { & (Join-Path $repositoryRoot 'scripts/package_linux_deb.ps1') -RuntimeIdentifier linux-x64 -Version 1.2.3 -SourceDirectory $source -OutputDirectory $output -Force }
+    try { & (Join-Path $repositoryRoot 'scripts/packaging/package_linux_deb.ps1') -RuntimeIdentifier linux-x64 -Version 1.2.3 -SourceDirectory $source -OutputDirectory $output -Force }
     catch { $failed = $_.Exception.Message -match 'dpkg-deb' }
     if (-not $failed) { throw 'dpkg-deb 的失败未传递给发布任务。' }
     if ($global:CodeWFDebFixture.Inspections -ne 2) { throw '两个 Linux 架构的安装结构均应验证。' }

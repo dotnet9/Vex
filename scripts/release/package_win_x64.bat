@@ -10,5 +10,5 @@ if not defined PWSH (
     echo Windows packaging requires PowerShell 7 ^(pwsh^). Install it, then run this command again.
     exit /b 1
 )
-"%PWSH%" -NoLogo -NoProfile -File "%~dp0scripts\package_windows.ps1" %*
+"%PWSH%" -NoLogo -NoProfile -File "%~dp0..\packaging\package_windows.ps1" %*
 exit /b %ERRORLEVEL%

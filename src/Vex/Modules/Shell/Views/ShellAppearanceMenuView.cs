@@ -351,7 +351,7 @@ public sealed class ShellAppearanceMenuView : UserControl
             tools.Children.Add(edit); tools.Children.Add(remove);
             root.Children.Add(tools);
         }
-        var card = new Button { Classes = { "palette-card" }, Content = root, Height = 92, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "Palette_" + (paletteKey ?? "unknown") };
+        var card = new Button { Classes = { "palette-card" }, Content = root, Height = PaletteCardHeight, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "Palette_" + (paletteKey ?? "unknown") };
         card.Click += (_, _) => { if (_vm is not null) _vm.SelectedPalette = palette; };
         // 原型选中环 box-shadow:0 0 0 1.5px var(--accent)：Button 无 BoxShadow 属性，用外扩 1.5px 的描边 Border 覆层等效呈现。
         var ring = new Border { BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(7.5), Margin = new Thickness(-1.5), IsHitTestVisible = false, IsVisible = false };
@@ -376,7 +376,15 @@ public sealed class ShellAppearanceMenuView : UserControl
         content.Children.Add(label);
         var panel = new Panel();
         panel.Children.Add(dash); panel.Children.Add(content);
-        var card = new Button { Classes = { "palette-add-card" }, Content = panel, Height = PaletteCardHeight, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "AddCustomPalette" };
+        // 内容必须纵向拉伸，否则虚线只包住居中的加号和文字，而不是整张卡片。
+        var card = new Button
+        {
+            Classes = { "palette-add-card" }, Content = panel, Height = PaletteCardHeight,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            VerticalContentAlignment = VerticalAlignment.Stretch,
+            Name = "AddCustomPalette"
+        };
         card.Click += (_, _) => OpenPaletteDialog(null);
         ToolTip.SetTip(card, Text("AddCustomPalette"));
         return card;
