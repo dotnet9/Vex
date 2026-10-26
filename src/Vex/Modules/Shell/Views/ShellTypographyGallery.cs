@@ -110,13 +110,9 @@ public sealed class ShellTypographyGallery : UserControl
         Grid.SetColumn(close, 1); titleRow.Children.Add(close);
         _header.Children.Add(titleRow);
 
-        // 渲染密度：与外观菜单同款胶囊分段条（紧凑/正常/宽松 → Markdown 基准字号 13/15/17）。
-        var densityRow = new Grid { ColumnDefinitions = new("Auto,*"), ColumnSpacing = 10, Height = 52 };
-        var densityLabel = new TextBlock { Text = Text("RenderDensityTitle"), FontSize = 11, FontWeight = FontWeight.Normal, VerticalAlignment = VerticalAlignment.Center };
-        Resource(densityLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush"); densityRow.Children.Add(densityLabel);
-        // 三枚等宽胶囊（flex:1）：紧贴标签右侧，均分 320px。
+        // 三枚等宽胶囊（flex:1）：从排版弹层内容左侧对齐。
+        var densityRow = new Grid { ColumnDefinitions = new("*"), Height = 52 };
         var pills = new UniformGrid { Columns = 3, Width = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
-        Grid.SetColumn(pills, 1);
         foreach (var (key, labelKey) in new[] { ("compact", "DensityCompact"), ("normal", "DensityNormal"), ("relaxed", "DensityRelaxed") })
         {
             var pill = new Button { Classes = { "appearance-pill", "typography-density" }, Content = Text(labelKey), FontWeight = FontWeight.Normal, HorizontalAlignment = HorizontalAlignment.Stretch };

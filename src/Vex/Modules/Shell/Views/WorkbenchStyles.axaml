@@ -36,6 +36,8 @@
     <StreamGeometry x:Key="WBFitIcon">M3 9V3H9 M15 3H21V9 M21 15V21H15 M9 21H3V15 M8 8H16V16H8Z</StreamGeometry>
     <StreamGeometry x:Key="WBColumnsIcon">M3 3H21V21H3Z M12 3V21</StreamGeometry>
     <StreamGeometry x:Key="WBCloseIcon">M6 6L18 18 M18 6L6 18</StreamGeometry>
+    <StreamGeometry x:Key="WBPinIcon">M12 17v5 M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z</StreamGeometry>
+    <StreamGeometry x:Key="WBPinOffIcon">M12 17v5 M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89 M2 2l20 20 M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11</StreamGeometry>
     <StreamGeometry x:Key="WBGearIcon">M15 12A3 3 0 1 1 9 12A3 3 0 1 1 15 12 M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z</StreamGeometry>
   </Styles.Resources>
   <Style Selector="Button.selected-choice /template/ ContentPresenter#PART_ContentPresenter">
@@ -191,6 +193,25 @@
   <Style Selector="Button.tb-icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
   </Style>
+  <Style Selector="Button.titlebar-action, ToggleButton.titlebar-action">
+    <Setter Property="MinHeight" Value="0"/><Setter Property="MinWidth" Value="0"/>
+    <Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="4"/>
+    <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="Button.titlebar-action:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.titlebar-action:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.titlebar-action:focus-visible /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.titlebar-action:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+  </Style>
+  <Style Selector="Button.titlebar-action:pointerover, ToggleButton.titlebar-action:pointerover, Button.titlebar-action:focus-visible, ToggleButton.titlebar-action:focus-visible">
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="Button.titlebar-action:pointerover Path.wb-icon, ToggleButton.titlebar-action:pointerover Path.wb-icon, Button.titlebar-action:focus-visible Path.wb-icon, ToggleButton.titlebar-action:focus-visible Path.wb-icon, Button.titlebar-action:pressed Path.wb-icon, ToggleButton.titlebar-action:pressed Path.wb-icon">
+    <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="Button.titlebar-action:pressed /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.titlebar-action:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexPressedBrush}"/>
+  </Style>
   <Style Selector="Button.wb-quiet:pointerover, ToggleButton.wb-quiet:pointerover"><Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/></Style>
   <Style Selector="ToggleButton.wb-quiet:checked"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/></Style>
   <!-- Semi 在模板层设置交互颜色，这里同步轻量切换按钮的实际呈现状态。 -->
@@ -282,7 +303,7 @@
     </Setter>
   </Style>
 
-  <!-- 图钉双态：钉住=竖直实心图钉；取消钉住=45° 空心并整体淡化。 -->
+  <!-- Lucide 图钉双态：钉住与取消钉住使用成对的 pin / pin-off 几何。 -->
   <Style Selector="ToggleButton.toolbar-pin">
     <Setter Property="MinWidth" Value="0"/>
     <Setter Property="MinHeight" Value="0"/>
@@ -314,15 +335,8 @@
     <Setter Property="StrokeLineCap" Value="Round"/>
     <Setter Property="StrokeJoin" Value="Round"/>
   </Style>
-  <Style Selector="ToggleButton.toolbar-pin Path.pin-head">
-    <Setter Property="Fill" Value="{DynamicResource VexMutedBrush}"/>
-    <Setter Property="StrokeThickness" Value="0"/>
-  </Style>
   <Style Selector="ToggleButton.toolbar-pin:pointerover Path">
     <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
-  </Style>
-  <Style Selector="ToggleButton.toolbar-pin:pointerover Path.pin-head">
-    <Setter Property="Fill" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
   <Style Selector="ToggleButton.toolbar-pin:checked Viewbox.pin-off">
     <Setter Property="IsVisible" Value="False"/>

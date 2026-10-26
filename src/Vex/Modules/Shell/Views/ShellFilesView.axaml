@@ -241,7 +241,7 @@
                         AutomationProperties.Name="{i18n:I18n {Binding DisplayModeHintKey}}">
                     <Grid>
                         <Viewbox Width="15" Height="15" IsVisible="{Binding IsTreeView}">
-                            <Path x:Name="FilesModeIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="None" />
+                            <Path x:Name="FilesModeIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="Uniform" />
                         </Viewbox>
                         <Viewbox Width="15" Height="15" IsVisible="{Binding IsListView}">
                             <Path x:Name="FilesListModeIcon" Classes="stroke-ico" Width="24" Height="24" Stretch="None" />

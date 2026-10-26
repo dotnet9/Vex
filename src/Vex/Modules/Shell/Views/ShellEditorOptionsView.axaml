@@ -29,8 +29,8 @@
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
         <ToggleButton x:Name="PinEditor" Classes="toolbar-pin" IsChecked="{Binding Workbench.Preferences.PinEditorToolbar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
           <Panel Width="17" Height="17">
-            <Viewbox Classes="pin-on"><Canvas Width="24" Height="24"><Path Classes="pin-head" Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
-            <Viewbox Classes="pin-off"><Canvas Width="24" Height="24"><Canvas.RenderTransform><RotateTransform Angle="45" CenterX="12" CenterY="11"/></Canvas.RenderTransform><Path Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
+            <Viewbox Classes="pin-on"><Path Data="{StaticResource WBPinIcon}"/></Viewbox>
+            <Viewbox Classes="pin-off"><Path Data="{StaticResource WBPinOffIcon}"/></Viewbox>
           </Panel>
         </ToggleButton>
         <!-- 原型：源码模式下格式条不带排版入口，改由阅读窗格头居中提供（WorkspaceViewController）。 -->

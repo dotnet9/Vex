@@ -158,12 +158,6 @@
       <TextBlock Text="{i18n:I18n {x:Static l:VexL.SidebarFiles}}" FontSize="12" VerticalAlignment="Center" />
      </StackPanel>
     </ToggleButton>
-    <ToggleButton x:Name="OutlineToggle" Classes="corner-action" IsChecked="{Binding Layout.ShowOutlineSidebar, Mode=OneWay}" Command="{Binding Layout.ToggleOutline}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Outline}}">
-     <StackPanel Orientation="Horizontal" Spacing="5">
-      <Path Width="15" Height="15" Data="M5 4H19A2 2 0 0 1 21 6V18A2 2 0 0 1 19 20H5A2 2 0 0 1 3 18V6A2 2 0 0 1 5 4Z M15 4V20" />
-      <TextBlock Text="{i18n:I18n {x:Static l:VexL.Outline}}" FontSize="12" VerticalAlignment="Center" />
-     </StackPanel>
-    </ToggleButton>
    </StackPanel>
    <Border x:Name="ViewSwitch" Classes="view-switch" HorizontalAlignment="Center" VerticalAlignment="Center">
     <StackPanel Orientation="Horizontal" Spacing="2">

@@ -87,7 +87,7 @@
             <Button x:Name="QuickStartButton" IsVisible="False" Classes="wb-quiet" Click="QuickStartClick" VerticalAlignment="Center" MinHeight="26" Padding="9,4" FontSize="12">
                 <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBQuickStart}}" />
             </Button>
-            <Button x:Name="FindButton" Classes="tb-icon" Command="{Binding ShowFindPanel}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Find}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Find}}" VerticalAlignment="Center">
+            <Button x:Name="FindButton" Classes="tb-icon titlebar-action" Command="{Binding ShowFindPanel}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Find}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Find}}" VerticalAlignment="Center">
                 <Path Classes="wb-icon" Data="{StaticResource WBSearchIcon}" />
             </Button>
             <shell:ShellAppearanceMenuView x:Name="AppearanceMenu"/>

@@ -26,8 +26,8 @@
           <ToggleButton x:Name="MapSourceButton" Classes="wb-quiet map-tool" IsChecked="{Binding Workbench.ShowMapSource, Mode=OneWay}" Command="{Binding Workbench.ToggleMapSource}"><StackPanel Orientation="Horizontal" Spacing="5"><Path Classes="wb-icon" Width="11" Height="11" Data="{StaticResource WBColumnsIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBMapSource}}"/></StackPanel></ToggleButton>
           <ToggleButton x:Name="PinMap" Classes="toolbar-pin" Margin="4,0,0,0" IsChecked="{Binding Workbench.Preferences.PinMapToolbar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
             <Panel Width="14" Height="14">
-              <Viewbox Classes="pin-on"><Canvas Width="24" Height="24"><Path Classes="pin-head" Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
-              <Viewbox Classes="pin-off"><Canvas Width="24" Height="24"><Canvas.RenderTransform><RotateTransform Angle="45" CenterX="12" CenterY="11"/></Canvas.RenderTransform><Path Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
+              <Viewbox Classes="pin-on"><Path Data="{StaticResource WBPinIcon}"/></Viewbox>
+              <Viewbox Classes="pin-off"><Path Data="{StaticResource WBPinOffIcon}"/></Viewbox>
             </Panel>
           </ToggleButton>
         </StackPanel>

@@ -194,7 +194,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
             WorkbenchGuideViewModel.Anchor.Preview => _window.FindControl<Control>("PreviewGuideTarget"),
             WorkbenchGuideViewModel.Anchor.Map => _window.FindControl<Control>("MindMapGuideTarget"),
             WorkbenchGuideViewModel.Anchor.OutlinePanel => _window.FindControl<Control>("OutlineGuideTarget"),
-            WorkbenchGuideViewModel.Anchor.OutlineToggle => _window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")?.FindControl<ToggleButton>("OutlineToggle"),
+            WorkbenchGuideViewModel.Anchor.OutlineToggle => _window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")?.OutlineButton,
             WorkbenchGuideViewModel.Anchor.TypographyButton => _window.FindControl<ShellEditorOptionsView>("EditorOptions")?.FindControl<Button>("TypographyTarget"),
             WorkbenchGuideViewModel.Anchor.LayoutButton => _window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")?.FindControl<Button>("LayoutButton"),
             WorkbenchGuideViewModel.Anchor.LayoutGallery => _window.FindControl<WorkspaceLayoutGallery>("LayoutGallery"),

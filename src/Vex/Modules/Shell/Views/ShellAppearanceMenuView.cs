@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -8,23 +9,29 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using CodeWF.Toolkit.Lang;
 using Vex.Core.Models;
+using Vex.Controls;
 using Vex.Modules.Shell.ViewModels;
 using static Vex.Modules.Shell.Views.DesignSelectionControls;
+using ShapePath = Avalonia.Controls.Shapes.Path;
 
 namespace Vex.Modules.Shell.Views;
 
 public sealed class ShellAppearanceMenuView : UserControl
 {
     private ShellAppearanceViewModel? _vm;
+    private MainWindowViewModel? _shell;
     private readonly Grid _palettes = new() { ColumnDefinitions = new("*,*,*"), ColumnSpacing = 6, RowSpacing = 6 };
     private readonly Dictionary<PaletteOption, (Button Button, TextBlock Check, Border Ring)> _paletteButtons = [];
     private readonly Dictionary<ThemeOption, Button> _modeButtons = [];
     private readonly Dictionary<string, Button> _densityButtons = [];
     private readonly Dictionary<LanguageOption, (Button Button, Border Chip, TextBlock ChipText, TextBlock Name, TextBlock Check)> _languageRows = [];
     private Button? _addCard;
+    private ToggleButton? _outlineButton;
+    private ShapePath? _outlineIcon;
     private ScrollViewer? _scroll;
     public Button AppearanceButton { get; private set; } = null!;
     public Button LanguageButton { get; private set; } = null!;
+    public ToggleButton OutlineButton => _outlineButton ?? throw new InvalidOperationException("Outline button is not built yet");
     public const double MenuWidth = 430;
 
     /// <summary>原型 .density-options button.on 与卡片选中环共用的强调色派生点。</summary>
@@ -36,7 +43,14 @@ public sealed class ShellAppearanceMenuView : UserControl
         Navigation(_palettes, () => 3);
         DataContextChanged += (_, _) => Attach();
         AttachedToVisualTree += (_, _) => Attach();
-        DetachedFromVisualTree += (_, _) => { if (_vm is not null) _vm.PropertyChanged -= Changed; I18nManager.Instance.CultureChanged -= CultureChanged; _vm = null; };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (_vm is not null) _vm.PropertyChanged -= Changed;
+            if (_shell is not null) _shell.Layout.PropertyChanged -= LayoutChanged;
+            I18nManager.Instance.CultureChanged -= CultureChanged;
+            _vm = null;
+            _shell = null;
+        };
     }
 
     private void Attach()
@@ -44,10 +58,14 @@ public sealed class ShellAppearanceMenuView : UserControl
         var vm = (DataContext as MainWindowViewModel)?.Appearance;
         if (ReferenceEquals(vm, _vm)) return;
         if (_vm is not null) _vm.PropertyChanged -= Changed;
+        if (_shell is not null) _shell.Layout.PropertyChanged -= LayoutChanged;
         I18nManager.Instance.CultureChanged -= CultureChanged;
         _vm = vm;
+        _shell = DataContext as MainWindowViewModel;
         if (vm is null) return;
-        vm.PropertyChanged += Changed; I18nManager.Instance.CultureChanged += CultureChanged;
+        vm.PropertyChanged += Changed;
+        if (_shell is not null) _shell.Layout.PropertyChanged += LayoutChanged;
+        I18nManager.Instance.CultureChanged += CultureChanged;
         if (DataContext is MainWindowViewModel shell)
         {
             shell.Workbench.AppearanceMenuRequested -= OnAppearanceMenuRequested;
@@ -123,6 +141,24 @@ public sealed class ShellAppearanceMenuView : UserControl
             row.Name.Foreground = selected ? accent : text;
         }
         if (_addCard is not null) _addCard.IsVisible = !_vm.PaletteOptions.Any(option => option.Key.StartsWith("user:", StringComparison.Ordinal));
+        UpdateOutlineButton();
+    }
+
+    private void LayoutChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ShellWindowLayoutViewModel.ShowOutlineSidebar) or nameof(ShellWindowLayoutViewModel.IsOutlineVisible) or null)
+            UpdateOutlineButton();
+    }
+
+    private void UpdateOutlineButton()
+    {
+        if (_outlineButton is null || _outlineIcon is null || _shell is null) return;
+        var visible = _shell.Layout.ShowOutlineSidebar;
+        _outlineButton.IsChecked = visible;
+        _outlineIcon.Data = MenuIconCatalog.Get(visible ? "panel-right-close" : "panel-right-open");
+        var tooltip = Text(visible ? "CollapseStructure" : "Outline");
+        ToolTip.SetTip(_outlineButton, tooltip);
+        AutomationProperties.SetName(_outlineButton, tooltip);
     }
 
     // 原型 .appearance-choices strong：12px/15 行高的分节标题。
@@ -160,6 +196,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         if (_vm is null) return;
         _paletteButtons.Clear(); _modeButtons.Clear(); _densityButtons.Clear(); _languageRows.Clear(); _palettes.Children.Clear();
         AppearanceButton = Button("", () => { });
+        AppearanceButton.Classes.Add("titlebar-action");
         AppearanceButton.Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, Children =
         {
             new PathIcon { Width = 15, Height = 15, Data = Geometry.Parse("M8 1a7 7 0 1 0 0 14h1a2 2 0 0 0 1-3.7.8.8 0 0 1 .4-1.5H12a3 3 0 0 0 3-3C15 3.5 12 1 8 1Z M4.5 6h.1 M7 3.5h.1 M10.5 4h.1 M12 6.5h.1") },
@@ -170,11 +207,16 @@ public sealed class ShellAppearanceMenuView : UserControl
         AppearanceButton.Padding = new Thickness(7, 0); AppearanceButton.CornerRadius = new CornerRadius(5);
         AppearanceButton.FontSize = 11;
         AppearanceButton.Name = "TitleBarAppearanceButton";
+        ToolTip.SetTip(AppearanceButton, Text("Appearance"));
+        AutomationProperties.SetName(AppearanceButton, Text("Appearance"));
         LanguageButton = Button("文ᴬ", () => { });
+        LanguageButton.Classes.Add("titlebar-action");
         LanguageButton.Width = 32; LanguageButton.Height = 32; LanguageButton.MinHeight = 0;
         LanguageButton.Padding = new Thickness(0); LanguageButton.CornerRadius = new CornerRadius(4);
         LanguageButton.FontSize = 12;
         LanguageButton.Name = "TitleBarLanguageButton";
+        ToolTip.SetTip(LanguageButton, Text("MenuLanguage"));
+        AutomationProperties.SetName(LanguageButton, Text("MenuLanguage"));
         var densityRow = PillRow(
             (Text("DensityCompact"), () => _vm.SelectedDensity = "compact", "density-compact"),
             (Text("DensityNormal"), () => _vm.SelectedDensity = "normal", "density-normal"),
@@ -242,7 +284,21 @@ public sealed class ShellAppearanceMenuView : UserControl
         Navigation(languages, () => 1);
         var languageFlyout = new Flyout { Content = languages, Placement = PlacementMode.BottomEdgeAlignedRight };
         languageFlyout.FlyoutPresenterClasses.Add("design-language-picker"); LanguageButton.Flyout = languageFlyout;
-        Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { AppearanceButton, LanguageButton } };
+        _outlineIcon = new ShapePath { Classes = { "wb-icon", "titlebar-outline-icon" }, Width = 15, Height = 15, Stretch = Stretch.Uniform };
+        _outlineButton = new ToggleButton
+        {
+            Content = _outlineIcon,
+            Width = 30,
+            Height = 28,
+            MinHeight = 0,
+            MinWidth = 0,
+            Padding = new Thickness(0),
+            CornerRadius = new CornerRadius(4),
+            Classes = { "titlebar-action" },
+        };
+        _outlineButton.Click += (_, _) => _shell?.Layout.ToggleOutline();
+        Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { AppearanceButton, LanguageButton, _outlineButton } };
+        UpdateOutlineButton();
         Changed(null, new(""));
     }
 
