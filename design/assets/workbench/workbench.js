@@ -175,6 +175,9 @@
   }).observe(workspace);
 
   var canvas = $('map-viewport'), scene = $('map-scene'), input = $('markdown-input'), mapElements = new Map();
+  /* 导图缩放坞的标记已在 HTML 里，这里只接上「拖动时才浮出百分比气泡」的显隐。 */
+  var zoomDock = document.querySelector('.map-controls');
+  VexZoomDock.attach(zoomDock);
   var labels = { heading: '标题', paragraph: '段落', quote: '引用', list: '列表项', code: '代码块', table: '表格' };
   var branchColors = ['var(--accent)', 'var(--branch-secondary)', 'var(--branch-tertiary)', 'var(--accent)', 'var(--muted)'];
   var textMeasure = document.createElement('canvas').getContext('2d');
@@ -750,7 +753,10 @@
   function transform(animate) {
     scene.classList.toggle('animating', !!animate);
     scene.style.transform = 'translate(' + state.x + 'px,' + state.y + 'px) scale(' + state.scale + ')';
-    $('zoom-value').textContent = Math.round(state.scale * 100) + '%';
+    var percent = Math.round(state.scale * 100) + '%';
+    $('map-zoom-range').value = Math.round(state.scale * 100);
+    /* 先回写拖动条再亮气泡：气泡按拖动条当前值算块心位置。 */
+    VexZoomDock.update(zoomDock, percent);
   }
   function fit(readable) {
     if (settings.layout !== 'right') readable = false;
@@ -770,6 +776,8 @@
     state.x = anchor.x - (anchor.x - state.x) * state.scale / previous; state.y = anchor.y - (anchor.y - state.y) * state.scale / previous;
     transform(!anchor.pointer);
   }
+  /* 拖动条与旧步进按钮同义：把目标百分比换算成倍率，锚点仍取画布中心，夹取与平移交给 zoom()。 */
+  $('map-zoom-range').addEventListener('input', function () { zoom(Number(this.value) / 100 / state.scale); });
   var drag = null;
   canvas.addEventListener('pointerdown', function (event) {
     if (event.target.closest('button, input, textarea, [draggable="true"]') || event.button !== 0) return;
@@ -1084,12 +1092,6 @@
       },
       "map-fit": function (action, item) {
         fit();
-      },
-      "zoom-in": function (action, item) {
-        zoom(1.2);
-      },
-      "zoom-out": function (action, item) {
-        zoom(1 / 1.2);
       },
       "close-inspector": function (action, item) {
         state.selected = null; $('node-inspector').hidden = true; renderMap();

@@ -138,10 +138,11 @@
   if (!pane) return;
   var dock = document.createElement('footer');
   dock.className = 'vex-zoomdock reading-zoom';
-  dock.innerHTML = '<div><span class="zoom-tools"><span class="zoom-label" aria-hidden="true">A−</span><input type="range" class="zoom-range" min="50" max="200" step="5" aria-label="' + VexL.t('内容缩放') + '"><span class="zoom-label" aria-hidden="true">A+</span><span class="zoom-value"></span></span><button type="button" class="zoom-reset"><svg class="ico" aria-hidden="true"><use href="#i-fit"/></svg></button></div>';
+  dock.innerHTML = '<div><span class="zoom-tools"><input type="range" class="zoom-range" min="50" max="200" step="5" data-l10n-label="内容缩放" aria-label="' + VexL.t('内容缩放') + '"><span class="zoom-value" aria-hidden="true"></span></span><button type="button" class="zoom-reset" data-l10n-tip="还原字号" data-l10n-label="还原字号"><svg class="ico" aria-hidden="true"><use href="#i-fit"/></svg></button></div>';
   pane.appendChild(dock);
-  var range = dock.querySelector('.zoom-range'), value = dock.querySelector('.zoom-value'), reset = dock.querySelector('.zoom-reset');
-  function sync() { var zoom = Number(VexPreferences.values.zoom) || 100; range.value = zoom; value.textContent = Math.round(zoom) + '%'; }
+  VexZoomDock.attach(dock);
+  var range = dock.querySelector('.zoom-range'), reset = dock.querySelector('.zoom-reset');
+  function sync() { var zoom = Number(VexPreferences.values.zoom) || 100; range.value = zoom; VexZoomDock.update(dock, Math.round(zoom) + '%'); }
   range.addEventListener('input', function () { VexPreferences.set('zoom', Number(range.value)); });
   reset.onclick = function () { VexPreferences.set('zoom', 100); };
   var tip = VexL.t('还原字号');

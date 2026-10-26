@@ -158,8 +158,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .content .map-node-text { color: var(--muted); font-weight: 400; font-size: 12px; line-height: 20px; }
 .map-collapse { position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 19px; height: 19px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); display: grid; place-items: center; border-radius: 50%; font: 11px/1 Consolas, monospace; }
 .map-collapse:hover { color: var(--accent); border-color: var(--accent); }
-.map-controls { position: absolute; bottom: 20px; right: 20px; display: flex; align-items: center; padding: 3px; gap: 2px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--vex-radius-md); box-shadow: 0 4px 18px #00000008; z-index: 2; }
-.map-controls .zoom-value { font-size: 10.5px; font-variant-numeric: tabular-nums; width: 46px; text-align: center; color: var(--muted); }
+/* 导图缩放控件的几何与配色统一走 .vex-zoomdock（prototype.css），此处不再另立配方。 */
 .map-hint { position: absolute; left: 20px; bottom: 22px; font-size: 10px; color: var(--muted); pointer-events: none; opacity: .8; }
 .map-legend { position: absolute; top: 18px; left: 20px; display: flex; gap: 15px; color: var(--muted); font-size: 10px; pointer-events: none; }
 .map-legend span { display: flex; align-items: center; gap: 5px; }

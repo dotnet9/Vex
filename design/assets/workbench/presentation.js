@@ -42,11 +42,14 @@
     var priorFullscreen = document.fullscreenElement, requestedFullscreen = false;
     root.className = 'vex-deck'; root.tabIndex = -1; root.setAttribute('role', 'dialog');
     root.setAttribute('aria-modal', 'true');
-    /* 大纲与主界面一致放右侧，折叠手柄浮在大纲左下角；底栏与导图视图统一为右侧悬浮（缩放拖动条 + 还原）。 */
-    root.innerHTML = '<header><strong></strong><span class="deck-modes vex-segmented" role="group"><button type="button" data-deck="markdown"></button><button type="button" data-deck="map"></button></span><button type="button" data-deck="exit">×</button></header>' +
+    /* 大纲与主界面一致放右侧，折叠手柄浮在大纲左下角；底栏与导图视图统一为右侧悬浮（缩放拖动条 + 还原）。
+     * 阅读/导图切换不再占标题栏，改成正常窗体底部状态栏那种正中悬浮胶囊。 */
+    root.innerHTML = '<header><strong></strong><button type="button" data-deck="exit">×</button></header>' +
       '<div class="deck-stage"><div class="deck-scroll"><article class="md-body markdown-body"></article></div><div class="deck-map"><div class="deck-map-scene"></div></div><nav id="deck-outline-nav"></nav></div>' +
       '<button type="button" class="deck-outline-toggle" data-deck="outline" aria-controls="deck-outline-nav"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg></button>' +
-      '<footer class="vex-zoomdock"><div><span class="zoom-tools"><span class="zoom-label" aria-hidden="true">A−</span><input type="range" class="zoom-range" data-deck="scale" min="1" max="2.5" step="0.1" value="' + scale + '" aria-label="演示字号"><span class="zoom-label" aria-hidden="true">A+</span><span class="zoom-value"></span></span><button type="button" class="zoom-reset" data-deck="fit"><svg aria-hidden="true"><use href="#i-fit"/></svg></button></div></footer><progress max="1"></progress>';
+      '<span class="deck-modes vex-segmented" role="group"><button type="button" data-deck="markdown"></button><button type="button" data-deck="map"></button></span>' +
+      '<footer class="vex-zoomdock"><div><span class="zoom-tools"><input type="range" class="zoom-range" data-deck="scale" min="1" max="2.5" step="0.1" value="' + scale + '" aria-label="演示字号"><span class="zoom-value" aria-hidden="true"></span></span><button type="button" class="zoom-reset" data-deck="fit"><svg aria-hidden="true"><use href="#i-fit"/></svg></button></div></footer><progress max="1"></progress>';
+    VexZoomDock.attach(root);
     var nav = root.querySelector('nav'), body = root.querySelector('article'), scroll = root.querySelector('.deck-scroll');
     /* 水印开启即全场景显示（含演示），见 watermark.js。 */
     if (window.VexWatermark && VexWatermark.active) body.classList.toggle('vex-watermarked', VexWatermark.active());
@@ -58,7 +61,13 @@
     }).join('') + '</svg>' + mapNodes.map(function (node) {
       return '<button type="button" class="deck-map-node" data-map-page="' + node.index + '" style="left:' + node.x + 'px;top:' + node.y + 'px;height:' + node.height + 'px">' + TexEditor.esc(node.title) + '</button>';
     }).join('');
-    function transformMap() { scene.style.transform = 'translate(' + mapX + 'px,' + mapY + 'px) scale(' + mapScale + ')'; root.classList.toggle('deck-map-overview', mapNodes.length > 300 && mapScale < .2); root.querySelector('.zoom-value').textContent = Math.round((mapMode ? mapScale : scale) * 100) + '%'; }
+    function transformMap() {
+      scene.style.transform = 'translate(' + mapX + 'px,' + mapY + 'px) scale(' + mapScale + ')';
+      root.classList.toggle('deck-map-overview', mapNodes.length > 300 && mapScale < .2);
+      /* 滚轮/平移改的倍率要回写拖动条：坞里只剩拖动条这一个读数，不能让它停在旧值。 */
+      if (mapMode) root.querySelector('[data-deck="scale"]').value = mapScale;
+      VexZoomDock.update(root, Math.round((mapMode ? mapScale : scale) * 100) + '%');
+    }
     function focusMap() { var node = mapNodes[page]; mapScale = 1; mapX = map.clientWidth / 2 - node.cx; mapY = map.clientHeight / 2 - node.cy; transformMap(); }
     function fitScale() { return Math.max(.000001, Math.min(1, (map.clientWidth - 48) / mapWidth, (map.clientHeight - 48) / mapHeight)); }
     function zoomMap(factor) { var next = Math.max(Math.min(.15, fitScale()), Math.min(3, mapScale * factor)), ratio = next / mapScale; mapX = map.clientWidth / 2 + (mapX - map.clientWidth / 2) * ratio; mapY = map.clientHeight / 2 + (mapY - map.clientHeight / 2) * ratio; mapScale = next; transformMap(); }
@@ -71,7 +80,6 @@
       root.setAttribute('aria-label', l.presentationOutline);
       root.querySelector('header strong').textContent = options.title();
       root.querySelector('.deck-modes').setAttribute('aria-label', l.presentationMarkdown + ' / ' + l.mindMap);
-      root.querySelector('.zoom-value').textContent = Math.round((mapMode ? mapScale : scale) * 100) + '%';
       root.querySelector('[data-deck="markdown"]').textContent = l.presentationMarkdown;
       root.querySelector('[data-deck="map"]').textContent = l.mindMap;
       root.querySelector('[data-deck="markdown"]').setAttribute('aria-pressed', String(!mapMode));
@@ -87,12 +95,14 @@
       scroll.inert = narrow && outline;
       map.inert = narrow && outline;
       root.style.setProperty('--deck-scale', scale);
-      /* 内联字号：压过 md-body 的全局字号规则，保证 A± 拖动条真实缩放讲稿。 */
+      /* 内联字号：压过 md-body 的全局字号规则，保证字号拖动条真实缩放讲稿。 */
       body.style.fontSize = 'calc(15px * ' + scale + ')';
-      /* 拖动条随模式切换量程：页面 1–2.5，导图 0.15–3。 */
+      /* 拖动条随模式切换量程：页面 1–2.5，导图 0.15–3。量程定了再写百分比，气泡按量程算块心。 */
       var slider = root.querySelector('[data-deck="scale"]');
       slider.min = mapMode ? '0.15' : '1'; slider.max = mapMode ? '3' : '2.5'; slider.step = mapMode ? '0.05' : '0.1';
       slider.value = mapMode ? mapScale : scale;
+      slider.setAttribute('aria-label', mapMode ? '导图缩放' : '演示字号');
+      VexZoomDock.update(root, Math.round((mapMode ? mapScale : scale) * 100) + '%');
       ['outline', 'exit'].forEach(function (name) {
         var b = root.querySelector('[data-deck="' + name + '"]');
         var key = { outline: 'presentationOutline', exit: 'exitPresentation' }[name];
@@ -111,8 +121,6 @@
       nav.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
       if (reset) { body.innerHTML = pages[page].html; scroll.scrollTop = 0; VexRendering.diagrams(); }
       scene.querySelectorAll('[data-map-page]').forEach(function (node) { node.classList.toggle('selected', +node.dataset.mapPage === page); });
-      var scaleSlider = root.querySelector('[data-deck="scale"]');
-      scaleSlider.value = mapMode ? mapScale : scale;
       if (mapMode && reset) focusMap();
     }
     function go(value) { var next = Math.max(0, Math.min(pages.length - 1, value)); if (next !== page) { page = next; render(true); } }

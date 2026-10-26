@@ -23,17 +23,20 @@
  * 浅色同理反向：轨道比卡片暗一档，选中块提亮成纸白浮起。 */
 :root { --segmented-track:color-mix(in srgb, var(--fg) 4%, var(--surface)); --segmented-thumb:color-mix(in srgb, #fff 55%, var(--surface)); --segmented-thumb-shadow:0 1px 4px color-mix(in srgb, var(--fg) 12%, transparent); }
 :root[data-theme=dark] { --segmented-track:color-mix(in srgb, var(--fg) 4.5%, var(--panel)); --segmented-thumb:var(--panel); --segmented-thumb-shadow:0 0 0 1px color-mix(in srgb, var(--fg) 7%, transparent); }
-/* 缩放坞：右下角悬浮胶囊的唯一配方（主窗体正文、演示正文/导图同一枚），宿主只改位置与量程，不改色。 */
-.vex-zoomdock { position:absolute; right:12px; bottom:12px; z-index:6; display:flex; align-items:center; height:var(--app-titlebar-height,33px); padding:0 5px; border:1px solid var(--border,var(--line)); border-radius:var(--vex-radius-pill); background:var(--block-bg,var(--panel)); box-shadow:var(--pop-shadow,0 10px 30px #00000022); }
-.vex-zoomdock > div { display:flex; align-items:center; gap:4px; }
-.vex-zoomdock .zoom-tools { display:flex; flex:none; align-items:center; gap:4px; }
-.vex-zoomdock .zoom-label { font-size:var(--fs-caption,12px); line-height:1; color:var(--muted); font-weight:600; letter-spacing:.02em; user-select:none; }
-.vex-zoomdock .zoom-value { min-width:38px; margin-left:2px; font-size:var(--fs-caption,12px); font-variant-numeric:tabular-nums; color:var(--muted); }
-.vex-zoomdock .zoom-range { width:120px; accent-color:var(--accent); }
-.vex-zoomdock .zoom-reset { position:relative; min-width:0; min-height:0; height:23px; margin-left:3px; padding:2px 7px; border:0; border-radius:var(--vex-radius-pill); background:transparent; color:inherit; font-size:13px; cursor:pointer; }
-.vex-zoomdock .zoom-reset::before { content:""; position:absolute; left:-5px; top:4px; bottom:4px; width:1px; background:color-mix(in srgb,var(--border,var(--line)) 70%,transparent); }
+/* 缩放坞：右下角悬浮胶囊的唯一配方（主窗体正文、主窗体导图、演示正文/导图同一枚），宿主只改位置与量程，不改色。
+ * 几何全部由密度令牌推导（与 .vex-segmented 同受「界面密度」缩放），圆角走 --vex-radius-pill 跟随「界面圆角」三档。
+ * 坞内只有拖动条与还原钮：±/A± 的静态标签与常驻百分比都已去掉，百分比改成拖动时才浮出的气泡（见 zoomdock.js）。 */
+.vex-zoomdock { position:absolute; right:12px; bottom:12px; z-index:6; display:flex; align-items:center; height:var(--control-h-md,32px); padding:0 calc(var(--pad-sm,6px) - 1px); border:1px solid var(--border,var(--line)); border-radius:var(--vex-radius-pill); background:var(--block-bg,var(--panel)); box-shadow:var(--pop-shadow,0 10px 30px #00000022); }
+.vex-zoomdock > div { display:flex; align-items:center; gap:var(--gap-sm,6px); }
+.vex-zoomdock .zoom-tools { position:relative; display:flex; flex:none; align-items:center; }
+/* 百分比气泡：贴在拖动块正上方，值变化时由 zoomdock.js 写 left 并点亮 .is-live，停手即隐；不参与坞的布局。 */
+.vex-zoomdock .zoom-value { position:absolute; left:0; bottom:calc(100% + 6px); transform:translateX(-50%) scale(.9); opacity:0; pointer-events:none; padding:1px 6px; border-radius:var(--vex-radius-sm,6px); background:var(--accent); color:var(--accent-fg,#fff); font-size:var(--fs-caption,12px); line-height:1.5; font-variant-numeric:tabular-nums; white-space:nowrap; transition:opacity var(--vex-fast) var(--vex-ease),transform var(--vex-fast) var(--vex-ease); }
+.vex-zoomdock .zoom-value.is-live { opacity:1; transform:translateX(-50%) scale(1); }
+.vex-zoomdock .zoom-range { width:calc(var(--control-h-md,32px) * 1.875); accent-color:var(--accent); }
+.vex-zoomdock .zoom-reset { position:relative; min-width:0; min-height:0; height:calc(var(--control-h-md,32px) - 9px); margin-left:calc(var(--gap-sm,6px) - 3px); padding:2px 7px; border:0; border-radius:var(--vex-radius-pill); background:transparent; color:inherit; font-size:13px; cursor:pointer; }
+.vex-zoomdock .zoom-reset::before { content:""; position:absolute; left:calc(var(--gap-sm,6px) * -1 + 1px); top:calc(var(--control-h-md,32px) * .125); bottom:calc(var(--control-h-md,32px) * .125); width:1px; background:color-mix(in srgb,var(--border,var(--line)) 70%,transparent); }
 .vex-zoomdock .zoom-reset:hover { background:var(--hover,var(--accent-soft)); color:var(--accent); }
-.vex-zoomdock .zoom-reset svg { display:block; width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.vex-zoomdock .zoom-reset svg { display:block; width:calc(var(--icon-size,16px) + 2px); height:calc(var(--icon-size,16px) + 2px); fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 *,*::before,*::after { letter-spacing:0; }
 [hidden] { display:none!important; }
 button,input,select,textarea { font:inherit; }
@@ -209,7 +212,7 @@ body.device-phone .modal .stat-card strong { font-size:20px; }
 .vex-pref-row select,.vex-pref-row input:not([type=checkbox]):not([type=range]) { box-sizing:border-box; width:180px; max-width:48%; min-width:70px; height:34px; border:1px solid var(--control-border); border-radius:var(--vex-radius-pill); padding:5px 9px; background:transparent; color:inherit; }
 /* 偏好面板里的互斥档位统一走分段控件，宽度与同排输入框对齐。 */
 .vex-pref-row .vex-pref-segmented { flex:none; width:196px; max-width:48%; }
-.vex-pref-row .vex-pref-segmented > button { flex:1; min-height:28px; padding:4px 6px; font-size:13px; }
+.vex-pref-row .vex-pref-segmented > button { flex:1; min-height:var(--control-h-sm,28px); padding:calc(4px * var(--seg-scale)) 6px; font-size:calc(var(--fs-body,14px) - 1px); }
 /* 目录字段存的是路径，可能被截断；让输入框吃满右侧剩余空间并整体右对齐。 */
 .vex-pref-folder { display:flex; flex:1; align-items:center; justify-content:flex-end; gap:8px; min-width:0; }
 .vex-pref-folder input { flex:1 1 auto; width:auto; min-width:180px; max-width:none; }
@@ -263,10 +266,10 @@ body.device-phone .app-window .guide-card { width:310px; left:var(--vex-tour-lef
 .vex-settings-host.is-closing .vex-settings { transform:translateY(5px) scale(.99); transition:transform var(--vex-fast) var(--vex-ease); }
 /* MCP 分段页签：与全站分段同一配方，只定几何。 */
 .vex-segmented.vex-mcp-tabs { gap:4px; margin-bottom:16px; }
-.vex-segmented.vex-mcp-tabs > button { flex:1; min-height:28px; padding:4px 10px; font-size:12px; }
+.vex-segmented.vex-mcp-tabs > button { flex:1; min-height:var(--control-h-sm,28px); padding:calc(4px * var(--seg-scale)) 10px; font-size:var(--fs-caption,12px); }
 /* 二级切换与一级同语言：同为胶囊分段条，只收窄上边距与字号。 */
 .vex-segmented.vex-mcp-subtabs { margin:0 0 14px; }
-.vex-segmented.vex-mcp-subtabs > button { font-size:13px; }
+.vex-segmented.vex-mcp-subtabs > button { font-size:calc(var(--fs-body,14px) - 1px); }
 .vex-mcp-status { display:flex; align-items:center; gap:8px; font-size:13px; margin:0 0 18px; }
 .vex-pref-row + .vex-mcp-status { margin-top:12px; }
 .vex-mcp-status > span { flex:1; min-width:0; overflow-wrap:anywhere; }

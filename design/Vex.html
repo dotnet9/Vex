@@ -26,7 +26,7 @@
 
 <link rel="stylesheet" href="assets/workbench/workspace-chrome.css">
 <script src="assets/workbench/vex-escape.js"></script><script src="assets/prototype/palettes.js"></script><script src="assets/prototype/typography-catalog.js"></script>
-<script src="assets/prototype/desktop-resources.js"></script><script src="assets/prototype/design-system.js"></script><script src="assets/prototype/segmented.js"></script><script src="assets/prototype/typography-preview.js"></script><script src="assets/workbench/social-copy.js"></script>
+<script src="assets/prototype/desktop-resources.js"></script><script src="assets/prototype/design-system.js"></script><script src="assets/prototype/segmented.js"></script><script src="assets/prototype/zoomdock.js"></script><script src="assets/prototype/typography-preview.js"></script><script src="assets/workbench/social-copy.js"></script>
 <script src="assets/prototype/palette-rules.js"></script><script src="assets/generated/palette-rules-data.js"></script><script src="assets/workbench/table-tools.js"></script><script src="assets/workbench/theme.js"></script>
 <script src="assets/vendor/d3-hierarchy/d3-hierarchy.min.js"></script><script src="assets/workbench/map-layout.js"></script><script src="assets/workbench/map-appearance.js"></script><script src="assets/workbench/document-window.js"></script><script src="assets/workbench/exit-dialog.js"></script>
 <script src="assets/workbench/overlay.js"></script><script src="assets/workbench/mermaid-catalog.js"></script><script src="assets/generated/documents-data.js"></script><script src="assets/workbench/watermark.js"></script><script src="assets/workbench/preferences.js"></script><script src="assets/workbench/tour-placement.js"></script><script src="assets/workbench/diagram-editor.js"></script>
@@ -144,7 +144,7 @@
             <div class="map-scene" id="map-scene"><svg class="map-links" id="map-links" aria-hidden="true"></svg><div id="map-nodes"></div></div>
             <div class="map-legend"><span><i></i>标题</span><span><i class="content-key"></i>内容摘要</span></div>
             <span class="map-hint">拖动画布平移 · Ctrl + 滚轮缩放 · 点击节点查看全文</span>
-            <div class="map-controls"><button class="icon-button" data-action="zoom-out" data-l10n-tip="缩小" title="缩小"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button><span class="zoom-value" id="zoom-value">100%</span><button class="icon-button" data-action="zoom-in" data-l10n-tip="放大" title="放大"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button><span class="toolbar-divider"></span><button class="icon-button" data-action="map-fit" data-l10n-tip="适应画布" title="适应画布"><svg class="ico" aria-hidden="true"><use href="#i-fit"/></svg></button></div>
+            <div class="map-controls vex-zoomdock"><div><span class="zoom-tools"><input type="range" class="zoom-range" id="map-zoom-range" data-l10n-label="导图缩放" aria-label="导图缩放" title="导图缩放" min="1" max="200" step="1" value="100"><span class="zoom-value" aria-hidden="true"></span></span><button type="button" class="zoom-reset" data-action="map-fit" data-l10n-tip="适应画布" title="适应画布" aria-label="适应画布"><svg class="ico" aria-hidden="true"><use href="#i-fit"/></svg></button></div></div>
           </div>
           <section class="settings-popover" id="map-settings" data-l10n-label="导图显示设置" aria-label="导图显示设置" hidden>
             <div class="popover-title">导图显示<button class="icon-button" data-action="close-settings" data-l10n-name="关闭设置" title="关闭设置"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
