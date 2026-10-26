@@ -10,9 +10,12 @@
 .vex-deck button:hover > .vex-segmented-thumb,.vex-deck .vex-segmented > button:hover,.vex-deck .vex-segmented > button:focus-visible,.vex-deck .vex-segmented > button:active { background:transparent; }
 .vex-deck button:disabled { opacity:.3; cursor:default; }
 .vex-deck .deck-stage { display:flex; flex:1; min-height:0; }
-/* 正文 / 思维导图：接全站分段控件，色一律取自 --segmented-* 令牌，宿主只给几何。 */
-.vex-deck .deck-modes { flex:none; }
-.vex-deck .deck-modes > button { min-width:0; min-height:0; height:19px; padding:0 12px; }
+/* 阅读 / 导图：接全站分段控件，色一律取自 --segmented-* 令牌，宿主只给几何。
+ * 位置与正常窗体底部状态栏胶囊同一档：正中悬浮，圆心落在同一条轴线上（deck 里以右侧折叠手柄为准，30px + translateY(50%)）；
+ * 大纲展开时跟着正文区一起左移，始终居中于内容区。 */
+.vex-deck .deck-modes { position:absolute; left:50%; bottom:30px; transform:translate(-50%,50%); z-index:6; border:1px solid var(--border,var(--line,#dce3de)); box-shadow:var(--pop-shadow,0 10px 30px #00000022); transition:left var(--vex-duration) var(--vex-ease); }
+.vex-deck.deck-outline .deck-modes { left:calc(50% - var(--deck-nav-w) / 2); }
+.vex-deck .deck-modes > button { min-width:0; min-height:calc(26px * var(--seg-scale)); padding:calc(3px * var(--seg-scale)) 14px; font-size:var(--fs-caption,12px); }
 /* 大纲与主界面同侧（右），折叠手柄浮在大纲左下角。 */
 .vex-deck nav { display:none; flex:none; width:var(--deck-nav-w); overflow:auto; border-left:1px solid var(--border,var(--line,#dce3de)); background:var(--panel,#f4f6f2); }
 .vex-deck.deck-outline nav { display:block; }
@@ -26,15 +29,18 @@
 .vex-deck article table { border-collapse:collapse; display:block; max-width:100%; overflow:auto; font-size:1em; }
 .vex-deck article th,.vex-deck article td { border:1px solid var(--border,var(--line,#dce3de)); padding:9px 12px; }
 .vex-deck article img { max-width:100%; }
-/* 底栏：.vex-zoomdock 共享配方（主窗体正文同一枚），deck 只补随大纲展开的位移过渡。 */
-.vex-deck footer { transition:right var(--vex-duration) var(--vex-ease); }
+/* 底栏：.vex-zoomdock 共享配方（主窗体正文同一枚），deck 只补底距与随大纲展开的位移过渡。
+ * 与左侧阅读/导图胶囊、右侧折叠手柄同轴：底距 30px + translateY(50%) 把中心拉回线上。 */
+.vex-deck footer { bottom:30px; transform:translateY(50%); transition:right var(--vex-duration) var(--vex-ease); }
 /* 大纲展开时，缩放胶囊回到正文区的右下角，不压大纲也不压折叠手柄。 */
 .vex-deck.deck-outline footer { right:calc(var(--deck-nav-w) + 12px); }
 /* 折叠手柄：与主界面 .pane-collapse 同款圆形 24px；展开贴在大纲左下角，收起时让开右下角的缩放胶囊。 */
 .vex-deck .deck-outline-toggle { position:absolute; bottom:18px; right:calc(var(--deck-nav-w) - 32px); z-index:7; width:24px; height:24px; min-width:0; min-height:0; display:grid; place-items:center; padding:0; border:1px solid color-mix(in srgb,var(--fg) 14%,var(--border,var(--line,#dce3de))); border-radius:50%; background:var(--block-bg,var(--panel,#f4f6f2)); color:var(--muted,var(--text-soft,#6b7570)); box-shadow:0 1px 4px color-mix(in srgb,var(--fg) 14%,transparent); cursor:pointer; transition:color var(--vex-fast) var(--vex-ease),border-color var(--vex-fast) var(--vex-ease),right var(--vex-duration) var(--vex-ease); }
 .vex-deck .deck-outline-toggle:hover { color:var(--accent,#24766b); border-color:var(--accent,#24766b); background:var(--block-bg,var(--panel,#f4f6f2)); }
 .vex-deck .deck-outline-toggle .ico { width:12px; height:12px; display:block; transition:transform var(--vex-duration) var(--vex-ease); }
-.vex-deck:not(.deck-outline) .deck-outline-toggle { right:8px; bottom:55px; }
+/* 收起态手柄贴到窗边，与右下角的坞同轴后横向上会叠：坞让开一枚手柄宽（24）加 8px 缝。竖向不再另立一档，都走 30px 轴线。 */
+.vex-deck:not(.deck-outline) .deck-outline-toggle { right:8px; }
+.vex-deck:not(.deck-outline) footer { right:40px; }
 .vex-deck:not(.deck-outline) .deck-outline-toggle .ico { transform:scaleX(-1); }
 .vex-deck .deck-map { display:none; flex:1; min-width:0; overflow:hidden; position:relative; touch-action:none; background:radial-gradient(var(--border,var(--line,#dce3de)) 1px,transparent 1px) 0 0/20px 20px; }
 .vex-deck.deck-map-mode .deck-map { display:block; }
@@ -52,16 +58,16 @@
 .vex-deck[data-narrow=true] header { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:4px; height:auto; min-height:0; padding:8px; padding-top:max(8px,env(safe-area-inset-top)); }
 .vex-deck[data-narrow=true] header strong { grid-column:1; grid-row:1; padding:0 6px; }
 .vex-deck[data-narrow=true] [data-deck=exit] { grid-column:2; grid-row:1; }
-.vex-deck[data-narrow=true] .deck-modes { grid-column:1 / 3; grid-row:2; justify-content:stretch; }
+/* 窄屏底栏是通栏静态条（44px 触摸靶 + 上下 8px = 60px），悬浮件仍共用一根轴线：手柄底距 75 + 半径 22 = 中心 97px，浮在条上方约 20px。 */
+.vex-deck[data-narrow=true] .deck-modes { bottom:calc(97px + env(safe-area-inset-bottom)); }
 .vex-deck[data-narrow=true] .deck-modes > button { flex:1; }
-.vex-deck[data-narrow=true] footer{position:static;right:auto;bottom:auto;width:auto;height:auto;border:0;border-top:1px solid var(--border,var(--line,#dce3de));border-radius:0;background:var(--panel,var(--paper,#fafaf6));box-shadow:none;padding:8px;padding-bottom:max(8px,env(safe-area-inset-bottom));}
+.vex-deck[data-narrow=true] footer{position:static;transform:none;right:auto;bottom:auto;width:auto;height:auto;border:0;border-top:1px solid var(--border,var(--line,#dce3de));border-radius:0;background:var(--panel,var(--paper,#fafaf6));box-shadow:none;padding:8px;padding-bottom:max(8px,env(safe-area-inset-bottom));}
 .vex-deck[data-narrow=true] footer>div { justify-content:center; gap:2px; }
-.vex-deck[data-narrow=true] .zoom-tools { gap:0; border:1px solid var(--border,var(--line,#dce3de)); border-radius:var(--vex-radius-sm); background:var(--accent-soft,#e0eee7); color:var(--accent,#24766b); }
-.vex-deck[data-narrow=true] .zoom-tools button,.vex-deck[data-narrow=true] footer .zoom-reset { display:grid; place-items:center; width:44px; height:44px; padding:0; font-size:16px; transition:background-color var(--vex-fast) var(--vex-ease); }
+.vex-deck[data-narrow=true] .zoom-tools { border:1px solid var(--border,var(--line,#dce3de)); border-radius:var(--vex-radius-sm); background:var(--accent-soft,#e0eee7); color:var(--accent,#24766b); }
+.vex-deck[data-narrow=true] footer .zoom-reset { display:grid; place-items:center; width:44px; height:44px; padding:0; font-size:16px; transition:background-color var(--vex-fast) var(--vex-ease); }
 .vex-deck[data-narrow=true] .zoom-reset { margin-left:0; }
 .vex-deck[data-narrow=true] .zoom-reset::before { display:none; }
-.vex-deck[data-narrow=true] .deck-outline-toggle { right:auto; left:8px; bottom:75px; width:44px; height:44px; }
-.vex-deck[data-narrow=true] .zoom-value,.vex-deck[data-narrow=true] .zoom-label { display:none; }
+.vex-deck[data-narrow=true] .deck-outline-toggle { right:auto; left:8px; bottom:calc(75px + env(safe-area-inset-bottom)); width:44px; height:44px; }
 .vex-deck[data-narrow=true] article.md-body { padding:24px 22px 40px; font-size:calc(15px * var(--deck-scale)); }
 .vex-deck[data-narrow=true].deck-outline nav { width:100%; border-left:0; }
 .vex-deck[data-narrow=true].deck-outline .deck-scroll,.vex-deck[data-narrow=true].deck-outline .deck-map { display:none; }

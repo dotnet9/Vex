@@ -205,7 +205,7 @@ body > .submenu.menu-compact { padding: 4px; }
 .win-body { color: var(--fg); }
 .app-window :is(.source-pane,.reading-pane,.instant-scroll) { background: var(--document-bg); }
 .app-window :is(.instant-scroll,.reading-scroll,.source-scroll,.document-corner-actions,.document-word-count,.type-swatch) { --selection: var(--document-selection); }
-.app-window :is(.map-controls,.node-inspector,.settings-popover,.file-context-menu),
+.app-window :is(.node-inspector,.settings-popover,.file-context-menu),
 .studio-language > div { background: var(--elevated); border-color: var(--border); box-shadow: var(--shadow-pop); }
 .app-window :is(.format-button,.toolbar-button,.icon-button,.edit-options button):hover { background: var(--hover); }
 .app-window :is(.format-button,.toolbar-button,.icon-button):active { background: var(--pressed); }
@@ -328,7 +328,7 @@ input, textarea, select {
 .theme-mode-options input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 /* Density tiers (assets/prototype/density.css, generated) expose one row of toggles in the appearance popup. */
 .density-options{gap:6px;margin-top:9px}
-.density-options button{flex:1;height:22px;min-height:22px;padding:2px 10px;border-radius:var(--vex-radius-pill);font-size:var(--fs-caption,12px)}
+.density-options button{flex:1;height:calc(22px * var(--seg-scale));min-height:calc(22px * var(--seg-scale));padding:calc(2px * var(--seg-scale)) 10px;border-radius:var(--vex-radius-pill);font-size:var(--fs-caption,12px)}
 .appearance-choices .density-options{margin:6px 0 2px}
 /* 自定义配色编辑（规则 §7 编写层 4 色）与对比度报告。 */
 .appearance-custom{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0 0}
@@ -402,7 +402,7 @@ input, textarea, select {
 .content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{max-width:max(820px,50vw);margin:0 auto;padding:24px 48px 80px}
 .view-panel .instant-scroll .md-body{max-width:none;margin:0;padding:26px 36px 72px}.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding:36px clamp(28px,6vw,88px) 80px}
 .view-panel .map-toolbar{background:var(--bg);border-color:color-mix(in srgb,var(--border) 65%,transparent)}
-.map-controls{box-shadow:none;border-radius:var(--vex-radius-sm)}.map-legend{opacity:.75}
+.map-legend{opacity:.75}
 .document-statusbar{height:calc(var(--control-h-md,32px) + 2px);min-height:calc(var(--control-h-md,32px) + 2px);background:var(--bg);border-top-color:color-mix(in srgb,var(--border) 65%,transparent);gap:var(--gap-lg,16px);padding:0 var(--pad-md,10px)}
 .document-statusbar .document-corner-actions{gap:2px}.document-statusbar .document-corner-actions button{font-size:var(--fs-caption,12px);border:0;border-radius:var(--vex-radius-xs);color:var(--muted)}
 .document-statusbar .document-corner-actions button.on,.document-statusbar .document-corner-actions button[aria-pressed=true]{color:var(--accent);background:transparent}
@@ -480,7 +480,7 @@ input, textarea, select {
 /* ===== 年轻化：胶囊控件 · 大圆角 · 图标品牌色块 ===== */
 /* 状态栏正中：源码 / 阅读 / 导图 / 更多 四段直选（iOS 分段样式）。 */
 .workspace-viewswitch{margin:0 auto}
-.workspace-viewswitch button{min-height:26px;padding:3px 14px;font-size:12px}
+.workspace-viewswitch button{min-height:calc(26px * var(--seg-scale));padding:calc(3px * var(--seg-scale)) 14px;font-size:var(--fs-caption,12px)}
 .workspace-viewswitch .ico{width:12px;height:12px}
 /* 全胶囊按钮与输入框。 */
 .btn,.vex-button{border-radius:999px;min-height:32px;padding:5px 16px}
@@ -559,7 +559,10 @@ input, textarea, select {
 .story-tour .tour-continue:hover { filter:brightness(1.08); }
 
 /* ===== 块状工作区：灰画布 · 圆角描边白块 · 外缘 10px／块间 4px · 悬浮分段条 ===== */
-:root{--block-edge:10px;--block-gap:4px;--block-hit:12px;--block-radius:var(--vex-radius-lg);--block-bg:var(--surface);--canvas-bg:color-mix(in srgb,var(--fg) 5%,var(--paper))}
+/* 底部悬浮件同轴：中心线钉在左折叠钮的圆心（钮底距 .workspace 底 18px + 半径 12px = 30px），故 --vex-axis:30px。
+ * 胶囊在 .workspace-main 里（底比 .workspace 高一个 --block-edge），坞在视图块里（再高 1px 描边），
+ * 所以先按定位父级折算轴线到本容器底的距离，再用 translateY(50%) 回退自身半高——四件中心严格共线，密度怎么缩放都不失配。 */
+:root{--block-edge:10px;--block-gap:4px;--block-hit:12px;--block-radius:var(--vex-radius-lg);--block-bg:var(--surface);--canvas-bg:color-mix(in srgb,var(--fg) 5%,var(--paper));--vex-axis:30px;--vex-axis-col:calc(var(--vex-axis) - var(--block-edge));--vex-axis-view:calc(var(--vex-axis-col) - 1px);--vex-pill-h:calc(26px * var(--seg-scale) + var(--pad-sm,6px) + 10px)}
 :root[data-theme=dark]{--canvas-bg:var(--bg)}
 .app-window{background:var(--canvas-bg)}
 .app-window>.titlebar{background:var(--block-bg);border-bottom-color:color-mix(in srgb,var(--border) 55%,transparent)}
@@ -593,7 +596,7 @@ input, textarea, select {
 .split-resizing{user-select:none}
 /* 状态栏退役：源码/阅读/导图分段改为悬浮胶囊，右端挂字数。 */
 .workspace-main{position:relative}
-.workspace-main .document-statusbar{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:34;display:flex;flex-wrap:nowrap;align-items:center;width:auto;max-width:calc(100% - 28px);height:auto;min-height:0;gap:4px;padding:4px 6px;border:1px solid var(--border);border-radius:999px;background:var(--block-bg);box-shadow:var(--pop-shadow,0 10px 30px #00000022)}
+.workspace-main .document-statusbar{position:absolute;left:50%;bottom:var(--vex-axis-col);transform:translate(-50%,50%);z-index:34;display:flex;flex-wrap:nowrap;align-items:center;width:auto;max-width:calc(100% - 28px);height:auto;min-height:0;gap:4px;padding:4px 6px;border:1px solid var(--border);border-radius:999px;background:var(--block-bg);box-shadow:var(--pop-shadow,0 10px 30px #00000022)}
 .workspace-main .document-statusbar button{white-space:nowrap}
 .workspace-main .document-statusbar .workspace-viewswitch{flex:none}
 .workspace-main .document-statusbar .workspace-viewswitch,.workspace-main .document-statusbar #workspace-layout{margin:0}
@@ -602,8 +605,9 @@ input, textarea, select {
 .view-panel .reading-scroll .md-body,.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding-bottom:104px}
 .view-panel .instant-scroll .md-body,.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding-bottom:104px}
 .source-scroll{padding-bottom:56px}
-/* 折叠按钮：从状态栏迁到块角（展开在块内、折叠贴窗边），圆形带箭头，位置由 JS 按块宽算出。 */
-.pane-collapse{position:absolute;bottom:18px;z-index:36;width:24px;height:24px;display:grid;place-items:center;padding:0;margin:0;line-height:0;border:1px solid color-mix(in srgb,var(--fg) 14%,var(--border));border-radius:50%;background:var(--block-bg);color:var(--muted);box-shadow:0 1px 4px color-mix(in srgb,var(--fg) 14%,transparent);cursor:pointer;transition:color var(--vex-fast),border-color var(--vex-fast)}
+/* 折叠按钮：从状态栏迁到块角（展开在块内、折叠贴窗边），圆形带箭头，位置由 JS 按块宽算出。
+ * 竖向不动——它就是底部同轴的那把基准尺：底距 .workspace 底 = 轴线 30px - 半径 12px。 */
+.pane-collapse{position:absolute;bottom:calc(var(--vex-axis) - 12px);z-index:36;width:24px;height:24px;display:grid;place-items:center;padding:0;margin:0;line-height:0;border:1px solid color-mix(in srgb,var(--fg) 14%,var(--border));border-radius:50%;background:var(--block-bg);color:var(--muted);box-shadow:0 1px 4px color-mix(in srgb,var(--fg) 14%,transparent);cursor:pointer;transition:color var(--vex-fast),border-color var(--vex-fast)}
 .pane-collapse:hover{color:var(--accent);border-color:var(--accent)}
 .pane-collapse span{display:none}
 .pane-collapse .ico{width:12px;height:12px;display:block;transition:transform var(--vex-duration) var(--vex-ease)}
@@ -615,29 +619,30 @@ input, textarea, select {
 #files-pane .files-toolbar{flex:none;justify-content:flex-end;padding:0 12px 8px;margin-top:-6px}
 /* 专注/演示态与状态栏胶囊同进退。 */
 .focus-mode .pane-collapse,.presentation-mode .pane-collapse{display:none}
-/* 阅读视图右下角缩放坞：与演示正文共用 .vex-zoomdock 配方（prototype.css），宿主只补定位父级与避让。 */
-.reading-pane{position:relative;container-type:inline-size;container-name:reading}
-.reading-zoom .zoom-range{width:110px}
-/* 折叠手柄也在右下，缩放坞出现时让到它上方（坞顶距窗底 56px），两枚不叠。 */
-.app-window:has(.reading-zoom:not([hidden])) .pane-collapse-right{bottom:62px}
-/* 窄列（分栏或窄窗）：收掉 A−/A+ 与百分比、缩短拖动条，并抬到状态栏胶囊之上（胶囊顶距列底 57px）。 */
-@container reading (max-width:420px){
-  .reading-zoom{bottom:64px}
-  .reading-zoom .zoom-label,.reading-zoom .zoom-value{display:none}
-  .reading-zoom .zoom-range{width:72px}
-}
-/* 窄窗（正文列会被容器查询抬到列底 64px，列底又比工作区底高约 11px）：手柄再让一档，避免与坞叠成三层。 */
-@media(max-width:1200px){
-  .app-window:has(.reading-zoom:not([hidden])) .pane-collapse-right{bottom:114px}
-}
-/* 窄屏：胶囊整体收紧，宁可少显示字数也不换行成块。 */
+/* 右下角缩放坞（正文与导图共用 .vex-zoomdock 配方，见 prototype.css）：宿主只补定位父级与避让。 */
+.reading-pane,.map-viewport{position:relative}
+/* 坞上同一根轴线：底距视图块底 = --vex-axis-view，再用 translateY(50%) 把圆心拉回线上，三档密度都不偏。 */
+.app-window .reading-zoom,.app-window .map-controls{bottom:var(--vex-axis-view);transform:translateY(50%)}
+/* 右栏收起时折叠钮贴到窗边，左边正好压在坞原来的右半上（钮左边 = 块右内缘 - 23px）：坞让开一枚钮宽再加 8px 缝。 */
+.app-window:has(.structure-sidebar.collapsed) .reading-zoom,
+.app-window:has(.structure-sidebar.collapsed) .map-controls{right:31px}
+/* 大纲改成浮层盖住视图时（导图态、窗口过窄），浮层左下角的手柄正压在居中胶囊上：只把手柄抬到胶囊上方 6px，其余三件仍在线上。 */
+.workspace.auxiliary-overlay .pane-collapse-right{bottom:calc(var(--vex-axis) + var(--vex-pill-h) / 2 + 6px)}
+/* 窄屏：胶囊整体收紧，宁可少显示字数也不换行成块；竖向仍跟轴线走（translateY(50%) 与高度无关），不另定底距。
+ * 一行放不下「胶囊 + 缩放坞」时只抬坞：坞底 = 轴线 + 6px 缝 + 两者半高，半高全由令牌推，密度三档都不错位。 */
 @media(max-width:900px){
-  .workspace-main .document-statusbar{gap:2px;padding:3px 4px;bottom:12px}
+  :root{--vex-pill-h:calc(26px * var(--seg-scale) + 12px)}
+  .app-window .reading-zoom,.app-window .map-controls{bottom:calc(var(--vex-axis-view) + 6px + (var(--vex-pill-h) + var(--control-h-md,32px)) / 2)}
+  .workspace-main .document-statusbar{gap:2px;padding:3px 4px}
   .workspace-main .document-statusbar .workspace-viewswitch{padding:2px}
   .workspace-main .document-statusbar .workspace-viewswitch button{padding:3px 9px}
   .workspace-main .document-statusbar .document-word-count{display:none}
 }
 @media(max-width:680px){
   .workspace-main .document-statusbar .workspace-viewswitch button{padding:3px 7px}
+}
+/* 手机宽度下正文列本就偏右，居中胶囊会压到窗边的折叠钮：改成贴着钮左侧收口（钮左边 = 列右内缘 - 24px），竖向仍走轴线。 */
+@media(max-width:480px){
+  .workspace-main .document-statusbar{left:auto;right:31px;transform:translateY(50%)}
 }
 
