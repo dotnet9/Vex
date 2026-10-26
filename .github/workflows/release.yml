@@ -109,6 +109,15 @@ jobs:
         shell: pwsh
         run: pwsh scripts/package_linux_deb.ps1 -RuntimeIdentifier '${{ matrix.rid }}' -Version $env:APP_VERSION -Force
 
+      - name: 打包 Linux 绿色版 tar.gz + sha256
+        if: startsWith(matrix.rid, 'linux-')
+        shell: bash
+        run: |
+          rid='${{ matrix.rid }}'
+          mkdir -p artifacts/release
+          tar -czf "artifacts/release/Vex-v$APP_VERSION-$rid.tar.gz" -C "artifacts/publish/$rid/Vex" .
+          sha256sum "artifacts/release/Vex-v$APP_VERSION-$rid.tar.gz" > "artifacts/release/Vex-v$APP_VERSION-$rid.tar.gz.sha256"
+
       - name: 打包 macOS dmg
         if: startsWith(matrix.rid, 'osx-')
         shell: bash
@@ -138,6 +147,16 @@ jobs:
           $sha = (Get-FileHash -LiteralPath $installerPath -Algorithm SHA256).Hash.ToLowerInvariant()
           "$sha  $installerName" | Set-Content -LiteralPath "$installerPath.sha256" -Encoding ASCII
 
+      - name: 打包 Windows 绿色版 zip + sha256
+        if: startsWith(matrix.rid, 'win-')
+        shell: pwsh
+        run: |
+          $zipName = "Vex-v$env:APP_VERSION-win-x64.zip"
+          $zipPath = Join-Path "artifacts/release" $zipName
+          Compress-Archive -Path 'artifacts/publish/win-x64/Vex/*' -DestinationPath $zipPath -Force
+          $sha = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha  $zipName" | Set-Content -LiteralPath "$zipPath.sha256" -Encoding ASCII
+
       - name: 收集 macOS dmg 到发布目录
         if: startsWith(matrix.rid, 'osx-')
         shell: pwsh
@@ -146,6 +165,18 @@ jobs:
           Copy-Item -Path "artifacts/macos/*.dmg" -Destination artifacts/release/ -Force
           Copy-Item -Path "artifacts/macos/*.sha256" -Destination artifacts/release/ -Force
           Get-ChildItem artifacts/release | ForEach-Object { Write-Host $_.Name }
+
+      - name: 打包 macOS 绿色版 zip + sha256
+        if: startsWith(matrix.rid, 'osx-')
+        shell: bash
+        run: |
+          rid='${{ matrix.rid }}'
+          app="artifacts/macos/work/$rid/Vex.app"
+          test -d "$app"
+          mkdir -p artifacts/release
+          # ditto 保留 .app 的符号链接、权限与资源叉，是 macOS 打 zip 的正确方式
+          ditto -c -k --sequesterRsrc --keepParent "$app" "artifacts/release/Vex-$APP_VERSION-$rid.zip"
+          shasum -a 256 "artifacts/release/Vex-$APP_VERSION-$rid.zip" > "artifacts/release/Vex-$APP_VERSION-$rid.zip.sha256"
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
@@ -185,7 +216,7 @@ jobs:
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "tag_name=$tagName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-      - name: 校验五平台安装包与 SHA-256
+      - name: 校验五平台安装包与绿色版压缩包
         shell: pwsh
         run: ./scripts/verify_release_installers.ps1 -Version '${{ steps.version.outputs.version }}'
 
@@ -207,4 +238,6 @@ jobs:
             artifacts/release/*.exe
             artifacts/release/*.deb
             artifacts/release/*.dmg
+            artifacts/release/*.zip
+            artifacts/release/*.tar.gz
             artifacts/release/*.sha256
