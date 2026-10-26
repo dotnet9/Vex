@@ -54,7 +54,7 @@
 #typography-panel .typography-density strong{font-size:11px;color:var(--muted);font-weight:600}
 /* 渲染密度三档：等宽等高，与外观菜单的分段按钮同一风格。 */
 #typography-panel .typography-density .density-options{flex:1;max-width:320px}
-#typography-panel .typography-density .density-options button{flex:1;min-height:24px;padding:2px 10px;font-size:12px}
+#typography-panel .typography-density .density-options button{flex:1;min-height:calc(24px * var(--seg-scale));padding:calc(2px * var(--seg-scale)) 10px;font-size:var(--fs-caption,12px)}
 #typography-panel .typography-grid [hidden]{display:none}
 /* 自定义排版编辑器（规则 §8/§13 编写层）：与内置卡同网格，行式表单。 */
 .typography-editor{display:flex;flex-direction:column;gap:8px;min-height:0;padding:10px;border:1px solid var(--border);border-radius:var(--vex-radius-md);background:var(--surface);color:var(--fg);text-align:left;font-size:11px}

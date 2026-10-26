@@ -1,6 +1,10 @@
 /* Arc 式分段控件：轨道 + 一颗滑动并伸缩的指示块，选中项只换字色不再自画底色。
- * 几何由宿主规则决定（各弹层/状态栏沿用原有高度），这里只定义轨道、指示块与键盘可见性。 */
-.vex-segmented { position: relative; display: flex; gap: 2px; padding: 3px; border-radius: var(--vex-radius-pill); background: var(--segmented-track); }
+ * 轨道内缩与指示块由本组件定义；各宿主只给基准高度与字号，那些数值一律乘 --seg-scale 由「界面密度」缩放。 */
+/* --seg-scale 即「界面密度」的 --control-h-sm 三档（24/28/32）÷ 标准档 28：标准档逐像素不变，紧凑缩到 .857，宽松放大到 1.143。 */
+:root { --seg-scale: 1; }
+:root[data-density="compact"] { --seg-scale: .857; }
+:root[data-density="relaxed"] { --seg-scale: 1.143; }
+.vex-segmented { --seg-inset: calc(var(--pad-sm, 6px) / 2); position: relative; display: flex; gap: 2px; padding: var(--seg-inset); border-radius: var(--vex-radius-pill); background: var(--segmented-track); }
 .vex-segmented-thumb { position: absolute; left: 0; top: var(--seg-inset, 3px); bottom: var(--seg-inset, 3px); width: 0; border-radius: var(--vex-radius-pill); background: var(--segmented-thumb); box-shadow: var(--segmented-thumb-shadow, 0 1px 4px color-mix(in srgb, var(--fg) 12%, transparent)); transform: translateX(var(--seg-x, 0)); transition: transform var(--vex-slow) var(--vex-ease), width var(--vex-slow) var(--vex-ease), opacity var(--vex-fast) linear; pointer-events: none; }
 .vex-segmented > button { position: relative; z-index: 1; flex: none; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border: 0; background: transparent; color: var(--muted); font-size: var(--fs-caption, 12px); cursor: pointer; }
 /* 选中与按压的底色只由指示块表达：压掉宿主遗留的 .on / aria 选中 / :active 填充。 */

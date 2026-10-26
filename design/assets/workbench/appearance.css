@@ -23,7 +23,7 @@
 .appearance-heading{display:flex;align-items:center;justify-content:space-between;flex:none;font-size:14px;margin-bottom:12px}
 .appearance-heading strong{font-weight:600}
 .appearance-tabs{gap:4px;align-self:flex-start;margin-bottom:14px;flex:none}
-.appearance-tabs button{min-width:80px;min-height:32px;padding:4px 14px;font-size:13px}
+.appearance-tabs button{min-width:80px;min-height:calc(32px * var(--seg-scale));padding:calc(4px * var(--seg-scale)) 14px;font-size:calc(var(--fs-body,14px) - 1px)}
 .map-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px}
 .map-choice{min-width:0;min-height:136px;padding:9px;border:1px solid var(--border,var(--line));border-radius:var(--vex-radius-sm);background:var(--bg,var(--surface));color:var(--fg);text-align:left;cursor:pointer}
 .map-choice strong{display:block;font-size:13px;font-weight:500;line-height:20px;margin-top:8px}
