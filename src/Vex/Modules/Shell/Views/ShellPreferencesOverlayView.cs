@@ -202,7 +202,13 @@ public sealed class ShellPreferencesOverlayView : UserControl
         var page = new StackPanel { Spacing = 10 };
         page.Children.Add(new TextBlock { Text = L(VexL.McpHttpConfig), FontSize = 12, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 8, 0, 2) });
         var config = new TextBox { Name = "McpClientConfiguration", IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, FontFamily = VexFonts.Code, MinHeight = 180 };
-        config.Bind(TextBox.TextProperty, new Binding(nameof(McpSettingsViewModel.ClientConfiguration)) { Source = mcp });
+        // AOT 兼容：使用 PropertyChanged 事件替代反射绑定
+        config.Text = mcp.ClientConfiguration;
+        mcp.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(McpSettingsViewModel.ClientConfiguration))
+                config.Text = mcp.ClientConfiguration;
+        };
         page.Children.Add(config);
         var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         var copy = new Button { Content = L(VexL.PrefMcpCopyConfig) };
@@ -213,7 +219,13 @@ public sealed class ShellPreferencesOverlayView : UserControl
         page.Children.Add(actions);
         page.Children.Add(new TextBlock { Text = L(VexL.McpStdioBridge), FontSize = 12, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 12, 0, 2) });
         var stdio = new TextBox { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, FontFamily = VexFonts.Code, MinHeight = 160 };
-        stdio.Bind(TextBox.TextProperty, new Binding(nameof(McpSettingsViewModel.StdioConfiguration)) { Source = mcp });
+        // AOT 兼容：使用 PropertyChanged 事件替代反射绑定
+        stdio.Text = mcp.StdioConfiguration;
+        mcp.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(McpSettingsViewModel.StdioConfiguration))
+                stdio.Text = mcp.StdioConfiguration;
+        };
         page.Children.Add(stdio);
         var bridge = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         foreach (var label in new[] { L(VexL.McpReadDocument), L(VexL.McpWriteDocument) })
@@ -232,7 +244,21 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var text = new TextBox { Name = property, Width = 164, Height = 34, FontSize = 14, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1) };
         BindResource(text, TextBox.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(text, TextBox.BackgroundProperty, "VexShellBackgroundBrush");
-        text.Bind(TextBox.TextProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay });
+        // AOT 兼容：使用反射读取初始值并通过事件同步双向绑定
+        var propertyInfo = source.GetType().GetProperty(property);
+        if (propertyInfo is not null)
+        {
+            text.Text = propertyInfo.GetValue(source)?.ToString() ?? string.Empty;
+            text.TextChanged += (_, _) => propertyInfo.SetValue(source, text.Text);
+            if (source is System.ComponentModel.INotifyPropertyChanged notifyPropertyChanged)
+            {
+                notifyPropertyChanged.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == property)
+                        text.Text = propertyInfo.GetValue(source)?.ToString() ?? string.Empty;
+                };
+            }
+        }
         var browse = new Button { Content = "…", Width = 34, Height = 34, Padding = default, CornerRadius = new CornerRadius(5), HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center };
         BindResource(browse, Button.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(browse, Button.BackgroundProperty, "VexShellBackgroundBrush");
         browse.Click += async (_, _) =>

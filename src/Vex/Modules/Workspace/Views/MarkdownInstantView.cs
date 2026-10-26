@@ -27,6 +27,8 @@ public sealed class MarkdownInstantView : UserControl
     private ShellWindowLayoutViewModel? _layout;
     private int? _elementMenuSourceLine;
     private static readonly IAppLocalizer Localizer = new AppLocalizer();
+    private WatermarkOverlay? _watermark;
+    private IDisposable? _watermarkSubscriptions;
 
     public MarkdownInstantView()
     {
@@ -34,12 +36,9 @@ public sealed class MarkdownInstantView : UserControl
         grid.Bind(BackgroundProperty, this.GetResourceObservable("VexPreviewBackgroundBrush"));
         grid.Children.Add(Editor);
         var watermark = new WatermarkOverlay();
-        watermark.Bind(IsVisibleProperty, new Binding("Workbench.Preferences.WatermarkPreview"));
-        watermark.Bind(WatermarkOverlay.TextProperty, new Binding("Workbench.Preferences.WatermarkText"));
-        watermark.Bind(WatermarkOverlay.StrengthProperty, new Binding("Workbench.Preferences.WatermarkOpacity"));
-        watermark.Bind(WatermarkOverlay.FontSizeProperty, new Binding("Workbench.Preferences.WatermarkFontSize"));
-        watermark.Bind(WatermarkOverlay.HexInkProperty, new Binding("Workbench.Preferences.WatermarkColor"));
-        watermark.Bind(WatermarkOverlay.WeightValueProperty, new Binding("Workbench.Preferences.WatermarkWeight"));
+        // AOT 兼容：水印绑定延迟到 Attach 方法中，从 DataContext 建立
+        // 这些绑定依赖 Workbench.Preferences 路径，需要 DataContext 可用后才能建立
+        _watermark = watermark;
         grid.Children.Add(watermark); Content = grid;
         AttachedToVisualTree += (_, _) => EventBus.Default.Subscribe(this);
         DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
@@ -55,6 +54,9 @@ public sealed class MarkdownInstantView : UserControl
             _workbench?.DetachLiveEditor(Editor); _workbench = null;
             if (_layout is not null) _layout.PropertyChanged -= LayoutChanged;
             _layout = null;
+            // 清理水印绑定的订阅
+            _watermarkSubscriptions?.Dispose();
+            _watermarkSubscriptions = null;
         };
     }
 
@@ -233,6 +235,61 @@ public sealed class MarkdownInstantView : UserControl
         _workbench?.DetachLiveEditor(Editor);
         _workbench = workbench;
         workbench?.AttachLiveEditor(Editor);
+
+        // AOT 兼容：建立水印属性绑定
+        SetupWatermarkBindings();
+    }
+
+    private void SetupWatermarkBindings()
+    {
+        if (_watermark is null) return;
+
+        // 清理旧的订阅
+        _watermarkSubscriptions?.Dispose();
+
+        var vm = DataContext as MainWindowViewModel;
+        var preferences = vm?.Workbench?.Preferences;
+        if (preferences is null)
+        {
+            _watermarkSubscriptions = null;
+            return;
+        }
+
+        // AOT 兼容：使用属性变更通知而非反射绑定
+        var subscriptions = new System.Reactive.Disposables.CompositeDisposable();
+
+        // 监听 Preferences 属性变更
+        preferences.PropertyChanged += OnPreferencesChanged;
+        subscriptions.Add(System.Reactive.Disposables.Disposable.Create(() =>
+            preferences.PropertyChanged -= OnPreferencesChanged));
+
+        // 初始化水印属性
+        UpdateWatermarkProperties();
+
+        _watermarkSubscriptions = subscriptions;
+    }
+
+    private void OnPreferencesChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName?.StartsWith("Watermark") == true)
+        {
+            UpdateWatermarkProperties();
+        }
+    }
+
+    private void UpdateWatermarkProperties()
+    {
+        if (_watermark is null) return;
+
+        var preferences = (DataContext as MainWindowViewModel)?.Workbench?.Preferences;
+        if (preferences is null) return;
+
+        _watermark.IsVisible = preferences.WatermarkPreview;
+        _watermark.Text = preferences.WatermarkText;
+        _watermark.Strength = preferences.WatermarkOpacity;
+        _watermark.FontSize = preferences.WatermarkFontSize;
+        _watermark.HexInk = preferences.WatermarkColor;
+        _watermark.WeightValue = preferences.WatermarkWeight;
     }
 
     private void LayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

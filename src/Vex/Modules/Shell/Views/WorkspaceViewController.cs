@@ -50,15 +50,15 @@ public sealed class WorkspaceViewController
 
     private static Panel BuildPinIcon(double size)
     {
-        static Viewbox State(string className)
+        static Viewbox State(string className, string iconKey)
         {
-            var canvas = new Canvas { Width = 24, Height = 24 };
-            canvas.Children.Add(new Avalonia.Controls.Shapes.Path { Classes = { "pin-head" }, Data = Geometry.Parse("M8 3h8l-1 8H9l-1-8z") });
-            canvas.Children.Add(new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse("M12 11v9") });
-            if (className == "pin-off") canvas.RenderTransform = new RotateTransform(45, 12, 11);
-            return new Viewbox { Classes = { className }, Child = canvas };
+            return new Viewbox
+            {
+                Classes = { className },
+                Child = new Avalonia.Controls.Shapes.Path { Data = Vex.Controls.MenuIconCatalog.Get(iconKey) },
+            };
         }
-        return new Panel { Width = size, Height = size, Children = { State("pin-on"), State("pin-off") } };
+        return new Panel { Width = size, Height = size, Children = { State("pin-on", "pin"), State("pin-off", "pin-off") } };
     }
     public sealed record FloatingSession(IReadOnlyDictionary<string, CodeWFWindow> Windows);
     private FloatingSession? _presentationSession;
@@ -100,7 +100,21 @@ public sealed class WorkspaceViewController
         if (_pinPreferences is not null)
         {
             _pinPreferences.PreferencesChanged += OnPinPreferenceChanged;
-            ReadingPin?.Bind(ToggleButton.IsCheckedProperty, new Binding("PinReadingToolbar") { Source = _pinPreferences });
+            // AOT 兼容：使用 PropertyChanged 事件替代反射绑定
+            if (ReadingPin is not null)
+            {
+                ReadingPin.IsChecked = _pinPreferences.PinReadingToolbar;
+                _pinPreferences.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == nameof(_pinPreferences.PinReadingToolbar) && ReadingPin is not null)
+                        ReadingPin.IsChecked = _pinPreferences.PinReadingToolbar;
+                };
+                ReadingPin.IsCheckedChanged += (_, _) =>
+                {
+                    if (ReadingPin.IsChecked.HasValue && _pinPreferences is not null)
+                        _pinPreferences.PinReadingToolbar = ReadingPin.IsChecked.Value;
+                };
+            }
         }
         Arrange();
     }
@@ -145,7 +159,8 @@ public sealed class WorkspaceViewController
             Grid.SetColumn(caption, 0); bar.Children.Add(caption);
             _renderCaption = caption; _renderLabel = label;
             var typography = new Button { Classes = { "wb-quiet" }, VerticalAlignment = VerticalAlignment.Center };
-            typography.Bind(Button.CommandProperty, new Binding("Workbench.ToggleTypography"));
+            // AOT 兼容：使用 Click 事件替代反射命令绑定
+            typography.Click += (_, _) => _vm?.Workbench.ToggleTypography();
             _renderTypographyPrefix = new TextBlock { Text = WorkbenchText.Get("Typography"), FontWeight = FontWeight.Normal, VerticalAlignment = VerticalAlignment.Center };
             _renderTypographyName = new TextBlock { FontWeight = FontWeight.Normal, VerticalAlignment = VerticalAlignment.Center };
             var trigger = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
@@ -247,7 +262,18 @@ public sealed class WorkspaceViewController
         }
         else floating.Position = new PixelPoint(_window.Position.X + 36 * (_floating.Count + 1), _window.Position.Y + 36 * (_floating.Count + 1));
         var header=new StackPanel { Orientation=Orientation.Horizontal,Spacing=12,Margin=new Thickness(16,0),VerticalAlignment=VerticalAlignment.Center };
-        var name=new TextBlock {FontSize=12,VerticalAlignment=VerticalAlignment.Center}; name.Bind(TextBlock.TextProperty,new Binding("DocumentInfo.PropertyNameText")); header.Children.Add(name);
+        var name=new TextBlock {FontSize=12,VerticalAlignment=VerticalAlignment.Center};
+        // AOT 兼容：使用 PropertyChanged 事件替代反射绑定
+        if (_vm?.DocumentInfo is not null)
+        {
+            name.Text = _vm.DocumentInfo.PropertyNameText;
+            _vm.DocumentInfo.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(_vm.DocumentInfo.PropertyNameText))
+                    name.Text = _vm.DocumentInfo.PropertyNameText;
+            };
+        }
+        header.Children.Add(name);
         var back=new Button {Content=WorkbenchText.Get("WSReturn"),Classes={"wb-quiet"}}; back.Click+=(_,_)=>Return(id); header.Children.Add(back); floating.LeftContent=header;
         _floating[id]=floating;
         floating.Closed+=(_,_)=>{if(_floating.Remove(id)){floating.Content=null;Arrange();}};

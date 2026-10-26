@@ -20,15 +20,38 @@
     <WindowsSupportedOSPlatformVersion>6.1</WindowsSupportedOSPlatformVersion>
     <IsTrimmable>true</IsTrimmable>
     <PublishTrimmed>true</PublishTrimmed>
+    <!-- 更激进的裁剪模式 -->
+    <TrimMode>link</TrimMode>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <!-- 运行时功能裁剪 -->
+    <EventSourceSupport>false</EventSourceSupport>
+    <EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <!-- 如果只需要中文，可以启用此选项以进一步减小体积 -->
+    <!-- <InvariantGlobalization>true</InvariantGlobalization> -->
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(RuntimeIdentifier)' != ''">
-    <PublishSingleFile>true</PublishSingleFile>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <!-- Native AOT 和 PublishSingleFile 互斥，优先使用 Native AOT -->
+    <PublishSingleFile Condition="'$(PublishAot)' != 'true'">true</PublishSingleFile>
+    <EnableCompressionInSingleFile Condition="'$(PublishAot)' != 'true'">true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract Condition="'$(PublishAot)' != 'true'">true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract Condition="'$(PublishAot)' != 'true'">true</IncludeAllContentForSelfExtract>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <!-- 排除本机库的 PDB 文件 -->
+    <StripSymbols>true</StripSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(PublishAot)' == 'true'">
+    <!-- Native AOT 优化配置 - 由于 Prism/ReactiveUI/Avalonia 反射需求，暂时降低优化级别 -->
+    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+    <!-- 保留完整类型元数据以支持反射 -->
+    <IlcGenerateCompleteTypeMetadata>true</IlcGenerateCompleteTypeMetadata>
+    <IlcDisableReflection>false</IlcDisableReflection>
+    <!-- 保留更多元数据 -->
+    <IlcTrimMetadata>false</IlcTrimMetadata>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyMetadata Include="Website" Value="$(PackageProjectUrl)" />

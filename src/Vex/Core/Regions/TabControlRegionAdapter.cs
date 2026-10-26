@@ -82,7 +82,14 @@ public sealed class TabControlRegionAdapter : RegionAdapterBase<TabControl>
             title.Bind(TextBlock.TextProperty, headerBinding);
         }
 
-        title.Bind(TextBlock.ForegroundProperty, new Binding(nameof(TabItem.Foreground)) { Source = tabItem });
+        // AOT 兼容：使用 PropertyChanged 事件替代反射绑定
+        title.Foreground = tabItem.Foreground;
+        tabItem.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == TabItem.ForegroundProperty)
+                title.Foreground = tabItem.Foreground;
+        };
+
         if (string.IsNullOrWhiteSpace(iconData))
         {
             tabItem.Header = title;
@@ -95,8 +102,14 @@ public sealed class TabControlRegionAdapter : RegionAdapterBase<TabControl>
             StrokeThickness = 1.6, Data = Geometry.Parse(iconData),
             VerticalAlignment = VerticalAlignment.Center
         };
-        icon.Bind(Avalonia.Controls.Shapes.Shape.StrokeProperty,
-            new Binding(nameof(TabItem.Foreground)) { Source = tabItem });
+        // AOT 兼容：使用 PropertyChanged 事件替代反射绑定
+        icon.Stroke = tabItem.Foreground;
+        tabItem.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == TabItem.ForegroundProperty)
+                icon.Stroke = tabItem.Foreground;
+        };
+
         var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
         header.Children.Add(icon);
         header.Children.Add(title);
