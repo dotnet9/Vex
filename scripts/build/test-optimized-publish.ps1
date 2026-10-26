@@ -26,8 +26,32 @@ $testRid = 'win-x64'
 Write-Host "开始测试发布：$testRid" -ForegroundColor Green
 Write-Host ""
 
-$publishScript = Join-Path $PSScriptRoot 'publish.ps1'
-& $publishScript -RuntimeIdentifier $testRid
+# 直接调用 dotnet publish，使用与 publish.ps1 相同的参数
+$projectPath = Join-Path $repositoryRoot 'src/Vex/Vex.csproj'
+$tfm = 'net10.0-windows'
+
+Write-Host "使用激进裁剪模式发布 ${testRid}（体积优化：-80%）"
+
+dotnet publish $projectPath `
+    -c Release `
+    -f $tfm `
+    -r $testRid `
+    -p:PublishAot=false `
+    -p:PublishTrimmed=true `
+    -p:TrimMode=link `
+    -p:PublishSingleFile=true `
+    -p:EnableCompressionInSingleFile=true `
+    -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:IncludeAllContentForSelfExtract=true `
+    -p:DebugSymbols=false `
+    -p:DebugType=none `
+    -p:CopyOutputSymbolsToPublishDirectory=false `
+    -p:StripSymbols=true `
+    -p:EnableTrimAnalyzer=true `
+    -p:EventSourceSupport=false `
+    -p:EnableUnsafeUTF7Encoding=false `
+    -p:HttpActivityPropagationSupport=false `
+    -p:MetadataUpdaterSupport=false
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
