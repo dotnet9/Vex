@@ -3,7 +3,7 @@
 .edit-options { height: 42px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 1px solid var(--border); background: var(--panel); }
 .edit-options > .typography-trigger { margin-left: auto; }
 .edit-methods { display: flex; gap: 4px; }
-.edit-methods button { border: none; border-radius: 5px; padding: 5px 10px; background: transparent; font-size: 11px; color: var(--muted); transition: background .18s, color .18s; }
+.edit-methods button { border: none; border-radius: var(--vex-radius-xs); padding: 5px 10px; background: transparent; font-size: 11px; color: var(--muted); transition: background var(--vex-exit), color var(--vex-exit); }
 .edit-methods button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
 .edit-method-description { font-size: 10px; color: var(--muted); margin-right: auto; }
 .typography-trigger { color: var(--muted); }
@@ -21,13 +21,13 @@
 .instant-empty { min-height: 1.95em; }
 .instant-empty:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
 .workspace.source-only .source-pane { width: 100%; border-right: none; }
-.typography-popover { position: absolute; z-index: 30; right: 18px; top: 108px; width: 338px; max-height: calc(100% - 124px); padding: 18px; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-pop); animation: inspector-in .2s ease; }
+.typography-popover { position: absolute; z-index: 30; right: 18px; top: 108px; width: 338px; max-height: calc(100% - 124px); padding: 18px; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: var(--vex-radius-lg); box-shadow: var(--shadow-pop); animation: inspector-in var(--vex-duration) var(--vex-ease); }
 .typography-popover .popover-title { flex: none; margin-bottom: 0; }
 .typography-note { font-size: 10px; color: var(--muted); margin: 3px 0 14px; }
 #typography-panel .type-swatch{height:150px}
 #typography-panel .type-swatch .type-document{--type-size:13px;transform:scale(.45)}
 .typography-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow: auto; min-height: 0; }
-.typography-card { position: relative; border: 1px solid var(--border); background: var(--bg); padding: 9px 6px 7px; border-radius: 6px; color: var(--muted); font-size: 10px; min-width: 0; transition: border-color .16s, background .16s; }
+.typography-card { position: relative; border: 1px solid var(--border); background: var(--bg); padding: 9px 6px 7px; border-radius: var(--vex-radius-sm); color: var(--muted); font-size: 10px; min-width: 0; transition: border-color var(--vex-fast), background var(--vex-fast); }
 .typography-card:hover { border-color: var(--accent); }
 .typography-card[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 .type-swatch { display: block; width: 36px; height: 17px; margin: 0 auto 6px; border-top: 3px solid var(--swatch); background: linear-gradient(var(--border),var(--border)) 0 7px/36px 1px no-repeat, linear-gradient(var(--border),var(--border)) 0 12px/26px 1px no-repeat; }
@@ -40,11 +40,11 @@
 .content-area .md-body blockquote { border-left-color: var(--typography-accent); background: color-mix(in srgb, var(--typography-accent) 6%, transparent); }
 /* 多余空行占位：每个空行补一行正文高度，保留作者疏密意图。 */
 .content-area .md-body .md-blank-gap { height: 1.6em; }
-.content-area .md-body .md-toc { display:flex; flex-direction:column; gap:2px; margin:16px 0 22px; padding:12px 14px; border-radius:7px; background:var(--code-bg); border:1px solid var(--border); }
+.content-area .md-body .md-toc { display:flex; flex-direction:column; gap:2px; margin:16px 0 22px; padding:12px 14px; border-radius:var(--vex-radius-sm); background:var(--code-bg); border:1px solid var(--border); }
 .content-area .md-body .md-toc strong { margin-bottom:4px; font-size:12px; color:var(--fg); }
-.content-area .md-body .md-toc a { display:block; color:var(--accent); text-decoration:none; padding:3px 7px; border-radius:4px; }
+.content-area .md-body .md-toc a { display:block; color:var(--accent); text-decoration:none; padding:3px 7px; border-radius:var(--vex-radius-xs); }
 .content-area .md-body .md-toc a:hover { background:var(--accent-soft); }
-.content-area .md-body .md-callout { margin:16px 0; padding:11px 14px; border-left:3px solid var(--accent); border-radius:0 6px 6px 0; background:color-mix(in srgb, var(--accent) 7%, transparent); }
+.content-area .md-body .md-callout { margin:16px 0; padding:11px 14px; border-left:3px solid var(--accent); border-radius:0 var(--vex-radius-sm) var(--vex-radius-sm) 0; background:color-mix(in srgb, var(--accent) 7%, transparent); }
 .content-area .md-body .md-callout.warning { --callout-color:var(--warning); border-left-color:var(--callout-color); background:color-mix(in srgb, var(--callout-color) 8%, transparent); }
 .content-area .md-body .md-callout strong { display:block; margin-bottom:3px; color:var(--callout-color,var(--accent)); font-size:12px; }
 .content-area .md-body .md-footnote { margin:12px 0; padding-top:8px; border-top:1px solid var(--border); font-size:.9em; }
@@ -52,7 +52,7 @@
 :root[data-typography-variant="basic"] .content-area .md-body h2 { border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 :root[data-typography-variant="stripe"] .content-area .md-body h2 { border-left: 3px solid var(--typography-accent); padding: 3px 0 3px 12px; }
 :root[data-typography-variant="underline"] .content-area .md-body h2 { border-bottom: 2px solid color-mix(in srgb, var(--typography-accent) 45%, transparent); padding-bottom: 8px; }
-:root[data-typography-variant="technical"] .content-area .md-body h2 { background: color-mix(in srgb, var(--typography-accent) 8%, transparent); border-left: 3px solid var(--typography-accent); padding: 7px 12px; border-radius: 0 4px 4px 0; }
+:root[data-typography-variant="technical"] .content-area .md-body h2 { background: color-mix(in srgb, var(--typography-accent) 8%, transparent); border-left: 3px solid var(--typography-accent); padding: 7px 12px; border-radius: 0 var(--vex-radius-xs) var(--vex-radius-xs) 0; }
 :root[data-typography-variant="serif"] .content-area .md-body { font-family: "Noto Serif SC", "Songti SC", SimSun, serif; }
 :root[data-typography-variant="editorial"] .content-area .md-body h1 { text-align: center; border-bottom: none; }
 :root[data-typography-variant="editorial"] .content-area .md-body h2 { text-align: center; padding: 7px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
@@ -61,7 +61,7 @@
 :root[data-compact="true"] .content-area .md-body h3 { margin-top: 12px; margin-bottom: 6px; }
 .app-window.focus-mode .sidebar { width: 0; opacity: 0; border: none; pointer-events: none; }
 .app-window.focus-mode .statusbar { display: none; }
-:root[data-motion="false"] *, :root[data-motion="false"] *::before, :root[data-motion="false"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+:root[data-motion="false"] *, :root[data-motion="off"] *, :root[data-motion="false"] *::before, :root[data-motion="false"] *::after, :root[data-motion="off"] *::before, :root[data-motion="off"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 .menu-item { display: grid; grid-template-columns: 15px minmax(110px, 1fr) auto; gap: 8px; padding: 6px 10px; line-height: 20px; font-size: 12px; cursor: pointer; }
 .menu-item .menu-state { color: var(--accent); font-size: 12px; width: 15px; text-align: center; }
 .menu-item.checked::after { display: none; }
@@ -74,7 +74,7 @@
 @media (prefers-reduced-motion: reduce) { .instant-block, .edit-methods button, .typography-card { transition: none; } .typography-popover { animation: none; } }
 
 /* 分隔线占位与命中宽度一致，侧栏内部随列伸缩。 */
-.sidebar { width: var(--sidebar-width, 226px); transition: width .24s ease, opacity .2s; border-right: none; }
+.sidebar { width: var(--sidebar-width, 226px); transition: width var(--vex-slow) var(--vex-ease), opacity var(--vex-duration); border-right: none; }
 /* 内容宽度锁在用户设定的栏宽上，收起时由容器裁切，动画才是平移滑出而非把列表挤扁（与右侧大纲栏一致）。 */
 .sidebar-inner { width: var(--sidebar-width, 226px); min-width: 0; }
 .sidebar-splitter { width: 5px; flex: none; cursor: col-resize; touch-action: none; background: linear-gradient(90deg, transparent 2px, var(--border) 2px, var(--border) 3px, transparent 3px); }
@@ -91,24 +91,24 @@
 .content-area .md-body h3 { font-size: 17px; }
 
 /* 代码正文保持安静；语言输入只在即时编辑块下方出现。 */
-.md-code-block { margin: 8px 0 12px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 3px; background: var(--code-bg); }
+.md-code-block { margin: 8px 0 12px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--vex-radius-2xs); background: var(--code-bg); }
 .content-area .md-body .md-code-block pre { margin: 0; padding: 0; border: none; border-radius: 0; overflow-x: auto; background: transparent; outline: none; min-height: 22px; color: var(--fg); font: 14px/22px "Cascadia Code", Consolas, monospace; }
 .content-area .md-body .md-code-block pre code { display: block; min-height: 22px; padding: 0; color: var(--fg); background: transparent; outline: none; font: 14px/22px "Cascadia Code", Consolas, monospace; }
 .md-code-footer { display: flex; justify-content: flex-end; margin: -8px 0 12px; }
-.md-code-language { box-sizing: border-box; width: 180px; max-width: 100%; height: 26px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 3px; color: var(--fg); background: var(--code-bg); text-align: center; font: 12px/18px "Cascadia Code", Consolas, monospace; }
+.md-code-language { box-sizing: border-box; width: 180px; max-width: 100%; height: 26px; padding: 3px 8px; border:1px solid var(--control-border); border-radius: var(--vex-radius-pill); color: var(--fg); background: transparent; text-align: center; font: 12px/18px "Cascadia Code", Consolas, monospace; }
 .md-code-language::placeholder { color: var(--muted); }
 .md-code-language:focus { outline: none; border-color: var(--accent); }
 :root[data-compact="true"] .content-area .md-body .md-code-block pre code { font-size: 13px; line-height: 20px; }
 
 .format-toolbar { display:flex; align-items:center; gap:2px; min-width:0; margin-left:4px; }
-.format-button { width:28px; height:28px; display:grid; place-items:center; padding:5px; border:0; border-radius:5px; background:transparent; color:var(--fg); cursor:pointer; font-size:11px; }
+.format-button { width:28px; height:28px; display:grid; place-items:center; padding:5px; border:0; border-radius:var(--vex-radius-xs); background:transparent; color:var(--fg); cursor:pointer; font-size:11px; }
 .format-button:hover,.format-button:focus-visible { background:var(--hover); color:var(--accent); outline:none; }
 .format-button .ico { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; }
 .format-divider { height:18px; width:1px; background:var(--border); margin:0 3px; }
 .format-more { font-size:16px; letter-spacing:1px; }
-.presentation-tools { position:absolute; z-index:80; right:24px; top:24px; display:flex; gap:3px; padding:5px; border:1px solid var(--border); border-radius:8px; background:color-mix(in srgb,var(--panel) 82%,transparent); opacity:.2; transition:opacity .2s; }
+.presentation-tools { position:absolute; z-index:80; right:24px; top:24px; display:flex; gap:3px; padding:5px; border:1px solid var(--border); border-radius:var(--vex-radius-md); background:color-mix(in srgb,var(--panel) 82%,transparent); opacity:.2; transition:opacity var(--vex-duration); }
 .presentation-tools:hover,.presentation-tools:focus-within { opacity:1; }
-.presentation-tools button { border:0; border-radius:5px; padding:5px 9px; color:var(--fg); background:transparent; cursor:pointer; }
+.presentation-tools button { border:0; border-radius:var(--vex-radius-xs); padding:5px 9px; color:var(--fg); background:transparent; cursor:pointer; }
 .presentation-tools button:hover { background:var(--hover); color:var(--accent); }
 .app-window.presentation-mode .titlebar,.app-window.presentation-mode .sidebar,.app-window.presentation-mode .sidebar-splitter,.app-window.presentation-mode .work-toolbar,.app-window.presentation-mode .edit-options,.app-window.presentation-mode .statusbar { display:none!important; }
 .app-window.presentation-mode .workspace { height:100%; }

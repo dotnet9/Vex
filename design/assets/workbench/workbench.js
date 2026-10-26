@@ -640,7 +640,10 @@
       input.setSelectionRange(start + 1, start + 1 + selected.length); input.dispatchEvent(new Event('input')); updateCursor();
     }
   });
-  function reducedMotion() { return !state.motion || matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  function reducedMotion() {
+    var flag = document.documentElement.dataset.motion;
+    return !state.motion || flag === 'off' || flag === 'false' || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
   function applyPresentation() {
     var root = document.querySelector('.app-window');
     root.classList.toggle('presentation-mode', state.presentation);
@@ -1122,7 +1125,9 @@
         VexPreferences.set('typewriter', !state.typewriter);
       },
       "toggle-motion": function (action, item) {
-        state.motion = !state.motion; document.documentElement.dataset.motion = String(state.motion);
+        state.motion = !state.motion;
+        if (window.VexPreferences) VexPreferences.set('motion', state.motion ? 'full' : 'off');
+        else document.documentElement.dataset.motion = String(state.motion);
       },
       "presentation": function (action, item) {
         startPresentation();
@@ -1491,6 +1496,7 @@
     toast:VexProto.toast, getText:function () { return input.value; },
     replaceText:function (text) { if (input.readOnly) return; remember(input.value); input.value = text; input.dispatchEvent(new Event('input')); refreshNow(); },
     apply:function (key,value,all) {
+      if (key === 'motion') state.motion = value !== 'off' && value !== 'false';
       if (key === 'theme') VexTheme.setMode(value);
       if (key === 'palette') VexTheme.setPalette(value);
       if (key === 'typography') VexTypography.choose(value);

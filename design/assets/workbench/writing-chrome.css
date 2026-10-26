@@ -1,9 +1,9 @@
 .workspace-main,.document-workspace{position:relative;min-height:0}
-.document-corner-actions{position:absolute;z-index:12;left:12px;bottom:10px;display:flex;align-items:center;gap:2px;border-radius:5px;background:var(--panel,var(--surface));color:var(--muted)}
-.document-corner-actions button{width:32px;height:32px;padding:7px;border:0;border-radius:4px;background:transparent;color:inherit;display:grid;place-items:center;cursor:pointer}
+.document-corner-actions{position:absolute;z-index:12;left:12px;bottom:10px;display:flex;align-items:center;gap:2px;border-radius:var(--vex-radius-xs);background:var(--panel,var(--surface));color:var(--muted)}
+.document-corner-actions button{width:32px;height:32px;padding:7px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:inherit;display:grid;place-items:center;cursor:pointer}
 .document-corner-actions button:hover,.document-corner-actions button[aria-pressed=true]{background:var(--hover);color:var(--accent)}
 .document-corner-actions svg{width:18px;height:18px}
-.document-word-count{position:absolute;z-index:12;right:16px;bottom:13px;min-height:26px;display:flex;align-items:center;padding:3px 6px;border:0;border-radius:4px;background:var(--panel,var(--surface));color:var(--muted);font:12px/20px system-ui}
+.document-word-count{position:absolute;z-index:12;right:16px;bottom:13px;min-height:26px;display:flex;align-items:center;padding:3px 6px;border:0;border-radius:var(--vex-radius-xs);background:var(--panel,var(--surface));color:var(--muted);font:12px/20px system-ui}
 .workspace-main:has(.map-pane:not([hidden])) .document-word-count,.document-workspace:has(.map-panel:not([hidden])) .document-word-count{bottom:64px}
 .focus-mode .document-word-count,.focus-mode .document-corner-actions,.presentation-mode .document-corner-actions,.presentation-mode .document-word-count{display:none}
 .side-pane{display:flex;flex-direction:column;overflow:hidden}
@@ -12,7 +12,7 @@
 .sidebar-search input{min-width:0}
 .sidebar-search .clear-search{border:0;background:transparent;color:var(--muted);display:grid;place-items:center;width:28px;height:28px;padding:5px;cursor:pointer}
 .file-navigation-footer,.sidebar-footer.file-navigation-footer{flex:none;display:flex;align-items:center;gap:2px;height:40px;padding:3px 5px;border-top:1px solid var(--border);position:relative}
-.file-navigation-footer button{border:0;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-width:32px;height:32px;padding:6px;border-radius:4px;flex:none}
+.file-navigation-footer button{border:0;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-width:32px;height:32px;padding:6px;border-radius:var(--vex-radius-xs);flex:none}
 .file-navigation-footer button:hover{background:var(--hover);color:var(--fg,var(--text))}
 .file-navigation-footer .folder-trigger{flex:1;min-width:0;justify-content:flex-start;font-size:12px}
 .folder-trigger span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -22,11 +22,11 @@
 /* 文件列表工具条置于侧栏底部（用户要求），上方列表自然占满。 */
 /* 与右侧文档状态栏同高（34px，workspace-chrome.css §44），底栏水平居中对齐。 */
 .files-toolbar-bottom{height:34px;min-height:34px;padding:0 14px;border-top:1px solid var(--border);flex:none;align-items:center}
-.files-toolbar button{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border:0;border-radius:5px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
+.files-toolbar button{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
 .files-toolbar button:hover{background:var(--hover);color:var(--fg)}
 .files-toolbar button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
 .files-toolbar .sort-arrow{margin-left:2px;font-weight:600}
-.file-navigation-menu{position:absolute;left:0;bottom:40px;z-index:30;min-width:210px;padding:5px;border:1px solid var(--border);background:var(--panel,var(--surface));box-shadow:0 6px 24px #0002;border-radius:6px}
+.file-navigation-menu{position:absolute;left:0;bottom:40px;z-index:30;min-width:210px;padding:5px;border:1px solid var(--border);background:var(--panel,var(--surface));box-shadow:0 6px 24px #0002;border-radius:var(--vex-radius-sm)}
 .file-navigation-menu button{width:100%;justify-content:flex-start;font-size:13px;height:34px}
 .file-directory>summary{display:flex;align-items:center;gap:7px;list-style:none;padding:7px 8px;cursor:pointer;font-size:13px;color:var(--muted);min-height:34px}
 .file-directory>summary:before{content:'›';width:10px;transform:rotate(90deg);font:18px/18px system-ui}
@@ -56,7 +56,7 @@
 .typography-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .typography-popover{width:min(440px,calc(100% - 16px))}
 .typography-popover .typography-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-.typography-card{padding:8px;border-radius:6px;min-width:0}
+.typography-card{padding:8px;border-radius:var(--vex-radius-sm);min-width:0}
 .typography-card>small{display:none}
 .type-swatch{position:relative;display:block;width:100%;height:140px;overflow:hidden;padding:0;border:0;border-radius:0;pointer-events:none}
 .type-swatch .type-document{display:block;width:360px;height:420px;transform:scale(.33);transform-origin:top left;padding:18px;letter-spacing:0}

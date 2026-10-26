@@ -45,7 +45,7 @@ body {
   color: var(--fg);
   background: var(--stage);
   -webkit-font-smoothing: antialiased;
-  transition: background 0.25s ease, color 0.25s ease;
+  transition: background var(--vex-duration) var(--vex-ease), color var(--vex-duration) var(--vex-ease);
 }
 
 .mono {
@@ -106,10 +106,10 @@ a:hover { text-decoration: underline; }
 .window {
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--vex-radius-lg);
   box-shadow: var(--shadow-window);
   overflow: hidden;
-  transition: background 0.25s ease, border-color 0.25s ease;
+  transition: background var(--vex-duration) var(--vex-ease), border-color var(--vex-duration) var(--vex-ease);
 }
 
 /* ---------- 标题栏 ---------- */
@@ -125,7 +125,7 @@ a:hover { text-decoration: underline; }
 .tb-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
 .tb-logo {
   width: 20px; height: 20px;
-  border-radius: 6px;
+  border-radius: var(--vex-radius-sm);
   background: var(--title-grad);
   color: var(--on-accent);
   display: inline-flex; align-items: center; justify-content: center;
@@ -138,7 +138,7 @@ a:hover { text-decoration: underline; }
   font-size: 12.5px;
   color: var(--fg);
   padding: 3px 9px;
-  border-radius: 6px;
+  border-radius: var(--vex-radius-sm);
   cursor: default;
   white-space: nowrap;
 }
@@ -175,7 +175,7 @@ a:hover { text-decoration: underline; }
 .flyout {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--vex-radius-lg);
   box-shadow: var(--shadow-pop);
   padding: 5px;
   min-width: 220px;
@@ -183,7 +183,7 @@ a:hover { text-decoration: underline; }
 .menu-item {
   display: flex; align-items: center; gap: 10px;
   padding: 6px 10px;
-  border-radius: 7px;
+  border-radius: var(--vex-radius-sm);
   font-size: 12.5px;
   cursor: default;
   color: var(--fg);
@@ -215,11 +215,11 @@ a:hover { text-decoration: underline; }
   color: var(--fg);
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--vex-radius-md);
   padding: 5px 14px;
   min-height: 30px;
   cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  transition: background var(--vex-instant) var(--vex-ease), border-color var(--vex-instant) var(--vex-ease), color var(--vex-instant) var(--vex-ease);
 }
 .btn:hover { background: var(--hover); }
 .btn:active { background: var(--pressed); }
@@ -240,7 +240,7 @@ a:hover { text-decoration: underline; }
 .btn.danger:active { background: var(--danger-pressed-bg); color: var(--danger-pressed-fg); border-color: var(--danger-pressed-fg); }
 .btn.ghost { border-color: transparent; background: transparent; }
 .btn.ghost:hover { background: var(--hover); }
-.btn.sm { min-height: 26px; padding: 3px 10px; font-size: 12px; border-radius: 7px; }
+.btn.sm { min-height: 26px; padding: 3px 10px; font-size: 12px; border-radius: var(--vex-radius-sm); }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* ---------- 输入框 ---------- */
@@ -248,19 +248,18 @@ a:hover { text-decoration: underline; }
   font: inherit;
   font-size: 12.5px;
   color: var(--fg);
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: transparent;
+  border:1px solid var(--control-border);
+  border-radius: var(--vex-radius-pill);
   padding: 5px 10px;
   min-height: 30px;
   width: 100%;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  transition: border-color var(--vex-instant) var(--vex-ease), box-shadow var(--vex-instant) var(--vex-ease), background var(--vex-instant) var(--vex-ease);
 }
 .input::placeholder { color: var(--fg-disabled); }
 .input:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
 .input:focus {
   outline: none;
-  background: var(--panel);
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
@@ -274,12 +273,12 @@ a:hover { text-decoration: underline; }
 }
 .check .box {
   width: 16px; height: 16px;
-  border-radius: 5px;
+  border-radius: var(--vex-radius-xs);
   border: 1px solid var(--badge-border);
   background: var(--panel);
   display: inline-flex; align-items: center; justify-content: center;
   flex: none;
-  transition: all 0.12s ease;
+  transition: all var(--vex-instant) var(--vex-ease);
 }
 .check input { display: none; }
 .check input:checked + .box { background: var(--accent); border-color: var(--accent); }
@@ -304,7 +303,7 @@ a:hover { text-decoration: underline; }
   background: var(--panel);
   display: inline-flex; align-items: center; justify-content: center;
   flex: none;
-  transition: all 0.12s ease;
+  transition: all var(--vex-instant) var(--vex-ease);
 }
 .radio input { display: none; }
 .radio input:checked + .dot { border-color: var(--accent); }
@@ -324,7 +323,7 @@ a:hover { text-decoration: underline; }
   background: var(--badge-border);
   border: none;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--vex-fast) var(--vex-ease);
   flex: none;
 }
 .switch::after {
@@ -335,7 +334,7 @@ a:hover { text-decoration: underline; }
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  transition: transform 0.15s ease;
+  transition: transform var(--vex-fast) var(--vex-ease);
 }
 .switch.on { background: var(--accent); }
 .switch.on::after { transform: translateX(16px); }
@@ -345,7 +344,7 @@ a:hover { text-decoration: underline; }
   display: inline-flex;
   background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--vex-radius-md);
   padding: 2px;
   gap: 2px;
 }
@@ -354,7 +353,7 @@ a:hover { text-decoration: underline; }
   font: inherit; font-size: 12px;
   color: var(--muted);
   padding: 3px 12px;
-  border-radius: 6px;
+  border-radius: var(--vex-radius-sm);
   cursor: pointer;
   display: inline-flex; align-items: center; gap: 5px;
 }
@@ -372,7 +371,7 @@ a:hover { text-decoration: underline; }
   font-size: 11.5px;
   background: var(--badge-bg);
   border: 1px solid var(--badge-border);
-  border-radius: 6px;
+  border-radius: var(--vex-radius-sm);
   padding: 1px 8px;
   color: var(--muted);
   white-space: nowrap;
@@ -387,7 +386,7 @@ a:hover { text-decoration: underline; }
   background: var(--code-bg);
   border: 1px solid var(--border);
   border-bottom-width: 2px;
-  border-radius: 5px;
+  border-radius: var(--vex-radius-xs);
   padding: 0 5px;
   line-height: 16px;
   display: inline-block;
@@ -423,7 +422,7 @@ a:hover { text-decoration: underline; }
   position: absolute;
   left: 10px; right: 10px; bottom: -1px;
   height: 2px;
-  border-radius: 2px;
+  border-radius: var(--vex-radius-2xs);
   background: var(--accent);
 }
 .side-body { flex: 1; overflow: auto; padding: 8px; }
@@ -432,7 +431,7 @@ a:hover { text-decoration: underline; }
   display: flex; flex-direction: column;
   gap: 2px;
   padding: 6px 10px;
-  border-radius: 8px;
+  border-radius: var(--vex-radius-md);
   cursor: default;
   position: relative;
 }
@@ -443,7 +442,7 @@ a:hover { text-decoration: underline; }
   position: absolute;
   left: 0; top: 6px; bottom: 6px;
   width: 3px;
-  border-radius: 3px;
+  border-radius: var(--vex-radius-2xs);
   background: var(--accent);
 }
 .tree-row .tr-title {
@@ -471,7 +470,7 @@ a:hover { text-decoration: underline; }
 .tree-file {
   display: flex; align-items: center; gap: 7px;
   padding: 5px 10px 5px 26px;
-  border-radius: 7px;
+  border-radius: var(--vex-radius-sm);
   font-size: 12.5px;
   color: var(--fg);
 }
@@ -484,7 +483,7 @@ a:hover { text-decoration: underline; }
 .outline-row {
   display: flex; align-items: center;
   padding: 5px 10px;
-  border-radius: 7px;
+  border-radius: var(--vex-radius-sm);
   font-size: 12.5px;
   color: var(--fg);
   cursor: default;
@@ -548,11 +547,11 @@ a:hover { text-decoration: underline; }
   color: var(--muted);
   background: transparent;
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: var(--vex-radius-sm);
   min-width: 30px; height: 28px;
   padding: 0 8px;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: all var(--vex-instant) var(--vex-ease);
 }
 .opt-toggle:hover { background: var(--hover); color: var(--fg); }
 .opt-toggle.on {
@@ -575,7 +574,7 @@ a:hover { text-decoration: underline; }
 .dialog {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--vex-radius-xl);
   box-shadow: var(--shadow-window);
   padding: 22px;
   width: var(--dialog-w);
@@ -589,7 +588,7 @@ a:hover { text-decoration: underline; }
 .dlg-heading { margin: 0; font-size: 15.5px; font-weight: 600; }
 .dlg-ico {
   width: 34px; height: 34px;
-  border-radius: 10px;
+  border-radius: var(--vex-radius-lg);
   display: inline-flex; align-items: center; justify-content: center;
   flex: none;
 }
@@ -601,7 +600,7 @@ a:hover { text-decoration: underline; }
   margin-top: 12px;
   background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--vex-radius-md);
   padding: 8px 10px;
   font-size: 11.5px;
   color: var(--muted);
@@ -621,7 +620,7 @@ a:hover { text-decoration: underline; }
 .mini-window {
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--vex-radius-lg);
   box-shadow: var(--shadow-window);
   overflow: hidden;
   width: var(--dialog-w);
@@ -655,7 +654,7 @@ a:hover { text-decoration: underline; }
 }
 .field-card {
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--vex-radius-lg);
   padding: 14px;
   background: var(--panel);
 }
@@ -694,7 +693,7 @@ a:hover { text-decoration: underline; }
 .tok-h { color: var(--accent); font-weight: 700; }
 .tok-bold { font-weight: 700; }
 .tok-em { font-style: italic; }
-.tok-code { color: var(--md-code-fg); background: var(--code-bg); border-radius: 4px; padding: 0 4px; }
+.tok-code { color: var(--md-code-fg); background: var(--code-bg); border-radius: var(--vex-radius-xs); padding: 0 4px; }
 .tok-link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .tok-quote { color: var(--md-quote); font-style: italic; }
 .tok-dim { color: var(--md-marker); }
@@ -723,7 +722,7 @@ a:hover { text-decoration: underline; }
   padding: 6px 14px;
   border-left: 3px solid var(--accent);
   background: color-mix(in srgb, var(--accent) 6%, transparent);
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 var(--vex-radius-md) var(--vex-radius-md) 0;
   color: var(--md-quote);
 }
 .md-body code {
@@ -732,13 +731,13 @@ a:hover { text-decoration: underline; }
   color: var(--md-code-fg);
   background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 5px;
+  border-radius: var(--vex-radius-xs);
   padding: 1px 5px;
 }
 .md-body pre {
   background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--vex-radius-lg);
   padding: 12px 14px;
   overflow: auto;
   margin: 10px 0;
@@ -754,7 +753,7 @@ a:hover { text-decoration: underline; }
 .md-body .task { display: flex; align-items: flex-start; gap: 8px; }
 .md-body .task .cb {
   width: 15px; height: 15px;
-  border-radius: 4px;
+  border-radius: var(--vex-radius-xs);
   border: 1px solid var(--badge-border);
   margin-top: 4px;
   flex: none;
@@ -774,7 +773,7 @@ a:hover { text-decoration: underline; }
   align-items: center; justify-content: center; gap: 8px;
   height: 110px;
   border: 1px dashed var(--badge-border);
-  border-radius: 10px;
+  border-radius: var(--vex-radius-lg);
   color: var(--fg-disabled);
   font-size: 12px;
   margin: 10px 0;
@@ -782,7 +781,7 @@ a:hover { text-decoration: underline; }
 }
 
 /* ---------- 分隔条 ---------- */
-.splitter-v { width: 5px; background: var(--splitter); cursor: col-resize; flex: none; transition: background 0.15s ease; }
+.splitter-v { width: 5px; background: var(--splitter); cursor: col-resize; flex: none; transition: background var(--vex-fast) var(--vex-ease); }
 .splitter-v:hover { background: var(--accent-soft); }
 
 /* ---------- 工具条（编辑器顶部动作条，设计升级点） ---------- */
@@ -795,7 +794,7 @@ a:hover { text-decoration: underline; }
 .tb-btn {
   appearance: none; border: none; background: transparent;
   width: 28px; height: 28px;
-  border-radius: 7px;
+  border-radius: var(--vex-radius-sm);
   display: inline-flex; align-items: center; justify-content: center;
   color: var(--muted);
   cursor: pointer;
@@ -836,7 +835,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   box-shadow: 0 4px 14px rgba(0, 0, 0, .28);
   cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
-  transition: transform .15s ease, box-shadow .15s ease;
+  transition: transform var(--vex-fast) var(--vex-ease), box-shadow var(--vex-fast) var(--vex-ease);
 }
 .nav-fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(0, 0, 0, .34); }
 .nav-fab svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -849,7 +848,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   overflow: auto;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--vex-radius-xl);
   box-shadow: var(--shadow-pop);
   padding: 8px;
   display: none;
@@ -866,7 +865,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
 .nav-item {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 10px;
-  border-radius: 8px;
+  border-radius: var(--vex-radius-md);
   cursor: pointer;
   font-size: 12.5px; color: var(--fg);
   text-decoration: none;
@@ -894,7 +893,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   box-shadow: var(--shadow-pop);
   opacity: 0;
   transform: translateY(8px);
-  transition: all .2s ease;
+  transition: all var(--vex-duration) var(--vex-ease);
   max-width: 70vw;
 }
 .proto-toast.show { opacity: 1; transform: translateY(0); }
@@ -933,11 +932,11 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   padding: 4px 14px;
   cursor: pointer;
   box-shadow: var(--shadow-pop);
-  transition: all .15s ease;
+  transition: all var(--vex-fast) var(--vex-ease);
   white-space: nowrap;
 }
 .reopen-chip:hover { color: var(--accent); border-color: var(--accent); }
-.host .overlay { transition: opacity .18s ease; }
+.host .overlay { transition: opacity var(--vex-exit) var(--vex-ease); }
 .host .overlay.hidden { opacity: 0; pointer-events: none; }
 .host.faded .ghost { opacity: 1; }
 

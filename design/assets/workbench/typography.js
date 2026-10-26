@@ -68,7 +68,7 @@
     panel.querySelector('.typography-grid').innerHTML = items.map(cardHtml).join('')
       + '<button type="button" class="typography-add" id="add-custom-type" aria-label="新增自定义排版" title="新增自定义排版"><span>＋</span><small>新增排版</small></button>';
   }
-  panel.innerHTML = '<div class="popover-title"><strong id="typography-title">正文排版</strong><button class="icon-button" id="typography-close" aria-label="关闭排版"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="typography-density"><strong>渲染密度</strong><div class="density-options" role="group" aria-label="Markdown 渲染密度">' + [['compact','紧凑'],['normal','正常'],['relaxed','宽松']].map(function (item) { return '<button type="button" data-tp-mdsize="' + item[0] + '" title="作用于 Markdown 渲染（基准字号 13/15/17）">' + item[1] + '</button>'; }).join('') + '</div></div><div class="typography-grid" role="group" aria-label="排版效果预览"></div>';
+  panel.innerHTML = '<div class="popover-title"><strong id="typography-title">正文排版</strong><button class="icon-button" id="typography-close" aria-label="关闭排版"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="typography-density"><strong>渲染密度</strong><div class="density-options vex-segmented" role="group" aria-label="Markdown 渲染密度">' + [['compact','紧凑'],['normal','正常'],['relaxed','宽松']].map(function (item) { return '<button type="button" data-tp-mdsize="' + item[0] + '" title="作用于 Markdown 渲染（基准字号 13/15/17）">' + item[1] + '</button>'; }).join('') + '</div></div><div class="typography-grid" role="group" aria-label="排版效果预览"></div>';
   renderGrid();
   document.querySelector('.window-body').appendChild(panel);
 
@@ -138,7 +138,7 @@
     /* 渲染密度行：作用于 Markdown 渲染（正文字号档，§11），与外观菜单的界面密度独立。 */
     var currentMdSize = window.VexTheme ? VexTheme.state.mdsize : 'normal';
     panel.querySelectorAll('[data-tp-mdsize]').forEach(function (button) {
-      button.classList.toggle('on', button.dataset.tpMdsize === currentMdSize);
+      button.setAttribute('aria-pressed', String(button.dataset.tpMdsize === currentMdSize));
     });
     try { VexStorage.setItem('vex-design-typography', JSON.stringify(state)); } catch (_) {}
     /* 偏好启动回放会重放 typography（workbench configure→apply），这里同步写入避免覆盖（与自定义配色同模式）。 */

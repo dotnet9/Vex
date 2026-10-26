@@ -81,7 +81,7 @@
   applyToolbarPin();
   var mapAppearance=VexMapAppearance.create({parent:document.querySelector('.window-body'),scene:$('map-scene'),getLayout:function(){return $('map-layout').value;},setLayout:function(key){$('map-layout').value=key;$('map-layout').dispatchEvent(new Event('change'));},isTemporary:function(){return guideActive;},beforeOpen:function(){VexTypography.close();closeMenus();$('map-settings').hidden=true;}});
   /* 状态栏正中：源码 / 阅读 / 导图 三段直选 + "更多"打开完整布局菜单（即时编辑与组合视图都在里面）。 */
-  var viewSwitch = document.createElement('div'); viewSwitch.className = 'workspace-viewswitch'; viewSwitch.setAttribute('role', 'group'); viewSwitch.setAttribute('aria-label', '视图切换');
+  var viewSwitch = document.createElement('div'); viewSwitch.className = 'workspace-viewswitch vex-segmented'; viewSwitch.setAttribute('role', 'group'); viewSwitch.setAttribute('aria-label', '视图切换');
   [['source', '源码'], ['read', '阅读'], ['map', '导图']].forEach(function (segment) {
     var button = document.createElement('button'); button.type = 'button';
     button.dataset.viewLink = segment[0]; button.textContent = segment[1];

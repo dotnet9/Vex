@@ -1,8 +1,8 @@
 /* 桌面体验修订：真实尺寸文字与明确的操作层级，不使用 transform 缩放界面。 */
 :root { --font:'Microsoft YaHei UI','Segoe UI','PingFang SC','Noto Sans CJK SC',sans-serif; }
 body { font-family:var(--font); font-size:var(--fs-body,14px); }
-:root { --window-control-width:46px; --window-control-height:32px; --window-control-icon:14px; --dialog-titlebar-height:36px; }
-.app-window > .titlebar { height:33px; min-height:33px; flex:none; gap:12px; }
+:root { --window-control-width:46px; --window-control-height:32px; --window-control-icon:14px; --dialog-titlebar-height:36px; --app-titlebar-height:33px; }
+.app-window > .titlebar { height:var(--app-titlebar-height); min-height:var(--app-titlebar-height); flex:none; gap:12px; }
 .tb-menuitem { display:flex; align-items:center; min-height:var(--control-h-sm,28px); padding:0 var(--pad-md,10px); font-size:var(--fs-body,14px); line-height:1.55; }
 /* 右侧控件独立占位：引导或弹窗改变可见性时也不能回流到菜单后。 */
 .app-window > .titlebar > .caption-btns { margin-left:auto; height:32px; }
@@ -23,7 +23,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .win-layer > .dialog { padding:0; overflow:hidden; }
 .dialog-content { padding:22px; }
 .dialog-content > .dlg-msg:first-child { margin-top:0; }
-.menu-flyout,.submenu { min-width:272px; padding:var(--pad-sm,6px); border-radius:var(--radius-md,8px); }
+.menu-flyout,.submenu { min-width:272px; padding:var(--pad-sm,6px); border-radius:var(--vex-radius-md); }
 .menu-item { min-height:var(--control-h-md,32px); padding:var(--pad-sm,6px) var(--pad-md,10px); font-size:var(--fs-body,14px); line-height:1.55; }
 .menu-item .shortcut,.menu-item kbd { font-size:var(--fs-caption,12px); margin-left:32px; }
 
@@ -33,10 +33,10 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .side-tab.on::after { left:calc(50% - 16px); right:calc(50% - 16px); }
 .sidebar-search input { font-size:var(--fs-caption,12px); }
 .file-directory { margin:0; }
-.file-directory > summary { list-style:none; cursor:pointer; min-height:var(--row-h,30px); padding:0 var(--pad-sm,6px); display:flex; align-items:center; gap:var(--gap-sm,6px); font-size:var(--fs-caption,12px); color:var(--fg); border-radius:var(--radius-sm,6px); }
+.file-directory > summary { list-style:none; cursor:pointer; min-height:var(--row-h,30px); padding:0 var(--pad-sm,6px); display:flex; align-items:center; gap:var(--gap-sm,6px); font-size:var(--fs-caption,12px); color:var(--fg); border-radius:var(--vex-radius-sm); }
 .file-directory > summary::-webkit-details-marker { display:none; }
 .file-directory > summary:hover { background:var(--hover); }
-.file-directory > summary .tree-chevron { width:12px; height:12px; transition:transform .15s; }
+.file-directory > summary .tree-chevron { width:12px; height:12px; transition:transform var(--vex-fast); }
 .file-directory[open] > summary > .tree-chevron { transform:rotate(90deg); }
 .file-directory > summary span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .file-directory > .file-children { padding-left:14px; }
@@ -53,7 +53,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .file-row { min-height:var(--row-h,30px); }
 .win-body { font-size:var(--fs-body,14px); line-height:1.7; }
 .win-body .sub,.win-body small { font-size:var(--fs-caption,12px); }
-.tour-card { width:344px; padding:var(--pad-lg,14px); border-radius:var(--radius-md,8px); }
+.tour-card { width:344px; padding:var(--pad-lg,14px); border-radius:var(--vex-radius-md); }
 .tour-card h2 { font-size:var(--fs-title,20px); }
 .tour-description { font-size:var(--fs-body,14px); line-height:1.8; }
 .tour-feedback,.tour-meta,.tour-actions button { font-size:var(--fs-caption,12px); }
@@ -76,8 +76,8 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .update-copy strong { font-size:18px; font-weight:700; letter-spacing:-.01em; }
 .update-sub { color:var(--muted); font-size:12.5px; }
 .update-progress { display:flex; align-items:center; gap:12px; }
-.update-progress-track { flex:1; height:6px; border-radius:6px; background:color-mix(in srgb, var(--accent) 14%, var(--border)); overflow:hidden; }
-.update-progress-bar { height:100%; width:0; border-radius:6px; background:var(--accent); transition:width .12s linear; }
+.update-progress-track { flex:1; height:6px; border-radius:var(--vex-radius-sm); background:color-mix(in srgb, var(--accent) 14%, var(--border)); overflow:hidden; }
+.update-progress-bar { height:100%; width:0; border-radius:var(--vex-radius-sm); background:var(--accent); transition:width var(--vex-instant) linear; }
 .update-progress-num { flex:0 0 auto; font-variant-numeric:tabular-nums; color:var(--muted); font-size:12px; }
 .update-actions { display:flex; justify-content:flex-end; gap:10px; }
 .update-actions .btn.primary { color:var(--on-primary); background:var(--primary); border-color:var(--primary); }
@@ -96,7 +96,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .update-tag.tag-fix { background:var(--warning-soft); color:var(--warning); }.about-footer { grid-template-columns:minmax(0,1fr); gap:4px; margin-top:22px; padding-top:14px; padding-bottom:20px; }
 .about-framework { color:var(--muted); font-size:12px; }
 .about-foot,.ver-badge { font-size:12px; }
-.md-body img { display:block; max-width:100%; height:auto; margin:18px auto; border-radius:10px; }
+.md-body img { display:block; max-width:100%; height:auto; margin:18px auto; border-radius:var(--vex-radius-lg); }
 .md-diagram { margin:24px 0; padding:12px 0; text-align:center; }
 .md-diagram svg { max-width:100%; height:auto; }
 .md-math-block { overflow-x:auto; margin:18px 0; padding:8px 0; }
@@ -119,7 +119,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
   max-height: min(86vh, 760px);
   overflow: auto;
   border: 1px solid color-mix(in srgb, var(--line) 80%, var(--accent) 20%);
-  border-radius: 14px;
+  border-radius: var(--vex-radius-flyout);
   box-shadow: 0 24px 80px color-mix(in srgb, var(--fg) 20%, transparent), 0 3px 12px color-mix(in srgb, var(--fg) 7%, transparent);
 }
 #layer-update .mini-titlebar {
@@ -187,7 +187,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 #layer-update .update-changes {
   padding: 14px 15px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--vex-radius-lg);
   background: color-mix(in srgb, var(--panel) 70%, var(--surface));
 }
 #layer-update .update-changes summary {

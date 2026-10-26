@@ -1,5 +1,5 @@
 /* 引导卡片留在应用窗口内；练习正文保持原有排版。 */
-.guide-launch { display:inline-flex; align-items:center; gap:7px; padding:5px 8px; border:0; border-radius:5px; color:var(--accent); background:transparent; font-size:11px; white-space:nowrap; }
+.guide-launch { display:inline-flex; align-items:center; gap:7px; padding:5px 8px; border:0; border-radius:var(--vex-radius-xs); color:var(--accent); background:transparent; font-size:11px; white-space:nowrap; }
 .guide-launch:hover { background:var(--accent-soft); }
 .guide-launch i { width:5px; height:5px; border-radius:50%; background:currentColor; }
 .app-window.guide-restoring .sidebar { transition:none!important; }
@@ -7,13 +7,13 @@
 .tour-mask { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 .tour-scrim { fill:#10182b88; }
 :root[data-theme="dark"] .tour-scrim { fill:#02050ba8; }
-.tour-focus { position:fixed; pointer-events:none; border:1px solid color-mix(in srgb,var(--accent) 65%,transparent); border-radius:7px; box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 9%,transparent); }
+.tour-focus { position:fixed; pointer-events:none; border:1px solid color-mix(in srgb,var(--accent) 65%,transparent); border-radius:var(--vex-radius-sm); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 9%,transparent); }
 .tour-focus[data-kind="text"] { border:0; border-left:3px solid var(--accent); border-radius:0; box-shadow:none; background:color-mix(in srgb,var(--accent) 3%,transparent); }
 .tour-focus[data-kind="area"] { border-color:color-mix(in srgb,var(--accent) 25%,transparent); box-shadow:none; }
-.tour-card { position:fixed; width:320px; max-width:calc(100vw - 36px); overflow:auto; border-radius:11px; padding:18px; color:var(--fg); background:var(--panel); border:1px solid var(--border); box-shadow:0 14px 48px #0004; pointer-events:auto; }
+.tour-card { position:fixed; width:320px; max-width:calc(100vw - 36px); overflow:auto; border-radius:var(--vex-radius-lg); padding:18px; color:var(--fg); background:var(--panel); border:1px solid var(--border); box-shadow:0 14px 48px #0004; pointer-events:auto; }
 .tour-meta { display:flex; align-items:center; gap:8px; margin-bottom:13px; font-size:11px; color:var(--muted); }
 .tour-count { margin-left:auto; font-variant-numeric:tabular-nums; }
-.tour-close { background:none; border:0; padding:3px; color:var(--muted); font-size:18px; line-height:1; border-radius:4px; }
+.tour-close { background:none; border:0; padding:3px; color:var(--muted); font-size:18px; line-height:1; border-radius:var(--vex-radius-xs); }
 .tour-close:hover { color:var(--fg); background:var(--hover); }
 .tour-card h2 { margin:0 0 9px; font-size:18px; font-weight:650; line-height:1.4; }
 .tour-description { font-size:12.5px; line-height:1.8; color:var(--fg); margin:0; }
@@ -22,11 +22,11 @@
 .tour-feedback.done::before { content:'✓ '; }
 .tour-progress { display:flex; gap:5px; margin-top:12px; }
 .tour-progress button { flex:1; height:12px; padding:4px 0; border:0; background:transparent; }
-.tour-progress button::before { content:''; display:block; height:3px; background:var(--border); border-radius:3px; }
+.tour-progress button::before { content:''; display:block; height:3px; background:var(--border); border-radius:var(--vex-radius-2xs); }
 .tour-progress button.passed::before { background:color-mix(in srgb,var(--accent) 40%,var(--border)); }
 .tour-progress button[aria-current="step"]::before { background:var(--accent); }
 .tour-actions { display:flex; align-items:center; gap:8px; margin-top:12px; }
-.tour-actions button { font-size:11px; min-height:31px; border-radius:6px; padding:6px 12px; }
+.tour-actions button { font-size:11px; min-height:31px; border-radius:var(--vex-radius-sm); padding:6px 12px; }
 .tour-skip { color:var(--muted); border:0; background:transparent; margin-right:auto; padding-left:0; }
 .tour-previous { color:var(--fg); background:var(--panel); border:1px solid var(--border); }
 .tour-next { color:var(--accent-fg); background:var(--accent); border:1px solid var(--accent); display:flex; align-items:center; gap:13px; }
@@ -35,7 +35,7 @@
 .tour-more summary { cursor:pointer; color:var(--accent); }
 .tour-more p { margin:6px 0 0; }
 /* 成都慢游演示：动作期间保持短提示，成果阶段再展开说明。卡片带品牌渐变封面条（§15 唯一渐变）。 */
-.story-tour .story-card { box-sizing:border-box; position:relative; overflow:hidden; width:376px; padding:22px 24px 20px; border-radius:16px; border:0; background:var(--menu-bg,var(--panel)); box-shadow:0 24px 70px #0005; }
+.story-tour .story-card { box-sizing:border-box; position:relative; overflow:hidden; width:376px; padding:22px 24px 20px; border-radius:var(--vex-radius-popover); border:0; background:var(--menu-bg,var(--panel)); box-shadow:0 24px 70px #0005; }
 .story-tour .story-card::before { content:''; position:absolute; left:0; top:0; right:0; height:6px; background:var(--action-gradient,var(--accent)); }
 .story-tour .story-card[data-mode="intro"],
 .story-tour .story-card[data-mode="result"] { width:408px; max-width:calc(100vw - 32px); }
@@ -57,8 +57,8 @@
 .story-actions .tour-skip { margin-right:auto; }
 .story-actions .action-count { position:absolute; left:50%; transform:translateX(-50%); color:var(--muted); font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; }
 .story-actions .tour-previous { flex:0 0 auto; }
-.story-next-note { margin:14px 0 0; padding:10px 12px; border-radius:7px; background:var(--accent-soft); color:var(--muted); font-size:11px; line-height:1.7; }
-.tour-cursor { position:fixed; z-index:3; width:18px; height:18px; display:grid; place-items:center; border-radius:50%; color:var(--accent-fg); background:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent),0 5px 16px #0004; font-size:12px; line-height:1; pointer-events:none; transition:left .25s ease,top .25s ease; }
+.story-next-note { margin:14px 0 0; padding:10px 12px; border-radius:var(--vex-radius-sm); background:var(--accent-soft); color:var(--muted); font-size:11px; line-height:1.7; }
+.tour-cursor { position:fixed; z-index:3; width:18px; height:18px; display:grid; place-items:center; border-radius:50%; color:var(--accent-fg); background:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent),0 5px 16px #0004; font-size:12px; line-height:1; pointer-events:none; transition:left var(--vex-duration) var(--vex-ease),top var(--vex-duration) var(--vex-ease); }
 .story-tour[data-mode="intro"] .tour-scrim { fill:#10182b66; }
 .story-tour[data-mode="result"] .tour-scrim,
 .story-tour[data-mode="final"] .tour-scrim { fill:#10182b3d; }
@@ -80,7 +80,7 @@
 .story-tour .story-card { overflow:hidden; }
 .story-tour .story-card::before { content:''; position:absolute; left:0; top:0; right:0; height:6px; background:var(--action-gradient,var(--accent)); pointer-events:none; }
 .story-dots { display:inline-flex; align-items:center; gap:5px; margin-right:auto; }
-.story-dot { width:7px; height:7px; border-radius:999px; background:var(--border); transition:width .2s ease, background .2s ease; }
+.story-dot { width:7px; height:7px; border-radius:999px; background:var(--border); transition:width var(--vex-duration) var(--vex-ease), background var(--vex-duration) var(--vex-ease); }
 .story-dot.passed { background:color-mix(in srgb,var(--accent) 45%,var(--border)); }
 .story-dot.current { width:18px; background:var(--accent); }
 .story-flex { flex:1 1 auto; }

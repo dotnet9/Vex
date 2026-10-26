@@ -21,7 +21,7 @@
     try { var stored = isolated ? null : localStorage.getItem('vex-prototype-map-style'); if (styles.some(function (item) {return item.key===stored;})) style=stored; } catch (_) {}
     var panel = document.createElement('section'); panel.id='map-appearance-panel'; panel.className='map-appearance-popover'; panel.hidden=true;
     panel.setAttribute('role','dialog');panel.setAttribute('aria-label','导图样式');
-    panel.innerHTML='<header class="appearance-heading"><strong>导图样式</strong><button class="vex-icon-button" data-map-close aria-label="关闭导图样式"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div class="appearance-tabs" role="tablist" aria-label="导图外观"><button role="tab" id="map-tab-structure" data-map-tab="structure" aria-controls="map-structure-choices">结构</button><button role="tab" id="map-tab-style" data-map-tab="style" aria-controls="map-style-choices">风格</button></div><div class="map-choice-grid" id="map-structure-choices" role="tabpanel" aria-labelledby="map-tab-structure"></div><div class="map-choice-grid" id="map-style-choices" role="tabpanel" aria-labelledby="map-tab-style" hidden></div>';
+    panel.innerHTML='<header class="appearance-heading"><strong>导图样式</strong><button class="vex-icon-button" data-map-close aria-label="关闭导图样式"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div class="appearance-tabs vex-segmented" role="tablist" aria-label="导图外观"><button role="tab" id="map-tab-structure" data-map-tab="structure" aria-controls="map-structure-choices">结构</button><button role="tab" id="map-tab-style" data-map-tab="style" aria-controls="map-style-choices">风格</button></div><div class="map-choice-grid" id="map-structure-choices" role="tabpanel" aria-labelledby="map-tab-structure"></div><div class="map-choice-grid" id="map-style-choices" role="tabpanel" aria-labelledby="map-tab-style" hidden></div>';
     adapter.parent.appendChild(panel);
     function apply() {
       adapter.scene.dataset.mapStyle=style;
@@ -63,9 +63,6 @@
       if(button.dataset.mapTab){selectTab(button.dataset.mapTab);return;}
       if(button.dataset.mapLayout){adapter.setLayout(button.dataset.mapLayout);render();}
       if(button.dataset.mapStyleChoice)choose(button.dataset.mapStyleChoice);
-    };
-    panel.querySelector('.appearance-tabs').onkeydown=function (event) {
-      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();selectTab(event.key==='Home'?'structure':event.key==='End'?'style':tab==='style'?'structure':'style');panel.querySelector('[data-map-tab="'+tab+'"]').focus();
     };
     document.addEventListener('pointerdown',function (event) {if(!panel.contains(event.target)&&!event.target.closest('[data-action="map-appearance"], .tour-card'))close();});
     document.addEventListener('keydown',function (event) {if(event.key==='Escape'&&!panel.hidden){event.preventDefault();close();trigger?.focus({preventScroll:true});}},true);

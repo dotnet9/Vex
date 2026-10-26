@@ -15,10 +15,10 @@
 /* 点图表看源码：徽标悬浮预览右上角（参考样式：白底圆角小徽标），源码块为独立卡片。 */
 .md-diagram, .diagram-editor { position:relative; }
 .diagram-preview { position:relative; }
-.diagram-badge { position:absolute; top:10px; right:10px; z-index:2; padding:3px 12px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--muted); font:12px/1.6 var(--mono,"Cascadia Code",Consolas,monospace); cursor:pointer; }
+.diagram-badge { position:absolute; top:10px; right:10px; z-index:2; padding:3px 12px; border:1px solid var(--border); border-radius:var(--vex-radius-sm); background:var(--surface); color:var(--muted); font:12px/1.6 var(--mono,"Cascadia Code",Consolas,monospace); cursor:pointer; }
 .diagram-badge:hover { color:var(--fg); border-color:var(--accent); }
 .diagram-badge:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-.diagram-source-view { margin:0; padding:14px 18px; border:1px solid var(--border); border-radius:8px; background:var(--code-bg,var(--surface)); color:var(--fg); font:13.5px/1.75 var(--mono,"Cascadia Code",Consolas,monospace); tab-size:2; overflow-x:auto; white-space:pre; text-align:left; }
+.diagram-source-view { margin:0; padding:14px 18px; border:1px solid var(--border); border-radius:var(--vex-radius-md); background:var(--code-bg,var(--surface)); color:var(--fg); font:13.5px/1.75 var(--mono,"Cascadia Code",Consolas,monospace); tab-size:2; overflow-x:auto; white-space:pre; text-align:left; }
 .diagram-source-view code { display:block; font:inherit; color:inherit; background:transparent; padding:0; border:0; text-align:left; }
-.md-diagram .diagram-preview, .diagram-editor .diagram-preview { border:1px solid var(--border); border-radius:8px; background:var(--surface); }
+.md-diagram .diagram-preview, .diagram-editor .diagram-preview { border:1px solid var(--border); border-radius:var(--vex-radius-md); background:var(--surface); }
 .md-diagram.show-source .diagram-preview, .diagram-editor.is-expanded .diagram-preview { margin-top:10px; }

@@ -22,6 +22,7 @@
     if (active) return;
     options.finish?.();
     var pages = buildDeck(options.text(), options.title()), page = 0, scale = VexOverlay.width() <= 699 ? 1.1 : 1.5, mapMode = !!options.mapMode?.();
+    var initialScale = scale;
     var mapX = 0, mapY = 0, mapScale = 1, pan = null;
     var mapNodes = pages.map(function (slide, index) { return { index: index, title: slide.title, level: slide.level, children: [] }; });
     var parents = [mapNodes[0]];
@@ -41,10 +42,11 @@
     var priorFullscreen = document.fullscreenElement, requestedFullscreen = false;
     root.className = 'vex-deck'; root.tabIndex = -1; root.setAttribute('role', 'dialog');
     root.setAttribute('aria-modal', 'true');
-    root.innerHTML = '<header><button type="button" data-deck="outline">☷</button><strong></strong><button type="button" data-deck="markdown"></button><button type="button" data-deck="map"></button><button type="button" data-deck="exit">×</button></header>' +
-      '<div class="deck-stage"><nav></nav><div class="deck-scroll"><article class="md-body markdown-body"></article></div><div class="deck-map"><div class="deck-map-scene"></div></div></div>' +
-      '<footer><small></small><div><span class="deck-tools"><span class="deck-scale-label" aria-hidden="true">A−</span><input type="range" data-deck="scale" min="1" max="2.5" step="0.1" value="' + scale + '" aria-label="演示字号"><span class="deck-scale-label" aria-hidden="true">A+</span><span class="deck-zoom"></span><button type="button" data-deck="fit">⊡</button></span><span class="deck-spacer"></span>' +
-      '<span class="deck-pages"><button type="button" data-deck="previous">←</button><output aria-live="polite"></output><button type="button" data-deck="next">→</button></span></div></footer><progress max="1"></progress>';
+    /* 大纲与主界面一致放右侧，折叠手柄浮在大纲左下角；底栏与导图视图统一为右侧悬浮（缩放拖动条 + 还原）。 */
+    root.innerHTML = '<header><strong></strong><span class="deck-modes vex-segmented" role="group"><button type="button" data-deck="markdown"></button><button type="button" data-deck="map"></button></span><button type="button" data-deck="exit">×</button></header>' +
+      '<div class="deck-stage"><div class="deck-scroll"><article class="md-body markdown-body"></article></div><div class="deck-map"><div class="deck-map-scene"></div></div><nav id="deck-outline-nav"></nav></div>' +
+      '<button type="button" class="deck-outline-toggle" data-deck="outline" aria-controls="deck-outline-nav"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg></button>' +
+      '<footer class="vex-zoomdock"><div><span class="zoom-tools"><span class="zoom-label" aria-hidden="true">A−</span><input type="range" class="zoom-range" data-deck="scale" min="1" max="2.5" step="0.1" value="' + scale + '" aria-label="演示字号"><span class="zoom-label" aria-hidden="true">A+</span><span class="zoom-value"></span></span><button type="button" class="zoom-reset" data-deck="fit"><svg aria-hidden="true"><use href="#i-fit"/></svg></button></div></footer><progress max="1"></progress>';
     var nav = root.querySelector('nav'), body = root.querySelector('article'), scroll = root.querySelector('.deck-scroll');
     /* 水印开启即全场景显示（含演示），见 watermark.js。 */
     if (window.VexWatermark && VexWatermark.active) body.classList.toggle('vex-watermarked', VexWatermark.active());
@@ -56,7 +58,7 @@
     }).join('') + '</svg>' + mapNodes.map(function (node) {
       return '<button type="button" class="deck-map-node" data-map-page="' + node.index + '" style="left:' + node.x + 'px;top:' + node.y + 'px;height:' + node.height + 'px">' + TexEditor.esc(node.title) + '</button>';
     }).join('');
-    function transformMap() { scene.style.transform = 'translate(' + mapX + 'px,' + mapY + 'px) scale(' + mapScale + ')'; root.classList.toggle('deck-map-overview', mapNodes.length > 300 && mapScale < .2); root.querySelector('.deck-zoom').textContent = Math.round((mapMode ? mapScale : scale) * 100) + '%'; }
+    function transformMap() { scene.style.transform = 'translate(' + mapX + 'px,' + mapY + 'px) scale(' + mapScale + ')'; root.classList.toggle('deck-map-overview', mapNodes.length > 300 && mapScale < .2); root.querySelector('.zoom-value').textContent = Math.round((mapMode ? mapScale : scale) * 100) + '%'; }
     function focusMap() { var node = mapNodes[page]; mapScale = 1; mapX = map.clientWidth / 2 - node.cx; mapY = map.clientHeight / 2 - node.cy; transformMap(); }
     function fitScale() { return Math.max(.000001, Math.min(1, (map.clientWidth - 48) / mapWidth, (map.clientHeight - 48) / mapHeight)); }
     function zoomMap(factor) { var next = Math.max(Math.min(.15, fitScale()), Math.min(3, mapScale * factor)), ratio = next / mapScale; mapX = map.clientWidth / 2 + (mapX - map.clientWidth / 2) * ratio; mapY = map.clientHeight / 2 + (mapY - map.clientHeight / 2) * ratio; mapScale = next; transformMap(); }
@@ -68,17 +70,16 @@
       var l = labels();
       root.setAttribute('aria-label', l.presentationOutline);
       root.querySelector('header strong').textContent = options.title();
-      root.querySelector('footer small').textContent = l.presentationKeys;
-      root.querySelector('output').textContent = (page + 1) + ' / ' + pages.length;
-      root.querySelector('.deck-zoom').textContent = Math.round((mapMode ? mapScale : scale) * 100) + '%';
+      root.querySelector('.deck-modes').setAttribute('aria-label', l.presentationMarkdown + ' / ' + l.mindMap);
+      root.querySelector('.zoom-value').textContent = Math.round((mapMode ? mapScale : scale) * 100) + '%';
       root.querySelector('[data-deck="markdown"]').textContent = l.presentationMarkdown;
       root.querySelector('[data-deck="map"]').textContent = l.mindMap;
       root.querySelector('[data-deck="markdown"]').setAttribute('aria-pressed', String(!mapMode));
       root.querySelector('[data-deck="map"]').setAttribute('aria-pressed', String(mapMode));
-      root.querySelector('[data-deck="fit"]').hidden = !mapMode;
-      root.querySelector('[data-deck="fit"]').title = l.mindMap + ' · ⊡';
-      root.querySelector('[data-deck="fit"]').setAttribute('aria-label', l.mindMap + ' · ⊡');
-      root.querySelector('[data-deck="fit"]').innerHTML = narrow ? controlIcon('fit') : '⊡';
+      /* 还原：导图态=适应画布，正文态=回到进入演示时的字号；两种视图同一枚图标、同一个位置。 */
+      var fitTip = mapMode ? '适应画布' : '还原字号';
+      var fit = root.querySelector('[data-deck="fit"]');
+      fit.title = fitTip; fit.setAttribute('aria-label', fitTip);
       root.querySelector('progress').value = (page + 1) / pages.length;
       root.classList.toggle('deck-outline', outline);
       root.classList.toggle('deck-map-mode', mapMode);
@@ -92,11 +93,10 @@
       var slider = root.querySelector('[data-deck="scale"]');
       slider.min = mapMode ? '0.15' : '1'; slider.max = mapMode ? '3' : '2.5'; slider.step = mapMode ? '0.05' : '0.1';
       slider.value = mapMode ? mapScale : scale;
-      ['outline', 'previous', 'next', 'exit'].forEach(function (name) {
+      ['outline', 'exit'].forEach(function (name) {
         var b = root.querySelector('[data-deck="' + name + '"]');
-        var key = { outline: 'presentationOutline', previous: 'presentationPrevious', next: 'presentationNext', exit: 'exitPresentation' }[name];
+        var key = { outline: 'presentationOutline', exit: 'exitPresentation' }[name];
         b.title = l[key]; b.setAttribute('aria-label', l[key]);
-        b.disabled = name === 'previous' && page === 0 || name === 'next' && page === pages.length - 1;
       });
       root.querySelector('[data-deck="outline"]').setAttribute('aria-expanded', String(outline));
       nav.replaceChildren();
@@ -111,13 +111,10 @@
       nav.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
       if (reset) { body.innerHTML = pages[page].html; scroll.scrollTop = 0; VexRendering.diagrams(); }
       scene.querySelectorAll('[data-map-page]').forEach(function (node) { node.classList.toggle('selected', +node.dataset.mapPage === page); });
-      root.querySelector('[data-deck="previous"]').innerHTML = narrow ? controlIcon('arrow') : '←';
-      root.querySelector('[data-deck="next"]').innerHTML = narrow ? controlIcon('arrow') : '→';
       var scaleSlider = root.querySelector('[data-deck="scale"]');
       scaleSlider.value = mapMode ? mapScale : scale;
       if (mapMode && reset) focusMap();
     }
-    function controlIcon(name) { return '<svg class="deck-control-icon" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
     function go(value) { var next = Math.max(0, Math.min(pages.length - 1, value)); if (next !== page) { page = next; render(true); } }
     function close() {
       if (!active) return;
@@ -143,8 +140,8 @@
           if (key === 'o') outline = !outline; else mapMode = key === 'm';
           render(key === 'm' || key === 'd'); break;
         }
-        case '+': case '=': scale = Math.min(2.5, +(scale + .1).toFixed(1)); render(false); root.querySelector('[data-deck="scale"]').value = scale; break;
-        case '-': case '_': scale = Math.max(1, +(scale - .1).toFixed(1)); render(false); root.querySelector('[data-deck="scale"]').value = scale; break;
+        case '+': case '=': scale = Math.min(2.5, +(scale + .1).toFixed(1)); render(false); break;
+        case '-': case '_': scale = Math.max(1, +(scale - .1).toFixed(1)); render(false); break;
         case 'ArrowRight': case 'PageDown': go(page + 1); break;
         case 'ArrowLeft': case 'PageUp': go(page - 1); break;
         case ' ': go(page + (event.shiftKey ? -1 : 1)); break;
@@ -166,11 +163,12 @@
       if (mapPage != null) { go(+mapPage); return; }
       var action = event.target.closest('[data-deck]')?.dataset.deck;
       if (action === 'exit') close();
-      if (action === 'next') go(page + 1);
-      if (action === 'previous') go(page - 1);
       if (action === 'outline') { outline = !outline; render(false); }
       if (action === 'map' || action === 'markdown') { mapMode = action === 'map'; render(true); }
-      if (action === 'fit') { mapScale = fitScale(); mapX = (map.clientWidth - mapWidth * mapScale) / 2; mapY = (map.clientHeight - mapHeight * mapScale) / 2; transformMap(); }
+      if (action === 'fit') {
+        if (!mapMode) { scale = initialScale; render(false); return; }
+        mapScale = fitScale(); mapX = (map.clientWidth - mapWidth * mapScale) / 2; mapY = (map.clientHeight - mapHeight * mapScale) / 2; transformMap();
+      }
     });
     root.querySelector('[data-deck="scale"]').addEventListener('input', function () {
       var value = Number(this.value);
