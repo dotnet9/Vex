@@ -19,7 +19,7 @@ printf 'symbols' >"$PUBLISH_ROOT/osx-x64/$APP_NAME/$APP_NAME.pdb"
 printf 'resource' >"$PUBLISH_ROOT/osx-x64/$APP_NAME/settings.json"
 
 shasum() { sha256sum "${!#}"; }
-ditto() { cp -R "$1" "$2"; }
+ditto() { local src="" dst=""; local a; for a in "$@"; do case "$a" in -*) ;; *) if [ -z "$src" ]; then src="$a"; else dst="$a"; fi ;; esac; done; cp -R "$src" "$dst"; }
 create_icon() { printf 'icon' >"$1"; }
 publish_app() { :; }
 sign_app_bundle() { :; }
