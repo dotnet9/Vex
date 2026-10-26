@@ -116,7 +116,7 @@ jobs:
           rid='${{ matrix.rid }}'
           mkdir -p artifacts/release
           tar -czf "artifacts/release/Vex-v$APP_VERSION-$rid.tar.gz" -C "artifacts/publish/$rid/Vex" .
-          sha256sum "artifacts/release/Vex-v$APP_VERSION-$rid.tar.gz" > "artifacts/release/Vex-v$APP_VERSION-$rid.tar.gz.sha256"
+          (cd artifacts/release && sha256sum "Vex-v$APP_VERSION-$rid.tar.gz" > "Vex-v$APP_VERSION-$rid.tar.gz.sha256")
 
       - name: 打包 macOS dmg
         if: startsWith(matrix.rid, 'osx-')
