@@ -206,6 +206,15 @@ create_dmg() {
 
   rm -rf "$dmg_stage" "$dmg_path"
   mkdir -p "$dmg_stage"
+  # 绿色版 zip 在 .app 被 mv 进 dmg 暂存区之前生成，ditto 保留符号链接、权限与资源叉。
+  local zip_path="$ARTIFACTS_ROOT/$APP_NAME-$version-$rid.zip"
+  rm -f "$zip_path" "$zip_path.sha256"
+  echo "Creating portable zip $zip_path ..." >&2
+  ditto -c -k --sequesterRsrc --keepParent "$app_dir" "$zip_path" || die "Could not create portable zip."
+  local zip_sha
+  zip_sha="$(shasum -a 256 "$zip_path" | awk '{print $1}')" || die "Portable zip checksum failed."
+  printf '%s  %s
+' "$zip_sha" "${zip_path##*/}" >"$zip_path.sha256"
   mv "$app_dir" "$dmg_stage/$APP_NAME.app" || die "Could not stage the application bundle."
   ln -s /Applications "$dmg_stage/Applications"
 
