@@ -11,28 +11,28 @@
 })();
 </script>
 <title>维刻 Vex · 写下想法，看见脉络。</title>
-<link rel="stylesheet" href="assets/desktop/theme.css"><link rel="stylesheet" href="assets/desktop/dialogs.css"><link rel="stylesheet" href="assets/desktop/workbench.css">
-<link rel="stylesheet" href="assets/desktop/editing.css">
-<link rel="stylesheet" href="assets/desktop/guide.css">
-<link rel="stylesheet" href="assets/desktop/workspace.css">
-<link rel="stylesheet" href="assets/desktop/branding.css">
-<link rel="stylesheet" href="assets/palettes.css"><link rel="stylesheet" href="assets/density.css"><link rel="stylesheet" href="assets/typography.css">
-<link rel="stylesheet" href="assets/desktop/refinement.css">
+<link rel="stylesheet" href="assets/workbench/theme.css"><link rel="stylesheet" href="assets/workbench/dialogs.css"><link rel="stylesheet" href="assets/workbench/workbench.css">
+<link rel="stylesheet" href="assets/workbench/editing.css">
+<link rel="stylesheet" href="assets/workbench/guide.css">
+<link rel="stylesheet" href="assets/workbench/workspace.css">
+<link rel="stylesheet" href="assets/workbench/branding.css">
+<link rel="stylesheet" href="assets/prototype/palettes.css"><link rel="stylesheet" href="assets/prototype/density.css"><link rel="stylesheet" href="assets/prototype/typography.css">
+<link rel="stylesheet" href="assets/workbench/refinement.css">
 <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
-<link rel="stylesheet" href="assets/prototype.css"><link rel="stylesheet" href="assets/element-menu.css">
-<link rel="stylesheet" href="assets/writing-chrome.css">
-<link rel="stylesheet" href="assets/appearance.css">
-<link rel="stylesheet" href="assets/desktop/polish.css">
-<link rel="stylesheet" href="assets/desktop/usability.css">
-<link rel="stylesheet" href="assets/desktop/workspace-chrome.css">
-<script src="assets/palettes.js"></script><script src="assets/typography-catalog.js"></script>
-<script src="assets/desktop-resources.js"></script><script src="assets/design-system.js"></script><script src="assets/typography-preview.js"></script><script src="assets/social-copy.js"></script>
-<script src="assets/palette-rules.js"></script><script src="assets/generated/palette-rules-data.js"></script><script src="assets/table-tools.js"></script><script src="assets/desktop/theme.js"></script>
-<script src="assets/vendor/d3-hierarchy/d3-hierarchy.min.js"></script><script src="assets/map-layout.js"></script><script src="assets/map-appearance.js"></script><script src="assets/document-window.js"></script><script src="assets/exit-dialog.js"></script>
-<script src="assets/overlay.js"></script><script src="assets/mermaid-catalog.js"></script><script src="assets/generated/documents-data.js"></script><script src="assets/watermark.js"></script><script src="assets/preferences.js"></script><script src="assets/tour-placement.js"></script><script src="assets/diagram-editor.js"></script>
-<link rel="stylesheet" href="assets/table-layout.css"><link rel="stylesheet" href="assets/diagram-layout.css"><link rel="stylesheet" href="assets/design-system.css"></head>
+<link rel="stylesheet" href="assets/prototype/prototype.css"><link rel="stylesheet" href="assets/workbench/element-menu.css">
+<link rel="stylesheet" href="assets/workbench/writing-chrome.css">
+<link rel="stylesheet" href="assets/workbench/appearance.css">
+
+
+<link rel="stylesheet" href="assets/workbench/workspace-chrome.css">
+<script src="assets/workbench/vex-escape.js"></script><script src="assets/prototype/palettes.js"></script><script src="assets/prototype/typography-catalog.js"></script>
+<script src="assets/prototype/desktop-resources.js"></script><script src="assets/prototype/design-system.js"></script><script src="assets/prototype/typography-preview.js"></script><script src="assets/workbench/social-copy.js"></script>
+<script src="assets/prototype/palette-rules.js"></script><script src="assets/generated/palette-rules-data.js"></script><script src="assets/workbench/table-tools.js"></script><script src="assets/workbench/theme.js"></script>
+<script src="assets/vendor/d3-hierarchy/d3-hierarchy.min.js"></script><script src="assets/workbench/map-layout.js"></script><script src="assets/workbench/map-appearance.js"></script><script src="assets/workbench/document-window.js"></script><script src="assets/workbench/exit-dialog.js"></script>
+<script src="assets/workbench/overlay.js"></script><script src="assets/workbench/mermaid-catalog.js"></script><script src="assets/generated/documents-data.js"></script><script src="assets/workbench/watermark.js"></script><script src="assets/workbench/preferences.js"></script><script src="assets/workbench/tour-placement.js"></script><script src="assets/workbench/diagram-editor.js"></script>
+<link rel="stylesheet" href="assets/prototype/table-layout.css"><link rel="stylesheet" href="assets/workbench/diagram-layout.css"><link rel="stylesheet" href="assets/prototype/design-system.css"></head>
 <body data-page="index">
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+<svg xmlns="http://www.w3.org/2000/svg" class="hidden-sprite"><defs>
   <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
   <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
@@ -163,7 +163,17 @@
           </aside>
         </section>
       </div>
-      <footer class="document-statusbar"><div class="document-corner-actions" data-l10n-label="辅助面板" aria-label="辅助面板"><button class="on" data-action="toggle-sidebar" id="sidebar-toggle" data-l10n-name="收起文件导航" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true"><svg class="ico"><use href="#i-sidebar"/></svg><span>文件</span></button><button data-action="toggle-structure" id="outline-toggle" data-l10n-name="展开文档大纲" title="展开文档大纲" aria-label="展开文档大纲" aria-pressed="false" aria-controls="structure-sidebar"><svg class="ico" style="transform:scaleX(-1)"><use href="#i-sidebar"/></svg><span>大纲</span></button></div><button class="document-word-count" id="sb-wordcount" data-action="dlg-statistics" aria-controls="structure-sidebar" data-l10n-tip="查看文章信息与字数统计" title="查看文章信息与字数统计">字数 0</button></footer>
+      <footer class="document-statusbar">
+        <div class="document-corner-actions" data-l10n-label="辅助面板" aria-label="辅助面板">
+          <button class="on" data-action="toggle-sidebar" id="sidebar-toggle" data-l10n-name="收起文件导航" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true">
+            <svg class="ico"><use href="#i-sidebar"/></svg><span>文件</span>
+          </button>
+          <button data-action="toggle-structure" id="outline-toggle" data-l10n-name="展开文档大纲" title="展开文档大纲" aria-label="展开文档大纲" aria-pressed="false" aria-controls="structure-sidebar">
+            <svg class="ico flip-x"><use href="#i-sidebar"/></svg><span>大纲</span>
+          </button>
+        </div>
+        <button class="document-word-count" id="sb-wordcount" data-action="dlg-statistics" aria-controls="structure-sidebar" data-l10n-tip="查看文章信息与字数统计" title="查看文章信息与字数统计">字数 0</button>
+      </footer>
       </div>
     <div class="structure-splitter" id="structure-splitter" role="separator" data-l10n-label="调整辅助面板宽度" aria-label="调整辅助面板宽度" aria-orientation="vertical" aria-valuemin="280" aria-valuemax="480" aria-valuenow="312" tabindex="0"></div>
     <aside class="structure-sidebar" id="structure-sidebar" data-l10n-label="文档辅助" aria-label="文档辅助"><div class="structure-inner">
@@ -196,14 +206,14 @@
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="rename-title">
         <div class="mini-titlebar"><span id="rename-title">重命名文件</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
         <div class="dialog-content">
-        <div class="dlg-field" style="margin-top:14px;">
-          <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;">文件名</label>
+        <div class="dlg-field dlg-field-gap">
+          <label class="fld-label">文件名</label>
           <input class="input mono" id="rename-input" value="主题设计笔记.md">
-          <div class="rn-error" id="rename-error" style="display:none;">文件名不能包含 \ / : * ? " &lt; &gt; | 等字符</div>
+          <div class="rn-error is-hidden" id="rename-error">文件名不能包含 \ / : * ? " &lt; &gt; | 等字符</div>
         </div>
-        <div style="margin-top:12px;">
-          <div style="font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:4px;">原路径</div>
-          <div class="dlg-path" style="margin-top:0;">D:\Notes\笔记\主题设计笔记.md</div>
+        <div class="dlg-path-gap">
+          <div class="sub-label">原路径</div>
+          <div class="dlg-path dlg-path-flush">D:\Notes\笔记\主题设计笔记.md</div>
         </div>
         <div class="dlg-actions">
           <button class="btn" data-close="已取消">取消</button>
@@ -220,8 +230,8 @@
         <div class="dialog-content">
         <p class="dlg-msg">写入 <span class="mono">Vex-指南.pdf</span> 时被其他程序占用。请关闭可能打开该文件的程序（如 PDF 阅读器）后重试。</p>
         <div class="detail-box">
-          <div style="font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none;" id="err-toggle">▸ 错误详情（点击展开 / 收起）</div>
-          <pre id="err-detail" style="display:none;">CodeWF.Markdown.ExportException: The process cannot access the file
+          <div class="toggle-label" id="err-toggle">▸ 错误详情（点击展开 / 收起）</div>
+          <pre id="err-detail" class="is-hidden">CodeWF.Markdown.ExportException: The process cannot access the file
 'D:\Notes\export\Vex-指南.pdf' because it is being used by another process.
    at MarkdownDocumentExporter.ExportToPdf(ExportContext ctx)
    at Vex.Modules.Workspace.ExportService.ExportPdfAsync(String path)</pre>
@@ -236,16 +246,16 @@
 
     <!-- 删除确认 -->
     <div class="overlay win-layer" id="layer-delete" hidden>
-      <div class="mini-window" role="dialog" aria-modal="true" data-l10n-label="删除确认" aria-label="删除确认">
+      <div class="mini-window" role="dialog" aria-modal="true" aria-labelledby="delete-title" data-l10n-label="删除确认">
         <div class="mini-titlebar">
-          删除确认
+          <span id="delete-title">删除确认</span>
           <span class="caption-btns">
             <button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
           </span>
         </div>
-        <div style="padding: 22px;">
-          <div class="dlg-title" style="font-size:15.5px;">
-            <span class="dlg-ico warn"><svg style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><use href="#i-trash"/></svg></span>
+        <div class="dlg-pad">
+          <div class="dlg-title dlg-title-warn">
+            <span class="dlg-ico warn"><svg><use href="#i-trash"/></svg></span>
             从工作区移除「读书摘录.md」？
           </div>
           <p class="dlg-msg">原型仅把该文档从工作区列表移除，磁盘上的原文件不会改动。移除后可通过「打开文件夹」重新载入。</p>
@@ -260,20 +270,20 @@
 
     <!-- 文件属性 -->
     <div class="overlay win-layer" id="layer-properties" hidden>
-      <div class="mini-window" role="dialog" aria-modal="true" data-l10n-label="文件属性" aria-label="文件属性">
+      <div class="mini-window" role="dialog" aria-modal="true" aria-labelledby="properties-title" data-l10n-label="文件属性">
         <div class="mini-titlebar">
-          属性
+          <span id="properties-title">属性</span>
           <span class="caption-btns">
             <button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
           </span>
         </div>
-        <div style="display:flex;align-items:center;gap:14px;padding:20px 24px 14px;">
-          <span style="width:44px;height:44px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;flex:none;">
-            <svg class="ico" style="width:21px;height:21px;"><use href="#i-file"/></svg>
+        <div class="prop-head">
+          <span class="about-logo">
+            <svg class="ico ico-21"><use href="#i-file"/></svg>
           </span>
           <div>
-            <div class="prop-name" style="font-size:15.5px;font-weight:700;">主题设计笔记.md</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:3px;">本地文档 · Markdown</div>
+            <div class="prop-name">主题设计笔记.md</div>
+            <div class="prop-sub">本地文档 · Markdown</div>
           </div>
         </div>
         <div class="prop-rows">
@@ -282,7 +292,7 @@
           <div class="prop-row"><span class="k">大小</span><span class="v">4.2 KB（4,318 字节）</span></div>
           <div class="prop-row">
             <span class="k">路径</span>
-            <span class="v mono" style="display:flex;align-items:flex-start;gap:8px;">
+            <span class="v mono prop-path">
               <span>D:\Notes\笔记\主题设计笔记.md</span>
               <button class="copy-btn" id="prop-copy">复制</button>
             </span>
@@ -293,9 +303,9 @@
 
     <!-- 字数统计 -->
     <div class="overlay win-layer" id="layer-statistics" hidden>
-      <div class="mini-window" role="dialog" aria-modal="true" data-l10n-label="字数统计" aria-label="字数统计">
+      <div class="mini-window" role="dialog" aria-modal="true" aria-labelledby="statistics-title" data-l10n-label="字数统计">
         <div class="mini-titlebar">
-          统计
+          <span id="statistics-title">统计</span>
           <span class="caption-btns">
             <button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
           </span>
@@ -317,7 +327,7 @@
 
     <!-- 关于 Vex -->
     <div class="overlay win-layer" id="layer-update" hidden>
-      <div class="mini-window wide" role="dialog" aria-modal="true" aria-labelledby="update-title" style="max-height:85vh;overflow:auto">
+      <div class="mini-window wide dlg-scroll" role="dialog" aria-modal="true" aria-labelledby="update-title">
         <div class="mini-titlebar"><span id="update-title" data-proto-label="检查更新">检查更新</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
         <div class="update-body">
           <div class="update-hero">
@@ -340,7 +350,7 @@
       </div>
     </div>
     <div class="overlay win-layer" id="layer-about" hidden>
-      <div class="mini-window about-updated" role="dialog" aria-modal="true" aria-labelledby="about-title" style="max-height:85vh;overflow:auto">
+      <div class="mini-window about-updated dlg-scroll" role="dialog" aria-modal="true" aria-labelledby="about-title">
         <div class="mini-titlebar"><span data-proto-label="关于">关于</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
         <div class="about-hero"><img class="about-logo" src="assets/vex-logo.svg" alt=""><div class="about-identity"><h2 id="about-title">维刻 Vex</h2><div class="slogan" data-proto-label="写下想法，看见脉络。">写下想法，看见脉络。</div></div></div>
         <div class="about-rows">
@@ -355,15 +365,15 @@
 
     <!-- MCP 设置 -->
     <div class="overlay win-layer" id="layer-mcp" hidden>
-      <div class="mini-window wide" role="dialog" aria-modal="true" data-l10n-label="MCP 设置" aria-label="MCP 设置">
+      <div class="mini-window wide" role="dialog" aria-modal="true" data-l10n-label="MCP 设置" aria-labelledby="mcp-title">
         <div class="mini-titlebar">
-          MCP 设置
+          <span id="mcp-title">MCP 设置</span>
           <span class="caption-btns">
             <button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
           </span>
         </div>
         <div class="set-head">
-          <span class="s-ico"><svg class="ico" style="width:21px;height:21px;"><use href="#i-terminal"/></svg></span>
+          <span class="s-ico"><svg class="ico ico-21"><use href="#i-terminal"/></svg></span>
           <div>
             <h2>MCP 设置</h2>
             <div class="sub">允许 AI 客户端通过本机 MCP 接口读取和操作当前文档。</div>
@@ -381,35 +391,35 @@
             <span class="k">监听地址</span>
             <input class="input mono" value="127.0.0.1">
             <span class="k">端口</span>
-            <input class="input mono" value="17891" style="width: 120px;">
+            <input class="input mono input-port" value="17891">
             <span class="k">授权 Token</span>
             <span class="input-group">
               <input class="input mono" id="mcp-token" value="vx_9f3ac21e77b04d5c8a12">
-              <button class="btn sm" id="mcp-gen"><svg class="ico" style="width:13px;height:13px"><use href="#i-refresh"/></svg>生成</button>
-              <button class="btn sm" id="mcp-copy-token"><svg class="ico" style="width:13px;height:13px"><use href="#i-copy"/></svg>复制</button>
+              <button class="btn sm" id="mcp-gen"><svg class="ico ico-13"><use href="#i-refresh"/></svg>生成</button>
+              <button class="btn sm" id="mcp-copy-token"><svg class="ico ico-13"><use href="#i-copy"/></svg>复制</button>
             </span>
             <span class="k">端点</span>
             <span class="endpoint">
               <code class="mono">http://127.0.0.1:17891/mcp/</code>
-              <button class="btn sm ghost" id="mcp-copy-endpoint" style="border:1px solid var(--border)"><svg class="ico" style="width:13px;height:13px"><use href="#i-copy"/></svg>复制地址</button>
+              <button class="btn sm ghost btn-outlined" id="mcp-copy-endpoint"><svg class="ico ico-13"><use href="#i-copy"/></svg>复制地址</button>
             </span>
           </div>
           <div class="field-card">
             <h3>允许访问范围</h3>
-            <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="radio-list">
               <label class="radio"><input type="radio" name="scope" checked><span class="dot"></span>仅当前文档</label>
               <label class="radio"><input type="radio" name="scope"><span class="dot"></span>当前打开文件夹</label>
               <label class="radio"><input type="radio" name="scope"><span class="dot"></span>自定义目录</label>
-              <input class="input mono" data-l10n-placeholder="自定义目录路径，例如 D:\Notes" placeholder="自定义目录路径，例如 D:\Notes" style="max-width: 360px;">
+              <input class="input mono input-wide" data-l10n-placeholder="自定义目录路径，例如 D:\Notes" placeholder="自定义目录路径，例如 D:\Notes">
             </div>
           </div>
-          <label class="check" style="margin-top: 2px;">
+          <label class="check check-flush">
             <input type="checkbox" checked><span class="box"></span>
             修改、删除、打开外部路径前需要确认
           </label>
         </div>
-        <div style="margin: 2px 24px 6px; display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--success);">
-          <span id="mcp-status-dot" style="width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px color-mix(in srgb, var(--success) 18%, transparent);"></span>
+        <div class="mcp-status">
+          <span id="mcp-status-dot" class="status-dot"></span>
           <span id="mcp-status-text">服务运行中 · 最近调用 2 分钟前</span>
         </div>
         <div class="set-foot">
@@ -426,9 +436,9 @@
   <button data-action="presentation-larger" data-l10n-name="增大演示字号" aria-label="增大演示字号" title="增大演示字号">A+</button>
   <button data-action="presentation-exit" data-l10n-name="退出演示" aria-label="退出演示" title="退出演示">×</button>
 </div>
-<link rel="stylesheet" href="assets/presentation.css">
-<script src="assets/document-operations.js"></script><script src="assets/editor.js"></script><script src="assets/writing-chrome.js"></script><script src="assets/element-menu.js"></script><script src="assets/presentation-labels.js"></script><script src="assets/presentation.js"></script>
+<link rel="stylesheet" href="assets/workbench/presentation.css">
+<script src="assets/workbench/document-operations.js"></script><script src="assets/workbench/editor.js"></script><script src="assets/workbench/writing-chrome.js"></script><script src="assets/workbench/element-menu.js"></script><script src="assets/workbench/presentation-labels.js"></script><script src="assets/workbench/presentation.js"></script>
 <input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
 <input type="file" id="open-folder-input" accept=".md,.markdown,.mdown,.txt" webkitdirectory directory multiple hidden>
-<script src="assets/desktop/localization.js"></script><script src="assets/project-info.js"></script><script src="assets/desktop/typography.js"></script><script src="assets/desktop/interact.js"></script><script src="assets/desktop/mindmap.js"></script><script src="assets/code-fence.js"></script><script src="assets/vendor/katex/katex.min.js"></script><script src="assets/vendor/katex/mhchem.min.js"></script><script src="assets/vendor/mermaid/mermaid.min.js"></script><script src="assets/diagram-rendering.js"></script><script src="assets/desktop/rendering.js"></script><script src="assets/desktop/samples.js"></script><script src="assets/desktop/typewriter.js"></script><script src="assets/desktop/instant-editor.js"></script><script src="assets/desktop/source-highlight.js"></script><script src="assets/desktop/workbench.js"></script><script src="assets/desktop/guide.js"></script>
-<script src="assets/desktop/about-update.js"></script><script src="assets/desktop/workspace.js"></script><script src="assets/desktop/chapter-editor.js"></script><script src="assets/desktop/usability.js"></script><script src="assets/desktop/workspace-chrome.js"></script><script src="assets/desktop/workflows.js"></script><script src="assets/desktop/preview.js"></script></body></html>
+<script src="assets/workbench/vex-data.js"></script><script src="assets/workbench/localization.js"></script><script src="assets/prototype/project-info.js"></script><script src="assets/workbench/typography.js"></script><script src="assets/workbench/interact.js"></script><script src="assets/workbench/mindmap.js"></script><script src="assets/workbench/code-fence.js"></script><script src="assets/vendor/katex/katex.min.js"></script><script src="assets/vendor/katex/mhchem.min.js"></script><script src="assets/vendor/mermaid/mermaid.min.js"></script><script src="assets/workbench/diagram-rendering.js"></script><script src="assets/workbench/rendering.js"></script><script src="assets/workbench/samples.js"></script><script src="assets/workbench/typewriter.js"></script><script src="assets/workbench/instant-editor.js"></script><script src="assets/workbench/source-highlight.js"></script><script src="assets/workbench/workbench.js"></script><script src="assets/workbench/guide.js"></script>
+<script src="assets/workbench/about-update.js"></script><script src="assets/workbench/workspace.js"></script><script src="assets/workbench/chapter-editor.js"></script><script src="assets/workbench/usability.js"></script><script src="assets/workbench/workspace-chrome.js"></script><script src="assets/workbench/workflows.js"></script><script src="assets/workbench/preview.js"></script></body></html>

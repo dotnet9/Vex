@@ -12,7 +12,7 @@
   const failureMessages = { 'check-failed':'检查失败，请重试。', 'download-failed':'下载失败，请重试。', 'checksum-failed':'校验失败，请重新下载。', 'install-failed':'安装失败，请重试。' };
   const TAGS = { '新增':'tag-new', '优化':'tag-opt', '修复':'tag-fix', '删除':'tag-remove' };
 
-  function escapeHtml(text) { return text.replace(/[&<>"]/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ch])); }
+  function VexEsc(text) { return text.replace(/[&<>"]/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ch])); }
 
   function releaseIndex() {
     const text = (window.VexDocuments && VexDocuments.changelog && VexDocuments.changelog.text) || '';
@@ -48,7 +48,7 @@
         ? '<div class="update-version"><strong>V' + item.version + '</strong><span class="update-date">' + item.date + ' 发布</span></div>'
         : '';
       const entries = typedEntries(item.body).map(entry =>
-        '<li>' + (entry.tag ? '<span class="update-tag ' + TAGS[entry.tag] + '">' + entry.tag + '</span>' : '') + '<span>' + escapeHtml(entry.text) + '</span></li>'
+        '<li>' + (entry.tag ? '<span class="update-tag ' + TAGS[entry.tag] + '">' + entry.tag + '</span>' : '') + '<span>' + VexEsc(entry.text) + '</span></li>'
       ).join('');
       return header + '<ul class="update-entries">' + entries + '</ul>';
     }).join('');

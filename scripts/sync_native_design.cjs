@@ -9,7 +9,7 @@ const typographyOnly = process.argv.includes('--typography-only');
 const context = { document: {createElement:()=>({}), head:{append(){}}} };
 context.window = context;
 vm.createContext(context);
-for (const name of ['palettes.js','generated/palette-rules-data.js','palette-rules.js','typography-catalog.js','desktop-resources.js','design-system.js'])
+for (const name of ['prototype/palettes.js','generated/palette-rules-data.js','prototype/palette-rules.js','prototype/typography-catalog.js','prototype/desktop-resources.js','prototype/design-system.js'])
   vm.runInContext(fs.readFileSync(path.join(root,'design/assets',name),'utf8'),context);
 const palettes = context.VexPalettes;
 const types = context.VexTypes;

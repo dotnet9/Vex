@@ -1,14 +1,14 @@
 /* Share the application's small code font; UI and Chinese use system fonts. */
 @font-face {
   font-family: "Cascadia Code";
-  src: url("fonts/CascadiaCode-Regular.ttf") format("truetype");
+  src: url("../fonts/CascadiaCode-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Cascadia Code";
-  src: url("fonts/CascadiaCode-SemiBold.ttf") format("truetype");
+  src: url("../fonts/CascadiaCode-SemiBold.ttf") format("truetype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;

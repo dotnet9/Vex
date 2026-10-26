@@ -1,13 +1,13 @@
 /* 从 CodeWF.Avalonia《配色与排版令牌规则.md》附录 A 生成原型配色与密度令牌。
  * 单一事实源：规则文档。本脚本产出（均带版本戳，禁止手写，见规则 §14）：
- *   assets/palettes.css                          9 套配色 × 明暗 + 默认回退块
- *   assets/palettes.js                           VexPalettes 数据与旧 Key 别名
- *   assets/density.css                           密度三档显式值表（§6）
+ *   assets/prototype/palettes.css                          9 套配色 × 明暗 + 默认回退块
+ *   assets/prototype/palettes.js                           VexPalettes 数据与旧 Key 别名
+ *   assets/prototype/density.css                           密度三档显式值表（§6）
  *   assets/generated/palette-rules-data.js       供浏览器自定义配色编辑器使用
  * 用法：node scripts/palette-rules.cjs [--rules <规则文档路径>] [--check]（--check 只校验不落盘） */
 const fs = require('node:fs');
 const path = require('node:path');
-const Rules = require('../assets/palette-rules.js');
+const Rules = require('../assets/prototype/palette-rules.js');
 
 const root = path.resolve(__dirname, '..');
 const args = process.argv.slice(2);
@@ -164,8 +164,8 @@ function write(file, value) {
     console.log('未变化 ' + file);
   }
 }
-write('assets/palettes.css', palettesCss);
-write('assets/palettes.js', palettesJs);
-write('assets/density.css', densityCss);
+write('assets/prototype/palettes.css', palettesCss);
+write('assets/prototype/palettes.js', palettesJs);
+write('assets/prototype/density.css', densityCss);
 write('assets/generated/palette-rules-data.js', rulesDataJs);
 console.log('默认配色: ' + data.default + ' · 版本戳: CodeWF.Avalonia ' + version);

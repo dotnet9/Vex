@@ -27,7 +27,7 @@
 .tour-progress button[aria-current="step"]::before { background:var(--accent); }
 .tour-actions { display:flex; align-items:center; gap:8px; margin-top:12px; }
 .tour-actions button { font-size:11px; min-height:31px; border-radius:6px; padding:6px 12px; }
-.tour-skip { color:var(--muted); border:0; background:transparent; margin-right:auto; padding-left:0!important; }
+.tour-skip { color:var(--muted); border:0; background:transparent; margin-right:auto; padding-left:0; }
 .tour-previous { color:var(--fg); background:var(--panel); border:1px solid var(--border); }
 .tour-next { color:var(--accent-fg); background:var(--accent); border:1px solid var(--accent); display:flex; align-items:center; gap:13px; }
 .tour-next:hover { filter:brightness(1.08); }

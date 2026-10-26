@@ -27,23 +27,23 @@ for (const file of fs.readdirSync(root).filter(file => file.endsWith('.html'))) 
 const logo = fs.readFileSync(path.join(root, 'assets/vex-logo.svg'), 'utf8');
 assert.ok(logo.includes('#24766B'));
 assert.ok(logo.includes('M64 62 L128 198 L192 62'));
-const preferences = fs.readFileSync(path.join(root, 'assets/preferences.js'), 'utf8');
+const preferences = fs.readFileSync(path.join(root, 'assets/workbench/preferences.js'), 'utf8');
 assert.ok(preferences.includes('autoSave:false'));
 const sandbox = {window:{}};
 vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/generated/palette-rules-data.js'), 'utf8'), sandbox);
 assert.ok(Number.isInteger(sandbox.window.VexPaletteRulesData.ruleVersion), 'Palette data carries a ruleVersion stamp');
-const paletteStamp = /\(ruleVersion (\d+)\)/.exec(fs.readFileSync(path.join(root, 'assets/palettes.css'), 'utf8'));
+const paletteStamp = /\(ruleVersion (\d+)\)/.exec(fs.readFileSync(path.join(root, 'assets/prototype/palettes.css'), 'utf8'));
 assert.ok(paletteStamp, 'palettes.css is generated with a ruleVersion stamp');
-for (const generated of ['assets/palettes.css','assets/palettes.js','assets/density.css','assets/generated/palette-rules-data.js']) {
+for (const generated of ['assets/prototype/palettes.css','assets/prototype/palettes.js','assets/prototype/density.css','assets/generated/palette-rules-data.js']) {
   const header = fs.readFileSync(path.join(root, generated), 'utf8').split('\n', 1)[0];
   assert.match(header, new RegExp(`ruleVersion ${sandbox.window.VexPaletteRulesData.ruleVersion}`), `${generated} matches the generated ruleVersion`);
 }
 assert.equal(Object.keys(sandbox.window.VexPaletteRulesData.palettes).length, 9, 'Nine palettes come from rule appendix A');
 const prototype = {VexStorage:{getItem:()=>null}};
 prototype.window = prototype;
-vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/typography-catalog.js'), 'utf8'), prototype);
+vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/prototype/typography-catalog.js'), 'utf8'), prototype);
 assert.equal(prototype.VexTypes.length, 5, 'Base typography catalog keeps the five independent native styles');
-for (const asset of ['palettes.js','desktop-resources.js','design-system.js']) {
+for (const asset of ['prototype/palettes.js','prototype/desktop-resources.js','prototype/design-system.js']) {
   vm.runInNewContext(fs.readFileSync(path.join(root, 'assets', asset), 'utf8'), prototype);
 }
 assert.equal(prototype.VexTypes.length, 12, 'Prototype exposes the twelve finalized typographies');
@@ -53,7 +53,7 @@ for (const [key, file] of [['thanks','docs/鸣谢.md'], ['changelog','docs/更�
   assert.equal(sandbox.window.VexDocuments[key].text, fs.readFileSync(path.join(root, '..', file), 'utf8').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n'));
 }
 const changelog = sandbox.window.VexDocuments.changelog.text;
-vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/desktop/samples.js'), 'utf8'), sandbox);
+vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/workbench/samples.js'), 'utf8'), sandbox);
 assert.equal(sandbox.window.VexSamples.length, 6, 'Six samples are shared with the installed app');
 for (const sample of sandbox.window.VexSamples) {
   const file = path.resolve(root, sample.path);

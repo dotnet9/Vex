@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'..'),context={document:{createElement:()=>({}),head:{append(){}}}};context.window=context;vm.createContext(context);
-for(const file of ['palettes.js','typography-catalog.js','desktop-resources.js','design-system.js'])vm.runInContext(fs.readFileSync(path.join(root,'design/assets',file),'utf8'),context);
+for(const file of ['prototype/palettes.js','prototype/typography-catalog.js','prototype/desktop-resources.js','prototype/design-system.js'])vm.runInContext(fs.readFileSync(path.join(root,'design/assets',file),'utf8'),context);
 const paletteNames=Object.fromEntries(context.VexPalettes.map(p=>[p.key,p.key[0].toUpperCase()+p.key.slice(1)]));
 const palettePurposeEn=['Neutral · Value contrast','Classic blue · Everyday default','Cool teal · Fresh notes','Pine green · Calm focus','Sky blue · Open and clear','Warm amber · Long reading','Crimson · Vivid energy','Amethyst · Creative work','Terracotta · Ideas and notes'];
 const palettePurposeJa=['無彩色・明度の対比','定番の青・日常の既定','冷たい青緑・爽やかな記録','松の緑・落ち着いた集中','空の青・清朗で開放的','暖かな琥珀・長時間の読書','緋色・鮮やかな活力','紫水晶・創造的な整理','暖かな陶土・ひらめきの手記'];

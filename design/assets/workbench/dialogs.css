@@ -95,3 +95,32 @@
     line-height: 1.65; color: var(--muted); white-space: pre-wrap; word-break: break-all;
   }
   .rn-error { margin-top: 10px; font-size: 12px; color: var(--danger); }
+
+/* 内联样式归位：原先写在 Vex.html 的 style="" 上的表达。 */
+  .hidden-sprite { display: none; }
+  .dlg-scroll { max-height: 85vh; overflow: auto; }
+  .dlg-pad { padding: 22px; }
+  .dlg-title-warn { font-size: 15.5px; }
+  .dlg-field-gap { margin-top: 14px; }
+  .dlg-path-gap { margin-top: 12px; }
+  .dlg-path-flush { margin-top: 0; }
+  .fld-label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .sub-label { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+  .toggle-label { font-size: 11.5px; font-weight: 600; color: var(--muted); cursor: pointer; user-select: none; }
+  .is-hidden { display: none; }
+  .prop-head { display: flex; align-items: center; gap: 14px; padding: 20px 24px 14px; }
+  .prop-head .about-logo { width: 44px; height: 44px; border-radius: 11px; background: var(--accent-soft); color: var(--accent); }
+  .prop-head .ico-21 { width: 21px; height: 21px; }
+  .prop-name { font-size: 15.5px; font-weight: 700; }
+  .prop-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .prop-path { display: flex; align-items: flex-start; gap: 8px; }
+  .ico-21 { width: 21px; height: 21px; }
+  .ico-13 { width: 13px; height: 13px; }
+  .input-port { width: 120px; }
+  .input-wide { max-width: 360px; }
+  .radio-list { display: flex; flex-direction: column; gap: 8px; }
+  .check-flush { margin-top: 2px; }
+  .btn-outlined, .btn.ghost.btn-outlined { border: 1px solid var(--border); }
+  .mcp-status { margin: 2px 24px 6px; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--success); }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 18%, transparent); }
+  .flip-x { transform: scaleX(-1); }

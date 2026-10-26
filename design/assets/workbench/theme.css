@@ -1,4 +1,4 @@
-@import url("../fonts.css");
+@import url("../prototype/fonts.css");
 /* ============================================================
    Vex 界面原型 · 主题令牌与组件库
    布局参考 Vex；配色令牌全部由 ../palettes.css 生成器产出
@@ -943,8 +943,8 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
 
 /* ---------- 禁用表单态（MCP 设置开关关闭等） ---------- */
 .form-disabled { opacity: .45; pointer-events: none; user-select: none; }
-.status-off { color: var(--fg-disabled) !important; }
-.status-off::before { background: var(--fg-disabled) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--fg-disabled) 15%, transparent) !important; }
+.status-off { color: var(--fg-disabled); }
+.status-off::before { background: var(--fg-disabled); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fg-disabled) 15%, transparent); }
 
 /* ---------- 菜单阶段提示（menu-flyout 交互说明） ---------- */
 .stage-tip {

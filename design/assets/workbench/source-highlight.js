@@ -1,8 +1,7 @@
 /* 源码视图上色层：镜像 textarea 的文本，只插入 span、不增删字符，与输入框逐字对齐。 */
 (() => {
   'use strict';
-  const esc = value => value.replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]));
-  const span = (kind, text) => text ? '<span class="sh-' + kind + '">' + esc(text) + '</span>' : '';
+  const span = (kind, text) => text ? '<span class="sh-' + kind + '">' + VexEsc(text) + '</span>' : '';
   const wrap = (kind, html) => '<span class="sh-' + kind + '">' + html + '</span>';
   const TOKEN = /(\*\*[^*\n]+\*\*|__[^_\n]+__|~~[^~\n]+~~|==[^=\n]+==|`[^`\n]+`|\*[^*\n]+\*|_[^_\n]+_|!?\[[^\]\n]*\](?:\([^)\n]*\))?|\[\^[^\]\n]*\])/g;
   const PAIRS = [['strong', '**', '**'], ['strong', '__', '__'], ['strike', '~~', '~~'], ['mark', '==', '=='], ['code', '`', '`'], ['em', '*', '*'], ['em', '_', '_']];
@@ -10,7 +9,7 @@
 
   function link(token) {
     const parts = LINK.exec(token);
-    if (!parts) return esc(token);
+    if (!parts) return VexEsc(token);
     const html = span('marker', parts[1] + '[') + span('link', parts[2]) + span('marker', ']');
     return token.endsWith(')') ? html + span('marker', '(') + span('url', parts[3] || '') + span('marker', ')') : html;
   }
@@ -20,17 +19,17 @@
     let html = '', cursor = 0, match;
     TOKEN.lastIndex = 0;
     while ((match = TOKEN.exec(text))) {
-      html += esc(text.slice(cursor, match.index));
+      html += VexEsc(text.slice(cursor, match.index));
       const token = match[0];
       if (/^\[\^/.test(token)) html += span('marker', token);
       else if (/^!?\[/.test(token)) html += link(token);
       else {
         const pair = PAIRS.find(item => token.startsWith(item[1]) && token.endsWith(item[2]) && token.length > item[1].length + item[2].length);
-        html += pair ? span('marker', pair[1]) + span(pair[0], token.slice(pair[1].length, token.length - pair[2].length)) + span('marker', pair[2]) : esc(token);
+        html += pair ? span('marker', pair[1]) + span(pair[0], token.slice(pair[1].length, token.length - pair[2].length)) + span('marker', pair[2]) : VexEsc(token);
       }
       cursor = match.index + token.length;
     }
-    return html + esc(text.slice(cursor));
+    return html + VexEsc(text.slice(cursor));
   }
 
   function line(text, state) {

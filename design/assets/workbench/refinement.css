@@ -26,7 +26,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .menu-flyout,.submenu { min-width:272px; padding:var(--pad-sm,6px); border-radius:var(--radius-md,8px); }
 .menu-item { min-height:var(--control-h-md,32px); padding:var(--pad-sm,6px) var(--pad-md,10px); font-size:var(--fs-body,14px); line-height:1.55; }
 .menu-item .shortcut,.menu-item kbd { font-size:var(--fs-caption,12px); margin-left:32px; }
-.workbar { min-height:calc(var(--control-h-lg,38px) + var(--pad-lg,14px) + 6px); }
+
 .side-tab,.file-row,.input,.btn,.set-body { font-size:var(--fs-body,14px); }
 .side-tabs { display:flex; height:44px; padding:0; gap:0; border-bottom:1px solid var(--border); }
 .side-tab { flex:1; justify-content:center; padding:0 8px; min-width:0; }
@@ -115,8 +115,8 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 
 /* Update flow: clearer hierarchy, generous spacing and safe sizing on smaller windows. */
 #layer-update > .mini-window {
-  width: min(var(--dialog-w-lg,620px), calc(100vw - 32px)) !important;
-  max-height: min(86vh, 760px) !important;
+  width: min(var(--dialog-w-lg,620px), calc(100vw - 32px));
+  max-height: min(86vh, 760px);
   overflow: auto;
   border: 1px solid color-mix(in srgb, var(--line) 80%, var(--accent) 20%);
   border-radius: 14px;
@@ -224,7 +224,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
   line-height: 1.5;
 }
 @media (max-width: 560px) {
-  #layer-update > .mini-window { width: calc(100vw - 20px) !important; }
+  #layer-update > .mini-window { width: calc(100vw - 20px); }
   #layer-update .update-body { padding: 20px 18px; gap: 17px; }
   #layer-update .update-hero { gap: 12px; }
   #layer-update .update-icon { width: 40px; height: 40px; flex-basis: 40px; }

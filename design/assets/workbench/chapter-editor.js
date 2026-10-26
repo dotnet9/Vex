@@ -5,7 +5,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var renamed = null, dragging = null, drop = null, selectedLine = null;
   function icon(name) { return '<svg class="ico" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
-  function escape(value) { return String(value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function VexEsc(value) { return String(value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function selected() { return W.state.nodes.find(function (node) { return node.id === W.state.selected; }); }
   function heading() { var node = selected(); return node && node.kind === 'heading' ? node : W.state.parsed.root; }
   function records() {
@@ -161,12 +161,12 @@
     var list = siblings(node), index = list.findIndex(function (candidate) { return candidate.id === node.id; }), parent = parentOf(node);
     $('inspector-kind').textContent = '章节 · H' + node.level; $('inspector-title').textContent = '';
     var body = W.text.slice(item.headerEnd, item.bodyEnd).replace(/^\n/, '').replace(/\n+$/, '');
-    $('inspector-content').innerHTML = '<div class="chapter-inspector"><label for="chapter-title-input">章节标题</label><div class="chapter-title-row"><span class="chapter-level">H' + node.level + '</span><input class="chapter-title-input" id="chapter-title-input" value="' + escape(node.text) + '"></div>'
+    $('inspector-content').innerHTML = '<div class="chapter-inspector"><label for="chapter-title-input">章节标题</label><div class="chapter-title-row"><span class="chapter-level">H' + node.level + '</span><input class="chapter-title-input" id="chapter-title-input" value="' + VexEsc(node.text) + '"></div>'
       + '<div class="chapter-actions">'
       + '<button data-chapter-command="sibling"' + (node.isRoot ? ' disabled' : '') + '>＋ 同级</button><button data-chapter-command="child"' + (node.level >= 6 ? ' disabled' : '') + '>＋ 子级</button><button data-chapter-command="rename">修改标题</button>'
       + '<button data-chapter-command="promote"' + (!parent || parent.level === 0 || node.isRoot ? ' disabled' : '') + '>← 提升</button><button data-chapter-command="demote"' + (index <= 0 || list[index - 1]?.level >= 6 ? ' disabled' : '') + '>→ 降级</button><button data-chapter-command="up"' + (index <= 0 ? ' disabled' : '') + '>↑ 上移</button>'
       + '<button data-chapter-command="down"' + (index < 0 || index >= list.length - 1 ? ' disabled' : '') + '>↓ 下移</button><button class="chapter-delete-button" data-chapter-command="delete"' + (node.isRoot ? ' disabled' : '') + '>删除章节</button></div>'
-      + '<label for="chapter-body-input">本节正文</label><textarea class="chapter-body-input" id="chapter-body-input" placeholder="先写下这一节要表达的内容…">' + escape(body) + '</textarea><p class="chapter-body-note">这里的修改会同步到文章。支持 Markdown，子章节单独保留；离开输入框即同步，可撤销。</p></div>';
+      + '<label for="chapter-body-input">本节正文</label><textarea class="chapter-body-input" id="chapter-body-input" placeholder="先写下这一节要表达的内容…">' + VexEsc(body) + '</textarea><p class="chapter-body-note">这里的修改会同步到文章。支持 Markdown，子章节单独保留；离开输入框即同步，可撤销。</p></div>';
     var title = $('chapter-title-input');
     title.onchange = function () { rename(node, title.value); };
     title.onkeydown = function (event) { if (event.isComposing) return; if (event.key === 'Enter') { event.preventDefault(); title.blur(); } if (event.key === 'Escape') { title.value = node.text; title.blur(); event.stopPropagation(); } };

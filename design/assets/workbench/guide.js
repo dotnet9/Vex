@@ -333,7 +333,7 @@
     lightTip.textContent = '';
   }
   function storyMeta(title) {
-    return '<div class="story-meta"><h2 id="tour-title" class="story-titlebar">' + title + '</h2><button class="tour-close" data-tour="close" aria-label="' + g('IntroSkip', '退出引导') + '">×</button></div>';
+    return '<div class="story-meta"><h2 id="tour-title" class="story-titlebar">' + VexEsc(title) + '</h2><button class="tour-close" data-tour="close" aria-label="' + VexEsc(g('IntroSkip', '退出引导')) + '">×</button></div>';
   }
   function storyCount(count) {
     return '<span class="story-count action-count" aria-label="第 ' + count.replace('/', ' / ') + ' 步">' + count + '</span>';
@@ -365,7 +365,7 @@
     /* 动作行：点状进度居左；上一步 / 继续（暂停或门）/ 下一步居右，均无箭头、随时可跳幕。 */
     var resume = paused ? '<button class="tour-continue tour-next" data-tour="continue">继续</button>'
       : gate ? '<button class="tour-continue tour-next" data-tour="proxy">继续</button>' : '';
-    card.innerHTML = storyMeta(actTitle(acts[stepIndex])) + '<p class="tour-feedback story-live" aria-live="polite">' + message + '</p><div class="story-actions"><span class="story-dots">' + storyDots() + '</span><span class="story-flex"></span>'
+    card.innerHTML = storyMeta(actTitle(acts[stepIndex])) + '<p class="tour-feedback story-live" aria-live="polite">' + VexEsc(message) + '</p><div class="story-actions"><span class="story-dots">' + storyDots() + '</span><span class="story-flex"></span>'
       + (stepIndex ? '<button class="tour-previous" data-tour="previous">上一步</button>' : '')
       + resume
       + '<button class="tour-skip" data-tour="skip">下一步</button></div>';
@@ -376,7 +376,7 @@
     hideLightTip();
     layer.classList.remove('demo-running'); card.classList.remove('demo-hidden'); card.removeAttribute('aria-hidden');
     layer.dataset.mode = 'intro'; card.dataset.mode = 'intro'; focusTargets = []; cursor.hidden = true; layer.hidden = false;
-    card.innerHTML = storyMeta(g('IntroTitle', '快速上手')) + '<p class="tour-description" id="tour-description">' + g('IntroText', '运行软件即可立即创作哟，跟着演示看一遍核心功能。') + '</p><div class="story-actions intro-actions"><span class="story-dots">' + storyDots() + '</span><span class="story-flex"></span><button class="tour-skip" data-tour="close">先不看</button><button class="tour-continue tour-next" data-tour="start">开始吧</button></div>';
+    card.innerHTML = storyMeta(g('IntroTitle', '快速上手')) + '<p class="tour-description" id="tour-description">' + VexEsc(g('IntroText', '运行软件即可立即创作哟，跟着演示看一遍核心功能。')) + '</p><div class="story-actions intro-actions"><span class="story-dots">' + storyDots() + '</span><span class="story-flex"></span><button class="tour-skip" data-tour="close">先不看</button><button class="tour-continue tour-next" data-tour="start">开始吧</button></div>';
     compactCard('intro');
     centerCard();
   }
@@ -386,7 +386,7 @@
     hideLightTip();
     layer.classList.remove('demo-running'); card.classList.remove('demo-hidden'); card.removeAttribute('aria-hidden');
     card.dataset.mode = 'result'; focusTargets = resultTargets.slice(); focusKind = resultKind; focusPreferred = resultPreferred; cursor.hidden = true; pointer.hidden = true; layer.dataset.mode = final ? 'final' : 'result';
-    card.innerHTML = storyMeta(actTitle(act)) + '<p class="tour-description" id="tour-description">' + actSummary(act) + '</p><div class="story-actions"><span class="story-dots">' + storyDots() + '</span><span class="story-flex"></span>' + (stepIndex ? '<button class="tour-previous" data-tour="previous">上一步</button>' : '') + '<button class="tour-continue tour-next" data-tour="next">' + (final ? g('FinishTour', '结束导览') : g('Next', '下一步')) + '</button></div>';
+    card.innerHTML = storyMeta(actTitle(act)) + '<p class="tour-description" id="tour-description">' + VexEsc(actSummary(act)) + '</p><div class="story-actions"><span class="story-dots">' + storyDots() + '</span><span class="story-flex"></span>' + (stepIndex ? '<button class="tour-previous" data-tour="previous">上一步</button>' : '') + '<button class="tour-continue tour-next" data-tour="next">' + (final ? g('FinishTour', '结束导览') : g('Next', '下一步')) + '</button></div>';
     compactCard('result');
     layout();
   }

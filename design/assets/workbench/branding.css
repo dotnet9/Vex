@@ -1,5 +1,5 @@
 /* 保留 Vex 的布局、尺寸与状态；维刻只替换默认配色、Logo 和平台窗口装饰。 */
-.about-logo{object-fit:contain;background:none!important;border-radius:0!important}.brand{letter-spacing:-.4px}.workspace-layout-footer>span{font-size:10px;color:var(--muted)}
+.about-logo{object-fit:contain;background:none;border-radius:0}.brand{letter-spacing:-.4px}.workspace-layout-footer>span{font-size:10px;color:var(--muted)}
 body[data-platform=macos] .caption-btns{gap:7px;align-items:center;padding:0 13px}body[data-platform=macos] .caption-btns>.caption-btn{width:12px;height:12px;border-radius:50%;background:#ef7166}body[data-platform=macos] .caption-btns>.caption-btn:nth-child(2){background:#eac053}body[data-platform=macos] .caption-btns>.caption-btn:nth-child(3){background:#66bd78}body[data-platform=macos] .caption-btns>.caption-btn .ico{display:none}
 .prototype-draft{display:flex;align-items:center;gap:12px;background:var(--accent-soft);border-bottom:1px solid var(--border);padding:9px 18px;font-size:11px;color:var(--fg)}.prototype-draft span{flex:1}.prototype-draft button{font-size:11px}.prototype-draft button:last-child{color:var(--accent)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0s!important;transition-duration:0s!important;scroll-behavior:auto!important}}

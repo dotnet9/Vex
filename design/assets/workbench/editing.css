@@ -14,9 +14,9 @@
 .instant-scroll.typewriter-on, .source-scroll.typewriter-on { overflow-anchor: none; scroll-behavior: auto; }
 .instant-scroll.typewriter-on .md-body, .source-scroll.typewriter-on textarea { padding-top: var(--typewriter-space) !important; padding-bottom: var(--typewriter-space) !important; }
 .source-scroll.typewriter-on .line-numbers { top: var(--typewriter-space); }
-.instant-block { position: relative; display: flow-root; cursor: text; outline: none !important; caret-color: var(--fg); overflow-wrap: anywhere; }
+.instant-block { position: relative; display: flow-root; cursor: text; outline: none; caret-color: var(--fg); overflow-wrap: anywhere; }
 .instant-block.is-editing { outline: none; }
-.instant-input { outline: none !important; }
+.instant-input { outline: none; }
 .instant-hint { flex: none; font-size: 10px; color: var(--muted); padding: 9px 20px; border-top: 1px solid var(--border); background: var(--panel); }
 .instant-empty { min-height: 1.95em; }
 .instant-empty:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
