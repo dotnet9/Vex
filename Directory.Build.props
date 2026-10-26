@@ -10,7 +10,7 @@
     <ArtifactsPath Condition="'$(CI)' != 'true'">$(MSBuildThisFileDirectory)..\..\temp_files\vex-build\</ArtifactsPath>
     <ArtifactsPath Condition="'$(CI)' == 'true'">$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
     <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts\packages\</PackageOutputPath>
-    <Version>1.11.0</Version>
+    <Version>1.12.0</Version>
     <Authors>沙漠尽头的狼</Authors>
     <Company>CodeWF</Company>
     <Title>Vex - 维刻</Title>
