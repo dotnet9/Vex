@@ -1,7 +1,7 @@
 // Converts the pinned Lucide SVG subset to native Avalonia paths; run explicitly after source changes.
 const fs = require('node:fs');
 const path = require('node:path');
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(__dirname, '..', '..');
 const source = path.join(root, 'src/Vex/Assets/MenuIcons');
 const output = path.join(root, 'src/Vex.Controls/MenuIconGeometry.g.cs');
 const names = [
