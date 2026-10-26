@@ -107,12 +107,12 @@
   </Style>
   <Style Selector="Button.palette-add-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
-    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
   </Style>
   <Style Selector="Button.palette-add-card:pointerover">
-    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
-    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
   </Style>
   <!-- 原型 .studio-language 行：透明底、hover 灰底，选中着色由代码按主题画刷回放。 -->
   <Style Selector="Button.language-item">

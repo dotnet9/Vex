@@ -84,6 +84,18 @@ internal static class PrototypeAppearanceVerification
         Check(Math.Abs((addTop - regularTop) - 3 * (92 + 6)) < 0.1,
             $"Add palette card occupies the next fixed-height grid row: regularTop={regularTop:0.#}, addTop={addTop:0.#}");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "appearance-palettes.png"));
+        foreach (var theme in new[] { "light", "dark" })
+        {
+            vm.Appearance.SelectThemeByKey(theme); Render();
+            var hoverPoint = addPalette.TranslatePoint(new Point(addPalette.Bounds.Width / 2, addPalette.Bounds.Height / 2), window)!.Value;
+            window.MouseMove(hoverPoint); Render();
+            Check(addPalette.IsPointerOver, "Pointer reaches the add palette card under " + theme);
+            Check(Math.Abs(addDash.Bounds.Height - addPalette.Bounds.Height) < 0.1
+                && Math.Abs(addDash.Bounds.Width - addPalette.Bounds.Width) < 0.1,
+                $"Hovered dashed frame keeps the full card size under {theme}: dash={addDash.Bounds}, card={addPalette.Bounds}");
+            window.CaptureRenderedFrame()?.Save(Path.Combine(output, "appearance-palettes-hover-" + theme + ".png"));
+            window.MouseMove(new Point(1, window.ClientSize.Height - 1)); Render();
+        }
         appearanceMenu.AppearanceButton.Flyout.Hide(); Render();
         var combinations = 0;
         foreach (var palette in vm.Appearance.PaletteOptions)

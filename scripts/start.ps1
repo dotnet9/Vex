@@ -12,9 +12,9 @@ if (-not (Get-Command dotnet -CommandType Application -ErrorAction SilentlyConti
     throw 'The .NET 10 SDK is required to start Vex.'
 }
 
-$runArguments = @('run', '--project', (Join-Path $PSScriptRoot 'src/Vex/Vex.csproj'),
+$runArguments = @('run', '--project', (Join-Path $PSScriptRoot '../src/Vex/Vex.csproj'),
     '--framework', 'net10.0', '--configuration', $Configuration)
-if (-not $ArtifactsPath) { $ArtifactsPath = Join-Path $PSScriptRoot '../../temp_files/vex-start' }
+if (-not $ArtifactsPath) { $ArtifactsPath = Join-Path $PSScriptRoot '../../../temp_files/vex-start' }
 $runArguments += "-p:ArtifactsPath=$([IO.Path]::GetFullPath($ArtifactsPath))"
 if ($ApplicationArguments.Count -gt 0) { $runArguments += @('--') + $ApplicationArguments }
 
