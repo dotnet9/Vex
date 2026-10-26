@@ -12,7 +12,7 @@ const names = [
   'remove-formatting', 'pilcrow', 'scan-text', 'presentation', 'plug', 'scroll-text',
   'square-dashed', 'wrap-text', 'align-left', 'align-center', 'align-right',
   'table-rows-split', 'table-columns-split', 'arrow-up', 'arrow-down', 'arrow-left',
-  'arrow-right', 'arrow-up-to-line', 'arrow-down-to-line', 'chevrons-up', 'panel-right-close',
+  'arrow-right', 'arrow-up-to-line', 'arrow-down-to-line', 'chevrons-up', 'panel-right-close', 'panel-right-open', 'pin', 'pin-off',
   'square', 'window-restore', 'x',
 ];
 
