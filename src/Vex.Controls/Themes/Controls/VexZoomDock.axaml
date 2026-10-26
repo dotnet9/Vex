@@ -1,0 +1,118 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls">
+    <Design.PreviewWith>
+        <Panel Width="320" Height="120">
+            <vex:VexZoomDock HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12"
+                             Minimum="50" Maximum="200" Value="100" Label="内容缩放" ResetLabel="还原字号" />
+        </Panel>
+    </Design.PreviewWith>
+
+    <!-- 原型 .vex-zoomdock（design/assets/prototype/prototype.css）的唯一原生配方：
+         坞内只有拖动条与还原钮，百分比是拖动时才浮出的气泡（气泡位置由 VexZoomDock 代码按拖动块实测算）；
+         高度/内缩/间距/条宽/钮高/图标/分隔线全部来自「界面密度」派生令牌，圆角走胶囊档。 -->
+    <ControlTheme x:Key="{x:Type vex:VexZoomDock}" TargetType="vex:VexZoomDock">
+        <Setter Property="Height" Value="{DynamicResource VexZoomDockHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource VexZoomDockPadding}" />
+        <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="999" />
+        <Setter Property="ClipToBounds" Value="False" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="vex:VexZoomDock">
+                <Border
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Padding="{TemplateBinding Padding}"
+                    BoxShadow="0 10 30 0 #22000000">
+                    <StackPanel Orientation="Horizontal" Spacing="{DynamicResource VexZoomDockGap}" VerticalAlignment="Center">
+                        <!-- 原型 .zoom-tools 是气泡的定位父级：Canvas 与拖动条同框，气泡只跟着拖动块走。 -->
+                        <Panel>
+                            <Slider
+                                Name="PART_Slider"
+                                Width="{DynamicResource VexZoomDockSliderWidth}"
+                                Minimum="{TemplateBinding Minimum}"
+                                Maximum="{TemplateBinding Maximum}"
+                                SmallChange="{TemplateBinding Step}"
+                                TickFrequency="{TemplateBinding Step}"
+                                IsSnapToTickEnabled="True"
+                                Value="{TemplateBinding Value, Mode=TwoWay}"
+                                VerticalAlignment="Center"
+                                Foreground="{DynamicResource VexAccentBrush}"
+                                Background="{DynamicResource VexPanelBorderBrush}"
+                                ToolTip.Tip="{TemplateBinding Label}"
+                                AutomationProperties.Name="{TemplateBinding Label}" />
+                            <Canvas Name="PART_BubbleTrack" IsHitTestVisible="False">
+                                <Border
+                                    Name="PART_Bubble"
+                                    Opacity="0"
+                                    Padding="6,1"
+                                    HorizontalAlignment="Left"
+                                    CornerRadius="{DynamicResource VexDensityCornerRadiusSm}"
+                                    Background="{DynamicResource VexAccentBrush}">
+                                    <Border.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Opacity" Duration="{StaticResource MotionDurationFast}" />
+                                        </Transitions>
+                                    </Border.Transitions>
+                                    <TextBlock
+                                        Name="PART_BubbleText"
+                                        FontSize="{DynamicResource VexDensityFontSizeCaption}"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource VexOnAccentBrush}" />
+                                </Border>
+                            </Canvas>
+                        </Panel>
+                        <!-- 原型 .zoom-reset::before：钮左侧 1px 分隔线。 -->
+                        <Border
+                            Width="1"
+                            Height="{DynamicResource VexZoomDockDividerHeight}"
+                            Opacity="0.7"
+                            Background="{DynamicResource VexPanelBorderBrush}"
+                            VerticalAlignment="Center" />
+                        <Button
+                            Name="PART_Reset"
+                            Classes="vex-zoom-reset"
+                            Height="{DynamicResource VexZoomDockResetHeight}"
+                            ToolTip.Tip="{TemplateBinding ResetLabel}"
+                            AutomationProperties.Name="{TemplateBinding ResetLabel}">
+                            <Path
+                                Width="{DynamicResource VexZoomDockIconSize}"
+                                Height="{DynamicResource VexZoomDockIconSize}"
+                                Data="{TemplateBinding ResetGeometry}"
+                                Stretch="Uniform"
+                                StrokeThickness="2"
+                                StrokeLineCap="Round"
+                                StrokeJoin="Round" />
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <!-- 原型 .zoom-reset：静默底、悬停铺 accent-soft 并转强调色；图标走 currentColor，即坞继承到的正文色。 -->
+        <Style Selector="^ /template/ Button.vex-zoom-reset">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="7,2" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+        </Style>
+        <Style Selector="^ /template/ Button.vex-zoom-reset Path">
+            <Setter Property="Stroke" Value="{DynamicResource VexValueBrush}" />
+        </Style>
+        <!-- ControlTheme 内不允许连跨两层 /template/：悬停色直接设在钮上，由按钮模板的 TemplateBinding 落到内容层。 -->
+        <Style Selector="^ /template/ Button.vex-zoom-reset:pointerover">
+            <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
+        <Style Selector="^ /template/ Button.vex-zoom-reset:pointerover Path">
+            <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

@@ -9,6 +9,7 @@
                 <ResourceInclude Source="Themes/Shared/Motion.axaml" />
                 <ResourceInclude Source="Themes/Shared/Palette.axaml" />
                 <ResourceInclude Source="Themes/Controls/VexStatusBadge.axaml" />
+                <ResourceInclude Source="Themes/Controls/VexZoomDock.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Styles.Resources>
