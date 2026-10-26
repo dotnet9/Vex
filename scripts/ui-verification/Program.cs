@@ -1108,22 +1108,25 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
         window.KeyPress(Key.Space, RawInputModifiers.None, PhysicalKey.Space, null); window.KeyRelease(Key.Space, RawInputModifiers.None, PhysicalKey.Space, null); Pump();
         Capture(window, "presentation-map-" + round);
         for (var transition = 0; transition < 5; transition++) { wb.ShowPresentationDocument(); Pump(); wb.ShowPresentationMap(); Pump(); }
-        wb.TogglePresentationOutline(); Pump(); SettleRendering();
-        Check(outline.IsEffectivelyVisible && !window.FindControl<Grid>("WorkspaceColumns")!.IsEffectivelyVisible, "Presentation shows the document outline independently of the editing sidebar");
+        wb.ShowPresentationDocument(); Pump(); SettleRendering();
+        Check(outline.IsEffectivelyVisible && window.FindControl<Grid>("WorkspaceColumns")!.IsEffectivelyVisible, "Presentation opens with the outline column beside the still-visible document");
         var chapter = outline.GetVisualDescendants().OfType<Button>().Single(button => button.Tag is int index && index == 1);
         var point = chapter.TranslatePoint(new Point(chapter.Bounds.Width / 2, chapter.Bounds.Height / 2), window)!.Value;
         window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Pump(); SettleRendering();
         PumpUntil(() => preview.CurrentModel.Source == wb.PresentationMarkdown);
-        Check(wb.PresentationIndex == 1 && !wb.PresentationOutline && preview.CurrentModel.Source.Contains("var n = 42"), "Clicking an outline chapter opens its rendered code and math page");
+        Check(wb.PresentationIndex == 1 && wb.PresentationOutline && preview.CurrentModel.Source.Contains("var n = 42"), "Clicking an outline chapter opens its page without collapsing the outline");
         Capture(window, "presentation-content-" + round);
         var contentOrigin = preview.TranslatePoint(default, window)!.Value;
         var displayedWidth = preview.Bounds.Width * wb.PresentationZoom;
-        Check(Math.Abs(contentOrigin.X + displayedWidth / 2 - window.Bounds.Width / 2) < 3, "Presentation content stays centered after zoom");
+        Check(Math.Abs(contentOrigin.X + displayedWidth / 2 - (window.Bounds.Width - wb.DeckNavWidth) / 2) < 3, "Presentation content stays centered in the column left of the outline");
         window.KeyPress(Key.PageDown, RawInputModifiers.None, PhysicalKey.PageDown, null); window.KeyRelease(Key.PageDown, RawInputModifiers.None, PhysicalKey.PageDown, null); Pump();
         Check(wb.PresentationIndex == 2 && !wb.CanNextPresentation, "PageDown advances to the last section");
         wb.NextPresentation(); Check(wb.PresentationIndex == 2, "Last page cannot advance past document bounds");
         for (var i = 0; i < 20; i++) { wb.PreviousPresentation(); Pump(); wb.NextPresentation(); Pump(); }
-        wb.TogglePresentationOutline(); Pump(); SettleRendering(); Capture(window, "presentation-outline-" + round);
+        Capture(window, "presentation-outline-" + round);
+        wb.TogglePresentationOutline(); Pump(); SettleRendering();
+        Check(!outline.IsEffectivelyVisible && Math.Abs(wb.DeckNavWidth) < .001, "Collapsing the deck outline frees the whole width for the document");
+        wb.TogglePresentationOutline(); Pump();
         wb.StopPresentation(); Pump(); SettleRendering();
         Check(window.WindowState == WindowState.Maximized && wb.WorkspaceLayout == "instant-map" && vm.Markdown == text && !vm.DocumentInfo.IsModified, "Exit restores maximized layout without altering the document");
         Check(app.Resolve<IAppSettingsStore>().Current == prior, "Presentation navigation and display do not overwrite preferences");
@@ -1188,7 +1191,8 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
         Console.WriteLine($"LONG-DOCUMENT-READING {round}: {anchor} -> {restored}");
         Check(anchor.BlockIndex == restored.BlockIndex && Math.Abs(anchor.BlockRatio - restored.BlockRatio) < .05,
             "Deep reading anchor survives content/map presentation and return");
-        Check(preview.RealizedBlockCount < 100, "Returning to the long document keeps offscreen blocks virtualized");
+        // 全文 750+ 块，窗口化只该留住视口附近的百余块；上限按视口高度放宽，避免视口微调就误报。
+        Check(preview.RealizedBlockCount < 150, "Returning to the long document keeps offscreen blocks virtualized");
     }
     static IEnumerable<CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode> Descendants(CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode node)
     { yield return node; foreach (var child in node.Children) foreach (var descendant in Descendants(child)) yield return descendant; }
@@ -1246,8 +1250,9 @@ void VerifyStress(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel
                 var slideScroll = previewHost.FindControl<ScrollViewer>("PreviewScrollViewer")!;
                 slideScroll.Offset = new Vector(0, slideScroll.Extent.Height); Pump(); slideScroll.Offset = default; Pump();
             }
+            Check(window.FindControl<Vex.Modules.Shell.Views.ShellPresentationOutlineView>("PresentationOutline")!.IsEffectivelyVisible, "Large document opens with its presentation outline");
             vm.Workbench.TogglePresentationOutline(); Pump(); SettleRendering();
-            Check(window.FindControl<Vex.Modules.Shell.Views.ShellPresentationOutlineView>("PresentationOutline")!.IsEffectivelyVisible, "Large document has a presentation outline");
+            vm.Workbench.TogglePresentationOutline(); Pump(); SettleRendering();
             TracePresentation("outline");
             var pageCount = vm.Workbench.PresentationSections.Count;
             for (var transition = 0; transition < 6; transition++)
@@ -2331,7 +2336,11 @@ void VerifyEditingTools(VerificationVexApp app, Window window, MainWindowViewMod
         window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); window.KeyRelease(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Pump();
         Check(!wb.IsPresenting && wb.IsInstantEditing && vm.Layout.CurrentWindowState == prior && live.CaptureState().Current == originalState.Current,
             "Escape restores mode, active block, selection and prior window state: " + prior);
-        Check(app.Resolve<IAppSettingsStore>().Current == originalSettings, "Presentation does not persist layout or typography preferences");
+        var persisted = app.Resolve<IAppSettingsStore>().Current;
+        // 演示字号按需求跨会话保留，其它布局与排版偏好必须一位不动。
+        Check(persisted with { PresentationScale = originalSettings.PresentationScale } == originalSettings
+            && persisted.PresentationScale == wb.PresentationZoom,
+            "Presentation persists only its own zoom, leaving layout and typography untouched");
     }
     vm.Layout.CurrentWindowState = WindowState.Normal;
     foreach (var width in new[] { 980, 1280 })

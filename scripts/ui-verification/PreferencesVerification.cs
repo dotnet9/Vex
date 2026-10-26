@@ -191,6 +191,15 @@ internal static class PreferencesVerification
         while (vm.DocumentInfo.IsModified && DateTime.UtcNow < deadline) { Render(); Thread.Sleep(20); }
         Check(!vm.DocumentInfo.IsModified && File.ReadAllText(documentPath) == vm.Markdown, "Idle timer auto saves the named document and clears dirty state");
         preferences.AutoSave = false;
+        if (app.Resolve<IAppSettingsStore>() is AppSettingsStore)
+        {
+            // 三处缩放坞的读数要跨会话保留：写盘后换成全新实例重读，确认 App.config 里的键真的落地。
+            preferences.MapZoom = 137; preferences.PresentationScale = 2.2; preferences.ContentZoom = 145;
+            var reread = new AppSettingsStore().Current;
+            Check(reread.MapZoom == 137 && reread.ContentZoom == 145
+                && Math.Abs((reread.PresentationScale ?? 0) - 2.2) < .001,
+                "Map, presentation and content zoom survive a real settings-file reload");
+        }
         Console.WriteLine("Preferences verification complete: " + output);
     }
 }

@@ -37,14 +37,15 @@ internal static class PrototypeChromeVerification
             var sourceSegment = statusChrome.FindControl<Button>("SourceSegment")!;
             var readSegment = statusChrome.FindControl<Button>("ReadSegment")!;
             var mapSegment = statusChrome.FindControl<Button>("MapSegment")!;
-            // 原型 .document-statusbar：整条状态栏退役为悬浮胶囊，水平居中于正文列、底边留 16px，不再占行高。
+            // 原型 .document-statusbar：整条状态栏退役为悬浮胶囊，水平居中于正文列；
+            // 底距不再写死，圆心按令牌钉在正文列底部轴线上（列内 20，即窗底上方 30，与折叠钮、缩放坞同轴）。
             var documentColumn = (Control)statusChrome.Parent!;
             var pillOrigin = statusChrome.TranslatePoint(default, documentColumn)!.Value;
-            Check(Math.Abs(documentColumn.Bounds.Height - pillOrigin.Y - statusChrome.Bounds.Height - 16) < 1
+            Check(Math.Abs(documentColumn.Bounds.Height - pillOrigin.Y - statusChrome.Bounds.Height / 2 - 20) < 1
                 && Math.Abs(pillOrigin.X + statusChrome.Bounds.Width / 2 - documentColumn.Bounds.Width / 2) < 2
                 && statusChrome.Bounds.Height is > 30 and <= 44
                 && viewSwitch.Bounds.Width < statusChrome.Bounds.Width,
-                $"Status bar floats as a centered pill over the document column at {size.Width}: origin={pillOrigin} size={statusChrome.Bounds.Size} capsule={viewSwitch.Bounds.Size}");
+                $"Status bar floats as a centered pill on the bottom axis at {size.Width}: origin={pillOrigin} size={statusChrome.Bounds.Size} capsule={viewSwitch.Bounds.Size}");
             Check(!sourceSegment.Classes.Contains("active") && !readSegment.Classes.Contains("active") && !mapSegment.Classes.Contains("active"),
                 "Combined layouts keep every status segment inactive");
             sourceSegment.Command!.Execute(null); Render();
@@ -59,7 +60,8 @@ internal static class PrototypeChromeVerification
             var origin = formatting.TranslatePoint(default, formats);
             Check(origin is not null && origin.Value.X >= 0 && formatting.Bounds.Width <= formats.Bounds.Width,
                 $"Formatting toolbar stays inside the document at {size.Width}: origin={origin?.ToString() ?? "null"} toolbar={formatting.Bounds} host={formats.Bounds}");
-            // 原型 .pane-collapse：折叠钮从状态栏迁到块角——展开贴在所属块内侧下角（内缩 8px），折叠贴画布窗边，底边恒 18px。
+            // 原型 .pane-collapse：折叠钮从状态栏迁到块角——展开贴在所属块内侧下角（内缩 8px），折叠贴画布窗边；
+            // 底距不写死：列内 8 + 列底到窗底 10 = 圆心钉在窗底上方 30 的公共轴线上。
             var columns = window.FindControl<Grid>("WorkspaceColumns")!;
             void CheckCollapse(string name, string blockName, bool open, bool left)
             {
@@ -71,7 +73,7 @@ internal static class PrototypeChromeVerification
                     : left ? 0 : columns.Bounds.Width - 24;
                 Check(button.Bounds.Width == 24 && button.Bounds.Height == 24
                     && Math.Abs(spot.X - expectedX) < 1
-                    && Math.Abs(columns.Bounds.Height - spot.Y - 24 - 18) < 1,
+                    && Math.Abs(columns.Bounds.Height - spot.Y - 24 - 8) < 1,
                     $"{name} docks at the {(open ? "block corner" : "window edge")} at {size.Width}: x={spot.X} expected={expectedX} y={spot.Y} bounds={button.Bounds.Size} height={columns.Bounds.Height}");
             }
             CheckCollapse("SidebarCollapseButton", "SidebarGuideTarget", vm.Layout.ShowSidebar, true);
@@ -159,14 +161,24 @@ internal static class PrototypeChromeVerification
         pins.PinReadingToolbar = true; pins.PinMapToolbar = true; Render();
         Check(Grid.GetRow(readingHeader) == 0 && !readingHeader.Classes.Contains("floating") && Grid.GetRow(mapBar) == 0 && !mapBar.Classes.Contains("floating"),
             "Re-pinning docks both toolbars back into the layout");
-        // 演示字号拖动条：拖动实时改字号，百分比读数随动，1.0–2.5。
+        // 演示缩放坞：一条拖动条两用（正文 1.0–2.5），还原钮回到进入演示时的字号（原型 deck footer 的 fit 语义）。
         vm.Workbench.StartPresentation(); Render();
-        var zoomSlider = window.FindControl<Slider>("PresentationZoomSlider")!;
-        zoomSlider.Value = 2.5; Render();
-        Check(Math.Abs(vm.Workbench.PresentationZoom - 2.5) < 0.001 && vm.Workbench.PresentationZoomText == "250%", "Slider raises presentation zoom to 250 percent");
-        zoomSlider.Value = 1; Render();
-        Check(vm.Workbench.PresentationZoom == 1 && vm.Workbench.PresentationZoomText == "100%", "Slider restores presentation zoom to 100 percent");
+        var deckDock = window.FindControl<Vex.Controls.VexZoomDock>("PresentationDeckDock")!;
+        Check(Math.Abs(deckDock.Minimum - 1) < .001 && Math.Abs(deckDock.Maximum - 2.5) < .001 && Math.Abs(deckDock.Step - .1) < .001,
+            "Deck dock keeps the reading range 1.0 to 2.5 in tenth steps");
+        var initialZoom = vm.Workbench.PresentationZoom;
+        deckDock.Value = 2.5; Render();
+        Check(Math.Abs(vm.Workbench.PresentationZoom - 2.5) < 0.001 && vm.Workbench.PresentationZoomText == "250%", "Deck dock raises presentation zoom to 250 percent");
+        deckDock.Value = 1; Render();
+        var deckReset = deckDock.GetVisualDescendants().OfType<Button>().First(b => b.Name == "PART_Reset");
+        var deckResetPoint = deckReset.TranslatePoint(new Point(deckReset.Bounds.Width / 2, deckReset.Bounds.Height / 2), window)!.Value;
+        window.MouseDown(deckResetPoint, MouseButton.Left); window.MouseUp(deckResetPoint, MouseButton.Left); Render();
+        Check(vm.Workbench.PresentationZoom == initialZoom, "Deck dock reset returns to the presentation's initial zoom");
+        vm.Workbench.ShowPresentationMap(); Render();
+        Check(Math.Abs(deckDock.Minimum - .15) < .001 && Math.Abs(deckDock.Maximum - 3) < .001 && Math.Abs(deckDock.Step - .05) < .001,
+            "Deck dock swaps to the map range 0.15 to 3 in twentieth steps");
         vm.Workbench.StopPresentation(); Render();
+        Check(app.Resolve<IAppSettingsStore>().Current.PresentationScale == initialZoom, "Presentation zoom persists the restored initial scale");
         vm.Workbench.SelectLayout("instant"); Render();
         // 自定义配色：注册→进目录并选中→持久化；删除后回退默认配色。
         var customKey = vm.Appearance.RegisterCustomPalette("", "陶土暖纸", "验证用配色",
