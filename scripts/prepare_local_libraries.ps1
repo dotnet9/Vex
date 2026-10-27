@@ -54,6 +54,17 @@ $escapedPackageRoot = [Security.SecurityElement]::Escape($PackageRoot)
 <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
 </packageSources></configuration>
 "@)
+# 全局缓存按「包 id + 版本」命中即复用，不回头校验内容。同版本曾打过一次包（尤其 -PackageVersion
+# 只改包版本、不改库 Directory.Build.props 的 Version，程序集仍是旧版本号），还原就会链到上一轮的
+# 二进制，验证器据此得出的通过/失败都是过时的。刚产出的包才是本轮事实源，先把同名缓存条目清掉。
+$globalPackages = ((& dotnet nuget locals global-packages --list) |
+    Where-Object { $_ -match 'global-packages:' } |
+    ForEach-Object { ($_ -replace '^.*global-packages:\s*', '').Trim() })
+if (-not $globalPackages) { throw '无法定位 NuGet 全局缓存目录。' }
+foreach ($name in $packages.Keys) {
+    $cached = Join-Path $globalPackages ($name.ToLowerInvariant() + '/' + $PackageVersion)
+    if (Test-Path -LiteralPath $cached) { Remove-Item -LiteralPath $cached -Recurse -Force }
+}
 dotnet restore (Join-Path $repositoryRoot 'scripts/ui-verification/UiVerification.csproj') `
     --configfile $configPath "-p:ArtifactsPath=$WorkRoot/vex-artifacts"
 if ($LASTEXITCODE -ne 0) { throw 'Vex 本地 NuGet 还原失败。' }
