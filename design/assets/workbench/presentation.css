@@ -5,7 +5,7 @@
 .vex-deck header strong { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:400; }
 .vex-deck button { min-width:32px; min-height:32px; border:0; border-radius:var(--vex-radius-xs); padding:4px 10px; color:inherit; background:transparent; cursor:pointer; font:inherit; font-size:13px; }
 .vex-deck header button { min-width:0; min-height:0; height:25px; padding:2px 8px; }
-.vex-deck button:hover,.vex-deck button:focus-visible { background:var(--hover,#e8efeb); color:var(--accent,#24766b); }
+.vex-deck button:hover,.vex-deck button:focus-visible { background:var(--hover,#e8efeb); color:var(--accent); }
 /* 分段轨道内的底色只由指示块表达，压掉 deck 的通用按压/悬停填充。 */
 .vex-deck button:hover > .vex-segmented-thumb,.vex-deck .vex-segmented > button:hover,.vex-deck .vex-segmented > button:focus-visible,.vex-deck .vex-segmented > button:active { background:transparent; }
 .vex-deck button:disabled { opacity:.3; cursor:default; }
@@ -20,7 +20,7 @@
 .vex-deck nav { display:none; flex:none; width:var(--deck-nav-w); overflow:auto; border-left:1px solid var(--border,var(--line,#dce3de)); background:var(--panel,#f4f6f2); }
 .vex-deck.deck-outline nav { display:block; }
 .vex-deck nav button { width:100%; height:44px; display:block; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-radius:0; }
-.vex-deck nav button[aria-current="page"] { background:var(--accent-soft,#e0eee7); color:var(--accent,#24766b); }
+.vex-deck nav button[aria-current="page"] { background:var(--accent-soft); color:var(--accent); }
 .vex-deck .deck-scroll { flex:1; min-width:0; overflow:auto; }
 .vex-deck article.md-body { box-sizing:border-box; max-width:1120px; margin:0 auto; padding:32px 52px 64px; font-size:calc(15px * var(--deck-scale,1.5)); line-height:1.9; }
 .vex-deck article pre { overflow:auto; padding:18px; background:var(--hover,#edf2ed); font-size:.933333em; line-height:1.8; }
@@ -36,7 +36,7 @@
 .vex-deck.deck-outline footer { right:calc(var(--deck-nav-w) + 12px); }
 /* 折叠手柄：与主界面 .pane-collapse 同款圆形 24px；展开贴在大纲左下角，收起时让开右下角的缩放胶囊。 */
 .vex-deck .deck-outline-toggle { position:absolute; bottom:18px; right:calc(var(--deck-nav-w) - 32px); z-index:7; width:24px; height:24px; min-width:0; min-height:0; display:grid; place-items:center; padding:0; border:1px solid color-mix(in srgb,var(--fg) 14%,var(--border,var(--line,#dce3de))); border-radius:50%; background:var(--block-bg,var(--panel,#f4f6f2)); color:var(--muted,var(--text-soft,#6b7570)); box-shadow:0 1px 4px color-mix(in srgb,var(--fg) 14%,transparent); cursor:pointer; transition:color var(--vex-fast) var(--vex-ease),border-color var(--vex-fast) var(--vex-ease),right var(--vex-duration) var(--vex-ease); }
-.vex-deck .deck-outline-toggle:hover { color:var(--accent,#24766b); border-color:var(--accent,#24766b); background:var(--block-bg,var(--panel,#f4f6f2)); }
+.vex-deck .deck-outline-toggle:hover { color:var(--accent); border-color:var(--accent); background:var(--block-bg,var(--panel,#f4f6f2)); }
 .vex-deck .deck-outline-toggle .ico { width:12px; height:12px; display:block; transition:transform var(--vex-duration) var(--vex-ease); }
 /* 收起态手柄贴到窗边，与右下角的坞同轴后横向上会叠：坞让开一枚手柄宽（24）加 8px 缝。竖向不再另立一档，都走 30px 轴线。 */
 .vex-deck:not(.deck-outline) .deck-outline-toggle { right:8px; }
@@ -47,12 +47,18 @@
 .vex-deck.deck-map-mode .deck-scroll { display:none; }
 .vex-deck .deck-map-scene { position:absolute; inset:0; transform-origin:0 0; }
 .vex-deck .deck-map-scene svg { position:absolute; overflow:visible; pointer-events:none; }
-.vex-deck .deck-map-scene path { stroke:var(--accent,#24766b); stroke-width:1.5px; fill:none; opacity:.6; }
+.vex-deck .deck-map-scene path { stroke:var(--accent); stroke-width:1.5px; fill:none; opacity:.6; }
 .vex-deck button.deck-map-node { position:absolute; width:176px; height:66px; border:1px solid var(--border,var(--line,#dce3de)); border-radius:var(--vex-radius-md); background:var(--paper,var(--bg,#fafaf6)); font-size:16px; line-height:1.35; text-align:left; padding:8px 14px; overflow:hidden; }
-.vex-deck button.deck-map-node.selected { border:2px solid var(--accent,#24766b); background:var(--accent-soft,#e0eee7); color:var(--accent,#24766b); font-weight:600; }
-.vex-deck button.deck-map-node[data-map-page="0"] { background:var(--accent,#24766b); color:var(--accent-fg,#fff); }
+.vex-deck button.deck-map-node.selected { border:2px solid var(--accent); background:var(--accent-soft); color:var(--accent); font-weight:600; }
+.vex-deck button.deck-map-node[data-map-page="0"] { background:var(--accent); color:var(--accent-fg); }
 .vex-deck.deck-map-overview button.deck-map-node { font-size:0; }
-.vex-deck progress { display:block; width:100%; height:2px; border:0; accent-color:var(--accent,#24766b); }
+/* UA 不会把 accent-color 应用到 progress 的值块（Chromium 仍是默认绿），所以轨道/值块显式上色；
+ * 轨道透明与原生 ProgressBar（Background=Transparent, Foreground=VexAccentBrush）一致。
+ * 两个厂商前缀必须各写一条规则：选择器列表里出现浏览器不认的前缀会让整条规则被丢弃。 */
+.vex-deck progress { display:block; width:100%; height:2px; border:0; background:transparent; accent-color:var(--accent); }
+.vex-deck progress::-webkit-progress-bar { background:transparent; }
+.vex-deck progress::-webkit-progress-value { background:var(--accent); }
+.vex-deck progress::-moz-progress-bar { background:var(--accent); }
 .vex-deck.vex-contained-overlay { position:absolute; }
 .vex-deck[data-narrow=true] button { min-height:44px; min-width:44px; }
 .vex-deck[data-narrow=true] header { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:4px; height:auto; min-height:0; padding:8px; padding-top:max(8px,env(safe-area-inset-top)); }
@@ -63,7 +69,7 @@
 .vex-deck[data-narrow=true] .deck-modes > button { flex:1; }
 .vex-deck[data-narrow=true] footer{position:static;transform:none;right:auto;bottom:auto;width:auto;height:auto;border:0;border-top:1px solid var(--border,var(--line,#dce3de));border-radius:0;background:var(--panel,var(--paper,#fafaf6));box-shadow:none;padding:8px;padding-bottom:max(8px,env(safe-area-inset-bottom));}
 .vex-deck[data-narrow=true] footer>div { justify-content:center; gap:2px; }
-.vex-deck[data-narrow=true] .zoom-tools { border:1px solid var(--border,var(--line,#dce3de)); border-radius:var(--vex-radius-sm); background:var(--accent-soft,#e0eee7); color:var(--accent,#24766b); }
+.vex-deck[data-narrow=true] .zoom-tools { border:1px solid var(--border,var(--line,#dce3de)); border-radius:var(--vex-radius-sm); background:var(--accent-soft); color:var(--accent); }
 .vex-deck[data-narrow=true] footer .zoom-reset { display:grid; place-items:center; width:44px; height:44px; padding:0; font-size:16px; transition:background-color var(--vex-fast) var(--vex-ease); }
 .vex-deck[data-narrow=true] .zoom-reset { margin-left:0; }
 .vex-deck[data-narrow=true] .zoom-reset::before { display:none; }
