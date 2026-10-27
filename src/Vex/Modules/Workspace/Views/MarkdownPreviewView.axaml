@@ -40,7 +40,7 @@
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
                 IsTaskEditingEnabled="{Binding IsTaskEditingEnabled}"
-                Margin="30 22 30 30"
+                Margin="30 22 30 64"
                 ImageBasePath="{Binding ImageBasePath}"
                 Markdown="{Binding Markdown}"
                 SyntaxOptions="{Binding Preferences.SyntaxOptions}"

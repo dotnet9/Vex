@@ -36,7 +36,7 @@
              右键菜单转发 Shell 编辑动作，实际文本变更由库控件执行后经消息通道回抛。 -->
         <editor:MarkdownEditorView x:Name="MarkdownEditor" Grid.Row="1"
             HighlightCurrentLine="False"
-            EditorPadding="22 12 24 60"
+            EditorPadding="22 12 24 94"
             EditorLineHeight="26.25"
             EditorBackgroundKey="VexEditorBackgroundBrush"
             EditorForegroundKey="VexEditorForegroundBrush"

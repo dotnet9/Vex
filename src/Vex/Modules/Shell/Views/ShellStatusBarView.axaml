@@ -118,6 +118,7 @@
    <Setter Property="BorderThickness" Value="1" />
    <Setter Property="CornerRadius" Value="8" />
    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+   <Setter Property="BoxShadow" Value="0 -2 12 0 #18000000, 0 -1 3 0 #12000000" />
   </Style>
   <Style Selector="Button.view-segment">
    <Setter Property="MinWidth" Value="86" />
