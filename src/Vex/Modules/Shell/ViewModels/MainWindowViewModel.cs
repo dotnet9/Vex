@@ -1382,10 +1382,32 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                 var reloaded = await _documentService.ReloadAsync(_document);
                 if (!IsCurrentDocumentPath(watchedPath)) return;
                 if (!MarkdownTextComparer.EqualsNormalizedLineEndings(_lastSavedMarkdown, reloaded.Markdown))
-                    Protection.External = reloaded;
+                {
+                    if (_settingsStore.Current.AutoSave == true)
+                        ApplyExternalVersionSilently(reloaded);
+                    else
+                        Protection.External = reloaded;
+                }
                 _watchedFileLastWriteTimeUtc = TryGetLastWriteTimeUtc(watchedPath);
             },
             watchedPath);
+    }
+
+    // 自动保存开启时外部修改静默载入（2026-10-27 用户拍板：磁盘为唯一真值，绝不弹「请先比较」）。
+    // 载入前取消挂起的自动保存；未落盘键入随载入丢弃，载入前内容经统一内容通道进撤销栈可找回，toast 告知结果。
+    private void ApplyExternalVersionSilently(DocumentSnapshot incoming)
+    {
+        _autoSaveTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        var hadUnsavedEdits = DocumentInfo.IsModified;
+        var path = _document.FilePath;
+        _document = incoming;
+        _lastSavedMarkdown = incoming.Markdown;
+        Markdown = incoming.Markdown;
+        RefreshDocumentInfo();
+        if (!string.IsNullOrEmpty(path)) RefreshDocumentFileInList(path);
+        Protection.SaveError = null;
+        if (hadUnsavedEdits) _text.PublishExternalFileChangedWithUnsavedEdits();
+        else _text.PublishExternalFileReloaded(incoming.FileName);
     }
 
     private void RefreshDocumentFileInList(string path)

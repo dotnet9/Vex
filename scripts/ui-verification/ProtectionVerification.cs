@@ -106,6 +106,23 @@ internal static class ProtectionVerification
         Check(vm.Markdown == current && vm.DocumentInfo.IsModified, "External loading is one reversible shared-history edit");
         Pump(vm.SaveAsync());
 
+        // 自动保存开启：外部修改必须静默载入并 toast 告知，不得出现提醒条或对比层（2026-10-27 用户需求）。
+        var appSettings = app.Resolve<IAppSettingsStore>();
+        appSettings.Update(settings => settings with { AutoSave = true, AutoSaveDelay = 2 });
+        var beforeSilent = vm.Markdown;
+        File.WriteAllText(path, "# silent external version\n\nAuto reloaded");
+        vm.Markdown += "\nTyping during the window"; Pump();
+        Until(() => vm.Markdown.Contains("Auto reloaded"));
+        Check(!vm.Protection.HasExternal && !vm.DocumentInfo.IsModified && !vm.Markdown.Contains("Typing during the window"),
+            "AutoSave on reloads external changes silently, discarding in-window unsaved typing without the compare notice");
+        vm.Workbench.UndoDocument(); Pump();
+        Check(vm.Markdown == beforeSilent + "\nTyping during the window",
+            "Silent reload keeps the discarded unsaved typing recoverable via shared-history undo");
+        vm.Workbench.UndoDocument(); Pump();
+        Check(vm.Markdown == beforeSilent, "One more undo restores the pre-external content");
+        appSettings.Update(settings => settings with { AutoSave = false });
+        Pump(vm.SaveAsync());
+
         var memoryDrafts = (MemoryDrafts)app.Resolve<IAutoSaveDraftService>();
         memoryDrafts.RestoredMarkdown = "# unsaved recovery\n\nRecovered content";
         Pump(vm.OpenPathAsync(path));

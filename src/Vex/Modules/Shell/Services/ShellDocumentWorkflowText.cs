@@ -66,6 +66,9 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
     public void PublishExternalFileReloaded(string fileName) =>
         PublishToast(VexL.StatusExternalFileReloadedFormat, NotificationType.Information, fileName);
 
+    public void PublishExternalFileChangedWithUnsavedEdits() =>
+        PublishToast(VexL.StatusExternalFileChangedWithUnsavedEdits, NotificationType.Information);
+
     public void PublishPropertiesSummary(
         string title,
         string state,
