@@ -92,9 +92,9 @@ public sealed class MarkdownInstantView : UserControl
         {
             SubMenu(Localizer.Get(VexL.ElementMenuConvertTo), ConvertItems()),
             SubMenu(Localizer.Get(VexL.Table), TableItems()),
+            SubMenu(Localizer.Get(VexL.ElementMenuFormatText), FormatItems()),
+            SubMenu(Localizer.Get(VexL.Insert), InsertItems()),
             Separator(),
-            ElementItem(Localizer.Get(VexL.InsertParagraphAbove), () => new(MarkdownElementOperation.InsertParagraphAbove, SourceLineOrCaret())),
-            ElementItem(Localizer.Get(VexL.InsertParagraphBelow), () => new(MarkdownElementOperation.InsertParagraphBelow, SourceLineOrCaret())),
             ElementItem(Localizer.Get(VexL.ToggleTask), () => new(MarkdownElementOperation.ToggleTask, SourceLineOrCaret())),
             ElementItem(Localizer.Get(VexL.CopyBlock), () => new(MarkdownElementOperation.CopyBlock, SourceLineOrCaret())),
             ElementItem(Localizer.Get(VexL.DeleteBlock), () => new(MarkdownElementOperation.DeleteBlock, SourceLineOrCaret())),
@@ -102,6 +102,27 @@ public sealed class MarkdownInstantView : UserControl
         menu.ItemsSource = items;
         return menu;
     }
+
+    /// <summary>原型把加粗/斜体/行内代码做成菜单里的「文字格式」按钮排；Avalonia 的 ContextMenu 放不下按钮排，收成同名子菜单。</summary>
+    private List<object> FormatItems() => new()
+    {
+        EditorActionItem(Localizer.Get(VexL.Bold), EditorActionKind.Bold),
+        EditorActionItem(Localizer.Get(VexL.Italic), EditorActionKind.Italic),
+        EditorActionItem(Localizer.Get(VexL.InlineCode), EditorActionKind.InlineCode),
+    };
+
+    /// <summary>原型 insertChoices 的顺序：链接、图片、表格、代码块、公式块，再是上下方插入段落。</summary>
+    private List<object> InsertItems() => new()
+    {
+        EditorActionItem(Localizer.Get(VexL.Link), EditorActionKind.Link),
+        EditorActionItem(Localizer.Get(VexL.Image), EditorActionKind.Image),
+        EditorActionItem(Localizer.Get(VexL.InsertTable), EditorActionKind.Table),
+        EditorActionItem(Localizer.Get(VexL.CodeBlock), EditorActionKind.CodeFence),
+        EditorActionItem(Localizer.Get(VexL.MathBlock), EditorActionKind.MathBlock),
+        Separator(),
+        ElementItem(Localizer.Get(VexL.InsertParagraphAbove), () => new(MarkdownElementOperation.InsertParagraphAbove, SourceLineOrCaret())),
+        ElementItem(Localizer.Get(VexL.InsertParagraphBelow), () => new(MarkdownElementOperation.InsertParagraphBelow, SourceLineOrCaret())),
+    };
 
     private static MenuItem SubMenu(string header, List<object> items) => new()
     {

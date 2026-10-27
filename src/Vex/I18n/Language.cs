@@ -865,6 +865,7 @@ public static class VexL
     public static readonly string PaletteViolet = "Vex.VexL.PaletteViolet";
     public static readonly string PalettePurposeViolet = "Vex.VexL.PalettePurposeViolet";
     public static readonly string ElementMenuConvertTo = "Vex.VexL.ElementMenuConvertTo";
+    public static readonly string ElementMenuFormatText = "Vex.VexL.ElementMenuFormatText";
     public static readonly string TableRowAbove = "Vex.VexL.TableRowAbove";
     public static readonly string TableRowBelow = "Vex.VexL.TableRowBelow";
     public static readonly string TableColumnBefore = "Vex.VexL.TableColumnBefore";

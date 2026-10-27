@@ -131,9 +131,44 @@ internal static class ElementVerification
         vm.Workbench.ShowInstant(); Pump(); Pump();
         SetDocument(Sample);
         var instant = window.GetVisualDescendants().OfType<MarkdownInstantView>().Single();
-        Check(instant.Editor.ContextMenu is { } elementMenu
-            && elementMenu.ItemsSource is IEnumerable<object> groups
-            && groups.OfType<MenuItem>().Count() >= 2, "即时编辑器挂载元素菜单");
+        var groups = instant.Editor.ContextMenu?.ItemsSource as IEnumerable<object>;
+        Check(groups is not null, "即时编辑器挂载元素菜单");
+        // 菜单结构对齐原型 element-menu 的 rootChoices：四个子菜单在前，块级动作在后，顺序也要一致。
+        var localizer = new AppLocalizer();
+        var menuBranches = groups!.OfType<MenuItem>().ToArray();
+        string Label(MenuItem item) => item.Header as string ?? string.Empty;
+        string[] branchLabels = menuBranches.Select(Label).ToArray();
+        Check(branchLabels.SequenceEqual(
+        [
+            localizer.Get(Vex.VexL.ElementMenuConvertTo), localizer.Get(Vex.VexL.Table),
+            localizer.Get(Vex.VexL.ElementMenuFormatText), localizer.Get(Vex.VexL.Insert),
+            localizer.Get(Vex.VexL.ToggleTask), localizer.Get(Vex.VexL.CopyBlock), localizer.Get(Vex.VexL.DeleteBlock),
+        ]), "元素菜单顶层项与原型同序：" + string.Join("/", branchLabels));
+
+        string[] ItemsOf(string branch) => ((IEnumerable<object>)menuBranches.Single(item => Label(item) == branch).ItemsSource!)
+            .OfType<MenuItem>().Select(Label).ToArray();
+        // 原型把链接/图片/代码块/公式块收进「插入」，行内代码放在文字格式排里；此前这五项在元素菜单里一个都点不到。
+        Check(ItemsOf(localizer.Get(Vex.VexL.ElementMenuFormatText)).SequenceEqual(
+        [
+            localizer.Get(Vex.VexL.Bold), localizer.Get(Vex.VexL.Italic), localizer.Get(Vex.VexL.InlineCode),
+        ]), "文字格式子菜单含加粗/斜体/行内代码");
+
+        Check(ItemsOf(localizer.Get(Vex.VexL.Insert)).SequenceEqual(
+        [
+            localizer.Get(Vex.VexL.Link), localizer.Get(Vex.VexL.Image), localizer.Get(Vex.VexL.InsertTable),
+            localizer.Get(Vex.VexL.CodeBlock), localizer.Get(Vex.VexL.MathBlock),
+            localizer.Get(Vex.VexL.InsertParagraphAbove), localizer.Get(Vex.VexL.InsertParagraphBelow),
+        ]), "插入子菜单按原型顺序含链接/图像/表格/代码块/公式块与上下方段落");
+
+        // 标签齐了还要证明按下去有反应：从菜单项自身触发，接住的必须是编辑器动作命令。
+        EditorActionCommand? menuAction = null;
+        EventBus.Default.Subscribe<EditorActionCommand>(command => menuAction = command);
+        var inlineCode = ((IEnumerable<object>)menuBranches.Single(item => Label(item) == localizer.Get(Vex.VexL.ElementMenuFormatText)).ItemsSource!)
+            .OfType<MenuItem>().Single(item => Label(item) == localizer.Get(Vex.VexL.InlineCode));
+        inlineCode.Command!.Execute(null);
+        Pump();
+        Check(menuAction?.Action == EditorActionKind.InlineCode, "元素菜单的行内代码项发布编辑器动作命令");
+
         var paragraphLine = 1 + Sample.Split('\n').TakeWhile(line => !line.StartsWith("普通段落", StringComparison.Ordinal)).Count();
         EventBus.Default.Publish(new MarkdownElementCommand(
             MarkdownElementOperation.Convert, paragraphLine, convertKind: "heading3"));
