@@ -1,0 +1,45 @@
+# 原型门禁：design 目录是界面与交互的唯一样式事实源（design/README.md）。
+# verify.cjs 负责生成物重跑、脚本可解析、资产存在性、toast i18n 审计；
+# sync_native_*--check 防跨仓生成物（库主题 AXAML / I18n JSON）静默漂移。
+name: 原型门禁（design-gate）
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'design/**'
+      - 'scripts/sync_native_design.cjs'
+      - 'scripts/sync_native_locales.cjs'
+      - 'src/Vex/I18n/**'
+      - 'src/Controls/CodeWF.Avalonia.Controls/Themes/Studio/**'
+      - 'src/Markdown/CodeWF.Avalonia.Markdown.Lite/Themes/ArticleTypographyCatalog.g.cs'
+      - '.github/workflows/design-gate.yml'
+  pull_request:
+    paths:
+      - 'design/**'
+      - 'scripts/sync_native_design.cjs'
+      - 'scripts/sync_native_locales.cjs'
+      - 'src/Vex/I18n/**'
+      - 'src/Controls/CodeWF.Avalonia.Controls/Themes/Studio/**'
+      - 'src/Markdown/CodeWF.Avalonia.Markdown.Lite/Themes/ArticleTypographyCatalog.g.cs'
+      - '.github/workflows/design-gate.yml'
+jobs:
+  gate:
+    name: 原型契约与跨仓同步
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 检出 CodeWF.Avalonia（跨仓生成物比对基准）
+        uses: actions/checkout@v4
+        with:
+          repository: dotnet9/CodeWF.Avalonia
+          ref: main
+          path: CodeWF.Avalonia
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 原型静态门禁（sync + 解析 + 资产 + toast i18n 审计）
+        run: node design/scripts/verify.cjs
+      - name: 跨仓设计契约 -Check（库 Tokens / 排版目录）
+        run: node scripts/sync_native_design.cjs --check --library "$GITHUB_WORKSPACE/CodeWF.Avalonia"
+      - name: I18n 契约 -Check（四语言 JSON / Language.cs）
+        run: node scripts/sync_native_locales.cjs --check
