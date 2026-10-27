@@ -4,10 +4,11 @@
 
 `release_to_github.ps1` / `release_to_github.bat` 是完整的 GitHub 发布自动化脚本，执行以下操作：
 
-1. ✅ 构建 Native AOT 发布包（win-x64）
-2. ✅ 创建 Git 标签
-3. ✅ 推送标签到 GitHub
-4. ✅ 创建 GitHub Release 并上传发布包
+1. ✅ **自动更新版本号**（递增补丁版本）
+2. ✅ 构建 Native AOT 发布包（win-x64）
+3. ✅ 创建 Git 标签
+4. ✅ 推送标签到 GitHub
+5. ✅ 创建 GitHub Release 并上传发布包
 
 ## 前置要求
 
@@ -20,18 +21,21 @@
 
 ## 基本用法
 
-### 1. 发布当前版本（从 Directory.Build.props 读取）
+### 1. 自动发布（推荐）
 
 ```powershell
 scripts\release\release_to_github.bat
 ```
 
 这会：
-- 读取 `Directory.Build.props` 中的 `<Version>` (当前 1.10.4)
+- 读取当前版本（如 1.10.4）
+- 提示使用建议版本（1.10.5，自动递增）
+- 更新 `Directory.Build.props` 中的版本号
+- 提交版本号更改
 - 构建 `win-x64` 平台的 Native AOT 发布包
-- 创建标签 `v1.10.4`
+- 创建标签 `v1.10.5`
 - 推送到 GitHub
-- 创建 Release 并上传 `Vex-1.10.4-win-x64.zip`
+- 创建 Release 并上传 `Vex-1.10.5-win-x64.zip`
 
 ### 2. 指定版本号发布
 
@@ -39,13 +43,23 @@ scripts\release\release_to_github.bat
 scripts\release\release_to_github.bat -Version 1.11.0
 ```
 
-### 3. 跳过构建（已经构建好了）
+跳过交互式版本选择，直接使用指定版本。
+
+### 3. 保持当前版本号（不递增）
+
+```powershell
+scripts\release\release_to_github.bat -SkipVersionUpdate
+```
+
+使用 `Directory.Build.props` 中的当前版本，不更新版本号。
+
+### 4. 跳过构建（已经构建好了）
 
 ```powershell
 scripts\release\release_to_github.bat -SkipBuild
 ```
 
-### 4. 创建草稿 Release
+### 5. 创建草稿 Release
 
 ```powershell
 scripts\release\release_to_github.bat -Draft
@@ -53,15 +67,15 @@ scripts\release\release_to_github.bat -Draft
 
 Release 将不会立即发布，需要在 GitHub 上手动发布。
 
-### 5. 创建预发布版本
+### 6. 创建预发布版本
 
 ```powershell
-scripts\release\release_to_github.bat -Prerelease
+scripts\release\release_to_github.bat -Prerelease -Version 1.11.0-beta.1
 ```
 
 标记为预发布版本（Beta/RC 等）。
 
-### 6. 自定义发布说明
+### 7. 自定义发布说明
 
 ```powershell
 scripts\release\release_to_github.bat -ReleaseNotes "## 更新内容`n- 优化 AOT 体积，减少 50%`n- 修复已知问题"
@@ -73,10 +87,11 @@ scripts\release\release_to_github.bat -ReleaseNotes "## 更新内容`n- 优化 A
 
 ```powershell
 # 示例 1: 完整发布流程（推荐）
+# 自动递增版本号 1.10.4 -> 1.10.5
 scripts\release\release_to_github.bat
 
-# 示例 2: 发布新版本 1.11.0
-scripts\release\release_to_github.bat -Version 1.11.0
+# 示例 2: 发布新的大版本
+scripts\release\release_to_github.bat -Version 2.0.0
 
 # 示例 3: 创建草稿，手动检查后再发布
 scripts\release\release_to_github.bat -Draft
@@ -85,40 +100,85 @@ scripts\release\release_to_github.bat -Draft
 scripts\release\release_to_github.bat -Version 1.11.0-beta.1 -Prerelease
 
 # 示例 5: 已经构建好，只创建 Release
-scripts\release\release_to_github.bat -SkipBuild
+scripts\release\release_to_github.bat -SkipBuild -SkipVersionUpdate
 
 # 示例 6: 完整的自定义发布
 scripts\release\release_to_github.bat -Version 1.11.0 -Draft -ReleaseNotes "测试版本"
 ```
 
+## 版本号管理
+
+### 自动递增规则
+
+脚本默认自动递增**补丁版本号**：
+- 当前版本 `1.10.4` → 建议版本 `1.10.5`
+- 当前版本 `2.3.9` → 建议版本 `2.3.10`
+
+### 交互式版本选择
+
+运行脚本时，会提示：
+
+```
+当前版本: 1.10.4
+建议版本: 1.10.5 (自动递增)
+
+使用建议版本? (Y/n/输入自定义版本号):
+```
+
+- 回车或输入 `y` → 使用建议版本（1.10.5）
+- 输入 `n` → 使用当前版本（1.10.4），不更新
+- 输入自定义版本号 → 使用自定义版本（如 `2.0.0`）
+
+### 版本号格式
+
+支持的版本号格式：
+- ✅ `1.10.4` (主版本.次版本.补丁版本)
+- ✅ `1.10.4.1` (四位版本号)
+- ✅ `2.0.0-beta.1` (预发布版本)
+
+### 版本更改提交
+
+脚本会自动：
+1. 更新 `Directory.Build.props` 中的 `<Version>` 标签
+2. 提交更改：`chore: bump version to x.x.x`
+3. 继续执行发布流程
+
 ## 执行流程
 
 ```
 ┌─────────────────────────────────┐
-│ 1. 检查 Git 状态                │
+│ 1. 版本号管理                  │
+│    - 读取当前版本               │
+│    - 自动递增建议版本           │
+│    - 用户确认或自定义           │
+│    - 更新并提交版本号           │
+└─────────────────────────────────┘
+              ↓
+┌─────────────────────────────────┐
+│ 2. 检查 Git 状态                │
 │    - 检查未提交的更改           │
 │    - 检查标签是否已存在         │
 └─────────────────────────────────┘
               ↓
 ┌─────────────────────────────────┐
-│ 2. 构建 Native AOT 发布包       │
+│ 3. 构建 Native AOT 发布包       │
 │    - 执行 publish_aot.ps1       │
 │    - 生成 win-x64 发布包        │
 │    - 输出到 publish/packages/   │
 └─────────────────────────────────┘
               ↓
 ┌─────────────────────────────────┐
-│ 3. 创建 Git 标签                │
-│    - git tag -a v1.10.4         │
+│ 4. 创建 Git 标签                │
+│    - git tag -a v1.10.5         │
 └─────────────────────────────────┘
               ↓
 ┌─────────────────────────────────┐
-│ 4. 推送标签到 GitHub            │
-│    - git push origin v1.10.4    │
+│ 5. 推送标签到 GitHub            │
+│    - git push origin v1.10.5    │
 └─────────────────────────────────┘
               ↓
 ┌─────────────────────────────────┐
-│ 5. 创建 GitHub Release          │
+│ 6. 创建 GitHub Release          │
 │    - gh release create          │
 │    - 上传 ZIP 文件              │
 └─────────────────────────────────┘

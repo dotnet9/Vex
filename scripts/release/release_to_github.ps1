@@ -1,5 +1,5 @@
 # release_to_github.ps1
-# 完整的 GitHub 发布流程：构建 Native AOT、创建标签、推送并创建 GitHub Release
+# 完整的 GitHub 发布流程：更新版本号、构建 Native AOT、创建标签、推送并创建 GitHub Release
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
@@ -7,19 +7,77 @@ param(
     [switch] $SkipBuild,
     [switch] $Draft,
     [switch] $Prerelease,
-    [string] $ReleaseNotes = ''
+    [string] $ReleaseNotes = '',
+    [switch] $SkipVersionUpdate
 )
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '../..')).Path
 
+function Get-CurrentVersion {
+    $propsPath = Join-Path $repositoryRoot 'Directory.Build.props'
+    [xml] $properties = [IO.File]::ReadAllText($propsPath)
+    return [string] $properties.Project.PropertyGroup.Version
+}
+
+function Set-ProjectVersion {
+    param([Parameter(Mandatory)] [string] $NewVersion)
+
+    $propsPath = Join-Path $repositoryRoot 'Directory.Build.props'
+    [xml] $properties = [IO.File]::ReadAllText($propsPath)
+    $properties.Project.PropertyGroup.Version = $NewVersion
+    $properties.Save($propsPath)
+    Write-Host "版本号已更新: $NewVersion"
+}
+
+function Get-NextVersion {
+    param([Parameter(Mandatory)] [string] $CurrentVersion)
+
+    if ($CurrentVersion -match '^(\d+)\.(\d+)\.(\d+)$') {
+        $major = [int]$Matches[1]
+        $minor = [int]$Matches[2]
+        $patch = [int]$Matches[3]
+        return "$major.$minor.$($patch + 1)"
+    }
+    throw "版本号格式无效: $CurrentVersion"
+}
+
 function Get-ProjectVersion {
     if (-not [string]::IsNullOrWhiteSpace($Version)) {
         return $Version.Trim().TrimStart('v', 'V')
     }
-    $propsPath = Join-Path $repositoryRoot 'Directory.Build.props'
-    [xml] $properties = [IO.File]::ReadAllText($propsPath)
-    return [string] $properties.Project.PropertyGroup.Version
+
+    $currentVersion = Get-CurrentVersion
+
+    if ($SkipVersionUpdate) {
+        return $currentVersion
+    }
+
+    # 自动递增补丁版本号
+    $nextVersion = Get-NextVersion -CurrentVersion $currentVersion
+
+    Write-Host ""
+    Write-Host "当前版本: $currentVersion" -ForegroundColor Yellow
+    Write-Host "建议版本: $nextVersion (自动递增)" -ForegroundColor Green
+    Write-Host ""
+    $response = Read-Host "使用建议版本? (Y/n/输入自定义版本号)"
+
+    if ([string]::IsNullOrWhiteSpace($response) -or $response -eq 'y' -or $response -eq 'Y') {
+        Set-ProjectVersion -NewVersion $nextVersion
+        return $nextVersion
+    }
+    elseif ($response -ne 'n' -and $response -ne 'N') {
+        # 用户输入了自定义版本号
+        $customVersion = $response.Trim().TrimStart('v', 'V')
+        if ($customVersion -match '^\d+\.\d+\.\d+(?:\.\d+)?$') {
+            Set-ProjectVersion -NewVersion $customVersion
+            return $customVersion
+        }
+        throw "版本号格式无效: $customVersion"
+    }
+
+    # 用户选择了 'n'，使用当前版本
+    return $currentVersion
 }
 
 function Test-GitClean {
@@ -108,12 +166,25 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # 检查 Git 状态
-if (-not (Test-GitClean)) {
+$hasUncommittedChanges = -not (Test-GitClean)
+if ($hasUncommittedChanges) {
     Write-Host "⚠️  工作区有未提交的更改" -ForegroundColor Yellow
-    $response = Read-Host "是否继续? (y/N)"
-    if ($response -ne 'y' -and $response -ne 'Y') {
-        Write-Host "已取消"
-        exit 0
+
+    # 检查是否只是版本号更改
+    $statusOutput = git -C $repositoryRoot status --porcelain
+    $onlyVersionChange = ($statusOutput -match 'Directory\.Build\.props') -and ($statusOutput -split "`n").Count -eq 1
+
+    if ($onlyVersionChange) {
+        Write-Host "检测到版本号更改，将自动提交..." -ForegroundColor Green
+        git -C $repositoryRoot add Directory.Build.props
+        git -C $repositoryRoot commit -m "chore: bump version to $releaseVersion`n`nCo-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+        if ($LASTEXITCODE -ne 0) { throw "提交版本号更改失败" }
+    } else {
+        $response = Read-Host "是否继续? (y/N)"
+        if ($response -ne 'y' -and $response -ne 'Y') {
+            Write-Host "已取消"
+            exit 0
+        }
     }
 }
 
