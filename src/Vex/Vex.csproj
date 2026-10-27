@@ -39,6 +39,8 @@
     <Content Include="..\..\docs\快速开始.md" Link="docs\快速开始.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\鸣谢.md" Link="docs\鸣谢.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\演示文档\**\*" Link="docs\演示文档\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- 快速开始里的功能截图按相对路径引用；随包文档要在应用内离线看图，图片必须一起进包。 -->
+    <Content Include="..\..\docs\图片\**\*.png" Link="docs\图片\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\scripts\register_vex_context_menu.ps1" Link="register_vex_context_menu.ps1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\scripts\unregister_vex_context_menu.ps1" Link="unregister_vex_context_menu.ps1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\scripts\mcp_stdio_bridge.py" Link="mcp_stdio_bridge.py" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />

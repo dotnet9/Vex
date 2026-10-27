@@ -21,6 +21,13 @@ internal static class RuntimeVerification
             throw new InvalidOperationException("Published website metadata is missing or invalid.");
         foreach (var file in new[] { "更新日志.md", "鸣谢.md", "快速开始.md" })
             _ = BundledDocuments.GetPath(file);
+        // 快速开始按相对路径引用功能截图，应用内离线阅读要求图片随包，缺一张就少一幅画面。
+        foreach (Match image in Regex.Matches(File.ReadAllText(BundledDocuments.GetPath("快速开始.md")), @"!\[[^\]]*\]\(([^)]+\.png)\)"))
+        {
+            var relative = image.Groups[1].Value.Replace('/', Path.DirectorySeparatorChar);
+            if (!File.Exists(Path.Combine(BundledDocuments.Folder, relative)))
+                throw new InvalidOperationException("Published quick start image is missing: " + relative);
+        }
         var samples = Directory.GetFiles(BundledDocuments.SamplesFolder, "*.md");
         if (samples.Length != 6 || !File.Exists(Path.Combine(BundledDocuments.SamplesFolder, "图片", "山间湖畔.png")))
             throw new InvalidOperationException("Published sample documents or their offline image are missing.");
