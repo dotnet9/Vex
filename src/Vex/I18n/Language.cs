@@ -959,4 +959,5 @@ public static class VexL
     public static readonly string DiagramEditButton = "Vex.VexL.DiagramEditButton";
     public static readonly string DiagramEditHint = "Vex.VexL.DiagramEditHint";
     public static readonly string DiagramPreviewNote = "Vex.VexL.DiagramPreviewNote";
+    public static readonly string FindBarPrev = "Vex.VexL.FindBarPrev";
 }

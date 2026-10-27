@@ -960,7 +960,8 @@
       "WBTypographyReport": "Derived from the built-in Simple style; only name, colors, font and leading are overridden.",
       "DiagramEditButton": "Edit",
       "DiagramEditHint": "Press Esc or click outside the block to finish editing",
-      "DiagramPreviewNote": "The preview is drawn by the renderer; invalid syntax keeps the source visible."
+      "DiagramPreviewNote": "The preview is drawn by the renderer; invalid syntax keeps the source visible.",
+      "FindBarPrev": "Previous"
     }
   }
 }

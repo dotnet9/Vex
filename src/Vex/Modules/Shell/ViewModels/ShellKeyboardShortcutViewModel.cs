@@ -87,7 +87,15 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
 
         if (key == Key.F3)
         {
-            FindBar.FindNext();
+            if (hasShift)
+            {
+                FindBar.FindPrev();
+            }
+            else
+            {
+                FindBar.FindNext();
+            }
+
             return true;
         }
 

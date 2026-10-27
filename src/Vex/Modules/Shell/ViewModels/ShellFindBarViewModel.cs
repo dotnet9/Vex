@@ -137,6 +137,17 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         PublishSearch(EditorSearchAction.FindNext);
     }
 
+    public void FindPrev()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            SetStatusResource(VexL.StatusEnterSearchTextFirst);
+            return;
+        }
+
+        PublishSearch(EditorSearchAction.FindPrev);
+    }
+
     public void ReplaceNext()
     {
         if (string.IsNullOrWhiteSpace(SearchText))

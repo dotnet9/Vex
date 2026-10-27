@@ -960,7 +960,8 @@
       "WBTypographyReport": "以内置「简约」为模板派生，仅覆盖名称、颜色、字体与行距。",
       "DiagramEditButton": "编辑",
       "DiagramEditHint": "Esc 或点击块外完成编辑",
-      "DiagramPreviewNote": "预览由渲染器出图；语法有误时保留源码显示。"
+      "DiagramPreviewNote": "预览由渲染器出图；语法有误时保留源码显示。",
+      "FindBarPrev": "上一个"
     }
   }
 }

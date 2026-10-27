@@ -5,6 +5,7 @@ using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Vex.Core.Messaging;
 using Vex.Core.Models;
 using Vex.Core.Services;
 using Vex.Modules.Shell.ViewModels;
@@ -12,6 +13,15 @@ using Vex.Modules.Shell.Views;
 
 internal static class PrototypeChromeVerification
 {
+    // 断言失败时只说「正文变了」不够用：把第一处不同的偏移量查出来，才能一眼看出是按键漏进了编辑器还是别的路径。
+    private static string FirstDifference(string before, string after)
+    {
+        var index = 0;
+        while (index < before.Length && index < after.Length && before[index] == after[index]) index++;
+        return index >= before.Length && index >= after.Length ? "equal"
+            : $"{index} ({before[Math.Min(index, before.Length - 1)]}->{after[Math.Min(index, after.Length - 1)]})";
+    }
+    private static string Preview(string text) => "\"" + text.Replace("\n", "\\n").Replace("\r", "\\r")[..Math.Min(48, text.Length)] + "\"";
     public static void Run(VerificationVexApp app, MainWindow window, string output)
     {
         var vm = (MainWindowViewModel)window.DataContext!;
@@ -20,6 +30,11 @@ internal static class PrototypeChromeVerification
         void Check(bool value, string message) { if (!value) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
         Check(!vm.Layout.IsOutlineVisible, "Auxiliary panel starts closed for a new workspace");
         app.Resolve<IWorkspaceDocumentState>().UpdateDocument("# 在文字之间，理清思路\n\n一篇文章，从一个想法开始。这里保留完整的原文。\n\n## 写作，让想法有迹可循\n\n先记下观察，再整理线索。\n\n> 好的工具，让注意力回到内容本身。\n\n| API | 说明 |\n| --- | --- |\n| Read | 读取文档 |", null);
+        // 种文档是直接喂 IWorkspaceDocumentState 的，而 vm.Markdown 只跟编辑器事件；不补这一拍，
+        // 基准里留着开场的 577 字演示文档，后面任何「正文没变」的断言比的都是那份陈旧镜像。
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new MarkdownTextChangedCommand(
+            documentState.Markdown, 1, 1, documentState.Markdown.Count(c => c == '\n') + 1));
+        Dispatcher.UIThread.RunJobs();
         var original = vm.Markdown; var history = vm.Workbench.History.Capture();
         var layoutButton = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!.FindControl<Button>("LayoutButton")!;
         var formats = window.FindControl<ShellEditorOptionsView>("EditorOptions")!;
@@ -119,21 +134,103 @@ internal static class PrototypeChromeVerification
             && findStrip.CornerRadius.TopLeft == 10 && Math.Abs(findStrip.Bounds.Width - viewColumn.Bounds.Width) < 1
             && Math.Abs(stripOrigin.X) < 1 && Math.Abs(stripOrigin.Y) < 1,
             $"Find bar is the document column's own rounded block: origin={stripOrigin} size={findStrip.Bounds.Size} radius={findStrip.CornerRadius.TopLeft}");
-        // 原型 .find-strip 整条 46px：输入框 30、.btn.sm 动作钮 26、关闭钮 30×30。
+        // 原型 .find-strip（workspace-chrome.css:578）整条 46px：内距 7×12 + 输入框 30 + 上下 1px 描边，
+        // 动作钮 .btn.sm 26、关闭钮 .icon-button 30×30。三个开关是原型条上没有的实现侧补充，
+        // 度量借原型自己的 .opt-toggle（theme.css:542：28 高、min-width 30）。
         var findInputs = findStrip.GetVisualDescendants().OfType<TextBox>().Where(t => t.IsVisible).ToArray();
         var findActions = findStrip.GetVisualDescendants().OfType<Control>()
             .Where(c => (c is Button || c is ToggleButton) && c.Classes.Contains("find-action") && c.IsVisible).ToArray();
+        var findToggles = findActions.OfType<ToggleButton>().ToArray();
         var findClose = findStrip.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("find-close"));
         Check(Math.Abs(findStrip.Bounds.Height - 46) < 1 && findInputs.All(t => t.Bounds.Height == 30) && findInputs.Length > 0
-            && findActions.All(b => b.Bounds.Height == 26) && findActions.Length > 0
+            && findActions.Except(findToggles).All(b => b.Bounds.Height == 26)
+            && findToggles.Length == 3 && findToggles.All(t => t.Bounds.Height == 28 && t.Bounds.Width >= 30)
             && findClose.Bounds.Width == 30 && findClose.Bounds.Height == 30,
             $"Find strip keeps the prototype's 46px row: strip={findStrip.Bounds.Height:0.#}, inputs={string.Join(",", findInputs.Select(t => t.Bounds.Height.ToString("0.#")))}, actions={string.Join(",", findActions.Select(b => b.Bounds.Height.ToString("0.#")))}, close={findClose.Bounds.Size}");
         Check(Math.Abs(viewBlock.TranslatePoint(default, viewColumn)!.Value.Y - (stripOrigin.Y + findStrip.Bounds.Height + 4)) < 1,
             $"The view block sits 4px below the find block: strip bottom={stripOrigin.Y + findStrip.Bounds.Height:0.#}, block top={viewBlock.TranslatePoint(default, viewColumn)!.Value.Y:0.#}");
+        // 新键只改了 Language.cs 而没落进 I18n/*.json（或产物里留着旧副本）时，按钮会直接把资源键印在脸上。
+        var stripText = findStrip.GetVisualDescendants().OfType<Control>().Where(c => c.IsVisible)
+            .Select(c => (c as ContentControl)?.Content?.ToString() ?? (c as TextBlock)?.Text ?? string.Empty)
+            .Where(text => text.Length > 0).ToArray();
+        Check(!stripText.Any(text => text.Contains("Vex.VexL.", StringComparison.Ordinal)),
+            "Every visible find-strip caption is localized: " + string.Join("/", stripText));
+        // 原型 .find-strip 的动作顺序是「上一个 → 下一个 → 全部替换」，关闭钮收在最右；实现侧补的三个开关收在关闭钮之前。
+        var prevButton = findStrip.FindControl<Button>("FindPrevButton")!;
+        var nextButton = findStrip.FindControl<Button>("FindNextButton")!;
+        Check(prevButton.IsVisible && nextButton.IsVisible && prevButton.Bounds.Right <= nextButton.Bounds.Left
+            && findActions.All(a => a.Bounds.Right <= findClose.Bounds.Right),
+            $"Find strip keeps the prototype's order with three option toggles and the close button last: prev={prevButton.Bounds.X:0.#}, next={nextButton.Bounds.X:0.#}, toggles={findToggles.Length}");
+        // 原型 .find-strip 在 ≤850px 时 flex-wrap，同时 .input{min-width:0} 让输入框先收缩。
+        // 实现侧的展开高度由 ContentExpansionAnimator 的固定 ExpandedSize 决定，换不了行，
+        // 所以窄窗只能靠收缩把整条留在块内——查找态和替换态都不许有控件被挤出圆角块外。
+        var wideSize = (window.Width, window.Height);
+        window.Width = 800; window.Height = 480; Render();
+        void CheckNarrowStripFits(string mode)
+        {
+            var right = findStrip.GetVisualDescendants().OfType<Control>()
+                .Where(control => control.IsVisible && (control is Button || control is ToggleButton || control is TextBox))
+                .Select(control => control.TranslatePoint(new Point(control.Bounds.Width, 0), findStrip)!.Value.X)
+                .DefaultIfEmpty(0).Max();
+            Check(right <= findStrip.Bounds.Width - 11 && Math.Abs(findStrip.Bounds.Height - 46) < 1,
+                $"Find strip keeps every control inside the block at 800px ({mode}): right={right:0.#}, strip={findStrip.Bounds.Width:0.#}x{findStrip.Bounds.Height:0.#}");
+        }
+        CheckNarrowStripFits("find");
+        vm.FindBar.ShowReplacePanel(); Render();
+        CheckNarrowStripFits("replace");
+        vm.FindBar.ShowFindPanel(); Render();
+        window.Width = wideSize.Width; window.Height = wideSize.Height; Render();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "find-strip.png"));
         vm.FindBar.CloseFindPanel(); Render();
         Check(Math.Abs(viewBlock.TranslatePoint(default, viewColumn)!.Value.Y - stripOrigin.Y) < 1,
             "Closing the find bar returns the view block to the column top");
+        // 原型 workbench.js 的 find-input：Enter 下一个、Shift+Enter 上一个。既断言按键发出的动作，
+        // 也断言真实编辑器的徽章随步进移动——向后一步必须落回向前一步刚离开的那处命中。
+        var historyBeforeFind = vm.Workbench.History.Capture();
+        // 取正文基准要用 documentState，不能用 vm.Markdown：验证是直接喂 IWorkspaceDocumentState 种文档的，
+        // vm.Markdown 只是编辑器的滞后镜像，第一次真实编辑器事件（查找步进就会触发）才把它追平。
+        // 漏进正文的按键仍会被抓到——编辑器把新文本发回 VM，VM 随即 PublishWorkspaceDocumentState。
+        var contentBeforeFind = documentState.Markdown;
+        EditorSearchCommand? sent = null;
+        CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe<EditorSearchCommand>(command => sent = command);
+        vm.FindBar.ShowFindPanel(); Render();
+        vm.FindBar.SearchText = "想法";
+        Thread.Sleep(260); Render(); // 先让 180ms 计数防抖落定，之后徽章只由方向步进改变。
+        var findInput = findStrip.GetVisualDescendants().OfType<TextBox>().First(t => t.Name == "FindTextBox");
+        findInput.Focus();
+        sent = null;
+        window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null); Render();
+        var firstBadge = vm.FindBar.SearchResultText;
+        Check(sent?.Action == EditorSearchAction.FindNext, "Enter publishes a forward find");
+        window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null); Render();
+        Check(sent?.Action == EditorSearchAction.FindNext && vm.FindBar.SearchResultText != firstBadge,
+            $"Two forward steps land on two different matches: {firstBadge} then {vm.FindBar.SearchResultText}");
+        sent = null;
+        window.KeyPress(Key.Enter, RawInputModifiers.Shift, PhysicalKey.Enter, null); Render();
+        Check(sent?.Action == EditorSearchAction.FindPrev, "Shift+Enter publishes a backward find");
+        Check(vm.FindBar.SearchResultText == firstBadge,
+            $"Stepping back returns to the match the forward step left: expected {firstBadge}, got {vm.FindBar.SearchResultText}");
+        // Enter 必须留在查找框里：焦点一旦跑进正文，下一次回车就是在文档里插换行。
+        Check(findInput.IsFocused, "Enter keeps the caret in the find box instead of the editor");
+        sent = null;
+        var prevPoint = prevButton.TranslatePoint(new Point(prevButton.Bounds.Width / 2, prevButton.Bounds.Height / 2), window)!.Value;
+        window.MouseDown(prevPoint, MouseButton.Left); window.MouseUp(prevPoint, MouseButton.Left); Render();
+        Check(sent?.Action == EditorSearchAction.FindPrev && vm.FindBar.SearchResultText != firstBadge,
+            $"The previous-match button drives the same backward find: {vm.FindBar.SearchResultText}");
+        vm.FindBar.IsRegex = true; vm.FindBar.IsWholeWord = true; Render();
+        Check(findToggles.Count(t => t.IsChecked == true) == 2, "The three option toggles bind both ways to the search flags");
+        // 定位只移动选区：正文、脏标记与撤销栈都不许动，Enter 也必须留在查找框里（焦点跑进正文会插入换行）。
+        var historyAfterFind = vm.Workbench.History.Capture();
+        Check(documentState.Markdown == contentBeforeFind
+            && historyAfterFind.Undo.SequenceEqual(historyBeforeFind.Undo)
+            && historyAfterFind.Current == historyBeforeFind.Current
+            && historyAfterFind.Redo.SequenceEqual(historyBeforeFind.Redo),
+            $"Stepping through matches leaves the document and undo history untouched: markdown {contentBeforeFind.Length}->{documentState.Markdown.Length} at {FirstDifference(contentBeforeFind, documentState.Markdown)} "
+            + $"[{Preview(contentBeforeFind)} vs {Preview(documentState.Markdown)}], "
+            + $"undo {historyBeforeFind.Undo.Length}->{historyAfterFind.Undo.Length}, redo {historyBeforeFind.Redo.Length}->{historyAfterFind.Redo.Length}, "
+            + $"current {historyBeforeFind.Current.Length}->{historyAfterFind.Current.Length}");
+        vm.FindBar.IsRegex = false; vm.FindBar.IsWholeWord = false; vm.FindBar.SearchText = string.Empty;
+        vm.FindBar.CloseFindPanel(); Render();
         // 工具条钉住：默认钉住为占位行；取消钉住回到悬浮静默，并随偏好写入配置。
         var pins = vm.Workbench.Preferences;
         var editorOptions = window.FindControl<ShellEditorOptionsView>("EditorOptions")!;

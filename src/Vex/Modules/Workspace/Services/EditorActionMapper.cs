@@ -56,6 +56,7 @@ public static class EditorActionMapper
             command.Action switch
             {
                 EditorSearchAction.Count => MarkdownEditorSearchAction.Count,
+                EditorSearchAction.FindPrev => MarkdownEditorSearchAction.FindPrevious,
                 EditorSearchAction.ReplaceNext => MarkdownEditorSearchAction.ReplaceNext,
                 EditorSearchAction.ReplaceAll => MarkdownEditorSearchAction.ReplaceAll,
                 _ => MarkdownEditorSearchAction.FindNext

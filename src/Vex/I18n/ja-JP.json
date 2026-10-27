@@ -960,7 +960,8 @@
       "WBTypographyReport": "内蔵の「シンプル」を基に、名称・色・フォント・行送りだけ上書きします。",
       "DiagramEditButton": "編集",
       "DiagramEditHint": "Esc またはブロック外クリックで編集を終了",
-      "DiagramPreviewNote": "プレビューはレンダラーが描画します。構文エラーではソース表示を保持します。"
+      "DiagramPreviewNote": "プレビューはレンダラーが描画します。構文エラーではソース表示を保持します。",
+      "FindBarPrev": "前へ"
     }
   }
 }

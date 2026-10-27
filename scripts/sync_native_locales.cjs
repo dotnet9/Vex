@@ -84,6 +84,8 @@ for(const culture of Object.keys(extra)){
    ,WBTypographyLeadingNormal: {'zh-CN':'正常 1.9','zh-Hant':'正常 1.9','en-US':'Normal 1.9','ja-JP':'標準 1.9'}[culture]
    ,WBTypographyLeadingRelaxed: {'zh-CN':'舒展 2.1','zh-Hant':'舒展 2.1','en-US':'Relaxed 2.1','ja-JP':'ゆったり 2.1'}[culture]
    ,WBTypographyReport: {'zh-CN':'以内置「简约」为模板派生，仅覆盖名称、颜色、字体与行距。','zh-Hant':'以內置「簡約」為模板派生，僅覆蓋名稱、顏色、字體與行距。','en-US':'Derived from the built-in Simple style; only name, colors, font and leading are overridden.','ja-JP':'内蔵の「シンプル」を基に、名称・色・フォント・行送りだけ上書きします。'}[culture]
+   /* 查找条动作钮（原型 Vex.html .find-strip 的「上一个」，实现侧此前只有「下一个」）。 */
+   ,FindBarPrev: {'zh-CN':'上一个','zh-Hant':'上一個','en-US':'Previous','ja-JP':'前へ'}[culture]
    /* 图表块就地编辑（原型 diagram-editor.js 无这三个提示，属实现侧增强，仍需四语）。 */
    ,DiagramEditButton: {'zh-CN':'编辑','zh-Hant':'編輯','en-US':'Edit','ja-JP':'編集'}[culture]
    ,DiagramEditHint: {'zh-CN':'Esc 或点击块外完成编辑','zh-Hant':'Esc 或點擊塊外完成編輯','en-US':'Press Esc or click outside the block to finish editing','ja-JP':'Esc またはブロック外クリックで編集を終了'}[culture]

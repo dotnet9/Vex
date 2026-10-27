@@ -4,6 +4,7 @@ public enum EditorSearchAction
 {
     Count,
     FindNext,
+    FindPrev,
     ReplaceNext,
     ReplaceAll
 }

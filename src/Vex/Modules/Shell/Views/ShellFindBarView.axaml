@@ -22,6 +22,16 @@
             <Setter Property="FontSize" Value="12" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
+        <!-- 原型 .opt-toggle（theme.css:542）：28 高、min-width 30、0x8 内距、11.5 号 600 字重、6px 圆角。
+             它不是 .btn.sm，所以不吃上面那套 26/12 的度量；窄窗里三个开关省下的宽度正好还给输入框。 -->
+        <Style Selector="ToggleButton.opt-toggle">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinWidth" Value="30" />
+            <Setter Property="Padding" Value="0,8" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
         <!-- 原型 .icon-button：30×30、6px 圆角、无底色，悬停才浮出底色。 -->
         <Style Selector="Button.find-close">
             <Setter Property="Width" Value="30" />
@@ -50,17 +60,20 @@
             Classes="workspace-block"
             Margin="0,0,0,4"
             Padding="12 7">
-            <Grid ColumnDefinitions="Auto,220,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
-            <TextBlock
-                Classes="muted"
-                Text="{i18n:I18n Vex.VexL.FindBarScope}"
-                VerticalAlignment="Center" />
+            <!-- 原型 .find-strip 只有「输入框 + 动作钮 + 关闭钮」，没有作用域标签（Vex.html:102）；
+                 flex + gap:6、输入框 min-width:0，窄窗先收缩输入框，关闭钮因此不会被挤出块外。
+                 原生给 72 的下限（与动作钮同宽）：800px 窗口下原型已把输入框压到 50 上下，再低就没法看了。 -->
+            <Grid ColumnDefinitions="*,*,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="6">
             <!-- 查找框：命中计数以内嵌徽章叠在输入框右侧（对应原型 .fb-count） -->
-            <Grid Grid.Column="1">
+            <Grid
+                Grid.Column="0"
+                MaxWidth="220"
+                MinWidth="96">
                 <TextBox
                     x:Name="FindTextBox"
                     AcceptsReturn="False"
                     Height="30"
+                    KeyDown="OnFindTextBoxKeyDown"
                     MaxLength="200"
                     MinHeight="30"
                     Padding="0 0 56 0"
@@ -83,8 +96,9 @@
             </Grid>
             <!-- 原型 .btn.sm：26px 高、7px 圆角、12px 字号；关闭钮 30×30 无边框（.icon-button）。 -->
             <TextBox
-                Grid.Column="2"
-                Width="220"
+                Grid.Column="1"
+                MaxWidth="220"
+                MinWidth="96"
                 Height="30"
                 AcceptsReturn="False"
                 IsVisible="{Binding IsReplaceVisible}"
@@ -93,7 +107,16 @@
                 PlaceholderText="{i18n:I18n Vex.VexL.FindBarReplacePlaceholder}"
                 TextWrapping="NoWrap"
                 Text="{Binding ReplacementText, Mode=TwoWay}" />
+            <!-- 原型 .find-strip 的动作顺序是「上一个 → 下一个 → 全部替换」；「替换」是实现侧补充，夹在中间。 -->
             <Button
+                x:Name="FindPrevButton"
+                Grid.Column="2"
+                Classes="find-action"
+                Command="{Binding FindPrev}"
+                Content="{i18n:I18n {x:Static l:VexL.FindBarPrev}}"
+                MinWidth="72" />
+            <Button
+                x:Name="FindNextButton"
                 Grid.Column="3"
                 Classes="primary find-action"
                 Command="{Binding FindNext}"
@@ -113,15 +136,14 @@
                 Command="{Binding ReplaceAll}"
                 Content="{i18n:I18n {x:Static l:VexL.FindBarAll}}"
                 IsVisible="{Binding IsReplaceVisible}" />
-            <Button
+            <!-- Aa / W / .* 图标化开关（原型 .opt-toggle）：激活态主题色底。 -->
+            <ToggleButton
                 Grid.Column="7"
-                Classes="find-close"
-                Command="{Binding CloseFindPanel}"
-                Content="×"
-                FontSize="14"
-                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
-                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarClose}}" />
-            <!-- Aa / W 图标化开关：激活态主题色底（对应原型 .opt-toggle） -->
+                Classes="opt-toggle find-action"
+                Content=".*"
+                IsChecked="{Binding IsRegex, Mode=TwoWay}"
+                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarRegex}}"
+                VerticalAlignment="Center" />
             <ToggleButton
                 Grid.Column="8"
                 Classes="opt-toggle find-action"
@@ -136,6 +158,14 @@
                 IsChecked="{Binding IsWholeWord, Mode=TwoWay}"
                 ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
                 VerticalAlignment="Center" />
+            <Button
+                Grid.Column="10"
+                Classes="find-close"
+                Command="{Binding CloseFindPanel}"
+                Content="×"
+                FontSize="14"
+                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
+                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarClose}}" />
             </Grid>
         </Border>
     </ac:ContentExpansionAnimator>

@@ -960,7 +960,8 @@
       "WBTypographyReport": "以內置「簡約」為模板派生，僅覆蓋名稱、顏色、字體與行距。",
       "DiagramEditButton": "編輯",
       "DiagramEditHint": "Esc 或點擊塊外完成編輯",
-      "DiagramPreviewNote": "預覽由渲染器出圖；語法有誤時保留原始碼顯示。"
+      "DiagramPreviewNote": "預覽由渲染器出圖；語法有誤時保留原始碼顯示。",
+      "FindBarPrev": "上一個"
     }
   }
 }
