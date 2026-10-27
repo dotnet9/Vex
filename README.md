@@ -36,7 +36,8 @@ Vex 是基于 .NET 10 与 Avalonia 12 的桌面 Markdown 编辑器，支持 **Wi
 ## 运行
 
 ~~~powershell
-$vexWorkRoot = 'E:/github/temp_files/vex-learning'
+# 重产物默认落在仓库内 artifacts/；想放仓库外时用相对或任意路径即可（正斜杠跨平台）。
+$vexWorkRoot = '../vex-temp'
 dotnet restore Vex.slnx "-p:ArtifactsPath=$vexWorkRoot/artifacts"
 dotnet build Vex.slnx --no-restore -v:minimal "-p:ArtifactsPath=$vexWorkRoot/artifacts"
 dotnet run --project src/Vex/Vex.csproj -f net10.0 --no-restore "-p:ArtifactsPath=$vexWorkRoot/artifacts"
