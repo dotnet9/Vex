@@ -20,7 +20,7 @@ public sealed class MarkdownInstantView : UserControl
 {
     public MarkdownLiveEditorView Editor { get; } = new()
     {
-        HeaderText = null, ChipText = null, EditorFontSize = 15, CodeFontFamily = Vex.Core.Services.VexFonts.Code, DocumentMaxWidth = 1280, DocumentBlockSpacing = 0, DocumentPadding = new Thickness(76, 36, 76, 80),
+        HeaderText = null, ChipText = null, EditorFontSize = 15, CodeFontFamily = Vex.Core.Services.VexFonts.Code, DocumentMaxWidth = 1280, DocumentBlockSpacing = 0, DocumentPadding = new Thickness(76, 36, 76, 114),
         EditorBackgroundKey = "VexPreviewBackgroundBrush", EditorForegroundKey = "VexEditorForegroundBrush"
     };
     private ShellWorkbenchViewModel? _workbench;

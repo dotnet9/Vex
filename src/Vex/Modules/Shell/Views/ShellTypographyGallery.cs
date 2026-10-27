@@ -67,7 +67,7 @@ public sealed class ShellTypographyGallery : UserControl
     {
         Width = Math.Min(680, (_window?.ClientSize.Width ?? 1280) - 36);
         var anchor = (_window as MainWindow)?.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "TypographyTarget" && b.IsEffectivelyVisible);
-        var top = anchor?.TranslatePoint(new Point(0, anchor.Bounds.Height + 14), _window!)?.Y ?? 132;
+        var top = anchor?.TranslatePoint(new Point(0, anchor.Bounds.Height + 4), _window!)?.Y ?? 132;
         var parentTop = _window is not null ? this.GetVisualParent()?.TranslatePoint(default, _window)?.Y ?? 0 : 0;
         Margin = new Thickness(18, Math.Max(0, top - parentTop), 18, 18);
         Height = Math.Max(140, Math.Min(500, (_window?.ClientSize.Height ?? 820) - top - 18));

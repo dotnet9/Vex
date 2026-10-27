@@ -68,6 +68,11 @@ public partial class MarkdownPreviewView : UserControl
         }
     }
 
+    public MarkdownPreviewView(MarkdownPreviewViewModel viewModel) : this()
+    {
+        DataContext = viewModel;
+    }
+
     public MarkdownPreviewView()
     {
         InitializeComponent();

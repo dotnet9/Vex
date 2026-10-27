@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Vex.Core.Models;
@@ -19,6 +20,9 @@ public partial class ShellFilesView : UserControl
         InitializeComponent();
         FilesModeIcon.Data = MenuIconCatalog.Get("list-start");
         FilesListModeIcon.Data = MenuIconCatalog.Get("layout-list");
+        FilesPanelCollapseIcon.Data = MenuIconCatalog.Get("panel-right-close");
+        FilesPanelCollapseIcon.RenderTransform = new ScaleTransform(-1, 1);
+        FilesPanelCollapseIcon.RenderTransformOrigin = RelativePoint.Center;
         UpdateToolbarIcons();
         MenuIconCatalog.Apply((ContextMenu)FileTree.ContextMenu!);
         MenuIconCatalog.Apply((ContextMenu)FileList.ContextMenu!);
@@ -36,6 +40,11 @@ public partial class ShellFilesView : UserControl
     }
 
     private ShellFilesViewModel? _observedViewModel;
+
+    public ShellFilesView(ShellFilesViewModel viewModel) : this()
+    {
+        DataContext = viewModel;
+    }
 
     private void ObserveViewModel()
     {

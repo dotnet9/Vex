@@ -11,6 +11,7 @@ using Vex.Core.Services;
 using Vex.Modules.Mcp.Services;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
+using Vex.Modules.Workspace.ViewModels;
 using Vex.Controls;
 
 namespace Vex.Modules.Shell.Views;
@@ -29,13 +30,10 @@ public partial class MainWindow : CodeWFWindow
     public MainWindow()
     {
         InitializeComponent();
-        // 文件树使用 MenuIcons/panel-right-open.svg 与 panel-right-close.svg 的水平镜像。
-        SidebarCollapsedIcon.Data = MenuIconCatalog.Get("panel-right-open");
-        SidebarExpandedIcon.Data = MenuIconCatalog.Get("panel-right-close");
-        SidebarCollapsedIcon.RenderTransform = new ScaleTransform(-1, 1);
-        SidebarExpandedIcon.RenderTransform = new ScaleTransform(-1, 1);
-        SidebarCollapsedIcon.RenderTransformOrigin = RelativePoint.Center;
-        SidebarExpandedIcon.RenderTransformOrigin = RelativePoint.Center;
+        SidebarExpandIcon.Data = MenuIconCatalog.Get("panel-right-open");
+        SidebarExpandIcon.RenderTransform = new ScaleTransform(-1, 1);
+        SidebarExpandIcon.RenderTransformOrigin = RelativePoint.Center;
+        OutlineExpandIcon.Data = MenuIconCatalog.Get("panel-right-open");
         var confirmation = MindMapGuideTarget.DetachConfirmation();
         Grid.SetRowSpan(confirmation, 4); ShellGuideRoot.Children.Add(confirmation);
         WorkspaceViews = new WorkspaceViewController(this, ViewSurface, FloatingViewShelf);
@@ -80,7 +78,11 @@ public partial class MainWindow : CodeWFWindow
         IShellStartupArgumentPublisher startupArguments,
         ShellKeyboardShortcutViewModel keyboardShortcuts,
         IMcpServerHost mcpServerHost,
-        IShellToastPublisher toastPublisher)
+        IShellToastPublisher toastPublisher,
+        MarkdownEditorViewModel editorViewModel,
+        MarkdownPreviewViewModel previewViewModel,
+        ShellTitleMenuViewModel titleMenuViewModel,
+        ShellStatusBarViewModel statusBarViewModel)
         : this()
     {
         // 强制解析 ShellActionCoordinator，让标题栏菜单的 EventBus 动作路由在窗口创建时完成订阅。
@@ -93,6 +95,13 @@ public partial class MainWindow : CodeWFWindow
         _toastPublisher = toastPublisher;
         RestoreWindowSize(settingsStore);
         DataContext = viewModel;
+
+        // 手动设置直接在 XAML 中声明的视图的 DataContext
+        TitleMenuView.DataContext = titleMenuViewModel;
+        EditorGuideTarget.DataContext = editorViewModel;
+        PreviewGuideTarget.DataContext = previewViewModel;
+        StatusBarGuideTarget.DataContext = statusBarViewModel;
+
         viewModel.Workbench.GuideExitRequested += (_, _) => WorkbenchGuide.Finish();
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
         viewModel.CommitPendingEditsRequested += (_, _) => MindMapGuideTarget.FlushInspector();

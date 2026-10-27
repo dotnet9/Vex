@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Input;
 using Vex.Core.Models;
+using Vex.Controls;
 
 namespace Vex.Modules.Shell.Views;
 
@@ -10,6 +11,12 @@ public partial class ShellOutlineView : UserControl
     public ShellOutlineView()
     {
         InitializeComponent();
+        OutlinePanelCollapseIcon.Data = MenuIconCatalog.Get("panel-right-close");
+    }
+
+    public ShellOutlineView(ViewModels.ShellOutlineViewModel viewModel) : this()
+    {
+        DataContext = viewModel;
     }
 
     private void ToggleSection(object? sender, RoutedEventArgs e)

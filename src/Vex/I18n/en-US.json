@@ -814,6 +814,10 @@
       "SidebarFilesLoadFailed": "Loading failed",
 
       "SidebarFilesRetry": "Retry",
+      "CollapseFilesPanel": "Collapse files panel",
+      "ExpandFilesPanel": "Expand files panel",
+      "CollapseOutlinePanel": "Collapse outline panel",
+      "ExpandOutlinePanel": "Expand outline panel",
       "StructureTitle": "Document Structure",
       "CollapseStructure": "Hide outline panel",
       "AuxiliaryInfo": "Article info",

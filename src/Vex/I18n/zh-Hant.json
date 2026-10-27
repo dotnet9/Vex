@@ -814,6 +814,10 @@
       "SidebarFilesLoadFailed": "載入失敗",
 
       "SidebarFilesRetry": "重試",
+      "CollapseFilesPanel": "收起檔案面板",
+      "ExpandFilesPanel": "展開檔案面板",
+      "CollapseOutlinePanel": "收起大綱面板",
+      "ExpandOutlinePanel": "展開大綱面板",
       "StructureTitle": "文檔結構",
       "CollapseStructure": "收起大綱面板",
       "AuxiliaryInfo": "文章資訊",

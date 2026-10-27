@@ -809,6 +809,10 @@ public static class VexL
     public static readonly string SidebarFilesLoading = "Vex.VexL.SidebarFilesLoading";
     public static readonly string SidebarFilesLoadFailed = "Vex.VexL.SidebarFilesLoadFailed";
     public static readonly string SidebarFilesRetry = "Vex.VexL.SidebarFilesRetry";
+    public static readonly string CollapseFilesPanel = "Vex.VexL.CollapseFilesPanel";
+    public static readonly string ExpandFilesPanel = "Vex.VexL.ExpandFilesPanel";
+    public static readonly string CollapseOutlinePanel = "Vex.VexL.CollapseOutlinePanel";
+    public static readonly string ExpandOutlinePanel = "Vex.VexL.ExpandOutlinePanel";
     public static readonly string StructureTitle = "Vex.VexL.StructureTitle";
     public static readonly string CollapseStructure = "Vex.VexL.CollapseStructure";
     public static readonly string AuxiliaryInfo = "Vex.VexL.AuxiliaryInfo";

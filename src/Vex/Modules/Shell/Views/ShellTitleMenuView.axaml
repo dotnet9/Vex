@@ -7,9 +7,7 @@
     xmlns:icons="using:Vex.Controls"
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
-    x:DataType="vm:ShellTitleMenuViewModel"
-    prism:ViewModelLocator.AutoWireViewModel="True"
-    xmlns:prism="http://prismlibrary.com/">
+    x:DataType="vm:ShellTitleMenuViewModel">
     <Menu x:Name="TitleMenuBar" Classes="title-menu" VerticalAlignment="Center">
         <!-- 顶级菜单为 文件/编辑/工具/视图/帮助 五项；段落与格式按语义并入「编辑」成为二级子菜单，
              其条目下移为三级，表格与 Mermaid 分组下移为四级。原型 interact.js 的 MENUS 仍是七个

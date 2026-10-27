@@ -177,7 +177,7 @@ containerRegistry.Register<T>()             → services.AddTransient<T>()
 如果出现严重问题：
 ```bash
 git checkout master
-git branch -D feature/remove-prism-for-aot
+git branch -D aot-native
 # 恢复到修改前状态
 ```
 
@@ -216,8 +216,8 @@ cat docs/AOT优化/02-详细执行步骤.md
 
 ### 第二步：创建分支
 ```bash
-git checkout -b feature/remove-prism-for-aot
-git push -u origin feature/remove-prism-for-aot
+git checkout -b aot-native
+git push -u origin aot-native
 ```
 
 ### 第三步：执行实施

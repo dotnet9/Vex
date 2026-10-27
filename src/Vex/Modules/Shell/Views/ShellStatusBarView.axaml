@@ -1,5 +1,10 @@
-<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
- xmlns:prism="http://prismlibrary.com/" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}" prism:ViewModelLocator.AutoWireViewModel="True">
+<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i18n="https://codewf.com"
+             xmlns:l="clr-namespace:Vex"
+             xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+             x:DataType="vm:ShellStatusBarViewModel">
  <UserControl.Styles>
   <!-- 对应原型 .document-statusbar .document-corner-actions button：28px 高、4px 圆角、12px 文字。 -->
   <Style Selector="ToggleButton.corner-action">
@@ -118,6 +123,7 @@
    <Setter Property="BorderThickness" Value="1" />
    <Setter Property="CornerRadius" Value="8" />
    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+   <Setter Property="BoxShadow" Value="0 -2 12 0 #18000000, 0 -1 3 0 #12000000" />
   </Style>
   <Style Selector="Button.view-segment">
    <Setter Property="MinWidth" Value="86" />

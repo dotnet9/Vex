@@ -194,7 +194,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
             WorkbenchGuideViewModel.Anchor.Preview => _window.FindControl<Control>("PreviewGuideTarget"),
             WorkbenchGuideViewModel.Anchor.Map => _window.FindControl<Control>("MindMapGuideTarget"),
             WorkbenchGuideViewModel.Anchor.OutlinePanel => _window.FindControl<Control>("OutlineGuideTarget"),
-            WorkbenchGuideViewModel.Anchor.OutlineToggle => _window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")?.OutlineButton,
+            WorkbenchGuideViewModel.Anchor.OutlineToggle => ResolveOutlineToggle(),
             WorkbenchGuideViewModel.Anchor.TypographyButton => _window.FindControl<ShellEditorOptionsView>("EditorOptions")?.FindControl<Button>("TypographyTarget"),
             WorkbenchGuideViewModel.Anchor.LayoutButton => _window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")?.FindControl<Button>("LayoutButton"),
             WorkbenchGuideViewModel.Anchor.LayoutGallery => _window.FindControl<WorkspaceLayoutGallery>("LayoutGallery"),
@@ -208,6 +208,13 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
                 .GetVisualDescendants().OfType<Button>().FirstOrDefault(button => button.Tag as string == key["layout-option:".Length..]),
             _ => null
         };
+    }
+
+    private Control? ResolveOutlineToggle()
+    {
+        var expand = _window?.FindControl<Button>("OutlineExpandButton");
+        if (expand?.IsEffectivelyVisible == true) return expand;
+        return _window?.FindControl<Control>("OutlineGuideTarget")?.FindControl<Button>("OutlinePanelCollapseButton");
     }
 
     void WorkbenchGuideViewModel.IStage.SetSpotlight(string[] anchors)

@@ -44,7 +44,7 @@
     <StripSymbols>true</StripSymbols>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(PublishAot)' == 'true'">
-    <!-- Native AOT 优化配置 - 由于 Prism/ReactiveUI/Avalonia 反射需求，暂时降低优化级别 -->
+    <!-- Native AOT 优化配置 - 由于 ReactiveUI/Avalonia 反射需求，保留必要的元数据 -->
     <IlcOptimizationPreference>Size</IlcOptimizationPreference>
     <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
     <!-- 保留完整类型元数据以支持反射 -->
@@ -69,13 +69,6 @@
     <Content Include="..\..\docs\演示文档\**\*" Link="docs\演示文档\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
   </ItemGroup>
 
-  <!-- Native AOT 配置：保留 Prism 完整元数据，绕过 DialogWindow 的反射绑定检查 -->
-  <ItemGroup Condition="'$(PublishAot)' == 'true'">
-    <TrimmerRootAssembly Include="Prism.Avalonia" />
-    <TrimmerRootAssembly Include="Prism.DryIoc.Avalonia" />
-    <TrimmerRootAssembly Include="DryIoc" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.AvaloniaEdit" />
@@ -88,7 +81,7 @@
     <PackageReference Include="CodeWF.Toolkit.Files" />
     <PackageReference Include="Irihi.Ursa.Themes.Semi" />
     <PackageReference Include="CodeWF.Avalonia.Lang" />
-    <PackageReference Include="Prism.DryIoc.Avalonia" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="PdfPig" />
     <PackageReference Include="ReactiveUI.Avalonia" />
     <PackageReference Include="ReverseMarkdown" />

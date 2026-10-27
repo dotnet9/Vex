@@ -5,11 +5,9 @@
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:models="using:Vex.Core.Models"
-    xmlns:prism="http://prismlibrary.com/"
     xmlns:regions="using:Vex.Core.Regions"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellOutlineViewModel"
-    prism:ViewModelLocator.AutoWireViewModel="True"
     regions:RegionTab.HeaderKey="{x:Static l:VexL.SidebarOutline}"
     regions:RegionTab.IconData="M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01">
 
@@ -39,11 +37,11 @@
 
     <Grid RowDefinitions="Auto,Auto,*,Auto">
         <!-- 与文件树共用搜索框样式，清除按钮仅在有内容时显示。 -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,28" ColumnSpacing="4" Margin="12,12,12,10">
         <Border
             Classes="sidebar-search"
-            Grid.Row="0"
+            Grid.Column="0"
             Height="32"
-            Margin="12,12,12,10"
             Padding="8,0">
             <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" VerticalAlignment="Center">
                 <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
@@ -76,6 +74,16 @@
                 </Button>
             </Grid>
         </Border>
+
+        <Button x:Name="OutlinePanelCollapseButton" Grid.Column="1" Classes="sidebar-panel-toggle" HorizontalAlignment="Right" VerticalAlignment="Center"
+                ZIndex="20"
+                IsVisible="{Binding Layout.ShowOutlineSidebar}"
+                Command="{Binding Layout.CollapseOutline}"
+                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseOutlinePanel}}"
+                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseOutlinePanel}}">
+            <Path x:Name="OutlinePanelCollapseIcon" Classes="panel-toggle-icon" />
+        </Button>
+        </Grid>
 
         <!-- 当前章节指示（对应原型 outline-meta） -->
         <Border
