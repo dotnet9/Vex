@@ -330,6 +330,12 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         "colorful" => VexL.StyleColorful, "outline" => VexL.StyleFrame, "capsule" => VexL.StyleCapsule,
         "underline" => VexL.StyleVein, "mono" => VexL.StyleMono, _ => VexL.StyleQuiet,
     });
+    /// <summary>风格卡的一行说明（原型 .map-choice-purpose）：名称只说形状说不清差别，靠这行补。</summary>
+    public static string MindMapStyleKeyPurpose(string key) => L(key switch
+    {
+        "colorful" => VexL.StyleColorfulPurpose, "outline" => VexL.StyleFramePurpose, "capsule" => VexL.StyleCapsulePurpose,
+        "underline" => VexL.StyleVeinPurpose, "mono" => VexL.StyleMonoPurpose, _ => VexL.StyleQuietPurpose,
+    });
     public bool ShowMapSettings { get => _showMapSettings; set { this.RaiseAndSetIfChanged(ref _showMapSettings, value); if (value) CloseInspector(); } }
     public bool ShowTypography { get => _showTypography; set => this.RaiseAndSetIfChanged(ref _showTypography, value); }
 

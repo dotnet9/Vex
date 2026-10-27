@@ -239,8 +239,6 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         app.Resources["VexSegmentedHeightDensity"] = 22 * segScale;
         app.Resources["VexSegmentedPaddingDensity"] = new Avalonia.Thickness(10, 2 * segScale);
         app.Resources["VexSegmentedHeightRenderDensity"] = 24 * segScale;
-        app.Resources["VexSegmentedHeightMapTabs"] = 32 * segScale;
-        app.Resources["VexSegmentedPaddingMapTabs"] = new Avalonia.Thickness(14, 4 * segScale);
         // 原型 .vex-pref-segmented > button：4×密度/6 内距、正文减 1 号字（prototype.css:215）。
         app.Resources["VexSegmentedPaddingPref"] = new Avalonia.Thickness(6, 4 * segScale);
     }

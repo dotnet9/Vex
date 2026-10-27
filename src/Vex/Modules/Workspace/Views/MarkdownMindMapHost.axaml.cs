@@ -84,7 +84,8 @@ public partial class MarkdownMindMapHost : UserControl
             },
         };
         ToolTip.SetTip(button, CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式");
-        // 原型 .map-appearance-popover：528−32 内距 = 496 内容宽，标题（mb 12）→ 分段页签（mb 14）→ 3 列卡片网格（gap 10、padding 2）。
+        // 原型 .map-appearance-popover：528−32 内距 = 496 内容宽，标题（mb 12）→ ①结构 步骤标签（mb 9）
+        // → 3 列卡片网格（gap 10、padding 2）→ ②风格 步骤标签（mt 14）→ 网格，两排同屏。
         var panel = new StackPanel { Spacing = 0, Width = 496 };
         var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 0, 0, 12) };
         var headerTitle = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, FontSize = 14, VerticalAlignment = VerticalAlignment.Center };
@@ -92,22 +93,12 @@ public partial class MarkdownMindMapHost : UserControl
         header.Children.Add(headerTitle); Grid.SetColumn(closeButton, 1); header.Children.Add(closeButton);
         panel.Children.Add(header);
 
-        // 原型 .appearance-tabs.vex-segmented：结构／风格是标准分段控件（gap 4、段最小宽 80、
-        // 32×密度高、4×密度/14 内距、正文减 1 号字），轨道与滑动指示块走 Vex.Controls 共享配方。
-        var segments = new Vex.Controls.VexSegmentedPanel { Spacing = 4 };
-        var layoutTab = new Button { Classes = { "vex-segment", "map-appearance-tab" }, Content = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.MapTabStructure") ?? "结构" };
-        var styleTab = new Button { Classes = { "vex-segment", "map-appearance-tab" }, Content = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.MapTabStyle") ?? "风格" };
-        segments.Children.Add(layoutTab); segments.Children.Add(styleTab);
-        var tabs = new Border { Classes = { "vex-segmented", "appearance-tabs" }, Child = segments, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 14) };
-        panel.Children.Add(tabs);
-
-        var layoutPage = new StackPanel { Spacing = 0 };
-        var stylePage = new StackPanel { Spacing = 0 };
-        panel.Children.Add(layoutPage); panel.Children.Add(stylePage);
-
+        // 原型 .map-appearance-scroll：两排卡片共用一个滚动容器，弹层受高时内部滚动而不是截断卡片。
         var layoutCards = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 10, RowSpacing = 10, Margin = new Thickness(2) };
-        var styleCards = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 10, RowSpacing = 10, Margin = new Thickness(2) };
-        layoutPage.Children.Add(layoutCards); stylePage.Children.Add(styleCards);
+        var styleCards = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 10, RowSpacing = 10, Margin = new Thickness(2, 0, 2, 2) };
+        var body = new StackPanel { Spacing = 0 };
+        var scroll = new ScrollViewer { Content = body, MaxHeight = 180, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
+        panel.Children.Add(scroll);
 
         var flyoutHost = new ContentControl();
         var flyout = new Flyout { Content = flyoutHost, Placement = PlacementMode.BottomEdgeAlignedLeft };
@@ -115,33 +106,41 @@ public partial class MarkdownMindMapHost : UserControl
         MapToolsRight.Children.Insert(MapToolsRight.Children.IndexOf(MapSourceButton) + 1, button);
         closeButton.Click += (_, _) => flyout.Hide();
 
-        var showStructure = true; // 原型 map-appearance.js：tab 初值 'structure'。
-        void ShowPage(bool layout)
+        StackPanel? styleStep = null;
+        IDisposable? nudgeTimer = null;
+        // 原型 nudgeNextStep()：选完结构把「② 风格」点亮 900ms，视线跟着走，不必人再去找第二排。
+        void NudgeStyle()
         {
-            showStructure = layout;
-            layoutPage.IsVisible = layout; stylePage.IsVisible = !layout;
-            Vex.Controls.VexSegmentedPanel.SetIsActive(layoutTab, layout);
-            Vex.Controls.VexSegmentedPanel.SetIsActive(styleTab, !layout);
+            if (styleStep is null) return;
+            styleStep.Classes.Add("map-step-nudge");
+            nudgeTimer?.Dispose();
+            nudgeTimer = DispatcherTimer.RunOnce(() => styleStep.Classes.Remove("map-step-nudge"), TimeSpan.FromMilliseconds(900));
         }
-        ShowPage(true);
-        layoutTab.Click += (_, _) => ShowPage(true);
-        styleTab.Click += (_, _) => ShowPage(false);
 
-        Action refresh = null!; // 卡片点击要重建两页线稿，先把变量声明提到闭包之外。
+        Action refresh = null!; // 卡片点击要重建两排线稿，先把变量声明提到闭包之外。
         refresh = () =>
         {
             if (DataContext is not MainWindowViewModel shell) return;
             var vm = shell.Workbench;
-            headerTitle.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式";
+            string T(string key, string fallback) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? fallback;
+            headerTitle.Text = T(VexL.WBMapStyleButton, "导图样式");
             layoutCards.Children.Clear(); styleCards.Children.Clear();
             layoutCards.RowDefinitions.Clear(); styleCards.RowDefinitions.Clear();
+            // 步骤标签随每次打开重建，语言切换后文案跟着换（与 headerTitle 同一口径）。
+            body.Children.Clear();
+            body.Children.Add(BuildStepLabel("1", T(VexL.MapStepLayout, "结构"), T(VexL.MapStepLayoutHint, "先选一种布局")));
+            body.Children.Add(layoutCards);
+            styleStep = BuildStepLabel("2", T(VexL.MapStepStyle, "风格"), T(VexL.MapStepStyleHint, "线稿随上方所选结构实时重绘"));
+            body.Children.Add(styleStep);
+            body.Children.Add(styleCards);
             // 原型 .map-choice 是无状态按钮，选中靠 aria-pressed；这里同构：按下态由 map-choice-on 类回放。
             var cards = new List<(Button Card, Func<bool> IsSelected)>();
-            void AddCard(Grid host, string label, string key, string shape, string style, Func<bool> selected, Action apply)
+            void AddCard(Grid host, string label, string key, string shape, string style, string? purpose, Func<bool> selected, Action apply)
             {
-                var card = new Button { Classes = { "map-choice" }, Content = BuildStyleCard(label, shape, style), Name = "MapChoice_" + key };
-                Avalonia.Automation.AutomationProperties.SetName(card, label);
-                card.Click += (_, _) => { apply(); refresh(); ShowPage(showStructure); }; // 原型 panel.onclick：改完即 render()，两页线稿同时换形/换色。
+                // 两排同树后 outline 这个键在布局和风格里各有一张卡，名字必须带排前缀才不撞车。
+                var card = new Button { Classes = { "map-choice" }, Content = BuildStyleCard(label, shape, style, purpose), Name = (host == layoutCards ? "MapChoiceLayout_" : "MapChoiceStyle_") + key };
+                Avalonia.Automation.AutomationProperties.SetName(card, purpose is null ? label : label + "：" + purpose);
+                card.Click += (_, _) => { var layout = host == layoutCards; apply(); refresh(); if (layout) NudgeStyle(); }; // 原型 panel.onclick：改完即 render()，两排线稿同时换形/换色。
                 Grid.SetColumn(card, host.Children.Count % 3);
                 if (host.Children.Count % 3 == 0) host.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
                 Grid.SetRow(card, host.RowDefinitions.Count - 1);
@@ -153,20 +152,20 @@ public partial class MarkdownMindMapHost : UserControl
             {
                 var captured = key;
                 AddCard(layoutCards, ShellWorkbenchViewModel.MindMapLayoutKeyLabel(key), key,
-                    key, vm.MindMapStyle,
+                    key, vm.MindMapStyle, null,
                     () => vm.MindMapLayout == captured, () => vm.MindMapLayout = captured);
             }
             foreach (var key in ShellWorkbenchViewModel.MindMapStyleKeys)
             {
                 var captured = key;
                 AddCard(styleCards, ShellWorkbenchViewModel.MindMapStyleKeyLabel(key), key,
-                    vm.MindMapLayout, key,
+                    vm.MindMapLayout, key, ShellWorkbenchViewModel.MindMapStyleKeyPurpose(key),
                     () => vm.MindMapStyle == captured, () => vm.MindMapStyle = captured);
             }
             Sync();
         };
         flyout.FlyoutPresenterClasses.Add("map-appearance-popover");
-        flyout.Opening += (_, _) => { refresh(); ShowPage(showStructure); flyoutHost.Content = panel; };
+        flyout.Opening += (_, _) => { refresh(); flyoutHost.Content = panel; };
         button.Flyout = flyout;
         Map.NodeSelected += (_, node) =>
         {
@@ -200,6 +199,8 @@ public partial class MarkdownMindMapHost : UserControl
             Grid.SetRow(MapToolsRight, wrap ? 1 : 0); Grid.SetColumn(MapToolsRight, wrap ? 0 : 1);
             Grid.SetColumnSpan(MapToolsRight, wrap ? 2 : 1);
             SettingsTarget.MaxHeight = Math.Max(100, Bounds.Height - 74);
+            // 原型 position()：弹层最大高 = 触发钮下沿到宿主底部的可用空间（180 兜底），两排卡片靠内部滚动消化。
+            scroll.MaxHeight = Math.Max(180, Bounds.Height - 96);
         };
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.AccentColorProperty, this.GetResourceObservable("StudioAccentColor").Select(r => r is Color color ? color : Colors.MediumPurple));
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.SuccessColorProperty, this.GetResourceObservable("VexSuccessBrush").Select(r => r is ISolidColorBrush b ? b.Color : Colors.SeaGreen));
@@ -428,7 +429,22 @@ public partial class MarkdownMindMapHost : UserControl
     /// 布局页按当前风格上色、风格页按当前布局排形（原型 miniature(getLayout(), style)）。
     /// 派生色按 CSS 同款算：清雅=强调色描边根实心、缤纷=分支色轮换 + 14% 铺底 + 实色连线、
     /// 线框=根只留 3px 描边、胶囊=rx12 + 12% 强调色铺底、脉络=子节点只剩底边、黑白=整体转前景色。</summary>
-    private Control BuildStyleCard(string label, string shape, string style)
+    /// <summary>原型 .map-step-label：①/② 圆徽 + 段名 + 灰色提示，两排同屏时充当分组引导。</summary>
+    private static StackPanel BuildStepLabel(string badge, string title, string hint) => new()
+    {
+        Classes = { "map-step-label" },
+        Orientation = Orientation.Horizontal,
+        Spacing = 7,
+        Margin = new Thickness(4, 0, 4, 9),
+        Children =
+        {
+            new Border { Classes = { "map-step-badge" }, Child = new TextBlock { Classes = { "map-step-badge-text" }, Text = badge, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } },
+            new TextBlock { Classes = { "map-step-text" }, Text = title, VerticalAlignment = VerticalAlignment.Center },
+            new TextBlock { Classes = { "map-step-hint" }, Text = hint, VerticalAlignment = VerticalAlignment.Center },
+        },
+    };
+
+    private Control BuildStyleCard(string label, string shape, string style, string? purpose)
     {
         var accent = ThemeBrush("VexAccentBrush") ?? Brushes.Purple;
         var paperBrush = ThemeBrush("VexPanelBackgroundBrush") ?? Brushes.Transparent;
@@ -488,6 +504,9 @@ public partial class MarkdownMindMapHost : UserControl
         var name = new TextBlock { Classes = { "map-choice-label" }, Text = label, HorizontalAlignment = HorizontalAlignment.Left };
         var stack = new StackPanel { Spacing = 0 };
         stack.Children.Add(mini); stack.Children.Add(name);
+        // 原型 .map-choice-purpose：风格名看不出差别（线框改的是轮廓、脉络改的是底线），补一行灰字说明。
+        if (purpose is not null)
+            stack.Children.Add(new TextBlock { Classes = { "map-choice-purpose" }, Text = purpose, HorizontalAlignment = HorizontalAlignment.Left });
         return stack;
     }
 

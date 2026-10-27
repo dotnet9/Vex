@@ -144,12 +144,26 @@
   <Style Selector="Button.render-density-pill">
     <Setter Property="Height" Value="{DynamicResource VexSegmentedHeightRenderDensity}"/>
   </Style>
-  <!-- 原型 .appearance-tabs.vex-segmented（导图样式弹窗的 结构／风格）：gap 4、段最小宽 80、32×密度高、4×密度/14 内距、正文减 1 号字。 -->
-  <Style Selector="Button.map-appearance-tab">
-    <Setter Property="MinWidth" Value="80"/>
-    <Setter Property="MinHeight" Value="{DynamicResource VexSegmentedHeightMapTabs}"/>
-    <Setter Property="Padding" Value="{DynamicResource VexSegmentedPaddingMapTabs}"/>
+  <!-- 原型 .map-step-label（appearance.css:26-31）：①/② 圆徽 + 13/600 段名 + 11px 灰字提示，段名与徽标间距 7。
+       .nudge 只染段名，是「选完结构把视线引到第二排」的一次性提示，900ms 后由宿主撤类回落。 -->
+  <Style Selector="Border.map-step-badge">
+    <Setter Property="Width" Value="17"/><Setter Property="Height" Value="17"/>
+    <Setter Property="CornerRadius" Value="9"/><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="TextBlock.map-step-badge-text">
+    <Setter Property="FontSize" Value="11"/><Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="TextBlock.map-step-text">
     <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeBodySm}"/>
+    <Setter Property="FontWeight" Value="SemiBold"/><Setter Property="LineHeight" Value="20"/>
+  </Style>
+  <Style Selector="StackPanel.map-step-nudge > TextBlock.map-step-text">
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="TextBlock.map-step-hint">
+    <Setter Property="FontSize" Value="11"/><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
   </Style>
   <!-- 原型 .map-appearance-popover（appearance.css:23）：528 宽弹层，16 内距、8 圆角、1px 描边。 -->
   <Style Selector="FlyoutPresenter.map-appearance-popover">
@@ -188,6 +202,11 @@
     <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeBodySm}"/>
     <Setter Property="FontWeight" Value="Medium"/><Setter Property="LineHeight" Value="20"/>
     <Setter Property="Margin" Value="0,8,0,0"/>
+  </Style>
+  <!-- 原型 .map-choice-purpose：11/16 灰字紧跟段名，解释这张卡和隔壁那张差在哪。 -->
+  <Style Selector="TextBlock.map-choice-purpose">
+    <Setter Property="FontSize" Value="11"/><Setter Property="LineHeight" Value="16"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
   </Style>
   <!-- 原型最新（workspace-chrome）：卡片去边框、灰阶表面 + 轻阴影，选中 accent 环。 -->
   <Style Selector="Button.palette-card">
