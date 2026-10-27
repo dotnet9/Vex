@@ -1938,8 +1938,9 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(heading.SourceLine)); Pump();
     Check(wb.IsMindMap && map.SelectedNode?.Id == heading.Id && wb.SelectedNode?.Id == heading.Id, "Outline navigation reveals and selects the corresponding map node");
     wb.CloseInspector(); Pump(); Check(map.SelectedNode is null && !host.FindControl<Border>("NodeInspector")!.IsEffectivelyVisible, "Closing full text also clears canvas selection");
-    map.SetZoom(.01); Check(Math.Abs(map.Zoom - .15) < .001, "Map zoom respects the lower bound");
-    map.SetZoom(50); Check(Math.Abs(map.Zoom - 2.5) < .001, "Map zoom respects the upper bound"); map.Fit();
+    // 量程由宿主按演示/阅读分档给（演示 .15–3、阅读 .01–2），视图只负责照数钳住；这里是非演示态。
+    map.SetZoom(.01); Check(Math.Abs(map.Zoom - wb.MapZoomFloor) < .001 && wb.MapZoomFloor == .01, "Map zoom respects the reading lower bound: " + map.Zoom);
+    map.SetZoom(50); Check(Math.Abs(map.Zoom - wb.MapZoomCeiling) < .001 && wb.MapZoomCeiling == 2, "Map zoom respects the reading upper bound: " + map.Zoom); map.Fit();
     wb.ShowMapSource = true; Pump();
     Check(!source.FindControl<MarkdownEditorView>("MarkdownEditor")!.Editor.IsReadOnly, "Source and map allow synchronized editing in both views");
     wb.ShowMapSource = false;
