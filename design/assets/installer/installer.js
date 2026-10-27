@@ -91,12 +91,13 @@
    else if(state==='installed') content=`
      <div class="step-caption">已安装 · ${knownInstalled?`${esc(installedVersion)} · 安装于 ${esc(installedOn)}`:'版本未知'}</div>
      <div class="package-heading"><h2>安装包 ${version}</h2><div class="package-meta">${releaseDate?`<span class="release-date">${esc(releaseDate)} 发布</span>`:''}<button class="chip-link${changelogOpen?' on':''}" data-action="changelog" aria-expanded="${changelogOpen}">${changelogOpen?'收起更新日志':'查看更新日志'}</button></div></div>
-     <div class="information-card">安装位置<br><span class="install-file">${esc(directory)}</span></div>
+     ${maintenanceDetails?'':`<div class="information-card">安装位置<br><span class="install-file">${esc(directory)}</span></div>`}
      <div class="maintenance-links">${btn('安装详情'+chevron(maintenanceDetails),'details',false,`aria-expanded="${maintenanceDetails}"`)}</div>
      ${maintenanceDetails?`<div class="maintenance-details">
        <label class="maintenance-option"><input type="radio" name="maintenance-choice" value="repair" ${maintenanceChoice==='repair'?'checked':''}><span>修复 / 重新安装：Vex</span></label>
        <label class="maintenance-option"><input type="radio" name="maintenance-choice" value="remove" ${maintenanceChoice==='remove'?'checked':''}><span>卸载（当前用户）：Vex</span></label>
-       <!-- 安装位置整页只留上方那张 information-card：它随下面单选一起切换，展开详情再列一遍就是重复。 -->
+       <strong class="details-label">所选安装位置</strong>
+       <div class="location-list" role="listbox" aria-label="所选安装位置"><span class="location-item selected" role="option" aria-selected="true">${esc(directory)}</span></div>
      </div>`:''}
      <div class="install-actions"><span class="action-spacer"></span>${btn('关闭','cancel')}${btn(maintenanceLabel(),'execute',maintenanceChoice!=='remove')}</div>`;
    else if(state==='error') content=`

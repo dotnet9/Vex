@@ -1414,7 +1414,7 @@ begin
 
   Height:=360;
 
-  if Maintenance and VDetailsOpen then Height:=480;
+  if Maintenance and VDetailsOpen then Height:=620;
 
   if not Home and not Finished and not Installing and not Maintenance then Height:=560;
 
@@ -1496,9 +1496,6 @@ begin
 
   VBounds(WizardForm.OuterNotebook,208,242,404,280);
 
-  if Maintenance and VDetailsOpen then VBounds(WizardForm.OuterNotebook,208,242,404,100);
-  { 维护详情只有两条单选；展开后把内容列收到与选项同高，空隙留给底部操作栏，不撑成一条空白带。 }
-
   VBounds(WizardForm.InnerPage,0,0,404,280); VBounds(WizardForm.InnerNotebook,0,0,404,280);
 
   for I:=0 to WizardForm.InnerNotebook.PageCount-1 do VBounds(WizardForm.InnerNotebook.Pages[I],0,0,404,280);
@@ -1508,6 +1505,10 @@ begin
     CWMPage.SubCaptionLabel.Visible:=False;
 
     VBounds(CWMPage.CheckListBox,0,0,404,85); VFont(CWMPage.CheckListBox.Font,12,False);
+
+    VBounds(CWMLocationLabel,0,94,404,20); VFont(CWMLocationLabel.Font,12,False);
+
+    VBounds(CWMLocation,0,120,404,136); VFont(CWMLocation.Font,12,False);
 
     VStatus.Caption:=FmtMessage(CustomMessage('VPackage'),['{#AppVersion}']);
 
@@ -1533,7 +1534,8 @@ begin
 
   end;
 
-  VInstalled.Visible:=Main and Maintenance; VLocation.Visible:=Main and Maintenance;
+  { 展开详情后完整路径交给只读可复制的文本框，卡片再列一遍就是重复，而且它会被 MinimizePathName 截断。 }
+  VInstalled.Visible:=Main and Maintenance; VLocation.Visible:=Main and Maintenance and not VDetailsOpen;
 
   VBounds(VInstalled,209,29,402,18); VBounds(VLocation,222,130,376,48);
 

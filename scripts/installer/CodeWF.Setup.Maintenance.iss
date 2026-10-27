@@ -21,6 +21,8 @@ english.CWMAllUsers=All users
 chinesesimplified.CWMAllUsers=所有用户
 english.CWMUnknownLocation=Registered location is unavailable
 chinesesimplified.CWMUnknownLocation=无法确定注册的安装位置
+english.CWMSelectedLocation=Selected installation location
+chinesesimplified.CWMSelectedLocation=所选安装位置
 english.CWMUninstallButton=&Uninstall...
 chinesesimplified.CWMUninstallButton=卸载(&U)...
 english.CWMConfirmUninstall=Open the registered uninstaller for this installation?%n%nScope: %1%nLocation: %2%n%nThe system may request permission. Use the uninstaller to confirm or cancel.
@@ -49,6 +51,8 @@ type
 
 var
   CWMPage: TInputOptionWizardPage;
+  CWMLocationLabel: TNewStaticText;
+  CWMLocation: TMemo;
   CWMRegistrations: array[0..3] of TCWMRegistration;
   CWMRegistrationCount: Integer;
   CWMRepairPath: String;
@@ -187,6 +191,11 @@ begin
     if CWMPage.SelectedValueIndex > 0 then
       WizardForm.NextButton.Caption := CustomMessage('CWMUninstallButton')
     else WizardForm.NextButton.Caption := SetupMessage(msgButtonNext);
+    if CWMLocation <> nil then begin
+      if CWMPage.SelectedValueIndex > 0 then
+        CWMLocation.Text := CWMDisplayPath(CWMRegistrations[CWMPage.SelectedValueIndex-1].AppPath)
+      else CWMLocation.Text := CWMDisplayPath(CWMRepairPath);
+    end;
   end;
 end;
 
@@ -207,8 +216,15 @@ begin
     CWMPage.Add(FmtMessage(CustomMessage('CWMUninstallOption'), [CWMRegistrations[I].ScopeName, ExtractFileName(CWMRegistrations[I].AppPath)]));
   CWMPage.SelectedValueIndex := 0;
   CWMPage.CheckListBox.OnClickCheck := @CWMSelectionChanged;
-  { 完整路径由宿主（Vex.Setup.iss 的「安装位置」信息卡）统一展示，且随所选注册项一起切换；
-    页内不再另放一份只读文本框，免得升级时同一条路径上下重复两遍。 }
+  { 完整路径单独展示并可复制，避免长路径挤出操作名称和作用域。 }
+  CWMLocationLabel := TNewStaticText.Create(WizardForm);
+  CWMLocationLabel.Parent := CWMPage.Surface;
+  CWMLocationLabel.Caption := CustomMessage('CWMSelectedLocation');
+  CWMLocation := TMemo.Create(WizardForm);
+  CWMLocation.Parent := CWMPage.Surface;
+  CWMLocation.ReadOnly := True;
+  CWMLocation.WordWrap := True;
+  CWMLocation.ScrollBars := ssVertical;
 end;
 
 <event('InitializeWizard')>
@@ -297,6 +313,8 @@ begin
     CWMPage.SubCaptionLabel.Width := CWMPage.SurfaceWidth;
     CWMPage.SubCaptionLabel.Height := ScaleY(54);
     CWMPage.CheckListBox.SetBounds(0, ScaleY(66), CWMPage.SurfaceWidth, ScaleY(100));
+    CWMLocationLabel.SetBounds(0, ScaleY(180), CWMPage.SurfaceWidth, ScaleY(24));
+    CWMLocation.SetBounds(0, ScaleY(210), CWMPage.SurfaceWidth, CWMPage.SurfaceHeight-ScaleY(210));
     #ifdef CodeWFSetupVisualEngine
       CWStepLabels[0].Caption := '↺    ' + CustomMessage('CWMMaintenance');
       CWFooter.Caption := CustomMessage('CWMMaintenance') + '   ·   {#CodeWFSetupProductName}';
