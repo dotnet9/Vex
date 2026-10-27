@@ -42,8 +42,6 @@ public static class VexL
     public static readonly string AboutChineseNameLabel = "Vex.VexL.AboutChineseNameLabel";
     public static readonly string AboutVersionLabel = "Vex.VexL.AboutVersionLabel";
     public static readonly string AboutCompileTimeLabel = "Vex.VexL.AboutCompileTimeLabel";
-    public static readonly string AboutAuthorLabel = "Vex.VexL.AboutAuthorLabel";
-    public static readonly string AboutAuthorName = "Vex.VexL.AboutAuthorName";
     public static readonly string AboutWebsiteLabel = "Vex.VexL.AboutWebsiteLabel";
     public static readonly string AboutBrandLabel = "Vex.VexL.AboutBrandLabel";
     public static readonly string AboutBrandName = "Vex.VexL.AboutBrandName";
@@ -256,6 +254,8 @@ public static class VexL
     public static readonly string StyleVein = "Vex.VexL.StyleVein";
     public static readonly string StyleMono = "Vex.VexL.StyleMono";
     public static readonly string WBMapStyleButton = "Vex.VexL.WBMapStyleButton";
+    public static readonly string MapTabStructure = "Vex.VexL.MapTabStructure";
+    public static readonly string MapTabStyle = "Vex.VexL.MapTabStyle";
     public static readonly string MenuSaveAll = "Vex.VexL.MenuSaveAll";
     public static readonly string MenuImport = "Vex.VexL.MenuImport";
     public static readonly string ImportHtml = "Vex.VexL.ImportHtml";
@@ -492,6 +492,15 @@ public static class VexL
     public static readonly string ErrorMessageImageDropFailed = "Vex.VexL.ErrorMessageImageDropFailed";
     public static readonly string MenuAutoPair = "Vex.VexL.MenuAutoPair";
     public static readonly string MenuMotion = "Vex.VexL.MenuMotion";
+    public static readonly string MotionFull = "Vex.VexL.MotionFull";
+    public static readonly string MotionReduced = "Vex.VexL.MotionReduced";
+    public static readonly string MotionOff = "Vex.VexL.MotionOff";
+    public static readonly string MotionModeNote = "Vex.VexL.MotionModeNote";
+    public static readonly string PrefCornerRadius = "Vex.VexL.PrefCornerRadius";
+    public static readonly string RadiusSquare = "Vex.VexL.RadiusSquare";
+    public static readonly string RadiusCompact = "Vex.VexL.RadiusCompact";
+    public static readonly string RadiusStandard = "Vex.VexL.RadiusStandard";
+    public static readonly string RadiusModeNote = "Vex.VexL.RadiusModeNote";
     public static readonly string QuickOpenEmpty = "Vex.VexL.QuickOpenEmpty";
     public static readonly string CopyPlainText = "Vex.VexL.CopyPlainText";
     public static readonly string MenuFocusMode = "Vex.VexL.MenuFocusMode";

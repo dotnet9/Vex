@@ -7,6 +7,8 @@ using Avalonia.Data.Converters;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using Vex.Controls;
+using Vex.Core.Motion;
 using Vex.Core.Services;
 using Vex.Modules.Shell.ViewModels;
 
@@ -132,9 +134,16 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 FolderRow(page, VexL.PrefImageFolder, p, nameof(p.ImageFolder));
                 break;
             case "appearance":
-                // 对应原型外观页：界面动效 + 完整水印参数与实时样例；配色与排版入口在标题栏「外观」。
-                // 水印开关只在视图菜单出现一处，偏好页不重复放置。
-                Toggle(page, VexL.MenuMotion, _model.Layout, nameof(_model.Layout.EnableMotion));
+                // 对应原型外观页：界面动效 + 界面圆角两个三态分段控件，再是完整水印参数与实时样例；
+                // 配色与排版入口在标题栏「外观」，水印开关只在视图菜单出现一处，偏好页不重复放置。
+                Segmented(page, VexL.MenuMotion, _model.Layout, nameof(_model.Layout.MotionMode),
+                    () => _model.Layout.MotionMode, value => _model.Layout.MotionMode = value,
+                    [(MotionModes.Full, L("Vex.VexL.MotionFull")), (MotionModes.Reduced, L("Vex.VexL.MotionReduced")), (MotionModes.Off, L("Vex.VexL.MotionOff"))],
+                    "Vex.VexL.MotionModeNote");
+                Segmented(page, "Vex.VexL.PrefCornerRadius", _model.Appearance, nameof(_model.Appearance.RadiusMode),
+                    () => _model.Appearance.RadiusMode, value => _model.Appearance.RadiusMode = value,
+                    [("square", L("Vex.VexL.RadiusSquare")), ("compact", L("Vex.VexL.RadiusCompact")), ("standard", L("Vex.VexL.RadiusStandard"))],
+                    "Vex.VexL.RadiusModeNote");
                 Heading(page, VexL.PrefWatermark);
                 Text(page, VexL.PrefWatermarkText, p, nameof(p.WatermarkText));
                 Range(page, VexL.PrefWatermarkFontSize, p, nameof(p.WatermarkFontSize), 12, 36, " px");
@@ -153,14 +162,12 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Toggle(page, VexL.PrefHtmlStyle, p, nameof(p.HtmlStyle));
                 break;
             case "mcp":
-                // 对齐原型 .vex-mcp-tabs（workspace-chrome 把轨道覆盖成胶囊）：等宽三段、999 圆角、
-                // 选中实心底 + 主色上文字并加粗，页签与内容之间留 16。
+                // 对齐原型 .vex-mcp-tabs：它就是 .vex-segmented 的一份宿主——轨道、滑动指示块、选中字色字重
+                // 全走共享配方，宿主只给 gap 4、button{flex:1} 等宽与 28×密度的基准高；页签与内容之间留 16。
                 var mcpRoot = new StackPanel { Spacing = 16 };
                 var mcpHost = new ContentControl();
-                var tabTrack = new Border { Padding = new Thickness(3), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(999) };
-                BindResource(tabTrack, Border.BackgroundProperty, "VexElevatedBackgroundBrush");
-                BindResource(tabTrack, Border.BorderBrushProperty, "VexPanelBorderBrush");
-                var tabBar = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 4 };
+                var tabTrack = new Border { Classes = { "vex-segmented", "mcp-tabs" } };
+                var tabBar = new VexSegmentedPanel { Spacing = 4, FillItems = true };
                 tabTrack.Child = tabBar;
                 var mcpPeers = new List<Button>();
                 Control BuildServer() => new McpSettingsOverlayView(embedded: true) { DataContext = _model.Mcp };
@@ -169,21 +176,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 void SelectTab(Button selected, Func<Control> build)
                 {
                     foreach (var peer in mcpPeers)
-                    {
-                        var isSelected = ReferenceEquals(peer, selected);
-                        // 构造期弹层还没挂树，主题色必须走延迟绑定，否则选中态永远没有颜色。
-                        peer.FontWeight = isSelected ? FontWeight.SemiBold : FontWeight.Normal;
-                        if (isSelected)
-                        {
-                            BindResource(peer, Button.BackgroundProperty, "VexAccentBrush");
-                            BindResource(peer, Button.ForegroundProperty, "StudioOnPrimary");
-                        }
-                        else
-                        {
-                            peer.Background = Brushes.Transparent;
-                            BindResource(peer, Button.ForegroundProperty, "VexMutedBrush");
-                        }
-                    }
+                        VexSegmentedPanel.SetIsActive(peer, ReferenceEquals(peer, selected));
                     mcpHost.Content = build();
                 }
                 foreach (var (name, label, build) in new (string, string, Func<Control>)[]
@@ -193,8 +186,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
                     ("McpTabAudit", L(VexL.McpTabAudit), BuildAudit),
                 })
                 {
-                    var tab = new Button { Name = name, Content = label, FontSize = 12, MinHeight = 28, Padding = new Thickness(10, 4), CornerRadius = new CornerRadius(999), HorizontalContentAlignment = HorizontalAlignment.Center };
-                    Grid.SetColumn(tab, mcpPeers.Count);
+                    var tab = new Button { Name = name, Classes = { "vex-segment", "mcp-tab" }, Content = label };
                     tab.Click += (_, _) => SelectTab(tab, build);
                     mcpPeers.Add(tab); tabBar.Children.Add(tab);
                 }
@@ -238,24 +230,19 @@ public sealed class ShellPreferencesOverlayView : UserControl
         return block;
     }
 
-    /// <summary>MCP 客户端页（对齐原型 .vex-mcp-subtabs）：状态行 + 下划线二级页签 + 对应配置正文。</summary>
+    /// <summary>客户端页（对齐原型 .vex-mcp-tabs.vex-mcp-subtabs.vex-segmented）：状态行 + 与一级同语言的胶囊分段 + 配置正文。</summary>
     private Control BuildMcpClientsPage()
     {
         var page = new StackPanel { Spacing = 0 };
         var host = new ContentControl();
-        var bar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 18 };
+        var subTrack = new Border { Classes = { "vex-segmented", "mcp-tabs", "mcp-subtabs" } };
+        var bar = new VexSegmentedPanel { Spacing = 4, FillItems = true };
+        subTrack.Child = bar;
         var peers = new List<Button>();
         void SelectTab(Button selected, Func<Control> build)
         {
             foreach (var peer in peers)
-            {
-                var isSelected = ReferenceEquals(peer, selected);
-                // 二级页签选中态只换字色与字重（原型 600），2 像素下划线始终占位，切换不跳字。
-                BindResource(peer, Button.ForegroundProperty, isSelected ? "VexAccentBrush" : "VexMutedBrush");
-                peer.FontWeight = isSelected ? FontWeight.SemiBold : FontWeight.Normal;
-                if (isSelected) BindResource(peer, Button.BorderBrushProperty, "VexAccentBrush");
-                else peer.BorderBrush = Brushes.Transparent;
-            }
+                VexSegmentedPanel.SetIsActive(peer, ReferenceEquals(peer, selected));
             host.Content = build();
         }
         foreach (var (name, label, build) in new (string, string, Func<Control>)[]
@@ -264,26 +251,13 @@ public sealed class ShellPreferencesOverlayView : UserControl
             ("McpSubStdio", L(VexL.McpStdioBridge), BuildMcpStdioPane),
         })
         {
-            var tab = new Button
-            {
-                Name = name,
-                Content = label,
-                FontSize = 13,
-                MinHeight = 32,
-                Padding = new Thickness(2, 6, 2, 9),
-                Background = Brushes.Transparent,
-                BorderThickness = new Thickness(0, 0, 0, 2),
-                CornerRadius = default,
-            };
+            var tab = new Button { Name = name, Classes = { "vex-segment", "mcp-tab", "mcp-subtab" }, Content = label };
             tab.Click += (_, _) => SelectTab(tab, build);
             peers.Add(tab); bar.Children.Add(tab);
         }
         SelectTab(peers[0], BuildMcpHttpPane);
-        // 容器底边一条分隔线，选中页签的 2px 下划线正好压在上面（原型 bottom:-1px）。
-        var rule = new Border { BorderThickness = new Thickness(0, 0, 0, 1), Child = bar, Margin = new Thickness(0, 0, 0, 14) };
-        BindResource(rule, Border.BorderBrushProperty, "VexPanelBorderBrush");
         page.Children.Add(BuildMcpStatusRow());
-        page.Children.Add(rule);
+        page.Children.Add(subTrack);
         page.Children.Add(host);
         return page;
     }
@@ -375,6 +349,39 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var toggle = new ToggleButton { Name = property, Classes = { "pref-switch" } };
         toggle.Bind(ToggleButton.IsCheckedProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, toggle, note);
+    }
+
+    /// <summary>
+    /// 原型 .vex-pref-segmented（preferences.js 的 segmented()）：互斥项一律用共享分段控件呈现，
+    /// 轨道固定 196 等分（prototype.css:214-215），段高走 --control-h-sm、内距与字号走密度令牌。
+    /// 值改变既可能来自这里，也可能来自标题栏菜单，所以选中态订阅回模型，且随视觉树挂卸避免换页后留下旧订阅。
+    /// </summary>
+    private void Segmented(StackPanel page, string label, INotifyPropertyChanged source, string property,
+        Func<string> get, Action<string> set, (string Value, string Label)[] options, string? note = null)
+    {
+        var bar = new VexSegmentedPanel { FillItems = true };
+        var track = new Border { Classes = { "vex-segmented", "pref-segmented" }, Width = 196, Child = bar };
+        var buttons = options.Select(option =>
+        {
+            var button = new Button { Classes = { "vex-segment", "pref-segment" }, Content = option.Label };
+            button.Click += (_, _) => set(option.Value);
+            bar.Children.Add(button);
+            return (Option: option, Button: button);
+        }).ToArray();
+        void Sync()
+        {
+            var current = get();
+            foreach (var (option, button) in buttons)
+                VexSegmentedPanel.SetIsActive(button, option.Value == current);
+        }
+        void Changed(object? sender, PropertyChangedEventArgs args)
+        {
+            if (args.PropertyName == property) Sync();
+        }
+        Sync();
+        track.AttachedToVisualTree += (_, _) => { source.PropertyChanged += Changed; Sync(); };
+        track.DetachedFromVisualTree += (_, _) => source.PropertyChanged -= Changed;
+        Row(page, label, track, note);
     }
     private void Range(StackPanel page, string label, object source, string property, double minimum, double maximum, string suffix)
     {

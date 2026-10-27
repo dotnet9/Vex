@@ -18,7 +18,7 @@
         <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="999" />
+        <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />
         <Setter Property="ClipToBounds" Value="False" />
         <Setter Property="Template">
             <ControlTemplate TargetType="vex:VexZoomDock">
@@ -100,7 +100,7 @@
             <Setter Property="Padding" Value="7,2" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />
             <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
         </Style>
         <Style Selector="^ /template/ Button.vex-zoom-reset Path">

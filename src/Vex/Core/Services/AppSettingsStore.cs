@@ -41,7 +41,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string MindMapShowTables = nameof(AppSettings.MindMapShowTables);
     private const string MindMapShowLists = nameof(AppSettings.MindMapShowLists);
     private const string EnableAutoPair = nameof(AppSettings.EnableAutoPair);
-    private const string EnableMotion = nameof(AppSettings.EnableMotion);
+    private const string MotionMode = nameof(AppSettings.MotionMode);
+    private const string RadiusMode = nameof(AppSettings.RadiusMode);
     private const string IsFocusMode = nameof(AppSettings.IsFocusMode);
     private const string IsTypewriterMode = nameof(AppSettings.IsTypewriterMode);
     private const string IsOutlineVisible = nameof(AppSettings.IsOutlineVisible);
@@ -212,7 +213,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
             MindMapShowTables = Get<bool?>(configuration, MindMapShowTables),
             MindMapShowLists = Get<bool?>(configuration, MindMapShowLists),
             EnableAutoPair = Get<bool?>(configuration, EnableAutoPair),
-            EnableMotion = Get<bool?>(configuration, EnableMotion),
+            MotionMode = Choice(configuration, MotionMode, "full", "full", "reduced", "off"),
+            RadiusMode = Choice(configuration, RadiusMode, "standard", "standard", "compact", "square"),
             IsFocusMode = Get<bool?>(configuration, IsFocusMode),
             IsTypewriterMode = Get<bool?>(configuration, IsTypewriterMode)
         };
@@ -308,7 +310,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [MindMapShowTables] = settings.MindMapShowTables,
                 [MindMapShowLists] = settings.MindMapShowLists,
                 [EnableAutoPair] = settings.EnableAutoPair,
-                [EnableMotion] = settings.EnableMotion,
+                [MotionMode] = settings.MotionMode,
+                [RadiusMode] = settings.RadiusMode,
                 [IsFocusMode] = settings.IsFocusMode,
                 [IsTypewriterMode] = settings.IsTypewriterMode
             });

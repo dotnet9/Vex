@@ -81,8 +81,11 @@ public sealed record AppSettings
 
     public bool? McpRequireConfirmation { get; init; }
 
-    /// <summary>界面动效总开关（关闭后所有过渡时长归零）。</summary>
-    public bool? EnableMotion { get; init; }
+    /// <summary>界面动效三档（full/reduced/off），对应原型 data-motion；off 即所有过渡立即到位。</summary>
+    public string? MotionMode { get; init; }
+
+    /// <summary>界面圆角三档（standard/compact/square），对应原型 data-radius；只缩放控件圆角，不影响尺寸。</summary>
+    public string? RadiusMode { get; init; }
 
     /// <summary>专注模式：隐藏侧栏与状态栏。</summary>
     public bool? IsFocusMode { get; init; }

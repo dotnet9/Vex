@@ -24,7 +24,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private WindowState _windowStateBeforeFullScreen;
     private bool _isPresentationMode;
     private bool _isSourceMode = true;
-    private bool _enableMotion = true;
+    private string _motionMode = MotionModes.Full;
     private bool _isFocusMode;
     private bool _isTypewriterMode;
     private bool? _sidebarVisibleBeforeFocus;
@@ -76,14 +76,14 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _isPreviewVisible = settings.IsPreviewVisible ?? true;
         _isSourceMode = settings.IsSourceMode ?? true;
         _isAlwaysOnTop = settings.IsAlwaysOnTop ?? false;
-        _enableMotion = settings.EnableMotion ?? true;
+        _motionMode = settings.MotionMode ?? MotionModes.Full;
         _isTypewriterMode = settings.IsTypewriterMode ?? false;
         _isFocusMode = settings.IsFocusMode ?? false;
         _sidebarWidth = Math.Clamp(settings.SidebarWidth ?? DefaultSidebarWidth, MinSidebarWidth, MaxSidebarWidth);
         _isOutlineVisible = settings.IsOutlineVisible ?? false;
         _outlineWidth = Math.Clamp(settings.OutlineWidth ?? 240, 180, 480);
         _splitRatios = ParseRatios(settings.ViewSplitRatios);
-        MotionResources.Apply(_enableMotion);
+        MotionResources.Apply(_motionMode);
         if (_isFocusMode)
         {
             _sidebarVisibleBeforeFocus = true;
@@ -330,20 +330,25 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public GridLength PreviewSplitterWidth => IsSourceMode && IsPreviewVisible ? new GridLength(1) : new GridLength(0);
 
     /// <summary>
-    /// 界面动效总开关：关闭时三档动效时长归零，已有过渡立即到达终态。
+    /// 界面动效三档（原型 data-motion）：完整、精简（时长 ×0.35）、关闭（时长归零，过渡立即到达终态）。
     /// </summary>
-    public bool EnableMotion
+    public string MotionMode
     {
-        get => _enableMotion;
+        get => _motionMode;
         set
         {
-            if (SetProperty(ref _enableMotion, value))
-            {
-                MotionResources.Apply(value);
-                _statusPublisher.PublishResource(value ? VexL.StatusMotionEnabled : VexL.StatusMotionDisabled);
-                PersistLayoutSettings();
-            }
+            if (!SetProperty(ref _motionMode, value)) return;
+            MotionResources.Apply(value);
+            _statusPublisher.PublishResource(value == MotionModes.Off ? VexL.StatusMotionDisabled : VexL.StatusMotionEnabled);
+            PersistLayoutSettings();
         }
+    }
+
+    /// <summary>视图菜单与偏好页共用的动效快开关：只切「开 ↔ 关闭」，关掉再打开回到完整档。</summary>
+    public bool EnableMotion
+    {
+        get => _motionMode != MotionModes.Off;
+        set => MotionMode = value ? MotionModes.Full : MotionModes.Off;
     }
 
     /// <summary>
@@ -546,7 +551,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             SidebarWidth = SidebarWidth,
             IsOutlineVisible = IsOutlineVisible,
             OutlineWidth = OutlineWidth,
-            EnableMotion = EnableMotion,
+            MotionMode = MotionMode,
             IsFocusMode = IsFocusMode,
             IsTypewriterMode = IsTypewriterMode,
             ViewSplitRatios = SerializeRatios(_splitRatios)

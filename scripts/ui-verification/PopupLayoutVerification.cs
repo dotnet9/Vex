@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Controls.Presenters;
 using Avalonia.Interactivity;
+using Vex.Controls;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
 using Vex.Core.Services;
@@ -84,7 +85,7 @@ internal static class PopupLayoutVerification
         var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
         var cardScroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
         // 原型 #typography-panel：渲染密度胶囊在顶部（卡片滚动区之上），页脚复选框已随原型移除。
-        var densityPill = gallery.GetVisualDescendants().OfType<Button>().First(b => b.Classes.Contains("appearance-pill"));
+        var densityPill = gallery.GetVisualDescendants().OfType<Button>().First(b => b.Classes.Contains("density-pill"));
         Check(densityPill.TranslatePoint(default, gallery)!.Value.Y < cardScroll.TranslatePoint(default, gallery)!.Value.Y, "Render density pills sit above the scrolling cards");
         var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true && b.IsVisible).Take(3).ToArray();
         Check(cards.Max(c => c.Bounds.Height) - cards.Min(c => c.Bounds.Height) < 1, "Typography cards in a row stretch to the same height");
@@ -110,6 +111,20 @@ internal static class PopupLayoutVerification
         }
         Capture(preferenceCard, "preferences");
         ((ShellPreferencesViewModel)preferences.DataContext!).Close(); Render();
+        // 原型 .vex-pref-segmented：外观页的界面动效/界面圆角两行都是 196 等宽三段分段控件。
+        overlay.ShowPreferencesAsync(app.Resolve<ShellPreferencesViewModel>(), "appearance"); Render();
+        var appearancePage = window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Single();
+        var appearanceCard = appearancePage.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
+        foreach (var track in appearancePage.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("pref-segmented")))
+        {
+            var segments = ((VexSegmentedPanel)track.Child!).Children.OfType<Button>().ToArray();
+            Check(track.Bounds.Width == 196 && segments.Length == 3 && segments.Count(s => s.Bounds.Width > 0) == 3
+                  && segments.All(s => Math.Abs(s.Bounds.Width - segments[0].Bounds.Width) < .5),
+                $"Preference segmented track is 196px with three equal segments: {track.Bounds.Width} / {string.Join(",", segments.Select(s => s.Bounds.Width))}");
+            Check(segments.Count(s => VexSegmentedPanel.GetIsActive(s)) == 1, "Exactly one preference segment is selected");
+        }
+        Capture(appearanceCard, "preferences-appearance");
+        ((ShellPreferencesViewModel)appearancePage.DataContext!).Close(); Render();
         var aboutTask = overlay.ShowAboutAsync(); Render();
         var about = window.GetVisualDescendants().OfType<ShellAboutOverlayView>().Single();
         var aboutCard = about.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));

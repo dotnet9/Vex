@@ -27,6 +27,8 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
     private TypographyOption? _selectedTypography;
     private LanguageOption? _selectedLanguage;
     private string _selectedDensity;
+    private string _radiusMode = "standard";
+    private double _radiusScale = 1;
     private string _markdownDensity;
 
     public ShellAppearanceViewModel(
@@ -69,6 +71,8 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
                               ?? TypographyOptions.FirstOrDefault();
         _isCompactLayout = settings.IsCompactLayout ?? false;
         _selectedDensity = settings.UiDensity is "compact" or "relaxed" ? settings.UiDensity : "normal";
+        _radiusMode = settings.RadiusMode is "compact" or "square" ? settings.RadiusMode : "standard";
+        _radiusScale = RadiusScale(_radiusMode);
         ApplyUiDensity(_selectedDensity);
         // 未落盘的旧设置用 IsCompactLayout 迁移出初始档，保持升级前后正文大小一致。
         _markdownDensity = settings.MdSize is "compact" or "normal" or "relaxed"
@@ -163,8 +167,29 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// 界面圆角三档（原型 data-radius，prototype.css:19-20）：标准 ×1、紧凑 ×0.5、直角 ×0。
+    /// 只缩放圆角令牌，控件高宽一律不动。
+    /// </summary>
+    public string RadiusMode
+    {
+        get => _radiusMode;
+        set
+        {
+            if (value is not ("standard" or "compact" or "square")) return;
+            if (SetProperty(ref _radiusMode, value))
+            {
+                _radiusScale = RadiusScale(value);
+                ApplyUiDensity(SelectedDensity);
+                PersistAppearanceSettings();
+            }
+        }
+    }
+
+    private static double RadiusScale(string mode) => mode switch { "compact" => .5, "square" => 0, _ => 1 };
+
     /// <summary>UI 密度令牌（规则 §6 显式值表）：字号/控件高/间距/圆角写入应用资源供全控件消费。</summary>
-    private static void ApplyUiDensity(string density)
+    private void ApplyUiDensity(string density)
     {
         if (global::Avalonia.Application.Current is not { } app) return;
         var (caption, body, subtitle, title, display, hSm, hMd, hLg, padSm, padMd, padLg, radSm, radMd, radLg, rowH, icon) = density switch
@@ -175,6 +200,8 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         };
         app.Resources["VexDensityFontSizeCaption"] = caption;
         app.Resources["VexDensityFontSizeBody"] = body;
+        // 原型多处取 calc(var(--fs-body) - 1px)（MCP 二级页签、设置里的分段行），单列一档令牌免得各处写死 13。
+        app.Resources["VexDensityFontSizeBodySm"] = body - 1;
         app.Resources["VexDensityFontSizeSubtitle"] = subtitle;
         app.Resources["VexDensityFontSizeTitle"] = title;
         app.Resources["VexDensityFontSizeDisplay"] = display;
@@ -186,9 +213,11 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         app.Resources["VexDensityPaddingLg"] = padLg;
         // 圆角令牌必须以 CornerRadius 装箱：样式里的 DynamicResource 直传属性存储，不做 double 隐式转换，
         // 否则 VexZoomDock 模板的气球圆角会在装载时报 Unable to cast Double to CornerRadius。
-        app.Resources["VexDensityCornerRadiusSm"] = new Avalonia.CornerRadius(radSm);
-        app.Resources["VexDensityCornerRadiusMd"] = new Avalonia.CornerRadius(radMd);
-        app.Resources["VexDensityCornerRadiusLg"] = new Avalonia.CornerRadius(radLg);
+        // 三档圆角（原型 --radius-scale）只乘圆角，不碰控件高宽；胶囊在直角档同样归零（原型 --vex-radius-pill 也乘 scale）。
+        app.Resources["VexDensityCornerRadiusSm"] = new Avalonia.CornerRadius(radSm * _radiusScale);
+        app.Resources["VexDensityCornerRadiusMd"] = new Avalonia.CornerRadius(radMd * _radiusScale);
+        app.Resources["VexDensityCornerRadiusLg"] = new Avalonia.CornerRadius(radLg * _radiusScale);
+        app.Resources["VexDensityCornerRadiusPill"] = new Avalonia.CornerRadius(999 * _radiusScale);
         app.Resources["VexDensityRowHeight"] = rowH;
         app.Resources["VexDensityIconSize"] = icon;
         // 缩放坞（原型 .vex-zoomdock）几何：坞高=控件中档、内缩=pad-sm 减 1px 描边、条宽=坞高×1.875、
@@ -200,6 +229,20 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         app.Resources["VexZoomDockResetHeight"] = hMd - 9;
         app.Resources["VexZoomDockDividerHeight"] = hMd - 17;
         app.Resources["VexZoomDockIconSize"] = icon + 2;
+        // 分段控件（原型 .vex-segmented）几何：--seg-scale 就是 control-h-sm ÷ 28（design/assets/prototype/segmented.css:4-6），
+        // 各宿主的基准高与内距都乘它，切「界面密度」时轨道、指示块和文字一起缩，不需要逐处改数值。
+        var segScale = hSm / 28;
+        app.Resources["VexSegmentedScale"] = segScale;
+        app.Resources["VexSegmentedHeightView"] = 26 * segScale;
+        app.Resources["VexSegmentedPaddingView"] = new Avalonia.Thickness(14, 3 * segScale);
+        app.Resources["VexSegmentedPaddingMcp"] = new Avalonia.Thickness(10, 4 * segScale);
+        app.Resources["VexSegmentedHeightDensity"] = 22 * segScale;
+        app.Resources["VexSegmentedPaddingDensity"] = new Avalonia.Thickness(10, 2 * segScale);
+        app.Resources["VexSegmentedHeightRenderDensity"] = 24 * segScale;
+        app.Resources["VexSegmentedHeightMapTabs"] = 32 * segScale;
+        app.Resources["VexSegmentedPaddingMapTabs"] = new Avalonia.Thickness(14, 4 * segScale);
+        // 原型 .vex-pref-segmented > button：4×密度/6 内距、正文减 1 号字（prototype.css:215）。
+        app.Resources["VexSegmentedPaddingPref"] = new Avalonia.Thickness(6, 4 * segScale);
     }
 
     /// <summary>Markdown 渲染密度三档（对应原型 data-mdsize，基准正文 13/15/17）。</summary>
@@ -464,6 +507,7 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
             PaletteKey = SelectedPalette?.Key,
             TypographyKey = SelectedTypography?.Key,
             UiDensity = SelectedDensity,
+            RadiusMode = RadiusMode,
             MdSize = MarkdownDensity,
             IsCompactLayout = IsCompactLayout,
             CultureName = SelectedLanguage?.CultureName

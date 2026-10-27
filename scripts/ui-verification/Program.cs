@@ -42,7 +42,7 @@ if (mode == "parity-score")
     VisualParityScore.Run(args.Skip(1).ToArray());
     return;
 }
-if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry")
+if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -69,6 +69,8 @@ if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "set
     else if (mode == "prototype-chrome") PrototypeChromeVerification.Run(app, window, output);
     else if (mode == "visual") VisualParityCapture.Run(app, window, output);
     else if (mode == "render-geometry") RenderGeometryProbe.Run(app, window, output);
+    else if (mode == "map-popup") MapPopupProbe.Run(app, window, output);
+    else if (mode == "motion-radius") MotionRadiusProbe.Run(app, window, output);
     else if (mode is "settings-ui" or "settings-real-ui") PreferencesVerification.Run(app, window, output);
     else DesktopParityVerification.Run(app, window, output);
     window.Close();
@@ -2071,8 +2073,8 @@ void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
         foreach (var expected in new[] { StudioThemeMode.Light, StudioThemeMode.Dark, StudioThemeMode.System })
         {
             var content = (Control)((Flyout)menu.AppearanceButton.Flyout!).Content!;
-            // 外观菜单已按原型改为 appearance-pill；模式行 = 紧凑密度按钮所在行。
-            var modes = content.GetLogicalDescendants().OfType<Button>().Where(b => b.Classes.Contains("appearance-pill")).ToArray();
+            // 外观菜单密度行与模式行都是 .density-options.vex-segmented；前 3 枚是密度，后 3 枚是模式。
+            var modes = content.GetLogicalDescendants().OfType<Button>().Where(b => b.Classes.Contains("density-pill")).ToArray();
             Check(modes.Length == 6, "Appearance menu exposes three density and three mode pills");
             var index = expected switch { StudioThemeMode.Light => 3, StudioThemeMode.Dark => 4, _ => 5 };
             modes[index].RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
@@ -2572,7 +2574,7 @@ public sealed class MemorySettings : IAppSettingsStore
     public int UpdateCount { get; private set; }
     public AppSettings Current { get; private set; } = new()
     {
-        ThemeKey = "light", HasSeenOnboardingGuide = true, EnableMotion = false,
+        ThemeKey = "light", HasSeenOnboardingGuide = true, MotionMode = "off",
         IsMcpServerEnabled = false, IsSidebarVisible = true
     };
     public AppSettings Update(Func<AppSettings, AppSettings> update)
