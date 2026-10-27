@@ -20,9 +20,6 @@ public partial class ShellFilesView : UserControl
         InitializeComponent();
         FilesModeIcon.Data = MenuIconCatalog.Get("list-start");
         FilesListModeIcon.Data = MenuIconCatalog.Get("layout-list");
-        FilesPanelCollapseIcon.Data = MenuIconCatalog.Get("panel-right-close");
-        FilesPanelCollapseIcon.RenderTransform = new ScaleTransform(-1, 1);
-        FilesPanelCollapseIcon.RenderTransformOrigin = RelativePoint.Center;
         UpdateToolbarIcons();
         MenuIconCatalog.Apply((ContextMenu)FileTree.ContextMenu!);
         MenuIconCatalog.Apply((ContextMenu)FileList.ContextMenu!);

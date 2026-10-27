@@ -353,7 +353,6 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         _floatingSession = null;
         _shellVm.Layout.IsOutlineVisible = _outline; _shellVm.Layout.IsFocusMode = _focus; _shellVm.Layout.IsSidebarVisible = _sidebar; _shellVm.Layout.IsStatusBarVisible = _status;
         if (_savedSettings is { } saved) _settings?.Update(_ => saved with { HasSeenOnboardingGuide = true });
-        if (_window?.FindControl<Button>("QuickStartButton") is { } quickStart) quickStart.IsVisible = false;
         var window = _window;
         var mapState = _mapState;
         var focus = _savedFocus;

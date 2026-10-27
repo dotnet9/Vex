@@ -30,10 +30,13 @@ public partial class MainWindow : CodeWFWindow
     public MainWindow()
     {
         InitializeComponent();
-        SidebarExpandIcon.Data = MenuIconCatalog.Get("panel-right-open");
-        SidebarExpandIcon.RenderTransform = new ScaleTransform(-1, 1);
-        SidebarExpandIcon.RenderTransformOrigin = RelativePoint.Center;
-        OutlineExpandIcon.Data = MenuIconCatalog.Get("panel-right-open");
+        // 简单尖括号：< 和 >
+        // 展开按钮：文件面板折叠时显示 > (向右展开)，大纲面板折叠时显示 < (向左展开)
+        SidebarExpandIcon.Data = Geometry.Parse("M9 6L15 12L9 18");   // >
+        OutlineExpandIcon.Data = Geometry.Parse("M15 6L9 12L15 18");  // <
+        // 折叠按钮：文件面板展开时显示 < (向左折叠)，大纲面板展开时显示 > (向右折叠)
+        SidebarCollapseIcon.Data = Geometry.Parse("M15 6L9 12L15 18"); // <
+        OutlineCollapseIcon.Data = Geometry.Parse("M9 6L15 12L9 18");  // >
         var confirmation = MindMapGuideTarget.DetachConfirmation();
         Grid.SetRowSpan(confirmation, 4); ShellGuideRoot.Children.Add(confirmation);
         WorkspaceViews = new WorkspaceViewController(this, ViewSurface, FloatingViewShelf);
@@ -202,21 +205,13 @@ public partial class MainWindow : CodeWFWindow
             _startupArguments?.PublishStartupArguments(startupArguments);
         }
 
-        QueueFirstRunOnboardingGuide();
         _ = _mcpServerHost?.ApplySettingsAsync();
-    }
-
-    private void QueueFirstRunOnboardingGuide()
-    {
-        QuickStartButton.IsVisible = _settingsStore?.Current.HasSeenOnboardingGuide != true;
     }
 
     private void TitleMenuView_OnBeginGuideRequested(object? sender, EventArgs e) => BeginOnboardingGuide();
 
     /// <summary>原型把布局切换入口放在状态栏中央（原第二行工具栏已并入标题栏与状态栏）。</summary>
     public Button LayoutTarget => StatusBarGuideTarget.FindControl<Button>("LayoutButton")!;
-
-    private void QuickStartClick(object? sender, RoutedEventArgs e) => BeginOnboardingGuide();
 
     public void BeginOnboardingGuide()
     {

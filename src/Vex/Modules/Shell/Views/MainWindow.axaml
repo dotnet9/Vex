@@ -83,9 +83,6 @@
     <codewf:CodeWFWindow.RightContent>
         <StackPanel x:Name="TitleBarAppearance" Orientation="Horizontal" Spacing="6" Margin="0,0,8,0"
                     VerticalAlignment="Center" IsEnabled="{Binding !IsInModalStatus, ElementName=ShellDialogHost}">
-            <Button x:Name="QuickStartButton" IsVisible="False" Classes="wb-quiet" Click="QuickStartClick" VerticalAlignment="Center" MinHeight="26" Padding="9,4" FontSize="12">
-                <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBQuickStart}}" />
-            </Button>
             <Button x:Name="FindButton" Classes="tb-icon titlebar-action" Command="{Binding ShowFindPanel}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Find}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Find}}" VerticalAlignment="Center">
                 <Path Classes="wb-icon" Data="{StaticResource WBSearchIcon}" />
             </Button>
@@ -175,6 +172,37 @@
                         </MultiBinding>
                     </shell:ShellEditorOptionsView.Width>
                 </shell:ShellEditorOptionsView>
+                <!-- 中间栏底部面板折叠按钮：左下角控制文件面板，右下角控制大纲面板 -->
+                <Border x:Name="SidebarCollapseHitArea" Width="26" Height="26" Padding="0"
+                        Background="Transparent" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12,0,0,12"
+                        ClipToBounds="False" IsVisible="{Binding Layout.ShowSidebar}">
+                    <Grid Width="26" Height="26">
+                        <Border Classes="sidebar-expand-surface" />
+                        <Button x:Name="SidebarCollapseButton" Classes="sidebar-expand-toggle"
+                                Command="{Binding Layout.CollapseSidebar}"
+                                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseFilesPanel}}"
+                                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseFilesPanel}}">
+                            <Viewbox Width="10" Height="10">
+                                <Path x:Name="SidebarCollapseIcon" Classes="panel-toggle-icon" />
+                            </Viewbox>
+                        </Button>
+                    </Grid>
+                </Border>
+                <Border x:Name="OutlineCollapseHitArea" Width="26" Height="26" Padding="0"
+                        Background="Transparent" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12"
+                        ClipToBounds="False" IsVisible="{Binding Layout.ShowOutlineSidebar}">
+                    <Grid Width="26" Height="26">
+                        <Border Classes="sidebar-expand-surface" />
+                        <Button x:Name="OutlineCollapseButton" Classes="sidebar-expand-toggle"
+                                Command="{Binding Layout.CollapseOutline}"
+                                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseOutlinePanel}}"
+                                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseOutlinePanel}}">
+                            <Viewbox Width="10" Height="10">
+                                <Path x:Name="OutlineCollapseIcon" Classes="panel-toggle-icon" />
+                            </Viewbox>
+                        </Button>
+                    </Grid>
+                </Border>
                 </Panel>
             </Grid>
             <GridSplitter x:Name="OutlineSplitter" Grid.Column="3" HorizontalAlignment="Stretch"
@@ -191,29 +219,33 @@
               IsVisible="{Binding !Workbench.PresentationOutline}"
               Margin="{Binding Workbench.PresentationContentMargin}"
               Panel.ZIndex="110">
-            <Border x:Name="SidebarExpandHitArea" Width="60" Height="60" Padding="12"
-                    Background="Transparent" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-4,22,0,0"
+            <Border x:Name="SidebarExpandHitArea" Width="26" Height="26" Padding="0"
+                    Background="Transparent" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12,0,0,12"
                     ClipToBounds="False" IsVisible="{Binding Layout.ShowSidebarExpandButton}">
-                <Grid Width="36" Height="36">
+                <Grid Width="26" Height="26">
                     <Border Classes="sidebar-expand-surface" />
                     <Button x:Name="SidebarExpandButton" Classes="sidebar-expand-toggle"
                             Command="{Binding Layout.ExpandSidebar}"
                             ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ExpandFilesPanel}}"
                             AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ExpandFilesPanel}}">
-                        <Path x:Name="SidebarExpandIcon" Classes="panel-toggle-icon" />
+                        <Viewbox Width="10" Height="10">
+                            <Path x:Name="SidebarExpandIcon" Classes="panel-toggle-icon" />
+                        </Viewbox>
                     </Button>
                 </Grid>
             </Border>
-            <Border x:Name="OutlineExpandHitArea" Width="60" Height="60" Padding="12"
-                    Background="Transparent" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,20,-4,0"
+            <Border x:Name="OutlineExpandHitArea" Width="26" Height="26" Padding="0"
+                    Background="Transparent" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12"
                     ClipToBounds="False" IsVisible="{Binding Layout.ShowOutlineExpandButton}">
-                <Grid Width="36" Height="36">
+                <Grid Width="26" Height="26">
                     <Border Classes="sidebar-expand-surface" />
                     <Button x:Name="OutlineExpandButton" Classes="sidebar-expand-toggle"
                             Command="{Binding Layout.ExpandOutline}"
                             ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ExpandOutlinePanel}}"
                             AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ExpandOutlinePanel}}">
-                        <Path x:Name="OutlineExpandIcon" Classes="panel-toggle-icon" />
+                        <Viewbox Width="10" Height="10">
+                            <Path x:Name="OutlineExpandIcon" Classes="panel-toggle-icon" />
+                        </Viewbox>
                     </Button>
                 </Grid>
             </Border>

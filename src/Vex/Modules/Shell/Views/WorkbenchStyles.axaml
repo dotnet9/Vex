@@ -201,9 +201,9 @@
     <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
   </Style>
   <Style Selector="Path.panel-toggle-icon">
-    <Setter Property="Width" Value="16"/><Setter Property="Height" Value="16"/><Setter Property="Stretch" Value="Uniform"/>
+    <Setter Property="Stretch" Value="Uniform"/>
     <Setter Property="Fill" Value="Transparent"/><Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/>
-    <Setter Property="StrokeThickness" Value="1.7"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/>
+    <Setter Property="StrokeThickness" Value="1.5"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/>
   </Style>
   <Style Selector="Button.sidebar-panel-toggle:pointerover, Button.sidebar-panel-toggle:focus-visible, Button.sidebar-expand-toggle:pointerover, Button.sidebar-expand-toggle:focus-visible">
     <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
@@ -212,19 +212,21 @@
     <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
   <Style Selector="Border.sidebar-expand-surface">
-    <Setter Property="Width" Value="36"/><Setter Property="Height" Value="36"/>
-    <Setter Property="CornerRadius" Value="18"/>
+    <Setter Property="Width" Value="26"/><Setter Property="Height" Value="26"/>
+    <Setter Property="CornerRadius" Value="13"/>
     <Setter Property="Background" Value="{DynamicResource VexElevatedBackgroundBrush}"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/><Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BoxShadow" Value="0 2 7 0 #24000000"/><Setter Property="ClipToBounds" Value="False"/>
   </Style>
   <Style Selector="Button.sidebar-expand-toggle">
-    <Setter Property="Width" Value="36"/><Setter Property="Height" Value="36"/><Setter Property="MinWidth" Value="36"/><Setter Property="MinHeight" Value="36"/>
-    <Setter Property="Padding" Value="9"/><Setter Property="CornerRadius" Value="18"/>
+    <Setter Property="Width" Value="26"/><Setter Property="Height" Value="26"/><Setter Property="MinWidth" Value="26"/><Setter Property="MinHeight" Value="26"/>
+    <Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="13"/>
     <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
   </Style>
   <Style Selector="Button.sidebar-expand-toggle /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="CornerRadius" Value="18"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="CornerRadius" Value="13"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
   </Style>
   <Style Selector="Button.sidebar-expand-toggle:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.sidebar-expand-toggle:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>

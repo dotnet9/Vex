@@ -153,11 +153,12 @@
   </Style>
  </UserControl.Styles>
 
- <!-- 对应原型 .document-statusbar：34px 高、透明背景。 -->
- <Border Height="34" Background="Transparent" BorderThickness="0">
-  <!-- 单格三层叠放：原型用 auto 外边距居中，这里直接让布局按钮落在状态栏正中。 -->
-  <Grid Margin="10,0">
-   <Border x:Name="ViewSwitch" Classes="view-switch" HorizontalAlignment="Center" VerticalAlignment="Center">
+ <!-- 字数统计居中显示在源码阅读导航上方，整个状态栏浮动在窗口底部。 -->
+ <Grid RowDefinitions="Auto,Auto" RowSpacing="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+   <Button x:Name="StatisticsButton" Grid.Row="0" Classes="sb-word" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding Preferences.WordCountVisible}" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}">
+    <TextBlock Text="{Binding DocumentInfo.StatusWordCountText}" FontSize="12" />
+   </Button>
+   <Border x:Name="ViewSwitch" Grid.Row="1" Classes="view-switch" HorizontalAlignment="Center" VerticalAlignment="Center">
     <StackPanel Orientation="Horizontal" Spacing="2">
      <Button x:Name="SourceSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsSourceSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" Command="{Binding Workbench.ShowSourceView}" />
      <Button x:Name="ReadSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsReadSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" Command="{Binding Workbench.ShowRead}" />
@@ -170,9 +171,5 @@
      </Button>
     </StackPanel>
    </Border>
-   <Button x:Name="StatisticsButton" Classes="sb-word" HorizontalAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding Preferences.WordCountVisible}" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}">
-    <TextBlock Text="{Binding DocumentInfo.StatusWordCountText}" FontSize="12" />
-   </Button>
   </Grid>
- </Border>
 </UserControl>

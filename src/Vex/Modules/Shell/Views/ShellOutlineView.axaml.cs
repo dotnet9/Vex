@@ -11,7 +11,6 @@ public partial class ShellOutlineView : UserControl
     public ShellOutlineView()
     {
         InitializeComponent();
-        OutlinePanelCollapseIcon.Data = MenuIconCatalog.Get("panel-right-close");
     }
 
     public ShellOutlineView(ViewModels.ShellOutlineViewModel viewModel) : this()
