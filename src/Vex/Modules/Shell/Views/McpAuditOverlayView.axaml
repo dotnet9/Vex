@@ -2,10 +2,12 @@
     x:Class="Vex.Modules.Shell.Views.McpAuditOverlayView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:codewf="https://codewf.com"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:mcp="using:Vex.Modules.Mcp.Models">
-    <!-- 原型 table.vex-audit：时间/操作/结果三列，12 号字、单元格 11x6、每行一条底边线；空态是一整行「暂无调用记录」而不是居中大字。 -->
+    <!-- 原型 table.vex-audit：时间/操作/结果三列、12 号字 18 行高、单元格 11x6、每行一条底边线、表头 muted 500。
+         表格交给 CodeWF.Avalonia.DataGrid（三态排序与列宽归控件），宿主只用 DataGrid.Styles 把它的 Semi 外观压回原型。 -->
     <Border Classes="dialog-card" Width="620" MaxHeight="640">
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
             <Grid x:Name="HeaderRow" ColumnDefinitions="*,Auto">
@@ -20,49 +22,98 @@
                     Click="Refresh_OnClick"
                     MinWidth="86" />
             </Grid>
-            <ScrollViewer Grid.Row="1">
-                <StackPanel Spacing="0">
-                    <Border Classes="audit-row">
-                        <Grid Classes="audit-head" ColumnDefinitions="Auto,*,*" ColumnSpacing="12">
-                            <TextBlock Text="{i18n:I18n {x:Static l:VexL.McpAuditTime}}" />
-                            <TextBlock Grid.Column="1" Text="{i18n:I18n {x:Static l:VexL.McpAuditAction}}" />
-                            <TextBlock Grid.Column="2" Text="{i18n:I18n {x:Static l:VexL.McpAuditResult}}" />
-                        </Grid>
-                    </Border>
-                    <ItemsControl x:Name="RecordsItemsControl">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="mcp:McpOperationRecord">
-                                <Border Classes="audit-row">
-                                    <Grid ColumnDefinitions="Auto,*,*" ColumnSpacing="12">
-                                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}" />
-                                        <TextBlock Grid.Column="1" Text="{Binding ToolName}" TextWrapping="Wrap" />
-                                        <StackPanel
-                                            Grid.Column="2"
-                                            Orientation="Horizontal"
-                                            Spacing="4">
-                                            <TextBlock
-                                                IsVisible="{Binding Succeeded}"
-                                                Text="{i18n:I18n {x:Static l:VexL.McpAuditSuccess}}" />
-                                            <TextBlock
-                                                Foreground="{DynamicResource VexDangerBrush}"
-                                                IsVisible="{Binding !Succeeded}"
-                                                Text="{i18n:I18n {x:Static l:VexL.McpAuditFailed}}" />
-                                            <TextBlock
-                                                Foreground="{DynamicResource VexDangerBrush}"
-                                                IsVisible="{Binding HasError}"
-                                                Text="{Binding Error}"
-                                                TextWrapping="Wrap" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <Border x:Name="EmptyRow" Classes="audit-row">
-                        <TextBlock x:Name="EmptyTextBlock" TextWrapping="Wrap" />
-                    </Border>
-                </StackPanel>
-            </ScrollViewer>
+            <Panel Grid.Row="1">
+                <DataGrid
+                    x:Name="AuditGrid"
+                    x:DataType="mcp:McpOperationRecord"
+                    codewf:DataGridEnhancement.UseDefaults="True"
+                    AutoGenerateColumns="False"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    CanUserReorderColumns="False"
+                    CanUserResizeColumns="False"
+                    Foreground="{DynamicResource VexValueBrush}"
+                    GridLinesVisibility="Horizontal"
+                    HeadersVisibility="Column"
+                    HorizontalGridLinesBrush="{DynamicResource VexPanelBorderBrush}"
+                    IsReadOnly="True"
+                    SelectionMode="Single">
+                    <DataGrid.Resources>
+                        <!-- 主题给每行另外加了 1px 底边，和 GridLinesVisibility 的横线叠成 42；原型一行只有 41。 -->
+                        <Thickness x:Key="DataGridRowBorderThickness">0</Thickness>
+                    </DataGrid.Resources>
+                    <DataGrid.Styles>
+                        <!-- 表头写死 41 = 原型 th 的 11+18+11 再加 1px 分隔线；下面空态整行的顶边跟着这个数。 -->
+                        <Style Selector="DataGridColumnHeader">
+                            <Setter Property="Height" Value="41" />
+                            <Setter Property="Padding" Value="6,0" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="FontSize" Value="12" />
+                            <Setter Property="FontWeight" Value="Medium" />
+                            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+                            <Setter Property="HorizontalContentAlignment" Value="Left" />
+                            <!-- 原型 th 之间只有底边线，列标题右侧那根竖分隔是主题多出来的。 -->
+                            <Setter Property="AreSeparatorsVisible" Value="False" />
+                        </Style>
+                        <Style Selector="DataGridCell">
+                            <Setter Property="Padding" Value="6,11" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                        </Style>
+                        <!-- 列生成的 TextBlock 自带 16x0 主题边距，改由单元格 padding 统一供给，行高才是原型的 18。 -->
+                        <Style Selector="TextBlock">
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="FontSize" Value="12" />
+                            <Setter Property="LineHeight" Value="18" />
+                            <Setter Property="TextWrapping" Value="Wrap" />
+                        </Style>
+                    </DataGrid.Styles>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="Auto"
+                            Binding="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                            Header="{i18n:I18n {x:Static l:VexL.McpAuditTime}}"
+                            SortMemberPath="Timestamp" />
+                        <DataGridTextColumn
+                            Width="*"
+                            Binding="{Binding ToolName}"
+                            Header="{i18n:I18n {x:Static l:VexL.McpAuditAction}}"
+                            SortMemberPath="ToolName" />
+                        <DataGridTemplateColumn
+                            Width="*"
+                            Header="{i18n:I18n {x:Static l:VexL.McpAuditResult}}"
+                            SortMemberPath="Succeeded">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="mcp:McpOperationRecord">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="4">
+                                        <TextBlock
+                                            IsVisible="{Binding Succeeded}"
+                                            Text="{i18n:I18n {x:Static l:VexL.McpAuditSuccess}}" />
+                                        <TextBlock
+                                            Foreground="{DynamicResource VexDangerBrush}"
+                                            IsVisible="{Binding !Succeeded}"
+                                            Text="{i18n:I18n {x:Static l:VexL.McpAuditFailed}}" />
+                                        <TextBlock
+                                            Foreground="{DynamicResource VexDangerBrush}"
+                                            IsVisible="{Binding HasError}"
+                                            Text="{Binding Error}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <!-- 原型空态是 thead 下的一整行（td colspan=3），DataGrid 没有占位行，就把这行贴在表头高度下面。 -->
+                <Border
+                    x:Name="EmptyRow"
+                    Classes="audit-row"
+                    IsVisible="False"
+                    Margin="0,41,0,0"
+                    VerticalAlignment="Top">
+                    <TextBlock x:Name="EmptyTextBlock" TextWrapping="Wrap" />
+                </Border>
+            </Panel>
             <StackPanel
                 x:Name="FooterRow"
                 Grid.Row="2"

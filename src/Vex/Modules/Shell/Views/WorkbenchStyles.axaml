@@ -734,15 +734,13 @@
     <Setter Property="LineHeight" Value="20.8"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
-  <!-- 审计表（原型 table.vex-audit：12 号字、11x6 单元格、表头 muted 500、行间分隔线）。 -->
-  <Style Selector="Grid.audit-head TextBlock, Border.audit-row TextBlock">
+  <!-- 审计表空态（原型 table.vex-audit 的 td：12 号字 18 行高、11x6 单元格、一条底边线）。
+       表格本身由 CodeWF.Avalonia.DataGrid 承载，同一套尺寸写在 McpAuditOverlayView 的 DataGrid.Styles 里。 -->
+  <Style Selector="Border.audit-row TextBlock">
     <Setter Property="FontSize" Value="12"/>
-    <Setter Property="LineHeight" Value="19.2"/>
+    <Setter Property="LineHeight" Value="18"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
     <Setter Property="VerticalAlignment" Value="Center"/>
-  </Style>
-  <Style Selector="Grid.audit-head TextBlock">
-    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
   </Style>
   <Style Selector="Border.audit-row">
     <Setter Property="Padding" Value="6,11"/>

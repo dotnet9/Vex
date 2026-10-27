@@ -32,8 +32,10 @@ public partial class McpAuditOverlayView : UserControl
         if (embedded && Content is Border border && border.Child is Grid grid)
         {
             // 偏好页里的审计就是一张表：标题行与关闭页脚都不属于原型，连同它们的行高一起收掉。
+            // 偏好页正文在 ScrollViewer 里没有确定高度，表格只能按内容排，否则撑不满也滚不动。
             border.Classes.Remove("dialog-card"); border.Width = double.NaN; border.MaxHeight = double.PositiveInfinity;
             grid.RowDefinitions[0].Height = new GridLength(); grid.RowDefinitions[2].Height = new GridLength();
+            grid.RowDefinitions[1].Height = GridLength.Auto;
             HeaderRow.IsVisible = false; FooterRow.IsVisible = false;
         }
     }
@@ -44,7 +46,7 @@ public partial class McpAuditOverlayView : UserControl
         var records = _auditService?.GetRecent() ?? [];
         var newestFirst = new List<McpOperationRecord>(records);
         newestFirst.Reverse();
-        RecordsItemsControl.ItemsSource = newestFirst;
+        AuditGrid.ItemsSource = newestFirst;
         EmptyRow.IsVisible = newestFirst.Count == 0;
     }
 

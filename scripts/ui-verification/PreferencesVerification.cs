@@ -7,9 +7,11 @@ using Avalonia.Headless;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
+using Vex.Controls;
 using Vex.Core.Messaging;
 using Vex.Core.Models;
 using Vex.Core.Services;
+using Vex.Modules.Mcp.Models;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
@@ -114,6 +116,64 @@ internal static class PreferencesVerification
         Control<Button>("McpSubStdio").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-stdio.png"));
         Control<Button>("McpTabAudit").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
+        // 原型 table.vex-audit：表头与每行都是 11+18+11+1 = 41 的行程，只画横线不画竖线，
+        // 空态是贴在表头下面的一整行；有记录时最近一次调用排在第一行。
+        var audit = Control<DataGrid>("AuditGrid");
+        var auditEmpty = Control<Border>("EmptyRow");
+        // 表头里还有模板自带的左上角占位与末列填充，只有带列标题的那几个才是原型意义上的 th。
+        List<DataGridColumnHeader> AuditHeaders() => audit.GetVisualDescendants()
+            .OfType<DataGridColumnHeader>().Where(header => header.Content is not null).ToList();
+        var auditHeaders = AuditHeaders();
+        Check(auditHeaders.Count == 3 && auditHeaders.All(header => Math.Abs(header.Bounds.Height - 41) < 0.6),
+            "Audit header keeps the prototype 41px pitch: " + string.Join("/", auditHeaders.Select(header => header.Bounds.Height.ToString("0.#"))));
+        Check(auditHeaders.Select(header => header.Content?.ToString()).SequenceEqual(new[] { "时间", "操作", "结果" }),
+            "Audit columns carry the prototype header captions");
+        Check(audit.GridLinesVisibility == DataGridGridLinesVisibility.Horizontal,
+            "Audit table draws horizontal rules only: " + audit.GridLinesVisibility);
+        Check(auditEmpty.IsVisible
+            && Math.Abs(auditEmpty.TranslatePoint(new Point(0, 0), audit)!.Value.Y - 41) < 0.6,
+            "Audit empty row sits directly under the header");
+        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-audit-empty.png"));
+        model.Audit.Record(new McpOperationRecord(new DateTime(2026, 10, 27, 9, 8, 7, DateTimeKind.Utc), "vex_replace_text", "文档.md", "edit", true, true, false, "未找到匹配文本"));
+        model.Audit.Record(new McpOperationRecord(new DateTime(2026, 10, 27, 9, 12, 3, DateTimeKind.Utc), "vex_read_document", "文档.md", "read", false, false, true, null));
+        // 审计服务不推事件，表只按「刷新」重新拉取——这正是 Vex 比原型多出来的那颗刷新钮的用途。
+        Control<Button>("RefreshButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
+        var auditRows = audit.GetVisualDescendants().OfType<DataGridRow>().ToArray();
+        Check(!auditEmpty.IsVisible, "Audit empty row hides once records arrive");
+        Check(auditRows.Length == 2 && auditRows.All(row => Math.Abs(row.Bounds.Height - 41) < 0.6),
+            "Audit rows keep the prototype 41px pitch: " + string.Join("/", auditRows.Select(row => row.Bounds.Height.ToString("0.#"))));
+        // 主题的竖线是表头竖分隔与单元格右格线两种 Rectangle；原型只有横线，所以竖着的那根必须不存在。
+        Check(!audit.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Rectangle>()
+                .Any(line => line.IsVisible && line.Bounds.Width is > 0 and < 2 && line.Bounds.Height > 2),
+            "Audit table draws no vertical rules");
+        // 视觉树里的行不一定按上下顺序枚举，取表顺序要按行的 Y 排。
+        List<string> AuditOrder() => audit.GetVisualDescendants().OfType<DataGridRow>().OrderBy(row => row.Bounds.Y)
+            .Select(row => ((McpOperationRecord)row.DataContext!).ToolName).ToList();
+        var auditOrder = AuditOrder();
+        Check(auditOrder.SequenceEqual(new[] { "vex_read_document", "vex_replace_text" }),
+            "Audit lists the newest call first, like the prototype record() unshift: " + string.Join("/", auditOrder));
+        // 换 DataGrid 换来的能力：三列表头都能点着排序（原型没有），时间列点一次升、再点一次降。
+        // 排序入口在 DataGridColumnHeader.OnClick 里，手工 RaiseEvent 点不动，只能走真指针事件。
+        void ClickAuditHeader(string caption)
+        {
+            var header = AuditHeaders().First(x => x.Content?.ToString() == caption);
+            var at = header.TranslatePoint(new Point(header.Bounds.Width / 2, header.Bounds.Height / 2), window)!.Value;
+            window.MouseDown(at, Avalonia.Input.MouseButton.Left);
+            window.MouseUp(at, Avalonia.Input.MouseButton.Left);
+            Render();
+        }
+        ClickAuditHeader("时间");
+        Check(AuditOrder().SequenceEqual(new[] { "vex_replace_text", "vex_read_document" }),
+            "Audit sorts ascending by the time column on the first header click: " + string.Join("/", AuditOrder()));
+        ClickAuditHeader("时间");
+        Check(AuditOrder().SequenceEqual(new[] { "vex_read_document", "vex_replace_text" }),
+            "Audit sorts descending by the time column on the second header click: " + string.Join("/", AuditOrder()));
+        localizer.SetCulture("en-US"); Render();
+        Check(AuditHeaders().Select(header => header.Content?.ToString())
+            .SequenceEqual(new[] { "Time", "Action", "Result" }), "Audit headers re-localize with the app language");
+        localizer.SetCulture("zh-CN"); Render();
+        // 整页会随语言重建，页签选择属于用户状态：换完语言审计页必须还在。
+        Check(VexSegmentedPanel.GetIsActive(Control<Button>("McpTabAudit")), "Audit tab stays selected across a locale switch");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-audit.png"));
         model.Close(); Pump(dialog);
         window.Width = 1280; window.Height = 820; vm.Appearance.SelectThemeByKey("light"); Render();

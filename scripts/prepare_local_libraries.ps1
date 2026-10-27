@@ -18,6 +18,7 @@ $WorkRoot = [IO.Path]::GetFullPath($WorkRoot)
 $packages = [ordered]@{
     'CodeWF.Avalonia.Lang' = 'src/Lang/CodeWF.Avalonia.Lang/CodeWF.Avalonia.Lang.csproj'
     'CodeWF.Avalonia.Controls' = 'src/Controls/CodeWF.Avalonia.Controls/CodeWF.Avalonia.Controls.csproj'
+    'CodeWF.Avalonia.DataGrid' = 'src/DataGrid/CodeWF.Avalonia.DataGrid/CodeWF.Avalonia.DataGrid.csproj'
     'CodeWF.Avalonia.Markdown.Lite' = 'src/Markdown/CodeWF.Avalonia.Markdown.Lite/CodeWF.Avalonia.Markdown.Lite.csproj'
     'CodeWF.Avalonia.Markdown' = 'src/Markdown/CodeWF.Avalonia.Markdown/CodeWF.Avalonia.Markdown.csproj'
     'CodeWF.Avalonia.MindView' = 'src/MindView/CodeWF.Avalonia.MindView/CodeWF.Avalonia.MindView.csproj'
@@ -37,7 +38,8 @@ if (!$SkipPack) {
 }
 $propsPath = Join-Path $repositoryRoot 'Directory.Packages.props'
 $propsText = [IO.File]::ReadAllText($propsPath)
-foreach ($name in $packages.Keys | Where-Object { $_ -ne 'CodeWF.Avalonia.Markdown.Lite' }) {
+foreach ($name in $packages.Keys) {
+    # Lite 必须一起改写：Markdown 12.2.x 依赖同版本的 Lite，单独留下它会让还原按 NU1109 判定为包降级而失败。
     $pattern = '(<PackageVersion Include="' + [regex]::Escape($name) + '" Version=")[^"]+("\s*/>)'
     $propsText = [regex]::Replace($propsText, $pattern, { param($match) $match.Groups[1].Value + $PackageVersion + $match.Groups[2].Value })
 }

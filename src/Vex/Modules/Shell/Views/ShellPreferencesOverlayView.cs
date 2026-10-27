@@ -26,6 +26,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private readonly TextBlock _title = new() { FontSize = 14, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
     private readonly Border _card;
     private Window? _owner;
+    // MCP 分类下「服务/客户端/审计」页签的选择：整页会随语言重建，所以选择记在视图上。
+    private int _mcpTab;
     private readonly (string Id, string Key)[] _categories =
     [ ("general", VexL.PrefGeneral), ("editor", VexL.PrefEditor),
       ("images", VexL.PrefImages), ("appearance", VexL.PrefAppearance), ("export", VexL.Export), ("mcp", "MCP") ];
@@ -173,24 +175,28 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Control BuildServer() => new McpSettingsOverlayView(embedded: true) { DataContext = _model.Mcp };
                 Control BuildClients() => BuildMcpClientsPage();
                 Control BuildAudit() => new StackPanel { Spacing = 0, Children = { BuildMcpStatusRow(), new McpAuditOverlayView(_model.Audit, L(VexL.McpAudit), L(VexL.McpAuditRefresh), L(VexL.McpAuditEmpty), embedded: true) } };
-                void SelectTab(Button selected, Func<Control> build)
-                {
-                    foreach (var peer in mcpPeers)
-                        VexSegmentedPanel.SetIsActive(peer, ReferenceEquals(peer, selected));
-                    mcpHost.Content = build();
-                }
-                foreach (var (name, label, build) in new (string, string, Func<Control>)[]
-                {
+                (string Name, string Label, Func<Control> Build)[] tabs =
+                [
                     ("McpTabServer", L(VexL.PrefMcpServer), BuildServer),
                     ("McpTabClients", L(VexL.PrefMcpClients), BuildClients),
                     ("McpTabAudit", L(VexL.McpTabAudit), BuildAudit),
-                })
+                ];
+                void SelectTab(int index)
                 {
-                    var tab = new Button { Name = name, Classes = { "vex-segment", "mcp-tab" }, Content = label };
-                    tab.Click += (_, _) => SelectTab(tab, build);
+                    _mcpTab = index;
+                    for (var i = 0; i < mcpPeers.Count; i++)
+                        VexSegmentedPanel.SetIsActive(mcpPeers[i], i == index);
+                    mcpHost.Content = tabs[index].Build();
+                }
+                for (var i = 0; i < tabs.Length; i++)
+                {
+                    var index = i;
+                    var tab = new Button { Name = tabs[i].Name, Classes = { "vex-segment", "mcp-tab" }, Content = tabs[i].Label };
+                    tab.Click += (_, _) => SelectTab(index);
                     mcpPeers.Add(tab); tabBar.Children.Add(tab);
                 }
-                SelectTab(mcpPeers[0], BuildServer);
+                // 换语言会整页重建，页签选择属于用户状态，得跟着复原而不是退回第一个。
+                SelectTab(_mcpTab);
                 mcpRoot.Children.Add(tabTrack); mcpRoot.Children.Add(mcpHost);
                 page.Children.Add(mcpRoot);
                 break;

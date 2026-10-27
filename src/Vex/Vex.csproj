@@ -49,8 +49,10 @@
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.AvaloniaEdit" />
     <PackageReference Include="Avalonia.Controls.ColorPicker" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="CodeWF.Avalonia.Controls" />
+    <PackageReference Include="CodeWF.Avalonia.DataGrid" />
     <PackageReference Include="CodeWF.Avalonia.MindView" />
     <PackageReference Include="CodeWF.Toolkit.EventBus" />
     <PackageReference Include="CodeWF.Avalonia.Markdown" />

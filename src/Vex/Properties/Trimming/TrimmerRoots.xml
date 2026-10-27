@@ -4,6 +4,7 @@
 
   <assembly fullname="CodeWF.Toolkit.EventBus" preserve="all" />
   <assembly fullname="CodeWF.Avalonia.Controls" preserve="all" />
+  <assembly fullname="CodeWF.Avalonia.DataGrid" preserve="all" />
   <assembly fullname="CodeWF.Avalonia.Markdown" preserve="all" />
   <assembly fullname="CodeWF.Avalonia.MindView" preserve="all" />
   <assembly fullname="AnimatedImage" preserve="all" />

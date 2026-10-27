@@ -22,6 +22,8 @@ using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Workspace.ViewModels;
 using Vex.Modules.Workspace.Services;
 using Vex.Core.Messaging;
+using Vex.Modules.Mcp.Models;
+using Vex.Modules.Mcp.Services;
 using CodeWF.Toolkit.Core.UpdateChecking;
 
 var mode = args.FirstOrDefault() ?? "vex";
@@ -2563,6 +2565,7 @@ public sealed class VerificationVexApp : Vex.App
         registry.RegisterInstance<IAppSettingsStore>(UseRealSettings ? new AppSettingsStore() : new MemorySettings());
         registry.RegisterInstance<IAutoSaveDraftService>(new MemoryDrafts());
         registry.RegisterInstance<IRecentDocumentStore>(new MemoryRecent());
+        registry.RegisterInstance<IMcpOperationAuditService>(new MemoryAudit());
         registry.RegisterInstance<IDocumentWindowLauncher>(new VerificationDocumentWindows());
     }
     protected override AvaloniaObject CreateShell()
@@ -2608,4 +2611,13 @@ public sealed class MemoryRecent : IRecentDocumentStore
 {
     public IReadOnlyList<RecentDocument> Load(int maxCount) => [];
     public void Save(IEnumerable<RecentDocument> documents) { }
+}
+
+// 真审计服务会往 LocalApplicationData/Vex/mcp-audit.jsonl 追加记录，验证跑不该污染用户目录，
+// 也不该把假调用留在诊断日志里；顺序仍按真实实现的时间先后返回，由视图自己反转成最近优先。
+public sealed class MemoryAudit : IMcpOperationAuditService
+{
+    private readonly List<McpOperationRecord> _records = [];
+    public IReadOnlyList<McpOperationRecord> GetRecent() => _records;
+    public void Record(McpOperationRecord record) => _records.Add(record);
 }
