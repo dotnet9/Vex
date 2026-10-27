@@ -1,11 +1,31 @@
 // Sync the approved design contract into native library resources. No browser or third-party dependencies.
+// 支持 --check：不落盘，重新生成并与库内现有文件比对，漂移即退出码 1（供 CI 门禁）。
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
-const library = path.resolve(process.argv[2] || 'D:/github/libs/CodeWF.Avalonia');
-/* --typography-only：只更新文章排版目录；配色令牌由库自身生成器负责，避免双写。 */
-const typographyOnly = process.argv.includes('--typography-only');
+/* 库路径解析顺序：--library <path> > 位置参数 > 环境变量 CODEWF_AVALONIA_ROOT。
+ * 不再内置盘符默认值（历史默认指向不存在的 D: 盘）；缺失或不存在时按用法退出。 */
+const argv = process.argv.slice(2);
+const typographyOnly = argv.includes('--typography-only');
+const checkOnly = argv.includes('--check');
+let libraryArg = null;
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i] === '--library') { libraryArg = argv[++i]; continue; }
+  if (argv[i].startsWith('--') || argv[i] === libraryArg) continue;
+  if (libraryArg === null) libraryArg = argv[i];
+}
+const libraryRoot = libraryArg || process.env.CODEWF_AVALONIA_ROOT;
+if (!libraryRoot) {
+  console.error('用法: node scripts/sync_native_design.cjs [--typography-only] [--check] [--library <CodeWF.Avalonia 根目录>]');
+  console.error('也可用环境变量 CODEWF_AVALONIA_ROOT 指定库根目录。');
+  process.exit(2);
+}
+const library = path.resolve(libraryRoot);
+if (!fs.existsSync(library)) {
+  console.error(`库根目录不存在：${library}`);
+  process.exit(2);
+}
 const context = { document: {createElement:()=>({}), head:{append(){}}} };
 context.window = context;
 vm.createContext(context);
@@ -18,7 +38,9 @@ const derive = (key, mode) => context.VexPaletteRules.deriveVars(
   Object.assign({}, context.VexPaletteRulesData.palettes[key][mode], context.VexPaletteRulesData.statusDefaults[mode]),
   mode, context.VexPaletteRulesData.derivation[mode]);
 const q = value => JSON.stringify(value);
-const write = (file,text) => { fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,text.replace(/\r\n/g,'\n')); };
+/* 生成结果统一收集，最后按模式落地（写入）或比对（--check）。 */
+const outputs = [];
+const write = (file,text) => outputs.push({file: path.resolve(file), text: text.replace(/\r\n/g,'\n')});
 if (!typographyOnly) {
 const names = {graphite:'Graphite',indigo:'Indigo',teal:'Teal',pine:'Pine',sky:'Sky',amber:'Amber',crimson:'Crimson',violet:'Violet',terracotta:'Terracotta'};
 const tokens = path.join(library,'src/Controls/CodeWF.Avalonia.Controls/Themes/Studio/Tokens');
@@ -31,9 +53,16 @@ for (const p of palettes) for (const mode of ['light','dark']) {
     StudioSecondaryColor:t['accent-decoration'],StudioPrimaryColor:t.primary,StudioGradientStartColor:t.primary,
     StudioTextGradientEndColor:t['gradient-end']};
   let text=template.replace(/<Color x:Key="([^"]+)">[^<]+<\/Color>/g,(all,key)=>`<Color x:Key="${key}">${colors[key]||'#24766B'}</Color>`);
+  /* 状态浅色底（*-soft / status-error-bg / danger-pressed-bg）与激活前景
+   * （status-error）全部按模式派生：亮色为浅底深字、暗色为深底亮字。
+   * 曾因缺映射导致暗色徽章浅底配浅字（对比度 1.0:1）与亮色 Info 底 4.42:1。 */
   const brushes={StudioOnPrimary:t['on-primary'],StudioPrimaryHover:t['primary-hover'],StudioPrimaryPressed:t['primary-pressed'],
-    SemiColorSuccess:t['status-success'],SemiColorWarning:t['status-warning'],SemiColorDanger:t['status-error'],SemiColorDangerActive:t['status-error'],
-    SemiColorDangerLight:t['status-error-bg'],SemiColorDangerLightActive:t['status-error-bg'],PgSelectedText:t['on-primary'],StatusBadgeLeftTextForeground:t['on-primary']};
+    SemiColorSuccess:t['status-success'],SemiColorWarning:t['status-warning'],SemiColorDanger:t['status-error'],
+    SemiColorDangerActive:t['status-error'],
+    SemiColorDangerLight:t['status-error-bg'],SemiColorDangerLightActive:t['danger-pressed-bg'],
+    SemiColorSuccessLight:t['success-soft'],SemiColorWarningLight:t['warning-soft'],
+    StatusCardTopTextForeground:dark?t['fg']:undefined,
+    PgSelectedText:t['on-primary'],StatusBadgeLeftTextForeground:t['on-primary']};
   text=text.replace(/<SolidColorBrush x:Key="([^"]+)">[^<]+<\/SolidColorBrush>/g,(all,key)=>brushes[key]?`<SolidColorBrush x:Key="${key}">${brushes[key]}</SolidColorBrush>`:all);
   // Action surfaces use the dedicated primary pair, including the second gradient stop.
   text=text.replace(/(<LinearGradientBrush x:Key="StudioActionGradient"[\s\S]*?<GradientStop Offset="1" Color=")[^"]+/, '$1'+t.primary);
@@ -81,4 +110,23 @@ for(const t of types){const body=declarations(context.VexTypeRules(t.key,false),
 }
 catalog+='    ];\n    public static ArticleTypography? Find(string? key) => All.FirstOrDefault(item => item.Key == key);\n}\n';
 write(path.join(library,'src/Markdown/CodeWF.Avalonia.Markdown.Lite/Themes/ArticleTypographyCatalog.g.cs'),catalog);
-console.log(`Synced ${types.length} independent article typographies to ${library}` + (typographyOnly ? ' (typography only)' : `; palette tokens for ${palettes.length} palettes × 2 modes`));
+if (checkOnly) {
+  const drifted = [];
+  for (const {file,text} of outputs) {
+    const existing = fs.existsSync(file) ? fs.readFileSync(file,'utf8').replace(/\r\n/g,'\n') : null;
+    if (existing !== text) drifted.push(path.relative(library,file));
+  }
+  if (drifted.length) {
+    console.error(`库资源与原型契约不同步（${drifted.length} 个文件漂移）：`);
+    for (const file of drifted) console.error('  ' + file);
+    console.error('请运行: node scripts/sync_native_design.cjs --library <CodeWF.Avalonia 根目录>');
+    process.exit(1);
+  }
+  console.log(`Check passed: ${outputs.length} generated library files match the prototype contract.`);
+} else {
+  for (const {file,text} of outputs) {
+    fs.mkdirSync(path.dirname(file),{recursive:true});
+    fs.writeFileSync(file,text);
+  }
+  console.log(`Synced ${types.length} independent article typographies to ${library}` + (typographyOnly ? ' (typography only)' : `; palette tokens for ${palettes.length} palettes × 2 modes`));
+}
