@@ -44,7 +44,7 @@
     <StripSymbols>true</StripSymbols>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(PublishAot)' == 'true'">
-    <!-- Native AOT 优化配置 - 由于 Prism/ReactiveUI/Avalonia 反射需求，暂时降低优化级别 -->
+    <!-- Native AOT 优化配置 - 由于 ReactiveUI/Avalonia 反射需求，保留必要的元数据 -->
     <IlcOptimizationPreference>Size</IlcOptimizationPreference>
     <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
     <!-- 保留完整类型元数据以支持反射 -->

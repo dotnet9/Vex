@@ -8,10 +8,6 @@
   <assembly fullname="CodeWF.Avalonia.MindView" preserve="all" />
   <assembly fullname="AnimatedImage" preserve="all" />
   <assembly fullname="AnimatedImage.Avalonia" preserve="all" />
-  <assembly fullname="Prism" preserve="all" />
-  <assembly fullname="Prism.Avalonia" preserve="all" />
-  <assembly fullname="Prism.DryIoc.Avalonia" preserve="all" />
-  <assembly fullname="DryIoc" preserve="all" />
   <assembly fullname="ReactiveUI" preserve="all" />
   <assembly fullname="ReactiveUI.Avalonia" preserve="all" />
   <assembly fullname="Splat" preserve="all" />
@@ -28,7 +24,6 @@
   <assembly fullname="Avalonia.Desktop" preserve="all" />
   <assembly fullname="Avalonia.Markup" preserve="all" />
   <assembly fullname="Avalonia.Markup.Xaml" preserve="all" />
-  <assembly fullname="Avalonia.Markup.Xaml.Loader" preserve="all" />
   <assembly fullname="AvaloniaEdit" preserve="all" />
   <assembly fullname="Svg.Controls.Skia.Avalonia" preserve="all" />
   <assembly fullname="Svg.Skia" preserve="all" />
