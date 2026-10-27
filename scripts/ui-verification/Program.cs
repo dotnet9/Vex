@@ -1453,8 +1453,18 @@ void VerifyMermaidWorkspace(Vex.Modules.Shell.Views.MainWindow window, MainWindo
                 PumpUntil(() => (layout == "read" ? preview.CurrentModel.Source == document : instant.Editor.Text == document) && Ready(host) && !host.GetVisualDescendants().OfType<Border>().Any(border => border.Classes.Contains("MdMermaidFallback")));
                 foreach (var border in Diagrams(host))
                 {
-                    if (border.Child is not Image { Source: not null } image) continue;
-                    Check(image.Bounds.Width <= border.Bounds.Width+1 && image.Bounds.Height>0,$"{theme}/{layout}/{pair.index}: complete diagram fits its block");
+                    // 边框断言在「Border 直属子级不是 Image」的结构下会整条静默跳过，所以先显式要求取到图。
+                    var image = border.Child as Image ?? border.GetVisualDescendants().OfType<Image>()
+                        .FirstOrDefault(candidate => candidate.Source is not null);
+                    Check(image is { Source: not null }, $"{theme}/{layout}/{pair.index}: diagram renders an image");
+                    Check(image!.Bounds.Width <= border.Bounds.Width+1 && image.Bounds.Height>0,$"{theme}/{layout}/{pair.index}: complete diagram fits its block");
+                    if (pair.index != 17) continue;
+                    // 象限图四格是「没展开的 color-mix 被 Skia 当纯黑」最容易暴露的四处填色：修复前四格塌成一块黑。
+                    // 0.3/0.7 是实测的四个格心，中间那一列/行压在坐标轴上，不参与判定。
+                    var corners = DiagramPixels.Probe(image, (0.3, 0.3), (0.7, 0.3), (0.3, 0.7), (0.7, 0.7));
+                    Check(corners.All(colour => colour is not null && colour != "#000000") && corners.Distinct().Count() == 4,
+                        $"{theme}/{layout}/17: 象限图四格各自成色（{string.Join(' ', corners)}）");
+                    Check(DiagramPixels.PureBlackShare(image) < 0.02, $"{theme}/{layout}/17: 图面上没有成面积的纯黑填色");
                 }
                 Check(!host.GetVisualDescendants().OfType<ScrollViewer>().Any(scroll => scroll.IsEffectivelyVisible && scroll.HorizontalScrollBarVisibility != Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled && scroll.Extent.Width > scroll.Viewport.Width+1),$"{theme}/{layout}/{pair.index}: no diagram scrollbar");
                 if (pair.index is 0 or 15 or 16 or 19 or 20 or 21) Capture(window,$"mermaid-{theme}-{layout}-{pair.index}");
