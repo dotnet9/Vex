@@ -39,10 +39,11 @@ public sealed class ShellTypographyGallery : UserControl
     private void WindowSizeChanged(object? sender, SizeChangedEventArgs e) => Resize();
 
     /// <summary>
-    /// 原型卡片预览固定 13px 基准（.type-document{--type-size:13px}），渲染密度只作用于正文；
-    /// 三行 162 卡 + 8 间隙 + 44 新增条 = 558，落在弹层 561 的滚动区内，任何密度都不滚动。
+    /// 原型卡片预览固定 15px 基准（渲染密度不作用于卡片：原型 .type-document 取 --writing-size 正常档），
+    /// 标题/引用按真实排版渲染，说明行单独降到 12/18。
+    /// 三行 150.53 卡 + 8 间隙 + 44 新增条 = 543，落在弹层 680 - 标题 30 - 密度行 52 - 内距 36 的滚动区内。
     /// </summary>
-    private const double CardHeight = 162;
+    private const double CardHeight = 150.5;
 
     private void Attach()
     {
@@ -74,7 +75,8 @@ public sealed class ShellTypographyGallery : UserControl
         var anchor = (_window as MainWindow)?.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "TypographyTarget" && b.IsEffectivelyVisible);
         var top = anchor?.TranslatePoint(new Point(0, anchor.Bounds.Height + 8), _window!)?.Y ?? 126;
         var parentTop = _window is not null ? this.GetVisualParent()?.TranslatePoint(default, _window)?.Y ?? 0 : 0;
-        Margin = new Thickness(12, Math.Max(0, top - parentTop), 12, 12);
+        // 原型 .typography-popover：right:18px 相对工作区（= 窗体右侧 24px），宽 720 含 1px 描边。
+        Margin = new Thickness(12, Math.Max(0, top - parentTop), 23, 12);
         Height = Math.Max(140, Math.Min(680, (_window?.ClientSize.Height ?? 820) - top - 12));
     }
 
@@ -126,10 +128,10 @@ public sealed class ShellTypographyGallery : UserControl
             pill.Click += (_, _) => _vm.Appearance.MarkdownDensity = captured;
             _densityPills[key] = pill; segments.Children.Add(pill);
         }
-        var pills = new Border { Classes = { "vex-segmented", "density-options" }, Child = segments, MaxWidth = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
+        var pills = new Border { Classes = { "vex-segmented", "density-options" }, Child = segments, Width = 320, MaxWidth = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
         Grid.SetColumn(pills, 1);
         densityRow.Children.Add(pills);
-        var densityFrame = new Border { Child = densityRow, BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(2, 2, 2, 10) };
+        var densityFrame = new Border { Child = densityRow, BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(2, 9, 2, 11) };
         Resource(densityFrame, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
         _header.Children.Add(densityFrame);
 
@@ -144,7 +146,7 @@ public sealed class ShellTypographyGallery : UserControl
         _scroll = new ScrollViewer { Content = body, Padding = new Thickness(2, 2, 15, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
         var grid = new Grid { RowDefinitions = new("Auto,*") };
         grid.Children.Add(_header); Grid.SetRow(_scroll, 1); grid.Children.Add(_scroll);
-        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(16), CornerRadius = new CornerRadius(16), BoxShadow = BoxShadows.Parse("0 12 32 0 #29101828, 0 2 8 0 #14101828") };
+        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16), BoxShadow = BoxShadows.Parse("0 12 32 0 #29101828, 0 2 8 0 #14101828") };
         Content = border;
         Resize(); Changed(null, new(""));
     }
@@ -160,18 +162,25 @@ public sealed class ShellTypographyGallery : UserControl
             Markdown = $"## {name}\n\n{purpose}\n\n> {quote}",
             TypographyTheme = option.Key,
             FontWeight = FontWeight.Normal,
-            TypographySize = MarkdownTypographySizes.Compact,
+            TypographySize = MarkdownTypographySizes.Normal,
             IsHitTestVisible = false,
             Margin = new Thickness(11, 6),
             DocumentBottomPadding = 0,
             EnableVirtualization = false
         };
         // 原型窄卡把说明降成标签字号并压掉块间距（首块无上外边距、h2 下 5px、段落 0 0 7px），三行卡片才装得下。
+        // 标题级别的边距由渲染器按 CodeWFMarkdownHeading{N}Margin 资源取值（属性只作兜底），
+        // 所以这里直接覆盖 H2 的级别资源：上边距 0（原型 >:first-child{margin-top:0}）+ 下 5。
+        preview.Resources["CodeWFMarkdownHeading2Margin"] = new Thickness(0, 0, 0, 5);
         preview.HeadingMargin = new Thickness(0, 0, 0, 5);
         preview.ParagraphMargin = new Thickness(0, 0, 0, 7);
         preview.ParagraphFontSize = 12;
         preview.ParagraphLineHeight = 18;
         preview.BlockSpacing = 0;
+        // 原型窄卡把引用再收紧一档：#typography-panel .type-document blockquote{margin-top:0;padding:6px 9px}。
+        // 引用的内距与外边距走库里的动态资源键，弹层内按卡片覆盖，不改全局排版契约。
+        preview.Resources["CodeWFMarkdownQuotePadding"] = new Thickness(9, 6, 9, 6);
+        preview.Resources["CodeWFMarkdownQuoteMargin"] = new Thickness(0);
         EventHandler clamp = null!;
         var clamped = false;
         clamp = (_, _) =>

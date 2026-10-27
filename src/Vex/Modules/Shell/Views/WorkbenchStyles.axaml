@@ -394,6 +394,13 @@
     <Setter Property="CornerRadius" Value="5"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
   </Style>
+  <!-- 原型 .typography-trigger（view-heading 内的排版入口）：12px 字、6/10 内距、30 高基准，
+       排版弹层的落点由它推导（弹层顶 = 该按钮底边 + 8），所以高度口径必须与原型一致。 -->
+  <Style Selector="Button.typography-trigger">
+    <Setter Property="FontSize" Value="12"/><Setter Property="MinHeight" Value="30"/><Setter Property="Padding" Value="10,6"/>
+    <Setter Property="CornerRadius" Value="6"/><Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
   <!-- 对应原型标题栏 .studio-title-controls button：30×28、4px 圆角、透明底。 -->
   <Style Selector="Button.tb-icon">
     <Setter Property="Width" Value="30"/><Setter Property="Height" Value="28"/><Setter Property="MinHeight" Value="0"/><Setter Property="MinWidth" Value="0"/>

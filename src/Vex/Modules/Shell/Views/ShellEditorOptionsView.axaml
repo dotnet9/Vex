@@ -34,7 +34,7 @@
           </Panel>
         </ToggleButton>
         <!-- 原型：源码模式下格式条不带排版入口，改由阅读窗格头居中提供（WorkspaceViewController）。 -->
-        <Button x:Name="TypographyTarget" Classes="wb-quiet" IsVisible="{Binding Workbench.IsInstantEditing}" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><TextBlock Text="{i18n:I18n {Binding Appearance.SelectedTypography.NameKey}}" FontWeight="SemiBold"/><Path Classes="expand-chevron" Data="M6 9L12 15L18 9"/></StackPanel></Button>
+        <Button x:Name="TypographyTarget" Classes="wb-quiet typography-trigger" IsVisible="{Binding Workbench.IsInstantEditing}" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><TextBlock Text="{i18n:I18n {Binding Appearance.SelectedTypography.NameKey}}" FontWeight="SemiBold"/><Path Classes="expand-chevron" Data="M6 9L12 15L18 9"/></StackPanel></Button>
       </StackPanel>
     </Grid>
   </Border>

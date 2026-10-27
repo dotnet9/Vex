@@ -42,6 +42,8 @@
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
+        <!-- 原型 button{flex:1}：等宽档由面板给出槽宽后按钮要撑满槽，指示块才量到整段宽。 -->
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>

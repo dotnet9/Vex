@@ -31,6 +31,9 @@ public class VexSegmentedPanel : Panel
     /// <summary>本面板按内容算出的自然宽度；可用宽度不足时按它等比让位，指示块才能一直贴着所选段。</summary>
     private double _contentWidth;
 
+    /// <summary>等宽档（FillItems）下每段的统一宽度；安排时按它铺开，否则 DesiredSize 只有内容的自然宽。</summary>
+    private double _uniformItemWidth;
+
     static VexSegmentedPanel()
     {
         SpacingProperty.Changed.AddClassHandler<VexSegmentedPanel>((panel, _) => panel.InvalidateMeasure());
@@ -106,9 +109,14 @@ public class VexSegmentedPanel : Panel
             var room = double.IsPositiveInfinity(availableSize.Width) ? width : Math.Max(width, availableSize.Width);
             var uniform = Math.Max(widest, (room - spacing * (items.Count - 1)) / items.Count);
             foreach (var item in items) item.Measure(new Size(uniform, height));
+            _uniformItemWidth = uniform;
             width = uniform * items.Count + spacing * (items.Count - 1);
             _contentWidth = width;
             tallest = items.Max(item => item.DesiredSize.Height);
+        }
+        else
+        {
+            _uniformItemWidth = 0;
         }
 
         // 指示块按整行尺寸测量：它自己的 Margin/Width 不参与面板大小，免得选中末段时轨道被撑宽。
@@ -137,7 +145,8 @@ public class VexSegmentedPanel : Panel
                 layoutable.Arrange(default);
                 continue;
             }
-            var width = layoutable.DesiredSize.Width * scale + grow;
+            var desired = FillItems && _uniformItemWidth > 0 ? _uniformItemWidth : layoutable.DesiredSize.Width;
+            var width = desired * scale + grow;
             child.Arrange(new Rect(x, 0, width, rowHeight));
             x += width + spacing;
         }
