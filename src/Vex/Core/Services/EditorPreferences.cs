@@ -61,10 +61,13 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
         "mono" => VexFonts.Code,
         _ => new FontFamily("Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans CJK SC, sans-serif")
     };
-    public double EffectiveBodyFontSize => BodyFontSize * ContentZoom / 100;
-    public double ResolveBodyFontSize(string? typography) => (settings.Current.BodyFontSize
-        ?? CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(typography)?.BodySize * 15 / 16 ?? 15) * ContentZoom / 100;
-    public double EffectiveCodeFontSize => CodeFontSize * ContentZoom / 100;
+    /// <summary>
+    /// 原型 <c>--vex-content-zoom</c>：正文整篇均匀布局缩放的比例。字号、行高、块距、
+    /// 表格与代码宽度同比放大，因此不能乘进字号——只放大字号会让行高与边距留在原尺寸。
+    /// </summary>
+    public double ContentZoomFactor => ContentZoom / 100;
+    public double ResolveBodyFontSize(string? typography) => settings.Current.BodyFontSize
+        ?? CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(typography)?.BodySize * 15 / 16 ?? 15;
     private void Set(Func<AppSettings, AppSettings> update, [CallerMemberName] string? name = null)
     {
         var current = settings.Current;
@@ -73,8 +76,7 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
         this.RaisePropertyChanged(name);
         this.RaisePropertyChanged(nameof(SyntaxOptions));
         this.RaisePropertyChanged(nameof(ContentFontFamily));
-        this.RaisePropertyChanged(nameof(EffectiveBodyFontSize));
-        this.RaisePropertyChanged(nameof(EffectiveCodeFontSize));
+        this.RaisePropertyChanged(nameof(ContentZoomFactor));
         PreferencesChanged?.Invoke(this, EventArgs.Empty);
     }
 }

@@ -32,7 +32,8 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
         PublishDisplayState();
     }
 
-    public double EditorFontSize => _preferences.EffectiveCodeFontSize;
+    // 原型 --vex-content-zoom 只缩放渲染正文，源码编辑区不随内容缩放变化。
+    public double EditorFontSize => _preferences.CodeFontSize;
 
     public bool ShowLineNumbers
     {

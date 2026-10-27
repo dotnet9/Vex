@@ -40,34 +40,36 @@ public partial class MarkdownPreviewView : UserControl
     private void ApplyDocumentGeometry()
     {
         var presenting = _viewModel?.IsPresenting == true;
-        var zoom = _viewModel?.PresentationZoom ?? 1;
-        DocumentTransform.LayoutTransform = presenting ? new Avalonia.Media.ScaleTransform(zoom, zoom) : null;
+        // 原型 .md-body 的 zoom 是整篇均匀缩放：字号、行高、块距、表格与代码宽度同比放大，
+        // 可用宽度按缩放回算，所以倍率越大每行越早换行、文档整体越高。只放大字号会留下
+        // 库内绝对行高与边距，段落就会排在旧高度里被截断。
+        var scale = Math.Max(.1, _viewModel?.DocumentScale ?? 1);
+        DocumentTransform.LayoutTransform = scale == 1 ? null : new Avalonia.Media.ScaleTransform(scale, scale);
         DocumentTransform.Margin = presenting ? new Thickness(44, 40, 44, 60) : default;
-        if (presenting) PreviewMarkdownViewer.Width = Math.Min(1104, Math.Max(100, PreviewScrollViewer.Bounds.Width - 88)) / zoom;
+        if (presenting) PreviewMarkdownViewer.Width = Math.Min(1104, Math.Max(100, PreviewScrollViewer.Bounds.Width - 88)) / scale;
         else PreviewMarkdownViewer.ClearValue(WidthProperty);
         var clientWidth = TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280;
-        // 原型 .md-body 留白：单栏阅读 max(820px,50vw) 居中、padding 30/52/88；分栏 padding 36/48/84 铺满。
-        // 限宽/居中放在包裹层 LayoutTransformControl 上（ScrollViewer 直接子级会被强制拉伸）。
+        // 原型 .md-body 留白：单栏阅读 max(820px,50vw) 居中、padding 30/52/104；分栏 max(800px,42vw) 居中、padding 36/48/104。
+        // 限宽写在正文上（缩放坐标系内），等价 CSS max-width：物理宽度 = min(可用宽, 上限×缩放)，放大时贴住窗格也不会横向溢出。
+        DocumentTransform.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
+        DocumentTransform.MaxWidth = double.PositiveInfinity;
         if (presenting)
         {
-            DocumentTransform.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
-            DocumentTransform.MaxWidth = double.PositiveInfinity;
-            PreviewMarkdownViewer.MaxWidth = 1104 / zoom;
+            PreviewMarkdownViewer.MaxWidth = 1104 / scale;
             PreviewMarkdownViewer.Margin = default;
         }
         else if (IsReadingMode)
         {
-            DocumentTransform.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
-            DocumentTransform.MaxWidth = Math.Max(820, clientWidth * 0.5);
-            PreviewMarkdownViewer.MaxWidth = double.PositiveInfinity;
-            PreviewMarkdownViewer.Margin = new Thickness(52, 30, 52, 88);
+            var margin = new Thickness(52, 30, 52, 104);
+            PreviewMarkdownViewer.Margin = margin;
+            // 原型的 max-width 是含留白的边框盒（全局 border-box），Avalonia 的 MaxWidth 只算内容：把留白扣回去。
+            PreviewMarkdownViewer.MaxWidth = Math.Max(820, clientWidth * 0.5) - margin.Left - margin.Right;
         }
         else
         {
-            DocumentTransform.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-            DocumentTransform.MaxWidth = double.PositiveInfinity;
-            PreviewMarkdownViewer.MaxWidth = double.PositiveInfinity;
-            PreviewMarkdownViewer.Margin = clientWidth <= 1100 ? new Thickness(36, 36, 36, 84) : new Thickness(48, 36, 48, 84);
+            var margin = new Thickness(48, 36, 48, 104);
+            PreviewMarkdownViewer.Margin = margin;
+            PreviewMarkdownViewer.MaxWidth = Math.Max(800, clientWidth * 0.42) - margin.Left - margin.Right;
         }
     }
 
@@ -228,6 +230,13 @@ public partial class MarkdownPreviewView : UserControl
             // 主题/排版切换会整篇重渲染并重置滚动，按块位置恢复切换前的阅读位置。
             QueueRestoreReadingPosition();
         }
+        else if (e.PropertyName == nameof(MarkdownPreviewViewModel.DocumentScale) && _viewModel?.IsPresenting != true)
+        {
+            // 内容缩放改变整篇高度，视口中心会落到别的章节：先记住当前锚点，重排后回位。
+            if (PreviewMarkdownViewer.SaveReadingPosition() is { } anchor) _savedReadingPosition = anchor;
+            ApplyDocumentGeometry();
+            QueueRestoreReadingPosition();
+        }
     }
 
     private void ApplyRemoteImageRefresh(int version)
@@ -362,10 +371,12 @@ public partial class MarkdownPreviewView : UserControl
             return;
         }
 
-        if (PreviewMarkdownViewer.TryGetSourceLineBounds(_viewModel.PreviewSourceLine, out var bounds))
+        // 库返回的边界在正文自己的坐标系里，缩放时换算到滚动坐标才能对上落点。
+        if (PreviewMarkdownViewer.TryGetSourceLineBounds(_viewModel.PreviewSourceLine, out var bounds)
+            && PreviewMarkdownViewer.TranslatePoint(new Point(0, bounds.Top), PreviewScrollViewer) is { } target)
         {
             var scrollableHeight = Math.Max(0d, PreviewScrollViewer.Extent.Height - PreviewScrollViewer.Viewport.Height);
-            PreviewScrollViewer.Offset = new Vector(0d, Math.Clamp(bounds.Y, 0d, scrollableHeight));
+            PreviewScrollViewer.Offset = new Vector(0d, Math.Clamp(PreviewScrollViewer.Offset.Y + target.Y, 0d, scrollableHeight));
             return;
         }
 

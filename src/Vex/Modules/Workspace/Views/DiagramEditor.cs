@@ -80,16 +80,28 @@ public static class DiagramEditor
             };
             sourceCard.Child = new StackPanel { Spacing = 8, Children = { sourceText, editButton } };
 
+            // 原型 .diagram-badge：等宽 12px、1px 描边、底色用纸色把图表挡住，字色是 muted——
+            // 默认按钮模板会给它刷成主色块，读起来像图表上贴了个标签。
             var badge = new Button
             {
                 Content = "mermaid",
+                FontFamily = VexFonts.Code,
                 FontSize = 12,
                 Padding = new Thickness(12, 3),
+                MinHeight = 0,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(6),
                 HorizontalAlignment = HorizontalAlignment.Right,
                 VerticalAlignment = VerticalAlignment.Top,
                 Margin = new Thickness(0, 10, 10, 0),
                 HorizontalContentAlignment = HorizontalAlignment.Center,
             };
+            if (Application.Current is { } badgeHost)
+            {
+                badge.Bind(Button.ForegroundProperty, badgeHost.GetResourceObservable("VexMutedBrush"));
+                badge.Bind(Button.BackgroundProperty, badgeHost.GetResourceObservable("VexPreviewBackgroundBrush"));
+                badge.Bind(Button.BorderBrushProperty, badgeHost.GetResourceObservable("VexTableBorderBrush"));
+            }
             ToolTip.SetTip(badge, "查看 / 隐藏源码");
 
             var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto") };

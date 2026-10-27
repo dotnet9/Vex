@@ -502,9 +502,11 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     {
         if (_live is null) return;
         _live.SyntaxOptions = Preferences.SyntaxOptions;
-        _live.CodeFontSize = Preferences.EffectiveCodeFontSize;
+        // 即时视图没有可整篇施加布局缩放的包裹层，库内实时编辑器的行高、标题、块距都按字号派生，
+        // 所以这里乘进字号等价于原型的 zoom；阅读窗格相反，行高是绝对值，必须走布局缩放。
+        _live.CodeFontSize = Preferences.CodeFontSize * Preferences.ContentZoomFactor;
         _live.CodeWrap = Preferences.CodeWrap;
-        _live.EditorFontSize = Preferences.ResolveBodyFontSize(_appearance.TypographyTheme);
+        _live.EditorFontSize = Preferences.ResolveBodyFontSize(_appearance.TypographyTheme) * Preferences.ContentZoomFactor;
         _live.FontFamily = Preferences.ContentFontFamily;
         _live.TypographyTheme = _appearance.TypographyTheme;
         _live.TypographySize = _appearance.TypographySize;

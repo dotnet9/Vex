@@ -16,6 +16,8 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     public bool IsTaskEditingEnabled => _workbench.IsSourceEditing;
     public bool IsPresenting => _workbench.IsPresenting;
     public double PresentationZoom => IsPresenting ? _workbench.PresentationZoom : 1;
+    /// <summary>正文的布局缩放：演示态用演示倍率，其余用内容缩放（原型 .md-body 的 zoom 变量）。</summary>
+    public double DocumentScale => IsPresenting ? _workbench.PresentationZoom : Preferences.ContentZoomFactor;
     private string? _imageBasePath;
     private string _markdown;
     private string _sourceMarkdown;
@@ -35,7 +37,11 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel workbench)
     {
         Preferences = preferences;
-        preferences.PreferencesChanged += (_, _) => this.RaisePropertyChanged(nameof(BodyFontSize));
+        preferences.PreferencesChanged += (_, _) =>
+        {
+            this.RaisePropertyChanged(nameof(BodyFontSize));
+            this.RaisePropertyChanged(nameof(DocumentScale));
+        };
         _workbench = workbench;
         _notifiedIsPresenting = workbench.IsPresenting;
         workbench.PropertyChanged += OnWorkbenchPropertyChanged;
@@ -173,7 +179,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         if (e.PropertyName == nameof(_workbench.IsPresenting) && !enteringPresentation) this.RaisePropertyChanged(nameof(IsPresenting));
         if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom)
             && _notifiedPresentationZoom != PresentationZoom)
-        { _notifiedPresentationZoom = PresentationZoom; this.RaisePropertyChanged(nameof(PresentationZoom)); }
+        { _notifiedPresentationZoom = PresentationZoom; this.RaisePropertyChanged(nameof(PresentationZoom)); this.RaisePropertyChanged(nameof(DocumentScale)); }
         if (e.PropertyName == nameof(_workbench.IsSourceEditing))
         {
             this.RaisePropertyChanged(nameof(IsTaskEditingEnabled));

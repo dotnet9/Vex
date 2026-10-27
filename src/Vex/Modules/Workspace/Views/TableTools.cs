@@ -23,25 +23,33 @@ public static class TableTools
                      .Where(border => border.Classes.Contains(CodeWF.Avalonia.Markdown.MarkdownStyleKeys.TableContainer))
                      .ToList())
         {
+            if (container.Parent is not Panel panel) continue;
+            // 工具条是面板的未登记子项：换内容时查看器只回收它自己登记的块，工具条不会被一起带走，
+            // 于是每次重渲染都留下一条幽灵高度。先按「宿主表格还在不在同一个面板里」清掉失效的。
+            foreach (var orphan in panel.Children.OfType<Control>()
+                         .Where(child => child.GetValue(ToolbarForProperty) is Border owner
+                                         && !ReferenceEquals(owner.Parent, panel))
+                         .ToList())
+                panel.Children.Remove(orphan);
             if (container.GetValue(AttachedProperty)) continue;
             container.SetValue(AttachedProperty, true);
-            if (container.Parent is not Panel panel) continue;
             // 原型 .md-table-block 中工具条与表格同组：块顶距归工具条，表格只留底距。
             var toolbar = BuildToolbar(container);
             toolbar.Margin = new Thickness(0, container.Margin.Top, 0, 4);
             container.Margin = new Thickness(0, 0, 0, container.Margin.Bottom);
-            // 文档宿主是虚拟化面板时必须走它的登记 API：直接插 Children 会让
-            // 子项位置与面板内部条目映射错位，表格排到工具条的高度被裁。
-            if (panel is not CodeWF.Avalonia.Controls.Controls.WindowedStackPanel windowed
-                || !windowed.InsertItemBefore(container, toolbar))
-            {
-                panel.Children.Insert(panel.Children.IndexOf(container), toolbar);
-            }
+            // 工具条只挂在表格前面，不占文档条目位：MarkdownViewer 的渲染块表与面板条目是按
+            // 下标对齐的，登记成条目会让其后每一块错位一位，按块号增量更新就落到别的块上。
+            // 虚拟化面板会把这类未登记子项算作紧随条目的附加高度参与排位（见 WindowedStackPanel）。
+            toolbar.SetValue(ToolbarForProperty, container);
+            panel.Children.Insert(panel.Children.IndexOf(container), toolbar);
         }
     }
 
     private static readonly AttachedProperty<bool> AttachedProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>("TableToolsAttached", typeof(TableTools));
+
+    private static readonly AttachedProperty<Border?> ToolbarForProperty =
+        AvaloniaProperty.RegisterAttached<Control, Border?>("TableToolsToolbarFor", typeof(TableTools));
 
     private static Control BuildToolbar(Border container)
     {
