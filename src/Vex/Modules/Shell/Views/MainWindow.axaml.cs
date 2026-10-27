@@ -83,7 +83,9 @@ public partial class MainWindow : CodeWFWindow
         IMcpServerHost mcpServerHost,
         IShellToastPublisher toastPublisher,
         MarkdownEditorViewModel editorViewModel,
-        MarkdownPreviewViewModel previewViewModel)
+        MarkdownPreviewViewModel previewViewModel,
+        ShellTitleMenuViewModel titleMenuViewModel,
+        ShellStatusBarViewModel statusBarViewModel)
         : this()
     {
         // 强制解析 ShellActionCoordinator，让标题栏菜单的 EventBus 动作路由在窗口创建时完成订阅。
@@ -97,9 +99,11 @@ public partial class MainWindow : CodeWFWindow
         RestoreWindowSize(settingsStore);
         DataContext = viewModel;
 
-        // 手动设置编辑器和预览视图的 DataContext（它们在 XAML 中直接声明）
+        // 手动设置直接在 XAML 中声明的视图的 DataContext
+        TitleMenuView.DataContext = titleMenuViewModel;
         EditorGuideTarget.DataContext = editorViewModel;
         PreviewGuideTarget.DataContext = previewViewModel;
+        StatusBarGuideTarget.DataContext = statusBarViewModel;
 
         viewModel.Workbench.GuideExitRequested += (_, _) => WorkbenchGuide.Finish();
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
