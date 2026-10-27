@@ -67,7 +67,7 @@ public static class DiagramEditor
             };
             var editButton = new Button
             {
-                Content = "编辑",
+                Content = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.DiagramEditButton) ?? string.Empty,
                 FontSize = 11.5,
                 Padding = new Thickness(10, 3),
                 HorizontalAlignment = HorizontalAlignment.Right,
@@ -137,7 +137,7 @@ public static class DiagramEditor
         surface.Children.Add(status);
         surface.Children.Add(new TextBlock
         {
-            Text = "Esc 或点击块外完成编辑",
+            Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.DiagramEditHint) ?? string.Empty,
             FontSize = 11,
             Opacity = 0.6,
             Margin = new Thickness(0, 2, 0, 0),
@@ -150,7 +150,7 @@ public static class DiagramEditor
             {
                 Markdown = "```mermaid\n" + input.Text.TrimEnd() + "\n```",
             };
-            status.Text = "预览由渲染器出图；语法有误时保留源码显示。";
+            status.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.DiagramPreviewNote) ?? string.Empty;
         }
         input.PropertyChanged += (_, args) =>
         {

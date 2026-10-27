@@ -19,8 +19,8 @@ public sealed class ShellPaletteEditView : UserControl
 
         // 对齐原型 #palette-dialog：名称/描述为紧凑行（无前置标签，Watermark 提示）；
         // 浅色态/深色态两组并排，每行 = 色块 + 中文标签 + #RRGGBB 输入。
-        var nameBox = Field("名称", model.Name, 12, value => model.Name = value);
-        var noteBox = Field("描述", model.Note, 20, value => model.Note = value);
+        var nameBox = Field(VexL.WBPaletteNameHint, model.Name, 12, value => model.Name = value);
+        var noteBox = Field(VexL.WBPaletteNoteHint, model.Note, 20, value => model.Note = value);
 
         var groupGrid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,10,*") };
         for (var group = 0; group < 2; group++)
@@ -40,9 +40,12 @@ public sealed class ShellPaletteEditView : UserControl
                 TrySetSwatch(swatch, color);
                 var input = new TextBox { Text = color, Width = 96, Height = 26, FontSize = 12, FontFamily = VexFonts.Code, CornerRadius = new CornerRadius(4), Padding = new Thickness(6, 3) };
                 var preview = swatch;
+                // 必须同时回写 model.Colors：只刷预览会让「保存并应用」拿到初始色，用户改动静默丢失。
                 input.PropertyChanged += (_, args) =>
                 {
-                    if (args.Property == TextBox.TextProperty) TrySetSwatch(preview, input.Text ?? "");
+                    if (args.Property != TextBox.TextProperty) return;
+                    model.Colors[index] = input.Text ?? "";
+                    TrySetSwatch(preview, input.Text ?? "");
                 };
                 var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
                 row.Children.Add(preview);
@@ -60,8 +63,8 @@ public sealed class ShellPaletteEditView : UserControl
         report.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("VexMutedBrush"));
         model.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(ShellPaletteEditModel.Report)) report.Text = model.Report; };
 
-        var cancel = new Button { Content = "取消", Classes = { "wb-quiet" }, MinHeight = 28, Padding = new Thickness(12, 4), FontSize = 12 };
-        var apply = new Button { Content = "保存并应用", Classes = { "primary" }, MinHeight = 28, Padding = new Thickness(12, 4), FontSize = 12 };
+        var cancel = new Button { Content = Text(VexL.Cancel), Classes = { "wb-quiet" }, MinHeight = 28, Padding = new Thickness(12, 4), FontSize = 12 };
+        var apply = new Button { Content = Text(VexL.WBSaveAndApply), Classes = { "primary" }, MinHeight = 28, Padding = new Thickness(12, 4), FontSize = 12 };
         cancel.Click += (_, _) => model.Cancel();
         apply.Click += (_, _) => model.Apply();
         var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 10, 0, 0) };
@@ -77,9 +80,9 @@ public sealed class ShellPaletteEditView : UserControl
         Width = 340;
     }
 
-    private static TextBox Field(string label, string value, int maxLength, Action<string> write)
+    private static TextBox Field(string labelKey, string value, int maxLength, Action<string> write)
     {
-        var box = new TextBox { PlaceholderText = label, MaxLength = maxLength, Height = 32, FontSize = 13, CornerRadius = new CornerRadius(5), Text = value };
+        var box = new TextBox { PlaceholderText = Text(labelKey), MaxLength = maxLength, Height = 32, FontSize = 13, CornerRadius = new CornerRadius(5), Text = value };
         box.PropertyChanged += (_, args) => { if (args.Property == TextBox.TextProperty) write(box.Text ?? ""); };
         return box;
     }

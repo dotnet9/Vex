@@ -1,3 +1,4 @@
+using CodeWF.Toolkit.Lang;
 using Irihi.Avalonia.Shared.Contracts;
 using ReactiveUI;
 
@@ -6,6 +7,8 @@ namespace Vex.Modules.Shell.ViewModels;
 /// <summary>自定义排版编辑（对应原型 typography-dialog）：名称 + 双明暗强调/装饰色 + 字体 + 行距。</summary>
 public sealed class ShellTypographyEditModel(string? editingKey, string name = "") : ReactiveObject, IDialogContext
 {
+    private static string L(string key) => I18nManager.Instance.GetResource(key) ?? string.Empty;
+
     private string _name = name;
     private string _accentLight = "#24766B";
     private string _accentDark = "#4CBFA8";
@@ -13,10 +16,10 @@ public sealed class ShellTypographyEditModel(string? editingKey, string name = "
     private string _decoDark = "#D89A6E";
     private string _font = "sans";
     private double _leading = 1.9;
-    private string _report = "以内置「简约」为模板派生，仅覆盖名称、颜色、字体与行距。";
+    private string _report = L(VexL.WBTypographyReport);
 
     public string? EditingKey { get; } = editingKey;
-    public string Title => EditingKey is null ? "新增排版" : "编辑排版";
+    public string Title => L(EditingKey is null ? VexL.WBTypographyAdd : VexL.WBTypographyEdit);
     public string Report { get => _report; private set => this.RaiseAndSetIfChanged(ref _report, value); }
     public (string Name, string AccentLight, string AccentDark, string DecoLight, string DecoDark, string Font, double Leading)? Result { get; private set; }
 
@@ -35,13 +38,14 @@ public sealed class ShellTypographyEditModel(string? editingKey, string name = "
     public void Apply()
     {
         var colors = new[] { AccentLight, AccentDark, DecoLight, DecoDark };
-        if (colors.Any(value => value.Trim().Length != 7 || value.Trim()[0] != '#'))
+        // 只校验长度和井号会让 #GGGGGG 通过，之后库在烘焙画刷时才抛异常——错误点远离输入框。
+        if (colors.Any(value => !ShellPaletteEditModel.TryParseHex(value.Trim().ToUpperInvariant())))
         {
-            Report = "存在无效颜色，请使用 #RRGGBB 格式。";
+            Report = L(VexL.CustomColorInvalid);
             this.RaisePropertyChanged(nameof(Report));
             return;
         }
-        Result = (Name.Trim() is { Length: > 0 } name ? name : "自定义排版",
+        Result = (Name.Trim() is { Length: > 0 } name ? name : L(VexL.CustomDefaultName),
             AccentLight.Trim(), AccentDark.Trim(), DecoLight.Trim(), DecoDark.Trim(), Font, Leading);
         RequestClose?.Invoke(this, true);
     }

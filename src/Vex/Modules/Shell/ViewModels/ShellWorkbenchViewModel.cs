@@ -420,7 +420,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         var version = ++_mapVersion;
         var markdown = _document.Markdown;
         var documentPath = _document.FilePath;
-        var title = _document.FilePath is { } path ? Path.GetFileNameWithoutExtension(path) : "未命名文档";
+        var title = _document.FilePath is { } path ? Path.GetFileNameWithoutExtension(path) : L(VexL.UntitledDocument);
         var options = new MarkdownMindMapOptions { SummaryLength = SummaryLength, ShowParagraphs = ShowParagraphs, ShowCode = ShowCode, ShowTables = ShowTables, ShowLists = ShowLists };
         // 合并连续输入；AST 在后台构造，结果过期后不进入当前文档。
         await Task.Delay(140);

@@ -10,6 +10,7 @@ using Avalonia.VisualTree;
 using CodeWF.Avalonia.Markdown.Controls;
 using CodeWF.Avalonia.Markdown;
 using CodeWF.Avalonia.Markdown.Themes;
+using Vex;
 using Vex.Core.Services;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
@@ -33,6 +34,7 @@ internal static class PrototypeAppearanceVerification
         Check(vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.TypographyOptions.Count == 12, "Native catalog matches 9 palettes and 12 typography styles");
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("indigo"); vm.Appearance.SelectThemeByKey("light");
         Render();
+        VerifyCustomizationDialogs(app, Check, Render);
         var original = app.Resolve<IWorkspaceDocumentState>().Markdown;
         vm.Workbench.ShowTypography = true; Render();
         var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
@@ -140,6 +142,70 @@ internal static class PrototypeAppearanceVerification
         }
         Check(current == original, "Appearance and layout changes preserve Markdown exactly");
         Console.WriteLine("PASS Native comparison interaction and size checks complete");
+    }
+
+    /// <summary>
+    /// 自定义配色/排版浮层的四语与回写断言。原型 theme.js / typography.js 里这两个对话框只有中文，
+    /// 应用侧的标签全部走 i18n；下拉必须展示译文而不是 sans/1.7 这类内部键，且选择要回写内部值。
+    /// </summary>
+    private static void VerifyCustomizationDialogs(VerificationVexApp app, Action<bool, string> Check, Action Render)
+    {
+        static string L(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
+        var localizer = app.Resolve<IAppLocalizer>();
+
+        // 配色浮层（中文）：分组/色标标签解析、非法色报错、空名回落本地化默认名。
+        localizer.SetCulture("zh-CN"); Render();
+        var paletteModel = new ShellPaletteEditModel(null);
+        var paletteWindow = new Window { Content = new ShellPaletteEditView(paletteModel), Width = 380, Height = 620 };
+        paletteWindow.Show(); Render();
+        var paletteBoxes = paletteWindow.GetVisualDescendants().OfType<TextBox>().ToArray();
+        var hexBoxes = paletteBoxes.Where(t => t.Text?.StartsWith('#') == true).ToArray();
+        Check(hexBoxes.Length == 8, "Palette dialog shows the eight prototype color inputs");
+        Check(paletteWindow.GetVisualDescendants().OfType<TextBlock>()
+            .Select(t => t.Text).Where(t => !string.IsNullOrWhiteSpace(t))
+            .All(t => !t.StartsWith("Vex.") && !t.Contains("VexL.")), "Palette dialog labels resolve in zh-CN");
+        Check(ShellPaletteEditModel.ColorLabels.Distinct().Count() == 4 && ShellPaletteEditModel.GroupLabels.Length == 2,
+            "Palette dialog reuses the four color labels across light and dark groups");
+        var applyPalette = paletteWindow.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("primary"));
+        hexBoxes[0].Text = "#GGGGGG"; Render();
+        applyPalette.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
+        Check(paletteModel.Result is null && paletteModel.Report == L(VexL.CustomColorInvalid),
+            "Invalid hex blocks the palette dialog with the localized report");
+        hexBoxes[0].Text = "#A1B2C3"; Render();
+        applyPalette.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
+        Check(paletteModel.Result?.Colors[0] == "#A1B2C3",
+            "Edited hex reaches the applied colors: " + (paletteModel.Result?.Colors[0] ?? "<null>"));
+        Check(paletteModel.Result?.Name == L(VexL.CustomDefaultName),
+            "Blank palette name falls back to the localized default: " + paletteModel.Result?.Name);
+        Check(paletteWindow.GetVisualDescendants().OfType<Button>().Count(b => b.Content is string) == 2,
+            "Palette dialog offers the prototype's cancel and save-and-apply pair");
+        paletteWindow.Close(); Render();
+
+        // 排版浮层（切到英文后构造）：证明标签随语言变化，而不是硬编码中文。
+        localizer.SetCulture("en-US"); Render();
+        var typographyModel = new ShellTypographyEditModel("user:seed", "seed");
+        var typographyWindow = new Window { Content = new ShellTypographyEditView(typographyModel), Width = 380, Height = 620 };
+        typographyWindow.Show(); Render();
+        var combos = typographyWindow.GetVisualDescendants().OfType<ComboBox>().ToArray();
+        Check(combos.Length == 2, "Typography dialog keeps the font and leading selectors");
+        Check(combos[0].ItemsSource is string[] fonts && fonts.SequenceEqual(["Sans-serif", "Serif", "Monospace"])
+            && combos[0].SelectedIndex == 0, "Font selector shows localized names without leaking internal keys: " + string.Join("/", (string[])combos[0].ItemsSource));
+        combos[0].SelectedIndex = 2; Render();
+        Check(typographyModel.Font == "mono", "Font selection writes the internal key back");
+        combos[1].SelectedIndex = 0; Render();
+        Check(Math.Abs(typographyModel.Leading - 1.7) < 0.001, "Leading selection writes the numeric line height back");
+        Check(typographyModel.Title == L(VexL.WBTypographyEdit), "Editing an existing typography uses the localized title");
+        var typoBoxes = typographyWindow.GetVisualDescendants().OfType<TextBox>().ToArray();
+        // 按内容识别输入框：ComboBox 模板里也有 PART TextBox，用计数会把模板部件一起算进来。
+        Check(typoBoxes.Any(t => t.Text == "seed"), "Typography dialog pre-fills the name field");
+        var colorInputs = typoBoxes.Where(t => t.Text?.StartsWith('#') == true).ToArray();
+        Check(colorInputs.Length == 4, "Typography dialog edits the four accent and decoration colors");
+        colorInputs[1].Text = "#001122"; Render();
+        Check(typographyModel.AccentDark == "#001122", "Color input writes back without reflection (AOT-safe)");
+        typographyModel.Apply();
+        Check(typographyModel.Result?.Name == "seed", "Existing typography name is preserved on apply");
+        typographyWindow.Close(); Render();
+        localizer.SetCulture("zh-CN"); Render();
     }
 
     private static double Contrast(Color a, Color b)
