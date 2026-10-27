@@ -59,16 +59,16 @@ Native AOT 需要匹配的操作系统、架构、.NET 10 SDK、Native AOT 工�
 
 ```text
 publish/
-├── exe/
+├── artifacts/
 │   └── <RID>/
 │       └── Vex/
 │           ├── Vex.exe 或 Vex
 │           └── AOT 运行所需的原生附属文件（如有）
-└── zip/
+└── packages/
     └── Vex-<版本>-<RID>.zip
 ```
 
-ZIP 内保留 `<RID>/Vex/` 目录结构及 AOT 运行需要的原生附属库。`-PublishRoot` 可将整个 `exe` 与 `zip` 输出树改到指定目录。仅实际发布时才创建目录；列表命令不会创建 `publish/exe` 或 `publish/zip`。
+`artifacts/` 保存 Native AOT 发布后的可执行文件和运行所需的原生附属库；`packages/` 保存带版本号的 ZIP。ZIP 内保留 `<RID>/Vex/` 目录结构。`-PublishRoot` 可将这两个用途目录整体改到指定目录。仅实际发布时才创建目录；列表命令不会创建 `artifacts/` 或 `packages/`。
 
 ## 现有发布入口
 
@@ -76,7 +76,7 @@ ZIP 内保留 `<RID>/Vex/` 目录结构及 AOT 运行需要的原生附属库。
 | --- | --- |
 | `publish.ps1` / `publish_all.bat` | 现有桌面发布流程，负责更新版本并衔接 Windows EXE 安装包、Linux DEB、macOS DMG 等打包流程。 |
 | `publish_native.ps1` / `publish_native.bat` | 只生成单个或当前主机可构建的 Native AOT 可执行载荷，不创建版本化 ZIP。 |
-| `publish_aot.ps1` / `publish_aot.bat` | AOT 发布入口；复用 `publish_native.ps1`，并额外将每个 RID 的载荷归档到 `publish/zip`。 |
+| `publish_aot.ps1` / `publish_aot.bat` | AOT 发布入口；复用 `publish_native.ps1`，并额外将每个 RID 的载荷归档到 `publish/packages`。 |
 | `prepare_release_notes.bat` | 整理发布说明，不执行编译或打包。 |
 
 ## 验证列表模式
@@ -86,4 +86,4 @@ scripts\release\publish_aot.bat
 scripts\release\publish_aot.bat list all
 ```
 
-两条命令都应只输出平台与用法说明；发布目录只会由实际发布命令创建。
+两条命令都应只输出平台与用法说明；`artifacts/` 和 `packages/` 只会由实际发布命令创建。

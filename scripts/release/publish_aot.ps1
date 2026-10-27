@@ -1,4 +1,4 @@
-# Publish Native AOT payloads and versioned ZIP archives into publish/exe and publish/zip.
+# Publish Native AOT payloads and versioned ZIP archives into purpose-named folders.
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
@@ -73,7 +73,7 @@ function Show-Platforms {
     Write-Output '  publish_aot.bat <win|linux|osx|RID|all>  Publish Native AOT payload and ZIP.'
     Write-Output ''
     Write-Output 'Options: -Version x.y.z  -PublishRoot <dir>'
-    Write-Output 'Output:  <PublishRoot>/exe/<RID>/Vex and <PublishRoot>/zip/Vex-<version>-<RID>.zip'
+    Write-Output 'Output:  <PublishRoot>/artifacts/<RID>/Vex and <PublishRoot>/packages/Vex-<version>-<RID>.zip'
     Write-Output 'Native AOT can only be compiled on a matching OS and architecture.'
 }
 
@@ -116,19 +116,19 @@ function Publish-AotRuntime {
         [Parameter(Mandatory)] [string] $ReleaseVersion
     )
 
-    $exeRoot = Join-Path $releaseRoot 'exe'
-    $zipRoot = Join-Path $releaseRoot 'zip'
-    $ridRoot = Join-Path $exeRoot $Rid
+    $resourceRoot = Join-Path $releaseRoot 'artifacts'
+    $packageRoot = Join-Path $releaseRoot 'packages'
+    $ridRoot = Join-Path $resourceRoot $Rid
     $payloadRoot = Join-Path $ridRoot 'Vex'
-    $zipPath = Join-Path $zipRoot "Vex-$ReleaseVersion-$Rid.zip"
+    $zipPath = Join-Path $packageRoot "Vex-$ReleaseVersion-$Rid.zip"
     $nativeParameters = @{
         Platform = $Rid
         Version = $ReleaseVersion
         PublishRoot = $payloadRoot
     }
 
-    New-Item -ItemType Directory -Path $exeRoot -Force | Out-Null
-    New-Item -ItemType Directory -Path $zipRoot -Force | Out-Null
+    New-Item -ItemType Directory -Path $resourceRoot -Force | Out-Null
+    New-Item -ItemType Directory -Path $packageRoot -Force | Out-Null
 
     Write-Host "Publishing Native AOT: $Rid (Version=$ReleaseVersion)"
     & $nativePublisher @nativeParameters
