@@ -51,8 +51,10 @@
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidLine" Color="#777382" />
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidBorder" Color="#B8A7DF" />
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidSurface" Color="#EEEAFD" />
+            <!-- 两条色板在 Vex 里同值：原型饼图／象限的 1 号位取 diagram series 0 令牌（#8b7cf6），
+                 此前抄的是 diagram-rendering.js 里的生成期字面量 #7466e0，那个值在原型中会被换成令牌再上色。 -->
             <x:String x:Key="CodeWFMarkdownMermaidDataPalette">#8B7CF6,#D9AD53,#70A98B,#C583B5,#62A5C2,#D58585,#7E9ECB,#A9B568</x:String>
-            <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#7466E0,#D9AD53,#70A98B,#C583B5,#62A5C2,#D58585,#7E9ECB,#A9B568</x:String>
+            <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#8B7CF6,#D9AD53,#70A98B,#C583B5,#62A5C2,#D58585,#7E9ECB,#A9B568</x:String>
             <!-- 原型块内不另铺底色：正文纸面即块面（editor-bg 与 surface 同值），随配色一起走。 -->
             <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="{DynamicResource StudioPaperColor}" />
             <!-- 浅色分段指示块靠投影浮起，不需要描边。 -->
