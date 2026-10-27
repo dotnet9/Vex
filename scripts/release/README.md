@@ -4,7 +4,32 @@
 
 ## Native AOT 发布
 
-使用 `publish_aot.bat` 生成 Native AOT 可执行载荷和带版本号的 ZIP。脚本通过 `publish_native.ps1` 执行 AOT 编译，使用链接器按实际引用裁剪，并启用元数据裁剪；该发布入口不会套用 `TrimmerRoots.xml` 中面向保守反射构建的整程序集 `preserve="all"` 根规则。单文件、原生库、符号清理和发布文档排除选项仍按原流程执行。其他未传入 `VexAotTrimForRelease=true` 的构建继续使用原有宽松根规则。
+使用 `publish_aot.bat` 生成 Native AOT 可执行载荷和带版本号的 ZIP。脚本会自动递增版本号（可选），通过 `publish_native.ps1` 执行 AOT 编译，使用链接器按实际引用裁剪，并启用元数据裁剪；该发布入口不会套用 `TrimmerRoots.xml` 中面向保守反射构建的整程序集 `preserve="all"` 根规则。单文件、原生库、符号清理和发布文档排除选项仍按原流程执行。其他未传入 `VexAotTrimForRelease=true` 的构建继续使用原有宽松根规则。
+
+### 版本号管理
+
+每次发布时，脚本会自动提示版本号选择：
+
+```powershell
+当前版本: 1.10.4
+建议版本: 1.10.5 (自动递增)
+
+使用建议版本? (Y/n/输入自定义版本号):
+```
+
+- 回车或输入 `y` → 使用建议版本（1.10.5），自动更新 `Directory.Build.props`
+- 输入 `n` → 使用当前版本（1.10.4），不更新
+- 输入自定义版本号 → 使用自定义版本（如 `2.0.0`）
+
+也可以通过参数控制：
+
+```powershell
+# 指定版本号，跳过交互
+scripts\release\publish_aot.bat win-x64 -Version 1.11.0
+
+# 跳过版本号更新，使用当前版本
+scripts\release\publish_aot.bat win-x64 -SkipVersionUpdate
+```
 
 ### 平台列表
 
@@ -32,10 +57,10 @@ scripts\release\publish_aot.bat list all
 ### 执行发布
 
 ```powershell
-# 发布与当前主机系统和架构匹配的 RID
+# 发布与当前主机系统和架构匹配的 RID（会提示版本号选择）
 scripts\release\publish_aot.bat all
 
-# 使用当前主机架构解析平台别名
+# 使用当前主机架构解析平台别名（会提示版本号选择）
 scripts\release\publish_aot.bat win
 scripts\release\publish_aot.bat linux
 scripts\release\publish_aot.bat osx
@@ -44,6 +69,12 @@ scripts\release\publish_aot.bat osx
 scripts\release\publish_aot.bat win-x64
 scripts\release\publish_aot.bat linux-arm64
 scripts\release\publish_aot.bat osx-arm64
+
+# 指定版本号，跳过交互式选择
+scripts\release\publish_aot.bat all -Version 1.11.0
+
+# 跳过版本号更新，使用当前版本
+scripts\release\publish_aot.bat all -SkipVersionUpdate
 
 # 指定归档版本和发布根目录
 scripts\release\publish_aot.bat all -Version 1.10.4 -PublishRoot E:\VexRelease

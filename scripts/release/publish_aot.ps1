@@ -7,7 +7,8 @@ param(
     [Parameter(Position = 1)]
     [string] $Scope = '',
     [string] $Version = '',
-    [string] $PublishRoot = ''
+    [string] $PublishRoot = '',
+    [switch] $SkipVersionUpdate
 )
 
 $ErrorActionPreference = 'Stop'
@@ -32,13 +33,69 @@ function Get-HostRuntimeIdentifier {
     return "$platformName-$architecture"
 }
 
+function Get-CurrentVersion {
+    [xml] $props = [IO.File]::ReadAllText((Join-Path $repositoryRoot 'Directory.Build.props'))
+    return [string] $props.Project.PropertyGroup.Version
+}
+
+function Set-ProjectVersion {
+    param([Parameter(Mandatory)] [string] $NewVersion)
+
+    $propsPath = Join-Path $repositoryRoot 'Directory.Build.props'
+    [xml] $properties = [IO.File]::ReadAllText($propsPath)
+    $properties.Project.PropertyGroup.Version = $NewVersion
+    $properties.Save($propsPath)
+    Write-Host "版本号已更新: $NewVersion" -ForegroundColor Green
+}
+
+function Get-NextVersion {
+    param([Parameter(Mandatory)] [string] $CurrentVersion)
+
+    if ($CurrentVersion -match '^(\d+)\.(\d+)\.(\d+)$') {
+        $major = [int]$Matches[1]
+        $minor = [int]$Matches[2]
+        $patch = [int]$Matches[3]
+        return "$major.$minor.$($patch + 1)"
+    }
+    throw "版本号格式无效: $CurrentVersion"
+}
+
 function Get-ReleaseVersion {
     if (-not [string]::IsNullOrWhiteSpace($Version)) {
         return $Version.Trim().TrimStart('v', 'V')
     }
 
-    [xml] $props = [IO.File]::ReadAllText((Join-Path $repositoryRoot 'Directory.Build.props'))
-    return [string] $props.Project.PropertyGroup.Version
+    $currentVersion = Get-CurrentVersion
+
+    if ($SkipVersionUpdate) {
+        return $currentVersion
+    }
+
+    # 自动递增补丁版本号
+    $nextVersion = Get-NextVersion -CurrentVersion $currentVersion
+
+    Write-Host ""
+    Write-Host "当前版本: $currentVersion" -ForegroundColor Yellow
+    Write-Host "建议版本: $nextVersion (自动递增)" -ForegroundColor Green
+    Write-Host ""
+    $response = Read-Host "使用建议版本? (Y/n/输入自定义版本号)"
+
+    if ([string]::IsNullOrWhiteSpace($response) -or $response -eq 'y' -or $response -eq 'Y') {
+        Set-ProjectVersion -NewVersion $nextVersion
+        return $nextVersion
+    }
+    elseif ($response -ne 'n' -and $response -ne 'N') {
+        # 用户输入了自定义版本号
+        $customVersion = $response.Trim().TrimStart('v', 'V')
+        if ($customVersion -match '^\d+\.\d+\.\d+(?:\.\d+)?$') {
+            Set-ProjectVersion -NewVersion $customVersion
+            return $customVersion
+        }
+        throw "版本号格式无效: $customVersion"
+    }
+
+    # 用户选择了 'n'，使用当前版本
+    return $currentVersion
 }
 
 function Show-Platforms {
