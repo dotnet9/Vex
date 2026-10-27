@@ -31,7 +31,7 @@ node design/scripts/verify.cjs     # 静态检查：脚本可解析、引用文�
 浏览器脚本需要 Playwright。本机没有全局安装时，借用依赖库里的副本：
 
 ```powershell
-$env:NODE_PATH = 'E:/github/Libs/CodeWF.Avalonia/design/tests/node_modules'
+npm ci --prefix design/tests   # 仓内锁定 playwright 1.62.1，不借用其他仓库
 $env:VEX_PREVIEW_URL = 'http://127.0.0.1:4317/design/'   # 可省，默认即此
 $env:VEX_CAPTURE_DIR = 'E:/github/temp_files/vex-learning/prototype'  # 显式指定截图目录
 node design/tests/browser-resource-review.cjs

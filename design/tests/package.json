@@ -1,0 +1,7 @@
+{
+  "name": "vex-prototype-tests",
+  "private": true,
+  "description": "Vex 原型 Playwright 验证；依赖仓内锁定，不再借用 CodeWF.Avalonia 的 node_modules。",
+  "scripts": { "chrome": "node browser-workspace-chrome.cjs", "principles": "node browser-design-principles.cjs", "parity": "node capture-parity.cjs" },
+  "devDependencies": { "playwright": "1.62.1" }
+}
