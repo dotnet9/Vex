@@ -10,6 +10,7 @@ using CodeWF.Avalonia.Markdown.Controls;
 using CodeWF.Avalonia.Markdown.Themes;
 using CodeWF.Avalonia.Controls.Controls;
 using CodeWF.Toolkit.Lang;
+using Vex.Controls;
 using Vex.Core.Models;
 using Vex.Modules.Shell.ViewModels;
 using static Vex.Modules.Shell.Views.DesignSelectionControls;
@@ -91,11 +92,7 @@ public sealed class ShellTypographyGallery : UserControl
         }
     }
 
-    private void PaintDensity(Button pill, bool on)
-    {
-        pill.Classes.Set("appearance-pill-on", on);
-        pill.Background = on ? null! : Brushes.Transparent;
-    }
+    private static void PaintDensity(Button pill, bool on) => VexSegmentedPanel.SetIsActive(pill, on);
 
     private void Build()
     {
@@ -115,22 +112,24 @@ public sealed class ShellTypographyGallery : UserControl
         Grid.SetColumn(close, 1); titleRow.Children.Add(close);
         _header.Children.Add(titleRow);
 
-        // 渲染密度：与外观菜单同款胶囊分段条（紧凑/正常/宽松 → Markdown 基准字号 13/15/17）。
-        var densityRow = new Grid { ColumnDefinitions = new("Auto,*"), ColumnSpacing = 10, Height = 52 };
+        // 渲染密度：原型 .typography-density .density-options.vex-segmented（max-width 320、gap 6、button{flex:1}、
+        // min-height 24×密度）——轨道、滑动指示块、选中字色走 Vex.Controls 共享配方，宿主只管宽度上限。
+        var densityRow = new Grid { ColumnDefinitions = new("Auto,*"), ColumnSpacing = 10 };
         var densityLabel = new TextBlock { Text = Text("RenderDensityTitle"), FontSize = 11, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
         Resource(densityLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush"); densityRow.Children.Add(densityLabel);
-        // 三枚等宽胶囊（flex:1）：紧贴标签右侧，均分 320px。
-        var pills = new UniformGrid { Columns = 3, Width = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
-        Grid.SetColumn(pills, 1);
+        var segments = new VexSegmentedPanel { Spacing = 6, FillItems = true };
         foreach (var (key, labelKey) in new[] { ("compact", "DensityCompact"), ("normal", "DensityNormal"), ("relaxed", "DensityRelaxed") })
         {
-            var pill = new Button { Classes = { "appearance-pill" }, Content = Text(labelKey), HorizontalAlignment = HorizontalAlignment.Stretch };
+            var pill = new Button { Classes = { "vex-segment", "density-pill", "render-density-pill" }, Content = Text(labelKey), HorizontalContentAlignment = HorizontalAlignment.Center };
+            Avalonia.Automation.AutomationProperties.SetName(pill, Text(labelKey));
             var captured = key;
             pill.Click += (_, _) => _vm.Appearance.MarkdownDensity = captured;
-            _densityPills[key] = pill; pills.Children.Add(pill);
+            _densityPills[key] = pill; segments.Children.Add(pill);
         }
+        var pills = new Border { Classes = { "vex-segmented", "density-options" }, Child = segments, MaxWidth = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
+        Grid.SetColumn(pills, 1);
         densityRow.Children.Add(pills);
-        var densityFrame = new Border { Child = densityRow, BorderThickness = new Thickness(0, 0, 0, 1) };
+        var densityFrame = new Border { Child = densityRow, BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(2, 2, 2, 10) };
         Resource(densityFrame, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
         _header.Children.Add(densityFrame);
 

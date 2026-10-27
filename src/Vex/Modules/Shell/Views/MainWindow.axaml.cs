@@ -117,7 +117,7 @@ public partial class MainWindow : CodeWFWindow
         }
         var ancestors = source.GetVisualAncestors().Prepend(source).ToArray();
         if (vm.Workbench.ShowLayouts && !ancestors.Contains(LayoutGallery) && !ancestors.Contains(LayoutTarget)) vm.Workbench.ShowLayouts = false;
-        if (vm.Workbench.ShowTypography && !ancestors.Contains(TypographyGallery) && !ancestors.Contains(EditorOptions)) vm.Workbench.ShowTypography = false;
+        if (vm.Workbench.ShowTypography && !ancestors.Contains(TypographyGallery) && !ancestors.Contains(EditorOptions) && !ancestors.Contains(WorkspaceViews.RenderTypographyTrigger)) vm.Workbench.ShowTypography = false;
     }
 
     private void WindowKeyDown(object? sender, KeyEventArgs e)

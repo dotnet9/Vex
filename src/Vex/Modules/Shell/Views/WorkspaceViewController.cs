@@ -30,6 +30,7 @@ public sealed class WorkspaceViewController
     private TextBlock? _renderLabel;
     private TextBlock? _renderTypographyPrefix;
     private TextBlock? _renderTypographyName;
+    private Button? _renderTypographyTrigger;
     private Grid? _editorLayout;
     private Control? _editorOptions;
 
@@ -45,6 +46,9 @@ public sealed class WorkspaceViewController
     /// <summary>阅读窗格头（控制器自建），承载「钉」按钮；钉住状态由偏好驱动。</summary>
     public Border ReadingHeader => _headers["render"];
     public ToggleButton? ReadingPin { get; private set; }
+
+    /// <summary>阅读窗格头居中的排版入口。主窗体拿它豁免「点外面即关」，第二次点击才能回到开合语义。</summary>
+    public Control? RenderTypographyTrigger => _renderTypographyTrigger;
 
     /// <summary>钉住 = 窗格头占位行；取消钉住 = 悬浮于阅读区顶端，静默至悬停或聚焦。</summary>
     private void ApplyReadingPin()
@@ -240,7 +244,9 @@ public sealed class WorkspaceViewController
         var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*") };
         if (id == "editor") _editorLayout = layout;
         // Border 的圆角不裁子级：窗格自绘底色（编辑器/预览纸面）会顶穿块的四角，内层按内圆角 9px 裁切。
-        layout.SizeChanged += (_, e) => layout.Clip = new RectangleGeometry(new Rect(default, e.NewSize), 9, 9);
+        layout.SizeChanged += (_, e) => layout.Clip = _vm?.Workbench.IsPresenting == true
+            ? null
+            : new RectangleGeometry(new Rect(default, e.NewSize), 9, 9);
         if (id == "render")
         {
             // 原型 .view-heading：36px、随块底透明、65% 底边；题注居左、排版入口居中、钉按钮居右。编辑器与导图窗格按原型不设标题行。
@@ -257,7 +263,9 @@ public sealed class WorkspaceViewController
             Grid.SetColumn(caption, 0); bar.Children.Add(caption);
             _renderCaption = caption; _renderLabel = label;
             var typography = new Button { Classes = { "wb-quiet" }, VerticalAlignment = VerticalAlignment.Center };
-            typography.Bind(Button.CommandProperty, new Binding("Workbench.ToggleTypography"));
+            // 反射方法绑定（Binding("Workbench.ToggleTypography")）在裁剪后的发布产物里解析不出命令，改直调视图模型。
+            typography.Click += (_, _) => _vm?.Workbench.ToggleTypography();
+            _renderTypographyTrigger = typography;
             _renderTypographyPrefix = new TextBlock { Text = WorkbenchText.Get("Typography"), VerticalAlignment = VerticalAlignment.Center };
             _renderTypographyName = new TextBlock { FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
             var trigger = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
@@ -295,6 +303,23 @@ public sealed class WorkspaceViewController
             {
                 frame.DataContext = _vm;
                 frame.IsVisible = wanted.Contains(id);
+                // 原型 .deck-stage 是整幅纸面：演示时窗格不带块描边、圆角与投影，内层裁切也一并放开，
+                // 退出演示还权给 .workspace-block 样式（本地值会盖住样式，所以必须 ClearValue 而不是设回字面量）。
+                if (state.IsPresenting)
+                {
+                    frame.CornerRadius = new CornerRadius(0);
+                    frame.BorderThickness = new Thickness(0);
+                    frame.BoxShadow = default;
+                    if (frame.Child is Grid bleed) bleed.Clip = null;
+                }
+                else
+                {
+                    frame.ClearValue(Border.CornerRadiusProperty);
+                    frame.ClearValue(Border.BorderThicknessProperty);
+                    frame.ClearValue(Border.BoxShadowProperty);
+                    if (frame.Child is Grid bleed && bleed.Bounds.Size != default)
+                        bleed.Clip = new RectangleGeometry(new Rect(default, bleed.Bounds.Size), 9, 9);
+                }
                 if (!_floating.ContainsKey(id) && frame.Parent is null) _surface.Children.Add(frame);
             }
             // 原型只为阅读窗格保留标题行：多窗格带题注与底边，单窗格题注隐藏、无边框右对齐。
