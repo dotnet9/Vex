@@ -9,11 +9,9 @@
     xmlns:icons="using:Vex.Controls"
     xmlns:l="clr-namespace:Vex"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:prism="http://prismlibrary.com/"
     xmlns:services="using:Vex.Modules.Workspace.Services"
     xmlns:vm="using:Vex.Modules.Workspace.ViewModels"
     x:DataType="vm:MarkdownEditorViewModel"
-    prism:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
     <Grid RowDefinitions="Auto,*">
         <Border x:Name="SourceHeader" Classes="pane-head">

@@ -5,11 +5,9 @@
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:models="using:Vex.Core.Models"
-    xmlns:prism="http://prismlibrary.com/"
     xmlns:regions="using:Vex.Core.Regions"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellOutlineViewModel"
-    prism:ViewModelLocator.AutoWireViewModel="True"
     regions:RegionTab.HeaderKey="{x:Static l:VexL.SidebarOutline}"
     regions:RegionTab.IconData="M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01">
 

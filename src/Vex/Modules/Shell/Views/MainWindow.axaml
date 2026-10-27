@@ -7,7 +7,6 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:regions="using:Vex.Core.Regions"
     xmlns:conv="using:Vex.Core.Converters"
-    xmlns:prism="http://prismlibrary.com/"
     xmlns:shell="using:Vex.Modules.Shell.Views"
     xmlns:workspace="using:Vex.Modules.Workspace.Views"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:model="using:Vex.Core.Models" xmlns:md="https://codewf.com"
@@ -162,7 +161,7 @@
                 ClipToBounds="True"
                 IsHitTestVisible="{Binding Layout.ShowSidebar}">
                 <Border Classes="panel">
-                    <ContentControl prism:RegionManager.RegionName="{x:Static regions:RegionNames.ShellSidebarRegion}" />
+                    <ContentControl regions:RegionManagerExtensions.RegionName="{x:Static regions:RegionNames.ShellSidebarRegion}" />
                 </Border>
             </Border>
 
