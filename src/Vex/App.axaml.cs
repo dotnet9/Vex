@@ -22,6 +22,7 @@ using Vex.Modules.Shell.Views;
 using Vex.Modules.Workspace;
 using Vex.Modules.Workspace.Services;
 using Vex.Modules.Workspace.ViewModels;
+using Vex.Modules.Workspace.Views;
 
 namespace Vex;
 
@@ -127,10 +128,12 @@ public partial class App : Application
         services.AddSingleton<ShellActionCoordinator>();
         services.AddSingleton<MainWindowViewModel>();
 
-        // 注册 Views
+        // 注册 Views（带 ViewModel 构造函数注入）
         services.AddTransient<MainWindow>();
         services.AddTransient<ShellFilesView>();
         services.AddTransient<ShellOutlineView>();
+        services.AddTransient<MarkdownEditorView>();
+        services.AddTransient<MarkdownPreviewView>();
 
         // 注册模块服务
         ModuleInitializer.RegisterModules(services,

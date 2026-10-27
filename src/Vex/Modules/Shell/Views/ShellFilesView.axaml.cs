@@ -37,6 +37,11 @@ public partial class ShellFilesView : UserControl
 
     private ShellFilesViewModel? _observedViewModel;
 
+    public ShellFilesView(ShellFilesViewModel viewModel) : this()
+    {
+        DataContext = viewModel;
+    }
+
     private void ObserveViewModel()
     {
         if (_observedViewModel is not null) _observedViewModel.PropertyChanged -= ViewModelPropertyChanged;

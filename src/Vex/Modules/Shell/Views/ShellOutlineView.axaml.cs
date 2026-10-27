@@ -12,6 +12,11 @@ public partial class ShellOutlineView : UserControl
         InitializeComponent();
     }
 
+    public ShellOutlineView(ViewModels.ShellOutlineViewModel viewModel) : this()
+    {
+        DataContext = viewModel;
+    }
+
     private void ToggleSection(object? sender, RoutedEventArgs e)
     {
         if ((sender as Control)?.DataContext is OutlineItem item) item.IsExpanded = !item.IsExpanded;

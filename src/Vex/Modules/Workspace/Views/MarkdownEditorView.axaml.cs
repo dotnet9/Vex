@@ -19,6 +19,12 @@ namespace Vex.Modules.Workspace.Views;
 public partial class MarkdownEditorView : UserControl
 {
     private ShellWindowLayoutViewModel? _layout;
+
+    public MarkdownEditorView(MarkdownEditorViewModel viewModel) : this()
+    {
+        DataContext = viewModel;
+    }
+
     public MarkdownEditorView()
     {
         InitializeComponent();
