@@ -19,10 +19,10 @@
     <SolidColorBrush x:Key="VexSplitterBrush" Color="{DynamicResource StudioRaisedColor}" />
     <SolidColorBrush x:Key="VexEditorCurrentLineBackgroundBrush" Color="{DynamicResource StudioRaisedColor}" />
     <SolidColorBrush x:Key="VexHoverBrush" Color="{DynamicResource StudioRaisedColor}" />
-    <!-- 原型 .vex-segmented（design/assets/prototype/segmented.css）：轨道=上浮色（前景 4% 叠表面），
-         指示块=块面纸色；深色轨道与纸面反差小，改由 1px 淡描边抬起指示块（浅色透明，见下方明暗字典）。 -->
-    <SolidColorBrush x:Key="VexSegmentedTrackBrush" Color="{DynamicResource StudioRaisedColor}" />
-    <SolidColorBrush x:Key="VexSegmentedThumbBrush" Color="{DynamicResource StudioPaperColor}" />
+    <!-- 原型 .vex-segmented（design/assets/prototype/segmented.css）：轨道=专用派生色（前景 4% 叠表面，随色板/明暗由 sync_native_design 生成），
+         指示块=专用派生色（亮=白 55% 叠表面；暗=面板色）；深色轨道与纸面反差小，改由 1px 淡描边抬起指示块（浅色透明，见下方明暗字典）。 -->
+    <SolidColorBrush x:Key="VexSegmentedTrackBrush" Color="{DynamicResource StudioSegmentedTrackColor}" />
+    <SolidColorBrush x:Key="VexSegmentedThumbBrush" Color="{DynamicResource StudioSegmentedThumbColor}" />
     <SolidColorBrush x:Key="VexPressedBrush" Color="{DynamicResource StudioPressedColor}" />
     <SolidColorBrush x:Key="VexAccentSoftBrush" Color="{DynamicResource StudioSelectedColor}" />
     <SolidColorBrush x:Key="VexEditorForegroundBrush" Color="{DynamicResource StudioTextColor}" />

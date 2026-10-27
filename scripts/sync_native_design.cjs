@@ -47,9 +47,14 @@ const tokens = path.join(library,'src/Controls/CodeWF.Avalonia.Controls/Themes/S
 const template = fs.readFileSync(path.join(__dirname,'native-design/StudioPalette.template.axaml'),'utf8');
 for (const p of palettes) for (const mode of ['light','dark']) {
   const dark=mode==='dark', t=derive(p.key,mode);
-  const colors={StudioBackgroundColor:dark?p.darkBg:p.bg,StudioSurfaceColor:dark?p.darkPanel:p.panel,
-    StudioPaperColor:dark?p.darkPaper:p.paper,StudioRaisedColor:t.hover,StudioBorderColor:t.border,
-    StudioTextColor:dark?p.darkFg:p.fg,StudioMutedColor:t.muted,StudioAccentColor:t.accent,
+  /* 原型 .vex-segmented（segmented.css）：轨道=前景 4% 叠表面；指示块=白 55% 叠表面（亮）/面板（暗）。 */
+  const mix=(a,b,ratio)=>{const pa=a.replace('#',''),pb=b.replace('#','');const ch=(j)=>Math.round(parseInt(pa.substr(j,2),16)*ratio+parseInt(pb.substr(j,2),16)*(1-ratio)).toString(16).padStart(2,'0');return ('#'+ch(0)+ch(2)+ch(4)).toUpperCase();};
+  const surface=dark?p.darkPanel:p.panel, fgColor=dark?p.darkFg:p.fg;
+  const segmentedTrack=mix(fgColor,surface,0.04);
+  const segmentedThumb=dark?surface:mix('#ffffff',surface,0.55);
+  const colors={StudioBackgroundColor:dark?p.darkBg:p.bg,StudioSurfaceColor:surface,
+    StudioPaperColor:dark?p.darkPaper:p.paper,StudioRaisedColor:t.hover,StudioBorderColor:t.border,StudioSegmentedTrackColor:segmentedTrack,StudioSegmentedThumbColor:segmentedThumb,
+    StudioTextColor:fgColor,StudioMutedColor:t.muted,StudioAccentColor:t.accent,
     StudioSecondaryColor:t['accent-decoration'],StudioPrimaryColor:t.primary,StudioGradientStartColor:t.primary,
     StudioTextGradientEndColor:t['gradient-end']};
   let text=template.replace(/<Color x:Key="([^"]+)">[^<]+<\/Color>/g,(all,key)=>`<Color x:Key="${key}">${colors[key]||'#24766B'}</Color>`);
