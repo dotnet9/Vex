@@ -255,8 +255,12 @@ public sealed class MarkdownExportService : IMarkdownExportService
         var printScript = mode == HtmlDocumentMode.PrintPreview ? PrintPreviewScript : string.Empty;
         var startFragment = includeFragmentMarkers ? "              <!--StartFragment-->" : string.Empty;
         var endFragment = includeFragmentMarkers ? "              <!--EndFragment-->" : string.Empty;
-        var typography = ArticleTypographyCatalog.Find(_preferences.HtmlStyle ? _appearanceState.TypographyTheme : "Simple");
-        var typographyCss = typography is null ? "" : (_appearanceState.TypographySize == "Small"
+        // 排版必须走 Resolver：用户自定义排版只注册在 Resolver，用 Catalog 取会退化成无装饰的默认版式，
+        // 导出的 HTML 与预览不一致。尺寸档语义与库的 NormalizeTypographySize 对齐：非正常且非宽松即紧凑。
+        var typography = ArticleTypographyResolver.Find(_preferences.HtmlStyle ? _appearanceState.TypographyTheme : "Simple");
+        var isCompactTypography = !string.Equals(_appearanceState.TypographySize, MarkdownTypographySizes.Normal, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(_appearanceState.TypographySize, MarkdownTypographySizes.Relaxed, StringComparison.OrdinalIgnoreCase);
+        var typographyCss = typography is null ? "" : (isCompactTypography
             ? typography.CompactExportCss : typography.ExportCss).Replace("body", "article");
         return $$"""
             <!doctype html>
