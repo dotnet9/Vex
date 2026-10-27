@@ -447,7 +447,7 @@
       "StatusRenamedFileFormat": "已重命名为 {0}。",
       "StatusRenameCanceled": "已取消重命名。",
       "StatusExternalFileReloadedFormat": "已从磁盘重新加载 {0}。",
-      "StatusExternalFileChangedWithUnsavedEdits": "外部文件已变更；当前文档有未保存修改，未自动覆盖。",
+      "StatusExternalFileChangedWithUnsavedEdits": "外部文件已变更，已自动载入外部版本；未保存的修改已被丢弃，可用撤销找回。",
       "StatusCurrentFileUnavailable": "当前文件已不可用。",
       "StatusOpenFileBeforeEncoding": "请先打开文件再选择编码。",
       "StatusReopenedWithEncodingFormat": "已用 {0} 重新打开。",

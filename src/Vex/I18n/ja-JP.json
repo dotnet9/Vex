@@ -447,7 +447,7 @@
       "StatusRenamedFileFormat": "{0} に名前を変更しました。",
       "StatusRenameCanceled": "名前の変更をキャンセルしました。",
       "StatusExternalFileReloadedFormat": "{0} をディスクから再読み込みしました。",
-      "StatusExternalFileChangedWithUnsavedEdits": "外部ファイルが変更されました。未保存の編集は自動で上書きしていません。",
+      "StatusExternalFileChangedWithUnsavedEdits": "外部ファイルが変更されたため、外部の版を自動的に読み込みました。未保存の編集は破棄されましたが、元に戻すと復元できます。",
       "StatusCurrentFileUnavailable": "現在のファイルを利用できません。",
       "StatusOpenFileBeforeEncoding": "エンコードを選択する前にファイルを開いてください。",
       "StatusReopenedWithEncodingFormat": "{0} で開き直しました。",

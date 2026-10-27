@@ -447,7 +447,7 @@
       "StatusRenamedFileFormat": "Renamed to {0}.",
       "StatusRenameCanceled": "Rename canceled.",
       "StatusExternalFileReloadedFormat": "Reloaded {0} from disk.",
-      "StatusExternalFileChangedWithUnsavedEdits": "The file changed on disk. Current unsaved edits were not overwritten.",
+      "StatusExternalFileChangedWithUnsavedEdits": "The file changed on disk — the external version was loaded automatically. Unsaved edits were discarded; undo restores them.",
       "StatusCurrentFileUnavailable": "The current file is unavailable.",
       "StatusOpenFileBeforeEncoding": "Open a file before choosing an encoding.",
       "StatusReopenedWithEncodingFormat": "Reopened with {0}.",

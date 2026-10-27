@@ -53,7 +53,13 @@
   dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
   dialog.addEventListener('keydown',event=>{event.stopPropagation();if((event.ctrlKey||event.metaKey)&&['s','o','n','w'].includes(event.key.toLowerCase()))event.preventDefault();});
   window.addEventListener('vex-workflow-result',update);window.addEventListener('vex-save-state-changed',update);window.addEventListener('vex-document-loaded',update);
-  window.VexWorkflows={simulateExternal(text){W.finish();W.documents[W.state.doc].externalText=text;update();},showDrafts(items){drafts=items;update();},compare};
+  window.VexWorkflows={simulateExternal(text){
+    W.finish();
+    const doc=W.documents[W.state.doc];
+    /* 偏好开启自动保存时，外部修改静默载入正文并 toast 告知，不再出提醒条与对比层。 */
+    if(window.VexPreferences&&VexPreferences.values.autoSave){W.applyExternalVersion(text);return;}
+    doc.externalText=text;update();
+  },showDrafts(items){drafts=items;update();},compare};
   const scenario=new URLSearchParams(location.search).get('scenario');
   if(scenario==='external-change')VexWorkflows.simulateExternal(W.text+'\n\n## 来自外部的补充\n\n这段内容来自另一个程序，等待比较后载入。\n');
   if(scenario==='draft')drafts=[{name:'昨日写作手记.md',text:'# 昨日写作手记\n\n这是一段尚未保存的思路。\n\n## 接下来\n\n把观察整理成文章，再保存副本。\n'}];

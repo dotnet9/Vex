@@ -624,7 +624,19 @@
     $('dirty-dot').hidden = !state.dirty;
     updateSaveStatus();
     clearTimeout(state.pending); state.pending = setTimeout(refresh, 180);
+    scheduleAutoSave();
   });
+  /* 偏好的自动保存开关真正落地的消费点：停止输入 saveDelay 秒后，把正文记为已存（模拟落盘）。 */
+  function scheduleAutoSave() {
+    if (!window.VexPreferences || !VexPreferences.values.autoSave || input.readOnly) return;
+    clearTimeout(state.autoSaveTimer);
+    var scheduledDoc = state.doc;
+    state.autoSaveTimer = setTimeout(function () {
+      if (scheduledDoc !== state.doc || !VexPreferences.values.autoSave || input.value === docs[state.doc].text) return;
+      docs[state.doc].text = input.value; delete docs[state.doc].pendingText; delete docs[state.doc].saveError;
+      state.dirty = false; updateSaveStatus();
+    }, (Number(VexPreferences.values.saveDelay) || 2) * 1000);
+  }
   input.addEventListener('beforeinput', function () { remember(input.value); });
   // 源码视图上色：镜像层跟随输入框刷新，异常时退回纯文本。
   VexSourceHighlight.attach($('source-highlight'), input);
@@ -1275,6 +1287,14 @@
       if (state.editMode === 'instant') instant.focusAt(line); else highlightSource(node, true);
     },
     loadExternalVersion: function(text) { instant.finish();remember(input.value);docs[state.doc].text=text;delete docs[state.doc].pendingText;delete docs[state.doc].saveError;input.value=text;input.dispatchEvent(new Event('input'));refreshNow(); },
+    /* 自动保存开启时的外部修改静默载入：不进提醒条与对比层，直接替换正文并 toast 告知；载入前内容进撤销栈。 */
+    applyExternalVersion: function(text) {
+      instant.finish();clearTimeout(state.autoSaveTimer);
+      var hadEdits = input.value !== docs[state.doc].text;
+      remember(input.value);docs[state.doc].text=text;delete docs[state.doc].pendingText;delete docs[state.doc].saveError;input.value=text;input.dispatchEvent(new Event('input'));refreshNow();
+      if (hadEdits) VexProto.toastKey('StatusExternalFileChangedWithUnsavedEdits');
+      else VexProto.toastKey('StatusExternalFileReloadedFormat', docs[state.doc].name);
+    },
     recoverDrafts: function(recovered) { instant.finish();docs[state.doc].pendingText=input.value;var first=docs.length;recovered.forEach(function(draft){docs.push({name:draft.name.replace(/(\.md)?$/,'.恢复.md'),text:'',pendingText:draft.text,isNew:true,recovered:true});});loadDoc(first); },
     loadDocument: function (index) { confirmSwitch(function () { loadDoc(index); }); },
     applyText: function (text, options) {
