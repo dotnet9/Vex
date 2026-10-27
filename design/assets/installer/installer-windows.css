@@ -44,10 +44,6 @@ body[data-platform="windows"] .windows-minimal .step-caption { font-size:12px; m
 .windows-minimal .maintenance-details { display:grid; gap:9px; margin-top:16px; }
 .windows-minimal .maintenance-option { display:flex; align-items:center; gap:8px; font-size:13px; }
 .windows-minimal .maintenance-option input { width:14px; height:14px; margin:0; accent-color:var(--accent); }
-.windows-minimal .details-label { margin-top:5px; font-size:12px; font-weight:500; color:var(--muted); }
-.windows-minimal .location-list { max-height:92px; overflow:auto; padding:6px; border:1px solid var(--line); border-radius:var(--vex-radius-sm); background:var(--field); font-size:12px; }
-.windows-minimal .location-item { display:block; padding:6px 8px; border-radius:var(--vex-radius-xs); overflow-wrap:anywhere; }
-.windows-minimal .location-item.selected { color:var(--accent); background:var(--accent-soft); }
 body[data-platform="windows"] .windows-minimal { transition:width var(--vex-duration) var(--vex-ease),height var(--vex-exit) var(--vex-ease); }
 #installer-root[data-details="open"] .windows-minimal { height:480px; }
 #installer-root[data-details="open"] .windows-minimal .installer-layout { height:478px; min-height:478px; }
