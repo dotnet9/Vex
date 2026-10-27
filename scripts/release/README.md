@@ -4,7 +4,7 @@
 
 ## Native AOT 发布
 
-使用 `publish_aot.bat` 生成 Native AOT 可执行载荷和带版本号的 ZIP。脚本通过 `publish_native.ps1` 执行 AOT 编译，保留该流程现有的单文件、裁剪、原生库和发布文档排除选项。
+使用 `publish_aot.bat` 生成 Native AOT 可执行载荷和带版本号的 ZIP。脚本通过 `publish_native.ps1` 执行 AOT 编译，使用链接器按实际引用裁剪，并启用元数据裁剪；该发布入口不会套用 `TrimmerRoots.xml` 中面向保守反射构建的整程序集 `preserve="all"` 根规则。单文件、原生库、符号清理和发布文档排除选项仍按原流程执行。其他未传入 `VexAotTrimForRelease=true` 的构建继续使用原有宽松根规则。
 
 ### 平台列表
 

@@ -87,12 +87,24 @@ function Clear-NativePayload {
 
     if (-not (Test-Path -LiteralPath $Payload -PathType Container)) { return }
     $removed = 0
+
+    # 清理调试符号、文档和配置文件（保留 I18n 多语言目录）
     Get-ChildItem -LiteralPath $Payload -Force | ForEach-Object {
-        $remove = $_.Extension -in @('.pdb', '.xml', '.ps1', '.py', '.config', '.md', '.txt') -or $_.Name -in @('docs', 'I18n')
+        $remove = $_.Extension -in @('.pdb', '.xml', '.ps1', '.py', '.config', '.md', '.txt', '.json.br', '.json.gz') `
+            -or $_.Name -in @('docs') `
+            -or ($_.Name -match '\.deps\.json$|\.runtimeconfig\.json$|\.runtimeconfig\.dev\.json$')
         if (-not $remove) { return }
         Remove-Item -LiteralPath $_.FullName -Recurse -Force
         $removed++
     }
+
+    # 清理 file-icons 目录中的 README
+    $fileIconsReadme = Join-Path $Payload 'file-icons/README.md'
+    if (Test-Path -LiteralPath $fileIconsReadme -PathType Leaf) {
+        Remove-Item -LiteralPath $fileIconsReadme -Force
+        $removed++
+    }
+
     if ($removed -gt 0) { Write-Host "Removed $removed non-runtime item(s) from $Payload" }
 }
 
@@ -119,16 +131,30 @@ function Publish-NativeRuntime {
         '-p:EnableCompressionInSingleFile=true', '-p:IncludeNativeLibrariesForSelfExtract=true',
         '-p:IncludeAllContentForSelfExtract=true', '-p:DebugSymbols=false', '-p:DebugType=none',
         '-p:CopyOutputSymbolsToPublishDirectory=false', '-p:VexExcludePublishDocuments=true',
-        '-p:IlcGenerateCompleteTypeMetadata=true', '-p:IlcTrimMetadata=false',
         '-p:IlcSingleThreaded=true', '-p:IlcUseServerGc=false',
         "-p:Version=$ReleaseVersion", "-p:PublishDir=$payload/"
     )
     if ($ArtifactsRoot) { $arguments += "-p:ArtifactsPath=$([IO.Path]::GetFullPath($ArtifactsRoot))" }
     if ($Rid.StartsWith('osx-')) { $arguments += '-p:StripSymbols=false' }
 
-    Write-Host "Native AOT publish: $Rid (Version=$ReleaseVersion)"
-    & dotnet @arguments
-    if ($LASTEXITCODE -ne 0) { throw "Native AOT publish failed: $Rid" }
+    $previousPath = $env:PATH
+    try {
+        # NativeAOT's Windows linker invokes vswhere.exe; make the standard VS installer location visible outside a developer shell.
+        $vswhereDirectory = if ($env:OS -eq 'Windows_NT' -and ${env:ProgramFiles(x86)}) {
+            Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer'
+        }
+        if ($vswhereDirectory -and (Test-Path -LiteralPath (Join-Path $vswhereDirectory 'vswhere.exe') -PathType Leaf)) {
+            $env:PATH = "$vswhereDirectory$([IO.Path]::PathSeparator)$previousPath"
+        }
+
+        Write-Host "Native AOT publish: $Rid (Version=$ReleaseVersion)"
+        & dotnet @arguments
+        if ($LASTEXITCODE -ne 0) { throw "Native AOT publish failed: $Rid" }
+    }
+    finally {
+        $env:PATH = $previousPath
+    }
+
     Clear-NativePayload -Payload $payload
     $executable = Join-Path $payload $(if ($Rid.StartsWith('win-')) { 'Vex.exe' } else { 'Vex' })
     if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) { throw "Native executable is missing: $executable" }

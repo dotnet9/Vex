@@ -44,14 +44,16 @@
     <StripSymbols>true</StripSymbols>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(PublishAot)' == 'true'">
-    <!-- Native AOT 优化配置 - 由于 ReactiveUI/Avalonia 反射需求，保留必要的元数据 -->
+    <!-- Native AOT 优化配置 - 平衡体积和功能 -->
     <IlcOptimizationPreference>Size</IlcOptimizationPreference>
     <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
-    <!-- 保留完整类型元数据以支持反射 -->
+    <!-- 保留必要的类型元数据以支持 ReactiveUI 命令和数据绑定 -->
     <IlcGenerateCompleteTypeMetadata>true</IlcGenerateCompleteTypeMetadata>
     <IlcDisableReflection>false</IlcDisableReflection>
-    <!-- 保留更多元数据 -->
+    <!-- 保留元数据以支持反射 -->
     <IlcTrimMetadata>false</IlcTrimMetadata>
+    <!-- 体积优化选项 -->
+    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyMetadata Include="Website" Value="$(PackageProjectUrl)" />
@@ -62,6 +64,7 @@
     <AvaloniaResource Include="..\..\assets\logo.ico" Link="Assets\logo.ico" />
     <AvaloniaResource Include="..\..\assets\logo.png" Link="Assets\logo.png" />
     <AvaloniaResource Include="..\..\assets\logo.svg" Link="Assets\logo.svg" />
+    <!-- 始终使用 TrimmerRoots 保护关键程序集 -->
     <TrimmerRootDescriptor Include="Properties\Trimming\TrimmerRoots.xml" />
     <Content Include="..\..\docs\项目管理\更新日志.md" Link="docs\更新日志.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
     <Content Include="..\..\docs\开发文档\快速开始.md" Link="docs\快速开始.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="'$(VexExcludePublishDocuments)' != 'true'" />
@@ -104,6 +107,7 @@
     </None>
     <None Update="I18n\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>I18n\Vex\%(Filename)%(Extension)</TargetPath>
     </None>
   </ItemGroup>
