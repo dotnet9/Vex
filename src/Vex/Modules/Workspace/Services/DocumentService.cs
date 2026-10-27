@@ -17,9 +17,9 @@ public sealed class DocumentService : IDocumentService
     private readonly EditorPreferences _preferences;
 
     public DocumentService(IDocumentFileFactory documentFileFactory, IAppLocalizer localizer, EditorPreferences preferences,
-        IWorkspaceFileService? workspaceFiles = null)
+        IWorkspaceFileService workspaceFiles)
     {
-        _workspaceFiles = workspaceFiles ?? new WorkspaceFileService(documentFileFactory);
+        _workspaceFiles = workspaceFiles;
         _localizer = localizer;
         _preferences = preferences;
     }
