@@ -98,12 +98,12 @@
 
     <Grid RowDefinitions="Auto,*,Auto">
         <!-- 搜索框仅在有内容时显示清除按钮，图标按 24px 坐标等比缩放。 -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,28" ColumnSpacing="4" Margin="5,14,5,8">
         <Border
             x:Name="FileSearchBox"
             Classes="sidebar-search"
-            Grid.Row="0"
+            Grid.Column="0"
             Height="32"
-            Margin="5,14,5,8"
             Padding="8,0">
             <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" VerticalAlignment="Center">
                 <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
@@ -136,6 +136,16 @@
                 </Button>
             </Grid>
         </Border>
+
+        <Button Grid.Column="1" Classes="sidebar-panel-toggle" HorizontalAlignment="Right" VerticalAlignment="Center"
+                ZIndex="20"
+                IsVisible="{Binding Layout.ShowSidebar}"
+                Command="{Binding Layout.CollapseSidebar}"
+                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseFilesPanel}}"
+                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseFilesPanel}}">
+            <Path x:Name="FilesPanelCollapseIcon" Classes="panel-toggle-icon" />
+        </Button>
+        </Grid>
 
         <TreeView
             x:Name="FileTree"

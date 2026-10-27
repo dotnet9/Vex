@@ -65,34 +65,6 @@
                     Text="Vex"
                     VerticalAlignment="Center" />
             </StackPanel>
-            <!-- 文件树切换按钮：使用 panel-right-open/close SVG 的水平镜像，面板分隔线位于左侧。 -->
-            <ToggleButton
-                x:Name="SidebarToggleButton"
-                Classes="tb-icon titlebar-action"
-                IsChecked="{Binding Layout.IsSidebarVisible, Mode=OneWay}"
-                Command="{Binding Layout.ToggleSidebar}"
-                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ToggleSidebar}}"
-                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ToggleSidebar}}"
-                VerticalAlignment="Center">
-                <Panel>
-                    <!-- 文件树折叠时：箭头向右（展开提示） -->
-                    <Path
-                        x:Name="SidebarCollapsedIcon"
-                        Classes="wb-icon titlebar-outline-icon"
-                        Width="15"
-                        Height="15"
-                        IsVisible="{Binding !Layout.IsSidebarVisible}"
-                        />
-                    <!-- 文件树展开时：箭头向左（收起提示） -->
-                    <Path
-                        x:Name="SidebarExpandedIcon"
-                        Classes="wb-icon titlebar-outline-icon"
-                        Width="15"
-                        Height="15"
-                        IsVisible="{Binding Layout.IsSidebarVisible}"
-                        />
-                </Panel>
-            </ToggleButton>
             <shell:ShellTitleMenuView x:Name="TitleMenuView" VerticalAlignment="Center" />
             <!-- 原型把文档名放在菜单之后左对齐，而不是标题栏正中。 -->
             <TextBlock
@@ -133,6 +105,7 @@
             BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0">
     <Grid
         x:Name="ShellGuideRoot"
+        ClipToBounds="False"
         Background="{DynamicResource VexShellBackgroundBrush}"
         RowDefinitions="Auto,*,Auto">
         <Border Grid.Row="0" IsVisible="{Binding !Workbench.IsPresenting}">
@@ -142,7 +115,7 @@
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="1" x:Name="WorkspaceColumns" IsVisible="{Binding !Workbench.PresentationOutline}" Margin="{Binding Workbench.PresentationContentMargin}">
+        <Grid Grid.Row="1" x:Name="WorkspaceColumns" ClipToBounds="False" IsVisible="{Binding !Workbench.PresentationOutline}" Margin="{Binding Workbench.PresentationContentMargin}">
             <Grid.ColumnDefinitions>
                 <!-- 列宽是侧栏尺寸的唯一来源，拖动结果直接通过双向绑定进入布局状态。 -->
                 <ColumnDefinition Width="{Binding Layout.SidebarColumnWidth, Mode=TwoWay}"
@@ -210,10 +183,45 @@
                     Background="{DynamicResource VexPanelBackgroundBrush}" ClipToBounds="True">
                 <shell:ShellAuxiliaryPanelView/>
             </Border>
+
+        </Grid>
+
+        <!-- 工作区独立叠加层：脱离三栏网格边界，给两侧悬浮按钮的阴影留出完整扩散空间。 -->
+        <Grid x:Name="WorkspacePanelOverlay" Grid.Row="1" ClipToBounds="False"
+              IsVisible="{Binding !Workbench.PresentationOutline}"
+              Margin="{Binding Workbench.PresentationContentMargin}"
+              Panel.ZIndex="110">
+            <Border x:Name="SidebarExpandHitArea" Width="60" Height="60" Padding="12"
+                    Background="Transparent" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-4,22,0,0"
+                    ClipToBounds="False" IsVisible="{Binding Layout.ShowSidebarExpandButton}">
+                <Grid Width="36" Height="36">
+                    <Border Classes="sidebar-expand-surface" />
+                    <Button x:Name="SidebarExpandButton" Classes="sidebar-expand-toggle"
+                            Command="{Binding Layout.ExpandSidebar}"
+                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ExpandFilesPanel}}"
+                            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ExpandFilesPanel}}">
+                        <Path x:Name="SidebarExpandIcon" Classes="panel-toggle-icon" />
+                    </Button>
+                </Grid>
+            </Border>
+            <Border x:Name="OutlineExpandHitArea" Width="60" Height="60" Padding="12"
+                    Background="Transparent" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,20,-4,0"
+                    ClipToBounds="False" IsVisible="{Binding Layout.ShowOutlineExpandButton}">
+                <Grid Width="36" Height="36">
+                    <Border Classes="sidebar-expand-surface" />
+                    <Button x:Name="OutlineExpandButton" Classes="sidebar-expand-toggle"
+                            Command="{Binding Layout.ExpandOutline}"
+                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ExpandOutlinePanel}}"
+                            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ExpandOutlinePanel}}">
+                        <Path x:Name="OutlineExpandIcon" Classes="panel-toggle-icon" />
+                    </Button>
+                </Grid>
+            </Border>
         </Grid>
 
         <!-- 浮动状态栏：透明背景，固定在底部，层级在所有内容之上 -->
         <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="1"
+                                  IsVisible="{Binding #ShellWindow.((vm:MainWindowViewModel)DataContext).Layout.ShowStatusBar}"
                                   VerticalAlignment="Bottom"
                                   Margin="0,0,0,8"
                                   ZIndex="100" />

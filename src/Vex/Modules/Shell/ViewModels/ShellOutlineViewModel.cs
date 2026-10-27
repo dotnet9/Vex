@@ -21,14 +21,16 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     private int _lastLineCount = 1;
     private readonly IAppSettingsStore? _settingsStore;
     private readonly IWorkspaceDocumentState? _document;
+    public ShellWindowLayoutViewModel? Layout { get; }
 
     public ShellOutlineViewModel(IShellStatusPublisher statusPublisher, IAppLocalizer localizer,
-        IAppSettingsStore? settingsStore = null, IWorkspaceDocumentState? document = null)
+        IAppSettingsStore? settingsStore = null, IWorkspaceDocumentState? document = null, ShellWindowLayoutViewModel? layout = null)
     {
         _statusPublisher = statusPublisher;
         _localizer = localizer;
         _settingsStore = settingsStore;
         _document = document;
+        Layout = layout;
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 

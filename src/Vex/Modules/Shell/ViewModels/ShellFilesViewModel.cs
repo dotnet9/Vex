@@ -16,13 +16,15 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     private DocumentFile? _currentDocumentFile;
     private readonly IAppSettingsStore? _settingsStore;
     private readonly IDocumentFileFactory? _fileFactory;
+    public ShellWindowLayoutViewModel? Layout { get; }
     private bool _isListView;
     private bool _sortDescending;
 
-    public ShellFilesViewModel(IAppSettingsStore? settingsStore = null, IWorkspaceFileService? workspaceFiles = null, IDocumentFileFactory? fileFactory = null)
+    public ShellFilesViewModel(IAppSettingsStore? settingsStore = null, IWorkspaceFileService? workspaceFiles = null, IDocumentFileFactory? fileFactory = null, ShellWindowLayoutViewModel? layout = null)
     {
         _settingsStore = settingsStore;
         _fileFactory = fileFactory;
+        Layout = layout;
         _isListView = settingsStore?.Current.FileListView ?? false;
         _sortDescending = settingsStore?.Current.FileSortDescending ?? false;
         _workspaceFiles = workspaceFiles;

@@ -814,6 +814,10 @@
       "SidebarFilesLoadFailed": "読み込み失敗",
 
       "SidebarFilesRetry": "再試行",
+      "CollapseFilesPanel": "ファイルパネルを折りたたむ",
+      "ExpandFilesPanel": "ファイルパネルを展開",
+      "CollapseOutlinePanel": "アウトラインパネルを折りたたむ",
+      "ExpandOutlinePanel": "アウトラインパネルを展開",
       "StructureTitle": "ドキュメント構造",
       "CollapseStructure": "アウトラインパネルを非表示",
       "AuxiliaryInfo": "記事情報",

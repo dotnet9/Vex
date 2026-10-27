@@ -30,13 +30,10 @@ public partial class MainWindow : CodeWFWindow
     public MainWindow()
     {
         InitializeComponent();
-        // 文件树使用 MenuIcons/panel-right-open.svg 与 panel-right-close.svg 的水平镜像。
-        SidebarCollapsedIcon.Data = MenuIconCatalog.Get("panel-right-open");
-        SidebarExpandedIcon.Data = MenuIconCatalog.Get("panel-right-close");
-        SidebarCollapsedIcon.RenderTransform = new ScaleTransform(-1, 1);
-        SidebarExpandedIcon.RenderTransform = new ScaleTransform(-1, 1);
-        SidebarCollapsedIcon.RenderTransformOrigin = RelativePoint.Center;
-        SidebarExpandedIcon.RenderTransformOrigin = RelativePoint.Center;
+        SidebarExpandIcon.Data = MenuIconCatalog.Get("panel-right-open");
+        SidebarExpandIcon.RenderTransform = new ScaleTransform(-1, 1);
+        SidebarExpandIcon.RenderTransformOrigin = RelativePoint.Center;
+        OutlineExpandIcon.Data = MenuIconCatalog.Get("panel-right-open");
         var confirmation = MindMapGuideTarget.DetachConfirmation();
         Grid.SetRowSpan(confirmation, 4); ShellGuideRoot.Children.Add(confirmation);
         WorkspaceViews = new WorkspaceViewController(this, ViewSurface, FloatingViewShelf);
