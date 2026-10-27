@@ -51,13 +51,15 @@ for (const p of palettes) for (const mode of ['light','dark']) {
    * 亮色轨道 = 前景 4% 叠「表面」、指示块 = 白 55% 叠表面（表面 = 纸面 #fdfdfd 一档）；
    * 深色轨道 = 前景 4.5% 叠「面板」、指示块回到面板色（凹槽配亮一档的轨道）。 */
   const mix=(a,b,ratio)=>{const pa=a.replace('#',''),pb=b.replace('#','');const ch=(j)=>Math.round(parseInt(pa.substr(j,2),16)*ratio+parseInt(pb.substr(j,2),16)*(1-ratio)).toString(16).padStart(2,'0');return ('#'+ch(0)+ch(2)+ch(4)).toUpperCase();};
-  const surface=dark?p.darkPanel:p.panel, fgColor=dark?p.darkFg:p.fg;
-  const paper=dark?p.darkPaper:p.paper;
+  /* 画布三键必须取 deriveVars 里的 §5.1 去色温值（原型 palettes.css 烧的就是它），不能取 p.darkPaper/p.darkPanel
+   * 这类编写层原始值：那样九套暗色各带各的色温，大面积画布整体不像原型，而 --check 全绿也发现不了，
+   * 因为漂移就烧在取数行里。派生表里 --paper/--surface 同值（都= 去温后的 paper），--panel = 去温后的 surface。 */
+  const paper=t.paper, surface=t.panel, fgColor=t.fg;
   const segmentedTrack=dark?mix(fgColor,surface,0.045):mix(fgColor,paper,0.04);
   const segmentedThumb=dark?surface:mix('#ffffff',paper,0.55);
   /* 原型 --elevated（弹出层/对话框浮起底色）= color-mix(in srgb, surface 88%, panel)，surface 即纸面。 */
   const elevated=mix(paper,surface,0.88);
-  const colors={StudioBackgroundColor:dark?p.darkBg:p.bg,StudioSurfaceColor:surface,
+  const colors={StudioBackgroundColor:t.bg,StudioSurfaceColor:surface,
     StudioPaperColor:paper,StudioRaisedColor:t.hover,StudioBorderColor:t.border,StudioSegmentedTrackColor:segmentedTrack,StudioSegmentedThumbColor:segmentedThumb,StudioElevatedColor:elevated,
     StudioTextColor:fgColor,StudioMutedColor:t.muted,StudioAccentColor:t.accent,
     StudioSecondaryColor:t['accent-decoration'],StudioPrimaryColor:t.primary,StudioGradientStartColor:t.primary,
