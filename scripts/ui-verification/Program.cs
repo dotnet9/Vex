@@ -969,8 +969,7 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
             Capture(window, $"{width}-{theme}-{layout}-{kind}");
             foreach (var grid in themedGrids)
             {
-                var documentWidth = DocumentWidth(grid);
-                Check(Math.Abs(grid.Bounds.Width - documentWidth) < 3,
+                Check(TryDocumentWidth(grid, out var documentWidth) && Math.Abs(grid.Bounds.Width - documentWidth) < 3,
                     $"{width} {theme} {layout} {kind}: table fills document width ({grid.Bounds.Width:F1}/{documentWidth:F1})");
                 var headers = grid.Children.OfType<Border>().Where(cell => cell.Classes.Contains("MdTableHeaderCell")).ToArray();
                 var cells = grid.Children.OfType<Border>().Where(cell => cell.Classes.Contains("MdTableCell")).ToArray();
@@ -985,7 +984,7 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
         // 短表格不再保持自然宽度；按两列表头特征筛出短表格核对铺满。
         var mdTables = host.GetVisualDescendants().OfType<Grid>().Where(grid => grid.Classes.Contains("MdTable") && grid.Bounds.Height > 1 && DisplayedIn(grid)
             && grid.Children.OfType<Border>().Count(cell => cell.Classes.Contains("MdTableHeaderCell")) == 2).ToArray();
-        Check(mdTables.Length > 0 && mdTables.All(table => Math.Abs(table.Bounds.Width - DocumentWidth(table)) < 3),
+        Check(mdTables.Length > 0 && mdTables.All(table => TryDocumentWidth(table, out var hostWidth) && Math.Abs(table.Bounds.Width - hostWidth) < 3),
             $"{width} {theme} {layout}: short tables fill the document width as tables default to fill-available-width");
         foreach (var imageName in new[] { "diagram.svg", "small.png" })
         {
@@ -997,8 +996,7 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
             var image = host.GetVisualDescendants().OfType<Image>()
                 .Single(item => item.Classes.Contains("MdImageContent") && DisplayedIn(item)
                     && Math.Abs(item.Bounds.Height / item.Bounds.Width - expectedRatio) < .005);
-            var documentWidth = DocumentWidth(image);
-            Check(Math.Abs(image.Bounds.Width - documentWidth) < 3,
+            Check(TryDocumentWidth(image, out var documentWidth) && Math.Abs(image.Bounds.Width - documentWidth) < 3,
                 $"{width} {theme} {layout} {imageName}: image fills document width ({image.Bounds.Width:F1}/{documentWidth:F1})");
             Check(Math.Abs(image.Bounds.Height / image.Bounds.Width - expectedRatio) < .005,
                 "Image keeps its aspect ratio without a fixed height cap");
@@ -1010,15 +1008,23 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
     var presentationGrid = preview.GetVisualDescendants().OfType<Grid>()
         .Where(grid => grid.Classes.Contains("MdTable") && grid.Bounds.Height > 1 && DisplayedIn(grid)
             && grid.Children.OfType<Border>().Count(cell => cell.Classes.Contains("MdTableHeaderCell")) == 3)
-        .Last();
-    Check(Math.Abs(presentationGrid.Bounds.Width - DocumentWidth(presentationGrid)) < 3, "Presentation uses the same full-width table layout");
+        .LastOrDefault();
+    Check(presentationGrid is not null && TryDocumentWidth(presentationGrid, out var presentationWidth)
+        && Math.Abs(presentationGrid.Bounds.Width - presentationWidth) < 3, "Presentation uses the same full-width table layout");
     Capture(window, "presentation"); vm.Workbench.StopPresentation(); Pump();
 
     string WriteSample(string text) { File.WriteAllText(sample, text); return sample; }
 
-    // 阅读与即时编辑共用正文块宿主，以其可用宽度排除外围留白。
-    double DocumentWidth(Control control) => control.GetVisualAncestors()
-        .OfType<CodeWF.Avalonia.Controls.Controls.WindowedStackPanel>().First().Bounds.Width;
+    // 阅读与即时编辑共用正文块宿主，以其可用宽度排除外围留白。Lite 与 Controls 各有一份同名
+    // WindowedStackPanel，按类型名匹配才不会因渲染器换程序集而找不到宿主；找不到宿主时让断言报失败，
+    // 不再用 First() 抛异常把整轮验证打断。
+    bool TryDocumentWidth(Control control, out double documentWidth)
+    {
+        var blockHost = control.GetVisualAncestors()
+            .FirstOrDefault(ancestor => ancestor.GetType().Name == "WindowedStackPanel");
+        documentWidth = blockHost?.Bounds.Width ?? 0;
+        return blockHost is not null;
+    }
 }
 
 void VerifyHtmlTables(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
