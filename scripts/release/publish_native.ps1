@@ -18,7 +18,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$repositoryRoot = (Resolve-Path -LiteralPath $PSScriptRoot).Path
+$repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '../..')).Path
 $releasePlatforms = [ordered]@{
     win = @('win-x64')
     linux = @('linux-x64', 'linux-arm64')
@@ -86,12 +86,9 @@ function Clear-NativePayload {
     param([Parameter(Mandatory)] [string] $Payload)
 
     if (-not (Test-Path -LiteralPath $Payload -PathType Container)) { return }
-    $executableNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
-    [void]$executableNames.Add('Vex.exe')
-    [void]$executableNames.Add('Vex')
     $removed = 0
     Get-ChildItem -LiteralPath $Payload -Force | ForEach-Object {
-        $remove = $executableNames.Contains($_.Name) -or $_.Extension -in @('.pdb', '.xml', '.ps1', '.py', '.config', '.md', '.txt') -or $_.Name -in @('docs', 'I18n')
+        $remove = $_.Extension -in @('.pdb', '.xml', '.ps1', '.py', '.config', '.md', '.txt') -or $_.Name -in @('docs', 'I18n')
         if (-not $remove) { return }
         Remove-Item -LiteralPath $_.FullName -Recurse -Force
         $removed++
