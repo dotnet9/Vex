@@ -32,6 +32,10 @@
             <SolidColorBrush x:Key="VexDisabledBrush" Color="#98A2B3" />
             <SolidColorBrush x:Key="VexHoverBrush" Color="#F2F4F7" />
             <SolidColorBrush x:Key="VexPressedBrush" Color="#E8F1FF" />
+            <!-- 原型 .vex-segmented：轨道用 4% 前景混表面，指示块用 55% 白混表面。 -->
+            <SolidColorBrush x:Key="VexSegmentedTrackBrush" Color="#F2F4F7" />
+            <SolidColorBrush x:Key="VexSegmentedThumbBrush" Color="#FDFDFE" />
+            <SolidColorBrush x:Key="VexSegmentedThumbBorderBrush" Color="#00000000" />
             <LinearGradientBrush x:Key="VexTitleGradBrush" StartPoint="0%,0%" EndPoint="100%,100%">
                 <GradientStop Color="#1677FF" Offset="0" />
                 <GradientStop Color="#69B1FF" Offset="1" />
@@ -72,6 +76,10 @@
             <SolidColorBrush x:Key="VexDisabledBrush" Color="#7D8999" />
             <SolidColorBrush x:Key="VexHoverBrush" Color="#263244" />
             <SolidColorBrush x:Key="VexPressedBrush" Color="#1D3A5F" />
+            <!-- 原型深色档：轨道 = 前景 4.5% 叠面板，指示块回到面板色，靠 1px 淡描边而不是投影。 -->
+            <SolidColorBrush x:Key="VexSegmentedTrackBrush" Color="#263244" />
+            <SolidColorBrush x:Key="VexSegmentedThumbBrush" Color="#151B26" />
+            <SolidColorBrush x:Key="VexSegmentedThumbBorderBrush" Color="#12FFFFFF" />
             <LinearGradientBrush x:Key="VexTitleGradBrush" StartPoint="0%,0%" EndPoint="100%,100%">
                 <GradientStop Color="#60A5FA" Offset="0" />
                 <GradientStop Color="#A5C8FF" Offset="1" />

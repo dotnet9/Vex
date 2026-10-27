@@ -1,47 +1,21 @@
 <UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
- xmlns:prism="http://prismlibrary.com/" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}" prism:ViewModelLocator.AutoWireViewModel="True">
+ xmlns:prism="http://prismlibrary.com/" xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}" prism:ViewModelLocator.AutoWireViewModel="True">
  <UserControl.Styles>
-  <!-- 对应原型 .workspace-viewswitch：内层胶囊用比块面深一档的上浮色，段与段之间 2px。 -->
+  <!-- 对应原型 .workspace-viewswitch：它本身就是一枚 .vex-segmented，轨道底色、圆角、内缩、滑动指示块、
+       选中字色字重全部走 Vex.Controls 的共享配方；宿主只补自己的基准高与图标口径。 -->
   <Style Selector="Border.view-switch">
-   <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
-   <Setter Property="CornerRadius" Value="999" />
-   <Setter Property="Padding" Value="3" />
+   <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
-  <!-- 对应原型 .workspace-viewswitch button：26px 高、整胶囊、12px 静音文字。 -->
+  <!-- 对应原型 .workspace-viewswitch button：26×seg-scale 高、3×scale/14 内距（令牌随界面密度缩放）。 -->
   <Style Selector="Button.view-segment">
-   <Setter Property="MinHeight" Value="{DynamicResource VexDensityControlHeightSm}" />
-   <Setter Property="Height" Value="26" />
-   <Setter Property="MinWidth" Value="0" />
-   <Setter Property="Padding" Value="14,3" />
-   <Setter Property="CornerRadius" Value="999" />
-   <Setter Property="BorderThickness" Value="0" />
-   <Setter Property="Background" Value="Transparent" />
-   <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
-   <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
-   <Setter Property="VerticalContentAlignment" Value="Center" />
-   <Setter Property="HorizontalContentAlignment" Value="Center" />
-  </Style>
-  <!-- 对应原型 button:hover：只提亮文字，不换底。 -->
-  <Style Selector="Button.view-segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-   <Setter Property="Background" Value="Transparent" />
-  </Style>
-  <Style Selector="Button.view-segment:pointerover">
-   <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
-  </Style>
-  <!-- 对应原型 button[aria-pressed=true]：浮起一档纸面底 + 正文色 + 600 字重 + 轻投影。 -->
-  <Style Selector="Button.view-segment.active /template/ ContentPresenter#PART_ContentPresenter">
-   <Setter Property="Background" Value="{DynamicResource VexDocumentPaperBrush}" />
-   <Setter Property="BoxShadow" Value="0 1 4 #1F000000" />
-  </Style>
-  <Style Selector="Button.view-segment.active">
-   <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
-   <Setter Property="FontWeight" Value="SemiBold" />
+   <Setter Property="MinHeight" Value="0" />
+   <Setter Property="Height" Value="{DynamicResource VexSegmentedHeightView}" />
+   <Setter Property="Padding" Value="{DynamicResource VexSegmentedPaddingView}" />
   </Style>
   <Style Selector="Button.view-segment Path">
    <Setter Property="Width" Value="12" />
    <Setter Property="Height" Value="12" />
    <Setter Property="Stretch" Value="Uniform" />
-   <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
    <Setter Property="StrokeThickness" Value="1.7" />
    <Setter Property="StrokeLineCap" Value="Round" />
    <Setter Property="StrokeJoin" Value="Round" />
@@ -72,18 +46,18 @@
          Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
          BoxShadow="0 10 30 #22000000">
   <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-   <Border x:Name="ViewSwitch" Classes="view-switch">
-    <StackPanel Orientation="Horizontal" Spacing="2">
-     <Button x:Name="SourceSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsSourceSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" Command="{Binding Workbench.ShowSourceView}" />
-     <Button x:Name="ReadSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsReadSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" Command="{Binding Workbench.ShowRead}" />
-     <Button x:Name="MapSegment" Classes="view-segment" Classes.active="{Binding Workbench.IsMapSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewMap}}" Command="{Binding Workbench.ShowMindMap}" />
-     <Button x:Name="LayoutButton" Classes="view-segment view-more" Classes.active="{Binding Workbench.IsMoreSegmentActive}" Command="{Binding Workbench.ToggleLayouts}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WSLayoutTitle}}">
+   <Border x:Name="ViewSwitch" Classes="view-switch vex-segmented">
+    <vex:VexSegmentedPanel Spacing="2">
+     <Button x:Name="SourceSegment" Classes="view-segment vex-segment" vex:VexSegmentedPanel.IsActive="{Binding Workbench.IsSourceSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" Command="{Binding Workbench.ShowSourceView}" />
+     <Button x:Name="ReadSegment" Classes="view-segment vex-segment" vex:VexSegmentedPanel.IsActive="{Binding Workbench.IsReadSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" Command="{Binding Workbench.ShowRead}" />
+     <Button x:Name="MapSegment" Classes="view-segment vex-segment" vex:VexSegmentedPanel.IsActive="{Binding Workbench.IsMapSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewMap}}" Command="{Binding Workbench.ShowMindMap}" />
+     <Button x:Name="LayoutButton" Classes="view-segment view-more vex-segment" vex:VexSegmentedPanel.IsActive="{Binding Workbench.IsMoreSegmentActive}" Command="{Binding Workbench.ToggleLayouts}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WSLayoutTitle}}">
       <StackPanel Orientation="Horizontal" Spacing="4">
        <TextBlock Text="{Binding Workbench.MoreSegmentLabel}" VerticalAlignment="Center" />
-       <Path Classes="expand-chevron" Stroke="{DynamicResource VexMutedBrush}" Data="M6 9L12 15L18 9" />
+       <Path Classes="expand-chevron" Data="M6 9L12 15L18 9" />
       </StackPanel>
      </Button>
-    </StackPanel>
+    </vex:VexSegmentedPanel>
    </Border>
    <Button x:Name="StatisticsButton" Classes="sb-word" IsVisible="{Binding Preferences.WordCountVisible}" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}">
     <TextBlock Text="{Binding DocumentInfo.StatusWordCountText}" FontSize="{DynamicResource VexDensityFontSizeCaption}" />

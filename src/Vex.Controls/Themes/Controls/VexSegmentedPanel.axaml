@@ -1,0 +1,74 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls">
+
+    <!-- 原型 .vex-segmented 的唯一原生配方（design/assets/prototype/segmented.css）。
+         轨道 = 圆角胶囊 + 3px 内缩 + 前景 4% 底色；分段按钮永远透明，选中只换字色字重，
+         底色与浮起全部交给 VexSegmentedPanel 里那颗滑动指示块。各宿主只补自己的基准高与字号。 -->
+    <Style Selector="Border.vex-segmented">
+        <Setter Property="Background" Value="{DynamicResource VexSegmentedTrackBrush}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- 原型 .vex-segmented-thumb：胶囊指示块，位置和宽度用缓动过渡，鼠标点击不改变它自己的命中。 -->
+    <Style Selector="vex|VexSegmentedPanel > Border.vex-segmented-thumb">
+        <Setter Property="Background" Value="{DynamicResource VexSegmentedThumbBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexSegmentedThumbBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />
+        <Setter Property="BoxShadow" Value="0 1 4 0 #1F000000" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Width" Duration="{StaticResource MotionDurationSlow}" Easing="{StaticResource MotionEaseInOut}" />
+                <ThicknessTransition Property="Margin" Duration="{StaticResource MotionDurationSlow}" Easing="{StaticResource MotionEaseInOut}" />
+                <DoubleTransition Property="Opacity" Duration="{StaticResource MotionDurationFast}" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <!-- 原型 .vex-segmented > button：底色一律透明（含 hover／选中／按压三态），
+         未选静音色、悬停转正文色、选中转强调色并加粗——选中效果绝不再自画底色。
+         基准高与内距按原型属于各宿主（.workspace-viewswitch button、.vex-mcp-tabs>button……），这里不代定。 -->
+    <Style Selector="Button.vex-segment">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
+        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.vex-segment /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="Button.vex-segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.vex-segment:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.vex-segment:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+    </Style>
+    <Style Selector="Button.vex-segment.active">
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.vex-segment.active /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <!-- 原型图标随 currentColor 走：分段按钮里的 12px 描线图标只用文字色，描线口径留给各宿主自己定。 -->
+    <Style Selector="Button.vex-segment Path">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Stroke" Value="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" />
+    </Style>
+</Styles>

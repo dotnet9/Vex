@@ -20,5 +20,6 @@
     <StyleInclude Source="Themes/Controls/Menu.axaml" />
     <StyleInclude Source="Themes/Controls/ScrollViewer.axaml" />
     <StyleInclude Source="Themes/Controls/TabControl.axaml" />
+    <StyleInclude Source="Themes/Controls/VexSegmentedPanel.axaml" />
     <StyleInclude Source="Themes/Controls/ToolTip.axaml" />
 </Styles>

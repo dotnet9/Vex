@@ -7,6 +7,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using CodeWF.Toolkit.Lang;
+using Vex.Controls;
 using Vex.Core.Models;
 using Vex.Modules.Shell.ViewModels;
 using static Vex.Modules.Shell.Views.DesignSelectionControls;
@@ -18,7 +19,7 @@ public sealed class ShellAppearanceMenuView : UserControl
     private ShellAppearanceViewModel? _vm;
     private readonly Grid _palettes = new() { ColumnDefinitions = new("*,*,*"), ColumnSpacing = 6, RowSpacing = 6, Margin = new Thickness(2), ClipToBounds = false }; // Margin 容纳选中 Ring 外扩，防边缘裁切
     private readonly Dictionary<PaletteOption, (Button Button, TextBlock Check, Border Ring)> _paletteButtons = [];
-    private readonly Dictionary<ThemeOption, Button> _modeButtons = [];
+    private readonly Dictionary<string, Button> _modeButtons = [];
     private readonly Dictionary<string, Button> _densityButtons = [];
     private readonly Dictionary<LanguageOption, (Button Button, Border Chip, TextBlock ChipText, TextBlock Name, TextBlock Check)> _languageRows = [];
     private Button? _addCard;
@@ -111,8 +112,8 @@ public sealed class ShellAppearanceMenuView : UserControl
             card.Ring.IsVisible = selected;
             card.Check.IsVisible = selected;
         }
-        foreach (var (option, button) in _modeButtons) button.Classes.Set("appearance-pill-on", option == _vm.SelectedTheme);
-        foreach (var (key, button) in _densityButtons) button.Classes.Set("appearance-pill-on", key == _vm.SelectedDensity);
+        foreach (var (key, button) in _modeButtons) VexSegmentedPanel.SetIsActive(button, key == _vm.SelectedTheme?.Key);
+        foreach (var (key, button) in _densityButtons) VexSegmentedPanel.SetIsActive(button, key == _vm.SelectedDensity);
         foreach (var (option, row) in _languageRows)
         {
             var selected = option == _vm.SelectedLanguage;
@@ -131,28 +132,22 @@ public sealed class ShellAppearanceMenuView : UserControl
 
     private static TextBlock SectionTitle(string text, double top = 6) => new() { Text = text, FontSize = 12, FontWeight = FontWeight.SemiBold, LineHeight = 15, Margin = new Thickness(0, top, 0, 0) };
 
-    private Button Pill(string text, Action action)
+    /// <summary>原型 .density-options.vex-segmented（workspace-chrome.css:330）：外观菜单里界面密度与明暗模式两行
+    /// 用的是同一枚标准分段控件——gap 6、button{flex:1} 等宽，轨道、滑动指示块、选中字色字重全部走 Vex.Controls
+    /// 的共享配方，宿主不再自画选中底色。</summary>
+    private Border SegmentRow(string? automationPrefix, Action<Button, string> register, params (string Text, Action Action, string Id)[] items)
     {
-        var button = new Button { Content = text, Classes = { "appearance-pill" }, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Center };
-        button.Click += (_, _) => action();
-        return button;
-    }
-
-    private Grid PillRow(params (string Text, Action Action, string Id)[] items)
-    {
-        var row = new Grid { Margin = new Thickness(0, 9, 0, 0) };
-        row.ColumnDefinitions = new ColumnDefinitions(string.Join(",", Enumerable.Repeat("*", items.Length)));
-        row.ColumnSpacing = 6;
-        foreach (var (index, item) in items.Select((item, index) => (index, item)))
+        var segments = new VexSegmentedPanel { Spacing = 6, FillItems = true };
+        foreach (var item in items)
         {
-            var button = Pill(item.Text, item.Action);
-            Grid.SetColumn(button, index);
-            row.Children.Add(button);
-            if (item.Id == "density-compact") _densityButtons["compact"] = button;
-            if (item.Id == "density-normal") _densityButtons["normal"] = button;
-            if (item.Id == "density-relaxed") _densityButtons["relaxed"] = button;
+            var button = new Button { Content = item.Text, Classes = { "vex-segment", "density-pill" }, HorizontalContentAlignment = HorizontalAlignment.Center };
+            button.Click += (_, _) => item.Action();
+            Avalonia.Automation.AutomationProperties.SetName(button, item.Text);
+            if (automationPrefix is not null) Avalonia.Automation.AutomationProperties.SetAutomationId(button, automationPrefix + item.Text);
+            segments.Children.Add(button);
+            register(button, item.Id);
         }
-        return row;
+        return new Border { Classes = { "vex-segmented", "density-options" }, Child = segments, Margin = new Thickness(0, 6, 0, 2) };
     }
 
     private void Build()
@@ -175,24 +170,16 @@ public sealed class ShellAppearanceMenuView : UserControl
         LanguageButton.Padding = new Thickness(0); LanguageButton.CornerRadius = new CornerRadius(4);
         LanguageButton.FontSize = 12;
         LanguageButton.Name = "TitleBarLanguageButton";
-        var densityRow = PillRow(
-            (Text("DensityCompact"), () => _vm.SelectedDensity = "compact", "density-compact"),
-            (Text("DensityNormal"), () => _vm.SelectedDensity = "normal", "density-normal"),
-            (Text("DensityRelaxed"), () => _vm.SelectedDensity = "relaxed", "density-relaxed"));
-        foreach (var button in densityRow.Children.OfType<Button>())
-        {
-            Avalonia.Automation.AutomationProperties.SetName(button, button.Content?.ToString() ?? "");
-            Avalonia.Automation.AutomationProperties.SetAutomationId(button, "Density_" + button.Content);
-        }
-        var modeRow = PillRow(_vm.ThemeOptions
+        var densityRow = SegmentRow("Density_", (button, id) => _densityButtons[id] = button,
+            (Text("DensityCompact"), () => _vm.SelectedDensity = "compact", "compact"),
+            (Text("DensityNormal"), () => _vm.SelectedDensity = "normal", "normal"),
+            (Text("DensityRelaxed"), () => _vm.SelectedDensity = "relaxed", "relaxed"));
+        // 原型 theme.js：明暗模式行与密度行同为 .density-options.vex-segmented，无独立样式。
+        var modeRow = SegmentRow("Mode_", (button, id) => _modeButtons[id] = button, _vm.ThemeOptions
             .OrderBy(m => m.Key == "light" ? 0 : m.Key == "dark" ? 1 : 2)
             .Select(mode => (Text(mode.Key switch { "light" => "ThemeLight", "dark" => "ThemeDark", _ => "ThemeSystem" }),
-                new Action(() => _vm.SelectedTheme = mode), "mode-" + mode.Key))
+                new Action(() => _vm.SelectedTheme = mode), mode.Key))
             .ToArray());
-        // PillRow 只回传 density 引用；模式按钮按列序回填字典。
-        foreach (var (index, mode) in _vm.ThemeOptions.OrderBy(m => m.Key == "light" ? 0 : m.Key == "dark" ? 1 : 2)
-                     .Select((option, position) => (position, option)))
-            if (modeRow.Children[index] is Button button) _modeButtons[mode] = button;
         // 原型 .studio-palettes：推荐置顶的 3×3 卡片网格；自定义配色卡替换末尾「＋」块。
         var ordered = _vm.PaletteOptions.OrderBy(option => option.IsRecommended ? 0 : 1).ToArray();
         for (var index = 0; index < ordered.Length; index++)

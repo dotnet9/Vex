@@ -195,15 +195,17 @@
         </Grid>
 
         <!-- 原型 .vex-deck header：与正常标题条同高（令牌 app-titlebar-height 33px），面板底色 + 1px 底边；
-             文档名 13px/400 单行省略，右侧 25px 高的 × 退出钮。 -->
+             文档名 13px/400 单行省略，右侧 25px 高的关闭钮（原型是 × 文本，这里画成 12px 描线叉，避免字体回退把字符画歪）。 -->
         <Border x:Name="PresentationHeader" Grid.Row="0" Classes="deck-header" IsVisible="{Binding Workbench.IsPresenting}">
             <Grid ColumnDefinitions="*,Auto" Margin="10,0">
                 <TextBlock Text="{Binding DocumentInfo.CurrentDocumentName}" FontSize="13" VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis" Foreground="{DynamicResource VexValueBrush}" />
-                <Button x:Name="PresentationExit" Grid.Column="1" Classes="deck-exit" Content="×"
+                <Button x:Name="PresentationExit" Grid.Column="1" Classes="deck-exit"
                         Command="{Binding Workbench.StopPresentation}"
                         ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}"
-                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}" />
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}">
+                    <Path Data="{StaticResource WBCloseIcon}" />
+                </Button>
             </Grid>
         </Border>
         <!-- 原型 .vex-deck nav：大纲是正文右侧的固定列（左缘 1px 描边、面板底），行高 44、单行省略；
@@ -211,27 +213,29 @@
         <shell:ShellPresentationOutlineView x:Name="PresentationOutline" Grid.Row="1"
                                            IsVisible="{Binding Workbench.PresentationOutline}"
                                            Width="{Binding Workbench.DeckNavWidth}" HorizontalAlignment="Right" />
-        <!-- 原型 progress：窗底 2px 通栏进度条，读数=（当前页+1）/总页数。 -->
-        <ProgressBar x:Name="PresentationProgressBar" Grid.Row="2" IsVisible="{Binding Workbench.IsPresenting}"
+        <!-- 原型 progress：窗底 2px 通栏进度条，读数=（当前页+1）/总页数。
+             演示悬浮件一律压在正文行（Row 1）上：原型 .vex-deck 是 inset:0 的整幅纸面，
+             底部悬浮件用 absolute 浮在纸面上；若放进 Row 2 就会撑出一条不透明的底带，成了「状态栏」。 -->
+        <ProgressBar x:Name="PresentationProgressBar" Grid.Row="1" IsVisible="{Binding Workbench.IsPresenting}"
                      Height="2" MinHeight="0" CornerRadius="0" VerticalAlignment="Bottom"
                      Minimum="0" Maximum="1" Value="{Binding Workbench.PresentationProgressValue}"
                      Background="Transparent" Foreground="{DynamicResource VexAccentBrush}" />
         <!-- 原型 .deck-modes：阅读/导图分段胶囊悬浮正中，圆心钉在底部轴线（30px）上；大纲展开时整层按 DeckChromeMargin 左移。 -->
-        <Panel Grid.Row="2" IsVisible="{Binding Workbench.IsPresenting}" Margin="{Binding Workbench.DeckChromeMargin}"
+        <Panel Grid.Row="1" IsVisible="{Binding Workbench.IsPresenting}" Margin="{Binding Workbench.DeckChromeMargin}"
                HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-            <Border Classes="deck-modes" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+            <Border Classes="deck-modes vex-segmented" HorizontalAlignment="Center" VerticalAlignment="Bottom"
                     vex:VexBottomAxis.CenterFromBottom="30">
-                <StackPanel Orientation="Horizontal" Spacing="2">
-                    <Button x:Name="DeckReadSegment" Classes="deck-segment" Classes.active="{Binding Workbench.PresentationDocument}"
+                <vex:VexSegmentedPanel Spacing="2">
+                    <Button x:Name="DeckReadSegment" Classes="deck-segment vex-segment" vex:VexSegmentedPanel.IsActive="{Binding Workbench.PresentationDocument}"
                             Content="{i18n:I18n {x:Static l:VexL.WBPresentationContent}}" Command="{Binding Workbench.ShowPresentationDocument}" />
-                    <Button x:Name="DeckMapSegment" Classes="deck-segment" Classes.active="{Binding Workbench.PresentationMap}"
+                    <Button x:Name="DeckMapSegment" Classes="deck-segment vex-segment" vex:VexSegmentedPanel.IsActive="{Binding Workbench.PresentationMap}"
                             Content="{i18n:I18n {x:Static l:VexL.WBPresentationMap}}" Command="{Binding Workbench.ShowPresentationMap}" />
-                </StackPanel>
+                </vex:VexSegmentedPanel>
             </Border>
         </Panel>
         <!-- 原型 footer：演示缩放坞与主窗体正文/导图同一枚 .vex-zoomdock；量程与还原语义随阅读/导图切换。
              外层让出大纲列宽（DeckChromeMargin），内层管 40/12 让位，坞本体只留 VexBottomAxis 写底距，避免绑定被覆写。 -->
-        <Panel Grid.Row="2" IsVisible="{Binding Workbench.IsPresenting}" Margin="{Binding Workbench.DeckChromeMargin}"
+        <Panel Grid.Row="1" IsVisible="{Binding Workbench.IsPresenting}" Margin="{Binding Workbench.DeckChromeMargin}"
                HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
             <Panel HorizontalAlignment="Right" Margin="{Binding Workbench.DeckDockMargin}">
                 <vex:VexZoomDock x:Name="PresentationDeckDock" HorizontalAlignment="Right" VerticalAlignment="Bottom"
@@ -243,7 +247,7 @@
             </Panel>
         </Panel>
         <!-- 原型 .deck-outline-toggle：24px 圆钮，底距 18 使圆心落回 30 轴线；展开贴在大纲列左缘，收起贴窗边并让开右下角缩放坞。 -->
-        <Button x:Name="PresentationOutlineToggle" Grid.Row="2" Classes="deck-outline-toggle"
+        <Button x:Name="PresentationOutlineToggle" Grid.Row="1" Classes="deck-outline-toggle"
                 Classes.on="{Binding Workbench.PresentationOutline}" IsVisible="{Binding Workbench.IsPresenting}"
                 HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="{Binding Workbench.DeckOutlineToggleMargin}"
                 Command="{Binding Workbench.TogglePresentationOutline}"

@@ -46,7 +46,7 @@ internal static class PrototypeAppearanceVerification
         Check(vm.Appearance.SelectedTypography == selected, "Arrow navigation moves focus without applying typography");
         var book = cards.First(b => b.Name == "Typography_InkBlack"); Click(book);
         Check(vm.Appearance.SelectedTypography?.Key == "InkBlack" && vm.Workbench.ShowTypography, "Click applies typography and keeps comparison panel open");
-        Check(gallery.GetVisualDescendants().OfType<Button>().Count(b => b.Classes.Contains("appearance-pill")) == 3, "Render density pills offer the three prototype sizes");
+        Check(gallery.GetVisualDescendants().OfType<Button>().Count(b => b.Classes.Contains("density-pill")) == 3, "Render density pills offer the three prototype sizes");
         var startWidth = window.Width; var startHeight = window.Height;
         window.Width = 1440; window.Height = 1000; Render();
         var addStrip = gallery.GetVisualDescendants().OfType<Button>().First(b => b.Name == "AddCustomTypography");
