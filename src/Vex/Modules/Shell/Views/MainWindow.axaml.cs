@@ -11,6 +11,7 @@ using Vex.Core.Services;
 using Vex.Modules.Mcp.Services;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
+using Vex.Modules.Workspace.ViewModels;
 using Vex.Controls;
 
 namespace Vex.Modules.Shell.Views;
@@ -80,7 +81,9 @@ public partial class MainWindow : CodeWFWindow
         IShellStartupArgumentPublisher startupArguments,
         ShellKeyboardShortcutViewModel keyboardShortcuts,
         IMcpServerHost mcpServerHost,
-        IShellToastPublisher toastPublisher)
+        IShellToastPublisher toastPublisher,
+        MarkdownEditorViewModel editorViewModel,
+        MarkdownPreviewViewModel previewViewModel)
         : this()
     {
         // 强制解析 ShellActionCoordinator，让标题栏菜单的 EventBus 动作路由在窗口创建时完成订阅。
@@ -93,6 +96,11 @@ public partial class MainWindow : CodeWFWindow
         _toastPublisher = toastPublisher;
         RestoreWindowSize(settingsStore);
         DataContext = viewModel;
+
+        // 手动设置编辑器和预览视图的 DataContext（它们在 XAML 中直接声明）
+        EditorGuideTarget.DataContext = editorViewModel;
+        PreviewGuideTarget.DataContext = previewViewModel;
+
         viewModel.Workbench.GuideExitRequested += (_, _) => WorkbenchGuide.Finish();
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
         viewModel.CommitPendingEditsRequested += (_, _) => MindMapGuideTarget.FlushInspector();
