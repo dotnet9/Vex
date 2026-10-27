@@ -217,7 +217,7 @@
     changing = false; renderLayout(); saveLayout();
     if (id === 'three' && innerWidth < 1250 && W.state.sidebar) {
       VexProto.handleAction('toggle-sidebar');
-      VexProto.toast('已收起文件导航，为三视图留出空间。点击底栏“文件”可展开。');
+      VexProto.toastKey('ToastFileNavCollapsed');
     }
     if (wanted.includes('map') && (!hadMap || id === 'three')) requestAnimationFrame(function () { requestAnimationFrame(function () { W.fit(id !== 'three'); }); });
   }

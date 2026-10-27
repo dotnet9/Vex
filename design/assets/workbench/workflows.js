@@ -42,9 +42,9 @@
       case 'recover':recover();break;
       case 'cancel':close();break;
       case 'later':drafts=[];break;
-      case 'keep-current':delete doc.externalText;close();VexProto.toast('已保留当前版本，外部版本未写入正文');break;
-      case 'copy-current':VexProto.handleAction('save');{const error=dialog.querySelector('#workflow-error');error.hidden=!doc.saveError;error.textContent='副本下载失败，当前与外部版本均已保留。请再次下载，或取消后继续编辑。';}if(!doc.saveError)VexProto.toast('已发起当前副本下载，仍可继续比较外部版本');break;
-      case 'load-external':{const text=doc.externalText;delete doc.externalText;close();W.loadExternalVersion(text);VexProto.toast('已载入外部版本，可用撤销恢复刚才的编辑');break;}
+      case 'keep-current':delete doc.externalText;close();VexProto.toastKey('ToastKeptCurrentVersion');break;
+      case 'copy-current':VexProto.handleAction('save');{const error=dialog.querySelector('#workflow-error');error.hidden=!doc.saveError;error.textContent='副本下载失败，当前与外部版本均已保留。请再次下载，或取消后继续编辑。';}if(!doc.saveError)VexProto.toastKey('ToastCopyDownloadCompare');break;
+      case 'load-external':{const text=doc.externalText;delete doc.externalText;close();W.loadExternalVersion(text);VexProto.toastKey('ToastExternalLoaded');break;}
       case 'restore-drafts':{const recovered=drafts;drafts=[];close();W.recoverDrafts(recovered);break;}
     }
     update();

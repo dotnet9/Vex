@@ -35,6 +35,15 @@
       setTimeout(function () { t.remove(); }, 250);
     }, 1900);
   };
+  /* 键直查版 toast：文案取自 VEX_DATA.languages（verify.cjs 审计键存在性），
+   * 值可含 {0} 占位符，多余实参按序填充。 */
+  VexProto.toastKey = function (key) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    var value = window.VexL && window.VexL.get ? window.VexL.get(key) : key;
+    if (typeof value === 'string')
+      value = value.replace(/\{(\d)\}/g, function (m, i) { return args[+i] !== undefined ? args[+i] : m; });
+    VexProto.toast(typeof value === 'string' ? value : key);
+  };
 
   /* ---------- 标题菜单（ShellTitleMenuView.axaml 的原型化） ---------- */
   var THEME_ITEMS = [
@@ -293,7 +302,7 @@
         if (it.action === 'palette') window.VexTheme.setPalette(it.arg);
         else VexProto.applyTheme(it.arg);
         closeOpenMenu();
-        VexProto.toast('主题已切换为「' + it.label + '」');
+        VexProto.toastKey('ToastThemeSwitched', it.label);
         return;
       }
       if (it.toast) { closeOpenMenu(); VexProto.toast(it.toast); return; }

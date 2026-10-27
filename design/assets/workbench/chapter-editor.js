@@ -36,8 +36,8 @@
   document.querySelector('.map-toolbar').after(feedback);
   var feedbackText, feedbackBefore;
   feedback.querySelector('button').onclick = function () {
-    if (W.text !== feedbackText || W.state.undo[W.state.undo.length - 1] !== feedbackBefore) { feedback.hidden = true; VexProto.toast('正文已有后续修改，请使用 Ctrl+Z 依次撤销。'); return; }
-    W.history('undo'); feedback.hidden = true; VexProto.toast('已撤销章节修改，正文与导图一起恢复');
+    if (W.text !== feedbackText || W.state.undo[W.state.undo.length - 1] !== feedbackBefore) { feedback.hidden = true; VexProto.toastKey('ToastUseCtrlZToUndo'); return; }
+    W.history('undo'); feedback.hidden = true; VexProto.toastKey('ToastChapterUndo');
   };
   var dropPreview = document.createElement('div'); dropPreview.className = 'chapter-drop-preview'; dropPreview.hidden = true; dropPreview.setAttribute('role', 'status'); $('map-viewport').appendChild(dropPreview);
   function change(text, line, message, editTitle) {
@@ -54,7 +54,7 @@
   }
   function rename(node, title) {
     title = title.trim().replace(/[\r\n]+/g, ' ');
-    if (!title) { VexProto.toast('给章节起一个标题，再继续。'); return; }
+    if (!title) { VexProto.toastKey('ToastChapterTitleRequired'); return; }
     var item = record(node); if (!item) return;
     var header = '#'.repeat(item.level) + ' ' + title;
     var after = W.text.slice(item.headerEnd), replacement = header + (item.headerEnd < W.text.length || /\n$/.test(W.text.slice(item.start, item.headerEnd)) ? '\n' : '');
@@ -68,7 +68,7 @@
     input.addEventListener('pointerdown', function (event) { event.stopPropagation(); });
     input.addEventListener('click', function (event) { event.stopPropagation(); });
     input.addEventListener('dblclick', function (event) { event.stopPropagation(); });
-    function finish() { if (renamed !== input) return; renamed = null; if (!canceled && input.value.trim() && input.value !== node.text) rename(node, input.value); else { W.renderMap(); if (!input.value.trim() && !canceled) VexProto.toast('章节标题不能为空，已保留原来的标题。'); } $('map-viewport').focus({ preventScroll: true }); }
+    function finish() { if (renamed !== input) return; renamed = null; if (!canceled && input.value.trim() && input.value !== node.text) rename(node, input.value); else { W.renderMap(); if (!input.value.trim() && !canceled) VexProto.toastKey('ToastChapterTitleEmpty'); } $('map-viewport').focus({ preventScroll: true }); }
     input.addEventListener('keydown', function (event) {
       if (event.isComposing) return;
       if (event.key === 'Enter' || event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); canceled = event.key === 'Escape'; finish(); }
@@ -79,7 +79,7 @@
     W.finish(); var item = record(node), level, at;
     if (!item) { level = 1; at = W.text.length; }
     else { level = item.level + (child ? 1 : 0); at = item.end; }
-    if (level > 6) { VexProto.toast('Markdown 最多支持六级标题。'); return; }
+    if (level > 6) { VexProto.toastKey('ToastMaxHeadingLevel'); return; }
     var before = W.text.slice(0, at), after = W.text.slice(at);
     var separator = before ? /\n\n$/.test(before) ? '' : /\n$/.test(before) ? '\n' : '\n\n' : '';
     var prefix = before + separator, title = '#'.repeat(level) + ' 新章节\n\n';
@@ -100,7 +100,7 @@
     W.finish(); var item = record(node), destination = record(target);
     if (!item || node.isRoot || !destination || node.id === target.id || destination.start >= item.start && destination.start < item.end) return;
     var newLevel = destination.level + (position === 'child' ? 1 : 0), delta = newLevel - item.level;
-    var moved = shifted(item, delta); if (moved === null) { VexProto.toast('这次移动会超过六级标题，请先调整子章节层级。'); return; }
+    var moved = shifted(item, delta); if (moved === null) { VexProto.toastKey('ToastMoveExceedsLevels'); return; }
     var at = position === 'before' ? destination.start : destination.end;
     var remaining = W.text.slice(0, item.start) + W.text.slice(item.end);
     if (at > item.start) at -= item.end - item.start;

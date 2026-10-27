@@ -299,19 +299,19 @@
     var action = event.target.closest('[data-file-context]'); if (!action || !fileContextTarget) return;
     var target = fileContextTarget, act = action.dataset.fileContext; closeFileContextMenu();
     if (act === 'reveal') {
-      if (target.kind === 'folder') VexProto.toast('文件夹位置：' + (target.path || '演示文档'));
+      if (target.kind === 'folder') VexProto.toastKey('ToastFolderLocation', target.path || '演示文档');
       else {
         var reveal = docs[target.index];
-        VexProto.toast('文件位置：' + ((reveal && (reveal.path || reveal.name)) || '演示文档'));
+        VexProto.toastKey('ToastFileLocation', (reveal && (reveal.path || reveal.name)) || '演示文档');
       }
       return;
     }
     if (target.kind === 'folder') {
-      if (!VexDocumentWindow.open({ intent: 'open-folder' })) VexProto.toast('请允许弹出窗口后重试');
+      if (!VexDocumentWindow.open({ intent: 'open-folder' })) VexProto.toastKey('ToastAllowPopups');
       return;
     }
     var doc = docs[target.index];
-    if (!doc || !VexDocumentWindow.open({ document: { name: doc.name, text: target.index === state.doc ? input.value : doc.text, readOnly: !!doc.readOnly, path: doc.path } })) VexProto.toast('请允许弹出窗口后重试');
+    if (!doc || !VexDocumentWindow.open({ document: { name: doc.name, text: target.index === state.doc ? input.value : doc.text, readOnly: !!doc.readOnly, path: doc.path } })) VexProto.toastKey('ToastAllowPopups');
   });
   document.addEventListener('contextmenu', function (event) {
     var row = event.target.closest('#file-list .file-row'), folder = event.target.closest('#file-list .file-directory > summary');
@@ -866,9 +866,9 @@
       download(input.value, docs[state.doc].name);
       docs[state.doc].text = input.value; delete docs[state.doc].pendingText; delete docs[state.doc].saveError;
       docs[state.doc].lastExport = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      state.dirty = false; refresh(); window.dispatchEvent(new CustomEvent('vex-workflow-result',{detail:{kind:'save',ok:true}})); VexProto.toast('副本下载已发起，请在浏览器下载记录中确认完成'); return true;
+      state.dirty = false; refresh(); window.dispatchEvent(new CustomEvent('vex-workflow-result',{detail:{kind:'save',ok:true}})); VexProto.toastKey('ToastCopyDownloadStarted'); return true;
     } catch (_) {
-      docs[state.doc].saveError = true; updateMeta(); window.dispatchEvent(new CustomEvent('vex-workflow-result',{detail:{kind:'save',ok:false}})); VexProto.toast('副本下载失败，修改仍保留。点击“重试保存副本”继续。'); return false;
+      docs[state.doc].saveError = true; updateMeta(); window.dispatchEvent(new CustomEvent('vex-workflow-result',{detail:{kind:'save',ok:false}})); VexProto.toastKey('ToastCopyDownloadFailed'); return false;
     }
   }
   /* 另存为：浏览器无系统保存框，用文件名输入代替目的地选择；取消不产生成功提示。 */
@@ -878,17 +878,17 @@
     var name = window.prompt('另存为（副本将以下述文件名下载）', docs[state.doc].name);
     if (name === null) return false;
     name = name.trim();
-    if (!name) { VexProto.toast('文件名为空，已取消另存为'); return false; }
+    if (!name) { VexProto.toastKey('ToastSaveAsEmptyName'); return false; }
     if (!/\.(md|markdown|mdown|txt)$/i.test(name)) name += '.md';
     try {
       if (state.failNextSave) { state.failNextSave = false; throw new Error('下载未能开始'); }
       download(input.value, name);
       docs[state.doc].lastExport = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      VexProto.toast('已按「' + name + '」发起副本下载，原文件未被覆盖'); return true;
+      VexProto.toastKey('ToastCopyDownloadNamed', name); return true;
     } catch (_) {
       docs[state.doc].saveError = true; updateMeta();
       window.dispatchEvent(new CustomEvent('vex-workflow-result', { detail: { kind: 'save', ok: false } }));
-      VexProto.toast('另存为失败，修改仍保留。点击“重试保存副本”继续。'); return false;
+      VexProto.toastKey('ToastSaveAsFailed'); return false;
     }
   }
   function exportHtml() {
@@ -898,11 +898,11 @@
       download('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>' + VexEsc(docs[state.doc].name) + '</title><style>body{max-width:780px;margin:50px auto;font:16px/1.9 system-ui;padding:0 24px;color:#242933;background:#fff}pre{padding:16px;background:#f4f5f7;overflow:auto}table{border-collapse:collapse}td,th{border:1px solid #ddd;padding:6px 12px}blockquote{border-left:3px solid #888;padding-left:16px;color:#666}' + VexTypography.exportStyles() + VexWatermark.exportStyles + '</style><body>' + $('markdown-preview').innerHTML + VexWatermark.exportMark() + '</body></html>', docs[state.doc].name.replace(/\.[^.]+$/, '') + '.html', 'text/html;charset=utf-8');
       delete docs[state.doc].exportError;
       window.dispatchEvent(new CustomEvent('vex-workflow-result',{detail:{kind:'export',ok:true}}));
-      VexProto.toast('HTML 副本下载已发起，请在浏览器下载记录中确认完成');return true;
+      VexProto.toastKey('ToastHtmlCopyStarted');return true;
     } catch (_) {
       docs[state.doc].exportError=true;
       window.dispatchEvent(new CustomEvent('vex-workflow-result',{detail:{kind:'export',ok:false}}));
-      VexProto.toast('HTML 导出失败，正文和排版均已保留，可重试。');return false;
+      VexProto.toastKey('ToastHtmlExportFailed');return false;
     }
   }
   function insert(text, activate) {
@@ -959,21 +959,21 @@
     var file = this.files[0]; if (!file) return;
     try {
       var text = await file.text();
-      confirmSwitch(function () { if (state.emptyWorkspace) docs = []; state.emptyWorkspace = false; docs.push({ name: file.name, text: text, path: file.name }); loadDoc(docs.length - 1); VexProto.toast('已打开 ' + file.name); });
-    } catch (_) { VexProto.toast('无法读取文件，请重新选择'); }
+      confirmSwitch(function () { if (state.emptyWorkspace) docs = []; state.emptyWorkspace = false; docs.push({ name: file.name, text: text, path: file.name }); loadDoc(docs.length - 1); VexProto.toastKey('ToastOpenedFile', file.name); });
+    } catch (_) { VexProto.toastKey('ToastFileReadFailed'); }
     this.value = '';
   };
   $('open-folder-input').onchange = async function () {
     var files = Array.from(this.files || []).filter(function (file) { return /\.(md|markdown|mdown|txt)$/i.test(file.name); });
-    if (!files.length) { VexProto.toast('文件夹中没有可打开的 Markdown 文件'); this.value = ''; return; }
+    if (!files.length) { VexProto.toastKey('ToastNoMarkdownFiles'); this.value = ''; return; }
     try {
       var loaded = await Promise.all(files.map(async function (file) { return { name: file.name, path: file.webkitRelativePath.split('/').slice(1).join('/'), text: await file.text() }; }));
       var folder = (files[0].webkitRelativePath || '').split('/')[0] || 'Markdown';
       confirmSwitch(function () {
         docs = loaded; state.doc = 0; state.dirty = false; state.emptyWorkspace = false; workspaceFolder = folder;
-        loadDoc(0); VexProto.toast('已打开文件夹 · ' + loaded.length + ' 个 Markdown 文件');
+        loadDoc(0); VexProto.toastKey('ToastOpenedFolder', loaded.length + ' 个 Markdown 文件');
       });
-    } catch (_) { VexProto.toast('无法读取文件夹中的 Markdown 文件'); }
+    } catch (_) { VexProto.toastKey('ToastFolderReadFailed'); }
     this.value = '';
   };
   var snippets = { paragraph: '\n\n新段落\n\n', heading: '\n## 新章节\n\n', list: '\n- 列表项\n', ordered: '\n1. 列表项\n', task: '\n- [ ] 待办事项\n', quote: '\n> 引用内容\n', code: '\n```\n代码内容\n```\n', math: '\n$$\nx^2 + y^2 = z^2\n$$\n', rule: '\n\n---\n\n', 'inline-code': '`代码`', table: '\n| 列一 | 列二 |\n| --- | --- |\n| 内容 | 内容 |\n', link: '[链接文字](https://example.com)', bold: '**文字**', italic: '*文字*', image: '![图片描述](image.png)' };
@@ -1018,28 +1018,28 @@
         fileDescending = !fileDescending; renderFiles();
       },
       "new": function (action, item) {
-        if (state.emptyWorkspace) { state.emptyWorkspace = false; docs[0].placeholder = false; loadDoc(0); window.dispatchEvent(new CustomEvent('vex-content-changed')); } else if (!VexDocumentWindow.open({document:{name:'未命名文档.md',text:'',isNew:true}})) VexProto.toast('请允许弹出窗口后重试');
+        if (state.emptyWorkspace) { state.emptyWorkspace = false; docs[0].placeholder = false; loadDoc(0); window.dispatchEvent(new CustomEvent('vex-content-changed')); } else if (!VexDocumentWindow.open({document:{name:'未命名文档.md',text:'',isNew:true}})) VexProto.toastKey('ToastAllowPopups');
       },
       "new-window": function (action, item) {
-        if (!VexDocumentWindow.open({document:{name:'未命名文档.md',text:''}})) VexProto.toast('请允许弹出窗口后重试');
+        if (!VexDocumentWindow.open({document:{name:'未命名文档.md',text:''}})) VexProto.toastKey('ToastAllowPopups');
       },
       "document-window": function (action, item) {
-        instant.finish(); if (!VexDocumentWindow.open({document:{name:docs[state.doc].name,text:input.value,readOnly:!!docs[state.doc].readOnly}})) VexProto.toast('请允许弹出窗口后重试');
+        instant.finish(); if (!VexDocumentWindow.open({document:{name:docs[state.doc].name,text:input.value,readOnly:!!docs[state.doc].readOnly}})) VexProto.toastKey('ToastAllowPopups');
       },
       "exit-app": function (action, item) {
         exitGuard.open();
       },
       "open": function (action, item) {
-        if (!VexDocumentWindow.open({intent:'open-file'})) VexProto.toast('请允许弹出窗口后重试');
+        if (!VexDocumentWindow.open({intent:'open-file'})) VexProto.toastKey('ToastAllowPopups');
       },
       "open-folder": function (action, item) {
-        if (!VexDocumentWindow.open({intent:'open-folder'})) VexProto.toast('请允许弹出窗口后重试');
+        if (!VexDocumentWindow.open({intent:'open-folder'})) VexProto.toastKey('ToastAllowPopups');
       },
       "open-sample": function (action, item) {
         confirmSwitch(function () { loadDoc(Math.min(item.arg, docs.length - 1)); });
       },
       "open-samples": function (action, item) {
-        if (!VexDocumentWindow.open({intent:'samples'})) VexProto.toast('请允许弹出窗口后重试');
+        if (!VexDocumentWindow.open({intent:'samples'})) VexProto.toastKey('ToastAllowPopups');
       },
       "quick-open": function (action, item) {
         if (!state.sidebar) VexProto.handleAction('toggle-sidebar'); VexProto.handleAction('pane-files'); $('file-filter').focus();
@@ -1169,10 +1169,10 @@
         state.topmost = !state.topmost; VexProto.toast(state.topmost ? '窗口置顶（桌面版操作演示）' : '取消置顶（桌面版操作演示）');
       },
       "minimize": function (action, item) {
-        VexProto.toast('最小化由桌面窗口提供（原型演示）');
+        VexProto.toastKey('ToastMinimizeByDesktop');
       },
       "close": function (action, item) {
-        confirmSwitch(function () { VexProto.toast('文档已关闭（原型演示）'); });
+        confirmSwitch(function () { VexProto.toastKey('ToastDocumentClosed'); });
       },
       "theme": function (action, item) {
         document.querySelector('#vex-theme-panel button').focus();
@@ -1188,22 +1188,22 @@
       "copy": function (action, item) {
         var selected = input.value.slice(input.selectionStart, input.selectionEnd), copied = selected || input.value;
         if (action === 'copy-plain') copied = MM.plain(copied);
-        navigator.clipboard.writeText(copied).then(function () { if (action === 'cut' && selected) insert('', false); VexProto.toast('已复制文本'); }).catch(function () { VexProto.toast('请在编辑区使用系统复制快捷键'); });
+        navigator.clipboard.writeText(copied).then(function () { if (action === 'cut' && selected) insert('', false); VexProto.toastKey('ToastCopied'); }).catch(function () { VexProto.toastKey('ToastCopyInEditor'); });
       },
       "paste": function (action, item) {
-        navigator.clipboard.readText().then(function (text) { insert(text); }).catch(function () { VexProto.toast('请在编辑区使用 Ctrl+V 粘贴'); });
+        navigator.clipboard.readText().then(function (text) { insert(text); }).catch(function () { VexProto.toastKey('ToastPasteInEditor'); });
       },
       "select-all": function (action, item) {
         setEditMode('source'); input.focus(); input.select();
       },
       "clear-format": function (action, item) {
-        var selection = input.value.slice(input.selectionStart, input.selectionEnd); if (selection) insert(MM.plain(selection)); else VexProto.toast('先选择需要清除格式的文字');
+        var selection = input.value.slice(input.selectionStart, input.selectionEnd); if (selection) insert(MM.plain(selection)); else VexProto.toastKey('ToastSelectTextToClear');
       },
       "guide": function (action, item) {
         if (window.VexGuide) VexGuide.start();
       },
       "print": function (action, item) {
-        VexProto.toast('桌面版提供打印预览（原型演示）');
+        VexProto.toastKey('ToastPrintPreviewByDesktop');
       }
     };
     actionHandlers["copy-zhihu"] = actionHandlers["copy-wechat"];
@@ -1221,7 +1221,7 @@
   VexProto.handleAction = function (action, item) {
     if (elementMenu && elementMenu.handleAction(action === 'insert-table' ? 'element-insert-table' : action)) return true;
     if (action === 'preferences' || action === 'preferences-mcp' || action === 'mcp-audit' || action === 'dlg-mcp') { VexPreferences.open(action === 'preferences' ? 'general' : 'mcp'); if (action === 'mcp-audit') document.querySelector('[data-mcp-tab=audit]')?.click(); return true; }
-    if (input.readOnly && (action.startsWith('insert-') || ['save','save-as','save-all','undo','redo','cut','paste','replace-all','clear-format','rename','delete-chapter','add-child','add-sibling','move-up','move-down','promote','demote'].includes(action))) { VexProto.toast('此文档为只读'); return true; }
+    if (input.readOnly && (action.startsWith('insert-') || ['save','save-as','save-all','undo','redo','cut','paste','replace-all','clear-format','rename','delete-chapter','add-child','add-sibling','move-up','move-down','promote','demote'].includes(action))) { VexProto.toastKey('ToastDocumentReadOnly'); return true; }
     if (window.VexWorkspace && VexWorkspace.handleAction(action, item)) return true;
     if (action.startsWith('insert-')) { if (state.editMode === 'instant' && instant.format(action.slice(7))) return true; insert(snippets[action.slice(7)] || ''); return true; }
     if (action.startsWith('view-')) { setView(action.slice(5)); return true; }
@@ -1250,7 +1250,7 @@
         document.querySelector('#layer-delete .dlg-path').textContent = docs[state.doc].name;
       }
       if (action === 'dlg-doc') {
-        if (!VexDocumentWindow.open({builtin:item && item.arg === '鸣谢' ? 'thanks' : 'changelog'})) VexProto.toast('请允许弹出窗口后重试');
+        if (!VexDocumentWindow.open({builtin:item && item.arg === '鸣谢' ? 'thanks' : 'changelog'})) VexProto.toastKey('ToastAllowPopups');
       } else openLayer(action.slice(4));
       return true;
     }
@@ -1436,9 +1436,9 @@
   });
   // 保留对话框的可点击演示。
   if ($('err-toggle')) $('err-toggle').onclick = function () { $('err-detail').style.display = $('err-detail').style.display === 'none' ? '' : 'none'; };
-  ['mcp-copy-token', 'mcp-copy-endpoint'].forEach(function (id) { if ($(id)) $(id).onclick = function () { navigator.clipboard.writeText(id.endsWith('token') ? $('mcp-token').value : $('mcp-endpoint') ? $('mcp-endpoint').textContent : 'http://127.0.0.1:17891/mcp/').catch(function () { VexProto.toast('请手动复制'); }); }; });
+  ['mcp-copy-token', 'mcp-copy-endpoint'].forEach(function (id) { if ($(id)) $(id).onclick = function () { navigator.clipboard.writeText(id.endsWith('token') ? $('mcp-token').value : $('mcp-endpoint') ? $('mcp-endpoint').textContent : 'http://127.0.0.1:17891/mcp/').catch(function () { VexProto.toastKey('ToastCopyManually'); }); }; });
   if ($('mcp-switch')) $('mcp-switch').onclick = function () { this.classList.toggle('on'); this.setAttribute('aria-checked', String(this.classList.contains('on'))); $('mcp-form').style.opacity = this.classList.contains('on') ? '' : '.45'; $('mcp-status-text').textContent = this.classList.contains('on') ? '服务运行中（演示）' : '服务已停止（演示）'; };
-  if ($('mcp-save')) $('mcp-save').onclick = function () { closeLayers(); VexProto.toast('MCP 设置已保存（演示）'); };
+  if ($('mcp-save')) $('mcp-save').onclick = function () { closeLayers(); VexProto.toastKey('ToastMcpSettingsSaved'); };
   if ($('mcp-gen')) $('mcp-gen').onclick = function () { $('mcp-token').value = 'vx_' + crypto.randomUUID().replace(/-/g, ''); };
   document.addEventListener('keydown', function (event) {
     if (event.key === 'F6' && !event.isComposing) { event.preventDefault(); startPresentation(); return; }
@@ -1485,7 +1485,7 @@
   closedWindow.querySelector('button').onclick=function(){
     closedWindow.hidden=true;
     var stored=VexStorage.getItem('vex-design-exit-drafts');
-    if(stored){try{var recovered=JSON.parse(stored);if(!Array.isArray(recovered)||!recovered.every(function(doc){return typeof doc.name==='string'&&typeof doc.text==='string';}))throw new Error('Invalid draft');window.VexWorkflows?.showDrafts(recovered);VexProto.toast('已找到恢复草稿，可先查看再恢复为独立文档');}catch(_){VexProto.toast('草稿无法读取，请保留浏览器数据并重试');}}
+    if(stored){try{var recovered=JSON.parse(stored);if(!Array.isArray(recovered)||!recovered.every(function(doc){return typeof doc.name==='string'&&typeof doc.text==='string';}))throw new Error('Invalid draft');window.VexWorkflows?.showDrafts(recovered);VexProto.toastKey('ToastRecoveryDraftFound');}catch(_){VexProto.toastKey('ToastDraftUnreadable');}}
   };
   VexProto.previewUnsavedExit=function(){
     docs=[{name:'产品构想.md',path:'写作手记 / 产品构想.md',text:'# 产品构想\n',pendingText:'# 产品构想\n\n让写作更轻松。\n'}];

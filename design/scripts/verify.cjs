@@ -68,4 +68,33 @@ assert.equal(new Set(versions).size, versions.length, 'Each version has one chan
 for (const line of changelog.split('\n').filter(line => line.startsWith('- '))) {
   assert.match(line, /^- (?:✨\[新增\]|⚡\[优化\]|🐛\[修复\]|😄\[新增\]|🔨\[优化\]|❌\[删除\])-.+$/, 'User-facing change category');
 }
+/* Toast 文案 i18n 审计：字面量中文直接调用禁止；toastKey 的键必须在四语表中存在。 */
+{
+  const workbench = ['workbench.js','interact.js','workspace.js','chapter-editor.js','workflows.js'];
+  const literal = /VexProto\.toast\(\s*['"`][^'"`]*[一-鿿]/;
+  const keyUse = /VexProto\.toastKey\(\s*(?:['"`]([A-Za-z][A-Za-z0-9]*)['"`]|[^)]*['"`]([A-Za-z][A-Za-z0-9]*)['"`]\s*\))/g;
+  const usedKeys = new Set();
+  const problems = [];
+  for (const name of workbench) {
+    const file = path.join(root, 'assets/workbench', name);
+    const text = fs.readFileSync(file, 'utf8');
+    if (literal.test(text)) problems.push(`${name}: VexProto.toast 存在硬编码中文文案`);
+    for (const match of text.matchAll(/VexProto\.toastKey\(([^)]*)\)/g)) {
+      for (const key of [...match[1].matchAll(/['"`]([A-Za-z][A-Za-z0-9]*)['"`]/g)].map(m => m[1]))
+        usedKeys.add(key);
+    }
+  }
+  const dataFile = path.join(root, 'assets/workbench/vex-data.js');
+  const dataSandbox = {window:{}};
+  dataSandbox.window = dataSandbox;
+  vm.runInNewContext(fs.readFileSync(dataFile, 'utf8'), dataSandbox);
+  const languages = dataSandbox.window.VEX_DATA.languages;
+  const cultures = Object.keys(languages);
+  for (const key of [...usedKeys].sort()) {
+    for (const culture of cultures)
+      if (typeof languages[culture][key] !== 'string') problems.push(`${name || 'workbench'}: 缺少 ${culture}.${key}`);
+  }
+  if (usedKeys.size === 0) problems.push('未发现任何 toastKey 用法（i18n 收口回退？）');
+  assert.equal(problems.length, 0, problems.join(' '));
+}
 console.log(`PASS: ${scripts} scripts, local HTML assets, ink-teal V logo, default auto-save and bundled Markdown.`);
