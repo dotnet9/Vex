@@ -3,7 +3,7 @@ window.VexProject = {
   "version": "1.12.0",
   "releaseDate": "2026-10-27",
   "website": "https://vex.codewf.com/",
-  "copyright": "Copyright © 2026 沙漠尽头的狼 / CodeWF",
+  "copyright": "Copyright © 2026 CodeWF · 维刻 Vex",
   "repository": "https://github.com/dotnet9/Vex",
   "license": "MIT",
   "components": [
