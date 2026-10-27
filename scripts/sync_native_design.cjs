@@ -47,13 +47,18 @@ const tokens = path.join(library,'src/Controls/CodeWF.Avalonia.Controls/Themes/S
 const template = fs.readFileSync(path.join(__dirname,'native-design/StudioPalette.template.axaml'),'utf8');
 for (const p of palettes) for (const mode of ['light','dark']) {
   const dark=mode==='dark', t=derive(p.key,mode);
-  /* 原型 .vex-segmented（segmented.css）：轨道=前景 4% 叠表面；指示块=白 55% 叠表面（亮）/面板（暗）。 */
+  /* 原型 .vex-segmented（segmented.css + prototype.css 令牌）：
+   * 亮色轨道 = 前景 4% 叠「表面」、指示块 = 白 55% 叠表面（表面 = 纸面 #fdfdfd 一档）；
+   * 深色轨道 = 前景 4.5% 叠「面板」、指示块回到面板色（凹槽配亮一档的轨道）。 */
   const mix=(a,b,ratio)=>{const pa=a.replace('#',''),pb=b.replace('#','');const ch=(j)=>Math.round(parseInt(pa.substr(j,2),16)*ratio+parseInt(pb.substr(j,2),16)*(1-ratio)).toString(16).padStart(2,'0');return ('#'+ch(0)+ch(2)+ch(4)).toUpperCase();};
   const surface=dark?p.darkPanel:p.panel, fgColor=dark?p.darkFg:p.fg;
-  const segmentedTrack=mix(fgColor,surface,0.04);
-  const segmentedThumb=dark?surface:mix('#ffffff',surface,0.55);
+  const paper=dark?p.darkPaper:p.paper;
+  const segmentedTrack=dark?mix(fgColor,surface,0.045):mix(fgColor,paper,0.04);
+  const segmentedThumb=dark?surface:mix('#ffffff',paper,0.55);
+  /* 原型 --elevated（弹出层/对话框浮起底色）= color-mix(in srgb, surface 88%, panel)，surface 即纸面。 */
+  const elevated=mix(paper,surface,0.88);
   const colors={StudioBackgroundColor:dark?p.darkBg:p.bg,StudioSurfaceColor:surface,
-    StudioPaperColor:dark?p.darkPaper:p.paper,StudioRaisedColor:t.hover,StudioBorderColor:t.border,StudioSegmentedTrackColor:segmentedTrack,StudioSegmentedThumbColor:segmentedThumb,
+    StudioPaperColor:paper,StudioRaisedColor:t.hover,StudioBorderColor:t.border,StudioSegmentedTrackColor:segmentedTrack,StudioSegmentedThumbColor:segmentedThumb,StudioElevatedColor:elevated,
     StudioTextColor:fgColor,StudioMutedColor:t.muted,StudioAccentColor:t.accent,
     StudioSecondaryColor:t['accent-decoration'],StudioPrimaryColor:t.primary,StudioGradientStartColor:t.primary,
     StudioTextGradientEndColor:t['gradient-end']};

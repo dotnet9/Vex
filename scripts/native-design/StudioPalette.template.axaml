@@ -4,6 +4,7 @@
     <Color x:Key="StudioBackgroundColor">#FFFFFF</Color>
     <Color x:Key="StudioSegmentedTrackColor">#000000</Color>
     <Color x:Key="StudioSegmentedThumbColor">#000000</Color>
+    <Color x:Key="StudioElevatedColor">#000000</Color>
     <Color x:Key="StudioSurfaceColor">#F7F6FC</Color>
     <Color x:Key="StudioRaisedColor">#EFEDF7</Color>
     <Color x:Key="StudioBorderColor">#DDD8EC</Color>
