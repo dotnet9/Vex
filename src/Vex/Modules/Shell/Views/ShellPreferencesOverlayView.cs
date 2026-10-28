@@ -395,7 +395,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         // fill = 控件吃满剩余宽度（路径类输入框），否则按内容自适应并靠右。
         // 行高对齐原型 .vex-pref-row：内容槽 34（= 55 最小高 − 上下 10 − 1 分隔线），控件都按 34 建档。
-        var row = new Grid { ColumnDefinitions = new ColumnDefinitions(fill ? "Auto,*" : "*,Auto"), ColumnSpacing = 24, MinHeight = 34 };
+        var row = new Grid { ColumnDefinitions = new ColumnDefinitions(fill ? "Auto,*" : "*,Auto"), ColumnSpacing = 24, MinHeight = 32 };
         var labels = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         labels.Children.Add(new TextBlock { Text = L(label), Classes = { "pref-label" } });
         if (note is not null) labels.Children.Add(new TextBlock { Text = L(note), Classes = { "muted", "pref-note" } });
@@ -466,7 +466,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var fill = new Border { Height = 18, Width = 164, CornerRadius = new CornerRadius(4) };
         fill.Bind(Border.BackgroundProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkColor)) { Source = preferences, Converter = HexToBrushConverter.Instance });
-        var swatch = new Button { Width = 180, Height = 26, Padding = default, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), Content = fill };
+        var swatch = new Button { Width = 180, Height = 28, Padding = default, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), Content = fill };
         BindResource(swatch, Button.BorderBrushProperty, "VexPanelBorderBrush");
         var presets = new UniformGrid { Columns = 8, Width = 224, Margin = new Thickness(8) };
         foreach (var hex in new[] { "#24766B", "#2E5851", "#3A6EA5", "#4C6FE8", "#7457E8", "#C2417B", "#B3261E", "#D96C2C", "#8A6D3B", "#5F5347", "#6B7280", "#374151", "#111111", "#E8E4DA", "#88B04B", "#2477A8" })

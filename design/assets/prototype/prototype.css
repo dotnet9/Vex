@@ -207,11 +207,11 @@ body.device-phone .modal .stat-card strong { font-size:20px; }
 .vex-settings-content>h3 { font-size:19px; line-height:1.4; margin:0 0 22px; font-weight:600; }
 .vex-settings-section { margin:24px 0 8px; color:var(--muted); font-size:12px; font-weight:600; }
 /* 行高 = 34 控件 + 上下 10 + 1 分隔线 = 55；min-height 让更矮的控件（开关、滑块）也占同一档间距。 */
-.vex-pref-row { min-height:55px; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:10px 0; border-bottom:1px solid var(--border); box-sizing:border-box; }
+.vex-pref-row { min-height:53px; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:10px 0; border-bottom:1px solid var(--border); box-sizing:border-box; }
 .vex-pref-row>span { min-width:0; }
 .vex-pref-row small { display:block; color:var(--muted); font-size:12px; font-weight:400; line-height:1.6; margin-top:4px; max-width:340px; }
 /* 字段是正常输入框：圆角走 --vex-radius-xs，与同排的「…」按钮、图标钮一致；胶囊只留给分段控件与开关。 */
-.vex-pref-row select,.vex-pref-row input:not([type=checkbox]):not([type=range]) { box-sizing:border-box; width:180px; max-width:48%; min-width:70px; height:34px; border:1px solid var(--control-border); border-radius:var(--vex-radius-xs); padding:5px 9px; background:transparent; color:inherit; }
+.vex-pref-row select,.vex-pref-row input:not([type=checkbox]):not([type=range]) { box-sizing:border-box; width:180px; max-width:48%; min-width:70px; height:var(--control-h-md,32px); border:1px solid var(--control-border); border-radius:var(--vex-radius-xs); padding:5px 9px; background:transparent; color:inherit; }
 /* 偏好面板里的互斥档位统一走分段控件，宽度与同排输入框对齐。 */
 .vex-pref-row .vex-pref-segmented { flex:none; width:196px; max-width:48%; }
 .vex-pref-row .vex-pref-segmented > button { flex:1; min-height:var(--control-h-sm,28px); padding:calc(4px * var(--seg-scale)) 6px; font-size:calc(var(--fs-body,14px) - 1px); }
@@ -227,7 +227,7 @@ body.device-phone .modal .stat-card strong { font-size:20px; }
 .vex-pref-row output { width:44px; text-align:right; font-variant-numeric:tabular-nums; }
 .vex-pref-folder { display:flex; align-items:center; gap:8px; max-width:48%; min-width:0; }
 .vex-pref-folder input { flex:1 1 auto; width:auto; min-width:70px; max-width:none; }
-.vex-pref-folder .vex-icon-button { width:34px; height:34px; padding:0; border:1px solid var(--border); border-radius:var(--vex-radius-xs); background:var(--bg,var(--surface)); font-size:16px; line-height:1; }
+.vex-pref-folder .vex-icon-button { width:34px; height:36px; padding:0; border:1px solid var(--border); border-radius:var(--vex-radius-xs); background:var(--bg,var(--surface)); font-size:16px; line-height:1; }
 .vex-pref-folder .vex-icon-button:hover { border-color:var(--accent); color:var(--accent); }
 .vex-palette-swatches { display:grid; grid-template-columns:repeat(8,22px); gap:6px; }
 .vex-swatch { width:22px; height:22px; padding:0; border-radius:50%; border:3px solid var(--panel,var(--surface)); background:var(--swatch); box-shadow:0 0 0 1px transparent; cursor:pointer; }
@@ -454,7 +454,7 @@ body[data-platform=macos] .tb-menuitem:first-child { font-weight:600; }
   line-height: 1.75;
 }
 .install-window .btn {
-  min-height: 38px;
+  min-height:36px;
 }
 .install-window .btn.primary {
   box-shadow: 0 3px 8px color-mix(in srgb, var(--accent) 18%, transparent);

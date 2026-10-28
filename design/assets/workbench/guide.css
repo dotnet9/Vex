@@ -17,7 +17,7 @@
 .tour-close:hover { color:var(--fg); background:var(--hover); }
 .tour-card h2 { margin:0 0 9px; font-size:18px; font-weight:600; line-height:1.4; }
 .tour-description { font-size:12px; line-height:1.8; color:var(--fg); margin:0; }
-.tour-feedback { font-size:11px; line-height:1.75; min-height:38px; color:var(--muted); margin:10px 0 0; }
+.tour-feedback { font-size:11px; line-height:1.75; min-height:36px; color:var(--muted); margin:10px 0 0; }
 .tour-feedback.done { color:var(--success); }
 .tour-feedback.done::before { content:'✓ '; }
 .tour-progress { display:flex; gap:5px; margin-top:12px; }
@@ -70,7 +70,7 @@
 .app-window[data-guide-step="4"] .layout-preset { padding:7px; gap:3px; }
 .app-window[data-guide-step="4"] .layout-preset small { display:none; }
 .app-window[data-guide-step="4"] .layout-preset strong { min-height:28px; font-size:10px; line-height:14px; }
-.app-window[data-guide-step="4"] .layout-miniature { height:34px; margin-bottom:0; padding:3px; }
+.app-window[data-guide-step="4"] .layout-miniature { height:36px; margin-bottom:0; padding:3px; }
 .app-window[data-guide-step="4"] .workspace-layout-footer { margin-top:10px; padding-top:8px; }
 @media (max-width:760px) { .guide-launch span { display:none; } .tour-card { width:292px; padding:16px; } }
 @media (max-width:760px) { .story-tour .story-card, .story-tour .story-card[data-mode="intro"], .story-tour .story-card[data-mode="result"] { width:calc(100vw - 32px); } .story-actions { flex-wrap:wrap; } .story-actions .action-count { position:static; transform:none; margin-left:auto; flex:0 0 auto; } }
@@ -84,7 +84,7 @@
 .story-dot.passed { background:color-mix(in srgb,var(--accent) 45%,var(--border)); }
 .story-dot.current { width:18px; background:var(--accent); }
 .story-flex { flex:1 1 auto; }
-.story-tour .story-actions button { border-radius:var(--vex-radius-pill); min-height:30px; padding:5px 14px; font-size:12px; }
+.story-tour .story-actions button { border-radius:var(--vex-radius-pill); min-height:32px; padding:5px 14px; font-size:12px; }
 .story-tour .story-actions .tour-continue { background:var(--accent); border:1px solid var(--accent); color:var(--accent-fg,var(--on-accent,#fff)); font-weight:600; }
 .story-tour .story-actions .tour-continue:hover { filter:brightness(1.08); }
 .story-tour .story-actions .tour-previous,.story-tour .story-actions .tour-skip { color:var(--muted); background:var(--panel); border:1px solid var(--border); }

@@ -217,7 +217,7 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--border);
   border-radius: var(--vex-radius-md);
   padding: 5px 14px;
-  min-height: 30px;
+  min-height:32px;
   cursor: pointer;
   transition: background var(--vex-instant) var(--vex-ease), border-color var(--vex-instant) var(--vex-ease), color var(--vex-instant) var(--vex-ease);
 }
@@ -240,7 +240,7 @@ a:hover { text-decoration: underline; }
 .btn.danger:active { background: var(--danger-pressed-bg); color: var(--danger-pressed-fg); border-color: var(--danger-pressed-fg); }
 .btn.ghost { border-color: transparent; background: transparent; }
 .btn.ghost:hover { background: var(--hover); }
-.btn.sm { min-height: 26px; padding: 3px 10px; font-size: 12px; border-radius: var(--vex-radius-sm); }
+.btn.sm { min-height:28px; padding: 3px 10px; font-size: 12px; border-radius: var(--vex-radius-sm); }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* ---------- 输入框 ---------- */
@@ -252,7 +252,7 @@ a:hover { text-decoration: underline; }
   border:1px solid var(--control-border);
   border-radius: var(--vex-radius-pill);
   padding: 5px 10px;
-  min-height: 30px;
+  min-height:32px;
   width: 100%;
   transition: border-color var(--vex-instant) var(--vex-ease), box-shadow var(--vex-instant) var(--vex-ease), background var(--vex-instant) var(--vex-ease);
 }
@@ -587,7 +587,7 @@ a:hover { text-decoration: underline; }
 }
 .dlg-heading { margin: 0; font-size: 15.5px; font-weight: 600; }
 .dlg-ico {
-  width: 34px; height: 34px;
+  width: 34px; height:36px;
   border-radius: var(--vex-radius-lg);
   display: inline-flex; align-items: center; justify-content: center;
   flex: none;

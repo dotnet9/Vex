@@ -73,9 +73,9 @@
       </ItemsControl>
      </Border>
      <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
-      <Button Margin="0,0,10,0" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsDownloading}" MinWidth="104" MinHeight="38" Padding="16,8" FontSize="13"/>
-      <Button x:Name="UpdateDismiss" Margin="0,0,10,0" Click="Close_OnClick" Content="{i18n:I18n {x:Static l:VexL.UpdateLater}}" IsVisible="{Binding ShowLater}" MinWidth="104" MinHeight="38" Padding="16,8" FontSize="13"/>
-      <Button x:Name="UpdateAction" Classes.primary="{Binding IsPrimaryAction}" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" IsVisible="{Binding ShowAction}" MinWidth="104" MinHeight="38" Padding="16,8" FontSize="13"/>
+      <Button Margin="0,0,10,0" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsDownloading}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
+      <Button x:Name="UpdateDismiss" Margin="0,0,10,0" Click="Close_OnClick" Content="{i18n:I18n {x:Static l:VexL.UpdateLater}}" IsVisible="{Binding ShowLater}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
+      <Button x:Name="UpdateAction" Classes.primary="{Binding IsPrimaryAction}" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" IsVisible="{Binding ShowAction}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
      </WrapPanel>
     </StackPanel>
    </ScrollViewer>

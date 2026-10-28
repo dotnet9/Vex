@@ -15,7 +15,7 @@
 #typography-panel{width:min(720px,calc(100% - 24px));height:680px;padding:16px;overflow:hidden;display:flex;flex-direction:column;gap:0}
 #typography-panel .popover-title{display:flex;align-items:center;justify-content:space-between;flex:none;padding:0;margin:0;font-size:15px}
 #typography-title{font-weight:600}
-#typography-close{display:grid;place-items:center;width:30px;height:30px;border-radius:var(--vex-radius-xs);padding:0;color:var(--muted)}
+#typography-close{display:grid;place-items:center;width:30px;height:32px;border-radius:var(--vex-radius-xs);padding:0;color:var(--muted)}
 #typography-close:hover{background:var(--hover);color:var(--fg)}
 #typography-close .ico{width:16px;height:16px}
 #typography-panel .typography-note{flex:none;font-size:12px;line-height:1.6;margin:4px 0 12px;color:var(--muted)}
@@ -46,7 +46,7 @@
 .td-row{display:flex;gap:8px;flex-wrap:wrap}
 .td-row label{display:flex;flex-direction:column;gap:4px;color:var(--muted)}
 .td-row input[type="text"]{min-height:28px;padding:4px 8px;border:1px solid var(--control-border);border-radius:var(--vex-radius-pill);background:transparent;color:var(--fg)}
-.td-row input[type="color"]{width:52px;height:26px;padding:0;border:1px solid var(--control-border);border-radius:var(--vex-radius-xs);background:none;cursor:pointer}
+.td-row input[type="color"]{width:52px;height:28px;padding:0;border:1px solid var(--control-border);border-radius:var(--vex-radius-xs);background:none;cursor:pointer}
 .td-row select{min-height:28px;padding:4px 8px;border:1px solid var(--control-border);border-radius:var(--vex-radius-pill);background:transparent;color:var(--fg);cursor:pointer}
 .td-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
 /* 排版弹层顶部：渲染密度行（控件样式与外观菜单一致，作用于 Markdown 渲染）。 */
@@ -65,7 +65,7 @@
 .typography-editor-row input[type="color"]{width:44px;height:24px;padding:0;border:1px solid var(--control-border);border-radius:var(--vex-radius-xs);background:none;cursor:pointer}
 .typography-editor-row select{min-height:24px;font-size:11px;padding:3px 7px;border:1px solid var(--control-border);border-radius:var(--vex-radius-pill);background:transparent;color:var(--fg);cursor:pointer}
 .typography-editor-actions{display:flex;gap:6px;margin-top:2px}
-.typography-editor-actions .btn{min-height:26px;padding:4px 10px;font-size:11px}
+.typography-editor-actions .btn{min-height:28px;padding:4px 10px;font-size:11px}
 #typography-panel .typography-card:hover{border-color:var(--accent);background:var(--surface);box-shadow:0 2px 9px color-mix(in srgb,var(--fg) 6%,transparent)}
 #typography-panel .typography-card[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--surface)}
 #typography-panel .typography-card:focus-visible{outline:2px solid var(--accent);outline-offset:1px}

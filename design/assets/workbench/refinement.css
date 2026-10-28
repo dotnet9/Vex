@@ -171,7 +171,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 }
 #layer-update .update-actions .btn {
   min-width: 104px;
-  min-height: 38px;
+  min-height:36px;
   padding: 8px 16px;
   font-size: 13px;
 }

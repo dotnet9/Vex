@@ -95,7 +95,7 @@
           <Border Grid.Row="2" Padding="14,0" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding Workbench.SelectedSourceLabel}" Classes="wb-muted" VerticalAlignment="Center"/><Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.WBLocate}}" Command="{Binding Workbench.LocateSelectedSource}" Classes="wb-quiet"/></Grid></Border>
         </Grid>
       </Border>
-      <Canvas x:Name="RenameLayer" IsVisible="False"><TextBox x:Name="InlineChapterTitle" MinHeight="30" Padding="8,3" KeyDown="InlineTitleKeyDown" LostFocus="InlineTitleLostFocus"/></Canvas>
+      <Canvas x:Name="RenameLayer" IsVisible="False"><TextBox x:Name="InlineChapterTitle" MinHeight="28" Padding="8,3" KeyDown="InlineTitleKeyDown" LostFocus="InlineTitleLostFocus"/></Canvas>
       <Border x:Name="ChapterDeleteLayer" IsVisible="False" Background="#44000000">
         <Border Classes="wb-popover" Width="360" MaxWidth="500" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
           <StackPanel Spacing="14">

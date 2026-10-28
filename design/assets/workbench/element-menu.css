@@ -2,7 +2,7 @@
 .vex-element-layer.vex-contained-overlay { position:absolute; }
 .vex-element-menu { position:absolute; width:254px; max-width:calc(100% - 16px); max-height:calc(100% - 16px); overflow:auto; overscroll-behavior:contain; padding:6px; background:var(--em-bg); border:1px solid var(--em-line); border-radius:var(--vex-radius-md); box-shadow:var(--pop-shadow,var(--shadow-pop)); animation:vex-element-in var(--vex-fast) var(--vex-ease-enter); }
 .vex-element-menu button { font:inherit; color:inherit; border:0; cursor:pointer; }
-.vex-element-row { width:100%; min-height:34px; display:flex; gap:8px; align-items:center; text-align:left; padding:6px 10px; border-radius:var(--vex-radius-xs); background:transparent; }
+.vex-element-row { width:100%; min-height:36px; display:flex; gap:8px; align-items:center; text-align:left; padding:6px 10px; border-radius:var(--vex-radius-xs); background:transparent; }
 .vex-element-row>span { flex:1; min-width:0; overflow-wrap:anywhere; }
 .vex-element-row:hover,.vex-element-row:focus-visible { background:var(--accent-soft); color:var(--accent); outline:none; }
 .vex-element-row:disabled,.vex-element-tools button:disabled { opacity:.38; cursor:default; background:transparent; color:var(--muted); }

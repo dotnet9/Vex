@@ -44,8 +44,8 @@ public sealed class ShellTypographyEditView : UserControl
         model.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(ShellTypographyEditModel.Report)) report.Text = model.Report; };
         stack.Children.Add(report);
 
-        var cancel = new Button { Content = Text(VexL.Cancel), Classes = { "wb-quiet" }, MinHeight = 30, Padding = new Thickness(14, 4) };
-        var apply = new Button { Content = Text(VexL.WBSaveAndApply), Classes = { "primary" }, MinHeight = 30, Padding = new Thickness(14, 4) };
+        var cancel = new Button { Content = Text(VexL.Cancel), Classes = { "wb-quiet" }, MinHeight = 28, Padding = new Thickness(14, 4) };
+        var apply = new Button { Content = Text(VexL.WBSaveAndApply), Classes = { "primary" }, MinHeight = 28, Padding = new Thickness(14, 4) };
         cancel.Click += (_, _) => model.Cancel();
         apply.Click += (_, _) => model.Apply();
         var actions = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right, Margin = new Thickness(0, 8, 0, 0) };
@@ -80,7 +80,7 @@ public sealed class ShellTypographyEditView : UserControl
 
     private static StackPanel ColorField(string labelKey, string value, Action<string> write)
     {
-        var input = new TextBox { Text = value, Width = 84, Height = 30, FontSize = 11, FontFamily = VexFonts.Code, CornerRadius = new CornerRadius(5) };
+        var input = new TextBox { Text = value, Width = 84, Height = 28, FontSize = 11, FontFamily = VexFonts.Code, CornerRadius = new CornerRadius(5) };
         input.PropertyChanged += (_, args) =>
         {
             if (args.Property == TextBox.TextProperty) write(input.Text ?? "");

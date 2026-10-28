@@ -16,7 +16,7 @@
             </Border>
             <StackPanel Grid.Row="1" Margin="22">
                 <TextBlock Classes="muted" FontSize="12" Margin="0,14,0,6" Text="{i18n:I18n Vex.VexL.RenameFileNameLabel}"/>
-                <TextBox x:Name="NameTextBox" Height="34" FontSize="12" KeyDown="NameTextBox_OnKeyDown" Text="{Binding FileName, Mode=TwoWay}"/>
+                <TextBox x:Name="NameTextBox" Height="36" FontSize="12" KeyDown="NameTextBox_OnKeyDown" Text="{Binding FileName, Mode=TwoWay}"/>
                 <TextBlock Margin="0,10,0,0" FontSize="12" Foreground="{DynamicResource VexDangerBrush}" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding Error}" TextWrapping="Wrap"/>
                 <TextBlock Classes="muted" FontSize="11" FontWeight="SemiBold" Margin="0,12,0,4" Text="{i18n:I18n Vex.VexL.RenameFilePathLabel}"/>
                 <Border Classes="dlg-path"><SelectableTextBlock Text="{Binding Path}" TextWrapping="Wrap"/></Border>

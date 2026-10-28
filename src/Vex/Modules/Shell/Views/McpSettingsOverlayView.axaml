@@ -66,7 +66,7 @@
                                 VerticalAlignment="Center"
                                 Text="{i18n:I18n {x:Static l:VexL.McpAuthorizationToken}}" />
                             <!-- 眼睛与重新生成两个 28x28 图标按钮叠在输入框右端（原型 .vex-token-actions）。 -->
-                            <Panel Grid.Column="1" Width="180" Height="34">
+                            <Panel Grid.Column="1" Width="180" Height="36">
                                 <TextBox
                                     Classes="pref-field"
                                     Padding="9,5,65,5"

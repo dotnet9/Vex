@@ -164,7 +164,7 @@ public partial class MarkdownMindMapHost : UserControl
         var panel = new StackPanel { Spacing = 0, Width = 496 };
         var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 0, 0, 12) };
         var headerTitle = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, FontSize = 14, VerticalAlignment = VerticalAlignment.Center };
-        var closeButton = new Button { Classes = { "vex-dismiss" }, Content = "×", Width = 26, Height = 26, Padding = new Thickness(0) };
+        var closeButton = new Button { Classes = { "vex-dismiss" }, Content = "×", Width = 26, Height = 28, Padding = new Thickness(0) };
         header.Children.Add(headerTitle); Grid.SetColumn(closeButton, 1); header.Children.Add(closeButton);
         panel.Children.Add(header);
 

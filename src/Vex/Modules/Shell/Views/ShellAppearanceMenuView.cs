@@ -226,7 +226,7 @@ public sealed class ShellAppearanceMenuView : UserControl
             Grid.SetColumn(name, 1); Grid.SetColumn(check, 2);
             var button = Button("", () => { LanguageButton.Flyout?.Hide(); _vm.SelectedLanguage = language; });
             button.Classes.Add("language-item");
-            button.Content = grid; button.Height = 38; button.Padding = new Thickness(10, 6);
+            button.Content = grid; button.Height = 36; button.Padding = new Thickness(10, 6);
             button.CornerRadius = new CornerRadius(10);
             button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
             button.HorizontalAlignment = HorizontalAlignment.Stretch; languages.Children.Add(button);

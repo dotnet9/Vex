@@ -222,7 +222,7 @@
 
         <!-- 对应原型 .files-toolbar（workspace-chrome.css:618）：紧跟搜索框下方，整行居左、无分隔线，
              左内距与搜索框同为 5，行高 34、下内距 8、以 -6 外边距贴紧搜索框的 8px 下边距。 -->
-        <Border x:Name="FilesToolbar" Grid.Row="1" Height="34" Margin="0,-6,0,0" Padding="5,0,5,8">
+        <Border x:Name="FilesToolbar" Grid.Row="1" Height="36" Margin="0,-6,0,0" Padding="5,0,5,8">
             <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
                 <ToggleButton x:Name="FilesModeButton" Classes="files-tool"
                               IsChecked="{Binding IsTreeView, Mode=OneWay}"

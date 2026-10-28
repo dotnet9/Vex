@@ -627,7 +627,7 @@
        圆角是原型 radius-xs 令牌那一档（同「…」按钮、图标钮一族，随「界面圆角」三档缩放），胶囊只留给分段控件与开关。 -->
   <Style Selector="TextBox.pref-field">
     <Setter Property="Width" Value="180"/>
-    <Setter Property="Height" Value="34"/>
+    <Setter Property="Height" Value="32"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="Padding" Value="9,5"/>
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
@@ -638,7 +638,7 @@
   </Style>
   <Style Selector="ComboBox.pref-field">
     <Setter Property="Width" Value="180"/>
-    <Setter Property="Height" Value="34"/>
+    <Setter Property="Height" Value="32"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="Padding" Value="9,5"/>
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
@@ -651,7 +651,7 @@
   <!-- 目录行（原型 .vex-pref-folder）：控件吃满剩余宽度并靠右，路径再长也不被 180 截断。 -->
   <Style Selector="TextBox.pref-field-fill">
     <Setter Property="MinWidth" Value="240"/>
-    <Setter Property="Height" Value="34"/>
+    <Setter Property="Height" Value="32"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="Padding" Value="9,5"/>
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
@@ -662,8 +662,8 @@
     <Setter Property="HorizontalAlignment" Value="Stretch"/>
   </Style>
   <Style Selector="Button.pref-browse">
-    <Setter Property="Width" Value="34"/>
-    <Setter Property="Height" Value="34"/>
+    <Setter Property="Width" Value="32"/>
+    <Setter Property="Height" Value="32"/>
     <Setter Property="Padding" Value="0"/>
     <Setter Property="FontSize" Value="16"/>
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>

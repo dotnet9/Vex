@@ -102,12 +102,13 @@ internal static class PreferencesVerification
         view.SelectCategory("mcp"); Render();
         // MCP 页：分段式标签（服务/客户端/审计），客户端页配置为已保存端点的合法 JSON。
         Check(!view.GetVisualDescendants().OfType<TabControl>().Any(), "MCP page uses segmented tabs instead of a classic TabControl");
-        // 元素级对齐原型：.vex-pref-row 58 间距、input 180x34、控件右边缘与正文列对齐。
+        // 元素级对齐原型：.vex-pref-row 53 间距（32 控件 + 10×2 内距 + 1 分隔线）、input 180x32
+        //（字段与按钮同高，--control-h-md 档）、控件右边缘与正文列对齐。
         var portField = view.GetVisualDescendants().OfType<TextBox>().First(t => t.Classes.Contains("pref-field"));
         var portRow = portField.GetVisualAncestors().OfType<Border>().First(b => b.Classes.Contains("pref-row"));
-        Check(Math.Abs(portField.Bounds.Width - 180) < 0.6 && Math.Abs(portField.Bounds.Height - 34) < 0.6,
-            "MCP form field keeps the prototype 180x34 box");
-        Check(Math.Abs(portRow.Bounds.Height - 58) < 1.5, "MCP form row keeps the prototype 58px pitch");
+        Check(Math.Abs(portField.Bounds.Width - 180) < 0.6 && Math.Abs(portField.Bounds.Height - 32) < 0.6,
+            "MCP form field keeps the prototype 180x32 box");
+        Check(Math.Abs(portRow.Bounds.Height - 53) < 1.5, "MCP form row keeps the prototype 53px pitch");
         // TranslatePoint 的入参是控件自身坐标系里的点，取右上角要用 Width 而不是 Bounds.Right。
         var portRight = portField.TranslatePoint(new Point(portField.Bounds.Width, 0), view)!.Value.X;
         var rowRight = portRow.TranslatePoint(new Point(portRow.Bounds.Width, 0), view)!.Value.X;

@@ -38,7 +38,7 @@ public sealed class ShellPaletteEditView : UserControl
                 var color = model.Colors[index];
                 var swatch = new Border { Width = 18, Height = 18, CornerRadius = new CornerRadius(9), BorderThickness = new Thickness(1), BorderBrush = Avalonia.Media.Brushes.Transparent, VerticalAlignment = VerticalAlignment.Center };
                 TrySetSwatch(swatch, color);
-                var input = new TextBox { Text = color, Width = 96, Height = 26, FontSize = 12, FontFamily = VexFonts.Code, CornerRadius = new CornerRadius(4), Padding = new Thickness(6, 3) };
+                var input = new TextBox { Text = color, Width = 96, Height = 28, FontSize = 12, FontFamily = VexFonts.Code, CornerRadius = new CornerRadius(4), Padding = new Thickness(6, 3) };
                 var preview = swatch;
                 // 必须同时回写 model.Colors：只刷预览会让「保存并应用」拿到初始色，用户改动静默丢失。
                 input.PropertyChanged += (_, args) =>
