@@ -58,15 +58,15 @@ try {
     if ((Invoke-CheckedGit -C $checkout cat-file -t refs/tags/v1.2.3) -ne 'commit') { throw '不应改写本地标签。' }
     if (((Invoke-CheckedGit -C $checkout ls-remote --tags origin) -join "`n") -ne $remoteBefore) { throw '远端标签发生变化。' }
 
+    # 精选目录已删，发布说明单出口：即使夹具里残留同名 curated 文件也必须被忽略。
     $curated = Join-Path $checkout '.github/release-notes/v1.2.3.md'
     New-Item -ItemType Directory -Path (Split-Path -Parent $curated) -Force | Out-Null
-    Set-Content -LiteralPath $curated -Value '# 精选完整说明' -Encoding utf8
+    Set-Content -LiteralPath $curated -Value '# 精选残留' -Encoding utf8
     & $prepare -RepositoryRoot $checkout -Version 1.2.3 -OutputPath $output -FetchTag
-    Assert-Contains (Get-Content -LiteralPath $output -Raw) '# 精选完整说明'
-    Set-Content -LiteralPath $curated -Value ''
-    Assert-Rejected { & $prepare -RepositoryRoot $checkout -Version 1.2.3 -OutputPath $output }
+    if ((Get-Content -LiteralPath $output -Raw).Trim() -ne $tagBody) { throw 'curated 残留被误用，发布说明不再是单出口。' }
+    # 无附注、无小节的版本必须拒绝；有（v1.2.3）映射条目的版本照常从日志兜底。
     Assert-Rejected { & $prepare -RepositoryRoot $checkout -Version 1.2.4 -OutputPath $output }
-    Write-Host 'PASS: 附注标签、轻量标签兜底、远端对象恢复、精选优先、空说明及缺失说明六组发布场景通过；本地与远端标签均未改写。'
+    Write-Host 'PASS: 附注标签、轻量标签兜底、远端对象恢复、curated 残留忽略、缺失说明拒绝五组发布场景通过；本地与远端标签均未改写。'
 }
 finally {
     $resolved = [IO.Path]::GetFullPath($fixture)

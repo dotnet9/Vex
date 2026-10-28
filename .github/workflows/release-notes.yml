@@ -1,9 +1,7 @@
 name: 同步发布说明
 
+# 发布说明单出口 = docs/更新日志.md；改完日志后手动触发，把正文写回已发布的 Release。
 on:
-  push:
-    branches: [main]
-    paths: ['.github/release-notes/*.md']
   workflow_dispatch:
     inputs:
       version:
