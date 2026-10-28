@@ -51,7 +51,8 @@ if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "set
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
-    var window = (Vex.Modules.Shell.Views.MainWindow)app.Shell!;
+    // SetupWithoutStarting 不注册桌面生命周期，App 不会自行建窗；这里显式建壳。
+    var window = (Vex.Modules.Shell.Views.MainWindow)(app.Shell ?? app.CreateShell());
     window.Show();
     // 无参数启动不再加载任何文件；这些模式需要画面素材，改为显式装载随包演示文档。
     var startupVm = (MainWindowViewModel)window.DataContext!;

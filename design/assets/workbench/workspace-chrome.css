@@ -614,8 +614,8 @@ input, textarea, select {
 .pane-collapse-left.on .ico{transform:scaleX(-1)}
 .pane-collapse-right:not(.on) .ico{transform:scaleX(-1)}
 .pane-collapse[hidden]{display:none}
-/* 文件列表快捷钮移到搜索框下方、列表上方，整行右对齐并与搜索框同缩进。 */
-#files-pane .files-toolbar{flex:none;justify-content:flex-end;padding:0 12px 8px;margin-top:-6px}
+/* 文件列表快捷钮移到搜索框下方、列表上方，整行居左并与搜索框左缘同缩进。 */
+#files-pane .files-toolbar{flex:none;justify-content:flex-start;padding:0 12px 8px;margin-top:-6px}
 /* 专注/演示态与状态栏胶囊同进退。 */
 .focus-mode .pane-collapse,.presentation-mode .pane-collapse{display:none}
 /* 右下角缩放坞（正文与导图共用 .vex-zoomdock 配方，见 prototype.css）：宿主只补定位父级与避让。 */

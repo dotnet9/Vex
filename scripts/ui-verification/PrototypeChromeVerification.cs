@@ -112,7 +112,7 @@ internal static class PrototypeChromeVerification
             window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Render();
             Check(!vm.Workbench.ShowLayouts && layoutButton.IsFocused, "Escape closes layout panel and returns focus");
         }
-        // 原型 d2be540：文件列表快捷钮移到搜索框下方（右对齐、无分隔线），查找条独立成正文列的首个块。
+        // 原型 workspace-chrome.css:618：文件列表快捷钮在搜索框下方、列表上方，整行居左并与搜索框左缘同缩进。
         window.Width = 1440; window.Height = 1000; Render();
         var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
         var filterBox = filesView.GetVisualDescendants().OfType<Border>().First(b => Math.Abs(b.Bounds.Height - 32) < 1);
@@ -120,11 +120,11 @@ internal static class PrototypeChromeVerification
         var toolButtons = filesToolbar.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("files-tool")).ToArray();
         var toolbarTop = filesToolbar.TranslatePoint(default, filesView)!.Value.Y;
         var filterBottom = filterBox.TranslatePoint(new Point(0, filterBox.Bounds.Height), filesView)!.Value.Y;
-        var toolbarRight = filesToolbar.TranslatePoint(new Point(filesToolbar.Bounds.Width - 12, 0), filesView)!.Value.X;
+        var filterLeft = filterBox.TranslatePoint(default, filesView)!.Value.X;
         Check(toolButtons.Length == 3 && toolButtons.All(b => b.Bounds.Height == 26)
-            && Math.Abs(toolbarTop - filterBottom - 6) < 1 && filesToolbar.BorderThickness.Bottom == 0
-            && Math.Abs(toolButtons.Max(b => b.TranslatePoint(new Point(b.Bounds.Width, 0), filesView)!.Value.X) - toolbarRight) < 1,
-            $"File tools dock right under the filter as a borderless right-aligned row: top={toolbarTop:0.#}, filter bottom={filterBottom:0.#}, right={toolbarRight:0.#}");
+            && Math.Abs(toolbarTop - filterBottom - 2) < 1 && filesToolbar.BorderThickness.Bottom == 0
+            && Math.Abs(toolButtons.Min(b => b.TranslatePoint(default, filesView)!.Value.X) - filterLeft) < 1,
+            $"File tools dock right under the filter as a borderless left-aligned row flush with it: top={toolbarTop:0.#}, filter bottom={filterBottom:0.#}, left={filterLeft:0.#}");
         var fileTree = filesView.GetVisualDescendants().OfType<TreeView>().First();
         Check(Math.Abs(fileTree.TranslatePoint(default, filesView)!.Value.Y - (toolbarTop + filesToolbar.Bounds.Height)) < 1,
             "The list starts where the tool row ends instead of above it");
