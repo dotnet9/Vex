@@ -189,21 +189,13 @@ public partial class MainWindow : CodeWFWindow
             _startupArguments?.PublishStartupArguments(startupArguments);
         }
 
-        QueueFirstRunOnboardingGuide();
         _ = _mcpServerHost?.ApplySettingsAsync();
-    }
-
-    private void QueueFirstRunOnboardingGuide()
-    {
-        QuickStartButton.IsVisible = _settingsStore?.Current.HasSeenOnboardingGuide != true;
     }
 
     private void TitleMenuView_OnBeginGuideRequested(object? sender, EventArgs e) => BeginOnboardingGuide();
 
     /// <summary>原型把布局切换入口放在状态栏中央（原第二行工具栏已并入标题栏与状态栏）。</summary>
     public Button LayoutTarget => StatusBarGuideTarget.FindControl<Button>("LayoutButton")!;
-
-    private void QuickStartClick(object? sender, RoutedEventArgs e) => BeginOnboardingGuide();
 
     public void BeginOnboardingGuide()
     {

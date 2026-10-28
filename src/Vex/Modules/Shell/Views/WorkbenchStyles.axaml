@@ -599,10 +599,10 @@
     <Setter Property="Background" Value="{DynamicResource VexPanelBorderBrush}"/>
   </Style>
 
-  <!-- 偏好表单行（原型 .vex-pref-row）：58 最小高、上下 12 内边距、底部一条分隔线，左标签右控件。 -->
+  <!-- 偏好表单行（原型 .vex-pref-row）：55 最小高（34 控件 + 上下 10 + 1 分隔线）、上下 10 内边距、底部一条分隔线，左标签右控件。 -->
   <Style Selector="Border.pref-row">
-    <Setter Property="MinHeight" Value="58"/>
-    <Setter Property="Padding" Value="0,12"/>
+    <Setter Property="MinHeight" Value="55"/>
+    <Setter Property="Padding" Value="0,10"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
     <Setter Property="BorderThickness" Value="0,0,0,1"/>
   </Style>
@@ -612,23 +612,25 @@
     <Setter Property="TextWrapping" Value="Wrap"/>
     <Setter Property="VerticalAlignment" Value="Center"/>
   </Style>
-  <!-- 原型 .vex-pref-row small：12/1.6 muted，与主标签隔 4 像素，最宽 340。 -->
+  <!-- 原型 .vex-pref-row small：12/1.6 muted，与主标签隔 4 像素，最宽 340。
+       必须显式靠左：Stretch 的子项被 MaxWidth 拦住后 Avalonia 按居中摆，注释会比主标签缩进约 40 像素。 -->
   <Style Selector="TextBlock.pref-note">
     <Setter Property="FontSize" Value="12"/>
     <Setter Property="LineHeight" Value="19.2"/>
     <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
     <Setter Property="Margin" Value="0,4,0,0"/>
     <Setter Property="MaxWidth" Value="340"/>
+    <Setter Property="HorizontalAlignment" Value="Left"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
   <!-- 原型 .vex-pref-row input / select：180x34、描边 control-border、内边距 5 9（Avalonia 两值 Thickness 是「横,纵」，写法与 CSS 相反）。
-       圆角原型是 vex-radius-pill（随「界面圆角」三档缩放），不是写死的 5。 -->
+       圆角是原型 radius-xs 令牌那一档（同「…」按钮、图标钮一族，随「界面圆角」三档缩放），胶囊只留给分段控件与开关。 -->
   <Style Selector="TextBox.pref-field">
     <Setter Property="Width" Value="180"/>
     <Setter Property="Height" Value="34"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="Padding" Value="9,5"/>
-    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
@@ -639,7 +641,7 @@
     <Setter Property="Height" Value="34"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="Padding" Value="9,5"/>
-    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
@@ -652,7 +654,7 @@
     <Setter Property="Height" Value="34"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="Padding" Value="9,5"/>
-    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
@@ -778,13 +780,14 @@
   <Style Selector="Border.mcp-code StackPanel.MdDocument">
     <Setter Property="Margin" Value="0"/>
   </Style>
-  <!-- 动作按钮（原型 .vex-mcp-actions + workspace-chrome 的胶囊覆盖：32 高、CSS padding 5px 16px、全圆角、
-       1px border 描边 + bg 底 + inherit 文字）。Avalonia 两值 Thickness 是「横,纵」，所以 16 在前。
-       原型 .vex-button.primary 不带 font-weight（只有 .btn.primary 才 600），库里的 Button.primary 是 SemiBold，这里按胶囊这一族收回常规。 -->
+  <!-- 动作按钮（原型 .vex-mcp-actions：32 高、CSS padding 5px 16px、1px border 描边 + bg 底 + inherit 文字，
+       圆角回到 .vex-button 基线的 radius-xs 档，与相邻字段同口径，不吃工作台区的 999 胶囊覆盖）。
+       原型 .vex-button.primary 不带 font-weight（只有 .btn.primary 才 600），库里的 Button.primary 是 SemiBold，这里按这一族收回常规。 -->
   <Style Selector="Button.mcp-pill">
     <Setter Property="MinHeight" Value="32"/>
+    <!-- Avalonia 两值 Thickness 是「横,纵」，所以 CSS 的 5px 16px 写成 16,5。 -->
     <Setter Property="Padding" Value="16,5"/>
-    <Setter Property="CornerRadius" Value="999"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>

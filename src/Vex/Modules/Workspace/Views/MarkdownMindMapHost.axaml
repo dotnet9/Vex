@@ -2,7 +2,9 @@
              xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:mind="https://codewf.com" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls"
              x:DataType="vm:MainWindowViewModel" x:Class="Vex.Modules.Workspace.Views.MarkdownMindMapHost">
   <UserControl.Styles>
-    <Style Selector="Button.map-tool, ToggleButton.map-tool"><Setter Property="FontSize" Value="10.5"/><Setter Property="Padding" Value="7,4"/><Setter Property="MinHeight" Value="26"/></Style>
+    <!-- 原型 .view-panel .map-toolbar .toolbar-button：10.5 号字、4/7 内距、26 高基准，字重随浏览器默认（常规）；
+         库里的 Button 主题自带 SemiBold，这里按原型收回常规字重。 -->
+    <Style Selector="Button.map-tool, ToggleButton.map-tool"><Setter Property="FontSize" Value="10.5"/><Setter Property="FontWeight" Value="Normal"/><Setter Property="Padding" Value="7,4"/><Setter Property="MinHeight" Value="26"/></Style>
   </UserControl.Styles>
   <Grid RowDefinitions="Auto,*">
     <Border x:Name="MapEditingToolbar" Classes="map-topbar" IsVisible="{Binding !Workbench.IsPresenting}" MinHeight="36" Padding="10,4" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">

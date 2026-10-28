@@ -292,6 +292,15 @@
         <Setter Property="Stretch" Value="Uniform" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <!-- Semi 的 ComboBox 模板自带 32×16 的 PathIcon#DropDownGlyph，Uniform 缩放后视觉比浏览器原生 select 的尖角大一圈，
+       且盒子右沿贴着字段描边。这里收到 12×12、靠右留 9（= 字段横内距），与同排文字垂直居中，和 expand-chevron 同一档重量。 -->
+    <Style Selector="ComboBox /template/ PathIcon#DropDownGlyph">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,0,9,0" />
+    </Style>
     <Style Selector="Border.dlg-ico > Path.stroke-ico">
         <Setter Property="Width" Value="18" />
         <Setter Property="Height" Value="18" />

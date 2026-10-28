@@ -366,14 +366,10 @@ public sealed class ShellPreferencesOverlayView : UserControl
     /// <summary>目录字段行：输入框 + 「…」浏览按钮（资源目录、授权目录等）。路径可能很长，输入框占满剩余宽度。</summary>
     private void FolderRow(StackPanel page, string label, object source, string property)
     {
-        var text = new TextBox { Name = property, MinWidth = 240, Height = 34, FontSize = 14, BorderThickness = new Thickness(1), HorizontalAlignment = HorizontalAlignment.Stretch };
-        // 原型 .vex-pref-row input 走 --vex-radius-pill 与 --control-border；「…」按钮才是 --vex-radius-xs + --border。
-        BindResource(text, TextBox.CornerRadiusProperty, "VexDensityCornerRadiusPill");
-        BindResource(text, TextBox.BorderBrushProperty, "VexControlBorderBrush"); BindResource(text, TextBox.BackgroundProperty, "VexShellBackgroundBrush");
+        // 几何与圆角一律走 .pref-field-fill / .pref-browse（原型 .vex-pref-folder），别在这里再写一份。
+        var text = new TextBox { Name = property, Classes = { "pref-field-fill" } };
         text.Bind(TextBox.TextProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay });
-        var browse = new Button { Content = "…", Width = 34, Height = 34, Padding = default, HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center };
-        BindResource(browse, Button.CornerRadiusProperty, "VexDensityCornerRadiusXs");
-        BindResource(browse, Button.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(browse, Button.BackgroundProperty, "VexShellBackgroundBrush");
+        var browse = new Button { Content = "…", Classes = { "pref-browse" } };
         browse.Click += async (_, _) =>
         {
             if (TopLevel.GetTopLevel(this) is not { } owner) return;
@@ -398,12 +394,13 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private void Row(StackPanel page, string label, Control control, string? note = null, bool fill = false)
     {
         // fill = 控件吃满剩余宽度（路径类输入框），否则按内容自适应并靠右。
-        var row = new Grid { ColumnDefinitions = new ColumnDefinitions(fill ? "Auto,*" : "*,Auto"), ColumnSpacing = 24, MinHeight = 33 };
+        // 行高对齐原型 .vex-pref-row：内容槽 34（= 55 最小高 − 上下 10 − 1 分隔线），控件都按 34 建档。
+        var row = new Grid { ColumnDefinitions = new ColumnDefinitions(fill ? "Auto,*" : "*,Auto"), ColumnSpacing = 24, MinHeight = 34 };
         var labels = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-        labels.Children.Add(new TextBlock { Text = L(label), FontSize = 14, LineHeight = 21, TextWrapping = TextWrapping.Wrap });
-        if (note is not null) labels.Children.Add(new TextBlock { Text = L(note), FontSize = 12, LineHeight = 19.2, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap, Classes = { "muted" } });
+        labels.Children.Add(new TextBlock { Text = L(label), Classes = { "pref-label" } });
+        if (note is not null) labels.Children.Add(new TextBlock { Text = L(note), Classes = { "muted", "pref-note" } });
         row.Children.Add(labels); control.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(control, 1); row.Children.Add(control);
-        var frame = Frame(row, new Thickness(0, 0, 0, 1)); frame.Padding = new Thickness(0, 12); page.Children.Add(frame);
+        var frame = Frame(row, new Thickness(0, 0, 0, 1)); frame.Padding = new Thickness(0, 10); page.Children.Add(frame);
     }
     private void Toggle(StackPanel page, string label, object source, string property, string? note = null)
     {
@@ -532,16 +529,14 @@ public sealed class ShellPreferencesOverlayView : UserControl
     }
     private void Text(StackPanel page, string label, object source, string property)
     {
-        var text = new TextBox { Name = property, Width = 180, Height = 34, FontSize = 14, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1) };
-        BindResource(text, TextBox.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(text, TextBox.BackgroundProperty, "VexShellBackgroundBrush");
+        var text = new TextBox { Name = property, Classes = { "pref-field" } };
         text.Bind(TextBox.TextProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, text);
     }
     private void Choice(StackPanel page, string label, object source, string property, IEnumerable<(string Label, object Value)> choices)
     {
         var items = choices.Select(x => new ChoiceItem(x.Label, x.Value)).ToArray();
-        var combo = new ComboBox { Name = property, Width = 180, Height = 34, FontSize = 14, Padding = new Thickness(9, 5), CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), ItemsSource = items,
+        var combo = new ComboBox { Name = property, Classes = { "pref-field" }, ItemsSource = items,
             ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<ChoiceItem>((x, _) => new TextBlock { Text = x?.Label, FontSize = 14 }) };
-        BindResource(combo, ComboBox.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(combo, ComboBox.BackgroundProperty, "VexShellBackgroundBrush");
         // 显式映射选项，避免 NativeAOT 对私有记录的反射路径及初始化空选区写回设置。
         combo.Bind(ComboBox.SelectedItemProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay, Converter = new ChoiceSelectionConverter(items) }); Row(page, label, combo);
     }

@@ -138,7 +138,8 @@ if (mode == "parity")
     code.BringIntoView(); Pump(); SettleRendering(); Capture(window, "code-display");
     var codeClick = code.TranslatePoint(new Point(20, 8), window)!.Value;
     window.MouseDown(codeClick, MouseButton.Left); window.MouseUp(codeClick, MouseButton.Left); Pump(); Capture(window, "code-edit");
-    window.FindControl<Button>("QuickStartButton")!.Focus(); Pump();
+    // 标题栏已无「快速上手」按钮（原型没有），改把焦点从正文移回标题栏图标。
+    window.FindControl<Button>("FindButton")!.Focus(); Pump();
     var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     Capture(window, "about");
