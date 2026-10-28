@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -31,7 +31,8 @@ public partial class App : Application
     public override void Initialize()
     {
         DefaultFileOpeningService.Configure();
-        CodeWF.Avalonia.Markdown.Highlighting.CodeWFMarkdownHighlightingExtensions.UseHighlighting();
+        CodeWF.Avalonia.Markdown.Highlighting.CodeWFMarkdownHighlightingExtensions.UseHighlighting(
+            "csharp", "json", "xml", "bash", "powershell", "typescript", "markdown", "yaml");
         Modules.Workspace.Views.VexMarkdownRendering.Register();
         // 数学渲染：库内已内置 Avalonia 12 兼容画布，修复了官方 CSharpMath.Avalonia 12.0.0
         // 在 Avalonia 12.1.3 下只剩分数线、字形全部缺失的问题。
