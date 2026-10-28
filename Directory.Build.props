@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <DebugType>portable</DebugType>
@@ -10,7 +10,7 @@
     <ArtifactsPath Condition="'$(CI)' != 'true'">$(MSBuildThisFileDirectory)..\..\temp_files\vex-build\</ArtifactsPath>
     <ArtifactsPath Condition="'$(CI)' == 'true'">$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
     <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts\packages\</PackageOutputPath>
-    <Version>1.15.0.1</Version>
+    <Version>1.15.1.0</Version>
     <Authors>Vex Contributors</Authors>
     <Company>CodeWF</Company>
     <Title>Vex - 维刻</Title>
