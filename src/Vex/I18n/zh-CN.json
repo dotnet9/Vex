@@ -287,6 +287,7 @@
       "ImportWord": "从 Word 导入…",
       "ImportPdf": "从 PDF 导入…",
       "ImportDone": "导入为未保存文档",
+      "EditCustomTypography": "编辑此排版",
       "DeleteCustomTypography": "删除此排版",
       "AddCustomTypography": "新增排版",
       "AddCustomTypographyNote": "基于简约派生，可保存复用",
@@ -982,7 +983,7 @@
       "WBTypographyLeadingCompact": "紧凑 1.7",
       "WBTypographyLeadingNormal": "正常 1.9",
       "WBTypographyLeadingRelaxed": "舒展 2.1",
-      "WBTypographyReport": "以内置「简约」为模板派生，仅覆盖名称、颜色、字体与行距。",
+      "WBTypographyReport": "以内置「简约」为模板派生，仅覆盖名称、颜色、字体、行距与 H2 装饰。",
       "DiagramEditButton": "编辑",
       "DiagramEditHint": "Esc 或点击块外完成编辑",
       "DiagramPreviewNote": "预览由渲染器出图；语法有误时保留源码显示。",
@@ -991,7 +992,15 @@
       "TableDownloadCsv": "下载 CSV",
       "TablePreview": "预览表格",
       "McpBridgeParagraph": "通过 MCP 追加的段落。",
-      "FindBarPrev": "上一个"
+      "FindBarPrev": "上一个",
+      "WBTypographyFontLabel": "字体",
+      "WBTypographyLeadingLabel": "行距",
+      "WBTypographyH2Label": "H2 装饰",
+      "WBTypographyH2LeftBar": "左竖线",
+      "WBTypographyH2Underline": "下划线",
+      "WBTypographyH2Tint": "色块",
+      "WBTypographyH2None": "无",
+      "ToastFileNavCollapsed": "已收起文件导航，为三视图留出空间。点击底栏“文件”可展开。"
     }
   }
 }

@@ -83,7 +83,16 @@ for(const culture of Object.keys(extra)){
    ,WBTypographyLeadingCompact: {'zh-CN':'紧凑 1.7','zh-Hant':'緊湊 1.7','en-US':'Compact 1.7','ja-JP':'コンパクト 1.7'}[culture]
    ,WBTypographyLeadingNormal: {'zh-CN':'正常 1.9','zh-Hant':'正常 1.9','en-US':'Normal 1.9','ja-JP':'標準 1.9'}[culture]
    ,WBTypographyLeadingRelaxed: {'zh-CN':'舒展 2.1','zh-Hant':'舒展 2.1','en-US':'Relaxed 2.1','ja-JP':'ゆったり 2.1'}[culture]
-   ,WBTypographyReport: {'zh-CN':'以内置「简约」为模板派生，仅覆盖名称、颜色、字体与行距。','zh-Hant':'以內置「簡約」為模板派生，僅覆蓋名稱、顏色、字體與行距。','en-US':'Derived from the built-in Simple style; only name, colors, font and leading are overridden.','ja-JP':'内蔵の「シンプル」を基に、名称・色・フォント・行送りだけ上書きします。'}[culture]
+   ,WBTypographyFontLabel: {'zh-CN':'字体','zh-Hant':'字體','en-US':'Font','ja-JP':'フォント'}[culture]
+   ,WBTypographyLeadingLabel: {'zh-CN':'行距','zh-Hant':'行距','en-US':'Leading','ja-JP':'行送り'}[culture]
+   ,WBTypographyH2Label: {'zh-CN':'H2 装饰','zh-Hant':'H2 裝飾','en-US':'H2 decoration','ja-JP':'H2 装飾'}[culture]
+   ,WBTypographyH2LeftBar: {'zh-CN':'左竖线','zh-Hant':'左直線','en-US':'Left bar','ja-JP':'左縦線'}[culture]
+   ,WBTypographyH2Underline: {'zh-CN':'下划线','zh-Hant':'下劃線','en-US':'Underline','ja-JP':'下線'}[culture]
+   ,WBTypographyH2Tint: {'zh-CN':'色块','zh-Hant':'色塊','en-US':'Tint','ja-JP':'配色ブロック'}[culture]
+   ,WBTypographyH2None: {'zh-CN':'无','zh-Hant':'無','en-US':'None','ja-JP':'なし'}[culture]
+   ,WBTypographyReport: {'zh-CN':'以内置「简约」为模板派生，仅覆盖名称、颜色、字体、行距与 H2 装饰。','zh-Hant':'以內置「簡約」為模板派生，僅覆蓋名稱、顏色、字體、行距與 H2 裝飾。','en-US':'Derived from the built-in Simple style; only name, colors, font, leading and H2 decoration are overridden.','ja-JP':'内蔵の「シンプル」を基に、名称・色・フォント・行送り・H2 装飾だけ上書きします。'}[culture]
+   /* 窄窗进三视图自动收起文件导航的提示（原型 workspace.js 的 toastKey('ToastFileNavCollapsed')，四语取自 vex-data.js）。 */
+   ,ToastFileNavCollapsed: {'zh-CN':'已收起文件导航，为三视图留出空间。点击底栏“文件”可展开。','zh-Hant':'已收起檔案導覽，為三視圖留出空間。點擊底欄「文件」可展開。','en-US':'File navigation collapsed to make room for the three views — click “Files” on the status bar to expand.','ja-JP':'ファイルナビゲーションを折りたたみました。ステータスバーの「ファイル」で展開できます。'}[culture]
    /* 查找条动作钮（原型 Vex.html .find-strip 的「上一个」，实现侧此前只有「下一个」）。 */
    ,FindBarPrev: {'zh-CN':'上一个','zh-Hant':'上一個','en-US':'Previous','ja-JP':'前へ'}[culture]
    /* 图表块就地编辑（原型 diagram-editor.js 无这三个提示，属实现侧增强，仍需四语）。 */

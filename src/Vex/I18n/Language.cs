@@ -285,6 +285,7 @@ public static class VexL
     public static readonly string ImportWord = "Vex.VexL.ImportWord";
     public static readonly string ImportPdf = "Vex.VexL.ImportPdf";
     public static readonly string ImportDone = "Vex.VexL.ImportDone";
+    public static readonly string EditCustomTypography = "Vex.VexL.EditCustomTypography";
     public static readonly string DeleteCustomTypography = "Vex.VexL.DeleteCustomTypography";
     public static readonly string AddCustomTypography = "Vex.VexL.AddCustomTypography";
     public static readonly string AddCustomTypographyNote = "Vex.VexL.AddCustomTypographyNote";
@@ -990,4 +991,12 @@ public static class VexL
     public static readonly string TablePreview = "Vex.VexL.TablePreview";
     public static readonly string McpBridgeParagraph = "Vex.VexL.McpBridgeParagraph";
     public static readonly string FindBarPrev = "Vex.VexL.FindBarPrev";
+    public static readonly string WBTypographyFontLabel = "Vex.VexL.WBTypographyFontLabel";
+    public static readonly string WBTypographyLeadingLabel = "Vex.VexL.WBTypographyLeadingLabel";
+    public static readonly string WBTypographyH2Label = "Vex.VexL.WBTypographyH2Label";
+    public static readonly string WBTypographyH2LeftBar = "Vex.VexL.WBTypographyH2LeftBar";
+    public static readonly string WBTypographyH2Underline = "Vex.VexL.WBTypographyH2Underline";
+    public static readonly string WBTypographyH2Tint = "Vex.VexL.WBTypographyH2Tint";
+    public static readonly string WBTypographyH2None = "Vex.VexL.WBTypographyH2None";
+    public static readonly string ToastFileNavCollapsed = "Vex.VexL.ToastFileNavCollapsed";
 }

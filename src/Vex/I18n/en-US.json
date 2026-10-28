@@ -287,6 +287,7 @@
       "ImportWord": "Import from Word…",
       "ImportPdf": "Import from PDF…",
       "ImportDone": "Imported as an unsaved document",
+      "EditCustomTypography": "Edit this typography",
       "DeleteCustomTypography": "Delete this typography",
       "AddCustomTypography": "New typography",
       "AddCustomTypographyNote": "Derived from Minimal, reusable",
@@ -982,7 +983,7 @@
       "WBTypographyLeadingCompact": "Compact 1.7",
       "WBTypographyLeadingNormal": "Normal 1.9",
       "WBTypographyLeadingRelaxed": "Relaxed 2.1",
-      "WBTypographyReport": "Derived from the built-in Simple style; only name, colors, font and leading are overridden.",
+      "WBTypographyReport": "Derived from the built-in Simple style; only name, colors, font, leading and H2 decoration are overridden.",
       "DiagramEditButton": "Edit",
       "DiagramEditHint": "Press Esc or click outside the block to finish editing",
       "DiagramPreviewNote": "The preview is drawn by the renderer; invalid syntax keeps the source visible.",
@@ -991,7 +992,15 @@
       "TableDownloadCsv": "Download CSV",
       "TablePreview": "Preview table",
       "McpBridgeParagraph": "Paragraph appended through MCP.",
-      "FindBarPrev": "Previous"
+      "FindBarPrev": "Previous",
+      "WBTypographyFontLabel": "Font",
+      "WBTypographyLeadingLabel": "Leading",
+      "WBTypographyH2Label": "H2 decoration",
+      "WBTypographyH2LeftBar": "Left bar",
+      "WBTypographyH2Underline": "Underline",
+      "WBTypographyH2Tint": "Tint",
+      "WBTypographyH2None": "None",
+      "ToastFileNavCollapsed": "File navigation collapsed to make room for the three views — click “Files” on the status bar to expand."
     }
   }
 }

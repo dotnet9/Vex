@@ -287,6 +287,7 @@
       "ImportWord": "Word からインポート…",
       "ImportPdf": "PDF からインポート…",
       "ImportDone": "未保存のドキュメントとしてインポート",
+      "EditCustomTypography": "この書体を編集",
       "DeleteCustomTypography": "この書体を削除",
       "AddCustomTypography": "書体を追加",
       "AddCustomTypographyNote": "ミニマルを基に生成、再利用可能",
@@ -982,7 +983,7 @@
       "WBTypographyLeadingCompact": "コンパクト 1.7",
       "WBTypographyLeadingNormal": "標準 1.9",
       "WBTypographyLeadingRelaxed": "ゆったり 2.1",
-      "WBTypographyReport": "内蔵の「シンプル」を基に、名称・色・フォント・行送りだけ上書きします。",
+      "WBTypographyReport": "内蔵の「シンプル」を基に、名称・色・フォント・行送り・H2 装飾だけ上書きします。",
       "DiagramEditButton": "編集",
       "DiagramEditHint": "Esc またはブロック外クリックで編集を終了",
       "DiagramPreviewNote": "プレビューはレンダラーが描画します。構文エラーではソース表示を保持します。",
@@ -991,7 +992,15 @@
       "TableDownloadCsv": "CSV をダウンロード",
       "TablePreview": "テーブルをプレビュー",
       "McpBridgeParagraph": "MCP で追加された段落。",
-      "FindBarPrev": "前へ"
+      "FindBarPrev": "前へ",
+      "WBTypographyFontLabel": "フォント",
+      "WBTypographyLeadingLabel": "行送り",
+      "WBTypographyH2Label": "H2 装飾",
+      "WBTypographyH2LeftBar": "左縦線",
+      "WBTypographyH2Underline": "下線",
+      "WBTypographyH2Tint": "配色ブロック",
+      "WBTypographyH2None": "なし",
+      "ToastFileNavCollapsed": "ファイルナビゲーションを折りたたみました。ステータスバーの「ファイル」で展開できます。"
     }
   }
 }
