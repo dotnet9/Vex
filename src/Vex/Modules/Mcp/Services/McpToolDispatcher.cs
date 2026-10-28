@@ -148,7 +148,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             case "vex_redo":
                 return await UndoRedoAsync(undo: false, "vex_redo");
             case "vex_list_files":
-                return ListFiles();
+                return await ListFilesAsync();
             case "vex_create_document":
                 return await CreateDocumentAsync(Read(arguments, McpJsonContext.Default.CreateDocumentInput));
             case "vex_open_document":
@@ -354,7 +354,13 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         return new OperationResult("ok", undo ? "undone" : "redone");
     }
 
-    public ResourceListResult ListResources()
+    public async Task<ResourceListResult> ListResourcesAsync()
+    {
+        var files = await _shell.GetWorkspaceFilesAsync();
+        return await Dispatcher.UIThread.InvokeAsync(() => BuildResources(files));
+    }
+
+    private ResourceListResult BuildResources(IReadOnlyList<Vex.Core.Models.DocumentFile> files)
     {
         var document = _shell.GetCurrentDocumentSnapshot();
         var resources = new List<ResourceEntryResult>
@@ -362,7 +368,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             new("vex://current-document", document.FileName, "text/markdown", null)
         };
 
-        foreach (var file in _shell.DocumentFiles)
+        foreach (var file in files)
         {
             resources.Add(new ResourceEntryResult(ResourceUriForPath(file.Path), file.Name, "text/markdown", null));
         }
@@ -397,10 +403,11 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         return "vex://file/" + path;
     }
 
-    private ListFilesResult ListFiles()
+    private async Task<ListFilesResult> ListFilesAsync()
     {
+        var workspaceFiles = await _shell.GetWorkspaceFilesAsync();
         var current = NormalizePathSeparators(GetCurrentTargetName());
-        var files = _shell.DocumentFiles
+        var files = workspaceFiles
             .Select(file => new FileEntryResult(
                 file.Path,
                 file.Name,

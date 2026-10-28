@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -20,6 +22,65 @@ public partial class ShellFilesView : UserControl
         // 隧道路由先于 TreeView 默认处理，文件夹行只响应一次左键操作。
         AddHandler(PointerPressedEvent, ToggleFolderOnPointerPressed, RoutingStrategies.Tunnel);
         FileTree.SelectionChanged += RevealSelectedItem;
+        AddHandler(ToolTip.ToolTipOpeningEvent, OnFileToolTipOpening);
+        FileList.LayoutUpdated += (_, _) => RequestVisibleListPreviews();
+        DataContextChanged += (_, _) => ObserveViewModel();
+        AttachedToVisualTree += (_, _) => ObserveViewModel();
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (_observedViewModel is not null) _observedViewModel.PropertyChanged -= ViewModelPropertyChanged;
+            _observedViewModel = null;
+        };
+    }
+
+    private ShellFilesViewModel? _observedViewModel;
+
+    private void ObserveViewModel()
+    {
+        if (_observedViewModel is not null) _observedViewModel.PropertyChanged -= ViewModelPropertyChanged;
+        _observedViewModel = DataContext as ShellFilesViewModel;
+        if (_observedViewModel is not null) _observedViewModel.PropertyChanged += ViewModelPropertyChanged;
+    }
+
+    private void ViewModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName != nameof(ShellFilesViewModel.PreviewRevision) || sender is not ShellFilesViewModel viewModel) return;
+        RequestVisibleListPreviews();
+        foreach (var control in FileTree.GetVisualDescendants().OfType<Border>())
+            if (ToolTip.GetIsOpen(control) && control.DataContext is DocumentFileNode node) _ = viewModel.RequestPreviewAsync(node);
+    }
+
+    private async void RetryDirectoryClicked(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is DocumentFileNode node && DataContext is ShellFilesViewModel viewModel)
+            await viewModel.RetryDirectoryAsync(node);
+        e.Handled = true;
+    }
+
+    private void OnFileToolTipOpening(object? sender, CancelRoutedEventArgs e)
+    {
+        if (DataContext is ShellFilesViewModel viewModel && e.Source is Control { DataContext: DocumentFileNode node })
+            _ = viewModel.RequestPreviewAsync(node);
+    }
+
+    private bool _previewCheckPending;
+
+    private void RequestVisibleListPreviews()
+    {
+        if (_previewCheckPending || !FileList.IsEffectivelyVisible || DataContext is not ShellFilesViewModel { IsListView: true }) return;
+        _previewCheckPending = true;
+        Dispatcher.UIThread.Post(() =>
+        {
+            _previewCheckPending = false;
+            if (!FileList.IsEffectivelyVisible || DataContext is not ShellFilesViewModel { IsListView: true } viewModel) return;
+            foreach (var item in FileList.GetVisualDescendants().OfType<ListBoxItem>())
+            {
+                var point = item.TranslatePoint(default(Point), FileList);
+                if (item.IsEffectivelyVisible && point is { } origin && origin.Y < FileList.Bounds.Height && origin.Y + item.Bounds.Height > 0
+                    && item.DataContext is DocumentFileNode node)
+                    _ = viewModel.RequestPreviewAsync(node);
+            }
+        }, DispatcherPriority.Background);
     }
 
     private void ToggleFolderOnPointerPressed(object? sender, PointerPressedEventArgs e)

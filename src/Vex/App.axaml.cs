@@ -67,6 +67,7 @@ public partial class App : Application
         services.AddSingleton<ShellPreferencesViewModel>();
         services.AddSingleton<IAppLocalizer, AppLocalizer>();
         services.AddSingleton<IDocumentFileFactory, DocumentFileFactory>();
+        services.AddSingleton<IWorkspaceFileService, WorkspaceFileService>();
         services.AddSingleton<IDocumentService, DocumentService>();
         services.AddSingleton<IEditorAppearanceState, EditorAppearanceState>();
         services.AddSingleton<IWorkspaceDocumentState, WorkspaceDocumentState>();

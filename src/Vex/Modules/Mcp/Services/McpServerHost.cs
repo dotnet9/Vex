@@ -258,7 +258,7 @@ public sealed class McpServerHost : IMcpServerHost
                 return new JsonRpcResponse(
                     "2.0",
                     request.Id,
-                    ToJsonElement(_toolDispatcher.ListResources(), McpJsonContext.Default.ResourceListResult));
+                    ToJsonElement(await _toolDispatcher.ListResourcesAsync(), McpJsonContext.Default.ResourceListResult));
             case "resources/read":
                 var resourceParams = request.Params?.Deserialize(McpJsonContext.Default.ResourceReadParams);
                 if (string.IsNullOrWhiteSpace(resourceParams?.Uri))

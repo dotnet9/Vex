@@ -25,7 +25,7 @@ public sealed class DocumentFileFactory : IDocumentFileFactory
             Path.GetFileName(path),
             ResolveFolderName(path, workspaceRoot),
             GetModifiedText(path),
-            ResolvePreview(path));
+            string.Empty);
     }
 
     public string GetModifiedText(string path)
@@ -75,7 +75,7 @@ public sealed class DocumentFileFactory : IDocumentFileFactory
         return Path.GetFileName(directory);
     }
 
-    private static string ResolvePreview(string path)
+    public string ReadPreview(string path)
     {
         if (!File.Exists(path))
         {

@@ -23,7 +23,7 @@
             <Border Classes="file-card" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"
                     DoubleTapped="OnFileRowDoubleTapped"
                     Classes.folder="{Binding IsFolder}"
-                    ToolTip.Tip="{Binding Preview}" ToolTip.IsEnabled="{Binding IsDocument}">
+                    ToolTip.Tip="{Binding PreviewDisplay}" ToolTip.IsEnabled="{Binding IsDocument}">
                 <Grid Classes="file-row" ColumnDefinitions="12,*,Auto" ColumnSpacing="6">
                     <Panel Width="12" Height="12" VerticalAlignment="Center">
                         <Image x:Name="FileTypeIcon" Classes="tree-ico" Width="12" Height="12" Stretch="Uniform"
@@ -49,6 +49,12 @@
                                VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                     <TextBlock Grid.Column="1" Classes="file-title" IsVisible="{Binding IsDocument}"
                                VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.ColumnSpan="3" Classes="muted" FontSize="11" IsVisible="{Binding IsLoadingPlaceholder}"
+                               Text="{i18n:I18n {x:Static l:VexL.SidebarFilesLoading}}" />
+                    <Button Grid.ColumnSpan="3" IsVisible="{Binding IsErrorPlaceholder}" Click="RetryDirectoryClicked"
+                            Height="24" MinHeight="0" Padding="0" Background="Transparent" BorderThickness="0"
+                            Content="{i18n:I18n {x:Static l:VexL.SidebarFilesRetry}}"
+                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SidebarFilesLoadFailed}}" />
                 </Grid>
             </Border>
         </TreeDataTemplate>
@@ -205,6 +211,14 @@
                 Text="{i18n:I18n {x:Static l:VexL.EmptyNoFiles}}"
                 TextAlignment="Center" />
         </Border>
+        <StackPanel Grid.Row="1" Margin="18,12" Spacing="4" VerticalAlignment="Top" IsHitTestVisible="False"
+                    IsVisible="{Binding IsIndexLoading}">
+            <TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n {x:Static l:VexL.SidebarFilesLoading}}" />
+        </StackPanel>
+        <StackPanel Grid.Row="1" Margin="18,12" Spacing="4" VerticalAlignment="Top" IsVisible="{Binding HasIndexError}">
+            <TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n {x:Static l:VexL.SidebarFilesLoadFailed}}" />
+            <Button Command="{Binding RetryIndex}" Content="{i18n:I18n {x:Static l:VexL.SidebarFilesRetry}}" />
+        </StackPanel>
 
         <!-- 对应原型 .files-toolbar（workspace-chrome.css:262）：紧跟搜索框下方，右对齐、无分隔线，
              行高 34、下内距 8、以 -6 外边距贴紧搜索框的 12px 下边距。 -->

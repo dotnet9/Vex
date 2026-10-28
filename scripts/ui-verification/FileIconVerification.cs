@@ -57,8 +57,7 @@ internal static class FileIconVerification
         VerifyOverridesAndFailures(iconRoot, output, Check);
         var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
         var productionFiles = filesView.DataContext;
-        // ShellFilesViewModel 的 IDisposable 随按需加载波次的监控服务一起引入，本步先用普通局部变量。
-        var files = new ShellFilesViewModel();
+        using var files = new ShellFilesViewModel();
         filesView.DataContext = files;
         var samples = new[] { "note.md", "README.md", "plain.txt", "snippet.axaml.cs", "settings.toml", "unknown.vex-unmapped" }
             .Select(name => new DocumentFile(Path.Combine(output, "docs", name), name, "docs", "", "Icon verification")).ToArray();

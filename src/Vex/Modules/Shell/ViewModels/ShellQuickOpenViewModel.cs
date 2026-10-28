@@ -16,6 +16,8 @@ public sealed class ShellQuickOpenViewModel : ReactiveObject, Irihi.Avalonia.Sha
     private readonly List<QuickOpenItem> _allItems;
     private string _query = string.Empty;
     private int _selectedIndex;
+    private bool _isLoading;
+    private string? _loadError;
 
     public ShellQuickOpenViewModel(IEnumerable<QuickOpenItem> items, string placeholder)
     {
@@ -58,6 +60,20 @@ public sealed class ShellQuickOpenViewModel : ReactiveObject, Irihi.Avalonia.Sha
     public QuickOpenItem? SelectedItem => SelectedIndex >= 0 && SelectedIndex < Items.Count ? Items[SelectedIndex] : null;
 
     public bool HasResults => Items.Count > 0;
+    public bool IsLoading { get => _isLoading; set { this.RaiseAndSetIfChanged(ref _isLoading, value); OnPropertyChanged(nameof(IsEmpty)); } }
+    public string? LoadError { get => _loadError; set { this.RaiseAndSetIfChanged(ref _loadError, value); OnPropertyChanged(nameof(IsEmpty)); OnPropertyChanged(nameof(HasLoadError)); } }
+    public bool HasLoadError => LoadError is not null;
+    public bool IsEmpty => !HasResults && !IsLoading && !HasLoadError;
+
+    public void UpdateItems(IEnumerable<QuickOpenItem> items)
+    {
+        var selectedPath = SelectedItem?.Path;
+        _allItems.Clear();
+        _allItems.AddRange(items);
+        ApplyFilter();
+        var retained = Items.Select((item, index) => (item, index)).FirstOrDefault(pair => pair.item.Path == selectedPath);
+        if (retained.item is not null) SelectedIndex = retained.index;
+    }
 
     public void MoveSelection(int delta)
     {
@@ -113,6 +129,7 @@ public sealed class ShellQuickOpenViewModel : ReactiveObject, Irihi.Avalonia.Sha
         OnPropertyChanged(nameof(SelectedIndex));
         OnPropertyChanged(nameof(SelectedItem));
         OnPropertyChanged(nameof(HasResults));
+        OnPropertyChanged(nameof(IsEmpty));
     }
 
     private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
