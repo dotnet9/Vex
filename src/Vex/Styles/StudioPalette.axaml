@@ -63,6 +63,8 @@
                  此前抄的是 diagram-rendering.js 里的生成期字面量 #7466e0，那个值在原型中会被换成令牌再上色。 -->
             <x:String x:Key="CodeWFMarkdownMermaidDataPalette">#8B7CF6,#D9AD53,#70A98B,#C583B5,#62A5C2,#D58585,#7E9ECB,#A9B568</x:String>
             <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#8B7CF6,#D9AD53,#70A98B,#C583B5,#62A5C2,#D58585,#7E9ECB,#A9B568</x:String>
+            <!-- 对话框与引导遮罩（原型 scrim 阶梯）：底色与浓度随主题走，暗色更深更沉。 -->
+            <SolidColorBrush x:Key="VexScrimBrush" Color="#470B1729" />
             <!-- 原生导图缤纷档分支色 = 图表 series 同源（CodeWF.Avalonia.MindView 的 DefaultPalette 注入点，
                  分号分隔；MindView 12.2.25 起缤纷档读这张表，解决缤纷偏素）。 -->
             <x:String x:Key="CodeWFMindViewDefaultPalette">#8B7CF6;#D9AD53;#70A98B;#C583B5;#62A5C2;#D58585;#7E9ECB;#A9B568</x:String>
@@ -102,6 +104,7 @@
             <x:String x:Key="CodeWFMarkdownMermaidDataPalette">#B6A6FF,#E8C778,#93CFAC,#DFA2D0,#8AC8E0,#E8AAA3,#A7BFE7,#C4CE8E</x:String>
             <x:String x:Key="CodeWFMarkdownMermaidFillPalette">#B6A6FF,#E8C778,#93CFAC,#DFA2D0,#8AC8E0,#E8AAA3,#A7BFE7,#C4CE8E</x:String>
             <x:String x:Key="CodeWFMindViewDefaultPalette">#B6A6FF;#E8C778;#93CFAC;#DFA2D0;#8AC8E0;#E8AAA3;#A7BFE7;#C4CE8E</x:String>
+            <SolidColorBrush x:Key="VexScrimBrush" Color="#8A02050B" />
             <SolidColorBrush x:Key="VexDocumentPaperBrush" Color="{DynamicResource StudioPaperColor}" />
             <!-- 原型深色 .vex-segmented-thumb：投影换成 fg 7% 的 1px 描边环。 -->
             <SolidColorBrush x:Key="VexSegmentedThumbBorderBrush" Color="{DynamicResource StudioBorderColor}" Opacity="0.85" />

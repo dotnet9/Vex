@@ -90,7 +90,7 @@
          放在整窗浮层槽（12.2.8 OverlayContent）里，遮罩才能像原型 .vex-settings-host 一样盖住标题条；
          遮罩色对齐原型：#0B1729 28% 透明度。 -->
     <codewf:CodeWFWindow.OverlayContent>
-        <u:OverlayDialogHost x:Name="ShellDialogHost" OverlayMaskBrush="#470B1729" />
+        <u:OverlayDialogHost x:Name="ShellDialogHost" OverlayMaskBrush="{DynamicResource VexScrimBrush}" />
     </codewf:CodeWFWindow.OverlayContent>
 
     <!-- CodeWFWindow 模板已预留标题栏高度，内容只添加 1 像素分隔线（原型 .titlebar 底边为边框色 55%）。 -->

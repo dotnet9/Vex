@@ -58,7 +58,7 @@ button:disabled { cursor:default; opacity:.45; }
 .menu-column { display:block; min-width:0; }
 .menu-column+.menu-column { border:0; margin:0; padding:0; }
 body>.submenu { z-index:1100; box-sizing:border-box; }
-.phone-sheet-host { position:absolute; inset:0; z-index:55; display:flex; align-items:flex-end; background:#0b211e52; animation:vex-fade-in var(--vex-duration) both; }
+.phone-sheet-host { position:absolute; inset:0; z-index:55; display:flex; align-items:flex-end; background:var(--scrim-mid); animation:vex-fade-in var(--vex-duration) both; }
 .phone-sheet { box-sizing:border-box; width:100%; max-height:calc(100% - 52px); display:flex; flex-direction:column; background:var(--surface); color:var(--fg); border-radius:var(--vex-radius-md) var(--vex-radius-md) 0 0; padding-bottom:max(18px,env(safe-area-inset-bottom)); box-shadow:0 -8px 36px #0b211e18; outline:none; overflow:hidden; transform:translateY(var(--sheet-drag,0px)); animation:vex-sheet-in var(--vex-slow) var(--vex-ease) both; }
 .phone-sheet:focus-visible { outline:none; }
 body.device-phone .mobile-more { width:44px; height:44px; }
@@ -97,7 +97,7 @@ body.device-phone .mobile-more { width:44px; height:44px; }
 .phone-sheet-host.is-closing .phone-sheet { animation:vex-sheet-out var(--vex-exit) var(--vex-ease) both; }
 @keyframes vex-sheet-in { from { translate:0 100%; } to { translate:0 0; } }
 @keyframes vex-sheet-out { from { translate:0 0; } to { translate:0 100%; } }
-@keyframes vex-sheet-fade-out { from { background:#0b211e52; } to { background:transparent; } }
+@keyframes vex-sheet-fade-out { from { background:var(--scrim-mid); } to { background:transparent; } }
 .win-layer:not([hidden]),.modal-host:not([hidden]) { animation:vex-fade-in var(--vex-fast) both; }
 .win-layer:not([hidden]) > *, .modal-host:not([hidden]) > .modal { animation:vex-dialog-in var(--vex-duration) var(--vex-ease) both; }
 .side-tab::after,.view-switch::before,.progress-track>span,.progress-fill { transition:transform var(--vex-duration) var(--vex-ease),width var(--vex-duration) var(--vex-ease); }

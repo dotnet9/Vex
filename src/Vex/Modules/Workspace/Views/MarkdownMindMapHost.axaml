@@ -96,7 +96,7 @@
         </Grid>
       </Border>
       <Canvas x:Name="RenameLayer" IsVisible="False"><TextBox x:Name="InlineChapterTitle" MinHeight="28" Padding="8,3" KeyDown="InlineTitleKeyDown" LostFocus="InlineTitleLostFocus"/></Canvas>
-      <Border x:Name="ChapterDeleteLayer" IsVisible="False" Background="#44000000">
+      <Border x:Name="ChapterDeleteLayer" IsVisible="False" Background="{DynamicResource VexScrimBrush}">
         <Border Classes="wb-popover" Width="360" MaxWidth="500" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
           <StackPanel Spacing="14">
             <TextBlock Text="{i18n:I18n Vex.VexL.WSDeleteChapter}" FontWeight="SemiBold" FontSize="17"/>
