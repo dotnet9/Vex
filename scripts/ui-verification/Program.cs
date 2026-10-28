@@ -2508,6 +2508,15 @@ double Contrast(Color first, Color second)
 void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm)
 {
     window.Width = 980; window.Height = 640; Pump();
+    // 先单独钉解析器：真实发布正文是 CRLF、表情前缀在《更新日志》里换过好几轮，这两点一旦回归，
+    // 界面上只表现为「胶囊和分节都没了」，看不出根因，所以在进 UI 之前把契约钉死。
+    var parsed = UpdateReleaseNotesParser.Parse(
+        "## V1.13.0（2026-10-27）\r\n\r\n- 😄[新增]-甲。\r\n\r\n## V1.12.0（2026-10-20）\r\n\r\n- 🔨[优化]-乙。\r\n- 丙。\r\n", tag => tag);
+    Check(parsed.Count == 2 && parsed[0].Version == "1.13.0" && parsed[0].Date == "2026-10-27"
+        && parsed[1].Version == "1.12.0", "A CRLF release body splits into one section per version");
+    Check(parsed[0].Entries.Single() is { TagKey: "新增", IsNew: true } && parsed[1].Entries.Count == 2
+        && parsed[1].Entries[0] is { TagKey: "优化", IsOptimized: true } && !parsed[1].Entries[1].HasTag,
+        "Legacy emoji prefixes never leak into the tag or the body");
     var service = (VerificationUpdates)VerificationVexApp.Updates!;
     var overlay = app.Resolve<IShellOverlayService>();
     var menu = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellTitleMenuView>().Single();
@@ -2525,6 +2534,53 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     var updateNotes = view.FindControl<Border>("UpdateNotes")!;
     var updateAction = view.FindControl<Button>("UpdateAction")!;
     Check(updateNotes.TranslatePoint(new Point(0, updateNotes.Bounds.Height), updateAction) is { } notesBottom && notesBottom.Y <= 0, "Release notes sit above the action row");
+    // 更新日志按原型类型化：分节表头（单版本不显示）+ 每条一枚语义胶囊，正文里不残留表情与方括号。
+    // Avalonia 的隐藏模板件仍在视觉树里，所以判的是 IsVisible，不是「找不到」。
+    var versionHeaders = view.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("update-version")).ToArray();
+    Check(versionHeaders.Length == 1 && versionHeaders.All(header => !header.IsVisible), "A single release repeats no version header");
+    var noteChips = view.GetVisualDescendants().OfType<Border>()
+        .Where(b => b.Classes.Contains("update-tag") && b.IsVisible).ToArray();
+    Check(noteChips.Length == 4, "Each typed release note renders one tag chip");
+    Check(new[] { "tag-new", "tag-opt", "tag-fix", "tag-remove" }
+        .Select((cls, index) => noteChips[index].Classes.Contains(cls)).All(carried => carried),
+        "Tag chips carry the prototype's semantic classes in changelog order");
+    Check(noteChips.Select(chip => chip.GetVisualDescendants().OfType<TextBlock>().Single().Text ?? string.Empty)
+        .SequenceEqual(new[] { "新增", "优化", "修复", "删除" }), "Tag chips read in the interface language");
+    var noteLines = view.GetVisualDescendants().OfType<SelectableTextBlock>()
+        .Select(line => line.Text ?? string.Empty).ToArray();
+    Check(noteLines.Length == 5 && noteLines.All(text => !text.Contains('[')),
+        $"Note bodies drop the emoji and bracket markup: {noteLines.Length} lines [{string.Join(" | ", noteLines)}]");
+    Check(noteLines.Any(text => text.Contains("行尾归一化")), "An untagged line still renders as a plain entry");
+    Color Over(Color front, Color back)
+    {
+        var alpha = front.A / 255d;
+        return Color.FromRgb((byte)Math.Round(front.R * alpha + back.R * (1 - alpha)),
+            (byte)Math.Round(front.G * alpha + back.G * (1 - alpha)),
+            (byte)Math.Round(front.B * alpha + back.B * (1 - alpha)));
+    }
+    Color Solid(Color baseColor, IBrush? brush) => brush is ISolidColorBrush solid ? Over(solid.Color, baseColor) : baseColor;
+    // 胶囊底色是带透明度的语义软色，落在「更新卡片 → 日志区 → 胶囊」三层叠加后的实际像素上才算得准。
+    // 主题与语言切换会重建条目并换掉 DynamicResource，所以每次都得重取底色重算，不能只量浅色一遍。
+    void VerifyChipContrast(Border[] chips, string suffix)
+    {
+        // 从当前挂树的对话框现取底色：对话框关过重开后，早前抓的控件已脱离视觉树，
+        // DynamicResource 取不到值（返回 null），叠色就会拿白底当基准，把深色判成浅色。
+        var card = view.GetVisualDescendants().OfType<Border>().First(part => part.Classes.Contains("dialog-card"));
+        var notes = view.FindControl<Border>("UpdateNotes")!;
+        Check(notes.Background is ISolidColorBrush, $"Update notes keeps a solid background: {suffix}");
+        var cardBack = Solid(Colors.White, card.Background);
+        cardBack = Solid(cardBack, notes.Background);
+        foreach (var chip in chips)
+        {
+            var background = Solid(cardBack, chip.Background);
+            var foreground = ((ISolidColorBrush)chip.GetVisualDescendants().OfType<TextBlock>().Single().Foreground!).Color;
+            var ratio = Contrast(foreground, background);
+            Check(ratio >= 4.5, $"Update tag chip {chip.Classes[^1]} on {suffix}: {foreground} on {background}, contrast {ratio:F2}");
+        }
+    }
+    VerifyChipContrast(noteChips, "light");
+    Border[] VisibleTagChips() => view.GetVisualDescendants().OfType<Border>()
+        .Where(part => part.Classes.Contains("update-tag") && part.IsVisible).ToArray();
     Check(view.FindControl<Button>("UpdateDismiss")!.IsVisible, "Available update offers dismiss beside the primary action");
     Capture(window, "updates-available");
     var download = model.AdvanceAsync(); Pump();
@@ -2551,14 +2607,27 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     Pump(model.AdvanceAsync());
     Check(model.State == UpdateState.Failed && model.HasDownload && !aboutTask.IsCompleted, "Failed installation keeps Vex and the update view open");
     foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
-    foreach (var theme in new[] { "light", "dark" })
     {
-        vm.Appearance.SelectLanguageByCulture(culture); vm.Appearance.SelectThemeByKey(theme); Pump(); SettleRendering();
-        var scroll = view.GetVisualDescendants().OfType<ScrollViewer>().Single(); scroll.ScrollToEnd(); Pump();
-        VerifyInside(scroll, window, "Update viewport fits: " + culture + "/" + theme);
-        VerifyInside(view.FindControl<Button>("UpdateAction")!, scroll, "Install retry remains reachable: " + culture + "/" + theme);
-        Check(!model.StatusText.StartsWith("Vex.VexL."), "Update text is localized: " + culture);
-        Capture(window, "updates-" + culture + "-" + theme);
+        var expectedTags = culture switch
+        {
+            "en-US" => new[] { "New", "Improved", "Fixed", "Removed" },
+            "zh-Hant" => new[] { "新增", "優化", "修復", "刪除" },
+            "ja-JP" => new[] { "新規", "改善", "修正", "削除" },
+            _ => new[] { "新增", "优化", "修复", "删除" },
+        };
+        foreach (var theme in new[] { "light", "dark" })
+        {
+            vm.Appearance.SelectLanguageByCulture(culture); vm.Appearance.SelectThemeByKey(theme); Pump(); SettleRendering();
+            var scroll = view.GetVisualDescendants().OfType<ScrollViewer>().Single(); scroll.ScrollToEnd(); Pump();
+            VerifyInside(scroll, window, "Update viewport fits: " + culture + "/" + theme);
+            VerifyInside(view.FindControl<Button>("UpdateAction")!, scroll, "Install retry remains reachable: " + culture + "/" + theme);
+            Check(!model.StatusText.StartsWith("Vex.VexL."), "Update text is localized: " + culture);
+            var localizedChips = VisibleTagChips();
+            Check(localizedChips.Select(chip => chip.GetVisualDescendants().OfType<TextBlock>().Single().Text ?? string.Empty)
+                .SequenceEqual(expectedTags), $"{culture} tag chips read {string.Join('/', expectedTags)}");
+            VerifyChipContrast(localizedChips, culture + "/" + theme);
+            Capture(window, "updates-" + culture + "-" + theme);
+        }
     }
     model.Close(); Pump(aboutTask); Pump(duplicate);
     PumpUntil(() => !window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
@@ -2570,6 +2639,35 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     view.FindControl<Button>("UpdateDismiss")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
     PumpUntil(() => !window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
     Pump(reopen);
+    // 跨多版升级才逐节列表头（单版本时标题已经报过版本号，表头是重复信息）。
+    // 换正文重开一次，表头必须显出来，且版本号与日期各归各的分节。
+    service.Notes = """
+        ## V9.0.0（2026-10-28）
+
+        - ✨[新增]-自动保存开启时外部修改静默载入。
+
+        ## V8.9.0（2026-10-11）
+
+        - 🐛[修复]-阅读排版弹层二次点击可以收起。
+        """;
+    var multiVersion = overlay.ShowUpdatesAsync();
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
+    view = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Single();
+    Pump(model.CheckAsync()); SettleRendering();
+    var headers = view.GetVisualDescendants().OfType<Border>()
+        .Where(part => part.Classes.Contains("update-version") && part.IsVisible).ToArray();
+    var headerText = headers.Select(header => string.Join(' ', header.GetVisualDescendants().OfType<TextBlock>()
+        .Select(label => label.Text ?? string.Empty))).ToArray();
+    Check(headers.Length == 2, "A release spanning several versions lists one header per section");
+    // 表头日期后跟着本地化的「发布」限定词（原型 .update-date 同形），所以按当前界面语言现算期望串，不写死中文。
+    var notesLocalizer = app.Resolve<IAppLocalizer>();
+    Check(headerText.SequenceEqual(new[] { "V9.0.0", "V8.9.0" }
+        .Zip(new[] { "2026-10-28", "2026-10-11" }, (version, date) =>
+            version + " " + notesLocalizer.Format(Vex.VexL.UpdateReleasedOn, date))),
+        "Each version header carries its own section's version and localized release date");
+    Capture(window, "updates-multi-version");
+    view.FindControl<Button>("UpdateDismiss")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+    Pump(multiVersion);
 }
 
 public sealed class VerificationVexApp : Vex.App

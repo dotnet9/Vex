@@ -33,10 +33,12 @@
     const found = releaseIndex().find(item => item.version === version);
     return found ? found.date : '';
   }
-  // 把一版更新日志解析为类型化条目：😄[新增] → 新增，🔨[优化] → 优化，🐛[修复] → 修复。
+  // 把一版更新日志解析为类型化条目：✨[新增] → 新增，⚡[优化] → 优化，🐛[修复] → 修复，❌[删除] → 删除。
+  // 表情符号只是视觉前缀，标签词才是依据，所以前缀按「非 [ 的任何字符」匹配：《更新日志》换表情不必改这里，
+  // 旧记录里的 😄/🔨 前缀也照样能解析。没有 [标签] 的行原样显示，不硬凑一个胶囊。
   function typedEntries(body) {
     return body.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
-      const m = /^- (?:😄|🔨|🐛|❌)\[(新增|优化|修复|删除)\]-(.*)$/.exec(line);
+      const m = /^- (?:[^\[]*)\[(新增|优化|修复|删除)\]-(.*)$/.exec(line);
       return m ? { tag: m[1], text: m[2] } : { tag: null, text: line.replace(/^- /, '') };
     });
   }

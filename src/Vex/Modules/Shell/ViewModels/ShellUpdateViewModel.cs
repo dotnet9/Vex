@@ -104,6 +104,27 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
         _ => string.Empty
     };
     public string ReleaseNotes => _update?.Notes ?? string.Empty;
+    /// <summary>按原型分节 + 类型化条目渲染的更新日志。四语切换后重建，标签跟着界面语言走。</summary>
+    public IReadOnlyList<UpdateNoteVersion> ReleaseSections { get; private set; } = [];
+    /// <summary>单版本升级不重复标题里已有的版本号，跨多版才逐节列出「V 版本 · 发布日期」。</summary>
+    public bool ShowVersionHeaders => ReleaseSections.Count > 1;
+    private void RebuildReleaseSections()
+    {
+        var parsed = UpdateReleaseNotesParser.Parse(_update?.Notes, tag => tag switch
+        {
+            "新增" => _localizer.Get(VexL.UpdateTagNew),
+            "优化" => _localizer.Get(VexL.UpdateTagOpt),
+            "修复" => _localizer.Get(VexL.UpdateTagFix),
+            "删除" => _localizer.Get(VexL.UpdateTagRemove),
+            _ => tag,
+        });
+        // 原型表头是「2026-10-27 发布」，日期后带一个限定词；四语各自表述，空日期（无分节的自定义正文）不硬凑。
+        ReleaseSections = parsed.Select(section => section with
+        {
+            ShowHeader = parsed.Count > 1,
+            Date = section.Date.Length > 0 ? _localizer.Format(VexL.UpdateReleasedOn, section.Date) : section.Date,
+        }).ToList();
+    }
     /// <summary>标题里的版本号去掉 tag 的 v 前缀：那是发布命名约定，不是读者认知的版本号。</summary>
     private string LatestVersionText => _update!.Tag.TrimStart('v', 'V');
     private bool CanDownload => !string.IsNullOrWhiteSpace(_update?.AssetUrl) && !string.IsNullOrWhiteSpace(_update.ChecksumUrl);
@@ -183,9 +204,11 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
     private void OnCultureChanged(object? sender, EventArgs args) => Refresh();
     private void Refresh()
     {
+        RebuildReleaseSections();
         foreach (var property in new[] { nameof(State), nameof(IsBusy), nameof(IsDownloading), nameof(CanRecheck), nameof(IsIndeterminate),
                      nameof(Progress), nameof(ProgressText), nameof(ActionText), nameof(StatusText), nameof(ReleaseNotes), nameof(DownloadPath), nameof(HasDownload),
-                     nameof(ShowAction), nameof(ShowLater), nameof(IsPrimaryAction), nameof(HasReleaseNotes), nameof(PhaseTitle), nameof(PhaseDetail) })
+                     nameof(ShowAction), nameof(ShowLater), nameof(IsPrimaryAction), nameof(HasReleaseNotes), nameof(PhaseTitle), nameof(PhaseDetail),
+                     nameof(ReleaseSections), nameof(ShowVersionHeaders) })
             this.RaisePropertyChanged(property);
     }
 

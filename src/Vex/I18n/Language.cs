@@ -24,6 +24,11 @@ public static class VexL
     public static readonly string UpdateCurrentVersionNote = "Vex.VexL.UpdateCurrentVersionNote";
     public static readonly string UpdateInstallingHint = "Vex.VexL.UpdateInstallingHint";
     public static readonly string UpdateLater = "Vex.VexL.UpdateLater";
+    public static readonly string UpdateTagNew = "Vex.VexL.UpdateTagNew";
+    public static readonly string UpdateTagOpt = "Vex.VexL.UpdateTagOpt";
+    public static readonly string UpdateTagFix = "Vex.VexL.UpdateTagFix";
+    public static readonly string UpdateTagRemove = "Vex.VexL.UpdateTagRemove";
+    public static readonly string UpdateReleasedOn = "Vex.VexL.UpdateReleasedOn";
     public static readonly string AboutLicense = "Vex.VexL.AboutLicense";
     public static readonly string AboutDialogTitle = "Vex.VexL.AboutDialogTitle";
     public static readonly string AboutShortSlogan = "Vex.VexL.AboutShortSlogan";

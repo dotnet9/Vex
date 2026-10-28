@@ -80,6 +80,9 @@
             <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A067647" />
             <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
             <SolidColorBrush x:Key="VexWarningSoftBrush" Color="#FDEBD7" />
+            <!-- 原型的 info 令牌是固定蓝（不随配色走），更新日志的「优化」胶囊用它；淡底沿用本族的「实色 10% 透明」画法。 -->
+            <SolidColorBrush x:Key="VexInfoBrush" Color="#4338CA" />
+            <SolidColorBrush x:Key="VexInfoSoftBrush" Color="#1A4338CA" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidBackground" Color="#202124" />
@@ -111,6 +114,9 @@
             <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A63DCB0" />
             <SolidColorBrush x:Key="VexWarningBrush" Color="#EFBA6B" />
             <SolidColorBrush x:Key="VexWarningSoftBrush" Color="#3D2F1E" />
+            <!-- 暗色档同样取原型的固定 info（#A5B4FC），淡底用同族 10% 实色。 -->
+            <SolidColorBrush x:Key="VexInfoBrush" Color="#A5B4FC" />
+            <SolidColorBrush x:Key="VexInfoSoftBrush" Color="#1AA5B4FC" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

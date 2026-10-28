@@ -4,6 +4,18 @@
  xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellUpdateViewModel">
  <UserControl.Styles>
   <Style Selector="Button"><Setter Property="CornerRadius" Value="8"/></Style>
+  <!-- 原型 .update-tag：10px/600、胶囊 999、内边距 2×7，四档语义色（新增 success / 优化 info / 修复 warning / 删除 danger）。
+       胶囊只吃圆角档位，直角档随圆角缩放归零，与原型一致。 -->
+  <Style Selector="Border.update-tag"><Setter Property="Padding" Value="7,2"/><Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/></Style>
+  <Style Selector="Border.update-tag TextBlock"><Setter Property="FontSize" Value="10"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="LineHeight" Value="15"/></Style>
+  <Style Selector="Border.update-tag.tag-new TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexSuccessBrush}"/></Style>
+  <Style Selector="Border.update-tag.tag-new"><Setter Property="Background" Value="{DynamicResource VexSuccessSoftBrush}"/></Style>
+  <Style Selector="Border.update-tag.tag-opt TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexInfoBrush}"/></Style>
+  <Style Selector="Border.update-tag.tag-opt"><Setter Property="Background" Value="{DynamicResource VexInfoSoftBrush}"/></Style>
+  <Style Selector="Border.update-tag.tag-fix TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexWarningBrush}"/></Style>
+  <Style Selector="Border.update-tag.tag-fix"><Setter Property="Background" Value="{DynamicResource VexWarningSoftBrush}"/></Style>
+  <Style Selector="Border.update-tag.tag-remove TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}"/></Style>
+  <Style Selector="Border.update-tag.tag-remove"><Setter Property="Background" Value="{DynamicResource VexDangerSoftBrush}"/></Style>
  </UserControl.Styles>
  <Border Classes="dialog-card" Width="620" MaxHeight="760" Padding="0" CornerRadius="14" ClipToBounds="True">
   <Grid RowDefinitions="36,*">
@@ -28,8 +40,37 @@
       <ProgressBar Height="8" CornerRadius="4" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100" VerticalAlignment="Center" Foreground="{DynamicResource VexAccentBrush}"/>
       <TextBlock Grid.Column="1" Text="{Binding ProgressText}" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Classes="muted"/>
      </Grid>
-     <Border x:Name="UpdateNotes" IsVisible="{Binding HasReleaseNotes}" Padding="15,14" BorderThickness="1" CornerRadius="10" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
-      <SelectableTextBlock Text="{Binding ReleaseNotes}" TextWrapping="Wrap" FontSize="13" LineHeight="21.45" FontWeight="Normal"/>
+     <Border x:Name="UpdateNotes" IsVisible="{Binding HasReleaseNotes}" Padding="15,14" BorderThickness="1" CornerRadius="{DynamicResource VexDensityCornerRadiusLg}" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+      <ItemsControl ItemsSource="{Binding ReleaseSections}">
+       <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="16"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+       <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:UpdateNoteVersion">
+         <StackPanel>
+          <Border IsVisible="{Binding ShowHeader}" Classes="update-version" Padding="0,0,0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}">
+           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Text="{Binding Version, StringFormat='V{0}'}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Bottom"/>
+            <TextBlock Grid.Column="1" Text="{Binding Date}" Classes="muted" FontSize="12" VerticalAlignment="Bottom"/>
+           </Grid>
+          </Border>
+          <ItemsControl Margin="0,9,0,0" ItemsSource="{Binding Entries}">
+           <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="6"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+           <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:UpdateNoteEntry">
+             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" Margin="0,7">
+              <Border Classes="update-tag" Classes.tag-new="{Binding IsNew}" Classes.tag-opt="{Binding IsOptimized}"
+                      Classes.tag-fix="{Binding IsFixed}" Classes.tag-remove="{Binding IsRemoved}"
+                      IsVisible="{Binding HasTag}" VerticalAlignment="Top" Margin="0,2,0,0">
+               <TextBlock Text="{Binding TagText}"/>
+              </Border>
+              <SelectableTextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap" FontSize="13" LineHeight="21.45"/>
+             </Grid>
+            </DataTemplate>
+           </ItemsControl.ItemTemplate>
+          </ItemsControl>
+         </StackPanel>
+        </DataTemplate>
+       </ItemsControl.ItemTemplate>
+      </ItemsControl>
      </Border>
      <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
       <Button Margin="0,0,10,0" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsDownloading}" MinWidth="104" MinHeight="38" Padding="16,8" FontSize="13"/>
