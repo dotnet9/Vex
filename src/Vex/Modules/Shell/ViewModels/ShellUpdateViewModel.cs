@@ -110,14 +110,8 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
     public bool ShowVersionHeaders => ReleaseSections.Count > 1;
     private void RebuildReleaseSections()
     {
-        var parsed = UpdateReleaseNotesParser.Parse(_update?.Notes, tag => tag switch
-        {
-            "新增" => _localizer.Get(VexL.UpdateTagNew),
-            "优化" => _localizer.Get(VexL.UpdateTagOpt),
-            "修复" => _localizer.Get(VexL.UpdateTagFix),
-            "删除" => _localizer.Get(VexL.UpdateTagRemove),
-            _ => tag,
-        });
+        // 标签词表与资源键的对照由 I18n/zh-CN.json 生成（Vex.VexReleaseTag），这里只把键翻成当前界面的文案。
+        var parsed = UpdateReleaseNotesParser.Parse(_update?.Notes, _localizer.Get);
         // 原型表头是「2026-10-27 发布」，日期后带一个限定词；四语各自表述，空日期（无分节的自定义正文）不硬凑。
         ReleaseSections = parsed.Select(section => section with
         {

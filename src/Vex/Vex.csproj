@@ -80,6 +80,13 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Language.cs</LastGenOutput>
     </None>
+    <Compile Update="I18n\ReleaseTags.cs">
+      <DependentUpon>ReleaseTags.tt</DependentUpon>
+    </Compile>
+    <None Update="I18n\ReleaseTags.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ReleaseTags.cs</LastGenOutput>
+    </None>
     <None Update="I18n\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>I18n\Vex\%(Filename)%(Extension)</TargetPath>

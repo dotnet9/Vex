@@ -2510,13 +2510,17 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     window.Width = 980; window.Height = 640; Pump();
     // 先单独钉解析器：真实发布正文是 CRLF、表情前缀在《更新日志》里换过好几轮，这两点一旦回归，
     // 界面上只表现为「胶囊和分节都没了」，看不出根因，所以在进 UI 之前把契约钉死。
+    // 标签认的是资源键（词表由 I18n/zh-CN.json 生成），所以夹具里不出现中文常量，界面文案用键名原样回显。
     var parsed = UpdateReleaseNotesParser.Parse(
-        "## V1.13.0（2026-10-27）\r\n\r\n- 😄[新增]-甲。\r\n\r\n## V1.12.0（2026-10-20）\r\n\r\n- 🔨[优化]-乙。\r\n- 丙。\r\n", tag => tag);
+        "## V1.13.0（2026-10-27）\r\n\r\n- 😄[新增]-甲。\r\n\r\n## V1.12.0（2026-10-20）\r\n\r\n- 🔨[优化]-乙。\r\n- 丙。\r\n- 🚀[示例]-丁。\r\n", key => key);
     Check(parsed.Count == 2 && parsed[0].Version == "1.13.0" && parsed[0].Date == "2026-10-27"
         && parsed[1].Version == "1.12.0", "A CRLF release body splits into one section per version");
-    Check(parsed[0].Entries.Single() is { TagKey: "新增", IsNew: true } && parsed[1].Entries.Count == 2
-        && parsed[1].Entries[0] is { TagKey: "优化", IsOptimized: true } && !parsed[1].Entries[1].HasTag,
+    Check(parsed[0].Entries.Single() is { IsNew: true, TagKey: var newKey } && newKey == Vex.VexL.UpdateTagNew
+        && parsed[1].Entries.Count == 3 && parsed[1].Entries[0] is { IsOptimized: true },
         "Legacy emoji prefixes never leak into the tag or the body");
+    Check(parsed[1].Entries[1] is { HasTag: false, Text: "丙。" }
+        && parsed[1].Entries[2] is { HasTag: false } untagged && untagged.Text.StartsWith("🚀", StringComparison.Ordinal),
+        "A line the tag vocabulary does not know stays plain text, brackets and all");
     var service = (VerificationUpdates)VerificationVexApp.Updates!;
     var overlay = app.Resolve<IShellOverlayService>();
     var menu = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellTitleMenuView>().Single();

@@ -9,34 +9,37 @@ public sealed record UpdateNoteVersion(string Version, string Date, IReadOnlyLis
     public bool ShowHeader { get; init; }
 }
 
-/// <summary>一条更新：标签只可能是新增 / 优化 / 修复 / 删除四选一，解析不出的行没有标签，原样成句。
-/// <paramref name="TagKey"/> 是《更新日志》里的中文标签词（选色与语义的依据），
-/// <paramref name="TagText"/> 是界面要显示的那两个字——四语下由调用方给出，解析器不认识本地化。</summary>
+/// <summary>一条更新：<paramref name="TagKey"/> 是标签的界面资源键（认标签用键名，不认任何语言的文案），
+/// 解析不出的行没有标签、原样成句；<paramref name="TagText"/> 是胶囊要显示的那两个字，由调用方给出。</summary>
 public sealed record UpdateNoteEntry(string? TagKey, string TagText, string Text)
 {
     public bool HasTag => TagKey is not null;
 
     // 胶囊配色按原型 .update-tag 的四档语义：新增=success、优化=info、修复=warning、删除=danger。
-    // 判定用中文标签词而不是界面文案，四语切换后颜色不跟着漂。
-    public bool IsNew => TagKey == "新增";
-    public bool IsOptimized => TagKey == "优化";
-    public bool IsFixed => TagKey == "修复";
-    public bool IsRemoved => TagKey == "删除";
+    // 判定用资源键而不是界面文案，四语切换后颜色不跟着漂。
+    public bool IsNew => TagKey == VexL.UpdateTagNew;
+    public bool IsOptimized => TagKey == VexL.UpdateTagOpt;
+    public bool IsFixed => TagKey == VexL.UpdateTagFix;
+    public bool IsRemoved => TagKey == VexL.UpdateTagRemove;
 }
 
-/// <summary>把 GitHub 发布正文（与《更新日志.md》同一份文本）拆成「版本 + 类型化条目」。</summary>
+/// <summary>把 GitHub 发布正文（与《更新日志.md》同一份文本）拆成「版本 + 类型化条目」。
+/// 正文里的标签词表来自 I18n/zh-CN.json（生成器落成 Vex.VexReleaseTag），这里不写任何中文常量。</summary>
 public static partial class UpdateReleaseNotesParser
 {
     // 分节：## V1.13.0（2026-10-27） 到下一个分节或文本结尾。日期只用于多版本时的表头，单版本不显示。
-    // 两条式子与原型 about-update.js 里的同形，逐字符对照即可，只是 C# 用原始字符串省掉双反斜杠。
+    // 这条式子与原型 about-update.js 里的逐字符同形，只是 C# 用原始字符串省掉双反斜杠。
     [GeneratedRegex(@"\n## V(\d+(?:\.\d+)+)（([^）\n]+)）\n([\s\S]*?)(?=\n## V\d+(?:\.\d+)+（|$)")]
     private static partial Regex SectionPattern();
 
     // 标签行：`- ✨[新增]-正文`。表情只是视觉前缀，判定依据是方括号里的标签词，
-    // 所以前缀按「非 [ 的任意字符」匹配——《更新日志》换表情不必回来改这里，旧记录里的 😄/🔨 同样能解析。
-    [GeneratedRegex(@"^- (?:[^\[]*)\[(新增|优化|修复|删除)\]-(.*)$")]
+    // 所以前缀按「非 [ 的任意字符」匹配——《更新日志》换表情不必回来改这里，旧记录里的 😄/ 前缀同样能解析。
+    // 与原型差在括号内：原型直接枚举四个词，这里不枚举，词表交给 I18n/zh-CN.json 生成的 VexReleaseTag，
+    // 认不出来的方括号（自定义发布说明）退回无标签条目，与原型对同一条正文的结果一致。
+    [GeneratedRegex(@"^- (?:[^\[]*)\[([^]]+)\]-(.*)$")]
     private static partial Regex EntryPattern();
 
+    /// <param name="tagLabel">资源键 → 当前界面语言的胶囊文案。</param>
     public static IReadOnlyList<UpdateNoteVersion> Parse(string? notes, Func<string, string> tagLabel)
     {
         if (string.IsNullOrWhiteSpace(notes)) return [];
@@ -57,8 +60,9 @@ public static partial class UpdateReleaseNotesParser
         .Select(line =>
         {
             var match = EntryPattern().Match(line);
-            return match.Success
-                ? new UpdateNoteEntry(match.Groups[1].Value, tagLabel(match.Groups[1].Value), match.Groups[2].Value.Trim())
+            var key = match.Success ? VexReleaseTag.KeyOf(match.Groups[1].Value) : null;
+            return key is not null
+                ? new UpdateNoteEntry(key, tagLabel(key), match.Groups[2].Value.Trim())
                 : new UpdateNoteEntry(null, string.Empty, line.StartsWith("- ") ? line[2..].Trim() : line);
         })
         .ToList();
