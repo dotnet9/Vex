@@ -13,6 +13,8 @@
     <PackageReference Include="Irihi.Ursa.Themes.Semi" />
     <Compile Include="../../src/Vex/Modules/Shell/ViewModels/ShellAboutViewModel.cs" Link="ShellAboutViewModel.cs" />
     <Compile Include="../../src/Vex/Modules/Shell/ViewModels/ShellUpdateViewModel.cs" Link="ShellUpdateViewModel.cs" />
+    <Compile Include="../../src/Vex/Modules/Shell/ViewModels/UpdateReleaseNotes.cs" Link="UpdateReleaseNotes.cs" />
+    <Compile Include="../../src/Vex/I18n/ReleaseTags.cs" Link="ReleaseTags.cs" />
     <Compile Include="../../src/Vex/Modules/Help/Services/WindowsUpdateInstaller.cs" Link="WindowsUpdateInstaller.cs" />
     <Compile Include="../../src/Vex/Core/Services/IAppLocalizer.cs" Link="IAppLocalizer.cs" />
     <Compile Include="../../src/Vex/Core/Services/ProjectLinks.cs" Link="ProjectLinks.cs" />

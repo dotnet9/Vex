@@ -78,6 +78,56 @@ using (var model = new ShellUpdateViewModel(service, localizer, opened.Add, () =
     await model.AdvanceAsync();
     Check(model.State == UpdateState.Failed && model.StatusText.Contains("checksum mismatch"), "download failure does not enable installation");
     var oldText = model.ActionText;
+    using (var notes = new ShellUpdateViewModel(service, localizer, opened.Add, () => exits++))
+    {
+        // 更新日志类型化：分节靠版本标题、标签靠资源键判定，胶囊文案跟着界面语言现取。
+        // 夹具的行内标签词由同一个 localizer 现取，正好复现「正文词形 = UpdateTagSource*」这条契约。
+        const char Open = '\uFF08', Close = '\uFF09'; // 《更新日志》分节日期的全角括号
+        string SectionNotes(string version, string date, string body) =>
+            $"## V{version}{Open}{date}{Close}\n{body}\n";
+        string TypedBody() =>
+            $"- \u2728[{localizer.Get(VexL.UpdateTagSourceNew)}]-Typed first line\n" +
+            $"- \U0001F41B[{localizer.Get(VexL.UpdateTagSourceFix)}]-Typed second line\n" +
+            "- \U0001F604[Whatever]-Untagged fallback line\n";
+        // 发布正文从 Windows 粘贴时常带 CRLF：分节式子按 \n 写，不归一化整段日志会退化成散行。
+        service.Result = Available(true) with
+        {
+            Update = Available(true).Update! with
+            {
+                Notes = SectionNotes("9.0.0", "2026-10-27", TypedBody())
+                    .Replace("\n", "\r\n")
+                    + SectionNotes("8.9.0", "2026-10-20", "- plain line\n"),
+            },
+        };
+        await notes.CheckAsync();
+        Check(notes.ReleaseSections.Count == 2 && notes.ShowVersionHeaders, "two sections parsed from CRLF notes");
+        var latest = notes.ReleaseSections[0];
+        Check(latest.Version == "9.0.0" && latest.Entries.Count == 3, "newest section keeps every line");
+        Check(latest.ShowHeader && latest.Date == localizer.Format(VexL.UpdateReleasedOn, "2026-10-27"), "section header localized once released-on resolves");
+        var first = latest.Entries[0];
+        Check(first.HasTag && first.IsNew && !first.IsFixed
+              && first.TagKey == VexL.UpdateTagNew && first.TagText == localizer.Get(VexL.UpdateTagNew)
+              && first.Text == "Typed first line", "tag resolves to the resource key, pill text to the current language");
+        Check(latest.Entries[1] is { IsFixed: true, Text: "Typed second line" }, "fix tag uses the warning pill");
+        Check(!latest.Entries[2].HasTag && latest.Entries[2].Text.StartsWith("\U0001F604"), "unknown tag falls back to the raw line");
+        Check(notes.ReleaseSections[1].Entries.Single() is { HasTag: false, Text: "plain line" }, "older section parses independently");
+        service.Result = Available(true) with
+        {
+            Update = Available(true).Update! with { Notes = SectionNotes("9.0.0", "2026-10-27", TypedBody()) },
+        };
+        await notes.CheckAsync();
+        Check(!notes.ShowVersionHeaders && !notes.ReleaseSections[0].ShowHeader, "single version never repeats the title in a header");
+        localizer.SetCulture("ja-JP");
+        service.Result = Available(true) with
+        {
+            Update = Available(true).Update! with { Notes = SectionNotes("9.0.0", "2026-10-27", TypedBody()) },
+        };
+        await notes.CheckAsync();
+        Check(notes.ReleaseSections[0].Entries[0].TagKey == VexL.UpdateTagNew, "language change never moves the tag key");
+        Check(notes.ReleaseSections[0].Entries[0].TagText != first.TagText, "pill text follows the new language");
+        localizer.SetCulture("en-US");
+    }
+
     localizer.SetCulture("zh-CN");
     Check(model.ActionText != oldText, "language change updates action label");
 }
