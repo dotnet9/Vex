@@ -40,5 +40,29 @@ if ($NativeCompilerTargetsPath) {
     $ilcArgs += "-p:ILCompilerTargetsPath=$compilerTargets"
 }
 # 限制工程级并发，避免本地多仓联调时 MSBuild 子进程争用内存。
-dotnet publish (Join-Path $repositoryRoot "src/Vex/Vex.csproj") -c Release -f $tfm -r $RuntimeIdentifier -m:1 @ilcArgs /p:PublishProfile=FolderProfile__$RuntimeIdentifier -p:Version=$Version
+$publishLog = Join-Path ([IO.Path]::GetTempPath()) ("vex-publish-" + $RuntimeIdentifier + ".log")
+dotnet publish (Join-Path $repositoryRoot "src/Vex/Vex.csproj") -c Release -f $tfm -r $RuntimeIdentifier -m:1 @ilcArgs /p:PublishProfile=FolderProfile__$RuntimeIdentifier -p:Version=$Version 2>&1 | Tee-Object -FilePath $publishLog
 if ($LASTEXITCODE -ne 0) { throw "publish failed for $RuntimeIdentifier" }
+
+# AOT/裁剪零回归门禁（借鉴 StreamMark 的"零裁剪警告是 CI 门禁"实践）：
+# IL2xxx 警告意味着有代码路径在裁剪下不可见。基线记录在
+# scripts/aot-trim-warning-baseline.txt（每 RID 一行 rid=数量）；基线内放行，
+# 超过基线即发布失败——收紧裁剪后应主动下调基线，让门禁跟着目标走。
+$trimWarnings = @(Select-String -LiteralPath $publishLog -Pattern 'warning IL\d+' -AllMatches)
+$baselineFile = Join-Path $PSScriptRoot "aot-trim-warning-baseline.txt"
+$baseline = $null
+if (Test-Path -LiteralPath $baselineFile) {
+    foreach ($line in Get-Content -LiteralPath $baselineFile -Encoding utf8) {
+        if ($line -match "^\s*$([Regex]::Escape($RuntimeIdentifier))\s*=\s*(\d+)\s*$") { $baseline = [int]$Matches[1] }
+    }
+}
+if ($null -eq $baseline) {
+    if ($trimWarnings.Count -gt 0) {
+        Write-Host "AOT 门禁提示：$RuntimeIdentifier 有 $($trimWarnings.Count) 条 IL 裁剪警告，基线文件未收录该 RID，暂不拦截。" -ForegroundColor Yellow
+    }
+} elseif ($trimWarnings.Count -gt $baseline) {
+    $trimWarnings | Select-Object -First 10 | ForEach-Object { Write-Host $_.Line -ForegroundColor Red }
+    throw "AOT 零回归门禁失败：$RuntimeIdentifier 出现 $($trimWarnings.Count) 条 IL 裁剪警告，超过基线 $baseline（详见 $publishLog）"
+} elseif ($trimWarnings.Count -lt $baseline) {
+    Write-Host "AOT 门禁提示：$RuntimeIdentifier 裁剪警告降至 $($trimWarnings.Count) 条（基线 $baseline），可下调 scripts/aot-trim-warning-baseline.txt 收紧门禁。" -ForegroundColor Green
+}
