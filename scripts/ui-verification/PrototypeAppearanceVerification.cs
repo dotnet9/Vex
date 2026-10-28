@@ -92,6 +92,20 @@ internal static class PrototypeAppearanceVerification
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "typography-" + size.Width + "x" + size.Height + ".png"));
         }
         window.Width = startWidth; window.Height = startHeight; Render();
+        // 原型 .typography-card-tools 是 ✎ 编辑 + × 删除：只给删除的话用户建完就改不了。
+        // 注册走 Appearance 目录变化，弹层按原型的 renderGrid 语义整块重建，卡片当场出现工具钮。
+        var toolKey = vm.Appearance.RegisterCustomTypography("", "工具测试", "#B4642D", "#D8973C", "#8A5A2B", "#C89A6B", "sans", 1.9, "tint");
+        Render();
+        string Localized(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
+        var toolCard = gallery.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "Typography_" + toolKey);
+        var toolTips = (toolCard?.GetVisualDescendants().OfType<Button>() ?? Enumerable.Empty<Button>())
+            .Select(b => ToolTip.GetTip(b) as string).Where(t => t is not null).ToArray();
+        Check(toolCard is not null
+                && toolTips.Contains(Localized(VexL.EditCustomTypography)) && toolTips.Contains(Localized(VexL.DeleteCustomTypography)),
+            $"A custom card exposes both edit and delete tools: [{string.Join(",", toolTips)}]");
+        Check(vm.Appearance.RemoveCustomTypography(toolKey)
+                && !gallery.GetVisualDescendants().OfType<Button>().Any(b => b.Name == "Typography_" + toolKey),
+            "Deleting a custom typography drops its card from the open panel instead of leaving it behind");
         foreach (var language in vm.Appearance.LanguageOptions)
         {
             vm.Appearance.SelectedLanguage = language; Render();
@@ -188,13 +202,20 @@ internal static class PrototypeAppearanceVerification
         var typographyWindow = new Window { Content = new ShellTypographyEditView(typographyModel), Width = 380, Height = 620 };
         typographyWindow.Show(); Render();
         var combos = typographyWindow.GetVisualDescendants().OfType<ComboBox>().ToArray();
-        Check(combos.Length == 2, "Typography dialog keeps the font and leading selectors");
+        Check(combos.Length == 3, "Typography dialog keeps the font, leading and H2 decoration selectors");
+        Check(typographyWindow.GetVisualDescendants().OfType<TextBlock>().Count(t =>
+                t.Text is "Font" or "Leading" or "H2 decoration") == 3, "Each selector carries its localized caption above it");
         Check(combos[0].ItemsSource is string[] fonts && fonts.SequenceEqual(["Sans-serif", "Serif", "Monospace"])
             && combos[0].SelectedIndex == 0, "Font selector shows localized names without leaking internal keys: " + string.Join("/", (string[])combos[0].ItemsSource));
         combos[0].SelectedIndex = 2; Render();
         Check(typographyModel.Font == "mono", "Font selection writes the internal key back");
         combos[1].SelectedIndex = 0; Render();
         Check(Math.Abs(typographyModel.Leading - 1.7) < 0.001, "Leading selection writes the numeric line height back");
+        // 第三件是原型 typography.js 的 H2 装饰 select：四档按顺序对应 leftBar / underline / tint / none。
+        Check(combos[2].ItemsSource is string[] decorations && decorations.SequenceEqual(["Left bar", "Underline", "Tint", "None"])
+            && combos[2].SelectedIndex == 0, "H2 decoration selector shows localized tiers, defaulting to the prototype tier: " + string.Join("/", (string[])combos[2].ItemsSource));
+        combos[2].SelectedIndex = 1; Render();
+        Check(typographyModel.HeadingDecoration == "underline", "H2 decoration selection writes the internal tier back");
         Check(typographyModel.Title == L(VexL.WBTypographyEdit), "Editing an existing typography uses the localized title");
         var typoBoxes = typographyWindow.GetVisualDescendants().OfType<TextBox>().ToArray();
         // 按内容识别输入框：ComboBox 模板里也有 PART TextBox，用计数会把模板部件一起算进来。
@@ -205,6 +226,7 @@ internal static class PrototypeAppearanceVerification
         Check(typographyModel.AccentDark == "#001122", "Color input writes back without reflection (AOT-safe)");
         typographyModel.Apply();
         Check(typographyModel.Result?.Name == "seed", "Existing typography name is preserved on apply");
+        Check(typographyModel.Result?.HeadingDecoration == "underline", "Apply carries the chosen H2 decoration tier out");
         typographyWindow.Close(); Render();
         localizer.SetCulture("zh-CN"); Render();
     }

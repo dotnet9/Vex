@@ -4,7 +4,7 @@ using ReactiveUI;
 
 namespace Vex.Modules.Shell.ViewModels;
 
-/// <summary>自定义排版编辑（对应原型 typography-dialog）：名称 + 双明暗强调/装饰色 + 字体 + 行距。</summary>
+/// <summary>自定义排版编辑（对应原型 typography-dialog）：名称 + 双明暗强调/装饰色 + 字体 + 行距 + H2 装饰。</summary>
 public sealed class ShellTypographyEditModel(string? editingKey, string name = "") : ReactiveObject, IDialogContext
 {
     private static string L(string key) => I18nManager.Instance.GetResource(key) ?? string.Empty;
@@ -16,12 +16,13 @@ public sealed class ShellTypographyEditModel(string? editingKey, string name = "
     private string _decoDark = "#D89A6E";
     private string _font = "sans";
     private double _leading = 1.9;
+    private string _headingDecoration = "leftBar";
     private string _report = L(VexL.WBTypographyReport);
 
     public string? EditingKey { get; } = editingKey;
     public string Title => L(EditingKey is null ? VexL.WBTypographyAdd : VexL.WBTypographyEdit);
     public string Report { get => _report; private set => this.RaiseAndSetIfChanged(ref _report, value); }
-    public (string Name, string AccentLight, string AccentDark, string DecoLight, string DecoDark, string Font, double Leading)? Result { get; private set; }
+    public (string Name, string AccentLight, string AccentDark, string DecoLight, string DecoDark, string Font, double Leading, string HeadingDecoration)? Result { get; private set; }
 
     public string Name { get => _name; set => this.RaiseAndSetIfChanged(ref _name, value); }
     public string AccentLight { get => _accentLight; set => this.RaiseAndSetIfChanged(ref _accentLight, value); }
@@ -30,6 +31,9 @@ public sealed class ShellTypographyEditModel(string? editingKey, string name = "
     public string DecoDark { get => _decoDark; set => this.RaiseAndSetIfChanged(ref _decoDark, value); }
     public string Font { get => _font; set => this.RaiseAndSetIfChanged(ref _font, value); }
     public double Leading { get => _leading; set => this.RaiseAndSetIfChanged(ref _leading, value); }
+
+    /// <summary>H2 装饰档位，取值与原型 #typography-dialog 的 select 一致：leftBar / underline / tint / none。</summary>
+    public string HeadingDecoration { get => _headingDecoration; set => this.RaiseAndSetIfChanged(ref _headingDecoration, value); }
 
     public event EventHandler<object?>? RequestClose;
     public void Cancel() => RequestClose?.Invoke(this, false);
@@ -46,7 +50,7 @@ public sealed class ShellTypographyEditModel(string? editingKey, string name = "
             return;
         }
         Result = (Name.Trim() is { Length: > 0 } name ? name : L(VexL.CustomDefaultName),
-            AccentLight.Trim(), AccentDark.Trim(), DecoLight.Trim(), DecoDark.Trim(), Font, Leading);
+            AccentLight.Trim(), AccentDark.Trim(), DecoLight.Trim(), DecoDark.Trim(), Font, Leading, HeadingDecoration);
         RequestClose?.Invoke(this, true);
     }
 }

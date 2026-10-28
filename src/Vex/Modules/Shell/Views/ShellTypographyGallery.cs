@@ -84,6 +84,9 @@ public sealed class ShellTypographyGallery : UserControl
     private void Changed(object? sender, PropertyChangedEventArgs e)
     {
         if (_vm is null) return;
+        // 目录一变就整块重建：原型 renderGrid() 跟着每次增删改走。宿主里增删来自三条路径
+        // （浮层新增、卡片删除、启动恢复），只让浮层那条负责重建会让删掉的卡片继续留在开着的弹层里。
+        if (e.PropertyName == nameof(ShellAppearanceViewModel.TypographyOptions)) { Build(); return; }
         if (e.PropertyName is nameof(ShellAppearanceViewModel.MarkdownDensity) or null or "")
             foreach (var (key, pill) in _densityPills) PaintDensity(pill, key == _vm.Appearance.MarkdownDensity);
         foreach (var (option, item) in _items)
@@ -226,9 +229,14 @@ public sealed class ShellTypographyGallery : UserControl
         {
             var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 8, 8, 0), IsVisible = false };
             var captured = option.Key!;
+            // 原型 .typography-card-tools 是 ✎ 编辑 + × 删除两枚，悬浮才显出；只给删除会让用户改不了已建的排版。
+            var edit = new Button { Classes = { "wb-quiet" }, Width = 22, Height = 22, Padding = default, FontSize = 12, Content = "✎" };
+            ToolTip.SetTip(edit, Text("EditCustomTypography"));
+            edit.Click += (_, _) => OpenTypographyDialog(captured);
             var remove = new Button { Classes = { "wb-quiet" }, Width = 22, Height = 22, Padding = default, FontSize = 12, Content = "×" };
             ToolTip.SetTip(remove, Text("DeleteCustomTypography"));
             remove.Click += (_, _) => _vm!.Appearance.RemoveCustomTypography(captured);
+            tools.Children.Add(edit);
             tools.Children.Add(remove);
             ((Panel)button.Content!).Children.Add(tools);
             button.PointerEntered += (_, _) => { if (button.Content is Panel p) foreach (var c in p.Children.OfType<StackPanel>()) c.IsVisible = true; };
@@ -279,7 +287,7 @@ public sealed class ShellTypographyGallery : UserControl
         dash.Bind(Avalonia.Controls.Shapes.Rectangle.RadiusXProperty, dashRadius);
         dash.Bind(Avalonia.Controls.Shapes.Rectangle.RadiusYProperty, dashRadius);
         Resource(dash, Avalonia.Controls.Shapes.Shape.StrokeProperty, this, "VexPanelBorderBrush");
-        var card = Button("", OpenTypographyDialog);
+        var card = Button("", () => OpenTypographyDialog());
         card.Name = "AddCustomTypography";
         card.Content = new Panel { Children = { dash, stack } };
         card.Padding = default; card.MinHeight = 44; card.Height = 44;
@@ -292,14 +300,27 @@ public sealed class ShellTypographyGallery : UserControl
         return card;
     }
 
-    async void OpenTypographyDialog()
+    /// <summary>新增（editingKey 为空）或编辑既有用户排版：编辑先把当前值回填到浮层，保存时沿用同一 key。</summary>
+    async void OpenTypographyDialog(string? editingKey = null)
     {
         if (_vm is null) return;
-        var model = new ShellTypographyEditModel(null);
+        var existing = editingKey is null ? null : CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(editingKey);
+        var model = new ShellTypographyEditModel(editingKey, existing?.Name ?? "");
+        if (existing is not null)
+        {
+            model.AccentLight = existing.LightText;
+            model.AccentDark = existing.DarkText;
+            model.DecoLight = existing.LightDecoration;
+            model.DecoDark = existing.DarkDecoration;
+            model.Font = existing.Font;
+            model.Leading = existing.Leading;
+            model.HeadingDecoration = _vm.Appearance.HeadingDecoration(editingKey!);
+        }
         var applied = await Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(new ShellTypographyEditView(model), model,
             options: new Ursa.Controls.OverlayDialogOptions { CanLightDismiss = true, CanDragMove = false, CanResize = false, IsCloseButtonVisible = false });
         if (!applied || model.Result is not { } result) return;
-        _vm.Appearance.RegisterCustomTypography("", result.Name, result.AccentLight, result.AccentDark, result.DecoLight, result.DecoDark, result.Font, result.Leading);
-        Build();
+        _vm.Appearance.RegisterCustomTypography(editingKey ?? "", result.Name, result.AccentLight, result.AccentDark,
+            result.DecoLight, result.DecoDark, result.Font, result.Leading, result.HeadingDecoration);
+        // 目录变化由 Changed 统一触发重建，这里不再手工 Build 一次。
     }
 }

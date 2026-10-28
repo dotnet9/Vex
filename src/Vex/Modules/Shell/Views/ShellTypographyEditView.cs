@@ -27,17 +27,17 @@ public sealed class ShellTypographyEditView : UserControl
         stack.Children.Add(colors);
 
         // 下拉展示四语标签，选中项回写内部键（原样 ItemsSource=Keys 会把 sans/1.7 直接暴露给用户）。
+        // 原型 .td-row 是 flex-wrap + label 在上的三件选择器，宽度按内容走，一排装得下三件。
         var fontOptions = new[] { ("sans", Text(VexL.WBTypographyFontSans)), ("serif", Text(VexL.WBTypographyFontSerif)), ("mono", Text(VexL.WBTypographyFontMono)) };
-        var font = new ComboBox { Width = 150, Height = 32, FontSize = 13, ItemsSource = fontOptions.Select(o => o.Item2).ToArray() };
-        font.SelectedIndex = Math.Max(0, Array.FindIndex(fontOptions, o => o.Item1 == model.Font));
-        font.SelectionChanged += (_, _) => { if (font.SelectedIndex >= 0) model.Font = fontOptions[font.SelectedIndex].Item1; };
         var leadingOptions = new[] { (1.7d, Text(VexL.WBTypographyLeadingCompact)), (1.9d, Text(VexL.WBTypographyLeadingNormal)), (2.1d, Text(VexL.WBTypographyLeadingRelaxed)) };
-        var leading = new ComboBox { Width = 150, Height = 32, FontSize = 13, ItemsSource = leadingOptions.Select(o => o.Item2).ToArray() };
-        leading.SelectedIndex = Array.FindIndex(leadingOptions, o => Math.Abs(o.Item1 - model.Leading) < 0.05d);
-        if (leading.SelectedIndex < 0) leading.SelectedIndex = 1;
-        leading.SelectionChanged += (_, _) => { if (leading.SelectedIndex >= 0) model.Leading = leadingOptions[leading.SelectedIndex].Item1; };
-        var selectors = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 14 };
-        selectors.Children.Add(font); selectors.Children.Add(leading);
+        var h2Options = new[] { ("leftBar", Text(VexL.WBTypographyH2LeftBar)), ("underline", Text(VexL.WBTypographyH2Underline)), ("tint", Text(VexL.WBTypographyH2Tint)), ("none", Text(VexL.WBTypographyH2None)) };
+        var selectors = new WrapPanel { Orientation = Avalonia.Layout.Orientation.Horizontal };
+        selectors.Children.Add(Selector(Text(VexL.WBTypographyFontLabel), fontOptions.Select(o => o.Item2).ToArray(),
+            Math.Max(0, Array.FindIndex(fontOptions, o => o.Item1 == model.Font)), index => model.Font = fontOptions[index].Item1));
+        selectors.Children.Add(Selector(Text(VexL.WBTypographyLeadingLabel), leadingOptions.Select(o => o.Item2).ToArray(),
+            Math.Max(0, Array.FindIndex(leadingOptions, o => Math.Abs(o.Item1 - model.Leading) < 0.05d)), index => model.Leading = leadingOptions[index].Item1));
+        selectors.Children.Add(Selector(Text(VexL.WBTypographyH2Label), h2Options.Select(o => o.Item2).ToArray(),
+            Math.Max(0, Array.FindIndex(h2Options, o => o.Item1 == model.HeadingDecoration)), index => model.HeadingDecoration = h2Options[index].Item1));
         stack.Children.Add(selectors);
 
         var report = new TextBlock { Text = model.Report, FontSize = 12, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Opacity = 0.8 };
@@ -53,7 +53,19 @@ public sealed class ShellTypographyEditView : UserControl
         stack.Children.Add(actions);
 
         Content = new ScrollViewer { Content = stack, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
-        Width = 340;
+        // 原型 .typography-dialog-card 是 min(430px,100%)；三件选择器按内容排在一排才装得下。
+        Width = 430;
+    }
+
+    /// <summary>带小标签的下拉（原型 .td-row label：文字在上、控件在下，标签取说明色）。</summary>
+    private static StackPanel Selector(string label, string[] items, int selected, Action<int> write)
+    {
+        var box = new ComboBox { MinWidth = 104, Height = 32, FontSize = 13, ItemsSource = items, SelectedIndex = selected, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left };
+        box.SelectionChanged += (_, _) => { if (box.SelectedIndex >= 0) write(box.SelectedIndex); };
+        var panel = new StackPanel { Spacing = 3, Margin = new Thickness(0, 0, 8, 0) };
+        panel.Children.Add(new TextBlock { Text = label, FontSize = 11, Opacity = 0.8 });
+        panel.Children.Add(box);
+        return panel;
     }
 
     private static TextBox Field(string labelKey, string value, int maxLength, Action<string> write)

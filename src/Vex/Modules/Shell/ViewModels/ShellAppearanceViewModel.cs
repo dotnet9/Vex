@@ -284,11 +284,11 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
 
     /// <summary>新增（key 为空）或编辑用户排版：注册后刷新目录并选中，随设置持久化。</summary>
     public string RegisterCustomTypography(string key, string name, string accentLight, string accentDark,
-        string decorationLight, string decorationDark, string font, double leading)
+        string decorationLight, string decorationDark, string font, double leading, string headingDecoration = "leftBar")
     {
         key = string.IsNullOrWhiteSpace(key) ? "user:" + Guid.NewGuid().ToString("N")[..8] : key;
         var typography = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.CreateCustom(
-            key, name, accentLight, accentDark, decorationLight, decorationDark, font, leading);
+            key, name, accentLight, accentDark, decorationLight, decorationDark, font, leading, headingDecoration);
         CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Register(typography);
         ReloadTypographyOptions(key);
         PersistCustomTypographies();
@@ -312,20 +312,39 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         {
             TypographyOptions.Add(option);
         }
+        // 先广播目录变化再改选中项：卡片弹层按目录重建自己的条目表，若先改选中，弹层会拿着
+        // 「刚被删掉的那张卡」重绘徽章，而那条排版已经查不回来了。
+        OnPropertyChanged(nameof(TypographyOptions));
         SelectedTypography = TypographyOptions.FirstOrDefault(item => item.Key == current)
             ?? TypographyOptions.FirstOrDefault(item => item.Key == preferredKey)
             ?? TypographyOptions.FirstOrDefault();
-        OnPropertyChanged(nameof(TypographyOptions));
     }
 
     private void PersistCustomTypographies()
     {
+        // 装饰档位不回读 Headings（边框/内距折算后无法唯一还原成档名），所以随记录一起存档位键本身。
         var records = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.All
             .Where(item => item.Key != null && item.Key.StartsWith("user:", StringComparison.Ordinal))
             .Select(item => string.Join('|', item.Key, item.Name,
-                item.LightText, item.DarkText, item.LightDecoration, item.DarkDecoration, item.Font, item.Leading.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                item.LightText, item.DarkText, item.LightDecoration, item.DarkDecoration, item.Font,
+                item.Leading.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                HeadingDecorationOf(item.Headings[1])));
         _settingsStore.Update(settings => settings with { CustomTypographies = string.Join(';', records) });
     }
+
+    /// <summary>取用户排版的 H2 装饰档名，供编辑浮层回填当前选择。</summary>
+    public string HeadingDecoration(string key) =>
+        CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(key) is { } typography
+            ? HeadingDecorationOf(typography.Headings[1]) : "leftBar";
+
+    /// <summary>把 H2 的边框/内距/色块/圆角折回原型那四档档名；库里 <c>CreateCustom</c> 只按这四档写入。</summary>
+    private static string HeadingDecorationOf(CodeWF.Avalonia.Markdown.Themes.ArticleHeadingStyle h2) =>
+        h2.Border switch
+        {
+            "0,0,0,2" => "underline",
+            "4,0,0,0" => "leftBar",
+            _ => h2.Tint > 0 ? "tint" : "none",
+        };
 
     /// <summary>启动时恢复用户排版。</summary>
     public void LoadCustomTypographies(string? persisted)
@@ -334,12 +353,14 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         foreach (var record in persisted.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             var fields = record.Split('|');
-            if (fields.Length != 8 || !fields[0].StartsWith("user:", StringComparison.Ordinal)) continue;
+            // 8 段是 H2 装饰选择器落地前的记录：那时的渲染等价于「无装饰」，按此补齐而不是重新派生一档。
+            if ((fields.Length != 8 && fields.Length != 9) || !fields[0].StartsWith("user:", StringComparison.Ordinal)) continue;
             try
             {
                 var typography = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.CreateCustom(
                     fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6],
-                    double.Parse(fields[7], System.Globalization.CultureInfo.InvariantCulture));
+                    double.Parse(fields[7], System.Globalization.CultureInfo.InvariantCulture),
+                    fields.Length == 9 ? fields[8] : "none");
                 CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Register(typography);
             }
             catch { /* 单条损坏不阻塞其余排版 */ }
