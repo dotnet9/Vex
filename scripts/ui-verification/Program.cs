@@ -162,6 +162,9 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     if (mode == "documents") { VerifyDocumentWindows(app, window, vm); window.Close(); return; }
     if (mode == "document-open-child")
     {
+        // 这一模式只由 documents 模式自己拉起的子进程走（第三个参数是待打开的文档）；
+        // 手工跑漏了参数就说清用法，别抛一句 IndexOutOfRange 裸栈。
+        if (args.Length < 3) throw new InvalidOperationException("document-open-child is spawned by the documents mode; it needs the document path as the third argument.");
         Pump(vm.OpenStartupDocumentAsync([args[2]]));
         Check(vm.DocumentInfo.CurrentFilePath == args[2], "Child process opens the supplied ordinary document");
         vm.Markdown += "\n\n独立进程编辑并保存。\n";
@@ -1032,9 +1035,16 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
     }
 }
 
+// 性能与压力夹具是真实世界的大文档，只存在于跑验证的人自己的机器上。缺文件时报清楚该传什么参数，
+// 别让 File.Open 抛一句看不懂的裸栈——CI 与别人的机器每次都踩在这里。
+string PerformanceSamplePath() => @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
+string RequireSample(string? path, string hint) =>
+    path is { Length: > 0 } sample && File.Exists(sample) ? sample
+        : throw new InvalidOperationException($"Sample document not found: {path}. {hint}");
+
 void VerifyHtmlTables(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
 {
-    var path = @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
+    var path = RequireSample(args.ElementAtOrDefault(2) ?? PerformanceSamplePath(), "Pass the HTML-table document as the third argument.");
     var source = File.ReadAllText(path);
     var before = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path));
     var tables = Markdig.Markdown.Parse(source).OfType<Markdig.Syntax.HtmlBlock>()
@@ -1167,10 +1177,8 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     var readingScroll = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<ScrollViewer>("PreviewScrollViewer")!;
     readingScroll.Offset = new Vector(0, 1200); Pump();
     var priorOffset = readingScroll.Offset.Y;
-    var priorReading = preview.SaveReadingPosition();
     wb.StartPresentation(); Pump(); SettleRendering(); wb.IncreasePresentationText(); Pump();
     wb.ShowPresentationMap(); Pump(); wb.StopPresentation(); Pump(); SettleRendering();
-    Console.WriteLine($"READING before={priorOffset} {priorReading}, after={readingScroll.Offset.Y} {preview.SaveReadingPosition()}");
     Check(Math.Abs(readingScroll.Offset.Y - priorOffset) < 5, "Exiting presentation restores the actual reading position");
     var relapPath = Path.Combine(output, "long-html-tables.md");
     var relapText = "# 长文档与 HTML 表格\n\n" + string.Join("\n\n", Enumerable.Range(1, 150).Select(i =>
@@ -1216,8 +1224,9 @@ void VerifyStress(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel
 {
     var folder = args.ElementAtOrDefault(2) ?? @"D:\github\md\mds";
     var rounds = int.TryParse(args.ElementAtOrDefault(3), out var count) ? count : 2;
-    var paths = Directory.GetFiles(folder, "Vex-0*.md").Order().Append(@"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md").ToArray();
-    Check(paths.Length >= 6 && paths.All(File.Exists), "Stress suite includes five rich local samples and the original RELAP document");
+    var paths = (Directory.Exists(folder) ? Directory.GetFiles(folder, "Vex-0*.md").Order() : Enumerable.Empty<string>())
+        .Append(PerformanceSamplePath()).ToArray();
+    Check(paths.Length >= 6 && paths.All(File.Exists), "Stress suite has five local samples plus the RELAP document (pass the sample folder as the third argument)");
     if (args.FirstOrDefault(arg => arg.StartsWith("--sample=")) is { } sample) paths = paths.Where(path => Path.GetFileName(path).StartsWith(sample[9..], StringComparison.OrdinalIgnoreCase)).ToArray();
     var contents = paths.ToDictionary(path => path, File.ReadAllText);
     var hashes = paths.ToDictionary(path => path, path => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path))));
@@ -1485,7 +1494,7 @@ void VerifyMermaidWorkspace(Vex.Modules.Shell.Views.MainWindow window, MainWindo
 void VerifyPerformance(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
 {
     MaximizePerformanceWindow(window);
-    var path = args.ElementAtOrDefault(3) ?? @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
+    var path = RequireSample(args.ElementAtOrDefault(3) ?? PerformanceSamplePath(), "Pass the large Markdown document as the fourth argument.");
     var layout = args.ElementAtOrDefault(2) ?? "instant";
     var before = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path));
     vm.Workbench.SelectLayout(layout); Pump();
@@ -1725,7 +1734,7 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     Pump(vm.OpenStartupDocumentAsync([BundledDocuments.GetPath("鸣谢.md")]));
     vm.Workbench.ShowRead(); Pump(); SettleRendering(); Capture(window, "thanks");
     Check(vm.DocumentInfo.CurrentFilePath == BundledDocuments.GetPath("鸣谢.md"), "Thanks uses the ordinary workspace document flow");
-    var performanceFile = args.ElementAtOrDefault(2) ?? @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
+    var performanceFile = args.ElementAtOrDefault(2) ?? PerformanceSamplePath();
     if (File.Exists(performanceFile))
     {
         var sampleHash = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(performanceFile));
