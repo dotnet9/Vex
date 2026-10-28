@@ -165,14 +165,7 @@ public sealed class DocumentService : IDocumentService
 
         return Task.Run<IReadOnlyList<DocumentFile>>(() =>
         {
-            var options = new EnumerationOptions
-            {
-                RecurseSubdirectories = true,
-                IgnoreInaccessible = true,
-                ReturnSpecialDirectories = false
-            };
-
-            return Directory.EnumerateFiles(folder, "*.*", options)
+            return WorkspaceFileEnumeration.EnumerateFiles(folder)
                 // 与文件选择器保持一致，文件夹扫描也识别常见 Markdown 扩展名。
                 .Where(IsSupportedDocumentPath)
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)

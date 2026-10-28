@@ -148,7 +148,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
+if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "file-icons" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -180,6 +180,7 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     if (mode == "pointer-regressions") { VerifyPointerRegressions(app, window, vm); window.Close(); return; }
     if (mode == "stress") { VerifyStress((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "file-tree") { VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), output); window.Close(); return; }
+    if (mode == "file-icons") { FileIconVerification.Run(app, window, output); window.Close(); return; }
     if (mode == "performance") { VerifyPerformance((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "workspace") { VerifySingleDocumentWorkspace(app, (Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "workbench") { VerifyWorkbench(app, window, vm); window.Close(); return; }
@@ -804,9 +805,14 @@ void VerifyFileColors(Window window, ThemeVariant theme)
         {
             Application.Current!.TryGetResource("VexAccentBrush", theme, out var accent);
             Application.Current!.TryGetResource("VexAccentSoftBrush", theme, out var selectedBackground);
+            // 文件树改造后选中底色画在通栏模板行（PART_LayoutRoot）上，卡片本身保持透明。
+            var selectedRow = t.GetVisualAncestors().OfType<TreeViewItem>().First()
+                .GetVisualDescendants().OfType<Border>().First(b => b.Name == "PART_LayoutRoot");
             return t.Foreground is ISolidColorBrush selectedForeground
                 && selectedForeground.Color == ((ISolidColorBrush)accent!).Color
-                && background == ((ISolidColorBrush)selectedBackground!).Color;
+                && (background == ((ISolidColorBrush)selectedBackground!).Color
+                    || selectedRow.Background is ISolidColorBrush rowBackground
+                    && rowBackground.Color == ((ISolidColorBrush)selectedBackground!).Color);
         }
         return t.Foreground is ISolidColorBrush foreground && Contrast(foreground.Color, background) >= 4.5;
     }), "Vex ordinary file-title contrast >= 4.5; selected card follows prototype accent colors under " + theme);
@@ -815,33 +821,47 @@ void VerifyFileColors(Window window, ThemeVariant theme)
 
 void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFolder)
 {
+    // 真实扫描段会换开 workspace-scan 工作区；先快照当前文档，函数末尾恢复，vex 管线返回后还要检查当前文档的排版渲染。
+    var shell = (MainWindowViewModel)window.DataContext!;
+    var originalDocumentPath = shell.GetCurrentDocumentSnapshot().FilePath;
     // 仅构造文件列表快照，不创建或打开这些布局验证路径。
     var documents = new[]
     {
         new DocumentFile(Path.Combine(sampleFolder, "Regression", "01-basics.md"), "01-basics.md", "Regression", "16:02", "Summary remains in the tooltip"),
         new DocumentFile(Path.Combine(sampleFolder, "Regression", "02-a-very-long-document-name-that-must-trim-inside-the-sidebar.md"), "02-a-very-long-document-name-that-must-trim-inside-the-sidebar.md", "Regression", "Yesterday", "Long summary does not expand the row"),
         new DocumentFile(Path.Combine(sampleFolder, "Regression", "Nested", "deep.md"), "deep.md", "Nested", "Monday", "Nested document"),
-        new DocumentFile(Path.Combine(sampleFolder, "root.md"), "root.md", "MarkdownSamples", "09-28", "Root document")
+        new DocumentFile(Path.Combine(sampleFolder, "root.md"), "root.md", "MarkdownSamples", "09-28", "Root document"),
+        new DocumentFile(Path.Combine(sampleFolder, ".config", "hidden.md"), "hidden.md", ".config", "", "Hidden document"),
+        new DocumentFile(Path.Combine(sampleFolder, "Regression", ".cache", "hidden.md"), "hidden.md", ".cache", "", "Nested hidden document")
     };
     vm.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(documents, documents[0], sampleFolder));
     Pump();
+    Check(!vm.DocumentFileNodes[0].IsExpanded && !vm.DocumentFileNodes[0].Children.First(node => node.IsFolder).IsExpanded,
+        "New workspace root and child folders start collapsed");
+    void ExpandFixture(IEnumerable<DocumentFileNode> nodes)
+    {
+        foreach (var node in nodes.Where(node => node.IsFolder)) { node.IsExpanded = true; ExpandFixture(node.Children); }
+    }
+    ExpandFixture(vm.DocumentFileNodes); Pump();
     var tree = window.GetVisualDescendants().OfType<TreeView>().Single(t => t.Classes.Contains("side-tree"));
+    var filesView = tree.FindAncestorOfType<Vex.Modules.Shell.Views.ShellFilesView>()!;
+    var searchBox = filesView.FindControl<Border>("FileSearchBox")!;
+    var treeLeft = tree.TranslatePoint(default, filesView)!.Value.X;
+    var searchLeft = searchBox.TranslatePoint(default, filesView)!.Value.X;
+    Check(Math.Abs(treeLeft - 5) < 0.1 && Math.Abs(searchLeft - treeLeft) < 0.1,
+        "File tree and search box share an exact 5 px left inset");
+    Check(Math.Abs(tree.Bounds.Width - searchBox.Bounds.Width) < 0.1,
+        "File tree and search box right edges also align");
     var items = tree.GetVisualDescendants().OfType<TreeViewItem>().Where(i => i.IsEffectivelyVisible).ToArray();
-    Check(items.Length == 6, "Vex tree renders root, sibling and nested documents");
+    Check(items.Length == 7, "Vex tree renders the workspace root, sibling and nested documents without dot folders");
     foreach (var selected in items.Where(i => i.IsSelected))
     {
-        foreach (var probe in new Control[] { selected }.Concat(selected.GetVisualDescendants().OfType<Control>()))
-        {
-            var background = probe switch
-            {
-                Border border => border.Background,
-                ContentPresenter presenter => presenter.Background,
-                Panel panel => panel.Background,
-                _ => null
-            };
-            if (background is ISolidColorBrush brush && brush.Color.A > 0)
-                Console.WriteLine($"PROBE {probe.GetType().Name}#{probe.Name} bg={brush.Color} bounds={probe.Bounds}");
-        }
+        var row = selected.GetVisualDescendants().OfType<Border>().First(border => border.Name == "PART_LayoutRoot");
+        Check(Math.Abs(row.TranslatePoint(default, tree)!.Value.X) < 1
+            && Math.Abs(row.Bounds.Width - tree.Bounds.Width) < 1,
+            "Selected nested row background spans the entire file tree including indentation");
+        Application.Current!.TryGetResource("VexAccentSoftBrush", Application.Current.ActualThemeVariant, out var accent);
+        Check(SameBrush(row.Background, accent as IBrush), "Selected row uses the theme selection background");
     }
     foreach (var item in items)
     {
@@ -849,14 +869,20 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
         var chevron = item.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
             .First(b => b.Name == "PART_ExpandCollapseChevron");
         var point = card.TranslatePoint(default, tree)!.Value;
-        Check(card.Bounds.Height is >= 29 and <= 38 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
+        Check(Math.Abs(card.Bounds.Height - 24) < 0.1 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
             "Vex tree has compact rows within sidebar bounds: " + ((DocumentFileNode)item.DataContext!).Name);
         Check(Math.Abs(chevron.TranslatePoint(default, tree)!.Value.Y + chevron.Bounds.Height / 2
             - point.Y - card.Bounds.Height / 2) < 1,
             "Vex tree chevron aligns with its own row");
-        var icon = card.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().First(p => p.IsEffectivelyVisible);
+        var icon = card.GetVisualDescendants().OfType<Control>().First(control => control.IsEffectivelyVisible
+            && control.Classes.Contains("tree-ico") && control is Image or Avalonia.Controls.Shapes.Path);
         var label = card.GetVisualDescendants().OfType<TextBlock>().First(t => t.IsEffectivelyVisible &&
             (t.Classes.Contains("file-title") || t.Classes.Contains("file-heading")));
+        Check(icon.Bounds.Width == 12 && icon.Bounds.Height == 12 && icon.Height <= label.FontSize,
+            "Tree icons stay at text size without increasing row height");
+        var arrow = chevron.GetVisualDescendants().OfType<PathIcon>().Single(path => path.Name == "PART_ExpandIconPath");
+        Check(arrow.Bounds.Width == 8 && arrow.Bounds.Height == 8,
+            "Tree expand arrows use compact 8 px icons");
         Check(Math.Abs(icon.TranslatePoint(default, card)!.Value.Y + icon.Bounds.Height / 2
             - label.TranslatePoint(default, card)!.Value.Y - label.Bounds.Height / 2) < 1,
             $"Vex tree icon and title align vertically: {icon.Bounds}/{icon.TranslatePoint(default, card)}; label {label.Bounds}/{label.TranslatePoint(default, card)}");
@@ -870,6 +896,10 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     Check(cardPositions.GroupBy(p => p.Level).All(g => g.Max(p => p.X) - g.Min(p => p.X) < 1)
         && cardPositions.All(p => Math.Abs(p.X - cardPositions.Min(x => x.X) - p.Level * 16) < 1),
         "Vex tree siblings align and each level indents by 16 px");
+    var rowPositions = items.Select(item => item.GetVisualDescendants().OfType<Border>()
+        .First(border => border.Name == "PART_LayoutRoot").TranslatePoint(default, tree)!.Value.Y).Order().ToArray();
+    Check(rowPositions.Zip(rowPositions.Skip(1), (previous, next) => next - previous).All(gap => Math.Abs(gap - 24) < 0.1),
+        "Tree rows use a consistent 24 px pitch without extra vertical margins");
     Capture(window, "vex-file-tree");
     var folder = items.First(i => i.Level == 0 && ((DocumentFileNode)i.DataContext!).IsFolder);
     var toggle = folder.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
@@ -883,6 +913,33 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     window.MouseUp(click, MouseButton.Left);
     Pump();
     Check(folder.IsExpanded, "Vex folder chevron expands its subtree");
+    var folderCard = folder.GetVisualDescendants().OfType<Border>().First(border => border.Classes.Contains("file-card"));
+    var rowClick = folderCard.TranslatePoint(new Point(60, 16), window)!.Value;
+    window.MouseDown(rowClick, MouseButton.Left); window.MouseUp(rowClick, MouseButton.Left); Pump();
+    Check(!folder.IsExpanded && ReferenceEquals(vm.SelectedDocumentFileNode, folder.DataContext),
+        $"Single-clicking the workspace folder row selects and collapses it (expanded={folder.IsExpanded}, selection={vm.SelectedDocumentFileNode?.Name}, target={((DocumentFileNode)folder.DataContext!).Name})");
+    window.MouseDown(rowClick, MouseButton.Left); window.MouseUp(rowClick, MouseButton.Left); Pump();
+    Check(folder.IsExpanded, "Clicking the already selected folder row expands it again");
+    var nestedFolder = items.First(item => ((DocumentFileNode)item.DataContext!).Name == "Nested");
+    var nestedCard = nestedFolder.GetVisualDescendants().OfType<Border>().First(border => border.Classes.Contains("file-card"));
+    var nestedClick = nestedCard.TranslatePoint(new Point(45, 16), window)!.Value;
+    window.MouseDown(nestedClick, MouseButton.Left); window.MouseUp(nestedClick, MouseButton.Left); Pump();
+    Check(!nestedFolder.IsExpanded && nestedFolder.IsSelected, "Nested folder names respond to single click");
+    window.MouseDown(nestedClick, MouseButton.Left); window.MouseUp(nestedClick, MouseButton.Left); Pump();
+    Check(nestedFolder.IsExpanded, "Nested folder single-click expands its contents");
+    var nestedRow = nestedFolder.GetVisualDescendants().OfType<Border>().First(border => border.Name == "PART_LayoutRoot");
+    Check(Math.Abs(nestedRow.TranslatePoint(default, tree)!.Value.X) < 1
+        && Math.Abs(nestedRow.Bounds.Width - tree.Bounds.Width) < 1,
+        "Selected nested folder background spans the full width");
+    var main = (MainWindowViewModel)window.DataContext!;
+    foreach (var theme in new[] { "dark", "light" })
+    {
+        main.Appearance.SelectThemeByKey(theme); Pump();
+        Application.Current!.TryGetResource("VexAccentSoftBrush", Application.Current.ActualThemeVariant, out var accent);
+        Check(SameBrush(nestedRow.Background, accent as IBrush), "Full-row folder selection follows the theme: " + theme);
+        Capture(window, "vex-file-tree-folder-" + theme);
+    }
+    Capture(window, "vex-file-tree-folder-selected");
     vm.FilterText = "deep";
     // 过滤会重建树容器，等待布局队列完成后再核对实际可见节点。
     PumpUntil(() => tree.GetVisualDescendants().OfType<TextBlock>()
@@ -891,6 +948,88 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
         "Vex file filter retains the matching document and its ancestors");
     vm.FilterText = string.Empty;
     Pump();
+
+    // 真实扫描覆盖两个入口，避免只有 UI 快照过滤正确。
+    var workspace = Path.Combine(sampleFolder, "workspace-scan");
+    foreach (var relative in new[] { "normal.md", ".note.md", "visible.name/child.md", ".settings/hidden.md", "visible.name/.cache/nested.md" })
+    {
+        var path = Path.Combine(workspace, relative);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, "# " + relative);
+    }
+    var app = (VerificationVexApp)Application.Current!;
+    var scan = app.Resolve<IDocumentService>().OpenFolderPathAsync(workspace); Pump(scan);
+    Check(scan.Result.Count == 3 && scan.Result.Any(file => file.Name == ".note.md"),
+        "Workspace scan skips all dot directories while retaining dot files and ordinary dotted directories");
+    Pump(main.OpenStartupDocumentAsync([workspace])); Pump();
+    Check(vm.DocumentFileNodes.Count == 1 && vm.SelectedDocumentFileNode is { IsFolder: true } root
+        && root.Path == workspace && !root.IsExpanded,
+        "Opening a folder selects its collapsed workspace root after document loading");
+    var rootItem = tree.GetVisualDescendants().OfType<TreeViewItem>().First(item => item.Level == 0);
+    Check(rootItem.IsKeyboardFocusWithin, "Opened workspace root receives keyboard focus");
+    var rootCard = rootItem.GetVisualDescendants().OfType<Border>().First(border => border.Classes.Contains("file-card"));
+    var rootClick = rootCard.TranslatePoint(new Point(70, 16), window)!.Value;
+    window.MouseDown(rootClick, MouseButton.Left); window.MouseUp(rootClick, MouseButton.Left); Pump();
+    Check(rootItem.IsExpanded && vm.DocumentFileNodes[0].Children.Where(node => node.IsFolder).All(node => !node.IsExpanded),
+        "First folder click reveals only the next level, with child folders still collapsed");
+    Pump(main.RefreshFilesAsync()); Pump();
+    Check(tree.GetVisualDescendants().OfType<TreeViewItem>().First(item => item.Level == 0).IsExpanded,
+        "Refreshing preserves a manually expanded workspace root");
+    rootItem = tree.GetVisualDescendants().OfType<TreeViewItem>().First(item => item.Level == 0);
+    rootCard = rootItem.GetVisualDescendants().OfType<Border>().First(border => border.Classes.Contains("file-card"));
+    rootClick = rootCard.TranslatePoint(new Point(70, 12), window)!.Value;
+    window.MouseDown(rootClick, MouseButton.Left); window.MouseUp(rootClick, MouseButton.Left); Pump();
+    Pump(main.RefreshFilesAsync()); Pump();
+    Check(!tree.GetVisualDescendants().OfType<TreeViewItem>().First(item => item.Level == 0).IsExpanded,
+        "Refreshing preserves the actual collapsed workspace container");
+    Pump(main.OpenStartupDocumentAsync([workspace])); Pump();
+    Check(!tree.GetVisualDescendants().OfType<TreeViewItem>().First(item => item.Level == 0).IsExpanded,
+        "Explicitly reopening a workspace keeps its actual root container collapsed");
+    Pump(main.RefreshFilesAsync()); Pump();
+    Check(vm.SelectedDocumentFileNode?.Path == workspace, "Refreshing retains the selected workspace folder");
+    vm.ToggleSort(); Pump();
+    Check(vm.SelectedDocumentFileNode?.Path == workspace && tree.SelectedItem == vm.SelectedDocumentFileNode,
+        "Sorting retains selection on the displayed workspace root");
+    vm.ToggleSort(); Pump();
+    var directFolder = Path.Combine(sampleFolder, "direct-file-scan-" + Guid.NewGuid().ToString("N"));
+    Directory.CreateDirectory(Path.Combine(directFolder, ".hidden"));
+    var directFile = Path.Combine(directFolder, "visible.md");
+    File.WriteAllText(directFile, "# Visible");
+    File.WriteAllText(Path.Combine(directFolder, ".hidden", "hidden.md"), "# Hidden");
+    Pump(main.OpenPathAsync(directFile)); Pump();
+    Check(main.DocumentFiles.Count == 1 && vm.SelectedDocumentFileNode?.Path == directFile,
+        "Direct file opening applies the same hidden-folder rule and selects the opened document");
+    var otherFile = Path.Combine(directFolder, "other.md");
+    File.WriteAllText(otherFile, "# Other");
+    Pump(main.RefreshFilesAsync()); Pump();
+    vm.SelectedDocumentFileNode = vm.DocumentFileNodes[0];
+    main.Markdown += "\nUnsaved tree selection regression";
+    vm.SelectedDocumentFileNode = vm.DocumentFileNodes[0].Children.First(node => node.Path == otherFile);
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Any());
+    ((ShellUnsavedDialogViewModel)window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUnsavedDialogView>().Single().DataContext!).Cancel();
+    Pump();
+    Check(main.DocumentInfo.CurrentFilePath == directFile && vm.SelectedDocumentFileNode?.Path == directFile
+        && main.DocumentInfo.IsModified, "Canceling a file switch after folder selection restores the actual document selection");
+    Pump(main.SaveAsync());
+    var emptyFolder = Path.Combine(sampleFolder, "empty-workspace");
+    Directory.CreateDirectory(emptyFolder);
+    Pump(main.OpenStartupDocumentAsync([emptyFolder])); Pump();
+    Check(vm.DocumentFileNodes.Count == 1 && vm.DocumentFileNodes[0].Children.Count == 0
+        && vm.SelectedDocumentFileNode?.Path == emptyFolder,
+        "Empty workspace still displays and selects its root folder");
+    Capture(window, "vex-file-tree-empty-root");
+
+    // 恢复进入本函数前的文档现场，管线后续步骤继续在原文档上验证渲染细节；
+    // 文件夹全部展开以对齐旧的默认展开行为，保证后续步骤能看到文件卡。
+    if (originalDocumentPath is { Length: > 0 } documentPath)
+    {
+        Pump(shell.OpenStartupDocumentAsync([documentPath])); Pump();
+        void ExpandAllFolders(IEnumerable<DocumentFileNode> nodes)
+        {
+            foreach (var node in nodes.Where(node => node.IsFolder)) { node.IsExpanded = true; ExpandAllFolders(node.Children); }
+        }
+        ExpandAllFolders(vm.DocumentFileNodes); Pump();
+    }
 }
 
 void MaximizePerformanceWindow(Window window)

@@ -5,6 +5,8 @@
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:models="using:Vex.Core.Models"
+    xmlns:converters="using:Vex.Modules.Shell.Views"
+    xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:regions="using:Vex.Core.Regions"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
@@ -13,17 +15,38 @@
     regions:RegionTab.HeaderKey="{x:Static l:VexL.SidebarFiles}"
     regions:RegionTab.IconData="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6">
 
+    <UserControl.Resources>
+        <converters:FileIconConverter x:Key="FileIconConverter" />
+    </UserControl.Resources>
+
     <UserControl.DataTemplates>
         <TreeDataTemplate DataType="models:DocumentFileNode" ItemsSource="{Binding Children}">
             <!-- 文件树使用原型的单行布局，摘要放入提示，避免文件夹空摘要撑高行。 -->
             <Border Classes="file-card" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"
+                    DoubleTapped="OnFileRowDoubleTapped"
                     Classes.folder="{Binding IsFolder}"
                     ToolTip.Tip="{Binding Preview}" ToolTip.IsEnabled="{Binding IsDocument}">
-                <Grid Classes="file-row" ColumnDefinitions="14,*,Auto" ColumnSpacing="6">
-                    <Path Classes="tree-ico" VerticalAlignment="Center" IsVisible="{Binding IsFolder}"
-                          Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                    <Path Classes="tree-ico" VerticalAlignment="Center" IsVisible="{Binding IsDocument}"
-                          Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+                <Grid Classes="file-row" ColumnDefinitions="12,*,Auto" ColumnSpacing="6">
+                    <Panel Width="12" Height="12" VerticalAlignment="Center">
+                        <Image x:Name="FileTypeIcon" Classes="tree-ico" Width="12" Height="12" Stretch="Uniform"
+                               IsVisible="{Binding #FileTypeIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNotNull}}">
+                            <Image.Source>
+                                <MultiBinding Converter="{StaticResource FileIconConverter}">
+                                    <Binding Path="Name" />
+                                    <Binding Path="IsFolder" />
+                                    <Binding Path="IsExpanded" />
+                                    <Binding Path="$parent[UserControl].ActualThemeVariant" />
+                                    <Binding Path="$parent[TreeViewItem].Level" />
+                                </MultiBinding>
+                            </Image.Source>
+                        </Image>
+                        <Panel IsVisible="{Binding #FileTypeIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNull}}">
+                            <Path Classes="tree-ico" IsVisible="{Binding IsFolder}"
+                                  Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                            <Path Classes="tree-ico" IsVisible="{Binding IsDocument}"
+                                  Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+                        </Panel>
+                    </Panel>
                     <TextBlock Grid.Column="1" Classes="file-heading" IsVisible="{Binding IsFolder}"
                                VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                     <TextBlock Grid.Column="1" Classes="file-title" IsVisible="{Binding IsDocument}"
@@ -34,7 +57,7 @@
     </UserControl.DataTemplates>
 
     <UserControl.Styles>
-        <Style Selector="TreeViewItem" x:DataType="models:DocumentFileNode">
+        <Style Selector="TreeView.side-tree TreeViewItem" x:DataType="models:DocumentFileNode">
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
         </Style>
         <!-- 对应原型 .files-toolbar button：26×26、5px 圆角、按下为 accent-soft。 -->
@@ -66,9 +89,10 @@
     <Grid RowDefinitions="Auto,Auto,*">
         <!-- 对应原型 .sidebar-search：32px 高、8px 圆角、内嵌搜索图标与常显清除按钮。 -->
         <Border
+            x:Name="FileSearchBox"
             Grid.Row="0"
             Height="32"
-            Margin="12,14,12,12"
+            Margin="5,14,5,8"
             Padding="8,0"
             CornerRadius="8"
             BorderThickness="1"
@@ -102,8 +126,10 @@
         </Border>
 
         <TreeView
+            x:Name="FileTree"
             Grid.Row="2"
             Classes="side-tree"
+            Margin="5,0"
             IsVisible="{Binding IsTreeView}"
             ItemsSource="{Binding FilteredDocumentFileNodes}"
             PointerPressed="SelectItemOnPointerPressed"
@@ -137,7 +163,7 @@
             </TreeView.ContextMenu>
         </TreeView>
         <ListBox x:Name="FileList" Grid.Row="2" Classes="side-list" IsVisible="{Binding IsListView}"
-                 ItemsSource="{Binding FlatDocumentFileNodes}" SelectedItem="{Binding SelectedDocumentFileNode, Mode=TwoWay}" PointerPressed="SelectItemOnPointerPressed">
+                 ItemsSource="{Binding FlatDocumentFileNodes}" SelectedItem="{Binding SelectedListDocumentFileNode, Mode=TwoWay}" PointerPressed="SelectItemOnPointerPressed">
             <ListBox.ItemTemplate><DataTemplate x:DataType="models:DocumentFileNode">
                 <Grid RowDefinitions="Auto,Auto" Margin="4,5" ToolTip.Tip="{Binding Path}">
                     <TextBlock Text="{Binding Name}" FontSize="14" TextTrimming="CharacterEllipsis"/>
@@ -209,8 +235,8 @@
                         IsEnabled="{Binding CanCollapseAll}"
                         ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}">
-                    <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.6"
-                          Data="M4 9L12 15L20 9 M4 15L12 21L20 15" />
+                    <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.4"
+                          Data="M8 16H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v4 M9 8h11a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z M12 14.5h5" />
                 </Button>
             </StackPanel>
         </Border>

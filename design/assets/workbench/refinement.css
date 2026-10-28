@@ -33,14 +33,14 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .side-tab.on::after { left:calc(50% - 16px); right:calc(50% - 16px); }
 .sidebar-search input { font-size:var(--fs-caption,12px); }
 .file-directory { margin:0; }
-.file-directory > summary { list-style:none; cursor:pointer; min-height:var(--row-h,30px); padding:0 var(--pad-sm,6px); display:flex; align-items:center; gap:var(--gap-sm,6px); font-size:var(--fs-caption,12px); color:var(--fg); border-radius:var(--vex-radius-sm); }
+.file-directory > summary { list-style:none; cursor:pointer; min-height:var(--row-h,24px); padding:0 4px; display:flex; align-items:center; gap:var(--gap-sm,6px); font-size:var(--fs-caption,12px); color:var(--fg); border-radius:0; }
 .file-directory > summary::-webkit-details-marker { display:none; }
 .file-directory > summary:hover { background:var(--hover); }
-.file-directory > summary .tree-chevron { width:12px; height:12px; transition:transform var(--vex-fast); }
+.file-directory > summary .tree-chevron { width:8px; height:8px; transition:transform var(--vex-fast); }
 .file-directory[open] > summary > .tree-chevron { transform:rotate(90deg); }
 .file-directory > summary span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.file-directory > .file-children { padding-left:14px; }
-.file-row { padding-left:8px; }
+.file-directory > .file-children { padding-left:16px; }
+.file-row { padding-left:4px; }
 .outline-list { padding:var(--pad-md,10px); }
 .outline-item { font-size:var(--fs-body,14px); }
 .edit-options > .typography-trigger { margin-left:auto; }
@@ -50,7 +50,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .format-button,.format-divider { flex:none; }
 .input-group > .input { flex:1; min-width:0; width:0; }
 .input-group > .btn,.endpoint > .btn { flex:none; white-space:nowrap; }
-.file-row { min-height:var(--row-h,30px); }
+.file-row { min-height:var(--row-h,24px); }
 .win-body { font-size:var(--fs-body,14px); line-height:1.7; }
 .win-body .sub,.win-body small { font-size:var(--fs-caption,12px); }
 .tour-card { width:344px; padding:var(--pad-lg,14px); border-radius:var(--vex-radius-md); }

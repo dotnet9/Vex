@@ -603,6 +603,9 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                 await OpenDocumentFileAsync(firstFile, null);
             }
         }
+
+        // 文件载入会同步文档选择；最后再将导航焦点落在本次打开的文件夹。
+        PublishDocumentFilesChanged(firstFile, focusWorkspaceRoot: true);
     }
 
     private async Task OpenDocumentFileAsync(DocumentFile file, DocumentFile? previousSelection)
@@ -893,12 +896,13 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _workspaceDocumentState.UpdateDocument(Markdown, _document.FilePath);
     }
 
-    private void PublishDocumentFilesChanged(DocumentFile? selectedFile = null)
+    private void PublishDocumentFilesChanged(DocumentFile? selectedFile = null, bool focusWorkspaceRoot = false)
     {
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(
             _documentFiles,
             selectedFile,
-            _currentWorkspaceFolderPath));
+            _currentWorkspaceFolderPath,
+            focusWorkspaceRoot));
     }
 
     private void UpdateCurrentWorkspaceFolder(string? folderPath, bool persist)
@@ -961,12 +965,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         }
 
         UpdateCurrentWorkspaceFolder(directory, true);
-        _documentFiles = Directory.EnumerateFiles(directory, "*.*", new EnumerationOptions
-            {
-                RecurseSubdirectories = true,
-                IgnoreInaccessible = true,
-                ReturnSpecialDirectories = false
-            })
+        _documentFiles = WorkspaceFileEnumeration.EnumerateFiles(directory)
             .Where(_documentService.IsSupportedDocumentPath)
             .OrderBy(filePath => filePath, StringComparer.OrdinalIgnoreCase)
             .Select(filePath => _documentFileFactory.Create(filePath, directory))

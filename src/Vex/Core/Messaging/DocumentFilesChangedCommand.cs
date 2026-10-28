@@ -8,11 +8,13 @@ public sealed class DocumentFilesChangedCommand : Command
     public DocumentFilesChangedCommand(
         IReadOnlyList<DocumentFile> files,
         DocumentFile? selectedFile = null,
-        string? workspaceRootPath = null)
+        string? workspaceRootPath = null,
+        bool focusWorkspaceRoot = false)
     {
         Files = files.ToArray();
         SelectedFile = selectedFile;
         WorkspaceRootPath = workspaceRootPath;
+        FocusWorkspaceRoot = focusWorkspaceRoot;
     }
 
     public IReadOnlyList<DocumentFile> Files { get; }
@@ -20,4 +22,6 @@ public sealed class DocumentFilesChangedCommand : Command
     public DocumentFile? SelectedFile { get; }
 
     public string? WorkspaceRootPath { get; }
+
+    public bool FocusWorkspaceRoot { get; }
 }
