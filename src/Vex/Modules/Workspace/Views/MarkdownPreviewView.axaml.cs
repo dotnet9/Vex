@@ -208,6 +208,9 @@ public partial class MarkdownPreviewView : UserControl
             {
                 _savedReadingPosition = _viewModel?.Markdown == _presentationReadingSource ? _presentationReadingPosition : null;
                 _presentationReadingPosition = null; _presentationReadingSource = null;
+                // 退出演示的几何重排会同步刷一次滚动，采样器赶在恢复之前就把刚接住的锚点改写掉。
+                // 先立恢复中的牌子：这段采样不写锚点，收尾仍由 RestoreReadingPosition 负责。
+                if (_savedReadingPosition is not null) _restoringScrollPosition = true;
             }
             ApplyDocumentGeometry();
             if (_viewModel?.IsPresenting == true) { PreviewScrollViewer.Focus(); PreviewScrollViewer.Offset = default; }
@@ -233,7 +236,9 @@ public partial class MarkdownPreviewView : UserControl
         else if (e.PropertyName == nameof(MarkdownPreviewViewModel.DocumentScale) && _viewModel?.IsPresenting != true)
         {
             // 内容缩放改变整篇高度，视口中心会落到别的章节：先记住当前锚点，重排后回位。
-            if (PreviewMarkdownViewer.SaveReadingPosition() is { } anchor) _savedReadingPosition = anchor;
+            // 退出演示时缩放倍率与 IsPresenting 一起回落，而这一拍视口还停在演示几何里：
+            // 重新采样会把刚接住的全文锚点换成重排后的落点，恢复就「原地达标」，正文停在开头。
+            if (!_restoringScrollPosition && PreviewMarkdownViewer.SaveReadingPosition() is { } anchor) _savedReadingPosition = anchor;
             ApplyDocumentGeometry();
             QueueRestoreReadingPosition();
         }
