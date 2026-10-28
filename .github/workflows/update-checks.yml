@@ -49,6 +49,11 @@ jobs:
         run: |
           dotnet artifacts/bin/UiVerification/release/UiVerification.dll mermaid artifacts/mermaid
           if ($LASTEXITCODE -ne 0) { throw 'Mermaid verification failed' }
+      - name: 演示进出与阅读锚点回归
+        shell: pwsh
+        run: |
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll presentation artifacts/presentation
+          if ($LASTEXITCODE -ne 0) { throw 'Presentation verification failed' }
       - name: 真实 Inno 夹具窗口交接
         shell: pwsh
         run: |
