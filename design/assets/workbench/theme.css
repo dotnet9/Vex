@@ -85,7 +85,7 @@ a:hover { text-decoration: underline; }
   background: var(--accent-soft);
   border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   padding: 1px 8px;
-  border-radius: 999px;
+  border-radius:var(--vex-radius-pill);
   white-space: nowrap;
 }
 .proto-desc {
@@ -319,7 +319,7 @@ a:hover { text-decoration: underline; }
 .switch {
   position: relative;
   width: 36px; height: 20px;
-  border-radius: 999px;
+  border-radius:var(--vex-radius-pill);
   background: var(--badge-border);
   border: none;
   cursor: pointer;
@@ -889,7 +889,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   color: var(--tooltip-fg);
   font-size:12px;
   padding: 8px 16px;
-  border-radius: 999px;
+  border-radius:var(--vex-radius-pill);
   box-shadow: var(--shadow-pop);
   opacity: 0;
   transform: translateY(8px);
@@ -928,7 +928,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   color: var(--muted);
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius:var(--vex-radius-pill);
   padding: 4px 14px;
   cursor: pointer;
   box-shadow: var(--shadow-pop);
@@ -954,7 +954,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   color: var(--muted);
   background: color-mix(in srgb, var(--panel) 88%, transparent);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius:var(--vex-radius-pill);
   padding: 3px 12px;
   pointer-events: none;
 }

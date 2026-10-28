@@ -461,7 +461,7 @@ body[data-platform=macos] .tb-menuitem:first-child { font-weight:600; }
 }
 .progress-track, .progress-wrap .progress-track {
   overflow: hidden;
-  border-radius: 999px;
+  border-radius:var(--vex-radius-pill);
 }
 .system-dialog {
   border: 1px solid var(--line);

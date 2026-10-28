@@ -27,7 +27,7 @@
     display: inline-flex; align-items: center; gap: 5px;
     font-size:11px; font-weight: 600; color: var(--success);
     background: color-mix(in srgb, var(--success) 10%, transparent);
-    border-radius: 999px; padding: 1px 9px;
+    border-radius:var(--vex-radius-pill); padding: 1px 9px;
   }
   .pill-ok::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
 
@@ -40,7 +40,7 @@
   .about-row { display: contents; }
   .about-row .k { color: var(--muted); }
   .about-row .v { color: var(--value); }
-  .ver-badge { display: inline-flex; font-size:11px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 10px; }
+  .ver-badge { display: inline-flex; font-size:11px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius:var(--vex-radius-pill); padding: 1px 10px; }
   .about-link { color: var(--accent); text-underline-offset: 3px; font: inherit; background: none; border: none; padding: 0; }
   .about-link:hover { text-decoration: underline; }
   .about-version, .about-links { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }

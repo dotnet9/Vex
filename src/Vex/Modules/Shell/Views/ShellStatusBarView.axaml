@@ -44,7 +44,7 @@
 
  <!-- 对应原型 .workspace-main .document-statusbar：状态栏退役为悬浮胶囊——块面底 + 1px 描边 + 整胶囊圆角，
       宽度随内容收缩，靠 MainWindow 的右下角定位（bottom 16、水平居中于正文列）。 -->
- <Border Classes="status-pill" Padding="6,4" CornerRadius="999" BorderThickness="1"
+ <Border Classes="status-pill" Padding="6,4" CornerRadius="{DynamicResource VexDensityCornerRadiusPill}" BorderThickness="1"
          Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
          BoxShadow="{DynamicResource VexPopShadow}">
   <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">

@@ -84,7 +84,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .update-date { color:var(--muted); font-size:12px; }
 .update-entries { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px; }
 .update-entries li { display:flex; align-items:baseline; gap:8px; font-size:12px; line-height:1.65; color:var(--fg); }
-.update-tag { flex:0 0 auto; padding:1px 7px; border-radius:999px; font-size:11px; font-weight:600; color:var(--fg); }
+.update-tag { flex:0 0 auto; padding:1px 7px; border-radius:var(--vex-radius-pill); font-size:11px; font-weight:600; color:var(--fg); }
 .update-tag.tag-new { background:var(--success-soft); color:var(--success); }
 .update-tag.tag-opt { background:var(--info-soft); color:var(--info); }
 .update-tag.tag-remove { background:var(--danger-soft); color:var(--danger); }
