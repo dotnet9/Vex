@@ -54,13 +54,10 @@
     }).join('');
   }
 
-  function icon(name) { $('update-icon').innerHTML = '<svg class="ico"><use href="#i-' + name + '"/></svg>'; }
-  function setHero(title, sub, name, spinning) {
+  function setHero(title, sub) {
     $('update-phase-title').textContent = title;
     $('update-phase-sub').textContent = sub;
     $('update-phase-sub').hidden = !sub;
-    icon(name);
-    $('update-icon').classList.toggle('spinning', !!spinning);
   }
   function setActions(buttons) {
     const row = $('update-actions');
@@ -80,65 +77,62 @@
     $('update-progress-bar').style.width = percent + '%';
     $('update-progress-num').textContent = percent + '%';
   }
-  function showChanges(open) {
-    $('update-changes').hidden = newer.length === 0;
-    $('update-changes').open = !!open;
-  }
-
   function render() {
     const current = currentVersion();
     const latest = newer.length ? newer[0] : null;
     switch (state) {
       case 'checking':
-        setHero('正在检查更新...', '正在连接服务器，请稍候...', 'refresh', true);
+        setHero('正在检查更新...', '正在连接服务器，请稍候...');
         setActions([]);
-        setProgress(null); showChanges(false);
+        setProgress(null);
         break;
       case 'current':
-        setHero('已是最新版本', '当前版本 ' + current + '（' + releaseDate(current) + ' 发布）', 'check', false);
+        setHero('已是最新版本', '当前版本 ' + current + '（' + releaseDate(current) + ' 发布）');
         setActions([{ label: '检查更新', onClick: () => operation('checking') }]);
-        setProgress(null); showChanges(false);
+        setProgress(null);
         break;
-      case 'available': {
-        setHero('发现新版本 ' + latest.version,
-          latest.date + ' 发布' + (newer.length > 1 ? ' · 共 ' + newer.length + ' 个版本' : ''),
-          'up', false);
-        setActions([{ label: '下载更新', primary: true, onClick: () => operation('downloading') }]);
-        setProgress(null); showChanges(false);
+      case 'available':
+        setHero('Vex最新' + latest.version + '版本来了！', '您目前使用版本为' + current + '版本，新版本更新日志如下：');
+        setActions([
+          { label: '稍后升级', onClick: closeLayer },
+          { label: '立即升级', primary: true, onClick: () => operation('downloading') },
+        ]);
+        setProgress(null);
         break;
-      }
       case 'downloading':
-        setHero('正在下载更新 ' + latest.version, '', 'download', false);
+        setHero('正在下载更新 ' + latest.version, '');
         setActions([{ label: '取消', onClick: cancelDownload }]);
         break;
       case 'downloaded':
-        setHero('下载完成', '新版本 ' + latest.version + ' 已通过校验，可以安装。', 'check', false);
+        setHero('下载完成', '新版本 ' + latest.version + ' 已通过校验，可以安装。');
         setActions([
-          { label: '稍后安装', onClick: () => { closeLayer(); } },
+          { label: '稍后升级', onClick: () => { closeLayer(); } },
           { label: '立即安装', primary: true, onClick: () => operation('installing') },
         ]);
-        setProgress(null); showChanges(true);
+        setProgress(null);
         break;
       case 'installing':
-        setHero('正在启动安装程序…', '更新包已下载并校验完成。启动后 Vex 将退出，安装将在独立安装程序中继续。', 'refresh', true);
+        setHero('正在启动安装程序…', '更新包已下载并校验完成。启动后 Vex 将退出，安装将在独立安装程序中继续。');
         setActions([]);
         break;
       case 'installed':
-        setHero('更新已安装', '重启应用后生效。', 'check', false);
+        setHero('更新已安装', '重启应用后生效。');
         setActions([{ label: '完成', onClick: () => { closeLayer(); } }]);
-        setProgress(null); showChanges(false);
+        setProgress(null);
         break;
       case 'failed':
-        setHero(failureMessages[scenario] || '检查失败，请重试。', '', 'refresh', false);
+        setHero(failureMessages[scenario] || '检查失败，请重试。', '');
         setActions([{ label: '重试', primary: true, onClick: () => operation(retry) }]);
-        setProgress(null); showChanges(false);
+        setProgress(null);
         break;
       case 'canceled':
-        setHero('已取消', '可随时重新检查更新。', 'up', false);
+        setHero('已取消', '可随时重新检查更新。');
         setActions([{ label: '检查更新', onClick: () => operation('checking') }]);
-        setProgress(null); showChanges(false);
+        setProgress(null);
         break;
     }
+    /* 更新日志常驻展开（不再有折叠开关），有新版就显示在按钮上方。 */
+    $('update-changes').hidden = newer.length === 0;
   }
 
   function closeLayer() { $('layer-update').hidden = true; }

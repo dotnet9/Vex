@@ -209,7 +209,6 @@ body > .submenu.menu-compact { padding: 4px; }
 .studio-language > div { background: var(--elevated); border-color: var(--border); box-shadow: var(--shadow-pop); }
 .app-window :is(.format-button,.toolbar-button,.icon-button,.edit-options button):hover { background: var(--hover); }
 .app-window :is(.format-button,.toolbar-button,.icon-button):active { background: var(--pressed); }
-.app-window .update-icon { color: var(--accent-fg); }
 input, textarea, select {
   color: var(--fg);
   background-color: transparent;

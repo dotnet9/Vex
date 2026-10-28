@@ -2521,7 +2521,11 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     SettleRendering();
     var updateCard = view.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
     Check(updateCard.Bounds.Width == 620 && ((Grid)updateCard.Child!).Children[0].Bounds.Height == 36, "Update uses the unified 620px dialog frame and fixed 36px title bar");
-    Check(!view.FindControl<Expander>("UpdateNotes")!.IsExpanded, "Available update keeps release notes collapsed");
+    Check(view.FindControl<Border>("UpdateNotes")!.IsVisible, "Available update shows the release notes with no collapse toggle");
+    var updateNotes = view.FindControl<Border>("UpdateNotes")!;
+    var updateAction = view.FindControl<Button>("UpdateAction")!;
+    Check(updateNotes.TranslatePoint(new Point(0, updateNotes.Bounds.Height), updateAction) is { } notesBottom && notesBottom.Y <= 0, "Release notes sit above the action row");
+    Check(view.FindControl<Button>("UpdateDismiss")!.IsVisible, "Available update offers dismiss beside the primary action");
     Capture(window, "updates-available");
     var download = model.AdvanceAsync(); Pump();
     Check(model.IsDownloading && service.Downloads == 1, "Shared view starts one download");
@@ -2542,7 +2546,7 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
         "Repeated entry requests reuse one visible dialog");
     service.CompleteDownload(); Pump(download);
     Check(model.State == UpdateState.Downloaded && model.HasDownload, "Reopened view receives the completed download");
-    Check(view.FindControl<Expander>("UpdateNotes")!.IsExpanded, "Downloaded update expands the release notes");
+    Check(view.FindControl<Border>("UpdateNotes")!.IsVisible, "Downloaded update keeps the release notes in place");
     Capture(window, "updates-downloaded");
     Pump(model.AdvanceAsync());
     Check(model.State == UpdateState.Failed && model.HasDownload && !aboutTask.IsCompleted, "Failed installation keeps Vex and the update view open");
@@ -2557,9 +2561,15 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
         Capture(window, "updates-" + culture + "-" + theme);
     }
     model.Close(); Pump(aboutTask); Pump(duplicate);
-    var reopen = overlay.ShowUpdatesAsync(); Pump();
+    PumpUntil(() => !window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
+    var reopen = overlay.ShowUpdatesAsync();
+    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
+    view = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Single();
     Check(model.HasDownload && model.State == UpdateState.Failed && service.Downloads == 1, "Installer failure can be reopened without downloading again");
-    model.Close(); Pump(reopen);
+    Check(view.FindControl<Button>("UpdateDismiss")!.IsVisible, "Reopened failure still offers dismiss beside the retry action");
+    view.FindControl<Button>("UpdateDismiss")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+    PumpUntil(() => !window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
+    Pump(reopen);
 }
 
 public sealed class VerificationVexApp : Vex.App

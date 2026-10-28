@@ -19,10 +19,11 @@ public static class VexL
     public static readonly string UpdateDownloadComplete = "Vex.VexL.UpdateDownloadComplete";
     public static readonly string UpdateFinished = "Vex.VexL.UpdateFinished";
     public static readonly string UpdateConnecting = "Vex.VexL.UpdateConnecting";
+    public static readonly string UpdateAvailableTitle = "Vex.VexL.UpdateAvailableTitle";
     public static readonly string UpdateCurrentVersion = "Vex.VexL.UpdateCurrentVersion";
+    public static readonly string UpdateCurrentVersionNote = "Vex.VexL.UpdateCurrentVersionNote";
     public static readonly string UpdateInstallingHint = "Vex.VexL.UpdateInstallingHint";
     public static readonly string UpdateLater = "Vex.VexL.UpdateLater";
-    public static readonly string UpdateNotesTitle = "Vex.VexL.UpdateNotesTitle";
     public static readonly string AboutLicense = "Vex.VexL.AboutLicense";
     public static readonly string AboutDialogTitle = "Vex.VexL.AboutDialogTitle";
     public static readonly string AboutShortSlogan = "Vex.VexL.AboutShortSlogan";

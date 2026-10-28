@@ -331,7 +331,7 @@
         <div class="mini-titlebar"><span id="update-title" data-proto-label="检查更新">检查更新</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
         <div class="update-body">
           <div class="update-hero">
-            <span class="update-icon" id="update-icon" aria-hidden="true"><svg class="ico"><use href="#i-up"/></svg></span>
+            <span class="update-icon" id="update-icon" aria-hidden="true"><img src="assets/vex-logo.svg" alt=""></span>
             <div class="update-copy" role="status" aria-live="polite" aria-atomic="true">
               <strong id="update-phase-title">正在检查更新...</strong>
               <span class="update-sub" id="update-phase-sub">正在连接服务器，请稍候...</span>
@@ -341,11 +341,10 @@
             <div class="update-progress-track"><div class="update-progress-bar" id="update-progress-bar"></div></div>
             <span class="update-progress-num" id="update-progress-num">0%</span>
           </div>
-          <div class="update-actions" id="update-actions"></div>
-          <details class="update-changes" id="update-changes">
-            <summary>更新内容（点击展开）</summary>
+          <div class="update-changes" id="update-changes" hidden>
             <div class="update-list" id="update-list"></div>
-          </details>
+          </div>
+          <div class="update-actions" id="update-actions"></div>
         </div>
       </div>
     </div>

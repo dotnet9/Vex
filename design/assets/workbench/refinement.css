@@ -64,14 +64,11 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .about-identity h2 { font-size:24px; letter-spacing:0; }
 .about-identity .slogan,.about-row { font-size:14px; line-height:1.8; }
 .about-rows { padding:22px 32px 0; gap:10px 24px; }
-/* 检查更新对话框：英雄区（图标+标题+摘要）、进度条、类型化更新日志。 */
+/* 检查更新对话框：英雄区（Logo+标题+摘要）、进度条、类型化更新日志。 */
 .update-body { padding:26px 32px 24px; display:flex; flex-direction:column; gap:16px; }
 .update-hero { display:flex; align-items:center; gap:16px; }
-.update-icon { width:52px; height:52px; flex:0 0 52px; display:grid; place-items:center; border-radius:50%; color:var(--on-accent); background:var(--accent); box-shadow:0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent); }
-.update-icon .ico { width:24px; height:24px; }
-.update-icon.spinning { background:transparent; color:var(--accent); border:3px solid color-mix(in srgb, var(--accent) 25%, transparent); border-top-color:var(--accent); animation:update-spin .9s linear infinite; }
-@keyframes update-spin { to { transform:rotate(360deg); } }
-@media (prefers-reduced-motion:reduce) { .update-icon.spinning { animation:none; } }
+.update-icon { width:52px; height:52px; flex:0 0 52px; }
+.update-icon img { display:block; width:100%; height:100%; }
 .update-copy { display:flex; flex-direction:column; gap:3px; min-width:0; }
 .update-copy strong { font-size:18px; font-weight:700; letter-spacing:-.01em; }
 .update-sub { color:var(--muted); font-size:12.5px; }
@@ -81,8 +78,6 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .update-progress-num { flex:0 0 auto; font-variant-numeric:tabular-nums; color:var(--muted); font-size:12px; }
 .update-actions { display:flex; justify-content:flex-end; gap:10px; }
 .update-actions .btn.primary { color:var(--on-primary); background:var(--primary); border-color:var(--primary); }
-.update-changes summary { cursor:pointer; color:var(--muted); font-size:12.5px; user-select:none; }
-.update-changes[open] summary { margin-bottom:8px; }
 .update-list { display:flex; flex-direction:column; gap:14px; }
 .update-version { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding-bottom:4px; }
 .update-version strong { font-size:13.5px; }
@@ -142,7 +137,6 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
   width: 48px;
   height: 48px;
   flex-basis: 48px;
-  box-shadow: none;
 }
 #layer-update .update-copy {
   min-width: 0;
@@ -190,14 +184,8 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
   border-radius: var(--vex-radius-lg);
   background: color-mix(in srgb, var(--panel) 70%, var(--surface));
 }
-#layer-update .update-changes summary {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fg);
-  line-height: 1.6;
-}
 #layer-update .update-list {
-  padding-top: 12px;
+  padding-top: 0;
   gap: 16px;
 }
 #layer-update .update-version {
