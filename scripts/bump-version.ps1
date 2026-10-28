@@ -70,8 +70,7 @@ $index = @{ major = 0; minor = 1; patch = 2; revision = 3 }[$highest]
 $segments[$index]++
 # 语义化版本惯例：高段递增后，低段归零。
 for ($i = $index + 1; $i -lt 4; $i++) { $segments[$i] = 0 }
-if ($segments[3] -eq 0) { $newVersion = '{0}.{1}.{2}' -f $segments[0], $segments[1], $segments[2] }
-else { $newVersion = ($segments -join '.') }
+$newVersion = ($segments -join '.')
 
 $rows | Group-Object Tier | ForEach-Object { '{0}  ×{1}' -f $tierName[$_.Name], $_.Count } |
     ForEach-Object { Write-Host "  $_" }
