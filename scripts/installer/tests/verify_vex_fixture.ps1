@@ -173,7 +173,7 @@ try {
         # 更新日志栏：胶囊点击后窗口加宽一栏，读随包日志，更早版本默认折叠。
         # 随包日志就是仓库这份文档，断言从它自己取最新版本，升级版本号时不用再来改测试。
         $changelogSource=Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\..\..\docs\更新日志.md') -Raw
-        $changelogSections=[regex]::Matches($changelogSource,'(?m)^## (V\d+\.\d+\.\d+)（(\d{4}-\d{2}-\d{2})）\s*$')
+        $changelogSections=[regex]::Matches($changelogSource,'(?m)^## (V\d+(?:\.\d+)+)（(\d{4}-\d{2}-\d{2})）\s*$')
         Check ($changelogSections.Count -ge 2) '随包日志至少有两个小节，折叠与展开都有东西可看'
         $newestSection=$changelogSections[0]; $previousSection=$changelogSections[1]
         $newestVersion=[regex]::Escape($newestSection.Groups[1].Value)
