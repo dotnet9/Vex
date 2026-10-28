@@ -4,9 +4,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Headless;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using CodeWF.Avalonia.Markdown.Controls;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using Vex.Controls;
 using Vex.Core.Messaging;
@@ -111,8 +113,58 @@ internal static class PreferencesVerification
         var rowRight = portRow.TranslatePoint(new Point(portRow.Bounds.Width, 0), view)!.Value.X;
         Check(Math.Abs(portRight - rowRight) < 0.6, "MCP form controls sit flush with the content column");
         Control<Button>("McpTabClients").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
-        using (var config = System.Text.Json.JsonDocument.Parse(Control<SelectableTextBlock>("McpClientConfiguration").Text!))
-            Check(config.RootElement.GetProperty("mcpServers").GetProperty("vex").GetProperty("url").GetString() == "http://127.0.0.1:17891/mcp/", "MCP client configuration is valid JSON using saved endpoint");
+        // 高亮后正文只剩 inlines，复制钮读的也是这份文本，所以断言先从 inlines 还原 JSON 再核对 token 色。
+        static (string Text, List<Color> Colors, SelectableTextBlock Runs, Border Box, Border Inner) Highlighted(MarkdownViewer viewer)
+        {
+            var code = viewer.GetVisualDescendants().OfType<SelectableTextBlock>().Single(t => t.Classes.Contains("MdCodeBlockText"));
+            var text = new StringBuilder();
+            foreach (var inline in code.Inlines ?? [])
+                text.Append(inline is Avalonia.Controls.Documents.Run run ? run.Text
+                    : inline is Avalonia.Controls.Documents.LineBreak ? "\n" : null);
+            return (text.ToString(),
+                (code.Inlines ?? []).OfType<Avalonia.Controls.Documents.Run>()
+                    .Select(run => (run.Foreground as ISolidColorBrush)?.Color).Where(c => c.HasValue).Select(c => c!.Value).ToList(),
+                code,
+                code.GetVisualAncestors().OfType<Border>().First(b => b.Classes.Contains("mcp-code")),
+                code.GetVisualAncestors().OfType<Border>().First(b => b.Classes.Contains("MdCodeBlock")));
+        }
+        // 原型 .vex-code.json 用的就是这两个主题的取值：库按代码块底色亮度挑 LightPlus / DarkPlus，所以跟着 data-theme 走。
+        foreach (var (theme, keyToken, stringToken) in new[]
+                 { ("light", "#267f99", "#a31515"), ("dark", "#4ec9b0", "#ce9178") })
+        {
+            vm.Appearance.SelectThemeByKey(theme); Render();
+            var http = Highlighted(Control<MarkdownViewer>("McpClientConfiguration"));
+            using (var config = System.Text.Json.JsonDocument.Parse(http.Text))
+                Check(config.RootElement.GetProperty("mcpServers").GetProperty("vex").GetProperty("url").GetString() == "http://127.0.0.1:17891/mcp/",
+                    "Highlighted client config still parses with the saved endpoint: " + theme);
+            Check(http.Colors.Contains(Color.Parse(keyToken)) && http.Colors.Contains(Color.Parse(stringToken)),
+                $"Client config keys and strings carry the prototype token colours ({theme}): {string.Join("/", http.Colors.Distinct())}");
+            window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-clients-" + theme + ".png"));
+            Control<Button>("McpSubStdio").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
+            var stdio = Highlighted(Control<MarkdownViewer>("McpStdioConfiguration"));
+            using (var config = System.Text.Json.JsonDocument.Parse(stdio.Text))
+            {
+                var server = config.RootElement.GetProperty("mcpServers").GetProperty("vex");
+                Check(server.GetProperty("command").GetString() == "vex"
+                      && server.GetProperty("args").EnumerateArray().Select(arg => arg.GetString()).Contains("--endpoint")
+                      && server.GetProperty("env").TryGetProperty("VEX_MCP_TOKEN", out _),
+                    "Highlighted stdio bridge config still parses into a runnable command: " + theme);
+            }
+            Check(stdio.Colors.Contains(Color.Parse(keyToken)) && stdio.Colors.Contains(Color.Parse(stringToken)),
+                $"Stdio bridge keys and strings carry the prototype token colours ({theme}): {string.Join("/", stdio.Colors.Distinct())}");
+            window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-stdio-" + theme + ".png"));
+            Control<Button>("McpSubHttp").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
+        }
+        // 块面归 .mcp-code：库自带的第二层盒要压平，行号槽要收掉，正文只留 16 内距 + 1 描边 = 17 的缩进。
+        var block = Highlighted(Control<MarkdownViewer>("McpClientConfiguration"));
+        var inset = block.Runs.TranslatePoint(default, block.Box)!.Value;
+        Check(block.Inner.Padding == new Thickness(0) && block.Inner.Margin == new Thickness(0)
+              && block.Inner.BorderThickness == new Thickness(0) && block.Inner.CornerRadius == default
+              && !block.Box.GetVisualDescendants().OfType<SelectableTextBlock>().Any(t => t.Tag as string == "CodeLineNumbers" && t.IsVisible)
+              && Math.Abs(inset.X - 17) < .6 && Math.Abs(inset.Y - 17) < .6
+              && block.Runs.TextWrapping == TextWrapping.Wrap
+              && Math.Abs(block.Runs.FontSize - 12) < .01 && Math.Abs(block.Runs.LineHeight - 21.6) < .01,
+            $"Highlighted block keeps the prototype box: inset={inset}, font={block.Runs.FontSize}/{block.Runs.LineHeight}, wrap={block.Runs.TextWrapping}");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-clients.png"));
         Control<Button>("McpSubStdio").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-stdio.png"));

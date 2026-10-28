@@ -768,6 +768,16 @@
     <Setter Property="LineHeight" Value="21.6"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
+  <!-- 高亮那两块走 MarkdownViewer：块面（描边、圆角、16 内距）仍归 .mcp-code，压掉库自带的第二层盒与文档外边距。 -->
+  <Style Selector="Border.mcp-code Border.MdCodeBlock">
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="Margin" Value="0"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="CornerRadius" Value="0"/>
+  </Style>
+  <Style Selector="Border.mcp-code StackPanel.MdDocument">
+    <Setter Property="Margin" Value="0"/>
+  </Style>
   <!-- 动作按钮（原型 .vex-mcp-actions + workspace-chrome 的胶囊覆盖：32 高、CSS padding 5px 16px、全圆角、
        1px border 描边 + bg 底 + inherit 文字）。Avalonia 两值 Thickness 是「横,纵」，所以 16 在前。
        原型 .vex-button.primary 不带 font-weight（只有 .btn.primary 才 600），库里的 Button.primary 是 SemiBold，这里按胶囊这一族收回常规。 -->

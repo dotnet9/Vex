@@ -8,6 +8,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using CodeWF.Avalonia.Controls.Controls;
+using CodeWF.Avalonia.Markdown.Controls;
 using Vex.Controls;
 using Vex.Core.Motion;
 using Vex.Core.Services;
@@ -233,14 +234,57 @@ public sealed class ShellPreferencesOverlayView : UserControl
         return row;
     }
 
-    /// <summary>配置正文块（原型 pre.vex-code：12 号等宽、可整段选中复制）。</summary>
-    private Border BuildMcpCode(string? name, string property, object source, string? visibleProperty = null)
+    /// <summary>
+    /// 配置正文块（原型 pre.vex-code：16 内边距、12/1.8 等宽、可整段选中复制）。
+    /// 传 <paramref name="highlight"/> 时改走 MarkdownViewer 的围栏语法，与阅读区代码块同一套 TextMate 着色；
+    /// 读取文档正文那块仍是纯文本，原型也没有为它上色。
+    /// </summary>
+    private Border BuildMcpCode(string? name, string property, object source, string? visibleProperty = null, string? highlight = null)
     {
-        var text = new SelectableTextBlock { Name = name ?? string.Empty };
-        text.Bind(TextBlock.TextProperty, new Binding(property) { Source = source });
+        Control text;
+        if (highlight is { } language)
+        {
+            var code = new MarkdownViewer
+            {
+                Name = name ?? string.Empty,
+                ShowCodeBlockHeader = false,
+                CodeBlockWrap = true,
+                // 字号与行高由渲染器写成本地值，样式表压不住，只能在这里给原型度量（12/1.8）。
+                CodeFontFamily = McpCodeFontFamily,
+                CodeBlockFontSize = 12,
+                CodeBlockLineHeight = 21.6
+            };
+            // 底色与外框同资源：库按代码块实际背景的亮度挑 DarkPlus/LightPlus token，透明底会被判成深色。
+            BindResource(code, MarkdownViewer.CodeBackgroundBrushProperty, "VexCodeBackgroundBrush");
+            code.Bind(MarkdownViewer.MarkdownProperty, new Binding(property) { Source = source, Converter = new CodeFenceConverter(language) });
+            text = code;
+        }
+        else
+        {
+            var plain = new SelectableTextBlock { Name = name ?? string.Empty };
+            plain.Bind(TextBlock.TextProperty, new Binding(property) { Source = source });
+            text = plain;
+        }
         var block = new Border { Classes = { "mcp-code" }, Child = text };
         if (visibleProperty is not null) block.Bind(IsVisibleProperty, new Binding(visibleProperty) { Source = source });
         return block;
+    }
+
+    private static readonly FontFamily McpCodeFontFamily = new("Cascadia Code, Cascadia Mono, SFMono-Regular, Consolas, JetBrains Mono, Microsoft YaHei UI, monospace");
+
+    /// <summary>把正文包成围栏代码块交给 MarkdownViewer；围栏长度按正文里最长的反引号串加长。</summary>
+    private sealed class CodeFenceConverter(string language) : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value is not string body) return string.Empty;
+            var run = 0; var longest = 0;
+            foreach (var character in body) { run = character == '`' ? run + 1 : 0; longest = Math.Max(longest, run); }
+            var fence = new string('`', Math.Max(3, longest + 1));
+            return fence + language + "\n" + body + "\n" + fence;
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture) => BindingOperations.DoNothing;
     }
 
     /// <summary>客户端页（对齐原型 .vex-mcp-tabs.vex-mcp-subtabs.vex-segmented）：状态行 + 与一级同语言的胶囊分段 + 配置正文。</summary>
@@ -278,7 +322,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var mcp = _model.Mcp;
         var pane = new StackPanel { Spacing = 0 };
-        pane.Children.Add(BuildMcpCode("McpClientConfiguration", nameof(McpSettingsViewModel.ClientConfiguration), mcp));
+        pane.Children.Add(BuildMcpCode("McpClientConfiguration", nameof(McpSettingsViewModel.ClientConfiguration), mcp, highlight: "json"));
         var actions = new StackPanel { Classes = { "mcp-actions" } };
         var copy = new Button { Classes = { "mcp-pill" }, Content = L(VexL.PrefMcpCopyConfig) };
         copy.Click += async (_, _) => await mcp.CopyClientConfigurationAsync();
@@ -297,7 +341,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var mcp = _model.Mcp;
         var pane = new StackPanel { Spacing = 0 };
-        pane.Children.Add(BuildMcpCode("McpStdioConfiguration", nameof(McpSettingsViewModel.StdioConfiguration), mcp));
+        pane.Children.Add(BuildMcpCode("McpStdioConfiguration", nameof(McpSettingsViewModel.StdioConfiguration), mcp, highlight: "json"));
         var actions = new StackPanel { Classes = { "mcp-actions" } };
         var read = new Button { Classes = { "mcp-pill" }, Content = L(VexL.McpReadDocument) };
         read.Click += async (_, _) => await mcp.ReadDocumentAsync();

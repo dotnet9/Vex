@@ -59,10 +59,24 @@
   function mcpTabsHtml() {
     return `<div class="vex-mcp-tabs vex-segmented" role="tablist" aria-label="MCP">${[['server','服务'],['clients','客户端'],['audit','审计']].map(([key,label]) => `<button role="tab" data-mcp-tab="${key}" aria-selected="${tab === key}">${label}</button>`).join('')}</div>`;
   }
+  /* JSON 高亮：实现的 MCP 配置块走 MarkdownViewer 的 TextMate 着色，原型这边只需要键 / 字符串两级，
+     其余（括号、冒号、数字、缩进）随 --fg。配色见 prototype.css 的 .vex-code.json。 */
+  const jsonPattern = /("(?:\\.|[^\\"])*")(\s*:)?/g;
+  function jsonHighlight(body) {
+    let html = '', cursor = 0, match;
+    jsonPattern.lastIndex = 0;
+    while ((match = jsonPattern.exec(body))) {
+      html += esc(body.slice(cursor, match.index));
+      const [, text, colon] = match;
+      html += `<span class="${colon === undefined ? 'jx-string' : 'jx-key'}">${esc(text)}</span>${esc(colon ?? '')}`;
+      cursor = match.index + match[0].length;
+    }
+    return html + esc(body.slice(cursor));
+  }
   function mcpClientPane() {
     const endpoint = `http://127.0.0.1:${values.mcpPort}/mcp/`;
-    if (clientTab === 'http') return '<pre class="vex-code" id="vex-client-config">' + esc(JSON.stringify({mcpServers:{vex:{url:endpoint,headers:{Authorization:'Bearer ' + values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="copy-config">复制配置</button><button class="vex-button primary" data-mcp-action="test">测试连接</button></div><p id="vex-test-result" role="status"></p>';
-    return '<pre class="vex-code">' + esc(JSON.stringify({mcpServers:{vex:{command:'vex',args:['mcp','bridge','--endpoint',endpoint],env:{VEX_MCP_TOKEN:values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="read">读取当前文档</button><button class="vex-button" data-mcp-action="write">请求修改文档</button></div><div id="vex-mcp-request"></div>';
+    if (clientTab === 'http') return '<pre class="vex-code json" id="vex-client-config">' + jsonHighlight(JSON.stringify({mcpServers:{vex:{url:endpoint,headers:{Authorization:'Bearer ' + values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="copy-config">复制配置</button><button class="vex-button primary" data-mcp-action="test">测试连接</button></div><p id="vex-test-result" role="status"></p>';
+    return '<pre class="vex-code json">' + jsonHighlight(JSON.stringify({mcpServers:{vex:{command:'vex',args:['mcp','bridge','--endpoint',endpoint],env:{VEX_MCP_TOKEN:values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="read">读取当前文档</button><button class="vex-button" data-mcp-action="write">请求修改文档</button></div><div id="vex-mcp-request"></div>';
   }
   function mcpBody() {
     const status = `<div class="vex-mcp-status" data-state="${mcpState}" role="status"><i></i><span>${esc(mcpMessage)}</span><small style="margin-left:auto;color:var(--muted)">原型演示</small></div>`;

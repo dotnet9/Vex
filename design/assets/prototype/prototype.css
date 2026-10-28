@@ -279,6 +279,13 @@ body.device-phone .app-window .guide-card { width:310px; left:var(--vex-tour-lef
 .vex-mcp-status[data-state=error] { color:var(--danger,#bd4545); }
 .vex-mcp-status[data-state=starting] i { animation:vex-pulse 1s var(--vex-ease) infinite; }
 .vex-code { padding:16px; margin:14px 0; border:1px solid var(--border); border-radius:var(--vex-radius-xs); background:var(--code-bg,var(--bg)); color:inherit; white-space:pre-wrap; overflow-wrap:anywhere; font:12px/1.8 var(--mono,monospace); }
+/* JSON 高亮（.vex-code.json，MCP 客户端两段配置）：实现侧走 MarkdownViewer 的 TextMate 着色，
+   它按代码块底色亮度挑 LightPlus / DarkPlus，所以这里跟 data-theme 走、不跟 accent 配色板走。
+   取值为应用实测：light 键 #267f99 / 串 #a31515，dark 键 #4ec9b0 / 串 #ce9178。 */
+:root { --code-key:#267f99; --code-string:#a31515; }
+:root[data-theme=dark] { --code-key:#4ec9b0; --code-string:#ce9178; }
+.vex-code.json .jx-key { color:var(--code-key); }
+.vex-code.json .jx-string { color:var(--code-string); }
 .vex-mcp-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:18px; }
 .vex-token-field { position:relative; width:180px; max-width:48%; flex:none; }
 .vex-pref-row .vex-token-field input[data-mcp-field=mcpToken] { width:100%; max-width:none; min-width:0; padding-right:65px; }
