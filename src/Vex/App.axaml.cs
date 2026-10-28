@@ -1,35 +1,32 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CodeWF.Toolkit.Lang;
 using CodeWF.Toolkit.Lang.Json;
 using CodeWF.Toolkit.Core.UpdateChecking;
-using Prism.DryIoc;
-using Prism.Ioc;
-using Prism.Modularity;
-using Prism.Regions;
-using Vex.Core.Regions;
+using Microsoft.Extensions.DependencyInjection;
 using Vex.Core.Services;
-using Vex.Modules.Appearance;
+using Vex.Core.Theme;
 using Vex.Modules.Appearance.Services;
-using Vex.Modules.Help;
 using Vex.Modules.Help.Services;
 using Vex.Modules.Mcp.Services;
-using Vex.Modules.Shell;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
-using Vex.Modules.Workspace;
 using Vex.Modules.Workspace.Services;
 using Vex.Modules.Workspace.ViewModels;
 
 namespace Vex;
 
-public partial class App : PrismApplication
+public partial class App : Application
 {
-    public static App Instance { get; private set; } = null!;
+    public static App Instance { get; protected set; } = null!;
+
+    /// <summary>应用容器。视图构造函数通过它自取 ViewModel，验证工程通过它换入测试替身。</summary>
+    public static IServiceProvider Services { get; private set; } = null!;
 
     public override void Initialize()
     {
@@ -49,38 +46,110 @@ public partial class App : PrismApplication
         I18nManager.Instance.Register(langPlugin, new CultureInfo("zh-CN"), out _);
         I18nManager.Instance.CultureChanged += OnCultureChanged;
         ApplyControlCulture();
-        base.Initialize();
+
+        var services = new ServiceCollection();
+        ConfigureServices(services);
+        OnConfigureServices(services);
+        Services = services.BuildServiceProvider();
     }
 
-    protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
+    /// <summary>宿主追加/替换注册的钩子；后注册者获胜，验证工程用它换入测试替身。</summary>
+    protected virtual void OnConfigureServices(IServiceCollection services)
     {
-        moduleCatalog.AddModule<ShellModule>();
-        moduleCatalog.AddModule<WorkspaceModule>();
-        moduleCatalog.AddModule<AppearanceModule>();
-        moduleCatalog.AddModule<HelpModule>();
-        base.ConfigureModuleCatalog(moduleCatalog);
     }
 
-    protected override AvaloniaObject CreateShell()
+    private static void ConfigureServices(IServiceCollection services)
     {
-        Instance = this;
-        ApplyInitialTheme();
-        // 投影字符串不像画刷能随主题变体自动换色，明暗切换时按当前变体回放一次应用级投影资源。
-        ActualThemeVariantChanged += (_, _) => global::Vex.Core.Theme.ElevationResources.Apply();
-        global::Vex.Core.Theme.ElevationResources.Apply();
-        return Container.Resolve<MainWindow>();
+        // 核心服务（原 Prism 注册表平移，生命周期保持单例）。
+        services.AddSingleton<IUpdateService, VexUpdateService>();
+        services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
+        services.AddSingleton<EditorPreferences>();
+        services.AddSingleton<ShellPreferencesViewModel>();
+        services.AddSingleton<IAppLocalizer, AppLocalizer>();
+        services.AddSingleton<IDocumentFileFactory, DocumentFileFactory>();
+        services.AddSingleton<IDocumentService, DocumentService>();
+        services.AddSingleton<IEditorAppearanceState, EditorAppearanceState>();
+        services.AddSingleton<IWorkspaceDocumentState, WorkspaceDocumentState>();
+        services.AddSingleton<IMarkdownExportService, MarkdownExportService>();
+        // 编辑器使用库内嵌文案并自动跟随全局语言，Vex 仅保留 HTML 粘贴转换适配。
+        services.AddSingleton<CodeWF.Avalonia.Markdown.Editor.Services.IMarkdownEditorLocalizer, CodeWF.Avalonia.Markdown.Editor.Services.MarkdownEditorLocalizer>();
+        services.AddSingleton<CodeWF.Avalonia.Markdown.Editor.Services.IMarkdownHtmlPasteConverter, VexMarkdownHtmlPasteConverter>();
+        services.AddSingleton<IMarkdownOutlineService, MarkdownOutlineService>();
+        services.AddSingleton<IMarkdownStatisticsService, MarkdownStatisticsService>();
+        services.AddSingleton<IThemeService, ThemeService>();
+        services.AddSingleton<IHelpService, HelpService>();
+        services.AddSingleton<IDocumentWindowLauncher, ShellProcessLauncher>();
+        services.AddSingleton<IRecentDocumentStore, RecentDocumentStore>();
+        services.AddSingleton<IShellStatusPublisher, ShellStatusPublisher>();
+        services.AddSingleton<IShellOverlayService, ShellOverlayService>();
+        services.AddSingleton<IShellToastPublisher, ShellToastPublisher>();
+        services.AddSingleton<IShellDocumentWorkflowText, ShellDocumentWorkflowText>();
+        services.AddSingleton<IEditorDisplayState, EditorDisplayState>();
+        services.AddSingleton<IShellUnsavedChangesGuard, ShellUnsavedChangesGuard>();
+        services.AddSingleton<IShellDocumentUtilityActions, ShellDocumentUtilityActions>();
+        services.AddSingleton<IShellExternalPathResolver, ShellExternalPathResolver>();
+        services.AddSingleton<IAutoSaveDraftService, AutoSaveDraftService>();
+        services.AddSingleton<IShellDroppedPathReader, ShellDroppedPathReader>();
+        services.AddSingleton<IShellDropTargetHandler, ShellDropTargetHandler>();
+        services.AddSingleton<IShellStartupArgumentPublisher, ShellStartupArgumentPublisher>();
+        services.AddSingleton<IMcpToolDispatcher, McpToolDispatcher>();
+        services.AddSingleton<IMcpOperationConfirmationService, McpOperationConfirmationService>();
+        services.AddSingleton<IMcpOperationAuditService, McpOperationAuditService>();
+        services.AddSingleton<IMcpServerHost, McpServerHost>();
+
+        // ViewModel：原 ViewModelLocator 反射装配改为容器单例 + 视图构造自取。
+        services.AddSingleton<ShellAppearanceViewModel>();
+        services.AddSingleton<ShellDocumentInfoViewModel>();
+        services.AddSingleton<ShellDialogsViewModel>();
+        services.AddSingleton<ShellEditorActionsViewModel>();
+        services.AddSingleton<ShellEditorDisplayViewModel>();
+        services.AddSingleton<ShellFilesViewModel>();
+        services.AddSingleton<ShellFindBarViewModel>();
+        services.AddSingleton<ShellHelpViewModel>();
+        services.AddSingleton<ShellKeyboardShortcutViewModel>();
+        services.AddSingleton<ShellNavigationViewModel>();
+        services.AddSingleton<ShellOutlineViewModel>();
+        services.AddSingleton<ShellRecentDocumentsViewModel>();
+        services.AddSingleton<ShellStatusBarViewModel>();
+        services.AddSingleton<ShellStatusViewModel>();
+        services.AddSingleton<ShellTitleMenuViewModel>();
+        services.AddSingleton<ShellWindowLayoutViewModel>();
+        services.AddSingleton<ShellWorkbenchViewModel>();
+        services.AddSingleton<McpSettingsViewModel>();
+        services.AddSingleton<MarkdownEditorViewModel>();
+        services.AddSingleton<MarkdownPreviewViewModel>();
+        services.AddSingleton<ShellActionCoordinator>();
+        services.AddSingleton<MainWindowViewModel>();
+
+        // 主窗口：完整构造函数由容器自动选中，服务随构造注入。
+        services.AddSingleton<MainWindow>();
+    }
+
+    public override void OnFrameworkInitializationCompleted()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            Instance = this;
+            ApplyInitialTheme();
+            // 投影字符串不像画刷能随主题变体自动换色，明暗切换时按当前变体回放一次应用级投影资源。
+            ActualThemeVariantChanged += (_, _) => ElevationResources.Apply();
+            ElevationResources.Apply();
+            desktop.MainWindow = Services.GetRequiredService<MainWindow>();
+            desktop.MainWindow.Show();
+        }
+        base.OnFrameworkInitializationCompleted();
     }
 
     /// <summary>
     /// 在解析主窗口前先应用保存的主题：默认变体交给系统，避免任何早于
     /// ShellAppearanceViewModel 构造的 UI 以错误的固定变体渲染。
     /// </summary>
-    private void ApplyInitialTheme()
+    protected static void ApplyInitialTheme()
     {
-        var settings = Container.Resolve<IAppSettingsStore>().Current;
-        var themeService = Container.Resolve<IThemeService>();
+        var settings = Services.GetRequiredService<IAppSettingsStore>().Current;
+        var themeService = Services.GetRequiredService<IThemeService>();
         if (themeService is Vex.Modules.Appearance.Services.ThemeService concrete) concrete.LoadCustomPalettes(settings.CustomPalettes);
-        Container.Resolve<Vex.Modules.Shell.ViewModels.ShellAppearanceViewModel>().LoadCustomTypographies(settings.CustomTypographies);
+        Services.GetRequiredService<ShellAppearanceViewModel>().LoadCustomTypographies(settings.CustomTypographies);
         var options = themeService.GetThemeOptions();
         var option = options.FirstOrDefault(item => item.Key.Equals(settings.ThemeKey, StringComparison.OrdinalIgnoreCase))
                      ?? options.First(item => item.Key.Equals("system", StringComparison.OrdinalIgnoreCase));
@@ -89,74 +158,6 @@ public partial class App : PrismApplication
             ?? themeService.GetPaletteOptions().FirstOrDefault(item => item.Key == "indigo")
             ?? themeService.GetPaletteOptions()[0];
         themeService.ApplyTheme(option, palette);
-    }
-
-    protected override void ConfigureRegionAdapterMappings(RegionAdapterMappings regionAdapterMappings)
-    {
-        base.ConfigureRegionAdapterMappings(regionAdapterMappings);
-        regionAdapterMappings.RegisterMapping(typeof(TabControl), Container.Resolve<TabControlRegionAdapter>());
-    }
-
-    protected override void RegisterTypes(IContainerRegistry containerRegistry)
-    {
-        containerRegistry.RegisterSingleton<IUpdateService, VexUpdateService>();
-        containerRegistry.RegisterSingleton<IAppSettingsStore, AppSettingsStore>();
-        containerRegistry.RegisterSingleton<EditorPreferences>();
-        containerRegistry.RegisterSingleton<ShellPreferencesViewModel>();
-        containerRegistry.RegisterSingleton<IAppLocalizer, AppLocalizer>();
-        containerRegistry.RegisterSingleton<IDocumentFileFactory, DocumentFileFactory>();
-        containerRegistry.RegisterSingleton<IDocumentService, DocumentService>();
-        containerRegistry.RegisterSingleton<IEditorAppearanceState, EditorAppearanceState>();
-        containerRegistry.RegisterSingleton<IWorkspaceDocumentState, WorkspaceDocumentState>();
-        containerRegistry.RegisterSingleton<IMarkdownExportService, MarkdownExportService>();
-        // 编辑器使用库内嵌文案并自动跟随全局语言，Vex 仅保留 HTML 粘贴转换适配。
-        containerRegistry.RegisterSingleton<CodeWF.Avalonia.Markdown.Editor.Services.IMarkdownEditorLocalizer, CodeWF.Avalonia.Markdown.Editor.Services.MarkdownEditorLocalizer>();
-        containerRegistry.RegisterSingleton<CodeWF.Avalonia.Markdown.Editor.Services.IMarkdownHtmlPasteConverter, VexMarkdownHtmlPasteConverter>();
-        containerRegistry.RegisterSingleton<IMarkdownOutlineService, MarkdownOutlineService>();
-        containerRegistry.RegisterSingleton<IMarkdownStatisticsService, MarkdownStatisticsService>();
-        containerRegistry.RegisterSingleton<IThemeService, ThemeService>();
-        containerRegistry.RegisterSingleton<IHelpService, HelpService>();
-        containerRegistry.RegisterSingleton<IDocumentWindowLauncher, ShellProcessLauncher>();
-        containerRegistry.RegisterSingleton<IRecentDocumentStore, RecentDocumentStore>();
-        containerRegistry.RegisterSingleton<IShellStatusPublisher, ShellStatusPublisher>();
-        containerRegistry.RegisterSingleton<IShellOverlayService, ShellOverlayService>();
-        containerRegistry.RegisterSingleton<IShellToastPublisher, ShellToastPublisher>();
-        containerRegistry.RegisterSingleton<IShellDocumentWorkflowText, ShellDocumentWorkflowText>();
-        containerRegistry.RegisterSingleton<IEditorDisplayState, EditorDisplayState>();
-        containerRegistry.RegisterSingleton<IShellUnsavedChangesGuard, ShellUnsavedChangesGuard>();
-        containerRegistry.RegisterSingleton<IShellDocumentUtilityActions, ShellDocumentUtilityActions>();
-        containerRegistry.RegisterSingleton<IShellExternalPathResolver, ShellExternalPathResolver>();
-        containerRegistry.RegisterSingleton<IAutoSaveDraftService, AutoSaveDraftService>();
-        containerRegistry.RegisterSingleton<IShellDroppedPathReader, ShellDroppedPathReader>();
-        containerRegistry.RegisterSingleton<IShellDropTargetHandler, ShellDropTargetHandler>();
-        containerRegistry.RegisterSingleton<IShellStartupArgumentPublisher, ShellStartupArgumentPublisher>();
-        containerRegistry.RegisterSingleton<IMcpToolDispatcher, McpToolDispatcher>();
-        containerRegistry.RegisterSingleton<IMcpOperationConfirmationService, McpOperationConfirmationService>();
-        containerRegistry.RegisterSingleton<IMcpOperationAuditService, McpOperationAuditService>();
-        containerRegistry.RegisterSingleton<IMcpServerHost, McpServerHost>();
-        containerRegistry.RegisterSingleton<ShellAppearanceViewModel>();
-        containerRegistry.RegisterSingleton<ShellDocumentInfoViewModel>();
-        containerRegistry.RegisterSingleton<ShellDialogsViewModel>();
-        containerRegistry.RegisterSingleton<ShellEditorActionsViewModel>();
-        containerRegistry.RegisterSingleton<ShellEditorDisplayViewModel>();
-        containerRegistry.RegisterSingleton<ShellFilesViewModel>();
-        containerRegistry.RegisterSingleton<ShellFindBarViewModel>();
-        containerRegistry.RegisterSingleton<ShellHelpViewModel>();
-        containerRegistry.RegisterSingleton<ShellKeyboardShortcutViewModel>();
-        containerRegistry.RegisterSingleton<ShellNavigationViewModel>();
-        containerRegistry.RegisterSingleton<ShellOutlineViewModel>();
-        containerRegistry.RegisterSingleton<ShellRecentDocumentsViewModel>();
-        containerRegistry.RegisterSingleton<ShellStatusBarViewModel>();
-        containerRegistry.RegisterSingleton<ShellStatusViewModel>();
-        containerRegistry.RegisterSingleton<ShellTitleMenuViewModel>();
-        containerRegistry.RegisterSingleton<ShellWindowLayoutViewModel>();
-        containerRegistry.RegisterSingleton<ShellWorkbenchViewModel>();
-        containerRegistry.RegisterSingleton<McpSettingsViewModel>();
-        containerRegistry.RegisterSingleton<MarkdownEditorViewModel>();
-        containerRegistry.RegisterSingleton<MarkdownPreviewViewModel>();
-        containerRegistry.RegisterSingleton<ShellActionCoordinator>();
-        containerRegistry.RegisterSingleton<MainWindowViewModel>();
-        containerRegistry.Register<MainWindow>();
     }
 
     /// <summary>
@@ -192,5 +193,4 @@ public partial class App : PrismApplication
         foreach (var theme in application.Styles.OfType<Semi.Avalonia.SemiTheme>()) theme.Locale = semiCulture;
         foreach (var theme in application.Styles.OfType<Ursa.Themes.Semi.UrsaSemiTheme>()) theme.Locale = ursaCulture;
     }
-
 }

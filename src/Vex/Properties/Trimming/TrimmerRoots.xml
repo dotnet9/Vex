@@ -9,10 +9,6 @@
   <assembly fullname="CodeWF.Avalonia.MindView" preserve="all" />
   <assembly fullname="AnimatedImage" preserve="all" />
   <assembly fullname="AnimatedImage.Avalonia" preserve="all" />
-  <assembly fullname="Prism" preserve="all" />
-  <assembly fullname="Prism.Avalonia" preserve="all" />
-  <assembly fullname="Prism.DryIoc.Avalonia" preserve="all" />
-  <assembly fullname="DryIoc" preserve="all" />
   <assembly fullname="ReactiveUI" preserve="all" />
   <assembly fullname="ReactiveUI.Avalonia" preserve="all" />
   <assembly fullname="Splat" preserve="all" />

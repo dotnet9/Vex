@@ -7,7 +7,6 @@
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellTitleMenuViewModel"
-    prism:ViewModelLocator.AutoWireViewModel="True"
     xmlns:prism="http://prismlibrary.com/">
     <Menu x:Name="TitleMenuBar" Classes="title-menu" VerticalAlignment="Center">
         <!-- 菜单树严格对齐原型 interact.js 的 MENUS：六个顶级菜单（文件/编辑/段落/格式/视图/帮助）全部扁平展开，

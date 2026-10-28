@@ -5,12 +5,11 @@
     xmlns:md="https://codewf.com" xmlns:codewf="https://codewf.com"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
-    xmlns:prism="http://prismlibrary.com/"
     xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls"
     xmlns:vm="using:Vex.Modules.Workspace.ViewModels"
     xmlns:views="using:Vex.Modules.Workspace.Views"
     x:DataType="vm:MarkdownPreviewViewModel"
-    prism:ViewModelLocator.AutoWireViewModel="True">
+   >
 
     <Grid RowDefinitions="Auto,*" Background="{DynamicResource VexPreviewBackgroundBrush}">
         <!-- 预览窗格头：标注窗格身份 + 当前排版主题（对应原型 .pane-head + .kbd）。

@@ -5,6 +5,7 @@ using Avalonia.VisualTree;
 using CodeWF.Toolkit.Lang;
 using Vex.Modules.Shell.ViewModels;
 
+using Microsoft.Extensions.DependencyInjection;
 namespace Vex.Modules.Shell.Views;
 
 public partial class ShellTitleMenuView : UserControl
@@ -12,6 +13,8 @@ public partial class ShellTitleMenuView : UserControl
     public ShellTitleMenuView()
     {
         InitializeComponent();
+        // 原 ViewModelLocator 反射装配改为构造自取容器单例。
+        DataContext = App.Services.GetRequiredService<ShellTitleMenuViewModel>();
         foreach (var item in ((Menu)Content!).Items.OfType<MenuItem>()) Configure(item, true);
         AttachedToVisualTree += (_, _) => I18nManager.Instance.CultureChanged += CultureChanged;
         DetachedFromVisualTree += (_, _) => I18nManager.Instance.CultureChanged -= CultureChanged;

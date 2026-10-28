@@ -11,7 +11,6 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.ReactiveUI;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
-using Prism.Ioc;
 using CodeWF.Avalonia.Controls.Themes;
 using SkiaSharp;
 using Markdig;
@@ -25,6 +24,7 @@ using Vex.Core.Messaging;
 using Vex.Modules.Mcp.Models;
 using Vex.Modules.Mcp.Services;
 using CodeWF.Toolkit.Core.UpdateChecking;
+using Microsoft.Extensions.DependencyInjection;
 
 var mode = args.FirstOrDefault() ?? "vex";
 if (mode == "protection") VerificationVexApp.Exports = new VerificationExports();
@@ -153,7 +153,7 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
-    var window = app.Shell ?? throw new Exception("Prism shell was not initialized");
+    var window = app.CreateShell();
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
     // 真实程序无参数启动不再加载任何文件，验证画面需要的素材由夹具显式装载。
@@ -2836,22 +2836,30 @@ public sealed class VerificationVexApp : Vex.App
     public static IUpdateService? Updates { get; set; }
     public static IMarkdownExportService? Exports { get; set; }
     public Window? Shell { get; private set; }
-    public T Resolve<T>() => Container.Resolve<T>();
-    protected override void RegisterTypes(IContainerRegistry registry)
+    public T Resolve<T>() where T : notnull => Services.GetRequiredService<T>();
+
+    // 在容器构建前换入测试替身：后注册者获胜，覆盖 App 的正式实现。
+    protected override void OnConfigureServices(IServiceCollection services)
     {
-        base.RegisterTypes(registry);
-        if (Updates is not null) registry.RegisterInstance<IUpdateService>(Updates);
-        if (Exports is not null) registry.RegisterInstance<IMarkdownExportService>(Exports);
-        registry.RegisterInstance<IAppSettingsStore>(UseRealSettings ? new AppSettingsStore() : new MemorySettings());
-        registry.RegisterInstance<IAutoSaveDraftService>(new MemoryDrafts());
-        registry.RegisterInstance<IRecentDocumentStore>(new MemoryRecent());
-        registry.RegisterInstance<IMcpOperationAuditService>(new MemoryAudit());
-        registry.RegisterInstance<IDocumentWindowLauncher>(new VerificationDocumentWindows());
+        if (Updates is not null) services.AddSingleton(Updates);
+        if (Exports is not null) services.AddSingleton(Exports);
+        services.AddSingleton<IAppSettingsStore>(UseRealSettings ? new AppSettingsStore() : new MemorySettings());
+        services.AddSingleton<IAutoSaveDraftService>(new MemoryDrafts());
+        services.AddSingleton<IRecentDocumentStore>(new MemoryRecent());
+        services.AddSingleton<IMcpOperationAuditService>(new MemoryAudit());
+        services.AddSingleton<IDocumentWindowLauncher>(new VerificationDocumentWindows());
     }
-    protected override AvaloniaObject CreateShell()
+
+    // SetupWithoutStarting 不走桌面生命周期，窗口由各验证模式显式创建。
+    public Vex.Modules.Shell.Views.MainWindow CreateShell()
     {
-        Shell = (Window)base.CreateShell();
-        return Shell;
+        Instance = this;
+        ApplyInitialTheme();
+        ActualThemeVariantChanged += (_, _) => Vex.Core.Theme.ElevationResources.Apply();
+        Vex.Core.Theme.ElevationResources.Apply();
+        var shell = Services.GetRequiredService<Vex.Modules.Shell.Views.MainWindow>();
+        Shell = shell;
+        return shell;
     }
 }
 

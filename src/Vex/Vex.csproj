@@ -61,8 +61,8 @@
     <PackageReference Include="CodeWF.Toolkit.Files" />
     <PackageReference Include="Irihi.Ursa.Themes.Semi" />
     <PackageReference Include="CodeWF.Avalonia.Lang" />
-    <PackageReference Include="Prism.DryIoc.Avalonia" />
     <PackageReference Include="PdfPig" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="ReactiveUI.Avalonia" />
     <PackageReference Include="ReverseMarkdown" />
     <PackageReference Include="Semi.Avalonia" />

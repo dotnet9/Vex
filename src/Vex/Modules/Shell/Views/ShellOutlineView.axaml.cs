@@ -3,6 +3,8 @@ using Avalonia.Interactivity;
 using Avalonia.Input;
 using Vex.Core.Models;
 
+using Microsoft.Extensions.DependencyInjection;
+using Vex.Modules.Shell.ViewModels;
 namespace Vex.Modules.Shell.Views;
 
 public partial class ShellOutlineView : UserControl
@@ -10,6 +12,8 @@ public partial class ShellOutlineView : UserControl
     public ShellOutlineView()
     {
         InitializeComponent();
+        // 原 ViewModelLocator 反射装配改为构造自取容器单例。
+        DataContext = App.Services.GetRequiredService<ShellOutlineViewModel>();
     }
 
     private void ToggleSection(object? sender, RoutedEventArgs e)

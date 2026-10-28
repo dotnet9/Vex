@@ -9,6 +9,7 @@ using Vex.Core.Messaging;
 using Vex.Modules.Workspace.ViewModels;
 using Vex.Modules.Shell.ViewModels;
 
+using Microsoft.Extensions.DependencyInjection;
 namespace Vex.Modules.Workspace.Views;
 
 /// <summary>
@@ -21,6 +22,8 @@ public partial class MarkdownEditorView : UserControl
     public MarkdownEditorView()
     {
         InitializeComponent();
+        // 原 ViewModelLocator 反射装配改为构造自取容器单例。
+        DataContext = App.Services.GetRequiredService<MarkdownEditorViewModel>();
         MarkdownEditor.Editor.FontFamily = Vex.Core.Services.VexFonts.Code;
         DataContextChanged += (_, _) => AttachViewModel();
         AttachedToVisualTree += (_, _) => AttachViewModel();

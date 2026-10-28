@@ -3,7 +3,6 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <AvaloniaVersion>12.1.4</AvaloniaVersion>
-    <PrismVersion>8.1.97.11073</PrismVersion>
     <SemiAvaloniaVersion>12.1.0.1</SemiAvaloniaVersion>
     <UrsaAvaloniaVersion>2.2.0</UrsaAvaloniaVersion>
   </PropertyGroup>
@@ -27,7 +26,6 @@
     <PackageVersion Include="Irihi.Ursa.Themes.Semi" Version="$(UrsaAvaloniaVersion)" />
     <PackageVersion Include="CodeWF.Avalonia.Lang" Version="12.2.23" />
     <PackageVersion Include="PdfPig" Version="0.1.9" />
-    <PackageVersion Include="Prism.DryIoc.Avalonia" Version="$(PrismVersion)" />
     <PackageVersion Include="ReverseMarkdown" Version="6.3.0" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="14.7.1" />
     <PackageVersion Include="Semi.Avalonia" Version="$(SemiAvaloniaVersion)" />
@@ -37,5 +35,6 @@
     <PackageVersion Include="VC-LTL" Version="5.3.1" />
     <PackageVersion Include="YY-Thunks" Version="1.2.2" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.303" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
   </ItemGroup>
 </Project>

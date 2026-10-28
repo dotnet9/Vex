@@ -5,8 +5,7 @@
     xmlns:codewf="https://codewf.com"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
-    xmlns:regions="using:Vex.Core.Regions"
-    xmlns:prism="http://prismlibrary.com/"
+    xmlns:views="using:Vex.Modules.Shell.Views"
     xmlns:shell="using:Vex.Modules.Shell.Views"
     xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls"
     xmlns:workspace="using:Vex.Modules.Workspace.Views"
@@ -129,7 +128,7 @@
                 ClipToBounds="True"
                 IsHitTestVisible="{Binding Layout.ShowSidebar}">
                 <Border Classes="workspace-block">
-                    <ContentControl prism:RegionManager.RegionName="{x:Static regions:RegionNames.ShellSidebarRegion}" />
+                    <views:ShellFilesView />
                 </Border>
             </Border>
 

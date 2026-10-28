@@ -7,6 +7,7 @@ using Avalonia.VisualTree;
 using Vex.Core.Models;
 using Vex.Modules.Shell.ViewModels;
 
+using Microsoft.Extensions.DependencyInjection;
 namespace Vex.Modules.Shell.Views;
 
 public partial class ShellFilesView : UserControl
@@ -14,6 +15,8 @@ public partial class ShellFilesView : UserControl
     public ShellFilesView()
     {
         InitializeComponent();
+        // 原 ViewModelLocator 反射装配改为构造自取容器单例。
+        DataContext = App.Services.GetRequiredService<ShellFilesViewModel>();
         // 隧道路由先于 TreeView 默认处理，文件夹行只响应一次左键操作。
         AddHandler(PointerPressedEvent, ToggleFolderOnPointerPressed, RoutingStrategies.Tunnel);
         FileTree.SelectionChanged += RevealSelectedItem;

@@ -1,5 +1,5 @@
 <UserControl x:Class="Vex.Modules.Shell.Views.ShellAuxiliaryPanelView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:prism="http://prismlibrary.com/" xmlns:regions="using:Vex.Core.Regions" x:DataType="vm:MainWindowViewModel">
+ xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:views="using:Vex.Modules.Shell.Views" x:DataType="vm:MainWindowViewModel">
  <!-- 对应原型 .structure-sidebar：头部（文档结构 + 收起钮）+ 大纲列表，无页签条。 -->
  <UserControl.Styles>
   <Style Selector="Button.outline-collapse:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -24,6 +24,6 @@
     </Viewbox>
    </Button>
   </Grid>
-  <ContentControl Grid.Row="1" prism:RegionManager.RegionName="{x:Static regions:RegionNames.ShellOutlineRegion}"/>
+  <views:ShellOutlineView Grid.Row="1" />
  </Grid>
 </UserControl>

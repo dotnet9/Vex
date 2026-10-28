@@ -7,11 +7,9 @@
     xmlns:models="using:Vex.Core.Models"
     xmlns:converters="using:Vex.Modules.Shell.Views"
     xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
-    xmlns:prism="http://prismlibrary.com/"
     xmlns:regions="using:Vex.Core.Regions"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellFilesViewModel"
-    prism:ViewModelLocator.AutoWireViewModel="True"
     regions:RegionTab.HeaderKey="{x:Static l:VexL.SidebarFiles}"
     regions:RegionTab.IconData="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6">
 

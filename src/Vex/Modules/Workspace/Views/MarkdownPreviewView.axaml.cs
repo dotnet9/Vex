@@ -7,6 +7,7 @@ using CodeWF.Toolkit.EventBus;
 using Vex.Core.Messaging;
 using Vex.Modules.Workspace.ViewModels;
 
+using Microsoft.Extensions.DependencyInjection;
 namespace Vex.Modules.Workspace.Views;
 
 public partial class MarkdownPreviewView : UserControl
@@ -76,6 +77,8 @@ public partial class MarkdownPreviewView : UserControl
     public MarkdownPreviewView()
     {
         InitializeComponent();
+        // 原 ViewModelLocator 反射装配改为构造自取容器单例。
+        DataContext = App.Services.GetRequiredService<MarkdownPreviewViewModel>();
         // 还原钮没有可绑的命令属性类型差异，直接走控件事件；坞实例随模板固定，挂一次即可。
         ReadingZoomDock.ResetRequested += (_, _) => _viewModel?.ResetReadingZoom();
         DataContextChanged += OnDataContextChanged;
