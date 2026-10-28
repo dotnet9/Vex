@@ -581,11 +581,11 @@ a:hover { text-decoration: underline; }
   max-width: calc(100vw - 48px);
 }
 .dlg-title {
-  font-size: 15.5px;
+  font-size: 15px;
   font-weight: 600;
   display: flex; align-items: center; gap: 10px;
 }
-.dlg-heading { margin: 0; font-size: 15.5px; font-weight: 600; }
+.dlg-heading { margin: 0; font-size: 15px; font-weight: 600; }
 .dlg-ico {
   width: 34px; height:36px;
   border-radius: var(--vex-radius-lg);
@@ -708,13 +708,13 @@ a:hover { text-decoration: underline; }
 
 /* ---------- 预览排版 ---------- */
 .md-body {
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.8;
   color: var(--fg);
   padding: 22px 30px 30px;
 }
 .md-body h1 { font-size: 22px; font-weight: 700; margin: 6px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-.md-body h2 { font-size: 17.5px; font-weight: 700; margin: 20px 0 10px; }
+.md-body h2 { font-size: 18px; font-weight: 700; margin: 20px 0 10px; }
 .md-body h3 { font-size: 15px; font-weight: 600; margin: 16px 0 8px; }
 .md-body p { margin: 8px 0; }
 .md-body blockquote {

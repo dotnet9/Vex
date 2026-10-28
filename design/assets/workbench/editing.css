@@ -33,7 +33,7 @@
 .type-swatch { display: block; width: 36px; height: 17px; margin: 0 auto 6px; border-top: 3px solid var(--swatch); background: linear-gradient(var(--border),var(--border)) 0 7px/36px 1px no-repeat, linear-gradient(var(--border),var(--border)) 0 12px/26px 1px no-repeat; }
 .typography-compact { display: flex; justify-content: space-between; font-size: 11px; padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--border); flex: none; }
 .typography-compact input { accent-color: var(--accent); }
-.content-area .md-body { line-height: 1.95; font-size: 14.5px; }
+.content-area .md-body { line-height: 1.95; font-size: 15px; }
 .content-area .md-body h1 { color: var(--fg); font-size: 26px; margin: 6px 0 10px; padding-bottom: 14px; }
 .content-area .md-body h2 { color: var(--typography-accent); margin: 26px 0 8px; }
 .content-area .md-body h3 { color: var(--typography-accent); margin: 18px 0 7px; }

@@ -80,7 +80,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .update-actions .btn.primary { color:var(--on-primary); background:var(--primary); border-color:var(--primary); }
 .update-list { display:flex; flex-direction:column; gap:14px; }
 .update-version { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding-bottom:4px; }
-.update-version strong { font-size:13.5px; }
+.update-version strong { font-size:13px; }
 .update-date { color:var(--muted); font-size:12px; }
 .update-entries { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px; }
 .update-entries li { display:flex; align-items:baseline; gap:8px; font-size:12px; line-height:1.65; color:var(--fg); }

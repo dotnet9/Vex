@@ -56,7 +56,7 @@
     background: var(--accent-soft); color: var(--accent);
     display: inline-flex; align-items: center; justify-content: center; flex: none;
   }
-  .set-head h2 { font-size: 16.5px; font-weight: 700; }
+  .set-head h2 { font-size: 18px; font-weight: 700; }
   .set-head .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .enable-row {
     margin: 14px 24px 0; display: flex; align-items: center; gap: 10px;
@@ -100,7 +100,7 @@
   .hidden-sprite { display: none; }
   .dlg-scroll { max-height: 85vh; overflow: auto; }
   .dlg-pad { padding: 22px; }
-  .dlg-title-warn { font-size: 15.5px; }
+  .dlg-title-warn { font-size: 15px; }
   .dlg-field-gap { margin-top: 14px; }
   .dlg-path-gap { margin-top: 12px; }
   .dlg-path-flush { margin-top: 0; }
@@ -111,7 +111,7 @@
   .prop-head { display: flex; align-items: center; gap: 14px; padding: 20px 24px 14px; }
   .prop-head .about-logo { width: 44px; height: 44px; border-radius: var(--vex-radius-lg); background: var(--accent-soft); color: var(--accent); }
   .prop-head .ico-21 { width: 21px; height: 21px; }
-  .prop-name { font-size: 15.5px; font-weight: 700; }
+  .prop-name { font-size: 15px; font-weight: 700; }
   .prop-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
   .prop-path { display: flex; align-items: flex-start; gap: 8px; }
   .ico-21 { width: 21px; height: 21px; }
