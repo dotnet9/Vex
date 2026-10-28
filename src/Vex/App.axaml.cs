@@ -65,6 +65,9 @@ public partial class App : PrismApplication
     {
         Instance = this;
         ApplyInitialTheme();
+        // 投影字符串不像画刷能随主题变体自动换色，明暗切换时按当前变体回放一次应用级投影资源。
+        ActualThemeVariantChanged += (_, _) => global::Vex.Core.Theme.ElevationResources.Apply();
+        global::Vex.Core.Theme.ElevationResources.Apply();
         return Container.Resolve<MainWindow>();
     }
 

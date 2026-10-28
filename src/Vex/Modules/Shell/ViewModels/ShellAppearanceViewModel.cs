@@ -233,6 +233,9 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         // 各宿主的基准高与内距都乘它，切「界面密度」时轨道、指示块和文字一起缩，不需要逐处改数值。
         var segScale = hSm / 28;
         app.Resources["VexSegmentedScale"] = segScale;
+        // 原型 .vex-segmented{--seg-inset:calc(var(--pad-sm)/2)}（segmented.css:7）：轨道内缩随密度三档走 2/3/4，
+        // 指示块贴着同一内缩落位（thumb top/bottom），所以只改轨道 Padding 就两者一起缩。
+        app.Resources["VexSegmentedInset"] = new Avalonia.Thickness(padSm / 2);
         app.Resources["VexSegmentedHeightView"] = 26 * segScale;
         app.Resources["VexSegmentedPaddingView"] = new Avalonia.Thickness(14, 3 * segScale);
         app.Resources["VexSegmentedPaddingMcp"] = new Avalonia.Thickness(10, 4 * segScale);

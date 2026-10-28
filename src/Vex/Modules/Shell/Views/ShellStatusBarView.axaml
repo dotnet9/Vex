@@ -44,7 +44,7 @@
       宽度随内容收缩，靠 MainWindow 的右下角定位（bottom 16、水平居中于正文列）。 -->
  <Border Classes="status-pill" Padding="6,4" CornerRadius="999" BorderThickness="1"
          Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
-         BoxShadow="0 10 30 #22000000">
+         BoxShadow="{DynamicResource VexPopShadow}">
   <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
    <Border x:Name="ViewSwitch" Classes="view-switch segmented-track">
     <codewf:SegmentedPanel Spacing="2">
@@ -52,7 +52,8 @@
      <Button x:Name="ReadSegment" Classes="view-segment" codewf:SegmentedPanel.IsActive="{Binding Workbench.IsReadSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" Command="{Binding Workbench.ShowRead}" />
      <Button x:Name="MapSegment" Classes="view-segment" codewf:SegmentedPanel.IsActive="{Binding Workbench.IsMapSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewMap}}" Command="{Binding Workbench.ShowMindMap}" />
      <Button x:Name="LayoutButton" Classes="view-segment view-more" codewf:SegmentedPanel.IsActive="{Binding Workbench.IsMoreSegmentActive}" Command="{Binding Workbench.ToggleLayouts}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WSLayoutTitle}}">
-      <StackPanel Orientation="Horizontal" Spacing="4">
+      <!-- 原型 .vex-segmented > button{gap:5px}（segmented.css:9）：图标与「更多」之间的缝。 -->
+      <StackPanel Orientation="Horizontal" Spacing="5">
        <TextBlock Text="{Binding Workbench.MoreSegmentLabel}" VerticalAlignment="Center" />
        <Path Classes="expand-chevron" Data="M6 9L12 15L18 9" />
       </StackPanel>

@@ -143,10 +143,28 @@
   </Style>
   <Style Selector="Border.segmented-track">
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/>
+    <!-- 原型 .vex-segmented 的 seg-inset 是 pad-sm 的一半（4/6/8 → 2/3/4），库里的 3 只是标准档默认值。 -->
+    <Setter Property="Padding" Value="{DynamicResource VexSegmentedInset}"/>
   </Style>
   <Style Selector="ctl|SegmentedPanel > Border.segmented-thumb">
     <Setter Property="BorderBrush" Value="{DynamicResource VexSegmentedThumbBorderBrush}"/>
     <Setter Property="BorderThickness" Value="1"/>
+    <!-- 原型 segmented.css:8 + prototype.css:25：浅色用 1px 4px 墨投影浮起，深色把投影换成 1px 淡环。
+         投影是字符串常量换不了色，由 ElevationResources 按明暗变体回放成资源，这里只负责取。 -->
+    <Setter Property="BoxShadow" Value="{DynamicResource VexSegmentedThumbShadow}"/>
+    <!-- 原型的时长挂在 vex-motion 乘算上（prototype.css:5,8）：「界面动效」精简档 ×0.35、关闭档 ×0，
+         库里写死的 260/140 只等于标准档，这里按动效令牌重放一遍同一组过渡。 -->
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Width" Duration="{DynamicResource MotionDurationSlow}">
+          <DoubleTransition.Easing><anim:SplineEasing X1="0.2" Y1="0.8" X2="0.2" Y2="1"/></DoubleTransition.Easing>
+        </DoubleTransition>
+        <ThicknessTransition Property="Margin" Duration="{DynamicResource MotionDurationSlow}">
+          <ThicknessTransition.Easing><anim:SplineEasing X1="0.2" Y1="0.8" X2="0.2" Y2="1"/></ThicknessTransition.Easing>
+        </ThicknessTransition>
+        <DoubleTransition Property="Opacity" Duration="{DynamicResource MotionDurationFast}" Easing="LinearEasing"/>
+      </Transitions>
+    </Setter>
   </Style>
   <Style Selector="ctl|SegmentedPanel Button">
     <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}"/>
@@ -272,29 +290,9 @@
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
   <Style Selector="FlyoutPresenter.design-language-picker"><Setter Property="Padding" Value="5"/><Setter Property="CornerRadius" Value="8"/><Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/></Style>
-  <!-- R-10 状态栏精致化：视图切换分段胶囊（一体容器 + 选中白底浮起加粗）与文件/大纲按钮紧凑内嵌徽标。密度字号/高度走密度令牌。 -->
-  <Style Selector="Border.view-switch">
-    <Setter Property="Height" Value="{DynamicResource VexDensityControlHeightSm}"/>
-    <Setter Property="Padding" Value="3"/><Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusMd}"/>
-    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
-    <Setter Property="BorderThickness" Value="1"/>
-  </Style>
-  <Style Selector="Border.view-switch Button">
-    <Setter Property="MinHeight" Value="0"/><Setter Property="Padding" Value="10,2"/>
-    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/>
-    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}"/>
-    <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
-    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
-  </Style>
-  <Style Selector="Border.view-switch Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
-  </Style>
-  <Style Selector="Border.view-switch Button.checked /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource VexElevatedBackgroundBrush}"/>
-    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/>
-    <!-- 原型 .view-switch::before 用 0 1px 3px 阴影把选中段从轨道里托起来，纯色填充在浅色主题下几乎看不出来。 -->
-    <Setter Property="BoxShadow" Value="0 1 3 0 #17000000"/>
-  </Style>
+  <!-- 状态栏的视图切换在原型里就是一枚 .workspace-viewswitch.vex-segmented（workspace.js:84），
+       轨道底色、内缩、滑动指示块、选中字色字重全部由上面的共享配方给，宿主自己的基准高与图标口径
+       在 ShellStatusBarView.axaml；这里不再重复画一份遗留胶囊样式。 -->
   <!-- 原型 .vex-deck header：与正常标题条同高（令牌 app-titlebar-height 33px），面板底色 + 1px 底边描线。 -->
   <Style Selector="Border.deck-header">
     <Setter Property="Height" Value="33"/><Setter Property="MinHeight" Value="33"/>
@@ -325,7 +323,7 @@
        宿主只补悬浮层自己的 1px 描边与浮空投影，外加 26×密度的基准几何。 -->
   <Style Selector="Border.deck-modes">
     <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/><Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BoxShadow" Value="0 10 30 #22000000"/>
+    <Setter Property="BoxShadow" Value="{DynamicResource VexPopShadow}"/>
   </Style>
   <!-- 原型 .deck-modes>button：与状态栏同一档 26×密度高、3×密度/14 内距、12px 静音文字。 -->
   <Style Selector="Button.deck-segment">
