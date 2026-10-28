@@ -17,7 +17,6 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
     private const int MaximumPort = 65535;
     private const int MinimumTokenLength = 24;
     private const int PreviewCharacterLimit = 700;
-    private static readonly string BridgeAppendText = "\n\n通过 MCP 追加的段落。\n";
 
     private readonly IAppSettingsStore _settingsStore;
     private readonly IMcpServerHost _serverHost;
@@ -349,7 +348,8 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
             return;
         }
 
-        var arguments = System.Text.Json.JsonSerializer.SerializeToElement(new { text = BridgeAppendText });
+        // 试写的示例段落属于界面文案，按当前语言取；前后各一个空行是 Markdown 的段落分隔，不是文案的一部分。
+        var arguments = System.Text.Json.JsonSerializer.SerializeToElement(new { text = "\n\n" + _localizer.Get(VexL.McpBridgeParagraph) + "\n" });
         var result = await _toolDispatcher.CallToolAsync("vex_insert_text", arguments);
         var text = result.Content.Count > 0 ? result.Content[0].Text : string.Empty;
         RequestCode = string.Empty;

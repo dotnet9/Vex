@@ -23,7 +23,9 @@ public sealed partial class MainWindowViewModel
         await RequestUnsavedConfirmationAsync(() =>
         {
             // 独立未保存文档，来源路径绝不作为恢复文档的保存目标。
-            ApplyDocument(new DocumentSnapshot(null, Path.GetFileNameWithoutExtension(draft.FileName) + ".恢复.md", draft.Markdown, new UTF8Encoding(false), true), restoreDraft: false);
+            // 「.恢复」这一段是显示与另存为默认名的一部分，随界面语言走，所以取资源里的整条文件名格式。
+            ApplyDocument(new DocumentSnapshot(null, _localizer.Format(VexL.RecoveryFileName, Path.GetFileNameWithoutExtension(draft.FileName)),
+                draft.Markdown, new UTF8Encoding(false), true), restoreDraft: false);
             _recoverySource = source;
             _lastSavedMarkdown = string.Empty;
             Protection.Recovery = null;

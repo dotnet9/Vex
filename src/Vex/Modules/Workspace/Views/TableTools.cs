@@ -12,10 +12,6 @@ namespace Vex.Modules.Workspace.Views;
 /// </summary>
 public static class TableTools
 {
-    public const string CopyMarkdownLabel = "复制 Markdown";
-    public const string DownloadCsvLabel = "下载 CSV";
-    public const string PreviewLabel = "预览表格";
-
     /// <summary>给阅读视图的每张表格上方插入常驻工具条；重复调用安全。</summary>
     public static void Attach(Control root)
     {
@@ -45,6 +41,15 @@ public static class TableTools
         }
     }
 
+    /// <summary>表格工具条上的文字动作：内容绑资源键，语言切换即时跟着换。</summary>
+    private static Button TableTool(string labelKey)
+    {
+        var button = new Button { Classes = { "md-table-tool" } };
+        if (new CodeWF.Avalonia.Lang.MarkupExtensions.I18nBinding(labelKey).ProvideValue(null!) is Avalonia.Data.BindingBase binding)
+            button.Bind(Button.ContentProperty, binding);
+        return button;
+    }
+
     private static readonly AttachedProperty<bool> AttachedProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>("TableToolsAttached", typeof(TableTools));
 
@@ -53,9 +58,11 @@ public static class TableTools
 
     private static Control BuildToolbar(Border container)
     {
-        var copy = new Button { Classes = { "md-table-tool" }, Content = CopyMarkdownLabel };
-        var csv = new Button { Classes = { "md-table-tool" }, Content = DownloadCsvLabel };
-        var preview = new Button { Classes = { "md-table-tool" }, Content = PreviewLabel };
+        // 工具条是文档渲染时现建的，切语言不会重排正文，所以三个动作钮的文字用资源绑定挂在控件上，
+        // 跟着 I18nManager 的文化走（与 TabControlRegionAdapter 的页签标题同一口径）。
+        var copy = TableTool(VexL.TableCopyMarkdown);
+        var csv = TableTool(VexL.TableDownloadCsv);
+        var preview = TableTool(VexL.TablePreview);
         copy.Click += async (_, _) =>
         {
             var markdown = ToMarkdown(Extract(container));

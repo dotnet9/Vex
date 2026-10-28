@@ -24,7 +24,7 @@ public sealed record UpdateNoteEntry(string? TagKey, string TagText, string Text
 }
 
 /// <summary>把 GitHub 发布正文（与《更新日志.md》同一份文本）拆成「版本 + 类型化条目」。
-/// 正文里的标签词表来自 I18n/zh-CN.json（生成器落成 Vex.VexReleaseTag），这里不写任何中文常量。</summary>
+/// 正文标签词的词表与文案都来自 I18n 资源（生成器落成 Vex.VexReleaseTag），这里不写任何语言的字面量。</summary>
 public static partial class UpdateReleaseNotesParser
 {
     // 分节：## V1.13.0（2026-10-27） 到下一个分节或文本结尾。日期只用于多版本时的表头，单版本不显示。
@@ -34,35 +34,35 @@ public static partial class UpdateReleaseNotesParser
 
     // 标签行：`- ✨[新增]-正文`。表情只是视觉前缀，判定依据是方括号里的标签词，
     // 所以前缀按「非 [ 的任意字符」匹配——《更新日志》换表情不必回来改这里，旧记录里的 😄/ 前缀同样能解析。
-    // 与原型差在括号内：原型直接枚举四个词，这里不枚举，词表交给 I18n/zh-CN.json 生成的 VexReleaseTag，
-    // 认不出来的方括号（自定义发布说明）退回无标签条目，与原型对同一条正文的结果一致。
+    // 括号内不枚举词形：词表交给 I18n 资源生成的 VexReleaseTag，认不出来的方括号（自定义发布说明）
+    // 退回无标签条目，与原型对同一条正文的结果一致。
     [GeneratedRegex(@"^- (?:[^\[]*)\[([^]]+)\]-(.*)$")]
     private static partial Regex EntryPattern();
 
-    /// <param name="tagLabel">资源键 → 当前界面语言的胶囊文案。</param>
-    public static IReadOnlyList<UpdateNoteVersion> Parse(string? notes, Func<string, string> tagLabel)
+    /// <param name="resolve">资源键 → 当前界面语言的文案；正文词形（UpdateTagSource*）与胶囊文案（UpdateTag*）都由它现取。</param>
+    public static IReadOnlyList<UpdateNoteVersion> Parse(string? notes, Func<string, string> resolve)
     {
         if (string.IsNullOrWhiteSpace(notes)) return [];
         // 发布正文的行尾不保证是 LF（从 Windows 粘贴或多行提交都可能带 CRLF），式子里的 `\n` 会被 `\r` 顶掉，
         // 整段就退化成「没有分节」的散行——先归一化，分节和条目才不会一起解析不出来。
         notes = notes.Replace("\r\n", "\n");
         var sections = SectionPattern().Matches("\n" + notes).Select(section => new UpdateNoteVersion(
-            section.Groups[1].Value, section.Groups[2].Value.Trim(), Entries(section.Groups[3].Value, tagLabel))).ToList();
+            section.Groups[1].Value, section.Groups[2].Value.Trim(), Entries(section.Groups[3].Value, resolve))).ToList();
         // 正文里没有分节标题（自定义发布说明、旧版发布、测试夹具）时整块按无版本条目渲染，
         // 不能因为少了 `## V` 就把日志丢空。
-        return sections.Count > 0 ? sections : [new UpdateNoteVersion("", "", Entries(notes, tagLabel))];
+        return sections.Count > 0 ? sections : [new UpdateNoteVersion("", "", Entries(notes, resolve))];
     }
 
-    private static IReadOnlyList<UpdateNoteEntry> Entries(string body, Func<string, string> tagLabel) => body
+    private static IReadOnlyList<UpdateNoteEntry> Entries(string body, Func<string, string> resolve) => body
         .Split('\n')
         .Select(line => line.Trim())
         .Where(line => line.Length > 0)
         .Select(line =>
         {
             var match = EntryPattern().Match(line);
-            var key = match.Success ? VexReleaseTag.KeyOf(match.Groups[1].Value) : null;
+            var key = match.Success ? VexReleaseTag.KeyOf(match.Groups[1].Value, resolve) : null;
             return key is not null
-                ? new UpdateNoteEntry(key, tagLabel(key), match.Groups[2].Value.Trim())
+                ? new UpdateNoteEntry(key, resolve(key), match.Groups[2].Value.Trim())
                 : new UpdateNoteEntry(null, string.Empty, line.StartsWith("- ") ? line[2..].Trim() : line);
         })
         .ToList();

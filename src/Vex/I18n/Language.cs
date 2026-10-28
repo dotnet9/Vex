@@ -28,6 +28,10 @@ public static class VexL
     public static readonly string UpdateTagOpt = "Vex.VexL.UpdateTagOpt";
     public static readonly string UpdateTagFix = "Vex.VexL.UpdateTagFix";
     public static readonly string UpdateTagRemove = "Vex.VexL.UpdateTagRemove";
+    public static readonly string UpdateTagSourceNew = "Vex.VexL.UpdateTagSourceNew";
+    public static readonly string UpdateTagSourceOpt = "Vex.VexL.UpdateTagSourceOpt";
+    public static readonly string UpdateTagSourceFix = "Vex.VexL.UpdateTagSourceFix";
+    public static readonly string UpdateTagSourceRemove = "Vex.VexL.UpdateTagSourceRemove";
     public static readonly string UpdateReleasedOn = "Vex.VexL.UpdateReleasedOn";
     public static readonly string AboutLicense = "Vex.VexL.AboutLicense";
     public static readonly string AboutDialogTitle = "Vex.VexL.AboutDialogTitle";
@@ -141,6 +145,11 @@ public static class VexL
     public static readonly string ThemeLight = "Vex.VexL.ThemeLight";
     public static readonly string ThemeDark = "Vex.VexL.ThemeDark";
     public static readonly string ThemeSystem = "Vex.VexL.ThemeSystem";
+    public static readonly string ContrastAuditInk = "Vex.VexL.ContrastAuditInk";
+    public static readonly string ContrastAuditMuted = "Vex.VexL.ContrastAuditMuted";
+    public static readonly string ContrastAuditAccent = "Vex.VexL.ContrastAuditAccent";
+    public static readonly string ContrastAuditJoin = "Vex.VexL.ContrastAuditJoin";
+    public static readonly string ContrastAuditSummary = "Vex.VexL.ContrastAuditSummary";
     public static readonly string ThemeAquatic = "Vex.VexL.ThemeAquatic";
     public static readonly string ThemeDesert = "Vex.VexL.ThemeDesert";
     public static readonly string ThemeDusk = "Vex.VexL.ThemeDusk";
@@ -842,6 +851,7 @@ public static class VexL
     public static readonly string ReviewRecoveryTitle = "Vex.VexL.ReviewRecoveryTitle";
     public static readonly string ReviewExternalTitle = "Vex.VexL.ReviewExternalTitle";
     public static readonly string ReviewRecoveryHint = "Vex.VexL.ReviewRecoveryHint";
+    public static readonly string RecoveryFileName = "Vex.VexL.RecoveryFileName";
     public static readonly string ReviewExternalHint = "Vex.VexL.ReviewExternalHint";
     public static readonly string ReviewCurrent = "Vex.VexL.ReviewCurrent";
     public static readonly string ReviewDraft = "Vex.VexL.ReviewDraft";
@@ -974,5 +984,10 @@ public static class VexL
     public static readonly string DiagramEditButton = "Vex.VexL.DiagramEditButton";
     public static readonly string DiagramEditHint = "Vex.VexL.DiagramEditHint";
     public static readonly string DiagramPreviewNote = "Vex.VexL.DiagramPreviewNote";
+    public static readonly string DiagramSourceToggleTip = "Vex.VexL.DiagramSourceToggleTip";
+    public static readonly string TableCopyMarkdown = "Vex.VexL.TableCopyMarkdown";
+    public static readonly string TableDownloadCsv = "Vex.VexL.TableDownloadCsv";
+    public static readonly string TablePreview = "Vex.VexL.TablePreview";
+    public static readonly string McpBridgeParagraph = "Vex.VexL.McpBridgeParagraph";
     public static readonly string FindBarPrev = "Vex.VexL.FindBarPrev";
 }

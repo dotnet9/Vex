@@ -70,6 +70,7 @@ public partial class MarkdownMindMapHost : UserControl
     /// <summary>「导图样式」入口：六种布局 + 六种样式的单选弹层（对应原型导图样式按钮）。</summary>
     private void BuildMapStyleFlyout()
     {
+        var title = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
         var button = new Button
         {
             Classes = { "wb-quiet", "map-tool" },
@@ -78,12 +79,17 @@ public partial class MarkdownMindMapHost : UserControl
                 Orientation = Orientation.Horizontal, Spacing = 4,
                 Children =
                 {
-                    new TextBlock { Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式", VerticalAlignment = VerticalAlignment.Center },
+                    title,
                     new Avalonia.Controls.Shapes.Path { Classes = { "expand-chevron" }, Data = Avalonia.Media.Geometry.Parse("M6 9L12 15L18 9") },
                 },
             },
         };
-        ToolTip.SetTip(button, CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource("Vex.VexL.WBMapStyleButton") ?? "导图样式");
+        // 入口按钮只在构建时走一遍，切语言不会重建它，所以文字与提示都绑资源键（同 TabControlRegionAdapter 的页签）。
+        if (new CodeWF.Avalonia.Lang.MarkupExtensions.I18nBinding(VexL.WBMapStyleButton).ProvideValue(null!) is Avalonia.Data.BindingBase mapStyleBinding)
+        {
+            title.Bind(TextBlock.TextProperty, mapStyleBinding);
+            button.Bind(ToolTip.TipProperty, mapStyleBinding);
+        }
         // 原型 .map-appearance-popover：528−32 内距 = 496 内容宽，标题（mb 12）→ ①结构 步骤标签（mb 9）
         // → 3 列卡片网格（gap 10、padding 2）→ ②风格 步骤标签（mt 14）→ 网格，两排同屏。
         var panel = new StackPanel { Spacing = 0, Width = 496 };
@@ -122,15 +128,15 @@ public partial class MarkdownMindMapHost : UserControl
         {
             if (DataContext is not MainWindowViewModel shell) return;
             var vm = shell.Workbench;
-            string T(string key, string fallback) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? fallback;
-            headerTitle.Text = T(VexL.WBMapStyleButton, "导图样式");
+            string T(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? key;
+            headerTitle.Text = T(VexL.WBMapStyleButton);
             layoutCards.Children.Clear(); styleCards.Children.Clear();
             layoutCards.RowDefinitions.Clear(); styleCards.RowDefinitions.Clear();
             // 步骤标签随每次打开重建，语言切换后文案跟着换（与 headerTitle 同一口径）。
             body.Children.Clear();
-            body.Children.Add(BuildStepLabel("1", T(VexL.MapStepLayout, "结构"), T(VexL.MapStepLayoutHint, "先选一种布局")));
+            body.Children.Add(BuildStepLabel("1", T(VexL.MapStepLayout), T(VexL.MapStepLayoutHint)));
             body.Children.Add(layoutCards);
-            styleStep = BuildStepLabel("2", T(VexL.MapStepStyle, "风格"), T(VexL.MapStepStyleHint, "线稿随上方所选结构实时重绘"));
+            styleStep = BuildStepLabel("2", T(VexL.MapStepStyle), T(VexL.MapStepStyleHint));
             body.Children.Add(styleStep);
             body.Children.Add(styleCards);
             // 原型 .map-choice 是无状态按钮，选中靠 aria-pressed；这里同构：按下态由 map-choice-on 类回放。

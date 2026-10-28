@@ -102,7 +102,9 @@ public static class DiagramEditor
                 badge.Bind(Button.BackgroundProperty, badgeHost.GetResourceObservable("VexPreviewBackgroundBrush"));
                 badge.Bind(Button.BorderBrushProperty, badgeHost.GetResourceObservable("VexTableBorderBrush"));
             }
-            ToolTip.SetTip(badge, "查看 / 隐藏源码");
+            // 提示语绑资源键：图表块是渲染时现建的，切语言不重排正文，写死的文案会留在旧语言上。
+            if (new CodeWF.Avalonia.Lang.MarkupExtensions.I18nBinding(VexL.DiagramSourceToggleTip).ProvideValue(null!) is Avalonia.Data.BindingBase sourceTip)
+                badge.Bind(ToolTip.TipProperty, sourceTip);
 
             var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto") };
             Grid.SetRow(sourceCard, 0);

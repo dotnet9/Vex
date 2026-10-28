@@ -13,6 +13,7 @@ public sealed class ThemeService : IThemeService, IDisposable
     private StudioThemeController? _controller;
     private PaletteOption[]? _palettes;
     private readonly IShellToastPublisher? _toastPublisher;
+    private readonly IAppLocalizer _localizer;
     private readonly IAppSettingsStore? _settings;
     private static readonly ThemeOption[] Modes =
     [
@@ -21,13 +22,14 @@ public sealed class ThemeService : IThemeService, IDisposable
         new("dark", StudioThemeMode.Dark),
     ];
 
-    public ThemeService(IAppSettingsStore settings, Modules.Shell.Services.IShellToastPublisher? toastPublisher = null)
+    public ThemeService(IAppSettingsStore settings, Modules.Shell.Services.IShellToastPublisher? toastPublisher, IAppLocalizer localizer)
     {
         _settings = settings;
         _toastPublisher = toastPublisher;
+        _localizer = localizer;
     }
 
-    private StudioThemeController Controller => _controller ??= new StudioThemeController(Application.Current ?? throw new InvalidOperationException("主题控制器需要在应用启动后使用。"));
+    private StudioThemeController Controller => _controller ??= new StudioThemeController(Application.Current ?? throw new InvalidOperationException("The theme controller requires Application.Current, so it cannot be used before the application starts."));
 
     public IReadOnlyList<ThemeOption> GetThemeOptions() => Modes;
 
@@ -64,12 +66,14 @@ public sealed class ThemeService : IThemeService, IDisposable
         var ink = Avalonia.Media.Color.Parse(baseColors.Ink);
         var muted = CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.Derive(palette.Key, palette.Definition, dark)["StudioMutedColor"];
         var issues = new System.Collections.Generic.List<string>();
-        if (CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.ContrastRatio(ink, paper) < 10) issues.Add("正文对比度不足");
-        if (CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.ContrastRatio(muted, paper) < 4.5) issues.Add("次要文字对比度不足");
-        if (CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.ContrastRatio(accent, paper) < 4.5) issues.Add("强调色对比度不足");
+        if (CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.ContrastRatio(ink, paper) < 10) issues.Add(_localizer.Get(VexL.ContrastAuditInk));
+        if (CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.ContrastRatio(muted, paper) < 4.5) issues.Add(_localizer.Get(VexL.ContrastAuditMuted));
+        if (CodeWF.Avalonia.Controls.Themes.StudioPaletteEngine.ContrastRatio(accent, paper) < 4.5) issues.Add(_localizer.Get(VexL.ContrastAuditAccent));
         if (issues.Count > 0)
         {
-            _toastPublisher.Publish($"自定义配色「{palette.Name}」({(dark ? "深色" : "浅色")})：{string.Join("；", issues)}",
+            // 提示串（含「浅色/深色」限定词、问题分隔符与整句格式）全部取 I18n 资源，代码里只出现资源键。
+            _toastPublisher.Publish(_localizer.Format(VexL.ContrastAuditSummary, palette.Name,
+                    _localizer.Get(dark ? VexL.ThemeDark : VexL.ThemeLight), string.Join(_localizer.Get(VexL.ContrastAuditJoin), issues)),
                 Avalonia.Controls.Notifications.NotificationType.Warning);
         }
     }

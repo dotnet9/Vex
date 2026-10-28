@@ -2510,17 +2510,21 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     window.Width = 980; window.Height = 640; Pump();
     // 先单独钉解析器：真实发布正文是 CRLF、表情前缀在《更新日志》里换过好几轮，这两点一旦回归，
     // 界面上只表现为「胶囊和分节都没了」，看不出根因，所以在进 UI 之前把契约钉死。
-    // 标签认的是资源键（词表由 I18n/zh-CN.json 生成），所以夹具里不出现中文常量，界面文案用键名原样回显。
+    // 正文里的标签词形也是资源（VexL.UpdateTagSource*），夹具照资源取词，测试代码里同样不写中文字面量。
+    var resourceText = app.Resolve<IAppLocalizer>().Get;
+    string SourceTag(string key) => resourceText(key);
     var parsed = UpdateReleaseNotesParser.Parse(
-        "## V1.13.0（2026-10-27）\r\n\r\n- 😄[新增]-甲。\r\n\r\n## V1.12.0（2026-10-20）\r\n\r\n- 🔨[优化]-乙。\r\n- 丙。\r\n- 🚀[示例]-丁。\r\n", key => key);
+        "## V1.13.0（2026-10-27）\r\n\r\n- 😄[" + SourceTag(Vex.VexL.UpdateTagSourceNew) + "]-first.\r\n\r\n## V1.12.0（2026-10-20）\r\n\r\n- 🔨[" + SourceTag(Vex.VexL.UpdateTagSourceOpt) + "]-second.\r\n- third.\r\n- 🚀[Unknown]-fourth.\r\n", resourceText);
     Check(parsed.Count == 2 && parsed[0].Version == "1.13.0" && parsed[0].Date == "2026-10-27"
         && parsed[1].Version == "1.12.0", "A CRLF release body splits into one section per version");
     Check(parsed[0].Entries.Single() is { IsNew: true, TagKey: var newKey } && newKey == Vex.VexL.UpdateTagNew
         && parsed[1].Entries.Count == 3 && parsed[1].Entries[0] is { IsOptimized: true },
         "Legacy emoji prefixes never leak into the tag or the body");
-    Check(parsed[1].Entries[1] is { HasTag: false, Text: "丙。" }
+    Check(parsed[1].Entries[1] is { HasTag: false, Text: "third." }
         && parsed[1].Entries[2] is { HasTag: false } untagged && untagged.Text.StartsWith("🚀", StringComparison.Ordinal),
         "A line the tag vocabulary does not know stays plain text, brackets and all");
+    Check(parsed[0].Entries.Single().TagText == SourceTag(Vex.VexL.UpdateTagNew),
+        "A tagged entry carries the interface-language label beside its resource key");
     var service = (VerificationUpdates)VerificationVexApp.Updates!;
     var overlay = app.Resolve<IShellOverlayService>();
     var menu = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellTitleMenuView>().Single();
@@ -2549,12 +2553,16 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
         .Select((cls, index) => noteChips[index].Classes.Contains(cls)).All(carried => carried),
         "Tag chips carry the prototype's semantic classes in changelog order");
     Check(noteChips.Select(chip => chip.GetVisualDescendants().OfType<TextBlock>().Single().Text ?? string.Empty)
-        .SequenceEqual(new[] { "新增", "优化", "修复", "删除" }), "Tag chips read in the interface language");
+        .SequenceEqual(new[] { Vex.VexL.UpdateTagNew, Vex.VexL.UpdateTagOpt, Vex.VexL.UpdateTagFix, Vex.VexL.UpdateTagRemove }.Select(resourceText)),
+        "Tag chips read in the interface language");
     var noteLines = view.GetVisualDescendants().OfType<SelectableTextBlock>()
         .Select(line => line.Text ?? string.Empty).ToArray();
     Check(noteLines.Length == 5 && noteLines.All(text => !text.Contains('[')),
         $"Note bodies drop the emoji and bracket markup: {noteLines.Length} lines [{string.Join(" | ", noteLines)}]");
-    Check(noteLines.Any(text => text.Contains("行尾归一化")), "An untagged line still renders as a plain entry");
+    // 「没有标签的那一行」从夹具本身推出来，夹具改了措辞不必回来改断言。
+    var plainLine = service.Notes.Split('\n').Select(line => line.Trim())
+        .Where(line => line.StartsWith("- ") && !line.Contains('[')).Select(line => line[2..]).Single();
+    Check(noteLines.Contains(plainLine), "An untagged line still renders as a plain entry");
     Color Over(Color front, Color back)
     {
         var alpha = front.A / 255d;
@@ -2612,16 +2620,16 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     Check(model.State == UpdateState.Failed && model.HasDownload && !aboutTask.IsCompleted, "Failed installation keeps Vex and the update view open");
     foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
     {
-        var expectedTags = culture switch
-        {
-            "en-US" => new[] { "New", "Improved", "Fixed", "Removed" },
-            "zh-Hant" => new[] { "新增", "優化", "修復", "刪除" },
-            "ja-JP" => new[] { "新規", "改善", "修正", "削除" },
-            _ => new[] { "新增", "优化", "修复", "删除" },
-        };
+        // 期望文案直接取当前语言的资源，测试里不再抄一遍四语翻译；比的是「四枚胶囊各按自己的资源键显示」。
+        string[] ExpectedTags() =>
+        [
+            resourceText(Vex.VexL.UpdateTagNew), resourceText(Vex.VexL.UpdateTagOpt),
+            resourceText(Vex.VexL.UpdateTagFix), resourceText(Vex.VexL.UpdateTagRemove),
+        ];
         foreach (var theme in new[] { "light", "dark" })
         {
             vm.Appearance.SelectLanguageByCulture(culture); vm.Appearance.SelectThemeByKey(theme); Pump(); SettleRendering();
+            var expectedTags = ExpectedTags();
             var scroll = view.GetVisualDescendants().OfType<ScrollViewer>().Single(); scroll.ScrollToEnd(); Pump();
             VerifyInside(scroll, window, "Update viewport fits: " + culture + "/" + theme);
             VerifyInside(view.FindControl<Button>("UpdateAction")!, scroll, "Install retry remains reachable: " + culture + "/" + theme);
