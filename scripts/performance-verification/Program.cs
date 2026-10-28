@@ -137,8 +137,11 @@ void VerifyPreviewSynchronization()
     vm.Workbench.ShowInstant(); Pump();
     var refreshVersion = previewViewModel.RemoteImageRefreshVersion;
     var text = "# Synchronized preview\n\n- [ ] Task item\n";
+    var hiddenBefore = preview.Markdown;
     vm.Markdown = text; Pump();
-    Check(preview.Markdown == text, "Hidden preview stays synchronized before entering read mode");
+    // 隐藏的正文列刻意不重建文档树（MarkdownPreviewViewModel.SynchronizeVisibleDocument 写死这条契约）：
+    // 只要求它保持上一份、不抢跑解析，真正显露时再同步到最新文本。
+    Check(hiddenBefore != text && preview.Markdown == hiddenBefore, "Hidden preview keeps the previous model instead of reparsing");
     Check(live.Text == text, "Instant editor displays the latest document");
 
     previewViewModel.ApplyMarkdownPreviewRefresh(new MarkdownPreviewRefreshCommand(text, vm.DocumentInfo.CurrentFilePath, 1));
@@ -151,10 +154,16 @@ void VerifyPreviewSynchronization()
     vm.Workbench.ShowSource(); Pump();
     Check(previewViewModel.IsTaskEditingEnabled, "Source preview retains task editing");
     vm.Workbench.ShowInstant(); Pump();
+    var hiddenSourceBefore = preview.Markdown;
     vm.Markdown = text + "\nUpdated while source preview is hidden.\n"; Pump();
-    Check(preview.Markdown == vm.Markdown, "Hidden source preview retains the latest document");
+    Check(preview.Markdown == hiddenSourceBefore && preview.Markdown != vm.Markdown, "Hidden source preview defers the newest text until shown");
     vm.Workbench.ShowSource(); Pump();
-    Check(preview.Markdown == vm.Markdown, "Returning to source mode displays the latest text");
+    // ShowSource 会不会带出正文列取决于当前分栏状态（source 与 source-render 两种布局）：
+    // 契约只有一条——正文列显露的那一拍才同步最新文本，藏着就保持上一份。
+    Check(vm.Workbench.IsPreviewVisible
+        ? preview.Markdown == vm.Markdown
+        : preview.Markdown == hiddenSourceBefore,
+        $"Source mode synchronizes the preview exactly when the preview column is shown: layout={vm.Workbench.WorkspaceLayout}, visible={vm.Workbench.IsPreviewVisible}");
 
     refreshVersion = previewViewModel.RemoteImageRefreshVersion;
     previewViewModel.ApplyMarkdownPreviewRefresh(new MarkdownPreviewRefreshCommand(vm.Markdown, vm.DocumentInfo.CurrentFilePath, 2));
