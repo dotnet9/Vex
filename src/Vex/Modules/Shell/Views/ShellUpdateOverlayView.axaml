@@ -48,7 +48,7 @@
          <StackPanel>
           <Border IsVisible="{Binding ShowHeader}" Classes="update-version" Padding="0,0,0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}">
            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-            <TextBlock Text="{Binding Version, StringFormat='V{0}'}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Bottom"/>
+            <TextBlock Text="{Binding Version, StringFormat='V{0}'}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Bottom"/>
             <TextBlock Grid.Column="1" Text="{Binding Date}" Classes="muted" FontSize="12" VerticalAlignment="Bottom"/>
            </Grid>
           </Border>

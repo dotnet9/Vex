@@ -203,7 +203,7 @@ public static class TableTools
                     Padding = new Thickness(10, 6),
                     BorderBrush = Brushes.LightGray,
                     BorderThickness = new Thickness(0, 0, 1, 1),
-                    Child = new TextBlock { Text = rows[r][c], FontSize = 12.5, TextWrapping = TextWrapping.Wrap },
+                    Child = new TextBlock { Text = rows[r][c], FontSize = 12, TextWrapping = TextWrapping.Wrap },
                 };
                 grid.Children.Add(cell);
                 Grid.SetRow(cell, r);

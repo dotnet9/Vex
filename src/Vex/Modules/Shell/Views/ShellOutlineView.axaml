@@ -81,7 +81,7 @@
             IsVisible="{Binding HasOutlineItems}">
             <TextBlock
                 Classes="muted"
-                FontSize="11.5"
+                FontSize="11"
                 Text="{Binding CurrentChapterText}"
                 TextTrimming="CharacterEllipsis" />
         </Border>

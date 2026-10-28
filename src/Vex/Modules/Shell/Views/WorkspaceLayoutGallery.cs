@@ -64,9 +64,9 @@ public sealed class WorkspaceLayoutGallery : Border
         }
         stack.Children.Add(options);
         var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        var noteLabel = new TextBlock { Text = DesignSelectionControls.Text("WSLayoutFooter"), FontSize = 10.5, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
+        var noteLabel = new TextBlock { Text = DesignSelectionControls.Text("WSLayoutFooter"), FontSize = 11, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
         noteLabel.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("VexMutedBrush")); footer.Children.Add(noteLabel);
-        var reset = new Button { Classes = { "wb-quiet" }, Content = WorkbenchText.Get("WSDefault"), FontSize = 10.5, Padding = new Thickness(0, 3) };
+        var reset = new Button { Classes = { "wb-quiet" }, Content = WorkbenchText.Get("WSDefault"), FontSize = 11, Padding = new Thickness(0, 3) };
         reset.Click += (_, _) => _workbench.SelectLayout("instant"); Grid.SetColumn(reset, 1); footer.Children.Add(reset);
         var footerBorder = new Border { Child = footer, Margin = new Thickness(0, 14, 0, 0), Padding = new Thickness(0, 10, 0, 0), BorderThickness = new Thickness(0, 1, 0, 0) };
         footerBorder.Bind(BorderBrushProperty, this.GetResourceObservable("VexPanelBorderBrush")); stack.Children.Add(footerBorder);

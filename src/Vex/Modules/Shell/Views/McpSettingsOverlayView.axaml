@@ -17,7 +17,7 @@
                     <TextBlock FontSize="16" FontWeight="SemiBold" Text="{i18n:I18n {x:Static l:VexL.McpSettingsTitle}}" />
                     <TextBlock
                         Classes="muted"
-                        FontSize="11.5"
+                        FontSize="11"
                         Text="{i18n:I18n {x:Static l:VexL.McpSettingsDescription}}"
                         TextWrapping="Wrap" />
                 </StackPanel>

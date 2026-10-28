@@ -80,7 +80,7 @@ public sealed class ShellTypographyEditView : UserControl
 
     private static StackPanel ColorField(string labelKey, string value, Action<string> write)
     {
-        var input = new TextBox { Text = value, Width = 84, Height = 30, FontSize = 11.5, FontFamily = VexFonts.Code, CornerRadius = new CornerRadius(5) };
+        var input = new TextBox { Text = value, Width = 84, Height = 30, FontSize = 11, FontFamily = VexFonts.Code, CornerRadius = new CornerRadius(5) };
         input.PropertyChanged += (_, args) =>
         {
             if (args.Property == TextBox.TextProperty) write(input.Text ?? "");

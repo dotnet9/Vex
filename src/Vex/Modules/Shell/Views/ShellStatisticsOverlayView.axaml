@@ -34,7 +34,7 @@
                                     TextTrimming="CharacterEllipsis" />
                                 <TextBlock
                                     Classes="muted"
-                                    FontSize="11.5"
+                                    FontSize="11"
                                     Text="{i18n:I18n {x:Static l:VexL.StatusWords}}" />
                             </StackPanel>
                         </Border>
@@ -54,18 +54,18 @@
                                     TextTrimming="CharacterEllipsis" />
                                 <TextBlock
                                     Classes="muted"
-                                    FontSize="11.5"
+                                    FontSize="11"
                                     Text="{i18n:I18n {x:Static l:VexL.StatusCharacters}}" />
                             </StackPanel>
                         </Border>
                     </Grid>
 <Grid Grid.Row="1" Margin="24,12,24,20" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="22">
-<Border Grid.Row="0" Grid.Column="0" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsLines}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding Statistics.Lines}"/></Grid></Border>
-<Border Grid.Row="0" Grid.Column="1" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsParagraphs}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding Statistics.Paragraphs}"/></Grid></Border>
-<Border Grid.Row="1" Grid.Column="0" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsHeadings}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding Statistics.Headings}"/></Grid></Border>
-<Border Grid.Row="1" Grid.Column="1" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsReading}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding ReadingMinutesText}"/></Grid></Border>
-<Border Grid.Row="2" Grid.Column="0" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatusEncoding}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding CurrentEncodingText}"/></Grid></Border>
-<Border Grid.Row="2" Grid.Column="1" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12.5" Classes="muted" Text="{i18n:I18n Vex.VexL.StatusState}"/><SelectableTextBlock Grid.Column="1" FontSize="12.5" FontWeight="SemiBold" Text="{Binding DocumentStateText}"/></Grid></Border>
+<Border Grid.Row="0" Grid.Column="0" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsLines}"/><SelectableTextBlock Grid.Column="1" FontSize="12" FontWeight="SemiBold" Text="{Binding Statistics.Lines}"/></Grid></Border>
+<Border Grid.Row="0" Grid.Column="1" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsParagraphs}"/><SelectableTextBlock Grid.Column="1" FontSize="12" FontWeight="SemiBold" Text="{Binding Statistics.Paragraphs}"/></Grid></Border>
+<Border Grid.Row="1" Grid.Column="0" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsHeadings}"/><SelectableTextBlock Grid.Column="1" FontSize="12" FontWeight="SemiBold" Text="{Binding Statistics.Headings}"/></Grid></Border>
+<Border Grid.Row="1" Grid.Column="1" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12" Classes="muted" Text="{i18n:I18n Vex.VexL.StatisticsReading}"/><SelectableTextBlock Grid.Column="1" FontSize="12" FontWeight="SemiBold" Text="{Binding ReadingMinutesText}"/></Grid></Border>
+<Border Grid.Row="2" Grid.Column="0" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12" Classes="muted" Text="{i18n:I18n Vex.VexL.StatusEncoding}"/><SelectableTextBlock Grid.Column="1" FontSize="12" FontWeight="SemiBold" Text="{Binding CurrentEncodingText}"/></Grid></Border>
+<Border Grid.Row="2" Grid.Column="1" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexSplitterBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="12" Classes="muted" Text="{i18n:I18n Vex.VexL.StatusState}"/><SelectableTextBlock Grid.Column="1" FontSize="12" FontWeight="SemiBold" Text="{Binding DocumentStateText}"/></Grid></Border>
 </Grid>
                 </Grid>
             </ScrollViewer>

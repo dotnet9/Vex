@@ -74,7 +74,7 @@ body.device-phone .mobile-more { width:44px; height:44px; }
 .phone-sheet-grid button { min-height:76px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; border-radius:var(--vex-radius-sm); padding:10px 4px; font-size:13px; line-height:1.4; }
 .phone-sheet-grid .icon { width:23px; height:23px; color:var(--accent); }
 .phone-sheet-rows { padding:6px 0 0; }
-.phone-sheet-row { width:100%; min-height:52px; display:flex; align-items:center; gap:14px; padding:10px 8px; border-radius:var(--vex-radius-xs); text-align:left; font-size:14px; line-height:1.5; }
+.phone-sheet-row { width:100%; min-height:52px; display:flex; align-items:center; gap:14px; padding:10px 8px; border-radius:var(--vex-radius-xs); text-align:left; font-size:15px; line-height:1.5; }
 .phone-sheet-row>.icon { width:19px; height:19px; flex:none; color:var(--muted); }
 .phone-sheet-row>span { flex:1; min-width:0; }
 .phone-sheet-row>.icon:last-child { width:16px; height:16px; opacity:.6; }
@@ -86,8 +86,8 @@ body.device-phone .mobile-more { width:44px; height:44px; }
 @media(hover:hover) { .phone-sheet button:hover { background:var(--accent-soft); } }
 .phone-sheet .type-options { box-sizing:border-box; width:100%; padding:0 8px 12px; }
 .phone-sheet .type-options label { font-size:13px; margin-top:14px; }
-.phone-sheet .type-options select { min-height:44px; font-size:14px; }
-.phone-sheet .size-control { min-height:48px; font-size:14px; }
+.phone-sheet .type-options select { min-height:44px; font-size:15px; }
+.phone-sheet .size-control { min-height:48px; font-size:15px; }
 .phone-sheet .size-control button { width:44px; height:44px; }
 .phone-sheet .type-options .settings-row { display:flex; min-height:52px; margin-bottom:0; }
 .phone-sheet .typography-note { display:none; }
@@ -192,7 +192,7 @@ body.device-phone .modal .stats-grid { gap:6px; }
 body.device-phone .modal .stat-card strong { font-size:20px; }
 .vex-settings { width:min(675px,100%); height:min(700px,calc(100dvh - 48px)); display:flex; flex-direction:column; overflow:hidden; border:1px solid var(--border); border-radius:var(--vex-radius-md); background:var(--panel,var(--surface,#fff)); color:var(--fg,var(--text,#20262e)); box-shadow:0 22px 80px #09182733; font:14px/1.5 var(--font,system-ui); animation:vex-dialog-in var(--vex-duration) var(--vex-ease) both; }
 .vex-settings-title { display:flex; align-items:center; height:36px; min-height:36px; padding-left:16px; border-bottom:1px solid var(--border); }
-.vex-settings-title h2 { font-size:14px; margin:0; font-weight:600; }
+.vex-settings-title h2 { font-size:15px; margin:0; font-weight:600; }
 .vex-settings-title button { margin-left:auto; width:46px; height:32px; }
 .vex-settings-title [data-vex-back] { margin-left:-8px; margin-right:6px; width:32px; }
 .vex-icon-button { display:inline-grid; place-items:center; flex:none; width:32px; height:32px; border:0; border-radius:var(--vex-radius-xs); background:transparent; color:inherit; cursor:pointer; padding:6px; }
@@ -246,7 +246,7 @@ body.device-phone .modal .stat-card strong { font-size:20px; }
 .vex-export-host { position:fixed; inset:0; z-index:2600; padding:24px; background:#0b172947; display:grid; place-items:center; animation:vex-fade-in var(--vex-fast) both; }
 .vex-export-dialog { width:min(800px,100%); height:min(850px,calc(100dvh - 48px)); display:flex; flex-direction:column; background:var(--panel,var(--surface)); color:var(--fg); border:1px solid var(--border); border-radius:var(--vex-radius-md); overflow:hidden; box-shadow:0 22px 80px #09182733; animation:vex-dialog-in var(--vex-duration) var(--vex-ease) both; }
 .vex-export-dialog>header { display:flex; align-items:center; justify-content:space-between; padding:4px 8px 4px 18px; border-bottom:1px solid var(--border); }
-.vex-export-dialog>header h2 { font-size:14px; margin:0; min-width:0; overflow-wrap:anywhere; }
+.vex-export-dialog>header h2 { font-size:15px; margin:0; min-width:0; overflow-wrap:anywhere; }
 .vex-export-dialog>header,.vex-export-dialog>footer,.vex-settings-title { flex:none; }
 .vex-export-dialog>.vex-pref-row { margin:0 18px; font-size:13px; flex:none; }
 .vex-export-scroll { flex:1; min-height:0; overflow:auto; background:var(--bg); padding:24px; }
@@ -317,7 +317,7 @@ body.device-phone .app-window .guide-card { width:310px; left:var(--vex-tour-lef
 .release-package strong,.release-package span { display:block; font-size:13px; line-height:1.8; overflow-wrap:anywhere; }
 .release-package span { color:var(--muted); font-size:12px; }
 .release-content>h2 { font-size:20px; margin:0 0 12px; }
-.release-content>p { font-size:14px; line-height:1.8; color:var(--muted); }
+.release-content>p { font-size:15px; line-height:1.8; color:var(--muted); }
 .system-modal:not([hidden]) { animation:vex-fade-in var(--vex-fast) both; }
 .system-dialog { animation:vex-dialog-in var(--vex-duration) var(--vex-ease) both; }
 .system-dialog,.information-card { border-radius:var(--vex-radius-md); }

@@ -27,12 +27,12 @@
                     Padding="{TemplateBinding Padding}">
                     <StackPanel Orientation="Horizontal" Spacing="5">
                         <TextBlock
-                            FontSize="11.5"
+                            FontSize="11"
                             Foreground="{DynamicResource VexStatusBadgeLabelBrush}"
                             Text="{TemplateBinding Label}" />
                         <TextBlock
                             Name="ValueText"
-                            FontSize="11.5"
+                            FontSize="11"
                             FontWeight="SemiBold"
                             Foreground="{DynamicResource VexStatusBadgeValueBrush}"
                             MaxWidth="96"

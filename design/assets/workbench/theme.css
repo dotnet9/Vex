@@ -91,7 +91,7 @@ a:hover { text-decoration: underline; }
 .proto-desc {
   margin-top: 6px;
   max-width: 860px;
-  font-size: 12.5px;
+  font-size:12px;
   color: var(--muted);
 }
 .proto-desc b { color: var(--value); font-weight: 600; }
@@ -135,7 +135,7 @@ a:hover { text-decoration: underline; }
 .tb-appname { font-size: 12px; font-weight: 600; }
 .tb-menu { display: flex; align-items: center; gap: 2px; margin-left: 4px; }
 .tb-menuitem {
-  font-size: 12.5px;
+  font-size:12px;
   color: var(--fg);
   padding: 3px 9px;
   border-radius: var(--vex-radius-sm);
@@ -184,13 +184,13 @@ a:hover { text-decoration: underline; }
   display: flex; align-items: center; gap: 10px;
   padding: 6px 10px;
   border-radius: var(--vex-radius-sm);
-  font-size: 12.5px;
+  font-size:12px;
   cursor: default;
   color: var(--fg);
   white-space: nowrap;
 }
 .menu-item .mi-ico { width: 15px; height: 15px; color: var(--muted); flex: none; }
-.menu-item .mi-gesture { margin-left: auto; padding-left: 28px; font-size: 11.5px; color: var(--muted); }
+.menu-item .mi-gesture { margin-left: auto; padding-left: 28px; font-size:11px; color: var(--muted); }
 .menu-item .mi-arrow { margin-left: auto; padding-left: 28px; font-size: 10px; color: var(--muted); }
 .menu-item:hover { background: var(--hover); }
 .menu-item.checked::after {
@@ -211,7 +211,7 @@ a:hover { text-decoration: underline; }
   appearance: none;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   font: inherit;
-  font-size: 12.5px;
+  font-size:12px;
   color: var(--fg);
   background: var(--panel);
   border: 1px solid var(--border);
@@ -246,7 +246,7 @@ a:hover { text-decoration: underline; }
 /* ---------- 输入框 ---------- */
 .input {
   font: inherit;
-  font-size: 12.5px;
+  font-size:12px;
   color: var(--fg);
   background: transparent;
   border:1px solid var(--control-border);
@@ -267,7 +267,7 @@ a:hover { text-decoration: underline; }
 /* ---------- 复选框 / 单选 ---------- */
 .check {
   display: inline-flex; align-items: center; gap: 8px;
-  font-size: 12.5px;
+  font-size:12px;
   cursor: pointer;
   color: var(--fg);
 }
@@ -293,7 +293,7 @@ a:hover { text-decoration: underline; }
 
 .radio {
   display: inline-flex; align-items: center; gap: 8px;
-  font-size: 12.5px;
+  font-size:12px;
   cursor: pointer;
 }
 .radio .dot {
@@ -368,7 +368,7 @@ a:hover { text-decoration: underline; }
 /* ---------- 状态徽章 ---------- */
 .badge {
   display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11.5px;
+  font-size:11px;
   background: var(--badge-bg);
   border: 1px solid var(--badge-border);
   border-radius: var(--vex-radius-sm);
@@ -381,7 +381,7 @@ a:hover { text-decoration: underline; }
 
 .kbd {
   font-family: inherit;
-  font-size: 10.5px;
+  font-size:11px;
   color: var(--muted);
   background: var(--code-bg);
   border: 1px solid var(--border);
@@ -408,7 +408,7 @@ a:hover { text-decoration: underline; }
 }
 .side-tab {
   appearance: none; border: none; background: transparent;
-  font: inherit; font-size: 12.5px;
+  font: inherit; font-size:12px;
   color: var(--muted);
   padding: 6px 12px 8px;
   cursor: pointer;
@@ -448,13 +448,13 @@ a:hover { text-decoration: underline; }
 .tree-row .tr-title {
   display: flex; align-items: center; gap: 7px;
   font-weight: 600;
-  font-size: 12.5px;
+  font-size:12px;
   color: var(--fg);
 }
 .tree-row.selected .tr-title { color: var(--accent); }
 .tree-row .tr-title .tr-time { margin-left: auto; font-weight: 400; font-size: 11px; color: var(--muted); }
 .tree-row .tr-preview {
-  font-size: 11.5px;
+  font-size:11px;
   color: var(--muted);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -464,14 +464,14 @@ a:hover { text-decoration: underline; }
 .tree-folder {
   display: flex; align-items: center; gap: 7px;
   padding: 5px 10px;
-  font-weight: 600; font-size: 12.5px;
+  font-weight: 600; font-size:12px;
   color: var(--fg);
 }
 .tree-file {
   display: flex; align-items: center; gap: 7px;
   padding: 5px 10px 5px 26px;
   border-radius: var(--vex-radius-sm);
-  font-size: 12.5px;
+  font-size:12px;
   color: var(--fg);
 }
 .tree-file:hover { background: var(--hover); }
@@ -484,7 +484,7 @@ a:hover { text-decoration: underline; }
   display: flex; align-items: center;
   padding: 5px 10px;
   border-radius: var(--vex-radius-sm);
-  font-size: 12.5px;
+  font-size:12px;
   color: var(--fg);
   cursor: default;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -542,7 +542,7 @@ a:hover { text-decoration: underline; }
 .opt-toggle {
   appearance: none;
   font: inherit;
-  font-size: 11.5px;
+  font-size:11px;
   font-weight: 600;
   color: var(--muted);
   background: transparent;
@@ -595,14 +595,14 @@ a:hover { text-decoration: underline; }
 .dlg-ico svg { width: 18px; height: 18px; }
 .dlg-ico.warn { background: var(--danger-soft); color: var(--danger); }
 .dlg-ico.info { background: var(--accent-soft); color: var(--accent); }
-.dlg-msg { margin-top: 10px; color: var(--muted); font-size: 12.5px; }
+.dlg-msg { margin-top: 10px; color: var(--muted); font-size:12px; }
 .dlg-path {
   margin-top: 12px;
   background: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: var(--vex-radius-md);
   padding: 8px 10px;
-  font-size: 11.5px;
+  font-size:11px;
   color: var(--muted);
   word-break: break-all;
 }
@@ -633,7 +633,7 @@ a:hover { text-decoration: underline; }
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center;
   padding-left: 14px;
-  font-size: 12.5px;
+  font-size:12px;
   font-weight: 600;
   position: relative;
   user-select: none;
@@ -648,7 +648,7 @@ a:hover { text-decoration: underline; }
   align-items: center;
 }
 .form-row > label {
-  font-size: 12.5px;
+  font-size:12px;
   color: var(--muted);
   text-align: right;
 }
@@ -665,7 +665,7 @@ a:hover { text-decoration: underline; }
   background: var(--editor-bg);
   color: var(--editor-fg);
   font-family: "Cascadia Code", "Cascadia Mono", Consolas, "Microsoft YaHei UI", monospace;
-  font-size: 12.5px;
+  font-size:12px;
   line-height: 1.75;
   overflow: auto;
   padding: 16px 0;
@@ -685,7 +685,7 @@ a:hover { text-decoration: underline; }
   color: var(--md-marker);
   opacity: 0.75;
   user-select: none;
-  font-size: 11.5px;
+  font-size:11px;
   line-height: inherit;
 }
 .ed-text { white-space: pre-wrap; word-break: break-all; min-width: 0; }
@@ -745,7 +745,7 @@ a:hover { text-decoration: underline; }
 .md-body pre code { background: none; border: none; padding: 0; color: var(--fg); font-size: 12px; line-height: 1.7; }
 .md-body ul, .md-body ol { padding-left: 22px; margin: 8px 0; }
 .md-body li { margin: 3px 0; }
-.md-body table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 12.5px; }
+.md-body table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size:12px; }
 .md-body th, .md-body td { border: 1px solid var(--border); padding: 5px 10px; text-align: left; }
 .md-body th { background: var(--code-bg); font-weight: 600; }
 .md-body hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
@@ -861,13 +861,13 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   display: flex; justify-content: space-between; align-items: center;
 }
 .nav-panel .np-title .kbd { font-size: 10px; }
-.nav-group { font-size: 10.5px; color: var(--fg-disabled); font-weight: 700; letter-spacing: .6px; padding: 8px 10px 3px; }
+.nav-group { font-size:11px; color: var(--fg-disabled); font-weight: 700; letter-spacing: .6px; padding: 8px 10px 3px; }
 .nav-item {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 10px;
   border-radius: var(--vex-radius-md);
   cursor: pointer;
-  font-size: 12.5px; color: var(--fg);
+  font-size:12px; color: var(--fg);
   text-decoration: none;
 }
 .nav-item:hover { background: var(--hover); color: var(--fg); text-decoration: none; }
@@ -887,7 +887,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
 .proto-toast {
   background: var(--tooltip-bg);
   color: var(--tooltip-fg);
-  font-size: 12.5px;
+  font-size:12px;
   padding: 8px 16px;
   border-radius: 999px;
   box-shadow: var(--shadow-pop);
@@ -924,7 +924,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   left: 50%; top: 14px;
   transform: translateX(-50%);
   z-index: 8;
-  font-size: 11.5px;
+  font-size:11px;
   color: var(--muted);
   background: var(--panel);
   border: 1px solid var(--border);

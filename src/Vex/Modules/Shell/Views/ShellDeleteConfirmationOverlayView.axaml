@@ -21,7 +21,7 @@
                 </Border>
                 <TextBlock
                     VerticalAlignment="Center"
-                    FontSize="15.5"
+                    FontSize="15"
                     FontWeight="SemiBold"
                     Text="{Binding ConfirmationText}"
                     TextWrapping="Wrap" />

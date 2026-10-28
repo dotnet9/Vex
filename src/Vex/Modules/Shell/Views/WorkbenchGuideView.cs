@@ -25,7 +25,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
     private readonly TextBlock _bubbleText = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap, MaxWidth = 260 };
     private readonly TextBlock _counter = new() { FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
     private readonly TextBlock _title = new() { FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap };
-    private readonly TextBlock _description = new() { FontSize = 12.5, TextWrapping = TextWrapping.Wrap, LineHeight = 22 };
+    private readonly TextBlock _description = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap, LineHeight = 22 };
     private readonly TextBlock _feedback = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap, LineHeight = 21 };
     private readonly Button _skip = new() { Classes = { "vex-dismiss" }, Content = "×" };
     private readonly Button _next = new() { HorizontalAlignment = HorizontalAlignment.Right };

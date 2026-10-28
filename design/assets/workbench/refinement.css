@@ -62,7 +62,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .about-hero { margin:0; padding:28px 32px 0; gap:18px; background:none; border:0; border-radius:0; }
 .about-hero .about-logo { width:64px; height:64px; flex:none; }
 .about-identity h2 { font-size:24px; letter-spacing:0; }
-.about-identity .slogan,.about-row { font-size:14px; line-height:1.8; }
+.about-identity .slogan,.about-row { font-size:15px; line-height:1.8; }
 .about-rows { padding:22px 32px 0; gap:10px 24px; }
 /* 检查更新对话框：英雄区（Logo+标题+摘要）、进度条、类型化更新日志。 */
 .update-body { padding:26px 32px 24px; display:flex; flex-direction:column; gap:16px; }
@@ -71,7 +71,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .update-icon img { display:block; width:100%; height:100%; }
 .update-copy { display:flex; flex-direction:column; gap:3px; min-width:0; }
 .update-copy strong { font-size:18px; font-weight:700; letter-spacing:-.01em; }
-.update-sub { color:var(--muted); font-size:12.5px; }
+.update-sub { color:var(--muted); font-size:12px; }
 .update-progress { display:flex; align-items:center; gap:12px; }
 .update-progress-track { flex:1; height:6px; border-radius:var(--vex-radius-sm); background:color-mix(in srgb, var(--accent) 14%, var(--border)); overflow:hidden; }
 .update-progress-bar { height:100%; width:0; border-radius:var(--vex-radius-sm); background:var(--accent); transition:width var(--vex-instant) linear; }
@@ -83,7 +83,7 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 .update-version strong { font-size:13.5px; }
 .update-date { color:var(--muted); font-size:12px; }
 .update-entries { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px; }
-.update-entries li { display:flex; align-items:baseline; gap:8px; font-size:12.5px; line-height:1.65; color:var(--fg); }
+.update-entries li { display:flex; align-items:baseline; gap:8px; font-size:12px; line-height:1.65; color:var(--fg); }
 .update-tag { flex:0 0 auto; padding:1px 7px; border-radius:999px; font-size:11px; font-weight:600; color:var(--fg); }
 .update-tag.tag-new { background:var(--success-soft); color:var(--success); }
 .update-tag.tag-opt { background:var(--info-soft); color:var(--info); }

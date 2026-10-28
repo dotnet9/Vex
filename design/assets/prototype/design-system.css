@@ -31,10 +31,10 @@
 #vex-appearance-menu .studio-palettes button.on,#vex-appearance-menu .studio-palettes button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--paper)}
 #vex-appearance-menu .studio-palettes button .swatch-dots{display:grid;grid-template-columns:repeat(4,auto);gap:4px;padding-right:24px}
 #vex-appearance-menu .studio-palettes button .swatch-dots i{width:16px;height:16px;border-radius:50%;border:1px solid var(--border);flex:none}
-#vex-appearance-menu .studio-palettes button::after{position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0;font-size:14px;font-weight:700;color:var(--accent)}
+#vex-appearance-menu .studio-palettes button::after{position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0;font-size:15px;font-weight:700;color:var(--accent)}
 .palette-badge{position:absolute;top:6px;right:6px;font:600 10px/1 var(--font);font-style:normal;padding:2px 4px;border-radius:var(--vex-radius-xs);background:var(--accent);color:var(--on-accent);pointer-events:none}
 .palette-label{display:flex;min-width:0;flex:1;flex-direction:column;gap:2px}
-.palette-label b{font-size:13px;font-weight:550}.palette-label small{font-size:12px;line-height:1.4;color:var(--muted);white-space:normal}
+.palette-label b{font-size:13px;font-weight:600}.palette-label small{font-size:12px;line-height:1.4;color:var(--muted);white-space:normal}
 /* 下拉菜单不出现滚动条：菜单整体自适应内容，靠紧凑分组控制在视口内。 */
 #vex-appearance-menu .appearance-choices{overflow:visible}
 #vex-language-menu [aria-checked=true]::after{content:'✓';margin-left:auto;color:var(--accent)}

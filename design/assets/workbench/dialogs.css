@@ -5,18 +5,18 @@
   .stat-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 18px 24px 4px; }
   .stat-card { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--vex-radius-lg); padding: 12px 14px 10px; }
   .stat-card .num { font-size: 24px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
-  .stat-card .lbl { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .stat-card .lbl { font-size:11px; color: var(--muted); margin-top: 2px; }
   .stat-rows { padding: 12px 24px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
-  .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--splitter); font-size: 12.5px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--splitter); font-size:12px; }
   .stat-row .k { color: var(--muted); }
   .stat-row .v { font-weight: 600; color: var(--value); }
 
   .prop-rows { padding: 4px 24px 22px; }
-  .prop-row { display: grid; grid-template-columns: 76px 1fr; gap: 14px; padding: 9px 0; border-bottom: 1px dashed var(--splitter); font-size: 12.5px; }
+  .prop-row { display: grid; grid-template-columns: 76px 1fr; gap: 14px; padding: 9px 0; border-bottom: 1px dashed var(--splitter); font-size:12px; }
   .prop-row:last-child { border-bottom: none; }
   .prop-row .k { color: var(--muted); }
   .prop-row .v { color: var(--value); }
-  .prop-row .v.mono { font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px; color: var(--muted); }
+  .prop-row .v.mono { font-family: "Cascadia Code", Consolas, monospace; font-size:11px; color: var(--muted); }
   .copy-btn {
     appearance: none; border: 1px solid var(--border); background: var(--panel);
     color: var(--muted); border-radius: var(--vex-radius-sm); padding: 2px 7px;
@@ -25,22 +25,22 @@
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
   .pill-ok {
     display: inline-flex; align-items: center; gap: 5px;
-    font-size: 11.5px; font-weight: 600; color: var(--success);
+    font-size:11px; font-weight: 600; color: var(--success);
     background: color-mix(in srgb, var(--success) 10%, transparent);
     border-radius: 999px; padding: 1px 9px;
   }
   .pill-ok::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
 
   .about-hero { display: flex; align-items: center; gap: 14px; padding: 28px 32px 0; }
-  .about-logo { width: 48px; height: 48px; border-radius: var(--vex-radius-xl); background: var(--title-grad); color: var(--on-accent); font-size: 26px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .about-logo { width: 48px; height: 48px; border-radius: var(--vex-radius-xl); background: var(--title-grad); color: var(--on-accent); font-size: 26px; font-weight:700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
   .about-identity { min-width: 0; }
   .about-hero h2 { margin: 0 0 4px; font-size: 23px; font-weight: 700; letter-spacing: .2px; }
   .about-hero .slogan { font-size: 12px; line-height: 1.7; color: var(--muted); }
-  .about-rows { display: grid; grid-template-columns: max-content minmax(0,1fr); align-items: baseline; gap: 13px 24px; padding: 26px 32px 0; font-size: 12.5px; line-height: 1.8; }
+  .about-rows { display: grid; grid-template-columns: max-content minmax(0,1fr); align-items: baseline; gap: 13px 24px; padding: 26px 32px 0; font-size:12px; line-height: 1.8; }
   .about-row { display: contents; }
   .about-row .k { color: var(--muted); }
   .about-row .v { color: var(--value); }
-  .ver-badge { display: inline-flex; font-size: 11.5px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 10px; }
+  .ver-badge { display: inline-flex; font-size:11px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 10px; }
   .about-link { color: var(--accent); text-underline-offset: 3px; font: inherit; background: none; border: none; padding: 0; }
   .about-link:hover { text-decoration: underline; }
   .about-version, .about-links { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -64,11 +64,11 @@
     background: color-mix(in srgb, var(--accent) 5%, var(--panel));
   }
   .enable-row .et { font-weight: 600; font-size: 13px; }
-  .enable-row .ed { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .enable-row .ed { font-size:11px; color: var(--muted); margin-top: 1px; }
   .enable-row .switch { margin-left: auto; }
   .set-body { padding: 14px 24px 6px; display: flex; flex-direction: column; gap: 12px; }
   .form-grid { display: grid; grid-template-columns: 108px 1fr; gap: 10px 14px; align-items: center; }
-  .form-grid > .k { font-size: 12.5px; color: var(--muted); text-align: right; }
+  .form-grid > .k { font-size:12px; color: var(--muted); text-align: right; }
   .input-group { display: flex; gap: 8px; align-items: center; }
   .endpoint {
     display: flex; align-items: center; gap: 8px;
@@ -91,7 +91,7 @@
   .detail-box { margin-top: 14px; background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--vex-radius-md); padding: 10px 12px; }
   .detail-box pre {
     max-height: 150px; overflow: auto; margin: 8px 0 0;
-    font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px;
+    font-family: "Cascadia Code", Consolas, monospace; font-size:11px;
     line-height: 1.65; color: var(--muted); white-space: pre-wrap; word-break: break-all;
   }
   .rn-error { margin-top: 10px; font-size: 12px; color: var(--danger); }
@@ -105,8 +105,8 @@
   .dlg-path-gap { margin-top: 12px; }
   .dlg-path-flush { margin-top: 0; }
   .fld-label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-  .sub-label { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
-  .toggle-label { font-size: 11.5px; font-weight: 600; color: var(--muted); cursor: pointer; user-select: none; }
+  .sub-label { font-size:11px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+  .toggle-label { font-size:11px; font-weight: 600; color: var(--muted); cursor: pointer; user-select: none; }
   .is-hidden { display: none; }
   .prop-head { display: flex; align-items: center; gap: 14px; padding: 20px 24px 14px; }
   .prop-head .about-logo { width: 44px; height: 44px; border-radius: var(--vex-radius-lg); background: var(--accent-soft); color: var(--accent); }

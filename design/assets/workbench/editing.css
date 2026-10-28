@@ -65,8 +65,8 @@
 .menu-item { display: grid; grid-template-columns: 15px minmax(110px, 1fr) auto; gap: 8px; padding: 6px 10px; line-height: 20px; font-size: 12px; cursor: pointer; }
 .menu-item .menu-state { color: var(--accent); font-size: 12px; width: 15px; text-align: center; }
 .menu-item.checked::after { display: none; }
-.menu-item .mi-gesture { margin: 0; padding: 0 0 0 26px; min-width: 80px; text-align: right; background: transparent; border: none; border-radius: 0; color: var(--muted); font-size: 10.5px; line-height: 20px; font-family: inherit; font-variant-numeric: tabular-nums; }
-.menu-item .mi-arrow { margin: 0; padding: 0 0 0 16px; text-align: right; font-size: 14px; }
+.menu-item .mi-gesture { margin: 0; padding: 0 0 0 26px; min-width: 80px; text-align: right; background: transparent; border: none; border-radius: 0; color: var(--muted); font-size:11px; line-height: 20px; font-family: inherit; font-variant-numeric: tabular-nums; }
+.menu-item .mi-arrow { margin: 0; padding: 0 0 0 16px; text-align: right; font-size:15px; }
 .menu-item > .submenu { grid-column: 1 / -1; max-height: calc(100vh - 24px); overflow-y: auto; }
 .menu-flyout > .flyout { max-height: calc(100vh - 76px); overflow-y: auto; }
 @media (max-width: 1100px) { .instant-scroll .md-body { padding: 26px 32px 60px; } .edit-method-description { display: none; } .edit-options > .typography-trigger { margin-left: auto; } }
@@ -84,9 +84,9 @@
 .sidebar-resizing .sidebar { transition: none !important; }
 .reading-scroll .md-body { max-width: none; margin: 0; }
 .content-area .md-body pre, .content-area .md-body table { max-width: 100%; }
-.content-area .md-body pre { font-size: 14px; line-height: 22px; }
+.content-area .md-body pre { font-size:15px; line-height: 22px; }
 
-.content-area .md-body pre code { font-size: 14px; line-height: 22px; }
+.content-area .md-body pre code { font-size:15px; line-height: 22px; }
 .content-area .md-body h2 { font-size: 21px; }
 .content-area .md-body h3 { font-size: 17px; }
 

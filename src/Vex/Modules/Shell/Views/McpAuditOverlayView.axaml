@@ -14,7 +14,7 @@
                 <TextBlock
                     x:Name="TitleText"
                     VerticalAlignment="Center"
-                    FontSize="15.5"
+                    FontSize="15"
                     FontWeight="SemiBold" />
                 <Button
                     x:Name="RefreshButton"

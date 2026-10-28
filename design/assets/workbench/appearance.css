@@ -1,6 +1,6 @@
 /* The preview scale is fixed per device; document typography stays independent. */
 .typography-popover{box-sizing:border-box;display:flex;flex-direction:column;width:min(624px,calc(100% - 24px));padding:16px;border-radius:var(--vex-radius-md);z-index:85;overflow:hidden}
-.typography-popover .popover-title{display:flex;align-items:center;justify-content:space-between;padding:0 0 12px;font-size:14px;color:var(--fg);font-weight:600}
+.typography-popover .popover-title{display:flex;align-items:center;justify-content:space-between;padding:0 0 12px;font-size:15px;color:var(--fg);font-weight:600}
 .typography-grid,.typography-popover .typography-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:2px;scrollbar-gutter:stable}
 .typography-card{display:flex;flex-direction:column;align-items:stretch;min-height:222px;padding:9px;border:1px solid var(--border,var(--line));background:var(--bg,var(--surface));border-radius:var(--vex-radius-sm);text-align:left;color:var(--fg)}
 .typography-card>strong{font-size:13px;margin-top:9px;line-height:20px;font-weight:600}
@@ -20,7 +20,7 @@
 .map-appearance-trigger:hover,.map-appearance-trigger[aria-expanded=true]{background:var(--accent-soft);color:var(--accent)}
 .map-appearance-trigger svg{width:var(--vex-operation-icon-size,16px);height:var(--vex-operation-icon-size,16px);fill:none;stroke:currentColor;stroke-width:1.7}
 .map-appearance-popover{box-sizing:border-box;position:absolute;right:18px;top:70px;width:min(528px,calc(100% - 24px));z-index:86;padding:16px;display:flex;flex-direction:column;background:var(--panel,var(--surface));color:var(--fg);border:1px solid var(--border,var(--line));border-radius:var(--vex-radius-md);box-shadow:var(--shadow-pop,var(--pop-shadow));animation:vex-menu-in var(--vex-fast) var(--vex-ease) both;overflow:hidden}
-.appearance-heading{display:flex;align-items:center;justify-content:space-between;flex:none;font-size:14px;margin-bottom:12px}
+.appearance-heading{display:flex;align-items:center;justify-content:space-between;flex:none;font-size:15px;margin-bottom:12px}
 .appearance-heading strong{font-weight:600}
 .map-appearance-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px}
 .map-step-label{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;line-height:20px;color:var(--fg);margin:0 0 9px;transition:color var(--vex-fast) var(--vex-ease)}
@@ -77,7 +77,7 @@
 .exit-document-list button:hover{background:var(--accent-soft)}
 .exit-document-list svg{width:19px;height:19px;fill:none;stroke:var(--muted);stroke-width:1.5;flex:none}
 .exit-document-list button>span{flex:1;min-width:0}
-.exit-document-list strong{display:block;font-size:14px;font-weight:500;overflow-wrap:anywhere;line-height:1.6}
+.exit-document-list strong{display:block;font-size:15px;font-weight:500;overflow-wrap:anywhere;line-height:1.6}
 .exit-document-list small{display:block;font-size:12px;color:var(--muted);line-height:1.7;overflow-wrap:anywhere}
 .exit-document-list em{font-size:12px;font-style:normal;color:var(--muted);flex:none}
 .exit-dialog-actions{display:flex;align-items:center;gap:8px;padding:14px 24px 22px;flex:none}
@@ -157,7 +157,7 @@ body.device-phone .map-appearance-trigger>span{display:none}
 }
 .typography-card>strong {
   margin-top: 12px;
-  font-size: 14px;
+  font-size:15px;
   line-height: 1.5;
 }
 .type-swatch {

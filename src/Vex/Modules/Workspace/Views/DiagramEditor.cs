@@ -54,7 +54,7 @@ public static class DiagramEditor
             var sourceText = new TextBlock
             {
                 FontFamily = VexFonts.Code,
-                FontSize = 13.5,
+                FontSize = 13,
                 LineHeight = 24,
                 TextWrapping = TextWrapping.NoWrap,
                 Text = GetFenceSource(root.GetVisualDescendants().OfType<MarkdownViewer>().FirstOrDefault()?.Markdown ?? string.Empty, fenceIndex) ?? string.Empty,
@@ -68,7 +68,7 @@ public static class DiagramEditor
             var editButton = new Button
             {
                 Content = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.DiagramEditButton) ?? string.Empty,
-                FontSize = 11.5,
+                FontSize = 11,
                 Padding = new Thickness(10, 3),
                 HorizontalAlignment = HorizontalAlignment.Right,
                 HorizontalContentAlignment = HorizontalAlignment.Center,
@@ -138,13 +138,13 @@ public static class DiagramEditor
             Text = source,
             AcceptsReturn = true,
             FontFamily = VexFonts.Code,
-            FontSize = 12.5,
+            FontSize = 12,
             MinHeight = 128,
             MaxHeight = 360,
             TextWrapping = TextWrapping.NoWrap,
         };
         var previewHost = new ContentControl { MinHeight = 120 };
-        var status = new TextBlock { FontSize = 11.5, Opacity = 0.75, Margin = new Thickness(0, 6, 0, 0) };
+        var status = new TextBlock { FontSize = 11, Opacity = 0.75, Margin = new Thickness(0, 6, 0, 0) };
         var surface = new StackPanel { Spacing = 6 };
         surface.Children.Add(input);
         surface.Children.Add(previewHost);
