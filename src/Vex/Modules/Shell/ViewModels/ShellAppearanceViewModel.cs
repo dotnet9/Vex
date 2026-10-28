@@ -60,11 +60,11 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         _selectedTheme = FindTheme(settings.ThemeKey)
                          ?? FindTheme("system")
                          ?? ThemeOptions.FirstOrDefault();
-        // 旧设置里可能残留已下线的配色键；此时与 App.ApplyInitialTheme 一致回落到默认靛蓝，
-        // 而不是列表首项（石墨），否则启动期会先渲染靛蓝再被覆盖成石墨。
+        // 旧设置里可能残留已下线的配色键；此时与 App.ApplyInitialTheme 一致回落到默认青碧
+        // （与品牌绿同族），而不是列表首项（石墨），否则启动期会先渲染青碧再被覆盖成石墨。
         _selectedPalette = PaletteOptions.FirstOrDefault(item =>
             item.Key.Equals(settings.PaletteKey ?? settings.ThemeKey, StringComparison.OrdinalIgnoreCase))
-            ?? PaletteOptions.FirstOrDefault(item => item.Key.Equals("indigo", StringComparison.OrdinalIgnoreCase))
+            ?? PaletteOptions.FirstOrDefault(item => item.Key.Equals("teal", StringComparison.OrdinalIgnoreCase))
             ?? PaletteOptions[0];
         _selectedTypography = FindTypography(settings.TypographyKey)
                               ?? FindTypography(MarkdownTypographyThemes.Simple)

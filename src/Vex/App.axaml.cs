@@ -157,7 +157,8 @@ public partial class App : Application
                      ?? options.First(item => item.Key.Equals("system", StringComparison.OrdinalIgnoreCase));
         var palette = themeService.GetPaletteOptions().FirstOrDefault(item =>
             item.Key.Equals(settings.PaletteKey ?? settings.ThemeKey, StringComparison.OrdinalIgnoreCase))
-            ?? themeService.GetPaletteOptions().FirstOrDefault(item => item.Key == "indigo")
+            // 默认配色与品牌绿同族（青碧 teal），靛蓝不再是启动默认。
+            ?? themeService.GetPaletteOptions().FirstOrDefault(item => item.Key == "teal")
             ?? themeService.GetPaletteOptions()[0];
         themeService.ApplyTheme(option, palette);
     }
