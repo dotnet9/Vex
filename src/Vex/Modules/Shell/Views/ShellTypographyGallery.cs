@@ -28,6 +28,7 @@ public sealed class ShellTypographyGallery : UserControl
     private readonly StackPanel _header = new() { Spacing = 0 };
     private TopLevel? _window;
     private ScrollViewer? _scroll;
+    private bool _typographyDialogBusy;
 
     public ShellTypographyGallery()
     {
@@ -99,6 +100,12 @@ public sealed class ShellTypographyGallery : UserControl
     }
 
     private static void PaintDensity(Button pill, bool on) => SegmentedPanel.SetIsActive(pill, on);
+
+    /// <summary>选卡应用后 650ms 自动收起；编辑/删除/新增的对话框开着时不收（点工具也会冒泡到卡片）。</summary>
+    private void ScheduleCollapse() => Avalonia.Threading.DispatcherTimer.RunOnce(() =>
+    {
+        if (_vm is { Workbench.ShowTypography: true } && !_typographyDialogBusy) _vm.Workbench.ShowTypography = false;
+    }, TimeSpan.FromMilliseconds(650));
 
     private void Build()
     {
@@ -212,7 +219,8 @@ public sealed class ShellTypographyGallery : UserControl
         ring.Bind(Border.CornerRadiusProperty, CardRadius(1.5));
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
         var content = new Panel { Children = { paper, ring, badge } };
-        var button = Button("", () => _vm!.Appearance.SelectedTypography = option);
+        // 原型：排版卡是流程终点，应用后稍候自动收起让出正文看效果（scheduleCollapse）。
+        var button = Button("", () => { _vm!.Appearance.SelectedTypography = option; ScheduleCollapse(); });
         button.Name = "Typography_" + option.Key;
         button.Content = content; button.Padding = default;
         button.MinHeight = CardHeight; button.Height = CardHeight;
@@ -304,23 +312,28 @@ public sealed class ShellTypographyGallery : UserControl
     async void OpenTypographyDialog(string? editingKey = null)
     {
         if (_vm is null) return;
-        var existing = editingKey is null ? null : CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(editingKey);
-        var model = new ShellTypographyEditModel(editingKey, existing?.Name ?? "");
-        if (existing is not null)
+        _typographyDialogBusy = true;
+        try
         {
-            model.AccentLight = existing.LightText;
-            model.AccentDark = existing.DarkText;
-            model.DecoLight = existing.LightDecoration;
-            model.DecoDark = existing.DarkDecoration;
-            model.Font = existing.Font;
-            model.Leading = existing.Leading;
-            model.HeadingDecoration = _vm.Appearance.HeadingDecoration(editingKey!);
+            var existing = editingKey is null ? null : CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(editingKey);
+            var model = new ShellTypographyEditModel(editingKey, existing?.Name ?? "");
+            if (existing is not null)
+            {
+                model.AccentLight = existing.LightText;
+                model.AccentDark = existing.DarkText;
+                model.DecoLight = existing.LightDecoration;
+                model.DecoDark = existing.DarkDecoration;
+                model.Font = existing.Font;
+                model.Leading = existing.Leading;
+                model.HeadingDecoration = _vm.Appearance.HeadingDecoration(editingKey!);
+            }
+            var applied = await Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(new ShellTypographyEditView(model), model,
+                options: new Ursa.Controls.OverlayDialogOptions { CanLightDismiss = true, CanDragMove = false, CanResize = false, IsCloseButtonVisible = false });
+            if (!applied || model.Result is not { } result) return;
+            _vm.Appearance.RegisterCustomTypography(editingKey ?? "", result.Name, result.AccentLight, result.AccentDark,
+                result.DecoLight, result.DecoDark, result.Font, result.Leading, result.HeadingDecoration);
+            // 目录变化由 Changed 统一触发重建，这里不再手工 Build 一次。
         }
-        var applied = await Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(new ShellTypographyEditView(model), model,
-            options: new Ursa.Controls.OverlayDialogOptions { CanLightDismiss = true, CanDragMove = false, CanResize = false, IsCloseButtonVisible = false });
-        if (!applied || model.Result is not { } result) return;
-        _vm.Appearance.RegisterCustomTypography(editingKey ?? "", result.Name, result.AccentLight, result.AccentDark,
-            result.DecoLight, result.DecoDark, result.Font, result.Leading, result.HeadingDecoration);
-        // 目录变化由 Changed 统一触发重建，这里不再手工 Build 一次。
+        finally { _typographyDialogBusy = false; }
     }
 }

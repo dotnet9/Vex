@@ -8,10 +8,16 @@
     {key:'outline',label:'线框',desc:'根节点只勾轮廓'}, {key:'capsule',label:'胶囊',desc:'圆角胶囊底'},
     {key:'underline',label:'脉络',desc:'子节点留底线'}, {key:'mono',label:'黑白',desc:'打印 · 截图'}
   ];
-  var colors = ['var(--accent)','var(--branch-secondary, var(--accent))','var(--branch-tertiary, var(--accent))','var(--muted)'];
+  /* 迷你线稿取色随档：colorful 用图表 series 八色（与真实导图、Mermaid 图同源），其余档强调色家族。 */
+  var accentColors = ['var(--accent)','var(--branch-secondary, var(--accent))','var(--branch-tertiary, var(--accent))','var(--muted)'];
+  function paletteOf(style) {
+    var diagram = window.VexDiagramRendering;
+    return style === 'colorful' && diagram ? diagram.series : accentColors;
+  }
   function miniature(layout, style) {
     var tree = {children:[{children:[{},{}]},{children:[{},{}]}]};
     var graph = VexMapLayout.layout(tree, {mode:layout, measure:function (node) {node.width=52;node.height=22;}});
+    var colors = paletteOf(style);
     return '<svg class="map-miniature" data-map-style="'+style+'" viewBox="-12 -12 '+(graph.width+24)+' '+(graph.height+24)+'" aria-hidden="true">'+graph.links.map(function (link,index) {
       return '<path class="map-preview-link" style="--map-branch:'+colors[index%colors.length]+'" d="'+link.path+'"/>';
     }).join('')+graph.nodes.map(function (node,index) {
@@ -28,10 +34,21 @@
     panel.innerHTML='<header class="appearance-heading"><strong>导图样式</strong><button class="vex-icon-button" data-map-close aria-label="关闭导图样式"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div class="map-appearance-scroll"><div class="map-step-label"><i>1</i>结构<span class="hint">先选一种布局</span></div><div class="map-choice-grid" id="map-structure-choices" role="group" aria-label="导图结构"></div><div class="map-step-label" data-map-next-step><i>2</i>风格<span class="hint">线稿随上方所选结构实时重绘</span></div><div class="map-choice-grid" id="map-style-choices" role="group" aria-label="导图风格"></div></div>';
     adapter.parent.appendChild(panel);
     function apply() {
-      adapter.scene.dataset.mapStyle=style;
+      if (adapter.scene.dataset.mapStyle !== style) {
+        adapter.scene.dataset.mapStyle = style;
+        /* 换档要让真实导图重放分支色变量：workbench 监听该事件重跑 renderMap。 */
+        adapter.scene.dispatchEvent(new Event('vex-map-style'));
+      }
       document.querySelectorAll('[data-map-style-label]').forEach(function (label) {label.textContent=styles.find(function (item) {return item.key===style;}).label;});
       panel.querySelectorAll('[data-map-layout]').forEach(function (button) {button.setAttribute('aria-pressed',String(button.dataset.mapLayout===adapter.getLayout()));});
       panel.querySelectorAll('[data-map-style-choice]').forEach(function (button) {button.setAttribute('aria-pressed',String(button.dataset.mapStyleChoice===style));});
+      /* 触发钮徽标回显当前组合，收起后不必重开弹层也知道选了什么。 */
+      if (trigger) {
+        var layoutKey = adapter.getLayout();
+        var layoutItem = (window.VexMapLayout ? VexMapLayout.items : []).find(function (item) {return item.key === layoutKey;});
+        var span = trigger.querySelector('span');
+        if (span) span.textContent = (layoutItem ? layoutItem.label : layoutKey) + ' · ' + styles.find(function (item) {return item.key === style;}).label;
+      }
     }
     function render() {
       panel.querySelector('#map-structure-choices').innerHTML=VexMapLayout.items.map(function (item) {return '<button class="map-choice" data-map-layout="'+item.key+'">'+miniature(item.key,style)+'<strong>'+item.label+'</strong></button>';}).join('');
@@ -44,7 +61,19 @@
       label.classList.add('nudge'); clearTimeout(nudgeTimer);
       nudgeTimer = setTimeout(function () { label.classList.remove('nudge'); }, 900);
     }
-    function close() {panel.hidden=true;if(trigger)trigger.setAttribute('aria-expanded','false');}
+    /* 风格是流程终点：选完风格稍候自动收起，让出画布看上色效果；换结构不收（还要顺势选风格）。 */
+    var collapseTimer = null;
+    function scheduleCollapse() {
+      clearTimeout(collapseTimer);
+      collapseTimer = setTimeout(function () { if (!panel.hidden) close(); }, 650);
+    }
+    function close() {
+      clearTimeout(collapseTimer);
+      if (panel.hidden) return;
+      panel.hidden = true;
+      if (trigger) trigger.setAttribute('aria-expanded','false');
+      adapter.avoid?.(null);
+    }
     function choose(key) {
       if(!styles.some(function(item){return item.key===key;}))return;
       style=key;if(!isolated&&!adapter.isTemporary?.())try{localStorage.setItem('vex-prototype-map-style',style);}catch(_){}render();
@@ -62,17 +91,20 @@
     function toggle(button) {
       if(!panel.hidden){close();return;}
       adapter.beforeOpen?.();trigger=button;render();panel.hidden=false;trigger.setAttribute('aria-expanded','true');position();
+      /* 弹层压住画布左上时把导图焦点平移到弹层下方；关闭由 close() 还原视口。 */
+      adapter.avoid?.(panel.getBoundingClientRect());
     }
+    function setTrigger(button) { trigger = button; apply(); }
     panel.onclick=function (event) {
       var button=event.target.closest('button');if(!button)return;
       if(button.hasAttribute('data-map-close')){close();trigger?.focus({preventScroll:true});return;}
-      if(button.dataset.mapLayout){adapter.setLayout(button.dataset.mapLayout);render();nudgeNextStep();}
-      if(button.dataset.mapStyleChoice)choose(button.dataset.mapStyleChoice);
+      if(button.dataset.mapLayout){adapter.setLayout(button.dataset.mapLayout);render();nudgeNextStep();adapter.avoid?.(panel.getBoundingClientRect());}
+      if(button.dataset.mapStyleChoice){choose(button.dataset.mapStyleChoice);scheduleCollapse();}
     };
     document.addEventListener('pointerdown',function (event) {if(!panel.contains(event.target)&&!event.target.closest('[data-action="map-appearance"], .tour-card'))close();});
     document.addEventListener('keydown',function (event) {if(event.key==='Escape'&&!panel.hidden){event.preventDefault();close();trigger?.focus({preventScroll:true});}},true);
-    window.addEventListener('resize',position);apply();
-    return {toggle:toggle,close:close,choose:choose,sync:apply,get style(){return style;}};
+    window.addEventListener('resize',function(){position();if(!panel.hidden)adapter.avoid?.(panel.getBoundingClientRect());});apply();
+    return {toggle:toggle,close:close,choose:choose,sync:apply,setTrigger:setTrigger,get style(){return style;}};
   }
   window.VexMapAppearance={styles:styles,miniature:miniature,create:create};
 })();

@@ -38,7 +38,7 @@
 .map-preview-node{fill:var(--bg,var(--surface));stroke:var(--accent);stroke-width:2}
 .map-preview-root{fill:var(--accent);stroke:var(--accent)}
 .map-preview-link{fill:none;stroke:var(--accent);stroke-width:2;opacity:.6}
-[data-map-style=colorful] .map-preview-node:not(.map-preview-root){fill:color-mix(in srgb,var(--map-branch) 14%,var(--bg));stroke:var(--map-branch)}
+[data-map-style=colorful] .map-preview-node:not(.map-preview-root){fill:var(--map-branch);stroke:color-mix(in srgb,var(--map-branch) 76%,var(--fg));stroke-width:1.5}
 [data-map-style=colorful] .map-preview-link{stroke:var(--map-branch);opacity:1}
 [data-map-style=outline] .map-preview-root{fill:none;stroke-width:3}
 [data-map-style=capsule] .map-preview-node{rx:12px;fill:color-mix(in srgb,var(--accent) 12%,var(--bg))}
@@ -51,7 +51,11 @@
 :is(.map-scene,.map-stage)[data-map-style] .map-node.root{background:var(--accent);border-color:var(--accent);color:var(--accent-fg,var(--on-accent,#fff))}
 :is(.map-scene,.map-stage)[data-map-style] .map-node.content{background:var(--bg);border-style:dashed}
 :is(.map-scene,.map-stage)[data-map-style] .map-links path{animation:none}
-:is(.map-scene,.map-stage)[data-map-style=colorful] .map-node:not(.root){background:color-mix(in srgb,var(--branch-color,var(--branch)) 12%,var(--panel,var(--surface)));border-color:var(--branch-color,var(--branch))}
+:is(.map-scene,.map-stage)[data-map-style=colorful] .map-node:not(.root):not(.content){background:var(--branch-color,var(--branch));border-color:color-mix(in srgb,var(--branch-color,var(--branch)) 76%,var(--fg));color:var(--branch-ink,#fff)}
+:is(.map-scene,.map-stage)[data-map-style=colorful] .map-node:not(.root):not(.content) .map-node-text,
+:is(.map-scene,.map-stage)[data-map-style=colorful] .map-node:not(.root):not(.content) .map-node-type{color:var(--branch-ink,#fff)}
+:is(.map-scene,.map-stage)[data-map-style=colorful] .map-node:not(.root):not(.content) .map-node-type{opacity:.72}
+:is(.map-scene,.map-stage)[data-map-style=colorful] .map-node.content{background:color-mix(in srgb,var(--branch-color,var(--branch)) 10%,var(--panel,var(--surface)));border-color:color-mix(in srgb,var(--branch-color,var(--branch)) 45%,transparent)}
 :is(.map-scene,.map-stage)[data-map-style=colorful] path{opacity:.85;stroke-width:2}
 :is(.map-scene,.map-stage)[data-map-style=outline] .map-node.root{background:var(--panel,var(--surface));color:var(--accent);border-width:2px}
 :is(.map-scene,.map-stage)[data-map-style=capsule] .map-node{border-radius:28px;background:var(--accent-soft);border-color:transparent}

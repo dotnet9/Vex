@@ -179,7 +179,13 @@
   var zoomDock = document.querySelector('.map-controls');
   VexZoomDock.attach(zoomDock);
   var labels = { heading: '标题', paragraph: '段落', quote: '引用', list: '列表项', code: '代码块', table: '表格' };
-  var branchColors = ['var(--accent)', 'var(--branch-secondary)', 'var(--branch-tertiary)', 'var(--accent)', 'var(--muted)'];
+  /* 非 colorful 档沿用强调色家族（清雅的「单色」语义不动）；colorful 档换图表 series 八色，
+   * 与阅读视图里的 Mermaid 图同源同族（diagram-rendering 暴露），解决导图配色偏素。 */
+  var accentBranchColors = ['var(--accent)', 'var(--branch-secondary)', 'var(--branch-tertiary)', 'var(--accent)', 'var(--muted)'];
+  function branchPalette(style) {
+    var series = window.VexDiagramRendering;
+    return style === 'colorful' && series ? series.series : accentBranchColors;
+  }
   var textMeasure = document.createElement('canvas').getContext('2d');
   var typewriter = VexTypewriter.create({
     source: input, instant: $('instant-content'), enabled: function () { return state.typewriter; },
@@ -740,7 +746,9 @@
       element.className = 'map-node' + (node.isRoot ? ' root' : node.kind === 'heading' ? '' : ' content') + (state.selected === node.id ? ' selected' : '') + (isNew ? ' enter' : '');
       element.dataset.kind = node.kind; element.dataset.side = node.layoutSide; element.dataset.line = node.line; element.dataset.nodeId = node.id; element.style.left = node.x + 'px'; element.style.top = node.y + 'px';
       element.style.width = node.width + 'px'; element.style.minHeight = node.height + 'px';
-      element.style.setProperty('--branch-color', branchColors[node.branch % branchColors.length]);
+      var mapStyle = scene.dataset.mapStyle || 'quiet', palette = branchPalette(mapStyle), series = window.VexDiagramRendering;
+      element.style.setProperty('--branch-color', palette[node.branch % palette.length]);
+      if (mapStyle === 'colorful' && series) element.style.setProperty('--branch-ink', series.onSeries[node.branch % series.onSeries.length]);
       element.style.setProperty('--delay', Math.min(index * 14, 180) + 'ms');
       var kind = node.isRoot ? '文档' : node.kind === 'heading' ? 'H' + node.level : node.label || labels[node.kind];
       element.innerHTML = '<button class="map-node-button" title="' + VexEsc(node.text || kind) + '"><span class="map-node-text">' + VexEsc(nodeText(node)) + '</span><span class="map-node-type">' + VexEsc(kind) + '</span></button>';
@@ -753,7 +761,7 @@
         element.appendChild(collapse);
       }
     });
-    $('map-links').innerHTML = geometry.links.map(function (link) { return '<path style="--branch-color:' + branchColors[link.node.branch % branchColors.length] + '" d="' + link.path + '"/>'; }).join('');
+    $('map-links').innerHTML = geometry.links.map(function (link) { var palette = branchPalette(scene.dataset.mapStyle || 'quiet'); return '<path style="--branch-color:' + palette[link.node.branch % palette.length] + '" d="' + link.path + '"/>'; }).join('');
     state.bounds = { width: geometry.width, height: geometry.height };
     scene.style.width = state.bounds.width + 'px'; scene.style.height = state.bounds.height + 'px';
     $('map-links').setAttribute('width', state.bounds.width); $('map-links').setAttribute('height', state.bounds.height);
@@ -782,6 +790,30 @@
     lastCanvasSize = { width: canvas.clientWidth, height: canvas.clientHeight };
     transform(true);
   }
+  /* 样式弹层避让：弹层悬在画布左上时，把内容焦点（根节点）平移到弹层下方剩余区域的中心，
+   * 关闭或弹层消失时还原入弹前的视口。只动平移不动缩放，动画走 transform(true) 的既有缓动。 */
+  var avoidSaved = null;
+  function avoidOverlay(rect) {
+    if (!rect) {
+      if (!avoidSaved) return;
+      state.x = avoidSaved.x; state.y = avoidSaved.y; avoidSaved = null; transform(true);
+      return;
+    }
+    if (state.guideRestoring || $('map-pane').hidden || !state.bounds || !canvas.clientWidth) return;
+    var canvasRect = canvas.getBoundingClientRect();
+    var occludedBottom = rect.bottom - canvasRect.top;
+    if (occludedBottom <= 0) return;
+    var root = (state.nodes || []).find(function (node) { return node.isRoot; });
+    var focusY = root ? root.y + root.height / 2 : state.bounds.height / 2;
+    var visibleTop = occludedBottom + 16;
+    var desiredCenterY = visibleTop + Math.max(0, canvas.clientHeight - visibleTop) / 2;
+    var dy = desiredCenterY - (state.y + focusY * state.scale);
+    if (Math.abs(dy) < 2) return;
+    if (!avoidSaved) avoidSaved = { x: state.x, y: state.y };
+    state.y += dy;
+    transform(true);
+  }
+  window.VexMapView = { avoid: avoidOverlay };
   function zoom(factor, anchor) {
     anchor = anchor || { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
     var previous = state.scale; state.scale = Math.min(2, Math.max(.01, state.scale * factor));
@@ -860,6 +892,8 @@
   }
   $('map-layout').innerHTML = VexMapLayout.items.map(function (item) { return '<option value="' + item.key + '">' + item.label + '</option>'; }).join('');
   $('map-layout').onchange = function () { settings.layout = this.value; syncSettings(); };
+  /* 弹层换风格后重放 --branch-color / --branch-ink：CSS 即时换形，节点上的分支色变量要跟档重赋。 */
+  scene.addEventListener('vex-map-style', function () { renderMap(); });
   $('summary-length').addEventListener('input', function () {
     var value = Number(this.value); if (!Number.isInteger(value) || value < 1 || value > 120) { this.setCustomValidity('请输入 1–120 之间的整数'); return; }
     this.setCustomValidity(''); settings.length = value; syncSettings();
@@ -932,9 +966,36 @@
     input.dispatchEvent(new Event('input'));
   }
   function contentCount() { return VexWriting.metrics(input.value).count; }
-  function revealMatch(index) {
-    var term = $('find-input').value;
-    input.setSelectionRange(index, index + term.length);
+  /* 查找开关（对应实现 ShellFindBarView 的三枚 .opt-toggle）：正则 / 区分大小写 / 整词。
+     计数、跳转与替换统一走 findMatches()，避免只有计数认开关。 */
+  var findFlags = { regex: false, case: false, word: false };
+  function findPattern(term) {
+    if (!term) return null;
+    var source = findFlags.regex ? term : term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (findFlags.word) source = '\\b(?:' + source + ')\\b';
+    try { return new RegExp(source, 'g' + (findFlags.case ? '' : 'i')); } catch (_) { return null; }
+  }
+  function findMatches() {
+    var pattern = findPattern($('find-input').value), found = [];
+    if (!pattern) return found;
+    var match;
+    while ((match = pattern.exec(input.value))) {
+      found.push({ index: match.index, length: match[0].length });
+      if (!match[0].length) pattern.lastIndex += 1;
+      if (found.length > 4999) break;
+    }
+    return found;
+  }
+  /* 开关态回写到钮自身：.on 是原型 .opt-toggle 的激活态，aria-pressed 供读屏与自动化取用。
+     点击分发只把动作名传给 handleAction（不带元素），所以按 data-find-option 找回钮。 */
+  function toggleFindFlag(key) {
+    findFlags[key] = !findFlags[key];
+    var button = document.querySelector('[data-find-option="' + key + '"]');
+    if (button) { button.classList.toggle('on', findFlags[key]); button.setAttribute('aria-pressed', String(findFlags[key])); }
+    updateFind();
+  }
+  function revealMatch(index, length) {
+    input.setSelectionRange(index, index + (length || $('find-input').value.length));
     if (input.getClientRects().length) input.focus();
     var line = input.value.slice(0, index).split('\n').length;
     state.editingLine = line;
@@ -949,22 +1010,25 @@
   function findNext() {
     var term = $('find-input').value;
     if (!term) return;
-    var index = input.value.indexOf(term, input.selectionEnd); if (index < 0) index = input.value.indexOf(term);
-    if (index < 0) { reportFindMiss(); return; }
-    revealMatch(index);
+    var matches = findMatches(); if (!matches.length) { reportFindMiss(); return; }
+    var hit = matches.find(function (item) { return item.index >= input.selectionEnd; }) || matches[matches.length - 1];
+    revealMatch(hit.index, hit.length);
   }
   function findPrev() {
     var term = $('find-input').value;
     if (!term) return;
-    var index = input.value.lastIndexOf(term, Math.max(0, input.selectionStart - 1)); if (index < 0) index = input.value.lastIndexOf(term);
-    if (index < 0) { reportFindMiss(); return; }
-    revealMatch(index);
+    var matches = findMatches(); if (!matches.length) { reportFindMiss(); return; }
+    var before = matches.filter(function (item) { return item.index < input.selectionStart; });
+    var hit = before.length ? before[before.length - 1] : matches[matches.length - 1];
+    revealMatch(hit.index, hit.length);
   }
   function updateFind() {
-    var term = $('find-input').value, count = term ? input.value.split(term).length - 1 : 0;
+    var term = $('find-input').value;
     var badge = $('find-count');
-    badge.textContent = term ? (count ? count + ' 处匹配' : '当前正文无匹配') : '';
-    badge.hidden = !badge.textContent;
+    if (!term) { badge.textContent = ''; badge.hidden = true; return; }
+    var count = findMatches().length;
+    badge.textContent = count ? count + ' 处匹配' : '当前正文无匹配';
+    badge.hidden = false;
   }
   $('find-input').oninput = updateFind; $('find-input').onkeydown = function (event) { if (event.key !== 'Enter') return; event.preventDefault(); if (event.shiftKey) findPrev(); else findNext(); };
   $('open-file-input').onchange = async function () {
@@ -1124,8 +1188,13 @@
         findPrev();
       },
       "replace-all": function (action, item) {
-        var term = $('find-input').value; if (term) { VexWorkbench.applyText(input.value.split(term).join($('replace-input').value)); updateFind(); }
+        var pattern = findPattern($('find-input').value);
+        // 替换文本按字面量插入，不能让 $& 之类的替换模式生效。
+        if (pattern) { var text = $('replace-input').value; VexWorkbench.applyText(input.value.replace(pattern, function () { return text; })); updateFind(); }
       },
+      "find-regex": function () { toggleFindFlag('regex'); },
+      "find-case": function () { toggleFindFlag('case'); },
+      "find-word": function () { toggleFindFlag('word'); },
       "toggle-lines": function (action, item) {
         document.querySelector('.source-scroll').classList.toggle('no-lines');
       },

@@ -79,7 +79,8 @@
   ];
   pinBars.forEach(function (entry) { entry.push(buildPinButton(entry[1], entry[0])); });
   applyToolbarPin();
-  var mapAppearance=VexMapAppearance.create({parent:document.querySelector('.window-body'),scene:$('map-scene'),getLayout:function(){return $('map-layout').value;},setLayout:function(key){$('map-layout').value=key;$('map-layout').dispatchEvent(new Event('change'));},isTemporary:function(){return guideActive;},beforeOpen:function(){VexTypography.close();closeMenus();$('map-settings').hidden=true;}});
+  var mapAppearance=VexMapAppearance.create({parent:document.querySelector('.window-body'),scene:$('map-scene'),getLayout:function(){return $('map-layout').value;},setLayout:function(key){$('map-layout').value=key;$('map-layout').dispatchEvent(new Event('change'));},isTemporary:function(){return guideActive;},beforeOpen:function(){VexTypography.close();closeMenus();$('map-settings').hidden=true;},avoid:function(rect){window.VexMapView&&VexMapView.avoid(rect);}});
+  mapAppearance.setTrigger(mapButton); /* 触发钮徽标回显「结构 · 风格」，不必开弹层也知道当前组合。 */
   /* 状态栏正中：源码 / 阅读 / 导图 三段直选 + "更多"打开完整布局菜单（即时编辑与组合视图都在里面）。 */
   var viewSwitch = document.createElement('div'); viewSwitch.className = 'workspace-viewswitch vex-segmented'; viewSwitch.setAttribute('role', 'group'); viewSwitch.setAttribute('aria-label', '视图切换');
   [['source', '源码'], ['read', '阅读'], ['map', '导图']].forEach(function (segment) {

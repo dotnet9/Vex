@@ -146,22 +146,27 @@
   }
   panel.querySelector('.typography-density').onclick = function (event) {
     var size = event.target.closest('[data-tp-mdsize]');
-    if (size) { if (window.VexTheme) VexTheme.setMdSize(size.dataset.tpMdsize); apply(); }
+    if (size) { cancelCollapse(); if (window.VexTheme) VexTheme.setMdSize(size.dataset.tpMdsize); apply(); }
   };
+  /* 排版卡是流程终点：应用后稍候自动收起，让出正文看排版效果；编辑/删除/新增与密度微调不收。 */
+  var collapseTimer = null;
+  function scheduleCollapse() { clearTimeout(collapseTimer); collapseTimer = setTimeout(function () { if (!panel.hidden && dialog.hidden) close(); }, 650); }
+  function cancelCollapse() { clearTimeout(collapseTimer); }
   panel.querySelector('.typography-grid').onclick = function (event) {
     var edit = event.target.closest('[data-edit-type]');
-    if (edit) { var t = items.find(function (item) { return item.key === edit.dataset.editType; }); if (t) openDialog(t); return; }
+    if (edit) { cancelCollapse(); var t = items.find(function (item) { return item.key === edit.dataset.editType; }); if (t) openDialog(t); return; }
     var del = event.target.closest('[data-delete-type]');
     if (del) {
+      cancelCollapse();
       var key = del.dataset.deleteType;
       customs = customs.filter(function (c) { return 'user-' + c.id !== key; });
       saveCustoms(); syncCustomThemes(); injectCustomStyles(); renderGrid();
       if (state.key === key) state.key = 'Simple';
       apply(); return;
     }
-    if (event.target.closest('#add-custom-type')) { openDialog(null); return; }
+    if (event.target.closest('#add-custom-type')) { cancelCollapse(); openDialog(null); return; }
     var button = event.target.closest('[data-typography-key]');
-    if (button) choose(button.dataset.typographyKey);
+    if (button) { choose(button.dataset.typographyKey); scheduleCollapse(); }
   };
   panel.querySelector('.typography-grid').addEventListener('keydown', function (event) {
     if (event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;

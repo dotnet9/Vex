@@ -1,11 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using CodeWF.Toolkit.EventBus;
 using Vex.Core.Messaging;
+using CodeWF.Avalonia.MindView.Controls;
 using CodeWF.Avalonia.MindView.Markdown;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -13,6 +16,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Core.Models;
 
@@ -28,6 +32,14 @@ public partial class MarkdownMindMapHost : UserControl
     private int? _renamingStart;
     private (bool Paragraphs, bool Lists, bool Code, bool Tables)? _savedVisibility;
     private Vex.Core.Services.EditorPreferences? _pinPreferences;
+    // 样式弹层：打开前捕获视口，压住画布时平移让出，关闭精确还原；风格卡选完 650ms 自动收起。
+    private Flyout? _styleFlyout;
+    private ContentControl? _styleFlyoutHost;
+    private MarkdownMindMapView.ViewportState _preStyleFlyoutViewport;
+    private bool _styleFlyoutViewportSaved;
+    private IDisposable? _styleFlyoutCollapseTimer;
+    private TextBlock? _styleBadge;
+    private ShellWorkbenchViewModel? _badgeWorkbench;
 
     public MarkdownMindMapHost()
     {
@@ -35,6 +47,7 @@ public partial class MarkdownMindMapHost : UserControl
         // 取消钉住时工具条悬浮于导图之上；声明顺序在后会盖住内容，这里用 ZIndex 提升。
         MapEditingToolbar.ZIndex = 1;
         DataContextChanged += OnMapPinContextChanged;
+        DataContextChanged += OnStyleBadgeContextChanged;
         // 原型 .map-controls 的还原钮写的是 map-fit：适应画布，而不是回到 100%。
         MapZoomDock.ResetRequested += (_, _) => Map.Fit();
         BuildMapStyleFlyout();
@@ -57,6 +70,61 @@ public partial class MarkdownMindMapHost : UserControl
 
     private void OnMapPinPreferenceChanged(object? sender, EventArgs e) => ApplyMapPin();
 
+    private void OnStyleBadgeContextChanged(object? sender, EventArgs e)
+    {
+        if (_badgeWorkbench is not null) { _badgeWorkbench.PropertyChanged -= OnStyleBadgePropertyChanged; _badgeWorkbench = null; }
+        if (DataContext is MainWindowViewModel vm)
+        {
+            _badgeWorkbench = vm.Workbench;
+            _badgeWorkbench.PropertyChanged += OnStyleBadgePropertyChanged;
+        }
+        SyncStyleBadge();
+    }
+
+    private void OnStyleBadgePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ShellWorkbenchViewModel.MindMapLayout) or nameof(ShellWorkbenchViewModel.MindMapStyle)) SyncStyleBadge();
+    }
+
+    /// <summary>触发钮回显「结构 · 风格」组合（原型 setTrigger 徽标），收起后不必重开弹层也知道选了什么。</summary>
+    private void SyncStyleBadge()
+    {
+        if (_badgeWorkbench is null || _styleBadge is null) return;
+        _styleBadge.Text = _badgeWorkbench.MindMapLayoutLabel + " · " + _badgeWorkbench.MindMapStyleLabel;
+    }
+
+    /// <summary>弹层压住画布左上时把视口下移半个弹层高（原型 avoidOverlay 只平移不改倍率），关闭时精确还原。</summary>
+    private void ApplyStyleFlyoutAvoidance()
+    {
+        if (_styleFlyoutHost is null) return;
+        var presenter = _styleFlyoutHost.GetVisualAncestors().OfType<Popup>().FirstOrDefault()?.Child;
+        if (presenter is null) return;
+        var presenterTopLeft = presenter.TranslatePoint(default, this);
+        if (presenterTopLeft is not { } point) return;
+        var mapTopLeft = Map.TranslatePoint(default, this) ?? default;
+        _styleFlyoutViewportSaved = true;
+        _preStyleFlyoutViewport = Map.CaptureViewport();
+        var occludedBottom = point.Y + presenter.Bounds.Height - mapTopLeft.Y;
+        if (occludedBottom > 0)
+            Map.RestoreViewport(_preStyleFlyoutViewport with { Y = _preStyleFlyoutViewport.Y + occludedBottom / 2 });
+    }
+
+    private void OnStyleFlyoutClosed(object? sender, EventArgs e)
+    {
+        _styleFlyoutCollapseTimer?.Dispose();
+        _styleFlyoutCollapseTimer = null;
+        if (!_styleFlyoutViewportSaved) return;
+        _styleFlyoutViewportSaved = false;
+        Map.RestoreViewport(_preStyleFlyoutViewport);
+    }
+
+    /// <summary>风格卡是流程终点：选完稍候自动收起让出画布看上色效果；结构卡保留（还要顺势选风格）。</summary>
+    private void ScheduleStyleFlyoutCollapse()
+    {
+        _styleFlyoutCollapseTimer?.Dispose();
+        _styleFlyoutCollapseTimer = DispatcherTimer.RunOnce(() => _styleFlyout?.Hide(), TimeSpan.FromMilliseconds(650));
+    }
+
     /// <summary>钉住 = 工具条占位行；取消钉住 = 悬浮在导图顶端，静默至悬停或聚焦。</summary>
     private void ApplyMapPin()
     {
@@ -70,6 +138,7 @@ public partial class MarkdownMindMapHost : UserControl
     /// <summary>「导图样式」入口：六种布局 + 六种样式的单选弹层（对应原型导图样式按钮）。</summary>
     private void BuildMapStyleFlyout()
     {
+        // 触发钮文字回显「结构 · 风格」组合（SyncStyleBadge），提示保持「导图样式」入口语义。
         var title = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
         var button = new Button
         {
@@ -84,12 +153,12 @@ public partial class MarkdownMindMapHost : UserControl
                 },
             },
         };
-        // 入口按钮只在构建时走一遍，切语言不会重建它，所以文字与提示都绑资源键（同 TabControlRegionAdapter 的页签）。
+        // 入口按钮只在构建时走一遍，切语言不会重建它，所以提示绑资源键（同 TabControlRegionAdapter 的页签）。
         if (new CodeWF.Avalonia.Lang.MarkupExtensions.I18nBinding(VexL.WBMapStyleButton).ProvideValue(null!) is Avalonia.Data.BindingBase mapStyleBinding)
         {
-            title.Bind(TextBlock.TextProperty, mapStyleBinding);
             button.Bind(ToolTip.TipProperty, mapStyleBinding);
         }
+        _styleBadge = title;
         // 原型 .map-appearance-popover：528−32 内距 = 496 内容宽，标题（mb 12）→ ①结构 步骤标签（mb 9）
         // → 3 列卡片网格（gap 10、padding 2）→ ②风格 步骤标签（mt 14）→ 网格，两排同屏。
         var panel = new StackPanel { Spacing = 0, Width = 496 };
@@ -108,9 +177,13 @@ public partial class MarkdownMindMapHost : UserControl
 
         var flyoutHost = new ContentControl();
         var flyout = new Flyout { Content = flyoutHost, Placement = PlacementMode.BottomEdgeAlignedLeft };
+        _styleFlyout = flyout; _styleFlyoutHost = flyoutHost;
         // 触发钮插入工具栏（对照源码旁，原型顺序），随工具条悬浮显示。
         MapToolsRight.Children.Insert(MapToolsRight.Children.IndexOf(MapSourceButton) + 1, button);
         closeButton.Click += (_, _) => flyout.Hide();
+        // 原型 avoidOverlay：弹层压住画布左上时把导图平移让出，关闭精确还原（捕获/还原视口）。
+        flyout.Opened += (_, _) => Dispatcher.UIThread.Post(ApplyStyleFlyoutAvoidance, DispatcherPriority.Loaded);
+        flyout.Closed += OnStyleFlyoutClosed;
 
         StackPanel? styleStep = null;
         IDisposable? nudgeTimer = null;
@@ -146,7 +219,7 @@ public partial class MarkdownMindMapHost : UserControl
                 // 两排同树后 outline 这个键在布局和风格里各有一张卡，名字必须带排前缀才不撞车。
                 var card = new Button { Classes = { "map-choice" }, Content = BuildStyleCard(label, shape, style, purpose), Name = (host == layoutCards ? "MapChoiceLayout_" : "MapChoiceStyle_") + key };
                 Avalonia.Automation.AutomationProperties.SetName(card, purpose is null ? label : label + "：" + purpose);
-                card.Click += (_, _) => { var layout = host == layoutCards; apply(); refresh(); if (layout) NudgeStyle(); }; // 原型 panel.onclick：改完即 render()，两排线稿同时换形/换色。
+                card.Click += (_, _) => { var layout = host == layoutCards; apply(); refresh(); if (layout) NudgeStyle(); else ScheduleStyleFlyoutCollapse(); }; // 原型 panel.onclick：改完即 render()，两排线稿同时换形/换色；风格是流程终点，选完稍候收起。
                 Grid.SetColumn(card, host.Children.Count % 3);
                 if (host.Children.Count % 3 == 0) host.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
                 Grid.SetRow(card, host.RowDefinitions.Count - 1);
@@ -168,6 +241,7 @@ public partial class MarkdownMindMapHost : UserControl
                     vm.MindMapLayout, key, ShellWorkbenchViewModel.MindMapStyleKeyPurpose(key),
                     () => vm.MindMapStyle == captured, () => vm.MindMapStyle = captured);
             }
+            SyncStyleBadge();
             Sync();
         };
         flyout.FlyoutPresenterClasses.Add("map-appearance-popover");

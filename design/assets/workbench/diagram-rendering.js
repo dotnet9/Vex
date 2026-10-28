@@ -153,5 +153,6 @@
     host.tabIndex=0;
     host.setAttribute('aria-label',label || VexMermaid.label(source));
   }
-  window.VexDiagramRendering={render,mount,schedule};
+  /* series/soft/onSeries 同时供原生导图 colorful 档取色：与图表同源，导图才和 Mermaid 一个色族。 */
+  window.VexDiagramRendering={render,mount,schedule,series,soft,onSeries};
 })();
