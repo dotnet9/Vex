@@ -5,7 +5,7 @@ using Avalonia.Controls.Primitives;
 namespace Vex.Modules.Shell.Services;
 
 /// <summary>
-/// 主窗口右上角的轻量 Toast 反馈（基于 Ursa WindowToastManager），
+/// 主窗口的轻量 Toast 反馈（基于 Ursa WindowToastManager），
 /// 用于保存/导出/复制等完成型事件的非阻塞提示。
 /// </summary>
 public interface IShellToastPublisher

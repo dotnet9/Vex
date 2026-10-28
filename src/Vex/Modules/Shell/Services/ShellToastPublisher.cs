@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Controls.Primitives;
@@ -20,7 +22,12 @@ public sealed class ShellToastPublisher : IShellToastPublisher
             return;
         }
 
-        _manager = new WindowToastManager(layerManager) { MaxItems = MaxItems };
+        _manager = new WindowToastManager(layerManager)
+        {
+            MaxItems = MaxItems,
+            IsHitTestVisible = false,
+        };
+
         while (_pending.Count > 0)
         {
             var (message, type) = _pending.Dequeue();

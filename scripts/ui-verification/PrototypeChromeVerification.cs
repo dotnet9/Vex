@@ -462,6 +462,37 @@ internal static class PrototypeChromeVerification
                 || c.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text?.Contains(toastText) == true));
         Check(!vm.Layout.IsSidebarVisible, "Entering the three-view layout below 1250px collapses the file navigation (prototype workspace.js)");
         Check(toastHost is not null, "The collapse tells the user how to get the navigation back");
+        // 让位提示 2.5 秒后进入收起态，卡片缩成 0 尺寸；量几何得重新发一条现挂的 toast（同一文案、同一通道）。
+        app.Resolve<Vex.Modules.Shell.Services.IShellToastPublisher>().Publish(toastText);
+        Render();
+        Avalonia.Headless.AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        Dispatcher.UIThread.RunJobs();
+        window.UpdateLayout();
+        var toastCard = window.GetVisualDescendants().OfType<Ursa.Controls.ToastCard>().LastOrDefault();
+        if (toastCard is not null)
+        {
+            var itemsPanel = toastCard.GetVisualAncestors().OfType<Avalonia.Controls.ReversibleStackPanel>().FirstOrDefault();
+            var toastHostControl = toastCard.GetVisualAncestors().OfType<Ursa.Controls.WindowToastManager>().FirstOrDefault();
+            var panelOrigin = itemsPanel?.TranslatePoint(default, window) ?? default;
+            var panelGapBelow = window.Bounds.Height - (panelOrigin.Y + (itemsPanel?.Bounds.Height ?? 0));
+            var panelGapRight = window.Bounds.Width - (panelOrigin.X + (itemsPanel?.Bounds.Width ?? 0));
+            Check(toastHostControl is not null && itemsPanel is not null,
+                "The toast is hosted by the window's own toast layer");
+            Check(itemsPanel!.Bounds.Height > 0,
+                "The toast band keeps its own row height inside the layer (headless never lays out the card body itself)");
+            Check(panelGapBelow >= 58 && panelGapBelow <= 70,
+                "The toast sits above the status bar and the floating dock (prototype .proto-toast-wrap: bottom 64px)");
+            Check(Math.Abs(panelOrigin.X - panelGapRight) <= 2 && panelOrigin.X >= 15
+                  && toastCard.Bounds.Width <= window.Bounds.Width - 32 + 1,
+                "The toast column is centred and keeps the prototype's 16px side insets (.proto-toast-wrap: max-width calc(100% - 32px))");
+            Check(itemsPanel.Orientation == Avalonia.Layout.Orientation.Vertical && itemsPanel.Spacing == 8,
+                "Toasts stack top-down with the prototype's 8px gap (.proto-toast-wrap: flex column, gap 8px)");
+            var textHosts = toastCard.GetSelfAndVisualDescendants().OfType<TextBlock>()
+                .Where(t => t.Text?.Contains(toastText) == true).ToList();
+            Check(textHosts.Count > 0 && textHosts.All(t => t.TextWrapping == Avalonia.Media.TextWrapping.Wrap
+                                                       && t.TextAlignment == Avalonia.Media.TextAlignment.Center),
+                "A long toast wraps onto more lines and stays centred (prototype .proto-toast: white-space normal, text-align center)");
+        }
         Check(settings.Current.IsSidebarVisible == true,
             "The automatic collapse is a layout concession, not a preference: the saved sidebar choice stays untouched");
         window.Width = 1440; Render();

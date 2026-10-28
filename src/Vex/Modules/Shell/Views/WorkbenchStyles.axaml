@@ -829,4 +829,18 @@
   <Style Selector="Border.mcp-subtabs">
     <Setter Property="Margin" Value="0,0,0,14"/>
   </Style>
+  <!-- 原型 .proto-toast-wrap：条目贴窗口底部、状态栏与浮动坞之上（bottom:64px），左右各留 16px
+       （max-width:calc(100% - 32px)）、整列居中、条目之间 8px。Ursa 的 WindowToastManager 没有位置/间距
+       API，只能取它模板的 PART_Items 面板。 -->
+  <Style Selector="u|WindowToastManager /template/ ReversibleStackPanel#PART_Items">
+    <Setter Property="Spacing" Value="8"/>
+    <Setter Property="VerticalAlignment" Value="Bottom"/>
+    <Setter Property="Margin" Value="16,0,16,64"/>
+  </Style>
+  <!-- 原型 .proto-toast：white-space:normal、text-align:center。ToastCard 模板里的文本块把这两个值
+       写成了模板绑定，样式打不进，只能按继承属性从卡片这一层下发。 -->
+  <Style Selector="u|ToastCard">
+    <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+    <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+  </Style>
 </Styles>
