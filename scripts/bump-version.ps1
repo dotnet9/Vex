@@ -26,6 +26,8 @@ $props = Get-Content -LiteralPath $propsPath -Raw -Encoding utf8
 if ($props -notmatch '<Version>(\d+(?:\.\d+){1,3})</Version>') {
     throw "Directory.Build.props 中未找到 <Version> 节点：$propsPath"
 }
+# 立即捕获版本锚点：后续标题分类的正则会覆盖自动变量 $Matches。
+$currentText = $Matches[1]
 # 基线取 tag 时刻的版本，而不是工作区当前版本：支持对任意历史 tag 模拟递增；
 # 常规流程（tag=上个发布点、props 未动）两者一致。
 $baselineText = $props
@@ -81,6 +83,7 @@ if ($DryRun) {
     return
 }
 
-$updated = $props -replace "<Version>$([Regex]::Escape($Matches[1]))</Version>", "<Version>$newVersion</Version>"
+ $updated = $props -replace "<Version>$([Regex]::Escape($currentText))</Version>", "<Version>$newVersion</Version>"
+if ($updated -eq $props) { throw "版本替换未命中：<Version>$currentText</Version> 不在文件中？" }
 Set-Content -LiteralPath $propsPath -Value $updated -Encoding utf8 -NoNewline
 Write-Host "已写回 $propsPath" -ForegroundColor Green
