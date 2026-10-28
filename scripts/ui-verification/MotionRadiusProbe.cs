@@ -46,7 +46,7 @@ internal static class MotionRadiusProbe
         Snap("off+square");
 
         // 直角档下的真实边界：分段轨道与缩放坞都吃同一个 pill 令牌，应随档位归零。
-        var track = window.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("vex-segmented"));
+        var track = window.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("segmented-track"));
         if (track is not null) sb.AppendLine($"square segmented track radius={track.CornerRadius.TopLeft}");
         var dock = window.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("vex-zoomdock"));
         if (dock is not null) sb.AppendLine($"square zoomdock radius={dock.CornerRadius.TopLeft}");

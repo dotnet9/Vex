@@ -94,7 +94,7 @@ public sealed class ShellTypographyGallery : UserControl
         }
     }
 
-    private static void PaintDensity(Button pill, bool on) => VexSegmentedPanel.SetIsActive(pill, on);
+    private static void PaintDensity(Button pill, bool on) => SegmentedPanel.SetIsActive(pill, on);
 
     private void Build()
     {
@@ -119,16 +119,16 @@ public sealed class ShellTypographyGallery : UserControl
         var densityRow = new Grid { ColumnDefinitions = new("Auto,*"), ColumnSpacing = 10 };
         var densityLabel = new TextBlock { Text = Text("RenderDensityTitle"), FontSize = 11, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
         Resource(densityLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush"); densityRow.Children.Add(densityLabel);
-        var segments = new VexSegmentedPanel { Spacing = 6, FillItems = true };
+        var segments = new SegmentedPanel { Spacing = 6, FillItems = true };
         foreach (var (key, labelKey) in new[] { ("compact", "DensityCompact"), ("normal", "DensityNormal"), ("relaxed", "DensityRelaxed") })
         {
-            var pill = new Button { Classes = { "vex-segment", "density-pill", "render-density-pill" }, Content = Text(labelKey), HorizontalContentAlignment = HorizontalAlignment.Center };
+            var pill = new Button { Classes = { "density-pill", "render-density-pill" }, Content = Text(labelKey), HorizontalContentAlignment = HorizontalAlignment.Center };
             Avalonia.Automation.AutomationProperties.SetName(pill, Text(labelKey));
             var captured = key;
             pill.Click += (_, _) => _vm.Appearance.MarkdownDensity = captured;
             _densityPills[key] = pill; segments.Children.Add(pill);
         }
-        var pills = new Border { Classes = { "vex-segmented", "density-options" }, Child = segments, Width = 320, MaxWidth = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
+        var pills = new Border { Classes = { "segmented-track", "density-options" }, Child = segments, Width = 320, MaxWidth = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
         Grid.SetColumn(pills, 1);
         densityRow.Children.Add(pills);
         var densityFrame = new Border { Child = densityRow, BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(2, 9, 2, 11) };

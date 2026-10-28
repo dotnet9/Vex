@@ -109,7 +109,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
 
     /// <summary>
     /// 原型 .reading-zoom 的横向落点：坞离块右缘 12px，右栏收起时折叠钮贴到窗边，让开一枚钮宽加 8px 缝到 31px。
-    /// 纵向不写在这里，由 vex:VexBottomAxis 按 --vex-axis-view 把中心拉回底部轴线上。
+    /// 纵向不写在这里，由 codewf:BottomAxis 按 --vex-axis-view 把中心拉回底部轴线上。
     /// </summary>
     public Thickness ReadingDockMargin => new(0, 0, _workbench.ShowOutlineSidebar ? 12 : 31, 0);
 

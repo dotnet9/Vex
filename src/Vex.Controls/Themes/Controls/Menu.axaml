@@ -1,46 +1,12 @@
-<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:converters="using:Avalonia.Controls.Converters" xmlns:data="using:Avalonia.Data.Converters">
-    <Styles.Resources>
-        <converters:PlatformKeyGestureConverter x:Key="VexMenuGestureConverter" />
-    </Styles.Resources>
-    <!-- 每行独立分配标题宽度，避免原生菜单的共享快捷键列截断所有标题。 -->
-    <Style Selector="MenuItem.design-menu-entry">
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="MinHeight" Value="32" />
-        <Setter Property="Padding" Value="10,5" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Template">
-            <ControlTemplate>
-                <Panel>
-                    <Border Name="PART_LayoutRoot" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}">
-                        <Grid ColumnDefinitions="16,*,Auto" ColumnSpacing="8" MinHeight="22">
-                            <TextBlock Text="✓" IsVisible="{TemplateBinding IsChecked}" Foreground="{DynamicResource VexAccentBrush}" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                            <ContentPresenter Name="PART_HeaderPresenter" Grid.Column="1" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" RecognizesAccessKey="True" VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Name="PART_InputGestureText" Text="{TemplateBinding InputGesture, Converter={StaticResource VexMenuGestureConverter}}" IsVisible="{TemplateBinding InputGesture, Converter={x:Static data:ObjectConverters.IsNotNull}}" Margin="12,0,0,0" FontSize="12" Foreground="{DynamicResource VexMutedBrush}" VerticalAlignment="Center" />
-                                <Path Name="PART_ExpandIcon" Width="14" Height="14" Margin="12,0,0,0" Data="M5 3L9 7L5 11" Stroke="{DynamicResource VexMutedBrush}" StrokeThickness="1.2" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                    <Popup Name="PART_Popup" IsOpen="{TemplateBinding IsSubMenuOpen, Mode=TwoWay}" Placement="RightEdgeAlignedTop" HorizontalOffset="-4" VerticalOffset="-12" InheritsTransform="True" IsLightDismissEnabled="False" WindowManagerAddShadowHint="False">
-                        <Border Width="248" Margin="8" Padding="6" Background="{DynamicResource MenuFlyoutBackground}" BorderBrush="{DynamicResource MenuFlyoutBorderBrush}" BorderThickness="1" CornerRadius="8" BoxShadow="0 8 30 0 #18000000">
-                            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                                <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
-                            </ScrollViewer>
-                        </Border>
-                    </Popup>
-                </Panel>
-            </ControlTemplate>
-        </Setter>
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- 长标题不被快捷键列截断的模板（MenuItem.wrap-entry）已由库的 Themes/Styles/NativeMenu.axaml 提供，
+         这里只留 Vex 自己的菜单版面与配色。 -->
+    <Style Selector="MenuItem.wrap-entry.danger /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}" />
     </Style>
-    <Style Selector="MenuItem.design-menu-entry /template/ ContentPresenter#PART_HeaderPresenter AccessText">
-        <Setter Property="TextWrapping" Value="Wrap" />
+    <Style Selector="MenuItem.wrap-entry.danger:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource VexDangerSoftBrush}" />
     </Style>
-    <Style Selector="MenuItem.design-menu-entry:empty /template/ Path#PART_ExpandIcon"><Setter Property="IsVisible" Value="False" /></Style>
-    <Style Selector="MenuItem.design-menu-entry:selected /template/ Border#PART_LayoutRoot"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" /></Style>
-    <Style Selector="MenuItem.design-menu-entry.danger /template/ ContentPresenter#PART_HeaderPresenter"><Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}" /></Style>
-    <Style Selector="MenuItem.design-menu-entry.danger:selected /template/ Border#PART_LayoutRoot"><Setter Property="Background" Value="{DynamicResource VexDangerSoftBrush}" /></Style>
-    <Style Selector="MenuItem.design-menu-entry:disabled"><Setter Property="Opacity" Value="0.48" /></Style>
     <Style Selector="Menu.title-menu Separator"><Setter Property="Margin" Value="4,4" /><Setter Property="Height" Value="1" /></Style>
     <Style Selector="Menu.title-menu > MenuItem /template/ Popup#PART_Popup > Border">
         <Setter Property="Padding" Value="6" /><Setter Property="CornerRadius" Value="8" />

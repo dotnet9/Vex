@@ -7,6 +7,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using CodeWF.Avalonia.Controls.Controls;
 using Vex.Controls;
 using Vex.Core.Motion;
 using Vex.Core.Services;
@@ -168,8 +169,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 // 全走共享配方，宿主只给 gap 4、button{flex:1} 等宽与 28×密度的基准高；页签与内容之间留 16。
                 var mcpRoot = new StackPanel { Spacing = 16 };
                 var mcpHost = new ContentControl();
-                var tabTrack = new Border { Classes = { "vex-segmented", "mcp-tabs" } };
-                var tabBar = new VexSegmentedPanel { Spacing = 4, FillItems = true };
+                var tabTrack = new Border { Classes = { "segmented-track", "mcp-tabs" } };
+                var tabBar = new SegmentedPanel { Spacing = 4, FillItems = true };
                 tabTrack.Child = tabBar;
                 var mcpPeers = new List<Button>();
                 Control BuildServer() => new McpSettingsOverlayView(embedded: true) { DataContext = _model.Mcp };
@@ -185,13 +186,13 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 {
                     _mcpTab = index;
                     for (var i = 0; i < mcpPeers.Count; i++)
-                        VexSegmentedPanel.SetIsActive(mcpPeers[i], i == index);
+                        SegmentedPanel.SetIsActive(mcpPeers[i], i == index);
                     mcpHost.Content = tabs[index].Build();
                 }
                 for (var i = 0; i < tabs.Length; i++)
                 {
                     var index = i;
-                    var tab = new Button { Name = tabs[i].Name, Classes = { "vex-segment", "mcp-tab" }, Content = tabs[i].Label };
+                    var tab = new Button { Name = tabs[i].Name, Classes = { "mcp-tab" }, Content = tabs[i].Label };
                     tab.Click += (_, _) => SelectTab(index);
                     mcpPeers.Add(tab); tabBar.Children.Add(tab);
                 }
@@ -241,14 +242,14 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var page = new StackPanel { Spacing = 0 };
         var host = new ContentControl();
-        var subTrack = new Border { Classes = { "vex-segmented", "mcp-tabs", "mcp-subtabs" } };
-        var bar = new VexSegmentedPanel { Spacing = 4, FillItems = true };
+        var subTrack = new Border { Classes = { "segmented-track", "mcp-tabs", "mcp-subtabs" } };
+        var bar = new SegmentedPanel { Spacing = 4, FillItems = true };
         subTrack.Child = bar;
         var peers = new List<Button>();
         void SelectTab(Button selected, Func<Control> build)
         {
             foreach (var peer in peers)
-                VexSegmentedPanel.SetIsActive(peer, ReferenceEquals(peer, selected));
+                SegmentedPanel.SetIsActive(peer, ReferenceEquals(peer, selected));
             host.Content = build();
         }
         foreach (var (name, label, build) in new (string, string, Func<Control>)[]
@@ -257,7 +258,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
             ("McpSubStdio", L(VexL.McpStdioBridge), BuildMcpStdioPane),
         })
         {
-            var tab = new Button { Name = name, Classes = { "vex-segment", "mcp-tab", "mcp-subtab" }, Content = label };
+            var tab = new Button { Name = name, Classes = { "mcp-tab", "mcp-subtab" }, Content = label };
             tab.Click += (_, _) => SelectTab(tab, build);
             peers.Add(tab); bar.Children.Add(tab);
         }
@@ -365,11 +366,11 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private void Segmented(StackPanel page, string label, INotifyPropertyChanged source, string property,
         Func<string> get, Action<string> set, (string Value, string Label)[] options, string? note = null)
     {
-        var bar = new VexSegmentedPanel { FillItems = true };
-        var track = new Border { Classes = { "vex-segmented", "pref-segmented" }, Width = 196, Child = bar };
+        var bar = new SegmentedPanel { FillItems = true };
+        var track = new Border { Classes = { "segmented-track", "pref-segmented" }, Width = 196, Child = bar };
         var buttons = options.Select(option =>
         {
-            var button = new Button { Classes = { "vex-segment", "pref-segment" }, Content = option.Label };
+            var button = new Button { Classes = { "pref-segment" }, Content = option.Label };
             button.Click += (_, _) => set(option.Value);
             bar.Children.Add(button);
             return (Option: option, Button: button);
@@ -378,7 +379,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
         {
             var current = get();
             foreach (var (option, button) in buttons)
-                VexSegmentedPanel.SetIsActive(button, option.Value == current);
+                SegmentedPanel.SetIsActive(button, option.Value == current);
         }
         void Changed(object? sender, PropertyChangedEventArgs args)
         {

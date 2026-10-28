@@ -1,4 +1,4 @@
-<Styles xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- ===== 块状工作区（原型 workspace-chrome.css）：灰画布 + 圆角描边白块，外缘 10px、块间 4px ===== -->
   <Style Selector="Border.workspace-block">
     <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
@@ -134,8 +134,26 @@
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
   </Style>
   <Style Selector="FlyoutPresenter.design-title-picker"><Setter Property="Padding" Value="18"/><Setter Property="CornerRadius" Value="16"/><Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/><Setter Property="BorderThickness" Value="0"/></Style>
+  <!-- 分段控件的通用画法（轨道底色、指示块浮起、三态透明、选中字色字重）在库的
+      Themes/Styles/SegmentedPanel.axaml；这里只补 Vex 自己那半：圆角与字号跟密度/圆角档走
+      （直角档 999×0 归零，胶囊要跟着塌），深色轨道反差小再叠 1px 淡描边。
+      指示块圆角只能设在面板上——它由面板写进 Border 的本地值，样式命中 Border 会被本地值压掉。 -->
+  <Style Selector="ctl|SegmentedPanel">
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/>
+  </Style>
+  <Style Selector="Border.segmented-track">
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/>
+  </Style>
+  <Style Selector="ctl|SegmentedPanel > Border.segmented-thumb">
+    <Setter Property="BorderBrush" Value="{DynamicResource VexSegmentedThumbBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
+  <Style Selector="ctl|SegmentedPanel Button">
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/>
+  </Style>
   <!-- 原型 .density-options.vex-segmented（外观菜单 22×密度、排版面板 24×密度，内距 2×密度/10）：
-       界面密度与渲染密度两行都是标准分段控件，底色、指示块、选中字色一律走 Vex.Controls 的共享配方。 -->
+       界面密度与渲染密度两行都是标准分段控件，底色、指示块、选中字色一律走库的共享配方。 -->
   <Style Selector="Button.density-pill">
     <Setter Property="MinHeight" Value="0"/>
     <Setter Property="Height" Value="{DynamicResource VexSegmentedHeightDensity}"/>

@@ -1,7 +1,7 @@
 <UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
- xmlns:prism="http://prismlibrary.com/" xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}" prism:ViewModelLocator.AutoWireViewModel="True">
+ xmlns:prism="http://prismlibrary.com/" xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:codewf="https://codewf.com" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}" prism:ViewModelLocator.AutoWireViewModel="True">
  <UserControl.Styles>
-  <!-- 对应原型 .workspace-viewswitch：它本身就是一枚 .vex-segmented，轨道底色、圆角、内缩、滑动指示块、
+  <!-- 对应原型 .workspace-viewswitch：它本身就是一枚 .segmented-track，轨道底色、圆角、内缩、滑动指示块、
        选中字色字重全部走 Vex.Controls 的共享配方；宿主只补自己的基准高与图标口径。 -->
   <Style Selector="Border.view-switch">
    <Setter Property="VerticalAlignment" Value="Center" />
@@ -46,18 +46,18 @@
          Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
          BoxShadow="0 10 30 #22000000">
   <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-   <Border x:Name="ViewSwitch" Classes="view-switch vex-segmented">
-    <vex:VexSegmentedPanel Spacing="2">
-     <Button x:Name="SourceSegment" Classes="view-segment vex-segment" vex:VexSegmentedPanel.IsActive="{Binding Workbench.IsSourceSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" Command="{Binding Workbench.ShowSourceView}" />
-     <Button x:Name="ReadSegment" Classes="view-segment vex-segment" vex:VexSegmentedPanel.IsActive="{Binding Workbench.IsReadSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" Command="{Binding Workbench.ShowRead}" />
-     <Button x:Name="MapSegment" Classes="view-segment vex-segment" vex:VexSegmentedPanel.IsActive="{Binding Workbench.IsMapSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewMap}}" Command="{Binding Workbench.ShowMindMap}" />
-     <Button x:Name="LayoutButton" Classes="view-segment view-more vex-segment" vex:VexSegmentedPanel.IsActive="{Binding Workbench.IsMoreSegmentActive}" Command="{Binding Workbench.ToggleLayouts}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WSLayoutTitle}}">
+   <Border x:Name="ViewSwitch" Classes="view-switch segmented-track">
+    <codewf:SegmentedPanel Spacing="2">
+     <Button x:Name="SourceSegment" Classes="view-segment" codewf:SegmentedPanel.IsActive="{Binding Workbench.IsSourceSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" Command="{Binding Workbench.ShowSourceView}" />
+     <Button x:Name="ReadSegment" Classes="view-segment" codewf:SegmentedPanel.IsActive="{Binding Workbench.IsReadSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" Command="{Binding Workbench.ShowRead}" />
+     <Button x:Name="MapSegment" Classes="view-segment" codewf:SegmentedPanel.IsActive="{Binding Workbench.IsMapSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewMap}}" Command="{Binding Workbench.ShowMindMap}" />
+     <Button x:Name="LayoutButton" Classes="view-segment view-more" codewf:SegmentedPanel.IsActive="{Binding Workbench.IsMoreSegmentActive}" Command="{Binding Workbench.ToggleLayouts}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WSLayoutTitle}}">
       <StackPanel Orientation="Horizontal" Spacing="4">
        <TextBlock Text="{Binding Workbench.MoreSegmentLabel}" VerticalAlignment="Center" />
        <Path Classes="expand-chevron" Data="M6 9L12 15L18 9" />
       </StackPanel>
      </Button>
-    </vex:VexSegmentedPanel>
+    </codewf:SegmentedPanel>
    </Border>
    <Button x:Name="StatisticsButton" Classes="sb-word" IsVisible="{Binding Preferences.WordCountVisible}" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}">
     <TextBlock Text="{Binding DocumentInfo.StatusWordCountText}" FontSize="{DynamicResource VexDensityFontSizeCaption}" />

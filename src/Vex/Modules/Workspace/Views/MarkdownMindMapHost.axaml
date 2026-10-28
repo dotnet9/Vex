@@ -1,5 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
-             xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:mind="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls"
+             xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:mind="https://codewf.com" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls"
              x:DataType="vm:MainWindowViewModel" x:Class="Vex.Modules.Workspace.Views.MarkdownMindMapHost">
   <UserControl.Styles>
     <Style Selector="Button.map-tool, ToggleButton.map-tool"><Setter Property="FontSize" Value="10.5"/><Setter Property="Padding" Value="7,4"/><Setter Property="MinHeight" Value="26"/></Style>
@@ -109,7 +109,7 @@
         </Border>
       </Border>
       <!-- 原型 .map-controls：导图画布右下角的悬浮缩放坞（1–200，步长 1，还原钮=适应画布）。
-           纵向交给 VexBottomAxis 按令牌 vex-axis-view 把坞中心拉回底部轴线；横向 12/31 由视图模型按右栏显隐让位。 -->
+           纵向交给 BottomAxis 按令牌 vex-axis-view 把坞中心拉回底部轴线；横向 12/31 由视图模型按右栏显隐让位。 -->
       <vex:VexZoomDock x:Name="MapZoomDock"
           HorizontalAlignment="Right"
           VerticalAlignment="Bottom"
@@ -122,7 +122,7 @@
           Label="{i18n:I18n {x:Static l:VexL.ZoomMap}}"
           ResetLabel="{i18n:I18n {x:Static l:VexL.WBFit}}"
           ResetGeometry="{StaticResource WBFitIcon}"
-          vex:VexBottomAxis.CenterFromBottom="19" />
+          codewf:BottomAxis.CenterFromBottom="19" />
     </Grid>
   </Grid>
 </UserControl>

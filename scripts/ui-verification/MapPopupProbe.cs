@@ -1,3 +1,4 @@
+using CodeWF.Avalonia.Controls.Controls;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls;
@@ -62,7 +63,7 @@ internal static class MapPopupProbe
         Check(steps.Length == 2, $"弹层内两排同屏，只剩两个步骤标签（实得 {steps.Length}）");
         var stepY = steps.Select(s => s.TranslatePoint(default, presenter)!.Value.Y).ToArray();
         Check(stepY[1] > stepY[0], $"①结构在上、②风格在下（y={stepY[0]:0.##} → {stepY[1]:0.##}）");
-        Check(!content.GetVisualDescendants().OfType<Button>().Any(b => b.Classes.Contains("vex-segment")), "分段页签已删除，两排不再互相隐藏");
+        Check(!content.GetVisualDescendants().OfType<SegmentedPanel>().Any(), "分段页签已删除，两排不再互相隐藏");
         var choices = content.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("map-choice")).ToArray();
         Check(choices.Length == 12 && choices.All(b => b.IsVisible), $"12 张卡全部同屏可见（实得 {choices.Length}）");
         Check(content.GetVisualDescendants().OfType<TextBlock>().Count(t => t.Classes.Contains("map-choice-purpose")) == 6,

@@ -7,6 +7,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using CodeWF.Toolkit.Lang;
+using CodeWF.Avalonia.Controls.Controls;
 using Vex.Controls;
 using Vex.Core.Models;
 using Vex.Modules.Shell.ViewModels;
@@ -112,8 +113,8 @@ public sealed class ShellAppearanceMenuView : UserControl
             card.Ring.IsVisible = selected;
             card.Check.IsVisible = selected;
         }
-        foreach (var (key, button) in _modeButtons) VexSegmentedPanel.SetIsActive(button, key == _vm.SelectedTheme?.Key);
-        foreach (var (key, button) in _densityButtons) VexSegmentedPanel.SetIsActive(button, key == _vm.SelectedDensity);
+        foreach (var (key, button) in _modeButtons) SegmentedPanel.SetIsActive(button, key == _vm.SelectedTheme?.Key);
+        foreach (var (key, button) in _densityButtons) SegmentedPanel.SetIsActive(button, key == _vm.SelectedDensity);
         foreach (var (option, row) in _languageRows)
         {
             var selected = option == _vm.SelectedLanguage;
@@ -137,17 +138,17 @@ public sealed class ShellAppearanceMenuView : UserControl
     /// 的共享配方，宿主不再自画选中底色。</summary>
     private Border SegmentRow(string? automationPrefix, Action<Button, string> register, params (string Text, Action Action, string Id)[] items)
     {
-        var segments = new VexSegmentedPanel { Spacing = 6, FillItems = true };
+        var segments = new SegmentedPanel { Spacing = 6, FillItems = true };
         foreach (var item in items)
         {
-            var button = new Button { Content = item.Text, Classes = { "vex-segment", "density-pill" }, HorizontalContentAlignment = HorizontalAlignment.Center };
+            var button = new Button { Content = item.Text, Classes = { "density-pill" }, HorizontalContentAlignment = HorizontalAlignment.Center };
             button.Click += (_, _) => item.Action();
             Avalonia.Automation.AutomationProperties.SetName(button, item.Text);
             if (automationPrefix is not null) Avalonia.Automation.AutomationProperties.SetAutomationId(button, automationPrefix + item.Text);
             segments.Children.Add(button);
             register(button, item.Id);
         }
-        return new Border { Classes = { "vex-segmented", "density-options" }, Child = segments, Margin = new Thickness(0, 6, 0, 2) };
+        return new Border { Classes = { "segmented-track", "density-options" }, Child = segments, Margin = new Thickness(0, 6, 0, 2) };
     }
 
     private void Build()

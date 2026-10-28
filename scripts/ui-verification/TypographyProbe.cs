@@ -67,7 +67,7 @@ internal static class TypographyProbe
         if (gallery.Content is Border outer) Console.WriteLine($"POPOVER-BG\t{outer.Background}\tpadding={outer.Padding}");
 
         // 密度分段条
-        foreach (var track in gallery.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("vex-segmented")))
+        foreach (var track in gallery.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("segmented-track")))
         {
             Line("SEG-TRACK", track, $"bg={track.Background}\tpadding={track.Padding}\tradius={track.CornerRadius}");
             var panel = track.Child;
@@ -77,7 +77,7 @@ internal static class TypographyProbe
                 foreach (var child in host.Children.OfType<Control>())
                 {
                     var text = child is Button { Content: string s } ? s : child.GetType().Name;
-                    var thumb = child.Classes.Contains("vex-segmented-thumb");
+                    var thumb = child.Classes.Contains("segmented-thumb");
                     Line(thumb ? "SEG-THUMB" : "SEG-PILL", child,
                         $"text={text}\tbg={(child as Border)?.Background}\tfs={(child as TemplatedControl)?.FontSize}");
                 }

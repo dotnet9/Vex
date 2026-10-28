@@ -22,7 +22,7 @@ public partial class ShellTitleMenuView : UserControl
 
     private void Configure(MenuItem item, bool topLevel = false)
     {
-        if (!topLevel) item.Classes.Add("design-menu-entry");
+        if (!topLevel) item.Classes.Add("wrap-entry");
         item.SubmenuOpened += (_, _) =>
             {
                 var popup = item.GetVisualDescendants().OfType<Popup>().FirstOrDefault();

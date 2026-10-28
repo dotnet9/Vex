@@ -2095,7 +2095,7 @@ void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
         foreach (var expected in new[] { StudioThemeMode.Light, StudioThemeMode.Dark, StudioThemeMode.System })
         {
             var content = (Control)((Flyout)menu.AppearanceButton.Flyout!).Content!;
-            // 外观菜单密度行与模式行都是 .density-options.vex-segmented；前 3 枚是密度，后 3 枚是模式。
+            // 外观菜单密度行与模式行都是 .density-options.segmented-track（原型 .density-options.vex-segmented）；前 3 枚是密度，后 3 枚是模式。
             var modes = content.GetLogicalDescendants().OfType<Button>().Where(b => b.Classes.Contains("density-pill")).ToArray();
             Check(modes.Length == 6, "Appearance menu exposes three density and three mode pills");
             var index = expected switch { StudioThemeMode.Light => 3, StudioThemeMode.Dark => 4, _ => 5 };

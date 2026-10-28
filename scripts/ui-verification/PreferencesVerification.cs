@@ -1,3 +1,4 @@
+using CodeWF.Avalonia.Controls.Controls;
 using System.Text;
 using Avalonia;
 using Avalonia.Controls;
@@ -173,7 +174,7 @@ internal static class PreferencesVerification
             .SequenceEqual(new[] { "Time", "Action", "Result" }), "Audit headers re-localize with the app language");
         localizer.SetCulture("zh-CN"); Render();
         // 整页会随语言重建，页签选择属于用户状态：换完语言审计页必须还在。
-        Check(VexSegmentedPanel.GetIsActive(Control<Button>("McpTabAudit")), "Audit tab stays selected across a locale switch");
+        Check(SegmentedPanel.GetIsActive(Control<Button>("McpTabAudit")), "Audit tab stays selected across a locale switch");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-audit.png"));
         model.Close(); Pump(dialog);
         window.Width = 1280; window.Height = 820; vm.Appearance.SelectThemeByKey("light"); Render();

@@ -1,3 +1,4 @@
+using CodeWF.Avalonia.Controls.Controls;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -117,11 +118,11 @@ internal static class PopupLayoutVerification
         var appearanceCard = appearancePage.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
         foreach (var track in appearancePage.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("pref-segmented")))
         {
-            var segments = ((VexSegmentedPanel)track.Child!).Children.OfType<Button>().ToArray();
+            var segments = ((SegmentedPanel)track.Child!).Children.OfType<Button>().ToArray();
             Check(track.Bounds.Width == 196 && segments.Length == 3 && segments.Count(s => s.Bounds.Width > 0) == 3
                   && segments.All(s => Math.Abs(s.Bounds.Width - segments[0].Bounds.Width) < .5),
                 $"Preference segmented track is 196px with three equal segments: {track.Bounds.Width} / {string.Join(",", segments.Select(s => s.Bounds.Width))}");
-            Check(segments.Count(s => VexSegmentedPanel.GetIsActive(s)) == 1, "Exactly one preference segment is selected");
+            Check(segments.Count(s => SegmentedPanel.GetIsActive(s)) == 1, "Exactly one preference segment is selected");
         }
         Capture(appearanceCard, "preferences-appearance");
         ((ShellPreferencesViewModel)appearancePage.DataContext!).Close(); Render();

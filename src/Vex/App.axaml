@@ -30,6 +30,8 @@
         <semiCp:ColorPickerSemiTheme />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Simple/AvaloniaEdit.xaml" />
         <codewf:ACSemiTheme />
+        <!-- 库故意不进默认主题的两组宿主级观感：常驻滚动条轨道与提示浮层折行。 -->
+        <StyleInclude Source="avares://CodeWF.Avalonia.Controls/Themes/Styles/Chrome.axaml" />
         <codewf:DataGridSemiTheme />
         <codewf:StudioTheme />
         <codewf:MindViewThemes />

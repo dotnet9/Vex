@@ -50,9 +50,12 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     /// <summary>原型 .pane-collapse：24px 圆钮，距块内边缘 8px。
     /// 底距不再照抄原型的 18：原生外层网格已经带 10px 块缘外边距，而原型把钮挂在 .workspace 的定位框上，
     /// 所以按 --vex-axis-col(20) 反推 底距 = 轴线 − 半径 = 8，圆心和状态胶囊、缩放坞严格落在同一根线上。</summary>
-    private const double PaneCollapseSize = 24d,
+    private const double WorkspaceAxis = 30d,
+        BlockEdge = 10d,
+        ColumnAxis = WorkspaceAxis - BlockEdge,
+        PaneCollapseSize = 24d,
         PaneCollapseInset = 8d,
-        PaneCollapseBottom = VexBottomAxis.Column - PaneCollapseSize / 2;
+        PaneCollapseBottom = ColumnAxis - PaneCollapseSize / 2;
 
     private const double MinSidebarWidth = 200d;
 
