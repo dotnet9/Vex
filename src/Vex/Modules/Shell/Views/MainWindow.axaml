@@ -43,12 +43,12 @@
                     Width="22"
                     Height="22"
                     CornerRadius="5"
-                    Background="#24766B"
+                    Background="{DynamicResource VexBrandBrush}"
                     VerticalAlignment="Center">
                     <Canvas Width="22" Height="22">
                         <Path
                             Data="M5.5 5.3 L11 17 L16.5 5.3"
-                            Stroke="#FFFFFF"
+                            Stroke="{DynamicResource VexBrandMarkBrush}"
                             StrokeThickness="3.9"
                             StrokeLineCap="Round"
                             StrokeJoin="Round" />

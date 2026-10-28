@@ -46,6 +46,10 @@
         <GradientStop Color="{DynamicResource StudioGradientStartColor}" Offset="0" />
         <GradientStop Color="{DynamicResource StudioSecondaryColor}" Offset="1" />
     </LinearGradientBrush>
+    <!-- 品牌标识色：原型 design/assets/vex-logo.svg 里写死的 #24766B 与白色笔画，
+         标识不随 9 套配色变色，所以也不许在页面里各抄一份色值。 -->
+    <SolidColorBrush x:Key="VexBrandBrush" Color="#24766B" />
+    <SolidColorBrush x:Key="VexBrandMarkBrush" Color="#FFFFFF" />
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidBackground" Color="#FFFFFF" />

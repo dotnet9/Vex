@@ -13,7 +13,7 @@
    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
     <StackPanel>
      <Grid Margin="32,28,32,0" ColumnDefinitions="64,*" ColumnSpacing="18">
-      <Border Width="64" Height="64" Background="{DynamicResource VexAccentBrush}" CornerRadius="16"><Viewbox Width="52" Height="52"><Canvas Width="64" Height="64"><Path Data="M13 12L32 52L51 12" Stroke="White" StrokeThickness="12" StrokeLineCap="Round" StrokeJoin="Round"/></Canvas></Viewbox></Border>
+      <Border Width="64" Height="64" Background="{DynamicResource VexBrandBrush}" CornerRadius="16"><Viewbox Width="52" Height="52"><Canvas Width="64" Height="64"><Path Data="M13 12L32 52L51 12" Stroke="{DynamicResource VexBrandMarkBrush}" StrokeThickness="12" StrokeLineCap="Round" StrokeJoin="Round"/></Canvas></Viewbox></Border>
       <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center"><TextBlock Text="维刻 Vex" FontSize="24" LineHeight="33.6" FontWeight="Bold"/><TextBlock Text="{i18n:I18n Vex.VexL.AboutShortSlogan}" FontSize="14" LineHeight="25.2" Classes="muted" TextWrapping="Wrap"/></StackPanel>
      </Grid>
      <Grid Margin="32,22,32,0" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="24" RowSpacing="10">
