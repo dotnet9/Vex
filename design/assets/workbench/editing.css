@@ -103,7 +103,7 @@
 .format-toolbar { display:flex; align-items:center; gap:2px; min-width:0; margin-left:4px; }
 .format-button { width:28px; height:28px; display:grid; place-items:center; padding:5px; border:0; border-radius:var(--vex-radius-xs); background:transparent; color:var(--fg); cursor:pointer; font-size:11px; }
 .format-button:hover,.format-button:focus-visible { background:var(--hover); color:var(--accent); outline:none; }
-.format-button .ico { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; }
+.format-button .ico { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.7; }
 .format-divider { height:18px; width:1px; background:var(--border); margin:0 3px; }
 .format-more { font-size:16px; letter-spacing:1px; }
 .presentation-tools { position:absolute; z-index:80; right:24px; top:24px; display:flex; gap:3px; padding:5px; border:1px solid var(--border); border-radius:var(--vex-radius-md); background:color-mix(in srgb,var(--panel) 82%,transparent); opacity:.2; transition:opacity var(--vex-duration); }

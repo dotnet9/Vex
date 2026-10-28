@@ -36,7 +36,7 @@
 .vex-zoomdock .zoom-reset { position:relative; min-width:0; min-height:0; height:calc(var(--control-h-md,32px) - 9px); margin-left:calc(var(--gap-sm,6px) - 3px); padding:2px 7px; border:0; border-radius:var(--vex-radius-pill); background:transparent; color:inherit; font-size:13px; cursor:pointer; }
 .vex-zoomdock .zoom-reset::before { content:""; position:absolute; left:calc(var(--gap-sm,6px) * -1 + 1px); top:calc(var(--control-h-md,32px) * .125); bottom:calc(var(--control-h-md,32px) * .125); width:1px; background:color-mix(in srgb,var(--border,var(--line)) 70%,transparent); }
 .vex-zoomdock .zoom-reset:hover { background:var(--hover,var(--accent-soft)); color:var(--accent); }
-.vex-zoomdock .zoom-reset svg { display:block; width:calc(var(--icon-size,16px) + 2px); height:calc(var(--icon-size,16px) + 2px); fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.vex-zoomdock .zoom-reset svg { display:block; width:calc(var(--icon-size,16px) + 2px); height:calc(var(--icon-size,16px) + 2px); fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
 *,*::before,*::after { letter-spacing:0; }
 [hidden] { display:none!important; }
 button,input,select,textarea { font:inherit; }

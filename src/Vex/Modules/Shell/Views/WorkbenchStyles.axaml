@@ -429,7 +429,7 @@
   <Style Selector="Path.wb-icon">
     <Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/>
     <Setter Property="Stretch" Value="Uniform"/><Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/>
-    <Setter Property="StrokeThickness" Value="1.6"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/>
+    <Setter Property="StrokeThickness" Value="1.7"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/>
   </Style>
   <Style Selector="Button.wb-quiet, ToggleButton.wb-quiet">
     <Setter Property="FontSize" Value="11"/><Setter Property="MinHeight" Value="28"/><Setter Property="Padding" Value="8,4"/>
@@ -497,7 +497,7 @@
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/><Setter Property="CornerRadius" Value="5"/>
   </Style>
   <Style Selector="Button.wb-format PathIcon"><Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/></Style>
-  <Style Selector="Path.format-stroke"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/><Setter Property="StrokeThickness" Value="1.8"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/></Style>
+  <Style Selector="Path.format-stroke"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/><Setter Property="StrokeThickness" Value="1.7"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/></Style>
   <Style Selector="Border.presentation-tools"><Setter Property="Opacity" Value="0.75"/><Setter Property="Transitions"><Transitions><DoubleTransition Property="Opacity" Duration="{DynamicResource MotionDurationFast}"/></Transitions></Setter></Style>
   <Style Selector="Border.presentation-tools:pointerover, Border.presentation-tools:focus-within"><Setter Property="Opacity" Value="1"/></Style>
   <!-- 对应原型 #edit-options：静默 1%，悬停或聚焦后立即显现，离开 2 秒后淡出。 -->

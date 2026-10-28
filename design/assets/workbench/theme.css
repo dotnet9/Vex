@@ -809,7 +809,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
 .tb-btn svg, .dlg-ico svg, .caption-btn svg, .tree-row .tr-title svg {
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -838,7 +838,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   transition: transform var(--vex-fast) var(--vex-ease), box-shadow var(--vex-fast) var(--vex-ease);
 }
 .nav-fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(0, 0, 0, .34); }
-.nav-fab svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.nav-fab svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .nav-panel {
   position: fixed;
   right: 74px; bottom: 74px;
@@ -873,7 +873,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
 .nav-item:hover { background: var(--hover); color: var(--fg); text-decoration: none; }
 .nav-item.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .nav-item.on::after { content: "●"; margin-left: auto; font-size: 8px; }
-.nav-item svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; opacity: .75; }
+.nav-item svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; opacity: .75; }
 
 /* ---------- Toast 反馈 ---------- */
 .proto-toast-wrap {
