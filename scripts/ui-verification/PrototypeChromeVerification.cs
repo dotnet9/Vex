@@ -47,6 +47,9 @@ internal static class PrototypeChromeVerification
                 Check(vm.Workbench.LayoutName == layout.Name && vm.Markdown == original, "Current layout and document stay synchronized: " + size.Width + "/" + layout.Id);
             }
             vm.Workbench.SelectLayout("instant"); Render();
+            // 这一圈在 800/1024 进 three 时会按原型自动收起文件导航（workspace.js 的让位规则）。
+            // 后面的浮层几何全都按展开态量，不抬回来就会被这次收起一起带偏，所以此处显式复原并等动画走完。
+            vm.Layout.IsSidebarVisible = true; LayoutSettle.Run(); Render();
             var statusChrome = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!;
             var viewSwitch = statusChrome.FindControl<Border>("ViewSwitch")!;
             var sourceSegment = statusChrome.FindControl<Button>("SourceSegment")!;
@@ -372,10 +375,20 @@ internal static class PrototypeChromeVerification
         vm.Workbench.SelectLayout("instant"); Render();
         Check(!columnSplit.IsVisible && !rowSplit.IsVisible, "A single view hides both split handles");
         // 自定义排版：注册→目录出现并可选中→持久化；删除回退简约。
-        var typeKey = vm.Appearance.RegisterCustomTypography("", "暖纸手记", "#B4642D", "#D8973C", "#8A5A2B", "#C89A6B", "serif", 2.1);
+        var typeKey = vm.Appearance.RegisterCustomTypography("", "暖纸手记", "#B4642D", "#D8973C", "#8A5A2B", "#C89A6B", "serif", 2.1, "tint");
         Check(typeKey.StartsWith("user:") && vm.Appearance.TypographyOptions.Count == 13, "Custom typography joins the catalog");
         vm.Appearance.SelectedTypography = vm.Appearance.TypographyOptions.First(option => option.Key == typeKey); Render();
         Check((app.Resolve<IAppSettingsStore>().Current.CustomTypographies ?? "").Contains(typeKey), "Custom typography persists to settings");
+        // 原型 #typography-dialog 的第三件选择器：装饰档位要落进 H2 的渲染资源，并且能按档名原样读回（编辑浮层靠它回填）。
+        var customType = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(typeKey)!;
+        Check(vm.Appearance.HeadingDecoration(typeKey) == "tint"
+                && customType.Headings[1].Tint > 0 && customType.Headings[1].Radius == 4 && customType.Headings[1].Border == "0,0,0,0",
+            $"H2 decoration reaches the heading style and reads back as the tier name: tint={customType.Headings[1].Tint}, radius={customType.Headings[1].Radius}");
+        Check((app.Resolve<IAppSettingsStore>().Current.CustomTypographies ?? "").Contains("|tint"), "H2 decoration tier is persisted with the record");
+        var typedAgain = vm.Appearance.RegisterCustomTypography(typeKey, "暖纸手记", "#B4642D", "#D8973C", "#8A5A2B", "#C89A6B", "sans", 1.9, "underline");
+        Check(typedAgain == typeKey && vm.Appearance.TypographyOptions.Count == 13
+                && CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(typeKey)!.Headings[1].Border == "0,0,0,2",
+            "Re-registering the same key edits that typography instead of adding a second one");
         Check(vm.Appearance.RemoveCustomTypography(typeKey) && vm.Appearance.TypographyOptions.Count == 12 && vm.Appearance.SelectedTypography!.Key == "Simple",
             "Removing the custom typography falls back to Simple");
         // 导入：HTML 走共享转换器；docx 解包 OOXML 读取标题与段落。
@@ -424,5 +437,44 @@ internal static class PrototypeChromeVerification
         vm.Workbench.SelectLayout("read"); Render();
         Check(RenderedBlocks("MdTableContainer") == 1 && RenderedBlocks("MdHeadingBorder") >= 2,
             "Reading view after the presentation renders the tail blocks, not the last section");
+        NarrowWindowThreeViewCollapse(app, window, vm, Render, Check);
+    }
+
+    /// <summary>
+    /// 原型 workspace.js 的 setLayout：进三视图时窗口窄于 1250 就替用户收起文件导航并发一条提示。
+    /// 这里同时钉住两件容易写坏的事——自动收起不许进偏好，宽窗不许动用户的导航。
+    /// </summary>
+    private static void NarrowWindowThreeViewCollapse(VerificationVexApp app, MainWindow window, MainWindowViewModel vm,
+        Action Render, Action<bool, string> Check)
+    {
+        var localizer = app.Resolve<Vex.Core.Services.IAppLocalizer>();
+        var settings = app.Resolve<Vex.Core.Services.IAppSettingsStore>();
+        var toastText = localizer.Get(Vex.VexL.ToastFileNavCollapsed);
+        var sidebarBefore = vm.Layout.IsSidebarVisible;
+        var sizeBefore = (window.Width, window.Height);
+        var persistedBefore = settings.Current.IsSidebarVisible;
+
+        vm.Layout.IsSidebarVisible = true; Render();
+        window.Width = 1200; window.Height = 800; Render();
+        vm.Workbench.SelectLayout("three"); Render(); LayoutSettle.Run(); Render();
+        var toastHost = window.GetVisualDescendants().OfType<ContentControl>()
+            .FirstOrDefault(c => (c.Content as string)?.Contains(toastText) == true
+                || c.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text?.Contains(toastText) == true));
+        Check(!vm.Layout.IsSidebarVisible, "Entering the three-view layout below 1250px collapses the file navigation (prototype workspace.js)");
+        Check(toastHost is not null, "The collapse tells the user how to get the navigation back");
+        Check(settings.Current.IsSidebarVisible == true,
+            "The automatic collapse is a layout concession, not a preference: the saved sidebar choice stays untouched");
+        window.Width = 1440; Render();
+        // 原型只会在窄窗让位时收起，从不替用户展开：先把上一次收起的导航手动打开，再看宽窗会不会动它。
+        vm.Layout.IsSidebarVisible = true; LayoutSettle.Run(); Render();
+        vm.Workbench.SelectLayout("instant"); vm.Workbench.SelectLayout("three"); Render();
+        Check(vm.Layout.IsSidebarVisible, "A window wide enough for the three views keeps the file navigation open");
+        window.Width = 1200; Render();
+        vm.Workbench.SelectLayout("instant"); vm.Workbench.SelectLayout("source"); Render();
+        Check(vm.Layout.IsSidebarVisible, "Layouts other than the three-view one never collapse the navigation on a narrow window");
+
+        vm.Layout.IsSidebarVisible = sidebarBefore;
+        settings.Update(s => s with { IsSidebarVisible = persistedBefore });
+        (window.Width, window.Height) = sizeBefore; Render();
     }
 }

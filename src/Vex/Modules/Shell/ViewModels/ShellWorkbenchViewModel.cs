@@ -19,6 +19,8 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private readonly IEditorAppearanceState _appearance;
     private readonly IEditorDisplayState _display;
     private readonly ShellWindowLayoutViewModel _layout;
+    private readonly IAppLocalizer _localizer;
+    private readonly Modules.Shell.Services.IShellToastPublisher _toastPublisher;
     private string _view;
     private string _edit;
     private string _workspaceLayout = "instant";
@@ -49,11 +51,13 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private (string View, string Edit, Avalonia.Controls.WindowState WindowState, MarkdownLiveEditorState? LiveState)? _presentationSnapshot;
 
     public ShellWorkbenchViewModel(IWorkspaceDocumentState document, IAppSettingsStore settings,
-        IEditorAppearanceState appearance, ShellWindowLayoutViewModel layout, IEditorDisplayState display, EditorPreferences preferences)
+        IEditorAppearanceState appearance, ShellWindowLayoutViewModel layout, IEditorDisplayState display, EditorPreferences preferences,
+        IAppLocalizer localizer, Modules.Shell.Services.IShellToastPublisher toastPublisher)
     {
         Preferences = preferences;
         preferences.PreferencesChanged += (_, _) => ApplyLiveAppearance();
         _document = document; _settings = settings; _appearance = appearance; _layout = layout; _display = display;
+        _localizer = localizer; _toastPublisher = toastPublisher;
         // 排版主题/尺寸档变化要即时重放到实时编辑器，而不是只在挂载时应用一次。
         appearance.Changed += (_, _) => ApplyLiveAppearance();
         display.Changed += (_, _) => { if (_live is { } live) live.EnableAutoPair = display.EnableAutoPair; };
@@ -379,7 +383,22 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         if (IsInstantEditing) SynchronizeLive();
         NotifyModes();
         _settings.Update(s => s with { WorkspaceLayout = id, WorkbenchView = _view, EditMode = _edit });
+        MakeRoomForThreeViewsOnNarrowWindow(id);
     }
+
+    /// <summary>
+    /// 原型 workspace.js 的 setLayout：进三视图时若窗口窄于 1250 且文件导航还开着，就替用户收起它并提示一声。
+    /// 只在切进 three 的这一刻判定，不盯窗口尺寸——拖窗到 1250 以下不该把用户正在用的导航吃掉。
+    /// </summary>
+    private void MakeRoomForThreeViewsOnNarrowWindow(string id)
+    {
+        if (id != "three" || _layout.WorkspaceWidth >= NarrowThreeViewWindowWidth || !_layout.IsSidebarVisible) return;
+        _layout.CollapseSidebarForLayout();
+        _toastPublisher.Publish(_localizer.Get(VexL.ToastFileNavCollapsed));
+    }
+
+    /// <summary>原型 workspace.js 里三视图让位给内容区的窗口宽度下限。</summary>
+    private const double NarrowThreeViewWindowWidth = 1250;
     public void ToggleMapSettings() => ShowMapSettings = !ShowMapSettings;
     public void OpenMapSettings() { ShowMindMap(); ShowMapSettings = true; }
     public void ToggleTypography() => ShowTypography = !ShowTypography;

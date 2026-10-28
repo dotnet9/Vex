@@ -115,20 +115,28 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public bool IsSidebarVisible
     {
         get => _isSidebarVisible;
-        set
-        {
-            var widthBefore = VisibleSidebarWidth;
-            if (!SetProperty(ref _isSidebarVisible, value)) return;
-            OnPropertyChanged(nameof(ShowSidebar));
-            OnPropertyChanged(nameof(SidebarColumnWidth));
-            OnPropertyChanged(nameof(VisibleSidebarWidth));
-            OnPropertyChanged(nameof(SidebarSplitterWidth));
-            OnPropertyChanged(nameof(MinimumVisibleSidebarWidth));
-            OnPropertyChanged(nameof(MaximumVisibleSidebarWidth));
-            _sidebarAnimator.Animate(widthBefore, SidebarTargetWidth, MotionResources.Mid);
-            NotifyOutlineLayout();
-            PersistLayoutSettings();
-        }
+        set => SetSidebarVisible(value, persist: true);
+    }
+
+    /// <summary>
+    /// 原型 workspace.js 进三视图且窗口窄于 1250 时替用户收起文件导航。那是布局让位，
+    /// 不是偏好改动：写回 App.config 会把用户自己的开关盖掉，下次开窗就找不回来了。
+    /// </summary>
+    public void CollapseSidebarForLayout() => SetSidebarVisible(false, persist: false);
+
+    private void SetSidebarVisible(bool value, bool persist)
+    {
+        var widthBefore = VisibleSidebarWidth;
+        if (!SetProperty(ref _isSidebarVisible, value)) return;
+        OnPropertyChanged(nameof(ShowSidebar));
+        OnPropertyChanged(nameof(SidebarColumnWidth));
+        OnPropertyChanged(nameof(VisibleSidebarWidth));
+        OnPropertyChanged(nameof(SidebarSplitterWidth));
+        OnPropertyChanged(nameof(MinimumVisibleSidebarWidth));
+        OnPropertyChanged(nameof(MaximumVisibleSidebarWidth));
+        _sidebarAnimator.Animate(widthBefore, SidebarTargetWidth, MotionResources.Mid);
+        NotifyOutlineLayout();
+        if (persist) PersistLayoutSettings();
     }
 
     public bool IsStatusBarVisible
