@@ -16,6 +16,12 @@ public static class ElevationResources
     /// <summary>分段控件指示块的投影键，对应原型 --segmented-thumb-shadow。</summary>
     public const string SegmentedThumbKey = "VexSegmentedThumbShadow";
 
+    /// <summary>排版卡（#typography-panel .typography-card）的常态与悬停投影键。</summary>
+    public const string TypographyCardKey = "VexTypographyCardShadow";
+
+    /// <summary>排版卡悬停投影键，对应原型 :hover 那档稍大一点的扩散。</summary>
+    public const string TypographyCardHoverKey = "VexTypographyCardHoverShadow";
+
     // 原型 tokens.css:3-4 --pop-shadow：浅色 12% 墨绿 + 6% 墨绿双层，深色 33% + 20% 纯黑双层。
     private static readonly BoxShadows PopLight = BoxShadows.Parse("0 12 40 0 #20233E30, 0 2 8 0 #10233E30");
     private static readonly BoxShadows PopDark = BoxShadows.Parse("0 12 40 0 #55000000, 0 2 8 0 #33000000");
@@ -24,6 +30,13 @@ public static class ElevationResources
     // 环本身是调色板令牌，由 VexSegmentedThumbBorderBrush 以描边给出，这里只需在深色档把投影清零。
     private static readonly BoxShadows ThumbLight = BoxShadows.Parse("0 1 4 0 #1F000000");
 
+    // 原型 workspace-chrome.css:459-460：卡片阴影取 --fg 5%/7%，所以深色底上是淡色微光而不是黑投影，
+    // 0x0D / 0x12 就是 5% 与 7% 的 alpha。
+    private static readonly BoxShadows CardLight = BoxShadows.Parse("0 1 5 0 #0D253831");
+    private static readonly BoxShadows CardHoverLight = BoxShadows.Parse("0 2 9 0 #12253831");
+    private static readonly BoxShadows CardDark = BoxShadows.Parse("0 1 5 0 #0DE6EBE6");
+    private static readonly BoxShadows CardHoverDark = BoxShadows.Parse("0 2 9 0 #12E6EBE6");
+
     /// <summary>按当前实际明暗变体重写应用级投影资源（启动与主题切换各调一次）。</summary>
     public static void Apply()
     {
@@ -31,6 +44,8 @@ public static class ElevationResources
         var dark = IsDarkVariant(app.ActualThemeVariant);
         app.Resources[PopKey] = dark ? PopDark : PopLight;
         app.Resources[SegmentedThumbKey] = dark ? default : ThumbLight;
+        app.Resources[TypographyCardKey] = dark ? CardDark : CardLight;
+        app.Resources[TypographyCardHoverKey] = dark ? CardHoverDark : CardHoverLight;
     }
 
     /// <summary>九套配色各有一个自定义变体（如 IndigoDark），只沿 InheritVariant 往上才落到标准明暗变体，

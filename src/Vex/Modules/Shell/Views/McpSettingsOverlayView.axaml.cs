@@ -17,6 +17,8 @@ public partial class McpSettingsOverlayView : UserControl
         border.Classes.Remove("dialog-card"); border.Width = double.NaN; border.MaxHeight = double.PositiveInfinity;
         grid.RowDefinitions[0].Height = new Avalonia.Controls.GridLength(0);
         grid.RowDefinitions[2].Height = new Avalonia.Controls.GridLength(0);
+        // 行高归零不等于间距归零：RowSpacing 还会在空行之间留一份 16 像素，嵌入态一并收掉。
+        grid.RowSpacing = 0;
         HeaderRow.IsVisible = false; FooterRow.IsVisible = false;
     }
 

@@ -36,6 +36,8 @@ public partial class McpAuditOverlayView : UserControl
             border.Classes.Remove("dialog-card"); border.Width = double.NaN; border.MaxHeight = double.PositiveInfinity;
             grid.RowDefinitions[0].Height = new GridLength(); grid.RowDefinitions[2].Height = new GridLength();
             grid.RowDefinitions[1].Height = GridLength.Auto;
+            // 行高归零不等于间距归零：RowSpacing 仍会在两个空行之间留 12 像素，嵌入态一并收掉。
+            grid.RowSpacing = 0;
             HeaderRow.IsVisible = false; FooterRow.IsVisible = false;
         }
     }

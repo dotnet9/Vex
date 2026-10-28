@@ -260,11 +260,14 @@
   <Style Selector="Button.palette-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
   </Style>
-  <Style Selector="Border.typography-card-shadow">
-    <Setter Property="BoxShadow" Value="0 1 5 0 #0D000000"/>
+  <!-- 排版卡（原型 workspace-chrome.css #typography-panel .typography-card）：无框、panel 底、vex-radius-lg 圆角，
+       投影取 fg 5%（悬停 7%），随明暗变体换成微光，所以走 ElevationResources 回放的应用级资源。 -->
+  <!-- Button 自己没有 BoxShadow，投影要落到模板里的 ContentPresenter。 -->
+  <Style Selector="Button.typography-card /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BoxShadow" Value="{DynamicResource VexTypographyCardShadow}"/>
   </Style>
-  <Style Selector="Border.typography-card-shadow:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="BoxShadow" Value="0 2 9 0 #12000000"/>
+  <Style Selector="Button.typography-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BoxShadow" Value="{DynamicResource VexTypographyCardHoverShadow}"/>
   </Style>
   <Style Selector="Button.palette-add-card">
     <Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="8"/><Setter Property="BorderThickness" Value="0"/>
@@ -407,18 +410,22 @@
     <Setter Property="Width" Value="34"/><Setter Property="Height" Value="20"/><Setter Property="Padding" Value="0"/>
     <Setter Property="Template">
       <ControlTemplate>
-        <Border Name="SwitchTrack" Width="34" Height="20" CornerRadius="10" Background="{DynamicResource VexPanelBorderBrush}">
-          <Canvas>
-            <Ellipse Name="SwitchKnob" Width="14" Height="14" Canvas.Left="3" Canvas.Top="3" Fill="White">
-              <Ellipse.Effect><DropShadowEffect OffsetX="0" OffsetY="1" BlurRadius="1.5" Opacity="0.13"/></Ellipse.Effect>
-            </Ellipse>
-          </Canvas>
+        <Border Name="SwitchTrack" Width="34" Height="20" CornerRadius="{DynamicResource VexDensityCornerRadiusPill}" Background="{DynamicResource VexPanelBorderBrush}">
+          <Border.Transitions>
+            <Transitions><BrushTransition Property="Background" Duration="{DynamicResource MotionDurationMid}"/></Transitions>
+          </Border.Transitions>
+          <Ellipse Name="SwitchKnob" Width="14" Height="14" HorizontalAlignment="Left" Margin="3" Fill="White">
+            <Ellipse.Effect><DropShadowEffect OffsetX="0" OffsetY="1" BlurRadius="3" Opacity="0.13"/></Ellipse.Effect>
+            <Ellipse.Transitions>
+              <Transitions><ThicknessTransition Property="Margin" Duration="{DynamicResource MotionDurationMid}"/></Transitions>
+            </Ellipse.Transitions>
+          </Ellipse>
         </Border>
       </ControlTemplate>
     </Setter>
   </Style>
   <Style Selector="ToggleButton.pref-switch:checked /template/ Border#SwitchTrack"><Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/></Style>
-  <Style Selector="ToggleButton.pref-switch:checked /template/ Ellipse#SwitchKnob"><Setter Property="(Canvas.Left)" Value="17"/></Style>
+  <Style Selector="ToggleButton.pref-switch:checked /template/ Ellipse#SwitchKnob"><Setter Property="Margin" Value="17,3,3,3"/></Style>
   <Style Selector="Path.wb-icon">
     <Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/>
     <Setter Property="Stretch" Value="Uniform"/><Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/>
@@ -614,15 +621,16 @@
     <Setter Property="MaxWidth" Value="340"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
-  <!-- 原型 .vex-pref-row input / select：180x34、圆角 5、内边距 5 9。 -->
+  <!-- 原型 .vex-pref-row input / select：180x34、描边 control-border、内边距 5 9（Avalonia 两值 Thickness 是「横,纵」，写法与 CSS 相反）。
+       圆角原型是 vex-radius-pill（随「界面圆角」三档缩放），不是写死的 5。 -->
   <Style Selector="TextBox.pref-field">
     <Setter Property="Width" Value="180"/>
     <Setter Property="Height" Value="34"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="Padding" Value="9,5"/>
-    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/>
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
   </Style>
@@ -631,9 +639,9 @@
     <Setter Property="Height" Value="34"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="Padding" Value="9,5"/>
-    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/>
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
     <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -644,9 +652,9 @@
     <Setter Property="Height" Value="34"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="Padding" Value="9,5"/>
-    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}"/>
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
     <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -656,18 +664,19 @@
     <Setter Property="Height" Value="34"/>
     <Setter Property="Padding" Value="0"/>
     <Setter Property="FontSize" Value="16"/>
-    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
     <Setter Property="HorizontalAlignment" Value="Center"/>
     <Setter Property="VerticalAlignment" Value="Center"/>
   </Style>
-  <!-- 校验条（原型 .vex-field-error）与状态行（原型 .vex-mcp-status：7 点 + 13 字，隔 8）。 -->
+  <!-- 校验条（原型 .vex-field-error：12 号字继承 .vex-settings 的 1.5 行高 = 18，上下 8）与状态行（原型 .vex-mcp-status：7 点 + 13 字，隔 8）。
+       危险/成功色逐配色取 danger/success（库里生成成 SemiColorDanger/Success 画刷），不是两套固定红绿。 -->
   <Style Selector="TextBlock.pref-error">
     <Setter Property="FontSize" Value="12"/>
-    <Setter Property="LineHeight" Value="19.2"/>
-    <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}"/>
+    <Setter Property="LineHeight" Value="18"/>
+    <Setter Property="Foreground" Value="{DynamicResource SemiColorDanger}"/>
     <Setter Property="Margin" Value="0,8"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
@@ -684,24 +693,38 @@
     <Setter Property="VerticalAlignment" Value="Center"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
-  <Style Selector="Ellipse.mcp-dot">
+  <!-- 状态点（原型 .vex-mcp-status i：7 像素圆点）。运行态换 success 并叠 CSS 里那条字面量光环
+       （0 0 0 3px #2c967416，不跟配色）；形状用 Border 承载，Ellipse 没有 BoxShadow 可画光环。 -->
+  <Style Selector="Border.mcp-dot">
     <Setter Property="Width" Value="7"/>
     <Setter Property="Height" Value="7"/>
+    <Setter Property="CornerRadius" Value="999"/>
     <Setter Property="VerticalAlignment" Value="Center"/>
-    <Setter Property="Fill" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexMutedBrush}"/>
   </Style>
-  <Style Selector="Ellipse.mcp-dot.on">
-    <Setter Property="Fill" Value="{DynamicResource VexSuccessBrush}"/>
+  <Style Selector="Border.mcp-dot.on">
+    <Setter Property="Background" Value="{DynamicResource SemiColorSuccess}"/>
+    <Setter Property="BoxShadow" Value="0 0 0 3 #162C9674"/>
+  </Style>
+  <!-- 启动中（原型 [data-state=starting] i：vex-pulse 1s 无限循环，50% 处 .3 不透明度；原型这条不乘 vex-motion）。 -->
+  <Style Selector="Border.mcp-dot.starting">
+    <Style.Animations>
+      <Animation Duration="0:0:1" IterationCount="Infinite">
+        <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1"/></KeyFrame>
+        <KeyFrame Cue="50%"><Setter Property="Opacity" Value="0.3"/></KeyFrame>
+        <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1"/></KeyFrame>
+      </Animation>
+    </Style.Animations>
   </Style>
   <Style Selector="StackPanel.mcp-status.error TextBlock">
-    <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource SemiColorDanger}"/>
   </Style>
   <!-- 令牌框内联按钮（原型 .vex-token-actions：28x28，压在输入框右端）。 -->
   <Style Selector="Button.mcp-icon">
     <Setter Property="Width" Value="28"/>
     <Setter Property="Height" Value="28"/>
     <Setter Property="Padding" Value="6"/>
-    <Setter Property="CornerRadius" Value="4"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Background" Value="Transparent"/>
     <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -729,37 +752,48 @@
   <Style Selector="Button.mcp-icon.on Path">
     <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
-  <!-- 客户端配置块（原型 pre.vex-code：16 内边距、上下 14、12/1.8 等宽、可换行）。 -->
+  <!-- 客户端配置块（原型 pre.vex-code：16 内边距、上下 14、12/1.8 等宽、可换行、4 像素圆角）。
+       底色是 code-bg（每套色板都等于 panel），用 bg 会和外层内容底同色、代码块失去块面层次。 -->
   <Style Selector="Border.mcp-code">
     <Setter Property="Margin" Value="0,14"/>
     <Setter Property="Padding" Value="16"/>
-    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
-    <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexCodeBackgroundBrush}"/>
   </Style>
   <Style Selector="Border.mcp-code SelectableTextBlock">
-    <Setter Property="FontFamily" Value="Cascadia Code, Cascadia Mono, Consolas, JetBrains Mono, Microsoft YaHei UI, monospace"/>
+    <Setter Property="FontFamily" Value="Cascadia Code, Cascadia Mono, SFMono-Regular, Consolas, JetBrains Mono, Microsoft YaHei UI, monospace"/>
     <Setter Property="FontSize" Value="12"/>
     <Setter Property="LineHeight" Value="21.6"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
-  <!-- 动作按钮（原型 .vex-mcp-actions + workspace-chrome 的胶囊覆盖：32 高、5 16、全圆角）。 -->
+  <!-- 动作按钮（原型 .vex-mcp-actions + workspace-chrome 的胶囊覆盖：32 高、CSS padding 5px 16px、全圆角、
+       1px border 描边 + bg 底 + inherit 文字）。Avalonia 两值 Thickness 是「横,纵」，所以 16 在前。
+       原型 .vex-button.primary 不带 font-weight（只有 .btn.primary 才 600），库里的 Button.primary 是 SemiBold，这里按胶囊这一族收回常规。 -->
+  <Style Selector="Button.mcp-pill">
+    <Setter Property="MinHeight" Value="32"/>
+    <Setter Property="Padding" Value="16,5"/>
+    <Setter Property="CornerRadius" Value="999"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="Button.mcp-pill.primary">
+    <Setter Property="FontWeight" Value="Normal"/>
+  </Style>
+  <!-- 动作行（原型 .vex-mcp-actions：上间距 18、项间 8；两枚按钮在 620 宽里排得下，Avalonia StackPanel 没有 flex-wrap 也不需要用）。 -->
   <Style Selector="StackPanel.mcp-actions">
     <Setter Property="Orientation" Value="Horizontal"/>
     <Setter Property="Spacing" Value="8"/>
     <Setter Property="Margin" Value="0,18,0,0"/>
   </Style>
-  <Style Selector="Button.mcp-pill">
-    <Setter Property="MinHeight" Value="32"/>
-    <Setter Property="Padding" Value="5,16"/>
-    <Setter Property="CornerRadius" Value="999"/>
-    <Setter Property="VerticalAlignment" Value="Center"/>
-  </Style>
-  <!-- 请求回显卡（原型 .vex-mcp-request：左侧 2 像素主色竖条 + 主色淡底）。 -->
+  <!-- 请求回显卡（原型 .vex-mcp-request：左侧 2 像素主色竖条 + 主色淡底、CSS padding 10px 16px、13/1.5 正文）。 -->
   <Style Selector="Border.mcp-request">
     <Setter Property="Margin" Value="0,18"/>
-    <Setter Property="Padding" Value="10,16"/>
+    <Setter Property="Padding" Value="16,10"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
     <Setter Property="BorderThickness" Value="2,0,0,0"/>
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>

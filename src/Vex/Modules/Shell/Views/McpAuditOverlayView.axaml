@@ -91,11 +91,11 @@
                                             IsVisible="{Binding Succeeded}"
                                             Text="{i18n:I18n {x:Static l:VexL.McpAuditSuccess}}" />
                                         <TextBlock
-                                            Foreground="{DynamicResource VexDangerBrush}"
+                                            Foreground="{DynamicResource SemiColorDanger}"
                                             IsVisible="{Binding !Succeeded}"
                                             Text="{i18n:I18n {x:Static l:VexL.McpAuditFailed}}" />
                                         <TextBlock
-                                            Foreground="{DynamicResource VexDangerBrush}"
+                                            Foreground="{DynamicResource SemiColorDanger}"
                                             IsVisible="{Binding HasError}"
                                             Text="{Binding Error}" />
                                     </StackPanel>

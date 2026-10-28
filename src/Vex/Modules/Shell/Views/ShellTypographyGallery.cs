@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -190,8 +191,10 @@ public sealed class ShellTypographyGallery : UserControl
             if (clamped) preview.LayoutUpdated -= clamp;
         };
         preview.LayoutUpdated += clamp;
-        var paper = new Border { Child = preview, ClipToBounds = true, CornerRadius = new CornerRadius(12), BoxShadow = BoxShadows.Parse("0 1 5 0 #0D000000") };
+        // 原型 .type-swatch：不圆角、不投影，只与卡片顶边隔 1px 描线，白纸铺满卡片由卡片圆角裁切。
+        var paper = new Border { Child = preview, ClipToBounds = true, BorderThickness = new Thickness(0, 1, 0, 0), CornerRadius = new CornerRadius(0) };
         Resource(paper, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
+        Resource(paper, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
         var badgeText = new TextBlock { FontSize = 9, FontWeight = FontWeight.SemiBold, Foreground = Brushes.White };
         var badge = new Border
         {
@@ -201,8 +204,9 @@ public sealed class ShellTypographyGallery : UserControl
             CornerRadius = new CornerRadius(4), IsHitTestVisible = false
         };
         Resource(badge, Border.BackgroundProperty, this, "VexAccentBrush");
-        // 原型选中态：box-shadow 0 0 0 1.5px accent，环在卡片边缘外侧。
-        var ring = new Border { BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(13.5), Margin = new Thickness(-1.5), IsHitTestVisible = false };
+        // 原型选中态：box-shadow 0 0 0 1.5px accent，环在卡片边缘外侧，半径比卡片多一份描边厚度。
+        var ring = new Border { BorderThickness = new Thickness(1.5), Margin = new Thickness(-1.5), IsHitTestVisible = false };
+        ring.Bind(Border.CornerRadiusProperty, CardRadius(1.5));
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
         var content = new Panel { Children = { paper, ring, badge } };
         var button = Button("", () => _vm!.Appearance.SelectedTypography = option);
@@ -212,8 +216,10 @@ public sealed class ShellTypographyGallery : UserControl
         button.ClipToBounds = false;
         button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
         button.HorizontalContentAlignment = HorizontalAlignment.Stretch; button.VerticalContentAlignment = VerticalAlignment.Stretch;
-        // 原型 workspace-chrome：卡片 12px 圆角、无框灰阶表面 + 轻阴影。
-        button.BorderThickness = new Thickness(0); button.CornerRadius = new CornerRadius(12);
+        // 原型 workspace-chrome 最终档：无框、--panel 底、--vex-radius-lg 圆角 + 轻阴影（阴影见 Button.typography-card）。
+        button.BorderThickness = new Thickness(0);
+        button.Classes.Add("typography-card");
+        Resource(button, TemplatedControl.CornerRadiusProperty, this, "VexDensityCornerRadiusLg");
         Resource(button, TemplatedControl.BackgroundProperty, this, "VexPanelBackgroundBrush");
         _items[option] = (button, ring, badge, badgeText);
         if (option.Key?.StartsWith("user:", StringComparison.Ordinal) == true)
@@ -253,6 +259,12 @@ public sealed class ShellTypographyGallery : UserControl
     }
 
     /// <summary>整行虚线「＋ 新增排版」条（原型 .typography-add：44 高、横向排布、占满网格宽度）。</summary>
+    /// <summary>原型 #typography-panel 的卡片圆角档位（--vex-radius-lg，随密度与圆角缩放）；
+    /// 选中环是外扩 1.5px 的 box-shadow，半径要在卡片档位上再加一份描边厚度。</summary>
+    private IObservable<object?> CardRadius(double outset = 0) =>
+        this.GetResourceObservable("VexDensityCornerRadiusLg").Select(value =>
+            value is CornerRadius radius ? new CornerRadius(radius.TopLeft + outset) : (object?)value);
+
     private Control BuildAddCard()
     {
         var stack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
@@ -261,7 +273,11 @@ public sealed class ShellTypographyGallery : UserControl
         Resource(plus, TextBlock.ForegroundProperty, this, "VexMutedBrush"); Resource(addLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush");
         stack.Children.Add(plus);
         stack.Children.Add(addLabel);
-        var dash = new Avalonia.Controls.Shapes.Rectangle { StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 4, 3 }, RadiusX = 12, RadiusY = 12, StrokeThickness = 1, IsHitTestVisible = false };
+        // 虚线框画在卡片边缘本身（原型 .typography-add：1px dashed --border，圆角同样取 --vex-radius-lg）。
+        var dashRadius = CardRadius().Select(value => (object?)(value is CornerRadius radius ? radius.TopLeft : 10.0));
+        var dash = new Avalonia.Controls.Shapes.Rectangle { StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 4, 3 }, StrokeThickness = 1, IsHitTestVisible = false };
+        dash.Bind(Avalonia.Controls.Shapes.Rectangle.RadiusXProperty, dashRadius);
+        dash.Bind(Avalonia.Controls.Shapes.Rectangle.RadiusYProperty, dashRadius);
         Resource(dash, Avalonia.Controls.Shapes.Shape.StrokeProperty, this, "VexPanelBorderBrush");
         var card = Button("", OpenTypographyDialog);
         card.Name = "AddCustomTypography";
@@ -270,7 +286,8 @@ public sealed class ShellTypographyGallery : UserControl
         card.MaxHeight = 44;
         card.HorizontalAlignment = HorizontalAlignment.Stretch; card.VerticalAlignment = VerticalAlignment.Top;
         card.HorizontalContentAlignment = HorizontalAlignment.Stretch; card.VerticalContentAlignment = VerticalAlignment.Stretch;
-        card.BorderThickness = new Thickness(0); card.CornerRadius = new CornerRadius(12);
+        card.BorderThickness = new Thickness(0);
+        Resource(card, TemplatedControl.CornerRadiusProperty, this, "VexDensityCornerRadiusLg");
         card.Classes.Add("palette-add-card");
         return card;
     }

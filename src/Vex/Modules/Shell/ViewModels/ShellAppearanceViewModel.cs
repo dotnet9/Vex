@@ -218,6 +218,10 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         app.Resources["VexDensityCornerRadiusMd"] = new Avalonia.CornerRadius(radMd * _radiusScale);
         app.Resources["VexDensityCornerRadiusLg"] = new Avalonia.CornerRadius(radLg * _radiusScale);
         app.Resources["VexDensityCornerRadiusPill"] = new Avalonia.CornerRadius(999 * _radiusScale);
+        // 原型另有两档不吃密度、只吃 --radius-scale：--vex-radius-xs 基线 4（代码块、图标按钮、设置左栏），
+        // --vex-radius-popover 基线 16（偏好浮层这类整窗弹层）。
+        app.Resources["VexDensityCornerRadiusXs"] = new Avalonia.CornerRadius(4 * _radiusScale);
+        app.Resources["VexDensityCornerRadiusPopover"] = new Avalonia.CornerRadius(16 * _radiusScale);
         app.Resources["VexDensityRowHeight"] = rowH;
         app.Resources["VexDensityIconSize"] = icon;
         // 缩放坞（原型 .vex-zoomdock）几何：坞高=控件中档、内缩=pad-sm 减 1px 描边、条宽=坞高×1.875、

@@ -56,7 +56,8 @@ internal static class PrototypeAppearanceVerification
         foreach (var density in new[] { "compact", "normal", "relaxed" })
         {
             vm.Appearance.MarkdownDensity = density; Render();
-            const double height = 162;
+            // 原型 #typography-panel 卡片实测 160.5x150.5（Playwright 探针，卡高不随密度变）。
+            const double height = 150.5;
             var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
             var tops = cards.Select(c => Math.Round(c.TranslatePoint(default, scroll)!.Value.Y)).Distinct().ToArray();
             var lefts = cards.Select(c => Math.Round(c.TranslatePoint(default, scroll)!.Value.X)).Distinct().ToArray();

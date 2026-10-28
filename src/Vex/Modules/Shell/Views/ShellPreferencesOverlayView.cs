@@ -54,7 +54,9 @@ public sealed class ShellPreferencesOverlayView : UserControl
         // 改值即生效：去掉「设置已保存 / 完成」页脚（对应原型偏好浮层）。
         // 宿主挂在 CodeWFWindow.OverlayContent 整窗浮层槽（含标题条），与原型
         // .vex-settings-host 同几何：卡片直接在整窗内居中，无需负边距补偿。
-        _card = new Border { Classes = { "dialog-card" }, Width = 675, Height = 700, Padding = new Thickness(0), CornerRadius = new CornerRadius(8), ClipToBounds = true, Child = grid };
+        _card = new Border { Classes = { "dialog-card" }, Width = 675, Height = 700, Padding = new Thickness(0), BorderThickness = new Thickness(0), ClipToBounds = true, Child = grid };
+        // 原型 workspace-chrome 把 .vex-settings 的描边收掉、圆角升到 --vex-radius-popover（16 基线，只乘 --radius-scale）。
+        BindResource(_card, Border.CornerRadiusProperty, "VexDensityCornerRadiusPopover");
         Content = _card;
         _navigation.SelectionChanged += (_, _) => ShowCategory();
         RefreshLabels();
@@ -103,7 +105,10 @@ public sealed class ShellPreferencesOverlayView : UserControl
             var icon = new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse(icons[i]), Width = 17, Height = 17, Stretch = Stretch.Uniform, StrokeThickness = 1.5, VerticalAlignment = VerticalAlignment.Center };
             icon.Bind(Avalonia.Controls.Shapes.Path.StrokeProperty, _navigation.GetResourceObservable("VexMutedBrush")); row.Children.Add(icon);
             var label = new TextBlock { Text = L(c.Key), FontSize = 14, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(label, 1); row.Children.Add(label);
-            return new ListBoxItem { Content = row, MinHeight = 40, Padding = new Thickness(12, 9), Margin = new Thickness(0, 0, 0, 3), CornerRadius = new CornerRadius(5), HorizontalContentAlignment = HorizontalAlignment.Stretch };
+            var item = new ListBoxItem { Content = row, MinHeight = 40, Padding = new Thickness(12, 9), Margin = new Thickness(0, 0, 0, 3), HorizontalContentAlignment = HorizontalAlignment.Stretch };
+            // 原型 .vex-settings-nav button 用 --vex-radius-xs（4 基线，只乘 --radius-scale），不是固定 5。
+            BindResource(item, ListBoxItem.CornerRadiusProperty, "VexDensityCornerRadiusXs");
+            return item;
         }).ToArray();
         _navigation.SelectedIndex = selected;
     }
@@ -210,7 +215,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private Control BuildMcpStatusRow()
     {
         var mcp = _model.Mcp;
-        var dot = new Avalonia.Controls.Shapes.Ellipse { Classes = { "mcp-dot" } };
+        var dot = new Border { Classes = { "mcp-dot" } };
         var text = new TextBlock();
         text.Bind(TextBlock.TextProperty, new Binding(nameof(McpSettingsViewModel.StatusText)) { Source = mcp });
         var row = new StackPanel { Orientation = Orientation.Horizontal, Classes = { "mcp-status" } };
@@ -218,6 +223,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
         void Sync()
         {
             dot.Classes.Set("on", mcp.IsStatusRunning);
+            dot.Classes.Set("starting", mcp.IsStatusStarting);
             row.Classes.Set("error", mcp.IsStatusError);
         }
         // 样式类只能命令式改，所以订阅跟着视觉树挂卸：切换页签重建页面时不会留下旧行的订阅。
@@ -300,8 +306,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
         actions.Children.Add(read); actions.Children.Add(write);
         pane.Children.Add(actions);
         // 请求区（原型 #vex-mcp-request）：正文预览走 .vex-code，提示文字按校验条/正文两种语言渲染。
-        var error = new TextBlock { FontSize = 12, LineHeight = 19.2, Margin = new Thickness(0, 14, 0, 0), TextWrapping = TextWrapping.Wrap };
-        BindResource(error, TextBlock.ForegroundProperty, "VexDangerBrush");
+        var error = new TextBlock { FontSize = 12, LineHeight = 18, Margin = new Thickness(0, 8), TextWrapping = TextWrapping.Wrap };
+        BindResource(error, TextBlock.ForegroundProperty, "SemiColorDanger");
         error.Bind(TextBlock.TextProperty, new Binding(nameof(McpSettingsViewModel.RequestMessage)) { Source = mcp });
         error.Bind(IsVisibleProperty, new Binding(nameof(McpSettingsViewModel.HasRequestError)) { Source = mcp });
         pane.Children.Add(error);
@@ -316,10 +322,13 @@ public sealed class ShellPreferencesOverlayView : UserControl
     /// <summary>目录字段行：输入框 + 「…」浏览按钮（资源目录、授权目录等）。路径可能很长，输入框占满剩余宽度。</summary>
     private void FolderRow(StackPanel page, string label, object source, string property)
     {
-        var text = new TextBox { Name = property, MinWidth = 240, Height = 34, FontSize = 14, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), HorizontalAlignment = HorizontalAlignment.Stretch };
-        BindResource(text, TextBox.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(text, TextBox.BackgroundProperty, "VexShellBackgroundBrush");
+        var text = new TextBox { Name = property, MinWidth = 240, Height = 34, FontSize = 14, BorderThickness = new Thickness(1), HorizontalAlignment = HorizontalAlignment.Stretch };
+        // 原型 .vex-pref-row input 走 --vex-radius-pill 与 --control-border；「…」按钮才是 --vex-radius-xs + --border。
+        BindResource(text, TextBox.CornerRadiusProperty, "VexDensityCornerRadiusPill");
+        BindResource(text, TextBox.BorderBrushProperty, "VexControlBorderBrush"); BindResource(text, TextBox.BackgroundProperty, "VexShellBackgroundBrush");
         text.Bind(TextBox.TextProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay });
-        var browse = new Button { Content = "…", Width = 34, Height = 34, Padding = default, CornerRadius = new CornerRadius(5), HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center };
+        var browse = new Button { Content = "…", Width = 34, Height = 34, Padding = default, HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center };
+        BindResource(browse, Button.CornerRadiusProperty, "VexDensityCornerRadiusXs");
         BindResource(browse, Button.BorderBrushProperty, "VexPanelBorderBrush"); BindResource(browse, Button.BackgroundProperty, "VexShellBackgroundBrush");
         browse.Click += async (_, _) =>
         {

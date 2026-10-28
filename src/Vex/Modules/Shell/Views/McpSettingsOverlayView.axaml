@@ -41,7 +41,7 @@
 
                     <!-- 状态行紧跟启用行（原型 .vex-pref-row + .vex-mcp-status：上 12 下 18）。 -->
                     <StackPanel Classes="mcp-status follow-row" Classes.error="{Binding IsStatusError}">
-                        <Ellipse Classes="mcp-dot" Classes.on="{Binding IsStatusRunning}" />
+                        <Border Classes="mcp-dot" Classes.on="{Binding IsStatusRunning}" Classes.starting="{Binding IsStatusStarting}" />
                         <TextBlock Text="{Binding StatusText}" />
                     </StackPanel>
 
@@ -74,6 +74,7 @@
                                     RevealPassword="{Binding IsTokenRevealed}"
                                     Text="{Binding Token}" />
                                 <StackPanel
+                                    Margin="0,0,3,0"
                                     HorizontalAlignment="Right"
                                     Orientation="Horizontal"
                                     Spacing="1">
