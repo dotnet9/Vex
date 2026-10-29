@@ -138,8 +138,8 @@ if (mode == "parity")
     code.BringIntoView(); Pump(); SettleRendering(); Capture(window, "code-display");
     var codeClick = code.TranslatePoint(new Point(20, 8), window)!.Value;
     window.MouseDown(codeClick, MouseButton.Left); window.MouseUp(codeClick, MouseButton.Left); Pump(); Capture(window, "code-edit");
-    // 标题栏已无「快速上手」按钮（原型没有），改把焦点从正文移回标题栏图标。
-    window.FindControl<Button>("FindButton")!.Focus(); Pump();
+    // 标题栏已无「快速上手」与搜索按钮（原型没有），改把焦点从正文移回图标栏搜索钮。
+    window.FindControl<Button>("RailFindButton")!.Focus(); Pump();
     var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     Capture(window, "about");
@@ -251,11 +251,13 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
         localizer.Get(Vex.VexL.MenuMotion), localizer.Get(Vex.VexL.WBPresentation), localizer.Get(Vex.VexL.MenuFocusMode),
         localizer.Get(Vex.VexL.MenuTypewriterMode), localizer.Get(Vex.VexL.ToggleFullScreen), localizer.Get(Vex.VexL.AlwaysOnTop)]),
         "View menu holds exactly the prototype's nine entries: " + string.Join(" / ", viewRows));
-    // 「工具」不再单列，偏好设置与平台复制、MCP 条目整块并入文件菜单。
+    // 「工具」不再单列：字数统计与平台复制整块并入文件菜单；偏好/MCP 只走图标栏设置入口，菜单不再重复。
     var fileRows = titleMenu.FileMenuTarget.Items.OfType<MenuItem>().Select(Header).ToArray();
-    foreach (var key in new[] { Vex.VexL.Preferences, Vex.VexL.WordCount, Vex.VexL.RefreshPreview, Vex.VexL.CopyToWechat,
-        Vex.VexL.CopyToZhihu, Vex.VexL.CopyToJuejin, Vex.VexL.McpSettings, Vex.VexL.McpAudit })
+    foreach (var key in new[] { Vex.VexL.WordCount, Vex.VexL.RefreshPreview, Vex.VexL.CopyToWechat,
+        Vex.VexL.CopyToZhihu, Vex.VexL.CopyToJuejin })
         Check(fileRows.Contains(localizer.Get(key)), "File menu carries the merged tools entry: " + key);
+    foreach (var key in new[] { Vex.VexL.Preferences, Vex.VexL.McpSettings, Vex.VexL.McpAudit })
+        Check(!fileRows.Contains(localizer.Get(key)), "Settings entries stay out of the file menu (rail-only): " + key);
     Check(titleMenu.FindControl<MenuItem>("ToolsMenuItem") is null, "The title bar no longer has a standalone tools menu");
     // 每轮复制到独立输出目录，保存路径回归不会污染测试输入或用户文档。
     var sampleFolder = Path.GetFullPath(Path.Combine(output, "..", "笔记"));
@@ -2419,6 +2421,14 @@ void VerifyTitleLayout(Window window)
         && Math.Abs(sidebar.TranslatePoint(default, window)!.Value.Y - canvasY) < 0.01
         && canvasY - contentY >= canvas.Margin.Top && canvasY - contentY < shell.TitleBarHeight,
         $"Vex blocks start on the canvas below the title divider, without re-reserving the {shell.TitleBarHeight} px title bar: content={contentY} canvas={canvasY}");
+    // 原型 .studio-title-controls：外观/语言只留图标（对比度 15px / 地球 16px），搜索已迁图标栏，标题栏不再重复。
+    var pickers = window.FindControl<Vex.Modules.Shell.Views.ShellAppearanceMenuView>("AppearanceMenu")!;
+    Check(pickers.AppearanceButton.Classes.Contains("tb-glyph")
+        && pickers.AppearanceButton.GetVisualDescendants().OfType<TextBlock>().All(t => !t.IsVisible)
+        && pickers.LanguageButton.Bounds.Size == new Size(32, 32)
+        && pickers.LanguageButton.GetVisualDescendants().OfType<TextBlock>().All(t => !t.IsVisible)
+        && window.FindControl<Button>("FindButton") is null,
+        "Titlebar pickers are icon-only and the duplicate search button is gone");
 }
 
 void VerifyVexDetails(Window window, ThemeVariant theme)

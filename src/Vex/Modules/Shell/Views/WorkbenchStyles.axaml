@@ -467,6 +467,38 @@
   <Style Selector="Button.tb-icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
   </Style>
+  <!-- 原型标题栏两枚纯图标钮（#vex-appearance-menu>summary 与 .studio-language summary）：
+       描线随状态走 muted→fg→accent，实心半圆（glyph-fill）只换填充不描边；打开态底色由 title-picker-open 给。 -->
+  <Style Selector="Button.tb-glyph">
+    <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="MinWidth" Value="0"/><Setter Property="MinHeight" Value="0"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="Button.tb-glyph:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+  </Style>
+  <Style Selector="Button.tb-glyph Path:not(.glyph-fill)">
+    <Setter Property="Stretch" Value="Uniform"/>
+    <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="StrokeThickness" Value="1.7"/>
+    <Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/>
+  </Style>
+  <Style Selector="Button.tb-glyph:pointerover Path:not(.glyph-fill)">
+    <Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/>
+  </Style>
+  <Style Selector="Button.tb-glyph.title-picker-open Path:not(.glyph-fill)">
+    <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="Button.tb-glyph Path.glyph-fill">
+    <Setter Property="Stretch" Value="Uniform"/><Setter Property="Stroke" Value="{x:Null}"/>
+    <Setter Property="Fill" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <Style Selector="Button.tb-glyph:pointerover Path.glyph-fill">
+    <Setter Property="Fill" Value="{DynamicResource VexValueBrush}"/>
+  </Style>
+  <Style Selector="Button.tb-glyph.title-picker-open Path.glyph-fill">
+    <Setter Property="Fill" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
   <Style Selector="Button.wb-quiet:pointerover, ToggleButton.wb-quiet:pointerover"><Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/></Style>
   <Style Selector="ToggleButton.wb-quiet:checked"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/></Style>
   <!-- Semi 在模板层设置交互颜色，这里同步轻量切换按钮的实际呈现状态。 -->

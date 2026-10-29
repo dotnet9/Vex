@@ -38,7 +38,9 @@ public sealed class ShellTypographyGallery : UserControl
         Navigation(_cards, () => 4);
     }
 
-    private void WindowSizeChanged(object? sender, SizeChangedEventArgs e) => Resize();
+    // SizeChanged 在布局中途触发：此刻锚点已按新尺寸落位而 ClientSize 仍是旧值，
+    // 当场重算会把高度钉在旧窗口的量程上，等布局走完再读一次才是最终几何。
+    private void WindowSizeChanged(object? sender, SizeChangedEventArgs e) => Avalonia.Threading.Dispatcher.UIThread.Post(Resize);
 
     /// <summary>
     /// 原型卡片预览固定 15px 基准（渲染密度不作用于卡片：原型 .type-document 取 --writing-size 正常档），

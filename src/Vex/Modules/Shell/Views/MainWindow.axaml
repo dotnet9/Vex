@@ -77,11 +77,9 @@
     </codewf:CodeWFWindow.LeftContent>
 
     <codewf:CodeWFWindow.RightContent>
+        <!-- 原型 .studio-title-controls 只留外观/语言两枚图标钮：搜索已迁到图标栏与 Ctrl+F，不再重复挂标题栏。 -->
         <StackPanel x:Name="TitleBarAppearance" Orientation="Horizontal" Spacing="6" Margin="0,0,8,0"
                     VerticalAlignment="Center" IsEnabled="{Binding !IsInModalStatus, ElementName=ShellDialogHost}">
-            <Button x:Name="FindButton" Classes="tb-icon" Command="{Binding ShowFindPanel}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Find}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Find}}" VerticalAlignment="Center">
-                <Path Classes="wb-icon" Data="{StaticResource WBSearchIcon}" />
-            </Button>
             <shell:ShellAppearanceMenuView x:Name="AppearanceMenu"/>
         </StackPanel>
     </codewf:CodeWFWindow.RightContent>

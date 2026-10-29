@@ -44,9 +44,8 @@
                 <MenuItem Header="{i18n:I18n Vex.VexL.MenuImportWord}" Command="{Binding ImportFrom}" CommandParameter="Word" />
             </MenuItem>
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Print}}" Command="{Binding Print}" InputGesture="Ctrl+Shift+P" />
-            <!-- 「工具」不再单列：偏好设置、字数统计、平台复制与 MCP 整块展开并入文件菜单（原型 interact.js 483dbd3）。 -->
-            <Separator />
-            <MenuItem x:Name="PreferencesMenuItem" Header="{i18n:I18n {x:Static l:VexL.Preferences}}" Command="{Binding ShowPreferences}" InputGesture="Ctrl+," />
+            <!-- 「工具」不再单列：字数统计、平台复制整块展开并入文件菜单（原型 interact.js）；
+                 偏好设置/MCP 设置/MCP 审计只保留图标栏设置入口，菜单不再重复（Ctrl+, 仍由快捷键注册）。 -->
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.WordCount}}" Command="{Binding WordCount}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.RefreshPreview}}" Command="{Binding RefreshPreview}" />
@@ -54,9 +53,6 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToWechat}}" Command="{Binding CopyHtml}" CommandParameter="wechat" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToZhihu}}" Command="{Binding CopyHtml}" CommandParameter="zhihu" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToJuejin}}" Command="{Binding CopyHtml}" CommandParameter="juejin" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.McpSettings}}" Command="{Binding ShowMcpSettings}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.McpAudit}}" Command="{Binding ShowMcpAudit}" />
             <Separator />
             <MenuItem Header="{i18n:I18n Vex.VexL.MenuProperties}" Command="{Binding ShowProperties}" InputGesture="Alt+Enter" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFileLocation}}" Command="{Binding OpenFileLocationAsync}" IsEnabled="{Binding DocumentInfo.HasCurrentFile}" />

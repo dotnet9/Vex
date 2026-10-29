@@ -73,6 +73,7 @@ public static class VexL
     public static readonly string NavFilesExpand = "Vex.VexL.NavFilesExpand";
     public static readonly string NavOutlineCollapse = "Vex.VexL.NavOutlineCollapse";
     public static readonly string NavOutlineExpand = "Vex.VexL.NavOutlineExpand";
+    public static readonly string TitleLanguage = "Vex.VexL.TitleLanguage";
     public static readonly string OpenFile = "Vex.VexL.OpenFile";
     public static readonly string OpenFolder = "Vex.VexL.OpenFolder";
     public static readonly string QuickOpen = "Vex.VexL.QuickOpen";

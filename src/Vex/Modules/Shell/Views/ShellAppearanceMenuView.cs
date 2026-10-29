@@ -156,21 +156,28 @@ public sealed class ShellAppearanceMenuView : UserControl
         if (_vm is null) return;
         _paletteButtons.Clear(); _modeButtons.Clear(); _densityButtons.Clear(); _languageRows.Clear(); _palettes.Children.Clear();
         AppearanceButton = Button("", () => { });
-        AppearanceButton.Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, Children =
+        // 原型 #vex-appearance-menu>summary：只留 15px 对比度图标（i-contrast：描线圆 + 实心右半），
+        // 内距 7/3、4px 圆角；弹出层打开时 accent-soft 底 + 强调色图标（title-picker-open）。
+        AppearanceButton.Classes.Add("tb-glyph");
+        AppearanceButton.Content = new Panel { Width = 15, Height = 15, Children =
         {
-            new PathIcon { Width = 15, Height = 15, Data = Geometry.Parse("M8 1a7 7 0 1 0 0 14h1a2 2 0 0 0 1-3.7.8.8 0 0 1 .4-1.5H12a3 3 0 0 0 3-3C15 3.5 12 1 8 1Z M4.5 6h.1 M7 3.5h.1 M10.5 4h.1 M12 6.5h.1") },
-            Label(Text("Appearance"), 11)
+            new Avalonia.Controls.Shapes.Path { Width = 15, Height = 15, Data = Geometry.Parse("M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18") },
+            new Avalonia.Controls.Shapes.Path { Width = 15, Height = 15, Classes = { "glyph-fill" }, Data = Geometry.Parse("M12 3a9 9 0 0 1 0 18Z") }
         }};
-        // 原型 .studio-title-controls：外观摘要为 56×32 / 11px / 左右 7px 的扁平按钮。
-        AppearanceButton.Height = 32; AppearanceButton.MinHeight = 0; AppearanceButton.MinWidth = 0;
-        AppearanceButton.Padding = new Thickness(7, 0); AppearanceButton.CornerRadius = new CornerRadius(5);
-        AppearanceButton.FontSize = 11;
+        AppearanceButton.MinHeight = 0; AppearanceButton.MinWidth = 0;
+        AppearanceButton.Padding = new Thickness(7, 3); AppearanceButton.CornerRadius = new CornerRadius(4);
         AppearanceButton.Name = "TitleBarAppearanceButton";
-        LanguageButton = Button("文ᴬ", () => { });
-        LanguageButton.Width = 32; LanguageButton.Height = 32; LanguageButton.MinHeight = 0;
-        LanguageButton.Padding = new Thickness(0); LanguageButton.CornerRadius = new CornerRadius(4);
-        LanguageButton.FontSize = 12;
+        ToolTip.SetTip(AppearanceButton, Text("Appearance"));
+        Avalonia.Automation.AutomationProperties.SetName(AppearanceButton, Text("Appearance"));
+        // 原型 .studio-language summary：32×32 纯图标（i-globe 16px），无圆角，悬停 hover 底。
+        LanguageButton = Button("", () => { });
+        LanguageButton.Classes.Add("tb-glyph");
+        LanguageButton.Content = new Avalonia.Controls.Shapes.Path { Width = 16, Height = 16, Data = Geometry.Parse("M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M3 12h18 M12 3a15 15 0 0 1 0 18 M12 3a15 15 0 0 0 0 18") };
+        LanguageButton.Width = 32; LanguageButton.Height = 32; LanguageButton.MinHeight = 0; LanguageButton.MinWidth = 0;
+        LanguageButton.Padding = new Thickness(0); LanguageButton.CornerRadius = new CornerRadius(0);
         LanguageButton.Name = "TitleBarLanguageButton";
+        ToolTip.SetTip(LanguageButton, Text("TitleLanguage"));
+        Avalonia.Automation.AutomationProperties.SetName(LanguageButton, Text("TitleLanguage"));
         var densityRow = SegmentRow("Density_", (button, id) => _densityButtons[id] = button,
             (Text("DensityCompact"), () => _vm.SelectedDensity = "compact", "compact"),
             (Text("DensityNormal"), () => _vm.SelectedDensity = "normal", "normal"),

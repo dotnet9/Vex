@@ -156,7 +156,7 @@ internal static class PopupLayoutVerification
         var renameView = window.GetVisualDescendants().OfType<ShellRenameDialogView>().Single();
         var renameCard = renameView.GetVisualDescendants().OfType<Border>().Single(border => border.Classes.Contains("dialog-card"));
         Check(renameCard.Bounds.Width == 480, "Rename retains the unified 480px dialog frame");
-        Check(renameView.FindControl<TextBox>("NameTextBox")!.Bounds.Height == 34, "Rename input retains its 34px height");
+        Check(renameView.FindControl<TextBox>("NameTextBox")!.Bounds.Height == 36, "Rename input keeps the 4pt-grid field height (control-h-lg 36)");
         Capture(renameCard, "rename"); renameModel.Cancel(); Render();
         Check(renamePending.IsCompleted, "Rename cancellation completes without changing the file");
         foreach (var width in new[] { 980, 1280, 980 })
