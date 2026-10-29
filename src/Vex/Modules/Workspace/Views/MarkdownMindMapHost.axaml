@@ -8,15 +8,21 @@
   </UserControl.Styles>
   <Grid RowDefinitions="Auto,*">
     <Border x:Name="MapEditingToolbar" Classes="map-topbar" IsVisible="{Binding !Workbench.IsPresenting}" MinHeight="36" Padding="10,4" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
-      <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-        <StackPanel x:Name="MapTitle" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center"><Path Classes="wb-icon" Data="{StaticResource WBMapIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.DocumentStructure}}" Classes="wb-muted"/><TextBlock Text="{Binding Workbench.MapCountLabel}" Classes="wb-muted"/></StackPanel>
-        <Grid x:Name="MapToolbarGrid" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+      <!-- 原型 .view-panel .map-toolbar（workspace-chrome.css:494）：单行 36px 横滚、滚动条隐藏，
+           不再换行成两档高度，与邻 pane 工具行对齐。右组靠 margin-left:auto 等效贴右（SizeChanged 里算），
+           窄窗溢出时整行横滚而不是把按钮挤到第二行。标题行原型已退役（css:497-498），不再保留。 -->
+      <ScrollViewer
+          x:Name="MapToolsScroll"
+          HorizontalScrollBarVisibility="Hidden"
+          VerticalScrollBarVisibility="Disabled"
+          VerticalAlignment="Center">
+        <StackPanel x:Name="MapToolsRow" Orientation="Horizontal" Spacing="2">
         <StackPanel Orientation="Horizontal" Spacing="2">
           <Button Classes="wb-quiet map-tool" Tag="child" Click="ChapterClick"><StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="+"/><TextBlock Text="{i18n:I18n Vex.VexL.WSChild}"/></StackPanel></Button>
           <Button Classes="wb-quiet map-tool" Tag="sibling" Click="ChapterClick"><StackPanel Orientation="Horizontal" Spacing="4"><TextBlock Text="+"/><TextBlock Text="{i18n:I18n Vex.VexL.WSSibling}"/></StackPanel></Button>
           <ToggleButton x:Name="HeadingsOnlyButton" Classes="wb-quiet map-tool" Content="{i18n:I18n Vex.VexL.WSHeadingsOnly}" Click="HeadingsOnlyClick"/>
         </StackPanel>
-        <StackPanel x:Name="MapToolsRight" Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="2">
+        <StackPanel x:Name="MapToolsRight" Orientation="Horizontal" Spacing="2">
           <!-- 原型：⚙图标 + 当前显示模式标签（仅标题 / 摘要 N 字）。 -->
           <ToggleButton x:Name="SummarySettingsButton" Classes="wb-quiet map-tool" IsChecked="{Binding Workbench.ShowMapSettings, Mode=OneWay}" Command="{Binding Workbench.ToggleMapSettings}">
             <StackPanel Orientation="Horizontal" Spacing="5">
@@ -33,8 +39,8 @@
             </Panel>
           </ToggleButton>
         </StackPanel>
-        </Grid>
-      </Grid>
+        </StackPanel>
+      </ScrollViewer>
     </Border>
     <Grid Grid.Row="1">
       <!-- 原型 .map-viewport：底色之上叠 18px 点阵（workbench.css:140），画布本身改为透明以透出这两层。 -->

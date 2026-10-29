@@ -273,11 +273,12 @@ public partial class MarkdownMindMapHost : UserControl
         DetachedFromVisualTree += (_, _) => { EventBus.Default.Unsubscribe(this); if (_workbench is not null) _workbench.PropertyChanged -= WorkbenchChanged; _workbench = null; };
         SizeChanged += (_, _) =>
         {
-            MapTitle.IsVisible = false; MapHint.IsVisible = Bounds.Width >= 480 && _workbench?.IsPresenting != true;
+            MapHint.IsVisible = Bounds.Width >= 480 && _workbench?.IsPresenting != true;
             MapHint.MaxWidth = Math.Max(0, Bounds.Width - 180);
-            var wrap = Bounds.Width < 490;
-            Grid.SetRow(MapToolsRight, wrap ? 1 : 0); Grid.SetColumn(MapToolsRight, wrap ? 0 : 1);
-            Grid.SetColumnSpan(MapToolsRight, wrap ? 2 : 1);
+            // 原型 flex 的 margin-left:auto：宽时右组贴右，窄时归零让整行横滚（滚动条隐藏）。
+            // DesiredSize 含当前 margin，先减掉再算基准，避免自我反馈。
+            var rowBase = MapToolsRow.DesiredSize.Width - MapToolsRight.Margin.Left;
+            MapToolsRight.Margin = new Thickness(Math.Max(0, MapToolsScroll.Bounds.Width - rowBase), 0, 0, 0);
             SettingsTarget.MaxHeight = Math.Max(100, Bounds.Height - 74);
             // 原型 position()：弹层最大高 = 触发钮下沿到宿主底部的可用空间（180 兜底），两排卡片靠内部滚动消化。
             scroll.MaxHeight = Math.Max(180, Bounds.Height - 96);
