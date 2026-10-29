@@ -251,9 +251,8 @@
                 AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}">
             <Path />
         </Button>
-        <!-- 底距与 LayoutGallery 同款：胶囊顶在窗底上方 51px，弹层底距 61 避开胶囊，
-     左下圆角缺口不再露出胶囊圆头（原型弹层无投影，重叠处不会染暗）。 -->
-        <shell:ShellTypographyGallery x:Name="TypographyGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12,56,12,61" MaxHeight="700"/>
+        <!-- 弹层几何沿用 12px 窗缘：右缘盖住阅读滚动条带、底缘盖住胶囊与收起钮（CodeWFWindow 内容区自带 12px 内缩）；最初的圆角缺角观感是加浓投影把覆盖边缘染暗所致，投影移除后缺口露出的是干净纸底。 -->
+        <shell:ShellTypographyGallery x:Name="TypographyGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12,56,12,12" MaxHeight="700"/>
         <!-- 原型 .workspace-layout-menu{bottom:calc(100% + 10px)}：画廊浮在状态胶囊正上方 10px。
              胶囊圆心改到底部轴线（距正文列底 20）后，正常密度下胶囊顶在窗口底上方 51px，画廊底距即 51 + 10。 -->
         <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,61"/>

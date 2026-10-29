@@ -1,6 +1,7 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using Vex.Core.Models;
+using Vex.Core.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
@@ -13,10 +14,11 @@ public sealed partial class ShellFilesViewModel
     private bool _isIndexLoading;
     private bool _hasIndexError;
     private string? _projectedFilter;
+    private string _projectedSortKey = "group";
     private bool _projectedList;
     private bool _projectedDescending;
     private string? _projectionSelectionPath;
-    private bool _treeSortDescending;
+    private string _treeSortKey = "group";
 
     public bool IsIndexLoading => _isIndexLoading;
     public bool HasIndexError => _hasIndexError;
@@ -65,7 +67,7 @@ public sealed partial class ShellFilesViewModel
 
     private void RebuildWorkspaceProjection()
     {
-        if (_workspaceFiles is null || _disposed) return;
+        if (_workspaceFiles is null || _disposed) { System.Console.WriteLine("DBG RWP return null/disposed"); return; }
         var filter = FilterText.Trim();
         _projectionSelectionPath = SelectedDocumentFileNode?.Path ?? _projectionSelectionPath;
         if (!IsListView && filter.Length == 0)
@@ -73,11 +75,11 @@ public sealed partial class ShellFilesViewModel
             _indexCancellation?.Cancel();
             _projectionRevision++;
             SetIndexStatus(false, false);
-            if (_treeSortDescending != _sortDescending)
+            if (_treeSortKey != _sortKey)
             {
                 foreach (var folder in Enumerate(DocumentFileNodes).Where(node => node.IsFolder).ToArray())
                     Synchronize(folder.Children, SortNodes(folder.Children).ToArray());
-                _treeSortDescending = _sortDescending;
+                _treeSortKey = _sortKey;
             }
             Synchronize(FilteredDocumentFileNodes, DocumentFileNodes);
             foreach (var node in FlatDocumentFileNodes) node.DetachDocument();
@@ -89,10 +91,11 @@ public sealed partial class ShellFilesViewModel
             NotifyDocumentFilesChanged();
             return;
         }
-        if (_projectedFilter == filter && _projectedList == IsListView && _projectedDescending == _sortDescending) return;
+        if (_projectedFilter == filter && _projectedList == IsListView && _projectedSortKey == _sortKey) return;
         _projectedFilter = filter;
         _projectedList = IsListView;
-        _projectedDescending = _sortDescending;
+        _projectedSortKey = _sortKey;
+        System.Console.WriteLine("DBG BuildIndex guard passed sortKey target=" + _sortKey);
         _indexCancellation?.Cancel();
         _indexCancellation?.Dispose();
         _indexCancellation = CancellationTokenSource.CreateLinkedTokenSource(_workspaceCancellation.Token);
@@ -103,14 +106,15 @@ public sealed partial class ShellFilesViewModel
         foreach (var node in FlatDocumentFileNodes) node.DetachDocument();
         FlatDocumentFileNodes.Clear();
         ClearTemporaryProjection();
-        _ = BuildIndexProjectionAsync(filter, IsListView, _sortDescending, revision, _workspaceGeneration, _indexCancellation.Token);
+        _ = BuildIndexProjectionAsync(filter, IsListView, _sortKey, revision, _workspaceGeneration, _indexCancellation.Token);
     }
 
-    private async Task BuildIndexProjectionAsync(string filter, bool list, bool descending, long revision, long generation, CancellationToken token)
+    private async Task BuildIndexProjectionAsync(string filter, bool list, string sortKey, long revision, long generation, CancellationToken token)
     {
         try
         {
             if (filter.Length > 0) await Task.Delay(250, token).ConfigureAwait(false);
+            System.Console.WriteLine("DBG BuildIndex sortKey=" + sortKey);
             var files = _indexedFiles ?? await _workspaceFiles!.GetFilesAsync(token).ConfigureAwait(false);
             var matched = await Task.Run(() => files
                 .Where(file => filter.Length == 0 || file.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
@@ -122,7 +126,13 @@ public sealed partial class ShellFilesViewModel
                 var selectedPath = SelectedDocumentFileNode?.Path ?? _projectionSelectionPath;
                 if (list)
                 {
-                    var sorted = descending ? matched.Reverse() : matched.AsEnumerable();
+                    var sorted = sortKey switch
+                    {
+                        "natural-desc" => matched.OrderBy(file => file.Name, Core.Services.NaturalStringComparer.Descending),
+                        "modified" => matched.OrderBy(file => file.ModifiedTime),
+                        "created" => matched.OrderBy(file => file.CreatedTime),
+                        _ => matched.OrderBy(file => file.Name, StringComparer.OrdinalIgnoreCase),
+                    };
                     foreach (var file in sorted)
                         FlatDocumentFileNodes.Add(new DocumentFileNode(file.Name, file.Path, false, documentFile: file));
                 }
@@ -180,9 +190,13 @@ public sealed partial class ShellFilesViewModel
     private IEnumerable<DocumentFileNode> SortNodes(IEnumerable<DocumentFileNode> nodes)
     {
         var ordered = nodes.OrderBy(node => node.IsPlaceholder ? 2 : node.IsFolder ? 0 : 1);
-        return _sortDescending
-            ? ordered.ThenByDescending(node => node.Name, StringComparer.OrdinalIgnoreCase)
-            : ordered.ThenBy(node => node.Name, StringComparer.OrdinalIgnoreCase);
+        return _sortKey switch
+        {
+            "natural-desc" => ordered.ThenBy(node => node.Name, Core.Services.NaturalStringComparer.Descending),
+            "modified" => ordered.ThenBy(node => node.ModifiedTime ?? DateTimeOffset.MaxValue),
+            "created" => ordered.ThenBy(node => node.CreatedTime ?? DateTimeOffset.MaxValue),
+            _ => ordered.ThenBy(node => node.Name, StringComparer.OrdinalIgnoreCase),
+        };
     }
 
     private static void Synchronize(ObservableCollection<DocumentFileNode> target, IEnumerable<DocumentFileNode> source)

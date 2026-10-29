@@ -128,7 +128,7 @@ public sealed class ShellTypographyGallery : UserControl
         // 渲染密度：原型 .typography-density .density-options.vex-segmented（max-width 320、gap 6、button{flex:1}、
         // min-height 24×密度）——轨道、滑动指示块、选中字色走 Vex.Controls 共享配方，宿主只管宽度上限。
         var densityRow = new Grid { ColumnDefinitions = new("Auto,*"), ColumnSpacing = 10 };
-        var densityLabel = new TextBlock { Text = Text("RenderDensityTitle"), FontSize = 11, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+        var densityLabel = new TextBlock { Text = Text("RenderDensityTitle"), FontSize = 13, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
         Resource(densityLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush"); densityRow.Children.Add(densityLabel);
         var segments = new SegmentedPanel { Spacing = 6, FillItems = true };
         foreach (var (key, labelKey) in new[] { ("compact", "DensityCompact"), ("normal", "DensityNormal"), ("relaxed", "DensityRelaxed") })
@@ -159,7 +159,7 @@ public sealed class ShellTypographyGallery : UserControl
         grid.Children.Add(_header); Grid.SetRow(_scroll, 1); grid.Children.Add(_scroll);
         // 原型 .typography-popover 无投影（appearance.css:2），回退 wb-popover 默认淡影；
         // 此前叠加的加浓双投影会在左下圆角缺口里把状态胶囊圆头染暗，看起来像缺角。
-        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16) };
+        var border = new Border { Classes = { "wb-popover", "flat" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16) };
         Content = border;
         Resize(); Changed(null, new(""));
     }
@@ -287,7 +287,8 @@ public sealed class ShellTypographyGallery : UserControl
     {
         var stack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
         var plus = new TextBlock { Text = "＋", FontSize = 18, LineHeight = 18, VerticalAlignment = VerticalAlignment.Center };
-        var addLabel = new TextBlock { Text = Text("AddCustomTypography"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+        // 按钮主题会给继承文本加 SemiBold；原型 .typography-add 文字为常规字重，显式归位。
+        var addLabel = new TextBlock { Text = Text("AddCustomTypography"), FontSize = 13, FontWeight = FontWeight.Normal, VerticalAlignment = VerticalAlignment.Center };
         Resource(plus, TextBlock.ForegroundProperty, this, "VexMutedBrush"); Resource(addLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush");
         stack.Children.Add(plus);
         stack.Children.Add(addLabel);

@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellOutlineView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -44,8 +44,8 @@
             Padding="8,0"
             CornerRadius="8"
             BorderThickness="1"
-            BorderBrush="Transparent"
-            Background="{DynamicResource VexHoverBrush}">
+            BorderBrush="{DynamicResource VexControlBorderBrush}"
+            Background="Transparent">
             <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" VerticalAlignment="Center">
                 <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
                       VerticalAlignment="Center"

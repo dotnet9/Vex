@@ -1,4 +1,4 @@
-using CodeWF.Toolkit.Files.Helpers;
+﻿using CodeWF.Toolkit.Files.Helpers;
 using Vex.Core.Models;
 
 namespace Vex.Core.Services;
@@ -49,7 +49,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string OutlineWidth = nameof(AppSettings.OutlineWidth);
     private const string ViewSplitRatios = nameof(AppSettings.ViewSplitRatios);
     private const string FileListView = nameof(AppSettings.FileListView);
-    private const string FileSortDescending = nameof(AppSettings.FileSortDescending);
+    private const string FileSortKey = nameof(AppSettings.FileSortKey);
     private const string CollapsedFolders = nameof(AppSettings.CollapsedFolders);
     private const string CollapsedOutlineSections = nameof(AppSettings.CollapsedOutlineSections);
 
@@ -133,7 +133,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             OutlineWidth = Get<double?>(configuration, OutlineWidth),
             ViewSplitRatios = Get<string>(configuration, ViewSplitRatios),
             FileListView = Get<bool?>(configuration, FileListView),
-            FileSortDescending = Get<bool?>(configuration, FileSortDescending),
+            FileSortKey = Get<string>(configuration, FileSortKey) ?? "group",
             CollapsedFolders = Get<string>(configuration, CollapsedFolders),
             CollapsedOutlineSections = Get<string>(configuration, CollapsedOutlineSections),
             RestoreWorkspace = Get<bool?>(configuration, RestoreWorkspace),
@@ -230,7 +230,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [OutlineWidth] = settings.OutlineWidth,
                 [ViewSplitRatios] = settings.ViewSplitRatios,
                 [FileListView] = settings.FileListView,
-                [FileSortDescending] = settings.FileSortDescending,
+                [FileSortKey] = settings.FileSortKey,
                 [CollapsedFolders] = settings.CollapsedFolders,
                 [CollapsedOutlineSections] = settings.CollapsedOutlineSections,
                 [RestoreWorkspace] = settings.RestoreWorkspace,

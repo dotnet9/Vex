@@ -1,4 +1,4 @@
-namespace Vex.Core.Models;
+﻿namespace Vex.Core.Models;
 
 public sealed record AppSettings
 {
@@ -38,7 +38,7 @@ public sealed record AppSettings
     /// <summary>视图分屏比例，按「预设/轴向」记档（原型 vex-design-split-ratio）。</summary>
     public string? ViewSplitRatios { get; init; }
     public bool? FileListView { get; init; }
-    public bool? FileSortDescending { get; init; }
+    public string FileSortKey { get; init; } = "group";
     public string? CollapsedFolders { get; init; }
     public string? CollapsedOutlineSections { get; init; }
 

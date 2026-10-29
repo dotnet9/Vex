@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
@@ -254,8 +254,8 @@ public sealed class ShellAppearanceMenuView : UserControl
             dots.Children.Add(dot);
         }
         var labels = new StackPanel { Spacing = 1 };
-        var name = Label(palette.Name, 13); name.FontWeight = FontWeight.SemiBold; name.TextWrapping = TextWrapping.NoWrap; name.LineHeight = 19; labels.Children.Add(name);
-        var purpose = Label(palette.Purpose); purpose.FontSize = 10; purpose.LineHeight = 14; purpose.Classes.Add("muted"); labels.Children.Add(purpose);
+        // 原型口径：配色卡只留名称行（不加粗），用途说明行移除。
+        var name = Label(palette.Name, 13); name.FontWeight = FontWeight.Normal; name.TextWrapping = TextWrapping.NoWrap; name.LineHeight = 19; labels.Children.Add(name);
         var body = new StackPanel { Spacing = 6 }; body.Children.Add(dots); body.Children.Add(labels);
         // 原型 .studio-palettes button::after：✓ 固定在卡片右缘垂直居中（right 6px、14px/700 强调色），
         // 点阵用 padding-right 24 让位，这里给正文同样让出右侧空间。

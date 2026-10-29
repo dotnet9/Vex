@@ -1,4 +1,4 @@
-<Styles xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<Styles xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- ===== 块状工作区（原型 workspace-chrome.css）：灰画布 + 圆角描边白块，外缘 10px、块间 4px ===== -->
   <Style Selector="Border.workspace-block">
     <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
@@ -482,6 +482,10 @@
   <Style Selector="Border.wb-popover">
     <Setter Property="Background" Value="{DynamicResource VexElevatedBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
     <Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="10"/><Setter Property="BoxShadow" Value="0 8 30 0 #18000000"/>
+  </Style>
+  <!-- flat 变体：无投影（原型 .typography-popover 即无投影；白纸之上投影会读成脏角）。 -->
+  <Style Selector="Border.wb-popover.flat">
+    <Setter Property="BoxShadow" Value="0 0 0 0 #00000000"/>
   </Style>
   <Style Selector="TextBlock.wb-muted"><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/><Setter Property="FontSize" Value="11.5"/></Style>
   <Style Selector="Border.pane-head"><Setter Property="Height" Value="44"/><Setter Property="Padding" Value="20,0"/></Style>

@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -17,6 +17,7 @@ public partial class ShellFilesView : UserControl
     public ShellFilesView()
     {
         InitializeComponent();
+
         // 原 ViewModelLocator 反射装配改为构造自取容器单例。
         DataContext = App.Services.GetRequiredService<ShellFilesViewModel>();
         // 隧道路由先于 TreeView 默认处理，文件夹行只响应一次左键操作。

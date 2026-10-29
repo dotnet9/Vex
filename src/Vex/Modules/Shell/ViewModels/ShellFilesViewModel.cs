@@ -17,14 +17,14 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     private readonly IAppSettingsStore? _settingsStore;
     private readonly IDocumentFileFactory? _fileFactory;
     private bool _isListView;
-    private bool _sortDescending;
+    private string _sortKey = "group";
 
     public ShellFilesViewModel(IAppSettingsStore? settingsStore = null, IWorkspaceFileService? workspaceFiles = null, IDocumentFileFactory? fileFactory = null)
     {
         _settingsStore = settingsStore;
         _fileFactory = fileFactory;
         _isListView = settingsStore?.Current.FileListView ?? false;
-        _sortDescending = settingsStore?.Current.FileSortDescending ?? false;
+        _sortKey = settingsStore?.Current.FileSortKey ?? "group";
         _workspaceFiles = workspaceFiles;
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
         if (workspaceFiles is not null)
@@ -56,15 +56,21 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         RebuildFilteredNodes();
         _settingsStore?.Update(settings => settings with { FileListView = _isListView });
     }
-    public void ToggleSort()
+    public string SortKey => _sortKey;
+
+    public void SetSortKey(string key)
     {
-        _sortDescending = !_sortDescending;
+        System.Console.WriteLine("DBG SetSortKey enter key=" + key + " wsNull=" + (_workspaceFiles is null));
+        if (SortKey == key) return;
+        _sortKey = key;
+        System.Console.WriteLine("DBG SetSortKey calling rebuilds");
         RebuildFilteredNodes();
-        OnPropertyChanged(nameof(SortArrow));
-        _settingsStore?.Update(settings => settings with { FileSortDescending = _sortDescending });
+        System.Console.WriteLine("DBG SetSortKey RebuildFilteredNodes done");
+        RebuildWorkspaceProjection();
+        System.Console.WriteLine("DBG SetSortKey RWP done flat0=" + (FlatDocumentFileNodes.Count > 0 ? FlatDocumentFileNodes[0].Name : "<empty>"));
+        _settingsStore?.Update(settings => settings with { FileSortKey = key });
     }
-    /// <summary>对应原型 .sort-arrow：默认不显示箭头，倒序时显示 ↑。</summary>
-    public string SortArrow => _sortDescending ? "↑" : string.Empty;
+
     public void CollapseAll()
     {
         // 操作源节点；搜索生成的临时展开副本不应覆盖真实折叠偏好。
@@ -108,6 +114,9 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     }
 
     public bool HasDocumentFiles => IsListView ? FlatDocumentFileNodes.Count > 0 : FilteredDocumentFileNodes.Count > 0;
+
+    /// <summary>列表视图文件超过阈值时改用树形视图的提示态（原型同款）。</summary>
+    public bool IsListOverflow => IsListView && FlatDocumentFileNodes.Count > 200;
 
     public bool IsDocumentFilesEmpty => !HasDocumentFiles && !IsIndexLoading && !HasIndexError;
 
@@ -322,7 +331,8 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         FilteredDocumentFileNodes.Clear();
         FlatDocumentFileNodes.Clear();
         var filter = _filterText?.Trim();
-        foreach (var node in _sortDescending ? DocumentFileNodes.Reverse() : DocumentFileNodes)
+        var descending = _sortKey == "natural-desc";
+        foreach (var node in descending ? DocumentFileNodes.Reverse() : DocumentFileNodes)
         {
             if (BuildFilteredNode(node, filter) is { } filtered)
             {
@@ -332,8 +342,16 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
         var flat = Enumerate(DocumentFileNodes).Where(node => IsListView && node.IsDocument && (string.IsNullOrEmpty(filter)
             || node.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)));
-        foreach (var node in _sortDescending ? flat.OrderByDescending(node => node.Name, StringComparer.OrdinalIgnoreCase) : flat.OrderBy(node => node.Name, StringComparer.OrdinalIgnoreCase))
+        var ordered = _sortKey switch
+        {
+            "natural-desc" => flat.OrderBy(node => node.Name, Core.Services.NaturalStringComparer.Descending),
+            "modified" => flat.OrderBy(node => node.ModifiedTime ?? DateTimeOffset.MaxValue),
+            "created" => flat.OrderBy(node => node.CreatedTime ?? DateTimeOffset.MaxValue),
+            _ => flat.OrderBy(node => node.Name, StringComparer.OrdinalIgnoreCase),
+        };
+        foreach (var node in ordered)
             FlatDocumentFileNodes.Add(node);
+        OnPropertyChanged(nameof(IsListOverflow));
 
         SelectDocumentFileSilently(selectedPath is null ? null
             : Enumerate(FilteredDocumentFileNodes).FirstOrDefault(node => PathsEqual(node.Path, selectedPath)));
@@ -342,14 +360,14 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
     private DocumentFileNode? BuildFilteredNode(DocumentFileNode node, string? filter)
     {
-        if (string.IsNullOrEmpty(filter) && !_sortDescending)
+        if (string.IsNullOrEmpty(filter) && _sortKey == "group")
         {
             return node;
         }
 
         if (node.IsFolder)
         {
-            var children = (_sortDescending ? node.Children.Reverse() : node.Children)
+            var children = (_sortKey == "natural-desc" ? node.Children.Reverse() : node.Children)
                 .Select(child => BuildFilteredNode(child, filter))
                 .OfType<DocumentFileNode>()
                 .ToList();

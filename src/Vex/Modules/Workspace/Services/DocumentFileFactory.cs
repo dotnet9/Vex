@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Vex.Core.Models;
 using Vex.Core.Services;
 
@@ -20,12 +20,17 @@ public sealed class DocumentFileFactory : IDocumentFileFactory
     public DocumentFile Create(string path, string? workspaceRoot = null)
     {
         // 文件列表展示文案集中在工厂内，避免 DocumentFile 反向依赖运行时本地化服务。
+        var info = new FileInfo(path);
+        var lastWrite = info.Exists ? new DateTimeOffset(info.LastWriteTimeUtc) : default;
+        var created = info.Exists ? new DateTimeOffset(info.CreationTimeUtc) : default;
         return new DocumentFile(
             path,
             Path.GetFileName(path),
             ResolveFolderName(path, workspaceRoot),
-            GetModifiedText(path),
-            string.Empty);
+            DescribeAge(lastWrite),
+            string.Empty,
+            lastWrite,
+            created);
     }
 
     public string GetModifiedText(string path)
@@ -45,6 +50,11 @@ public sealed class DocumentFileFactory : IDocumentFileFactory
             return string.Empty;
         }
 
+        return DescribeAge(lastWriteTime);
+    }
+
+    private string DescribeAge(DateTimeOffset lastWriteTime)
+    {
         var age = DateTimeOffset.Now - lastWriteTime;
         return age.TotalDays switch
         {

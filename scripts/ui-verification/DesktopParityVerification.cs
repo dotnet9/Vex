@@ -1,3 +1,4 @@
+﻿using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
@@ -95,8 +96,15 @@ internal static class DesktopParityVerification
         Check(restoredNavigation.DocumentFileNodes[0].IsExpanded, "New file navigation starts with the root expanded despite old collapse settings");
         navigation.ToggleListView(); Render();
         Check(navigation.IsListView && navigation.FlatDocumentFileNodes.Count == 2, "List view flattens nested files");
-        navigation.ToggleSort();
-        Check(navigation.FlatDocumentFileNodes[0].Name == "zeta.md", "Sort applies to flattened file list");
+        navigation.SetSortKey("natural-desc");
+        Console.WriteLine("DBG after SetSortKey sortKey=" + navigation.SortKey + " flat0=" + (navigation.FlatDocumentFileNodes.Count > 0 ? navigation.FlatDocumentFileNodes[0].Name : "<empty>"));
+        var sortDeadline = DateTime.UtcNow.AddSeconds(5);
+        while (DateTime.UtcNow < sortDeadline
+            && navigation.FlatDocumentFileNodes.Count > 0 && navigation.FlatDocumentFileNodes[0].Name != "zeta.md")
+        {
+            Render();
+        }
+        Check(navigation.FlatDocumentFileNodes.Count > 0 && navigation.FlatDocumentFileNodes[0].Name == "zeta.md", "Sort applies to flattened file list: got [" + string.Join(", ", navigation.FlatDocumentFileNodes.Select(n => n.Name)) + "]");
         navigation.FilterText = "first";
         Check(navigation.FlatDocumentFileNodes.Count == 0, "File search follows the prototype and only matches names");
         navigation.FilterText = "alpha";

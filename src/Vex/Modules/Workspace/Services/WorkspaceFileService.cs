@@ -1,4 +1,4 @@
-using Vex.Core.Models;
+﻿using Vex.Core.Models;
 using Vex.Core.Services;
 using static Vex.Modules.Workspace.Services.WorkspaceFileMonitor;
 
@@ -125,8 +125,15 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
                     foreach (var entry in WorkspaceFileEnumeration.EnumerateDirectory(path))
                     {
                         session.Token.ThrowIfCancellationRequested();
-                        result.Add(new WorkspaceDirectoryEntry(entry.Path, Path.GetFileName(entry.Path), entry.IsDirectory,
-                            entry.IsDirectory ? null : documentFileFactory.Create(entry.Path, session.Root)));
+                        // 单个不可读文件（权限/占用）跳过，不让整目录加载失败。
+                        try
+                        {
+                            result.Add(new WorkspaceDirectoryEntry(entry.Path, Path.GetFileName(entry.Path), entry.IsDirectory,
+                                entry.IsDirectory ? null : documentFileFactory.Create(entry.Path, session.Root)));
+                        }
+                        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                        {
+                        }
                     }
                     return result.OrderByDescending(entry => entry.IsDirectory)
                         .ThenBy(entry => entry.Name, WorkspaceFileEnumeration.PathComparer).ToArray();

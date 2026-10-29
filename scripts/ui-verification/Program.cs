@@ -1005,10 +1005,10 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     Pump(main.OpenStartupDocumentAsync([workspace])); Pump();
     Pump(main.RefreshFilesAsync()); Pump();
     Check(vm.SelectedDocumentFileNode?.Path == workspace, "Refreshing retains the selected workspace folder");
-    vm.ToggleSort(); Pump();
+    vm.SetSortKey("name-asc"); Pump();
     Check(vm.SelectedDocumentFileNode?.Path == workspace && tree.SelectedItem == vm.SelectedDocumentFileNode,
         "Sorting retains selection on the displayed workspace root");
-    vm.ToggleSort(); Pump();
+    vm.SetSortKey("group"); Pump();
     var directFolder = Path.Combine(sampleFolder, "direct-file-scan-" + Guid.NewGuid().ToString("N"));
     Directory.CreateDirectory(Path.Combine(directFolder, ".hidden"));
     var directFile = Path.Combine(directFolder, "visible.md");

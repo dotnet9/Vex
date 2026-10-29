@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
@@ -207,9 +207,9 @@ public partial class MarkdownMindMapHost : UserControl
             layoutCards.RowDefinitions.Clear(); styleCards.RowDefinitions.Clear();
             // 步骤标签随每次打开重建，语言切换后文案跟着换（与 headerTitle 同一口径）。
             body.Children.Clear();
-            body.Children.Add(BuildStepLabel("1", T(VexL.MapStepLayout), T(VexL.MapStepLayoutHint)));
+            body.Children.Add(BuildStepLabel("1", T(VexL.MapStepLayout), string.Empty));
             body.Children.Add(layoutCards);
-            styleStep = BuildStepLabel("2", T(VexL.MapStepStyle), T(VexL.MapStepStyleHint));
+            styleStep = BuildStepLabel("2", T(VexL.MapStepStyle), string.Empty);
             body.Children.Add(styleStep);
             body.Children.Add(styleCards);
             // 原型 .map-choice 是无状态按钮，选中靠 aria-pressed；这里同构：按下态由 map-choice-on 类回放。
@@ -520,7 +520,7 @@ public partial class MarkdownMindMapHost : UserControl
         {
             new Border { Classes = { "map-step-badge" }, Child = new TextBlock { Classes = { "map-step-badge-text" }, Text = badge, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } },
             new TextBlock { Classes = { "map-step-text" }, Text = title, VerticalAlignment = VerticalAlignment.Center },
-            new TextBlock { Classes = { "map-step-hint" }, Text = hint, VerticalAlignment = VerticalAlignment.Center },
+            hint.Length == 0 ? null : new TextBlock { Classes = { "map-step-hint" }, Text = hint, VerticalAlignment = VerticalAlignment.Center },
         },
     };
 
@@ -584,9 +584,7 @@ public partial class MarkdownMindMapHost : UserControl
         var name = new TextBlock { Classes = { "map-choice-label" }, Text = label, HorizontalAlignment = HorizontalAlignment.Left };
         var stack = new StackPanel { Spacing = 0 };
         stack.Children.Add(mini); stack.Children.Add(name);
-        // 原型 .map-choice-purpose：风格名看不出差别（线框改的是轮廓、脉络改的是底线），补一行灰字说明。
-        if (purpose is not null)
-            stack.Children.Add(new TextBlock { Classes = { "map-choice-purpose" }, Text = purpose, HorizontalAlignment = HorizontalAlignment.Left });
+        // 原型口径：风格卡只留名称（悬浮标题承载说明的职能已上移），用途行移除。
         return stack;
     }
 

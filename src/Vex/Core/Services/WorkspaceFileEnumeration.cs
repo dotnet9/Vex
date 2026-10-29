@@ -1,4 +1,4 @@
-using System.IO.Enumeration;
+﻿using System.IO.Enumeration;
 
 namespace Vex.Core.Services;
 
@@ -68,7 +68,8 @@ internal static class WorkspaceFileEnumeration
     private static EnumerationOptions CreateOptions(bool recurse) => new()
     {
         RecurseSubdirectories = recurse,
-        IgnoreInaccessible = false,
+        // 无权限子目录跳过而非整树失败：工作区里混入系统/受控目录时，其余文件照常加载。
+        IgnoreInaccessible = true,
         ReturnSpecialDirectories = false,
         AttributesToSkip = FileAttributes.ReparsePoint
     };

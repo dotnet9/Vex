@@ -16,6 +16,21 @@
 
     <UserControl.Resources>
         <converters:FileIconConverter x:Key="FileIconConverter" />
+        <!-- 五键排序：互斥单选，勾选态由代码后置随 SortKey 刷新。 -->
+        <Flyout x:Key="SortFlyout" Placement="TopEdgeAlignedLeft">
+            <MenuFlyout>
+                <MenuItem Tag="group" Command="{Binding SetSortKey}" CommandParameter="group"
+                                     Header="{i18n:I18n {x:Static l:VexL.SortByFolderGroup}}"/>
+                <MenuItem Tag="natural-desc" Command="{Binding SetSortKey}" CommandParameter="natural-desc"
+                                     Header="{i18n:I18n {x:Static l:VexL.SortNaturalDescending}}"/>
+                <MenuItem Tag="name-asc" Command="{Binding SetSortKey}" CommandParameter="name-asc"
+                                     Header="{i18n:I18n {x:Static l:VexL.SortNameAscending}}"/>
+                <MenuItem Tag="modified" Command="{Binding SetSortKey}" CommandParameter="modified"
+                                     Header="{i18n:I18n {x:Static l:VexL.SortModifiedAscending}}"/>
+                <MenuItem Tag="created" Command="{Binding SetSortKey}" CommandParameter="created"
+                                     Header="{i18n:I18n {x:Static l:VexL.SortCreatedAscending}}"/>
+            </MenuFlyout>
+        </Flyout>
     </UserControl.Resources>
 
     <UserControl.DataTemplates>
@@ -91,7 +106,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid RowDefinitions="Auto,*,Auto">
         <!-- 对应原型 .sidebar-search：32px 高、8px 圆角、内嵌搜索图标与常显清除按钮。 -->
         <Border
             x:Name="FileSearchBox"
@@ -101,8 +116,8 @@
             Padding="8,0"
             CornerRadius="8"
             BorderThickness="1"
-            BorderBrush="Transparent"
-            Background="{DynamicResource VexHoverBrush}">
+            BorderBrush="{DynamicResource VexControlBorderBrush}"
+            Background="Transparent">
             <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" VerticalAlignment="Center">
                 <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
                       VerticalAlignment="Center"
@@ -132,7 +147,7 @@
 
         <TreeView
             x:Name="FileTree"
-            Grid.Row="2"
+            Grid.Row="1"
             Classes="side-tree"
             Margin="5,0"
             IsVisible="{Binding IsTreeView}"
@@ -167,12 +182,17 @@
                 </ContextMenu>
             </TreeView.ContextMenu>
         </TreeView>
-        <ListBox x:Name="FileList" Grid.Row="2" Classes="side-list" IsVisible="{Binding IsListView}"
+        <ListBox x:Name="FileList" Grid.Row="1" Classes="side-list" IsVisible="{Binding IsListView}"
                  ItemsSource="{Binding FlatDocumentFileNodes}" SelectedItem="{Binding SelectedListDocumentFileNode, Mode=TwoWay}" PointerPressed="SelectItemOnPointerPressed">
             <ListBox.ItemTemplate><DataTemplate x:DataType="models:DocumentFileNode">
-                <Grid RowDefinitions="Auto,Auto" Margin="4,5" ToolTip.Tip="{Binding Path}">
-                    <TextBlock Text="{Binding Name}" FontSize="14" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Grid.Row="1" Text="{Binding Preview}" FontSize="11" Classes="muted" MaxHeight="32" TextWrapping="Wrap"/>
+                <!-- Typora 列表形态：目录+日期行 / 文件名行 / 内容预览行，无图标。 -->
+                <Grid RowDefinitions="Auto,Auto,Auto" Margin="10,8" ToolTip.Tip="{Binding Path}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding DocumentFile.FolderName}" FontSize="11" Classes="muted" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="1" Text="{Binding DocumentFile.ModifiedText}" FontSize="11" Classes="muted" Margin="12,0,0,0"/>
+                    </Grid>
+                    <TextBlock Grid.Row="1" Margin="0,3,0,0" Text="{Binding Name}" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Row="2" Margin="0,3,0,0" Text="{Binding Preview}" FontSize="11.5" Classes="muted" MaxHeight="34" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                 </Grid>
             </DataTemplate></ListBox.ItemTemplate>
             <ListBox.ContextMenu><ContextMenu>
@@ -202,7 +222,7 @@
                 </ContextMenu></ListBox.ContextMenu>
         </ListBox>
         <Border
-            Grid.Row="2"
+            Grid.Row="1"
             IsVisible="{Binding IsDocumentFilesEmpty}"
             Padding="18"
             VerticalAlignment="Top">
@@ -223,35 +243,35 @@
 
         <!-- 对应原型 .files-toolbar（workspace-chrome.css:618）：紧跟搜索框下方，整行居左、无分隔线，
              左内距与搜索框同为 5，行高 34、下内距 8、以 -6 外边距贴紧搜索框的 8px 下边距。 -->
-        <Border x:Name="FilesToolbar" Grid.Row="1" Height="36" Margin="0,-6,0,0" Padding="5,0,5,8">
-            <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                <ToggleButton x:Name="FilesModeButton" Classes="files-tool"
-                              IsChecked="{Binding IsTreeView, Mode=OneWay}"
-                              Command="{Binding ToggleListView}"
-                              ToolTip.Tip="{i18n:I18n {x:Static l:VexL.GroupByFolder}}"
-                              AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GroupByFolder}}">
-                    <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.6"
-                          Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                </ToggleButton>
-                <Button x:Name="FilesSortButton" Classes="files-tool" Command="{Binding ToggleSort}"
+        <!-- 列表视图超阈值提示（对齐原型：文件过多请切树形视图）。 -->
+        <Border Grid.Row="1" IsVisible="{Binding IsListOverflow}" Background="{DynamicResource VexDocumentPaperBrush}"
+                ZIndex="6" Padding="18" VerticalAlignment="Top" Margin="18,12">
+            <TextBlock Classes="muted" FontSize="12" LineHeight="24" TextWrapping="Wrap"
+                       Text="{i18n:I18n {x:Static l:VexL.FileListOverflowHint}}"/>
+        </Border>
+        <!-- 底部条：目录名（排序菜单）+ 竖直三点（同菜单）+ 视图切换，Typora 口径。 -->
+        <Border Grid.Row="2" Padding="10,5" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                <Button x:Name="SortFolderButton" Classes="files-tool files-folder" HorizontalContentAlignment="Left"
+                        Content="{Binding WorkspaceName}" Flyout="{StaticResource SortFlyout}"
                         ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SortFiles}}"
-                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}">
-                    <Grid>
-                        <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.6"
-                              Data="M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01" />
-                        <TextBlock Text="{Binding SortArrow}" FontSize="9" FontWeight="SemiBold"
-                                   HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-2,-3"
-                                   Classes="muted" />
-                    </Grid>
-                </Button>
-                <Button x:Name="FilesFoldButton" Classes="files-tool" Command="{Binding CollapseAll}"
-                        IsEnabled="{Binding CanCollapseAll}"
-                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}"
-                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseAllFiles}}">
-                    <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.4"
-                          Data="M8 16H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v4 M9 8h11a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z M12 14.5h5" />
-                </Button>
-            </StackPanel>
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}"/>
+                <Button Grid.Column="1" Classes="files-tool" FontSize="13" Content="&#8943;"
+                        Flyout="{StaticResource SortFlyout}"
+                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SortFiles}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}"/>
+                <ToggleButton Grid.Column="3" Classes="files-tool" IsChecked="{Binding IsTreeView, Mode=OneWay}"
+                              Command="{Binding ToggleListView}"
+                              ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ToggleTreeList}}"
+                              AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ToggleTreeList}}">
+                    <Panel>
+                        <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.6" IsVisible="{Binding IsTreeView}"
+                              Data="M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01"/>
+                        <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.6" IsVisible="{Binding IsListView}"
+                              Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    </Panel>
+                </ToggleButton>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>

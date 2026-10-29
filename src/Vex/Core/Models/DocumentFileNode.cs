@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace Vex.Core.Models;
@@ -36,6 +36,10 @@ public sealed class DocumentFileNode : INotifyPropertyChanged
     public bool IsDocument => DocumentFile is not null;
 
     public DocumentFile? DocumentFile => _documentFile;
+
+    public DateTimeOffset? ModifiedTime => _documentFile?.ModifiedTime is { } time && time != default ? time : null;
+
+    public DateTimeOffset? CreatedTime => _documentFile?.CreatedTime is { } time && time != default ? time : null;
 
     public ObservableCollection<DocumentFileNode> Children { get; }
 

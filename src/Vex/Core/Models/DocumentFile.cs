@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace Vex.Core.Models;
 
@@ -6,14 +6,21 @@ public sealed class DocumentFile : INotifyPropertyChanged
 {
     private string _modifiedText;
     private string _preview;
-    public DocumentFile(string path, string name, string folderName, string modifiedText, string preview)
+    public DocumentFile(string path, string name, string folderName, string modifiedText, string preview,
+        DateTimeOffset modifiedTime = default, DateTimeOffset createdTime = default)
     {
         Path = path;
         Name = name;
         FolderName = folderName;
         _modifiedText = modifiedText;
         _preview = preview;
+        ModifiedTime = modifiedTime;
+        CreatedTime = createdTime;
     }
+
+    public DateTimeOffset ModifiedTime { get; }
+
+    public DateTimeOffset CreatedTime { get; }
 
     public string Name { get; }
 

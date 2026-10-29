@@ -956,6 +956,13 @@ public static class VexL
     public static readonly string ViewSplitHorizontal = "Vex.VexL.ViewSplitHorizontal";
     public static readonly string ViewSplitVertical = "Vex.VexL.ViewSplitVertical";
     public static readonly string GroupByFolder = "Vex.VexL.GroupByFolder";
+    public static readonly string SortByFolderGroup = "Vex.VexL.SortByFolderGroup";
+    public static readonly string SortNaturalDescending = "Vex.VexL.SortNaturalDescending";
+    public static readonly string SortNameAscending = "Vex.VexL.SortNameAscending";
+    public static readonly string SortModifiedAscending = "Vex.VexL.SortModifiedAscending";
+    public static readonly string SortCreatedAscending = "Vex.VexL.SortCreatedAscending";
+    public static readonly string FileListOverflowHint = "Vex.VexL.FileListOverflowHint";
+    public static readonly string ToggleTreeList = "Vex.VexL.ToggleTreeList";
     public static readonly string UntitledDocument = "Vex.VexL.UntitledDocument";
     public static readonly string WBSaveAndApply = "Vex.VexL.WBSaveAndApply";
     public static readonly string CustomDefaultName = "Vex.VexL.CustomDefaultName";
