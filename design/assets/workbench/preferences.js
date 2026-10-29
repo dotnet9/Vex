@@ -1,4 +1,4 @@
-/* Shared preference surface. MCP states are isolated, local prototype scenarios. */
+﻿/* Shared preference surface. MCP states are isolated, local prototype scenarios. */
 (() => {
   'use strict';
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -43,7 +43,7 @@
       case 'general': return control('startup','启动时',[['empty','空白工作区'],['recent','恢复上次工作区']]) + control('autoSave','自动保存') + control('saveDelay','停止输入后保存',[[2,'2 秒'],[5,'5 秒'],[10,'10 秒']]) + control('recovery','保留恢复草稿') + heading('新文档默认值') + control('encoding','编码',['UTF-8','UTF-8 BOM','GB18030']) + control('newline','换行符',[['system','跟随系统'],['LF','LF'],['CRLF','CRLF']]);
       case 'editor': return control('font','编辑区字体',[['system','系统默认'],['serif','系统衬线'],['mono','等宽']]) + control('indent','缩进',[[2,'2 空格'],[4,'4 空格'],[8,'8 空格']]) + heading('代码与源码') + control('codeWrap','代码自动换行') + control('lineNumbers','显示源码行号');
       case 'images': return control('imageCopy','插入时复制图片') + control('imageRelative','使用相对路径') + folderControl('imageFolder','资源目录');
-      case 'appearance': return segmented('motion','界面动效',[['full','完整'],['reduced','精简'],['off','关闭']],'精简只保留淡入淡出，关闭后所有过渡立即到位。') + segmented('radius','界面圆角',[['square','直角'],['compact','紧凑'],['standard','标准']],'只作用于控件圆角，胶囊与头像保持原形。') + heading('文档水印') + control('watermarkText','水印文字',{maxlength:60}) + control('watermarkFontSize','水印字号',{range:true,min:12,max:36,unit:' px'}) + control('watermarkColor','前景色',{type:'color'}) + control('watermarkWeight','粗细',[[300,'细'],[400,'常规'],[700,'粗']]) + control('watermarkOpacity','不透明度',{range:true,min:0,max:50,unit:'%'}) + '<div class="vex-watermark-sample" aria-label="水印样式预览"><strong>写下想法，看见脉络。</strong><span>维刻 Vex</span></div>';
+      case 'appearance': return segmented('motion','界面动效',[['full','完整'],['reduced','精简'],['off','关闭']],'精简只保留淡入淡出，关闭后所有过渡立即到位。') + segmented('radius','界面圆角',[['square','直角'],['compact','紧凑'],['standard','标准']],'只作用于控件圆角，胶囊与头像保持原形。');
       case 'export': return control('exportOpen','导出后打开') + heading('PDF') + control('pdfSize','纸张',['A4','Letter','A5']) + control('pdfMargin','页边距',{range:true,min:10,max:30,unit:' mm'}) + heading('HTML') + control('htmlStyle','保留当前文档排版');
       case 'mcp': return mcpContent();
       default: return '';
