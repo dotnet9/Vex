@@ -34,6 +34,16 @@
     <SolidColorBrush x:Key="VexSegmentedTrackBrush" Color="{DynamicResource StudioSegmentedTrackColor}" />
     <SolidColorBrush x:Key="VexSegmentedThumbBrush" Color="{DynamicResource StudioSegmentedThumbColor}" />
     <SolidColorBrush x:Key="VexPressedBrush" Color="{DynamicResource StudioPressedColor}" />
+    <!-- 原型文档选区两档：.reading-scroll/.source-scroll 等正文滚动区把 selection 覆写为
+         document-selection（surface.css:112→54：vex-selected→selected），即 accent@12%/18% 叠 paper，
+         与 StudioPressedColor 同源（indigo 浅 #e7e5f7 / 深 #2e313e，探针实测两者同值）；
+         铬面裸 selection（accent@24%/30%）Vex 无对应消费面，不设键。 -->
+    <SolidColorBrush x:Key="VexDocumentSelectionBrush" Color="{DynamicResource StudioPressedColor}" />
+    <!-- Semi 选区资源接管（覆盖 Semi 明暗字典里的默认蓝）：SelectableTextBlock 全局选区走文档档，
+         高亮代码块由库直接绑这两个键（12.2.31 起），Vex 内两处同源；前景按原型取 fg 正文色。
+         Semi 的 TextBox 选区用独立键（TextBoxSelectionBackground），不受此覆盖影响。 -->
+    <StaticResource x:Key="TextBlockSelectionBackground" ResourceKey="VexDocumentSelectionBrush" />
+    <StaticResource x:Key="TextBlockSelectionForeground" ResourceKey="VexEditorForegroundBrush" />
     <SolidColorBrush x:Key="VexAccentSoftBrush" Color="{DynamicResource StudioSelectedColor}" />
     <SolidColorBrush x:Key="VexEditorForegroundBrush" Color="{DynamicResource StudioTextColor}" />
     <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="{DynamicResource StudioTextColor}" />

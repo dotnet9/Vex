@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui" xmlns:md="https://codewf.com"
+﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:md="https://codewf.com"
         xmlns:layout="clr-namespace:CodeWF.Avalonia.Markdown.Rendering;assembly=CodeWF.Avalonia.Markdown.Lite">
 
         <Style Selector="md|MarkdownViewer">
@@ -52,10 +52,10 @@
         <Style Selector="md|MarkdownViewer Border.MdTableAlternateCell, md|MarkdownLiveEditorView Border.MdTableAlternateCell">
             <Setter Property="Background" Value="{DynamicResource VexTableStripeBrush}" />
         </Style>
-        <!-- 选区可读性：默认浅色选区底 + 芯片浅色文字会撞色，选中时强制深色前景。 -->
-        <Style Selector="SelectableTextBlock">
-            <Setter Property="SelectionForegroundBrush" Value="#1D2129" />
-        </Style>
+        <!-- 选区两档令牌化（原型 workspace-chrome.css:15/175）：文档正文选区底/前景统一由
+             StudioPalette 覆盖 Semi 的 TextBlockSelection 资源键承担（accent@12%/18% 叠 paper 底 +
+             fg 前景，明暗随色板），高亮代码块由库绑同两键；此处不再设 SelectableTextBlock 样式，
+             此前深色主题下深底选区配硬编码 #1D2129 近黑文字接近不可读。 -->
 
         <!-- 原型阅读节奏由库的 Simple 排版资源承担（12.2.4 对齐 design 原型实测值）。 -->
         <!-- 原型 .md-table-toolbar 按钮：12px 纯文字，透明描边，hover 出底色与边框。 -->

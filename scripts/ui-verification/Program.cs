@@ -665,6 +665,21 @@ void VerifyPointerRegressions(VerificationVexApp app, Window window, MainWindowV
     Check(longCodeText.Text?.Contains("value120", StringComparison.Ordinal) == true, "Long code uses selectable text style spans without a token control tree");
     Drag(longCodeText.TranslatePoint(new Point(2, 10), window)!.Value, longCodeText.TranslatePoint(new Point(105, 10), window)!.Value);
     Check(live.SelectedText.Contains("var", StringComparison.Ordinal), "Long highlighted code retains first-drag selection");
+    // 选区两档令牌化：文档正文选区底/前景必须随明暗令牌走（原型 document-selection 链），
+    // 深色主题下不再是硬编码近黑前景（此前 #1D2129 深底选区接近不可读）。
+    Application.Current!.TryGetResource("VexDocumentSelectionBrush", window.ActualThemeVariant, out var documentSelection);
+    Application.Current!.TryGetResource("VexEditorForegroundBrush", window.ActualThemeVariant, out var editorForeground);
+    Application.Current!.TryGetResource("VexEditorForegroundBrush", ThemeVariant.Dark, out var darkEditorForeground);
+    var selectionBrushColor = (longCodeText.SelectionBrush as ISolidColorBrush)?.Color;
+    var selectionForeground = longCodeText.SelectionForegroundBrush as ISolidColorBrush;
+    Check(documentSelection is ISolidColorBrush selectionToken
+          && selectionBrushColor == selectionToken.Color
+          && selectionForeground is not null
+          && editorForeground is ISolidColorBrush foregroundToken
+          && selectionForeground.Color == foregroundToken.Color
+          && darkEditorForeground is ISolidColorBrush darkSelectionForeground
+          && darkSelectionForeground.Color != Color.Parse("#1D2129"),
+        $"Document selection brushes come from theme tokens in both themes (selBrush={selectionBrushColor}, selFg={selectionForeground?.Color})");
     Capture(window, "instant-long-code-selection");
     var codeScroll = longCodeText.GetVisualAncestors().OfType<ScrollViewer>().First();
     var horizontal = codeScroll.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ScrollBar>()
