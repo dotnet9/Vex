@@ -973,6 +973,26 @@
     <Setter Property="TextBlock.TextAlignment" Value="Center"/>
     <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
   </Style>
+  <!-- ===== 对话框字段（原型 theme.css / dialogs.css）：.input 一族与侧栏搜索共用 search-shell 焦点配方，
+       .mono 换等宽族；.dlg-path 是代码底的路径块（theme.css:599），此前类名挂了却没有任何样式。 ===== -->
+  <Style Selector="TextBox.mono">
+    <Setter Property="FontFamily" Value="Cascadia Code, Cascadia Mono, SFMono-Regular, Consolas, JetBrains Mono, Microsoft YaHei UI, monospace"/>
+  </Style>
+  <Style Selector="SelectableTextBlock.mono">
+    <Setter Property="FontFamily" Value="Cascadia Code, Cascadia Mono, SFMono-Regular, Consolas, JetBrains Mono, Microsoft YaHei UI, monospace"/>
+  </Style>
+  <Style Selector="Border.dlg-path">
+    <Setter Property="Background" Value="{DynamicResource VexCodeBackgroundBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusMd}"/>
+    <Setter Property="Padding" Value="10,8"/>
+  </Style>
+  <Style Selector="Border.dlg-path SelectableTextBlock">
+    <Setter Property="FontSize" Value="11"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
   <!-- ===== 滚动条（原型 workspace-chrome.css:22-35）：9px 轨道全透明、滑块 2px 内缩成 5px 可见条、
        pill 圆角、muted 28% 常驻 / 48% 悬停。库 Chrome 的 16px 轨道是旧配方，这里按部件整组接管：
        自带 Track/Thumb 模板，不再依赖 Semi 模板的部件名与半透令牌；点轨道翻页由 ScrollTrackPaging 接管。 ===== -->

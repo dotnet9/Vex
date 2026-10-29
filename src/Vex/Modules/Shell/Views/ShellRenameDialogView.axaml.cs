@@ -16,16 +16,20 @@ public partial class ShellRenameDialogView : UserControl
 
     private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        NameTextBox.Focus();
-        if (DataContext is not ShellRenameDialogViewModel viewModel)
+        // 弹层宿主开屏时自己抢一次焦点，挂载当下直接 Focus 会被盖掉；排到布局之后再落 caret 并选中主干。
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            return;
-        }
+            NameTextBox.Focus();
+            if (DataContext is not ShellRenameDialogViewModel viewModel)
+            {
+                return;
+            }
 
-        // 选中文件名主干，扩展名不进选区，直接键入即可整体替换。
-        var dot = viewModel.FileName.LastIndexOf('.');
-        NameTextBox.SelectionStart = 0;
-        NameTextBox.SelectionEnd = dot > 0 ? dot : viewModel.FileName.Length;
+            // 选中文件名主干，扩展名不进选区，直接键入即可整体替换。
+            var dot = viewModel.FileName.LastIndexOf('.');
+            NameTextBox.SelectionStart = 0;
+            NameTextBox.SelectionEnd = dot > 0 ? dot : viewModel.FileName.Length;
+        }, Avalonia.Threading.DispatcherPriority.Loaded);
     }
 
     private void OnConfirmClicked(object? sender, RoutedEventArgs e) => Submit();

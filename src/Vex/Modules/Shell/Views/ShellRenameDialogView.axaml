@@ -16,7 +16,25 @@
             </Border>
             <StackPanel Grid.Row="1" Margin="22">
                 <TextBlock Classes="muted" FontSize="12" Margin="0,14,0,6" Text="{i18n:I18n Vex.VexL.RenameFileNameLabel}"/>
-                <TextBox x:Name="NameTextBox" Height="36" FontSize="12" KeyDown="NameTextBox_OnKeyDown" Text="{Binding FileName, Mode=TwoWay}"/>
+                <!-- 原型 .input mono（theme.css:247 + refinement.css:30）：32 高、14 号等宽、pill 外形，
+                     焦点配方与侧栏搜索/查找条同一套 search-shell（accent 边 + 3px 柔光、悬停混边）。 -->
+                <Grid Classes="search-shell" Height="32">
+                    <Border Classes="search-glow"/>
+                    <Border Classes="search-frame" Padding="10,0">
+                        <TextBox
+                            x:Name="NameTextBox"
+                            Classes="mono"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="14"
+                            KeyDown="NameTextBox_OnKeyDown"
+                            MinHeight="0"
+                            VerticalAlignment="Stretch"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding FileName, Mode=TwoWay}"/>
+                    </Border>
+                    <Border Classes="search-hover"/>
+                </Grid>
                 <TextBlock Margin="0,10,0,0" FontSize="12" Foreground="{DynamicResource VexDangerBrush}" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding Error}" TextWrapping="Wrap"/>
                 <TextBlock Classes="muted" FontSize="11" FontWeight="SemiBold" Margin="0,12,0,4" Text="{i18n:I18n Vex.VexL.RenameFilePathLabel}"/>
                 <Border Classes="dlg-path"><SelectableTextBlock Text="{Binding Path}" TextWrapping="Wrap"/></Border>

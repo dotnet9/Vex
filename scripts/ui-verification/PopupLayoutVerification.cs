@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -156,7 +157,32 @@ internal static class PopupLayoutVerification
         var renameView = window.GetVisualDescendants().OfType<ShellRenameDialogView>().Single();
         var renameCard = renameView.GetVisualDescendants().OfType<Border>().Single(border => border.Classes.Contains("dialog-card"));
         Check(renameCard.Bounds.Width == 480, "Rename retains the unified 480px dialog frame");
-        Check(renameView.FindControl<TextBox>("NameTextBox")!.Bounds.Height == 36, "Rename input keeps the 4pt-grid field height (control-h-lg 36)");
+        // 原型 .input 的 min-height 是写死的 32（theme.css:252），不吃密度档；旧断言的 36 没有原型出处。
+        // 32 量的是外框：search-frame 的 1px 描边吃掉 2px，内层编辑区 30（与查找条 28/26 同一算法）。
+        var renameInput = renameView.FindControl<TextBox>("NameTextBox")!;
+        var renameShell = renameInput.GetVisualAncestors().OfType<Grid>().First(g => g.Classes.Contains("search-shell"));
+        Check(renameShell.Bounds.Height == 32 && renameInput.Bounds.Height == 30,
+            $"Rename input keeps the prototype .input 32px outer box: shell={renameShell.Bounds.Height:0.#}, inner={renameInput.Bounds.Height:0.#}");
+        var renameFrame = renameShell.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("search-frame"));
+        var renameGlow = renameShell.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("search-glow"));
+        Check(renameFrame.CornerRadius == (CornerRadius)Application.Current!.Resources["VexDensityCornerRadiusPill"]!
+            && renameInput.FontFamily.Name.Contains("Cascadia Code", StringComparison.Ordinal),
+            "Rename input is the prototype .input mono: pill frame plus monospace family");
+        // 对话框打开即聚焦文件名（code-behind），柔光应当已经亮起：与侧栏搜索/查找条同一焦点配方。
+        var renameSettle = System.Diagnostics.Stopwatch.StartNew();
+        while (renameGlow.Opacity < 1 && renameSettle.ElapsedMilliseconds < 500) Render();
+        Application.Current!.TryGetResource("VexAccentBrush", window.ActualThemeVariant, out var renameAccentResource);
+        Check(renameGlow.Opacity == 1 && renameGlow.BorderThickness == new Thickness(3)
+            && renameFrame.BorderBrush is ISolidColorBrush frameBrush && frameBrush.Color == ((ISolidColorBrush)renameAccentResource!).Color,
+            $"Focused rename input wears the shared accent ring: glow={renameGlow.Opacity}, frame={renameFrame.BorderBrush}");
+        Check(renameInput.IsFocused && renameInput.SelectionStart == 0
+            && renameInput.SelectionEnd == renameModel.FileName.LastIndexOf('.'),
+            $"Rename opens with the caret in the name box and the stem selected: focused={renameInput.IsFocused}, sel={renameInput.SelectionStart}..{renameInput.SelectionEnd}");
+        var renamePath = renameView.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("dlg-path"));
+        var renamePathText = renamePath.GetVisualDescendants().OfType<SelectableTextBlock>().Single();
+        Check(renamePath.Padding == new Thickness(10, 8) && renamePath.BorderThickness == new Thickness(1)
+            && renamePathText.FontSize == 11 && renamePath.Background is ISolidColorBrush,
+            "Rename path block finally paints the prototype .dlg-path face (code bg, hairline, 10x8 inset, 11px)");
         Capture(renameCard, "rename"); renameModel.Cancel(); Render();
         Check(renamePending.IsCompleted, "Rename cancellation completes without changing the file");
         foreach (var width in new[] { 980, 1280, 980 })
