@@ -1964,6 +1964,10 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
 
 void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel vm)
 {
+    // 排版键防御回退：设置里残留已删除/未注册键时 Definition 不再空引用，回退简约排版。
+    var bogusTypography = new Vex.Core.Models.TypographyOption("Bogus", "DeletedTypographyKey");
+    Check(bogusTypography.Definition.Key == "Simple",
+        "Deleted typography key falls back to the Simple definition");
     var original = vm.Markdown;
     vm.Workbench.ShowInstant(); Pump();
     var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
