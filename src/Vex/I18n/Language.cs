@@ -68,6 +68,11 @@ public static class VexL
     public static readonly string MenuHelp = "Vex.VexL.MenuHelp";
     public static readonly string NewDocument = "Vex.VexL.NewDocument";
     public static readonly string NewWindow = "Vex.VexL.NewWindow";
+    public static readonly string NavSettings = "Vex.VexL.NavSettings";
+    public static readonly string NavFilesCollapse = "Vex.VexL.NavFilesCollapse";
+    public static readonly string NavFilesExpand = "Vex.VexL.NavFilesExpand";
+    public static readonly string NavOutlineCollapse = "Vex.VexL.NavOutlineCollapse";
+    public static readonly string NavOutlineExpand = "Vex.VexL.NavOutlineExpand";
     public static readonly string OpenFile = "Vex.VexL.OpenFile";
     public static readonly string OpenFolder = "Vex.VexL.OpenFolder";
     public static readonly string QuickOpen = "Vex.VexL.QuickOpen";

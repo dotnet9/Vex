@@ -47,16 +47,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     /// <summary>原型 --block-gap：块之间的间隙宽度，分栏把手本体即这段间隙。</summary>
     public const double BlockGap = 4d;
 
-    /// <summary>原型 .pane-collapse：24px 圆钮，距块内边缘 8px。
-    /// 底距不再照抄原型的 18：原生外层网格已经带 10px 块缘外边距，而原型把钮挂在 .workspace 的定位框上，
-    /// 所以按 --vex-axis-col(20) 反推 底距 = 轴线 − 半径 = 8，圆心和状态胶囊、缩放坞严格落在同一根线上。</summary>
-    private const double WorkspaceAxis = 30d,
-        BlockEdge = 10d,
-        ColumnAxis = WorkspaceAxis - BlockEdge,
-        PaneCollapseSize = 24d,
-        PaneCollapseInset = 8d,
-        PaneCollapseBottom = ColumnAxis - PaneCollapseSize / 2;
-
     private const double MinSidebarWidth = 200d;
 
     private const double MaxSidebarWidth = 560d;
@@ -94,22 +84,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             _isSidebarVisible = false;
             _isStatusBarVisible = false;
         }
-        // 折叠钮贴在块角，块宽（含动画每帧）一变就要重算外边距，集中挂一次比在每个通知点补发更可靠。
-        PropertyChanged += (_, e) =>
-        {
-            switch (e.PropertyName)
-            {
-                case nameof(SidebarColumnWidth):
-                case nameof(ShowSidebar):
-                    OnPropertyChanged(nameof(SidebarCollapseMargin));
-                    OnPropertyChanged(nameof(ShowPaneCollapses));
-                    break;
-                case nameof(OutlineColumnWidth):
-                case nameof(ShowOutlineSidebar):
-                    OnPropertyChanged(nameof(OutlineCollapseMargin));
-                    break;
-            }
-        };
     }
 
     public bool IsSidebarVisible
@@ -209,15 +183,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public bool ShowSidebar => IsSidebarVisible && !IsPresentationMode;
     public bool ShowStatusBar => IsStatusBarVisible && !IsPresentationMode;
 
-    /// <summary>原型 .pane-collapse 左钮：展开时落在文件块内侧下角（右缘内缩 8px），折叠时贴画布左窗边。</summary>
-    public Thickness SidebarCollapseMargin => PaneCollapseMargin(ShowSidebar, VisibleSidebarWidth, false);
-
-    /// <summary>原型 .pane-collapse 右钮：展开时落在大纲块内侧下角，折叠时贴画布右窗边。</summary>
-    public Thickness OutlineCollapseMargin => PaneCollapseMargin(ShowOutlineSidebar, VisibleOutlineWidth, true);
-
-    /// <summary>原型 focus/presentation 态：两种模式下块角折叠钮与悬浮胶囊同进退。</summary>
-    public bool ShowPaneCollapses => !IsPresentationMode && !IsFocusMode;
-
     /// <summary>原型 .split-handle：分屏比例限 20%–80%，键盘方向键每次走 5%。</summary>
     public const double SplitRatioMin = .2, SplitRatioMax = .8, SplitRatioStep = .05;
 
@@ -245,13 +210,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             parsed[entry[..split]] = Math.Clamp(value, SplitRatioMin, SplitRatioMax);
         }
         return parsed;
-    }
-
-    // 对齐方向决定让位落在哪一侧：左钮靠左对齐故偏移写在左边距，右钮相反；折叠时归零即贴画布窗边。
-    private static Thickness PaneCollapseMargin(bool open, double columnWidth, bool right)
-    {
-        var inset = open ? Math.Max(0, columnWidth - PaneCollapseInset - PaneCollapseSize) : 0;
-        return right ? new Thickness(0, 0, inset, PaneCollapseBottom) : new Thickness(inset, 0, 0, PaneCollapseBottom);
     }
 
     public bool IsOutlineVisible

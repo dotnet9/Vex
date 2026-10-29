@@ -3,6 +3,10 @@
     <!-- 与 StudioTheme 共用动态颜色令牌，不复制 Semi 的整套主题字典。 -->
     <SolidColorBrush x:Key="VexShellBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
     <SolidColorBrush x:Key="VexPanelBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
+    <!-- 面契约 L1 铬面（原型 vex-chrome = panel）：标题栏/图标栏/侧栏/查找条/状态栏共用。 -->
+    <SolidColorBrush x:Key="VexChromeBrush" Color="{DynamicResource StudioSurfaceColor}" />
+    <!-- 面契约发丝线（原型 vex-hairline = line = border）：铬面与纸面之间只画这一根。 -->
+    <SolidColorBrush x:Key="VexHairlineBrush" Color="{DynamicResource StudioBorderColor}" />
     <!-- 对话框铬色：偏好设置等浮层的标题栏与分类栏底（原型 panel 令牌；比配置区画布底深一档）。 -->
     <SolidColorBrush x:Key="VexDialogChromeBrush" Color="{DynamicResource StudioRaisedColor}" />
     <SolidColorBrush x:Key="VexPanelBorderBrush" Color="{DynamicResource StudioBorderColor}" />

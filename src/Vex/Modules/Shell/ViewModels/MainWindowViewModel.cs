@@ -1055,6 +1055,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     public void WordCount() => _documentUtilities.WordCount(DocumentInfo);
     public void ShowFindPanel() => FindBar.ShowFindPanel();
+    /// <summary>图标栏设置入口：与 Ctrl+, 同一意图通道，偏好/MCP 不再重复挂在文件菜单。</summary>
+    public void ShowPreferences() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.ShowPreferences));
     public void ShowReplacePanel() => FindBar.ShowReplacePanel();
     public void CloseFindPanel() => FindBar.CloseFindPanel();
     public void FindNext() => FindBar.FindNext();

@@ -78,30 +78,35 @@ internal static class PrototypeChromeVerification
             var origin = formatting.TranslatePoint(default, formats);
             Check(origin is not null && origin.Value.X >= 0 && formatting.Bounds.Width <= formats.Bounds.Width,
                 $"Formatting toolbar stays inside the document at {size.Width}: origin={origin?.ToString() ?? "null"} toolbar={formatting.Bounds} host={formats.Bounds}");
-            // 原型 .pane-collapse：折叠钮从状态栏迁到块角——展开贴在所属块内侧下角（内缩 8px），折叠贴画布窗边；
-            // 底距不写死：列内 8 + 列底到窗底 10 = 圆心钉在窗底上方 30 的公共轴线上。
-            var columns = window.FindControl<Grid>("WorkspaceColumns")!;
-            void CheckCollapse(string name, string blockName, bool open, bool left)
+            // 原型 .nav-rail（workspace-chrome.css）：块角折叠钮退役，换成窗口级 56px 图标栏（铬面+右侧发丝线），
+            // 文件/大纲两枚 44×48 开关的选中态跟随侧栏可见性，设置钮沉底。
+            var rail = window.FindControl<Border>("NavRail")!;
+            var railFiles = window.FindControl<ToggleButton>("RailFilesToggle")!;
+            var railOutline = window.FindControl<ToggleButton>("RailOutlineToggle")!;
+            var railSettings = window.FindControl<Button>("RailSettingsButton")!;
+            void CheckRail()
             {
-                var button = window.FindControl<Button>(name)!;
-                var block = window.FindControl<Border>(blockName)!;
-                var spot = button.TranslatePoint(default, columns)!.Value;
-                var expectedX = open
-                    ? block.TranslatePoint(new Point(left ? block.Bounds.Width - 8 - 24 : 8, 0), columns)!.Value.X
-                    : left ? 0 : columns.Bounds.Width - 24;
-                Check(button.Bounds.Width == 24 && button.Bounds.Height == 24
-                    && Math.Abs(spot.X - expectedX) < 1
-                    && Math.Abs(columns.Bounds.Height - spot.Y - 24 - 8) < 1,
-                    $"{name} docks at the {(open ? "block corner" : "window edge")} at {size.Width}: x={spot.X} expected={expectedX} y={spot.Y} bounds={button.Bounds.Size} height={columns.Bounds.Height}");
+                Check(rail.Bounds.Width == 56 && rail.IsVisible
+                    && railFiles.Bounds.Size == new Size(44, 48) && railOutline.Bounds.Size == new Size(44, 48)
+                    && railFiles.IsChecked == vm.Layout.ShowSidebar
+                    && railOutline.IsChecked == vm.Layout.ShowOutlineSidebar
+                    && railSettings.TranslatePoint(default, rail)!.Value.Y > railOutline.TranslatePoint(default, rail)!.Value.Y,
+                    $"Nav rail is a 56px chrome column with 44x48 toggles at {size.Width}: rail={rail.Bounds.Size} files={railFiles.IsChecked}/{vm.Layout.ShowSidebar} outline={railOutline.IsChecked}/{vm.Layout.ShowOutlineSidebar}");
             }
-            CheckCollapse("SidebarCollapseButton", "SidebarGuideTarget", vm.Layout.ShowSidebar, true);
-            CheckCollapse("OutlineCollapseButton", "OutlineGuideTarget", vm.Layout.ShowOutlineSidebar, false);
+            CheckRail();
+            Check(railSettings.Command is not null && window.FindControl<Button>("RailFindButton")!.Command is not null,
+                "Rail settings and find entries route to commands");
             // 列宽逐帧插值：动画没走完就量几何，读到的是起点。
             void Settle() { LayoutSettle.Run(); Render(); }
             vm.Layout.IsOutlineVisible = true; Settle();
-            CheckCollapse("OutlineCollapseButton", "OutlineGuideTarget", vm.Layout.ShowOutlineSidebar, false);
+            CheckRail();
+            railOutline.Command!.Execute(null); Settle();
+            Check(!vm.Layout.IsOutlineVisible, "Rail outline toggle collapses the outline pane");
+            CheckRail();
+            railOutline.Command!.Execute(null); Settle();
+            Check(vm.Layout.IsOutlineVisible, "Rail outline toggle expands the outline pane again");
+            CheckRail();
             vm.Layout.IsOutlineVisible = false; Settle();
-            CheckCollapse("OutlineCollapseButton", "OutlineGuideTarget", vm.Layout.ShowOutlineSidebar, false);
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "workspace-" + size.Width + ".png"));
             vm.Workbench.ShowLayouts = true; Render();
             var gallery = window.FindControl<WorkspaceLayoutGallery>("LayoutGallery")!;
@@ -112,22 +117,30 @@ internal static class PrototypeChromeVerification
             window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Render();
             Check(!vm.Workbench.ShowLayouts && layoutButton.IsFocused, "Escape closes layout panel and returns focus");
         }
-        // 原型 workspace-chrome.css:618：文件列表快捷钮在搜索框下方、列表上方，整行居左并与搜索框左缘同缩进。
+        // 原生文件栏底部条（Typora 口径）：目录名排序钮 + 三点菜单 + 树/列表切换沉在栏底，
+        // 顶边一根发丝线与列表分隔；切换钮选中态跟随 IsTreeView。原型底部条度量对齐在侧栏任务里另行断言。
         window.Width = 1440; window.Height = 1000; Render();
         var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
+        var filesVm = (ShellFilesViewModel)filesView.DataContext!;
         var filterBox = filesView.GetVisualDescendants().OfType<Border>().First(b => Math.Abs(b.Bounds.Height - 32) < 1);
-        var filesToolbar = filesView.FindControl<Border>("FilesToolbar")!;
-        var toolButtons = filesToolbar.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("files-tool")).ToArray();
-        var toolbarTop = filesToolbar.TranslatePoint(default, filesView)!.Value.Y;
-        var filterBottom = filterBox.TranslatePoint(new Point(0, filterBox.Bounds.Height), filesView)!.Value.Y;
-        var filterLeft = filterBox.TranslatePoint(default, filesView)!.Value.X;
-        Check(toolButtons.Length == 3 && toolButtons.All(b => b.Bounds.Height == 26)
-            && Math.Abs(toolbarTop - filterBottom - 2) < 1 && filesToolbar.BorderThickness.Bottom == 0
-            && Math.Abs(toolButtons.Min(b => b.TranslatePoint(default, filesView)!.Value.X) - filterLeft) < 1,
-            $"File tools dock right under the filter as a borderless left-aligned row flush with it: top={toolbarTop:0.#}, filter bottom={filterBottom:0.#}, left={filterLeft:0.#}");
+        var sortFolder = filesView.FindControl<Button>("SortFolderButton")!;
+        var footer = sortFolder.GetVisualAncestors().OfType<Border>().First();
+        var footerTools = footer.GetVisualDescendants().OfType<Control>()
+            .Where(c => (c is Button || c is ToggleButton) && c.Classes.Contains("files-tool")).ToArray();
+        var viewToggle = footerTools.OfType<ToggleButton>().Single();
+        var footerBottom = footer.TranslatePoint(new Point(0, footer.Bounds.Height), filesView)!.Value.Y;
+        Check(footerTools.Length == 3 && footer.BorderThickness == new Thickness(0, 1, 0, 0)
+            && Math.Abs(footerBottom - filesView.Bounds.Height) < 1
+            && viewToggle.IsChecked == filesVm.IsTreeView,
+            $"Files footer docks at the pane bottom with a hairline and three tools: bottom={footerBottom:0.#} pane={filesView.Bounds.Height:0.#} tree={filesVm.IsTreeView}");
+        viewToggle.Command!.Execute(null); Render();
+        Check(!filesVm.IsTreeView && viewToggle.IsChecked == false, "Footer toggle switches to the flat file list");
+        viewToggle.Command!.Execute(null); Render();
+        Check(filesVm.IsTreeView && viewToggle.IsChecked == true, "Footer toggle switches back to the tree");
         var fileTree = filesView.GetVisualDescendants().OfType<TreeView>().First();
-        Check(Math.Abs(fileTree.TranslatePoint(default, filesView)!.Value.Y - (toolbarTop + filesToolbar.Bounds.Height)) < 1,
-            "The list starts where the tool row ends instead of above it");
+        var filterBottom = filterBox.TranslatePoint(new Point(0, filterBox.Bounds.Height), filesView)!.Value.Y;
+        Check(fileTree.TranslatePoint(default, filesView)!.Value.Y >= filterBottom - 1,
+            "The list starts below the filter instead of above it");
         vm.FindBar.ShowFindPanel(); Render();
         var findStrip = window.GetVisualDescendants().OfType<ShellFindBarView>().Single().FindControl<Border>("FindStrip")!;
         var viewColumn = window.FindControl<Grid>("DocumentColumn")!;
@@ -137,15 +150,15 @@ internal static class PrototypeChromeVerification
             && findStrip.CornerRadius.TopLeft == 10 && Math.Abs(findStrip.Bounds.Width - viewColumn.Bounds.Width) < 1
             && Math.Abs(stripOrigin.X) < 1 && Math.Abs(stripOrigin.Y) < 1,
             $"Find bar is the document column's own rounded block: origin={stripOrigin} size={findStrip.Bounds.Size} radius={findStrip.CornerRadius.TopLeft}");
-        // 原型 .find-strip（workspace-chrome.css:578）整条 46px：内距 7×12 + 输入框 30 + 上下 1px 描边，
-        // 动作钮 .btn.sm 26、关闭钮 .icon-button 30×30。三个开关是原型条上没有的实现侧补充，
-        // 度量借原型自己的 .opt-toggle（theme.css:542：28 高、min-width 30）。
+        // 原型 .find-strip（workspace-chrome.css:578）整条 46px；输入框按 4pt 网格归 28
+        // （workbench.css:192 min-height 28），动作钮 .btn.sm 26、关闭钮 .icon-button 30×30。
+        // 三个开关是原型条上没有的实现侧补充，度量借原型自己的 .opt-toggle（theme.css:542：28 高、min-width 30）。
         var findInputs = findStrip.GetVisualDescendants().OfType<TextBox>().Where(t => t.IsVisible).ToArray();
         var findActions = findStrip.GetVisualDescendants().OfType<Control>()
             .Where(c => (c is Button || c is ToggleButton) && c.Classes.Contains("find-action") && c.IsVisible).ToArray();
         var findToggles = findActions.OfType<ToggleButton>().ToArray();
         var findClose = findStrip.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("find-close"));
-        Check(Math.Abs(findStrip.Bounds.Height - 46) < 1 && findInputs.All(t => t.Bounds.Height == 30) && findInputs.Length > 0
+        Check(Math.Abs(findStrip.Bounds.Height - 46) < 1 && findInputs.All(t => t.Bounds.Height == 28) && findInputs.Length > 0
             && findActions.Except(findToggles).All(b => b.Bounds.Height == 26)
             && findToggles.Length == 3 && findToggles.All(t => t.Bounds.Height == 28 && t.Bounds.Width >= 30)
             && findClose.Bounds.Width == 30 && findClose.Bounds.Height == 30,

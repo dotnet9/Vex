@@ -22,6 +22,7 @@ public partial class MainWindow : CodeWFWindow
     private IMcpServerHost? _mcpServerHost;
     private IShellToastPublisher? _toastPublisher;
     private bool _isCloseConfirmed;
+    private ShellWindowLayoutViewModel? _railLayout;
     public WorkspaceViewController WorkspaceViews { get; private set; } = null!;
 
     public MainWindow()
@@ -60,6 +61,15 @@ public partial class MainWindow : CodeWFWindow
         {
             if (DataContext is MainWindowViewModel vm) { vm.Layout.IsCompactWindow = Bounds.Width < 1100; vm.Layout.WorkspaceWidth = Bounds.Width; }
         };
+        // 原型 rail-item 的 title/aria-label 随开合状态切换（收起文件导航/展开文件导航…），语言切换同步重译。
+        DataContextChanged += (_, _) =>
+        {
+            if (_railLayout is not null) _railLayout.PropertyChanged -= RailLayoutChanged;
+            _railLayout = (DataContext as MainWindowViewModel)?.Layout;
+            if (_railLayout is not null) _railLayout.PropertyChanged += RailLayoutChanged;
+            SyncRailTips();
+        };
+        CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += (_, _) => SyncRailTips();
         TitleMenuView.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
         AddHandler(KeyDownEvent, WindowKeyDown, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, WorkbenchPointerPressed, RoutingStrategies.Tunnel);
@@ -193,6 +203,20 @@ public partial class MainWindow : CodeWFWindow
     }
 
     private void TitleMenuView_OnBeginGuideRequested(object? sender, EventArgs e) => BeginOnboardingGuide();
+
+    private void RailLayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ShellWindowLayoutViewModel.ShowSidebar) or nameof(ShellWindowLayoutViewModel.ShowOutlineSidebar)) SyncRailTips();
+    }
+
+    private void SyncRailTips()
+    {
+        if (_railLayout is null) return;
+        // 语言切换可能从工作线程触发（验证夹具即在后台线程改 Culture），控件访问必须回 UI 线程。
+        if (!Dispatcher.UIThread.CheckAccess()) { Dispatcher.UIThread.Post(SyncRailTips); return; }
+        ToolTip.SetTip(RailFilesToggle, DesignSelectionControls.Text(_railLayout.ShowSidebar ? "NavFilesCollapse" : "NavFilesExpand"));
+        ToolTip.SetTip(RailOutlineToggle, DesignSelectionControls.Text(_railLayout.ShowOutlineSidebar ? "NavOutlineCollapse" : "NavOutlineExpand"));
+    }
 
     /// <summary>原型把布局切换入口放在状态栏中央（原第二行工具栏已并入标题栏与状态栏）。</summary>
     public Button LayoutTarget => StatusBarGuideTarget.FindControl<Button>("LayoutButton")!;

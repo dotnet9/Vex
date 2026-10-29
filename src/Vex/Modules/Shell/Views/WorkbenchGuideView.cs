@@ -206,8 +206,8 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
             WorkbenchGuideViewModel.Anchor.Preview => _window.FindControl<Control>("PreviewGuideTarget"),
             WorkbenchGuideViewModel.Anchor.Map => _window.FindControl<Control>("MindMapGuideTarget"),
             WorkbenchGuideViewModel.Anchor.OutlinePanel => _window.FindControl<Control>("OutlineGuideTarget"),
-            // 折叠钮已从状态栏迁到块角（原型 .pane-collapse），引导聚光跟着改指新宿主。
-            WorkbenchGuideViewModel.Anchor.OutlineToggle => _window.FindControl<Control>("OutlineCollapseButton"),
+            // 图标栏（原型 .nav-rail）取代块角折叠钮，引导聚光跟着改指新宿主。
+            WorkbenchGuideViewModel.Anchor.OutlineToggle => _window.FindControl<Control>("RailOutlineToggle"),
             WorkbenchGuideViewModel.Anchor.TypographyButton => _window.FindControl<ShellEditorOptionsView>("EditorOptions")?.FindControl<Button>("TypographyTarget"),
             WorkbenchGuideViewModel.Anchor.LayoutButton => _window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")?.FindControl<Button>("LayoutButton"),
             WorkbenchGuideViewModel.Anchor.LayoutGallery => _window.FindControl<WorkspaceLayoutGallery>("LayoutGallery"),

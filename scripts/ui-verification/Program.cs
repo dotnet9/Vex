@@ -439,14 +439,14 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     vm.Layout.IsSidebarVisible = false;
     Pump();
     Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 0, "Vex sidebar collapses");
-    var sidebarCollapse = window.FindControl<Button>("SidebarCollapseButton")!;
-    Check(!sidebarCollapse.Classes.Contains("on") && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == false,
-        "Block-corner collapse button and persisted state follow collapse");
+    var railFiles = window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailFilesToggle")!;
+    Check(railFiles.IsChecked == false && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == false,
+        "Nav rail files toggle and persisted state follow collapse");
     vm.Layout.IsSidebarVisible = true;
     Pump();
     Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 226, "Vex sidebar reopens");
-    Check(sidebarCollapse.Classes.Contains("on") && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == true,
-        "Block-corner collapse button and persisted state follow reopening");
+    Check(railFiles.IsChecked == true && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == true,
+        "Nav rail files toggle and persisted state follow reopening");
     window.Width = 980;
     window.Height = 640;
     Pump();
@@ -2447,14 +2447,10 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
         "Vex independent Files and Outline panels remain visible under " + theme);
     Check(outline.TranslatePoint(default, window)!.Value.X > files.TranslatePoint(default, window)!.Value.X + files.Bounds.Width,
         "Vex Outline remains to the right of the document under " + theme);
-    // 原型 .pane-collapse：大纲展开时折叠钮贴在块内左下角，主题逐一切换后仍要跟着块宽走。
-    var columnsGrid = window.FindControl<Grid>("WorkspaceColumns")!;
-    var outlineBlock = window.FindControl<Border>("OutlineGuideTarget")!;
-    var outlineCollapse = window.FindControl<Button>("OutlineCollapseButton")!;
-    Check(Math.Abs(outlineCollapse.TranslatePoint(default, columnsGrid)!.Value.X
-            - outlineBlock.TranslatePoint(new Point(8, 0), columnsGrid)!.Value.X) < 1,
-        "Vex outline collapse button docks at the open block's inner corner under " + theme
-        + $" (x={outlineCollapse.TranslatePoint(default, columnsGrid)} margin={outlineCollapse.Margin})");
+    // 原型 .nav-rail：大纲展开时图标栏开关保持选中，主题逐一切换后仍要跟随面板状态。
+    var railOutline = window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailOutlineToggle")!;
+    Check(railOutline.IsChecked == true,
+        "Vex nav rail outline toggle stays checked for the open panel under " + theme);
     var heading = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdH1Border"));
     var shellVm = (MainWindowViewModel)window.DataContext!;
     var type = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(shellVm.Appearance.SelectedTypography?.Key)!;

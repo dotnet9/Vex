@@ -106,7 +106,55 @@
             <shell:ShellWorkflowNotice/>
         </Border>
 
-        <Grid Grid.Row="1" x:Name="WorkspaceColumns" Margin="{Binding Workbench.WorkspaceContentMargin}">
+        <!-- 原型 .nav-rail：窗口级图标栏（文件/大纲/搜索/设置）取代块角折叠钮，铬面全高贴左缘。
+             外层 Grid 承载图标栏，内层 WorkspaceColumns 的列号与拖动逻辑保持不变。 -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+            <Border x:Name="NavRail" Classes="nav-rail" IsVisible="{Binding !Workbench.IsPresenting}">
+                <DockPanel Margin="0,10">
+                    <ToggleButton x:Name="RailFilesToggle" Classes="rail-item" DockPanel.Dock="Top" Margin="0,0,0,4"
+                                  HorizontalAlignment="Center"
+                                  IsChecked="{Binding Layout.ShowSidebar, Mode=OneWay}"
+                                  Command="{Binding Layout.ToggleSidebar}"
+                                  AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFiles}}">
+                        <StackPanel Spacing="4">
+                            <Path Data="{StaticResource WBFolderIcon}" HorizontalAlignment="Center" />
+                            <TextBlock Text="{i18n:I18n {x:Static l:VexL.SidebarFiles}}" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="RailOutlineToggle" Classes="rail-item" DockPanel.Dock="Top" Margin="0,0,0,4"
+                                  HorizontalAlignment="Center"
+                                  IsChecked="{Binding Layout.ShowOutlineSidebar, Mode=OneWay}"
+                                  Command="{Binding Layout.ToggleOutline}"
+                                  AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Outline}}">
+                        <StackPanel Spacing="4">
+                            <Path Data="{StaticResource WBListIcon}" HorizontalAlignment="Center" />
+                            <TextBlock Text="{i18n:I18n {x:Static l:VexL.Outline}}" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <Button x:Name="RailFindButton" Classes="rail-item" DockPanel.Dock="Top"
+                            HorizontalAlignment="Center"
+                            Command="{Binding ShowFindPanel}"
+                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarFind}}"
+                            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarFind}}">
+                        <StackPanel Spacing="4">
+                            <Path Data="{StaticResource WBSearchIcon}" HorizontalAlignment="Center" />
+                            <TextBlock Text="{i18n:I18n {x:Static l:VexL.FindBarFind}}" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="RailSettingsButton" Classes="rail-item" DockPanel.Dock="Bottom"
+                            HorizontalAlignment="Center"
+                            Command="{Binding ShowPreferences}"
+                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.PreferencesTitle}}"
+                            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NavSettings}}">
+                        <StackPanel Spacing="4">
+                            <Path Data="{StaticResource WBGearIcon}" HorizontalAlignment="Center" />
+                            <TextBlock Text="{i18n:I18n {x:Static l:VexL.NavSettings}}" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Panel />
+                </DockPanel>
+            </Border>
+        <Grid Grid.Column="1" x:Name="WorkspaceColumns" Margin="{Binding Workbench.WorkspaceContentMargin}">
             <Grid.ColumnDefinitions>
                 <!-- 列宽是侧栏尺寸的唯一来源，拖动结果直接通过双向绑定进入布局状态。 -->
                 <ColumnDefinition Width="{Binding Layout.SidebarColumnWidth, Mode=TwoWay}"
@@ -171,23 +219,7 @@
                     ClipToBounds="True">
                 <shell:ShellAuxiliaryPanelView/>
             </Border>
-            <!-- 原型 .pane-collapse：跨整行浮在块层之上，横向位置由块宽（含动画每帧）算出的外边距决定。 -->
-            <Button x:Name="SidebarCollapseButton" Grid.ColumnSpan="5" Classes="pane-collapse left"
-                    Classes.on="{Binding Layout.ShowSidebar}" IsVisible="{Binding Layout.ShowPaneCollapses}"
-                    HorizontalAlignment="Left" Margin="{Binding Layout.SidebarCollapseMargin}"
-                    Command="{Binding Layout.ToggleSidebar}"
-                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFiles}}"
-                    ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SidebarFiles}}">
-                <Path />
-            </Button>
-            <Button x:Name="OutlineCollapseButton" Grid.ColumnSpan="5" Classes="pane-collapse right"
-                    Classes.on="{Binding Layout.ShowOutlineSidebar}" IsVisible="{Binding Layout.ShowPaneCollapses}"
-                    HorizontalAlignment="Right" Margin="{Binding Layout.OutlineCollapseMargin}"
-                    Command="{Binding Layout.ToggleOutline}"
-                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Outline}}"
-                    ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Outline}}">
-                <Path />
-            </Button>
+        </Grid>
         </Grid>
 
         <!-- 原型 .vex-deck header：与正常标题条同高（令牌 app-titlebar-height 33px），面板底色 + 1px 底边；
