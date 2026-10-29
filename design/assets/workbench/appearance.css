@@ -173,7 +173,7 @@ body.device-phone .map-appearance-trigger>span{display:none}
   padding: 14px 16px;
   transform: scale(.72);
   transform-origin: top left;
-  font-size: var(--writing-size, 15px);
+  font-size: var(--type-size, 16px);
   line-height: 1.55;
 }
 .type-swatch .type-document h1 {
@@ -211,7 +211,7 @@ body.device-phone .map-appearance-trigger>span{display:none}
   .type-swatch { height: 172px; }
   .type-swatch .type-document {
     transform: scale(.58);
-    font-size: var(--writing-size, 15px);
+    font-size: var(--type-size, 16px);
   }
   .typography-card { padding: 9px; }
 }

@@ -62,7 +62,7 @@
   }
   function rules(key,compact,exporting){
     const t=VexTypes.find(t=>t.key===key)||VexTypes[0];
-    return originalRules(t.key,compact)+'BODY{'+typeProperties(t,exporting)+';--type-size:'+Number(t.rules.match(/--type-size:(\d+)/)?.[1]||16)+'px;'+(compact?'font-size:calc(var(--writing-size,var(--type-size,16px)) * .93)':'')+'}'+
+    return originalRules(t.key,compact)+'BODY{'+typeProperties(t,exporting)+';--type-size:'+Number(t.rules.match(/--type-size:(\d+)/)?.[1]||16)+'px;'+(compact?'font-size:calc(var(--type-size,16px) * var(--vex-writing-scale,1) * .93)':'')+'}'+
       'BODY a{color:var(--typography-accent);text-decoration:underline;text-underline-offset:.18em}BODY blockquote{color:var(--fg);background:color-mix(in srgb,var(--type-decoration) 6%,transparent)}';
   }
   window.VexTypeRules=(key,compact)=>rules(key,compact,false);

@@ -16,7 +16,7 @@
   ];
   window.VexTypeKey = function (key) { return key; };
   var base = [
-    'BODY{font-family:var(--font,system-ui),sans-serif;font-size:var(--writing-size,var(--type-size,16px));line-height:var(--type-leading,1.9);letter-spacing:0;color:var(--fg);margin-left:auto;margin-right:auto}',
+    'BODY{font-family:var(--font,system-ui),sans-serif;font-size:calc(var(--type-size,16px) * var(--vex-writing-scale,1));line-height:var(--type-leading,1.9);letter-spacing:0;color:var(--fg);margin-left:auto;margin-right:auto}',
     'BODY h1{font-size:2em;line-height:1.45;letter-spacing:0;margin:0 0 .55em;padding:0;border:0;background:none;border-radius:0;color:var(--fg);font-weight:700;text-align:left}',
     'BODY h2{font-size:1.4em;line-height:1.6;letter-spacing:0;margin:1.4em 0 .45em;padding:0;border:0;background:none;border-radius:0;color:var(--typography-accent);font-weight:650;text-align:left}',
     'BODY h3{font-size:1.15em;line-height:1.65;letter-spacing:0;margin:1.15em 0 .35em;padding:0;border:0;background:none;color:var(--typography-accent);font-weight:600;text-align:left}',
@@ -27,7 +27,7 @@
   ].join('');
   window.VexTypeRules = function (key, compact) {
     var item = VexTypes.find(function (t) { return t.key === key; }) || VexTypes[0];
-    return base + item.rules + (compact ? 'BODY{font-size:calc(var(--writing-size,var(--type-size,16px)) * .93);line-height:1.65}BODY h2{margin-top:1.3em;margin-bottom:.45em}BODY h3{margin-top:1em;margin-bottom:.35em}' : '');
+    return base + item.rules + (compact ? 'BODY{font-size:calc(var(--type-size,16px) * var(--vex-writing-scale,1) * .93);line-height:1.65}BODY h2{margin-top:1.3em;margin-bottom:.45em}BODY h3{margin-top:1em;margin-bottom:.35em}' : '');
   };
   window.VexTypeExport = function (key, compact) {
     var item = VexTypes.find(function (t) { return t.key === key; }) || VexTypes[0];

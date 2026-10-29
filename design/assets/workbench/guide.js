@@ -49,7 +49,7 @@
           pauseForContinue(g('Act1Step1', '写下这趟旅行的标题，内容会即时呈现。'), ['#instant-pane'], 'area', function () {
             typeText(stage0, 28, function () {
               pauseForContinue(g('Act1Step2', '内容已经写下，先读一遍刚才的结果。'), ['#instant-pane'], 'area', function () {
-                waitForClick(['.workspace-viewswitch [data-view-link="source"]'], g('GateLayoutSource', '点状态栏的「源码」，直接切换视图'), function () {
+                waitForClick(['.workspace-viewswitch [data-view-link="source"]'], g('GateLayoutSource', '点标签行的「源码」，直接切换视图'), function () {
                   later(350, function () {
                     transitionText(stage0, stage1, 10, function () {
                       pauseForContinue(g('Act1Step3', '刚才的文字都在这里——源码里也能继续修改。'), ['#markdown-input'], 'text', function () {
@@ -84,7 +84,7 @@
               clickOutline('第一天行程');
               later(420, function () {
                 pauseForContinue(g('Act2Step2', '大纲点一下，正文就到位。'), ['#instant-pane'], 'area', function () {
-                  waitForClick(['.workspace-viewswitch [data-view-link="map"]'], g('GateLayoutMap', '点状态栏的「导图」，把章节画成图'), function () {
+                  waitForClick(['.workspace-viewswitch [data-view-link="map"]'], g('GateLayoutMap', '点标签行的「导图」，把章节画成图'), function () {
                     later(450, function () {
                       cue(g('Act2Step3', '导图把标题关系画在这里。'), ['#map-viewport'], 'area');
                       later(1500, function () {

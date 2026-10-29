@@ -1,27 +1,16 @@
 ﻿/* == merged from polish.css == */
 /* Vex design polish: coherent theme surfaces, quiet depth, and readable Markdown samples. */
-:root[data-theme][data-palette] {
-  --document-bg: var(--paper);
-  --document-fg: var(--fg);
-  --document-muted: var(--muted);
-  --document-border: var(--border);
-  --document-code: var(--code-bg);
-  --document-link: var(--accent);
-  --document-selection: var(--selection);
-}
 :root {
-  --surface: var(--paper, var(--bg));
-  --document-bg: var(--paper, var(--bg));
-  --menu-bg: var(--surface, var(--panel));
-  --menu-shadow: var(--shadow-pop, 0 12px 32px #18251f20);
+  --menu-bg: var(--vex-pop);
+  --menu-shadow: var(--vex-pop-shadow);
   --title-menu-width: 248px;
-  --elevated: color-mix(in srgb, var(--surface) 88%, var(--panel));
+  --elevated: color-mix(in srgb, var(--paper) 88%, var(--panel));
   --focus-ring: color-mix(in srgb, var(--accent) 76%, transparent);
   --branch-secondary: color-mix(in srgb, var(--accent) 60%, var(--success));
   --branch-tertiary: color-mix(in srgb, var(--accent) 55%, var(--warning));
 }
 /* 弹层（菜单/浮层/对话框）不跟随纸面底色：纸面会随配色偏米黄，弹层要的是干净的 UI 面。 */
-:root[data-theme="light"] { --menu-bg:#ffffff; }
+:root[data-theme="light"] { --vex-pop:#ffffff; }
 :root[data-theme="dark"] { --menu-bg:var(--surface,var(--panel)); }
 ::selection { background: var(--selection); color: var(--fg); }
 :root.theme-switching *,
@@ -47,20 +36,15 @@ html { scrollbar-color: color-mix(in srgb, var(--muted) 34%, transparent) transp
 }
 .app-window {
   color: var(--fg);
-  background: var(--bg);
   border-color: var(--border);
   box-shadow: var(--shadow-window);
 }
 .app-window > .titlebar,
 .pane-head,
-.view-heading,
-.structure-head,
-.sidebar,
-.structure-sidebar,
-.statusbar {
-  color: var(--fg);
-  background: var(--panel);
-  border-color: var(--border);
+.structure-head {
+  color: var(--vex-ink);
+  background: var(--vex-chrome);
+  border-color: var(--vex-hairline);
 }
 .app-window button { color: inherit; }
 .app-window button:focus-visible,
@@ -68,13 +52,8 @@ html { scrollbar-color: color-mix(in srgb, var(--muted) 34%, transparent) transp
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
-.view-switch { background: color-mix(in srgb, var(--panel) 80%, var(--bg)); border-color: var(--border); }
-.view-switch::before { background: var(--surface); box-shadow: 0 1px 3px color-mix(in srgb, var(--fg) 9%, transparent); }
-.view-switch button[aria-selected="true"] { color: var(--accent); }
-.structure-item.on,
-.file-row.on { background: var(--accent-soft); color: var(--accent); }
-.structure-item.on::before,
-.file-row.on::before { background: var(--accent); }
+.structure-item.on { background: var(--accent-soft); color: var(--accent); }
+.structure-item.on::before { background: var(--accent); }
 .menu-flyout {
   min-width: 0;
   width: max-content;
@@ -190,23 +169,10 @@ body > .submenu.menu-compact { padding: 4px; }
 .menu-item.checked::before { color: var(--accent); }
 .menu-sep { margin: 4px; background: var(--border); height: 1px; }
 .submenu { border: 1px solid var(--border); border-radius: var(--vex-radius-md); background: var(--menu-bg); box-shadow: var(--menu-shadow); }
-.win-layer > .dialog,
-.typography-popover,
-.map-appearance-popover,
-.workspace-layout-menu,
-.settings-popover,
-.popover {
-  background: var(--elevated);
-  color: var(--fg);
-  border-color: var(--border);
-  box-shadow: var(--shadow-pop);
-}
 .dialog-content,
 .win-body { color: var(--fg); }
 .app-window :is(.source-pane,.reading-pane,.instant-scroll) { background: var(--document-bg); }
-.app-window :is(.instant-scroll,.reading-scroll,.source-scroll,.document-corner-actions,.document-word-count,.type-swatch) { --selection: var(--document-selection); }
-.app-window :is(.node-inspector,.settings-popover,.file-context-menu),
-.studio-language > div { background: var(--elevated); border-color: var(--border); box-shadow: var(--shadow-pop); }
+.app-window :is(.instant-scroll,.reading-scroll,.source-scroll,.document-word-count,.type-swatch) { --selection: var(--document-selection); }
 .app-window :is(.format-button,.toolbar-button,.icon-button,.edit-options button):hover { background: var(--hover); }
 .app-window :is(.format-button,.toolbar-button,.icon-button):active { background: var(--pressed); }
 input, textarea, select {
@@ -292,11 +258,7 @@ input, textarea, select {
 .save-details{position:absolute;z-index:95;left:16px;top:62px;width:366px;max-width:calc(100% - 32px);max-height:calc(100% - 78px);overflow:auto;padding:18px;background:var(--panel);border:1px solid var(--border);border-radius:var(--vex-radius-lg);box-shadow:var(--shadow-pop);font-size:12px}
 .usability-panel-heading{display:flex;align-items:center;justify-content:space-between}.save-details dl{margin:14px 0}.save-details dt{color:var(--muted);font-size:11px;margin-top:12px}.save-details dd{margin:3px 0 0;line-height:1.6;overflow-wrap:anywhere}.save-details p{color:var(--muted);line-height:1.7;font-size:11px}
 .workspace-layout-button{max-width:210px}.workspace-layout-button #current-layout-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.view-panel.active-view>.view-heading{box-shadow:inset 3px 0 var(--accent)}.view-panel.active-view>.view-heading .view-caption{color:var(--accent)}
-.document-statusbar{height:36px;min-height:36px;display:flex;align-items:center;gap:12px;padding:0 12px;border-top:1px solid var(--border);background:var(--panel);flex:none;z-index:12}
-.document-statusbar .document-corner-actions,.document-statusbar .document-word-count{position:static;background:transparent;color:var(--muted);flex:none}
-.document-statusbar .document-corner-actions button{width:auto;height:28px;padding:4px 7px;display:flex;align-items:center;gap:5px;font-size:11px}.document-statusbar .document-corner-actions svg{width:15px;height:15px}
-.document-statusbar .document-word-count{margin-left:auto;cursor:pointer;font-size:11px;padding:3px 0}.document-statusbar .document-word-count:hover{color:var(--accent)}
+.view-panel.active-view>.view-heading .view-caption{color:var(--vex-on)}
 #view-follow-controls{display:flex;align-items:center;gap:8px;font-size:11px;min-width:0}#view-follow-controls button{font:inherit;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:var(--accent);padding:4px 6px;white-space:nowrap;cursor:pointer}#view-follow-toggle[aria-pressed=true]{background:var(--accent-soft)}#view-follow-driver{color:var(--muted);white-space:nowrap}
 .file-navigation-footer>button:has(>span){display:flex;align-items:center;gap:4px;width:auto;padding:0 6px}.file-navigation-footer .folder-trigger{min-width:0;flex:1}.file-navigation-footer .folder-trigger span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .empty-state button{display:block;margin:10px auto 0;border:0;background:transparent;color:var(--accent);font-size:11px;cursor:pointer}
@@ -313,8 +275,8 @@ input, textarea, select {
 .map-empty-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;flex-direction:column;gap:10px;width:300px;max-width:calc(100% - 32px);padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:var(--vex-radius-md);text-align:center;z-index:8;font-size:13px}.map-empty-hint span{font-size:11px;line-height:1.7;color:var(--muted)}.map-empty-hint button{border:0;background:transparent;color:var(--accent);font-size:12px;cursor:pointer}
 .focus-mode .document-statusbar,.presentation-mode .document-statusbar{display:none}
 
-@media(max-width:1100px){.document-statusbar{gap:6px;padding:0 8px}#view-follow-driver{display:none}.view-switch button{width:62px}.view-switch::before{width:62px}.view-switch[data-active=read]::before{transform:translateX(64px)}.view-switch[data-active=mindmap]::before{transform:translateX(128px)}.workspace-layout-button{max-width:160px}.appearance-choices .studio-palettes{display:grid}}
-@media(max-width:850px){.document-statusbar{height:auto;min-height:36px;flex-wrap:wrap;gap:0 8px}.document-statusbar .document-corner-actions button{padding:4px 5px}.document-label{min-width:80px}.view-switch button{width:54px}.view-switch::before{width:54px}.view-switch[data-active=read]::before{transform:translateX(56px)}.view-switch[data-active=mindmap]::before{transform:translateX(112px)}.workspace-layout-button{max-width:135px}.save-button{min-width:64px}.save-button span{display:inline}#view-follow-controls{gap:2px}.find-strip{flex-wrap:wrap}.find-strip .input{flex:1;max-width:100%}}
+@media(max-width:1100px){.document-statusbar{gap:6px;padding:0 8px}#view-follow-driver{display:none}.workspace-layout-button{max-width:160px}.appearance-choices .studio-palettes{display:grid}}
+@media(max-width:850px){.document-label{min-width:80px}.workspace-layout-button{max-width:135px}.save-button{min-width:64px}.save-button span{display:inline}#view-follow-controls{gap:2px}.find-strip{flex-wrap:wrap}.find-strip .input{flex:1;max-width:100%}}
 
 /* The appearance popup exposes every mode directly, with native radio keys. */
 .appearance-choices .studio-modes{display:block;border:0;background:transparent;margin:0 0 16px;padding:0;min-width:0}
@@ -364,9 +326,6 @@ input, textarea, select {
 .app-window>.titlebar{border-top:0;border-bottom-color:color-mix(in srgb,var(--border) 65%,transparent)}
 .titlebar{position:relative}
 .titlebar-document{flex:none;flex-direction:row;gap:8px;max-width:300px;min-width:0;justify-content:flex-start;align-items:center;white-space:nowrap}
-.document-statusbar{position:relative;align-items:center}
-.document-statusbar #workspace-layout{margin:0 auto}
-
 .document-label{min-width:0;display:flex}.document-title{font-size:var(--fs-caption,12px);font-weight:600}#document-save-status{font-size:var(--fs-caption,12px);color:var(--muted)}
 .work-actions{min-width:0;margin:0;gap:var(--gap-sm,6px);justify-self:end;display:flex}.work-actions .guide-launch{display:none}
 .workspace-layout-button{height:var(--control-h-md,32px);max-width:240px;border-color:transparent;background:transparent;border-radius:var(--vex-radius-sm);font-weight:600;gap:var(--gap-sm,6px)}
@@ -376,39 +335,25 @@ input, textarea, select {
 .workspace-menu-heading strong{font-size:13px}.layout-preset{border-color:transparent;background:transparent;border-radius:var(--vex-radius-sm);gap:3px;padding:10px}
 .layout-preset .layout-name{min-height:16px;font-weight:400}.layout-preset[aria-pressed=true]{border-color:var(--accent);box-shadow:none;background:var(--accent-soft)}
 .layout-miniature{height:44px;border-color:color-mix(in srgb,var(--border) 65%,transparent)}.workspace-layout-menu>p{line-height:1.7}
-.workspace{position:relative}.sidebar{background:color-mix(in srgb,var(--bg) 60%,var(--panel))}.sidebar-inner{background:transparent}
+.workspace{position:relative}.sidebar-inner{background:transparent}
 .sidebar-search{margin:14px 12px 12px}
-.sidebar-search:focus-within{border-color:var(--accent)}.sidebar-search input{font-size:var(--fs-caption,12px)}
-.file-row{height:var(--row-h,30px);margin-bottom:3px;border:0;border-radius:var(--vex-radius-sm);padding:0 var(--pad-md,10px);font-size:var(--fs-body,14px);gap:var(--gap-sm,6px)}
-.file-row.on,.file-row.selected{background:color-mix(in srgb,var(--accent) 10%,var(--bg));color:var(--accent);font-weight:600}
-.file-row.on::before,.file-row.selected::before{display:none}.file-directory>summary{min-height:var(--row-h,30px);font-size:var(--fs-caption,12px);color:var(--muted)}
-.file-excerpts .file-row{height:auto;min-height:58px;padding:10px}.file-navigation-footer{border-top-color:color-mix(in srgb,var(--border) 60%,transparent);background:transparent;min-height:40px}
-.file-navigation-footer button{border-radius:var(--vex-radius-xs)}.sidebar-splitter{background:linear-gradient(90deg,transparent 2px,color-mix(in srgb,var(--border) 65%,transparent) 2px,color-mix(in srgb,var(--border) 65%,transparent) 3px,transparent 3px)}
-.file-navigation-menu button{justify-content:flex-start;font-size:12px}.file-navigation-menu button svg{width:14px;height:14px}.file-navigation-menu button:disabled{opacity:.4;cursor:default}
-.view-panel{border-radius:0;box-shadow:none}.view-heading{height:36px;min-height:36px;background:var(--bg);border-color:color-mix(in srgb,var(--border) 65%,transparent);padding:0 12px}
-.view-panel.active-view>.view-heading{box-shadow:none;background:color-mix(in srgb,var(--accent) 4%,var(--bg))}.view-panel.active-view>.view-heading .view-caption{color:var(--accent)}
+.sidebar-search input{font-size:var(--fs-caption,12px)}
+.sidebar-splitter{background:linear-gradient(90deg,transparent 2px,color-mix(in srgb,var(--border) 65%,transparent) 2px,color-mix(in srgb,var(--border) 65%,transparent) 3px,transparent 3px)}
+.view-panel{border-radius:0;box-shadow:none}.view-heading{height:36px;min-height:36px}
 .view-caption{font-size:12px}.view-caption .ico{width:12px;height:12px}.view-heading>.typography-trigger,.view-heading>.map-appearance-trigger{font-size:12px;background:transparent;border-color:transparent}
-.view-surface[data-single=true]>.view-panel>.view-heading{display:flex;justify-content:flex-end;border:0;background:var(--bg)}
-.view-surface[data-single=true]>.view-panel>.view-heading>.view-caption{display:none}
-.view-surface[data-single=true]>.view-panel[data-document=editor]>.view-heading{display:none}
 .view-surface[data-single=true]>.view-panel[data-document=editor]>#edit-options{padding-right:12px}
 .view-surface[data-single=true]>.view-panel[data-document=editor]>#edit-options>.typography-trigger{display:flex}
-.edit-options{min-height:36px;background:var(--bg);border-color:color-mix(in srgb,var(--border) 60%,transparent);padding:4px 14px;gap:7px}
 .format-toolbar{gap:2px}.format-button{border-color:transparent;background:transparent;box-shadow:none;border-radius:var(--vex-radius-xs);color:var(--muted)}
 .format-button:hover{color:var(--fg);background:var(--hover)}
 #edit-options>.vex-element-entry{width:auto;gap:5px;flex:none;padding:5px 7px;font-size:12px;margin-left:0}#edit-options>.vex-element-entry .ico{width:12px;height:12px}
-.view-panel .reading-scroll .md-body{width:100%;max-width:max(800px,42vw);margin:0 auto;padding:30px 42px 72px}
-.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{max-width:max(820px,50vw);margin:0 auto;padding:24px 48px 80px}
-.view-panel .instant-scroll .md-body{max-width:none;margin:0;padding:26px 36px 72px}.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding:36px clamp(28px,6vw,88px) 80px}
+.view-panel .reading-scroll .md-body{width:100%;max-width:max(800px,42vw);margin:0 auto}
+.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{max-width:max(820px,50vw);margin:0 auto;padding:30px 52px 88px}
+.view-panel .instant-scroll .md-body{max-width:none;margin:0}.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding:36px clamp(28px,6vw,88px) 80px}
 .view-panel .map-toolbar{background:var(--bg);border-color:color-mix(in srgb,var(--border) 65%,transparent)}
 .map-legend{opacity:.75}
-.document-statusbar{height:calc(var(--control-h-md,32px) + 2px);min-height:calc(var(--control-h-md,32px) + 2px);background:var(--bg);border-top-color:color-mix(in srgb,var(--border) 65%,transparent);gap:var(--gap-lg,16px);padding:0 var(--pad-md,10px)}
-.document-statusbar .document-corner-actions{gap:2px}.document-statusbar .document-corner-actions button{font-size:var(--fs-caption,12px);border:0;border-radius:var(--vex-radius-xs);color:var(--muted)}
-.document-statusbar .document-corner-actions button.on,.document-statusbar .document-corner-actions button[aria-pressed=true]{color:var(--accent);background:transparent}
-.document-statusbar .document-word-count{font-size:var(--fs-caption,12px);white-space:nowrap}.document-word-count.on{color:var(--accent)}
 #view-follow-controls{font-size:var(--fs-caption,12px);gap:5px}#view-follow-toggle[aria-pressed=true]{background:transparent;color:var(--muted)}#view-follow-toggle[aria-pressed=true]::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin-right:6px}
 #view-follow-driver{font-size:var(--fs-caption,12px)}#return-to-editing{color:var(--muted)}
-.structure-sidebar{background:var(--bg);border:0}.structure-inner{width:100%!important;min-width:0;background:var(--bg)}
+.structure-sidebar{border:0}.structure-inner{width:100%!important;min-width:0}
 .structure-head{padding:12px 14px 9px;background:transparent;flex:none}.structure-title{font-weight:600;font-size:12px}.structure-toggle .ico{width:14px;height:14px}
 
 
@@ -428,87 +373,46 @@ input, textarea, select {
 #auxiliary-chapter .chapter-actions{gap:5px;margin-bottom:20px}#auxiliary-chapter .chapter-actions button{padding:7px 3px;border-color:color-mix(in srgb,var(--border) 75%,transparent);border-radius:var(--vex-radius-xs)}
 #auxiliary-chapter .inspector-foot{padding:12px 16px;border-top:1px solid var(--border);font-size:12px}
 .focus-mode .structure-sidebar,.focus-mode .structure-splitter{display:none}
-@media(max-width:1100px){.document-label{min-width:0}.workspace-layout-button{max-width:220px}.view-panel .reading-scroll .md-body{padding:24px 26px 60px}.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:24px 36px 70px}.document-statusbar{gap:10px}#view-follow-driver{display:none}}
-@media(max-width:850px){.workspace-layout-button{max-width:200px;font-size:12px;padding:0 7px}.document-title{font-size:13px}#document-save-status{font-size:12px}.document-statusbar{height:auto;min-height:36px;gap:0 8px}#view-follow-controls{gap:2px}.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding:28px}.view-panel .map-toolbar{padding:4px 6px}}
-@media(max-width:900px){.titlebar-document{display:none}.document-label{display:flex}.work-actions .icon-button{display:inline-flex}.workspace-layout-button{max-width:158px}.save-button{min-width:30px;padding:6px}.save-button span{display:none}.document-statusbar .document-corner-actions button{padding:4px}.document-statusbar .document-word-count{font-size:12px}.view-panel .reading-scroll .md-body,.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:20px 24px 60px}}
-/* 快捷工具栏悬浮于内容区之上（不占布局空间）：默认近透明（0.01），
-   悬浮或键盘聚焦即显现，移开 2 秒后淡出。覆盖：编辑器格式工具栏、
-   各面板标题行（排版入口）、导图快捷工具栏（含导图样式入口）。 */
+@media(max-width:1100px){.document-label{min-width:0}.workspace-layout-button{max-width:220px}.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:24px 36px 70px}.document-statusbar{gap:10px}#view-follow-driver{display:none}}
+@media(max-width:850px){.workspace-layout-button{max-width:200px;font-size:12px;padding:0 7px}.document-title{font-size:13px}#document-save-status{font-size:12px}#view-follow-controls{gap:2px}.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding:28px}.view-panel .map-toolbar{padding:4px 6px}}
+@media(max-width:900px){.titlebar-document{display:none}.document-label{display:flex}.work-actions .icon-button{display:inline-flex}.workspace-layout-button{max-width:158px}.save-button{min-width:30px;padding:6px}.save-button span{display:none}.document-statusbar .document-word-count{font-size:12px}.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:20px 24px 60px}}
+/* 工具行默认钉住为普通上下文行；取消钉住（data-toolbar-pin=false）才悬浮自动隐藏。
+   这里只保留悬浮态需要的定位上下文。 */
 .view-panel{position:relative}
-#edit-options,.view-panel .view-heading,.map-pane .map-toolbar{position:absolute;top:0;left:0;right:0;z-index:6;opacity:.01;transition:opacity var(--vex-duration) var(--vex-ease) 2s}
-#edit-options:hover,.view-panel .view-heading:hover,.map-pane .map-toolbar:hover,
-#edit-options:focus-within,.view-panel .view-heading:focus-within,.map-pane .map-toolbar:focus-within{opacity:1;transition-delay:0s}
-/* 编辑器：排版入口并入格式工具栏同一悬浮条，空标题行隐藏 */
+/* 编辑器：排版入口并入格式工具栏同一行，空标题行隐藏 */
 .view-panel[data-document="editor"] .view-heading{display:none}
 
 /* ===== 质感 pass（规则 §15 装饰语言基线）：边框退位 · 圆角升档 · 字重层级 · 强调活力 ===== */
-/* 画布全白：侧栏与内容同底，层级交给表面色阶与轻阴影，不再依赖 1px 边框。 */
-.sidebar{background:var(--bg)}
 /* 搜索框：与全站输入框同一配方——透明底 + 控件灰描边 + 胶囊圆角，聚焦转强调色。 */
-.sidebar-search{background:transparent;border:1px solid var(--control-border);border-radius:var(--vex-radius-pill);padding:5px 12px;transition:border-color var(--vex-fast)}
-.sidebar-search:focus-within{border-color:var(--accent)}
+.sidebar-search{background:transparent;border:1px solid var(--control-border);border-radius:var(--vex-radius-pill);padding:5px 12px;transition:border-color var(--vex-fast),box-shadow var(--vex-fast)}
 .sidebar-search .clear-search{border:0;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;width:18px;height:18px;border-radius:var(--vex-radius-xs);padding:0}
 .sidebar-search .clear-search:hover{color:var(--fg);background:var(--hover)}
 /* 查找计数：轻量药丸。 */
 #find-count{font-size:11px;color:var(--muted);background:var(--panel);border-radius:var(--vex-radius-lg);padding:3px 9px}
-/* 卡片：去边框，灰阶表面 + 轻阴影分层；选中用 accent 环。 */
-#vex-appearance-menu .studio-palettes button:not(.palette-add){border-color:transparent;background:var(--panel);box-shadow:0 1px 5px color-mix(in srgb,var(--fg) 5%,transparent);border-radius:var(--vex-radius-md)}
-#vex-appearance-menu .studio-palettes button:hover:not(.palette-add){border-color:transparent;background:var(--hover);box-shadow:0 2px 9px color-mix(in srgb,var(--fg) 7%,transparent)}
-#vex-appearance-menu .studio-palettes button.on,#vex-appearance-menu .studio-palettes button[aria-pressed="true"]{border-color:transparent;background:var(--panel);box-shadow:0 0 0 1.5px var(--accent)}
-#typography-panel .typography-card{border:1px solid color-mix(in srgb,var(--fg) 14%,var(--panel));background:var(--panel);border-radius:var(--vex-radius-lg);box-shadow:0 1px 5px color-mix(in srgb,var(--fg) 5%,transparent)}
-#typography-panel .typography-card:hover{box-shadow:0 2px 9px color-mix(in srgb,var(--fg) 7%,transparent)}
-#typography-panel .typography-card[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent);background:var(--panel)}
-#typography-panel .typography-add{border-radius:var(--vex-radius-lg)}
-/* 对话框与弹层：去边框，圆角升档。 */
-.vex-settings{border:0;border-radius:var(--vex-radius-xl)}
-.vex-export-dialog{border:0;border-radius:var(--vex-radius-xl)}
-.appearance-choices{border:1px solid var(--border);border-radius:var(--vex-radius-xl)}
-.typography-popover{border:1px solid var(--border);border-radius:var(--vex-radius-xl)}
-.menu-flyout > .flyout{border:1px solid var(--border);border-radius:var(--vex-radius-lg)}
-.workspace-layout-menu{border:1px solid var(--border);border-radius:var(--vex-radius-xl)}
-/* 控件圆角与主按钮渐变（全界面唯一渐变，§15）。 */
-.vex-button{border-radius:var(--vex-radius-md)}
-.btn{border-radius:var(--vex-radius-md)}
+/* 弹层内卡片不再自带投影：面与描边归契约，选中/悬停只用强调色状态。 */
+#vex-appearance-menu .studio-palettes button.on,#vex-appearance-menu .studio-palettes button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent)}
+#typography-panel .typography-card[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+/* 控件圆角与主按钮强调色（全界面唯一实心强调面，§15）。 */
 .icon-button{border-radius:var(--vex-radius-sm)}
-.vex-button.primary,.btn.primary{background:var(--action-gradient,var(--accent));border-color:transparent}
+.vex-button.primary,.btn.primary{background:var(--accent);border-color:transparent}
 /* 空状态：给一点品牌活力。 */
 
 /* 标题字重层级（§15 字重三档 400/550/650）。 */
 .vex-settings-title h2{font-weight:600}
 
 /* ===== 年轻化：胶囊控件 · 大圆角 · 图标品牌色块 ===== */
-/* 状态栏正中：源码 / 阅读 / 导图 / 更多 四段直选（iOS 分段样式）。 */
-.workspace-viewswitch{margin:0 auto}
-.workspace-viewswitch button{min-height:calc(26px * var(--seg-scale));padding:calc(3px * var(--seg-scale)) 14px;font-size:var(--fs-caption,12px)}
-.workspace-viewswitch .ico{width:12px;height:12px}
 /* 全胶囊按钮与输入框。 */
 .btn,.vex-button{border-radius:var(--vex-radius-pill);min-height:32px;padding:5px 16px}
 .btn.sm{min-height:28px;padding:2px 12px}
-/* 弹层与对话框圆角再升档。 */
-.vex-settings,.vex-export-dialog,.appearance-choices,.typography-popover,.workspace-layout-menu{border-radius:var(--vex-radius-popover)}
-.menu-flyout > .flyout{border-radius:var(--vex-radius-flyout)}
-.typography-card,.typography-add{border-radius:var(--vex-radius-xl)}
 /* 图标悬停：品牌色块代替灰底。 */
 .icon-button:hover,.format-button:hover{background:var(--accent-soft);color:var(--accent)}
-.document-statusbar .document-corner-actions button:hover{color:var(--accent);background:var(--accent-soft)}
 
-/* ===== 圆角补全：国际化菜单 / 导图样式弹层与其余弹层统一 ===== */
-.map-appearance-popover{border:0;border-radius:var(--vex-radius-popover)}
-.studio-language > div{border:0;border-radius:var(--vex-radius-flyout)}
-
-/* ===== 年轻化续：字号与间距升档 · 空状态品牌化 ===== */
-.content-area .md-body{font-size:15px}
-.content-area .md-body h1{font-size:28px}
-.view-panel .reading-scroll .md-body{padding:36px 48px 84px}
-.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:30px 52px 88px}
-.view-panel .instant-scroll .md-body{padding:30px 40px 76px}
-.vex-settings-content{padding:26px 24px}
-.appearance-choices{padding:18px}
-#typography-panel{padding:18px 18px 6px}
-/* 空状态：品牌渐变图标块与渐变圆点。 */
-
-.empty-state{display:flex;align-items:center;gap:8px}
-.empty-state::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--action-gradient,var(--accent))}
+/* ===== 空状态：强调色圆点 ===== */
+/* 空状态：单句提示给一点品牌活力；带操作按钮的文件列表空态走段落排版，按钮换行跟随。 */
+#file-empty.empty-state,.outline-list .empty-state,#markdown-preview .empty-state{display:flex;align-items:center;justify-content:center;gap:8px}
+#file-empty.empty-state::before,.outline-list .empty-state::before,#markdown-preview .empty-state::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent)}
+#file-list .empty-state{display:block;padding:20px 16px;line-height:1.7}
+#file-list .empty-state button{display:inline-block;margin:8px 14px 0 0}
 
 /* ===== 语言菜单名片化 + 章节空状态点阵插画 ===== */
 .studio-language > div{padding:6px}
@@ -523,12 +427,6 @@ input, textarea, select {
 
 /* ===== 悬浮工具条"钉住"：默认钉住为普通工具行；取消钉住回到悬浮自动隐藏 ===== */
 #edit-options,.view-panel[data-document=editor] .view-heading,.view-panel[data-document=render] .view-heading,.map-pane .map-toolbar{position:static;opacity:1;transition:none;gap:6px}
-:root[data-pin-editor=false] #edit-options{position:absolute;top:0;left:0;right:0;opacity:.01;transition:opacity var(--vex-duration) var(--vex-ease) 2s}
-:root[data-pin-render=false] .view-panel[data-document=render] .view-heading{position:absolute;top:0;left:0;right:0;opacity:.01;transition:opacity var(--vex-duration) var(--vex-ease) 2s}
-:root[data-pin-map=false] .map-pane .map-toolbar{position:absolute;top:0;left:0;right:0;opacity:.01;transition:opacity var(--vex-duration) var(--vex-ease) 2s}
-:root[data-pin-editor=false] #edit-options:hover,:root[data-pin-editor=false] #edit-options:focus-within{opacity:1;transition-delay:0s}
-:root[data-pin-render=false] .view-panel[data-document=render] .view-heading:hover,:root[data-pin-render=false] .view-panel[data-document=render] .view-heading:focus-within{opacity:1;transition-delay:0s}
-:root[data-pin-map=false] .map-pane .map-toolbar:hover,:root[data-pin-map=false] .map-pane .map-toolbar:focus-within{opacity:1;transition-delay:0s}
 .view-panel .view-heading{padding:0 10px}
 .map-pane .map-toolbar{padding:6px 10px}
 :root[data-toolbar-pin="false"] #edit-options,:root[data-toolbar-pin="false"] .view-panel .view-heading,:root[data-toolbar-pin="false"] .map-pane .map-toolbar{position:absolute;top:0;left:0;right:0;opacity:.01;transition:opacity var(--vex-duration) var(--vex-ease) 2s}
@@ -542,8 +440,8 @@ input, textarea, select {
 /* 演示模式 A−/A+：deck 缩放必须压过 md-body 的全局字号规则。 */
 .vex-deck article.md-body{font-size:calc(15px * var(--deck-scale,1.5));zoom:1}
 /* 引导高亮环：2px 品牌实线圆角框，多按钮同框时各自成框而非细线。 */
-.tour-focus{border:2px solid var(--accent)!important;border-radius:var(--vex-radius-md)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)!important}
-.tour-focus[data-kind="text"]{border:0!important;border-left:3px solid var(--accent)!important;border-radius:0!important;box-shadow:none!important}
+.tour-focus{border:2px solid var(--accent);border-radius:var(--vex-radius-md);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+.tour-focus[data-kind="text"]{border:0;border-left:3px solid var(--accent);border-radius:0;box-shadow:none}
 /* 图钉双态：钉住=竖直实心图钉；悬浮=斜置空心图钉。 */
 .toolbar-pin .pin-off{display:none}
 .toolbar-pin .pin-on .pin-head{fill:currentColor;stroke:none}
@@ -557,27 +455,51 @@ input, textarea, select {
 .story-tour .tour-continue { color:var(--accent-fg,var(--on-accent,#fff)); background:var(--accent); border:1px solid var(--accent); display:inline-flex; align-items:center; }
 .story-tour .tour-continue:hover { filter:brightness(1.08); }
 
-/* ===== 块状工作区：灰画布 · 圆角描边白块 · 外缘 10px／块间 4px · 悬浮分段条 ===== */
-/* 底部悬浮件同轴：中心线钉在左折叠钮的圆心（钮底距 .workspace 底 18px + 半径 12px = 30px），故 --vex-axis:30px。
- * 胶囊在 .workspace-main 里（底比 .workspace 高一个 --block-edge），坞在视图块里（再高 1px 描边），
- * 所以先按定位父级折算轴线到本容器底的距离，再用 translateY(50%) 回退自身半高——四件中心严格共线，密度怎么缩放都不失配。 */
-:root{--block-edge:10px;--block-gap:4px;--block-hit:12px;--block-radius:var(--vex-radius-lg);--block-bg:var(--surface);--canvas-bg:color-mix(in srgb,var(--fg) 5%,var(--paper));--vex-axis:30px;--vex-axis-col:calc(var(--vex-axis) - var(--block-edge));--vex-axis-view:calc(var(--vex-axis-col) - 1px);--vex-pill-h:calc(26px * var(--seg-scale) + var(--pad-sm,6px) + 10px)}
-:root[data-theme=dark]{--canvas-bg:var(--bg)}
-.app-window{background:var(--canvas-bg)}
-.app-window>.titlebar{background:var(--block-bg);border-bottom-color:color-mix(in srgb,var(--border) 55%,transparent)}
-.workspace{position:relative;gap:0;padding:var(--block-edge)}
-/* 同一套块语言：白卡 + 细描边 + 圆角 + 极浅投影；主区只当容器，视图本身才是块。 */
-.sidebar,.structure-sidebar,.view-panel,.find-strip{border:1px solid var(--border);border-radius:var(--block-radius);background:var(--block-bg);box-shadow:0 1px 3px color-mix(in srgb,var(--fg) 5%,transparent)}
-.workspace-main{position:relative;background:transparent;border:0;box-shadow:none}
+/* ===== 表面契约落地：两面一线 ===== */
+/* 块状工作区那一轮把标题栏、侧栏、正文、状态栏刷成了同一张纸（实测四者背景完全相同），
+ * 调色板为窗口家具备好的 --panel / --sidebar / --statusbar-bg 因此大面积空转。
+ * 这里把角色交还 surface.css：铬归铬、纸归纸，中间只画一根发丝线，投影只留给浮层。 */
+.app-window{background:var(--vex-sheet)}
+.app-window>.titlebar{background:var(--vex-chrome);border-bottom-color:var(--vex-hairline)}
+.workspace{position:relative;gap:0;padding:0}
+/* 图标栏：铬面、全高、贴左缘。active 只用一枚浅色圆角块托住图标＋短标签，不画下划线也不加描边。 */
+.nav-rail{flex:none;width:var(--vex-rail-w);display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;background:var(--vex-chrome);border-right:1px solid var(--vex-hairline)}
+.rail-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:44px;height:48px;padding:0;border:0;border-radius:var(--vex-r-ctl);background:transparent;color:var(--vex-ink-2);font-size:11px;line-height:1;cursor:pointer;transition:background var(--vex-fast),color var(--vex-fast)}
+.rail-item .ico{width:18px;height:18px}
+.rail-item:hover{background:var(--vex-hover);color:var(--vex-ink)}
+.rail-item.on,.rail-item[aria-pressed=true]{background:var(--vex-on-soft);color:var(--vex-on)}
+.rail-bottom{margin-top:auto}
+/* 面板头：左右两栏同一档口径，标题落在搜索框之上。 */
+.panel-head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:12px 14px 9px}
+.panel-title{font-weight:600;font-size:var(--fs-caption,12px);color:var(--vex-ink)}
+/* L1 两张面：导航侧栏/查找条是铬面，文档视口是纸面。 */
+.sidebar,.structure-sidebar,.find-strip{border-radius:0;box-shadow:none;background:var(--vex-chrome)}
+.view-panel{border-radius:0;box-shadow:none;background:var(--vex-sheet)}
+.sidebar{border:0;border-right:1px solid var(--vex-hairline)}
+.structure-sidebar{border:0;border-left:1px solid var(--vex-hairline)}
+.workspace-main{position:relative;background:var(--vex-sheet);border:0;box-shadow:none}
 .content-area,.view-surface{background:transparent}
-.sidebar.closed,.structure-sidebar.collapsed{border-width:0;box-shadow:none}
-/* 块内不再另铺底色：内容直接落在白卡上。 */
-.edit-options,.view-panel .view-heading,.view-panel .map-toolbar,.structure-inner{background:transparent}
-/* 查找条独立成块，与下方视图块之间留同一条间隙。 */
-.find-strip{padding:7px 12px;gap:6px;margin:0 0 var(--block-gap)}
-/* 分栏把手：把手本体就是 4px 间隙，透明伪元素把命中区扩到 12px。 */
-.sidebar-splitter,.structure-splitter{width:var(--block-gap);flex:none;margin:0;background:transparent;position:relative;z-index:9;cursor:col-resize}
-.sidebar-splitter::before,.structure-splitter::before{content:'';position:absolute;top:0;bottom:0;left:calc((var(--block-gap) - var(--block-hit)) / 2);right:calc((var(--block-gap) - var(--block-hit)) / 2)}
+/* 标签行占内容面第一行，画布区改纵向排布并吃掉剩余高度（base 的 height:100% 会顶出栏外）。 */
+.content-area{flex-direction:column}
+.view-surface{height:auto}
+/* 区域内不再另铺底色：内容直接落在纸上；pane 上下文行属铬面，与标签行同档、同高（36px），分屏时两侧发丝线对齐。 */
+.edit-options,.view-panel .view-heading,.view-panel .map-toolbar{background:var(--vex-chrome);border-bottom:1px solid var(--vex-hairline)}
+#edit-options{height:36px;min-height:36px;padding:0 10px}
+#edit-options .format-button{width:28px;height:28px;padding:0}
+.structure-inner{background:transparent}
+/* 分屏时列宽可能很窄：正文留白改按列宽百分比收，避免固定边距吃掉半列。 */
+.view-surface[data-single=false] .reading-scroll .md-body{padding:24px clamp(14px,8%,32px) 56px}
+.view-surface[data-single=false] .instant-scroll .md-body{padding:22px clamp(14px,7%,30px) 56px}
+/* 导图工具行单行横滚（滚动条隐藏），不再换行成两档高度，与邻 pane 工具行对齐。 */
+.view-panel .map-toolbar{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;height:36px;min-height:36px;scrollbar-width:none}
+.view-panel .map-toolbar::-webkit-scrollbar{display:none}
+.view-panel .map-toolbar>*{flex:none}
+/* 导图 pane 的标题与工具行标题重复，整行退役；单阅读视图的空标题行由 JS 打 hidden。 */
+.view-panel[data-document=map]>.view-heading,.view-heading[hidden]{display:none}
+.find-strip{padding:7px 12px;gap:6px;margin:0;border-bottom:1px solid var(--vex-hairline)}
+/* 分栏把手压在面板的发丝线上：本体透明不占宽，命中区向两侧各扩 5px。 */
+.sidebar-splitter,.structure-splitter{width:1px;flex:none;margin:0;background:transparent;position:relative;z-index:9;cursor:col-resize}
+.sidebar-splitter::before,.structure-splitter::before{content:'';position:absolute;top:0;bottom:0;left:-5px;right:-5px}
 .sidebar-splitter::after,.structure-splitter::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:3px;height:36px;border-radius:var(--vex-radius-pill);background:color-mix(in srgb,var(--fg) 24%,transparent);opacity:0;transition:opacity var(--vex-fast)}
 .sidebar-splitter:hover::after,.sidebar-splitter:focus-visible::after,.sidebar-resizing .sidebar-splitter::after,
 .structure-splitter:hover::after,.structure-splitter:focus-visible::after,.structure-resizing .structure-splitter::after{opacity:1}
@@ -593,60 +515,64 @@ input, textarea, select {
 
 .split-handle:hover::after,.split-handle:focus-visible::after,.split-resizing .split-handle::after{opacity:1}
 .split-resizing{user-select:none}
-/* 状态栏退役：源码/阅读/导图分段改为悬浮胶囊，右端挂字数。 */
-.workspace-main{position:relative}
-.workspace-main .document-statusbar{position:absolute;left:50%;bottom:var(--vex-axis-col);transform:translate(-50%,50%);z-index:34;display:flex;flex-wrap:nowrap;align-items:center;width:auto;max-width:calc(100% - 28px);height:auto;min-height:0;gap:4px;padding:4px 6px;border:1px solid var(--border);border-radius:var(--vex-radius-pill);background:var(--block-bg);box-shadow:var(--pop-shadow,0 10px 30px #00000022)}
-.workspace-main .document-statusbar button{white-space:nowrap}
-.workspace-main .document-statusbar .workspace-viewswitch{flex:none}
-.workspace-main .document-statusbar .workspace-viewswitch,.workspace-main .document-statusbar #workspace-layout{margin:0}
-.workspace-main .document-statusbar .document-word-count{margin-left:0}
-/* 正文底部留出悬浮胶囊的高度，最后一行不被遮住。 */
-.view-panel .reading-scroll .md-body,.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding-bottom:104px}
-.view-panel .instant-scroll .md-body,.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding-bottom:104px}
-.source-scroll{padding-bottom:56px}
-/* 折叠按钮：从状态栏迁到块角（展开在块内、折叠贴窗边），圆形带箭头，位置由 JS 按块宽算出。
- * 竖向不动——它就是底部同轴的那把基准尺：底距 .workspace 底 = 轴线 30px - 半径 12px。 */
-.pane-collapse{position:absolute;bottom:calc(var(--vex-axis) - 12px);z-index:36;width:24px;height:24px;display:grid;place-items:center;padding:0;margin:0;line-height:0;border:0;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;transition:color var(--vex-fast),background var(--vex-fast),border-color var(--vex-fast)}
-.pane-collapse:hover{color:var(--fg)}
-/* Typora 口径：折叠态为小号空心圆（箭头隐去），悬浮时空心圆内套一颗更小的实心圆。 */
-.pane-collapse:not(.on){width:12px;height:12px;border:1.5px solid var(--muted)}
-.pane-collapse:not(.on) .ico{opacity:0}
-.pane-collapse:not(.on):hover{border-color:var(--muted);background:transparent}
-.pane-collapse:not(.on):hover::after{content:'';position:absolute;inset:0;margin:auto;width:5px;height:5px;border-radius:50%;background:var(--muted)}
-.pane-collapse span{display:none}
-.pane-collapse .ico{width:12px;height:12px;display:block;transition:transform var(--vex-duration) var(--vex-ease)}
-/* 箭头指向面板收起的方向：左栏展开朝左、收起朝右；右栏相反。 */
-.pane-collapse-left.on .ico{transform:scaleX(-1)}
-.pane-collapse-right:not(.on) .ico{transform:scaleX(-1)}
-.pane-collapse[hidden]{display:none}
+/* 视图标签行：工作区级切换从底栏上移到内容面顶端，下划线激活态；布局选择器靠右。 */
+.workspace-tabrow{position:relative;flex:none;display:flex;align-items:stretch;gap:2px;height:36px;padding:0 8px;background:var(--vex-chrome);border-bottom:1px solid var(--vex-hairline)}
+.workspace-tabs{display:flex;align-items:stretch;gap:2px}
+.workspace-tabs>button{position:relative;display:flex;align-items:center;gap:6px;padding:0 10px;border:0;background:transparent;color:var(--vex-ink-2);font-size:var(--fs-caption,12px);cursor:pointer}
+.workspace-tabs>button .ico{width:14px;height:14px}
+.workspace-tabs>button:hover{color:var(--vex-ink)}
+.workspace-tabs>button[aria-pressed=true]{color:var(--vex-on)}
+.workspace-tabs>button[aria-pressed=true]::after{content:'';position:absolute;left:8px;right:8px;bottom:0;height:2px;border-radius:1px;background:var(--vex-on)}
+.workspace-viewswitch-more{margin-left:auto;align-self:center;display:flex;align-items:center;gap:4px;height:26px;padding:0 8px;border:0;border-radius:var(--vex-r-ctl);background:transparent;color:var(--vex-ink-2);font-size:var(--fs-caption,12px);cursor:pointer}
+.workspace-viewswitch-more:hover{background:var(--vex-hover);color:var(--vex-ink)}
+.workspace-viewswitch-more[aria-pressed=true]{color:var(--vex-on);background:var(--vex-on-soft)}
+.workspace-viewswitch-more .ico{width:12px;height:12px}
+/* 单阅读视图的排版入口并进标签行：靠右贴着布局选择器，不再单独占一行。 */
+.workspace-tabrow .typography-trigger{align-self:center;margin-left:auto;height:26px}
+.workspace-tabrow .typography-trigger ~ .workspace-viewswitch-more{margin-left:2px}
+.workspace-tabrow .toolbar-pin{display:none}
+/* 布局菜单改从标签行右端向下开（原先从底栏向上开）。 */
+.workspace-tabrow .workspace-layout-menu{top:calc(100% + 6px);bottom:auto;left:auto;right:8px;transform:none}
+.presentation-mode .workspace-tabrow{display:none}
+/* 整窗底栏（唯一一处状态栏定义）：铬面 + 顶上一根发丝线，右端缩放槽与字数。 */
+.window-body>.document-statusbar{position:relative;z-index:12;flex:none;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--gap-md,10px);width:auto;max-width:none;height:var(--vex-status-h);min-height:var(--vex-status-h);padding:0 var(--pad-lg,14px);border:0;border-top:1px solid var(--vex-hairline);border-radius:0;background:var(--vex-chrome);box-shadow:none;color:var(--vex-ink-2);font-size:var(--fs-caption,12px)}
+.window-body>.document-statusbar button{border:0;background:transparent;color:var(--vex-ink-2);font-size:var(--fs-caption,12px);white-space:nowrap}
+.window-body>.document-statusbar button:hover{color:var(--vex-on)}
+.window-body>.document-statusbar .document-word-count{position:static;right:auto;bottom:auto;margin-left:0;height:auto;min-height:0;padding:0 4px;border:0;border-radius:var(--vex-r-ctl);background:transparent;color:var(--vex-ink-2);cursor:pointer}
+.window-body>.document-statusbar .document-word-count:hover{color:var(--vex-on);background:var(--vex-hover)}
+.window-body>.document-statusbar .document-word-count.on{color:var(--vex-on)}
+/* 缩放槽：坞进底栏后脱掉浮层外壳（描边/投影/胶囊底），只留拖动条与还原钮；百分比气泡仍向上弹。 */
+.statusbar-zoom{display:flex;align-items:center;margin-left:auto}
+.statusbar-zoom .vex-zoomdock{position:static;height:calc(var(--vex-status-h) - 8px);padding:0 4px;border:0;border-radius:var(--vex-r-ctl);background:transparent;box-shadow:none;color:var(--vex-ink-2)}
+.statusbar-zoom .vex-zoomdock[hidden]{display:none}
+.statusbar-zoom .zoom-range{width:72px}
+.statusbar-zoom .zoom-reset{height:18px;padding:0 5px}
+.statusbar-zoom .zoom-reset::before{display:none}
 /* 文件列表快捷钮移到搜索框下方、列表上方，整行居左并与搜索框左缘同缩进。 */
-#files-pane .files-toolbar{flex:none;justify-content:flex-start;padding:0 12px 8px;margin-top:-6px}
-/* 专注/演示态与状态栏胶囊同进退。 */
-.focus-mode .pane-collapse,.presentation-mode .pane-collapse{display:none}
-/* 右下角缩放坞（正文与导图共用 .vex-zoomdock 配方，见 prototype.css）：宿主只补定位父级与避让。 */
-.reading-pane,.map-viewport{position:relative}
-/* 坞上同一根轴线：底距视图块底 = --vex-axis-view，再用 translateY(50%) 把圆心拉回线上，三档密度都不偏。 */
-.app-window .reading-zoom,.app-window .map-controls{bottom:var(--vex-axis-view);transform:translateY(50%)}
-/* 右栏收起时折叠钮贴到窗边，左边正好压在坞原来的右半上（钮左边 = 块右内缘 - 23px）：坞让开一枚钮宽再加 8px 缝。 */
-.app-window:has(.structure-sidebar.collapsed) .reading-zoom,
-.app-window:has(.structure-sidebar.collapsed) .map-controls{right:31px}
-/* 大纲改成浮层盖住视图时（导图态、窗口过窄），浮层左下角的手柄正压在居中胶囊上：只把手柄抬到胶囊上方 6px，其余三件仍在线上。 */
-.workspace.auxiliary-overlay .pane-collapse-right{bottom:calc(var(--vex-axis) + var(--vex-pill-h) / 2 + 6px)}
-/* 窄屏：胶囊整体收紧，宁可少显示字数也不换行成块；竖向仍跟轴线走（translateY(50%) 与高度无关），不另定底距。
- * 一行放不下「胶囊 + 缩放坞」时只抬坞：坞底 = 轴线 + 6px 缝 + 两者半高，半高全由令牌推，密度三档都不错位。 */
+.map-viewport{position:relative}
+/* ===== 浮层一档（L2）=====
+ * 菜单 / 弹层 / 对话框 / toast 共用同一张面、同一根描边、同一档圆角、同一档投影。
+ * 此前 flyout 14 / popover 16 / xl 12 三档圆角与 window/pop 两档投影混用，这里一次收口。
+ * 选择器不挂 .app-window：偏好/导出这类宿主由 VexOverlay.mount 落在 body 上，挂祖先就漏掉了它们。 */
+:is(.popover,.menu,.flyout,.workspace-layout-menu,.appearance-choices,.typography-popover,.map-appearance-popover,.settings-popover,.node-inspector,.vex-element-menu,.file-context-menu,.files-sort-menu,.save-details,.chapter-context-hint,.tour-card,.studio-language>div){background:var(--vex-pop);color:var(--vex-ink);border:1px solid var(--vex-hairline);border-radius:var(--vex-r-pop);box-shadow:var(--vex-pop-shadow)}
+:is(.dialog,.vex-element-dialog,.chapter-delete-dialog>section,.palette-dialog-card,.typography-dialog-card,.table-preview-card,.exit-dialog,.vex-settings,.vex-export-dialog){background:var(--vex-pop);color:var(--vex-ink);border:1px solid var(--vex-hairline);border-radius:var(--vex-r-pop);box-shadow:var(--vex-pop-shadow)}
+/* toast 是反馈不是面板：保留墨底胶囊与一档投影，只把投影接回契约。 */
+.proto-toast{box-shadow:var(--vex-pop-shadow)}
+/* 菜单里内嵌的子菜单是流内面板，不再叠第二层投影与描边。 */
+.menu .flyout{box-shadow:none;border:0;border-radius:0}
+/* 浮层内部同一配方：列表类 6px 内边距靠行节奏，面板类 14px，对话框 20px；
+ * 节点详情这类自带 head/body/foot 分区的不再外加内边距。 */
+:is(.menu,.flyout,.file-context-menu,.vex-element-menu,.files-sort-menu,.popover){padding:6px}
+:is(.workspace-layout-menu,.appearance-choices,.typography-popover,.map-appearance-popover,.settings-popover,.save-details){padding:14px}
+:is(.dialog,.vex-element-dialog,.palette-dialog-card){padding:20px}
+/* 偏好/导出内部只留两张面：导航条=铬面，内容区就是弹层纸面本身，不再各刷一层灰；
+ * 分隔线一律发丝线，内容区内边距走对话框 20px 配方。 */
+.vex-settings-title,.vex-settings-nav,.vex-export-dialog>header,.vex-export-dialog>footer{border-color:var(--vex-hairline)}
+.vex-settings-nav{background:var(--vex-chrome)}
+.vex-settings-content{background:transparent;padding:20px}
+/* 窄屏：字数是信息面板的唯一入口，任何宽度都保留；空间不够先压缩缩放滑杆，不换行成块。 */
 @media(max-width:900px){
-  :root{--vex-pill-h:calc(26px * var(--seg-scale) + 12px)}
-  .app-window .reading-zoom,.app-window .map-controls{bottom:calc(var(--vex-axis-view) + 6px + (var(--vex-pill-h) + var(--control-h-md,32px)) / 2)}
-  .workspace-main .document-statusbar{gap:2px;padding:3px 4px}
-  .workspace-main .document-statusbar .workspace-viewswitch{padding:2px}
-  .workspace-main .document-statusbar .workspace-viewswitch button{padding:3px 9px}
-  .workspace-main .document-statusbar .document-word-count{display:none}
-}
-@media(max-width:680px){
-  .workspace-main .document-statusbar .workspace-viewswitch button{padding:3px 7px}
-}
-/* 手机宽度下正文列本就偏右，居中胶囊会压到窗边的折叠钮：改成贴着钮左侧收口（钮左边 = 列右内缘 - 24px），竖向仍走轴线。 */
-@media(max-width:480px){
-  .workspace-main .document-statusbar{left:auto;right:31px;transform:translateY(50%)}
+  .window-body>.document-statusbar{gap:var(--gap-sm,6px);padding:0 var(--pad-md,10px)}
+  .statusbar-zoom .zoom-range{width:48px}
 }
 

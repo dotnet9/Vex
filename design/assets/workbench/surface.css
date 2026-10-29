@@ -1,0 +1,113 @@
+/* ============================================================
+   Vex 表面契约（surface contract）· 立法文件
+   ------------------------------------------------------------
+   本文件是「哪个区域允许是什么颜色」的唯一来源。调色板（palettes.css，生成物）
+   只负责给出色相与明度原语；把原语指派给角色的，只有这里。
+   组件样式一律引用下面的角色别名，不得直接引用 --panel / --bg / --paper / --surface
+   去铺大面积底色，也不得写死任何十六进制色。
+
+   三条法律：
+     L1 两面一线：全窗只有「铬」和「纸」两张脸，分区靠一根发丝线，不靠色阶、不靠投影。
+     L2 投影只属于浮层，且只有一档；布局区域（标题栏、侧栏、正文、状态栏）零投影、零圆角。
+     L3 强调色只当状态色用（active / focus / 选中 / 链接 / 勾选），不得当大面积底色用。
+
+   角色 → 区域：
+     --vex-chrome   标题栏 · 图标栏 · 面板头 · 标签行 · 查找条 · 状态栏
+     --vex-sheet    文件列表面板体 · 大纲面板体 · 正文与源码纸面
+     --vex-pop      一切浮层（弹层 · 菜单 · 对话框 · toast）
+   ============================================================ */
+
+/* ---------- 面（L1）---------- */
+:root {
+  /* 铬：窗口家具。调色板为它专门准备了 --panel，此前在原型里几乎空转。 */
+  --vex-chrome: var(--panel);
+  /* 纸：唯一可读面。侧栏与正文同色，二者之间只画一根线。 */
+  --vex-sheet: var(--paper);
+  /* 浮层：比纸更干净的一档，靠投影与纸分离，不靠色相。 */
+  --vex-pop: var(--surface);
+}
+
+/* ---------- 线（L1）---------- */
+:root {
+  /* 全窗唯一的分隔线值。区域之间用它，不用第二种灰。 */
+  --vex-hairline: var(--line);
+  /* 控件描边（输入框、按钮）比区域线重一档，好让控件在纸面上浮出来。 */
+  --vex-hairline-ctl: var(--control-border);
+}
+
+/* ---------- 字（三级，不再多）---------- */
+:root {
+  --vex-ink: var(--fg);
+  --vex-ink-2: var(--muted);
+  --vex-ink-3: var(--subtle);
+  --vex-ink-disabled: var(--fg-disabled);
+}
+
+/* ---------- 状态（L3）---------- */
+:root {
+  --vex-on: var(--accent);
+  --vex-on-ink: var(--on-accent);
+  /* active 态的浅色托底：只给「一枚控件」用，不给整块区域用。 */
+  --vex-on-soft: var(--accent-soft);
+  --vex-hover: var(--hover);
+  --vex-pressed: var(--pressed);
+  --vex-selected: var(--selected);
+  --vex-focus-ring: var(--accent);
+}
+
+/* ---------- 控件底与代码底 ---------- */
+:root {
+  /* 输入控件一律纸白底 + --vex-hairline-ctl 描边；落在铬上时自然浮出，落在纸上时靠描边辨认。 */
+  --vex-field: var(--paper);
+  --vex-code: var(--code-bg);
+}
+
+/* ---------- 浮起（L2）---------- */
+:root {
+  --vex-pop-shadow: var(--shadow-pop);
+  --vex-window-shadow: var(--shadow-window);
+}
+
+/* ---------- 遮罩三档 ----------
+   调色板只给 --scrim（浅 40% / 暗 60%）。引导与手机_sheet_ 引用的 mid/soft 两档
+   过去只存在于未挂载的 tokens.css，var() 落空后 SVG fill 退回纯黑、整窗被抹掉。
+   这里按 --scrim 派生，明暗与九套配色天然跟随。 */
+:root {
+  --scrim-mid: var(--scrim);
+  --scrim-soft: color-mix(in srgb, var(--scrim) 60%, transparent);
+}
+
+/* ---------- 圆角（L2）---------- */
+/* 大面零圆角；控件一档；浮层一档。原来的 flyout(14)/popover(16) 两档偏软，收回到 8。 */
+:root {
+  --vex-r-ctl: var(--vex-radius-sm);
+  --vex-r-pop: var(--vex-radius-md);
+}
+
+/* ---------- 行高与节奏 ---------- */
+:root {
+  --vex-row: var(--row-h);
+  --vex-rail-w: 56px;
+  --vex-status-h: var(--control-h-sm);
+}
+
+/* ---------- 迁移期别名 ----------
+   这两个名字在旧样式里被大量引用，且 --pop-shadow 从来没有被定义过（消费方全部静默
+   落到各自的 fallback，浮层投影因此一档不齐）。这里一次性接到契约上，新代码不得再用。 */
+:root {
+  --block-bg: var(--vex-pop);
+  --pop-shadow: var(--vex-pop-shadow);
+}
+
+/* ---------- 纸面别名 ----------
+   正文/源码/排版预览只认这组名字；它们全部指向调色板令牌，
+   因此九套配色与明暗在纸面上天然生效，不允许再出现第二套硬写文档色。 */
+:root {
+  --document-bg: var(--vex-sheet);
+  --document-fg: var(--vex-ink);
+  --document-muted: var(--vex-ink-2);
+  --document-border: var(--vex-hairline);
+  --document-code: var(--vex-code);
+  --document-link: var(--vex-on);
+  --document-selection: var(--vex-selected);
+}

@@ -34,9 +34,8 @@
 .tour-more { color:var(--muted); font-size:11px; line-height:1.75; margin-top:6px; }
 .tour-more summary { cursor:pointer; color:var(--accent); }
 .tour-more p { margin:6px 0 0; }
-/* 成都慢游演示：动作期间保持短提示，成果阶段再展开说明。卡片带品牌渐变封面条（§15 唯一渐变）。 */
-.story-tour .story-card { box-sizing:border-box; position:relative; overflow:hidden; width:376px; padding:22px 24px 20px; border-radius:var(--vex-radius-popover); border:0; background:var(--menu-bg,var(--panel)); box-shadow:0 24px 70px #0005; }
-.story-tour .story-card::before { content:''; position:absolute; left:0; top:0; right:0; height:6px; background:var(--action-gradient,var(--accent)); }
+/* 成都慢游演示：动作期间保持短提示，成果阶段再展开说明。卡片走浮层一档契约（面/描边/圆角/投影）。 */
+.story-tour .story-card { box-sizing:border-box; position:relative; overflow:hidden; width:376px; padding:20px; border-radius:var(--vex-r-pop); border:1px solid var(--vex-hairline); background:var(--vex-pop); box-shadow:var(--vex-pop-shadow); }
 .story-tour .story-card[data-mode="intro"],
 .story-tour .story-card[data-mode="result"] { width:408px; max-width:calc(100vw - 32px); }
 .story-tour .story-card h2 { margin:7px 0 8px; font-size:21px; letter-spacing:-.02em; line-height:1.35; }
@@ -62,8 +61,6 @@
 .story-tour[data-mode="intro"] .tour-scrim { fill:var(--scrim-mid); }
 .story-tour[data-mode="result"] .tour-scrim,
 .story-tour[data-mode="final"] .tour-scrim { fill:var(--scrim-soft); }
-.story-tour[data-mode="intro"] .tour-card { box-shadow:0 18px 58px #0005; }
-.story-tour[data-mode="result"] .tour-card { box-shadow:0 18px 58px #0005; }
 /* 演练期间把布局选择压缩为小面板，正文仍可用于比较；面板开关不移动引导卡片。 */
 .app-window[data-guide-step="4"] .workspace-layout-menu { width:420px; padding:14px; }
 .app-window[data-guide-step="4"] .workspace-layout-menu>p { margin-bottom:10px; }
@@ -76,9 +73,8 @@
 @media (max-width:760px) { .story-tour .story-card, .story-tour .story-card[data-mode="intro"], .story-tour .story-card[data-mode="result"] { width:calc(100vw - 32px); } .story-actions { flex-wrap:wrap; } .story-actions .action-count { position:static; transform:none; margin-left:auto; flex:0 0 auto; } }
 @media (prefers-reduced-motion:reduce) { .tour-layer * { animation:none!important; transition:none!important; } }
 
-/* ===== 引导卡年轻化：点状进度 + 胶囊按钮 + 品牌渐变封面条（参考评审稿） ===== */
+/* ===== 引导卡：点状进度 + 胶囊按钮 ===== */
 .story-tour .story-card { overflow:hidden; }
-.story-tour .story-card::before { content:''; position:absolute; left:0; top:0; right:0; height:6px; background:var(--action-gradient,var(--accent)); pointer-events:none; }
 .story-dots { display:inline-flex; align-items:center; gap:5px; margin-right:auto; }
 .story-dot { width:7px; height:7px; border-radius:var(--vex-radius-pill); background:var(--border); transition:width var(--vex-duration) var(--vex-ease), background var(--vex-duration) var(--vex-ease); }
 .story-dot.passed { background:color-mix(in srgb,var(--accent) 45%,var(--border)); }
