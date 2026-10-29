@@ -1,4 +1,4 @@
-<UserControl x:Class="Vex.Modules.Shell.Views.ShellUpdateOverlayView"
+﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellUpdateOverlayView"
  xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
  xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellUpdateViewModel">
@@ -25,8 +25,10 @@
      <Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Click="Close_OnClick" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/>
     </Grid>
    </Border>
-   <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-    <StackPanel Margin="30,28,30,26" Spacing="20">
+   <!-- 版本头部、进度、按钮全部钉住，只有更新日志区在自身最大高度内滚动——
+        对话框本体不再出现竖直滚动条，操作按钮不会被长日志顶出可视区。 -->
+   <Grid Grid.Row="1" Margin="30,26,30,22" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="18">
+
      <Grid ColumnDefinitions="48,*" ColumnSpacing="17">
       <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource VexAccentBrush}" VerticalAlignment="Top">
        <Viewbox Width="39" Height="39" HorizontalAlignment="Center" VerticalAlignment="Center"><Canvas Width="64" Height="64"><Path Data="M13 12L32 52L51 12" Stroke="White" StrokeThickness="12" StrokeLineCap="Round" StrokeJoin="Round"/></Canvas></Viewbox>
@@ -40,7 +42,8 @@
       <ProgressBar Height="8" CornerRadius="4" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100" VerticalAlignment="Center" Foreground="{DynamicResource VexAccentBrush}"/>
       <TextBlock Grid.Column="1" Text="{Binding ProgressText}" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Classes="muted"/>
      </Grid>
-     <Border x:Name="UpdateNotes" IsVisible="{Binding HasReleaseNotes}" Padding="15,14" BorderThickness="1" CornerRadius="{DynamicResource VexDensityCornerRadiusLg}" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+     <Border x:Name="UpdateNotes" Grid.Row="2" IsVisible="{Binding HasReleaseNotes}" MaxHeight="428" Padding="15,14" BorderThickness="1" CornerRadius="{DynamicResource VexDensityCornerRadiusLg}" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
       <ItemsControl ItemsSource="{Binding ReleaseSections}">
        <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="16"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
        <ItemsControl.ItemTemplate>
@@ -71,14 +74,14 @@
         </DataTemplate>
        </ItemsControl.ItemTemplate>
       </ItemsControl>
+      </ScrollViewer>
      </Border>
-     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
+     <WrapPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
       <Button Margin="0,0,10,0" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsDownloading}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
       <Button x:Name="UpdateDismiss" Margin="0,0,10,0" Click="Close_OnClick" Content="{i18n:I18n {x:Static l:VexL.UpdateLater}}" IsVisible="{Binding ShowLater}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
       <Button x:Name="UpdateAction" Classes.primary="{Binding IsPrimaryAction}" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" IsVisible="{Binding ShowAction}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
      </WrapPanel>
-    </StackPanel>
-   </ScrollViewer>
+   </Grid>
   </Grid>
  </Border>
 </UserControl>

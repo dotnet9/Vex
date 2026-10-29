@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
@@ -152,7 +152,7 @@ if (mode == "parity")
     Console.WriteLine("Native parity captures: " + output);
     return;
 }
-if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "file-icons" or "file-tree-probe" or "workspace-files" or "current-file-protection" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
+if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "file-icons" or "file-tree-probe" or "tooltip-probe" or "workspace-files" or "current-file-protection" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -185,6 +185,7 @@ if (mode is "mermaid" or "documents" or "document-open-child" or "updates" or "v
     if (mode == "stress") { VerifyStress((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
     if (mode == "file-tree") { VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), output); window.Close(); return; }
     if (mode == "file-icons") { FileIconVerification.Run(app, window, output); window.Close(); return; }
+    if (mode == "tooltip-probe") { ToolTipProbeVerification.Run(window, output); window.Close(); return; }
     if (mode == "file-tree-probe") { FileTreeLoadingProbe.Run(app, window, output); window.Close(); return; }
     if (mode == "workspace-files") { WorkspaceFileVerification.Run(app, window, output); window.Close(); return; }
     if (mode == "current-file-protection") { CurrentFileProtectionVerification.Run(app, window, output); window.Close(); return; }
@@ -2798,7 +2799,8 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
             var expectedTags = ExpectedTags();
             var scroll = view.GetVisualDescendants().OfType<ScrollViewer>().Single(); scroll.ScrollToEnd(); Pump();
             VerifyInside(scroll, window, "Update viewport fits: " + culture + "/" + theme);
-            VerifyInside(view.FindControl<Button>("UpdateAction")!, scroll, "Install retry remains reachable: " + culture + "/" + theme);
+            // 操作按钮已钉在对话框底部（日志区独立滚动），可达性相对对话框本体断言。
+            VerifyInside(view.FindControl<Button>("UpdateAction")!, view, "Install button stays inside the dialog: " + culture + "/" + theme);
             Check(!model.StatusText.StartsWith("Vex.VexL."), "Update text is localized: " + culture);
             var localizedChips = VisibleTagChips();
             Check(localizedChips.Select(chip => chip.GetVisualDescendants().OfType<TextBlock>().Single().Text ?? string.Empty)
