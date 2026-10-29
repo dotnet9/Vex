@@ -7,7 +7,7 @@
     <UrsaAvaloniaVersion>2.2.0</UrsaAvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="CodeWF.Avalonia.MindView" Version="12.2.26" />
+    <PackageVersion Include="CodeWF.Avalonia.MindView" Version="12.2.27" />
     <PackageVersion Include="CodeWF.Toolkit.Core" Version="1.1.1" />
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
@@ -17,14 +17,14 @@
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Headless" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Markup.Xaml.Loader" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="CodeWF.Avalonia.Controls" Version="12.2.26" />
-    <PackageVersion Include="CodeWF.Avalonia.DataGrid" Version="12.2.26" />
+    <PackageVersion Include="CodeWF.Avalonia.Controls" Version="12.2.27" />
+    <PackageVersion Include="CodeWF.Avalonia.DataGrid" Version="12.2.27" />
     <PackageVersion Include="CodeWF.Toolkit.EventBus" Version="1.1.1" />
-    <PackageVersion Include="CodeWF.Avalonia.Markdown" Version="12.2.26" />
-    <PackageVersion Include="CodeWF.Avalonia.Markdown.Lite" Version="12.2.26" />
+    <PackageVersion Include="CodeWF.Avalonia.Markdown" Version="12.2.27" />
+    <PackageVersion Include="CodeWF.Avalonia.Markdown.Lite" Version="12.2.27" />
     <PackageVersion Include="CodeWF.Toolkit.Files" Version="1.1.1" />
     <PackageVersion Include="Irihi.Ursa.Themes.Semi" Version="$(UrsaAvaloniaVersion)" />
-    <PackageVersion Include="CodeWF.Avalonia.Lang" Version="12.2.26" />
+    <PackageVersion Include="CodeWF.Avalonia.Lang" Version="12.2.27" />
     <PackageVersion Include="PdfPig" Version="0.1.9" />
     <PackageVersion Include="ReverseMarkdown" Version="6.3.0" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="14.7.1" />

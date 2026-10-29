@@ -1,10 +1,11 @@
-<UserControl
+﻿<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellFilesView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:models="using:Vex.Core.Models"
+    xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
     xmlns:converters="using:Vex.Modules.Shell.Views"
     xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
     xmlns:regions="using:Vex.Core.Regions"
@@ -23,7 +24,7 @@
             <Border Classes="file-card" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"
                     DoubleTapped="OnFileRowDoubleTapped"
                     Classes.folder="{Binding IsFolder}"
-                    ToolTip.Tip="{Binding PreviewDisplay}" ToolTip.IsEnabled="{Binding IsDocument}">
+                    helpers:ToolTipHelper.Text="{Binding PreviewDisplay}" ToolTip.IsEnabled="{Binding IsDocument}">
                 <Grid Classes="file-row" ColumnDefinitions="12,*,Auto" ColumnSpacing="6">
                     <Panel Width="12" Height="12" VerticalAlignment="Center">
                         <Image x:Name="FileTypeIcon" Classes="tree-ico" Width="12" Height="12" Stretch="Uniform"
