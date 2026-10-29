@@ -612,7 +612,6 @@
     <Setter Property="BoxShadow" Value="0 0 0 0 #00000000"/>
   </Style>
   <Style Selector="TextBlock.wb-muted"><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/><Setter Property="FontSize" Value="11.5"/></Style>
-  <Style Selector="Border.pane-head"><Setter Property="Height" Value="44"/><Setter Property="Padding" Value="20,0"/></Style>
   <Style Selector="Border.kbd-chip"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/></Style>
   <Style Selector="ListBox.typography-grid"><Setter Property="Padding" Value="0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/></Style>
   <Style Selector="ListBox.typography-grid ListBoxItem"><Setter Property="Width" Value="98"/><Setter Property="Padding" Value="4"/><Setter Property="Margin" Value="0"/><Setter Property="MinHeight" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Center"/></Style>

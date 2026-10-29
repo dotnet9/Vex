@@ -14,7 +14,8 @@
     <Grid RowDefinitions="Auto,*" Background="{DynamicResource VexPreviewBackgroundBrush}">
         <!-- 预览窗格头：标注窗格身份 + 当前排版主题（对应原型 .pane-head + .kbd）。
              工作台组合布局下由 WorkspaceViewController 统一提供窗格头，此处作为独立使用时的兜底。 -->
-        <Border x:Name="PaneHeader" Classes="pane-head">
+        <!-- 原型单窗格阅读视图不显示窗格头（workspace.css:10），组合布局由控制器的 view-heading 承担。 -->
+        <Border x:Name="PaneHeader" Classes="pane-head" IsVisible="False">
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Path

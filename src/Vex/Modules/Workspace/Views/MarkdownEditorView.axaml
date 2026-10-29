@@ -13,7 +13,9 @@
     x:DataType="vm:MarkdownEditorViewModel"
     mc:Ignorable="d">
     <Grid RowDefinitions="Auto,*">
-        <Border x:Name="SourceHeader" Classes="pane-head">
+        <!-- 原型 .view-panel[data-document=editor] .view-heading 一律隐藏（workspace-chrome.css:383），
+             单窗格排版入口走 #edit-options；窗格头配方退役。 -->
+        <Border x:Name="SourceHeader" Classes="pane-head" IsVisible="False">
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Path

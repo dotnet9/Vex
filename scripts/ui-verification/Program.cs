@@ -1715,6 +1715,11 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
         Check(wb.ShowLayouts && (!wb.IsInstantEditing || !wb.IsSourceVisible), "Layout stays open and editors remain exclusive: " + option.Id);
         Check((TopLevel.GetTopLevel(instant) is not null && instant.IsEffectivelyVisible) == (option.Editor == "instant") && (TopLevel.GetTopLevel(source) is not null && source.IsEffectivelyVisible) == (option.Editor == "source")
             && (TopLevel.GetTopLevel(map) is not null && map.IsEffectivelyVisible) == option.Map, $"Actual view visibility follows layout: {option.Id}; instant={instant.IsEffectivelyVisible}, source={source.IsEffectivelyVisible}, map={map.IsEffectivelyVisible}");
+        // 窗格头配方退役（原型 workspace-chrome.css:383 / workspace.css:10）：编辑器与预览自带头不再显示，
+        // 组合布局的阅读窗格头由控制器按 36px view-heading 配方承担。
+        Check(!source.FindControl<Border>("SourceHeader")!.IsVisible
+              && !window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<Border>("PaneHeader")!.IsVisible,
+            "Per-view pane heads stay retired across layouts");
         if (vm.Markdown != original) File.WriteAllText(Path.Combine(output, "unexpected-markdown.md"), vm.Markdown);
         Check(vm.Markdown == original, "Layout preserves the original Markdown: " + option.Id);
     }
@@ -1826,11 +1831,11 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
           && ReferenceEquals(statusBarBorder.BorderBrush, hairlineBrush)
           && ReferenceEquals(statusBarBorder.Background, chromeBrush),
         $"Status bar has the hairline top and chrome background: brush={statusBarBorder.BorderBrush == hairlineBrush}, bg={statusBarBorder.Background == chromeBrush}");
-    // 阅读正文边距（原型 .reading-scroll .md-body 实测 30/52/88）：底部不再为悬浮胶囊留白。
+    // 预览正文边距按布局分档（原型探针）：单窗格阅读 30/52/88，组合预览 24/32/56（侧距 clamp 上限）。
     var previewViewer = window.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
         .FirstOrDefault(viewer => viewer.Name == "PreviewMarkdownViewer");
-    Check(previewViewer is not null && previewViewer.Margin == new Thickness(52, 30, 52, 88),
-        $"Reading body padding follows the probed prototype values: {previewViewer?.Margin}");
+    Check(previewViewer is not null && previewViewer.Margin == new Thickness(32, 24, 32, 56),
+        $"Combined preview padding follows the probed prototype values: {previewViewer?.Margin}");
     vm.Layout.IsTypewriterMode = false; Pump();
     // 编辑区内边距对齐原型（workbench.css:92 = 22px 24px 60px 54px）：行号列由库内边距自供，
     // 正文左缩进 = 24 内距 + 行号列宽 ≈ 54，行号隐藏时左 24 档自动成立。
