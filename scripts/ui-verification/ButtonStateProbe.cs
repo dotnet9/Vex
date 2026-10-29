@@ -18,6 +18,9 @@ using Vex.Modules.Shell.Views;
 /// 但同条规则的 color 无人竞争，所以底取 --hover、描线取强调色；:177 按压换 --pressed；
 /// prototype.css:439 所有按钮 :active 整枚下沉 1px。底色由 Semi 画在模板 ContentPresenter 上，
 /// 因此结构断言只看模板 presenter，颜色与位移一律回到位图上数像素。
+/// .btn.primary 的两档投影（prototype.css:430/433）另有一坑：挂在模板 presenter 上的 BoxShadow
+/// 一像素都不落（同一个 presenter 搬到按钮外面就能画出来，实测被模板槽位裁死），所以这一族换成
+/// 模板里一圈专门的 Border 承光，断言只认位图上的光晕宽度与色偏。
 /// </summary>
 internal static class ButtonStateProbe
 {
@@ -178,12 +181,52 @@ internal static class ButtonStateProbe
         var primary = mcp!.GetVisualDescendants().OfType<Button>().First(b => b.IsEffectivelyVisible && b.Classes.Contains("primary"));
         var primaryBox = Box(primary);
         var primaryCenter = new Point(primaryBox.X + primaryBox.Width / 2, primaryBox.Y + primaryBox.Height / 2);
+        // 原型 prototype.css:430/433 的两档投影是强调色自身叠出来的光晕：常态 0 2 5 只落到贴边，
+        // 悬停 0 4 12 才够得着底边下方 9px。用「离强调色多近」来量，光晕处比远处的空白底更靠近强调色。
+        int Closeness(SKBitmap raster, double x, double y)
+        {
+            var c = raster.GetPixel((int)Math.Round(x), (int)Math.Round(y));
+            return 765 - (Math.Abs(c.Red - accent.R) + Math.Abs(c.Green - accent.G) + Math.Abs(c.Blue - accent.B));
+        }
+        MoveAway();
+        // 光晕由模板里那圈 Border 承载（挂在 ContentPresenter 上的投影一像素都不落，实测被模板槽位裁死）；
+        // 圆角要跟按钮走，否则无底角对话框里的 36px 胶囊会拖出一圈方角脏光。
+        var halo = primary.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Name == "PART_Halo");
+        Check(halo is not null && halo.CornerRadius == primary.CornerRadius,
+            $"Halo rides a dedicated Border that hugs the plate radius: {halo?.CornerRadius} vs {primary.CornerRadius}");
+        using var restRaster = Raster();
+        var restControl = Closeness(restRaster, primaryBox.X - 24, primaryBox.Bottom + 2);
+        // 光晕能伸到几像素：逐行数列底边下方，一行里离强调色更近的像素不足 10 个就断开。
+        int HaloReach(SKBitmap raster)
+        {
+            var reach = 0;
+            for (var dy = 1; dy <= 14; dy++)
+            {
+                var tinted = 0;
+                for (var x = (int)primaryBox.X + 2; x < primaryBox.Right - 2; x++)
+                    if (Closeness(raster, x, primaryBox.Bottom + dy) > restControl + 6) tinted++;
+                if (tinted < 10) break;
+                reach = dy;
+            }
+            return reach;
+        }
+        var restReach = HaloReach(restRaster);
+        var restNear = Closeness(restRaster, primaryBox.X + primaryBox.Width / 2, primaryBox.Bottom + 2);
+        var restAbove = Closeness(restRaster, primaryBox.X + primaryBox.Width / 2, primaryBox.Y - 3);
+        Check(restReach >= 2 && restNear > restControl + 25 && restAbove < restControl + 8,
+            $"Idle primary carries the prototype 0 2 5 accent halo: {restReach}px of tint below the plate, 2px below scores {restNear} vs bare card {restControl}, above {restAbove}");
+        window.MouseMove(primaryCenter, RawInputModifiers.None); Render();
+        using var haloRaster = Raster();
+        var hoverReach = HaloReach(haloRaster);
+        var hoverNear = Closeness(haloRaster, primaryBox.X + primaryBox.Width / 2, primaryBox.Bottom + 2);
+        Check(hoverReach > restReach && hoverNear > restNear,
+            $"Hover widens the halo to the 0 4 12 tier: reach {restReach}px to {hoverReach}px, strength {restNear} to {hoverNear}");
         window.MouseDown(primaryCenter, MouseButton.Left); Render();
         using var primaryRaster = Raster();
         Check(primary.Classes.Contains(":pressed") && primary.RenderTransform is TranslateTransform
             && CountColor(primaryRaster, primaryBox, accent, 30) > 100,
             $"Primary action presses with the lift and keeps its accent plate ({CountColor(primaryRaster, primaryBox, accent, 30)} accent pixels)");
-        var cropArea = new SKRectI((int)primaryBox.X - 6, (int)primaryBox.Y - 8, (int)primaryBox.Right + 6, (int)primaryBox.Bottom + 8);
+        var cropArea = new SKRectI((int)primaryBox.X - 6, (int)primaryBox.Y - 8, (int)primaryBox.Right + 6, (int)primaryBox.Bottom + 16);
         using var crop = new SKBitmap();
         primaryRaster.ExtractSubset(crop, cropArea);
         using var encoded = crop.Encode(SKEncodedImageFormat.Png, 100);

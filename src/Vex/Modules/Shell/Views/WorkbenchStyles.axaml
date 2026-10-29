@@ -1025,6 +1025,35 @@
   <Style Selector="Button.wb-format:pointerover Path.format-stroke">
     <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
+  <!-- 主按钮两档投影（原型 prototype.css:430/433）：常态 0 2 5 的强调色 15%，悬停扩到 0 4 12 的 22%。
+       实测投影挂在模板里的 ContentPresenter 上一像素都不落（按钮的模板槽位把它裁死），
+       所以这一族换成外圈 Border 承光、内层仍叫 PART_ContentPresenter：底色/描边/内距照旧由按钮喂，
+       Semi 与各状态样式按同名命中，交互不变；两档色值随配色由 ElevationResources 回放。 -->
+  <Style Selector="Button.primary">
+    <Setter Property="ClipToBounds" Value="False"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Button">
+        <Border Name="PART_Halo" CornerRadius="{TemplateBinding CornerRadius}">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="Button.primary /template/ Border#PART_Halo">
+    <Setter Property="BoxShadow" Value="{DynamicResource VexPrimaryShadow}"/>
+  </Style>
+  <Style Selector="Button.primary:pointerover /template/ Border#PART_Halo">
+    <Setter Property="BoxShadow" Value="{DynamicResource VexPrimaryShadowHover}"/>
+  </Style>
   <!-- ===== 对话框字段（原型 theme.css / dialogs.css）：.input 一族与侧栏搜索共用 search-shell 焦点配方，
        .mono 换等宽族；.dlg-path 是代码底的路径块（theme.css:599），此前类名挂了却没有任何样式。 ===== -->
   <Style Selector="TextBox.mono">

@@ -22,6 +22,12 @@ public static class ElevationResources
     /// <summary>排版卡悬停投影键，对应原型 :hover 那档稍大一点的扩散。</summary>
     public const string TypographyCardHoverKey = "VexTypographyCardHoverShadow";
 
+    /// <summary>主按钮（原型 .btn.primary）常态投影键：强调色 15% 的 0 2 5。</summary>
+    public const string PrimaryKey = "VexPrimaryShadow";
+
+    /// <summary>主按钮悬停投影键，对应原型 :hover 的 0 4 12 与 22% 扩散。</summary>
+    public const string PrimaryHoverKey = "VexPrimaryShadowHover";
+
     // 原型 tokens.css:3-4 --pop-shadow：浅色 12% 墨绿 + 6% 墨绿双层，深色 33% + 20% 纯黑双层。
     private static readonly BoxShadows PopLight = BoxShadows.Parse("0 12 40 0 #20233E30, 0 2 8 0 #10233E30");
     private static readonly BoxShadows PopDark = BoxShadows.Parse("0 12 40 0 #55000000, 0 2 8 0 #33000000");
@@ -46,7 +52,16 @@ public static class ElevationResources
         app.Resources[SegmentedThumbKey] = dark ? default : ThumbLight;
         app.Resources[TypographyCardKey] = dark ? CardDark : CardLight;
         app.Resources[TypographyCardHoverKey] = dark ? CardHoverDark : CardHoverLight;
+        // 原型 prototype.css:430/433：主按钮那圈投影直接用强调色自身叠 15%/22%，
+        // 所以它跟着九套配色一起换，写成常量就会在换肤后留下一圈错色光晕。
+        var accent = app.TryGetResource("VexAccentBrush", app.ActualThemeVariant, out var accentResource)
+            && accentResource is ISolidColorBrush accentBrush ? accentBrush.Color : default;
+        app.Resources[PrimaryKey] = AccentShadow(accent, 0x26, "0 2 5 0");
+        app.Resources[PrimaryHoverKey] = AccentShadow(accent, 0x38, "0 4 12 0");
     }
+
+    private static BoxShadows AccentShadow(Color accent, byte alpha, string geometry)
+        => BoxShadows.Parse($"{geometry} #{alpha:X2}{accent.R:X2}{accent.G:X2}{accent.B:X2}");
 
     /// <summary>九套配色各有一个自定义变体（如 IndigoDark），只沿 InheritVariant 往上才落到标准明暗变体，
     /// 直接和 ThemeVariant.Dark 比会永远为假。</summary>
