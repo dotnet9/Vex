@@ -11,7 +11,9 @@ public partial class ShellQuickOpenView : UserControl
     public ShellQuickOpenView()
     {
         InitializeComponent();
-        AttachedToVisualTree += (_, _) => QueryBox.Focus();
+        // 浮层宿主会在挂载后把焦点抢给自身 Border，直接 Focus 会被夺走；等它落位后再补一次（同重命名框）。
+        AttachedToVisualTree += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(
+            () => QueryBox.Focus(), Avalonia.Threading.DispatcherPriority.Loaded);
     }
 
     private ShellQuickOpenViewModel? ViewModel => DataContext as ShellQuickOpenViewModel;

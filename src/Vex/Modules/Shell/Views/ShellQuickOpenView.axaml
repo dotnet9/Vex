@@ -8,11 +8,25 @@
     x:DataType="vm:ShellQuickOpenViewModel">
     <Border Classes="dialog-card" Width="620" MaxHeight="520">
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
-            <TextBox
-                x:Name="QueryBox"
-                KeyDown="QueryBox_OnKeyDown"
-                PlaceholderText="{Binding Placeholder}"
-                Text="{Binding Query, Mode=TwoWay}" />
+            <!-- 快速打开也是搜索输入：与侧栏搜索/查找/重命名同一套 search-shell 焦点配方（原型 .input）。 -->
+            <Grid Classes="search-shell" Height="32">
+                <Border Classes="search-glow"/>
+                <Border Classes="search-frame" Padding="10,0">
+                    <TextBox
+                        x:Name="QueryBox"
+                        Classes="shell-input"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        FontSize="14"
+                        KeyDown="QueryBox_OnKeyDown"
+                        MinHeight="0"
+                        PlaceholderText="{Binding Placeholder}"
+                        VerticalAlignment="Stretch"
+                        VerticalContentAlignment="Center"
+                        Text="{Binding Query, Mode=TwoWay}"/>
+                </Border>
+                <Border Classes="search-hover"/>
+            </Grid>
 
             <ScrollViewer Grid.Row="1" MinHeight="120">
                 <StackPanel Spacing="2">

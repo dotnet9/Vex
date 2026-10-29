@@ -23,7 +23,7 @@
                     <Border Classes="search-frame" Padding="10,0">
                         <TextBox
                             x:Name="NameTextBox"
-                            Classes="mono"
+                            Classes="mono shell-input"
                             Background="Transparent"
                             BorderThickness="0"
                             FontSize="14"

@@ -12,4 +12,6 @@ public sealed class FocusRingBorder : Border
     static FocusRingBorder() => ClipProperty.OverrideMetadata<FocusRingBorder>(
         new StyledPropertyMetadata<Geometry?>(coerce: (_, _) => null));
     protected override Type StyleKeyOverride => typeof(Border);
+    // 代码挂模板（源码编辑区）时没有 XAML 的 DynamicResource，这里自己跟主题变体取强调色。
+    public FocusRingBorder() => this.Bind(BorderBrushProperty, this.GetResourceObservable("VexAccentBrush"));
 }

@@ -25,6 +25,10 @@ public partial class MarkdownEditorView : UserControl
         // 原 ViewModelLocator 反射装配改为构造自取容器单例。
         DataContext = App.Services.GetRequiredService<MarkdownEditorViewModel>();
         MarkdownEditor.Editor.FontFamily = Vex.Core.Services.VexFonts.Code;
+        // 原型 .source-scroll textarea:focus-visible 是 outline-offset:-2 的内环（盒内 2px、无圆角），
+        // 与别处外环相反；键盘焦点落在 TextArea（TextEditor 本身不可聚焦），故挂在 TextArea 上。
+        MarkdownEditor.Editor.TextArea.FocusAdorner = new Avalonia.Controls.Templates.FuncTemplate<Control?>(() =>
+            new Vex.Modules.Shell.Views.FocusRingBorder { Margin = new Avalonia.Thickness(2), BorderThickness = new Avalonia.Thickness(2), IsHitTestVisible = false });
         DataContextChanged += (_, _) => AttachViewModel();
         AttachedToVisualTree += (_, _) => AttachViewModel();
         DetachedFromVisualTree += (_, _) =>

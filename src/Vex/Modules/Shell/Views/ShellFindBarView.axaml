@@ -75,6 +75,7 @@
                     <Border Classes="search-frame" Padding="10,0">
                         <TextBox
                             x:Name="FindTextBox"
+                            Classes="shell-input"
                             AcceptsReturn="False"
                             Background="Transparent"
                             BorderThickness="0"
@@ -115,6 +116,7 @@
                     <Border Classes="search-glow" />
                     <Border Classes="search-frame" Padding="10,0">
                         <TextBox
+                            Classes="shell-input"
                             AcceptsReturn="False"
                             Background="Transparent"
                             BorderThickness="0"

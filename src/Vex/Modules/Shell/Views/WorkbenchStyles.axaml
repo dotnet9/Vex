@@ -970,28 +970,30 @@
   <!-- ===== 键盘焦点外环（原型 design-system.css:3/16 的 2px offset 2、prototype.css:51 输入的 offset 3）：
        用 FocusAdorner 画在控件盒外，只在 :focus-visible 时出现，鼠标点焦点不画。
        环必须用 FocusRingBorder：AdornerLayer 默认把 adorner 裁到被饰盒内，负 margin 的环会只剩左上角。
-       search-shell 一族自带 3px 柔光，不再叠第二圈，故这里不挂裸 TextBox。 ===== -->
-  <Style Selector="Button, ToggleButton, ComboBox, NumericUpDown, TabItem, MenuItem">
+       search-shell 内层输入标 shell-input，自带 3px 柔光不再叠第二圈；其余 TextBox 一律 offset 3 外环。 ===== -->
+  <Style Selector="Button, ToggleButton, TabItem, MenuItem">
     <Setter Property="FocusAdorner">
       <Template>
         <shell:FocusRingBorder Margin="-4" BorderThickness="2" BorderBrush="{DynamicResource VexAccentBrush}" CornerRadius="{DynamicResource VexDensityCornerRadiusMd}" IsHitTestVisible="False"/>
       </Template>
     </Setter>
   </Style>
-  <Style Selector="CheckBox, RadioButton, Slider, ListBoxItem, TreeViewItem">
+  <Style Selector="CheckBox, RadioButton, Slider, ListBoxItem, TreeViewItem, ComboBox, NumericUpDown">
     <Setter Property="FocusAdorner">
       <Template>
         <shell:FocusRingBorder Margin="-5" BorderThickness="2" BorderBrush="{DynamicResource VexAccentBrush}" CornerRadius="{DynamicResource VexDensityCornerRadiusXs}" IsHitTestVisible="False"/>
       </Template>
     </Setter>
   </Style>
-  <Style Selector="TextBox.pref-field, TextBox.pref-field-fill">
+  <Style Selector="TextBox:not(.shell-input)">
     <Setter Property="FocusAdorner">
       <Template>
         <shell:FocusRingBorder Margin="-5" BorderThickness="2" BorderBrush="{DynamicResource VexAccentBrush}" CornerRadius="{DynamicResource VexDensityCornerRadiusXs}" IsHitTestVisible="False"/>
       </Template>
     </Setter>
   </Style>
+  <!-- 源码编辑区的内环（原型 .source-scroll textarea:focus-visible 的 outline-offset:-2）挂在
+       MarkdownEditorView 代码里：Avalonia 编译器解析不了跨程序集的类型选择器。 -->
   <!-- ===== 对话框字段（原型 theme.css / dialogs.css）：.input 一族与侧栏搜索共用 search-shell 焦点配方，
        .mono 换等宽族；.dlg-path 是代码底的路径块（theme.css:599），此前类名挂了却没有任何样式。 ===== -->
   <Style Selector="TextBox.mono">
