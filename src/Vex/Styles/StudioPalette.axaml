@@ -48,6 +48,12 @@
     <SolidColorBrush x:Key="VexImageBrush" Color="{DynamicResource StudioAccentColor}" />
     <SolidColorBrush x:Key="VexCodeFgBrush" Color="{DynamicResource StudioAccentColor}" />
     <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.06" />
+    <!-- 搜索框焦点柔光（原型 .input:focus / .sidebar-search:focus-within 的 box-shadow 0 0 0 3px accent 18%）：
+         3px 外扩环用描边画，色取强调令牌 18% 透明，随九套配色与明暗走。 -->
+    <SolidColorBrush x:Key="VexFocusRingBrush" Color="{DynamicResource StudioFocusRingColor}" Opacity="0.18" />
+    <!-- 搜索框悬停描边（原型 color-mix(accent 35%, border)）：强调 35% 透明叠在常驻 control-border 上，
+         alpha 合成后恰好等于该混色，无需另派生不透明令牌。 -->
+    <SolidColorBrush x:Key="VexSearchHoverBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.35" />
     <LinearGradientBrush x:Key="VexTitleGradBrush" StartPoint="0%,0%" EndPoint="100%,100%">
         <GradientStop Color="{DynamicResource StudioGradientStartColor}" Offset="0" />
         <GradientStop Color="{DynamicResource StudioSecondaryColor}" Offset="1" />

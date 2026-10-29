@@ -9,6 +9,45 @@
     <!-- 原型 block-shadow：0 1px 3px fg 5%。 -->
     <Setter Property="BoxShadow" Value="0 1 3 0 #0D000000" />
   </Style>
+  <!-- 侧栏/大纲搜索框（原型 .sidebar-search + .input 焦点配方）：pill 外形、常驻 control-border，
+       悬停叠 accent 35% 混边、聚焦换 accent 实边并外扩 3px accent 18% 柔光，内层输入不再叠第二圈。
+       三层 Border 同格叠放：柔光环（默认隐）→ 主框 → 悬停描边（默认隐），由 Grid 的伪类统一驱动。 -->
+  <Style Selector="Grid.search-shell Border.search-frame">
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Grid.search-shell Border.search-glow">
+    <Setter Property="CornerRadius" Value="19" />
+    <Setter Property="BorderThickness" Value="3" />
+    <Setter Property="BorderBrush" Value="{DynamicResource VexFocusRingBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Margin" Value="-3" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="Grid.search-shell Border.search-hover">
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource VexSearchHoverBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="Grid.search-shell:pointerover Border.search-hover">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector="Grid.search-shell:focus-within Border.search-frame">
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
+  </Style>
+  <Style Selector="Grid.search-shell:focus-within Border.search-glow">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <!-- 聚焦时收掉悬停混边，让 accent 实边独占（原型 :focus 覆盖 :hover）。 -->
+  <Style Selector="Grid.search-shell:focus-within Border.search-hover">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
   <!-- 原型 .nav-rail / .rail-item（workspace-chrome.css:466-472）：窗口级图标栏取代块角折叠钮。
        铬面全高贴左缘，44×48 图标+短标签，active 只用一枚浅色圆角块托住，不画下划线也不加描边。 -->
   <Style Selector="Border.nav-rail">

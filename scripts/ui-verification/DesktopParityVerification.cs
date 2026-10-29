@@ -130,6 +130,33 @@ internal static class DesktopParityVerification
         navigation.FilterText = "alpha";
         Check(navigation.FlatDocumentFileNodes.Count == 1 && navigation.FlatDocumentFileNodes[0].Name == "alpha.md", "File search keeps matching filenames and their ancestors");
         navigation.ClearFilter();
+        // 搜索焦点单环（原型 .sidebar-search:focus-within）：聚焦内层输入 → 主框换 accent 实边、
+        // 3px accent 18% 柔光环显形、悬停混边收起；失焦回到 control-border，环与混边都隐。
+        var searchShell = filesView.GetVisualDescendants().OfType<Grid>().First(g => g.Classes.Contains("search-shell"));
+        var searchFrame = searchShell.FindControl<Border>("FileSearchBox")!;
+        var searchGlow = searchShell.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("search-glow"));
+        var searchHover = searchShell.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("search-hover"));
+        Application.Current!.TryGetResource("VexAccentBrush", window.ActualThemeVariant, out var accentResource);
+        Application.Current!.TryGetResource("VexControlBorderBrush", window.ActualThemeVariant, out var controlBorderResource);
+        var accentRef = (Avalonia.Media.ISolidColorBrush)accentResource!;
+        var idleRef = (Avalonia.Media.ISolidColorBrush)controlBorderResource!;
+        var searchText = searchFrame.GetVisualDescendants().OfType<TextBox>().First();
+        Render();
+        Check(searchFrame.CornerRadius.TopLeft == 16 && !searchGlow.IsVisible && !searchHover.IsVisible
+            && searchFrame.BorderBrush is Avalonia.Media.ISolidColorBrush idleBorder && idleBorder.Color == idleRef.Color,
+            "Idle search box is a pill on control-border with no glow or hover tint");
+        searchText.Focus(); Render();
+        window.CaptureRenderedFrame()?.Save(Path.Combine(output, "desktop-search-focus.png"));
+        Check(searchFrame.BorderBrush is Avalonia.Media.ISolidColorBrush focusBorder && focusBorder.Color == accentRef.Color
+            && searchGlow.IsVisible && !searchHover.IsVisible
+            && searchGlow.BorderThickness == new Thickness(3) && searchGlow.Margin == new Thickness(-3)
+            && searchGlow.BorderBrush is Avalonia.Media.ISolidColorBrush glowBrush
+            && glowBrush.Color == accentRef.Color && Math.Abs(glowBrush.Opacity - 0.18) < 0.001,
+            "Focused search box paints a single accent border plus a 3px accent-18% outset glow ring");
+        filesView.FindControl<Button>("SortFolderButton")!.Focus(); Render();
+        Check(!searchGlow.IsVisible && !searchHover.IsVisible
+            && searchFrame.BorderBrush is Avalonia.Media.ISolidColorBrush restoredBorder && restoredBorder.Color == idleRef.Color,
+            "Leaving the search box restores the idle control-border and hides the glow ring");
         navigation.SelectDocumentFileForContextMenu(navigation.DocumentFileNodes.First(node => node.IsFolder));
         Check(navigation.HasPathCommandTarget && !navigation.HasDocumentFileCommandTarget, "Folder context supports path actions without file mutation actions");
         var launch = ShellProcessLauncher.CreateStartInfo(Path.Combine(root, "a b.md"));

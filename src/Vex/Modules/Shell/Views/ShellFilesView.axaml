@@ -189,43 +189,42 @@
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto">
-        <!-- 对应原型 .sidebar-search：32px 高、8px 圆角、内嵌搜索图标与常显清除按钮。 -->
-        <Border
-            x:Name="FileSearchBox"
-            Grid.Row="0"
-            Height="32"
-            Margin="5,14,5,8"
-            Padding="8,0"
-            CornerRadius="8"
-            BorderThickness="1"
-            BorderBrush="{DynamicResource VexControlBorderBrush}"
-            Background="Transparent">
-            <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" VerticalAlignment="Center">
-                <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
-                      VerticalAlignment="Center"
-                      Data="M17 10A7 7 0 1 1 3 10A7 7 0 1 1 17 10 M15 15L22 22" />
-                <TextBox
-                    Grid.Column="1"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Padding="0"
-                    MinHeight="0"
-                    FontSize="12"
-                    VerticalContentAlignment="Center"
-                    Foreground="{DynamicResource VexValueBrush}"
-                    PlaceholderForeground="{DynamicResource VexMutedBrush}"
-                    PlaceholderText="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}"
-                    Text="{Binding FilterText, Mode=TwoWay}"
-                    TextWrapping="NoWrap"
-                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}" />
-                <Button Grid.Column="2" Classes="files-tool" Width="18" Height="18" Padding="3"
-                        Command="{Binding ClearFilter}"
-                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ClearSearch}}"
-                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ClearSearch}}">
-                    <Path Classes="stroke-ico" Width="11" Height="11" StrokeThickness="1.6" Data="M6 6L18 18 M18 6L6 18" />
-                </Button>
-            </Grid>
-        </Border>
+        <!-- 对应原型 .sidebar-search：32px 高、pill 圆角、内嵌搜索图标与常显清除按钮；
+             焦点单环配方（accent 边 + 3px 柔光 + 悬停混边）由 Grid.search-shell 共享样式驱动。 -->
+        <Grid Classes="search-shell" Grid.Row="0" Height="32" Margin="5,14,5,8">
+            <Border Classes="search-glow" />
+            <Border
+                x:Name="FileSearchBox"
+                Classes="search-frame"
+                Padding="8,0">
+                <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" VerticalAlignment="Center">
+                    <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
+                          VerticalAlignment="Center"
+                          Data="M17 10A7 7 0 1 1 3 10A7 7 0 1 1 17 10 M15 15L22 22" />
+                    <TextBox
+                        Grid.Column="1"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="0"
+                        MinHeight="0"
+                        FontSize="12"
+                        VerticalContentAlignment="Center"
+                        Foreground="{DynamicResource VexValueBrush}"
+                        PlaceholderForeground="{DynamicResource VexMutedBrush}"
+                        PlaceholderText="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}"
+                        Text="{Binding FilterText, Mode=TwoWay}"
+                        TextWrapping="NoWrap"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}" />
+                    <Button Grid.Column="2" Classes="files-tool" Width="18" Height="18" Padding="3"
+                            Command="{Binding ClearFilter}"
+                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ClearSearch}}"
+                            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ClearSearch}}">
+                        <Path Classes="stroke-ico" Width="11" Height="11" StrokeThickness="1.6" Data="M6 6L18 18 M18 6L6 18" />
+                    </Button>
+                </Grid>
+            </Border>
+            <Border Classes="search-hover" />
+        </Grid>
 
         <TreeView
             x:Name="FileTree"
