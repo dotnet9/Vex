@@ -1,4 +1,4 @@
-﻿<Styles xmlns:behaviors="using:Vex.Core.Behaviors" xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<Styles xmlns:behaviors="using:Vex.Core.Behaviors" xmlns:shell="using:Vex.Modules.Shell.Views" xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- ===== 块状工作区（原型 workspace-chrome.css）：灰画布 + 圆角描边白块，外缘 10px、块间 4px ===== -->
   <Style Selector="Border.workspace-block">
     <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
@@ -966,6 +966,31 @@
   <Style Selector="u|ToastCard">
     <Setter Property="TextBlock.TextAlignment" Value="Center"/>
     <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+  </Style>
+  <!-- ===== 键盘焦点外环（原型 design-system.css:3/16 的 2px offset 2、prototype.css:51 输入的 offset 3）：
+       用 FocusAdorner 画在控件盒外，只在 :focus-visible 时出现，鼠标点焦点不画。
+       环必须用 FocusRingBorder：AdornerLayer 默认把 adorner 裁到被饰盒内，负 margin 的环会只剩左上角。
+       search-shell 一族自带 3px 柔光，不再叠第二圈，故这里不挂裸 TextBox。 ===== -->
+  <Style Selector="Button, ToggleButton, ComboBox, NumericUpDown, TabItem, MenuItem">
+    <Setter Property="FocusAdorner">
+      <Template>
+        <shell:FocusRingBorder Margin="-4" BorderThickness="2" BorderBrush="{DynamicResource VexAccentBrush}" CornerRadius="{DynamicResource VexDensityCornerRadiusMd}" IsHitTestVisible="False"/>
+      </Template>
+    </Setter>
+  </Style>
+  <Style Selector="CheckBox, RadioButton, Slider, ListBoxItem, TreeViewItem">
+    <Setter Property="FocusAdorner">
+      <Template>
+        <shell:FocusRingBorder Margin="-5" BorderThickness="2" BorderBrush="{DynamicResource VexAccentBrush}" CornerRadius="{DynamicResource VexDensityCornerRadiusXs}" IsHitTestVisible="False"/>
+      </Template>
+    </Setter>
+  </Style>
+  <Style Selector="TextBox.pref-field, TextBox.pref-field-fill">
+    <Setter Property="FocusAdorner">
+      <Template>
+        <shell:FocusRingBorder Margin="-5" BorderThickness="2" BorderBrush="{DynamicResource VexAccentBrush}" CornerRadius="{DynamicResource VexDensityCornerRadiusXs}" IsHitTestVisible="False"/>
+      </Template>
+    </Setter>
   </Style>
   <!-- ===== 对话框字段（原型 theme.css / dialogs.css）：.input 一族与侧栏搜索共用 search-shell 焦点配方，
        .mono 换等宽族；.dlg-path 是代码底的路径块（theme.css:599），此前类名挂了却没有任何样式。 ===== -->
