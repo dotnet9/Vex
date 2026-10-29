@@ -1,4 +1,4 @@
-using CodeWF.Avalonia.Controls.Controls;
+﻿using CodeWF.Avalonia.Controls.Controls;
 using System.Text;
 using Avalonia;
 using Avalonia.Controls;
@@ -64,6 +64,15 @@ internal static class PreferencesVerification
         var view = window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Single();
         T Control<T>(string name) where T : Control => view.GetVisualDescendants().OfType<T>().Single(x => x.Name == name);
         Check(view.GetVisualDescendants().OfType<ListBox>().Single().ItemCount == 6, "Preferences has six prototype categories");
+
+        // 原型契约：标题栏与左分类栏同用面板铬色（--panel），右配置区用更浅的画布底（--bg）。
+        Application.Current!.TryGetResource("VexDialogChromeBrush", window.ActualThemeVariant, out var chrome);
+        var chromeColor = ((ISolidColorBrush)chrome!).Color;
+        var borders = view.GetVisualDescendants().OfType<Border>().Where(b => b.Background is ISolidColorBrush).ToList();
+        var header = window.GetVisualDescendants().OfType<Border>().First(b => b.Child is Grid g && g.Children.OfType<Button>().Any(c => c.Classes.Contains("vex-dismiss")) && (b.Background as ISolidColorBrush)?.Color == chromeColor);
+        Check((header.Background as ISolidColorBrush)!.Color == chromeColor, "Preferences title bar uses the chrome panel color");
+        var scrollBackground = view.GetVisualDescendants().OfType<ScrollViewer>().First().Background as ISolidColorBrush;
+        Check(scrollBackground is not null && scrollBackground.Color != chromeColor, "Preferences config area stays lighter than the chrome");
         Check(Control<ComboBox>(nameof(preferences.DefaultEncoding)).SelectedIndex == 0, "Default encoding has a visible initial choice");
         Check(Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex == 0, "Default line ending has a visible initial choice");
         Control<ComboBox>(nameof(preferences.RestoreWorkspace)).SelectedIndex = 0; Render();

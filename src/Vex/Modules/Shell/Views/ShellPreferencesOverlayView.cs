@@ -45,10 +45,13 @@ public sealed class ShellPreferencesOverlayView : UserControl
         var close = new Button { Classes = { "vex-dismiss" }, Width = 46, Height = 32 };
         Avalonia.Automation.AutomationProperties.SetName(close, L(VexL.Close));
         close.Click += (_, _) => model.Close(); Grid.SetColumn(close, 1); header.Children.Add(close);
-        grid.Children.Add(Frame(header, new Thickness(0, 0, 0, 1)));
+        var headerFrame = Frame(header, new Thickness(0, 0, 0, 1));
+        BindResource(headerFrame, Border.BackgroundProperty, "VexDialogChromeBrush");
+        grid.Children.Add(headerFrame);
         var body = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
+        // 原型契约：标题栏与左栏同用 --panel（铬色），右栏配置区用更浅的 --bg。
         var navigationFrame = Frame(_navigation, new Thickness(0, 0, 1, 0));
-        BindResource(navigationFrame, Border.BackgroundProperty, "VexPanelBackgroundBrush");
+        BindResource(navigationFrame, Border.BackgroundProperty, "VexDialogChromeBrush");
         BindResource(_scroll, BackgroundProperty, "VexShellBackgroundBrush");
         body.Children.Add(navigationFrame); Grid.SetColumn(_scroll, 1); body.Children.Add(_scroll);
         Grid.SetRow(body, 1); grid.Children.Add(body);
@@ -143,8 +146,9 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 FolderRow(page, VexL.PrefImageFolder, p, nameof(p.ImageFolder));
                 break;
             case "appearance":
-                // 对应原型外观页：界面动效 + 界面圆角两个三态分段控件；水印设置块已随原型删除
-                // （外观页过长出现滚动条，水印功能保留默认值继续生效），配色与排版入口在标题栏「外观」。
+                // 对应原型外观页：界面动效 + 界面圆角两个三态分段控件，再是水印参数与实时样例；
+                // 【文档水印】标题标签已按拍板移除（外观页过长出现滚动条），配置项与功能原样保留；
+                // 配色与排版入口在标题栏「外观」，水印开关只在视图菜单出现一处，偏好页不重复放置。
                 Segmented(page, VexL.MenuMotion, _model.Layout, nameof(_model.Layout.MotionMode),
                     () => _model.Layout.MotionMode, value => _model.Layout.MotionMode = value,
                     [(MotionModes.Full, L("Vex.VexL.MotionFull")), (MotionModes.Reduced, L("Vex.VexL.MotionReduced")), (MotionModes.Off, L("Vex.VexL.MotionOff"))],
@@ -153,6 +157,12 @@ public sealed class ShellPreferencesOverlayView : UserControl
                     () => _model.Appearance.RadiusMode, value => _model.Appearance.RadiusMode = value,
                     [("square", L("Vex.VexL.RadiusSquare")), ("compact", L("Vex.VexL.RadiusCompact")), ("standard", L("Vex.VexL.RadiusStandard"))],
                     "Vex.VexL.RadiusModeNote");
+                Text(page, VexL.PrefWatermarkText, p, nameof(p.WatermarkText));
+                Range(page, VexL.PrefWatermarkFontSize, p, nameof(p.WatermarkFontSize), 12, 36, " px");
+                ColorChoice(page, VexL.PrefWatermarkColor, p);
+                Choice(page, VexL.PrefWatermarkWeight, p, nameof(p.WatermarkWeight), [(L("Vex.VexL.PrefWeightLight"), 300), (L("Vex.VexL.PrefWeightRegular"), 400), (L("Vex.VexL.PrefWeightBold"), 700)]);
+                Range(page, VexL.PrefWatermarkOpacity, p, nameof(p.WatermarkOpacity), 0, 50, "%");
+                page.Children.Add(BuildWatermarkSample());
                 break;
             case "export":
                 // 对齐原型 export 页；水印「所见即所得」——文档显示水印导出即包含，不再单设开关。
@@ -479,6 +489,30 @@ public sealed class ShellPreferencesOverlayView : UserControl
         pickerPanel.Children.Add(presets);
         swatch.Flyout = new Flyout { Content = pickerPanel, Placement = PlacementMode.BottomEdgeAlignedLeft };
         Row(page, label, swatch);
+    }
+
+    private Control BuildWatermarkSample()
+    {
+        var p = _model.Preferences;
+        // 原型 .vex-watermark-sample：strong 固定 17px/500，span 12px muted，列间距 10。
+        var slogan = new TextBlock { Text = L(VexL.AboutShortSlogan), FontSize = 17, FontWeight = FontWeight.Medium, TextWrapping = TextWrapping.Wrap };
+        BindResource(slogan, TextBlock.ForegroundProperty, "VexEditorForegroundBrush");
+        var byline = new TextBlock { Text = "维刻 Vex", FontSize = 12 };
+        BindResource(byline, TextBlock.ForegroundProperty, "VexMutedBrush");
+        var content = new StackPanel { Margin = new Thickness(20, 26), Spacing = 10, VerticalAlignment = VerticalAlignment.Center };
+        content.Children.Add(slogan); content.Children.Add(byline);
+        var watermark = new Vex.Modules.Workspace.Views.WatermarkOverlay();
+        watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.TextProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkText)) { Source = p });
+        watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.StrengthProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkOpacity)) { Source = p });
+        watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.FontSizeProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkFontSize)) { Source = p });
+        watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.HexInkProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkColor)) { Source = p });
+        watermark.Bind(Vex.Modules.Workspace.Views.WatermarkOverlay.WeightValueProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkWeight)) { Source = p });
+        var host = new Grid { MinHeight = 140, ClipToBounds = true };
+        host.Children.Add(content); host.Children.Add(watermark);
+        var frame = Frame(host, new Thickness(1));
+        frame.CornerRadius = new CornerRadius(5); frame.Margin = new Thickness(0, 18, 0, 0);
+        BindResource(frame, Border.BackgroundProperty, "VexDocumentPaperBrush");
+        return frame;
     }
 
     private sealed class HexToBrushConverter : IValueConverter

@@ -3,6 +3,8 @@
     <!-- 与 StudioTheme 共用动态颜色令牌，不复制 Semi 的整套主题字典。 -->
     <SolidColorBrush x:Key="VexShellBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
     <SolidColorBrush x:Key="VexPanelBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
+    <!-- 对话框铬色：偏好设置等浮层的标题栏与分类栏底（原型 panel 令牌；比配置区画布底深一档）。 -->
+    <SolidColorBrush x:Key="VexDialogChromeBrush" Color="{DynamicResource StudioRaisedColor}" />
     <SolidColorBrush x:Key="VexPanelBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <!-- 原型表单控件描边走 control-border（比行分隔线 border 深一档），只有输入类控件用它。 -->
     <SolidColorBrush x:Key="VexControlBorderBrush" Color="{DynamicResource StudioControlBorderColor}" />
