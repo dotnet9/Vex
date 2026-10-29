@@ -67,7 +67,7 @@ public sealed partial class ShellFilesViewModel
 
     private void RebuildWorkspaceProjection()
     {
-        if (_workspaceFiles is null || _disposed) { System.Console.WriteLine("DBG RWP return null/disposed"); return; }
+        if (_workspaceFiles is null || _disposed) return;
         var filter = FilterText.Trim();
         _projectionSelectionPath = SelectedDocumentFileNode?.Path ?? _projectionSelectionPath;
         if (!IsListView && filter.Length == 0)
@@ -95,7 +95,6 @@ public sealed partial class ShellFilesViewModel
         _projectedFilter = filter;
         _projectedList = IsListView;
         _projectedSortKey = _sortKey;
-        System.Console.WriteLine("DBG BuildIndex guard passed sortKey target=" + _sortKey);
         _indexCancellation?.Cancel();
         _indexCancellation?.Dispose();
         _indexCancellation = CancellationTokenSource.CreateLinkedTokenSource(_workspaceCancellation.Token);
@@ -114,7 +113,6 @@ public sealed partial class ShellFilesViewModel
         try
         {
             if (filter.Length > 0) await Task.Delay(250, token).ConfigureAwait(false);
-            System.Console.WriteLine("DBG BuildIndex sortKey=" + sortKey);
             var files = _indexedFiles ?? await _workspaceFiles!.GetFilesAsync(token).ConfigureAwait(false);
             var matched = await Task.Run(() => files
                 .Where(file => filter.Length == 0 || file.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
@@ -134,7 +132,7 @@ public sealed partial class ShellFilesViewModel
                         _ => matched.OrderBy(file => file.Name, StringComparer.OrdinalIgnoreCase),
                     };
                     foreach (var file in sorted)
-                        FlatDocumentFileNodes.Add(new DocumentFileNode(file.Name, file.Path, false, documentFile: file));
+                        FlatDocumentFileNodes.Add(new DocumentFileNode(file.Name, file.Path, false, documentFile: file) { FolderTag = FolderTagFor(file.Path) });
                 }
                 else if (matched.Length > 0)
                 {

@@ -117,8 +117,8 @@ internal static class PrototypeChromeVerification
             window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Render();
             Check(!vm.Workbench.ShowLayouts && layoutButton.IsFocused, "Escape closes layout panel and returns focus");
         }
-        // 原生文件栏底部条（Typora 口径）：目录名排序钮 + 三点菜单 + 树/列表切换沉在栏底，
-        // 顶边一根发丝线与列表分隔；切换钮选中态跟随 IsTreeView。原型底部条度量对齐在侧栏任务里另行断言。
+        // 原生文件栏底部条（原型 .files-footer）：目录钮 flex 占满 + 排序/视图两枚 26×26 按钮靠右，
+        // gap 2、内距 6×10、顶缘发丝线，整条 39px 沉在栏底；切换钮选中态跟随 IsTreeView。
         window.Width = 1440; window.Height = 1000; Render();
         var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
         var filesVm = (ShellFilesViewModel)filesView.DataContext!;
@@ -128,11 +128,19 @@ internal static class PrototypeChromeVerification
         var footerTools = footer.GetVisualDescendants().OfType<Control>()
             .Where(c => (c is Button || c is ToggleButton) && c.Classes.Contains("files-tool")).ToArray();
         var viewToggle = footerTools.OfType<ToggleButton>().Single();
+        var moreButton = footerTools.First(c => c is not ToggleButton);
         var footerBottom = footer.TranslatePoint(new Point(0, footer.Bounds.Height), filesView)!.Value.Y;
-        Check(footerTools.Length == 3 && footer.BorderThickness == new Thickness(0, 1, 0, 0)
+        var folderRight = sortFolder.TranslatePoint(new Point(sortFolder.Bounds.Width, 0), footer)!.Value.X;
+        var moreLeft = moreButton.TranslatePoint(default, footer)!.Value.X;
+        var toggleRight = viewToggle.TranslatePoint(new Point(viewToggle.Bounds.Width, 0), footer)!.Value.X;
+        Check(sortFolder.Classes.Contains("files-folder") && footerTools.Length == 2
+            && footer.BorderThickness == new Thickness(0, 1, 0, 0) && Math.Abs(footer.Bounds.Height - 39) < 1
             && Math.Abs(footerBottom - filesView.Bounds.Height) < 1
+            && sortFolder.Bounds.Width > 60 && Math.Abs(folderRight + 2 - moreLeft) < 1
+            && Math.Abs(viewToggle.Bounds.Width - 26) < 1 && Math.Abs(viewToggle.Bounds.Height - 26) < 1
+            && Math.Abs(toggleRight - (footer.Bounds.Width - 10)) < 1
             && viewToggle.IsChecked == filesVm.IsTreeView,
-            $"Files footer docks at the pane bottom with a hairline and three tools: bottom={footerBottom:0.#} pane={filesView.Bounds.Height:0.#} tree={filesVm.IsTreeView}");
+            $"Files footer flex-fills the folder button and right-aligns two 26px tools: footer={footer.Bounds.Size} folder={sortFolder.Bounds.Width:0.#} toggleRight={toggleRight:0.#} tree={filesVm.IsTreeView}");
         viewToggle.Command!.Execute(null); Render();
         Check(!filesVm.IsTreeView && viewToggle.IsChecked == false, "Footer toggle switches to the flat file list");
         viewToggle.Command!.Execute(null); Render();

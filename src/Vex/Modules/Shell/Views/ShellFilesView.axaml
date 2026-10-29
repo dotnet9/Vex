@@ -104,6 +104,88 @@
         <Style Selector="ToggleButton.files-tool:checked Path">
             <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
         </Style>
+        <!-- 底部条目录钮（原型 .files-folder）：flex 占满、13px 文件夹图标 + 名称、4px 圆角、悬浮 hover 底 + 前景。 -->
+        <Style Selector="Button.files-folder">
+            <Setter Property="Height" Value="26" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="Button.files-folder:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+        </Style>
+        <Style Selector="Button.files-folder:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+        </Style>
+        <Style Selector="Button.files-folder Path.folder-ico">
+            <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="StrokeThickness" Value="1.6" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="Stretch" Value="Uniform" />
+        </Style>
+        <Style Selector="Button.files-folder:pointerover Path.folder-ico">
+            <Setter Property="Stroke" Value="{DynamicResource VexValueBrush}" />
+        </Style>
+        <!-- 文件列表（原型 .file-row）：与树形行同口径 24px 单行，直角通栏 hover/选中底（deck-nav 同款 ContentPresenter 配方）。 -->
+        <Style Selector="ListBox.files-list">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        </Style>
+        <Style Selector="ListBox.files-list ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="MinHeight" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="ListBox.files-list ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+        </Style>
+        <Style Selector="ListBox.files-list ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.files-list ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+        </Style>
+        <Style Selector="ListBox.files-list Path.tree-ico">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="Height" Value="12" />
+            <Setter Property="Stretch" Value="Uniform" />
+            <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="StrokeThickness" Value="1.4" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ListBox.files-list ListBoxItem:selected Path.tree-ico">
+            <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
+        <Style Selector="ListBox.files-list TextBlock.file-list-name">
+            <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="ListBox.files-list ListBoxItem:selected TextBlock.file-list-name">
+            <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="ListBox.files-list TextBlock.file-folder-tag">
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+        <Style Selector="ListBox.files-list ListBoxItem:selected TextBlock.file-folder-tag">
+            <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -182,17 +264,31 @@
                 </ContextMenu>
             </TreeView.ContextMenu>
         </TreeView>
-        <ListBox x:Name="FileList" Grid.Row="1" Classes="side-list" IsVisible="{Binding IsListView}"
+        <ListBox x:Name="FileList" Grid.Row="1" Classes="files-list" Margin="5,0" IsVisible="{Binding IsListView}"
                  ItemsSource="{Binding FlatDocumentFileNodes}" SelectedItem="{Binding SelectedListDocumentFileNode, Mode=TwoWay}" PointerPressed="SelectItemOnPointerPressed">
             <ListBox.ItemTemplate><DataTemplate x:DataType="models:DocumentFileNode">
-                <!-- Typora 列表形态：目录+日期行 / 文件名行 / 内容预览行，无图标。 -->
-                <Grid RowDefinitions="Auto,Auto,Auto" Margin="10,8" ToolTip.Tip="{Binding Path}">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="{Binding DocumentFile.FolderName}" FontSize="11" Classes="muted" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Grid.Column="1" Text="{Binding DocumentFile.ModifiedText}" FontSize="11" Classes="muted" Margin="12,0,0,0"/>
-                    </Grid>
-                    <TextBlock Grid.Row="1" Margin="0,3,0,0" Text="{Binding Name}" FontSize="13" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Grid.Row="2" Margin="0,3,0,0" Text="{Binding Preview}" FontSize="11.5" Classes="muted" MaxHeight="34" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
+                <!-- 原型 .file-row：与树形行同口径的单行（图标 + 名称 + 行尾目录标签），选中底由通栏模板行绘制。 -->
+                <Grid Classes="file-list-row" ColumnDefinitions="12,*,Auto" ColumnSpacing="6" Margin="4,0">
+                    <Panel Width="12" Height="12" VerticalAlignment="Center">
+                        <Image x:Name="ListFileIcon" Classes="tree-ico" Width="12" Height="12" Stretch="Uniform"
+                               IsVisible="{Binding #ListFileIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNotNull}}">
+                            <Image.Source>
+                                <MultiBinding Converter="{StaticResource FileIconConverter}">
+                                    <Binding Path="Name" />
+                                    <Binding Path="IsFolder" />
+                                    <Binding Path="IsExpanded" />
+                                    <Binding Path="$parent[UserControl].ActualThemeVariant" />
+                                </MultiBinding>
+                            </Image.Source>
+                        </Image>
+                        <Path Classes="tree-ico" IsVisible="{Binding #ListFileIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNull}}"
+                              Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+                    </Panel>
+                    <TextBlock Grid.Column="1" Classes="file-list-name" Text="{Binding Name}" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Path}" />
+                    <TextBlock Grid.Column="2" Classes="file-folder-tag" Text="{Binding FolderTag}" VerticalAlignment="Center"
+                               IsVisible="{Binding FolderTag, Converter={x:Static avaloniaConverters:StringConverters.IsNotNullOrEmpty}}"
+                               TextTrimming="CharacterEllipsis" MaxWidth="150" />
                 </Grid>
             </DataTemplate></ListBox.ItemTemplate>
             <ListBox.ContextMenu><ContextMenu>
@@ -249,25 +345,36 @@
             <TextBlock Classes="muted" FontSize="12" LineHeight="24" TextWrapping="Wrap"
                        Text="{i18n:I18n {x:Static l:VexL.FileListOverflowHint}}"/>
         </Border>
-        <!-- 底部条：目录名（排序菜单）+ 竖直三点（同菜单）+ 视图切换，Typora 口径。 -->
-        <Border Grid.Row="2" Padding="10,5" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
-                <Button x:Name="SortFolderButton" Classes="files-tool files-folder" HorizontalContentAlignment="Left"
-                        Content="{Binding WorkspaceName}" Flyout="{StaticResource SortFlyout}"
-                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SortFiles}}"
-                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}"/>
-                <Button Grid.Column="1" Classes="files-tool" FontSize="13" Content="&#8943;"
+        <!-- 底部条（原型 .files-footer）：目录名占满剩余宽度，排序/视图两枚 26×26 按钮靠右，gap 2、内距 6×10、顶缘 1px 描线。 -->
+        <Border Grid.Row="2" Padding="10,6" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="2">
+                <Button x:Name="SortFolderButton" Classes="files-folder" HorizontalContentAlignment="Stretch"
                         Flyout="{StaticResource SortFlyout}"
                         ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SortFiles}}"
-                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}"/>
-                <ToggleButton Grid.Column="3" Classes="files-tool" IsChecked="{Binding IsTreeView, Mode=OneWay}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}">
+                    <Grid ColumnDefinitions="13,*" ColumnSpacing="6">
+                        <Path Classes="folder-ico" Width="13" Height="13" VerticalAlignment="Center"
+                              Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                        <TextBlock Grid.Column="1" Text="{Binding WorkspaceName}" FontSize="12" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                </Button>
+                <Button Grid.Column="1" Classes="files-tool"
+                        Flyout="{StaticResource SortFlyout}"
+                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SortFiles}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}">
+                    <Path Width="14" Height="14" Stretch="Uniform" Stroke="{x:Null}"
+                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                          Data="M12 3.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3 M12 10.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3 M12 17.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3" />
+                </Button>
+                <ToggleButton Grid.Column="2" Classes="files-tool" IsChecked="{Binding IsTreeView, Mode=OneWay}"
                               Command="{Binding ToggleListView}"
                               ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ToggleTreeList}}"
                               AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ToggleTreeList}}">
                     <Panel>
-                        <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.6" IsVisible="{Binding IsTreeView}"
+                        <Path Classes="stroke-ico" Width="14" Height="14" StrokeThickness="1.6" IsVisible="{Binding IsTreeView}"
                               Data="M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01"/>
-                        <Path Classes="stroke-ico" Width="15" Height="15" StrokeThickness="1.6" IsVisible="{Binding IsListView}"
+                        <Path Classes="stroke-ico" Width="14" Height="14" StrokeThickness="1.6" IsVisible="{Binding IsListView}"
                               Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
                     </Panel>
                 </ToggleButton>

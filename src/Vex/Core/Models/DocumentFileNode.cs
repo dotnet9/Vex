@@ -65,6 +65,9 @@ public sealed class DocumentFileNode : INotifyPropertyChanged
 
     public string ModifiedText => DocumentFile?.ModifiedText ?? string.Empty;
 
+    /// <summary>列表行尾的目录标签（相对工作区根的子目录，原型 .file-folder-tag）；根目录文件为空。</summary>
+    public string FolderTag { get; internal set; } = string.Empty;
+
     public string Preview => _preview ?? DocumentFile?.Preview ?? string.Empty;
 
     public string PreviewDisplay => string.IsNullOrEmpty(Preview) ? Path : Preview;

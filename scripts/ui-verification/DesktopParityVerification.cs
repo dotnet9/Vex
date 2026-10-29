@@ -96,8 +96,28 @@ internal static class DesktopParityVerification
         Check(restoredNavigation.DocumentFileNodes[0].IsExpanded, "New file navigation starts with the root expanded despite old collapse settings");
         navigation.ToggleListView(); Render();
         Check(navigation.IsListView && navigation.FlatDocumentFileNodes.Count == 2, "List view flattens nested files");
+        Check(navigation.FlatDocumentFileNodes.First(n => n.Name == "alpha.md").FolderTag == "folder"
+            && navigation.FlatDocumentFileNodes.First(n => n.Name == "zeta.md").FolderTag == "",
+            "List rows carry a relative folder tag for nested files and none for root files");
+        var fileList = filesView.FindControl<ListBox>("FileList")!;
+        var listRows = fileList.GetVisualDescendants().OfType<ListBoxItem>().ToArray();
+        TextBlock? NameOf(ListBoxItem row) => row.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.Classes.Contains("file-list-name"));
+        TextBlock? TagOf(ListBoxItem row) => row.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.Classes.Contains("file-folder-tag"));
+        var alphaRow = listRows.FirstOrDefault(r => NameOf(r)?.Text == "alpha.md");
+        var zetaRow = listRows.FirstOrDefault(r => NameOf(r)?.Text == "zeta.md");
+        Check(listRows.Length == 2 && listRows.All(r => Math.Abs(r.Bounds.Height - 24) < 1)
+            && alphaRow is not null && zetaRow is not null
+            && TagOf(alphaRow) is { IsVisible: true, Text: "folder" } && TagOf(zetaRow) is { IsVisible: false },
+            "List rows are 24px single lines; only the nested file shows its folder tag");
+        navigation.SelectedListDocumentFileNode = navigation.FlatDocumentFileNodes.First(n => n.Name == "alpha.md"); Render();
+        var selectedRow = fileList.GetVisualDescendants().OfType<ListBoxItem>().First(i => i.IsSelected);
+        var rowPresenter = selectedRow.GetVisualDescendants().OfType<Avalonia.Controls.Presenters.ContentPresenter>().First(c => c.Name == "PART_ContentPresenter");
+        Application.Current!.TryGetResource("VexAccentSoftBrush", window.ActualThemeVariant, out var accentSoftResource);
+        Check(rowPresenter.Background is Avalonia.Media.ISolidColorBrush rowBg
+            && accentSoftResource is Avalonia.Media.ISolidColorBrush accentSoft && rowBg.Color == accentSoft.Color
+            && Math.Abs(rowPresenter.Bounds.Width - selectedRow.Bounds.Width) < 1,
+            "Selected list row paints a full-bleed accent-soft background");
         navigation.SetSortKey("natural-desc");
-        Console.WriteLine("DBG after SetSortKey sortKey=" + navigation.SortKey + " flat0=" + (navigation.FlatDocumentFileNodes.Count > 0 ? navigation.FlatDocumentFileNodes[0].Name : "<empty>"));
         var sortDeadline = DateTime.UtcNow.AddSeconds(5);
         while (DateTime.UtcNow < sortDeadline
             && navigation.FlatDocumentFileNodes.Count > 0 && navigation.FlatDocumentFileNodes[0].Name != "zeta.md")

@@ -60,14 +60,10 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
     public void SetSortKey(string key)
     {
-        System.Console.WriteLine("DBG SetSortKey enter key=" + key + " wsNull=" + (_workspaceFiles is null));
         if (SortKey == key) return;
         _sortKey = key;
-        System.Console.WriteLine("DBG SetSortKey calling rebuilds");
         RebuildFilteredNodes();
-        System.Console.WriteLine("DBG SetSortKey RebuildFilteredNodes done");
         RebuildWorkspaceProjection();
-        System.Console.WriteLine("DBG SetSortKey RWP done flat0=" + (FlatDocumentFileNodes.Count > 0 ? FlatDocumentFileNodes[0].Name : "<empty>"));
         _settingsStore?.Update(settings => settings with { FileSortKey = key });
     }
 
@@ -350,7 +346,10 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
             _ => flat.OrderBy(node => node.Name, StringComparer.OrdinalIgnoreCase),
         };
         foreach (var node in ordered)
+        {
+            node.FolderTag = FolderTagFor(node.Path);
             FlatDocumentFileNodes.Add(node);
+        }
         OnPropertyChanged(nameof(IsListOverflow));
 
         SelectDocumentFileSilently(selectedPath is null ? null
@@ -507,6 +506,14 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         var normalizedDirectory = directory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                                   + Path.DirectorySeparatorChar;
         return path.StartsWith(normalizedDirectory, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+    }
+
+    /// <summary>列表行目录标签：文件相对工作区根的子目录（正斜杠，原型 treePath 口径）；根目录文件返回空。</summary>
+    private string FolderTagFor(string? filePath)
+    {
+        if (_workspacePath is not { Length: > 0 } root || string.IsNullOrEmpty(filePath)) return string.Empty;
+        var relative = ResolveRelativeDirectory(root, SafeDirectoryName(filePath));
+        return relative is null ? string.Empty : relative.Replace('\\', '/');
     }
 
     private static string? ResolveRelativeDirectory(string rootPath, string? directory)
