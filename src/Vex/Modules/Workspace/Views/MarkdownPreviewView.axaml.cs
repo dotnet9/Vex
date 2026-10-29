@@ -59,18 +59,14 @@ public partial class MarkdownPreviewView : UserControl
             PreviewMarkdownViewer.MaxWidth = 1104 / scale;
             PreviewMarkdownViewer.Margin = default;
         }
-        else if (IsReadingMode)
-        {
-            var margin = new Thickness(52, 30, 52, 104);
-            PreviewMarkdownViewer.Margin = margin;
-            // 原型的 max-width 是含留白的边框盒（全局 border-box），Avalonia 的 MaxWidth 只算内容：把留白扣回去。
-            PreviewMarkdownViewer.MaxWidth = Math.Max(820, clientWidth * 0.5) - margin.Left - margin.Right;
-        }
         else
         {
-            var margin = new Thickness(48, 36, 48, 104);
+            // 原型 .reading-scroll .md-body 内边距实测 30/52/88（单栏阅读与组合预览同值，探针读数）；
+            // 底部不再为悬浮状态栏留白——状态栏已改通栏占位行。
+            var margin = new Thickness(52, 30, 52, 88);
             PreviewMarkdownViewer.Margin = margin;
-            PreviewMarkdownViewer.MaxWidth = Math.Max(800, clientWidth * 0.42) - margin.Left - margin.Right;
+            // 原型的 max-width 是含留白的边框盒（全局 border-box），Avalonia 的 MaxWidth 只算内容：把留白扣回去。
+            PreviewMarkdownViewer.MaxWidth = Math.Max(820, clientWidth * (IsReadingMode ? 0.5 : 0.42)) - margin.Left - margin.Right;
         }
     }
 

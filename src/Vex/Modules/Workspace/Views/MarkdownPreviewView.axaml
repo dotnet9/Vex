@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Vex.Modules.Workspace.Views.MarkdownPreviewView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -37,11 +37,12 @@
             <!-- 包裹层：ScrollViewer 会拉伸直接子级，居中限宽需交给内层 Grid 的对齐处理。 -->
             <Grid HorizontalAlignment="Stretch">
             <LayoutTransformControl x:Name="DocumentTransform">
-            <!-- 原型 .reading-scroll .md-body 底部留 104px：正文最后一行不被悬浮胶囊盖住。 -->
+            <!-- 原型 .reading-scroll .md-body 内边距实测 30/52/88（探针 workspace-chrome.css:375，写作字号档）；
+                 底部不再为悬浮状态栏留白——状态栏已改通栏占位行（B4-14）。 -->
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
                 IsTaskEditingEnabled="{Binding IsTaskEditingEnabled}"
-                Margin="30 22 30 104"
+                Margin="52,30,52,88"
                 ImageBasePath="{Binding ImageBasePath}"
                 Markdown="{Binding Markdown}"
                 SyntaxOptions="{Binding Preferences.SyntaxOptions}"

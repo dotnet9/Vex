@@ -1814,6 +1814,23 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     var caretInViewportY = followCaret.Center.Y - followTextView.VerticalOffset;
     Check(Math.Abs(caretInViewportY - followScroll.Bounds.Height / 2) < 2,
         $"Typewriter mode keeps the caret line at the viewport center: inViewport={caretInViewportY:F1}, center={followScroll.Bounds.Height / 2:F1}");
+    // 通栏状态栏（原型 workspace-chrome.css:538）：横贯 window-body、28px 高、上缘发丝线、铬面底。
+    var statusBar = window.FindControl<Vex.Modules.Shell.Views.ShellStatusBarView>("StatusBarGuideTarget")!;
+    var statusBarBorder = statusBar.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("document-statusbar"));
+    Application.Current!.TryGetResource("VexHairlineBrush", window.ActualThemeVariant, out var hairlineBrush);
+    Application.Current!.TryGetResource("VexChromeBrush", window.ActualThemeVariant, out var chromeBrush);
+    Check(Math.Abs(statusBar.Bounds.Width - window.Bounds.Width) < 3
+          && Math.Abs(statusBar.Bounds.Height - 28) < 1,
+        $"Status bar spans the window bottom at 28px: {statusBar.Bounds.Width:F0}x{statusBar.Bounds.Height:F0}");
+    Check(statusBarBorder.BorderThickness.Top == 1
+          && ReferenceEquals(statusBarBorder.BorderBrush, hairlineBrush)
+          && ReferenceEquals(statusBarBorder.Background, chromeBrush),
+        $"Status bar has the hairline top and chrome background: brush={statusBarBorder.BorderBrush == hairlineBrush}, bg={statusBarBorder.Background == chromeBrush}");
+    // 阅读正文边距（原型 .reading-scroll .md-body 实测 30/52/88）：底部不再为悬浮胶囊留白。
+    var previewViewer = window.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
+        .FirstOrDefault(viewer => viewer.Name == "PreviewMarkdownViewer");
+    Check(previewViewer is not null && previewViewer.Margin == new Thickness(52, 30, 52, 88),
+        $"Reading body padding follows the probed prototype values: {previewViewer?.Margin}");
     vm.Layout.IsTypewriterMode = false; Pump();
     // 编辑区内边距对齐原型（workbench.css:92 = 22px 24px 60px 54px）：行号列由库内边距自供，
     // 正文左缩进 = 24 内距 + 行号列宽 ≈ 54，行号隐藏时左 24 档自动成立。

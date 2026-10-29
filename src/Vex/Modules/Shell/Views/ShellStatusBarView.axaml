@@ -1,4 +1,4 @@
-<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
  xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:codewf="https://codewf.com" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}">
  <UserControl.Styles>
   <!-- 对应原型 .workspace-viewswitch：它本身就是一枚 .segmented-track，轨道底色、圆角、内缩、滑动指示块、
@@ -26,8 +26,9 @@
   <!-- 对应原型 .document-word-count：12px 静音文字，悬停转主题色。 -->
   <Style Selector="Button.sb-word">
    <Setter Property="MinHeight" Value="0" />
-   <Setter Property="Padding" Value="6,0" />
-   <Setter Property="CornerRadius" Value="999" />
+   <Setter Property="Height" Value="20" />
+   <Setter Property="Padding" Value="4,0" />
+   <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}" />
    <Setter Property="BorderThickness" Value="0" />
    <Setter Property="Background" Value="Transparent" />
    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
@@ -42,12 +43,12 @@
   </Style>
  </UserControl.Styles>
 
- <!-- 对应原型 .workspace-main .document-statusbar：状态栏退役为悬浮胶囊——块面底 + 1px 描边 + 整胶囊圆角，
-      宽度随内容收缩，靠 MainWindow 的右下角定位（bottom 16、水平居中于正文列）。 -->
- <Border Classes="status-pill" Padding="6,4" CornerRadius="{DynamicResource VexDensityCornerRadiusPill}" BorderThickness="1"
-         Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
-         BoxShadow="{DynamicResource VexPopShadow}">
-  <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+ <!-- 对应原型 .window-body>.document-statusbar（workspace-chrome.css:538）：窗口级通栏占位行——
+      28px 基准高（密度令牌）、上缘 1px 发丝线、铬面底、无圆角无投影；视图开关与字数钮保留在栏内。 -->
+ <Border Classes="document-statusbar" Height="{DynamicResource VexDensityControlHeightSm}"
+         Padding="14,0" BorderThickness="0,1,0,0"
+         Background="{DynamicResource VexChromeBrush}" BorderBrush="{DynamicResource VexHairlineBrush}">
+  <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
    <Border x:Name="ViewSwitch" Classes="view-switch segmented-track">
     <codewf:SegmentedPanel Spacing="2">
      <Button x:Name="SourceSegment" Classes="view-segment" codewf:SegmentedPanel.IsActive="{Binding Workbench.IsSourceSegmentActive}" Content="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" Command="{Binding Workbench.ShowSourceView}" />

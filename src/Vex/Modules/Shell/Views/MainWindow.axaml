@@ -106,7 +106,7 @@
 
         <!-- 原型 .nav-rail：窗口级图标栏（文件/大纲/搜索/设置）取代块角折叠钮，铬面全高贴左缘。
              外层 Grid 承载图标栏，内层 WorkspaceColumns 的列号与拖动逻辑保持不变。 -->
-        <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+        <Grid Grid.Row="1" RowDefinitions="*,Auto" ColumnDefinitions="Auto,*">
             <Border x:Name="NavRail" Classes="nav-rail" IsVisible="{Binding !Workbench.IsPresenting}">
                 <DockPanel Margin="0,10">
                     <ToggleButton x:Name="RailFilesToggle" Classes="rail-item" DockPanel.Dock="Top" Margin="0,0,0,4"
@@ -204,11 +204,6 @@
                      由 WorkspaceViewController 在构造时移入块内，才能随圆角一起裁切；这里只是声明宿主。 -->
                 <shell:ShellEditorOptionsView x:Name="EditorOptions" />
                 </Panel>
-                <!-- 原型 .workspace-main .document-statusbar：状态栏不再占行，改为浮在正文列底部居中的胶囊。
-                     纵向走令牌 vex-axis-col（圆心钉在底部轴线上，与左右折叠钮、右下角缩放坞同高），底距由 BottomAxis 按实测高度算。 -->
-                <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="2" ZIndex="34"
-                                          HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                                          codewf:BottomAxis.CenterFromBottom="20" />
             </Grid>
             <GridSplitter x:Name="OutlineSplitter" Grid.Column="3" Classes="workspace-gap gap-horizontal" ZIndex="9" HorizontalAlignment="Stretch"
                           IsVisible="{Binding Layout.ShowOutlineSidebar}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
@@ -217,7 +212,13 @@
                     ClipToBounds="True">
                 <shell:ShellAuxiliaryPanelView/>
             </Border>
+
         </Grid>
+
+            <!-- 原型 .window-body>.document-statusbar（workspace-chrome.css:538）：窗口级通栏占位行，
+                 28px 高、上缘发丝线、铬面底，随 window-body 横贯整窗（跨图标栏与五列工作区）；
+                 focus/presentation 隐藏规则由 ShowStatusBar 承担。 -->
+            <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ZIndex="34" />
         </Grid>
 
         <!-- 原型 .vex-deck header：与正常标题条同高（令牌 app-titlebar-height 33px），面板底色 + 1px 底边；
