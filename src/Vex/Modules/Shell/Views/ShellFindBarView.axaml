@@ -64,22 +64,33 @@
                  flex + gap:6、输入框 min-width:0，窄窗先收缩输入框，关闭钮因此不会被挤出块外。
                  原生给 72 的下限（与动作钮同宽）：800px 窗口下原型已把输入框压到 50 上下，再低就没法看了。 -->
             <Grid ColumnDefinitions="*,*,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="6">
-            <!-- 查找框：命中计数以内嵌徽章叠在输入框右侧（对应原型 .fb-count） -->
+            <!-- 查找框：与侧栏搜索同一焦点配方（Grid.search-shell：pill、accent 边 + 3px 柔光、fast 档过渡），
+                 原型 .find-strip .input 另给 28 高与 11 号字；命中计数以内嵌徽章叠在输入框右侧（对应原型 .fb-count）。 -->
             <Grid
                 Grid.Column="0"
                 MaxWidth="220"
                 MinWidth="96">
-                <TextBox
-                    x:Name="FindTextBox"
-                    AcceptsReturn="False"
-                    Height="28"
-                    KeyDown="OnFindTextBoxKeyDown"
-                    MaxLength="200"
-                    MinHeight="28"
-                    Padding="0 0 56 0"
-                    PlaceholderText="{i18n:I18n Vex.VexL.FindBarFindPlaceholder}"
-                    TextWrapping="NoWrap"
-                    Text="{Binding SearchText, Mode=TwoWay}" />
+                <Grid Classes="search-shell" Height="28">
+                    <Border Classes="search-glow" />
+                    <Border Classes="search-frame" Padding="10,0">
+                        <TextBox
+                            x:Name="FindTextBox"
+                            AcceptsReturn="False"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="11"
+                            KeyDown="OnFindTextBoxKeyDown"
+                            MaxLength="200"
+                            MinHeight="0"
+                            Padding="0 0 56 0"
+                            PlaceholderText="{i18n:I18n Vex.VexL.FindBarFindPlaceholder}"
+                            TextWrapping="NoWrap"
+                            VerticalAlignment="Stretch"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding SearchText, Mode=TwoWay}" />
+                    </Border>
+                    <Border Classes="search-hover" />
+                </Grid>
                 <Border
                     Margin="0 0 8 0"
                     Padding="6 0"
@@ -95,18 +106,30 @@
                 </Border>
             </Grid>
             <!-- 原型 .btn.sm：26px 高、7px 圆角、12px 字号；关闭钮 30×30 无边框（.icon-button）。 -->
-            <TextBox
+            <Grid
                 Grid.Column="1"
                 MaxWidth="220"
                 MinWidth="96"
-                Height="28"
-                AcceptsReturn="False"
-                IsVisible="{Binding IsReplaceVisible}"
-                MaxLength="200"
-                MinHeight="28"
-                PlaceholderText="{i18n:I18n Vex.VexL.FindBarReplacePlaceholder}"
-                TextWrapping="NoWrap"
-                Text="{Binding ReplacementText, Mode=TwoWay}" />
+                IsVisible="{Binding IsReplaceVisible}">
+                <Grid Classes="search-shell" Height="28">
+                    <Border Classes="search-glow" />
+                    <Border Classes="search-frame" Padding="10,0">
+                        <TextBox
+                            AcceptsReturn="False"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="11"
+                            MaxLength="200"
+                            MinHeight="0"
+                            PlaceholderText="{i18n:I18n Vex.VexL.FindBarReplacePlaceholder}"
+                            TextWrapping="NoWrap"
+                            VerticalAlignment="Stretch"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding ReplacementText, Mode=TwoWay}" />
+                    </Border>
+                    <Border Classes="search-hover" />
+                </Grid>
+            </Grid>
             <!-- 原型 .find-strip 的动作顺序是「上一个 → 下一个 → 全部替换」；「替换」是实现侧补充，夹在中间。 -->
             <Button
                 x:Name="FindPrevButton"

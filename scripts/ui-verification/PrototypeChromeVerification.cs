@@ -161,16 +161,18 @@ internal static class PrototypeChromeVerification
         // 原型 .find-strip（workspace-chrome.css:578）整条 46px；输入框按 4pt 网格归 28
         // （workbench.css:192 min-height 28），动作钮 .btn.sm 26、关闭钮 .icon-button 30×30。
         // 三个开关是原型条上没有的实现侧补充，度量借原型自己的 .opt-toggle（theme.css:542：28 高、min-width 30）。
-        var findInputs = findStrip.GetVisualDescendants().OfType<TextBox>().Where(t => t.IsVisible).ToArray();
+        var findInputs = findStrip.GetVisualDescendants().OfType<TextBox>().Where(t => t.IsEffectivelyVisible).ToArray();
+        var findShells = findStrip.GetVisualDescendants().OfType<Grid>().Where(g => g.Classes.Contains("search-shell") && g.IsEffectivelyVisible).ToArray();
         var findActions = findStrip.GetVisualDescendants().OfType<Control>()
             .Where(c => (c is Button || c is ToggleButton) && c.Classes.Contains("find-action") && c.IsVisible).ToArray();
         var findToggles = findActions.OfType<ToggleButton>().ToArray();
         var findClose = findStrip.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("find-close"));
-        Check(Math.Abs(findStrip.Bounds.Height - 46) < 1 && findInputs.All(t => t.Bounds.Height == 28) && findInputs.Length > 0
+        Check(Math.Abs(findStrip.Bounds.Height - 46) < 1 && findShells.Length == findInputs.Length && findInputs.Length > 0
+            && findShells.All(s => s.Bounds.Height == 28) && findInputs.All(t => Math.Abs(t.Bounds.Height - 26) < 0.5)
             && findActions.Except(findToggles).All(b => b.Bounds.Height == 26)
             && findToggles.Length == 3 && findToggles.All(t => t.Bounds.Height == 28 && t.Bounds.Width >= 30)
             && findClose.Bounds.Width == 30 && findClose.Bounds.Height == 30,
-            $"Find strip keeps the prototype's 46px row: strip={findStrip.Bounds.Height:0.#}, inputs={string.Join(",", findInputs.Select(t => t.Bounds.Height.ToString("0.#")))}, actions={string.Join(",", findActions.Select(b => b.Bounds.Height.ToString("0.#")))}, close={findClose.Bounds.Size}");
+            $"Find strip keeps the prototype's 46px row: strip={findStrip.Bounds.Height:0.#}, inputs={string.Join(",", findShells.Select(s => s.Bounds.Height.ToString("0.#")))}, actions={string.Join(",", findActions.Select(b => b.Bounds.Height.ToString("0.#")))}, close={findClose.Bounds.Size}");
         Check(Math.Abs(viewBlock.TranslatePoint(default, viewColumn)!.Value.Y - (stripOrigin.Y + findStrip.Bounds.Height + 4)) < 1,
             $"The view block sits 4px below the find block: strip bottom={stripOrigin.Y + findStrip.Bounds.Height:0.#}, block top={viewBlock.TranslatePoint(default, viewColumn)!.Value.Y:0.#}");
         // 新键只改了 Language.cs 而没落进 I18n/*.json（或产物里留着旧副本）时，按钮会直接把资源键印在脸上。
@@ -193,7 +195,7 @@ internal static class PrototypeChromeVerification
         void CheckNarrowStripFits(string mode)
         {
             var right = findStrip.GetVisualDescendants().OfType<Control>()
-                .Where(control => control.IsVisible && (control is Button || control is ToggleButton || control is TextBox))
+                .Where(control => control.IsEffectivelyVisible && (control is Button || control is ToggleButton || control is TextBox))
                 .Select(control => control.TranslatePoint(new Point(control.Bounds.Width, 0), findStrip)!.Value.X)
                 .DefaultIfEmpty(0).Max();
             Check(right <= findStrip.Bounds.Width - 11 && Math.Abs(findStrip.Bounds.Height - 46) < 1,
@@ -222,6 +224,23 @@ internal static class PrototypeChromeVerification
         Thread.Sleep(260); Render(); // 先让 180ms 计数防抖落定，之后徽章只由方向步进改变。
         var findInput = findStrip.GetVisualDescendants().OfType<TextBox>().First(t => t.Name == "FindTextBox");
         findInput.Focus();
+        // 原型 .input:focus 的 accent 边 + 3px 柔光同样落在查找框上（与侧栏搜索共用 search-shell 配方），字号 11。
+        var findShell = findInput.GetVisualAncestors().OfType<Grid>().First(g => g.Classes.Contains("search-shell"));
+        var findGlow = findShell.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("search-glow"));
+        var findFrame = findShell.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("search-frame"));
+        var glowDeadline = System.Diagnostics.Stopwatch.GetTimestamp() + System.Diagnostics.Stopwatch.Frequency / 2;
+        while (findGlow.Opacity < 1 && System.Diagnostics.Stopwatch.GetTimestamp() < glowDeadline)
+        {
+            Thread.Sleep(8);
+            Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            Dispatcher.UIThread.RunJobs();
+        }
+        Application.Current!.TryGetResource("VexAccentBrush", window.ActualThemeVariant, out var findAccentResource);
+        Check(findGlow.Opacity == 1 && findInput.FontSize == 11 && findGlow.BorderThickness == new Thickness(3)
+            && findFrame.BorderBrush is Avalonia.Media.ISolidColorBrush findFocusBorder
+            && findFocusBorder.Color == ((Avalonia.Media.ISolidColorBrush)findAccentResource!).Color,
+            "Find input shares the sidebar focus recipe: 11px text, accent border and a 3px glow ring");
         sent = null;
         window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null); Render();
         var firstBadge = vm.FindBar.SearchResultText;
