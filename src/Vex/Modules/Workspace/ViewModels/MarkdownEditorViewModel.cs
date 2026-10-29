@@ -89,6 +89,8 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
             if (_editor is { } editor)
             {
                 editor.EditorFontSize = value;
+                // 原型源码行高 = 写字号 × 1.75（workbench.css:94），行号列同源。
+                editor.EditorLineHeight = value * 1.75;
             }
         }
     }
@@ -116,6 +118,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
         editor.EnableAutoPair = EnableAutoPair;
         editor.ShowLineNumbers = ShowLineNumbers;
         editor.EditorFontSize = EditorFontSize;
+        editor.EditorLineHeight = EditorFontSize * 1.75;
         editor.HighlightCurrentLine = HighlightCurrentLine;
         ApplyPreferences();
 

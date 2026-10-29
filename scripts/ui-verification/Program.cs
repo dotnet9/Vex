@@ -1789,6 +1789,16 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
           && lineNumberMargin.Bounds.Width > 0,
         $"Current line number uses the accent token and others stay muted (width={lineNumberMargin?.Bounds.Width})");
     window.KeyTextInput("撤销验证"); Pump();
+    // 行高随写字号档（原型 workbench.css:94 = 写字号 × 1.75）：三档实测视觉行高。
+    var displayState = app.Resolve<Vex.Core.Services.IEditorDisplayState>();
+    foreach (var (tier, expectedLineHeight) in new[] { (13.0, 22.75), (15.0, 26.25), (17.0, 29.75) })
+    {
+        displayState.Update(tier, true, true); Pump();
+        var visualLine = source.Editor.TextArea.TextView.VisualLines.FirstOrDefault();
+        Check(visualLine is not null && Math.Abs(visualLine.Height - expectedLineHeight) < 0.5,
+            $"Source line height follows the writing size tier: size={tier}, height={visualLine?.Height}");
+    }
+    displayState.Update(15, true, true); Pump();
     var beforeFilterUndo = vm.Markdown;
     Check(beforeFilterUndo != original, "Source typing joins document history");
     var fileFilter = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellFilesView>().Single()

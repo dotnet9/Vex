@@ -34,7 +34,6 @@
         <editor:MarkdownEditorView x:Name="MarkdownEditor" Grid.Row="1"
             HighlightCurrentLine="True"
             EditorPadding="22 12 24 60"
-            EditorLineHeight="26.25"
             EditorBackgroundKey="VexEditorBackgroundBrush"
             EditorForegroundKey="VexEditorForegroundBrush"
             CurrentLineBackgroundKey="VexEditorCurrentLineBackgroundBrush"
