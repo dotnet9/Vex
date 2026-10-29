@@ -149,10 +149,10 @@ fs.mkdirSync(output, {recursive:true});
     await page.locator('[data-tour=start]').click();
     await page.locator('[data-tour=skip]').click();
     await page.waitForFunction(() => document.querySelector('.app-window').dataset.guideStep === '2');
-    await page.waitForFunction(() => document.querySelector('.tour-feedback')?.textContent.includes('查看文档大纲'));
-    await page.locator('[data-tour=next]:not([disabled])').click();
-    await page.waitForFunction(() => VexAuxiliary.active === 'outline');
     await page.waitForFunction(() => document.querySelector('.tour-feedback')?.textContent.includes('大纲会列出所有标题'));
+    assert.equal(await page.evaluate(() => VexAuxiliary.active), 'outline', 'Guide act 2 ensures the outline panel');
+    await page.locator('[data-tour=continue]').click();
+    await page.waitForFunction(() => document.querySelector('.tour-feedback')?.textContent.includes('大纲点一下，正文就到位'));
     await page.locator('[data-tour=skip]').click();
     await page.waitForFunction(() => document.querySelector('.app-window').dataset.guideStep === '3');
     await page.keyboard.press('Escape');
@@ -171,13 +171,16 @@ fs.mkdirSync(output, {recursive:true});
         const result = await page.evaluate(() => {
           const r = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
           return {sidebar:r('#structure-sidebar'), surface:r('#view-surface'), bar:r('.document-statusbar'),
-            title:r('.titlebar-document'), selector:r('#workspace-layout'), find:r('.find-launch'),
-            appearanceLeft:document.querySelector('#vex-appearance-menu').getBoundingClientRect().left,
+            title:r('.titlebar-document'), selector:r('#workspace-layout'),
+            appearanceRight:document.querySelector('#vex-appearance-menu').getBoundingClientRect().right,
+            languageLeft:document.querySelector('#vex-language-menu').getBoundingClientRect().left,
+            languageRight:document.querySelector('#vex-language-menu').getBoundingClientRect().right,
+            captionLeft:document.getElementById('caption-btns').getBoundingClientRect().left,
             overflow:document.querySelector('.document-statusbar').scrollWidth-document.querySelector('.document-statusbar').clientWidth,
             overlay:document.querySelector('.workspace').classList.contains('auxiliary-overlay')};
         });
         assert.ok(result.sidebar.right <= viewport.width && result.sidebar.bottom <= viewport.height, 'Auxiliary panel stays inside the window ' + JSON.stringify({vp: viewport, layout: layout, sidebar: result.sidebar}));
-        assert.ok(result.find.right <= result.appearanceLeft + 1, 'Find button sits left of the appearance entry');
+        assert.ok(result.appearanceRight <= result.languageLeft + 1 && result.languageRight <= result.captionLeft + 1, 'Titlebar controls keep order: appearance, language, caption buttons');
         assert.ok(result.surface.bottom <= result.bar.top + 1 && result.overflow <= 1, 'Status bar does not cover or overflow the document');
         if (result.overlay) assert.ok(Math.abs(result.surface.width - before.width) < 1, 'Overlay panel preserves document width');
         await shot(layout + '-info-' + viewport.width);

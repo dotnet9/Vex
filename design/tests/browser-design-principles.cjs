@@ -52,10 +52,9 @@ fs.mkdirSync(out,{recursive:true});
  });
  fs.writeFileSync(path.join(out,'contrast.json'),JSON.stringify(colors,null,2));
  assert.deepEqual(colors.failures,[],'All rendered text and semantic control roles meet their contrast target');
- // Independent true-size previews, filtered keyboard navigation and position preservation.
+ // Independent true-size previews, keyboard navigation and position preservation.
  await page.locator('[data-action=typography]:visible').first().click();
- assert.equal(await page.locator('.typography-card:visible').count(),6);
- await page.locator('[data-tp-scope=all]').click();assert.equal(await page.locator('.typography-card:visible').count(),12);
+ assert.equal(await page.locator('.typography-card:visible').count(),12);
  const previews=await page.locator('.typography-card').evaluateAll(cards=>cards.map(card=>{const paper=card.querySelector('.type-swatch'),doc=card.querySelector('.type-document');return {key:card.dataset.typographyKey,preview:paper.dataset.previewType,size:parseFloat(getComputedStyle(doc).fontSize),fits:doc.getBoundingClientRect().bottom<=paper.getBoundingClientRect().bottom+1};}));
  for(const item of previews)assert(item.key===item.preview&&item.size>=13&&item.fits,JSON.stringify(item));
  const card=page.locator('.typography-card').first();await card.focus();await page.keyboard.press('ArrowRight');assert.equal(await page.evaluate(()=>VexTypography.state.key),'Simple');
