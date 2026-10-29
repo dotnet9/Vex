@@ -1,4 +1,4 @@
-﻿<Styles xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<Styles xmlns:behaviors="using:Vex.Core.Behaviors" xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- ===== 块状工作区（原型 workspace-chrome.css）：灰画布 + 圆角描边白块，外缘 10px、块间 4px ===== -->
   <Style Selector="Border.workspace-block">
     <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
@@ -972,5 +972,59 @@
   <Style Selector="u|ToastCard">
     <Setter Property="TextBlock.TextAlignment" Value="Center"/>
     <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+  </Style>
+  <!-- ===== 滚动条（原型 workspace-chrome.css:22-35）：9px 轨道全透明、滑块 2px 内缩成 5px 可见条、
+       pill 圆角、muted 28% 常驻 / 48% 悬停。库 Chrome 的 16px 轨道是旧配方，这里按部件整组接管：
+       自带 Track/Thumb 模板，不再依赖 Semi 模板的部件名与半透令牌；点轨道翻页由 ScrollTrackPaging 接管。 ===== -->
+  <Style Selector="ScrollBar">
+    <Setter Property="AllowAutoHide" Value="False"/>
+    <Setter Property="behaviors:ScrollTrackPaging.IsEnabled" Value="True"/>
+  </Style>
+  <Style Selector="ScrollBar:vertical">
+    <Setter Property="Width" Value="9"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ScrollBar">
+        <Grid Background="Transparent">
+          <Track Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True"
+                 Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
+                 Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ViewportSize="{TemplateBinding ViewportSize}">
+            <Track.Thumb>
+              <Thumb Classes="vex-scroll-thumb" MinHeight="32"/>
+            </Track.Thumb>
+          </Track>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="ScrollBar:horizontal">
+    <Setter Property="Height" Value="9"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ScrollBar">
+        <Grid Background="Transparent">
+          <Track Name="PART_Track" Orientation="Horizontal"
+                 Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
+                 Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ViewportSize="{TemplateBinding ViewportSize}">
+            <Track.Thumb>
+              <Thumb Classes="vex-scroll-thumb" MinWidth="32"/>
+            </Track.Thumb>
+          </Track>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <!-- 滑块外框占满 9px 轨道（命中区不缩水），内层再缩 2px 画出 5px 可见条，等效原型
+       border:2px solid transparent + background-clip:padding-box。 -->
+  <Style Selector="Thumb.vex-scroll-thumb">
+    <Setter Property="Background" Value="{DynamicResource VexScrollThumbBrush}"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Thumb">
+        <Border Background="Transparent">
+          <Border Margin="2" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource VexDensityCornerRadiusPill}"/>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="Thumb.vex-scroll-thumb:pointerover, Thumb.vex-scroll-thumb:pressed">
+    <Setter Property="Background" Value="{DynamicResource VexScrollThumbHoverBrush}"/>
   </Style>
 </Styles>

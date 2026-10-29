@@ -54,6 +54,10 @@
     <!-- 搜索框悬停描边（原型 color-mix(accent 35%, border)）：强调 35% 透明叠在常驻 control-border 上，
          alpha 合成后恰好等于该混色，无需另派生不透明令牌。 -->
     <SolidColorBrush x:Key="VexSearchHoverBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.35" />
+    <!-- 滚动条滑块（原型 workspace-chrome.css:27-34 的 color-mix(muted 28%/48%, transparent)）：
+         轨道全透明，滑块靠 2px 内缩把 9px 轨道收成 5px 可见条，悬停/拖拽加浓到 48%。 -->
+    <SolidColorBrush x:Key="VexScrollThumbBrush" Color="{DynamicResource StudioMutedColor}" Opacity="0.28" />
+    <SolidColorBrush x:Key="VexScrollThumbHoverBrush" Color="{DynamicResource StudioMutedColor}" Opacity="0.48" />
     <LinearGradientBrush x:Key="VexTitleGradBrush" StartPoint="0%,0%" EndPoint="100%,100%">
         <GradientStop Color="{DynamicResource StudioGradientStartColor}" Offset="0" />
         <GradientStop Color="{DynamicResource StudioSecondaryColor}" Offset="1" />
