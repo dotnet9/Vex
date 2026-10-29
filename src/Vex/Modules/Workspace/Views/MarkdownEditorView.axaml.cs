@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Input;
@@ -80,6 +80,9 @@ public partial class MarkdownEditorView : UserControl
             if (_layout is not null) _layout.PropertyChanged += LayoutChanged;
         }
         MarkdownEditor.Editor.Options.AllowScrollBelowDocument = _layout?.IsTypewriterMode == true;
+        // 打字机跟随：光标每动一次就把光标行拉回视口中部（原型 typewriter.js 的 center），
+        // CenterCaret 内部有开关与可见性守卫，关闭时直接返回。
+        MarkdownEditor.Editor.TextArea.Caret.PositionChanged += (_, _) => CenterCaret();
     }
 
     private void LayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

@@ -1801,6 +1801,20 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
             $"Source line height follows the writing size tier: size={tier}, height={visualLine?.Height}");
     }
     displayState.Update(15, true, true); Pump();
+    // 打字机跟随：开启后把光标放到文档后段，滚动偏移应把光标行钉在视口中部（原型 typewriter.js 的 center）。
+    vm.Layout.IsTypewriterMode = true; Pump();
+    var markdownLines = vm.Markdown.Split('\n');
+    var targetLine = markdownLines.Length - 3;
+    source.Editor.CaretOffset = markdownLines.Take(targetLine).Sum(line => line.Length + 1);
+    Pump(); Pump();
+    var followTextView = source.Editor.TextArea.TextView;
+    var followCaret = source.Editor.TextArea.Caret.CalculateCaretRectangle();
+    var followScroll = source.Editor.GetVisualDescendants().OfType<ScrollViewer>().Single();
+    // TextView 文档坐标减滚动偏移 = 视口内坐标；与视口中点比对。
+    var caretInViewportY = followCaret.Center.Y - followTextView.VerticalOffset;
+    Check(Math.Abs(caretInViewportY - followScroll.Bounds.Height / 2) < 2,
+        $"Typewriter mode keeps the caret line at the viewport center: inViewport={caretInViewportY:F1}, center={followScroll.Bounds.Height / 2:F1}");
+    vm.Layout.IsTypewriterMode = false; Pump();
     // 编辑区内边距对齐原型（workbench.css:92 = 22px 24px 60px 54px）：行号列由库内边距自供，
     // 正文左缩进 = 24 内距 + 行号列宽 ≈ 54，行号隐藏时左 24 档自动成立。
     Check(source.EditorPadding.Left == 24 && source.EditorPadding.Top == 22
