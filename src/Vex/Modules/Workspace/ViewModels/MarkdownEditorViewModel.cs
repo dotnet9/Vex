@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Input.Platform;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Markdown.Editor.Services;
@@ -106,8 +106,8 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
         }
     }
 
-    /// <summary>原型源码视图是纯 textarea，无当前行底色带；对齐原型保持关闭。</summary>
-    public bool HighlightCurrentLine => false;
+    /// <summary>原型源码视图当前行有色条垫底 + 行号列强调点亮（workbench.css:98-99），保持开启。</summary>
+    public bool HighlightCurrentLine => true;
 
     public void AttachEditor(MarkdownEditorView editor)
     {

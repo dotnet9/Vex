@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Vex.Modules.Workspace.Views.MarkdownEditorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -32,13 +32,15 @@
         <!-- 编辑器控件来自 CodeWF.Avalonia.Markdown（库内维护），Vex 只负责右键菜单与消息桥接。
              右键菜单转发 Shell 编辑动作，实际文本变更由库控件执行后经消息通道回抛。 -->
         <editor:MarkdownEditorView x:Name="MarkdownEditor" Grid.Row="1"
-            HighlightCurrentLine="False"
+            HighlightCurrentLine="True"
             EditorPadding="22 12 24 60"
             EditorLineHeight="26.25"
             EditorBackgroundKey="VexEditorBackgroundBrush"
             EditorForegroundKey="VexEditorForegroundBrush"
             CurrentLineBackgroundKey="VexEditorCurrentLineBackgroundBrush"
             CurrentLineBorderKey="VexEditorCurrentLineBorderBrush"
+            LineNumberBrushKey="VexMutedBrush"
+            CurrentLineNumberBrushKey="VexAccentBrush"
             AccentKey="VexAccentBrush" LinkKey="VexLinkBrush" ImageKey="VexImageBrush"
             CodeKey="VexCodeFgBrush" QuoteKey="VexQuoteBrush"
             SeparatorKey="VexPanelBorderBrush" DangerKey="VexDangerBrush" WarningKey="VexWarningBrush">

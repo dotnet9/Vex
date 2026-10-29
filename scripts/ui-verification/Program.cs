@@ -1772,6 +1772,22 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     Check(vm.Markdown.Contains("原位") && vm.Markdown.Contains("```md"), "Code input edits the fenced body without exposing fence markers");
     wb.UndoDocument(); Pump(); Check(vm.Markdown == original, "Shared undo restores inline code edits");
     wb.SelectLayout("source"); Pump(); source.Editor.TextArea.Focus(); source.Editor.CaretOffset = 0;
+    // 当前行两件套（原型 workbench.css：色条垫底 + 行号列强调加粗）：高亮开启、库内行号边距挂载、刷走令牌。
+    var lineNumberMargin = source.Editor.TextArea.LeftMargins
+        .OfType<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownLineNumberMargin>().SingleOrDefault();
+    Check(lineNumberMargin is not null && source.Editor.Options.HighlightCurrentLine,
+        "Source editor shows the current line bar with the library line number margin (margins=[" +
+        string.Join(",", source.Editor.TextArea.LeftMargins.Select(m => m.GetType().Name)) +
+        "], highlight=" + source.Editor.Options.HighlightCurrentLine + ", viewProp=" + source.HighlightCurrentLine + ", editorHash=" + source.Editor.GetHashCode() + ")");
+    Application.Current!.TryGetResource("VexAccentBrush", window.ActualThemeVariant, out var accentToken);
+    Application.Current!.TryGetResource("VexMutedBrush", window.ActualThemeVariant, out var mutedToken);
+    Check(lineNumberMargin is not null
+          && lineNumberMargin.CurrentLineBrush is ISolidColorBrush currentBrush && accentToken is ISolidColorBrush accentBrush
+          && currentBrush.Color == accentBrush.Color
+          && lineNumberMargin.LineNumbersBrush is ISolidColorBrush numberBrush && mutedToken is ISolidColorBrush mutedBrush
+          && numberBrush.Color == mutedBrush.Color
+          && lineNumberMargin.Bounds.Width > 0,
+        $"Current line number uses the accent token and others stay muted (width={lineNumberMargin?.Bounds.Width})");
     window.KeyTextInput("撤销验证"); Pump();
     var beforeFilterUndo = vm.Markdown;
     Check(beforeFilterUndo != original, "Source typing joins document history");
