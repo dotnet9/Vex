@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -157,7 +157,9 @@ public sealed class ShellTypographyGallery : UserControl
         _scroll = new ScrollViewer { Content = body, Padding = new Thickness(2, 2, 15, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
         var grid = new Grid { RowDefinitions = new("Auto,*") };
         grid.Children.Add(_header); Grid.SetRow(_scroll, 1); grid.Children.Add(_scroll);
-        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16), BoxShadow = BoxShadows.Parse("0 12 32 0 #29101828, 0 2 8 0 #14101828") };
+        // 原型 .typography-popover 无投影（appearance.css:2），回退 wb-popover 默认淡影；
+        // 此前叠加的加浓双投影会在左下圆角缺口里把状态胶囊圆头染暗，看起来像缺角。
+        var border = new Border { Classes = { "wb-popover" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16) };
         Content = border;
         Resize(); Changed(null, new(""));
     }
