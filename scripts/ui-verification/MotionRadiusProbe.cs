@@ -50,6 +50,8 @@ internal static class MotionRadiusProbe
         if (track is not null) sb.AppendLine($"square segmented track radius={track.CornerRadius.TopLeft}");
         var dock = window.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("vex-zoomdock"));
         if (dock is not null) sb.AppendLine($"square zoomdock radius={dock.CornerRadius.TopLeft}");
+        var searchFrame = window.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("search-frame"));
+        if (searchFrame is not null) sb.AppendLine($"square search frame radius={searchFrame.CornerRadius.TopLeft}");
 
         vm.Layout.MotionMode = MotionModes.Full;
         vm.Appearance.RadiusMode = "standard";

@@ -11,50 +11,67 @@
   </Style>
   <!-- 侧栏/大纲搜索框（原型 .sidebar-search + .input 焦点配方）：pill 外形、常驻 control-border，
        悬停叠 accent 35% 混边、聚焦换 accent 实边并外扩 3px accent 18% 柔光，内层输入不再叠第二圈。
-       三层 Border 同格叠放：柔光环（默认隐）→ 主框 → 悬停描边（默认隐），由 Grid 的伪类统一驱动。 -->
+       三层 Border 同格叠放：柔光环 → 主框 → 悬停描边，由 Grid 的伪类统一驱动。
+       环与混边常显但透明度 0（IsVisible 会跳过布局，淡入淡出就没了起点），
+       圆角吃 pill 令牌、过渡吃 fast 档时长，直角档与关闭动效档因此自动跟随。 -->
   <Style Selector="Grid.search-shell Border.search-frame">
-    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}" />
     <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="BorderBrush" Duration="{DynamicResource MotionDurationFast}" />
+      </Transitions>
+    </Setter>
   </Style>
   <Style Selector="Grid.search-shell Border.search-glow">
-    <Setter Property="CornerRadius" Value="19" />
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />
     <Setter Property="BorderThickness" Value="3" />
     <Setter Property="BorderBrush" Value="{DynamicResource VexFocusRingBrush}" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Margin" Value="-3" />
     <Setter Property="IsHitTestVisible" Value="False" />
-    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="{DynamicResource MotionDurationFast}" />
+      </Transitions>
+    </Setter>
   </Style>
   <Style Selector="Grid.search-shell Border.search-hover">
-    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="BorderBrush" Value="{DynamicResource VexSearchHoverBrush}" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="IsHitTestVisible" Value="False" />
-    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="{DynamicResource MotionDurationFast}" />
+      </Transitions>
+    </Setter>
   </Style>
   <Style Selector="Grid.search-shell:pointerover Border.search-hover">
-    <Setter Property="IsVisible" Value="True" />
+    <Setter Property="Opacity" Value="1" />
   </Style>
   <Style Selector="Grid.search-shell:focus-within Border.search-frame">
     <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
   </Style>
   <Style Selector="Grid.search-shell:focus-within Border.search-glow">
-    <Setter Property="IsVisible" Value="True" />
+    <Setter Property="Opacity" Value="1" />
   </Style>
   <!-- 聚焦时收掉悬停混边，让 accent 实边独占（原型 :focus 覆盖 :hover）。 -->
   <Style Selector="Grid.search-shell:focus-within Border.search-hover">
-    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Opacity" Value="0" />
   </Style>
   <!-- 面板头（原型 .panel-head / .panel-title，workspace-chrome.css:473-474）：标题落在搜索框之上，
-       12/14/9 内距、600 字重 12px；左右两栏同一档口径。 -->
+       12/14/9 内距、600 字重；字号吃 fs-caption 令牌（紧凑档 11），与搜索输入同档。 -->
   <Style Selector="Grid.panel-head">
     <Setter Property="Margin" Value="14,12,14,9" />
   </Style>
   <Style Selector="TextBlock.panel-title">
-    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
     <Setter Property="VerticalAlignment" Value="Center" />

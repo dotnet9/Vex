@@ -1,11 +1,14 @@
 ﻿using System.Linq;
+using System.Diagnostics;
 using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Vex.Core.Messaging;
 using Vex.Core.Models;
+using Vex.Core.Motion;
 using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
@@ -131,7 +134,7 @@ internal static class DesktopParityVerification
         Check(navigation.FlatDocumentFileNodes.Count == 1 && navigation.FlatDocumentFileNodes[0].Name == "alpha.md", "File search keeps matching filenames and their ancestors");
         navigation.ClearFilter();
         // 搜索焦点单环（原型 .sidebar-search:focus-within）：聚焦内层输入 → 主框换 accent 实边、
-        // 3px accent 18% 柔光环显形、悬停混边收起；失焦回到 control-border，环与混边都隐。
+        // 3px accent 18% 柔光环淡入、悬停混边淡出；失焦反向淡回 control-border。
         var searchShell = filesView.GetVisualDescendants().OfType<Grid>().First(g => g.Classes.Contains("search-shell"));
         var searchFrame = searchShell.FindControl<Border>("FileSearchBox")!;
         var searchGlow = searchShell.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("search-glow"));
@@ -141,26 +144,69 @@ internal static class DesktopParityVerification
         var accentRef = (Avalonia.Media.ISolidColorBrush)accentResource!;
         var idleRef = (Avalonia.Media.ISolidColorBrush)controlBorderResource!;
         var searchText = searchFrame.GetVisualDescendants().OfType<TextBox>().First();
-        Render();
-        Check(searchFrame.CornerRadius.TopLeft == 16 && !searchGlow.IsVisible && !searchHover.IsVisible
+        var sortButton = filesView.FindControl<Button>("SortFolderButton")!;
+        // 过渡形状（原型 transition:border-color/box-shadow var(--vex-fast)）：无头采不到逐帧插值，
+        // 按仓库惯例读回 Transition<T> 的属性名与档位时长，再推渲染时钟量终态。
+        static (string Property, int Ms)[] Shape(Transitions? transitions) => transitions is null ? [] :
+            transitions.Select(transition => transition switch
+            {
+                Transition<double> wide => (wide.Property.Name, wide.Duration.Milliseconds),
+                BrushTransition brush => (brush.Property.Name, brush.Duration.Milliseconds),
+                _ => (transition.GetType().Name, 0),
+            }).ToArray();
+        bool Settle(Func<bool> done)
+        {
+            var deadline = Stopwatch.GetTimestamp() + Stopwatch.Frequency / 2;
+            while (Stopwatch.GetTimestamp() < deadline)
+            {
+                Thread.Sleep(8);
+                Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Dispatcher.UIThread.RunJobs();
+                if (done()) return true;
+            }
+            return false;
+        }
+        var motionBefore = vm.Layout.MotionMode;
+        vm.Layout.MotionMode = MotionModes.Full; Render();
+        var fastMs = ((TimeSpan)Application.Current!.Resources["MotionDurationFast"]!).Milliseconds;
+        Check(fastMs == 140
+            && Shape(searchFrame.Transitions).SequenceEqual(new[] { ("BorderBrush", fastMs) })
+            && Shape(searchGlow.Transitions).SequenceEqual(new[] { ("Opacity", fastMs) })
+            && Shape(searchHover.Transitions).SequenceEqual(new[] { ("Opacity", fastMs) }),
+            "Search shell fades its border, glow ring and hover tint over the prototype 140ms fast tier");
+        Check(Settle(() => searchGlow.Opacity == 0 && searchHover.Opacity == 0)
+            && searchFrame.CornerRadius == (CornerRadius)Application.Current!.Resources["VexDensityCornerRadiusPill"]!
             && searchFrame.BorderBrush is Avalonia.Media.ISolidColorBrush idleBorder && idleBorder.Color == idleRef.Color,
-            "Idle search box is a pill on control-border with no glow or hover tint");
-        searchText.Focus(); Render();
+            "Idle search box is a density pill on control-border with no glow or hover tint");
+        searchText.Focus();
+        var focused = Settle(() => searchGlow.Opacity == 1 && searchHover.Opacity == 0);
+        Render();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "desktop-search-focus.png"));
-        Check(searchFrame.BorderBrush is Avalonia.Media.ISolidColorBrush focusBorder && focusBorder.Color == accentRef.Color
-            && searchGlow.IsVisible && !searchHover.IsVisible
+        Check(focused
+            && searchFrame.BorderBrush is Avalonia.Media.ISolidColorBrush focusBorder && focusBorder.Color == accentRef.Color
             && searchGlow.BorderThickness == new Thickness(3) && searchGlow.Margin == new Thickness(-3)
             && searchGlow.BorderBrush is Avalonia.Media.ISolidColorBrush glowBrush
             && glowBrush.Color == accentRef.Color && Math.Abs(glowBrush.Opacity - 0.18) < 0.001,
             "Focused search box paints a single accent border plus a 3px accent-18% outset glow ring");
-        filesView.FindControl<Button>("SortFolderButton")!.Focus(); Render();
-        Check(!searchGlow.IsVisible && !searchHover.IsVisible
+        sortButton.Focus();
+        var restored = Settle(() => searchGlow.Opacity == 0 && searchHover.Opacity == 0);
+        Check(restored
             && searchFrame.BorderBrush is Avalonia.Media.ISolidColorBrush restoredBorder && restoredBorder.Color == idleRef.Color,
-            "Leaving the search box restores the idle control-border and hides the glow ring");
-        // 面板头（原型 .panel-head/.panel-title）：两栏标题都在各自搜索框之上，12/14/9 内距、600 字重 12px。
+            "Leaving the search box fades the glow ring out and restores the idle control-border");
+        // 关闭动效档（原型 --vex-motion:0）：时长归零，焦点环一拍落位，不再等淡入。
+        vm.Layout.MotionMode = MotionModes.Off; Render();
+        Check(Shape(searchGlow.Transitions).Single().Ms == 0 && Shape(searchFrame.Transitions).Single().Ms == 0,
+            "Disabling motion zeroes the search shell transition durations");
+        searchText.Focus(); Render();
+        Check(searchGlow.Opacity == 1, "With motion off the focus ring lands on the first frame");
+        sortButton.Focus();
+        vm.Layout.MotionMode = motionBefore; Render();
+        // 面板头（原型 .panel-head/.panel-title）：两栏标题都在各自搜索框之上，12/14/9 内距、600 字重、--fs-caption 字号。
         var localizer = app.Resolve<IAppLocalizer>();
         var filesHead = filesView.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("panel-title"));
-        Check(filesHead.Text == localizer.Get(Vex.VexL.SidebarFiles) && filesHead.FontSize == 12
+        Check(filesHead.Text == localizer.Get(Vex.VexL.SidebarFiles)
+            && filesHead.FontSize == (double)Application.Current!.Resources["VexDensityFontSizeCaption"]!
             && filesHead.FontWeight == Avalonia.Media.FontWeight.SemiBold
             && ((Grid)filesHead.Parent!).Margin == new Thickness(14, 12, 14, 9)
             && filesHead.TranslatePoint(default, filesView)!.Value.Y < searchShell.TranslatePoint(default, filesView)!.Value.Y,
@@ -168,10 +214,23 @@ internal static class DesktopParityVerification
         var auxPanel = window.GetVisualDescendants().OfType<ShellAuxiliaryPanelView>().Single();
         var structureHead = auxPanel.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("panel-title"));
         var outlineShell = auxPanel.GetVisualDescendants().OfType<Grid>().First(g => g.Classes.Contains("search-shell"));
+        var outlineText = outlineShell.GetVisualDescendants().OfType<TextBox>().First();
         Check(structureHead.Text == localizer.Get(Vex.VexL.StructureTitle)
             && ((Grid)structureHead.Parent!).Margin == new Thickness(14, 12, 14, 9)
             && structureHead.TranslatePoint(default, auxPanel)!.Value.Y < outlineShell.TranslatePoint(default, auxPanel)!.Value.Y,
             "Structure panel head shares the same title row metrics above its search box");
+        // 原型 --fs-caption（density.css:2-4）：面板标题与两栏搜索输入都随界面密度走 11/12/12，不写死 12。
+        var densityBefore = vm.Appearance.SelectedDensity;
+        foreach (var density in new[] { "compact", "normal", "relaxed" })
+        {
+            vm.Appearance.SelectedDensity = density; Render();
+            var caption = density == "compact" ? 11d : 12d;
+            Check((double)Application.Current!.Resources["VexDensityFontSizeCaption"]! == caption
+                && filesHead.FontSize == caption && structureHead.FontSize == caption
+                && searchText.FontSize == caption && outlineText.FontSize == caption,
+                $"Panel titles and both search inputs follow the caption tier at {density}: {caption}");
+        }
+        vm.Appearance.SelectedDensity = densityBefore; Render();
         navigation.SelectDocumentFileForContextMenu(navigation.DocumentFileNodes.First(node => node.IsFolder));
         Check(navigation.HasPathCommandTarget && !navigation.HasDocumentFileCommandTarget, "Folder context supports path actions without file mutation actions");
         var launch = ShellProcessLauncher.CreateStartInfo(Path.Combine(root, "a b.md"));
