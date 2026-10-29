@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using CodeWF.Avalonia.Markdown.Themes;
 using ReactiveUI;
 using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
@@ -10,30 +11,36 @@ public sealed class ShellEditorDisplayViewModel : ReactiveObject
 {
     private readonly IEditorDisplayState _editorDisplayState;
     private readonly IAppSettingsStore _settingsStore;
+    private readonly IEditorAppearanceState _appearanceState;
     private readonly IShellStatusPublisher _statusPublisher;
-    private readonly EditorPreferences _preferences;
     private bool _showLineNumbers;
     private bool _enableAutoPair = true;
 
     public ShellEditorDisplayViewModel(
         IEditorDisplayState editorDisplayState,
         IAppSettingsStore settingsStore,
-        EditorPreferences preferences,
+        IEditorAppearanceState appearanceState,
         IShellStatusPublisher statusPublisher)
     {
         _editorDisplayState = editorDisplayState;
         _settingsStore = settingsStore;
-        _preferences = preferences;
-        preferences.PreferencesChanged += (_, _) => { this.RaisePropertyChanged(nameof(EditorFontSize)); PublishDisplayState(); };
+        _appearanceState = appearanceState;
         _statusPublisher = statusPublisher;
+        appearanceState.Changed += (_, _) => { this.RaisePropertyChanged(nameof(EditorFontSize)); PublishDisplayState(); };
         var settings = _settingsStore.Current;
         _showLineNumbers = settings.ShowLineNumbers ?? true;
         _enableAutoPair = settings.EnableAutoPair ?? true;
         PublishDisplayState();
     }
 
-    // 原型 --vex-content-zoom 只缩放渲染正文，源码编辑区不随内容缩放变化。
-    public double EditorFontSize => _preferences.CodeFontSize;
+    // 原型 --vex-writing-size（theme.js:38）：源码编辑区字号随正文档 13/15/17；
+    // --vex-content-zoom 只缩放渲染正文，源码编辑区不随内容缩放变化。
+    public double EditorFontSize => _appearanceState.TypographySize switch
+    {
+        MarkdownTypographySizes.Compact => 13,
+        MarkdownTypographySizes.Relaxed => 17,
+        _ => 15,
+    };
 
     public bool ShowLineNumbers
     {

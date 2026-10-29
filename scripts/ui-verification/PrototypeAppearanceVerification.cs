@@ -51,10 +51,15 @@ internal static class PrototypeAppearanceVerification
         var startWidth = window.Width; var startHeight = window.Height;
         window.Width = 1440; window.Height = 1000; Render();
         var addStrip = gallery.GetVisualDescendants().OfType<Button>().First(b => b.Name == "AddCustomTypography");
+        var sourceDisplay = app.Resolve<IEditorDisplayState>();
         // 原型 a1a9013：弹层尺寸不变，卡片区改 4 列 3 行（预览固定 13px 基准，卡高不随密度变），新增条降到 44px 整行。
         foreach (var density in new[] { "compact", "normal", "relaxed" })
         {
             vm.Appearance.MarkdownDensity = density; Render();
+            // 原型 --vex-writing-size（theme.js:38）：源码编辑区与正文同档 13/15/17。
+            var writingSize = density switch { "compact" => 13d, "relaxed" => 17d, _ => 15d };
+            Check(Math.Abs(sourceDisplay.EditorFontSize - writingSize) < 0.01,
+                $"Source editor font follows the writing-size tier at {density}: {sourceDisplay.EditorFontSize}");
             // 原型 #typography-panel 卡片实测 160.5x150.5（Playwright 探针，卡高不随密度变）。
             const double height = 150.5;
             var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();

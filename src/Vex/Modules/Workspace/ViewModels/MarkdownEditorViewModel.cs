@@ -127,7 +127,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     private void ApplyPreferences()
     {
         if (_editor is null) return;
-        EditorFontSize = _preferences.CodeFontSize;
+        EditorFontSize = _editorDisplayState.EditorFontSize;
         _editor.Editor.WordWrap = _preferences.CodeWrap;
         _editor.Editor.Options.IndentationSize = _preferences.IndentSize;
         _editor.Editor.Options.ConvertTabsToSpaces = true;
