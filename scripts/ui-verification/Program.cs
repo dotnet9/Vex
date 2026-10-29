@@ -1799,6 +1799,15 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
             $"Source line height follows the writing size tier: size={tier}, height={visualLine?.Height}");
     }
     displayState.Update(15, true, true); Pump();
+    // 编辑区内边距对齐原型（workbench.css:92 = 22px 24px 60px 54px）：行号列由库内边距自供，
+    // 正文左缩进 = 24 内距 + 行号列宽 ≈ 54，行号隐藏时左 24 档自动成立。
+    Check(source.EditorPadding.Left == 24 && source.EditorPadding.Top == 22
+          && source.EditorPadding.Right == 24 && source.EditorPadding.Bottom == 60,
+        $"Editor padding follows the prototype per side: {source.EditorPadding}");
+    var layoutMargin = source.Editor.TextArea.LeftMargins
+        .OfType<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownLineNumberMargin>().Single();
+    Check(Math.Abs(source.EditorPadding.Left + layoutMargin.Bounds.Width - 54) < 1.5,
+        $"Line number column plus padding puts body text near the prototype 54px inset: {source.EditorPadding.Left}+{layoutMargin.Bounds.Width}");
     var beforeFilterUndo = vm.Markdown;
     Check(beforeFilterUndo != original, "Source typing joins document history");
     var fileFilter = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellFilesView>().Single()
