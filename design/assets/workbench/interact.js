@@ -127,8 +127,7 @@
       { label: '刷新内容', action: 'refresh' }, { sep: true },
       { label: '复制到微信公众号', action: 'copy-wechat' },
       { label: '复制到知乎', action: 'copy-zhihu' },
-      { label: '复制到稀土掘金', action: 'copy-juejin' },
-      { sep: true }, { label: 'MCP 设置', act: 'dlg-mcp' }, { label: 'MCP 审计', toast: '查看调用记录与操作结果（桌面版操作演示）' }
+      { label: '复制到稀土掘金', action: 'copy-juejin' }
     ]},
     { key: 'help', label: '帮助(H)', items: [
       { label: '新手引导', action: 'guide' }, { label: '更新日志', act: 'dlg-doc', arg: '更新日志' },
@@ -151,9 +150,8 @@
   ]};
   MENUS.splice(3,0,{key:'format',label:'格式(O)',items:[{label:'加粗',gesture:'Ctrl+B',action:'insert-bold'},{label:'斜体',gesture:'Ctrl+I',action:'insert-italic'},{label:'删除线',action:'insert-strike'},{label:'高亮',action:'insert-highlight'},{label:'上标',action:'insert-superscript'},{label:'下标',action:'insert-subscript'},{label:'行内代码',action:'insert-inline-code'},{sep:true},{label:'链接',action:'insert-link'},{label:'图片',action:'insert-image'},{sep:true},{label:'清除格式',action:'clear-format'}]});
   var toolsMenu = MENUS.find(function (menu) { return menu.key === 'tools'; });
-  toolsMenu.items.unshift({label:'偏好设置…',gesture:'Ctrl+,',action:'preferences'},{sep:true});
-  toolsMenu.items = toolsMenu.items.map(function (item) { return item.label === 'MCP 设置' ? {label:'MCP 设置',action:'preferences-mcp'} : item.label === 'MCP 审计' ? {label:'MCP 审计',action:'mcp-audit'} : item; });
-  /* 「工具」不再单列：整块展开并入「文件」的导出/导入之后，不折叠成子菜单。 */
+  /* 「工具」不再单列：整块展开并入「文件」的导出/导入之后，不折叠成子菜单。
+     偏好设置/MCP 设置/MCP 审计 只保留图标栏设置入口，菜单不再重复。 */
   var fileItems = MENUS.find(function (menu) { return menu.key === 'file'; }).items;
   var toolsIndex = MENUS.indexOf(toolsMenu);
   Array.prototype.splice.apply(fileItems, [fileItems.findIndex(function (item) { return item.action === 'print'; }) + 1, 0, { sep: true }].concat(toolsMenu.items));

@@ -1191,9 +1191,6 @@
       "files-fold": function (action, item) {
         var groups = document.querySelectorAll('#file-list details.file-directory'); var anyOpen = Array.prototype.some.call(groups, function (g) { return g.open; }); groups.forEach(function (g) { g.open = !anyOpen; }); syncFilesToolbar();
       },
-      "file-actions": function (action, item) {
-        $('file-navigation-menu').hidden = !$('file-navigation-menu').hidden; document.querySelector('[data-action=file-actions]').setAttribute('aria-expanded', String(!$('file-navigation-menu').hidden));
-      },
       "refresh-files": function (action, item) {
         renderFiles();
       },

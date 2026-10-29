@@ -1,85 +1,69 @@
 ﻿.workspace-main,.document-workspace{position:relative;min-height:0}
-.document-corner-actions{position:absolute;z-index:12;left:12px;bottom:10px;display:flex;align-items:center;gap:2px;border-radius:var(--vex-radius-xs);background:var(--panel,var(--surface));color:var(--muted)}
-.document-corner-actions button{width:32px;height:32px;padding:7px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:inherit;display:grid;place-items:center;cursor:pointer}
-.document-corner-actions button:hover,.document-corner-actions button[aria-pressed=true]{background:var(--hover);color:var(--accent)}
-.document-corner-actions svg{width:18px;height:18px}
 .document-word-count{position:absolute;z-index:12;right:16px;bottom:13px;min-height:28px;display:flex;align-items:center;padding:3px 6px;border:0;border-radius:var(--vex-radius-xs);background:var(--panel,var(--surface));color:var(--muted);font:12px/20px system-ui}
-.workspace-main:has(.map-pane:not([hidden])) .document-word-count,.document-workspace:has(.map-panel:not([hidden])) .document-word-count{bottom:64px}
-.focus-mode .document-word-count,.focus-mode .document-corner-actions,.presentation-mode .document-corner-actions,.presentation-mode .document-word-count{display:none}
+.focus-mode .document-word-count,.presentation-mode .document-word-count{display:none}
 .side-pane{display:flex;flex-direction:column;overflow:hidden}
 .side-pane>.file-list,.side-pane>.outline-list{min-height:0;flex:1;overflow:auto}
 .sidebar-search{flex-shrink:0}
 .sidebar-search input{min-width:0}
-.sidebar-search .clear-search{border:0;background:transparent;color:var(--muted);display:grid;place-items:center;width:28px;height:28px;padding:5px;cursor:pointer}
-.file-navigation-footer,.sidebar-footer.file-navigation-footer{flex:none;display:flex;align-items:center;gap:2px;height:40px;padding:3px 5px;border-top:1px solid var(--border);position:relative}
-.file-navigation-footer button{border:0;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-width:32px;height:32px;padding:6px;border-radius:var(--vex-radius-xs);flex:none}
-.file-navigation-footer button:hover{background:var(--hover);color:var(--fg,var(--text))}
-.file-navigation-footer .folder-trigger{flex:1;min-width:0;justify-content:flex-start;font-size:12px}
-.folder-trigger span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.file-navigation-footer svg{width:18px;height:18px;flex:none}
-.file-navigation-footer{position:relative}
-.files-toolbar{display:flex;gap:2px;padding:9px 14px 4px;align-items:center}
-.files-footer{display:flex;align-items:center;gap:2px;padding:6px 10px;border-top:1px solid var(--border)}
-.files-folder{display:inline-flex;align-items:center;gap:6px;max-width:150px;padding:4px 8px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
+/* 与正文查找输入框（.input）同一焦点配方：外框强调色 + 3px 柔光，内层输入不再叠第二圈描边。 */
+.sidebar-search:hover{border-color:color-mix(in srgb,var(--accent) 35%,var(--border))}
+.sidebar-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.sidebar-search input:focus-visible{outline:none}
+/* 底部条：目录名占满剩余宽度，排序/视图两枚按钮靠右（对齐原生 ShellFilesView 底栏意图）。 */
+.files-footer{display:flex;align-items:center;gap:2px;padding:6px 10px;border-top:1px solid var(--vex-hairline)}
+.files-folder{flex:1;min-width:0;display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;text-align:left}
 .files-folder:hover{background:var(--hover);color:var(--fg)}
 .files-folder .ico{width:13px;height:13px;flex:none}
-.files-folder span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.files-footer .icon-button{width:26px;height:26px}
+.files-folder span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.files-footer .icon-button{width:26px;height:26px;flex:none}
 .files-footer .icon-button .ico{width:14px;height:14px}
-.files-sort-menu{position:fixed;z-index:260;min-width:216px;padding:5px;background:var(--panel,var(--surface));color:var(--fg);border:1px solid var(--border);border-radius:var(--vex-radius-md);box-shadow:0 12px 28px #0003}
+.files-sort-menu{position:fixed;z-index:260;min-width:216px}
 .files-sort-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:var(--fg);font-size:12px;cursor:pointer;text-align:left}
 .files-sort-item:hover{background:var(--hover)}
 .files-sort-item[aria-checked="true"]{background:var(--accent-soft);color:var(--accent)}
 .files-sort-item .ico{width:14px;height:14px;flex:none;color:var(--muted)}
 .files-sort-item[aria-checked="true"] .ico{color:var(--accent)}
 .files-sort-item .sort-check{margin-left:auto;font-size:11px}
-/* 文件列表工具条置于侧栏底部（用户要求），上方列表自然占满。 */
-/* 与右侧文档状态栏同高（34px，workspace-chrome.css §44），底栏水平居中对齐。 */
-.files-toolbar-bottom{height:36px;min-height:36px;padding:0 14px;border-top:1px solid var(--border);flex:none;align-items:center}
-.files-toolbar button{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:28px;padding:0 6px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
-.files-toolbar button:hover{background:var(--hover);color:var(--fg)}
-.files-toolbar button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
-.files-toolbar .sort-arrow{margin-left:2px;font-weight:600}
-.file-navigation-menu{position:absolute;left:0;bottom:40px;z-index:30;min-width:210px;padding:5px;border:1px solid var(--border);background:var(--panel,var(--surface));box-shadow:0 6px 24px #0002;border-radius:var(--vex-radius-sm)}
-.file-navigation-menu button{width:100%;justify-content:flex-start;font-size:13px;height:36px}
-.file-directory>summary{display:flex;align-items:center;gap:7px;list-style:none;padding:7px 8px;cursor:pointer;font-size:13px;color:var(--muted);min-height:36px}
-.file-directory>summary:before{content:'›';width:10px;transform:rotate(90deg);font:18px/18px system-ui}
+/* 文件树/列表行：与原生 side-tree 同口径 —— 24px 行高、12px 字、12px 描边图标、16px 缩进、
+   直角通栏 hover/选中底。密度档只作用于界面控件，不拉伸文件行（原生即固定值）。 */
+.file-list{padding:0 5px}
+.file-row{width:100%;height:24px;min-height:24px;display:flex;align-items:center;gap:6px;margin:0;padding:0 4px;border:0;border-radius:0;background:transparent;color:var(--fg);font-size:12px;line-height:24px;text-align:left}
+.file-row .ico{width:12px;height:12px;flex:none;color:var(--muted);stroke-width:1.4}
+.file-row:hover{background:var(--hover)}
+.file-row.selected,.file-row.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.file-row.selected .ico,.file-row.active .ico{color:var(--accent)}
+.file-row span{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.file-folder-tag{flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:11px}
+.file-row.selected .file-folder-tag,.file-row.active .file-folder-tag{color:color-mix(in srgb,var(--accent) 70%,var(--muted))}
+.file-directory{margin:0}
+.file-directory>summary{display:flex;align-items:center;gap:6px;list-style:none;height:24px;padding:0 4px;cursor:pointer;font-size:12px;color:var(--muted);border-radius:0}
+.file-directory>summary:hover{background:var(--hover)}
+.file-directory>summary:before{content:'›';width:8px;flex:none;font:12px/1 system-ui;transform:rotate(90deg);transition:transform var(--vex-fast)}
 .file-directory:not([open])>summary:before{transform:none}
 .file-directory>summary::-webkit-details-marker{display:none}
-.file-directory>summary .ico,.file-directory>summary .icon{width:15px;height:15px}
-.file-directory .file-children{padding-left:14px}
-.file-directory .file-row{padding-left:10px}
-.file-list.file-excerpts{padding:0}
+.file-directory>summary .ico{width:12px;height:12px;flex:none;stroke-width:1.4}
+.file-directory>summary span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-directory>.file-children{padding-left:16px}
 .file-list-overflow{padding:34px 24px;font-size:12px;line-height:2;color:var(--muted);text-align:left}
 .file-list-overflow .overflow-warn{font-size:16px;margin-bottom:6px}
 .file-list-overflow a{color:var(--accent);text-decoration:none}
 .file-list-overflow a:hover{text-decoration:underline}
-.file-excerpts .file-row{display:flex;flex-direction:row;align-items:flex-start;justify-content:flex-start;gap:7px;margin:0;border:0;border-left:3px solid transparent;border-bottom:1px solid var(--border);border-radius:0;min-height:92px;width:100%;padding:12px 14px;text-align:left;overflow:hidden}
-.file-excerpts .file-row .ico{width:12px;height:12px;flex:none;margin-top:2px}
-.file-excerpts .file-item-content{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
-.file-excerpts .file-name{font-size:12px;line-height:17px}
-.file-excerpts .file-row.selected{border-left-color:var(--accent)}
-.file-excerpts .file-name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}
-.file-excerpts .file-excerpt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--muted);font-size:12px;line-height:18px;white-space:normal;flex:none;max-height:36px}
 .sidebar #files-pane{display:flex;flex:1;min-height:0;overflow:hidden;flex-direction:column}
 .sidebar #files-pane>.file-list{flex:1;min-height:0;overflow:auto}
 .sidebar #outline-list{flex:1;min-height:0;overflow:auto}
-.device-phone .document-corner-actions{left:8px;bottom:4px}
-.device-phone .document-corner-actions button{width:44px;height:44px}
 .device-phone .document-word-count{right:12px;bottom:12px}
 .device-phone .file-navigation-footer{height:52px}
 .device-phone .file-navigation-footer button{min-width:40px;height:44px}
 .device-phone .file-navigation-menu{bottom:54px}
 
-:root{--document-bg:#fff;--document-fg:#30343b;--document-muted:#606770;--document-border:#dde1e5;--document-code:#f6f7f8;--document-link:#3975a5}
-:root[data-theme=dark]{--document-bg:#202124;--document-fg:#e4e5e7;--document-muted:#afb4bb;--document-border:#484c53;--document-code:#292b2f;--document-link:#91bffa}
-:is(.instant-scroll,.reading-scroll,.source-scroll,.document-corner-actions,.document-word-count,.type-swatch){--fg:var(--document-fg);--editor-fg:var(--document-fg);--text:var(--document-fg);--muted:var(--document-muted);--md-marker:var(--document-muted);--border:var(--document-border);--line:var(--document-border);--paper:var(--document-bg);--surface:var(--document-bg);--editor-bg:var(--document-bg);--panel:var(--document-code);--code-bg:var(--document-code);--code:var(--document-code);--accent:var(--document-link);--selection:#3975a533;--hover:var(--document-code);background-color:var(--document-bg);color:var(--document-fg)}
+/* 纸面就是调色板的 --paper：不再另立一套硬写文档色（旧 --document-* 硬值会把九套配色在正文里抹平），
+ * 选区与悬停也交还调色板令牌；别名定义归 surface.css。 */
 .typography-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .typography-popover{width:min(440px,calc(100% - 16px))}
 .typography-popover .typography-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .typography-card{padding:8px;border-radius:var(--vex-radius-sm);min-width:0}
 .typography-card>small{display:none}
-.type-swatch{position:relative;display:block;width:100%;height:140px;overflow:hidden;padding:0;border:0;border-radius:0;pointer-events:none}
+.type-swatch{position:relative;display:block;width:100%;height:140px;overflow:hidden;padding:0;border:0;border-radius:0;pointer-events:none;background:var(--paper);color:var(--fg)}
 .type-swatch .type-document{display:block;width:360px;height:420px;transform:scale(.33);transform-origin:top left;padding:18px;letter-spacing:0}
 .type-document h4{font-size:1em;font-weight:600;margin:1.2em 0 .5em}
 .type-document h1,.type-document h2,.type-document h3{letter-spacing:0!important}

@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="assets/workbench/guide.css">
 <link rel="stylesheet" href="assets/workbench/workspace.css">
 <link rel="stylesheet" href="assets/workbench/branding.css">
-<link rel="stylesheet" href="assets/prototype/palettes.css"><link rel="stylesheet" href="assets/prototype/density.css"><link rel="stylesheet" href="assets/prototype/typography.css">
+<link rel="stylesheet" href="assets/prototype/palettes.css"><link rel="stylesheet" href="assets/prototype/density.css"><link rel="stylesheet" href="assets/workbench/surface.css"><link rel="stylesheet" href="assets/prototype/typography.css">
 <link rel="stylesheet" href="assets/workbench/refinement.css">
 <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
 <link rel="stylesheet" href="assets/prototype/prototype.css"><link rel="stylesheet" href="assets/prototype/segmented.css"><link rel="stylesheet" href="assets/workbench/element-menu.css">
@@ -55,6 +55,8 @@
   <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-more-v" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h3.5a5.5 5.5 0 0 0 0-11H12Z"/><circle cx="7.5" cy="9" r="1"/><circle cx="11" cy="6.5" r="1"/><circle cx="16" cy="7.5" r="1"/></symbol>
+  <symbol id="i-contrast" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
@@ -88,7 +90,15 @@
   </header>
   <div class="window-body">
     <main class="workspace" data-view="edit">
+      <!-- 图标栏：窗口级导航。文件/大纲两枚沿用原 id，workbench.js 的状态同步不用改。 -->
+      <nav class="nav-rail" data-l10n-label="主导航" aria-label="主导航">
+        <button class="rail-item on" id="sidebar-toggle" data-action="toggle-sidebar" data-l10n-name="收起文件导航" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg><span>文件</span></button>
+        <button class="rail-item" id="outline-toggle" data-action="toggle-structure" data-l10n-name="展开文档大纲" title="展开文档大纲" aria-label="展开文档大纲" aria-pressed="false" aria-controls="structure-sidebar"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg><span>大纲</span></button>
+        <button class="rail-item" data-action="find" data-l10n-name="查找" title="查找" aria-label="查找"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><span>搜索</span></button>
+        <button class="rail-item rail-bottom" data-action="preferences" data-l10n-name="偏好设置" title="偏好设置" aria-label="偏好设置"><svg class="ico" aria-hidden="true"><use href="#i-gear"/></svg><span>设置</span></button>
+      </nav>
       <aside class="sidebar" data-l10n-label="文件列表" aria-label="文件列表"><div class="sidebar-inner">
+        <div class="panel-head"><span class="panel-title" data-l10n="文件列表">文件列表</span></div>
 
         <div class="side-pane" id="files-pane">
           <label class="sidebar-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="file-filter" data-l10n-placeholder="按文件名查找…" data-l10n-label="按文件名查找" data-l10n-tip="只匹配文件名，不搜索正文 · Ctrl+P" placeholder="按文件名查找…" aria-label="按文件名查找" title="只匹配文件名，不搜索正文 · Ctrl+P"><button class="clear-search" data-action="clear-file-search" data-l10n-name="清除文件名筛选" title="清除文件名筛选" aria-label="清除文件名筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
@@ -167,25 +177,18 @@
           </aside>
         </section>
       </div>
-      <footer class="document-statusbar">
-        <div class="document-corner-actions" data-l10n-label="辅助面板" aria-label="辅助面板">
-          <button class="on" data-action="toggle-sidebar" id="sidebar-toggle" data-l10n-name="收起文件导航" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true">
-            <svg class="ico"><use href="#i-sidebar"/></svg><span>文件</span>
-          </button>
-          <button data-action="toggle-structure" id="outline-toggle" data-l10n-name="展开文档大纲" title="展开文档大纲" aria-label="展开文档大纲" aria-pressed="false" aria-controls="structure-sidebar">
-            <svg class="ico flip-x"><use href="#i-sidebar"/></svg><span>大纲</span>
-          </button>
-        </div>
-        <button class="document-word-count" id="sb-wordcount" data-action="dlg-statistics" aria-controls="structure-sidebar" data-l10n-tip="查看文章信息与字数统计" title="查看文章信息与字数统计">字数 0</button>
-      </footer>
       </div>
     <div class="structure-splitter" id="structure-splitter" role="separator" data-l10n-label="调整辅助面板宽度" aria-label="调整辅助面板宽度" aria-orientation="vertical" aria-valuemin="280" aria-valuemax="480" aria-valuenow="312" tabindex="0"></div>
     <aside class="structure-sidebar" id="structure-sidebar" data-l10n-label="文档辅助" aria-label="文档辅助"><div class="structure-inner">
-        <div class="structure-head"><span class="structure-title">文档结构</span><button class="structure-toggle" data-action="toggle-structure" data-l10n-name="收起文档结构" title="收起文档结构" aria-label="收起文档结构" aria-expanded="true"><svg class="ico" aria-hidden="true"><use href="#i-chevron-down"/></svg></button></div>
+        <div class="panel-head structure-head"><span class="panel-title structure-title">文档结构</span><button class="structure-toggle" data-action="toggle-structure" data-l10n-name="收起文档结构" title="收起文档结构" aria-label="收起文档结构" aria-expanded="true"><svg class="ico" aria-hidden="true"><use href="#i-chevron-down"/></svg></button></div>
         <label class="sidebar-search structure-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="outline-filter" data-l10n-placeholder="筛选当前标题…" data-l10n-label="筛选当前文档标题" data-l10n-tip="只筛选当前文档的大纲标题" placeholder="筛选当前标题…" aria-label="筛选当前文档标题" title="只筛选当前文档的大纲标题"><button class="clear-search" data-action="clear-outline-search" data-l10n-name="清除标题筛选" title="清除标题筛选" aria-label="清除标题筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
         <div class="outline-list structure-list" id="outline-body"></div>
       </div></aside>
       </main>
+      <!-- 整窗底栏：从 .workspace-main 里提出来，横跨侧栏与右栏，窗口级开关与信息都归这里。 -->
+      <footer class="document-statusbar">
+        <button class="document-word-count" id="sb-wordcount" data-action="dlg-statistics" aria-controls="structure-sidebar" data-l10n-tip="查看文章信息与字数统计" title="查看文章信息与字数统计">字数 0</button>
+      </footer>
     <!-- ========== 窗体内浮层 ========== -->
 
     <!-- 未保存更改 -->

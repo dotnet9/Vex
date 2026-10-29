@@ -81,11 +81,13 @@
   applyToolbarPin();
   var mapAppearance=VexMapAppearance.create({parent:document.querySelector('.window-body'),scene:$('map-scene'),getLayout:function(){return $('map-layout').value;},setLayout:function(key){$('map-layout').value=key;$('map-layout').dispatchEvent(new Event('change'));},isTemporary:function(){return guideActive;},beforeOpen:function(){VexTypography.close();closeMenus();$('map-settings').hidden=true;},avoid:function(rect){window.VexMapView&&VexMapView.avoid(rect);}});
   mapAppearance.setTrigger(mapButton); /* 触发钮徽标回显「结构 · 风格」，不必开弹层也知道当前组合。 */
-  /* 状态栏正中：源码 / 阅读 / 导图 三段直选 + "更多"打开完整布局菜单（即时编辑与组合视图都在里面）。 */
-  var viewSwitch = document.createElement('div'); viewSwitch.className = 'workspace-viewswitch vex-segmented'; viewSwitch.setAttribute('role', 'group'); viewSwitch.setAttribute('aria-label', '视图切换');
-  [['source', '源码'], ['read', '阅读'], ['map', '导图']].forEach(function (segment) {
+  /* 内容面顶端标签行：源码 / 阅读 / 导图 下划线直选 + 右端布局选择器（即时编辑与组合视图都在里面）。 */
+  var tabrow = document.createElement('div'); tabrow.className = 'workspace-tabrow';
+  area.insertBefore(tabrow, surface);
+  var viewSwitch = document.createElement('div'); viewSwitch.className = 'workspace-viewswitch workspace-tabs'; viewSwitch.setAttribute('role', 'group'); viewSwitch.setAttribute('aria-label', '视图切换');
+  [['source', '源码', 'edit'], ['read', '阅读', 'eye'], ['map', '导图', 'map']].forEach(function (segment) {
     var button = document.createElement('button'); button.type = 'button';
-    button.dataset.viewLink = segment[0]; button.textContent = segment[1];
+    button.dataset.viewLink = segment[0]; button.innerHTML = icon(segment[2]) + '<span>' + segment[1] + '</span>';
     button.setAttribute('aria-pressed', 'false');
     button.onclick = function () { setLayout(segment[0]); };
     viewSwitch.appendChild(button);
@@ -95,12 +97,11 @@
   layoutButton.setAttribute('aria-controls', 'workspace-layout-menu');
   layoutButton.innerHTML = '更多' + icon('chevron-down');
   layoutButton.lastElementChild.classList.add('vex-expand-icon','layout-chevron');
-  viewSwitch.appendChild(layoutButton);
-  statusbar.insertBefore(viewSwitch, wordCount);
+  tabrow.appendChild(viewSwitch); tabrow.appendChild(layoutButton);
   var layoutMenu = document.createElement('section'); layoutMenu.className = 'workspace-layout-menu'; layoutMenu.id = 'workspace-layout-menu'; layoutMenu.hidden = true;
   layoutMenu.setAttribute('role', 'dialog'); layoutMenu.setAttribute('aria-label', '工作区视图');
   layoutMenu.innerHTML = '<div class="layout-preset-grid"></div>';
-  statusbar.appendChild(layoutMenu);
+  tabrow.appendChild(layoutMenu);
   function miniature(node) { return typeof node === 'string' ? '<i class="mini-pane mini-' + node + '"></i>' : '<span class="mini-split mini-' + node[0] + '">' + miniature(node[1]) + miniature(node[2]) + '</span>'; }
   presets.forEach(function (preset) { var button = document.createElement('button'); button.className = 'layout-preset'; button.dataset.layout = preset.id; button.innerHTML = '<span class="layout-miniature">' + miniature(preset.tree) + '</span><span class="layout-name">' + preset.title + '</span><span class="preset-check">✓</span>'; button.onclick = function () { setLayout(preset.id); closeMenus(true); }; layoutMenu.querySelector('.layout-preset-grid').appendChild(button); });
   function closeMenus(restore) { var wasOpen = !layoutMenu.hidden; layoutMenu.hidden = true; layoutButton.setAttribute('aria-expanded', 'false'); if (restore && wasOpen) layoutButton.focus(); }
@@ -175,8 +176,13 @@
     panels.editor.querySelector('.view-title').textContent = source ? '源码' : '即时编辑'; panels.render.querySelector('.view-title').textContent = '阅读'; panels.map.querySelector('.view-title').textContent = '思维导图';
     surface.dataset.single = String(displayed.length === 1); $('edit-options').hidden = !displayed.includes('editor');
     typeButton.hidden=!displayed.includes('editor')||source;
-    (displayed.length === 1 && displayed[0] === 'editor' ? $('edit-options') : panels.editor.querySelector('.view-heading')).appendChild(typeButton);
+    $('edit-options').appendChild(typeButton);
     readingTypeButton.hidden=!displayed.includes('render');
+    /* 单阅读视图没有自己的工具行：排版入口并进标签行右端，空标题行整行收起，全窗只留一条上下文行。 */
+    var singleRender = displayed.length === 1 && displayed[0] === 'render';
+    var renderHead = panels.render.querySelector('.view-heading');
+    renderHead.hidden = singleRender;
+    if (singleRender) tabrow.insertBefore(readingTypeButton, layoutButton); else renderHead.insertBefore(readingTypeButton, renderHead.querySelector('.toolbar-pin'));
     mapButton.hidden=!displayed.includes('map');
     if(typeButton.hidden&&readingTypeButton.hidden)VexTypography.close();
     if(mapButton.hidden)mapAppearance.close();
