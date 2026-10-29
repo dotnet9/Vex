@@ -48,6 +48,17 @@
   <Style Selector="Grid.search-shell:focus-within Border.search-hover">
     <Setter Property="IsVisible" Value="False" />
   </Style>
+  <!-- 面板头（原型 .panel-head / .panel-title，workspace-chrome.css:473-474）：标题落在搜索框之上，
+       12/14/9 内距、600 字重 12px；左右两栏同一档口径。 -->
+  <Style Selector="Grid.panel-head">
+    <Setter Property="Margin" Value="14,12,14,9" />
+  </Style>
+  <Style Selector="TextBlock.panel-title">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
   <!-- 原型 .nav-rail / .rail-item（workspace-chrome.css:466-472）：窗口级图标栏取代块角折叠钮。
        铬面全高贴左缘，44×48 图标+短标签，active 只用一枚浅色圆角块托住，不画下划线也不加描边。 -->
   <Style Selector="Border.nav-rail">

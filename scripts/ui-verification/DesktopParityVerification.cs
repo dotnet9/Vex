@@ -157,6 +157,21 @@ internal static class DesktopParityVerification
         Check(!searchGlow.IsVisible && !searchHover.IsVisible
             && searchFrame.BorderBrush is Avalonia.Media.ISolidColorBrush restoredBorder && restoredBorder.Color == idleRef.Color,
             "Leaving the search box restores the idle control-border and hides the glow ring");
+        // 面板头（原型 .panel-head/.panel-title）：两栏标题都在各自搜索框之上，12/14/9 内距、600 字重 12px。
+        var localizer = app.Resolve<IAppLocalizer>();
+        var filesHead = filesView.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("panel-title"));
+        Check(filesHead.Text == localizer.Get(Vex.VexL.SidebarFiles) && filesHead.FontSize == 12
+            && filesHead.FontWeight == Avalonia.Media.FontWeight.SemiBold
+            && ((Grid)filesHead.Parent!).Margin == new Thickness(14, 12, 14, 9)
+            && filesHead.TranslatePoint(default, filesView)!.Value.Y < searchShell.TranslatePoint(default, filesView)!.Value.Y,
+            "Files panel head titles the pane above the search box at the prototype 12/14/9 inset");
+        var auxPanel = window.GetVisualDescendants().OfType<ShellAuxiliaryPanelView>().Single();
+        var structureHead = auxPanel.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("panel-title"));
+        var outlineShell = auxPanel.GetVisualDescendants().OfType<Grid>().First(g => g.Classes.Contains("search-shell"));
+        Check(structureHead.Text == localizer.Get(Vex.VexL.StructureTitle)
+            && ((Grid)structureHead.Parent!).Margin == new Thickness(14, 12, 14, 9)
+            && structureHead.TranslatePoint(default, auxPanel)!.Value.Y < outlineShell.TranslatePoint(default, auxPanel)!.Value.Y,
+            "Structure panel head shares the same title row metrics above its search box");
         navigation.SelectDocumentFileForContextMenu(navigation.DocumentFileNodes.First(node => node.IsFolder));
         Check(navigation.HasPathCommandTarget && !navigation.HasDocumentFileCommandTarget, "Folder context supports path actions without file mutation actions");
         var launch = ShellProcessLauncher.CreateStartInfo(Path.Combine(root, "a b.md"));

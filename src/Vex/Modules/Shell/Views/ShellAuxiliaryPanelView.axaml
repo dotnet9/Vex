@@ -14,8 +14,8 @@
   </Style>
  </UserControl.Styles>
  <Grid RowDefinitions="Auto,*">
-  <Grid Margin="14,13,10,6" ColumnDefinitions="*,Auto">
-   <TextBlock Text="{i18n:I18n {x:Static l:VexL.StructureTitle}}" FontSize="12" FontWeight="Medium" VerticalAlignment="Center"/>
+  <Grid Classes="panel-head" ColumnDefinitions="*,Auto">
+   <TextBlock Classes="panel-title" Text="{i18n:I18n {x:Static l:VexL.StructureTitle}}" />
    <Button x:Name="CollapseOutlineButton" Grid.Column="1" Classes="wb-quiet outline-collapse" MinHeight="0" Width="22" Height="22" Padding="3" CornerRadius="5"
            Command="{Binding Layout.ToggleOutline}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.CollapseStructure}}"
            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CollapseStructure}}">

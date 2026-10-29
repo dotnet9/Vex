@@ -188,10 +188,14 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- 对应原型 .panel-head：标题落在搜索框之上（文件列表）。 -->
+        <Grid Classes="panel-head" Grid.Row="0" ColumnDefinitions="*,Auto">
+            <TextBlock Classes="panel-title" Text="{i18n:I18n {x:Static l:VexL.SidebarFiles}}" />
+        </Grid>
         <!-- 对应原型 .sidebar-search：32px 高、pill 圆角、内嵌搜索图标与常显清除按钮；
              焦点单环配方（accent 边 + 3px 柔光 + 悬停混边）由 Grid.search-shell 共享样式驱动。 -->
-        <Grid Classes="search-shell" Grid.Row="0" Height="32" Margin="5,14,5,8">
+        <Grid Classes="search-shell" Grid.Row="1" Height="32" Margin="5,14,5,8">
             <Border Classes="search-glow" />
             <Border
                 x:Name="FileSearchBox"
@@ -228,7 +232,7 @@
 
         <TreeView
             x:Name="FileTree"
-            Grid.Row="1"
+            Grid.Row="2"
             Classes="side-tree"
             Margin="5,0"
             IsVisible="{Binding IsTreeView}"
@@ -263,7 +267,7 @@
                 </ContextMenu>
             </TreeView.ContextMenu>
         </TreeView>
-        <ListBox x:Name="FileList" Grid.Row="1" Classes="files-list" Margin="5,0" IsVisible="{Binding IsListView}"
+        <ListBox x:Name="FileList" Grid.Row="2" Classes="files-list" Margin="5,0" IsVisible="{Binding IsListView}"
                  ItemsSource="{Binding FlatDocumentFileNodes}" SelectedItem="{Binding SelectedListDocumentFileNode, Mode=TwoWay}" PointerPressed="SelectItemOnPointerPressed">
             <ListBox.ItemTemplate><DataTemplate x:DataType="models:DocumentFileNode">
                 <!-- 原型 .file-row：与树形行同口径的单行（图标 + 名称 + 行尾目录标签），选中底由通栏模板行绘制。 -->
@@ -317,7 +321,7 @@
                 </ContextMenu></ListBox.ContextMenu>
         </ListBox>
         <Border
-            Grid.Row="1"
+            Grid.Row="2"
             IsVisible="{Binding IsDocumentFilesEmpty}"
             Padding="18"
             VerticalAlignment="Top">
@@ -327,11 +331,11 @@
                 Text="{i18n:I18n {x:Static l:VexL.EmptyNoFiles}}"
                 TextAlignment="Center" />
         </Border>
-        <StackPanel Grid.Row="1" Margin="18,12" Spacing="4" VerticalAlignment="Top" IsHitTestVisible="False"
+        <StackPanel Grid.Row="2" Margin="18,12" Spacing="4" VerticalAlignment="Top" IsHitTestVisible="False"
                     IsVisible="{Binding IsIndexLoading}">
             <TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n {x:Static l:VexL.SidebarFilesLoading}}" />
         </StackPanel>
-        <StackPanel Grid.Row="1" Margin="18,12" Spacing="4" VerticalAlignment="Top" IsVisible="{Binding HasIndexError}">
+        <StackPanel Grid.Row="2" Margin="18,12" Spacing="4" VerticalAlignment="Top" IsVisible="{Binding HasIndexError}">
             <TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n {x:Static l:VexL.SidebarFilesLoadFailed}}" />
             <Button Command="{Binding RetryIndex}" Content="{i18n:I18n {x:Static l:VexL.SidebarFilesRetry}}" />
         </StackPanel>
@@ -339,13 +343,13 @@
         <!-- 对应原型 .files-toolbar（workspace-chrome.css:618）：紧跟搜索框下方，整行居左、无分隔线，
              左内距与搜索框同为 5，行高 34、下内距 8、以 -6 外边距贴紧搜索框的 8px 下边距。 -->
         <!-- 列表视图超阈值提示（对齐原型：文件过多请切树形视图）。 -->
-        <Border Grid.Row="1" IsVisible="{Binding IsListOverflow}" Background="{DynamicResource VexDocumentPaperBrush}"
+        <Border Grid.Row="2" IsVisible="{Binding IsListOverflow}" Background="{DynamicResource VexDocumentPaperBrush}"
                 ZIndex="6" Padding="18" VerticalAlignment="Top" Margin="18,12">
             <TextBlock Classes="muted" FontSize="12" LineHeight="24" TextWrapping="Wrap"
                        Text="{i18n:I18n {x:Static l:VexL.FileListOverflowHint}}"/>
         </Border>
         <!-- 底部条（原型 .files-footer）：目录名占满剩余宽度，排序/视图两枚 26×26 按钮靠右，gap 2、内距 6×10、顶缘 1px 描线。 -->
-        <Border Grid.Row="2" Padding="10,6" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}">
+        <Border Grid.Row="3" Padding="10,6" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}">
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="2">
                 <Button x:Name="SortFolderButton" Classes="files-folder" HorizontalContentAlignment="Stretch"
                         Flyout="{StaticResource SortFlyout}"
