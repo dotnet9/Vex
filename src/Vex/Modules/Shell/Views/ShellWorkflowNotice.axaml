@@ -1,6 +1,22 @@
-<UserControl x:Class="Vex.Modules.Shell.Views.ShellWorkflowNotice" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellWorkflowNotice" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:MainWindowViewModel" IsVisible="{Binding Protection.HasNotice}">
- <Border Padding="18,10" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
+ <UserControl.Styles>
+  <!-- 原型 design-system.css:48：error 态底边与标题转 status-error（随九配色派生），底转 status-error-bg；
+       role 升 alert（workflows.js），恢复草稿与外部版本保持 info 中性。 -->
+  <Style Selector="Border.notice">
+   <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+   <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+  </Style>
+  <Style Selector="Border.notice.error">
+   <Setter Property="Background" Value="{DynamicResource SemiColorDangerLight}" />
+   <Setter Property="BorderBrush" Value="{DynamicResource SemiColorDanger}" />
+   <Setter Property="AutomationProperties.LiveSetting" Value="Assertive" />
+  </Style>
+  <Style Selector="Border.error TextBlock.notice-title">
+   <Setter Property="Foreground" Value="{DynamicResource SemiColorDanger}" />
+  </Style>
+ </UserControl.Styles>
+ <Border Classes="notice" Padding="18,10" BorderThickness="0,0,0,1">
   <StackPanel Spacing="8">
    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasRecovery}">
     <TextBlock Text="{i18n:I18n {x:Static l:VexL.ReviewRecoveryTitle}}" FontSize="12" VerticalAlignment="Center"/>
@@ -11,19 +27,19 @@
     <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.ReviewCompare}}" Command="{Binding CompareExternalAsync}"/>
    </Grid>
    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasDraftError}">
-    <TextBlock Text="{Binding Protection.DraftError}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+    <TextBlock Classes="notice-title" Text="{Binding Protection.DraftError}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
     <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.RetrySave}}" Command="{Binding RetryDraft}"/>
    </Grid>
    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasFileReadError}">
-    <TextBlock Text="{Binding Protection.FileReadError}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+    <TextBlock Classes="notice-title" Text="{Binding Protection.FileReadError}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
     <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.SidebarFilesRetry}}" Command="{Binding RetryCurrentFileAsync}"/>
    </Grid>
    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasSaveError}">
-    <StackPanel Spacing="3"><TextBlock Text="{i18n:I18n {x:Static l:VexL.SaveFailureKept}}" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="{Binding Protection.SaveError}" TextWrapping="Wrap" Classes="wb-muted"/></StackPanel>
+    <StackPanel Spacing="3"><TextBlock Classes="notice-title" Text="{i18n:I18n {x:Static l:VexL.SaveFailureKept}}" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="{Binding Protection.SaveError}" TextWrapping="Wrap" Classes="wb-muted"/></StackPanel>
     <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.RetrySave}}" Command="{Binding RetrySaveAsync}" VerticalAlignment="Center"/>
    </Grid>
    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding Protection.HasExportError}">
-    <StackPanel Spacing="3"><TextBlock Text="{i18n:I18n {x:Static l:VexL.ExportFailureKept}}" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="{Binding Protection.ExportError}" TextWrapping="Wrap" Classes="wb-muted"/></StackPanel>
+    <StackPanel Spacing="3"><TextBlock Classes="notice-title" Text="{i18n:I18n {x:Static l:VexL.ExportFailureKept}}" FontWeight="SemiBold" FontSize="12"/><TextBlock Text="{Binding Protection.ExportError}" TextWrapping="Wrap" Classes="wb-muted"/></StackPanel>
     <Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.RetryExport}}" Command="{Binding RetryExportAsync}" VerticalAlignment="Center"/>
    </Grid>
   </StackPanel>

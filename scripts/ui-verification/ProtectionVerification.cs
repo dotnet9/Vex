@@ -1,4 +1,5 @@
-using Avalonia;
+﻿using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Interactivity;
@@ -65,6 +66,22 @@ internal static class ProtectionVerification
             vm.Markdown += "\nContinue editing"; Pump();
             Check(vm.Protection.HasSaveError && window.GetVisualDescendants().OfType<ShellWorkflowNotice>().Single().IsVisible,
                 "Save failure stays visible while editing continues");
+            // 危险态（原型 design-system.css:48）：底转 status-error-bg、底边转 status-error、标题前景同色，role 升 alert。
+            Pump();
+            var noticeView = window.GetVisualDescendants().OfType<ShellWorkflowNotice>().Single();
+            var noticeBorder = window.GetVisualDescendants().OfType<ShellWorkflowNotice>().Single()
+                .GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("error"));
+            Application.Current!.TryGetResource("SemiColorDangerLight", window.ActualThemeVariant, out var errorSoft);
+            Application.Current!.TryGetResource("SemiColorDanger", window.ActualThemeVariant, out var errorBrush);
+            var noticeTitle = noticeBorder.GetVisualDescendants().OfType<TextBlock>().First(b => b.Classes.Contains("notice-title"));
+            var noticeBackground = (global::Avalonia.Media.ISolidColorBrush)noticeBorder.Background!;
+            var noticeBorderBrush = (global::Avalonia.Media.ISolidColorBrush)noticeBorder.BorderBrush!;
+            var noticeTitleBrush = (global::Avalonia.Media.ISolidColorBrush)noticeTitle.Foreground!;
+            Check(noticeBackground.Color == ((global::Avalonia.Media.ISolidColorBrush)errorSoft!).Color
+                  && noticeBorderBrush.Color == ((global::Avalonia.Media.ISolidColorBrush)errorBrush!).Color
+                  && noticeTitleBrush.Color == ((global::Avalonia.Media.ISolidColorBrush)errorBrush!).Color
+                  && AutomationProperties.GetLiveSetting(noticeBorder) == AutomationLiveSetting.Assertive,
+                "Save failure notice switches to the danger recipe with alert semantics");
             SaveFrame("save-failure");
         }
         Pump(vm.RetrySaveAsync());

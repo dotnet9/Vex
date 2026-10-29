@@ -77,6 +77,22 @@
     </UserControl.DataTemplates>
 
     <UserControl.Styles>
+     <!-- 原型 .empty-state button（workspace-chrome.css:264）：强调色 11px 文字钮，无底无描边，悬停加深。 -->
+     <Style Selector="Button.empty-action">
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+     </Style>
+     <Style Selector="Button.empty-action:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+     </Style>
+     <Style Selector="Button.empty-action:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource StudioPrimaryHover}" />
+     </Style>
         <Style Selector="TreeView.side-tree TreeViewItem" x:DataType="models:DocumentFileNode">
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
         </Style>
@@ -332,24 +348,30 @@
                         IsEnabled="{Binding HasDocumentFileCommandTarget}" />
                 </ContextMenu></ListBox.ContextMenu>
         </ListBox>
-        <Border
+        <!-- 原型 #file-empty.empty-state（workspace-chrome.css:412-413）：横向居中一排——8px 强调色圆点 + 文字。 -->
+        <StackPanel
             Grid.Row="2"
             IsVisible="{Binding IsDocumentFilesEmpty}"
-            Padding="18"
-            VerticalAlignment="Top">
+            Margin="18"
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Spacing="8">
+            <Ellipse Width="8" Height="8" Fill="{DynamicResource VexAccentBrush}" VerticalAlignment="Center" />
             <TextBlock
                 Classes="muted"
                 FontSize="12"
-                Text="{i18n:I18n {x:Static l:VexL.EmptyNoFiles}}"
-                TextAlignment="Center" />
-        </Border>
+                VerticalAlignment="Center"
+                Text="{i18n:I18n {x:Static l:VexL.EmptyNoFiles}}" />
+        </StackPanel>
         <StackPanel Grid.Row="2" Margin="18,12" Spacing="4" VerticalAlignment="Top" IsHitTestVisible="False"
                     IsVisible="{Binding IsIndexLoading}">
             <TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n {x:Static l:VexL.SidebarFilesLoading}}" />
         </StackPanel>
+        <!-- 原型 .empty-state button（workspace-chrome.css:264）：强调色文字钮，无底无描边。 -->
         <StackPanel Grid.Row="2" Margin="18,12" Spacing="4" VerticalAlignment="Top" IsVisible="{Binding HasIndexError}">
             <TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n {x:Static l:VexL.SidebarFilesLoadFailed}}" />
-            <Button Command="{Binding RetryIndex}" Content="{i18n:I18n {x:Static l:VexL.SidebarFilesRetry}}" />
+            <Button Classes="empty-action" Command="{Binding RetryIndex}" Content="{i18n:I18n {x:Static l:VexL.SidebarFilesRetry}}" />
         </StackPanel>
 
         <!-- 对应原型 .files-toolbar（workspace-chrome.css:618）：紧跟搜索框下方，整行居左、无分隔线，

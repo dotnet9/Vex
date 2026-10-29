@@ -1,4 +1,4 @@
-using ReactiveUI;
+﻿using ReactiveUI;
 using Vex.Core.Models;
 
 namespace Vex.Modules.Shell.ViewModels;
@@ -20,9 +20,11 @@ public sealed class ShellDocumentProtection : ReactiveObject
     public bool HasExternal => External is not null;
     public bool HasFileReadError => !string.IsNullOrEmpty(FileReadError);
     public bool HasNotice => HasSaveError || HasExportError || HasDraftError || HasRecovery || HasExternal || HasFileReadError;
+    // 原型 workflows.js 的 kind=error：存错/导出错/草稿错/读错四类亮危险态，恢复草稿与外部版本保持 info。
+    public bool HasErrorNotice => HasSaveError || HasExportError || HasDraftError || HasFileReadError;
     private void RaiseDerivedState()
     {
-        foreach (var property in new[] { nameof(HasSaveError), nameof(HasExportError), nameof(HasDraftError), nameof(HasRecovery), nameof(HasExternal), nameof(HasFileReadError), nameof(HasNotice) })
+        foreach (var property in new[] { nameof(HasSaveError), nameof(HasExportError), nameof(HasDraftError), nameof(HasRecovery), nameof(HasExternal), nameof(HasFileReadError), nameof(HasNotice), nameof(HasErrorNotice) })
             this.RaisePropertyChanged(property);
     }
 }
