@@ -61,12 +61,12 @@ public partial class MarkdownPreviewView : UserControl
         }
         else
         {
-            // 原型 .reading-scroll .md-body 内边距实测 30/52/88（单栏阅读与组合预览同值，探针读数）；
-            // 底部不再为悬浮状态栏留白——状态栏已改通栏占位行。
-            var margin = new Thickness(52, 30, 52, 88);
+            // 组合布局预览窗格（原型 data-single=false）：24px / clamp(14px,8%,32px) / 56px，探针读数；
+            // 常见窗宽下侧距已到 clamp 上限 32。底部不再为悬浮状态栏留白——状态栏已改通栏占位行。
+            var margin = new Thickness(32, 24, 32, 56);
             PreviewMarkdownViewer.Margin = margin;
             // 原型的 max-width 是含留白的边框盒（全局 border-box），Avalonia 的 MaxWidth 只算内容：把留白扣回去。
-            PreviewMarkdownViewer.MaxWidth = Math.Max(820, clientWidth * (IsReadingMode ? 0.5 : 0.42)) - margin.Left - margin.Right;
+            PreviewMarkdownViewer.MaxWidth = Math.Max(800, clientWidth * 0.42) - margin.Left - margin.Right;
         }
     }
 
