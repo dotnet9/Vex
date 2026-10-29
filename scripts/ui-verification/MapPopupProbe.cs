@@ -66,8 +66,13 @@ internal static class MapPopupProbe
         Check(!content.GetVisualDescendants().OfType<SegmentedPanel>().Any(), "分段页签已删除，两排不再互相隐藏");
         var choices = content.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("map-choice")).ToArray();
         Check(choices.Length == 12 && choices.All(b => b.IsVisible), $"12 张卡全部同屏可见（实得 {choices.Length}）");
-        Check(content.GetVisualDescendants().OfType<TextBlock>().Count(t => t.Classes.Contains("map-choice-purpose")) == 6,
-            "六张风格卡各带一行说明");
+        // 原型 map-appearance.js:54-55 的卡片只有 miniature + <strong>名称</strong>：用途行早已退役，
+        // 说明职能留在无障碍名字里（AddCard 把 purpose 拼进 AutomationProperties.Name）。
+        var styleChoices = choices.Where(b => b.Name!.StartsWith("MapChoiceStyle_", StringComparison.Ordinal)).ToArray();
+        Check(styleChoices.Length == 6
+            && styleChoices.All(b => b.GetVisualDescendants().OfType<TextBlock>().Count() == 1)
+            && styleChoices.All(b => Avalonia.Automation.AutomationProperties.GetName(b).Length > b.GetVisualDescendants().OfType<TextBlock>().First().Text!.Length),
+            "六张风格卡只留名称，说明留在无障碍名字里而不是卡面用途行");
         var before = ShellWorkbenchViewModel.MindMapStyleKeys.Select(key => Miniature(content, "MapChoiceStyle_" + key)).ToArray();
         // 改选「中心放射」：风格排的线稿要跟着换形（双向联动），并把「② 风格」点亮引路。
         content.GetVisualDescendants().OfType<Button>().First(b => b.Name == "MapChoiceLayout_radial")

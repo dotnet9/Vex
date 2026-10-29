@@ -320,11 +320,6 @@
     <Setter Property="FontWeight" Value="Medium"/><Setter Property="LineHeight" Value="20"/>
     <Setter Property="Margin" Value="0,8,0,0"/>
   </Style>
-  <!-- 原型 .map-choice-purpose：11/16 灰字紧跟段名，解释这张卡和隔壁那张差在哪。 -->
-  <Style Selector="TextBlock.map-choice-purpose">
-    <Setter Property="FontSize" Value="11"/><Setter Property="LineHeight" Value="16"/>
-    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
-  </Style>
   <!-- 原型最新（workspace-chrome）：卡片去边框、灰阶表面 + 轻阴影，选中 accent 环。 -->
   <Style Selector="Button.palette-card">
     <Setter Property="Padding" Value="7"/><Setter Property="CornerRadius" Value="8"/>

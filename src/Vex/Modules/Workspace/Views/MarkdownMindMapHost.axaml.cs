@@ -510,19 +510,21 @@ public partial class MarkdownMindMapHost : UserControl
     /// 派生色按 CSS 同款算：清雅=强调色描边根实心、缤纷=分支色轮换 + 14% 铺底 + 实色连线、
     /// 线框=根只留 3px 描边、胶囊=rx12 + 12% 强调色铺底、脉络=子节点只剩底边、黑白=整体转前景色。</summary>
     /// <summary>原型 .map-step-label：①/② 圆徽 + 段名 + 灰色提示，两排同屏时充当分组引导。</summary>
-    private static StackPanel BuildStepLabel(string badge, string title, string hint) => new()
+    private static StackPanel BuildStepLabel(string badge, string title, string hint)
     {
-        Classes = { "map-step-label" },
-        Orientation = Orientation.Horizontal,
-        Spacing = 7,
-        Margin = new Thickness(4, 0, 4, 9),
-        Children =
+        var label = new StackPanel
         {
-            new Border { Classes = { "map-step-badge" }, Child = new TextBlock { Classes = { "map-step-badge-text" }, Text = badge, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } },
-            new TextBlock { Classes = { "map-step-text" }, Text = title, VerticalAlignment = VerticalAlignment.Center },
-            hint.Length == 0 ? null : new TextBlock { Classes = { "map-step-hint" }, Text = hint, VerticalAlignment = VerticalAlignment.Center },
-        },
-    };
+            Classes = { "map-step-label" },
+            Orientation = Orientation.Horizontal,
+            Spacing = 7,
+            Margin = new Thickness(4, 0, 4, 9),
+        };
+        label.Children.Add(new Border { Classes = { "map-step-badge" }, Child = new TextBlock { Classes = { "map-step-badge-text" }, Text = badge, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } });
+        label.Children.Add(new TextBlock { Classes = { "map-step-text" }, Text = title, VerticalAlignment = VerticalAlignment.Center });
+        // 集合初始化器里塞 null 会在 Add 时抛 ArgumentNullException：两处调用都传空提示，弹层一开就崩。
+        if (hint.Length > 0) label.Children.Add(new TextBlock { Classes = { "map-step-hint" }, Text = hint, VerticalAlignment = VerticalAlignment.Center });
+        return label;
+    }
 
     private Control BuildStyleCard(string label, string shape, string style, string? purpose)
     {
