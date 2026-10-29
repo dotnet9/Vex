@@ -96,6 +96,7 @@ public sealed class ShellTypographyGallery : UserControl
         {
             var selected = option == _vm.Appearance.SelectedTypography;
             item.Ring.IsVisible = selected;
+            item.Button.Classes.Set("typography-card-on", selected);
             var badgeText = selected ? "✓ " + Text("ChoiceCurrent") : option.IsRecommended ? Text("ChoiceRecommended") : "";
             item.BadgeText.Text = badgeText; item.Badge.IsVisible = badgeText.Length > 0;
         }
@@ -218,9 +219,9 @@ public sealed class ShellTypographyGallery : UserControl
             CornerRadius = new CornerRadius(4), IsHitTestVisible = false
         };
         Resource(badge, Border.BackgroundProperty, this, "VexAccentBrush");
-        // 原型选中态：box-shadow 0 0 0 1.5px accent，环在卡片边缘外侧，半径比卡片多一份描边厚度。
-        var ring = new Border { BorderThickness = new Thickness(1.5), Margin = new Thickness(-1.5), IsHitTestVisible = false };
-        ring.Bind(Border.CornerRadiusProperty, CardRadius(1.5));
+        // 原型选中态：accent 描边 + inset 0 0 0 1px accent，环压在卡片边缘内侧。
+        var ring = new Border { BorderThickness = new Thickness(1), IsHitTestVisible = false };
+        ring.Bind(Border.CornerRadiusProperty, CardRadius());
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
         var content = new Panel { Children = { paper, ring, badge } };
         // 原型：排版卡是流程终点，应用后稍候自动收起让出正文看效果（scheduleCollapse）。
@@ -231,12 +232,14 @@ public sealed class ShellTypographyGallery : UserControl
         button.ClipToBounds = false;
         button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
         button.HorizontalContentAlignment = HorizontalAlignment.Stretch; button.VerticalContentAlignment = VerticalAlignment.Stretch;
-        // 原型 workspace-chrome 最终档：无框、--panel 底、--vex-radius-lg 圆角 + 轻阴影（阴影见 Button.typography-card）。
-        button.BorderThickness = new Thickness(0);
+        // 原型实测：1px --border 描边、--surface 底、--vex-radius-md 圆角，box-shadow:none（描边色见 Button.typography-card）。
+        button.BorderThickness = new Thickness(1);
         button.Classes.Add("typography-card");
-        Resource(button, TemplatedControl.CornerRadiusProperty, this, "VexDensityCornerRadiusLg");
+        Resource(button, TemplatedControl.CornerRadiusProperty, this, "VexDensityCornerRadiusMd");
         Resource(button, TemplatedControl.BackgroundProperty, this, "VexPanelBackgroundBrush");
         _items[option] = (button, ring, badge, badgeText);
+        ring.IsVisible = option == _vm!.Appearance.SelectedTypography;
+        button.Classes.Set("typography-card-on", ring.IsVisible);
         if (option.Key?.StartsWith("user:", StringComparison.Ordinal) == true)
         {
             var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 8, 8, 0), IsVisible = false };
@@ -279,10 +282,10 @@ public sealed class ShellTypographyGallery : UserControl
     }
 
     /// <summary>整行虚线「＋ 新增排版」条（原型 .typography-add：44 高、横向排布、占满网格宽度）。</summary>
-    /// <summary>原型 #typography-panel 的卡片圆角档位（--vex-radius-lg，随密度与圆角缩放）；
-    /// 选中环是外扩 1.5px 的 box-shadow，半径要在卡片档位上再加一份描边厚度。</summary>
+    /// <summary>原型 #typography-panel 的卡片圆角档位（--vex-radius-md，随密度与圆角缩放）；
+    /// 选中环压在描边内侧，半径与卡片同档。</summary>
     private IObservable<object?> CardRadius(double outset = 0) =>
-        this.GetResourceObservable("VexDensityCornerRadiusLg").Select(value =>
+        this.GetResourceObservable("VexDensityCornerRadiusMd").Select(value =>
             value is CornerRadius radius ? new CornerRadius(radius.TopLeft + outset) : (object?)value);
 
     private Control BuildAddCard()

@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Headless;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Avalonia.Threading;
@@ -108,6 +110,66 @@ internal static class TypographyProbe
 
         var add = gallery.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "AddCustomTypography");
         if (add is not null) Line("ADD", add);
+
+        // 卡片外观契约（原型实测：probe-typography.cjs 读 .typography-card 计算样式 =
+        // 1px 描边 / radius-md(8) / surface 底 / box-shadow:none，hover 只把描边换成强调色）。
+        // 结构断言吃前两档，描边颜色与「没有脏光」一律回到位图上数像素。
+        if (cards.Count > 0)
+        {
+            void Check(bool value, string message)
+            {
+                if (!value) throw new InvalidOperationException(message);
+            }
+
+            var card = cards[0];
+            var accent = (app.TryGetResource("VexAccentBrush", app.ActualThemeVariant, out var accentResource)
+                && accentResource is ISolidColorBrush accentBrush) ? accentBrush.Color : default;
+            Check(card.BorderThickness == new Thickness(1), $"Typography card carries the prototype 1px hairline: {card.BorderThickness}");
+            var cardRadius = (app.TryGetResource("VexDensityCornerRadiusMd", app.ActualThemeVariant, out var radiusResource)
+                && radiusResource is CornerRadius radius) ? radius : default;
+            Check(cardRadius.TopLeft > 0 && card.CornerRadius == cardRadius,
+                $"Typography card hugs the radius-md token like the prototype (8px): card={card.CornerRadius} token={cardRadius}");
+
+            var origin = card.TranslatePoint(default, window)!.Value;
+            var cardBox = new Rect(origin, card.Bounds.Size);
+            using var frame = new Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize((int)window.Bounds.Width, (int)window.Bounds.Height));
+            frame.Render(window);
+            using var stream = new MemoryStream();
+            frame.Save(stream);
+            using var raster = SkiaSharp.SKBitmap.Decode(stream.ToArray())!;
+            int Distance(SkiaSharp.SKColor p) => Math.Abs(p.Red - accent.R) + Math.Abs(p.Green - accent.G) + Math.Abs(p.Blue - accent.B);
+            // 描边落在卡片左缘那两三像素里，抗锯齿会把它摊开，取这一小片里最贴强调色的一枚。
+            int EdgeDistance(SkiaSharp.SKBitmap bmp)
+            {
+                var best = int.MaxValue;
+                for (var x = (int)cardBox.X; x < cardBox.X + 3; x++)
+                    for (var y = (int)(cardBox.Y + cardBox.Height / 2) - 1; y < cardBox.Y + cardBox.Height / 2 + 2; y++)
+                        best = Math.Min(best, Distance(bmp.GetPixel(x, y)));
+                return best;
+            }
+            // 卡底下方三行：原型 box-shadow:none，落出来的必须是弹层原本的底，多一个暗像素都算投影没退干净。
+            var baseline = raster.GetPixel((int)cardBox.X - 12, (int)cardBox.Bottom + 1);
+            var leaked = 0;
+            for (var y = (int)cardBox.Bottom + 1; y < cardBox.Bottom + 4; y++)
+                for (var x = (int)cardBox.X + 4; x < cardBox.Right - 4; x++)
+                {
+                    var p = raster.GetPixel(x, y);
+                    if (Math.Abs(p.Red - baseline.Red) > 2 || Math.Abs(p.Green - baseline.Green) > 2 || Math.Abs(p.Blue - baseline.Blue) > 2) leaked++;
+                }
+            var idle = EdgeDistance(raster);
+            Console.WriteLine($"CARD\tbox={cardBox}\tleaked={leaked}\tedgeDistance={idle}");
+            Check(leaked == 0, $"Prototype paints no shadow under the typography card; {leaked} pixels differ from the popover field {baseline.Red:X2}{baseline.Green:X2}{baseline.Blue:X2}");
+            Check(idle > 60, $"Idle card edge is the hairline, not the accent: distance to accent {idle}");
+
+            window.MouseMove(cardBox.Center, RawInputModifiers.None);
+            frame.Render(window);
+            using var hoverStream = new MemoryStream();
+            frame.Save(hoverStream);
+            using var hovered = SkiaSharp.SKBitmap.Decode(hoverStream.ToArray())!;
+            var hover = EdgeDistance(hovered);
+            Console.WriteLine($"HOVER\tedgeDistance={hover}");
+            Check(hover < 60 && hover < idle - 40, $"Hover swaps the hairline to the accent like the prototype: distance {idle} to {hover}");
+        }
 
         var scroller = gallery.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
         if (scroller is not null) Line("SCROLL", scroller, $"padding={scroller.Padding}");

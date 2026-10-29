@@ -16,12 +16,6 @@ public static class ElevationResources
     /// <summary>分段控件指示块的投影键，对应原型 --segmented-thumb-shadow。</summary>
     public const string SegmentedThumbKey = "VexSegmentedThumbShadow";
 
-    /// <summary>排版卡（#typography-panel .typography-card）的常态与悬停投影键。</summary>
-    public const string TypographyCardKey = "VexTypographyCardShadow";
-
-    /// <summary>排版卡悬停投影键，对应原型 :hover 那档稍大一点的扩散。</summary>
-    public const string TypographyCardHoverKey = "VexTypographyCardHoverShadow";
-
     /// <summary>主按钮（原型 .btn.primary）常态投影键：强调色 15% 的 0 2 5。</summary>
     public const string PrimaryKey = "VexPrimaryShadow";
 
@@ -36,13 +30,6 @@ public static class ElevationResources
     // 环本身是调色板令牌，由 VexSegmentedThumbBorderBrush 以描边给出，这里只需在深色档把投影清零。
     private static readonly BoxShadows ThumbLight = BoxShadows.Parse("0 1 4 0 #1F000000");
 
-    // 原型 workspace-chrome.css:459-460：卡片阴影取 --fg 5%/7%，所以深色底上是淡色微光而不是黑投影，
-    // 0x0D / 0x12 就是 5% 与 7% 的 alpha。
-    private static readonly BoxShadows CardLight = BoxShadows.Parse("0 1 5 0 #0D253831");
-    private static readonly BoxShadows CardHoverLight = BoxShadows.Parse("0 2 9 0 #12253831");
-    private static readonly BoxShadows CardDark = BoxShadows.Parse("0 1 5 0 #0DE6EBE6");
-    private static readonly BoxShadows CardHoverDark = BoxShadows.Parse("0 2 9 0 #12E6EBE6");
-
     /// <summary>按当前实际明暗变体重写应用级投影资源（启动与主题切换各调一次）。</summary>
     public static void Apply()
     {
@@ -50,8 +37,6 @@ public static class ElevationResources
         var dark = IsDarkVariant(app.ActualThemeVariant);
         app.Resources[PopKey] = dark ? PopDark : PopLight;
         app.Resources[SegmentedThumbKey] = dark ? default : ThumbLight;
-        app.Resources[TypographyCardKey] = dark ? CardDark : CardLight;
-        app.Resources[TypographyCardHoverKey] = dark ? CardHoverDark : CardHoverLight;
         // 原型 prototype.css:430/433：主按钮那圈投影直接用强调色自身叠 15%/22%，
         // 所以它跟着九套配色一起换，写成常量就会在换肤后留下一圈错色光晕。
         var accent = app.TryGetResource("VexAccentBrush", app.ActualThemeVariant, out var accentResource)

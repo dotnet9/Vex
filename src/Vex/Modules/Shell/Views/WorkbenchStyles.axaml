@@ -319,34 +319,40 @@
     <Setter Property="FontWeight" Value="Medium"/><Setter Property="LineHeight" Value="20"/>
     <Setter Property="Margin" Value="0,8,0,0"/>
   </Style>
-  <!-- 原型最新（workspace-chrome）：卡片去边框、灰阶表面 + 轻阴影，选中 accent 环。 -->
+  <!-- 原型实测（.appearance-choices .studio-palettes button）：1px 描边 + radius-sm + paper 底，没有投影。 -->
   <Style Selector="Button.palette-card">
-    <Setter Property="Padding" Value="7"/><Setter Property="CornerRadius" Value="8"/>
-    <Setter Property="BorderThickness" Value="0"/>
-    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}"/>
+    <Setter Property="Padding" Value="7"/><Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexDocumentPaperBrush}"/>
   </Style>
-  <Style Selector="Button.palette-card /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="BoxShadow" Value="0 1 5 0 #0D000000"/>
-  </Style>
-  <!-- 原型选中态：border-color:transparent + box-shadow 0 0 0 1.5px accent；阴影色随配色变化，由代码按 VexAccentBrush 回放。 -->
-  <Style Selector="Button.palette-card-on">
-    <Setter Property="BorderBrush" Value="Transparent"/>
-  </Style>
+  <!-- 原型 :hover 换 hover 底 + accent 描边；选中态 accent 描边再加外扩 1px 强调色环（环由代码画，色随配色）。 -->
   <Style Selector="Button.palette-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
-  <!-- 排版卡（原型 workspace-chrome.css #typography-panel .typography-card）：无框、panel 底、vex-radius-lg 圆角，
-       投影取 fg 5%（悬停 7%），随明暗变体换成微光，所以走 ElevationResources 回放的应用级资源。 -->
-  <!-- Button 自己没有 BoxShadow，投影要落到模板里的 ContentPresenter。 -->
-  <Style Selector="Button.typography-card /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="BoxShadow" Value="{DynamicResource VexTypographyCardShadow}"/>
+  <Style Selector="Button.palette-card-on">
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <!-- 排版卡实测（#typography-panel .typography-card）：1px 描边、radius-md、surface 底、box-shadow:none；
+       悬停只把描边换成强调色，底色不动；选中态是 accent 描边 + inset 1px 强调色环。 -->
+  <Style Selector="Button.typography-card">
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
   </Style>
   <Style Selector="Button.typography-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="BoxShadow" Value="{DynamicResource VexTypographyCardHoverShadow}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="Button.typography-card-on /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
   <Style Selector="Button.palette-add-card">
-    <Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="8"/><Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/><Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <!-- 原型 .palette-add:hover 把虚线框一起换成强调色；虚线是内容里的 Rectangle，样式能穿透到它。 -->
+  <Style Selector="Button.palette-add-card:pointerover Rectangle.palette-add-dash">
+    <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
   <Style Selector="Button.palette-add-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
@@ -1025,9 +1031,10 @@
   <Style Selector="Button.wb-format:pointerover Path.format-stroke">
     <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
-  <!-- 主按钮两档投影（原型 prototype.css:430/433）：常态 0 2 5 的强调色 15%，悬停扩到 0 4 12 的 22%。
-       实测投影挂在模板里的 ContentPresenter 上一像素都不落（按钮的模板槽位把它裁死），
-       所以这一族换成外圈 Border 承光、内层仍叫 PART_ContentPresenter：底色/描边/内距照旧由按钮喂，
+  <!-- ===== 带光晕的按钮模板（原型 .btn.primary 两档投影 prototype.css:430/433）=====
+       实测挂在模板 ContentPresenter 上的 BoxShadow 一像素都不落：同一个 presenter 搬到按钮外面立刻画得出投影，
+       说明按钮的模板槽位把出界的部分裁死了（放开 ClipToBounds 也没用）。所以这族换成本模板——
+       外圈 PART_Halo 专门承光，内层仍叫 PART_ContentPresenter：底色/描边/内距照旧由按钮喂进去，
        Semi 与各状态样式按同名命中，交互不变；两档色值随配色由 ElevationResources 回放。 -->
   <Style Selector="Button.primary">
     <Setter Property="ClipToBounds" Value="False"/>

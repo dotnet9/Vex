@@ -284,7 +284,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         var check = new TextBlock { Text = "✓", FontSize = 14, FontWeight = FontWeight.Bold, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
         Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush");
         root.Children.Add(check);
-        // 原型选中态 = 透明边框 + 外扩 1.5px 强调色环，由 .palette-card-on 与 Ring 覆层呈现。
+        // 原型选中态 = accent 描边 + 外扩 1px 强调色环，由 .palette-card-on 与 Ring 覆层呈现。
         var paletteKey = palette.Key;
         if (paletteKey?.StartsWith("user:", StringComparison.Ordinal) == true)
         {
@@ -302,8 +302,8 @@ public sealed class ShellAppearanceMenuView : UserControl
         Avalonia.Automation.AutomationProperties.SetName(card, palette.Name + "，" + palette.Purpose);
         Avalonia.Automation.AutomationProperties.SetAutomationId(card, "PaletteCard_" + paletteKey);
         card.Click += (_, _) => { if (_vm is not null) _vm.SelectedPalette = palette; };
-        // 原型选中环 box-shadow:0 0 0 1.5px var(--accent)：Button 无 BoxShadow 属性，用外扩 1.5px 的描边 Border 覆层等效呈现。
-        var ring = new Border { BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(7.5), Margin = new Thickness(-1.5), IsHitTestVisible = false, IsVisible = false };
+        // 原型选中环 box-shadow:0 0 0 1px var(--accent)：Button 无 BoxShadow 属性，用外扩 1px 的描边 Border 覆层等效呈现。
+        var ring = new Border { BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(7), Margin = new Thickness(-1), IsHitTestVisible = false, IsVisible = false };
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
         var host = new Grid { Margin = new Thickness(2), ClipToBounds = false }; // 余量容纳 Ring 的 -1.5 外扩，避免边缘裁切
         host.Children.Add(card); host.Children.Add(ring);
@@ -315,10 +315,12 @@ public sealed class ShellAppearanceMenuView : UserControl
     {
         var dash = new Rectangle
         {
-            StrokeThickness = 1, RadiusX = 8, RadiusY = 8, Fill = Brushes.Transparent,
+            StrokeThickness = 1, RadiusX = 6, RadiusY = 6, Fill = Brushes.Transparent,
             StrokeDashArray = new AvaloniaList<double> { 4, 3 }, IsHitTestVisible = false
         };
         Resource(dash, Shape.StrokeProperty, this, "VexPanelBorderBrush");
+        // 原型 .palette-add：1px dashed --border、--vex-radius-sm(6px) 圆角，悬停整块换成强调色。
+        dash.Classes.Add("palette-add-dash");
         var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Spacing = 5 };
         content.Children.Add(new TextBlock { Text = "＋", FontSize = 26, LineHeight = 26, HorizontalAlignment = HorizontalAlignment.Center });
         var label = Label(Text("AddCustomPalette"), 10); label.HorizontalAlignment = HorizontalAlignment.Center; label.Classes.Add("muted");
