@@ -1,0 +1,47 @@
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Layout;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+
+// ToolTip 真实渲染探针：以真实 ToolTip 控件（默认主题模板 + 字符串内容）在自有 Popup 中
+// 打开并整幅截图，明暗两变体各两张（短文案 / 长文案）——核对默认 ToolTip 的真实观感
+// （配色 / 圆角 / 内边距 / 320px 折行是否生效）。
+internal static class ToolTipProbeVerification
+{
+    public static void Run(Window window, string output)
+    {
+        void Pump()
+        {
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+        }
+
+        var shell = (Vex.Modules.Shell.ViewModels.MainWindowViewModel)window.DataContext!;
+        var longTipHost = new Button { Content = "probe", Width = 0, Height = 0 };
+        if ((window.Content as Panel) is { } probePanel) probePanel.Children.Add(longTipHost);
+        var samples = new[]
+        {
+            "清空搜索",
+            "这条提示是一段很长的中文文案，用来核对默认 ToolTip 在超过 320 逻辑像素时是否正确折行，而不是被屏幕边缘直接裁切掉。"
+        };
+        foreach (var theme in new[] { "dark", "light" })
+        {
+            shell.Appearance.SelectThemeByKey(theme);
+            Pump();
+            for (var i = 0; i < samples.Length; i++)
+            {
+                ToolTip.SetTip(longTipHost, samples[i]);
+                ToolTip.SetIsOpen(longTipHost, true);
+                Pump();
+                Pump();
+                Console.WriteLine($"PROBE {theme} sample={i} isOpen={ToolTip.GetIsOpen(longTipHost)}");
+                ToolTip.SetIsOpen(longTipHost, false);
+                Pump();
+            }
+        }
+    }
+}
