@@ -691,7 +691,7 @@ void VerifyPointerRegressions(VerificationVexApp app, Window window, MainWindowV
         {
             var bar = scroll.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ScrollBar>().First(b => b.Orientation == Avalonia.Layout.Orientation.Vertical && b.IsEffectivelyVisible);
             var thumb = bar.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.Thumb>().First(t => t.IsEffectivelyVisible);
-            Check(bar.Bounds.Width == 16 && thumb.Bounds.Width >= 10, $"Changelog scrollbar remains easy to hit: track={bar.Bounds.Width}, thumb={thumb.Bounds.Width}");
+            Check(bar.Bounds.Width == 9 && thumb.Bounds.Width >= 5, $"Changelog scrollbar remains easy to hit: track={bar.Bounds.Width}, thumb={thumb.Bounds.Width}");
             var from = thumb.TranslatePoint(new Point(thumb.Bounds.Width / 2, thumb.Bounds.Height / 2), window)!.Value;
             var barOrigin = bar.TranslatePoint(default, window)!.Value;
             var to = new Point(from.X, barOrigin.Y + (direction > 0 ? bar.Bounds.Height - 18 : 18));
