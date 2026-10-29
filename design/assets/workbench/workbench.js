@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); }, MM = window.VexMindMap;
   // 默认提供演示文档，评审参数覆盖首次使用与真实文档的边界场景。
@@ -25,26 +25,131 @@
       ]; workspaceFolder = '写作项目';
     }
   }
+  /* 演示时间戳：列表/树形排序菜单的修改/创建时间数据源（相对现在错开，覆盖分钟级到月级文案）。 */
+  var now = Date.now();
+  docs.forEach(function (doc, index) {
+    var stamp = now - (index + 1) * 36e5 * 9;
+    doc.mtime = stamp; doc.ctime = stamp - 864e5 * (2 + index % 5);
+  });
   var storedFileListMode = VexStorage.getItem('vex-design-file-list-mode'), fileListMode = bundledDocument || storedFileListMode === 'list' ? 'list' : 'tree', fileDescending = false;
+  /* 排序键：group=按文件夹分组（默认）、natural-desc=自然排序降序、name-asc=文件名升序、modified=修改时间升序、created=创建时间升序。 */
+  var sortKey = VexStorage.getItem('vex-design-file-sort') || 'group';
   var alphaSort = 'default'; /* default | asc | desc，ASCII 序；default 跟随分类（树形） */
   var outlineFolded = false;
-  function syncFilesToolbar() {
-    var mode = document.querySelector('[data-action="files-mode"]');
-    var sort = document.querySelector('[data-action="files-sort"]');
-    var fold = document.querySelector('[data-action="files-fold"]');
-    if (mode) mode.setAttribute('aria-pressed', String(fileListMode === 'tree' && alphaSort === 'default'));
-    if (sort) {
-      var arrow = sort.querySelector('.sort-arrow');
-      if (arrow) { arrow.textContent = alphaSort === 'asc' ? '↑' : alphaSort === 'desc' ? '↓' : '↑↓'; arrow.hidden = false; }
-      sort.setAttribute('aria-pressed', String(alphaSort !== 'default'));
-      sort.title = VexL.t(alphaSort === 'asc' ? '按名称排序：升序' : alphaSort === 'desc' ? '按名称排序：降序' : '按名称排序：默认');
+  function naturalCompare(a, b) {
+    var re = /\d+|\D+/g, ax = String(a).match(re) || [], bx = String(b).match(re) || [];
+    for (var i = 0; i < Math.min(ax.length, bx.length); i++) {
+      var av = ax[i], bv = bx[i], an = Number(av), bn = Number(bv);
+      var by = !Number.isNaN(an) && !Number.isNaN(bn) ? (an - bn) || (av < bv ? -1 : av > bv ? 1 : 0)
+        : (av < bv ? -1 : av > bv ? 1 : 0);
+      if (by) return by;
     }
-    if (fold) {
-      var anyOpen = document.querySelectorAll('#file-list details.file-directory[open]').length > 0;
-      fold.setAttribute('aria-pressed', String(fileListMode === 'tree' && !anyOpen));
-      fold.title = VexL.t(anyOpen ? '全部折叠' : '全部展开');
+    return ax.length - bx.length;
+  }
+  var sortComparers = {
+    'group': null,
+    'natural-desc': function (a, b) { return naturalCompare(b.name, a.name); },
+    'name-asc': function (a, b) { return naturalCompare(a.name, b.name); },
+    'modified': function (a, b) { return (a.mtime || 0) - (b.mtime || 0); },
+    'created': function (a, b) { return (a.ctime || 0) - (b.ctime || 0); }
+  };
+  var sortMenuItems = [
+    ['group', '按文件夹分组', 'i-archive'],
+    ['natural-desc', '自然排序（降序）', 'i-sort-desc'],
+    ['name-asc', '按文件名排序（升序）', 'i-sort-name'],
+    ['modified', '按修改时间排序（升序）', 'i-sort-clock'],
+    ['created', '按创建时间排序（升序）', 'i-sort-doc']
+  ];
+
+  function syncFilesToolbar() {
+    // 底部条驱动：目录名、⋮ 的排序菜单勾选态、切换图标随当前视图切换。
+    var folderName = document.getElementById('files-folder-name');
+    if (folderName) folderName.textContent = workspaceFolder;
+    var sortLabel = document.querySelector('.files-sort-menu [data-sort-key="' + sortKey + '"]');
+    document.querySelectorAll('.files-sort-menu .files-sort-item').forEach(function (item) {
+      item.setAttribute('aria-checked', String(item.dataset.sortKey === sortKey));
+    });
+    var toggle = document.getElementById('files-toggle');
+    if (toggle) {
+      var use = toggle.querySelector('use');
+      if (use) use.setAttribute('href', fileListMode === 'tree' ? '#i-list' : '#i-folder');
+      toggle.title = VexL.t(fileListMode === 'tree' ? '切换列表视图' : '切换树形视图');
     }
   }
+
+  /* 底部条：目录名/⋮ 弹五键排序菜单，切换钮切树形/列表。 */
+  var sortMenu = document.createElement('section');
+  sortMenu.className = 'files-sort-menu'; sortMenu.id = 'files-sort-menu'; sortMenu.hidden = true;
+  sortMenu.setAttribute('role', 'menu'); sortMenu.setAttribute('aria-label', '排序方式');
+  sortMenu.innerHTML = sortMenuItems.map(function (item) {
+    return '<button type="button" class="files-sort-item" role="menuitemradio" data-sort-key="' + item[0] + '" aria-checked="false">' +
+      '<svg class="ico" aria-hidden="true"><use href="#' + item[2] + '"/></svg><span>' + VexL.t(item[1]) + '</span><span class="sort-check" hidden>✓</span></button>';
+  }).join('');
+  document.querySelector('.side-pane').appendChild(sortMenu);
+
+  function openSortMenu(anchor) {
+    var rect = anchor.getBoundingClientRect();
+    sortMenu.style.left = Math.max(8, rect.left) + 'px';
+    sortMenu.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+    sortMenu.hidden = false;
+    document.querySelectorAll('.files-sort-menu .files-sort-item').forEach(function (item) {
+      item.setAttribute('aria-checked', String(item.dataset.sortKey === sortKey));
+      item.querySelector('.sort-check').hidden = item.dataset.sortKey !== sortKey;
+    });
+    document.getElementById('files-folder').setAttribute('aria-expanded', 'true');
+    document.getElementById('files-more').setAttribute('aria-expanded', 'true');
+  }
+  function closeSortMenu() {
+    if (sortMenu.hidden) return;
+    sortMenu.hidden = true;
+    document.getElementById('files-folder').setAttribute('aria-expanded', 'false');
+    document.getElementById('files-more').setAttribute('aria-expanded', 'false');
+  }
+  function applySortKey(key) {
+    sortKey = key;
+    try { VexStorage.setItem('vex-design-file-sort', key); } catch (_) {}
+    closeSortMenu();
+    renderFiles();
+    syncFilesToolbar();
+  }
+  function renderFiles() {
+    var visibleDocs = docs.map(function (doc, index) { return index === state.doc ? Object.assign({}, doc, {text:input.value}) : doc; });
+    VexWriting.renderFiles({container:$('file-list'), docs:state.emptyWorkspace ? [] : visibleDocs, current:visibleDocs[state.doc], folder:workspaceFolder, mode:fileListMode, descending:fileDescending, query:$('file-filter').value, icon:icon,
+      sort:sortKey, sortComparers:sortComparers,
+      onOpen:function (_, index) { if (index !== state.doc) confirmSwitch(function () { loadDoc(index); }); },
+      onSwitchTree:function () {
+        fileListMode = 'tree';
+        try { VexStorage.setItem('vex-design-file-list-mode', fileListMode); } catch (_) {}
+        renderFiles(); syncFilesToolbar();
+      }});
+    syncFilesToolbar();
+  }
+  function toggleFileListMode() {
+    fileListMode = fileListMode === 'tree' ? 'list' : 'tree';
+    try { VexStorage.setItem('vex-design-file-list-mode', fileListMode); } catch (_) {}
+    renderFiles();
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('files-folder').onclick = function (event) {
+      event.stopPropagation();
+      var show = sortMenu.hidden; closeSortMenu(); if (show) openSortMenu(document.getElementById('files-folder'));
+    };
+    document.getElementById('files-more').onclick = function (event) {
+      event.stopPropagation();
+      var show = sortMenu.hidden; closeSortMenu(); if (show) openSortMenu(document.getElementById('files-more'));
+    };
+    document.getElementById('files-toggle').onclick = function (event) {
+      event.stopPropagation(); closeSortMenu(); toggleFileListMode();
+    };
+    sortMenu.addEventListener('click', function (event) {
+      var item = event.target.closest('.files-sort-item');
+      if (item) applySortKey(item.dataset.sortKey);
+    });
+    document.addEventListener('click', function (event) {
+      if (!sortMenu.hidden && !sortMenu.contains(event.target)
+          && !event.target.closest('#files-folder') && !event.target.closest('#files-more')) closeSortMenu();
+    });
+  });
   var settings = { length: 30, paragraphs: true, lists: true, blocks: false, layout: 'right' };
   try {
     var saved = JSON.parse(VexStorage.getItem('vex-design-mindmap') || '{}');
@@ -262,8 +367,13 @@
 
     var visibleDocs = docs.map(function (doc, index) { return index === state.doc ? Object.assign({}, doc, {text:input.value}) : doc; });
     VexWriting.renderFiles({container:$('file-list'), docs:state.emptyWorkspace ? [] : visibleDocs, current:visibleDocs[state.doc], folder:workspaceFolder, mode:fileListMode, descending:fileDescending, query:$('file-filter').value, icon:icon,
-      sort:alphaSort === 'default' ? null : alphaSort,
-      onOpen:function (_, index) { if (index !== state.doc) confirmSwitch(function () { loadDoc(index); }); }});
+      sort:sortKey, sortComparers:sortComparers,
+      onOpen:function (_, index) { if (index !== state.doc) confirmSwitch(function () { loadDoc(index); }); },
+      onSwitchTree:function () {
+        fileListMode = 'tree';
+        try { VexStorage.setItem('vex-design-file-list-mode', fileListMode); } catch (_) {}
+        renderFiles(); syncFilesToolbar();
+      }});
     syncFilesToolbar();
     var empty = $('file-list').querySelector('.empty-state');
     if (empty) {

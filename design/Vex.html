@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -53,6 +53,7 @@
   <symbol id="i-heading" viewBox="0 0 24 24"><path d="M5 5v14M5 12h9M14 5v14M18 5v14M18 5h2a2 2 0 0 1 2 2v2M18 19h2a2 2 0 0 0 2-2v-2"/></symbol>
   <symbol id="i-list-number" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M3 5h2v3M3 11h2l-2 3h2M3 17h2l-2 3h2"/></symbol>
   <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-more-v" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h3.5a5.5 5.5 0 0 0 0-11H12Z"/><circle cx="7.5" cy="9" r="1"/><circle cx="11" cy="6.5" r="1"/><circle cx="16" cy="7.5" r="1"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
@@ -91,8 +92,11 @@
 
         <div class="side-pane" id="files-pane">
           <label class="sidebar-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="file-filter" data-l10n-placeholder="按文件名查找…" data-l10n-label="按文件名查找" data-l10n-tip="只匹配文件名，不搜索正文 · Ctrl+P" placeholder="按文件名查找…" aria-label="按文件名查找" title="只匹配文件名，不搜索正文 · Ctrl+P"><button class="clear-search" data-action="clear-file-search" data-l10n-name="清除文件名筛选" title="清除文件名筛选" aria-label="清除文件名筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
-          <div class="files-toolbar" role="toolbar" data-l10n-label="文件列表工具" aria-label="文件列表工具"><button type="button" data-action="files-mode" aria-pressed="true" data-l10n-tip="按文件夹分类" title="按文件夹分类"><svg class="ico"><use href="#i-folder"/></svg></button><button type="button" data-action="files-sort" data-l10n-tip="按名称排序：默认" title="按名称排序：默认"><svg class="ico"><use href="#i-list"/></svg><span class="sort-arrow" hidden>↑</span></button><button type="button" data-action="files-fold" data-l10n-tip="全部折叠" title="全部折叠"><svg class="ico"><use href="#i-fold"/></svg></button></div>
-          <div class="file-list" id="file-list"></div><div class="empty-state" id="file-empty" hidden>没有匹配的文档</div>
+          <div class="file-list" id="file-list"></div><div class="empty-state" id="file-empty" hidden>没有匹配的文档</div><div class="files-footer">
+            <button type="button" class="files-folder" id="files-folder" aria-haspopup="menu" aria-expanded="false" title="排序方式"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg><span id="files-folder-name">演示文档</span></button>
+            <button type="button" class="icon-button" id="files-more" aria-haspopup="menu" aria-expanded="false" title="排序方式"><svg class="ico" aria-hidden="true"><use href="#i-more-v"/></svg></button>
+            <button type="button" class="icon-button" id="files-toggle" data-l10n-tip="切换列表/树形" title="切换树形/列表"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg></button>
+          </div>
         </div>
 
         

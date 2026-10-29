@@ -1,4 +1,4 @@
-/* == merged from polish.css == */
+﻿/* == merged from polish.css == */
 /* Vex design polish: coherent theme surfaces, quiet depth, and readable Markdown samples. */
 :root[data-theme][data-palette] {
   --document-bg: var(--paper);
@@ -180,7 +180,7 @@ body > .submenu.menu-compact { padding: 4px; }
   .layout-preset-grid { gap: 6px; }
   .layout-preset { padding: 8px; gap: 3px; }
   .layout-miniature { height: 32px; margin-bottom: 0; }
-  .layout-preset strong { min-height: 0; }
+  .layout-preset .layout-name { min-height: 0; }
   .workspace-layout-footer { margin-top: 8px; padding-top: 6px; }
 }
 .menu-item:hover,
@@ -305,7 +305,7 @@ input, textarea, select {
 .appearance-choices{position:absolute;right:0;top:35px;z-index:150;width:430px;padding:14px 16px 16px;background:var(--menu-bg,var(--surface,var(--panel)));border:1px solid var(--border);border-radius:var(--vex-radius-md);box-shadow:var(--shadow-pop);overflow:visible}
 .appearance-choices>.studio-modes{display:flex;border:0;background:transparent;padding:0 0 10px;gap:8px;flex-wrap:wrap}.studio-modes>span,.appearance-choices>strong{font-size:12px;font-weight:600}.studio-modes small{flex-basis:100%;color:var(--muted);font-size:11px}.appearance-choices .studio-palettes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:7px}.appearance-choices .studio-palettes button{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:6px;width:auto;height:auto;padding:7px;font-size:11px;text-align:left;border:1px solid var(--border);border-radius:var(--vex-radius-sm);background:var(--paper);color:var(--fg)}
 .appearance-choices .studio-palettes button:hover{background:var(--hover);border-color:var(--accent)}
-.appearance-choices .studio-palettes button.on,.appearance-choices .studio-palettes button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--paper)}.appearance-choices .studio-palettes button .swatch-dots{display:grid;grid-template-columns:repeat(4,auto);gap:4px;padding-right:24px}.appearance-choices .studio-palettes button .swatch-dots i{width:16px;height:16px;border-radius:50%;border:1px solid var(--border);flex:none}.appearance-choices .studio-palettes .palette-label{display:flex;min-width:0;flex-direction:column;gap:1px;padding-right:16px}.appearance-choices .studio-palettes .palette-label b{white-space:nowrap}.appearance-choices .studio-palettes .palette-label small{font-size:10px;line-height:1.4}.appearance-choices .studio-palettes button::after{position:absolute;right:5px;bottom:5px;margin:0;font-size:11px}.palette-badge{position:absolute;top:5px;right:5px;z-index:1;font:600 9px/1 var(--font);font-style:normal;padding:2px 4px;border-radius:var(--vex-radius-xs);background:var(--accent);color:var(--on-accent);pointer-events:none}
+.appearance-choices .studio-palettes button.on,.appearance-choices .studio-palettes button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--paper)}.appearance-choices .studio-palettes button .swatch-dots{display:grid;grid-template-columns:repeat(4,auto);gap:4px;padding-right:24px}.appearance-choices .studio-palettes button .swatch-dots i{width:16px;height:16px;border-radius:50%;border:1px solid var(--border);flex:none}.appearance-choices .studio-palettes .palette-label{display:flex;min-width:0;flex-direction:column;gap:1px;padding-right:16px}.appearance-choices .studio-palettes .palette-label{font-size:12px;font-weight:400;line-height:1.4;white-space:nowrap}.appearance-choices .studio-palettes button::after{position:absolute;right:5px;bottom:5px;margin:0;font-size:11px}.palette-badge{position:absolute;top:5px;right:5px;z-index:1;font:600 9px/1 var(--font);font-style:normal;padding:2px 4px;border-radius:var(--vex-radius-xs);background:var(--accent);color:var(--on-accent);pointer-events:none}
 .chapter-feedback{display:flex;align-items:center;gap:10px;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--accent-soft);color:var(--fg);font-size:11px;flex:none}.chapter-feedback span{flex:1}.chapter-feedback button{color:var(--accent);background:transparent;border:0;font-size:11px;white-space:nowrap;cursor:pointer}
 .chapter-drop-preview{position:absolute;top:12px;left:12px;right:12px;z-index:15;padding:9px 12px;background:var(--panel);border:1px solid var(--accent);border-radius:var(--vex-radius-sm);font-size:12px;box-shadow:var(--shadow-pop);pointer-events:none}
 .workspace-welcome{display:flex;flex:1;align-items:center;justify-content:center;text-align:center;padding:32px;background:var(--bg)}.workspace-welcome h1{font-size:27px;margin:14px 0}.workspace-welcome p{font-size:15px;line-height:1.9;color:var(--muted)}.welcome-kicker{font-size:12px;color:var(--accent)}.workspace-welcome small{display:block;font-size:11px;line-height:1.7;color:var(--muted);margin-top:24px}.workspace-welcome .btn{margin:4px}
@@ -374,7 +374,7 @@ input, textarea, select {
 .save-button{border-color:var(--border);background:var(--bg);box-shadow:none;border-radius:var(--vex-radius-sm);font-size:var(--fs-caption,12px)}.save-button:hover{background:var(--hover)}
 .workspace-layout-menu{width:568px;border-radius:var(--vex-radius-md);padding:18px}
 .workspace-menu-heading strong{font-size:13px}.layout-preset{border-color:transparent;background:transparent;border-radius:var(--vex-radius-sm);gap:3px;padding:10px}
-.layout-preset strong{min-height:16px;font-weight:600}.layout-preset[aria-pressed=true]{border-color:var(--accent);box-shadow:none;background:var(--accent-soft)}
+.layout-preset .layout-name{min-height:16px;font-weight:400}.layout-preset[aria-pressed=true]{border-color:var(--accent);box-shadow:none;background:var(--accent-soft)}
 .layout-miniature{height:44px;border-color:color-mix(in srgb,var(--border) 65%,transparent)}.workspace-layout-menu>p{line-height:1.7}
 .workspace{position:relative}.sidebar{background:color-mix(in srgb,var(--bg) 60%,var(--panel))}.sidebar-inner{background:transparent}
 .sidebar-search{margin:14px 12px 12px}
@@ -504,7 +504,7 @@ input, textarea, select {
 .view-panel .instant-scroll .md-body{padding:30px 40px 76px}
 .vex-settings-content{padding:26px 24px}
 .appearance-choices{padding:18px}
-#typography-panel{padding:18px}
+#typography-panel{padding:18px 18px 6px}
 /* 空状态：品牌渐变图标块与渐变圆点。 */
 
 .empty-state{display:flex;align-items:center;gap:8px}
@@ -606,8 +606,13 @@ input, textarea, select {
 .source-scroll{padding-bottom:56px}
 /* 折叠按钮：从状态栏迁到块角（展开在块内、折叠贴窗边），圆形带箭头，位置由 JS 按块宽算出。
  * 竖向不动——它就是底部同轴的那把基准尺：底距 .workspace 底 = 轴线 30px - 半径 12px。 */
-.pane-collapse{position:absolute;bottom:calc(var(--vex-axis) - 12px);z-index:36;width:24px;height:24px;display:grid;place-items:center;padding:0;margin:0;line-height:0;border:1px solid color-mix(in srgb,var(--fg) 14%,var(--border));border-radius:50%;background:var(--block-bg);color:var(--muted);box-shadow:0 1px 4px color-mix(in srgb,var(--fg) 14%,transparent);cursor:pointer;transition:color var(--vex-fast),border-color var(--vex-fast)}
-.pane-collapse:hover{color:var(--accent);border-color:var(--accent)}
+.pane-collapse{position:absolute;bottom:calc(var(--vex-axis) - 12px);z-index:36;width:24px;height:24px;display:grid;place-items:center;padding:0;margin:0;line-height:0;border:0;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;transition:color var(--vex-fast),background var(--vex-fast),border-color var(--vex-fast)}
+.pane-collapse:hover{color:var(--fg)}
+/* Typora 口径：折叠态为小号空心圆（箭头隐去），悬浮时空心圆内套一颗更小的实心圆。 */
+.pane-collapse:not(.on){width:12px;height:12px;border:1.5px solid var(--muted)}
+.pane-collapse:not(.on) .ico{opacity:0}
+.pane-collapse:not(.on):hover{border-color:var(--muted);background:transparent}
+.pane-collapse:not(.on):hover::after{content:'';position:absolute;inset:0;margin:auto;width:5px;height:5px;border-radius:50%;background:var(--muted)}
 .pane-collapse span{display:none}
 .pane-collapse .ico{width:12px;height:12px;display:block;transition:transform var(--vex-duration) var(--vex-ease)}
 /* 箭头指向面板收起的方向：左栏展开朝左、收起朝右；右栏相反。 */

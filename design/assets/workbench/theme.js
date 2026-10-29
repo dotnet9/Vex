@@ -1,4 +1,4 @@
-/* 外观集中在折叠面板中，保留三态、八套配色、界面密度三档和语言入口。 */
+﻿/* 外观集中在折叠面板中，保留三态、八套配色、界面密度三档和语言入口。 */
 (function () {
   /* 推荐配色置顶（角标标识），其余按原顺序跟随。 */
   var palettes=[].concat(VexPalettes.filter(function(p){return p.recommended;}),VexPalettes.filter(function(p){return !p.recommended;})).map(function(p){return [p.key,p.label,Array.isArray(p.swatch)?p.swatch:[p.light]];});
@@ -103,7 +103,7 @@
     if(!grid)return;
     grid.innerHTML=palettes.map(function(item){
       var info=VexPalettes.find(function(p){return p.key===item[0];});
-      var card='<button type="button" data-palette="'+item[0]+'" aria-label="'+VexEsc(item[1])+'">'+(info.recommended?'<em class="palette-badge">推荐</em>':'')+swatchDots(item[2])+'<span class="palette-label"><b>'+VexEsc(item[1])+'</b><small>'+VexEsc(info.note)+'</small></span></button>';
+      var card='<button type="button" data-palette="'+item[0]+'" aria-label="'+VexEsc(item[1])+'">'+(info.recommended?'<em class="palette-badge">推荐</em>':'')+swatchDots(item[2])+'<span class="palette-label">'+VexEsc(item[1])+'</span></button>';
       if(item[0]===CUSTOM)card='<div class="palette-wrap">'+card+'<span class="palette-card-tools"><button type="button" data-edit-palette title="编辑此配色" aria-label="编辑自定义配色">✎</button><button type="button" data-delete-palette title="删除此配色" aria-label="删除自定义配色">×</button></span></div>';
       return card;
     }).join('')+(readCustom()?'':'<button type="button" class="palette-add" id="add-custom-palette" aria-label="新增自定义配色" title="新增自定义配色"><span>＋</span><small>新增配色</small></button>');

@@ -1,4 +1,4 @@
-/* Shared interaction states; color tokens are generated into palettes.css (scripts/palette-rules.cjs). */
+﻿/* Shared interaction states; color tokens are generated into palettes.css (scripts/palette-rules.cjs). */
 /* 排版卡预览跟随尺寸档（规则 §11：13/15/17），与源码编辑区同档；主题只提供比例。 */
 :where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--focus-ring,var(--accent));outline-offset:2px}
 :where(button,a,input,select,textarea,summary){scroll-margin:8px}
@@ -34,7 +34,7 @@
 #vex-appearance-menu .studio-palettes button::after{position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0;font-size:15px;font-weight:700;color:var(--accent)}
 .palette-badge{position:absolute;top:6px;right:6px;font:600 10px/1 var(--font);font-style:normal;padding:2px 4px;border-radius:var(--vex-radius-xs);background:var(--accent);color:var(--on-accent);pointer-events:none}
 .palette-label{display:flex;min-width:0;flex:1;flex-direction:column;gap:2px}
-.palette-label b{font-size:13px;font-weight:600}.palette-label small{font-size:12px;line-height:1.4;color:var(--muted);white-space:normal}
+.palette-label{font-size:12px;font-weight:400;line-height:1.4;color:var(--fg);white-space:normal}
 /* 下拉菜单不出现滚动条：菜单整体自适应内容，靠紧凑分组控制在视口内。 */
 #vex-appearance-menu .appearance-choices{overflow:visible}
 #vex-language-menu [aria-checked=true]::after{content:'✓';margin-left:auto;color:var(--accent)}

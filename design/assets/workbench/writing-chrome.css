@@ -1,4 +1,4 @@
-.workspace-main,.document-workspace{position:relative;min-height:0}
+﻿.workspace-main,.document-workspace{position:relative;min-height:0}
 .document-corner-actions{position:absolute;z-index:12;left:12px;bottom:10px;display:flex;align-items:center;gap:2px;border-radius:var(--vex-radius-xs);background:var(--panel,var(--surface));color:var(--muted)}
 .document-corner-actions button{width:32px;height:32px;padding:7px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:inherit;display:grid;place-items:center;cursor:pointer}
 .document-corner-actions button:hover,.document-corner-actions button[aria-pressed=true]{background:var(--hover);color:var(--accent)}
@@ -19,6 +19,20 @@
 .file-navigation-footer svg{width:18px;height:18px;flex:none}
 .file-navigation-footer{position:relative}
 .files-toolbar{display:flex;gap:2px;padding:9px 14px 4px;align-items:center}
+.files-footer{display:flex;align-items:center;gap:2px;padding:6px 10px;border-top:1px solid var(--border)}
+.files-folder{display:inline-flex;align-items:center;gap:6px;max-width:150px;padding:4px 8px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
+.files-folder:hover{background:var(--hover);color:var(--fg)}
+.files-folder .ico{width:13px;height:13px;flex:none}
+.files-folder span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.files-footer .icon-button{width:26px;height:26px}
+.files-footer .icon-button .ico{width:14px;height:14px}
+.files-sort-menu{position:fixed;z-index:260;min-width:216px;padding:5px;background:var(--panel,var(--surface));color:var(--fg);border:1px solid var(--border);border-radius:var(--vex-radius-md);box-shadow:0 12px 28px #0003}
+.files-sort-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:var(--fg);font-size:12px;cursor:pointer;text-align:left}
+.files-sort-item:hover{background:var(--hover)}
+.files-sort-item[aria-checked="true"]{background:var(--accent-soft);color:var(--accent)}
+.files-sort-item .ico{width:14px;height:14px;flex:none;color:var(--muted)}
+.files-sort-item[aria-checked="true"] .ico{color:var(--accent)}
+.files-sort-item .sort-check{margin-left:auto;font-size:11px}
 /* 文件列表工具条置于侧栏底部（用户要求），上方列表自然占满。 */
 /* 与右侧文档状态栏同高（34px，workspace-chrome.css §44），底栏水平居中对齐。 */
 .files-toolbar-bottom{height:36px;min-height:36px;padding:0 14px;border-top:1px solid var(--border);flex:none;align-items:center}
@@ -36,7 +50,14 @@
 .file-directory .file-children{padding-left:14px}
 .file-directory .file-row{padding-left:10px}
 .file-list.file-excerpts{padding:0}
-.file-excerpts .file-row{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:5px;margin:0;border:0;border-left:3px solid transparent;border-bottom:1px solid var(--border);border-radius:0;height:92px;width:100%;padding:12px 14px;text-align:left;overflow:hidden}
+.file-list-overflow{padding:34px 24px;font-size:12px;line-height:2;color:var(--muted);text-align:left}
+.file-list-overflow .overflow-warn{font-size:16px;margin-bottom:6px}
+.file-list-overflow a{color:var(--accent);text-decoration:none}
+.file-list-overflow a:hover{text-decoration:underline}
+.file-excerpts .file-row{display:flex;flex-direction:row;align-items:flex-start;justify-content:flex-start;gap:7px;margin:0;border:0;border-left:3px solid transparent;border-bottom:1px solid var(--border);border-radius:0;min-height:92px;width:100%;padding:12px 14px;text-align:left;overflow:hidden}
+.file-excerpts .file-row .ico{width:12px;height:12px;flex:none;margin-top:2px}
+.file-excerpts .file-item-content{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
+.file-excerpts .file-name{font-size:12px;line-height:17px}
 .file-excerpts .file-row.selected{border-left-color:var(--accent)}
 .file-excerpts .file-name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}
 .file-excerpts .file-excerpt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--muted);font-size:12px;line-height:18px;white-space:normal;flex:none;max-height:36px}

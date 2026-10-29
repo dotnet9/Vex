@@ -1,4 +1,4 @@
-/* Shared document metrics and file navigation for both prototype shells. */
+﻿/* Shared document metrics and file navigation for both prototype shells. */
 (() => {
   'use strict';
   const cjk = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu;
@@ -21,7 +21,7 @@
     if (cache.size >= 40) cache.delete(cache.keys().next().value);
     cache.set(source, result); return result;
   }
-  function renderFiles({container, docs, current, folder, mode, descending, query, sort, onOpen, icon}) {
+  function renderFiles({container, docs, current, folder, mode, descending, query, sort, onOpen, icon, sortComparers, onSwitchTree}) {
     const collapsed = new Set([...container.querySelectorAll('details:not([open])')].map(el => el.dataset.path));
     container.replaceChildren(); container.classList.toggle('file-excerpts', mode === 'list');
     const folders = new Map();
@@ -38,7 +38,16 @@
     docs.map((doc, index) => ({doc, index})).sort(sort === 'asc' ? (a,b) => (a.doc.name < b.doc.name ? -1 : a.doc.name > b.doc.name ? 1 : 0)
         : sort === 'desc' ? (a,b) => (a.doc.name < b.doc.name ? 1 : a.doc.name > b.doc.name ? -1 : 0)
         : (a,b) => a.index - b.index)
-      .filter(({doc}) => doc.name.toLowerCase().includes(query.toLowerCase().trim())).forEach(({doc, index}) => {
+      .sort(sort ? sortComparers[sort] : undefined)
+      .filter(({doc}) => !(mode === 'list' && (doc.path || doc.name).includes('/')) && doc.name.toLowerCase().includes(query.toLowerCase().trim()));
+    if (mode === 'list' && visible.length > 200) {
+      /* 文件过多：列表性能不佳，提示切换树形视图（链接点击即切）。 */
+      container.innerHTML = '<div class="file-list-overflow"><div class="overflow-warn">⚠</div>当前文件夹文件过多，请切换至<a href="#" data-switch-tree>树形视图</a>以获得更佳的使用体验。</div>';
+      const link = container.querySelector('[data-switch-tree]');
+      if (link && onSwitchTree) link.onclick = function (event) { event.preventDefault(); onSwitchTree(); };
+      return;
+    }
+    visible.forEach(({doc, index}) => {
         let parent = root, path = '';
         if (mode === 'tree') (doc.treePath || doc.path || doc.name).split('/').slice(0,-1).forEach(part => {
           path += '/' + part;
@@ -49,12 +58,11 @@
         button.className = 'file-row file-item' + (doc === current ? ' selected active' : '');
         button.dataset.fileName = doc.name; button.dataset.fileIndex = index; button.dataset.filePath = doc.path || doc.name; button.dataset.contextKind = 'file'; button.title = doc.path || doc.name;
         button.setAttribute('aria-current', doc === current ? 'page' : 'false');
+        /* 列表行与树形行同一观感语言：图标 + 名称单行；列表只显当前目录的直接子文件（不递归、无摘要）。 */
         if (mode === 'tree') button.innerHTML = icon('file');
-        const label = document.createElement('span'); label.className = 'file-name'; label.textContent = doc.name; button.append(label);
-        if (mode === 'list') {
-          const excerpt = document.createElement('span'); excerpt.className = 'file-excerpt';
-          excerpt.textContent = metrics(doc.text).excerpt; button.append(excerpt);
-        }
+        const label = document.createElement('span'); label.className = 'file-name'; label.textContent = doc.name;
+        if (mode === 'list') button.innerHTML = icon('file');
+        button.append(label);
         button.onclick = () => onOpen(doc,index); parent.append(button);
       });
     if (!container.querySelector('.file-row')) {

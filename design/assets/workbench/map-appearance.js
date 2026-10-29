@@ -1,4 +1,4 @@
-/* Structure and visual treatment are independent of Markdown typography. */
+﻿/* Structure and visual treatment are independent of Markdown typography. */
 (function () {
   'use strict';
   // 每张卡带一行说明（Vox 改版口径）：六项里缤纷/黑白换的是颜色，线框/胶囊/脉络换的是节点形态，
@@ -31,7 +31,7 @@
     var panel = document.createElement('section'); panel.id='map-appearance-panel'; panel.className='map-appearance-popover'; panel.hidden=true;
     panel.setAttribute('role','dialog');panel.setAttribute('aria-label','导图样式');
     // 页签已删：结构与风格上下平铺，靠 ①② 步骤标签分组——选完结构顺手往下看风格，不必先点开页签。
-    panel.innerHTML='<header class="appearance-heading"><strong>导图样式</strong><button class="vex-icon-button" data-map-close aria-label="关闭导图样式"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div class="map-appearance-scroll"><div class="map-step-label"><i>1</i>结构<span class="hint">先选一种布局</span></div><div class="map-choice-grid" id="map-structure-choices" role="group" aria-label="导图结构"></div><div class="map-step-label" data-map-next-step><i>2</i>风格<span class="hint">线稿随上方所选结构实时重绘</span></div><div class="map-choice-grid" id="map-style-choices" role="group" aria-label="导图风格"></div></div>';
+    panel.innerHTML='<div class="map-appearance-scroll"><div class="map-step-label"><i>1</i>结构</div><div class="map-choice-grid" id="map-structure-choices" role="group" aria-label="导图结构"></div><div class="map-step-label" data-map-next-step><i>2</i>风格</div><div class="map-choice-grid" id="map-style-choices" role="group" aria-label="导图风格"></div></div>';
     adapter.parent.appendChild(panel);
     function apply() {
       if (adapter.scene.dataset.mapStyle !== style) {
@@ -52,7 +52,7 @@
     }
     function render() {
       panel.querySelector('#map-structure-choices').innerHTML=VexMapLayout.items.map(function (item) {return '<button class="map-choice" data-map-layout="'+item.key+'">'+miniature(item.key,style)+'<strong>'+item.label+'</strong></button>';}).join('');
-      panel.querySelector('#map-style-choices').innerHTML=styles.map(function (item) {return '<button class="map-choice" data-map-style-choice="'+item.key+'">'+miniature(adapter.getLayout(),item.key)+'<strong>'+item.label+'</strong><span class="map-choice-purpose">'+item.desc+'</span></button>';}).join('');
+      panel.querySelector('#map-style-choices').innerHTML=styles.map(function (item) {return '<button class="map-choice" data-map-style-choice="'+item.key+'">'+miniature(adapter.getLayout(),item.key)+'<strong>'+item.label+'</strong></button>';}).join('');
       apply();
     }
     // 步骤联想：选完结构把「② 配色」点亮 900ms，视线跟着走，不用人再去找第二排。

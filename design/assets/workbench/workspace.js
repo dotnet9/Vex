@@ -1,4 +1,4 @@
-/* Vex 工作区的单窗口变体：固定视图组合，所有面板共用当前文档。 */
+﻿/* Vex 工作区的单窗口变体：固定视图组合，所有面板共用当前文档。 */
 (function () {
   'use strict';
   var W = window.VexWorkbench, $ = function (id) { return document.getElementById(id); };
@@ -99,13 +99,12 @@
   statusbar.insertBefore(viewSwitch, wordCount);
   var layoutMenu = document.createElement('section'); layoutMenu.className = 'workspace-layout-menu'; layoutMenu.id = 'workspace-layout-menu'; layoutMenu.hidden = true;
   layoutMenu.setAttribute('role', 'dialog'); layoutMenu.setAttribute('aria-label', '工作区视图');
-  layoutMenu.innerHTML = '<div class="workspace-menu-heading"><strong>选择视图</strong><button class="icon-button" aria-label="关闭布局菜单">' + icon('x') + '</button></div><p>专注写作，或打开多种视图对照。同一篇文章，内容同步。</p><div class="layout-preset-grid"></div>';
+  layoutMenu.innerHTML = '<div class="layout-preset-grid"></div>';
   statusbar.appendChild(layoutMenu);
   function miniature(node) { return typeof node === 'string' ? '<i class="mini-pane mini-' + node + '"></i>' : '<span class="mini-split mini-' + node[0] + '">' + miniature(node[1]) + miniature(node[2]) + '</span>'; }
-  presets.forEach(function (preset) { var button = document.createElement('button'); button.className = 'layout-preset'; button.dataset.layout = preset.id; button.innerHTML = '<span class="layout-miniature">' + miniature(preset.tree) + '</span><strong>' + preset.title + '</strong><small>' + preset.note + '</small><span class="preset-check">✓</span>'; button.onclick = function () { setLayout(preset.id); closeMenus(true); }; layoutMenu.querySelector('.layout-preset-grid').appendChild(button); });
+  presets.forEach(function (preset) { var button = document.createElement('button'); button.className = 'layout-preset'; button.dataset.layout = preset.id; button.innerHTML = '<span class="layout-miniature">' + miniature(preset.tree) + '</span><span class="layout-name">' + preset.title + '</span><span class="preset-check">✓</span>'; button.onclick = function () { setLayout(preset.id); closeMenus(true); }; layoutMenu.querySelector('.layout-preset-grid').appendChild(button); });
   function closeMenus(restore) { var wasOpen = !layoutMenu.hidden; layoutMenu.hidden = true; layoutButton.setAttribute('aria-expanded', 'false'); if (restore && wasOpen) layoutButton.focus(); }
   layoutButton.onclick = function () { var show = layoutMenu.hidden; closeMenus(); layoutMenu.hidden = !show; layoutButton.setAttribute('aria-expanded', String(show)); if (show) layoutMenu.querySelector('[data-layout="' + current + '"]').focus(); };
-  layoutMenu.querySelector('.workspace-menu-heading button').onclick = function () { closeMenus(true); };
   layoutMenu.addEventListener('keydown', function (event) {
     var buttons = Array.from(layoutMenu.querySelectorAll('.layout-preset')), index = buttons.indexOf(document.activeElement);
     if (index >= 0 && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) {

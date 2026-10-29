@@ -1,4 +1,4 @@
-/* Shared document typography; compact spacing is independent. */
+﻿/* Shared document typography; compact spacing is independent. */
 (function () {
   'use strict';
   var items = VexTypes;
@@ -68,7 +68,7 @@
     panel.querySelector('.typography-grid').innerHTML = items.map(cardHtml).join('')
       + '<button type="button" class="typography-add" id="add-custom-type" aria-label="新增自定义排版" title="新增自定义排版"><span>＋</span><small>新增排版</small></button>';
   }
-  panel.innerHTML = '<div class="popover-title"><strong id="typography-title">正文排版</strong><button class="icon-button" id="typography-close" aria-label="关闭排版"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="typography-density"><strong>渲染密度</strong><div class="density-options vex-segmented" role="group" aria-label="Markdown 渲染密度">' + [['compact','紧凑'],['normal','正常'],['relaxed','宽松']].map(function (item) { return '<button type="button" data-tp-mdsize="' + item[0] + '" title="作用于 Markdown 渲染（基准字号 13/15/17）">' + item[1] + '</button>'; }).join('') + '</div></div><div class="typography-grid" role="group" aria-label="排版效果预览"></div>';
+  panel.innerHTML = '<div class="typography-density"><div class="density-options vex-segmented" role="group" aria-label="Markdown 渲染密度">' + [['compact','紧凑'],['normal','正常'],['relaxed','宽松']].map(function (item) { return '<button type="button" data-tp-mdsize="' + item[0] + '" title="作用于 Markdown 渲染（基准字号 13/15/17）">' + item[1] + '</button>'; }).join('') + '</div></div><div class="typography-grid" role="group" aria-label="排版效果预览"></div>';
   renderGrid();
   document.querySelector('.window-body').appendChild(panel);
 
@@ -190,7 +190,6 @@
   }
   window.addEventListener('resize',position);
   function close(restoreFocus) { var wasOpen = !panel.hidden; panel.hidden = true; if (!dialog.hidden) closeDialog(); document.querySelectorAll('[data-action="typography"]').forEach(function (button) { button.setAttribute('aria-expanded', 'false'); }); if (restoreFocus && wasOpen && trigger) trigger.focus({preventScroll:true}); }
-  document.getElementById('typography-close').onclick = function () { close(true); };
   function choose(key) { key=VexTypeKey(key);if (items.some(function (item) { return item.key === key; })) { state.key = key; apply(); } }
   document.addEventListener('click', function (event) {
     if (!panel.contains(event.target) && !event.target.closest('#typography-dialog') && !event.target.closest('[data-action="typography"]') && !event.target.closest('.menu-flyout')) close();

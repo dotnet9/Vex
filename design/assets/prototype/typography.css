@@ -1,4 +1,4 @@
-/* Document rules are generated from typography-catalog.js for every surface. */
+﻿/* Document rules are generated from typography-catalog.js for every surface. */
 /* 正文字号三档（Markdown 尺寸档，规则 §11）：只提供基准 BodySize，与界面密度独立、不联动。 */
 :root{--writing-size:15px}
 :root[data-mdsize="compact"]{--writing-size:13px}
@@ -51,7 +51,6 @@
 .td-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
 /* 排版弹层顶部：渲染密度行（控件样式与外观菜单一致，作用于 Markdown 渲染）。 */
 #typography-panel .typography-density{display:flex;align-items:center;gap:10px;flex:none;padding:2px 2px 10px;border-bottom:1px solid var(--border,var(--line))}
-#typography-panel .typography-density strong{font-size:11px;color:var(--muted);font-weight:600}
 /* 渲染密度三档：等宽等高，与外观菜单的分段按钮同一风格。 */
 #typography-panel .typography-density .density-options{flex:1;max-width:320px}
 #typography-panel .typography-density .density-options button{flex:1;min-height:calc(24px * var(--seg-scale));padding:calc(2px * var(--seg-scale)) 10px;font-size:var(--fs-caption,12px)}
