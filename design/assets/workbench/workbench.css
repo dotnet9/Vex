@@ -94,6 +94,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .line-numbers { position: absolute; top: 22px; left: 0; width: 40px; text-align: right; font-family: Consolas, monospace; font-size: 12px; line-height: calc(var(--vex-writing-size,var(--writing-size,15px)) * 1.75); color: var(--md-marker); user-select: none; pointer-events: none; }
 .source-scroll.no-lines textarea { padding-left: 24px; }
 .source-scroll.no-lines .line-numbers { display: none; }
+/* 当前行高亮：色条垫在所有内容之下（容器首个子节点），行号同步点亮当前行。 */
+.source-currentline { position: absolute; top: 0; left: 0; width: 100%; background: var(--currentline-bg); pointer-events: none; }
+.line-numbers div.current { color: var(--accent); font-weight: 600; }
 /* 源码高亮镜像层：与输入框同字号、同行高、同内边距，只上色不改字形度量，保证逐字符对齐。 */
 .source-scroll .source-highlight { position: absolute; top: 0; left: 0; margin: 0; pointer-events: none; user-select: none; }
 .source-scroll.no-lines .source-highlight { padding-left: 24px; }

@@ -152,8 +152,8 @@
     updateHeadingToggle();
   };
   function updateHeadingToggle() { $('chapter-headings-only').setAttribute('aria-pressed', String(!W.settings.paragraphs && !W.settings.lists && !W.settings.blocks)); }
-  document.querySelector('.map-hint').textContent = '导图与正文同步 · 拖动会移动整节正文及子章节';
-  document.querySelector('.map-hint').title = '章节移动会同时移动正文和子章节；拖动画布空白处平移，Ctrl + 滚轮缩放。';
+  document.querySelector('.map-hint').textContent = '导图与正文同步 · 拖动会移动整节正文及子章节 · F 适应画布';
+  document.querySelector('.map-hint').title = '章节移动会同时移动正文和子章节；拖动画布空白处平移，Ctrl + 滚轮缩放；选中章节 Shift+Enter 折叠/展开分支，F 适应画布。';
   function showInspector(node) {
     selectedLine = node.line;
     if (node.kind !== 'heading' || node.level === 0) return;
@@ -223,7 +223,17 @@
   window.addEventListener('vex-map-rendered', attachNodes);
   $('map-viewport').addEventListener('keydown', function (event) {
     if (event.isComposing || event.target.closest('input,textarea') || event.ctrlKey || event.metaKey || event.altKey) return;
+    /* F 适应画布不依赖选中节点；Shift+Enter 折叠/展开当前章节分支，其余编辑键仍走下方命令表。 */
+    if (event.key === 'f' || event.key === 'F') { event.preventDefault(); event.stopPropagation(); W.fit(); return; }
     var node = selected(); if (!node || node.kind !== 'heading') return;
+    if (event.key === 'Enter' && event.shiftKey) {
+      event.preventDefault(); event.stopPropagation();
+      if (node.children.length) {
+        if (W.state.collapsed.has(node.id)) W.state.collapsed.delete(node.id); else W.state.collapsed.add(node.id);
+        $('node-inspector').hidden = true; W.renderMap();
+      }
+      return;
+    }
     var command = { Enter: 'sibling', Tab: 'child', F2: 'rename', Delete: 'delete' }[event.key];
     if (!command) return;
     event.preventDefault(); event.stopPropagation();

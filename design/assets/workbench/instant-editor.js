@@ -168,7 +168,22 @@
     });
     host.addEventListener('focusin', function (event) { var element = event.target.closest('.instant-block'); if (element && !VexRendering.special(options.blocks()[Number(element.dataset.blockIndex)] || {}) && !event.target.closest('.md-code-footer')) begin(element); });
     host.addEventListener('focusout', function (event) { if (active && !active.element.contains(event.relatedTarget)) finish(); });
-    host.addEventListener('input', function (event) { if (active) { if (!event.isComposing) normalizeInline(); sync(); } });
+    /* 首次真实编辑后提示条淡出（1.2s），切文档时恢复：教一次就够，不再常驻占视觉。 */
+    var hintTimer = null;
+    function fadeHint() {
+      if (hintTimer) return;
+      hintTimer = setTimeout(function () {
+        hintTimer = null;
+        var hint = document.getElementById('instant-hint');
+        if (hint) hint.classList.add('is-used');
+      }, 1200);
+    }
+    window.addEventListener('vex-document-loaded', function () {
+      if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
+      var hint = document.getElementById('instant-hint');
+      if (hint) hint.classList.remove('is-used');
+    });
+    host.addEventListener('input', function (event) { if (active) { if (!event.isComposing) normalizeInline(); sync(); if (active.changed) fadeHint(); } });
     host.addEventListener('compositionstart', function () { composing = true; });
     host.addEventListener('compositionend', function () { composing = false; normalizeInline(); sync(); });
     host.addEventListener('paste', function (event) { if (!active || event.target.matches('input')) return; event.preventDefault(); document.execCommand('insertText', false, event.clipboardData.getData('text/plain')); normalizeInline(); sync(); });

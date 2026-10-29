@@ -17,7 +17,9 @@
 .instant-block { position: relative; display: flow-root; cursor: text; outline: none; caret-color: var(--fg); overflow-wrap: anywhere; }
 .instant-block.is-editing { outline: none; }
 .instant-input { outline: none; }
-.instant-hint { flex: none; font-size: 10px; color: var(--muted); padding: 9px 20px; border-top: 1px solid var(--border); background: var(--panel); }
+.instant-hint { flex: none; font-size: 10px; color: var(--muted); padding: 9px 20px; border-top: 1px solid var(--border); background: var(--panel); transition: opacity .45s ease; }
+/* 开始写作后提示条淡出（instant-editor 加 is-used），只淡透明度，布局高度不变。 */
+.instant-hint.is-used { opacity: 0; pointer-events: none; }
 .instant-empty { min-height: 1.95em; }
 .instant-empty:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
 .workspace.source-only .source-pane { width: 100%; border-right: none; }

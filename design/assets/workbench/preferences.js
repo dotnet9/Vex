@@ -24,7 +24,8 @@
   const motionFull = () => values.motion === 'full' && !matchMedia('(prefers-reduced-motion:reduce)').matches;
   let adapter = {}, host, releaseOverlay, section = 'general', tab = 'server', clientTab = 'http', closeTimer, testTimer, generation = 0;
   let mcpState = 'stopped', mcpMessage = '服务已停止', audit = [], request = null, mcpDraft, mcpSaveTimer, serviceTimer, serviceRevision = 0, mcpError = '';
-  const categories = [['general','通用与文件','file'],['editor','编辑器','edit'],['images','图片','image'],['appearance','外观','palette'],['export','导出','export'],['mcp','MCP','terminal']];
+  /* 「外观」留给标题栏外观菜单（密度/明暗/配色）；这里收动效、圆角与水印，命名区隔避免双入口歧义。 */
+  const categories = [['general','通用与文件','file'],['editor','编辑器','edit'],['images','图片','image'],['appearance','窗口与动效','palette'],['export','导出','export'],['mcp','MCP','terminal']];
   const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const control = (key, label, options, note = '') => {
     const value = values[key], prefix = `<label class="vex-pref-row"><span>${label}${note ? `<small>${note}</small>` : ''}</span>`;

@@ -1630,6 +1630,30 @@
       };
     });
   });
+  /* 重命名对话框：输入即校验非法字符并联动主按钮，Enter 提交、Esc 走全局弹层关闭。 */
+  if ($('rename-input') && $('rename-ok')) {
+    var renameInvalid = function (value) { return /[\\/:*?"<>|]/.test(value); };
+    var syncRenameState = function () {
+      var value = $('rename-input').value, invalid = renameInvalid(value);
+      $('rename-error').classList.toggle('is-hidden', !invalid);
+      $('rename-input').setAttribute('aria-invalid', String(invalid));
+      $('rename-ok').disabled = invalid || !value.trim();
+    };
+    $('rename-input').addEventListener('input', syncRenameState);
+    $('rename-input').addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && !$('rename-ok').disabled) { event.preventDefault(); $('rename-ok').click(); }
+    });
+    $('rename-ok').addEventListener('click', function () {
+      var name = $('rename-input').value.trim();
+      if (!name || renameInvalid(name)) return;
+      docs[state.doc].name = name;
+      $('document-name').textContent = name;
+      renderFiles();
+      closeLayers();
+      VexProto.toastKey('ToastFileRenamed', name);
+    });
+    syncRenameState();
+  }
   // 保留对话框的可点击演示。
   if ($('err-toggle')) $('err-toggle').onclick = function () { $('err-detail').style.display = $('err-detail').style.display === 'none' ? '' : 'none'; };
   ['mcp-copy-token', 'mcp-copy-endpoint'].forEach(function (id) { if ($(id)) $(id).onclick = function () { navigator.clipboard.writeText(id.endsWith('token') ? $('mcp-token').value : $('mcp-endpoint') ? $('mcp-endpoint').textContent : 'http://127.0.0.1:17891/mcp/').catch(function () { VexProto.toastKey('ToastCopyManually'); }); }; });

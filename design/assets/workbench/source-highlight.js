@@ -60,6 +60,36 @@
 
   function attach(host, source) {
     if (!host || !source) return { update: function () {} };
+    /* 当前行：滚动容器里的绝对定位色条（用规则生成的 --currentline-bg 令牌），
+       行号同步点亮；横向滚动跟随 textarea 偏移，镜像层保持逐字对齐不受影响。 */
+    var currentBar = null;
+    function syncCurrent() {
+      var scroller = host.parentElement;
+      if (!source.value.length || !source.getClientRects().length) {
+        if (currentBar) currentBar.hidden = true;
+        return;
+      }
+      if (!currentBar) {
+        currentBar = document.createElement('div');
+        currentBar.className = 'source-currentline';
+        currentBar.setAttribute('aria-hidden', 'true');
+        scroller.insertBefore(currentBar, scroller.firstChild);
+      }
+      var line = source.value.slice(0, source.selectionStart).split('\n').length - 1;
+      var style = getComputedStyle(source);
+      var row = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.75;
+      currentBar.hidden = false;
+      currentBar.style.top = (parseFloat(style.paddingTop) + line * row) + 'px';
+      currentBar.style.height = row + 'px';
+      currentBar.style.transform = 'translateX(' + (-source.scrollLeft) + 'px)';
+      var numbers = scroller.querySelector('.line-numbers');
+      if (numbers && numbers.children.length) {
+        var previous = numbers.querySelector('.current');
+        if (previous) previous.classList.remove('current');
+        var marker = numbers.children[Math.min(line, numbers.children.length - 1)];
+        if (marker) marker.classList.add('current');
+      }
+    }
     function update() {
       try {
         host.innerHTML = render(source.value);
@@ -69,10 +99,14 @@
         host.innerHTML = '';
         host.parentElement.classList.remove('source-highlighted');
       }
+      syncCurrent();
     }
     source.addEventListener('input', update);
     // 长行时输入框可能横向滚动，镜像层跟随同一偏移，避免文字与颜色错位。
-    source.addEventListener('scroll', function () { host.scrollLeft = source.scrollLeft; });
+    source.addEventListener('scroll', function () { host.scrollLeft = source.scrollLeft; syncCurrent(); });
+    // 光标移动不只发生在输入：方向键/点击（keyup、click）与程序化选区（selectionchange）都要刷新当前行。
+    ['keyup', 'click'].forEach(function (type) { source.addEventListener(type, syncCurrent); });
+    document.addEventListener('selectionchange', function () { if (document.activeElement === source) syncCurrent(); });
     window.addEventListener('vex-content-changed', update);
     update();
     return { update: update };
