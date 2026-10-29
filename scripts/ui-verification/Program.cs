@@ -1772,6 +1772,8 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     Check(vm.Markdown.Contains("原位") && vm.Markdown.Contains("```md"), "Code input edits the fenced body without exposing fence markers");
     wb.UndoDocument(); Pump(); Check(vm.Markdown == original, "Shared undo restores inline code edits");
     wb.SelectLayout("source"); Pump(); source.Editor.TextArea.Focus(); source.Editor.CaretOffset = 0;
+    Pump(); SettleRendering();
+    Capture(window, "source-marker-highlight");
     // 当前行两件套（原型 workbench.css：色条垫底 + 行号列强调加粗）：高亮开启、库内行号边距挂载、刷走令牌。
     var lineNumberMargin = source.Editor.TextArea.LeftMargins
         .OfType<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownLineNumberMargin>().SingleOrDefault();

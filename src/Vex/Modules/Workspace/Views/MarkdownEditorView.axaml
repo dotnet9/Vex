@@ -40,6 +40,7 @@
             CurrentLineBorderKey="VexEditorCurrentLineBorderBrush"
             LineNumberBrushKey="VexMutedBrush"
             CurrentLineNumberBrushKey="VexAccentBrush"
+            MarkerKey="VexMarkerBrush"
             AccentKey="VexAccentBrush" LinkKey="VexLinkBrush" ImageKey="VexImageBrush"
             CodeKey="VexCodeFgBrush" QuoteKey="VexQuoteBrush"
             SeparatorKey="VexPanelBorderBrush" DangerKey="VexDangerBrush" WarningKey="VexWarningBrush">
