@@ -455,9 +455,9 @@ input, textarea, select {
 #vex-appearance-menu .studio-palettes button:not(.palette-add){border-color:transparent;background:var(--panel);box-shadow:0 1px 5px color-mix(in srgb,var(--fg) 5%,transparent);border-radius:var(--vex-radius-md)}
 #vex-appearance-menu .studio-palettes button:hover:not(.palette-add){border-color:transparent;background:var(--hover);box-shadow:0 2px 9px color-mix(in srgb,var(--fg) 7%,transparent)}
 #vex-appearance-menu .studio-palettes button.on,#vex-appearance-menu .studio-palettes button[aria-pressed="true"]{border-color:transparent;background:var(--panel);box-shadow:0 0 0 1.5px var(--accent)}
-#typography-panel .typography-card{border:0;background:var(--panel);border-radius:var(--vex-radius-lg);box-shadow:0 1px 5px color-mix(in srgb,var(--fg) 5%,transparent)}
-#typography-panel .typography-card:hover{border:0;box-shadow:0 2px 9px color-mix(in srgb,var(--fg) 7%,transparent)}
-#typography-panel .typography-card[aria-pressed=true]{border:0;box-shadow:0 0 0 1.5px var(--accent);background:var(--panel)}
+#typography-panel .typography-card{border:1px solid color-mix(in srgb,var(--fg) 14%,var(--panel));background:var(--panel);border-radius:var(--vex-radius-lg);box-shadow:0 1px 5px color-mix(in srgb,var(--fg) 5%,transparent)}
+#typography-panel .typography-card:hover{box-shadow:0 2px 9px color-mix(in srgb,var(--fg) 7%,transparent)}
+#typography-panel .typography-card[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent);background:var(--panel)}
 #typography-panel .typography-add{border-radius:var(--vex-radius-lg)}
 /* 对话框与弹层：去边框，圆角升档。 */
 .vex-settings{border:0;border-radius:var(--vex-radius-xl)}

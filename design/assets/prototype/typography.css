@@ -12,7 +12,8 @@
 .type-swatch{display:block;position:relative;overflow:hidden;pointer-events:none}
 
 /* Compare every style before applying it. Only the card grid scrolls. */
-#typography-panel{width:min(720px,calc(100% - 24px));height:680px;padding:16px;overflow:hidden;display:flex;flex-direction:column;gap:0}
+/* 高度随内容收缩（max-height 由 position() 按可用空间再收口），卡片不足一屏时底部不再留白。 */
+#typography-panel{width:min(720px,calc(100% - 24px));max-height:680px;padding:16px;overflow:hidden;display:flex;flex-direction:column;gap:0}
 #typography-panel .popover-title{display:flex;align-items:center;justify-content:space-between;flex:none;padding:0;margin:0;font-size:15px}
 #typography-title{font-weight:600}
 #typography-close{display:grid;place-items:center;width:30px;height:32px;border-radius:var(--vex-radius-xs);padding:0;color:var(--muted)}
