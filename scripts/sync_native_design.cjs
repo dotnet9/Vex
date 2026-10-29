@@ -138,7 +138,10 @@ if (checkOnly) {
 } else {
   for (const {file,text} of outputs) {
     fs.mkdirSync(path.dirname(file),{recursive:true});
-    fs.writeFileSync(file,text);
+    /* 跟随目标文件现有换行风格：库内 axaml/cs 是 CRLF，统一写 LF 会让 18 个令牌文件
+     * 每次同步都产生纯换行漂移（同 Vex.Setup.iss 病灶）。新文件默认 LF。 */
+    const existing = fs.existsSync(file) ? fs.readFileSync(file,'utf8') : '';
+    fs.writeFileSync(file, existing.includes('\r\n') ? text.replace(/\n/g,'\r\n') : text);
   }
   console.log(`Synced ${types.length} independent article typographies to ${library}` + (typographyOnly ? ' (typography only)' : `; palette tokens for ${palettes.length} palettes × 2 modes`));
 }
