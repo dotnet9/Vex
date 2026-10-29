@@ -560,11 +560,19 @@
   <Style Selector="Button.tb-glyph.title-picker-open Path.glyph-fill">
     <Setter Property="Fill" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
-  <Style Selector="Button.wb-quiet:pointerover, ToggleButton.wb-quiet:pointerover"><Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/></Style>
+  <!-- 原型 .toolbar-button:hover 取前景色字 + 悬浮灰底（workbench.css:132，与 workspace-chrome.css:176 同值），
+       :active 再落到按压底（:177）；描线 .wb-icon 自己带了 muted，得跟着前景一起翻。 -->
+  <Style Selector="Button.wb-quiet:pointerover, ToggleButton.wb-quiet:pointerover"><Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/></Style>
+  <Style Selector="Button.wb-quiet:pressed, ToggleButton.wb-quiet:pressed"><Setter Property="Background" Value="{DynamicResource VexPressedBrush}"/></Style>
+  <Style Selector="Button.wb-quiet:pointerover Path.wb-icon, ToggleButton.wb-quiet:pointerover Path.wb-icon"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/></Style>
   <Style Selector="ToggleButton.wb-quiet:checked"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/></Style>
   <!-- Semi 在模板层设置交互颜色，这里同步轻量切换按钮的实际呈现状态。 -->
-  <Style Selector="ToggleButton.wb-quiet:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-quiet:pressed /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  <Style Selector="ToggleButton.wb-quiet:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
+  <Style Selector="ToggleButton.wb-quiet:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexPressedBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
     <Setter Property="BorderBrush" Value="Transparent"/>
   </Style>
   <Style Selector="ToggleButton.wb-quiet:checked /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-quiet:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-quiet:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
@@ -578,10 +586,13 @@
   </Style>
   <Style Selector="ToggleButton.wb-view:checked"><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Background" Value="Transparent"/></Style>
   <Style Selector="ToggleButton.wb-view:checked Path.wb-icon"><Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/></Style>
+  <!-- 分段段签（原型 .vex-segmented>button）：底色任何状态都透明（segmented.css:11 连 :active 也压成透明），
+       但 :hover 的字要从 muted 翻成前景色（segmented.css:12）。 -->
   <Style Selector="ToggleButton.wb-view:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-view:pressed /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
     <Setter Property="BorderBrush" Value="Transparent"/>
   </Style>
+  <Style Selector="ToggleButton.wb-view:pointerover Path.wb-icon"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/></Style>
   <Style Selector="ToggleButton.wb-view:checked /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-view:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.wb-view:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
     <Setter Property="BorderBrush" Value="Transparent"/>
@@ -994,6 +1005,26 @@
   </Style>
   <!-- 源码编辑区的内环（原型 .source-scroll textarea:focus-visible 的 outline-offset:-2）挂在
        MarkdownEditorView 代码里：Avalonia 编译器解析不了跨程序集的类型选择器。 -->
+  <!-- ===== 悬停与按压反馈（原型 workspace-chrome.css:176/177 灰底 + :408 强调前景、prototype.css:439 整枚下沉 1px）：
+       实测悬停这半是「灰底 + 强调描线」两件事：0,3,0 的灰底规则压住了 accent-soft 底色，但同条规则的
+       color 没人竞争，描线照样取强调色；按压换按压底（每套色板都由强调色叠出来，不是加深灰）。
+       底色归 Semi 画在模板 ContentPresenter 上，必须走 /template/；前景给按钮自己，Path 的 Stroke 可继承跟着走。 ===== -->
+  <!-- 开关（pref-switch）原型是 input[role=switch]，不在 button:active 那条规则里，别跟着沉。 -->
+  <Style Selector="Button:pressed, ToggleButton:pressed:not(.pref-switch)">
+    <Setter Property="RenderTransform"><TranslateTransform Y="1"/></Setter>
+  </Style>
+  <Style Selector="Button.wb-format:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.find-close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+  </Style>
+  <Style Selector="Button.wb-format:pressed /template/ ContentPresenter#PART_ContentPresenter, Button.find-close:pressed /template/ ContentPresenter#PART_ContentPresenter, Button.dialog-secondary:pressed /template/ ContentPresenter#PART_ContentPresenter, Button.mcp-pill:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexPressedBrush}"/>
+  </Style>
+  <Style Selector="Button.wb-format:pointerover, Button.find-close:pointerover">
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="Button.wb-format:pointerover Path.format-stroke">
+    <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
   <!-- ===== 对话框字段（原型 theme.css / dialogs.css）：.input 一族与侧栏搜索共用 search-shell 焦点配方，
        .mono 换等宽族；.dlg-path 是代码底的路径块（theme.css:599），此前类名挂了却没有任何样式。 ===== -->
   <Style Selector="TextBox.mono">

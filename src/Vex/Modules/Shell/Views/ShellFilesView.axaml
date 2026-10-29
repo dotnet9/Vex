@@ -104,6 +104,17 @@
         <Style Selector="ToggleButton.files-tool:checked Path">
             <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
         </Style>
+        <!-- 原型 .icon-button 悬停（workspace-chrome.css:408 的 color 没有对手）与按压（:177 换按压底）：
+             这一族的常态色由本视图写在前景上，应用级同名规则打不过视图内规则，就地补齐。 -->
+        <Style Selector="Button.files-tool:pointerover, ToggleButton.files-tool:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
+        <Style Selector="Button.files-tool:pointerover Path, ToggleButton.files-tool:pointerover Path">
+            <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
+        </Style>
+        <Style Selector="Button.files-tool:pressed /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.files-tool:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource VexPressedBrush}" />
+        </Style>
         <!-- 底部条目录钮（原型 .files-folder）：flex 占满、13px 文件夹图标 + 名称、4px 圆角、悬浮 hover 底 + 前景。 -->
         <Style Selector="Button.files-folder">
             <Setter Property="Height" Value="26" />
