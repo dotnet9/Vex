@@ -30,8 +30,8 @@
         <Button x:Name="SpanFontSize" Classes="wb-format span-tool" Focusable="False" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SpanFontSize}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SpanFontSize}}">
           <StackPanel Orientation="Horizontal" Spacing="2"><TextBlock Classes="span-glyph" Text="A"/><Path Classes="expand-chevron span-chevron" Data="M6 9L12 15L18 9"/></StackPanel>
           <Button.Flyout>
-            <Flyout Placement="Bottom">
-              <WrapPanel MaxWidth="168" ItemWidth="52">
+            <Flyout Placement="Bottom" Opened="OnSizeFlyoutOpened">
+              <WrapPanel MaxWidth="168" ItemWidth="52" x:Name="SpanSizePanel">
                 <Button Classes="span-size" Tag="12" Content="12" Click="OnSpanSizeClick" />
                 <Button Classes="span-size" Tag="14" Content="14" Click="OnSpanSizeClick" />
                 <Button Classes="span-size" Tag="16" Content="16" Click="OnSpanSizeClick" />

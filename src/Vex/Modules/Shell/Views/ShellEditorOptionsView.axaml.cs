@@ -20,6 +20,23 @@ public partial class ShellEditorOptionsView : UserControl
             actions.ApplySpanStyle("font-size", tag.ToString() ?? string.Empty);
     }
 
+    /// <summary>字号面板打开时高亮当前选区的字号（无样式则不高亮）。</summary>
+    public void OnSizeFlyoutOpened(object? sender, EventArgs e)
+    {
+        var value = CodeWF.Toolkit.EventBus.EventBus.Default
+            .Query(new Vex.Core.Messaging.EditorSpanStyleQuery("font-size")).Value;
+        if (SpanSizePanel is not null)
+        {
+            foreach (var child in SpanSizePanel.Children)
+            {
+                if (child is Button { Tag: { } tag } button)
+                    button.BorderThickness = tag.ToString() == value?.Replace("px", string.Empty, StringComparison.Ordinal)
+                        ? new Avalonia.Thickness(2)
+                        : new Avalonia.Thickness(0);
+            }
+        }
+    }
+
     /// <summary>颜色面板打开时预填当前选区的样式值（无样式则保持默认色）。</summary>
     public void OnSpanFlyoutOpened(object? sender, EventArgs e)
     {
