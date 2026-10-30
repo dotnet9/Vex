@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <IsPackable>false</IsPackable>
@@ -72,7 +72,6 @@
     <PackageReference Include="YY-Thunks" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Vex.Controls\Vex.Controls.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="I18n\Language.cs">

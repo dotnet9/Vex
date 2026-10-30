@@ -1,4 +1,4 @@
-<Solution>
+﻿<Solution>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
@@ -13,6 +13,5 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="src/Vex.Controls/Vex.Controls.csproj" />
   <Project Path="src/Vex/Vex.csproj" />
 </Solution>

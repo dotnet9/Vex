@@ -1,13 +1,13 @@
 ﻿<codewf:CodeWFWindow
     x:Class="Vex.Modules.Shell.Views.MainWindow" x:Name="ShellWindow"
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
     xmlns:codewf="https://codewf.com"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:views="using:Vex.Modules.Shell.Views"
     xmlns:shell="using:Vex.Modules.Shell.Views"
-    xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls"
+    xmlns:vex="clr-namespace:Vex.Controls"
     xmlns:workspace="using:Vex.Modules.Workspace.Views"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:model="using:Vex.Core.Models" xmlns:md="https://codewf.com"
     xmlns:u="https://irihi.tech/ursa"
@@ -179,7 +179,7 @@
                     <Button x:Name="RailFindButton" Classes="rail-item" DockPanel.Dock="Top"
                             HorizontalAlignment="Center"
                             Command="{Binding ShowFindPanel}"
-                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarFind}}"
+                            helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarFind}}"
                             AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarFind}}">
                         <StackPanel Spacing="4">
                             <Path Data="{StaticResource WBSearchIcon}" HorizontalAlignment="Center" />
@@ -189,7 +189,7 @@
                     <Button x:Name="RailSettingsButton" Classes="rail-item" DockPanel.Dock="Bottom"
                             HorizontalAlignment="Center"
                             Command="{Binding ShowPreferences}"
-                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.PreferencesTitle}}"
+                            helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.PreferencesTitle}}"
                             AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NavSettings}}">
                         <StackPanel Spacing="4">
                             <Path Data="{StaticResource WBGearIcon}" HorizontalAlignment="Center" />
@@ -276,7 +276,7 @@
                            TextTrimming="CharacterEllipsis" Foreground="{DynamicResource VexValueBrush}" />
                 <Button x:Name="PresentationExit" Grid.Column="1" Classes="deck-exit"
                         Command="{Binding Workbench.StopPresentation}"
-                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}"
+                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationExit}}">
                     <Path Data="{StaticResource WBCloseIcon}" />
                 </Button>
@@ -325,7 +325,7 @@
                 Classes.on="{Binding Workbench.PresentationOutline}" IsVisible="{Binding Workbench.IsPresenting}"
                 HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="{Binding Workbench.DeckOutlineToggleMargin}"
                 Command="{Binding Workbench.TogglePresentationOutline}"
-                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}"
+                helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}"
                 AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}">
             <Path />
         </Button>

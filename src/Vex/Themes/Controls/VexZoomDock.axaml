@@ -1,7 +1,7 @@
 ﻿<ResourceDictionary
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls">
+    xmlns:vex="clr-namespace:Vex.Controls">
     <Design.PreviewWith>
         <Panel Width="320" Height="120">
             <vex:VexZoomDock HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12"

@@ -5,7 +5,7 @@
     xmlns:md="https://codewf.com" xmlns:codewf="https://codewf.com"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
-    xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls"
+    xmlns:vex="clr-namespace:Vex.Controls"
     xmlns:vm="using:Vex.Modules.Workspace.ViewModels"
     xmlns:views="using:Vex.Modules.Workspace.Views"
     x:DataType="vm:MarkdownPreviewViewModel"

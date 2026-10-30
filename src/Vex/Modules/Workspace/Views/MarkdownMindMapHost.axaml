@@ -1,5 +1,5 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
-             xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:mind="https://codewf.com" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls"
+﻿<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+             xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:mind="https://codewf.com" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls"
              x:DataType="vm:MainWindowViewModel" x:Class="Vex.Modules.Workspace.Views.MarkdownMindMapHost">
   <UserControl.Styles>
     <!-- 原型 .view-panel .map-toolbar .toolbar-button：10.5 号字、4/7 内距、26 高基准，字重随浏览器默认（常规）；
@@ -32,7 +32,7 @@
           </ToggleButton>
           <Button x:Name="CollapseBranchesButton" Classes="wb-quiet map-tool" Content="{i18n:I18n {x:Static l:VexL.WBCollapse}}" Click="CollapseClick"/>
           <ToggleButton x:Name="MapSourceButton" Classes="wb-quiet map-tool" IsChecked="{Binding Workbench.ShowMapSource, Mode=OneWay}" Command="{Binding Workbench.ToggleMapSource}"><StackPanel Orientation="Horizontal" Spacing="5"><Path Classes="wb-icon" Width="11" Height="11" Data="{StaticResource WBColumnsIcon}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBMapSource}}"/></StackPanel></ToggleButton>
-          <ToggleButton x:Name="PinMap" Classes="toolbar-pin" Margin="4,0,0,0" IsChecked="{Binding Workbench.Preferences.PinMapToolbar}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
+          <ToggleButton x:Name="PinMap" Classes="toolbar-pin" Margin="4,0,0,0" IsChecked="{Binding Workbench.Preferences.PinMapToolbar}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
             <Panel Width="14" Height="14">
               <Viewbox Classes="pin-on"><Canvas Width="24" Height="24"><Path Classes="pin-head" Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
               <Viewbox Classes="pin-off"><Canvas Width="24" Height="24"><Canvas.RenderTransform><RotateTransform Angle="45" CenterX="12" CenterY="11"/></Canvas.RenderTransform><Path Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
@@ -58,7 +58,7 @@
       <TextBlock x:Name="MapHint" Text="{i18n:I18n Vex.VexL.WSMapGesture}" Classes="wb-muted" FontSize="10" TextTrimming="CharacterEllipsis" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="16,14" IsHitTestVisible="False"/>
       <Border x:Name="SettingsTarget" Width="300" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18,12,18,18" Classes="wb-popover" Padding="18" IsVisible="{Binding Workbench.ShowMapSettings}">
         <ScrollViewer MaxHeight="420"><StackPanel Spacing="12">
-          <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{i18n:I18n Vex.VexL.WBMapDisplay}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="vex-dismiss" Command="{Binding Workbench.ToggleMapSettings}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
+          <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{i18n:I18n Vex.VexL.WBMapDisplay}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="vex-dismiss" Command="{Binding Workbench.ToggleMapSettings}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
           <Grid ColumnDefinitions="*,64" ColumnSpacing="7">
             <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBSummary}}" FontSize="11" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1" x:Name="SummaryLengthInput" Minimum="1" Maximum="120" Increment="1" Value="{Binding Workbench.SummaryLength, Mode=TwoWay}"/>
@@ -75,7 +75,7 @@
       </Border>
       <Border x:Name="NodeInspector" Width="282" MaxHeight="480" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10,9,10,60" Classes="wb-popover" IsVisible="{Binding Workbench.HasSelectedNode}">
         <Grid RowDefinitions="36,*,36">
-          <Border Padding="14,0,6,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding Workbench.SelectedKindLabel}" Classes="wb-muted" VerticalAlignment="Center"/><Button x:Name="CloseInspectorButton" Grid.Column="1" Classes="vex-dismiss" Command="{Binding Workbench.CloseInspector}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid></Border>
+          <Border Padding="14,0,6,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding Workbench.SelectedKindLabel}" Classes="wb-muted" VerticalAlignment="Center"/><Button x:Name="CloseInspectorButton" Grid.Column="1" Classes="vex-dismiss" Command="{Binding Workbench.CloseInspector}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid></Border>
           <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" Padding="16,12">
             <StackPanel Spacing="10">
               <StackPanel Spacing="8" IsVisible="{Binding Workbench.IsChapterSelected}">

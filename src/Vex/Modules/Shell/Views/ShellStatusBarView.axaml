@@ -1,5 +1,5 @@
-﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
- xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls" xmlns:wpvm="using:Vex.Modules.Workspace.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}">
+﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+ xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls" xmlns:wpvm="using:Vex.Modules.Workspace.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}">
  <UserControl.Styles>
   <!-- 对应原型 .workspace-viewswitch：它本身就是一枚 .segmented-track，轨道底色、圆角、内缩、滑动指示块、
        选中字色字重全部走 Vex.Controls 的共享配方；宿主只补自己的基准高与图标口径。 -->
@@ -66,7 +66,7 @@
                     Label="{i18n:I18n {x:Static l:VexL.ZoomMap}}"
                     ResetLabel="{i18n:I18n {x:Static l:VexL.WBFit}}"
                     ResetGeometry="{StaticResource WBFitIcon}" />
-   <Button x:Name="StatisticsButton" Classes="sb-word" IsVisible="{Binding Preferences.WordCountVisible}" Command="{Binding ShowStatisticsAsync}" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}">
+   <Button x:Name="StatisticsButton" Classes="sb-word" IsVisible="{Binding Preferences.WordCountVisible}" Command="{Binding ShowStatisticsAsync}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.StatisticsTitle}}">
     <TextBlock Text="{Binding DocumentInfo.StatusWordCountText}" FontSize="{DynamicResource VexDensityFontSizeCaption}" />
    </Button>
   </StackPanel>
