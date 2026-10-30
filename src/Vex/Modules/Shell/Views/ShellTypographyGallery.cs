@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using CodeWF.Avalonia.Controls.Helpers;
+using System.ComponentModel;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -246,10 +247,10 @@ public sealed class ShellTypographyGallery : UserControl
             var captured = option.Key!;
             // 原型 .typography-card-tools 是 ✎ 编辑 + × 删除两枚，悬浮才显出；只给删除会让用户改不了已建的排版。
             var edit = new Button { Classes = { "wb-quiet" }, Width = 22, Height = 22, Padding = default, FontSize = 12, Content = "✎" };
-            ToolTip.SetTip(edit, Text("EditCustomTypography"));
+            ToolTipHelper.SetText(edit, Text("EditCustomTypography"));
             edit.Click += (_, _) => OpenTypographyDialog(captured);
             var remove = new Button { Classes = { "wb-quiet" }, Width = 22, Height = 22, Padding = default, FontSize = 12, Content = "×" };
-            ToolTip.SetTip(remove, Text("DeleteCustomTypography"));
+            ToolTipHelper.SetText(remove, Text("DeleteCustomTypography"));
             remove.Click += (_, _) => _vm!.Appearance.RemoveCustomTypography(captured);
             tools.Children.Add(edit);
             tools.Children.Add(remove);

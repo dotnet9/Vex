@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Input;
@@ -106,8 +106,10 @@ internal static class PrototypeAppearanceVerification
         Render();
         string Localized(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
         var toolCard = gallery.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "Typography_" + toolKey);
+        // 提示统一走 ToolTipHelper：附加属性的值即文案（Tip 内容是 TextBlock）。
         var toolTips = (toolCard?.GetVisualDescendants().OfType<Button>() ?? Enumerable.Empty<Button>())
-            .Select(b => ToolTip.GetTip(b) as string).Where(t => t is not null).ToArray();
+            .Select(b => b.GetValue(CodeWF.Avalonia.Controls.Helpers.ToolTipHelper.TextProperty))
+            .Where(t => t is not null).ToArray();
         Check(toolCard is not null
                 && toolTips.Contains(Localized(VexL.EditCustomTypography)) && toolTips.Contains(Localized(VexL.DeleteCustomTypography)),
             $"A custom card exposes both edit and delete tools: [{string.Join(",", toolTips)}]");

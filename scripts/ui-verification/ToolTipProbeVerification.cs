@@ -44,6 +44,16 @@ internal static class ToolTipProbeVerification
                 var resolvedBg = Application.Current!.TryGetResource("ToolTipBackground", window.ActualThemeVariant, out var bgResource)
                     ? bgResource : null;
                 Console.WriteLine($"TOOLTIP-COLORS {theme} sample={i}: tokenFg={resolvedFg} tokenBg={resolvedBg}");
+                // 弹层内真实解析值：ToolTip 自身与内容 TextBlock 的实际前景（含 DynamicResource 求值结果）。
+                foreach (var tooltip in window.GetVisualDescendants().OfType<ToolTip>())
+                {
+                    var tipFg = tooltip.Foreground as Avalonia.Media.ISolidColorBrush;
+                    var tipBg = tooltip.Background as Avalonia.Media.ISolidColorBrush;
+                    var blocks = tooltip.GetVisualDescendants().OfType<TextBlock>().ToList();
+                    var blockInfo = string.Join(",", blocks.Select(b => (b.Foreground as Avalonia.Media.ISolidColorBrush)?.Color.ToString() ?? b.Foreground?.GetType().Name ?? "inherit"));
+                    var presenter = tooltip.GetVisualDescendants().OfType<Avalonia.Controls.Presenters.ContentPresenter>().FirstOrDefault();
+                    Console.WriteLine($"TOOLTIP-LIVE {theme} sample={i}: tipFg={tipFg?.Color} tipBg={tipBg?.Color} presenter={presenter?.Name ?? "-"} textFg=[{blockInfo}]");
+                }
                 ToolTip.SetIsOpen(longTipHost, false);
                 Pump();
             }

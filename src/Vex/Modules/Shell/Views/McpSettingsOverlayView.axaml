@@ -1,7 +1,7 @@
-<UserControl
+﻿<UserControl
     x:Class="Vex.Modules.Shell.Views.McpSettingsOverlayView"
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
@@ -82,13 +82,13 @@
                                         Classes="mcp-icon"
                                         Classes.on="{Binding IsTokenRevealed}"
                                         Command="{Binding ToggleTokenReveal}"
-                                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.McpRevealToken}}">
+                                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.McpRevealToken}}">
                                         <Path Data="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
                                     </Button>
                                     <Button
                                         Classes="mcp-icon"
                                         Command="{Binding RegenerateToken}"
-                                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.McpGenerateToken}}">
+                                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.McpGenerateToken}}">
                                         <Path Data="M23 4L23 10 17 10 M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                                     </Button>
                                 </StackPanel>

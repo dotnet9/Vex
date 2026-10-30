@@ -1,7 +1,7 @@
 ﻿<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellOutlineView"
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:models="using:Vex.Core.Models"
@@ -61,7 +61,7 @@
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.OutlineFilterPlaceholder}}" />
                     <Button Grid.Column="2" Classes="wb-quiet" Width="18" Height="18" Padding="3" MinHeight="0"
                             Command="{Binding ClearFilter}"
-                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ClearSearch}}"
+                            helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.ClearSearch}}"
                             AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ClearSearch}}">
                         <Path Classes="stroke-ico" Width="11" Height="11" StrokeThickness="1.6" Data="M6 6L18 18 M18 6L6 18" />
                     </Button>

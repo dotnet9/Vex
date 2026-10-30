@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using CodeWF.Avalonia.Controls.Helpers;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
 using Avalonia.Controls.Primitives;
@@ -208,8 +209,8 @@ public partial class MainWindow : CodeWFWindow
         if (_railLayout is null) return;
         // 语言切换可能从工作线程触发（验证夹具即在后台线程改 Culture），控件访问必须回 UI 线程。
         if (!Dispatcher.UIThread.CheckAccess()) { Dispatcher.UIThread.Post(SyncRailTips); return; }
-        ToolTip.SetTip(RailFilesToggle, DesignSelectionControls.Text(_railLayout.ShowSidebar ? "NavFilesCollapse" : "NavFilesExpand"));
-        ToolTip.SetTip(RailOutlineToggle, DesignSelectionControls.Text(_railLayout.ShowOutlineSidebar ? "NavOutlineCollapse" : "NavOutlineExpand"));
+        ToolTipHelper.SetText(RailFilesToggle, DesignSelectionControls.Text(_railLayout.ShowSidebar ? "NavFilesCollapse" : "NavFilesExpand"));
+        ToolTipHelper.SetText(RailOutlineToggle, DesignSelectionControls.Text(_railLayout.ShowOutlineSidebar ? "NavOutlineCollapse" : "NavOutlineExpand"));
     }
 
     /// <summary>原型把布局切换入口放在状态栏中央（原第二行工具栏已并入标题栏与状态栏）。</summary>

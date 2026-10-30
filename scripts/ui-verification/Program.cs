@@ -2684,7 +2684,10 @@ void VerifyEditingTools(VerificationVexApp app, Window window, MainWindowViewMod
     foreach (var culture in new[] { "zh-CN", "zh-Hant", "en-US", "ja-JP" })
     {
         app.Resolve<IAppLocalizer>().SetCulture(culture); wb.ShowSource(); Pump();
-        Check((string?)ToolTip.GetTip(options.FindControl<Button>("FormatBold")!) == CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(Vex.VexL.Bold), "Formatting tooltip follows language: " + culture);
+        // 提示统一走 ToolTipHelper：Tip 内容是绑定 ToolTipForeground 的 TextBlock，读它的 Text。
+        var boldTip = options.FindControl<Button>("FormatBold")!;
+        var boldTipText = (boldTip.GetValue(CodeWF.Avalonia.Controls.Helpers.ToolTipHelper.TextProperty) as string);
+        Check(boldTipText == CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(Vex.VexL.Bold), "Formatting tooltip follows language: " + culture);
     }
     void Click(Button button)
     {

@@ -1,5 +1,5 @@
-<UserControl x:Class="Vex.Modules.Shell.Views.ShellAboutOverlayView"
- xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellAboutOverlayView"
+ xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
  xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellAboutViewModel">
  <UserControl.Styles>
   <Style Selector="Button.about-link"><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="Normal"/><Setter Property="Template"><ControlTemplate><ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}" FontSize="{TemplateBinding FontSize}"/></ControlTemplate></Setter></Style>
@@ -8,7 +8,7 @@
  <Border Classes="dialog-card" Width="480" MaxHeight="600" Padding="0" CornerRadius="8" ClipToBounds="True">
   <Grid RowDefinitions="36,*">
    <Border Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
-    <Grid ColumnDefinitions="*,46" VerticalAlignment="Center"><TextBlock Text="{i18n:I18n Vex.VexL.AboutDialogTitle}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Click="Close_OnClick" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
+    <Grid ColumnDefinitions="*,46" VerticalAlignment="Center"><TextBlock Text="{i18n:I18n Vex.VexL.AboutDialogTitle}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Click="Close_OnClick" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
    </Border>
    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
     <StackPanel>
@@ -18,7 +18,7 @@
      </Grid>
      <Grid Margin="32,22,32,0" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="24" RowSpacing="10">
       <TextBlock Text="{i18n:I18n {x:Static l:VexL.AboutVersionLabel}}" FontSize="14" LineHeight="25.2" Classes="muted" VerticalAlignment="Center"/>
-      <Button Grid.Column="1" Classes="about-link" Command="{Binding ReleaseCommand}" Padding="0" MinHeight="0" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.AboutOpenRelease}}"><Border Padding="10,2" CornerRadius="12" Background="{DynamicResource VexAccentSoftBrush}"><TextBlock Text="{Binding VersionText}" Foreground="{DynamicResource VexAccentBrush}" FontSize="12" FontWeight="SemiBold"/></Border></Button>
+      <Button Grid.Column="1" Classes="about-link" Command="{Binding ReleaseCommand}" Padding="0" MinHeight="0" HorizontalAlignment="Left" VerticalAlignment="Center" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.AboutOpenRelease}}"><Border Padding="10,2" CornerRadius="12" Background="{DynamicResource VexAccentSoftBrush}"><TextBlock Text="{Binding VersionText}" Foreground="{DynamicResource VexAccentBrush}" FontSize="12" FontWeight="SemiBold"/></Border></Button>
       <TextBlock Grid.Row="1" Text="{i18n:I18n Vex.VexL.AboutLicense}" FontSize="14" LineHeight="25.2" Classes="muted"/><TextBlock Grid.Row="1" Grid.Column="1" Text="MIT License" FontSize="14" LineHeight="25.2"/>
       <TextBlock Grid.Row="2" Text="{i18n:I18n Vex.VexL.WSLinks}" FontSize="14" LineHeight="25.2" Classes="muted"/>
       <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center"><Button Classes="about-link" Command="{Binding WebsiteCommand}" Content="{i18n:I18n {x:Static l:VexL.Website}}" Padding="0" MinHeight="0" FontSize="14"/><TextBlock Text="·" Classes="muted"/><Button Classes="about-link" Command="{Binding RepositoryCommand}" Content="{i18n:I18n Vex.VexL.WSRepository}" Padding="0" MinHeight="0" FontSize="14"/></StackPanel>

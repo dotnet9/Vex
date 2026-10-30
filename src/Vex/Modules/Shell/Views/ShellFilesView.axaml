@@ -79,7 +79,7 @@
                     <Button Grid.ColumnSpan="3" IsVisible="{Binding IsErrorPlaceholder}" Click="RetryDirectoryClicked"
                             Height="24" MinHeight="0" Padding="0" Background="Transparent" BorderThickness="0"
                             Content="{i18n:I18n {x:Static l:VexL.SidebarFilesRetry}}"
-                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SidebarFilesLoadFailed}}" />
+                            helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SidebarFilesLoadFailed}}" />
                 </Grid>
             </Border>
         </TreeDataTemplate>
@@ -267,7 +267,7 @@
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}" />
                     <Button Grid.Column="2" Classes="files-tool" Width="18" Height="18" Padding="3"
                             Command="{Binding ClearFilter}"
-                            ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ClearSearch}}"
+                            helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.ClearSearch}}"
                             AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ClearSearch}}">
                         <Path Classes="stroke-ico" Width="11" Height="11" StrokeThickness="1.6" Data="M6 6L18 18 M18 6L6 18" />
                     </Button>
@@ -334,7 +334,7 @@
                               Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
                     </Panel>
                     <TextBlock Grid.Column="1" Classes="file-list-name" Text="{Binding Name}" VerticalAlignment="Center"
-                               TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Path}" />
+                               TextTrimming="CharacterEllipsis" helpers:ToolTipHelper.Text="{Binding Path}" />
                     <TextBlock Grid.Column="2" Classes="file-folder-tag" Text="{Binding FolderTag}" VerticalAlignment="Center"
                                IsVisible="{Binding FolderTag, Converter={x:Static avaloniaConverters:StringConverters.IsNotNullOrEmpty}}"
                                TextTrimming="CharacterEllipsis" MaxWidth="150" />
@@ -357,7 +357,7 @@
                         IsEnabled="{Binding HasPathCommandTarget}"/>
                     <Separator />
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}"/>
-                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" ToolTip.Tip="{Binding WorkspaceName}"/>
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" helpers:ToolTipHelper.Text="{Binding WorkspaceName}"/>
                     <MenuItem Header="{i18n:I18n Vex.VexL.RefreshFiles}" Command="{Binding RefreshFiles}"/>
                     <Separator />
                     <MenuItem
@@ -405,7 +405,7 @@
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="2">
                 <Button x:Name="SortFolderButton" Classes="files-folder" HorizontalContentAlignment="Stretch"
                         Flyout="{StaticResource SortFlyout}"
-                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SortFiles}}"
+                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SortFiles}}"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}">
                     <Grid ColumnDefinitions="13,*" ColumnSpacing="6">
                         <Path Classes="folder-ico" Width="13" Height="13" VerticalAlignment="Center"
@@ -416,7 +416,7 @@
                 </Button>
                 <Button Grid.Column="1" Classes="files-tool"
                         Flyout="{StaticResource SortFlyout}"
-                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.SortFiles}}"
+                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SortFiles}}"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}">
                     <Path Width="14" Height="14" Stretch="Uniform" Stroke="{x:Null}"
                           Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -424,7 +424,7 @@
                 </Button>
                 <ToggleButton Grid.Column="2" Classes="files-tool" IsChecked="{Binding IsTreeView, Mode=OneWay}"
                               Command="{Binding ToggleListView}"
-                              ToolTip.Tip="{i18n:I18n {x:Static l:VexL.ToggleTreeList}}"
+                              helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.ToggleTreeList}}"
                               AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ToggleTreeList}}">
                     <Panel>
                         <Path Classes="stroke-ico" Width="14" Height="14" StrokeThickness="1.6" IsVisible="{Binding IsTreeView}"

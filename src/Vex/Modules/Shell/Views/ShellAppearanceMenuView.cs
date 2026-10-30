@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using CodeWF.Avalonia.Controls.Helpers;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
@@ -167,16 +168,16 @@ public sealed class ShellAppearanceMenuView : UserControl
         AppearanceButton.MinHeight = 0; AppearanceButton.MinWidth = 0;
         AppearanceButton.Padding = new Thickness(7, 3); AppearanceButton.CornerRadius = new CornerRadius(4);
         AppearanceButton.Name = "TitleBarAppearanceButton";
-        ToolTip.SetTip(AppearanceButton, Text("Appearance"));
+        ToolTipHelper.SetText(AppearanceButton, Text("Appearance"));
         Avalonia.Automation.AutomationProperties.SetName(AppearanceButton, Text("Appearance"));
         // 原型 .studio-language summary：32×32 纯图标（i-globe 16px），无圆角，悬停 hover 底。
         LanguageButton = Button("", () => { });
         LanguageButton.Classes.Add("tb-glyph");
-        LanguageButton.Content = new Avalonia.Controls.Shapes.Path { Width = 16, Height = 16, Data = Geometry.Parse("M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M3 12h18 M12 3a15 15 0 0 1 0 18 M12 3a15 15 0 0 0 0 18") };
+        LanguageButton.Content = new Avalonia.Controls.Shapes.Path { Width = 18, Height = 18, Data = Geometry.Parse("M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M3 12h18 M12 3a15 15 0 0 1 0 18 M12 3a15 15 0 0 0 0 18") };
         LanguageButton.Width = 32; LanguageButton.Height = 32; LanguageButton.MinHeight = 0; LanguageButton.MinWidth = 0;
         LanguageButton.Padding = new Thickness(0); LanguageButton.CornerRadius = new CornerRadius(0);
         LanguageButton.Name = "TitleBarLanguageButton";
-        ToolTip.SetTip(LanguageButton, Text("TitleLanguage"));
+        ToolTipHelper.SetText(LanguageButton, Text("TitleLanguage"));
         Avalonia.Automation.AutomationProperties.SetName(LanguageButton, Text("TitleLanguage"));
         var densityRow = SegmentRow("Density_", (button, id) => _densityButtons[id] = button,
             (Text("DensityCompact"), () => _vm.SelectedDensity = "compact", "compact"),
@@ -291,10 +292,10 @@ public sealed class ShellAppearanceMenuView : UserControl
         {
             var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 0, 4, 0) };
             var edit = new Button { Classes = { "wb-quiet" }, Padding = new Thickness(4, 1), MinHeight = 22, FontSize = 12, Content = "✎" };
-            ToolTip.SetTip(edit, Text("EditCustomPalette"));
+            ToolTipHelper.SetText(edit, Text("EditCustomPalette"));
             edit.Click += (_, _) => OpenPaletteDialog(palette);
             var remove = new Button { Classes = { "wb-quiet" }, Padding = new Thickness(4, 1), MinHeight = 22, FontSize = 12, Content = "×" };
-            ToolTip.SetTip(remove, Text("DeleteCustomPalette"));
+            ToolTipHelper.SetText(remove, Text("DeleteCustomPalette"));
             remove.Click += (_, _) => _vm?.RemoveCustomPalette(paletteKey);
             tools.Children.Add(edit); tools.Children.Add(remove);
             root.Children.Add(tools);
@@ -330,7 +331,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         panel.Children.Add(dash); panel.Children.Add(content);
         var card = new Button { Classes = { "palette-add-card" }, Content = panel, Height = 92, VerticalAlignment = VerticalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Stretch, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "AddCustomPalette" };
         card.Click += (_, _) => OpenPaletteDialog(null);
-        ToolTip.SetTip(card, Text("AddCustomPalette"));
+        ToolTipHelper.SetText(card, Text("AddCustomPalette"));
         return card;
     }
 }

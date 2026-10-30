@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using CodeWF.Avalonia.Controls.Helpers;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -475,7 +476,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
         foreach (var hex in new[] { "#24766B", "#2E5851", "#3A6EA5", "#4C6FE8", "#7457E8", "#C2417B", "#B3261E", "#D96C2C", "#8A6D3B", "#5F5347", "#6B7280", "#374151", "#111111", "#E8E4DA", "#88B04B", "#2477A8" })
         {
             var item = new Button { Width = 22, Height = 22, Margin = new Thickness(2), CornerRadius = new CornerRadius(11), Padding = default, BorderThickness = new Thickness(0), Background = new SolidColorBrush(Color.Parse(hex)), Tag = hex };
-            ToolTip.SetTip(item, hex);
+            ToolTipHelper.SetText(item, hex);
             item.Click += (_, _) => preferences.WatermarkColor = hex;
             presets.Children.Add(item);
         }

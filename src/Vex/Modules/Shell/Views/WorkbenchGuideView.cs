@@ -1,3 +1,4 @@
+﻿using CodeWF.Avalonia.Controls.Helpers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -165,7 +166,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         _skipBottom.Content = _vm.SkipLabel;
         _skipBottom.IsVisible = _vm.SkipVisible;
         _counter.Text = _vm.CounterText;
-        ToolTip.SetTip(_skip, WorkbenchText.Get("GuideSkip"));
+        ToolTipHelper.SetText(_skip, WorkbenchText.Get("GuideSkip"));
         Avalonia.Automation.AutomationProperties.SetName(_skip, WorkbenchText.Get("GuideSkip"));
         _next.Classes.Add("primary");
         RefreshColors();

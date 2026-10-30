@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using CodeWF.Avalonia.Controls.Helpers;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
@@ -150,7 +151,7 @@ public sealed class WorkspaceViewController
     private static void NameSplit(GridSplitter splitter, string key)
     {
         var text = WorkbenchText.Get(key);
-        ToolTip.SetTip(splitter, text);
+        ToolTipHelper.SetText(splitter, text);
         Avalonia.Automation.AutomationProperties.SetName(splitter, text);
     }
     public WorkspaceViewController(MainWindow window, Grid surface, StackPanel shelf)
@@ -277,7 +278,7 @@ public sealed class WorkspaceViewController
             Grid.SetColumn(typography, 1); bar.Children.Add(typography);
             var pin = new ToggleButton { Classes = { "toolbar-pin" }, Padding = new Thickness(4, 2), Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right };
             pin.Content = BuildPinIcon(14);
-            ToolTip.SetTip(pin, WorkbenchText.Get("WBPinToolbar"));
+            ToolTipHelper.SetText(pin, WorkbenchText.Get("WBPinToolbar"));
             Avalonia.Automation.AutomationProperties.SetName(pin, WorkbenchText.Get("WBPinToolbar"));
             ReadingPin = pin;
             Grid.SetColumn(pin, 2); bar.Children.Add(pin);

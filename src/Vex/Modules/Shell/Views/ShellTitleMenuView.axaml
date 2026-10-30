@@ -1,7 +1,7 @@
-<UserControl
+﻿<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellTitleMenuView"
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
     xmlns:core="using:Vex.Core.Messaging"
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
@@ -20,11 +20,11 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuSamples}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="samples" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.QuickOpen}}" Command="{Binding QuickOpenAsync}" InputGesture="Ctrl+P" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenRecent}}" IsEnabled="{Binding Recent.HasRecentDocuments}">
-                <MenuItem Header="{Binding Recent.RecentDocument1Text}" Command="{Binding OpenRecentDocument1Async}" IsVisible="{Binding Recent.HasRecentDocument1}" ToolTip.Tip="{Binding Recent.RecentDocument1ToolTip}" />
-                <MenuItem Header="{Binding Recent.RecentDocument2Text}" Command="{Binding OpenRecentDocument2Async}" IsVisible="{Binding Recent.HasRecentDocument2}" ToolTip.Tip="{Binding Recent.RecentDocument2ToolTip}" />
-                <MenuItem Header="{Binding Recent.RecentDocument3Text}" Command="{Binding OpenRecentDocument3Async}" IsVisible="{Binding Recent.HasRecentDocument3}" ToolTip.Tip="{Binding Recent.RecentDocument3ToolTip}" />
-                <MenuItem Header="{Binding Recent.RecentDocument4Text}" Command="{Binding OpenRecentDocument4Async}" IsVisible="{Binding Recent.HasRecentDocument4}" ToolTip.Tip="{Binding Recent.RecentDocument4ToolTip}" />
-                <MenuItem Header="{Binding Recent.RecentDocument5Text}" Command="{Binding OpenRecentDocument5Async}" IsVisible="{Binding Recent.HasRecentDocument5}" ToolTip.Tip="{Binding Recent.RecentDocument5ToolTip}" />
+                <MenuItem Header="{Binding Recent.RecentDocument1Text}" Command="{Binding OpenRecentDocument1Async}" IsVisible="{Binding Recent.HasRecentDocument1}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument1ToolTip}" />
+                <MenuItem Header="{Binding Recent.RecentDocument2Text}" Command="{Binding OpenRecentDocument2Async}" IsVisible="{Binding Recent.HasRecentDocument2}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument2ToolTip}" />
+                <MenuItem Header="{Binding Recent.RecentDocument3Text}" Command="{Binding OpenRecentDocument3Async}" IsVisible="{Binding Recent.HasRecentDocument3}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument3ToolTip}" />
+                <MenuItem Header="{Binding Recent.RecentDocument4Text}" Command="{Binding OpenRecentDocument4Async}" IsVisible="{Binding Recent.HasRecentDocument4}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument4ToolTip}" />
+                <MenuItem Header="{Binding Recent.RecentDocument5Text}" Command="{Binding OpenRecentDocument5Async}" IsVisible="{Binding Recent.HasRecentDocument5}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument5ToolTip}" />
                 <Separator />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.ClearRecent}}" Command="{Binding Recent.ClearRecentDocuments}" />
             </MenuItem>

@@ -1,7 +1,7 @@
-<UserControl
+﻿<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellFindBarView"
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
     xmlns:behaviors="using:Vex.Core.Behaviors"
     xmlns:ac="https://codewf.com"
     xmlns:i18n="https://codewf.com"
@@ -167,21 +167,21 @@
                 Classes="opt-toggle find-action"
                 Content=".*"
                 IsChecked="{Binding IsRegex, Mode=TwoWay}"
-                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarRegex}}"
+                helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarRegex}}"
                 VerticalAlignment="Center" />
             <ToggleButton
                 Grid.Column="8"
                 Classes="opt-toggle find-action"
                 Content="Aa"
                 IsChecked="{Binding IsMatchCase, Mode=TwoWay}"
-                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarMatchCase}}"
+                helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarMatchCase}}"
                 VerticalAlignment="Center" />
             <ToggleButton
                 Grid.Column="9"
                 Classes="opt-toggle find-action"
                 Content="W"
                 IsChecked="{Binding IsWholeWord, Mode=TwoWay}"
-                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
+                helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
                 VerticalAlignment="Center" />
             <Button
                 Grid.Column="10"
@@ -189,7 +189,7 @@
                 Command="{Binding CloseFindPanel}"
                 Content="×"
                 FontSize="14"
-                ToolTip.Tip="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
+                helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
                 AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarClose}}" />
             </Grid>
         </Border>
