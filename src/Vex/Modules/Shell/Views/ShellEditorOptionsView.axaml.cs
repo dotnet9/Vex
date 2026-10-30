@@ -30,9 +30,13 @@ public partial class ShellEditorOptionsView : UserControl
             foreach (var child in SpanSizePanel.Children)
             {
                 if (child is Button { Tag: { } tag } button)
-                    button.BorderThickness = tag.ToString() == value?.Replace("px", string.Empty, StringComparison.Ordinal)
-                        ? new Avalonia.Thickness(2)
-                        : new Avalonia.Thickness(0);
+                {
+                    var selected = tag.ToString() == value?.Replace("px", string.Empty, StringComparison.Ordinal);
+                    button.BorderThickness = selected ? new Avalonia.Thickness(2) : new Avalonia.Thickness(0);
+                    button.BorderBrush = selected
+                        ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Colors.DodgerBlue)
+                        : null;
+                }
             }
         }
     }
