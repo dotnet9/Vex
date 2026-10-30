@@ -47,6 +47,7 @@ public static class EditorActionMapper
         EditorActionKind.SmartNewLine => MarkdownEditorAction.SmartNewLine,
         EditorActionKind.Indent => MarkdownEditorAction.Indent,
         EditorActionKind.Outdent => MarkdownEditorAction.Outdent,
+        EditorActionKind.ClearSpanStyles => MarkdownEditorAction.ClearSpanStyles,
         EditorActionKind.FocusEditor => MarkdownEditorAction.FocusEditor,
         _ => MarkdownEditorAction.FocusEditor
     };

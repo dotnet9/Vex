@@ -37,5 +37,6 @@ public enum EditorActionKind
     SmartNewLine,
     Indent,
     Outdent,
+    ClearSpanStyles,
     FocusEditor
 }

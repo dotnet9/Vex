@@ -68,6 +68,7 @@
             </Flyout>
           </Button.Flyout>
         </Button>
+        <Button x:Name="SpanClear" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearSpanStyles}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SpanClearStyles}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SpanClearStyles}}"><Viewbox Width="15" Height="15"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M4 7h16 M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2 M7 7l1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13"/></Canvas></Viewbox></Button>
       </u:ToolBar>
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
         <ToggleButton x:Name="PinEditor" Classes="toolbar-pin" IsChecked="{Binding Workbench.Preferences.PinEditorToolbar}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
