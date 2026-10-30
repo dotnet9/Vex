@@ -244,6 +244,13 @@
       if(action==='delete-selection'){if(context.start!==context.end)insert('',context);return;}
       if(action==='delete-block'){replaceBlock('');return;}
       if(action.startsWith('wrap-')){const marker={bold:'**',italic:'*',code:'`'}[action.slice(5)];if(context.start===context.end)return;const result=ops.wrap(context.working,context.start,context.end,marker);apply(result.text,result.end,context);return;}
+      /* 行内样式（选区浮动条入口）：span-属性:值；span-clear 剥掉选区内的 span 标签。源码模式回填选区，便于连加上一门样式。 */
+      if(action.startsWith('span-')){if(context.start===context.end)return;const spec=action.slice(5),at=spec.indexOf(':'),prop=at<0?'':spec.slice(0,at),value=at<0?'':spec.slice(at+1);
+        if(prop!=='clear'&&!['color','background-color','font-size'].includes(prop))return;
+        const result=prop==='clear'?ops.clearSpanStyle(context.working,context.start,context.end):ops.wrapSpan(context.working,context.start,context.end,prop,value);
+        apply(result.text,undefined,context);
+        if(context.sourceActive&&source.isConnected)source.setSelectionRange(Math.min(result.start,result.text.length),Math.min(result.end,result.text.length));
+        return;}
       if(action.startsWith('convert-')){const kind=action.slice(8);if(context.block.type==='list'){const lines=context.original.split('\n');lines[context.line-1]=ops.convert(lines[context.line-1],kind);apply(lines.join('\n'),undefined,context);}else replaceBlock(ops.convert(context.block.raw,kind));return;}
       if(['indent','outdent','toggle-task'].includes(action)){const lines=context.original.split('\n'),index=context.line-1;lines[index]=action==='indent'?'  '+lines[index]:action==='outdent'?lines[index].replace(/^ {1,2}|^\t/,''):lines[index].replace(/\[([ xX])\]/,(_,check)=>check===' '?'[x]':'[ ]');apply(lines.join('\n'),undefined,context);return;}
       if(action==='open-link'){const url=TexEditor.safeURL(context.token.url);if(url==='#'&&!context.token.url.startsWith('#')){options.toast('此链接地址不可打开');return;}if(url.startsWith('#')){let hash;try{hash=decodeURIComponent(url.slice(1));}catch{hash=url.slice(1);}const heading=TexEditor.parse(context.original).headings.find(item=>item.id===hash||item.title.toLowerCase().replace(/\s+/g,'-')===hash.toLowerCase()),target=document.getElementById(hash)||(heading&&options.findBlock(heading.line));if(target)target.scrollIntoView({block:'center',behavior:VexPreferences.values.motion?'smooth':'auto'});else options.toast('未找到此文档锚点');return;}window.open(url,'_blank','noopener,noreferrer');return;}

@@ -76,8 +76,9 @@
   }
   function mcpClientPane() {
     const endpoint = `http://127.0.0.1:${values.mcpPort}/mcp/`;
-    if (clientTab === 'http') return '<pre class="vex-code json" id="vex-client-config">' + jsonHighlight(JSON.stringify({mcpServers:{vex:{url:endpoint,headers:{Authorization:'Bearer ' + values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="copy-config">复制配置</button><button class="vex-button primary" data-mcp-action="test">测试连接</button></div><p id="vex-test-result" role="status"></p>';
-    return '<pre class="vex-code json">' + jsonHighlight(JSON.stringify({mcpServers:{vex:{command:'vex',args:['mcp','bridge','--endpoint',endpoint],env:{VEX_MCP_TOKEN:values.mcpToken}}}},null,2)) + '</pre><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="read">读取当前文档</button><button class="vex-button" data-mcp-action="write">请求修改文档</button></div><div id="vex-mcp-request"></div>';
+    /* 两个配置 JSON 套 StreamMark 式代码框架（语言标签 + 复制/下载/换行），「复制配置」按钮由代码块头部复制键接管。 */
+    if (clientTab === 'http') return '<div class="vex-code-frame" data-language="json"><pre class="vex-code json" id="vex-client-config">' + jsonHighlight(JSON.stringify({mcpServers:{vex:{url:endpoint,headers:{Authorization:'Bearer ' + values.mcpToken}}}},null,2)) + '</pre></div><div class="vex-mcp-actions"><button class="vex-button primary" data-mcp-action="test">测试连接</button></div><p id="vex-test-result" role="status"></p>';
+    return '<div class="vex-code-frame" data-language="json"><pre class="vex-code json">' + jsonHighlight(JSON.stringify({mcpServers:{vex:{command:'vex',args:['mcp','bridge','--endpoint',endpoint],env:{VEX_MCP_TOKEN:values.mcpToken}}}},null,2)) + '</pre></div><div class="vex-mcp-actions"><button class="vex-button" data-mcp-action="read">读取当前文档</button><button class="vex-button" data-mcp-action="write">请求修改文档</button></div><div id="vex-mcp-request"></div>';
   }
   function mcpBody() {
     const status = `<div class="vex-mcp-status" data-state="${mcpState}" role="status"><i></i><span>${esc(mcpMessage)}</span><small style="margin-left:auto;color:var(--muted)">原型演示</small></div>`;
@@ -93,6 +94,12 @@
     if (query.get('child') === '1') return '<p>文档窗口不运行 MCP 服务。</p>';
     return mcpTabsHtml() + '<div class="vex-mcp-body">' + mcpBody() + '</div>';
   }
+  /* 渲染后给配置 JSON 框架补 StreamMark 式头部（语言标签 + 复制/下载/换行）。 */
+  function mountCodeFrames(root) {
+    root?.querySelectorAll('.vex-code-frame:not(:has(.md-code-header))').forEach(function (frame) {
+      frame.prepend(VexCodeFence.header(frame.dataset.language || ''));
+    });
+  }
   function render(animate = false) {
     if (!host) return;
     host.querySelectorAll('[data-vex-section]').forEach(b => b.setAttribute('aria-selected',String(b.dataset.vexSection === section)));
@@ -101,6 +108,7 @@
     pane.setAttribute('aria-label',categories.find(c => c[0] === section)[1]);
     pane.removeAttribute('aria-labelledby');
     pane.innerHTML = content();
+    mountCodeFrames(pane);
     pane.scrollTop = 0;
     if (animate && motionFull()) pane.animate?.([{opacity:.4,translate:'0 5px'},{opacity:1,translate:'0 0'}],{duration:180,easing:'cubic-bezier(.2,.8,.2,1)'});
   }
@@ -143,7 +151,7 @@
           clientTab = sub.dataset.mcpSub;
           host.querySelectorAll('.vex-mcp-subtabs [data-mcp-sub]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mcpSub === clientTab)));
           const body = host.querySelector('.vex-mcp-subbody');
-          if (body) body.innerHTML = mcpClientPane();
+          if (body) { body.innerHTML = mcpClientPane(); mountCodeFrames(body); }
           return;
         }
         const t = event.target.closest('[data-mcp-tab]');
@@ -152,7 +160,7 @@
           tab = t.dataset.mcpTab;
           host.querySelectorAll('.vex-mcp-tabs [data-mcp-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mcpTab === tab)));
           const body = host.querySelector('.vex-mcp-body');
-          if (body) body.innerHTML = mcpBody();
+          if (body) { body.innerHTML = mcpBody(); mountCodeFrames(body); }
           return;
         }
         const action = event.target.closest('[data-mcp-action]'); if (action) mcpAction(action.dataset.mcpAction);
@@ -260,7 +268,6 @@
     if (adapter.mobile || query.get('child') === '1') return;
     if (action === 'reveal') { const input = host.querySelector('[data-mcp-field=mcpToken]'); input.type = input.type === 'password' ? 'text' : 'password'; host.querySelector('[data-mcp-action=reveal]').setAttribute('aria-pressed',String(input.type === 'text')); return; }
     if (action === 'token') { mcpDraft.mcpToken = 'vx_' + crypto.randomUUID().replaceAll('-',''); saveMcp(); render(); return; }
-    if (action === 'copy-config') { copy(host.querySelector('#vex-client-config').textContent); return; }
     if (action === 'test') {
       const output = host.querySelector('#vex-test-result'); output.textContent = '正在测试连接…';
       generation++; clearTimeout(testTimer); const revision = generation;

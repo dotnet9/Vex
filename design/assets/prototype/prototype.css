@@ -105,8 +105,11 @@ body.device-phone .mobile-more { width:44px; height:44px; }
 .file-row,.file-item,.outline-item { transition:background-color var(--vex-fast),color var(--vex-fast); }
 .md-code-footer { box-sizing:border-box; height:32px; min-height:32px; display:flex; align-items:center; justify-content:flex-end; padding:0 8px; margin:0 0 12px; opacity:0; visibility:hidden; pointer-events:none; transition:opacity var(--vex-fast); }
 .is-editing .md-code-footer { opacity:1; visibility:visible; pointer-events:auto; }
-.md-code-language { width:112px; max-width:100%; height:25px; padding:2px 7px; border:1px solid var(--control-border,var(--border)); border-radius:var(--vex-radius-pill); text-align:right; color:var(--muted); background:transparent; font:12px var(--mono,monospace); }
-.md-code-language:hover,.md-code-language:focus { border-color:var(--accent); color:var(--fg,var(--text)); }
+/* 语言标签即纯文字（StreamMark 式）：无背景无边框、左对齐，聚焦只变字色提示可编辑。 */
+.md-code-language { width:150px; max-width:45%; height:24px; padding:2px 0; border:0; text-align:left; color:var(--muted); background:transparent; font:12px/18px var(--mono,monospace); }
+.md-code-language::placeholder { color:var(--muted); }
+.md-code-language:hover,.md-code-language:focus { color:var(--fg,var(--text)); }
+.md-code-language:focus { outline:none; }
 .instant-block:has(>.md-code-block),.md-block:has(>pre) { padding-bottom:0; }
 .instant-block>.md-code-block pre,.md-block>pre { margin-bottom:0; }
 .diagram-editor { border:1px solid transparent; border-radius:var(--vex-radius-sm); margin:18px 0; overflow:hidden; background:transparent; }
@@ -280,7 +283,10 @@ body.device-phone .app-window .guide-card { width:310px; left:var(--vex-tour-lef
 .vex-mcp-status[data-state=running] i { background:var(--success,#2c9674); box-shadow:0 0 0 3px #2c967416; }
 .vex-mcp-status[data-state=error] { color:var(--danger,#bd4545); }
 .vex-mcp-status[data-state=starting] i { animation:vex-pulse 1s var(--vex-ease) infinite; }
-.vex-code { padding:16px; margin:14px 0; border:1px solid var(--border); border-radius:var(--vex-radius-xs); background:var(--code-bg,var(--bg)); color:inherit; white-space:pre-wrap; overflow-wrap:anywhere; font:12px/1.8 var(--mono,monospace); }
+/* MCP 配置 JSON 的 StreamMark 式框架：头部（语言标签+三键）+ 代码体。 */
+.vex-code-frame { margin:14px 0; border:1px solid var(--border); border-radius:var(--vex-radius-xs); background:var(--code-bg,var(--bg)); }
+.vex-code-frame .md-code-header { margin:0; padding:6px 10px 0; }
+.vex-code-frame .vex-code { margin:0; padding:12px 16px; border:0; border-radius:0; background:transparent; }
 /* JSON 高亮（.vex-code.json，MCP 客户端两段配置）：实现侧走 MarkdownViewer 的 TextMate 着色，
    它按代码块底色亮度挑 LightPlus / DarkPlus，所以这里跟 data-theme 走、不跟 accent 配色板走。
    取值为应用实测：light 键 #267f99 / 串 #a31515，dark 键 #4ec9b0 / 串 #ce9178。 */

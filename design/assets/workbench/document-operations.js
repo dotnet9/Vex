@@ -62,6 +62,65 @@
     }
     return { text: text.slice(0, start) + marker + text.slice(start, end) + marker + text.slice(end), start: start + marker.length, end: end + marker.length };
   }
+  /* <span style> 行内样式（字号/前景色/背景色）：选区被同款 span 包住时改写或解包，否则新包一层。 */
+  const SPAN_OPEN = /<span\s+style="([^"]*)"\s*>/;
+  function parseSpanStyle(raw) {
+    const style = {};
+    String(raw || '').split(';').forEach(decl => {
+      const at = decl.indexOf(':'); if (at < 0) return;
+      const prop = decl.slice(0, at).trim().toLowerCase(), value = decl.slice(at + 1).trim();
+      if (['color', 'background-color', 'font-size'].includes(prop) && value) style[prop] = value;
+    });
+    return style;
+  }
+  function serializeSpanStyle(style) {
+    return ['color', 'font-size', 'background-color'].filter(prop => style[prop]).map(prop => prop + ':' + style[prop]).join(';');
+  }
+  function wrapSpan(text, start, end, prop, value) {
+    if (start === end) return { text, start, end };
+    /* 只看紧贴选区左侧的开标签：取窗口里最近一个 '<span'，否则更早的 span 会干扰合并判定。 */
+    const window = text.slice(Math.max(0, start - 200), start);
+    const at = window.lastIndexOf('<span');
+    const open = at >= 0 ? SPAN_OPEN.exec(window.slice(at)) : null;
+    if (open && open.index === 0 && text.slice(end, end + 7) === '</span>') {
+      const at = start - open[0].length, style = parseSpanStyle(open[1]), inner = text.slice(start, end);
+      if (!style[prop]) {
+        style[prop] = value;
+        const openTag = '<span style="' + serializeSpanStyle(style) + '">';
+        return { text: text.slice(0, at) + openTag + inner + '</span>' + text.slice(end + 7), start: at + openTag.length, end: at + openTag.length + inner.length };
+      }
+      if (style[prop] === value) {
+        delete style[prop];
+        if (!Object.keys(style).length) return { text: text.slice(0, at) + inner + text.slice(end + 7), start: at, end: at + inner.length };
+        const openTag = '<span style="' + serializeSpanStyle(style) + '">';
+        return { text: text.slice(0, at) + openTag + inner + '</span>' + text.slice(end + 7), start: at + openTag.length, end: at + openTag.length + inner.length };
+      }
+      style[prop] = value;
+      const head = text.slice(0, at), openTag = '<span style="' + serializeSpanStyle(style) + '">';
+      return { text: head + openTag + inner + '</span>' + text.slice(end + 7), start: at + openTag.length, end: at + openTag.length + inner.length };
+    }
+    const openTag = '<span style="' + prop + ':' + value + '">';
+    return { text: text.slice(0, start) + openTag + text.slice(start, end) + '</span>' + text.slice(end), start: start + openTag.length, end: end + openTag.length };
+  }
+  function clearSpanStyle(text, start, end) {
+    const cuts = []; let match;
+    const tag = /<span\s+style="[^"]*"\s*>|<\/span\s*>/g;
+    while ((match = tag.exec(text))) if (match.index < end && match.index + match[0].length > start) cuts.push([match.index, match.index + match[0].length]);
+    if (!cuts.length) return { text, start, end };
+    const map = position => {
+      let delta = 0;
+      for (const [from, to] of cuts) {
+        if (position >= to) delta += to - from;
+        else if (position > from) return from - delta;
+        else break;
+      }
+      return position - delta;
+    };
+    let out = '', cursor = 0;
+    for (const [from, to] of cuts) { out += text.slice(cursor, from); cursor = to; }
+    out += text.slice(cursor);
+    return { text: out, start: Math.max(0, map(start)), end: Math.max(0, map(end)) };
+  }
   function convert(raw, kind) {
     const lines = raw.split('\n');
     if (lines.length === 2 && /^\s*(=+|-+)\s*$/.test(lines[1])) lines.pop();
@@ -76,5 +135,5 @@
   function fromDOM(node, inline) {
     return serialize({rows:[...node.rows].map(row=>[...row.cells].map(cell=>inline(cell).trim().replace(/\n/g,' ').replace(/(?<!\\)\|/g,'\\|'))),align:[...node.rows[0].cells].map(cell=>cell.dataset.align||cell.style.textAlign||'')});
   }
-  window.VexDocumentOps = {cells,table,serialize,canTable,changeTable,wrap,convert,inlineTokens,fromDOM};
+  window.VexDocumentOps = {cells,table,serialize,canTable,changeTable,wrap,wrapSpan,clearSpanStyle,convert,inlineTokens,fromDOM};
 })();

@@ -17,9 +17,34 @@
       return '<code class="md-render-error" data-markdown="' + VexEsc(raw) + '">' + VexEsc(source) + '</code>';
     }
   }
+  /* 行内 <span style>：只放行 color / background-color / font-size，其余属性丢弃（白名单外不渲染）。
+     开/闭标签分别占位、闭标签弹最近的栈——嵌套 span 按真实层级输出，多余的闭标签忽略、未闭合的开标签在结尾补齐。 */
+  function spanStyle(raw) {
+    var out = [];
+    String(raw || '').split(';').forEach(function (decl) {
+      var at = decl.indexOf(':'); if (at < 0) return;
+      var prop = decl.slice(0, at).trim().toLowerCase(), value = decl.slice(at + 1).trim();
+      if (prop === 'font-size') { if (/^\d{1,3}(?:\.\d+)?px$/.test(value)) out.push(prop + ':' + value); return; }
+      if ((prop === 'color' || prop === 'background-color') && /^(#[0-9a-fA-F]{3,8}|rgb\(\s*\d{1,3}\s*(?:,\s*\d{1,3}\s*){2}\)|[a-zA-Z]{3,24})$/.test(value)) out.push(prop + ':' + value);
+    });
+    return out.join(';');
+  }
   function inline(value) {
     var tokens = [];
-    var source = String(value).replace(/\[\^([^\]\n]+)\]/g, function (raw, label) {
+    var stack = [];
+    var source = String(value).replace(/<span\s+style="([^"]*)"\s*>|<\/span\s*>/gi, function (raw, style) {
+      if (style === undefined) { /* 闭标签：弹最近一个未闭合的开标签 */
+        if (!stack.length) return '';
+        stack.pop();
+        tokens.push('</span>');
+      } else {
+        var css = spanStyle(style);
+        if (!css) return ''; /* 白名单外：标签整个丢弃，内容照常排版 */
+        stack.push(true);
+        tokens.push('<span class="md-styled" style="' + VexEsc(css) + '">');
+      }
+      return '\u0001' + (tokens.length - 1) + '\u0002';
+    }).replace(/\[\^([^\]\n]+)\]/g, function (raw, label) {
       tokens.push('<a class="md-footnote-ref" id="vex-footnote-ref-' + encodeURIComponent(label) + '" href="#vex-footnote-' + encodeURIComponent(label) + '"><sup>[' + VexEsc(label) + ']</sup></a>');
       return '\u0001' + (tokens.length - 1) + '\u0002';
     }).replace(/`([^`]+)`|\$([^$\n]+)\$|(!?)\[([^\]]*)\]\(([^\s)]+)\)/g, function (raw, code, formula, image, label, url) {
@@ -35,8 +60,9 @@
     var html = VexEsc(source).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>').replace(/~~([^~]+)~~/g, '<del>$1</del>');
     if (window.VexPreferences?.values.highlight !== false) html = html.replace(/==([^=]+)==/g,'<mark>$1</mark>');
     if (window.VexPreferences?.values.subscript !== false) html = html.replace(/\^([^\s^]+)\^/g,'<sup>$1</sup>').replace(/(?<!~)~([^\s~]+)~(?!~)/g,'<sub>$1</sub>');
-    return html
-      .replace(/\u0001(\d+)\u0002/g, function (_, index) { return tokens[index]; });
+    var restored = html.replace(/\u0001(\d+)\u0002/g, function (_, index) { return tokens[index]; });
+    /* 未闭合的 span 一路包到段落末尾：补齐闭合标签，保持结构合法。 */
+    return stack.length ? restored + '</span>'.repeat(stack.length) : restored;
   }
   var serial = 0;
   function diagrams() {

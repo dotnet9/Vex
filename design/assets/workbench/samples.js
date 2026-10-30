@@ -4,13 +4,13 @@ window.VexSamples = [
     "name": "排版与写作.md",
     "treePath": "排版与写作.md",
     "path": "../docs/演示文档/排版与写作.md",
-    "text": "# 在文字之间，理清思路\n\n一篇文章，从一个想法开始。这里保留几份演示文档，试试**加粗**、*斜体*、~~删除线~~与 `行内代码`，也可以从左侧切换图文、公式和流程图。\n\n## 写作，让想法有迹可循\n\n先记下观察，再整理线索。标题帮助文章建立层级，段落让每一个观点都有呼吸的空间。\n\n> 好的工具，让注意力回到内容本身。\n\n### 今天的小计划\n\n- [x] 写下一个值得记录的想法\n- [x] 为文章梳理清晰的章节\n- [ ] 留一点时间，重新阅读\n\n## 用表格整理比较\n\n| 视图 | 适合做什么 | 操作 |\n| --- | --- | --- |\n| 即时渲染 | 边写边看排版 | 点击正文编辑 |\n| 源码 | 精确调整 Markdown | 直接修改语法 |\n| 导图 | 梳理文章的结构 | 双击节点改名 |\n\n## 一小段代码\n\n```csharp\nstring Greeting(string name) => $\"你好，{name}\";\nConsole.WriteLine(Greeting(\"维刻\"));\n```\n\n---\n\n继续阅读 [Markdown 指南](https://www.markdownguide.org/)，或打开左侧的其他演示文档。\n"
+    "text": "# 在文字之间，理清思路\n\n<span style=\"font-size:26px;color:#0064FA\">一</span>篇文章，从一个想法开始。这里保留几份演示文档，试试**加粗**、*斜体*、~~删除线~~与 `行内代码`，也可以从左侧切换图文、公式和流程图。\n\n## 写作，让想法有迹可循\n\n先记下观察，再整理线索。标题帮助文章建立层级，段落让每一个观点都有呼吸的空间。\n\n> 好的工具，让注意力回到内容本身。\n\n### 今天的小计划\n\n- [x] 写下一个值得记录的想法\n- [x] 为文章梳理清晰的章节\n- [ ] 留一点时间，重新阅读\n\n## 用表格整理比较\n\n| 视图 | 适合做什么 | 操作 |\n| --- | --- | --- |\n| 即时渲染 | 边写边看排版 | 点击正文编辑 |\n| 源码 | 精确调整 Markdown | 直接修改语法 |\n| 导图 | 梳理文章的结构 | 双击节点改名 |\n\n## 代码块\n\n代码块左上角显示语言类型，右上角提供下载、换行与复制三个按钮，正文带语法高亮。\n\n```python\n# 用递归算斐波那契，演示注释与字符串\ndef fib(n: int) -> int:\n    if n < 2:\n        return n\n    return fib(n - 1) + fib(n - 2)\n\nprint(f\"fib(10) = {fib(10)}\")\n```\n\n```javascript\n// 管道式数据处理，演示模板字符串与箭头函数\nconst words = [\"写作\", \"阅读\", \"梳理\"];\nconst slogan = words\n  .map((word, index) => `${index + 1}. ${word}`)\n  .join(\" → \");\nconsole.log(slogan);\n```\n\n```csharp\n// 异步统计非空行数，演示泛型与 await\npublic static async Task<int> CountAsync(IAsyncEnumerable<string> lines)\n{\n    var count = 0;\n    await foreach (var line in lines)\n    {\n        if (!string.IsNullOrWhiteSpace(line)) count++;\n    }\n    return count;\n}\n```\n\n```cpp\n// 快速幂取模，演示指针与模板之外的朴素写法\nlong long quickPow(long long base, long long exp, long long mod)\n{\n    long long result = 1;\n    while (exp > 0)\n    {\n        if (exp & 1) result = result * base % mod;\n        base = base * base % mod;\n        exp >>= 1;\n    }\n    return result;\n}\n```\n\n## 颜色与字号\n\n选中文本会弹出浮动工具条（顶部工具条也有字号与颜色按钮），直接调整字号、前景色与背景色（以行内 `<span style>` 落盘）：普通的<span style=\"color:#c92a2a\">红色文字</span>、<span style=\"background-color:#fff3bf\">浅黄底色</span>，也可以组合<span style=\"color:#1971c2;font-size:18px\">蓝色大字</span>与<span style=\"font-size:12px\">小号补充说明</span>。\n\n样式还能叠着用：<span style=\"background-color:#ecf7ec;color:#30953b\">绿底深绿的结论</span>、<span style=\"color:#d52515\">**红色加粗**</span>、<span style=\"color:#6a3ac7;font-size:20px;background-color:#f3edf9\">紫色大字垫浅紫底</span>，嵌在句中依旧随文排版。导出 HTML、PDF 与公众号复制同样保留这些效果。\n\n<span style=\"font-size: 86px\">想</span>法可以很大：选中任意文字，用浮动工具条或顶部工具条把首字放大到 86px，行高自动撑开，其余文字流畅接排。\n\n---\n\n继续阅读 [Markdown 指南](https://vex.codewf.com/guide/markdown)，或打开左侧的其他演示文档。\n"
   },
   {
     "name": "图文与链接.md",
     "treePath": "图文与链接.md",
     "path": "../docs/演示文档/图文与链接.md",
-    "text": "# 把风景写进文章\n\n图片保留直观印象，文字记录当时的想法。下面的插图随应用保存在本地，离线也能查看。\n\n![山间湖畔，日出照亮远山](../docs/演示文档/图片/山间湖畔.png)\n\n## 留下线索，也留下出处\n\n阅读 [Markdown 排版指南](https://www.markdownguide.org/basic-syntax/)，也可以浏览 [Vex 开源仓库](https://github.com/dotnet9/Vex)。\n\n> 写下眼前的景色，也写下它让你想起的事情。\n\n## 旅行备忘\n\n1. 清晨沿湖边散步\n2. 为喜欢的景色拍照\n3. 晚上把照片与文字整理成文\n\n**地点**：山间湖畔　 **天气**：晴，微风\n"
+    "text": "# 把风景写进文章\n\n图片保留直观印象，文字记录当时的想法。下面的插图随应用保存在本地，离线也能查看。\n\n![山间湖畔，日出照亮远山](../docs/演示文档/图片/山间湖畔.png)\n\n## 留下线索，也留下出处\n\n阅读 [Markdown 排版指南](https://vex.codewf.com/guide/markdown)，也可以浏览 [Vex 开源仓库](https://github.com/dotnet9/Vex)。\n\n> 写下眼前的景色，也写下它让你想起的事情。\n\n## 旅行备忘\n\n1. 清晨沿湖边散步\n2. 为喜欢的景色拍照\n3. 晚上把照片与文字整理成文\n\n**地点**：<span style=\"background-color:#ecf7ec\">山间湖畔</span>　 **天气**：<span style=\"color:#05a4b6\">晴，微风</span>\n"
   },
   {
     "name": "数学与化学.md",
@@ -34,6 +34,6 @@ window.VexSamples = [
     "name": "主题设计笔记.md",
     "treePath": "主题设计笔记.md",
     "path": "../docs/演示文档/主题设计笔记.md",
-    "text": "# 主题设计笔记\n\n让写作、阅读与结构梳理共享同一份 Markdown，切换视角时保留正在关注的内容。\n\n## 设计原则\n\n### 保持沉浸感\n\n把注意力留给内容。写作时保留必要工具，让文档占据更多空间。\n\n### 降低视觉噪音\n\n用层级、留白和少量强调色表达关系。\n\n## 主题色体系\n\n浅色与深色独立选择，十六套配色共用语义令牌。\n\n## 排版与字距\n\n正文以舒适阅读为先，标题层级清晰，段落之间留有呼吸。\n\n## 导出一致性\n\n> 同一份内容，在编辑、阅读与导出中保留清晰的结构。\n"
+    "text": "# 主题设计笔记\n\n<span style=\"font-size:24px;color:#6a3ac7\">让</span><span style=\"color:#0064fa\">写作</span>、阅读与结构梳理共享同一份 Markdown，切换视角时保留正在关注的内容。\n\n## 设计原则\n\n### 保持沉浸感\n\n把注意力留给内容。写作时保留必要工具，让文档占据更多空间。\n\n### 降低视觉噪音\n\n用层级、留白和少量强调色表达关系。\n\n## 主题色体系\n\n浅色与深色独立选择，十六套配色共用语义令牌。\n\n## 排版与字距\n\n正文以舒适阅读为先，标题层级清晰，段落之间留有呼吸。\n\n## 导出一致性\n\n> 同一份内容，在编辑、阅读与导出中保留清晰的结构。\n"
   }
 ];

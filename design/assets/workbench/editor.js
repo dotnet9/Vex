@@ -97,7 +97,8 @@
         const closing = new RegExp('^ {0,3}' + marker[0] + '{' + marker.length + ',}\\s*$');
         while (i < lines.length && !closing.test(lines[i])) i++;
         const code = lines.slice(start + 1, i).join('\n'); if (i < lines.length) i++;
-        add('code', start, i, language.toLowerCase() === 'mermaid' && window.VexRendering ? VexRendering.renderSpecial({kind:'code',language,text:code,line:start+1}) : `<pre data-language="${esc(language)}"><code>${esc(code)}</code></pre>`, { language }); continue;
+        const body = language.toLowerCase() === 'mermaid' && window.VexRendering ? VexRendering.renderSpecial({kind:'code',language,text:code,line:start+1}) : `<pre data-language="${esc(language)}"><code>${window.VexCodeFence ? VexCodeFence.highlight(code, language) : esc(code)}</code></pre>`;
+        add('code', start, i, body, { language }); continue;
       }
       if (/^\s*(---+|\*\*\*+)\s*$/.test(line)) { add('hr', i, ++i, '<hr>'); continue; }
       if (i + 1 < lines.length && line.includes('|') && /^\s*\|?\s*:?-{3,}/.test(lines[i + 1])) {
@@ -152,7 +153,7 @@
   function toMarkdown(node) {
     if (node.nodeType === Node.TEXT_NODE) return node.nodeValue.replace(/\u00a0/g,' ');
     if (node.nodeType !== Node.ELEMENT_NODE) return '';
-    if (node.classList.contains('md-code-footer')) return '';
+    if (node.classList.contains('md-code-footer') || node.classList.contains('md-code-header')) return '';
     if (node.dataset.markdown) return node.dataset.markdown;
     const tag = node.tagName.toLowerCase(), inner = () => [...node.childNodes].map(toMarkdown).join('');
     if (/^h[1-6]$/.test(tag)) return '#'.repeat(Number(tag[1])) + ' ' + inner() + '\n\n';
@@ -164,6 +165,7 @@
     if (tag === 'img') return `![${node.alt || ''}](${safeURL(node.getAttribute('src') || '', true)})`;
     if (tag === 'pre') return '```' + (node.dataset.language || '') + '\n' + node.textContent.replace(/\n$/,'') + '\n```\n\n';
     if (tag === 'code') return '`' + node.textContent + '`';
+    if (tag === 'span' && node.getAttribute('style')) return '<span style="' + node.getAttribute('style') + '">' + inner() + '</span>';
     if (tag === 'blockquote') return inner().trim().split('\n').map(x => '> ' + x).join('\n') + '\n\n';
     if (tag === 'ul' || tag === 'ol') return listMarkdown(node, 0) + '\n';
     if (tag === 'li') return listMarkdown(node.parentElement, 0);
@@ -190,7 +192,7 @@
         if (block.language.toLowerCase() === 'mermaid' && window.VexPreferences?.values.mermaid !== false) {
           const before = text.slice(0,block.start), after = text.slice(block.end);
           VexDiagramEditing.mount(el,block,{begin:clearActive,change:raw => options.onChange(before + raw + after,true),finish:repaint});
-        } else el.append(VexCodeFence.footer(block.language || ''));
+        } else el.prepend(VexCodeFence.header(block.language || ''));
       });
     };
     const begin = el => {

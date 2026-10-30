@@ -109,5 +109,7 @@
   --document-border: var(--vex-hairline);
   --document-code: var(--vex-code);
   --document-link: var(--vex-on);
-  --document-selection: var(--vex-selected);
+  /* 文档选区高亮：列表选中态的 --vex-selected 太浅，垫在纸面上几乎不可见；
+     用强调色 26% 混合让拖选清晰可见，随主题/明暗自适应。 */
+  --document-selection: color-mix(in srgb, var(--accent) 26%, transparent);
 }

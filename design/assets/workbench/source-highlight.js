@@ -3,7 +3,7 @@
   'use strict';
   const span = (kind, text) => text ? '<span class="sh-' + kind + '">' + VexEsc(text) + '</span>' : '';
   const wrap = (kind, html) => '<span class="sh-' + kind + '">' + html + '</span>';
-  const TOKEN = /(\*\*[^*\n]+\*\*|__[^_\n]+__|~~[^~\n]+~~|==[^=\n]+==|`[^`\n]+`|\*[^*\n]+\*|_[^_\n]+_|!?\[[^\]\n]*\](?:\([^)\n]*\))?|\[\^[^\]\n]*\])/g;
+  const TOKEN = /(<span[^>\n]*>|<\/span\s*>|\*\*[^*\n]+\*\*|__[^_\n]+__|~~[^~\n]+~~|==[^=\n]+==|`[^`\n]+`|\*[^*\n]+\*|_[^_\n]+_|!?\[[^\]\n]*\](?:\([^)\n]*\))?|\[\^[^\]\n]*\])/g;
   const PAIRS = [['strong', '**', '**'], ['strong', '__', '__'], ['strike', '~~', '~~'], ['mark', '==', '=='], ['code', '`', '`'], ['em', '*', '*'], ['em', '_', '_']];
   const LINK = /^(!?)\[([^\]\n]*)\](?:\(([^)\n]*)\))?$/;
 
@@ -14,14 +14,14 @@
     return token.endsWith(')') ? html + span('marker', '(') + span('url', parts[3] || '') + span('marker', ')') : html;
   }
 
-  // 行内标记：先试链接与脚注，再试成对符；未识别的字符原样输出。
+  // 行内标记：先试行内 span 标签与链接/脚注，再试成对符；未识别的字符原样输出。
   function inline(text) {
     let html = '', cursor = 0, match;
     TOKEN.lastIndex = 0;
     while ((match = TOKEN.exec(text))) {
       html += VexEsc(text.slice(cursor, match.index));
       const token = match[0];
-      if (/^\[\^/.test(token)) html += span('marker', token);
+      if (/^<span[^>]*>$|^<\/span\s*>$/i.test(token)) html += span('marker', token);
       else if (/^!?\[/.test(token)) html += link(token);
       else {
         const pair = PAIRS.find(item => token.startsWith(item[1]) && token.endsWith(item[2]) && token.length > item[1].length + item[2].length);

@@ -55,3 +55,42 @@
 @keyframes vex-element-sheet-in { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
 @media(max-width:600px) { .vex-element-dialog-layer { padding:10px; } .vex-element-dialog-body { padding:14px; } .vex-element-dialog header,.vex-element-dialog footer { padding:12px 14px; } }
 @media(prefers-reduced-motion:reduce) { .vex-element-layer * { animation:none!important; transition:none!important; } }
+
+/* 选区浮动条（selection-menu）：选中文本后在选区上方弹出的横向格式条，令牌与元素菜单同源。 */
+.vex-selection-layer { position:fixed; inset:0; z-index:1090; pointer-events:none; font:14px/1.5 var(--font,"Segoe UI","Microsoft YaHei UI",sans-serif); color:var(--fg); }
+.vex-selection-layer.vex-contained-overlay { position:absolute; }
+.vex-selection-bar { pointer-events:auto; position:absolute; display:flex; align-items:center; gap:1px; padding:3px; background:var(--surface,var(--panel)); border:1px solid var(--line,var(--border)); border-radius:var(--vex-radius-lg,var(--vex-radius-md)); box-shadow:var(--pop-shadow,var(--shadow-pop)); animation:vex-element-in var(--vex-fast) var(--vex-ease-enter); }
+.vex-selection-bar>button { display:grid; place-items:center; width:30px; height:30px; border:0; border-radius:var(--vex-radius-xs); background:transparent; color:inherit; font:inherit; cursor:pointer; }
+.vex-selection-bar>button:hover,.vex-selection-bar>button:focus-visible { background:var(--accent-soft); color:var(--accent); outline:none; }
+.vex-selection-icon { display:block; width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+.vex-selection-glyph { font-size:13px; font-weight:700; line-height:1; }
+.vex-selection-glyph.strike { text-decoration:line-through; }
+.vex-selection-glyph.fg { color:#1971c2; text-decoration:underline; text-underline-offset:2px; }
+.vex-selection-glyph.bg { background:#fff3bf; border-radius:3px; padding:1px 3px; }
+.vex-selection-bar button:has(.vex-selection-glyph) { width:auto; min-width:30px; padding:0 5px; gap:2px; display:flex; align-items:center; }
+.vex-selection-rule { width:1px; height:18px; background:var(--line,var(--border)); margin:0 3px; }
+.vex-selection-flyout { pointer-events:auto; position:absolute; top:calc(100% + 6px); min-width:150px; padding:8px; display:grid; grid-template-columns:repeat(6,26px); gap:5px; background:var(--surface,var(--panel)); border:1px solid var(--line,var(--border)); border-radius:var(--vex-radius-md); box-shadow:var(--pop-shadow,var(--shadow-pop)); animation:vex-element-in var(--vex-fast) var(--vex-ease-enter); }
+.vex-selection-flyout:has(.vex-selection-size) { grid-template-columns:repeat(6,32px); }
+.vex-selection-swatch { width:26px; height:26px; border:1px solid var(--line,var(--border)); border-radius:var(--vex-radius-xs); cursor:pointer; padding:0; }
+.vex-selection-swatch:hover,.vex-selection-swatch:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+.vex-selection-size { width:32px; height:26px; border:0; border-radius:var(--vex-radius-xs); background:transparent; color:inherit; font:inherit; font-size:12px; cursor:pointer; }
+.vex-selection-size:hover,.vex-selection-size:focus-visible { background:var(--accent-soft); color:var(--accent); outline:none; }
+
+/* 行内样式面板（Semi 风格色板）：浮动条与快捷工具条共用，浅档给背景、深档给文字。 */
+.vex-span-panel { pointer-events:auto; position:absolute; display:flex; flex-direction:column; gap:7px; padding:10px; min-width:170px; background:var(--surface,var(--panel)); border:1px solid var(--line,var(--border)); border-radius:var(--vex-radius-md); box-shadow:var(--pop-shadow,var(--shadow-pop)); animation:vex-element-in var(--vex-fast) var(--vex-ease-enter); }
+.vex-span-title { font-size:12px; color:var(--muted); }
+.vex-span-grid { display:grid; grid-template-columns:repeat(9,22px); gap:5px; }
+.vex-span-grid.sizes { grid-template-columns:repeat(6,30px); }
+.vex-span-swatch { width:22px; height:22px; padding:0; border:1px solid var(--line,var(--border)); border-radius:5px; cursor:pointer; }
+.vex-span-swatch:hover,.vex-span-swatch:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+.vex-span-size { width:30px; height:26px; border:0; border-radius:var(--vex-radius-xs); background:transparent; color:inherit; font:inherit; font-size:12px; cursor:pointer; }
+.vex-span-size:hover,.vex-span-size:focus-visible { background:var(--accent-soft); color:var(--accent); outline:none; }
+.vex-span-clear { border:1px solid var(--line,var(--border)); border-radius:var(--vex-radius-xs); background:transparent; color:var(--muted); font:inherit; font-size:12px; padding:5px 8px; cursor:pointer; text-align:left; }
+.vex-span-clear:hover,.vex-span-clear:focus-visible { color:var(--danger); border-color:var(--danger); background:var(--danger-soft); outline:none; }
+
+/* 快捷工具条上的行内样式按钮：A 字符号 + 下拉箭头。 */
+.format-button .span-glyph { font-size:13px; font-weight:700; line-height:1; }
+.format-button .span-glyph.fg { color:#0064FA; text-decoration:underline; text-underline-offset:2px; }
+.format-button .span-glyph.bg { background:#FFF3BF; border-radius:3px; padding:1px 3px; }
+.format-button .span-chevron { width:10px; height:10px; }
+.format-button.span-tool { display:inline-flex; align-items:center; gap:2px; width:auto; padding:0 6px; }

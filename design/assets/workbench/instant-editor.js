@@ -20,6 +20,7 @@
       if (tag === 'EM' || tag === 'I') return '*' + value + '*';
       if (tag === 'DEL' || tag === 'S') return '~~' + value + '~~';
       if (tag === 'CODE') return '`' + text(node) + '`';
+      if (tag === 'SPAN' && node.getAttribute('style')) return '<span style="' + node.getAttribute('style') + '">' + value + '</span>';
       if (tag === 'A') return '[' + value + '](' + node.getAttribute('href') + ')';
       if (tag === 'IMG') return '![' + (node.getAttribute('alt') || '') + '](' + node.getAttribute('src') + ')';
       return value;
@@ -122,7 +123,10 @@
           element.contentEditable = 'false';
           var pre = element.querySelector('pre'); pre.contentEditable = 'plaintext-only'; pre.tabIndex = 0;
           pre.setAttribute('role', 'textbox'); pre.setAttribute('aria-label', '代码正文'); pre.setAttribute('aria-multiline', 'true');
-          element.append(VexCodeFence.footer(block.language || ''));
+          /* 头部放进带底色的代码容器（.md-code-block），挂到外层块上会浮在框外（MCP 配置同理）。 */
+          var codeBox = element.querySelector('.md-code-block') || element;
+          codeBox.querySelectorAll('.md-code-header').forEach(function (existing) { existing.remove(); });
+          codeBox.prepend(VexCodeFence.header(block.language || ''));
         }
         if (options.input.readOnly) { element.contentEditable = 'false'; element.querySelectorAll('[contenteditable]').forEach(function (node) { node.contentEditable = 'false'; }); }
         host.appendChild(element);

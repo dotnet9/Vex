@@ -93,14 +93,27 @@
 .content-area .md-body h3 { font-size: 17px; }
 
 /* 代码正文保持安静；语言输入只在即时编辑块下方出现。 */
-.md-code-block { margin: 8px 0 12px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--vex-radius-2xs); background: var(--code-bg); }
-.content-area .md-body .md-code-block pre { margin: 0; padding: 0; border: none; border-radius: 0; overflow-x: auto; background: transparent; outline: none; min-height: 22px; color: var(--fg); font: 14px/22px "Cascadia Code", Consolas, monospace; }
-.content-area .md-body .md-code-block pre code { display: block; min-height: 22px; padding: 0; color: var(--fg); background: transparent; outline: none; font: 14px/22px "Cascadia Code", Consolas, monospace; }
-.md-code-footer { display: flex; justify-content: flex-end; margin: -8px 0 12px; }
-.md-code-language { box-sizing: border-box; width: 180px; max-width: 100%; height:28px; padding: 3px 8px; border:1px solid var(--control-border); border-radius: var(--vex-radius-pill); color: var(--fg); background: transparent; text-align: center; font: 12px/18px "Cascadia Code", Consolas, monospace; }
+/* 代码块：StreamMark 式头部——左上语言标签（可编辑），右上下载/换行/复制三键。 */
+.md-code-block { margin: 8px 0 12px; padding: 8px 12px 10px; border: 1px solid var(--border); border-radius: var(--vex-radius-2xs); background: var(--code-bg); }
+.md-code-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 6px; }
+.md-code-language { box-sizing: border-box; width: 150px; max-width: 45%; height: 24px; padding: 2px 0; border: 0; text-align: left; color: var(--muted); background: transparent; font: 12px/18px "Cascadia Code", Consolas, monospace; }
 .md-code-language::placeholder { color: var(--muted); }
-.md-code-language:focus { outline: none; border-color: var(--accent); }
-:root[data-compact="true"] .content-area .md-body .md-code-block pre code { font-size: 13px; line-height: 20px; }
+.md-code-language:hover,.md-code-language:focus { color: var(--fg); }
+.md-code-language:focus { outline: none; }
+.md-code-tools { display: flex; gap: 2px; flex-shrink: 0; }
+.md-code-tool { width: 26px; height: 24px; padding: 0; border: 0; border-radius: var(--vex-radius-2xs, 4px); background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.md-code-tool:hover,.md-code-tool:focus-visible { color: var(--accent); background: var(--accent-soft); outline: none; }
+.md-code-tool-icon { width: 14px; height: 14px; }
+.content-area .md-body .md-code-block pre,.content-area .md-body .md-block pre { margin: 0; padding: 0; border: none; border-radius: 0; overflow-x: auto; background: transparent; outline: none; min-height: 22px; color: var(--fg); font: 14px/22px "Cascadia Code", Consolas, monospace; }
+.content-area .md-body .md-code-block pre code,.content-area .md-body .md-block pre code { display: block; min-height: 22px; padding: 0; color: var(--fg); background: transparent; outline: none; font: 14px/22px "Cascadia Code", Consolas, monospace; }
+.md-block.code-wrap pre,.md-block.code-wrap pre code,.md-code-block.code-wrap pre,.md-code-block.code-wrap pre code { white-space: pre-wrap; overflow-wrap: anywhere; overflow-x: hidden; }
+/* 轻量语法高亮：五类令牌全部走主题令牌，明暗配色自适应。 */
+.md-block .ch-kw,.md-code-block .ch-kw { color: var(--accent); }
+.md-block .ch-str,.md-code-block .ch-str { color: var(--success); }
+.md-block .ch-num,.md-code-block .ch-num { color: var(--warning); }
+.md-block .ch-com,.md-code-block .ch-com { color: var(--muted); font-style: italic; }
+.md-block .ch-type,.md-code-block .ch-type { color: var(--info); }
+:root[data-compact="true"] .content-area .md-body .md-code-block pre code,.content-area .md-body .md-block pre code { font-size: 13px; line-height: 20px; }
 
 .format-toolbar { display:flex; align-items:center; gap:2px; min-width:0; margin-left:4px; }
 .format-button { width:28px; height:28px; display:grid; place-items:center; padding:5px; border:0; border-radius:var(--vex-radius-xs); background:transparent; color:var(--fg); cursor:pointer; font-size:11px; }

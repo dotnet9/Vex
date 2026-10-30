@@ -482,7 +482,7 @@
       }
       else if (block.kind === 'heading') html += '<h' + block.level + ' id="heading-' + (block.line - 1) + '"' + attr + '>' + inline(block.raw.split('\n')[0].replace(/^ {0,3}#{1,6}\s+/, '').replace(/\s+#+\s*$/, '')) + '</h' + block.level + '>';
       else if (block.kind === 'code') {
-        html += '<section class="md-code-block"' + attr + '><pre><code>' + VexEsc(block.text) + '</code></pre></section>';
+        html += '<section class="md-code-block"' + attr + '><pre data-language="' + VexEsc(block.language || '') + '"><code>' + VexCodeFence.highlight(block.text, block.language) + '</code></pre></section>';
       }
       else if (block.kind === 'callout') html += block.html;
       else if (block.kind === 'footnote') html += block.html;
@@ -505,6 +505,11 @@
       blockIndex++;
     }
     $('markdown-preview').innerHTML = html || '<p class="empty-state">输入 Markdown，开始写作。</p>';
+    /* 阅读预览的代码块补 StreamMark 式头部（语言标签 + 下载/换行/复制三键）。 */
+    $('markdown-preview').querySelectorAll('.md-code-block:not(:has(.md-code-header))').forEach(function (section) {
+      var language = section.querySelector('pre')?.dataset.language || '';
+      section.prepend(VexCodeFence.header(language));
+    });
   }
   var activeOutlineLine = 1, activeDocumentLine = 1, outlineSyncFrame = 0;
   function activateOutlineAtLine(line, ensureVisible) {
@@ -1755,6 +1760,10 @@
     focus:function (line,sourceActive) { if(sourceActive)input.focus({preventScroll:true}); else document.querySelector('#instant-content [data-line="' + line + '"]')?.closest('.instant-block')?.focus({preventScroll:true}); },
     editSource:function (line) { VexWorkspace.locateEditor(line); }
   });
+  /* 选区浮动条：即时编辑与源码选中文本时弹出（字号/前景色/背景色复用元素菜单的 wrap/apply 管线）。 */
+  var selectionMenu = VexSelectionMenu.mount({ source: input, menu: elementMenu, toast: VexProto.toast });
+  /* 快捷工具条的字号/文字颜色/背景颜色三键：与选区浮动条共用动作与面板。 */
+  selectionMenu.attachToolbar($('format-toolbar'));
   var launchIntent = new URLSearchParams(location.search).get('intent');
   if (launchIntent === 'open-file' || launchIntent === 'open-folder') {
     setTimeout(function () {
