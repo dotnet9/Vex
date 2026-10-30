@@ -32,6 +32,25 @@
   const svg = name => `<svg class="vex-selection-icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const symbol = item => item.icon ? svg(item.icon) : `<span class="vex-selection-glyph${item.strike ? ' strike' : ''}">${item.label}</span>`;
 
+  /* HSV ↔ Hex：Semi ColorPicker 式选色器用（明度/饱和度方块 + 色相条）。 */
+  function hsvToHex(h, s, v) {
+    const f = n => { const k = (n + h / 60) % 6; return Math.round(255 * (v - v * s * Math.max(0, Math.min(k, 4 - k, 1)))); };
+    return '#' + [f(5), f(3), f(1)].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+  }
+  function hexToHsv(hex) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+    if (!m) return null;
+    const n = parseInt(m[1], 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+    let h = 0;
+    if (d > 0) {
+      if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+      else if (max === g) h = ((b - r) / d + 2) * 60;
+      else h = ((r - g) / d + 4) * 60;
+    }
+    return { h, s: max === 0 ? 0 : d / max, v: max };
+  }
+
   function mount(options) {
     const source = options.source, menu = options.menu;
     let layer = null, bar = null, panel = null, panelOwner = null, panelLayer = null, lastPoint = null, raf = 0;
@@ -79,10 +98,47 @@
       panel.style.left = Math.round(left) + 'px';
       panel.style.top = Math.round(top) + 'px';
     }
+    /* 颜色面板打开时的选区快照：滑条/方块交互会清掉浏览器选区，应用前恢复。 */
+    let panelSelection = null;
+    function captureSelection() {
+      const current = context();
+      if (!current) { panelSelection = null; return; }
+      if (current.dom) {
+        const selection = getSelection();
+        panelSelection = { dom: true, range: selection.rangeCount ? selection.getRangeAt(0).cloneRange() : null };
+      } else {
+        panelSelection = { dom: false, start: source.selectionStart, end: source.selectionEnd };
+      }
+    }
+    function restoreSelection() {
+      if (!panelSelection) return;
+      if (panelSelection.dom) {
+        if (panelSelection.range) { const s = getSelection(); s.removeAllRanges(); s.addRange(panelSelection.range); }
+      } else {
+        source.focus({ preventScroll: true });
+        source.setSelectionRange(panelSelection.start, panelSelection.end);
+      }
+    }
+    /* 从选区所在 span 读当前属性值，作为选色器初始值。 */
+    function currentSpanValue(prop) {
+      const current = context();
+      if (!current) return null;
+      const snap = menu.capture(current.target);
+      if (!snap || snap.start === snap.end) return null;
+      const window = snap.working.slice(Math.max(0, snap.start - 200), snap.start);
+      const at = window.lastIndexOf('<span');
+      if (at < 0) return null;
+      const open = /<span\s+style="([^"]*)"\s*>/i.exec(window.slice(at));
+      if (!open || open.index !== 0) return null;
+      const style = {};
+      open[1].split(';').forEach(decl => { const i = decl.indexOf(':'); if (i > 0) style[decl.slice(0, i).trim().toLowerCase()] = decl.slice(i + 1).trim(); });
+      return style[prop] || null;
+    }
     function openPanel(kind, anchor) {
       if (panel && panelOwner === anchor) { closePanel(); return; }
       closePanel();
       panelOwner = anchor;
+      if (kind === 'fg' || kind === 'bg') captureSelection();
       panel = buildPanel(kind);
       let host;
       if (layer && !layer.hidden) host = layer;
@@ -100,7 +156,7 @@
     }
     function buildPanel(kind) {
       const wrap = document.createElement('div');
-      wrap.className = 'vex-span-panel';
+      wrap.className = 'vex-span-panel' + (kind === 'fg' || kind === 'bg' ? ' color' : '');
       const title = document.createElement('div');
       title.className = 'vex-span-title';
       title.textContent = kind === 'fg' ? '文字颜色' : kind === 'bg' ? '背景颜色' : '字号';
@@ -117,28 +173,99 @@
         });
         wrap.append(grid);
       } else {
-        const shades = kind === 'fg' ? FG_SHADES : BG_SHADES;
-        const grid = document.createElement('div');
-        grid.className = 'vex-span-grid';
-        SEMI_HUES.forEach(([name, hexes]) => shades.forEach(shade => {
-          const hex = '#' + hexes[shade];
-          const swatch = document.createElement('button');
-          swatch.type = 'button'; swatch.className = 'vex-span-swatch';
-          swatch.style.background = hex;
-          swatch.title = name + ' ' + hex; swatch.setAttribute('aria-label', name + ' ' + hex);
-          swatch.onclick = () => run((kind === 'fg' ? 'span-color:' : 'span-background-color:') + hex);
-          grid.append(swatch);
-        }));
-        wrap.append(grid);
+        wrap.append(buildColorPicker(kind));
       }
       const clear = document.createElement('button');
       clear.type = 'button'; clear.className = 'vex-span-clear';
       clear.textContent = '清除全部样式'; clear.title = '剥掉选区的行内样式标签';
       clear.onclick = () => run('span-clear');
       wrap.append(clear);
-      /* 面板挂在层上（不在条内），必须自行拦掉 mousedown 默认行为，否则按下色块的瞬间浏览器清空选区。 */
-      wrap.addEventListener('mousedown', event => event.preventDefault());
+      /* 拦掉面板上的 mousedown 默认行为保住文本选区；滑条/输入框除外（需要焦点与拖拽）。 */
+      wrap.addEventListener('mousedown', event => { if (!event.target.closest('input')) event.preventDefault(); });
       return wrap;
+    }
+
+    /* Semi ColorPicker 式选色器：明度/饱和度方块 + 色相条 + Hex 输入 + Semi 色板快捷块。 */
+    function buildColorPicker(kind) {
+      const prop = kind === 'fg' ? 'color' : 'background-color';
+      const actionPrefix = kind === 'fg' ? 'span-set-color:' : 'span-set-background-color:';
+      const swatchPrefix = kind === 'fg' ? 'span-color:' : 'span-background-color:';
+      const box = document.createElement('div');
+      box.className = 'vex-cp';
+
+      const initial = hexToHsv(currentSpanValue(prop) || (kind === 'fg' ? '#0064FA' : '#FFF3BF')) || { h: 210, s: 1, v: 0.98 };
+      let hue = initial.h;
+
+      const sv = document.createElement('div');
+      sv.className = 'vex-cp-sv';
+      const dot = document.createElement('i');
+      dot.className = 'vex-cp-dot';
+      sv.append(dot);
+      const paint = () => { sv.style.background = `linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, hsl(${hue},100%,50%))`; };
+      paint();
+      let sat = initial.s, val = initial.v;
+      const syncDot = () => { dot.style.left = (sat * 100) + '%'; dot.style.top = ((1 - val) * 100) + '%'; };
+      syncDot();
+
+      const preview = document.createElement('span');
+      preview.className = 'vex-cp-preview';
+      const hexInput = document.createElement('input');
+      hexInput.className = 'vex-cp-hex'; hexInput.spellcheck = false;
+      hexInput.setAttribute('aria-label', kind === 'fg' ? '文字颜色值' : '背景颜色值');
+      const currentHex = () => hsvToHex(hue, sat, val);
+      const syncPreview = () => { const hex = currentHex(); preview.style.background = hex; hexInput.value = hex; };
+      syncPreview();
+
+      const apply = () => { restoreSelection(); run(actionPrefix + currentHex()); };
+      sv.addEventListener('pointerdown', event => {
+        sv.setPointerCapture(event.pointerId);
+        const move = pointerEvent => {
+          const rect = sv.getBoundingClientRect();
+          sat = Math.min(1, Math.max(0, (pointerEvent.clientX - rect.left) / rect.width));
+          val = Math.min(1, Math.max(0, 1 - (pointerEvent.clientY - rect.top) / rect.height));
+          syncDot(); syncPreview();
+        };
+        move(event);
+        sv.addEventListener('pointermove', move);
+        sv.addEventListener('pointerup', () => { sv.removeEventListener('pointermove', move); apply(); }, { once: true });
+      });
+
+      const hueSlider = document.createElement('input');
+      hueSlider.type = 'range'; hueSlider.className = 'vex-cp-hue';
+      hueSlider.min = 0; hueSlider.max = 360; hueSlider.step = 1; hueSlider.value = Math.round(hue);
+      hueSlider.setAttribute('aria-label', '色相');
+      hueSlider.addEventListener('input', () => { hue = Number(hueSlider.value); paint(); syncPreview(); });
+      hueSlider.addEventListener('change', apply);
+
+      hexInput.addEventListener('change', () => {
+        const parsed = hexToHsv(hexInput.value);
+        if (!parsed) { syncPreview(); return; }
+        hue = parsed.h; sat = parsed.s; val = parsed.v;
+        hueSlider.value = Math.round(hue);
+        paint(); syncDot(); syncPreview(); apply();
+      });
+
+      const row = document.createElement('div');
+      row.className = 'vex-cp-row';
+      row.append(preview, hexInput);
+
+      const grid = document.createElement('div');
+      grid.className = 'vex-span-grid';
+      SEMI_HUES.forEach(([name, hexes]) => {
+        const shades = kind === 'fg' ? FG_SHADES : BG_SHADES;
+        shades.forEach(shade => {
+          const hex = '#' + hexes[shade];
+          const swatch = document.createElement('button');
+          swatch.type = 'button'; swatch.className = 'vex-span-swatch';
+          swatch.style.background = hex;
+          swatch.title = name + ' ' + hex; swatch.setAttribute('aria-label', name + ' ' + hex);
+          swatch.onclick = () => run(swatchPrefix + hex);
+          grid.append(swatch);
+        });
+      });
+
+      box.append(sv, hueSlider, row, grid);
+      return box;
     }
 
     function place(x, y) {
@@ -164,6 +291,9 @@
     function sync() {
       const current = context();
       if (!current) { hide(); return; }
+      /* 面板打开期间不动条与面板：焦点/选区的细微变化（如按钮取焦引发 selectionchange）
+         会让 show() 里的 closePanel 误关刚打开的选色器。 */
+      if (panel) return;
       show(current);
     }
     function schedule() { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; sync(); }); }

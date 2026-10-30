@@ -76,28 +76,25 @@
   function serializeSpanStyle(style) {
     return ['color', 'font-size', 'background-color'].filter(prop => style[prop]).map(prop => prop + ':' + style[prop]).join(';');
   }
-  function wrapSpan(text, start, end, prop, value) {
+  function wrapSpan(text, start, end, prop, value, toggle = true) {
     if (start === end) return { text, start, end };
     /* 只看紧贴选区左侧的开标签：取窗口里最近一个 '<span'，否则更早的 span 会干扰合并判定。 */
     const window = text.slice(Math.max(0, start - 200), start);
     const at = window.lastIndexOf('<span');
     const open = at >= 0 ? SPAN_OPEN.exec(window.slice(at)) : null;
     if (open && open.index === 0 && text.slice(end, end + 7) === '</span>') {
-      const at = start - open[0].length, style = parseSpanStyle(open[1]), inner = text.slice(start, end);
-      if (!style[prop]) {
+      const absolute = Math.max(0, start - 200) + at, style = parseSpanStyle(open[1]), inner = text.slice(start, end);
+      const current = style[prop];
+      if (!current || current.toLowerCase() !== value.toLowerCase()) {
         style[prop] = value;
         const openTag = '<span style="' + serializeSpanStyle(style) + '">';
-        return { text: text.slice(0, at) + openTag + inner + '</span>' + text.slice(end + 7), start: at + openTag.length, end: at + openTag.length + inner.length };
+        return { text: text.slice(0, absolute) + openTag + inner + '</span>' + text.slice(end + 7), start: absolute + openTag.length, end: absolute + openTag.length + inner.length };
       }
-      if (style[prop] === value) {
-        delete style[prop];
-        if (!Object.keys(style).length) return { text: text.slice(0, at) + inner + text.slice(end + 7), start: at, end: at + inner.length };
-        const openTag = '<span style="' + serializeSpanStyle(style) + '">';
-        return { text: text.slice(0, at) + openTag + inner + '</span>' + text.slice(end + 7), start: at + openTag.length, end: at + openTag.length + inner.length };
-      }
-      style[prop] = value;
-      const head = text.slice(0, at), openTag = '<span style="' + serializeSpanStyle(style) + '">';
-      return { text: head + openTag + inner + '</span>' + text.slice(end + 7), start: at + openTag.length, end: at + openTag.length + inner.length };
+      if (!toggle) return { text, start, end }; /* 选色器设同值：无操作，保住选区 */
+      delete style[prop];
+      if (!Object.keys(style).length) return { text: text.slice(0, absolute) + inner + text.slice(end + 7), start: absolute, end: absolute + inner.length };
+      const openTag = '<span style="' + serializeSpanStyle(style) + '">';
+      return { text: text.slice(0, absolute) + openTag + inner + '</span>' + text.slice(end + 7), start: absolute + openTag.length, end: absolute + openTag.length + inner.length };
     }
     const openTag = '<span style="' + prop + ':' + value + '">';
     return { text: text.slice(0, start) + openTag + text.slice(start, end) + '</span>' + text.slice(end), start: start + openTag.length, end: end + openTag.length };

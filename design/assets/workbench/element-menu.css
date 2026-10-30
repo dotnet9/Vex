@@ -88,6 +88,18 @@
 .vex-span-clear { border:1px solid var(--line,var(--border)); border-radius:var(--vex-radius-xs); background:transparent; color:var(--muted); font:inherit; font-size:12px; padding:5px 8px; cursor:pointer; text-align:left; }
 .vex-span-clear:hover,.vex-span-clear:focus-visible { color:var(--danger); border-color:var(--danger); background:var(--danger-soft); outline:none; }
 
+/* Semi ColorPicker 式选色器：SV 方块 + 色相条 + Hex 行 + 快捷色板。 */
+.vex-span-panel.color { width:236px; }
+.vex-cp { display:flex; flex-direction:column; gap:8px; }
+.vex-cp-sv { position:relative; height:132px; border-radius:6px; cursor:crosshair; background:linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,#0ff); }
+.vex-cp-dot { position:absolute; width:12px; height:12px; border:2px solid #fff; border-radius:50%; box-shadow:0 0 3px #00000066; transform:translate(-50%,-50%); pointer-events:none; }
+.vex-cp-hue { -webkit-appearance:none; appearance:none; width:100%; height:10px; border-radius:5px; outline:none; background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00); cursor:pointer; }
+.vex-cp-hue::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#fff; border:2px solid var(--accent,var(--primary,#4338CA)); box-shadow:0 1px 3px #0004; }
+.vex-cp-row { display:flex; gap:8px; align-items:center; }
+.vex-cp-preview { width:30px; height:24px; border-radius:5px; border:1px solid var(--line,var(--border)); flex-shrink:0; }
+.vex-cp-hex { flex:1; min-width:0; font:12px/1.6 Consolas,monospace; padding:5px 9px; border:1px solid var(--control-border,var(--line,var(--border))); border-radius:var(--vex-radius-xs); background:transparent; color:var(--fg); text-transform:uppercase; }
+.vex-cp-hex:focus { outline:none; border-color:var(--accent,var(--primary,#4338CA)); }
+
 /* 快捷工具条上的行内样式按钮：A 字符号 + 下拉箭头。 */
 .format-button .span-glyph { font-size:13px; font-weight:700; line-height:1; }
 .format-button .span-glyph.fg { color:#0064FA; text-decoration:underline; text-underline-offset:2px; }

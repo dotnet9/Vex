@@ -236,6 +236,28 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     }
 
     [EventHandler]
+    public void OnEditorSpanStyle(EditorSpanStyleCommand command) => ApplySpanStyle(command.Property, command.Value);
+
+    /// <summary>
+    /// 给当前选区套行内样式（color / background-color / font-size，值如 "#c92a2a"、"18px"）。
+    /// 同款样式再套一次即解包（库内 MarkdownSpanOperations 语义）。
+    /// </summary>
+    public void ApplySpanStyle(string property, string value)
+    {
+        if (_workbench.IsInstantEditing && _workbench.LiveEditor is { } live)
+        {
+            live.ApplySpanStyle(property, value);
+            if (live.Text.Length == 0 || live.ActiveBlockIndex >= 0) live.FocusEditor();
+            return;
+        }
+        if (_workbench.IsSourceEditing && _editor is { } editor)
+        {
+            editor.ApplySpanStyle(property, value);
+            _ = ExecuteAndRefocusAsync(editor, MarkdownEditorAction.FocusEditor);
+        }
+    }
+
+    [EventHandler]
     public void InsertSnippet(EditorSnippetCommand command)
     {
         if (MarkdownTemplates.Get(command.Key) is { } snippet) InsertMarkdown(snippet);

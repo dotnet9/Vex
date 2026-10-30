@@ -661,6 +661,13 @@
   </Style>
   <Style Selector="Button.wb-format PathIcon"><Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/></Style>
   <Style Selector="Path.format-stroke"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/><Setter Property="StrokeThickness" Value="1.7"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/></Style>
+  <!-- 行内样式三键（对齐原型 span-tool）：A 字符号 + 下拉箭头；前景键蓝字、背景键黄底。 -->
+  <Style Selector="Button.wb-format.span-tool"><Setter Property="Width" Value="NaN"/><Setter Property="MinWidth" Value="28"/><Setter Property="Padding" Value="6,5"/></Style>
+  <Style Selector="Button.wb-format TextBlock.span-glyph"><Setter Property="FontSize" Value="13"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="LineHeight" Value="1"/></Style>
+  <Style Selector="Button.wb-format TextBlock.span-glyph.fg"><Setter Property="Foreground" Value="{DynamicResource VexLinkBrush}"/></Style>
+  <Style Selector="Button.wb-format TextBlock.span-glyph.bg"><Setter Property="Background" Value="#FFF3BF"/></Style>
+  <Style Selector="Button.wb-format Path.span-chevron"><Setter Property="Width" Value="9"/><Setter Property="Height" Value="9"/><Setter Property="Stretch" Value="Uniform"/></Style>
+  <Style Selector="Flyout Button.span-size"><Setter Property="Width" Value="46"/><Setter Property="Height" Value="30"/><Setter Property="MinHeight" Value="30"/><Setter Property="Padding" Value="0"/><Setter Property="CornerRadius" Value="5"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="FontSize" Value="12"/></Style>
   <Style Selector="Border.presentation-tools"><Setter Property="Opacity" Value="0.75"/><Setter Property="Transitions"><Transitions><DoubleTransition Property="Opacity" Duration="{DynamicResource MotionDurationFast}"/></Transitions></Setter></Style>
   <Style Selector="Border.presentation-tools:pointerover, Border.presentation-tools:focus-within"><Setter Property="Opacity" Value="1"/></Style>
   <!-- 对应原型 #edit-options：静默 1%，悬停或聚焦后立即显现，离开 2 秒后淡出。 -->

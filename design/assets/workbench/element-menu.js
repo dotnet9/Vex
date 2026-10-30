@@ -244,10 +244,12 @@
       if(action==='delete-selection'){if(context.start!==context.end)insert('',context);return;}
       if(action==='delete-block'){replaceBlock('');return;}
       if(action.startsWith('wrap-')){const marker={bold:'**',italic:'*',code:'`'}[action.slice(5)];if(context.start===context.end)return;const result=ops.wrap(context.working,context.start,context.end,marker);apply(result.text,result.end,context);return;}
-      /* 行内样式（选区浮动条入口）：span-属性:值；span-clear 剥掉选区内的 span 标签。源码模式回填选区，便于连加上一门样式。 */
-      if(action.startsWith('span-')){if(context.start===context.end)return;const spec=action.slice(5),at=spec.indexOf(':'),prop=at<0?'':spec.slice(0,at),value=at<0?'':spec.slice(at+1);
+      /* 行内样式（选区浮动条入口）：span-属性:值（同款再点解包）；span-set-属性:值（选色器专用，只设值不解包）；
+         span-clear 剥掉选区内的 span 标签。源码模式回填选区，便于连加上一门样式。 */
+      if(action.startsWith('span-')){if(context.start===context.end)return;const spec=action.slice(5),at=spec.indexOf(':');let prop=at<0?'':spec.slice(0,at);const value=at<0?'':spec.slice(at+1);
+        const setOnly=prop.startsWith('set-');if(setOnly)prop=prop.slice(4);
         if(prop!=='clear'&&!['color','background-color','font-size'].includes(prop))return;
-        const result=prop==='clear'?ops.clearSpanStyle(context.working,context.start,context.end):ops.wrapSpan(context.working,context.start,context.end,prop,value);
+        const result=prop==='clear'?ops.clearSpanStyle(context.working,context.start,context.end):ops.wrapSpan(context.working,context.start,context.end,prop,value,!setOnly);
         apply(result.text,undefined,context);
         if(context.sourceActive&&source.isConnected)source.setSelectionRange(Math.min(result.start,result.text.length),Math.min(result.end,result.text.length));
         return;}

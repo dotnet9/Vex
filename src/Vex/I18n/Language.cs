@@ -126,6 +126,10 @@ public static class VexL
     public static readonly string HorizontalRule = "Vex.VexL.HorizontalRule";
     public static readonly string Bold = "Vex.VexL.Bold";
     public static readonly string Italic = "Vex.VexL.Italic";
+    public static readonly string SpanFontSize = "Vex.VexL.SpanFontSize";
+    public static readonly string SpanForeground = "Vex.VexL.SpanForeground";
+    public static readonly string SpanBackground = "Vex.VexL.SpanBackground";
+    public static readonly string SpanClearStyles = "Vex.VexL.SpanClearStyles";
     public static readonly string InlineCode = "Vex.VexL.InlineCode";
     public static readonly string Link = "Vex.VexL.Link";
     public static readonly string Image = "Vex.VexL.Image";

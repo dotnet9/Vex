@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:u="https://irihi.tech/ursa" xmlns:core="using:Vex.Core.Messaging"
+﻿<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:u="https://irihi.tech/ursa" xmlns:core="using:Vex.Core.Messaging" xmlns:semiCp="using:Semi.Avalonia.ColorPicker"
              x:Class="Vex.Modules.Shell.Views.ShellEditorOptionsView" x:DataType="vm:MainWindowViewModel" IsVisible="{Binding Workbench.ShowEditorOptions}">
   <!-- 原型格式条固定 12 键、无溢出按钮：多余命令由菜单栏（公式块/分割线）与右键菜单（段落/清除格式）承载。 -->
   <Border Classes="edit-options" Classes.pinned="{Binding Workbench.Preferences.PinEditorToolbar}" Height="36" Padding="10,0" Background="{DynamicResource VexChromeBrush}" BorderBrush="{DynamicResource VexPaneHeadBorderBrush}" BorderThickness="0,0,0,1">
@@ -25,6 +25,49 @@
         <Button x:Name="FormatInlineCode" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.InlineCode}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.InlineCode}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M8 7l-5 5 5 5 M16 7l5 5-5 5"/></Canvas></Viewbox></Button>
         <Button x:Name="FormatCodeFence" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.CodeFence}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.CodeBlock}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.CodeBlock}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2 M3 8h18 M9 12l-3 3 3 3 M15 12l3 3-3 3"/></Canvas></Viewbox></Button>
         <Button x:Name="FormatTable" Classes="wb-format" Focusable="False" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Table}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Table}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Table}}"><Viewbox Width="17" Height="17"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z M3 10h18 M3 15h18 M9 4v16 M16 4v16"/></Canvas></Viewbox></Button>
+        <u:ToolBarSeparator />
+        <!-- 行内样式三键（对齐原型 span-tool）：字号 / 文字颜色 / 背景颜色，面板沿用 Semi ColorView。 -->
+        <Button x:Name="SpanFontSize" Classes="wb-format span-tool" Focusable="False" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SpanFontSize}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SpanFontSize}}">
+          <StackPanel Orientation="Horizontal" Spacing="2"><TextBlock Classes="span-glyph" Text="A"/><Path Classes="expand-chevron span-chevron" Data="M6 9L12 15L18 9"/></StackPanel>
+          <Button.Flyout>
+            <Flyout Placement="Bottom">
+              <WrapPanel MaxWidth="168" ItemWidth="52">
+                <Button Classes="span-size" Tag="12" Content="12" Click="OnSpanSizeClick" />
+                <Button Classes="span-size" Tag="14" Content="14" Click="OnSpanSizeClick" />
+                <Button Classes="span-size" Tag="16" Content="16" Click="OnSpanSizeClick" />
+                <Button Classes="span-size" Tag="18" Content="18" Click="OnSpanSizeClick" />
+                <Button Classes="span-size" Tag="22" Content="22" Click="OnSpanSizeClick" />
+                <Button Classes="span-size" Tag="28" Content="28" Click="OnSpanSizeClick" />
+              </WrapPanel>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <Button x:Name="SpanForeground" Classes="wb-format span-tool" Focusable="False" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SpanForeground}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SpanForeground}}">
+          <StackPanel Orientation="Horizontal" Spacing="2"><TextBlock Classes="span-glyph fg" Text="A"/><Path Classes="expand-chevron span-chevron" Data="M6 9L12 15L18 9"/></StackPanel>
+          <Button.Flyout>
+            <Flyout Placement="Bottom" Closed="OnSpanFlyoutClosed">
+              <ColorView Name="SpanForegroundView" Tag="color" Width="320" Height="340"
+                        >
+                <ColorView.Palette>
+                  <semiCp:SemiColorLightPalette />
+                </ColorView.Palette>
+              </ColorView>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <Button x:Name="SpanBackground" Classes="wb-format span-tool" Focusable="False" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SpanBackground}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SpanBackground}}">
+          <StackPanel Orientation="Horizontal" Spacing="2"><TextBlock Classes="span-glyph bg" Text="A"/><Path Classes="expand-chevron span-chevron" Data="M6 9L12 15L18 9"/></StackPanel>
+          <Button.Flyout>
+            <Flyout Placement="Bottom" Closed="OnSpanFlyoutClosed">
+              <ColorView Name="SpanBackgroundView" Tag="background-color" Width="320" Height="340"
+                        >
+                <ColorView.Palette>
+                  <semiCp:SemiColorLightPalette />
+                </ColorView.Palette>
+              </ColorView>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
       </u:ToolBar>
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
         <ToggleButton x:Name="PinEditor" Classes="toolbar-pin" IsChecked="{Binding Workbench.Preferences.PinEditorToolbar}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
