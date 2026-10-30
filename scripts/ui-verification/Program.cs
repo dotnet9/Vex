@@ -1854,6 +1854,10 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     Check(previewViewer is not null && previewViewer.Margin == new Thickness(32, 24, 32, 56),
         $"Combined preview padding follows the probed prototype values: {previewViewer?.Margin}");
     vm.Layout.IsTypewriterMode = false; Pump();
+    // 暗色整窗对照存证：切暗、回顶、截图，再回浅色。
+    vm.Appearance.SelectThemeByKey("dark"); Pump(); SettleRendering();
+    Capture(window, "dark-instant-full");
+    vm.Appearance.SelectThemeByKey("light"); Pump(); SettleRendering();
     // 编辑区内边距对齐原型（workbench.css:92 = 22px 24px 60px 54px）：行号列由库内边距自供，
     // 正文左缩进 = 24 内距 + 行号列宽 ≈ 54，行号隐藏时左 24 档自动成立。
     Check(source.EditorPadding.Left == 24 && source.EditorPadding.Top == 22
