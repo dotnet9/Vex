@@ -4,6 +4,8 @@
 .layout-chevron{font-size:11px;color:var(--muted);margin-left:3px}.view-switch[data-active=custom]::before{opacity:0}
 .view-surface,.view-split{display:flex;flex:1;min-width:0;min-height:0;overflow:hidden;width:100%;height:100%}
 .view-split{gap:1px;background:var(--border)}
+/* vertical 分隔 = 上下两行（与把手 clientY 调高、菜单缩略图 .mini-vertical 同语义）；缺这条三视图会渲染成三联横排。 */
+.view-split.view-vertical{flex-direction:column}
 .view-panel{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;overflow:hidden;background:var(--bg);position:relative;isolation:isolate}
 .view-heading{display:flex;align-items:center;justify-content:space-between;height:32px;min-height:32px;padding:0 12px 0 18px;border-bottom:1px solid var(--border);background:var(--panel)}
 .view-caption{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11px}.view-caption .ico{width:13px;height:13px}.view-heading .icon-button{height:25px;width:25px}.view-heading .icon-button .ico{width:12px;height:12px}
