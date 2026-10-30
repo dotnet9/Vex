@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
@@ -161,8 +161,9 @@ public sealed class WorkspaceViewController
         var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var map = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
         surface.Children.Clear();
-        surface.ColumnDefinitions = new ColumnDefinitions("*,4,*");
-        surface.RowDefinitions = new RowDefinitions("*,4,*");
+        // 原型 .view-split{gap:1px;background:var(--border)}：面板齐平拼贴，缝即 1px 发丝线。
+        surface.ColumnDefinitions = new ColumnDefinitions("*,1,*");
+        surface.RowDefinitions = new RowDefinitions("*,1,*");
         _horizontalSplit.ZIndex = 9; _verticalSplit.ZIndex = 9;
         _horizontalSplit.Focusable = _verticalSplit.Focusable = true;
         _horizontalSplit.DragCompleted += (_, _) => CaptureSplitRatio(false);
@@ -244,9 +245,10 @@ public sealed class WorkspaceViewController
         var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*") };
         if (id == "editor") _editorLayout = layout;
         // Border 的圆角不裁子级：窗格自绘底色（编辑器/预览纸面）会顶穿块的四角，内层按内圆角 9px 裁切。
+        // 原型面板直角（.view-panel radius 0），不再圆角裁切。
         layout.SizeChanged += (_, e) => layout.Clip = _vm?.Workbench.IsPresenting == true
             ? null
-            : new RectangleGeometry(new Rect(default, e.NewSize), 9, 9);
+            : new RectangleGeometry(new Rect(default, e.NewSize), 0, 0);
         if (id == "render")
         {
             // 原型 .view-heading：36px、随块底透明、65% 底边；题注居左、排版入口居中、钉按钮居右。编辑器与导图窗格按原型不设标题行。

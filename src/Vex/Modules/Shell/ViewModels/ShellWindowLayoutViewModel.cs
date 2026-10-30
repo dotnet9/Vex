@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -45,7 +45,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public const double DefaultSidebarWidth = 226d;
 
     /// <summary>原型 --block-gap：块之间的间隙宽度，分栏把手本体即这段间隙。</summary>
-    public const double BlockGap = 4d;
+    // 原型侧栏与正文的分界是 1px 发丝缝（.sidebar-splitter w=1、col-resize）。
+    public const double BlockGap = 1d;
 
     private const double MinSidebarWidth = 200d;
 
