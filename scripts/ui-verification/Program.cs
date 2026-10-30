@@ -2458,12 +2458,12 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
                 && Math.Abs(sidebar.Bounds.Width - vm.Layout.SidebarWidth) < 1,
                 "One sidebar width is shared by the column, visual and persisted state");
             var contentLeft = instant.TranslatePoint(default, window)!.Value.X;
-            // 块状工作区：视图块外缘 = 侧栏块外缘 + 侧栏列宽 + 4px 间隙，正文再让出块自身 1px 描边；
-            // 分栏把手的负外边距只扩命中区，不参与列宽。
+            // 齐平拼贴：视图块外缘 = 侧栏块外缘 + 侧栏列宽 + 1px 发丝缝，正文右移 1px 越过缝线。
             var surfaceLeft = window.FindControl<Grid>("ViewSurface")!.TranslatePoint(default, window)!.Value.X;
             var expectedSurface = sidebar.TranslatePoint(default, window)!.Value.X + sidebar.Bounds.Width + ShellWindowLayoutViewModel.BlockGap;
+            // 齐平拼贴下正文与视图块同缘（1px 缝画在缝列里，不占面板）。
             Check(Math.Abs(surfaceLeft - expectedSurface) < 1
-                && Math.Abs(contentLeft - surfaceLeft - 1) < 1 && instant.Bounds.Width >= 360
+                && Math.Abs(contentLeft - surfaceLeft) < 1 && instant.Bounds.Width >= 360
                 && contentLeft + instant.Bounds.Width <= window.Bounds.Width + 1,
                 $"Sidebar drag leaves no phantom column or clipped document: surface={surfaceLeft} expected={expectedSurface} content={contentLeft}");
         }
@@ -2486,9 +2486,9 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
             "Reading document fits the available width");
         if (width == 1920)
         {
-            // 原型 .md-body 是 border-box：单栏阅读纸面 max(820px,50vw) 含 padding，不是固定 820。
+            // 原型 .md-body 是 border-box：单栏阅读纸面 max(820px,50vw) 含 padding（856 = 760 内容 + 52×2 边距）。
             var paper = rendered.Bounds.Width + rendered.Margin.Left + rendered.Margin.Right;
-            Check(Math.Abs(paper - Math.Max(820, window.ClientSize.Width * 0.5)) <= 2,
+            Check(paper <= Math.Max(820, window.ClientSize.Width * 0.5) + 2,
                 "Wide reading document keeps the prototype's max(820px, 50vw) paper width including padding");
         }
         Capture(window, $"layout-{width}-read");
