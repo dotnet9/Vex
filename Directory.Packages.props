@@ -20,8 +20,8 @@
     <PackageVersion Include="CodeWF.Avalonia.Controls" Version="12.2.31" />
     <PackageVersion Include="CodeWF.Avalonia.DataGrid" Version="12.2.31" />
     <PackageVersion Include="CodeWF.Toolkit.EventBus" Version="1.1.1" />
-    <PackageVersion Include="CodeWF.Avalonia.Markdown" Version="12.2.36" />
-    <PackageVersion Include="CodeWF.Avalonia.Markdown.Lite" Version="12.2.36" />
+    <PackageVersion Include="CodeWF.Avalonia.Markdown" Version="12.2.37" />
+    <PackageVersion Include="CodeWF.Avalonia.Markdown.Lite" Version="12.2.37" />
     <PackageVersion Include="CodeWF.Toolkit.Files" Version="1.1.1" />
     <PackageVersion Include="Irihi.Ursa.Themes.Semi" Version="$(UrsaAvaloniaVersion)" />
     <PackageVersion Include="CodeWF.Avalonia.Lang" Version="12.2.31" />
