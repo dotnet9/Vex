@@ -39,6 +39,11 @@ internal static class ToolTipProbeVerification
                 Pump();
                 Pump();
                 Console.WriteLine($"PROBE {theme} sample={i} isOpen={ToolTip.GetIsOpen(longTipHost)}");
+                var resolvedFg = Application.Current!.TryGetResource("ToolTipForeground", window.ActualThemeVariant, out var fgResource)
+                    ? fgResource : null;
+                var resolvedBg = Application.Current!.TryGetResource("ToolTipBackground", window.ActualThemeVariant, out var bgResource)
+                    ? bgResource : null;
+                Console.WriteLine($"TOOLTIP-COLORS {theme} sample={i}: tokenFg={resolvedFg} tokenBg={resolvedBg}");
                 ToolTip.SetIsOpen(longTipHost, false);
                 Pump();
             }

@@ -281,7 +281,8 @@ public sealed class ShellAppearanceMenuView : UserControl
             Resource(badge, Border.BackgroundProperty, this, "VexAccentBrush");
             root.Children.Add(badge);
         }
-        var check = new TextBlock { Text = "✓", FontSize = 14, FontWeight = FontWeight.Bold, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
+        // 原型 .studio-palettes button::after：勾选钉在卡片右下角（right/bottom 5px），11px 常规字重强调色。
+        var check = new TextBlock { Text = "✓", FontSize = 11, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 5, 5) };
         Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush");
         root.Children.Add(check);
         // 原型选中态 = accent 描边 + 外扩 1px 强调色环，由 .palette-card-on 与 Ring 覆层呈现。

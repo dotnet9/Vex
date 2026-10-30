@@ -1,4 +1,4 @@
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Markdown.Editor.Services;
 using CodeWF.Avalonia.MindView.Markdown;
@@ -276,6 +276,8 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public string View => _view;
     public string EditMode => _edit;
     public string ViewLabel => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(IsReading ? VexL.WBRead : IsMindMap ? VexL.WBMap : IsInstantEditing ? VexL.WBInstant : VexL.WBSource) ?? string.Empty;
+    // 原型标签行右侧的编辑模式下拉文案（即时编辑/源码编辑）。
+    public string EditorModeLabel => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(IsInstantEditing ? VexL.WBInstant : VexL.WBSource) ?? string.Empty;
     public string? ImageBasePath => _document.FilePath;
     public MarkdownMindMapNode? Root { get => _root; private set => this.RaiseAndSetIfChanged(ref _root, value); }
     public MarkdownMindMapNode? SelectedNode
@@ -425,7 +427,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     }
     private void NotifyModes()
     {
-        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions), nameof(IsSourceSegmentActive), nameof(IsReadSegmentActive), nameof(IsMapSegmentActive), nameof(IsMoreSegmentActive), nameof(MoreSegmentLabel) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions), nameof(IsSourceSegmentActive), nameof(IsReadSegmentActive), nameof(IsMapSegmentActive), nameof(IsMoreSegmentActive), nameof(MoreSegmentLabel), nameof(EditorModeLabel) }) this.RaisePropertyChanged(name);
         ApplyLayout();
     }
     private void ApplyLayout()

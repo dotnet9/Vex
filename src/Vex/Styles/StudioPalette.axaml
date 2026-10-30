@@ -76,6 +76,11 @@
          标识不随 9 套配色变色，所以也不许在页面里各抄一份色值。 -->
     <SolidColorBrush x:Key="VexBrandBrush" Color="#24766B" />
     <SolidColorBrush x:Key="VexBrandMarkBrush" Color="#FFFFFF" />
+    <!-- 原型提示浮层纯反转（palette-rules.js：tooltip-bg=ink、tooltip-fg=paper），覆盖 Semi 的
+         ToolTipForeground/ToolTipBackground 两键（Semi 暗色给浅灰底黑字，与原型相反档）；
+         Studio* 颜色随明暗与九配色走， brushes 在此处不分变体、靠 DynamicResource 二跳换色。 -->
+    <SolidColorBrush x:Key="ToolTipBackground" Color="{DynamicResource StudioTextColor}" />
+    <SolidColorBrush x:Key="ToolTipForeground" Color="{DynamicResource StudioPaperColor}" />
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidBackground" Color="#FFFFFF" />

@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
 using Avalonia.Controls.Primitives;
@@ -38,11 +38,6 @@ public partial class MainWindow : CodeWFWindow
         var confirmation = MindMapGuideTarget.DetachConfirmation();
         Grid.SetRowSpan(confirmation, 4); ShellGuideRoot.Children.Add(confirmation);
         WorkspaceViews = new WorkspaceViewController(this, ViewSurface, FloatingViewShelf);
-        var separateViews = new MenuItem();
-        separateViews.Header = DesignSelectionControls.Text("WSSeparate");
-        separateViews.Click += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Workbench.ShowLayouts = false; WorkspaceViews.Separate(); };
-        LayoutTarget.ContextMenu = new ContextMenu { Items = { separateViews } };
-        LayoutTarget.ContextMenu.Opening += (_, _) => separateViews.Header = DesignSelectionControls.Text("WSSeparate");
         SidebarSplitter.DragStarted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.BeginSidebarResize(); };
         SidebarSplitter.DragCompleted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.CompleteSidebarResize(); };
         OutlineSplitter.DragStarted += (_, _) => { if (DataContext is MainWindowViewModel vm) vm.Layout.BeginOutlineResize(); };
@@ -126,7 +121,7 @@ public partial class MainWindow : CodeWFWindow
             return;
         }
         var ancestors = source.GetVisualAncestors().Prepend(source).ToArray();
-        if (vm.Workbench.ShowLayouts && !ancestors.Contains(LayoutGallery) && !ancestors.Contains(LayoutTarget)) vm.Workbench.ShowLayouts = false;
+        if (vm.Workbench.ShowLayouts && !ancestors.Contains(LayoutGallery)) vm.Workbench.ShowLayouts = false;
         if (vm.Workbench.ShowTypography && !ancestors.Contains(TypographyGallery) && !ancestors.Contains(EditorOptions) && !ancestors.Contains(WorkspaceViews.RenderTypographyTrigger)) vm.Workbench.ShowTypography = false;
     }
 
@@ -152,10 +147,9 @@ public partial class MainWindow : CodeWFWindow
             && input.GetVisualAncestors().Any(item => item is Vex.Modules.Workspace.Views.MarkdownMindMapHost);
         if (e.Key == Key.Escape && !editingMapTitle && DataContext is MainWindowViewModel vm && (vm.Workbench.ShowTypography || vm.Workbench.ShowLayouts || vm.Workbench.ShowMapSettings || vm.Workbench.HasSelectedNode))
         {
-            var layouts = vm.Workbench.ShowLayouts; var typography = vm.Workbench.ShowTypography;
+            var typography = vm.Workbench.ShowTypography;
             vm.Workbench.ShowLayouts = false; vm.Workbench.ShowTypography = false; vm.Workbench.ShowMapSettings = false; vm.Workbench.CloseInspector();
-            if (layouts) LayoutTarget.Focus();
-            else if (typography) EditorOptions.FindControl<Button>("TypographyTarget")?.Focus();
+            if (typography) EditorOptions.FindControl<Button>("TypographyTarget")?.Focus();
             e.Handled = true; return;
         }
         e.Handled = _keyboardShortcuts?.HandleKeyDown(e.Key, e.KeyModifiers) == true;
@@ -219,12 +213,11 @@ public partial class MainWindow : CodeWFWindow
     }
 
     /// <summary>原型把布局切换入口放在状态栏中央（原第二行工具栏已并入标题栏与状态栏）。</summary>
-    public Button LayoutTarget => StatusBarGuideTarget.FindControl<Button>("LayoutButton")!;
 
     public void BeginOnboardingGuide()
     {
         if (DataContext is MainWindowViewModel vm)
-            WorkbenchGuide.Start(vm, this, _settingsStore, new Control[] { InstantGuideTarget, OutlineGuideTarget, MindMapGuideTarget, LayoutTarget, EditorOptions, TitleMenuView.FileMenuTarget });
+            WorkbenchGuide.Start(vm, this, _settingsStore, new Control[] { InstantGuideTarget, OutlineGuideTarget, MindMapGuideTarget, EditorOptions, TitleMenuView.FileMenuTarget });
     }
 
     private void MainWindow_OnClosing(object? sender, WindowClosingEventArgs e)

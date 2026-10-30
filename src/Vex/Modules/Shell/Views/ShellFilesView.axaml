@@ -16,21 +16,30 @@
 
     <UserControl.Resources>
         <converters:FileIconConverter x:Key="FileIconConverter" />
-        <!-- 五键排序：互斥单选，勾选态由代码后置随 SortKey 刷新。 -->
-        <Flyout x:Key="SortFlyout" Placement="TopEdgeAlignedLeft">
-            <MenuFlyout>
-                <MenuItem Tag="group" Command="{Binding SetSortKey}" CommandParameter="group"
-                                     Header="{i18n:I18n {x:Static l:VexL.SortByFolderGroup}}"/>
-                <MenuItem Tag="natural-desc" Command="{Binding SetSortKey}" CommandParameter="natural-desc"
-                                     Header="{i18n:I18n {x:Static l:VexL.SortNaturalDescending}}"/>
-                <MenuItem Tag="name-asc" Command="{Binding SetSortKey}" CommandParameter="name-asc"
-                                     Header="{i18n:I18n {x:Static l:VexL.SortNameAscending}}"/>
-                <MenuItem Tag="modified" Command="{Binding SetSortKey}" CommandParameter="modified"
-                                     Header="{i18n:I18n {x:Static l:VexL.SortModifiedAscending}}"/>
-                <MenuItem Tag="created" Command="{Binding SetSortKey}" CommandParameter="created"
-                                     Header="{i18n:I18n {x:Static l:VexL.SortCreatedAscending}}"/>
-            </MenuFlyout>
-        </Flyout>
+        <!-- 五键排序（原型 .files-sort-menu）：互斥单选，选中项 accent-soft 高亮；SortKey 变更时
+             由 ShellFilesViewModel 的 PropertyChanged 刷新勾选（见代码后置）。 -->
+        <MenuFlyout x:Key="SortFlyout" Placement="TopEdgeAlignedLeft">
+            <MenuItem Classes="files-sort-item" Tag="group" GroupName="fileSort" ToggleType="Radio"
+                      IsChecked="{Binding IsSortKeyGroup, Mode=OneWay}"
+                      Command="{Binding SetSortKey}" CommandParameter="group"
+                      Header="{i18n:I18n {x:Static l:VexL.SortByFolderGroup}}"/>
+            <MenuItem Classes="files-sort-item" Tag="natural-desc" GroupName="fileSort" ToggleType="Radio"
+                      IsChecked="{Binding IsSortKeyNaturalDesc, Mode=OneWay}"
+                      Command="{Binding SetSortKey}" CommandParameter="natural-desc"
+                      Header="{i18n:I18n {x:Static l:VexL.SortNaturalDescending}}"/>
+            <MenuItem Classes="files-sort-item" Tag="name-asc" GroupName="fileSort" ToggleType="Radio"
+                      IsChecked="{Binding IsSortKeyNameAsc, Mode=OneWay}"
+                      Command="{Binding SetSortKey}" CommandParameter="name-asc"
+                      Header="{i18n:I18n {x:Static l:VexL.SortNameAscending}}"/>
+            <MenuItem Classes="files-sort-item" Tag="modified" GroupName="fileSort" ToggleType="Radio"
+                      IsChecked="{Binding IsSortKeyModified, Mode=OneWay}"
+                      Command="{Binding SetSortKey}" CommandParameter="modified"
+                      Header="{i18n:I18n {x:Static l:VexL.SortModifiedAscending}}"/>
+            <MenuItem Classes="files-sort-item" Tag="created" GroupName="fileSort" ToggleType="Radio"
+                      IsChecked="{Binding IsSortKeyCreated, Mode=OneWay}"
+                      Command="{Binding SetSortKey}" CommandParameter="created"
+                      Header="{i18n:I18n {x:Static l:VexL.SortCreatedAscending}}"/>
+        </MenuFlyout>
     </UserControl.Resources>
 
     <UserControl.DataTemplates>
@@ -78,6 +87,15 @@
 
     <UserControl.Styles>
      <!-- 原型 .empty-state button（workspace-chrome.css:264）：强调色 11px 文字钮，无底无描边，悬停加深。 -->
+     <!-- 原型 .files-sort-item[aria-checked=true]（writing-chrome.css:23）：选中项 accent-soft 底 + accent 字。 -->
+     <Style Selector="MenuItem.files-sort-item">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Padding" Value="10,8" />
+     </Style>
+     <Style Selector="MenuItem.files-sort-item:checked">
+      <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+     </Style>
      <Style Selector="Button.empty-action">
       <Setter Property="MinHeight" Value="0" />
       <Setter Property="Padding" Value="0" />

@@ -58,6 +58,13 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     }
     public string SortKey => _sortKey;
 
+    // 五键排序的勾选态（原型 .files-sort-item[aria-checked=true]）：MenuFlyout 的 Radio 勾选按此刷新。
+    public bool IsSortKeyGroup => _sortKey == "group";
+    public bool IsSortKeyNaturalDesc => _sortKey == "natural-desc";
+    public bool IsSortKeyNameAsc => _sortKey == "name-asc";
+    public bool IsSortKeyModified => _sortKey == "modified";
+    public bool IsSortKeyCreated => _sortKey == "created";
+
     public void SetSortKey(string key)
     {
         if (SortKey == key) return;
@@ -65,6 +72,12 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         RebuildFilteredNodes();
         RebuildWorkspaceProjection();
         _settingsStore?.Update(settings => settings with { FileSortKey = key });
+        OnPropertyChanged(nameof(SortKey));
+        OnPropertyChanged(nameof(IsSortKeyGroup));
+        OnPropertyChanged(nameof(IsSortKeyNaturalDesc));
+        OnPropertyChanged(nameof(IsSortKeyNameAsc));
+        OnPropertyChanged(nameof(IsSortKeyModified));
+        OnPropertyChanged(nameof(IsSortKeyCreated));
     }
 
     public void CollapseAll()

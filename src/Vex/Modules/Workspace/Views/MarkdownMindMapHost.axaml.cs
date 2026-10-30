@@ -49,7 +49,6 @@ public partial class MarkdownMindMapHost : UserControl
         DataContextChanged += OnMapPinContextChanged;
         DataContextChanged += OnStyleBadgeContextChanged;
         // 原型 .map-controls 的还原钮写的是 map-fit：适应画布，而不是回到 100%。
-        MapZoomDock.ResetRequested += (_, _) => Map.Fit();
         BuildMapStyleFlyout();
     }
 

@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Avalonia;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
@@ -116,6 +116,9 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     /// <summary>演示态的缩放在演示 chrome 自己的坞上，正文坞让位（原型 .presentation-mode 不渲染阅读坞）。</summary>
     public bool ShowReadingDock => !IsPresenting;
 
+    /// <summary>状态栏缩放坞的显隐（原型 .statusbar-zoom）：预览窗格在场且非演示时显示。</summary>
+    public bool ShowStatusZoom => !IsPresenting && _workbench.IsPreviewVisible;
+
     /// <summary>原型还原钮：正文缩放回到 100%。</summary>
     public void ResetReadingZoom() => Preferences.ContentZoom = 100;
 
@@ -175,6 +178,8 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
             SynchronizeVisibleDocument(restoreHidden: !IsPresenting && _notifiedIsPresenting);
         if (e.PropertyName == nameof(_workbench.IsPresenting)) _notifiedIsPresenting = IsPresenting;
         if (e.PropertyName == nameof(_workbench.IsPresenting)) this.RaisePropertyChanged(nameof(ShowReadingDock));
+        if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.IsPreviewVisible))
+            this.RaisePropertyChanged(nameof(ShowStatusZoom));
         if (e.PropertyName == nameof(_workbench.ShowOutlineSidebar)) this.RaisePropertyChanged(nameof(ReadingDockMargin));
         if (e.PropertyName == nameof(_workbench.IsPresenting) && !enteringPresentation) this.RaisePropertyChanged(nameof(IsPresenting));
         if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom)

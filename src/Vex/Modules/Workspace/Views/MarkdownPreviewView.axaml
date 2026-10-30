@@ -60,23 +60,6 @@
                                 Text="{Binding Preferences.WatermarkText}" Strength="{Binding Preferences.WatermarkOpacity}"
                                 FontSize="{Binding Preferences.WatermarkFontSize}" HexInk="{Binding Preferences.WatermarkColor}"
                                 WeightValue="{Binding Preferences.WatermarkWeight}" />
-        <!-- 原型 .reading-zoom：阅读窗格右下角的悬浮缩放坞（50–200，步长 5，还原回 100）。
-             纵向不写死底距，交给 BottomAxis 按令牌 vex-axis-view 把坞中心拉回底部轴线；横向 12/31 由视图模型按右栏显隐让位。 -->
-        <vex:VexZoomDock
-            x:Name="ReadingZoomDock"
-            Grid.Row="1"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            IsVisible="{Binding ShowReadingDock}"
-            Margin="{Binding ReadingDockMargin}"
-            Minimum="50"
-            Maximum="200"
-            Step="5"
-            Value="{Binding Preferences.ContentZoom, Mode=TwoWay}"
-            Label="{i18n:I18n {x:Static l:VexL.PrefZoom}}"
-            ResetLabel="{i18n:I18n {x:Static l:VexL.ZoomRestoreFont}}"
-            ResetGeometry="{StaticResource WBFitIcon}"
-            codewf:BottomAxis.CenterFromBottom="19" />
     </Grid>
 
 

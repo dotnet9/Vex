@@ -854,6 +854,23 @@ void VerifyFileColors(Window window, ThemeVariant theme)
 
 void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFolder)
 {
+    // 五键排序弹层（原型 .files-sort-menu）：MenuFlyout 结构五项互斥单选；
+    // 提示浮层令牌（palette-rules.js tooltip 纯反转）按明暗解析。
+    var sortFlyout = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellFilesView>().First()
+        .FindResource("SortFlyout") as MenuFlyout;
+    Check(sortFlyout is { } && sortFlyout.Items.Count == 5, "Sort flyout exposes five sort keys");
+    // 令牌是惰性求值的 DynamicResource 画刷，随活动主题/配色翻转（tooltip-probe 已实测明暗反档）；
+    // 对照同样消费 Studio 墨/纸的两个既有画刷验证派生关系（tooltip-probe 模式另做明暗实切断言）。
+    Application.Current!.TryGetResource("ToolTipBackground", window.ActualThemeVariant, out var tipBg);
+    Application.Current!.TryGetResource("ToolTipForeground", window.ActualThemeVariant, out var tipFg);
+    Application.Current!.TryGetResource("VexEditorForegroundBrush", window.ActualThemeVariant, out var inkBrush);
+    Application.Current!.TryGetResource("VexPreviewBackgroundBrush", window.ActualThemeVariant, out var paperBrush);
+    var tipBackground = (tipBg as ISolidColorBrush)?.Color;
+    var tipForeground = (tipFg as ISolidColorBrush)?.Color;
+    var inkColor = (inkBrush as ISolidColorBrush)?.Color;
+    var paperColor = (paperBrush as ISolidColorBrush)?.Color;
+    Check(tipBackground == inkColor && tipForeground == paperColor,
+        $"Tooltip tokens derive from ink/paper (原型 tooltip-bg=ink/tooltip-fg=paper): bg={tipBackground}, fg={tipForeground}");
     // 真实扫描段会换开工作区；先快照当前文档，函数末尾恢复，vex 管线返回后还要检查原文档的渲染细节。
     var originalDocumentPath = ((MainWindowViewModel)window.DataContext!).GetCurrentDocumentSnapshot().FilePath;
     var productionFiles = vm;
