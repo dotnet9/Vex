@@ -7,7 +7,7 @@
     <Style Selector="Button.map-tool, ToggleButton.map-tool"><Setter Property="FontSize" Value="10.5"/><Setter Property="FontWeight" Value="Normal"/><Setter Property="Padding" Value="7,4"/><Setter Property="MinHeight" Value="26"/></Style>
   </UserControl.Styles>
   <Grid RowDefinitions="Auto,*">
-    <Border x:Name="MapEditingToolbar" Classes="map-topbar" IsVisible="{Binding !Workbench.IsPresenting}" MinHeight="36" Padding="10,4" Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
+    <Border x:Name="MapEditingToolbar" Classes="map-topbar" IsVisible="{Binding !Workbench.IsPresenting}" MinHeight="36" Padding="10,4" Background="{DynamicResource VexShellBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
       <!-- 原型 .view-panel .map-toolbar（workspace-chrome.css:494）：单行 36px 横滚、滚动条隐藏，
            不再换行成两档高度，与邻 pane 工具行对齐。右组靠 margin-left:auto 等效贴右（SizeChanged 里算），
            窄窗溢出时整行横滚而不是把按钮挤到第二行。标题行原型已退役（css:497-498），不再保留。 -->

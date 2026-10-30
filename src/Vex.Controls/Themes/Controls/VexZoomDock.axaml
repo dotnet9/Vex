@@ -1,4 +1,4 @@
-<ResourceDictionary
+﻿<ResourceDictionary
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls">
@@ -15,7 +15,7 @@
     <ControlTheme x:Key="{x:Type vex:VexZoomDock}" TargetType="vex:VexZoomDock">
         <Setter Property="Height" Value="{DynamicResource VexZoomDockHeight}" />
         <Setter Property="Padding" Value="{DynamicResource VexZoomDockPadding}" />
-        <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />

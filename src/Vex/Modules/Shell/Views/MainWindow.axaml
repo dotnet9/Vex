@@ -20,7 +20,7 @@
     Icon="/Assets/logo.ico"
     BorderBrush="{DynamicResource VexPanelBorderBrush}"
     TitleBarHeight="33"
-    TitleBarBackground="{DynamicResource VexPanelBackgroundBrush}"
+    TitleBarBackground="{DynamicResource VexChromeBrush}"
     CaptionButtonWidth="46" CaptionGlyphSize="14"
     IsTitleBarVisible="{Binding !Workbench.IsPresenting}"
     IsManagedResizerVisible="{Binding !Workbench.IsPresenting}"

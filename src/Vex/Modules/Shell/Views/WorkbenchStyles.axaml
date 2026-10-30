@@ -3,7 +3,7 @@
   <!-- 原型组合布局的面板齐平拼贴（.view-panel radius 0 无描边、.view-split gap:1px bg=border）：
        块本体只保留面板底色，缝隙与描边一律由 1px 分栏线承担。 -->
   <Style Selector="Border.workspace-block">
-    <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
+    <Setter Property="Background" Value="{DynamicResource VexChromeBrush}" />
     <Setter Property="CornerRadius" Value="0" />
     <Setter Property="ClipToBounds" Value="True" />
   </Style>

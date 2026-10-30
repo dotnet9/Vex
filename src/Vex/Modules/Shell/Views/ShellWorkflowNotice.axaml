@@ -4,8 +4,8 @@
   <!-- 原型 design-system.css:48：error 态底边与标题转 status-error（随九配色派生），底转 status-error-bg；
        role 升 alert（workflows.js），恢复草稿与外部版本保持 info 中性。 -->
   <Style Selector="Border.notice">
-   <Setter Property="Background" Value="{DynamicResource VexPanelBackgroundBrush}" />
-   <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+   <Setter Property="Background" Value="{DynamicResource VexChromeBrush}" />
+   <Setter Property="BorderBrush" Value="{DynamicResource VexHairlineBrush}" />
   </Style>
   <Style Selector="Border.notice.error">
    <Setter Property="Background" Value="{DynamicResource SemiColorDangerLight}" />
