@@ -257,7 +257,7 @@
                         BorderThickness="0"
                         Padding="0"
                         MinHeight="0"
-                        FontSize="{DynamicResource VexDensityFontSizeCaption}"
+                        FontSize="14"
                         VerticalContentAlignment="Center"
                         Foreground="{DynamicResource VexValueBrush}"
                         PlaceholderForeground="{DynamicResource VexMutedBrush}"

@@ -554,7 +554,7 @@
     <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
   <Style Selector="Button.tb-glyph Path.glyph-fill">
-    <Setter Property="Stretch" Value="Uniform"/><Setter Property="Stroke" Value="{x:Null}"/>
+    <Setter Property="Stroke" Value="{x:Null}"/>
     <Setter Property="Fill" Value="{DynamicResource VexValueBrush}"/>
   </Style>
   <Style Selector="Button.tb-glyph:pointerover Path.glyph-fill">

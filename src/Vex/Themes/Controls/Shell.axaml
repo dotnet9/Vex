@@ -11,7 +11,7 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style Selector="TextBlock.pane-title">
-        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -24,7 +24,7 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style Selector="Border.kbd-chip > TextBlock">
-        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="FontSize" Value="11" />
         <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
     </Style>
     <Style Selector="Window">

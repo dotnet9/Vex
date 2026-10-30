@@ -13,6 +13,21 @@ internal static class ToolTipProbeVerification
 {
     public static void Run(Window window, string output)
     {
+        // 排版采样：与原型 probe-typography 同位对照（字号/字重/高度/内距）。
+        void Sample(string label, Avalonia.Visual root, params string[] names)
+        {
+            foreach (var name in names)
+            {
+                var ctl = window.FindControl<Control>(name);
+                if (ctl is null) continue;
+                var text = ctl.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(b => b.IsVisible) ?? ctl as TextBlock;
+                var tb = window.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.Name == name);
+                if (tb is null) continue;
+                var fs = tb.GetValue(Avalonia.Controls.TextBlock.FontSizeProperty);
+                var h = tb.Bounds.Height;
+                Console.WriteLine($"VEX-TYPO {label}/{name}: fs={fs} h={h:F0}");
+            }
+        }
         void Pump()
         {
             Dispatcher.UIThread.RunJobs();

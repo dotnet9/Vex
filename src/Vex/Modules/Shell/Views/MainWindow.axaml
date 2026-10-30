@@ -63,6 +63,7 @@
             </StackPanel>
             <shell:ShellTitleMenuView x:Name="TitleMenuView" VerticalAlignment="Center" />
             <!-- 原型把文档名放在菜单之后左对齐，而不是标题栏正中。 -->
+            <!-- 原型 .document-title：文档名 12/600（fs-caption 令牌 + 600 字重）。 -->
             <TextBlock
                 x:Name="TitleDocumentLabel"
                 Text="{Binding DocumentInfo.CurrentDocumentTitle}"

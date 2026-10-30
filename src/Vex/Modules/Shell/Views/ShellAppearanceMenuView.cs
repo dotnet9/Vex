@@ -160,21 +160,33 @@ public sealed class ShellAppearanceMenuView : UserControl
         // 原型 #vex-appearance-menu>summary：只留 15px 对比度图标（i-contrast：描线圆 + 实心右半），
         // 内距 7/3、4px 圆角；弹出层打开时 accent-soft 底 + 强调色图标（title-picker-open）。
         AppearanceButton.Classes.Add("tb-glyph");
-        AppearanceButton.Content = new Panel { Width = 15, Height = 15, Children =
+        // 用户提供的新图标（主题色.svg，1024 视图框面性双色），整体填充前景色随状态换。
+        // 用户提供的新图标（24 基准预缩放坐标）：主题色两笔合入 GeometryGroup 统一均匀适配，
+        // 地球单路径；填充前景色随状态换（glyph-fill）。
+        var contrastGeometry = new Avalonia.Media.GeometryGroup { Children =
         {
-            new Avalonia.Controls.Shapes.Path { Width = 15, Height = 15, Data = Geometry.Parse("M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18") },
-            new Avalonia.Controls.Shapes.Path { Width = 15, Height = 15, Classes = { "glyph-fill" }, Data = Geometry.Parse("M12 3a9 9 0 0 1 0 18Z") }
+            Geometry.Parse("M12 22.5C6.2 22.5 1.5 17.8 1.5 12S6.2 1.5 12 1.5 22.5 6.2 22.5 12c0 1.9 -2.1 2.3 -4 2.7 -1.3 0.3 -2.6 0.5 -3.1 1.2 -0.7 0.8 -0.8 2 -0.9 3.1 -0.2 1.6 -0.3 3.5 -2.5 3.5zm0 -20c-5.2 0 -9.5 4.3 -9.5 9.5s4.3 9.5 9.5 9.5c1.1 0 1.3 -0.8 1.5 -2.6 0.1 -1.3 0.2 -2.7 1.1 -3.7 0.8 -0.9 2.3 -1.2 3.7 -1.5 1.9 -0.4 3.2 -0.7 3.2 -1.7 0 -5.2 -4.3 -9.5 -9.5 -9.5z"),
+            Geometry.Parse("M14 9c-1.1 0 -2 -0.9 -2 -2s0.9 -2 2 -2 2 0.9 2 2 -0.9 2 -2 2zm0 -3c-0.6 0 -1 0.4 -1 1s0.4 1 1 1 1 -0.4 1 -1 -0.4 -1 -1 -1zM8 11c-1.1 0 -2 -0.9 -2 -2s0.9 -2 2 -2 2 0.9 2 2 -0.9 2 -2 2zm0 -3c-0.6 0 -1 0.4 -1 1s0.4 1 1 1 1 -0.4 1 -1 -0.4 -1 -1 -1zM8.5 17.5c-1.1 0 -2 -0.9 -2 -2s0.9 -2 2 -2 2 0.9 2 2 -0.9 2 -2 2zm0 -3c-0.6 0 -1 0.4 -1 1 0 0.5 0.4 1 1 1s1 -0.5 1 -1 -0.4 -1 -1 -1z")
         }};
+        AppearanceButton.Content = new Avalonia.Controls.Shapes.Path
+        {
+            Width = 14, Height = 14, Stretch = Stretch.Uniform,
+            Data = contrastGeometry, Classes = { "glyph-fill" }
+        };
         AppearanceButton.MinHeight = 0; AppearanceButton.MinWidth = 0;
-        AppearanceButton.Padding = new Thickness(7, 3); AppearanceButton.CornerRadius = new CornerRadius(4);
+        AppearanceButton.Padding = new Thickness(4); AppearanceButton.CornerRadius = new CornerRadius(4);
         AppearanceButton.Name = "TitleBarAppearanceButton";
         ToolTipHelper.SetText(AppearanceButton, Text("Appearance"));
         Avalonia.Automation.AutomationProperties.SetName(AppearanceButton, Text("Appearance"));
-        // 原型 .studio-language summary：32×32 纯图标（i-globe 16px），无圆角，悬停 hover 底。
+        // 原型 .studio-language summary：纯图标钮，悬停 hover 底。
         LanguageButton = Button("", () => { });
         LanguageButton.Classes.Add("tb-glyph");
-        LanguageButton.Content = new Avalonia.Controls.Shapes.Path { Width = 18, Height = 18, Data = Geometry.Parse("M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M3 12h18 M12 3a15 15 0 0 1 0 18 M12 3a15 15 0 0 0 0 18") };
-        LanguageButton.Width = 32; LanguageButton.Height = 32; LanguageButton.MinHeight = 0; LanguageButton.MinWidth = 0;
+        LanguageButton.Content = new Avalonia.Controls.Shapes.Path
+        {
+            Width = 14, Height = 14, Stretch = Stretch.Uniform,
+            Data = Geometry.Parse("M16.48 13.56l1.54 4.31H14.92l1.56 -4.31zm-1.31 -3.09L10.36 23.04h2.68l1.1 -3.02h4.67L19.9 23.04h2.68L17.77 10.47H15.16zM11 11.66c1.38 -1.63 2.43 -3.51 3.07 -5.55h2.42v-2.15H10.52a13.62 13.62 0 0 0 -1.5 -2.51l-0.12 -0.15 -2.18 0.79 0.26 0.29c0.43 0.49 0.83 1.02 1.17 1.58H2.18v2.15h2.44c0.65 2.12 1.78 4.05 3.31 5.66 -1.72 1.32 -3.71 2.27 -5.82 2.77l-0.35 0.09 1.16 1.91 0.19 -0.05c2.33 -0.63 4.5 -1.75 6.36 -3.3 0.79 0.63 1.63 1.2 2.52 1.7l0.9 -1.96c-0.66 -0.38 -1.29 -0.79 -1.89 -1.25m-1.55 -1.37a12.14 12.14 0 0 1 -2.7 -4.18h5.08c-0.52 1.53 -1.33 2.95 -2.38 4.18"), Classes = { "glyph-fill" }
+        };
+        LanguageButton.Width = 24; LanguageButton.Height = 24; LanguageButton.MinHeight = 0; LanguageButton.MinWidth = 0;
         LanguageButton.Padding = new Thickness(0); LanguageButton.CornerRadius = new CornerRadius(0);
         LanguageButton.Name = "TitleBarLanguageButton";
         ToolTipHelper.SetText(LanguageButton, Text("TitleLanguage"));

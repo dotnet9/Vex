@@ -26,7 +26,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     // 原型两栏背景：左栏 --panel、右栏 --bg，浅深主题下有明暗差。浏览器侧是覆盖式滚动条，
     // 截图不占位；原生用 Hidden 保持同宽内容列（滚轮/触摸板仍可滚动）。
     private readonly ScrollViewer _scroll = new() { Padding = new Thickness(24, 26), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Hidden };
-    private readonly TextBlock _title = new() { FontSize = 14, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+    private readonly TextBlock _title = new() { FontSize = 13, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
     private readonly Border _card;
     private Window? _owner;
     // MCP 分类下「服务/客户端/审计」页签的选择：整页会随语言重建，所以选择记在视图上。
@@ -109,7 +109,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
             var row = new Grid { ColumnDefinitions = new ColumnDefinitions("17,*"), ColumnSpacing = 10 };
             var icon = new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse(icons[i]), Width = 17, Height = 17, Stretch = Stretch.Uniform, StrokeThickness = 1.5, VerticalAlignment = VerticalAlignment.Center };
             icon.Bind(Avalonia.Controls.Shapes.Path.StrokeProperty, _navigation.GetResourceObservable("VexMutedBrush")); row.Children.Add(icon);
-            var label = new TextBlock { Text = L(c.Key), FontSize = 14, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(label, 1); row.Children.Add(label);
+            var label = new TextBlock { Text = L(c.Key), FontSize = 13, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(label, 1); row.Children.Add(label);
             var item = new ListBoxItem { Content = row, MinHeight = 40, Padding = new Thickness(12, 9), Margin = new Thickness(0, 0, 0, 3), HorizontalContentAlignment = HorizontalAlignment.Stretch };
             // 原型 .vex-settings-nav button 用 --vex-radius-xs（4 基线，只乘 --radius-scale），不是固定 5。
             BindResource(item, ListBoxItem.CornerRadiusProperty, "VexDensityCornerRadiusXs");
