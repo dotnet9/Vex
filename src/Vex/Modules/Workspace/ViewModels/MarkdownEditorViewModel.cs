@@ -238,6 +238,20 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     [EventHandler]
     public void OnEditorSpanStyle(EditorSpanStyleCommand command) => ApplySpanStyle(command.Property, command.Value);
 
+    [EventHandler]
+    public void GetSpanStyle(EditorSpanStyleQuery query)
+    {
+        if (_workbench.IsInstantEditing && _workbench.LiveEditor is { } live)
+        {
+            query.Result = new EditorSpanStyleInfo(live.GetSpanStyle(query.Property) ?? string.Empty);
+            return;
+        }
+        if (_editor is { } editor)
+        {
+            query.Result = new EditorSpanStyleInfo(editor.GetSpanStyle(query.Property) ?? string.Empty);
+        }
+    }
+
     /// <summary>
     /// 给当前选区套行内样式（color / background-color / font-size，值如 "#c92a2a"、"18px"）。
     /// 同款样式再套一次即解包（库内 MarkdownSpanOperations 语义）。

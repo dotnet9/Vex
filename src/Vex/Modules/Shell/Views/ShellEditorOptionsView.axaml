@@ -45,7 +45,7 @@
         <Button x:Name="SpanForeground" Classes="wb-format span-tool" Focusable="False" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SpanForeground}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SpanForeground}}">
           <StackPanel Orientation="Horizontal" Spacing="2"><TextBlock Classes="span-glyph fg" Text="A"/><Path Classes="expand-chevron span-chevron" Data="M6 9L12 15L18 9"/></StackPanel>
           <Button.Flyout>
-            <Flyout Placement="Bottom" Closed="OnSpanFlyoutClosed">
+            <Flyout Placement="Bottom" Opened="OnSpanFlyoutOpened" Closed="OnSpanFlyoutClosed">
               <ColorView Name="SpanForegroundView" Tag="color" Width="320" Height="340"
                         >
                 <ColorView.Palette>
@@ -58,7 +58,7 @@
         <Button x:Name="SpanBackground" Classes="wb-format span-tool" Focusable="False" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SpanBackground}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SpanBackground}}">
           <StackPanel Orientation="Horizontal" Spacing="2"><TextBlock Classes="span-glyph bg" Text="A"/><Path Classes="expand-chevron span-chevron" Data="M6 9L12 15L18 9"/></StackPanel>
           <Button.Flyout>
-            <Flyout Placement="Bottom" Closed="OnSpanFlyoutClosed">
+            <Flyout Placement="Bottom" Opened="OnSpanFlyoutOpened" Closed="OnSpanFlyoutClosed">
               <ColorView Name="SpanBackgroundView" Tag="background-color" Width="320" Height="340"
                         >
                 <ColorView.Palette>
