@@ -1,5 +1,5 @@
 ﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
- xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}">
+ xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls;assembly=Vex.Controls" xmlns:wpvm="using:Vex.Modules.Workspace.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}">
  <UserControl.Styles>
   <!-- 对应原型 .workspace-viewswitch：它本身就是一枚 .segmented-track，轨道底色、圆角、内缩、滑动指示块、
        选中字色字重全部走 Vex.Controls 的共享配方；宿主只补自己的基准高与图标口径。 -->
@@ -50,7 +50,8 @@
          Background="{DynamicResource VexChromeBrush}" BorderBrush="{DynamicResource VexHairlineBrush}">
   <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Right">
    <!-- 原型 .statusbar-zoom：缩放坞收进状态栏（阅读窗格可见时显示），脱掉浮层外壳只留拖动条与还原钮。 -->
-   <vex:VexZoomDock x:Name="ReadingZoomDock" VerticalAlignment="Center" x:CompileBindings="False"
+   <vex:VexZoomDock x:Name="ReadingZoomDock" VerticalAlignment="Center"
+                    x:DataType="wpvm:MarkdownPreviewViewModel"
                     IsVisible="{Binding ShowStatusZoom}"
                     Minimum="50" Maximum="200" Step="5"
                     Value="{Binding Preferences.ContentZoom, Mode=TwoWay}"
@@ -58,7 +59,7 @@
                     ResetLabel="{i18n:I18n {x:Static l:VexL.ZoomRestoreFont}}"
                     ResetGeometry="{StaticResource WBFitIcon}" />
    <!-- 原型 .statusbar-zoom 同时收纳导图坞（1–200 步长 1，还原=适应画布），随导图窗格显隐。 -->
-   <vex:VexZoomDock x:Name="MapZoomDock" VerticalAlignment="Center" x:CompileBindings="False"
+   <vex:VexZoomDock x:Name="MapZoomDock" VerticalAlignment="Center"
                     IsVisible="{Binding Workbench.IsMapVisible}"
                     Minimum="1" Maximum="200" Step="1"
                     Value="{Binding Workbench.MapZoomPercent, Mode=TwoWay}"
