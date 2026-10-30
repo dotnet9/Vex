@@ -543,7 +543,7 @@
   </Style>
   <Style Selector="Button.tb-glyph Path:not(.glyph-fill)">
     <Setter Property="Stretch" Value="Uniform"/>
-    <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/>
     <Setter Property="StrokeThickness" Value="1.7"/>
     <Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/>
   </Style>
@@ -555,7 +555,7 @@
   </Style>
   <Style Selector="Button.tb-glyph Path.glyph-fill">
     <Setter Property="Stretch" Value="Uniform"/><Setter Property="Stroke" Value="{x:Null}"/>
-    <Setter Property="Fill" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="Fill" Value="{DynamicResource VexValueBrush}"/>
   </Style>
   <Style Selector="Button.tb-glyph:pointerover Path.glyph-fill">
     <Setter Property="Fill" Value="{DynamicResource VexValueBrush}"/>
@@ -762,9 +762,9 @@
     <Setter Property="Background" Value="{DynamicResource VexPanelBorderBrush}"/>
   </Style>
 
-  <!-- 偏好表单行（原型 .vex-pref-row）：55 最小高（34 控件 + 上下 10 + 1 分隔线）、上下 10 内边距、底部一条分隔线，左标签右控件。 -->
+  <!-- 偏好表单行（原型 .vex-pref-row）：53 最小高（32 控件 + 上下 10 + 1 分隔线，box-sizing 含边框）、上下 10 内边距、底部一条分隔线，左标签右控件。 -->
   <Style Selector="Border.pref-row">
-    <Setter Property="MinHeight" Value="55"/>
+    <Setter Property="MinHeight" Value="53"/>
     <Setter Property="Padding" Value="0,10"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
     <Setter Property="BorderThickness" Value="0,0,0,1"/>
