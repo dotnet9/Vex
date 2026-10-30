@@ -2,7 +2,8 @@
         xmlns:layout="clr-namespace:CodeWF.Avalonia.Markdown.Rendering;assembly=CodeWF.Avalonia.Markdown.Lite">
 
         <Style Selector="md|MarkdownViewer">
-            <Setter Property="ShowCodeBlockHeader" Value="False"/>
+            <!-- 代码块头部（语言·路径标题 + 折叠/换行/复制/下载）对齐原型 StreamMark 式框架 -->
+            <Setter Property="ShowCodeBlockHeader" Value="True"/>
             <Setter Property="CodeFontFamily" Value="Cascadia Code, Cascadia Mono, Consolas, JetBrains Mono, Microsoft YaHei UI, monospace"/>
         </Style>
 

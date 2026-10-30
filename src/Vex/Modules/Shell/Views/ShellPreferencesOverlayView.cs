@@ -251,7 +251,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
             var code = new MarkdownViewer
             {
                 Name = name ?? string.Empty,
-                ShowCodeBlockHeader = false,
+                // MCP 配置代码块同样带头部（语言标签 + 复制/下载/换行），与原型一致。
                 CodeBlockWrap = true,
                 // 字号与行高由渲染器写成本地值，样式表压不住，只能在这里给原型度量（12/1.8）。
                 CodeFontFamily = McpCodeFontFamily,
