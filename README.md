@@ -25,7 +25,7 @@ Vex 是基于 .NET 10 与 Avalonia 12 的桌面 Markdown 编辑器，支持 **Wi
 
 ## 原型与文档
 
-桌面及三平台安装原型在 [design](design/index.html)，应用已接入 9 套配色、12 套正文排版及对应工作区交互。运行 `node design/scripts/preview.cjs` 后打开 http://127.0.0.1:4317/design/ 。视觉对照和跨平台验证范围见验收文档。
+桌面及三平台安装原型在 [design](design/index.html)，应用已接入 9 套配色、13 套正文排版及对应工作区交互。运行 `node design/scripts/preview.cjs` 后打开 http://127.0.0.1:4317/design/ 。视觉对照和跨平台验证范围见验收文档。
 
 - [仓库学习入口](docs/仓库学习文档.md)
 - [需求文档](docs/需求文档.md) · [概要设计](docs/概要设计.md) · [详细设计](docs/详细设计.md)

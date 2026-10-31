@@ -2236,8 +2236,8 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     Check(wb.IsReading && vm.Markdown == document, "Counting search matches keeps the reading view and document unchanged");
     wb.ShowInstant(); wb.ShowTypography = true; Pump();
     var gallery = window.FindControl<Control>("TypographyGallery")!;
-    Check(gallery.Bounds.Width > 0 && vm.Appearance.TypographyOptions.Count == 12,
-        $"Typography gallery exposes all 12 prototype themes: width={gallery.Bounds.Width}, count={vm.Appearance.TypographyOptions.Count}");
+    Check(gallery.Bounds.Width > 0 && vm.Appearance.TypographyOptions.Count == 13,
+        $"Typography gallery exposes all 13 prototype themes: width={gallery.Bounds.Width}, count={vm.Appearance.TypographyOptions.Count}");
     var typography = vm.Appearance.SelectedTypography;
     foreach (var option in vm.Appearance.TypographyOptions)
     {

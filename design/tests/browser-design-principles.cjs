@@ -24,9 +24,14 @@ fs.mkdirSync(out,{recursive:true});
   for(const mode of ['light','dark'])for(const p of VexPalettes){
    VexTheme.setMode(mode);VexTheme.setPalette(p.key);
    const root=getComputedStyle(document.documentElement),token=k=>root.getPropertyValue('--'+k).trim();
-   const pairs=[['fg','paper'],['muted','panel'],['muted','hover'],['accent','accent-soft'],['on-primary','primary'],['on-primary','primary-hover'],['on-primary','primary-pressed'],['on-accent','accent'],['status-error','status-error-bg']];
+   const pairs=[['fg','paper'],['muted','panel'],['muted','hover'],['on-primary','primary'],['on-primary','primary-hover'],['on-primary','primary-pressed'],['on-accent','accent'],['status-error','status-error-bg']];
    const ratios=pairs.map(([a,b])=>({pair:a+'/'+b,ratio:contrast(rgba(token(a)),rgba(token(b)))}));
    for(const x of ratios)if(x.ratio<4.5)failures.push({mode,palette:p.key,...x});
+   /* 规则 §5 第 2 条：accent↔accentSoft 属强调字/UI 组件角色，按 3:1 判（WCAG 1.4.11）。
+      套 4.5 会逼着把中明度 accent（鼠尾草 3.20）整体压暗一档，§2 明确不允许这么做。 */
+   const softRatio=contrast(rgba(token('accent')),rgba(token('accent-soft')));
+   ratios.push({pair:'accent/accent-soft',ratio:softRatio});
+   if(softRatio<3)failures.push({mode,palette:p.key,pair:'accent/accent-soft',ratio:softRatio});
    /* control-border 是规则 §3 的固定派生（ink@20%→paper / ink@26%→paper），§5 校验清单不含它；
       这里核对派生公式一致性，而不是套用面向文字的 3:1 / 4.5:1 阈值。 */
    const inkC=rgba(token('fg')),paperC=rgba(token('paper')),borderC=rgba(token('control-border')),borderWeight=mode==='dark'?0.26:0.20;
@@ -54,7 +59,7 @@ fs.mkdirSync(out,{recursive:true});
  assert.deepEqual(colors.failures,[],'All rendered text and semantic control roles meet their contrast target');
  // Independent true-size previews, keyboard navigation and position preservation.
  await page.locator('[data-action=typography]:visible').first().click();
- assert.equal(await page.locator('.typography-card:visible').count(),12);
+ assert.equal(await page.locator('.typography-card:visible').count(),13);
  const previews=await page.locator('.typography-card').evaluateAll(cards=>cards.map(card=>{const paper=card.querySelector('.type-swatch'),doc=card.querySelector('.type-document');return {key:card.dataset.typographyKey,preview:paper.dataset.previewType,size:parseFloat(getComputedStyle(doc).fontSize),fits:doc.getBoundingClientRect().bottom<=paper.getBoundingClientRect().bottom+1};}));
  for(const item of previews)assert(item.key===item.preview&&item.size>=13&&item.fits,JSON.stringify(item));
  const card=page.locator('.typography-card').first();await card.focus();await page.keyboard.press('ArrowRight');assert.equal(await page.evaluate(()=>VexTypography.state.key),'Simple');
@@ -114,7 +119,7 @@ fs.mkdirSync(out,{recursive:true});
  const finalArticle=await page.evaluate(()=>VexWorkbench.text);
  const actualSave=page.waitForEvent('download');await page.evaluate(()=>VexProto.handleAction('save'));const markdown=await actualSave;assert.equal(fs.readFileSync(await markdown.path(),'utf8'),finalArticle);assert.equal(await page.evaluate(()=>VexWorkbench.state.dirty),false);
  const actualExport=page.waitForEvent('download');await page.evaluate(()=>VexProto.handleAction('export-html'));const html=fs.readFileSync(await (await actualExport).path(),'utf8');assert(html.includes('文档与视图 · 已整理')&&html.includes('这是一段用于验收的真实写作记录。'));await shot('real-article-complete');
- await page.goto(base+'Appearance.html');await page.locator('[data-review-types=all]').click();assert.equal(await page.locator('.type-choice .type-swatch').count(),12);const previewText=await page.locator('.type-choice .type-document>p').evaluateAll(nodes=>nodes.map(node=>parseFloat(getComputedStyle(node).fontSize)));assert(previewText.every(size=>size>=13));await shot('appearance-review');
+ await page.goto(base+'Appearance.html');await page.locator('[data-review-types=all]').click();assert.equal(await page.locator('.type-choice .type-swatch').count(),13);const previewText=await page.locator('.type-choice .type-document>p').evaluateAll(nodes=>nodes.map(node=>parseFloat(getComputedStyle(node).fontSize)));assert(previewText.every(size=>size>=13));await shot('appearance-review');
  assert.deepEqual(errors,[]);
  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({combinations:colors.types.length,previews,errors,tasks:['save retry','export retry','external compare/cancel/accept/undo','draft recovery','caption close guard','real Markdown open/edit/chapter/undo/save/export','appearance preserves selection/history/position','independent review previews']},null,2));
  console.log('PASS: 216 rendered palette/mode/typography combinations; semantic contrast; 12 independent previews; recommendation filters; keyboard scrolling; save/export retry; external comparison and undo; independent draft recovery; guarded caption close.');

@@ -12,7 +12,7 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
  async function shot(name){await page.waitForTimeout(300);await page.screenshot({path:out+'/'+name+'.png'});}
  await open('layout=read');
  assert.equal(await page.evaluate(()=>new Set(VexPalettes.map(x=>x.key)).size),9);
- assert.equal(await page.evaluate(()=>new Set(VexTypes.map(x=>x.key)).size),12);
+ assert.equal(await page.evaluate(()=>new Set(VexTypes.map(x=>x.key)).size),13);
  const palette=await page.evaluate(()=>{
   const list=[];for(const mode of ['light','dark'])for(const p of VexPalettes){VexTheme.setMode(mode);VexTheme.setPalette(p.key);const s=getComputedStyle(document.documentElement),keys=['--bg','--fg','--muted','--accent','--on-accent','--border','--panel'];list.push({mode,key:p.key,values:keys.map(k=>s.getPropertyValue(k).trim())})}return list;
  });
@@ -82,7 +82,7 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
   }
   if(scenario==='ready')await shot('installer-'+platform);
  }
- await page.goto(base+'Appearance.html');await page.waitForTimeout(200);assert.equal(await page.locator('[data-type]').count(),12);
+ await page.goto(base+'Appearance.html');await page.waitForTimeout(200);assert.equal(await page.locator('[data-type]').count(),13);
  await shot('appearance-comparison');
  assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);
  fs.writeFileSync(out+'/results.json',JSON.stringify({palette,types,widths,diagram,hint,errors,missing},null,2));
