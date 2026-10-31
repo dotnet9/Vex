@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="Vex.Modules.Workspace.Views.MarkdownPreviewView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -33,6 +33,7 @@
         <ScrollViewer
             x:Name="PreviewScrollViewer"
             Grid.Row="1"
+            Padding="0,0,10,0"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto" Focusable="True">
             <!-- 包裹层：ScrollViewer 会拉伸直接子级，居中限宽需交给内层 Grid 的对齐处理。 -->
@@ -51,7 +52,8 @@
                 CodeBlockFontSize="{Binding Preferences.CodeFontSize}"
                 CodeBlockWrap="{Binding Preferences.CodeWrap}"
                 TypographySize="{Binding TypographySize}"
-                TypographyTheme="{Binding TypographyTheme}" />
+                TypographyTheme="{Binding TypographyTheme}"
+                TableHeaderBackgroundBrush="{DynamicResource VexDocumentSelectionBrush}" />
             </LayoutTransformControl>
             </Grid>
         </ScrollViewer>
