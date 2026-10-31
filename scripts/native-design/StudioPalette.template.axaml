@@ -14,6 +14,7 @@
     <Color x:Key="StudioSecondaryColor">#1AAFA9</Color>
     <Color x:Key="StudioPrimaryColor">#512BD4</Color>
     <Color x:Key="StudioGradientStartColor">#8968FF</Color>
+    <Color x:Key="StudioGradientEndColor">#007773</Color>
     <Color x:Key="StudioTextGradientEndColor">#007773</Color>
     <SolidColorBrush x:Key="StudioBackground" Color="{StaticResource StudioBackgroundColor}" />
     <SolidColorBrush x:Key="StudioSurface" Color="{StaticResource StudioSurfaceColor}" />
@@ -44,11 +45,12 @@
     <SolidColorBrush x:Key="SemiColorWarningLight">#FDF3DC</SolidColorBrush>
     <SolidColorBrush x:Key="SemiColorDangerLight">#FDECEC</SolidColorBrush>
     <SolidColorBrush x:Key="SemiColorDangerLightActive">#F9DCDC</SolidColorBrush>
-    <SolidColorBrush x:Key="StatusBadgeLeftTextForeground">White</SolidColorBrush>
+    <SolidColorBrush x:Key="StatusBadgeLeftTextForeground">White</SolidColorBrush><!-- 默认/Debug 胶囊落在强调色上，取强调色的前景键 -->
+    <SolidColorBrush x:Key="StatusBadgeStatusTextForeground">White</SolidColorBrush><!-- 状态四枚胶囊落在状态实色上，白/黑取最差对比更高者 -->
     <!-- 白字操作面使用独立渐变，装饰渐变保留明亮副色。 -->
     <LinearGradientBrush x:Key="StudioActionGradient" StartPoint="0%,0%" EndPoint="100%,100%">
         <GradientStop Offset="0" Color="{StaticResource StudioPrimaryColor}" />
-        <GradientStop Offset="1" Color="#007773" />
+        <GradientStop Offset="1" Color="{StaticResource StudioGradientEndColor}" />
     </LinearGradientBrush>
     <ResourceDictionary x:Key="StudioPropertyGridTheme">
         <StaticResource x:Key="PgBackground" ResourceKey="StudioSurface" />
@@ -231,7 +233,7 @@
     <StaticResource x:Key="StatusBadgeWarnBackground" ResourceKey="SemiColorWarningLight" />
     <StaticResource x:Key="StatusBadgeErrorBackground" ResourceKey="SemiColorDangerLight" />
     <StaticResource x:Key="StatusBadgeFatalBackground" ResourceKey="SemiColorDangerLightActive" />
-    <SolidColorBrush x:Key="StatusCardTopTextForeground">#5C6370</SolidColorBrush>
+    <SolidColorBrush x:Key="StatusCardTopTextForeground">#5C6370</SolidColorBrush><!-- 状态卡内由各状态前景覆盖 -->
     <StaticResource x:Key="StatusCardDebugBackground" ResourceKey="StudioRaised" />
     <StaticResource x:Key="StatusCardInfoBackground" ResourceKey="SemiColorSuccessLight" />
     <StaticResource x:Key="StatusCardWarnBackground" ResourceKey="SemiColorWarningLight" />

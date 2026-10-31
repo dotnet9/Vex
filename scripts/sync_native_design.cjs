@@ -40,44 +40,51 @@ const derive = (key, mode) => context.VexPaletteRules.deriveVars(
 const q = value => JSON.stringify(value);
 /* 生成结果统一收集，最后按模式落地（写入）或比对（--check）。 */
 const outputs = [];
-const write = (file,text) => outputs.push({file: path.resolve(file), text: text.replace(/\r\n/g,'\n')});
+/* 模板带 BOM，库侧 axaml 一律无 BOM：不剥掉就会每次都报「首行不同」的假漂移。 */
+const write = (file,text) => outputs.push({file: path.resolve(file), text: text.replace(/^﻿/,'').replace(/\r\n/g,'\n')});
 if (!typographyOnly) {
 const names = {graphite:'Graphite',indigo:'Indigo',teal:'Teal',pine:'Pine',sky:'Sky',amber:'Amber',crimson:'Crimson',violet:'Violet',terracotta:'Terracotta'};
 const tokens = path.join(library,'src/Controls/CodeWF.Avalonia.Controls/Themes/Studio/Tokens');
 const template = fs.readFileSync(path.join(__dirname,'native-design/StudioPalette.template.axaml'),'utf8');
 for (const p of palettes) for (const mode of ['light','dark']) {
   const dark=mode==='dark', t=derive(p.key,mode);
-  /* 原型 .vex-segmented（segmented.css + prototype.css 令牌）：
-   * 亮色轨道 = 前景 4% 叠「表面」、指示块 = 白 55% 叠表面（表面 = 纸面 #fdfdfd 一档）；
-   * 深色轨道 = 前景 4.5% 叠「面板」、指示块回到面板色（凹槽配亮一档的轨道）。 */
-  const mix=(a,b,ratio)=>{const pa=a.replace('#',''),pb=b.replace('#','');const ch=(j)=>Math.round(parseInt(pa.substr(j,2),16)*ratio+parseInt(pb.substr(j,2),16)*(1-ratio)).toString(16).padStart(2,'0');return ('#'+ch(0)+ch(2)+ch(4)).toUpperCase();};
+  /* WCAG 对比度：与库侧 StudioPaletteEngine.Luminance/Contrast 同式（线性化阈值 0.04045、权重 .2126/.7152/.0722），
+   * 两边任一处改公式，StudioTokenParityTests 的逐键比色就会红。 */
+  const channel=v=>{v/=255;return v<=0.04045?v/12.92:Math.pow((v+0.055)/1.055,2.4);};
+  const lum=h=>{const p=h.replace('#','');return [0,2,4].map(j=>channel(parseInt(p.substr(j,2),16))).reduce((s,v,i)=>s+v*[0.2126,0.7152,0.0722][i],0);};
+  const vs=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);};
+  /* 一组底色共用的文字色：白与黑取「最差那枚对比更高者」，与引擎 OnColors 同样用 >= 让平局归白。 */
+  const onColors=(...hexes)=>{const worst=ink=>Math.min(...hexes.map(h=>vs(ink,h)));return worst('#FFFFFF')>=worst('#000000')?'#FFFFFF':'#000000';};
   /* 画布三键必须取 deriveVars 里的 §5.1 去色温值（原型 palettes.css 烧的就是它），不能取 p.darkPaper/p.darkPanel
    * 这类编写层原始值：那样九套暗色各带各的色温，大面积画布整体不像原型，而 --check 全绿也发现不了，
-   * 因为漂移就烧在取数行里。派生表里 --paper/--surface 同值（都= 去温后的 paper），--panel = 去温后的 surface。 */
+   * 因为漂移就烧在取数行里。派生表里 --paper/--surface 同值（都= 去温后的 paper），--panel = 去温后的 surface。
+   * 分段控件两键与浮起面同样直接取派生表：它们原本是这里自算的三个 mix，与库引擎各写一遍。 */
   const paper=t.paper, surface=t.panel, fgColor=t.fg;
-  const segmentedTrack=dark?mix(fgColor,surface,0.045):mix(fgColor,paper,0.04);
-  const segmentedThumb=dark?surface:mix('#ffffff',paper,0.55);
-  /* 原型 --elevated（弹出层/对话框浮起底色）= color-mix(in srgb, surface 88%, panel)，surface 即纸面。 */
-  const elevated=mix(paper,surface,0.88);
   const colors={StudioBackgroundColor:t.bg,StudioSurfaceColor:surface,
-    StudioPaperColor:paper,StudioRaisedColor:t.hover,StudioBorderColor:t.border,StudioSegmentedTrackColor:segmentedTrack,StudioSegmentedThumbColor:segmentedThumb,StudioElevatedColor:elevated,
+    StudioPaperColor:paper,StudioRaisedColor:t.hover,StudioBorderColor:t.border,
+    StudioSegmentedTrackColor:t['segmented-track'],StudioSegmentedThumbColor:t['segmented-thumb'],StudioElevatedColor:t.elevated,
     StudioTextColor:fgColor,StudioMutedColor:t.muted,StudioAccentColor:t.accent,
     StudioSecondaryColor:t['accent-decoration'],StudioPrimaryColor:t.primary,StudioGradientStartColor:t.primary,
-    StudioTextGradientEndColor:t['gradient-end']};
+    StudioGradientEndColor:t['gradient-end'],StudioTextGradientEndColor:t['gradient-end']};
   let text=template.replace(/<Color x:Key="([^"]+)">[^<]+<\/Color>/g,(all,key)=>`<Color x:Key="${key}">${colors[key]||'#24766B'}</Color>`);
-  /* 状态浅色底（*-soft / status-error-bg / danger-pressed-bg）与激活前景
-   * （status-error）全部按模式派生：亮色为浅底深字、暗色为深底亮字。
-   * 曾因缺映射导致暗色徽章浅底配浅字（对比度 1.0:1）与亮色 Info 底 4.42:1。 */
+  /* 状态软底与实色全部直接取原型派生表的键，不在这里重抄 §3 公式：palette-rules.js 的模块头写明
+   * 「公式与常数的唯一事实源是规则附录 A，禁止在任何一侧另抄」。曾因本处自有一套 mix 收敛，
+   * 与库侧引擎各说各话——同一控件在内置配色与用户配色下两种深浅，而 StudioTokenParityTests 看不见。
+   * 键位：-soft/-hover-bg 是 hover 档、-pressed-bg 深一档；状态字色 *-hover-fg/-pressed-fg 由 §3
+   * 的状态色族不动点解出，保证文字对自家两档软底同时 ≥4.5（曾因缺映射导致暗色徽章浅底配浅字 1.0:1）。 */
   const brushes={StudioOnPrimary:t['on-primary'],StudioPrimaryHover:t['primary-hover'],StudioPrimaryPressed:t['primary-pressed'],
     SemiColorSuccess:t['status-success'],SemiColorWarning:t['status-warning'],SemiColorDanger:t['status-error'],
-    SemiColorDangerActive:t['status-error'],
+    SemiColorDangerActive:t['danger-pressed-fg'],
     SemiColorDangerLight:t['status-error-bg'],SemiColorDangerLightActive:t['danger-pressed-bg'],
     SemiColorSuccessLight:t['success-soft'],SemiColorWarningLight:t['warning-soft'],
-    StatusCardTopTextForeground:dark?t['fg']:undefined,
+    StatusCardTopTextForeground:t['fg'],
+  /* 徽章左侧胶囊有两张脸：默认/Debug 落在强调色上（--on-primary），Info/Warn/Error/Fatal 落在状态实色上。
+   * 一个前景键喂不满两套底色——鼠尾草的 accent 要黑字（白字仅 3.56:1），浅底 success 要白字（黑字 4.17:1）。 */
+  StatusBadgeStatusTextForeground:onColors(t['status-success'],t['status-warning'],t['status-error']),
     PgSelectedText:t['on-primary'],StatusBadgeLeftTextForeground:t['on-primary']};
   text=text.replace(/<SolidColorBrush x:Key="([^"]+)">[^<]+<\/SolidColorBrush>/g,(all,key)=>brushes[key]?`<SolidColorBrush x:Key="${key}">${brushes[key]}</SolidColorBrush>`:all);
-  // Action surfaces use the dedicated primary pair, including the second gradient stop.
-  text=text.replace(/(<LinearGradientBrush x:Key="StudioActionGradient"[\s\S]*?<GradientStop Offset="1" Color=")[^"]+/, '$1'+t.primary);
+  /* 操作面渐变的第二停点走装饰副色（--gradient-end），已在 colors 里按键派发，
+   * 这里不再整段改写模板中的 GradientStop——那会把它压回 primary，库里的「独立渐变」设计随之消失。 */
   const extra={StudioHover:t.hover,StudioPressed:t.pressed,StudioSelected:t['accent-soft'],StudioControlBorder:t['control-border'],StudioFocusRing:t['focus-ring'],StudioDisabled:t['fg-disabled']};
   const extraText=Object.entries(extra).map(([key,value])=>`    <Color x:Key="${key}Color">${value}</Color>\n    <SolidColorBrush x:Key="${key}" Color="{StaticResource ${key}Color}"/>`).join('\n');
   text=text.replace('    <!-- 颜色令牌',`    <Color x:Key="StudioPaperColor">${colors.StudioPaperColor}</Color>\n${extraText}\n    <!-- 颜色令牌`);
