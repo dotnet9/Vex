@@ -171,41 +171,7 @@ public sealed class ShellTypographyGallery : UserControl
         var name = Text(option.NameKey);
         var purpose = Text(option.PurposeKey);
         var quote = Text("AboutShortSlogan");
-        // 原型 #typography-panel .type-swatch .type-document{--type-size:13px}：卡片预览钉死 13 基准，
-        // 不跟渲染密度档走（密度只作用于正文），否则同一张卡在三档下量出的字号不具可比性。
-        var preview = new MarkdownViewer
-        {
-            Markdown = $"## {name}\n\n{purpose}\n\n> {quote}",
-            TypographyTheme = option.Key,
-            FontWeight = FontWeight.Normal,
-            TypographySize = MarkdownTypographySizes.Compact,
-            IsHitTestVisible = false,
-            Margin = new Thickness(11, 8),
-            DocumentBottomPadding = 0,
-            EnableVirtualization = false
-        };
-        // 原型窄卡把说明降成标签字号并压掉块间距（首块无上外边距、h2 下 5px、段落 0 0 7px），三行卡片才装得下。
-        // 标题级别的边距由渲染器按 CodeWFMarkdownHeading{N}Margin 资源取值（属性只作兜底），
-        // 所以这里直接覆盖 H2 的级别资源：上边距 0（原型 >:first-child{margin-top:0}）+ 下 5。
-        preview.Resources["CodeWFMarkdownHeading2Margin"] = new Thickness(0, 0, 0, 5);
-        preview.HeadingMargin = new Thickness(0, 0, 0, 5);
-        preview.ParagraphMargin = new Thickness(0, 0, 0, 7);
-        preview.ParagraphFontSize = 12;
-        preview.ParagraphLineHeight = 18;
-        preview.BlockSpacing = 0;
-        // 原型窄卡把引用再收紧一档：#typography-panel .type-document blockquote{margin-top:0;padding:6px 9px}。
-        // 引用的内距与外边距走库里的动态资源键，弹层内按卡片覆盖，不改全局排版契约。
-        preview.Resources["CodeWFMarkdownQuotePadding"] = new Thickness(9, 6, 9, 6);
-        preview.Resources["CodeWFMarkdownQuoteMargin"] = new Thickness(0);
-        EventHandler clamp = null!;
-        var clamped = false;
-        clamp = (_, _) =>
-        {
-            if (clamped) return;
-            clamped = ClampPreviewLines(preview);
-            if (clamped) preview.LayoutUpdated -= clamp;
-        };
-        preview.LayoutUpdated += clamp;
+        var preview = new TypographyCardPreview(option.Key, name, purpose, quote);
         // 原型 .type-swatch：不圆角、不投影，只与卡片顶边隔 1px 描线，白纸铺满卡片由卡片圆角裁切。
         var paper = new Border { Child = preview, ClipToBounds = true, BorderThickness = new Thickness(0, 1, 0, 0), CornerRadius = new CornerRadius(0) };
         Resource(paper, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
@@ -231,7 +197,7 @@ public sealed class ShellTypographyGallery : UserControl
         button.Name = "Typography_" + option.Key;
         button.Content = content; button.Padding = default; button.FontSize = 10; button.FontWeight = FontWeight.Normal;
         button.MinHeight = CardHeight; button.Height = CardHeight;
-        button.ClipToBounds = false;
+        button.ClipToBounds = true;
         button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
         button.HorizontalContentAlignment = HorizontalAlignment.Stretch; button.VerticalContentAlignment = VerticalAlignment.Stretch;
         // 原型实测：1px --border 描边、--surface 底、--vex-radius-md 圆角，box-shadow:none（描边色见 Button.typography-card）。
@@ -260,27 +226,6 @@ public sealed class ShellTypographyGallery : UserControl
             button.PointerExited += (_, _) => { if (button.Content is Panel p) foreach (var c in p.Children.OfType<StackPanel>()) c.IsVisible = false; };
         }
         return button;
-    }
-
-    /// <summary>
-    /// 原型窄卡用 -webkit-line-clamp 截断（标题、说明各 1 行，引用 2 行），MarkdownViewer 自己排版文本，
-    /// 只能在块渲染出来后按块类型回填 MaxLines，否则换行会把引用挤出卡片。返回是否三类块都已截断。
-    /// </summary>
-    private static bool ClampPreviewLines(MarkdownViewer preview)
-    {
-        var seen = 0;
-        foreach (var block in preview.GetVisualDescendants().OfType<TextBlock>())
-        {
-            if (block.GetType() == typeof(TextBlock)) continue; // 渲染器的空占位文本块
-            var ancestors = block.GetVisualAncestors().OfType<StyledElement>().ToArray();
-            bool Class(string name) => ancestors.Any(element => element.Classes.Contains(name));
-            // 标题 1 行、引用 2 行、其余（说明段落）1 行，与原型 #typography-panel 的 line-clamp 一致。
-            var maxLines = Class("MdHeadingBorder") ? 1 : Class("MdQuote") ? 2 : 1;
-            seen |= Class("MdHeadingBorder") ? 1 : Class("MdQuote") ? 4 : 2;
-            if (block.MaxLines != maxLines) block.MaxLines = maxLines;
-            if (block.TextTrimming != TextTrimming.CharacterEllipsis) block.TextTrimming = TextTrimming.CharacterEllipsis;
-        }
-        return seen == 7;
     }
 
     /// <summary>原型 #typography-panel 的卡片圆角档位（--vex-radius-md，随密度与圆角缩放）；

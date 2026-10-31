@@ -41,8 +41,8 @@ internal static class PrototypeAppearanceVerification
         var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
         var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true).ToArray();
         Check(cards.Length == 13 && cards.All(b => b.IsVisible), "All thirteen typography cards are shown without a filter (prototype redesign)");
-        Check(cards.All(card => card.Content is Panel panel && panel.Children.OfType<Border>().First().Child is MarkdownViewer preview
-            && preview.TypographyTheme == card.Name![11..]), "Each card renders its own typography key");
+        Check(cards.All(card => card.Content is Panel panel && panel.Children.OfType<Border>().First().Child is UserControl preview
+            && preview.Classes.Contains("typography-preview") && Equals(preview.Tag, card.Name![11..])), "Each card renders its own typography key");
         // 原型 #typography-panel 第一层只有密度行与网格：标题、关闭钮和「渲染密度」四个字都是实现自己加的，实测不存在；
         // 密度作用域在原型里写进轨道的 aria-label，所以原生也只能有可访问名，不能有可见文字。
         string I18nText(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
@@ -80,10 +80,10 @@ internal static class PrototypeAppearanceVerification
             Check(addStrip.Bounds.Width > cards[0].Bounds.Width * 3 && stripBottom <= scroll.Extent.Height + 1,
                 $"Add strip spans the grid inside the scrollable area at {density}: {addStrip.Bounds.Width:0.#}x{addStrip.Bounds.Height:0.#}, bottom={stripBottom:0.#}, extent={scroll.Extent.Height:0.#}");
             // 原型 line-clamp：标题与说明各 1 行、引用 2 行，引用整行落在卡片内（不截断就会被挤出卡片）。
-            bool InQuote(TextBlock t) => t.GetVisualAncestors().OfType<StyledElement>().Any(e => e.Classes.Contains("MdQuote"));
+            bool InQuote(TextBlock t) => t.Classes.Contains("typography-preview-quote");
             Check(cards.All(card =>
             {
-                var blocks = card.GetVisualDescendants().OfType<TextBlock>().Where(t => t.GetType() != typeof(TextBlock)).ToArray();
+                var blocks = card.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Classes.Any(c => c.StartsWith("typography-preview-", StringComparison.Ordinal))).ToArray();
                 var quote = blocks.FirstOrDefault(InQuote);
                 return quote is { MaxLines: 2 } && blocks.Where(t => !InQuote(t)).All(t => t is { MaxLines: 1 })
                     && quote.TranslatePoint(new Point(0, quote.Bounds.Height), card)!.Value.Y <= card.Bounds.Height + .5;

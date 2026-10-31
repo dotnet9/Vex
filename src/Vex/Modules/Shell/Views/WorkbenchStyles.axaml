@@ -84,7 +84,7 @@
     <Setter Property="Height" Value="26" />
     <Setter Property="MinWidth" Value="0" />
     <Setter Property="MinHeight" Value="0" />
-    <Setter Property="Padding" Value="6" />
+    <Setter Property="Padding" Value="3" />
     <Setter Property="CornerRadius" Value="5" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Background" Value="Transparent" />

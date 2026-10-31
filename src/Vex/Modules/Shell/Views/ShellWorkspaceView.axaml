@@ -86,7 +86,7 @@
                         4px 左距 = 标签行 gap 2 + workspace-chrome.css:532 的 margin-left:2。 -->
                         <Button x:Name="EditorModeButton" Classes="editor-mode" Classes.on="{Binding Workbench.ShowLayouts}" Grid.Column="2"
                             Command="{Binding Workbench.ToggleLayouts}" Margin="4,0,0,0" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
                                 <TextBlock Text="{Binding Workbench.MoreSegmentLabel}" VerticalAlignment="Center" />
                                 <Path Classes="expand-chevron" Data="M6 9L12 15L18 9" />
                             </StackPanel>

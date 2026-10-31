@@ -35,7 +35,7 @@
                 <Button x:Name="CloseOutlineButton" Grid.Column="1" Classes="panel-close" Click="ClosePanelClicked"
                         helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.NavOutlineCollapse}}"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NavOutlineCollapse}}">
-                    <Path Classes="stroke-ico" Width="14" Height="14" Data="M6 6L18 18 M18 6L6 18" />
+                    <Path Classes="stroke-ico" Width="8" Height="8" StrokeThickness="1.2" Data="M6 6L18 18 M18 6L6 18" />
                 </Button>
             </Grid>
         </Border>
