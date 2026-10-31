@@ -19,7 +19,7 @@
     MinHeight="480"
     Icon="/Assets/logo.ico"
     BorderBrush="{DynamicResource VexPanelBorderBrush}"
-    TitleBarHeight="33"
+    TitleBarHeight="32"
     TitleBarBackground="{DynamicResource VexChromeBrush}"
     CaptionButtonWidth="46" CaptionGlyphSize="14"
     IsTitleBarVisible="{Binding !Workbench.IsPresenting}"
@@ -61,7 +61,7 @@
                     Text="Vex"
                     VerticalAlignment="Center" />
             </StackPanel>
-            <shell:ShellTitleMenuView x:Name="TitleMenuView" VerticalAlignment="Center" />
+            <shell:ShellTitleMenuView x:Name="TitleMenuView" VerticalAlignment="Center" Margin="4,0,0,0" />
             <!-- 原型把文档名放在菜单之后左对齐，而不是标题栏正中。 -->
             <!-- 原型 .document-title：文档名 12/600（fs-caption 令牌 + 600 字重）。 -->
             <TextBlock
@@ -178,12 +178,12 @@
                 Grid.Column="0"
                 ClipToBounds="True"
                 IsHitTestVisible="{Binding Layout.ShowSidebar}">
-                <Border Classes="workspace-block">
+                <Border Classes="workspace-block sidebar-edge">
                     <views:ShellFilesView />
                 </Border>
             </Border>
 
-            <!-- 间隙即把手本体（4px），负外边距扩到 12px 命中；窄窗口仍为正文保留最小宽度。 -->
+            <!-- 1px 缝即把手本体，负外边距把命中扩到 11px；看得见的那根线由 .sidebar-edge 画在侧栏外缘。 -->
             <GridSplitter
                 x:Name="SidebarSplitter"
                 Grid.Column="1"
@@ -257,7 +257,7 @@
             <GridSplitter x:Name="OutlineSplitter" Grid.Column="3" Classes="workspace-gap gap-horizontal" ZIndex="9" HorizontalAlignment="Stretch"
                           IsVisible="{Binding Layout.ShowOutlineSidebar}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
             <!-- 与左侧文件栏同构：列宽是唯一尺寸来源，收起时由 ClipToBounds 裁切内容，才能滑出而不是整块消失。 -->
-            <Border x:Name="OutlineGuideTarget" Grid.Column="4" Classes="workspace-block" IsHitTestVisible="{Binding Layout.ShowOutlineSidebar}"
+            <Border x:Name="OutlineGuideTarget" Grid.Column="4" Classes="workspace-block structure-edge" IsHitTestVisible="{Binding Layout.ShowOutlineSidebar}"
                     ClipToBounds="True">
                 <shell:ShellAuxiliaryPanelView/>
             </Border>

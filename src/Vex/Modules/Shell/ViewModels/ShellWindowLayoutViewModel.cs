@@ -32,7 +32,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private double _sidebarWidth = DefaultSidebarWidth;
     private bool _isSidebarResizing;
     private bool _isOutlineVisible;
-    private double _outlineWidth = 240;
+    private double _outlineWidth = DefaultOutlineWidth;
     private double _workspaceWidth = 1280;
     private bool _outlineNarrowOverride;
     private bool? _outlineBeforeFocus;
@@ -47,6 +47,13 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     /// <summary>原型 --block-gap：块之间的间隙宽度，分栏把手本体即这段间隙。</summary>
     // 原型侧栏与正文的分界是 1px 发丝缝（.sidebar-splitter w=1、col-resize）。
     public const double BlockGap = 1d;
+
+    /// <summary>原型 #structure-splitter 的 aria 范围与默认读数：280–480，起步 312。</summary>
+    public const double DefaultOutlineWidth = 312d;
+
+    private const double MinOutlineWidth = 280d;
+
+    private const double MaxOutlineWidth = 480d;
 
     private const double MinSidebarWidth = 200d;
 
@@ -75,7 +82,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _isFocusMode = settings.IsFocusMode ?? false;
         _sidebarWidth = Math.Clamp(settings.SidebarWidth ?? DefaultSidebarWidth, MinSidebarWidth, MaxSidebarWidth);
         _isOutlineVisible = settings.IsOutlineVisible ?? false;
-        _outlineWidth = Math.Clamp(settings.OutlineWidth ?? 240, 180, 480);
+        _outlineWidth = Math.Clamp(settings.OutlineWidth ?? DefaultOutlineWidth, MinOutlineWidth, MaxOutlineWidth);
         _splitRatios = ParseRatios(settings.ViewSplitRatios);
         MotionResources.Apply(_motionMode);
         if (_isFocusMode)
@@ -246,7 +253,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         get => _outlineWidth;
         set
         {
-            if (!double.IsFinite(value) || !SetProperty(ref _outlineWidth, Math.Clamp(value, 180, 480))) return;
+            if (!double.IsFinite(value) || !SetProperty(ref _outlineWidth, Math.Clamp(value, MinOutlineWidth, MaxOutlineWidth))) return;
             NotifyOutlineLayout();
             if (!_isOutlineResizing) PersistLayoutSettings();
         }
@@ -259,8 +266,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         // 动画期间的插值宽度不回写用户设定宽度。
         set { if (ShowOutlineSidebar && _outlineAnimator.Value is null && value.IsAbsolute) OutlineWidth = value.Value; }
     }
-    public double MinimumOutlineWidth => ShowOutlineSidebar && _outlineAnimator.Value is null ? 180 : 0;
-    public double MaximumOutlineWidth => ShowOutlineSidebar || _outlineAnimator.Value is not null ? 480 : 0;
+    public double MinimumOutlineWidth => ShowOutlineSidebar && _outlineAnimator.Value is null ? MinOutlineWidth : 0;
+    public double MaximumOutlineWidth => ShowOutlineSidebar || _outlineAnimator.Value is not null ? MaxOutlineWidth : 0;
     public GridLength OutlineSplitterWidth => new(ShowOutlineSidebar ? BlockGap : 0);
     public void BeginOutlineResize() => _isOutlineResizing = true;
     public void CompleteOutlineResize() { _isOutlineResizing = false; PersistLayoutSettings(); }

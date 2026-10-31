@@ -21,10 +21,11 @@ public sealed partial class ShellWorkbenchViewModel
     public bool PresentationMap => IsPresenting && _presentationMap;
     /// <summary>原型 .deck-scroll 只被导图档隐藏：大纲是右侧同屏列，不与正文互斥。</summary>
     public bool PresentationDocument => IsPresenting && !_presentationMap;
-    /// <summary>原型 .deck-stage：演示整幅出血，顶栏占整行（正文列自然落在其下），大纲展开时正文按列宽让位。</summary>
+    /// <summary>原型 .workspace{gap:0;padding:0}（workspace-chrome.css:464）：普通态三列平铺贴满；
+    /// 演示态整幅出血（.deck-stage），大纲展开时正文按列宽让位。</summary>
     public Avalonia.Thickness WorkspaceContentMargin => IsPresenting
         ? new(0, 0, DeckNavWidth, 0)
-        : new(10);
+        : default;
 
     /// <summary>原型 .vex-deck{--deck-nav-w:min(280px,25vw)}：大纲列宽，正文与悬浮件都按它让位。</summary>
     public double DeckNavWidth => PresentationOutline ? Math.Min(280, Math.Max(0, _layout.WorkspaceWidth) * .25) : 0;

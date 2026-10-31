@@ -123,18 +123,28 @@
   <Style Selector="ToggleButton.rail-item:checked Path">
     <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
   </Style>
-  <!-- 原型分栏线：1px 发丝缝即把手（.sidebar-splitter w=1 cursor:col-resize，无握柄）；
-       负外边距把命中区扩到 8px，拖动手感不变。 -->
+  <!-- 原型分栏把手本体透明不占视（.sidebar-splitter w=1 background:transparent，
+       ::before 向两侧各扩 5px 只为命中）；发丝线画在左右两块的外缘，把手只负责拖动。 -->
   <Style Selector="GridSplitter.workspace-gap">
-    <Setter Property="Background" Value="{DynamicResource VexHairlineBrush}" />
+    <Setter Property="Background" Value="Transparent" />
   </Style>
   <Style Selector="GridSplitter.gap-horizontal">
-    <Setter Property="Margin" Value="-4,0" />
+    <Setter Property="Margin" Value="-5,0" />
     <Setter Property="Cursor" Value="SizeWestEast" />
   </Style>
   <Style Selector="GridSplitter.gap-vertical">
-    <Setter Property="Margin" Value="0,-4" />
+    <Setter Property="Margin" Value="0,-5" />
     <Setter Property="Cursor" Value="SizeNorthSouth" />
+  </Style>
+  <!-- 原型 .sidebar 画 1px 右边、.structure-sidebar 画 1px 左边（色都是 vex-hairline）：
+       左右两栏各在自己外缘画一根发丝线，分屏把手那一列反倒不画线（两块纸面直接相邻）。 -->
+  <Style Selector="Border.sidebar-edge">
+    <Setter Property="BorderBrush" Value="{DynamicResource VexHairlineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,1,0" />
+  </Style>
+  <Style Selector="Border.structure-edge">
+    <Setter Property="BorderBrush" Value="{DynamicResource VexHairlineBrush}" />
+    <Setter Property="BorderThickness" Value="1,0,0,0" />
   </Style>
   <Style Selector="FlyoutPresenter, MenuFlyoutPresenter, Border.dialog-card, Border.wb-popover">
     <Setter Property="motion:EntranceMotion.IsEnabled" Value="True"/>
