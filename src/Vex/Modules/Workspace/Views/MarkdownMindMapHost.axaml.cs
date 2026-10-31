@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
@@ -26,9 +26,7 @@ public partial class MarkdownMindMapHost : UserControl
 {
     public Control GuideSettingsTarget => SettingsTarget;
     private ShellWorkbenchViewModel? _workbench;
-    private bool _refreshingInspector;
     private bool _applyingMapZoom;
-    private int? _inspectedStart;
     private int? _renamingStart;
     private (bool Paragraphs, bool Lists, bool Code, bool Tables)? _savedVisibility;
     private Vex.Core.Services.EditorPreferences? _pinPreferences;
@@ -46,6 +44,8 @@ public partial class MarkdownMindMapHost : UserControl
         InitializeComponent();
         // 取消钉住时工具条悬浮于导图之上；声明顺序在后会盖住内容，这里用 ZIndex 提升。
         MapEditingToolbar.ZIndex = 1;
+        InspectorView.ChapterCommandRequested += ExecuteChapter;
+        InspectorView.CanvasFocusRequested += () => Map.Focus();
         DataContextChanged += OnMapPinContextChanged;
         DataContextChanged += OnStyleBadgeContextChanged;
         // 原型 .map-controls 的还原钮写的是 map-fit：适应画布，而不是回到 100%。
@@ -277,6 +277,8 @@ public partial class MarkdownMindMapHost : UserControl
             var rowBase = MapToolsRow.DesiredSize.Width - MapToolsRight.Margin.Left;
             MapToolsRight.Margin = new Thickness(Math.Max(0, MapToolsScroll.Bounds.Width - rowBase), 0, 0, 0);
             SettingsTarget.MaxHeight = Math.Max(100, Bounds.Height - 74);
+            var wide = TopLevel.GetTopLevel(this)?.ClientSize.Width > 1100;
+            SettingsTarget.Margin = new Thickness(12, 13, wide ? 120 : 12, 18);
             // 原型 position()：弹层最大高 = 触发钮下沿到宿主底部的可用空间（180 兜底），两排卡片靠内部滚动消化。
             scroll.MaxHeight = Math.Max(180, Bounds.Height - 96);
         };
@@ -384,28 +386,8 @@ public partial class MarkdownMindMapHost : UserControl
         if (e.PropertyName is nameof(ShellWorkbenchViewModel.ShowParagraphs) or nameof(ShellWorkbenchViewModel.ShowLists) or nameof(ShellWorkbenchViewModel.ShowCode) or nameof(ShellWorkbenchViewModel.ShowTables))
             RefreshHeadingsOnly();
     }
-    private void RefreshInspector()
-    {
-        _refreshingInspector = true;
-        try { _inspectedStart = _workbench?.SelectedNode?.SourceStart; ChapterTitleInput.Text = _workbench?.ChapterTitle; ChapterBodyInput.Text = _workbench?.ChapterBody; }
-        finally { _refreshingInspector = false; }
-    }
-    public void FlushInspector()
-    {
-        if (_refreshingInspector || _workbench is not { IsChapterSelected: true } state || state.SelectedNode?.SourceStart != _inspectedStart) return;
-        var title = ChapterTitleInput.Text; var body = ChapterBodyInput.Text;
-        var titleChanged = title is not null && title != state.ChapterTitle;
-        var bodyChanged = body is not null && body != state.ChapterBody;
-        if (titleChanged) state.CommitChapterTitle(title!);
-        if (bodyChanged) state.CommitChapterBody(body!);
-    }
-    private void TitleLostFocus(object? sender, RoutedEventArgs e) => FlushInspector();
-    private void BodyLostFocus(object? sender, RoutedEventArgs e) => FlushInspector();
-    private void TitleKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter) { FlushInspector(); Map.Focus(); e.Handled = true; }
-        if (e.Key == Key.Escape) { RefreshInspector(); Map.Focus(); e.Handled = true; }
-    }
+    private void RefreshInspector() => InspectorView.Refresh();
+    public void FlushInspector() => InspectorView.Flush();
     private void ChapterClick(object? sender, RoutedEventArgs e) { if (sender is Button { Tag: string command }) ExecuteChapter(command); }
     private void ExecuteChapter(string command)
     {
@@ -417,7 +399,7 @@ public partial class MarkdownMindMapHost : UserControl
             ChapterDeleteLayer.IsVisible = true; CancelDeleteChapter.Focus(); return;
         }
         _workbench?.ExecuteChapter(command);
-        if (command is "child" or "sibling") Dispatcher.UIThread.Post(() => ChapterTitleInput.Focus(), DispatcherPriority.Background);
+        if (command is "child" or "sibling") Dispatcher.UIThread.Post(InspectorView.FocusTitle, DispatcherPriority.Background);
     }
     private void BeginRename(MarkdownMindMapNode node)
     {

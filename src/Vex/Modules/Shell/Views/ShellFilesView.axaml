@@ -136,7 +136,7 @@
             <Setter Property="Height" Value="26" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="MinHeight" Value="0" />
-            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="Padding" Value="6,0,16,0" />
             <Setter Property="CornerRadius" Value="5" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Background" Value="Transparent" />
@@ -203,7 +203,7 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <!-- 与树视图同档：原型 .file-list{padding:0 6px}，6px 收进列表面。 -->
-            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="Padding" Value="6,0,16,0" />
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
         </Style>
         <Style Selector="ListBox.files-list ListBoxItem">

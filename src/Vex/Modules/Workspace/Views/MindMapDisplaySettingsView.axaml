@@ -1,0 +1,67 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+    xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+    x:Class="Vex.Modules.Workspace.Views.MindMapDisplaySettingsView" x:DataType="vm:MainWindowViewModel">
+    <UserControl.Styles>
+        <Style Selector="Grid.summary-option">
+            <Setter Property="Height" Value="17.6" />
+            <Setter Property="Margin" Value="0,0,0,11" />
+        </Style>
+        <Style Selector="Grid.summary-option TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="LineHeight" Value="17.6" />
+        </Style>
+        <Style Selector="CheckBox.summary-check">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </UserControl.Styles>
+    <StackPanel>
+        <Border Padding="13,10" Margin="0,0,0,14">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{i18n:I18n Vex.VexL.WBMapDisplay}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="vex-dismiss" Width="30" Height="30"
+                    Command="{Binding Workbench.ToggleMapSettings}"
+                    ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}" />
+            </Grid>
+        </Border>
+        <Grid ColumnDefinitions="*,68,Auto" Margin="0,0,0,11">
+            <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBSummary}}" FontSize="11" VerticalAlignment="Center" />
+            <NumericUpDown Grid.Column="1" x:Name="SummaryLengthInput" Minimum="1" Maximum="120" Increment="1"
+                MinHeight="0" Height="30" FontSize="11" CornerRadius="999" Padding="7,5"
+                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBSummary}}"
+                Value="{Binding Workbench.SummaryLength, Mode=TwoWay}" />
+            <TextBlock Grid.Column="2" Text="{i18n:I18n Vex.VexL.MapSummaryCharacters}" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center" />
+        </Grid>
+        <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBSummaryHint}}" TextWrapping="Wrap" Classes="wb-muted"
+            FontSize="11" LineHeight="18.7" Margin="0,0,0,16" />
+        <Grid ColumnDefinitions="*,Auto" Classes="summary-option">
+            <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBParagraphs}}" />
+            <CheckBox Grid.Column="1" Classes="summary-check" IsChecked="{Binding Workbench.ShowParagraphs, Mode=TwoWay}"
+                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBParagraphs}}" />
+        </Grid>
+        <Grid ColumnDefinitions="*,Auto" Classes="summary-option">
+            <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBLists}}" />
+            <CheckBox Grid.Column="1" Classes="summary-check" IsChecked="{Binding Workbench.ShowLists, Mode=TwoWay}"
+                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBLists}}" />
+        </Grid>
+        <Grid ColumnDefinitions="*,Auto" Classes="summary-option">
+            <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBRichBlocks}}" />
+            <CheckBox Grid.Column="1" Classes="summary-check" IsChecked="{Binding Workbench.ShowRichBlocks, Mode=TwoWay}"
+                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBRichBlocks}}" />
+        </Grid>
+        <Border Background="{DynamicResource VexPreviewBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
+            BorderThickness="1" Padding="12" CornerRadius="6">
+            <StackPanel Spacing="5">
+                <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBSummaryPreview}}" FontSize="13" LineHeight="23.4" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Workbench.SummaryPreview}" TextWrapping="Wrap" FontSize="13" LineHeight="23.4" />
+            </StackPanel>
+        </Border>
+        <Button x:Name="ResetMapSettingsButton" Content="{i18n:I18n {x:Static l:VexL.WBReset}}"
+            Classes="wb-quiet" Command="{Binding Workbench.ResetMapSettings}" HorizontalAlignment="Left"
+            Height="36" MinHeight="0" FontSize="13" FontWeight="SemiBold" Padding="8,6" Margin="0,8,0,0" />
+    </StackPanel>
+</UserControl>

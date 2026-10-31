@@ -209,7 +209,7 @@ internal static class ElementVerification
             $"两模式任务框同尺寸（即时={instantBox.Bounds.Width:0.#}x{instantBox.Bounds.Height:0.#} 阅读={readBox.Bounds.Width:0.#}x{readBox.Bounds.Height:0.#}）");
         // 分段条「更多」：组合布局时显示布局名并高亮；单一布局回落「更多」。
         vm.Workbench.SelectLayout("source-render"); Pump();
-        Check(vm.Workbench.IsMoreSegmentActive && vm.Workbench.MoreSegmentLabel == vm.Workbench.LayoutOption.Name,
+        Check(vm.Workbench.IsMoreSegmentActive && vm.Workbench.MoreSegmentLabel == string.Format(Vex.Core.Models.WorkbenchText.Get("LayoutCurrentFormat"), vm.Workbench.LayoutOption.Name),
             "组合布局时更多段显示布局名并高亮");
         vm.Workbench.SelectLayout("source"); Pump();
         Check(!vm.Workbench.IsMoreSegmentActive, "单一布局时更多段回落为更多");

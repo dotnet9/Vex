@@ -54,20 +54,27 @@ internal static class MapToolbarProbe
             && Math.Abs(right.Bounds.Right - scroll.Viewport.Width) < 1.5,
             $"Wide window right-aligns the tool group without overflow: extent={scroll.Extent.Width:0.#}, viewport={scroll.Viewport.Width:0.#}, right={right.Bounds.Right:0.#}");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "map-toolbar-wide.png"));
-        foreach (var width in new[] { 800, 640 })
+        var overflowVerified = false;
+        foreach (var (width, layout) in new[] { (800, "map"), (800, "source-map") })
         {
-            window.Width = width; Render();
-            CheckSingleRow(width + "px");
-            Check(scroll.Extent.Width > scroll.Viewport.Width + 1,
-                $"Narrow window overflows into horizontal scroll instead of a second row: extent={scroll.Extent.Width:0.#}, viewport={scroll.Viewport.Width:0.#}");
+            window.Width = width; vm.Workbench.SelectLayout(layout); Render();
+            CheckSingleRow(width + "px/" + layout);
+            // 桌面最小宽 800；640 会被窗口约束回 800。用真实分栏验证溢出，而非要求能容纳的整行也溢出。
+            var row = host.FindControl<StackPanel>("MapToolsRow")!;
+            var required = row.DesiredSize.Width - right.Margin.Left;
+            var overflows = required > scroll.Viewport.Width + 1;
+            overflowVerified |= overflows;
+            Check(overflows ? scroll.Extent.Width > scroll.Viewport.Width + 1 : scroll.Extent.Width <= scroll.Viewport.Width + 1,
+                $"Toolbar scrolls exactly when its tools exceed the viewport at {layout}: required={required:0.#}, extent={scroll.Extent.Width:0.#}, viewport={scroll.Viewport.Width:0.#}");
             scroll.Offset = new Vector(scroll.Extent.Width - scroll.Viewport.Width, 0); Render();
             var pinRight = pin.TranslatePoint(new Point(pin.Bounds.Width, 0), scroll)!.Value.X;
             Check(pinRight <= scroll.Viewport.Width + 1,
                 $"Scrolling to the end brings the last tool fully into view at {width}px: pinRight={pinRight:0.#}, viewport={scroll.Viewport.Width:0.#}");
         }
+        Check(overflowVerified, "A real desktop split pane exercises horizontal overflow");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "map-toolbar-narrow.png"));
         scroll.Offset = new Vector(0, 0);
-        window.Width = 1280; Render();
+        window.Width = 1280; vm.Workbench.SelectLayout("map"); Render();
         Check(Math.Abs(right.Bounds.Right - scroll.Viewport.Width) < 1.5,
             "Restoring the wide window right-aligns the tool group again");
         Console.WriteLine("PASS map toolbar probe complete");

@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+    x:Class="Vex.Modules.Workspace.Views.MindMapNodeInspectorView" x:DataType="vm:MainWindowViewModel">
+        <Grid RowDefinitions="Auto,Auto,Auto">
+          <Border MinHeight="42" Padding="13,8" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1"><Grid ColumnDefinitions="*,Auto"><StackPanel Orientation="Horizontal" Spacing="8"><Path Classes="wb-icon" Width="14" Height="14" Data="M6 3h8l4 4v14H6z M14 3v5h4" VerticalAlignment="Center"/><TextBlock FontSize="11" Text="{Binding Workbench.SelectedKindLabel}" Classes="wb-muted" VerticalAlignment="Center"/></StackPanel><Button Width="24" Height="24" x:Name="CloseInspectorButton" Grid.Column="1" Classes="vex-dismiss" Command="{Binding Workbench.CloseInspector}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid></Border>
+          <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" Padding="14" MaxHeight="370">
+            <StackPanel Spacing="10">
+              <StackPanel Spacing="8" IsVisible="{Binding Workbench.IsChapterSelected}">
+                <TextBlock Text="{i18n:I18n Vex.VexL.WSTitle}" Classes="wb-muted"/>
+                <TextBox x:Name="ChapterTitleInput" Text="{Binding Workbench.ChapterTitle, Mode=OneWay}" LostFocus="TitleLostFocus" KeyDown="TitleKeyDown"/>
+                <WrapPanel Orientation="Horizontal">
+                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSSibling}" Tag="sibling" Click="ChapterClick"/>
+                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSChild}" Tag="child" Click="ChapterClick"/>
+                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSPromote}" Tag="promote" Click="ChapterClick"/>
+                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSDemote}" Tag="demote" Click="ChapterClick"/>
+                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSUp}" Tag="up" Click="ChapterClick"/>
+                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSDown}" Tag="down" Click="ChapterClick"/>
+                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSDeleteChapter}" Tag="delete" Click="ChapterClick"/>
+                </WrapPanel>
+                <TextBlock Text="{i18n:I18n Vex.VexL.WSBody}" Classes="wb-muted"/>
+                <TextBox x:Name="ChapterBodyInput" Text="{Binding Workbench.ChapterBody, Mode=OneWay}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" MaxHeight="180" LostFocus="BodyLostFocus"/>
+                <TextBlock Text="{i18n:I18n Vex.VexL.WSBodyHint}" Classes="wb-muted" TextWrapping="Wrap"/>
+              </StackPanel>
+              <StackPanel Spacing="0" IsVisible="{Binding !Workbench.IsChapterSelected}"><TextBlock Text="{Binding Workbench.SelectedTitle}" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap"/><SelectableTextBlock Text="{Binding Workbench.SelectedFullText}" TextWrapping="Wrap" FontSize="11" LineHeight="20.35" Foreground="{DynamicResource VexMutedBrush}"/></StackPanel>
+              <TextBlock Text="{Binding Workbench.ChapterError}" Classes="wb-muted" TextWrapping="Wrap"/>
+            </StackPanel>
+          </ScrollViewer>
+          <Border Grid.Row="2" MinHeight="47" Padding="14,9" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock FontSize="10" Text="{Binding Workbench.SelectedSourceLabel}" Classes="wb-muted" VerticalAlignment="Center"/><Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.WBLocate}}" Command="{Binding Workbench.LocateSelectedSource}" Classes="wb-quiet" Height="28" MinHeight="28" FontSize="12" Padding="12,2"/></Grid></Border>
+        </Grid>
+</UserControl>

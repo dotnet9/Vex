@@ -1,4 +1,4 @@
-﻿using CodeWF.Avalonia.Controls.Helpers;
+using CodeWF.Avalonia.Controls.Helpers;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Collections;
@@ -175,11 +175,11 @@ public sealed class ShellAppearanceMenuView : UserControl
         }};
         AppearanceButton.Content = new Avalonia.Controls.Shapes.Path
         {
-            Width = 14, Height = 14, Stretch = Stretch.Uniform,
+            Width = 16, Height = 16, Stretch = Stretch.Uniform,
             Data = contrastGeometry, Classes = { "glyph-fill" }
         };
-        AppearanceButton.MinHeight = 0; AppearanceButton.MinWidth = 0;
-        AppearanceButton.Padding = new Thickness(4); AppearanceButton.CornerRadius = new CornerRadius(4);
+        AppearanceButton.Width = 32; AppearanceButton.Height = 32; AppearanceButton.MinHeight = 0; AppearanceButton.MinWidth = 0;
+        AppearanceButton.Padding = new Thickness(0); AppearanceButton.CornerRadius = new CornerRadius(4);
         AppearanceButton.Name = "TitleBarAppearanceButton";
         ToolTipHelper.SetText(AppearanceButton, Text("Appearance"));
         Avalonia.Automation.AutomationProperties.SetName(AppearanceButton, Text("Appearance"));
@@ -188,11 +188,11 @@ public sealed class ShellAppearanceMenuView : UserControl
         LanguageButton.Classes.Add("tb-glyph");
         LanguageButton.Content = new Avalonia.Controls.Shapes.Path
         {
-            Width = 14, Height = 14, Stretch = Stretch.Uniform,
+            Width = 16, Height = 16, Stretch = Stretch.Uniform,
             Data = Geometry.Parse("M16.48 13.56l1.54 4.31H14.92l1.56 -4.31zm-1.31 -3.09L10.36 23.04h2.68l1.1 -3.02h4.67L19.9 23.04h2.68L17.77 10.47H15.16zM11 11.66c1.38 -1.63 2.43 -3.51 3.07 -5.55h2.42v-2.15H10.52a13.62 13.62 0 0 0 -1.5 -2.51l-0.12 -0.15 -2.18 0.79 0.26 0.29c0.43 0.49 0.83 1.02 1.17 1.58H2.18v2.15h2.44c0.65 2.12 1.78 4.05 3.31 5.66 -1.72 1.32 -3.71 2.27 -5.82 2.77l-0.35 0.09 1.16 1.91 0.19 -0.05c2.33 -0.63 4.5 -1.75 6.36 -3.3 0.79 0.63 1.63 1.2 2.52 1.7l0.9 -1.96c-0.66 -0.38 -1.29 -0.79 -1.89 -1.25m-1.55 -1.37a12.14 12.14 0 0 1 -2.7 -4.18h5.08c-0.52 1.53 -1.33 2.95 -2.38 4.18"), Classes = { "glyph-fill" }
         };
-        LanguageButton.Width = 24; LanguageButton.Height = 24; LanguageButton.MinHeight = 0; LanguageButton.MinWidth = 0;
-        LanguageButton.Padding = new Thickness(0); LanguageButton.CornerRadius = new CornerRadius(0);
+        LanguageButton.Width = 32; LanguageButton.Height = 32; LanguageButton.MinHeight = 0; LanguageButton.MinWidth = 0;
+        LanguageButton.Padding = new Thickness(0); LanguageButton.CornerRadius = new CornerRadius(4);
         LanguageButton.Name = "TitleBarLanguageButton";
         ToolTipHelper.SetText(LanguageButton, Text("TitleLanguage"));
         Avalonia.Automation.AutomationProperties.SetName(LanguageButton, Text("TitleLanguage"));

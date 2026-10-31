@@ -92,7 +92,13 @@ internal static class PopupLayoutVerification
         var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true && b.IsVisible).Take(3).ToArray();
         Check(cards.Max(c => c.Bounds.Height) - cards.Min(c => c.Bounds.Height) < 1, "Typography cards in a row stretch to the same height");
         Capture(gallery, "typography");
-        vm.Workbench.ShowTypography = false; vm.Workbench.ShowLayouts = true; Render();
+        vm.Workbench.ShowTypography = false; Render();
+        var tabrow = window.Workspace.FindControl<Border>("WorkspaceTabRow")!;
+        var tabOrigin = tabrow.TranslatePoint(default, window)!.Value;
+        vm.Workbench.ShowLayouts = true; Render();
+        Check(tabrow.TranslatePoint(default, window)!.Value == tabOrigin
+            && Math.Abs(window.Workspace.FindControl<WorkspaceLayoutGallery>("LayoutGallery")!.TranslatePoint(default, window)!.Value.Y - tabOrigin.Y - 42) < 1,
+            "Layout gallery floats below the tabs and does not resize its auto row");
         Capture(window.Workspace.FindControl<WorkspaceLayoutGallery>("LayoutGallery")!, "layouts");
         vm.Workbench.ShowLayouts = false;
         var overlay = app.Resolve<IShellOverlayService>();

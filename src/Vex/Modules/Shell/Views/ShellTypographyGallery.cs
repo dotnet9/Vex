@@ -1,4 +1,4 @@
-﻿using CodeWF.Avalonia.Controls.Helpers;
+using CodeWF.Avalonia.Controls.Helpers;
 using System.ComponentModel;
 using System.Reactive.Linq;
 using Avalonia;
@@ -23,7 +23,7 @@ namespace Vex.Modules.Shell.Views;
 public sealed class ShellTypographyGallery : UserControl
 {
     private MainWindowViewModel? _vm;
-    private readonly UniformGrid _cards = new() { Columns = 4, RowSpacing = 8, ColumnSpacing = 8 };
+    private readonly UniformGrid _cards = new() { Classes = { "typography-cards" }, Columns = 4, RowSpacing = 8, ColumnSpacing = 8 };
     private readonly Dictionary<TypographyOption, (Button Button, Border Ring, Border Badge, TextBlock BadgeText)> _items = [];
     private readonly Dictionary<string, Button> _densityPills = [];
     private TopLevel? _window;
@@ -142,9 +142,9 @@ public sealed class ShellTypographyGallery : UserControl
             pill.Click += (_, _) => _vm.Appearance.MarkdownDensity = captured;
             _densityPills[key] = pill; segments.Children.Add(pill);
         }
-        var track = new Border { Classes = { "segmented-track", "density-options" }, Child = segments, Width = 320, MaxWidth = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+        var track = new Border { Classes = { "segmented-track", "density-options" }, Child = segments, Margin = new Thickness(0, 9, 0, 0), Width = 320, MaxWidth = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
         Avalonia.Automation.AutomationProperties.SetName(track, Text("RenderDensityTitle"));
-        var densityFrame = new Border { Child = track, BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(2, 11, 2, 10) };
+        var densityFrame = new Border { Classes = { "typography-density" }, Child = track, BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(2, 2, 2, 10) };
         Resource(densityFrame, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
 
         foreach (var option in _vm.Appearance.TypographyOptions) _cards.Children.Add(BuildCard(option));
@@ -155,7 +155,7 @@ public sealed class ShellTypographyGallery : UserControl
         body.Children.Add(BuildAddCard());
 
         // 右侧预留约 15px 滚动条槽（原型 scrollbar-gutter:stable），保证四列卡宽 ~161。
-        _scroll = new ScrollViewer { Content = body, Padding = new Thickness(2, 2, 15, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
+        _scroll = new ScrollViewer { Classes = { "typography-grid" }, Content = body, Padding = new Thickness(2, 2, 14, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
         var layout = new Grid { RowDefinitions = new("Auto,*") };
         layout.Children.Add(densityFrame); Grid.SetRow(_scroll, 1); layout.Children.Add(_scroll);
         // 原型 .typography-popover 实测吃浮层一档（14 内距、8 圆角、--shadow-pop 双层），
@@ -229,7 +229,7 @@ public sealed class ShellTypographyGallery : UserControl
         // 原型：排版卡是流程终点，应用后稍候自动收起让出正文看效果（scheduleCollapse）。
         var button = Button("", () => { _vm!.Appearance.SelectedTypography = option; ScheduleCollapse(); });
         button.Name = "Typography_" + option.Key;
-        button.Content = content; button.Padding = default;
+        button.Content = content; button.Padding = default; button.FontSize = 10; button.FontWeight = FontWeight.Normal;
         button.MinHeight = CardHeight; button.Height = CardHeight;
         button.ClipToBounds = false;
         button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -238,7 +238,7 @@ public sealed class ShellTypographyGallery : UserControl
         button.BorderThickness = new Thickness(1);
         button.Classes.Add("typography-card");
         Resource(button, TemplatedControl.CornerRadiusProperty, this, "VexDensityCornerRadiusMd");
-        Resource(button, TemplatedControl.BackgroundProperty, this, "VexPanelBackgroundBrush");
+        Resource(button, TemplatedControl.BackgroundProperty, this, "VexDocumentPaperBrush");
         _items[option] = (button, ring, badge, badgeText);
         ring.IsVisible = option == _vm!.Appearance.SelectedTypography;
         button.Classes.Set("typography-card-on", ring.IsVisible);

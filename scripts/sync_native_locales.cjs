@@ -122,6 +122,8 @@ for(const culture of Object.keys(extra)){
    /* 查找条动作钮（原型 Vex.html .find-strip 的「上一个」，实现侧此前只有「下一个」）。 */
    ,FindBarPrev: {'zh-CN':'上一个','zh-Hant':'上一個','en-US':'Previous','ja-JP':'前へ'}[culture]
    /* 查找条命中徽标（原型 workbench.js updateFind 写进 #find-count 的两条文案）。 */
+   ,MapSummaryCharacters: {'zh-CN':'字','zh-Hant':'字','en-US':'chars','ja-JP':'文字'}[culture]
+   ,LayoutCurrentFormat: {'zh-CN':'布局：{0}','zh-Hant':'版面：{0}','en-US':'Layout: {0}','ja-JP':'レイアウト：{0}'}[culture]
    ,FindCountMatches: {'zh-CN':'{0} 处匹配','zh-Hant':'{0} 處匹配','en-US':'{0} matches','ja-JP':'{0} 件一致'}[culture]
    ,FindCountNone: {'zh-CN':'当前正文无匹配','zh-Hant':'目前正文無匹配','en-US':'No matches in this text','ja-JP':'この本文に一致なし'}[culture]
    /* 图表块就地编辑（原型 diagram-editor.js 无这三个提示，属实现侧增强，仍需四语）。 */

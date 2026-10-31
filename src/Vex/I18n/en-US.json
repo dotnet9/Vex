@@ -1014,7 +1014,9 @@
       "TypographyPurposeSoftSage": "Gentle writing · Sage green",
       "TypographyPurposeWeChatFormat": "Editorial articles · Centered headings",
       "FindCountMatches": "{0} matches",
-      "FindCountNone": "No matches in this text"
+      "FindCountNone": "No matches in this text",
+      "LayoutCurrentFormat": "Layout: {0}",
+      "MapSummaryCharacters": "chars"
     }
   }
 }

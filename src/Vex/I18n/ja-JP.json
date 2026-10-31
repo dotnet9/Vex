@@ -1014,7 +1014,9 @@
       "TypographyPurposeSoftSage": "なめらかな執筆・セージグリーン",
       "TypographyPurposeWeChatFormat": "雑誌記事・中央見出し",
       "FindCountMatches": "{0} 件一致",
-      "FindCountNone": "この本文に一致なし"
+      "FindCountNone": "この本文に一致なし",
+      "LayoutCurrentFormat": "レイアウト：{0}",
+      "MapSummaryCharacters": "文字"
     }
   }
 }

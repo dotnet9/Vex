@@ -14,6 +14,15 @@ public partial class ShellWorkspaceView : UserControl
     {
         InitializeComponent();
         DataContextChanged += (_, _) => AttachAppearance();
+        AttachedToVisualTree += (_, _) =>
+        {
+            if (Avalonia.Application.Current is { } app) app.ActualThemeVariantChanged += ThemeChanged;
+            UpdateSageLeaf();
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (Avalonia.Application.Current is { } app) app.ActualThemeVariantChanged -= ThemeChanged;
+        };
     }
 
     internal void Initialize(MainWindow window)
@@ -52,7 +61,11 @@ public partial class ShellWorkspaceView : UserControl
     }
 
     private void AppearanceChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) => UpdateSageLeaf();
-    private void UpdateSageLeaf() => SageLeafDecoration.IsVisible = _shell?.Appearance.SelectedPalette?.Key == "teal"
-        && !_shell.Workbench.IsPresenting;
+    private void ThemeChanged(object? sender, EventArgs e) => UpdateSageLeaf();
+    private void UpdateSageLeaf()
+    {
+        SageLeafDecoration.IsVisible = _shell is { Workbench.IsPresenting: false };
+        SageLeafDecoration.Opacity = Avalonia.Application.Current?.ActualThemeVariant?.ToString().Contains("dark", StringComparison.OrdinalIgnoreCase) == true ? .12 : .25;
+    }
 
 }

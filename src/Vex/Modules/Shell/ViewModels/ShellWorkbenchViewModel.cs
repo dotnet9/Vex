@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Markdown.Editor.Services;
 using CodeWF.Avalonia.MindView.Markdown;
@@ -135,8 +135,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
 
     /// <summary>「更多」段：组合布局时显示当前布局名并高亮，否则回落为「更多」。</summary>
     public bool IsMoreSegmentActive => !IsSourceSegmentActive && !IsReadSegmentActive && !IsMapSegmentActive;
-    public string MoreSegmentLabel => IsMoreSegmentActive ? LayoutOption.Name : LocalizedMore;
-    private static string LocalizedMore => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.StatusViewMore);
+    public string MoreSegmentLabel => string.Format(WorkbenchText.Get("LayoutCurrentFormat"), LayoutOption.Name);
     public void ShowSourceView() => SelectLayout("source");
     public string LayoutName => LayoutOption.Name;
     public WorkbenchLayoutOption LayoutOption => WorkbenchLayoutOption.All.First(option => option.Id == _workspaceLayout);

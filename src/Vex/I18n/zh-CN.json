@@ -1014,7 +1014,9 @@
       "TypographySoftSage": "鼠尾草",
       "TypographyPurposeSoftSage": "温润写作 · 鼠尾草绿",
       "FindCountMatches": "{0} 处匹配",
-      "FindCountNone": "当前正文无匹配"
+      "FindCountNone": "当前正文无匹配",
+      "LayoutCurrentFormat": "布局：{0}",
+      "MapSummaryCharacters": "字"
     }
   }
 }

@@ -1,5 +1,5 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
-             xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:mind="https://codewf.com" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls"
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+             xmlns:views="using:Vex.Modules.Workspace.Views" xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:mind="https://codewf.com" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls"
              x:DataType="vm:MainWindowViewModel" x:Class="Vex.Modules.Workspace.Views.MarkdownMindMapHost">
   <UserControl.Styles>
     <!-- 原型 .view-panel .map-toolbar .toolbar-button：10.5 号字、4/7 内距、26 高基准，字重随浏览器默认（常规）；
@@ -73,49 +73,10 @@
       </Border>
       <!-- 原型 .settings-popover（editing.css:200 + 浮层一档）：320 宽、14 内距。 -->
       <Border x:Name="SettingsTarget" Width="320" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18,12,18,18" Classes="wb-popover" Padding="14" IsVisible="{Binding Workbench.ShowMapSettings}">
-        <ScrollViewer MaxHeight="420"><StackPanel Spacing="12">
-          <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{i18n:I18n Vex.VexL.WBMapDisplay}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="vex-dismiss" Command="{Binding Workbench.ToggleMapSettings}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
-          <Grid ColumnDefinitions="*,64" ColumnSpacing="7">
-            <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBSummary}}" FontSize="11" VerticalAlignment="Center"/>
-            <NumericUpDown Grid.Column="1" x:Name="SummaryLengthInput" Minimum="1" Maximum="120" Increment="1" Value="{Binding Workbench.SummaryLength, Mode=TwoWay}"/>
-          </Grid>
-          <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBSummaryHint}}" TextWrapping="Wrap" Classes="wb-muted"/>
-          <StackPanel Spacing="4">
-            <CheckBox Content="{i18n:I18n {x:Static l:VexL.WBParagraphs}}" IsChecked="{Binding Workbench.ShowParagraphs, Mode=TwoWay}" FontSize="11"/>
-            <CheckBox Content="{i18n:I18n {x:Static l:VexL.WBLists}}" IsChecked="{Binding Workbench.ShowLists, Mode=TwoWay}" FontSize="11"/>
-            <CheckBox Content="{i18n:I18n {x:Static l:VexL.WBRichBlocks}}" IsChecked="{Binding Workbench.ShowRichBlocks, Mode=TwoWay}" FontSize="11"/>
-          </StackPanel>
-          <Border Background="{DynamicResource VexAccentSoftBrush}" Padding="12" CornerRadius="6"><StackPanel Spacing="7"><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBSummaryPreview}}" Classes="wb-muted"/><TextBlock Text="{Binding Workbench.SummaryPreview}" TextWrapping="Wrap" FontSize="11" LineHeight="20"/></StackPanel></Border>
-          <Button x:Name="ResetMapSettingsButton" Content="{i18n:I18n {x:Static l:VexL.WBReset}}" Classes="wb-quiet" Command="{Binding Workbench.ResetMapSettings}" HorizontalAlignment="Right"/>
-        </StackPanel></ScrollViewer>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled"><views:MindMapDisplaySettingsView /></ScrollViewer>
       </Border>
       <Border x:Name="NodeInspector" Width="282" MaxHeight="480" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10,9,10,60" Classes="wb-popover" IsVisible="{Binding Workbench.HasSelectedNode}">
-        <Grid RowDefinitions="36,*,36">
-          <Border Padding="14,0,6,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding Workbench.SelectedKindLabel}" Classes="wb-muted" VerticalAlignment="Center"/><Button x:Name="CloseInspectorButton" Grid.Column="1" Classes="vex-dismiss" Command="{Binding Workbench.CloseInspector}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid></Border>
-          <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" Padding="16,12">
-            <StackPanel Spacing="10">
-              <StackPanel Spacing="8" IsVisible="{Binding Workbench.IsChapterSelected}">
-                <TextBlock Text="{i18n:I18n Vex.VexL.WSTitle}" Classes="wb-muted"/>
-                <TextBox x:Name="ChapterTitleInput" Text="{Binding Workbench.ChapterTitle, Mode=OneWay}" LostFocus="TitleLostFocus" KeyDown="TitleKeyDown"/>
-                <WrapPanel Orientation="Horizontal">
-                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSSibling}" Tag="sibling" Click="ChapterClick"/>
-                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSChild}" Tag="child" Click="ChapterClick"/>
-                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSPromote}" Tag="promote" Click="ChapterClick"/>
-                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSDemote}" Tag="demote" Click="ChapterClick"/>
-                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSUp}" Tag="up" Click="ChapterClick"/>
-                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSDown}" Tag="down" Click="ChapterClick"/>
-                  <Button Classes="wb-quiet" Content="{i18n:I18n Vex.VexL.WSDeleteChapter}" Tag="delete" Click="ChapterClick"/>
-                </WrapPanel>
-                <TextBlock Text="{i18n:I18n Vex.VexL.WSBody}" Classes="wb-muted"/>
-                <TextBox x:Name="ChapterBodyInput" Text="{Binding Workbench.ChapterBody, Mode=OneWay}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" MaxHeight="180" LostFocus="BodyLostFocus"/>
-                <TextBlock Text="{i18n:I18n Vex.VexL.WSBodyHint}" Classes="wb-muted" TextWrapping="Wrap"/>
-              </StackPanel>
-              <SelectableTextBlock Text="{Binding Workbench.SelectedFullText}" IsVisible="{Binding !Workbench.IsChapterSelected}" TextWrapping="Wrap" FontSize="12" LineHeight="21"/>
-              <TextBlock Text="{Binding Workbench.ChapterError}" Classes="wb-muted" TextWrapping="Wrap"/>
-            </StackPanel>
-          </ScrollViewer>
-          <Border Grid.Row="2" Padding="14,0" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding Workbench.SelectedSourceLabel}" Classes="wb-muted" VerticalAlignment="Center"/><Button Grid.Column="1" Content="{i18n:I18n {x:Static l:VexL.WBLocate}}" Command="{Binding Workbench.LocateSelectedSource}" Classes="wb-quiet"/></Grid></Border>
-        </Grid>
+        <views:MindMapNodeInspectorView x:Name="InspectorView" />
       </Border>
       <Canvas x:Name="RenameLayer" IsVisible="False"><TextBox x:Name="InlineChapterTitle" MinHeight="28" Padding="8,3" KeyDown="InlineTitleKeyDown" LostFocus="InlineTitleLostFocus"/></Canvas>
       <Border x:Name="ChapterDeleteLayer" IsVisible="False" Background="{DynamicResource VexScrimBrush}">

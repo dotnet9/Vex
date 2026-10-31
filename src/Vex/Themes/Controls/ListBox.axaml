@@ -156,6 +156,7 @@
     </Style>
 
     <Style Selector="ListBox.side-list TextBlock.structure-num">
+        <Setter Property="LineHeight" Value="17.6" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
@@ -165,6 +166,8 @@
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="ListBox.side-list TextBlock.structure-text">
+        <Setter Property="LineHeight" Value="19.2" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
@@ -184,7 +187,7 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <!-- 原型 .file-list{padding:0 6px}（writing-chrome.css:29）：6px 收进列表面，行的通栏底色仍占满侧栏宽。 -->
-        <Setter Property="Padding" Value="6,0" />
+        <Setter Property="Padding" Value="6,0,16,0" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     </Style>
 

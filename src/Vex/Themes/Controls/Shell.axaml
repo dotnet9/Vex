@@ -325,6 +325,8 @@
          浮层外壳整个脱掉——无描边、无投影、无底色，圆角回 vex-r-ctl 一档；高=底栏档减 8、内距 0×4，
          拖动条改 72、还原钮 18 高 / 0 5 内距，并收起 .zoom-reset 伪元素那根分隔线。 -->
     <Style Selector="vex|VexZoomDock.document-zoom">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
         <Setter Property="Height" Value="28" />
         <Setter Property="Padding" Value="5,0" />
         <Setter Property="BorderThickness" Value="1" />
@@ -342,6 +344,7 @@
         <Setter Property="IsVisible" Value="False" />
     </Style>
     <Style Selector="vex|VexZoomDock.document-zoom /template/ Button.vex-zoom-reset">
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="Height" Value="22" />
         <Setter Property="Padding" Value="5,0" />
     </Style>

@@ -945,8 +945,8 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     // 6px 是列表自己的内距——行的悬停/选中面从 6 起画，而不是把列表整体挤窄。
     var treeLeft = tree.TranslatePoint(default, filesView)!.Value.X;
     var searchLeft = searchBox.TranslatePoint(default, filesView)!.Value.X;
-    Check(Math.Abs(treeLeft) < 0.1 && tree.Padding == new Thickness(6, 0) && Math.Abs(searchLeft - 12) < 0.1,
-        "Prototype insets: search pill 12 px, file list full width with 6 px inner padding");
+    Check(Math.Abs(treeLeft) < 0.1 && tree.Padding == new Thickness(6, 0, 16, 0) && Math.Abs(searchLeft - 12) < 0.1,
+        "Prototype insets: search pill 12 px, file list 6 px padding plus a stable 10 px scrollbar gutter");
     Check(Math.Abs(tree.Bounds.Width - (filesView.Bounds.Width - 1)) < 3
         && Math.Abs(treeLeft + tree.Bounds.Width - (searchLeft + searchBox.Bounds.Width) - 12) < 1,
         "The list spans the sidebar while the search pill keeps 12 px on both sides");
@@ -1044,7 +1044,7 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     // 夹档的选中面无圆角、从本级缩进一直铺到列表右缘（原型 summary 占满 .file-directory 宽）。
     var nestedLeft = nestedCard.TranslatePoint(default, tree)!.Value.X;
     var nestedRight = nestedCard.TranslatePoint(new Point(nestedCard.Bounds.Width, 0), tree)!.Value.X;
-    Check(Math.Abs(nestedLeft - (6 + nestedFolder.Level * 16)) < 1 && Math.Abs(tree.Bounds.Width - 6 - nestedRight) < 2,
+    Check(Math.Abs(nestedLeft - (6 + nestedFolder.Level * 16)) < 1 && Math.Abs(tree.Bounds.Width - tree.Padding.Right - nestedRight) < 2,
         $"The selected folder face runs from its own indent to the list edge: x={nestedLeft} right={nestedRight} tree={tree.Bounds.Width}");
     var main = (MainWindowViewModel)window.DataContext!;
     foreach (var theme in new[] { "dark", "light" })
@@ -2243,12 +2243,12 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Vex.Modules.Shell.Views
     var wb = vm.Workbench;
     wb.SelectLayout("instant"); Pump();
     Check(!source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && instant.IsEffectivelyVisible, "Instant mode hides the source and read views");
-    Check(instant.Editor.DocumentMaxWidth == 1280 && instant.Editor.EditorFontSize >= 15, "Instant document uses the prototype document width and base font");
-    Check(window.Workspace.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
-        "Editing context row is 42 px above the workspace");
+    Check(double.IsPositiveInfinity(instant.Editor.DocumentMaxWidth) && instant.Editor.EditorFontSize >= 15, "Instant document uses the prototype document width and base font");
+    Check(window.Workspace.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 36,
+        "Editing context row is 36 px above the workspace");
     wb.ShowSource(); Pump();
-    // 视图块左右各 1px 描边：正文比块面窄 2px，仍算铺满当前工作区宽度。
-    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && Math.Abs(window.Workspace.FindControl<Grid>("ViewSurface")!.Bounds.Width - source.Bounds.Width - 2) < 1,
+    // 单视图为无侧描边的齐边正文面，与原型 view-panel 等宽。
+    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && Math.Abs(window.Workspace.FindControl<Grid>("ViewSurface")!.Bounds.Width - source.Bounds.Width) < 1,
         $"The source layout fills the current workspace width: source={source.IsEffectivelyVisible}/{source.Bounds}, preview={preview.IsEffectivelyVisible}, surface={window.Workspace.FindControl<Grid>("ViewSurface")!.Bounds}, layout={wb.WorkspaceLayout}");
     Check(window.Workspace.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.GetVisualDescendants().OfType<Button>().Any(button => button.Name == "TypographyTarget"),
         "Editing options retain the prototype formatting and typography controls");
@@ -2362,13 +2362,14 @@ void VerifyEditingPreferences(VerificationVexApp app, Window window, MainWindowV
     Check(!source.Editor.Options.AllowScrollBelowDocument && vm.Markdown == text,
         "Turning off source typewriter restores normal scrolling without changing Markdown");
     vm.Workbench.ShowInstant(); Pump();
+    var normalInstantPadding = live.DocumentPadding;
     live.NavigateToSourceLine(150, beginEdit: true); Pump();
     vm.Layout.IsTypewriterMode = true; Pump();
     CheckLiveCaretCentered("Typewriter instant mode centers the active paragraph caret");
     live.NavigateToSourceLine(400, beginEdit: true); Pump();
     CheckLiveCaretCentered("Typewriter instant mode centers the last paragraph caret");
     vm.Layout.IsTypewriterMode = false; Pump();
-    Check(live.DocumentPadding.Bottom == 80 && vm.Markdown == text,
+    Check(live.DocumentPadding == normalInstantPadding && vm.Markdown == text,
         "Turning off instant typewriter restores normal padding without changing Markdown");
     foreach (var enabled in new[] { false, true })
     {
@@ -2545,8 +2546,8 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Vex.Modules.Shell.Views.MainW
         {
             // 原型 .md-body 是 border-box：单栏阅读纸面 max(820px,50vw) 含 padding（856 = 760 内容 + 52×2 边距）。
             var paper = rendered.Bounds.Width + rendered.Margin.Left + rendered.Margin.Right;
-            Check(paper <= Math.Max(820, window.ClientSize.Width * 0.5) + 2,
-                "Wide reading document keeps the prototype's max(820px, 50vw) paper width including padding");
+            Check(paper <= 822,
+                "Wide reading document keeps the prototype's 820px paper width including padding");
         }
         Capture(window, $"layout-{width}-read");
     }

@@ -6,12 +6,12 @@
     xmlns:workspace="using:Vex.Modules.Workspace.Views" xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:MainWindowViewModel">
     <Grid ColumnDefinitions="Auto,*">
-        <!-- 原型 .workspace::before 叶纹装饰：穿越左柱与文件列表的鼠尾草叶纹，仅 sage 配色显示。 -->
+        <!-- 原型 professional.css 的叶纹覆盖左柱和文件列表，贴工作区底部。 -->
         <Image x:Name="SageLeafDecoration" Source="avares://Vex/Assets/sage-leaf.png"
             Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-            Width="280" Height="380" Stretch="Uniform" Opacity="0.4"
+            Width="230" Height="300" Stretch="Uniform" Opacity="0.25" ZIndex="1"
             HorizontalAlignment="Left" VerticalAlignment="Bottom"
-            Margin="0,0,0,40" IsHitTestVisible="False" IsVisible="False" />
+            IsHitTestVisible="False" IsVisible="False" />
         <shell:ShellNavigationRailView x:Name="Navigation" x:FieldModifier="public" />
         <Grid Grid.Column="1" x:Name="WorkspaceColumns" Margin="{Binding Workbench.WorkspaceContentMargin}">
             <Grid.ColumnDefinitions>
@@ -62,7 +62,7 @@
                                 IsChecked="{Binding Workbench.IsSourceSegmentActive, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Path Classes="stroke-ico" Data="{StaticResource WBEditIcon}" />
-                                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" VerticalAlignment="Center" />
+                                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBEdit}}" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ToggleButton>
                             <ToggleButton x:Name="ReadSegment" Classes="tab-item" Command="{Binding Workbench.ShowRead}"
@@ -96,8 +96,9 @@
                 <!-- 原型 .workspace-layout-menu 是 .workspace-tabrow 的绝对子级（workspace-chrome.css:535）：
                 top:calc(100% + 6px) 即页签行下方 6px、right:8 贴正文列右缘；画廊不滚动（同文件 153 overflow:visible），
                 行高 36 + 6 = 42 的顶距把浮层钉在行下。 -->
-                <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.Row="2" IsVisible="{Binding Workbench.ShowLayouts}"
-                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,42,8,0" ZIndex="40" />
+                <Canvas Grid.Row="2" Grid.RowSpan="2" ZIndex="40" IsVisible="{Binding Workbench.ShowLayouts}">
+                    <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Canvas.Right="8" Canvas.Top="42" />
+                </Canvas>
                 <Panel Grid.Row="3">
                     <!-- 原型：钉住的格式条只占源码列顶部，阅读/导图窗格从工作区顶端起排，
                     所以 42px 让位只加在编辑/即时视图上，而不是整个 ViewSurface。
