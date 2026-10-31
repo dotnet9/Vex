@@ -1,4 +1,4 @@
-﻿<Styles xmlns="https://github.com/avaloniaui">
+﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:vex="clr-namespace:Vex.Controls">
     <!-- 主窗格头与芯片：与 design/index.html 的 pane-head / kbd 对齐。 -->
     <Style Selector="Border.pane-head">
         <Setter Property="Height" Value="30" />
@@ -319,5 +319,30 @@
     </Style>
     <Style Selector="Ellipse.status-dot.on">
         <Setter Property="Fill" Value="{DynamicResource VexSuccessBrush}" />
+    </Style>
+
+    <!-- 缩放坞进底栏那一档（原型 .statusbar-zoom .vex-zoomdock，workspace-chrome.css:546-550）：
+         浮层外壳整个脱掉——无描边、无投影、无底色，圆角回 vex-r-ctl 一档；高=底栏档减 8、内距 0×4，
+         拖动条改 72、还原钮 18 高 / 0 5 内距，并收起 .zoom-reset 伪元素那根分隔线。 -->
+    <Style Selector="vex|VexZoomDock.statusbar">
+        <Setter Property="Height" Value="{DynamicResource VexZoomDockStatusHeight}" />
+        <Setter Property="Padding" Value="4,0" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}" />
+    </Style>
+    <Style Selector="vex|VexZoomDock.statusbar /template/ Border.zoomdock-face">
+        <!-- 样式的 Setter 里 x:Null 会被编译成空串（BoxShadow 解析器随即报错），用全透明零模糊投影等效关掉。 -->
+        <Setter Property="BoxShadow" Value="0 0 0 0 #00000000" />
+    </Style>
+    <Style Selector="vex|VexZoomDock.statusbar /template/ Slider#PART_Slider">
+        <Setter Property="Width" Value="72" />
+    </Style>
+    <Style Selector="vex|VexZoomDock.statusbar /template/ Border.zoomdock-divider">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="vex|VexZoomDock.statusbar /template/ Button.vex-zoom-reset">
+        <Setter Property="Height" Value="18" />
+        <Setter Property="Padding" Value="5,0" />
     </Style>
 </Styles>

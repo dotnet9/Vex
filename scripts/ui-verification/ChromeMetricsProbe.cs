@@ -96,12 +96,19 @@ internal static class ChromeMetricsProbe
             .OfType<Control>().FirstOrDefault(c => predicate(c) && c.IsEffectivelyVisible && c.Bounds.Width > 0);
 
         var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().FirstOrDefault();
+        // 标题层是 CodeWF 窗控模板里的节点，跨程序集取类型不值得；模板名可见就直接取，
+        // 取不到再从栏内任一节点向上找那条横贯整窗、只有标题高的层（父级是整窗内容层，高度过滤把它挡掉）。
+        Control? TitleBarLayer(Visual from) =>
+            window.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.Name == "PART_TitleBarLayer")
+            ?? from.GetVisualAncestors()
+                .OfType<Control>().FirstOrDefault(c => c.Bounds.Width > window.Bounds.Width - 4 && c.Bounds is { Height: > 0 and < 40 });
         var outlineView = window.GetVisualDescendants().OfType<ShellOutlineView>().FirstOrDefault();
         var footer = In_(filesView, c => c is Border band && band.GetVisualChildren().OfType<Grid>()
             .Any(grid => grid.GetVisualChildren().OfType<Button>().Any(button => button.Name == "SortFolderButton")));
 
-        // 原型页在 1440×900 视口内留 25px 页边，.app-window 实测 1390×850；比对就按这个尺寸量。
-        window.Width = 1390; window.Height = 850;
+        // 原型 .app-window 的边框盒 1392×852、1px 窗框，客户区实测 1390×850；CodeWF 窗同样带 1px 框，
+        // 所以外层给 1392×852，量出来的每一块才和原型同一基准（否则会整族差 2px）。
+        window.Width = 1392; window.Height = 852;
         vm.Appearance.SelectThemeByKey("light");
         vm.Layout.IsSidebarVisible = true; LayoutSettle.Run(); Render();
         vm.Workbench.SelectLayout("read"); Render();
@@ -111,8 +118,10 @@ internal static class ChromeMetricsProbe
             var strip = ByName("FindStrip");
             var gallery = ByName("TypographyGallery");
             Console.WriteLine($"### {state}");
-            Row(".titlebar", ((Visual?)window.FindControl<ShellTitleMenuView>("TitleMenuView"))?.Parent as Control);
-            Row(".brand", window.GetVisualDescendants().OfType<StackPanel>().FirstOrDefault(p => p.Spacing == 7 && p.Bounds.Width > 0));
+            // 原型 .titlebar 是横跨整窗的一条（含 1px 底边），实现里同位的是 CodeWF 窗控的标题层：
+            // CodeWFTitleBar 只占左侧区，右边还排着窗口按钮，量它等于拿半条比整条。
+            Row(".titlebar", ((Visual?)window.FindControl<ShellTitleMenuView>("TitleMenuView")) is { } titleMenu ? TitleBarLayer(titleMenu) : null);
+            Row(".brand", ByName("BrandRow"));
             Row(".tb-menu", ByName("TitleMenuView"));
             Row(".tb-menuitem", ByName("FileMenuItem"));
             Row(".nav-rail", ByName("NavRail"));
@@ -145,8 +154,14 @@ internal static class ChromeMetricsProbe
             Row(".format-button", In_(ByName("EditorOptions"), c => c.Classes.Contains("wb-format")));
             Row(".document-statusbar", ByClass("document-statusbar"));
             Row(".document-word-count", ByName("StatisticsButton"));
-            Row(".statusbar-zoom", window.GetVisualDescendants().OfType<Vex.Controls.VexZoomDock>()
-                .FirstOrDefault(d => d.IsEffectivelyVisible && d.Bounds.Width > 0));
+            // 坞本体在原型里是 .statusbar-zoom 槽内的一枚 .vex-zoomdock，实现把槽与坞合一；
+            // 三行都量坞及其两个部件，比的是同一个可见物体。
+            var zoomDock = window.GetVisualDescendants().OfType<Vex.Controls.VexZoomDock>()
+                .FirstOrDefault(d => d.IsEffectivelyVisible && d.Bounds.Width > 0);
+            Row(".statusbar-zoom", zoomDock);
+            Row(".statusbar-zoom .zoom-range", In_(zoomDock, c => c is Slider));
+            // Slider 模板里的增减钮也是 Button，取还原钮要按类名筛。
+            Row(".statusbar-zoom .zoom-reset", In_(zoomDock, c => c is Button && c.Classes.Contains("vex-zoom-reset")));
             Row(".structure-sidebar", ByName("OutlineGuideTarget"));
             Row(".structure-search", In_(outlineView, c => c.Classes.Contains("search-shell")));
             Row(".structure-list", In_(outlineView, c => c is ListBox));

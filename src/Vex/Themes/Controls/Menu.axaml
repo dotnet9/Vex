@@ -14,13 +14,19 @@
     <Style Selector="Menu.title-menu">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="FontSize" Value="14" />
+        <!-- 原型 .tb-menu 的 2px 条目间距是栏级 gap（theme.css:136），不是条目外距：
+             收进面板间距后，条目自身归零，收起/隐藏的那项也不留空档。 -->
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="2" />
+            </ItemsPanelTemplate>
+        </Setter>
     </Style>
 
-    <!-- 对应原型 .tb-menuitem：28px 行高、10px 内边距、6px 圆角、2px 间距。 -->
+    <!-- 对应原型 .tb-menuitem：28px 行高、10px 内边距、6px 圆角。 -->
     <Style Selector="Menu.title-menu > MenuItem">
         <Setter Property="MinHeight" Value="28" />
         <Setter Property="Padding" Value="10 0" />
-        <Setter Property="Margin" Value="0 0 2 0" />
         <Setter Property="CornerRadius" Value="6" />
     </Style>
 

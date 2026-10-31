@@ -227,6 +227,8 @@ public sealed class ShellAppearanceViewModel : ReactiveObject
         // 缩放坞（原型 .vex-zoomdock）几何：坞高=控件中档、内缩=pad-sm 减 1px 描边、条宽=坞高×1.875、
         // 还原钮=坞高减 9、其左分隔线再减 8（原型 top/bottom 各 4）、图标=密度图标加 2。
         app.Resources["VexZoomDockHeight"] = hMd;
+        // 原型 .statusbar-zoom .vex-zoomdock 的 height:calc(var(--vex-status-h) - 8px)，--vex-status-h 就是控件小档。
+        app.Resources["VexZoomDockStatusHeight"] = hSm - 8;
         app.Resources["VexZoomDockPadding"] = new Avalonia.Thickness(padSm - 1, 0);
         app.Resources["VexZoomDockGap"] = padSm;
         app.Resources["VexZoomDockSliderWidth"] = hMd * 1.875;

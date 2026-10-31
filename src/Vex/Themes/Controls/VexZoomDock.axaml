@@ -22,19 +22,20 @@
         <Setter Property="ClipToBounds" Value="False" />
         <Setter Property="Template">
             <ControlTemplate TargetType="vex:VexZoomDock">
+                <!-- 坞面、条长、还原钮高都改由下面的主题样式给：模板属性是局部值，样式盖不住，
+                     原型 .statusbar-zoom 那档脱壳配方（无边框无投影、条 72、钮 18）就没法覆盖浮空档。 -->
                 <Border
+                    Classes="zoomdock-face"
                     Background="{TemplateBinding Background}"
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}"
                     CornerRadius="{TemplateBinding CornerRadius}"
-                    Padding="{TemplateBinding Padding}"
-                    BoxShadow="0 10 30 0 #22000000">
+                    Padding="{TemplateBinding Padding}">
                     <StackPanel Orientation="Horizontal" Spacing="{DynamicResource VexZoomDockGap}" VerticalAlignment="Center">
                         <!-- 原型 .zoom-tools 是气泡的定位父级：Canvas 与拖动条同框，气泡只跟着拖动块走。 -->
                         <Panel>
                             <Slider
                                 Name="PART_Slider"
-                                Width="{DynamicResource VexZoomDockSliderWidth}"
                                 Minimum="{TemplateBinding Minimum}"
                                 Maximum="{TemplateBinding Maximum}"
                                 SmallChange="{TemplateBinding Step}"
@@ -67,28 +68,34 @@
                                 </Border>
                             </Canvas>
                         </Panel>
-                        <!-- 原型 .zoom-reset::before：钮左侧 1px 分隔线。 -->
-                        <Border
-                            Width="1"
-                            Height="{DynamicResource VexZoomDockDividerHeight}"
-                            Opacity="0.7"
-                            Background="{DynamicResource VexPanelBorderBrush}"
-                            VerticalAlignment="Center" />
-                        <Button
-                            Name="PART_Reset"
-                            Classes="vex-zoom-reset"
-                            Height="{DynamicResource VexZoomDockResetHeight}"
-                            ToolTip.Tip="{TemplateBinding ResetLabel}"
-                            AutomationProperties.Name="{TemplateBinding ResetLabel}">
-                            <Path
-                                Width="{DynamicResource VexZoomDockIconSize}"
-                                Height="{DynamicResource VexZoomDockIconSize}"
-                                Data="{TemplateBinding ResetGeometry}"
-                                Stretch="Uniform"
-                                StrokeThickness="2"
-                                StrokeLineCap="Round"
-                                StrokeJoin="Round" />
-                        </Button>
+                        <!-- 原型 .zoom-reset 的那根左分隔线是绝对定位的伪元素（left:calc(gap*-1+1px)），不占布局位，
+                             钮只带 3px 左距；实现同样把线叠在钮左沿之外，条与钮之间才是 gap 6 + 3。 -->
+                        <Panel>
+                            <Border
+                                Classes="zoomdock-divider"
+                                Width="1"
+                                Height="{DynamicResource VexZoomDockDividerHeight}"
+                                Opacity="0.7"
+                                Margin="-5,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource VexPanelBorderBrush}" />
+                            <Button
+                                Name="PART_Reset"
+                                Classes="vex-zoom-reset"
+                                Margin="3,0,0,0"
+                                ToolTip.Tip="{TemplateBinding ResetLabel}"
+                                AutomationProperties.Name="{TemplateBinding ResetLabel}">
+                                <Path
+                                    Width="{DynamicResource VexZoomDockIconSize}"
+                                    Height="{DynamicResource VexZoomDockIconSize}"
+                                    Data="{TemplateBinding ResetGeometry}"
+                                    Stretch="Uniform"
+                                    StrokeThickness="2"
+                                    StrokeLineCap="Round"
+                                    StrokeJoin="Round" />
+                            </Button>
+                        </Panel>
                     </StackPanel>
                 </Border>
             </ControlTemplate>
@@ -97,11 +104,20 @@
         <Style Selector="^ /template/ Button.vex-zoom-reset">
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Height" Value="{DynamicResource VexZoomDockResetHeight}" />
             <Setter Property="Padding" Value="7,2" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />
             <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+        </Style>
+        <!-- 原型 .vex-zoomdock 浮空档的 shadow-pop；底栏那档（.statusbar-zoom .vex-zoomdock）在 Shell.axaml 里关掉。 -->
+        <Style Selector="^ /template/ Border.zoomdock-face">
+            <Setter Property="BoxShadow" Value="0 10 30 0 #22000000" />
+        </Style>
+        <!-- 原型 .zoom-range 的条长 = 控件中档高 × 1.875：按密度档折算，令牌随「界面密度」重算。 -->
+        <Style Selector="^ /template/ Slider#PART_Slider">
+            <Setter Property="Width" Value="{DynamicResource VexZoomDockSliderWidth}" />
         </Style>
         <Style Selector="^ /template/ Button.vex-zoom-reset Path">
             <Setter Property="Stroke" Value="{DynamicResource VexValueBrush}" />

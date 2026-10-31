@@ -98,8 +98,15 @@
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
     <Setter Property="FontSize" Value="11" />
+    <!-- 原型 .rail-item 的 font-weight 是默认 400（按钮主题的 SemiBold 得按回常态），line-height:1 即 11px；
+         不留这行，图标+标签的内容块会比原型高 3.6px，整组竖向居中跟着上偏。 -->
+    <Setter Property="FontWeight" Value="Normal" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.rail-item TextBlock, ToggleButton.rail-item TextBlock">
+    <Setter Property="LineHeight" Value="11" />
+    <Setter Property="TextAlignment" Value="Center" />
   </Style>
   <Style Selector="Button.rail-item /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.rail-item /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
