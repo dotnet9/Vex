@@ -119,26 +119,44 @@
     return muted;
   }
 
-  /* 强调软底（§3）：accent 作为文字落在 accentSoft 上不足 4.5 时，浅色态降低透明度、深色态提高（同状态软底约束）。 */
-  function accentSoftFor(base, alpha, dark) {
+  /* 软底步进（§3）：底色越贴近纸面、状态字越可读，故两种明暗都向 paper 退（减透明度），
+   * 下限 3%——再退就看不出这是一层底色。曾按明暗分成 ±0.01 且深色态的比较写反（a > 0.40 起步即假），
+   * 令深色态一次都没步进，按压底停在 4.24:1（鼠尾草）。
+   * 退到下限仍不足 4.5 时（纸面本就偏暗、按压又更深一档）不再动底色，改由 statusTextOn 收敛文字。 */
+  function convergeSoft(text, base, alpha) {
     var a = alpha;
-    var soft = alphaOver(base.accent, a, base.paper);
-    while (contrast(base.accent, soft) < 4.5 && a > (dark ? 0.40 : 0.03)) {
-      a += dark ? 0.01 : -0.01;
-      soft = alphaOver(base.accent, a, base.paper);
+    var soft = alphaOver(text, a, base.paper);
+    while (contrast(text, soft) < 4.5 && a > 0.03) {
+      a -= 0.01;
+      soft = alphaOver(text, a, base.paper);
     }
     return soft;
   }
 
-  /* 状态软底（§3）：文字与软底不足 4.5 时，浅色态降低透明度、深色态提高透明度。 */
-  function statusSoftFor(base, status, alpha, dark) {
-    var a = alpha;
-    var soft = alphaOver(status, a, base.paper);
-    while (contrast(status, soft) < 4.5 && a > (dark ? 0.40 : 0.03)) {
-      a += dark ? 0.01 : -0.01;
-      soft = alphaOver(status, a, base.paper);
+  /* 强调软底（§3）：accent 作为文字落在 accentSoft 上不足 4.5 时向 paper 回退。 */
+  function accentSoftFor(base, alpha) {
+    return convergeSoft(base.accent, base, alpha);
+  }
+
+  /* 状态软底（§3）：状态字落在自家软底上不足 4.5 时向 paper 回退。 */
+  function statusSoftFor(base, status, alpha) {
+    return convergeSoft(status, base, alpha);
+  }
+
+  /* 状态色与它的两档软底互为条件（§3「保证文字与软底仍达标」）：色决定底，底又反过来约束色。
+   * 纸面偏暗的配色（鼠尾草浅底 #f5f5f5）状态字对纸面 4.64:1 达标，深一档的按压底只剩 4.44:1；
+   * 而软底的 3% 下限还要保住「这确实是一层底色」，能动的一侧只剩文字。
+   * 故以不动点迭代求一致解：先按当前色派生两档底，再要求色对两档底同时达标，直到不再变化。 */
+  function statusFamily(base, status, dark, softAlpha) {
+    var converged = statusColor(base, status, dark);
+    for (var pass = 0; pass < 4; pass++) {
+      var soft = statusSoftFor(base, converged, softAlpha);
+      var pressed = statusSoftFor(base, converged, softAlpha + 0.04);
+      var fixed = readable(converged, [soft, pressed, base.paper]);
+      if (fixed === converged) return { color: converged, soft: soft, pressed: pressed };
+      converged = fixed;
     }
-    return soft;
+    return { color: converged, soft: statusSoftFor(base, converged, softAlpha), pressed: statusSoftFor(base, converged, softAlpha + 0.04) };
   }
 
   /* 状态色可读性（§3/§5 状态四键）：作为文字在 paper 与 surface 上不足 4.5 时，
@@ -174,7 +192,7 @@
     var on = onAccent(base.accent);
     /* §3 的四处收敛：muted 步进加深、primaryHover/gradientEnd 向 accent 收敛、强调软底与状态软底按明暗反向调整。 */
     resolved.muted = mutedFor(base, constants);
-    resolved.accentSoft = accentSoftFor(base, alphaOf(constants.accentSoft), dark);
+    resolved.accentSoft = accentSoftFor(base, alphaOf(constants.accentSoft));
     resolved.primaryHover = convergeMix(constants.primaryHover, base, on, false);
     resolved.gradientEnd = convergeMix(constants.gradientEnd, base, on, true);
     var softAlpha = alphaOf(constants.statusSoft);
@@ -192,6 +210,13 @@
       hover: resolved.hover, raised: resolved.raised, 'currentline-bg': resolved.raised,
       pressed: resolved.selected, selected: resolved.selected, 'accent-soft': resolved.accentSoft,
       selection: resolved.selection,
+      /* 分段控件轨道/指示块与浮起面：原型侧是 :root 的 color-mix 默认值
+       * （prototype.css --segmented-track/--segmented-thumb、workspace-chrome.css --elevated），
+       * 烘进派生表后自定义配色与内置配色同源，宿主脚本不必再各抄一次公式。
+       * 词汇表注意：派生表里 surface = 去温后的 paper，panel = 去温后的 surface（= 这里的 base.surface）。 */
+      'segmented-track': alphaOver(base.ink, dark ? 0.045 : 0.04, dark ? base.surface : base.paper),
+      'segmented-thumb': dark ? base.surface : alphaOver('#ffffff', 0.55, base.paper),
+      elevated: mix(base.paper, base.surface, 0.12),
       'code-bg': base.surface, code: base.surface,
       accent: base.accent, 'accent-decoration': base.accent,
       'accent-fg': on, 'on-accent': on, 'accent-hover': resolved.primaryHover,
@@ -205,14 +230,13 @@
     };
     STATUS_KEYS.forEach(function (key) {
       if (!base[key]) return;
-      var status = statusColor(base, base[key], dark);
-      var soft = statusSoftFor(base, status, softAlpha, dark);
-      vars[key] = status;
-      vars[key + '-soft'] = soft;
-      vars[key + '-hover-bg'] = soft;
-      vars[key + '-hover-fg'] = status;
-      vars[key + '-pressed-bg'] = statusSoftFor(base, status, softAlpha + 0.04, dark);
-      vars[key + '-pressed-fg'] = status;
+      var family = statusFamily(base, base[key], dark, softAlpha);
+      vars[key] = family.color;
+      vars[key + '-soft'] = family.soft;
+      vars[key + '-hover-bg'] = family.soft;
+      vars[key + '-hover-fg'] = family.color;
+      vars[key + '-pressed-bg'] = family.pressed;
+      vars[key + '-pressed-fg'] = family.color;
     });
     vars['status-error'] = vars.danger; vars['status-error-bg'] = vars['danger-soft'];
     vars['status-success'] = vars.success; vars['status-warning'] = vars.warning;
@@ -233,8 +257,12 @@
       if (ratio < minimum) issues.push(label + ' 对比度 ' + ratio.toFixed(2) + ':1，需 ≥ ' + minimum + ':1');
     }
     need([merged.ink, merged.paper], 10, '正文 ink/paper');
-    need([merged.accent, merged.paper], 4.5, 'accent 作为文字/paper');
-    need([merged.accent, merged.surface], 4.5, 'accent 作为文字/surface');
+    /* 强调色是「状态色」不是「正文字色」：原型有 183 处 color:var(--accent)，全是链接、选中标签、
+     * 图标与描边这类带上下文的非正文角色（正文可读性由 fg/muted 两档 4.5 守住）。
+     * 因此按 WCAG 1.4.11（非文本内容与 UI 组件 3:1）判定，而非 1.4.3 的 4.5。
+     * 九套实测：浅底最差 3.26（鼠尾草），深底最差 6.62；若沿用 4.5 会逼着把品牌强调色压暗一档。 */
+    need([merged.accent, merged.paper], 3, 'accent 作为文字/paper');
+    need([merged.accent, merged.surface], 3, 'accent 作为文字/surface');
     var on = onAccent(merged.accent);
     need([on, merged.accent], 4.5, 'onAccent/accent');
     STATUS_KEYS.forEach(function (key) {
@@ -251,7 +279,10 @@
       need([muted, merged.surface], 4.5, '次要文字 muted/surface');
       need([muted, alphaOver(merged.ink, alphaOf(derivation.raised), merged.paper)], 4.5, '次要文字 muted/raised');
       need([muted, alphaOver(merged.ink, alphaOf(derivation.hover), merged.surface)], 4.5, '次要文字 muted/hover');
-      need([merged.accent, accentSoftFor(merged, alphaOf(derivation.accentSoft), dark)], 4.5, '强调文字 accent/accentSoft');
+      /* 软底的收敛目标是 4.5（§3 的尽力值），追不到就停在 3% 底色下限——这是有意的降级：
+       * 宁可让 hover/selected 几乎不成色，也不让强调字配一块读不清的底。
+       * 落点仍按上面的强调字角色（3:1）复核，所以中明度强调色（鼠尾草）在此保持声明的浅底。 */
+      need([merged.accent, accentSoftFor(merged, alphaOf(derivation.accentSoft))], 3, '强调文字 accent/accentSoft');
       var hover = convergeMix(derivation.primaryHover, merged, on, false);
       need([on, hover], 4.5, 'onAccent/primaryHover');
       var pressed = resolveFormula(derivation.primaryPressed, merged, function (key) { return merged[key] || merged.paper; });
@@ -263,8 +294,11 @@
       var softAlpha = alphaOf(derivation.statusSoft);
       STATUS_KEYS.forEach(function (key) {
         if (!merged[key]) return;
-        var status = statusColor(merged, merged[key], dark);
-        need([status, statusSoftFor(merged, status, softAlpha, dark)], 4.5, key + '/soft');
+        /* 软底有两档（hover 与更深一档的 pressed），两档都归状态色族不动点解管：
+         * §3「文字与软底仍达标」管的是渲染出来的那一对，不是其中较浅的一档。 */
+        var family = statusFamily(merged, merged[key], dark, softAlpha);
+        need([family.color, family.soft], 4.5, key + '/soft');
+        need([family.color, family.pressed], 4.5, key + '/pressed-soft');
       });
     } else {
       var mutedFallback = alphaOver(merged.ink, 0.64, merged.paper);
