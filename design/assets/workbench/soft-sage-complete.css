@@ -65,7 +65,7 @@
 :root[data-palette="teal"] .sage-tool-label{font-size:10px;color:var(--muted);white-space:nowrap}
 :root[data-palette="teal"] .sage-layout-tools button,:root[data-palette="teal"] .sage-reading-themes button{
   border:1px solid transparent;border-radius:7px;padding:5px 8px;background:transparent;color:var(--muted);
-  font:11px/1.2 inherit;white-space:nowrap;cursor:pointer;
+  font:inherit;font-size:11px;line-height:1.2;white-space:nowrap;cursor:pointer;
 }
 :root[data-palette="teal"] .sage-layout-tools button:hover,:root[data-palette="teal"] .sage-reading-themes button:hover{background:var(--hover);color:var(--fg)}
 :root[data-palette="teal"] .sage-layout-tools button[aria-pressed="true"],:root[data-palette="teal"] .sage-reading-themes button[aria-pressed="true"]{
@@ -109,3 +109,19 @@
   :root[data-palette="teal"] .node-inspector,:root[data-palette="teal"] .settings-popover{right:10px;left:auto;max-width:calc(100vw - 20px)}
 }
 @media(prefers-reduced-motion:reduce){:root[data-palette="teal"] .win-layer>.dialog,:root[data-palette="teal"] .win-layer>.mini-window{animation:none}}
+
+/* Mind-map appearance variants: reuse the prototype's existing six style choices. */
+:root[data-palette="teal"] #map-scene[data-map-style="quiet"] .map-node{background:var(--surface);border-color:var(--border)}
+:root[data-palette="teal"] #map-scene[data-map-style="colorful"] .map-node[data-kind="heading"]{background:color-mix(in srgb,var(--branch-color) 13%,var(--surface));border-color:color-mix(in srgb,var(--branch-color) 45%,var(--border))}
+:root[data-palette="teal"] #map-scene[data-map-style="outline"] .map-node{background:transparent;border:1.5px solid var(--branch-color);box-shadow:none}
+:root[data-palette="teal"] #map-scene[data-map-style="outline"] .map-node.root{background:transparent;color:var(--accent);border-width:2px}
+:root[data-palette="teal"] #map-scene[data-map-style="capsule"] .map-node{border-radius:999px;padding-inline:2px}
+:root[data-palette="teal"] #map-scene[data-map-style="capsule"] .map-node.content{border-radius:12px}
+:root[data-palette="teal"] #map-scene[data-map-style="underline"] .map-node{background:transparent;border:0;border-bottom:2px solid var(--branch-color);border-radius:3px;box-shadow:none}
+:root[data-palette="teal"] #map-scene[data-map-style="underline"] .map-node.root{background:var(--accent);border-radius:8px}
+:root[data-palette="teal"] #map-scene[data-map-style="mono"] .map-node{background:var(--surface);border:1px solid #89938C;box-shadow:none;color:var(--fg)}
+:root[data-palette="teal"] #map-scene[data-map-style="mono"] .map-node.root{background:#E9ECE9;color:#28332C;border-color:#68746C}
+:root[data-palette="teal"] #map-scene[data-map-style="mono"] .map-links path{stroke:#7C8780;opacity:.65}
+:root[data-palette="teal"] .map-appearance-popover{width:min(440px,calc(100vw - 24px));max-height:min(78vh,700px);overflow:auto;overscroll-behavior:contain}
+:root[data-palette="teal"] .map-choice{border-radius:9px;border-color:var(--border);background:var(--surface)}
+:root[data-palette="teal"] .map-choice[aria-pressed="true"]{border-color:var(--accent);background:var(--selected);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 12%,transparent)}
