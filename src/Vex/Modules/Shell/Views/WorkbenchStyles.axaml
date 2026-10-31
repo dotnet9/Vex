@@ -221,6 +221,7 @@
         <Panel>
           <ContentPresenter x:Name="PART_ContentPresenter" Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
                             Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
           <Border x:Name="Underline" Height="2" VerticalAlignment="Bottom" Margin="8,0" CornerRadius="1"
                   Background="{DynamicResource VexAccentBrush}" IsVisible="False" />
@@ -688,8 +689,10 @@
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
   </Style>
   <Style Selector="ToggleButton.tab-item:checked">
-    <!-- 原型 .workspace-tabs>button[aria-pressed=true]{color:vex-on}：选中页签连字带下划线一起转强调色。 -->
-    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+  </Style>
+  <Style Selector="ToggleButton.tab-item:checked /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
   </Style>
   <Style Selector="ToggleButton.tab-item:checked /template/ Border#Underline">
     <Setter Property="IsVisible" Value="True"/>

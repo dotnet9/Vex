@@ -39,6 +39,9 @@ internal static class PrototypeAppearanceVerification
         var original = app.Resolve<IWorkspaceDocumentState>().Markdown;
         vm.Workbench.ShowTypography = true; Render();
         var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
+        var popover = gallery.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("wb-popover"));
+        Check(popover.BoxShadow.Count == 2, "Typography popover uses both elevation shadow layers");
+        Check(!gallery.ClipToBounds, "Typography gallery host leaves room for the popover shadow");
         var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true).ToArray();
         Check(cards.Length == 13 && cards.All(b => b.IsVisible), "All thirteen typography cards are shown without a filter (prototype redesign)");
         Check(cards.All(card => card.Content is Panel panel && panel.Children.OfType<Border>().First().Child is UserControl preview
@@ -57,7 +60,8 @@ internal static class PrototypeAppearanceVerification
         window.Width = 1440; window.Height = 1000; Render();
         var addStrip = gallery.GetVisualDescendants().OfType<Button>().First(b => b.Name == "AddCustomTypography");
         var sourceDisplay = app.Resolve<IEditorDisplayState>();
-        // 原型 #typography-panel：弹层 720×680 不变，卡片区 4 列（13 张排满 4 行）、预览固定 13px 基准、卡高不随密度变，新增条 44px 整行。
+        double[]? normalCardHeights = null;
+        // 卡片四列，按每行内容高度伸展；13px 预览不随正文密度变化，新增条44px整行。
         foreach (var density in new[] { "compact", "normal", "relaxed" })
         {
             vm.Appearance.MarkdownDensity = density; Render();
@@ -65,16 +69,17 @@ internal static class PrototypeAppearanceVerification
             var writingSize = density switch { "compact" => 13d, "relaxed" => 17d, _ => 15d };
             Check(Math.Abs(sourceDisplay.EditorFontSize - writingSize) < 0.01,
                 $"Source editor font follows the writing-size tier at {density}: {sourceDisplay.EditorFontSize}");
-            // 原型 #typography-panel 卡片实测 160.5x150.5（Playwright 探针，卡高不随密度变）。
-            const double height = 150.5;
             var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
             var tops = cards.Select(c => Math.Round(c.TranslatePoint(default, scroll)!.Value.Y)).Distinct().ToArray();
             var lefts = cards.Select(c => Math.Round(c.TranslatePoint(default, scroll)!.Value.X)).Distinct().ToArray();
             Check(tops.Length == 4 && lefts.Length == 4, $"Cards form 4 columns x 4 rows at {density}: {lefts.Length}x{tops.Length}");
-            Check(cards.All(card => Math.Abs(card.Bounds.Height - height) < 1), $"Cards are {height:0}px tall at {density}: " + string.Join(",", cards.Select(c => Math.Round(c.Bounds.Height, 2))));
+            var heights = cards.Select(card => card.Bounds.Height).ToArray();
+            normalCardHeights ??= heights;
+            Check(heights.Zip(normalCardHeights).All(pair => Math.Abs(pair.First - pair.Second) < .01)
+                && heights.All(height => height is > 100 and < 180),
+                $"Card rows size to their preview and stay independent of document density at {density}");
             Check(cards.Average(card => card.Bounds.Width) is > 150 and < 175, $"Narrow cards keep the prototype's ~161px width at {density}: " + cards[0].Bounds.Width.ToString("0.#"));
-            // 原型 13 张卡（4 行 602 + 间隙 32 + 新增条 44 = 678）超出 680 弹层里 598 的网格，最后一行落在折叠线下，
-            // 由网格自己滚（.typography-grid{overflow-y:auto;flex:1}），整块弹层不滚。
+            // 卡片及新增条超过598px网格后只滚动网格，整块弹层不滚。
             Check(scroll.Extent.Height > scroll.Viewport.Height + 1, $"Card grid scrolls like the prototype at {density}: extent={scroll.Extent.Height:0.#}, viewport={scroll.Viewport.Height:0.#}");
             var stripBottom = addStrip.TranslatePoint(new Point(0, addStrip.Bounds.Height), scroll)!.Value.Y;
             Check(addStrip.Bounds.Width > cards[0].Bounds.Width * 3 && stripBottom <= scroll.Extent.Height + 1,

@@ -23,7 +23,7 @@ namespace Vex.Modules.Shell.Views;
 public sealed class ShellTypographyGallery : UserControl
 {
     private MainWindowViewModel? _vm;
-    private readonly UniformGrid _cards = new() { Classes = { "typography-cards" }, Columns = 4, RowSpacing = 8, ColumnSpacing = 8 };
+    private readonly Grid _cards = new() { Classes = { "typography-cards" }, ColumnDefinitions = new("*,*,*,*"), RowSpacing = 8, ColumnSpacing = 8 };
     private readonly Dictionary<TypographyOption, (Button Button, Border Ring, Border Badge, TextBlock BadgeText)> _items = [];
     private readonly Dictionary<string, Button> _densityPills = [];
     private TopLevel? _window;
@@ -32,6 +32,8 @@ public sealed class ShellTypographyGallery : UserControl
 
     public ShellTypographyGallery()
     {
+        ClipToBounds = false;
+        UseLayoutRounding = false;
         DataContextChanged += (_, _) => Attach();
         AttachedToVisualTree += (_, _) => { Attach(); _window = TopLevel.GetTopLevel(this); if (_window is not null) _window.SizeChanged += WindowSizeChanged; Resize(); };
         DetachedFromVisualTree += (_, _) => { if (_vm is not null) { _vm.Appearance.PropertyChanged -= Changed; _vm.Workbench.PropertyChanged -= WorkbenchChanged; } I18nManager.Instance.CultureChanged -= CultureChanged; if (_window is not null) _window.SizeChanged -= WindowSizeChanged; _vm = null; _window = null; };
@@ -41,14 +43,6 @@ public sealed class ShellTypographyGallery : UserControl
     // SizeChanged 在布局中途触发：此刻锚点已按新尺寸落位而 ClientSize 仍是旧值，
     // 当场重算会把高度钉在旧窗口的量程上，等布局走完再读一次才是最终几何。
     private void WindowSizeChanged(object? sender, SizeChangedEventArgs e) => Avalonia.Threading.Dispatcher.UIThread.Post(Resize);
-
-    /// <summary>
-    /// 原型卡片预览固定 15px 基准（渲染密度不作用于卡片：原型 .type-document 取 --writing-size 正常档），
-    /// 标题/引用按真实排版渲染，说明行单独降到 12/18。
-    /// 弹层 680 = 内距 28 + 密度行 52 + 滚动区 600；滚动区里 150.5 的卡加 8 间隙走满四行还剩余量，
-    /// 故 13 张卡 + 44 新增条按原型一样靠滚动查看，不压卡片高度。
-    /// </summary>
-    private const double CardHeight = 150.5;
 
     private void Attach()
     {
@@ -128,7 +122,7 @@ public sealed class ShellTypographyGallery : UserControl
         if (_scroll is not null) _scroll.Content = null;
         // 网格与新增条同挂在重建的 body 下，摘掉旧父级才能再次入树。
         if (_cards.Parent is Panel oldBody) oldBody.Children.Remove(_cards);
-        _items.Clear(); _densityPills.Clear(); _cards.Children.Clear();
+        _items.Clear(); _densityPills.Clear(); _cards.Children.Clear(); _cards.RowDefinitions.Clear();
 
         // 渲染密度：原型 .typography-density 里只有 .density-options.vex-segmented 一枚轨道（320×30，
         // 距行顶 11、距发丝线 10），标题与「渲染密度」四个字都不存在——作用域只写进轨道的可访问名，
@@ -147,9 +141,16 @@ public sealed class ShellTypographyGallery : UserControl
         var densityFrame = new Border { Classes = { "typography-density" }, Child = track, BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(2, 2, 2, 10) };
         Resource(densityFrame, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
 
-        foreach (var option in _vm.Appearance.TypographyOptions) _cards.Children.Add(BuildCard(option));
+        foreach (var option in _vm.Appearance.TypographyOptions)
+        {
+            var index = _cards.Children.Count;
+            if (index % 4 == 0) _cards.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            var card = BuildCard(option);
+            Grid.SetRow(card, index / 4); Grid.SetColumn(card, index % 4);
+            _cards.Children.Add(card);
+        }
 
-        // 原型 .typography-add 用 grid-column:1/-1 横跨整行；UniformGrid 不能跨列，故把新增条挂在网格下方同宽。
+        // 新增条横跨整行；卡片各行按真实预览的内容高度排列。
         var body = new StackPanel { Spacing = 8 };
         body.Children.Add(_cards);
         body.Children.Add(BuildAddCard());
@@ -172,8 +173,9 @@ public sealed class ShellTypographyGallery : UserControl
         var purpose = Text(option.PurposeKey);
         var quote = Text("AboutShortSlogan");
         var preview = new TypographyCardPreview(option.Key, name, purpose, quote);
-        // 原型 .type-swatch：不圆角、不投影，只与卡片顶边隔 1px 描线，白纸铺满卡片由卡片圆角裁切。
-        var paper = new Border { Child = preview, ClipToBounds = true, BorderThickness = new Thickness(0, 1, 0, 0), CornerRadius = new CornerRadius(0) };
+        // Button 的矩形裁切不会裁掉纸面的四角；纸面自身沿卡片圆角裁切。
+        var paper = new Border { Child = preview, ClipToBounds = true, BorderThickness = new Thickness(0, 1, 0, 0) };
+        paper.Bind(Border.CornerRadiusProperty, CardRadius());
         Resource(paper, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
         Resource(paper, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
         // 原型 .palette-badge：600 10px/1、2px 4px 内距、--vex-radius-xs 圆角、距卡片右上角各 6。
@@ -196,7 +198,7 @@ public sealed class ShellTypographyGallery : UserControl
         var button = Button("", () => { _vm!.Appearance.SelectedTypography = option; ScheduleCollapse(); });
         button.Name = "Typography_" + option.Key;
         button.Content = content; button.Padding = default; button.FontSize = 10; button.FontWeight = FontWeight.Normal;
-        button.MinHeight = CardHeight; button.Height = CardHeight;
+        button.MinHeight = 0;
         button.ClipToBounds = true;
         button.VerticalAlignment = VerticalAlignment.Stretch; button.HorizontalAlignment = HorizontalAlignment.Stretch;
         button.HorizontalContentAlignment = HorizontalAlignment.Stretch; button.VerticalContentAlignment = VerticalAlignment.Stretch;

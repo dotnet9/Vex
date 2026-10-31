@@ -21,6 +21,7 @@ internal sealed class TypographyCardPreview : UserControl
         Classes.Add("typography-preview");
         Tag = key;
         IsHitTestVisible = false;
+        if (_article.Font != "system") FontFamily = ArticleTypography.ResolveFont(_article.Font);
         ActualThemeVariantChanged += (_, _) => Build();
         Build();
     }
@@ -61,7 +62,7 @@ internal sealed class TypographyCardPreview : UserControl
         {
             Child = quote, Padding = new Thickness(9, 6),
             BorderThickness = Thickness.Parse(_article.Quote.Border),
-            CornerRadius = new CornerRadius(_article.Quote.Radius),
+            CornerRadius = new CornerRadius(0, _article.Quote.Radius, _article.Quote.Radius, 0),
             BorderBrush = (IBrush)colors["CodeWFMarkdownQuoteBorderBrush"]!,
             Background = (IBrush)colors[MarkdownStyleKeys.QuoteBackgroundBrushResource]!
         };

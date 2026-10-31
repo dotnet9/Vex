@@ -88,15 +88,18 @@ internal static class PrototypeChromeVerification
                 && readSegment.IsChecked != true && mapSegment.IsChecked != true
                 && sourceUnderline.IsVisible && Math.Abs(sourceUnderline.Bounds.Height - 2) < 1,
                 "Source tab selects the pure source view and wears the 2px underline");
-            // 原型 .workspace-tabs>button[aria-pressed=true] 与它的 ::after 同色：选中页签的字与下划线一起换成强调色，
-            // 下划线左右各让 8px、贴住页签底边（2px 高、1px 圆角）。
+            // professional.css：选中面与正文墨色，强调色只画下划线。
             var underlineColor = (sourceUnderline.Background as SolidColorBrush)?.Color;
             var tabColor = (sourceSegment.Foreground as SolidColorBrush)?.Color;
-            Check(underlineColor is not null && underlineColor == tabColor
+            Color? Token(string key) => Application.Current!.TryGetResource(key, window.ActualThemeVariant, out var brush)
+                ? (brush as ISolidColorBrush)?.Color : null;
+            var tabFace = sourceSegment.GetVisualDescendants().OfType<Avalonia.Controls.Presenters.ContentPresenter>().Single(c => c.Name == "PART_ContentPresenter");
+            Check(underlineColor == Token("VexAccentBrush") && tabColor == Token("VexValueBrush")
+                && (tabFace.Background as ISolidColorBrush)?.Color == Token("VexAccentSoftBrush")
                 && Math.Abs(sourceUnderline.Bounds.Bottom - sourceSegment.Bounds.Bottom) < 1
                 && Math.Abs(sourceUnderline.Bounds.Left - sourceSegment.Bounds.Left - 8) < 1
                 && Math.Abs(sourceSegment.Bounds.Right - sourceUnderline.Bounds.Right - 8) < 1,
-                $"Selected tab marks itself in accent with a 2px underline inset 8/8: underline={underlineColor} text={tabColor} box={sourceUnderline.Bounds}");
+                $"Selected tab uses a selected surface, normal ink and a 2px accent underline inset 8/8: underline={underlineColor} text={tabColor} box={sourceUnderline.Bounds}");
             mapSegment.Command!.Execute(null); Render();
             Check(vm.Workbench.WorkspaceLayout == "map" && mapSegment.IsChecked == true && !sourceSegment.IsChecked.GetValueOrDefault(), "Map tab selects the mind map view");
             readSegment.Command!.Execute(null); Render();
@@ -154,8 +157,13 @@ internal static class PrototypeChromeVerification
             Check(!vm.Layout.IsOutlineVisible && railOutline.IsFocused, "Closing outline restores focus to its rail toggle");
             vm.Layout.IsOutlineVisible = false; Settle();
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "workspace-" + size.Width + ".png"));
+            var tabsBeforeGallery = window.Workspace.FindControl<Border>("WorkspaceTabRow")!;
+            var tabsOrigin = tabsBeforeGallery.TranslatePoint(default, window)!.Value;
             vm.Workbench.ShowLayouts = true; Render();
             var gallery = window.Workspace.FindControl<WorkspaceLayoutGallery>("LayoutGallery")!;
+            Check(tabsBeforeGallery.TranslatePoint(default, window)!.Value == tabsOrigin
+                && Math.Abs(gallery.TranslatePoint(default, window)!.Value.Y - (tabsOrigin.Y + 42)) < 1,
+                "Layout gallery floats six pixels below the tabs without moving document chrome");
             var choices = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Tag is string id && WorkbenchLayoutOption.All.Any(o => o.Id == id)).ToArray();
             Check(choices.Length == 8 && gallery.Bounds.Height <= window.ClientSize.Height - 120, "All eight layouts fit the available panel at " + size.Width);
             choices[0].Focus(); window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null); Render();
@@ -403,8 +411,10 @@ internal static class PrototypeChromeVerification
         if (previewScroll is not null) { previewScroll.Offset = new Vector(0, previewScroll.Extent.Height); Render(); previewScroll.Offset = new Vector(0, previewScroll.Extent.Height); Render(); }
         var tableContainer = window.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("MdTableContainer"));
         Check(tableContainer is not null, "Reading view renders table containers");
-        var extracted = Vex.Modules.Workspace.Views.TableTools.Extract(tableContainer!);
-        Check(extracted.Length >= 2 && extracted[0][0] == "API", "Table tools extract rendered cells");
+        var tableBlock = tableContainer!.GetVisualAncestors().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownTableBlock>().FirstOrDefault();
+        Check(tableBlock is not null, "Table toolbar and content share one registered document block");
+        var extracted = tableBlock!.Data.Rows;
+        Check(extracted.Count >= 2 && extracted[0][0] == "API", "Table tools receive structured model cells");
         Check(Vex.Modules.Workspace.Views.TableTools.ToMarkdown(extracted).StartsWith("| API | 说明 |"), "Table tools rebuild markdown");
         Check(Vex.Modules.Workspace.Views.TableTools.ToCsv(extracted).Contains("Read,读取文档"), "Table tools build csv");
         previewScroll!.Offset = default; Render();
