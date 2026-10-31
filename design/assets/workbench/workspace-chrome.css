@@ -336,7 +336,7 @@ input, textarea, select {
 .layout-preset .layout-name{min-height:16px;font-weight:400}.layout-preset[aria-pressed=true]{border-color:var(--accent);box-shadow:none;background:var(--accent-soft)}
 .layout-miniature{height:44px;border-color:color-mix(in srgb,var(--border) 65%,transparent)}.workspace-layout-menu>p{line-height:1.7}
 .workspace{position:relative}.sidebar-inner{background:transparent}
-.sidebar-search{margin:14px 12px 12px}
+.sidebar-search{margin:0}
 .sidebar-search input{font-size:var(--fs-caption,12px)}
 .sidebar-splitter{background:linear-gradient(90deg,transparent 2px,color-mix(in srgb,var(--border) 65%,transparent) 2px,color-mix(in srgb,var(--border) 65%,transparent) 3px,transparent 3px)}
 .view-panel{border-radius:0;box-shadow:none}.view-heading{height:36px;min-height:36px}
@@ -354,18 +354,13 @@ input, textarea, select {
 #view-follow-controls{font-size:var(--fs-caption,12px);gap:5px}#view-follow-toggle[aria-pressed=true]{background:transparent;color:var(--muted)}#view-follow-toggle[aria-pressed=true]::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin-right:6px}
 #view-follow-driver{font-size:var(--fs-caption,12px)}#return-to-editing{color:var(--muted)}
 .structure-sidebar{border:0}.structure-inner{width:100%!important;min-width:0}
-.structure-head{padding:12px 14px 9px;background:transparent;flex:none}.structure-title{font-weight:600;font-size:12px}.structure-toggle .ico{width:14px;height:14px}
+.structure-head{background:transparent}.panel-close{width:26px;height:26px}.panel-close .ico{width:14px;height:14px}
 
 
 
-.auxiliary-content{min-height:0;flex:1;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
-#auxiliary-outline{display:flex;flex-direction:column;overflow:hidden}.structure-search{flex:none;margin:14px 12px 10px}.structure-list{overflow:auto;min-height:0;flex:1;padding:0 10px 18px}.structure-item{font-size:12px;min-height:32px;border-radius:var(--vex-radius-xs)}
+#auxiliary-outline{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}.structure-list{overflow:auto;overscroll-behavior:contain;min-height:0;flex:1;padding:0 10px 18px}.structure-item{font-size:12px;min-height:32px;border-radius:var(--vex-radius-xs)}
 .structure-splitter::after{background:color-mix(in srgb,var(--border) 65%,transparent)}
 .auxiliary-overlay .structure-sidebar:not(.collapsed){position:absolute;z-index:35;right:8px;top:8px;bottom:8px;width:min(344px,calc(100% - 24px))!important;border:1px solid var(--border);border-radius:var(--vex-radius-md);box-shadow:var(--shadow-pop)}
-.article-info-name{padding:20px 18px 4px;font-size:13px;font-weight:600;overflow-wrap:anywhere}.article-info-kind{padding:0 18px;font-size:12px;color:var(--muted)}
-.article-info-hero{display:flex;align-items:baseline;gap:6px;padding:22px 18px 18px}.article-info-hero strong{font-size:32px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-1px}.article-info-hero>span{font-size:12px;color:var(--muted)}.article-info-hero small{font-size:12px;margin-left:auto;color:var(--muted)}
-.article-info-metrics{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:16px 0;margin:0 18px;border-top:1px solid var(--border);font-size:12px}.article-info-metrics dt{color:var(--muted)}.article-info-metrics dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
-.article-count-rule,.article-info-save{margin:12px 18px;font-size:12px;line-height:1.8;color:var(--muted)}.article-info-save{color:var(--fg)}.article-save-details{margin:0 18px 20px;padding:0;border:0;background:transparent;color:var(--accent);font-size:12px}
 #auxiliary-chapter .node-inspector{position:static;width:100%;max-height:none;border:0;border-radius:0;box-shadow:none;animation:none;overflow:visible;background:transparent}
 #auxiliary-chapter .inspector-head{background:transparent;border:0;padding:18px 16px 0;font-size:12px;color:var(--muted)}
 #auxiliary-chapter .inspector-body{padding:0 16px 16px}#auxiliary-chapter .inspector-body h3:empty{display:none}#auxiliary-chapter .inspector-content{white-space:pre-wrap;font-size:12px;max-height:none;overflow:visible}#auxiliary-chapter .chapter-inspector{white-space:normal}
@@ -384,7 +379,7 @@ input, textarea, select {
 
 /* ===== 质感 pass（规则 §15 装饰语言基线）：边框退位 · 圆角升档 · 字重层级 · 强调活力 ===== */
 /* 搜索框：与全站输入框同一配方——透明底 + 控件灰描边 + 胶囊圆角，聚焦转强调色。 */
-.sidebar-search{background:transparent;border:1px solid var(--control-border);border-radius:var(--vex-radius-pill);padding:5px 12px;transition:border-color var(--vex-fast),box-shadow var(--vex-fast)}
+.sidebar-search{width:100%;height:28px;background:transparent;border:1px solid var(--control-border);border-radius:var(--vex-radius-pill);padding:0 10px;transition:border-color var(--vex-fast),box-shadow var(--vex-fast)}
 .sidebar-search .clear-search{border:0;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;width:18px;height:18px;border-radius:var(--vex-radius-xs);padding:0}
 .sidebar-search .clear-search:hover{color:var(--fg);background:var(--hover)}
 /* 查找计数：轻量药丸。 */
@@ -470,8 +465,9 @@ input, textarea, select {
 .rail-item.on,.rail-item[aria-pressed=true]{background:var(--vex-on-soft);color:var(--vex-on)}
 .rail-bottom{margin-top:auto}
 /* 面板头：左右两栏同一档口径，标题落在搜索框之上。 */
-.panel-head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:12px 14px 9px}
-.panel-title{font-weight:600;font-size:var(--fs-caption,12px);color:var(--vex-ink)}
+.panel-head{flex:none;display:flex;align-items:center;justify-content:space-between;height:36px;padding:0 12px;border-bottom:1px solid var(--vex-hairline)}
+.panel-title{font-weight:600;font-size:var(--fs-caption,12px);line-height:1.6;color:var(--vex-ink)}
+.panel-tools{flex:none;display:flex;align-items:center;height:36px;padding:0 12px;border-bottom:1px solid var(--vex-hairline)}
 /* L1 两张面：导航侧栏/查找条是铬面，文档视口是纸面。 */
 .sidebar,.structure-sidebar,.find-strip{border-radius:0;box-shadow:none;background:var(--vex-chrome)}
 .view-panel{border-radius:0;box-shadow:none;background:var(--vex-sheet)}
@@ -538,9 +534,7 @@ input, textarea, select {
 .window-body>.document-statusbar{position:relative;z-index:12;flex:none;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--gap-md,10px);width:auto;max-width:none;height:var(--vex-status-h);min-height:var(--vex-status-h);padding:0 var(--pad-lg,14px);border:0;border-top:1px solid var(--vex-hairline);border-radius:0;background:var(--vex-chrome);box-shadow:none;color:var(--vex-ink-2);font-size:var(--fs-caption,12px)}
 .window-body>.document-statusbar button{border:0;background:transparent;color:var(--vex-ink-2);font-size:var(--fs-caption,12px);white-space:nowrap}
 .window-body>.document-statusbar button:hover{color:var(--vex-on)}
-.window-body>.document-statusbar .document-word-count{position:static;right:auto;bottom:auto;margin-left:0;height:auto;min-height:0;padding:0 4px;border:0;border-radius:var(--vex-r-ctl);background:transparent;color:var(--vex-ink-2);cursor:pointer}
-.window-body>.document-statusbar .document-word-count:hover{color:var(--vex-on);background:var(--vex-hover)}
-.window-body>.document-statusbar .document-word-count.on{color:var(--vex-on)}
+.window-body>.document-statusbar .document-word-count{position:static;right:auto;bottom:auto;margin-left:0;height:auto;min-height:0;padding:0 4px;border:0;background:transparent;color:var(--vex-ink-2);cursor:default}
 /* 缩放槽：坞进底栏后脱掉浮层外壳（描边/投影/胶囊底），只留拖动条与还原钮；百分比气泡仍向上弹。 */
 .statusbar-zoom{display:flex;align-items:center;margin-left:auto}
 .statusbar-zoom .vex-zoomdock{position:static;height:calc(var(--vex-status-h) - 8px);padding:0 4px;border:0;border-radius:var(--vex-r-ctl);background:transparent;box-shadow:none;color:var(--vex-ink-2)}

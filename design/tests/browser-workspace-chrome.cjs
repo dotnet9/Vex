@@ -85,28 +85,27 @@ fs.mkdirSync(output, {recursive:true});
     await page.locator('[data-action=clear-outline-search]').click();
     assert.ok(await page.locator('#outline-body .structure-item').count() > 0);
     await shot('reading-outline');
+    assert.equal(await page.locator('#sb-wordcount').evaluate(el => el.tagName), 'SPAN');
+    assert.equal(await page.locator('#sb-wordcount').getAttribute('data-action'), null);
+    assert.equal(await page.locator('#auxiliary-info, #layer-properties, #layer-statistics').count(), 0);
+    assert.equal(await page.evaluate(() => JSON.stringify(VexProto.menuData).includes('dlg-properties') || JSON.stringify(VexProto.menuData).includes('dlg-statistics')), false);
     await page.locator('#sb-wordcount').click();
-    assert.equal(await shown('#auxiliary-info'), true);
-    assert.match(await page.locator('#auxiliary-info').innerText(), /中文按字，英文按词/);
-    assert.equal(await page.locator('#outline-toggle').getAttribute('aria-pressed'), 'false', 'Outline button represents the active panel');
+    assert.equal(await closed(), false, 'Word count leaves the outline open');
+    assert.equal(await page.locator('#outline-toggle').getAttribute('aria-pressed'), 'true');
+    const count = await page.locator('#sb-wordcount').innerText();
+    await page.evaluate(() => VexWorkbench.applyText(VexWorkbench.text + '\n\n新增的字数。'));
+    assert.notEqual(await page.locator('#sb-wordcount').innerText(), count, 'Status word count updates during editing');
+    assert.equal(await page.locator('.titlebar-document .doc-dot').isVisible(), true);
+    await page.evaluate(() => VexWorkspace.setLayout('source'));
+    await page.locator('#markdown-input').evaluate(el => { el.focus(); el.setSelectionRange(0, 6); el.dispatchEvent(new Event('select')); });
+    assert.match(await page.locator('#sb-wordcount').innerText(), /选中 \d+ · 字数 \d+/);
+    await page.keyboard.press('Alt+Enter');
+    assert.equal(await page.locator('.overlay:not([hidden])').count(), 0, 'Removed properties shortcut has no dialog');
     await page.keyboard.press('Escape');
     assert.equal(await closed(), true);
-    assert.equal(await page.locator('#sb-wordcount').evaluate(el => el === document.activeElement), true);
-
-    await page.locator('#sb-wordcount').click();
-    await page.locator('#auxiliary-info').waitFor({state:'visible'});
-    const count = await page.locator('#article-info-count').innerText();
-    await page.evaluate(() => VexWorkbench.applyText(VexWorkbench.text + '\n\n新增的字数。'));
-    assert.notEqual(await page.locator('#article-info-count').innerText(), count, 'Article information updates during editing');
-    assert.equal(await page.locator('.titlebar-document .doc-dot').isVisible(), true, 'Titlebar shows the modified marker');
-    await shot('article-info');
-    // 辅助面板已按产品要求去掉标题栏与关闭按钮；关闭统一走 Esc（焦点回到触发按钮）。
-    await page.keyboard.press('Escape'); assert.equal(await closed(), true);
-    assert.equal(await page.locator('#sb-wordcount').evaluate(el => el === document.activeElement), true);
-    await page.locator('#sb-wordcount').click();
-    assert.equal(await shown('#auxiliary-info'), true);
+    assert.equal(await page.locator('#outline-toggle').evaluate(el => el === document.activeElement), true);
     await page.locator('#outline-toggle').click();
-    assert.equal(await page.locator('#auxiliary-outline').isVisible(), true, 'Outline shortcut switches from information to outline');
+    await shot('source-outline');
     await page.locator('#structure-splitter').focus();
     const beforeResize = Number(await page.locator('#structure-splitter').getAttribute('aria-valuenow'));
     await page.keyboard.press('ArrowLeft');
@@ -135,22 +134,20 @@ fs.mkdirSync(output, {recursive:true});
     await page.keyboard.press('Escape');
     assert.equal(await closed(), true);
     await page.locator('#outline-toggle').click();
-    await page.locator('#sb-wordcount').click();
-    assert.equal(await page.locator('#article-info-count').isVisible(), true, 'Closing and reopening preserves the auxiliary panel');
+    assert.equal(await shown('#auxiliary-outline'), true, 'Closing and reopening preserves the outline');
     await page.evaluate(() => VexWorkbench.loadDocument(1));
     await page.locator('#layer-unsaved [data-intent=cancel]').click();
     assert.match(await page.evaluate(() => VexWorkbench.text), /修改后的甲章/, 'Cancelling a document switch preserves changes');
 
     await open('layout=read');
-    await page.locator('#sb-wordcount').click();
-    await page.locator('#auxiliary-info').waitFor({state:'visible'});
+    assert.equal(await closed(), true);
     const guideOriginal = await page.evaluate(() => VexWorkbench.text);
     await page.evaluate(() => VexGuide.start());
     await page.locator('[data-tour=start]').click();
     await page.locator('[data-tour=skip]').click();
     await page.waitForFunction(() => document.querySelector('.app-window').dataset.guideStep === '2');
     await page.waitForFunction(() => document.querySelector('.tour-feedback')?.textContent.includes('大纲会列出所有标题'));
-    assert.equal(await page.evaluate(() => VexAuxiliary.active), 'outline', 'Guide act 2 ensures the outline panel');
+    assert.equal(await closed(), false, 'Guide act 2 opens the outline');
     await page.locator('[data-tour=continue]').click();
     await page.waitForFunction(() => document.querySelector('.tour-feedback')?.textContent.includes('大纲点一下，正文就到位'));
     await page.locator('[data-tour=skip]').click();
@@ -159,14 +156,14 @@ fs.mkdirSync(output, {recursive:true});
     assert.equal(await page.evaluate(() => VexGuide.active), false);
     assert.equal(await page.evaluate(() => VexWorkbench.text), guideOriginal, 'Guide restores the document');
     assert.equal(await page.evaluate(() => VexWorkspace.current), 'read', 'Guide restores the layout');
-    assert.equal(await page.evaluate(() => VexAuxiliary.active), 'info', 'Guide restores the auxiliary panel');
+    assert.equal(await closed(), true, 'Guide restores the closed outline');
 
     for (const viewport of [{width:1440,height:900},{width:1024,height:768},{width:800,height:480}]) {
       await page.setViewportSize(viewport);
       for (const layout of ['instant','read','three']) {
         await open('layout=' + layout + '&scenario=long-files');
         const before = await page.locator('#view-surface').boundingBox();
-        await page.locator('#sb-wordcount').click();
+        await page.locator('#outline-toggle').click();
         await page.waitForTimeout(300);
         const result = await page.evaluate(() => {
           const r = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
@@ -183,19 +180,19 @@ fs.mkdirSync(output, {recursive:true});
         assert.ok(result.appearanceRight <= result.languageLeft + 1 && result.languageRight <= result.captionLeft + 1, 'Titlebar controls keep order: appearance, language, caption buttons');
         assert.ok(result.surface.bottom <= result.bar.top + 1 && result.overflow <= 1, 'Status bar does not cover or overflow the document');
         if (result.overlay) assert.ok(Math.abs(result.surface.width - before.width) < 1, 'Overlay panel preserves document width');
-        await shot(layout + '-info-' + viewport.width);
+        await shot(layout + '-outline-' + viewport.width);
         await page.keyboard.press('Escape');
         await shot(layout + '-' + viewport.width);
       }
     }
     await page.setViewportSize({width:1440,height:900});
     await open('theme=dark&layout=three'); await shot('three-dark');
-    await page.locator('#sb-wordcount').click(); await shot('three-info-dark');
+    await page.locator('#outline-toggle').click(); await shot('three-outline-dark');
     await open('theme=dark&layout=map');
     await page.evaluate(() => VexWorkbench.selectNode(VexWorkbench.state.nodes.find(node => node.kind === 'heading' && !node.isRoot)));
     await shot('chapter-dark');
     assert.deepEqual(errors, [], 'Browser runtime errors');
-    console.log('PASS: eight view combinations, keyboard/focus, reading width, unified panels, live information, chapter editing/undo, file menu, long names and 800–1440px light/dark layouts.');
+    console.log('PASS: eight view combinations, keyboard/focus, reading width, outline, live status counts, chapter editing/undo, file menu, long names and 800–1440px light/dark layouts.');
     console.log('Screenshots: ' + output);
   } catch (error) { await shot('failure'); throw error; }
   finally { await browser.close(); }

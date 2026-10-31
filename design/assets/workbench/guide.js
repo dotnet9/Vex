@@ -211,10 +211,9 @@
   function chooseLayout(id) { if ($('#workspace-layout-menu').hidden) click('#workspace-layout'); click('#workspace-layout-menu [data-layout="' + id + '"]'); }
   function closeMenu() { if (window.VexProto) VexProto.closeMenu(); }
   function openMenu(menu) { var key = menu.replace(/\(.*/, ''); click('.tb-menuitem[data-menu^="' + key + '"]'); }
-  /* 大纲面板确保展开：不依赖用户点开关（大纲本已展开时点开关反而会收起，导致步骤断连）。 */
+  /* 按展开状态设置，避免开启动画期间重复点击开关把大纲收回。 */
   function ensureOutline() {
-    var list = $('#outline-body');
-    if (list && !visible(list)) withAutomation(function () { var toggle = $('#outline-toggle'); if (toggle) toggle.click(); });
+    withAutomation(function () { VexWorkbench.showStructure(true); });
   }
   function closeLayers() { closeMenu(); if (window.VexTypography) VexTypography.close(); if (window.VexWorkspace) VexWorkspace.closeAppearance(); document.querySelectorAll('.win-layer').forEach(function (node) { node.hidden = true; }); $('#map-settings').hidden = true; $('#map-settings-button').setAttribute('aria-expanded', 'false'); $('#node-inspector').hidden = true; }
   function withAutomation(fn) { automating = true; try { fn(); } finally { automating = false; } }

@@ -98,10 +98,10 @@
         <button class="rail-item rail-bottom" data-action="preferences" data-l10n-name="偏好设置" title="偏好设置" aria-label="偏好设置"><svg class="ico" aria-hidden="true"><use href="#i-gear"/></svg><span>设置</span></button>
       </nav>
       <aside class="sidebar" data-l10n-label="文件列表" aria-label="文件列表"><div class="sidebar-inner">
-        <div class="panel-head"><span class="panel-title" data-l10n="文件列表">文件列表</span></div>
+        <div class="panel-head"><span class="panel-title" data-proto-label="文件列表">文件列表</span><button type="button" class="panel-close" data-action="toggle-sidebar" data-l10n-name="收起文件导航" title="收起文件导航" aria-label="收起文件导航"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
 
         <div class="side-pane" id="files-pane">
-          <label class="sidebar-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="file-filter" data-l10n-placeholder="按文件名查找…" data-l10n-label="按文件名查找" data-l10n-tip="只匹配文件名，不搜索正文 · Ctrl+P" placeholder="按文件名查找…" aria-label="按文件名查找" title="只匹配文件名，不搜索正文 · Ctrl+P"><button class="clear-search" data-action="clear-file-search" data-l10n-name="清除文件名筛选" title="清除文件名筛选" aria-label="清除文件名筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
+          <div class="panel-tools"><label class="sidebar-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="file-filter" data-l10n-placeholder="按文件名查找…" data-l10n-label="按文件名查找" data-l10n-tip="只匹配文件名，不搜索正文 · Ctrl+P" placeholder="按文件名查找…" aria-label="按文件名查找" title="只匹配文件名，不搜索正文 · Ctrl+P"><button class="clear-search" data-action="clear-file-search" data-l10n-name="清除文件名筛选" title="清除文件名筛选" aria-label="清除文件名筛选"><svg class="ico"><use href="#i-x"/></svg></button></label></div>
           <div class="file-list" id="file-list"></div><div class="empty-state" id="file-empty" hidden>没有匹配的文档</div><div class="files-footer">
             <button type="button" class="files-folder" id="files-folder" aria-haspopup="menu" aria-expanded="false" title="排序方式"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg><span id="files-folder-name">演示文档</span></button>
             <button type="button" class="icon-button" id="files-more" aria-haspopup="menu" aria-expanded="false" title="排序方式"><svg class="ico" aria-hidden="true"><use href="#i-more-v"/></svg></button>
@@ -181,16 +181,18 @@
         </section>
       </div>
       </div>
-    <div class="structure-splitter" id="structure-splitter" role="separator" data-l10n-label="调整辅助面板宽度" aria-label="调整辅助面板宽度" aria-orientation="vertical" aria-valuemin="280" aria-valuemax="480" aria-valuenow="312" tabindex="0"></div>
-    <aside class="structure-sidebar" id="structure-sidebar" data-l10n-label="文档辅助" aria-label="文档辅助"><div class="structure-inner">
-        <div class="panel-head structure-head"><span class="panel-title structure-title">文档结构</span><button class="structure-toggle" data-action="toggle-structure" data-l10n-name="收起文档结构" title="收起文档结构" aria-label="收起文档结构" aria-expanded="true"><svg class="ico" aria-hidden="true"><use href="#i-chevron-down"/></svg></button></div>
-        <label class="sidebar-search structure-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="outline-filter" data-l10n-placeholder="筛选当前标题…" data-l10n-label="筛选当前文档标题" data-l10n-tip="只筛选当前文档的大纲标题" placeholder="筛选当前标题…" aria-label="筛选当前文档标题" title="只筛选当前文档的大纲标题"><button class="clear-search" data-action="clear-outline-search" data-l10n-name="清除标题筛选" title="清除标题筛选" aria-label="清除标题筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
-        <div class="outline-list structure-list" id="outline-body"></div>
+    <div class="structure-splitter" id="structure-splitter" role="separator" data-l10n-label="调整文档大纲宽度" aria-label="调整文档大纲宽度" aria-orientation="vertical" aria-valuemin="280" aria-valuemax="480" aria-valuenow="312" tabindex="0"></div>
+    <aside class="structure-sidebar" id="structure-sidebar" data-l10n-label="文档大纲" aria-label="文档大纲"><div class="structure-inner">
+        <div class="panel-head structure-head"><span class="panel-title structure-title" data-proto-label="文档大纲">文档大纲</span><button type="button" class="structure-toggle panel-close" data-action="toggle-structure" data-l10n-name="收起文档大纲" title="收起文档大纲" aria-label="收起文档大纲" aria-expanded="true"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+        <div id="auxiliary-outline">
+          <div class="panel-tools"><label class="sidebar-search structure-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="outline-filter" data-l10n-placeholder="筛选当前标题…" data-l10n-label="筛选当前文档标题" data-l10n-tip="只筛选当前文档的大纲标题" placeholder="筛选当前标题…" aria-label="筛选当前文档标题" title="只筛选当前文档的大纲标题"><button class="clear-search" data-action="clear-outline-search" data-l10n-name="清除标题筛选" title="清除标题筛选" aria-label="清除标题筛选"><svg class="ico"><use href="#i-x"/></svg></button></label></div>
+          <div class="outline-list structure-list" id="outline-body"></div>
+        </div>
       </div></aside>
       </main>
       <!-- 整窗底栏：从 .workspace-main 里提出来，横跨侧栏与右栏，窗口级开关与信息都归这里。 -->
       <footer class="document-statusbar">
-        <button class="document-word-count" id="sb-wordcount" data-action="dlg-statistics" aria-controls="structure-sidebar" data-l10n-tip="查看文章信息与字数统计" title="查看文章信息与字数统计">字数 0</button>
+        <span class="document-word-count" id="sb-wordcount">字数 0</span>
       </footer>
     <!-- ========== 窗体内浮层 ========== -->
 
@@ -274,63 +276,6 @@
             <button class="btn" data-close="已取消，文件安全">取消</button>
             <button class="btn danger" data-close="已从工作区移除「读书摘录.md」，原文件未改动（演示）">移除</button>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 文件属性 -->
-    <div class="overlay win-layer" id="layer-properties" hidden>
-      <div class="mini-window" role="dialog" aria-modal="true" aria-labelledby="properties-title" data-l10n-label="文件属性">
-        <div class="mini-titlebar">
-          <span id="properties-title">属性</span>
-          <span class="caption-btns">
-            <button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
-          </span>
-        </div>
-        <div class="prop-head">
-          <span class="about-logo">
-            <svg class="ico ico-21"><use href="#i-file"/></svg>
-          </span>
-          <div>
-            <div class="prop-name">主题设计笔记.md</div>
-            <div class="prop-sub">本地文档 · Markdown</div>
-          </div>
-        </div>
-        <div class="prop-rows">
-          <div class="prop-row"><span class="k">状态</span><span class="v"><span class="pill-ok">已保存</span></span></div>
-          <div class="prop-row"><span class="k">编码</span><span class="v mono">UTF-8</span></div>
-          <div class="prop-row"><span class="k">大小</span><span class="v">4.2 KB（4,318 字节）</span></div>
-          <div class="prop-row">
-            <span class="k">路径</span>
-            <span class="v mono prop-path">
-              <span>D:\Notes\笔记\主题设计笔记.md</span>
-              <button class="copy-btn" id="prop-copy">复制</button>
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 字数统计 -->
-    <div class="overlay win-layer" id="layer-statistics" hidden>
-      <div class="mini-window" role="dialog" aria-modal="true" aria-labelledby="statistics-title" data-l10n-label="字数统计">
-        <div class="mini-titlebar">
-          <span id="statistics-title">统计</span>
-          <span class="caption-btns">
-            <button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
-          </span>
-        </div>
-        <div class="stat-hero">
-          <div class="stat-card"><div class="num">328</div><div class="lbl">词数</div></div>
-          <div class="stat-card"><div class="num">1,892</div><div class="lbl">字符</div></div>
-        </div>
-        <div class="stat-rows">
-          <div class="stat-row"><span class="k">行数</span><span class="v">57</span></div>
-          <div class="stat-row"><span class="k">段落</span><span class="v">12</span></div>
-          <div class="stat-row"><span class="k">标题</span><span class="v">6</span></div>
-          <div class="stat-row"><span class="k">阅读时间</span><span class="v">约 1 分钟</span></div>
-          <div class="stat-row"><span class="k">编码</span><span class="v mono">UTF-8</span></div>
-          <div class="stat-row"><span class="k">状态</span><span class="v">已保存</span></div>
         </div>
       </div>
     </div>

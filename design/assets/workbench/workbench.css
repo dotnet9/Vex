@@ -67,10 +67,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .structure-inner { width: 240px; height: 100%; display: flex; flex-direction: column; }
 .structure-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px 6px; }
 .structure-title { font-size:12px; font-weight: 700; color: var(--fg); letter-spacing: .02em; }
-.structure-toggle { border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 3px; border-radius: var(--vex-radius-xs); display: grid; place-items: center; }
-.structure-toggle:hover { background: var(--hover); color: var(--fg); }
-.structure-toggle .ico { transition: transform var(--vex-exit) var(--vex-ease); }
-.structure-sidebar.collapsed .structure-toggle .ico { transform: rotate(180deg); }
+.panel-close { border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 3px; border-radius: var(--vex-radius-xs); display: grid; place-items: center; }
+.panel-close:hover { background: var(--hover); color: var(--fg); }
 .structure-search { margin: 0 12px 8px; }
 .structure-list { padding: 2px 8px 14px; gap: 1px; }
 .structure-item { display: flex; align-items: center; gap: 7px; border: 0; background: transparent; text-align: left; padding: 6px 6px; border-radius: var(--vex-radius-sm); cursor: pointer; font-size:12px; color: var(--fg); width: 100%; }

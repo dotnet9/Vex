@@ -17,6 +17,37 @@ const { chromium } = require('playwright');
   assert.equal(await page.evaluate(() => VexWriting.metrics('').count), 0);
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.workspace'), '::before').display), 'block');
 
+  await open('&layout=source&scenario=long-files');
+  await page.locator('#outline-toggle').click();
+  const rows = await page.evaluate(() => {
+    const rect = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
+    return {
+      titles: ['.sidebar .panel-head', '.workspace-tabrow', '.structure-head'].map(rect),
+      tools: ['.sidebar .panel-tools', '#edit-options', '.structure-sidebar .panel-tools'].map(rect),
+      searches: ['.sidebar-search', '.structure-search'].map(rect)
+    };
+  });
+  for (const group of [rows.titles, rows.tools]) for (const row of group) {
+    assert.equal(row.height, 36, 'Panel rows use the shared 36px chrome height');
+    assert.equal(row.y, group[1].y, 'Left, center and right rows align');
+  }
+  for (const search of rows.searches) {
+    assert.equal(search.height, 28);
+    assert.ok(Math.abs(search.y + search.height / 2 - (rows.tools[1].y + 18)) <= 1);
+  }
+  assert.equal(await page.locator('.sidebar .panel-title').innerText(), '文件列表');
+  assert.equal(await page.locator('.structure-title').innerText(), '文档大纲');
+  await page.locator('.structure-toggle').click();
+  assert.equal(await page.locator('#structure-sidebar').evaluate(el => el.classList.contains('collapsed')), true);
+  assert.equal(await page.locator('#outline-toggle').evaluate(el => el === document.activeElement), true);
+  await page.locator('#file-filter').fill('Vex');
+  await page.locator('.sidebar .panel-close').click();
+  assert.equal(await page.evaluate(() => VexWorkbench.state.sidebar), false);
+  assert.equal(await page.locator('#sidebar-toggle').evaluate(el => el === document.activeElement), true, 'Closing file list returns focus to the file entry');
+  await page.locator('#sidebar-toggle').click();
+  assert.equal(await page.evaluate(() => VexWorkbench.state.sidebar), true);
+  assert.equal(await page.locator('#file-filter').inputValue(), 'Vex', 'Reopening keeps the file filter');
+
   await open('&scenario=long-document&layout=three');
   await page.waitForTimeout(500);
   assert.ok(await page.evaluate(() => VexWorkbench.state.scale >= .75), 'long documents open at a readable scale');

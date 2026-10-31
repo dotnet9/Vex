@@ -81,7 +81,6 @@
       ]},
       { label: '打印预览', gesture: 'Ctrl+Shift+P', action: 'print' },
       { sep: true },
-      { label: '文档属性', gesture: 'Alt+Enter', act: 'dlg-properties' },
       { label: '打开文件位置', toast: '在系统文件管理器中定位（桌面版操作演示）' },
       { label: '选择编码重新打开', sub: ['UTF-8', 'UTF-8 BOM', 'GB18030', 'Big5'].map(function (label) {
         return { label: label, toast: '按 ' + label + ' 重新读取（桌面版操作演示）' };
@@ -123,7 +122,6 @@
       { label: '保持窗口在最前', check: true, action: 'toggle-topmost' }
     ]},
     { key: 'tools', label: '工具(T)', items: [
-      { label: '字数统计', act: 'dlg-statistics' },
       { label: '刷新内容', action: 'refresh' }, { sep: true },
       { label: '复制到微信公众号', action: 'copy-wechat' },
       { label: '复制到知乎', action: 'copy-zhihu' },

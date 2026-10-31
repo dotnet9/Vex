@@ -2,35 +2,6 @@
 .about-updated .mini-titlebar{display:flex;align-items:center;justify-content:space-between}
 .about-updated .mini-titlebar .caption-btn{margin-left:auto;flex:none}
 /* 对话框内容 */
-  .stat-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 18px 24px 4px; }
-  .stat-card { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--vex-radius-lg); padding: 12px 14px 10px; }
-  .stat-card .num { font-size: 24px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
-  .stat-card .lbl { font-size:11px; color: var(--muted); margin-top: 2px; }
-  .stat-rows { padding: 12px 24px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
-  .stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--splitter); font-size:12px; }
-  .stat-row .k { color: var(--muted); }
-  .stat-row .v { font-weight: 600; color: var(--value); }
-
-  .prop-rows { padding: 4px 24px 22px; }
-  .prop-row { display: grid; grid-template-columns: 76px 1fr; gap: 14px; padding: 9px 0; border-bottom: 1px dashed var(--splitter); font-size:12px; }
-  .prop-row:last-child { border-bottom: none; }
-  .prop-row .k { color: var(--muted); }
-  .prop-row .v { color: var(--value); }
-  .prop-row .v.mono { font-family: "Cascadia Code", Consolas, monospace; font-size:11px; color: var(--muted); }
-  .copy-btn {
-    appearance: none; border: 1px solid var(--border); background: var(--panel);
-    color: var(--muted); border-radius: var(--vex-radius-sm); padding: 2px 7px;
-    font-size: 11px; cursor: pointer; flex: none; margin-top: -2px;
-  }
-  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
-  .pill-ok {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size:11px; font-weight: 600; color: var(--success);
-    background: color-mix(in srgb, var(--success) 10%, transparent);
-    border-radius:var(--vex-radius-pill); padding: 1px 9px;
-  }
-  .pill-ok::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
-
   .about-hero { display: flex; align-items: center; gap: 14px; padding: 28px 32px 0; }
   .about-logo { width: 48px; height: 48px; border-radius: var(--vex-radius-xl); background: var(--title-grad); color: var(--on-accent); font-size: 26px; font-weight:700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
   .about-identity { min-width: 0; }
@@ -108,12 +79,6 @@
   .sub-label { font-size:11px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
   .toggle-label { font-size:11px; font-weight: 600; color: var(--muted); cursor: pointer; user-select: none; }
   .is-hidden { display: none; }
-  .prop-head { display: flex; align-items: center; gap: 14px; padding: 20px 24px 14px; }
-  .prop-head .about-logo { width: 44px; height: 44px; border-radius: var(--vex-radius-lg); background: var(--accent-soft); color: var(--accent); }
-  .prop-head .ico-21 { width: 21px; height: 21px; }
-  .prop-name { font-size: 15px; font-weight: 700; }
-  .prop-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
-  .prop-path { display: flex; align-items: flex-start; gap: 8px; }
   .ico-21 { width: 21px; height: 21px; }
   .ico-13 { width: 13px; height: 13px; }
   .input-port { width: 120px; }
