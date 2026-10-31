@@ -892,8 +892,8 @@
       "FindBarReplacePlaceholder": "替换为",
       "PaletteIndigo": "靛蓝",
       "PalettePurposeIndigo": "经典蓝 · 日常默认",
-      "PaletteTeal": "青碧",
-      "PalettePurposeTeal": "冷青 · 清爽记录",
+      "PaletteTeal": "鼠尾草",
+      "PalettePurposeTeal": "暖白鼠尾草 · 温润写作",
       "PalettePine": "松绿",
       "PalettePurposePine": "松绿 · 沉稳专注",
       "PaletteSky": "天青",
@@ -1020,7 +1020,9 @@
       "WBTypographyH2Underline": "下划线",
       "WBTypographyH2Tint": "色块",
       "WBTypographyH2None": "无",
-      "ToastFileNavCollapsed": "已收起文件导航，为三视图留出空间。点击底栏“文件”可展开。"
+      "ToastFileNavCollapsed": "已收起文件导航，为三视图留出空间。点击底栏“文件”可展开。",
+      "TypographySoftSage": "鼠尾草",
+      "TypographyPurposeSoftSage": "温润写作 · 鼠尾草绿"
     }
   }
 }

@@ -109,6 +109,12 @@
              外层 Grid 承载图标栏，内层 WorkspaceColumns 的列号与拖动逻辑保持不变。 -->
 
         <Grid Grid.Row="2" RowDefinitions="*,Auto" ColumnDefinitions="Auto,*">
+            <!-- 原型 .workspace::before 叶纹装饰：穿越左柱与文件列表的鼠尾草叶纹，仅 sage 配色显示。 -->
+            <Image x:Name="SageLeafDecoration" Source="avares://Vex/Assets/sage-leaf.png"
+                   Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                   Width="280" Height="380" Stretch="Uniform" Opacity="0.4"
+                   HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                   Margin="0,0,0,40" IsHitTestVisible="False" IsVisible="False" />
             <Border x:Name="NavRail" Classes="nav-rail" IsVisible="{Binding !Workbench.IsPresenting}">
                 <DockPanel Margin="0,10">
                     <ToggleButton x:Name="RailFilesToggle" Classes="rail-item" DockPanel.Dock="Top" Margin="0,0,0,4"

@@ -102,6 +102,24 @@ public partial class MainWindow : CodeWFWindow
         Closed += (_, _) => WorkbenchGuide.Finish();
         Opened += MainWindow_OnOpened;
         Closed += MainWindow_OnClosed;
+        // 叶纹装饰仅 sage（teal 槽位）配色显示；演示时隐藏。
+        viewModel.Appearance.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ShellAppearanceViewModel.SelectedPalette)) UpdateSageLeaf();
+        };
+        viewModel.Workbench.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(viewModel.Workbench.IsPresenting)) UpdateSageLeaf();
+        };
+        UpdateSageLeaf(viewModel);
+    }
+
+    private void UpdateSageLeaf(MainWindowViewModel? viewModel = null)
+    {
+        viewModel ??= DataContext as MainWindowViewModel;
+        if (SageLeafDecoration is null || viewModel is null) return;
+        SageLeafDecoration.IsVisible = viewModel.Appearance.SelectedPalette?.Key == "teal"
+            && !viewModel.Workbench.IsPresenting;
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

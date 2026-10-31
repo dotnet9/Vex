@@ -1019,4 +1019,6 @@ public static class VexL
     public static readonly string WBTypographyH2Tint = "Vex.VexL.WBTypographyH2Tint";
     public static readonly string WBTypographyH2None = "Vex.VexL.WBTypographyH2None";
     public static readonly string ToastFileNavCollapsed = "Vex.VexL.ToastFileNavCollapsed";
+    public static readonly string TypographySoftSage = "Vex.VexL.TypographySoftSage";
+    public static readonly string TypographyPurposeSoftSage = "Vex.VexL.TypographyPurposeSoftSage";
 }
