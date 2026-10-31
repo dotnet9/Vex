@@ -42,11 +42,11 @@ assert.equal(Object.keys(sandbox.window.VexPaletteRulesData.palettes).length, 9,
 const prototype = {VexStorage:{getItem:()=>null}};
 prototype.window = prototype;
 vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/prototype/typography-catalog.js'), 'utf8'), prototype);
-assert.equal(prototype.VexTypes.length, 5, 'Base typography catalog keeps the five independent native styles');
+assert.equal(prototype.VexTypes.length, 6, 'Base typography catalog keeps the six independent native styles');
 for (const asset of ['prototype/palettes.js','prototype/desktop-resources.js','prototype/design-system.js']) {
   vm.runInNewContext(fs.readFileSync(path.join(root, 'assets', asset), 'utf8'), prototype);
 }
-assert.equal(prototype.VexTypes.length, 12, 'Prototype exposes the twelve finalized typographies');
+assert.equal(prototype.VexTypes.length, 13, 'Prototype exposes the thirteen finalized typographies');
 assert.equal(prototype.VexPalettes.length, 9, 'Prototype exposes the nine finalized palettes');
 vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/generated/documents-data.js'), 'utf8'), sandbox);
 for (const [key, file] of [['thanks','docs/鸣谢.md'], ['changelog','docs/更新日志.md']]) {

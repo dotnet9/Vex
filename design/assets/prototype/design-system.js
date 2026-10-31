@@ -26,7 +26,7 @@
       surfaces[mode].push(bg,paper,panel,mix(panel,decoration,.07),mix(panel,decoration,.12));
     }
   }
-  /* 规则 §9 定稿的 12 套：原型目录只暴露这份名单，快照中的其余键不再进入选择器。 */
+  /* 规则 §9 定稿的 13 套：原型目录只暴露这份名单，快照中的其余键不再进入选择器。 */
   const recommendedTypes = ['SoftSage','Simple','InkBlack','TechnologyBlue','GeekBlack','OrangeHeart','WeChatFormat'];
   const typeNotes = {
     Basic:'工作文档 · 清晰层级',Simple:'日常写作 · 简洁留白',InkBlack:'长文阅读 · 书卷宋体',GeekBlack:'代码手册 · 等宽标题',SoftSage:'温润写作 · 鼠尾草绿',
