@@ -6,7 +6,7 @@
   var modes=[['light','ThemeLight','☀'],['dark','ThemeDark','☾'],['system','ThemeSystem','◐']];
   var densities=[['compact','DensityCompact'],['normal','DensityNormal'],['relaxed','DensityRelaxed']];
   var mdsizes=[['compact','紧凑'],['normal','正常'],['relaxed','宽松']];
-  var storeKey='vex-design-appearance',system=matchMedia('(prefers-color-scheme: dark)'),state={mode:'light',palette:'indigo',density:'normal',mdsize:'normal'};
+  var storeKey='vex-design-appearance',system=matchMedia('(prefers-color-scheme: dark)'),state={mode:'light',palette:'teal',density:'normal',mdsize:'normal'};
   try{Object.assign(state,JSON.parse(VexStorage.getItem(storeKey)||'{}'));}catch(_){}
   state.palette=VexPaletteKey(state.palette);
   if(!densities.some(item=>item[0]===state.density))state.density='normal';
@@ -18,7 +18,7 @@
   var themeFrame = 0;
   function apply(syncLanguage){
     if(!modes.some(item=>item[0]===state.mode))state.mode='system';
-    if(!palettes.some(item=>item[0]===state.palette))state.palette='indigo';
+    if(!palettes.some(item=>item[0]===state.palette))state.palette='teal';
     var root=document.documentElement;
     var nextTheme=state.mode==='system'?(system.matches?'dark':'light'):state.mode;
     var changed=root.dataset.theme!==nextTheme||root.dataset.palette!==state.palette;
