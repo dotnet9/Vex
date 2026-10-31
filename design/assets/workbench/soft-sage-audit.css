@@ -64,3 +64,106 @@
   :root[data-palette="teal"] .win-layer .set-foot{flex-wrap:wrap}
 }
 @media(prefers-reduced-motion:reduce){:root[data-palette="teal"] .win-layer>*{animation:none!important}}
+
+
+/* Second-pass polish: adaptive editor proportions, settings dialog and feedback states. */
+/* Keep the editor comfortable at both compact laptop and wide desktop sizes. */
+:root[data-palette="teal"] .source-pane{
+  width:clamp(320px,44%,620px);
+  flex:0 1 44%;
+  min-width:0;
+}
+:root[data-palette="teal"] .workspace[data-view="mindmap"] .source-pane{
+  width:clamp(280px,34%,480px);
+  flex-basis:34%;
+}
+:root[data-palette="teal"] .structure-sidebar{width:clamp(196px,18vw,240px)}
+:root[data-palette="teal"] .structure-inner{width:100%}
+:root[data-palette="teal"] .sidebar-inner{width:100%}
+:root[data-palette="teal"] .sidebar{width:clamp(208px,17vw,244px)}
+:root[data-palette="teal"] .sidebar-splitter{flex:none}
+:root[data-palette="teal"] .reading-scroll .md-body{box-sizing:border-box;width:100%}
+
+/* Settings are a first-class dialog too; align them with the Soft Sage surfaces. */
+:root[data-palette="teal"] .vex-settings-host{
+  background:rgba(27,39,32,.42);
+  backdrop-filter:blur(6px);
+  padding:clamp(10px,3vw,28px);
+}
+:root[data-palette="teal"] .vex-settings{
+  width:min(760px,100%);
+  height:min(720px,calc(100dvh - 40px));
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:var(--surface);
+  box-shadow:0 26px 80px rgba(29,44,35,.22),0 3px 12px rgba(29,44,35,.08);
+}
+:root[data-palette="teal"] .vex-settings-title{
+  height:48px;
+  min-height:48px;
+  padding-left:18px;
+  background:var(--panel);
+  border-color:var(--border);
+}
+:root[data-palette="teal"] .vex-settings-title h2{font-size:14px;letter-spacing:.01em}
+:root[data-palette="teal"] .vex-settings-layout{grid-template-columns:184px minmax(0,1fr)}
+:root[data-palette="teal"] .vex-settings-nav{padding:18px 12px;background:var(--panel);border-color:var(--border)}
+:root[data-palette="teal"] .vex-settings-nav button{min-height:42px;border-radius:8px}
+:root[data-palette="teal"] .vex-settings-content{padding:24px clamp(18px,3vw,30px);background:var(--surface)}
+:root[data-palette="teal"] .vex-pref-row{gap:16px}
+:root[data-palette="teal"] .vex-pref-row>span:first-child{color:var(--fg)}
+:root[data-palette="teal"] .vex-settings :is(input:not([type=checkbox]):not([type=range]),select,textarea){background:var(--field);border-color:var(--control-border);border-radius:8px}
+:root[data-palette="teal"] .vex-settings :is(button,input,select,textarea):focus-visible{outline:2px solid color-mix(in srgb,var(--accent) 42%,transparent);outline-offset:2px}
+:root[data-palette="teal"] .vex-settings-section{margin-top:28px;color:var(--accent);letter-spacing:.02em}
+
+/* Empty, loading and validation feedback should read as intentional UI, not leftovers. */
+:root[data-palette="teal"] .empty-state{
+  margin:18px 12px;
+  padding:22px 14px;
+  border:1px dashed var(--border);
+  border-radius:10px;
+  color:var(--muted);
+  background:color-mix(in srgb,var(--panel) 72%,transparent);
+  text-align:center;
+  font-size:12px;
+  line-height:1.7;
+}
+:root[data-palette="teal"] .vex-field-error,
+:root[data-palette="teal"] .sage-error{
+  border-radius:8px;
+  padding:9px 11px;
+  background:color-mix(in srgb,var(--danger,#b84d4d) 8%,var(--surface));
+  color:var(--danger,#b84d4d);
+  line-height:1.6;
+}
+:root[data-palette="teal"] .vex-mcp-status{border-radius:9px;padding:10px 12px;background:var(--panel)}
+:root[data-palette="teal"] .vex-settings-content :is(.vex-audit,.vex-code-frame){max-width:100%;overflow-x:auto}
+:root[data-palette="teal"] :is(button,[role=button])[disabled]{cursor:not-allowed;opacity:.48}
+
+/* Prevent narrow-window controls from squeezing the editor into unusable columns. */
+@media(max-width:1100px){
+  :root[data-palette="teal"] .structure-sidebar{width:196px}
+  :root[data-palette="teal"] .structure-inner{width:196px}
+  :root[data-palette="teal"] .sidebar{width:208px}
+  :root[data-palette="teal"] .sidebar-inner{width:207px}
+  :root[data-palette="teal"] .source-pane{width:42%;flex-basis:42%}
+}
+@media(max-width:820px){
+  :root[data-palette="teal"] .structure-sidebar{width:0;border-left:0;opacity:0;pointer-events:none}
+  :root[data-palette="teal"] .structure-inner{width:196px}
+  :root[data-palette="teal"] .source-pane{width:40%;flex-basis:40%}
+  :root[data-palette="teal"] .vex-settings-layout{grid-template-columns:156px minmax(0,1fr)}
+}
+@media(max-width:650px){
+  :root[data-palette="teal"] .vex-settings-host{padding:8px}
+  :root[data-palette="teal"] .vex-settings{height:calc(100dvh - 16px);border-radius:12px}
+  :root[data-palette="teal"] .vex-settings-layout{display:block;position:relative;overflow:hidden}
+  :root[data-palette="teal"] .vex-settings-nav,
+  :root[data-palette="teal"] .vex-settings-content{position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box}
+  :root[data-palette="teal"] .vex-settings[data-detail="true"] .vex-settings-nav{visibility:hidden;pointer-events:none}
+  :root[data-palette="teal"] .vex-settings[data-detail="false"] .vex-settings-content{visibility:hidden;pointer-events:none}
+}
+@media(prefers-reduced-motion:reduce){
+  :root[data-palette="teal"] .vex-settings,
+  :root[data-palette="teal"] .vex-settings-host{animation:none!important;transition:none!important}
+}
