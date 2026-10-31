@@ -59,15 +59,16 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     {
         "serif" => new FontFamily("Georgia, SimSun, Songti SC, serif"),
         "mono" => VexFonts.Code,
-        _ => new FontFamily("Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans CJK SC, sans-serif")
+        _ => new FontFamily("Microsoft YaHei UI, Segoe UI, PingFang SC, Noto Sans CJK SC, sans-serif")
     };
     /// <summary>
     /// 原型 <c>--vex-content-zoom</c>：正文整篇均匀布局缩放的比例。字号、行高、块距、
     /// 表格与代码宽度同比放大，因此不能乘进字号——只放大字号会让行高与边距留在原尺寸。
     /// </summary>
     public double ContentZoomFactor => ContentZoom / 100;
-    public double ResolveBodyFontSize(string? typography) => settings.Current.BodyFontSize
-        ?? CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(typography)?.BodySize * 15 / 16 ?? 15;
+    public double ResolveBodyFontSize(string? typography) =>
+        (CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(typography)?.BodySize ?? 15)
+        * (settings.Current.BodyFontSize ?? 15) / 15;
     private void Set(Func<AppSettings, AppSettings> update, [CallerMemberName] string? name = null)
     {
         var current = settings.Current;
