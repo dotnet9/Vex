@@ -43,20 +43,36 @@
       </ScrollViewer>
     </Border>
     <Grid Grid.Row="1">
-      <!-- 原型 .map-viewport：底色之上叠 18px 点阵（workbench.css:140），画布本身改为透明以透出这两层。 -->
-      <Border Background="{DynamicResource VexPreviewBackgroundBrush}"/>
+      <!-- 原型 .map-viewport（editing.css:184 覆盖 workbench.css:140）：底色用 bg 令牌，之上叠 accent 18% 的 22px 点阵。
+           画布本身改为透明以透出这两层。 -->
+      <Border Background="{DynamicResource VexShellBackgroundBrush}"/>
       <Border x:Name="MapDotGrid" IsHitTestVisible="False"/>
       <mind:MarkdownMindMapView x:Name="Map" IsChapterEditingEnabled="True" PreserveViewportOnRootChange="True" Root="{Binding Workbench.Root}" EnableMotion="{Binding Layout.EnableMotion}"
           LayoutKind="{Binding Workbench.MapLayoutKind}" StyleKind="{Binding Workbench.MapStyleKind}"
           MinZoom="{Binding Workbench.MapZoomFloor}" MaxZoom="{Binding Workbench.MapZoomCeiling}"
           CanvasBrush="Transparent" CardBrush="{DynamicResource VexPanelBackgroundBrush}" TextBrush="{DynamicResource VexValueBrush}"
           LineBrush="{DynamicResource VexPanelBorderBrush}" DotBrush="{DynamicResource VexPanelBorderBrush}"/>
-      <StackPanel Orientation="Horizontal" Spacing="15" Margin="16,13" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False">
-        <StackPanel Orientation="Horizontal" Spacing="5"><Border Width="7" Height="7" CornerRadius="2" BorderThickness="1" BorderBrush="{DynamicResource VexAccentBrush}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBHeadingNode}}" Classes="wb-muted"/></StackPanel>
-        <StackPanel Orientation="Horizontal" Spacing="5"><Border Width="7" Height="7" CornerRadius="2" BorderThickness="1" BorderBrush="{DynamicResource VexMutedBrush}"/><TextBlock Text="{i18n:I18n {x:Static l:VexL.WBContentNode}}" Classes="wb-muted"/></StackPanel>
-      </StackPanel>
-      <TextBlock x:Name="MapHint" Text="{i18n:I18n Vex.VexL.WSMapGesture}" Classes="wb-muted" FontSize="10" TextTrimming="CharacterEllipsis" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="16,14" IsHitTestVisible="False"/>
-      <Border x:Name="SettingsTarget" Width="300" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18,12,18,18" Classes="wb-popover" Padding="18" IsVisible="{Binding Workbench.ShowMapSettings}">
+      <!-- 原型 .map-legend（editing.css:196 + workspace-chrome.css:353）：13/16 定位的胶囊卡，
+           1px 描边、8px 圆角、面板底、极淡投影，整块 .75 透明度压住画布不抢正文视线；虚线小块标内容摘要。 -->
+      <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16,13" Padding="10,7"
+          CornerRadius="{DynamicResource VexDensityCornerRadiusMd}" BorderThickness="1"
+          Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
+          Opacity="0.75" IsHitTestVisible="False">
+        <Border.Effect><DropShadowEffect Color="#1E3024" OffsetX="0" OffsetY="2" BlurRadius="8" Opacity="0.04"/></Border.Effect>
+        <StackPanel Orientation="Horizontal" Spacing="15">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <Border Width="7" Height="7" CornerRadius="2" BorderThickness="1" BorderBrush="{DynamicResource VexAccentBrush}"/>
+            <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBHeadingNode}}" Classes="wb-muted" FontSize="10"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <Rectangle Width="7" Height="7" RadiusX="2" RadiusY="2" StrokeThickness="1"
+                StrokeDashArray="2,2" Stroke="{DynamicResource VexMutedBrush}"/>
+            <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBContentNode}}" Classes="wb-muted" FontSize="10"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+      <!-- 原型 .settings-popover（editing.css:200 + 浮层一档）：320 宽、14 内距。 -->
+      <Border x:Name="SettingsTarget" Width="320" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18,12,18,18" Classes="wb-popover" Padding="14" IsVisible="{Binding Workbench.ShowMapSettings}">
         <ScrollViewer MaxHeight="420"><StackPanel Spacing="12">
           <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{i18n:I18n Vex.VexL.WBMapDisplay}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="vex-dismiss" Command="{Binding Workbench.ToggleMapSettings}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
           <Grid ColumnDefinitions="*,64" ColumnSpacing="7">
@@ -103,7 +119,9 @@
       </Border>
       <Canvas x:Name="RenameLayer" IsVisible="False"><TextBox x:Name="InlineChapterTitle" MinHeight="28" Padding="8,3" KeyDown="InlineTitleKeyDown" LostFocus="InlineTitleLostFocus"/></Canvas>
       <Border x:Name="ChapterDeleteLayer" IsVisible="False" Background="{DynamicResource VexScrimBrush}">
-        <Border Classes="wb-popover" Width="360" MaxWidth="500" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <!-- 原型 .chapter-delete-dialog>section（workspace.css:46）：420 宽、上限 100%-32、内距 24。
+             用 Stretch+Margin+MaxWidth 复现「定宽但不超过视口减 32」，定宽写法在窄窗会直接溢出。 -->
+        <Border Classes="wb-popover" MaxWidth="420" Padding="24" Margin="16" HorizontalAlignment="Stretch" VerticalAlignment="Center">
           <StackPanel Spacing="14">
             <TextBlock Text="{i18n:I18n Vex.VexL.WSDeleteChapter}" FontWeight="SemiBold" FontSize="17"/>
             <TextBlock x:Name="DeleteChapterName" FontSize="13" TextWrapping="Wrap"/>

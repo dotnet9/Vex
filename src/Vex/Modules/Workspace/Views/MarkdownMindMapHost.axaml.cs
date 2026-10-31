@@ -272,8 +272,6 @@ public partial class MarkdownMindMapHost : UserControl
         DetachedFromVisualTree += (_, _) => { EventBus.Default.Unsubscribe(this); if (_workbench is not null) _workbench.PropertyChanged -= WorkbenchChanged; _workbench = null; };
         SizeChanged += (_, _) =>
         {
-            MapHint.IsVisible = Bounds.Width >= 480 && _workbench?.IsPresenting != true;
-            MapHint.MaxWidth = Math.Max(0, Bounds.Width - 180);
             // 原型 flex 的 margin-left:auto：宽时右组贴右，窄时归零让整行横滚（滚动条隐藏）。
             // DesiredSize 含当前 margin，先减掉再算基准，避免自我反馈。
             var rowBase = MapToolsRow.DesiredSize.Width - MapToolsRight.Margin.Left;
@@ -285,28 +283,28 @@ public partial class MarkdownMindMapHost : UserControl
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.AccentColorProperty, this.GetResourceObservable("StudioAccentColor").Select(r => r is Color color ? color : Colors.MediumPurple));
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.SuccessColorProperty, this.GetResourceObservable("VexSuccessBrush").Select(r => r is ISolidColorBrush b ? b.Color : Colors.SeaGreen));
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.WarningColorProperty, this.GetResourceObservable("VexWarningBrush").Select(r => r is ISolidColorBrush b ? b.Color : Colors.Orange));
-        MapDotGrid.Bind(Border.BackgroundProperty, this.GetResourceObservable("VexMutedBrush").Select(MapDotGridBrush));
+        MapDotGrid.Bind(Border.BackgroundProperty, this.GetResourceObservable("VexAccentBrush").Select(MapDotGridBrush));
         PropertyChanged += (_, e) =>
         {
             if (e.Property.Name == "IsVisible" && IsVisible)
                 Avalonia.Threading.Dispatcher.UIThread.Post(Map.EnsureViewport, Avalonia.Threading.DispatcherPriority.Render);
         };
     }
-    /// <summary>原型 .map-viewport 的点阵底纹：muted 21% 的圆点，18px 网格重复一次。</summary>
+    /// <summary>原型 .map-viewport 的点阵底纹（editing.css:184）：accent 18% 的圆点，22px 网格重复一次。</summary>
     /// <remarks>DrawingBrush 在 Native AOT 下会让 libSkiaSharp 崩溃（启动即 0xC0000005），
-    /// 故把贴片按 CSS 的 farthest-corner 停止点烘焙成位图，交给 ImageBrush 平铺。</remarks>
+    /// 故把贴片按 CSS 的停止点（实心 .65px → 透明 .9px）烘焙成位图，交给 ImageBrush 平铺。</remarks>
     private static readonly ConcurrentDictionary<Color, IImageBrushSource> DotTiles = new();
 
     private static IBrush MapDotGridBrush(object? resource) => new ImageBrush
     {
         TileMode = TileMode.Tile,
-        Source = DotTiles.GetOrAdd(resource is ISolidColorBrush muted ? muted.Color : Colors.Gray, CreateDotTile),
-        DestinationRect = new RelativeRect(0, 0, 18, 18, RelativeUnit.Absolute),
+        Source = DotTiles.GetOrAdd(resource is ISolidColorBrush accent ? accent.Color : Colors.Gray, CreateDotTile),
+        DestinationRect = new RelativeRect(0, 0, 22, 22, RelativeUnit.Absolute),
     };
 
-    private static IImageBrushSource CreateDotTile(Color muted)
+    private static IImageBrushSource CreateDotTile(Color accent)
     {
-        const int size = 18;
+        const int size = 22;
         var buffer = new byte[size * size * 4];
         for (var y = 0; y < size; y++)
         {
@@ -319,15 +317,15 @@ public partial class MarkdownMindMapHost : UserControl
                     {
                         var dx = x + (sx + .5f) / 4 - size / 2f;
                         var dy = y + (sy + .5f) / 4 - size / 2f;
-                        coverage += Math.Clamp((.9f - MathF.Sqrt(dx * dx + dy * dy)) / .2f, 0, 1);
+                        coverage += Math.Clamp((.9f - MathF.Sqrt(dx * dx + dy * dy)) / .25f, 0, 1);
                     }
                 }
-                var alpha = coverage / 16 * .21f;
+                var alpha = coverage / 16 * .18f;
                 var offset = (y * size + x) * 4;
                 // Bgra8888 预乘：通道值需先乘自身 alpha。
-                buffer[offset] = (byte)(muted.B * alpha);
-                buffer[offset + 1] = (byte)(muted.G * alpha);
-                buffer[offset + 2] = (byte)(muted.R * alpha);
+                buffer[offset] = (byte)(accent.B * alpha);
+                buffer[offset + 1] = (byte)(accent.G * alpha);
+                buffer[offset + 2] = (byte)(accent.R * alpha);
                 buffer[offset + 3] = (byte)(alpha * 255);
             }
         }
@@ -378,7 +376,7 @@ public partial class MarkdownMindMapHost : UserControl
     private void WorkbenchChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ShellWorkbenchViewModel.IsPresenting))
-        { MapHint.IsVisible = Bounds.Width >= 480 && _workbench?.IsPresenting != true; Map.IsChapterEditingEnabled = _workbench?.IsPresenting != true; }
+        { Map.IsChapterEditingEnabled = _workbench?.IsPresenting != true; }
         if (e.PropertyName is nameof(ShellWorkbenchViewModel.MapZoomPercent) or nameof(ShellWorkbenchViewModel.PresentationMapScale) or nameof(ShellWorkbenchViewModel.PresentationMap))
             ApplyMapZoom(ActiveMapScale());
         if (e.PropertyName == nameof(ShellWorkbenchViewModel.SelectedNode))
