@@ -123,9 +123,12 @@ internal static class ChromeMetricsProbe
             Row(".panel-title", In_(filesView, c => c.Classes.Contains("panel-title")));
             Row(".sidebar-search", In_(filesView, c => c.Classes.Contains("search-shell")));
             Row(".search-frame", In_(filesView, c => c.Classes.Contains("search-frame")));
-            Row(".file-list", ByName("FileTree"));
-            Row(".file-row", In_(filesView, c => c.Classes.Contains("file-card")));
-            Row(".file-row .ico", In_(filesView, c => c is Image));
+            Row(".file-list", ByName("FileTree") is { IsEffectivelyVisible: true } tree ? tree : ByName("FileList"));
+            // 原型 .file-row 只指文档行（夹行是另一档 .file-directory>summary），探针也按 leaf 档取首个。
+            var fileRow = In_(filesView, c => c.Classes.Contains("file-card") && c.Classes.Contains("leaf"))
+                          ?? In_(filesView, c => c.Classes.Contains("file-card"));
+            Row(".file-row", fileRow);
+            Row(".file-row .ico", In_(fileRow, c => c is Image || c is Avalonia.Controls.Shapes.Path));
             Row(".files-footer", footer);
             Row(".workspace-main", ByName("DocumentColumn"));
             Row(".find-strip", strip);
@@ -142,9 +145,15 @@ internal static class ChromeMetricsProbe
             Row(".format-button", In_(ByName("EditorOptions"), c => c.Classes.Contains("wb-format")));
             Row(".document-statusbar", ByClass("document-statusbar"));
             Row(".document-word-count", ByName("StatisticsButton"));
-            Row(".statusbar-zoom", ByName("MapZoomDock"));
+            Row(".statusbar-zoom", window.GetVisualDescendants().OfType<Vex.Controls.VexZoomDock>()
+                .FirstOrDefault(d => d.IsEffectivelyVisible && d.Bounds.Width > 0));
             Row(".structure-sidebar", ByName("OutlineGuideTarget"));
-            Row(".structure-item", In_(outlineView, c => c is ListBoxItem));
+            Row(".structure-search", In_(outlineView, c => c.Classes.Contains("search-shell")));
+            Row(".structure-list", In_(outlineView, c => c is ListBox));
+            Row(".structure-item", In_(outlineView, c => c.Classes.Contains("structure-item")));
+            Row(".structure-item .marker", In_(outlineView, c => c.Classes.Contains("structure-marker")));
+            Row(".structure-item .num", In_(outlineView, c => c.Classes.Contains("structure-num")));
+            Row(".structure-item .text", In_(outlineView, c => c.Classes.Contains("structure-text")));
             Row(".workspace-layout-menu", ByName("LayoutGallery"));
             Row("#typography-panel", In_(gallery, c => c is Border panel && panel.Classes.Contains("wb-popover")));
             Row(".typography-grid", In_(gallery, c => c is WrapPanel));

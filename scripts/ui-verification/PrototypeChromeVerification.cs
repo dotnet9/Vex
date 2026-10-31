@@ -147,7 +147,7 @@ internal static class PrototypeChromeVerification
         window.Width = 1440; window.Height = 1000; Render();
         var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
         var filesVm = (ShellFilesViewModel)filesView.DataContext!;
-        var filterBox = filesView.GetVisualDescendants().OfType<Border>().First(b => Math.Abs(b.Bounds.Height - 32) < 1);
+        var filterBox = filesView.FindControl<Border>("FileSearchBox")!;
         var sortFolder = filesView.FindControl<Button>("SortFolderButton")!;
         var footer = sortFolder.GetVisualAncestors().OfType<Border>().First();
         var footerTools = footer.GetVisualDescendants().OfType<Control>()

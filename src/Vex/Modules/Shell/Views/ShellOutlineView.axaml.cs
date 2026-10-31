@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Input;
 using Vex.Core.Models;
 
@@ -14,12 +13,6 @@ public partial class ShellOutlineView : UserControl
         InitializeComponent();
         // 原 ViewModelLocator 反射装配改为构造自取容器单例。
         DataContext = App.Services.GetRequiredService<ShellOutlineViewModel>();
-    }
-
-    private void ToggleSection(object? sender, RoutedEventArgs e)
-    {
-        if ((sender as Control)?.DataContext is OutlineItem item) item.IsExpanded = !item.IsExpanded;
-        e.Handled = true;
     }
 
     private void OutlineKeyDown(object? sender, KeyEventArgs e)

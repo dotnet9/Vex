@@ -96,7 +96,8 @@ if (mode == "parity")
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
-    var window = app.Shell!;
+    // SetupWithoutStarting 不走桌面生命周期，窗口要自己建：直接取 app.Shell 永远是 null。
+    var window = (Vex.Modules.Shell.Views.MainWindow)(app.Shell ?? app.CreateShell());
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
     SettleRendering();
@@ -895,17 +896,17 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
         .FindResource("SortFlyout") as MenuFlyout;
     Check(sortFlyout is { } && sortFlyout.Items.Count == 5, "Sort flyout exposes five sort keys");
     // 令牌是惰性求值的 DynamicResource 画刷，随活动主题/配色翻转（tooltip-probe 已实测明暗反档）；
-    // 对照同样消费 Studio 墨/纸的两个既有画刷验证派生关系（tooltip-probe 模式另做明暗实切断言）。
+    // 基准取窗口实时作用域里的墨/纸两键：主题字典外的画刷会跟着运行时配色走，
+    // 字典内的画刷留着内置令牌的快照色，拿它当基准会把「实例历史色」误判成派生关系错误。
     Application.Current!.TryGetResource("ToolTipBackground", window.ActualThemeVariant, out var tipBg);
     Application.Current!.TryGetResource("ToolTipForeground", window.ActualThemeVariant, out var tipFg);
-    Application.Current!.TryGetResource("VexEditorForegroundBrush", window.ActualThemeVariant, out var inkBrush);
-    Application.Current!.TryGetResource("VexPreviewBackgroundBrush", window.ActualThemeVariant, out var paperBrush);
+    Application.Current!.TryGetResource("StudioTextColor", window.ActualThemeVariant, out var inkToken);
+    Application.Current!.TryGetResource("StudioPaperColor", window.ActualThemeVariant, out var paperToken);
     var tipBackground = (tipBg as ISolidColorBrush)?.Color;
     var tipForeground = (tipFg as ISolidColorBrush)?.Color;
-    var inkColor = (inkBrush as ISolidColorBrush)?.Color;
-    var paperColor = (paperBrush as ISolidColorBrush)?.Color;
-    Check(tipBackground == inkColor && tipForeground == paperColor,
-        $"Tooltip tokens derive from ink/paper (原型 tooltip-bg=ink/tooltip-fg=paper): bg={tipBackground}, fg={tipForeground}");
+    Check(tipBackground is Color ink && Equals(ink, inkToken)
+        && tipForeground is Color paper && Equals(paper, paperToken),
+        $"Tooltip tokens derive from ink/paper (原型 tooltip-bg=ink/tooltip-fg=paper): bg={tipBackground}/{inkToken}, fg={tipForeground}/{paperToken}");
     // 真实扫描段会换开工作区；先快照当前文档，函数末尾恢复，vex 管线返回后还要检查原文档的渲染细节。
     var originalDocumentPath = ((MainWindowViewModel)window.DataContext!).GetCurrentDocumentSnapshot().FilePath;
     var productionFiles = vm;
@@ -934,43 +935,56 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     ExpandFixture(vm.DocumentFileNodes); Pump();
     var tree = window.GetVisualDescendants().OfType<TreeView>().Single(t => t.Classes.Contains("side-tree"));
     var searchBox = filesView.FindControl<Border>("FileSearchBox")!;
+    // 原型 .sidebar-search{margin:14px 12px} 与 .file-list{padding:0 6px}：pill 内缩 12，列表面通栏，
+    // 6px 是列表自己的内距——行的悬停/选中面从 6 起画，而不是把列表整体挤窄。
     var treeLeft = tree.TranslatePoint(default, filesView)!.Value.X;
     var searchLeft = searchBox.TranslatePoint(default, filesView)!.Value.X;
-    Check(Math.Abs(treeLeft - 5) < 0.1 && Math.Abs(searchLeft - treeLeft) < 0.1,
-        "File tree and search box share an exact 5 px left inset");
-    Check(Math.Abs(tree.Bounds.Width - searchBox.Bounds.Width) < 0.1,
-        "File tree and search box right edges also align");
+    Check(Math.Abs(treeLeft) < 0.1 && tree.Padding == new Thickness(6, 0) && Math.Abs(searchLeft - 12) < 0.1,
+        "Prototype insets: search pill 12 px, file list full width with 6 px inner padding");
+    Check(Math.Abs(tree.Bounds.Width - (filesView.Bounds.Width - 1)) < 3
+        && Math.Abs(treeLeft + tree.Bounds.Width - (searchLeft + searchBox.Bounds.Width) - 12) < 1,
+        "The list spans the sidebar while the search pill keeps 12 px on both sides");
     var items = tree.GetVisualDescendants().OfType<TreeViewItem>().Where(i => i.IsEffectivelyVisible).ToArray();
     Check(items.Length == 7, "Vex tree renders the workspace root, sibling and nested documents without dot folders");
     foreach (var selected in items.Where(i => i.IsSelected))
     {
-        var row = selected.GetVisualDescendants().OfType<Border>().First(border => border.Name == "PART_LayoutRoot");
-        Check(Math.Abs(row.TranslatePoint(default, tree)!.Value.X) < 1
-            && Math.Abs(row.Bounds.Width - tree.Bounds.Width) < 1,
-            "Selected nested row background spans the entire file tree including indentation");
+        // 选中面画在行盒上（原型 .file-directory>summary 无圆角、.file-row.selected 圆角 6），
+        // 通栏模板行退回纯点击区，不再叠第二层底色。
+        var card = selected.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("file-card"));
+        var expectedRadius = card.Classes.Contains("leaf") ? 6 : 0;
         Application.Current!.TryGetResource("VexAccentSoftBrush", Application.Current.ActualThemeVariant, out var accent);
-        Check(SameBrush(row.Background, accent as IBrush), "Selected row uses the theme selection background");
+        Check(SameBrush(card.Background, accent as IBrush)
+            && Math.Max(card.CornerRadius.TopLeft, card.CornerRadius.TopRight) == expectedRadius,
+            $"Selected row paints the theme selection face on the row box, radius {expectedRadius}");
     }
     foreach (var item in items)
     {
         var card = item.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("file-card"));
-        var chevron = item.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
-            .First(b => b.Name == "PART_ExpandCollapseChevron");
+        var isFile = card.Classes.Contains("leaf");
         var point = card.TranslatePoint(default, tree)!.Value;
-        Check(Math.Abs(card.Bounds.Height - 24) < 0.1 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
-            "Vex tree has compact rows within sidebar bounds: " + ((DocumentFileNode)item.DataContext!).Name);
-        Check(Math.Abs(chevron.TranslatePoint(default, tree)!.Value.Y + chevron.Bounds.Height / 2
-            - point.Y - card.Bounds.Height / 2) < 1,
-            "Vex tree chevron aligns with its own row");
+        // 两档行高（原型 .file-directory>summary 24 / .file-row 28），图标同档 12 / 13。
+        Check(Math.Abs(card.Bounds.Height - (isFile ? 28 : 24)) < 0.1 && point.X + card.Bounds.Width <= tree.Bounds.Width + 1,
+            "Vex tree rows keep their tier height inside the sidebar: " + ((DocumentFileNode)item.DataContext!).Name);
+        Check(!item.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
+            .Any(b => b.Name == "PART_ExpandCollapseChevron" && b.IsEffectivelyVisible),
+            "The template expand slot is folded away so indentation is the only inset");
+        var chevron = item.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
+            .FirstOrDefault(b => b.Classes.Contains("file-chevron"));
+        Check(((DocumentFileNode)item.DataContext!).IsFolder == (chevron is { IsEffectivelyVisible: true }),
+            "Only folder rows carry the in-row expand marker");
+        if (chevron is { IsEffectivelyVisible: true })
+        {
+            Check(Math.Abs(chevron.TranslatePoint(default, tree)!.Value.Y + chevron.Bounds.Height / 2
+                - point.Y - card.Bounds.Height / 2) < 1 && chevron.Bounds.Width == 8 && chevron.Bounds.Height == 8,
+                "Vex tree marker is a compact 8 px glyph centred in its own row");
+        }
         var icon = card.GetVisualDescendants().OfType<Control>().First(control => control.IsEffectivelyVisible
             && control.Classes.Contains("tree-ico") && control is Image or Avalonia.Controls.Shapes.Path);
         var label = card.GetVisualDescendants().OfType<TextBlock>().First(t => t.IsEffectivelyVisible &&
             (t.Classes.Contains("file-title") || t.Classes.Contains("file-heading")));
-        Check(icon.Bounds.Width == 12 && icon.Bounds.Height == 12 && icon.Height <= label.FontSize,
+        Check(icon.Bounds.Width == (isFile ? 13 : 12) && icon.Bounds.Height == (isFile ? 13 : 12)
+            && icon.Bounds.Height <= label.FontSize + 1,
             "Tree icons stay at text size without increasing row height");
-        var arrow = chevron.GetVisualDescendants().OfType<PathIcon>().Single(path => path.Name == "PART_ExpandIconPath");
-        Check(arrow.Bounds.Width == 8 && arrow.Bounds.Height == 8,
-            "Tree expand arrows use compact 8 px icons");
         Check(Math.Abs(icon.TranslatePoint(default, card)!.Value.Y + icon.Bounds.Height / 2
             - label.TranslatePoint(default, card)!.Value.Y - label.Bounds.Height / 2) < 1,
             $"Vex tree icon and title align vertically: {icon.Bounds}/{icon.TranslatePoint(default, card)}; label {label.Bounds}/{label.TranslatePoint(default, card)}");
@@ -982,17 +996,23 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
             .TranslatePoint(default, tree)!.Value.X
     }).ToArray();
     Check(cardPositions.GroupBy(p => p.Level).All(g => g.Max(p => p.X) - g.Min(p => p.X) < 1)
-        && cardPositions.All(p => Math.Abs(p.X - cardPositions.Min(x => x.X) - p.Level * 16) < 1),
-        "Vex tree siblings align and each level indents by 16 px");
-    var rowPositions = items.Select(item => item.GetVisualDescendants().OfType<Border>()
-        .First(border => border.Name == "PART_LayoutRoot").TranslatePoint(default, tree)!.Value.Y).Order().ToArray();
-    Check(rowPositions.Zip(rowPositions.Skip(1), (previous, next) => next - previous).All(gap => Math.Abs(gap - 24) < 0.1),
-        "Tree rows use a consistent 24 px pitch without extra vertical margins");
+        && cardPositions.All(p => Math.Abs(p.X - cardPositions.Min(x => x.X) - p.Level * 16) < 1)
+        && Math.Abs(cardPositions.Min(x => x.X) - 6) < 1,
+        "Siblings align, each level indents by 16 px and the first column is the list's own 6 px padding");
+    var rowBoxes = items.Select(item =>
+    {
+        var card = item.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("file-card"));
+        return (Y: card.TranslatePoint(default, tree)!.Value.Y,
+                Pitch: card.Bounds.Height + (card.Classes.Contains("leaf") ? 1 : 0));
+    }).OrderBy(row => row.Y).ToArray();
+    Check(rowBoxes.Zip(rowBoxes.Skip(1), (previous, next) => next.Y - previous.Y - previous.Pitch)
+            .All(gap => Math.Abs(gap) < 0.1),
+        "Row pitch is each tier's own height plus the 1 px gap under file rows only");
     Capture(window, "vex-file-tree");
     var folder = items.First(i => i.Level == 0 && ((DocumentFileNode)i.DataContext!).IsFolder);
     var toggle = folder.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
-        .First(b => b.Name == "PART_ExpandCollapseChevron");
-    var click = toggle.TranslatePoint(new Point(8, 12), window)!.Value;
+        .First(b => b.Classes.Contains("file-chevron"));
+    var click = toggle.TranslatePoint(new Point(4, 4), window)!.Value;
     window.MouseDown(click, MouseButton.Left);
     window.MouseUp(click, MouseButton.Left);
     Pump();
@@ -1015,16 +1035,17 @@ void VerifyFileTreeLayout(Window window, ShellFilesViewModel vm, string sampleFo
     Check(!nestedFolder.IsExpanded && nestedFolder.IsSelected, "Nested folder names respond to single click");
     window.MouseDown(nestedClick, MouseButton.Left); window.MouseUp(nestedClick, MouseButton.Left); Pump();
     Check(nestedFolder.IsExpanded, "Nested folder single-click expands its contents");
-    var nestedRow = nestedFolder.GetVisualDescendants().OfType<Border>().First(border => border.Name == "PART_LayoutRoot");
-    Check(Math.Abs(nestedRow.TranslatePoint(default, tree)!.Value.X) < 1
-        && Math.Abs(nestedRow.Bounds.Width - tree.Bounds.Width) < 1,
-        "Selected nested folder background spans the full width");
+    // 夹档的选中面无圆角、从本级缩进一直铺到列表右缘（原型 summary 占满 .file-directory 宽）。
+    var nestedLeft = nestedCard.TranslatePoint(default, tree)!.Value.X;
+    var nestedRight = nestedCard.TranslatePoint(new Point(nestedCard.Bounds.Width, 0), tree)!.Value.X;
+    Check(Math.Abs(nestedLeft - (6 + nestedFolder.Level * 16)) < 1 && Math.Abs(tree.Bounds.Width - 6 - nestedRight) < 2,
+        $"The selected folder face runs from its own indent to the list edge: x={nestedLeft} right={nestedRight} tree={tree.Bounds.Width}");
     var main = (MainWindowViewModel)window.DataContext!;
     foreach (var theme in new[] { "dark", "light" })
     {
         main.Appearance.SelectThemeByKey(theme); Pump();
         Application.Current!.TryGetResource("VexAccentSoftBrush", Application.Current.ActualThemeVariant, out var accent);
-        Check(SameBrush(nestedRow.Background, accent as IBrush), "Full-row folder selection follows the theme: " + theme);
+        Check(SameBrush(nestedCard.Background, accent as IBrush), "Folder selection face follows the theme: " + theme);
         Capture(window, "vex-file-tree-folder-" + theme);
     }
     Capture(window, "vex-file-tree-folder-selected");

@@ -349,12 +349,11 @@ public static class VexL
     public static readonly string Feedback = "Vex.VexL.Feedback";
     public static readonly string About = "Vex.VexL.About";
     public static readonly string SidebarFiles = "Vex.VexL.SidebarFiles";
+    public static readonly string SidebarFilesList = "Vex.VexL.SidebarFilesList";
     public static readonly string SidebarFilesFilterPlaceholder = "Vex.VexL.SidebarFilesFilterPlaceholder";
     public static readonly string SidebarOutline = "Vex.VexL.SidebarOutline";
     public static readonly string EmptyNoFiles = "Vex.VexL.EmptyNoFiles";
     public static readonly string EmptyNoHeadings = "Vex.VexL.EmptyNoHeadings";
-    public static readonly string OutlineCurrentFormat = "Vex.VexL.OutlineCurrentFormat";
-    public static readonly string OutlineNoCurrentChapter = "Vex.VexL.OutlineNoCurrentChapter";
     public static readonly string RecentNoFiles = "Vex.VexL.RecentNoFiles";
     public static readonly string FindBarFind = "Vex.VexL.FindBarFind";
     public static readonly string FindBarText = "Vex.VexL.FindBarText";
@@ -844,8 +843,6 @@ public static class VexL
     public static readonly string SidebarFilesLoading = "Vex.VexL.SidebarFilesLoading";
     public static readonly string SidebarFilesLoadFailed = "Vex.VexL.SidebarFilesLoadFailed";
     public static readonly string SidebarFilesRetry = "Vex.VexL.SidebarFilesRetry";
-    public static readonly string StructureTitle = "Vex.VexL.StructureTitle";
-    public static readonly string CollapseStructure = "Vex.VexL.CollapseStructure";
     public static readonly string AuxiliaryInfo = "Vex.VexL.AuxiliaryInfo";
     public static readonly string AuxiliaryChapter = "Vex.VexL.AuxiliaryChapter";
     public static readonly string ChooseChapter = "Vex.VexL.ChooseChapter";

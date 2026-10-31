@@ -236,28 +236,6 @@
         <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
     </Style>
 
-    <!-- 大纲面板进出场（对应 .outline-meta / .progress-rail）：淡入上移，不改变布局度量 -->
-    <Style Selector="Border.outline-fade">
-        <Setter Property="Opacity" Value="0" />
-        <Setter Property="RenderTransform" Value="translateY(6px)" />
-        <Setter Property="Transitions">
-            <Transitions>
-                <DoubleTransition
-                    Duration="{DynamicResource MotionDurationMid}"
-                    Easing="{DynamicResource MotionEaseOut}"
-                    Property="Opacity" />
-                <TransformOperationsTransition
-                    Duration="{DynamicResource MotionDurationMid}"
-                    Easing="{DynamicResource MotionEaseOut}"
-                    Property="RenderTransform" />
-            </Transitions>
-        </Setter>
-    </Style>
-    <Style Selector="Border.outline-fade.shown">
-        <Setter Property="Opacity" Value="1" />
-        <Setter Property="RenderTransform" Value="none" />
-    </Style>
-
     <!-- 原型对话框与浮层同档（surface.css L2 实测：#fff 面、1px 发丝、8 圆角、shadow-pop 双层）；
          内距按对话框一档给 20~24。投影用 ElevationResources 的回放键，随明暗换墨蓝/纯黑两配方。 -->
     <Style Selector="Border.dialog-card">

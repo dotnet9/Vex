@@ -44,32 +44,48 @@
 
     <UserControl.DataTemplates>
         <TreeDataTemplate DataType="models:DocumentFileNode" ItemsSource="{Binding Children}">
-            <!-- 文件树使用原型的单行布局，摘要放入提示，避免文件夹空摘要撑高行。 -->
+            <!-- 文件树使用原型的单行布局，摘要放入提示，避免文件夹空摘要撑高行。
+                 夹/文件两档由 .leaf 类切换（原型 .file-directory>summary 24/4/0 与 .file-row 28/8/6），
+                 图标尺寸与列间距都交给样式给值：局部值会盖掉档位切换，模板里不写死。 -->
             <Border Classes="file-card" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"
+                    Classes.leaf="{Binding IsDocument}"
                     DoubleTapped="OnFileRowDoubleTapped"
                     Classes.folder="{Binding IsFolder}"
                     helpers:ToolTipHelper.Text="{Binding PreviewDisplay}" ToolTip.IsEnabled="{Binding IsDocument}">
-                <Grid Classes="file-row" ColumnDefinitions="12,*,Auto" ColumnSpacing="6">
-                    <Panel Width="12" Height="12" VerticalAlignment="Center">
-                        <Image x:Name="FileTypeIcon" Classes="tree-ico" Width="12" Height="12" Stretch="Uniform"
-                               IsVisible="{Binding #FileTypeIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNotNull}}">
-                            <Image.Source>
-                                <MultiBinding Converter="{StaticResource FileIconConverter}">
-                                    <Binding Path="Name" />
-                                    <Binding Path="IsFolder" />
-                                    <Binding Path="IsExpanded" />
-                                    <Binding Path="$parent[UserControl].ActualThemeVariant" />
-                                    <Binding Path="$parent[TreeViewItem].Level" />
-                                </MultiBinding>
-                            </Image.Source>
-                        </Image>
-                        <Panel IsVisible="{Binding #FileTypeIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNull}}">
-                            <Path Classes="tree-ico" IsVisible="{Binding IsFolder}"
-                                  Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                            <Path Classes="tree-ico" IsVisible="{Binding IsDocument}"
-                                  Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+                <Grid Classes="file-row" ColumnDefinitions="Auto,*,Auto">
+                    <!-- 角标在行盒之内（原型 summary::before 8×6 后接图标），文档行不留这一格。 -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <ToggleButton Classes="file-chevron" Width="8" Height="8" MinWidth="0" MinHeight="0" Padding="0"
+                                      Background="Transparent" BorderThickness="0" IsVisible="{Binding IsFolder}"
+                                      IsChecked="{Binding $parent[TreeViewItem].IsExpanded, Mode=TwoWay}">
+                            <Panel Width="8" Height="8">
+                                <Path Classes="file-chevron-mark" Data="M9 6L15 12L9 18"
+                                      IsVisible="{Binding !$parent[TreeViewItem].IsExpanded}" />
+                                <Path Classes="file-chevron-mark" Data="M6 9L12 15L18 9"
+                                      IsVisible="{Binding $parent[TreeViewItem].IsExpanded}" />
+                            </Panel>
+                        </ToggleButton>
+                        <Panel VerticalAlignment="Center">
+                            <Image x:Name="FileTypeIcon" Classes="tree-ico" Stretch="Uniform"
+                                   IsVisible="{Binding #FileTypeIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNotNull}}">
+                                <Image.Source>
+                                    <MultiBinding Converter="{StaticResource FileIconConverter}">
+                                        <Binding Path="Name" />
+                                        <Binding Path="IsFolder" />
+                                        <Binding Path="IsExpanded" />
+                                        <Binding Path="$parent[UserControl].ActualThemeVariant" />
+                                        <Binding Path="$parent[TreeViewItem].Level" />
+                                    </MultiBinding>
+                                </Image.Source>
+                            </Image>
+                            <Panel IsVisible="{Binding #FileTypeIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNull}}">
+                                <Path Classes="tree-ico" IsVisible="{Binding IsFolder}"
+                                      Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                                <Path Classes="tree-ico" IsVisible="{Binding IsDocument}"
+                                      Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+                            </Panel>
                         </Panel>
-                    </Panel>
+                    </StackPanel>
                     <TextBlock Grid.Column="1" Classes="file-heading" IsVisible="{Binding IsFolder}"
                                VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                     <TextBlock Grid.Column="1" Classes="file-title" IsVisible="{Binding IsDocument}"
@@ -180,20 +196,24 @@
         <Style Selector="Button.files-folder:pointerover Path.folder-ico">
             <Setter Property="Stroke" Value="{DynamicResource VexValueBrush}" />
         </Style>
-        <!-- 文件列表（原型 .file-row）：与树形行同口径 24px 单行，直角通栏 hover/选中底（deck-nav 同款 ContentPresenter 配方）。 -->
+        <!-- 文件列表（原型 .file-list + .file-row，writing-chrome.css:29-37）：列表左右内距 6，
+             行 28 高、8 内距、6 圆角、行间距 1、图标与文字间距 7、12.5 字；选中行 accent-soft 底 + 600 字重。
+             通栏直角是树形视图的口径（.file-directory>summary），列表视图这里要跟 .file-row 一致。 -->
         <Style Selector="ListBox.files-list">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
+            <!-- 与树视图同档：原型 .file-list{padding:0 6px}，6px 收进列表面。 -->
+            <Setter Property="Padding" Value="6,0" />
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
         </Style>
         <Style Selector="ListBox.files-list ListBoxItem">
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Margin" Value="0" />
-            <Setter Property="MinHeight" Value="24" />
-            <Setter Property="Height" Value="24" />
-            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="Margin" Value="0,0,0,1" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="12.5" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
         </Style>
@@ -204,8 +224,8 @@
             <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
         </Style>
         <Style Selector="ListBox.files-list Path.tree-ico">
-            <Setter Property="Width" Value="12" />
-            <Setter Property="Height" Value="12" />
+            <Setter Property="Width" Value="13" />
+            <Setter Property="Height" Value="13" />
             <Setter Property="Stretch" Value="Uniform" />
             <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
             <Setter Property="StrokeThickness" Value="1.4" />
@@ -218,7 +238,7 @@
         </Style>
         <Style Selector="ListBox.files-list TextBlock.file-list-name">
             <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="12.5" />
         </Style>
         <Style Selector="ListBox.files-list ListBoxItem:selected TextBlock.file-list-name">
             <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
@@ -234,19 +254,20 @@
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,Auto,*,Auto">
-        <!-- 对应原型 .panel-head：标题落在搜索框之上（文件列表）。 -->
-        <Grid Classes="panel-head" Grid.Row="0" ColumnDefinitions="*,Auto">
-            <TextBlock Classes="panel-title" Text="{i18n:I18n {x:Static l:VexL.SidebarFiles}}" />
-        </Grid>
-        <!-- 对应原型 .sidebar-search：32px 高、pill 圆角、内嵌搜索图标与常显清除按钮；
+        <!-- 对应原型 .panel-head（Vex.html:101「文件列表」）：通栏一行，标题落在搜索框之上。 -->
+        <Border Classes="panel-head" Grid.Row="0">
+            <TextBlock Classes="panel-title" Text="{i18n:I18n {x:Static l:VexL.SidebarFilesList}}" />
+        </Border>
+        <!-- 对应原型 .sidebar-search（workbench.css:44 + workspace-chrome.css:339/387）：外距 14/12/12/12，
+             本体即那枚 pill——1px control-border、内距 5×12、透明底；实测高 31.2 = 5+19.2+5+2。
              焦点单环配方（accent 边 + 3px 柔光 + 悬停混边）由 Grid.search-shell 共享样式驱动。 -->
-        <Grid Classes="search-shell" Grid.Row="1" Height="32" Margin="5,14,5,8">
+        <Grid Classes="search-shell" Grid.Row="1" Margin="12,14,12,12">
             <Border Classes="search-glow" />
             <Border
                 x:Name="FileSearchBox"
                 Classes="search-frame"
-                Padding="8,0">
-                <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" VerticalAlignment="Center">
+                Padding="12,5">
+                <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" MinHeight="19" VerticalAlignment="Center">
                     <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
                           VerticalAlignment="Center"
                           Data="M17 10A7 7 0 1 1 3 10A7 7 0 1 1 17 10 M15 15L22 22" />
@@ -257,7 +278,7 @@
                         BorderThickness="0"
                         Padding="0"
                         MinHeight="0"
-                        FontSize="14"
+                        FontSize="{DynamicResource VexDensityFontSizeCaption}"
                         VerticalContentAlignment="Center"
                         Foreground="{DynamicResource VexValueBrush}"
                         PlaceholderForeground="{DynamicResource VexMutedBrush}"
@@ -280,7 +301,6 @@
             x:Name="FileTree"
             Grid.Row="2"
             Classes="side-tree"
-            Margin="5,0"
             IsVisible="{Binding IsTreeView}"
             ItemsSource="{Binding FilteredDocumentFileNodes}"
             PointerPressed="SelectItemOnPointerPressed"
@@ -313,13 +333,13 @@
                 </ContextMenu>
             </TreeView.ContextMenu>
         </TreeView>
-        <ListBox x:Name="FileList" Grid.Row="2" Classes="files-list" Margin="5,0" IsVisible="{Binding IsListView}"
+        <ListBox x:Name="FileList" Grid.Row="2" Classes="files-list" IsVisible="{Binding IsListView}"
                  ItemsSource="{Binding FlatDocumentFileNodes}" SelectedItem="{Binding SelectedListDocumentFileNode, Mode=TwoWay}" PointerPressed="SelectItemOnPointerPressed">
             <ListBox.ItemTemplate><DataTemplate x:DataType="models:DocumentFileNode">
-                <!-- 原型 .file-row：与树形行同口径的单行（图标 + 名称 + 行尾目录标签），选中底由通栏模板行绘制。 -->
-                <Grid Classes="file-list-row" ColumnDefinitions="12,*,Auto" ColumnSpacing="6" Margin="4,0">
-                    <Panel Width="12" Height="12" VerticalAlignment="Center">
-                        <Image x:Name="ListFileIcon" Classes="tree-ico" Width="12" Height="12" Stretch="Uniform"
+                <!-- 原型 .file-row：单行（图标 13 + 名称 + 行尾目录标签），28 高与 8 内距、6 圆角由行本身给出。 -->
+                <Grid Classes="file-list-row" ColumnDefinitions="13,*,Auto" ColumnSpacing="7">
+                    <Panel Width="13" Height="13" VerticalAlignment="Center">
+                        <Image x:Name="ListFileIcon" Classes="tree-ico" Width="13" Height="13" Stretch="Uniform"
                                IsVisible="{Binding #ListFileIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNotNull}}">
                             <Image.Source>
                                 <MultiBinding Converter="{StaticResource FileIconConverter}">
@@ -394,9 +414,9 @@
 
         <!-- 对应原型 .files-toolbar（workspace-chrome.css:618）：紧跟搜索框下方，整行居左、无分隔线，
              左内距与搜索框同为 5，行高 34、下内距 8、以 -6 外边距贴紧搜索框的 8px 下边距。 -->
-        <!-- 列表视图超阈值提示（对齐原型：文件过多请切树形视图）。 -->
+        <!-- 列表视图超阈值提示（原型 .file-list-overflow：padding 34×24、12 字 2 倍行高）。 -->
         <Border Grid.Row="2" IsVisible="{Binding IsListOverflow}" Background="{DynamicResource VexDocumentPaperBrush}"
-                ZIndex="6" Padding="18" VerticalAlignment="Top" Margin="18,12">
+                ZIndex="6" Padding="24,34" VerticalAlignment="Top" Margin="6,0">
             <TextBlock Classes="muted" FontSize="12" LineHeight="24" TextWrapping="Wrap"
                        Text="{i18n:I18n {x:Static l:VexL.FileListOverflowHint}}"/>
         </Border>

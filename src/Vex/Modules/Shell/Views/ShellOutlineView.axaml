@@ -13,34 +13,28 @@
 
     <UserControl.DataTemplates>
         <DataTemplate DataType="models:OutlineItem">
-            <!-- 层级角标 + 渐进缩进；IsCurrent = 光标所在章节高亮 -->
-            <StackPanel Margin="{Binding IndentMargin}" Orientation="Horizontal" Spacing="6">
-                <Button Classes="wb-quiet" Width="18" Height="24" MinHeight="0" Padding="2"
-                        IsVisible="{Binding HasChildren}"
-                        Click="ToggleSection" AutomationProperties.Name="{Binding Title}">
-                    <TextBlock Text="›" FontSize="16" RenderTransformOrigin="50%,50%" Classes.expanded="{Binding IsExpanded}">
-                        <TextBlock.Styles><Style Selector="TextBlock"><Setter Property="RenderTransform"><RotateTransform Angle="0"/></Setter></Style><Style Selector="TextBlock.expanded"><Setter Property="RenderTransform"><RotateTransform Angle="90"/></Setter></Style></TextBlock.Styles>
-                    </TextBlock>
-                </Button>
-                <Border Classes="lvl-badge" Classes.on="{Binding IsCurrent}">
-                    <TextBlock Text="{Binding Number}" />
-                </Border>
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Classes="outline-title"
-                    Classes.current="{Binding IsCurrent}"
-                    Text="{Binding Title}"
-                    TextTrimming="CharacterEllipsis" />
-            </StackPanel>
+            <!-- 原型 .structure-item 一行三味：层级角标条 + 30 宽序号列 + 标题。
+                 大纲不提供行内折叠钮（workspace-chrome.js:11 明确删掉了折叠入口），
+                 收缩仍走键盘左右键。 -->
+            <Border Classes="structure-item" Classes.top="{Binding IsTopLevel}" Classes.on="{Binding IsCurrent}"
+                    Padding="{Binding RowPadding}">
+                <Grid ColumnDefinitions="Auto,30,*">
+                    <Border Classes="structure-marker" />
+                    <TextBlock Grid.Column="1" Classes="structure-num" Text="{Binding Number}" />
+                    <TextBlock Grid.Column="2" Classes="structure-text" Text="{Binding Title}"
+                               TextTrimming="CharacterEllipsis" />
+                </Grid>
+            </Border>
         </DataTemplate>
     </UserControl.DataTemplates>
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
-        <!-- 对应原型 .sidebar-search：内嵌搜索图标、透明输入框与常显清除钮；焦点单环配方走 Grid.search-shell 共享样式。 -->
-        <Grid Classes="search-shell" Grid.Row="0" Height="32" Margin="12,14,12,10">
+    <Grid RowDefinitions="Auto,*">
+        <!-- 对应原型 .structure-search（workspace-chrome.css:362）：外距 14/12/10/12，本体即那枚 pill，
+             内距 5×12、实测高 31.2；焦点单环配方走 Grid.search-shell 共享样式。 -->
+        <Grid Classes="search-shell" Grid.Row="0" Margin="12,14,12,10">
             <Border Classes="search-glow" />
-            <Border Classes="search-frame" Padding="8,0">
-                <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" VerticalAlignment="Center">
+            <Border Classes="search-frame" Padding="12,5">
+                <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" MinHeight="19" VerticalAlignment="Center">
                     <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
                           VerticalAlignment="Center"
                           Data="M17 10A7 7 0 1 1 3 10A7 7 0 1 1 17 10 M15 15L22 22" />
@@ -70,59 +64,39 @@
             <Border Classes="search-hover" />
         </Grid>
 
-        <!-- 当前章节指示（对应原型 outline-meta） -->
-        <Border
-            Grid.Row="1" Padding="12 4 12 4"
-            Classes="outline-fade"
-            Classes.shown="{Binding HasOutlineItems}"
-            IsVisible="{Binding HasOutlineItems}">
-            <TextBlock
-                Classes="muted"
-                FontSize="11"
-                Text="{Binding CurrentChapterText}"
-                TextTrimming="CharacterEllipsis" />
-        </Border>
+        <!-- 原型 .structure-list{padding:0 10px 18px;gap:1px}：列表内距与行间距都在这里给出。 -->
         <ListBox
-            Grid.Row="2"
+            Grid.Row="1"
             Classes="side-list"
+            Padding="10,0,10,18"
             IsVisible="{Binding HasOutlineItems}"
             ItemsSource="{Binding FilteredOutlineItems}"
             KeyDown="OutlineKeyDown"
             SelectedItem="{Binding SelectedOutlineItem, Mode=TwoWay}" />
-        <!-- 阅读进度条（新增能力，随光标更新） -->
-        <Border
-            Grid.Row="3"
-            Padding="12 2 12 10"
-            Classes="outline-fade"
-            Classes.shown="{Binding HasOutlineItems}"
-            IsVisible="{Binding HasOutlineItems}">
-            <ProgressBar
-                Height="4"
-                Background="{DynamicResource VexSplitterBrush}"
-                CornerRadius="2"
-                Foreground="{DynamicResource VexAccentBrush}"
-                Maximum="100"
-                Value="{Binding ReadingPercent}" />
-        </Border>
-        <Border
-            Grid.Row="2"
+        <!-- 原型 .outline-list .empty-state（workspace-chrome.css:412-413）：8px 强调色圆点 + 文案横排居中。 -->
+        <StackPanel
+            Grid.Row="1"
             IsVisible="{Binding IsOutlineEmpty}"
-            Padding="18"
-            VerticalAlignment="Top">
-            <TextBlock
-                Classes="muted"
-                Text="{i18n:I18n {x:Static l:VexL.EmptyNoHeadings}}"
-                TextAlignment="Center" />
-        </Border>
-        <Border
-            Grid.Row="2"
+            Margin="18"
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Spacing="8">
+            <Ellipse Width="8" Height="8" Fill="{DynamicResource VexAccentBrush}" VerticalAlignment="Center" />
+            <TextBlock Classes="muted" FontSize="12" VerticalAlignment="Center"
+                       Text="{i18n:I18n {x:Static l:VexL.EmptyNoHeadings}}" />
+        </StackPanel>
+        <StackPanel
+            Grid.Row="1"
             IsVisible="{Binding IsFilterNoMatch}"
-            Padding="18"
-            VerticalAlignment="Top">
-            <TextBlock
-                Classes="muted"
-                Text="{i18n:I18n Vex.VexL.OutlineNoMatch}"
-                TextAlignment="Center" />
-        </Border>
+            Margin="18"
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Spacing="8">
+            <Ellipse Width="8" Height="8" Fill="{DynamicResource VexAccentBrush}" VerticalAlignment="Center" />
+            <TextBlock Classes="muted" FontSize="12" VerticalAlignment="Center"
+                       Text="{i18n:I18n Vex.VexL.OutlineNoMatch}" />
+        </StackPanel>
     </Grid>
 </UserControl>

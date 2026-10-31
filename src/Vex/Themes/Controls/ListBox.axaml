@@ -92,71 +92,89 @@
         </ResourceDictionary>
     </Styles.Resources>
 
+    <!-- 右侧「文档结构」栏（原型 .structure-list / .structure-item：workbench.css:74-87 打底，
+         workspace-chrome.css:362 收口）。列表内距 0/10/18、行间距 1；行最小高 32、内距 6（左边那 0 让给
+         逐级 12 的缩进）、圆角 4；角标条默认躺平 8×2、H1 立起 3×11，圆角 2、左边距 6；序号列固定 30 宽、
+         11 字静音（H1 转正文色 + 600）；标题 12 字。光标所在行 = 原型 .on：accent-soft 底、accent 字、600 字重。
+         行的面与悬停/当前底色都画在模板里的 Border 上，容器只留通栏点击区。 -->
     <Style Selector="ListBox.side-list">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     </Style>
 
     <Style Selector="ListBox.side-list ListBoxItem">
-        <Setter Property="Padding" Value="10 5" />
-        <Setter Property="MinHeight" Value="28" />
-        <Setter Property="CornerRadius" Value="7" />
-        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,0,0,1" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="ListBox.side-list ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter, ListBox.side-list ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.side-list ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <Style Selector="ListBox.side-list TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
-    </Style>
-
-    <Style Selector="ListBox.side-list TextBlock.muted">
-        <Setter Property="Foreground" Value="{DynamicResource MenuItemInputGestureTextForeground}" />
-    </Style>
-
-    <Style Selector="ListBox.side-list TextBlock.side-heading">
-        <Setter Property="Foreground" Value="{DynamicResource TextBlockDisabledForeground}" />
-    </Style>
-
-    <Style Selector="ListBox.side-list ListBoxItem:pointerover TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource ListBoxItemPointeroverForeground}" />
-    </Style>
-
-    <Style Selector="ListBox.side-list ListBoxItem:selected TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource ListBoxItemSelectedForeground}" />
-    </Style>
-
-    <Style Selector="ListBox.side-list ListBoxItem:selected TextBlock.muted">
-        <Setter Property="Foreground" Value="{DynamicResource MenuItemInputGestureTextForeground}" />
-    </Style>
-
-    <Style Selector="ListBox.side-list ListBoxItem:selected TextBlock.side-heading">
-        <Setter Property="Foreground" Value="{DynamicResource ButtonSolidPrimaryBackground}" />
-    </Style>
-
-    <!-- 大纲层级角标（对应原型 H1-H4 标签）：accent-soft 底 + accent 字 -->
-    <Style Selector="ListBox.side-list Border.lvl-badge">
-        <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+    <Style Selector="ListBox.side-list Border.structure-item">
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Padding" Value="4 0" />
+        <Setter Property="MinHeight" Value="32" />
+    </Style>
+    <Style Selector="ListBox.side-list Border.structure-item:pointerover">
+        <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+    </Style>
+    <Style Selector="ListBox.side-list Border.structure-item.on">
+        <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+    </Style>
+
+    <!-- 行内空隙：默认 7，H1 一档 8（原型 .structure-item[data-level="1"]）。
+         只由样式给值，模板上不再写 ColumnSpacing，局部值会盖掉样式设置。 -->
+    <Style Selector="ListBox.side-list Border.structure-item > Grid">
+        <Setter Property="ColumnSpacing" Value="7" />
+    </Style>
+    <Style Selector="ListBox.side-list Border.structure-item.top > Grid">
+        <Setter Property="ColumnSpacing" Value="8" />
+    </Style>
+
+    <Style Selector="ListBox.side-list Border.structure-marker">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="2" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="Margin" Value="6,0,0,0" />
         <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Background" Value="{DynamicResource VexPanelBorderBrush}" />
         <Setter Property="IsHitTestVisible" Value="False" />
     </Style>
-    <Style Selector="ListBox.side-list Border.lvl-badge.on">
+    <Style Selector="ListBox.side-list Border.structure-item.top Border.structure-marker">
+        <Setter Property="Width" Value="3" />
+        <Setter Property="Height" Value="11" />
+    </Style>
+    <Style Selector="ListBox.side-list Border.structure-item.on Border.structure-marker">
         <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
     </Style>
-    <Style Selector="ListBox.side-list TextBlock.outline-title.current">
-        <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+
+    <Style Selector="ListBox.side-list TextBlock.structure-num">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ListBox.side-list Border.structure-item.top TextBlock.structure-num">
+        <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
-    <!-- 通用徽章文字规则必须放在 .on 覆盖规则之后：Avalonia 同特异性按定义顺序裁决，
-         否则选中徽章的文字色被通用主题色覆盖（文字与底同色 → 隐形）。 -->
-    <Style Selector="ListBox.side-list Border.lvl-badge > TextBlock">
-        <Setter Property="FontSize" Value="9.5" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
+    <Style Selector="ListBox.side-list TextBlock.structure-text">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <Style Selector="ListBox.side-list Border.lvl-badge.on > TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource VexAccentSoftBrush}" />
+    <!-- .on 一档写在最后：同特异性按定义顺序裁决，早写会被常态色盖掉。 -->
+    <Style Selector="ListBox.side-list Border.structure-item.on TextBlock.structure-num, ListBox.side-list Border.structure-item.on TextBlock.structure-text">
+        <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+    </Style>
+    <Style Selector="ListBox.side-list Border.structure-item.on TextBlock.structure-text">
+        <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style Selector="TreeView.side-tree">
@@ -165,7 +183,8 @@
         </Style.Resources>
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="0" />
+        <!-- 原型 .file-list{padding:0 6px}（writing-chrome.css:29）：6px 收进列表面，行的通栏底色仍占满侧栏宽。 -->
+        <Setter Property="Padding" Value="6,0" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     </Style>
 
@@ -180,45 +199,62 @@
         <Setter Property="VerticalAlignment" Value="Top" />
     </Style>
 
-    <!-- 在模板行上绘制背景，覆盖展开箭头、层级缩进和整行剩余宽度。 -->
+    <!-- 通栏模板行不再画底色：原型 summary 与 .file-row 的悬停/选中面都长在行盒上（各自带圆角与内缩），
+         模板行只留整行点击区。 -->
     <Style Selector="TreeView.side-tree TreeViewItem, TreeView.side-tree TreeViewItem:selected, TreeView.side-tree TreeViewItem:pointerover, TreeView.side-tree TreeViewItem:selected:pointerover">
         <Setter Property="Background" Value="Transparent" />
     </Style>
-    <Style Selector="TreeView.side-tree TreeViewItem /template/ Border#PART_LayoutRoot">
+    <Style Selector="TreeView.side-tree TreeViewItem /template/ Border#PART_LayoutRoot, TreeView.side-tree TreeViewItem /template/ Border#PART_LayoutRoot:pointerover, TreeView.side-tree TreeViewItem:selected /template/ Border#PART_LayoutRoot">
         <Setter Property="Background" Value="Transparent" />
-    </Style>
-    <Style Selector="TreeView.side-tree TreeViewItem /template/ Border#PART_LayoutRoot:pointerover">
-        <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
-    </Style>
-    <Style Selector="TreeView.side-tree TreeViewItem:selected /template/ Border#PART_LayoutRoot, TreeView.side-tree TreeViewItem:selected /template/ Border#PART_LayoutRoot:pointerover">
-        <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
     </Style>
     <Style Selector="TreeView.side-tree TreeViewItem /template/ ContentPresenter#PART_HeaderPresenter">
         <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
         <Setter Property="Padding" Value="0" />
     </Style>
+    <!-- 展开角标画进盒内（原型 summary::before 与图标同行，行盒的高亮面才包得住它）：
+         模板自带槽位收掉后，缩进只剩逐级 16，与 .file-children{padding-left:16px} 同值。 -->
     <Style Selector="TreeView.side-tree TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="24" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="IsVisible" Value="False" />
     </Style>
-    <Style Selector="TreeView.side-tree TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron /template/ PathIcon#PART_ExpandIconPath">
+    <Style Selector="TreeView.side-tree Path.file-chevron-mark">
         <Setter Property="Width" Value="8" />
         <Setter Property="Height" Value="8" />
+        <Setter Property="Stretch" Value="Uniform" />
+        <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
+        <Setter Property="StrokeThickness" Value="1.6" />
+        <Setter Property="StrokeLineCap" Value="Round" />
+        <Setter Property="StrokeJoin" Value="Round" />
+    </Style>
+    <Style Selector="TreeView.side-tree Border.file-card:selected Path.file-chevron-mark">
+        <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
     </Style>
 
-    <!-- 内容卡片保持透明，选中底色统一由通栏模板行绘制。 -->
+    <!-- 行分两档，模板里不写死尺寸：夹走原型 .file-directory>summary（writing-chrome.css:39/44，
+         24 高、4 内距、无圆角、6 列距、12 图标、12 字静音），文档走 .file-row（:30/31/33，
+         28 高、8 内距、6 圆角、7 列距、13 图标、12.5 字、行下 1px 间距）。 -->
     <Style Selector="TreeView.side-tree Border.file-card">
         <Setter Property="CornerRadius" Value="0" />
         <Setter Property="Height" Value="24" />
         <Setter Property="Padding" Value="4,0" />
         <Setter Property="Background" Value="Transparent" />
     </Style>
+    <Style Selector="TreeView.side-tree Border.file-card.leaf">
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="8,0" />
+        <Setter Property="Margin" Value="0,0,0,1" />
+    </Style>
+    <!-- 悬停与选中面长在行盒上（原型 .file-directory>summary:hover 与 .file-row.selected）。 -->
+    <Style Selector="TreeView.side-tree Border.file-card:pointerover">
+        <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+    </Style>
+    <Style Selector="TreeView.side-tree Border.file-card.selected">
+        <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+    </Style>
 
     <Style Selector="TreeView.side-tree Border.file-card TextBlock.file-title">
         <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="12.5" />
     </Style>
     <Style Selector="TreeView.side-tree Border.file-card.selected TextBlock.file-title">
         <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
@@ -244,6 +280,22 @@
         <Setter Property="Margin" Value="0" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <Style Selector="TreeView.side-tree Image.tree-ico">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+    </Style>
+    <Style Selector="TreeView.side-tree Border.file-card.leaf Path.tree-ico, TreeView.side-tree Border.file-card.leaf Image.tree-ico">
+        <Setter Property="Width" Value="13" />
+        <Setter Property="Height" Value="13" />
+    </Style>
+
+    <!-- 列距同样分档（原型 summary gap:6 / .file-row gap:7），只在样式里给，模板不写死。 -->
+    <Style Selector="TreeView.side-tree Grid.file-row">
+        <Setter Property="ColumnSpacing" Value="6" />
+    </Style>
+    <Style Selector="TreeView.side-tree Border.file-card.leaf Grid.file-row">
+        <Setter Property="ColumnSpacing" Value="7" />
+    </Style>
 
     <Style Selector="TreeView.side-tree Border.file-card TextBlock.file-heading">
         <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
@@ -253,13 +305,5 @@
 
     <Style Selector="TreeView.side-tree Border.file-card.selected TextBlock.file-heading">
         <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
-    </Style>
-    <!-- 大纲徽章兜底规则（放文件末尾）：ListBoxItem:selected 的通用文字色会命中徽章内文字，
-         必须以更全的选择器 + 更后位置覆盖，否则选中项的 H2 角标文字与底色同色而隐形。 -->
-    <Style Selector="ListBox.side-list ListBoxItem Border.lvl-badge.on > TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource VexAccentSoftBrush}" />
-    </Style>
-    <Style Selector="ListBox.side-list ListBoxItem:selected Border.lvl-badge.on > TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource VexAccentSoftBrush}" />
     </Style>
 </Styles>

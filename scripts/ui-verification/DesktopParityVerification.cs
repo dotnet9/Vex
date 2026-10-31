@@ -72,7 +72,7 @@ internal static class DesktopParityVerification
         Check(outline.FilteredOutlineItems.Count == 1, "Search reveals a heading under a collapsed section");
         outline.ClearFilter();
         Check(outline.FilteredOutlineItems.Count == 2, "Clearing search preserves the collapsed section");
-        var restoredOutline = new ShellOutlineViewModel(app.Resolve<IShellStatusPublisher>(), app.Resolve<IAppLocalizer>(),
+        var restoredOutline = new ShellOutlineViewModel(app.Resolve<IShellStatusPublisher>(),
             app.Resolve<IAppSettingsStore>(), app.Resolve<IWorkspaceDocumentState>());
         restoredOutline.ApplyOutlineItemsChanged(new OutlineItemsChangedCommand([
             new(1, "第一章", 3), new(3, "细节", 6), new(3, "补充", 9), new(2, "第二节", 12), new(1, "下一章", 14)]));
@@ -202,23 +202,24 @@ internal static class DesktopParityVerification
         Check(searchGlow.Opacity == 1, "With motion off the focus ring lands on the first frame");
         sortButton.Focus();
         vm.Layout.MotionMode = motionBefore; Render();
-        // 面板头（原型 .panel-head/.panel-title）：两栏标题都在各自搜索框之上，12/14/9 内距、600 字重、--fs-caption 字号。
+        // 面板头（原型 Vex.html:101 .panel-head>.panel-title「文件列表」）：通栏一行、12/14/9 内距、
+        // 600 字重、--fs-caption 字号，标题落在搜索框之上。大纲栏没有这一行——workspace-chrome.js:11
+        // 删掉了「文档辅助」标题栏，内容直接顶格。
         var localizer = app.Resolve<IAppLocalizer>();
+        var outlineView = window.GetVisualDescendants().OfType<ShellOutlineView>().Single();
         var filesHead = filesView.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("panel-title"));
-        Check(filesHead.Text == localizer.Get(Vex.VexL.SidebarFiles)
+        Check(filesHead.Text == localizer.Get(Vex.VexL.SidebarFilesList)
             && filesHead.FontSize == (double)Application.Current!.Resources["VexDensityFontSizeCaption"]!
             && filesHead.FontWeight == Avalonia.Media.FontWeight.SemiBold
-            && ((Grid)filesHead.Parent!).Margin == new Thickness(14, 12, 14, 9)
+            && ((Border)filesHead.Parent!).Padding == new Thickness(14, 12, 14, 9)
+            && ((Border)filesHead.Parent!).MinHeight == 40
             && filesHead.TranslatePoint(default, filesView)!.Value.Y < searchShell.TranslatePoint(default, filesView)!.Value.Y,
             "Files panel head titles the pane above the search box at the prototype 12/14/9 inset");
-        var auxPanel = window.GetVisualDescendants().OfType<ShellAuxiliaryPanelView>().Single();
-        var structureHead = auxPanel.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("panel-title"));
-        var outlineShell = auxPanel.GetVisualDescendants().OfType<Grid>().First(g => g.Classes.Contains("search-shell"));
+        var outlineShell = outlineView.GetVisualDescendants().OfType<Grid>().First(g => g.Classes.Contains("search-shell"));
         var outlineText = outlineShell.GetVisualDescendants().OfType<TextBox>().First();
-        Check(structureHead.Text == localizer.Get(Vex.VexL.StructureTitle)
-            && ((Grid)structureHead.Parent!).Margin == new Thickness(14, 12, 14, 9)
-            && structureHead.TranslatePoint(default, auxPanel)!.Value.Y < outlineShell.TranslatePoint(default, auxPanel)!.Value.Y,
-            "Structure panel head shares the same title row metrics above its search box");
+        Check(!outlineView.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Classes.Contains("panel-title"))
+            && outlineShell.Margin == new Thickness(12, 14, 12, 10),
+            "Structure panel drops its title row and opens flush on the search pill at the prototype inset");
         // 原型 --fs-caption（density.css:2-4）：面板标题与两栏搜索输入都随界面密度走 11/12/12，不写死 12。
         var densityBefore = vm.Appearance.SelectedDensity;
         foreach (var density in new[] { "compact", "normal", "relaxed" })
@@ -226,7 +227,7 @@ internal static class DesktopParityVerification
             vm.Appearance.SelectedDensity = density; Render();
             var caption = density == "compact" ? 11d : 12d;
             Check((double)Application.Current!.Resources["VexDensityFontSizeCaption"]! == caption
-                && filesHead.FontSize == caption && structureHead.FontSize == caption
+                && filesHead.FontSize == caption
                 && searchText.FontSize == caption && outlineText.FontSize == caption,
                 $"Panel titles and both search inputs follow the caption tier at {density}: {caption}");
         }
