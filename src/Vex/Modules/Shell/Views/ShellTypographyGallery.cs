@@ -76,13 +76,23 @@ public sealed class ShellTypographyGallery : UserControl
 
     private void Resize()
     {
-        Width = Math.Min(720, (_window?.ClientSize.Width ?? 1280) - 24);
-        var anchor = (_window as MainWindow)?.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "TypographyTarget" && b.IsEffectivelyVisible);
-        var top = anchor?.TranslatePoint(new Point(0, anchor.Bounds.Height + 8), _window!)?.Y ?? 126;
-        var parentTop = _window is not null ? this.GetVisualParent()?.TranslatePoint(default, _window)?.Y ?? 0 : 0;
-        // 原型 .typography-popover：right:18px 相对工作区（= 窗体右侧 24px），宽 720 含 1px 描边。
-        Margin = new Thickness(12, Math.Max(0, top - parentTop), 23, 12);
-        Height = Math.Max(140, Math.Min(680, (_window?.ClientSize.Height ?? 820) - top - 12));
+        // 原型 typography.js:183 position()：宽 720（含 1px 描边），左沿贴触发钮右沿、顶边 = 钮底 + 8，
+        // 左右各留 8 夹回宿主，高度按宿主剩余空间封顶 680。换算全部在宿主坐标系里做，弹层才不跟窗口内距较劲。
+        var host = this.GetVisualParent();
+        // 首次 Build 早于布局：宿主 Bounds 还是 0，Width 会收到负值，所以未测量的量程退回窗口可视宽。
+        var hostWidth = host is { Bounds.Width: > 0 } ? host.Bounds.Width : _window?.ClientSize.Width ?? 1280;
+        var hostHeight = host is { Bounds.Height: > 0 } ? host.Bounds.Height : _window?.ClientSize.Height ?? 820;
+        Width = Math.Min(720, hostWidth - 16);
+        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
+        var anchor = (_window as MainWindow)?.WorkspaceViews.ActiveTypographyTrigger;
+        // TranslatePoint 收的是控件自己的局部坐标，Bounds.Right/Bottom 含父级偏移，直接拿来当局部点会多算一个自身位置。
+        var corner = anchor is not null && host is not null
+            ? anchor.TranslatePoint(new Point(anchor.Bounds.Width, anchor.Bounds.Height + 8), host)
+            : null;
+        var left = corner is null ? 12 : Math.Max(8, Math.Min(hostWidth - Width - 8, corner.Value.X - Width));
+        var top = corner is null ? 126 : Math.Max(8, corner.Value.Y);
+        Margin = new Thickness(left, top, 0, 0);
+        Height = Math.Max(140, Math.Min(680, hostHeight - top - 12));
     }
 
     private void Changed(object? sender, PropertyChangedEventArgs e)

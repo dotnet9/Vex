@@ -51,6 +51,20 @@ public sealed class WorkspaceViewController
     /// <summary>阅读窗格头居中的排版入口。主窗体拿它豁免「点外面即关」，第二次点击才能回到开合语义。</summary>
     public Control? RenderTypographyTrigger => _renderTypographyTrigger;
 
+    /// <summary>
+    /// 当前可用的排版入口：原型 workspace.js:67 把编辑格式条里那颗克隆给阅读窗格，两个落点只有一个在场，
+    /// 排版弹层（typography.js:183 position）按可见的那颗重排左沿与顶边，所以取钮也按同一口径回退。
+    /// </summary>
+    public Button? ActiveTypographyTrigger
+    {
+        get
+        {
+            if (_renderTypographyTrigger is { IsEffectivelyVisible: true }) return _renderTypographyTrigger;
+            var editor = _window.FindControl<ShellEditorOptionsView>("EditorOptions")?.FindControl<Button>("TypographyTarget");
+            return editor is { IsEffectivelyVisible: true } ? editor : null;
+        }
+    }
+
     /// <summary>钉住 = 窗格头占位行；取消钉住 = 悬浮于阅读区顶端，静默至悬停或聚焦。</summary>
     private void ApplyReadingPin()
     {
@@ -146,6 +160,22 @@ public sealed class WorkspaceViewController
             first = _frames[_topIds[0]].Bounds.Width; second = _frames[_topIds[1]].Bounds.Width;
         }
         if (first > 0 && second > 0) _vm.Layout.SetSplitRatio(SplitKey(vertical), first / (first + second));
+    }
+
+    private Grid? _tabRow;
+
+    /// <summary>
+    /// 排版入口在两个落点之间迁移：单阅读视图进标签行第 1 列（贴着右端的布局钮），其余布局回阅读窗格标题行。
+    /// 原型 workspace.js:185 用 insertBefore 挪的是同一个节点，这里也只改父级，不重建控件。
+    /// </summary>
+    private void ParkTypographyTrigger(bool inTabRow, Grid renderBar)
+    {
+        if (_renderTypographyTrigger is not { } trigger) return;
+        var target = inTabRow ? _tabRow ??= _window.FindControl<Grid>("TabRowGrid") : renderBar;
+        if (target is null || ReferenceEquals(trigger.Parent, target)) return;
+        (trigger.Parent as Panel)?.Children.Remove(trigger);
+        Grid.SetColumn(trigger, 1);
+        target.Children.Add(trigger);
     }
 
     private static void NameSplit(GridSplitter splitter, string key)
@@ -265,13 +295,15 @@ public sealed class WorkspaceViewController
             caption.Children.Add(label);
             Grid.SetColumn(caption, 0); bar.Children.Add(caption);
             _renderCaption = caption; _renderLabel = label;
-            var typography = new Button { Classes = { "wb-quiet" }, VerticalAlignment = VerticalAlignment.Center };
+            var typography = new Button { Classes = { "wb-quiet", "typography-trigger" }, VerticalAlignment = VerticalAlignment.Center };
             // 反射方法绑定（Binding("Workbench.ToggleTypography")）在裁剪后的发布产物里解析不出命令，改直调视图模型。
             typography.Click += (_, _) => _vm?.Workbench.ToggleTypography();
             _renderTypographyTrigger = typography;
             _renderTypographyPrefix = new TextBlock { Text = WorkbenchText.Get("Typography"), VerticalAlignment = VerticalAlignment.Center };
             _renderTypographyName = new TextBlock { FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
-            var trigger = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+            // 原型 .typography-trigger{gap:7px}（appearance.css:18），标签[data-typography-label] 才转 600 与正文色（editing.css:10）。
+            _renderTypographyName.Bind(TextBlock.ForegroundProperty, _window.GetResourceObservable("VexValueBrush"));
+            var trigger = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
             trigger.Children.Add(_renderTypographyPrefix); trigger.Children.Add(_renderTypographyName);
             trigger.Children.Add(new global::Avalonia.Controls.Shapes.Path { Classes = { "expand-chevron" }, Data = Geometry.Parse("M6 9L12 15L18 9") });
             typography.Content = trigger;
@@ -325,18 +357,19 @@ public sealed class WorkspaceViewController
                 }
                 if (!_floating.ContainsKey(id) && frame.Parent is null) _surface.Children.Add(frame);
             }
-            // 原型只为阅读窗格保留标题行：多窗格带题注与底边，单窗格题注隐藏、无边框右对齐。
+            // 原型只为阅读窗格保留标题行；单阅读视图时标题行整行收起，排版入口迁进标签行右端（workspace.js:179-185）。
             if (_headers.TryGetValue("render", out var renderHeader) && renderHeader.Child is Grid renderBar)
             {
                 _renderLabel!.Text = Label("render");
                 _renderTypographyPrefix!.Text = WorkbenchText.Get("Typography");
                 // NameKey 已含完整 Vex.VexL. 前缀，直接查资源，避免 WorkbenchText.Get 二次拼接。
                 _renderTypographyName!.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(_vm.Appearance.SelectedTypography?.NameKey ?? "Vex.VexL.TypographyBasic") ?? string.Empty;
-                renderHeader.IsVisible = wanted.Contains("render") && !state.IsPresenting && !_floating.ContainsKey("render");
-                _renderCaption!.IsVisible = wanted.Length > 1;
-                renderHeader.BorderThickness = wanted.Length > 1 ? new Thickness(0, 0, 0, 1) : new Thickness(0);
-                // 多窗格 space-between（入口居中）；单窗格 justify-end（入口与钉一起靠右）。
-                renderBar.ColumnDefinitions[2].Width = wanted.Length > 1 ? new GridLength(1, GridUnitType.Star) : new GridLength(1, GridUnitType.Auto);
+                var inPlace = wanted.Contains("render") && !state.IsPresenting && !_floating.ContainsKey("render");
+                var singleRender = inPlace && wanted.Length == 1;
+                renderHeader.IsVisible = inPlace && !singleRender;
+                renderHeader.BorderThickness = new Thickness(0, 0, 0, 1);
+                ParkTypographyTrigger(singleRender, renderBar);
+                _renderTypographyTrigger!.IsVisible = inPlace;
             }
             // 阅读正文留白/限宽由 MarkdownPreviewView.ApplyDocumentGeometry 统一处理。
             ApplyReadingPin(); ApplyEditorPin();

@@ -63,10 +63,13 @@
   <Style Selector="Grid.search-shell:focus-within Border.search-hover">
     <Setter Property="Opacity" Value="0" />
   </Style>
-  <!-- 面板头（原型 .panel-head / .panel-title，workspace-chrome.css:473-474）：标题落在搜索框之上，
-       12/14/9 内距、600 字重；字号吃 fs-caption 令牌（紧凑档 11），与搜索输入同档。 -->
-  <Style Selector="Grid.panel-head">
-    <Setter Property="Margin" Value="14,12,14,9" />
+  <!-- 面板头（原型 .panel-head / .panel-title，workspace-chrome.css:472-474）：标题落在搜索框之上，
+       12/14/9 内距、600 字重；字号吃 fs-caption 令牌（紧凑档 11），与搜索输入同档。
+       内距而不是外距：原型这一行本身通栏（实测 .panel-head 与 .sidebar 同宽 226、高 40.2 = 12+19.2+9），
+       行高用 MinHeight 兜住，标题靠 VerticalAlignment 落在余量正中。 -->
+  <Style Selector="Border.panel-head">
+    <Setter Property="MinHeight" Value="40" />
+    <Setter Property="Padding" Value="14,12,14,9" />
   </Style>
   <Style Selector="TextBlock.panel-title">
     <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
@@ -78,6 +81,8 @@
        铬面全高贴左缘，44×48 图标+短标签，active 只用一枚浅色圆角块托住，不画下划线也不加描边。 -->
   <Style Selector="Border.nav-rail">
     <Setter Property="Width" Value="56" />
+    <!-- 原型 .nav-rail（workspace-chrome.css:466）padding:10px 0：上下留白写在栏上，内部逐项 gap 4。 -->
+    <Setter Property="Padding" Value="0,10" />
     <Setter Property="Background" Value="{DynamicResource VexChromeBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource VexHairlineBrush}" />
     <Setter Property="BorderThickness" Value="0,0,1,0" />
@@ -528,12 +533,20 @@
     <Setter Property="CornerRadius" Value="5"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
   </Style>
-  <!-- 原型 .typography-trigger（view-heading 内的排版入口）：12px 字、6/10 内距、30 高基准，
+  <!-- 原型 .toolbar-button.typography-trigger（workbench.css:135 + appearance.css:18）：12px 常规字、6/10 内距、
+       1px 透明描边、6 圆角、7 列距，窗格标题行内基准高 28（appearance.css:97）；
        排版弹层的落点由它推导（弹层顶 = 该按钮底边 + 8），所以高度口径必须与原型一致。 -->
   <Style Selector="Button.typography-trigger">
-    <Setter Property="FontSize" Value="12"/><Setter Property="MinHeight" Value="30"/><Setter Property="Padding" Value="10,6"/>
+    <Setter Property="FontSize" Value="12"/><Setter Property="FontWeight" Value="Normal"/>
+    <Setter Property="MinHeight" Value="28"/><Setter Property="Padding" Value="10,6"/>
     <Setter Property="CornerRadius" Value="6"/><Setter Property="Background" Value="Transparent"/>
-    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/><Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <!-- 迁进标签行时换档：workspace-chrome.css:531 写 height:26，但 appearance.css:18 的 min-height:32 更大，
+       实测高 32，且 align-self:center 在 36 的行里上下各留 2。 -->
+  <Style Selector="Grid#TabRowGrid Button.typography-trigger">
+    <Setter Property="MinHeight" Value="32"/><Setter Property="VerticalAlignment" Value="Center"/>
   </Style>
   <!-- 对应原型标题栏 .studio-title-controls button：30×28、4px 圆角、透明底。 -->
   <Style Selector="Button.tb-icon">
@@ -631,6 +644,10 @@
     <Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Background" Value="Transparent"/>
     <Setter Property="FontSize" Value="12"/>
+    <Setter Property="FontWeight" Value="Normal"/>
+    <!-- 原型 .workspace-tabs>button 实测圆角 8（全局按钮规则），但这一档静止与悬停都不画底面，
+         激活态只压 2px 下划线，半径仅进量表口径，不产生可见形状。 -->
+    <Setter Property="CornerRadius" Value="8"/>
     <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
   </Style>
   <Style Selector="ToggleButton.tab-item /template/ ContentPresenter#PART_ContentPresenter">
@@ -660,6 +677,7 @@
     <Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Background" Value="Transparent"/>
     <Setter Property="FontSize" Value="12"/>
+    <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
     <Setter Property="VerticalAlignment" Value="Center"/>
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/>

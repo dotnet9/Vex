@@ -116,7 +116,7 @@
                    HorizontalAlignment="Left" VerticalAlignment="Bottom"
                    Margin="0,0,0,40" IsHitTestVisible="False" IsVisible="False" />
             <Border x:Name="NavRail" Classes="nav-rail" IsVisible="{Binding !Workbench.IsPresenting}">
-                <DockPanel Margin="0,10">
+                <DockPanel>
                     <ToggleButton x:Name="RailFilesToggle" Classes="rail-item" DockPanel.Dock="Top" Margin="0,0,0,4"
                                   HorizontalAlignment="Center"
                                   IsChecked="{Binding Layout.ShowSidebar, Mode=OneWay}"
@@ -203,8 +203,11 @@
                 <Border x:Name="WorkspaceTabRow" Grid.Row="2" Height="36" Padding="8,0"
                         Background="{DynamicResource VexChromeBrush}" BorderBrush="{DynamicResource VexHairlineBrush}"
                         BorderThickness="0,0,0,1" IsVisible="{Binding !Workbench.IsPresenting}">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <StackPanel Orientation="Horizontal" Spacing="2">
+                    <!-- 第 1 列是排版入口的落点：原型 workspace.js:185 在单阅读视图时把同一个节点
+                         insertBefore(readingTypeButton, layoutButton) 迁进标签行，其余布局它留在阅读窗格标题行里，
+                         所以这里只留列位，节点的归属由 WorkspaceViewController.Arrange 迁移。 -->
+                    <Grid x:Name="TabRowGrid" ColumnDefinitions="*,Auto,Auto">
+                        <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
                             <ToggleButton x:Name="SourceSegment" Classes="tab-item" Command="{Binding Workbench.ShowSourceView}"
                                     IsChecked="{Binding Workbench.IsSourceSegmentActive, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -228,10 +231,16 @@
                             </ToggleButton>
                         </StackPanel>
                         <!-- 原型 .workspace-viewswitch-more：点开的是布局预设画廊（缩略图卡片网格），选中即收；
-                             Workbench.ToggleLayouts 驱动既有的 LayoutGallery，aria-pressed 的展开态用 .on 类还原。 -->
-                        <Button x:Name="EditorModeButton" Classes="editor-mode" Classes.on="{Binding Workbench.ShowLayouts}" Grid.Column="1"
-                                Command="{Binding Workbench.ToggleLayouts}"
-                                Content="{Binding Workbench.EditorModeLabel}" VerticalAlignment="Center" />
+                             Workbench.ToggleLayouts 驱动既有的 LayoutGallery，aria-pressed 的展开态用 .on 类还原。
+                             文案按 workspace.js:199 走「三段直选＝更多，组合布局＝预设名」，即 MoreSegmentLabel；
+                             4px 左距 = 标签行 gap 2 + workspace-chrome.css:532 的 margin-left:2。 -->
+                        <Button x:Name="EditorModeButton" Classes="editor-mode" Classes.on="{Binding Workbench.ShowLayouts}" Grid.Column="2"
+                                Command="{Binding Workbench.ToggleLayouts}" Margin="4,0,0,0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="{Binding Workbench.MoreSegmentLabel}" VerticalAlignment="Center" />
+                                <Path Classes="expand-chevron" Data="M6 9L12 15L18 9" />
+                            </StackPanel>
+                        </Button>
                     </Grid>
                 </Border>
                 <!-- 原型 .workspace-layout-menu 是 .workspace-tabrow 的绝对子级（workspace-chrome.css:535）：
@@ -256,10 +265,11 @@
             </Grid>
             <GridSplitter x:Name="OutlineSplitter" Grid.Column="3" Classes="workspace-gap gap-horizontal" ZIndex="9" HorizontalAlignment="Stretch"
                           IsVisible="{Binding Layout.ShowOutlineSidebar}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
-            <!-- 与左侧文件栏同构：列宽是唯一尺寸来源，收起时由 ClipToBounds 裁切内容，才能滑出而不是整块消失。 -->
+            <!-- 与左侧文件栏同构：列宽是唯一尺寸来源，收起时由 ClipToBounds 裁切内容，才能滑出而不是整块消失。
+                 原型在 workspace-chrome.js:11 删掉了「文档辅助」标题栏，内容直接顶格，这里不再套一层带头的壳。 -->
             <Border x:Name="OutlineGuideTarget" Grid.Column="4" Classes="workspace-block structure-edge" IsHitTestVisible="{Binding Layout.ShowOutlineSidebar}"
                     ClipToBounds="True">
-                <shell:ShellAuxiliaryPanelView/>
+                <shell:ShellOutlineView/>
             </Border>
 
         </Grid>
@@ -331,8 +341,9 @@
                 AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}">
             <Path />
         </Button>
-        <!-- 弹层几何沿用 12px 窗缘：右缘盖住阅读滚动条带、底缘盖住胶囊与收起钮（CodeWFWindow 内容区自带 12px 内缩）；最初的圆角缺角观感是加浓投影把覆盖边缘染暗所致，投影移除后缺口露出的是干净纸底。 -->
-        <shell:ShellTypographyGallery x:Name="TypographyGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12,56,12,12" MaxHeight="700"/>
+        <!-- 落点由 ShellTypographyGallery.Resize 现算：原型 typography.js:183 让弹层左沿贴着触发钮右沿、
+             顶边 = 钮底 + 8，坐标换算在宿主内完成（宿主自带窗缘内缩），所以这里只声明左上锚定，不写边距。 -->
+        <shell:ShellTypographyGallery x:Name="TypographyGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Left" VerticalAlignment="Top" MaxHeight="700"/>
         <shell:WorkbenchGuideView x:Name="WorkbenchGuide" Grid.RowSpan="4"/>
     </Grid>
     </Border>

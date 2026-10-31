@@ -170,7 +170,7 @@ public partial class MainWindow : CodeWFWindow
             var layouts = vm.Workbench.ShowLayouts;
             vm.Workbench.ShowLayouts = false; vm.Workbench.ShowTypography = false; vm.Workbench.ShowMapSettings = false; vm.Workbench.CloseInspector();
             // 原型 closeMenus(true) / typography.close(true)：Esc 关浮层后焦点回到把它打开的那枚钮。
-            if (typography) EditorOptions.FindControl<Button>("TypographyTarget")?.Focus();
+            if (typography) WorkspaceViews.ActiveTypographyTrigger?.Focus();
             else if (layouts) EditorModeButton.Focus();
             e.Handled = true; return;
         }
