@@ -35,8 +35,6 @@ public sealed class ShellAppearanceMenuView : UserControl
     /// <summary>语言菜单沿用 248 菜单标准外框（workspace-chrome.css:6 --title-menu-width）。</summary>
     public const double LanguageMenuWidth = 248;
 
-    /// <summary>原型 .density-options button.on 与卡片选中环共用的强调色派生点。</summary>
-    private static readonly string[] StatusDots = ["#DC2626", "#15803D", "#B45309", "#4338CA"];
     private static readonly string[] DensityKeys = ["compact", "normal", "relaxed"];
 
     public ShellAppearanceMenuView()
@@ -266,35 +264,20 @@ public sealed class ShellAppearanceMenuView : UserControl
 
     private Control BuildPaletteCard(PaletteOption palette)
     {
-        // 原型 .swatch-dots：4 列网格，点 16px、行列间距 4px（无边距），块高恰为 36px。
-        var dots = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto"), ColumnDefinitions = new("Auto,Auto,Auto,Auto"), RowSpacing = 4, ColumnSpacing = 4, HorizontalAlignment = HorizontalAlignment.Left };
-        var swatches = new[] { palette.Definition.Light.Paper, palette.Definition.Light.Surface, palette.Definition.Light.Ink, palette.Definition.Light.Accent }
-            .Concat(StatusDots).ToArray();
-        for (var i = 0; i < swatches.Length; i++)
-        {
-            var dot = new Ellipse { Width = 16, Height = 16, StrokeThickness = 1 };
-            try { dot.Fill = new SolidColorBrush(Color.Parse(swatches[i])); } catch { dot.Fill = Brushes.Transparent; }
-            Resource(dot, Shape.StrokeProperty, this, "VexPanelBorderBrush");
-            Grid.SetRow(dot, i / 4); Grid.SetColumn(dot, i % 4);
-            dots.Children.Add(dot);
-        }
         var labels = new StackPanel { Spacing = 1 };
-        // 原型口径：配色卡只留名称行（不加粗），用途说明行移除。
-        var name = Label(palette.Name, 13); name.FontWeight = FontWeight.Normal; name.TextWrapping = TextWrapping.NoWrap; name.LineHeight = 19; labels.Children.Add(name);
-        var body = new StackPanel { Spacing = 6 }; body.Children.Add(dots); body.Children.Add(labels);
-        // 原型 .studio-palettes button::after：✓ 固定在卡片右缘垂直居中（right 6px、14px/700 强调色），
-        // 点阵用 padding-right 24 让位，这里给正文同样让出右侧空间。
-        body.Margin = new Thickness(0, 0, 24, 0);
+        var name = Label(palette.Name, 12); name.FontWeight = FontWeight.Normal; name.TextWrapping = TextWrapping.NoWrap; name.LineHeight = 16.8; labels.Children.Add(name);
+        labels.Margin = new Thickness(0, 0, 16, 0);
+        var body = new StackPanel { Spacing = 6, Margin = new Thickness(7), Children = { new PaletteCardPreview(palette), labels } };
         var root = new Grid();
         root.Children.Add(body);
         if (palette.IsRecommended)
         {
-            var badgeText = new TextBlock { Text = Text("ChoiceRecommended"), FontSize = 9, FontWeight = FontWeight.SemiBold };
+            var badgeText = new TextBlock { Text = Text("ChoiceRecommended"), FontSize = 9, LineHeight = 9, FontWeight = FontWeight.SemiBold };
             Resource(badgeText, TextBlock.ForegroundProperty, this, "StudioOnPrimary");
             var badge = new Border
             {
                 Child = badgeText, CornerRadius = new CornerRadius(4), Padding = new Thickness(4, 2),
-                HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 0, 5, 0)
+                HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 5, 5, 0)
             };
             Resource(badge, Border.BackgroundProperty, this, "VexAccentBrush");
             root.Children.Add(badge);
@@ -317,14 +300,14 @@ public sealed class ShellAppearanceMenuView : UserControl
             tools.Children.Add(edit); tools.Children.Add(remove);
             root.Children.Add(tools);
         }
-        var card = new Button { Classes = { "palette-card" }, Content = root, Height = 92, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "Palette_" + (paletteKey ?? "unknown") };
+        var card = new Button { Classes = { "palette-card" }, Content = root, MinHeight = 0, Padding = default, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "Palette_" + (paletteKey ?? "unknown") };
         Avalonia.Automation.AutomationProperties.SetName(card, palette.Name + "，" + palette.Purpose);
         Avalonia.Automation.AutomationProperties.SetAutomationId(card, "PaletteCard_" + paletteKey);
         card.Click += (_, _) => { if (_vm is not null) _vm.SelectedPalette = palette; };
         // 原型选中环 box-shadow:0 0 0 1px var(--accent)：Button 无 BoxShadow 属性，用外扩 1px 的描边 Border 覆层等效呈现。
         var ring = new Border { BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(7), Margin = new Thickness(-1), IsHitTestVisible = false, IsVisible = false };
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
-        var host = new Grid { Margin = new Thickness(2), ClipToBounds = false }; // 余量容纳 Ring 的 -1.5 外扩，避免边缘裁切
+        var host = new Grid { ClipToBounds = false };
         host.Children.Add(card); host.Children.Add(ring);
         _paletteButtons[palette] = (card, check, ring);
         return host;

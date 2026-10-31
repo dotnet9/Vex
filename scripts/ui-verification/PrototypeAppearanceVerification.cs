@@ -134,11 +134,26 @@ internal static class PrototypeAppearanceVerification
         }
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Workbench.ShowTypography = false;
         var combinations = 0;
+        var appearanceMenu = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
+        appearanceMenu.AppearanceButton.Flyout!.ShowAt(appearanceMenu.AppearanceButton);
+        Render();
         foreach (var palette in vm.Appearance.PaletteOptions)
         foreach (var mode in new[] { "light", "dark" })
         {
             vm.Appearance.SelectedPalette = palette; vm.Appearance.SelectThemeByKey(mode); Render();
             var variant = mode == "light" ? ThemeVariant.Light : ThemeVariant.Dark;
+            var palettePreview = appearanceMenu.MenuContent.GetVisualDescendants().OfType<UserControl>()
+                .Single(control => control.Classes.Contains("palette-preview") && Equals(control.Tag, palette.Key));
+            var colors = mode == "light" ? palette.Definition.Light : palette.Definition.Dark;
+            var previewFrame = (Border)palettePreview.Content!;
+            var previewGrid = (Grid)previewFrame.Child!;
+            var previewSample = (StackPanel)previewGrid.Children[1];
+            Check(palettePreview.Height == 38 && previewFrame.CornerRadius == new CornerRadius(4)
+                && ((ISolidColorBrush)previewFrame.Background!).Color == Color.Parse(colors.Paper)
+                && ((ISolidColorBrush)((Border)previewGrid.Children[0]).Background!).Color == Color.Parse(colors.Surface)
+                && ((ISolidColorBrush)((TextBlock)previewSample.Children[0]).Foreground!).Color == Color.Parse(colors.Ink)
+                && ((ISolidColorBrush)((Border)previewSample.Children[1]).Background!).Color == Color.Parse(colors.Accent),
+                "Palette miniature keeps its 38px paper/sidebar/ink/accent preview at " + palette.Key + "/" + mode);
             Check(gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true).All(card =>
             {
                 var quote = card.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Classes.Contains("typography-preview-quote"));
@@ -173,6 +188,7 @@ internal static class PrototypeAppearanceVerification
                 combinations++;
             }
         }
+        appearanceMenu.AppearanceButton.Flyout.Hide();
         Check(combinations == 234, "234 native palette/mode/typography combinations retain readable body, links, quotes and headings");
         vm.Appearance.SelectPaletteByKey("indigo"); vm.Appearance.SelectThemeByKey("light");
         var current = app.Resolve<IWorkspaceDocumentState>().Markdown;

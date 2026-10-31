@@ -198,6 +198,9 @@
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusMd}" />
   </Style>
+  <Style Selector="FlyoutPresenter /template/ Border#LayoutRoot">
+    <Setter Property="BoxShadow" Value="{DynamicResource VexPopShadow}" />
+  </Style>
   <Style Selector="FlyoutPresenter, Border.wb-popover">
     <Setter Property="motion:EntranceMotion.OffsetY" Value="-4"/>
     <Setter Property="motion:EntranceMotion.InitialScale" Value=".985"/>
