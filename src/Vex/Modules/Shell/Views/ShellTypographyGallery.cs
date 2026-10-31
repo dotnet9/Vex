@@ -156,7 +156,7 @@ public sealed class ShellTypographyGallery : UserControl
         body.Children.Add(BuildAddCard());
 
         // 右侧预留约 15px 滚动条槽（原型 scrollbar-gutter:stable），保证四列卡宽 ~161。
-        _scroll = new ScrollViewer { Classes = { "typography-grid" }, Content = body, Padding = new Thickness(2, 2, 14, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
+        _scroll = new ScrollViewer { Classes = { "typography-grid" }, Content = body, Padding = new Thickness(2, 2, 14, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Hidden, VerticalAlignment = VerticalAlignment.Stretch };
         var layout = new Grid { RowDefinitions = new("Auto,*") };
         layout.Children.Add(densityFrame); Grid.SetRow(_scroll, 1); layout.Children.Add(_scroll);
         // 原型 .typography-popover 实测吃浮层一档（14 内距、8 圆角、--shadow-pop 双层），
