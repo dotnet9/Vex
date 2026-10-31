@@ -30,9 +30,9 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
     private const string UiSetThemeSchema = """{"type":"object","properties":{"themeKey":{"type":"string","enum":["system","light","dark"]}},"required":["themeKey"],"additionalProperties":false}""";
     private const string UiSetTypographySchema = """{"type":"object","properties":{"typographyKey":{"type":"string"}},"required":["typographyKey"],"additionalProperties":false}""";
     private const string UiSetLanguageSchema = """{"type":"object","properties":{"cultureName":{"type":"string","enum":["zh-CN","zh-Hant","en-US","ja-JP"]}},"required":["cultureName"],"additionalProperties":false}""";
-    private const string UiSetLayoutSchema = """{"type":"object","properties":{"sidebarVisible":{"type":"boolean"},"statusBarVisible":{"type":"boolean"},"previewVisible":{"type":"boolean"},"sourceMode":{"type":"boolean"},"lineNumbersVisible":{"type":"boolean"},"compactLayout":{"type":"boolean"}},"additionalProperties":false}""";
+    private const string UiSetLayoutSchema = """{"type":"object","properties":{"sidebarVisible":{"type":"boolean"},"previewVisible":{"type":"boolean"},"sourceMode":{"type":"boolean"},"lineNumbersVisible":{"type":"boolean"},"compactLayout":{"type":"boolean"}},"additionalProperties":false}""";
     private const string UiShowSidebarTabSchema = """{"type":"object","properties":{"tab":{"type":"string","enum":["files","outline"]}},"required":["tab"],"additionalProperties":false}""";
-    private const string UiOpenPanelSchema = """{"type":"object","properties":{"panel":{"type":"string","enum":["find","replace","properties","wordCount","mcpSettings","changelog","thanks","about"]}},"required":["panel"],"additionalProperties":false}""";
+    private const string UiOpenPanelSchema = """{"type":"object","properties":{"panel":{"type":"string","enum":["find","replace","mcpSettings","changelog","thanks","about"]}},"required":["panel"],"additionalProperties":false}""";
     private const string UiApplyEditorCommandSchema = """{"type":"object","properties":{"command":{"type":"string","enum":["undo","redo","copy","selectAll","paragraph","heading1","heading2","heading3","bold","italic","inlineCode","link","image","quote","orderedList","unorderedList","taskList","codeFence","mathBlock","table","horizontalRule","clearFormatting"]}},"required":["command"],"additionalProperties":false}""";
     private const string ExportCurrentDocumentSchema = """{"type":"object","properties":{"format":{"type":"string","enum":["HTML","PDF","PNG","Word"]}},"required":["format"],"additionalProperties":false}""";
     private const string CopyRenderedHtmlSchema = """{"type":"object","properties":{"target":{"type":"string","enum":["wechat","zhihu","juejin"]}},"required":["target"],"additionalProperties":false}""";
@@ -689,8 +689,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             _shell.Navigation.SelectedSideTabIndex == 1 ? "outline" : "files",
             _shell.Layout.IsPreviewVisible,
             _shell.Layout.IsSourceMode,
-            _shell.EditorDisplay.ShowLineNumbers,
-            _shell.Layout.IsStatusBarVisible);
+            _shell.EditorDisplay.ShowLineNumbers);
     }
 
     private OperationResult SetTheme(UiSetThemeInput input)
@@ -718,10 +717,6 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             _shell.Layout.IsSidebarVisible = sidebar;
         }
 
-        if (input.StatusBarVisible is { } statusBar)
-        {
-            _shell.Layout.IsStatusBarVisible = statusBar;
-        }
 
         if (input.PreviewVisible is { } preview)
         {
@@ -770,12 +765,6 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
                 break;
             case "replace":
                 _shell.ShowReplacePanel();
-                break;
-            case "properties":
-                _shell.ShowProperties();
-                break;
-            case "wordcount":
-                _shell.WordCount();
                 break;
             case "changelog":
                 await _shell.Help.OpenHelpTopic("changelog");

@@ -46,11 +46,7 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
         return confirmed;
     }
 
-    public Task ShowPropertiesAsync(object dataContext) =>
-        ShowAsync(new ShellPropertiesOverlayView(), dataContext);
 
-    public Task ShowStatisticsAsync(object dataContext) =>
-        ShowAsync(new ShellStatisticsOverlayView(), dataContext);
 
     public async Task ShowAboutAsync()
     {

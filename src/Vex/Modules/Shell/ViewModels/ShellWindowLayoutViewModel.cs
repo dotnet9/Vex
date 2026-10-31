@@ -17,7 +17,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private readonly IAppSettingsStore _settingsStore;
     private readonly IShellStatusPublisher _statusPublisher;
     private bool _isSidebarVisible = true;
-    private bool _isStatusBarVisible = true;
     private bool _isPreviewVisible = true;
     private bool _isAlwaysOnTop;
     private WindowState _windowState;
@@ -28,7 +27,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _isFocusMode;
     private bool _isTypewriterMode;
     private bool? _sidebarVisibleBeforeFocus;
-    private bool? _statusBarVisibleBeforeFocus;
     private double _sidebarWidth = DefaultSidebarWidth;
     private bool _isSidebarResizing;
     private bool _isOutlineVisible;
@@ -73,7 +71,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _statusPublisher = statusPublisher;
         var settings = _settingsStore.Current;
         _isSidebarVisible = settings.IsSidebarVisible ?? true;
-        _isStatusBarVisible = settings.IsStatusBarVisible ?? true;
         _isPreviewVisible = settings.IsPreviewVisible ?? true;
         _isSourceMode = settings.IsSourceMode ?? true;
         _isAlwaysOnTop = settings.IsAlwaysOnTop ?? false;
@@ -88,9 +85,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         if (_isFocusMode)
         {
             _sidebarVisibleBeforeFocus = true;
-            _statusBarVisibleBeforeFocus = true;
             _isSidebarVisible = false;
-            _isStatusBarVisible = false;
         }
     }
 
@@ -119,20 +114,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _sidebarAnimator.Animate(widthBefore, SidebarTargetWidth, MotionResources.Mid);
         NotifyOutlineLayout();
         if (persist) PersistLayoutSettings();
-    }
-
-    public bool IsStatusBarVisible
-    {
-        get => _isStatusBarVisible;
-        set
-        {
-            if (SetProperty(ref _isStatusBarVisible, value))
-            {
-                OnPropertyChanged(nameof(ShowStatusBar));
-                OnPropertyChanged(nameof(ShowDocumentTools));
-                PersistLayoutSettings();
-            }
-        }
     }
 
     public bool IsPreviewVisible
@@ -190,7 +171,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public double MinimumVisibleSidebarWidth => ShowSidebar && _sidebarAnimator.Value is null ? MinSidebarWidth : 0;
     public double MaximumVisibleSidebarWidth => ShowSidebar || _sidebarAnimator.Value is not null ? MaxSidebarWidth : 0;
     public bool ShowSidebar => IsSidebarVisible && !IsPresentationMode;
-    public bool ShowStatusBar => IsStatusBarVisible && !IsPresentationMode;
     public bool ShowDocumentTools => !IsFocusMode && !IsPresentationMode;
 
     /// <summary>原型 .split-handle：分屏比例限 20%–80%，键盘方向键每次走 5%。</summary>
@@ -287,7 +267,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         {
             if (!SetProperty(ref _isPresentationMode, value)) return;
             NotifyOutlineLayout();
-            foreach (var name in new[] { nameof(ShowSidebar), nameof(ShowStatusBar), nameof(ShowDocumentTools), nameof(SidebarColumnWidth), nameof(VisibleSidebarWidth), nameof(SidebarSplitterWidth), nameof(MinimumVisibleSidebarWidth), nameof(MaximumVisibleSidebarWidth) }) OnPropertyChanged(name);
+            foreach (var name in new[] { nameof(ShowSidebar), nameof(ShowDocumentTools), nameof(SidebarColumnWidth), nameof(VisibleSidebarWidth), nameof(SidebarSplitterWidth), nameof(MinimumVisibleSidebarWidth), nameof(MaximumVisibleSidebarWidth) }) OnPropertyChanged(name);
         }
     }
 
@@ -331,7 +311,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     }
 
     /// <summary>
-    /// 专注模式：隐藏侧栏与状态栏（保留标题栏），退出时恢复进入前的可见性。
+    /// 专注模式：隐藏侧栏与文档工具（保留标题栏），退出时恢复进入前的可见性。
     /// </summary>
     public bool IsFocusMode
     {
@@ -347,24 +327,19 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             {
                 _outlineBeforeFocus = IsOutlineVisible;
                 _sidebarVisibleBeforeFocus = IsSidebarVisible;
-                _statusBarVisibleBeforeFocus = IsStatusBarVisible;
                 _isSidebarVisible = false;
-                _isStatusBarVisible = false;
             }
             else
             {
                 _isOutlineVisible = _outlineBeforeFocus ?? true;
                 _isSidebarVisible = _sidebarVisibleBeforeFocus ?? true;
-                _isStatusBarVisible = _statusBarVisibleBeforeFocus ?? true;
             }
 
             OnPropertyChanged(nameof(IsSidebarVisible));
             OnPropertyChanged(nameof(IsOutlineVisible));
             OnPropertyChanged(nameof(ShowSidebar));
-            OnPropertyChanged(nameof(ShowStatusBar));
             OnPropertyChanged(nameof(ShowDocumentTools));
             NotifyOutlineLayout();
-            OnPropertyChanged(nameof(IsStatusBarVisible));
             OnPropertyChanged(nameof(SidebarColumnWidth));
             OnPropertyChanged(nameof(SidebarSplitterWidth));
             OnPropertyChanged(nameof(VisibleSidebarWidth));
@@ -479,11 +454,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         IsPreviewVisible = !IsPreviewVisible;
     }
 
-    public void ToggleStatusBar()
-    {
-        IsStatusBarVisible = !IsStatusBarVisible;
-    }
-
     public void ToggleSourceMode()
     {
         // 源代码模式现在只控制源码编辑面板，不再联动侧边栏或预览面板。
@@ -524,7 +494,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _settingsStore.Update(settings => settings with
         {
             IsSidebarVisible = IsSidebarVisible,
-            IsStatusBarVisible = IsStatusBarVisible,
             IsPreviewVisible = IsPreviewVisible,
             IsSourceMode = IsSourceMode,
             IsAlwaysOnTop = IsAlwaysOnTop,

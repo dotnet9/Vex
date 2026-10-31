@@ -1,4 +1,4 @@
-﻿using CodeWF.Toolkit.Files.Helpers;
+using CodeWF.Toolkit.Files.Helpers;
 using Vex.Core.Models;
 
 namespace Vex.Core.Services;
@@ -14,7 +14,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string CultureName = nameof(AppSettings.CultureName);
     private const string IsSidebarVisible = nameof(AppSettings.IsSidebarVisible);
     private const string SidebarWidth = nameof(AppSettings.SidebarWidth);
-    private const string IsStatusBarVisible = nameof(AppSettings.IsStatusBarVisible);
     private const string IsPreviewVisible = nameof(AppSettings.IsPreviewVisible);
     private const string IsSourceMode = nameof(AppSettings.IsSourceMode);
     private const string IsAlwaysOnTop = nameof(AppSettings.IsAlwaysOnTop);
@@ -186,7 +185,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
             CultureName = Get<string>(configuration, CultureName),
             IsSidebarVisible = Get<bool?>(configuration, IsSidebarVisible),
             SidebarWidth = Get<double?>(configuration, SidebarWidth),
-            IsStatusBarVisible = Get<bool?>(configuration, IsStatusBarVisible),
             IsPreviewVisible = Get<bool?>(configuration, IsPreviewVisible),
             IsSourceMode = Get<bool?>(configuration, IsSourceMode),
             IsAlwaysOnTop = Get<bool?>(configuration, IsAlwaysOnTop),
@@ -283,7 +281,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [CultureName] = settings.CultureName,
                 [IsSidebarVisible] = settings.IsSidebarVisible,
                 [SidebarWidth] = settings.SidebarWidth,
-                [IsStatusBarVisible] = settings.IsStatusBarVisible,
                 [IsPreviewVisible] = settings.IsPreviewVisible,
                 [IsSourceMode] = settings.IsSourceMode,
                 [IsAlwaysOnTop] = settings.IsAlwaysOnTop,

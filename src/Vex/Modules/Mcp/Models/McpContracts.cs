@@ -83,7 +83,7 @@ public sealed record UiSetTypographyInput(string TypographyKey);
 
 public sealed record UiSetLanguageInput(string CultureName);
 
-public sealed record UiSetLayoutInput(bool? SidebarVisible, bool? StatusBarVisible, bool? PreviewVisible, bool? SourceMode, bool? LineNumbersVisible, bool? CompactLayout);
+public sealed record UiSetLayoutInput(bool? SidebarVisible, bool? PreviewVisible, bool? SourceMode, bool? LineNumbersVisible, bool? CompactLayout);
 
 public sealed record UiShowSidebarTabInput(string Tab);
 
@@ -124,8 +124,7 @@ public sealed record UiStateResult(
     string SelectedSidebarTab,
     bool IsPreviewVisible,
     bool IsSourceMode,
-    bool ShowLineNumbers,
-    bool IsStatusBarVisible);
+    bool ShowLineNumbers);
 
 public sealed record RenderedHtmlResult(string Html);
 

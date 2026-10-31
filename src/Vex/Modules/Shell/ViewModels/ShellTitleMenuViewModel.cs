@@ -77,7 +77,6 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
 
     public void SaveAllAsync() => Publish(ShellActionKind.SaveAll);
 
-    public void ShowProperties() => Publish(ShellActionKind.ShowProperties);
 
 
     public void OpenFileLocationAsync() => Publish(ShellActionKind.OpenFileLocation);
@@ -118,7 +117,6 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
 
     public void ShowReplacePanel() => Publish(ShellActionKind.ShowReplacePanel);
 
-    public void WordCount() => Publish(ShellActionKind.WordCount);
 
     private void Publish(ShellActionKind action, string? parameter = null)
     {

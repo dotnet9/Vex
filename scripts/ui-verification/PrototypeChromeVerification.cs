@@ -36,6 +36,11 @@ internal static class PrototypeChromeVerification
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new MarkdownTextChangedCommand(
             documentState.Markdown, 1, 1, documentState.Markdown.Count(c => c == '\n') + 1));
         Dispatcher.UIThread.RunJobs();
+        var fileMenu = window.FindControl<ShellTitleMenuView>("TitleMenuView")!.FileMenuTarget;
+        Check(!fileMenu.Items.OfType<MenuItem>().Any(m => m.Header?.ToString() == app.Resolve<IAppLocalizer>().Get(Vex.VexL.MenuProperties) || m.Header?.ToString() == app.Resolve<IAppLocalizer>().Get(Vex.VexL.WordCount)),
+            "The retired properties action is absent from the file menu");
+        Check(!app.Resolve<ShellKeyboardShortcutViewModel>().HandleKeyDown(Key.Enter, KeyModifiers.Alt),
+            "Alt+Enter no longer opens a retired properties dialog");
         var original = vm.Markdown; var history = vm.Workbench.History.Capture();
         var layoutButton = window.Workspace.FindControl<Button>("EditorModeButton")!;
         var formats = window.Workspace.FindControl<ShellEditorOptionsView>("EditorOptions")!;

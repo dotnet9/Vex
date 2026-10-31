@@ -135,8 +135,6 @@ internal static class PopupLayoutVerification
         ((ShellAboutViewModel)about.DataContext!).Close(); Render();
         foreach (var (show, type, width, name) in new (Func<Task>, Type, double, string)[]
         {
-            (() => overlay.ShowPropertiesAsync(vm.DocumentInfo), typeof(ShellPropertiesOverlayView), 480, "properties"),
-            (() => overlay.ShowStatisticsAsync(vm.DocumentInfo), typeof(ShellStatisticsOverlayView), 480, "statistics"),
             (() => overlay.ConfirmDeleteAsync("确定要删除「读书摘录.md」吗？", "此操作会从磁盘永久删除该文件，且无法从回收站恢复。", @"D:\Notes\笔记\读书摘录.md"), typeof(ShellDeleteConfirmationOverlayView), 480, "delete")
         })
         {

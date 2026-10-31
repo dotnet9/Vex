@@ -13,9 +13,7 @@ public interface IShellOverlayService
     /// <summary>删除确认浮层；确认删除返回 true，取消/关闭返回 false。</summary>
     Task<bool> ConfirmDeleteAsync(string confirmationText, string warningText, string deletePath);
 
-    Task ShowPropertiesAsync(object dataContext);
 
-    Task ShowStatisticsAsync(object dataContext);
 
     Task ShowAboutAsync();
 

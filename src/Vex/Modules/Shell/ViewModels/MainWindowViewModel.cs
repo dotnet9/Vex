@@ -1021,7 +1021,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         await Task.CompletedTask;
     }
 
-    public void ShowProperties() => _documentUtilities.ShowProperties(DocumentInfo);
     public async Task Export(string? format)
     {
         _retryExportFormat = format;
@@ -1053,7 +1052,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _statusPublisher.PublishResource(VexL.StatusPreviewRefreshed);
     }
 
-    public void WordCount() => _documentUtilities.WordCount(DocumentInfo);
     public void ShowFindPanel() => FindBar.ShowFindPanel();
     /// <summary>图标栏设置入口：与 Ctrl+, 同一意图通道，偏好/MCP 不再重复挂在文件菜单。</summary>
     public void ShowPreferences() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.ShowPreferences));

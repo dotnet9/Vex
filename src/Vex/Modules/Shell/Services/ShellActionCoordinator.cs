@@ -94,9 +94,6 @@ public sealed class ShellActionCoordinator
                 case ShellActionKind.SaveAll:
                     await _shell.SaveAllAsync();
                     break;
-                case ShellActionKind.ShowProperties:
-                    _shell.ShowProperties();
-                    break;
                 case ShellActionKind.OpenFileLocation:
                     await _shell.OpenFileLocationAsync();
                     break;
@@ -123,9 +120,6 @@ public sealed class ShellActionCoordinator
                     break;
                 case ShellActionKind.ShowReplacePanel:
                     _shell.ShowReplacePanel();
-                    break;
-                case ShellActionKind.WordCount:
-                    _shell.WordCount();
                     break;
                 case ShellActionKind.ShowPreferences:
                     await _overlay.ShowPreferencesAsync(_preferences, command.Parameter ?? "general");

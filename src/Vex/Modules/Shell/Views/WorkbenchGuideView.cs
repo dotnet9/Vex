@@ -45,7 +45,6 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
     private string _savedView = "edit";
     private string _savedEdit = "instant";
     private bool _sidebar;
-    private bool _status;
     private bool _focus;
     private bool _mapSettings;
     private bool _typography;
@@ -122,7 +121,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         _savedLayouts = vm.Workbench.ShowLayouts;
         _savedView = vm.Workbench.View; _savedEdit = vm.Workbench.EditMode;
         _savedTypography = vm.Appearance.SelectedTypography;
-        _outline = vm.Layout.IsOutlineVisible; _sidebar = vm.Layout.IsSidebarVisible; _status = vm.Layout.IsStatusBarVisible; _focus = vm.Layout.IsFocusMode;
+        _outline = vm.Layout.IsOutlineVisible; _sidebar = vm.Layout.IsSidebarVisible; _focus = vm.Layout.IsFocusMode;
         _mapSettings = vm.Workbench.ShowMapSettings; _typography = vm.Workbench.ShowTypography;
         // 引导门控要高亮工具条内的入口，全程钉住三处工具条，避免目标悬浮隐藏成空高亮。
         var preferences = vm.Workbench.Preferences;
@@ -143,7 +142,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         vm.Workbench.ResetHistory();
         vm.Workbench.SummaryLength = 30; vm.Workbench.ShowParagraphs = true; vm.Workbench.ShowLists = true;
         vm.Workbench.ShowCode = false; vm.Workbench.ShowTables = false;
-        vm.Layout.IsFocusMode = false; vm.Layout.IsSidebarVisible = true; vm.Layout.IsStatusBarVisible = true;
+        vm.Layout.IsFocusMode = false; vm.Layout.IsSidebarVisible = true;
         vm.Appearance.PropertyChanged += AppearanceChanged;
         IsVisible = true;
         _card.Transitions = null;
@@ -324,7 +323,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
             return true;
         }
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key is Key.O or Key.N or Key.W or Key.P or Key.F or Key.H or Key.S) return true;
-        if (e.Key is Key.F6 or Key.F8 or Key.F11 || e.KeyModifiers.HasFlag(KeyModifiers.Alt) && e.Key == Key.Enter) return true;
+        if (e.Key is Key.F6 or Key.F8 or Key.F11) return true;
         var input = e.Source as Visual;
         var editing = input is TextBox or AvaloniaEdit.Editing.TextArea || input?.GetVisualAncestors().Any(view => view is TextBox or AvaloniaEdit.Editing.TextArea) == true;
         if (e.Key == Key.Escape && !editing) { Finish(); return true; }
@@ -357,7 +356,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         if (_history is { } history) _shellVm.Workbench.History.Restore(history);
         if (_floatingSession is { } floating) _window?.WorkspaceViews.RestoreFloating(floating);
         _floatingSession = null;
-        _shellVm.Layout.IsOutlineVisible = _outline; _shellVm.Layout.IsFocusMode = _focus; _shellVm.Layout.IsSidebarVisible = _sidebar; _shellVm.Layout.IsStatusBarVisible = _status;
+        _shellVm.Layout.IsOutlineVisible = _outline; _shellVm.Layout.IsFocusMode = _focus; _shellVm.Layout.IsSidebarVisible = _sidebar;
         if (_savedSettings is { } saved) _settings?.Update(_ => saved with { HasSeenOnboardingGuide = true });
         var window = _window;
         var mapState = _mapState;

@@ -69,16 +69,6 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
     public void PublishExternalFileChangedWithUnsavedEdits() =>
         PublishToast(VexL.StatusExternalFileChangedWithUnsavedEdits, NotificationType.Information);
 
-    public void PublishPropertiesSummary(
-        string title,
-        string state,
-        string encoding,
-        string size,
-        string location)
-    {
-        PublishFormat(VexL.StatusPropertiesSummaryFormat, title, state, encoding, size, location);
-    }
-
     public void PublishHtmlExportCanceled() => Publish(VexL.StatusHtmlExportCanceled);
 
     public void PublishExportedHtmlTo(string fileName) => PublishToast(VexL.StatusExportedHtmlToFormat, fileName);
@@ -111,16 +101,6 @@ public sealed class ShellDocumentWorkflowText : IShellDocumentWorkflowText
     public void PublishPrintPreviewResult(bool isCanceled)
     {
         Publish(isCanceled ? VexL.StatusPrintPreviewCanceled : VexL.StatusOpenedHtmlPrintPreview);
-    }
-
-    public void PublishStatisticsSummary(MarkdownStatistics statistics)
-    {
-        PublishFormat(
-            VexL.StatusStatisticsSummaryFormat,
-            statistics.Words,
-            statistics.Characters,
-            statistics.Lines,
-            statistics.ReadingMinutes);
     }
 
     public void PublishRecentFileUnavailable() => Publish(VexL.StatusRecentFileUnavailable);

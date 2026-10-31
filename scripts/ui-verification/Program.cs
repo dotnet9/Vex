@@ -261,11 +261,15 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
         "View menu holds exactly the prototype's nine entries: " + string.Join(" / ", viewRows));
     // 「工具」不再单列：字数统计与平台复制整块并入文件菜单；偏好/MCP 只走图标栏设置入口，菜单不再重复。
     var fileRows = titleMenu.FileMenuTarget.Items.OfType<MenuItem>().Select(Header).ToArray();
-    foreach (var key in new[] { Vex.VexL.WordCount, Vex.VexL.RefreshPreview, Vex.VexL.CopyToWechat,
+    foreach (var key in new[] { Vex.VexL.RefreshPreview, Vex.VexL.CopyToWechat,
         Vex.VexL.CopyToZhihu, Vex.VexL.CopyToJuejin })
         Check(fileRows.Contains(localizer.Get(key)), "File menu carries the merged tools entry: " + key);
     foreach (var key in new[] { Vex.VexL.Preferences, Vex.VexL.McpSettings, Vex.VexL.McpAudit })
         Check(!fileRows.Contains(localizer.Get(key)), "Settings entries stay out of the file menu (rail-only): " + key);
+    Check(!fileRows.Contains(localizer.Get(Vex.VexL.MenuProperties)) && !fileRows.Contains(localizer.Get(Vex.VexL.WordCount)),
+        "File menu omits retired properties and detailed statistics dialogs");
+    Check(!app.Resolve<ShellKeyboardShortcutViewModel>().HandleKeyDown(Key.Enter, KeyModifiers.Alt),
+        "Alt+Enter no longer opens a retired properties dialog");
     Check(titleMenu.FindControl<MenuItem>("ToolsMenuItem") is null, "The title bar no longer has a standalone tools menu");
     // 每轮复制到独立输出目录，保存路径回归不会污染测试输入或用户文档。
     var sampleFolder = Path.GetFullPath(Path.Combine(output, "..", "笔记"));
@@ -2297,11 +2301,10 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Vex.Modules.Shell.Views
     wb.ShowInstant();
     CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(heading.SourceLine)); Pump();
     Check(wb.IsInstantEditing && !source.IsEffectivelyVisible && vm.Markdown == document, "Outline navigation in instant mode scrolls without activating hidden source");
-    // ShowStatisticsAsync 的任务在浮层关闭后才完成，这里只触发并泵渲染。
-    _ = app.Resolve<ShellDocumentToolsViewModel>().ShowStatisticsAsync(); Pump();
-    Check(window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellStatisticsOverlayView>().Any(v => v.IsVisible),
-        "Status bar character count opens the statistics overlay");
-    window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Pump();
+    var count = window.Workspace.FindControl<Vex.Modules.Shell.Views.ShellDocumentToolsView>("DocumentTools")!
+        .FindControl<TextBlock>("DocumentWordCount")!;
+    Check(count.Text == vm.DocumentInfo.StatusWordCountText && count.Parent is Border { IsHitTestVisible: false },
+        "Floating word count is plain text without a statistics action");
     vm.Layout.IsOutlineVisible = false; Pump();
     var shell = (Vex.Modules.Shell.Views.MainWindow)window;
     shell.BeginOnboardingGuide(); Pump();
@@ -2691,7 +2694,7 @@ void VerifyEditingTools(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     {
         vm.Layout.CurrentWindowState = prior; Pump(); wb.StartPresentation(); Pump(); SettleRendering();
         Check(wb.IsPresenting && wb.IsReading && !toolbar.IsEffectivelyVisible
-            && !((CodeWF.Avalonia.Controls.Controls.CodeWFWindow)window).IsTitleBarVisible && vm.Layout.SidebarColumnWidth.Value == 0 && !vm.Layout.ShowStatusBar,
+            && !((CodeWF.Avalonia.Controls.Controls.CodeWFWindow)window).IsTitleBarVisible && vm.Layout.SidebarColumnWidth.Value == 0 && !vm.Layout.ShowDocumentTools,
             "Presentation hides chrome and editing controls without replacing the document: " + prior);
         Check(vm.Layout.CurrentWindowState == WindowState.FullScreen && vm.Markdown == "*alpha* beta", "Presentation uses the current Markdown in full screen");
         for (var i = 0; i < 30; i++) wb.IncreasePresentationText();

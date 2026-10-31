@@ -36,14 +36,7 @@ public interface IShellDocumentWorkflowText
 
     void PublishExternalFileChangedWithUnsavedEdits();
 
-    void PublishPropertiesSummary(
-        string title,
-        string state,
-        string encoding,
-        string size,
-        string location);
-
-    void PublishHtmlExportCanceled();
+void PublishHtmlExportCanceled();
 
     void PublishExportedHtmlTo(string fileName);
 
@@ -69,7 +62,6 @@ public interface IShellDocumentWorkflowText
 
     void PublishPrintPreviewResult(bool isCanceled);
 
-    void PublishStatisticsSummary(MarkdownStatistics statistics);
 
     void PublishRecentFileUnavailable();
 

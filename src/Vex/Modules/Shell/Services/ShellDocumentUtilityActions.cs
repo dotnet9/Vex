@@ -15,29 +15,15 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
     private readonly IMarkdownExportService _exportService;
     private readonly EditorPreferences _preferences;
     private readonly IShellDocumentWorkflowText _text;
-    private readonly IShellOverlayService _overlay;
 
     public ShellDocumentUtilityActions(
         IMarkdownExportService exportService,
         EditorPreferences preferences,
-        IShellDocumentWorkflowText text,
-        IShellOverlayService overlay)
+        IShellDocumentWorkflowText text)
     {
         _exportService = exportService;
         _preferences = preferences;
         _text = text;
-        _overlay = overlay;
-    }
-
-    public void ShowProperties(ShellDocumentInfoViewModel documentInfo)
-    {
-        _ = _overlay.ShowPropertiesAsync(documentInfo);
-        _text.PublishPropertiesSummary(
-            documentInfo.CurrentDocumentTitle,
-            documentInfo.DocumentStateText,
-            documentInfo.CurrentEncodingText,
-            documentInfo.PropertySizeText,
-            documentInfo.PropertyLocationText);
     }
 
     public async Task<bool> ExportAsync(DocumentSnapshot document, string markdown, string? format)
@@ -139,14 +125,6 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
         var path = await _exportService.OpenHtmlPrintPreviewAsync(document with { Markdown = markdown });
         _text.PublishPrintPreviewResult(path is null);
     }
-
-
-    public void WordCount(ShellDocumentInfoViewModel documentInfo)
-    {
-        _ = _overlay.ShowStatisticsAsync(documentInfo);
-        _text.PublishStatisticsSummary(documentInfo.Statistics);
-    }
-
 
 
     /// <summary>

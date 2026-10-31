@@ -52,33 +52,22 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
         {
             if (SetProperty(ref _statistics, value))
             {
-                OnPropertyChanged(nameof(WordCountText));
                 OnPropertyChanged(nameof(StatusWordCountText));
-                OnPropertyChanged(nameof(CharacterCountText));
-                OnPropertyChanged(nameof(LineCountText));
-                OnPropertyChanged(nameof(ReadingMinutesText));
             }
         }
     }
 
-    public string WordCountText => _localizer.Format(VexL.WordCountFormat, Statistics.Words);
 
-    // 状态栏沿用原型「字数 N」的排布，而不是信息面板的「N 词」。
+    // 悬浮字数沿用原型「字数 N」的排布。
     public string StatusWordCountText => $"{_localizer.Get(VexL.StatusWordCount)} {Statistics.Words}";
 
-    public string CharacterCountText => _localizer.Format(VexL.CharacterCountFormat, Statistics.Characters);
 
-    public string LineCountText => _localizer.Format(VexL.LineCountFormat, Statistics.Lines);
 
-    public string ReadingMinutesText => _localizer.Format(VexL.ReadingMinutesFormat, Statistics.ReadingMinutes);
 
     public string PropertyNameText => _document.FileName;
 
     public string PropertyLocationText => CurrentFilePath ?? _localizer.Get(VexL.UnsavedDocument);
 
-    public string PropertySizeText => CurrentFilePath is { Length: > 0 } path && File.Exists(path)
-        ? FormatFileSize(new FileInfo(path).Length)
-        : $"{Encoding.UTF8.GetByteCount(_markdown).ToString("N0", _localizer.Culture)} B";
 
     public void Refresh(
         DocumentSnapshot document,
@@ -103,7 +92,7 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
 
     private void RaiseDocumentStateChanged()
     {
-        // 刷新时一次性广播所有派生属性，避免调用方遗漏标题、属性面板或状态栏字段。
+        // 刷新时一次性广播所有派生属性，避免调用方遗漏标题和文档工具字段。
         OnPropertyChanged(nameof(WindowTitle));
         OnPropertyChanged(nameof(CurrentDocumentTitle));
         OnPropertyChanged(nameof(CurrentDocumentName));
@@ -116,29 +105,14 @@ public sealed class ShellDocumentInfoViewModel : ReactiveObject
         OnPropertyChanged(nameof(LineEndingText));
         OnPropertyChanged(nameof(PropertyNameText));
         OnPropertyChanged(nameof(PropertyLocationText));
-        OnPropertyChanged(nameof(PropertySizeText));
     }
 
     private void OnCultureChanged(object? sender, EventArgs e)
     {
         // 这些字段是从当前文档派生出来的展示文案，语言切换时必须主动通知绑定刷新。
         OnPropertyChanged(nameof(DocumentStateText));
-        OnPropertyChanged(nameof(WordCountText));
         OnPropertyChanged(nameof(StatusWordCountText));
-        OnPropertyChanged(nameof(CharacterCountText));
-        OnPropertyChanged(nameof(LineCountText));
-        OnPropertyChanged(nameof(ReadingMinutesText));
         OnPropertyChanged(nameof(PropertyLocationText));
-    }
-
-    private string FormatFileSize(long bytes)
-    {
-        return bytes switch
-        {
-            < 1024 => $"{bytes.ToString("N0", _localizer.Culture)} B",
-            < 1024 * 1024 => $"{(bytes / 1024d).ToString("N1", _localizer.Culture)} KB",
-            _ => $"{(bytes / 1024d / 1024d).ToString("N1", _localizer.Culture)} MB"
-        };
     }
 
     private static string GetEncodingDisplayName(Encoding encoding)

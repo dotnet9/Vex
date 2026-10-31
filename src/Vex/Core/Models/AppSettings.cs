@@ -1,4 +1,4 @@
-﻿namespace Vex.Core.Models;
+namespace Vex.Core.Models;
 
 public sealed record AppSettings
 {
@@ -42,7 +42,6 @@ public sealed record AppSettings
     public string? CollapsedFolders { get; init; }
     public string? CollapsedOutlineSections { get; init; }
 
-    public bool? IsStatusBarVisible { get; init; }
 
     public bool? IsPreviewVisible { get; init; }
 
