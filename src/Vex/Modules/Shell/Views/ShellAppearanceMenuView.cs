@@ -227,7 +227,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         // 重建时 _palettes 仍挂在上一版内容面板上，先摘除再入新树。
         if (_palettes.Parent is Panel previousHost) previousHost.Children.Remove(_palettes);
         content.Children.Add(_palettes);
-        _scroll = new ScrollViewer { Content = content, MaxHeight = 646, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+        _scroll = new ScrollViewer { Content = content, MaxHeight = 646, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Hidden };
         var appearanceFlyout = new Flyout { Content = _scroll, Placement = PlacementMode.BottomEdgeAlignedRight };
         appearanceFlyout.FlyoutPresenterClasses.Add("design-title-picker");
         appearanceFlyout.Opening += (_, _) => _scroll.MaxHeight = Math.Max(140, Math.Min(646, (TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 820) - 114));

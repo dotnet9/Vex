@@ -40,6 +40,7 @@ public partial class App : Application
         CodeWF.Avalonia.Markdown.Mermaid.CodeWFMarkdownMermaidExtensions.EnsureRegistered();
         CodeWF.Avalonia.Markdown.CodeWFMarkdownHtmlExtensions.UseHtmlTables();
         AvaloniaXamlLoader.Load(this);
+        DocumentPaletteResources.Register();
         var langPlugin = new JsonLangPlugin
         {
             ResourceFolder = ResolveI18nFolder()
