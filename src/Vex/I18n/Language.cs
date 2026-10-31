@@ -13,7 +13,6 @@ public static class VexL
     public static readonly string MenuMindMap = "Vex.VexL.MenuMindMap";
     public static readonly string MenuMermaid = "Vex.VexL.MenuMermaid";
     public static readonly string AppearanceModeTitle = "Vex.VexL.AppearanceModeTitle";
-    public static readonly string PaletteSelectionSummary = "Vex.VexL.PaletteSelectionSummary";
     public static readonly string WSInstantMapHint = "Vex.VexL.WSInstantMapHint";
     public static readonly string WSLayoutFooter = "Vex.VexL.WSLayoutFooter";
     public static readonly string UpdateDownloadComplete = "Vex.VexL.UpdateDownloadComplete";
@@ -598,7 +597,6 @@ public static class VexL
     public static readonly string WBExpand = "Vex.VexL.WBExpand";
     public static readonly string WBCollapse = "Vex.VexL.WBCollapse";
     public static readonly string WBTypographyTitle = "Vex.VexL.WBTypographyTitle";
-    public static readonly string WBTypographyHint = "Vex.VexL.WBTypographyHint";
     public static readonly string RenderDensityTitle = "Vex.VexL.RenderDensityTitle";
     public static readonly string WBToggleNavigation = "Vex.VexL.WBToggleNavigation";
     public static readonly string WBInstantDescription = "Vex.VexL.WBInstantDescription";
@@ -611,7 +609,6 @@ public static class VexL
     public static readonly string WBSummarySample = "Vex.VexL.WBSummarySample";
     public static readonly string WBHeadingNode = "Vex.VexL.WBHeadingNode";
     public static readonly string WBContentNode = "Vex.VexL.WBContentNode";
-    public static readonly string WBMapGestures = "Vex.VexL.WBMapGestures";
     public static readonly string WBSummaryPreview = "Vex.VexL.WBSummaryPreview";
     public static readonly string WBReset = "Vex.VexL.WBReset";
     public static readonly string WBWorkspace = "Vex.VexL.WBWorkspace";
@@ -711,7 +708,6 @@ public static class VexL
     public static readonly string WSDeleteChapter = "Vex.VexL.WSDeleteChapter";
     public static readonly string WSDeleteHint = "Vex.VexL.WSDeleteHint";
     public static readonly string WSKeepContent = "Vex.VexL.WSKeepContent";
-    public static readonly string WSMapGesture = "Vex.VexL.WSMapGesture";
     public static readonly string WSRepository = "Vex.VexL.WSRepository";
     public static readonly string WSHeadingLimit = "Vex.VexL.WSHeadingLimit";
     public static readonly string WSBodyHint = "Vex.VexL.WSBodyHint";
@@ -828,9 +824,6 @@ public static class VexL
     public static readonly string Appearance = "Vex.VexL.Appearance";
     public static readonly string ChoiceRecommended = "Vex.VexL.ChoiceRecommended";
     public static readonly string ChoiceCurrent = "Vex.VexL.ChoiceCurrent";
-    public static readonly string AllPalettes = "Vex.VexL.AllPalettes";
-    public static readonly string AllTypographies = "Vex.VexL.AllTypographies";
-    public static readonly string TypographyPreviewMarkdown = "Vex.VexL.TypographyPreviewMarkdown";
     public static readonly string PaletteGraphite = "Vex.VexL.PaletteGraphite";
     public static readonly string PalettePurposeGraphite = "Vex.VexL.PalettePurposeGraphite";
     public static readonly string PaletteTerracotta = "Vex.VexL.PaletteTerracotta";

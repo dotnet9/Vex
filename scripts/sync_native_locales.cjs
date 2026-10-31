@@ -4,15 +4,41 @@ const checkOnly=process.argv.includes('--check');
 const root=path.resolve(__dirname,'..'),context={document:{createElement:()=>({}),head:{append(){}}}};context.window=context;vm.createContext(context);
 for(const file of ['prototype/palettes.js','prototype/typography-catalog.js','prototype/desktop-resources.js','prototype/design-system.js'])vm.runInContext(fs.readFileSync(path.join(root,'design/assets',file),'utf8'),context);
 const paletteNames=Object.fromEntries(context.VexPalettes.map(p=>[p.key,p.key[0].toUpperCase()+p.key.slice(1)]));
-const palettePurposeEn=['Neutral · Value contrast','Classic blue · Everyday default','Cool teal · Fresh notes','Pine green · Calm focus','Sky blue · Open and clear','Warm amber · Long reading','Crimson · Vivid energy','Amethyst · Creative work','Terracotta · Ideas and notes'];
-const palettePurposeJa=['無彩色・明度の対比','定番の青・日常の既定','冷たい青緑・爽やかな記録','松の緑・落ち着いた集中','空の青・清朗で開放的','暖かな琥珀・長時間の読書','緋色・鮮やかな活力','紫水晶・創造的な整理','暖かな陶土・ひらめきの手記'];
-const purposeEn=['Work documents · Clear hierarchy','Everyday writing · Open spacing','Long reads · Book typography','Code handbooks · Monospace headings','Personal essays · Warm accents','Opinion pieces · Red underlines','Creative writing · Violet panels','Lifestyle columns · Warm panels','Technical documents · Structured sections','Cultural essays · Fine teal rules','Everyday notes · Gentle green','Editorial articles · Centered headings'];
-const purposeJa=['業務文書・明確な階層','日常の執筆・ゆとりある余白','長文の読書・明朝体','コード解説・等幅見出し','日常随筆・暖色の罫線','論説・朱色の下線','創作・紫の背景','生活コラム・暖色の背景','技術文書・明確な構造','文化随筆・青緑の細線','日々の記録・柔らかな緑','雑誌記事・中央見出し'];
+/* 英/日的「用途」行原型里没有对应字段（原型只写中文 note），这里按 key 逐条对照中文补齐。
+ * 必须按 key 取：目录顺序会变（新增 SoftSage 就插到了首位），按数组下标对齐会整列错位且看不出来。
+ * 缺条目直接抛错——宁可门禁红，也不要静默发出 undefined 标签。 */
+const palettePurpose={
+ graphite:{en:'Neutral · Value contrast',ja:'無彩色・明度の対比'},
+ indigo:{en:'Classic blue · Everyday default',ja:'定番の青・日常の既定'},
+ teal:{en:'Warm sage · Gentle writing',ja:'暖かなセージ・なめらかな執筆'},
+ pine:{en:'Pine green · Calm focus',ja:'松の緑・落ち着いた集中'},
+ sky:{en:'Sky blue · Open and clear',ja:'空の青・清朗で開放的'},
+ amber:{en:'Warm amber · Long reading',ja:'暖かな琥珀・長時間の読書'},
+ crimson:{en:'Crimson · Vivid energy',ja:'緋色・鮮やかな活力'},
+ violet:{en:'Amethyst · Creative work',ja:'紫水晶・創造的な整理'},
+ terracotta:{en:'Terracotta · Ideas and notes',ja:'暖かな陶土・ひらめきの手記'}
+};
+const typographyPurpose={
+ SoftSage:{en:'Gentle writing · Sage green',ja:'なめらかな執筆・セージグリーン'},
+ Basic:{en:'Work documents · Clear hierarchy',ja:'業務文書・明確な階層'},
+ Simple:{en:'Everyday writing · Open spacing',ja:'日常の執筆・ゆとりある余白'},
+ InkBlack:{en:'Long reads · Book typography',ja:'長文の読書・明朝体'},
+ GeekBlack:{en:'Code handbooks · Monospace headings',ja:'コード解説・等幅見出し'},
+ OrangeHeart:{en:'Personal essays · Warm accents',ja:'日常随筆・暖色の罫線'},
+ RedScarlet:{en:'Opinion pieces · Red underlines',ja:'論説・朱色の下線'},
+ ColorfulPurple:{en:'Creative writing · Violet panels',ja:'創作・紫の背景'},
+ Yamabuki:{en:'Lifestyle columns · Warm panels',ja:'生活コラム・暖色の背景'},
+ TechnologyBlue:{en:'Technical documents · Structured sections',ja:'技術文書・明確な構造'},
+ LanQing:{en:'Cultural essays · Fine teal rules',ja:'文化随筆・青緑の細線'},
+ TenderGreen:{en:'Everyday notes · Gentle green',ja:'日々の記録・柔らかな緑'},
+ WeChatFormat:{en:'Editorial articles · Centered headings',ja:'雑誌記事・中央見出し'}
+};
+const purposeOf=(table,kind,key)=>{const hit=table[key];if(!hit)throw new Error(`${kind}「${key}」缺英/日用途说明：在 scripts/sync_native_locales.cjs 的 ${kind}Purpose 表补一条（中文取自原型 note）。`);return hit;};
 const extra={
- 'zh-CN':{Appearance:'外观',ChoiceRecommended:'推荐',ChoiceCurrent:'当前',AllPalettes:'全部 9 套',AllTypographies:'全部 12 套',WBTypographyTitle:'正文排版',WBTypographyHint:'每张卡片展示独立效果。方向键浏览，点击或回车应用。',TypographyPreviewMarkdown:'# 文字的温度\n\n记录观察，整理思绪。\n\n## 让想法成形\n\n> 先写下来，再慢慢整理。'},
- 'zh-Hant':{Appearance:'外觀',ChoiceRecommended:'推薦',ChoiceCurrent:'目前',AllPalettes:'全部 9 套',AllTypographies:'全部 12 套',WBTypographyTitle:'正文排版',WBTypographyHint:'每張卡片展示獨立效果。方向鍵瀏覽，點擊或 Enter 套用。',TypographyPreviewMarkdown:'# 文字的溫度\n\n記錄觀察，整理思緒。\n\n## 讓想法成形\n\n> 先寫下來，再慢慢整理。'},
- 'en-US':{Appearance:'Appearance',ChoiceRecommended:'Recommended',ChoiceCurrent:'Current',AllPalettes:'All 9',AllTypographies:'All 12',WBTypographyTitle:'Article typography',WBTypographyHint:'Compare each style. Use arrow keys to browse; click or press Enter to apply.',TypographyPreviewMarkdown:'# The warmth of words\n\nObserve, record, and reflect.\n\n## Give ideas a shape\n\n> Write it down. Refine it later.'},
- 'ja-JP':{Appearance:'外観',ChoiceRecommended:'おすすめ',ChoiceCurrent:'選択中',AllPalettes:'全 9 種',AllTypographies:'全 12 種',WBTypographyTitle:'本文の組版',WBTypographyHint:'各スタイルを比較できます。矢印キーで移動し、クリックか Enter で適用。',TypographyPreviewMarkdown:'# ことばの温度\n\n観察を記録し、考えを整理。\n\n## 想いをかたちに\n\n> まず書き留め、少しずつ整える。'}
+ 'zh-CN':{Appearance:'外观',ChoiceRecommended:'推荐',ChoiceCurrent:'当前',WBTypographyTitle:'正文排版'},
+ 'zh-Hant':{Appearance:'外觀',ChoiceRecommended:'推薦',ChoiceCurrent:'目前',WBTypographyTitle:'正文排版'},
+ 'en-US':{Appearance:'Appearance',ChoiceRecommended:'Recommended',ChoiceCurrent:'Current',WBTypographyTitle:'Article typography'},
+ 'ja-JP':{Appearance:'外観',ChoiceRecommended:'おすすめ',ChoiceCurrent:'選択中',WBTypographyTitle:'本文の組版'}
 };
 const traditional=s=>s.replace(/[观记录写让温图体绿蓝细线书术简专栏报头圆页选开关应]/g,c=>({'观':'觀','记':'記','录':'錄','写':'寫','让':'讓','温':'溫','图':'圖','体':'體','绿':'綠','蓝':'藍','细':'細','线':'線','书':'書','术':'術','简':'簡','专':'專','栏':'欄','报':'報','头':'頭','圆':'圓','页':'頁','选':'選','开':'開','关':'關','应':'應'}[c]));
 const generated=[];let zhCnData=null;
@@ -100,10 +126,10 @@ for(const culture of Object.keys(extra)){
    ,DiagramEditHint: {'zh-CN':'Esc 或点击块外完成编辑','zh-Hant':'Esc 或點擊塊外完成編輯','en-US':'Press Esc or click outside the block to finish editing','ja-JP':'Esc またはブロック外クリックで編集を終了'}[culture]
    ,DiagramPreviewNote: {'zh-CN':'预览由渲染器出图；语法有误时保留源码显示。','zh-Hant':'預覽由渲染器出圖；語法有誤時保留原始碼顯示。','en-US':'The preview is drawn by the renderer; invalid syntax keeps the source visible.','ja-JP':'プレビューはレンダラーが描画します。構文エラーではソース表示を保持します。'}[culture]
  });
- context.VexPalettes.forEach((p,i)=>{const name=paletteNames[p.key];strings['Palette'+name]=culture==='zh-CN'?p.label:culture==='zh-Hant'?traditional(p.label):p.en;strings['PalettePurpose'+name]=culture.startsWith('zh')? (culture==='zh-Hant'?traditional(p.note):p.note):culture==='ja-JP'?palettePurposeJa[i]:palettePurposeEn[i];});
- context.VexTypes.forEach((t,i)=>{strings['Typography'+t.key]=culture==='zh-CN'?t.label:culture==='zh-Hant'?traditional(t.label):t.en;strings['TypographyPurpose'+t.key]=culture==='zh-CN'?t.note:culture==='zh-Hant'?traditional(t.note):culture==='ja-JP'?purposeJa[i]:purposeEn[i];});
- /* 规则 §9 定稿后只保留 12 套排版、9 套配色的标签；旧主题键随快照一起清除。 */
- const allowed=new Set(['PaletteSelectionSummary','Typography','TypographyPreviewMarkdown']);
+ context.VexPalettes.forEach(p=>{const name=paletteNames[p.key],purpose=purposeOf(palettePurpose,'配色',p.key);strings['Palette'+name]=culture==='zh-CN'?p.label:culture==='zh-Hant'?traditional(p.label):p.en;strings['PalettePurpose'+name]=culture==='zh-CN'?p.note:culture==='zh-Hant'?traditional(p.note):culture==='ja-JP'?purpose.ja:purpose.en;});
+ context.VexTypes.forEach(t=>{const purpose=purposeOf(typographyPurpose,'排版',t.key);strings['Typography'+t.key]=culture==='zh-CN'?t.label:culture==='zh-Hant'?traditional(t.label):t.en;strings['TypographyPurpose'+t.key]=culture==='zh-CN'?t.note:culture==='zh-Hant'?traditional(t.note):culture==='ja-JP'?purpose.ja:purpose.en;});
+ /* 目录里已删的旧主题键随快照一起清除，只保留生成器与原型认得的配色与排版标签。 */
+ const allowed=new Set(['Typography']);
  context.VexPalettes.forEach(p=>{allowed.add('Palette'+paletteNames[p.key]);allowed.add('PalettePurpose'+paletteNames[p.key]);});
  context.VexTypes.forEach(t=>{allowed.add('Typography'+t.key);allowed.add('TypographyPurpose'+t.key);});
  for(const key of Object.keys(strings)) if(/^(Palette|Typography)/.test(key)&&!allowed.has(key)) delete strings[key];
