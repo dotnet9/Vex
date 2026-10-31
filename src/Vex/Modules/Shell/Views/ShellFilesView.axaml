@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellFilesView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -256,18 +256,26 @@
     <Grid RowDefinitions="Auto,Auto,*,Auto">
         <!-- 对应原型 .panel-head（Vex.html:101「文件列表」）：通栏一行，标题落在搜索框之上。 -->
         <Border Classes="panel-head" Grid.Row="0">
-            <TextBlock Classes="panel-title" Text="{i18n:I18n {x:Static l:VexL.SidebarFilesList}}" />
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="panel-title" Text="{i18n:I18n {x:Static l:VexL.SidebarFilesList}}" />
+                <Button x:Name="CloseFilesButton" Grid.Column="1" Classes="panel-close" Click="ClosePanelClicked"
+                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.NavFilesCollapse}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NavFilesCollapse}}">
+                    <Path Classes="stroke-ico" Width="14" Height="14" Data="M6 6L18 18 M18 6L6 18" />
+                </Button>
+            </Grid>
         </Border>
         <!-- 对应原型 .sidebar-search（workbench.css:44 + workspace-chrome.css:339/387）：外距 14/12/12/12，
              本体即那枚 pill——1px control-border、内距 5×12、透明底；实测高 31.2 = 5+19.2+5+2。
              焦点单环配方（accent 边 + 3px 柔光 + 悬停混边）由 Grid.search-shell 共享样式驱动。 -->
-        <Grid Classes="search-shell" Grid.Row="1" Margin="12,14,12,12">
+        <Border Classes="panel-tools" Grid.Row="1">
+        <Grid Classes="search-shell" Height="28" VerticalAlignment="Center">
             <Border Classes="search-glow" />
             <Border
                 x:Name="FileSearchBox"
                 Classes="search-frame"
-                Padding="12,5">
-                <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" MinHeight="19" VerticalAlignment="Center">
+                Padding="10,0">
+                <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" MinHeight="0" VerticalAlignment="Center">
                     <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
                           VerticalAlignment="Center"
                           Data="M17 10A7 7 0 1 1 3 10A7 7 0 1 1 17 10 M15 15L22 22" />
@@ -296,6 +304,7 @@
             </Border>
             <Border Classes="search-hover" />
         </Grid>
+        </Border>
 
         <TreeView
             x:Name="FileTree"
@@ -421,7 +430,7 @@
                        Text="{i18n:I18n {x:Static l:VexL.FileListOverflowHint}}"/>
         </Border>
         <!-- 底部条（原型 .files-footer）：目录名占满剩余宽度，排序/视图两枚 26×26 按钮靠右，gap 2、内距 6×10、顶缘 1px 描线。 -->
-        <Border Grid.Row="3" Padding="10,6" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}">
+        <Border x:Name="FilesFooter" Grid.Row="3" Height="40" Padding="10,6" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}">
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="2">
                 <Button x:Name="SortFolderButton" Classes="files-folder" HorizontalContentAlignment="Stretch"
                         Flyout="{StaticResource SortFlyout}"

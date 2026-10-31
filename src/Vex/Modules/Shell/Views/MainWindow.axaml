@@ -1,4 +1,4 @@
-﻿<codewf:CodeWFWindow
+<codewf:CodeWFWindow
     x:Class="Vex.Modules.Shell.Views.MainWindow" x:Name="ShellWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
@@ -111,7 +111,7 @@
         <!-- 原型 .nav-rail：窗口级图标栏（文件/大纲/搜索/设置）取代块角折叠钮，铬面全高贴左缘。
              外层 Grid 承载图标栏，内层 WorkspaceColumns 的列号与拖动逻辑保持不变。 -->
 
-        <Grid Grid.Row="2" RowDefinitions="*,Auto" ColumnDefinitions="Auto,*">
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
             <!-- 原型 .workspace::before 叶纹装饰：穿越左柱与文件列表的鼠尾草叶纹，仅 sage 配色显示。 -->
             <Image x:Name="SageLeafDecoration" Source="avares://Vex/Assets/sage-leaf.png"
                    Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
@@ -154,7 +154,7 @@
                             </StackPanel>
                         </Button>
                     </StackPanel>
-                    <Button x:Name="RailSettingsButton" Classes="rail-item" DockPanel.Dock="Bottom"
+                    <Button x:Name="RailSettingsButton" Classes="rail-item rail-bottom" DockPanel.Dock="Bottom"
                             HorizontalAlignment="Center"
                             Command="{Binding ShowPreferences}"
                             helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.PreferencesTitle}}"
@@ -281,10 +281,9 @@
 
         </Grid>
 
-            <!-- 原型 .window-body>.document-statusbar（workspace-chrome.css:538）：窗口级通栏占位行，
-                 28px 高、上缘发丝线、铬面底，随 window-body 横贯整窗（跨图标栏与五列工作区）；
-                 focus/presentation 隐藏规则由 ShowStatusBar 承担。 -->
-            <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ZIndex="34" />
+            <!-- 文档工具悬浮在右下角，不占用正文布局行。 -->
+            <shell:ShellStatusBarView x:Name="StatusBarGuideTarget" Grid.ColumnSpan="2" ZIndex="34"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12,0,12,8" />
         </Grid>
 
         <!-- 原型 .vex-deck header：与正常标题条同高（令牌 app-titlebar-height 33px），面板底色 + 1px 底边；

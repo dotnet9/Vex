@@ -52,26 +52,24 @@ internal static class PrototypeChromeVerification
             // 后面的浮层几何全都按展开态量，不抬回来就会被这次收起一起带偏，所以此处显式复原并等动画走完。
             vm.Layout.IsSidebarVisible = true; LayoutSettle.Run(); Render();
             var statusChrome = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!;
-            var statusRow = statusChrome.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("document-statusbar"));
-            var wordCount = statusChrome.FindControl<Button>("StatisticsButton")!;
+            var statusRow = statusChrome.GetVisualDescendants().OfType<StackPanel>().First(b => b.Classes.Contains("document-tools"));
+            var wordCount = statusChrome.FindControl<TextBlock>("DocumentWordCount")!;
             var tabRow = window.FindControl<Border>("WorkspaceTabRow")!;
             var sourceSegment = window.FindControl<ToggleButton>("SourceSegment")!;
             var readSegment = window.FindControl<ToggleButton>("ReadSegment")!;
             var mapSegment = window.FindControl<ToggleButton>("MapSegment")!;
             var documentColumn = window.FindControl<Grid>("DocumentColumn")!;
-            // 原型这一轮将两件事分开了（实测 1440×900）：视图切换上移到 .workspace-tabrow（workspace-chrome.css:519，
-            // 36 高、0 8 内距、铬面底、下缘 1px 发丝，只横跨正文列），整窗 .document-statusbar（同文件 538）退成
-            // 28 高通栏占位行（上缘发丝、0 14 内距、右端缩放槽 + 字数）。悬浮胶囊配方已随原型退役。
             var tabRowOrigin = tabRow.TranslatePoint(default, documentColumn)!.Value;
             Check(Math.Abs(tabRow.Bounds.Width - documentColumn.Bounds.Width) < 1 && Math.Abs(tabRowOrigin.X) < 1 && Math.Abs(tabRowOrigin.Y) < 1
                 && tabRow.Bounds.Height == 36 && tabRow.BorderThickness == new Thickness(0, 0, 0, 1),
                 $"View tabs ride a 36px chrome row that spans the document column at {size.Width}: tabrow={tabRow.Bounds} origin={tabRowOrigin} column={documentColumn.Bounds}");
             var statusBottom = statusChrome.TranslatePoint(new Point(0, statusChrome.Bounds.Height), window)!.Value.Y;
-            // 通栏行贴的是窗体自描 1px 边框的内侧，故底距容差留到 1px。
-            Check(statusRow.Bounds.Height == 28 && statusRow.BorderThickness == new Thickness(0, 1, 0, 0)
-                && Math.Abs(statusBottom - window.ClientSize.Height) <= 1 && statusChrome.Bounds.Width > documentColumn.Bounds.Width
-                && wordCount.Bounds.Height == 20 && wordCount.TranslatePoint(new Point(wordCount.Bounds.Width, 0), statusRow)!.Value.X > statusRow.Bounds.Width * .6,
-                $"Status bar is a full-width 28px chrome row pinned to the window bottom with the word count at its right end at {size.Width}: row={statusRow.Bounds} bottom={statusBottom:0.#} client={window.ClientSize.Height} word={wordCount.Bounds}");
+            var statusRight = statusChrome.TranslatePoint(new Point(statusChrome.Bounds.Width, 0), window)!.Value.X;
+            Check(Math.Abs(window.ClientSize.Height - statusBottom - 8) <= 1
+                && Math.Abs(window.ClientSize.Width - statusRight - 12) <= 1
+                && statusChrome.Bounds.Width < documentColumn.Bounds.Width
+                && wordCount.Bounds.Height == 20 && wordCount.Parent is Border { IsHitTestVisible: false },
+                $"Document tools float 12px from the right and 8px from the bottom at {size.Width}: box={statusChrome.Bounds} bottom={statusBottom} right={statusRight}");
             // 原型 .workspace-tabs>button：64×35（36 行高减 1px 下缘）、0 10 内距、12px 字 + 14px 图标，
             // 选中态 = 正文色 + 底部 2px 下划线（左右各缩 8）；组合布局（即时编辑）三枚都不选中。
             Check(new[] { sourceSegment, readSegment, mapSegment }.All(t => Math.Abs(t.Bounds.Height - 35) < 1
@@ -131,6 +129,24 @@ internal static class PrototypeChromeVerification
             railOutline.Command!.Execute(null); Settle();
             Check(vm.Layout.IsOutlineVisible, "Rail outline toggle expands the outline pane again");
             CheckRail();
+            var filesPane = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
+            var outlinePane = window.GetVisualDescendants().OfType<ShellOutlineView>().Single();
+            var filesHead = filesPane.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("panel-head"));
+            var outlineHead = outlinePane.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("panel-head"));
+            Check(filesHead.Bounds.Height == 36 && outlineHead.Bounds.Height == 36
+                && Math.Abs(filesHead.TranslatePoint(default, window)!.Value.Y - tabRow.TranslatePoint(default, window)!.Value.Y) < 1
+                && Math.Abs(outlineHead.TranslatePoint(default, window)!.Value.Y - tabRow.TranslatePoint(default, window)!.Value.Y) < 1,
+                "Both sidebar headings align with the 36px view tabs");
+            foreach (var pane in new UserControl[] { filesPane, outlinePane })
+            {
+                var search = pane.GetVisualDescendants().OfType<Grid>().Single(g => g.Classes.Contains("search-shell"));
+                Check(search.Bounds.Height == 28, "Sidebar searches are 28px inside the toolbar row");
+            }
+            filesPane.FindControl<Button>("CloseFilesButton")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Settle();
+            Check(!vm.Layout.IsSidebarVisible && railFiles.IsFocused, "Closing files restores focus to its rail toggle");
+            railFiles.Command!.Execute(null); Settle();
+            outlinePane.FindControl<Button>("CloseOutlineButton")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Settle();
+            Check(!vm.Layout.IsOutlineVisible && railOutline.IsFocused, "Closing outline restores focus to its rail toggle");
             vm.Layout.IsOutlineVisible = false; Settle();
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "workspace-" + size.Width + ".png"));
             vm.Workbench.ShowLayouts = true; Render();
@@ -159,7 +175,7 @@ internal static class PrototypeChromeVerification
         var moreLeft = moreButton.TranslatePoint(default, footer)!.Value.X;
         var toggleRight = viewToggle.TranslatePoint(new Point(viewToggle.Bounds.Width, 0), footer)!.Value.X;
         Check(sortFolder.Classes.Contains("files-folder") && footerTools.Length == 2
-            && footer.BorderThickness == new Thickness(0, 1, 0, 0) && Math.Abs(footer.Bounds.Height - 39) < 1
+            && footer.BorderThickness == new Thickness(0, 1, 0, 0) && Math.Abs(footer.Bounds.Height - 40) < 1
             && Math.Abs(footerBottom - filesView.Bounds.Height) < 1
             && sortFolder.Bounds.Width > 60 && Math.Abs(folderRight + 2 - moreLeft) < 1
             && Math.Abs(viewToggle.Bounds.Width - 26) < 1 && Math.Abs(viewToggle.Bounds.Height - 26) < 1

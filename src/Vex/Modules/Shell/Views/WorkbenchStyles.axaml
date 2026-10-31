@@ -1,4 +1,4 @@
-﻿<Styles xmlns:behaviors="using:Vex.Core.Behaviors" xmlns:shell="using:Vex.Modules.Shell.Views" xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns:behaviors="using:Vex.Core.Behaviors" xmlns:shell="using:Vex.Modules.Shell.Views" xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- ===== 块状工作区（原型 workspace-chrome.css）：灰画布 + 圆角描边白块，外缘 10px、块间 4px ===== -->
   <!-- 原型组合布局的面板齐平拼贴（.view-panel radius 0 无描边、.view-split gap:1px bg=border）：
        块本体只保留面板底色，缝隙与描边一律由 1px 分栏线承担。 -->
@@ -68,10 +68,31 @@
        内距而不是外距：原型这一行本身通栏（实测 .panel-head 与 .sidebar 同宽 226、高 40.2 = 12+19.2+9），
        行高用 MinHeight 兜住，标题靠 VerticalAlignment 落在余量正中。 -->
   <Style Selector="Border.panel-head">
-    <Setter Property="MinHeight" Value="40" />
-    <Setter Property="Padding" Value="14,12,14,9" />
+    <Setter Property="Height" Value="36" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource VexHairlineBrush}" />
+  </Style>
+  <Style Selector="Border.panel-tools">
+    <Setter Property="Height" Value="36" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource VexHairlineBrush}" />
+  </Style>
+  <Style Selector="Button.panel-close">
+    <Setter Property="Width" Value="26" />
+    <Setter Property="Height" Value="26" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Padding" Value="6" />
+    <Setter Property="CornerRadius" Value="5" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
   <Style Selector="TextBlock.panel-title">
+    <Setter Property="LineHeight" Value="19.2" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
@@ -82,7 +103,7 @@
   <Style Selector="Border.nav-rail">
     <Setter Property="Width" Value="56" />
     <!-- 原型 .nav-rail（workspace-chrome.css:466）padding:10px 0：上下留白写在栏上，内部逐项 gap 4。 -->
-    <Setter Property="Padding" Value="0,10" />
+    <Setter Property="Padding" Value="0,10,0,0" />
     <Setter Property="Background" Value="{DynamicResource VexChromeBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource VexHairlineBrush}" />
     <Setter Property="BorderThickness" Value="0,0,1,0" />
@@ -103,6 +124,9 @@
     <Setter Property="FontWeight" Value="Normal" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.rail-item.rail-bottom">
+    <Setter Property="Height" Value="40" />
   </Style>
   <Style Selector="Button.rail-item TextBlock, ToggleButton.rail-item TextBlock">
     <Setter Property="LineHeight" Value="11" />

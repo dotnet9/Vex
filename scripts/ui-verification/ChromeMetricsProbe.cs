@@ -152,16 +152,16 @@ internal static class ChromeMetricsProbe
             Row(".workspace-viewswitch-more", ByName("EditorModeButton"));
             Row("#edit-options", ByName("EditorOptions"));
             Row(".format-button", In_(ByName("EditorOptions"), c => c.Classes.Contains("wb-format")));
-            Row(".document-statusbar", ByClass("document-statusbar"));
-            Row(".document-word-count", ByName("StatisticsButton"));
-            // 坞本体在原型里是 .statusbar-zoom 槽内的一枚 .vex-zoomdock，实现把槽与坞合一；
+            Row(".document-tools", ByClass("document-tools"));
+            Row(".document-word-count", ByClass("document-word-count"));
+            // 坞本体在原型里是 .document-zoom 槽内的一枚 .vex-zoomdock，实现把槽与坞合一；
             // 三行都量坞及其两个部件，比的是同一个可见物体。
             var zoomDock = window.GetVisualDescendants().OfType<Vex.Controls.VexZoomDock>()
                 .FirstOrDefault(d => d.IsEffectivelyVisible && d.Bounds.Width > 0);
-            Row(".statusbar-zoom", zoomDock);
-            Row(".statusbar-zoom .zoom-range", In_(zoomDock, c => c is Slider));
+            Row(".document-zoom", zoomDock);
+            Row(".document-zoom .zoom-range", In_(zoomDock, c => c is Slider));
             // Slider 模板里的增减钮也是 Button，取还原钮要按类名筛。
-            Row(".statusbar-zoom .zoom-reset", In_(zoomDock, c => c is Button && c.Classes.Contains("vex-zoom-reset")));
+            Row(".document-zoom .zoom-reset", In_(zoomDock, c => c is Button && c.Classes.Contains("vex-zoom-reset")));
             Row(".structure-sidebar", ByName("OutlineGuideTarget"));
             Row(".structure-search", In_(outlineView, c => c.Classes.Contains("search-shell")));
             Row(".structure-list", In_(outlineView, c => c is ListBox));

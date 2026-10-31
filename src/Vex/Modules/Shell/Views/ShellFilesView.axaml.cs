@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -14,6 +14,13 @@ namespace Vex.Modules.Shell.Views;
 
 public partial class ShellFilesView : UserControl
 {
+    private void ClosePanelClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (TopLevel.GetTopLevel(this) is not MainWindow window || window.DataContext is not MainWindowViewModel shell) return;
+        shell.Layout.ToggleSidebar();
+        window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailFilesToggle")?.Focus();
+    }
+
     public ShellFilesView()
     {
         InitializeComponent();

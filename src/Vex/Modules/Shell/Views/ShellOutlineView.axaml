@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellOutlineView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
@@ -28,13 +28,24 @@
         </DataTemplate>
     </UserControl.DataTemplates>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="36,36,*">
+        <Border Classes="panel-head" Grid.Row="0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="panel-title" Text="{i18n:I18n {x:Static l:VexL.SidebarOutline}}" />
+                <Button x:Name="CloseOutlineButton" Grid.Column="1" Classes="panel-close" Click="ClosePanelClicked"
+                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.NavOutlineCollapse}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NavOutlineCollapse}}">
+                    <Path Classes="stroke-ico" Width="14" Height="14" Data="M6 6L18 18 M18 6L6 18" />
+                </Button>
+            </Grid>
+        </Border>
         <!-- 对应原型 .structure-search（workspace-chrome.css:362）：外距 14/12/10/12，本体即那枚 pill，
              内距 5×12、实测高 31.2；焦点单环配方走 Grid.search-shell 共享样式。 -->
-        <Grid Classes="search-shell" Grid.Row="0" Margin="12,14,12,10">
+        <Border Classes="panel-tools" Grid.Row="1">
+        <Grid Classes="search-shell" Height="28" VerticalAlignment="Center">
             <Border Classes="search-glow" />
-            <Border Classes="search-frame" Padding="12,5">
-                <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" MinHeight="19" VerticalAlignment="Center">
+            <Border Classes="search-frame" Padding="10,0">
+                <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" MinHeight="0" VerticalAlignment="Center">
                     <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
                           VerticalAlignment="Center"
                           Data="M17 10A7 7 0 1 1 3 10A7 7 0 1 1 17 10 M15 15L22 22" />
@@ -63,10 +74,11 @@
             </Border>
             <Border Classes="search-hover" />
         </Grid>
+        </Border>
 
         <!-- 原型 .structure-list{padding:0 10px 18px;gap:1px}：列表内距与行间距都在这里给出。 -->
         <ListBox
-            Grid.Row="1"
+            Grid.Row="2"
             Classes="side-list"
             Padding="10,0,10,18"
             IsVisible="{Binding HasOutlineItems}"
@@ -75,7 +87,7 @@
             SelectedItem="{Binding SelectedOutlineItem, Mode=TwoWay}" />
         <!-- 原型 .outline-list .empty-state（workspace-chrome.css:412-413）：8px 强调色圆点 + 文案横排居中。 -->
         <StackPanel
-            Grid.Row="1"
+            Grid.Row="2"
             IsVisible="{Binding IsOutlineEmpty}"
             Margin="18"
             Orientation="Horizontal"
@@ -87,7 +99,7 @@
                        Text="{i18n:I18n {x:Static l:VexL.EmptyNoHeadings}}" />
         </StackPanel>
         <StackPanel
-            Grid.Row="1"
+            Grid.Row="2"
             IsVisible="{Binding IsFilterNoMatch}"
             Margin="18"
             Orientation="Horizontal"

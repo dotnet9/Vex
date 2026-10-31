@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -129,6 +129,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             if (SetProperty(ref _isStatusBarVisible, value))
             {
                 OnPropertyChanged(nameof(ShowStatusBar));
+                OnPropertyChanged(nameof(ShowDocumentTools));
                 PersistLayoutSettings();
             }
         }
@@ -190,6 +191,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     public double MaximumVisibleSidebarWidth => ShowSidebar || _sidebarAnimator.Value is not null ? MaxSidebarWidth : 0;
     public bool ShowSidebar => IsSidebarVisible && !IsPresentationMode;
     public bool ShowStatusBar => IsStatusBarVisible && !IsPresentationMode;
+    public bool ShowDocumentTools => !IsFocusMode && !IsPresentationMode;
 
     /// <summary>原型 .split-handle：分屏比例限 20%–80%，键盘方向键每次走 5%。</summary>
     public const double SplitRatioMin = .2, SplitRatioMax = .8, SplitRatioStep = .05;
@@ -285,7 +287,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         {
             if (!SetProperty(ref _isPresentationMode, value)) return;
             NotifyOutlineLayout();
-            foreach (var name in new[] { nameof(ShowSidebar), nameof(ShowStatusBar), nameof(SidebarColumnWidth), nameof(VisibleSidebarWidth), nameof(SidebarSplitterWidth), nameof(MinimumVisibleSidebarWidth), nameof(MaximumVisibleSidebarWidth) }) OnPropertyChanged(name);
+            foreach (var name in new[] { nameof(ShowSidebar), nameof(ShowStatusBar), nameof(ShowDocumentTools), nameof(SidebarColumnWidth), nameof(VisibleSidebarWidth), nameof(SidebarSplitterWidth), nameof(MinimumVisibleSidebarWidth), nameof(MaximumVisibleSidebarWidth) }) OnPropertyChanged(name);
         }
     }
 
@@ -360,6 +362,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
             OnPropertyChanged(nameof(IsOutlineVisible));
             OnPropertyChanged(nameof(ShowSidebar));
             OnPropertyChanged(nameof(ShowStatusBar));
+            OnPropertyChanged(nameof(ShowDocumentTools));
             NotifyOutlineLayout();
             OnPropertyChanged(nameof(IsStatusBarVisible));
             OnPropertyChanged(nameof(SidebarColumnWidth));
