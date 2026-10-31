@@ -1,4 +1,4 @@
-﻿/* 外观集中在折叠面板中，保留三态、八套配色、界面密度三档和语言入口。 */
+﻿/* 外观集中在折叠面板中，保留三态、九套内置配色、界面密度三档和语言入口。 */
 (function () {
   /* 推荐配色置顶（角标标识），其余按原顺序跟随。 */
   var palettes=[].concat(VexPalettes.filter(function(p){return p.recommended;}),VexPalettes.filter(function(p){return !p.recommended;})).map(function(p){return [p.key,p.label,Array.isArray(p.swatch)?p.swatch:[p.light]];});
