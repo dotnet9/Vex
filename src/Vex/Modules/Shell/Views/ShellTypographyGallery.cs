@@ -19,14 +19,13 @@ using static Vex.Modules.Shell.Views.DesignSelectionControls;
 
 namespace Vex.Modules.Shell.Views;
 
-/// <summary>正文排版弹层（对齐原型 #typography-panel）：标题 + 渲染密度分段条 + 4 列 3 行真实排版预览卡。</summary>
+/// <summary>正文排版弹层（对齐原型 #typography-panel）：渲染密度分段条 + 4 列真实排版预览卡，弹层自身不带标题。</summary>
 public sealed class ShellTypographyGallery : UserControl
 {
     private MainWindowViewModel? _vm;
     private readonly UniformGrid _cards = new() { Columns = 4, RowSpacing = 8, ColumnSpacing = 8 };
     private readonly Dictionary<TypographyOption, (Button Button, Border Ring, Border Badge, TextBlock BadgeText)> _items = [];
     private readonly Dictionary<string, Button> _densityPills = [];
-    private readonly StackPanel _header = new() { Spacing = 0 };
     private TopLevel? _window;
     private ScrollViewer? _scroll;
     private bool _typographyDialogBusy;
@@ -46,7 +45,8 @@ public sealed class ShellTypographyGallery : UserControl
     /// <summary>
     /// 原型卡片预览固定 15px 基准（渲染密度不作用于卡片：原型 .type-document 取 --writing-size 正常档），
     /// 标题/引用按真实排版渲染，说明行单独降到 12/18。
-    /// 三行 150.53 卡 + 8 间隙 + 44 新增条 = 543，落在弹层 680 - 标题 30 - 密度行 52 - 内距 36 的滚动区内。
+    /// 弹层 680 = 内距 28 + 密度行 52 + 滚动区 600；滚动区里 150.5 的卡加 8 间隙走满四行还剩余量，
+    /// 故 13 张卡 + 44 新增条按原型一样靠滚动查看，不压卡片高度。
     /// </summary>
     private const double CardHeight = 150.5;
 
@@ -115,25 +115,14 @@ public sealed class ShellTypographyGallery : UserControl
     {
         if (_vm is null) return;
         // 重建时字段级容器仍挂在上一版树上，先摘除再入新树。
-        if (_header.Parent is Panel oldHeaderHost) oldHeaderHost.Children.Remove(_header);
         if (_scroll is not null) _scroll.Content = null;
         // 网格与新增条同挂在重建的 body 下，摘掉旧父级才能再次入树。
         if (_cards.Parent is Panel oldBody) oldBody.Children.Remove(_cards);
-        _items.Clear(); _densityPills.Clear(); _cards.Children.Clear(); _header.Children.Clear();
+        _items.Clear(); _densityPills.Clear(); _cards.Children.Clear();
 
-        var titleRow = new Grid { ColumnDefinitions = new("*,Auto") };
-        var title = Label(Text("WBTypographyTitle"), 15); title.FontWeight = FontWeight.SemiBold; title.VerticalAlignment = VerticalAlignment.Center; titleRow.Children.Add(title);
-        var close = new Button { Classes = { "vex-dismiss" }, Width = 30, Height = 30 };
-        Avalonia.Automation.AutomationProperties.SetName(close, Text("Close"));
-        close.Click += (_, _) => { _vm.Workbench.ShowTypography = false; (_window as MainWindow)?.FindControl<ShellEditorOptionsView>("EditorOptions")?.FindControl<Button>("TypographyTarget")?.Focus(); };
-        Grid.SetColumn(close, 1); titleRow.Children.Add(close);
-        _header.Children.Add(titleRow);
-
-        // 渲染密度：原型 .typography-density .density-options.vex-segmented（max-width 320、gap 6、button{flex:1}、
-        // min-height 24×密度）——轨道、滑动指示块、选中字色走 Vex.Controls 共享配方，宿主只管宽度上限。
-        var densityRow = new Grid { ColumnDefinitions = new("Auto,*"), ColumnSpacing = 10 };
-        var densityLabel = new TextBlock { Text = Text("RenderDensityTitle"), FontSize = 13, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
-        Resource(densityLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush"); densityRow.Children.Add(densityLabel);
+        // 渲染密度：原型 .typography-density 里只有 .density-options.vex-segmented 一枚轨道（320×30，
+        // 距行顶 11、距发丝线 10），标题与「渲染密度」四个字都不存在——作用域只写进轨道的可访问名，
+        // 对应原型 aria-label="Markdown 渲染密度"。轨道、滑动指示块、选中字色走 Vex.Controls 共享配方。
         var segments = new SegmentedPanel { Spacing = 6, FillItems = true };
         foreach (var (key, labelKey) in new[] { ("compact", "DensityCompact"), ("normal", "DensityNormal"), ("relaxed", "DensityRelaxed") })
         {
@@ -143,12 +132,10 @@ public sealed class ShellTypographyGallery : UserControl
             pill.Click += (_, _) => _vm.Appearance.MarkdownDensity = captured;
             _densityPills[key] = pill; segments.Children.Add(pill);
         }
-        var pills = new Border { Classes = { "segmented-track", "density-options" }, Child = segments, Width = 320, MaxWidth = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
-        Grid.SetColumn(pills, 1);
-        densityRow.Children.Add(pills);
-        var densityFrame = new Border { Child = densityRow, BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(2, 9, 2, 11) };
+        var track = new Border { Classes = { "segmented-track", "density-options" }, Child = segments, Width = 320, MaxWidth = 320, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+        Avalonia.Automation.AutomationProperties.SetName(track, Text("RenderDensityTitle"));
+        var densityFrame = new Border { Child = track, BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(2, 11, 2, 10) };
         Resource(densityFrame, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
-        _header.Children.Add(densityFrame);
 
         foreach (var option in _vm.Appearance.TypographyOptions) _cards.Children.Add(BuildCard(option));
 
@@ -159,11 +146,11 @@ public sealed class ShellTypographyGallery : UserControl
 
         // 右侧预留约 15px 滚动条槽（原型 scrollbar-gutter:stable），保证四列卡宽 ~161。
         _scroll = new ScrollViewer { Content = body, Padding = new Thickness(2, 2, 15, 2), HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Stretch };
-        var grid = new Grid { RowDefinitions = new("Auto,*") };
-        grid.Children.Add(_header); Grid.SetRow(_scroll, 1); grid.Children.Add(_scroll);
-        // 原型 .typography-popover 无投影（appearance.css:2），回退 wb-popover 默认淡影；
-        // 此前叠加的加浓双投影会在左下圆角缺口里把状态胶囊圆头染暗，看起来像缺角。
-        var border = new Border { Classes = { "wb-popover", "flat" }, Child = grid, Padding = new Thickness(18), CornerRadius = new CornerRadius(16) };
+        var layout = new Grid { RowDefinitions = new("Auto,*") };
+        layout.Children.Add(densityFrame); Grid.SetRow(_scroll, 1); layout.Children.Add(_scroll);
+        // 原型 .typography-popover 实测吃浮层一档（14 内距、8 圆角、--shadow-pop 双层），
+        // 面/描边/圆角/投影都在 wb-popover 里，宿主只给内距。
+        var border = new Border { Classes = { "wb-popover" }, Child = layout, Padding = new Thickness(14) };
         Content = border;
         Resize(); Changed(null, new(""));
     }
@@ -174,14 +161,16 @@ public sealed class ShellTypographyGallery : UserControl
         var name = Text(option.NameKey);
         var purpose = Text(option.PurposeKey);
         var quote = Text("AboutShortSlogan");
+        // 原型 #typography-panel .type-swatch .type-document{--type-size:13px}：卡片预览钉死 13 基准，
+        // 不跟渲染密度档走（密度只作用于正文），否则同一张卡在三档下量出的字号不具可比性。
         var preview = new MarkdownViewer
         {
             Markdown = $"## {name}\n\n{purpose}\n\n> {quote}",
             TypographyTheme = option.Key,
             FontWeight = FontWeight.Normal,
-            TypographySize = MarkdownTypographySizes.Normal,
+            TypographySize = MarkdownTypographySizes.Compact,
             IsHitTestVisible = false,
-            Margin = new Thickness(11, 6),
+            Margin = new Thickness(11, 8),
             DocumentBottomPadding = 0,
             EnableVirtualization = false
         };
@@ -211,14 +200,16 @@ public sealed class ShellTypographyGallery : UserControl
         var paper = new Border { Child = preview, ClipToBounds = true, BorderThickness = new Thickness(0, 1, 0, 0), CornerRadius = new CornerRadius(0) };
         Resource(paper, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
         Resource(paper, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
-        var badgeText = new TextBlock { FontSize = 9, FontWeight = FontWeight.SemiBold, Foreground = Brushes.White };
+        // 原型 .palette-badge：600 10px/1、2px 4px 内距、--vex-radius-xs 圆角、距卡片右上角各 6。
+        var badgeText = new TextBlock { FontSize = 10, LineHeight = 10, FontWeight = FontWeight.SemiBold, Foreground = Brushes.White };
         var badge = new Border
         {
             Child = badgeText,
             HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(0, 5, 5, 0), Padding = new Thickness(4, 2),
-            CornerRadius = new CornerRadius(4), IsHitTestVisible = false
+            Margin = new Thickness(0, 6, 6, 0), Padding = new Thickness(4, 2),
+            IsHitTestVisible = false
         };
+        badge.Bind(Border.CornerRadiusProperty, this.GetResourceObservable("VexDensityCornerRadiusXs"));
         Resource(badge, Border.BackgroundProperty, this, "VexAccentBrush");
         // 原型选中态：accent 描边 + inset 0 0 0 1px accent，环压在卡片边缘内侧。
         var ring = new Border { BorderThickness = new Thickness(1), IsHitTestVisible = false };
@@ -282,25 +273,27 @@ public sealed class ShellTypographyGallery : UserControl
         return seen == 7;
     }
 
-    /// <summary>整行虚线「＋ 新增排版」条（原型 .typography-add：44 高、横向排布、占满网格宽度）。</summary>
     /// <summary>原型 #typography-panel 的卡片圆角档位（--vex-radius-md，随密度与圆角缩放）；
     /// 选中环压在描边内侧，半径与卡片同档。</summary>
     private IObservable<object?> CardRadius(double outset = 0) =>
         this.GetResourceObservable("VexDensityCornerRadiusMd").Select(value =>
             value is CornerRadius radius ? new CornerRadius(radius.TopLeft + outset) : (object?)value);
 
+    /// <summary>整行虚线「＋ 新增排版」条（原型 .typography-add：44 高、横向排布、占满网格宽度）。</summary>
     private Control BuildAddCard()
     {
         var stack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        // 原型 span{font-size:18px;line-height:1} + small{font-size:12px}。两行文字都不写前景，
+        // 交给 Button.palette-add-card 的 muted 与 :hover 的 accent 继承，整条才能一起变色（按钮主题会加 SemiBold，字重显式归位）。
         var plus = new TextBlock { Text = "＋", FontSize = 18, LineHeight = 18, VerticalAlignment = VerticalAlignment.Center };
-        // 按钮主题会给继承文本加 SemiBold；原型 .typography-add 文字为常规字重，显式归位。
-        var addLabel = new TextBlock { Text = Text("AddCustomTypography"), FontSize = 13, FontWeight = FontWeight.Normal, VerticalAlignment = VerticalAlignment.Center };
-        Resource(plus, TextBlock.ForegroundProperty, this, "VexMutedBrush"); Resource(addLabel, TextBlock.ForegroundProperty, this, "VexMutedBrush");
+        var addLabel = new TextBlock { Text = Text("AddCustomTypography"), FontSize = 12, FontWeight = FontWeight.Normal, VerticalAlignment = VerticalAlignment.Center };
         stack.Children.Add(plus);
         stack.Children.Add(addLabel);
-        // 虚线框画在卡片边缘本身（原型 .typography-add：1px dashed --border，圆角同样取 --vex-radius-lg）。
-        var dashRadius = CardRadius().Select(value => (object?)(value is CornerRadius radius ? radius.TopLeft : 10.0));
+        // 虚线框画在卡片边缘本身（原型 .typography-add：1px dashed --border，圆角取 --vex-radius-md）。
+        var dashRadius = CardRadius().Select(value => (object?)(value is CornerRadius radius ? radius.TopLeft : 8.0));
         var dash = new Avalonia.Controls.Shapes.Rectangle { StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 4, 3 }, StrokeThickness = 1, IsHitTestVisible = false };
+        // 悬浮换色的样式选择器按类名认这圈虚线（WorkbenchStyles 的 palette-add-card:pointerover）。
+        dash.Classes.Add("palette-add-dash");
         dash.Bind(Avalonia.Controls.Shapes.Rectangle.RadiusXProperty, dashRadius);
         dash.Bind(Avalonia.Controls.Shapes.Rectangle.RadiusYProperty, dashRadius);
         Resource(dash, Avalonia.Controls.Shapes.Shape.StrokeProperty, this, "VexPanelBorderBrush");
@@ -312,7 +305,7 @@ public sealed class ShellTypographyGallery : UserControl
         card.HorizontalAlignment = HorizontalAlignment.Stretch; card.VerticalAlignment = VerticalAlignment.Top;
         card.HorizontalContentAlignment = HorizontalAlignment.Stretch; card.VerticalContentAlignment = VerticalAlignment.Stretch;
         card.BorderThickness = new Thickness(0);
-        Resource(card, TemplatedControl.CornerRadiusProperty, this, "VexDensityCornerRadiusLg");
+        Resource(card, TemplatedControl.CornerRadiusProperty, this, "VexDensityCornerRadiusMd");
         card.Classes.Add("palette-add-card");
         return card;
     }

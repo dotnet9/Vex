@@ -32,7 +32,7 @@ internal static class PrototypeAppearanceVerification
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); }
         void Click(Button button) { button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render(); }
         if (OperatingSystem.IsWindows()) Check(chineseTypeface.FontFamily.Name == "Microsoft YaHei UI", "Chinese body text uses the system sans-serif fallback");
-        Check(vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.TypographyOptions.Count == 12, "Native catalog matches 9 palettes and 12 typography styles");
+        Check(vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.TypographyOptions.Count == 13, "Native catalog matches 9 palettes and 13 typography styles");
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("indigo"); vm.Appearance.SelectThemeByKey("light");
         Render();
         VerifyCustomizationDialogs(app, Check, Render);
@@ -40,9 +40,14 @@ internal static class PrototypeAppearanceVerification
         vm.Workbench.ShowTypography = true; Render();
         var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
         var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true).ToArray();
-        Check(cards.Length == 12 && cards.All(b => b.IsVisible), "All twelve typography cards are shown without a filter (prototype redesign)");
+        Check(cards.Length == 13 && cards.All(b => b.IsVisible), "All thirteen typography cards are shown without a filter (prototype redesign)");
         Check(cards.All(card => card.Content is Panel panel && panel.Children.OfType<Border>().First().Child is MarkdownViewer preview
             && preview.TypographyTheme == card.Name![11..]), "Each card renders its own typography key");
+        // 原型 #typography-panel 第一层只有密度行与网格：标题、关闭钮和「渲染密度」四个字都是实现自己加的，实测不存在；
+        // 密度作用域在原型里写进轨道的 aria-label，所以原生也只能有可访问名，不能有可见文字。
+        string I18nText(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
+        Check(gallery.GetVisualDescendants().OfType<TextBlock>().All(t => t.Text != I18nText(VexL.WBTypographyTitle) && t.Text != I18nText(VexL.RenderDensityTitle)),
+            "Panel shows no invented title or density-label text");
         var simple = cards.First(b => b.Name == "Typography_Simple"); simple.Focus();
         var selected = vm.Appearance.SelectedTypography;
         window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null); Render();
@@ -52,7 +57,7 @@ internal static class PrototypeAppearanceVerification
         window.Width = 1440; window.Height = 1000; Render();
         var addStrip = gallery.GetVisualDescendants().OfType<Button>().First(b => b.Name == "AddCustomTypography");
         var sourceDisplay = app.Resolve<IEditorDisplayState>();
-        // 原型 a1a9013：弹层尺寸不变，卡片区改 4 列 3 行（预览固定 13px 基准，卡高不随密度变），新增条降到 44px 整行。
+        // 原型 #typography-panel：弹层 720×680 不变，卡片区 4 列（13 张排满 4 行）、预览固定 13px 基准、卡高不随密度变，新增条 44px 整行。
         foreach (var density in new[] { "compact", "normal", "relaxed" })
         {
             vm.Appearance.MarkdownDensity = density; Render();
@@ -65,14 +70,15 @@ internal static class PrototypeAppearanceVerification
             var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
             var tops = cards.Select(c => Math.Round(c.TranslatePoint(default, scroll)!.Value.Y)).Distinct().ToArray();
             var lefts = cards.Select(c => Math.Round(c.TranslatePoint(default, scroll)!.Value.X)).Distinct().ToArray();
-            Check(tops.Length == 3 && lefts.Length == 4, $"Cards form 4 columns x 3 rows at {density}: {lefts.Length}x{tops.Length}");
-            Check(cards.All(card => Math.Abs(card.Bounds.Height - height) < 1), $"Cards are {height:0}px tall at {density}: " + string.Join(",", cards.Select(c => c.Bounds.Height.ToString("0.#"))));
+            Check(tops.Length == 4 && lefts.Length == 4, $"Cards form 4 columns x 4 rows at {density}: {lefts.Length}x{tops.Length}");
+            Check(cards.All(card => Math.Abs(card.Bounds.Height - height) < 1), $"Cards are {height:0}px tall at {density}: " + string.Join(",", cards.Select(c => Math.Round(c.Bounds.Height, 2))));
             Check(cards.Average(card => card.Bounds.Width) is > 150 and < 175, $"Narrow cards keep the prototype's ~161px width at {density}: " + cards[0].Bounds.Width.ToString("0.#"));
-            Check(scroll.Extent.Height <= scroll.Viewport.Height + 1, $"Card grid does not scroll at {density}: extent={scroll.Extent.Height:0.#}, viewport={scroll.Viewport.Height:0.#}");
-            var stripBottom = addStrip.TranslatePoint(new Point(0, addStrip.Bounds.Height), gallery)!.Value.Y;
-            var scrollBottom = scroll.TranslatePoint(new Point(0, scroll.Bounds.Height), gallery)!.Value.Y;
-            Check(addStrip.Bounds.Width > cards[0].Bounds.Width * 3 && stripBottom <= scrollBottom + 1,
-                $"Add strip spans the grid and stays fully visible at {density}: {addStrip.Bounds.Width:0.#}x{addStrip.Bounds.Height:0.#}, bottom={stripBottom:0.#}, scrollBottom={scrollBottom:0.#}, extent={scroll.Extent.Height:0.#}");
+            // 原型 13 张卡（4 行 602 + 间隙 32 + 新增条 44 = 678）超出 680 弹层里 598 的网格，最后一行落在折叠线下，
+            // 由网格自己滚（.typography-grid{overflow-y:auto;flex:1}），整块弹层不滚。
+            Check(scroll.Extent.Height > scroll.Viewport.Height + 1, $"Card grid scrolls like the prototype at {density}: extent={scroll.Extent.Height:0.#}, viewport={scroll.Viewport.Height:0.#}");
+            var stripBottom = addStrip.TranslatePoint(new Point(0, addStrip.Bounds.Height), scroll)!.Value.Y;
+            Check(addStrip.Bounds.Width > cards[0].Bounds.Width * 3 && stripBottom <= scroll.Extent.Height + 1,
+                $"Add strip spans the grid inside the scrollable area at {density}: {addStrip.Bounds.Width:0.#}x{addStrip.Bounds.Height:0.#}, bottom={stripBottom:0.#}, extent={scroll.Extent.Height:0.#}");
             // 原型 line-clamp：标题与说明各 1 行、引用 2 行，引用整行落在卡片内（不截断就会被挤出卡片）。
             bool InQuote(TextBlock t) => t.GetVisualAncestors().OfType<StyledElement>().Any(e => e.Classes.Contains("MdQuote"));
             Check(cards.All(card =>
@@ -92,7 +98,7 @@ internal static class PrototypeAppearanceVerification
                 $"Typography panel fits {size.Width}: gallery={gallery.Bounds}, margin={gallery.Margin}, client={window.ClientSize}");
             var scroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
             if (size.Width <= 800) Check(scroll.Viewport.Height > 50 && scroll.Extent.Height > scroll.Viewport.Height, $"Card area scrolls independently in a short window at {size.Width}: viewport={scroll.Viewport.Height:0.#}, extent={scroll.Extent.Height:0.#}, gallery={gallery.Bounds}");
-            else Check(scroll.Viewport.Height > 500, $"A laptop-height window shows nearly all three rows at {size.Width}: viewport={scroll.Viewport.Height:0.#}, extent={scroll.Extent.Height:0.#}, gallery={gallery.Bounds}");
+            else Check(scroll.Viewport.Height > 300 && scroll.Extent.Height > scroll.Viewport.Height, $"A laptop-height window caps the panel to 680 and lets the grid scroll the rest at {size.Width}: viewport={scroll.Viewport.Height:0.#}, extent={scroll.Extent.Height:0.#}, gallery={gallery.Bounds}");
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "typography-" + size.Width + "x" + size.Height + ".png"));
         }
         window.Width = startWidth; window.Height = startHeight; Render();
@@ -154,7 +160,7 @@ internal static class PrototypeAppearanceVerification
                 combinations++;
             }
         }
-        Check(combinations == 216, "216 native palette/mode/typography combinations retain readable body, links, quotes and headings");
+        Check(combinations == 234, "234 native palette/mode/typography combinations retain readable body, links, quotes and headings");
         vm.Appearance.SelectPaletteByKey("indigo"); vm.Appearance.SelectThemeByKey("light");
         var current = app.Resolve<IWorkspaceDocumentState>().Markdown;
         if (current != original)
