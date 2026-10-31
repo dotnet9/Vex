@@ -27,14 +27,14 @@
     }
   }
   /* 规则 §9 定稿的 12 套：原型目录只暴露这份名单，快照中的其余键不再进入选择器。 */
-  const recommendedTypes = ['Simple','InkBlack','TechnologyBlue','GeekBlack','OrangeHeart','WeChatFormat'];
+  const recommendedTypes = ['SoftSage','Simple','InkBlack','TechnologyBlue','GeekBlack','OrangeHeart','WeChatFormat'];
   const typeNotes = {
-    Basic:'工作文档 · 清晰层级',Simple:'日常写作 · 简洁留白',InkBlack:'长文阅读 · 书卷宋体',GeekBlack:'代码手册 · 等宽标题',
+    Basic:'工作文档 · 清晰层级',Simple:'日常写作 · 简洁留白',InkBlack:'长文阅读 · 书卷宋体',GeekBlack:'代码手册 · 等宽标题',SoftSage:'温润写作 · 鼠尾草绿',
     OrangeHeart:'生活随笔 · 暖橙边线',RedScarlet:'观点文章 · 朱红下划线',ColorfulPurple:'创意专栏 · 紫调浅底',
     Yamabuki:'生活专栏 · 山吹暖底',TechnologyBlue:'技术文档 · 条理分明',LanQing:'文化随笔 · 蓝青细线',
     TenderGreen:'日常记录 · 柔绿轻盈',WeChatFormat:'刊物文章 · 居中标题'
   };
-  const keptTypes = ['Basic','Simple','InkBlack','GeekBlack','OrangeHeart','RedScarlet','ColorfulPurple','Yamabuki','TechnologyBlue','LanQing','TenderGreen','WeChatFormat'];
+  const keptTypes = ['SoftSage','Basic','Simple','InkBlack','GeekBlack','OrangeHeart','RedScarlet','ColorfulPurple','Yamabuki','TechnologyBlue','LanQing','TenderGreen','WeChatFormat'];
   const originalRules=window.VexTypeRules;
   const typeTokens={};
   /* 用户自定义排版（数组，键 user-<id>）：用各自编写层双明暗值注册令牌，对比度校正照跑。 */

@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var items = VexTypes;
-  var state = { key: 'Simple', compact: false };
+  var state = { key: 'SoftSage', compact: false };
   /* 用户自定义排版（规则 §8/§13）：支持多个，存储为数组；卡上编辑/删除，"+"块新增，均走对话框。 */
   var customStore = 'vex-custom-typographics';
   var customs = [];
