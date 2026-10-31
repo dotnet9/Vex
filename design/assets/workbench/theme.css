@@ -745,9 +745,9 @@ a:hover { text-decoration: underline; }
 .md-body pre code { background: none; border: none; padding: 0; color: var(--fg); font-size: 12px; line-height: 1.7; }
 .md-body ul, .md-body ol { padding-left: 22px; margin: 8px 0; }
 .md-body li { margin: 3px 0; }
-.md-body table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size:12px; }
-.md-body th, .md-body td { border: 1px solid var(--border); padding: 5px 10px; text-align: left; }
-.md-body th { background: var(--code-bg); font-weight: 600; }
+.md-body table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size:12px; border-radius: 6px; overflow: hidden; }
+.md-body th, .md-body td { border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border)); padding: 6px 12px; text-align: left; }
+.md-body th { background: color-mix(in srgb, var(--accent) 8%, var(--surface, #fff)); font-weight: 600; color: var(--typography-accent); }
 .md-body hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 .md-body .task-list { list-style: none; padding-left: 4px; }
 .md-body .task { display: flex; align-items: flex-start; gap: 8px; }

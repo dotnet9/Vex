@@ -26,11 +26,11 @@
 .files-sort-item .sort-check{margin-left:auto;font-size:11px}
 /* 文件树/列表行：与原生 side-tree 同口径 —— 24px 行高、12px 字、12px 描边图标、16px 缩进、
    直角通栏 hover/选中底。密度档只作用于界面控件，不拉伸文件行（原生即固定值）。 */
-.file-list{padding:0 5px}
-.file-row{width:100%;height:24px;min-height:24px;display:flex;align-items:center;gap:6px;margin:0;padding:0 4px;border:0;border-radius:0;background:transparent;color:var(--fg);font-size:12px;line-height:24px;text-align:left}
-.file-row .ico{width:12px;height:12px;flex:none;color:var(--muted);stroke-width:1.4}
-.file-row:hover{background:var(--hover)}
-.file-row.selected,.file-row.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.file-list{padding:0 6px}
+.file-row{width:100%;height:28px;min-height:28px;display:flex;align-items:center;gap:7px;margin:0 0 1px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--fg);font-size:12.5px;line-height:28px;text-align:left}
+.file-row .ico{width:13px;height:13px;flex:none;color:var(--muted);stroke-width:1.4}
+.file-row:hover{background:var(--hover);border-radius:6px}
+.file-row.selected,.file-row.active{background:var(--accent-soft);color:var(--accent);font-weight:600;border-radius:6px}
 .file-row.selected .ico,.file-row.active .ico{color:var(--accent)}
 .file-row span{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .file-folder-tag{flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:11px}

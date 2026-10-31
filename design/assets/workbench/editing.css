@@ -36,10 +36,10 @@
 .typography-compact { display: flex; justify-content: space-between; font-size: 11px; padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--border); flex: none; }
 .typography-compact input { accent-color: var(--accent); }
 .content-area .md-body { line-height: 1.9; font-size: calc(var(--type-size, 16px) * var(--vex-writing-scale, 1)); }
-.content-area .md-body h1 { color: var(--fg); font-size: 26px; margin: 6px 0 10px; padding-bottom: 14px; }
-.content-area .md-body h2 { color: var(--typography-accent); margin: 26px 0 8px; }
+.content-area .md-body h1 { color: var(--fg); font-size: 26px; margin: 6px 0 10px; padding-bottom: 14px; text-align: center; border-bottom: 1.5px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.content-area .md-body h2 { color: var(--typography-accent); margin: 26px 0 8px; background: color-mix(in srgb, var(--accent) 7%, transparent); text-align: center; padding: 10px 0; border-radius: var(--vex-radius-sm, 4px); }
 .content-area .md-body h3 { color: var(--typography-accent); margin: 18px 0 7px; }
-.content-area .md-body blockquote { border-left-color: var(--typography-accent); background: color-mix(in srgb, var(--typography-accent) 6%, transparent); }
+.content-area .md-body blockquote { border-left-color: var(--typography-accent); background: color-mix(in srgb, var(--typography-accent) 7%, transparent); }
 /* 多余空行占位：每个空行补一行正文高度，保留作者疏密意图。 */
 .content-area .md-body .md-blank-gap { height: 1.6em; }
 .content-area .md-body .md-toc { display:flex; flex-direction:column; gap:2px; margin:16px 0 22px; padding:12px 14px; border-radius:var(--vex-radius-sm); background:var(--code-bg); border:1px solid var(--border); }

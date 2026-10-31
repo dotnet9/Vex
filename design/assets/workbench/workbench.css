@@ -33,7 +33,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .view-switch button[aria-selected="true"] { color: var(--accent); font-weight:600; }
 .work-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; flex: 1; justify-content: flex-end; }
 .save-button { display: flex; align-items: center; gap: 7px; }
-.workspace { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+.workspace { flex: 1; min-height: 0; display: flex; overflow: hidden; position: relative; }
+.workspace::before { content: ''; position: absolute; bottom: 0; left: 0; width: 280px; height: 380px; background: url('sage-leaf.png') no-repeat bottom left / contain; opacity: 0.4; pointer-events: none; z-index: 2; }
 .sidebar { width: 226px; flex: none; padding: 0; background: var(--panel); border-right: 1px solid var(--border); overflow: hidden; transition: width var(--vex-slow) var(--vex-ease), opacity var(--vex-duration); }
 .sidebar.closed { width: 0; opacity: 0; border: none; pointer-events: none; }
 .sidebar-inner { width: 225px; height: 100%; display: flex; flex-direction: column; }
