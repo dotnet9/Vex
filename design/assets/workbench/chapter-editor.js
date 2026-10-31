@@ -152,8 +152,6 @@
     updateHeadingToggle();
   };
   function updateHeadingToggle() { $('chapter-headings-only').setAttribute('aria-pressed', String(!W.settings.paragraphs && !W.settings.lists && !W.settings.blocks)); }
-  document.querySelector('.map-hint').textContent = '导图与正文同步 · 拖动会移动整节正文及子章节 · F 适应画布';
-  document.querySelector('.map-hint').title = '章节移动会同时移动正文和子章节；拖动画布空白处平移，Ctrl + 滚轮缩放；选中章节 Shift+Enter 折叠/展开分支，F 适应画布。';
   function showInspector(node) {
     selectedLine = node.line;
     if (node.kind !== 'heading' || node.level === 0) return;

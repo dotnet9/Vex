@@ -160,7 +160,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .map-collapse { position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 19px; height: 19px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); display: grid; place-items: center; border-radius: 50%; font: 11px/1 Consolas, monospace; }
 .map-collapse:hover { color: var(--accent); border-color: var(--accent); }
 /* 导图缩放控件的几何与配色统一走 .vex-zoomdock（prototype.css），此处不再另立配方。 */
-.map-hint { position: absolute; left: 20px; bottom: 22px; font-size: 10px; color: var(--muted); pointer-events: none; opacity: .8; }
 .map-legend { position: absolute; top: 18px; left: 20px; display: flex; gap: 15px; color: var(--muted); font-size: 10px; pointer-events: none; }
 .map-legend span { display: flex; align-items: center; gap: 5px; }
 .map-legend i { width: 7px; height: 7px; border: 1px solid var(--accent); border-radius: var(--vex-radius-2xs); }
@@ -211,7 +210,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 @keyframes pop-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes inspector-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes locate { 0%, 35% { background: var(--accent-soft); } 100% { background: transparent; } }
-@media (max-width: 1100px) { body { padding: 12px; }  .map-toolbar { padding: 7px 10px; } .map-toolbar-title { display: none; } .sidebar, .sidebar-inner { width: 200px; } .source-pane { width: 43%; } .reading-scroll .md-body { padding: 24px; } .settings-popover { right: 12px; top: 48px; } .map-hint { display: none; } }
+@media (max-width: 1100px) { body { padding: 12px; }  .map-toolbar { padding: 7px 10px; } .map-toolbar-title { display: none; } .sidebar, .sidebar-inner { width: 200px; } .source-pane { width: 43%; } .reading-scroll .md-body { padding: 24px; } .settings-popover { right: 12px; top: 48px; }  }
 @media (max-width: 760px) { body { padding: 0; } .app-window { border-radius: 0; min-height: 480px; } .sidebar, .sidebar-inner { width: 170px; } .document-label { min-width: 0; } .document-title { font-size: 11px; } .work-actions { flex: none; } .work-actions .icon-button, .save-button span { display: none; } .view-switch button, .view-switch::before { width: 58px; } .view-switch[data-active="read"]::before { transform: translateX(60px); } .view-switch[data-active="mindmap"]::before { transform: translateX(120px); } .view-switch .ico { display: none; } .status-right { gap: 9px; } #status-encoding { display: none; } .titlebar { gap: 10px; padding-left: 10px; } .tb-menuitem { padding: 3px 5px; font-size: 11px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 
