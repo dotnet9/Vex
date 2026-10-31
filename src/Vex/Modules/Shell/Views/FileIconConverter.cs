@@ -16,6 +16,8 @@ public sealed class FileIconConverter : IMultiValueConverter
         {
             return null;
         }
+        // Markdown 文档统一使用行模板的描线图标，避免关联程序图标打断列表层级。
+        if (!folder && name.EndsWith(".md", StringComparison.OrdinalIgnoreCase)) return null;
 
         var level = values.Count > 4 && values[4] is int depth ? depth : 1;
         var theme = values[3] as ThemeVariant;

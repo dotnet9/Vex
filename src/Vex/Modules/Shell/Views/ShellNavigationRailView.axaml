@@ -31,11 +31,11 @@
                 <Button x:Name="RailFindButton" Classes="rail-item"
                     HorizontalAlignment="Center"
                     Command="{Binding ShowFindPanel}"
-                    helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarFind}}"
-                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarFind}}">
+                    helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Search}}"
+                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Search}}">
                     <StackPanel Spacing="4">
                         <Path Data="{StaticResource WBSearchIcon}" HorizontalAlignment="Center" />
-                        <TextBlock Text="{i18n:I18n {x:Static l:VexL.FindBarFind}}" HorizontalAlignment="Center" />
+                        <TextBlock Text="{i18n:I18n {x:Static l:VexL.Search}}" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Button>
             </StackPanel>

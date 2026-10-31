@@ -241,7 +241,7 @@
             <Setter Property="FontSize" Value="12.5" />
         </Style>
         <Style Selector="ListBox.files-list ListBoxItem:selected TextBlock.file-list-name">
-            <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
         <Style Selector="ListBox.files-list TextBlock.file-folder-tag">
@@ -298,7 +298,7 @@
                             Command="{Binding ClearFilter}"
                             helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.ClearSearch}}"
                             AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ClearSearch}}">
-                        <Path Classes="stroke-ico" Width="11" Height="11" StrokeThickness="1.6" Data="M6 6L18 18 M18 6L6 18" />
+                        <Path Classes="stroke-ico" Width="8" Height="8" StrokeThickness="1.2" Data="M6 6L18 18 M18 6L6 18" />
                     </Button>
                 </Grid>
             </Border>
