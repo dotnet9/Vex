@@ -2,7 +2,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Styling;
+using CodeWF.Avalonia.Markdown;
 using CodeWF.Avalonia.Markdown.Themes;
+using Vex.Core.Theme;
 
 namespace Vex.Modules.Shell.Views;
 
@@ -29,7 +31,7 @@ internal sealed class TypographyCardPreview : UserControl
         var scale = 13 / _article.BodySize;
         var resources = _article.CreateResources();
         var colors = (ResourceDictionary)resources.ThemeDictionaries[
-            ActualThemeVariant == ThemeVariant.Dark ? ThemeVariant.Dark : ThemeVariant.Light];
+            ElevationResources.IsDarkVariant(ActualThemeVariant) ? ThemeVariant.Dark : ThemeVariant.Light];
         var title = new TextBlock
         {
             Classes = { "typography-preview-heading" },
@@ -61,7 +63,7 @@ internal sealed class TypographyCardPreview : UserControl
             BorderThickness = Thickness.Parse(_article.Quote.Border),
             CornerRadius = new CornerRadius(_article.Quote.Radius),
             BorderBrush = (IBrush)colors["CodeWFMarkdownQuoteBorderBrush"]!,
-            Background = (IBrush)colors["CodeWFMarkdownQuoteBackgroundBrush"]!
+            Background = (IBrush)colors[MarkdownStyleKeys.QuoteBackgroundBrushResource]!
         };
         Content = new Border
         {

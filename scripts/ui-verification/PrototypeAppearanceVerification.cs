@@ -134,6 +134,14 @@ internal static class PrototypeAppearanceVerification
         {
             vm.Appearance.SelectedPalette = palette; vm.Appearance.SelectThemeByKey(mode); Render();
             var variant = mode == "light" ? ThemeVariant.Light : ThemeVariant.Dark;
+            Check(gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true).All(card =>
+            {
+                var quote = card.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Classes.Contains("typography-preview-quote"));
+                var article = ArticleTypographyResolver.Find(card.Name![11..])!;
+                var expected = (ResourceDictionary)article.CreateResources().ThemeDictionaries[variant];
+                return ((Border)quote.Parent!).Background is ISolidColorBrush actual
+                    && actual.Color == ((ISolidColorBrush)expected[MarkdownStyleKeys.QuoteBackgroundBrushResource]!).Color;
+            }), "Typography quote surfaces follow their article and inherited theme at " + palette.Key + "/" + mode);
             Application.Current!.TryGetResource("VexDocumentPaperBrush", window.ActualThemeVariant, out var paperResource);
             var paper = ((ISolidColorBrush)paperResource!).Color;
             Application.Current.TryGetResource("StudioSelected", window.ActualThemeVariant, out var selectedBrush);

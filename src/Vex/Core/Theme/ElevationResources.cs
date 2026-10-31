@@ -52,7 +52,7 @@ public static class ElevationResources
 
     /// <summary>九套配色各有一个自定义变体（如 IndigoDark），只沿 InheritVariant 往上才落到标准明暗变体，
     /// 直接和 ThemeVariant.Dark 比会永远为假。</summary>
-    private static bool IsDarkVariant(ThemeVariant? variant)
+    internal static bool IsDarkVariant(ThemeVariant? variant)
     {
         while (variant is not null && variant != ThemeVariant.Dark && variant != ThemeVariant.Light)
             variant = variant.InheritVariant;
