@@ -182,25 +182,25 @@ internal static class PrototypeChromeVerification
         // 原型 .find-strip（workspace-chrome.css:476/499）是 .workspace-main 的首个子级：铬面、圆角 0、外边距 0，
         // 描边只剩 1px 下缘发丝，与正文列同宽并从列顶 0 起排；紧贴其下的才是 36px 的 .workspace-tabrow。
         Check(findStrip.Classes.Contains("workspace-block") && findStrip.CornerRadius.TopLeft == 0
-            && findStrip.BorderThickness == new Thickness(0, 0, 1, 0)
+            && findStrip.BorderThickness == new Thickness(0, 0, 0, 1)
             && Math.Abs(findStrip.Bounds.Width - viewColumn.Bounds.Width) < 1
             && Math.Abs(stripOrigin.X) < 1 && Math.Abs(stripOrigin.Y) < 1,
-            $"Find strip is the flush chrome band on top of the document column: origin={stripOrigin} size={findStrip.Bounds.Size} radius={findStrip.CornerRadius.TopLeft} border={findStrip.BorderThickness}");
-        // 原型条内最高的是输入框（workbench.css:196 min-height:28，实测被行高撑到 29.6），整条 45；
-        // 原生把输入框钉在 28，于是条高 28 + 内距 7×2 + 下缘发丝 1 = 43。动作钮 .btn.sm 26、关闭钮 .icon-button 30×30。
+            $"Find strip is the flush chrome band on top of the document column: origin={stripOrigin} size={findStrip.Bounds.Size} column={viewColumn.Bounds.Width:0.#} radius={findStrip.CornerRadius.TopLeft} border={findStrip.BorderThickness}");
+        // 原型整条 45 = 内距 7×2 + 条内最高的输入框 29.6 + 下缘发丝 1；输入框 29.6 = 11 号字行盒 17.6 + 内距 5×2 + 描边 1×2。
+        // 动作钮走 .btn.sm（28 高、内距 2 12、12 号字），关闭钮走 .icon-button（30×30、1px 透明描边、16 号图标）。
         // 三个开关是原型条上没有的实现侧补充，度量借原型自己的 .opt-toggle（theme.css:542：28 高、min-width 30）。
         var findInputs = findStrip.GetVisualDescendants().OfType<TextBox>().Where(t => t.IsEffectivelyVisible).ToArray();
         var findShells = findStrip.GetVisualDescendants().OfType<Grid>().Where(g => g.Classes.Contains("search-shell") && g.IsEffectivelyVisible).ToArray();
-        var findActions = findStrip.GetVisualDescendants().OfType<Control>()
-            .Where(c => (c is Button || c is ToggleButton) && c.Classes.Contains("find-action") && c.IsVisible).ToArray();
-        var findToggles = findActions.OfType<ToggleButton>().ToArray();
+        var findActions = findStrip.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("find-action") && b.IsVisible).ToArray();
+        var findToggles = findStrip.GetVisualDescendants().OfType<ToggleButton>().Where(t => t.Classes.Contains("opt-toggle") && t.IsVisible).ToArray();
         var findClose = findStrip.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("find-close"));
-        Check(Math.Abs(findStrip.Bounds.Height - 43) < 1 && findShells.Length == findInputs.Length && findInputs.Length > 0
-            && findShells.All(s => s.Bounds.Height == 28) && findInputs.All(t => Math.Abs(t.Bounds.Height - 26) < 0.5)
-            && findActions.Except(findToggles).All(b => b.Bounds.Height == 26)
+        Check(Math.Abs(findStrip.Bounds.Height - 45) < 1 && findShells.Length == findInputs.Length && findInputs.Length > 0
+            && findShells.All(s => Math.Abs(s.Bounds.Height - 29.6) < 1 && Math.Abs(s.Bounds.Width - 220) < 1.5)
+            && findInputs.All(t => t.Bounds.Height >= 17.6 && t.Bounds.Height <= 20.6)
+            && findActions.Length >= 2 && findActions.All(b => b.Bounds.Height == 28)
             && findToggles.Length == 3 && findToggles.All(t => t.Bounds.Height == 28 && t.Bounds.Width >= 30)
             && findClose.Bounds.Width == 30 && findClose.Bounds.Height == 30,
-            $"Find strip keeps the prototype's 43px band: strip={findStrip.Bounds.Height:0.#}, inputs={string.Join(",", findShells.Select(s => s.Bounds.Height.ToString("0.#")))}, actions={string.Join(",", findActions.Select(b => b.Bounds.Height.ToString("0.#")))}, close={findClose.Bounds.Size}");
+            $"Find strip keeps the prototype's 45px band: strip={findStrip.Bounds.Height:0.#}, shells={string.Join(",", findShells.Select(s => $"{s.Bounds.Width:0.#}x{s.Bounds.Height:0.#}"))}, inputs={string.Join(",", findInputs.Select(t => t.Bounds.Height.ToString("0.#")))}, actions={string.Join(",", findActions.Select(b => b.Bounds.Height.ToString("0.#")))}, close={findClose.Bounds.Size}");
         Check(Math.Abs(tabRowBand.TranslatePoint(default, viewColumn)!.Value.Y - (stripOrigin.Y + findStrip.Bounds.Height)) < 1,
             $"The tab row follows the find band with no gap: strip bottom={(stripOrigin.Y + findStrip.Bounds.Height):0.#}, row top={tabRowBand.TranslatePoint(default, viewColumn)!.Value.Y:0.#}");
         // 新键只改了 Language.cs 而没落进 I18n/*.json（或产物里留着旧副本）时，按钮会直接把资源键印在脸上。
@@ -226,7 +226,7 @@ internal static class PrototypeChromeVerification
                 .Where(control => control.IsEffectivelyVisible && (control is Button || control is ToggleButton || control is TextBox))
                 .Select(control => control.TranslatePoint(new Point(control.Bounds.Width, 0), findStrip)!.Value.X)
                 .DefaultIfEmpty(0).Max();
-            Check(right <= findStrip.Bounds.Width - 11 && Math.Abs(findStrip.Bounds.Height - 43) < 1,
+            Check(right <= findStrip.Bounds.Width - 11 && Math.Abs(findStrip.Bounds.Height - 45) < 1,
                 $"Find strip keeps every control inside the block at 800px ({mode}): right={right:0.#}, strip={findStrip.Bounds.Width:0.#}x{findStrip.Bounds.Height:0.#}");
         }
         CheckNarrowStripFits("find");
@@ -271,23 +271,23 @@ internal static class PrototypeChromeVerification
             "Find input shares the sidebar focus recipe: 11px text, accent border and a 3px glow ring");
         sent = null;
         window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null); Render();
-        var firstBadge = vm.FindBar.SearchResultText;
+        var firstMatch = vm.FindBar.CurrentMatch;
         Check(sent?.Action == EditorSearchAction.FindNext, "Enter publishes a forward find");
         window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null); Render();
-        Check(sent?.Action == EditorSearchAction.FindNext && vm.FindBar.SearchResultText != firstBadge,
-            $"Two forward steps land on two different matches: {firstBadge} then {vm.FindBar.SearchResultText}");
+        Check(sent?.Action == EditorSearchAction.FindNext && vm.FindBar.CurrentMatch != firstMatch,
+            $"Two forward steps land on two different matches: {firstMatch} then {vm.FindBar.CurrentMatch}");
         sent = null;
         window.KeyPress(Key.Enter, RawInputModifiers.Shift, PhysicalKey.Enter, null); Render();
         Check(sent?.Action == EditorSearchAction.FindPrev, "Shift+Enter publishes a backward find");
-        Check(vm.FindBar.SearchResultText == firstBadge,
-            $"Stepping back returns to the match the forward step left: expected {firstBadge}, got {vm.FindBar.SearchResultText}");
+        Check(vm.FindBar.CurrentMatch == firstMatch,
+            $"Stepping back returns to the match the forward step left: expected {firstMatch}, got {vm.FindBar.CurrentMatch}");
         // Enter 必须留在查找框里：焦点一旦跑进正文，下一次回车就是在文档里插换行。
         Check(findInput.IsFocused, "Enter keeps the caret in the find box instead of the editor");
         sent = null;
         var prevPoint = prevButton.TranslatePoint(new Point(prevButton.Bounds.Width / 2, prevButton.Bounds.Height / 2), window)!.Value;
         window.MouseDown(prevPoint, MouseButton.Left); window.MouseUp(prevPoint, MouseButton.Left); Render();
-        Check(sent?.Action == EditorSearchAction.FindPrev && vm.FindBar.SearchResultText != firstBadge,
-            $"The previous-match button drives the same backward find: {vm.FindBar.SearchResultText}");
+        Check(sent?.Action == EditorSearchAction.FindPrev && vm.FindBar.CurrentMatch != firstMatch,
+            $"The previous-match button drives the same backward find: {vm.FindBar.CurrentMatch}");
         vm.FindBar.IsRegex = true; vm.FindBar.IsWholeWord = true; Render();
         Check(findToggles.Count(t => t.IsChecked == true) == 2, "The three option toggles bind both ways to the search flags");
         // 定位只移动选区：正文、脏标记与撤销栈都不许动，Enter 也必须留在查找框里（焦点跑进正文会插入换行）。

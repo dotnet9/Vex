@@ -1,8 +1,10 @@
 using System.Runtime.CompilerServices;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
+using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
@@ -11,6 +13,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 {
     private const int SearchTextLimit = 200;
     private static readonly TimeSpan SearchCountDebounce = TimeSpan.FromMilliseconds(180);
+    private readonly IAppLocalizer _localizer;
     private readonly IShellStatusPublisher _statusPublisher;
     private Timer? _searchCountTimer;
     private bool _isVisible;
@@ -20,10 +23,12 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     private bool _isRegex;
     private string _searchText = string.Empty;
     private string _replacementText = string.Empty;
-    private string _searchResultText = "0/0";
+    private int _currentMatch;
+    private int _matchTotal;
 
-    public ShellFindBarViewModel(IShellStatusPublisher statusPublisher)
+    public ShellFindBarViewModel(IAppLocalizer localizer, IShellStatusPublisher statusPublisher)
     {
+        _localizer = localizer;
         _statusPublisher = statusPublisher;
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
@@ -37,8 +42,17 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     public bool IsReplaceVisible
     {
         get => _isReplaceVisible;
-        set => SetProperty(ref _isReplaceVisible, value);
+        set
+        {
+            if (SetProperty(ref _isReplaceVisible, value))
+            {
+                this.RaisePropertyChanged(nameof(ReplacePillColumnWidth));
+            }
+        }
     }
+
+    /// <summary>原型隐藏替换框是让整行重新排，不是留一个空槽：星列换成 0 宽，后面的控件才收得回来。</summary>
+    public GridLength ReplacePillColumnWidth => IsReplaceVisible ? new(1, GridUnitType.Star) : new(0);
 
     public bool IsMatchCase
     {
@@ -83,21 +97,28 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         {
             if (SetProperty(ref _searchText, NormalizeSearchInput(value)))
             {
+                this.RaisePropertyChanged(nameof(HasFindQuery));
+                this.RaisePropertyChanged(nameof(FindCountText));
                 RefreshSearchResultCount();
             }
         }
     }
 
+    /// <summary>原型 #find-count 没词时整枚 hidden，不占行里的位置。</summary>
+    public bool HasFindQuery => !string.IsNullOrWhiteSpace(SearchText);
+
+    /// <summary>原型徽标只报命中数（「N 处匹配」/「当前正文无匹配」），当前位置另有读数。</summary>
+    public string FindCountText => _matchTotal > 0
+        ? _localizer.Format(VexL.FindCountMatches, _matchTotal)
+        : _localizer.Get(VexL.FindCountNone);
+
+    /// <summary>步进落在第几处命中：查找流程用它判断光标真的动了。</summary>
+    public int CurrentMatch => _currentMatch;
+
     public string ReplacementText
     {
         get => _replacementText;
         set => SetProperty(ref _replacementText, NormalizeSearchInput(value));
-    }
-
-    public string SearchResultText
-    {
-        get => _searchResultText;
-        set => SetProperty(ref _searchResultText, value);
     }
 
     public void ShowFindPanel()
@@ -173,9 +194,10 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     [EventHandler]
     public void ApplyEditorSearchResult(EditorSearchResultCommand command)
     {
-        SearchResultText = command.TotalCount > 0
-            ? $"{Math.Max(1, command.CurrentIndex)}/{command.TotalCount}"
-            : "0/0";
+        _matchTotal = command.TotalCount;
+        _currentMatch = command.TotalCount > 0 ? Math.Max(1, command.CurrentIndex) : 0;
+        this.RaisePropertyChanged(nameof(CurrentMatch));
+        this.RaisePropertyChanged(nameof(FindCountText));
         SetStatus(command.Message);
     }
 
@@ -189,7 +211,10 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         if (string.IsNullOrWhiteSpace(SearchText))
         {
             CancelSearchResultCount();
-            SearchResultText = "0/0";
+            _matchTotal = 0;
+            _currentMatch = 0;
+            this.RaisePropertyChanged(nameof(CurrentMatch));
+            this.RaisePropertyChanged(nameof(FindCountText));
             return;
         }
 

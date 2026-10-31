@@ -147,18 +147,19 @@
         <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
     </Style>
 
-    <!-- 图标化开关（对应原型 .opt-toggle）：Aa / W / .* 等 -->
+    <!-- 图标化开关（对应原型 .opt-toggle，theme.css:542）：Aa / W / .* 等，28 高、min-width 30、0×8 内距、11 号 600 字重、radius-sm。 -->
     <Style Selector="ToggleButton.opt-toggle">
         <Setter Property="MinWidth" Value="30" />
+        <Setter Property="MinHeight" Value="0" />
         <Setter Property="Height" Value="28" />
         <Setter Property="Padding" Value="8 0" />
-        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="7" />
+        <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>

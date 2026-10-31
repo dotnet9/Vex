@@ -1012,7 +1012,9 @@
       "ToastFileNavCollapsed": "File navigation collapsed to make room for the three views — click “Files” on the status bar to expand.",
       "TypographySoftSage": "Soft Sage",
       "TypographyPurposeSoftSage": "Gentle writing · Sage green",
-      "TypographyPurposeWeChatFormat": "Editorial articles · Centered headings"
+      "TypographyPurposeWeChatFormat": "Editorial articles · Centered headings",
+      "FindCountMatches": "{0} matches",
+      "FindCountNone": "No matches in this text"
     }
   }
 }

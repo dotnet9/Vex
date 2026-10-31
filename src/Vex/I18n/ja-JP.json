@@ -1012,7 +1012,9 @@
       "ToastFileNavCollapsed": "ファイルナビゲーションを折りたたみました。ステータスバーの「ファイル」で展開できます。",
       "TypographySoftSage": "Soft Sage",
       "TypographyPurposeSoftSage": "なめらかな執筆・セージグリーン",
-      "TypographyPurposeWeChatFormat": "雑誌記事・中央見出し"
+      "TypographyPurposeWeChatFormat": "雑誌記事・中央見出し",
+      "FindCountMatches": "{0} 件一致",
+      "FindCountNone": "この本文に一致なし"
     }
   }
 }

@@ -1011,4 +1011,6 @@ public static class VexL
     public static readonly string ToastFileNavCollapsed = "Vex.VexL.ToastFileNavCollapsed";
     public static readonly string TypographySoftSage = "Vex.VexL.TypographySoftSage";
     public static readonly string TypographyPurposeSoftSage = "Vex.VexL.TypographyPurposeSoftSage";
+    public static readonly string FindCountMatches = "Vex.VexL.FindCountMatches";
+    public static readonly string FindCountNone = "Vex.VexL.FindCountNone";
 }

@@ -121,6 +121,9 @@ for(const culture of Object.keys(extra)){
    ,ToastFileNavCollapsed: {'zh-CN':'已收起文件导航，为三视图留出空间。点击底栏“文件”可展开。','zh-Hant':'已收起檔案導覽，為三視圖留出空間。點擊底欄「文件」可展開。','en-US':'File navigation collapsed to make room for the three views — click “Files” on the status bar to expand.','ja-JP':'ファイルナビゲーションを折りたたみました。ステータスバーの「ファイル」で展開できます。'}[culture]
    /* 查找条动作钮（原型 Vex.html .find-strip 的「上一个」，实现侧此前只有「下一个」）。 */
    ,FindBarPrev: {'zh-CN':'上一个','zh-Hant':'上一個','en-US':'Previous','ja-JP':'前へ'}[culture]
+   /* 查找条命中徽标（原型 workbench.js updateFind 写进 #find-count 的两条文案）。 */
+   ,FindCountMatches: {'zh-CN':'{0} 处匹配','zh-Hant':'{0} 處匹配','en-US':'{0} matches','ja-JP':'{0} 件一致'}[culture]
+   ,FindCountNone: {'zh-CN':'当前正文无匹配','zh-Hant':'目前正文無匹配','en-US':'No matches in this text','ja-JP':'この本文に一致なし'}[culture]
    /* 图表块就地编辑（原型 diagram-editor.js 无这三个提示，属实现侧增强，仍需四语）。 */
    ,DiagramEditButton: {'zh-CN':'编辑','zh-Hant':'編輯','en-US':'Edit','ja-JP':'編集'}[culture]
    ,DiagramEditHint: {'zh-CN':'Esc 或点击块外完成编辑','zh-Hant':'Esc 或點擊塊外完成編輯','en-US':'Press Esc or click outside the block to finish editing','ja-JP':'Esc またはブロック外クリックで編集を終了'}[culture]

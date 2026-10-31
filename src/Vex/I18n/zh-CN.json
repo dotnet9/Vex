@@ -1012,7 +1012,9 @@
       "WBTypographyH2None": "无",
       "ToastFileNavCollapsed": "已收起文件导航，为三视图留出空间。点击底栏“文件”可展开。",
       "TypographySoftSage": "鼠尾草",
-      "TypographyPurposeSoftSage": "温润写作 · 鼠尾草绿"
+      "TypographyPurposeSoftSage": "温润写作 · 鼠尾草绿",
+      "FindCountMatches": "{0} 处匹配",
+      "FindCountNone": "当前正文无匹配"
     }
   }
 }
