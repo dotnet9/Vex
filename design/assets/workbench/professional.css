@@ -306,6 +306,12 @@ body {
   color: var(--fg);
 }
 
+/* Tinted branch cards use normal ink; solid-fill contrast ink becomes unreadable. */
+:root[data-palette] #map-scene[data-map-style="colorful"] .map-node,
+:root[data-palette] #map-scene[data-map-style="colorful"] .map-node :is(.map-node-button, .map-node-text, .map-node-type) {
+  color: var(--fg);
+}
+
 .map-appearance-heading {
   display: flex;
   align-items: center;
