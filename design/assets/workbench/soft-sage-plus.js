@@ -31,7 +31,8 @@
     document.addEventListener('keydown',event=>{
       if((event.ctrlKey||event.metaKey)&&event.shiftKey&&event.key.toLowerCase()==='f'){
         event.preventDefault();setFocus(!root.classList.contains('sage-focus-mode'));
-      } else if(event.key==='Escape'&&root.classList.contains('sage-focus-mode')) setFocus(false);
+      } else if(event.key==='Escape'&&!lightbox.hidden) closeImage();
+      else if(event.key==='Escape'&&root.classList.contains('sage-focus-mode')) setFocus(false);
     });
 
     // Source and rendered preview follow the same relative document position.
