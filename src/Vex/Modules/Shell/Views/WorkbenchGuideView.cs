@@ -210,7 +210,8 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
             // 图标栏（原型 .nav-rail）取代块角折叠钮，引导聚光跟着改指新宿主。
             WorkbenchGuideViewModel.Anchor.OutlineToggle => _window.FindControl<Control>("RailOutlineToggle"),
             WorkbenchGuideViewModel.Anchor.TypographyButton => _window.FindControl<ShellEditorOptionsView>("EditorOptions")?.FindControl<Button>("TypographyTarget"),
-            WorkbenchGuideViewModel.Anchor.LayoutButton => _window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")?.FindControl<Button>("LayoutButton"),
+            // 视图页签从底栏上移到原型 .workspace-tabrow 后，布局入口就是页签行右端的 .workspace-viewswitch-more。
+            WorkbenchGuideViewModel.Anchor.LayoutButton => _window.FindControl<Button>("EditorModeButton"),
             WorkbenchGuideViewModel.Anchor.LayoutGallery => _window.FindControl<WorkspaceLayoutGallery>("LayoutGallery"),
             WorkbenchGuideViewModel.Anchor.PresentationTools => _window.FindControl<Control>("PresentationTools"),
             WorkbenchGuideViewModel.Anchor.AppearanceButton => _window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")?.AppearanceButton,

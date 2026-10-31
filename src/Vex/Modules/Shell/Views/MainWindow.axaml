@@ -195,28 +195,31 @@
 
             <Grid x:Name="DocumentColumn" Grid.Column="2" RowDefinitions="Auto,Auto,Auto,*">
                 <StackPanel x:Name="FloatingViewShelf" Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="12,4" IsVisible="False"/>
+                <!-- 原型 .workspace-main 的首个子级就是 .find-strip（workspace-chrome.css:499），
+                     条在页签行之上、与正文列同宽、无边距无圆角，收起时高度归 0。 -->
+                <shell:ShellFindBarView Grid.Row="1" DataContext="{Binding FindBar}" />
                 <!-- 原型 .workspace-tabrow 在 content-area 内部（与正文列同宽）：左柱/侧栏顶到标题栏下边框，
                      页签行只横跨正文列。36px、铬面底、发丝底边；演示模式整行隐藏。 -->
-                <Border x:Name="WorkspaceTabRow" Grid.Row="1" Height="36" Padding="8,0"
+                <Border x:Name="WorkspaceTabRow" Grid.Row="2" Height="36" Padding="8,0"
                         Background="{DynamicResource VexChromeBrush}" BorderBrush="{DynamicResource VexHairlineBrush}"
                         BorderThickness="0,0,0,1" IsVisible="{Binding !Workbench.IsPresenting}">
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Orientation="Horizontal" Spacing="2">
-                            <ToggleButton Classes="tab-item" Command="{Binding Workbench.ShowSourceView}"
+                            <ToggleButton x:Name="SourceSegment" Classes="tab-item" Command="{Binding Workbench.ShowSourceView}"
                                     IsChecked="{Binding Workbench.IsSourceSegmentActive, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Path Classes="stroke-ico" Data="{StaticResource WBEditIcon}" />
                                     <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusViewSource}}" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ToggleButton>
-                            <ToggleButton Classes="tab-item" Command="{Binding Workbench.ShowRead}"
+                            <ToggleButton x:Name="ReadSegment" Classes="tab-item" Command="{Binding Workbench.ShowRead}"
                                     IsChecked="{Binding Workbench.IsReadSegmentActive, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Path Classes="stroke-ico" Data="{StaticResource WBReadIcon}" />
                                     <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ToggleButton>
-                            <ToggleButton Classes="tab-item" Command="{Binding Workbench.ShowMindMap}"
+                            <ToggleButton x:Name="MapSegment" Classes="tab-item" Command="{Binding Workbench.ShowMindMap}"
                                     IsChecked="{Binding Workbench.IsMapSegmentActive, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Path Classes="stroke-ico" Data="{StaticResource WBMapIcon}" />
@@ -224,16 +227,18 @@
                                 </StackPanel>
                             </ToggleButton>
                         </StackPanel>
-                        <!-- 原型 .workspace-viewswitch-more：点开的是布局预设画廊（缩略图卡片网格），
-                             选中即收；Workbench.ToggleLayouts 驱动既有的 LayoutGallery。 -->
-                        <Button x:Name="EditorModeButton" Classes="editor-mode" Grid.Column="1"
+                        <!-- 原型 .workspace-viewswitch-more：点开的是布局预设画廊（缩略图卡片网格），选中即收；
+                             Workbench.ToggleLayouts 驱动既有的 LayoutGallery，aria-pressed 的展开态用 .on 类还原。 -->
+                        <Button x:Name="EditorModeButton" Classes="editor-mode" Classes.on="{Binding Workbench.ShowLayouts}" Grid.Column="1"
                                 Command="{Binding Workbench.ToggleLayouts}"
                                 Content="{Binding Workbench.EditorModeLabel}" VerticalAlignment="Center" />
                     </Grid>
                 </Border>
-                <!-- 原型 .find-strip 是正文列的第一个块（workspace-chrome.css:215/222），与视图块同宽、以 4px 间隙相接，
-                     不再横贯整窗顶部。 -->
-                <shell:ShellFindBarView Grid.Row="2" DataContext="{Binding FindBar}" />
+                <!-- 原型 .workspace-layout-menu 是 .workspace-tabrow 的绝对子级（workspace-chrome.css:535）：
+                     top:calc(100% + 6px) 即页签行下方 6px、right:8 贴正文列右缘；画廊不滚动（同文件 153 overflow:visible），
+                     行高 36 + 6 = 42 的顶距把浮层钉在行下。 -->
+                <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.Row="2" IsVisible="{Binding Workbench.ShowLayouts}"
+                                              HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,42,8,0" ZIndex="40" />
                 <Panel Grid.Row="3">
                 <!-- 原型：钉住的格式条只占源码列顶部，阅读/导图窗格从工作区顶端起排，
                      所以 42px 让位只加在编辑/即时视图上，而不是整个 ViewSurface。
@@ -328,9 +333,6 @@
         </Button>
         <!-- 弹层几何沿用 12px 窗缘：右缘盖住阅读滚动条带、底缘盖住胶囊与收起钮（CodeWFWindow 内容区自带 12px 内缩）；最初的圆角缺角观感是加浓投影把覆盖边缘染暗所致，投影移除后缺口露出的是干净纸底。 -->
         <shell:ShellTypographyGallery x:Name="TypographyGallery" Grid.RowSpan="4" IsVisible="{Binding Workbench.ShowTypography}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12,56,12,12" MaxHeight="700"/>
-        <!-- 原型 .workspace-layout-menu{bottom:calc(100% + 10px)}：画廊浮在状态胶囊正上方 10px。
-             胶囊圆心改到底部轴线（距正文列底 20）后，正常密度下胶囊顶在窗口底上方 51px，画廊底距即 51 + 10。 -->
-        <shell:WorkspaceLayoutGallery x:Name="LayoutGallery" Grid.Row="3" Grid.Column="2" IsVisible="{Binding Workbench.ShowLayouts}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,4,8,0" ZIndex="40"/>
         <shell:WorkbenchGuideView x:Name="WorkbenchGuide" Grid.RowSpan="4"/>
     </Grid>
     </Border>

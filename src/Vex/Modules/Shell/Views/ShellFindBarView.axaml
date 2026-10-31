@@ -46,19 +46,22 @@
         </Style>
     </UserControl.Styles>
 
-    <!-- 展开动画按 ExpandedSize-4 排版子级（实测 64→60、46→42），故原型 46px 的查找条写 50。 -->
+    <!-- 查找条是正文列顶部的通宽铬面条（原型 .find-strip，workspace-chrome.css:476/499）：
+         圆角 0、无投影、margin 0，只有下缘 1px 发丝与正文分隔，内距 7×12。
+         原型条高 45 由输入框 29.6 撑出；原生输入框按 workbench.css:196 的 min-height 钉在 28，
+         展开高度即条高，取 28 + 7×2 + 1 = 43。 -->
     <ac:ContentExpansionAnimator
         Animate="{Binding IsVisible}"
         CollapsedSize="0"
         Duration="{DynamicResource MotionDurationMid}"
-        ExpandedSize="50"
+        ExpandedSize="43"
         IsExpanded="{Binding IsVisible}"
         Orientation="Vertical">
-        <!-- 原型 .find-strip 独立成块（workspace-chrome.css:215/222）：1px 描边 + 10px 圆角，内距 7×12，整条 46px。 -->
         <Border
             x:Name="FindStrip"
+            BorderBrush="{DynamicResource VexHairlineBrush}"
+            BorderThickness="0,0,1,0"
             Classes="workspace-block"
-            Margin="0,0,0,4"
             Padding="12 7">
             <!-- 原型 .find-strip 只有「输入框 + 动作钮 + 关闭钮」，没有作用域标签（Vex.html:102）；
                  flex + gap:6、输入框 min-width:0，窄窗先收缩输入框，关闭钮因此不会被挤出块外。

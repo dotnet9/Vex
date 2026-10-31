@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Vex.Core.Messaging;
@@ -36,7 +37,7 @@ internal static class PrototypeChromeVerification
             documentState.Markdown, 1, 1, documentState.Markdown.Count(c => c == '\n') + 1));
         Dispatcher.UIThread.RunJobs();
         var original = vm.Markdown; var history = vm.Workbench.History.Capture();
-        var layoutButton = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!.FindControl<Button>("LayoutButton")!;
+        var layoutButton = window.FindControl<Button>("EditorModeButton")!;
         var formats = window.FindControl<ShellEditorOptionsView>("EditorOptions")!;
         foreach (var size in new[] { new Size(800,480), new Size(1024,768), new Size(1440,1000) })
         {
@@ -51,28 +52,52 @@ internal static class PrototypeChromeVerification
             // 后面的浮层几何全都按展开态量，不抬回来就会被这次收起一起带偏，所以此处显式复原并等动画走完。
             vm.Layout.IsSidebarVisible = true; LayoutSettle.Run(); Render();
             var statusChrome = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!;
-            var viewSwitch = statusChrome.FindControl<Border>("ViewSwitch")!;
-            var sourceSegment = statusChrome.FindControl<Button>("SourceSegment")!;
-            var readSegment = statusChrome.FindControl<Button>("ReadSegment")!;
-            var mapSegment = statusChrome.FindControl<Button>("MapSegment")!;
-            // 原型 .document-statusbar：整条状态栏退役为悬浮胶囊，水平居中于正文列；
-            // 底距不再写死，圆心按令牌钉在正文列底部轴线上（列内 20，即窗底上方 30，与折叠钮、缩放坞同轴）。
-            var documentColumn = (Control)statusChrome.Parent!;
-            var pillOrigin = statusChrome.TranslatePoint(default, documentColumn)!.Value;
-            Check(Math.Abs(documentColumn.Bounds.Height - pillOrigin.Y - statusChrome.Bounds.Height / 2 - 20) < 1
-                && Math.Abs(pillOrigin.X + statusChrome.Bounds.Width / 2 - documentColumn.Bounds.Width / 2) < 2
-                && statusChrome.Bounds.Height is > 30 and <= 44
-                && viewSwitch.Bounds.Width < statusChrome.Bounds.Width,
-                $"Status bar floats as a centered pill on the bottom axis at {size.Width}: origin={pillOrigin} size={statusChrome.Bounds.Size} capsule={viewSwitch.Bounds.Size}");
-            Check(!sourceSegment.Classes.Contains("active") && !readSegment.Classes.Contains("active") && !mapSegment.Classes.Contains("active"),
-                "Combined layouts keep every status segment inactive");
+            var statusRow = statusChrome.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("document-statusbar"));
+            var wordCount = statusChrome.FindControl<Button>("StatisticsButton")!;
+            var tabRow = window.FindControl<Border>("WorkspaceTabRow")!;
+            var sourceSegment = window.FindControl<ToggleButton>("SourceSegment")!;
+            var readSegment = window.FindControl<ToggleButton>("ReadSegment")!;
+            var mapSegment = window.FindControl<ToggleButton>("MapSegment")!;
+            var documentColumn = window.FindControl<Grid>("DocumentColumn")!;
+            // 原型这一轮将两件事分开了（实测 1440×900）：视图切换上移到 .workspace-tabrow（workspace-chrome.css:519，
+            // 36 高、0 8 内距、铬面底、下缘 1px 发丝，只横跨正文列），整窗 .document-statusbar（同文件 538）退成
+            // 28 高通栏占位行（上缘发丝、0 14 内距、右端缩放槽 + 字数）。悬浮胶囊配方已随原型退役。
+            var tabRowOrigin = tabRow.TranslatePoint(default, documentColumn)!.Value;
+            Check(Math.Abs(tabRow.Bounds.Width - documentColumn.Bounds.Width) < 1 && Math.Abs(tabRowOrigin.X) < 1 && Math.Abs(tabRowOrigin.Y) < 1
+                && tabRow.Bounds.Height == 36 && tabRow.BorderThickness == new Thickness(0, 0, 0, 1),
+                $"View tabs ride a 36px chrome row that spans the document column at {size.Width}: tabrow={tabRow.Bounds} origin={tabRowOrigin} column={documentColumn.Bounds}");
+            var statusBottom = statusChrome.TranslatePoint(new Point(0, statusChrome.Bounds.Height), window)!.Value.Y;
+            // 通栏行贴的是窗体自描 1px 边框的内侧，故底距容差留到 1px。
+            Check(statusRow.Bounds.Height == 28 && statusRow.BorderThickness == new Thickness(0, 1, 0, 0)
+                && Math.Abs(statusBottom - window.ClientSize.Height) <= 1 && statusChrome.Bounds.Width > documentColumn.Bounds.Width
+                && wordCount.Bounds.Height == 20 && wordCount.TranslatePoint(new Point(wordCount.Bounds.Width, 0), statusRow)!.Value.X > statusRow.Bounds.Width * .6,
+                $"Status bar is a full-width 28px chrome row pinned to the window bottom with the word count at its right end at {size.Width}: row={statusRow.Bounds} bottom={statusBottom:0.#} client={window.ClientSize.Height} word={wordCount.Bounds}");
+            // 原型 .workspace-tabs>button：64×35（36 行高减 1px 下缘）、0 10 内距、12px 字 + 14px 图标，
+            // 选中态 = 正文色 + 底部 2px 下划线（左右各缩 8）；组合布局（即时编辑）三枚都不选中。
+            Check(new[] { sourceSegment, readSegment, mapSegment }.All(t => Math.Abs(t.Bounds.Height - 35) < 1
+                    && t.Padding == new Thickness(10, 0) && t.FontSize == 12 && t.Classes.Contains("tab-item")),
+                $"View tabs are 35px with 10px side padding and 12px labels at {size.Width}: {string.Join(" ", new[] { sourceSegment, readSegment, mapSegment }.Select(t => $"{t.Name}={t.Bounds.Width:0.#}x{t.Bounds.Height:0.#}"))}");
+            Check(!sourceSegment.IsChecked.GetValueOrDefault() && !readSegment.IsChecked.GetValueOrDefault() && !mapSegment.IsChecked.GetValueOrDefault(),
+                "Combined layouts keep every view tab inactive");
             sourceSegment.Command!.Execute(null); Render();
-            Check(vm.Workbench.WorkspaceLayout == "source" && sourceSegment.Classes.Contains("active") && !readSegment.Classes.Contains("active") && !mapSegment.Classes.Contains("active"),
-                "Source segment selects the pure source view and highlights itself");
+            var sourceUnderline = sourceSegment.GetVisualDescendants().OfType<Border>().First(b => b.Name == "Underline");
+            Check(vm.Workbench.WorkspaceLayout == "source" && sourceSegment.IsChecked == true
+                && readSegment.IsChecked != true && mapSegment.IsChecked != true
+                && sourceUnderline.IsVisible && Math.Abs(sourceUnderline.Bounds.Height - 2) < 1,
+                "Source tab selects the pure source view and wears the 2px underline");
+            // 原型 .workspace-tabs>button[aria-pressed=true] 与它的 ::after 同色：选中页签的字与下划线一起换成强调色，
+            // 下划线左右各让 8px、贴住页签底边（2px 高、1px 圆角）。
+            var underlineColor = (sourceUnderline.Background as SolidColorBrush)?.Color;
+            var tabColor = (sourceSegment.Foreground as SolidColorBrush)?.Color;
+            Check(underlineColor is not null && underlineColor == tabColor
+                && Math.Abs(sourceUnderline.Bounds.Bottom - sourceSegment.Bounds.Bottom) < 1
+                && Math.Abs(sourceUnderline.Bounds.Left - sourceSegment.Bounds.Left - 8) < 1
+                && Math.Abs(sourceSegment.Bounds.Right - sourceUnderline.Bounds.Right - 8) < 1,
+                $"Selected tab marks itself in accent with a 2px underline inset 8/8: underline={underlineColor} text={tabColor} box={sourceUnderline.Bounds}");
             mapSegment.Command!.Execute(null); Render();
-            Check(vm.Workbench.WorkspaceLayout == "map" && mapSegment.Classes.Contains("active"), "Map segment selects the mind map view");
+            Check(vm.Workbench.WorkspaceLayout == "map" && mapSegment.IsChecked == true && !sourceSegment.IsChecked.GetValueOrDefault(), "Map tab selects the mind map view");
             readSegment.Command!.Execute(null); Render();
-            Check(vm.Workbench.WorkspaceLayout == "read" && readSegment.Classes.Contains("active"), "Read segment selects the reading view");
+            Check(vm.Workbench.WorkspaceLayout == "read" && readSegment.IsChecked == true, "Read tab selects the reading view");
             vm.Workbench.SelectLayout("instant"); Render();
             var formatting = formats.FindControl<Ursa.Controls.ToolBar>("FormattingToolbar")!;
             var origin = formatting.TranslatePoint(default, formats);
@@ -152,14 +177,17 @@ internal static class PrototypeChromeVerification
         vm.FindBar.ShowFindPanel(); Render();
         var findStrip = window.GetVisualDescendants().OfType<ShellFindBarView>().Single().FindControl<Border>("FindStrip")!;
         var viewColumn = window.FindControl<Grid>("DocumentColumn")!;
+        var tabRowBand = window.FindControl<Border>("WorkspaceTabRow")!;
         var stripOrigin = findStrip.TranslatePoint(default, viewColumn)!.Value;
-        var viewBlock = viewColumn.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("workspace-block") && !ReferenceEquals(b, findStrip));
-        Check(findStrip.Classes.Contains("workspace-block") && findStrip.BorderThickness == new Thickness(1)
-            && findStrip.CornerRadius.TopLeft == 10 && Math.Abs(findStrip.Bounds.Width - viewColumn.Bounds.Width) < 1
+        // 原型 .find-strip（workspace-chrome.css:476/499）是 .workspace-main 的首个子级：铬面、圆角 0、外边距 0，
+        // 描边只剩 1px 下缘发丝，与正文列同宽并从列顶 0 起排；紧贴其下的才是 36px 的 .workspace-tabrow。
+        Check(findStrip.Classes.Contains("workspace-block") && findStrip.CornerRadius.TopLeft == 0
+            && findStrip.BorderThickness == new Thickness(0, 0, 1, 0)
+            && Math.Abs(findStrip.Bounds.Width - viewColumn.Bounds.Width) < 1
             && Math.Abs(stripOrigin.X) < 1 && Math.Abs(stripOrigin.Y) < 1,
-            $"Find bar is the document column's own rounded block: origin={stripOrigin} size={findStrip.Bounds.Size} radius={findStrip.CornerRadius.TopLeft}");
-        // 原型 .find-strip（workspace-chrome.css:578）整条 46px；输入框按 4pt 网格归 28
-        // （workbench.css:192 min-height 28），动作钮 .btn.sm 26、关闭钮 .icon-button 30×30。
+            $"Find strip is the flush chrome band on top of the document column: origin={stripOrigin} size={findStrip.Bounds.Size} radius={findStrip.CornerRadius.TopLeft} border={findStrip.BorderThickness}");
+        // 原型条内最高的是输入框（workbench.css:196 min-height:28，实测被行高撑到 29.6），整条 45；
+        // 原生把输入框钉在 28，于是条高 28 + 内距 7×2 + 下缘发丝 1 = 43。动作钮 .btn.sm 26、关闭钮 .icon-button 30×30。
         // 三个开关是原型条上没有的实现侧补充，度量借原型自己的 .opt-toggle（theme.css:542：28 高、min-width 30）。
         var findInputs = findStrip.GetVisualDescendants().OfType<TextBox>().Where(t => t.IsEffectivelyVisible).ToArray();
         var findShells = findStrip.GetVisualDescendants().OfType<Grid>().Where(g => g.Classes.Contains("search-shell") && g.IsEffectivelyVisible).ToArray();
@@ -167,14 +195,14 @@ internal static class PrototypeChromeVerification
             .Where(c => (c is Button || c is ToggleButton) && c.Classes.Contains("find-action") && c.IsVisible).ToArray();
         var findToggles = findActions.OfType<ToggleButton>().ToArray();
         var findClose = findStrip.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("find-close"));
-        Check(Math.Abs(findStrip.Bounds.Height - 46) < 1 && findShells.Length == findInputs.Length && findInputs.Length > 0
+        Check(Math.Abs(findStrip.Bounds.Height - 43) < 1 && findShells.Length == findInputs.Length && findInputs.Length > 0
             && findShells.All(s => s.Bounds.Height == 28) && findInputs.All(t => Math.Abs(t.Bounds.Height - 26) < 0.5)
             && findActions.Except(findToggles).All(b => b.Bounds.Height == 26)
             && findToggles.Length == 3 && findToggles.All(t => t.Bounds.Height == 28 && t.Bounds.Width >= 30)
             && findClose.Bounds.Width == 30 && findClose.Bounds.Height == 30,
-            $"Find strip keeps the prototype's 46px row: strip={findStrip.Bounds.Height:0.#}, inputs={string.Join(",", findShells.Select(s => s.Bounds.Height.ToString("0.#")))}, actions={string.Join(",", findActions.Select(b => b.Bounds.Height.ToString("0.#")))}, close={findClose.Bounds.Size}");
-        Check(Math.Abs(viewBlock.TranslatePoint(default, viewColumn)!.Value.Y - (stripOrigin.Y + findStrip.Bounds.Height + 4)) < 1,
-            $"The view block sits 4px below the find block: strip bottom={stripOrigin.Y + findStrip.Bounds.Height:0.#}, block top={viewBlock.TranslatePoint(default, viewColumn)!.Value.Y:0.#}");
+            $"Find strip keeps the prototype's 43px band: strip={findStrip.Bounds.Height:0.#}, inputs={string.Join(",", findShells.Select(s => s.Bounds.Height.ToString("0.#")))}, actions={string.Join(",", findActions.Select(b => b.Bounds.Height.ToString("0.#")))}, close={findClose.Bounds.Size}");
+        Check(Math.Abs(tabRowBand.TranslatePoint(default, viewColumn)!.Value.Y - (stripOrigin.Y + findStrip.Bounds.Height)) < 1,
+            $"The tab row follows the find band with no gap: strip bottom={(stripOrigin.Y + findStrip.Bounds.Height):0.#}, row top={tabRowBand.TranslatePoint(default, viewColumn)!.Value.Y:0.#}");
         // 新键只改了 Language.cs 而没落进 I18n/*.json（或产物里留着旧副本）时，按钮会直接把资源键印在脸上。
         var stripText = findStrip.GetVisualDescendants().OfType<Control>().Where(c => c.IsVisible)
             .Select(c => (c as ContentControl)?.Content?.ToString() ?? (c as TextBlock)?.Text ?? string.Empty)
@@ -189,7 +217,7 @@ internal static class PrototypeChromeVerification
             $"Find strip keeps the prototype's order with three option toggles and the close button last: prev={prevButton.Bounds.X:0.#}, next={nextButton.Bounds.X:0.#}, toggles={findToggles.Length}");
         // 原型 .find-strip 在 ≤850px 时 flex-wrap，同时 .input{min-width:0} 让输入框先收缩。
         // 实现侧的展开高度由 ContentExpansionAnimator 的固定 ExpandedSize 决定，换不了行，
-        // 所以窄窗只能靠收缩把整条留在块内——查找态和替换态都不许有控件被挤出圆角块外。
+        // 所以窄窗只能靠收缩把整条留在条内——查找态和替换态都不许有控件被挤出 12px 内距之外。
         var wideSize = (window.Width, window.Height);
         window.Width = 800; window.Height = 480; Render();
         void CheckNarrowStripFits(string mode)
@@ -198,7 +226,7 @@ internal static class PrototypeChromeVerification
                 .Where(control => control.IsEffectivelyVisible && (control is Button || control is ToggleButton || control is TextBox))
                 .Select(control => control.TranslatePoint(new Point(control.Bounds.Width, 0), findStrip)!.Value.X)
                 .DefaultIfEmpty(0).Max();
-            Check(right <= findStrip.Bounds.Width - 11 && Math.Abs(findStrip.Bounds.Height - 46) < 1,
+            Check(right <= findStrip.Bounds.Width - 11 && Math.Abs(findStrip.Bounds.Height - 43) < 1,
                 $"Find strip keeps every control inside the block at 800px ({mode}): right={right:0.#}, strip={findStrip.Bounds.Width:0.#}x{findStrip.Bounds.Height:0.#}");
         }
         CheckNarrowStripFits("find");
@@ -208,8 +236,8 @@ internal static class PrototypeChromeVerification
         window.Width = wideSize.Width; window.Height = wideSize.Height; Render();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "find-strip.png"));
         vm.FindBar.CloseFindPanel(); Render();
-        Check(Math.Abs(viewBlock.TranslatePoint(default, viewColumn)!.Value.Y - stripOrigin.Y) < 1,
-            "Closing the find bar returns the view block to the column top");
+        Check(Math.Abs(tabRowBand.TranslatePoint(default, viewColumn)!.Value.Y - stripOrigin.Y) < 1,
+            "Closing the find bar returns the tab row to the column top");
         // 原型 workbench.js 的 find-input：Enter 下一个、Shift+Enter 上一个。既断言按键发出的动作，
         // 也断言真实编辑器的徽章随步进移动——向后一步必须落回向前一步刚离开的那处命中。
         var historyBeforeFind = vm.Workbench.History.Capture();
@@ -416,7 +444,7 @@ internal static class PrototypeChromeVerification
         Check(!columnSplit.IsVisible && !rowSplit.IsVisible, "A single view hides both split handles");
         // 自定义排版：注册→目录出现并可选中→持久化；删除回退简约。
         var typeKey = vm.Appearance.RegisterCustomTypography("", "暖纸手记", "#B4642D", "#D8973C", "#8A5A2B", "#C89A6B", "serif", 2.1, "tint");
-        Check(typeKey.StartsWith("user:") && vm.Appearance.TypographyOptions.Count == 13, "Custom typography joins the catalog");
+        Check(typeKey.StartsWith("user:") && vm.Appearance.TypographyOptions.Count == 14, "Custom typography joins the catalog");
         vm.Appearance.SelectedTypography = vm.Appearance.TypographyOptions.First(option => option.Key == typeKey); Render();
         Check((app.Resolve<IAppSettingsStore>().Current.CustomTypographies ?? "").Contains(typeKey), "Custom typography persists to settings");
         // 原型 #typography-dialog 的第三件选择器：装饰档位要落进 H2 的渲染资源，并且能按档名原样读回（编辑浮层靠它回填）。
@@ -426,10 +454,10 @@ internal static class PrototypeChromeVerification
             $"H2 decoration reaches the heading style and reads back as the tier name: tint={customType.Headings[1].Tint}, radius={customType.Headings[1].Radius}");
         Check((app.Resolve<IAppSettingsStore>().Current.CustomTypographies ?? "").Contains("|tint"), "H2 decoration tier is persisted with the record");
         var typedAgain = vm.Appearance.RegisterCustomTypography(typeKey, "暖纸手记", "#B4642D", "#D8973C", "#8A5A2B", "#C89A6B", "sans", 1.9, "underline");
-        Check(typedAgain == typeKey && vm.Appearance.TypographyOptions.Count == 13
+        Check(typedAgain == typeKey && vm.Appearance.TypographyOptions.Count == 14
                 && CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(typeKey)!.Headings[1].Border == "0,0,0,2",
             "Re-registering the same key edits that typography instead of adding a second one");
-        Check(vm.Appearance.RemoveCustomTypography(typeKey) && vm.Appearance.TypographyOptions.Count == 12 && vm.Appearance.SelectedTypography!.Key == "Simple",
+        Check(vm.Appearance.RemoveCustomTypography(typeKey) && vm.Appearance.TypographyOptions.Count == 13 && vm.Appearance.SelectedTypography!.Key == "Simple",
             "Removing the custom typography falls back to Simple");
         // 导入：HTML 走共享转换器；docx 解包 OOXML 读取标题与段落。
         var htmlMarkdown = Vex.Modules.Workspace.Services.MarkdownImportService.ConvertHtml("<h1>导入标题</h1><p>导入段落文本</p>");

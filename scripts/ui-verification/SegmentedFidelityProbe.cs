@@ -2,6 +2,7 @@ using System.Text;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -43,10 +44,8 @@ internal static class SegmentedFidelityProbe
             .FirstOrDefault(b => b.Classes.Contains("segmented-track") && b.GetVisualDescendants().OfType<SegmentedPanel>().Any());
         Border? FindThumb() => window.GetVisualDescendants().OfType<Border>()
             .FirstOrDefault(b => b.Classes.Contains("segmented-thumb"));
-        Border? FindPill(string @class) => window.GetVisualDescendants().OfType<Border>()
-            .FirstOrDefault(b => b.Classes.Contains(@class));
 
-        // 1) 轨道内缩 = pad-sm 的一半（原型 segmented.css:7，density.css:2-4 三档 4/6/8）。
+        // 1) 轨道内缩 = pad-sm 的一半（原型 segmented.css:6，density.css:2-4 三档 4/6/8）。
         var expectedInset = new Dictionary<string, double> { ["compact"] = 2, ["normal"] = 3, ["relaxed"] = 4 };
         foreach (var (density, inset) in expectedInset)
         {
@@ -56,24 +55,24 @@ internal static class SegmentedFidelityProbe
             Check(track is not null, $"{density} 档找到分段轨道");
             if (track is null) continue;
             Check(track.Padding == new Thickness(inset), $"{density} 档轨道内缩 {track.Padding} 应为 {inset}（原型 pad-sm/2）");
-            Check(double.IsNaN(FindPill("view-switch")?.Height ?? double.NaN),
-                  $"{density} 档状态栏轨道不再钉死控件高（遗留样式已让位）");
         }
         vm.Appearance.SelectedDensity = "normal";
         Render();
 
-        // 2) 状态栏轨道交给共享配方：胶囊圆角、无描边、底色取 Studio 分段轨道令牌而非悬停灰。
-        var switchTrack = FindPill("view-switch");
-        Check(switchTrack is not null, "找到状态栏视图切换轨道");
-        if (switchTrack is not null)
+        // 2) 轨道交给共享配方：胶囊圆角、底色取 Studio 分段轨道令牌而非悬停灰。
+        //    原型这一代只剩密度/主题选择与演示坞还在用分段轨道，状态栏的 .view-switch 已退役，断言跟着落到现场仍在用的轨道上。
+        var liveTrack = FindTrack();
+        Check(liveTrack is not null, "找到分段轨道");
+        if (liveTrack is not null)
         {
-            Check(switchTrack.BorderThickness == new Thickness(0), "状态栏轨道无遗留 1px 描边");
-            Check(switchTrack.CornerRadius.TopLeft >= 499, $"状态栏轨道是胶囊圆角 {switchTrack.CornerRadius.TopLeft}");
-            var expected = (switchTrack.Background as SolidColorBrush)?.Color;
+            Check(liveTrack.Classes.Contains("deck-modes") || liveTrack.BorderThickness == new Thickness(0),
+                  $"轨道描边只在悬浮坞那一档出现（实测 {liveTrack.BorderThickness}）");
+            Check(liveTrack.CornerRadius.TopLeft >= 499, $"轨道是胶囊圆角 {liveTrack.CornerRadius.TopLeft}");
+            var expected = (liveTrack.Background as SolidColorBrush)?.Color;
             // 令牌在配色变体字典里，只能按当前变体查，读 Application.Resources 索引器只会拿到基表。
             window.TryFindResource("StudioSegmentedTrackColor", out var tokenValue);
             var token = tokenValue is Color color ? color : expected ?? default;
-            Check(expected == token, $"状态栏轨道底色 {expected} 等于分段轨道令牌 {token}");
+            Check(expected == token, $"轨道底色 {expected} 等于分段轨道令牌 {token}");
         }
 
         // 3) 指示块浮起随明暗换层：浅色 1px 4px 墨投影，深色投影清零改由 1px 淡描边成环（原型 prototype.css:24-25）。
@@ -94,16 +93,7 @@ internal static class SegmentedFidelityProbe
             Check(darkThumb.BorderThickness == new Thickness(1), "深色指示块用 1px 描边成环");
         }
 
-        // 4) 悬浮件投影随明暗换层：原型 --pop-shadow 是 12/40 + 2/8 两层。
-        var pill = FindPill("status-pill");
-        if (pill is not null)
-        {
-            var pop = pill.BoxShadow;
-            Check(pop.Count == 2 && pop[0].Blur == 40 && pop[1].Blur == 8,
-                  $"深色悬浮胶囊用两层浮起投影（实测 {pop.Count} 层）");
-        }
-
-        // 5) 指示块过渡跟着「界面动效」档位：关闭档时长归零，标准档 260/140。
+        // 4) 指示块过渡跟着「界面动效」档位：关闭档时长归零，标准档 260/140。
         // ITransition 的 Property/Duration 是受保护的，只能按具体过渡类型读回 Transition<T> 上的公开成员。
         static (string Property, int Ms)[] Shape(Transitions? transitions) => transitions is null ? [] :
             transitions.Select(transition => transition switch
@@ -128,11 +118,13 @@ internal static class SegmentedFidelityProbe
               fullShape.Any(entry => entry.Property == "Opacity" && entry.Ms == 140),
               $"标准档指示块过渡回到 260/260/140（实测 {string.Join("|", fullShape.Select(e => $"{e.Property}:{e.Ms}"))}）");
 
-        // 6) 图标与「更多」之间的缝 = 5px（原型 segmented.css:9）。
+        // 5) 页签内图标与文字的缝 = 6px、图标 14×14（原型 workspace-chrome.css:521/522）。
         // 按钮内容外面还套着模板里的 ContentPresenter，只能从按钮往下找，不能认直接父级。
-        var moreHost = window.GetVisualDescendants().OfType<Button>().FirstOrDefault(button => button.Classes.Contains("view-more"));
-        var more = moreHost?.GetVisualDescendants().OfType<StackPanel>().FirstOrDefault();
-        Check(more is not null && more.Spacing == 5, $"分段按钮内图标缝 {(more?.Spacing.ToString() ?? "未找到")} 应为 5");
+        var tabHost = window.FindControl<ToggleButton>("SourceSegment")!;
+        var tabLine = tabHost.GetVisualDescendants().OfType<StackPanel>().FirstOrDefault();
+        var tabIcon = tabHost.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().FirstOrDefault();
+        Check(tabLine is not null && tabLine.Spacing == 6 && tabIcon is { Width: 14, Height: 14 },
+              $"页签图标缝 {(tabLine?.Spacing.ToString() ?? "未找到")}、图标 {tabIcon?.Width:0.#}×{tabIcon?.Height:0.#} 应为 6 缝与 14×14");
 
         sb.AppendLine(failures.Count == 0 ? "PASS 悬浮层分段控件与原型配方逐项一致" : $"FAIL {failures.Count} 项不一致");
         Directory.CreateDirectory(output);

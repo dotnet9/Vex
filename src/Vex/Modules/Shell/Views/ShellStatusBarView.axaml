@@ -1,28 +1,6 @@
 ﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellStatusBarView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
  xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:codewf="https://codewf.com" xmlns:vex="clr-namespace:Vex.Controls" xmlns:wpvm="using:Vex.Modules.Workspace.ViewModels" x:DataType="vm:ShellStatusBarViewModel" IsVisible="{Binding Layout.ShowStatusBar}">
  <UserControl.Styles>
-  <!-- 对应原型 .workspace-viewswitch：它本身就是一枚 .segmented-track，轨道底色、圆角、内缩、滑动指示块、
-       选中字色字重全部走 Vex.Controls 的共享配方；宿主只补自己的基准高与图标口径。 -->
-  <Style Selector="Border.view-switch">
-   <Setter Property="VerticalAlignment" Value="Center" />
-  </Style>
-  <!-- 对应原型 .workspace-viewswitch button：26×seg-scale 高、3×scale/14 内距（令牌随界面密度缩放）。 -->
-  <Style Selector="Button.view-segment">
-   <Setter Property="MinHeight" Value="0" />
-   <Setter Property="Height" Value="{DynamicResource VexSegmentedHeightView}" />
-   <Setter Property="Padding" Value="{DynamicResource VexSegmentedPaddingView}" />
-  </Style>
-  <!-- 段内图标统一 12×12、描边 1.7；「更多」触发器的下拉箭头不吃这条，否则会把共享的
-       Path.expand-chevron（14×7、描边 0.9）撑成 12×12 的粗箭头。 -->
-  <Style Selector="Button.view-segment Path:not(.expand-chevron)">
-   <Setter Property="Width" Value="12" />
-   <Setter Property="Height" Value="12" />
-   <Setter Property="Stretch" Value="Uniform" />
-   <Setter Property="StrokeThickness" Value="1.7" />
-   <Setter Property="StrokeLineCap" Value="Round" />
-   <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-
   <!-- 对应原型 .document-word-count：12px 静音文字，悬停转主题色。 -->
   <Style Selector="Button.sb-word">
    <Setter Property="MinHeight" Value="0" />
@@ -44,7 +22,8 @@
  </UserControl.Styles>
 
  <!-- 对应原型 .window-body>.document-statusbar（workspace-chrome.css:538）：窗口级通栏占位行——
-      28px 基准高（密度令牌）、上缘 1px 发丝线、铬面底、无圆角无投影；视图开关与字数钮保留在栏内。 -->
+      28px 基准高（密度令牌）、上缘 1px 发丝线、铬面底、无圆角无投影；行内右端只留缩放槽与字数，
+      视图切换已上移到 .workspace-tabrow。 -->
  <Border Classes="document-statusbar" Height="{DynamicResource VexDensityControlHeightSm}"
          Padding="14,0" BorderThickness="0,1,0,0"
          Background="{DynamicResource VexChromeBrush}" BorderBrush="{DynamicResource VexHairlineBrush}">
