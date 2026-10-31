@@ -22,9 +22,11 @@ public static class ElevationResources
     /// <summary>主按钮悬停投影键，对应原型 :hover 的 0 4 12 与 22% 扩散。</summary>
     public const string PrimaryHoverKey = "VexPrimaryShadowHover";
 
-    // 原型 tokens.css:3-4 --pop-shadow：浅色 12% 墨绿 + 6% 墨绿双层，深色 33% + 20% 纯黑双层。
-    private static readonly BoxShadows PopLight = BoxShadows.Parse("0 12 40 0 #20233E30, 0 2 8 0 #10233E30");
-    private static readonly BoxShadows PopDark = BoxShadows.Parse("0 12 40 0 #55000000, 0 2 8 0 #33000000");
+    // 原型表面契约 L2 的浮起一档（theme.css:18/24 --shadow-pop，经 surface.css:67 --vex-pop-shadow 派给所有浮层）：
+    // 浅色 16% / 8% 的墨蓝双层，深色 50% / 30% 纯黑双层。旧 tokens.css --pop-shadow（墨绿 12%/6%、模糊 40）
+    // 是迁移期别名，surface.css:99 明确「新代码不得再用」，浮层一律收口到这一档。
+    private static readonly BoxShadows PopLight = BoxShadows.Parse("0 12 32 0 #29101828, 0 2 8 0 #14101828");
+    private static readonly BoxShadows PopDark = BoxShadows.Parse("0 12 32 0 #80000000, 0 2 8 0 #4D000000");
 
     // 原型 segmented.css:8 + prototype.css:24-25：浅色指示块用 1px 4px 墨投影浮起，深色把投影换成 1px 淡环。
     // 环本身是调色板令牌，由 VexSegmentedThumbBorderBrush 以描边给出，这里只需在深色档把投影清零。

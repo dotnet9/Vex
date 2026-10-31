@@ -74,7 +74,7 @@ internal static class PopupLayoutVerification
         // 排版级联已迁到外观弹层（ShellAppearanceMenuView），滚动可达性由 prototype-appearance 模式覆盖。
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("indigo"); Render();
         var appearance = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
-        foreach (var (button, name, width) in new[] { (appearance.AppearanceButton, "appearance", (double)ShellAppearanceMenuView.MenuWidth), (appearance.LanguageButton, "language", 248.0) })
+        foreach (var (button, name, width) in new[] { (appearance.AppearanceButton, "appearance", (double)ShellAppearanceMenuView.MenuWidth), (appearance.LanguageButton, "language", (double)ShellAppearanceMenuView.LanguageMenuWidth) })
         {
             ((Flyout)button.Flyout!).ShowAt(button); Render();
             var content = (Control)((Flyout)button.Flyout).Content!;

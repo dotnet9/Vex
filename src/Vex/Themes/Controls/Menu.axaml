@@ -40,15 +40,18 @@
         <Setter Property="Foreground" Value="{DynamicResource MenuItemPointeroverForeground}" />
     </Style>
 
+    <!-- 原型 .menu/.flyout 与弹层同档（surface.css L2 实测 #fff 面、1px 发丝、8 圆角、菜单内距 6）。
+          Fluent 的 FlyoutBackground 令牌跟着纸面走，配色偏米黄时菜单会跟着发褐，这里收到 VexPopBrush。 -->
     <Style Selector="MenuFlyoutPresenter">
         <Setter Property="Width" Value="248" />
-        <Setter Property="Background" Value="{DynamicResource MenuFlyoutBackground}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource MenuFlyoutBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource VexPopBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusMd}" />
     </Style>
 
     <Style Selector="ContextMenu">
         <Setter Property="Width" Value="248" />
-        <Setter Property="Background" Value="{DynamicResource MenuFlyoutBackground}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource MenuFlyoutBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource VexPopBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
     </Style>
 </Styles>

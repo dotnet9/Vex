@@ -63,7 +63,7 @@
                                         Name="PART_BubbleText"
                                         FontSize="{DynamicResource VexDensityFontSizeCaption}"
                                         FontWeight="SemiBold"
-                                        Foreground="{DynamicResource VexOnAccentBrush}" />
+                                        Foreground="{DynamicResource StudioOnPrimary}" />
                                 </Border>
                             </Canvas>
                         </Panel>

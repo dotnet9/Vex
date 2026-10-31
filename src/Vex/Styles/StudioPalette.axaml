@@ -105,10 +105,10 @@
             <SolidColorBrush x:Key="VexSegmentedThumbBorderBrush" Color="#00000000" />
             <!-- 原型画布底 = 纸面掺 5% 墨（color-mix fg 5% paper），把画布压暗一档与白块拉开。 -->
             <SolidColorBrush x:Key="VexCanvasInkTintBrush" Color="{DynamicResource StudioTextColor}" Opacity="0.05" />
-            <!-- 弹层/对话框浮起底色：原型 elevated 令牌 = 纸面 88% 叠面板，随色板与明暗派生（不再写死纯白）。 -->
-            <SolidColorBrush x:Key="VexElevatedBackgroundBrush" Color="{DynamicResource StudioElevatedColor}" />
-            <!-- 原型令牌 on-accent：实底强调色上的文字，浅色纯白、深色纯黑。 -->
-            <SolidColorBrush x:Key="VexOnAccentBrush" Color="#FFFFFF" />
+            <!-- 原型表面契约 L2（surface.css:17 + workspace-chrome.css:13）：浮层专用的一面。
+                 弹层不跟随纸面底色——纸面会随配色偏米黄，浮层要的是干净的 UI 面，所以浅色恒为纯白；
+                 深色沿用 surface（原生即 StudioPaperColor），靠描边与投影和纸面分离。 -->
+            <SolidColorBrush x:Key="VexPopBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexTableHeaderBrush" Color="#F7F7F8" />
@@ -142,9 +142,7 @@
             <!-- 原型深色画布要比块亮一档（bg = mix paper, panel 30%）；Studio 的 surface 反而更深，
                  所以取最浅的中性上浮色按 40% 叠在纸面上，随配色自适应地抬起画布。 -->
             <SolidColorBrush x:Key="VexCanvasInkTintBrush" Color="{DynamicResource StudioRaisedColor}" Opacity="0.4" />
-            <SolidColorBrush x:Key="VexElevatedBackgroundBrush" Color="{DynamicResource StudioElevatedColor}" />
-            <!-- 原型令牌 on-accent：深色主题的强调色本身是浅色，实底上的文字要转纯黑。 -->
-            <SolidColorBrush x:Key="VexOnAccentBrush" Color="#000000" />
+            <SolidColorBrush x:Key="VexPopBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexEditorBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexPreviewBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
             <SolidColorBrush x:Key="VexTableHeaderBrush" Color="#292C32" />

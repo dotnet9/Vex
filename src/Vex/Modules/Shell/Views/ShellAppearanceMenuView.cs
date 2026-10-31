@@ -29,6 +29,11 @@ public sealed class ShellAppearanceMenuView : UserControl
     public Button AppearanceButton { get; private set; } = null!;
     public Button LanguageButton { get; private set; } = null!;
     public const double MenuWidth = 430;
+    /// <summary>原型 *{box-sizing:border-box}：430 是含 14 内距与 1px 发丝描边的外框宽，
+    /// 内容面板按 430 − 2×(14+1) 收口，弹层才不会被内容宽顶成 432。</summary>
+    private const double MenuInset = 15;
+    /// <summary>语言菜单沿用 248 菜单标准外框（workspace-chrome.css:6 --title-menu-width）。</summary>
+    public const double LanguageMenuWidth = 248;
 
     /// <summary>原型 .density-options button.on 与卡片选中环共用的强调色派生点。</summary>
     private static readonly string[] StatusDots = ["#DC2626", "#15803D", "#B45309", "#4338CA"];
@@ -214,7 +219,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         Grid.SetRow(_addCard, (ordered.Length + 2) / 3); Grid.SetColumn(_addCard, 0);
         _palettes.RowDefinitions = new RowDefinitions(string.Join(",", Enumerable.Repeat("Auto", (ordered.Length + 3) / 3 + 1)));
         _palettes.Children.Add(_addCard);
-        var content = new StackPanel { Width = MenuWidth - 36, Margin = default };
+        var content = new StackPanel { Width = MenuWidth - 2 * MenuInset, Margin = default };
         content.Children.Add(SectionTitle(Text("AppearanceDensityTitle"), 4));
         content.Children.Add(densityRow);
         content.Children.Add(SectionTitle(Text("AppearanceModeTitle")));
@@ -231,8 +236,8 @@ public sealed class ShellAppearanceMenuView : UserControl
         appearanceFlyout.Opened += (_, _) => { SetAppearanceMenuOpen(true); AppearanceButton.Classes.Add("title-picker-open"); };
         appearanceFlyout.Closed += (_, _) => { SetAppearanceMenuOpen(false); AppearanceButton.Classes.Remove("title-picker-open"); };
         AppearanceButton.Flyout = appearanceFlyout;
-        // 语言菜单保持 248px 菜单标准（外观面板 430px 属内容面板）。
-        var languages = new StackPanel { Width = 236, Spacing = 2 };
+        // 语言菜单保持 248px 菜单标准（外观面板 430px 属内容面板）：248 − 2×(6 内距 + 1 描边)。
+        var languages = new StackPanel { Width = LanguageMenuWidth - 14, Spacing = 2 };
         _languageRows.Clear();
         foreach (var language in _vm.LanguageOptions)
         {

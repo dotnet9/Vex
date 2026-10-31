@@ -258,16 +258,18 @@
         <Setter Property="RenderTransform" Value="none" />
     </Style>
 
+    <!-- 原型对话框与浮层同档（surface.css L2 实测：#fff 面、1px 发丝、8 圆角、shadow-pop 双层）；
+         内距按对话框一档给 20~24。投影用 ElevationResources 的回放键，随明暗换墨蓝/纯黑两配方。 -->
     <Style Selector="Border.dialog-card">
         <Setter Property="Width" Value="440" />
         <Setter Property="Padding" Value="22" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Background" Value="{DynamicResource VexElevatedBackgroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource VexPopBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
-        <Setter Property="BoxShadow" Value="0 12 32 0 #29000000, 0 2 8 0 #14000000" />
+        <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusMd}" />
+        <Setter Property="BoxShadow" Value="{DynamicResource VexPopShadow}" />
     </Style>
 
     <!-- 描边图标（feather 风格）：Path 走 Stroke 而非 Fill -->
