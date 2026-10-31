@@ -6,7 +6,7 @@
     sage.label='鼠尾草';
     sage.en='Sage';
     sage.note='暖白底色 · 鼠尾草绿';
-    sage.swatch=['#FFFDF9','#F1F4EE','#34443B','#789889','#DC2626','#15803D','#B45309','#789889'];
+    sage.swatch=['#FFFDF9','#F1F4EE','#34443B','#6F8F7D','#DC2626','#15803D','#B45309','#789889'];
   }
   if(window.VexPaletteRulesData)window.VexPaletteRulesData.default='teal';
 })();
