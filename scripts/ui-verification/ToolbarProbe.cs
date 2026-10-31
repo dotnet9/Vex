@@ -10,8 +10,8 @@ using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
 
 /// <summary>
-/// 一次性诊断探针（临时，不随修复提交）：导出格式条可视化树各级宽度与
-/// ToolBarPanel 的溢出判定输入，定位 1380 宽度下 span 四键被收编的原因。
+/// 格式条布局探针：导出工具条与各键的期望/实际宽度、坐标与溢出判定，
+/// 用于回归验证 16 键（含 span 四键）在任何窗口宽度下均完整可见。
 /// </summary>
 internal static class ToolbarProbe
 {
