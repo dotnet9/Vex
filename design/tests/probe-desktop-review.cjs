@@ -18,6 +18,8 @@ const { chromium } = require('playwright');
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.workspace'), '::before').display), 'block');
 
   await open('&layout=source&scenario=long-files');
+  assert.equal(await page.locator('.document-statusbar').count(), 0);
+  assert.equal(await page.locator('.document-zoom .vex-zoomdock:visible').count(), 0, 'Source view only floats the word count');
   await page.locator('#outline-toggle').click();
   const rows = await page.evaluate(() => {
     const rect = selector => document.querySelector(selector).getBoundingClientRect().toJSON();

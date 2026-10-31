@@ -286,7 +286,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 :root.sage-focus-mode .titlebar .tb-menu,
 :root.sage-focus-mode .titlebar .caption-btns{opacity:0;pointer-events:none;transition:opacity 160ms ease}
 :root.sage-focus-mode .app-window{max-width:1500px;margin:0 auto}
-:root.sage-focus-mode .document-statusbar{background:var(--surface)}
 :root.sage-focus-mode .reading-pane .pane-head{opacity:.55}
 #markdown-preview img{cursor:zoom-in}
 .sage-lightbox{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:5vh 5vw;background:rgba(19,28,23,.84);backdrop-filter:blur(8px)}

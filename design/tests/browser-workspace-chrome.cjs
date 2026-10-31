@@ -74,6 +74,10 @@ fs.mkdirSync(output, {recursive:true});
 
     await page.evaluate(() => VexWorkspace.setLayout('read'));
     assert.equal(await page.locator('#edit-options').isVisible(), false);
+    await page.locator('.reading-zoom .zoom-range').press('End');
+    assert.equal(await page.evaluate(() => Number(VexPreferences.values.zoom)), 200, 'Floating reading zoom remains keyboard accessible');
+    await page.locator('.reading-zoom .zoom-reset').click();
+    assert.equal(await page.evaluate(() => Number(VexPreferences.values.zoom)), 100);
     const width = await page.locator('#markdown-preview').evaluate(el => el.getBoundingClientRect().width);
     assert.ok(width <= 820, 'Reading has a comfortable maximum line width');
     await page.locator('#outline-toggle').click();
@@ -87,9 +91,12 @@ fs.mkdirSync(output, {recursive:true});
     await shot('reading-outline');
     assert.equal(await page.locator('#sb-wordcount').evaluate(el => el.tagName), 'SPAN');
     assert.equal(await page.locator('#sb-wordcount').getAttribute('data-action'), null);
+    assert.equal(await page.locator('.document-statusbar').count(), 0, 'Window has no status bar');
     assert.equal(await page.locator('#auxiliary-info, #layer-properties, #layer-statistics').count(), 0);
     assert.equal(await page.evaluate(() => JSON.stringify(VexProto.menuData).includes('dlg-properties') || JSON.stringify(VexProto.menuData).includes('dlg-statistics')), false);
-    await page.locator('#sb-wordcount').click();
+    const countBox = await page.locator('#sb-wordcount').boundingBox();
+    assert.equal(await page.evaluate(({x, y}) => document.elementFromPoint(x, y).id === 'sb-wordcount', {x:countBox.x + 2, y:countBox.y + 2}), false, 'Floating word count lets pointer events reach the document');
+    await page.mouse.click(countBox.x + 2, countBox.y + 2);
     assert.equal(await closed(), false, 'Word count leaves the outline open');
     assert.equal(await page.locator('#outline-toggle').getAttribute('aria-pressed'), 'true');
     const count = await page.locator('#sb-wordcount').innerText();
@@ -113,6 +120,9 @@ fs.mkdirSync(output, {recursive:true});
     await page.keyboard.press('Escape'); assert.equal(await closed(), true);
 
     await open('layout=map');
+    await page.locator('#map-zoom-range').press('End');
+    assert.equal(await page.evaluate(() => VexWorkbench.state.scale), 2, 'Floating map zoom remains keyboard accessible');
+    await page.locator('.map-controls .zoom-reset').click();
     const sample = '# 文章\n\n## 甲章\n\n甲的正文。\n\n### 子节\n\n子节保留。\n\n## 乙章\n\n乙的正文。\n';
     await page.evaluate(value => {
       VexWorkbench.applyText(value); VexWorkbench.fit();
@@ -167,18 +177,22 @@ fs.mkdirSync(output, {recursive:true});
         await page.waitForTimeout(300);
         const result = await page.evaluate(() => {
           const r = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
-          return {sidebar:r('#structure-sidebar'), surface:r('#view-surface'), bar:r('.document-statusbar'),
+          return {sidebar:r('#structure-sidebar'), surface:r('#view-surface'), body:r('.window-body'),
+            files:r('.files-footer'), settings:r('.rail-bottom'), tools:r('.document-tools'), count:r('#sb-wordcount'),
             title:r('.titlebar-document'), selector:r('#workspace-layout'),
             appearanceRight:document.querySelector('#vex-appearance-menu').getBoundingClientRect().right,
             languageLeft:document.querySelector('#vex-language-menu').getBoundingClientRect().left,
             languageRight:document.querySelector('#vex-language-menu').getBoundingClientRect().right,
             captionLeft:document.getElementById('caption-btns').getBoundingClientRect().left,
-            overflow:document.querySelector('.document-statusbar').scrollWidth-document.querySelector('.document-statusbar').clientWidth,
+            overflow:document.querySelector('.document-tools').scrollWidth-document.querySelector('.document-tools').clientWidth,
             overlay:document.querySelector('.workspace').classList.contains('auxiliary-overlay')};
         });
         assert.ok(result.sidebar.right <= viewport.width && result.sidebar.bottom <= viewport.height, 'Auxiliary panel stays inside the window ' + JSON.stringify({vp: viewport, layout: layout, sidebar: result.sidebar}));
         assert.ok(result.appearanceRight <= result.languageLeft + 1 && result.languageRight <= result.captionLeft + 1, 'Titlebar controls keep order: appearance, language, caption buttons');
-        assert.ok(result.surface.bottom <= result.bar.top + 1 && result.overflow <= 1, 'Status bar does not cover or overflow the document');
+        assert.ok(Math.abs(result.surface.bottom - result.body.bottom) <= 1, 'Document uses the full window height below the titlebar');
+        for (const footer of [result.files, result.settings]) assert.ok(Math.abs(footer.bottom - result.body.bottom) <= 1, 'File tools and settings sit at the window bottom');
+        assert.ok(result.tools.right <= result.body.right && result.tools.bottom <= result.body.bottom && result.overflow <= 1, 'Floating tools stay inside the window');
+        assert.ok(result.body.bottom - result.count.bottom <= 10 && result.body.right - result.count.right <= 14, 'Word count floats in the bottom right corner');
         if (result.overlay) assert.ok(Math.abs(result.surface.width - before.width) < 1, 'Overlay panel preserves document width');
         await shot(layout + '-outline-' + viewport.width);
         await page.keyboard.press('Escape');

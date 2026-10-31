@@ -41,11 +41,10 @@ const ROWS = [
   ['.format-button', '#edit-options .format-button'],
   ['.document-statusbar', '.document-statusbar'],
   ['.document-word-count', '.document-word-count'],
-  // 原型 .statusbar-zoom 只是贴右的 flex 槽，可见的那枚是里面的 .vex-zoomdock；实现把槽与坞合成一个控件，
-  // 两边都量「坞」这一档，比出来的内距/圆角才是同一件事。
-  ['.statusbar-zoom', '.statusbar-zoom .vex-zoomdock'],
-  ['.statusbar-zoom .zoom-range', '.statusbar-zoom .zoom-range'],
-  ['.statusbar-zoom .zoom-reset', '.statusbar-zoom .zoom-reset'],
+  // 原型缩放坞已改为右下角悬浮；保留原生量表的行名以便比较控件几何。
+  ['.statusbar-zoom', '.document-zoom .vex-zoomdock'],
+  ['.statusbar-zoom .zoom-range', '.document-zoom .zoom-range'],
+  ['.statusbar-zoom .zoom-reset', '.document-zoom .zoom-reset'],
   ['.structure-sidebar', '.structure-sidebar'],
   ['.structure-search', '.structure-search'],
   ['.structure-list', '.structure-list'],

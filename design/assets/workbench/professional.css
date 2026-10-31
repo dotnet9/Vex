@@ -69,7 +69,6 @@ body {
 .find-strip,
 .edit-options,
 .workspace-tabrow,
-.window-body > .document-statusbar,
 .view-panel .view-heading,
 .view-panel .map-toolbar {
   background: var(--vex-chrome, var(--panel));
@@ -95,7 +94,6 @@ body {
 .find-strip,
 .edit-options,
 .workspace-tabrow,
-.window-body > .document-statusbar,
 .view-panel .view-heading,
 .view-panel .map-toolbar {
   border-color: var(--vex-hairline, var(--border));

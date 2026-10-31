@@ -65,10 +65,10 @@
   reset.title = tip;
   reset.setAttribute('aria-label', tip);
   window.addEventListener('vex-preference-changed', function (event) { if (event.detail.key === 'zoom') sync(); });
-  /* 缩放坞收进整窗底栏右端：正文与导图共用一个槽位，随布局渲染切换可见性，不再悬浮压住内容。 */
-  var slot = document.createElement('div'); slot.className = 'statusbar-zoom';
-  var bar = document.querySelector('.window-body>.document-statusbar');
-  bar.insertBefore(slot, bar.querySelector('.document-word-count'));
+  /* 正文与导图共用右下角缩放槽，随布局切换，字数始终留在最右侧。 */
+  var slot = document.createElement('div'); slot.className = 'document-zoom';
+  var tools = document.querySelector('.document-tools');
+  tools.insertBefore(slot, document.getElementById('sb-wordcount'));
   var mapDock = document.querySelector('.map-controls.vex-zoomdock');
   slot.appendChild(dock); if (mapDock) slot.appendChild(mapDock);
   function syncSlot() {

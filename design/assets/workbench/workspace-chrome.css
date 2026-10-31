@@ -271,11 +271,10 @@ input, textarea, select {
 .chapter-feedback{display:flex;align-items:center;gap:10px;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--accent-soft);color:var(--fg);font-size:11px;flex:none}.chapter-feedback span{flex:1}.chapter-feedback button{color:var(--accent);background:transparent;border:0;font-size:11px;white-space:nowrap;cursor:pointer}
 .chapter-drop-preview{position:absolute;top:12px;left:12px;right:12px;z-index:15;padding:9px 12px;background:var(--panel);border:1px solid var(--accent);border-radius:var(--vex-radius-sm);font-size:12px;box-shadow:var(--shadow-pop);pointer-events:none}
 .workspace-welcome{display:flex;flex:1;align-items:center;justify-content:center;text-align:center;padding:32px;background:var(--bg)}.workspace-welcome h1{font-size:27px;margin:14px 0}.workspace-welcome p{font-size:15px;line-height:1.9;color:var(--muted)}.welcome-kicker{font-size:12px;color:var(--accent)}.workspace-welcome small{display:block;font-size:11px;line-height:1.7;color:var(--muted);margin-top:24px}.workspace-welcome .btn{margin:4px}
-.workspace-empty #view-surface,.workspace-empty .document-statusbar,.workspace-empty #edit-options{display:none}.blank-document-note{padding:9px 18px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);background:var(--panel);flex:none}
+.workspace-empty #view-surface,.workspace-empty #edit-options{display:none}.blank-document-note{padding:9px 18px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);background:var(--panel);flex:none}
 .map-empty-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;flex-direction:column;gap:10px;width:300px;max-width:calc(100% - 32px);padding:20px;background:var(--panel);border:1px solid var(--border);border-radius:var(--vex-radius-md);text-align:center;z-index:8;font-size:13px}.map-empty-hint span{font-size:11px;line-height:1.7;color:var(--muted)}.map-empty-hint button{border:0;background:transparent;color:var(--accent);font-size:12px;cursor:pointer}
-.focus-mode .document-statusbar,.presentation-mode .document-statusbar{display:none}
 
-@media(max-width:1100px){.document-statusbar{gap:6px;padding:0 8px}#view-follow-driver{display:none}.workspace-layout-button{max-width:160px}.appearance-choices .studio-palettes{display:grid}}
+@media(max-width:1100px){#view-follow-driver{display:none}.workspace-layout-button{max-width:160px}.appearance-choices .studio-palettes{display:grid}}
 @media(max-width:850px){.document-label{min-width:80px}.workspace-layout-button{max-width:135px}.save-button{min-width:64px}.save-button span{display:inline}#view-follow-controls{gap:2px}.find-strip{flex-wrap:wrap}.find-strip .input{flex:1;max-width:100%}}
 
 /* The appearance popup exposes every mode directly, with native radio keys. */
@@ -368,9 +367,9 @@ input, textarea, select {
 #auxiliary-chapter .chapter-actions{gap:5px;margin-bottom:20px}#auxiliary-chapter .chapter-actions button{padding:7px 3px;border-color:color-mix(in srgb,var(--border) 75%,transparent);border-radius:var(--vex-radius-xs)}
 #auxiliary-chapter .inspector-foot{padding:12px 16px;border-top:1px solid var(--border);font-size:12px}
 .focus-mode .structure-sidebar,.focus-mode .structure-splitter{display:none}
-@media(max-width:1100px){.document-label{min-width:0}.workspace-layout-button{max-width:220px}.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:24px 36px 70px}.document-statusbar{gap:10px}#view-follow-driver{display:none}}
+@media(max-width:1100px){.document-label{min-width:0}.workspace-layout-button{max-width:220px}.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:24px 36px 70px}#view-follow-driver{display:none}}
 @media(max-width:850px){.workspace-layout-button{max-width:200px;font-size:12px;padding:0 7px}.document-title{font-size:13px}#document-save-status{font-size:12px}#view-follow-controls{gap:2px}.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding:28px}.view-panel .map-toolbar{padding:4px 6px}}
-@media(max-width:900px){.titlebar-document{display:none}.document-label{display:flex}.work-actions .icon-button{display:inline-flex}.workspace-layout-button{max-width:158px}.save-button{min-width:30px;padding:6px}.save-button span{display:none}.document-statusbar .document-word-count{font-size:12px}.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:20px 24px 60px}}
+@media(max-width:900px){.titlebar-document{display:none}.document-label{display:flex}.work-actions .icon-button{display:inline-flex}.workspace-layout-button{max-width:158px}.save-button{min-width:30px;padding:6px}.save-button span{display:none}.content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{padding:20px 24px 60px}}
 /* 工具行默认钉住为普通上下文行；取消钉住（data-toolbar-pin=false）才悬浮自动隐藏。
    这里只保留悬浮态需要的定位上下文。 */
 .view-panel{position:relative}
@@ -458,12 +457,12 @@ input, textarea, select {
 .app-window>.titlebar{background:var(--vex-chrome);border-bottom-color:var(--vex-hairline)}
 .workspace{position:relative;gap:0;padding:0}
 /* 图标栏：铬面、全高、贴左缘。active 只用一枚浅色圆角块托住图标＋短标签，不画下划线也不加描边。 */
-.nav-rail{flex:none;width:var(--vex-rail-w);display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;background:var(--vex-chrome);border-right:1px solid var(--vex-hairline)}
+.nav-rail{flex:none;width:var(--vex-rail-w);display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 0;background:var(--vex-chrome);border-right:1px solid var(--vex-hairline)}
 .rail-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:44px;height:48px;padding:0;border:0;border-radius:var(--vex-r-ctl);background:transparent;color:var(--vex-ink-2);font-size:11px;line-height:1;cursor:pointer;transition:background var(--vex-fast),color var(--vex-fast)}
 .rail-item .ico{width:18px;height:18px}
 .rail-item:hover{background:var(--vex-hover);color:var(--vex-ink)}
 .rail-item.on,.rail-item[aria-pressed=true]{background:var(--vex-on-soft);color:var(--vex-on)}
-.rail-bottom{margin-top:auto}
+.rail-bottom{margin-top:auto;height:40px;flex:none}
 /* 面板头：左右两栏同一档口径，标题落在搜索框之上。 */
 .panel-head{flex:none;display:flex;align-items:center;justify-content:space-between;height:36px;padding:0 12px;border-bottom:1px solid var(--vex-hairline)}
 .panel-title{font-weight:600;font-size:var(--fs-caption,12px);line-height:1.6;color:var(--vex-ink)}
@@ -530,19 +529,14 @@ input, textarea, select {
 /* 布局菜单改从标签行右端向下开（原先从底栏向上开）。 */
 .workspace-tabrow .workspace-layout-menu{top:calc(100% + 6px);bottom:auto;left:auto;right:8px;transform:none}
 .presentation-mode .workspace-tabrow{display:none}
-/* 整窗底栏（唯一一处状态栏定义）：铬面 + 顶上一根发丝线，右端缩放槽与字数。 */
-.window-body>.document-statusbar{position:relative;z-index:12;flex:none;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--gap-md,10px);width:auto;max-width:none;height:var(--vex-status-h);min-height:var(--vex-status-h);padding:0 var(--pad-lg,14px);border:0;border-top:1px solid var(--vex-hairline);border-radius:0;background:var(--vex-chrome);box-shadow:none;color:var(--vex-ink-2);font-size:var(--fs-caption,12px)}
-.window-body>.document-statusbar button{border:0;background:transparent;color:var(--vex-ink-2);font-size:var(--fs-caption,12px);white-space:nowrap}
-.window-body>.document-statusbar button:hover{color:var(--vex-on)}
-.window-body>.document-statusbar .document-word-count{position:static;right:auto;bottom:auto;margin-left:0;height:auto;min-height:0;padding:0 4px;border:0;background:transparent;color:var(--vex-ink-2);cursor:default}
-/* 缩放槽：坞进底栏后脱掉浮层外壳（描边/投影/胶囊底），只留拖动条与还原钮；百分比气泡仍向上弹。 */
-.statusbar-zoom{display:flex;align-items:center;margin-left:auto}
-.statusbar-zoom .vex-zoomdock{position:static;height:calc(var(--vex-status-h) - 8px);padding:0 4px;border:0;border-radius:var(--vex-r-ctl);background:transparent;box-shadow:none;color:var(--vex-ink-2)}
-.statusbar-zoom .vex-zoomdock[hidden]{display:none}
-.statusbar-zoom .zoom-range{width:72px}
-.statusbar-zoom .zoom-reset{height:18px;padding:0 5px}
-.statusbar-zoom .zoom-reset::before{display:none}
-/* 文件列表快捷钮移到搜索框下方、列表上方，整行居左并与搜索框左缘同缩进。 */
+/* 右下角只悬浮实际控件，空白处的点击和滚动仍交给正文。 */
+.document-tools{position:absolute;z-index:40;right:12px;bottom:8px;display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);pointer-events:none}
+.document-zoom{display:flex;align-items:center;pointer-events:auto}
+.document-zoom .vex-zoomdock{position:static;height:28px;padding:0 5px;border:1px solid var(--vex-hairline);border-radius:var(--vex-r-ctl);background:var(--vex-sheet);box-shadow:none;color:var(--vex-ink-2)}
+.document-zoom .zoom-range{width:72px}
+.document-zoom .zoom-reset{height:22px;padding:0 5px}
+.document-zoom .zoom-reset::before{display:none}
+.focus-mode .document-tools,.presentation-mode .document-tools,.workspace-empty .document-tools{display:none}
 .map-viewport{position:relative}
 /* ===== 浮层一档（L2）=====
  * 菜单 / 弹层 / 对话框 / toast 共用同一张面、同一根描边、同一档圆角、同一档投影。
@@ -564,9 +558,5 @@ input, textarea, select {
 .vex-settings-title,.vex-settings-nav,.vex-export-dialog>header,.vex-export-dialog>footer{border-color:var(--vex-hairline)}
 .vex-settings-nav{background:var(--vex-chrome)}
 .vex-settings-content{background:transparent;padding:20px}
-/* 窄屏：字数是信息面板的唯一入口，任何宽度都保留；空间不够先压缩缩放滑杆，不换行成块。 */
-@media(max-width:900px){
-  .window-body>.document-statusbar{gap:var(--gap-sm,6px);padding:0 var(--pad-md,10px)}
-  .statusbar-zoom .zoom-range{width:48px}
-}
-
+/* 桌面窄窗口压缩缩放滑杆，字数保持单行。 */
+@media(max-width:900px){.document-zoom .zoom-range{width:48px}}

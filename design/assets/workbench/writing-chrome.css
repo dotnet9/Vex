@@ -1,5 +1,5 @@
 ﻿.workspace-main,.document-workspace{position:relative;min-height:0}
-.document-word-count{position:absolute;z-index:12;right:16px;bottom:13px;min-height:28px;display:flex;align-items:center;padding:3px 6px;border:0;border-radius:var(--vex-radius-xs);background:var(--panel,var(--surface));color:var(--muted);font:12px/20px system-ui}
+.document-word-count{display:flex;align-items:center;padding:3px 7px;border-radius:var(--vex-radius-xs);background:color-mix(in srgb,var(--vex-sheet,var(--paper)) 94%,transparent);color:var(--muted);font:12px/20px system-ui;font-variant-numeric:tabular-nums;white-space:nowrap;user-select:none}
 .focus-mode .document-word-count,.presentation-mode .document-word-count{display:none}
 .side-pane{display:flex;flex-direction:column;overflow:hidden}
 .side-pane>.file-list,.side-pane>.outline-list{min-height:0;flex:1;overflow:auto}
@@ -10,7 +10,7 @@
 .sidebar-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
 .sidebar-search input:focus-visible{outline:none}
 /* 底部条：目录名占满剩余宽度，排序/视图两枚按钮靠右（对齐原生 ShellFilesView 底栏意图）。 */
-.files-footer{display:flex;align-items:center;gap:2px;padding:6px 10px;border-top:1px solid var(--vex-hairline)}
+.files-footer{display:flex;flex:none;align-items:center;gap:2px;height:40px;padding:6px 10px;border-top:1px solid var(--vex-hairline)}
 .files-folder{flex:1;min-width:0;display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;text-align:left}
 .files-folder:hover{background:var(--hover);color:var(--fg)}
 .files-folder .ico{width:13px;height:13px;flex:none}
