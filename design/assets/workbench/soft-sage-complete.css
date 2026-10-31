@@ -172,3 +172,19 @@
 @media(max-width:760px) {
   :root .app-window .reading-pane .md-body { font-size:var(--vex-writing-size,15px); }
 }
+
+
+/* Palette tuning: keep neighboring hues distinct and reserve status red/amber/green for meaning. */
+:root[data-theme="light"][data-palette="teal"] { --accent:#6F8F7D;--accent-hover:#5F7D6D;--primary:#6F8F7D;--primary-hover:#5F7D6D;--primary-pressed:#506B5C; }
+:root[data-theme="dark"][data-palette="teal"] { --accent:#A2BEAD;--accent-hover:#B4CDBD;--primary:#A2BEAD;--primary-hover:#B4CDBD;--primary-pressed:#C2D8CA; }
+:root[data-theme="light"][data-palette="pine"] { --accent:#397653;--accent-hover:#2F6345;--primary:#397653;--primary-hover:#2F6345; }
+:root[data-theme="dark"][data-palette="pine"] { --accent:#91C6A3;--accent-hover:#A6D4B5;--primary:#91C6A3;--primary-hover:#A6D4B5; }
+:root[data-theme="light"][data-palette="amber"] { --accent:#936B2D;--accent-hover:#795621;--primary:#936B2D;--primary-hover:#795621; }
+:root[data-theme="dark"][data-palette="amber"] { --accent:#E6BD70;--accent-hover:#F0CE8D;--primary:#E6BD70;--primary-hover:#F0CE8D; }
+:root[data-theme="light"][data-palette="crimson"] { --accent:#A23F5B;--accent-hover:#87334B;--primary:#A23F5B;--primary-hover:#87334B; }
+:root[data-theme="dark"][data-palette="crimson"] { --accent:#E69AAF;--accent-hover:#F0B0C1;--primary:#E69AAF;--primary-hover:#F0B0C1; }
+:root[data-theme="light"][data-palette="terracotta"] { --accent:#A65E36;--accent-hover:#8A4D2C;--primary:#A65E36;--primary-hover:#8A4D2C; }
+:root[data-theme="dark"][data-palette="terracotta"] { --accent:#DFA47F;--accent-hover:#EAB895;--primary:#DFA47F;--primary-hover:#EAB895; }
+/* Every palette gets the same accessible semantic status colors, independent of its accent. */
+:root { --success:var(--vex-semantic-success);--warning:var(--vex-semantic-warning);--danger:var(--vex-semantic-danger); }
+:root[data-theme="dark"] { --success:var(--vex-semantic-success);--warning:var(--vex-semantic-warning);--danger:var(--vex-semantic-danger); }
