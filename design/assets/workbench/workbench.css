@@ -147,6 +147,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .map-node.enter { animation: node-appear var(--vex-slow) both; animation-delay: var(--delay, 0ms); }
 .map-node[data-kind="heading"] { border-left: 3px solid var(--branch-color, var(--accent)); }
 .map-node.root { width: 214px; background: var(--accent); color: var(--accent-fg); border-color: var(--accent); box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 20%, transparent); }
+.map-node.root .map-node-text, .map-node.root .map-node-type { color: var(--accent-fg); }
 .map-node.content { background: color-mix(in srgb, var(--panel) 65%, var(--bg)); border-style: dashed; }
 .map-node.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .map-node-button { display:flex; align-items:center; gap:8px; width: 100%; min-width: 0; padding: 10px 12px; border: 0; background: transparent; color: inherit; text-align: left; border-radius: inherit; }
@@ -184,7 +185,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .inspector-body h3 { font-size: 13px; margin-bottom: 12px; }
 .inspector-content { color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; font-size:11px; line-height: 1.85; max-height: 230px; overflow: auto; }
 .inspector-foot { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 10px; }
-.statusbar { height:var(--control-h-md,32px); min-height:var(--control-h-md,32px); gap:var(--gap-lg,16px); padding: 0 var(--pad-md,10px); background: var(--panel); font-size:var(--fs-caption,12px); border-top: 1px solid var(--border); }
+.statusbar { height:var(--control-h-md,32px); min-height:var(--control-h-md,32px); gap:var(--gap-lg,16px); padding: 0 var(--pad-md,10px); background: var(--panel); font-size:var(--fs-caption,12px); border-top: 1px solid var(--border); display:flex; align-items:center; justify-content:flex-end; }
 .statusbar button { border: none; background: transparent; color: var(--muted); font-size:var(--fs-caption,12px); }
 .statusbar button:hover { color: var(--accent); }
 .save-status { display: flex; align-items: center; gap: 6px; color: var(--muted); }
@@ -271,3 +272,33 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 
 .ico-21 { width: 21px; height: 21px; }
 .ico-13 { width: 13px; height: 13px; }
+
+
+/* ---- Soft Sage writing comfort, focus mode, lightbox, code copy ---- */
+
+/* Soft Sage · writing comfort and interaction refinements */
+.app-window .md-body{max-width:800px;margin-inline:auto;padding-inline:clamp(22px,5vw,64px)}
+.reading-scroll{scroll-behavior:smooth}
+.source-scroll textarea{line-height:1.82;caret-color:var(--accent)}
+#markdown-input:focus{outline:none}
+.sage-reading-progress{width:74px;height:3px;border-radius:9px;background:var(--border);overflow:hidden}
+.sage-reading-progress i{display:block;width:0;height:100%;background:var(--accent);transition:width 120ms linear}
+:root.sage-focus-mode .nav-rail,
+:root.sage-focus-mode .sidebar,
+:root.sage-focus-mode .structure-sidebar,
+:root.sage-focus-mode .titlebar .tb-menu,
+:root.sage-focus-mode .titlebar .caption-btns{opacity:0;pointer-events:none;transition:opacity 160ms ease}
+:root.sage-focus-mode .app-window{max-width:1500px;margin:0 auto}
+:root.sage-focus-mode .document-statusbar{background:var(--surface)}
+:root.sage-focus-mode .reading-pane .pane-head{opacity:.55}
+#markdown-preview img{cursor:zoom-in}
+.sage-lightbox{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:5vh 5vw;background:rgba(19,28,23,.84);backdrop-filter:blur(8px)}
+.sage-lightbox[hidden]{display:none}
+.sage-lightbox img{max-width:90vw;max-height:88vh;object-fit:contain;border-radius:10px;box-shadow:0 18px 60px rgba(0,0,0,.3)}
+.sage-lightbox button{position:absolute;right:28px;top:22px;width:38px;height:38px;border:1px solid rgba(255,255,255,.35);border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:25px;cursor:pointer}
+#markdown-preview pre{position:relative;padding-top:2.4em}
+.sage-copy-code{position:absolute;right:10px;top:8px;z-index:1;border:1px solid var(--border);border-radius:6px;padding:3px 8px;background:var(--surface);color:var(--muted);font-size:11px;cursor:pointer}
+.sage-copy-code:hover{color:var(--accent);border-color:var(--accent)}
+}
+@media(prefers-reduced-motion:reduce){.sage-lightbox,}
+
