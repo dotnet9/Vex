@@ -20,7 +20,7 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
  const text='# 文档\n\n正文保持一致。\n\n## 负责方与职责\n\n| 负责方 | 职责 | 示例 |\n| --- | --- | --- |\n| 编辑器 | 接收输入、处理选区和中文候选，生成可撤销的编辑动作 | 即时编辑、源码、查找替换与表格 |\n| 应用 | 文件读写、偏好、窗口、导出与本机协作 | 已有文件自动保存；保存失败时保留内容 |\n\n> 写下想法。\n';
  await page.evaluate(t=>{VexTheme.setMode('light');VexTheme.setPalette('indigo');VexWorkspace.setLayout('read');VexWorkbench.applyText(t)},text);
  const types=await page.evaluate(()=>VexTypes.map(t=>{VexTypography.choose(t.key);const body=document.querySelector('#markdown-preview'),h=body.querySelector('h2'),s=getComputedStyle(h),b=getComputedStyle(body);return {key:t.key,color:s.color,fontSize:b.fontSize,headingSize:s.fontSize,border:s.borderLeftWidth+' '+s.borderBottomStyle,background:s.backgroundColor,align:s.textAlign,font:s.fontFamily}}));
- assert.equal(new Set(types.map(({key,...v})=>JSON.stringify(v))).size,12,'Each typography needs a distinct rendered signature');
+ assert.equal(new Set(types.map(({key,...v})=>JSON.stringify(v))).size,types.length,'Each typography needs a distinct rendered signature');
  assert.equal(await page.evaluate(()=>VexWorkbench.text),text);
  await page.evaluate(()=>VexTypography.choose('Simple'));
  const widths=await page.locator('#markdown-preview th').evaluateAll(els=>els.map(x=>x.getBoundingClientRect().width));
@@ -86,6 +86,6 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
  await shot('appearance-comparison');
  assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);
  fs.writeFileSync(out+'/results.json',JSON.stringify({palette,types,widths,diagram,hint,errors,missing},null,2));
- console.log('PASS: 9 palettes × 2 modes; 12 distinct typographies; content-sized table; 22 diagrams; XY bounds; editable diagrams; titlebar alignment on 3 platforms; inline map hints; 12 installer scenarios.');
+ console.log('PASS: 9 palettes × 2 modes; 13 distinct typographies; content-sized table; 22 diagrams; XY bounds; editable diagrams; titlebar alignment on 3 platforms; inline map hints; 12 installer scenarios.');
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

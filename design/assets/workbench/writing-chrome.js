@@ -16,6 +16,7 @@
     return {count: cjkCount + wordCount, cjkCount, wordCount, characters: Array.from(plain.replace(/\s/gu, '')).length};
   }
   function metrics(source) {
+    if (!source.trim()) return {count: 0, cjkCount: 0, wordCount: 0, characters: 0, excerpt: ''};
     if (cache.has(source)) return cache.get(source);
     const plain = text(source), result = Object.assign(measureText(plain), {excerpt: Array.from(plain).slice(0, 120).join('')});
     if (cache.size >= 40) cache.delete(cache.keys().next().value);

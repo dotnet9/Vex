@@ -36,7 +36,7 @@
       if ((/^\d/.test(info.marker)) !== ordered) break;
       lastItem = { html: `<li>${info.checked === undefined
         ? inline(info.text)
-        : `<input type="checkbox" data-task-line="${index}" aria-label="${esc(info.text)}" ${info.checked.toLowerCase() !== ' ' ? 'checked' : ''} contenteditable="false">${inline(info.text)}`}</li>` };
+        : `<input class="md-task-box" type="checkbox" data-task-line="${index}" aria-label="${esc(info.text)}" ${info.checked.toLowerCase() !== ' ' ? 'checked' : ''} contenteditable="false">${inline(info.text)}`}</li>` };
       items.push(lastItem);
       index++;
     }

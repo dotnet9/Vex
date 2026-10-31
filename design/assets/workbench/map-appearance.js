@@ -31,7 +31,7 @@
     var panel = document.createElement('section'); panel.id='map-appearance-panel'; panel.className='map-appearance-popover'; panel.hidden=true;
     panel.setAttribute('role','dialog');panel.setAttribute('aria-label','导图样式');
     // 页签已删：结构与风格上下平铺，靠 ①② 步骤标签分组——选完结构顺手往下看风格，不必先点开页签。
-    panel.innerHTML='<div class="map-appearance-scroll"><div class="map-step-label"><i>1</i>结构</div><div class="map-choice-grid" id="map-structure-choices" role="group" aria-label="导图结构"></div><div class="map-step-label" data-map-next-step><i>2</i>风格</div><div class="map-choice-grid" id="map-style-choices" role="group" aria-label="导图风格"></div></div>';
+    panel.innerHTML='<div class="map-appearance-heading"><strong>导图样式</strong><button type="button" class="icon-button" data-map-close aria-label="关闭导图样式" title="关闭">×</button></div><div class="map-appearance-scroll"><div class="map-step-label"><i>1</i>结构</div><div class="map-choice-grid" id="map-structure-choices" role="group" aria-label="导图结构"></div><div class="map-step-label" data-map-next-step><i>2</i>风格</div><div class="map-choice-grid" id="map-style-choices" role="group" aria-label="导图风格"></div></div>';
     adapter.parent.appendChild(panel);
     function apply() {
       if (adapter.scene.dataset.mapStyle !== style) {
@@ -61,14 +61,7 @@
       label.classList.add('nudge'); clearTimeout(nudgeTimer);
       nudgeTimer = setTimeout(function () { label.classList.remove('nudge'); }, 900);
     }
-    /* 风格是流程终点：选完风格稍候自动收起，让出画布看上色效果；换结构不收（还要顺势选风格）。 */
-    var collapseTimer = null;
-    function scheduleCollapse() {
-      clearTimeout(collapseTimer);
-      collapseTimer = setTimeout(function () { if (!panel.hidden) close(); }, 650);
-    }
     function close() {
-      clearTimeout(collapseTimer);
       if (panel.hidden) return;
       panel.hidden = true;
       if (trigger) trigger.setAttribute('aria-expanded','false');
@@ -98,8 +91,8 @@
     panel.onclick=function (event) {
       var button=event.target.closest('button');if(!button)return;
       if(button.hasAttribute('data-map-close')){close();trigger?.focus({preventScroll:true});return;}
-      if(button.dataset.mapLayout){adapter.setLayout(button.dataset.mapLayout);render();nudgeNextStep();adapter.avoid?.(panel.getBoundingClientRect());}
-      if(button.dataset.mapStyleChoice){choose(button.dataset.mapStyleChoice);scheduleCollapse();}
+      if(button.dataset.mapLayout){var layout=button.dataset.mapLayout;adapter.setLayout(layout);render();panel.querySelector('[data-map-layout="'+layout+'"]').focus({preventScroll:true});nudgeNextStep();adapter.avoid?.(panel.getBoundingClientRect());}
+      if(button.dataset.mapStyleChoice){var choice=button.dataset.mapStyleChoice;choose(choice);panel.querySelector('[data-map-style-choice="'+choice+'"]').focus({preventScroll:true});}
     };
     document.addEventListener('pointerdown',function (event) {if(!panel.contains(event.target)&&!event.target.closest('[data-action="map-appearance"], .tour-card'))close();});
     document.addEventListener('keydown',function (event) {if(event.key==='Escape'&&!panel.hidden){event.preventDefault();close();trigger?.focus({preventScroll:true});}},true);

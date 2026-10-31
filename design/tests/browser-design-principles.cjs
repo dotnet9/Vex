@@ -40,7 +40,7 @@ fs.mkdirSync(out,{recursive:true});
    ratios.push({pair:'control-border/paper',ratio:contrast(borderC,paperC),derivationDelta});
    if(derivationDelta>2)failures.push({mode,palette:p.key,pair:'control-border/paper',derivationDelta,expected:borderExpected});
    ui.push({mode,palette:p.key,ratios});
-   if(getComputedStyle(document.body).backgroundColor!=='rgb(234, 236, 234)')failures.push({mode,palette:p.key,error:'Stage changed'});
+   if(contrast(rgba(getComputedStyle(document.body).backgroundColor),rgba(token('stage')))>1.01)failures.push({mode,palette:p.key,error:'Stage does not follow theme'});
    for(const t of VexTypes){
     VexTypography.choose(t.key);
     const sample={mode,palette:p.key,type:t.key,minimum:Infinity};
@@ -122,6 +122,6 @@ fs.mkdirSync(out,{recursive:true});
  await page.goto(base+'Appearance.html');await page.locator('[data-review-types=all]').click();assert.equal(await page.locator('.type-choice .type-swatch').count(),13);const previewText=await page.locator('.type-choice .type-document>p').evaluateAll(nodes=>nodes.map(node=>parseFloat(getComputedStyle(node).fontSize)));assert(previewText.every(size=>size>=13));await shot('appearance-review');
  assert.deepEqual(errors,[]);
  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({combinations:colors.types.length,previews,errors,tasks:['save retry','export retry','external compare/cancel/accept/undo','draft recovery','caption close guard','real Markdown open/edit/chapter/undo/save/export','appearance preserves selection/history/position','independent review previews']},null,2));
- console.log('PASS: 216 rendered palette/mode/typography combinations; semantic contrast; 12 independent previews; recommendation filters; keyboard scrolling; save/export retry; external comparison and undo; independent draft recovery; guarded caption close.');
+ console.log('PASS: 234 rendered palette/mode/typography combinations; semantic contrast; 13 independent previews; recommendation filters; keyboard scrolling; save/export retry; external comparison and undo; independent draft recovery; guarded caption close.');
  await browser.close();
 })().catch(error=>{console.error(error);process.exit(1)});

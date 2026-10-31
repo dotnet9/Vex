@@ -64,6 +64,27 @@
   /* 排版入口与格式工具栏同处一条悬浮条（右对齐），标题行隐藏。 */
   $('edit-options').appendChild(typeButton);
   panels.editor.insertBefore($('edit-options'),panels.editor.querySelector('.view-body'));
+  /* Keep every formatting command available when the desktop window narrows. */
+  var formatToolbar = $('format-toolbar');
+  var formatItems = Array.from(formatToolbar.querySelectorAll('.format-button')).map(function (button) {
+    var marker = document.createComment('format position'); button.before(marker); return { button: button, marker: marker };
+  });
+  var formatMore = document.createElement('button'); formatMore.type = 'button'; formatMore.className = 'format-button format-more';
+  formatMore.textContent = '⋯'; formatMore.title = '更多格式'; formatMore.setAttribute('aria-label', '更多格式'); formatMore.setAttribute('aria-expanded', 'false'); formatMore.setAttribute('aria-controls', 'format-overflow');
+  var formatOverflow = document.createElement('div'); formatOverflow.id = 'format-overflow'; formatOverflow.className = 'format-overflow'; formatOverflow.hidden = true;
+  $('edit-options').appendChild(formatOverflow);
+  formatMore.onclick = function () { formatOverflow.hidden = !formatOverflow.hidden; formatMore.setAttribute('aria-expanded', String(!formatOverflow.hidden)); if (!formatOverflow.hidden) formatOverflow.querySelector('button')?.focus(); };
+  function closeFormatOverflow(restore) { if (formatOverflow.hidden) return; formatOverflow.hidden = true; formatMore.setAttribute('aria-expanded', 'false'); if (restore) formatMore.focus(); }
+  function arrangeFormat() {
+    var visible = innerWidth <= 850 ? 5 : innerWidth <= 1100 ? 8 : formatItems.length;
+    closeFormatOverflow(false);
+    formatItems.forEach(function (item, index) { if (index >= visible) formatOverflow.appendChild(item.button); else item.marker.after(item.button); });
+    if (visible < formatItems.length) formatToolbar.appendChild(formatMore); else formatMore.remove();
+  }
+  formatOverflow.addEventListener('click', function (event) { if (event.target.closest('button')) closeFormatOverflow(false); });
+  document.addEventListener('pointerdown', function (event) { if (!formatOverflow.contains(event.target) && !formatMore.contains(event.target)) closeFormatOverflow(false); });
+  document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !formatOverflow.hidden) { event.preventDefault(); closeFormatOverflow(true); } });
+  window.addEventListener('resize', arrangeFormat); arrangeFormat();
   var readingTypeButton=typeButton.cloneNode(true);panels.render.querySelector('.view-heading').appendChild(readingTypeButton);
   $('reading-pane').querySelector('[data-action="typography"]').remove();
   var mapButton=document.createElement('button');mapButton.className='map-appearance-trigger';mapButton.dataset.action='map-appearance';mapButton.hidden=true;
@@ -81,15 +102,15 @@
   applyToolbarPin();
   var mapAppearance=VexMapAppearance.create({parent:document.querySelector('.window-body'),scene:$('map-scene'),getLayout:function(){return $('map-layout').value;},setLayout:function(key){$('map-layout').value=key;$('map-layout').dispatchEvent(new Event('change'));},isTemporary:function(){return guideActive;},beforeOpen:function(){VexTypography.close();closeMenus();$('map-settings').hidden=true;},avoid:function(rect){window.VexMapView&&VexMapView.avoid(rect);}});
   mapAppearance.setTrigger(mapButton); /* 触发钮徽标回显「结构 · 风格」，不必开弹层也知道当前组合。 */
-  /* 内容面顶端标签行：源码 / 阅读 / 导图 下划线直选 + 右端布局选择器（即时编辑与组合视图都在里面）。 */
+  /* 内容面顶端标签行：编辑 / 阅读 / 导图直选，右端选择布局。 */
   var tabrow = document.createElement('div'); tabrow.className = 'workspace-tabrow';
   area.insertBefore(tabrow, surface);
   var viewSwitch = document.createElement('div'); viewSwitch.className = 'workspace-viewswitch workspace-tabs'; viewSwitch.setAttribute('role', 'group'); viewSwitch.setAttribute('aria-label', '视图切换');
-  [['source', '源码', 'edit'], ['read', '阅读', 'eye'], ['map', '导图', 'map']].forEach(function (segment) {
+  [['instant', '编辑', 'edit'], ['read', '阅读', 'eye'], ['map', '导图', 'map']].forEach(function (segment) {
     var button = document.createElement('button'); button.type = 'button';
     button.dataset.viewLink = segment[0]; button.innerHTML = icon(segment[2]) + '<span>' + segment[1] + '</span>';
     button.setAttribute('aria-pressed', 'false');
-    button.onclick = function () { setLayout(segment[0]); };
+    button.onclick = function () { setLayout(segment[0] === 'instant' ? editorMode : segment[0]); };
     viewSwitch.appendChild(button);
   });
   var layoutButton = document.createElement('button'); layoutButton.className = 'workspace-viewswitch-more'; layoutButton.id = 'workspace-layout';
@@ -168,7 +189,7 @@
     });
     return handle;
   }
-  function renderLayout() {
+  function renderLayout(preservedScroller, preservedTop) {
     var source = editorMode === 'source', displayed = leaves(tree);
     Object.values(panels).forEach(function (panel) { panel.style.flex = ''; parking.appendChild(panel); }); surface.replaceChildren(build(tree, ''));
     $('source-pane').hidden = !source || !displayed.includes('editor'); $('instant-pane').hidden = source || !displayed.includes('editor');
@@ -189,14 +210,14 @@
     W.state.source = displayed.includes('editor') && source; $('map-source-toggle').setAttribute('aria-pressed', String(W.state.source)); $('map-source-toggle').classList.toggle('on', W.state.source);
     document.querySelector('.workspace').classList.toggle('source-only', source && displayed.length === 1); area.dataset.paneCount = displayed.length;
     var preset = presets.find(function (item) { return item.id === current; });
-    /* 四段直选的激活态：源码/阅读/导图各对应一个预设，其余（即时编辑与组合视图）落在"更多"。 */
-    var segment = ({ source: 'source', read: 'read', map: 'map' })[current] || 'more';
+    /* 即时编辑与源码共用「编辑」标签，组合视图激活右侧布局按钮。 */
+    var segment = ({ instant: 'instant', source: 'instant', read: 'read', map: 'map' })[current] || 'more';
     viewSwitch.querySelectorAll('[data-view-link]').forEach(function (button) {
       button.setAttribute('aria-pressed', String(button.dataset.viewLink === segment));
     });
     /* 非三段直选时"更多"段显示当前布局名并高亮（与原生底栏 MoreSegmentLabel 一致）。 */
     layoutButton.setAttribute('aria-pressed', String(segment === 'more'));
-    var moreLabel = segment === 'more' ? preset.title : '更多';
+    var moreLabel = '布局：' + preset.title;
     if (layoutButton.dataset.moreLabel !== moreLabel) {
       layoutButton.dataset.moreLabel = moreLabel;
       layoutButton.firstChild.textContent = moreLabel;
@@ -211,21 +232,27 @@
     layoutMenu.querySelectorAll('[data-layout]').forEach(function (button) { button.setAttribute('aria-pressed', String(button.dataset.layout === current)); });
     document.dispatchEvent(new CustomEvent('vex-layout-rendered'));
     // Newly opened panes inherit the current chapter position instead of starting at the top.
-    requestAnimationFrame(function () { if (W.syncViewsToLine) W.syncViewsToLine(); });
+    requestAnimationFrame(function () {
+      if (preservedScroller) preservedScroller.scrollTop = preservedTop;
+      if (W.syncViewsToLine) W.syncViewsToLine(undefined, preservedScroller);
+    });
   }
   function setLayout(id) {
     if (id === 'source-read') id = 'source-render';
     var preset = presets.find(function (entry) { return entry.id === id; }); if (!preset) return;
-    var hadMap = tree && leaves(tree).includes('map');
+    var previous = tree ? leaves(tree) : [], hadMap = previous.includes('map');
+    var preservedScroller = previous.includes('editor') && leaves(preset.tree).includes('editor') && editorMode === preset.mode
+      ? document.querySelector(editorMode === 'source' ? '.source-scroll' : '.instant-scroll') : null;
+    var preservedTop = preservedScroller && preservedScroller.scrollTop;
     W.finish(); $('node-inspector').hidden = true; current = id; tree = clone(preset.tree); if (preset.mode) editorMode = preset.mode;
     var wanted = leaves(tree); changing = true;
     if (wanted.includes('editor')) W.setEditMode(editorMode); else W.setView(wanted.includes('map') ? 'mindmap' : 'read');
-    changing = false; renderLayout(); saveLayout();
+    changing = false; renderLayout(preservedScroller, preservedTop); saveLayout();
     if (id === 'three' && innerWidth < 1250 && W.state.sidebar) {
       VexProto.handleAction('toggle-sidebar');
       VexProto.toastKey('ToastFileNavCollapsed');
     }
-    if (wanted.includes('map') && (!hadMap || id === 'three')) requestAnimationFrame(function () { requestAnimationFrame(function () { W.fit(id !== 'three'); }); });
+    if (wanted.includes('map') && (!hadMap || id === 'three')) requestAnimationFrame(function () { requestAnimationFrame(function () { W.fit(true); }); });
   }
   function openPanel(id) { if (leaves(tree).includes(id)) return; var wanted = new Set(leaves(tree).concat(id)); setLayout(wanted.size === 3 ? 'three' : wanted.has('map') ? (editorMode === 'source' ? 'source-map' : 'instant-map') : 'source-render'); }
   function switchEditorMode(mode) { var hasMap = leaves(tree).includes('map'), hasRender = leaves(tree).includes('render'); setLayout(mode === 'instant' ? hasMap ? 'instant-map' : 'instant' : hasMap ? hasRender ? 'three' : 'source-map' : hasRender ? 'source-render' : 'source'); }

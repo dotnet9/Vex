@@ -74,7 +74,8 @@
         selected = selection.toString(); count = VexWriting.measureText(selected).count;
       }
     }
-    $('sb-wordcount').textContent = (selected ? '选中 ' + count.toLocaleString() + ' · ' : '') + '字数 ' + VexWriting.metrics(W.text).count.toLocaleString();
+    var total = W.state.emptyWorkspace || !W.text.trim() ? 0 : VexWriting.metrics(W.text).count;
+    $('sb-wordcount').textContent = (selected ? '选中 ' + count.toLocaleString() + ' · ' : '') + '字数 ' + total.toLocaleString();
   }
   document.addEventListener('selectionchange', updateSelectionCount); $('markdown-input').addEventListener('select', updateSelectionCount);
   window.addEventListener('vex-content-changed', updateSelectionCount);

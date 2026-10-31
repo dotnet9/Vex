@@ -1,0 +1,394 @@
+/*
+ * Vex quiet-workbench pass.
+ *
+ * Final workbench refinements for the prototype. Default light/teal tokens
+ * establish the paper/chrome palette; shared rules refine workspace controls
+ * and writing hierarchy across themes.
+ */
+
+:root[data-theme="light"][data-palette="teal"] {
+  --stage: #e4e8e5;
+  --bg: #f1f3f1;
+  --panel: #e9eeeb;
+  --sidebar: #edf2ee;
+  --splitter: #d1dad3;
+  --statusbar-bg: #e9eeeb;
+  --badge-bg: #edf2ee;
+  --surface: #ffffff;
+  --paper: #ffffff;
+  --field: #ffffff;
+  --editor-bg: #ffffff;
+  --fg: #27372f;
+  --value: #27372f;
+  --editor-fg: #27372f;
+  --muted: #56655d;
+  --subtle: #77837c;
+  --md-marker: #56655d;
+  --md-quote: #56655d;
+  --fg-disabled: #8b9790;
+  --border: #d2dcd5;
+  --line: #d2dcd5;
+  --badge-border: #d2dcd5;
+  --currentline-border: #d2dcd5;
+  --control-border: #d4d7d5;
+  --hover: #e3ece6;
+  --raised: #f5f8f5;
+  --currentline-bg: #eef4ef;
+  --pressed: #dbe8df;
+  --selected: #dfece3;
+  --accent-soft: #eaf3ed;
+  --selection: #c8ddd0;
+  --segmented-track: #e5ece7;
+  --segmented-thumb: #ffffff;
+  --elevated: #ffffff;
+  --code-bg: #f1f5f2;
+  --code: #f1f5f2;
+  --tooltip-bg: #27372f;
+  --tooltip-fg: #ffffff;
+}
+
+body {
+  background: var(--stage, #e4e8e5);
+}
+
+/* Keep the signature illustration quiet behind the file list. */
+.workspace::before {
+  width: 230px;
+  height: 300px;
+  opacity: .25;
+}
+
+:root[data-theme="dark"] .workspace::before {
+  opacity: .12;
+}
+
+.app-window > .titlebar,
+.nav-rail,
+.sidebar,
+.structure-sidebar,
+.find-strip,
+.edit-options,
+.workspace-tabrow,
+.window-body > .document-statusbar,
+.view-panel .view-heading,
+.view-panel .map-toolbar {
+  background: var(--vex-chrome, var(--panel));
+}
+
+.sidebar,
+.structure-sidebar {
+  background: var(--sidebar, var(--vex-chrome));
+}
+
+.workspace-main,
+.content-area,
+.view-surface,
+.view-panel,
+.app-window :is(.source-pane, .reading-pane, .instant-scroll) {
+  background: var(--vex-sheet, var(--paper));
+}
+
+.app-window > .titlebar,
+.nav-rail,
+.sidebar,
+.structure-sidebar,
+.find-strip,
+.edit-options,
+.workspace-tabrow,
+.window-body > .document-statusbar,
+.view-panel .view-heading,
+.view-panel .map-toolbar {
+  border-color: var(--vex-hairline, var(--border));
+}
+
+.rail-item.on,
+.rail-item[aria-pressed="true"] {
+  background: var(--selected);
+  color: var(--accent);
+}
+
+.file-row.selected,
+.file-row.active {
+  position: relative;
+  background: var(--selected);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.file-row.selected::before,
+.file-row.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.file-row.selected .ico,
+.file-row.active .ico {
+  color: var(--accent);
+}
+
+.structure-item.on {
+  background: var(--selected);
+  color: var(--fg);
+}
+
+.workspace-tabs > button[aria-pressed="true"] {
+  color: var(--fg);
+  background: var(--selected);
+}
+
+.workspace-tabs > button[aria-pressed="true"]::after {
+  background: var(--accent);
+}
+
+#edit-options {
+  padding-inline: 12px;
+}
+
+.format-toolbar {
+  gap: 4px;
+}
+
+.format-divider {
+  margin-inline: 5px;
+  background: var(--border);
+}
+
+.format-button {
+  color: var(--muted);
+}
+
+.format-button:hover,
+.format-button:focus-visible {
+  color: var(--accent);
+  background: var(--hover);
+}
+
+#edit-options > .typography-trigger {
+  min-height: 28px;
+  margin-left: 12px;
+  padding-inline: 12px;
+  border-left: 1px solid var(--border);
+  color: var(--fg);
+}
+
+/* The document is the calm, bright surface. Headings carry hierarchy by
+   type and one restrained rule instead of becoming full-width cards. */
+:root:is([data-typography="Simple"], [data-typography="Basic"], [data-typography="SoftSage"]) .app-window .md-body h1 {
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 14px;
+}
+
+:root:is([data-typography="Simple"], [data-typography="Basic"], [data-typography="SoftSage"]) .app-window .md-body h2,
+:root:is([data-typography="Simple"], [data-typography="Basic"], [data-typography="SoftSage"]) .app-window .content-area .md-body h2 {
+  margin: 1.8em 0 .62em;
+  padding: 2px 0 2px 14px;
+  border: 0;
+  border-left: 3px solid var(--accent);
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--fg);
+}
+
+:root:is([data-typography="Simple"], [data-typography="Basic"], [data-typography="SoftSage"]) .app-window .md-body h3 {
+  margin-top: 1.35em;
+  color: var(--fg);
+  font-weight: 650;
+}
+
+.app-window .md-body blockquote {
+  padding: 10px 16px;
+  border-radius: 0;
+  background: transparent !important;
+  color: var(--muted);
+}
+
+.app-window .reading-pane .md-body blockquote,
+.app-window .content-area .md-body blockquote {
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.app-window .md-body .md-task-box {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  margin: 0 8px 0 0;
+  vertical-align: -2px;
+  border: 1px solid var(--control-border);
+  border-radius: 3px;
+  background: var(--paper);
+}
+
+.app-window .md-body .md-task-box:checked {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--paper);
+}
+
+.app-window .md-body li:has(> .md-task-box) {
+  list-style: none;
+  margin-left: -1.55em;
+}
+
+/* Typography choices remain a real feature, but the panel reads like a
+   chooser rather than a wall of tiny cards. */
+.typography-popover {
+  width: min(660px, calc(100% - 24px));
+  padding: 16px;
+  background: var(--surface);
+}
+
+.typography-popover .typography-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-height: min(560px, calc(100vh - 170px));
+}
+
+.typography-card {
+  min-height: 196px;
+  padding: 9px;
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--fg);
+}
+
+.typography-card > strong,
+.typography-card .typography-card-purpose {
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.typography-card[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.type-swatch {
+  height: 132px;
+  background: var(--paper);
+}
+
+.type-swatch .type-document {
+  transform: scale(.38);
+}
+
+.type-swatch .type-document h2 {
+  background: transparent;
+  border-left: 3px solid var(--accent);
+  border-radius: 0;
+  padding-left: 12px;
+  text-align: left;
+}
+
+/* A resting working surface should not look like a stack of floating cards. */
+.map-node:not(.root),
+.map-legend {
+  box-shadow: none;
+}
+
+/* Outline roots sit on the canvas, so their text needs the canvas ink, not
+   the foreground reserved for a filled accent background. */
+:root[data-palette] #map-scene[data-map-style="outline"] .map-node.root {
+  background: var(--panel);
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+:root[data-palette] #map-scene[data-map-style="outline"] .map-node.root :is(.map-node-button, .map-node-text, .map-node-type) {
+  color: var(--fg);
+}
+
+.map-appearance-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: var(--fg);
+  font-size: 13px;
+}
+
+.map-appearance-heading .icon-button {
+  width: 28px;
+  height: 28px;
+  font-size: 19px;
+}
+
+#vex-appearance-menu .studio-palettes .palette-preview {
+  display: flex;
+  width: 100%;
+  height: 38px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--preview-paper);
+  color: var(--preview-ink);
+}
+
+.palette-preview > i {
+  width: 22%;
+  flex: none;
+  background: var(--preview-panel);
+  border-right: 1px solid color-mix(in srgb, var(--preview-ink) 16%, transparent);
+}
+
+.palette-preview > span {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px;
+  text-align: left;
+}
+
+.palette-preview b { font-size: 13px; line-height: 1; }
+.palette-preview em { width: 20px; height: 4px; border-radius: 2px; background: var(--preview-accent); }
+
+#edit-options { position: relative; }
+.format-overflow {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 4px);
+  left: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 260px;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow: var(--vex-pop-shadow, var(--shadow-pop));
+}
+.format-overflow[hidden] { display: none; }
+@media (max-width: 1100px) {
+  #format-toolbar .format-button { display: grid !important; flex: none; }
+  #format-toolbar .format-divider { flex: none; }
+}
+
+#edit-options .format-overflow .format-button {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+  width: auto;
+  height: 32px;
+  padding: 0 6px;
+  text-align: left;
+}
+.format-overflow .format-button::after {
+  content: attr(aria-label);
+  overflow: hidden;
+  color: var(--fg);
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

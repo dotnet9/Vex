@@ -140,7 +140,7 @@
     deleteDialog.hidden = true; deleting = null; change(text, parent?.line || 1, '已删除章节 · Ctrl+Z 撤销'); $('map-viewport').focus({ preventScroll: true });
   };
   var toolbar = document.createElement('div'); toolbar.className = 'chapter-toolbar';
-  toolbar.innerHTML = '<button class="chapter-primary" id="chapter-add-child" title="新增子章节 · Tab">' + icon('plus') + '子章节</button><button id="chapter-add-sibling" title="新增同级章节 · Enter">' + icon('plus') + '同级</button><button id="chapter-headings-only" aria-pressed="false" title="只显示章节标题">仅标题</button>';
+  toolbar.innerHTML = '<button class="chapter-primary" id="chapter-add-child" title="新增子章节">' + icon('plus') + '子章节</button><button id="chapter-add-sibling" title="新增同级章节">' + icon('plus') + '同级</button><button id="chapter-headings-only" aria-pressed="false" title="只显示章节标题">仅标题</button>';
   document.querySelector('.map-toolbar').prepend(toolbar);
   $('chapter-add-child').onclick = function () { add(heading(), true); };
   $('chapter-add-sibling').onclick = function () { var node = heading(); add(node, !!node.isRoot); };
@@ -220,7 +220,7 @@
   window.addEventListener('vex-content-changed', function () { if (W.text !== feedbackText) feedback.hidden = true; });
   window.addEventListener('vex-map-rendered', attachNodes);
   $('map-viewport').addEventListener('keydown', function (event) {
-    if (event.isComposing || event.target.closest('input,textarea') || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.isComposing || event.target !== $('map-viewport') || event.ctrlKey || event.metaKey || event.altKey) return;
     /* F 适应画布不依赖选中节点；Shift+Enter 折叠/展开当前章节分支，其余编辑键仍走下方命令表。 */
     if (event.key === 'f' || event.key === 'F') { event.preventDefault(); event.stopPropagation(); W.fit(); return; }
     var node = selected(); if (!node || node.kind !== 'heading') return;
@@ -232,7 +232,7 @@
       }
       return;
     }
-    var command = { Enter: 'sibling', Tab: 'child', F2: 'rename', Delete: 'delete' }[event.key];
+    var command = { Enter: 'sibling', F2: 'rename', Delete: 'delete' }[event.key];
     if (!command) return;
     event.preventDefault(); event.stopPropagation();
     if (event.key === 'Enter' && node.isRoot) command = 'child';

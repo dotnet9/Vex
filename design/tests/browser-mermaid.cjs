@@ -16,12 +16,14 @@ const path = require('node:path');
     const report = [];
     for (const mode of ['instant','read']) {
       await page.evaluate(mode => mode === 'read' ? VexWorkbench.setView('read') : VexWorkbench.setEditMode('instant'),mode);
+      // Let layout restoration and view synchronization finish before scrolling diagrams.
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const diagrams = page.locator(mode === 'read' ? '#markdown-preview .md-diagram' : '.instant-scroll .diagram-preview');
       assert.equal(await diagrams.count(),22);
       for (let index=0; index<22; index++) {
         const diagram = diagrams.nth(index);
         await diagram.scrollIntoViewIfNeeded();
-        await diagram.locator(':scope > svg').waitFor();
+        await diagram.locator('svg').first().waitFor();
         const size = await diagram.evaluate(host => {
           const svg=host.querySelector('svg'), rect=svg.getBoundingClientRect(), style=getComputedStyle(host);
           return {overflowX:host.scrollWidth-host.clientWidth,overflowY:host.scrollHeight-host.clientHeight,width:rect.width,height:rect.height,scroll:style.overflowX};
@@ -29,7 +31,9 @@ const path = require('node:path');
         assert.ok(size.width>0 && size.height>0,`${mode} ${index}: complete SVG is visible`);
         assert.ok(size.overflowX<=1 && size.overflowY<=1,`${mode} ${index}: no internal clipping or scrolling: ${JSON.stringify(size)}`);
       }
-      report.push({mode,rendered:await diagrams.locator(':scope > svg').count()});
+      const rendered = await diagrams.evaluateAll(hosts => hosts.filter(host => host.querySelector('svg')).length);
+      assert.equal(rendered,22);
+      report.push({mode,rendered});
     }
     // Both views remain in the DOM; cached instances must have distinct SVG IDs.
     const duplicates = await page.locator('.md-diagram svg [id],.diagram-preview svg [id],.md-diagram svg[id],.diagram-preview svg[id]').evaluateAll(elements => {

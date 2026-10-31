@@ -2,7 +2,6 @@
 (function () {
   /* 推荐配色置顶（角标标识），其余按原顺序跟随。 */
   var palettes=[].concat(VexPalettes.filter(function(p){return p.recommended;}),VexPalettes.filter(function(p){return !p.recommended;})).map(function(p){return [p.key,p.label,Array.isArray(p.swatch)?p.swatch:[p.light]];});
-  function swatchDots(colors){return '<span class="swatch-dots">'+colors.map(function(color){return '<i style="background:'+color+'"></i>';}).join('')+'</span>';}
   var modes=[['light','ThemeLight','☀'],['dark','ThemeDark','☾'],['system','ThemeSystem','◐']];
   var densities=[['compact','DensityCompact'],['normal','DensityNormal'],['relaxed','DensityRelaxed']];
   var mdsizes=[['compact','紧凑'],['normal','正常'],['relaxed','宽松']];
@@ -105,7 +104,8 @@
     if(!grid)return;
     grid.innerHTML=palettes.map(function(item){
       var info=VexPalettes.find(function(p){return p.key===item[0];});
-      var card='<button type="button" data-palette="'+item[0]+'" aria-label="'+VexEsc(item[1])+'">'+(info.recommended?'<em class="palette-badge">推荐</em>':'')+swatchDots(item[2])+'<span class="palette-label">'+VexEsc(item[1])+'</span></button>';
+      var preview='<span class="palette-preview" aria-hidden="true" style="--preview-panel:light-dark('+info.panel+','+info.darkPanel+');--preview-paper:light-dark('+info.paper+','+info.darkPaper+');--preview-ink:light-dark('+info.fg+','+info.darkFg+');--preview-accent:light-dark('+info.light+','+info.dark+')"><i></i><span><b>Aa</b><em></em></span></span>';
+      var card='<button type="button" data-palette="'+item[0]+'" aria-label="'+VexEsc(item[1])+'">'+(info.recommended?'<em class="palette-badge">推荐</em>':'')+preview+'<span class="palette-label">'+VexEsc(item[1])+'</span></button>';
       if(item[0]===CUSTOM)card='<div class="palette-wrap">'+card+'<span class="palette-card-tools"><button type="button" data-edit-palette title="编辑此配色" aria-label="编辑自定义配色">✎</button><button type="button" data-delete-palette title="删除此配色" aria-label="删除自定义配色">×</button></span></div>';
       return card;
     }).join('')+(readCustom()?'':'<button type="button" class="palette-add" id="add-custom-palette" aria-label="新增自定义配色" title="新增自定义配色"><span>＋</span><small>新增配色</small></button>');

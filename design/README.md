@@ -38,6 +38,8 @@ node design/tests/browser-resource-review.cjs
 node design/tests/browser-workspace-chrome.cjs
 node design/tests/browser-design-principles.cjs
 node design/tests/browser-mermaid.cjs
+node design/tests/probe-desktop-review.cjs
+node design/tests/probe-map-appearance.cjs
 node design/tests/capture-parity.cjs artifacts/prototype-parity
 node design/tests/snapshot-styles.cjs artifacts/styles-snapshot.json
 ```

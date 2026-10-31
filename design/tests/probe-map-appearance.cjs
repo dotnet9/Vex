@@ -1,4 +1,4 @@
-/* 本轮改动行为探针：避让、选中即收、徽标、colorful series 填色、排版自动收。 */
+/* 导图外观行为探针：避让、连续比较、徽标、colorful series 填色、排版自动收。 */
 const assert = require('node:assert/strict');
 const {chromium} = require('playwright');
 (async () => {
@@ -24,15 +24,17 @@ const {chromium} = require('playwright');
   assert.equal(restored.open, false, 'Esc 应关闭');
   assert.ok(Math.abs(restored.y - before.y) < 2, '关闭后视口应还原（' + restored.y + ' vs ' + before.y + '）');
 
-  // 2) 徽标 + 选中即收：点开 → 点一张风格卡 → 弹层 650ms 内自动关，徽标显示组合
+  // 2) 徽标和连续比较：选风格后保留焦点，关闭时回到触发按钮。
   await page.locator('.map-appearance-trigger').click();
   await page.waitForTimeout(300);
   await page.locator('[data-map-style-choice="colorful"]').click();
   const badge = await page.evaluate(() => document.querySelector('.map-appearance-trigger span').textContent);
   assert.match(badge, /·/, '徽标应为「结构 · 风格」组合：' + badge);
-  await page.waitForTimeout(1100);
-  assert.equal(await page.evaluate(() => document.querySelector('#map-appearance-panel').hidden), true, '选完风格应自动收起');
+  assert.equal(await page.evaluate(() => document.querySelector('#map-appearance-panel').hidden), false, '选完风格后可继续比较');
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.mapStyleChoice), 'colorful', '选中后焦点留在选项');
   assert.equal(badge, await page.evaluate(() => document.querySelector('.map-appearance-trigger span').textContent));
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.map-appearance-trigger').evaluate(el => el === document.activeElement), true);
 
   // 3) colorful series 填色：标题节点吃 series 实色 + --branch-ink
   const inked = await page.evaluate(() => {
@@ -45,7 +47,6 @@ const {chromium} = require('playwright');
   assert.notEqual(inked.fill, 'rgba(0, 0, 0, 0)', '标题节点应为实色填充');
   await page.locator('.map-appearance-trigger').click();
   await page.waitForTimeout(300);
-  await page.screenshot({path: 'artifacts-probe-colorful.png'});
   await page.keyboard.press('Escape');
 
   // 4) 换回 quiet 不应收起、节点回到强调色
@@ -54,12 +55,13 @@ const {chromium} = require('playwright');
   await page.waitForTimeout(300);
   await page.locator('[data-map-style-choice="quiet"]').click();
   await page.waitForTimeout(1100);
-  assert.equal(await page.evaluate(() => document.querySelector('#map-appearance-panel').hidden), true, 'quiet 同样选完即收');
+  assert.equal(await page.evaluate(() => document.querySelector('#map-appearance-panel').hidden), false, 'quiet 同样允许继续比较');
   const quietColor = await page.evaluate(() => {
     const node = [...document.querySelectorAll('.map-node')].find(n => !n.classList.contains('root') && !n.classList.contains('content'));
     return node.style.getPropertyValue('--branch-color');
   });
   assert.match(quietColor, /var\(--/, 'quiet 应回到强调色家族：' + quietColor);
+  await page.keyboard.press('Escape');
 
   // 5) 阅读排版：选卡自动收
   await page.evaluate(() => { VexWorkspace.setLayout('read'); });
@@ -72,6 +74,6 @@ const {chromium} = require('playwright');
   assert.equal(await page.evaluate(() => document.querySelector('#typography-panel').hidden), true, '排版选卡后应自动收起');
 
   assert.equal(errors.length, 0, '页面不应有 JS 错误：' + errors.join(' | '));
-  console.log('PASS: 避让/还原、徽标回显、选完即收、colorful series 填色与回退、排版自动收 全部通过');
+  console.log('PASS: 避让/还原、徽标回显、连续比较、colorful series 填色与回退、排版自动收 全部通过');
   await browser.close();
 })().catch(e => { console.error('FAIL:', e.message); process.exit(1); });

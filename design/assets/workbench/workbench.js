@@ -456,7 +456,7 @@
           if (!current) break;
           var nested = renderListAt(index, meta.indent); current.html += nested.html; index = nested.end; continue;
         }
-        current = { html: '<li data-line="' + blocks[index].line + '">' + (meta.checked === undefined ? '' : meta.checked.toLowerCase() === 'x' ? '☑ ' : '☐ ') + inline(meta.text) + '</li>' };
+        current = { html: '<li data-line="' + blocks[index].line + '">' + (meta.checked === undefined ? '' : '<input class="md-task-box" type="checkbox" disabled aria-label="' + VexEsc(meta.text) + '"' + (meta.checked.toLowerCase() === 'x' ? ' checked' : '') + '>') + inline(meta.text) + '</li>' };
         items.push(current); index++;
       }
       return { html: '<' + tag + '>' + items.map(function (item) { return item.html; }).join('') + '</' + tag + '>', end: index };
@@ -554,7 +554,7 @@
     if (!scroller || !scroller.getClientRects().length) return;
     top = Math.max(0, Math.min(top, scroller.scrollHeight - scroller.clientHeight));
     if (Math.abs(scroller.scrollTop - top) < .5) return;
-    scroller.scrollTop = top;
+    scroller.scrollTo({ top: top, behavior: 'instant' });
     peerScrollPositions.set(scroller, scroller.scrollTop);
   }
   function queuePeerScroll(scroller, readLine) {
@@ -732,7 +732,7 @@
     window.dispatchEvent(new CustomEvent('vex-content-changed'));
   }
   function updateMeta() {
-    $('sb-wordcount').textContent = '字数 ' + contentCount().toLocaleString();
+    $('sb-wordcount').textContent = '字数 ' + (state.emptyWorkspace ? 0 : contentCount()).toLocaleString();
     updateSaveStatus();
   }
   function updateSaveStatus() {
@@ -867,12 +867,13 @@
       element.style.setProperty('--delay', Math.min(index * 14, 180) + 'ms');
       var kind = node.isRoot ? '文档' : node.kind === 'heading' ? 'H' + node.level : node.label || labels[node.kind];
       element.innerHTML = '<button class="map-node-button" title="' + VexEsc(node.text || kind) + '"><span class="map-node-text">' + VexEsc(nodeText(node)) + '</span><span class="map-node-type">' + VexEsc(kind) + '</span></button>';
+      element.querySelector('button').setAttribute('aria-pressed', String(state.selected === node.id));
       element.querySelector('button').onclick = function () { selectNode(node); };
       var children = visibleChildren(node);
       if (children.length) {
         var collapse = document.createElement('button'); collapse.className = 'map-collapse'; collapse.textContent = state.collapsed.has(node.id) ? '+' : '−';
         collapse.setAttribute('aria-label', (state.collapsed.has(node.id) ? '展开' : '折叠') + '：' + node.text); collapse.setAttribute('aria-expanded', String(!state.collapsed.has(node.id)));
-        collapse.onclick = function () { if (state.collapsed.has(node.id)) state.collapsed.delete(node.id); else state.collapsed.add(node.id); $('node-inspector').hidden = true; renderMap(); };
+        collapse.onclick = function () { var focused = document.activeElement === collapse; if (state.collapsed.has(node.id)) state.collapsed.delete(node.id); else state.collapsed.add(node.id); $('node-inspector').hidden = true; renderMap(); if (focused) mapElements.get(node.id)?.querySelector('.map-collapse')?.focus({ preventScroll: true }); };
         element.appendChild(collapse);
       }
     });
@@ -894,14 +895,21 @@
     VexZoomDock.update(zoomDock, percent);
   }
   function fit(readable) {
-    if (settings.layout !== 'right') readable = false;
-    if (window.VexWorkspace?.current === 'three') readable = false;
     if (state.guideRestoring || $('map-pane').hidden || !state.bounds || !canvas.clientWidth) return;
     var verticalPadding = canvas.clientHeight < 180 ? Math.min(24, canvas.clientHeight / 4) : 84;
     state.scale = Math.min(1, Math.max(readable === true ? .75 : .01, Math.min((canvas.clientWidth - 64) / state.bounds.width, (canvas.clientHeight - verticalPadding) / state.bounds.height)));
     state.x = (canvas.clientWidth - state.bounds.width * state.scale) / 2;
     state.y = (canvas.clientHeight - state.bounds.height * state.scale) / 2;
-    if (readable === true) state.x = Math.max(24, state.x);
+    if (readable === true) {
+      var root = (state.nodes || []).find(function (node) { return node.isRoot; });
+      if (root) {
+        var headings = state.nodes.filter(function (node) { return node.kind === 'heading' && !node.isRoot && node.x != null; });
+        var focus = headings.filter(function (node) { return node.line <= state.editingLine; }).pop() || headings[0] || root;
+        state.x = 32 - root.x * state.scale;
+        var target = state.bounds.height * state.scale > canvas.clientHeight ? focus : root;
+        state.y = canvas.clientHeight / 2 - (target.y + target.height / 2) * state.scale;
+      }
+    }
     lastCanvasSize = { width: canvas.clientWidth, height: canvas.clientHeight };
     transform(true);
   }
@@ -949,6 +957,19 @@
     if (event.ctrlKey || event.metaKey) { var rect = canvas.getBoundingClientRect(); zoom(event.deltaY < 0 ? 1.1 : 1 / 1.1, { x: event.clientX - rect.left, y: event.clientY - rect.top, pointer: true }); }
     else { state.x -= event.deltaX; state.y -= event.deltaY; transform(); }
   }, { passive: false });
+  canvas.addEventListener('keydown', function (event) {
+    if (event.target !== canvas || event.ctrlKey || event.metaKey || event.altKey) return;
+    var delta = { ArrowLeft: [80, 0], ArrowRight: [-80, 0], ArrowUp: [0, 80], ArrowDown: [0, -80] }[event.key];
+    if (!delta) return;
+    event.preventDefault(); state.x += delta[0]; state.y += delta[1]; transform();
+  });
+  canvas.addEventListener('focusin', function (event) {
+    if (!event.target.closest('.map-node')) return;
+    var bounds = canvas.getBoundingClientRect(), target = event.target.getBoundingClientRect(), padding = 24;
+    var dx = target.left < bounds.left + padding ? bounds.left + padding - target.left : target.right > bounds.right - padding ? bounds.right - padding - target.right : 0;
+    var dy = target.top < bounds.top + padding ? bounds.top + padding - target.top : target.bottom > bounds.bottom - padding ? bounds.bottom - padding - target.bottom : 0;
+    if (dx || dy) { state.x += dx; state.y += dy; transform(); }
+  });
   var lastCanvasSize = { width: 0, height: 0 };
   new ResizeObserver(function () {
     if ($('map-pane').hidden || !canvas.clientWidth) return;
@@ -966,7 +987,7 @@
     state.selected = node.id;
     activateOutlineAtLine(node.line, true);
     syncPeerViewsToLine(node.line, canvas, false);
-    mapElements.forEach(function (element, id) { element.classList.toggle('selected', id === node.id); });
+    mapElements.forEach(function (element, id) { element.classList.toggle('selected', id === node.id); element.querySelector('.map-node-button')?.setAttribute('aria-pressed', String(id === node.id)); });
     $('inspector-kind').textContent = node.isRoot ? '文档' : labels[node.kind];
     $('inspector-title').textContent = node.kind === 'heading' ? node.text : '完整' + labels[node.kind];
     $('inspector-content').textContent = node.kind === 'heading' ? (node.children.filter(function (child) { return child.kind !== 'heading'; }).map(function (child) { return child.text; }).join('\n\n') || '此标题下没有直接内容，展开分支查看子章节。') : node.text;
@@ -1458,7 +1479,7 @@
     finish: function () { instant.finish(); refreshNow(); },
     setView: setView, setEditMode: setEditMode, fit: fit, renderMap: renderMap,
     selectNode: selectNode, locate: locate, highlightSource: highlightSource,
-    syncViewsToLine: function (line) { syncPeerViewsToLine(line || activeDocumentLine, null, true); },
+    syncViewsToLine: function (line, sourceScroller) { syncPeerViewsToLine(line || activeDocumentLine, sourceScroller || null, true); },
     setFollow: function (value) { state.followViews = value; if (value) syncPeerViewsToLine(state.editingLine, null, true); window.dispatchEvent(new CustomEvent('vex-follow-changed')); },
     returnToEditing: function () { syncPeerViewsToLine(state.editingLine, null, true); if (state.editMode === 'instant') instant.focusAt(state.editingLine); else input.focus({ preventScroll: true }); },
     syncStructure: syncStructureVisibility, showStructure: showStructure,
