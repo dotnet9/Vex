@@ -146,7 +146,7 @@ internal static class ChromeMetricsProbe
             Row(".find-strip .btn.sm", In_(strip, c => c.Classes.Contains("find-action")));
             Row(".find-strip .icon-button", In_(strip, c => c.Classes.Contains("find-close")));
             Row(".workspace-tabrow", ByName("WorkspaceTabRow"));
-            Row(".workspace-tabs", ((Visual?)window.FindControl<ToggleButton>("SourceSegment"))?.Parent as Control);
+            Row(".workspace-tabs", ((Visual?)window.Workspace.FindControl<ToggleButton>("SourceSegment"))?.Parent as Control);
             Row(".workspace-tabs > button", ByName("SourceSegment"));
             Row(".typography-trigger", In_(ByName("WorkspaceTabRow"), c => c.Classes.Contains("typography-trigger")));
             Row(".workspace-viewswitch-more", ByName("EditorModeButton"));

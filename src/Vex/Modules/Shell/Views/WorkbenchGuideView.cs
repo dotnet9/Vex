@@ -1,4 +1,4 @@
-﻿using CodeWF.Avalonia.Controls.Helpers;
+using CodeWF.Avalonia.Controls.Helpers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -130,14 +130,14 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         preferences.PinEditorToolbar = true; preferences.PinReadingToolbar = true; preferences.PinMapToolbar = true;
         _savedFocus = window.FocusManager?.GetFocusedElement();
         _liveState = vm.Workbench.LiveEditor?.CaptureState();
-        var sourceView = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!;
+        var sourceView = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!;
         _sourceVm = sourceView.DataContext as Vex.Modules.Workspace.ViewModels.MarkdownEditorViewModel;
         _sourceSelection = sourceView.FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor")!.Selection;
         _scrollPositions.Clear();
         foreach (var scroll in window.GetVisualDescendants().OfType<ScrollViewer>()) _scrollPositions.Add((scroll, scroll.Offset));
         _sourceCaret = sourceView.FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor")!.Editor.CaretOffset;
         _sourceDocument = _sourceVm?.BeginTemporaryDocument();
-        _mapState = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!
+        _mapState = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!
             .FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!.CaptureViewport();
         vm.BeginGuideDocument(string.Empty);
         vm.Workbench.ResetHistory();
@@ -202,24 +202,24 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         if (_window is null) return null;
         return anchor switch
         {
-            WorkbenchGuideViewModel.Anchor.Instant => _window.FindControl<Control>("InstantGuideTarget"),
-            WorkbenchGuideViewModel.Anchor.Editor => _window.FindControl<Control>("EditorGuideTarget"),
-            WorkbenchGuideViewModel.Anchor.Preview => _window.FindControl<Control>("PreviewGuideTarget"),
-            WorkbenchGuideViewModel.Anchor.Map => _window.FindControl<Control>("MindMapGuideTarget"),
-            WorkbenchGuideViewModel.Anchor.OutlinePanel => _window.FindControl<Control>("OutlineGuideTarget"),
+            WorkbenchGuideViewModel.Anchor.Instant => _window.Workspace.FindControl<Control>("InstantGuideTarget"),
+            WorkbenchGuideViewModel.Anchor.Editor => _window.Workspace.FindControl<Control>("EditorGuideTarget"),
+            WorkbenchGuideViewModel.Anchor.Preview => _window.Workspace.FindControl<Control>("PreviewGuideTarget"),
+            WorkbenchGuideViewModel.Anchor.Map => _window.Workspace.FindControl<Control>("MindMapGuideTarget"),
+            WorkbenchGuideViewModel.Anchor.OutlinePanel => _window.Workspace.FindControl<Control>("OutlineGuideTarget"),
             // 图标栏（原型 .nav-rail）取代块角折叠钮，引导聚光跟着改指新宿主。
-            WorkbenchGuideViewModel.Anchor.OutlineToggle => _window.FindControl<Control>("RailOutlineToggle"),
+            WorkbenchGuideViewModel.Anchor.OutlineToggle => _window.Workspace.Navigation.FindControl<Control>("RailOutlineToggle"),
             // 原型 [data-action="typography"]:not([hidden])：即时编辑在格式条、单阅读视图在标签行，聚光灯跟着当前在场的那颗走。
             WorkbenchGuideViewModel.Anchor.TypographyButton => _window.WorkspaceViews.ActiveTypographyTrigger,
             // 视图页签从底栏上移到原型 .workspace-tabrow 后，布局入口就是页签行右端的 .workspace-viewswitch-more。
-            WorkbenchGuideViewModel.Anchor.LayoutButton => _window.FindControl<Button>("EditorModeButton"),
-            WorkbenchGuideViewModel.Anchor.LayoutGallery => _window.FindControl<WorkspaceLayoutGallery>("LayoutGallery"),
+            WorkbenchGuideViewModel.Anchor.LayoutButton => _window.Workspace.FindControl<Button>("EditorModeButton"),
+            WorkbenchGuideViewModel.Anchor.LayoutGallery => _window.Workspace.FindControl<WorkspaceLayoutGallery>("LayoutGallery"),
             WorkbenchGuideViewModel.Anchor.PresentationTools => _window.FindControl<Control>("PresentationTools"),
             WorkbenchGuideViewModel.Anchor.AppearanceButton => _window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")?.AppearanceButton,
             WorkbenchGuideViewModel.Anchor.AppearanceMenu => _window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")?.MenuContent,
             WorkbenchGuideViewModel.Anchor.MenuItemFile => _window.FindControl<ShellTitleMenuView>("TitleMenuView")?.FileMenuTarget,
             WorkbenchGuideViewModel.Anchor.MenuStrip => _window.FindControl<ShellTitleMenuView>("TitleMenuView"),
-            var key when key.StartsWith("layout-option:", StringComparison.Ordinal) => _window.FindControl<WorkspaceLayoutGallery>("LayoutGallery")?
+            var key when key.StartsWith("layout-option:", StringComparison.Ordinal) => _window.Workspace.FindControl<WorkspaceLayoutGallery>("LayoutGallery")?
                 .GetVisualDescendants().OfType<Button>().FirstOrDefault(button => button.Tag as string == key["layout-option:".Length..]),
             _ => null
         };
@@ -244,7 +244,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
     /// <summary>轮询预览里的 Mermaid 图表块，出图（Image.Source 就绪）才放行；5 秒超时降级，保证引导不被卡死。</summary>
     void WorkbenchGuideViewModel.IStage.WaitForDiagrams(Action done)
     {
-        var preview = _window?.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget");
+        var preview = _window?.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget");
         var deadline = DateTime.UtcNow.AddSeconds(5);
         var token = _vm?.RunToken ?? 0;
         var poll = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
@@ -263,12 +263,12 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
     }
 
     void WorkbenchGuideViewModel.IStage.FitMap(double scale) =>
-        _window?.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")?
+        _window?.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")?
             .FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")?.Fit(scale);
 
     void WorkbenchGuideViewModel.IStage.SelectOutlineItem(string title)
     {
-        var outline = _window?.FindControl<Control>("OutlineGuideTarget")?
+        var outline = _window?.Workspace.FindControl<Control>("OutlineGuideTarget")?
             .GetVisualDescendants().OfType<ShellOutlineView>().FirstOrDefault()?.DataContext as ShellOutlineViewModel;
         if (outline is null) return;
         var item = outline.OutlineItems.FirstOrDefault(candidate => candidate.Title == title);
@@ -368,11 +368,11 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
         Dispatcher.UIThread.Post(() =>
         {
             if (window is null) return;
-            window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!
+            window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!
                 .FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor")!.Editor.CaretOffset = caret;
-            if (mapState is { } state) window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!
+            if (mapState is { } state) window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!
                 .FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!.RestoreViewport(state, onNextRoot: true);
-            var restoredSource = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor")!.Editor;
+            var restoredSource = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor")!.Editor;
             restoredSource.Select(selection.Start, selection.Length);
             foreach (var (view, offset) in scrollPositions) view.Offset = offset;
             focus?.Focus();

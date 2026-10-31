@@ -1,4 +1,4 @@
-﻿using CodeWF.Avalonia.Controls.Helpers;
+using CodeWF.Avalonia.Controls.Helpers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -60,7 +60,7 @@ public sealed class WorkspaceViewController
         get
         {
             if (_renderTypographyTrigger is { IsEffectivelyVisible: true }) return _renderTypographyTrigger;
-            var editor = _window.FindControl<ShellEditorOptionsView>("EditorOptions")?.FindControl<Button>("TypographyTarget");
+            var editor = _window.Workspace.FindControl<ShellEditorOptionsView>("EditorOptions")?.FindControl<Button>("TypographyTarget");
             return editor is { IsEffectivelyVisible: true } ? editor : null;
         }
     }
@@ -171,7 +171,7 @@ public sealed class WorkspaceViewController
     private void ParkTypographyTrigger(bool inTabRow, Grid renderBar)
     {
         if (_renderTypographyTrigger is not { } trigger) return;
-        var target = inTabRow ? _tabRow ??= _window.FindControl<Grid>("TabRowGrid") : renderBar;
+        var target = inTabRow ? _tabRow ??= _window.Workspace.FindControl<Grid>("TabRowGrid") : renderBar;
         if (target is null || ReferenceEquals(trigger.Parent, target)) return;
         (trigger.Parent as Panel)?.Children.Remove(trigger);
         Grid.SetColumn(trigger, 1);
@@ -187,10 +187,10 @@ public sealed class WorkspaceViewController
     public WorkspaceViewController(MainWindow window, Grid surface, StackPanel shelf)
     {
         _window = window; _surface = surface; _shelf = shelf;
-        var source = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!;
-        var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
-        var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
-        var map = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+        var source = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!;
+        var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+        var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+        var map = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
         surface.Children.Clear();
         // 原型 .view-split{gap:1px;background:var(--border)}：面板齐平拼贴，缝即 1px 发丝线。
         surface.ColumnDefinitions = new ColumnDefinitions("*,1,*");
@@ -210,8 +210,8 @@ public sealed class WorkspaceViewController
         var editors = new Grid(); editors.Children.Add(source); editors.Children.Add(instant);
         Add("editor", editors); Add("render", preview); Add("map", map);
         // 原型把格式条移进编辑块（panels.editor.insertBefore(..., .view-body)）：块内才能被圆角裁切，
-        // 也让浮动窗格带走工具条。声明仍在 MainWindow 命名空间里，这里只迁走宿主。
-        _editorOptions = window.FindControl<Control>("EditorOptions");
+        // 也让浮动窗格带走工具条；名称仍注册在 ShellWorkspaceView 的作用域中。
+        _editorOptions = window.Workspace.FindControl<Control>("EditorOptions");
         if (_editorOptions is not null && _editorLayout is not null)
         {
             (_editorOptions.Parent as Panel)?.Children.Remove(_editorOptions);
@@ -254,7 +254,7 @@ public sealed class WorkspaceViewController
     {
         if (e.PropertyName == nameof(ShellWorkbenchViewModel.IsPresenting))
         {
-            var map = _window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
+            var map = _window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
             if (_vm?.Workbench.IsPresenting == true) _presentationMapState = (map.CaptureViewport(), _vm.Workbench.Root);
             if (_vm?.Workbench.IsPresenting == true && _presentationSession is null) _presentationSession = SuspendFloating();
             else if (_vm?.Workbench.IsPresenting == false && _presentationSession is { } session) { _presentationSession = null; RestoreFloating(session); }

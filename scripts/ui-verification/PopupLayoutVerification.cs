@@ -93,7 +93,7 @@ internal static class PopupLayoutVerification
         Check(cards.Max(c => c.Bounds.Height) - cards.Min(c => c.Bounds.Height) < 1, "Typography cards in a row stretch to the same height");
         Capture(gallery, "typography");
         vm.Workbench.ShowTypography = false; vm.Workbench.ShowLayouts = true; Render();
-        Capture(window.FindControl<WorkspaceLayoutGallery>("LayoutGallery")!, "layouts");
+        Capture(window.Workspace.FindControl<WorkspaceLayoutGallery>("LayoutGallery")!, "layouts");
         vm.Workbench.ShowLayouts = false;
         var overlay = app.Resolve<IShellOverlayService>();
         var task = overlay.ShowPreferencesAsync(app.Resolve<ShellPreferencesViewModel>(), "general"); Render();

@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Animation;
@@ -34,8 +34,8 @@ internal static class DesktopParityVerification
         }
         window.Width = 1280; window.Height = 820; Render();
         Check(window.GetVisualDescendants().OfType<ShellFilesView>().Count() == 1, "Left file navigation resolves once");
-        var files = window.FindControl<Border>("SidebarGuideTarget")!;
-        var right = window.FindControl<Border>("OutlineGuideTarget")!;
+        var files = window.Workspace.FindControl<Border>("SidebarGuideTarget")!;
+        var right = window.Workspace.FindControl<Border>("OutlineGuideTarget")!;
         Check(!layout.IsOutlineVisible, "New workspace keeps the auxiliary outline closed by default");
         layout.ShowOutline(); Render();
         Check(window.GetVisualDescendants().OfType<ShellOutlineView>().Count() == 1, "Right outline resolves once");

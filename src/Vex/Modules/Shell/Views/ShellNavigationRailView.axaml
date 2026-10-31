@@ -1,0 +1,55 @@
+<UserControl x:Class="Vex.Modules.Shell.Views.ShellNavigationRailView"
+    xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+    x:DataType="vm:MainWindowViewModel">
+    <Border x:Name="NavRail" Classes="nav-rail" IsVisible="{Binding !Workbench.IsPresenting}">
+        <DockPanel>
+            <!-- 原型 .nav-rail 的 gap:4 是栏级间距，写在承载三项的 StackPanel 上，条目自身不带外距；
+            设置钮贴栏底（原型 margin-top:auto），与上方三项之间剩下的才是那段大空档。 -->
+            <StackPanel DockPanel.Dock="Top" Spacing="4">
+                <ToggleButton x:Name="RailFilesToggle" Classes="rail-item"
+                    HorizontalAlignment="Center"
+                    IsChecked="{Binding Layout.ShowSidebar, Mode=OneWay}"
+                    Command="{Binding Layout.ToggleSidebar}"
+                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFiles}}">
+                    <StackPanel Spacing="4">
+                        <Path Data="{StaticResource WBFolderIcon}" HorizontalAlignment="Center" />
+                        <TextBlock Text="{i18n:I18n {x:Static l:VexL.SidebarFiles}}" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </ToggleButton>
+                <ToggleButton x:Name="RailOutlineToggle" Classes="rail-item"
+                    HorizontalAlignment="Center"
+                    IsChecked="{Binding Layout.ShowOutlineSidebar, Mode=OneWay}"
+                    Command="{Binding Layout.ToggleOutline}"
+                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Outline}}">
+                    <StackPanel Spacing="4">
+                        <Path Data="{StaticResource WBListIcon}" HorizontalAlignment="Center" />
+                        <TextBlock Text="{i18n:I18n {x:Static l:VexL.Outline}}" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </ToggleButton>
+                <Button x:Name="RailFindButton" Classes="rail-item"
+                    HorizontalAlignment="Center"
+                    Command="{Binding ShowFindPanel}"
+                    helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarFind}}"
+                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarFind}}">
+                    <StackPanel Spacing="4">
+                        <Path Data="{StaticResource WBSearchIcon}" HorizontalAlignment="Center" />
+                        <TextBlock Text="{i18n:I18n {x:Static l:VexL.FindBarFind}}" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <Button x:Name="RailSettingsButton" Classes="rail-item rail-bottom" DockPanel.Dock="Bottom"
+                HorizontalAlignment="Center"
+                Command="{Binding ShowPreferences}"
+                helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.PreferencesTitle}}"
+                AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NavSettings}}">
+                <StackPanel Spacing="4">
+                    <Path Data="{StaticResource WBGearIcon}" HorizontalAlignment="Center" />
+                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.NavSettings}}" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Panel />
+        </DockPanel>
+    </Border>
+</UserControl>

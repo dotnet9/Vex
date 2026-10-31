@@ -120,7 +120,7 @@ internal static class SegmentedFidelityProbe
 
         // 5) 页签内图标与文字的缝 = 6px、图标 14×14（原型 workspace-chrome.css:521/522）。
         // 按钮内容外面还套着模板里的 ContentPresenter，只能从按钮往下找，不能认直接父级。
-        var tabHost = window.FindControl<ToggleButton>("SourceSegment")!;
+        var tabHost = window.Workspace.FindControl<ToggleButton>("SourceSegment")!;
         var tabLine = tabHost.GetVisualDescendants().OfType<StackPanel>().FirstOrDefault();
         var tabIcon = tabHost.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().FirstOrDefault();
         Check(tabLine is not null && tabLine.Spacing == 6 && tabIcon is { Width: 14, Height: 14 },

@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
@@ -123,11 +123,11 @@ if (mode == "parity")
                 Pump();
                 PumpUntil(() => vm.Workbench.Root is not null);
                 SettleRendering();
-                var sourceView = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
+                var sourceView = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
                 sourceView.Editor.CaretOffset = 0;
                 sourceView.Editor.ScrollToHome();
-                foreach (var scroll in window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
-                foreach (var scroll in window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
+                foreach (var scroll in window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
+                foreach (var scroll in window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = default;
                 Pump();
                 Capture(window, $"{width}-{theme}-{view}");
             }
@@ -138,7 +138,7 @@ if (mode == "parity")
     vm.Workbench.ShowLayouts = false;
     vm.Workbench.ShowInstant(); vm.Workbench.ShowTypography = true; Pump(); SettleRendering(); Capture(window, "typography");
     vm.Workbench.ShowTypography = false;
-    var live = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    var live = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
     foreach (var scroll in live.GetVisualDescendants().OfType<ScrollViewer>()) scroll.Offset = new Vector(0, scroll.Extent.Height);
     Pump(); SettleRendering();
     var code = live.GetVisualDescendants().OfType<SelectableTextBlock>().First(text => text.Classes.Contains("MdCodeBlockText"));
@@ -146,7 +146,7 @@ if (mode == "parity")
     var codeClick = code.TranslatePoint(new Point(20, 8), window)!.Value;
     window.MouseDown(codeClick, MouseButton.Left); window.MouseUp(codeClick, MouseButton.Left); Pump(); Capture(window, "code-edit");
     // 标题栏已无「快速上手」与搜索按钮（原型没有），改把焦点从正文移回图标栏搜索钮。
-    window.FindControl<Button>("RailFindButton")!.Focus(); Pump();
+    window.Workspace.Navigation.FindControl<Button>("RailFindButton")!.Focus(); Pump();
     var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     Capture(window, "about");
@@ -164,7 +164,7 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
-    var window = app.CreateShell();
+    var window = (Vex.Modules.Shell.Views.MainWindow)app.CreateShell();
     var vm = (MainWindowViewModel)window.DataContext!;
     window.Show();
     // 真实程序无参数启动不再加载任何文件，验证画面需要的素材由夹具显式装载。
@@ -246,7 +246,7 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
         Check(externalPaths.ResolveDroppedPath(associatedFile) == ShellExternalPathResult.File(associatedFile),
             "Markdown drop path supports the same file extension: " + extension);
     }
-    Check(Math.Abs(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width - 226) < 1,
+    Check(Math.Abs(window.Workspace.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width - 226) < 1,
         "Vex sidebar initially occupies 226 px");
     var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
     var localizer = app.Resolve<IAppLocalizer>();
@@ -448,13 +448,13 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
         "Vex can return to system mode after explicit light and dark selections");
     vm.Layout.IsSidebarVisible = false;
     Pump();
-    Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 0, "Vex sidebar collapses");
-    var railFiles = window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailFilesToggle")!;
+    Check(window.Workspace.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 0, "Vex sidebar collapses");
+    var railFiles = window.Workspace.Navigation.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailFilesToggle")!;
     Check(railFiles.IsChecked == false && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == false,
         "Nav rail files toggle and persisted state follow collapse");
     vm.Layout.IsSidebarVisible = true;
     Pump();
-    Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 226, "Vex sidebar reopens");
+    Check(window.Workspace.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 226, "Vex sidebar reopens");
     Check(railFiles.IsChecked == true && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == true,
         "Nav rail files toggle and persisted state follow reopening");
     window.Width = 980;
@@ -464,7 +464,7 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
     foreach (var culture in new[] { "zh-CN", "zh-Hant", "en-US", "ja-JP" })
     {
         vm.Appearance.SelectLanguageByCulture(culture); Pump();
-        var statusBar = window.FindControl<Vex.Modules.Shell.Views.ShellStatusBarView>("StatusBarGuideTarget")!;
+        var statusBar = window.Workspace.FindControl<Vex.Modules.Shell.Views.ShellDocumentToolsView>("DocumentTools")!;
         foreach (var action in statusBar.GetVisualDescendants().OfType<Button>().Where(button => button.IsEffectivelyVisible))
             VerifyInside(action, statusBar, "Workbench action fits minimum window: " + culture);
         Capture(window, "vex-workbench-minimum-" + culture);
@@ -624,7 +624,7 @@ void Capture(Window window, string name)
     }
 }
 
-void VerifyPointerRegressions(VerificationVexApp app, Window window, MainWindowViewModel vm)
+void VerifyPointerRegressions(VerificationVexApp app, Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
 {
     string? openedWebsite = null;
     using (var about = new ShellAboutViewModel(app.Resolve<IAppLocalizer>(), url => openedWebsite = url))
@@ -641,7 +641,7 @@ void VerifyPointerRegressions(VerificationVexApp app, Window window, MainWindowV
     Pump(vm.OpenPathAsync(samplePath));
     vm.Workbench.SelectLayout("instant");
     Pump(); SettleRendering();
-    var live = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    var live = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
     PumpUntil(() => live.GetVisualDescendants().OfType<SelectableTextBlock>().Any(block => block.Classes.Contains("MdParagraph")));
     var paragraph = live.GetVisualDescendants().OfType<SelectableTextBlock>().First(block => block.Classes.Contains("MdParagraph"));
     var start = paragraph.TranslatePoint(new Point(2, 12), window)!.Value;
@@ -1188,8 +1188,8 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
         <table><tr><th>编号</th><th>功能说明</th><th>实现要点</th></tr><tr><td>1</td><td>显示操作信息</td><td>应用服务发布结构化操作消息，包含时间、用户、文档和结果。长说明在有限的正文宽度内自动换行，编号和功能名称保留适合内容的宽度，调整窗口后各列仍应保持完整可读。阅读、源码预览和即时编辑均使用一致的内容布局。</td></tr><tr><td>2</td><td>显示语法校验结果</td><td>保留错误规则、级别及定位信息。</td></tr><tr><td>3</td><td>显示异常信息</td><td>界面保持可继续操作。</td></tr></table>
         """;
     Pump(vm.OpenPathAsync(WriteSample(pipe)));
-    var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
-    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
     window.WindowState = WindowState.Normal;
     // 分页与多布局查看器会在视觉树里留下有效可见但不在视口内的离屏副本（截图证实屏幕上只有一张表），
     // 一切表格/图片查询都必须按「完整落在窗口客户区内」过滤，Single 才指向真正显示的那份。
@@ -1304,8 +1304,8 @@ void VerifyHtmlTables(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewM
     var expected = new[] { "MOD-COMBO-01", "从模型库拖出形成新的图元", "属性分为三类", "编辑态：初始生成", "用户名和密码管理" };
     MaximizePerformanceWindow(window); vm.Appearance.SelectThemeByKey("light");
     Pump(vm.OpenPathAsync(path));
-    var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
-    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
     foreach (var layout in new[] { "read", "instant" })
     {
         vm.Workbench.SelectLayout(layout); Pump(); SettleRendering();
@@ -1352,9 +1352,9 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     MaximizePerformanceWindow(window);
     var settings = app.Resolve<IAppSettingsStore>().Current;
     var wb = vm.Workbench;
-    var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
-    var outline = window.FindControl<Vex.Modules.Shell.Views.ShellPresentationOutlineView>("PresentationOutline")!;
-    var mapHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+    var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
+    var outline = window.PresentationControls.FindControl<Vex.Modules.Shell.Views.ShellPresentationOutlineView>("PresentationOutline")!;
+    var mapHost = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
     var map = mapHost.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
     var initialViewport = map.CaptureViewport();
     for (var round = 0; round < (args.Contains("--anchors-only") ? 0 : 6); round++)
@@ -1385,7 +1385,7 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
         Capture(window, "presentation-map-" + round);
         for (var transition = 0; transition < 5; transition++) { wb.ShowPresentationDocument(); Pump(); wb.ShowPresentationMap(); Pump(); }
         wb.ShowPresentationDocument(); Pump(); SettleRendering();
-        Check(outline.IsEffectivelyVisible && window.FindControl<Grid>("WorkspaceColumns")!.IsEffectivelyVisible, "Presentation opens with the outline column beside the still-visible document");
+        Check(outline.IsEffectivelyVisible && window.Workspace.FindControl<Grid>("WorkspaceColumns")!.IsEffectivelyVisible, "Presentation opens with the outline column beside the still-visible document");
         var chapter = outline.GetVisualDescendants().OfType<Button>().Single(button => button.Tag is int index && index == 1);
         var point = chapter.TranslatePoint(new Point(chapter.Bounds.Width / 2, chapter.Bounds.Height / 2), window)!.Value;
         window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Pump(); SettleRendering();
@@ -1426,7 +1426,7 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     var readingText = "# 阅读位置\n\n" + string.Join("\n\n", Enumerable.Range(0, 100).Select(i => $"阅读段落 {i}，退出演示回到原处。"));
     File.WriteAllText(readingFile, readingText); Pump(vm.OpenPathAsync(readingFile)); wb.SelectLayout("read"); Pump(); SettleRendering();
     PumpUntil(() => preview.CurrentModel.Source == readingText);
-    var readingScroll = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<ScrollViewer>("PreviewScrollViewer")!;
+    var readingScroll = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<ScrollViewer>("PreviewScrollViewer")!;
     readingScroll.Offset = new Vector(0, 1200); Pump();
     var priorOffset = readingScroll.Offset.Y;
     wb.StartPresentation(); Pump(); SettleRendering(); wb.IncreasePresentationText(); Pump();
@@ -1486,11 +1486,11 @@ void VerifyStress(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel
     var presentations = new List<object>();
     var retained = new List<object>();
     MaximizePerformanceWindow(window);
-    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
-    var source = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
-    var previewHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    var source = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
+    var previewHost = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
     var preview = previewHost.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
-    var map = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
+    var map = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
     var watch = System.Diagnostics.Stopwatch.StartNew();
     for (var round = 0; round < rounds; round++)
     {
@@ -1525,7 +1525,7 @@ void VerifyStress(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel
                 var slideScroll = previewHost.FindControl<ScrollViewer>("PreviewScrollViewer")!;
                 slideScroll.Offset = new Vector(0, slideScroll.Extent.Height); Pump(); slideScroll.Offset = default; Pump();
             }
-            Check(window.FindControl<Vex.Modules.Shell.Views.ShellPresentationOutlineView>("PresentationOutline")!.IsEffectivelyVisible, "Large document opens with its presentation outline");
+            Check(window.PresentationControls.FindControl<Vex.Modules.Shell.Views.ShellPresentationOutlineView>("PresentationOutline")!.IsEffectivelyVisible, "Large document opens with its presentation outline");
             vm.Workbench.TogglePresentationOutline(); Pump(); SettleRendering();
             vm.Workbench.TogglePresentationOutline(); Pump(); SettleRendering();
             TracePresentation("outline");
@@ -1662,9 +1662,9 @@ void VerifyMermaidWorkspace(Vex.Modules.Shell.Views.MainWindow window, MainWindo
     var file = Path.Combine(BundledDocuments.SamplesFolder,"Mermaid 图表图鉴.md");
     var text = File.ReadAllText(file);
     var originalHash = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(file));
-    var previewView = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var previewView = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
     var preview = previewView.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
-    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
     Border[] Diagrams(Control host) => host.GetVisualDescendants().OfType<Border>().Where(border => border.Classes.Contains("MdMermaid")).ToArray();
     bool Ready(Control host) => Diagrams(host).Any(border =>
         (border.Child is Image { Source: not null })                       // 旧结构：Border > Image
@@ -1775,12 +1775,12 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     const string original = "# 写作计划\n\n点击文字，保留 **加粗**、*斜体* 和 [链接](https://codewf.com)。\n\n## 研究\n\n研究正文，不得丢失。\n\n### 资料\n\n```md\n# 围栏中的标题\n```\n\n## 方案\n\n方案正文。\n\n## 验证\n\n验证正文。\n";
     File.WriteAllText(first, original); File.WriteAllText(second, "# 第二篇\n\n这是替换后的文档。\n");
     Pump(vm.OpenPathAsync(first)); PumpUntil(() => wb.Root?.Title == "写作计划");
-    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
-    var source = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
+    var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    var source = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
     wb.SelectLayout("instant"); Pump(); SettleRendering();
     var initialScroll = instant.Editor.GetVisualDescendants().OfType<ScrollViewer>().First();
     Check(initialScroll.Offset.Y < 1, "Opening a document starts at the first block without anchor drift");
-    var mapHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+    var mapHost = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
     var map = mapHost.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
     foreach (var option in WorkbenchLayoutOption.All)
     {
@@ -1791,7 +1791,7 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
         // 窗格头配方退役（原型 workspace-chrome.css:383 / workspace.css:10）：编辑器与预览自带头不再显示，
         // 组合布局的阅读窗格头由控制器按 36px view-heading 配方承担。
         Check(!source.FindControl<Border>("SourceHeader")!.IsVisible
-              && !window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<Border>("PaneHeader")!.IsVisible,
+              && !window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<Border>("PaneHeader")!.IsVisible,
             "Per-view pane heads stay retired across layouts");
         if (vm.Markdown != original) File.WriteAllText(Path.Combine(output, "unexpected-markdown.md"), vm.Markdown);
         Check(vm.Markdown == original, "Layout preserves the original Markdown: " + option.Id);
@@ -1892,18 +1892,12 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     var caretInViewportY = followCaret.Center.Y - followTextView.VerticalOffset;
     Check(Math.Abs(caretInViewportY - followScroll.Bounds.Height / 2) < 2,
         $"Typewriter mode keeps the caret line at the viewport center: inViewport={caretInViewportY:F1}, center={followScroll.Bounds.Height / 2:F1}");
-    // 通栏状态栏（原型 workspace-chrome.css:538）：横贯 window-body、28px 高、上缘发丝线、铬面底。
-    var statusBar = window.FindControl<Vex.Modules.Shell.Views.ShellStatusBarView>("StatusBarGuideTarget")!;
-    var statusBarBorder = statusBar.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("document-statusbar"));
-    Application.Current!.TryGetResource("VexHairlineBrush", window.ActualThemeVariant, out var hairlineBrush);
-    Application.Current!.TryGetResource("VexChromeBrush", window.ActualThemeVariant, out var chromeBrush);
-    Check(Math.Abs(statusBar.Bounds.Width - window.Bounds.Width) < 3
-          && Math.Abs(statusBar.Bounds.Height - 28) < 1,
-        $"Status bar spans the window bottom at 28px: {statusBar.Bounds.Width:F0}x{statusBar.Bounds.Height:F0}");
-    Check(statusBarBorder.BorderThickness.Top == 1
-          && ReferenceEquals(statusBarBorder.BorderBrush, hairlineBrush)
-          && ReferenceEquals(statusBarBorder.Background, chromeBrush),
-        $"Status bar has the hairline top and chrome background: brush={statusBarBorder.BorderBrush == hairlineBrush}, bg={statusBarBorder.Background == chromeBrush}");
+    var documentTools = window.Workspace.FindControl<Vex.Modules.Shell.Views.ShellDocumentToolsView>("DocumentTools")!;
+    var toolsBottom = documentTools.TranslatePoint(new Point(0, documentTools.Bounds.Height), window)!.Value.Y;
+    Check(documentTools.Bounds.Width < window.Workspace.Bounds.Width
+        && Math.Abs(window.ClientSize.Height - toolsBottom - 8) <= 1
+        && !documentTools.GetVisualDescendants().OfType<Border>().Any(b => b.Classes.Contains("document-statusbar")),
+        "Document tools float above the document without reserving a window status row");
     // 预览正文边距按布局分档（原型探针）：单窗格阅读 30/52/88，组合预览 24/32/56（侧距 clamp 上限）。
     var previewViewer = window.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
         .FirstOrDefault(viewer => viewer.Name == "PreviewMarkdownViewer");
@@ -2112,7 +2106,7 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     }
 }
 
-void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel vm)
+void VerifyWorkbench(VerificationVexApp app, Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
 {
     // 排版键防御回退：设置里残留已删除/未注册键时 Definition 不再空引用，回退简约排版。
     var bogusTypography = new Vex.Core.Models.TypographyOption("Bogus", "DeletedTypographyKey");
@@ -2120,7 +2114,7 @@ void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel 
         "Deleted typography key falls back to the Simple definition");
     var original = vm.Markdown;
     vm.Workbench.ShowInstant(); Pump();
-    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
     Check(instant.IsEffectivelyVisible && instant.Bounds.Width > 500 && instant.Editor.Text == original, "Instant editor has a real viewport and shares the current document");
     instant.Editor.FocusBlock(0); instant.Editor.InsertText(" 实时编辑验证"); Pump();
     Check(vm.Markdown.Contains("实时编辑验证"), "Instant edits update the real Markdown document");
@@ -2130,14 +2124,14 @@ void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel 
     Check(vm.Markdown == changed, "Read view does not route format actions to hidden editors");
     vm.Workbench.ShowMindMap(); Pump();
     PumpUntil(() => vm.Workbench.Root?.FullText.Contains("实时编辑验证") == true);
-    var map = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+    var map = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
     Check(map.IsEffectivelyVisible && map.Bounds.Width > 500 && vm.Workbench.Root is not null, "Mind map has a real viewport and parses the shared Markdown");
     var node = vm.Workbench.Root!.Children.First();
     vm.Workbench.SelectedNode = node;
     map.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!.ToggleCollapse(node); Pump();
     Check(node.IsCollapsed && vm.Markdown == changed, "Folding never modifies the source");
     vm.Workbench.ShowMapSource = true; Pump();
-    Check(window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.IsEffectivelyVisible, "Map can display source comparison");
+    Check(window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.IsEffectivelyVisible, "Map can display source comparison");
     vm.Workbench.LocateSource(node); Pump();
     Check(vm.Workbench.IsSourceEditing && vm.Markdown == changed, "Mind map locates source without changing content");
     vm.Workbench.ShowMindMap(); vm.Workbench.ShowMapSettings = true; Pump();
@@ -2182,7 +2176,7 @@ void VerifyWorkbench(VerificationVexApp app, Window window, MainWindowViewModel 
     vm.Workbench.ShowSource(); Pump();
 }
 
-void VerifyPathIdentity(VerificationVexApp app, Window window, MainWindowViewModel vm, string sampleFolder)
+void VerifyPathIdentity(VerificationVexApp app, Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm, string sampleFolder)
 {
     var state = app.Resolve<IWorkspaceDocumentState>();
     var markdown = state.Markdown;
@@ -2198,7 +2192,7 @@ void VerifyPathIdentity(VerificationVexApp app, Window window, MainWindowViewMod
     File.WriteAllText(upperPath, markdown);
 
     vm.Workbench.ShowInstant(); Pump();
-    var live = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    var live = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
     state.UpdateDocument(markdown, lowerPath); Pump();
     var selection = live.Selection;
     state.UpdateDocument(markdown, upperPath); Pump();
@@ -2230,29 +2224,29 @@ void VerifyPathIdentity(VerificationVexApp app, Window window, MainWindowViewMod
     vm.Workbench.ShowSource(); Pump();
 }
 
-void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWindowViewModel vm)
+void VerifyPrototypeInteractions(VerificationVexApp app, Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
 {
     var document = vm.Markdown;
-    var source = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!;
-    var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
-    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
-    var host = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+    var source = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!;
+    var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    var host = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
     var map = host.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
     var wb = vm.Workbench;
     wb.SelectLayout("instant"); Pump();
     Check(!source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && instant.IsEffectivelyVisible, "Instant mode hides the source and read views");
     Check(instant.Editor.DocumentMaxWidth == 1280 && instant.Editor.EditorFontSize >= 15, "Instant document uses the prototype document width and base font");
-    Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
+    Check(window.Workspace.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.Bounds.Height == 42,
         "Editing context row is 42 px above the workspace");
     wb.ShowSource(); Pump();
     // 视图块左右各 1px 描边：正文比块面窄 2px，仍算铺满当前工作区宽度。
-    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && Math.Abs(window.FindControl<Grid>("ViewSurface")!.Bounds.Width - source.Bounds.Width - 2) < 1,
-        $"The source layout fills the current workspace width: source={source.IsEffectivelyVisible}/{source.Bounds}, preview={preview.IsEffectivelyVisible}, surface={window.FindControl<Grid>("ViewSurface")!.Bounds}, layout={wb.WorkspaceLayout}");
-    Check(window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.GetVisualDescendants().OfType<Button>().Any(button => button.Name == "TypographyTarget"),
+    Check(source.IsEffectivelyVisible && !preview.IsEffectivelyVisible && Math.Abs(window.Workspace.FindControl<Grid>("ViewSurface")!.Bounds.Width - source.Bounds.Width - 2) < 1,
+        $"The source layout fills the current workspace width: source={source.IsEffectivelyVisible}/{source.Bounds}, preview={preview.IsEffectivelyVisible}, surface={window.Workspace.FindControl<Grid>("ViewSurface")!.Bounds}, layout={wb.WorkspaceLayout}");
+    Check(window.Workspace.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.GetVisualDescendants().OfType<Button>().Any(button => button.Name == "TypographyTarget"),
         "Editing options retain the prototype formatting and typography controls");
     wb.ShowRead(); Pump();
     Check(preview.IsEffectivelyVisible && preview.IsReadingMode && !source.IsEffectivelyVisible && !instant.IsEffectivelyVisible
-        && !window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.IsEffectivelyVisible,
+        && !window.Workspace.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!.IsEffectivelyVisible,
         "Read mode has one read only document without editing toolbar or duplicate preview header");
     app.Resolve<MarkdownEditorViewModel>().ApplySearch(new EditorSearchCommand(EditorSearchAction.Count, "Markdown")); Pump();
     Check(wb.IsReading && vm.Markdown == document, "Counting search matches keeps the reading view and document unchanged");
@@ -2304,7 +2298,7 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(heading.SourceLine)); Pump();
     Check(wb.IsInstantEditing && !source.IsEffectivelyVisible && vm.Markdown == document, "Outline navigation in instant mode scrolls without activating hidden source");
     // ShowStatisticsAsync 的任务在浮层关闭后才完成，这里只触发并泵渲染。
-    _ = app.Resolve<ShellStatusBarViewModel>().ShowStatisticsAsync(); Pump();
+    _ = app.Resolve<ShellDocumentToolsViewModel>().ShowStatisticsAsync(); Pump();
     Check(window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellStatisticsOverlayView>().Any(v => v.IsVisible),
         "Status bar character count opens the statistics overlay");
     window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Pump();
@@ -2321,7 +2315,7 @@ void VerifyPrototypeInteractions(VerificationVexApp app, Window window, MainWind
     guide.Finish(); Pump();
     Check(vm.Appearance.SelectedTypography == typography && vm.Markdown == document, "Guide restores typography and original document after real interactions");
     window.Width = 980; window.Height = 640; Pump();
-    Check(window.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 200, "Narrow windows use the prototype 200 px default sidebar");
+    Check(window.Workspace.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 200, "Narrow windows use the prototype 200 px default sidebar");
     foreach (var mode in new[] { "instant", "read", "mindmap" })
     {
         if (mode == "instant") wb.ShowInstant(); else if (mode == "read") wb.ShowRead(); else wb.ShowMindMap(); Pump();
@@ -2466,7 +2460,7 @@ void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
     window.Width = 1280; Pump();
 }
 
-void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowViewModel vm)
+void VerifyWorkspaceLayout(VerificationVexApp app, Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
 {
     app.Resolve<IWorkspaceDocumentState>().UpdateDocument("""
         # Layout sample
@@ -2483,11 +2477,11 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
           tests/
         ```
         """, null);
-    var sidebar = window.FindControl<Border>("SidebarGuideTarget")!;
-    var columns = window.FindControl<Grid>("WorkspaceColumns")!;
-    var splitter = window.FindControl<GridSplitter>("SidebarSplitter")!;
-    var instant = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
-    var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+    var sidebar = window.Workspace.FindControl<Border>("SidebarGuideTarget")!;
+    var columns = window.Workspace.FindControl<Grid>("WorkspaceColumns")!;
+    var splitter = window.Workspace.FindControl<GridSplitter>("SidebarSplitter")!;
+    var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
+    var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
     var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
     var insert = titleMenu.FindControl<MenuItem>("InsertMenuItem")!;
     Check(insert.GetLogicalDescendants().OfType<MenuItem>().Count(item => item.CommandParameter is string key && key is not "footnote") == 22,
@@ -2515,7 +2509,7 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
                 "One sidebar width is shared by the column, visual and persisted state");
             var contentLeft = instant.TranslatePoint(default, window)!.Value.X;
             // 齐平拼贴：视图块外缘 = 侧栏块外缘 + 侧栏列宽 + 1px 发丝缝，正文右移 1px 越过缝线。
-            var surfaceLeft = window.FindControl<Grid>("ViewSurface")!.TranslatePoint(default, window)!.Value.X;
+            var surfaceLeft = window.Workspace.FindControl<Grid>("ViewSurface")!.TranslatePoint(default, window)!.Value.X;
             var expectedSurface = sidebar.TranslatePoint(default, window)!.Value.X + sidebar.Bounds.Width + ShellWindowLayoutViewModel.BlockGap;
             // 齐平拼贴下正文与视图块同缘（1px 缝画在缝列里，不占面板）。
             Check(Math.Abs(surfaceLeft - expectedSurface) < 1
@@ -2574,14 +2568,14 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Window window, MainWindowView
     }
 }
 
-void VerifyTitleLayout(Window window)
+void VerifyTitleLayout(Vex.Modules.Shell.Views.MainWindow window)
 {
     // 使用真实主窗口模板校验坐标，防止标题栏高度被内容区再次预留。
     var shell = (CodeWF.Avalonia.Controls.Controls.CodeWFWindow)window;
     var divider = window.FindControl<Border>("ShellTitleDivider")!;
     var content = window.FindControl<Grid>("ShellGuideRoot")!;
-    var sidebar = window.FindControl<Border>("SidebarGuideTarget")!;
-    var canvas = window.FindControl<Grid>("WorkspaceColumns")!;
+    var sidebar = window.Workspace.FindControl<Border>("SidebarGuideTarget")!;
+    var canvas = window.Workspace.FindControl<Grid>("WorkspaceColumns")!;
     var canvasY = canvas.TranslatePoint(default, window)!.Value.Y;
     var spacer = window.GetVisualDescendants().OfType<Border>().Single(border => border.Name == "PART_TitleBarSpacer");
     var titleBottom = spacer.TranslatePoint(default, window)!.Value.Y + spacer.Bounds.Height;
@@ -2604,7 +2598,7 @@ void VerifyTitleLayout(Window window)
         "Titlebar pickers are icon-only and the duplicate search button is gone");
 }
 
-void VerifyVexDetails(Window window, ThemeVariant theme)
+void VerifyVexDetails(Vex.Modules.Shell.Views.MainWindow window, ThemeVariant theme)
 {
     VerifyTitleLayout(window);
     var divider = window.FindControl<Border>("ShellTitleDivider")!;
@@ -2631,7 +2625,7 @@ void VerifyVexDetails(Window window, ThemeVariant theme)
     Check(outline.TranslatePoint(default, window)!.Value.X > files.TranslatePoint(default, window)!.Value.X + files.Bounds.Width,
         "Vex Outline remains to the right of the document under " + theme);
     // 原型 .nav-rail：大纲展开时图标栏开关保持选中，主题逐一切换后仍要跟随面板状态。
-    var railOutline = window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailOutlineToggle")!;
+    var railOutline = window.Workspace.Navigation.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailOutlineToggle")!;
     Check(railOutline.IsChecked == true,
         "Vex nav rail outline toggle stays checked for the open panel under " + theme);
     var heading = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdH1Border"));
@@ -2672,13 +2666,13 @@ void VerifySourceLineHeight(Window window, MarkdownEditorView source, double exp
     source.Editor.CaretOffset = 0;
 }
 
-void VerifyEditingTools(VerificationVexApp app, Window window, MainWindowViewModel vm)
+void VerifyEditingTools(VerificationVexApp app, Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel vm)
 {
     var wb = vm.Workbench;
-    var options = window.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!;
+    var options = window.Workspace.FindControl<Vex.Modules.Shell.Views.ShellEditorOptionsView>("EditorOptions")!;
     var toolbar = options.FindControl<Ursa.Controls.ToolBar>("FormattingToolbar")!;
-    var source = window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
-    var live = window.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    var source = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!.FindControl<MarkdownEditorView>("MarkdownEditor")!;
+    var live = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
     var doc = app.Resolve<IWorkspaceDocumentState>();
     window.Width = 1280; window.Height = 820; wb.ShowSource(); Pump();
     doc.UpdateDocument("alpha beta", null); Pump();

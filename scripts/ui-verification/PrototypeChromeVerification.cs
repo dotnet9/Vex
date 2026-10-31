@@ -37,8 +37,8 @@ internal static class PrototypeChromeVerification
             documentState.Markdown, 1, 1, documentState.Markdown.Count(c => c == '\n') + 1));
         Dispatcher.UIThread.RunJobs();
         var original = vm.Markdown; var history = vm.Workbench.History.Capture();
-        var layoutButton = window.FindControl<Button>("EditorModeButton")!;
-        var formats = window.FindControl<ShellEditorOptionsView>("EditorOptions")!;
+        var layoutButton = window.Workspace.FindControl<Button>("EditorModeButton")!;
+        var formats = window.Workspace.FindControl<ShellEditorOptionsView>("EditorOptions")!;
         foreach (var size in new[] { new Size(800,480), new Size(1024,768), new Size(1440,1000) })
         {
             window.Width = size.Width; window.Height = size.Height; Render();
@@ -51,14 +51,14 @@ internal static class PrototypeChromeVerification
             // 这一圈在 800/1024 进 three 时会按原型自动收起文件导航（workspace.js 的让位规则）。
             // 后面的浮层几何全都按展开态量，不抬回来就会被这次收起一起带偏，所以此处显式复原并等动画走完。
             vm.Layout.IsSidebarVisible = true; LayoutSettle.Run(); Render();
-            var statusChrome = window.FindControl<ShellStatusBarView>("StatusBarGuideTarget")!;
+            var statusChrome = window.Workspace.FindControl<ShellDocumentToolsView>("DocumentTools")!;
             var statusRow = statusChrome.GetVisualDescendants().OfType<StackPanel>().First(b => b.Classes.Contains("document-tools"));
             var wordCount = statusChrome.FindControl<TextBlock>("DocumentWordCount")!;
-            var tabRow = window.FindControl<Border>("WorkspaceTabRow")!;
-            var sourceSegment = window.FindControl<ToggleButton>("SourceSegment")!;
-            var readSegment = window.FindControl<ToggleButton>("ReadSegment")!;
-            var mapSegment = window.FindControl<ToggleButton>("MapSegment")!;
-            var documentColumn = window.FindControl<Grid>("DocumentColumn")!;
+            var tabRow = window.Workspace.FindControl<Border>("WorkspaceTabRow")!;
+            var sourceSegment = window.Workspace.FindControl<ToggleButton>("SourceSegment")!;
+            var readSegment = window.Workspace.FindControl<ToggleButton>("ReadSegment")!;
+            var mapSegment = window.Workspace.FindControl<ToggleButton>("MapSegment")!;
+            var documentColumn = window.Workspace.FindControl<Grid>("DocumentColumn")!;
             var tabRowOrigin = tabRow.TranslatePoint(default, documentColumn)!.Value;
             Check(Math.Abs(tabRow.Bounds.Width - documentColumn.Bounds.Width) < 1 && Math.Abs(tabRowOrigin.X) < 1 && Math.Abs(tabRowOrigin.Y) < 1
                 && tabRow.Bounds.Height == 36 && tabRow.BorderThickness == new Thickness(0, 0, 0, 1),
@@ -103,10 +103,10 @@ internal static class PrototypeChromeVerification
                 $"Formatting toolbar stays inside the document at {size.Width}: origin={origin?.ToString() ?? "null"} toolbar={formatting.Bounds} host={formats.Bounds}");
             // 原型 .nav-rail（workspace-chrome.css）：块角折叠钮退役，换成窗口级 56px 图标栏（铬面+右侧发丝线），
             // 文件/大纲两枚 44×48 开关的选中态跟随侧栏可见性，设置钮沉底。
-            var rail = window.FindControl<Border>("NavRail")!;
-            var railFiles = window.FindControl<ToggleButton>("RailFilesToggle")!;
-            var railOutline = window.FindControl<ToggleButton>("RailOutlineToggle")!;
-            var railSettings = window.FindControl<Button>("RailSettingsButton")!;
+            var rail = window.Workspace.Navigation.FindControl<Border>("NavRail")!;
+            var railFiles = window.Workspace.Navigation.FindControl<ToggleButton>("RailFilesToggle")!;
+            var railOutline = window.Workspace.Navigation.FindControl<ToggleButton>("RailOutlineToggle")!;
+            var railSettings = window.Workspace.Navigation.FindControl<Button>("RailSettingsButton")!;
             void CheckRail()
             {
                 Check(rail.Bounds.Width == 56 && rail.IsVisible
@@ -117,7 +117,7 @@ internal static class PrototypeChromeVerification
                     $"Nav rail is a 56px chrome column with 44x48 toggles at {size.Width}: rail={rail.Bounds.Size} files={railFiles.IsChecked}/{vm.Layout.ShowSidebar} outline={railOutline.IsChecked}/{vm.Layout.ShowOutlineSidebar}");
             }
             CheckRail();
-            Check(railSettings.Command is not null && window.FindControl<Button>("RailFindButton")!.Command is not null,
+            Check(railSettings.Command is not null && window.Workspace.Navigation.FindControl<Button>("RailFindButton")!.Command is not null,
                 "Rail settings and find entries route to commands");
             // 列宽逐帧插值：动画没走完就量几何，读到的是起点。
             void Settle() { LayoutSettle.Run(); Render(); }
@@ -150,7 +150,7 @@ internal static class PrototypeChromeVerification
             vm.Layout.IsOutlineVisible = false; Settle();
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "workspace-" + size.Width + ".png"));
             vm.Workbench.ShowLayouts = true; Render();
-            var gallery = window.FindControl<WorkspaceLayoutGallery>("LayoutGallery")!;
+            var gallery = window.Workspace.FindControl<WorkspaceLayoutGallery>("LayoutGallery")!;
             var choices = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Tag is string id && WorkbenchLayoutOption.All.Any(o => o.Id == id)).ToArray();
             Check(choices.Length == 8 && gallery.Bounds.Height <= window.ClientSize.Height - 120, "All eight layouts fit the available panel at " + size.Width);
             choices[0].Focus(); window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null); Render();
@@ -192,8 +192,8 @@ internal static class PrototypeChromeVerification
             "The list starts below the filter instead of above it");
         vm.FindBar.ShowFindPanel(); Render();
         var findStrip = window.GetVisualDescendants().OfType<ShellFindBarView>().Single().FindControl<Border>("FindStrip")!;
-        var viewColumn = window.FindControl<Grid>("DocumentColumn")!;
-        var tabRowBand = window.FindControl<Border>("WorkspaceTabRow")!;
+        var viewColumn = window.Workspace.FindControl<Grid>("DocumentColumn")!;
+        var tabRowBand = window.Workspace.FindControl<Border>("WorkspaceTabRow")!;
         var stripOrigin = findStrip.TranslatePoint(default, viewColumn)!.Value;
         // 原型 .find-strip（workspace-chrome.css:476/499）是 .workspace-main 的首个子级：铬面、圆角 0、外边距 0，
         // 描边只剩 1px 下缘发丝，与正文列同宽并从列顶 0 起排；紧贴其下的才是 36px 的 .workspace-tabrow。
@@ -320,7 +320,7 @@ internal static class PrototypeChromeVerification
         vm.FindBar.CloseFindPanel(); Render();
         // 工具条钉住：默认钉住为占位行；取消钉住回到悬浮静默，并随偏好写入配置。
         var pins = vm.Workbench.Preferences;
-        var editorOptions = window.FindControl<ShellEditorOptionsView>("EditorOptions")!;
+        var editorOptions = window.Workspace.FindControl<ShellEditorOptionsView>("EditorOptions")!;
         var editOptionsBorder = editorOptions.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("edit-options"));
         Check(editOptionsBorder.Classes.Contains("pinned") && Grid.GetRow(editorOptions) == 0
             && editorOptions.GetVisualAncestors().OfType<Border>().Any(b => b.Classes.Contains("workspace-block")),
@@ -332,7 +332,7 @@ internal static class PrototypeChromeVerification
         vm.Workbench.SelectLayout("source-render"); Render();
         var readingHeader = window.WorkspaceViews.ReadingHeader;
         var pinToggle = window.WorkspaceViews.ReadingPin!;
-        var mapBar = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!.FindControl<Border>("MapEditingToolbar")!;
+        var mapBar = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!.FindControl<Border>("MapEditingToolbar")!;
         Check(pinToggle.IsChecked == true && pinToggle.GetVisualDescendants().OfType<Viewbox>().First(v => v.Classes.Contains("pin-on")).IsVisible,
             "Pin button shows the pinned icon by default");
         pins.PinReadingToolbar = false; pins.PinMapToolbar = false; Render();
@@ -347,7 +347,7 @@ internal static class PrototypeChromeVerification
             "Re-pinning docks both toolbars back into the layout");
         // 演示缩放坞：一条拖动条两用（正文 1.0–2.5），还原钮回到进入演示时的字号（原型 deck footer 的 fit 语义）。
         vm.Workbench.StartPresentation(); Render();
-        var deckDock = window.FindControl<Vex.Controls.VexZoomDock>("PresentationDeckDock")!;
+        var deckDock = window.PresentationControls.FindControl<Vex.Controls.VexZoomDock>("PresentationDeckDock")!;
         Check(Math.Abs(deckDock.Minimum - 1) < .001 && Math.Abs(deckDock.Maximum - 2.5) < .001 && Math.Abs(deckDock.Step - .1) < .001,
             "Deck dock keeps the reading range 1.0 to 2.5 in tenth steps");
         var initialZoom = vm.Workbench.PresentationZoom;
@@ -373,7 +373,7 @@ internal static class PrototypeChromeVerification
         Check(vm.Appearance.RemoveCustomPalette(customKey) && vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.SelectedPalette!.Key == "indigo",
             "Removing the custom palette falls back to the default palette");
         // 导图布局与样式：六种布局切换不改变节点数；样式与布局随设置持久化。
-        var mapHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
+        var mapHost = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
         var map = mapHost.FindControl<CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView>("Map")!;
         vm.Workbench.SelectLayout("map"); Render();
         var beforeCount = map.RealizedNodeCount;
@@ -393,7 +393,7 @@ internal static class PrototypeChromeVerification
         vm.Workbench.MindMapLayout = "right"; vm.Workbench.MindMapStyle = "quiet"; Render();
         // 表格工具：阅读视图的渲染表格可提取并还原 Markdown / CSV。
         vm.Workbench.SelectLayout("read"); Render();
-        var preview = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+        var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var previewScroll = preview.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
         if (previewScroll is not null) { previewScroll.Offset = new Vector(0, previewScroll.Extent.Height); Render(); previewScroll.Offset = new Vector(0, previewScroll.Extent.Height); Render(); }
         var tableContainer = window.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("MdTableContainer"));
@@ -404,13 +404,13 @@ internal static class PrototypeChromeVerification
         Check(Vex.Modules.Workspace.Views.TableTools.ToCsv(extracted).Contains("Read,读取文档"), "Table tools build csv");
         previewScroll!.Offset = default; Render();
         // 原型 makeHandle()：视图分栏把手即 4px 间隙，支持拖拽与方向键，按「预设 : 轴向」持久化。
-        var surface = window.FindControl<Grid>("ViewSurface")!;
+        var surface = window.Workspace.FindControl<Grid>("ViewSurface")!;
         var columnSplit = surface.GetVisualChildren().OfType<GridSplitter>().Single(split => split.ResizeDirection == GridResizeDirection.Columns);
         var rowSplit = surface.GetVisualChildren().OfType<GridSplitter>().Single(split => split.ResizeDirection == GridResizeDirection.Rows);
         Check(Avalonia.Automation.AutomationProperties.GetName(columnSplit) == "调整左右视图宽度"
             && Avalonia.Automation.AutomationProperties.GetName(rowSplit) == "调整上下视图高度",
             "View split handles carry the prototype resize labels");
-        Border Block(string pane) => window.FindControl<Control>(pane)!
+        Border Block(string pane) => window.Workspace.FindControl<Control>(pane)!
             .GetVisualAncestors().OfType<Border>().First(block => block.Classes.Contains("workspace-block"));
         vm.Workbench.SelectLayout("source-render"); Render();
         columnSplit.Focus();

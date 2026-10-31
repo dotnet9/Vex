@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -112,7 +112,7 @@ public partial class App : Application
         services.AddSingleton<ShellNavigationViewModel>();
         services.AddSingleton<ShellOutlineViewModel>();
         services.AddSingleton<ShellRecentDocumentsViewModel>();
-        services.AddSingleton<ShellStatusBarViewModel>();
+        services.AddSingleton<ShellDocumentToolsViewModel>();
         services.AddSingleton<ShellStatusViewModel>();
         services.AddSingleton<ShellTitleMenuViewModel>();
         services.AddSingleton<ShellWindowLayoutViewModel>();

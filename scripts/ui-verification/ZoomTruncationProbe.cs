@@ -54,7 +54,7 @@ internal static class ZoomTruncationProbe
     public static void Run(VerificationVexApp app, MainWindow window, string output)
     {
         var vm = (MainWindowViewModel)window.DataContext!;
-        var previewView = window.FindControl<MarkdownPreviewView>("PreviewGuideTarget")!;
+        var previewView = window.Workspace.FindControl<MarkdownPreviewView>("PreviewGuideTarget")!;
         var viewer = previewView.FindControl<Control>("PreviewMarkdownViewer")!;
         var preferences = ((MarkdownPreviewViewModel)previewView.DataContext!).Preferences;
         void Render()

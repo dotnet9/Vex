@@ -38,7 +38,7 @@ internal static class ToolbarProbe
         vm.Workbench.SelectLayout("instant");
         Render();
 
-        var options = window.FindControl<ShellEditorOptionsView>("EditorOptions")!;
+        var options = window.Workspace.FindControl<ShellEditorOptionsView>("EditorOptions")!;
         Console.WriteLine("=== ancestors of ShellEditorOptionsView ===");
         Visual v = options;
         int depth = 0;

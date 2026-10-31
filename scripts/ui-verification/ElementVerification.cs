@@ -199,7 +199,7 @@ internal static class ElementVerification
         var instantBox = WaitBox(instantProbe);
         Pump(); window.CaptureRenderedFrame()?.Save(Path.Combine(output, "list-alignment-instant.png"));
         vm.Workbench.ShowRead(); Pump(); Pump();
-        var previewHost = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+        var previewHost = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var readViewer = previewHost.GetVisualDescendants()
             .OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().First();
         var readBox = WaitBox(() => readViewer.GetVisualDescendants()
@@ -251,7 +251,7 @@ internal static class ElementVerification
         // 图表原位编辑：展开、源码编辑、Esc 收起并写回。
         vm.Workbench.ShowRead(); Pump(); Pump();
         SetDocument("图表验证\n\n```mermaid\nflowchart LR\n  A --> B\n```\n");
-        var previewView = window.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+        var previewView = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var diagramDeadline = DateTime.UtcNow.AddSeconds(15);
         Border? diagramBorder = null;
         while (diagramBorder is null)

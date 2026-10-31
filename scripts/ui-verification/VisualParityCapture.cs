@@ -113,7 +113,7 @@ internal static class VisualParityCapture
         // 逐面板回滚到顶，保证与原型同一视口起点。
         void ResetScrolls()
         {
-            if (window.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")
+            if (window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")
                     ?.FindControl<CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownEditorView>("MarkdownEditor") is { } source)
             {
                 source.Editor.CaretOffset = 0;
@@ -122,8 +122,8 @@ internal static class VisualParityCapture
             }
             foreach (Control? host in new Control?[]
             {
-                window.FindControl<Control>("PreviewGuideTarget"),
-                window.FindControl<Control>("InstantGuideTarget"),
+                window.Workspace.FindControl<Control>("PreviewGuideTarget"),
+                window.Workspace.FindControl<Control>("InstantGuideTarget"),
             })
             {
                 if (host is null) continue;

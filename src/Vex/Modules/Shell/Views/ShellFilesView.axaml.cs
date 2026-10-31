@@ -18,7 +18,7 @@ public partial class ShellFilesView : UserControl
     {
         if (TopLevel.GetTopLevel(this) is not MainWindow window || window.DataContext is not MainWindowViewModel shell) return;
         shell.Layout.ToggleSidebar();
-        window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailFilesToggle")?.Focus();
+        window.Workspace.Navigation.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailFilesToggle")?.Focus();
     }
 
     public ShellFilesView()

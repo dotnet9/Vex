@@ -423,7 +423,7 @@
   <Style Selector="FlyoutPresenter.design-language-picker"><Setter Property="Padding" Value="6"/></Style>
   <!-- 状态栏的视图切换在原型里就是一枚 .workspace-viewswitch.vex-segmented（workspace.js:84），
        轨道底色、内缩、滑动指示块、选中字色字重全部由上面的共享配方给，宿主自己的基准高与图标口径
-       在 ShellStatusBarView.axaml；这里不再重复画一份遗留胶囊样式。 -->
+       在 ShellDocumentToolsView.axaml；这里不再重复画一份遗留胶囊样式。 -->
   <!-- 原型 .vex-deck header：与正常标题条同高（令牌 app-titlebar-height 33px），面板底色 + 1px 底边描线。 -->
   <Style Selector="Border.deck-header">
     <Setter Property="Height" Value="33"/><Setter Property="MinHeight" Value="33"/>

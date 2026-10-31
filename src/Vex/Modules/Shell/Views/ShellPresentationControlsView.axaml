@@ -1,0 +1,56 @@
+<UserControl x:Class="Vex.Modules.Shell.Views.ShellPresentationControlsView"
+    xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:codewf="https://codewf.com"
+    xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+    xmlns:shell="using:Vex.Modules.Shell.Views" xmlns:vex="clr-namespace:Vex.Controls"
+    xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:MainWindowViewModel">
+    <Panel>
+        <!-- 原型 .vex-deck nav：大纲是正文右侧的固定列（左缘 1px 描边、面板底），行高 44、单行省略；
+        正文列已由 WorkspaceContentMargin 让出同宽，这里只覆盖右侧。 -->
+        <shell:ShellPresentationOutlineView x:Name="PresentationOutline"
+            IsVisible="{Binding Workbench.PresentationOutline}"
+            Width="{Binding Workbench.DeckNavWidth}" HorizontalAlignment="Right" />
+        <!-- 原型 progress：窗底 2px 通栏进度条，读数=（当前页+1）/总页数。
+        演示悬浮件一律压在正文行（Row 1）上：原型 .vex-deck 是 inset:0 的整幅纸面，
+        底部悬浮件用 absolute 浮在纸面上；若放进 Row 2 就会撑出一条不透明的底带，成了「状态栏」。 -->
+        <ProgressBar x:Name="PresentationProgressBar" IsVisible="{Binding Workbench.IsPresenting}"
+            Height="2" MinHeight="0" CornerRadius="0" VerticalAlignment="Bottom"
+            Minimum="0" Maximum="1" Value="{Binding Workbench.PresentationProgressValue}"
+            Background="Transparent" Foreground="{DynamicResource VexAccentBrush}" />
+        <!-- 原型 .deck-modes：阅读/导图分段胶囊悬浮正中，圆心钉在底部轴线（30px）上；大纲展开时整层按 DeckChromeMargin 左移。 -->
+        <Panel IsVisible="{Binding Workbench.IsPresenting}" Margin="{Binding Workbench.DeckChromeMargin}"
+            HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+            <Border Classes="deck-modes segmented-track" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                codewf:BottomAxis.CenterFromBottom="30">
+                <codewf:SegmentedPanel Spacing="2">
+                    <Button x:Name="DeckReadSegment" Classes="deck-segment" codewf:SegmentedPanel.IsActive="{Binding Workbench.PresentationDocument}"
+                        Content="{i18n:I18n {x:Static l:VexL.WBPresentationContent}}" Command="{Binding Workbench.ShowPresentationDocument}" />
+                    <Button x:Name="DeckMapSegment" Classes="deck-segment" codewf:SegmentedPanel.IsActive="{Binding Workbench.PresentationMap}"
+                        Content="{i18n:I18n {x:Static l:VexL.WBPresentationMap}}" Command="{Binding Workbench.ShowPresentationMap}" />
+                </codewf:SegmentedPanel>
+            </Border>
+        </Panel>
+        <!-- 原型 footer：演示缩放坞与主窗体正文/导图同一枚 .vex-zoomdock；量程与还原语义随阅读/导图切换。
+        外层让出大纲列宽（DeckChromeMargin），内层管 40/12 让位，坞本体只留 BottomAxis 写底距，避免绑定被覆写。 -->
+        <Panel IsVisible="{Binding Workbench.IsPresenting}" Margin="{Binding Workbench.DeckChromeMargin}"
+            HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+            <Panel HorizontalAlignment="Right" Margin="{Binding Workbench.DeckDockMargin}">
+                <vex:VexZoomDock x:Name="PresentationDeckDock" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Minimum="{Binding Workbench.DeckZoomMin}" Maximum="{Binding Workbench.DeckZoomMax}"
+                    Step="{Binding Workbench.DeckZoomStep}" PercentMultiplier="100"
+                    Value="{Binding Workbench.DeckScale, Mode=TwoWay}"
+                    Label="{Binding Workbench.DeckZoomLabel}" ResetLabel="{Binding Workbench.DeckResetLabel}"
+                    ResetGeometry="{StaticResource WBFitIcon}" codewf:BottomAxis.CenterFromBottom="30" />
+            </Panel>
+        </Panel>
+        <!-- 原型 .deck-outline-toggle：24px 圆钮，底距 18 使圆心落回 30 轴线；展开贴在大纲列左缘，收起贴窗边并让开右下角缩放坞。 -->
+        <Button x:Name="PresentationOutlineToggle" Classes="deck-outline-toggle"
+            Classes.on="{Binding Workbench.PresentationOutline}" IsVisible="{Binding Workbench.IsPresenting}"
+            HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="{Binding Workbench.DeckOutlineToggleMargin}"
+            Command="{Binding Workbench.TogglePresentationOutline}"
+            helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}"
+            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPresentationOutline}}">
+            <Path />
+        </Button>
+    </Panel>
+</UserControl>

@@ -12,7 +12,7 @@ public partial class ShellOutlineView : UserControl
     {
         if (TopLevel.GetTopLevel(this) is not MainWindow window || window.DataContext is not MainWindowViewModel shell) return;
         shell.Layout.ToggleOutline();
-        window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailOutlineToggle")?.Focus();
+        window.Workspace.Navigation.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailOutlineToggle")?.Focus();
     }
 
     public ShellOutlineView()

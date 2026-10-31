@@ -5,14 +5,14 @@ using Vex.Modules.Mcp.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
-public sealed class ShellStatusBarViewModel : ReactiveObject
+public sealed class ShellDocumentToolsViewModel : ReactiveObject
 {
     private readonly IMcpServerHost _mcpServerHost;
     private readonly IAppLocalizer _localizer;
     private readonly Vex.Modules.Shell.Services.IShellOverlayService _overlays;
     private string _mcpStatusText = string.Empty;
 
-    public ShellStatusBarViewModel(
+    public ShellDocumentToolsViewModel(
         ShellStatusViewModel status,
         ShellDocumentInfoViewModel documentInfo,
         ShellWindowLayoutViewModel layout,
