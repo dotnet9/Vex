@@ -261,7 +261,8 @@ public sealed class MarkdownInstantView : UserControl
     {
         var width = TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280;
         var combined = _workbench?.IsCombined == true;
-        var padding = combined ? Math.Clamp(Editor.Bounds.Width * .07, 14, 30) : width <= 850 ? 28 : Math.Clamp(width * .06, 28, 88);
+        // 原型捕获的 app-window 比浏览器桌面视口少 48px（左右各 24px），clamp 以外层桌面宽度计算。
+        var padding = combined ? Math.Clamp(Editor.Bounds.Width * .07, 14, 30) : width <= 850 ? 28 : Math.Clamp((width + 48) * .06, 28, 88);
         Editor.DocumentPadding = new Thickness(padding, combined ? 22 : width <= 850 ? 28 : 36,
             padding, _layout?.IsTypewriterMode == true ? Math.Max(80, Editor.Bounds.Height / 2) : combined ? 56 : width <= 850 ? 28 : 80);
     }
