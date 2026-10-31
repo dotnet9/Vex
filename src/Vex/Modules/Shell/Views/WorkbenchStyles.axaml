@@ -580,6 +580,12 @@
   <Style Selector="Grid#TabRowGrid Button.typography-trigger">
     <Setter Property="MinHeight" Value="32"/><Setter Property="VerticalAlignment" Value="Center"/>
   </Style>
+  <Style Selector="Border.edit-options Button.typography-trigger">
+    <Setter Property="MinHeight" Value="33.2"/>
+    <Setter Property="Padding" Value="12,6"/>
+    <Setter Property="BorderThickness" Value="1,0,0,0"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+  </Style>
   <!-- 对应原型标题栏 .studio-title-controls button：30×28、4px 圆角、透明底。 -->
   <Style Selector="Button.tb-icon">
     <Setter Property="Width" Value="30"/><Setter Property="Height" Value="28"/><Setter Property="MinHeight" Value="0"/><Setter Property="MinWidth" Value="0"/>

@@ -213,6 +213,11 @@ internal static class ElementVerification
             "组合布局时更多段显示布局名并高亮");
         vm.Workbench.SelectLayout("source"); Pump();
         Check(!vm.Workbench.IsMoreSegmentActive, "单一布局时更多段回落为更多");
+        vm.Workbench.SelectLayout("instant"); Pump();
+        Check(vm.Workbench.IsEditSegmentActive && !vm.Workbench.IsMoreSegmentActive, "即时编辑高亮编辑标签");
+        vm.Workbench.ShowRead(); Pump();
+        vm.Workbench.ShowEditorView(); Pump();
+        Check(vm.Workbench.WorkspaceLayout == "instant", "编辑标签恢复上一次的即时编辑模式");
         vm.Workbench.ShowRead(); Pump(); Pump();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "segment-read.png"));
         vm.Workbench.SelectLayout("source-render"); Pump();

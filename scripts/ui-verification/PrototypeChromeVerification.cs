@@ -80,8 +80,9 @@ internal static class PrototypeChromeVerification
             Check(new[] { sourceSegment, readSegment, mapSegment }.All(t => Math.Abs(t.Bounds.Height - 35) < 1
                     && t.Padding == new Thickness(10, 0) && t.FontSize == 12 && t.Classes.Contains("tab-item")),
                 $"View tabs are 35px with 10px side padding and 12px labels at {size.Width}: {string.Join(" ", new[] { sourceSegment, readSegment, mapSegment }.Select(t => $"{t.Name}={t.Bounds.Width:0.#}x{t.Bounds.Height:0.#}"))}");
-            Check(!sourceSegment.IsChecked.GetValueOrDefault() && !readSegment.IsChecked.GetValueOrDefault() && !mapSegment.IsChecked.GetValueOrDefault(),
-                "Combined layouts keep every view tab inactive");
+            Check(sourceSegment.IsChecked == true && !readSegment.IsChecked.GetValueOrDefault() && !mapSegment.IsChecked.GetValueOrDefault(),
+                "Instant editing activates the shared edit tab");
+            vm.Workbench.SelectLayout("source"); Render();
             sourceSegment.Command!.Execute(null); Render();
             var sourceUnderline = sourceSegment.GetVisualDescendants().OfType<Border>().First(b => b.Name == "Underline");
             Check(vm.Workbench.WorkspaceLayout == "source" && sourceSegment.IsChecked == true

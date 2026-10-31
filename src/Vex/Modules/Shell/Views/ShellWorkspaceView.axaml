@@ -58,8 +58,8 @@
                     所以这里只留列位，节点的归属由 WorkspaceViewController.Arrange 迁移。 -->
                     <Grid x:Name="TabRowGrid" ColumnDefinitions="*,Auto,Auto">
                         <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
-                            <ToggleButton x:Name="SourceSegment" Classes="tab-item" Command="{Binding Workbench.ShowSourceView}"
-                                IsChecked="{Binding Workbench.IsSourceSegmentActive, Mode=OneWay}">
+                            <ToggleButton x:Name="SourceSegment" Classes="tab-item" Command="{Binding Workbench.ShowEditorView}"
+                                IsChecked="{Binding Workbench.IsEditSegmentActive, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Path Classes="stroke-ico" Data="{StaticResource WBEditIcon}" />
                                     <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBEdit}}" VerticalAlignment="Center" />

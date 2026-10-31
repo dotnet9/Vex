@@ -128,15 +128,15 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public bool IsMindMap => _view == "mindmap";
     public string WorkspaceLayout => _workspaceLayout;
 
-    /// <summary>状态栏三段直选：仅单一视图布局高亮对应段，组合布局落在「更多」。</summary>
-    public bool IsSourceSegmentActive => _workspaceLayout == "source";
+    /// <summary>即时编辑与源码共用编辑标签，组合布局由布局入口标示。</summary>
+    public bool IsEditSegmentActive => _workspaceLayout is "source" or "instant";
     public bool IsReadSegmentActive => _workspaceLayout == "read";
     public bool IsMapSegmentActive => _workspaceLayout == "map";
 
     /// <summary>「更多」段：组合布局时显示当前布局名并高亮，否则回落为「更多」。</summary>
-    public bool IsMoreSegmentActive => !IsSourceSegmentActive && !IsReadSegmentActive && !IsMapSegmentActive;
+    public bool IsMoreSegmentActive => !IsEditSegmentActive && !IsReadSegmentActive && !IsMapSegmentActive;
     public string MoreSegmentLabel => string.Format(WorkbenchText.Get("LayoutCurrentFormat"), LayoutOption.Name);
-    public void ShowSourceView() => SelectLayout("source");
+    public void ShowEditorView() => SelectLayout(_edit);
     public string LayoutName => LayoutOption.Name;
     public WorkbenchLayoutOption LayoutOption => WorkbenchLayoutOption.All.First(option => option.Id == _workspaceLayout);
     public bool HasEditor => !IsPresenting && LayoutOption.Editor is not null;
@@ -424,7 +424,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     }
     private void NotifyModes()
     {
-        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions), nameof(IsSourceSegmentActive), nameof(IsReadSegmentActive), nameof(IsMapSegmentActive), nameof(IsMoreSegmentActive), nameof(MoreSegmentLabel) }) this.RaisePropertyChanged(name);
+        foreach (var name in new[] { nameof(WorkspaceLayout), nameof(LayoutOption), nameof(HasEditor), nameof(IsCombined), nameof(IsMapVisible), nameof(ShowMapSource), nameof(EditingHint), nameof(ViewIndicatorMargin), nameof(View), nameof(EditMode), nameof(ViewLabel), nameof(LayoutName), nameof(IsEditing), nameof(IsReading), nameof(IsMindMap), nameof(IsInstantEditing), nameof(IsSourceEditing), nameof(IsSourceVisible), nameof(IsPreviewVisible), nameof(MapColumn), nameof(MapSpan), nameof(SourceColumnWidth), nameof(PreviewColumnWidth), nameof(SplitterWidth), nameof(ShowEditorOptions), nameof(IsEditSegmentActive), nameof(IsReadSegmentActive), nameof(IsMapSegmentActive), nameof(IsMoreSegmentActive), nameof(MoreSegmentLabel) }) this.RaisePropertyChanged(name);
         ApplyLayout();
     }
     private void ApplyLayout()
