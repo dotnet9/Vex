@@ -38,8 +38,7 @@
             <!-- 包裹层：ScrollViewer 会拉伸直接子级，居中限宽需交给内层 Grid 的对齐处理。 -->
             <Grid HorizontalAlignment="Stretch">
             <LayoutTransformControl x:Name="DocumentTransform">
-            <!-- 原型 .reading-scroll .md-body 内边距实测 30/52/88（探针 workspace-chrome.css:375，写作字号档）；
-                 底部不再为悬浮状态栏留白——状态栏已改通栏占位行（B4-14）。 -->
+            <!-- 正文边距与限宽由 ApplyDocumentGeometry 按单阅读/分栏和实际视口计算。 -->
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
                 IsTaskEditingEnabled="{Binding IsTaskEditingEnabled}"

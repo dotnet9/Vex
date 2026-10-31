@@ -50,8 +50,7 @@ public partial class MarkdownPreviewView : UserControl
         if (presenting) PreviewMarkdownViewer.Width = Math.Min(1104, Math.Max(100, PreviewScrollViewer.Bounds.Width - 88)) / scale;
         else PreviewMarkdownViewer.ClearValue(WidthProperty);
         var clientWidth = TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280;
-        // 原型 .md-body 留白：单栏阅读 max(820px,50vw) 居中、padding 30/52/104；分栏 max(800px,42vw) 居中、padding 36/48/104。
-        // 限宽写在正文上（缩放坐标系内），等价 CSS max-width：物理宽度 = min(可用宽, 上限×缩放)，放大时贴住窗格也不会横向溢出。
+        // 原型正文边框盒上限 820px；LayoutTransformControl 按缩放后的可用宽度量测子级。
         DocumentTransform.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
         DocumentTransform.MaxWidth = double.PositiveInfinity;
         if (presenting)
@@ -61,12 +60,15 @@ public partial class MarkdownPreviewView : UserControl
         }
         else
         {
-            // 组合布局预览窗格（原型 data-single=false）：24px / clamp(14px,8%,32px) / 56px，探针读数；
-            // 常见窗宽下侧距已到 clamp 上限 32。底部不再为悬浮状态栏留白——状态栏已改通栏占位行。
-            var margin = new Thickness(32, 24, 32, 56);
+            var availableWidth = Math.Max(0, PreviewScrollViewer.Viewport.Width) / scale;
+            var margin = IsReadingMode
+                ? clientWidth <= 900 ? new Thickness(24, 20, 24, 60)
+                    : clientWidth <= 1100 ? new Thickness(36, 24, 36, 70) : new Thickness(52, 30, 52, 88)
+                : new Thickness(Math.Clamp(availableWidth * .08, 14, 32), 24,
+                    Math.Clamp(availableWidth * .08, 14, 32), 56);
             PreviewMarkdownViewer.Margin = margin;
             // 原型的 max-width 是含留白的边框盒（全局 border-box），Avalonia 的 MaxWidth 只算内容：把留白扣回去。
-            PreviewMarkdownViewer.MaxWidth = Math.Max(800, clientWidth * 0.42) - margin.Left - margin.Right;
+            PreviewMarkdownViewer.MaxWidth = 820 - margin.Left - margin.Right;
         }
     }
 
@@ -353,9 +355,10 @@ public partial class MarkdownPreviewView : UserControl
         LayoutUpdated -= OnRestoreLayoutUpdated;
     }
 
-    // 库按「视口中心落在哪个块」采样；中心块序号对上，块内比例自然一致。
+    // 同一段落内仍可能偏移；几何和虚拟化收敛后，块序号与块内位置都应回到原处。
     private bool ReadingAnchorLanded(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer.MarkdownReadingPosition anchor) =>
-        PreviewMarkdownViewer.SaveReadingPosition() is { } probe && probe.BlockIndex == anchor.BlockIndex;
+        PreviewMarkdownViewer.SaveReadingPosition() is { } probe && probe.BlockIndex == anchor.BlockIndex
+        && Math.Abs(probe.BlockRatio - anchor.BlockRatio) < .01;
 
     private void QueueScrollToEditorPosition()
     {

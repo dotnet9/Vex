@@ -46,7 +46,7 @@ if (mode == "parity-score")
     VisualParityScore.Run(args.Skip(1).ToArray());
     return;
 }
-if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics")
+if (mode is "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -66,7 +66,8 @@ if (mode is "popup-layout" or "elements" or "motion" or "desktop-parity" or "set
     }
     LoadBundledSamples(startupVm);
     Pump();
-    if (mode == "popup-layout") PopupLayoutVerification.Run(app, window, output);
+    if (mode == "reading-geometry") ReadingGeometryVerification.Run(window);
+    else if (mode == "popup-layout") PopupLayoutVerification.Run(app, window, output);
     else if (mode == "elements") ElementVerification.Run(app, window, output);
     else if (mode == "motion") MotionVerification.Run(app, window, output);
     else if (mode == "protection") ProtectionVerification.Run(app, window, output);
@@ -1433,8 +1434,10 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     var readingScroll = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!.FindControl<ScrollViewer>("PreviewScrollViewer")!;
     readingScroll.Offset = new Vector(0, 1200); Pump();
     var priorOffset = readingScroll.Offset.Y;
+    var priorReadingAnchor = preview.SaveReadingPosition();
     wb.StartPresentation(); Pump(); SettleRendering(); wb.IncreasePresentationText(); Pump();
     wb.ShowPresentationMap(); Pump(); wb.StopPresentation(); Pump(); SettleRendering();
+    Console.WriteLine($"READING-RESTORE {priorOffset} {priorReadingAnchor} -> {readingScroll.Offset.Y} {preview.SaveReadingPosition()}");
     Check(Math.Abs(readingScroll.Offset.Y - priorOffset) < 5, "Exiting presentation restores the actual reading position");
     var relapPath = Path.Combine(output, "long-html-tables.md");
     var relapText = "# 长文档与 HTML 表格\n\n" + string.Join("\n\n", Enumerable.Range(1, 150).Select(i =>
