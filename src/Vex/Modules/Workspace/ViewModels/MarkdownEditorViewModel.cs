@@ -632,9 +632,20 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     [EventHandler]
     public void ApplySearch(EditorSearchCommand command)
     {
-        // 查找始终露出命中位置，替换只在明确的编辑视图执行。
-        if (command.Action != EditorSearchAction.Count) _workbench.ShowSource();
-        _editor?.Search(command.ToEditorSearchCommand());
+        if (_editor is not { } editor) return;
+        SyncTextFromDocument();
+        if (command.Action is EditorSearchAction.ReplaceNext or EditorSearchAction.ReplaceAll) _workbench.ShowSource();
+        var found = false;
+        void OnResult(object? sender, MarkdownEditorSearchResultEventArgs result) => found = result.CurrentIndex > 0 && result.TotalCount > 0;
+        editor.SearchResultProduced += OnResult;
+        try { editor.Search(command.ToEditorSearchCommand()); }
+        finally { editor.SearchResultProduced -= OnResult; }
+        // 全文只在源码坐标中搜索一次，再让当前可见视图按同一源码行定位。
+        if (found && command.Action is EditorSearchAction.FindNext or EditorSearchAction.FindPrev)
+        {
+            var line = editor.Editor.Document.GetLineByOffset(editor.Selection.Start).LineNumber;
+            EventBus.Default.Publish(new NavigateToLineCommand(line));
+        }
     }
 
     [EventHandler]
