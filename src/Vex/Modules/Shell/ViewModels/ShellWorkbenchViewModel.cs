@@ -429,6 +429,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     }
     private void ApplyLayout()
     {
+        _layout.IsThreeViewLayout = WorkspaceLayout == "three";
         _layout.IsSourceMode = IsSourceVisible;
         _layout.IsPreviewVisible = IsPreviewVisible;
     }

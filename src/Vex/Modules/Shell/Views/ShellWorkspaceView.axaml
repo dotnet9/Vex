@@ -5,6 +5,25 @@
     xmlns:views="using:Vex.Modules.Shell.Views" xmlns:shell="using:Vex.Modules.Shell.Views"
     xmlns:workspace="using:Vex.Modules.Workspace.Views" xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:MainWindowViewModel">
+    <UserControl.Styles>
+        <Style Selector="Border#OutlineGuideTarget">
+            <Setter Property="Grid.Column" Value="4" />
+            <Setter Property="Grid.ColumnSpan" Value="1" />
+            <Setter Property="ClipToBounds" Value="True" />
+        </Style>
+        <Style Selector="Border#OutlineGuideTarget.overlay">
+            <Setter Property="Grid.Column" Value="0" />
+            <Setter Property="Grid.ColumnSpan" Value="5" />
+            <Setter Property="Width" Value="344" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Margin" Value="8" />
+            <Setter Property="ZIndex" Value="35" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BoxShadow" Value="{DynamicResource VexPopShadow}" />
+            <Setter Property="ClipToBounds" Value="False" />
+        </Style>
+    </UserControl.Styles>
     <Grid ColumnDefinitions="Auto,*">
         <!-- 原型 professional.css 的叶纹覆盖左柱和文件列表，贴工作区底部。 -->
         <Image x:Name="SageLeafDecoration" Source="avares://Vex/Assets/sage-leaf.png"
@@ -115,11 +134,11 @@
                 </Panel>
             </Grid>
             <GridSplitter x:Name="OutlineSplitter" Grid.Column="3" Classes="workspace-gap gap-horizontal" ZIndex="9" HorizontalAlignment="Stretch"
-                IsVisible="{Binding Layout.ShowOutlineSidebar}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
+                IsVisible="{Binding Layout.ShowDockedOutline}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ShowsPreview="False" />
             <!-- 与左侧文件栏同构：列宽是唯一尺寸来源，收起时由 ClipToBounds 裁切内容，才能滑出而不是整块消失。
             标题和搜索行由 ShellOutlineView 自己维护。 -->
-            <Border x:Name="OutlineGuideTarget" Grid.Column="4" Classes="workspace-block structure-edge" IsHitTestVisible="{Binding Layout.ShowOutlineSidebar}"
-                ClipToBounds="True">
+            <Border x:Name="OutlineGuideTarget" Classes="workspace-block structure-edge"
+                Classes.overlay="{Binding Layout.IsOutlineOverlay}" IsHitTestVisible="{Binding Layout.ShowOutlineSidebar}">
                 <shell:ShellOutlineView/>
             </Border>
         </Grid>

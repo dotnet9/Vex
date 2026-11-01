@@ -179,12 +179,55 @@ internal static class PrototypeChromeVerification
             var outlineHead = outlinePane.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("panel-head"));
             Check(filesHead.Bounds.Height == 36 && outlineHead.Bounds.Height == 36
                 && Math.Abs(filesHead.TranslatePoint(default, window)!.Value.Y - tabRow.TranslatePoint(default, window)!.Value.Y) < 1
-                && Math.Abs(outlineHead.TranslatePoint(default, window)!.Value.Y - tabRow.TranslatePoint(default, window)!.Value.Y) < 1,
-                "Both sidebar headings align with the 36px view tabs");
+                && Math.Abs(outlineHead.TranslatePoint(default, window)!.Value.Y - tabRow.TranslatePoint(default, window)!.Value.Y
+                    - (vm.Layout.IsOutlineOverlay ? 9 : 0)) < 1,
+                "Sidebar headings follow the docked tab row or the inset outline overlay");
+            var outlineSurface = window.Workspace.FindControl<Border>("OutlineGuideTarget")!;
+            var outlineOrigin = outlineSurface.TranslatePoint(default, window)!.Value;
+            Check(outlineOrigin.X >= 0 && outlineOrigin.X + outlineSurface.Bounds.Width <= window.ClientSize.Width
+                && (vm.Layout.IsOutlineOverlay
+                    ? outlineSurface.Bounds.Width == 344 && vm.Layout.OutlineColumnWidth.Value == 0
+                    : outlineSurface.Bounds.Width == vm.Layout.OutlineWidth),
+                "Outline remains inside the desktop window without reserving a column in overlay mode");
             foreach (var pane in new UserControl[] { filesPane, outlinePane })
             {
                 var search = pane.GetVisualDescendants().OfType<Grid>().Single(g => g.Classes.Contains("search-shell"));
                 Check(search.Bounds.Height == 28, "Sidebar searches are 28px inside the toolbar row");
+                var searchIcon = pane.GetVisualDescendants().OfType<Viewbox>().Single(icon => icon.Name?.EndsWith("SearchIcon") == true);
+                var close = pane.GetVisualDescendants().OfType<Button>().Single(button => button.Classes.Contains("panel-close"));
+                var clear = pane.GetVisualDescendants().OfType<Button>().Single(button => button.Name?.StartsWith("Clear") == true);
+                foreach (var (icon, expectedSize) in new[]
+                {
+                    (searchIcon, 13d),
+                    ((Viewbox)close.Content!, 14d),
+                    ((Viewbox)clear.Content!, 13d)
+                })
+                {
+                    var canvas = (Canvas)icon.Child!;
+                    var path = canvas.Children.OfType<global::Avalonia.Controls.Shapes.Path>().Single();
+                    Check(icon.Bounds.Size == new Size(expectedSize, expectedSize)
+                        && canvas.Width == 24 && canvas.Height == 24
+                        && path.Width == 24 && path.Height == 24 && path.Stretch == Stretch.None
+                        && path.StrokeThickness == 1.7,
+                        "Sidebar icons preserve the prototype's 24px SVG coordinates: " + pane.GetType().Name + "/" + expectedSize);
+                    Check(Math.Abs(path.Data!.Bounds.Width - (ReferenceEquals(icon, searchIcon) ? 18 : 12)) < .01,
+                        "Sidebar symbol geometry matches the frozen search/close paths");
+                }
+                Check(clear.Bounds.Size == new Size(18, 18) && clear.Padding == default,
+                    "Sidebar clear target fits its 13px icon without shrinking");
+                if (pane.DataContext is ShellFilesViewModel filesFilter) filesFilter.FilterText = "probe";
+                else ((ShellOutlineViewModel)pane.DataContext!).FilterText = "probe";
+                Render();
+                var clearPoint = clear.TranslatePoint(new Point(9, 9), window)!.Value;
+                Console.WriteLine($"SIDEBAR CLEAR {pane.GetType().Name} at {clearPoint}, size={window.ClientSize}, enabled={clear.IsEffectivelyEnabled}, hit={window.InputHitTest(clearPoint)}");
+                window.MouseMove(clearPoint); Render();
+                var clearPath = clear.GetVisualDescendants().OfType<global::Avalonia.Controls.Shapes.Path>().Single();
+                Check((clearPath.Stroke as ISolidColorBrush)?.Color == (clear.Foreground as ISolidColorBrush)?.Color,
+                    "Sidebar clear icon follows its hovered button foreground");
+                window.MouseDown(clearPoint, MouseButton.Left); window.MouseUp(clearPoint, MouseButton.Left); Render();
+                Check(pane.DataContext is ShellFilesViewModel filesState ? string.IsNullOrEmpty(filesState.FilterText)
+                        : string.IsNullOrEmpty(((ShellOutlineViewModel)pane.DataContext!).FilterText),
+                    "Clicking the sidebar clear button clears its actual filter");
             }
             filesPane.FindControl<Button>("CloseFilesButton")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Settle();
             Check(!vm.Layout.IsSidebarVisible && railFiles.IsFocused, "Closing files restores focus to its rail toggle");

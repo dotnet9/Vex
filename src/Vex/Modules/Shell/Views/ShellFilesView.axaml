@@ -263,7 +263,11 @@
                 <Button x:Name="CloseFilesButton" Grid.Column="1" Classes="panel-close" Click="ClosePanelClicked"
                         helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.NavFilesCollapse}}"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NavFilesCollapse}}">
-                    <Path Classes="stroke-ico" Width="8" Height="8" StrokeThickness="1.2" Data="M6 6L18 18 M18 6L6 18" />
+                    <Viewbox Width="14" Height="14"><Canvas Width="24" Height="24">
+                        <Path Classes="stroke-ico" Width="24" Height="24" Stretch="None" StrokeThickness="1.7"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              Data="M6 6L18 18 M18 6L6 18" />
+                    </Canvas></Viewbox>
                 </Button>
             </Grid>
         </Border>
@@ -278,9 +282,10 @@
                 Classes="search-frame"
                 Padding="10,0">
                 <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" MinHeight="0" VerticalAlignment="Center">
-                    <Path Classes="stroke-ico" Width="13" Height="13" StrokeThickness="1.6"
-                          VerticalAlignment="Center"
-                          Data="M17 10A7 7 0 1 1 3 10A7 7 0 1 1 17 10 M15 15L22 22" />
+                    <Viewbox x:Name="FilesSearchIcon" Width="13" Height="13" VerticalAlignment="Center"><Canvas Width="24" Height="24">
+                        <Path Classes="stroke-ico" Width="24" Height="24" Stretch="None" StrokeThickness="1.7"
+                              Data="M19 11A8 8 0 1 1 3 11A8 8 0 1 1 19 11 M21 21L16.65 16.65" />
+                    </Canvas></Viewbox>
                     <TextBox
                         Grid.Column="1"
                         Classes="shell-input"
@@ -296,11 +301,15 @@
                         Text="{Binding FilterText, Mode=TwoWay}"
                         TextWrapping="NoWrap"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFilesFilterPlaceholder}}" />
-                    <Button Grid.Column="2" Classes="files-tool" Width="18" Height="18" Padding="3"
+                    <Button x:Name="ClearFilesSearchButton" Grid.Column="2" Classes="files-tool" Width="18" Height="18" Padding="0"
                             Command="{Binding ClearFilter}"
                             helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.ClearSearch}}"
                             AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.ClearSearch}}">
-                        <Path Classes="stroke-ico" Width="8" Height="8" StrokeThickness="1.2" Data="M6 6L18 18 M18 6L6 18" />
+                        <Viewbox Width="13" Height="13"><Canvas Width="24" Height="24">
+                            <Path Classes="stroke-ico" Width="24" Height="24" Stretch="None" StrokeThickness="1.7"
+                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                  Data="M6 6L18 18 M18 6L6 18" />
+                        </Canvas></Viewbox>
                     </Button>
                 </Grid>
             </Border>

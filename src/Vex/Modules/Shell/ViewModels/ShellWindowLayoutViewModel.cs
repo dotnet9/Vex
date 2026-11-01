@@ -32,7 +32,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private bool _isOutlineVisible;
     private double _outlineWidth = DefaultOutlineWidth;
     private double _workspaceWidth = 1280;
-    private bool _outlineNarrowOverride;
+    private bool _isThreeViewLayout;
     private bool? _outlineBeforeFocus;
     private bool _isOutlineResizing;
     private readonly WidthAnimator _sidebarAnimator;
@@ -65,6 +65,7 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         {
             foreach (var name in new[] { nameof(VisibleSidebarWidth), nameof(SidebarColumnWidth), nameof(MinimumVisibleSidebarWidth), nameof(MaximumVisibleSidebarWidth) })
                 OnPropertyChanged(name);
+            NotifyOutlineLayout();
         });
         _outlineAnimator = new WidthAnimator(NotifyOutlineLayout);
         _settingsStore = settingsStore;
@@ -208,7 +209,6 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         set
         {
             var widthBefore = VisibleOutlineWidth;
-            _outlineNarrowOverride = value && IsOutlineNarrow;
             SetProperty(ref _isOutlineVisible, value);
             NotifyOutlineLayout();
             _outlineAnimator.Animate(widthBefore, OutlineTargetWidth, MotionResources.Mid);
@@ -216,16 +216,23 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         }
     }
 
-    public bool ShowOutlineSidebar => IsOutlineVisible && !IsPresentationMode && !IsFocusMode
-        && (!IsOutlineNarrow || _outlineNarrowOverride);
-    private bool IsOutlineNarrow => _workspaceWidth - VisibleSidebarWidth - OutlineWidth < 440;
+    public bool ShowOutlineSidebar => IsOutlineVisible && !IsPresentationMode && !IsFocusMode;
+    public bool IsOutlineOverlay => ShowOutlineSidebar
+        && (_workspaceWidth - VisibleSidebarWidth - OutlineWidth < 640
+            || _isThreeViewLayout && _workspaceWidth < 1400);
+    public bool ShowDockedOutline => ShowOutlineSidebar && !IsOutlineOverlay;
+    public bool IsThreeViewLayout
+    {
+        get => _isThreeViewLayout;
+        set { if (SetProperty(ref _isThreeViewLayout, value)) NotifyOutlineLayout(); }
+    }
     public double WorkspaceWidth
     {
         get => _workspaceWidth;
         set
         {
             _workspaceWidth = value;
-            if (!IsOutlineNarrow) _outlineNarrowOverride = false;
+            OnPropertyChanged(nameof(WorkspaceWidth));
             NotifyOutlineLayout();
         }
     }
@@ -244,19 +251,19 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
     private double OutlineTargetWidth => ShowOutlineSidebar ? OutlineWidth : 0;
     public GridLength OutlineColumnWidth
     {
-        get => new(VisibleOutlineWidth);
+        get => new(IsOutlineOverlay ? 0 : VisibleOutlineWidth);
         // 动画期间的插值宽度不回写用户设定宽度。
-        set { if (ShowOutlineSidebar && _outlineAnimator.Value is null && value.IsAbsolute) OutlineWidth = value.Value; }
+        set { if (ShowDockedOutline && _outlineAnimator.Value is null && value.IsAbsolute) OutlineWidth = value.Value; }
     }
-    public double MinimumOutlineWidth => ShowOutlineSidebar && _outlineAnimator.Value is null ? MinOutlineWidth : 0;
-    public double MaximumOutlineWidth => ShowOutlineSidebar || _outlineAnimator.Value is not null ? MaxOutlineWidth : 0;
-    public GridLength OutlineSplitterWidth => new(ShowOutlineSidebar ? BlockGap : 0);
+    public double MinimumOutlineWidth => ShowDockedOutline && _outlineAnimator.Value is null ? MinOutlineWidth : 0;
+    public double MaximumOutlineWidth => IsOutlineOverlay ? 0 : ShowOutlineSidebar || _outlineAnimator.Value is not null ? MaxOutlineWidth : 0;
+    public GridLength OutlineSplitterWidth => new(ShowDockedOutline ? BlockGap : 0);
     public void BeginOutlineResize() => _isOutlineResizing = true;
     public void CompleteOutlineResize() { _isOutlineResizing = false; PersistLayoutSettings(); }
     public void ToggleOutline() => IsOutlineVisible = !ShowOutlineSidebar;
     private void NotifyOutlineLayout()
     {
-        foreach (var name in new[] { nameof(ShowOutlineSidebar), nameof(OutlineColumnWidth), nameof(OutlineSplitterWidth), nameof(MinimumOutlineWidth), nameof(MaximumOutlineWidth) })
+        foreach (var name in new[] { nameof(ShowOutlineSidebar), nameof(IsOutlineOverlay), nameof(ShowDockedOutline), nameof(OutlineColumnWidth), nameof(OutlineSplitterWidth), nameof(MinimumOutlineWidth), nameof(MaximumOutlineWidth) })
             OnPropertyChanged(name);
     }
     /// <summary>演示只临时隐藏界面，不改写用户布局偏好。</summary>
