@@ -1,6 +1,5 @@
 <Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- 长标题不被快捷键列截断的模板（MenuItem.wrap-entry）已由库的 Themes/Styles/NativeMenu.axaml 提供，
-         这里只留 Vex 自己的菜单版面与配色。 -->
+    <!-- 复用 Semi 的 ContextMenu/MenuItem 模板，只调整宿主菜单的版面与配色。 -->
     <Style Selector="MenuItem.wrap-entry.danger /template/ ContentPresenter#PART_HeaderPresenter">
         <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}" />
     </Style>
@@ -56,9 +55,13 @@
     </Style>
 
     <Style Selector="ContextMenu">
+        <!-- 正文允许亚像素排版，原生弹窗仍须像素取整，避免不足 1px 的溢出触发菜单滚动箭头。 -->
+        <Setter Property="UseLayoutRounding" Value="True" />
         <Setter Property="Width" Value="248" />
         <Setter Property="FontFamily" Value="{DynamicResource ControlContentThemeFontFamily}" />
         <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="TextBlock.LineHeight" Value="22.4" />
         <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
         <Setter Property="Background" Value="{DynamicResource VexPopBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
@@ -69,10 +72,6 @@
         <Setter Property="Padding" Value="10,5" />
     </Style>
     <Style Selector="ContextMenu MenuItem /template/ ContentPresenter#PART_HeaderPresenter">
-        <Setter Property="LineHeight" Value="22.4" />
         <Setter Property="TextWrapping" Value="Wrap" />
-    </Style>
-    <Style Selector="ContextMenu MenuItem /template/ TextBlock#PART_InputGestureText">
-        <Setter Property="LineHeight" Value="22.4" />
     </Style>
 </Styles>
