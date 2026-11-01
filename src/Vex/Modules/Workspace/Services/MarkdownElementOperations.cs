@@ -166,7 +166,7 @@ public static class MarkdownElementOperations
         var last = line;
         while (last + 1 < lines.Length && IsTableRow(lines[last + 1])) last++;
         var start = offsets[first];
-        var length = offsets[last + 1] - start - newline.Length;
+        var length = offsets[last] + lines[last].Length - start;
         if (length <= 0 || start + length > document.Length) return null;
         var raw = document[start..(start + length)];
         if (ParseTable(raw) is not { } parsed) return null;
@@ -262,7 +262,8 @@ public static class MarkdownElementOperations
     private static int[] LineOffsets(string[] lines, int newlineLength)
     {
         var offsets = new int[lines.Length + 1];
-        for (var i = 0; i < lines.Length; i++) offsets[i + 1] = offsets[i] + lines[i].Length + newlineLength;
+        for (var i = 0; i < lines.Length; i++)
+            offsets[i + 1] = offsets[i] + lines[i].Length + (i + 1 < lines.Length ? newlineLength : 0);
         return offsets;
     }
 

@@ -46,6 +46,20 @@ internal static class ElementVerification
             window.UpdateLayout();
         }
         void Check(bool value, string message) { if (!value) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
+        foreach (var newline in new[] { "\n", "\r\n" })
+        foreach (var trailing in new[] { "", newline })
+        {
+            var paragraphDocument = "# Heading" + newline + newline + "Target paragraph" + trailing;
+            var range = MarkdownElementOperations.FindBlockAt(paragraphDocument,
+                paragraphDocument.IndexOf("Target paragraph", StringComparison.Ordinal));
+            Check(paragraphDocument.Substring(range.Start, range.Length) == "Target paragraph" + trailing,
+                $"Final paragraph range respects actual document length: newline={newline.Length}, trailing={trailing.Length}");
+            var tableText = "| Head | Other |" + newline + "| --- | --- |" + newline + "| Value | Last |";
+            var tableDocument = tableText + trailing;
+            var tableHit = MarkdownElementOperations.FindTableAt(tableDocument, tableDocument.IndexOf("Last", StringComparison.Ordinal));
+            Check(tableHit?.Raw == tableText && MarkdownElementOperations.ParseTable(tableHit.Raw)?.Rows[1][1] == "Last",
+                $"Final table range preserves its last cell: newline={newline.Length}, trailing={trailing.Length}");
+        }
         void SetDocument(string text)
         {
             EventBus.Default.Publish(new MarkdownTextChangedCommand(text, 1, 1, text.Count(character => character == '\n') + 1));
