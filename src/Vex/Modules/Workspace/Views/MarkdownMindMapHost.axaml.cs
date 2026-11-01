@@ -96,14 +96,15 @@ public partial class MarkdownMindMapHost : UserControl
     private void ApplyStyleFlyoutAvoidance()
     {
         if (_styleFlyoutHost is null) return;
-        var presenter = _styleFlyoutHost.GetVisualAncestors().OfType<Popup>().FirstOrDefault()?.Child;
+        var presenter = _styleFlyoutHost.GetVisualAncestors().OfType<FlyoutPresenter>().FirstOrDefault();
         if (presenter is null) return;
-        var presenterTopLeft = presenter.TranslatePoint(default, this);
+        var frame = (Control?)presenter.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Name == "LayoutRoot") ?? presenter;
+        var presenterTopLeft = frame.TranslatePoint(default, this);
         if (presenterTopLeft is not { } point) return;
         var mapTopLeft = Map.TranslatePoint(default, this) ?? default;
         _styleFlyoutViewportSaved = true;
         _preStyleFlyoutViewport = Map.CaptureViewport();
-        var occludedBottom = point.Y + presenter.Bounds.Height - mapTopLeft.Y;
+        var occludedBottom = point.Y + frame.Bounds.Height - mapTopLeft.Y;
         if (occludedBottom > 0)
             Map.RestoreViewport(_preStyleFlyoutViewport with { Y = _preStyleFlyoutViewport.Y + occludedBottom / 2 });
     }
@@ -139,43 +140,54 @@ public partial class MarkdownMindMapHost : UserControl
     {
         // 触发钮文字回显「结构 · 风格」组合（SyncStyleBadge），提示保持「导图样式」入口语义。
         var title = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
+        var icon = new Avalonia.Controls.Shapes.Path
+        {
+            Classes = { "wb-icon" }, Width = 12, Height = 12, Stretch = Stretch.Uniform,
+            StrokeThickness = 1.7, VerticalAlignment = VerticalAlignment.Center
+        };
+        icon.Bind(Avalonia.Controls.Shapes.Path.DataProperty, icon.GetResourceObservable("WBMapIcon"));
         var button = new Button
         {
-            Classes = { "wb-quiet", "map-tool" },
+            Classes = { "wb-quiet", "map-tool", "map-appearance-trigger" },
+            FontSize = 12, MinHeight = 32, Padding = new Thickness(8, 4), CornerRadius = new CornerRadius(4),
+            FontFamily = new FontFamily("Microsoft YaHei UI, PingFang SC, Noto Sans CJK SC, Segoe UI"),
             Content = new StackPanel
             {
-                Orientation = Orientation.Horizontal, Spacing = 4,
+                Orientation = Orientation.Horizontal, Spacing = 6,
                 Children =
                 {
+                    icon,
                     title,
                     new Avalonia.Controls.Shapes.Path { Classes = { "expand-chevron" }, Data = Avalonia.Media.Geometry.Parse("M6 9L12 15L18 9") },
                 },
             },
         };
+        // 32px 入口在原型固定36px工具行内居中，不把整行撑高。
+        MapEditingToolbar.Padding = new Thickness(10, 1.5);
         // 入口按钮只在构建时走一遍，切语言不会重建它，所以提示绑资源键（同 TabControlRegionAdapter 的页签）。
         if (new CodeWF.Avalonia.Lang.MarkupExtensions.I18nBinding(VexL.WBMapStyleButton).ProvideValue(null!) is Avalonia.Data.BindingBase mapStyleBinding)
         {
             button.Bind(ToolTip.TipProperty, mapStyleBinding);
         }
         _styleBadge = title;
-        // 原型 .map-appearance-popover：528−32 内距 = 496 内容宽，标题（mb 12）→ ①结构 步骤标签（mb 9）
+        // 原型 .map-appearance-popover：528−30 内距与边框 = 498 内容宽，标题（mb 8）→ ①结构 步骤标签（mb 9）
         // → 3 列卡片网格（gap 10、padding 2）→ ②风格 步骤标签（mt 14）→ 网格，两排同屏。
-        var panel = new StackPanel { Spacing = 0, Width = 496 };
-        var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 0, 0, 12) };
-        var headerTitle = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, FontSize = 14, VerticalAlignment = VerticalAlignment.Center };
-        var closeButton = new Button { Classes = { "vex-dismiss" }, Content = "×", Width = 26, Height = 28, Padding = new Thickness(0) };
+        var panel = new StackPanel { Spacing = 0, Width = 498 };
+        var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 0, 0, 8) };
+        var headerTitle = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, FontSize = 13, LineHeight = 20.8, VerticalAlignment = VerticalAlignment.Center };
+        var closeButton = new Button { Classes = { "vex-dismiss" }, Content = "×", Width = 28, Height = 28, MinHeight = 0, MinWidth = 0, FontSize = 19, Padding = new Thickness(0) };
         header.Children.Add(headerTitle); Grid.SetColumn(closeButton, 1); header.Children.Add(closeButton);
         panel.Children.Add(header);
 
         // 原型 .map-appearance-scroll：两排卡片共用一个滚动容器，弹层受高时内部滚动而不是截断卡片。
         var layoutCards = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 10, RowSpacing = 10, Margin = new Thickness(2) };
-        var styleCards = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 10, RowSpacing = 10, Margin = new Thickness(2, 0, 2, 2) };
+        var styleCards = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 10, RowSpacing = 10, Margin = new Thickness(2) };
         var body = new StackPanel { Spacing = 0 };
-        var scroll = new ScrollViewer { Content = body, MaxHeight = 180, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
+        var scroll = new ScrollViewer { Content = body, Padding = new Thickness(2), MaxHeight = 180, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
         panel.Children.Add(scroll);
 
         var flyoutHost = new ContentControl();
-        var flyout = new Flyout { Content = flyoutHost, Placement = PlacementMode.BottomEdgeAlignedLeft };
+        var flyout = new Flyout { Content = flyoutHost, Placement = PlacementMode.BottomEdgeAlignedRight, HorizontalOffset = 32, VerticalOffset = -12 };
         _styleFlyout = flyout; _styleFlyoutHost = flyoutHost;
         // 触发钮插入工具栏（对照源码旁，原型顺序），随工具条悬浮显示。
         MapToolsRight.Children.Insert(MapToolsRight.Children.IndexOf(MapSourceButton) + 1, button);
@@ -209,6 +221,7 @@ public partial class MarkdownMindMapHost : UserControl
             body.Children.Add(BuildStepLabel("1", T(VexL.MapStepLayout), string.Empty));
             body.Children.Add(layoutCards);
             styleStep = BuildStepLabel("2", T(VexL.MapStepStyle), string.Empty);
+            styleStep.Margin = new Thickness(0, 14, 0, 9);
             body.Children.Add(styleStep);
             body.Children.Add(styleCards);
             // 原型 .map-choice 是无状态按钮，选中靠 aria-pressed；这里同构：按下态由 map-choice-on 类回放。
@@ -497,7 +510,7 @@ public partial class MarkdownMindMapHost : UserControl
             Classes = { "map-step-label" },
             Orientation = Orientation.Horizontal,
             Spacing = 7,
-            Margin = new Thickness(4, 0, 4, 9),
+            Margin = new Thickness(0, 0, 0, 9),
         };
         label.Children.Add(new Border { Classes = { "map-step-badge" }, Child = new TextBlock { Classes = { "map-step-badge-text" }, Text = badge, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } });
         label.Children.Add(new TextBlock { Classes = { "map-step-text" }, Text = title, VerticalAlignment = VerticalAlignment.Center });
@@ -521,6 +534,13 @@ public partial class MarkdownMindMapHost : UserControl
             Tint(accentColor, SolidColor(ThemeBrush("VexWarningBrush") ?? muted, Colors.Orange), 0.45),
             SolidColor(muted, Colors.Gray),
         };
+        if (style == "colorful" && this.TryFindResource("CodeWFMindViewDefaultPalette", out var palette) && palette is string paletteText)
+        {
+            var colors = new List<Color>();
+            foreach (var value in paletteText.Split([';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                if (Color.TryParse(value, out var color)) colors.Add(color);
+            if (colors.Count > 0) branch = colors.ToArray();
+        }
         var colorful = style == "colorful";
         var mono = style == "mono";
         var hollowRoot = style == "outline";
@@ -532,7 +552,7 @@ public partial class MarkdownMindMapHost : UserControl
             canvas.Children.Add(new Avalonia.Controls.Shapes.Path
             {
                 Data = Geometry.Parse(glyph.Links[i]),
-                Stroke = colorful ? new SolidColorBrush(branch[i % 4]) : mono ? foreground : accent,
+                Stroke = colorful ? new SolidColorBrush(branch[i % branch.Length]) : mono ? foreground : accent,
                 StrokeThickness = 2,
                 Opacity = colorful ? 1 : 0.6,
                 RenderTransform = new TranslateTransform(12, 12),
@@ -541,7 +561,9 @@ public partial class MarkdownMindMapHost : UserControl
         {
             var node = glyph.Nodes[i];
             var root = i == 0;
-            var color = colorful && !root ? new SolidColorBrush(branch[i % 4]) : mono ? foreground : accent;
+            var color = colorful && !root
+                ? new SolidColorBrush(Tint(branch[i % branch.Length], SolidColor(foreground, Colors.Black), .24))
+                : mono ? foreground : accent;
             Control piece = veined && !root
                 ? new Avalonia.Controls.Shapes.Rectangle { Width = node.Width, Height = 2, Fill = color }
                 : new Avalonia.Controls.Shapes.Rectangle
@@ -551,10 +573,10 @@ public partial class MarkdownMindMapHost : UserControl
                     RadiusX = capsule ? 12 : 4,
                     RadiusY = capsule ? 12 : 4,
                     Stroke = color,
-                    StrokeThickness = root && hollowRoot ? 3 : 2,
+                    StrokeThickness = root && hollowRoot ? 3 : colorful && !root ? 1.5 : 2,
                     Fill = root
                         ? mono ? foreground : hollowRoot ? paperBrush : accent
-                        : colorful ? new SolidColorBrush(Tint(paper, branch[i % 4], 0.14))
+                        : colorful ? new SolidColorBrush(branch[i % branch.Length])
                         : capsule ? new SolidColorBrush(Tint(paper, accentColor, 0.12))
                         : paperBrush,
                 };
@@ -563,11 +585,9 @@ public partial class MarkdownMindMapHost : UserControl
             canvas.Children.Add(piece);
         }
         var mini = new Border { Classes = { "map-choice-mini" }, Child = new Viewbox { Child = canvas, Stretch = Stretch.Uniform } };
-        var name = new TextBlock { Classes = { "map-choice-label" }, Text = label, HorizontalAlignment = HorizontalAlignment.Left };
-        var stack = new StackPanel { Spacing = 0 };
-        stack.Children.Add(mini); stack.Children.Add(name);
-        // 原型口径：风格卡只留名称（悬浮标题承载说明的职能已上移），用途行移除。
-        return stack;
+        var name = new TextBlock { Classes = { "map-choice-label" }, Text = label };
+        // 原型标题覆盖在缩略图上，不参与高度累加。
+        return new Grid { Children = { mini, name } };
     }
 
     private static Color SolidColor(IBrush brush, Color fallback) => brush is ISolidColorBrush solid ? solid.Color : fallback;
