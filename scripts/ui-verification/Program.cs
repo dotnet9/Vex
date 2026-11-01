@@ -2683,11 +2683,11 @@ void VerifyEditingTools(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     var live = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
     var doc = app.Resolve<IWorkspaceDocumentState>();
     window.Width = 1280; window.Height = 820; wb.ShowSource(); Pump();
-    doc.UpdateDocument("alpha beta", null); Pump();
+    vm.Markdown = "alpha beta"; Pump();
     source.Editor.Select(0, 5); source.Editor.Focus(); Pump();
     Click(options.FindControl<Button>("FormatBold")!);
     Check(vm.Markdown == "**alpha** beta", "Formatting click preserves source selection");
-    doc.UpdateDocument("alpha beta", null); Pump();
+    vm.Markdown = "alpha beta"; Pump();
     wb.ShowInstant(); Pump(); live.NavigateToSourceLine(1, true); Pump();
     var input = live.GetVisualDescendants().OfType<TextBox>().Single(box => box.IsEffectivelyVisible);
     input.SelectionStart = 0; input.SelectionEnd = 5; input.Focus(); Pump();
@@ -2722,7 +2722,7 @@ void VerifyEditingTools(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
         var origin = toolbar.TranslatePoint(default, options)!.Value;
         Check(toolbar.Bounds.Height <= 30 && origin.X >= 0 && origin.X + toolbar.Bounds.Width <= options.Bounds.Width,
             "Formatting remains one compact row inside the available editor width: " + width);
-        // 原型格式条固定 12 键：宽屏一行放得下就没有溢出按钮，窄屏才由 Ursa 自动折叠，命令始终可达。
+        // 原型格式条当前包含基础格式键与 span 工具；宽屏一行放得下就没有溢出按钮，窄屏才由 Ursa 自动折叠。
         var more = toolbar.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>()
             .SingleOrDefault(button => button.Name == "button");
         var visibleFormats = toolbar.GetVisualDescendants().OfType<Button>()
@@ -2732,7 +2732,7 @@ void VerifyEditingTools(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
             Check(toolbar.Classes.Contains(":overflow"), "Narrow document moves formatting commands into Ursa overflow");
             Check(more is { IsEffectivelyVisible: true } && more!.Bounds.Width > 0, "More formatting remains reachable with automatic overflow");
         }
-        else Check(visibleFormats == 12 && more is not { IsEffectivelyVisible: true }, "Wide document keeps all twelve format keys in one row");
+        else Check(visibleFormats == 15 && more is not { IsEffectivelyVisible: true }, "Wide document keeps all fifteen prototype format keys in one row");
         Capture(window, "editing-tools-" + width);
     }
     window.Width = 1280; vm.Layout.SidebarWidth = 226;

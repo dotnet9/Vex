@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.LogicalTree;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
@@ -110,6 +111,18 @@ internal static class PrototypeChromeVerification
             var origin = formatting.TranslatePoint(default, formats);
             Check(origin is not null && origin.Value.X >= 0 && formatting.Bounds.Width <= formats.Bounds.Width,
                 $"Formatting toolbar stays inside the document at {size.Width}: origin={origin?.ToString() ?? "null"} toolbar={formatting.Bounds} host={formats.Bounds}");
+            if (size.Width == 1440)
+            {
+                var keys = formatting.GetLogicalChildren().OfType<Button>().Where(b => b.Classes.Contains("wb-format")).ToArray();
+                var expectedOffsets = new[] { 0d, 32, 79, 111, 143, 175, 207, 254, 286, 318, 350, 382, 429, 461, 493 };
+                Check(keys.Length == expectedOffsets.Length && keys.Select((key, index) =>
+                        Math.Abs(key.TranslatePoint(default, formatting)!.Value.X - expectedOffsets[index]) < .01
+                        && key.Bounds.Size == new Size(28, 28)).All(value => value),
+                    "All fifteen formatting keys keep the prototype's 4px rhythm and separator offsets");
+                Check(keys.SelectMany(key => key.GetVisualDescendants().OfType<TextBlock>())
+                        .Where(text => text.Classes.Contains("span-glyph")).All(text => text.LineHeight == 13 && text.Bounds.Height >= 13),
+                    "Inline-style glyphs use a full 13px line box instead of clipping to one pixel");
+            }
             // 原型 .nav-rail（workspace-chrome.css）：块角折叠钮退役，换成窗口级 56px 图标栏（铬面+右侧发丝线），
             // 文件/大纲两枚 44×48 开关的选中态跟随侧栏可见性，设置钮沉底。
             var rail = window.Workspace.Navigation.FindControl<Border>("NavRail")!;

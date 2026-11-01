@@ -11,7 +11,7 @@ using Vex.Modules.Shell.Views;
 
 /// <summary>
 /// 格式条布局探针：导出工具条与各键的期望/实际宽度、坐标与溢出判定，
-/// 用于回归验证 16 键（含 span 四键）在任何窗口宽度下均完整可见。
+/// 用于回归验证 15 键（含 span 三键）在桌面窗口内显示或进入溢出菜单。
 /// </summary>
 internal static class ToolbarProbe
 {
@@ -31,9 +31,9 @@ internal static class ToolbarProbe
             Dispatcher.UIThread.RunJobs();
         }
 
-        window.Width = 1380;
-        window.Height = 850;
-        vm.Appearance.SelectThemeByKey("dark");
+        window.Width = 1440;
+        window.Height = 900;
+        vm.Appearance.SelectThemeByKey("light");
         vm.Layout.IsSidebarVisible = true;
         vm.Workbench.SelectLayout("instant");
         Render();
@@ -68,7 +68,7 @@ internal static class ToolbarProbe
         {
             var overflow = getOverflow?.Invoke(null, new object?[] { child });
             Console.WriteLine(
-                $"  [{i++}] {child.GetType().Name} name={child.Name} desired={child.DesiredSize.Width:F1} {B(child)} overflow={overflow}");
+                $"  [{i++}] {child.GetType().Name} name={child.Name} desired={child.DesiredSize.Width:F1} {B(child)} origin={child.TranslatePoint(default, window)} margin={child.Margin} overflow={overflow}");
         }
 
         var grid = options.GetVisualDescendants().OfType<Grid>().FirstOrDefault(g => g.ColumnDefinitions.Count == 2);
