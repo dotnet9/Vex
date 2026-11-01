@@ -37,6 +37,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
 
     public ShellPreferencesOverlayView(ShellPreferencesViewModel model, IAppLocalizer localizer, string category)
     {
+        TextOptions.SetTextRenderingMode(this, TextRenderingMode.Antialias);
         _model = model; _localizer = localizer; DataContext = model;
         UseLayoutRounding = false;
         BindResource(this, ForegroundProperty, "VexValueBrush");

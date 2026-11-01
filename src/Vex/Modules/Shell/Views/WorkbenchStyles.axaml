@@ -191,15 +191,30 @@
   <!-- 原型表面契约 L2（surface.css:27 + workspace-chrome.css:557，实测 .appearance-choices /
       .typography-popover / .settings-popover / .menu 全部同一配方）：浅色纯白、深色 surface，
       1px 发丝描边、8px 浮层圆角。弹层不跟随纸面——纸面随配色偏米黄，浮层要的是干净的 UI 面。
-      投影这一档桌面端交给系统 popup 阴影：FlyoutPresenter 上没有 BoxShadow 可设。 -->
+      投影由弹层模板绘制，透明外圈为模糊边界留足空间。 -->
   <Style Selector="FlyoutPresenter">
     <Setter Property="Background" Value="{DynamicResource VexPopBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusMd}" />
   </Style>
-  <Style Selector="FlyoutPresenter /template/ Border#LayoutRoot">
-    <Setter Property="BoxShadow" Value="{DynamicResource VexPopShadow}" />
+  <Style Selector="FlyoutPresenter.design-title-picker, FlyoutPresenter.design-language-picker">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <!-- 最大模糊 32、纵偏移 12：留白不是内容内距，Popup 窗口也要容纳完整投影。 -->
+        <Border Name="LayoutRoot" Margin="32,20,32,44" VerticalAlignment="Top"
+                Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"
+                BoxShadow="{DynamicResource VexPopShadow}" UseLayoutRounding="False" ClipToBounds="False">
+          <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                        VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+            <ContentPresenter Margin="{TemplateBinding Padding}" Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+          </ScrollViewer>
+        </Border>
+      </ControlTemplate>
+    </Setter>
   </Style>
   <Style Selector="FlyoutPresenter, Border.wb-popover">
     <Setter Property="motion:EntranceMotion.OffsetY" Value="-4"/>

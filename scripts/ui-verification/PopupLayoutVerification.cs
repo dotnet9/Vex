@@ -9,6 +9,8 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Controls.Presenters;
 using Avalonia.Interactivity;
+using Avalonia.Headless;
+using Avalonia.Input;
 using Vex.Controls;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
@@ -80,9 +82,61 @@ internal static class PopupLayoutVerification
             var content = (Control)((Flyout)button.Flyout).Content!;
             var presenter = content.GetVisualAncestors().OfType<FlyoutPresenter>().First();
             var frame = presenter.GetVisualDescendants().OfType<Border>().First(b => b.Name == "LayoutRoot");
+            Console.WriteLine($"POPUP SURFACE {name}: presenter={presenter.Bounds}, frame={frame.Bounds}, origin={frame.TranslatePoint(default, window)}, margin={frame.Margin}, shadow={frame.BoxShadow}");
+            Check(frame.BoxShadow.Count == 2, "Picker frame uses both prototype elevation layers: " + name);
+            Check(frame.BoxShadow.ToString() == ((BoxShadows)Application.Current!.Resources["VexPopShadow"]!).ToString(),
+                "Picker template consumes the actual prototype shadow token: " + name);
+            if (name == "appearance")
+            {
+                var stack = content.GetVisualDescendants().OfType<StackPanel>().First(c => Math.Abs(c.Width - 400) < .01);
+                foreach (var child in stack.Children)
+                    Console.WriteLine($"APPEARANCE ROW {child.GetType().Name} {child.Bounds} margin={child.Margin} text={(child as TextBlock)?.Text}");
+                Check(Math.Abs(frame.Bounds.Height - 516.5625) < .1
+                    && stack.Children.OfType<TextBlock>().All(t => Math.Abs(t.Bounds.Height - 22.4) < .01)
+                    && Math.Abs(stack.Children.OfType<Grid>().Single().Bounds.Height - 340.4) < .01,
+                    "Appearance frame follows the prototype's inline line boxes and four palette rows");
+            }
+            var anchor = button.TranslatePoint(default, window)!.Value;
+            var origin = frame.TranslatePoint(default, window)!.Value;
+            Check(Math.Abs(origin.X + frame.Bounds.Width - anchor.X - button.Bounds.Width) < .1
+                && Math.Abs(origin.Y - anchor.Y - button.Bounds.Height - (name == "appearance" ? 3 : 4)) < .1,
+                "Visible picker frame aligns to the button rather than its shadow buffer: " + name);
+            Check(frame.Margin == new Thickness(32, 20, 32, 44)
+                && presenter.Bounds.Height >= frame.Bounds.Bottom + 44,
+                "Picker window reserves the complete two-layer shadow: " + name);
             Check(Math.Abs(frame.Bounds.Width - width) < 1, $"Menu uses its {width:0}px visible frame: " + name);
             Capture(presenter, name); button.Flyout.Hide(); Render();
         }
+        foreach (var theme in new[] { "light", "dark" })
+        foreach (var size in new[] { new Size(800, 600), new Size(1280, 820) })
+        {
+            vm.Appearance.SelectThemeByKey(theme);
+            window.Width = size.Width; window.Height = size.Height; Render();
+            foreach (var button in new[] { appearance.AppearanceButton, appearance.LanguageButton })
+            {
+                var flyout = (Flyout)button.Flyout!;
+                flyout.ShowAt(button); Render();
+                var content = (Control)flyout.Content!;
+                var presenter = content.GetVisualAncestors().OfType<FlyoutPresenter>().First();
+                var frame = presenter.GetVisualDescendants().OfType<Border>().First(b => b.Name == "LayoutRoot");
+                var origin = frame.TranslatePoint(default, window)!.Value;
+                Check(origin.X >= 0 && origin.Y >= 0
+                    && origin.X + frame.Bounds.Width <= window.ClientSize.Width + .5
+                    && origin.Y + frame.Bounds.Height <= window.ClientSize.Height + .5,
+                    $"Picker visible frame fits {size}/{theme}: {origin}, {frame.Bounds.Size}");
+                Check(frame.BoxShadow.Count == 2, "Picker preserves both shadow layers in " + theme);
+                var inside = origin + new Vector(5, 5);
+                window.MouseMove(inside);
+                window.MouseDown(inside, MouseButton.Left); window.MouseUp(inside, MouseButton.Left); Render();
+                Check(flyout.IsOpen, "Clicking picker padding keeps it open");
+                var shadow = origin + new Vector(-10, 20);
+                window.MouseMove(shadow);
+                window.MouseDown(shadow, MouseButton.Left); window.MouseUp(shadow, MouseButton.Left); Render();
+                Check(!flyout.IsOpen, "Clicking the transparent shadow buffer dismisses the picker");
+            }
+        }
+        vm.Appearance.SelectThemeByKey("light");
+        window.Width = 1280; window.Height = 820; Render();
         vm.Workbench.ShowTypography = true; Render();
         var gallery = window.FindControl<ShellTypographyGallery>("TypographyGallery")!;
         var cardScroll = gallery.GetVisualDescendants().OfType<ScrollViewer>().First();
@@ -106,7 +160,7 @@ internal static class PopupLayoutVerification
         var preferences = window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Single();
         var preferenceCard = preferences.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
         Check(preferenceCard.Bounds.Size == new Size(675, 700), "Preferences retains the prototype's 675 by 700 frame");
-        Check(preferences.GetVisualDescendants().OfType<ListBox>().Single().Bounds.Width == 148, "Preferences navigation is 148px wide");
+        Check(preferences.GetVisualDescendants().OfType<ListBox>().Single().Bounds.Width == 147, "Preferences navigation is 147px plus its 1px frame");
         var preferenceGrid = (Grid)preferenceCard.Child!;
         Check(preferenceGrid.Children[0].Bounds.Height == 36 && preferenceGrid.RowDefinitions.Count == 2,
             "Preferences title keeps its 36px header without a fixed footer");

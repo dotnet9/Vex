@@ -131,11 +131,11 @@ public sealed class ShellAppearanceMenuView : UserControl
         if (_addCard is not null) _addCard.IsVisible = !_vm.PaletteOptions.Any(option => option.Key.StartsWith("user:", StringComparison.Ordinal));
     }
 
-    // 原型 .appearance-choices strong：12px/15 行高的分节标题。
     /// <summary>按当前主题解析画刷资源，供选中态着色（主题/配色切换会触发 Build 或 Changed 重放）。</summary>
     private IBrush? Brush(string key) => this.TryFindResource(key, out var value) ? value as IBrush : null;
 
-    private static TextBlock SectionTitle(string text, double top = 6) => new() { Text = text, FontSize = 12, FontWeight = FontWeight.SemiBold, LineHeight = 15, Margin = new Thickness(0, top, 0, 0) };
+    // strong 沿用菜单的 14×1.6 行盒；12px 是字形字号，不能把整行压成 15px。
+    private static TextBlock SectionTitle(string text) => new() { Text = text, FontSize = 12, FontWeight = FontWeight.SemiBold, LineHeight = 22.4 };
 
     /// <summary>原型 .density-options.vex-segmented（workspace-chrome.css:330）：外观菜单里界面密度与明暗模式两行
     /// 用的是同一枚标准分段控件——gap 6、button{flex:1} 等宽，轨道、滑动指示块、选中字色字重全部走 Vex.Controls
@@ -214,21 +214,23 @@ public sealed class ShellAppearanceMenuView : UserControl
             _palettes.Children.Add(card);
         }
         _addCard = BuildAddCard();
-        Grid.SetRow(_addCard, (ordered.Length + 2) / 3); Grid.SetColumn(_addCard, 0);
-        _palettes.RowDefinitions = new RowDefinitions(string.Join(",", Enumerable.Repeat("Auto", (ordered.Length + 3) / 3 + 1)));
+        Grid.SetRow(_addCard, ordered.Length / 3); Grid.SetColumn(_addCard, ordered.Length % 3);
+        _palettes.RowDefinitions = new RowDefinitions(string.Join(",", Enumerable.Repeat("Auto", (ordered.Length + 3) / 3)));
         _palettes.Children.Add(_addCard);
         var content = new StackPanel { Width = MenuWidth - 2 * MenuInset, Margin = default };
-        content.Children.Add(SectionTitle(Text("AppearanceDensityTitle"), 4));
+        content.Children.Add(SectionTitle(Text("AppearanceDensityTitle")));
         content.Children.Add(densityRow);
         content.Children.Add(SectionTitle(Text("AppearanceModeTitle")));
         content.Children.Add(modeRow);
         content.Children.Add(SectionTitle(Text("WBTheme")));
-        _palettes.Margin = new Thickness(0, 10, 0, 0);
+        _palettes.Margin = new Thickness(0, 7, 0, 0);
         // 重建时 _palettes 仍挂在上一版内容面板上，先摘除再入新树。
         if (_palettes.Parent is Panel previousHost) previousHost.Children.Remove(_palettes);
         content.Children.Add(_palettes);
         _scroll = new ScrollViewer { Content = content, MaxHeight = 646, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Hidden };
-        var appearanceFlyout = new Flyout { Content = _scroll, Placement = PlacementMode.BottomEdgeAlignedRight };
+        TextOptions.SetTextRenderingMode(_scroll, TextRenderingMode.Antialias);
+        // 模板外圈为投影留出 32/20/32/44；定位仍以可见边框对齐按钮，顶部间隔 3px。
+        var appearanceFlyout = new Flyout { Content = _scroll, Placement = PlacementMode.BottomEdgeAlignedRight, HorizontalOffset = 32, VerticalOffset = -17 };
         appearanceFlyout.FlyoutPresenterClasses.Add("design-title-picker");
         appearanceFlyout.Opening += (_, _) => _scroll.MaxHeight = Math.Max(140, Math.Min(646, (TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 820) - 114));
         appearanceFlyout.Opened += (_, _) => { SetAppearanceMenuOpen(true); AppearanceButton.Classes.Add("title-picker-open"); };
@@ -256,9 +258,9 @@ public sealed class ShellAppearanceMenuView : UserControl
             _languageRows[language] = (button, chip, chipText, name, check);
         }
         Navigation(languages, () => 1);
-        var languageFlyout = new Flyout { Content = languages, Placement = PlacementMode.BottomEdgeAlignedRight };
+        var languageFlyout = new Flyout { Content = languages, Placement = PlacementMode.BottomEdgeAlignedRight, HorizontalOffset = 32, VerticalOffset = -16 };
         languageFlyout.FlyoutPresenterClasses.Add("design-language-picker"); LanguageButton.Flyout = languageFlyout;
-        Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { AppearanceButton, LanguageButton } };
+        Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { AppearanceButton, LanguageButton } };
         Changed(null, new(""));
     }
 
@@ -272,18 +274,18 @@ public sealed class ShellAppearanceMenuView : UserControl
         root.Children.Add(body);
         if (palette.IsRecommended)
         {
-            var badgeText = new TextBlock { Text = Text("ChoiceRecommended"), FontSize = 9, LineHeight = 9, FontWeight = FontWeight.SemiBold };
+            var badgeText = new TextBlock { Text = Text("ChoiceRecommended"), FontSize = 10, LineHeight = 10, FontWeight = FontWeight.SemiBold };
             Resource(badgeText, TextBlock.ForegroundProperty, this, "StudioOnPrimary");
             var badge = new Border
             {
                 Child = badgeText, CornerRadius = new CornerRadius(4), Padding = new Thickness(4, 2),
-                HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 5, 5, 0)
+                HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 6, 6, 0)
             };
             Resource(badge, Border.BackgroundProperty, this, "VexAccentBrush");
             root.Children.Add(badge);
         }
-        // 原型 .studio-palettes button::after：勾选钉在卡片右下角（right/bottom 5px），11px 常规字重强调色。
-        var check = new TextBlock { Text = "✓", FontSize = 11, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 5, 5) };
+        // design-system.css 的高优先级规则把选中勾移到卡片右侧中间。
+        var check = new TextBlock { Text = "✓", FontSize = 15, FontWeight = FontWeight.Bold, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
         Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush");
         root.Children.Add(check);
         // 原型选中态 = accent 描边 + 外扩 1px 强调色环，由 .palette-card-on 与 Ring 覆层呈现。
@@ -324,7 +326,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         // 原型 .palette-add：1px dashed --border、--vex-radius-sm(6px) 圆角，悬停整块换成强调色。
         dash.Classes.Add("palette-add-dash");
         var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Spacing = 5 };
-        content.Children.Add(new TextBlock { Text = "＋", FontSize = 26, LineHeight = 26, HorizontalAlignment = HorizontalAlignment.Center });
+        content.Children.Add(new TextBlock { Text = "+", FontSize = 19, LineHeight = 28, HorizontalAlignment = HorizontalAlignment.Center });
         var label = Label(Text("AddCustomPalette"), 10); label.HorizontalAlignment = HorizontalAlignment.Center; label.Classes.Add("muted");
         content.Children.Add(label);
         var panel = new Panel();
