@@ -39,8 +39,16 @@ internal static class PopupLayoutVerification
                 && topItems.Zip(topItems.Skip(1)).All(pair => Math.Abs(pair.Second.Bounds.X - pair.First.Bounds.Right - 2) < .01),
                 "Title menus keep natural text widths, 28px targets and 2px gaps in " + culture);
             if (OperatingSystem.IsWindows() && culture == "zh-CN")
+            {
                 Check(Math.Abs(menu.Bounds.Width - 409.5625) < .1,
                     $"Chinese title-menu width follows the measured prototype without per-item rounding: {menu.Bounds.Width:0.###}");
+                var titleLayer = window.GetVisualDescendants().OfType<Control>().Single(control => control.Name == "PART_TitleBarLayer");
+                var menuOrigin = menu.TranslatePoint(default, titleLayer)!.Value;
+                var brand = window.FindControl<StackPanel>("BrandRow")!;
+                var brandOrigin = brand.TranslatePoint(default, titleLayer)!.Value;
+                Check(Math.Abs(menuOrigin.Y - 2) < .01 && Math.Abs(brandOrigin.Y - 4) < .01,
+                    $"Title content centers inside the 32px title area: menu={menuOrigin.Y}, brand={brandOrigin.Y}");
+            }
         }
         vm.Appearance.SelectLanguageByCulture("zh-CN"); Render();
         void Capture(Control control, string name)

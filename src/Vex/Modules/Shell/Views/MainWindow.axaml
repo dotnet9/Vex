@@ -33,7 +33,7 @@
              CodeWFTitleBarLeftContentMargin 是 8，这里再让开 8。 -->
         <StackPanel
             Margin="8 0 10 0"
-            Height="33"
+            Height="32"
             Orientation="Horizontal"
             Spacing="12"
             VerticalAlignment="Center"
