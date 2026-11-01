@@ -27,17 +27,20 @@ public static class DiagramEditor
     /// <summary>给阅读视图挂上图表交互：点图表切换源码卡片（对齐原型），卡片内“编辑”进入原位编辑；重复调用安全。</summary>
     public static void Attach(Control root)
     {
-        var index = 0;
+        var viewer = FindViewer(root);
+        if (viewer is null) return;
         foreach (var border in root.GetVisualDescendants().OfType<Border>()
-                     .Where(border => border.Classes.Contains("MdMermaid")))
+                     .Where(border => border.Classes.Contains("MdMermaid")).ToArray())
         {
-            var fenceIndex = index++;
-            border.Cursor = new Cursor(StandardCursorType.Hand);
             if (border.GetValue(AttachedProperty)) continue;
-            border.SetValue(AttachedProperty, true);
+            if (!ReferenceEquals(border.GetVisualAncestors().OfType<MarkdownViewer>().FirstOrDefault(), viewer)) continue;
+            var fenceIndex = FindFenceIndex(viewer, border);
+            if (fenceIndex < 0) continue;
 
             // 结构对齐原型：源码卡片（默认折叠）+ 原内容 + mermaid 徽标（预览右上角悬浮）。
-            var original = border.Child;
+            if (border.Child is not { } original) continue;
+            border.SetValue(AttachedProperty, true);
+            border.Cursor = new Cursor(StandardCursorType.Hand);
             border.Child = null; // 先摘离原内容，再挂入布局（Avalonia 不允许控件同时有两个视觉父级）。
             var sourceCard = new Border
             {
@@ -51,15 +54,15 @@ public static class DiagramEditor
                 sourceCard.Bind(Border.BackgroundProperty, app.GetResourceObservable("VexTableStripeBrush"));
                 sourceCard.Bind(Border.BorderBrushProperty, app.GetResourceObservable("VexTableBorderBrush"));
             }
-            var sourceText = new TextBlock
+            var sourceText = new SelectableTextBlock
             {
                 FontFamily = VexFonts.Code,
                 FontSize = 13,
                 LineHeight = 24,
                 TextWrapping = TextWrapping.NoWrap,
-                Text = GetFenceSource(root.GetVisualDescendants().OfType<MarkdownViewer>().FirstOrDefault()?.Markdown ?? string.Empty, fenceIndex) ?? string.Empty,
+                Text = GetFenceSource(viewer.Markdown ?? string.Empty, fenceIndex) ?? string.Empty,
             };
-            sourceCard.Child = new ScrollViewer
+            var sourceScroll = new ScrollViewer
             {
                 HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
                 VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
@@ -73,12 +76,14 @@ public static class DiagramEditor
                 HorizontalAlignment = HorizontalAlignment.Right,
                 HorizontalContentAlignment = HorizontalAlignment.Center,
             };
-            editButton.Tapped += (_, _) =>
+            editButton.Click += (_, e) =>
             {
+                e.Handled = true;
                 sourceCard.IsVisible = false;
                 OpenInPlace(root, border, fenceIndex);
             };
-            sourceCard.Child = new StackPanel { Spacing = 8, Children = { sourceText, editButton } };
+            sourceCard.Classes.Add("diagram-source");
+            sourceCard.Child = new StackPanel { Spacing = 8, Children = { sourceScroll, editButton } };
 
             // 原型 .diagram-badge：等宽 12px、1px 描边、底色用纸色把图表挡住，字色是 muted——
             // 默认按钮模板会给它刷成主色块，读起来像图表上贴了个标签。
@@ -102,25 +107,34 @@ public static class DiagramEditor
                 badge.Bind(Button.BackgroundProperty, badgeHost.GetResourceObservable("VexPreviewBackgroundBrush"));
                 badge.Bind(Button.BorderBrushProperty, badgeHost.GetResourceObservable("VexTableBorderBrush"));
             }
-            // 提示语绑资源键：图表块是渲染时现建的，切语言不重排正文，写死的文案会留在旧语言上。
+            var previewButton = new Button
+            {
+                Content = original,
+                Padding = default,
+                BorderThickness = default,
+                Background = Brushes.Transparent,
+                MinHeight = 0,
+                MinWidth = 0,
+                HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                VerticalContentAlignment = VerticalAlignment.Stretch,
+            };
+            // 图表按钮和徽标使用同一个本地化提示，键盘与读屏也能识别切换操作。
             if (new CodeWF.Avalonia.Lang.MarkupExtensions.I18nBinding(VexL.DiagramSourceToggleTip).ProvideValue(null!) is Avalonia.Data.BindingBase sourceTip)
+            {
                 badge.Bind(ToolTip.TipProperty, sourceTip);
-
-            var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto") };
-            Grid.SetRow(sourceCard, 0);
-            Grid.SetRow(original, 1);
-            layout.Children.Add(sourceCard);
-            layout.Children.Add(original);
-            Grid.SetRow(badge, 1);
-            layout.Children.Add(badge);
+                previewButton.Bind(Avalonia.Automation.AutomationProperties.NameProperty, sourceTip);
+            }
+            var preview = new Panel { Children = { previewButton, badge } };
+            var layout = new StackPanel { Children = { sourceCard, preview } };
             border.Child = layout;
 
             void Toggle()
             {
+                sourceText.Text = GetFenceSource(viewer.Markdown ?? string.Empty, fenceIndex) ?? string.Empty;
                 sourceCard.IsVisible = !sourceCard.IsVisible;
             }
-            badge.Tapped += (_, _) => Toggle();
-            border.Tapped += (_, _) => Toggle();
+            badge.Click += (_, e) => { Toggle(); e.Handled = true; };
+            previewButton.Click += (_, e) => { Toggle(); e.Handled = true; };
         }
     }
 
@@ -128,7 +142,7 @@ public static class DiagramEditor
     public static void OpenInPlace(Control root, Border border, int fenceIndex)
     {
         _closeActive?.Invoke();
-        var markdown = root.GetVisualDescendants().OfType<MarkdownViewer>().FirstOrDefault()?.Markdown
+        var markdown = FindViewer(root)?.Markdown
             ?? string.Empty;
         var source = GetFenceSource(markdown, fenceIndex);
         if (source is null) return;
@@ -231,6 +245,34 @@ public static class DiagramEditor
 
     private static readonly AttachedProperty<bool> AttachedProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>("DiagramEditorAttached", typeof(DiagramEditor));
+
+    private static MarkdownViewer? FindViewer(Control root) => root as MarkdownViewer
+        ?? root.GetVisualDescendants().OfType<MarkdownViewer>().FirstOrDefault();
+
+    private static int FindFenceIndex(MarkdownViewer viewer, Border border)
+    {
+        var host = border.GetVisualAncestors().OfType<WindowedStackPanel>().FirstOrDefault();
+        if (host is null || viewer.CurrentModel is not { } model) return -1;
+        var ancestors = border.GetVisualAncestors().Prepend(border).ToHashSet();
+        for (var blockIndex = 0; blockIndex < Math.Min(host.ItemCount, model.Blocks.Count); blockIndex++)
+        {
+            if (host.GetRealizedItem(blockIndex) is not { } block || !ancestors.Contains(block)) continue;
+            // 用模型槽位定位源码，不能用已物化图表的序号：滚动回收后首个可见图表未必是全文第一个。
+            var span = model.Blocks[blockIndex].SourceSpan;
+            var markdown = viewer.Markdown ?? string.Empty;
+            var offset = markdown.IndexOf(FenceMarker, StringComparison.Ordinal);
+            var index = 0;
+            while (offset >= 0 && offset < span.Start)
+            {
+                index++;
+                offset = markdown.IndexOf(FenceMarker, offset + FenceMarker.Length, StringComparison.Ordinal);
+            }
+            if (offset < 0 || offset >= span.End) return -1;
+            return index + block.GetVisualDescendants().Prepend(block).OfType<Border>()
+                .Where(item => item.Classes.Contains("MdMermaid")).TakeWhile(item => !ReferenceEquals(item, border)).Count();
+        }
+        return -1;
+    }
 
     private static readonly AttachedProperty<int> OpenFenceIndexProperty =
         AvaloniaProperty.RegisterAttached<Border, int>("DiagramOpenFenceIndex", typeof(DiagramEditor));
