@@ -429,6 +429,10 @@ internal static class PrototypeChromeVerification
         Border Block(string pane) => window.Workspace.FindControl<Control>(pane)!
             .GetVisualAncestors().OfType<Border>().First(block => block.Classes.Contains("workspace-block"));
         vm.Workbench.SelectLayout("source-render"); Render();
+        Check(!surface.UseLayoutRounding && surface.ColumnDefinitions[1].ActualWidth == 0
+            && Math.Abs(surface.ColumnDefinitions[0].ActualWidth - surface.Bounds.Width * vm.Layout.SplitRatio("source-render:h")) < .01
+            && columnSplit.Bounds.Width >= 10,
+            "Split panes retain fractional widths without a visible gap and keep a full resize hit area");
         columnSplit.Focus();
         window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null); Render();
         Check(Math.Abs(vm.Layout.SplitRatio("source-render:h") - .55) < .001, "Right arrow widens the left view by one 5% step");

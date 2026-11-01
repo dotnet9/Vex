@@ -94,10 +94,9 @@ public sealed class WorkspaceViewController
     private FloatingSession? _presentationSession;
     private (CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.ViewportState Viewport, object? Root)? _presentationMapState;
     private readonly TextBlock _empty = new() { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-    // 原型 .view-split：分栏把手本体即 4px 间隙，块由间隙两侧各自留出边框。
+    // 原型 workspace-chrome.css 覆盖为 gap:0；把手靠负外距保留命中面积。
     private readonly GridSplitter _horizontalSplit = new() { Classes = { "workspace-gap", "gap-horizontal" }, ResizeDirection = GridResizeDirection.Columns, ResizeBehavior = GridResizeBehavior.PreviousAndNext };
     private readonly GridSplitter _verticalSplit = new() { Classes = { "workspace-gap", "gap-vertical" }, ResizeDirection = GridResizeDirection.Rows, ResizeBehavior = GridResizeBehavior.PreviousAndNext };
-    private static GridLength Gap => new(ShellWindowLayoutViewModel.BlockGap);
     private static GridLength NoGap => new(0);
     public IReadOnlyDictionary<string, CodeWFWindow> FloatingWindows => _floating;
     // 原型 makeHandle() 的 key = 「视图预设 : 轴向」：同一预设下左右与上下各存一份比例。
@@ -187,14 +186,16 @@ public sealed class WorkspaceViewController
     public WorkspaceViewController(MainWindow window, Grid surface, StackPanel shelf)
     {
         _window = window; _surface = surface; _shelf = shelf;
+        // 浏览器的星列可落在半像素；保留分栏比例，避免正文位置靠平移补偿。
+        surface.UseLayoutRounding = false;
         var source = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!;
+        source.UseLayoutRounding = true;
         var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
         var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var map = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")!;
         surface.Children.Clear();
-        // 原型 .view-split{gap:1px;background:var(--border)}：面板齐平拼贴，缝即 1px 发丝线。
-        surface.ColumnDefinitions = new ColumnDefinitions("*,1,*");
-        surface.RowDefinitions = new RowDefinitions("*,1,*");
+        surface.ColumnDefinitions = new ColumnDefinitions("*,0,*");
+        surface.RowDefinitions = new RowDefinitions("*,0,*");
         _horizontalSplit.ZIndex = 9; _verticalSplit.ZIndex = 9;
         _horizontalSplit.Focusable = _verticalSplit.Focusable = true;
         _horizontalSplit.DragCompleted += (_, _) => CaptureSplitRatio(false);
@@ -381,8 +382,8 @@ public sealed class WorkspaceViewController
             _topIds = top;
             // 原型 makeHandle().apply()：比例来自持久化的「预设 : 轴向」记录，未分栏的一侧收成 0。
             ApplySplit(false, twoUp); ApplySplit(true, stacked);
-            _surface.ColumnDefinitions[1].Width = twoUp ? Gap : NoGap;
-            _surface.RowDefinitions[1].Height = stacked ? Gap : NoGap;
+            _surface.ColumnDefinitions[1].Width = NoGap;
+            _surface.RowDefinitions[1].Height = NoGap;
             _horizontalSplit.IsVisible = twoUp;
             _verticalSplit.IsVisible = stacked;
             for (var i = 0; i < top.Length; i++) Place(top[i], i * 2, 0);
