@@ -88,6 +88,15 @@ internal static class PopupLayoutVerification
                 "Picker template consumes the actual prototype shadow token: " + name);
             if (name == "appearance")
             {
+                var pills = content.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("density-pill")).ToArray();
+                Application.Current!.TryGetResource("VexValueBrush", window.ActualThemeVariant, out var ink);
+                Application.Current.TryGetResource("VexAccentBrush", window.ActualThemeVariant, out var accent);
+                foreach (var pill in pills)
+                    Console.WriteLine($"PICKER BUTTON {pill.Content}: font={pill.FontFamily.Name}, ink={pill.Foreground}, active={pill.Classes.Contains("active")}, expected={(pill.Classes.Contains("active") ? accent : ink)}");
+                Check(pills.Length == 6 && pills.All(b => b.FontFamily.Name == "Segoe UI"
+                    && b.Foreground is ISolidColorBrush brush
+                    && brush.Color == ((ISolidColorBrush)(b.Classes.Contains("active") ? accent! : ink!)).Color),
+                    "Picker buttons use the prototype UI font, normal ink and selected accent");
                 var stack = content.GetVisualDescendants().OfType<StackPanel>().First(c => Math.Abs(c.Width - 400) < .01);
                 foreach (var child in stack.Children)
                     Console.WriteLine($"APPEARANCE ROW {child.GetType().Name} {child.Bounds} margin={child.Margin} text={(child as TextBlock)?.Text}");
