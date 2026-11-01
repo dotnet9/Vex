@@ -1,0 +1,81 @@
+<UserControl x:Class="Vex.Modules.Workspace.Views.MarkdownInstantView" x:Name="InstantRoot"
+    xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:live="using:CodeWF.Avalonia.Markdown.Editor.Controls"
+    xmlns:views="using:Vex.Modules.Workspace.Views"
+    xmlns:vm="using:Vex.Modules.Workspace.ViewModels"
+    xmlns:shell="using:Vex.Modules.Shell.ViewModels"
+    xmlns:core="using:Vex.Core.Messaging" xmlns:services="using:Vex.Core.Services"
+    xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+    x:DataType="shell:MainWindowViewModel">
+    <Grid Background="{DynamicResource VexPreviewBackgroundBrush}">
+        <live:MarkdownLiveEditorView x:Name="InstantEditor" HeaderText="{x:Null}" ChipText="{x:Null}"
+            EditorFontSize="15" CodeFontFamily="{x:Static services:VexFonts.Code}"
+            DocumentBlockSpacing="0" DocumentPadding="76,36,76,80"
+            EditorBackgroundKey="VexPreviewBackgroundBrush" EditorForegroundKey="VexEditorForegroundBrush"
+            ContextSourceLine="{Binding #InstantRoot.MenuActions.SourceLine, Mode=OneWayToSource}">
+            <live:MarkdownLiveEditorView.ContextMenu>
+                <ContextMenu DataContext="{Binding #InstantRoot.MenuActions}" x:DataType="vm:MarkdownElementMenuViewModel">
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ElementMenuConvertTo}}">
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Paragraph}}" Command="{Binding ConvertBlock}" CommandParameter="paragraph" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading1}}" Command="{Binding ConvertBlock}" CommandParameter="heading1" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading2}}" Command="{Binding ConvertBlock}" CommandParameter="heading2" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading3}}" Command="{Binding ConvertBlock}" CommandParameter="heading3" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading4}}" Command="{Binding ConvertBlock}" CommandParameter="heading4" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading5}}" Command="{Binding ConvertBlock}" CommandParameter="heading5" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading6}}" Command="{Binding ConvertBlock}" CommandParameter="heading6" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Quote}}" Command="{Binding ConvertBlock}" CommandParameter="quote" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.UnorderedList}}" Command="{Binding ConvertBlock}" CommandParameter="list" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.OrderedList}}" Command="{Binding ConvertBlock}" CommandParameter="ordered" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TaskList}}" Command="{Binding ConvertBlock}" CommandParameter="task" />
+                    </MenuItem>
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Table}}">
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.InsertTable}}" Command="{Binding EditorAction}" CommandParameter="{x:Static core:EditorActionKind.Table}" />
+                        <Separator />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableRowAbove}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowAbove}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableRowBelow}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowBelow}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableColumnBefore}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColBefore}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableColumnAfter}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColAfter}" />
+                        <Separator />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableRowUp}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowUp}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableRowDown}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowDown}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableColumnLeft}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColLeft}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableColumnRight}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColRight}" />
+                        <Separator />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableColumnAlignLeft}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.AlignLeft}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableColumnAlignCenter}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.AlignCenter}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableColumnAlignRight}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.AlignRight}" />
+                        <Separator />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableRowDelete}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.RowDelete}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableColumnDelete}}" Command="{Binding TableAction}" CommandParameter="{x:Static core:MarkdownTableAction.ColDelete}" />
+                        <Separator />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableFormat}}" Command="{Binding FormatTable}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.TableDelete}}" Command="{Binding DeleteBlock}" />
+                    </MenuItem>
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ElementMenuFormatText}}">
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Bold}}" Command="{Binding EditorAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Italic}}" Command="{Binding EditorAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.InlineCode}}" Command="{Binding EditorAction}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" />
+                    </MenuItem>
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.Insert}}">
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Link}}" Command="{Binding EditorAction}" CommandParameter="{x:Static core:EditorActionKind.Link}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.Image}}" Command="{Binding EditorAction}" CommandParameter="{x:Static core:EditorActionKind.Image}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.InsertTable}}" Command="{Binding EditorAction}" CommandParameter="{x:Static core:EditorActionKind.Table}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.CodeBlock}}" Command="{Binding EditorAction}" CommandParameter="{x:Static core:EditorActionKind.CodeFence}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.MathBlock}}" Command="{Binding EditorAction}" CommandParameter="{x:Static core:EditorActionKind.MathBlock}" />
+                        <Separator />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.InsertParagraphAbove}}" Command="{Binding InsertParagraphAbove}" />
+                        <MenuItem Header="{i18n:I18n {x:Static l:VexL.InsertParagraphBelow}}" Command="{Binding InsertParagraphBelow}" />
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.ToggleTask}}" Command="{Binding ToggleTask}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyBlock}}" Command="{Binding CopyBlock}" />
+                    <MenuItem Header="{i18n:I18n {x:Static l:VexL.DeleteBlock}}" Command="{Binding DeleteBlock}" />
+                </ContextMenu>
+            </live:MarkdownLiveEditorView.ContextMenu>
+        </live:MarkdownLiveEditorView>
+        <views:WatermarkOverlay IsVisible="{Binding Workbench.Preferences.WatermarkPreview}"
+            Text="{Binding Workbench.Preferences.WatermarkText}" Strength="{Binding Workbench.Preferences.WatermarkOpacity}"
+            FontSize="{Binding Workbench.Preferences.WatermarkFontSize}" HexInk="{Binding Workbench.Preferences.WatermarkColor}"
+            WeightValue="{Binding Workbench.Preferences.WatermarkWeight}" />
+    </Grid>
+</UserControl>
