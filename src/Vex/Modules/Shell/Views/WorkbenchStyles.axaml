@@ -225,6 +225,11 @@
     <Setter Property="motion:EntranceMotion.OffsetY" Value="9"/>
     <Setter Property="motion:EntranceMotion.InitialScale" Value=".99"/>
   </Style>
+  <!-- Ursa 会裁切内容圆角；投影必须由外层绘制，不能落在内部 dialog-card 上。 -->
+  <Style Selector="u|CustomDialogControl /template/ Border#PART_Border.Shadow">
+    <Setter Property="BoxShadow" Value="{DynamicResource VexPopShadow}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusMd}"/>
+  </Style>
   <Style Selector="MenuItem /template/ Popup#PART_Popup > Border">
     <Setter Property="motion:EntranceMotion.IsEnabled" Value="True"/>
     <Setter Property="motion:EntranceMotion.Animate" Value="{DynamicResource VexMotionEnabled}"/>

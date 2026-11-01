@@ -186,6 +186,12 @@ internal static class PopupLayoutVerification
         overlay.ShowPreferencesAsync(app.Resolve<ShellPreferencesViewModel>(), "appearance"); Render();
         var appearancePage = window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Single();
         var appearanceCard = appearancePage.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
+        var dialog = appearancePage.GetVisualAncestors().OfType<Ursa.Controls.CustomDialogControl>().First();
+        var dialogFrame = dialog.GetVisualDescendants().OfType<Border>().First(b => b.Name == "PART_Border");
+        dialogFrame.TryFindResource("VexPopShadow", dialogFrame.ActualThemeVariant, out var dialogShadow);
+        Check(dialogFrame.BoxShadow.Count == 2 && !dialogFrame.ClipToBounds
+            && dialogFrame.BoxShadow.ToString() == ((BoxShadows)dialogShadow!).ToString(),
+            $"Preference elevation paints on the unclipped outer dialog frame: {dialogFrame.BoxShadow}, expected={dialogShadow}, clip={dialogFrame.ClipToBounds}");
         foreach (var track in appearancePage.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("pref-segmented")))
         {
             var segments = ((SegmentedPanel)track.Child!).Children.OfType<Button>().ToArray();
