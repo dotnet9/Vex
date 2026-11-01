@@ -7,13 +7,8 @@ using SkiaSharp;
 internal static class VisualParityScore
 {
     private const int ChannelTolerance = 24;
-
-    private static int DeltaAt(SKBitmap bitmap, int x, int y, SKColor reference)
-    {
-        if (x < 0 || y < 0 || x >= bitmap.Width || y >= bitmap.Height) return 255;
-        var pixel = bitmap.GetPixel(x, y);
-        return Math.Max(Math.Max(Math.Abs(pixel.Red - reference.Red), Math.Abs(pixel.Green - reference.Green)), Math.Abs(pixel.Blue - reference.Blue));
-    }
+    private static readonly string[] Scenes = ["01-instant", "02-source", "03-read", "04-map", "05-source-render", "06-three",
+        "07-appearance-menu", "08-preferences", "09-typography-gallery", "10-presentation"];
 
     private static SKColor Average(SKBitmap bitmap, int x, int y)
     {
@@ -32,31 +27,27 @@ internal static class VisualParityScore
         var nativeDir = args.ElementAtOrDefault(0) ?? throw new InvalidOperationException("usage: parity-score <nativeDir> <prototypeDir> [report.json]");
         var prototypeDir = args.ElementAtOrDefault(1) ?? throw new InvalidOperationException("usage: parity-score <nativeDir> <prototypeDir> [report.json]");
         var reportPath = args.ElementAtOrDefault(2);
+        var diagnostic = args.Contains("--diagnostic", StringComparer.Ordinal);
         var results = new List<(string Name, double Score, int Width, int Height)>();
         string? first = null;
         var histogram = new int[16];
-        foreach (var nativePath in Directory.GetFiles(nativeDir, "*.png").OrderBy(file => Path.GetFileName(file)))
+        foreach (var scene in Scenes)
         {
-            var name = Path.GetFileName(nativePath);
-            if (name.StartsWith("diff-", StringComparison.Ordinal) || name.StartsWith("fail-", StringComparison.Ordinal)) continue;
+            var name = scene + ".png";
+            var nativePath = Path.Combine(nativeDir, name);
             var prototypePath = Path.Combine(prototypeDir, name);
-            if (!File.Exists(prototypePath))
-            {
-                Console.WriteLine($"MISS  {name}  (prototype capture not found)");
-                continue;
-            }
+            if (!File.Exists(nativePath) || !File.Exists(prototypePath))
+                throw new InvalidOperationException($"Required capture missing: {name}");
             using var native = SKBitmap.Decode(nativePath);
             using var prototype = SKBitmap.Decode(prototypePath);
             if (native is null || prototype is null)
-            {
-                Console.WriteLine($"ERROR {name}: decode failed");
-                continue;
-            }
+                throw new InvalidOperationException($"Capture decode failed: {name}");
+            if (native.Width != VisualParityCapture.Width || native.Height != VisualParityCapture.Height
+                || prototype.Width != native.Width || prototype.Height != native.Height)
+                throw new InvalidOperationException($"Invalid capture size for {name}: native={native.Width}x{native.Height}, prototype={prototype.Width}x{prototype.Height}; expected 1440x900");
             if (first is null) first = name;
-            var width = Math.Min(native.Width, prototype.Width);
-            var height = Math.Min(native.Height, prototype.Height);
-            if (native.Width != prototype.Width || native.Height != prototype.Height)
-                Console.WriteLine($"WARN  {name}: size differs native={native.Width}x{native.Height} prototype={prototype.Width}x{prototype.Height}");
+            var width = native.Width;
+            var height = native.Height;
             // 字体容差：2x2 均值降采样后再比较，抑制两侧抗锯齿差异；结构与色块差异仍然计入。
             int matched = 0, total = (width / 2) * (height / 2);
             using var heat = new SKBitmap(width, height);
@@ -82,27 +73,69 @@ internal static class VisualParityScore
                         var f = new SKColor(255, 0, 255);
                         overlay.SetPixel(x, y, f); overlay.SetPixel(x + 1, y, f); overlay.SetPixel(x, y + 1, f); overlay.SetPixel(x + 1, y + 1, f);
                     }
-                        }
+                }
             }
             var score = total == 0 ? 0 : matched * 100.0 / total;
             results.Add((name, score, width, height));
-            using (var stream = File.OpenWrite(Path.Combine(nativeDir, "diff-" + name)))
+            using (var stream = File.Create(Path.Combine(nativeDir, "diff-" + name)))
                 heat.Encode(stream, SKEncodedImageFormat.Png, 100);
-            using (var stream = File.OpenWrite(Path.Combine(nativeDir, "fail-" + name.Replace(".png", ".jpg"))))
+            using (var stream = File.Create(Path.Combine(nativeDir, "fail-" + name.Replace(".png", ".jpg"))))
                 overlay.Encode(stream, SKEncodedImageFormat.Jpeg, 90);
             Console.WriteLine($"{score,6:0.00}%  {name}");
         }
         Console.WriteLine("DELTA-HISTOGRAM(first scene, buckets of 16): " + string.Join(",", histogram));
-        if (results.Count > 0)
-        {
-            var average = results.Average(result => result.Score);
-            Console.WriteLine($"AVERAGE {average:0.00}% over {results.Count} scenes");
-            if (reportPath is not null)
+        var average = results.Average(result => result.Score);
+        var passed = results.All(result => result.Score >= 98);
+        Console.WriteLine($"{(diagnostic ? "DIAGNOSTIC" : passed ? "PASS" : "FAIL")} average {average:0.00}% over {results.Count} required scenes; minimum {results.Min(result => result.Score):0.00}%");
+        if (reportPath is not null)
+            File.WriteAllText(reportPath, System.Text.Json.JsonSerializer.Serialize(new
             {
-                var json = "[" + string.Join(",", results.Select(result =>
-                    $"{{\"name\":\"{result.Name}\",\"score\":{result.Score:0.00}}}")) + "]";
-                File.WriteAllText(reportPath, json);
-            }
+                average, passed, minimumRequired = 98, channelTolerance = ChannelTolerance, sampleSize = 2,
+                scenes = results.Select(result => new { name = result.Name, score = result.Score, width = result.Width, height = result.Height })
+            }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+        if (!diagnostic && !passed)
+            throw new InvalidOperationException("Pixel parity requires every complete scene to reach 98%; see the report and difference images.");
+    }
+
+    public static void SelfTest(string output)
+    {
+        var root = Path.Combine(output, "scorer-" + Guid.NewGuid().ToString("N"));
+        var native = Directory.CreateDirectory(Path.Combine(root, "native")).FullName;
+        var prototype = Directory.CreateDirectory(Path.Combine(root, "prototype")).FullName;
+        var report = Path.Combine(root, "report.json");
+        void Write(string path, int width, int height, SKColor color)
+        {
+            using var bitmap = new SKBitmap(width, height);
+            bitmap.Erase(color);
+            using var stream = File.Create(path);
+            bitmap.Encode(stream, SKEncodedImageFormat.Png, 100);
         }
+        void Reject(string reason)
+        {
+            try { Run([native, prototype, report]); }
+            catch (InvalidOperationException error) when (error.Message.Contains(reason, StringComparison.Ordinal))
+            { Console.WriteLine("PASS scorer rejects " + reason); return; }
+            throw new InvalidOperationException("Scorer self-test did not reject " + reason);
+        }
+        foreach (var scene in Scenes)
+        {
+            Write(Path.Combine(native, scene + ".png"), 1440, 900, SKColors.White);
+            Write(Path.Combine(prototype, scene + ".png"), 1440, 900, SKColors.White);
+        }
+        Run([native, prototype, report]);
+        using (var json = System.Text.Json.JsonDocument.Parse(File.ReadAllText(report)))
+            if (!json.RootElement.GetProperty("passed").GetBoolean()
+                || json.RootElement.GetProperty("average").GetDouble() != 100)
+                throw new InvalidOperationException("Identical captures must score 100%");
+        Console.WriteLine("PASS identical captures score 100%");
+        var last = Path.Combine(native, Scenes[^1] + ".png");
+        File.Delete(last); Reject("Required capture missing");
+        File.WriteAllText(last, "invalid PNG"); Reject("Capture decode failed");
+        Write(last, 1440, 898, SKColors.White); Reject("Invalid capture size");
+        Write(last, 1440, 900, SKColors.Black); Reject("Pixel parity requires");
+        using (var json = System.Text.Json.JsonDocument.Parse(File.ReadAllText(report)))
+            if (json.RootElement.GetProperty("passed").GetBoolean())
+                throw new InvalidOperationException("A failed scene must not report passed");
+        Console.WriteLine("PASS scorer self-test complete");
     }
 }

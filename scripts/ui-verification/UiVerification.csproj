@@ -9,6 +9,7 @@
     <PackageReference Include="Avalonia.Headless" />
     <TrimmerRootDescriptor Include="../../src/Vex/Properties/Trimming/TrimmerRoots.xml" />
     <ProjectReference Include="..\..\src\Vex\Vex.csproj" />
+    <Content Include="../../design/tests/fixtures/parity-sample.md" Link="parity-sample.md" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="MarkdownSamples\*.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -20,16 +20,7 @@ internal static class VisualParityCapture
     public const int Height = 900;
 
     /// <summary>两侧共享的对比样例：覆盖标题、段落、任务、引用、表格、小节标题。</summary>
-    public const string SampleDocument =
-        "# 成都，慢慢走\n\n" +
-        "这个周末，去成都。把脚步放慢一点，给茶香和街巷多留些时间。\n\n" +
-        "## 出发清单\n\n" +
-        "- [ ] 带上相机\n- [ ] 预订车票\n- [x] 收拾行李\n\n" +
-        "> 慢一点，才能看见城市的细节。\n\n" +
-        "## 第一天行程\n\n" +
-        "| 时间 | 地点 | 说明 |\n| --- | --- | --- |\n| 09:00 | 人民公园 | 喝一碗盖碗茶 |\n| 14:00 | 宽窄巷子 | 沿青砖小巷慢慢走 |\n\n" +
-        "### 人民公园\n\n" +
-        "坐在茶社里，看本地人摆龙门阵，一下午就过去了。\n";
+    public static string SampleDocument => File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "parity-sample.md"));
 
     public static void Run(VerificationVexApp app, MainWindow window, string output)
     {
@@ -51,6 +42,9 @@ internal static class VisualParityCapture
         vm.Appearance.SelectedTypography = vm.Appearance.TypographyOptions.First(option => option.Key == "Simple");
         vm.Layout.IsSidebarVisible = true;
         vm.Layout.IsOutlineVisible = false;
+        var files = app.Resolve<ShellFilesViewModel>();
+        if (!files.IsListView) files.ToggleListView();
+        files.SetSortKey("name-asc");
         // 与输入通道一致地写正文（事件总线会刷新统计、文件列表与预览），避免状态栏残留旧文档字数。
         const char cNewline = (char)10;
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
@@ -105,6 +99,16 @@ internal static class VisualParityCapture
             // 布局切换会异步恢复光标并再滚动一次：截图前最后再归位一遍。
             ResetScrolls();
             Dispatcher.UIThread.RunJobs();
+            // 合成动画按真实帧时钟推进；只泵布局会截到弹层入场的半透明首帧。
+            var settling = System.Diagnostics.Stopwatch.StartNew();
+            while (settling.ElapsedMilliseconds < 350)
+            {
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Render();
+                Thread.Sleep(8);
+            }
+            ResetScrolls();
+            Render();
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, name + ".png"));
             Console.WriteLine("CAPTURED " + name);
         }

@@ -58,6 +58,11 @@ if (mode == "settings-real-ui")
     File.WriteAllText(config, "<configuration><appSettings /></configuration>");
     AppContext.SetData("APP_CONFIG_FILE", config);
 }
+if (mode == "parity-score-self-test")
+{
+    VisualParityScore.SelfTest(output);
+    return;
+}
 if (mode == "parity-score")
 {
     VisualParityScore.Run(args.Skip(1).ToArray());

@@ -10,38 +10,22 @@ const base = process.env.VEX_PREVIEW_URL || 'http://127.0.0.1:4317/design/';
 const output = path.resolve(process.argv[2] || path.join(__dirname, '../../artifacts/prototype-parity'));
 fs.mkdirSync(output, {recursive:true});
 
-const SAMPLE = [
-  '# 成都，慢慢走', '',
-  '这个周末，去成都。把脚步放慢一点，给茶香和街巷多留些时间。', '',
-  '## 出发清单', '',
-  '- [ ] 带上相机', '- [ ] 预订车票', '- [x] 收拾行李', '',
-  '> 慢一点，才能看见城市的细节。', '',
-  '## 第一天行程', '',
-  '| 时间 | 地点 | 说明 |', '| --- | --- | --- |', '| 09:00 | 人民公园 | 喝一碗盖碗茶 |', '| 14:00 | 宽窄巷子 | 沿青砖小巷慢慢走 |', '',
-  '### 人民公园', '',
-  '坐在茶社里，看本地人摆龙门阵，一下午就过去了。', ''
-].join('\n');
+const SAMPLE = fs.readFileSync(path.join(__dirname, 'fixtures/parity-sample.md'), 'utf8');
 
 (async () => {
   const browser = await chromium.launch({headless:true, ...(process.env.VEX_BROWSER_CHANNEL ? {channel:process.env.VEX_BROWSER_CHANNEL} : {})});
   const page = await browser.newPage({viewport:{width:1488, height:948}, deviceScaleFactor:1});
   await page.goto(base + 'Vex.html?preview=1&lang=zh-CN&theme=light&palette=indigo&typography=Simple', {waitUntil:'domcontentloaded'});
-  await page.waitForFunction(() => window.VexAuxiliary && window.VexChapters);
+  await page.waitForFunction(() => window.VexWorkspace && window.VexChapters);
   await page.waitForTimeout(400);
   // 与原生截图器对齐：注入同一段样例文档。
   await page.evaluate(text => { if (window.VexWorkbench && VexWorkbench.applyText) VexWorkbench.applyText(text); }, SAMPLE);
-  // 数据形态不在对比范围（原生列真实磁盘目录）：拍平原型分组树并按名称排序后再截图。
+  // 固定同一阅读起点，避免来源窗格的滚动同步在截图前改写 scrollTop。
+  await page.evaluate(() => VexWorkbench.setFollow(false));
+  // 两端都通过真实列表模式呈现同一批演示文档，不手工重排导航DOM。
   await page.evaluate(() => {
-    const tree = document.querySelector('#file-tree, .file-tree, [class*=file-list]') || document.querySelector('.sidebar .file-list, nav');
-    if (!tree) return;
-    const group = tree.querySelector('details, .file-directory');
-    const rows = group ? Array.from(group.querySelectorAll('.file-children > *')) : Array.from(tree.children);
-    if (group) group.remove();
-    const flat = tree.querySelector('.file-children');
-    const host = flat && flat.parentElement === tree ? flat : tree;
-    rows.forEach(row => host.appendChild(row));
-    const ordered = Array.from(host.children).sort((a, b) => (a.textContent || '').trim() < (b.textContent || '').trim() ? -1 : 1);
-    ordered.forEach(row => host.appendChild(row));
+    if (document.querySelector('#file-list .file-directory')) document.querySelector('#files-toggle').click();
+    document.querySelector('.files-sort-menu [data-sort-key="name-asc"]').click();
   });
 
   // 通过「更多」布局菜单切换八布局；三段按钮只负责 source/read/map 直选。
@@ -52,21 +36,25 @@ const SAMPLE = [
     await page.waitForTimeout(450);
   };
   const segment = async key => {
-    await page.evaluate(k => { const link = document.querySelector('.workspace-viewswitch [data-view-link="' + k + '"]'); if (link) link.click(); }, key);
+    await page.evaluate(k => { const link = document.querySelector('.workspace-tabs [data-view-link="' + k + '"]'); if (link) link.click(); }, key);
     await page.waitForTimeout(450);
   };
   const shot = async name => {
     await page.waitForTimeout(350);
+    await page.evaluate(() => document.querySelectorAll('.reading-scroll,.instant-scroll,.source-scroll').forEach(el => el.scrollTo({top:0, left:0, behavior:'instant'})));
     // 布局菜单点击后焦点会落回「更多」段，产生原生没有的焦点环：截图前失焦。
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await page.waitForTimeout(120);
+    const offsets = await page.evaluate(() => Array.from(document.querySelectorAll('.reading-scroll,.instant-scroll,.source-scroll'))
+      .filter(el => el.getClientRects().length).map(el => ({name:el.className, top:el.scrollTop, left:el.scrollLeft})));
+    if (offsets.some(el => el.top !== 0 || el.left !== 0)) throw new Error('Capture must start at document origin: ' + JSON.stringify(offsets));
     // 原型窗口卡片固定内缩 24px：对卡片元素截图得到与原生客户端区一致的 1440x900。
     await page.locator('.app-window').screenshot({path:path.join(output, name + '.png')});
     console.log('CAPTURED ' + name);
   };
 
   await layoutMenu('instant');        await shot('01-instant');
-  await segment('source');            await shot('02-source');
+  await layoutMenu('source');         await shot('02-source');
   await segment('read');              await shot('03-read');
   await segment('map');               await shot('04-map');
   await layoutMenu('source-render');  await shot('05-source-render');
@@ -75,29 +63,28 @@ const SAMPLE = [
   await layoutMenu('instant');
   await page.evaluate(() => document.querySelector('#vex-appearance-menu > summary').click());
   await shot('07-appearance-menu');
-  // 08 偏好设置：文件菜单 → 偏好设置… → 外观分类
+  // 08 偏好设置：导航栏设置入口 → 外观分类
   await page.evaluate(() => document.querySelector('#vex-appearance-menu > summary').click());
-  await page.getByText('文件(F)').first().click();
-  await page.waitForTimeout(300);
-  await page.getByText('偏好设置…').first().click();
+  await page.locator('.rail-item[data-action="preferences"]').click();
   await page.waitForTimeout(600);
   await page.evaluate(() => { const nav = document.querySelector('.vex-settings-host [data-vex-section="appearance"]'); if (nav) nav.click(); });
   await shot('08-preferences');
   // 09 排版画廊：Esc 关偏好，点排版入口
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
-  await page.evaluate(() => { const trigger = document.querySelector('[data-action="typography"]'); if (trigger) trigger.click(); });
+  await page.evaluate(() => { const trigger = document.querySelector('[data-action="typography"]:not([hidden])'); if (trigger) trigger.click(); });
   await shot('09-typography-gallery');
   // 10 演示：Esc 关画廊，F6 进演示（workbench.js 的 startPresentation 绑在 F6，不是 F5）
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
+  // 浏览器进入演示全屏后不能再调用 Browser.setWindowBounds，先固定捕获视口。
+  await page.setViewportSize({width:1440, height:900});
   await page.keyboard.press('F6');
   await page.waitForTimeout(600);
   // deck 是 position:fixed 铺满浏览器视口的全屏层，用内缩 24px 的窗口卡片裁它会切掉标题栏。
-  // 改用 CDP 把视口仿真成原生客户区的 1440x900（setViewportSize 在无头窗口上会被拒绝），
-  // inset:0 的 deck 随之与原生同框同尺寸，再整视口截图。
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Emulation.setDeviceMetricsOverride', {width:1440, height:900, deviceScaleFactor:1, mobile:false});
+  // 校验 CSS 全屏层确实使用原生同框尺寸，禁止静默裁剪或取交集。
+  const deckSize = await page.evaluate(() => ({width:innerWidth, height:innerHeight}));
+  if (deckSize.width !== 1440 || deckSize.height !== 900) throw new Error('Invalid presentation viewport: ' + JSON.stringify(deckSize));
   await page.waitForTimeout(400);
   await page.evaluate(() => document.activeElement && document.activeElement.blur());
   await page.waitForTimeout(120);
