@@ -52,7 +52,14 @@ internal static class ContextMenuLayoutVerification
             if (scroll.Extent.Height > scroll.Viewport.Height + .5)
             {
                 var point = scroll.TranslatePoint(new Point(scroll.Bounds.Width / 2, scroll.Bounds.Height / 2), window)!.Value;
+                window.MouseMove(point); Render();
+                Console.WriteLine($"CONTEXT WHEEL {label}: target={window.InputHitTest(point)}, before={scroll.Offset}, viewport={scroll.Viewport}, extent={scroll.Extent}");
                 window.MouseWheel(point, new Vector(0, -100)); Render();
+                if (scroll.Offset.Y + scroll.Viewport.Height < scroll.Extent.Height - .5)
+                {
+                    Console.WriteLine($"CONTEXT WHEEL FAILED {label}: after={scroll.Offset}, viewport={scroll.Viewport}, extent={scroll.Extent}");
+                    window.CaptureRenderedFrame()?.Save(Path.Combine(output, "context-wheel-failure.png"));
+                }
                 Check(scroll.Offset.Y + scroll.Viewport.Height >= scroll.Extent.Height - .5,
                     "Long menu reaches its last action through the wheel: " + label);
                 window.MouseWheel(point, new Vector(0, 100)); Render();
@@ -73,8 +80,11 @@ internal static class ContextMenuLayoutVerification
             Inspect(menu, label);
             foreach (var branch in menu.Items.OfType<MenuItem>().Where(item => item.Items.Count > 0))
             {
-                menu.SelectedItem = branch;
-                branch.Focus();
+                window.MouseMove(new Point(2, window.ClientSize.Height - 2));
+                Check(menu.Focus(), "Root menu accepts focus before keyboard navigation");
+                for (var step = 0; step <= menu.Items.Count && !ReferenceEquals(menu.SelectedItem, branch); step++)
+                    Press(Key.Down, PhysicalKey.ArrowDown);
+                Check(ReferenceEquals(menu.SelectedItem, branch), "Down arrow reaches the submenu row: " + branch.Header);
                 Press(Key.Right, PhysicalKey.ArrowRight);
                 Check(branch.IsSubMenuOpen, "Right arrow opens the selected submenu: " + branch.Header);
                 var popup = branch.GetVisualDescendants().OfType<Popup>().First(p => p.IsOpen);
