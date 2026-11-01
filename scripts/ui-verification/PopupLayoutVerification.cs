@@ -28,6 +28,19 @@ internal static class PopupLayoutVerification
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
         var title = window.FindControl<ShellTitleMenuView>("TitleMenuView")!;
+        foreach (var culture in new[] { "zh-CN", "en-US", "ja-JP", "ko-KR" })
+        {
+            vm.Appearance.SelectLanguageByCulture(culture); Render();
+            var menu = title.FindControl<Menu>("TitleMenuBar")!;
+            var topItems = menu.Items.OfType<MenuItem>().ToArray();
+            Check(topItems.Length == 6 && topItems.All(item => Math.Abs(item.Bounds.Height - 28) < .01)
+                && topItems.Zip(topItems.Skip(1)).All(pair => Math.Abs(pair.Second.Bounds.X - pair.First.Bounds.Right - 2) < .01),
+                "Title menus keep natural text widths, 28px targets and 2px gaps in " + culture);
+            if (OperatingSystem.IsWindows() && culture == "zh-CN")
+                Check(Math.Abs(menu.Bounds.Width - 409.5625) < .1,
+                    $"Chinese title-menu width follows the measured prototype without per-item rounding: {menu.Bounds.Width:0.###}");
+        }
+        vm.Appearance.SelectLanguageByCulture("zh-CN"); Render();
         void Capture(Control control, string name)
         {
             Render();
