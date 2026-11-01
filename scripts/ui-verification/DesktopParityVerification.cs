@@ -108,10 +108,10 @@ internal static class DesktopParityVerification
         TextBlock? TagOf(ListBoxItem row) => row.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.Classes.Contains("file-folder-tag"));
         var alphaRow = listRows.FirstOrDefault(r => NameOf(r)?.Text == "alpha.md");
         var zetaRow = listRows.FirstOrDefault(r => NameOf(r)?.Text == "zeta.md");
-        Check(listRows.Length == 2 && listRows.All(r => Math.Abs(r.Bounds.Height - 24) < 1)
+        Check(listRows.Length == 2 && listRows.All(r => Math.Abs(r.Bounds.Height - 28) < 1)
             && alphaRow is not null && zetaRow is not null
             && TagOf(alphaRow) is { IsVisible: true, Text: "folder" } && TagOf(zetaRow) is { IsVisible: false },
-            "List rows are 24px single lines; only the nested file shows its folder tag");
+            "List rows are 28px single lines; only the nested file shows its folder tag");
         navigation.SelectedListDocumentFileNode = navigation.FlatDocumentFileNodes.First(n => n.Name == "alpha.md"); Render();
         var selectedRow = fileList.GetVisualDescendants().OfType<ListBoxItem>().First(i => i.IsSelected);
         var rowPresenter = selectedRow.GetVisualDescendants().OfType<Avalonia.Controls.Presenters.ContentPresenter>().First(c => c.Name == "PART_ContentPresenter");
@@ -120,6 +120,14 @@ internal static class DesktopParityVerification
             && accentSoftResource is Avalonia.Media.ISolidColorBrush accentSoft && rowBg.Color == accentSoft.Color
             && Math.Abs(rowPresenter.Bounds.Width - selectedRow.Bounds.Width) < 1,
             "Selected list row paints a full-bleed accent-soft background");
+        var selectionMarker = selectedRow.GetVisualDescendants().OfType<Border>()
+            .Single(border => border.Classes.Contains("file-selection-marker"));
+        Check(selectionMarker.IsVisible && Math.Abs(selectionMarker.Bounds.Width - 3) < .1
+              && Math.Abs(selectionMarker.Bounds.Height - 20) < .1
+              && Math.Abs(selectionMarker.TranslatePoint(default, selectedRow)!.Value.X) < .1
+              && listRows.Where(row => !row.IsSelected).All(row => !row.GetVisualDescendants().OfType<Border>()
+                  .Single(border => border.Classes.Contains("file-selection-marker")).IsVisible),
+            "Only the selected file row shows the prototype 3x20 left accent marker");
         navigation.SetSortKey("natural-desc");
         var sortDeadline = DateTime.UtcNow.AddSeconds(5);
         while (DateTime.UtcNow < sortDeadline
@@ -208,18 +216,25 @@ internal static class DesktopParityVerification
         var localizer = app.Resolve<IAppLocalizer>();
         var outlineView = window.GetVisualDescendants().OfType<ShellOutlineView>().Single();
         var filesHead = filesView.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("panel-title"));
+        var filesHeadContainer = filesHead.GetVisualAncestors().OfType<Border>().FirstOrDefault(border => border.Classes.Contains("panel-head"));
         Check(filesHead.Text == localizer.Get(Vex.VexL.SidebarFilesList)
             && filesHead.FontSize == (double)Application.Current!.Resources["VexDensityFontSizeCaption"]!
             && filesHead.FontWeight == Avalonia.Media.FontWeight.SemiBold
-            && ((Border)filesHead.Parent!).Padding == new Thickness(14, 12, 14, 9)
-            && ((Border)filesHead.Parent!).MinHeight == 40
+            && filesHeadContainer?.Padding == new Thickness(12, 0, 12, 0)
+            && filesHeadContainer.Height == 36
             && filesHead.TranslatePoint(default, filesView)!.Value.Y < searchShell.TranslatePoint(default, filesView)!.Value.Y,
-            "Files panel head titles the pane above the search box at the prototype 12/14/9 inset");
+            "Files panel head titles the pane above the search box at the prototype 36px row and 12px side inset");
         var outlineShell = outlineView.GetVisualDescendants().OfType<Grid>().First(g => g.Classes.Contains("search-shell"));
         var outlineText = outlineShell.GetVisualDescendants().OfType<TextBox>().First();
-        Check(!outlineView.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Classes.Contains("panel-title"))
-            && outlineShell.Margin == new Thickness(12, 14, 12, 10),
-            "Structure panel drops its title row and opens flush on the search pill at the prototype inset");
+        var outlineHead = outlineView.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.Classes.Contains("panel-title"));
+        var outlineHeadContainer = outlineHead?.GetVisualAncestors().OfType<Border>().FirstOrDefault(border => border.Classes.Contains("panel-head"));
+        Check(outlineHead?.Text == localizer.Get(Vex.VexL.SidebarOutline)
+            && outlineHead.FontSize == (double)Application.Current!.Resources["VexDensityFontSizeCaption"]!
+            && outlineHead.FontWeight == Avalonia.Media.FontWeight.SemiBold
+            && outlineHeadContainer?.Padding == new Thickness(12, 0, 12, 0)
+            && outlineHeadContainer.Height == 36
+            && outlineShell.Margin == default,
+            "Structure panel titles the pane above its search pill with the same 36px chrome row");
         // 原型 --fs-caption（density.css:2-4）：面板标题与两栏搜索输入都随界面密度走 11/12/12，不写死 12。
         var densityBefore = vm.Appearance.SelectedDensity;
         foreach (var density in new[] { "compact", "normal", "relaxed" })

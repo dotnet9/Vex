@@ -349,6 +349,10 @@
             <ListBox.ItemTemplate><DataTemplate x:DataType="models:DocumentFileNode">
                 <!-- 原型 .file-row：单行（图标 13 + 名称 + 行尾目录标签），28 高与 8 内距、6 圆角由行本身给出。 -->
                 <Grid Classes="file-list-row" ColumnDefinitions="13,*,Auto" ColumnSpacing="7">
+                    <Border Classes="file-selection-marker" Grid.ColumnSpan="3" Width="3" Margin="-8,4,0,4"
+                            HorizontalAlignment="Left" CornerRadius="2" IsHitTestVisible="False"
+                            Background="{DynamicResource VexAccentBrush}"
+                            IsVisible="{Binding $parent[ListBoxItem].IsSelected}" />
                     <Panel Width="13" Height="13" VerticalAlignment="Center">
                         <Image x:Name="ListFileIcon" Classes="tree-ico" Width="13" Height="13" Stretch="Uniform"
                                IsVisible="{Binding #ListFileIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNotNull}}">
