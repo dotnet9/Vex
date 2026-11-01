@@ -472,7 +472,7 @@ public partial class MarkdownMindMapHost : UserControl
     }
 
     /// <summary>按当前主题取画刷（弹层每次开启重建，换肤后重开即生效）。</summary>
-    private IBrush? ThemeBrush(string key) => this.TryFindResource(key, out var value) ? value as IBrush : null;
+    private IBrush? ThemeBrush(string key) => this.TryFindResource(key, ActualThemeVariant, out var value) ? value as IBrush : null;
 
     /// <summary>原型 map-appearance.js miniature() 的真几何：同一棵 7 节点树（root→2→4，节点 52×22）
     /// 跑原型自己的布局引擎算出的坐标，画布宽高已含 viewBox 的 12px 留白，节点序号 0 恒为根。</summary>
@@ -534,7 +534,7 @@ public partial class MarkdownMindMapHost : UserControl
             Tint(accentColor, SolidColor(ThemeBrush("VexWarningBrush") ?? muted, Colors.Orange), 0.45),
             SolidColor(muted, Colors.Gray),
         };
-        if (style == "colorful" && this.TryFindResource("CodeWFMindViewDefaultPalette", out var palette) && palette is string paletteText)
+        if (style == "colorful" && this.TryFindResource("CodeWFMindViewDefaultPalette", ActualThemeVariant, out var palette) && palette is string paletteText)
         {
             var colors = new List<Color>();
             foreach (var value in paletteText.Split([';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))

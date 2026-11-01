@@ -110,6 +110,13 @@ internal static class MapPopupProbe
             var viewportBefore = map.CaptureViewport();
             trigger.Flyout.ShowAt(trigger); Render();
             Check(map.CaptureViewport().Y > viewportBefore.Y, "导图视口下移避让弹层");
+            Check(map.TryFindResource("CodeWFMindViewDefaultPalette", map.ActualThemeVariant, out var palette) && palette is string,
+                "导图主题包含宿主定义的分支色表");
+            var expectedColors = ((string)palette!).Split(';').Skip(1).Take(6).Select(Avalonia.Media.Color.Parse).ToArray();
+            var previewColors = content.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "MapChoiceStyle_colorful")
+                .GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Rectangle>().Skip(1)
+                .Select(n => ((Avalonia.Media.ISolidColorBrush)n.Fill!).Color).ToArray();
+            Check(previewColors.SequenceEqual(expectedColors), "预览读取当前明暗主题色表，不回退到库内默认饱和色");
             var frame = presenter.GetVisualDescendants().OfType<Border>().First(b => b.Name == "LayoutRoot");
             var origin = frame.TranslatePoint(default, window)!.Value;
             Console.WriteLine($"MAP ANCHOR {trigger.TranslatePoint(default, window)} {trigger.Bounds.Size}");
