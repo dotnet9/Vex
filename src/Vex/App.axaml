@@ -11,13 +11,14 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="Styles/StudioPalette.axaml" />
             </ResourceDictionary.MergedDictionaries>
-            <FontFamily x:Key="ContentControlThemeFontFamily">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC</FontFamily>
-            <FontFamily x:Key="ControlContentThemeFontFamily">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC</FontFamily>
+            <FontFamily x:Key="DefaultFontFamily">Microsoft YaHei UI, Segoe UI, PingFang SC, Noto Sans CJK SC, sans-serif</FontFamily>
+            <StaticResource x:Key="ContentControlThemeFontFamily" ResourceKey="DefaultFontFamily" />
+            <StaticResource x:Key="ControlContentThemeFontFamily" ResourceKey="DefaultFontFamily" />
             <x:Double x:Key="ControlContentThemeFontSize">14</x:Double>
             <!-- 由弹出窗口按屏幕工作区限制高度，避免主题默认的 400 像素截断正常菜单。 -->
             <x:Double x:Key="MenuFlyoutMaxHeight">Infinity</x:Double>
             <!-- AvaloniaEdit 的 Simple 主题要求宿主提供这几个字体令牌（Fluent 主题过去自带） -->
-            <FontFamily x:Key="FontFamilyNormal">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC</FontFamily>
+            <StaticResource x:Key="FontFamilyNormal" ResourceKey="DefaultFontFamily" />
             <x:Double x:Key="FontSizeNormal">14</x:Double>
             <FontWeight x:Key="FontWeightNormal">Normal</FontWeight>
         </ResourceDictionary>
@@ -40,6 +41,6 @@
         <codewf:VexControlsTheme />
         <StyleInclude Source="avares://Vex/Modules/Shell/Views/WorkbenchStyles.axaml" />
         <StyleInclude Source="avares://Vex/Modules/Workspace/Views/MarkdownDocumentStyles.axaml" />
-        <Style Selector="Window"><Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC" /></Style>
+        <Style Selector="Window"><Setter Property="FontFamily" Value="{DynamicResource DefaultFontFamily}" /></Style>
     </Application.Styles>
 </Application>

@@ -64,6 +64,9 @@ internal static class PrototypeChromeVerification
             var sourceSegment = window.Workspace.FindControl<ToggleButton>("SourceSegment")!;
             var readSegment = window.Workspace.FindControl<ToggleButton>("ReadSegment")!;
             var mapSegment = window.Workspace.FindControl<ToggleButton>("MapSegment")!;
+            Check(window.FontFamily.FamilyNames.PrimaryFamilyName == "Microsoft YaHei UI"
+                && sourceSegment.GetVisualDescendants().OfType<TextBlock>().Single().FontFamily.FamilyNames.PrimaryFamilyName == "Microsoft YaHei UI",
+                "Window and tab text consume the actual Semi default font resource instead of the theme Inter fallback");
             var documentColumn = window.Workspace.FindControl<Grid>("DocumentColumn")!;
             var tabRowOrigin = tabRow.TranslatePoint(default, documentColumn)!.Value;
             Check(Math.Abs(tabRow.Bounds.Width - documentColumn.Bounds.Width) < 1 && Math.Abs(tabRowOrigin.X) < 1 && Math.Abs(tabRowOrigin.Y) < 1

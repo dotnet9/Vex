@@ -346,7 +346,7 @@
     <Setter Property="Height" Value="{DynamicResource VexSegmentedHeightRenderDensity}"/>
   </Style>
   <!-- 原型按钮沿用 Segoe UI，文章预览与分节标题才继承中文优先的界面字体。 -->
-  <Style Selector="FlyoutPresenter.design-title-picker, FlyoutPresenter.map-appearance-popover, UserControl.typography-preview">
+  <Style Selector="FlyoutPresenter.design-title-picker, FlyoutPresenter.map-appearance-popover, shell|TypographyCardPreview">
     <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI, PingFang SC, Noto Sans CJK SC, sans-serif"/>
   </Style>
   <!-- 原型 .map-step-label（appearance.css:26-31）：①/② 圆徽 + 13/600 段名 + 11px 灰字提示，段名与徽标间距 7。
