@@ -69,7 +69,12 @@ internal static class FileIconVerification
         Image Icon(string name) => tree.GetVisualDescendants().OfType<TreeViewItem>()
             .First(item => item.DataContext is DocumentFileNode node && node.Name == name)
             .GetVisualDescendants().OfType<Image>().First(image => image.Name == "FileTypeIcon");
-        Check(Icon("note.md").Source is Bitmap && Icon("plain.txt").Source is Bitmap, "Tree template binds decoded document images");
+        Check(Icon("plain.txt").Source is Bitmap, "Tree template binds decoded document images for ordinary files");
+        Check(Icon("note.md").Source is null && tree.GetVisualDescendants().OfType<TreeViewItem>()
+            .First(item => item.DataContext is DocumentFileNode { Name: "note.md" })
+            .GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>()
+            .Any(path => path.Classes.Contains("tree-ico") && path.IsEffectivelyVisible),
+            "Markdown tree rows keep the quiet vector document icon");
         Check(Icon("unknown.vex-unmapped").Source is null && tree.GetVisualDescendants().OfType<TreeViewItem>()
             .First(item => item.DataContext is DocumentFileNode { Name: "unknown.vex-unmapped" })
             .GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Any(path => path.Classes.Contains("tree-ico") && path.IsEffectivelyVisible),
@@ -86,7 +91,12 @@ internal static class FileIconVerification
             Check(ReferenceEquals(Icon("settings.toml").Source, FileIconCatalog.Default.Resolve("settings.toml", false, light: themeName == "light")),
                 "Live tree images follow the active theme: " + themeName);
             Check(tree.GetVisualDescendants().OfType<Image>().Where(image => image.IsEffectivelyVisible)
-                .All(image => image.Bounds.Width == 12 && image.Bounds.Height == 12), "Themed icons preserve compact 12 px layout");
+                .All(image =>
+                {
+                    var isLeaf = image.GetVisualAncestors().OfType<Border>().Any(border => border.Classes.Contains("leaf"));
+                    var expected = isLeaf ? 13 : 12;
+                    return Math.Abs(image.Bounds.Width - expected) < .01 && Math.Abs(image.Bounds.Height - expected) < .01;
+                }), "Themed icons preserve compact 12 px folders and 13 px document rows");
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "file-icons-" + themeName + ".png"), new PngBitmapEncoderOptions());
         }
         filesView.DataContext = productionFiles;

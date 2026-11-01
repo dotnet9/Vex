@@ -91,9 +91,9 @@ internal static class TypographyProbe
         // 网格与卡片
         var cards = gallery.GetVisualDescendants().OfType<Button>().Where(b => b.Name?.StartsWith("Typography_") == true).ToList();
         Console.WriteLine($"CARD-COUNT\t{cards.Count}");
-        foreach (var card in cards.Take(3))
+        foreach (var card in cards)
         {
-            Line("CARD", card, $"bg={card.Background}\tradius={card.CornerRadius}");
+            Line("CARD", card, $"key={card.Name}\tbg={card.Background}\tradius={card.CornerRadius}");
             var preview = card.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().FirstOrDefault();
             if (preview is not null)
                 Line("PREVIEW", preview,
@@ -102,7 +102,9 @@ internal static class TypographyProbe
                          .Where(t => t.Text is { Length: > 0 } && t.GetType() == typeof(TextBlock)).Take(4))
             {
                 var cls = string.Join(",", text.Classes);
-                Console.WriteLine($"CARDTEXT\t{cls}\ttext={text.Text}\tfs={text.FontSize}\tlh={text.LineHeight}\tmax={text.MaxLines}");
+                Line("CARDTEXT", text, $"key={card.Name}\t{cls}\ttext={text.Text}\tfs={text.FontSize}\tlh={text.LineHeight}\tmax={text.MaxLines}\tfont={text.FontFamily}\tfg={text.Foreground}");
+                if (text.Parent is Border frame)
+                    Line("CARDFRAME", frame, $"border={frame.BorderThickness}\tink={frame.BorderBrush}\tpadding={frame.Padding}\tradius={frame.CornerRadius}\tbg={frame.Background}");
             }
             var quote = card.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("MdQuote"));
             if (quote is not null) Console.WriteLine($"QUOTE\tbg={quote.Background}\tborder={quote.BorderThickness}\tpadding={quote.Padding}\tmargin={quote.Margin}");

@@ -38,10 +38,11 @@ internal static class SegmentedFidelityProbe
         vm.Layout.IsSidebarVisible = false;
         vm.Layout.IsOutlineVisible = false;
         vm.Workbench.SelectLayout("read");
+        vm.Workbench.ShowTypography = true;
         Render();
 
         Border? FindTrack() => window.GetVisualDescendants().OfType<Border>()
-            .FirstOrDefault(b => b.Classes.Contains("segmented-track") && b.GetVisualDescendants().OfType<SegmentedPanel>().Any());
+            .FirstOrDefault(b => b.Classes.Contains("segmented-track") && b.IsEffectivelyVisible);
         Border? FindThumb() => window.GetVisualDescendants().OfType<Border>()
             .FirstOrDefault(b => b.Classes.Contains("segmented-thumb"));
 
@@ -123,8 +124,14 @@ internal static class SegmentedFidelityProbe
         var tabHost = window.Workspace.FindControl<ToggleButton>("SourceSegment")!;
         var tabLine = tabHost.GetVisualDescendants().OfType<StackPanel>().FirstOrDefault();
         var tabIcon = tabHost.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().FirstOrDefault();
-        Check(tabLine is not null && tabLine.Spacing == 6 && tabIcon is { Width: 14, Height: 14 },
-              $"页签图标缝 {(tabLine?.Spacing.ToString() ?? "未找到")}、图标 {tabIcon?.Width:0.#}×{tabIcon?.Height:0.#} 应为 6 缝与 14×14");
+        // 24px 路径由 Viewbox 缩放；比较实际绘制盒，而不是路径的原始坐标尺寸。
+        var iconStart = tabIcon?.TranslatePoint(default, window);
+        var iconEnd = tabIcon?.TranslatePoint(new Point(tabIcon.Bounds.Width, tabIcon.Bounds.Height), window);
+        var iconSize = iconStart is { } start && iconEnd is { } end
+            ? new Size(end.X - start.X, end.Y - start.Y) : default;
+        Check(tabLine is not null && tabLine.Spacing == 6
+            && Math.Abs(iconSize.Width - 14) < .01 && Math.Abs(iconSize.Height - 14) < .01,
+              $"页签图标缝 {(tabLine?.Spacing.ToString() ?? "未找到")}、图标 {iconSize.Width:0.#}×{iconSize.Height:0.#} 应为 6 缝与 14×14");
 
         sb.AppendLine(failures.Count == 0 ? "PASS 悬浮层分段控件与原型配方逐项一致" : $"FAIL {failures.Count} 项不一致");
         Directory.CreateDirectory(output);

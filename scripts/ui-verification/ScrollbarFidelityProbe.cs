@@ -45,7 +45,7 @@ internal static class ScrollbarFidelityProbe
             $"Thumb length tracks the viewport/extent ratio instead of collapsing: {thumb.Bounds.Height:0.#}");
         // 点滑块下方的轨道 = 朝下翻一页（原型浏览器行为，由 ScrollTrackPaging 接管）。
         var before = scroll.Offset.Y;
-        var pagePoint = bar.TranslatePoint(new Point(bar.Bounds.Width / 2, bar.Bounds.Height - 6), window)!.Value;
+        var pagePoint = bar.TranslatePoint(new Point(bar.Bounds.Width / 2, bar.Bounds.Height - 20), window)!.Value;
         window.MouseDown(pagePoint, MouseButton.Left); window.MouseUp(pagePoint, MouseButton.Left); Render();
         Check(scroll.Offset.Y > before, $"Clicking the track below the thumb pages the viewport down: {before:0.#} -> {scroll.Offset.Y:0.#}");
         var afterPage = scroll.Offset.Y;

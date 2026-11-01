@@ -110,6 +110,8 @@ internal static class ChromeMetricsProbe
         // 所以外层给 1392×852，量出来的每一块才和原型同一基准（否则会整族差 2px）。
         window.Width = 1392; window.Height = 852;
         vm.Appearance.SelectThemeByKey("light");
+        vm.Appearance.SelectPaletteByKey("teal");
+        vm.Appearance.SelectTypographyByKey("SoftSage");
         vm.Layout.IsSidebarVisible = true; LayoutSettle.Run(); Render();
         vm.Workbench.SelectLayout("read"); Render();
 
@@ -171,9 +173,9 @@ internal static class ChromeMetricsProbe
             Row(".structure-item .text", In_(outlineView, c => c.Classes.Contains("structure-text")));
             Row(".workspace-layout-menu", ByName("LayoutGallery"));
             Row("#typography-panel", In_(gallery, c => c is Border panel && panel.Classes.Contains("wb-popover")));
-            Row(".typography-grid", In_(gallery, c => c is WrapPanel));
+            Row(".typography-grid", In_(gallery, c => c.Classes.Contains("typography-grid")));
             Row(".typography-card", In_(gallery, c => c.Classes.Contains("typography-card")));
-            Row(".density-options", In_(gallery, c => c.Classes.Contains("segmented-track")));
+            Row(".density-options", In_(gallery, c => c.Classes.Contains("typography-density")));
             Row(".density-options > button", In_(gallery, c => c is Button pill && pill.Classes.Contains("render-density-pill")));
             Row("#map-settings", ByName("SettingsTarget"));
             Row("#node-inspector", ByName("NodeInspector"));

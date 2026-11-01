@@ -39,12 +39,12 @@ const ROWS = [
   ['.workspace-viewswitch-more', '.workspace-viewswitch-more'],
   ['#edit-options', '#edit-options'],
   ['.format-button', '#edit-options .format-button'],
-  ['.document-statusbar', '.document-statusbar'],
+  ['.document-tools', '.document-tools'],
   ['.document-word-count', '.document-word-count'],
-  // 原型缩放坞已改为右下角悬浮；保留原生量表的行名以便比较控件几何。
-  ['.statusbar-zoom', '.document-zoom .vex-zoomdock'],
-  ['.statusbar-zoom .zoom-range', '.document-zoom .zoom-range'],
-  ['.statusbar-zoom .zoom-reset', '.document-zoom .zoom-reset'],
+  // 原型缩放坞已改为右下角悬浮；与原生量表共用浮动工具的行名。
+  ['.document-zoom', '.document-zoom .vex-zoomdock:not([hidden])'],
+  ['.document-zoom .zoom-range', '.document-zoom .vex-zoomdock:not([hidden]) .zoom-range'],
+  ['.document-zoom .zoom-reset', '.document-zoom .vex-zoomdock:not([hidden]) .zoom-reset'],
   ['.structure-sidebar', '.structure-sidebar'],
   ['.structure-search', '.structure-search'],
   ['.structure-list', '.structure-list'],
@@ -116,7 +116,7 @@ const collect = page => page.evaluate(arg => {
   await dump('read layout, chrome closed');
   await click('[data-action="find"]'); await page.waitForTimeout(260);
   await dump('find strip open');
-  await click('[data-action="find"]'); await page.waitForTimeout(260);
+  await click('[data-action="close-find"]'); await page.waitForTimeout(260);
   await click('#workspace-layout'); await page.waitForTimeout(200);
   await dump('layout menu open');
   await click('#workspace-layout'); await page.waitForTimeout(200);
@@ -125,6 +125,7 @@ const collect = page => page.evaluate(arg => {
   await page.keyboard.press('Escape'); await page.waitForTimeout(300);
   await click('#outline-toggle'); await page.waitForTimeout(700);
   await dump('outline open');
+  await page.keyboard.press('Escape');
   await click('.tb-menuitem'); await page.waitForTimeout(200);
   console.log('### title menu flyout');
   console.log(await page.evaluate(() => {
@@ -139,10 +140,10 @@ const collect = page => page.evaluate(arg => {
         `bg[${s.backgroundColor}]`, `fs[${n(s.fontSize)}]`, `fw[${s.fontWeight}]`].join('\t');
     };
     return [
-      row('.flyout', document.querySelector('.tb-dropdown')),
-      row('.menu-item', document.querySelector('.tb-dropdown .menu-item')),
-      row('  .menu-item text', document.querySelector('.tb-dropdown .menu-item')),
-      row('.menu-sep', document.querySelector('.tb-dropdown .menu-sep')),
+      row('.flyout', document.querySelector('.menu-flyout:not([hidden]) > .flyout')),
+      row('.menu-item', document.querySelector('.menu-flyout:not([hidden]) .menu-item')),
+      row('  .menu-item text', document.querySelector('.menu-flyout:not([hidden]) .menu-label')),
+      row('.menu-sep', document.querySelector('.menu-flyout:not([hidden]) .menu-sep')),
     ].join('\n');
   }));
 
@@ -150,7 +151,7 @@ const collect = page => page.evaluate(arg => {
   await click('#map-settings-button'); await page.waitForTimeout(240);
   await dump('map layout, settings open');
   await click('#map-settings-button'); await page.waitForTimeout(240);
-  await click('.map-node'); await page.waitForTimeout(240);
+  await click('.map-node-button'); await page.waitForTimeout(240);
   await dump('map layout, node selected');
   await browser.close();
 })().catch(e => { console.error('FAIL:', e.message); process.exit(1); });
