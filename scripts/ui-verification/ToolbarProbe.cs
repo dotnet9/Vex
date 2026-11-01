@@ -2,6 +2,9 @@ using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Primitives;
+using Avalonia.Headless;
+using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -81,6 +84,22 @@ internal static class ToolbarProbe
                 Console.WriteLine($"  child {child.GetType().Name} {B(child)}");
         }
 
+        vm.Workbench.SelectLayout("source-render");
+        Render();
+        Console.WriteLine($"=== source-render toolbar {B(toolbar)} options={B(options)} ===");
+        foreach (var child in toolbar.GetLogicalChildren().OfType<Control>())
+            Console.WriteLine($"  name={child.Name} desired={child.DesiredSize} actual={B(child)} origin={child.TranslatePoint(default, window)} overflow={getOverflow?.Invoke(null, new object?[] { child })}");
+        if (grid is not null)
+            foreach (var child in grid.Children) Console.WriteLine($"  grid {child.GetType().Name} {B(child)} margin={child.Margin}");
+        foreach (var name in new[] { "SpanFontSize", "SpanForeground", "SpanBackground" })
+        {
+            var button = options.FindControl<Button>(name)!;
+            if (button.Padding != default || getOverflow?.Invoke(null, new object?[] { button }) is true
+                || button.Bounds.Size != new Size(28, 28)
+                || button.Content is not Control content || content.Bounds.Width > button.Bounds.Width)
+                throw new InvalidOperationException($"Split toolbar keeps {name} fully visible without clipping its glyph/arrow.");
+            Console.WriteLine($"PASS source-render {name} fits its 28px button and remains outside overflow");
+        }
         window.Width = 980;
         Render();
         Console.WriteLine("=== after resize to 980 ===");
@@ -91,6 +110,16 @@ internal static class ToolbarProbe
             var overflow = getOverflow?.Invoke(null, new object?[] { child });
             Console.WriteLine($"  [{i++}] name={child.Name} overflow={overflow} vis={child.IsVisible}");
         }
+        var overflowToggle = toolbar.GetVisualDescendants().OfType<ToggleButton>().Single(button => button.Name == "button");
+        var point = overflowToggle.TranslatePoint(new Point(overflowToggle.Bounds.Width / 2, overflowToggle.Bounds.Height / 2), window)!.Value;
+        window.MouseMove(point); window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Render();
+        var overflowPopup = toolbar.GetVisualDescendants().OfType<Popup>().Single();
+        if (!overflowPopup.IsOpen || overflowPopup.Child is not Control { Bounds.Width: > 0, Bounds.Height: > 0 } overflowContent
+            || !overflowContent.GetVisualDescendants().OfType<Button>().Any(button => button.Name == "SpanBackground"))
+            throw new InvalidOperationException("Narrow split toolbar overflow opens with the remaining color action reachable.");
+        Console.WriteLine("PASS real pointer opens narrow toolbar overflow with all remaining style actions");
+        window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Render();
+        if (overflowPopup.IsOpen) throw new InvalidOperationException("Toolbar overflow closes on a second pointer click.");
         Console.WriteLine("PROBE DONE");
     }
 }

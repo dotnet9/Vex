@@ -840,7 +840,7 @@
   </Style>
   <Style Selector="Path.format-stroke"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/><Setter Property="StrokeThickness" Value="1.7"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/></Style>
   <!-- 行内样式三键（对齐原型 span-tool）：A 字符号 + 下拉箭头；前景键蓝字、背景键黄底。 -->
-  <Style Selector="Button.wb-format.span-tool"><Setter Property="Padding" Value="6,0"/></Style>
+  <Style Selector="Button.wb-format.span-tool"><Setter Property="Padding" Value="0"/></Style>
   <Style Selector="Button.wb-format TextBlock.span-glyph"><Setter Property="FontSize" Value="13"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="LineHeight" Value="13"/></Style>
   <Style Selector="Button.wb-format TextBlock.span-glyph.fg"><Setter Property="Foreground" Value="#0064FA"/><Setter Property="TextDecorations" Value="Underline"/></Style>
   <Style Selector="Button.wb-format Path.span-chevron"><Setter Property="Width" Value="9"/><Setter Property="Height" Value="9"/><Setter Property="Stretch" Value="Uniform"/></Style>
