@@ -102,6 +102,19 @@ internal static class PreferencesVerification
         var motionNote = view.GetVisualDescendants().OfType<TextBlock>()
             .Single(x => x.Classes.Contains("pref-note") && x.Text == localizer.Get("Vex.VexL.MotionModeNote"));
         Check(motionNote.Bounds.Height <= 20, "Motion description fits one line at the standard desktop width");
+        var watermarkPreview = view.GetVisualDescendants().OfType<Vex.Modules.Workspace.Views.WatermarkOverlay>().Single();
+        var watermarkColor = Color.Parse(preferences.WatermarkColor);
+        Check((watermarkPreview.Ink as ISolidColorBrush)?.Color == watermarkColor,
+            "Attached watermark sample uses the saved foreground color");
+        var savedWatermarkColor = preferences.WatermarkColor;
+        preferences.WatermarkColor = "#A13568"; Render();
+        foreach (var theme in new[] { "dark", "light" })
+        {
+            vm.Appearance.SelectThemeByKey(theme); Render();
+            Check((watermarkPreview.Ink as ISolidColorBrush)?.Color == Color.Parse("#A13568"),
+                "Custom watermark foreground survives a theme change: " + theme);
+        }
+        preferences.WatermarkColor = savedWatermarkColor; Render();
         var appearanceRows = view.GetVisualDescendants().OfType<Border>().Where(border => border.Classes.Contains("pref-row")).ToArray();
         var firstRowOrigin = appearanceRows[0].TranslatePoint(default, card)!.Value;
         Check(Math.Abs(firstRowOrigin.X - 169) < .1 && Math.Abs(firstRowOrigin.Y - 57) < .1

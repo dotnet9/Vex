@@ -9,11 +9,12 @@ public sealed class WatermarkOverlay : CodeWF.Avalonia.Controls.Controls.Waterma
 {
     public static readonly StyledProperty<string?> HexInkProperty = AvaloniaProperty.Register<WatermarkOverlay, string?>(nameof(HexInk));
     public static readonly StyledProperty<int> WeightValueProperty = AvaloniaProperty.Register<WatermarkOverlay, int>(nameof(WeightValue), 400);
+    private IDisposable? _themeInkBinding;
 
     public WatermarkOverlay()
     {
         Text = "维刻 Vex";
-        this.Bind(InkProperty, this.GetResourceObservable("VexAccentBrush"));
+        _themeInkBinding = this.Bind(InkProperty, this.GetResourceObservable("VexAccentBrush"));
     }
 
     /// <summary>#RRGGBB 前景色；未设置时保持主题强调色。</summary>
@@ -26,10 +27,15 @@ public sealed class WatermarkOverlay : CodeWF.Avalonia.Controls.Controls.Waterma
         base.OnPropertyChanged(change);
         if (change.Property == HexInkProperty)
         {
-            if (HexInk is { } hex)
+            if (HexInk is { } hex && Color.TryParse(hex, out var color))
             {
-                try { Ink = new SolidColorBrush(Color.Parse(hex)); } catch { /* 非法颜色保持主题色 */ }
+                // 主题资源可能在挂载或换色板时再次发值；自定义色启用后须解除后备绑定。
+                _themeInkBinding?.Dispose();
+                _themeInkBinding = null;
+                Ink = new SolidColorBrush(color);
             }
+            else
+                _themeInkBinding ??= this.Bind(InkProperty, this.GetResourceObservable("VexAccentBrush"));
         }
         else if (change.Property == WeightValueProperty)
         {
