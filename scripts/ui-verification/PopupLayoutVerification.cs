@@ -202,6 +202,20 @@ internal static class PopupLayoutVerification
                 $"Preference segmented track is 196px with three equal segments: {track.Bounds.Width} / {string.Join(",", segments.Select(s => s.Bounds.Width))}");
             Check(segments.Count(s => SegmentedPanel.GetIsActive(s)) == 1, "Exactly one preference segment is selected");
         }
+        foreach (var slider in appearancePage.GetVisualDescendants().OfType<Slider>().Where(s => s.Classes.Contains("pref-range")))
+        {
+            var thumb = slider.GetVisualDescendants().OfType<Thumb>().Single();
+            Check(Equals(thumb.Background, slider.Foreground) && thumb.BorderThickness == default,
+                "Preference range uses the solid accent thumb from the prototype");
+            var rails = slider.GetVisualDescendants().OfType<Border>().Where(b => b.Name == "TrackBackground").ToArray();
+            Check(rails.Length == 2 && rails.All(b => b.Bounds.Height == 8 && b.BorderBrush is not null),
+                "Both preference range track segments keep an 8px outlined rail");
+            var value = slider.Value;
+            slider.Focus(); window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null); window.KeyRelease(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null); Render();
+            Check(slider.Value > value, "Preference range remains keyboard adjustable");
+            window.KeyPress(Key.Left, RawInputModifiers.None, PhysicalKey.ArrowLeft, null); window.KeyRelease(Key.Left, RawInputModifiers.None, PhysicalKey.ArrowLeft, null); Render();
+            Check(Math.Abs(slider.Value - value) < .01, "Preference range keyboard step restores its original value");
+        }
         Capture(appearanceCard, "preferences-appearance");
         ((ShellPreferencesViewModel)appearancePage.DataContext!).Close(); Render();
         var aboutTask = overlay.ShowAboutAsync(); Render();

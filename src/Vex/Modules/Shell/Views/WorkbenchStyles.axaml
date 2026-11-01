@@ -945,6 +945,16 @@
     <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexPanelBorderBrush}"/>
   </Style>
+  <Style Selector="Slider.pref-range /template/ Thumb#thumb">
+    <Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+  </Style>
+  <Style Selector="Slider.pref-range /template/ RepeatButton /template/ Border#TrackBackground">
+    <Setter Property="Height" Value="8"/>
+    <Setter Property="CornerRadius" Value="4"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
+  </Style>
 
   <!-- 偏好表单行（原型 .vex-pref-row）：53 最小高（32 控件 + 上下 10 + 1 分隔线，box-sizing 含边框）、上下 10 内边距、底部一条分隔线，左标签右控件。 -->
   <Style Selector="Border.pref-row">
