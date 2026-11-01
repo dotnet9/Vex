@@ -55,8 +55,15 @@ internal static class FocusRingProbe
             var margin = Rings().Single().Margin.Left;
             var band = inset ? margin + 1 : -margin - 1;
             var sign = inset ? 1 : -1;
-            var hits = new[] { (X: box.X + sign * band, Y: midY), (X: box.Right - sign * band, Y: midY), (X: midX, Y: box.Y + sign * band), (X: midX, Y: box.Bottom - sign * band) }
-                .Count(p => Accent(p.X, p.Y));
+            // 小数坐标会把中心点分摊到相邻像素；沿描边法线取样，保留原来的颜色容差。
+            var hits = new[]
+            {
+                (X: box.X + sign * band, Y: midY, Horizontal: true),
+                (X: box.Right - sign * band, Y: midY, Horizontal: true),
+                (X: midX, Y: box.Y + sign * band, Horizontal: false),
+                (X: midX, Y: box.Bottom - sign * band, Horizontal: false)
+            }.Count(p => Enumerable.Range(-1, 3).Any(offset =>
+                Accent(p.X + (p.Horizontal ? offset : 0), p.Y + (p.Horizontal ? 0 : offset))));
             var cleanX = inset ? box.X - 4 : box.X - band - 5;
             Check(hits == 4 && !Accent(cleanX, midY),
                 $"{label}: ring pixels paint on all four edges {(inset ? "inside" : "outside")} the box and stop there (hits={hits}/4)");
