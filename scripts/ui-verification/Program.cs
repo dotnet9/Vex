@@ -10,6 +10,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.ReactiveUI;
+using System.Reflection;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Controls.Themes;
 using SkiaSharp;
@@ -696,6 +697,20 @@ void VerifyPointerRegressions(VerificationVexApp app, Vex.Modules.Shell.Views.Ma
     Console.WriteLine($"SELECTION first drag: [{live.SelectedText}]; source={live.Selection}");
     Check(live.SelectedText.Length >= 4 && sampleText.Substring(live.Selection.Start, live.Selection.Length) == live.SelectedText,
         "First press and drag selects visible instant text and maps to the original Markdown");
+    var selectionPopup = typeof(MarkdownLiveEditorView).GetField("_selectionBarPopup", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(live)
+        as Avalonia.Controls.Primitives.Popup;
+    var selectionText = live.GetVisualDescendants().OfType<TextBox>().Single(box => box.IsEffectivelyVisible)
+        .GetVisualDescendants().OfType<Avalonia.Controls.Presenters.TextPresenter>().First();
+    var selectionCaret = selectionText.TextLayout.HitTestTextPosition(selectionText.SelectionEnd);
+    var expectedSelectionAnchor = selectionText.TranslatePoint(new Point(selectionCaret.X, selectionCaret.Bottom), window)!.Value;
+    var actualSelectionAnchor = selectionPopup?.PlacementRect is { } placementRect
+        ? live.TranslatePoint(placementRect.Center, window) : null;
+    Check(selectionPopup is { IsOpen: true } && ReferenceEquals(selectionPopup.PlacementTarget, live)
+          && actualSelectionAnchor is { } actualAnchor
+          && Math.Abs(expectedSelectionAnchor.X - actualAnchor.X) < 1
+          && Math.Abs(expectedSelectionAnchor.Y - actualAnchor.Y) < 1,
+        $"Selection toolbar opens at the selected text endpoint: expected={expectedSelectionAnchor}, actual={actualSelectionAnchor}, " +
+        $"open={selectionPopup?.IsOpen}, rect={selectionPopup?.PlacementRect}");
     Check(vm.Markdown == sampleText, "Selecting text does not modify the document");
     var firstSelection = live.SelectedText;
     Drag(end, start);
