@@ -39,6 +39,18 @@ if (mode == "context-menu-native")
     NativeContextMenuVerification.Run(output);
     return;
 }
+if (mode == "performance-sweep")
+{
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+    var app = (VerificationVexApp)Application.Current!;
+    var window = (Vex.Modules.Shell.Views.MainWindow)app.CreateShell();
+    window.Show();
+    DocumentPerformanceProbe.Run(window, (MainWindowViewModel)window.DataContext!, output,
+        args.ElementAtOrDefault(2) ?? PerformanceSamplePath());
+    window.Close();
+    return;
+}
 if (mode == "presentation-geometry")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
