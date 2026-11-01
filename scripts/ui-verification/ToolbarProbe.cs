@@ -120,6 +120,7 @@ internal static class ToolbarProbe
         Console.WriteLine("PASS real pointer opens narrow toolbar overflow with all remaining style actions");
         window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Render();
         if (overflowPopup.IsOpen) throw new InvalidOperationException("Toolbar overflow closes on a second pointer click.");
+        ToolbarOverflowVerification.Run(window, output);
         Console.WriteLine("PROBE DONE");
     }
 }

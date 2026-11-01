@@ -1,0 +1,85 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:u="https://irihi.tech/ursa" xmlns:views="using:Vex.Modules.Shell.Views" x:CompileBindings="False">
+  <!-- 保留 Ursa 的溢出测量与命令实例，菜单只补原型的双列标签和可滚动视口。 -->
+  <Style Selector="u|ToolBar.wb-formatbar">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="u:ToolBar">
+        <Border Name="PART_BackgroundBorder" Padding="{TemplateBinding Padding}"
+                Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}">
+          <DockPanel LastChildFill="True">
+            <Panel Name="PART_PopupButtonPanel" DockPanel.Dock="Right">
+              <ToggleButton Name="button" Padding="8,0" VerticalAlignment="Stretch" IsVisible="False"
+                            Theme="{DynamicResource ToolBarExpandToggleButton}">
+                <PathIcon Height="12" Data="{DynamicResource ToolBarHorizontalMoreGlyph}"
+                          Foreground="{DynamicResource VexValueBrush}" />
+              </ToggleButton>
+              <Popup Name="FormatOverflowPopup" IsLightDismissEnabled="True" ShouldUseOverlayLayer="True"
+                     IsOpen="{Binding #button.IsChecked, Mode=TwoWay}" Placement="{TemplateBinding PopupPlacement}"
+                     PlacementTarget="{Binding #button}" VerticalOffset="4">
+                <Border Width="260" Padding="8" CornerRadius="6" BorderThickness="1"
+                        Background="{DynamicResource VexPopBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
+                        BoxShadow="{DynamicResource VexPopShadow}">
+                  <ScrollViewer Name="FormatOverflowScroll" HorizontalScrollBarVisibility="Disabled"
+                                VerticalScrollBarVisibility="Auto" MaxHeight="320">
+                    <views:FormattingOverflowPanel Name="PART_OverflowPanel"
+                         KeyboardNavigation.TabNavigation="Cycle" />
+                  </ScrollViewer>
+                </Border>
+              </Popup>
+            </Panel>
+            <ItemsPresenter HorizontalAlignment="Left" VerticalAlignment="Center" ItemsPanel="{TemplateBinding ItemsPanel}" />
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <!-- 同一模板随溢出状态显示标签，避免重建模板时图标仍挂在旧 ContentPresenter 上。 -->
+  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format">
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="OverflowBackground" Padding="{TemplateBinding Padding}"
+                          Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+          <Grid Name="OverflowAction" ColumnDefinitions="Auto,*">
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" VerticalAlignment="Center"
+                              HorizontalAlignment="Center" />
+            <TextBlock Grid.Column="1" Classes="format-overflow-label" FontSize="12" LineHeight="19.2"
+                       FontWeight="Normal" TextWrapping="Wrap" VerticalAlignment="Center" IsVisible="False"
+                       Foreground="{TemplateBinding Foreground}"
+                       Text="{Binding $parent[Button].(AutomationProperties.Name)}" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:overflow">
+    <Setter Property="Focusable" Value="True" />
+    <Setter Property="Width" Value="NaN" />
+    <Setter Property="Height" Value="NaN" />
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Padding" Value="6,4" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:overflow /template/ Grid#OverflowAction">
+    <Setter Property="ColumnSpacing" Value="7" />
+  </Style>
+  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:overflow /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Width" Value="28" />
+  </Style>
+  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:overflow /template/ TextBlock.format-overflow-label">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector="u|ToolBar.wb-formatbar u|ToolBarSeparator:overflow">
+    <Setter Property="Opacity" Value="0" />
+  </Style>
+  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:pointerover /template/ Border#OverflowBackground">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+  </Style>
+  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:pressed /template/ Border#OverflowBackground">
+    <Setter Property="Background" Value="{DynamicResource VexPressedBrush}" />
+  </Style>
+</Styles>
