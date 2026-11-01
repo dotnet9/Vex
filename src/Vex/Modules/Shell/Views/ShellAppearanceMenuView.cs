@@ -285,7 +285,13 @@ public sealed class ShellAppearanceMenuView : UserControl
             root.Children.Add(badge);
         }
         // design-system.css 的高优先级规则把选中勾移到卡片右侧中间。
-        var check = new TextBlock { Text = "✓", FontSize = 15, FontWeight = FontWeight.Bold, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
+        var check = new TextBlock
+        {
+            Classes = { "palette-selected-check" }, Text = "✓", FontSize = 15, FontWeight = FontWeight.Bold,
+            FontFamily = new FontFamily("Segoe UI Symbol, Segoe UI, Apple Symbols, Noto Sans Symbols 2"),
+            HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 6, 0)
+        };
         Resource(check, TextBlock.ForegroundProperty, this, "VexAccentBrush");
         root.Children.Add(check);
         // 原型选中态 = accent 描边 + 外扩 1px 强调色环，由 .palette-card-on 与 Ring 覆层呈现。
@@ -326,12 +332,20 @@ public sealed class ShellAppearanceMenuView : UserControl
         // 原型 .palette-add：1px dashed --border、--vex-radius-sm(6px) 圆角，悬停整块换成强调色。
         dash.Classes.Add("palette-add-dash");
         var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Spacing = 5 };
-        content.Children.Add(new TextBlock { Text = "+", FontSize = 19, LineHeight = 28, HorizontalAlignment = HorizontalAlignment.Center });
-        var label = Label(Text("AddCustomPalette"), 10); label.HorizontalAlignment = HorizontalAlignment.Center; label.Classes.Add("muted");
+        var symbol = new TextBlock
+        {
+            Classes = { "palette-add-symbol" }, Text = "＋", FontSize = 26, LineHeight = 26,
+            FontFamily = new FontFamily("Segoe UI, Microsoft YaHei, PingFang SC, Noto Sans CJK SC"),
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        content.Children.Add(symbol);
+        var label = Label(Text("AddCustomPalette"), 10); label.HorizontalAlignment = HorizontalAlignment.Center; label.LineHeight = 14;
         content.Children.Add(label);
         var panel = new Panel();
         panel.Children.Add(dash); panel.Children.Add(content);
         var card = new Button { Classes = { "palette-add-card" }, Content = panel, Height = 92, VerticalAlignment = VerticalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Stretch, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Name = "AddCustomPalette" };
+        symbol.Bind(TextBlock.ForegroundProperty, card.GetObservable(TemplatedControl.ForegroundProperty));
+        label.Bind(TextBlock.ForegroundProperty, card.GetObservable(TemplatedControl.ForegroundProperty));
         card.Click += (_, _) => OpenPaletteDialog(null);
         ToolTipHelper.SetText(card, Text("AddCustomPalette"));
         return card;

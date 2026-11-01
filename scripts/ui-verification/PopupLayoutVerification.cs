@@ -76,6 +76,34 @@ internal static class PopupLayoutVerification
         // 排版级联已迁到外观弹层（ShellAppearanceMenuView），滚动可达性由 prototype-appearance 模式覆盖。
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("indigo"); Render();
         var appearance = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
+        void VerifyPaletteSymbols(Control content)
+        {
+            var add = content.GetVisualDescendants().OfType<Button>().Single(button => button.Name == "AddCustomPalette");
+            var symbol = add.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Classes.Contains("palette-add-symbol"));
+            var label = add.GetVisualDescendants().OfType<TextBlock>().Single(text => text != symbol);
+            Check(symbol.Text == "＋" && symbol.FontSize == 26 && symbol.LineHeight == 26
+                && Math.Abs(symbol.Bounds.Width - 26) < .1 && label.LineHeight == 14,
+                "Add-palette card uses the prototype fullwidth 26px symbol and 14px caption line");
+            var selected = content.GetVisualDescendants().OfType<TextBlock>()
+                .Single(text => text.IsEffectivelyVisible && text.Classes.Contains("palette-selected-check"));
+            Console.WriteLine($"PALETTE CHECK font={selected.FontFamily} size={selected.FontSize} box={selected.Bounds}");
+            Check(selected.FontSize == 15 && selected.FontWeight == FontWeight.Bold
+                && (!OperatingSystem.IsWindows() || selected.FontFamily.Name == "Segoe UI Symbol"),
+                "Palette selection tick uses the prototype symbol font and 15px bold size");
+            var corner = content.TranslatePoint(new Point(2, 2), window)!.Value;
+            window.MouseMove(corner); Render();
+            foreach (var hover in new[] { false, true })
+            {
+                if (hover) window.MouseMove(add.TranslatePoint(new Point(add.Bounds.Width / 2, add.Bounds.Height / 2), window)!.Value);
+                Render();
+                Application.Current!.TryGetResource(hover ? "VexAccentBrush" : "VexMutedBrush", window.ActualThemeVariant, out var ink);
+                var expected = ((ISolidColorBrush)ink!).Color;
+                Check(symbol.Foreground is ISolidColorBrush symbolInk && symbolInk.Color == expected
+                    && label.Foreground is ISolidColorBrush labelInk && labelInk.Color == expected,
+                    $"Add-palette symbol and caption follow {(hover ? "hover accent" : "idle muted")} in {window.ActualThemeVariant}");
+            }
+            window.MouseMove(corner); Render();
+        }
         foreach (var (button, name, width) in new[] { (appearance.AppearanceButton, "appearance", (double)ShellAppearanceMenuView.MenuWidth), (appearance.LanguageButton, "language", (double)ShellAppearanceMenuView.LanguageMenuWidth) })
         {
             ((Flyout)button.Flyout!).ShowAt(button); Render();
@@ -88,6 +116,7 @@ internal static class PopupLayoutVerification
                 "Picker template consumes the actual prototype shadow token: " + name);
             if (name == "appearance")
             {
+                VerifyPaletteSymbols(content);
                 var pills = content.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("density-pill")).ToArray();
                 Application.Current!.TryGetResource("VexValueBrush", window.ActualThemeVariant, out var ink);
                 Application.Current.TryGetResource("VexAccentBrush", window.ActualThemeVariant, out var accent);
@@ -134,6 +163,7 @@ internal static class PopupLayoutVerification
                     && origin.Y + frame.Bounds.Height <= window.ClientSize.Height + .5,
                     $"Picker visible frame fits {size}/{theme}: {origin}, {frame.Bounds.Size}");
                 Check(frame.BoxShadow.Count == 2, "Picker preserves both shadow layers in " + theme);
+                if (ReferenceEquals(button, appearance.AppearanceButton)) VerifyPaletteSymbols(content);
                 var inside = origin + new Vector(5, 5);
                 window.MouseMove(inside);
                 window.MouseDown(inside, MouseButton.Left); window.MouseUp(inside, MouseButton.Left); Render();

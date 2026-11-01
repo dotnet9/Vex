@@ -456,6 +456,9 @@
   <Style Selector="Button.palette-add-card:pointerover Rectangle.palette-add-dash">
     <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
+  <Style Selector="Button.palette-add-card:pointerover">
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
   <Style Selector="Button.palette-add-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
