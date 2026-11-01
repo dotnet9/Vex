@@ -81,6 +81,14 @@ internal static class PrototypeChromeVerification
             Check(new[] { sourceSegment, readSegment, mapSegment }.All(t => Math.Abs(t.Bounds.Height - 35) < 1
                     && t.Padding == new Thickness(10, 0) && t.FontSize == 12 && t.Classes.Contains("tab-item")),
                 $"View tabs are 35px with 10px side padding and 12px labels at {size.Width}: {string.Join(" ", new[] { sourceSegment, readSegment, mapSegment }.Select(t => $"{t.Name}={t.Bounds.Width:0.#}x{t.Bounds.Height:0.#}"))}");
+            foreach (var tab in new[] { sourceSegment, readSegment, mapSegment })
+            {
+                var icon = tab.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Single();
+                var frame = tab.GetVisualDescendants().OfType<Viewbox>().Single();
+                Check(icon.Stretch == Stretch.None && icon.Bounds.Size == new Size(24, 24)
+                    && frame.Bounds.Size == new Size(14, 14),
+                    "View tab icon retains its SVG viewbox and 14px footprint: " + tab.Name);
+            }
             Check(sourceSegment.IsChecked == true && !readSegment.IsChecked.GetValueOrDefault() && !mapSegment.IsChecked.GetValueOrDefault(),
                 "Instant editing activates the shared edit tab");
             vm.Workbench.SelectLayout("source"); Render();
@@ -139,6 +147,17 @@ internal static class PrototypeChromeVerification
                     $"Nav rail is a 56px chrome column with 44x48 toggles at {size.Width}: rail={rail.Bounds.Size} files={railFiles.IsChecked}/{vm.Layout.ShowSidebar} outline={railOutline.IsChecked}/{vm.Layout.ShowOutlineSidebar}");
             }
             CheckRail();
+            foreach (var entry in new Button[] { railFiles, railOutline, railSettings, window.Workspace.Navigation.FindControl<Button>("RailFindButton")! })
+            {
+                var icon = entry.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Single();
+                var frame = entry.GetVisualDescendants().OfType<Viewbox>().Single();
+                Check(icon.Stretch == Stretch.None && icon.Bounds.Size == new Size(24, 24)
+                    && frame.Bounds.Size == new Size(18, 18),
+                    "Rail icon retains its SVG viewbox and 18px footprint: " + entry.Name);
+            }
+            Check(Equals(railFiles.GetVisualDescendants().OfType<TextBlock>().Single().Foreground,
+                    railFiles.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Single().Stroke),
+                "Selected rail icon and label share the accent ink");
             Check(railSettings.Command is not null && window.Workspace.Navigation.FindControl<Button>("RailFindButton")!.Command is not null,
                 "Rail settings and find entries route to commands");
             // 列宽逐帧插值：动画没走完就量几何，读到的是起点。

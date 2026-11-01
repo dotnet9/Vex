@@ -61,21 +61,21 @@
                             <ToggleButton x:Name="SourceSegment" Classes="tab-item" Command="{Binding Workbench.ShowEditorView}"
                                 IsChecked="{Binding Workbench.IsEditSegmentActive, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Path Classes="stroke-ico" Data="{StaticResource WBEditIcon}" />
+                                    <Viewbox Width="14" Height="14"><Canvas Width="24" Height="24"><Path Classes="stroke-ico" Data="{StaticResource WBEditIcon}" /></Canvas></Viewbox>
                                     <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBEdit}}" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ToggleButton>
                             <ToggleButton x:Name="ReadSegment" Classes="tab-item" Command="{Binding Workbench.ShowRead}"
                                 IsChecked="{Binding Workbench.IsReadSegmentActive, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Path Classes="stroke-ico" Data="{StaticResource WBReadIcon}" />
+                                    <Viewbox Width="14" Height="14"><Canvas Width="24" Height="24"><Path Classes="stroke-ico" Data="{StaticResource WBReadIcon}" /></Canvas></Viewbox>
                                     <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusViewRead}}" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ToggleButton>
                             <ToggleButton x:Name="MapSegment" Classes="tab-item" Command="{Binding Workbench.ShowMindMap}"
                                 IsChecked="{Binding Workbench.IsMapSegmentActive, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Path Classes="stroke-ico" Data="{StaticResource WBMapIcon}" />
+                                    <Viewbox Width="14" Height="14"><Canvas Width="24" Height="24"><Path Classes="stroke-ico" Data="{StaticResource WBMapIcon}" /></Canvas></Viewbox>
                                     <TextBlock Text="{i18n:I18n {x:Static l:VexL.StatusViewMap}}" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ToggleButton>

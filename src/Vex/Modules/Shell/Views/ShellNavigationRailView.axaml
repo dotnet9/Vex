@@ -14,7 +14,7 @@
                     Command="{Binding Layout.ToggleSidebar}"
                     AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFiles}}">
                     <StackPanel Spacing="4">
-                        <Path Data="{StaticResource WBFolderIcon}" HorizontalAlignment="Center" />
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBFolderIcon}" /></Canvas></Viewbox>
                         <TextBlock Text="{i18n:I18n {x:Static l:VexL.SidebarFiles}}" HorizontalAlignment="Center" />
                     </StackPanel>
                 </ToggleButton>
@@ -24,7 +24,7 @@
                     Command="{Binding Layout.ToggleOutline}"
                     AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Outline}}">
                     <StackPanel Spacing="4">
-                        <Path Data="{StaticResource WBListIcon}" HorizontalAlignment="Center" />
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBListIcon}" /></Canvas></Viewbox>
                         <TextBlock Text="{i18n:I18n {x:Static l:VexL.Outline}}" HorizontalAlignment="Center" />
                     </StackPanel>
                 </ToggleButton>
@@ -34,7 +34,7 @@
                     helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Search}}"
                     AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Search}}">
                     <StackPanel Spacing="4">
-                        <Path Data="{StaticResource WBSearchIcon}" HorizontalAlignment="Center" />
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBSearchIcon}" /></Canvas></Viewbox>
                         <TextBlock Text="{i18n:I18n {x:Static l:VexL.Search}}" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Button>
@@ -45,7 +45,7 @@
                 helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.PreferencesTitle}}"
                 AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NavSettings}}">
                 <StackPanel Spacing="4">
-                    <Path Data="{StaticResource WBGearIcon}" HorizontalAlignment="Center" />
+                    <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBGearIcon}" /></Canvas></Viewbox>
                     <TextBlock Text="{i18n:I18n {x:Static l:VexL.NavSettings}}" HorizontalAlignment="Center" />
                 </StackPanel>
             </Button>
