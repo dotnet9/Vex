@@ -546,6 +546,20 @@ internal static class PrototypeChromeVerification
         foreach (var culture in vm.Appearance.LanguageOptions)
         {
             vm.Appearance.SelectedLanguage = culture; Render();
+            foreach (var entry in window.Workspace.Navigation.GetVisualDescendants().OfType<Button>()
+                .Where(button => button.Classes.Contains("rail-item")))
+            {
+                var label = entry.GetVisualDescendants().OfType<TextBlock>().Single();
+                var origin = label.TranslatePoint(default, entry)!.Value;
+                var natural = new TextBlock { Text = label.Text, FontFamily = label.FontFamily,
+                    FontSize = label.FontSize, FontWeight = label.FontWeight };
+                natural.Measure(Size.Infinity);
+                Check(label.TextLayout.Height <= label.Bounds.Height + .5
+                    && natural.DesiredSize.Height <= label.Bounds.Height + .5
+                    && label.TextLayout.WidthIncludingTrailingWhitespace <= label.Bounds.Width + .5
+                    && origin.Y >= 0 && origin.Y + label.Bounds.Height <= entry.Bounds.Height + .5,
+                    $"Navigation label has a complete line box: {culture.CultureName}/{label.Text}, font={label.FontSize}, bounds={label.Bounds.Size}, natural={natural.DesiredSize}, origin={origin}, entry={entry.Bounds.Size}");
+            }
             foreach (var name in new[] { "FileMenuItem", "InsertMenuItem", "HelpMenuItem" })
             {
                 var item = window.FindControl<ShellTitleMenuView>("TitleMenuView")!.FindControl<MenuItem>(name)!;

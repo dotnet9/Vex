@@ -38,7 +38,7 @@ const extra={
  'zh-CN':{Appearance:'外观',ChoiceRecommended:'推荐',ChoiceCurrent:'当前',WBTypographyTitle:'正文排版'},
  'zh-Hant':{Appearance:'外觀',ChoiceRecommended:'推薦',ChoiceCurrent:'目前',WBTypographyTitle:'正文排版'},
  'en-US':{Appearance:'Appearance',ChoiceRecommended:'Recommended',ChoiceCurrent:'Current',WBTypographyTitle:'Article typography'},
- 'ja-JP':{Appearance:'外観',ChoiceRecommended:'おすすめ',ChoiceCurrent:'選択中',WBTypographyTitle:'本文の組版'}
+ 'ja-JP':{Appearance:'外観',ChoiceRecommended:'おすすめ',ChoiceCurrent:'選択中',WBTypographyTitle:'本文の組版',Outline:'目次'}
 };
 const traditional=s=>s.replace(/[观记录写让温图体绿蓝细线书术简专栏报头圆页选开关应]/g,c=>({'观':'觀','记':'記','录':'錄','写':'寫','让':'讓','温':'溫','图':'圖','体':'體','绿':'綠','蓝':'藍','细':'細','线':'線','书':'書','术':'術','简':'簡','专':'專','栏':'欄','报':'報','头':'頭','圆':'圓','页':'頁','选':'選','开':'開','关':'關','应':'應'}[c]));
 const generated=[];let zhCnData=null;
