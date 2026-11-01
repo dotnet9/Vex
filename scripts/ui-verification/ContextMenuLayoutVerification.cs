@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Presenters;
@@ -29,6 +29,15 @@ internal static class ContextMenuLayoutVerification
         {
             window.KeyPress(key, RawInputModifiers.None, physical, null);
             window.KeyRelease(key, RawInputModifiers.None, physical, null);
+            Render();
+        }
+        // 无头机器帧率差异会让子菜单/选中态晚一拍落地：按键后泵帧至状态到位（上限 20 帧）。
+        void PressUntil(Func<bool> state, Key key, PhysicalKey physical, int maxAttempts = 20)
+        {
+            for (var attempt = 0; attempt < maxAttempts && !state(); attempt++)
+            {
+                Press(key, physical);
+            }
             Render();
         }
         void Inspect(Control panel, string label)
@@ -82,14 +91,13 @@ internal static class ContextMenuLayoutVerification
             {
                 window.MouseMove(new Point(2, window.ClientSize.Height - 2));
                 Check(menu.Focus(), "Root menu accepts focus before keyboard navigation");
-                for (var step = 0; step <= menu.Items.Count && !ReferenceEquals(menu.SelectedItem, branch); step++)
-                    Press(Key.Down, PhysicalKey.ArrowDown);
+                PressUntil(() => ReferenceEquals(menu.SelectedItem, branch), Key.Down, PhysicalKey.ArrowDown, menu.Items.Count + 2);
                 Check(ReferenceEquals(menu.SelectedItem, branch), "Down arrow reaches the submenu row: " + branch.Header);
-                Press(Key.Right, PhysicalKey.ArrowRight);
+                PressUntil(() => branch.IsSubMenuOpen, Key.Right, PhysicalKey.ArrowRight);
                 Check(branch.IsSubMenuOpen, "Right arrow opens the selected submenu: " + branch.Header);
                 var popup = branch.GetVisualDescendants().OfType<Popup>().First(p => p.IsOpen);
                 Inspect(popup.Child!, label + "/" + branch.Header);
-                Press(Key.Escape, PhysicalKey.Escape);
+                PressUntil(() => !branch.IsSubMenuOpen, Key.Escape, PhysicalKey.Escape);
                 if (branch.IsSubMenuOpen)
                     Console.WriteLine($"SUBMENU ESCAPE root={menu.IsOpen}, branch={branch.IsSubMenuOpen}, popup={popup.IsOpen}, focus={window.FocusManager?.GetFocusedElement()}, selected={menu.SelectedItem}, child={branch.SelectedItem}");
                 Check(!branch.IsSubMenuOpen, "Escape closes the active submenu: " + branch.Header);
