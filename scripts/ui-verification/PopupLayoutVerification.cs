@@ -188,6 +188,8 @@ internal static class PopupLayoutVerification
         var appearanceCard = appearancePage.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
         var dialog = appearancePage.GetVisualAncestors().OfType<Ursa.Controls.CustomDialogControl>().First();
         var dialogFrame = dialog.GetVisualDescendants().OfType<Border>().First(b => b.Name == "PART_Border");
+        Check(dialogFrame.BorderThickness == default && dialogFrame.Bounds.Size == appearanceCard.Bounds.Size,
+            $"The dialog uses one card border without an extra outer frame: outer={dialogFrame.Bounds.Size}, card={appearanceCard.Bounds.Size}");
         dialogFrame.TryFindResource("VexPopShadow", dialogFrame.ActualThemeVariant, out var dialogShadow);
         Check(dialogFrame.BoxShadow.Count == 2 && !dialogFrame.ClipToBounds
             && dialogFrame.BoxShadow.ToString() == ((BoxShadows)dialogShadow!).ToString(),
