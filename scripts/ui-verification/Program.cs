@@ -2724,6 +2724,25 @@ void VerifyEditingTools(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     source.Editor.Select(0, 5); source.Editor.Focus(); Pump();
     Click(options.FindControl<Button>("FormatBold")!);
     Check(vm.Markdown == "**alpha** beta", "Formatting click preserves source selection");
+    source.Editor.Select(0, source.Editor.Text.Length); source.Editor.TextArea.Focus(); Pump();
+    var clipboard = window.Clipboard!;
+    Pump(clipboard.SetTextAsync("before shortcut"));
+    window.KeyPress(Key.C, RawInputModifiers.Control | RawInputModifiers.Shift, PhysicalKey.C, null);
+    window.KeyRelease(Key.C, RawInputModifiers.Control | RawInputModifiers.Shift, PhysicalKey.C, null); Pump();
+    var shortcutCopy = clipboard.TryGetTextAsync(); Pump(shortcutCopy);
+    Check(shortcutCopy.Result == "**alpha** beta" && vm.Markdown == "**alpha** beta",
+        "Library copy-plain-text shortcut works without host key handlers");
+    var contextPoint = source.Editor.TextArea.TranslatePoint(new Point(36, 12), window)!.Value;
+    window.MouseMove(contextPoint); window.MouseDown(contextPoint, MouseButton.Right); window.MouseUp(contextPoint, MouseButton.Right); Pump();
+    Check(source.ContextMenu!.IsOpen, "Source text opens the standard context menu");
+    var plainCopy = source.ContextMenu!.Items.OfType<MenuItem>().Single(item =>
+        item.Header?.ToString() == CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(Vex.VexL.CopyPlainText));
+    Pump(clipboard.SetTextAsync("before menu"));
+    Check(plainCopy.Command?.CanExecute(plainCopy.CommandParameter) == true, "Copy-plain-text menu binds an executable ViewModel command");
+    var copyPoint = plainCopy.TranslatePoint(new Point(plainCopy.Bounds.Width / 2, plainCopy.Bounds.Height / 2), window)!.Value;
+    window.MouseMove(copyPoint); window.MouseDown(copyPoint, MouseButton.Left); window.MouseUp(copyPoint, MouseButton.Left); Pump();
+    var menuCopy = clipboard.TryGetTextAsync(); Pump(menuCopy);
+    Check(menuCopy.Result == "**alpha** beta", "AXAML menu invokes the copy-plain-text ViewModel command");
     vm.Markdown = "alpha beta"; Pump();
     wb.ShowInstant(); Pump(); live.NavigateToSourceLine(1, true); Pump();
     var input = live.GetVisualDescendants().OfType<TextBox>().Single(box => box.IsEffectivelyVisible);

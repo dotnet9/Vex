@@ -56,7 +56,7 @@
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.Paste}}" Command="{Binding Paste}" />
                     <MenuItem Command="{Binding PasteAsPlainTextAsync}" Header="{i18n:I18n Vex.VexL.PastePlainText}" />
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.SelectAll}}" Command="{Binding SelectAll}" />
-                    <MenuItem Click="OnCopyPlainTextClick" Header="{i18n:I18n {x:Static l:VexL.CopyPlainText}}" />
+                    <MenuItem Command="{Binding CopyPlainText}" Header="{i18n:I18n {x:Static l:VexL.CopyPlainText}}" />
                     <Separator />
                     <MenuItem Header="{i18n:I18n Vex.VexL.ElementMenuConvertTo}">
                         <MenuItem Command="{Binding InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Paragraph}" Header="{i18n:I18n {x:Static l:VexL.Paragraph}}" />
