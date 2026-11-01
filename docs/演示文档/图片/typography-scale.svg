@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" font-family="'Segoe UI','Microsoft YaHei UI',sans-serif">
+  <rect width="900" height="340" fill="#FDFDFD"/>
+  <g fill="#3F3F46">
+    <text x="90" y="70" font-size="32" font-weight="650">标题一 32px</text>
+    <text x="90" y="118" font-size="22" font-weight="650">标题二 22px</text>
+    <text x="90" y="156" font-size="17" font-weight="600">标题三 17px</text>
+    <text x="90" y="196" font-size="15">正文 15px · 行高 1.75，让每个观点都有呼吸的空间</text>
+    <text x="90" y="230" font-size="12" fill="#6B7280">辅助说明 12px · 与正文保持四像素级的克制</text>
+  </g>
+  <g stroke="#D6D9E0" stroke-width="1">
+    <path d="M560 40 H840 M560 96 H840 M560 138 H840 M560 172 H840 M560 204 H840 M560 238 H840"/>
+  </g>
+  <g font-size="11" fill="#9CA3AF">
+    <text x="846" y="74">32</text>
+    <text x="846" y="122">22</text>
+    <text x="846" y="160">17</text>
+    <text x="846" y="200">15</text>
+    <text x="846" y="234">12</text>
+  </g>
+  <g font-size="12" fill="#0F7670" text-anchor="end">
+    <text x="840" y="286">音阶取自 4 的倍率：字号、行高、间距同一把尺</text>
+  </g>
+  <text x="450" y="322" text-anchor="middle" font-size="12" fill="#9CA3AF">排版是声音的强弱：标题是重音，正文是叙述，注释是低语</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340">
+  <rect width="900" height="340" fill="#FAFAFA"/>
+  <g transform="translate(450 190)">
+    <g transform="rotate(-64)"><rect x="-46" y="-150" width="92" height="150" rx="14" fill="#4338CA"/></g>
+    <g transform="rotate(-42)"><rect x="-46" y="-150" width="92" height="150" rx="14" fill="#0F7670"/></g>
+    <g transform="rotate(-20)"><rect x="-46" y="-150" width="92" height="150" rx="14" fill="#B45309"/></g>
+    <g transform="rotate(2)"><rect x="-46" y="-150" width="92" height="150" rx="14" fill="#BE185D"/></g>
+    <g transform="rotate(24)"><rect x="-46" y="-150" width="92" height="150" rx="14" fill="#6D67C9"/></g>
+    <g transform="rotate(46)"><rect x="-46" y="-150" width="92" height="150" rx="14" fill="#3F3F46"/></g>
+    <circle r="56" fill="#FAFAFA" stroke="#D6D9E0" stroke-width="1.5"/>
+    <text y="-8" text-anchor="middle" font-family="'Segoe UI','Microsoft YaHei UI',sans-serif" font-size="13" fill="#3F3F46">九套配色</text>
+    <text y="14" text-anchor="middle" font-family="'Segoe UI','Microsoft YaHei UI',sans-serif" font-size="11" fill="#6B7280">× 明暗两态</text>
+  </g>
+  <text x="450" y="322" text-anchor="middle" font-family="'Segoe UI','Microsoft YaHei UI',sans-serif" font-size="13" fill="#6B7280">像展开一把色卡：令牌在设计与代码之间往返</text>
+</svg>

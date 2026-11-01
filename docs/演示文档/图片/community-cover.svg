@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340">
+  <rect width="900" height="340" fill="#1E1B4B"/>
+  <g fill="none" stroke="#4C51BF" stroke-width="1.2" opacity=".7">
+    <ellipse cx="450" cy="170" rx="150" ry="60"/>
+    <ellipse cx="450" cy="170" rx="240" ry="98" transform="rotate(-14 450 170)"/>
+    <ellipse cx="450" cy="170" rx="330" ry="132" transform="rotate(12 450 170)"/>
+  </g>
+  <circle cx="450" cy="170" r="42" fill="#6366F1"/>
+  <text x="450" y="177" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="15" fill="#FFFFFF">Vex</text>
+  <g fill="#F472B6"><circle cx="560" cy="140" r="6"/><circle cx="290" cy="220" r="5"/></g>
+  <g fill="#34D399"><circle cx="600" cy="226" r="5"/><circle cx="262" cy="120" r="4"/></g>
+  <g fill="#FDE68A"><circle cx="672" cy="66" r="4"/><circle cx="210" cy="250" r="5"/></g>
+  <g fill="#22D3EE"><circle cx="700" cy="188" r="4"/><circle cx="158" cy="176" r="4"/></g>
+  <text x="450" y="322" text-anchor="middle" font-family="'Segoe UI','Microsoft YaHei UI',sans-serif" font-size="13" fill="#A5B4FC">每一颗星，都是一次提交与一份反馈</text>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1E1B4B"/><stop offset="1" stop-color="#312E81"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="340" fill="url(#bg)"/>
+  <g fill="none" stroke="#4C51BF" stroke-width="1" opacity=".35">
+    <path d="M0 60 H900 M0 130 H900 M0 200 H900 M0 270 H900"/>
+    <path d="M150 0 V340 M300 0 V340 M450 0 V340 M600 0 V340 M750 0 V340"/>
+  </g>
+  <text x="120" y="235" font-family="Consolas,monospace" font-size="190" fill="#818CF8" opacity=".92">{</text>
+  <text x="620" y="235" font-family="Consolas,monospace" font-size="190" fill="#818CF8" opacity=".92">}</text>
+  <g opacity=".9">
+    <rect x="330" y="80" width="64" height="64" rx="14" fill="#6366F1" opacity=".85"/>
+    <rect x="420" y="112" width="52" height="52" rx="12" fill="#22D3EE" opacity=".55"/>
+    <rect x="500" y="72" width="44" height="44" rx="10" fill="#A78BFA" opacity=".7"/>
+    <circle cx="560" cy="196" r="18" fill="#34D399" opacity=".5"/>
+    <circle cx="300" cy="200" r="12" fill="#F472B6" opacity=".55"/>
+  </g>
+  <text x="450" y="300" text-anchor="middle" font-size="13" fill="#A5B4FC">简洁的类型，是表达力的起点</text>
+</svg>

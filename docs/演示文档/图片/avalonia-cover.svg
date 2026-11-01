@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#312E81"/><stop offset=".65" stop-color="#6D67C9"/><stop offset="1" stop-color="#C7CDF4"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="340" fill="url(#sky)"/>
+  <circle cx="710" cy="86" r="34" fill="#FDE68A" opacity=".9"/>
+  <g opacity=".88">
+    <rect x="120" y="120" width="270" height="170" rx="12" fill="#EEF2FF" opacity=".22"/>
+    <rect x="205" y="150" width="270" height="170" rx="12" fill="#EEF2FF" opacity=".45"/>
+    <rect x="300" y="105" width="300" height="205" rx="12" fill="#EEF2FF" opacity=".85" stroke="#FFFFFF" stroke-width="1.5"/>
+    <rect x="300" y="105" width="300" height="30" rx="12" fill="#4338CA" opacity=".25"/>
+  </g>
+  <g stroke="#FFFFFF" stroke-width="1" opacity=".5">
+    <path d="M0 285 H900"/>
+  </g>
+  <g fill="#FFFFFF" opacity=".92">
+    <circle cx="90" cy="300" r="5"/><circle cx="820" cy="304" r="4"/>
+  </g>
+  <text x="450" y="322" text-anchor="middle" font-family="'Segoe UI',sans-serif" font-size="13" fill="#F1F5F9">一套 XAML，三块土地上的同一扇窗</text>
+</svg>

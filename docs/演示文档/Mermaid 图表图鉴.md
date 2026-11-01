@@ -1,11 +1,19 @@
-# Mermaid 图表图鉴
+﻿# Mermaid 图表图鉴
+
+![Mermaid 流程插图](图片/mermaid-cover.svg)
+
+Mermaid 是一套用文字生成图表的开源工具：写下几行类似代码的文本，渲染器负责画出流程图、时序图、类图……本页的每一段图形都由下方对应的文本块实时生成——修改文字，图形立即随之改变。
+
+源码与文档：<https://mermaid.js.org>
+
+以下示例全部取自 Vex 自身的架构与开发场景。
 
 ## 流程图
 
 ```mermaid
 flowchart LR
-  A[记录想法] --> B[梳理结构]
-  B --> C{再次阅读}
+  A[用户请求] --> B[路由中间件]
+  B --> C{返回响应}
   C -->|调整| B
   C -->|完成| D[导出分享]
 ```
@@ -58,7 +66,7 @@ gantt
   dateFormat YYYY-MM-DD
   axisFormat %m/%d
   tickInterval 1day
-  section 初稿
+  section 实现
     构思提纲 :done, a, 2026-10-17, 2d
     撰写正文 :active, b, after a, 3d
   section 发布
@@ -74,7 +82,7 @@ timeline
   title 文章的成长
   2026-10-17 : 收集灵感
   2026-10-19 : 完成提纲
-  2026-10-22 : 写成初稿
+  2026-10-22 : 写成实现
   2026-10-24 : 校对发布
 ```
 
@@ -83,7 +91,7 @@ timeline
 
 ```mermaid
 gitGraph
-  commit id: "初稿"
+  commit id: "实现"
   branch revise
   checkout revise
   commit id: "补充论据"
@@ -100,7 +108,7 @@ kanban
   todo[待办]
     a[收集资料]
   doing[进行中]
-    b[撰写初稿]
+    b[撰写实现]
   done[已完成]
     c[整理提纲]
 ```
@@ -167,7 +175,7 @@ mindmap
       提纲
       论据
     表达
-      初稿
+      实现
       校对
 ```
 
@@ -276,7 +284,7 @@ Draft,Revision,10
 radar-beta
   title "写作自评"
   axis clarity["清晰"], structure["结构"], detail["细节"], rhythm["节奏"]
-  curve draft["初稿"]{3, 4, 3, 2}
+  curve draft["实现"]{3, 4, 3, 2}
   curve revised["修订"]{5, 4, 4, 4}
   max 5
 ```

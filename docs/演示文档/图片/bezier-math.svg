@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" font-family="'Segoe UI','Microsoft YaHei UI',sans-serif">
+  <rect width="900" height="340" fill="#FDFDFD"/>
+  <g stroke="#E8EAEE" stroke-width="1">
+    <path d="M60 40 V290 M60 290 H840"/>
+    <path d="M60 90 H840 M60 140 H840 M60 190 H840 M60 240 H840"/>
+    <path d="M180 40 V290 M300 40 V290 M420 40 V290 M540 40 V290 M660 40 V290 M780 40 V290"/>
+  </g>
+  <path d="M60 240 C240 40 480 290 840 90" fill="none" stroke="#4338CA" stroke-width="3"/>
+  <g stroke="#B45309" stroke-width="1.2" stroke-dasharray="5 4">
+    <path d="M60 240 L240 40"/>
+    <path d="M240 40 L480 290"/>
+    <path d="M480 290 L840 90"/>
+  </g>
+  <g>
+    <circle cx="60" cy="240" r="7" fill="#0F7670"/>
+    <circle cx="240" cy="40" r="7" fill="#B45309"/>
+    <circle cx="480" cy="290" r="7" fill="#B45309"/>
+    <circle cx="840" cy="90" r="7" fill="#4338CA"/>
+  </g>
+  <g font-size="12" fill="#6B7280">
+    <text x="46" y="264">P0 (60,240)</text>
+    <text x="212" y="30">P1 (240,40) 控制点</text>
+    <text x="452" y="314">P2 (480,290) 控制点</text>
+    <text x="790" y="80">P3 (840,90)</text>
+  </g>
+  <text x="450" y="326" text-anchor="middle" font-size="12" fill="#9CA3AF">三次贝塞尔：B(t) = (1−t)³P0 + 3(1−t)²t·P1 + 3(1−t)t²·P2 + t³P3，t ∈ [0,1]</text>
+  <text x="105" y="230" font-size="12" fill="#0F7670" font-weight="600">曲线从 P0 出发</text>
+</svg>
