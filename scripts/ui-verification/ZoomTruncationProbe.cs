@@ -278,7 +278,8 @@ internal static class ZoomTruncationProbe
             Check(physicalWidth <= scroller.Viewport.Width + 1,
                 $"{zoom}% 正文物理宽 {physicalWidth:F0} 不超出窗格 {scroller.Viewport.Width:F0}（横向不溢出）");
             var column = viewer.Bounds.Width + viewer.Margin.Left + viewer.Margin.Right;
-            var expected = Math.Min(Math.Max(820, window.ClientSize.Width * .5), scroller.Viewport.Width / scale);
+            var available = Math.Max(0, scroller.Viewport.Width - scroller.Padding.Left - scroller.Padding.Right);
+            var expected = Math.Min(Math.Max(820, window.ClientSize.Width * .5), available / scale);
             Check(Math.Abs(column - expected) < 2,
                 $"{zoom}% 正文列宽按缩放回算：含留白 own={column:F1} 期望 {expected:F1}");
             var extentRatio = scroller.Extent.Height / baselineExtent;

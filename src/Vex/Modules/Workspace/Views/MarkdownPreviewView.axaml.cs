@@ -50,7 +50,6 @@ public partial class MarkdownPreviewView : UserControl
         DocumentTransform.LayoutTransform = scale == 1 ? null : new Avalonia.Media.ScaleTransform(scale, scale);
         DocumentTransform.Margin = default;
         if (presenting) PreviewMarkdownViewer.Width = Math.Max(100, Math.Min(1120, PreviewScrollViewer.Bounds.Width) - 104);
-        else PreviewMarkdownViewer.ClearValue(WidthProperty);
         var clientWidth = TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280;
         // 原型正文边框盒上限 820px；LayoutTransformControl 按缩放后的可用宽度量测子级。
         DocumentTransform.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
@@ -71,6 +70,10 @@ public partial class MarkdownPreviewView : UserControl
             PreviewMarkdownViewer.Margin = margin;
             // 原型的 max-width 是含留白的边框盒（全局 border-box），Avalonia 的 MaxWidth 只算内容：把留白扣回去。
             PreviewMarkdownViewer.MaxWidth = 820 - margin.Left - margin.Right;
+            // 居中的变换容器会按短文本收缩；阅读列宽只由视口与缩放决定。
+            var columnWidth = Math.Min(820, Math.Max(0, PreviewScrollViewer.Viewport.Width
+                - PreviewScrollViewer.Padding.Left - PreviewScrollViewer.Padding.Right) / scale);
+            PreviewMarkdownViewer.Width = Math.Max(0, columnWidth - margin.Left - margin.Right);
         }
     }
 
