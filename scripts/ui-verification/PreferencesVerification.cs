@@ -80,6 +80,10 @@ internal static class PreferencesVerification
         Check(!preferences.RestoreWorkspace, "Startup choice updates the typed workspace preference");
         Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex = 2; Render();
         Check(preferences.DefaultNewline == "CRLF", "Choice selection updates preference");
+        localizer.SetCulture("zh-CN"); view.SelectCategory("appearance"); Render();
+        var motionNote = view.GetVisualDescendants().OfType<TextBlock>()
+            .Single(x => x.Classes.Contains("pref-note") && x.Text == localizer.Get("Vex.VexL.MotionModeNote"));
+        Check(motionNote.Bounds.Height <= 20, "Motion description fits one line at the standard desktop width");
         view.SelectCategory("editor"); Render();
         Control<NumericUpDown>(nameof(preferences.FileListFontSize)).Value = 11; Render();
         Check(preferences.FileListFontSize == 11, "File list font control updates the saved preference");
@@ -112,6 +116,7 @@ internal static class PreferencesVerification
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-narrow-" + culture + ".png"));
         }
         Check(vm.Markdown == original, "Settings and locale changes preserve document text");
+        window.Width = 1280; window.Height = 820; Render();
         view.SelectCategory("mcp"); Render();
         // MCP 页：分段式标签（服务/客户端/审计），客户端页配置为已保存端点的合法 JSON。
         Check(!view.GetVisualDescendants().OfType<TabControl>().Any(), "MCP page uses segmented tabs instead of a classic TabControl");
@@ -142,12 +147,31 @@ internal static class PreferencesVerification
                 code.GetVisualAncestors().OfType<Border>().First(b => b.Classes.Contains("mcp-code")),
                 code.GetVisualAncestors().OfType<Border>().First(b => b.Classes.Contains("MdCodeBlock")));
         }
+        void CheckCodeFrame(MarkdownViewer viewer, string context)
+        {
+            var frame = Highlighted(viewer);
+            var origin = frame.Runs.TranslatePoint(default, frame.Box)!.Value;
+            var body = frame.Runs.GetVisualAncestors().OfType<ScrollViewer>().First();
+            var tags = frame.Inner.GetVisualDescendants().OfType<Button>().Select(button => button.Tag as string).ToArray();
+            Check(frame.Inner.Padding == new Thickness(0) && frame.Inner.Margin == new Thickness(0)
+                  && frame.Inner.BorderThickness == new Thickness(0) && frame.Inner.CornerRadius == default
+                  && body.Padding == new Thickness(16, 12)
+                  && Math.Abs(origin.X - 17) < .6 && Math.Abs(origin.Y - 43) < .6
+                  && frame.Runs.TextWrapping == TextWrapping.Wrap
+                  && Math.Abs(frame.Runs.FontSize - 14) < .01 && Math.Abs(frame.Runs.LineHeight - 21) < .01
+                  && tags.Contains("CodeDownload") && tags.Contains("CodeWrap") && tags.Contains("CodeCopy")
+                  && !tags.Contains("CodeFold")
+                  && !frame.Inner.GetVisualDescendants().OfType<SelectableTextBlock>()
+                      .Any(text => text.Tag as string == "CodeLineNumbers" && text.IsVisible),
+                $"MCP frame matches prototype after {context}: origin={origin}, padding={body.Padding}, font={frame.Runs.FontSize}/{frame.Runs.LineHeight}");
+        }
         // 原型 .vex-code.json 用的就是这两个主题的取值：库按代码块底色亮度挑 LightPlus / DarkPlus，所以跟着 data-theme 走。
         foreach (var (theme, keyToken, stringToken) in new[]
                  { ("light", "#267f99", "#a31515"), ("dark", "#4ec9b0", "#ce9178") })
         {
             vm.Appearance.SelectThemeByKey(theme); Render();
             var http = Highlighted(Control<MarkdownViewer>("McpClientConfiguration"));
+            CheckCodeFrame(Control<MarkdownViewer>("McpClientConfiguration"), theme + " HTTP");
             using (var config = System.Text.Json.JsonDocument.Parse(http.Text))
                 Check(config.RootElement.GetProperty("mcpServers").GetProperty("vex").GetProperty("url").GetString() == "http://127.0.0.1:17891/mcp/",
                     "Highlighted client config still parses with the saved endpoint: " + theme);
@@ -156,6 +180,7 @@ internal static class PreferencesVerification
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-clients-" + theme + ".png"));
             Control<Button>("McpSubStdio").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
             var stdio = Highlighted(Control<MarkdownViewer>("McpStdioConfiguration"));
+            CheckCodeFrame(Control<MarkdownViewer>("McpStdioConfiguration"), theme + " stdio");
             using (var config = System.Text.Json.JsonDocument.Parse(stdio.Text))
             {
                 var server = config.RootElement.GetProperty("mcpServers").GetProperty("vex");
@@ -169,18 +194,33 @@ internal static class PreferencesVerification
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-stdio-" + theme + ".png"));
             Control<Button>("McpSubHttp").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
         }
-        // 块面归 .mcp-code：库自带的第二层盒要压平，行号槽要收掉，正文只留 16 内距 + 1 描边 = 17 的缩进。
+        // 块面归 .mcp-code：库自带的第二层盒要压平，行号槽要收掉。
+        // 原型 .vex-code-frame：外框 1px + 30px 语言头 + 12px 正文上内距，正文原点为 17/43。
         var block = Highlighted(Control<MarkdownViewer>("McpClientConfiguration"));
         var inset = block.Runs.TranslatePoint(default, block.Box)!.Value;
+        var hasLineNumbers = block.Box.GetVisualDescendants().OfType<SelectableTextBlock>()
+            .Any(t => t.Tag as string == "CodeLineNumbers" && t.IsVisible);
         Check(block.Inner.Padding == new Thickness(0) && block.Inner.Margin == new Thickness(0)
               && block.Inner.BorderThickness == new Thickness(0) && block.Inner.CornerRadius == default
-              && !block.Box.GetVisualDescendants().OfType<SelectableTextBlock>().Any(t => t.Tag as string == "CodeLineNumbers" && t.IsVisible)
-              && Math.Abs(inset.X - 17) < .6 && Math.Abs(inset.Y - 17) < .6
+              && !hasLineNumbers
+              && Math.Abs(inset.X - 17) < .6 && Math.Abs(inset.Y - 43) < .6
               && block.Runs.TextWrapping == TextWrapping.Wrap
-              && Math.Abs(block.Runs.FontSize - 12) < .01 && Math.Abs(block.Runs.LineHeight - 21.6) < .01,
-            $"Highlighted block keeps the prototype box: inset={inset}, font={block.Runs.FontSize}/{block.Runs.LineHeight}, wrap={block.Runs.TextWrapping}");
+              && Math.Abs(block.Runs.FontSize - 14) < .01 && Math.Abs(block.Runs.LineHeight - 21) < .01,
+            $"Highlighted block keeps the prototype box: inset={inset}, outerPadding={block.Box.Padding}, outerMargin={block.Box.Margin}, innerPadding={block.Inner.Padding}, innerMargin={block.Inner.Margin}, innerBorder={block.Inner.BorderThickness}, innerRadius={block.Inner.CornerRadius}, lineNumbers={hasLineNumbers}, font={block.Runs.FontSize}/{block.Runs.LineHeight}, wrap={block.Runs.TextWrapping}");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-clients.png"));
         Control<Button>("McpSubStdio").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
+        var stdioViewer = Control<MarkdownViewer>("McpStdioConfiguration");
+        var previousFrame = Highlighted(stdioViewer).Inner;
+        var previousToken = model.Mcp.Token;
+        model.Mcp.Token = previousToken + "-render-check";
+        var renderDeadline = DateTime.UtcNow.AddSeconds(5);
+        while (ReferenceEquals(previousFrame, Highlighted(stdioViewer).Inner) && DateTime.UtcNow < renderDeadline)
+        {
+            Render(); Thread.Sleep(10);
+        }
+        Check(!ReferenceEquals(previousFrame, Highlighted(stdioViewer).Inner), "Configuration changes rebuild the code frame");
+        CheckCodeFrame(stdioViewer, "configuration rebuild");
+        model.Mcp.Token = previousToken; Render();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-mcp-stdio.png"));
         Control<Button>("McpTabAudit").RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render();
         // 原型 table.vex-audit：表头与每行都是 11+18+11+1 = 41 的行程，只画横线不画竖线，

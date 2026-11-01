@@ -1033,7 +1033,7 @@
        底色是 code-bg（每套色板都等于 panel），用 bg 会和外层内容底同色、代码块失去块面层次。 -->
   <Style Selector="Border.mcp-code">
     <Setter Property="Margin" Value="0,14"/>
-    <Setter Property="Padding" Value="16"/>
+    <Setter Property="Padding" Value="0"/>
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
@@ -1041,11 +1041,11 @@
   </Style>
   <Style Selector="Border.mcp-code SelectableTextBlock">
     <Setter Property="FontFamily" Value="Cascadia Code, Cascadia Mono, SFMono-Regular, Consolas, JetBrains Mono, Microsoft YaHei UI, monospace"/>
-    <Setter Property="FontSize" Value="12"/>
-    <Setter Property="LineHeight" Value="21.6"/>
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="LineHeight" Value="21"/>
     <Setter Property="TextWrapping" Value="Wrap"/>
   </Style>
-  <!-- 高亮那两块走 MarkdownViewer：块面（描边、圆角、16 内距）仍归 .mcp-code，压掉库自带的第二层盒与文档外边距。 -->
+  <!-- 高亮配置块也走同一套代码框：外层负责唯一的描边，内部头部 30px、正文 12/16px。 -->
   <Style Selector="Border.mcp-code Border.MdCodeBlock">
     <Setter Property="Padding" Value="0"/>
     <Setter Property="Margin" Value="0"/>
@@ -1054,6 +1054,15 @@
   </Style>
   <Style Selector="Border.mcp-code StackPanel.MdDocument">
     <Setter Property="Margin" Value="0"/>
+  </Style>
+  <Style Selector="Border.mcp-code StackPanel.MdCodeBlockHeader Grid">
+    <Setter Property="Margin" Value="10,6,10,0"/>
+  </Style>
+  <Style Selector="Border.mcp-code StackPanel.MdCodeBlockContent ScrollViewer">
+    <Setter Property="Padding" Value="16,12"/>
+  </Style>
+  <Style Selector="SelectableTextBlock.mcp-plain-code">
+    <Setter Property="Padding" Value="16,12"/>
   </Style>
   <!-- 动作按钮（原型 .vex-mcp-actions：32 高、CSS padding 5px 16px、1px border 描边 + bg 底 + inherit 文字，
        圆角回到 .vex-button 基线的 radius-xs 档，与相邻字段同口径，不吃工作台区的 999 胶囊覆盖）。

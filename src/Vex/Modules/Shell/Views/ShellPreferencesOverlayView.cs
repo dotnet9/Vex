@@ -25,7 +25,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private readonly ListBox _navigation = new() { Classes = { "preferences-navigation" }, Width = 148, Padding = new Thickness(10, 18), Background = Brushes.Transparent, BorderThickness = new Thickness(0) };
     // 原型两栏背景：左栏 --panel、右栏 --bg，浅深主题下有明暗差。浏览器侧是覆盖式滚动条，
     // 截图不占位；原生用 Hidden 保持同宽内容列（滚轮/触摸板仍可滚动）。
-    private readonly ScrollViewer _scroll = new() { Padding = new Thickness(24, 26), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Hidden };
+    private readonly ScrollViewer _scroll = new() { Padding = new Thickness(20, 22), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Hidden };
     private readonly TextBlock _title = new() { FontSize = 13, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
     private readonly Border _card;
     private Window? _owner;
@@ -240,7 +240,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     }
 
     /// <summary>
-    /// 配置正文块（原型 pre.vex-code：16 内边距、12/1.8 等宽、可整段选中复制）。
+    /// 配置正文块（原型 pre.vex-code：12/16 内边距、14/21 等宽、可整段选中复制）。
     /// 传 <paramref name="highlight"/> 时改走 MarkdownViewer 的围栏语法，与阅读区代码块同一套 TextMate 着色；
     /// 读取文档正文那块仍是纯文本，原型也没有为它上色。
     /// </summary>
@@ -254,10 +254,12 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Name = name ?? string.Empty,
                 // MCP 配置代码块同样带头部（语言标签 + 复制/下载/换行），与原型一致。
                 CodeBlockWrap = true,
-                // 字号与行高由渲染器写成本地值，样式表压不住，只能在这里给原型度量（12/1.8）。
+                EnableCodeBlockFolding = false,
+                DocumentBottomPadding = 0,
+                // MCP 与阅读区代码块共用 MarkdownViewer 的代码框；原型的配置块为 14px/21px。
                 CodeFontFamily = McpCodeFontFamily,
-                CodeBlockFontSize = 12,
-                CodeBlockLineHeight = 21.6
+                CodeBlockFontSize = 14,
+                CodeBlockLineHeight = 21
             };
             // 底色与外框同资源：库按代码块实际背景的亮度挑 DarkPlus/LightPlus token，透明底会被判成深色。
             BindResource(code, MarkdownViewer.CodeBackgroundBrushProperty, "VexCodeBackgroundBrush");
@@ -266,7 +268,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
         }
         else
         {
-            var plain = new SelectableTextBlock { Name = name ?? string.Empty };
+            var plain = new SelectableTextBlock { Name = name ?? string.Empty, Classes = { "mcp-plain-code" } };
             plain.Bind(TextBlock.TextProperty, new Binding(property) { Source = source });
             text = plain;
         }
