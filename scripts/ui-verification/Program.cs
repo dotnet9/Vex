@@ -2176,8 +2176,8 @@ void VerifyWorkbench(VerificationVexApp app, Vex.Modules.Shell.Views.MainWindow 
     var typographyGallery = window.FindControl<Vex.Modules.Shell.Views.ShellTypographyGallery>("TypographyGallery")!;
     var simpleCard = typographyGallery.GetVisualDescendants().OfType<Button>().SingleOrDefault(b => b.Name == "Typography_Simple");
     Check(simpleCard is not null
-        && simpleCard.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
-            .Any(viewer => viewer.Markdown.Contains(app.Resolve<IAppLocalizer>().Get(Vex.VexL.TypographySimple))),
+        && simpleCard.GetVisualDescendants().OfType<TextBlock>()
+            .Any(label => label.Text == app.Resolve<IAppLocalizer>().Get(Vex.VexL.TypographySimple)),
         "Typography cards use the same localized names as the menu");
     vm.Workbench.ShowTypography = false;
     var preferences = app.Resolve<IAppSettingsStore>().Current;
@@ -2594,8 +2594,9 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Vex.Modules.Shell.Views.MainW
             $"Plain code remains readable on the actual Semi background: {palette.Key}/{theme}");
         Check(code.FontSize >= 12.5 && viewer.ParagraphFontSize >= 15,
             "Rendered code and paragraph retain readable native font sizes");
-        Check(!frame.GetVisualDescendants().OfType<Control>().Any(control => control.Classes.Contains("MdCodeBlockHeader") && control.IsEffectivelyVisible),
-            "Reading code shows neither a language toolbar nor a copy button");
+        Check(frame.GetVisualDescendants().OfType<Control>().Any(control => control.Classes.Contains("MdCodeBlockHeader") && control.IsEffectivelyVisible)
+            || frame.GetVisualDescendants().OfType<Button>().Any(button => button.Classes.Contains("MdCodeBlockToolButton") && button.IsEffectivelyVisible),
+            "Reading code exposes the shared language header or copy action");
         Capture(window, $"code-{palette.Key}-{theme}");
     }
 }
