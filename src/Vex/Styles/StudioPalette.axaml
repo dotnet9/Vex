@@ -116,8 +116,8 @@
             <SolidColorBrush x:Key="VexTableBorderBrush" Color="#DFE2E5" />
             <SolidColorBrush x:Key="VexDangerBrush" Color="#B42318" />
             <SolidColorBrush x:Key="VexDangerSoftBrush" Color="#FEECEB" />
-            <SolidColorBrush x:Key="VexSuccessBrush" Color="#067647" />
-            <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A067647" />
+            <SolidColorBrush x:Key="VexSuccessBrush" Color="#056B42" />
+            <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#18067647" />
             <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
             <SolidColorBrush x:Key="VexWarningSoftBrush" Color="#FDEBD7" />
             <!-- 原型的 info 令牌是固定蓝（不随配色走），更新日志的「优化」胶囊用它；淡底沿用本族的「实色 10% 透明」画法。 -->

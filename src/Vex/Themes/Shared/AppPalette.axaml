@@ -24,8 +24,8 @@
             <SolidColorBrush x:Key="VexAccentSoftBrush" Color="#E8F1FF" />
             <SolidColorBrush x:Key="VexDangerBrush" Color="#DC2626" />
             <SolidColorBrush x:Key="VexDangerSoftBrush" Color="#FEECEB" />
-            <SolidColorBrush x:Key="VexSuccessBrush" Color="#067647" />
-            <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#1A067647" />
+            <SolidColorBrush x:Key="VexSuccessBrush" Color="#056B42" />
+            <SolidColorBrush x:Key="VexSuccessSoftBrush" Color="#18067647" />
             <SolidColorBrush x:Key="VexWarningBrush" Color="#B54708" />
             <SolidColorBrush x:Key="VexMutedBrush" Color="#667085" />
             <SolidColorBrush x:Key="VexValueBrush" Color="#1D2939" />
