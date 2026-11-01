@@ -450,7 +450,7 @@
                                    TextTrimming="CharacterEllipsis" />
                     </Grid>
                 </Button>
-                <Button Grid.Column="1" Classes="files-tool"
+                <Button x:Name="FilesSortButton" Grid.Column="1" Classes="files-tool"
                         Flyout="{StaticResource SortFlyout}"
                         helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SortFiles}}"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SortFiles}}">

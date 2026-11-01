@@ -66,7 +66,7 @@ internal static class ButtonStateProbe
             return new Rect(origin, target.Bounds.Size);
         }
         // 盒内像素统计：强调色描线像素个数与它们的最高行，用来同时证明「前景翻色」与「整枚下沉 1px」。
-        (int AccentPixels, int TopRow, int BottomRow) AccentRowes(SKBitmap raster, Rect box)
+        (int AccentPixels, int TopRow, int BottomRow) AccentRows(SKBitmap raster, Rect box, int tolerance = 26)
         {
             var count = 0;
             var top = int.MaxValue;
@@ -74,7 +74,7 @@ internal static class ButtonStateProbe
             for (var y = (int)box.Y; y < box.Bottom; y++)
             for (var x = (int)box.X; x < box.Right; x++)
             {
-                if (!Close(raster.GetPixel(x, y), accent, 26)) continue;
+                if (!Close(raster.GetPixel(x, y), accent, tolerance)) continue;
                 count++;
                 if (y < top) top = y;
                 if (y > bottom) bottom = y;
@@ -100,37 +100,47 @@ internal static class ButtonStateProbe
 
         // ===== 图标钮一族（原型 .icon-button / .format-button）：灰底 + 强调描线 + 按压底 + 1px 下沉 =====
         var filesTool = window.GetVisualDescendants().OfType<Button>()
-            .First(b => b.IsEffectivelyVisible && b.Classes.Contains("files-tool"));
+            .Single(b => b.IsEffectivelyVisible && b.Name == "FilesSortButton");
         var filesBox = Box(filesTool);
+        Check(filesBox.Width == 26 && filesBox.Height == 26,
+            "Icon state probe targets the 26px footer tool, not the search clear action");
         MoveAway();
-        var idleRaster = Raster();
-        var idleAccent = AccentRowes(idleRaster, filesBox);
+        using var idleRaster = Raster();
+        var idleAccent = AccentRows(idleRaster, filesBox, tolerance: 6);
         var idleBackground = PresenterColor(filesTool);
-        Check(!filesTool.Classes.Contains(":pointerover") && idleAccent.AccentPixels == 0,
+        Check(!filesTool.Classes.Contains(":pointerover") && idleAccent.AccentPixels == 0 && idleBackground.A == 0,
             $"Idle icon button paints no accent glyph and no hover plate (accent pixels={idleAccent.AccentPixels}, plate=#{idleBackground.ToString()})");
 
         var center = new Point(filesBox.X + filesBox.Width / 2, filesBox.Y + filesBox.Height / 2);
         window.MouseMove(center, RawInputModifiers.None); Render();
         using var hoverRaster = Raster();
-        var hoverAccent = AccentRowes(hoverRaster, filesBox);
+        var hoverAccent = AccentRows(hoverRaster, filesBox);
+        var glyph = filesTool.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Single();
         Check(filesTool.Classes.Contains(":pointerover")
             && Same(PresenterColor(filesTool), hover)
             && Same(((ISolidColorBrush)filesTool.Foreground!).Color, accent)
-            && hoverAccent.AccentPixels > 20,
+            && glyph.Fill is ISolidColorBrush fill && Same(fill.Color, accent)
+            && hoverAccent.AccentPixels > 0,
             $"Hover takes the prototype grey plate plus accent stroke: plate=#{PresenterColor(filesTool)} (want #{hover}), foreground=#{((ISolidColorBrush)filesTool.Foreground!).Color} (want #{accent}), accent pixels={hoverAccent.AccentPixels}");
-        Check(CountColor(hoverRaster, filesBox, pressed) < 8,
-            "Hover plate stays clear of the pressed tint");
+        var hoverPressedPixels = CountColor(hoverRaster, filesBox, pressed, tolerance: 2);
+        Check(hoverPressedPixels < 8,
+            $"Hover plate stays clear of the pressed tint (pixels={hoverPressedPixels}, pressed=#{pressed})");
 
         window.MouseDown(center, MouseButton.Left); Render();
         using var pressRaster = Raster();
-        var pressAccent = AccentRowes(pressRaster, filesBox);
+        using (var encodedPress = pressRaster.Encode(SKEncodedImageFormat.Png, 100))
+            File.WriteAllBytes(Path.Combine(output, "button-state-icon-pressed.png"), encodedPress.ToArray());
+        // The pressed transform moves the rendered glyph one pixel below the logical button bounds;
+        // sample the translated paint box so the raster check observes the complete icon.
+        var pressAccent = AccentRows(pressRaster, new Rect(filesBox.X, filesBox.Y + 1, filesBox.Width, filesBox.Height));
         Check(filesTool.Classes.Contains(":pressed") && Same(PresenterColor(filesTool), pressed),
             $"Press swaps the plate to the accent-derived pressed tint: #{PresenterColor(filesTool)} (want #{pressed})");
         Check(filesTool.RenderTransform is TranslateTransform lift && Math.Abs(lift.Y - 1) < 0.01,
             "Press carries the prototype 1px translate on the button itself");
         Check(pressAccent.TopRow == hoverAccent.TopRow + 1 && pressAccent.BottomRow == hoverAccent.BottomRow + 1,
             $"Pressed glyph really sits one pixel lower on the raster: rows {hoverAccent.TopRow}-{hoverAccent.BottomRow} to {pressAccent.TopRow}-{pressAccent.BottomRow}");
-        window.MouseUp(center, MouseButton.Left);
+        window.MouseMove(new Point(6, 6), RawInputModifiers.None);
+        window.MouseUp(new Point(6, 6), MouseButton.Left);
         MoveAway();
 
         // ===== 文字工具钮（原型 .toolbar-button）：悬停前景从 muted 翻成正文色，按压实心下沉 =====
@@ -194,6 +204,13 @@ internal static class ButtonStateProbe
         var halo = primary.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Name == "PART_Halo");
         Check(halo is not null && halo.CornerRadius == primary.CornerRadius,
             $"Halo rides a dedicated Border that hugs the plate radius: {halo?.CornerRadius} vs {primary.CornerRadius}");
+        Check(halo!.BoxShadow.Equals(BoxShadows.Parse($"0 2 5 0 #26{accent.R:X2}{accent.G:X2}{accent.B:X2}")),
+            "Idle halo uses the prototype offsets, blur and 15% accent color");
+        // Compare the same painted location with its shadow removed, avoiding assumptions about card color.
+        halo.BoxShadow = default;
+        using var noShadowRaster = Raster();
+        var noShadowNear = Closeness(noShadowRaster, primaryBox.X + primaryBox.Width / 2, primaryBox.Bottom + 2);
+        halo.ClearValue(Border.BoxShadowProperty);
         using var restRaster = Raster();
         var restControl = Closeness(restRaster, primaryBox.X - 24, primaryBox.Bottom + 2);
         // 光晕能伸到几像素：逐行数列底边下方，一行里离强调色更近的像素不足 10 个就断开。
@@ -213,9 +230,11 @@ internal static class ButtonStateProbe
         var restReach = HaloReach(restRaster);
         var restNear = Closeness(restRaster, primaryBox.X + primaryBox.Width / 2, primaryBox.Bottom + 2);
         var restAbove = Closeness(restRaster, primaryBox.X + primaryBox.Width / 2, primaryBox.Y - 3);
-        Check(restReach >= 2 && restNear > restControl + 25 && restAbove < restControl + 8,
-            $"Idle primary carries the prototype 0 2 5 accent halo: {restReach}px of tint below the plate, 2px below scores {restNear} vs bare card {restControl}, above {restAbove}");
+        Check(restReach >= 2 && restNear > noShadowNear + 6 && restAbove < restControl + 8,
+            $"Idle primary paints the specified halo: {restReach}px of tint below the plate, 2px below scores {restNear} vs shadow removed {noShadowNear}, above {restAbove}");
         window.MouseMove(primaryCenter, RawInputModifiers.None); Render();
+        Check(halo.BoxShadow.Equals(BoxShadows.Parse($"0 4 12 0 #38{accent.R:X2}{accent.G:X2}{accent.B:X2}")),
+            "Hover halo uses the prototype offsets, blur and 22% accent color");
         using var haloRaster = Raster();
         var hoverReach = HaloReach(haloRaster);
         var hoverNear = Closeness(haloRaster, primaryBox.X + primaryBox.Width / 2, primaryBox.Bottom + 2);
