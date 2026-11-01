@@ -93,15 +93,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
         _card.MaxWidth = Math.Max(320, window.Bounds.Width - 48);
         _card.MaxHeight = Math.Max(260, window.Bounds.Height - 48);
         _navigation.Width = 147;
-        // Ursa 先按旧卡片尺寸定位；限高变化后用最终尺寸恢复居中。
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-            if (this.GetVisualAncestors().OfType<Ursa.Controls.DialogControlBase>().FirstOrDefault() is not { } dialog
-                || dialog.Parent is not Ursa.Controls.OverlayDialogHost host) return;
-            var safe = host.SafePadding;
-            Canvas.SetLeft(dialog, safe.Left + Math.Max(0, (host.Bounds.Width - safe.Left - safe.Right - dialog.Bounds.Width) / 2));
-            Canvas.SetTop(dialog, safe.Top + Math.Max(0, (host.Bounds.Height - safe.Top - safe.Bottom - dialog.Bounds.Height) / 2));
-        }, Avalonia.Threading.DispatcherPriority.Loaded);
+        Vex.Controls.OverlayDialogLayout.CenterAfterLayout(this);
     }
     private void CultureChanged(object? sender, EventArgs args)
     {

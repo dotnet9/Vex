@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+             x:Class="Vex.Modules.Workspace.Views.TablePreviewView">
+  <Border x:Name="PreviewCard" Classes="dialog-card table-preview-card" Padding="0" BorderThickness="1"
+          CornerRadius="{DynamicResource VexDensityCornerRadiusMd}" BorderBrush="{DynamicResource VexPanelBorderBrush}"
+          Background="{DynamicResource VexPopBrush}">
+    <Grid RowDefinitions="Auto,*" KeyboardNavigation.TabNavigation="Cycle">
+      <Border Padding="16,12" Background="{DynamicResource VexPanelBackgroundBrush}"
+              BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+          <TextBlock FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center">
+            <Run x:Name="DocumentName"/><Run Text=" · "/><Run Text="{i18n:I18n {x:Static l:VexL.TablePreview}}"/>
+          </TextBlock>
+          <Button x:Name="ClosePreview" Grid.Column="1" MinHeight="0" FontSize="12" Padding="10,5"
+                  CornerRadius="{DynamicResource VexDensityCornerRadiusSm}" BorderThickness="1"
+                  BorderBrush="{DynamicResource VexPanelBorderBrush}" Click="OnClose"
+                  Content="{i18n:I18n {x:Static l:VexL.Close}}"/>
+        </Grid>
+      </Border>
+      <Border Grid.Row="1" Padding="24,20">
+        <DataGrid x:Name="PreviewTable" AutoGenerateColumns="False" IsReadOnly="True" FontSize="12"
+                  GridLinesVisibility="All" MinColumnWidth="90" BorderThickness="0" HeadersVisibility="Column"
+                  CanUserSortColumns="False" CanUserReorderColumns="False"
+                  HorizontalGridLinesBrush="{DynamicResource VexPanelBorderBrush}"
+                  VerticalGridLinesBrush="{DynamicResource VexPanelBorderBrush}"
+                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                  Background="{DynamicResource VexEditorBackgroundBrush}" Foreground="{DynamicResource VexValueBrush}">
+          <DataGrid.Styles>
+            <Style Selector="DataGridCell">
+              <Setter Property="Padding" Value="12,10"/>
+            </Style>
+            <Style Selector="DataGridCell TextBlock">
+              <Setter Property="Margin" Value="0"/>
+              <Setter Property="FontSize" Value="12"/>
+              <Setter Property="LineHeight" Value="19.2"/>
+              <Setter Property="TextWrapping" Value="Wrap"/>
+            </Style>
+            <Style Selector="DataGridColumnHeader">
+              <Setter Property="Background" Value="{DynamicResource VexDocumentTableHeaderBrush}"/>
+              <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+              <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+          </DataGrid.Styles>
+        </DataGrid>
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

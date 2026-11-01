@@ -288,6 +288,7 @@ internal static class ElementVerification
             new ShellActionCommand(ShellActionKind.ShowFindPanel));
         Pump(); Pump();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "panel-find.png"));
+        TablePreviewVerification.Run(window, output);
     }
 
     private static string TableText(string markdown)

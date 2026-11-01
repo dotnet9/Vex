@@ -104,9 +104,10 @@ public partial class MainWindow : CodeWFWindow
 
     private void WindowKeyDown(object? sender, KeyEventArgs e)
     {
+        // 窗内模态框处理自己的按键，避免 Esc/F6/撤销等穿透到后面的工作台。
+        if (ShellDialogHost.IsInModalStatus) return;
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key is Key.S or Key.W or Key.O or Key.N)
             Workspace.MindMapGuideTarget.FlushInspector();
-        if (e.Source is Visual dialogInput && dialogInput.GetVisualAncestors().Prepend(dialogInput).Any(view => view is ShellInsertTableOverlayView)) return;
         // 引导按键优先：演示中的 Esc/翻页等在引导第 5 幕期间由引导接管。
         if (WorkbenchGuide.IsVisible && WorkbenchGuide.HandleKey(e)) { e.Handled = true; return; }
         if (DataContext is MainWindowViewModel presentationVm && presentationVm.Workbench.IsPresenting)

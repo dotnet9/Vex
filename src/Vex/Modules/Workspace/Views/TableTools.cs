@@ -15,18 +15,16 @@ public static class TableTools
     /// <summary>给阅读视图的每张表格上方插入常驻工具条；重复调用安全。</summary>
     public static void Attach(Control root)
     {
+        // 最后一张表格移除时也要清理工具条，不能等到下一张表格出现才清理。
+        foreach (var orphan in root.GetVisualDescendants().OfType<Control>()
+                     .Where(child => child.GetValue(ToolbarForProperty) is Border owner
+                         && !ReferenceEquals(owner.Parent, child.Parent)).ToList())
+            if (orphan.Parent is Panel parent) parent.Children.Remove(orphan);
         foreach (var container in root.GetVisualDescendants().OfType<Border>()
                      .Where(border => border.Classes.Contains(CodeWF.Avalonia.Markdown.MarkdownStyleKeys.TableContainer))
                      .ToList())
         {
             if (container.Parent is not Panel panel) continue;
-            // 工具条是面板的未登记子项：换内容时查看器只回收它自己登记的块，工具条不会被一起带走，
-            // 于是每次重渲染都留下一条幽灵高度。先按「宿主表格还在不在同一个面板里」清掉失效的。
-            foreach (var orphan in panel.Children.OfType<Control>()
-                         .Where(child => child.GetValue(ToolbarForProperty) is Border owner
-                                         && !ReferenceEquals(owner.Parent, panel))
-                         .ToList())
-                panel.Children.Remove(orphan);
             if (container.GetValue(AttachedProperty)) continue;
             container.SetValue(AttachedProperty, true);
             // 原型 .md-table-block 中工具条与表格同组：块顶距归工具条，表格只留底距。
@@ -98,45 +96,19 @@ public static class TableTools
         };
     }
 
-    /// <summary>从渲染表格提取单元格文本：按行分组（Y 坐标），行内按 X 排序。</summary>
+    /// <summary>按表格的行列索引提取文本，不依赖尚未完成布局时的控件坐标。</summary>
     public static string[][] Extract(Border container)
     {
         var grid = container.GetVisualDescendants().OfType<Grid>()
-            .FirstOrDefault(candidate => candidate.Classes.Contains(CodeWF.Avalonia.Markdown.MarkdownStyleKeys.Table))
-            ?? container.GetVisualDescendants().OfType<Grid>().FirstOrDefault();
+            .FirstOrDefault(candidate => candidate.Classes.Contains(CodeWF.Avalonia.Markdown.MarkdownStyleKeys.Table));
         if (grid is null) return Array.Empty<string[]>();
-        var records = new List<(double Y, double X, string Text)>();
-        foreach (var border in grid.GetVisualDescendants().OfType<Border>())
-        {
-            var isCell = border.Classes.Contains(CodeWF.Avalonia.Markdown.MarkdownStyleKeys.TableCell)
-                || border.Classes.Contains(CodeWF.Avalonia.Markdown.MarkdownStyleKeys.TableHeaderCell);
-            if (!isCell) continue;
-            var origin = border.TranslatePoint(new Point(0, 0), grid);
-            if (origin is not { } point) continue;
-            var text = new System.Text.StringBuilder();
-            foreach (var descendant in border.GetVisualDescendants())
-            {
-                text.Append(CellText(descendant));
-            }
-            records.Add((point.Y, point.X, text.ToString()));
-        }
-        if (records.Count == 0) return Array.Empty<string[]>();
-        var ordered = records.OrderBy(record => record.Y).ThenBy(record => record.X).ToList();
-        var grouped = new List<List<string>>();
-        var currentRow = new List<string>();
-        var currentY = ordered[0].Y;
-        foreach (var record in ordered)
-        {
-            if (Math.Abs(record.Y - currentY) > 8)
-            {
-                grouped.Add(currentRow);
-                currentRow = new List<string>();
-                currentY = record.Y;
-            }
-            currentRow.Add(record.Text.Replace("\n", " ").Trim());
-        }
-        grouped.Add(currentRow);
-        return grouped.Select(row => row.ToArray()).ToArray();
+        return grid.Children.OfType<Border>()
+            .Where(cell => cell.Classes.Contains(CodeWF.Avalonia.Markdown.MarkdownStyleKeys.TableCell)
+                || cell.Classes.Contains(CodeWF.Avalonia.Markdown.MarkdownStyleKeys.TableHeaderCell))
+            .GroupBy(Grid.GetRow).OrderBy(row => row.Key)
+            .Select(row => row.OrderBy(Grid.GetColumn)
+                .Select(cell => string.Concat(cell.GetVisualDescendants().Select(CellText)).Replace("\n", " ").Trim())
+                .ToArray()).ToArray();
     }
 
     /// <summary>单元格文本：Markdown 文本块的文字放在 Inlines 里，Text 属性可能为空。</summary>
@@ -187,35 +159,7 @@ public static class TableTools
 
     private static void OpenPreview(Border container)
     {
-        var rows = Extract(container);
-        var grid = new Grid();
-        if (rows is { Length: > 0 })
-        {
-            foreach (var _ in rows[0]) grid.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Auto));
-            foreach (var _ in rows) grid.RowDefinitions.Add(new RowDefinition(1, GridUnitType.Auto));
-        }
-        for (var r = 0; r < rows.Length; r++)
-        {
-            for (var c = 0; c < rows[r].Length; c++)
-            {
-                var cell = new Border
-                {
-                    Padding = new Thickness(10, 6),
-                    BorderBrush = Brushes.LightGray,
-                    BorderThickness = new Thickness(0, 0, 1, 1),
-                    Child = new TextBlock { Text = rows[r][c], FontSize = 12, TextWrapping = TextWrapping.Wrap },
-                };
-                grid.Children.Add(cell);
-                Grid.SetRow(cell, r);
-                Grid.SetColumn(cell, c);
-            }
-        }
-        var scroll = new ScrollViewer { Content = grid, MaxHeight = 420, MaxWidth = 720 };
-        _ = Ursa.Controls.OverlayDialog.ShowCustomAsync<bool>(scroll, new object(),
-            options: new Ursa.Controls.OverlayDialogOptions
-            {
-                CanLightDismiss = true, CanDragMove = false, CanResize = true, IsCloseButtonVisible = false,
-            });
+        _ = TablePreviewView.Show(Extract(container), container);
     }
 
 }
