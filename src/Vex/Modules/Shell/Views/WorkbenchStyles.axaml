@@ -528,8 +528,18 @@
   <Style Selector="ListBox.preferences-navigation ListBoxItem:selected"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem:pointerover"><Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/></Style>
+  <Style Selector="ListBox.preferences-navigation ListBoxItem Path"><Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem:selected TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem:selected Path"><Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/></Style>
+  <Style Selector="Button.preferences-close">
+    <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
+  </Style>
+  <Style Selector="Button.preferences-close /template/ Path">
+    <Setter Property="Width" Value="7"/>
+    <Setter Property="Height" Value="7"/>
+    <Setter Property="StrokeThickness" Value="1.05"/>
+  </Style>
   <!-- 原型 .vex-pref-segmented（prototype.css:214 起）：偏好行右侧 196 等宽分段，轨道/指示块走共享配方，
        这里只补段高（control-h-sm）、内距（4×密度/6）与正文减 1 号字。 -->
   <Style Selector="Button.pref-segment">

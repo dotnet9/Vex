@@ -66,14 +66,32 @@ internal static class PreferencesVerification
         T Control<T>(string name) where T : Control => view.GetVisualDescendants().OfType<T>().Single(x => x.Name == name);
         Check(view.GetVisualDescendants().OfType<ListBox>().Single().ItemCount == 6, "Preferences has six prototype categories");
 
-        // 原型契约：标题栏与左分类栏同用面板铬色（--panel），右配置区用更浅的画布底（--bg）。
+        // 最新 surface.css：标题栏/配置区为 pop 面，只有左分类栏使用 chrome。
         Application.Current!.TryGetResource("VexDialogChromeBrush", window.ActualThemeVariant, out var chrome);
         var chromeColor = ((ISolidColorBrush)chrome!).Color;
-        var borders = view.GetVisualDescendants().OfType<Border>().Where(b => b.Background is ISolidColorBrush).ToList();
-        var header = window.GetVisualDescendants().OfType<Border>().First(b => b.Child is Grid g && g.Children.OfType<Button>().Any(c => c.Classes.Contains("vex-dismiss")) && (b.Background as ISolidColorBrush)?.Color == chromeColor);
-        Check((header.Background as ISolidColorBrush)!.Color == chromeColor, "Preferences title bar uses the chrome panel color");
-        var scrollBackground = view.GetVisualDescendants().OfType<ScrollViewer>().First().Background as ISolidColorBrush;
-        Check(scrollBackground is not null && scrollBackground.Color != chromeColor, "Preferences config area stays lighter than the chrome");
+        Application.Current.TryGetResource("VexPopBrush", window.ActualThemeVariant, out var pop);
+        var popColor = ((ISolidColorBrush)pop!).Color;
+        var card = Control<Border>("PreferencesCard");
+        var header = view.GetVisualDescendants().OfType<Border>().First(b => b.Child is Grid g && g.Children.OfType<Button>().Any(c => c.Classes.Contains("preferences-close")));
+        Check((header.Background as ISolidColorBrush)!.Color == popColor, "Preferences title bar uses the prototype pop surface");
+        var scrollBackground = Control<ScrollViewer>("PreferencesContent").Background as ISolidColorBrush;
+        Check(scrollBackground?.Color == popColor && popColor != chromeColor, "Preferences config area uses the same pop surface");
+        Check(card.BorderThickness == new Thickness(1) && card.CornerRadius == new CornerRadius(8),
+            "Preferences keeps its 1px outer frame and 8px standard radius");
+        var navigation = view.GetVisualDescendants().OfType<ListBox>().Single();
+        var navigationRows = navigation.GetVisualDescendants().OfType<ListBoxItem>().ToArray();
+        Check(navigationRows.Length == 6 && navigationRows.All(row => Math.Abs(row.Bounds.Width - 127) < .1
+            && Math.Abs(row.Bounds.Height - 40) < .1
+            && row.GetVisualDescendants().OfType<TextBlock>().All(text => text.FontSize == 14 && text.LineHeight == 21)),
+            "Preferences navigation uses 127x40 rows and 14/21 labels");
+        Application.Current.TryGetResource("VexAccentBrush", window.ActualThemeVariant, out var accent);
+        var selectedIcon = navigationRows.Single(row => row.IsSelected).GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Single();
+        Check((selectedIcon.Stroke as ISolidColorBrush)?.Color == ((ISolidColorBrush)accent!).Color,
+            "Selected preference category tints its icon and label together");
+        var close = header.GetVisualDescendants().OfType<Button>().Single(button => button.Classes.Contains("preferences-close"));
+        var closeIcon = close.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Single();
+        Check(close.Bounds.Size == new Size(46, 32) && closeIcon.Bounds.Size == new Size(7, 7),
+            "Preferences close button retains the 46x32 hit area and prototype 7px ink");
         Check(Control<ComboBox>(nameof(preferences.DefaultEncoding)).SelectedIndex == 0, "Default encoding has a visible initial choice");
         Check(Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex == 0, "Default line ending has a visible initial choice");
         Control<ComboBox>(nameof(preferences.RestoreWorkspace)).SelectedIndex = 0; Render();
@@ -84,6 +102,12 @@ internal static class PreferencesVerification
         var motionNote = view.GetVisualDescendants().OfType<TextBlock>()
             .Single(x => x.Classes.Contains("pref-note") && x.Text == localizer.Get("Vex.VexL.MotionModeNote"));
         Check(motionNote.Bounds.Height <= 20, "Motion description fits one line at the standard desktop width");
+        var appearanceRows = view.GetVisualDescendants().OfType<Border>().Where(border => border.Classes.Contains("pref-row")).ToArray();
+        var firstRowOrigin = appearanceRows[0].TranslatePoint(default, card)!.Value;
+        Check(Math.Abs(firstRowOrigin.X - 169) < .1 && Math.Abs(firstRowOrigin.Y - 57) < .1
+            && appearanceRows.Take(2).All(row => Math.Abs(row.Bounds.Height - 65.2) < .1)
+            && appearanceRows.Skip(2).All(row => Math.Abs(row.Bounds.Height - 53) < .1),
+            $"Preferences rows match the prototype origin and 65.2/53px pitch: origin={firstRowOrigin}, heights={string.Join(',', appearanceRows.Select(row => row.Bounds.Height))}");
         view.SelectCategory("editor"); Render();
         Control<NumericUpDown>(nameof(preferences.FileListFontSize)).Value = 11; Render();
         Check(preferences.FileListFontSize == 11, "File list font control updates the saved preference");

@@ -22,11 +22,11 @@ public sealed class ShellPreferencesOverlayView : UserControl
 {
     private readonly ShellPreferencesViewModel _model;
     private readonly IAppLocalizer _localizer;
-    private readonly ListBox _navigation = new() { Classes = { "preferences-navigation" }, Width = 148, Padding = new Thickness(10, 18), Background = Brushes.Transparent, BorderThickness = new Thickness(0) };
+    private readonly ListBox _navigation = new() { Classes = { "preferences-navigation" }, Width = 147, Padding = new Thickness(10, 18), Background = Brushes.Transparent, BorderThickness = new Thickness(0) };
     // 原型两栏背景：左栏 --panel、右栏 --bg，浅深主题下有明暗差。浏览器侧是覆盖式滚动条，
     // 截图不占位；原生用 Hidden 保持同宽内容列（滚轮/触摸板仍可滚动）。
-    private readonly ScrollViewer _scroll = new() { Padding = new Thickness(20, 22), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Hidden };
-    private readonly TextBlock _title = new() { FontSize = 13, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+    private readonly ScrollViewer _scroll = new() { Name = "PreferencesContent", Padding = new Thickness(20), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Hidden };
+    private readonly TextBlock _title = new() { FontSize = 15, LineHeight = 22.5, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
     private readonly Border _card;
     private Window? _owner;
     // MCP 分类下「服务/客户端/审计」页签的选择：整页会随语言重建，所以选择记在视图上。
@@ -38,30 +38,31 @@ public sealed class ShellPreferencesOverlayView : UserControl
     public ShellPreferencesOverlayView(ShellPreferencesViewModel model, IAppLocalizer localizer, string category)
     {
         _model = model; _localizer = localizer; DataContext = model;
+        UseLayoutRounding = false;
         BindResource(this, ForegroundProperty, "VexValueBrush");
         var grid = new Grid { RowDefinitions = new RowDefinitions("36,*") };
         var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         header.Margin = new Thickness(16, 0, 0, 0);
         header.Children.Add(_title);
-        var close = new Button { Classes = { "vex-dismiss" }, Width = 46, Height = 32 };
+        var close = new Button { Classes = { "vex-dismiss", "preferences-close" }, Width = 46, Height = 32 };
         Avalonia.Automation.AutomationProperties.SetName(close, L(VexL.Close));
         close.Click += (_, _) => model.Close(); Grid.SetColumn(close, 1); header.Children.Add(close);
         var headerFrame = Frame(header, new Thickness(0, 0, 0, 1));
-        BindResource(headerFrame, Border.BackgroundProperty, "VexDialogChromeBrush");
+        BindResource(headerFrame, Border.BackgroundProperty, "VexPopBrush");
         grid.Children.Add(headerFrame);
         var body = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
         // 原型契约：标题栏与左栏同用 --panel（铬色），右栏配置区用更浅的 --bg。
         var navigationFrame = Frame(_navigation, new Thickness(0, 0, 1, 0));
         BindResource(navigationFrame, Border.BackgroundProperty, "VexDialogChromeBrush");
-        BindResource(_scroll, BackgroundProperty, "VexShellBackgroundBrush");
+        BindResource(_scroll, BackgroundProperty, "VexPopBrush");
         body.Children.Add(navigationFrame); Grid.SetColumn(_scroll, 1); body.Children.Add(_scroll);
         Grid.SetRow(body, 1); grid.Children.Add(body);
         // 改值即生效：去掉「设置已保存 / 完成」页脚（对应原型偏好浮层）。
         // 宿主挂在 CodeWFWindow.OverlayContent 整窗浮层槽（含标题条），与原型
         // .vex-settings-host 同几何：卡片直接在整窗内居中，无需负边距补偿。
-        _card = new Border { Classes = { "dialog-card" }, Width = 675, Height = 700, Padding = new Thickness(0), BorderThickness = new Thickness(0), ClipToBounds = true, Child = grid };
-        // 原型 workspace-chrome 把 .vex-settings 的描边收掉、圆角升到 --vex-radius-popover（16 基线，只乘 --radius-scale）。
-        BindResource(_card, Border.CornerRadiusProperty, "VexDensityCornerRadiusPopover");
+        _card = new Border { Name = "PreferencesCard", Classes = { "dialog-card" }, Width = 675, Height = 700, Padding = new Thickness(0), BorderThickness = new Thickness(1), ClipToBounds = true, Child = grid };
+        // surface.css 的 --vex-r-pop 使用 md 档：标准圆角 8，保留整圈 1px 描边。
+        BindResource(_card, Border.CornerRadiusProperty, "VexDensityCornerRadiusMd");
         Content = _card;
         _navigation.SelectionChanged += (_, _) => ShowCategory();
         RefreshLabels();
@@ -90,7 +91,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
         if (TopLevel.GetTopLevel(this) is not Window window) return;
         _card.MaxWidth = Math.Max(320, window.Bounds.Width - 48);
         _card.MaxHeight = Math.Max(260, window.Bounds.Height - 48);
-        _navigation.Width = 148;
+        _navigation.Width = 147;
         // Ursa 先按旧卡片尺寸定位；限高变化后用最终尺寸恢复居中。
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
@@ -116,9 +117,11 @@ public sealed class ShellPreferencesOverlayView : UserControl
         _navigation.ItemsSource = _categories.Select((c, i) =>
         {
             var row = new Grid { ColumnDefinitions = new ColumnDefinitions("17,*"), ColumnSpacing = 10 };
-            var icon = new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse(icons[i]), Width = 17, Height = 17, Stretch = Stretch.Uniform, StrokeThickness = 1.5, VerticalAlignment = VerticalAlignment.Center };
-            icon.Bind(Avalonia.Controls.Shapes.Path.StrokeProperty, _navigation.GetResourceObservable("VexMutedBrush")); row.Children.Add(icon);
-            var label = new TextBlock { Text = L(c.Key), FontSize = 13, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(label, 1); row.Children.Add(label);
+            var icon = new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse(icons[i]), StrokeThickness = 1.8, StrokeLineCap = PenLineCap.Round, StrokeJoin = PenLineJoin.Round };
+            // 保留 SVG 的 24px viewBox，不能把路径的墨迹边界直接拉满 17px。
+            var iconCanvas = new Canvas { Width = 24, Height = 24 }; iconCanvas.Children.Add(icon);
+            row.Children.Add(new Viewbox { Width = 17, Height = 17, Child = iconCanvas, VerticalAlignment = VerticalAlignment.Center });
+            var label = new TextBlock { Text = L(c.Key), FontSize = 14, LineHeight = 21, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(label, 1); row.Children.Add(label);
             var item = new ListBoxItem { Content = row, MinHeight = 40, Padding = new Thickness(12, 9), Margin = new Thickness(0, 0, 0, 3), HorizontalContentAlignment = HorizontalAlignment.Stretch };
             // 原型 .vex-settings-nav button 用 --vex-radius-xs（4 基线，只乘 --radius-scale），不是固定 5。
             BindResource(item, ListBoxItem.CornerRadiusProperty, "VexDensityCornerRadiusXs");
@@ -410,13 +413,13 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private void Row(StackPanel page, string label, Control control, string? note = null, bool fill = false)
     {
         // fill = 控件吃满剩余宽度（路径类输入框），否则按内容自适应并靠右。
-        // 行高对齐原型 .vex-pref-row：内容槽 34（= 55 最小高 − 上下 10 − 1 分隔线），控件都按 34 建档。
+        // 原型普通行 53px；带说明的行由 21 + 4 + 19.2 行盒自然撑高。
         var row = new Grid { ColumnDefinitions = new ColumnDefinitions(fill ? "Auto,*" : "*,Auto"), ColumnSpacing = 24, MinHeight = 32 };
         var labels = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         labels.Children.Add(new TextBlock { Text = L(label), Classes = { "pref-label" } });
         if (note is not null) labels.Children.Add(new TextBlock { Text = L(note), Classes = { "muted", "pref-note" } });
         row.Children.Add(labels); control.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(control, 1); row.Children.Add(control);
-        var frame = Frame(row, new Thickness(0, 0, 0, 1)); frame.Padding = new Thickness(0, 10); page.Children.Add(frame);
+        var frame = Frame(row, new Thickness(0, 0, 0, 1)); frame.Classes.Add("pref-row"); frame.Padding = new Thickness(0, 10); page.Children.Add(frame);
     }
     private void Toggle(StackPanel page, string label, object source, string property, string? note = null)
     {
@@ -480,9 +483,12 @@ public sealed class ShellPreferencesOverlayView : UserControl
     }
     private void ColorChoice(StackPanel page, string label, Vex.Core.Services.EditorPreferences preferences)
     {
-        var fill = new Border { Height = 18, Width = 164, CornerRadius = new CornerRadius(4) };
+        var fill = new Border { Height = 12, Width = 156 };
         fill.Bind(Border.BackgroundProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkColor)) { Source = preferences, Converter = HexToBrushConverter.Instance });
-        var swatch = new Button { Width = 180, Height = 28, Padding = default, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), Content = fill };
+        var swatch = new Button { Name = "WatermarkColorSwatch", Width = 180, Height = 32, Padding = default, BorderThickness = new Thickness(1), Content = fill };
+        BindResource(swatch, Button.CornerRadiusProperty, "VexDensityCornerRadiusXs");
+        BindResource(swatch, Button.BackgroundProperty, "VexPopBrush");
+        BindResource(swatch, Button.BorderBrushProperty, "VexControlBorderBrush");
         BindResource(swatch, Button.BorderBrushProperty, "VexPanelBorderBrush");
         var presets = new UniformGrid { Columns = 8, Width = 224, Margin = new Thickness(8) };
         foreach (var hex in new[] { "#24766B", "#2E5851", "#3A6EA5", "#4C6FE8", "#7457E8", "#C2417B", "#B3261E", "#D96C2C", "#8A6D3B", "#5F5347", "#6B7280", "#374151", "#111111", "#E8E4DA", "#88B04B", "#2477A8" })
