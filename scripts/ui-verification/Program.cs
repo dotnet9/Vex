@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
@@ -876,7 +876,7 @@ void VerifyDocumentWindows(VerificationVexApp app, Window window, MainWindowView
     Pump(vm.Help.OpenHelpTopic("samples"));
     Check(launcher.Paths.Last() == BundledDocuments.SamplesFolder, "Sample menu launches the real packaged directory");
     Pump(vm.OpenStartupDocumentAsync([BundledDocuments.SamplesFolder]));
-    Check(vm.WorkspaceFolderPath == BundledDocuments.SamplesFolder && vm.DocumentFiles.Count == 6, "Opening samples loads all six actual files into the ordinary file tree");
+    Check(vm.WorkspaceFolderPath == BundledDocuments.SamplesFolder && vm.DocumentFiles.Count == 7, "Opening samples loads all seven actual files into the ordinary file tree");
     foreach (var file in vm.DocumentFiles)
         Check(File.Exists(file.Path) && file.Path.StartsWith(BundledDocuments.SamplesFolder), "Sample tree contains packaged files: " + file.Name);
     Pump(vm.OpenStartupDocumentAsync([Path.Combine(BundledDocuments.SamplesFolder, "图文与链接.md")]));
