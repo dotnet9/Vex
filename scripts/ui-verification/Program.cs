@@ -1488,8 +1488,13 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     {
         var tableViewer = new CodeWF.Avalonia.Markdown.Controls.MarkdownViewer();
         var rendered = ((CodeWF.Avalonia.Markdown.Rendering.IMarkdownRenderContext)tableViewer).ConvertBlock(table, relapText);
-        Check(rendered is Border { Child: Grid grid } && grid.Classes.Contains("MdTable") && grid.ColumnDefinitions.Count == 4,
+        var tableBorder = rendered is CodeWF.Avalonia.Markdown.Controls.MarkdownTableBlock tableBlock
+            ? tableBlock.Children.OfType<Border>().Single() : rendered as Border;
+        Check(tableBorder is { Child: Grid grid } && grid.Classes.Contains("MdTable") && grid.ColumnDefinitions.Count == 4,
             "HTML table uses native cells through the registered application renderer");
+        Check(rendered is CodeWF.Avalonia.Markdown.Controls.MarkdownTableBlock { Data: var data }
+            && data.Rows.Count == 2 && data.Rows.All(row => row.Count == 4),
+            "HTML table exposes the same four-column data to its application tools");
     }
     Check(CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg.MarkdownBlockParser.Write(
         CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg.MarkdownBlockParser.Parse(relapText)) == relapText,

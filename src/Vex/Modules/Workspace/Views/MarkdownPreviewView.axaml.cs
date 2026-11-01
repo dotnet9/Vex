@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -81,11 +81,7 @@ public partial class MarkdownPreviewView : UserControl
     {
         InitializeComponent();
         // 异步渲染、切换主题和虚拟化会重建图表，等控件实际排版后再挂交互。
-        PreviewMarkdownViewer.LayoutUpdated += (_, _) =>
-        {
-            TableTools.Attach(PreviewMarkdownViewer);
-            DiagramEditor.Attach(PreviewMarkdownViewer);
-        };
+        PreviewMarkdownViewer.LayoutUpdated += (_, _) => DiagramEditor.Attach(PreviewMarkdownViewer);
         PreviewMarkdownViewer.ActualThemeVariantChanged += (_, _) =>
             ApplyPresentationTypography(_viewModel?.IsPresenting == true);
         // 原 ViewModelLocator 反射装配改为构造自取容器单例。
@@ -171,14 +167,6 @@ public partial class MarkdownPreviewView : UserControl
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown))
-        {
-            // 渲染是分批异步的：稍等一拍再挂表格工具，重复挂载有去重保护。
-            Dispatcher.UIThread.Post(() =>
-            {
-                TableTools.Attach(PreviewMarkdownViewer);
-            }, DispatcherPriority.Background);
-        }
         if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown) && _viewModel?.IsPresenting != true
             && _restoringScrollPosition && _restoreSource != _viewModel?.Markdown)
         {

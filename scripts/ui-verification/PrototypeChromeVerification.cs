@@ -490,8 +490,10 @@ internal static class PrototypeChromeVerification
         if (previewScroll is not null) { previewScroll.Offset = new Vector(0, previewScroll.Extent.Height); Render(); previewScroll.Offset = new Vector(0, previewScroll.Extent.Height); Render(); }
         var tableContainer = window.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("MdTableContainer"));
         Check(tableContainer is not null, "Reading view renders table containers");
-        var extracted = Vex.Modules.Workspace.Views.TableTools.Extract(tableContainer!);
-        Check(extracted.Length >= 2 && extracted[0][0] == "API", "Table tools receive complete table cells");
+        var tableBlock = tableContainer!.GetVisualAncestors().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownTableBlock>().FirstOrDefault();
+        Check(tableBlock is not null, "Table toolbar and content share one registered document block");
+        var extracted = tableBlock!.Data.Rows;
+        Check(extracted.Count >= 2 && extracted[0][0] == "API", "Table tools receive structured model cells");
         Check(Vex.Modules.Workspace.Views.TableTools.ToMarkdown(extracted).StartsWith("| API | 说明 |"), "Table tools rebuild markdown");
         Check(Vex.Modules.Workspace.Views.TableTools.ToCsv(extracted).Contains("Read,读取文档"), "Table tools build csv");
         previewScroll!.Offset = default; Render();
