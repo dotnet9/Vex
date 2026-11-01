@@ -87,8 +87,10 @@
                         </Panel>
                     </StackPanel>
                     <TextBlock Grid.Column="1" Classes="file-heading" IsVisible="{Binding IsFolder}"
+                               FontSize="{Binding $parent[UserControl].((vm:ShellFilesViewModel)DataContext).Preferences.FileTreeHeadingFontSize, FallbackValue=12}"
                                VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                     <TextBlock Grid.Column="1" Classes="file-title" IsVisible="{Binding IsDocument}"
+                               FontSize="{Binding $parent[UserControl].((vm:ShellFilesViewModel)DataContext).Preferences.FileListFontSize, FallbackValue=12.5}"
                                VerticalAlignment="Center" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                     <TextBlock Grid.ColumnSpan="3" Classes="muted" FontSize="11" IsVisible="{Binding IsLoadingPlaceholder}"
                                Text="{i18n:I18n {x:Static l:VexL.SidebarFilesLoading}}" />
@@ -363,6 +365,7 @@
                               Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
                     </Panel>
                     <TextBlock Grid.Column="1" Classes="file-list-name" Text="{Binding Name}" VerticalAlignment="Center"
+                               FontSize="{Binding $parent[UserControl].((vm:ShellFilesViewModel)DataContext).Preferences.FileListFontSize, FallbackValue=12.5}"
                                TextTrimming="CharacterEllipsis" helpers:ToolTipHelper.Text="{Binding Path}" />
                     <TextBlock Grid.Column="2" Classes="file-folder-tag" Text="{Binding FolderTag}" VerticalAlignment="Center"
                                IsVisible="{Binding FolderTag, Converter={x:Static avaloniaConverters:StringConverters.IsNotNullOrEmpty}}"

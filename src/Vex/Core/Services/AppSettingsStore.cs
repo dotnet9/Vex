@@ -48,6 +48,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string OutlineWidth = nameof(AppSettings.OutlineWidth);
     private const string ViewSplitRatios = nameof(AppSettings.ViewSplitRatios);
     private const string FileListView = nameof(AppSettings.FileListView);
+    private const string FileListFontSize = nameof(AppSettings.FileListFontSize);
     private const string FileSortKey = nameof(AppSettings.FileSortKey);
     private const string CollapsedFolders = nameof(AppSettings.CollapsedFolders);
     private const string CollapsedOutlineSections = nameof(AppSettings.CollapsedOutlineSections);
@@ -132,6 +133,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             OutlineWidth = Get<double?>(configuration, OutlineWidth),
             ViewSplitRatios = Get<string>(configuration, ViewSplitRatios),
             FileListView = Get<bool?>(configuration, FileListView),
+            FileListFontSize = Get<double?>(configuration, FileListFontSize),
             FileSortKey = Get<string>(configuration, FileSortKey) ?? "group",
             CollapsedFolders = Get<string>(configuration, CollapsedFolders),
             CollapsedOutlineSections = Get<string>(configuration, CollapsedOutlineSections),
@@ -228,6 +230,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [OutlineWidth] = settings.OutlineWidth,
                 [ViewSplitRatios] = settings.ViewSplitRatios,
                 [FileListView] = settings.FileListView,
+                [FileListFontSize] = settings.FileListFontSize,
                 [FileSortKey] = settings.FileSortKey,
                 [CollapsedFolders] = settings.CollapsedFolders,
                 [CollapsedOutlineSections] = settings.CollapsedOutlineSections,

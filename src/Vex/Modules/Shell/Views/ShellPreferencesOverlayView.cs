@@ -137,6 +137,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
             case "editor":
                 // 对齐原型 editor 页：仅 编辑区字体、缩进 与「代码与源码」组（自动换行、源码行号）。
                 Choice(page, VexL.PrefBodyFont, p, nameof(p.BodyFont), [(L(VexL.PrefSystemFont), "system"), (L(VexL.PrefSerifFont), "serif"), (L(VexL.PrefMonoFont), "mono")]);
+                Number(page, VexL.PrefFileListFontSize, p, nameof(p.FileListFontSize), 10, 18, .5m);
                 Choice(page, VexL.PrefIndent, p, nameof(p.IndentSize), [(LF("Vex.VexL.PrefSpaceUnit", 2), 2), (LF("Vex.VexL.PrefSpaceUnit", 4), 4), (LF("Vex.VexL.PrefSpaceUnit", 8), 8)]);
                 Heading(page, "Vex.VexL.PrefCodeAndSource");
                 Toggle(page, VexL.PrefWrap, p, nameof(p.CodeWrap));

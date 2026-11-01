@@ -1016,7 +1016,8 @@
       "FindCountMatches": "{0} 件一致",
       "FindCountNone": "この本文に一致なし",
       "LayoutCurrentFormat": "レイアウト：{0}",
-      "MapSummaryCharacters": "文字"
+      "MapSummaryCharacters": "文字",
+      "PrefFileListFontSize": "ファイル一覧の文字サイズ"
     }
   }
 }

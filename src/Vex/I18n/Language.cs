@@ -1015,4 +1015,5 @@ public static class VexL
     public static readonly string FindCountNone = "Vex.VexL.FindCountNone";
     public static readonly string LayoutCurrentFormat = "Vex.VexL.LayoutCurrentFormat";
     public static readonly string MapSummaryCharacters = "Vex.VexL.MapSummaryCharacters";
+    public static readonly string PrefFileListFontSize = "Vex.VexL.PrefFileListFontSize";
 }

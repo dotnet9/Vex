@@ -1016,7 +1016,8 @@
       "FindCountMatches": "{0} 處匹配",
       "FindCountNone": "目前正文無匹配",
       "LayoutCurrentFormat": "版面：{0}",
-      "MapSummaryCharacters": "字"
+      "MapSummaryCharacters": "字",
+      "PrefFileListFontSize": "檔案清單字級"
     }
   }
 }

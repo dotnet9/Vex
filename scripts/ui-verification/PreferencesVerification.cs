@@ -28,6 +28,7 @@ internal static class PreferencesVerification
         var preferences = app.Resolve<EditorPreferences>();
         var model = app.Resolve<ShellPreferencesViewModel>();
         var localizer = app.Resolve<IAppLocalizer>();
+        FileListTypographyVerification.Run(app, window, output);
         void Check(bool value, string message)
         {
             if (!value) throw new InvalidOperationException(message);
@@ -80,6 +81,9 @@ internal static class PreferencesVerification
         Control<ComboBox>(nameof(preferences.DefaultNewline)).SelectedIndex = 2; Render();
         Check(preferences.DefaultNewline == "CRLF", "Choice selection updates preference");
         view.SelectCategory("editor"); Render();
+        Control<NumericUpDown>(nameof(preferences.FileListFontSize)).Value = 11; Render();
+        Check(preferences.FileListFontSize == 11, "File list font control updates the saved preference");
+        preferences.FileListFontSize = 12.5; Render();
         // 对齐原型 editor 页：缩进改为 2/4/8 空格下拉，页面只有 字体/缩进/自动换行/源码行号 四项。
         Control<ComboBox>(nameof(preferences.IndentSize)).SelectedIndex = 1; Render();
         Check(preferences.IndentSize == 4, "Indent choice updates the typed preference");
@@ -318,7 +322,9 @@ internal static class PreferencesVerification
         {
             // 三处缩放坞的读数要跨会话保留：写盘后换成全新实例重读，确认 App.config 里的键真的落地。
             preferences.MapZoom = 137; preferences.PresentationScale = 2.2; preferences.ContentZoom = 145;
+            preferences.FileListFontSize = 11;
             var reread = new AppSettingsStore().Current;
+            Check(reread.FileListFontSize == 11, "File list font size survives a real settings-file reload");
             Check(reread.MapZoom == 137 && reread.ContentZoom == 145
                 && Math.Abs((reread.PresentationScale ?? 0) - 2.2) < .001,
                 "Map, presentation and content zoom survive a real settings-file reload");

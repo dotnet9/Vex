@@ -19,9 +19,10 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     private bool _isListView;
     private string _sortKey = "group";
 
-    public ShellFilesViewModel(IAppSettingsStore? settingsStore = null, IWorkspaceFileService? workspaceFiles = null, IDocumentFileFactory? fileFactory = null)
+    public ShellFilesViewModel(IAppSettingsStore? settingsStore = null, IWorkspaceFileService? workspaceFiles = null, IDocumentFileFactory? fileFactory = null, EditorPreferences? preferences = null)
     {
         _settingsStore = settingsStore;
+        Preferences = preferences ?? (settingsStore is null ? null : new EditorPreferences(settingsStore));
         _fileFactory = fileFactory;
         _isListView = settingsStore?.Current.FileListView ?? false;
         _sortKey = settingsStore?.Current.FileSortKey ?? "group";
@@ -35,6 +36,7 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     }
 
     public string? TitleKey { get; } = VexL.SidebarFiles;
+    public EditorPreferences? Preferences { get; }
 
     public ObservableCollection<DocumentFileNode> DocumentFileNodes { get; } = [];
 

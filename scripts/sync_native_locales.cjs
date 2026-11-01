@@ -79,6 +79,7 @@ for(const culture of Object.keys(extra)){
    ,ChooseChapter: {'zh-CN':'选择一个章节','zh-Hant':'選擇一個章節','en-US':'Select a chapter','ja-JP':'章を選択'}[culture]
    ,ChooseChapterHint: {'zh-CN':'在大纲或导图中选择章节，即可查看和编辑详情。','zh-Hant':'在大綱或導圖中選擇章節，即可查看和編輯詳情。','en-US':'Select a chapter in the outline or mind map to view and edit its details.','ja-JP':'アウトラインまたはマインドマップで章を選択すると、詳細を表示・編集できます。'}[culture]
    ,GroupByFolder: {'zh-CN':'按文件夹分类','zh-Hant':'按資料夾分類','en-US':'Group by folder','ja-JP':'フォルダ別に分類'}[culture]
+   ,PrefFileListFontSize: {'zh-CN':'文件列表字号','zh-Hant':'檔案清單字級','en-US':'File list font size','ja-JP':'ファイル一覧の文字サイズ'}[culture]
    ,UntitledDocument: {'zh-CN':'未命名文档','zh-Hant':'未命名文件','en-US':'Untitled document','ja-JP':'無題の文書'}[culture]
    ,WBSaveAndApply: {'zh-CN':'保存并应用','zh-Hant':'儲存並套用','en-US':'Save and apply','ja-JP':'保存して適用'}[culture]
    ,CustomDefaultName: {'zh-CN':'自定义','zh-Hant':'自訂','en-US':'Custom','ja-JP':'カスタム'}[culture]

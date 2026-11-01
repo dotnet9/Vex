@@ -18,6 +18,17 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     public string DefaultNewline { get => settings.Current.DefaultNewline ?? "system"; set => Set(s => s with { DefaultNewline = value ?? "" }); }
     public double BodyFontSize { get => settings.Current.BodyFontSize ?? 15; set => Set(s => s with { BodyFontSize = Math.Clamp(value, 12, 24) }); }
     public double CodeFontSize { get => settings.Current.CodeFontSize ?? 12.5; set => Set(s => s with { CodeFontSize = Math.Clamp(value, 11, 20) }); }
+    public double FileListFontSize
+    {
+        get => settings.Current.FileListFontSize is { } size && double.IsFinite(size) ? Math.Clamp(size, 10, 18) : 12.5;
+        set
+        {
+            if (!double.IsFinite(value)) return;
+            Set(s => s with { FileListFontSize = Math.Clamp(value, 10, 18) });
+            this.RaisePropertyChanged(nameof(FileTreeHeadingFontSize));
+        }
+    }
+    public double FileTreeHeadingFontSize => FileListFontSize - .5;
     public int IndentSize { get => settings.Current.IndentSize ?? 2; set => Set(s => s with { IndentSize = Math.Clamp(value, 2, 8) }); }
     public bool CodeWrap { get => settings.Current.CodeWrap ?? false; set => Set(s => s with { CodeWrap = value }); }
     public string BodyFont { get => settings.Current.BodyFont ?? "system"; set => Set(s => s with { BodyFont = value ?? "" }); }

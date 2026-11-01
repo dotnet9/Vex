@@ -1016,7 +1016,8 @@
       "FindCountMatches": "{0} matches",
       "FindCountNone": "No matches in this text",
       "LayoutCurrentFormat": "Layout: {0}",
-      "MapSummaryCharacters": "chars"
+      "MapSummaryCharacters": "chars",
+      "PrefFileListFontSize": "File list font size"
     }
   }
 }
