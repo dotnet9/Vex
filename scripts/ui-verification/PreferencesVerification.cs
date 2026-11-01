@@ -116,7 +116,11 @@ internal static class PreferencesVerification
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "settings-narrow-" + culture + ".png"));
         }
         Check(vm.Markdown == original, "Settings and locale changes preserve document text");
-        window.Width = 1280; window.Height = 820; Render();
+        window.Width = 1280; window.Height = 820; Render(); Render();
+        var restoredOrigin = view.TranslatePoint(default, window)!.Value;
+        Check(restoredOrigin.Y >= 24 && restoredOrigin.Y + view.Bounds.Height <= window.Bounds.Height - 24
+              && Math.Abs(restoredOrigin.Y + view.Bounds.Height / 2 - window.Bounds.Height / 2) <= 1,
+            $"Preferences stays centered after a narrow desktop round trip: origin={restoredOrigin}, size={view.Bounds.Size}");
         view.SelectCategory("mcp"); Render();
         // MCP 页：分段式标签（服务/客户端/审计），客户端页配置为已保存端点的合法 JSON。
         Check(!view.GetVisualDescendants().OfType<TabControl>().Any(), "MCP page uses segmented tabs instead of a classic TabControl");
