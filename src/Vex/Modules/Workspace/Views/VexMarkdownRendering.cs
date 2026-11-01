@@ -17,6 +17,7 @@ internal static class VexMarkdownRendering
     {
         if (_registered) return;
         _registered = true;
+        VexDocumentTypography.Register();
         MarkdownViewer.RegisterImageControlFactory((context, source, alt) =>
         {
             var image = new ResponsiveMarkdownImage

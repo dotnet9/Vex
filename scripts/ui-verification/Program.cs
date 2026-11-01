@@ -68,7 +68,7 @@ if (mode == "parity-score")
     VisualParityScore.Run(args.Skip(1).ToArray());
     return;
 }
-if (mode is "reading-pointer" or "diagram-pointer" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics")
+if (mode is "document-typography" or "reading-pointer" or "diagram-pointer" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -95,6 +95,7 @@ if (mode is "reading-pointer" or "diagram-pointer" or "search-layout" or "readin
     else if (mode == "elements") ElementVerification.Run(app, window, output);
     else if (mode == "motion") MotionVerification.Run(app, window, output);
     else if (mode == "protection") ProtectionVerification.Run(app, window, output);
+    else if (mode == "document-typography") DocumentTypographyVerification.Run(app, window, output);
     else if (mode == "prototype-appearance") PrototypeAppearanceVerification.Run(app, window, output);
     else if (mode == "prototype-chrome") PrototypeChromeVerification.Run(app, window, output);
     else if (mode == "visual") VisualParityCapture.Run(app, window, output);
