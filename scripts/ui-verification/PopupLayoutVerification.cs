@@ -28,9 +28,11 @@ internal static class PopupLayoutVerification
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
         var title = window.FindControl<ShellTitleMenuView>("TitleMenuView")!;
-        foreach (var culture in new[] { "zh-CN", "en-US", "ja-JP", "ko-KR" })
+        foreach (var language in vm.Appearance.LanguageOptions.ToArray())
         {
+            var culture = language.CultureName;
             vm.Appearance.SelectLanguageByCulture(culture); Render();
+            Check(vm.Appearance.SelectedLanguage?.CultureName == culture, "Title-menu locale is selected: " + culture);
             var menu = title.FindControl<Menu>("TitleMenuBar")!;
             var topItems = menu.Items.OfType<MenuItem>().ToArray();
             Check(topItems.Length == 6 && topItems.All(item => Math.Abs(item.Bounds.Height - 28) < .01)

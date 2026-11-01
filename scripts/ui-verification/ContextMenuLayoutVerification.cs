@@ -89,7 +89,6 @@ internal static class ContextMenuLayoutVerification
                 Check(branch.IsSubMenuOpen, "Right arrow opens the selected submenu: " + branch.Header);
                 var popup = branch.GetVisualDescendants().OfType<Popup>().First(p => p.IsOpen);
                 Inspect(popup.Child!, label + "/" + branch.Header);
-                window.MouseMove(new Point(2, window.ClientSize.Height - 2));
                 Press(Key.Escape, PhysicalKey.Escape);
                 if (branch.IsSubMenuOpen)
                     Console.WriteLine($"SUBMENU ESCAPE root={menu.IsOpen}, branch={branch.IsSubMenuOpen}, popup={popup.IsOpen}, focus={window.FocusManager?.GetFocusedElement()}, selected={menu.SelectedItem}, child={branch.SelectedItem}");
