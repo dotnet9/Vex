@@ -70,6 +70,7 @@
     </Style>
     <Style Selector="ContextMenu MenuItem /template/ ContentPresenter#PART_HeaderPresenter">
         <Setter Property="LineHeight" Value="22.4" />
+        <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style Selector="ContextMenu MenuItem /template/ TextBlock#PART_InputGestureText">
         <Setter Property="LineHeight" Value="22.4" />

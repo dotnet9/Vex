@@ -74,5 +74,6 @@ internal static class ReadingPointerVerification
         window.MouseDown(diagramPoint, MouseButton.Left); window.MouseUp(diagramPoint, MouseButton.Left); Render();
         Check(!viewer.HasSelection, "Clicking a diagram leaves no phantom text selection");
         Check(vm.Markdown.Contains("A[Start] --> B[End]"), "Diagram click preserves source");
+        ContextMenuLayoutVerification.Run(window, output);
     }
 }
