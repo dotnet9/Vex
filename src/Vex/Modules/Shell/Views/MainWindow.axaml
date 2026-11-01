@@ -97,7 +97,16 @@
 
     <!-- CodeWFWindow 模板已预留标题栏高度，内容只添加 1 像素分隔线（原型 .titlebar 底边为边框色 55%）。 -->
     <Border x:Name="ShellTitleDivider"
-            BorderBrush="{DynamicResource VexTitleDividerBrush}" BorderThickness="0 1 0 0">
+            Classes.presentation="{Binding Workbench.IsPresenting}"
+            BorderBrush="{DynamicResource VexTitleDividerBrush}">
+    <Border.Styles>
+        <Style Selector="Border#ShellTitleDivider">
+            <Setter Property="BorderThickness" Value="0 1 0 0" />
+        </Style>
+        <Style Selector="Border#ShellTitleDivider.presentation">
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+    </Border.Styles>
     <Grid
         x:Name="ShellGuideRoot"
         Background="{DynamicResource VexWorkspaceCanvasBrush}"

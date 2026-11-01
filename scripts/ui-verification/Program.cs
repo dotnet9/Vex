@@ -34,6 +34,18 @@ if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
+if (mode == "presentation-geometry")
+{
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+    var app = (VerificationVexApp)Application.Current!;
+    var window = (Vex.Modules.Shell.Views.MainWindow)(app.Shell ?? app.CreateShell());
+    window.Show();
+    LoadBundledSamples((MainWindowViewModel)window.DataContext!);
+    PresentationGeometryVerification.Run(window);
+    window.Close();
+    return;
+}
 if (mode == "settings-real-ui")
 {
     VerificationVexApp.UseRealSettings = true;
@@ -1399,7 +1411,7 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
         Check(wb.PresentationIndex == 1 && wb.PresentationOutline && preview.CurrentModel.Source.Contains("var n = 42"), "Clicking an outline chapter opens its page without collapsing the outline");
         Capture(window, "presentation-content-" + round);
         var contentOrigin = preview.TranslatePoint(default, window)!.Value;
-        var displayedWidth = preview.Bounds.Width * wb.PresentationZoom;
+        var displayedWidth = preview.Bounds.Width;
         Check(Math.Abs(contentOrigin.X + displayedWidth / 2 - (window.Bounds.Width - wb.DeckNavWidth) / 2) < 3, "Presentation content stays centered in the column left of the outline");
         window.KeyPress(Key.PageDown, RawInputModifiers.None, PhysicalKey.PageDown, null); window.KeyRelease(Key.PageDown, RawInputModifiers.None, PhysicalKey.PageDown, null); Pump();
         Check(wb.PresentationIndex == 2 && !wb.CanNextPresentation, "PageDown advances to the last section");

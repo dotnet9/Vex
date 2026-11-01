@@ -10,14 +10,15 @@ namespace Vex.Modules.Workspace.ViewModels;
 public sealed class MarkdownPreviewViewModel : ReactiveObject
 {
     public EditorPreferences Preferences { get; }
-    public double BodyFontSize => Preferences.ResolveBodyFontSize(TypographyTheme);
+    public double BodyFontSize => IsPresenting ? 15 * PresentationZoom : Preferences.ResolveBodyFontSize(TypographyTheme);
+    public double CodeBlockFontSize => IsPresenting ? BodyFontSize * 14 / 15 : Preferences.CodeFontSize;
     private readonly IEditorAppearanceState _appearanceState;
     private readonly Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel _workbench;
     public bool IsTaskEditingEnabled => _workbench.IsSourceEditing;
     public bool IsPresenting => _workbench.IsPresenting;
     public double PresentationZoom => IsPresenting ? _workbench.PresentationZoom : 1;
-    /// <summary>正文的布局缩放：演示态用演示倍率，其余用内容缩放（原型 .md-body 的 zoom 变量）。</summary>
-    public double DocumentScale => IsPresenting ? _workbench.PresentationZoom : Preferences.ContentZoomFactor;
+    /// <summary>阅读使用整篇 zoom；演示只缩放排版字号，屏幕内距与边框保持固定。</summary>
+    public double DocumentScale => IsPresenting ? 1 : Preferences.ContentZoomFactor;
     private string? _imageBasePath;
     private string _markdown;
     private string _sourceMarkdown;
@@ -40,6 +41,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         preferences.PreferencesChanged += (_, _) =>
         {
             this.RaisePropertyChanged(nameof(BodyFontSize));
+            this.RaisePropertyChanged(nameof(CodeBlockFontSize));
             this.RaisePropertyChanged(nameof(DocumentScale));
         };
         _workbench = workbench;
@@ -185,6 +187,11 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom)
             && _notifiedPresentationZoom != PresentationZoom)
         { _notifiedPresentationZoom = PresentationZoom; this.RaisePropertyChanged(nameof(PresentationZoom)); this.RaisePropertyChanged(nameof(DocumentScale)); }
+        if (e.PropertyName is nameof(_workbench.IsPresenting) or nameof(_workbench.PresentationZoom))
+        {
+            this.RaisePropertyChanged(nameof(BodyFontSize));
+            this.RaisePropertyChanged(nameof(CodeBlockFontSize));
+        }
         if (e.PropertyName == nameof(_workbench.IsSourceEditing))
         {
             this.RaisePropertyChanged(nameof(IsTaskEditingEnabled));

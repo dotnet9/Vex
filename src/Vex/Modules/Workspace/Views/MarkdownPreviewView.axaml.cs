@@ -41,13 +41,15 @@ public partial class MarkdownPreviewView : UserControl
     private void ApplyDocumentGeometry()
     {
         var presenting = _viewModel?.IsPresenting == true;
+        ApplyPresentationTypography(presenting);
+        PreviewScrollViewer.Padding = presenting ? default : new Thickness(0, 0, 10, 0);
         // 原型 .md-body 的 zoom 是整篇均匀缩放：字号、行高、块距、表格与代码宽度同比放大，
         // 可用宽度按缩放回算，所以倍率越大每行越早换行、文档整体越高。只放大字号会留下
         // 库内绝对行高与边距，段落就会排在旧高度里被截断。
         var scale = Math.Max(.1, _viewModel?.DocumentScale ?? 1);
         DocumentTransform.LayoutTransform = scale == 1 ? null : new Avalonia.Media.ScaleTransform(scale, scale);
-        DocumentTransform.Margin = presenting ? new Thickness(44, 40, 44, 60) : default;
-        if (presenting) PreviewMarkdownViewer.Width = Math.Min(1104, Math.Max(100, PreviewScrollViewer.Bounds.Width - 88)) / scale;
+        DocumentTransform.Margin = default;
+        if (presenting) PreviewMarkdownViewer.Width = Math.Max(100, Math.Min(1120, PreviewScrollViewer.Bounds.Width) - 104);
         else PreviewMarkdownViewer.ClearValue(WidthProperty);
         var clientWidth = TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280;
         // 原型正文边框盒上限 820px；LayoutTransformControl 按缩放后的可用宽度量测子级。
@@ -55,8 +57,8 @@ public partial class MarkdownPreviewView : UserControl
         DocumentTransform.MaxWidth = double.PositiveInfinity;
         if (presenting)
         {
-            PreviewMarkdownViewer.MaxWidth = 1104 / scale;
-            PreviewMarkdownViewer.Margin = default;
+            PreviewMarkdownViewer.MaxWidth = 1016;
+            PreviewMarkdownViewer.Margin = new Thickness(52, 32, 52, 64);
         }
         else
         {
@@ -75,6 +77,8 @@ public partial class MarkdownPreviewView : UserControl
     public MarkdownPreviewView()
     {
         InitializeComponent();
+        PreviewMarkdownViewer.ActualThemeVariantChanged += (_, _) =>
+            ApplyPresentationTypography(_viewModel?.IsPresenting == true);
         // 原 ViewModelLocator 反射装配改为构造自取容器单例。
         DataContext = App.Services.GetRequiredService<MarkdownPreviewViewModel>();
         // 还原钮没有可绑的命令属性类型差异，直接走控件事件；坞实例随模板固定，挂一次即可。

@@ -49,7 +49,7 @@
                 SyntaxOptions="{Binding Preferences.SyntaxOptions}"
                 ContentFontFamily="{Binding Preferences.ContentFontFamily}"
                 ParagraphFontSize="{Binding BodyFontSize}"
-                CodeBlockFontSize="{Binding Preferences.CodeFontSize}"
+                CodeBlockFontSize="{Binding CodeBlockFontSize}"
                 CodeBlockWrap="{Binding Preferences.CodeWrap}"
                 TypographySize="{Binding TypographySize}"
                 TypographyTheme="{Binding TypographyTheme}"
