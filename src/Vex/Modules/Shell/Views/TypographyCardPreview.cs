@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia.Styling;
 using CodeWF.Avalonia.Markdown;
@@ -21,6 +22,7 @@ internal sealed class TypographyCardPreview : UserControl
         Classes.Add("typography-preview");
         Tag = key;
         IsHitTestVisible = false;
+        TextOptions.SetTextRenderingMode(this, TextRenderingMode.Antialias);
         if (_article.Font != "system") FontFamily = ArticleTypography.ResolveFont(_article.Font);
         ActualThemeVariantChanged += (_, _) => Build();
         Build();
@@ -30,9 +32,10 @@ internal sealed class TypographyCardPreview : UserControl
     {
         var heading = _article.Headings[1];
         var scale = 13 / _article.BodySize;
+        var dark = ElevationResources.IsDarkVariant(ActualThemeVariant);
         var resources = _article.CreateResources();
         var colors = (ResourceDictionary)resources.ThemeDictionaries[
-            ElevationResources.IsDarkVariant(ActualThemeVariant) ? ThemeVariant.Dark : ThemeVariant.Light];
+            dark ? ThemeVariant.Dark : ThemeVariant.Light];
         var title = new TextBlock
         {
             Classes = { "typography-preview-heading" },
@@ -43,34 +46,63 @@ internal sealed class TypographyCardPreview : UserControl
         };
         if (heading.Foreground.Contains("--fg)", StringComparison.Ordinal))
             title.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("VexValueBrush"));
-        var font = heading.Font == "system" ? _article.Font : heading.Font;
-        if (font != "system") title.FontFamily = ArticleTypography.ResolveFont(font);
+        // 卡片的 --mono 未定义时由 CSS 继承文章字体，不能强行切到系统等宽字体。
         var padding = Thickness.Parse(heading.Padding);
         var titleFrame = new Border
         {
             Child = title, Margin = new Thickness(0, 0, 0, 5),
             Padding = new Thickness(padding.Left * scale, padding.Top * scale, padding.Right * scale, padding.Bottom * scale),
-            BorderThickness = Thickness.Parse(heading.Border), CornerRadius = new CornerRadius(heading.Radius),
+            BorderThickness = Thickness.Parse(heading.Border), CornerRadius = heading.Corners ?? new CornerRadius(heading.Radius),
             BorderBrush = (IBrush)colors["CodeWFMarkdownHeading2BorderBrush"]!,
-            Background = (IBrush)colors["CodeWFMarkdownHeading2Background"]!
+            Background = Tint(heading.BackgroundColor, heading.Tint, dark)
         };
+        if (heading.BorderColor.Contains("--border)", StringComparison.Ordinal))
+            titleFrame.Bind(Border.BorderBrushProperty, this.GetResourceObservable("VexPanelBorderBrush"));
+        Control titleBlock = titleFrame;
+        if (heading.DashedBorder)
+        {
+            var stroke = titleFrame.BorderThickness.Bottom;
+            var underline = new Line
+            {
+                StartPoint = default, EndPoint = new Point(1, 0), Stretch = Stretch.Fill,
+                Stroke = titleFrame.BorderBrush, StrokeThickness = stroke,
+                StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 3, 2 },
+                Height = stroke, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Bottom,
+                Margin = new Thickness(0, 0, 0, stroke / 2), IsHitTestVisible = false,
+                Classes = { "typography-preview-dash" }
+            };
+            titleFrame.BorderBrush = Brushes.Transparent;
+            titleFrame.Margin = default;
+            titleBlock = new Panel { Children = { titleFrame, underline }, Margin = new Thickness(0, 0, 0, 5) };
+        }
         var purpose = Label(_purpose, 1);
+        purpose.Margin = new Thickness(_article.ParagraphIndent * 12 / _article.BodySize, 0, 0, 7);
         purpose.Classes.Add("typography-preview-purpose");
         var quote = Label(_quote, 2);
+        quote.TextAlignment = Enum.Parse<TextAlignment>(_article.ParagraphAlignment);
         quote.Classes.Add("typography-preview-quote");
         var quoteFrame = new Border
         {
             Child = quote, Padding = new Thickness(9, 6),
             BorderThickness = Thickness.Parse(_article.Quote.Border),
-            CornerRadius = new CornerRadius(0, _article.Quote.Radius, _article.Quote.Radius, 0),
+            CornerRadius = _article.Quote.Corners ?? new CornerRadius(0, _article.Quote.Radius, _article.Quote.Radius, 0),
             BorderBrush = (IBrush)colors["CodeWFMarkdownQuoteBorderBrush"]!,
-            Background = (IBrush)colors[MarkdownStyleKeys.QuoteBackgroundBrushResource]!
+            Background = Tint("var(--type-decoration)", _article.Quote.Tint, dark)
         };
         Content = new Border
         {
             Padding = new Thickness(11, 8),
-            Child = new StackPanel { Children = { titleFrame, purpose, quoteFrame } }
+            Child = new StackPanel { Children = { titleBlock, purpose, quoteFrame } }
         };
+    }
+
+    private IBrush Tint(string source, double amount, bool dark)
+    {
+        if (amount == 0) return Brushes.Transparent;
+        var color = Color.Parse(source.Contains("--typography-accent)", StringComparison.Ordinal)
+            ? dark ? _article.DarkText : _article.LightText
+            : dark ? _article.DarkDecoration : _article.LightDecoration);
+        return new SolidColorBrush(color, amount);
     }
 
     private TextBlock Label(string text, int lines)
