@@ -57,7 +57,21 @@
 
     <Style Selector="ContextMenu">
         <Setter Property="Width" Value="248" />
+        <Setter Property="FontFamily" Value="{DynamicResource ControlContentThemeFontFamily}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
         <Setter Property="Background" Value="{DynamicResource VexPopBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+    </Style>
+    <!-- 正文的字号、行高可变；菜单不能继承标题或段落的行盒，否则弹窗首轮测量后会溢出。 -->
+    <Style Selector="ContextMenu MenuItem">
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="Padding" Value="10,5" />
+    </Style>
+    <Style Selector="ContextMenu MenuItem /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="LineHeight" Value="22.4" />
+    </Style>
+    <Style Selector="ContextMenu MenuItem /template/ TextBlock#PART_InputGestureText">
+        <Setter Property="LineHeight" Value="22.4" />
     </Style>
 </Styles>
