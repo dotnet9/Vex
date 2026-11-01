@@ -2683,11 +2683,20 @@ void VerifyVexDetails(Vex.Modules.Shell.Views.MainWindow window, ThemeVariant th
     var type = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(shellVm.Appearance.SelectedTypography?.Key)!;
     // 尺寸档按 baseSize/BodySize 等比缩放目录实测值（Compact 13 / Normal 15 / Relaxed 17）。
     var scale = shellVm.Appearance.MarkdownDensity switch { "compact" => 13d, "relaxed" => 17d, _ => 15d } / type.BodySize;
-    var scaledHeading = Thickness.Parse(type.Headings[0].Border) * scale;
+    var sourceHeading = type.Key is "Simple" or "Basic" or "SoftSage"
+        ? new Thickness(0, 0, 0, 1)
+        : Thickness.Parse(type.Headings[0].Border);
+    // Vex 的基础文章档主动保留 1px H1 发丝线；密度只缩放正文留白和字号，不把发丝线缩成亚像素。
+    var scaledHeading = new Thickness(
+        sourceHeading.Left == 0 ? 0 : Math.Max(1, sourceHeading.Left * scale),
+        sourceHeading.Top == 0 ? 0 : Math.Max(1, sourceHeading.Top * scale),
+        sourceHeading.Right == 0 ? 0 : Math.Max(1, sourceHeading.Right * scale),
+        sourceHeading.Bottom == 0 ? 0 : Math.Max(1, sourceHeading.Bottom * scale));
     Check(Approx(heading.BorderThickness, scaledHeading),
         "Vex H1 follows the selected article decoration under " + theme + $" (actual {heading.BorderThickness}, scaled {scaledHeading})");
     var quote = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdQuote"));
-    var scaledQuote = Thickness.Parse(type.Quote.Border) * scale;
+    // 文章引用线是固定的语义强调线，Vex 不随正文密度把 3px 缩成亚像素。
+    var scaledQuote = Thickness.Parse(type.Quote.Border);
     Check(Approx(quote.BorderThickness, scaledQuote),
         "Vex quote follows the selected article border under " + theme + $" (actual {quote.BorderThickness}, scaled {scaledQuote})");
 }

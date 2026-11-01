@@ -46,6 +46,19 @@ internal static class PrototypeAppearanceVerification
         Check(cards.Length == 13 && cards.All(b => b.IsVisible), "All thirteen typography cards are shown without a filter (prototype redesign)");
         Check(cards.All(card => card.Content is Panel panel && panel.Children.OfType<Border>().First().Child is UserControl preview
             && preview.Classes.Contains("typography-preview") && Equals(preview.Tag, card.Name![11..])), "Each card renders its own typography key");
+        var geek = cards.Single(card => card.Name == "Typography_GeekBlack");
+        var dashed = geek.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Line>()
+            .Single(line => line.Classes.Contains("typography-preview-dash"));
+        Check(dashed.StrokeDashArray!.SequenceEqual(new[] { 3d, 2d }) && dashed.StrokeThickness == 1,
+            "Geek preview keeps its dashed heading underline");
+        var basicHeading = cards.Single(card => card.Name == "Typography_Basic").GetVisualDescendants().OfType<TextBlock>()
+            .Single(text => text.Classes.Contains("typography-preview-heading"));
+        Application.Current!.TryGetResource("VexPanelBorderBrush", window.ActualThemeVariant, out var cardBorder);
+        Check(((ISolidColorBrush)((Border)basicHeading.Parent!).BorderBrush!).Color == ((ISolidColorBrush)cardBorder!).Color,
+            "Document preview uses the interface border color for its heading rule");
+        var bookPurpose = cards.Single(card => card.Name == "Typography_InkBlack").GetVisualDescendants().OfType<TextBlock>()
+            .Single(text => text.Classes.Contains("typography-preview-purpose"));
+        Check(bookPurpose.Margin.Left == 24, "Book preview keeps its two-em purpose indent");
         // 原型 #typography-panel 第一层只有密度行与网格：标题、关闭钮和「渲染密度」四个字都是实现自己加的，实测不存在；
         // 密度作用域在原型里写进轨道的 aria-label，所以原生也只能有可访问名，不能有可见文字。
         string I18nText(string key) => CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(key) ?? string.Empty;
@@ -158,9 +171,11 @@ internal static class PrototypeAppearanceVerification
             {
                 var quote = card.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Classes.Contains("typography-preview-quote"));
                 var article = ArticleTypographyResolver.Find(card.Name![11..])!;
-                var expected = (ResourceDictionary)article.CreateResources().ThemeDictionaries[variant];
-                return ((Border)quote.Parent!).Background is ISolidColorBrush actual
-                    && actual.Color == ((ISolidColorBrush)expected[MarkdownStyleKeys.QuoteBackgroundBrushResource]!).Color;
+                var frame = (Border)quote.Parent!;
+                var expected = Color.Parse(mode == "light" ? article.LightDecoration : article.DarkDecoration);
+                return frame.Background is ISolidColorBrush actual && actual.Color == expected
+                    && Math.Abs(actual.Opacity - article.Quote.Tint) < .001
+                    && frame.CornerRadius == (article.Quote.Corners ?? new CornerRadius(0, article.Quote.Radius, article.Quote.Radius, 0));
             }), "Typography quote surfaces follow their article and inherited theme at " + palette.Key + "/" + mode);
             Application.Current!.TryGetResource("VexDocumentPaperBrush", window.ActualThemeVariant, out var paperResource);
             var paper = ((ISolidColorBrush)paperResource!).Color;

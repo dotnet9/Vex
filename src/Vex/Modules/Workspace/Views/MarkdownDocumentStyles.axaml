@@ -1,7 +1,8 @@
-﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:md="https://codewf.com"
+<Styles xmlns="https://github.com/avaloniaui" xmlns:md="https://codewf.com"
         xmlns:layout="clr-namespace:CodeWF.Avalonia.Markdown.Rendering;assembly=CodeWF.Avalonia.Markdown.Lite">
 
         <Style Selector="md|MarkdownViewer">
+            <Setter Property="UseLayoutRounding" Value="False"/>
             <!-- 代码块头部（语言·路径标题 + 折叠/换行/复制/下载）对齐原型 StreamMark 式框架 -->
             <Setter Property="ShowCodeBlockHeader" Value="True"/>
             <Setter Property="CodeFontFamily" Value="Cascadia Code, Cascadia Mono, Consolas, JetBrains Mono, Microsoft YaHei UI, monospace"/>
@@ -13,37 +14,61 @@
         <Style Selector="CheckBox.MdTaskMarkerBox">
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Name="TaskBox" Width="14" Height="14" CornerRadius="3"
+                    <Border Name="TaskBox" Width="15" Height="15" CornerRadius="3"
                             BorderThickness="1" BorderBrush="{DynamicResource VexPanelBorderBrush}"
                             Background="{DynamicResource VexPanelBackgroundBrush}">
-                        <Path Name="TaskTick" Width="10" Height="8" Stretch="Uniform"
-                              Data="M1 4l3 3 5-6" Stroke="White" StrokeThickness="2"
-                              IsVisible="{TemplateBinding IsChecked}" />
+                        <Border Name="TaskTick" Margin="3" CornerRadius="1" Background="{DynamicResource VexAccentBrush}"
+                                IsVisible="{TemplateBinding IsChecked}" />
                     </Border>
                 </ControlTemplate>
             </Setter>
         </Style>
         <Style Selector="CheckBox.MdTaskMarkerBox:checked /template/ Border#TaskBox">
-            <Setter Property="Background" Value="{DynamicResource VexAccentBrush}" />
+            <Setter Property="Background" Value="{DynamicResource VexPreviewBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
         </Style>
-        <Style Selector="md|MarkdownViewer">
-            <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexTableHeaderBrush}" />
-        </Style>
         <Style Selector="md|MarkdownLiveEditorView">
-            <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexTableHeaderBrush}" />
+            <Setter Property="UseLayoutRounding" Value="False"/>
+            <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexDocumentTableHeaderBrush}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer">
+            <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource VexDocumentTableHeaderBrush}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView Border.MdLiveListItem">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveListItemMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer.MdLiveListContent">
+            <Setter Property="ParagraphMargin" Value="0" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Grid.MdTableBlock">
+            <Setter Property="Margin" Value="{DynamicResource VexTableBlockMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Grid.MdTableBlock > Border.MdTableContainer">
+            <Setter Property="Margin" Value="{DynamicResource VexTableInnerMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView Border.MdTableCell, md|MarkdownLiveEditorView Border.MdTableHeaderCell">
+            <Setter Property="Padding" Value="12,6" />
+        </Style>
+        <!-- 与原型 scrollbar-gutter:stable 相同：正文预留 10px，浮动滚动条不挤压段落。 -->
+        <Style Selector="md|MarkdownLiveEditorView ScrollViewer.MdEditorScroll">
+            <Setter Property="Padding" Value="0,0,10,0" />
         </Style>
         <!-- 任务复选框与首行文字垂直居中：行高 28.5，框 14 → 顶部偏移 7（两模式一致）。
              Semi 默认 MinHeight 32 会把任务行撑高，压回 14 与模板同高。 -->
         <Style Selector="CheckBox.MdTaskMarkerBox">
-            <Setter Property="Margin" Value="0,7,0,0" />
+            <Setter Property="Margin" Value="0,8,0,0" />
             <Setter Property="MinHeight" Value="0" />
-            <Setter Property="Height" Value="14" />
+            <Setter Property="Height" Value="15" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView CheckBox.MdTaskMarkerBox">
+            <Setter Property="Margin" Value="0,8,8,0" />
         </Style>
         <Style Selector="md|MarkdownViewer Grid.MdTable, md|MarkdownLiveEditorView Grid.MdTable">
             <Setter Property="layout:MarkdownTableLayout.FillAvailableWidth" Value="True" />
+            <Setter Property="layout:MarkdownTableLayout.CollapseBorders" Value="False" />
         </Style>
         <Style Selector="md|MarkdownViewer Border.MdTableContainer, md|MarkdownLiveEditorView Border.MdTableContainer">
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="BorderBrush" Value="{DynamicResource VexTableBorderBrush}" />
         </Style>
@@ -51,7 +76,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource VexTableBorderBrush}" />
         </Style>
         <Style Selector="md|MarkdownViewer Border.MdTableAlternateCell, md|MarkdownLiveEditorView Border.MdTableAlternateCell">
-            <Setter Property="Background" Value="{DynamicResource VexTableStripeBrush}" />
+            <Setter Property="Background" Value="Transparent" />
         </Style>
         <!-- 选区两档令牌化（原型 workspace-chrome.css:15/175）：文档正文选区底/前景统一由
              StudioPalette 覆盖 Semi 的 TextBlockSelection 资源键承担（accent@12%/18% 叠 paper 底 +
@@ -62,6 +87,7 @@
         <!-- 原型 .md-table-toolbar 按钮：12px 纯文字，透明描边，hover 出底色与边框。 -->
         <Style Selector="Button.md-table-tool">
             <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Normal" />
             <Setter Property="MinHeight" Value="0" />
             <Setter Property="Padding" Value="9 5" />
             <Setter Property="CornerRadius" Value="5" />
@@ -77,5 +103,80 @@
         </Style>
 
 
-<!-- 即时编辑的每个块独立排版，按原型的行高与上下留白累计，不额外插入块间距。 -->
+        <!-- 阅读块相邻的 margin 按 CSS 折叠；引用尾距不同于普通段落，标题单独扣除。 -->
+        <Style Selector="md|MarkdownViewer Border.MdH1Border.MdAfterQuote">
+            <Setter Property="Margin" Value="{DynamicResource VexReadHeading1AfterQuoteMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Border.MdH2Border.MdAfterQuote">
+            <Setter Property="Margin" Value="{DynamicResource VexReadHeading2AfterQuoteMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Border.MdH3Border.MdAfterQuote">
+            <Setter Property="Margin" Value="{DynamicResource VexReadHeading3AfterQuoteMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Border.MdH4Border.MdAfterQuote">
+            <Setter Property="Margin" Value="{DynamicResource VexReadHeading4AfterQuoteMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Border.MdH5Border.MdAfterQuote">
+            <Setter Property="Margin" Value="{DynamicResource VexReadHeading5AfterQuoteMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownViewer Border.MdH6Border.MdAfterQuote">
+            <Setter Property="Margin" Value="{DynamicResource VexReadHeading6AfterQuoteMargin}" />
+        </Style>
+
+        <!-- 即时编辑的每个块独立排版，按原型的行高与上下留白累计，不额外插入块间距。 -->
+        <!-- 即时块为独立 flow-root；按原型在下一块为 h1-h4 时去掉前块的尾部留白。 -->
+        <Style Selector="md|MarkdownViewer.MdBeforeHeading">
+            <Setter Property="ParagraphMargin" Value="0" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView Border.MdQuote">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveQuoteMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer.MdBeforeHeading Border.MdQuote">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveQuoteBeforeHeadingMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView Border.MdTableContainer">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Margin" Value="{DynamicResource VexLiveTableMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView .MdBeforeHeading Border.MdTableContainer">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveTableBeforeHeadingMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView Border.MdH1Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading1Margin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer.MdBeforeHeading Border.MdH1Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading1BeforeHeadingMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView Border.MdH2Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading2Margin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer.MdBeforeHeading Border.MdH2Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading2BeforeHeadingMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView Border.MdH3Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading3Margin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer.MdBeforeHeading Border.MdH3Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading3BeforeHeadingMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView Border.MdH4Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading4Margin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer.MdBeforeHeading Border.MdH4Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading4BeforeHeadingMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView Border.MdH5Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading5Margin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer.MdBeforeHeading Border.MdH5Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading5BeforeHeadingMargin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView Border.MdH6Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading6Margin}" />
+        </Style>
+        <Style Selector="md|MarkdownLiveEditorView md|MarkdownViewer.MdBeforeHeading Border.MdH6Border">
+            <Setter Property="Margin" Value="{DynamicResource VexLiveHeading6BeforeHeadingMargin}" />
+        </Style>
+
 </Styles>
