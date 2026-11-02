@@ -35,14 +35,16 @@ if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
-if (mode == "window-placement")
+if (mode is "window-placement" or "selection-picker")
 {
     var config = Path.Combine(output, "window-placement.config");
     File.WriteAllText(config, "<configuration><appSettings /></configuration>");
     AppContext.SetData("APP_CONFIG_FILE", config);
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
-    WindowPlacementVerification.Run((VerificationVexApp)Application.Current!, output);
+    var app = (VerificationVexApp)Application.Current!;
+    if (mode == "window-placement") WindowPlacementVerification.Run(app, output);
+    else SelectionPickerVerification.Run(app, output);
     return;
 }
 if (mode is "drafts" or "draft-child")
