@@ -67,16 +67,21 @@
             <shell:ShellTitleMenuView x:Name="TitleMenuView" VerticalAlignment="Center" Margin="4,0,0,0" />
             <!-- 原型把文档名放在菜单之后左对齐，而不是标题栏正中。 -->
             <!-- 原型 .document-title：文档名 12/600（fs-caption 令牌 + 600 字重）。 -->
-            <TextBlock
-                x:Name="TitleDocumentLabel"
-                Text="{Binding DocumentInfo.CurrentDocumentTitle}"
-                FontSize="12"
-                FontWeight="SemiBold"
-                MaxWidth="300"
-                TextTrimming="CharacterEllipsis"
-                VerticalAlignment="Center"
-                IsHitTestVisible="False"
-                AutomationProperties.Name="{Binding DocumentInfo.CurrentDocumentTitle}" />
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" IsHitTestVisible="False">
+                <TextBlock
+                    x:Name="TitleDocumentLabel"
+                    Text="{Binding DocumentInfo.CurrentDocumentName}"
+                    FontSize="12"
+                    FontWeight="SemiBold"
+                    LineHeight="19.2"
+                    MaxWidth="300"
+                    TextTrimming="CharacterEllipsis"
+                    VerticalAlignment="Center"
+                    AutomationProperties.Name="{Binding DocumentInfo.CurrentDocumentTitle}" />
+                <TextBlock x:Name="TitleDirtyMark" Text="*" FontSize="15" FontWeight="Bold" LineHeight="15"
+                           Foreground="{DynamicResource VexWarningBrush}" VerticalAlignment="Center"
+                           IsVisible="{Binding DocumentInfo.IsModified}" />
+            </StackPanel>
         </StackPanel>
     </codewf:CodeWFWindow.LeftContent>
 

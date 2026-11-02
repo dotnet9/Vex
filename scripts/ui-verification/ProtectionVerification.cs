@@ -27,6 +27,17 @@ internal static class ProtectionVerification
             task?.GetAwaiter().GetResult(); Dispatcher.UIThread.RunJobs();
         }
         void Check(bool value, string message) { if (!value) throw new InvalidOperationException(message); Console.WriteLine("PASS " + message); }
+        void CheckTitle(bool modified)
+        {
+            var name = window.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Name == "TitleDocumentLabel");
+            var mark = window.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Name == "TitleDirtyMark");
+            Application.Current!.TryGetResource("VexWarningBrush", window.ActualThemeVariant, out var warning);
+            Check(name.Text == vm.DocumentInfo.CurrentDocumentName && mark.IsEffectivelyVisible == modified
+                && AutomationProperties.GetName(name) == vm.DocumentInfo.CurrentDocumentTitle
+                && mark.Foreground is global::Avalonia.Media.ISolidColorBrush foreground
+                && warning is global::Avalonia.Media.ISolidColorBrush expected && foreground.Color == expected.Color,
+                "Title keeps the filename and exposes an independent warning-colored unsaved mark: " + modified);
+        }
         void SaveFrame(string name)
         {
             var path = Path.Combine(output, name + ".png");
@@ -54,6 +65,7 @@ internal static class ProtectionVerification
         var path = Path.Combine(output, "protected.md");
         File.WriteAllText(path, "# original\n\nSaved content");
         Pump(vm.OpenPathAsync(path));
+        CheckTitle(false);
         vm.Markdown += "\n\nUnsaved changes"; Pump();
         var beforeFailure = vm.Markdown;
         var history = vm.Workbench.History.Capture();
@@ -62,6 +74,7 @@ internal static class ProtectionVerification
             Pump(vm.SaveAsync());
             Check(vm.Protection.HasSaveError && vm.DocumentInfo.IsModified && vm.Markdown == beforeFailure,
                 $"Real locked-file failure preserves content and unsaved state: error={vm.Protection.HasSaveError}, modified={vm.DocumentInfo.IsModified}, unchanged={vm.Markdown == beforeFailure}");
+            CheckTitle(true);
             Check(vm.Workbench.History.Capture().Current == history.Current, "Failed save preserves shared undo history");
             vm.Markdown += "\nContinue editing"; Pump();
             Check(vm.Protection.HasSaveError && window.GetVisualDescendants().OfType<ShellWorkflowNotice>().Single().IsVisible,
@@ -87,6 +100,7 @@ internal static class ProtectionVerification
         Pump(vm.RetrySaveAsync());
         Check(!vm.Protection.HasSaveError && !vm.DocumentInfo.IsModified && File.ReadAllText(path) == vm.Markdown,
             "Retry writes the latest content and clears the persistent failure");
+        CheckTitle(false);
         vm.Markdown += "\nNot saved by export"; Pump();
         var beforeExport = vm.Markdown; var typography = vm.Appearance.SelectedTypography;
         var exports = (VerificationExports)app.Resolve<IMarkdownExportService>();
