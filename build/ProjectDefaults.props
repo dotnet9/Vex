@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <RepositoryTargetFramework>net11.0</RepositoryTargetFramework>
+    <RepositoryWindowsTargetFramework>net11.0-windows</RepositoryWindowsTargetFramework>
+    <!-- .NET 11 的精简 AOT 构建会漏掉 Avalonia XAML 资源，必须经过完整 Build。 -->
+    <UseOptimizedPublish>false</UseOptimizedPublish>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>

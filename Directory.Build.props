@@ -1,4 +1,5 @@
 <Project>
+  <Import Project="build/ProjectDefaults.props" />
   <PropertyGroup>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <DebugType>portable</DebugType>
@@ -23,8 +24,6 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Copyright>Copyright © 2026 Vex(维刻) - CodeWF(码坊) https://codewf.com</Copyright>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 </Project>

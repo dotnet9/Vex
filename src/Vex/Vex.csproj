@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <IsPackable>false</IsPackable>
-    <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
+    <TargetFrameworks>$(RepositoryTargetFramework);$(RepositoryWindowsTargetFramework)</TargetFrameworks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>..\..\logo.ico</ApplicationIcon>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
@@ -16,12 +16,11 @@
   <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
     <SelfContained>true</SelfContained>
   </PropertyGroup>
-  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0-windows'))">
-    <WindowsSupportedOSPlatformVersion>6.1</WindowsSupportedOSPlatformVersion>
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', '$(RepositoryWindowsTargetFramework)'))">
     <IsTrimmable>true</IsTrimmable>
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' != ''">
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == '$(RepositoryTargetFramework)' and '$(RuntimeIdentifier)' != ''">
     <PublishSingleFile>true</PublishSingleFile>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
@@ -68,10 +67,6 @@
     <PackageReference Include="Semi.Avalonia" />
     <PackageReference Include="Semi.Avalonia.ColorPicker" />
     <PackageReference Include="System.Reactive" />
-    <PackageReference Include="VC-LTL" />
-    <PackageReference Include="YY-Thunks" />
-  </ItemGroup>
-  <ItemGroup>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="I18n\Language.cs">

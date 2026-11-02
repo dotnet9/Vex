@@ -48,10 +48,10 @@ try
         DefaultEncoding = "utf-8-bom", DefaultNewline = "CRLF", BodyFont = "serif", ExportFormat = "Word",
         WatermarkPreview = true, WatermarkText = "test <&> 维刻", WatermarkOpacity = 18,
         PdfSize = "Letter", PdfMargin = 25, HtmlStyle = false,
-        IsOutlineVisible = false, OutlineWidth = 286, FileListView = true, FileSortDescending = true,
+        IsOutlineVisible = false, OutlineWidth = 286, FileListView = true, FileSortKey = "natural-desc",
         CollapsedFolders = "E%3A%5C笔记%5C目录\nE%3A%5C其他目录",
         CollapsedOutlineSections = "document/2:章节:0\ndocument/2:同名章节:1",
-        EnableAutoPair = false, EnableMotion = false, IsFocusMode = true, IsTypewriterMode = true
+        EnableAutoPair = false, MotionMode = "off", IsFocusMode = true, IsTypewriterMode = true
     });
     if (new AppSettingsStore().Current != expected)
         throw new InvalidOperationException("Workbench, mind map or editing preferences did not survive a new store.");

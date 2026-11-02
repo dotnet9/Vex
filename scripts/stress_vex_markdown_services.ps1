@@ -33,6 +33,8 @@ foreach ($interval in @($HeadingInterval, $FenceInterval, $TableInterval)) {
 }
 
 $repoRoot = Get-RepoRoot
+[xml]$defaults = Get-Content -LiteralPath (Join-Path $repoRoot 'build/ProjectDefaults.props') -Raw
+$targetFramework = [string]$defaults.Project.PropertyGroup.RepositoryTargetFramework
 $vexProjectPath = Join-Path $repoRoot "src\Vex\Vex.csproj"
 if (-not (Test-Path -LiteralPath $vexProjectPath -PathType Leaf)) {
     throw "Vex project was not found at '$vexProjectPath'."
@@ -53,7 +55,7 @@ try {
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>$targetFramework</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>

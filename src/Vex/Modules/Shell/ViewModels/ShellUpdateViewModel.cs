@@ -1,5 +1,4 @@
-using System.Reactive;
-using System.Reactive.Linq;
+using ReactiveUI.Primitives;
 using CodeWF.Toolkit.Core.UpdateChecking;
 using Irihi.Avalonia.Shared.Contracts;
 using ReactiveUI;
@@ -44,10 +43,10 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
     public bool HasDownload => _download is not null;
     public Task EnsureCheckedAsync() => _state == UpdateState.Idle ? CheckAsync() : Task.CompletedTask;
     public event EventHandler<object?>? RequestClose;
-    public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
-    public ReactiveCommand<Unit, Unit> CheckCommand { get; }
-    public ReactiveCommand<Unit, Unit> CancelCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
+    public ReactiveCommand<RxVoid, RxVoid> UpdateCommand { get; }
+    public ReactiveCommand<RxVoid, RxVoid> CheckCommand { get; }
+    public ReactiveCommand<RxVoid, RxVoid> CancelCommand { get; }
+    public ReactiveCommand<RxVoid, RxVoid> OpenFolderCommand { get; }
     public UpdateState State => _state;
     public bool IsBusy => _state is UpdateState.Checking or UpdateState.Downloading or UpdateState.Installing;
     public bool IsDownloading => _state == UpdateState.Downloading;

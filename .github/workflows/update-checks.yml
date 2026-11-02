@@ -9,6 +9,8 @@ on:
       - 'scripts/ui-verification/**'
       - 'scripts/installer/**'
       - 'Directory.*.props'
+      - 'build/**'
+      - 'global.json'
       - 'scripts/restore_library_candidate.ps1'
       - '.github/workflows/update-checks.yml'
   pull_request:
@@ -24,7 +26,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: global.json
       - name: 从固定源码重建开发候选库
         shell: pwsh
         run: ./scripts/restore_library_candidate.ps1 -OutputRoot '${{ runner.temp }}/vex-library-candidate'

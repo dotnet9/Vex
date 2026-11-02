@@ -3,8 +3,15 @@ param([Parameter(Mandatory)][string]$OutputRoot)
 $ErrorActionPreference = 'Stop'
 $repository = Split-Path $PSScriptRoot -Parent
 [xml]$packages = Get-Content (Join-Path $repository 'Directory.Packages.props') -Raw
-$candidates = @($packages.Project.ItemGroup.PackageVersion | Where-Object {
-    $_.Include -like 'CodeWF.Avalonia.*' -and $_.Version -like '*-*'
+$properties = @{}
+foreach ($path in @((Join-Path $repository 'build/Versions.props'), (Join-Path $repository 'Directory.Packages.props'))) {
+    [xml]$document = Get-Content $path -Raw
+    foreach ($property in $document.SelectNodes('/Project/PropertyGroup/*')) { $properties[$property.Name] = $property.InnerText }
+}
+$candidates = @(foreach ($package in $packages.Project.ItemGroup.PackageVersion) {
+    if ($package.Include -notlike 'CodeWF.Avalonia.*') { continue }
+    $version = [regex]::Replace($package.Version, '\$\(([^)]+)\)', { param($match) $properties[$match.Groups[1].Value] })
+    if ($version -like '*-*') { [pscustomobject]@{ Include = $package.Include; Version = $version } }
 })
 if ($candidates.Count -eq 0) {
     Write-Output '正式库版本：使用公开 NuGet 源。'
@@ -12,7 +19,7 @@ if ($candidates.Count -eq 0) {
 }
 $versions = @($candidates.Version | Select-Object -Unique)
 if ($versions.Count -ne 1) { throw 'Library candidates must share one version.' }
-$revision = [string]$packages.Project.PropertyGroup.CodeWFAvaloniaSourceRevision
+$revision = [string]$properties.CodeWFAvaloniaSourceRevision
 if ($revision -notmatch '^[0-9a-f]{40}$') { throw 'Candidate library requires an exact source commit.' }
 
 # 在全新目录重建，不能借用开发机缓存或浮动 main。

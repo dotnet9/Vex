@@ -45,7 +45,7 @@ if (-not $InnoSetupCompiler -or -not (Test-Path -LiteralPath $InnoSetupCompiler 
     throw '需要 Inno Setup 6。请安装后重试，或传入 -InnoSetupCompiler <ISCC.exe 路径>。'
 }
 $InnoSetupCompiler = (Resolve-Path -LiteralPath $InnoSetupCompiler).Path
-if (-not (Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue)) { throw '需要 .NET 10 SDK。' }
+if (-not (Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue)) { throw '需要 global.json 指定的 .NET SDK。' }
 
 # 每次使用独立构建目录，手工改代码后重做不会混入上次发布遗留的文件。
 $runRoot = Join-Path $WorkRoot ('builds/' + [guid]::NewGuid().ToString('N'))

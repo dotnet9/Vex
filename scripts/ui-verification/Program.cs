@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
@@ -9,7 +9,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using System.Reflection;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Controls.Themes;
@@ -40,7 +40,7 @@ if (mode is "window-placement" or "selection-picker")
     var config = Path.Combine(output, "window-placement.config");
     File.WriteAllText(config, "<configuration><appSettings /></configuration>");
     AppContext.SetData("APP_CONFIG_FILE", config);
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     if (mode == "window-placement") WindowPlacementVerification.Run(app, output);
@@ -60,7 +60,7 @@ if (mode == "context-menu-native")
 }
 if (mode == "performance-sweep")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)app.CreateShell();
@@ -72,7 +72,7 @@ if (mode == "performance-sweep")
 }
 if (mode == "presentation-geometry")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)(app.Shell ?? app.CreateShell());
@@ -101,7 +101,7 @@ if (mode == "parity-score")
 }
 if (mode is "instant-menu" or "document-typography" or "reading-pointer" or "diagram-pointer" or "context-menu" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     // SetupWithoutStarting 不注册桌面生命周期，App 不会自行建窗；这里显式建壳。
@@ -152,7 +152,7 @@ if (mode is "instant-menu" or "document-typography" or "reading-pointer" or "dia
 }
 if (mode == "parity")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     // SetupWithoutStarting 不走桌面生命周期，窗口要自己建：直接取 app.Shell 永远是 null。
@@ -220,7 +220,7 @@ if (mode == "parity")
 }
 if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" or "updates" or "vex" or "preferences" or "locale" or "buttons" or "danger-buttons" or "path-identity" or "layout" or "editing-tools" or "workspace" or "workbench" or "performance" or "file-tree" or "file-icons" or "file-tree-probe" or "tooltip-probe" or "workspace-files" or "current-file-protection" or "pointer-regressions" or "stress" or "presentation" or "html-tables" or "media-layout")
 {
-    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
     var app = (VerificationVexApp)Application.Current!;
     var window = (Vex.Modules.Shell.Views.MainWindow)app.CreateShell();
@@ -1750,7 +1750,7 @@ void VerifyStress(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel
 
     void SaveReport() => File.WriteAllText(Path.Combine(output, "stress.json"), System.Text.Json.JsonSerializer.Serialize(new
     {
-        environment = "Windows Release net10.0, Avalonia.Headless + Skia; pointer costs include layout and render jobs, not desktop FPS",
+        environment = "Windows Release net11.0, Avalonia.Headless + Skia; pointer costs include layout and render jobs, not desktop FPS",
         windowState = window.WindowState.ToString(), width = window.Bounds.Width, height = window.Bounds.Height, scaling = window.RenderScaling, paths, hashes, rows, presentations, retained
     }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
 }
@@ -1882,7 +1882,7 @@ void VerifyPerformance(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
     var diagrams = window.GetVisualDescendants().OfType<Border>().Where(border => border.Classes.Contains("MdMermaid")).ToArray();
     var report = new { windowState = window.WindowState.ToString(), width = window.Bounds.Width, height = window.Bounds.Height, scaling = window.RenderScaling, layout, frameMs, allViewsReadyMs = mapMs, diagrams = diagrams.Length, visibleDiagrams = diagrams.Count(border => border.IsEffectivelyVisible), bytes = new FileInfo(path).Length, characters = vm.Markdown.Length,
         sha256 = Convert.ToHexString(after), memoryMiB = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1048576d,
-        environment = "Windows Release net10.0, Avalonia.Headless + Skia, cold process per layout" };
+        environment = "Windows Release net11.0, Avalonia.Headless + Skia, cold process per layout" };
     File.WriteAllText(Path.Combine(output, layout + ".json"), System.Text.Json.JsonSerializer.Serialize(report, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
     Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(report));
     Capture(window, layout);
@@ -2171,7 +2171,7 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     Capture(window, "about-light");
     var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
     var aboutModel = (ShellAboutViewModel)about.DataContext!;
-    Check(aboutModel.PlatformText == ".NET 10，Avalonia" && aboutModel.CopyrightText == "Copyright © 2026 CodeWF · 维刻 Vex"
+    Check(aboutModel.PlatformText == $".NET {Environment.Version.Major}，Avalonia" && aboutModel.CopyrightText == "Copyright © 2026 CodeWF · 维刻 Vex"
         && about.GetVisualDescendants().OfType<Button>().Count(button => button.Command == aboutModel.ReleaseCommand) == 1
         && about.GetVisualDescendants().OfType<Button>().Count(button => button.Command == aboutModel.WebsiteCommand || button.Command == aboutModel.RepositoryCommand) == 2,
         "About uses accepted metadata, one release badge and both product links");
@@ -2201,7 +2201,7 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
         }
         var report = new { document = performanceFile, bytes = new FileInfo(performanceFile).Length, characters = vm.Markdown.Length,
             openMs, memoryMiB = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64 / 1048576d,
-            environment = "Windows, Release net10.0, Avalonia.Headless+Skia; synchronous layout through next rendered frame", layouts = measurements };
+            environment = "Windows, Release net11.0, Avalonia.Headless+Skia; synchronous layout through next rendered frame", layouts = measurements };
         File.WriteAllText(Path.Combine(output, "performance.json"), System.Text.Json.JsonSerializer.Serialize(report, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
         Console.WriteLine("PERFORMANCE " + System.Text.Json.JsonSerializer.Serialize(report));
         Capture(window, "relap-three");

@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media.Imaging;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CodeWF.Avalonia.Markdown.Controls;
@@ -14,7 +14,7 @@ internal static class NativeContextMenuVerification
     public static void Run(string output)
     {
         AppBuilder.Configure<VerificationVexApp>().UsePlatformDetect().With(VexFonts.Options)
-            .UseReactiveUI().SetupWithoutStarting();
+            .UseReactiveUI(_ => { }).SetupWithoutStarting();
         var window = ((VerificationVexApp)Application.Current!).CreateShell();
         window.Width = 1280; window.Height = 820;
         using var stop = new CancellationTokenSource(TimeSpan.FromMinutes(2));

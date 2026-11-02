@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
-using System.Reactive.Linq;
+using ReactiveUI.Primitives;
 using ReactiveUI;
 using Vex.Core.Services;
 using Vex.Modules.Mcp.Models;
@@ -382,7 +382,7 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
             return;
         }
 
-        _autoApplySubscription = this
+        var changes = this
             .WhenAnyValue(
                 model => model.IsEnabled,
                 model => model.PortText,
@@ -390,8 +390,8 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
                 model => model.AccessScope,
                 model => model.AllowedWorkspacePath,
                 model => model.RequireConfirmation)
-            .Throttle(TimeSpan.FromMilliseconds(300), RxApp.MainThreadScheduler)
-            .Subscribe(changes => _ = ApplyAsync());
+            .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.MainThreadScheduler);
+        _autoApplySubscription = System.ObservableExtensions.Subscribe(changes, change => _ = ApplyAsync());
     }
 
     /// <summary>离开页面时把还在去抖窗口里的改动写掉，避免关窗丢最后一次修改。</summary>

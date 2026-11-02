@@ -24,9 +24,14 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 }
 Write-Host "发布 $RuntimeIdentifier (Version=$Version)"
 
-$tfm = if ($RuntimeIdentifier.StartsWith("win-", [StringComparison]::OrdinalIgnoreCase)) { "net10.0-windows" } else { "net10.0" }
+[xml]$defaults = Get-Content -LiteralPath (Join-Path $repositoryRoot 'build/ProjectDefaults.props') -Raw
+$tfm = if ($RuntimeIdentifier.StartsWith("win-", [StringComparison]::OrdinalIgnoreCase)) {
+    [string]$defaults.Project.PropertyGroup.RepositoryWindowsTargetFramework
+} else {
+    [string]$defaults.Project.PropertyGroup.RepositoryTargetFramework
+}
 # 全平台 NativeAOT：完整反射元数据保全（MS DI 反射激活）。
-# ILC 使用单线程与工作站 GC，避免本机 .NET 10 编译器在生成类型信息时崩溃；不改变应用 GC。
+# ILC 使用单线程与工作站 GC，避免本机编译器在生成类型信息时崩溃；不改变应用 GC。
 $ilcArgs = @("-p:PublishAot=true", "-p:PublishTrimmed=true", "-p:PublishSingleFile=false",
     "-p:DebugSymbols=true", "-p:DebugType=portable",
     "-p:IlcGenerateCompleteTypeMetadata=true", "-p:IlcTrimMetadata=false", "-p:IlcSingleThreaded=true", "-p:IlcUseServerGc=false")

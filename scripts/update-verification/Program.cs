@@ -1,6 +1,6 @@
 using System.Globalization;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
+using ReactiveUI.Primitives.Concurrency;
+using ReactiveUI.Primitives;
 using CodeWF.Toolkit.Core.UpdateChecking;
 using ReactiveUI;
 using Vex;
@@ -8,7 +8,7 @@ using Vex.Core.Services;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Help.Services;
 
-RxApp.MainThreadScheduler = CurrentThreadScheduler.Instance;
+RxSchedulers.MainThreadScheduler = CurrentThreadSequencer.Instance;
 int passed = 0;
 var service = new FakeUpdates();
 var localizer = new FakeLocalizer();

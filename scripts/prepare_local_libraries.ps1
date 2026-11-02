@@ -8,6 +8,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if ($PackageVersion -notmatch '^\d+\.\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z.-]+)?$') {
+    throw 'PackageVersion 必须是 NuGet 版本号。'
+}
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 if (!$LibraryRoot) { $LibraryRoot = Join-Path $repositoryRoot '../../libs/CodeWF.Avalonia' }
 if (!$WorkRoot) { $WorkRoot = Join-Path $repositoryRoot '../../temp_files/vex-libraries' }
@@ -36,13 +39,14 @@ if (!$SkipPack) {
         if ($LASTEXITCODE -ne 0) { throw "打包失败：$project" }
     }
 }
-$propsPath = Join-Path $repositoryRoot 'Directory.Packages.props'
+$propsPath = Join-Path $repositoryRoot 'build/Versions.props'
 $propsText = [IO.File]::ReadAllText($propsPath)
-foreach ($name in $packages.Keys) {
-    # Lite 必须一起改写：Markdown 12.2.x 依赖同版本的 Lite，单独留下它会让还原按 NU1109 判定为包降级而失败。
-    $pattern = '(<PackageVersion Include="' + [regex]::Escape($name) + '" Version=")[^"]+("\s*/>)'
-    $propsText = [regex]::Replace($propsText, $pattern, { param($match) $match.Groups[1].Value + $PackageVersion + $match.Groups[2].Value })
-}
+$propsText = [regex]::Replace($propsText, '(<CodeWFAvaloniaVersion>)[^<]+(</CodeWFAvaloniaVersion>)',
+    { param($match) $match.Groups[1].Value + $PackageVersion + $match.Groups[2].Value })
+# 未提交源码只能在本机验证，不能给 CI 留下与实际包内容不符的源码提交。
+$libraryRevision = if (!(git -C $LibraryRoot status --porcelain)) { git -C $LibraryRoot rev-parse HEAD } else { '' }
+$propsText = [regex]::Replace($propsText, '(<CodeWFAvaloniaSourceRevision>)[^<]*(</CodeWFAvaloniaSourceRevision>)',
+    { param($match) $match.Groups[1].Value + $libraryRevision + $match.Groups[2].Value })
 [IO.File]::WriteAllText($propsPath, $propsText)
 [IO.Directory]::CreateDirectory($WorkRoot) | Out-Null
 $configPath = Join-Path $WorkRoot 'NuGet.local.config'
@@ -62,7 +66,9 @@ $globalPackages = ((& dotnet nuget locals global-packages --list) |
     ForEach-Object { ($_ -replace '^.*global-packages:\s*', '').Trim() })
 if (-not $globalPackages) { throw '无法定位 NuGet 全局缓存目录。' }
 foreach ($name in $packages.Keys) {
-    $cached = Join-Path $globalPackages ($name.ToLowerInvariant() + '/' + $PackageVersion)
+    $cached = [IO.Path]::GetFullPath((Join-Path $globalPackages ($name.ToLowerInvariant() + '/' + $PackageVersion)))
+    $allowedCacheRoot = [IO.Path]::GetFullPath($globalPackages).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    if (!$cached.StartsWith($allowedCacheRoot, [StringComparison]::OrdinalIgnoreCase)) { throw '包缓存路径越界。' }
     if (Test-Path -LiteralPath $cached) { Remove-Item -LiteralPath $cached -Recurse -Force }
 }
 dotnet restore (Join-Path $repositoryRoot 'scripts/ui-verification/UiVerification.csproj') `

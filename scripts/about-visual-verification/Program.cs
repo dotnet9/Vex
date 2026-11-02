@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Media.Imaging;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using Avalonia.Threading;
 using CodeWF.Toolkit.Core.UpdateChecking;
 using Vex;
@@ -14,7 +14,7 @@ using Vex.Modules.Shell.Views;
 var directory = Path.GetFullPath(args.FirstOrDefault() ?? "artifacts/about-visual-verification");
 Directory.CreateDirectory(directory);
 AppBuilder.Configure<App>().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
-    .UseSkia().UseReactiveUI().SetupWithoutStarting();
+    .UseSkia().UseReactiveUI(_ => { }).SetupWithoutStarting();
 var localizer = new AppLocalizer();
 foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
 {
@@ -28,11 +28,16 @@ foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
     var window = new Window { Width = 640, Height = 760, Content = view };
     window.Show();
     window.UpdateLayout();
-    Dispatcher.UIThread.RunJobs();
+    var deadline = DateTime.UtcNow.AddMilliseconds(400);
+    while (DateTime.UtcNow < deadline)
+    {
+        Dispatcher.UIThread.RunJobs();
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        Thread.Sleep(10);
+    }
     if (view.Bounds.Width <= 0 || view.Bounds.Height <= 0 || localizer.Get(VexL.AboutCheckUpdate).StartsWith("Vex.VexL."))
         throw new InvalidOperationException("About view or localized binding failed: " + culture);
-    using var bitmap = new RenderTargetBitmap(new PixelSize(640, 760));
-    bitmap.Render(window);
+    using var bitmap = window.CaptureRenderedFrame() ?? throw new InvalidOperationException("About window did not render a frame: " + culture);
     bitmap.Save(Path.Combine(directory, "about-" + culture + ".png"), new PngBitmapEncoderOptions());
     window.Close();
     Console.WriteLine("PASS: rendered about overlay " + culture + ", version " + model.VersionText + ", built " + model.CompileTimeText);

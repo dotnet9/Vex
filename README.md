@@ -2,7 +2,7 @@
 
 写下想法，看见脉络。
 
-Vex 是基于 .NET 10 与 Avalonia 12 的桌面 Markdown 编辑器，支持 **Windows、Linux、macOS**，围绕本地文件提供即时编辑、源码、阅读、章节导图、导出与本机 MCP 协作。
+Vex 是基于 .NET 与 Avalonia 的桌面 Markdown 编辑器，支持 **Windows、Linux、macOS**，围绕本地文件提供即时编辑、源码、阅读、章节导图、导出与本机 MCP 协作。
 
 官网：[vex.codewf.com](https://vex.codewf.com/) · 出品：[码坊 CodeWF](https://codewf.com) · 当前版本：**1.20.1.0**
 
@@ -51,13 +51,14 @@ Vex 是基于 .NET 10 与 Avalonia 12 的桌面 Markdown 编辑器，支持 **Wi
 
 ~~~powershell
 # 重产物默认落在仓库内 artifacts/；想放仓库外时用相对或任意路径即可（正斜杠跨平台）。
-$vexWorkRoot = '../vex-temp'
+$vexWorkRoot = [IO.Path]::GetFullPath('../vex-temp')
+pwsh scripts/restore_library_candidate.ps1 -OutputRoot "$vexWorkRoot/library-candidate"
 dotnet restore Vex.slnx "-p:ArtifactsPath=$vexWorkRoot/artifacts"
 dotnet build Vex.slnx --no-restore -v:minimal "-p:ArtifactsPath=$vexWorkRoot/artifacts"
-dotnet run --project src/Vex/Vex.csproj -f net10.0 --no-restore "-p:ArtifactsPath=$vexWorkRoot/artifacts"
+dotnet run --project src/Vex/Vex.csproj -f net11.0 --no-restore "-p:ArtifactsPath=$vexWorkRoot/artifacts"
 ~~~
 
-版本与编译属性在 Directory.Build.props，NuGet 中央包版本在 Directory.Packages.props，SDK 由 global.json 选择。应用图标以根目录 logo.svg、logo.png、logo.ico 为源；共享库经 NuGet 消费，本地联调和五 RID NativeAOT 发布见开发文档。
+应用版本在 Directory.Build.props，框架默认值在 build/ProjectDefaults.props，依赖版本变量在 build/Versions.props，Directory.Packages.props 维护中央包声明，SDK 由 global.json 选择。主分支使用 .NET 11 RC；Win7 历史兼容基线冻结在 win7-archive，不再维护。应用图标以根目录 logo.svg、logo.png、logo.ico 为源；共享库经 NuGet 消费，本地联调和五 RID NativeAOT 发布见开发文档。
 
 ## 许可证
 
