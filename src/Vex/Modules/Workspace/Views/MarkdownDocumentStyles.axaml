@@ -137,6 +137,7 @@
         <Style Selector="md|MarkdownLiveEditorView Border.MdTableContainer">
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="ClipToBounds" Value="True" />
             <Setter Property="Margin" Value="{DynamicResource VexLiveTableMargin}" />
         </Style>
         <Style Selector="md|MarkdownLiveEditorView .MdBeforeHeading Border.MdTableContainer">

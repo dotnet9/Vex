@@ -42,6 +42,7 @@ internal static class RenderGeometryProbe
             if (CodeWF.Avalonia.Markdown.Rendering.MarkdownTableLayout.GetCollapseBorders(tableGrid)
                 || table.BorderThickness != new Thickness(instant ? 0 : 1)
                 || table.CornerRadius != new CornerRadius(instant ? 8 : 10)
+                || !table.ClipToBounds
                 || Math.Abs(table.Bounds.Height - expectedHeight) > .1
                 || Math.Abs(table.Bounds.Width - tableGrid.Bounds.Width - (instant ? 0 : 2)) > .1)
                 throw new InvalidOperationException($"{layout} table keeps separate cell borders and its prototype frame: size={table.Bounds.Size}, border={table.BorderThickness}, radius={table.CornerRadius}");
