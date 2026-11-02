@@ -4,6 +4,7 @@ using Avalonia.Headless;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Vex.Core.Models;
+using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
@@ -36,8 +37,23 @@ internal static class DocsShotCapture
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, name + ".png"));
             Console.WriteLine("SHOT " + name);
         }
+        void OpenSample(string file)
+        {
+            var opening = vm.OpenPathAsync(Path.Combine(BundledDocuments.SamplesFolder, file));
+            var timeout = Stopwatch.StartNew();
+            while (!opening.IsCompleted && timeout.Elapsed < TimeSpan.FromSeconds(15)) Render();
+            if (!opening.IsCompleted) throw new TimeoutException("Documentation sample did not open: " + file);
+            opening.GetAwaiter().GetResult();
+        }
 
         window.Width = 1440; window.Height = 900;
+        vm.Appearance.SelectLanguageByCulture("zh-CN");
+        vm.Appearance.SelectPaletteByKey("teal");
+        vm.Appearance.SelectThemeByKey("light");
+        vm.Layout.ShowOutline();
+        vm.Workbench.SelectLayout("instant");
+        Shot("主界面");
+
         vm.Appearance.SelectThemeByKey("dark");
         vm.Layout.ShowOutline();
         vm.Workbench.SelectLayout("instant");
@@ -48,7 +64,7 @@ internal static class DocsShotCapture
 
         // §2 查找与替换：替换行展开，徽章按真实命中计数。
         vm.FindBar.ShowReplacePanel();
-        vm.FindBar.SearchText = "想法";
+        vm.FindBar.SearchText = "文档";
         Thread.Sleep(300);
         Shot("查找与替换");
         vm.FindBar.CloseFindPanel();
@@ -62,7 +78,12 @@ internal static class DocsShotCapture
         vm.Workbench.SelectLayout("source-render");
         Shot("源码对照");
 
+        vm.Workbench.SelectLayout("read");
+        Shot("阅读视图");
+
         // §3 结构：导图视图，等节点树解析完成。
+        OpenSample("Avalonia 跨平台之道.md");
+        vm.Workbench.ShowParagraphs = vm.Workbench.ShowLists = vm.Workbench.ShowCode = vm.Workbench.ShowTables = false;
         vm.Workbench.SelectLayout("map");
         var deadline = Stopwatch.GetTimestamp() + Stopwatch.Frequency * 15;
         while (vm.Workbench.Root is null && Stopwatch.GetTimestamp() < deadline)
@@ -70,9 +91,12 @@ internal static class DocsShotCapture
             Dispatcher.UIThread.RunJobs();
             Thread.Sleep(10);
         }
+        Render();
+        window.GetVisualDescendants().OfType<Vex.Modules.Workspace.Views.MarkdownMindMapHost>().Single(host => host.IsEffectivelyVisible).FitMap();
         Shot("思维导图");
 
         // §3 演示：F6 进入演示态，右侧同时展开文档大纲。
+        OpenSample("排版与写作.md");
         vm.Workbench.SelectLayout("instant");
         vm.Workbench.StartPresentation();
         vm.Workbench.ShowPresentationOutline();
@@ -85,7 +109,7 @@ internal static class DocsShotCapture
         Shot("外观与配色");
         appearanceMenu.AppearanceButton.Flyout!.Hide();
 
-        // §4 外观：正文排版的十二套效果卡片。
+        // §4 外观：正文排版的十三套效果卡片。
         vm.Workbench.ShowTypography = true;
         Shot("正文排版");
         vm.Workbench.ShowTypography = false;
@@ -102,5 +126,12 @@ internal static class DocsShotCapture
             ((ShellPreferencesViewModel)view.DataContext!).Close();
         pending.Wait(2000);
         Render();
+
+        foreach (var (file, name) in new[] { ("数学与化学.md", "公式与代码"), ("Mermaid 图表图鉴.md", "Mermaid图表") })
+        {
+            OpenSample(file);
+            vm.Workbench.SelectLayout("read");
+            Shot(name);
+        }
     }
 }
