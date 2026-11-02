@@ -19,6 +19,18 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     public double PresentationZoom => IsPresenting ? _workbench.PresentationZoom : 1;
     /// <summary>阅读使用整篇 zoom；演示只缩放排版字号，屏幕内距与边框保持固定。</summary>
     public double DocumentScale => IsPresenting ? 1 : Preferences.ContentZoomFactor;
+    private double _displayWidth = 1920;
+    /// <summary>单阅读正文的可见宽度上限为所在显示器的一半；缩放不扩大这个屏幕占比。</summary>
+    public double MaximumReadingWidth => _displayWidth / 2 / Math.Max(.1, DocumentScale);
+
+    public void UpdateDisplayMetrics(double pixelWidth, double scaling)
+    {
+        if (!double.IsFinite(pixelWidth) || pixelWidth <= 0 || !double.IsFinite(scaling) || scaling <= 0) return;
+        var width = pixelWidth / scaling;
+        if (Math.Abs(width - _displayWidth) < .1) return;
+        _displayWidth = width;
+        this.RaisePropertyChanged(nameof(MaximumReadingWidth));
+    }
     private string? _imageBasePath;
     private string _markdown;
     private string _sourceMarkdown;
@@ -43,6 +55,7 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(BodyFontSize));
             this.RaisePropertyChanged(nameof(CodeBlockFontSize));
             this.RaisePropertyChanged(nameof(DocumentScale));
+            this.RaisePropertyChanged(nameof(MaximumReadingWidth));
         };
         _workbench = workbench;
         _notifiedIsPresenting = workbench.IsPresenting;

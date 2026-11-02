@@ -38,6 +38,7 @@ public partial class MarkdownPreviewView : UserControl
     private int _restoreAttempts;
     private bool _restoreSettleQueued;
     private const int MaxRestoreAttempts = 24;
+    private TopLevel? _displayHost;
     private void ApplyDocumentGeometry()
     {
         var presenting = _viewModel?.IsPresenting == true;
@@ -51,7 +52,7 @@ public partial class MarkdownPreviewView : UserControl
         DocumentTransform.Margin = default;
         if (presenting) PreviewMarkdownViewer.Width = Math.Max(100, Math.Min(1120, PreviewScrollViewer.Bounds.Width) - 104);
         var clientWidth = TopLevel.GetTopLevel(this)?.ClientSize.Width ?? 1280;
-        // 原型正文边框盒上限 820px；LayoutTransformControl 按缩放后的可用宽度量测子级。
+        // LayoutTransformControl 按缩放后的可用宽度量测子级。
         DocumentTransform.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
         DocumentTransform.MaxWidth = double.PositiveInfinity;
         if (presenting)
@@ -68,12 +69,14 @@ public partial class MarkdownPreviewView : UserControl
                 : new Thickness(Math.Clamp(availableWidth * .08, 14, 32), 24,
                     Math.Clamp(availableWidth * .08, 14, 32), 56);
             PreviewMarkdownViewer.Margin = margin;
-            // 原型的 max-width 是含留白的边框盒（全局 border-box），Avalonia 的 MaxWidth 只算内容：把留白扣回去。
-            PreviewMarkdownViewer.MaxWidth = 820 - margin.Left - margin.Right;
+            // 单阅读正文随所在显示器扩展；组合预览继续使用原有的含留白 820px 栏宽。
+            PreviewMarkdownViewer.MaxWidth = IsReadingMode
+                ? _viewModel?.MaximumReadingWidth ?? 960 / scale
+                : 820 - margin.Left - margin.Right;
             // 居中的变换容器会按短文本收缩；阅读列宽只由视口与缩放决定。
-            var columnWidth = Math.Min(820, Math.Max(0, PreviewScrollViewer.Viewport.Width
-                - PreviewScrollViewer.Padding.Left - PreviewScrollViewer.Padding.Right) / scale);
-            PreviewMarkdownViewer.Width = Math.Max(0, columnWidth - margin.Left - margin.Right);
+            var available = Math.Max(0, PreviewScrollViewer.Viewport.Width
+                - PreviewScrollViewer.Padding.Left - PreviewScrollViewer.Padding.Right) / scale;
+            PreviewMarkdownViewer.Width = Math.Max(0, Math.Min(PreviewMarkdownViewer.MaxWidth, available - margin.Left - margin.Right));
         }
     }
 
@@ -87,6 +90,7 @@ public partial class MarkdownPreviewView : UserControl
         // 还原钮没有可绑的命令属性类型差异，直接走控件事件；坞实例随模板固定，挂一次即可。
         DataContextChanged += OnDataContextChanged;
         AttachedToVisualTree += OnAttachedToVisualTree;
+        DetachedFromVisualTree += (_, _) => StopWatchingDisplay();
         DetachedFromVisualTree += (_, _) => SetViewModel(null);
         PreviewScrollViewer.ScrollChanged += OnPreviewScrollChanged;
         PreviewScrollViewer.SizeChanged += (_, _) => ApplyDocumentGeometry();
@@ -99,11 +103,36 @@ public partial class MarkdownPreviewView : UserControl
     private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
         SetViewModel(DataContext as MarkdownPreviewViewModel);
+        StopWatchingDisplay();
+        _displayHost = TopLevel.GetTopLevel(this);
+        if (_displayHost is not null)
+        {
+            _displayHost.Screens.Changed += OnDisplayMetricsChanged;
+            _displayHost.ScalingChanged += OnDisplayMetricsChanged;
+            if (_displayHost is Window window) window.PositionChanged += OnDisplayMetricsChanged;
+        }
+        OnDisplayMetricsChanged(this, EventArgs.Empty);
         EventBus.Default.Subscribe(this);
         PreviewMarkdownViewer.TaskWriteBackRequested -= OnTaskWriteBackRequested;
         PreviewMarkdownViewer.TaskWriteBackRequested += OnTaskWriteBackRequested;
         // 阅读位置由库统一按「块序号 + 块内比例」采集与恢复，这里只需把滚动宿主交给 Viewer。
         PreviewMarkdownViewer.ScrollHost = PreviewScrollViewer;
+    }
+
+    private void OnDisplayMetricsChanged(object? sender, EventArgs args)
+    {
+        if (_displayHost?.Screens.ScreenFromVisual(this) is { } screen)
+            _viewModel?.UpdateDisplayMetrics(screen.Bounds.Width, screen.Scaling);
+        ApplyDocumentGeometry();
+    }
+
+    private void StopWatchingDisplay()
+    {
+        if (_displayHost is null) return;
+        _displayHost.Screens.Changed -= OnDisplayMetricsChanged;
+        _displayHost.ScalingChanged -= OnDisplayMetricsChanged;
+        if (_displayHost is Window window) window.PositionChanged -= OnDisplayMetricsChanged;
+        _displayHost = null;
     }
 
     // 预览里点击任务勾选框：库返回新 Markdown 与变更区间，交给编辑器按区间回写。
@@ -175,6 +204,7 @@ public partial class MarkdownPreviewView : UserControl
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MarkdownPreviewViewModel.MaximumReadingWidth)) ApplyDocumentGeometry();
         if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown) && _viewModel?.IsPresenting != true
             && _restoringScrollPosition && _restoreSource != _viewModel?.Markdown)
         {
