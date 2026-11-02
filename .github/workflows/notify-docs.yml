@@ -21,4 +21,4 @@ jobs:
             -H "Authorization: Bearer $DOC_SITE_PAT" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/dotnet9/Doc/dispatches \
-            -d '{"event_type":"source-updated"}'
+            -d '{"event_type":"vex-source-updated"}'
