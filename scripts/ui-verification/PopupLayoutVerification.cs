@@ -247,6 +247,23 @@ internal static class PopupLayoutVerification
         Check(dialogFrame.BoxShadow.Count == 2 && !dialogFrame.ClipToBounds
             && dialogFrame.BoxShadow.ToString() == ((BoxShadows)dialogShadow!).ToString(),
             $"Preference elevation paints on the unclipped outer dialog frame: {dialogFrame.BoxShadow}, expected={dialogShadow}, clip={dialogFrame.ClipToBounds}");
+        Check(!dialog.ClipToBounds, "The dialog control leaves room for its frame's shadow");
+        LayoutSettle.Run(); Render();
+        var shadowPoint = dialogFrame.TranslatePoint(new Point(dialogFrame.Bounds.Width / 2, dialogFrame.Bounds.Height + 16), window)!.Value;
+        SkiaSharp.SKColor ShadowPixel()
+        {
+            using var frame = window.CaptureRenderedFrame()!;
+            using var stream = new MemoryStream(); frame.Save(stream); stream.Position = 0;
+            using var pixels = SkiaSharp.SKBitmap.Decode(stream);
+            return pixels.GetPixel((int)shadowPoint.X, (int)shadowPoint.Y);
+        }
+        var shaded = ShadowPixel();
+        var savedShadow = dialogFrame.BoxShadow;
+        dialogFrame.SetCurrentValue(Border.BoxShadowProperty, default(BoxShadows)); Render();
+        var unshaded = ShadowPixel();
+        dialogFrame.SetCurrentValue(Border.BoxShadowProperty, savedShadow); Render();
+        Check(shaded.Red < unshaded.Red && shaded.Green < unshaded.Green && shaded.Blue < unshaded.Blue,
+            $"The preference shadow actually renders 16px below the card: with={shaded}, without={unshaded}");
         foreach (var track in appearancePage.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("pref-segmented")))
         {
             var segments = ((SegmentedPanel)track.Child!).Children.OfType<Button>().ToArray();
