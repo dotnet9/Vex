@@ -196,7 +196,7 @@ public partial class MainWindow : CodeWFWindow
             return;
         }
 
-        if (DataContext is MainWindowViewModel viewModel && viewModel.DocumentInfo.IsModified)
+        if (DataContext is MainWindowViewModel viewModel)
         {
             e.Cancel = true;
             _ = viewModel.BeginWindowCloseAsync();
@@ -206,6 +206,7 @@ public partial class MainWindow : CodeWFWindow
     private void OnCloseWindowRequested(object? sender, EventArgs e)
     {
         _isCloseConfirmed = true;
+        _toastPublisher?.Uninstall();
         Close();
     }
 

@@ -16,4 +16,5 @@ public interface IShellToastPublisher
     /// 由主窗口在模板应用后安装承载层；未安装前发布的消息会排队等待。
     /// </summary>
     void Install(VisualLayerManager? layerManager);
+    void Uninstall();
 }

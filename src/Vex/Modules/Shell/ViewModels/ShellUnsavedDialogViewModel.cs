@@ -13,8 +13,7 @@ public enum ShellUnsavedDecision
     Discard = 2,
 
     /// <summary>取消本次流转。</summary>
-    Cancel = 0,
-    KeepDraft = 3
+    Cancel = 0
 }
 
 /// <summary>未保存确认的两种场景：退出应用 / 切换文档；文案严格按系统保存框参考图，唯一差异是丢弃按钮标签。</summary>
@@ -42,8 +41,6 @@ public sealed class ShellUnsavedDialogViewModel : ReactiveObject, IDialogContext
     public ShellUnsavedDecision Decision => _decision ?? ShellUnsavedDecision.Cancel;
 
     public event EventHandler<object?>? RequestClose;
-
-    public void KeepDraft() => Complete(ShellUnsavedDecision.KeepDraft);
 
     public void Save() => Complete(ShellUnsavedDecision.Save);
 

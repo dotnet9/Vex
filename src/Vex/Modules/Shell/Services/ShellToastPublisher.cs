@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Controls.Primitives;
+using Avalonia.VisualTree;
 using Ursa.Controls;
 
 namespace Vex.Modules.Shell.Services;
@@ -44,6 +45,20 @@ public sealed class ShellToastPublisher : IShellToastPublisher
         }
 
         Show(message, type);
+    }
+
+    public void Uninstall()
+    {
+        _pending.Clear();
+        if (_manager is null) return;
+        // Ursa 2.2 的退场动画在卸载时会修改父集合；先逐项完成关闭，再卸载承载层。
+        foreach (var card in _manager.GetVisualDescendants().OfType<ToastCard>().ToArray())
+        {
+            card.Close();
+            card.IsClosed = true;
+        }
+        _manager.Uninstall();
+        _manager = null;
     }
 
     private void Show(string message, NotificationType type)

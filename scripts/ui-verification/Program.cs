@@ -35,6 +35,12 @@ if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
+if (mode is "drafts" or "draft-child")
+{
+    if (mode == "draft-child") DraftLifecycleVerification.RunChild(output, args.ElementAtOrDefault(2) == "untitled");
+    else DraftLifecycleVerification.Run(output);
+    return;
+}
 if (mode == "context-menu-native")
 {
     NativeContextMenuVerification.Run(output);
@@ -3222,12 +3228,22 @@ public sealed class MemoryDrafts : IAutoSaveDraftService
     public string? LastError { get; set; }
     public event EventHandler? StateChanged;
     public bool FailFlush { get; set; }
+    public bool FailComplete { get; set; }
+    public int CompleteCount { get; private set; }
+    public int ResolvedCount { get; private set; }
     public string? RestoredMarkdown { get; set; }
     public DocumentSnapshot? TryRestore(DocumentSnapshot document) => RestoredMarkdown is null ? null : document with { Markdown = RestoredMarkdown };
     public void QueueSave(DocumentSnapshot document, string markdown, string lastSavedMarkdown) { }
     public void Clear(DocumentSnapshot document) { }
     public bool Flush() { LastError = FailFlush ? "Draft storage unavailable" : null; StateChanged?.Invoke(this, EventArgs.Empty); return !FailFlush; }
-    public void ClearRestored(DocumentSnapshot document) => RestoredMarkdown = null;
+    public void ClearRestored(DocumentSnapshot document) { RestoredMarkdown = null; ResolvedCount++; }
+    public bool CompleteSession()
+    {
+        CompleteCount++;
+        LastError = FailComplete ? "Cannot complete draft session" : null;
+        StateChanged?.Invoke(this, EventArgs.Empty);
+        return !FailComplete;
+    }
 }
 public sealed class MemoryRecent : IRecentDocumentStore
 {

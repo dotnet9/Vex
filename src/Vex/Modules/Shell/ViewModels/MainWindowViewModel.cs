@@ -389,6 +389,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private void NewDocumentCore(bool stopFolderWatcher = true)
     {
+        CompleteRecoveredSave();
+        Protection.Recovery = null;
         ++_documentOpenVersion;
         StopCurrentFileWatcher();
 
@@ -415,6 +417,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private void CloseDocumentCore()
     {
+        CompleteRecoveredSave();
+        Protection.Recovery = null;
         ++_documentOpenVersion;
         StopCurrentFileWatcher();
         StopCurrentFolderWatcher();
@@ -798,6 +802,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private void ApplyDocument(DocumentSnapshot snapshot, bool updateMarkdown = true, bool restoreDraft = true, bool revealPath = true)
     {
+        if (updateMarkdown) CompleteRecoveredSave();
         ++_documentOpenVersion;
         var switchedFromOtherDocument = !IsSameDocument(_document, snapshot);
         if (switchedFromOtherDocument)
@@ -805,7 +810,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             _drafts.Clear(_document);
             Protection.SaveError = null;
             Protection.ExportError = null;
-            _recoverySource = null;
         }
 
         _document = snapshot;
@@ -1090,27 +1094,23 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         CommitPendingEditsRequested?.Invoke(this, EventArgs.Empty);
         if (_closeReviewPending) return;
         _closeReviewPending = true;
-        var keepDraft = false;
         try
         {
         await _unsavedChanges.RunAsync(
             DocumentInfo.IsModified, DocumentInfo.CurrentFilePath,
             () =>
             {
+                if (!_drafts.CompleteSession())
+                {
+                    Protection.DraftError = _drafts.LastError;
+                    return Task.CompletedTask;
+                }
                 StopCurrentFileWatcher();
                 StopCurrentFolderWatcher();
                 _autoSaveTimer?.Dispose(); _autoSaveTimer = null;
-                if (!keepDraft) _drafts.Clear(_document);
                 CloseWindowRequested?.Invoke(this, EventArgs.Empty);
                 return Task.CompletedTask;
             }, saveAsync: SaveAsync, isStillModified: () => DocumentInfo.IsModified,
-            keepDraftAsync: () =>
-            {
-                _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
-                keepDraft = _drafts.Flush();
-                Protection.DraftError = _drafts.LastError;
-                return Task.FromResult(keepDraft);
-            },
             flow: ShellUnsavedFlow.Exit);
         }
         finally { _closeReviewPending = false; }

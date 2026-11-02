@@ -14,4 +14,5 @@ public interface IAutoSaveDraftService
 
     bool Flush();
     void ClearRestored(DocumentSnapshot document);
+    bool CompleteSession();
 }

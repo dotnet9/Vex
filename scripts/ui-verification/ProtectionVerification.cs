@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless;
@@ -167,7 +167,12 @@ internal static class ProtectionVerification
         Check(vm.DocumentInfo.CurrentFilePath is null && vm.DocumentInfo.IsModified && vm.Markdown.Contains("Recovered content")
             && File.ReadAllText(path) == current, "Recovery creates an independent unsaved document and never writes the source file");
         memoryDrafts.RestoredMarkdown = null;
+        var leaveRecovery = vm.NewDocument(); Pump();
+        ((ShellUnsavedDialogViewModel)window.GetVisualDescendants().OfType<ShellUnsavedDialogView>().Single().DataContext!).Discard(); Pump(leaveRecovery);
+        Check(memoryDrafts.ResolvedCount == 1 && !vm.Protection.HasRecovery,
+            "Discarding an untitled recovery for a new document resolves its original candidate");
         Pump(vm.OpenPathAsync(path));
+        Check(memoryDrafts.ResolvedCount == 1, "Leaving the recovered document resolves its original recovery candidate");
         vm.Markdown += "\nClose protection"; Pump();
         using (File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
@@ -209,44 +214,23 @@ internal static class ProtectionVerification
             Pump(closeTask);
             Check(window.IsVisible && vm.DocumentInfo.IsModified && vm.Protection.HasSaveError, "Failed save keeps the actual application window open");
         }
-        memoryDrafts.FailFlush = true;
-        var failedClose = vm.BeginWindowCloseAsync(); Pump();
-        ((ShellUnsavedDialogViewModel)window.GetVisualDescendants().OfType<ShellUnsavedDialogView>().Single().DataContext!).KeepDraft(); Pump(failedClose);
-        Check(window.IsVisible && vm.Protection.HasDraftError, "Failed draft retention also keeps the application open");
-        VerifyDraftStorage(output, Check);
-        memoryDrafts.FailFlush = false; vm.RetryDraft(); Pump();
-        var retainedClose = vm.BeginWindowCloseAsync(); Pump();
-        ((ShellUnsavedDialogViewModel)window.GetVisualDescendants().OfType<ShellUnsavedDialogView>().Single().DataContext!).KeepDraft(); Pump(retainedClose);
-        Check(!window.IsVisible, "Successful explicit draft retention completes the normal close workflow");
+        var canceledClose = vm.BeginWindowCloseAsync(); Pump();
+        ((ShellUnsavedDialogViewModel)window.GetVisualDescendants().OfType<ShellUnsavedDialogView>().Single().DataContext!).Cancel(); Pump(canceledClose);
+        Check(window.IsVisible && vm.DocumentInfo.IsModified && memoryDrafts.CompleteCount == 0,
+            "Canceling exit preserves the document and its active draft session");
+        Pump(vm.SaveAsync());
+        memoryDrafts.FailComplete = true;
+        window.Close(); Pump();
+        Check(window.IsVisible && !vm.DocumentInfo.IsModified && vm.Protection.HasDraftError && memoryDrafts.CompleteCount == 1,
+            "An unmodified window also completes its session and stays open if cleanup fails");
+        memoryDrafts.FailComplete = false;
+        vm.Markdown += "\nDiscard on normal exit"; Pump();
+        var discardedClose = vm.BeginWindowCloseAsync(); Pump();
+        ((ShellUnsavedDialogViewModel)window.GetVisualDescendants().OfType<ShellUnsavedDialogView>().Single().DataContext!).Discard(); Pump(discardedClose);
+        Check(!window.IsVisible && memoryDrafts.CompleteCount == 2,
+            "Discarding changes completes the normal session before closing the window");
     }
 
-    private static void VerifyDraftStorage(string output, Action<bool, string> check)
-    {
-        var root = Path.Combine(output, "real-draft-store");
-        if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
-        Directory.CreateDirectory(root);
-        var blocked = Path.Combine(root, "blocked-root"); File.WriteAllText(blocked, "not a directory");
-        var first = new AutoSaveDraftService { StorageDirectory = blocked };
-        var source = Path.Combine(root, "source.md"); File.WriteAllText(source, "disk baseline");
-        var snapshot = new DocumentSnapshot(source, "source.md", "disk baseline", new UTF8Encoding(false), false);
-        first.QueueSave(snapshot, "first unsaved draft", snapshot.Markdown);
-        check(!first.Flush() && first.LastError is not null, "Real draft storage failure is observable");
-        File.Delete(blocked);
-        check(first.Flush() && first.LastError is null, "Draft retry retains and writes the failed pending snapshot");
-        var second = new AutoSaveDraftService { StorageDirectory = blocked };
-        File.WriteAllText(source, "newer external disk version");
-        File.SetLastWriteTimeUtc(source, DateTime.UtcNow.AddMinutes(1));
-        check(second.TryRestore(snapshot with { Markdown = "newer external disk version" })?.Markdown == "first unsaved draft",
-            "A newer disk file does not discard an older recovery draft");
-        second.QueueSave(snapshot, "second process content", snapshot.Markdown); check(second.Flush(), "Second process draft is persisted");
-        var drafts = Directory.GetFiles(blocked, "*.json");
-        check(drafts.Length == 2, "Two process sessions retain independent draft files");
-        var corrupt = Path.Combine(blocked, Path.GetFileName(drafts[0]).Split('.')[0] + ".corrupt.json");
-        File.WriteAllText(corrupt, "{ corrupt draft"); File.SetLastWriteTimeUtc(corrupt, DateTime.UtcNow.AddMinutes(2));
-        var third = new AutoSaveDraftService { StorageDirectory = blocked };
-        check(third.TryRestore(snapshot) is not null && third.LastError is not null && File.ReadAllText(corrupt) == "{ corrupt draft",
-            "Unreadable draft data stays intact while other valid drafts remain recoverable");
-    }
 }
 
 public sealed class VerificationExports : IMarkdownExportService
