@@ -19,7 +19,7 @@ internal static class ContextMenuLayoutVerification
     {
         var vm = (MainWindowViewModel)window.DataContext!;
         var original = vm.Markdown;
-        void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
+        void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); Dispatcher.UIThread.RunJobs(); }
         void Check(bool condition, string message)
         {
             if (!condition) throw new InvalidOperationException(message);
@@ -39,6 +39,15 @@ internal static class ContextMenuLayoutVerification
                 Press(key, physical);
             }
             Render();
+        }
+        void PressAndWait(Func<bool> state, Key key, PhysicalKey physical)
+        {
+            Press(key, physical);
+            for (var frame = 0; frame < 20 && !state(); frame++)
+            {
+                Thread.Sleep(10);
+                Render();
+            }
         }
         void Inspect(Control panel, string label)
         {
@@ -90,22 +99,31 @@ internal static class ContextMenuLayoutVerification
             foreach (var branch in menu.Items.OfType<MenuItem>().Where(item => item.Items.Count > 0))
             {
                 window.MouseMove(new Point(2, window.ClientSize.Height - 2));
+                // 原生菜单的 PointerExited 会延迟关闭子菜单；先完成鼠标阶段，再独立验证键盘。
+                var hoverDeadline = DateTime.UtcNow + Avalonia.Controls.Platform.DefaultMenuInteractionHandler.MenuShowDelay;
+                do { Render(); Thread.Sleep(10); } while (DateTime.UtcNow <= hoverDeadline);
                 Check(menu.Focus(), "Root menu accepts focus before keyboard navigation");
                 PressUntil(() => ReferenceEquals(menu.SelectedItem, branch) && branch.IsKeyboardFocusWithin,
                     Key.Down, PhysicalKey.ArrowDown, menu.Items.Count + 2);
                 Check(ReferenceEquals(menu.SelectedItem, branch) && branch.IsKeyboardFocusWithin,
                     "Down arrow selects and focuses the submenu row: " + branch.Header);
-                PressUntil(() => branch.IsSubMenuOpen, Key.Right, PhysicalKey.ArrowRight);
+                PressAndWait(() => branch.IsSubMenuOpen, Key.Right, PhysicalKey.ArrowRight);
+                if (!branch.IsSubMenuOpen)
+                {
+                    Console.WriteLine($"SUBMENU RIGHT {label}: root={menu.IsOpen}, enabled={branch.IsEffectivelyEnabled}, focus={window.FocusManager?.GetFocusedElement()}, selected={menu.SelectedItem}, branch={branch.Header}");
+                    window.CaptureRenderedFrame()?.Save(Path.Combine(output, "context-submenu-right-failure.png"));
+                }
                 Check(branch.IsSubMenuOpen, "Right arrow opens the selected submenu: " + branch.Header);
                 var popup = branch.GetVisualDescendants().OfType<Popup>().First(p => p.IsOpen);
                 Inspect(popup.Child!, label + "/" + branch.Header);
-                PressUntil(() => !branch.IsSubMenuOpen, Key.Escape, PhysicalKey.Escape);
+                PressAndWait(() => !branch.IsSubMenuOpen, Key.Escape, PhysicalKey.Escape);
                 if (branch.IsSubMenuOpen)
                     Console.WriteLine($"SUBMENU ESCAPE root={menu.IsOpen}, branch={branch.IsSubMenuOpen}, popup={popup.IsOpen}, focus={window.FocusManager?.GetFocusedElement()}, selected={menu.SelectedItem}, child={branch.SelectedItem}");
                 Check(!branch.IsSubMenuOpen, "Escape closes the active submenu: " + branch.Header);
             }
             Check(menu.Focus(), "Context menu accepts keyboard focus after submenu inspection");
-            Press(Key.Escape, PhysicalKey.Escape);
+            PressAndWait(() => !menu.IsOpen, Key.Escape, PhysicalKey.Escape);
+            if (menu.IsOpen) Console.WriteLine($"ROOT ESCAPE focus={window.FocusManager?.GetFocusedElement()}, selected={menu.SelectedItem}");
             Check(!menu.IsOpen, "Escape unwinds submenus and closes " + label);
         }
 

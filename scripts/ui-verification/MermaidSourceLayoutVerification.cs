@@ -25,7 +25,9 @@ internal static class MermaidSourceLayoutVerification
         {
             control.BringIntoView(); Render();
             var point = control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), window)!.Value;
-            window.MouseMove(point); window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Render();
+            window.MouseMove(point); Render();
+            point = control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), window)!.Value;
+            window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Render();
         }
         foreach (var theme in new[] { "light", "dark" })
         foreach (var layout in new[] { "read", "instant" })
@@ -75,6 +77,11 @@ internal static class MermaidSourceLayoutVerification
             deadline = DateTime.UtcNow.AddSeconds(10);
             do { Render(); if (vm.Markdown.Contains("%% Source edit verification")) break; Thread.Sleep(10); }
             while (DateTime.UtcNow < deadline);
+            if (!vm.Markdown.Contains("%% Source edit verification") || editor.IsEffectivelyVisible)
+            {
+                Console.WriteLine($"OUTSIDE CLICK sourceSaved={vm.Markdown.Contains("%% Source edit verification")}, editorVisible={editor.IsEffectivelyVisible}, paragraph={paragraph.TranslatePoint(default, window)}, paragraphSize={paragraph.Bounds.Size}, scroll={scroll.Offset}");
+                window.CaptureRenderedFrame()?.Save(Path.Combine(output, "diagram-outside-click-failure.png"));
+            }
             Check(vm.Markdown.Replace("\r\n", "\n").Contains(source.Replace("\r\n", "\n") + "\n%% Source edit verification")
                 && !root.GetVisualDescendants().OfType<TextBox>().Any(input => input.Classes.Contains("MdMermaidSourceInput") && input.IsEffectivelyVisible),
                 $"Outside click commits source and hides its card: {layout}/{theme}/{kind}");

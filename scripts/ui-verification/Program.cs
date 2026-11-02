@@ -87,7 +87,7 @@ if (mode == "parity-score")
     VisualParityScore.Run(args.Skip(1).ToArray());
     return;
 }
-if (mode is "instant-menu" or "document-typography" or "reading-pointer" or "diagram-pointer" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics")
+if (mode is "instant-menu" or "document-typography" or "reading-pointer" or "diagram-pointer" or "context-menu" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -109,6 +109,7 @@ if (mode is "instant-menu" or "document-typography" or "reading-pointer" or "dia
     Pump();
     if (mode == "search-layout") SearchLayoutVerification.Run(window);
     else if (mode is "reading-pointer" or "diagram-pointer") ReadingPointerVerification.Run(window, output, mode == "reading-pointer");
+    else if (mode == "context-menu") ContextMenuLayoutVerification.Run(window, output);
     else if (mode == "reading-geometry") ReadingGeometryVerification.Run(window);
     else if (mode == "instant-menu") InstantMenuVerification.Run(window, output);
     else if (mode == "popup-layout") PopupLayoutVerification.Run(app, window, output);
