@@ -1,86 +1,79 @@
-# C# 语言之美
+# C# 语言之美：让数据与异步工作流更清楚
 
-![C# 类型体系封面](图片/csharp-cover.svg)
+C# 是语言，.NET 是运行平台与开发工具生态。这里围绕一个 Avalonia 文档工作区，观察类型、模式匹配、集合与异步如何配合。版本关系见 [.NET 历史与版本关系](.NET%20历史与版本关系.md)。
 
-[TOC]
-
-1999 年 1 月，Anders Hejlsberg——Turbo Pascal 与 Delphi 的作者——在微软组建了一个新语言团队，项目代号 **Cool**（C-like Object Oriented Language）。2000 年 6 月随 .NET 计划公开时更名为 C#，2002 年随 Visual Studio .NET 发布 1.0，同年 12 月被 ECMA 接纳为标准 **ECMA-334**。
-
-# 号并非 ++ 的歪写，而是乐谱中的升音符：四枚加号合在一处，暗示它站在 C 系语言肩膀上又高了一度。
-
-## 版本时间线上的四次跃迁
-
-- **C# 2.0（2005）**：泛型。集合从 `ArrayList` 的装箱时代进入 `List<T>`。
-- **C# 3.0（2007）**：LINQ、Lambda 与扩展方法，把查询写进语言。
-- **C# 5.0（2012）**：`async/await`，异步代码第一次读起来像同步。
-- **C# 9–12（2020–2023）**：record、模式匹配成熟、集合表达式，语言重新变得年轻。
-
-完整版本史见 [C# 版本历史 - Microsoft Learn](https://learn.microsoft.com/dotnet/csharp/whats-new/csharp-version-history)。
-
-## 类型即契约：record 与不可变性
-
-面向对象教我们把状态藏起来，再用属性与方法暴露行为；`record` 则反其道而行——把状态摆在明面上，让「值」本身成为契约。
+## 用 record 表达不可变数据
 
 ```csharp
-public sealed record Point3D(double X, double Y, double Z)
-{
-    public double Length => Math.Sqrt(X * X + Y * Y + Z * Z);
-}
+public sealed record DocumentInfo(string Path, string Title, bool IsDirty);
 
-var origin = new Point3D(0, 0, 0);
-var shifted = origin with { Z = 4.2 };
-
-Console.WriteLine(shifted == origin); // False：按值比较，而非引用
-Console.WriteLine(shifted);           // Point3D { X = 0, Y = 0, Z = 4.2 }
+var document = new DocumentInfo("notes.md", "架构笔记", false);
+var edited = document with { IsDirty = true };
+Console.WriteLine($"{edited.Title}: {edited.IsDirty}");
 ```
 
-`with` 表达式生成的是**副本**而非突变：旧值安然无恙，新值随心定制。在多线程与撤销/重做这类场景里，「不可变 + 按值相等」消灭了一整类缺陷。
+`with` 表达式创建新值，原对象保持原样。适合快照、配置和状态比较；它不自动解决深层集合的可变性。
 
-## 模式匹配：把 if-else 山拆成决策表
-
-C# 9 的关系与逻辑模式让复杂分派逻辑可以直接写成一张表，读代码的顺序就是决策的顺序。
+## 模式匹配让分支贴近含义
 
 ```csharp
-static string Describe(Shape shape) => shape switch
+static string Describe(DocumentInfo document) => document switch
 {
-    Circle { Radius: > 100 } c  => $"大圆，半径 {c.Radius}",
-    Circle c                    => $"圆，半径 {c.Radius}",
-    Rect { W: var w, H: var h } when w == h => $"正方形，边长 {w}",
-    Rect r                      => $"矩形 {r.W}×{r.H}",
-    null                        => "空形状",
-    _                           => "未知"
+    { IsDirty: true } => $"{document.Title} · 未保存",
+    { Title.Length: 0 } => "未命名文档",
+    _ => document.Title
 };
 ```
 
-编译器会做**穷尽性检查**：新增一个 `Shape` 子类而漏写分支，它会当场指出。
+把状态判断放在可测试的函数或 ViewModel 中，AXAML 只消费结果，不负责推断业务状态。
 
-## 集合表达式：初始化的终极形态
-
-C# 12 起，`[..]` 可以为任何集合类型赋值——编译器负责选择最优构造路径：
+## 集合表达式与 LINQ
 
 ```csharp
-int[]     primes = [2, 3, 5, 7, 11];
-List<int> evens  = [.. primes, 13, 17];   // 展开运算符拼接
-int[][]   grid   = [[1, 0], [0, 1]];      // 嵌套同样自然
+DocumentInfo[] files =
+[
+    new("guide.md", "Avalonia 入门", false),
+    new("draft.md", ".NET 方案", true),
+    new("notes.md", "C# 记录", true)
+];
+
+var titles = files.Where(file => file.IsDirty)
+                 .OrderBy(file => file.Title, StringComparer.Ordinal)
+                 .Select(file => file.Title)
+                 .ToArray();
 ```
 
-## LINQ：把循环写成句子
+集合表达式要求 C# 12 或更新版本。LINQ 的延迟执行有助于组合查询；需要稳定快照时再调用 `ToArray()`。
 
-LINQ 的价值不在少打几个字，而在**把意图从机制里剥离**：
+## 异步加载与取消
 
 ```csharp
-var hotspots = files
-    .Where(f => f.Lines > 300)
-    .OrderByDescending(f => f.Commits)
-    .Select(f => $"{f.Path}（{f.Commits} 次提交）")
-    .Take(5)
-    .ToList();
+public static async Task<string> LoadPreviewAsync(
+    string path, CancellationToken cancellationToken)
+{
+    var markdown = await File.ReadAllTextAsync(path, cancellationToken);
+    cancellationToken.ThrowIfCancellationRequested();
+    return markdown;
+}
 ```
 
-声明「要什么」，而不是「怎么遍历」；延迟执行让组合保持零成本。
+文件切换时应取消过期请求，并检查返回结果是否仍属于当前文档。`async` 不等于启动后台线程；IO 等待与 CPU 密集计算需要分别安排。
 
----
+## 泛型约束记录真正需要的能力
 
-> 语言特性是工具，美感来自组合：类型说清数据长什么样，模式匹配说清它怎么分派，LINQ 说清它从哪来。
+```csharp
+static T FirstOrDefault<T>(IReadOnlyList<T> items, T fallback) =>
+    items.Count == 0 ? fallback : items[0];
+```
 
-延伸阅读：[C# 文档首页](https://learn.microsoft.com/dotnet/csharp/) · [设计准则](https://learn.microsoft.com/dotnet/standard/design-guidelines/)
+没有需要的能力就不额外添加约束。Nullable 标注、参数验证与清楚的返回约定，比把所有异常都吞掉更有用。
+
+## 小结与练习
+
+- [x] 用值对象保存文档元数据
+- [x] 用模式匹配表达互斥状态
+- [ ] 为取消、空列表和重复标题补测试
+
+> 当一个抽象让调用者更难理解输入与结果时，先考虑删掉它。
+
+官方参考：[C# 文档](https://learn.microsoft.com/dotnet/csharp/)、[C# 版本历史](https://learn.microsoft.com/dotnet/csharp/whats-new/csharp-version-history)。

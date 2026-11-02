@@ -26,6 +26,8 @@ internal static class MarkdownTemplates
         "sankey" => "\n\n```mermaid\nsankey-beta\n\nIdeas,Draft,40\nIdeas,Notes,20\nDraft,Published,30\nDraft,Revision,10\n```\n\n",
         "radar" => "\n\n```mermaid\nradar-beta\n  title \"写作自评\"\n  axis clarity[\"清晰\"], structure[\"结构\"], detail[\"细节\"], rhythm[\"节奏\"]\n  curve draft[\"初稿\"]{3, 4, 3, 2}\n  curve revised[\"修订\"]{5, 4, 4, 4}\n  max 5\n```\n\n",
         "treemap" => "\n\n```mermaid\ntreemap-beta\n  \"文章\"\n    \"构思\"\n      \"灵感\": 20\n      \"提纲\": 15\n    \"正文\"\n      \"论述\": 45\n      \"案例\": 20\n```\n\n",
+        "venn" => "\n\n```mermaid\nvenn-beta\n  set A[\"C#\"]\n  set B[\"AXAML\"]\n  set C[\".NET\"]\n  union A, B[\"Avalonia 应用\"]\n  union A, C[\"服务与模型\"]\n```\n\n",
+        "treeview" => "\n\n```mermaid\ntreeView-beta\n    AvaloniaNotes/\n        Models/\n            Document.cs\n        ViewModels/\n            MainWindowViewModel.cs :::highlight ## 状态与命令\n        Views/\n            MainWindow.axaml\n        AvaloniaNotes.csproj\n```\n\n",
         "footnote" => "[^note]\n\n[^note]: ",
         _ => null
     };

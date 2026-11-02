@@ -1017,7 +1017,9 @@
       "FindCountNone": "No matches in this text",
       "LayoutCurrentFormat": "Layout: {0}",
       "MapSummaryCharacters": "chars",
-      "PrefFileListFontSize": "File list font size"
+      "PrefFileListFontSize": "File list font size",
+      "MermaidVenn": "Venn",
+      "MermaidTreeView": "Directory tree"
     }
   }
 }

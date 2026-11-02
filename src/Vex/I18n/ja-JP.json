@@ -1017,7 +1017,9 @@
       "FindCountNone": "この本文に一致なし",
       "LayoutCurrentFormat": "レイアウト：{0}",
       "MapSummaryCharacters": "文字",
-      "PrefFileListFontSize": "ファイル一覧の文字サイズ"
+      "PrefFileListFontSize": "ファイル一覧の文字サイズ",
+      "MermaidVenn": "ベン図",
+      "MermaidTreeView": "ディレクトリツリー"
     }
   }
 }

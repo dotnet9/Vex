@@ -54,10 +54,13 @@ for (const [key, file] of [['thanks','docs/鸣谢.md'], ['changelog','docs/更�
 }
 const changelog = sandbox.window.VexDocuments.changelog.text;
 vm.runInNewContext(fs.readFileSync(path.join(root, 'assets/workbench/samples.js'), 'utf8'), sandbox);
-assert.equal(sandbox.window.VexSamples.length, 6, 'Six samples are shared with the installed app');
+assert.equal(sandbox.window.VexSamples.length, 8, 'Eight C#/.NET/Avalonia samples are shared with the installed app');
+assert.deepEqual(sandbox.window.VexSamples.map(sample => sample.name).sort().join('|'),
+  fs.readdirSync(path.join(root, '../docs/演示文档')).filter(file => file.endsWith('.md')).sort().join('|'),
+  'Every installed sample is represented in the prototype');
 for (const sample of sandbox.window.VexSamples) {
   const file = path.resolve(root, sample.path);
-  const text = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n').replaceAll('(图片/', '(../docs/演示文档/图片/');
+  const text = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replaceAll('(图片/', '(../docs/演示文档/图片/');
   assert.equal(sample.text, text, 'Prototype and packaged sample stay in sync: '+sample.name);
   for (const image of sample.text.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g))
     assert.ok(fs.existsSync(path.resolve(root, image[1])), 'Local sample image exists');

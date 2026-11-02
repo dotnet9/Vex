@@ -1017,7 +1017,9 @@
       "FindCountNone": "当前正文无匹配",
       "LayoutCurrentFormat": "布局：{0}",
       "MapSummaryCharacters": "字",
-      "PrefFileListFontSize": "文件列表字号"
+      "PrefFileListFontSize": "文件列表字号",
+      "MermaidVenn": "韦恩图",
+      "MermaidTreeView": "目录树"
     }
   }
 }

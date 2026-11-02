@@ -1,21 +1,22 @@
 ﻿# Mermaid 图表图鉴
 
-![Mermaid 流程插图](图片/mermaid-cover.svg)
+![从 C# 文档模型到 Avalonia 界面](图片/dotnet-avalonia-pipeline.svg)
 
-Mermaid 是一套用文字生成图表的开源工具：写下几行类似代码的文本，渲染器负责画出流程图、时序图、类图……本页的每一段图形都由下方对应的文本块实时生成——修改文字，图形立即随之改变。
+用图表说明 C# 对象、.NET 服务与 Avalonia 桌面交互，比把每个细节塞进一段话更容易阅读。本页收录当前渲染器支持的 24 类图表，每种保留一个可直接编辑的短示例。
 
 源码与文档：<https://mermaid.js.org>
 
-以下示例全部取自 Vex 自身的架构与开发场景。
+在源码视图查看原始 Mermaid，在即时编辑中修改代码，再切换阅读检查结果。示例中的日期、时间与数值都是教学数据，不代表产品性能。
 
 ## 流程图
 
 ```mermaid
 flowchart LR
-  A[用户请求] --> B[路由中间件]
-  B --> C{返回响应}
-  C -->|调整| B
-  C -->|完成| D[导出分享]
+  A[ASP.NET Core 请求] --> B[验证 DTO]
+  B --> C{参数有效}
+  C -->|否| D[返回 400]
+  C -->|是| E[调用 C# 服务]
+  E --> F[返回 JSON]
 ```
 
 
@@ -23,12 +24,13 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-  participant W as 写作者
-  participant E as 编辑器
-  participant P as 预览
-  W->>E: 输入 Markdown
-  E->>P: 同步内容
-  P-->>W: 显示结果
+  participant V as Avalonia View
+  participant VM as ViewModel
+  participant S as DocumentStore
+  V->>VM: SaveCommand
+  VM->>S: WriteAsync(path, text)
+  S-->>VM: Task 完成
+  VM-->>V: IsModified = false
 ```
 
 
@@ -36,11 +38,12 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Draft
-  Draft --> Review: 提交
-  Review --> Draft: 修改
-  Review --> Published: 发布
-  Published --> [*]
+  [*] --> Idle
+  Idle --> Loading: 执行 OpenCommand
+  Loading --> Ready: 读取成功
+  Loading --> Error: IOException
+  Error --> Loading: 重试
+  Ready --> Idle: 关闭文档
 ```
 
 
@@ -48,13 +51,13 @@ stateDiagram-v2
 
 ```mermaid
 journey
-  title 一次写作的旅程
-  section 构思
-    记录灵感: 5: 写作者
-    整理提纲: 4: 写作者
-  section 完成
-    撰写正文: 4: 写作者
-    校对分享: 5: 写作者, 读者
+  title 第一次运行 Avalonia 项目
+  section 准备
+    安装 .NET SDK: 4: 开发者
+    创建桌面项目: 5: 开发者
+  section 运行
+    绑定 ViewModel: 4: 开发者
+    验证窗口交互: 5: 开发者, 测试者
 ```
 
 
@@ -62,16 +65,16 @@ journey
 
 ```mermaid
 gantt
-  title 写作计划
+  title Avalonia 功能迭代示例
   dateFormat YYYY-MM-DD
   axisFormat %m/%d
   tickInterval 1day
   section 实现
-    构思提纲 :done, a, 2026-10-17, 2d
-    撰写正文 :active, b, after a, 3d
+    定义 C# 模型 :done, a, 2026-10-17, 2d
+    编写 AXAML :active, b, after a, 3d
   section 发布
-    校对 :c, after b, 2d
-    发布 :milestone, after c, 0d
+    回归测试 :c, after b, 2d
+    AOT 发布 :milestone, after c, 0d
 ```
 
 
@@ -79,11 +82,11 @@ gantt
 
 ```mermaid
 timeline
-  title 文章的成长
-  2026-10-17 : 收集灵感
-  2026-10-19 : 完成提纲
-  2026-10-22 : 写成实现
-  2026-10-24 : 校对发布
+  title .NET 主线演进
+  2002 : .NET Framework
+  2016 : .NET Core
+  2020 : .NET 5
+  2025 : .NET 10
 ```
 
 
@@ -91,13 +94,13 @@ timeline
 
 ```mermaid
 gitGraph
-  commit id: "实现"
-  branch revise
-  checkout revise
-  commit id: "补充论据"
+  commit id: "建立模型"
+  branch feature
+  checkout feature
+  commit id: "实现命令"
   checkout main
-  merge revise
-  commit id: "发布"
+  merge feature
+  commit id: "验证 AOT"
 ```
 
 
@@ -106,11 +109,11 @@ gitGraph
 ```mermaid
 kanban
   todo[待办]
-    a[收集资料]
+    a[增加取消令牌]
   doing[进行中]
-    b[撰写实现]
+    b[实现保存命令]
   done[已完成]
-    c[整理提纲]
+    c[建立文档模型]
 ```
 
 
@@ -119,14 +122,14 @@ kanban
 ```mermaid
 classDiagram
   class Document {
-    +String title
-    +String content
-    +save()
+    +string Path
+    +string Markdown
   }
-  class Workspace {
-    +openDocument()
+  class DocumentViewModel {
+    +bool IsModified
+    +SaveAsync() Task
   }
-  Workspace "1" o-- "*" Document : 管理
+  DocumentViewModel "1" --> "1" Document : 编辑
 ```
 
 
@@ -134,14 +137,16 @@ classDiagram
 
 ```mermaid
 erDiagram
-  WORKSPACE ||--o{ DOCUMENT : contains
-  DOCUMENT ||--o{ SECTION : includes
+  PROJECT ||--o{ DOCUMENT : contains
+  DOCUMENT ||--o{ REVISION : tracks
   DOCUMENT {
-    string title
-    string content
+    int Id PK
+    string Path
   }
-  SECTION {
-    string heading
+  REVISION {
+    int Id PK
+    int DocumentId FK
+    string Markdown
   }
 ```
 
@@ -150,16 +155,16 @@ erDiagram
 
 ```mermaid
 requirementDiagram
-  requirement local_files {
+  requirement aot_release {
     id: 1
-    text: Local Markdown files
+    text: Publish win-x64 Native AOT
     risk: low
     verifymethod: test
   }
-  element editor {
+  element desktop_app {
     type: application
   }
-  editor - satisfies -> local_files
+  desktop_app - satisfies -> aot_release
 ```
 
 
@@ -167,16 +172,16 @@ requirementDiagram
 
 ```mermaid
 mindmap
-  root((写作))
-    构思
-      观察
-      灵感
-    整理
-      提纲
-      论据
-    表达
-      实现
-      校对
+  root((Avalonia 桌面应用))
+    C#
+      模型
+      异步命令
+    AXAML
+      控件
+      绑定
+    .NET
+      类库
+      Native AOT
 ```
 
 
@@ -185,9 +190,9 @@ mindmap
 ```mermaid
 block-beta
   columns 3
-  a["编辑器"] space b["预览"]
+  a["AXAML View"] space b["C# ViewModel"]
   a --> b
-  c["本地 Markdown 文件"]:3
+  c[".NET 文档服务"]:3
 ```
 
 
@@ -195,12 +200,12 @@ block-beta
 
 ```mermaid
 C4Context
-  title 本地写作空间
-  Person(writer, "写作者", "记录与整理想法")
-  System(vex, "维刻 Vex", "Markdown 工作区")
-  System_Ext(files, "本地文件", "Markdown 文档")
-  Rel(writer, vex, "写作")
-  Rel(vex, files, "读写")
+  title Avalonia 文档应用
+  Person(developer, "开发者", "编写技术文档")
+  System(desktop, "桌面应用", "C# 与 Avalonia")
+  System_Ext(files, "本地文件系统", "Markdown 与图片")
+  Rel(developer, desktop, "编辑与阅读")
+  Rel(desktop, files, "异步读写")
 ```
 
 
@@ -208,10 +213,10 @@ C4Context
 
 ```mermaid
 architecture-beta
-  group app(cloud)[Workspace]
-  service editor(server)[Editor] in app
-  service files(disk)[Files] in app
-  editor:R -- L:files
+  group app(cloud)[DotNet]
+  service api(server)[ASP NET Core] in app
+  service database(database)[Database] in app
+  api:R -- L:database
 ```
 
 
@@ -219,11 +224,11 @@ architecture-beta
 
 ```mermaid
 packet-beta
-  title 文档消息头
+  title .NET 二进制协议示例
   0-7: "Version"
   8-15: "Type"
   16-31: "Length"
-  32-63: "Document ID"
+  32-63: "Request ID"
 ```
 
 
@@ -231,10 +236,10 @@ packet-beta
 
 ```mermaid
 pie showData
-  title 写作时间分配
-  "构思" : 25
-  "写作" : 50
-  "校对" : 25
+  title 桌面项目代码构成示例
+  "C#" : 55
+  "AXAML" : 30
+  "测试" : 15
 ```
 
 
@@ -242,15 +247,15 @@ pie showData
 
 ```mermaid
 quadrantChart
-  title 选题优先级
+  title Avalonia 改进优先级
   x-axis Low effort --> High effort
   y-axis Low value --> High value
   quadrant-1 Plan
   quadrant-2 Do first
   quadrant-3 Later
   quadrant-4 Reconsider
-  Note: [0.25, 0.8]
-  Essay: [0.7, 0.75]
+  FixClipping: [0.25, 0.8]
+  NewTheme: [0.7, 0.75]
 ```
 
 
@@ -258,11 +263,11 @@ quadrantChart
 
 ```mermaid
 xychart-beta
-  title "每周写作量"
-  x-axis "星期" ["周一", "周二", "周三", "周四", "周五"]
-  y-axis "字数" 0 --> 1000
-  bar [300, 500, 450, 800, 600]
-  line [300, 500, 450, 800, 600]
+  title "C# 测试执行时间示例"
+  x-axis "批次" ["一", "二", "三", "四", "五"]
+  y-axis "毫秒" 0 --> 1000
+  bar [600, 500, 450, 400, 350]
+  line [600, 500, 450, 400, 350]
 ```
 
 
@@ -271,10 +276,11 @@ xychart-beta
 ```mermaid
 sankey-beta
 
-Ideas,Draft,40
-Ideas,Notes,20
-Draft,Published,30
-Draft,Revision,10
+DotNet,CSharp,60
+DotNet,AXAML,40
+CSharp,Application,40
+CSharp,Tests,20
+AXAML,Application,40
 ```
 
 
@@ -282,10 +288,10 @@ Draft,Revision,10
 
 ```mermaid
 radar-beta
-  title "写作自评"
-  axis clarity["清晰"], structure["结构"], detail["细节"], rhythm["节奏"]
-  curve draft["实现"]{3, 4, 3, 2}
-  curve revised["修订"]{5, 4, 4, 4}
+  title "桌面交互评审示例"
+  axis keyboard["键盘"], clarity["清晰"], layout["布局"], feedback["反馈"]
+  curve before["修改前"]{3, 4, 3, 2}
+  curve after["修改后"]{5, 4, 4, 4}
   max 5
 ```
 
@@ -294,13 +300,48 @@ radar-beta
 
 ```mermaid
 treemap-beta
-  "文章"
-    "构思"
-      "灵感": 20
-      "提纲": 15
-    "正文"
-      "论述": 45
-      "案例": 20
+  "Avalonia 项目"
+    "应用"
+      "ViewModels": 25
+      "Views": 20
+    "基础设施"
+      "Services": 30
+      "Tests": 25
 ```
+
+## 韦恩图
+
+用交集说明技术职责：C# 承载逻辑，AXAML 描述视图，.NET 提供运行与类库能力。
+
+```mermaid
+venn-beta
+  set A["C#"]
+  set B["AXAML"]
+  set C[".NET"]
+  union A, B["Avalonia 应用"]
+  union A, C["服务与模型"]
+```
+
+## 目录树
+
+用一个最小桌面项目检查文件层级、文件名、注释与高亮。
+
+```mermaid
+treeView-beta
+    AvaloniaNotes/
+        Models/
+            Document.cs
+        ViewModels/
+            MainWindowViewModel.cs :::highlight ## 状态与命令
+        Views/
+            MainWindow.axaml
+        App.axaml
+        Program.cs
+        AvaloniaNotes.csproj
+```
+
+---
+
+继续阅读 [.NET 历史与版本关系](.NET%20历史与版本关系.md)，或回到 [技术文档导航](主题设计笔记.md)。
 
 

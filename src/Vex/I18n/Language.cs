@@ -1016,4 +1016,6 @@ public static class VexL
     public static readonly string LayoutCurrentFormat = "Vex.VexL.LayoutCurrentFormat";
     public static readonly string MapSummaryCharacters = "Vex.VexL.MapSummaryCharacters";
     public static readonly string PrefFileListFontSize = "Vex.VexL.PrefFileListFontSize";
+    public static readonly string MermaidVenn = "Vex.VexL.MermaidVenn";
+    public static readonly string MermaidTreeView = "Vex.VexL.MermaidTreeView";
 }

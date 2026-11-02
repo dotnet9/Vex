@@ -131,6 +131,8 @@ for(const culture of Object.keys(extra)){
    ,DiagramEditButton: {'zh-CN':'编辑','zh-Hant':'編輯','en-US':'Edit','ja-JP':'編集'}[culture]
    ,DiagramEditHint: {'zh-CN':'Esc 或点击块外完成编辑','zh-Hant':'Esc 或點擊塊外完成編輯','en-US':'Press Esc or click outside the block to finish editing','ja-JP':'Esc またはブロック外クリックで編集を終了'}[culture]
    ,DiagramPreviewNote: {'zh-CN':'预览由渲染器出图；语法有误时保留源码显示。','zh-Hant':'預覽由渲染器出圖；語法有誤時保留原始碼顯示。','en-US':'The preview is drawn by the renderer; invalid syntax keeps the source visible.','ja-JP':'プレビューはレンダラーが描画します。構文エラーではソース表示を保持します。'}[culture]
+   ,MermaidVenn: {'zh-CN':'韦恩图','zh-Hant':'韋恩圖','en-US':'Venn','ja-JP':'ベン図'}[culture]
+   ,MermaidTreeView: {'zh-CN':'目录树','zh-Hant':'目錄樹','en-US':'Directory tree','ja-JP':'ディレクトリツリー'}[culture]
  });
  context.VexPalettes.forEach(p=>{const name=paletteNames[p.key],purpose=purposeOf(palettePurpose,'配色',p.key);strings['Palette'+name]=culture==='zh-CN'?p.label:culture==='zh-Hant'?traditional(p.label):p.en;strings['PalettePurpose'+name]=culture==='zh-CN'?p.note:culture==='zh-Hant'?traditional(p.note):culture==='ja-JP'?purpose.ja:purpose.en;});
  context.VexTypes.forEach(t=>{const purpose=purposeOf(typographyPurpose,'排版',t.key);strings['Typography'+t.key]=culture==='zh-CN'?t.label:culture==='zh-Hant'?traditional(t.label):t.en;strings['TypographyPurpose'+t.key]=culture==='zh-CN'?t.note:culture==='zh-Hant'?traditional(t.note):culture==='ja-JP'?purpose.ja:purpose.en;});

@@ -147,6 +147,8 @@
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidSankey}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="sankey" />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidRadar}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="radar" />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidTreemap}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="treemap" />
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidVenn}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="venn" />
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidTreeView}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="treeview" />
             </MenuItem>
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.HorizontalRule}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.HorizontalRule}" />

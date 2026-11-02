@@ -876,11 +876,26 @@ void VerifyDocumentWindows(VerificationVexApp app, Window window, MainWindowView
     Pump(vm.Help.OpenHelpTopic("samples"));
     Check(launcher.Paths.Last() == BundledDocuments.SamplesFolder, "Sample menu launches the real packaged directory");
     Pump(vm.OpenStartupDocumentAsync([BundledDocuments.SamplesFolder]));
-    Check(vm.WorkspaceFolderPath == BundledDocuments.SamplesFolder && vm.DocumentFiles.Count == 7, "Opening samples loads all seven actual files into the ordinary file tree");
+    Check(vm.WorkspaceFolderPath == BundledDocuments.SamplesFolder && vm.DocumentFiles.Count == 8, "Opening samples loads all eight actual files into the ordinary file tree");
     foreach (var file in vm.DocumentFiles)
         Check(File.Exists(file.Path) && file.Path.StartsWith(BundledDocuments.SamplesFolder), "Sample tree contains packaged files: " + file.Name);
+    var preview = ((Vex.Modules.Shell.Views.MainWindow)window).Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!
+        .FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
+    var live = ((Vex.Modules.Shell.Views.MainWindow)window).Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
+    foreach (var path in Directory.GetFiles(BundledDocuments.SamplesFolder, "*.md"))
+    {
+        Pump(vm.OpenPathAsync(path));
+        var source = File.ReadAllText(path);
+        foreach (var layout in new[] { "source", "instant", "read" })
+        {
+            vm.Workbench.SelectLayout(layout); Pump(); SettleRendering();
+            if (layout == "read") PumpUntil(() => preview.CurrentModel.Source == source);
+            Check(vm.Markdown == source && (layout != "instant" || live.Text == source),
+                $"{Path.GetFileName(path)}/{layout}: actual bundled document loads without changing its source");
+        }
+    }
     Pump(vm.OpenStartupDocumentAsync([Path.Combine(BundledDocuments.SamplesFolder, "图文与链接.md")]));
-    Check(vm.Markdown.Contains("图片/山间湖畔.png") && File.Exists(Path.Combine(BundledDocuments.SamplesFolder, "图片", "山间湖畔.png")), "Sample image resolves from the published document directory without a network");
+    Check(vm.Markdown.Contains("图片/dotnet-avalonia-pipeline.svg") && File.Exists(Path.Combine(BundledDocuments.SamplesFolder, "图片", "dotnet-avalonia-pipeline.svg")), "Sample image resolves from the published document directory without a network");
     vm.Workbench.ShowRead(); Pump(); SettleRendering(); Capture(window, "packaged-samples");
     Console.WriteLine("PASS: document menu and about routes, process arguments, independent editable workspace and parent preservation");
 }
@@ -1743,14 +1758,16 @@ void VerifyMermaidWorkspace(Vex.Modules.Shell.Views.MainWindow window, MainWindo
     var instantFrameMs = timer.Elapsed.TotalMilliseconds;
     PumpUntil(() => Ready(instant)); var instantFirstDiagramMs = timer.Elapsed.TotalMilliseconds;
     var initialDiagrams = Diagrams(instant).Length;
-    if (!args.Contains("--measure-only")) Check(initialDiagrams < 22,"First screen does not instantiate all 22 diagrams");
+    if (!args.Contains("--measure-only")) Check(initialDiagrams < 24,"First screen does not instantiate all 24 diagrams");
     Capture(window,"mermaid-full-instant");
     timer.Restart();vm.Workbench.SelectLayout("read");Pump();
     PumpUntil(() => preview.CurrentModel.Source == text && Ready(preview));
     var readingReadyMs = timer.Elapsed.TotalMilliseconds;
     Check(preview.Markdown == text,"Showing reading view synchronizes the latest document");
     var blocks = Markdown.Parse(text).OfType<Markdig.Syntax.FencedCodeBlock>().Where(block => block.Info?.Trim() == "mermaid").ToArray();
-    Check(blocks.Length == 22,"The shipped catalog contains all 22 diagrams");
+    Check(blocks.Length == 24,"The shipped catalog contains all 24 diagrams");
+    Check(blocks.Select(block => block.Lines.ToString().TrimStart().Split([' ', '\r', '\n'])[0]).Distinct().Count() == 24,
+        "The shipped catalog covers 24 distinct Mermaid types, including Venn and TreeView");
     var warmSwitchMs = new List<double>();
     vm.Workbench.SelectLayout("instant");Pump();
     for (var pass=0;pass<3;pass++)
@@ -1795,9 +1812,31 @@ void VerifyMermaidWorkspace(Vex.Modules.Shell.Views.MainWindow window, MainWindo
                     Check(DiagramPixels.PureBlackShare(image) < 0.02, $"{theme}/{layout}/17: 图面上没有成面积的纯黑填色");
                 }
                 Check(!host.GetVisualDescendants().OfType<ScrollViewer>().Any(scroll => scroll.IsEffectivelyVisible && scroll.HorizontalScrollBarVisibility != Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled && scroll.Extent.Width > scroll.Viewport.Width+1),$"{theme}/{layout}/{pair.index}: no diagram scrollbar");
-                if (pair.index is 0 or 15 or 16 or 19 or 20 or 21) Capture(window,$"mermaid-{theme}-{layout}-{pair.index}");
+                if (pair.index is 0 or 15 or 16 or 19 or 20 or 21 or 22 or 23) Capture(window,$"mermaid-{theme}-{layout}-{pair.index}");
                 checks++;
             }
+        }
+    }
+    var sourceEditor = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!
+        .FindControl<MarkdownEditorView>("MarkdownEditor")!;
+    var insertMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!.FindControl<MenuItem>("InsertMenuItem")!;
+    var templateKeys = insertMenu.GetLogicalDescendants().OfType<MenuItem>().Select(item => item.CommandParameter)
+        .OfType<string>().Where(key => key != "footnote").ToArray();
+    Check(templateKeys.Distinct().Count() == 24, "Insertion menu exposes all 24 distinct template keys");
+    foreach (var layout in new[] { "source", "instant" })
+    {
+        vm.Workbench.SelectLayout(layout); Pump();
+        foreach (var key in templateKeys)
+        {
+            vm.Markdown = "C#"; Pump();
+            if (layout == "source") { sourceEditor.Editor.Select(0, 2); sourceEditor.Editor.TextArea.Focus(); }
+            else { instant.Editor.FocusBlock(0); Pump(); var box = instant.Editor.GetVisualDescendants().OfType<TextBox>().Single(box => box.IsEffectivelyVisible); box.Focus(); box.SelectionStart = 0; box.SelectionEnd = 2; }
+            Pump(); vm.EditorActions.InsertSnippet(key); Pump();
+            Check(vm.Markdown.StartsWith("\n\n```mermaid\n") && !vm.Markdown.Contains("C#\n\n```"),
+                $"{layout}/{key}: host insertion replaces the selected source");
+            var fence = Markdown.Parse(vm.Markdown).OfType<Markdig.Syntax.FencedCodeBlock>().Single();
+            var svg = Mermaider.MermaidRenderer.RenderSvg(fence.Lines.ToString());
+            Check(System.Xml.Linq.XDocument.Parse(svg).Root?.Name.LocalName == "svg", $"{layout}/{key}: inserted template produces SVG");
         }
     }
     vm.Workbench.SelectLayout("source");Pump();vm.Markdown=text;Pump();
@@ -2549,8 +2588,8 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Vex.Modules.Shell.Views.MainW
     var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
     var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
     var insert = titleMenu.FindControl<MenuItem>("InsertMenuItem")!;
-    Check(insert.GetLogicalDescendants().OfType<MenuItem>().Count(item => item.CommandParameter is string key && key is not "footnote") == 22,
-        "All 22 Mermaid templates remain available in grouped insertion menus");
+    Check(insert.GetLogicalDescendants().OfType<MenuItem>().Count(item => item.CommandParameter is string key && key is not "footnote") == 24,
+        "All 24 Mermaid templates remain available in grouped insertion menus");
     foreach (var width in new[] { 1280, 980, 1920 })
     {
         window.Width = width; window.Height = width == 980 ? 640 : 900; vm.Layout.IsSidebarVisible = true;

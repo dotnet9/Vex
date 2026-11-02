@@ -29,12 +29,17 @@ internal static class RuntimeVerification
                 throw new InvalidOperationException("Published quick start image is missing: " + relative);
         }
         var samples = Directory.GetFiles(BundledDocuments.SamplesFolder, "*.md");
-        if (samples.Length != 6 || !File.Exists(Path.Combine(BundledDocuments.SamplesFolder, "图片", "山间湖畔.png")))
+        if (samples.Length != 8 || !File.Exists(Path.Combine(BundledDocuments.SamplesFolder, "图片", "dotnet-avalonia-pipeline.svg")))
             throw new InvalidOperationException("Published sample documents or their offline image are missing.");
         var catalog = File.ReadAllText(Path.Combine(BundledDocuments.SamplesFolder, "Mermaid 图表图鉴.md"));
         var diagrams = Regex.Matches(catalog, @"(?m)^```mermaid\s*\r?\n([\s\S]*?)^```\s*$");
-        if (diagrams.Count != 22)
-            throw new InvalidOperationException("Published Mermaid catalog must contain all 22 diagram examples.");
+        string[] diagramTypes = ["flowchart", "sequenceDiagram", "stateDiagram-v2", "journey", "gantt", "timeline",
+            "gitGraph", "kanban", "classDiagram", "erDiagram", "requirementDiagram", "mindmap", "block-beta",
+            "C4Context", "architecture-beta", "packet-beta", "pie", "quadrantChart", "xychart-beta", "sankey-beta",
+            "radar-beta", "treemap-beta", "venn-beta", "treeView-beta"];
+        var actualTypes = diagrams.Select(diagram => diagram.Groups[1].Value.TrimStart().Split([' ', '\r', '\n'])[0]);
+        if (diagrams.Count != diagramTypes.Length || !actualTypes.ToHashSet().SetEquals(diagramTypes))
+            throw new InvalidOperationException("Published Mermaid catalog must contain all 24 distinct diagram types.");
         foreach (Match diagram in diagrams)
         {
             var svg = MermaidRenderer.RenderSvg(diagram.Groups[1].Value, new RenderOptions
