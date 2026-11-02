@@ -68,6 +68,12 @@ internal static class WindowPlacementVerification
         store.Update(s => s with { WindowWidth = double.NaN, WindowHeight = double.PositiveInfinity, IsWindowMaximized = null });
         model = Model(store);
         Check(model.RestoreWindowPlacement(new Size(1536, 864), new Size(800, 480)) == new Size(1280, 820), "Invalid settings fall back to defaults in logical screen units");
+        Check(model.RestoreWindowPlacement(new Size(1024, 700), new Size(800, 480)) == new Size(1024, 700)
+            && model.CurrentWindowState == WindowState.Normal, "Invalid dimensions on a small display do not imply legacy maximization");
+        store.Update(s => s with { WindowWidth = null, WindowHeight = null });
+        model = Model(store);
+        Check(model.RestoreWindowPlacement(new Size(1024, 700), new Size(800, 480)) == new Size(1024, 700)
+            && model.CurrentWindowState == WindowState.Normal, "Missing dimensions use clamped defaults without guessing maximized state");
         store.Update(s => s with { WindowWidth = 1600, WindowHeight = 1000, IsWindowMaximized = false });
         model = Model(store);
         Check(model.RestoreWindowPlacement(new Size(1024, 700), new Size(800, 480)) == new Size(1024, 700), "Moving to a smaller display clamps normal dimensions to the working area");

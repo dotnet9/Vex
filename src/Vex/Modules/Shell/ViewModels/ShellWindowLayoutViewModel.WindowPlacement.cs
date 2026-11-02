@@ -14,7 +14,8 @@ public sealed partial class ShellWindowLayoutViewModel
         var width = Usable(settings.WindowWidth) ? settings.WindowWidth!.Value : 1280;
         var height = Usable(settings.WindowHeight) ? settings.WindowHeight!.Value : 820;
         // 旧版把最大化尺寸保存成普通尺寸；仅迁移没有状态标记且两个方向都占满工作区的配置。
-        if (settings.IsWindowMaximized is null && width >= workArea.Width - 16 && height >= workArea.Height - 16)
+        if (settings.IsWindowMaximized is null && Usable(settings.WindowWidth) && Usable(settings.WindowHeight)
+            && width >= workArea.Width - 16 && height >= workArea.Height - 16)
         {
             width = 1280;
             height = 820;
