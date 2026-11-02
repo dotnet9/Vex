@@ -5,6 +5,8 @@
     <AvaloniaVersion>12.1.4</AvaloniaVersion>
     <SemiAvaloniaVersion>12.1.0.1</SemiAvaloniaVersion>
     <UrsaAvaloniaVersion>2.2.0</UrsaAvaloniaVersion>
+    <!-- 未发布候选包由 CI 从固定源码提交重建；正式版本仅使用 NuGet。 -->
+    <CodeWFAvaloniaSourceRevision>56ca180350889998adf51dbf191c45d7ab01a5d6</CodeWFAvaloniaSourceRevision>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="CodeWF.Avalonia.MindView" Version="12.2.47-toolbar.20261102.2" />
