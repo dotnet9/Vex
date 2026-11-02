@@ -65,9 +65,11 @@
         button.dataset.fileName = doc.name; button.dataset.fileIndex = index; button.dataset.filePath = doc.path || doc.name; button.dataset.contextKind = 'file'; button.title = doc.path || doc.name;
         button.setAttribute('aria-current', doc === current ? 'page' : 'false');
         /* 列表行与树形行同一观感语言：图标 + 名称单行，子目录文件行尾加目录标签。 */
-        if (mode === 'tree') button.innerHTML = icon('file');
+        const fileType = /^readme\.md$/i.test(doc.name) ? 'readme' : /\.(md|markdown|mdown)$/i.test(doc.name) ? 'markdown' : null;
+        button.innerHTML = fileType
+          ? '<img class="ico file-type-icon" src="assets/generated/file-icons/' + fileType + '.png" alt="" aria-hidden="true">'
+          : icon('file');
         const label = document.createElement('span'); label.className = 'file-name'; label.textContent = doc.name;
-        if (mode === 'list') button.innerHTML = icon('file');
         button.append(label);
         if (mode === 'list') {
           const rel = doc.treePath || doc.path || doc.name;
