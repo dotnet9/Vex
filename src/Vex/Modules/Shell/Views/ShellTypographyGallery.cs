@@ -179,7 +179,11 @@ public sealed class ShellTypographyGallery : UserControl
         Resource(paper, Border.BackgroundProperty, this, "VexDocumentPaperBrush");
         Resource(paper, Border.BorderBrushProperty, this, "VexPanelBorderBrush");
         // 原型 .palette-badge：600 10px/1、2px 4px 内距、--vex-radius-xs 圆角、距卡片右上角各 6。
-        var badgeText = new TextBlock { FontSize = 10, LineHeight = 10, FontWeight = FontWeight.SemiBold, Foreground = Brushes.White };
+        var badgeText = new TextBlock
+        {
+            FontSize = 10, LineHeight = 10, FontWeight = FontWeight.SemiBold, Foreground = Brushes.White,
+            FontFamily = new FontFamily("Segoe UI Symbol, Microsoft YaHei UI")
+        };
         var badge = new Border
         {
             Child = badgeText,
@@ -191,7 +195,7 @@ public sealed class ShellTypographyGallery : UserControl
         Resource(badge, Border.BackgroundProperty, this, "VexAccentBrush");
         // 原型选中态：accent 描边 + inset 0 0 0 1px accent，环压在卡片边缘内侧。
         var ring = new Border { BorderThickness = new Thickness(1), IsHitTestVisible = false };
-        ring.Bind(Border.CornerRadiusProperty, CardRadius());
+        ring.Bind(Border.CornerRadiusProperty, CardRadius(-1));
         Resource(ring, Border.BorderBrushProperty, this, "VexAccentBrush");
         var content = new Panel { Children = { paper, ring, badge } };
         // 原型：排版卡是流程终点，应用后稍候自动收起让出正文看效果（scheduleCollapse）。

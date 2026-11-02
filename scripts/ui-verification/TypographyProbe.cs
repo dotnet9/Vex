@@ -102,7 +102,7 @@ internal static class TypographyProbe
                          .Where(t => t.Text is { Length: > 0 } && t.GetType() == typeof(TextBlock)).Take(4))
             {
                 var cls = string.Join(",", text.Classes);
-                Line("CARDTEXT", text, $"key={card.Name}\t{cls}\ttext={text.Text}\tfs={text.FontSize}\tlh={text.LineHeight}\tmax={text.MaxLines}\tfont={text.FontFamily}\tfg={text.Foreground}");
+                Line("CARDTEXT", text, $"key={card.Name}\t{cls}\ttext={text.Text}\tfs={text.FontSize}\tlh={text.LineHeight}\tmax={text.MaxLines}\tfont={text.FontFamily}\tfg={text.Foreground}\tbaseline={text.TextLayout.TextLines[0].Baseline:0.####}");
                 if (text.Parent is Border frame)
                     Line("CARDFRAME", frame, $"border={frame.BorderThickness}\tink={frame.BorderBrush}\tpadding={frame.Padding}\tradius={frame.CornerRadius}\tbg={frame.Background}");
             }
