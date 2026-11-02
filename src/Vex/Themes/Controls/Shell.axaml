@@ -265,12 +265,15 @@
          currentColor 跟随触发器文字色；导图样式/排版/状态栏等弹出层触发器的下拉箭头统一用它，并与文字垂直居中。 -->
     <Style Selector="Path.expand-chevron">
         <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
-        <Setter Property="StrokeThickness" Value="0.9" />
+        <Setter Property="StrokeThickness" Value="1.7" />
         <Setter Property="StrokeJoin" Value="Round" />
         <Setter Property="StrokeLineCap" Value="Round" />
         <Setter Property="Width" Value="14" />
-        <Setter Property="Height" Value="7" />
-        <Setter Property="Stretch" Value="Uniform" />
+        <Setter Property="Height" Value="14" />
+        <!-- 保留 SVG 的 24×24 坐标与留白，不能按路径包围盒撑满图标。 -->
+        <Setter Property="Stretch" Value="None" />
+        <Setter Property="RenderTransformOrigin" Value="0%,0%" />
+        <Setter Property="RenderTransform" Value="scale(0.5833333333333333)" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <!-- Semi 的 ComboBox 模板自带 32×16 的 PathIcon#DropDownGlyph，Uniform 缩放后视觉比浏览器原生 select 的尖角大一圈，
