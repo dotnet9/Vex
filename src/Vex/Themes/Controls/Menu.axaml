@@ -29,6 +29,10 @@
         <Setter Property="Padding" Value="10 0" />
         <Setter Property="CornerRadius" Value="6" />
     </Style>
+    <!-- Semi 按需折叠空状态列；无勾选项的菜单组用全角空白占住同宽图标列，保持文字起点一致。 -->
+    <Style Selector="MenuItem#FileMenuItem MenuItem, MenuItem#InsertMenuItem MenuItem, MenuItem#FormatMenuItem MenuItem, MenuItem#HelpMenuItem MenuItem">
+        <Setter Property="Icon" Value="&#x3000;" />
+    </Style>
 
     <Style Selector="MenuItem /template/ ContentPresenter#PART_HeaderPresenter TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource MenuItemForeground}" />
