@@ -443,6 +443,17 @@ internal static class PrototypeChromeVerification
         Check(Math.Abs(deckDock.Minimum - 1) < .001 && Math.Abs(deckDock.Maximum - 2.5) < .001 && Math.Abs(deckDock.Step - .1) < .001,
             "Deck dock keeps the reading range 1.0 to 2.5 in tenth steps");
         var initialZoom = vm.Workbench.PresentationZoom;
+        var initialPage = vm.Workbench.PresentationIndex;
+        var zoomSlider = deckDock.GetVisualDescendants().OfType<Slider>().Single();
+        var zoomThumb = zoomSlider.GetVisualDescendants().OfType<Thumb>().Single();
+        Check(zoomThumb.Bounds.Size == new Size(15, 15) && zoomThumb.BorderThickness == default
+            && zoomThumb.Background == zoomSlider.Foreground,
+            "Zoom dock uses the prototype solid 15px thumb through the standard Slider template");
+        zoomSlider.Focus(); window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null); Render();
+        window.KeyRelease(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null);
+        Check(Math.Abs(vm.Workbench.PresentationZoom - initialZoom - .1) < .001
+            && vm.Workbench.PresentationIndex == initialPage,
+            "The zoom slider retains its keyboard step and binding without turning the presentation page");
         deckDock.Value = 2.5; Render();
         Check(Math.Abs(vm.Workbench.PresentationZoom - 2.5) < 0.001 && vm.Workbench.PresentationZoomText == "250%", "Deck dock raises presentation zoom to 250 percent");
         deckDock.Value = 1; Render();
@@ -450,10 +461,22 @@ internal static class PrototypeChromeVerification
         var deckResetPoint = deckReset.TranslatePoint(new Point(deckReset.Bounds.Width / 2, deckReset.Bounds.Height / 2), window)!.Value;
         window.MouseDown(deckResetPoint, MouseButton.Left); window.MouseUp(deckResetPoint, MouseButton.Left); Render();
         Check(vm.Workbench.PresentationZoom == initialZoom, "Deck dock reset returns to the presentation's initial zoom");
+        deckDock.Value = 1; deckReset.Focus();
+        window.KeyPress(Key.Space, RawInputModifiers.None, PhysicalKey.Space, null);
+        window.KeyRelease(Key.Space, RawInputModifiers.None, PhysicalKey.Space, null); Render();
+        Check(vm.Workbench.PresentationZoom == initialZoom && vm.Workbench.PresentationIndex == initialPage,
+            "Space activates the focused zoom reset button without turning the page");
         vm.Workbench.ShowPresentationMap(); Render();
         Check(Math.Abs(deckDock.Minimum - .15) < .001 && Math.Abs(deckDock.Maximum - 3) < .001 && Math.Abs(deckDock.Step - .05) < .001,
             "Deck dock swaps to the map range 0.15 to 3 in twentieth steps");
-        vm.Workbench.StopPresentation(); Render();
+        deckDock.Value = 1; zoomSlider.Focus();
+        window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null);
+        window.KeyRelease(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null); Render();
+        Check(Math.Abs(deckDock.Value - 1.05) < .001,
+            "Map zoom uses its own five-percent keyboard step");
+        window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+        window.KeyRelease(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Render();
+        Check(!vm.Workbench.IsPresenting, "Escape still exits presentation while the slider has focus");
         Check(app.Resolve<IAppSettingsStore>().Current.PresentationScale == initialZoom, "Presentation zoom persists the restored initial scale");
         vm.Workbench.SelectLayout("instant"); Render();
         // 自定义配色：注册→进目录并选中→持久化；删除后回退默认配色。

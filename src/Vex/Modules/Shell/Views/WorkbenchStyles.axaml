@@ -950,6 +950,11 @@
     <Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/>
     <Setter Property="BorderThickness" Value="0"/>
   </Style>
+  <!-- 原型缩放条使用浏览器 range 的实心 15px 拖动块；沿用 Semi 的标准 Slider 交互。 -->
+  <Style Selector="Slider.zoom-range /template/ Thumb#thumb">
+    <Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+  </Style>
   <Style Selector="Slider.pref-range /template/ RepeatButton /template/ Border#TrackBackground">
     <Setter Property="Height" Value="8"/>
     <Setter Property="CornerRadius" Value="4"/>

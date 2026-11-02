@@ -36,6 +36,7 @@
                         <Panel>
                             <Slider
                                 Name="PART_Slider"
+                                Classes="zoom-range"
                                 Minimum="{TemplateBinding Minimum}"
                                 Maximum="{TemplateBinding Maximum}"
                                 SmallChange="{TemplateBinding Step}"
@@ -46,7 +47,14 @@
                                 Foreground="{DynamicResource VexAccentBrush}"
                                 Background="{DynamicResource VexPanelBorderBrush}"
                                 ToolTip.Tip="{TemplateBinding Label}"
-                                AutomationProperties.Name="{TemplateBinding Label}" />
+                                AutomationProperties.Name="{TemplateBinding Label}">
+                                <Slider.Resources>
+                                    <x:Double x:Key="SliderThumbWidth">15</x:Double>
+                                    <x:Double x:Key="SliderThumbHeight">15</x:Double>
+                                    <x:Double x:Key="SliderTrackWidth">8</x:Double>
+                                    <CornerRadius x:Key="SliderTrackCornerRadius">4</CornerRadius>
+                                </Slider.Resources>
+                            </Slider>
                             <Canvas Name="PART_BubbleTrack" IsHitTestVisible="False">
                                 <Border
                                     Name="PART_Bubble"
@@ -86,14 +94,14 @@
                                 Margin="3,0,0,0"
                                 ToolTip.Tip="{TemplateBinding ResetLabel}"
                                 AutomationProperties.Name="{TemplateBinding ResetLabel}">
-                                <Path
+                                <Viewbox
                                     Width="{DynamicResource VexZoomDockIconSize}"
-                                    Height="{DynamicResource VexZoomDockIconSize}"
-                                    Data="{TemplateBinding ResetGeometry}"
-                                    Stretch="Uniform"
-                                    StrokeThickness="2"
-                                    StrokeLineCap="Round"
-                                    StrokeJoin="Round" />
+                                    Height="{DynamicResource VexZoomDockIconSize}">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Data="{TemplateBinding ResetGeometry}"
+                                            StrokeThickness="1.7" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Canvas>
+                                </Viewbox>
                             </Button>
                         </Panel>
                     </StackPanel>

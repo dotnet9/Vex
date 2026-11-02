@@ -112,6 +112,16 @@ public partial class MainWindow : CodeWFWindow
         if (WorkbenchGuide.IsVisible && WorkbenchGuide.HandleKey(e)) { e.Handled = true; return; }
         if (DataContext is MainWindowViewModel presentationVm && presentationVm.Workbench.IsPresenting)
         {
+            if (e.KeyModifiers == KeyModifiers.None && e.Key is Key.Escape or Key.F11 or Key.F6)
+            { e.Handled = presentationVm.Workbench.HandlePresentationKey(e.Key); return; }
+            // 滑块与输入框保留自己的编辑按键，按钮的空格激活也不能误翻页。
+            if (e.Source is Visual focused)
+            {
+                var controls = focused.GetVisualAncestors().Prepend(focused);
+                if (controls.Any(control => control is TextBox
+                    || control is Slider && e.Key is Key.Left or Key.Right or Key.Up or Key.Down or Key.Home or Key.End or Key.PageUp or Key.PageDown
+                    || control is Button && e.Key == Key.Space)) return;
+            }
             if (presentationVm.Workbench.PresentationMap && e.Key is Key.Add or Key.OemPlus or Key.Subtract or Key.OemMinus)
             { Workspace.MindMapGuideTarget.ZoomPresentation(e.Key is Key.Add or Key.OemPlus); e.Handled = true; }
             else if (e.KeyModifiers == KeyModifiers.None) e.Handled = presentationVm.Workbench.HandlePresentationKey(e.Key);
