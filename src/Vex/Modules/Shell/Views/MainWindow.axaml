@@ -102,7 +102,7 @@
         <u:OverlayDialogHost x:Name="ShellDialogHost" OverlayMaskBrush="{DynamicResource VexScrimBrush}" />
     </codewf:CodeWFWindow.OverlayContent>
 
-    <!-- CodeWFWindow 模板已预留标题栏高度，内容只添加 1 像素分隔线（原型 .titlebar 底边为边框色 55%）。 -->
+    <!-- CodeWFWindow 模板已预留标题栏高度，内容只添加原型同色的 1 像素分隔线。 -->
     <Border x:Name="ShellTitleDivider"
             Classes.presentation="{Binding Workbench.IsPresenting}"
             BorderBrush="{DynamicResource VexTitleDividerBrush}">

@@ -16,8 +16,8 @@
     <SolidColorBrush x:Key="VexCodeBackgroundBrush" Color="{DynamicResource StudioSurfaceColor}" />
     <!-- 原型 .view-heading/#edit-options 底边：探针实测为全强度 border（rgb=边框令牌原值）。 -->
     <SolidColorBrush x:Key="VexPaneHeadBorderBrush" Color="{DynamicResource StudioBorderColor}" />
-    <!-- 原型 .app-window>.titlebar 底边：border 55% 透明度。 -->
-    <SolidColorBrush x:Key="VexTitleDividerBrush" Color="{DynamicResource StudioBorderColor}" Opacity="0.55" />
+    <!-- 原型 .app-window>.titlebar 底边：完整 hairline 颜色，保持 1px 清晰分隔。 -->
+    <SolidColorBrush x:Key="VexTitleDividerBrush" Color="{DynamicResource StudioBorderColor}" />
     <!-- 原型 .app-window 画布底 = 块面（paper），明暗各按规则叠一层色把块顶出来，见下方明暗字典。 -->
     <SolidColorBrush x:Key="VexWorkspaceCanvasBrush" Color="{DynamicResource StudioPaperColor}" />
     <!-- 原型 .workspace 画布（块与块之间的底）：浅色 = 纸面掺 5% 墨，深色 = 纸面掺 30% 面板色。 -->

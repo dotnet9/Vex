@@ -2727,18 +2727,19 @@ void VerifyVexDetails(Vex.Modules.Shell.Views.MainWindow window, ThemeVariant th
     using (var bitmap = SKBitmap.Decode(Path.Combine(output, "vex-" + theme + ".png")))
     {
         var dividerY = (int)divider.TranslatePoint(default, window)!.Value.Y;
-        var pixel = bitmap.GetPixel(1000, dividerY);
         var brush = (ISolidColorBrush)divider.BorderBrush!;
-        var borderColor = brush.Color;
-        // 原型 .titlebar 底边是边框色 55% 叠底：分隔线画在窗体模板底色上，截图里出现的是混合值。
-        var backdrop = ((ISolidColorBrush)window.FindResource("VexShellBackgroundBrush")!).Color;
-        var alpha = brush.Opacity * borderColor.A / 255d;
-        static int Mix(byte border, byte below, double a) => (int)Math.Round(border * a + below * (1 - a));
-        Check(Math.Abs(pixel.Red - Mix(borderColor.R, backdrop.R, alpha)) <= 1
-            && Math.Abs(pixel.Green - Mix(borderColor.G, backdrop.G, alpha)) <= 1
-            && Math.Abs(pixel.Blue - Mix(borderColor.B, backdrop.B, alpha)) <= 1,
-            "Vex screenshot contains the 55% title border pixel under " + theme
-            + $" (pixel={pixel}, border={borderColor} x{alpha:0.##}, backdrop={backdrop})");
+        // 冻结原型 workspace-chrome.css 使用完整 --vex-hairline；期望值独立于实现画刷的透明度。
+        Application.Current!.TryGetResource("StudioBorderColor", theme, out var borderToken);
+        var expected = (Color)borderToken!;
+        Check(brush.Opacity == 1 && brush.Color == expected && divider.BorderThickness == new Thickness(0, 1, 0, 0),
+            $"Title divider uses the prototype's opaque 1px hairline under {theme}: brush={brush.Color}, opacity={brush.Opacity}, token={expected}, thickness={divider.BorderThickness}");
+        var pixelsMatch = Enumerable.Range(1, bitmap.Width - 2).All(x =>
+        {
+            var pixel = bitmap.GetPixel(x, dividerY);
+            return Math.Abs(pixel.Red - expected.R) <= 1 && Math.Abs(pixel.Green - expected.G) <= 1
+                && Math.Abs(pixel.Blue - expected.B) <= 1;
+        });
+        Check(pixelsMatch, $"Title divider is continuous across the screenshot under {theme}: {expected}");
     }
     var files = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellFilesView>().Single();
     var outline = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellOutlineView>().Single();
