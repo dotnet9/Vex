@@ -5,11 +5,9 @@
     <AvaloniaVersion>12.1.4</AvaloniaVersion>
     <SemiAvaloniaVersion>12.1.0.1</SemiAvaloniaVersion>
     <UrsaAvaloniaVersion>2.2.0</UrsaAvaloniaVersion>
-    <!-- 未发布候选包由 CI 从固定源码提交重建；正式版本仅使用 NuGet。 -->
-    <CodeWFAvaloniaSourceRevision>c2ab74d5aec6cbfef065ac8dc83c56b98be85eda</CodeWFAvaloniaSourceRevision>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="CodeWF.Avalonia.MindView" Version="12.2.47-diagram.20261102.6" />
+    <PackageVersion Include="CodeWF.Avalonia.MindView" Version="12.2.48" />
     <PackageVersion Include="CodeWF.Toolkit.Core" Version="1.1.2" />
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
@@ -19,14 +17,14 @@
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Headless" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Markup.Xaml.Loader" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="CodeWF.Avalonia.Controls" Version="12.2.47-diagram.20261102.6" />
-    <PackageVersion Include="CodeWF.Avalonia.DataGrid" Version="12.2.47-diagram.20261102.6" />
+    <PackageVersion Include="CodeWF.Avalonia.Controls" Version="12.2.48" />
+    <PackageVersion Include="CodeWF.Avalonia.DataGrid" Version="12.2.48" />
     <PackageVersion Include="CodeWF.Toolkit.EventBus" Version="1.1.2" />
-    <PackageVersion Include="CodeWF.Avalonia.Markdown" Version="12.2.47-diagram.20261102.6" />
-    <PackageVersion Include="CodeWF.Avalonia.Markdown.Lite" Version="12.2.47-diagram.20261102.6" />
+    <PackageVersion Include="CodeWF.Avalonia.Markdown" Version="12.2.48" />
+    <PackageVersion Include="CodeWF.Avalonia.Markdown.Lite" Version="12.2.48" />
     <PackageVersion Include="CodeWF.Toolkit.Files" Version="1.1.2" />
     <PackageVersion Include="Irihi.Ursa.Themes.Semi" Version="$(UrsaAvaloniaVersion)" />
-    <PackageVersion Include="CodeWF.Avalonia.Lang" Version="12.2.47-diagram.20261102.6" />
+    <PackageVersion Include="CodeWF.Avalonia.Lang" Version="12.2.48" />
     <PackageVersion Include="PdfPig" Version="0.1.9" />
     <PackageVersion Include="ReverseMarkdown" Version="6.3.0" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="14.7.1" />
