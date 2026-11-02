@@ -1,9 +1,25 @@
 using Vex.Core.Messaging;
+using CodeWF.Avalonia.Markdown.Editor.Controls;
 
 namespace Vex.Modules.Shell.ViewModels;
 
 public sealed class ShellEditorActionsViewModel
 {
+    public ShellEditorActionsViewModel()
+    {
+        SpanFontSize = CreatePicker("font-size");
+        SpanForeground = CreatePicker("color");
+        SpanBackground = CreatePicker("background-color");
+    }
+
+    public MarkdownSpanStylePickerViewModel SpanFontSize { get; }
+    public MarkdownSpanStylePickerViewModel SpanForeground { get; }
+    public MarkdownSpanStylePickerViewModel SpanBackground { get; }
+
+    private MarkdownSpanStylePickerViewModel CreatePicker(string property) => new(property, ApplySpanStyle,
+        () => Publish(EditorActionKind.ClearSpanStyles),
+        key => CodeWF.Toolkit.EventBus.EventBus.Default.Query(new EditorSpanStyleQuery(key)).Value);
+
     public void Undo()
     {
         Publish(EditorActionKind.Undo);

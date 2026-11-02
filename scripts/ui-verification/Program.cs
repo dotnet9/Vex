@@ -210,7 +210,7 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
     // 真实程序无参数启动不再加载任何文件，验证画面需要的素材由夹具显式装载。
     LoadBundledSamples(vm);
     if (mode == "mermaid") { VerifyMermaidWorkspace((Vex.Modules.Shell.Views.MainWindow)window, vm); window.Close(); return; }
-    if (mode == "span-styles") { VerifySpanStyles(app, window, vm, output); window.Close(); return; }
+    if (mode == "span-styles") { SelectionStyleVerification.Run((Vex.Modules.Shell.Views.MainWindow)window, output); VerifySpanStyles(app, (Vex.Modules.Shell.Views.MainWindow)window, vm, output); window.Close(); return; }
     if (mode == "documents") { VerifyDocumentWindows(app, window, vm); window.Close(); return; }
     if (mode == "document-open-child")
     {
