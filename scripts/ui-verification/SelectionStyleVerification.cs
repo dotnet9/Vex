@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Input;
-using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
@@ -44,15 +43,6 @@ internal static class SelectionStyleVerification
             {
                 Thread.Sleep(10); Render();
             }
-            if (window.InputHitTest(point)?.GetType().Name == "LightDismissOverlayLayer")
-            {
-                Console.WriteLine("BLOCKING POPUPS " + string.Join(';', window.GetLogicalDescendants().OfType<Popup>().Where(p => p.IsOpen)
-                    .Select(p => $"{p.Name}/{p.Child?.GetType().Name}/target={p.PlacementTarget?.GetType().Name}")));
-                var sourcePopup = (Popup?)typeof(MarkdownEditorView).GetField("_selectionBarPopup", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(source);
-                Console.WriteLine($"SOURCE BAR open={sourcePopup?.IsOpen}, child={sourcePopup?.Child?.IsVisible}, size={sourcePopup?.Child?.Bounds}");
-                Console.WriteLine("HOST FLYOUTS " + string.Join(';', new[] { "SpanFontSize", "SpanForeground", "SpanBackground" }.Select(n => n + "=" + options.FindControl<Button>(n)!.Flyout?.IsOpen)));
-                Console.WriteLine("OVERLAY " + string.Join(';', window.GetVisualDescendants().Where(c => c.GetType().Name.Contains("Overlay") || c is FlyoutPresenter).Select(c => c.GetType().Name + ":" + c.IsVisible + "/" + c.Bounds)));
-            }
             window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Render();
         }
         void Escape()
@@ -92,8 +82,11 @@ internal static class SelectionStyleVerification
                 if (width == 980) Click(toolbar.GetVisualDescendants().OfType<ToggleButton>().Single(button => button.Name == "button"));
                 Click(button);
                 var picker = window.GetVisualDescendants().OfType<MarkdownSpanStylePicker>().SingleOrDefault();
-                if (picker is null) window.CaptureRenderedFrame()?.Save(Path.Combine(output, "host-picker-failure.png"));
-                Check(picker is not null, $"Host opens {name}: {label}; flyout={button.Flyout?.IsOpen}, focus={window.FocusManager?.GetFocusedElement()?.GetType().Name}");
+                if (picker is null)
+                {
+                    window.CaptureRenderedFrame()?.Save(Path.Combine(output, "host-picker-failure.png"), new Avalonia.Media.Imaging.PngBitmapEncoderOptions());
+                    throw new InvalidOperationException($"Host did not open {name}; flyout={button.Flyout?.IsOpen}, focus={window.FocusManager?.GetFocusedElement()?.GetType().Name}");
+                }
                 var bounds = new Rect(picker!.TranslatePoint(default, window)!.Value, picker.Bounds.Size);
                 Check(bounds.Left >= 0 && bounds.Right <= window.Bounds.Width && bounds.Top >= 0 && bounds.Bottom <= window.Bounds.Height,
                     "Style picker stays inside client: " + label);
@@ -128,7 +121,7 @@ internal static class SelectionStyleVerification
             if (width == 980 && culture == "zh-CN")
             {
                 Select(); Open("SpanForeground");
-                window.CaptureRenderedFrame()?.Save(Path.Combine(output, $"host-picker-{theme}-{layout}.png"));
+                window.CaptureRenderedFrame()?.Save(Path.Combine(output, $"host-picker-{theme}-{layout}.png"), new Avalonia.Media.Imaging.PngBitmapEncoderOptions());
                 Escape();
             }
         }
