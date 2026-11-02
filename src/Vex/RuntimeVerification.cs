@@ -7,6 +7,7 @@ using CodeWF.Toolkit.Lang.Json;
 using Mermaider;
 using Mermaider.Models;
 using Vex.Core.Services;
+using Vex.Modules.Shell.Services;
 
 namespace Vex;
 
@@ -21,6 +22,12 @@ internal static class RuntimeVerification
             throw new InvalidOperationException("Published website metadata is missing or invalid.");
         foreach (var file in new[] { "更新日志.md", "鸣谢.md", "快速开始.md" })
             _ = BundledDocuments.GetPath(file);
+        foreach (var name in new[] { "note.md", "upper.MD", "note.markdown", "note.mdown", "README.md" })
+        {
+            var expected = name == "README.md" ? "readme.png" : "markdown.png";
+            if (Path.GetFileName(FileIconCatalog.Default.ResolveIconFilePath(name, false)) != expected)
+                throw new InvalidOperationException("Published Markdown file icon is missing: " + name);
+        }
         // 快速开始按相对路径引用功能截图，应用内离线阅读要求图片随包，缺一张就少一幅画面。
         foreach (Match image in Regex.Matches(File.ReadAllText(BundledDocuments.GetPath("快速开始.md")), @"!\[[^\]]*\]\(([^)]+\.png)\)"))
         {
@@ -85,7 +92,7 @@ internal static class RuntimeVerification
         if (preferences.DefaultEncoding != "utf-8" || preferences.DefaultNewline != "system" || preferences.BodyFont != "system"
             || preferences.ExportFormat != "HTML" || preferences.PdfSize != "A4")
             throw new InvalidOperationException("Native default preference choices did not survive real storage.");
-        var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; website={ProjectLinks.Website}; languages=4; tableDialog=localized; samples={samples.Length}; mermaid={diagrams.Count}; preferences=isolated";
+        var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; website={ProjectLinks.Website}; languages=4; tableDialog=localized; samples={samples.Length}; mermaid={diagrams.Count}; fileIcons=5; preferences=isolated";
         File.WriteAllText(Path.Combine(root, "runtime-verification.txt"), result);
         Console.WriteLine(result);
     }

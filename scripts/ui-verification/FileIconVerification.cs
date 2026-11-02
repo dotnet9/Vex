@@ -59,7 +59,8 @@ internal static class FileIconVerification
         var productionFiles = filesView.DataContext;
         using var files = new ShellFilesViewModel();
         filesView.DataContext = files;
-        var samples = new[] { "note.md", "README.md", "plain.txt", "snippet.axaml.cs", "settings.toml", "unknown.vex-unmapped" }
+        var markdownNames = new[] { "note.md", "upper.MD", "note.markdown", "note.mdown", "README.md" };
+        var samples = markdownNames.Concat(new[] { "plain.txt", "snippet.axaml.cs", "settings.toml", "unknown.vex-unmapped" })
             .Select(name => new DocumentFile(Path.Combine(output, "docs", name), name, "docs", "", "Icon verification")).ToArray();
         files.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(samples, samples[0], output));
         files.DocumentFileNodes[0].IsExpanded = true;
@@ -70,11 +71,8 @@ internal static class FileIconVerification
             .First(item => item.DataContext is DocumentFileNode node && node.Name == name)
             .GetVisualDescendants().OfType<Image>().First(image => image.Name == "FileTypeIcon");
         Check(Icon("plain.txt").Source is Bitmap, "Tree template binds decoded document images for ordinary files");
-        Check(Icon("note.md").Source is null && tree.GetVisualDescendants().OfType<TreeViewItem>()
-            .First(item => item.DataContext is DocumentFileNode { Name: "note.md" })
-            .GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>()
-            .Any(path => path.Classes.Contains("tree-ico") && path.IsEffectivelyVisible),
-            "Markdown tree rows keep the quiet vector document icon");
+        Check(markdownNames.All(name => Icon(name).Source is Bitmap && Icon(name).IsEffectivelyVisible),
+            "Markdown extensions and README display their file type images in the tree");
         Check(Icon("unknown.vex-unmapped").Source is null && tree.GetVisualDescendants().OfType<TreeViewItem>()
             .First(item => item.DataContext is DocumentFileNode { Name: "unknown.vex-unmapped" })
             .GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Any(path => path.Classes.Contains("tree-ico") && path.IsEffectivelyVisible),
@@ -90,6 +88,9 @@ internal static class FileIconVerification
             main.Appearance.SelectThemeByKey(themeName); Render();
             Check(ReferenceEquals(Icon("settings.toml").Source, FileIconCatalog.Default.Resolve("settings.toml", false, light: themeName == "light")),
                 "Live tree images follow the active theme: " + themeName);
+            Check(markdownNames.All(name => ReferenceEquals(Icon(name).Source,
+                    FileIconCatalog.Default.Resolve(name, false, light: themeName == "light"))),
+                "Markdown tree rows preserve extension and README icons: " + themeName);
             Check(tree.GetVisualDescendants().OfType<Image>().Where(image => image.IsEffectivelyVisible)
                 .All(image =>
                 {
@@ -98,6 +99,23 @@ internal static class FileIconVerification
                     return Math.Abs(image.Bounds.Width - expected) < .01 && Math.Abs(image.Bounds.Height - expected) < .01;
                 }), "Themed icons preserve compact 12 px folders and 13 px document rows");
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "file-icons-" + themeName + ".png"), new PngBitmapEncoderOptions());
+            files.ToggleListView(); Render();
+            var list = filesView.FindControl<ListBox>("FileList")!;
+            Image ListIcon(string name) => list.GetVisualDescendants().OfType<ListBoxItem>()
+                .First(item => item.DataContext is DocumentFileNode node && node.Name == name)
+                .GetVisualDescendants().OfType<Image>().Single(image => image.Name == "ListFileIcon");
+            Check(markdownNames.All(name => ListIcon(name).Source is Bitmap && ListIcon(name).IsEffectivelyVisible
+                    && ReferenceEquals(ListIcon(name).Source, FileIconCatalog.Default.Resolve(name, false, light: themeName == "light"))
+                    && Math.Abs(ListIcon(name).Bounds.Width - 13) < .01 && Math.Abs(ListIcon(name).Bounds.Height - 13) < .01),
+                "Markdown list rows display 13 px extension and README icons: " + themeName);
+            Check(ListIcon("unknown.vex-unmapped").Source is null && list.GetVisualDescendants().OfType<ListBoxItem>()
+                    .First(item => item.DataContext is DocumentFileNode { Name: "unknown.vex-unmapped" })
+                    .GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>()
+                    .Any(path => path.Classes.Contains("tree-ico") && path.IsEffectivelyVisible && path.Stroke is not null
+                        && path.Bounds.Width > 0 && path.Bounds.Height > 0),
+                "Unknown list rows retain a visible vector fallback: " + themeName);
+            window.CaptureRenderedFrame()?.Save(Path.Combine(output, "file-icons-list-" + themeName + ".png"), new PngBitmapEncoderOptions());
+            files.ToggleListView(); Render();
         }
         filesView.DataContext = productionFiles;
     }
