@@ -257,6 +257,7 @@ internal static class ReadingPointerVerification
                 "Editing deep in the document preserves its viewport instead of jumping to the start: " + theme);
             vm.Workbench.ToggleLayouts(); Render();
         }
+        MermaidSourceLayoutVerification.Run(window, output);
         if (menus) ContextMenuLayoutVerification.Run(window, output);
     }
 }
