@@ -91,8 +91,10 @@ internal static class ContextMenuLayoutVerification
             {
                 window.MouseMove(new Point(2, window.ClientSize.Height - 2));
                 Check(menu.Focus(), "Root menu accepts focus before keyboard navigation");
-                PressUntil(() => ReferenceEquals(menu.SelectedItem, branch), Key.Down, PhysicalKey.ArrowDown, menu.Items.Count + 2);
-                Check(ReferenceEquals(menu.SelectedItem, branch), "Down arrow reaches the submenu row: " + branch.Header);
+                PressUntil(() => ReferenceEquals(menu.SelectedItem, branch) && branch.IsKeyboardFocusWithin,
+                    Key.Down, PhysicalKey.ArrowDown, menu.Items.Count + 2);
+                Check(ReferenceEquals(menu.SelectedItem, branch) && branch.IsKeyboardFocusWithin,
+                    "Down arrow selects and focuses the submenu row: " + branch.Header);
                 PressUntil(() => branch.IsSubMenuOpen, Key.Right, PhysicalKey.ArrowRight);
                 Check(branch.IsSubMenuOpen, "Right arrow opens the selected submenu: " + branch.Header);
                 var popup = branch.GetVisualDescendants().OfType<Popup>().First(p => p.IsOpen);
