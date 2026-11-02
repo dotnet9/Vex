@@ -6,6 +6,7 @@
     xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex"
     xmlns:views="using:Vex.Modules.Shell.Views"
+    xmlns:behaviors="using:Vex.Modules.Shell.Views.Behaviors"
     xmlns:shell="using:Vex.Modules.Shell.Views"
     xmlns:vex="clr-namespace:Vex.Controls"
     xmlns:workspace="using:Vex.Modules.Workspace.Views"
@@ -26,6 +27,7 @@
     IsManagedResizerVisible="{Binding !Workbench.IsPresenting}"
     Topmost="{Binding Layout.IsAlwaysOnTop}"
     WindowState="{Binding Layout.CurrentWindowState, Mode=TwoWay}"
+    behaviors:ShellWindowPlacement.Layout="{Binding Layout}"
     WindowStartupLocation="CenterScreen">
 
     <codewf:CodeWFWindow.LeftContent>

@@ -69,7 +69,6 @@ public partial class MainWindow : CodeWFWindow
         _keyboardShortcuts = keyboardShortcuts;
         _mcpServerHost = mcpServerHost;
         _toastPublisher = toastPublisher;
-        RestoreWindowSize(settingsStore);
         DataContext = viewModel;
         viewModel.Workbench.GuideExitRequested += (_, _) => WorkbenchGuide.Finish();
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
@@ -236,45 +235,8 @@ public partial class MainWindow : CodeWFWindow
         _dropTargetHandler?.PublishDroppedPath(e);
     }
 
-    private void RestoreWindowSize(IAppSettingsStore settingsStore)
-    {
-        var settings = settingsStore.Current;
-        if (settings.WindowWidth is { } width && IsUsableWindowSize(width))
-        {
-            Width = Math.Max(MinWidth, width);
-        }
-
-        if (settings.WindowHeight is { } height && IsUsableWindowSize(height))
-        {
-            Height = Math.Max(MinHeight, height);
-        }
-    }
-
-    private void SaveWindowSize()
-    {
-        if (_settingsStore is null
-            || WindowState == Avalonia.Controls.WindowState.FullScreen
-            || !IsUsableWindowSize(Bounds.Width)
-            || !IsUsableWindowSize(Bounds.Height))
-        {
-            return;
-        }
-
-        _settingsStore.Update(settings => settings with
-        {
-            WindowWidth = Math.Max(MinWidth, Bounds.Width),
-            WindowHeight = Math.Max(MinHeight, Bounds.Height)
-        });
-    }
-
-    private static bool IsUsableWindowSize(double value)
-    {
-        return value > 0 && double.IsFinite(value);
-    }
-
     private void MainWindow_OnClosed(object? sender, EventArgs e)
     {
-        SaveWindowSize();
         _ = _mcpServerHost?.StopAsync();
     }
 }

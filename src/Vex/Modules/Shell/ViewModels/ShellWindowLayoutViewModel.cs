@@ -12,7 +12,7 @@ using Vex.Modules.Shell.Services;
 namespace Vex.Modules.Shell.ViewModels;
 
 // 管理 Shell 窗口布局状态，避免主 ViewModel 继续混入纯窗口显示逻辑。
-public sealed class ShellWindowLayoutViewModel : ReactiveObject
+public sealed partial class ShellWindowLayoutViewModel : ReactiveObject
 {
     private readonly IAppSettingsStore _settingsStore;
     private readonly IShellStatusPublisher _statusPublisher;
@@ -71,6 +71,9 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         _settingsStore = settingsStore;
         _statusPublisher = statusPublisher;
         var settings = _settingsStore.Current;
+        _wasWindowMaximized = settings.IsWindowMaximized == true;
+        _windowState = _wasWindowMaximized ? WindowState.Maximized : WindowState.Normal;
+        _windowStateBeforeFullScreen = _windowState;
         _isSidebarVisible = settings.IsSidebarVisible ?? true;
         _isPreviewVisible = settings.IsPreviewVisible ?? true;
         _isSourceMode = settings.IsSourceMode ?? true;
@@ -405,6 +408,8 @@ public sealed class ShellWindowLayoutViewModel : ReactiveObject
         set
         {
             if (_windowState == value) return;
+            if (value is WindowState.Normal or WindowState.Maximized)
+                _wasWindowMaximized = value == WindowState.Maximized;
             if (_windowState != WindowState.FullScreen) _windowStateBeforeFullScreen = _windowState;
             this.RaiseAndSetIfChanged(ref _windowState, value);
             OnPropertyChanged(nameof(IsFullScreen));

@@ -35,6 +35,16 @@ if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
+if (mode == "window-placement")
+{
+    var config = Path.Combine(output, "window-placement.config");
+    File.WriteAllText(config, "<configuration><appSettings /></configuration>");
+    AppContext.SetData("APP_CONFIG_FILE", config);
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI()
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+    WindowPlacementVerification.Run((VerificationVexApp)Application.Current!, output);
+    return;
+}
 if (mode is "drafts" or "draft-child")
 {
     if (mode == "draft-child") DraftLifecycleVerification.RunChild(output, args.ElementAtOrDefault(2) == "untitled");

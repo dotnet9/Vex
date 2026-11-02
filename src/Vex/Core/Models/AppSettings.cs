@@ -67,6 +67,8 @@ public sealed record AppSettings
 
     public double? WindowHeight { get; init; }
 
+    public bool? IsWindowMaximized { get; init; }
+
     public bool? IsMcpServerEnabled { get; init; }
 
     public string? McpServerHost { get; init; }
