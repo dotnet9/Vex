@@ -283,10 +283,11 @@ internal static class ElementVerification
             if (DateTime.UtcNow > diagramDeadline) throw new TimeoutException("图表块未渲染");
             Thread.Sleep(20);
         }
-        DiagramEditor.OpenInPlace(previewView, diagramBorder, 0);
+        diagramBorder.GetVisualDescendants().OfType<Button>().Single(button => button.Name == "PreviewButton")
+            .RaiseEvent(new global::Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
         Pump();
         var editorBox = diagramBorder.GetVisualDescendants().OfType<TextBox>().Single();
-        Check(diagramBorder.Child is StackPanel, "图表块原位展开编辑面板");
+        Check(editorBox.IsEffectivelyVisible && editorBox.IsKeyboardFocusWithin, "单击图表直接聚焦原位源码编辑面板");
         editorBox.Text = "flowchart LR\n  A --> Z";
         editorBox.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
         Pump(); Pump();

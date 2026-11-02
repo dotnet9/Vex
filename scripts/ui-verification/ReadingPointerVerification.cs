@@ -77,14 +77,20 @@ internal static class ReadingPointerVerification
         Check(vm.Markdown.Contains("A[Start] --> B[End]"), "Diagram click preserves source");
         var diagram = image.GetVisualAncestors().OfType<Border>().First(b => b.Classes.Contains("MdMermaid"));
         var sourceCard = diagram.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("diagram-source"));
-        var sourceText = sourceCard.GetVisualDescendants().OfType<SelectableTextBlock>().Single();
-        Check(sourceCard.IsVisible && sourceText.Text == "flowchart LR\n A[Start] --> B[End]",
-            "Clicking the actual diagram shows its complete source from the viewer root");
+        var editor = sourceCard.GetVisualDescendants().OfType<TextBox>().Single();
+        Check(sourceCard.IsVisible && editor.Text == "flowchart LR\n A[Start] --> B[End]" && editor.IsKeyboardFocusWithin,
+            "One diagram click immediately focuses its complete editable source");
+        Check(!diagram.GetVisualDescendants().OfType<Button>().Any(b => Equals(b.Content, "编辑"))
+            && !diagram.GetVisualDescendants().OfType<TextBlock>().Any(b => (b.Text ?? "").Contains("Ctrl+Enter")),
+            "Diagram editing has no extra Edit button or bottom instruction text");
         var previewCard = diagram.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("MdMermaidPreview"));
         var sourceOrigin = sourceCard.TranslatePoint(default, diagram)!.Value;
         var previewOrigin = previewCard.TranslatePoint(default, diagram)!.Value;
         Check(sourceCard.Bounds.Height > 0 && previewOrigin.Y >= sourceOrigin.Y + sourceCard.Bounds.Height - .5,
             "Diagram source occupies its own row above the preview");
+        Check(editor.VerticalContentAlignment == global::Avalonia.Layout.VerticalAlignment.Top
+            && Math.Abs(previewCard.Bounds.Width - sourceCard.Bounds.Width) < 2,
+            $"Source starts at the top and the preview card fills the same content width: align={editor.VerticalContentAlignment}, preview={previewCard.Bounds}, source={sourceCard.Bounds}");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "diagram-source-open.png"));
         var badge = diagram.GetVisualDescendants().OfType<Button>().Single(b => Equals(b.Content, "mermaid"));
         void Click(Control control)
@@ -95,17 +101,66 @@ internal static class ReadingPointerVerification
             window.MouseDown(point, MouseButton.Left);
             window.MouseUp(point, MouseButton.Left); Render();
         }
-        Click(sourceText);
-        Check(sourceCard.IsVisible, "Clicking selectable diagram source keeps the card open");
+        Click(editor);
+        Check(sourceCard.IsVisible && editor.IsKeyboardFocusWithin, "Clicking editable source keeps it open and focused");
         Click(badge);
-        Check(!sourceCard.IsVisible, "One badge click collapses the source exactly once");
-        Click(badge);
-        Check(sourceCard.IsVisible, "A second badge click reopens the source exactly once");
-        Click(sourceCard.GetVisualDescendants().OfType<Button>().Single());
-        var editor = diagram.GetVisualDescendants().OfType<TextBox>().Single();
-        Check(editor.Text == sourceText.Text, "The actual Edit button opens the complete diagram source");
+        Check(sourceCard.IsVisible && editor.IsKeyboardFocusWithin, "Clicking the same diagram badge retains the active edit");
         editor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape }); Render();
-        Check(!diagram.GetVisualDescendants().OfType<TextBox>().Any(), "Escape returns from diagram editing to the preview");
+        Check(!editor.IsEffectivelyVisible, "Escape returns from diagram editing to the preview");
+        Click(badge);
+        editor.SelectAll(); window.KeyTextInput("flowchart LR\n A[Start] --> C[Updated]"); Render();
+        Check(editor.Text!.Contains("C[Updated]"), "Direct source editor accepts keyboard text input");
+        var afterText = viewer.GetVisualDescendants().OfType<SelectableTextBlock>()
+            .Single(t => (t.Inlines?.Text ?? t.Text) == "After diagram.");
+        Click(afterText);
+        var commitDeadline = DateTime.UtcNow.AddSeconds(10);
+        while (viewer.CurrentModel.Source != vm.Markdown && DateTime.UtcNow < commitDeadline) { Render(); Thread.Sleep(10); }
+        Check(vm.Markdown.Contains("C[Updated]") && !viewer.GetVisualDescendants().OfType<TextBox>().Any(t => t.IsEffectivelyVisible),
+            "Clicking another paragraph commits the diagram and automatically hides the source");
+        vm.Workbench.UndoDocument(); Render();
+        Check(vm.Markdown.Contains("A[Start] --> B[End]"), "One undo restores the diagram before the edit");
+        vm.Workbench.RedoDocument(); Render();
+        Check(vm.Markdown.Contains("C[Updated]"), "One redo restores the diagram edit");
+        void WaitDocument()
+        {
+            var until = DateTime.UtcNow.AddSeconds(12);
+            do { Render(); Thread.Sleep(10); } while (viewer.CurrentModel.Source != vm.Markdown && DateTime.UtcNow < until);
+            Check(viewer.CurrentModel.Source == vm.Markdown, "Diagram fixture finishes rendering the current document");
+        }
+        Image CurrentImage()
+        {
+            var until = DateTime.UtcNow.AddSeconds(12);
+            do
+            {
+                Render();
+                var current = viewer.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("MdMermaid"))
+                    .SelectMany(b => b.GetVisualDescendants().OfType<Image>()).FirstOrDefault(i => i.Source is not null);
+                if (current is not null) return current;
+                Thread.Sleep(10);
+            } while (DateTime.UtcNow < until);
+            throw new TimeoutException("Mermaid image did not render.");
+        }
+        WaitDocument();
+        vm.Markdown = "# Inserted ahead\n\n" + vm.Markdown; WaitDocument();
+        Click(CurrentImage());
+        var rebasedEditor = viewer.GetVisualDescendants().OfType<TextBox>().Single(t => t.IsEffectivelyVisible);
+        Check(rebasedEditor.Text!.Contains("C[Updated]"), "Reopening after preceding text changes uses the current source model");
+        rebasedEditor.SelectAll(); window.KeyTextInput("flowchart LR\n A --> SAVED"); Render();
+        CodeWF.Avalonia.Markdown.Mermaid.MermaidEditing.CommitPendingEdits(viewer); WaitDocument();
+        Check(vm.Markdown.StartsWith("# Inserted ahead") && vm.Markdown.Contains("A --> SAVED"),
+            "Saving with focus in diagram source commits at its rebased document offset");
+        var unchanged = vm.Markdown;
+        Click(CurrentImage());
+        CodeWF.Avalonia.Markdown.Mermaid.MermaidEditing.CommitPendingEdits(viewer); Render();
+        Check(vm.Markdown == unchanged, "Opening and closing unchanged source leaves document text untouched");
+        Click(CurrentImage());
+        var oldEditor = viewer.GetVisualDescendants().OfType<TextBox>().Single(t => t.IsEffectivelyVisible);
+        oldEditor.Text = "flowchart LR\n STALE --> OLD";
+        vm.Markdown = "# A different document\n\nThis must never be replaced by an old diagram edit.";
+        WaitDocument();
+        CodeWF.Avalonia.Markdown.Mermaid.MermaidEditing.CommitPendingEdits(viewer); Render();
+        Check(vm.Markdown.StartsWith("# A different document") && !vm.Markdown.Contains("STALE"),
+            "An outdated diagram editor cannot overwrite a newly loaded document");
         foreach (var theme in new[] { "light", "dark" })
         {
             const string firstSource = "flowchart LR\n FIRST --> ONE";
@@ -135,13 +190,31 @@ internal static class ReadingPointerVerification
             Click(lastImage!);
             var tail = lastImage!.GetVisualAncestors().OfType<Border>().First(b => b.Classes.Contains("MdMermaid"));
             var tailSource = tail.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("diagram-source"));
-            Check(tailSource.IsVisible && tailSource.GetVisualDescendants().OfType<SelectableTextBlock>().Single().Text == lastSource,
-                "A diagram after virtualized blocks opens its own source: " + theme);
+            var tailEditor = tailSource.GetVisualDescendants().OfType<TextBox>().Single();
+            Check(tailSource.IsVisible && tailEditor.Text == lastSource && tailEditor.IsKeyboardFocusWithin,
+                "A diagram after virtualized blocks immediately edits its own source: " + theme);
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, $"diagram-source-tail-{theme}.png"));
-            Click(tailSource.GetVisualDescendants().OfType<Button>().Single());
-            var tailEditor = tail.GetVisualDescendants().OfType<TextBox>().Single();
-            Check(tailEditor.Text == lastSource, "Tail diagram edits the matching source fence: " + theme);
-            tailEditor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape }); Render();
+            tailEditor.SelectAll(); window.KeyTextInput("flowchart LR\n LAST --> EDITED"); Render();
+            var before = scrollHost.Offset.Y;
+            // 点 viewer 外、窗体内的已处理工具条区域，不能依赖 viewer 的冒泡事件。
+            var toolbar = window.GetVisualDescendants().OfType<Button>().First(b => b.IsEffectivelyVisible
+                && !b.GetVisualAncestors().Contains(viewer) && b.Name == "EditorModeButton");
+            var outside = toolbar.TranslatePoint(new Point(toolbar.Bounds.Width / 2, toolbar.Bounds.Height / 2), window)!.Value;
+            window.MouseMove(outside); window.MouseDown(outside, MouseButton.Left); window.MouseUp(outside, MouseButton.Left);
+            limit = DateTime.UtcNow.AddSeconds(10);
+            while (DateTime.UtcNow < limit)
+            {
+                Render();
+                if (viewer.CurrentModel.Source == vm.Markdown && vm.Markdown.Contains("LAST --> EDITED")) break;
+                Thread.Sleep(10);
+            }
+            for (var settle = 0; settle < 25; settle++) { Render(); Thread.Sleep(10); }
+            Check(vm.Markdown.Contains(firstSource) && vm.Markdown.Contains("LAST --> EDITED"),
+                "Only the virtualized tail fence is committed: " + theme);
+            Check(!viewer.GetVisualDescendants().OfType<TextBox>().Any(t => t.IsEffectivelyVisible), "Outside toolbar click hides the source: " + theme);
+            Check(scrollHost.Offset.Y > 1000 && scrollHost.Offset.Y > before - 600,
+                "Editing deep in the document preserves its viewport instead of jumping to the start: " + theme);
+            vm.Workbench.ToggleLayouts(); Render();
         }
         if (menus) ContextMenuLayoutVerification.Run(window, output);
     }

@@ -80,8 +80,6 @@ public partial class MarkdownPreviewView : UserControl
     public MarkdownPreviewView()
     {
         InitializeComponent();
-        // 异步渲染、切换主题和虚拟化会重建图表，等控件实际排版后再挂交互。
-        PreviewMarkdownViewer.LayoutUpdated += (_, _) => DiagramEditor.Attach(PreviewMarkdownViewer);
         PreviewMarkdownViewer.ActualThemeVariantChanged += (_, _) =>
             ApplyPresentationTypography(_viewModel?.IsPresenting == true);
         // 原 ViewModelLocator 反射装配改为构造自取容器单例。
@@ -116,6 +114,16 @@ public partial class MarkdownPreviewView : UserControl
             result.ChangedSpan.Start,
             result.ChangedSpan.Length));
     }
+
+    private void OnDiagramEditCommitted(object? sender, CodeWF.Avalonia.Markdown.Mermaid.MermaidEditEventArgs args)
+    {
+        if (_viewModel?.Markdown != args.OriginalMarkdown) return;
+        _savedReadingPosition = PreviewMarkdownViewer.SaveReadingPosition();
+        QueueRestoreReadingPosition(args.Markdown);
+        _viewModel.CommitDiagramEdit(args.OriginalMarkdown, args.Markdown, args.Start);
+    }
+
+    public void FlushDiagramEdits() => CodeWF.Avalonia.Markdown.Mermaid.MermaidEditing.CommitPendingEdits(PreviewMarkdownViewer);
 
     private void OnPreviewScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
@@ -284,7 +292,7 @@ public partial class MarkdownPreviewView : UserControl
         Dispatcher.UIThread.Post(ScrollToEditorPosition, DispatcherPriority.Background);
     }
 
-    private void QueueRestoreReadingPosition()
+    private void QueueRestoreReadingPosition(string? expectedSource = null)
     {
         if (_savedReadingPosition is null)
         {
@@ -294,7 +302,7 @@ public partial class MarkdownPreviewView : UserControl
         _restoringScrollPosition = true;
         _restoreAttempts = 0;
         _restoreSettleQueued = false;
-        _restoreSource = _viewModel?.Markdown;
+        _restoreSource = expectedSource ?? _viewModel?.Markdown;
         _scrollRequestVersion++;
         LayoutUpdated -= OnRestoreLayoutUpdated;
         LayoutUpdated += OnRestoreLayoutUpdated;
@@ -323,7 +331,7 @@ public partial class MarkdownPreviewView : UserControl
 
         // Markdown 绑定先更新，后台的全文模型稍后才到。不能把全文锚点恢复到
         // 仍在显示的演示短节上，否则库按短节块数夹取后就会被误认为已完成。
-        if (PreviewMarkdownViewer.CurrentModel.Source != _viewModel?.Markdown) return;
+        if (PreviewMarkdownViewer.CurrentModel.Source != _restoreSource) return;
         if (ReadingAnchorLanded(anchor))
         {
             // 落锚不等于收尾：长文档的离屏块还按估高排布，随后的布局仍会把视口顶回前几节。

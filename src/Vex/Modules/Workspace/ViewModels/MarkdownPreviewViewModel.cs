@@ -145,6 +145,15 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         PreviewScrollRatio = CalculatePreviewScrollRatio(command.CaretLine, command.LineCount);
     }
 
+    public void CommitDiagramEdit(string original, string markdown, int start)
+    {
+        if (Markdown != original || markdown == original) return;
+        var line = original.AsSpan(0, Math.Clamp(start, 0, original.Length)).Count('\n') + 1;
+        _workbench.History.BreakGroup();
+        EventBus.Default.Publish(new MarkdownTextChangedCommand(markdown, line, 1));
+        _workbench.History.BreakGroup();
+    }
+
     private void OnAppearanceChanged(object? sender, EventArgs e)
     {
         TypographySize = _appearanceState.TypographySize;
