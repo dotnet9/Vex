@@ -161,6 +161,47 @@ internal static class ReadingPointerVerification
         CodeWF.Avalonia.Markdown.Mermaid.MermaidEditing.CommitPendingEdits(viewer); Render();
         Check(vm.Markdown.StartsWith("# A different document") && !vm.Markdown.Contains("STALE"),
             "An outdated diagram editor cannot overwrite a newly loaded document");
+        vm.Markdown = "```mermaid\nflowchart LR\nONE --> FIRST\n```\n\n```mermaid\nflowchart LR\nTWO --> SECOND\n```\n";
+        WaitDocument();
+        var pairDeadline = DateTime.UtcNow.AddSeconds(12);
+        Image[] pair;
+        do
+        {
+            Render();
+            pair = viewer.GetVisualDescendants().OfType<Image>().Where(i => i.Source is not null).ToArray();
+            if (pair.Length == 2) break;
+            Thread.Sleep(10);
+        } while (DateTime.UtcNow < pairDeadline);
+        Check(pair.Length == 2, "Two neighboring diagrams render for continuous editing");
+        Click(pair[0]);
+        var firstEditor = viewer.GetVisualDescendants().OfType<TextBox>().Single(t => t.IsEffectivelyVisible);
+        firstEditor.SelectAll(); window.KeyTextInput("flowchart LR\nONE --> CHANGED"); Render();
+        Click(pair[1]);
+        pairDeadline = DateTime.UtcNow.AddSeconds(12);
+        TextBox? secondEditor;
+        do
+        {
+            Render();
+            secondEditor = viewer.GetVisualDescendants().OfType<TextBox>().SingleOrDefault(t => t.IsEffectivelyVisible);
+            if (secondEditor is not null && secondEditor.Text!.Contains("TWO --> SECOND")) break;
+            Thread.Sleep(10);
+        } while (DateTime.UtcNow < pairDeadline);
+        Check(vm.Markdown.Contains("ONE --> CHANGED") && secondEditor?.Text?.Contains("TWO --> SECOND") == true,
+            "One click on another diagram commits the first and directly edits the second");
+        secondEditor!.SelectAll(); window.KeyTextInput("flowchart LR\nTWO --> FINAL"); Render();
+        CodeWF.Avalonia.Markdown.Mermaid.MermaidEditing.CommitPendingEdits(viewer); WaitDocument();
+        Check(vm.Markdown.Contains("ONE --> CHANGED") && vm.Markdown.Contains("TWO --> FINAL"),
+            "Continuous diagram editing preserves both committed source changes");
+        var keyboardBadge = viewer.GetVisualDescendants().OfType<Button>().Last(b => Equals(b.Content, "mermaid"));
+        keyboardBadge.Focus(); Render();
+        window.KeyPress(Key.Space, RawInputModifiers.None, PhysicalKey.Space, null);
+        window.KeyRelease(Key.Space, RawInputModifiers.None, PhysicalKey.Space, null); Render();
+        Check(viewer.GetVisualDescendants().OfType<TextBox>().Single(t => t.IsEffectivelyVisible).Text!.Contains("TWO --> FINAL"),
+            "Keyboard Space still opens and focuses the current diagram source");
+        window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+        window.KeyRelease(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null); Render();
+        Check(!viewer.GetVisualDescendants().OfType<TextBox>().Any(t => t.IsEffectivelyVisible),
+            "Keyboard Escape commits and hides the active diagram source");
         foreach (var theme in new[] { "light", "dark" })
         {
             const string firstSource = "flowchart LR\n FIRST --> ONE";
