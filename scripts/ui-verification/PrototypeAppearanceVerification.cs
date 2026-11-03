@@ -30,7 +30,6 @@ internal static class PrototypeAppearanceVerification
         }
         // 画廊的尺寸重算挂在 SizeChanged 之后的调度队列里（等 ClientSize 落定），末轮 jobs 改完高度还要再排一次版。
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); }
-        void Click(Button button) { button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Render(); }
         if (OperatingSystem.IsWindows()) Check(chineseTypeface.FontFamily.Name == "Microsoft YaHei UI", "Chinese body text uses the system sans-serif fallback");
         Check(vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.TypographyOptions.Count == 13, "Native catalog matches 9 palettes and 13 typography styles");
         vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Appearance.SelectPaletteByKey("indigo"); vm.Appearance.SelectThemeByKey("light");
@@ -122,8 +121,17 @@ internal static class PrototypeAppearanceVerification
         window.Width = startWidth; window.Height = startHeight; Render();
         // 选卡会挂 650ms 自动收起（原型 scheduleCollapse），放在几何测量之后点，
         // 免得定时器在密度/尺寸循环中途把弹层藏掉——隐藏控件跳过布局，Bounds 会停在旧值。
-        var book = cards.First(b => b.Name == "Typography_InkBlack"); Click(book);
+        var book = cards.First(b => b.Name == "Typography_InkBlack");
+        book.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Check(vm.Appearance.SelectedTypography?.Key == "InkBlack" && vm.Workbench.ShowTypography, "Click applies typography and keeps comparison panel open");
+        // CI 首轮排版可能超过 650ms：即时状态在排版前检查，再单独等待自动收起。
+        using (var collapseWait = new CancellationTokenSource(TimeSpan.FromSeconds(1)))
+        {
+            Dispatcher.UIThread.MainLoop(collapseWait.Token);
+        }
+        Check(!vm.Workbench.ShowTypography && vm.Appearance.SelectedTypography?.Key == "InkBlack",
+            "Typography panel collapses after applying without losing the selected style");
+        vm.Workbench.ShowTypography = true; Render();
         // 原型 .typography-card-tools 是 ✎ 编辑 + × 删除：只给删除的话用户建完就改不了。
         // 注册走 Appearance 目录变化，弹层按原型的 renderGrid 语义整块重建，卡片当场出现工具钮。
         var toolKey = vm.Appearance.RegisterCustomTypography("", "工具测试", "#B4642D", "#D8973C", "#8A5A2B", "#C89A6B", "sans", 1.9, "tint");
