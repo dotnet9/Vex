@@ -5,7 +5,6 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using CodeWF.Avalonia.Markdown;
 using CodeWF.Avalonia.Markdown.Themes;
-using Vex.Core.Theme;
 
 namespace Vex.Modules.Shell.Views;
 
@@ -24,7 +23,14 @@ internal sealed class TypographyCardPreview : UserControl
         IsHitTestVisible = false;
         TextOptions.SetTextRenderingMode(this, TextRenderingMode.Antialias);
         if (_article.Font != "system") FontFamily = ArticleTypography.ResolveFont(_article.Font);
-        ActualThemeVariantChanged += (_, _) => Build();
+        var resources = _article.CreateResources();
+        foreach (var (variant, dark) in new[] { (ThemeVariant.Light, false), (ThemeVariant.Dark, true) })
+        {
+            var colors = (ResourceDictionary)resources.ThemeDictionaries[variant];
+            colors["PreviewHeadingBackground"] = Tint(_article.Headings[1].BackgroundColor, _article.Headings[1].Tint, dark);
+            colors["PreviewQuoteBackground"] = Tint("var(--type-decoration)", _article.Quote.Tint, dark);
+        }
+        Resources.MergedDictionaries.Add(resources);
         Build();
     }
 
@@ -32,32 +38,28 @@ internal sealed class TypographyCardPreview : UserControl
     {
         var heading = _article.Headings[1];
         var scale = 13 / _article.BodySize;
-        var dark = ElevationResources.IsDarkVariant(ActualThemeVariant);
-        var resources = _article.CreateResources();
-        var colors = (ResourceDictionary)resources.ThemeDictionaries[
-            dark ? ThemeVariant.Dark : ThemeVariant.Light];
         var title = new TextBlock
         {
             Classes = { "typography-preview-heading" },
             Text = _name, FontSize = heading.Size * scale, LineHeight = heading.LineHeight * scale,
             FontWeight = (FontWeight)heading.Weight, MaxLines = 1, TextTrimming = TextTrimming.CharacterEllipsis,
-            TextAlignment = Enum.Parse<TextAlignment>(heading.Alignment),
-            Foreground = (IBrush)colors["CodeWFMarkdownHeading2Foreground"]!
+            TextAlignment = Enum.Parse<TextAlignment>(heading.Alignment)
         };
-        if (heading.Foreground.Contains("--fg)", StringComparison.Ordinal))
-            title.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("VexValueBrush"));
+        title.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable(heading.Foreground.Contains("--fg)", StringComparison.Ordinal)
+            ? "VexValueBrush" : "CodeWFMarkdownHeading2Foreground"));
         // 卡片的 --mono 未定义时由 CSS 继承文章字体，不能强行切到系统等宽字体。
         var padding = Thickness.Parse(heading.Padding);
         var titleFrame = new Border
         {
             Child = title, Margin = new Thickness(0, 0, 0, 5),
             Padding = new Thickness(padding.Left * scale, padding.Top * scale, padding.Right * scale, padding.Bottom * scale),
-            BorderThickness = Thickness.Parse(heading.Border), CornerRadius = heading.Corners ?? new CornerRadius(heading.Radius),
-            BorderBrush = (IBrush)colors["CodeWFMarkdownHeading2BorderBrush"]!,
-            Background = Tint(heading.BackgroundColor, heading.Tint, dark)
+            BorderThickness = Thickness.Parse(heading.Border), CornerRadius = heading.Corners ?? new CornerRadius(heading.Radius)
         };
-        if (heading.BorderColor.Contains("--border)", StringComparison.Ordinal))
-            titleFrame.Bind(Border.BorderBrushProperty, this.GetResourceObservable("VexPanelBorderBrush"));
+        var headingBorderKey = heading.BorderColor.Contains("--border)", StringComparison.Ordinal)
+            ? "VexPanelBorderBrush" : "CodeWFMarkdownHeading2BorderBrush";
+        titleFrame.Bind(Border.BackgroundProperty, this.GetResourceObservable("PreviewHeadingBackground"));
+        if (!heading.DashedBorder)
+            titleFrame.Bind(Border.BorderBrushProperty, this.GetResourceObservable(headingBorderKey));
         Control titleBlock = titleFrame;
         if (heading.DashedBorder)
         {
@@ -65,12 +67,13 @@ internal sealed class TypographyCardPreview : UserControl
             var underline = new Line
             {
                 StartPoint = default, EndPoint = new Point(1, 0), Stretch = Stretch.Fill,
-                Stroke = titleFrame.BorderBrush, StrokeThickness = stroke,
+                StrokeThickness = stroke,
                 StrokeDashArray = new Avalonia.Collections.AvaloniaList<double> { 3, 2 },
                 Height = stroke, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Bottom,
                 Margin = new Thickness(0, 0, 0, stroke / 2), IsHitTestVisible = false,
                 Classes = { "typography-preview-dash" }
             };
+            underline.Bind(Shape.StrokeProperty, this.GetResourceObservable(headingBorderKey));
             titleFrame.BorderBrush = Brushes.Transparent;
             titleFrame.Margin = default;
             titleBlock = new Panel { Children = { titleFrame, underline }, Margin = new Thickness(0, 0, 0, 5) };
@@ -85,10 +88,10 @@ internal sealed class TypographyCardPreview : UserControl
         {
             Child = quote, Padding = new Thickness(9, 6),
             BorderThickness = Thickness.Parse(_article.Quote.Border),
-            CornerRadius = _article.Quote.Corners ?? new CornerRadius(0, _article.Quote.Radius, _article.Quote.Radius, 0),
-            BorderBrush = (IBrush)colors["CodeWFMarkdownQuoteBorderBrush"]!,
-            Background = Tint("var(--type-decoration)", _article.Quote.Tint, dark)
+            CornerRadius = _article.Quote.Corners ?? new CornerRadius(0, _article.Quote.Radius, _article.Quote.Radius, 0)
         };
+        quoteFrame.Bind(Border.BorderBrushProperty, this.GetResourceObservable("CodeWFMarkdownQuoteBorderBrush"));
+        quoteFrame.Bind(Border.BackgroundProperty, this.GetResourceObservable("PreviewQuoteBackground"));
         Content = new Border
         {
             Padding = new Thickness(11, 8),

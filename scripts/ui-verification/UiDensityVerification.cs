@@ -11,7 +11,7 @@ using Vex.Modules.Shell.Views;
 
 internal static class UiDensityVerification
 {
-    public static void MeasurePerformance(MainWindow window, string output)
+    public static void MeasurePerformance(MainWindow window, string output, bool theme = false)
     {
         var vm = (MainWindowViewModel)window.DataContext!;
         window.WindowState = WindowState.Normal; window.Width = 1392; window.Height = 852;
@@ -36,22 +36,26 @@ internal static class UiDensityVerification
                 vm.Workbench.SelectLayout(layout); Render();
                 var appearance = window.GetVisualDescendants().OfType<ShellAppearanceMenuView>().Single();
                 appearance.AppearanceButton.Flyout!.ShowAt(appearance.AppearanceButton); Render();
-                foreach (var density in new[] { "compact", "relaxed", "normal" })
+                foreach (var density in theme ? new[] { "dark", "light", "dark", "light" } : new[] { "compact", "relaxed", "normal" })
                 {
                     notifications = 0;
                     var watch = System.Diagnostics.Stopwatch.StartNew();
-                    vm.Appearance.SelectedDensity = density;
+                    if (theme) vm.Appearance.SelectThemeByKey(density);
+                    else vm.Appearance.SelectedDensity = density;
                     var setterMs = watch.Elapsed.TotalMilliseconds;
                     Render();
                     var totalMs = watch.Elapsed.TotalMilliseconds;
-                    Console.WriteLine($"DENSITY PERF {layout}/{density}: setter={setterMs:0.0}ms frame={totalMs:0.0}ms resources={notifications}");
+                    Console.WriteLine($"{(theme ? "THEME" : "DENSITY")} PERF {layout}/{density}: setter={setterMs:0.0}ms frame={totalMs:0.0}ms resources={notifications}");
                     results.Add(new { layout, density, setterMs, totalMs, notifications });
-                    if (notifications != 1) throw new InvalidOperationException("A density change must broadcast application resources exactly once.");
+                    if (notifications != (theme ? 0 : 1)) throw new InvalidOperationException(theme
+                        ? "Theme changes must use dynamic resources without rewriting application resources."
+                        : "A density change must broadcast application resources exactly once.");
                 }
                 appearance.AppearanceButton.Flyout.Hide(); Render();
             }
-            File.WriteAllText(Path.Combine(output, "density-performance.json"), System.Text.Json.JsonSerializer.Serialize(results));
-            Console.WriteLine("PASS Density changes use one native batch resource notification per switch");
+            File.WriteAllText(Path.Combine(output, theme ? "theme-performance.json" : "density-performance.json"), System.Text.Json.JsonSerializer.Serialize(results));
+            Console.WriteLine(theme ? "PASS Theme changes use dynamic bindings without rewriting application resources"
+                : "PASS Density changes use one native batch resource notification per switch");
         }
         finally { host.ResourcesChanged -= Changed; }
     }

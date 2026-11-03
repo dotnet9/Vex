@@ -52,6 +52,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'UI density verification failed' }
           dotnet artifacts/bin/UiVerification/release/UiVerification.dll ui-density-performance artifacts/ui-density-performance --real-settings
           if ($LASTEXITCODE -ne 0) { throw 'UI density resource notification verification failed' }
+      - name: 明暗主题动态绑定与预览复用
+        shell: pwsh
+        run: |
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll prototype-appearance artifacts/theme-appearance
+          if ($LASTEXITCODE -ne 0) { throw 'Theme appearance verification failed' }
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll popup-layout artifacts/theme-popup-layout
+          if ($LASTEXITCODE -ne 0) { throw 'Popup layout verification failed' }
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll theme-performance artifacts/theme-performance --real-settings
+          if ($LASTEXITCODE -ne 0) { throw 'Theme dynamic resource verification failed' }
       - name: 草稿正常退出与异常恢复
         shell: pwsh
         run: |
@@ -90,4 +99,7 @@ jobs:
             artifacts/media-layout/*.png
             artifacts/ui-density
             artifacts/ui-density-performance
+            artifacts/theme-appearance
+            artifacts/theme-popup-layout
+            artifacts/theme-performance
             ${{ runner.temp }}/vex-update-fixture/verification

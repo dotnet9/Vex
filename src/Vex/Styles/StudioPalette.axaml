@@ -1,5 +1,14 @@
 ﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:theme="using:Vex.Core.Theme">
+    <SolidColorBrush x:Key="VexDocumentTableHeaderBrush">
+        <SolidColorBrush.Color>
+            <MultiBinding Converter="{x:Static theme:DocumentPaletteResources.TableHeader}">
+                <DynamicResource ResourceKey="StudioSurfaceColor" />
+                <DynamicResource ResourceKey="StudioSelectedColor" />
+            </MultiBinding>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
     <!-- 与 StudioTheme 共用动态颜色令牌，不复制 Semi 的整套主题字典。 -->
     <SolidColorBrush x:Key="VexShellBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
     <SolidColorBrush x:Key="VexPanelBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
@@ -83,6 +92,8 @@
     <SolidColorBrush x:Key="ToolTipForeground" Color="{DynamicResource StudioPaperColor}" />
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
+            <BoxShadows x:Key="VexPopShadow">0 12 32 0 #29101828, 0 2 8 0 #14101828</BoxShadows>
+            <BoxShadows x:Key="VexSegmentedThumbShadow">0 1 4 0 #1F000000</BoxShadows>
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidBackground" Color="#FFFFFF" />
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidForeground" Color="#302C3C" />
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidAccent" Color="#8B7CF6" />
@@ -125,6 +136,8 @@
             <SolidColorBrush x:Key="VexInfoSoftBrush" Color="#1A4338CA" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
+            <BoxShadows x:Key="VexPopShadow">0 12 32 0 #80000000, 0 2 8 0 #4D000000</BoxShadows>
+            <BoxShadows x:Key="VexSegmentedThumbShadow">none</BoxShadows>
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidBackground" Color="#202124" />
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidForeground" Color="#EDE8F5" />
             <SolidColorBrush x:Key="CodeWFMarkdownMermaidAccent" Color="#B6A6FF" />

@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Input;
@@ -145,16 +145,30 @@ internal static class PrototypeAppearanceVerification
             vm.Appearance.SelectedLanguage = language; Render();
             Check(gallery.GetVisualDescendants().OfType<TextBlock>().All(t => t.Text?.StartsWith("Vex.VexL.") != true), "Typography labels resolve in " + language.CultureName);
         }
-        vm.Appearance.SelectLanguageByCulture("zh-CN"); vm.Workbench.ShowTypography = false;
+        vm.Appearance.SelectLanguageByCulture("zh-CN");
+        // 语言切换重建了隐藏面板，先显示一轮让 Button 模板创建全部预览，避免空集合误通过。
+        vm.Workbench.ShowTypography = true; Render(); vm.Workbench.ShowTypography = false;
         var combinations = 0;
         var appearanceMenu = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;
         appearanceMenu.AppearanceButton.Flyout!.ShowAt(appearanceMenu.AppearanceButton);
         Render();
+        var previewContents = appearanceMenu.MenuContent.GetVisualDescendants().OfType<UserControl>()
+            .Concat(gallery.GetVisualDescendants().OfType<UserControl>())
+            .Where(control => control.Classes.Contains("palette-preview") || control.Classes.Contains("typography-preview"))
+            .Select(control => (Control: control, Content: control.Content)).ToArray();
         foreach (var palette in vm.Appearance.PaletteOptions)
         foreach (var mode in new[] { "light", "dark" })
         {
             vm.Appearance.SelectedPalette = palette; vm.Appearance.SelectThemeByKey(mode); Render();
             var variant = mode == "light" ? ThemeVariant.Light : ThemeVariant.Dark;
+            Application.Current!.TryGetResource("StudioSurfaceColor", window.ActualThemeVariant, out var surface);
+            Application.Current.TryGetResource("StudioSelectedColor", window.ActualThemeVariant, out var selectedColor);
+            var panel = (Color)surface!;
+            var soft = (Color)selectedColor!;
+            var header = (ISolidColorBrush)Application.Current.FindResource("VexDocumentTableHeaderBrush")!;
+            Check(header.Color == Color.FromRgb((byte)Math.Round(panel.R * .78 + soft.R * .22),
+                (byte)Math.Round(panel.G * .78 + soft.G * .22), (byte)Math.Round(panel.B * .78 + soft.B * .22)),
+                "Table header dynamic color follows " + palette.Key + "/" + mode);
             var palettePreview = appearanceMenu.MenuContent.GetVisualDescendants().OfType<UserControl>()
                 .Single(control => control.Classes.Contains("palette-preview") && Equals(control.Tag, palette.Key));
             var colors = mode == "light" ? palette.Definition.Light : palette.Definition.Dark;
@@ -204,6 +218,8 @@ internal static class PrototypeAppearanceVerification
             }
         }
         appearanceMenu.AppearanceButton.Flyout.Hide();
+        Check(previewContents.Length == 22 && previewContents.All(item => ReferenceEquals(item.Control.Content, item.Content)),
+            $"Theme changes update all 22 previews through bindings without recreating their content: count={previewContents.Length}, changed={string.Join(",", previewContents.Where(item => !ReferenceEquals(item.Control.Content, item.Content)).Select(item => item.Control.Tag))}");
         Check(combinations == 234, "234 native palette/mode/typography combinations retain readable body, links, quotes and headings");
         vm.Appearance.SelectPaletteByKey("indigo"); vm.Appearance.SelectThemeByKey("light");
         var current = app.Resolve<IWorkspaceDocumentState>().Markdown;

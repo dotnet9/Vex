@@ -135,7 +135,7 @@ internal static class PopupLayoutVerification
             var frame = presenter.GetVisualDescendants().OfType<Border>().First(b => b.Name == "LayoutRoot");
             Console.WriteLine($"POPUP SURFACE {name}: presenter={presenter.Bounds}, frame={frame.Bounds}, origin={frame.TranslatePoint(default, window)}, margin={frame.Margin}, shadow={frame.BoxShadow}");
             Check(frame.BoxShadow.Count == 2, "Picker frame uses both prototype elevation layers: " + name);
-            Check(frame.BoxShadow.ToString() == ((BoxShadows)Application.Current!.Resources["VexPopShadow"]!).ToString(),
+            Check(frame.BoxShadow.ToString() == ((BoxShadows)Application.Current!.FindResource(window.ActualThemeVariant, "VexPopShadow")!).ToString(),
                 "Picker template consumes the actual prototype shadow token: " + name);
             if (name == "appearance")
             {

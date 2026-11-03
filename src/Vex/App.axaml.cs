@@ -40,7 +40,6 @@ public partial class App : Application
         CodeWF.Avalonia.Markdown.Mermaid.CodeWFMarkdownMermaidExtensions.EnsureRegistered();
         CodeWF.Avalonia.Markdown.CodeWFMarkdownHtmlExtensions.UseHtmlTables();
         AvaloniaXamlLoader.Load(this);
-        DocumentPaletteResources.Register();
         var langPlugin = new JsonLangPlugin
         {
             ResourceFolder = ResolveI18nFolder()
@@ -134,9 +133,6 @@ public partial class App : Application
         {
             Instance = this;
             ApplyInitialTheme();
-            // 投影字符串不像画刷能随主题变体自动换色，明暗切换时按当前变体回放一次应用级投影资源。
-            ActualThemeVariantChanged += (_, _) => ElevationResources.Apply();
-            ElevationResources.Apply();
             desktop.MainWindow = Services.GetRequiredService<MainWindow>();
             desktop.MainWindow.Show();
         }

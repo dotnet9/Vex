@@ -1,4 +1,4 @@
-<Styles xmlns:behaviors="using:Vex.Core.Behaviors" xmlns:shell="using:Vex.Modules.Shell.Views" xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns:theme="using:Vex.Core.Theme" xmlns:behaviors="using:Vex.Core.Behaviors" xmlns:shell="using:Vex.Modules.Shell.Views" xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- ===== 块状工作区（原型 workspace-chrome.css）：灰画布 + 圆角描边白块，外缘 10px、块间 4px ===== -->
   <!-- 原型组合布局的面板齐平拼贴（.view-panel radius 0 无描边、.view-split gap:1px bg=border）：
        块本体只保留面板底色，缝隙与描边一律由 1px 分栏线承担。 -->
@@ -1310,10 +1310,18 @@
     </Setter>
   </Style>
   <Style Selector="Button.primary /template/ Border#PART_Halo">
-    <Setter Property="BoxShadow" Value="{DynamicResource VexPrimaryShadow}"/>
+    <Setter Property="BoxShadow">
+      <MultiBinding Converter="{x:Static theme:ElevationResources.Primary}">
+        <DynamicResource ResourceKey="StudioAccentColor" />
+      </MultiBinding>
+    </Setter>
   </Style>
   <Style Selector="Button.primary:pointerover /template/ Border#PART_Halo">
-    <Setter Property="BoxShadow" Value="{DynamicResource VexPrimaryShadowHover}"/>
+    <Setter Property="BoxShadow">
+      <MultiBinding Converter="{x:Static theme:ElevationResources.PrimaryHover}">
+        <DynamicResource ResourceKey="StudioAccentColor" />
+      </MultiBinding>
+    </Setter>
   </Style>
   <!-- ===== 对话框字段（原型 theme.css / dialogs.css）：.input 一族与侧栏搜索共用 search-shell 焦点配方，
        .mono 换等宽族；.dlg-path 是代码底的路径块（theme.css:599），此前类名挂了却没有任何样式。 ===== -->

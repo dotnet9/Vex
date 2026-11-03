@@ -13,8 +13,7 @@ internal static class VexDocumentTypography
     {
         foreach (var article in ArticleTypographyCatalog.All)
             MarkdownTypographyThemeRegistry.Register(article.Key, () => Create(article));
-        if (Application.Current is { } app)
-            app.ActualThemeVariantChanged += (_, _) => MarkdownThemes.OverrideTypographyResources(app, "Simple");
+        // 颜色画刷已绑定应用主题；明暗切换无需重建字号、间距和所有正文控件的排版字典。
     }
 
     private static ResourceDictionary Create(ArticleTypography article)
