@@ -16,7 +16,8 @@ public sealed class WorkspaceLayoutGallery : Border
     public WorkspaceLayoutGallery()
     {
         // 原型 .workspace-layout-menu：568 宽、14 内距；面/描边/圆角/投影都吃 wb-popover 的浮层一档。
-        Classes.Add("wb-popover"); Width = 568; Padding = new Thickness(14);
+        Classes.Add("wb-popover"); Width = 568;
+        this.Bind(PaddingProperty, this.GetResourceObservable("VexUiPanelPadding"));
         AttachedToVisualTree += (_, _) => { if (TopLevel.GetTopLevel(this) is { } window) { window.SizeChanged += WindowResized; Fit(window); } };
         DetachedFromVisualTree += (_, _) => { if (TopLevel.GetTopLevel(this) is { } window) window.SizeChanged -= WindowResized; };
         DataContextChanged += (_, _) => Attach();
@@ -43,6 +44,8 @@ public sealed class WorkspaceLayoutGallery : Border
         // 原型 .workspace-layout-menu 里只有 .layout-preset-grid 这一个子级（workspace.js:103）：
         // 4 列 8 张预设卡，无标题、无说明段、无页脚，选中态由卡片自身的 accent 描边 + 右上角 ✓ 表达。
         var options = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*,*"), RowDefinitions = new RowDefinitions("Auto,Auto"), ColumnSpacing = 8, RowSpacing = 8 };
+        options.Bind(Grid.ColumnSpacingProperty, this.GetResourceObservable("VexUiGap8"));
+        options.Bind(Grid.RowSpacingProperty, this.GetResourceObservable("VexUiGap8"));
         DesignSelectionControls.Navigation(options, () => 4);
         foreach (var (option, index) in WorkbenchLayoutOption.All.Select((value, index) => (value, index)))
         {

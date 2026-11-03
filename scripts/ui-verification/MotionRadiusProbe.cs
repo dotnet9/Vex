@@ -24,10 +24,10 @@ internal static class MotionRadiusProbe
             var fast = (TimeSpan)resources["MotionDurationFast"]!;
             var mid = (TimeSpan)resources["MotionDurationMid"]!;
             var slow = (TimeSpan)resources["MotionDurationSlow"]!;
-            var sm = (CornerRadius)resources["VexDensityCornerRadiusSm"]!;
-            var md = (CornerRadius)resources["VexDensityCornerRadiusMd"]!;
-            var lg = (CornerRadius)resources["VexDensityCornerRadiusLg"]!;
-            var pill = (CornerRadius)resources["VexDensityCornerRadiusPill"]!;
+            var sm = (CornerRadius)app.FindResource("VexDensityCornerRadiusSm")!;
+            var md = (CornerRadius)app.FindResource("VexDensityCornerRadiusMd")!;
+            var lg = (CornerRadius)app.FindResource("VexDensityCornerRadiusLg")!;
+            var pill = (CornerRadius)app.FindResource("VexDensityCornerRadiusPill")!;
             sb.AppendLine($"{tag}: motion={vm.Layout.MotionMode} enabled={MotionResources.IsEnabled} scale={MotionResources.Scale:0.##} " +
                           $"fast={fast.TotalMilliseconds:0}ms mid={mid.TotalMilliseconds:0}ms slow={slow.TotalMilliseconds:0}ms " +
                           $"radius={vm.Appearance.RadiusMode} sm={sm.TopLeft} md={md.TopLeft} lg={lg.TopLeft} pill={pill.TopLeft}");

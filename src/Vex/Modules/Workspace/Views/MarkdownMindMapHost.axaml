@@ -4,10 +4,10 @@
   <UserControl.Styles>
     <!-- 原型 .view-panel .map-toolbar .toolbar-button：10.5 号字、4/7 内距、26 高基准，字重随浏览器默认（常规）；
          库里的 Button 主题自带 SemiBold，这里按原型收回常规字重。 -->
-    <Style Selector="Button.map-tool, ToggleButton.map-tool"><Setter Property="FontSize" Value="10.5"/><Setter Property="FontWeight" Value="Normal"/><Setter Property="Padding" Value="7,4"/><Setter Property="MinHeight" Value="26"/></Style>
+    <Style Selector="Button.map-tool, ToggleButton.map-tool"><Setter Property="FontSize" Value="10.5"/><Setter Property="FontWeight" Value="Normal"/><Setter Property="Padding" Value="{DynamicResource VexUiMapToolPadding}"/><Setter Property="MinHeight" Value="{DynamicResource VexUiSmallButtonHeight}"/></Style>
   </UserControl.Styles>
   <Grid RowDefinitions="Auto,*">
-    <Border x:Name="MapEditingToolbar" Classes="map-topbar" IsVisible="{Binding !Workbench.IsPresenting}" MinHeight="36" Padding="10,4" Background="{DynamicResource VexShellBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
+    <Border x:Name="MapEditingToolbar" Classes="map-topbar" IsVisible="{Binding !Workbench.IsPresenting}" MinHeight="{DynamicResource VexUiHeaderHeight}" Padding="{DynamicResource VexUiMapHeaderPadding}" Background="{DynamicResource VexShellBackgroundBrush}" BorderBrush="{DynamicResource VexPanelBorderBrush}" BorderThickness="0,0,0,1">
       <!-- 原型 .view-panel .map-toolbar（workspace-chrome.css:494）：单行 36px 横滚、滚动条隐藏，
            不再换行成两档高度，与邻 pane 工具行对齐。右组靠 margin-left:auto 等效贴右（SizeChanged 里算），
            窄窗溢出时整行横滚而不是把按钮挤到第二行。标题行原型已退役（css:497-498），不再保留。 -->
@@ -73,7 +73,7 @@
         </StackPanel>
       </Border>
       <!-- 原型 .settings-popover（editing.css:200 + 浮层一档）：320 宽、14 内距。 -->
-      <Border x:Name="SettingsTarget" Width="320" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18,12,18,18" Classes="wb-popover" Padding="14" IsVisible="{Binding Workbench.ShowMapSettings}">
+      <Border x:Name="SettingsTarget" Width="320" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="18,12,18,18" Classes="wb-popover" Padding="{DynamicResource VexUiPanelPadding}" IsVisible="{Binding Workbench.ShowMapSettings}">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled"><views:MindMapDisplaySettingsView /></ScrollViewer>
       </Border>
       <Border x:Name="NodeInspector" Width="282" MaxHeight="480" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10,9,10,60" Classes="wb-popover" IsVisible="{Binding Workbench.HasSelectedNode}">

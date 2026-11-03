@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellUpdateOverlayView"
+<UserControl x:Class="Vex.Modules.Shell.Views.ShellUpdateOverlayView"
  xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
  xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
  xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:u="https://irihi.tech/ursa" x:DataType="vm:ShellUpdateViewModel"
@@ -78,9 +78,9 @@
       </ScrollViewer>
      </Border>
      <WrapPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
-      <Button x:Name="UpdateCancel" Margin="0,0,10,0" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsDownloading}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
-      <Button x:Name="UpdateDismiss" Margin="0,0,10,0" Click="Close_OnClick" Content="{i18n:I18n {x:Static l:VexL.UpdateLater}}" IsVisible="{Binding ShowLater}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
-      <Button x:Name="UpdateAction" Classes.primary="{Binding IsPrimaryAction}" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" IsVisible="{Binding ShowAction}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
+      <Button x:Name="UpdateCancel" Margin="0,0,10,0" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsDownloading}" MinWidth="104" MinHeight="{DynamicResource VexUiDialogButtonHeight}" Padding="{DynamicResource VexUiDialogActionPadding}" FontSize="13"/>
+      <Button x:Name="UpdateDismiss" Margin="0,0,10,0" Click="Close_OnClick" Content="{i18n:I18n {x:Static l:VexL.UpdateLater}}" IsVisible="{Binding ShowLater}" MinWidth="104" MinHeight="{DynamicResource VexUiDialogButtonHeight}" Padding="{DynamicResource VexUiDialogActionPadding}" FontSize="13"/>
+      <Button x:Name="UpdateAction" Classes.primary="{Binding IsPrimaryAction}" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" IsVisible="{Binding ShowAction}" MinWidth="104" MinHeight="{DynamicResource VexUiDialogButtonHeight}" Padding="{DynamicResource VexUiDialogActionPadding}" FontSize="13"/>
      </WrapPanel>
    </Grid>
   </Grid>

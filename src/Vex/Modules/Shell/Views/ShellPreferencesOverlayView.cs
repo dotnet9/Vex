@@ -1,4 +1,4 @@
-﻿using CodeWF.Avalonia.Controls.Helpers;
+using CodeWF.Avalonia.Controls.Helpers;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
@@ -39,6 +39,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         TextOptions.SetTextRenderingMode(this, TextRenderingMode.Antialias);
         _model = model; _localizer = localizer; DataContext = model;
+        BindResource(_scroll, ScrollViewer.PaddingProperty, "VexUiPreferencesContentPadding");
         UseLayoutRounding = false;
         BindResource(this, ForegroundProperty, "VexValueBrush");
         var grid = new Grid { RowDefinitions = new RowDefinitions("36,*") };
@@ -114,8 +115,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
             // 保留 SVG 的 24px viewBox，不能把路径的墨迹边界直接拉满 17px。
             var iconCanvas = new Canvas { Width = 24, Height = 24 }; iconCanvas.Children.Add(icon);
             row.Children.Add(new Viewbox { Width = 17, Height = 17, Child = iconCanvas, VerticalAlignment = VerticalAlignment.Center });
-            var label = new TextBlock { Text = L(c.Key), FontSize = 14, LineHeight = 21, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(label, 1); row.Children.Add(label);
-            var item = new ListBoxItem { Content = row, MinHeight = 40, Padding = new Thickness(12, 9), Margin = new Thickness(0, 0, 0, 3), HorizontalContentAlignment = HorizontalAlignment.Stretch };
+            var label = new TextBlock { Text = L(c.Key), Classes = { "pref-navigation-label" }, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(label, 1); row.Children.Add(label);
+            var item = new ListBoxItem { Content = row, Classes = { "pref-navigation-item" }, Margin = new Thickness(0, 0, 0, 3), HorizontalContentAlignment = HorizontalAlignment.Stretch };
             // 原型 .vex-settings-nav button 用 --vex-radius-xs（4 基线，只乘 --radius-scale），不是固定 5。
             BindResource(item, ListBoxItem.CornerRadiusProperty, "VexDensityCornerRadiusXs");
             return item;
@@ -183,10 +184,12 @@ public sealed class ShellPreferencesOverlayView : UserControl
             case "mcp":
                 // 对齐原型 .vex-mcp-tabs：它就是 .vex-segmented 的一份宿主——轨道、滑动指示块、选中字色字重
                 // 全走共享配方，宿主只给 gap 4、button{flex:1} 等宽与 28×密度的基准高；页签与内容之间留 16。
-                var mcpRoot = new StackPanel { Spacing = 16 };
+                var mcpRoot = new StackPanel();
+                BindResource(mcpRoot, StackPanel.SpacingProperty, "VexUiGap16");
                 var mcpHost = new ContentControl();
                 var tabTrack = new Border { Classes = { "segmented-track", "mcp-tabs" } };
-                var tabBar = new SegmentedPanel { Spacing = 4, FillItems = true };
+                var tabBar = new SegmentedPanel { FillItems = true };
+                BindResource(tabBar, SegmentedPanel.SpacingProperty, "VexUiGap4");
                 tabTrack.Child = tabBar;
                 var mcpPeers = new List<Button>();
                 Control BuildServer() => new McpSettingsOverlayView(embedded: true) { DataContext = _model.Mcp };
@@ -305,7 +308,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
         var page = new StackPanel { Spacing = 0 };
         var host = new ContentControl();
         var subTrack = new Border { Classes = { "segmented-track", "mcp-tabs", "mcp-subtabs" } };
-        var bar = new SegmentedPanel { Spacing = 4, FillItems = true };
+        var bar = new SegmentedPanel { FillItems = true };
+        BindResource(bar, SegmentedPanel.SpacingProperty, "VexUiGap4");
         subTrack.Child = bar;
         var peers = new List<Button>();
         void SelectTab(Button selected, Func<Control> build)
@@ -407,12 +411,13 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         // fill = 控件吃满剩余宽度（路径类输入框），否则按内容自适应并靠右。
         // 原型普通行 53px；带说明的行由 21 + 4 + 19.2 行盒自然撑高。
-        var row = new Grid { ColumnDefinitions = new ColumnDefinitions(fill ? "Auto,*" : "*,Auto"), ColumnSpacing = 24, MinHeight = 32 };
+        var row = new Grid { ColumnDefinitions = new ColumnDefinitions(fill ? "Auto,*" : "*,Auto"), ColumnSpacing = 24, MinHeight = 0 };
+        BindResource(row, Grid.ColumnSpacingProperty, "VexUiGap24");
         var labels = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         labels.Children.Add(new TextBlock { Text = L(label), Classes = { "pref-label" } });
         if (note is not null) labels.Children.Add(new TextBlock { Text = L(note), Classes = { "muted", "pref-note" } });
         row.Children.Add(labels); control.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(control, 1); row.Children.Add(control);
-        var frame = Frame(row, new Thickness(0, 0, 0, 1)); frame.Classes.Add("pref-row"); frame.Padding = new Thickness(0, 10); page.Children.Add(frame);
+        var frame = Frame(row, new Thickness(0, 0, 0, 1)); frame.Classes.Add("pref-row"); BindResource(frame, Border.PaddingProperty, "VexUiPreferencesRowPadding"); page.Children.Add(frame);
     }
     private void Toggle(StackPanel page, string label, object source, string property, string? note = null)
     {
@@ -478,7 +483,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var fill = new Border { Height = 12, Width = 156 };
         fill.Bind(Border.BackgroundProperty, new Binding(nameof(Vex.Core.Services.EditorPreferences.WatermarkColor)) { Source = preferences, Converter = HexToBrushConverter.Instance });
-        var swatch = new Button { Name = "WatermarkColorSwatch", Width = 180, Height = 32, Padding = default, BorderThickness = new Thickness(1), Content = fill };
+        var swatch = new Button { Name = "WatermarkColorSwatch", Classes = { "pref-color" }, Width = 180, Padding = default, BorderThickness = new Thickness(1), Content = fill };
+        BindResource(swatch, Button.HeightProperty, "VexUiFieldHeight");
         BindResource(swatch, Button.CornerRadiusProperty, "VexDensityCornerRadiusXs");
         BindResource(swatch, Button.BackgroundProperty, "VexPopBrush");
         BindResource(swatch, Button.BorderBrushProperty, "VexControlBorderBrush");
@@ -539,7 +545,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     }
     private void Number(StackPanel page, string label, object source, string property, decimal minimum, decimal maximum, decimal step = 1)
     {
-        var number = new NumericUpDown { Name = property, Minimum = minimum, Maximum = maximum, Increment = step, Width = 104, FormatString = "0.#" };
+        var number = new NumericUpDown { Classes = { "pref-field" }, Name = property, Minimum = minimum, Maximum = maximum, Increment = step, Width = 104, FormatString = "0.#" };
         number.Bind(NumericUpDown.ValueProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, number);
     }
     private void Text(StackPanel page, string label, object source, string property)
@@ -551,7 +557,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var items = choices.Select(x => new ChoiceItem(x.Label, x.Value)).ToArray();
         var combo = new ComboBox { Name = property, Classes = { "pref-field" }, ItemsSource = items,
-            ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<ChoiceItem>((x, _) => new TextBlock { Text = x?.Label, FontSize = 14 }) };
+            ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<ChoiceItem>((x, _) => new TextBlock { Text = x?.Label }) };
         // 显式映射选项，避免 NativeAOT 对私有记录的反射路径及初始化空选区写回设置。
         combo.Bind(ComboBox.SelectedItemProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay, Converter = new ChoiceSelectionConverter(items) }); Row(page, label, combo);
     }

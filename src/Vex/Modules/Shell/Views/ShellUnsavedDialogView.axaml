@@ -41,16 +41,16 @@
                         Click="OnSaveClicked"
                         Content="{i18n:I18n Vex.VexL.DialogSaveAndExit}"
                         FontSize="12"
-                        Height="36"
-                        Padding="16,5"
+                        Height="{DynamicResource VexUiDialogButtonHeight}"
+                        Padding="{DynamicResource VexUiActionPadding}"
                         CornerRadius="18" />
                     <Button
                         Classes="dialog-secondary"
                         Click="OnDiscardClicked"
                         Content="{i18n:I18n Vex.VexL.DialogDiscardAndExit}"
                         FontSize="12"
-                        Height="36"
-                        Padding="16,5"
+                        Height="{DynamicResource VexUiDialogButtonHeight}"
+                        Padding="{DynamicResource VexUiActionPadding}"
                         CornerRadius="18"
                         BorderThickness="1" />
                 </StackPanel>
@@ -60,16 +60,16 @@
                         Click="OnSaveClicked"
                         Content="{i18n:I18n Vex.VexL.DialogSaveAndSwitch}"
                         FontSize="12"
-                        Height="32"
-                        Padding="16,5"
+                        Height="{DynamicResource VexUiFieldHeight}"
+                        Padding="{DynamicResource VexUiActionPadding}"
                         CornerRadius="16" />
                     <Button
                         Classes="dialog-secondary"
                         Click="OnDiscardClicked"
                         Content="{i18n:I18n Vex.VexL.DialogDiscardAndSwitch}"
                         FontSize="12"
-                        Height="32"
-                        Padding="16,5"
+                        Height="{DynamicResource VexUiFieldHeight}"
+                        Padding="{DynamicResource VexUiActionPadding}"
                         CornerRadius="16"
                         BorderThickness="1" />
                 </StackPanel>
@@ -80,8 +80,8 @@
                     Click="OnCancelClicked"
                     Content="{i18n:I18n Vex.VexL.DialogContinueEditing}"
                     FontSize="12"
-                    Height="36"
-                    Padding="16,5"
+                    Height="{DynamicResource VexUiDialogButtonHeight}"
+                    Padding="{DynamicResource VexUiActionPadding}"
                     CornerRadius="18"
                     BorderThickness="1" />
             </Grid>

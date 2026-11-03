@@ -37,6 +37,8 @@ public sealed class ShellTypographyGallery : UserControl
         DataContextChanged += (_, _) => Attach();
         AttachedToVisualTree += (_, _) => { Attach(); _window = TopLevel.GetTopLevel(this); if (_window is not null) _window.SizeChanged += WindowSizeChanged; Resize(); };
         DetachedFromVisualTree += (_, _) => { if (_vm is not null) { _vm.Appearance.PropertyChanged -= Changed; _vm.Workbench.PropertyChanged -= WorkbenchChanged; } I18nManager.Instance.CultureChanged -= CultureChanged; if (_window is not null) _window.SizeChanged -= WindowSizeChanged; _vm = null; _window = null; };
+        _cards.Bind(Grid.RowSpacingProperty, this.GetResourceObservable("VexUiGap8"));
+        _cards.Bind(Grid.ColumnSpacingProperty, this.GetResourceObservable("VexUiGap8"));
         Navigation(_cards, () => 4);
     }
 
@@ -127,7 +129,8 @@ public sealed class ShellTypographyGallery : UserControl
         // 渲染密度：原型 .typography-density 里只有 .density-options.vex-segmented 一枚轨道（320×30，
         // 距行顶 11、距发丝线 10），标题与「渲染密度」四个字都不存在——作用域只写进轨道的可访问名，
         // 对应原型 aria-label="Markdown 渲染密度"。轨道、滑动指示块、选中字色走 Vex.Controls 共享配方。
-        var segments = new SegmentedPanel { Spacing = 6, FillItems = true };
+        var segments = new SegmentedPanel { FillItems = true };
+        segments.Bind(SegmentedPanel.SpacingProperty, this.GetResourceObservable("VexUiGap6"));
         foreach (var (key, labelKey) in new[] { ("compact", "DensityCompact"), ("normal", "DensityNormal"), ("relaxed", "DensityRelaxed") })
         {
             var pill = new Button { Classes = { "density-pill", "render-density-pill" }, Content = Text(labelKey), HorizontalContentAlignment = HorizontalAlignment.Center };
@@ -151,7 +154,8 @@ public sealed class ShellTypographyGallery : UserControl
         }
 
         // 新增条横跨整行；卡片各行按真实预览的内容高度排列。
-        var body = new StackPanel { Spacing = 8 };
+        var body = new StackPanel();
+        body.Bind(StackPanel.SpacingProperty, this.GetResourceObservable("VexUiGap8"));
         body.Children.Add(_cards);
         body.Children.Add(BuildAddCard());
 
@@ -162,6 +166,7 @@ public sealed class ShellTypographyGallery : UserControl
         // 原型 .typography-popover 实测吃浮层一档（14 内距、8 圆角、--shadow-pop 双层），
         // 面/描边/圆角/投影都在 wb-popover 里，宿主只给内距。
         var border = new Border { Classes = { "wb-popover" }, Child = layout, Padding = new Thickness(14) };
+        border.Bind(Border.PaddingProperty, this.GetResourceObservable("VexUiPanelPadding"));
         Content = border;
         Resize(); Changed(null, new(""));
     }

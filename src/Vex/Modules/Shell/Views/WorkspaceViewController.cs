@@ -284,7 +284,8 @@ public sealed class WorkspaceViewController
         if (id == "render")
         {
             // 原型 .view-heading：36px、随块底透明、65% 底边；题注居左、排版入口居中、钉按钮居右。编辑器与导图窗格按原型不设标题行。
-            var header = new Border { Height = 36, BorderThickness = new Thickness(0, 0, 0, 1) };
+            var header = new Border { Classes = { "workspace-pane-header" }, BorderThickness = new Thickness(0, 0, 0, 1) };
+            header.Bind(Border.HeightProperty, _window.GetResourceObservable("VexUiHeaderHeight"));
             header.Bind(Border.BorderBrushProperty, _window.GetResourceObservable("VexPaneHeadBorderBrush"));
             var bar = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto,*"), VerticalAlignment = VerticalAlignment.Center };
             var caption = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };

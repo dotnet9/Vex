@@ -69,7 +69,7 @@
                 <shell:ShellFindBarView Grid.Row="1" DataContext="{Binding FindBar}" />
                 <!-- 原型 .workspace-tabrow 在 content-area 内部（与正文列同宽）：左柱/侧栏顶到标题栏下边框，
                 页签行只横跨正文列。36px、铬面底、发丝底边；演示模式整行隐藏。 -->
-                <Border x:Name="WorkspaceTabRow" Grid.Row="2" Height="36" Padding="8,0"
+                <Border x:Name="WorkspaceTabRow" Grid.Row="2" Height="{DynamicResource VexUiHeaderHeight}" Padding="8,0"
                     Background="{DynamicResource VexChromeBrush}" BorderBrush="{DynamicResource VexHairlineBrush}"
                     BorderThickness="0,0,0,1" IsVisible="{Binding !Workbench.IsPresenting}">
                     <!-- 第 1 列是排版入口的落点：原型 workspace.js:185 在单阅读视图时把同一个节点

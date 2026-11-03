@@ -324,7 +324,7 @@ internal static class PopupLayoutVerification
             $"Rename input keeps the prototype .input 32px outer box: shell={renameShell.Bounds.Height:0.#}, inner={renameInput.Bounds.Height:0.#}");
         var renameFrame = renameShell.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("search-frame"));
         var renameGlow = renameShell.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("search-glow"));
-        Check(renameFrame.CornerRadius == (CornerRadius)Application.Current!.Resources["VexDensityCornerRadiusPill"]!
+        Check(renameFrame.CornerRadius == (CornerRadius)Application.Current!.FindResource("VexDensityCornerRadiusPill")!
             && renameInput.FontFamily.Name.Contains("Cascadia Code", StringComparison.Ordinal),
             "Rename input is the prototype .input mono: pill frame plus monospace family");
         // 对话框打开即聚焦文件名（code-behind），柔光应当已经亮起：与侧栏搜索/查找条同一焦点配方。

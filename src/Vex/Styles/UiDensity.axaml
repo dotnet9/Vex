@@ -1,0 +1,175 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:u="https://irihi.tech/ursa" xmlns:vex="clr-namespace:Vex.Controls"
+        xmlns:ui="using:Vex.Core.Markup">
+  <!-- 界面操作空间的三档密度；正文排版与用户文件字号保持独立。 -->
+  <Style Selector="Border.panel-head, Border.panel-tools">
+    <Setter Property="Height" Value="{DynamicResource VexUiHeaderHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiHeaderPadding}" />
+  </Style>
+  <Style Selector="Button.panel-close">
+    <Setter Property="Width" Value="{DynamicResource VexUiSmallButtonHeight}" />
+    <Setter Property="Height" Value="{DynamicResource VexUiSmallButtonHeight}" />
+  </Style>
+  <Style Selector="TextBlock.panel-title">
+    <Setter Property="LineHeight" Value="{DynamicResource VexUiCaptionLineHeight}" />
+  </Style>
+  <Style Selector="Border.nav-rail">
+    <Setter Property="Padding" Value="{DynamicResource VexUiNavigationPadding}" />
+  </Style>
+  <Style Selector="Button.rail-item, ToggleButton.rail-item">
+    <Setter Property="Height" Value="{DynamicResource VexUiNavigationHeight}" />
+  </Style>
+  <Style Selector="Button.rail-item.rail-bottom">
+    <Setter Property="Height" Value="{DynamicResource VexUiNavigationBottomHeight}" />
+  </Style>
+  <Style Selector="ToggleButton.tab-item">
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
+  </Style>
+  <Style Selector="Button.wb-format">
+    <Setter Property="Width" Value="{DynamicResource VexUiControlHeight}" />
+    <Setter Property="Height" Value="{DynamicResource VexUiControlHeight}" />
+  </Style>
+  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format, u|ToolBar.wb-formatbar u|ToolBarSeparator">
+    <Setter Property="Margin" Value="{DynamicResource VexUiToolbarItemMargin}" />
+  </Style>
+  <Style Selector="Button.toolbar-pin, ToggleButton.toolbar-pin">
+    <Setter Property="Width" Value="{DynamicResource VexUiControlHeight}" />
+    <Setter Property="Height" Value="{DynamicResource VexUiControlHeight}" />
+  </Style>
+  <Style Selector="Button.editor-mode">
+    <Setter Property="Height" Value="{DynamicResource VexUiSmallButtonHeight}" />
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
+  </Style>
+  <Style Selector="Button.wb-quiet, ToggleButton.wb-quiet">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiControlHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiToolbarButtonPadding}" />
+  </Style>
+  <Style Selector="Button.typography-trigger">
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
+  </Style>
+  <Style Selector="Grid#TabRowGrid Button.typography-trigger">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiFieldHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiToolbarButtonPadding}" />
+  </Style>
+  <Style Selector="Border.edit-options Button.typography-trigger">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiFieldHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiToolbarButtonPadding}" />
+  </Style>
+  <Style Selector="ListBox.side-list Border.structure-item">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiMenuRowHeight}" />
+  </Style>
+  <Style Selector="ListBox.side-list TextBlock.structure-text">
+    <Setter Property="FontSize" Value="{DynamicResource VexUiOutlineFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource VexUiOutlineLineHeight}" />
+  </Style>
+  <Style Selector="ListBox.side-list TextBlock.structure-num">
+    <Setter Property="FontSize" Value="{DynamicResource VexUiOutlineNumberFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource VexUiSmallLineHeight}" />
+  </Style>
+  <Style Selector="ListBox.side-list Border.structure-item > Grid">
+    <Setter Property="ColumnSpacing" Value="{DynamicResource VexUiGap7}" />
+  </Style>
+  <Style Selector="ListBox.side-list Border.structure-item.top > Grid">
+    <Setter Property="ColumnSpacing" Value="{DynamicResource VexUiGap8}" />
+  </Style>
+  <Style Selector="TreeView.side-tree Border.file-card">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiFolderRowHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiFolderPadding}" />
+  </Style>
+  <Style Selector="TreeView.side-tree TreeViewItem">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiFolderRowHeight}" />
+  </Style>
+  <Style Selector="TreeView.side-tree Border.file-card.leaf">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiListRowHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiListPadding}" />
+  </Style>
+  <Style Selector="ListBox.files-list ListBoxItem">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiListRowHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiListPadding}" />
+  </Style>
+  <Style Selector="Menu.title-menu > MenuItem">
+    <Setter Property="Padding" Value="{DynamicResource VexUiTitleMenuPadding}" />
+  </Style>
+  <Style Selector="Menu.title-menu MenuItem MenuItem, MenuFlyoutPresenter MenuItem, ContextMenu MenuItem">
+    <Setter Property="MinHeight" Value="{ui:ApplicationResource VexUiMenuRowHeight}" />
+    <Setter Property="Padding" Value="{ui:ApplicationResource VexUiMenuPadding}" />
+  </Style>
+  <Style Selector="MenuFlyoutPresenter, ContextMenu">
+    <Setter Property="FontSize" Value="{ui:ApplicationResource VexUiMenuFontSize}" />
+  </Style>
+  <Style Selector="Menu.title-menu Separator, ContextMenu Separator, MenuFlyoutPresenter Separator">
+    <Setter Property="Margin" Value="{ui:ApplicationResource VexUiMenuSeparatorMargin}" />
+  </Style>
+  <Style Selector="Menu.title-menu > MenuItem /template/ Popup#PART_Popup > Border">
+    <Setter Property="Padding" Value="{ui:ApplicationResource VexUiMenuInset}" />
+  </Style>
+  <Style Selector="Border.pref-row">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiPreferencesRowHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiPreferencesRowPadding}" />
+  </Style>
+  <Style Selector="TextBlock.pref-label">
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeBody}" />
+    <Setter Property="LineHeight" Value="{DynamicResource VexUiBodyLineHeight}" />
+  </Style>
+  <Style Selector="TextBlock.pref-note">
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
+    <Setter Property="LineHeight" Value="{DynamicResource VexUiCaptionLineHeight}" />
+  </Style>
+  <Style Selector="TextBox.pref-field, TextBox.pref-field-fill, ComboBox.pref-field, NumericUpDown.pref-field">
+    <Setter Property="Height" Value="NaN" />
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiFieldHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiFieldPadding}" />
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeBody}" />
+  </Style>
+  <Style Selector="Button.mcp-pill">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiFieldHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiActionPadding}" />
+  </Style>
+  <Style Selector="Border.segmented-track">
+    <Setter Property="Padding" Value="{ui:ApplicationResource VexSegmentedInset}" />
+  </Style>
+  <Style Selector="Button.density-pill">
+    <Setter Property="FontSize" Value="{ui:ApplicationResource VexDensityFontSizeCaption}" />
+    <Setter Property="Height" Value="{ui:ApplicationResource VexSegmentedHeightDensity}" />
+    <Setter Property="Padding" Value="{ui:ApplicationResource VexSegmentedPaddingDensity}" />
+  </Style>
+  <Style Selector="Button.render-density-pill">
+    <Setter Property="Height" Value="{ui:ApplicationResource VexSegmentedHeightRenderDensity}" />
+  </Style>
+  <Style Selector="FlyoutPresenter.design-title-picker, FlyoutPresenter.map-appearance-popover">
+    <Setter Property="Padding" Value="{ui:ApplicationResource VexUiPanelPadding}" />
+  </Style>
+  <Style Selector="Button.pref-browse">
+    <Setter Property="Width" Value="{DynamicResource VexUiFieldHeight}" />
+    <Setter Property="Height" Value="{DynamicResource VexUiFieldHeight}" />
+  </Style>
+  <Style Selector="ListBoxItem.pref-navigation-item">
+    <Setter Property="MinHeight" Value="{DynamicResource VexUiPreferencesNavigationHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiPreferencesNavigationPadding}" />
+  </Style>
+  <Style Selector="ListBoxItem.pref-navigation-item TextBlock">
+    <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeBody}" />
+  </Style>
+  <Style Selector="Border.dialog-card">
+    <Setter Property="Padding" Value="{DynamicResource VexUiDialogPadding}" />
+  </Style>
+  <Style Selector="Button.layout-preset">
+    <Setter Property="Padding" Value="{DynamicResource VexUiCardPadding}" />
+  </Style>
+  <Style Selector="Button.map-choice">
+    <Setter Property="Padding" Value="{DynamicResource VexUiCardPadding}" />
+  </Style>
+  <Style Selector="ToggleButton.opt-toggle">
+    <Setter Property="Height" Value="{DynamicResource VexUiControlHeight}" />
+  </Style>
+  <Style Selector="vex|VexZoomDock.document-zoom">
+    <Setter Property="Height" Value="{DynamicResource VexUiControlHeight}" />
+    <Setter Property="Padding" Value="{DynamicResource VexUiZoomPadding}" />
+  </Style>
+  <Style Selector="vex|VexZoomDock.document-zoom /template/ Slider#PART_Slider">
+    <Setter Property="Width" Value="{DynamicResource VexUiZoomSliderWidth}" />
+  </Style>
+  <Style Selector="vex|VexZoomDock.document-zoom /template/ Button.vex-zoom-reset">
+    <Setter Property="Height" Value="{DynamicResource VexUiZoomResetHeight}" />
+  </Style>
+</Styles>

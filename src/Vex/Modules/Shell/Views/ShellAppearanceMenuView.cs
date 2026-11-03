@@ -135,14 +135,18 @@ public sealed class ShellAppearanceMenuView : UserControl
     private IBrush? Brush(string key) => this.TryFindResource(key, out var value) ? value as IBrush : null;
 
     // strong 沿用菜单的 14×1.6 行盒；12px 是字形字号，不能把整行压成 15px。
-    private static TextBlock SectionTitle(string text) => new() { Text = text, FontSize = 12, FontWeight = FontWeight.SemiBold, LineHeight = 22.4 };
+    private static TextBlock SectionTitle(string text)
+    {
+        var label = Label(text); label.FontWeight = FontWeight.SemiBold; label.LineHeight = 22.4; return label;
+    }
 
     /// <summary>原型 .density-options.vex-segmented（workspace-chrome.css:330）：外观菜单里界面密度与明暗模式两行
     /// 用的是同一枚标准分段控件——gap 6、button{flex:1} 等宽，轨道、滑动指示块、选中字色字重全部走 Vex.Controls
     /// 的共享配方，宿主不再自画选中底色。</summary>
     private Border SegmentRow(string? automationPrefix, Action<Button, string> register, params (string Text, Action Action, string Id)[] items)
     {
-        var segments = new SegmentedPanel { Spacing = 6, FillItems = true };
+        var segments = new SegmentedPanel { FillItems = true };
+        Resource(segments, SegmentedPanel.SpacingProperty, this, "VexUiGap6");
         foreach (var item in items)
         {
             var button = new Button { Content = item.Text, Classes = { "density-pill" }, HorizontalContentAlignment = HorizontalAlignment.Center };
@@ -224,6 +228,8 @@ public sealed class ShellAppearanceMenuView : UserControl
         content.Children.Add(modeRow);
         content.Children.Add(SectionTitle(Text("WBTheme")));
         _palettes.Margin = new Thickness(0, 7, 0, 0);
+        _palettes.Bind(Grid.RowSpacingProperty, this.GetResourceObservable("VexUiGap6"));
+        _palettes.Bind(Grid.ColumnSpacingProperty, this.GetResourceObservable("VexUiGap6"));
         // 重建时 _palettes 仍挂在上一版内容面板上，先摘除再入新树。
         if (_palettes.Parent is Panel previousHost) previousHost.Children.Remove(_palettes);
         content.Children.Add(_palettes);
@@ -251,7 +257,9 @@ public sealed class ShellAppearanceMenuView : UserControl
             Grid.SetColumn(name, 1); Grid.SetColumn(check, 2);
             var button = Button("", () => { LanguageButton.Flyout?.Hide(); _vm.SelectedLanguage = language; });
             button.Classes.Add("language-item");
-            button.Content = grid; button.Height = 36; button.Padding = new Thickness(10, 6);
+            button.Content = grid;
+            button.Bind(Avalonia.Controls.Button.HeightProperty, this.GetResourceObservable("VexUiDialogButtonHeight"));
+            button.Bind(Avalonia.Controls.Button.PaddingProperty, this.GetResourceObservable("VexUiLanguagePadding"));
             button.CornerRadius = new CornerRadius(10);
             button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
             button.HorizontalAlignment = HorizontalAlignment.Stretch; languages.Children.Add(button);

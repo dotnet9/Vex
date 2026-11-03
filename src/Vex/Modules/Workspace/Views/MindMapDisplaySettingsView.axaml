@@ -4,12 +4,12 @@
     x:Class="Vex.Modules.Workspace.Views.MindMapDisplaySettingsView" x:DataType="vm:MainWindowViewModel">
     <UserControl.Styles>
         <Style Selector="Grid.summary-option">
-            <Setter Property="Height" Value="17.6" />
-            <Setter Property="Margin" Value="0,0,0,11" />
+            <Setter Property="Height" Value="{DynamicResource VexUiSmallLineHeight}" />
+            <Setter Property="Margin" Value="{DynamicResource VexUiMapOptionMargin}" />
         </Style>
         <Style Selector="Grid.summary-option TextBlock">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="LineHeight" Value="17.6" />
+            <Setter Property="FontSize" Value="{DynamicResource VexUiSmallFontSize}" />
+            <Setter Property="LineHeight" Value="{DynamicResource VexUiSmallLineHeight}" />
         </Style>
         <Style Selector="CheckBox.summary-check">
             <Setter Property="MinWidth" Value="0" />
@@ -28,10 +28,10 @@
                     ToolTip.Tip="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}" />
             </Grid>
         </Border>
-        <Grid ColumnDefinitions="*,68,Auto" Margin="0,0,0,11">
+        <Grid ColumnDefinitions="*,68,Auto" Margin="{DynamicResource VexUiMapOptionMargin}">
             <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBSummary}}" FontSize="11" VerticalAlignment="Center" />
             <NumericUpDown Grid.Column="1" x:Name="SummaryLengthInput" Minimum="1" Maximum="120" Increment="1"
-                MinHeight="0" Height="30" FontSize="11" CornerRadius="999" Padding="7,5"
+                MinHeight="0" Height="{DynamicResource VexUiFindFieldHeight}" FontSize="{DynamicResource VexUiSmallFontSize}" CornerRadius="999" Padding="7,5"
                 AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBSummary}}"
                 Value="{Binding Workbench.SummaryLength, Mode=TwoWay}" />
             <TextBlock Grid.Column="2" Text="{i18n:I18n Vex.VexL.MapSummaryCharacters}" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center" />
@@ -62,6 +62,6 @@
         </Border>
         <Button x:Name="ResetMapSettingsButton" Content="{i18n:I18n {x:Static l:VexL.WBReset}}"
             Classes="wb-quiet" Command="{Binding Workbench.ResetMapSettings}" HorizontalAlignment="Left"
-            Height="36" MinHeight="0" FontSize="13" FontWeight="SemiBold" Padding="8,6" Margin="0,8,0,0" />
+            Height="{DynamicResource VexUiDialogButtonHeight}" MinHeight="0" FontSize="13" FontWeight="SemiBold" Padding="8,6" Margin="0,8,0,0" />
     </StackPanel>
 </UserControl>

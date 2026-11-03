@@ -7,13 +7,13 @@
         <DockPanel>
             <!-- 原型 .nav-rail 的 gap:4 是栏级间距，写在承载三项的 StackPanel 上，条目自身不带外距；
             设置钮贴栏底（原型 margin-top:auto），与上方三项之间剩下的才是那段大空档。 -->
-            <StackPanel DockPanel.Dock="Top" Spacing="4">
+            <StackPanel DockPanel.Dock="Top" Spacing="{DynamicResource VexUiGap4}">
                 <ToggleButton x:Name="RailFilesToggle" Classes="rail-item"
                     HorizontalAlignment="Center"
                     IsChecked="{Binding Layout.ShowSidebar, Mode=OneWay}"
                     Command="{Binding Layout.ToggleSidebar}"
                     AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFiles}}">
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{DynamicResource VexUiGap4}">
                         <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBFolderIcon}" /></Canvas></Viewbox>
                         <TextBlock Text="{i18n:I18n {x:Static l:VexL.SidebarFiles}}" HorizontalAlignment="Center" />
                     </StackPanel>
@@ -23,7 +23,7 @@
                     IsChecked="{Binding Layout.ShowOutlineSidebar, Mode=OneWay}"
                     Command="{Binding Layout.ToggleOutline}"
                     AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Outline}}">
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{DynamicResource VexUiGap4}">
                         <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBListIcon}" /></Canvas></Viewbox>
                         <TextBlock Text="{i18n:I18n {x:Static l:VexL.Outline}}" HorizontalAlignment="Center" />
                     </StackPanel>
@@ -33,7 +33,7 @@
                     Command="{Binding ShowFindPanel}"
                     helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Search}}"
                     AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Search}}">
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{DynamicResource VexUiGap4}">
                         <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBSearchIcon}" /></Canvas></Viewbox>
                         <TextBlock Text="{i18n:I18n {x:Static l:VexL.Search}}" HorizontalAlignment="Center" />
                     </StackPanel>
@@ -44,7 +44,7 @@
                 Command="{Binding ShowPreferences}"
                 helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.PreferencesTitle}}"
                 AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NavSettings}}">
-                <StackPanel Spacing="4">
+                <StackPanel Spacing="{DynamicResource VexUiGap4}">
                     <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBGearIcon}" /></Canvas></Viewbox>
                     <TextBlock Text="{i18n:I18n {x:Static l:VexL.NavSettings}}" HorizontalAlignment="Center" />
                 </StackPanel>

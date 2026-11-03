@@ -45,6 +45,13 @@ jobs:
         run: |
           dotnet artifacts/bin/UiVerification/release/UiVerification.dll media-layout artifacts/media-layout
           if ($LASTEXITCODE -ne 0) { throw 'Media layout verification failed' }
+      - name: 界面密度联动与单次资源更新
+        shell: pwsh
+        run: |
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll ui-density artifacts/ui-density
+          if ($LASTEXITCODE -ne 0) { throw 'UI density verification failed' }
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll ui-density-performance artifacts/ui-density-performance --real-settings
+          if ($LASTEXITCODE -ne 0) { throw 'UI density resource notification verification failed' }
       - name: 草稿正常退出与异常恢复
         shell: pwsh
         run: |
@@ -81,4 +88,6 @@ jobs:
           path: |
             artifacts/update-checks
             artifacts/media-layout/*.png
+            artifacts/ui-density
+            artifacts/ui-density-performance
             ${{ runner.temp }}/vex-update-fixture/verification

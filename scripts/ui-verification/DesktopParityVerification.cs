@@ -184,7 +184,7 @@ internal static class DesktopParityVerification
             && Shape(searchHover.Transitions).SequenceEqual(new[] { ("Opacity", fastMs) }),
             "Search shell fades its border, glow ring and hover tint over the prototype 140ms fast tier");
         Check(Settle(() => searchGlow.Opacity == 0 && searchHover.Opacity == 0)
-            && searchFrame.CornerRadius == (CornerRadius)Application.Current!.Resources["VexDensityCornerRadiusPill"]!
+            && searchFrame.CornerRadius == (CornerRadius)Application.Current!.FindResource("VexDensityCornerRadiusPill")!
             && searchFrame.BorderBrush is Avalonia.Media.ISolidColorBrush idleBorder && idleBorder.Color == idleRef.Color,
             "Idle search box is a density pill on control-border with no glow or hover tint");
         searchText.Focus();
@@ -218,7 +218,7 @@ internal static class DesktopParityVerification
         var filesHead = filesView.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("panel-title"));
         var filesHeadContainer = filesHead.GetVisualAncestors().OfType<Border>().FirstOrDefault(border => border.Classes.Contains("panel-head"));
         Check(filesHead.Text == localizer.Get(Vex.VexL.SidebarFilesList)
-            && filesHead.FontSize == (double)Application.Current!.Resources["VexDensityFontSizeCaption"]!
+            && filesHead.FontSize == (double)Application.Current!.FindResource("VexDensityFontSizeCaption")!
             && filesHead.FontWeight == Avalonia.Media.FontWeight.SemiBold
             && filesHeadContainer?.Padding == new Thickness(12, 0, 12, 0)
             && filesHeadContainer.Height == 36
@@ -229,7 +229,7 @@ internal static class DesktopParityVerification
         var outlineHead = outlineView.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.Classes.Contains("panel-title"));
         var outlineHeadContainer = outlineHead?.GetVisualAncestors().OfType<Border>().FirstOrDefault(border => border.Classes.Contains("panel-head"));
         Check(outlineHead?.Text == localizer.Get(Vex.VexL.SidebarOutline)
-            && outlineHead.FontSize == (double)Application.Current!.Resources["VexDensityFontSizeCaption"]!
+            && outlineHead.FontSize == (double)Application.Current!.FindResource("VexDensityFontSizeCaption")!
             && outlineHead.FontWeight == Avalonia.Media.FontWeight.SemiBold
             && outlineHeadContainer?.Padding == new Thickness(12, 0, 12, 0)
             && outlineHeadContainer.Height == 36
@@ -241,7 +241,7 @@ internal static class DesktopParityVerification
         {
             vm.Appearance.SelectedDensity = density; Render();
             var caption = density == "compact" ? 11d : 12d;
-            Check((double)Application.Current!.Resources["VexDensityFontSizeCaption"]! == caption
+            Check((double)Application.Current!.FindResource("VexDensityFontSizeCaption")! == caption
                 && filesHead.FontSize == caption
                 && searchText.FontSize == caption && outlineText.FontSize == caption,
                 $"Panel titles and both search inputs follow the caption tier at {density}: {caption}");

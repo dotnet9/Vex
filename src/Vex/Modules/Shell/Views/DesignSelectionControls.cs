@@ -14,16 +14,19 @@ internal static class DesignSelectionControls
         target.Bind(property, owner.GetResourceObservable(key));
     internal static Button Button(string text, Action action)
     {
-        var button = new Button { Content = text, FontSize = 12, Padding = new Thickness(8, 5), MinHeight = 30 };
+        var button = new Button { Content = text };
+        Resource(button, Avalonia.Controls.Button.FontSizeProperty, button, "VexDensityFontSizeCaption");
+        Resource(button, Avalonia.Controls.Button.PaddingProperty, button, "VexUiSelectionPadding");
+        Resource(button, Avalonia.Controls.Button.MinHeightProperty, button, "VexUiSelectionButtonHeight");
         button.Classes.Add("wb-quiet"); button.Click += (_, _) => action(); return button;
     }
-    internal static TextBlock Label(string text, double? size = null) => new()
+    internal static TextBlock Label(string text, double? size = null)
     {
-        Text = text,
-        // 密度联动（规则 §6）：未显式指定字号时跟随正文密度档。
-        FontSize = size ?? Application.Current?.Resources["VexDensityFontSizeCaption"] as double? ?? 12,
-        TextWrapping = TextWrapping.Wrap,
-    };
+        var label = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap };
+        if (size is { } fontSize) label.FontSize = fontSize;
+        else label.Bind(TextBlock.FontSizeProperty, label.GetResourceObservable("VexDensityFontSizeCaption"));
+        return label;
+    }
     internal static void Navigation(Panel panel, Func<int> columns)
     {
         panel.AddHandler(InputElement.KeyDownEvent, (_, e) =>

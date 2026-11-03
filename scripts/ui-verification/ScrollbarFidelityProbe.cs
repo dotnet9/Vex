@@ -39,7 +39,7 @@ internal static class ScrollbarFidelityProbe
         Check(Math.Abs(thumb.Bounds.Width - 9) < 0.5 && Math.Abs(inner.Bounds.Width - 5) < 0.5,
             $"Thumb keeps a 9px hit area with a 5px visible bar after the 2px inset: hit={thumb.Bounds.Width:0.#}, visible={inner.Bounds.Width:0.#}");
         Check(inner.Background is ISolidColorBrush idleThumb && Math.Abs(idleThumb.Opacity - 0.28) < 0.001
-            && inner.CornerRadius == (CornerRadius)Application.Current!.Resources["VexDensityCornerRadiusPill"]!,
+            && inner.CornerRadius == (CornerRadius)Application.Current!.FindResource("VexDensityCornerRadiusPill")!,
             "Idle thumb paints muted at 28% with the density pill radius");
         Check(thumb.Bounds.Height > 32 && thumb.Bounds.Height < scroll.Viewport.Height,
             $"Thumb length tracks the viewport/extent ratio instead of collapsing: {thumb.Bounds.Height:0.#}");

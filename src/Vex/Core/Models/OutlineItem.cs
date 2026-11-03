@@ -22,6 +22,7 @@ public sealed class OutlineItem : INotifyPropertyChanged
     public int Line { get; }
 
     public Thickness RowPadding { get; }
+    public Thickness RowIndent => new(RowPadding.Left, 0, 0, 0);
 
     /// <summary>原型只对 H1 换档位：角标立起来、字重加粗、间距 7→8。</summary>
     public bool IsTopLevel => Level == 1;

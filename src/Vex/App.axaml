@@ -40,6 +40,7 @@
         <markdownThemes:MarkdownFullThemes TypographyTheme="Simple" />
         <codewf:VexControlsTheme />
         <StyleInclude Source="avares://Vex/Modules/Shell/Views/WorkbenchStyles.axaml" />
+        <StyleInclude Source="avares://Vex/Styles/UiDensity.axaml" />
         <StyleInclude Source="avares://Vex/Modules/Workspace/Views/MarkdownDocumentStyles.axaml" />
         <Style Selector="Window"><Setter Property="FontFamily" Value="{DynamicResource DefaultFontFamily}" /></Style>
     </Application.Styles>

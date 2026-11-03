@@ -17,8 +17,8 @@
                  大纲不提供行内折叠钮（workspace-chrome.js:11 明确删掉了折叠入口），
                  收缩仍走键盘左右键。 -->
             <Border Classes="structure-item" Classes.top="{Binding IsTopLevel}" Classes.on="{Binding IsCurrent}"
-                    Padding="{Binding RowPadding}">
-                <Grid ColumnDefinitions="Auto,30,*">
+                    Padding="{DynamicResource VexUiOutlinePadding}">
+                <Grid ColumnDefinitions="Auto,30,*" Margin="{Binding RowIndent}">
                     <Border Classes="structure-marker" />
                     <TextBlock Grid.Column="1" Classes="structure-num" Text="{Binding Number}" />
                     <TextBlock Grid.Column="2" Classes="structure-text" Text="{Binding Title}"
@@ -28,7 +28,7 @@
         </DataTemplate>
     </UserControl.DataTemplates>
 
-    <Grid RowDefinitions="36,36,*">
+    <Grid RowDefinitions="Auto,Auto,*">
         <Border Classes="panel-head" Grid.Row="0">
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Classes="panel-title" Text="{i18n:I18n {x:Static l:VexL.SidebarOutline}}" />
@@ -46,9 +46,9 @@
         <!-- 对应原型 .structure-search（workspace-chrome.css:362）：外距 14/12/10/12，本体即那枚 pill，
              内距 5×12、实测高 31.2；焦点单环配方走 Grid.search-shell 共享样式。 -->
         <Border Classes="panel-tools" Grid.Row="1">
-        <Grid Classes="search-shell" Height="28" VerticalAlignment="Center">
+        <Grid Classes="search-shell" Height="{DynamicResource VexUiControlHeight}" VerticalAlignment="Center">
             <Border Classes="search-glow" />
-            <Border Classes="search-frame" Padding="10,0">
+            <Border Classes="search-frame" Padding="{DynamicResource VexUiSearchPadding}">
                 <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7" MinHeight="0" VerticalAlignment="Center">
                     <Viewbox x:Name="OutlineSearchIcon" Width="13" Height="13" VerticalAlignment="Center"><Canvas Width="24" Height="24">
                         <Path Classes="stroke-ico" Width="24" Height="24" Stretch="None" StrokeThickness="1.7"

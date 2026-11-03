@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellFindBarView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
@@ -16,18 +16,18 @@
         <!-- 原型 .btn.sm（theme.css:243 + workspace-chrome.css:406）：28 高、2×12 内距、12 号字、radius-sm 6。
              宽度不给下限：原型「上一个」的 62 = 36 字宽 + 24 横内距 + 2 描边，内容自己撑出来。 -->
         <Style Selector="Button.find-action">
-            <Setter Property="Height" Value="28" />
+            <Setter Property="Height" Value="{DynamicResource VexUiControlHeight}" />
             <Setter Property="MinHeight" Value="0" />
-            <Setter Property="Padding" Value="12,2" />
+            <Setter Property="Padding" Value="{DynamicResource VexUiFindActionPadding}" />
             <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Margin" Value="0,0,6,0" />
         </Style>
         <!-- 原型 .icon-button（workbench.css:20）：30×30（control-h-md 32 减 2）、1px 透明描边、静默底。 -->
         <Style Selector="Button.find-close">
-            <Setter Property="Width" Value="30" />
-            <Setter Property="Height" Value="30" />
+            <Setter Property="Width" Value="{DynamicResource VexUiFindFieldHeight}" />
+            <Setter Property="Height" Value="{DynamicResource VexUiFindFieldHeight}" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="MinHeight" Value="0" />
             <Setter Property="Padding" Value="0" />
@@ -47,8 +47,8 @@
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style Selector="Border.find-count > TextBlock">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="LineHeight" Value="17.6" />
+            <Setter Property="FontSize" Value="{DynamicResource VexUiSmallFontSize}" />
+            <Setter Property="LineHeight" Value="{DynamicResource VexUiSmallLineHeight}" />
             <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
         </Style>
     </UserControl.Styles>
@@ -60,7 +60,7 @@
         Animate="{Binding IsVisible}"
         CollapsedSize="0"
         Duration="{DynamicResource MotionDurationMid}"
-        ExpandedSize="45"
+        ExpandedSize="{DynamicResource VexUiFindHeight}"
         IsExpanded="{Binding IsVisible}"
         Orientation="Vertical">
         <Border
@@ -68,7 +68,7 @@
             BorderBrush="{DynamicResource VexHairlineBrush}"
             BorderThickness="0,0,0,1"
             Classes="workspace-block"
-            Padding="12 7">
+            Padding="{DynamicResource VexUiFindPadding}">
             <!-- 原型是 flex + gap:6、输入框 flex:1 / max-width:220 / min-width:0：控件一律靠左排，剩余空间留在行尾。
                  实现用「星列 + 列上下限」同解——列限到 226（220 本体 + 6 间隙）就把多余空间挤到最后一列之后；
                  窄窗先收缩输入框（地板 96，原型是 0），不换行（条高由 ExpandedSize 钉死，换行会裁掉按钮）。
@@ -96,17 +96,17 @@
                     MaxWidth="220"
                     VerticalAlignment="Center">
                     <Border Classes="search-glow" />
-                    <Border Classes="search-frame" Padding="10,5">
+                    <Border Classes="search-frame" Height="{DynamicResource VexUiFindFieldHeight}" Padding="{DynamicResource VexUiFindFieldPadding}">
                         <TextBox
                             x:Name="FindTextBox"
                             Classes="shell-input"
                             AcceptsReturn="False"
                             Background="Transparent"
                             BorderThickness="0"
-                            FontSize="11"
+                            FontSize="{DynamicResource VexUiSmallFontSize}"
                             KeyDown="OnFindTextBoxKeyDown"
                             MaxLength="200"
-                            MinHeight="17.6"
+                            MinHeight="{DynamicResource VexUiSmallLineHeight}"
                             Padding="0"
                             PlaceholderText="{i18n:I18n Vex.VexL.FindBarFindPlaceholder}"
                             TextWrapping="NoWrap"
@@ -124,15 +124,15 @@
                     VerticalAlignment="Center"
                     IsVisible="{Binding IsReplaceVisible}">
                     <Border Classes="search-glow" />
-                    <Border Classes="search-frame" Padding="10,5">
+                    <Border Classes="search-frame" Height="{DynamicResource VexUiFindFieldHeight}" Padding="{DynamicResource VexUiFindFieldPadding}">
                         <TextBox
                             Classes="shell-input"
                             AcceptsReturn="False"
                             Background="Transparent"
                             BorderThickness="0"
-                            FontSize="11"
+                            FontSize="{DynamicResource VexUiSmallFontSize}"
                             MaxLength="200"
-                            MinHeight="17.6"
+                            MinHeight="{DynamicResource VexUiSmallLineHeight}"
                             Padding="0"
                             PlaceholderText="{i18n:I18n Vex.VexL.FindBarReplacePlaceholder}"
                             TextWrapping="NoWrap"
