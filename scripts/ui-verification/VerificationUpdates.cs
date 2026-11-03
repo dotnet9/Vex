@@ -17,6 +17,7 @@ public sealed class VerificationUpdates : IUpdateService
         """;
     public int Checks { get; private set; }
     public int Downloads { get; private set; }
+    public IProgress<UpdateDownloadProgress>? DownloadProgress { get; private set; }
     public UpdateServiceOptions Options { get; } = new() { Repository = "Vex" };
     public Version CurrentVersion => new(1, 6, 0);
     public string CurrentVersionText => "1.6.0";
@@ -29,7 +30,7 @@ public sealed class VerificationUpdates : IUpdateService
     public Task<UpdateDownloadResult> DownloadAsync(UpdateInfo update, IProgress<UpdateDownloadProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         Downloads++;
-        progress?.Report(new UpdateDownloadProgress(50, 100));
+        DownloadProgress = progress;
         return _download.Task.WaitAsync(cancellationToken);
     }
     public void CompleteDownload() => _download.SetResult(new UpdateDownloadResult(Path.Combine(Path.GetTempPath(), "Vex 更新", "Vex-setup.exe"), "Vex-setup.exe", 100));

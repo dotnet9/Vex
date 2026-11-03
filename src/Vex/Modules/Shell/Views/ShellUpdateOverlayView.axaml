@@ -1,7 +1,8 @@
 ﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellUpdateOverlayView"
  xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
  xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
- xmlns:vm="using:Vex.Modules.Shell.ViewModels" x:DataType="vm:ShellUpdateViewModel">
+ xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:u="https://irihi.tech/ursa" x:DataType="vm:ShellUpdateViewModel"
+ MaxHeight="{Binding $parent[u:CustomDialogControl].MaxHeight}">
  <UserControl.Styles>
   <Style Selector="Button"><Setter Property="CornerRadius" Value="8"/></Style>
   <!-- 原型 .update-tag：10px/600、胶囊 999、内边距 2×7，四档语义色（新增 success / 优化 info / 修复 warning / 删除 danger）。
@@ -29,16 +30,16 @@
         对话框本体不再出现竖直滚动条，操作按钮不会被长日志顶出可视区。 -->
    <Grid Grid.Row="1" Margin="30,26,30,22" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="18">
 
-     <Grid ColumnDefinitions="48,*" ColumnSpacing="17">
-      <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource VexAccentBrush}" VerticalAlignment="Top">
-       <Viewbox Width="39" Height="39" HorizontalAlignment="Center" VerticalAlignment="Center"><Canvas Width="64" Height="64"><Path Data="M13 12L32 52L51 12" Stroke="White" StrokeThickness="12" StrokeLineCap="Round" StrokeJoin="Round"/></Canvas></Viewbox>
+     <Grid x:Name="UpdateHeader" ColumnDefinitions="48,*" ColumnSpacing="17">
+      <Border x:Name="UpdateIcon" Width="48" Height="48" CornerRadius="12" Background="{DynamicResource VexBrandBrush}" VerticalAlignment="Top">
+       <Viewbox Width="39" Height="39" HorizontalAlignment="Center" VerticalAlignment="Center"><Canvas Width="64" Height="64"><Path Data="M13 12L32 52L51 12" Stroke="{DynamicResource VexBrandMarkBrush}" StrokeThickness="12" StrokeLineCap="Round" StrokeJoin="Round"/></Canvas></Viewbox>
       </Border>
       <StackPanel Grid.Column="1" Spacing="6" Margin="0,2,0,0">
        <TextBlock x:Name="UpdateStatus" Text="{Binding PhaseTitle}" FontSize="19" LineHeight="26.6" FontWeight="Bold" TextWrapping="Wrap"/>
-       <TextBlock Text="{Binding PhaseDetail}" FontSize="13" LineHeight="22.75" TextWrapping="Wrap" Classes="muted"/>
+       <TextBlock x:Name="UpdateDetail" Text="{Binding PhaseDetail}" IsVisible="{Binding !IsDownloading}" FontSize="13" LineHeight="22.75" TextWrapping="Wrap" Classes="muted"/>
       </StackPanel>
      </Grid>
-     <Grid ColumnDefinitions="*,48" ColumnSpacing="14" IsVisible="{Binding IsDownloading}">
+     <Grid x:Name="UpdateProgress" Grid.Row="1" ColumnDefinitions="*,48" ColumnSpacing="14" IsVisible="{Binding IsDownloading}">
       <ProgressBar Height="8" CornerRadius="4" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100" VerticalAlignment="Center" Foreground="{DynamicResource VexAccentBrush}"/>
       <TextBlock Grid.Column="1" Text="{Binding ProgressText}" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Classes="muted"/>
      </Grid>
@@ -77,7 +78,7 @@
       </ScrollViewer>
      </Border>
      <WrapPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
-      <Button Margin="0,0,10,0" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsDownloading}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
+      <Button x:Name="UpdateCancel" Margin="0,0,10,0" Command="{Binding CancelCommand}" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" IsVisible="{Binding IsDownloading}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
       <Button x:Name="UpdateDismiss" Margin="0,0,10,0" Click="Close_OnClick" Content="{i18n:I18n {x:Static l:VexL.UpdateLater}}" IsVisible="{Binding ShowLater}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
       <Button x:Name="UpdateAction" Classes.primary="{Binding IsPrimaryAction}" Command="{Binding UpdateCommand}" Content="{Binding ActionText}" IsVisible="{Binding ShowAction}" MinWidth="104" MinHeight="36" Padding="16,8" FontSize="13"/>
      </WrapPanel>

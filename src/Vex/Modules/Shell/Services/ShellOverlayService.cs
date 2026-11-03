@@ -71,7 +71,9 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
             () => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.TryShutdown());
         try
         {
-            var dialog = ShowAsync(new ShellUpdateOverlayView(), _updateModel);
+            var options = CreateOptions();
+            options.HorizontalScrollBarVisibility = options.VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled;
+            var dialog = OverlayDialog.ShowCustomAsync<object>(new ShellUpdateOverlayView(), _updateModel, options: options);
             _ = _updateModel.EnsureCheckedAsync();
             await dialog;
         }

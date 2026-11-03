@@ -3034,6 +3034,7 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     SettleRendering();
     var updateCard = view.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
     Check(updateCard.Bounds.Width == 620 && ((Grid)updateCard.Child!).Children[0].Bounds.Height == 36, "Update uses the unified 620px dialog frame and fixed 36px title bar");
+    VerifyInside(updateCard, window, "Available update stays inside the window after checking completes");
     Check(view.FindControl<Border>("UpdateNotes")!.IsVisible, "Available update shows the release notes with no collapse toggle");
     var updateNotes = view.FindControl<Border>("UpdateNotes")!;
     var updateAction = view.FindControl<Button>("UpdateAction")!;
@@ -3094,6 +3095,55 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     var download = model.AdvanceAsync(); Pump();
     Check(model.IsDownloading && service.Downloads == 1, "Shared view starts one download");
     Check(!view.FindControl<Button>("UpdateAction")!.IsVisible, "Download state exposes cancellation without a disabled primary action");
+    void VerifyDownloadLayout(string scenario)
+    {
+        SettleRendering();
+        var header = view.FindControl<Grid>("UpdateHeader")!;
+        var progress = view.FindControl<Grid>("UpdateProgress")!;
+        var notes = view.FindControl<Border>("UpdateNotes")!;
+        Check(header.TranslatePoint(new Point(0, header.Bounds.Height), progress) is { Y: <= -17.5 },
+            "Download progress stays below the logo and status with a full row gap: " + scenario);
+        Check(progress.TranslatePoint(new Point(0, progress.Bounds.Height), notes) is { Y: <= -17.5 },
+            "Download progress stays above the release notes with a full row gap: " + scenario);
+        VerifyInside(progress, view, "Download progress fits inside the dialog: " + scenario);
+        VerifyInside(view.GetVisualDescendants().OfType<Border>().First(part => part.Classes.Contains("dialog-card")), window,
+            "Downloading update stays inside the window: " + scenario);
+        VerifyInside(view.FindControl<Button>("UpdateCancel")!, window, "Download cancellation stays reachable: " + scenario);
+        var dialogViewport = view.GetVisualAncestors().OfType<ScrollViewer>().First();
+        Check(dialogViewport.Extent.Height <= dialogViewport.Viewport.Height + 1,
+            "The update dialog scrolls only its release notes: " + scenario);
+        Check(!view.FindControl<TextBlock>("UpdateDetail")!.IsVisible,
+            "Download percentage appears only beside the progress bar: " + scenario);
+        var icon = view.FindControl<Border>("UpdateIcon")!;
+        Check(icon.Background is ISolidColorBrush brand && brand.Color == ((ISolidColorBrush)view.FindResource("VexBrandBrush")!).Color,
+            "Update logo uses the shared brand color: " + scenario);
+    }
+    Check(model.IsIndeterminate, "A download without a known size uses indeterminate progress");
+    VerifyDownloadLayout("unknown size");
+    Capture(window, "updates-downloading-indeterminate");
+    var downloadCulture = vm.Appearance.SelectedLanguage;
+    var downloadTheme = vm.Appearance.SelectedTheme;
+    var downloadPalette = vm.Appearance.SelectedPalette;
+    vm.Appearance.SelectPaletteByKey("indigo");
+    foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
+    foreach (var theme in new[] { "light", "dark" })
+    {
+        vm.Appearance.SelectLanguageByCulture(culture); vm.Appearance.SelectThemeByKey(theme);
+        foreach (var percentage in new[] { 0, 50, 100 })
+        {
+            service.DownloadProgress!.Report(new UpdateDownloadProgress(percentage, 100)); Pump();
+            VerifyDownloadLayout($"{culture}/{theme}/{percentage}%");
+            Check(!model.IsIndeterminate && model.Progress == percentage,
+                $"Download progress displays {percentage}%: {culture}/{theme}");
+        }
+        Capture(window, "updates-downloading-" + culture + "-" + theme);
+    }
+    vm.Appearance.SelectedLanguage = downloadCulture; vm.Appearance.SelectedTheme = downloadTheme;
+    vm.Appearance.SelectedPalette = downloadPalette; Pump();
+    window.Width = 800; window.Height = 480; Pump();
+    VerifyDownloadLayout("minimum window");
+    Capture(window, "updates-downloading-minimum");
+    window.Width = 980; window.Height = 640; Pump();
     Capture(window, "updates-downloading");
     model.Close(); Pump(menuTask);
     Check(model.IsDownloading, "Closing the view keeps the download active");
