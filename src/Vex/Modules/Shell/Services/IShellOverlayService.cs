@@ -17,7 +17,14 @@ public interface IShellOverlayService
 
     Task ShowAboutAsync();
 
+    /// <summary>打开（或置前）非模态更新窗：后台下载/就绪状态恢复现场，不重新检查。</summary>
     Task ShowUpdatesAsync();
+
+    /// <summary>更新会话的单一数据源：标题栏药丸与日志气泡绑定它，更新窗与「关于」入口复用同一实例。</summary>
+    ShellUpdateViewModel UpdateSession { get; }
+
+    /// <summary>应用启动后调用一次：后台静默检查新版，发现新版只亮药丸并 toast，失败不打扰主界面。</summary>
+    void StartUpdateWatch();
 
     Task ShowPreferencesAsync(ShellPreferencesViewModel viewModel, string category = "general");
 

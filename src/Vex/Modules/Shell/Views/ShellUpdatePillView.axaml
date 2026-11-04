@@ -1,0 +1,269 @@
+<UserControl
+    x:Class="Vex.Modules.Shell.Views.ShellUpdatePillView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
+    xmlns:i18n="https://codewf.com"
+    xmlns:l="clr-namespace:Vex"
+    xmlns:theme="using:Vex.Core.Theme"
+    xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+    x:DataType="vm:ShellUpdateViewModel">
+    <UserControl.Styles>
+        <!-- 原型 .upd-pill：22px 高、全圆角胶囊、accent 底（StudioPrimary 与强调色同源）。
+             文字前景直接钉在模板内的 TextBlock 上（StudioOnPrimary = 引擎按对比度派生的 on-accent 令牌），
+             不吃标题栏的继承前景——graphite 等深强调色配色下白字才能保持可读，且配色切换实时跟随。 -->
+        <Style Selector="Button.upd-pill">
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="{DynamicResource StudioPrimary}" />
+            <Setter Property="CornerRadius" Value="11" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate x:DataType="vm:ShellUpdateViewModel">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}">
+                        <Panel>
+                            <!-- 下载进度：左段（0..pct）accent 掺 26% 墨的混色覆盖，右段露出 accent 底，
+                                 与原型 linear-gradient(90deg, mix(accent 74%, fg) pct%, accent pct%) 同形。 -->
+                            <Grid IsVisible="{Binding IsDownloading}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="{Binding PillProgress, Converter={x:Static theme:AccentPaletteResources.ProgressTrack}}" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Background="{DynamicResource VexAccentProgressBrush}" CornerRadius="11,0,0,11" />
+                            </Grid>
+                            <TextBlock
+                                Margin="11,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource StudioOnPrimary}"
+                                LineHeight="22"
+                                Text="{Binding PillText}" />
+                        </Panel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <!-- 悬停加档一阶；下载中不换底，进度读数不被悬停态打乱（原型 JS 内联背景优先于 hover）。 -->
+        <Style Selector="Button.upd-pill:pointerover:not(.downloading)">
+            <Setter Property="Background" Value="{DynamicResource StudioPrimaryHover}" />
+        </Style>
+        <!-- 原型 upd-pill-pulse：就绪后脉冲环（accent-soft 淡环呼吸三次）提示「重启以更新」。 -->
+        <Style Selector="Border.upd-pill-pulse">
+            <Setter Property="Margin" Value="-4" />
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="BorderThickness" Value="5" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexAccentSoftBrush}" />
+            <Setter Property="CornerRadius" Value="15" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+        </Style>
+        <Style Selector="Border.upd-pill-pulse.ready">
+            <Style.Animations>
+                <Animation Duration="0:0:1.5" IterationCount="3">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0" />
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="0" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <!-- 原型 .upd-quote：[系统要求]/[注意] 行升为引用块（muted 左线 + 4% 前景底）。 -->
+        <Style Selector="ItemsControl.upd-quote">
+            <Setter Property="Margin" Value="0,8,0,2" />
+        </Style>
+        <Style Selector="Border.upd-quote">
+            <Setter Property="Background" Value="{DynamicResource VexCanvasInkTintBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="BorderThickness" Value="3,0,0,0" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Padding" Value="10,7" />
+        </Style>
+        <Style Selector="TextBlock.upd-quote">
+            <Setter Property="FontStyle" Value="Italic" />
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="LineHeight" Value="19" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <!-- 原型 .upd-group：标签标题带 6px 色点，色档与更新窗 update-tag 同源（新增 success/优化 info/修复 warning/删除 danger）。 -->
+        <Style Selector="StackPanel.upd-group">
+            <Setter Property="Margin" Value="0,0,0,2" />
+        </Style>
+        <Style Selector="StackPanel.upd-group > Border">
+            <Setter Property="Width" Value="6" />
+            <Setter Property="Height" Value="6" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{DynamicResource VexMutedBrush}" />
+        </Style>
+        <!-- 默认标题文案（muted）先声明；四档语义色的变体后声明才能盖过它。 -->
+        <Style Selector="StackPanel.upd-group > TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="StackPanel.upd-group.g-new > Border">
+            <Setter Property="Background" Value="{DynamicResource VexSuccessBrush}" />
+        </Style>
+        <Style Selector="StackPanel.upd-group.g-new > TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource VexSuccessBrush}" />
+        </Style>
+        <Style Selector="StackPanel.upd-group.g-opt > Border">
+            <Setter Property="Background" Value="{DynamicResource VexInfoBrush}" />
+        </Style>
+        <Style Selector="StackPanel.upd-group.g-opt > TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource VexInfoBrush}" />
+        </Style>
+        <Style Selector="StackPanel.upd-group.g-fix > Border">
+            <Setter Property="Background" Value="{DynamicResource VexWarningBrush}" />
+        </Style>
+        <Style Selector="StackPanel.upd-group.g-fix > TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource VexWarningBrush}" />
+        </Style>
+        <Style Selector="StackPanel.upd-group.g-rm > Border">
+            <Setter Property="Background" Value="{DynamicResource VexDangerBrush}" />
+        </Style>
+        <Style Selector="StackPanel.upd-group.g-rm > TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}" />
+        </Style>
+        <Style Selector="TextBlock.upd-item">
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="LineHeight" Value="18.4" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+        <Style Selector="TextBlock.upd-item-marker">
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+        </Style>
+        <!-- 原型 .upd-pop-log：脚部左侧的文字链接钮。 -->
+        <Style Selector="Button.upd-pop-log">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.upd-pop-log:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+    </UserControl.Styles>
+
+    <Panel IsVisible="{Binding PillVisible}">
+        <!-- 脉冲环垫在药丸外圈，Z 序在下、不吃命中。 -->
+        <Border Classes="upd-pill-pulse" Classes.ready="{Binding PillReady}" IsVisible="{Binding PillReady}" />
+        <Button
+            x:Name="PillButton"
+            Classes="upd-pill"
+            Classes.downloading="{Binding IsDownloading}"
+            Click="Pill_OnClick"
+            helpers:ToolTipHelper.Text="{Binding PillTip}"
+            AutomationProperties.Name="{Binding PillText}" />
+        <!-- 日志气泡（原型 upd-pop）：轻 dismissing，点药丸本身经由 pass-through 交给 Click 切换开关。 -->
+        <Popup
+            x:Name="ChangelogPop"
+            HorizontalOffset="0"
+            IsLightDismissEnabled="True"
+            Placement="Bottom"
+            PlacementTarget="{Binding #PillButton}"
+            VerticalOffset="6">
+            <Border
+                Width="332"
+                Background="{DynamicResource VexPopBrush}"
+                BorderBrush="{DynamicResource VexPanelBorderBrush}"
+                BorderThickness="1"
+                BoxShadow="{DynamicResource VexPopShadow}"
+                CornerRadius="{DynamicResource VexDensityCornerRadiusMd}">
+                <Panel IsVisible="{Binding HasBubble}">
+                    <Grid RowDefinitions="Auto,Auto,Auto">
+                        <Grid Margin="14,12,14,8" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <TextBlock FontSize="13" FontWeight="Bold" Text="{Binding BubbleTitle}" VerticalAlignment="Bottom" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Bottom"
+                                Classes="muted"
+                                FontSize="11"
+                                Text="{Binding BubbleDate}" />
+                        </Grid>
+                        <Border
+                            Grid.Row="1"
+                            Padding="14,2,14,10"
+                            BorderBrush="{DynamicResource VexPanelBorderBrush}"
+                            BorderThickness="0,1,0,0">
+                            <ScrollViewer MaxHeight="280" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <ItemsControl IsVisible="{Binding HasBubbleQuotes}" ItemsSource="{Binding BubbleQuotes}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Classes="upd-quote">
+                                                    <TextBlock Classes="upd-quote" Text="{Binding}" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding BubbleGroups}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:UpdateBubbleGroup">
+                                                <StackPanel Classes="upd-group" Classes.g-fix="{Binding IsFixed}" Classes.g-new="{Binding IsNew}" Classes.g-opt="{Binding IsOptimized}" Classes.g-rm="{Binding IsRemoved}" Margin="0,9,0,0">
+                                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <Border />
+                                                        <TextBlock Text="{Binding TagText}" />
+                                                    </StackPanel>
+                                                    <ItemsControl Margin="15,4,0,0" ItemsSource="{Binding Items}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Grid Margin="0,3" ColumnDefinitions="Auto,*">
+                                                                    <TextBlock Classes="upd-item-marker" Text="•" />
+                                                                    <TextBlock Classes="upd-item" Grid.Column="1" Text="{Binding}" />
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                        <Border
+                            Grid.Row="2"
+                            Margin="0,4,0,0"
+                            Padding="14,9"
+                            Background="{DynamicResource VexHoverBrush}"
+                            BorderBrush="{DynamicResource VexPanelBorderBrush}"
+                            BorderThickness="0,1,0,0">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Button
+                                    Classes="upd-pop-log"
+                                    Content="{i18n:I18n {x:Static l:VexL.UpdateBubbleFullLog}}"
+                                    Click="FullLog_OnClick" />
+                                <Button
+                                    Grid.Column="1"
+                                    MinHeight="28"
+                                    MinWidth="72"
+                                    Padding="12,4"
+                                    Classes="primary"
+                                    Content="{i18n:I18n {x:Static l:VexL.UpdateBubbleGo}}"
+                                    CornerRadius="7"
+                                    FontSize="12"
+                                    Click="Go_OnClick" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Panel>
+            </Border>
+        </Popup>
+    </Panel>
+</UserControl>

@@ -23,6 +23,16 @@ public sealed record UpdateNoteEntry(string? TagKey, string TagText, string Text
     public bool IsRemoved => TagKey == VexL.UpdateTagRemove;
 }
 
+/// <summary>标题栏气泡里的一个标签分组（原型 .upd-group）：<paramref name="TagKey"/> 与
+/// UpdateNoteEntry 同一套资源键，色点配色复用 update-tag 的四档语义；词表外条目归入「其他」组（键为 null）。</summary>
+public sealed record UpdateBubbleGroup(string? TagKey, string TagText, IReadOnlyList<string> Items)
+{
+    public bool IsNew => TagKey == VexL.UpdateTagNew;
+    public bool IsOptimized => TagKey == VexL.UpdateTagOpt;
+    public bool IsFixed => TagKey == VexL.UpdateTagFix;
+    public bool IsRemoved => TagKey == VexL.UpdateTagRemove;
+}
+
 /// <summary>把 GitHub 发布正文（与《更新日志.md》同一份文本）拆成「版本 + 类型化条目」。
 /// 正文标签词的词表与文案都来自 I18n 资源（生成器落成 Vex.VexReleaseTag），这里不写任何语言的字面量。</summary>
 public static partial class UpdateReleaseNotesParser

@@ -22,6 +22,7 @@ public partial class MainWindow : CodeWFWindow
     private IShellStartupArgumentPublisher? _startupArguments;
     private IMcpServerHost? _mcpServerHost;
     private IShellToastPublisher? _toastPublisher;
+    private IShellOverlayService? _overlayService;
     private bool _isCloseConfirmed;
     public WorkspaceViewController WorkspaceViews => Workspace.ViewController;
 
@@ -58,7 +59,8 @@ public partial class MainWindow : CodeWFWindow
         IShellStartupArgumentPublisher startupArguments,
         ShellKeyboardShortcutViewModel keyboardShortcuts,
         IMcpServerHost mcpServerHost,
-        IShellToastPublisher toastPublisher)
+        IShellToastPublisher toastPublisher,
+        IShellOverlayService overlayService)
         : this()
     {
         // 强制解析 ShellActionCoordinator，让标题栏菜单的 EventBus 动作路由在窗口创建时完成订阅。
@@ -69,6 +71,9 @@ public partial class MainWindow : CodeWFWindow
         _keyboardShortcuts = keyboardShortcuts;
         _mcpServerHost = mcpServerHost;
         _toastPublisher = toastPublisher;
+        _overlayService = overlayService;
+        // 药丸与更新窗、关于弹窗共用同一个更新会话（单一数据源）。
+        UpdatePill.DataContext = overlayService.UpdateSession;
         DataContext = viewModel;
         viewModel.Workbench.GuideExitRequested += (_, _) => WorkbenchGuide.Finish();
         viewModel.CloseWindowRequested += OnCloseWindowRequested;
@@ -188,6 +193,9 @@ public partial class MainWindow : CodeWFWindow
         }
 
         _ = _mcpServerHost?.ApplySettingsAsync();
+
+        // 原型启动 1.4s 后的自动检查：后台静默检查新版，失败不打扰主界面。
+        _overlayService?.StartUpdateWatch();
     }
 
     private void TitleMenuView_OnBeginGuideRequested(object? sender, EventArgs e) => BeginOnboardingGuide();

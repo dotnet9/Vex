@@ -67,6 +67,8 @@
                     VerticalAlignment="Center" />
             </StackPanel>
             <shell:ShellTitleMenuView x:Name="TitleMenuView" VerticalAlignment="Center" Margin="4,0,0,0" />
+            <!-- 原型 upd-pill-wrap：更新药丸紧跟菜单之后左对齐，发现新版常驻标题栏，气泡挂在药丸正下方。 -->
+            <shell:ShellUpdatePillView x:Name="UpdatePill" VerticalAlignment="Center" Margin="2,0,0,0" />
             <!-- 原型把文档名放在菜单之后左对齐，而不是标题栏正中。 -->
             <!-- 原型 .document-title：文档名 12/600（fs-caption 令牌 + 600 字重）。 -->
             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" IsHitTestVisible="False">

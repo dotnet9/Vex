@@ -9,6 +9,16 @@
             </MultiBinding>
         </SolidColorBrush.Color>
     </SolidColorBrush>
+    <!-- 原型药丸下载进度的左段混色：color-mix(in srgb, accent 74%, fg)，与右段 accent 拼出推进读数。
+         on-accent/悬停直接用 Studio 引擎已按对比度派生的 StudioOnPrimary / StudioPrimaryHover，不另设同义键。 -->
+    <SolidColorBrush x:Key="VexAccentProgressBrush">
+        <SolidColorBrush.Color>
+            <MultiBinding Converter="{x:Static theme:AccentPaletteResources.AccentProgress}">
+                <DynamicResource ResourceKey="StudioAccentColor" />
+                <DynamicResource ResourceKey="StudioTextColor" />
+            </MultiBinding>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
     <!-- 与 StudioTheme 共用动态颜色令牌，不复制 Semi 的整套主题字典。 -->
     <SolidColorBrush x:Key="VexShellBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
     <SolidColorBrush x:Key="VexPanelBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
