@@ -23,6 +23,9 @@ public interface IShellOverlayService
     /// <summary>更新会话的单一数据源：标题栏药丸与日志气泡绑定它，更新窗与「关于」入口复用同一实例。</summary>
     ShellUpdateViewModel UpdateSession { get; }
 
+    /// <summary>当前更新窗（尚未打开或已关闭为 null）：下载中关窗被拦截为隐藏，窗体实例仍由服务持有。</summary>
+    Vex.Modules.Shell.Views.ShellUpdateWindow? UpdateWindow { get; }
+
     /// <summary>应用启动后调用一次：后台静默检查新版，发现新版只亮药丸并 toast，失败不打扰主界面。</summary>
     void StartUpdateWatch();
 

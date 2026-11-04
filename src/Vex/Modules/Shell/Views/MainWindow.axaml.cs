@@ -195,7 +195,9 @@ public partial class MainWindow : CodeWFWindow
         _ = _mcpServerHost?.ApplySettingsAsync();
 
         // 原型启动 1.4s 后的自动检查：后台静默检查新版，失败不打扰主界面。
-        _overlayService?.StartUpdateWatch();
+        // 无桌面生命周期（验证工程、设计器预览）不启动检查，避免无谓的真实网络访问。
+        if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)
+            _overlayService?.StartUpdateWatch();
     }
 
     private void TitleMenuView_OnBeginGuideRequested(object? sender, EventArgs e) => BeginOnboardingGuide();

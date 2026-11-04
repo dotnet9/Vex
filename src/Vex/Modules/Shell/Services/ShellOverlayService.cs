@@ -66,6 +66,9 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
     /// 关闭更新窗不销毁会话，再次打开继续显示下载进度和已校验的安装包。</summary>
     public ShellUpdateViewModel UpdateSession => _updateModel ??= CreateUpdateSession();
 
+    /// <summary>当前更新窗：关闭后置空（下载中关窗只隐藏，实例仍持有）。</summary>
+    public ShellUpdateWindow? UpdateWindow => _updateWindow;
+
     private ShellUpdateViewModel CreateUpdateSession()
     {
         var model = new ShellUpdateViewModel(updates, localizer, OpenUrl,

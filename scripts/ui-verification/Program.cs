@@ -3029,14 +3029,24 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     var menuItem = menu.FindControl<MenuItem>("CheckUpdatesMenuItem")!;
     Check(menuItem.CommandParameter?.ToString() == "update", "Help menu routes to the shared update action");
     var menuTask = vm.Help.OpenHelpTopic("update");
-    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
-    var view = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Single();
+    // 更新界面从窗内浮层改为非模态小窗：窗体与内容由浮层服务持有，经 UpdateWindow 访问器核对端到端接线。
+    Vex.Modules.Shell.Views.ShellUpdateWindow UpdateWindow() => overlay.UpdateWindow
+        ?? throw new InvalidOperationException("The update window did not open");
+    Vex.Modules.Shell.Views.ShellUpdateWindowView UpdateView() => (Vex.Modules.Shell.Views.ShellUpdateWindowView)UpdateWindow().Content!;
+    var win = UpdateWindow();
+    PumpUntil(() => overlay.UpdateWindow is { IsVisible: true });
+    win = UpdateWindow();
+    var view = UpdateView();
     var model = (ShellUpdateViewModel)view.DataContext!;
-    Check(service.Checks == 1 && model.State == UpdateState.Available, "Menu opens one update view and starts one check");
+    Check(service.Checks == 1 && model.State == UpdateState.Available, "Menu opens one update window and starts one check");
     SettleRendering();
-    var updateCard = view.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("dialog-card"));
-    Check(updateCard.Bounds.Width == 620 && ((Grid)updateCard.Child!).Children[0].Bounds.Height == 36, "Update uses the unified 620px dialog frame and fixed 36px title bar");
-    VerifyInside(updateCard, window, "Available update stays inside the window after checking completes");
+    Check(!ReferenceEquals(win, window) && !win.CanResize && Math.Abs(win.Bounds.Width - 620) < 1,
+        "Update opens its own fixed 620px non-modal window instead of an in-window overlay");
+    Check(win.SizeToContent == SizeToContent.Height, "The update window sizes to its content");
+    VerifyInside(view, win, "Available update fills its own window");
+    var pill = window.FindControl<Vex.Modules.Shell.Views.ShellUpdatePillView>("UpdatePill")!;
+    Check(ReferenceEquals(pill.DataContext, model) && model.PillVisible,
+        "Finding a new release lights the title bar pill bound to the same session");
     Check(view.FindControl<Border>("UpdateNotes")!.IsVisible, "Available update shows the release notes with no collapse toggle");
     var updateNotes = view.FindControl<Border>("UpdateNotes")!;
     var updateAction = view.FindControl<Button>("UpdateAction")!;
@@ -3074,12 +3084,13 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     // 主题与语言切换会重建条目并换掉 DynamicResource，所以每次都得重取底色重算，不能只量浅色一遍。
     void VerifyChipContrast(Border[] chips, string suffix)
     {
-        // 从当前挂树的对话框现取底色：对话框关过重开后，早前抓的控件已脱离视觉树，
+        // 从当前挂树的窗体现取底色：窗体关过重开后，早前抓的控件已脱离视觉树，
         // DynamicResource 取不到值（返回 null），叠色就会拿白底当基准，把深色判成浅色。
-        var card = view.GetVisualDescendants().OfType<Border>().First(part => part.Classes.Contains("dialog-card"));
         var notes = view.FindControl<Border>("UpdateNotes")!;
         Check(notes.Background is ISolidColorBrush, $"Update notes keeps a solid background: {suffix}");
-        var cardBack = Solid(Colors.White, card.Background);
+        // 窗体化后不再有 dialog-card：底色链改为「更新窗背景 → 日志区 → 胶囊」，窗口背景随主题字典实时换。
+        Check(win.Background is ISolidColorBrush, $"Update window keeps a solid background: {suffix}");
+        var cardBack = Solid(Colors.White, win.Background);
         cardBack = Solid(cardBack, notes.Background);
         foreach (var chip in chips)
         {
@@ -3093,9 +3104,10 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     Border[] VisibleTagChips() => view.GetVisualDescendants().OfType<Border>()
         .Where(part => part.Classes.Contains("update-tag") && part.IsVisible).ToArray();
     Check(view.FindControl<Button>("UpdateDismiss")!.IsVisible, "Available update offers dismiss beside the primary action");
-    Capture(window, "updates-available");
+    Capture(win, "updates-available");
     var download = model.AdvanceAsync(); Pump();
     Check(model.IsDownloading && service.Downloads == 1, "Shared view starts one download");
+    Check(model.PillVisible && !model.PillReady, "Downloading keeps the pill visible without the restart pulse");
     Check(!view.FindControl<Button>("UpdateAction")!.IsVisible, "Download state exposes cancellation without a disabled primary action");
     void VerifyDownloadLayout(string scenario)
     {
@@ -3108,12 +3120,14 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
         Check(progress.TranslatePoint(new Point(0, progress.Bounds.Height), notes) is { Y: <= -17.5 },
             "Download progress stays above the release notes with a full row gap: " + scenario);
         VerifyInside(progress, view, "Download progress fits inside the dialog: " + scenario);
-        VerifyInside(view.GetVisualDescendants().OfType<Border>().First(part => part.Classes.Contains("dialog-card")), window,
-            "Downloading update stays inside the window: " + scenario);
-        VerifyInside(view.FindControl<Button>("UpdateCancel")!, window, "Download cancellation stays reachable: " + scenario);
-        var dialogViewport = view.GetVisualAncestors().OfType<ScrollViewer>().First();
-        Check(dialogViewport.Extent.Height <= dialogViewport.Viewport.Height + 1,
-            "The update dialog scrolls only its release notes: " + scenario);
+        VerifyInside(view, win, "Downloading update stays inside its own window: " + scenario);
+        VerifyInside(view.FindControl<Button>("UpdateCancel")!, win, "Download cancellation stays reachable: " + scenario);
+        // 窗体本体不滚动：视图里唯一的 ScrollViewer 是日志区（窗口按内容取高，日志在自身高度内滚动）。
+        var notesScroll = view.GetVisualDescendants().OfType<ScrollViewer>().Single();
+        Check(ReferenceEquals(notesScroll, view.FindControl<Border>("UpdateNotes")!.Child),
+            "The update window scrolls only its release notes: " + scenario);
+        Check(win.Bounds.Height <= win.MaxHeight + 0.5,
+            "The update window never exceeds its height cap: " + scenario);
         Check(!view.FindControl<TextBlock>("UpdateDetail")!.IsVisible,
             "Download percentage appears only beside the progress bar: " + scenario);
         var icon = view.FindControl<Border>("UpdateIcon")!;
@@ -3122,7 +3136,7 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     }
     Check(model.IsIndeterminate, "A download without a known size uses indeterminate progress");
     VerifyDownloadLayout("unknown size");
-    Capture(window, "updates-downloading-indeterminate");
+    Capture(win, "updates-downloading-indeterminate");
     var downloadCulture = vm.Appearance.SelectedLanguage;
     var downloadTheme = vm.Appearance.SelectedTheme;
     var downloadPalette = vm.Appearance.SelectedPalette;
@@ -3138,34 +3152,39 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
             Check(!model.IsIndeterminate && model.Progress == percentage,
                 $"Download progress displays {percentage}%: {culture}/{theme}");
         }
-        Capture(window, "updates-downloading-" + culture + "-" + theme);
+        Capture(win, "updates-downloading-" + culture + "-" + theme);
     }
     vm.Appearance.SelectedLanguage = downloadCulture; vm.Appearance.SelectedTheme = downloadTheme;
     vm.Appearance.SelectedPalette = downloadPalette; Pump();
-    window.Width = 800; window.Height = 480; Pump();
-    VerifyDownloadLayout("minimum window");
-    Capture(window, "updates-downloading-minimum");
-    window.Width = 980; window.Height = 640; Pump();
-    Capture(window, "updates-downloading");
+    // 非模态小窗不再随主窗口取形：直接收窄更新窗本身，验证布局在更紧的窗体里也成立。
+    win.Width = 480; Pump();
+    VerifyDownloadLayout("narrow window");
+    Capture(win, "updates-downloading-minimum");
+    win.Width = 620; Pump();
+    Capture(win, "updates-downloading");
     model.Close(); Pump(menuTask);
-    Check(model.IsDownloading, "Closing the view keeps the download active");
+    Check(model.IsDownloading && overlay.UpdateWindow is { } hidden && !hidden.IsVisible,
+        "Closing during download hides the window but keeps the download active");
     var aboutTask = overlay.ShowAboutAsync();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     var about = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Single();
     ((ShellAboutViewModel)about.DataContext!).UpdateCommand.Execute().Subscribe(); Pump();
-    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
-    view = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Single();
+    PumpUntil(() => overlay.UpdateWindow is { IsVisible: true });
+    win = UpdateWindow(); view = UpdateView();
     Check(ReferenceEquals(model, view.DataContext) && model.IsDownloading && service.Checks == 1 && service.Downloads == 1,
         "About reopens the same update session and download");
-    var duplicate = overlay.ShowUpdatesAsync();
-    Check(ReferenceEquals(duplicate, overlay.ShowUpdatesAsync()) && window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Count() == 1,
-        "Repeated entry requests reuse one visible dialog");
+    var duplicate = overlay.ShowUpdatesAsync(); Pump();
+    Check(ReferenceEquals(overlay.UpdateWindow, win) && ReferenceEquals(((Vex.Modules.Shell.Views.ShellUpdateWindowView)win.Content).DataContext, model),
+        "Repeated entry reuses one visible update window");
     service.CompleteDownload(); Pump(download);
     Check(model.State == UpdateState.Downloaded && model.HasDownload, "Reopened view receives the completed download");
+    Check(model.PillReady, "Download completion readies the pill for restart");
     Check(view.FindControl<Border>("UpdateNotes")!.IsVisible, "Downloaded update keeps the release notes in place");
-    Capture(window, "updates-downloaded");
+    Capture(win, "updates-downloaded");
     Pump(model.AdvanceAsync());
-    Check(model.State == UpdateState.Failed && model.HasDownload && !aboutTask.IsCompleted, "Failed installation keeps Vex and the update view open");
+    // 浮层改非模态小窗后，「关于」链路在拉起更新窗时就完成了；存活契约改由「更新窗仍开着」表达。
+    Check(model.State == UpdateState.Failed && model.HasDownload && overlay.UpdateWindow is { IsVisible: true },
+        "Failed installation keeps Vex and the update view open");
     foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
     {
         // 期望文案直接取当前语言的资源，测试里不再抄一遍四语翻译；比的是「四枚胶囊各按自己的资源键显示」。
@@ -3179,7 +3198,7 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
             vm.Appearance.SelectLanguageByCulture(culture); vm.Appearance.SelectThemeByKey(theme); Pump(); SettleRendering();
             var expectedTags = ExpectedTags();
             var scroll = view.GetVisualDescendants().OfType<ScrollViewer>().Single(); scroll.ScrollToEnd(); Pump();
-            VerifyInside(scroll, window, "Update viewport fits: " + culture + "/" + theme);
+            VerifyInside(scroll, win, "Update viewport fits: " + culture + "/" + theme);
             // 操作按钮已钉在对话框底部（日志区独立滚动），可达性相对对话框本体断言。
             VerifyInside(view.FindControl<Button>("UpdateAction")!, view, "Install button stays inside the dialog: " + culture + "/" + theme);
             Check(!model.StatusText.StartsWith("Vex.VexL."), "Update text is localized: " + culture);
@@ -3187,18 +3206,18 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
             Check(localizedChips.Select(chip => chip.GetVisualDescendants().OfType<TextBlock>().Single().Text ?? string.Empty)
                 .SequenceEqual(expectedTags), $"{culture} tag chips read {string.Join('/', expectedTags)}");
             VerifyChipContrast(localizedChips, culture + "/" + theme);
-            Capture(window, "updates-" + culture + "-" + theme);
+            Capture(win, "updates-" + culture + "-" + theme);
         }
     }
     model.Close(); Pump(aboutTask); Pump(duplicate);
-    PumpUntil(() => !window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
+    PumpUntil(() => overlay.UpdateWindow is null);
     var reopen = overlay.ShowUpdatesAsync();
-    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
-    view = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Single();
+    PumpUntil(() => overlay.UpdateWindow is { IsVisible: true });
+    win = UpdateWindow(); view = UpdateView();
     Check(model.HasDownload && model.State == UpdateState.Failed && service.Downloads == 1, "Installer failure can be reopened without downloading again");
     Check(view.FindControl<Button>("UpdateDismiss")!.IsVisible, "Reopened failure still offers dismiss beside the retry action");
     view.FindControl<Button>("UpdateDismiss")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
-    PumpUntil(() => !window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
+    PumpUntil(() => overlay.UpdateWindow is null);
     Pump(reopen);
     // 跨多版升级才逐节列表头（单版本时标题已经报过版本号，表头是重复信息）。
     // 换正文重开一次，表头必须显出来，且版本号与日期各归各的分节。
@@ -3212,8 +3231,8 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
         - 🐛[修复]-阅读排版弹层二次点击可以收起。
         """;
     var multiVersion = overlay.ShowUpdatesAsync();
-    PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Any());
-    view = window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellUpdateOverlayView>().Single();
+    PumpUntil(() => overlay.UpdateWindow is { IsVisible: true });
+    win = UpdateWindow(); view = UpdateView();
     Pump(model.CheckAsync()); SettleRendering();
     var headers = view.GetVisualDescendants().OfType<Border>()
         .Where(part => part.Classes.Contains("update-version") && part.IsVisible).ToArray();
@@ -3226,7 +3245,7 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
         .Zip(new[] { "2026-10-28", "2026-10-11" }, (version, date) =>
             version + " " + notesLocalizer.Format(Vex.VexL.UpdateReleasedOn, date))),
         "Each version header carries its own section's version and localized release date");
-    Capture(window, "updates-multi-version");
+    Capture(win, "updates-multi-version");
     view.FindControl<Button>("UpdateDismiss")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
     Pump(multiVersion);
 }
