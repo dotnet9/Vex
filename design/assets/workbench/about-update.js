@@ -3,6 +3,7 @@
 (function () {
   const $ = id => document.getElementById(id);
   let state = 'idle', scenario = 'available', retry = 'checking', timer, progressTimer, generation = 0;
+  let lastRatio = null; // 供标题栏药丸同步下载进度
   const failures = new Set();
   const newer = [];               // 检查到的新版本（倒序，含类型化条目）
   const download = { total: 89.7, done: 0 };
@@ -73,7 +74,9 @@
     });
   }
   function setProgress(ratio) {
+    lastRatio = ratio;
     $('update-progress').hidden = ratio == null;
+    pillSync();
     if (ratio == null) return;
     const percent = Math.min(100, Math.round(ratio * 100));
     $('update-progress-bar').style.width = percent + '%';
@@ -135,6 +138,7 @@
     }
     /* 更新日志常驻展开（不再有折叠开关），有新版就显示在按钮上方。 */
     $('update-changes').hidden = newer.length === 0;
+    pillSync();
   }
 
   function closeLayer() { $('layer-update').hidden = true; }
@@ -153,6 +157,21 @@
     render();
   }
 
+  // 收集比当前版本新的版本（倒序）。演示环境当前版本往往就是日志里最新的一版：
+  // 合成一条示例新版，展示跨版本升级时“列出之间所有版本”的完整形态。
+  function collectNewer() {
+    const current = currentVersion();
+    newer.length = 0;
+    releaseIndex().forEach(item => { if (compareVersion(item.version, current) > 0) newer.push(item); });
+    newer.sort((a, b) => compareVersion(b.version, a.version));
+    if (!newer.length) {
+      newer.push({
+        version: '99.0.0',
+        date: new Date().toISOString().slice(0, 10),
+        body: '- 😄[新增]-示例更新：跨版本升级时，这里列出当前版本之后的所有版本与更新日志。\n- 🔨[优化]-日志使用与正文一致的类型化标签：新增、优化、修复。',
+      });
+    }
+  }
   function check() {
     state = 'checking'; render();
     const id = ++generation;
@@ -165,19 +184,7 @@
         return;
       }
       if (scenario === 'missing') { state = 'manual'; render(); window.open('https://github.com/dotnet9/Vex/releases/latest', '_blank', 'noopener,noreferrer'); return; }
-      const current = currentVersion();
-      newer.length = 0;
-      releaseIndex().forEach(item => { if (compareVersion(item.version, current) > 0) newer.push(item); });
-      newer.sort((a, b) => compareVersion(b.version, a.version));
-      // 演示环境当前版本往往就是日志里最新的一版：合成一条示例新版，
-      // 展示跨版本升级时“列出之间所有版本”的完整形态。
-      if (!newer.length) {
-        newer.push({
-          version: '99.0.0',
-          date: new Date().toISOString().slice(0, 10),
-          body: '- 😄[新增]-示例更新：跨版本升级时，这里列出当前版本之后的所有版本与更新日志。\n- 🔨[优化]-日志使用与正文一致的类型化标签：新增、优化、修复。',
-        });
-      }
+      collectNewer();
       renderChanges();
       state = 'available'; render();
     }, 250);
@@ -203,6 +210,7 @@
       if (tick >= DOWNLOAD_TICKS) {
         clearInterval(progressTimer);
         state = 'downloaded'; render();
+        if ($('layer-update').hidden && window.VexProto) VexProto.toast('新版本已就绪 · 点击标题栏「重启以更新」');
       }
     }, 120);
   }
@@ -227,16 +235,104 @@
     }
   }
 
-  $('layer-update').querySelector('[data-close]').addEventListener('click', () => { generation++; clearTimeout(timer); clearInterval(progressTimer); });
+  /* 关闭 / 最小化 / 恢复：下载中隐藏窗体不再终止下载，进度转标题栏药丸。 */
+  $('layer-update').querySelector('[data-close]').addEventListener('click', () => {
+    if (state === 'downloading') { if (window.VexProto) VexProto.toast('下载继续进行 · 进度见标题栏「更新」按钮'); return; }
+    generation++; clearTimeout(timer); clearInterval(progressTimer);
+  });
+  $('update-minimize').addEventListener('click', () => {
+    $('layer-update').hidden = true;
+    if (state === 'downloading' && window.VexProto) VexProto.toast('已最小化 · 下载继续，进度见标题栏「更新」按钮');
+  });
   new MutationObserver(() => {
-    if ($('layer-update').hidden) { generation++; clearTimeout(timer); clearInterval(progressTimer); }
-    else { newer.length = 0; check(); }
+    if ($('layer-update').hidden) {
+      if (state !== 'downloading') { generation++; clearTimeout(timer); clearInterval(progressTimer); }
+    } else if (state === 'downloading' || state === 'downloaded' || state === 'installing') {
+      render(); // 后台下载 / 最小化后恢复现场，不重新检查
+    } else {
+      newer.length = 0; check();
+    }
   }).observe($('layer-update'), {attributes:true,attributeFilter:['hidden']});
   window.addEventListener('vex-language-changed', render);
+  /* ---------- 标题栏药丸 + 日志气泡（与浮窗同源；下载可后台/最小化） ---------- */
+  const pillWrap = $('upd-pill-wrap'), pill = $('upd-pill'), pop = $('upd-pop');
+  const PILL_GROUP = { '新增':'g-new', '优化':'g-opt', '修复':'g-fix', '删除':'g-rm' };
+  function pillSync() {
+    if (!pillWrap) return;
+    let show = true, txt = '更新', ready = false;
+    if (state === 'downloading') {
+      const pct = lastRatio == null ? 0 : Math.min(99, Math.round(lastRatio * 100));
+      txt = '下载中 ' + pct + '%';
+      pill.style.background = 'linear-gradient(90deg, color-mix(in srgb, var(--accent) 74%, var(--fg)) ' + pct + '%, var(--accent) ' + pct + '%)';
+    } else {
+      pill.style.background = '';
+      if (state === 'downloaded' || state === 'installing') { txt = '重启以更新'; ready = true; }
+      else if (state === 'available' || state === 'failed' || state === 'canceled') { txt = '更新'; }
+      else if (state === 'checking') { show = newer.length > 0; }
+      else show = false; // idle / current / manual / installed
+    }
+    pillWrap.hidden = !show;
+    if (!show) return;
+    pill.textContent = txt;
+    pill.classList.toggle('ready', ready);
+    pill.title = state === 'downloading' ? '正在下载更新，点击恢复窗口'
+      : (state === 'downloaded' || state === 'installing') ? '新版本已就绪，点击恢复窗口'
+      : '发现新版本' + (newer.length ? ' V' + newer[0].version : '') + '，点击查看更新日志';
+  }
+  function renderPop() {
+    const top = newer[0];
+    if (!top) return;
+    $('upd-pop-ver').textContent = 'V' + top.version + ' 更新日志';
+    $('upd-pop-date').textContent = top.date;
+    // [系统要求]/[注意] 行升为引用块，其余按类型化标签分组（色点与 update-tag 同源）
+    const quote = [], groups = {};
+    newer.forEach(v => typedEntries(v.body).forEach(entry => {
+      const m = /^\[(系统要求|注意)\](.*)$/.exec(entry.text);
+      if (m) { quote.push('[' + m[1] + ']' + VexEsc(m[2])); return; }
+      const key = entry.tag || '其他';
+      (groups[key] = groups[key] || []).push(VexEsc(entry.text));
+    }));
+    let html = quote.length ? '<div class="upd-quote">' + quote.join('<br>') + '</div>' : '';
+    Object.keys(groups).forEach(tag => {
+      html += '<div class="upd-group ' + (PILL_GROUP[tag] || '') + '"><b>' + VexEsc(tag) + '</b><ul>'
+        + groups[tag].map(t => '<li>' + t + '</li>').join('') + '</ul></div>';
+    });
+    $('upd-pop-body').innerHTML = html;
+  }
+  pill.addEventListener('click', e => {
+    e.stopPropagation();
+    if (state === 'downloading' || state === 'downloaded' || state === 'installing') {
+      pop.hidden = true; $('layer-update').hidden = false; return; // 恢复浮窗现场（不重新检查）
+    }
+    if (pop.hidden) renderPop();
+    pop.hidden = !pop.hidden;
+  });
+  pop.addEventListener('click', e => e.stopPropagation());
+  document.addEventListener('click', () => { pop.hidden = true; });
+  $('upd-pop-go').addEventListener('click', () => {
+    pop.hidden = true;
+    $('layer-update').hidden = false; // 观察者按当前态分派：后台态恢复现场，否则重新检查
+    operation('downloading');         // 日志已在气泡看过，直接进入下载
+  });
+  $('upd-pop-log').addEventListener('click', () => {
+    pop.hidden = true;
+    if (window.VexDocumentWindow) VexDocumentWindow.open({ builtin: 'changelog' });
+    else if (window.VexProto) VexProto.toast('打开《更新日志》文档');
+  });
+  /* 启动自动检查（演示）：1.4 秒后发现新版 → 只亮药丸不开浮窗，不打断写作 */
+  setTimeout(() => {
+    if (scenario === 'current' || scenario === 'missing') return;
+    collectNewer();
+    if (!newer.length) return;
+    renderChanges();
+    state = 'available';
+    render();
+    if (window.VexProto) VexProto.toast('发现新版本 V' + newer[0].version + ' · 点击标题栏「更新」查看日志');
+  }, 1400);
   // 自动化验证可选择失败场景；演示开关不进入产品界面。
   window.VexUpdate = { setScenario(value) {
     if (!['available','current','missing','check-failed','download-failed','checksum-failed','install-failed'].includes(value)) return;
     generation++; clearTimeout(timer); clearInterval(progressTimer);
-    scenario = value; state = 'idle'; failures.clear(); newer.length = 0;
+    scenario = value; state = 'idle'; failures.clear(); newer.length = 0; render();
   } };
 })();

@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="assets/workbench/workspace.css?v=20261030a">
 <link rel="stylesheet" href="assets/workbench/branding.css?v=20261030a">
 <link rel="stylesheet" href="assets/prototype/palettes.css?v=20261030a"><link rel="stylesheet" href="assets/prototype/density.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/surface.css?v=20261030a"><link rel="stylesheet" href="assets/prototype/typography.css?v=20261030a">
-<link rel="stylesheet" href="assets/workbench/refinement.css?v=20261030a">
+<link rel="stylesheet" href="assets/workbench/refinement.css?v=20261104b">
 <link rel="stylesheet" href="assets/vendor/katex/katex.min.css?v=20261030a">
 <link rel="stylesheet" href="assets/prototype/prototype.css?v=20261030a"><link rel="stylesheet" href="assets/prototype/segmented.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/element-menu.css?v=20261030a">
 <link rel="stylesheet" href="assets/workbench/writing-chrome.css?v=20261030a">
@@ -81,6 +81,18 @@
   <header class="titlebar">
     <div class="brand" data-l10n-tip="维刻 Vex · 写下想法，看见脉络。" title="维刻 Vex · 写下想法，看见脉络。"><img src="assets/vex-logo.svg?v=20261030a" alt="">Vex</div>
     <nav class="tb-menu" data-l10n-label="应用菜单" aria-label="应用菜单"><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">文件(F)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">编辑(E)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">段落(P)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">格式(O)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">视图(V)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">帮助(H)</button></nav>
+    <!-- 更新药丸：发现新版常驻标题栏；下载中显进度、就绪后提示重启；气泡与 layer-update 共用 about-update.js 数据源 -->
+    <div class="upd-pill-wrap" id="upd-pill-wrap" hidden>
+      <button class="upd-pill" id="upd-pill" type="button" title="发现新版本，点击查看更新日志">更新</button>
+      <div class="upd-pop" id="upd-pop" hidden role="dialog" aria-label="更新日志">
+        <div class="upd-pop-head"><b id="upd-pop-ver"></b><span id="upd-pop-date"></span></div>
+        <div class="upd-pop-body" id="upd-pop-body"></div>
+        <div class="upd-pop-foot">
+          <button class="upd-pop-log" id="upd-pop-log" type="button">完整日志 ↗</button>
+          <button class="btn sm primary" id="upd-pop-go" type="button">立即更新</button>
+        </div>
+      </div>
+    </div>
     <div class="document-label titlebar-document"><div class="document-title"><span id="document-name">主题设计笔记.md</span><i class="doc-dot" id="dirty-dot" hidden></i></div></div>
     <div class="caption-btns" id="caption-btns">
       <button class="caption-btn" data-action="minimize" data-l10n-name="最小化" title="最小化"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button>
@@ -283,7 +295,7 @@
     <!-- 关于 Vex -->
     <div class="overlay win-layer" id="layer-update" hidden>
       <div class="mini-window wide dlg-scroll" role="dialog" aria-modal="true" aria-labelledby="update-title">
-        <div class="mini-titlebar"><span id="update-title" data-proto-label="检查更新">检查更新</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="mini-titlebar"><span id="update-title" data-proto-label="检查更新">检查更新</span><span class="caption-btns"><button class="caption-btn" id="update-minimize" data-l10n-name="最小化" title="最小化 · 下载继续，进度转标题栏「更新」按钮"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
         <div class="update-body">
           <div class="update-hero">
             <span class="update-icon" id="update-icon" aria-hidden="true"><img src="assets/vex-logo.svg?v=20261030a" alt=""></span>
@@ -394,4 +406,4 @@
 <input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
 <input type="file" id="open-folder-input" accept=".md,.markdown,.mdown,.txt" webkitdirectory directory multiple hidden>
 <script src="assets/workbench/vex-data.js?v=20261030a"></script><script src="assets/workbench/localization.js?v=20261030a"></script><script src="assets/prototype/project-info.js?v=20261030a"></script><script src="assets/workbench/typography.js?v=20261030a"></script><script src="assets/workbench/interact.js?v=20261030a"></script><script src="assets/workbench/mindmap.js?v=20261030a"></script><script src="assets/workbench/code-fence.js?v=20261030a"></script><script src="assets/vendor/katex/katex.min.js?v=20261030a"></script><script src="assets/vendor/katex/mhchem.min.js?v=20261030a"></script><script src="assets/vendor/mermaid/mermaid.min.js?v=20261030a"></script><script src="assets/workbench/diagram-rendering.js?v=20261030a"></script><script src="assets/workbench/rendering.js?v=20261030a"></script><script src="assets/workbench/samples.js?v=20261030a"></script><script src="assets/workbench/typewriter.js?v=20261030a"></script><script src="assets/workbench/instant-editor.js?v=20261030a"></script><script src="assets/workbench/source-highlight.js?v=20261030a"></script><script src="assets/workbench/workbench.js?v=20261030a"></script><script src="assets/workbench/guide.js?v=20261030a"></script>
-<script src="assets/workbench/about-update.js?v=20261030a"></script><script src="assets/workbench/workspace.js?v=20261030a"></script><script src="assets/workbench/chapter-editor.js?v=20261030a"></script><script src="assets/workbench/usability.js?v=20261030a"></script><script src="assets/workbench/workspace-chrome.js?v=20261030a"></script><script src="assets/workbench/workflows.js?v=20261030a"></script><script src="assets/workbench/preview.js?v=20261030a"></script></body></html>
+<script src="assets/workbench/about-update.js?v=20261104a"></script><script src="assets/workbench/workspace.js?v=20261030a"></script><script src="assets/workbench/chapter-editor.js?v=20261030a"></script><script src="assets/workbench/usability.js?v=20261030a"></script><script src="assets/workbench/workspace-chrome.js?v=20261030a"></script><script src="assets/workbench/workflows.js?v=20261030a"></script><script src="assets/workbench/preview.js?v=20261030a"></script></body></html>
