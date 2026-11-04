@@ -69,7 +69,7 @@ const versions = [...changelog.matchAll(/^## (V\d+(?:\.\d+)+)（\d{4}-\d{2}-\d{2
 assert.ok(versions.length > 0, 'Changelog has dated version groups');
 assert.equal(new Set(versions).size, versions.length, 'Each version has one changelog group');
 for (const line of changelog.split('\n').filter(line => line.startsWith('- '))) {
-  assert.match(line, /^- (?:✨\[新增\]|⚡\[优化\]|🐛\[修复\]|😄\[新增\]|🔨\[优化\]|❌\[删除\])-.+$/, 'User-facing change category');
+  assert.match(line, /^- (?:✨\[新增\]|⚡\[优化\]|🐛\[修复\]|✅\[验证\]|😄\[新增\]|🔨\[优化\]|❌\[删除\])-.+$/, 'User-facing change category');
 }
 /* Toast 文案 i18n 审计：字面量中文直接调用禁止；toastKey 的键必须在四语表中存在。 */
 {
