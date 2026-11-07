@@ -25,6 +25,74 @@
       ]; workspaceFolder = '写作项目';
     }
   }
+  /* 多文件夹工作区（原型）：文档经 doc.root 归属各根；添加/移除只作用于工作区，
+     不触碰磁盘文件；演示根数据内置于 ROOT_POOLS（原生走系统文件夹选择对话框）。 */
+  var ROOT_POOLS = {
+    '演示文档': docs.map(function (doc) { return Object.assign({}, doc); }),
+    '写作项目': [
+      { name: '写作路线图.md', path: '项目资料/写作路线图.md', text: '# 写作路线图\n\n第二季度完成三篇长文与一次读者调研。' },
+      { name: '访谈纪要.md', path: '项目资料/用户研究/访谈纪要.md', text: '# 用户访谈\n\n读者更在意导图与大纲的联动。' },
+      { name: '素材清单.md', path: '素材/素材清单.md', text: '# 素材清单\n\n封面草图、引用语录与数据截图。' }
+    ],
+    '素材图片': [
+      { name: '插图清单.md', path: '插图清单.md', text: '# 插图清单\n\n第一章配图两张，第二章流程图一张。' },
+      { name: '截图备份说明.md', path: '截图备份说明.md', text: '# 截图备份说明\n\n原始截图保存在资源目录，正文使用相对路径引用。' }
+    ],
+    '外部参考': [
+      { name: '外部资料索引.md', path: '外部资料索引.md', text: '# 外部资料索引\n\n规范、标准与值得重读的文章链接。' },
+      { name: '摘录笔记.md', path: '摘录笔记.md', text: '# 摘录笔记\n\n随手摘录，定期回看并整理进正文。' }
+    ]
+  };
+  docs.forEach(function (doc) { if (!doc.root) doc.root = workspaceFolder; });
+  var multiRootSession = !builtin && !launched && !scenario && workspaceFolder === '演示文档';
+  if (multiRootSession) {
+    docs = docs.concat(ROOT_POOLS['写作项目'].map(function (doc) {
+      var clone = Object.assign({}, doc); clone.root = '写作项目'; return clone;
+    }));
+  }
+  var workspaceRoots = [];
+  (function () {
+    var seen = [];
+    docs.forEach(function (doc) { if (doc.root && seen.indexOf(doc.root) < 0) seen.push(doc.root); });
+    workspaceRoots = seen.map(function (key) { return { key: key, folded: false, sort: null }; });
+  })();
+  /* 会话恢复快照（v1）：跨刷新记住根列表（移除集合）、折叠与组内排序；
+     仅默认多根演示持久化，场景页与内置文档保持各自的预设形态。 */
+  var rootsSession = { version: 1, folded: {}, sort: {}, removed: [] };
+  try {
+    var savedRoots = JSON.parse(VexStorage.getItem('vex-design-workspace-v1') || 'null');
+    if (multiRootSession && savedRoots && savedRoots.version === 1) {
+      rootsSession = savedRoots;
+      if (rootsSession.removed.length) {
+        workspaceRoots = workspaceRoots.filter(function (root) { return rootsSession.removed.indexOf(root.key) < 0; });
+        docs = docs.filter(function (doc) { return rootsSession.removed.indexOf(doc.root) < 0; });
+      }
+      workspaceRoots.forEach(function (root) {
+        if (rootsSession.folded[root.key]) root.folded = true;
+        if (rootsSession.sort[root.key]) root.sort = rootsSession.sort[root.key];
+      });
+    }
+  } catch (_) {}
+  if (!docs.length) docs = [{ name: '未命名文档.md', text: '', isNew: true, placeholder: false, root: '' }];
+  if (!workspaceRoots.length) workspaceFolder = '未打开文件夹';
+  function persistRootsSession() {
+    if (!multiRootSession) return;
+    rootsSession.folded = {}; rootsSession.sort = {}; rootsSession.removed = [];
+    var mounted = workspaceRoots.map(function (root) { return root.key; });
+    Object.keys(ROOT_POOLS).forEach(function (key) {
+      if (mounted.indexOf(key) < 0) rootsSession.removed.push(key);
+    });
+    workspaceRoots.forEach(function (root) {
+      if (root.folded) rootsSession.folded[root.key] = true;
+      if (root.sort) rootsSession.sort[root.key] = root.sort;
+    });
+    try { VexStorage.setItem('vex-design-workspace-v1', JSON.stringify(rootsSession)); } catch (_) {}
+  }
+  function rootByKey(key) { return workspaceRoots.filter(function (root) { return root.key === key; })[0] || null; }
+  window.VexWorkspaceRoots = {
+    list: function () { return workspaceRoots.map(function (root) { return { key: root.key, name: root.key }; }); },
+    current: function () { return (docs[state && state.doc] || {}).root || (workspaceRoots[0] || {}).key || ''; }
+  };
   /* 演示时间戳：列表/树形排序菜单的修改/创建时间数据源（相对现在错开，覆盖分钟级到月级文案）。 */
   var now = Date.now();
   docs.forEach(function (doc, index) {
@@ -87,6 +155,7 @@
   }).join('');
   document.querySelector('.side-pane').appendChild(sortMenu);
 
+  function guardExpanded(id, value) { var el = document.getElementById(id); if (el) el.setAttribute('aria-expanded', String(value)); }
   function openSortMenu(anchor) {
     var rect = anchor.getBoundingClientRect();
     sortMenu.style.left = Math.max(8, rect.left) + 'px';
@@ -96,14 +165,14 @@
       item.setAttribute('aria-checked', String(item.dataset.sortKey === sortKey));
       item.querySelector('.sort-check').hidden = item.dataset.sortKey !== sortKey;
     });
-    document.getElementById('files-folder').setAttribute('aria-expanded', 'true');
-    document.getElementById('files-more').setAttribute('aria-expanded', 'true');
+    guardExpanded('files-folder', true);
+    guardExpanded('files-more', true);
   }
   function closeSortMenu() {
     if (sortMenu.hidden) return;
     sortMenu.hidden = true;
-    document.getElementById('files-folder').setAttribute('aria-expanded', 'false');
-    document.getElementById('files-more').setAttribute('aria-expanded', 'false');
+    guardExpanded('files-folder', false);
+    guardExpanded('files-more', false);
   }
   function applySortKey(key) {
     sortKey = key;
@@ -111,6 +180,116 @@
     closeSortMenu();
     renderFiles();
     syncFilesToolbar();
+  }
+  /* 根操作菜单：组内排序、重试监听、从工作区移除（移除不触碰磁盘）。 */
+  var rootMenu = document.createElement('section');
+  rootMenu.className = 'files-sort-menu files-root-menu'; rootMenu.id = 'files-root-menu'; rootMenu.hidden = true;
+  rootMenu.setAttribute('role', 'menu'); rootMenu.setAttribute('aria-label', '文件夹操作');
+  document.querySelector('.side-pane').appendChild(rootMenu);
+  var rootMenuTarget = null;
+  function openRootMenu(anchor, key) {
+    rootMenuTarget = key;
+    var rect = anchor.getBoundingClientRect();
+    rootMenu.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 230)) + 'px';
+    rootMenu.style.bottom = (window.innerHeight - rect.bottom + 6) + 'px';
+    var root = rootByKey(key);
+    var items = [
+      { action: 'sort-name', label: '按名称排序（组内）', icon: 'i-sort-name', checked: !!root && root.sort === 'name-asc' },
+      { action: 'sort-modified', label: '按修改时间排序（组内）', icon: 'i-sort-clock', checked: !!root && root.sort === 'modified' },
+      { action: 'sort-default', label: '默认排序（跟随全局）', icon: 'i-archive', checked: !root || !root.sort },
+      { sep: true },
+      { action: 'retry', label: '重试文件监听', icon: 'i-refresh' },
+      { action: 'remove', label: '从工作区移除', icon: 'i-trash', danger: true }
+    ];
+    rootMenu.innerHTML = items.map(function (item) {
+      if (item.sep) return '<hr class="menu-sep">';
+      return '<button type="button" class="files-sort-item' + (item.danger ? ' danger' : '') + '" role="menuitem" data-root-action="' + item.action + '">' +
+        '<svg class="ico" aria-hidden="true"><use href="#' + item.icon + '"/></svg><span>' + item.label + '</span>' +
+        (item.checked === undefined ? '' : '<span class="sort-check"' + (item.checked ? '' : ' hidden') + '>✓</span>') + '</button>';
+    }).join('');
+    rootMenu.hidden = false;
+    anchor.setAttribute('aria-expanded', 'true');
+    var first = rootMenu.querySelector('button');
+    if (first) first.focus({ preventScroll: true });
+  }
+  function closeRootMenu() { if (rootMenu.hidden) return; rootMenu.hidden = true; rootMenuTarget = null; }
+  rootMenu.addEventListener('click', function (event) {
+    var item = event.target.closest('[data-root-action]');
+    if (!item || !rootMenuTarget) return;
+    var key = rootMenuTarget, action = item.dataset.rootAction;
+    closeRootMenu();
+    if (action === 'retry') { VexProto.toastKey('ToastRootRetry'); return; }
+    if (action === 'remove') { removeWorkspaceRoot(key); return; }
+    var root = rootByKey(key);
+    if (!root) return;
+    root.sort = action === 'sort-name' ? 'name-asc' : action === 'sort-modified' ? 'modified' : null;
+    persistRootsSession();
+    renderFiles();
+  });
+  /* 添加文件夹：从内置演示根中追加（原生走系统文件夹选择对话框）。 */
+  var addMenu = document.createElement('section');
+  addMenu.className = 'files-sort-menu files-add-menu'; addMenu.id = 'files-add-menu'; addMenu.hidden = true;
+  addMenu.setAttribute('role', 'menu'); addMenu.setAttribute('aria-label', '添加文件夹');
+  document.querySelector('.side-pane').appendChild(addMenu);
+  function openAddMenu(anchor) {
+    var available = Object.keys(ROOT_POOLS).filter(function (key) { return !rootByKey(key); });
+    if (!available.length) { VexProto.toastKey('ToastRootsMounted'); return; }
+    var rect = anchor.getBoundingClientRect();
+    addMenu.style.left = Math.max(8, rect.left) + 'px';
+    addMenu.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+    addMenu.innerHTML = available.map(function (key) {
+      return '<button type="button" class="files-sort-item" role="menuitem" data-add-root="' + key + '">' +
+        '<svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg><span>' + key + '</span></button>';
+    }).join('');
+    addMenu.hidden = false;
+    anchor.setAttribute('aria-expanded', 'true');
+  }
+  function closeAddMenu() { if (addMenu.hidden) return; addMenu.hidden = true; guardExpanded('files-add', false); }
+  addMenu.addEventListener('click', function (event) {
+    var item = event.target.closest('[data-add-root]');
+    if (!item) return;
+    var key = item.dataset.addRoot;
+    closeAddMenu();
+    mountWorkspaceRoot(key);
+  });
+  function mountWorkspaceRoot(key) {
+    if (rootByKey(key) || !ROOT_POOLS[key]) return;
+    ROOT_POOLS[key].forEach(function (doc) {
+      var clone = Object.assign({}, doc);
+      clone.root = key;
+      clone.mtime = Date.now() - 36e5 * (1 + docs.length % 9);
+      clone.ctime = clone.mtime - 864e5 * 3;
+      docs.push(clone);
+    });
+    workspaceRoots.push({ key: key, folded: false, sort: null });
+    workspaceFolder = (docs[state.doc] || {}).root || workspaceFolder;
+    persistRootsSession();
+    renderFiles();
+    VexProto.toastKey('ToastRootAdded', key);
+  }
+  function removeWorkspaceRoot(key) {
+    var root = rootByKey(key);
+    if (!root) return;
+    var holdsCurrent = docs.some(function (doc, index) { return index === state.doc; }) && (docs[state.doc] || {}).root === key;
+    var proceed = function () {
+      docs = docs.filter(function (doc) { return doc.root !== key; });
+      workspaceRoots = workspaceRoots.filter(function (root) { return root.key !== key; });
+      persistRootsSession();
+      if (!docs.length) {
+        /* 最后一个根被移除：当前草稿保留在窗口里，列表进入空工作区形态。 */
+        docs = [{ name: '未命名文档.md', text: input.value, isNew: true, root: '' }];
+        workspaceFolder = '未打开文件夹';
+        state.emptyWorkspace = false;
+        loadDoc(0);
+        renderFiles();
+        VexProto.toastKey('ToastRootRemoved', key);
+        return;
+      }
+      loadDoc(Math.max(0, Math.min(state.doc, docs.length - 1)));
+      VexProto.toastKey('ToastRootRemoved', key);
+    };
+    if (holdsCurrent) confirmSwitch(proceed);
+    else proceed();
   }
   function renderFiles() {
     var visibleDocs = docs.map(function (doc, index) { return index === state.doc ? Object.assign({}, doc, {text:input.value}) : doc; });
@@ -130,16 +309,16 @@
     renderFiles();
   }
   document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('files-folder').onclick = function (event) {
-      event.stopPropagation();
-      var show = sortMenu.hidden; closeSortMenu(); if (show) openSortMenu(document.getElementById('files-folder'));
+    document.getElementById('files-add').onclick = function (event) {
+      event.stopPropagation(); closeSortMenu(); closeRootMenu();
+      var show = addMenu.hidden; if (show) openAddMenu(document.getElementById('files-add')); else closeAddMenu();
     };
     document.getElementById('files-more').onclick = function (event) {
-      event.stopPropagation();
-      var show = sortMenu.hidden; closeSortMenu(); if (show) openSortMenu(document.getElementById('files-more'));
+      event.stopPropagation(); closeRootMenu(); closeAddMenu();
+      var show = sortMenu.hidden; if (show) openSortMenu(document.getElementById('files-more')); else closeSortMenu();
     };
     document.getElementById('files-toggle').onclick = function (event) {
-      event.stopPropagation(); closeSortMenu(); toggleFileListMode();
+      event.stopPropagation(); closeSortMenu(); closeRootMenu(); closeAddMenu(); toggleFileListMode();
     };
     sortMenu.addEventListener('click', function (event) {
       var item = event.target.closest('.files-sort-item');
@@ -148,6 +327,10 @@
     document.addEventListener('click', function (event) {
       if (!sortMenu.hidden && !sortMenu.contains(event.target)
           && !event.target.closest('#files-folder') && !event.target.closest('#files-more')) closeSortMenu();
+      if (!rootMenu.hidden && !rootMenu.contains(event.target)
+          && !event.target.closest('.file-root-more')) closeRootMenu();
+      if (!addMenu.hidden && !addMenu.contains(event.target)
+          && !event.target.closest('#files-add') && !event.target.closest('#files-empty-add')) closeAddMenu();
     });
   });
   var settings = { length: 30, paragraphs: true, lists: true, blocks: false, layout: 'right' };
@@ -366,14 +549,30 @@
 
 
     var visibleDocs = docs.map(function (doc, index) { return index === state.doc ? Object.assign({}, doc, {text:input.value}) : doc; });
-    VexWriting.renderFiles({container:$('file-list'), docs:state.emptyWorkspace ? [] : visibleDocs, current:visibleDocs[state.doc], folder:workspaceFolder, mode:fileListMode, descending:fileDescending, query:$('file-filter').value, icon:icon,
+    var rootsPayload = workspaceRoots.map(function (root) {
+      return { key: root.key, name: root.key, folded: !!root.folded, sort: root.sort || null };
+    });
+    VexWriting.renderFiles({container:$('file-list'), docs:state.emptyWorkspace ? [] : visibleDocs, current:visibleDocs[state.doc], folder:workspaceFolder, roots:rootsPayload, mode:fileListMode, descending:fileDescending, query:$('file-filter').value, icon:icon,
       sort:sortKey, sortComparers:sortComparers,
       onOpen:function (_, index) { if (index !== state.doc) confirmSwitch(function () { loadDoc(index); }); },
+      onFoldRoot:function (key, folded) {
+        var root = rootByKey(key); if (!root) return;
+        root.folded = folded; persistRootsSession(); renderFiles();
+      },
+      onRootMenu:function (anchor, key) { openRootMenu(anchor, key); },
       onSwitchTree:function () {
         fileListMode = 'tree';
         try { VexStorage.setItem('vex-design-file-list-mode', fileListMode); } catch (_) {}
         renderFiles(); syncFilesToolbar();
       }});
+    if (!workspaceRoots.length) {
+      /* 空工作区：没有挂载任何文件夹根，给出唯一的下一步动作。 */
+      $('file-list').innerHTML = '<div class="workspace-empty"><p class="empty-state">未打开任何文件夹。添加一个文件夹，从这里开始写作。</p><button type="button" class="btn primary" id="files-empty-add">添加文件夹</button></div>';
+      var emptyAdd = $('files-empty-add');
+      if (emptyAdd) emptyAdd.onclick = function (event) { event.stopPropagation(); openAddMenu(emptyAdd); };
+      syncFilesToolbar();
+      return;
+    }
     syncFilesToolbar();
     var empty = $('file-list').querySelector('.empty-state');
     if (empty) {

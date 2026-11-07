@@ -3,7 +3,7 @@
   'use strict';
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const query = new URLSearchParams(location.search), isolated = query.get('preview') === '1';
-  const defaults = {language:'zh-CN', startup:'empty', autoSave:false, saveDelay:2, recovery:true, encoding:'UTF-8', newline:'system', size:16, font:'system', codeSize:13, indent:2, autoPair:true, codeWrap:false, lineNumbers:true, focus:false, typewriter:false, math:true, chemistry:true, mermaid:true, subscript:true, highlight:true, autoLink:true, softBreak:true, imageCopy:true, imageRelative:true, imageFolder:'assets', theme:'light', palette:'teal', typography:'Simple', compact:false, zoom:100, wordCountVisible:true, motion:'full', radius:'standard', toolbarPin:true, exportFormat:'html', exportFolder:'文档所在目录', exportOpen:true, pdfSize:'A4', pdfMargin:20, htmlStyle:true, mcpEnabled:false, mcpPort:17891, mcpToken:'vx_preview_local_token_for_demo', mcpScope:'document', mcpFolder:'', mcpConfirm:true};
+  const defaults = {language:'zh-CN', startup:'empty', autoSave:false, saveDelay:2, recovery:true, encoding:'UTF-8', newline:'system', size:16, font:'system', codeSize:13, indent:2, autoPair:true, codeWrap:false, lineNumbers:true, focus:false, typewriter:false, math:true, chemistry:true, mermaid:true, subscript:true, highlight:true, autoLink:true, softBreak:true, imageCopy:true, imageRelative:true, imageFolder:'assets', theme:'light', palette:'teal', typography:'Simple', compact:false, zoom:100, wordCountVisible:true, motion:'full', radius:'standard', toolbarPin:true, exportFormat:'html', exportFolder:'文档所在目录', exportOpen:true, pdfSize:'A4', pdfMargin:20, htmlStyle:true, mcpEnabled:false, mcpPort:17891, mcpToken:'vx_preview_local_token_for_demo', mcpScope:'document', mcpFolder:'', mcpRootAuth:[], mcpConfirm:true};
   Object.assign(defaults,{watermarkPreview:false,watermarkExport:false,watermarkText:'维刻 Vex',watermarkOpacity:12,watermarkFontSize:21,watermarkColor:'#24766B',watermarkWeight:400});
   /* 界面密度与正文字号的真实源在 theme.js（外观菜单同源），这里仅镜像值用于偏好呈现与回放。 */
   Object.assign(defaults,{uiDensity:window.VexTheme ? VexTheme.state.density : 'normal',mdSize:window.VexTheme ? VexTheme.state.mdsize : 'normal'});
@@ -82,7 +82,7 @@
   }
   function mcpBody() {
     const status = `<div class="vex-mcp-status" data-state="${mcpState}" role="status"><i></i><span>${esc(mcpMessage)}</span><small style="margin-left:auto;color:var(--muted)">原型演示</small></div>`;
-    if (tab === 'server') return `<label class="vex-pref-row"><span>启用 MCP 服务<small>仅监听 127.0.0.1</small></span><input type="checkbox" role="switch" data-mcp-field="mcpEnabled" ${mcpDraft.mcpEnabled ? 'checked' : ''}></label>` + status + draftRow('mcpPort','端口','number') + `<div class="vex-pref-row"><span>访问令牌</span><span class="vex-token-field"><input data-mcp-field="mcpToken" aria-label="访问令牌" type="password" value="${esc(mcpDraft.mcpToken)}"><span class="vex-token-actions"><button class="vex-icon-button" data-mcp-action="reveal" title="显示或隐藏令牌" aria-label="显示或隐藏令牌" aria-pressed="false">${icon('eye')}</button><button class="vex-icon-button" data-mcp-action="token" title="重新生成令牌" aria-label="重新生成令牌">${icon('refresh')}</button></span></span></div>` + `<label class="vex-pref-row"><span>授权范围</span><select data-mcp-field="mcpScope">${[['document','当前文档'],['folder','当前文件夹'],['custom','指定目录']].map(([v,t])=>`<option value="${v}" ${mcpDraft.mcpScope === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>` + (mcpDraft.mcpScope === 'custom' ? draftRow('mcpFolder','授权目录') : '') + `<label class="vex-pref-row"><span>修改前确认</span><input type="checkbox" role="switch" data-mcp-field="mcpConfirm" ${mcpDraft.mcpConfirm ? 'checked' : ''}></label><p id="vex-mcp-error" class="vex-field-error" role="alert" ${mcpError ? '' : 'hidden'}>${esc(mcpError)}</p>`;
+    if (tab === 'server') return `<label class="vex-pref-row"><span>启用 MCP 服务<small>仅监听 127.0.0.1</small></span><input type="checkbox" role="switch" data-mcp-field="mcpEnabled" ${mcpDraft.mcpEnabled ? 'checked' : ''}></label>` + status + draftRow('mcpPort','端口','number') + `<div class="vex-pref-row"><span>访问令牌</span><span class="vex-token-field"><input data-mcp-field="mcpToken" aria-label="访问令牌" type="password" value="${esc(mcpDraft.mcpToken)}"><span class="vex-token-actions"><button class="vex-icon-button" data-mcp-action="reveal" title="显示或隐藏令牌" aria-label="显示或隐藏令牌" aria-pressed="false">${icon('eye')}</button><button class="vex-icon-button" data-mcp-action="token" title="重新生成令牌" aria-label="重新生成令牌">${icon('refresh')}</button></span></span></div>` + `<label class="vex-pref-row"><span>授权范围</span><select data-mcp-field="mcpScope">${[['document','当前文档'],['folder','工作区文件夹'],['custom','指定目录']].map(([v,t])=>`<option value="${v}" ${mcpDraft.mcpScope === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>` + (mcpDraft.mcpScope === 'folder' ? mcpRootAuthRows() : '') + (mcpDraft.mcpScope === 'custom' ? draftRow('mcpFolder','授权目录') : '') + `<label class="vex-pref-row"><span>修改前确认</span><input type="checkbox" role="switch" data-mcp-field="mcpConfirm" ${mcpDraft.mcpConfirm ? 'checked' : ''}></label><p id="vex-mcp-error" class="vex-field-error" role="alert" ${mcpError ? '' : 'hidden'}>${esc(mcpError)}</p>`;
     if (tab === 'clients') {
       const subtabs = `<div class="vex-mcp-tabs vex-mcp-subtabs vex-segmented" role="tablist" aria-label="客户端接入方式">${[['http','HTTP 客户端配置'],['stdio','stdio 桥接']].map(([key,label]) => `<button role="tab" data-mcp-sub="${key}" aria-selected="${clientTab === key}">${label}</button>`).join('')}</div>`;
       return status + subtabs + '<div class="vex-mcp-subbody">' + mcpClientPane() + '</div>';
@@ -93,6 +93,15 @@
     if (adapter.mobile) return '<p>当前设备不提供常驻 MCP 服务。</p>';
     if (query.get('child') === '1') return '<p>文档窗口不运行 MCP 服务。</p>';
     return mcpTabsHtml() + '<div class="vex-mcp-body">' + mcpBody() + '</div>';
+  }
+  /* 多文件夹工作区：MCP 按根授权——列出工作区根，默认授权当前文档所在根。 */
+  function mcpRootAuthRows() {
+    const roots = (window.VexWorkspaceRoots && window.VexWorkspaceRoots.list()) || [{ key: '演示文档', name: '演示文档' }, { key: '写作项目', name: '写作项目' }];
+    const current = (window.VexWorkspaceRoots && window.VexWorkspaceRoots.current()) || '';
+    const authorized = Array.isArray(mcpDraft.mcpRootAuth) ? mcpDraft.mcpRootAuth : [];
+    const checked = key => authorized.includes(key) || (!authorized.length && key === current);
+    const rows = roots.map(root => `<label class="vex-pref-row vex-mcp-root"><span>${esc(root.name)}${root.key === current ? '<small>当前文档所在文件夹</small>' : ''}</span><input type="checkbox" data-mcp-root="${esc(root.key)}" ${checked(root.key) ? 'checked' : ''}></label>`).join('');
+    return `<div class="vex-pref-roots" role="group" aria-label="授权的工作区文件夹">${rows}</div>`;
   }
   /* 渲染后给配置 JSON 框架补 StreamMark 式头部（语言标签 + 复制/下载/换行）。 */
   function mountCodeFrames(root) {
@@ -182,6 +191,16 @@
         const el = event.target;
         if (el.dataset.vexPref) { const key = el.dataset.vexPref; set(key,el.type === 'checkbox' ? el.checked : typeof defaults[key] === 'number' ? Number(el.value) : el.value); }
         if (el.dataset.mcpField) { mcpDraft[el.dataset.mcpField] = el.type === 'checkbox' ? el.checked : el.value; saveMcp(); if (el.dataset.mcpField === 'mcpScope') render(); }
+        /* 多文件夹工作区：MCP 按根授权，勾选即保存（默认授权当前文档所在根）。 */
+        if (el.dataset.mcpRoot) {
+          const key = el.dataset.mcpRoot;
+          const authorized = Array.isArray(mcpDraft.mcpRootAuth) ? mcpDraft.mcpRootAuth.slice() : [];
+          const index = authorized.indexOf(key);
+          if (el.checked && index < 0) authorized.push(key);
+          if (!el.checked && index >= 0) authorized.splice(index,1);
+          mcpDraft.mcpRootAuth = authorized;
+          saveMcp();
+        }
       });
     }
     section = categories.some(c => c[0] === category) ? category : 'general';

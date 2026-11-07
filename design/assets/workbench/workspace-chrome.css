@@ -562,3 +562,24 @@ html.js .appearance-choices .palette-card-tools{position:absolute;top:5px;right:
 
 /* 布局切换按钮在窄窗不换行（Hallmark 49a）。 */
 .workspace-viewswitch-more{white-space:nowrap}
+
+/* ===== 多文件夹工作区（原型）=====
+ * 组头 = 根（折叠 + 名称 + 计数 + 操作菜单）；底部条 = 添加文件夹 + 排序 + 列表/树形切换。
+ * 移除只从工作区摘除、不触碰磁盘；折叠与组内排序进会话快照（vex-design-workspace-v1）。 */
+.file-root{margin:2px 0 6px}
+.file-root-head{display:flex;align-items:center;gap:6px;min-height:30px;padding:2px 10px 2px 8px;color:var(--fg)}
+.file-root-head .file-root-fold{width:22px;height:22px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:var(--vex-radius-xs)}
+.file-root-head .file-root-fold:hover{background:var(--hover);color:var(--fg)}
+.file-root-fold .ico{width:13px;height:13px;transition:transform var(--vex-fast) var(--vex-ease)}
+.file-root.folded .file-root-fold .ico{transform:rotate(-90deg)}
+.file-root.folded .file-root-children{display:none}
+.file-root-name{font-weight:600;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-root-count{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;background:var(--hover);border-radius:999px;padding:0 7px;line-height:16px}
+.file-root-more{width:22px;height:22px;margin-left:auto;display:grid;place-items:center;padding:0;border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:var(--vex-radius-xs)}
+.file-root-head:hover .file-root-more,.file-root-more:focus-visible,.file-root-more[aria-expanded=true]{color:var(--fg);background:var(--hover)}
+.file-root-more .ico{width:13px;height:13px}
+.file-root-tag{margin-left:6px;font-size:10px;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:0 5px;line-height:16px;white-space:nowrap}
+.files-root-menu .menu-sep{border:0;border-top:1px solid var(--border);margin:4px 6px}
+.files-root-menu .files-sort-item.danger{color:var(--danger)}
+.workspace-empty{padding:30px 16px;text-align:center}
+.workspace-empty .empty-state{margin:0 0 12px}
