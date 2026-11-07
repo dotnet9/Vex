@@ -29,6 +29,19 @@
     for (var i = 0; i < lines.length;) {
       var start = i, line = lines[i], match;
       if (!line.trim()) { i++; continue; }
+      /* Front matter（FR-16）：顶部的 --- 元数据块整体归为一个 frontmatter 块，
+         不再让收尾的 --- 被误判为 setext 标题下划线。 */
+      if (i === 0 && /^\s*---\s*$/.test(line)) {
+        var fmEnd = -1, metaLines = [];
+        for (var n = 1; n < lines.length; n++) {
+          if (/^\s*(?:---+|\.\.\.)\s*$/.test(lines[n])) { fmEnd = n; break; }
+          metaLines.push(lines[n]);
+        }
+        if (fmEnd > 0) {
+          block('frontmatter', metaLines.join('\n'), 0, fmEnd, { label: '元数据' });
+          i = fmEnd + 1; continue;
+        }
+      }
       if ((match = fence(line))) {
         var marker = match[1], language = match[2].trim();
         i++;

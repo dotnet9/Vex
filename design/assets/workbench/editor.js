@@ -65,12 +65,31 @@
       const block = { type, start: offsets[start], end: end < lines.length ? offsets[end] - 1 : text.length, line: start + 1, endLine: end, raw: lines.slice(start, end).join('\n'), html, ...extra };
       blocks.push(block); if (type === 'heading') headings.push(block);
     };
+    /* GitHub Alerts（GFM）：五类提示块的类别 → 样式类与中文标签。 */
+    const CALLOUTS = {
+      note: { cls: 'info', label: '备注' },
+      tip: { cls: 'success', label: '提示' },
+      important: { cls: 'accent', label: '重要' },
+      warning: { cls: 'warning', label: '警告' },
+      caution: { cls: 'danger', label: '注意' },
+      info: { cls: 'info', label: '信息' }
+    };
     const special = l => /^(#{1,6}\s|```|~~~|>\s?|\s*[-*+]\s|\s*\d+[.)]\s|\s*(?:---+|\*\*\*+)\s*$)/.test(l) || l.trim() === '[TOC]' || /^\s*\[\^[^\]]+\]:/.test(l);
     for (let i = 0; i < lines.length;) {
       const start = i, line = lines[i]; let match;
       if (i === 0 && line.trim() === '---') {
         const end = lines.findIndex((l, n) => n > 0 && /^(---|\.\.\.)\s*$/.test(l));
-        if (end > 0) { i = end + 1; continue; }
+        if (end > 0) {
+          /* Front matter（FR-16）：即时视图渲染为只读元数据卡，原文经 data-markdown 原样回写。 */
+          const meta = lines.slice(1, end);
+          const raw = lines.slice(start, end + 1).join('\n') + '\n\n';
+          const rows = meta.map(l => {
+            const m = /^([A-Za-z][\w-]*)\s*:\s*(.*)$/.exec(l);
+            return m ? `<tr><th>${esc(m[1])}</th><td>${esc(m[2])}</td></tr>` : `<tr><td colspan="2">${esc(l)}</td></tr>`;
+          }).join('');
+          add('frontmatter', start, end + 1, `<section class="md-frontmatter" contenteditable="false" data-markdown="${esc(raw)}"><strong>元数据</strong><table>${rows}</table></section>`);
+          i = end + 1; continue;
+        }
       }
       if (!line.trim()) { i++; continue; }
       if (line.trim() === '[TOC]') {
@@ -107,12 +126,13 @@
         if(value){const row=(cells,tag)=>'<tr>'+cells.map((cell,index)=>`<${tag} data-align="${value.align[index]||'left'}" style="text-align:${value.align[index]||'left'}">${inline(cell.replace(/\\\|/g,'|'))}</${tag}>`).join('')+'</tr>';add('table',start,i,`<div class="md-table-scroll" tabindex="0" aria-label="表格"><table><thead>${row(value.rows[0],'th')}</thead><tbody>${value.rows.slice(1).map(cells=>row(cells,'td')).join('')}</tbody></table></div>`);continue;}
         i=start;
       }
-      const callout = /^ {0,3}>\s*\[!(INFO|WARNING)\]\s*$/i.exec(line);
+      const callout = /^ {0,3}>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|INFO)\]\s*$/i.exec(line);
       if (callout) {
         i++;
         const body = [];
         while (i < lines.length && /^ {0,3}>/.test(lines[i])) { body.push(lines[i].replace(/^ {0,3}>\s?/, '')); i++; }
-        add('callout', start, i, `<aside class="md-callout ${callout[1].toLowerCase()}"><strong>${callout[1].toUpperCase() === 'WARNING' ? '警告' : '信息'}</strong><div>${inline(body.join('\n'))}</div></aside>`);
+        const meta = CALLOUTS[callout[1].toLowerCase()];
+        add('callout', start, i, `<aside class="md-callout ${meta.cls}"><strong>${meta.label}</strong><div>${inline(body.join('\n'))}</div></aside>`);
         continue;
       }
       if (/^ {0,3}\[\^([^\]\r\n]+)\]:/.test(line)) {

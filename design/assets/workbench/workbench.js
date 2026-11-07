@@ -32,7 +32,8 @@
     '写作项目': [
       { name: '写作路线图.md', path: '项目资料/写作路线图.md', text: '# 写作路线图\n\n第二季度完成三篇长文与一次读者调研。' },
       { name: '访谈纪要.md', path: '项目资料/用户研究/访谈纪要.md', text: '# 用户访谈\n\n读者更在意导图与大纲的联动。' },
-      { name: '素材清单.md', path: '素材/素材清单.md', text: '# 素材清单\n\n封面草图、引用语录与数据截图。' }
+      { name: '素材清单.md', path: '素材/素材清单.md', text: '# 素材清单\n\n封面草图、引用语录与数据截图。' },
+      { name: '发布与元数据.md', path: '发布/发布与元数据.md', text: '---\ntitle: 发布与元数据\ndate: 2026-11-07\ntags: [Markdown, Front matter, 发布]\ncategories: [工程方法]\ndraft: false\n---\n\nFront matter 是文件顶部的结构化元信息：阅读视图渲染为置顶元数据卡，源码保持原样文本，复制到公众号 / 知乎 / 掘金时自动剥离。\n\n## 发布清单\n\n- 元数据卡里的 `draft: true` 表示草稿，导出前记得改回 `false`。\n- 标签建议控制在五枚以内，方便站点聚合。\n- 正文中的相对路径图片随文档一起走，导出 HTML 时会内嵌。' }
     ],
     '素材图片': [
       { name: '插图清单.md', path: '插图清单.md', text: '# 插图清单\n\n第一章配图两张，第二章流程图一张。' },
@@ -102,6 +103,8 @@
   var storedFileListMode = VexStorage.getItem('vex-design-file-list-mode'), fileListMode = bundledDocument || storedFileListMode === 'list' ? 'list' : 'tree', fileDescending = false;
   /* 排序键：group=按文件夹分组（默认）、natural-desc=自然排序降序、name-asc=文件名升序、modified=修改时间升序、created=创建时间升序。 */
   var sortKey = VexStorage.getItem('vex-design-file-sort') || 'group';
+  /* 侧栏搜索范围（FR-17）：name=文件名（默认）/ fulltext=正文与文件名。 */
+  var searchScope = VexStorage.getItem('vex-design-search-scope') === 'fulltext' ? 'fulltext' : 'name';
   var alphaSort = 'default'; /* default | asc | desc，ASCII 序；default 跟随分类（树形） */
   var outlineFolded = false;
   function naturalCompare(a, b) {
@@ -291,6 +294,59 @@
     if (holdsCurrent) confirmSwitch(proceed);
     else proceed();
   }
+  /* 全文搜索结果：按根分组，文件行 + 命中行摘要（≤3 行），点击打开文档。 */
+  function renderFulltextResults(container, query) {
+    var q = query.toLowerCase();
+    var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
+    var hits = 0, files = 0;
+    var sections = [];
+    workspaceRoots.forEach(function (root) {
+      var fileHits = [];
+      docs.forEach(function (doc, index) {
+        if (doc.root !== root.key) return;
+        var text = index === state.doc ? input.value : (doc.text || '');
+        var matched = [];
+        text.split('\n').forEach(function (line, lineNo) {
+          if (line.toLowerCase().includes(q)) matched.push({ lineNo: lineNo + 1, line: line });
+        });
+        if (matched.length || doc.name.toLowerCase().includes(q)) fileHits.push({ doc: doc, index: index, matched: matched });
+      });
+      if (!fileHits.length) return;
+      files += fileHits.length;
+      var section = document.createElement('div'); section.className = 'file-root'; section.dataset.root = root.key;
+      var head = document.createElement('div'); head.className = 'file-root-head';
+      head.innerHTML = '<span class="file-root-name">' + VexEsc(root.key) + '</span><span class="file-root-count">' + fileHits.length + '</span>';
+      section.append(head);
+      var children = document.createElement('div'); children.className = 'file-root-children file-fulltext';
+      fileHits.forEach(function (hit) {
+        hits += hit.matched.length;
+        var fileRow = document.createElement('button'); fileRow.type = 'button';
+        fileRow.className = 'file-row file-item' + (hit.index === state.doc ? ' selected active' : '');
+        fileRow.innerHTML = icon('file');
+        var label = document.createElement('span'); label.className = 'file-name'; label.textContent = hit.doc.name; fileRow.append(label);
+        var count = document.createElement('span'); count.className = 'file-root-count'; count.textContent = hit.matched.length + ' 处'; fileRow.append(count);
+        fileRow.onclick = function () { if (hit.index !== state.doc) confirmSwitch(function () { loadDoc(hit.index); }); };
+        children.append(fileRow);
+        hit.matched.slice(0, 3).forEach(function (m) {
+          var snippet = document.createElement('button'); snippet.type = 'button'; snippet.className = 'file-search-hit';
+          snippet.innerHTML = '<span class="hit-line">L' + m.lineNo + '</span><span class="hit-text">' + VexEsc(m.line.trim()).replace(re, '<mark>$1</mark>') + '</span>';
+          snippet.onclick = function () { if (hit.index !== state.doc) confirmSwitch(function () { loadDoc(hit.index); }); };
+          children.append(snippet);
+        });
+        if (hit.matched.length > 3) {
+          var more = document.createElement('div'); more.className = 'hit-more';
+          more.textContent = '…还有 ' + (hit.matched.length - 3) + ' 处匹配';
+          children.append(more);
+        }
+      });
+      sections.push(section);
+    });
+    container.replaceChildren();
+    sections.forEach(function (section) { container.append(section); });
+    var summary = document.createElement('div'); summary.className = 'fulltext-summary';
+    summary.textContent = hits ? '正文与文件名共 ' + hits + ' 处匹配 · ' + files + ' 个文件' : '没有匹配的正文或文件名（全文搜索，不区分大小写）。';
+    container.prepend(summary);
+  }
   function renderFiles() {
     var visibleDocs = docs.map(function (doc, index) { return index === state.doc ? Object.assign({}, doc, {text:input.value}) : doc; });
     VexWriting.renderFiles({container:$('file-list'), docs:state.emptyWorkspace ? [] : visibleDocs, current:visibleDocs[state.doc], folder:workspaceFolder, mode:fileListMode, descending:fileDescending, query:$('file-filter').value, icon:icon,
@@ -309,6 +365,20 @@
     renderFiles();
   }
   document.addEventListener('DOMContentLoaded', function () {
+    var scopeButton = document.getElementById('files-search-scope');
+    if (scopeButton) {
+      scopeButton.setAttribute('aria-pressed', String(searchScope === 'fulltext'));
+      if (searchScope === 'fulltext') { var filterInput = $('file-filter'); if (filterInput) filterInput.placeholder = '搜索正文与文件名…'; }
+      scopeButton.onclick = function (event) {
+        event.stopPropagation();
+        searchScope = searchScope === 'fulltext' ? 'name' : 'fulltext';
+        try { VexStorage.setItem('vex-design-search-scope', searchScope); } catch (_) {}
+        scopeButton.setAttribute('aria-pressed', String(searchScope === 'fulltext'));
+        var input = $('file-filter');
+        if (input) input.placeholder = searchScope === 'fulltext' ? '搜索正文与文件名…' : '按文件名查找…';
+        renderFiles();
+      };
+    }
     document.getElementById('files-add').onclick = function (event) {
       event.stopPropagation(); closeSortMenu(); closeRootMenu();
       var show = addMenu.hidden; if (show) openAddMenu(document.getElementById('files-add')); else closeAddMenu();
@@ -547,6 +617,13 @@
   function renderFiles() {
     if ($('folder-name')) $('folder-name').textContent = workspaceFolder;
 
+    var queryValue = $('file-filter').value;
+    if (searchScope === 'fulltext' && queryValue.trim()) {
+      /* 全文搜索（FR-17）：跨根搜索正文与文件名，结果按根分组并给出命中行摘要。 */
+      renderFulltextResults($('file-list'), queryValue.trim());
+      syncFilesToolbar();
+      return;
+    }
 
     var visibleDocs = docs.map(function (doc, index) { return index === state.doc ? Object.assign({}, doc, {text:input.value}) : doc; });
     var rootsPayload = workspaceRoots.map(function (root) {
@@ -560,6 +637,14 @@
         root.folded = folded; persistRootsSession(); renderFiles();
       },
       onRootMenu:function (anchor, key) { openRootMenu(anchor, key); },
+      onMoveDoc:function (index, toKey) {
+        var doc = docs[index];
+        if (!doc || doc.root === toKey) return;
+        doc.root = toKey;
+        workspaceFolder = (docs[state.doc] || {}).root || workspaceFolder;
+        persistRootsSession(); renderFiles();
+        VexProto.toastKey('ToastFileMoved', toKey);
+      },
       onSwitchTree:function () {
         fileListMode = 'tree';
         try { VexStorage.setItem('vex-design-file-list-mode', fileListMode); } catch (_) {}
@@ -640,8 +725,27 @@
   function inline(text) {
     return VexRendering.inline(text);
   }
+  /* GitHub Alerts（GFM）五类：类别 → 样式类与中文标签（FR-07）。 */
+  var CALLOUT_META = {
+    note: { cls: 'info', label: '备注' },
+    tip: { cls: 'success', label: '提示' },
+    important: { cls: 'accent', label: '重要' },
+    warning: { cls: 'warning', label: '警告' },
+    caution: { cls: 'danger', label: '注意' },
+    info: { cls: 'info', label: '信息' }
+  };
   function renderPreview() {
     var html = '', blocks = state.parsed.blocks;
+    /* Front matter（FR-16）：解析器把它归为首个 frontmatter 块，这里渲染为置顶元数据卡；
+       导出 HTML/PDF 同样以头部信息呈现，自媒体复制时剥离（social-copy）。 */
+    if (blocks.length && blocks[0].kind === 'frontmatter') {
+      var fmRows = blocks[0].text.split('\n').map(function (l) {
+        var m = /^([A-Za-z][\w-]*)\s*:\s*(.*)$/.exec(l);
+        return m ? '<tr><th>' + VexEsc(m[1]) + '</th><td>' + VexEsc(m[2]) + '</td></tr>' : '<tr><td colspan="2">' + VexEsc(l) + '</td></tr>';
+      }).join('');
+      html += '<section class="md-frontmatter" contenteditable="false" data-line="1"><strong>元数据</strong><table>' + fmRows + '</table></section>';
+      blocks = blocks.slice(1);
+    }
     function listMeta(block) {
       var match = /^(\s*)([-+*]|\d+[.)])\s+(?:\[([ xX])\]\s+)?(.*)$/.exec(block.raw.split('\n')[0]);
       return match ? { indent: block.indent || match[1].replace(/\t/g, '    ').length, ordered: /^\d/.test(match[2]), checked: match[3], text: match[4] } : null;
@@ -685,9 +789,10 @@
       }
       else if (block.kind === 'callout') html += block.html;
       else if (block.kind === 'footnote') html += block.html;
-      else if (block.kind === 'quote' && /^\s*>\s*\[!(INFO|WARNING)\]/i.test(block.raw)) {
-        var callout = /^\s*>\s*\[!(INFO|WARNING)\]/i.exec(block.raw);
-        html += '<aside class="md-callout ' + callout[1].toLowerCase() + '"' + attr + '><strong>' + (callout[1].toUpperCase() === 'WARNING' ? '警告' : '信息') + '</strong><div>' + inline(block.raw.replace(/^\s*>\s*\[!(?:INFO|WARNING)\]\s*/i, '').replace(/^\s*>\s?/gm, '').replace(/\n/g, ' ')) + '</div></aside>';
+      else if (block.kind === 'quote' && /^\s*>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|INFO)\]/i.test(block.raw)) {
+        var calloutKind = /^\s*>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|INFO)\]/i.exec(block.raw)[1].toLowerCase();
+        var calloutMeta = CALLOUT_META[calloutKind] || CALLOUT_META.info;
+        html += '<aside class="md-callout ' + calloutMeta.cls + '"' + attr + '><strong>' + calloutMeta.label + '</strong><div>' + inline(block.raw.replace(/^\s*>\s*\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION|INFO)\]\s*/i, '').replace(/^\s*>\s?/gm, '').replace(/\n/g, ' ')) + '</div></aside>';
       }
       else if (block.kind === 'paragraph' && /^ {0,3}\[\^([^\]\r\n]+)\]:/.test(block.raw)) {
         var footnote = /^ {0,3}\[\^([^\]\r\n]+)\]:\s*(.*)$/.exec(block.raw);

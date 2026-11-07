@@ -291,3 +291,15 @@
 :root { --success:var(--vex-semantic-success);--warning:var(--vex-semantic-warning);--danger:var(--vex-semantic-danger); }
 :root[data-theme="dark"] { --success:var(--vex-semantic-success);--warning:var(--vex-semantic-warning);--danger:var(--vex-semantic-danger); }
 
+
+/* ===== GitHub Alerts（GFM 五类，FR-07）与 Front matter 元数据卡（FR-16）=====
+ * 类别 → 令牌：NOTE=info、TIP=success、IMPORTANT=accent、WARNING=warning、CAUTION=danger。 */
+.md-callout.info { --callout-color: var(--info); border-left-color: var(--info); background: color-mix(in srgb, var(--info) 8%, transparent); }
+.md-callout.success { --callout-color: var(--success); border-left-color: var(--success); background: color-mix(in srgb, var(--success) 8%, transparent); }
+.md-callout.accent { --callout-color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.md-callout.danger { --callout-color: var(--danger); border-left-color: var(--danger); background: color-mix(in srgb, var(--danger) 8%, transparent); }
+.md-frontmatter { margin: 6px 0 18px; padding: 10px 14px 12px; border: 1px solid var(--border); border-left: 3px solid var(--md-marker, var(--muted)); border-radius: var(--vex-radius-sm); background: color-mix(in srgb, var(--fg) 4%, transparent); }
+.md-frontmatter strong { display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: .02em; color: var(--muted); }
+.md-frontmatter table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.md-frontmatter th { width: 140px; max-width: 30vw; text-align: left; color: var(--muted); font-weight: 550; padding: 3px 12px 3px 0; vertical-align: top; white-space: nowrap; }
+.md-frontmatter td { color: var(--fg); padding: 3px 0; vertical-align: top; overflow-wrap: anywhere; }

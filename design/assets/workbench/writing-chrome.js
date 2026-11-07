@@ -22,7 +22,7 @@
     if (cache.size >= 40) cache.delete(cache.keys().next().value);
     cache.set(source, result); return result;
   }
-  function renderFiles({container, docs, current, folder, roots, mode, descending, query, sort, onOpen, onFoldRoot, onRootMenu, icon, sortComparers, onSwitchTree}) {
+  function renderFiles({container, docs, current, folder, roots, mode, descending, query, sort, onOpen, onFoldRoot, onRootMenu, onMoveDoc, icon, sortComparers, onSwitchTree}) {
     const escaped = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     const queryTrim = (query || '').toLowerCase().trim();
     const collapsed = new Set([...container.querySelectorAll('details:not([open])')].map(el => el.dataset.path));
@@ -40,7 +40,7 @@
        'group' 在 sortComparers 里映射为 null（只按文件夹分组、不比字段），必须挡掉：
        Array.prototype.sort(null) 会直接抛错。同值一律退回原序，切换排序不会随机换位。 */
     const comparerFor = sortKey => sortKey ? sortComparers[sortKey] : null;
-    function renderRowsInto(parent, items, mode, rootName, multiRoot, queryActive) {
+    function renderRowsInto(parent, items, mode, rootName, multiRoot, queryActive, onMoveDoc) {
       items.forEach(({doc, index}) => {
         let host = parent, path = '';
         if (mode === 'tree') (doc.treePath || doc.path || doc.name).split('/').slice(0,-1).forEach(part => {
@@ -53,6 +53,10 @@
         button.className = 'file-row file-item' + (doc === current ? ' selected active' : '');
         button.dataset.fileName = doc.name; button.dataset.fileIndex = index; button.dataset.filePath = doc.path || doc.name; button.dataset.contextKind = 'file'; button.title = doc.path || doc.name;
         button.setAttribute('aria-current', doc === current ? 'page' : 'false');
+        if (onMoveDoc) {
+          button.draggable = true;
+          button.ondragstart = event => { event.dataTransfer.setData('text/plain', String(index)); event.dataTransfer.effectAllowed = 'move'; };
+        }
         /* 列表行与树形行同一观感语言：图标 + 名称单行，子目录文件行尾加目录标签。 */
         const fileType = /^readme\.md$/i.test(doc.name) ? 'readme' : /\.(md|markdown|mdown)$/i.test(doc.name) ? 'markdown' : null;
         button.innerHTML = fileType
@@ -93,12 +97,22 @@
         section.append(head);
         const children = document.createElement('div'); children.className = 'file-root-children';
         section.append(children);
-        renderRowsInto(children, items, mode, root.name, multiRoot, !!queryTrim);
+        renderRowsInto(children, items, mode, root.name, multiRoot, !!queryTrim, onMoveDoc);
         if (root.folded && !queryTrim) {
           head.querySelector('.file-root-fold').setAttribute('aria-expanded', 'false');
         }
         head.querySelector('.file-root-fold').onclick = event => { event.stopPropagation(); onFoldRoot(root.key, !root.folded); };
         head.querySelector('.file-root-more').onclick = event => { event.stopPropagation(); onRootMenu(event.currentTarget, root.key); };
+        if (onMoveDoc) {
+          /* 侧栏拖拽移动：文件行可拖到目标根（投放即改归属，不触碰磁盘）。 */
+          section.ondragover = event => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; section.classList.add('drop-target'); };
+          section.ondragleave = event => { if (!section.contains(event.relatedTarget)) section.classList.remove('drop-target'); };
+          section.ondrop = event => {
+            event.preventDefault(); section.classList.remove('drop-target');
+            const index = Number(event.dataTransfer.getData('text/plain'));
+            if (!Number.isNaN(index)) onMoveDoc(index, root.key);
+          };
+        }
         container.append(section);
         shown += items.length; // 折叠根的计数也参与「整页无结果」判断
       });
