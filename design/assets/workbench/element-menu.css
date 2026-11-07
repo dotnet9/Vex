@@ -5,7 +5,7 @@
 .vex-element-row { width:100%; min-height:36px; display:flex; gap:8px; align-items:center; text-align:left; padding:6px 10px; border-radius:var(--vex-radius-xs); background:transparent; }
 .vex-element-row>span { flex:1; min-width:0; overflow-wrap:anywhere; }
 .vex-element-row:hover,.vex-element-row:focus-visible { background:var(--accent-soft); color:var(--accent); outline:none; }
-.vex-element-row:disabled,.vex-element-tools button:disabled { opacity:.38; cursor:default; background:transparent; color:var(--muted); }
+.vex-element-row:disabled,.vex-element-tools button:disabled { opacity:.38; cursor:not-allowed; background:transparent; color:var(--muted); }
 .vex-element-row[aria-checked=true]::before { content:'✓'; width:16px; color:var(--accent); }
 .vex-element-row.danger { color:var(--danger); }
 .vex-element-icon { display:block; width:var(--vex-operation-icon-size,18px); height:var(--vex-operation-icon-size,18px); fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
@@ -97,7 +97,7 @@
 .vex-cp-hue::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#fff; border:2px solid var(--accent,var(--primary,#4338CA)); box-shadow:0 1px 3px #0004; }
 .vex-cp-row { display:flex; gap:8px; align-items:center; }
 .vex-cp-preview { width:30px; height:24px; border-radius:5px; border:1px solid var(--line,var(--border)); flex-shrink:0; }
-.vex-cp-hex { flex:1; min-width:0; font:12px/1.6 Consolas,monospace; padding:5px 9px; border:1px solid var(--control-border,var(--line,var(--border))); border-radius:var(--vex-radius-xs); background:transparent; color:var(--fg); text-transform:uppercase; }
+.vex-cp-hex { flex:1; min-width:0; font:12px/1.6 Consolas,monospace; padding:5px 9px; border:1px solid var(--control-border,var(--line,var(--border))); border-radius:var(--vex-radius-xs); background:transparent; color:var(--fg); }
 .vex-cp-hex:focus { outline:none; border-color:var(--accent,var(--primary,#4338CA)); }
 
 /* 快捷工具条上的行内样式按钮：A 字符号 + 下拉箭头。 */

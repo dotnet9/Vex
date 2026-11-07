@@ -33,7 +33,7 @@
   background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap;
 }
 .md-table-toolbar button:hover { background: var(--hover); color: var(--fg); border-color: var(--border); }
-.md-table-toolbar button:disabled { opacity: .7; cursor: default; }
+.md-table-toolbar button:disabled { opacity: .7; cursor: not-allowed; }
 .md-table-toolbar button:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 1px; }
 #vex-table-preview { position: fixed; inset: 0; z-index: 400; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 32px; }
 .table-preview-card { display: flex; flex-direction: column; width: min(1200px, 92vw); max-height: calc(100dvh - 64px); background: var(--paper); border: 1px solid var(--border); border-radius: var(--vex-radius-lg); box-shadow: var(--shadow-window); overflow: hidden; }

@@ -48,14 +48,16 @@ body[data-platform="windows"] .windows-minimal .step-caption { font-size:12px; m
 .windows-minimal .location-list { max-height:92px; overflow:auto; padding:6px; border:1px solid var(--line); border-radius:var(--vex-radius-sm); background:var(--field); font-size:12px; }
 .windows-minimal .location-item { display:block; padding:6px 8px; border-radius:var(--vex-radius-xs); overflow-wrap:anywhere; }
 .windows-minimal .location-item.selected { color:var(--accent); background:var(--accent-soft); }
-body[data-platform="windows"] .windows-minimal { transition:width var(--vex-duration) var(--vex-ease),height var(--vex-exit) var(--vex-ease); }
+/* 详情展开改为两态直切：不再对窗口 width/height 做过渡（Hallmark 10a）。 */
 #installer-root[data-details="open"] .windows-minimal { height:480px; }
+/* 展开的详情内容在固定窗体内滚动，不溢出窗底。 */
+body[data-platform="windows"] .windows-minimal .installer-layout { overflow:auto; }
 #installer-root[data-details="open"] .windows-minimal .installer-layout { height:478px; min-height:478px; }
 /* 更新日志栏：安装包自带的那份日志就地展开在右侧，窗口加宽而不是跳走。 */
 .windows-minimal .chip-link.on { color:var(--on-accent); background:var(--accent); border-color:var(--accent); }
 .windows-minimal .chip-link.on:hover { background:var(--accent-hover); }
 #installer-root[data-changelog="open"] .windows-minimal { width:960px; }
-.windows-minimal .changelog-panel { flex:0 0 320px; width:320px; display:flex; flex-direction:column; min-width:0; border-left:1px solid var(--line); background:var(--bg); }
+.windows-minimal .changelog-panel { flex:0 0 320px; width:320px; display:flex; flex-direction:column; min-width:0; border-left:1px solid var(--line); background:var(--bg); color:var(--fg); }
 .windows-minimal .changelog-head { display:flex; align-items:baseline; gap:8px; padding:16px 12px 8px 16px; }
 .windows-minimal .changelog-head strong { font-size:13px; font-weight:600; }
 .windows-minimal .changelog-head span { flex:1; min-width:0; font-size:11px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

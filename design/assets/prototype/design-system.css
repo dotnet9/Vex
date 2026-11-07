@@ -6,8 +6,8 @@
 .btn.primary,.save-button.primary{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
 .btn.primary:hover,.save-button.primary:hover{background:var(--primary-hover);border-color:var(--primary-hover);color:var(--on-primary)}
 .btn.primary:active,.save-button.primary:active{background:var(--primary-pressed);border-color:var(--primary-pressed);color:var(--on-primary)}
-:where(input:not([type=radio]):not([type=checkbox]),textarea,select){border-color:var(--control-border,var(--border))}
-.app-window .input,.app-window select,.app-window textarea:not(#markdown-input),.app-window input:not([type=radio]):not([type=checkbox]){border-color:var(--control-border)}
+:where(input:not([type=radio]):not([type=checkbox]),textarea,select){border-color:var(--field-border,var(--control-border,var(--border)))}
+.app-window .input,.app-window select,.app-window textarea:not(#markdown-input),.app-window input:not([type=radio]):not([type=checkbox]){border-color:var(--field-border,var(--control-border))}
 :where(button,input,textarea,select):disabled,.menu-item[aria-disabled=true],.file-navigation-menu button:disabled{opacity:1;color:var(--fg-disabled);cursor:not-allowed;box-shadow:none}
 :where(button):disabled{background:var(--panel);border-style:dashed}
 .menu-item[aria-disabled=true]{background:transparent;border-color:transparent}

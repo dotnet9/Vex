@@ -56,8 +56,8 @@
 .story-actions .tour-skip { margin-right:auto; }
 .story-actions .action-count { position:absolute; left:50%; transform:translateX(-50%); color:var(--muted); font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; }
 .story-actions .tour-previous { flex:0 0 auto; }
-.story-next-note { margin:14px 0 0; padding:10px 12px; border-radius:var(--vex-radius-sm); background:var(--accent-soft); color:var(--muted); font-size:11px; line-height:1.7; }
-.tour-cursor { position:fixed; z-index:3; width:18px; height:18px; display:grid; place-items:center; border-radius:50%; color:var(--accent-fg); background:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent),0 5px 16px #0004; font-size:12px; line-height:1; pointer-events:none; transition:left var(--vex-duration) var(--vex-ease),top var(--vex-duration) var(--vex-ease); }
+.story-next-note { margin:14px 0 0; padding:10px 12px; border-radius:var(--vex-radius-sm); background:var(--accent-soft); color:color-mix(in srgb,var(--fg) 72%,var(--muted)); font-size:11px; line-height:1.7; }
+.tour-cursor { position:fixed; left:0; top:0; z-index:3; width:18px; height:18px; display:grid; place-items:center; border-radius:50%; color:var(--accent-fg); background:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent),0 5px 16px #0004; font-size:12px; line-height:1; pointer-events:none; transition:transform var(--vex-duration) var(--vex-ease); }
 .story-tour[data-mode="intro"] .tour-scrim { fill:var(--scrim-mid); }
 .story-tour[data-mode="result"] .tour-scrim,
 .story-tour[data-mode="final"] .tour-scrim { fill:var(--scrim-soft); }
@@ -66,17 +66,17 @@
 .app-window[data-guide-step="4"] .workspace-layout-menu>p { margin-bottom:10px; }
 .app-window[data-guide-step="4"] .layout-preset { padding:7px; gap:3px; }
 .app-window[data-guide-step="4"] .layout-preset small { display:none; }
-.app-window[data-guide-step="4"] .layout-preset strong { min-height:28px; font-size:10px; line-height:14px; }
+.app-window[data-guide-step="4"] .layout-preset strong { min-height:28px; font-size:11px; line-height:14px; }
 .app-window[data-guide-step="4"] .layout-miniature { height:36px; margin-bottom:0; padding:3px; }
 .app-window[data-guide-step="4"] .workspace-layout-footer { margin-top:10px; padding-top:8px; }
 @media (max-width:760px) { .guide-launch span { display:none; } .tour-card { width:292px; padding:16px; } }
-@media (max-width:760px) { .story-tour .story-card, .story-tour .story-card[data-mode="intro"], .story-tour .story-card[data-mode="result"] { width:calc(100vw - 32px); } .story-actions { flex-wrap:wrap; } .story-actions .action-count { position:static; transform:none; margin-left:auto; flex:0 0 auto; } }
+@media (max-width:760px) { .story-tour .story-card, .story-tour .story-card[data-mode="intro"], .story-tour .story-card[data-mode="result"] { width:calc(100% - 32px); } .story-actions { flex-wrap:wrap; } .story-actions .action-count { position:static; transform:none; margin-left:auto; flex:0 0 auto; } }
 @media (prefers-reduced-motion:reduce) { .tour-layer * { animation:none!important; transition:none!important; } }
 
 /* ===== 引导卡：点状进度 + 胶囊按钮 ===== */
 .story-tour .story-card { overflow:hidden; }
 .story-dots { display:inline-flex; align-items:center; gap:5px; margin-right:auto; }
-.story-dot { width:7px; height:7px; border-radius:var(--vex-radius-pill); background:var(--border); transition:width var(--vex-duration) var(--vex-ease), background var(--vex-duration) var(--vex-ease); }
+.story-dot { width:7px; height:7px; border-radius:var(--vex-radius-pill); background:var(--border); transition:background var(--vex-duration) var(--vex-ease); }
 .story-dot.passed { background:color-mix(in srgb,var(--accent) 45%,var(--border)); }
 .story-dot.current { width:18px; background:var(--accent); }
 .story-flex { flex:1 1 auto; }

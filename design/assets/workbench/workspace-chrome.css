@@ -298,14 +298,14 @@ input, textarea, select {
 .custom-palette-report{margin:6px 0 0;font-size:11px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
 /* 自定义配色卡（工具钮）与"+"新增块；新增/编辑对话框（双明暗 8 色）。 */
 .appearance-choices .palette-wrap{position:relative;display:flex;flex-direction:column}
-.appearance-choices .palette-card-tools{position:absolute;top:5px;right:5px;display:flex;gap:3px;opacity:0;transition:opacity var(--vex-fast);z-index:1}
+html.js .appearance-choices .palette-card-tools{position:absolute;top:5px;right:5px;display:flex;gap:3px;opacity:0;transition:opacity var(--vex-fast);z-index:1}
 .appearance-choices .palette-wrap:hover .palette-card-tools,.appearance-choices .palette-wrap:focus-within .palette-card-tools{opacity:1}
 .appearance-choices .palette-card-tools button{width:20px;height:20px;display:grid;place-items:center;padding:0;border:1px solid var(--border);border-radius:var(--vex-radius-xs);background:var(--panel);color:var(--muted);font-size:11px;cursor:pointer}
 .appearance-choices .palette-card-tools button:hover{color:var(--fg);background:var(--hover)}
 .appearance-choices .studio-palettes .palette-add{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px;width:100%;min-height:92px;border:1px dashed var(--border);border-radius:var(--vex-radius-sm);background:transparent;color:var(--muted);cursor:pointer}
 .appearance-choices .palette-add:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .appearance-choices .palette-add span{font-size:26px;line-height:1}
-.appearance-choices .palette-add small{font-size:10px}
+.appearance-choices .palette-add small{font-size:11px}
 #palette-dialog{position:fixed;inset:0;z-index:420;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:24px}
 #palette-dialog[hidden]{display:none}
 .palette-dialog-card{width:min(420px,100%);display:flex;flex-direction:column;gap:12px;padding:20px;background:var(--paper);border:1px solid var(--border);border-radius:var(--vex-radius-lg);box-shadow:var(--shadow-window);font-size:12px;color:var(--fg)}
@@ -349,8 +349,7 @@ input, textarea, select {
 .content-area[data-pane-count="1"] .view-panel .reading-scroll .md-body{max-width:max(820px,50vw);margin:0 auto;padding:30px 52px 88px}
 .view-panel .instant-scroll .md-body{max-width:none;margin:0}.content-area[data-pane-count="1"] .view-panel .instant-scroll .md-body{padding:36px clamp(28px,6vw,88px) 80px}
 .view-panel .map-toolbar{background:var(--bg);border-color:color-mix(in srgb,var(--border) 65%,transparent)}
-.map-legend{opacity:.75}
-#view-follow-controls{font-size:var(--fs-caption,12px);gap:5px}#view-follow-toggle[aria-pressed=true]{background:transparent;color:var(--muted)}#view-follow-toggle[aria-pressed=true]::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin-right:6px}
+.map-legend{opacity:1}#view-follow-controls{font-size:var(--fs-caption,12px);gap:5px}#view-follow-toggle[aria-pressed=true]{background:transparent;color:color-mix(in srgb,var(--fg) 55%,var(--muted))}#view-follow-toggle[aria-pressed=true]::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin-right:6px}
 #view-follow-driver{font-size:var(--fs-caption,12px)}#return-to-editing{color:var(--muted)}
 .structure-sidebar{border:0}.structure-inner{width:100%!important;min-width:0}
 .structure-head{background:transparent}.panel-close{width:26px;height:26px}.panel-close .ico{width:14px;height:14px}
@@ -412,9 +411,9 @@ input, textarea, select {
 .studio-language > div{padding:6px}
 .studio-language [role="menuitemradio"]{display:flex;align-items:center;gap:10px;min-height:36px;padding:6px 10px;border-radius:var(--vex-radius-lg);color:var(--fg)}
 .studio-language [role="menuitemradio"]:hover{background:var(--hover)}
-.studio-language [role="menuitemradio"][aria-checked=true]{background:var(--accent-soft);color:var(--accent)}
+.studio-language [role="menuitemradio"][aria-checked=true]{background:var(--accent-soft);color:var(--accent-ink,var(--accent))}
 .studio-language [role="menuitemradio"][aria-checked=true]::after{content:'✓';margin-left:auto;font-weight:600}
-.studio-language .lang-chip{width:24px;height:24px;flex:none;display:grid;place-items:center;border-radius:var(--vex-radius-sm);background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-size:11px;font-weight:600;font-style:normal}
+.studio-language .lang-chip{width:24px;height:24px;flex:none;display:grid;place-items:center;border-radius:var(--vex-radius-sm);background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink,var(--accent));font-size:11px;font-weight:600;font-style:normal}
 .studio-language [role="menuitemradio"][aria-checked=true] .lang-chip{background:var(--accent);color:var(--on-accent,#fff)}
 /* 章节空状态：点阵底 + 渐变图标块（已应用），补一层呼吸感留白。 */
 
@@ -560,3 +559,6 @@ input, textarea, select {
 .vex-settings-content{background:transparent;padding:20px}
 /* 桌面窄窗口压缩缩放滑杆，字数保持单行。 */
 @media(max-width:900px){.document-zoom .zoom-range{width:48px}}
+
+/* 布局切换按钮在窄窗不换行（Hallmark 49a）。 */
+.workspace-viewswitch-more{white-space:nowrap}

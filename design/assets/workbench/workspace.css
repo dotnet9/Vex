@@ -37,7 +37,7 @@
 .chapter-title-row{display:flex;align-items:center;gap:7px}.chapter-level{font-size:10px;color:var(--accent);background:var(--accent-soft);padding:5px 7px;border-radius:var(--vex-radius-xs);flex:none}
 .chapter-title-input{min-width:0;width:100%;border:1px solid var(--control-border);background:transparent;color:var(--fg);border-radius:var(--vex-radius-pill);padding:6px 7px;font-size:12px}
 .chapter-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:11px 0 15px}.chapter-actions button{font-size:11px;padding:5px 4px;border:1px solid var(--border);border-radius:var(--vex-radius-xs);background:transparent;color:var(--fg)}
-.chapter-actions button:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}.chapter-actions button:disabled{opacity:.35;cursor:default}
+.chapter-actions button:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}.chapter-actions button:disabled{opacity:.35;cursor:not-allowed}
 .chapter-body-input{width:100%;min-height:85px;max-height:155px;resize:vertical;padding:8px;border:1px solid var(--control-border);border-radius:var(--vex-radius-sm);background:transparent;color:var(--fg);font:11.5px/1.7 'Cascadia Code',Consolas,'Microsoft YaHei UI',monospace}
 .chapter-body-note{font-size:10px;line-height:1.6;color:var(--muted);margin:5px 0 0}.chapter-delete-button{color:var(--danger)}
 .chapter-inspector-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px}.chapter-inspector-foot button{border:0;background:transparent;color:var(--accent);font-size:11px;padding:4px 0}

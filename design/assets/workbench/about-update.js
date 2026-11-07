@@ -79,7 +79,7 @@
     pillSync();
     if (ratio == null) return;
     const percent = Math.min(100, Math.round(ratio * 100));
-    $('update-progress-bar').style.width = percent + '%';
+    $('update-progress-bar').style.transform = 'scaleX(' + (percent / 100) + ')';
     $('update-progress-num').textContent = percent + '%';
   }
   function render() {

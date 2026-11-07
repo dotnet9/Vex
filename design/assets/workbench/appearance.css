@@ -48,7 +48,7 @@
 [data-map-style=mono] .map-preview-node{fill:var(--bg);stroke:var(--fg)}
 [data-map-style=mono] .map-preview-root{fill:var(--fg)}
 [data-map-style=mono] .map-preview-link{stroke:var(--fg)}
-:is(.map-scene,.map-stage)[data-map-style] .map-node{border:1px solid color-mix(in srgb,var(--accent) 34%,var(--border,var(--line)));border-radius:var(--vex-radius-sm);background:var(--panel,var(--surface));box-shadow:none;transition:left var(--vex-slow) var(--vex-ease),top var(--vex-slow) var(--vex-ease),background-color var(--vex-exit),border-color var(--vex-exit)}
+:is(.map-scene,.map-stage)[data-map-style] .map-node{border:1px solid color-mix(in srgb,var(--accent) 34%,var(--border,var(--line)));border-radius:var(--vex-radius-sm);background:var(--panel,var(--surface));box-shadow:none;transition:background-color var(--vex-exit),border-color var(--vex-exit)}
 :is(.map-scene,.map-stage)[data-map-style] .map-node.root{background:var(--accent);border-color:var(--accent);color:var(--accent-fg,var(--on-accent,#fff))}
 :is(.map-scene,.map-stage)[data-map-style] .map-node.content{background:var(--bg);border-style:dashed}
 :is(.map-scene,.map-stage)[data-map-style] .map-links path{animation:none}
@@ -123,7 +123,7 @@ body.device-phone .map-appearance-trigger>span{display:none}
 
 /* Typography chooser polish: make the actual sample text readable, not merely the card labels. */
 .typography-popover {
-  width: min(760px, calc(100vw - 32px));
+  width: min(760px, calc(100% - 32px));
   max-height: min(82vh, 780px);
   padding: 18px;
   border-radius: var(--vex-radius-flyout);
@@ -203,7 +203,7 @@ body.device-phone .map-appearance-trigger>span{display:none}
   font-size: 13px;
 }
 @media (max-width: 760px) {
-  .typography-popover { width: calc(100vw - 20px); padding: 12px; }
+  .typography-popover { width: calc(100% - 20px); padding: 12px; }
   .typography-popover .typography-grid, .typography-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;

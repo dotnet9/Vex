@@ -14,13 +14,13 @@
 }
 
 :root[data-theme="light"] {
-  --shadow-window: 0 24px 64px rgba(16, 24, 40, 0.22), 0 4px 16px rgba(16, 24, 40, 0.10);
+  --shadow-window: 0 10px 22px rgba(16, 24, 40, 0.16), 0 2px 6px rgba(16, 24, 40, 0.10);
   --shadow-pop: 0 12px 32px rgba(16, 24, 40, 0.16), 0 2px 8px rgba(16, 24, 40, 0.08);
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --shadow-window: 0 24px 64px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-window: 0 10px 22px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
   --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.50), 0 2px 8px rgba(0, 0, 0, 0.30);
   color-scheme: dark;
 }
@@ -36,7 +36,10 @@
 /* ---------- 基础 ---------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body { height: 100%; }
+html, body { height: 100%; overflow-x: clip; }
+h1, h2 { text-wrap: balance; }
+/* 派生令牌：文字级强调色（≥4.5:1）与字段描边（≥3:1），随各套配色自动适配（Hallmark 40）。 */
+:root { --accent-ink: color-mix(in srgb, var(--accent) 40%, var(--fg)); --field-border: color-mix(in srgb, var(--fg) 55%, var(--surface)); }
 
 body {
   font-family: -apple-system, "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "PingFang SC", "Noto Sans SC", sans-serif;
@@ -191,7 +194,7 @@ a:hover { text-decoration: underline; }
 }
 .menu-item .mi-ico { width: 15px; height: 15px; color: var(--muted); flex: none; }
 .menu-item .mi-gesture { margin-left: auto; padding-left: 28px; font-size:11px; color: var(--muted); }
-.menu-item .mi-arrow { margin-left: auto; padding-left: 28px; font-size: 10px; color: var(--muted); }
+.menu-item .mi-arrow { margin-left: auto; padding-left: 28px; font-size: 11px; color: var(--muted); }
 .menu-item:hover { background: var(--hover); }
 .menu-item.checked::after {
   content: "";
@@ -249,7 +252,7 @@ a:hover { text-decoration: underline; }
   font-size:12px;
   color: var(--fg);
   background: transparent;
-  border:1px solid var(--control-border);
+  border:1px solid var(--field-border,var(--control-border));
   border-radius: var(--vex-radius-pill);
   padding: 5px 10px;
   min-height:32px;
@@ -278,7 +281,7 @@ a:hover { text-decoration: underline; }
   background: var(--panel);
   display: inline-flex; align-items: center; justify-content: center;
   flex: none;
-  transition: all var(--vex-instant) var(--vex-ease);
+  transition: background var(--vex-instant) var(--vex-ease), border-color var(--vex-instant) var(--vex-ease), color var(--vex-instant) var(--vex-ease);
 }
 .check input { display: none; }
 .check input:checked + .box { background: var(--accent); border-color: var(--accent); }
@@ -303,7 +306,7 @@ a:hover { text-decoration: underline; }
   background: var(--panel);
   display: inline-flex; align-items: center; justify-content: center;
   flex: none;
-  transition: all var(--vex-instant) var(--vex-ease);
+  transition: background var(--vex-instant) var(--vex-ease), border-color var(--vex-instant) var(--vex-ease), color var(--vex-instant) var(--vex-ease);
 }
 .radio input { display: none; }
 .radio input:checked + .dot { border-color: var(--accent); }
@@ -491,7 +494,7 @@ a:hover { text-decoration: underline; }
 }
 .outline-row:hover { background: var(--hover); }
 .outline-row.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.outline-row .lv { color: var(--md-marker); font-size: 10px; width: 16px; flex: none; }
+.outline-row .lv { color: var(--md-marker); font-size: 11px; width: 16px; flex: none; }
 
 .empty-hint {
   padding: 24px 18px;
@@ -551,7 +554,7 @@ a:hover { text-decoration: underline; }
   min-width: 30px; height: 28px;
   padding: 0 8px;
   cursor: pointer;
-  transition: all var(--vex-instant) var(--vex-ease);
+  transition: background var(--vex-instant) var(--vex-ease), border-color var(--vex-instant) var(--vex-ease), color var(--vex-instant) var(--vex-ease);
 }
 .opt-toggle:hover { background: var(--hover); color: var(--fg); }
 .opt-toggle.on {
@@ -693,7 +696,7 @@ a:hover { text-decoration: underline; }
 .tok-h { color: var(--accent); font-weight: 700; }
 .tok-bold { font-weight: 700; }
 .tok-em { font-style: italic; }
-.tok-code { color: var(--md-code-fg); background: var(--code-bg); border-radius: var(--vex-radius-xs); padding: 0 4px; }
+.tok-code { color: var(--accent-ink, var(--md-code-fg)); background: var(--code-bg); border-radius: var(--vex-radius-xs); padding: 0 4px; }
 .tok-link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .tok-quote { color: var(--md-quote); font-style: italic; }
 .tok-dim { color: var(--md-marker); }
@@ -728,7 +731,7 @@ a:hover { text-decoration: underline; }
 .md-body code {
   font-family: "Cascadia Code", Consolas, monospace;
   font-size: 12px;
-  color: var(--md-code-fg);
+  color: var(--accent-ink, var(--md-code-fg));
   background: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: var(--vex-radius-xs);
@@ -743,6 +746,7 @@ a:hover { text-decoration: underline; }
   margin: 10px 0;
 }
 .md-body pre code { background: none; border: none; padding: 0; color: var(--fg); font-size: 12px; line-height: 1.7; }
+.md-body h6 { font-size: 12px; }
 .md-body ul, .md-body ol { padding-left: 22px; margin: 8px 0; }
 .md-body li { margin: 3px 0; }
 .md-body table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size:12px; border-radius: 6px; overflow: hidden; }
@@ -893,7 +897,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   box-shadow: var(--shadow-pop);
   opacity: 0;
   transform: translateY(8px);
-  transition: all var(--vex-duration) var(--vex-ease);
+  transition: opacity var(--vex-duration) var(--vex-ease), transform var(--vex-duration) var(--vex-ease);
   max-width: 70vw;
 }
 .proto-toast.show { opacity: 1; transform: translateY(0); }
@@ -932,7 +936,7 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
   padding: 4px 14px;
   cursor: pointer;
   box-shadow: var(--shadow-pop);
-  transition: all var(--vex-fast) var(--vex-ease);
+  transition: opacity var(--vex-fast) var(--vex-ease), transform var(--vex-fast) var(--vex-ease);
   white-space: nowrap;
 }
 .reopen-chip:hover { color: var(--accent); border-color: var(--accent); }

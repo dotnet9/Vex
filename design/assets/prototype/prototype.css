@@ -30,7 +30,7 @@
 .vex-zoomdock > div { display:flex; align-items:center; gap:var(--gap-sm,6px); }
 .vex-zoomdock .zoom-tools { position:relative; display:flex; flex:none; align-items:center; }
 /* 百分比气泡：贴在拖动块正上方，值变化时由 zoomdock.js 写 left 并点亮 .is-live，停手即隐；不参与坞的布局。 */
-.vex-zoomdock .zoom-value { position:absolute; left:0; bottom:calc(100% + 6px); transform:translateX(-50%) scale(.9); opacity:0; pointer-events:none; padding:1px 6px; border-radius:var(--vex-radius-sm,6px); background:var(--accent); color:var(--accent-fg,#fff); font-size:var(--fs-caption,12px); line-height:1.5; font-variant-numeric:tabular-nums; white-space:nowrap; transition:opacity var(--vex-fast) var(--vex-ease),transform var(--vex-fast) var(--vex-ease); }
+html.js .vex-zoomdock .zoom-value { position:absolute; left:0; bottom:calc(100% + 6px); transform:translateX(-50%) scale(.9); opacity:0; pointer-events:none; padding:1px 6px; border-radius:var(--vex-radius-sm,6px); background:var(--accent); color:var(--on-accent,var(--accent-fg,#fff)); font-size:var(--fs-caption,12px); line-height:1.5; font-variant-numeric:tabular-nums; white-space:nowrap; transition:opacity var(--vex-fast) var(--vex-ease),transform var(--vex-fast) var(--vex-ease); }
 .vex-zoomdock .zoom-value.is-live { opacity:1; transform:translateX(-50%) scale(1); }
 .vex-zoomdock .zoom-range { width:calc(var(--control-h-md,32px) * 1.875); accent-color:var(--accent); }
 .vex-zoomdock .zoom-reset { position:relative; min-width:0; min-height:0; height:calc(var(--control-h-md,32px) - 9px); margin-left:calc(var(--gap-sm,6px) - 3px); padding:2px 7px; border:0; border-radius:var(--vex-radius-pill); background:transparent; color:inherit; font-size:13px; cursor:pointer; }
@@ -51,10 +51,10 @@ body.device-phone,body.device-tablet { --vex-operation-icon-size:18px; }
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible { outline:2px solid var(--accent,#24766b); outline-offset:3px; }
 button { touch-action:manipulation; }
 button:not(:disabled) { transition:background-color var(--vex-fast),border-color var(--vex-fast),color var(--vex-fast),box-shadow var(--vex-fast); }
-button:disabled { cursor:default; opacity:.45; }
+button:disabled { cursor:not-allowed; opacity:.45; }
 .menu-flyout,.submenu,.popover,.menu-popover,.typography-popover,.settings-popover { transform-origin:top left; animation:vex-menu-in var(--vex-fast) var(--vex-ease) both; border-radius:var(--vex-radius-md); }
 .menu-flyout { overflow:visible; }
-.menu-flyout>.flyout,body>.submenu.flyout { display:block; width:max-content; min-width:248px; max-width:min(340px,calc(100vw - 16px)); max-height:calc(100vh - 20px); overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; }
+.menu-flyout>.flyout,body>.submenu.flyout { display:block; width:max-content; min-width:248px; max-width:min(340px,calc(100vw - 16px)); max-height:calc(100vh - 20px); overflow-x:clip; overflow-y:auto; overscroll-behavior:contain; }
 .menu-column { display:block; min-width:0; }
 .menu-column+.menu-column { border:0; margin:0; padding:0; }
 body>.submenu { z-index:1100; box-sizing:border-box; }
@@ -100,13 +100,13 @@ body.device-phone .mobile-more { width:44px; height:44px; }
 @keyframes vex-sheet-fade-out { from { background:var(--scrim-mid); } to { background:transparent; } }
 .win-layer:not([hidden]),.modal-host:not([hidden]) { animation:vex-fade-in var(--vex-fast) both; }
 .win-layer:not([hidden]) > *, .modal-host:not([hidden]) > .modal { animation:vex-dialog-in var(--vex-duration) var(--vex-ease) both; }
-.side-tab::after,.view-switch::before,.progress-track>span,.progress-fill { transition:transform var(--vex-duration) var(--vex-ease),width var(--vex-duration) var(--vex-ease); }
+.side-tab::after,.view-switch::before,.progress-track>span,.progress-fill { transition:transform var(--vex-duration) var(--vex-ease); }
 .toast { animation:vex-dialog-in var(--vex-duration) var(--vex-ease) both; }
 .file-row,.file-item,.outline-item { transition:background-color var(--vex-fast),color var(--vex-fast); }
 .md-code-footer { box-sizing:border-box; height:32px; min-height:32px; display:flex; align-items:center; justify-content:flex-end; padding:0 8px; margin:0 0 12px; opacity:0; visibility:hidden; pointer-events:none; transition:opacity var(--vex-fast); }
 .is-editing .md-code-footer { opacity:1; visibility:visible; pointer-events:auto; }
 /* 语言标签即纯文字（StreamMark 式）：无背景无边框、左对齐，聚焦只变字色提示可编辑。 */
-.md-code-language { width:150px; max-width:45%; height:24px; padding:2px 0; border:0; text-align:left; color:var(--muted); background:transparent; font:12px/18px var(--mono,monospace); }
+.md-code-language { width:150px; max-width:45%; height:24px; padding:2px 0; border:0; border-bottom:1px solid var(--field-border,var(--border)); text-align:left; color:var(--muted); background:transparent; font:12px/18px var(--mono,monospace); }
 .md-code-language::placeholder { color:var(--muted); }
 .md-code-language:hover,.md-code-language:focus { color:var(--fg,var(--text)); }
 .md-code-language:focus { outline:none; }
@@ -135,7 +135,7 @@ body.device-phone .mobile-more { width:44px; height:44px; }
 .modal-body .field { max-width:100%; box-sizing:border-box; }
 .map-layout-select { box-sizing:border-box; width:120px; min-width:110px; height:32px; padding:4px 7px; border:1px solid var(--control-border,var(--border)); border-radius:var(--vex-radius-pill); background:transparent; color:var(--fg); font:inherit; font-size:12px; cursor:pointer; }
 .map-stage.animating { transition:transform var(--vex-slow) var(--vex-ease); }
-.map-stage .map-node { box-sizing:border-box; transition:left var(--vex-slow) var(--vex-ease),top var(--vex-slow) var(--vex-ease),height var(--vex-duration) var(--vex-ease),border-color var(--vex-fast); }
+.map-stage .map-node { box-sizing:border-box; transition:border-color var(--vex-fast); }
 .map-stage .map-node strong { overflow-wrap:anywhere; }
 .vex-deck button.deck-map-node { overflow-wrap:anywhere; }
 .map-stage .map-node small { font-size:11px; line-height:18px; max-height:36px; }

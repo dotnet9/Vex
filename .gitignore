@@ -428,3 +428,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Hallmark 审计产物（截图与记录）
+.hallmark/

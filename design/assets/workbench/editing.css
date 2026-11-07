@@ -5,7 +5,7 @@
 .edit-methods { display: flex; gap: 4px; }
 .edit-methods button { border: none; border-radius: var(--vex-radius-xs); padding: 5px 10px; background: transparent; font-size: 11px; color: var(--muted); transition: background var(--vex-exit), color var(--vex-exit); }
 .edit-methods button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
-.edit-method-description { font-size: 10px; color: var(--muted); margin-right: auto; }
+.edit-method-description { font-size: 11px; color: var(--muted); margin-right: auto; }
 .typography-trigger { color: var(--muted); }
 .typography-trigger [data-typography-label] { font-weight: 600; color: var(--fg); }
 .instant-pane { display: flex; flex-direction: column; flex: 1; min-width: 0; background: var(--bg); }
@@ -15,9 +15,11 @@
 .instant-scroll.typewriter-on .md-body, .source-scroll.typewriter-on textarea { padding-top: var(--typewriter-space) !important; padding-bottom: var(--typewriter-space) !important; }
 .source-scroll.typewriter-on .line-numbers { top: var(--typewriter-space); }
 .instant-block { position: relative; display: flow-root; cursor: text; outline: none; caret-color: var(--fg); overflow-wrap: anywhere; }
+.instant-block:focus-visible:not(.is-editing) { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 2px; }
 .instant-block.is-editing { outline: none; }
 .instant-input { outline: none; }
-.instant-hint { flex: none; font-size: 10px; color: var(--muted); padding: 9px 20px; border-top: 1px solid var(--border); background: var(--panel); transition: opacity .45s ease; }
+.instant-input:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 2px; }
+.instant-hint { flex: none; font-size: 11px; color: var(--muted); padding: 9px 20px; border-top: 1px solid var(--border); background: var(--panel); transition: opacity .45s ease; }
 /* 开始写作后提示条淡出（instant-editor 加 is-used），只淡透明度，布局高度不变。 */
 .instant-hint.is-used { opacity: 0; pointer-events: none; }
 .instant-empty { min-height: 1.95em; }
@@ -25,11 +27,11 @@
 .workspace.source-only .source-pane { width: 100%; border-right: none; }
 .typography-popover { position: absolute; z-index: 30; right: 18px; top: 108px; width: 338px; max-height: calc(100% - 124px); padding: 18px; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: var(--vex-radius-lg); box-shadow: var(--shadow-pop); animation: inspector-in var(--vex-duration) var(--vex-ease); }
 .typography-popover .popover-title { flex: none; margin-bottom: 0; }
-.typography-note { font-size: 10px; color: var(--muted); margin: 3px 0 14px; }
-#typography-panel .type-swatch{height:150px}
+.typography-note { font-size: 11px; color: var(--muted); margin: 3px 0 14px; }
+#typography-panel .type-swatch{height:150px;color:var(--fg)}
 #typography-panel .type-swatch .type-document{--type-size:13px;transform:scale(.45)}
 .typography-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow: auto; min-height: 0; }
-.typography-card { position: relative; border: 1px solid var(--border); background: var(--bg); padding: 9px 6px 7px; border-radius: var(--vex-radius-sm); color: var(--muted); font-size: 10px; min-width: 0; transition: border-color var(--vex-fast), background var(--vex-fast); }
+.typography-card { position: relative; border: 1px solid var(--border); background: var(--bg); padding: 9px 6px 7px; border-radius: var(--vex-radius-sm); color: var(--muted); font-size: 11px; min-width: 0; transition: border-color var(--vex-fast), background var(--vex-fast); }
 .typography-card:hover { border-color: var(--accent); }
 .typography-card[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 .type-swatch { display: block; width: 36px; height: 17px; margin: 0 auto 6px; border-top: 3px solid var(--swatch); background: linear-gradient(var(--border),var(--border)) 0 7px/36px 1px no-repeat, linear-gradient(var(--border),var(--border)) 0 12px/26px 1px no-repeat; }
@@ -76,7 +78,7 @@
 @media (prefers-reduced-motion: reduce) { .instant-block, .edit-methods button, .typography-card { transition: none; } .typography-popover { animation: none; } }
 
 /* 分隔线占位与命中宽度一致，侧栏内部随列伸缩。 */
-.sidebar { width: var(--sidebar-width, 226px); transition: width var(--vex-slow) var(--vex-ease), opacity var(--vex-duration); border-right: none; }
+.sidebar { width: var(--sidebar-width, 226px); transition: opacity var(--vex-duration); border-right: none; }
 /* 内容宽度锁在用户设定的栏宽上，收起时由容器裁切，动画才是平移滑出而非把列表挤扁（与右侧大纲栏一致）。 */
 .sidebar-inner { width: var(--sidebar-width, 226px); min-width: 0; }
 .sidebar-splitter { width: 5px; flex: none; cursor: col-resize; touch-action: none; background: linear-gradient(90deg, transparent 2px, var(--border) 2px, var(--border) 3px, transparent 3px); }
@@ -94,9 +96,9 @@
 
 /* 代码正文保持安静；语言输入只在即时编辑块下方出现。 */
 /* 代码块：StreamMark 式头部——左上语言标签（可编辑），右上下载/换行/复制三键。 */
-.md-code-block { margin: 8px 0 12px; padding: 8px 12px 10px; border: 1px solid var(--border); border-radius: var(--vex-radius-2xs); background: var(--code-bg); }
+.md-code-block { margin: 8px 0 12px; padding: 8px 12px 10px; border: 1px solid var(--border); border-radius: var(--vex-radius-2xs); background: var(--code-bg); color: var(--fg); }
 .md-code-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 6px; }
-.md-code-language { box-sizing: border-box; width: 150px; max-width: 45%; height: 24px; padding: 2px 0; border: 0; text-align: left; color: var(--muted); background: transparent; font: 12px/18px "Cascadia Code", Consolas, monospace; }
+.md-code-language { box-sizing: border-box; width: 150px; max-width: 45%; height: 24px; padding: 2px 0; border: 0; text-align: left; color: var(--muted); background: transparent; border-bottom: 1px solid var(--field-border, var(--border)); font: 12px/18px "Cascadia Code", Consolas, monospace; }
 .md-code-language::placeholder { color: var(--muted); }
 .md-code-language:hover,.md-code-language:focus { color: var(--fg); }
 .md-code-language:focus { outline: none; }
@@ -108,7 +110,7 @@
 .content-area .md-body .md-code-block pre code,.content-area .md-body .md-block pre code { display: block; min-height: 22px; padding: 0; color: var(--fg); background: transparent; outline: none; font: 14px/22px "Cascadia Code", Consolas, monospace; }
 .md-block.code-wrap pre,.md-block.code-wrap pre code,.md-code-block.code-wrap pre,.md-code-block.code-wrap pre code { white-space: pre-wrap; overflow-wrap: anywhere; overflow-x: hidden; }
 /* 轻量语法高亮：五类令牌全部走主题令牌，明暗配色自适应。 */
-.md-block .ch-kw,.md-code-block .ch-kw { color: var(--accent); }
+.md-block .ch-kw,.md-code-block .ch-kw { color: var(--accent-ink, var(--accent)); }
 .md-block .ch-str,.md-code-block .ch-str { color: var(--success); }
 .md-block .ch-num,.md-code-block .ch-num { color: var(--warning); }
 .md-block .ch-com,.md-code-block .ch-com { color: var(--muted); font-style: italic; }
@@ -163,7 +165,7 @@
 }
 .app-window .reading-pane .md-body :not(pre)>code{
   padding:.16em .42em;border:1px solid var(--border);border-radius:5px;
-  background:var(--code-bg);color:var(--md-code-fg);font-size:.9em;
+  background:var(--code-bg);color:var(--accent-ink,var(--md-code-fg));font-size:.9em;
 }
 .app-window .reading-pane .md-body pre{
   margin:1.35em 0;padding:18px 20px;border:1px solid var(--border);
@@ -197,8 +199,8 @@
 :is(.settings-popover,.node-inspector,.map-appearance-popover,.typography-popover,.workspace-layout-menu,.files-sort-menu,.file-context-menu){
   border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:0 16px 42px rgba(31,49,38,.15);
 }
-.settings-popover{width:min(320px,calc(100vw - 28px));max-height:min(78vh,680px);overflow:auto;overscroll-behavior:contain}
-.node-inspector{width:min(310px,calc(100vw - 28px));max-height:min(78vh,680px);overflow:auto;overscroll-behavior:contain}
+.settings-popover{width:min(320px,calc(100% - 28px));max-height:min(78vh,680px);overflow:auto;overscroll-behavior:contain}
+.node-inspector{width:min(310px,calc(100% - 28px));max-height:min(78vh,680px);overflow:auto;overscroll-behavior:contain}
 :is(.popover-title,.inspector-head){min-height:42px;padding:10px 13px;background:var(--panel);border-bottom:1px solid var(--border)}
 :is(.menu-item,.files-sort-item,.file-context-menu button){min-height:32px;border-radius:7px}
 :is(.menu-item:hover,.files-sort-item:hover,.file-context-menu button:hover){background:var(--hover)}
@@ -227,7 +229,7 @@
 #map-scene[data-map-style="mono"] .map-node{background:var(--surface);border:1px solid #89938C;box-shadow:none;color:var(--fg)}
 #map-scene[data-map-style="mono"] .map-node.root{background:#E9ECE9;color:#28332C;border-color:#68746C}
 #map-scene[data-map-style="mono"] .map-links path{stroke:#7C8780;opacity:.65}
-.map-appearance-popover{width:min(440px,calc(100vw - 24px));max-height:min(78vh,700px);overflow:auto;overscroll-behavior:contain}
+.map-appearance-popover{width:min(440px,calc(100% - 24px));max-height:min(78vh,700px);overflow:auto;overscroll-behavior:contain}
 .map-choice{border-radius:9px;border-color:var(--border);background:var(--surface)}
 .map-choice[aria-pressed="true"]{border-color:var(--accent);background:var(--selected);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 12%,transparent)}
 
@@ -260,7 +262,7 @@
   border-color:color-mix(in srgb,var(--branch-color,var(--accent)) 45%,var(--border));
 }
 :root[data-palette] #map-scene[data-map-style="outline"] .map-node:not(.root) { background:transparent;border:1.5px solid var(--branch-color,var(--accent));box-shadow:none; }
-:root[data-palette] #map-scene[data-map-style="outline"] .map-node.root { color:var(--accent-fg,var(--accent));border-width:2px; }
+:root[data-palette] #map-scene[data-map-style="outline"] .map-node.root { color:var(--fg);border-width:2px; }
 :root[data-palette] #map-scene[data-map-style="capsule"] .map-node { border-radius:999px;padding-inline:2px; }
 :root[data-palette] #map-scene[data-map-style="capsule"] .map-node.content { border-radius:12px; }
 :root[data-palette] #map-scene[data-map-style="underline"] .map-node:not(.root) { background:transparent;border:0;border-bottom:2px solid var(--branch-color,var(--accent));border-radius:3px;box-shadow:none; }

@@ -1,10 +1,11 @@
 ﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="维刻 Vex 桌面原型：单窗口 Markdown 写作工作台，含即时编辑、源码、阅读与思维导图视图。">
 <link rel="icon" href="assets/vex-logo.svg?v=20261030a" type="image/svg+xml">
 <script>
 (function(){
+ document.documentElement.classList.add('js');
  const p=new URLSearchParams(location.search);
  const preview=p.get('preview')==='1',memory=new Map();
  window.VexStorage={getItem(k){if(preview)return memory.get(k)||null;try{return localStorage.getItem(k);}catch{return null;}},setItem(k,v){if(preview){memory.set(k,v);return;}try{localStorage.setItem(k,v);}catch{}},removeItem(k){if(preview){memory.delete(k);return;}try{localStorage.removeItem(k);}catch{}}};
@@ -32,7 +33,7 @@
 <script src="assets/workbench/overlay.js?v=20261030a"></script><script src="assets/workbench/mermaid-catalog.js?v=20261030a"></script><script src="assets/generated/documents-data.js?v=20261030a"></script><script src="assets/workbench/watermark.js?v=20261030a"></script><script src="assets/workbench/preferences.js?v=20261030a"></script><script src="assets/workbench/tour-placement.js?v=20261030a"></script><script src="assets/workbench/diagram-editor.js?v=20261030a"></script>
 <link rel="stylesheet" href="assets/prototype/table-layout.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/diagram-layout.css?v=20261030a"><link rel="stylesheet" href="assets/prototype/design-system.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/professional.css?v=20261031a"></head>
 <body data-page="index">
-<svg xmlns="http://www.w3.org/2000/svg" class="hidden-sprite"><defs>
+<svg xmlns="http://www.w3.org/2000/svg" class="hidden-sprite" aria-hidden="true"><defs>
   <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
   <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
@@ -154,7 +155,7 @@
       <div class="content-area">
         <section class="instant-pane" id="instant-pane" data-l10n-label="即时编辑区" aria-label="即时编辑区">
           <div class="instant-scroll"><article class="md-body" id="instant-content"></article></div>
-          <div class="instant-hint" id="instant-hint">直接在正文中写作 · Ctrl+B 加粗 · Ctrl+I 斜体</div>
+          <div class="instant-hint" id="instant-hint">直接在正文中写作（Ctrl+B 加粗，Ctrl+I 斜体）</div>
         </section>
         <section class="source-pane" id="source-pane" data-l10n-label="Markdown 源码" aria-label="Markdown 源码">
           <div class="pane-head"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg>Markdown<span class="ph-right">可直接编辑 · 实时同步</span></div>
@@ -178,7 +179,7 @@
           <section class="settings-popover" id="map-settings" data-l10n-label="导图显示设置" aria-label="导图显示设置" hidden>
             <div class="popover-title">导图显示<button class="icon-button" data-action="close-settings" data-l10n-name="关闭设置" title="关闭设置"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
             <label class="setting-label" for="summary-length">内容摘要长度 <span><input id="summary-length" type="number" min="1" max="120" value="30"> 字</span></label>
-            <p class="setting-note">默认 30 字，可设置 1–120 字。按可见字符截取，省略号不计入；全文始终保留。</p>
+            <p class="setting-note">默认 30 字，可设置 1～120 字。按可见字符截取，省略号不计入；全文始终保留。</p>
             <label class="setting-label">显示段落与引用 <input id="show-paragraphs" type="checkbox" checked></label>
             <label class="setting-label">显示列表项 <input id="show-lists" type="checkbox" checked></label>
             <label class="setting-label">显示代码块与表格摘要 <input id="show-blocks" type="checkbox"></label>
@@ -300,8 +301,8 @@
           <div class="update-hero">
             <span class="update-icon" id="update-icon" aria-hidden="true"><img src="assets/vex-logo.svg?v=20261030a" alt=""></span>
             <div class="update-copy" role="status" aria-live="polite" aria-atomic="true">
-              <strong id="update-phase-title">正在检查更新...</strong>
-              <span class="update-sub" id="update-phase-sub">正在连接服务器，请稍候...</span>
+              <strong id="update-phase-title">正在检查更新…</strong>
+              <span class="update-sub" id="update-phase-sub">正在连接服务器，请稍候…</span>
             </div>
           </div>
           <div class="update-progress" id="update-progress" hidden>

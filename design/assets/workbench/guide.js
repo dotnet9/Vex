@@ -491,7 +491,7 @@
     });
     var target = found[0];
     if (!target || card.dataset.mode !== 'live' || layer.classList.contains('demo-running') || focusKind === 'control') { cursor.hidden = true; return; }
-    cursor.hidden = false; cursor.style.left = (target.x + target.width / 2 - 9) + 'px'; cursor.style.top = (target.y + target.height / 2 - 9) + 'px';
+    cursor.hidden = false; cursor.style.transform = 'translate(' + (target.x + target.width / 2 - 9) + 'px,' + (target.y + target.height / 2 - 9) + 'px)';
   }
   function layout() {
     if (!open) return;

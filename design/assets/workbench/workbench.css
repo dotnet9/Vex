@@ -35,16 +35,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .save-button { display: flex; align-items: center; gap: 7px; }
 .workspace { flex: 1; min-height: 0; display: flex; overflow: hidden; position: relative; }
 .workspace::before { content: ''; position: absolute; bottom: 0; left: 0; width: 280px; height: 380px; background: url('sage-leaf.png') no-repeat bottom left / contain; opacity: 0.4; pointer-events: none; z-index: 2; }
-.sidebar { width: 226px; flex: none; padding: 0; background: var(--panel); border-right: 1px solid var(--border); overflow: hidden; transition: width var(--vex-slow) var(--vex-ease), opacity var(--vex-duration); }
+.sidebar { width: 226px; flex: none; padding: 0; background: var(--panel); border-right: 1px solid var(--border); overflow: hidden; transition: opacity var(--vex-duration); }
 .sidebar.closed { width: 0; opacity: 0; border: none; pointer-events: none; }
 .sidebar-inner { width: 225px; height: 100%; display: flex; flex-direction: column; }
 .side-tabs { height: 44px; padding: 0 12px; margin-bottom: 0; gap: 18px; border-bottom: none; flex: none; }
 .side-tab { display: flex; align-items: center; gap: 6px; font-size:var(--fs-caption,12px); padding: 10px 2px; }
 .side-tab .ico { width: 14px; height: 14px; }
-.sidebar-search { margin: 8px 14px 12px; display: flex; align-items: center; gap: 7px; background: transparent; border:1px solid var(--control-border); border-radius: var(--vex-radius-pill); padding: 5px 8px; color: var(--muted); }
-.sidebar-search input { border: none; background: transparent; outline: none; font-size:var(--fs-caption,12px); color: var(--fg); width: 100%; min-width: 0; }
+.sidebar-search { margin: 8px 14px 12px; display: flex; align-items: center; gap: 7px; background: transparent; border:1px solid var(--field-border,var(--control-border)); border-radius: var(--vex-radius-pill); padding: 5px 8px; color: var(--muted); }
+.sidebar-search input { border: none; background: transparent; outline: none; font-size:var(--fs-caption,12px); color: var(--fg); width: 100%; min-width: 0; min-height: 24px; }
 .sidebar-search .ico { width: 13px; height: 13px; }
-.side-section-label { font-size: 10px; letter-spacing: 1px; color: var(--muted); padding: 0 18px 9px; display: flex; align-items: center; justify-content: space-between; }
+.side-section-label { font-size: 11px; color: var(--muted); padding: 0 18px 9px; display: flex; align-items: center; justify-content: space-between; }
 .folder-row { padding: 4px 12px 8px 16px; display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }
 .folder-root { min-height: 24px; padding-top: 0; padding-bottom: 4px; }
 .folder-root > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -62,7 +62,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .outline-item small { margin-right: 8px; opacity: .55; font-size: 9px; }
 .content-area { position: relative; display: flex; flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
 /* 右侧“文档结构”栏：左侧只放文件，结构大纲常驻右侧、可收起。 */
-.structure-sidebar { width: 240px; flex: none; background: var(--panel); border-left: 1px solid var(--border); overflow: hidden; transition: width var(--vex-slow) var(--vex-ease), opacity var(--vex-duration); }
+.structure-sidebar { width: 240px; flex: none; background: var(--panel); border-left: 1px solid var(--border); overflow: hidden; transition: opacity var(--vex-duration); }
 .structure-sidebar.collapsed { width: 0; opacity: 0; border-left-width: 0; }
 .structure-inner { width: 240px; height: 100%; display: flex; flex-direction: column; }
 .structure-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px 6px; }
@@ -86,7 +86,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .source-pane { width: 45%; flex: none; min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border); background: var(--editor-bg); }
 .workspace[data-view="mindmap"] .source-pane { width: 34%; }
 .pane-head { height: 44px; padding: 0 20px; display: flex; align-items: center; gap: 7px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 11px; flex: none; }
-.pane-head .ph-right { margin-left: auto; font-size: 10px; display: flex; align-items: center; gap: 5px; }
+.pane-head .ph-right { margin-left: auto; font-size: 11px; display: flex; align-items: center; gap: 5px; }
 .source-scroll { position: relative; flex: 1; overflow: auto; }
 .source-scroll textarea,.source-scroll .source-highlight { width: 100%; min-height: 100%; border: none; outline: none; resize: none; padding: 22px 24px 60px 54px; color: var(--editor-fg); background: transparent; font: var(--vex-writing-size,var(--writing-size,16px))/1.75 "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace; tab-size: 2; white-space: pre; overflow: hidden; }
 /* 行号行高与正文同源计算（字号档 × 1.75），任意渲染密度下都与内容逐行对齐。 */
@@ -141,7 +141,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .map-scene.animating { transition: transform var(--vex-slow) var(--vex-ease); }
 .map-links { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
 .map-links path { fill: none; stroke: var(--branch-color, var(--accent)); stroke-width: 1.5; opacity: .42; }
-.map-node { position: absolute; display: flex; align-items: stretch; gap: 6px; width: 224px; border-radius: var(--vex-radius-md); border: 1px solid var(--border); background: var(--panel); color: var(--fg); box-shadow: 0 2px 5px #00000003; transition: left var(--vex-slow) var(--vex-ease), top var(--vex-slow) var(--vex-ease), border-color var(--vex-fast), box-shadow var(--vex-fast); }
+.map-node { position: absolute; display: flex; align-items: stretch; gap: 6px; width: 224px; border-radius: var(--vex-radius-md); border: 1px solid var(--border); background: var(--panel); color: var(--fg); box-shadow: 0 2px 5px #00000003; transition: border-color var(--vex-fast), box-shadow var(--vex-fast); }
 .map-node.enter { animation: node-appear var(--vex-slow) both; animation-delay: var(--delay, 0ms); }
 .map-node[data-kind="heading"] { border-left: 3px solid var(--branch-color, var(--accent)); }
 .map-node.root { width: 214px; background: var(--accent); color: var(--accent-fg); border-color: var(--accent); box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 20%, transparent); }
@@ -158,7 +158,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .map-collapse { position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 19px; height: 19px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); display: grid; place-items: center; border-radius: 50%; font: 11px/1 Consolas, monospace; }
 .map-collapse:hover { color: var(--accent); border-color: var(--accent); }
 /* 导图缩放控件的几何与配色统一走 .vex-zoomdock（prototype.css），此处不再另立配方。 */
-.map-legend { position: absolute; top: 18px; left: 20px; display: flex; gap: 15px; color: var(--muted); font-size: 10px; pointer-events: none; }
+.map-legend { position: absolute; top: 18px; left: 20px; display: flex; gap: 15px; color: var(--muted); font-size: 11px; pointer-events: none; }
 .map-legend span { display: flex; align-items: center; gap: 5px; }
 .map-legend i { width: 7px; height: 7px; border: 1px solid var(--accent); border-radius: var(--vex-radius-2xs); }
 .map-legend .content-key { border: 1px dashed var(--muted); }
@@ -192,15 +192,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 /* 查找条：白底与灰色标题栏分层；输入框用灰色填充，聚焦时回到白底加强调描边。 */
 .find-strip { display: flex; padding: 10px 20px; gap: 8px; border-bottom: 1px solid var(--border); align-items: center; background: var(--bg); animation: pop-in var(--vex-exit) var(--vex-ease); }
 .find-strip .input { width: 190px; font-size: 11px; min-height: 28px; }
-.find-strip .input:focus { border-color: var(--accent); }
-.find-strip small { font-size: 10px; color: var(--muted); margin-right: auto; }
+.find-strip .input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--focus-ring, var(--accent-soft)); }
+.find-strip small { font-size: 11px; color: var(--muted); margin-right: auto; }
 .empty-state { color: var(--muted); font-size: 11px; padding: 12px 16px; }
 .pane-enter { animation: pane-in var(--vex-slow) var(--vex-ease); }
 .win-layer { position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; background: var(--scrim); backdrop-filter: blur(3px); animation: pop-in var(--vex-exit) var(--vex-ease); }
 .win-layer .mini-window { max-height: 92%; overflow: auto; }
 .win-layer > * { animation: inspector-in var(--vex-duration) var(--vex-ease); }
 #vex-theme-panel { right: 16px; bottom: 46px; }
-.app-window.expanded { position:fixed; inset:0; width:100vw; height:100vh; border-radius:0; }
+.app-window.expanded { position:fixed; inset:0; width:100%; height:100vh; border-radius:0; }
 #prototype-window-state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
 #restore-window { padding:8px 18px; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:var(--vex-radius-sm); }
 @keyframes node-appear { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
@@ -237,7 +237,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   left: 2px;
   width: 1px;
   background: var(--border);
-  transition: width var(--vex-fast) var(--vex-ease), left var(--vex-fast) var(--vex-ease), background-color var(--vex-fast) var(--vex-ease);
+  transition: background-color var(--vex-fast) var(--vex-ease);
 }
 .structure-splitter:hover,
 .structure-splitter:focus-visible,
@@ -279,7 +279,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .source-scroll textarea{line-height:1.82;caret-color:var(--accent)}
 #markdown-input:focus{outline:none}
 .sage-reading-progress{width:74px;height:3px;border-radius:9px;background:var(--border);overflow:hidden}
-.sage-reading-progress i{display:block;width:0;height:100%;background:var(--accent);transition:width 120ms linear}
+.sage-reading-progress i{display:block;width:0;height:100%;background:var(--accent)}
 :root.sage-focus-mode .nav-rail,
 :root.sage-focus-mode .sidebar,
 :root.sage-focus-mode .structure-sidebar,
