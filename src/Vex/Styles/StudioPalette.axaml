@@ -81,6 +81,22 @@
     <SolidColorBrush x:Key="VexImageBrush" Color="{DynamicResource StudioAccentColor}" />
     <!-- 代码关键字/行内代码文字走文字级强调色（规则 v7 accentInk），不再用 accent 本色（原型 ch-kw 同步）。 -->
     <SolidColorBrush x:Key="VexCodeFgBrush" Color="{DynamicResource StudioAccentInkColor}" />
+    <!-- GitHub Alerts（FR-07）与 Front matter（FR-16）：类别色随状态令牌走（NOTE=info、TIP=success、
+         IMPORTANT=accent、WARNING=warning、CAUTION=danger）；软底用画刷透明度，标签/描边用实色。 -->
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutNoteBorderBrush" Color="{DynamicResource SemiColorInfo}" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutNoteBackgroundBrush" Color="{DynamicResource SemiColorInfo}" Opacity="0.08" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutTipBorderBrush" Color="{DynamicResource SemiColorSuccess}" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutTipBackgroundBrush" Color="{DynamicResource SemiColorSuccess}" Opacity="0.08" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutImportantBorderBrush" Color="{DynamicResource StudioAccentColor}" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutImportantBackgroundBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.08" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutWarningBorderBrush" Color="{DynamicResource SemiColorWarning}" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutWarningBackgroundBrush" Color="{DynamicResource SemiColorWarning}" Opacity="0.08" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutCautionBorderBrush" Color="{DynamicResource SemiColorDanger}" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutCautionBackgroundBrush" Color="{DynamicResource SemiColorDanger}" Opacity="0.08" />
+    <!-- Front matter 元数据卡：中性色（原型 fg 4% 软底 + muted 描边/标签）。 -->
+    <SolidColorBrush x:Key="CodeWFMarkdownFrontMatterBorderBrush" Color="{DynamicResource StudioMutedColor}" />
+    <SolidColorBrush x:Key="CodeWFMarkdownFrontMatterBackgroundBrush" Color="{DynamicResource StudioTextColor}" Opacity="0.04" />
+    <SolidColorBrush x:Key="CodeWFMarkdownFrontMatterForegroundBrush" Color="{DynamicResource StudioTextColor}" />
     <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.06" />
     <!-- 搜索框焦点柔光（原型 .input:focus / .sidebar-search:focus-within 的 box-shadow 0 0 0 3px accent 18%）：
          3px 外扩环用描边画，色取强调令牌 18% 透明，随九套配色与明暗走。 -->

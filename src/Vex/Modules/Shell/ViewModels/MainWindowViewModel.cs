@@ -201,6 +201,18 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                 VexL.ErrorMessageCannotOpenFolderFormat,
                 () => OpenFolderPathCoreAsync(folderPath),
                 folderPath));
+
+        /* FR-15 多文件夹工作区：主根恢复后，追加会话中保存的附加根（缺失目录静默跳过）。 */
+        foreach (var extra in _settingsStore.Current.WorkspaceExtraFolders ?? [])
+        {
+            if (string.IsNullOrWhiteSpace(extra) || !Directory.Exists(extra)) continue;
+            try { _workspaceFiles.AddRoot(extra); }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or InvalidOperationException) { }
+        }
+        if (_workspaceFiles.RootPaths.Count > 1)
+        {
+            PublishDocumentFilesChanged();
+        }
     }
 
     public Task OpenDroppedPathAsync(string path)
@@ -557,6 +569,52 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         await ApplyDocumentFilesAsync(await _documentService.OpenFolderAsync(), true);
     }
 
+    /// <summary>FR-15 多文件夹工作区：向当前工作区追加一个根文件夹（添加不改归属，只挂载）。</summary>
+    public async Task AddFolderToWorkspaceAsync()
+    {
+        var window = Avalonia.Application.Current?.ApplicationLifetime
+            is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime lifetime
+                ? lifetime.MainWindow : null;
+        if (window is null) return;
+        var folders = await window.StorageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions
+        {
+            Title = "添加文件夹",
+            AllowMultiple = false,
+        });
+        var folder = folders.FirstOrDefault();
+        if (folder is null) return;
+        var path = folder.Path.LocalPath;
+        if (!Directory.Exists(path)) return;
+        await RequestUnsavedConfirmationAsync(GuardedAction(VexL.ErrorMessageCannotOpenFolder, () =>
+        {
+            /* FR-15：已有工作区时追加为附加根；冷启动（未打开工作区）等价于打开文件夹。 */
+            if (_workspaceFiles.RootPath is not null)
+                _workspaceFiles.AddRoot(path);
+            else
+                _workspaceFiles.Open(path);
+            _settingsStore.Update(settings => settings with
+            {
+                WorkspaceExtraFolders = _workspaceFiles.RootPaths.Skip(1).ToArray(),
+            });
+            PublishDocumentFilesChanged(FindCurrentDocumentFile());
+            return Task.CompletedTask;
+        }));
+    }
+
+    /// <summary>FR-15：把选中路径所属的附加根从工作区摘除（不删除磁盘文件；主根不可移除）。</summary>
+    public Task RemoveWorkspaceFolderAsync(string? path) => Task.Run(() =>
+    {
+        var root = _workspaceFiles.RootPaths.Skip(1).FirstOrDefault(candidate =>
+            PathsEqual(candidate, path) || path is not null && path.StartsWith(candidate, StringComparison.OrdinalIgnoreCase));
+        if (root is null) return;
+        _workspaceFiles.RemoveRoot(root);
+        _settingsStore.Update(settings => settings with
+        {
+            WorkspaceExtraFolders = _workspaceFiles.RootPaths.Skip(1).ToArray(),
+        });
+        PublishDocumentFilesChanged(FindCurrentDocumentFile());
+    });
+
     private async Task OpenPathCoreAsync(string path)
     {
         await LoadDocumentPathAsync(path);
@@ -818,7 +876,9 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _lastSavedMarkdown = snapshot.Markdown;
         if (snapshot.FilePath is { Length: > 0 } path)
         {
-            if (_watchedFolderPath is { Length: > 0 } watchedFolder && !IsPathUnderDirectory(path, watchedFolder))
+            /* FR-15：路径仍在任一已挂载根内时，不得关闭工作区会话（Close 会销毁全部根与监控器）。 */
+            if (_watchedFolderPath is { Length: > 0 } watchedFolder
+                && !_workspaceFiles.RootPaths.Any(root => IsPathUnderDirectory(path, root)))
             {
                 StopCurrentFolderWatcher();
             }
@@ -976,7 +1036,9 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         // 已打开的深层文档不要求整棵树预先存在，也不在 UI 线程扫描目录。
         selected ??= new DocumentFile(path, Path.GetFileName(path), Path.GetFileName(Path.GetDirectoryName(path)) ?? string.Empty, string.Empty, string.Empty);
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFileSelectionChangedCommand(selected, revealPath: revealPath));
-        if (_workspaceFiles.RootPath is not { } root || !IsPathUnderDirectory(path, root))
+        /* FR-15：检查全部已挂载根（不再只查主根），避免附加根文件触发 InitializeDocumentWorkspaceAsync
+           → EnsureDocumentWorkspaceAsync 早退 → SyncDocumentFileList → Initialize… 的无限递归。 */
+        if (_workspaceFiles.RootPaths is not { Count: > 0 } roots || !roots.Any(root => IsPathUnderDirectory(path, root)))
             _ = InitializeDocumentWorkspaceAsync(path);
     }
 

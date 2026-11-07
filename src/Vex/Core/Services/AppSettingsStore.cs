@@ -22,6 +22,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string ShowLineNumbers = nameof(AppSettings.ShowLineNumbers);
     private const string HasSeenOnboardingGuide = nameof(AppSettings.HasSeenOnboardingGuide);
     private const string LastWorkspaceFolderPath = nameof(AppSettings.LastWorkspaceFolderPath);
+    private const string WorkspaceExtraFolders = nameof(AppSettings.WorkspaceExtraFolders);
     private const string WindowWidth = nameof(AppSettings.WindowWidth);
     private const string WindowHeight = nameof(AppSettings.WindowHeight);
     private const string IsWindowMaximized = nameof(AppSettings.IsWindowMaximized);
@@ -196,6 +197,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             ShowLineNumbers = Get<bool?>(configuration, ShowLineNumbers),
             HasSeenOnboardingGuide = Get<bool?>(configuration, HasSeenOnboardingGuide),
             LastWorkspaceFolderPath = Get<string>(configuration, LastWorkspaceFolderPath),
+            WorkspaceExtraFolders = GetList<string>(configuration, WorkspaceExtraFolders),
             WindowWidth = Get<double?>(configuration, WindowWidth),
             WindowHeight = Get<double?>(configuration, WindowHeight),
             IsWindowMaximized = Get<bool?>(configuration, IsWindowMaximized),
@@ -294,6 +296,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [ShowLineNumbers] = settings.ShowLineNumbers,
                 [HasSeenOnboardingGuide] = settings.HasSeenOnboardingGuide,
                 [LastWorkspaceFolderPath] = settings.LastWorkspaceFolderPath,
+                [WorkspaceExtraFolders] = settings.WorkspaceExtraFolders,
                 [WindowWidth] = settings.WindowWidth,
                 [WindowHeight] = settings.WindowHeight,
                 [IsWindowMaximized] = settings.IsWindowMaximized,
@@ -331,6 +334,12 @@ public sealed class AppSettingsStore : IAppSettingsStore
         return value is not null && values.Contains(value, StringComparer.Ordinal) ? value : fallback;
     }
 
+    private static IReadOnlyList<T>? GetList<T>(IReadOnlyDictionary<string, string> configuration, string key)
+    {
+        var raw = Get<string>(configuration, key);
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        return raw.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Cast<T>().ToList();
+    }
     private static T? Get<T>(IReadOnlyDictionary<string, string> configuration, string key)
     {
         return configuration.TryGet<T>(key, out var value)

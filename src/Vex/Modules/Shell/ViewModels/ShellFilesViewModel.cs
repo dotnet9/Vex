@@ -108,7 +108,22 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     }
 
     private string? _workspacePath;
-    public string WorkspaceName => _workspacePath is { Length: > 0 } path ? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) : CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.SidebarFiles) ?? string.Empty;
+    public string WorkspaceName
+    {
+        get
+        {
+            if (_workspaceFiles is not null)
+            {
+                var roots = _workspaceFiles.RootPaths;
+                if (roots.Count > 1)
+                {
+                    var names = roots.Select(path => Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)));
+                    return string.Join(" · ", names);
+                }
+            }
+            return _workspacePath is { Length: > 0 } path ? Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) : CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.SidebarFiles) ?? string.Empty;
+        }
+    }
 
     private string _filterText = string.Empty;
 
@@ -164,6 +179,19 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
     /// <summary>请求打开一个 Markdown 文件夹，由 Shell 协调层处理未保存确认和文件读取。</summary>
     public void OpenFolderAsync() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.OpenFolder));
+
+    /// <summary>FR-15 多文件夹工作区：向当前工作区追加一个文件夹（由 Shell 处理文件夹选择与挂载）。</summary>
+    public void AddFolderToWorkspaceAsync() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.AddFolderToWorkspace));
+
+    /// <summary>FR-15：移除当前选中文件所属的附加根（由 Shell 解析归属并摘除；不删除磁盘文件）。</summary>
+    public void RemoveWorkspaceFolderFromSelectionAsync()
+    {
+        var path = SelectedDocumentFileNode?.Path;
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.RemoveWorkspaceFolder, path));
+    }
+
+    /// <summary>FR-15：挂载了多个根时，附加根才可移除（主根常驻）。</summary>
+    public bool HasRemovableWorkspaceFolder => _workspaceFiles is not null && _workspaceFiles.RootPaths.Count > 1;
 
     public void OpenSelectedFile()
     {

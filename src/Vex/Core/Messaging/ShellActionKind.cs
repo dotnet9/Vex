@@ -26,5 +26,7 @@ public enum ShellActionKind
     ShowMcpSettings,
     ShowMcpAudit,
     RefreshFiles,
-    OpenPathLocation
+    OpenPathLocation,
+    AddFolderToWorkspace,
+    RemoveWorkspaceFolder
 }

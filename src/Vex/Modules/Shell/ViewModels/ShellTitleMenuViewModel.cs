@@ -57,6 +57,9 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
 
     public void OpenFolderAsync() => Publish(ShellActionKind.OpenFolder);
 
+    /// <summary>FR-15 多文件夹工作区：追加一个文件夹根（由 Shell 弹文件夹选择器并挂载）。</summary>
+    public void AddFolderToWorkspace() => Publish(ShellActionKind.AddFolderToWorkspace);
+
     public void QuickOpenAsync() => Publish(ShellActionKind.QuickOpen);
 
     public void OpenRecentDocument1Async() => Publish(ShellActionKind.OpenRecentDocument, "0");

@@ -17,14 +17,17 @@
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFile}}" Command="{Binding OpenAsync}" InputGesture="Ctrl+O" />
             <MenuItem x:Name="OpenFolderMenuItem" Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" />
+            <MenuItem Header="添加文件夹到工作区" Command="{Binding AddFolderToWorkspace}"
+                      helpers:ToolTipHelper.Text="追加一个文件夹到当前工作区（不替换已有文件夹）"
+                      helpers:ToolTipHelper.MaxWidth="480" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuSamples}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="samples" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.QuickOpen}}" Command="{Binding QuickOpenAsync}" InputGesture="Ctrl+P" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenRecent}}" IsEnabled="{Binding Recent.HasRecentDocuments}">
-                <MenuItem Header="{Binding Recent.RecentDocument1Text}" Command="{Binding OpenRecentDocument1Async}" IsVisible="{Binding Recent.HasRecentDocument1}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument1ToolTip}" />
-                <MenuItem Header="{Binding Recent.RecentDocument2Text}" Command="{Binding OpenRecentDocument2Async}" IsVisible="{Binding Recent.HasRecentDocument2}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument2ToolTip}" />
-                <MenuItem Header="{Binding Recent.RecentDocument3Text}" Command="{Binding OpenRecentDocument3Async}" IsVisible="{Binding Recent.HasRecentDocument3}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument3ToolTip}" />
-                <MenuItem Header="{Binding Recent.RecentDocument4Text}" Command="{Binding OpenRecentDocument4Async}" IsVisible="{Binding Recent.HasRecentDocument4}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument4ToolTip}" />
-                <MenuItem Header="{Binding Recent.RecentDocument5Text}" Command="{Binding OpenRecentDocument5Async}" IsVisible="{Binding Recent.HasRecentDocument5}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument5ToolTip}" />
+                <MenuItem Header="{Binding Recent.RecentDocument1Text}" Command="{Binding OpenRecentDocument1Async}" IsVisible="{Binding Recent.HasRecentDocument1}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument1ToolTip}" helpers:ToolTipHelper.MaxWidth="480" />
+                <MenuItem Header="{Binding Recent.RecentDocument2Text}" Command="{Binding OpenRecentDocument2Async}" IsVisible="{Binding Recent.HasRecentDocument2}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument2ToolTip}" helpers:ToolTipHelper.MaxWidth="480" />
+                <MenuItem Header="{Binding Recent.RecentDocument3Text}" Command="{Binding OpenRecentDocument3Async}" IsVisible="{Binding Recent.HasRecentDocument3}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument3ToolTip}" helpers:ToolTipHelper.MaxWidth="480" />
+                <MenuItem Header="{Binding Recent.RecentDocument4Text}" Command="{Binding OpenRecentDocument4Async}" IsVisible="{Binding Recent.HasRecentDocument4}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument4ToolTip}" helpers:ToolTipHelper.MaxWidth="480" />
+                <MenuItem Header="{Binding Recent.RecentDocument5Text}" Command="{Binding OpenRecentDocument5Async}" IsVisible="{Binding Recent.HasRecentDocument5}" helpers:ToolTipHelper.Text="{Binding Recent.RecentDocument5ToolTip}" helpers:ToolTipHelper.MaxWidth="480" />
                 <Separator />
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.ClearRecent}}" Command="{Binding Recent.ClearRecentDocuments}" />
             </MenuItem>

@@ -21,6 +21,16 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
     public event EventHandler<WorkspaceFilesChangedEventArgs>? Changed;
 
     public string? RootPath { get { lock (_gate) return _session?.Root; } }
+    public IReadOnlyList<string> RootPaths
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _session is { } session ? session.Roots : [];
+            }
+        }
+    }
     public long Generation { get { lock (_gate) return _generation; } }
 
     public WorkspaceFileServiceDiagnostics Diagnostics => new(
@@ -69,6 +79,67 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
             _generation++;
         }
         Release(previous);
+    }
+
+    /// <summary>FR-15 多文件夹工作区：向当前工作区追加一个根（不替换、不嵌套），监控与索引随后就位。</summary>
+    public void AddRoot(string rootPath)
+    {
+        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(rootPath));
+        if (!Directory.Exists(root)) throw new DirectoryNotFoundException(root);
+        Session session;
+        lock (_gate)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            session = RequireSession();
+            if (session.Roots.Any(existing => WorkspaceFileEnumeration.PathComparer.Equals(existing, root))
+                || session.Roots.Any(existing => IsWithin(existing, root) || IsWithin(root, existing)))
+                throw new InvalidOperationException("新文件夹与现有工作区文件夹重叠，无法添加。");
+            WorkspaceFileMonitor monitor;
+            try
+            {
+                monitor = new WorkspaceFileMonitor(root,
+                    path => IsKnownDirectory(session, path),
+                    (changes, recovery, error) => OnMonitorChanged(session, changes, recovery, error));
+            }
+            catch (Exception ex) when (ex is IOException or ArgumentException)
+            {
+                throw;
+            }
+            session.ExtraMonitors.Add(monitor);
+            session.ExtraRoots.Add(root);
+            _generation++;
+        }
+        Publish(session, [root], [], true, null);
+    }
+
+    /// <summary>FR-15：移除一个附加根（只从工作区摘除，不删除磁盘内容）；主根不可移除。</summary>
+    public void RemoveRoot(string rootPath)
+    {
+        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(rootPath));
+        Session session;
+        lock (_gate)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            session = RequireSession();
+            var index = session.ExtraRoots.FindIndex(existing => WorkspaceFileEnumeration.PathComparer.Equals(existing, root));
+            if (index < 0) throw new InvalidOperationException("只能移除以「添加文件夹」方式挂载的附加文件夹。");
+            var monitor = session.ExtraMonitors.ElementAtOrDefault(index);
+            session.ExtraRoots.RemoveAt(index);
+            if (monitor is not null)
+            {
+                session.ExtraMonitors.Remove(monitor);
+                monitor.Dispose();
+            }
+            _generation++;
+            foreach (var key in session.Directories.Keys.Where(path => IsWithin(root, path)).ToArray()) session.Directories.Remove(key);
+            session.KnownDirectories.RemoveWhere(path => IsWithin(root, path));
+            foreach (var key in session.Previews.Keys.Where(path => IsWithin(root, path)).ToArray()) session.Previews.Remove(key);
+            if (session.Index is not null)
+            {
+                foreach (var removed in session.Index.Keys.Where(path => IsWithin(root, path)).ToArray()) session.Index.Remove(removed);
+            }
+        }
+        Publish(session, [], [root], true, null);
     }
 
     /// <summary>使已加载缓存失效，由界面仅重新读取展开的目录。</summary>
@@ -195,7 +266,11 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
         }
         if (index is null)
         {
-            index = await ScanIndexAsync(session, session.Root).ConfigureAwait(false);
+            index = new Dictionary<string, DocumentFile>(WorkspaceFileEnumeration.PathComparer);
+            foreach (var root in session.Roots)
+            {
+                foreach (var pair in await ScanIndexAsync(session, root).ConfigureAwait(false)) index[pair.Key] = pair.Value;
+            }
         }
 
         while (true)
@@ -214,7 +289,7 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
             }
             foreach (var path in CollapsePaths(pending))
             {
-                if (WorkspaceFileEnumeration.PathComparer.Equals(path, session.Root) && !Directory.Exists(path))
+                if (session.Roots.Any(root => WorkspaceFileEnumeration.PathComparer.Equals(path, root)) && !Directory.Exists(path))
                     throw new DirectoryNotFoundException(path);
                 foreach (var removed in index.Keys.Where(candidate => IsWithin(path, candidate)).ToArray()) index.Remove(removed);
                 if (Directory.Exists(path))
@@ -223,7 +298,7 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
                 }
                 else if (File.Exists(path) && WorkspaceFileEnumeration.IsSupportedDocumentPath(path))
                 {
-                    var file = await RunDiskAsync(session, () => documentFileFactory.Create(path, session.Root)).ConfigureAwait(false);
+                    var file = await RunDiskAsync(session, () => documentFileFactory.Create(path, RootOf(session, path) ?? session.Root)).ConfigureAwait(false);
                     index[path] = file;
                 }
             }
@@ -244,7 +319,7 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
                      }
                  }))
         {
-            if (WorkspaceFileEnumeration.IsSupportedDocumentPath(candidate)) index[candidate] = documentFileFactory.Create(candidate, session.Root);
+            if (WorkspaceFileEnumeration.IsSupportedDocumentPath(candidate)) index[candidate] = documentFileFactory.Create(candidate, RootOf(session, candidate) ?? session.Root);
         }
         return index;
     });
@@ -301,7 +376,7 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
         lock (_gate)
         {
             return _session is { } session && session.Generation == snapshot.Generation
-                && WorkspaceFileEnumeration.PathComparer.Equals(session.Root, snapshot.RootPath)
+                && session.Roots.Any(root => WorkspaceFileEnumeration.PathComparer.Equals(root, snapshot.RootPath))
                 && session.Directories.TryGetValue(snapshot.Path, out var cache) && cache.Revision == snapshot.Revision;
         }
     }
@@ -309,9 +384,9 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
     /// <summary>监控溢出和可控验证共用恢复入口，不预先建立尚未请求的索引。</summary>
     public void RequestRecovery(Exception? error = null)
     {
-        WorkspaceFileMonitor monitor;
-        lock (_gate) monitor = RequireSession().Monitor!;
-        monitor.ReportError(error);
+        WorkspaceFileMonitor[] monitors;
+        lock (_gate) monitors = [.. RequireSession().Monitors];
+        foreach (var monitor in monitors) monitor.ReportError(error);
     }
 
     private bool IsKnownDirectory(Session session, string path)
@@ -362,7 +437,10 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
                     preview.Value = null;
                     preview.Task = null;
                 }
-                if (session.Index is not null || session.IndexTask is not null) session.PendingIndex.Add(session.Root);
+                if (session.Index is not null || session.IndexTask is not null)
+                {
+                    foreach (var root in session.Roots) session.PendingIndex.Add(root);
+                }
             }
             foreach (var directory in affected)
             {
@@ -382,6 +460,7 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
             try
             {
                 session.Monitor!.RetryWatching();
+                foreach (var monitor in session.ExtraMonitors) monitor.RetryWatching();
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
             {
@@ -395,7 +474,7 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
     {
         try
         {
-            var file = await RunDiskAsync(session, () => documentFileFactory.Create(path, session.Root)).ConfigureAwait(false);
+            var file = await RunDiskAsync(session, () => documentFileFactory.Create(path, RootOf(session, path) ?? session.Root)).ConfigureAwait(false);
             lock (_gate)
             {
                 EnsureCurrent(session);
@@ -468,7 +547,10 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
             lock (_gate)
             {
                 if (ReferenceEquals(session.IndexTask, completion.Task)) session.IndexTask = null;
-                if (ReferenceEquals(_session, session)) session.PendingIndex.Add(session.Root);
+                if (ReferenceEquals(_session, session))
+                {
+                    foreach (var root in session.Roots) session.PendingIndex.Add(root);
+                }
             }
             completion.TrySetException(ex);
             Publish(session, [], [], true, ex);
@@ -527,17 +609,23 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
     private static string ValidatePath(Session session, string path, bool directory, bool checkLinks = true)
     {
         path = Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
-        if (!WorkspaceFileEnumeration.IsVisiblePath(session.Root, path)
-            || directory && !WorkspaceFileEnumeration.PathComparer.Equals(path, session.Root) && Path.GetFileName(path).StartsWith(".", StringComparison.Ordinal))
+        var root = RootOf(session, path);
+        if (root is null
+            || !WorkspaceFileEnumeration.IsVisiblePath(root, path)
+            || directory && !WorkspaceFileEnumeration.PathComparer.Equals(path, root) && Path.GetFileName(path).StartsWith(".", StringComparison.Ordinal))
             throw new UnauthorizedAccessException(path);
         if (!checkLinks) return path;
-        for (var current = path; !WorkspaceFileEnumeration.PathComparer.Equals(current, session.Root); current = Path.GetDirectoryName(current)!)
+        for (var current = path; !session.Roots.Any(candidate => WorkspaceFileEnumeration.PathComparer.Equals(current, candidate)); current = Path.GetDirectoryName(current)!)
         {
             if (string.IsNullOrEmpty(current)) throw new UnauthorizedAccessException(path);
             if ((File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0) throw new UnauthorizedAccessException(path);
         }
         return path;
     }
+
+    /// <summary>路径所属的工作区根（FR-15 多根）；不在任何根内时返回 null。</summary>
+    private static string? RootOf(Session session, string path)
+        => session.Roots.FirstOrDefault(root => IsWithin(root, path));
 
     private static bool IsWithin(string parent, string path)
     {
@@ -570,6 +658,8 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
         if (session is null) return;
         session.Cancellation.Cancel();
         session.Monitor?.Dispose();
+        foreach (var monitor in session.ExtraMonitors) monitor.Dispose();
+        session.ExtraMonitors.Clear();
         session.Cancellation.Dispose();
     }
 
@@ -596,7 +686,23 @@ public sealed class WorkspaceFileService(IDocumentFileFactory documentFileFactor
         public long Generation { get; }
         public CancellationTokenSource Cancellation { get; } = new();
         public CancellationToken Token { get; }
-        public WorkspaceFileMonitor? Monitor { get; set; }
+        public WorkspaceFileMonitor? Monitor
+        {
+            get => Monitors.FirstOrDefault();
+            set
+            {
+                Monitors.Clear();
+                if (value is not null) Monitors.Add(value);
+            }
+        }
+        /// <summary>全部根的监控（首根 + 附加根，FR-15）。</summary>
+        public List<WorkspaceFileMonitor> Monitors { get; } = new();
+        /// <summary>FR-15 多文件夹工作区：附加根（首根 Root 之外，按添加顺序）。</summary>
+        public List<string> ExtraRoots { get; } = new();
+        public List<WorkspaceFileMonitor> ExtraMonitors { get; } = new();
+        public IReadOnlyList<string> Roots => ExtraRoots.Count == 0
+            ? [Root]
+            : [Root, .. ExtraRoots];
         public Dictionary<string, DirectoryCache> Directories { get; } = new(WorkspaceFileEnumeration.PathComparer);
         public HashSet<string> KnownDirectories { get; } = new(WorkspaceFileEnumeration.PathComparer);
         public Dictionary<string, PreviewCache> Previews { get; } = new(WorkspaceFileEnumeration.PathComparer);

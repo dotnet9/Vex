@@ -37,15 +37,29 @@ public sealed partial class ShellFilesViewModel
         _workspacePath = _workspaceFiles.RootPath;
         OnPropertyChanged(nameof(WorkspaceName));
         SelectDocumentFileSilently(null);
-        if (_workspacePath is { Length: > 0 } path)
+        /* FR-15 多文件夹工作区：每个已挂载根一个顶层节点；首个根默认展开。 */
+        var rootPaths = _workspaceFiles.RootPaths;
+        _batchExpansionChange = true;
+        try
         {
-            var name = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-            var root = CreateDirectoryNode(string.IsNullOrEmpty(name) ? path : name, path, null);
-            DocumentFileNodes.Add(root);
-            _batchExpansionChange = true;
-            try { root.IsExpanded = true; }
-            finally { _batchExpansionChange = false; }
-            SelectDocumentFileSilently(root);
+            for (var index = 0; index < rootPaths.Count; index++)
+            {
+                var path = rootPaths[index];
+                var name = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                var root = CreateDirectoryNode(string.IsNullOrEmpty(name) ? path : name, path, null);
+                DocumentFileNodes.Add(root);
+                if (index == 0)
+                {
+                    root.IsExpanded = true;
+                    SelectDocumentFileSilently(root);
+                }
+            }
+        }
+        finally { _batchExpansionChange = false; }
+        if (rootPaths.Count == 0)
+        {
+            SelectDocumentFileSilently(null);
+            RebuildWorkspaceProjection();
         }
         RebuildWorkspaceProjection();
     }

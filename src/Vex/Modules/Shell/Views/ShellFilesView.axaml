@@ -344,6 +344,7 @@
                     <Separator />
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}"/>
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}"/>
+                    <MenuItem Header="从工作区移除附加文件夹" Command="{Binding RemoveWorkspaceFolderFromSelectionAsync}" IsEnabled="{Binding HasRemovableWorkspaceFolder}"/>
                     <MenuItem Header="{i18n:I18n Vex.VexL.RefreshFiles}" Command="{Binding RefreshFiles}"/>
                     <Separator />
                     <MenuItem
@@ -403,6 +404,7 @@
                     <Separator />
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}"/>
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" helpers:ToolTipHelper.Text="{Binding WorkspaceName}"/>
+                    <MenuItem Header="从工作区移除附加文件夹" Command="{Binding RemoveWorkspaceFolderFromSelectionAsync}" IsEnabled="{Binding HasRemovableWorkspaceFolder}"/>
                     <MenuItem Header="{i18n:I18n Vex.VexL.RefreshFiles}" Command="{Binding RefreshFiles}"/>
                     <Separator />
                     <MenuItem

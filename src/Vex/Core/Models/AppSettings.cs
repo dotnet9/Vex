@@ -63,6 +63,9 @@ public sealed record AppSettings
 
     public string? LastWorkspaceFolderPath { get; init; }
 
+    /// <summary>FR-15 多文件夹工作区：附加根路径（首根之外）。</summary>
+    public IReadOnlyList<string>? WorkspaceExtraFolders { get; init; }
+
     public double? WindowWidth { get; init; }
 
     public double? WindowHeight { get; init; }

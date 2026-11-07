@@ -6,12 +6,13 @@ namespace Vex.Modules.Shell.ViewModels;
 
 public sealed partial class MainWindowViewModel
 {
-    /// <summary>直接打开文件时先建立父工作区，读取只涉及父目录的一层。</summary>
+    /// <summary>直接打开文件时先确保所在工作区根已挂载（FR-15：路径在任一已挂载根下即命中，不替换工作区）。</summary>
     private async Task EnsureDocumentWorkspaceAsync(string path)
     {
-        if (_workspaceFiles.RootPath is { } root && IsPathUnderDirectory(path, root)) return;
+        if (_workspaceFiles.RootPaths.Any(root => IsPathUnderDirectory(path, root))) return;
         if (Path.GetDirectoryName(Path.GetFullPath(path)) is not { } directory) return;
         _workspaceFiles.Open(directory);
+        ClearPersistedWorkspaceExtras();
         var generation = _workspaceFiles.Generation;
         UpdateCurrentWorkspaceFolder(directory, true);
         var snapshot = await _workspaceFiles.GetDirectoryAsync(directory);
@@ -38,11 +39,21 @@ public sealed partial class MainWindowViewModel
 
     private void StartCurrentFolderWatcher(string? folderPath)
     {
-        // 工作区服务在首次快照前挂接唯一递归监控器，这里仅协调会话身份。
+        // 工作区服务在首次快照前挂接递归监控器；路径已在任一已挂载根下时不再替换。
         if (folderPath is not { Length: > 0 }) return;
-        if (_workspaceFiles.RootPath is not { } root || !PathsEqual(root, folderPath))
-            _workspaceFiles.Open(folderPath);
+        if (_workspaceFiles.RootPaths.Any(root => PathsEqual(root, folderPath))) return;
+        _workspaceFiles.Open(folderPath);
+        ClearPersistedWorkspaceExtras();
         _watchedFolderPath = folderPath;
+    }
+
+    /// <summary>FR-15：替换主根时清掉上一工作区的附加根持久化，避免旧附加根挂到新主根下。</summary>
+    private void ClearPersistedWorkspaceExtras()
+    {
+        if (_settingsStore.Current.WorkspaceExtraFolders is { Count: > 0 })
+        {
+            _settingsStore.Update(settings => settings with { WorkspaceExtraFolders = null });
+        }
     }
 
     private void StopCurrentFolderWatcher()

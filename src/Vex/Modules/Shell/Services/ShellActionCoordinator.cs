@@ -49,7 +49,7 @@ public sealed class ShellActionCoordinator
         {
             if (_shell.Workbench.IsGuiding && (_shell.Workbench.GuideStep != 5
                 || command.Action is not (ShellActionKind.Save or ShellActionKind.SaveAs or ShellActionKind.Export or ShellActionKind.CopyHtml))) return;
-            if (command.Action is ShellActionKind.NewDocument or ShellActionKind.Open or ShellActionKind.OpenFolder
+            if (command.Action is ShellActionKind.NewDocument or ShellActionKind.Open or ShellActionKind.OpenFolder or ShellActionKind.AddFolderToWorkspace
                 or ShellActionKind.QuickOpen or ShellActionKind.OpenRecentDocument or ShellActionKind.ReopenWithEncoding
                 or ShellActionKind.CloseDocument or ShellActionKind.Delete)
                 _shell.Workbench.ExitGuide();
@@ -75,6 +75,12 @@ public sealed class ShellActionCoordinator
                     break;
                 case ShellActionKind.OpenFolder:
                     await _shell.OpenFolderAsync();
+                    break;
+                case ShellActionKind.AddFolderToWorkspace:
+                    await _shell.AddFolderToWorkspaceAsync();
+                    break;
+                case ShellActionKind.RemoveWorkspaceFolder:
+                    await _shell.RemoveWorkspaceFolderAsync(command.Parameter);
                     break;
                 case ShellActionKind.QuickOpen:
                     await ShowQuickOpenAsync();
