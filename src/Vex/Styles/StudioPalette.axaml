@@ -31,6 +31,10 @@
     <SolidColorBrush x:Key="VexPanelBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <!-- 原型表单控件描边走 control-border（比行分隔线 border 深一档），只有输入类控件用它。 -->
     <SolidColorBrush x:Key="VexControlBorderBrush" Color="{DynamicResource StudioControlBorderColor}" />
+    <!-- 原型 fieldBorder 令牌（规则 v7）：输入类控件描边，对所在面板 ≥3:1（Hallmark 40 字段边缘判定）。 -->
+    <SolidColorBrush x:Key="VexFieldBorderBrush" Color="{DynamicResource StudioFieldBorderColor}" />
+    <!-- 原型 accentInk 令牌（规则 v7）：accent 落在正文/代码文字上时的文字级强调色，≥4.5:1。 -->
+    <SolidColorBrush x:Key="VexAccentInkBrush" Color="{DynamicResource StudioAccentInkColor}" />
     <!-- 原型 code-bg 每套色板都等于 panel（StudioSurfaceColor 即派生后的 panel），代码块靠它比 bg 内容底多一档灰。 -->
     <SolidColorBrush x:Key="VexCodeBackgroundBrush" Color="{DynamicResource StudioSurfaceColor}" />
     <!-- 原型 .view-heading/#edit-options 底边：探针实测为全强度 border（rgb=边框令牌原值）。 -->
@@ -75,7 +79,8 @@
     <SolidColorBrush x:Key="VexAccentBrush" Color="{DynamicResource StudioAccentColor}" />
     <SolidColorBrush x:Key="VexLinkBrush" Color="{DynamicResource StudioAccentColor}" />
     <SolidColorBrush x:Key="VexImageBrush" Color="{DynamicResource StudioAccentColor}" />
-    <SolidColorBrush x:Key="VexCodeFgBrush" Color="{DynamicResource StudioAccentColor}" />
+    <!-- 代码关键字/行内代码文字走文字级强调色（规则 v7 accentInk），不再用 accent 本色（原型 ch-kw 同步）。 -->
+    <SolidColorBrush x:Key="VexCodeFgBrush" Color="{DynamicResource StudioAccentInkColor}" />
     <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.06" />
     <!-- 搜索框焦点柔光（原型 .input:focus / .sidebar-search:focus-within 的 box-shadow 0 0 0 3px accent 18%）：
          3px 外扩环用描边画，色取强调令牌 18% 透明，随九套配色与明暗走。 -->

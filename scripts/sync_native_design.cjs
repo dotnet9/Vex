@@ -85,7 +85,7 @@ for (const p of palettes) for (const mode of ['light','dark']) {
   text=text.replace(/<SolidColorBrush x:Key="([^"]+)">[^<]+<\/SolidColorBrush>/g,(all,key)=>brushes[key]?`<SolidColorBrush x:Key="${key}">${brushes[key]}</SolidColorBrush>`:all);
   /* 操作面渐变的第二停点走装饰副色（--gradient-end），已在 colors 里按键派发，
    * 这里不再整段改写模板中的 GradientStop——那会把它压回 primary，库里的「独立渐变」设计随之消失。 */
-  const extra={StudioHover:t.hover,StudioPressed:t.pressed,StudioSelected:t['accent-soft'],StudioControlBorder:t['control-border'],StudioFocusRing:t['focus-ring'],StudioDisabled:t['fg-disabled']};
+  const extra={StudioHover:t.hover,StudioPressed:t.pressed,StudioSelected:t['accent-soft'],StudioControlBorder:t['control-border'],StudioAccentInk:t['accent-ink'],StudioFieldBorder:t['field-border'],StudioFocusRing:t['focus-ring'],StudioDisabled:t['fg-disabled']};
   const extraText=Object.entries(extra).map(([key,value])=>`    <Color x:Key="${key}Color">${value}</Color>\n    <SolidColorBrush x:Key="${key}" Color="{StaticResource ${key}Color}"/>`).join('\n');
   text=text.replace('    <!-- 颜色令牌',`    <Color x:Key="StudioPaperColor">${colors.StudioPaperColor}</Color>\n${extraText}\n    <!-- 颜色令牌`);
   write(path.join(tokens,names[p.key]+(dark?'Dark':'Light')+'.axaml'),text);

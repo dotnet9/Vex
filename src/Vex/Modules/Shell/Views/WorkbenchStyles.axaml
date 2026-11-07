@@ -15,7 +15,7 @@
   <Style Selector="Grid.search-shell Border.search-frame">
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusPill}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource VexFieldBorderBrush}" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Transitions">
       <Transitions>
@@ -1005,7 +1005,7 @@
     <Setter Property="Padding" Value="9,5"/>
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexFieldBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
   </Style>
@@ -1016,7 +1016,7 @@
     <Setter Property="Padding" Value="9,5"/>
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexFieldBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
     <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -1029,7 +1029,7 @@
     <Setter Property="Padding" Value="9,5"/>
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusXs}"/>
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexFieldBorderBrush}"/>
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
     <Setter Property="HorizontalAlignment" Value="Stretch"/>

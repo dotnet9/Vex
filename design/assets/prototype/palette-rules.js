@@ -207,6 +207,9 @@
       'fg-disabled': resolved.disabledText,
       border: resolved.border, line: resolved.border, 'badge-border': resolved.border, 'currentline-border': resolved.border,
       'control-border': resolved.controlBorder,
+      /* v7：文字级强调色（accent 作正文/代码文字，≥4.5:1）与输入控件描边（≥3:1）。
+       * 词汇表：field-border 落在去温 paper（= CSS 的 --surface），与引擎 Mix(paper, ink, 0.55) 同式。 */
+      'accent-ink': resolved.accentInk, 'field-border': resolved.fieldBorder,
       hover: resolved.hover, raised: resolved.raised, 'currentline-bg': resolved.raised,
       pressed: resolved.selected, selected: resolved.selected, 'accent-soft': resolved.accentSoft,
       selection: resolved.selection,
