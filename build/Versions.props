@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <CodeWFAvaloniaVersion>12.1.5.3</CodeWFAvaloniaVersion>
+    <CodeWFAvaloniaVersion>12.1.5.4</CodeWFAvaloniaVersion>
     <CodeWFToolkitVersion>1.1.6</CodeWFToolkitVersion>
     <AvaloniaVersion>12.1.5</AvaloniaVersion>
     <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
