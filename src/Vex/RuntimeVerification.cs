@@ -28,7 +28,7 @@ internal static class RuntimeVerification
 {
     private static string _uiDirectory = string.Empty;
 
-    public static void RunUi(string directory)
+    public static void RunUi(string directory, string? articlePath = null)
     {
         Run(directory);
         _uiDirectory = Path.GetFullPath(directory);
@@ -89,11 +89,55 @@ internal static class RuntimeVerification
                 renders++;
             }
             VerifyOutline(window);
+            if (articlePath is not null) VerifyArticleTableImages(window, articlePath);
             var result = $"NativeAOT UI verification passed; languages=4; themes=2; renders={renders}; operationErrors=0; outlineNavigation=passed; readingChapter=passed; preferences=isolated";
             File.WriteAllText(Path.Combine(_uiDirectory, "ui-verification.txt"), result);
             Console.WriteLine(result);
         }
         finally { window.Close(); }
+    }
+
+    private static void VerifyArticleTableImages(MainWindow window, string articlePath)
+    {
+        var model = (MainWindowViewModel)window.DataContext!;
+        var source = File.ReadAllText(articlePath);
+        var opening = model.OpenPathAsync(articlePath);
+        Wait(() => opening.IsCompleted); opening.GetAwaiter().GetResult();
+        foreach (var layout in new[] { "read", "instant" })
+        {
+            model.Workbench.SelectLayout(layout);
+            var view = window.Workspace.FindControl<Control>(layout == "read" ? "PreviewGuideTarget" : "InstantGuideTarget")!;
+            var ready = Environment.TickCount64 + 300; Wait(() => Environment.TickCount64 >= ready);
+            var scroll = view.GetVisualDescendants().OfType<ScrollViewer>().OrderByDescending(control => control.Extent.Height - control.Viewport.Height).First();
+            scroll.ScrollToEnd();
+            CodeWF.Avalonia.Markdown.Controls.MarkdownImage[] Images() => view.GetVisualDescendants()
+                .OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownImage>()
+                .Where(image => image.GetVisualAncestors().OfType<Control>().Any(control => control.Classes.Contains("MdTableCell") || control.Classes.Contains("MdTableHeaderCell")))
+                .ToArray();
+            Wait(() => Images().Length >= 2 && Images().All(image => image.Bounds.Height > 30
+                && image.GetVisualDescendants().OfType<Image>().Any(bitmap => bitmap.Source is not null && bitmap.Bounds.Height > 20)));
+            var images = Images();
+            images[0].BringIntoView();
+            var settle = Environment.TickCount64 + 300; Wait(() => Environment.TickCount64 >= settle);
+            using var bitmap = new RenderTargetBitmap(new PixelSize(1280, 820));
+            bitmap.Render(window); bitmap.Save(Path.Combine(_uiDirectory, "article-table-images-" + layout + ".png"));
+            if (model.Markdown != source || File.ReadAllText(articlePath) != source)
+                throw new InvalidOperationException("Article image verification changed its source.");
+            Console.WriteLine($"Article table images passed: layout={layout}; count={images.Length}; {string.Join("; ", images.Select(image => image.Bounds.Size))}");
+        }
+
+        void Wait(Func<bool> condition)
+        {
+            var deadline = Environment.TickCount64 + 30000;
+            var frame = new DispatcherFrame();
+            var passed = false;
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(10) };
+            timer.Tick += (_, _) => { window.UpdateLayout(); passed = condition(); if (passed || Environment.TickCount64 >= deadline) frame.Continue = false; };
+            timer.Start();
+            try { Dispatcher.UIThread.PushFrame(frame); }
+            finally { timer.Stop(); }
+            if (!passed) throw new TimeoutException("Article table images did not finish rendering: " + articlePath);
+        }
     }
 
     private static void VerifyOutline(MainWindow window)
