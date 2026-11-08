@@ -578,7 +578,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         if (window is null) return;
         var folders = await window.StorageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions
         {
-            Title = "添加文件夹",
+            Title = _localizer.Get(VexL.DialogAddFolderTitle),
             AllowMultiple = false,
         });
         var folder = folders.FirstOrDefault();

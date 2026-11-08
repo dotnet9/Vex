@@ -88,6 +88,10 @@ public static class VexL
     public static readonly string TitleLanguage = "Vex.VexL.TitleLanguage";
     public static readonly string OpenFile = "Vex.VexL.OpenFile";
     public static readonly string OpenFolder = "Vex.VexL.OpenFolder";
+    public static readonly string AddFolderToWorkspace = "Vex.VexL.AddFolderToWorkspace";
+    public static readonly string AddFolderToWorkspaceHint = "Vex.VexL.AddFolderToWorkspaceHint";
+    public static readonly string RemoveWorkspaceFolder = "Vex.VexL.RemoveWorkspaceFolder";
+    public static readonly string DialogAddFolderTitle = "Vex.VexL.DialogAddFolderTitle";
     public static readonly string QuickOpen = "Vex.VexL.QuickOpen";
     public static readonly string OpenRecent = "Vex.VexL.OpenRecent";
     public static readonly string ClearRecent = "Vex.VexL.ClearRecent";

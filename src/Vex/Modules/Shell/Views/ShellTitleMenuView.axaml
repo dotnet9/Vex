@@ -17,8 +17,8 @@
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFile}}" Command="{Binding OpenAsync}" InputGesture="Ctrl+O" />
             <MenuItem x:Name="OpenFolderMenuItem" Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" />
-            <MenuItem Header="添加文件夹到工作区" Command="{Binding AddFolderToWorkspace}"
-                      helpers:ToolTipHelper.Text="追加一个文件夹到当前工作区（不替换已有文件夹）"
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.AddFolderToWorkspace}}" Command="{Binding AddFolderToWorkspace}"
+                      helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.AddFolderToWorkspaceHint}}"
                       helpers:ToolTipHelper.MaxWidth="480" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuSamples}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="samples" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.QuickOpen}}" Command="{Binding QuickOpenAsync}" InputGesture="Ctrl+P" />
