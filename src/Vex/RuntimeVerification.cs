@@ -77,13 +77,16 @@ internal static class RuntimeVerification
                         Thread.Sleep(10);
                     }
                 }
+                if (model.Protection.HasErrorNotice)
+                    throw new InvalidOperationException("Native document UI reported an operation error: "
+                        + model.Protection.DraftError + model.Protection.SaveError + model.Protection.FileReadError);
                 using var bitmap = new RenderTargetBitmap(new PixelSize(1280, 820));
                 bitmap.Render(window);
                 if (culture == "zh-CN" && theme == "light")
                     bitmap.Save(Path.Combine(_uiDirectory, "layout-" + layout.Id + ".png"));
                 renders++;
             }
-            var result = $"NativeAOT UI verification passed; languages=4; themes=2; renders={renders}; preferences=isolated";
+            var result = $"NativeAOT UI verification passed; languages=4; themes=2; renders={renders}; operationErrors=0; preferences=isolated";
             File.WriteAllText(Path.Combine(_uiDirectory, "ui-verification.txt"), result);
             Console.WriteLine(result);
         }

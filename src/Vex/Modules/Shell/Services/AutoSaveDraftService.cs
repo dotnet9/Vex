@@ -69,6 +69,7 @@ public sealed class AutoSaveDraftService : IAutoSaveDraftService, IDisposable
             var path = GetDraftPath(document);
             if (_pendingDraft?.Path == path) { _pendingDraft = null; _timer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan); }
             try { File.Delete(path); }
+            catch (DirectoryNotFoundException) { } // 首次运行尚无草稿目录，清理已满足要求。
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { SetError(exception.Message); }
         }
     }

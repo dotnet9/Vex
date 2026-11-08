@@ -58,6 +58,9 @@ internal static class DraftLifecycleVerification
             var root = Path.Combine(output, "process-" + Guid.NewGuid().ToString("N"));
             var document = Document(root, untitled);
             using var observer = new AutoSaveDraftService { StorageDirectory = root };
+            observer.Clear(document);
+            Check(observer.LastError is null && !Directory.Exists(root),
+                $"Clearing a missing first-run draft is harmless (untitled={untitled})");
             using (var child = Start(root, untitled))
             {
                 try
