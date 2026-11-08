@@ -39,6 +39,8 @@ public partial class MarkdownPreviewView : UserControl
     private bool _restoreSettleQueued;
     private const int MaxRestoreAttempts = 24;
     private TopLevel? _displayHost;
+    private IDisposable? _outlineNavigation;
+    private IDisposable? _readingSample;
     private void ApplyDocumentGeometry()
     {
         var presenting = _viewModel?.IsPresenting == true;
@@ -96,7 +98,14 @@ public partial class MarkdownPreviewView : UserControl
         PreviewScrollViewer.SizeChanged += (_, _) => ApplyDocumentGeometry();
         DetachedFromVisualTree += (_, _) => PreviewMarkdownViewer.TaskWriteBackRequested -= OnTaskWriteBackRequested;
         // 大纲跳转不经过预览视图模型，直接订阅总线，避免被「属性值未变」过滤掉。
-        DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
+        DetachedFromVisualTree += (_, _) =>
+        {
+            EventBus.Default.Unsubscribe(this);
+            _outlineNavigation?.Dispose(); _outlineNavigation = null;
+            _readingSample?.Dispose(); _readingSample = null;
+            StopReadingRestore();
+            _scrollRequestVersion++;
+        };
         SetViewModel(DataContext as MarkdownPreviewViewModel);
     }
 
@@ -156,10 +165,31 @@ public partial class MarkdownPreviewView : UserControl
 
     private void OnPreviewScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
-        if (_restoringScrollPosition || _viewModel?.IsPresenting == true)
+        if (_restoringScrollPosition || _outlineNavigation is not null || _viewModel?.IsPresenting == true)
         {
             return;
         }
+
+        // 尾采样不能被前一次节流丢掉，否则停止滚动后高亮会留在上一章。
+        _readingSample ??= DispatcherTimer.RunOnce(() =>
+        {
+            _readingSample = null;
+            if (!IsEffectivelyVisible || _restoringScrollPosition || _outlineNavigation is not null
+                || _viewModel?.IsPresenting == true) return;
+            for (var y = 16d; y <= Math.Min(PreviewScrollViewer.Viewport.Height, 128); y += 16)
+            {
+                if (PreviewScrollViewer.TranslatePoint(new Point(PreviewScrollViewer.Viewport.Width / 2, y), PreviewMarkdownViewer) is { } probe
+                    && PreviewMarkdownViewer.TryGetBlockAt(probe, out var hit))
+                {
+                    EventBus.Default.Publish(new MarkdownReadingPositionChangedCommand(hit.SourceLine));
+                    return;
+                }
+            }
+            if (PreviewMarkdownViewer.SaveReadingPosition() is { } anchor
+                && anchor.BlockIndex < PreviewMarkdownViewer.CurrentModel.Blocks.Count)
+                EventBus.Default.Publish(new MarkdownReadingPositionChangedCommand(
+                    PreviewMarkdownViewer.CurrentModel.Blocks[anchor.BlockIndex].SyntaxBlock.Line + 1));
+        }, TimeSpan.FromMilliseconds(80));
 
         // 采样有节流：长文档下 SaveReadingPosition 需要遍历已渲染块。
         var now = Environment.TickCount64;
@@ -301,10 +331,13 @@ public partial class MarkdownPreviewView : UserControl
     [EventHandler]
     private void OnDocumentSwitched(MarkdownDocumentSwitchedCommand command)
     {
-        _restoringScrollPosition = false;
+        StopReadingRestore();
+        _outlineNavigation?.Dispose(); _outlineNavigation = null;
+        _readingSample?.Dispose(); _readingSample = null;
+        var version = ++_scrollRequestVersion;
         _savedReadingPosition = null;
         _lastReadingPositionSampleTick = 0;
-        Dispatcher.UIThread.Post(() => { if (!_viewModel?.IsPresenting ?? false) PreviewScrollViewer.Offset = default; },
+        Dispatcher.UIThread.Post(() => { if (version == _scrollRequestVersion && _viewModel?.IsPresenting == false) PreviewScrollViewer.Offset = default; },
             DispatcherPriority.Loaded);
     }
 
@@ -317,9 +350,41 @@ public partial class MarkdownPreviewView : UserControl
         }
 
         _appliedNavigationSequence = command.Sequence;
+        StopReadingRestore();
+        _outlineNavigation?.Dispose();
+        _readingSample?.Dispose(); _readingSample = null;
         _viewModel.PreviewSourceLine = command.Line;
         _viewModel.PreviewScrollRatio = 0d;
-        Dispatcher.UIThread.Post(ScrollToEditorPosition, DispatcherPriority.Background);
+        var version = ++_scrollRequestVersion;
+        var source = _viewModel.Markdown;
+        var attempts = 0;
+        var stable = 0;
+        // 等模型及虚拟化估高收敛后再确认落点；新的点击或切文档立即取消旧请求。
+        _outlineNavigation = DispatcherTimer.Run(() =>
+        {
+            if (version != _scrollRequestVersion || source != _viewModel?.Markdown
+                || !IsEffectivelyVisible || _viewModel.IsPresenting || ++attempts > 100)
+            {
+                _outlineNavigation = null;
+                return false;
+            }
+            if (PreviewMarkdownViewer.CurrentModel.Source == source
+                && PreviewMarkdownViewer.TryGetSourceLineBounds(command.Line, out var bounds)
+                && PreviewMarkdownViewer.TranslatePoint(new Point(0, bounds.Top), PreviewScrollViewer) is { } target)
+            {
+                var limit = Math.Max(0, PreviewScrollViewer.Extent.Height - PreviewScrollViewer.Viewport.Height);
+                var offset = Math.Clamp(PreviewScrollViewer.Offset.Y + target.Y - 14, 0, limit);
+                stable = Math.Abs(offset - PreviewScrollViewer.Offset.Y) < 1 ? stable + 1 : 0;
+                PreviewScrollViewer.Offset = new Vector(PreviewScrollViewer.Offset.X, offset);
+                if (stable >= 3)
+                {
+                    _savedReadingPosition = PreviewMarkdownViewer.SaveReadingPosition();
+                    _outlineNavigation = null;
+                    return false;
+                }
+            }
+            return true;
+        }, TimeSpan.FromMilliseconds(50));
     }
 
     private void QueueRestoreReadingPosition(string? expectedSource = null)
@@ -400,7 +465,7 @@ public partial class MarkdownPreviewView : UserControl
 
     private void QueueScrollToEditorPosition()
     {
-        if (_restoringScrollPosition || _viewModel?.IsPresenting == true) return;
+        if (_restoringScrollPosition || _outlineNavigation is not null || _viewModel?.IsPresenting == true) return;
         var version = ++_scrollRequestVersion;
         Dispatcher.UIThread.Post(() =>
         {

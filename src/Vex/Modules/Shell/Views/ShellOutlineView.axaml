@@ -87,6 +87,7 @@
 
         <!-- 原型 .structure-list{padding:0 10px 18px;gap:1px}：列表内距与行间距都在这里给出。 -->
         <ListBox
+            x:Name="OutlineList"
             Grid.Row="2"
             Classes="side-list"
             Padding="10,0,10,18"

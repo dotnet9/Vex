@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -13,6 +14,7 @@ using CodeWF.Toolkit.Lang;
 using CodeWF.Toolkit.Lang.Json;
 using Mermaider;
 using Mermaider.Models;
+using Point = Avalonia.Point;
 using Vex.Core.Services;
 using Vex.Core.Models;
 using Vex.Modules.Shell.Services;
@@ -86,11 +88,78 @@ internal static class RuntimeVerification
                     bitmap.Save(Path.Combine(_uiDirectory, "layout-" + layout.Id + ".png"));
                 renders++;
             }
-            var result = $"NativeAOT UI verification passed; languages=4; themes=2; renders={renders}; operationErrors=0; preferences=isolated";
+            VerifyOutline(window);
+            var result = $"NativeAOT UI verification passed; languages=4; themes=2; renders={renders}; operationErrors=0; outlineNavigation=passed; readingChapter=passed; preferences=isolated";
             File.WriteAllText(Path.Combine(_uiDirectory, "ui-verification.txt"), result);
             Console.WriteLine(result);
         }
         finally { window.Close(); }
+    }
+
+    private static void VerifyOutline(MainWindow window)
+    {
+        var model = (MainWindowViewModel)window.DataContext!;
+        var source = string.Join("\n", Enumerable.Range(1, 50).Select(index =>
+            $"# {(index is 35 or 40 ? "同名章节" : "章节 " + index)}\n\n" +
+            string.Concat(Enumerable.Range(1, 8).Select(paragraph => $"正文 {index}.{paragraph}。阅读位置跟随。\n\n"))));
+        var path = Path.Combine(_uiDirectory, "outline-navigation.md");
+        File.WriteAllText(path, source);
+        var opening = model.OpenPathAsync(path);
+        Wait(() => opening.IsCompleted); opening.GetAwaiter().GetResult();
+        model.Workbench.SelectLayout("read"); model.Layout.IsOutlineVisible = true;
+        var preview = window.Workspace.FindControl<Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+        var viewer = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
+        var scroll = preview.FindControl<ScrollViewer>("PreviewScrollViewer")!;
+        var outlineView = window.GetVisualDescendants().OfType<ShellOutlineView>().Single();
+        var list = outlineView.FindControl<ListBox>("OutlineList")!;
+        var outline = (ShellOutlineViewModel)outlineView.DataContext!;
+        Wait(() => viewer.CurrentModel.Source == source && outline.OutlineItems.Count == 50);
+        var target = outline.OutlineItems[39];
+        Activate(target);
+        Wait(() => scroll.Offset.Y > 5000);
+        Wait(() => Landed(target.Line)); Settle();
+        scroll.Offset = default;
+        Activate(target);
+        Wait(() => Landed(target.Line)); Settle();
+        if (!ReferenceEquals(outline.CurrentOutlineItem, target)) throw new InvalidOperationException("Native outline lost source identity.");
+        scroll.Focus();
+        var focused = window.FocusManager?.GetFocusedElement();
+        var earlier = outline.OutlineItems[10];
+        if (!viewer.TryGetSourceLineBounds(earlier.Line, out var bounds)) throw new InvalidOperationException("Native source bounds missing.");
+        var point = viewer.TranslatePoint(new Point(0, bounds.Top), scroll)!.Value;
+        scroll.Offset = new Vector(0, Math.Max(0, scroll.Offset.Y + point.Y - 14));
+        Wait(() => ReferenceEquals(outline.CurrentOutlineItem, earlier));
+        if (!ReferenceEquals(focused, window.FocusManager?.GetFocusedElement()) || model.Markdown != source)
+            throw new InvalidOperationException("Native reading follow changed focus or source.");
+        using var bitmap = new RenderTargetBitmap(new PixelSize(1280, 820));
+        bitmap.Render(window); bitmap.Save(Path.Combine(_uiDirectory, "outline-reading.png"));
+        Console.WriteLine("Native outline activation, repeated navigation and reading follow passed.");
+
+        void Activate(OutlineItem item)
+        {
+            list.SelectedItem = item;
+            list.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+        }
+        bool Landed(int line) => viewer.TryGetSourceLineBounds(line, out var sourceBounds)
+            && viewer.TranslatePoint(new Point(0, sourceBounds.Top), scroll) is { } targetPoint
+            && Math.Abs(targetPoint.Y - 14) < 2;
+        void Settle() { var until = Environment.TickCount64 + 250; Wait(() => Environment.TickCount64 >= until); }
+        void Wait(Func<bool> condition)
+        {
+            var deadline = Environment.TickCount64 + 15000;
+            var frame = new DispatcherFrame();
+            var passed = false;
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(10) };
+            timer.Tick += (_, _) =>
+            {
+                window.UpdateLayout(); passed = condition();
+                if (passed || Environment.TickCount64 >= deadline) frame.Continue = false;
+            };
+            timer.Start();
+            try { Dispatcher.UIThread.PushFrame(frame); }
+            finally { timer.Stop(); }
+            if (!passed) throw new TimeoutException("Native outline navigation or reading follow timed out.");
+        }
     }
 
     private sealed class NativeVerificationApp : App

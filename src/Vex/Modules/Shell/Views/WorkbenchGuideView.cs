@@ -271,7 +271,7 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
             .GetVisualDescendants().OfType<ShellOutlineView>().FirstOrDefault()?.DataContext as ShellOutlineViewModel;
         if (outline is null) return;
         var item = outline.OutlineItems.FirstOrDefault(candidate => candidate.Title == title);
-        if (item is not null) outline.SelectedOutlineItem = item;
+        if (item is not null) outline.NavigateToOutlineItem(item);
     }
 
     void WorkbenchGuideViewModel.IStage.OpenFileMenu()

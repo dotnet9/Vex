@@ -74,14 +74,7 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     public OutlineItem? SelectedOutlineItem
     {
         get => _selectedOutlineItem;
-        set
-        {
-            SetProperty(ref _selectedOutlineItem, value);
-            if (value is not null)
-            {
-                NavigateToOutlineItem(value);
-            }
-        }
+        set => SetProperty(ref _selectedOutlineItem, value);
     }
 
     [EventHandler]
@@ -135,7 +128,11 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
         UpdateReadingState(command.CaretLine, command.LineCount);
     }
 
-    // 光标所在章节 = 原型 .structure-item.on：只驱动行高亮，大纲栏不再显示「当前章节 · N%」读数。
+    [EventHandler]
+    public void ApplyReadingPositionChanged(MarkdownReadingPositionChangedCommand command) =>
+        UpdateReadingState(command.Line, _lastLineCount);
+
+    // 编辑时按光标、阅读时按视口更新；状态同步不触发导航。
     public OutlineItem? CurrentOutlineItem
     {
         get => _currentOutlineItem;
@@ -158,6 +155,7 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
             }
 
             OnPropertyChanged(nameof(CurrentOutlineItem));
+            SelectOutlineItemSilently(value);
         }
     }
 
@@ -191,8 +189,9 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     /// 点击大纲跳转。重复点击同一项时选中值不变，因此不能只靠选中值变化触发，
     /// 必须每次都下发一次跳转指令（指令带序号，接收端按序号强制重新定位）。
     /// </summary>
-    private void NavigateToOutlineItem(OutlineItem outlineItem)
+    public void NavigateToOutlineItem(OutlineItem outlineItem)
     {
+        UpdateReadingState(outlineItem.Line, _lastLineCount);
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(outlineItem.Line));
         _statusPublisher.PublishResourceFormat(VexL.StatusNavigatedToOutlineFormat, outlineItem.Title);
     }
