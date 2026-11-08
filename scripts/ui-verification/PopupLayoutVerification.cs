@@ -77,7 +77,8 @@ internal static class PopupLayoutVerification
             var popup = item.GetVisualDescendants().OfType<Popup>().First();
             var panel = popup.Child!;
             Console.WriteLine($"MENU PANEL {item.Header}: {panel.GetType().Name} {panel.Bounds} scroll={(panel is ScrollViewer ? 1 : 0) + panel.GetVisualDescendants().OfType<ScrollViewer>().Count()}");
-            Check(panel.Bounds.Width == 248, "Menu panel is 248px: " + item.Header);
+            Check(double.IsNaN(panel.Width) && panel.Bounds.Width > 100
+                && panel.Bounds.Width <= panel.MaxWidth + 1, "Menu panel measures its content within the screen: " + item.Header);
             // 原型 .menu-flyout > .flyout{max-height:calc(100vh - 76px);overflow-y:auto}：文件菜单并入工具条目后必须可滚动，不能裁掉尾部条目。
             Check(panel.Bounds.Height <= 820 - 56 + 1 && (panel is ScrollViewer || panel.GetVisualDescendants().OfType<ScrollViewer>().Any()),
                 "Menu panel caps at the window height and scrolls: " + item.Header + " " + panel.Bounds.Height);
@@ -87,6 +88,10 @@ internal static class PopupLayoutVerification
                 var header = row.GetVisualDescendants().OfType<ContentPresenter>().First(c => c.Name == "PART_HeaderPresenter");
                 var headerX = header.TranslatePoint(default, panel)!.Value.X;
                 Check(Math.Abs(headerX - 41) < 1, $"Every menu row reserves the state column (x={headerX:0.##}): " + row.Header);
+                foreach (var text in header.GetVisualDescendants().OfType<TextBlock>())
+                    Check(text.TextLayout.TextLines.Count == 1
+                        && text.TextLayout.WidthIncludingTrailingWhitespace <= text.Bounds.Width + 1,
+                        "Menu title stays complete on one line: " + row.Header);
             }
             var name = item.Name ?? item.Header?.ToString() ?? "menu";
             using var image = new RenderTargetBitmap(new PixelSize((int)panel.Bounds.Width, (int)panel.Bounds.Height));

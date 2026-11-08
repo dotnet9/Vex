@@ -68,9 +68,9 @@ html { scrollbar-color: color-mix(in srgb, var(--muted) 34%, transparent) transp
 .menu-flyout > .flyout,
 body > .submenu.flyout {
   display: block;
-  width: var(--title-menu-width);
+  width: max-content;
   min-width: 0;
-  max-width: min(360px, calc(100vw - 16px));
+  max-width: calc(100vw - 16px);
   max-height: none;
   padding: 6px;
   overflow: visible;
@@ -86,8 +86,7 @@ body > .submenu.flyout {
   position: fixed;
   backdrop-filter: none;
 }
-/* Titlebar popups share the original File menu width;
-   the appearance panel needs a wider canvas for the 3-column palette grid. */
+/* Command menus measure their contents; the appearance and language panels keep their own geometry. */
 .app-window .titlebar .appearance-choices {
   width: 430px;
   min-width: 0;
@@ -124,7 +123,7 @@ body > .submenu.flyout[hidden] { display: none; }
   color: var(--accent);
   font-size: 13px;
 }
-.menu-item .menu-label { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+.menu-item .menu-label { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .menu-item .mi-gesture {
   margin-left: 0;
   padding-left: 20px;

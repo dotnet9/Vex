@@ -20,9 +20,6 @@ public partial class ShellTitleMenuView : UserControl
         DetachedFromVisualTree += (_, _) => I18nManager.Instance.CultureChanged -= CultureChanged;
     }
 
-    /// <summary>原型设计准则：一级与级联菜单统一 248px（外观面板 430px 属内容面板，不共用）。</summary>
-    private const double MenuWidth = 248;
-
     private void Configure(MenuItem item, bool topLevel = false)
     {
         if (!topLevel) item.Classes.Add("wrap-entry");
@@ -30,7 +27,11 @@ public partial class ShellTitleMenuView : UserControl
             {
                 var popup = item.GetVisualDescendants().OfType<Popup>().FirstOrDefault();
                 if (popup?.Child is not { } panel) return;
-                panel.Width = MenuWidth;
+                // 菜单按标题、快捷键及箭头自然量测，仅由当前屏幕工作区兜底。
+                var host = TopLevel.GetTopLevel(this);
+                panel.MaxWidth = host?.Screens?.ScreenFromVisual(this) is { } screen
+                    ? Math.Max(120, screen.WorkingArea.Width / screen.Scaling - 16)
+                    : Math.Max(120, (host?.ClientSize.Width ?? 1280) - 16);
                 panel.MaxHeight = Math.Max(120, (TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 820) - 56);
             };
         foreach (var child in item.Items.OfType<MenuItem>()) Configure(child);

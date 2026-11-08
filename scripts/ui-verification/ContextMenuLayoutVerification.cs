@@ -63,7 +63,7 @@ internal static class ContextMenuLayoutVerification
             foreach (var text in header.GetVisualDescendants().OfType<TextBlock>().Where(t => !string.IsNullOrEmpty(t.Text)))
             {
                 Console.WriteLine($"CONTEXT TEXT {label}: {text.Text} bounds={text.Bounds.Size}, layout={text.TextLayout.WidthIncludingTrailingWhitespace}x{text.TextLayout.Height}");
-                Check(text.TextLayout.Height <= text.Bounds.Height + .5
+                Check(text.TextLayout.TextLines.Count == 1 && text.TextLayout.Height <= text.Bounds.Height + .5
                     && text.TextLayout.WidthIncludingTrailingWhitespace <= text.Bounds.Width + .5,
                     "Menu label has a complete line box: " + text.Text);
             }
