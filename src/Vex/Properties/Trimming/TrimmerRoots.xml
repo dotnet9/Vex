@@ -1,6 +1,5 @@
 <linker>
   <assembly fullname="Vex" preserve="all" />
-  <assembly fullname="Vex.Controls" preserve="all" />
 
   <assembly fullname="CodeWF.Toolkit.EventBus" preserve="all" />
   <assembly fullname="CodeWF.Avalonia.Controls" preserve="all" />
@@ -25,7 +24,6 @@
   <assembly fullname="Avalonia.Desktop" preserve="all" />
   <assembly fullname="Avalonia.Markup" preserve="all" />
   <assembly fullname="Avalonia.Markup.Xaml" preserve="all" />
-  <assembly fullname="Avalonia.Markup.Xaml.Loader" preserve="all" />
   <assembly fullname="AvaloniaEdit" preserve="all" />
   <assembly fullname="Svg.Controls.Skia.Avalonia" preserve="all" />
   <assembly fullname="Svg.Skia" preserve="all" />

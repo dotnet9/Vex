@@ -99,8 +99,8 @@ internal static class SegmentedFidelityProbe
         static (string Property, int Ms)[] Shape(Transitions? transitions) => transitions is null ? [] :
             transitions.Select(transition => transition switch
             {
-                Transition<double> wide => (wide.Property.Name, wide.Duration.Milliseconds),
-                Transition<Thickness> thick => (thick.Property.Name, thick.Duration.Milliseconds),
+                Transition<double> wide => (wide.Property?.Name ?? string.Empty, wide.Duration.Milliseconds),
+                Transition<Thickness> thick => (thick.Property?.Name ?? string.Empty, thick.Duration.Milliseconds),
                 _ => (transition.GetType().Name, 0),
             }).ToArray();
 

@@ -261,7 +261,7 @@ internal static class PrototypeAppearanceVerification
         var hexBoxes = paletteBoxes.Where(t => t.Text?.StartsWith('#') == true).ToArray();
         Check(hexBoxes.Length == 8, "Palette dialog shows the eight prototype color inputs");
         Check(paletteWindow.GetVisualDescendants().OfType<TextBlock>()
-            .Select(t => t.Text).Where(t => !string.IsNullOrWhiteSpace(t))
+            .Select(t => t.Text).OfType<string>().Where(t => !string.IsNullOrWhiteSpace(t))
             .All(t => !t.StartsWith("Vex.") && !t.Contains("VexL.")), "Palette dialog labels resolve in zh-CN");
         Check(ShellPaletteEditModel.ColorLabels.Distinct().Count() == 4 && ShellPaletteEditModel.GroupLabels.Length == 2,
             "Palette dialog reuses the four color labels across light and dark groups");
@@ -290,14 +290,14 @@ internal static class PrototypeAppearanceVerification
         Check(typographyWindow.GetVisualDescendants().OfType<TextBlock>().Count(t =>
                 t.Text is "Font" or "Leading" or "H2 decoration") == 3, "Each selector carries its localized caption above it");
         Check(combos[0].ItemsSource is string[] fonts && fonts.SequenceEqual(["Sans-serif", "Serif", "Monospace"])
-            && combos[0].SelectedIndex == 0, "Font selector shows localized names without leaking internal keys: " + string.Join("/", (string[])combos[0].ItemsSource));
+            && combos[0].SelectedIndex == 0, "Font selector shows localized names without leaking internal keys: " + string.Join("/", combos[0].ItemsSource?.Cast<string>() ?? []));
         combos[0].SelectedIndex = 2; Render();
         Check(typographyModel.Font == "mono", "Font selection writes the internal key back");
         combos[1].SelectedIndex = 0; Render();
         Check(Math.Abs(typographyModel.Leading - 1.7) < 0.001, "Leading selection writes the numeric line height back");
         // 第三件是原型 typography.js 的 H2 装饰 select：四档按顺序对应 leftBar / underline / tint / none。
         Check(combos[2].ItemsSource is string[] decorations && decorations.SequenceEqual(["Left bar", "Underline", "Tint", "None"])
-            && combos[2].SelectedIndex == 0, "H2 decoration selector shows localized tiers, defaulting to the prototype tier: " + string.Join("/", (string[])combos[2].ItemsSource));
+            && combos[2].SelectedIndex == 0, "H2 decoration selector shows localized tiers, defaulting to the prototype tier: " + string.Join("/", combos[2].ItemsSource?.Cast<string>() ?? []));
         combos[2].SelectedIndex = 1; Render();
         Check(typographyModel.HeadingDecoration == "underline", "H2 decoration selection writes the internal tier back");
         Check(typographyModel.Title == L(VexL.WBTypographyEdit), "Editing an existing typography uses the localized title");

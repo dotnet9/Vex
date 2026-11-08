@@ -14,7 +14,7 @@ internal sealed class TypographyCardPreview : UserControl
     private readonly ArticleTypography _article;
     private readonly string _name, _purpose, _quote;
 
-    public TypographyCardPreview(string key, string name, string purpose, string quote)
+    public TypographyCardPreview(string? key, string name, string purpose, string quote)
     {
         _article = ArticleTypographyResolver.Find(key) ?? ArticleTypographyCatalog.All.First();
         (_name, _purpose, _quote) = (name, purpose, quote);

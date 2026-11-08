@@ -116,9 +116,9 @@ internal static class UiDensityVerification
             Check(input.Bounds.Height >= input.DesiredSize.Height - 1 && find.Bounds.Height > input.Bounds.Height, density + ": find input fits inside the strip");
             Check(preferences.BodyFontSize == bodySize && preferences.CodeFontSize == codeSize && source.FontSize == sourceSize,
                 density + ": document and source font sizes remain unchanged");
-            Check(Equals(Application.Current.FindResource("VexDensityCornerRadiusMd"), radius), density + ": density does not change corner radius");
+            Check(Equals(Application.Current?.FindResource("VexDensityCornerRadiusMd"), radius), density + ": density does not change corner radius");
             var zoom = window.GetVisualDescendants().OfType<Vex.Controls.VexZoomDock>().First(z => z.Classes.Contains("document-zoom"));
-            Check(Math.Abs(zoom.Bounds.Height - (double)Application.Current.FindResource("VexUiControlHeight")!) < 1, density + ": zoom dock follows control height");
+            Check(Math.Abs(zoom.Bounds.Height - (double)app.FindResource("VexUiControlHeight")!) < 1, density + ": zoom dock follows control height");
             var menu = sourceView.ContextMenu!;
             menu.Open(sourceView); Render();
             var rows = menu.Items.OfType<MenuItem>().Where(m => m.IsVisible).ToArray();

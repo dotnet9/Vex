@@ -605,7 +605,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     public Task RemoveWorkspaceFolderAsync(string? path) => Task.Run(() =>
     {
         var root = _workspaceFiles.RootPaths.Skip(1).FirstOrDefault(candidate =>
-            PathsEqual(candidate, path) || path is not null && path.StartsWith(candidate, StringComparison.OrdinalIgnoreCase));
+            path is not null && (PathsEqual(candidate, path) || path.StartsWith(candidate, StringComparison.OrdinalIgnoreCase)));
         if (root is null) return;
         _workspaceFiles.RemoveRoot(root);
         _settingsStore.Update(settings => settings with

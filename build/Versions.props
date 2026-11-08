@@ -1,15 +1,15 @@
 <Project>
   <PropertyGroup>
-    <CodeWFAvaloniaVersion>12.2.49</CodeWFAvaloniaVersion>
-    <CodeWFToolkitVersion>1.1.2</CodeWFToolkitVersion>
+    <CodeWFAvaloniaVersion>12.1.5.2</CodeWFAvaloniaVersion>
+    <CodeWFToolkitVersion>1.1.6</CodeWFToolkitVersion>
     <AvaloniaVersion>12.1.5</AvaloniaVersion>
     <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
     <AvaloniaControlsDataGridVersion>12.1.2</AvaloniaControlsDataGridVersion>
     <SvgSkiaVersion>5.2.3</SvgSkiaVersion>
-    <SkiaSharpVersion>4.156.0-preview.1.26512.10</SkiaSharpVersion>
-    <HarfBuzzSharpVersion>14.4.0.100-preview.1.26512.10</HarfBuzzSharpVersion>
-    <UrsaAvaloniaVersion>2.3.0</UrsaAvaloniaVersion>
-    <PdfPigVersion>0.1.17-alpha-202611030024-c46d2</PdfPigVersion>
+    <SkiaSharpVersion>4.158.0-preview.1.26556.2</SkiaSharpVersion>
+    <HarfBuzzSharpVersion>14.4.0.300-preview.1.26556.2</HarfBuzzSharpVersion>
+    <UrsaAvaloniaVersion>2.3.1</UrsaAvaloniaVersion>
+    <PdfPigVersion>0.1.17-alpha-202611070026-8c703</PdfPigVersion>
     <ReverseMarkdownVersion>6.3.0</ReverseMarkdownVersion>
     <ReactiveUIAvaloniaVersion>12.1.6</ReactiveUIAvaloniaVersion>
     <SemiAvaloniaVersion>12.1.0.1</SemiAvaloniaVersion>

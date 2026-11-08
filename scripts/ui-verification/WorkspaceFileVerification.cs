@@ -247,18 +247,36 @@ internal static class WorkspaceFileVerification
     private sealed class DelayedWorkspaceFiles : IWorkspaceFileService
     {
         private readonly Dictionary<(string Path, long Generation), TaskCompletionSource<WorkspaceDirectorySnapshot>> _pending = [];
+        private readonly List<string> _additionalRoots = [];
         public string? RootPath { get; private set; }
+        public IReadOnlyList<string> RootPaths => RootPath is { } root ? [root, .. _additionalRoots] : [];
         public long Generation { get; private set; }
         public int PendingDirectoryCount => _pending.Count;
         public int DirectoryRequestCount { get; private set; }
         public event EventHandler<WorkspaceFilesChangedEventArgs>? Changed;
         public void Open(string rootPath)
         {
+            _additionalRoots.Clear();
             RootPath = rootPath;
             Generation++;
             Changed?.Invoke(this, new WorkspaceFilesChangedEventArgs(Generation, rootPath, [rootPath], []));
         }
-        public void Close() { RootPath = null; Generation++; }
+        public void AddRoot(string rootPath)
+        {
+            var primary = RootPath ?? throw new InvalidOperationException("Open a primary root first.");
+            if (RootPaths.Contains(rootPath)) throw new InvalidOperationException("Root is already mounted.");
+            _additionalRoots.Add(rootPath);
+            Generation++;
+            Changed?.Invoke(this, new WorkspaceFilesChangedEventArgs(Generation, primary, [rootPath], [], true));
+        }
+        public void RemoveRoot(string rootPath)
+        {
+            var primary = RootPath ?? throw new InvalidOperationException("Open a primary root first.");
+            if (!_additionalRoots.Remove(rootPath)) throw new InvalidOperationException("Only additional roots can be removed.");
+            Generation++;
+            Changed?.Invoke(this, new WorkspaceFilesChangedEventArgs(Generation, primary, [], [rootPath], true));
+        }
+        public void Close() { RootPath = null; _additionalRoots.Clear(); Generation++; }
         public void Refresh()
         {
             if (RootPath is { } root) Changed?.Invoke(this, new WorkspaceFilesChangedEventArgs(Generation, root, [root], [], true));
@@ -280,7 +298,7 @@ internal static class WorkspaceFileVerification
         public void Fail(string root, long generation) => _pending[(root, generation)].SetException(new IOException("Controlled directory read failure"));
         public Task<IReadOnlyList<DocumentFile>> GetFilesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<DocumentFile>>([]);
         public Task<string> GetPreviewAsync(string path, CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
-        public bool IsCurrent(WorkspaceDirectorySnapshot snapshot) => snapshot.Generation == Generation && snapshot.RootPath == RootPath;
+        public bool IsCurrent(WorkspaceDirectorySnapshot snapshot) => snapshot.Generation == Generation && RootPaths.Contains(snapshot.RootPath);
         public void Dispose() { }
     }
 }

@@ -107,7 +107,7 @@ public partial class MarkdownPreviewView : UserControl
         _displayHost = TopLevel.GetTopLevel(this);
         if (_displayHost is not null)
         {
-            _displayHost.Screens.Changed += OnDisplayMetricsChanged;
+            if (_displayHost.Screens is { } screens) screens.Changed += OnDisplayMetricsChanged;
             _displayHost.ScalingChanged += OnDisplayMetricsChanged;
             if (_displayHost is Window window) window.PositionChanged += OnDisplayMetricsChanged;
         }
@@ -121,7 +121,7 @@ public partial class MarkdownPreviewView : UserControl
 
     private void OnDisplayMetricsChanged(object? sender, EventArgs args)
     {
-        if (_displayHost?.Screens.ScreenFromVisual(this) is { } screen)
+        if (_displayHost?.Screens?.ScreenFromVisual(this) is { } screen)
             _viewModel?.UpdateDisplayMetrics(screen.Bounds.Width, screen.Scaling);
         ApplyDocumentGeometry();
     }
@@ -129,7 +129,7 @@ public partial class MarkdownPreviewView : UserControl
     private void StopWatchingDisplay()
     {
         if (_displayHost is null) return;
-        _displayHost.Screens.Changed -= OnDisplayMetricsChanged;
+        if (_displayHost.Screens is { } screens) screens.Changed -= OnDisplayMetricsChanged;
         _displayHost.ScalingChanged -= OnDisplayMetricsChanged;
         if (_displayHost is Window window) window.PositionChanged -= OnDisplayMetricsChanged;
         _displayHost = null;

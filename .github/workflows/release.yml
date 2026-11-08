@@ -108,14 +108,17 @@ jobs:
           $start = [Diagnostics.ProcessStartInfo]::new((Resolve-Path './artifacts/publish/win-x64/Vex/Vex.exe').Path)
           $start.UseShellExecute = $false
           $start.CreateNoWindow = $true
-          $start.ArgumentList.Add('--verify-runtime')
+          $start.ArgumentList.Add('--verify-ui')
           $start.ArgumentList.Add($directory)
           $process = [Diagnostics.Process]::Start($start)
-          if (-not $process.WaitForExit(30000)) { throw 'Native runtime verification timed out.' }
+          if (-not $process.WaitForExit(120000)) { $process.Kill(); throw 'Native runtime verification timed out.' }
           if ($process.ExitCode -ne 0) { throw "Native runtime verification failed: $($process.ExitCode)" }
           $result = Get-Content -LiteralPath (Join-Path $directory 'runtime-verification.txt') -Raw
           if ($result -notmatch '^NativeAOT runtime verification passed;') { throw 'Native runtime evidence is missing.' }
+          $uiResult = Get-Content -LiteralPath (Join-Path $directory 'ui-verification.txt') -Raw
+          if ($uiResult -notmatch '^NativeAOT UI verification passed;') { throw 'Native UI evidence is missing.' }
           Write-Output $result
+          Write-Output $uiResult
 
       - name: 打包 Linux deb + sha256
         if: startsWith(matrix.rid, 'linux-')

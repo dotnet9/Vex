@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageVersion Include="CodeWF.Avalonia.MindView" Version="$(CodeWFAvaloniaVersion)" />
     <PackageVersion Include="CodeWF.Toolkit.Core" Version="$(CodeWFToolkitVersion)" />
+    <PackageVersion Include="CodeWF.Toolkit.Lang" Version="$(CodeWFToolkitVersion)" />
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.AvaloniaEdit" Version="$(AvaloniaEditVersion)" />
     <PackageVersion Include="Avalonia.Controls.ColorPicker" Version="$(AvaloniaVersion)" />

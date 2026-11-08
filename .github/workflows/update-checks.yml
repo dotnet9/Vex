@@ -76,6 +76,11 @@ jobs:
         run: |
           dotnet artifacts/bin/UiVerification/release/UiVerification.dll mermaid artifacts/mermaid
           if ($LASTEXITCODE -ne 0) { throw 'Mermaid verification failed' }
+      - name: 博客 YAML 元数据与源码保真
+        shell: pwsh
+        run: |
+          dotnet artifacts/bin/UiVerification/release/UiVerification.dll blog-frontmatter artifacts/blog-frontmatter
+          if ($LASTEXITCODE -ne 0) { throw 'Blog YAML verification failed' }
       - name: 演示进出与阅读锚点回归
         shell: pwsh
         run: |
@@ -102,4 +107,5 @@ jobs:
             artifacts/theme-appearance
             artifacts/theme-popup-layout
             artifacts/theme-performance
+            artifacts/blog-frontmatter
             ${{ runner.temp }}/vex-update-fixture/verification

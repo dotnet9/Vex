@@ -26,7 +26,7 @@ internal static class ButtonStateProbe
 {
     public static void Run(VerificationVexApp app, MainWindow window, string output)
     {
-        void Check(bool value, string message)
+        void Check([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] bool value, string message)
         {
             if (!value) throw new InvalidOperationException(message);
             Console.WriteLine("PASS " + message);
@@ -254,7 +254,7 @@ internal static class ButtonStateProbe
         window.MouseMove(new Point(6, 6), RawInputModifiers.None);
         window.MouseUp(new Point(6, 6), MouseButton.Left);
         Render();
-        if (mcp.DataContext is McpSettingsViewModel mcpVm) mcpVm.Cancel();
+        if (mcp?.DataContext is McpSettingsViewModel mcpVm) mcpVm.Cancel();
         for (var i = 0; i < 50 && window.GetVisualDescendants().OfType<McpSettingsOverlayView>().Any(); i++) { Render(); Thread.Sleep(20); }
 
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "button-state.png"));

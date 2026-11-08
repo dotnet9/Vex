@@ -79,7 +79,7 @@ internal static class MapPopupProbe
         var styleChoices = choices.Where(b => b.Name!.StartsWith("MapChoiceStyle_", StringComparison.Ordinal)).ToArray();
         Check(styleChoices.Length == 6
             && styleChoices.All(b => b.GetVisualDescendants().OfType<TextBlock>().Count() == 1)
-            && styleChoices.All(b => Avalonia.Automation.AutomationProperties.GetName(b).Length > b.GetVisualDescendants().OfType<TextBlock>().First().Text!.Length),
+            && styleChoices.All(b => (Avalonia.Automation.AutomationProperties.GetName(b)?.Length ?? 0) > b.GetVisualDescendants().OfType<TextBlock>().First().Text!.Length),
             "六张风格卡只留名称，说明留在无障碍名字里而不是卡面用途行");
         var colorfulNodes = styleChoices.Single(b => b.Name == "MapChoiceStyle_colorful").GetVisualDescendants()
             .OfType<Avalonia.Controls.Shapes.Rectangle>().Skip(1).ToArray();

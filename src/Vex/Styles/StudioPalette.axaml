@@ -83,16 +83,64 @@
     <SolidColorBrush x:Key="VexCodeFgBrush" Color="{DynamicResource StudioAccentInkColor}" />
     <!-- GitHub Alerts（FR-07）与 Front matter（FR-16）：类别色随状态令牌走（NOTE=info、TIP=success、
          IMPORTANT=accent、WARNING=warning、CAUTION=danger）；软底用画刷透明度，标签/描边用实色。 -->
-    <SolidColorBrush x:Key="CodeWFMarkdownCalloutNoteBorderBrush" Color="{DynamicResource SemiColorInfo}" />
-    <SolidColorBrush x:Key="CodeWFMarkdownCalloutNoteBackgroundBrush" Color="{DynamicResource SemiColorInfo}" Opacity="0.08" />
-    <SolidColorBrush x:Key="CodeWFMarkdownCalloutTipBorderBrush" Color="{DynamicResource SemiColorSuccess}" />
-    <SolidColorBrush x:Key="CodeWFMarkdownCalloutTipBackgroundBrush" Color="{DynamicResource SemiColorSuccess}" Opacity="0.08" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutNoteBorderBrush">
+        <SolidColorBrush.Color>
+            <MultiBinding Converter="{x:Static theme:DocumentPaletteResources.ResourceColor}">
+                <DynamicResource ResourceKey="SemiColorInfo" />
+            </MultiBinding>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutNoteBackgroundBrush" Opacity="0.08">
+        <SolidColorBrush.Color>
+            <MultiBinding Converter="{x:Static theme:DocumentPaletteResources.ResourceColor}">
+                <DynamicResource ResourceKey="SemiColorInfo" />
+            </MultiBinding>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutTipBorderBrush">
+        <SolidColorBrush.Color>
+            <MultiBinding Converter="{x:Static theme:DocumentPaletteResources.ResourceColor}">
+                <DynamicResource ResourceKey="SemiColorSuccess" />
+            </MultiBinding>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutTipBackgroundBrush" Opacity="0.08">
+        <SolidColorBrush.Color>
+            <MultiBinding Converter="{x:Static theme:DocumentPaletteResources.ResourceColor}">
+                <DynamicResource ResourceKey="SemiColorSuccess" />
+            </MultiBinding>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
     <SolidColorBrush x:Key="CodeWFMarkdownCalloutImportantBorderBrush" Color="{DynamicResource StudioAccentColor}" />
     <SolidColorBrush x:Key="CodeWFMarkdownCalloutImportantBackgroundBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.08" />
-    <SolidColorBrush x:Key="CodeWFMarkdownCalloutWarningBorderBrush" Color="{DynamicResource SemiColorWarning}" />
-    <SolidColorBrush x:Key="CodeWFMarkdownCalloutWarningBackgroundBrush" Color="{DynamicResource SemiColorWarning}" Opacity="0.08" />
-    <SolidColorBrush x:Key="CodeWFMarkdownCalloutCautionBorderBrush" Color="{DynamicResource SemiColorDanger}" />
-    <SolidColorBrush x:Key="CodeWFMarkdownCalloutCautionBackgroundBrush" Color="{DynamicResource SemiColorDanger}" Opacity="0.08" />
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutWarningBorderBrush">
+        <SolidColorBrush.Color>
+            <MultiBinding Converter="{x:Static theme:DocumentPaletteResources.ResourceColor}">
+                <DynamicResource ResourceKey="SemiColorWarning" />
+            </MultiBinding>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutWarningBackgroundBrush" Opacity="0.08">
+        <SolidColorBrush.Color>
+            <MultiBinding Converter="{x:Static theme:DocumentPaletteResources.ResourceColor}">
+                <DynamicResource ResourceKey="SemiColorWarning" />
+            </MultiBinding>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutCautionBorderBrush">
+        <SolidColorBrush.Color>
+            <MultiBinding Converter="{x:Static theme:DocumentPaletteResources.ResourceColor}">
+                <DynamicResource ResourceKey="SemiColorDanger" />
+            </MultiBinding>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
+    <SolidColorBrush x:Key="CodeWFMarkdownCalloutCautionBackgroundBrush" Opacity="0.08">
+        <SolidColorBrush.Color>
+            <MultiBinding Converter="{x:Static theme:DocumentPaletteResources.ResourceColor}">
+                <DynamicResource ResourceKey="SemiColorDanger" />
+            </MultiBinding>
+        </SolidColorBrush.Color>
+    </SolidColorBrush>
     <!-- Front matter 元数据卡：中性色（原型 fg 4% 软底 + muted 描边/标签）。 -->
     <SolidColorBrush x:Key="CodeWFMarkdownFrontMatterBorderBrush" Color="{DynamicResource StudioMutedColor}" />
     <SolidColorBrush x:Key="CodeWFMarkdownFrontMatterBackgroundBrush" Color="{DynamicResource StudioTextColor}" Opacity="0.04" />

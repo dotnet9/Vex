@@ -23,7 +23,7 @@ internal static class FocusRingProbe
 {
     public static void Run(VerificationVexApp app, MainWindow window, string output)
     {
-        void Check(bool value, string message)
+        void Check([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] bool value, string message)
         {
             if (!value) throw new InvalidOperationException(message);
             Console.WriteLine("PASS " + message);
@@ -144,7 +144,8 @@ internal static class FocusRingProbe
             mcp = window.GetVisualDescendants().OfType<McpSettingsOverlayView>().FirstOrDefault(v => v.IsEffectivelyVisible);
             if (mcp is null) Thread.Sleep(20);
         }
-        var prefField = mcp!.GetVisualDescendants().OfType<TextBox>().First(t => t.IsEffectivelyVisible && t.Classes.Contains("pref-field"));
+        Check(mcp is not null, "MCP settings overlay opens before focus checks");
+        var prefField = mcp.GetVisualDescendants().OfType<TextBox>().First(t => t.IsEffectivelyVisible && t.Classes.Contains("pref-field"));
         prefField.Focus(NavigationMethod.Tab); Render();
         Check(prefField.Classes.Contains(":focus-visible") && Rings().Single().Margin == new Thickness(-5),
             "Plain settings input takes the prototype offset-3 outer ring");

@@ -59,11 +59,12 @@ internal static class MermaidSourceLayoutVerification
             Check(image is not null, $"Diagram renders before source click: {layout}/{theme}/{kind}");
             Click(image!);
             var editor = root.GetVisualDescendants().OfType<TextBox>().SingleOrDefault(input =>
-                input.Classes.Contains("MdMermaidSourceInput") && input.IsEffectivelyVisible);
-            Check(editor is not null && editor.IsKeyboardFocusWithin && editor.Text == source,
-                $"One click focuses complete source: {layout}/{theme}/{kind}; editor={editor is not null}, focus={editor?.IsKeyboardFocusWithin}, lengths={editor?.Text?.Length}/{source.Length}");
+                input.Classes.Contains("MdMermaidSourceInput") && input.IsEffectivelyVisible)
+                ?? throw new InvalidOperationException($"Mermaid source editor did not open: {layout}/{theme}/{kind}");
+            Check(editor.IsKeyboardFocusWithin && editor.Text == source,
+                $"One click focuses complete source: {layout}/{theme}/{kind}; focus={editor.IsKeyboardFocusWithin}, lengths={editor.Text?.Length}/{source.Length}");
             var preview = root.GetVisualDescendants().OfType<Border>().Single(border => border.Classes.Contains("MdMermaidPreview"));
-            var origin = editor!.TranslatePoint(default, root)!.Value;
+            var origin = editor.TranslatePoint(default, root)!.Value;
             var previewOrigin = preview.TranslatePoint(default, root)!.Value;
             Check(previewOrigin.Y >= origin.Y + editor.Bounds.Height + 9 && Math.Abs(preview.Bounds.Width - editor.Bounds.Width) < 2,
                 $"Source has a separate full-width row above the diagram: {layout}/{theme}/{kind}");
@@ -88,7 +89,7 @@ internal static class MermaidSourceLayoutVerification
         }
     }
 
-    private static void Check(bool value, string message)
+    private static void Check([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] bool value, string message)
     {
         if (!value) throw new InvalidOperationException(message);
         Console.WriteLine("PASS " + message);

@@ -2,18 +2,117 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI.Avalonia;
 using CodeWF.Toolkit.Lang;
 using CodeWF.Toolkit.Lang.Json;
 using Mermaider;
 using Mermaider.Models;
 using Vex.Core.Services;
+using Vex.Core.Models;
 using Vex.Modules.Shell.Services;
+using Vex.Modules.Shell.ViewModels;
+using Vex.Modules.Shell.Views;
 
 namespace Vex;
 
 /// <summary>显式验证正式原生发布产物，只读输出资源，并在指定目录验证偏好持久化。</summary>
 internal static class RuntimeVerification
 {
+    private static string _uiDirectory = string.Empty;
+
+    public static void RunUi(string directory)
+    {
+        Run(directory);
+        _uiDirectory = Path.GetFullPath(directory);
+        new AppSettingsStore().Update(settings => settings with
+        {
+            HasSeenOnboardingGuide = true, IsMcpServerEnabled = false, MotionMode = "off"
+        });
+        AppBuilder.Configure<NativeVerificationApp>().UsePlatformDetect().With(VexFonts.Options)
+            .UseReactiveUI(_ => { }).SetupWithoutStarting();
+        var app = (NativeVerificationApp)Application.Current!;
+        var window = app.CreateShell();
+        window.Width = 1280;
+        window.Height = 820;
+        window.Show();
+        try
+        {
+            var model = (MainWindowViewModel)window.DataContext!;
+            var sample = Path.Combine(_uiDirectory, "native-smoke.md");
+            File.WriteAllText(sample, "---\ntitle: NativeAOT 博客验证\ncategories:\n  - Avalonia UI\ntags: [CSharp, Markdown]\ndraft: false\n---\n\n# NativeAOT 验证\n\n可空类型与 C# 预览支持。\n\n```csharp\nstring? text = null;\n```\n\n```mermaid\nflowchart LR\n A --> B\n```\n");
+            var loading = model.OpenPathAsync(sample);
+            var deadline = DateTime.UtcNow.AddSeconds(30);
+            while (!loading.IsCompleted)
+            {
+                if (DateTime.UtcNow >= deadline) throw new TimeoutException("Native document loading timed out.");
+                Dispatcher.UIThread.RunJobs();
+                Thread.Sleep(10);
+            }
+            loading.GetAwaiter().GetResult();
+            var renders = 0;
+            foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
+            foreach (var theme in new[] { "light", "dark" })
+            foreach (var layout in WorkbenchLayoutOption.All)
+            {
+                I18nManager.Instance.Culture = CultureInfo.GetCultureInfo(culture);
+                model.Appearance.SelectThemeByKey(theme);
+                model.Workbench.SelectLayout(layout.Id);
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                if (layout.Id is "read" or "instant")
+                {
+                    var view = window.Workspace.FindControl<Control>(layout.Id == "read" ? "PreviewGuideTarget" : "InstantGuideTarget")!;
+                    var rendered = DateTime.UtcNow.AddSeconds(15);
+                    while (!view.GetVisualDescendants().OfType<Border>().Any(border => border.Classes.Contains("MdFrontMatter")))
+                    {
+                        if (DateTime.UtcNow >= rendered) throw new InvalidOperationException("Native blog YAML metadata card is missing: " + layout.Id);
+                        Dispatcher.UIThread.RunJobs();
+                        window.UpdateLayout();
+                        Thread.Sleep(10);
+                    }
+                }
+                using var bitmap = new RenderTargetBitmap(new PixelSize(1280, 820));
+                bitmap.Render(window);
+                if (culture == "zh-CN" && theme == "light")
+                    bitmap.Save(Path.Combine(_uiDirectory, "layout-" + layout.Id + ".png"));
+                renders++;
+            }
+            var result = $"NativeAOT UI verification passed; languages=4; themes=2; renders={renders}; preferences=isolated";
+            File.WriteAllText(Path.Combine(_uiDirectory, "ui-verification.txt"), result);
+            Console.WriteLine(result);
+        }
+        finally { window.Close(); }
+    }
+
+    private sealed class NativeVerificationApp : App
+    {
+        public NativeVerificationApp() { }
+        protected override void OnConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<IAutoSaveDraftService>(new AutoSaveDraftService
+                { StorageDirectory = Path.Combine(_uiDirectory, "drafts") });
+            services.AddSingleton<IRecentDocumentStore>(new EmptyRecentDocuments());
+        }
+        public MainWindow CreateShell()
+        {
+            Instance = this;
+            ApplyInitialTheme();
+            return Services.GetRequiredService<MainWindow>();
+        }
+    }
+
+    private sealed class EmptyRecentDocuments : IRecentDocumentStore
+    {
+        public IReadOnlyList<RecentDocument> Load(int maxCount) => [];
+        public void Save(IEnumerable<RecentDocument> documents) { }
+    }
+
     public static void Run(string directory)
     {
         if (RuntimeFeature.IsDynamicCodeSupported)

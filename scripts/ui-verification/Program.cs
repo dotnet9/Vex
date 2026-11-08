@@ -35,6 +35,17 @@ if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
+if (mode == "blog-frontmatter")
+{
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+    var app = (VerificationVexApp)Application.Current!;
+    var window = (Vex.Modules.Shell.Views.MainWindow)app.CreateShell();
+    window.Show();
+    try { BlogFrontMatterVerification.Run(window, output, args.ElementAtOrDefault(2)); }
+    finally { window.Close(); }
+    return;
+}
 if (mode is "window-placement" or "selection-picker")
 {
     var config = Path.Combine(output, "window-placement.config");
@@ -442,7 +453,7 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
     foreach (var culture in new[] { "zh-CN", "en-US", "zh-Hant", "ja-JP" })
     {
         vm.Appearance.SelectLanguageByCulture(culture); Pump();
-        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture.Name == culture && about.GetVisualDescendants().OfType<TextBlock>().Any(text => text.Text == app.Resolve<IAppLocalizer>().Get("Vex.VexL.AboutDialogTitle")),
+        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture?.Name == culture && about.GetVisualDescendants().OfType<TextBlock>().Any(text => text.Text == app.Resolve<IAppLocalizer>().Get("Vex.VexL.AboutDialogTitle")),
             "The open About dialog changes language: " + culture);
         var aboutScroll = about.GetVisualDescendants().OfType<ScrollViewer>().Single();
         VerifyInside(aboutScroll, window, "About viewport fits the minimum window: " + culture);
@@ -609,7 +620,7 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
 else throw new ArgumentException("Expected vex");
 Console.WriteLine("UI verification passed; images: " + output);
 
-void Check(bool condition, string message)
+void Check([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] bool condition, string message)
 {
     if (!condition) throw new InvalidOperationException(message);
     Console.WriteLine("PASS " + message);
@@ -859,7 +870,7 @@ void VerifyDocumentWindows(VerificationVexApp app, Window window, MainWindowView
         documentWindow.Show();
         Pump();
         Check(documentWindow.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>()
-            .Any(viewer => viewer.Markdown.Length > 0), "帮助文档窗体渲染随包正文：" + file);
+            .Any(viewer => viewer.Markdown is { Length: > 0 }), "帮助文档窗体渲染随包正文：" + file);
         documentWindow.Close();
         Pump();
     }
@@ -874,10 +885,10 @@ void VerifyDocumentWindows(VerificationVexApp app, Window window, MainWindowView
     File.Copy(BundledDocuments.GetPath("更新日志.md"), copyPath, true);
     var start = ShellProcessLauncher.CreateStartInfo(copyPath);
     Check(!start.UseShellExecute && start.ArgumentList.Last() == copyPath, "Document launch targets Vex with a single unescaped path argument");
-    if (Path.GetFileNameWithoutExtension(Environment.ProcessPath).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+    if (string.Equals(Path.GetFileNameWithoutExtension(Environment.ProcessPath), "dotnet", StringComparison.OrdinalIgnoreCase))
         Check(start.ArgumentList.First() == typeof(Vex.App).Assembly.Location, "Development launch invokes the Vex assembly");
     var child = new System.Diagnostics.ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
-    if (Path.GetFileNameWithoutExtension(Environment.ProcessPath).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+    if (string.Equals(Path.GetFileNameWithoutExtension(Environment.ProcessPath), "dotnet", StringComparison.OrdinalIgnoreCase))
         child.ArgumentList.Add(typeof(VerificationVexApp).Assembly.Location);
     child.ArgumentList.Add("document-open-child"); child.ArgumentList.Add(copyFolder); child.ArgumentList.Add(copyPath);
     using var process = System.Diagnostics.Process.Start(child)!;
@@ -1716,7 +1727,7 @@ void VerifyStress(Vex.Modules.Shell.Views.MainWindow window, MainWindowViewModel
         {
             Pump(vm.OpenPathAsync(path));
             PumpUntil(() => preview.CurrentModel.Source == contents[path] && vm.Workbench.ImageBasePath == path);
-            Check(source.Text == contents[path] && window.WorkspaceViews.FloatingWindows.Values.All(view => view.Title.Contains(Path.GetFileName(path))),
+            Check(source.Text == contents[path] && window.WorkspaceViews.FloatingWindows.Values.All(view => view.Title?.Contains(Path.GetFileName(path)) == true),
                 "Switching large documents replaces every detached view and title");
             foreach (var floating in window.WorkspaceViews.FloatingWindows.Values)
             {
@@ -2155,7 +2166,7 @@ void VerifySingleDocumentWorkspace(VerificationVexApp app, Vex.Modules.Shell.Vie
     var edits = vm.Markdown + "\n多窗口同步。\n"; vm.Markdown = edits; Pump();
     Check(source.Text == edits, "Detached source follows document edits");
     Pump(vm.SaveAsync()); Pump(vm.OpenPathAsync(second)); PumpUntil(() => wb.Root?.Title == "第二篇");
-    Check(source.Text.Contains("第二篇") && window.WorkspaceViews.FloatingWindows.Values.All(floating => floating.Title.Contains("另一篇文档")), "Switching files replaces every detached view and its window title");
+    Check(source.Text.Contains("第二篇") && window.WorkspaceViews.FloatingWindows.Values.All(floating => floating.Title?.Contains("另一篇文档") == true), "Switching files replaces every detached view and its window title");
     var floats = window.WorkspaceViews.FloatingWindows.ToDictionary(item => item.Key, item => item.Value);
     var history = wb.History.Capture(); var layout = wb.WorkspaceLayout;
     window.BeginOnboardingGuide(); Pump();
@@ -2575,7 +2586,7 @@ void VerifyAppearanceControls(Window window, MainWindowViewModel vm)
         Check(languages.Children.Count == appearance.LanguageOptions.Count, "Language icon opens the complete language menu");
         languages.Children.OfType<Button>().ElementAt(appearance.LanguageOptions.ToList().IndexOf(option))
             .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Pump();
-        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture.Name == option.CultureName, "Title bar language follows the single global manager");
+        Check(CodeWF.Toolkit.Lang.I18nManager.Instance.Culture?.Name == option.CultureName, "Title bar language follows the single global manager");
         var left = (Control)((CodeWF.Avalonia.Controls.Controls.CodeWFWindow)window).LeftContent!;
         var right = window.FindControl<StackPanel>("TitleBarAppearance")!;
         Check(left.TranslatePoint(new Point(left.Bounds.Width, 0), window)!.Value.X <= right.TranslatePoint(default, window)!.Value.X,
@@ -3174,7 +3185,7 @@ void VerifyUpdates(VerificationVexApp app, Window window, MainWindowViewModel vm
     Check(ReferenceEquals(model, view.DataContext) && model.IsDownloading && service.Checks == 1 && service.Downloads == 1,
         "About reopens the same update session and download");
     var duplicate = overlay.ShowUpdatesAsync(); Pump();
-    Check(ReferenceEquals(overlay.UpdateWindow, win) && ReferenceEquals(((Vex.Modules.Shell.Views.ShellUpdateWindowView)win.Content).DataContext, model),
+    Check(ReferenceEquals(overlay.UpdateWindow, win) && win.Content is Vex.Modules.Shell.Views.ShellUpdateWindowView updateView && ReferenceEquals(updateView.DataContext, model),
         "Repeated entry reuses one visible update window");
     service.CompleteDownload(); Pump(download);
     Check(model.State == UpdateState.Downloaded && model.HasDownload, "Reopened view receives the completed download");

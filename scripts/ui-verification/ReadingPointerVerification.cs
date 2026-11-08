@@ -20,7 +20,7 @@ internal static class ReadingPointerVerification
         var viewer = window.Workspace.FindControl<Control>("PreviewGuideTarget")!
             .FindControl<MarkdownViewer>("PreviewMarkdownViewer")!;
         void Render() { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); Dispatcher.UIThread.RunJobs(); }
-        void Check(bool value, string message)
+        void Check([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] bool value, string message)
         {
             if (!value) throw new InvalidOperationException(message);
             Console.WriteLine("PASS " + message);
@@ -246,11 +246,11 @@ internal static class ReadingPointerVerification
             while (DateTime.UtcNow < limit)
             {
                 Render();
-                if (viewer.CurrentModel.Source == vm.Markdown && vm.Markdown.Contains("LAST --> EDITED")) break;
+                if (viewer.CurrentModel.Source == vm.Markdown && vm.Markdown?.Contains("LAST --> EDITED") == true) break;
                 Thread.Sleep(10);
             }
             for (var settle = 0; settle < 25; settle++) { Render(); Thread.Sleep(10); }
-            Check(vm.Markdown.Contains(firstSource) && vm.Markdown.Contains("LAST --> EDITED"),
+            Check(vm.Markdown?.Contains(firstSource) == true && vm.Markdown?.Contains("LAST --> EDITED") == true,
                 "Only the virtualized tail fence is committed: " + theme);
             Check(!viewer.GetVisualDescendants().OfType<TextBox>().Any(t => t.IsEffectivelyVisible), "Outside toolbar click hides the source: " + theme);
             Check(scrollHost.Offset.Y > 1000 && scrollHost.Offset.Y > before - 600,

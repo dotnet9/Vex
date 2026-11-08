@@ -43,7 +43,7 @@ internal static class ToolbarProbe
 
         var options = window.Workspace.FindControl<ShellEditorOptionsView>("EditorOptions")!;
         Console.WriteLine("=== ancestors of ShellEditorOptionsView ===");
-        Visual v = options;
+        Visual? v = options;
         int depth = 0;
         while (v is not null && depth < 24)
         {

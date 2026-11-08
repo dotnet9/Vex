@@ -158,8 +158,8 @@ internal static class DesktopParityVerification
         static (string Property, int Ms)[] Shape(Transitions? transitions) => transitions is null ? [] :
             transitions.Select(transition => transition switch
             {
-                Transition<double> wide => (wide.Property.Name, wide.Duration.Milliseconds),
-                BrushTransition brush => (brush.Property.Name, brush.Duration.Milliseconds),
+                Transition<double> wide => (wide.Property?.Name ?? string.Empty, wide.Duration.Milliseconds),
+                BrushTransition brush => (brush.Property?.Name ?? string.Empty, brush.Duration.Milliseconds),
                 _ => (transition.GetType().Name, 0),
             }).ToArray();
         bool Settle(Func<bool> done)
