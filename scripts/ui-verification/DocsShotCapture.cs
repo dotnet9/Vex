@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Headless;
+using Avalonia;
+using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Vex.Core.Models;
@@ -132,6 +134,62 @@ internal static class DocsShotCapture
             OpenSample(file);
             vm.Workbench.SelectLayout("read");
             Shot(name);
+        }
+
+        OpenSample("排版与写作.md");
+        vm.Appearance.SelectThemeByKey("light");
+        vm.Workbench.SelectLayout("read");
+        vm.Layout.IsOutlineVisible = true;
+        Render();
+        var outlineView = window.GetVisualDescendants().OfType<ShellOutlineView>().Single();
+        var outline = (ShellOutlineViewModel)outlineView.DataContext!;
+        var list = outlineView.FindControl<ListBox>("OutlineList")!;
+        var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+        var scroll = preview.FindControl<ScrollViewer>("PreviewScrollViewer")!;
+        if (outline.OutlineItems.Count < 3) throw new InvalidOperationException("Documentation outline fixture is incomplete.");
+        Record("大纲导航与阅读跟随", frame =>
+        {
+            if (frame is 5 or 20)
+            {
+                var item = outline.OutlineItems[frame == 5 ? 1 : 2];
+                list.ScrollIntoView(item); Render();
+                var row = list.GetVisualDescendants().OfType<ListBoxItem>().Single(control => ReferenceEquals(control.DataContext, item));
+                var point = row.TranslatePoint(new Point(row.Bounds.Width / 2, row.Bounds.Height / 2), window)!.Value;
+                window.MouseMove(point); window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left);
+            }
+            if (frame is >= 35 and < 55) scroll.Offset = new Vector(0, Math.Max(0, scroll.Offset.Y - 25));
+        });
+        Shot("大纲阅读跟随");
+
+        Record("四视图切换", frame =>
+        {
+            if (frame % 15 == 0) vm.Workbench.SelectLayout(new[] { "instant", "source-render", "read", "map" }[frame / 15]);
+        });
+        vm.Workbench.SelectLayout("instant");
+        appearanceMenu.AppearanceButton.Flyout!.ShowAt(appearanceMenu.AppearanceButton);
+        Record("外观切换", frame =>
+        {
+            if (frame % 15 != 0) return;
+            vm.Appearance.SelectPaletteByKey(new[] { "teal", "aurora", "teal", "aurora" }[frame / 15]);
+            vm.Appearance.SelectThemeByKey(frame is >= 15 and < 45 ? "dark" : "light");
+        });
+        appearanceMenu.AppearanceButton.Flyout!.Hide();
+
+        // 连续采集真实控件帧；消息循环推进布局、导航重试和阅读位置采样。
+        void Record(string name, Action<int> step)
+        {
+            var folder = Path.Combine(output, name); Directory.CreateDirectory(folder);
+            for (var frame = 0; frame < 60; frame++)
+            {
+                step(frame);
+                var dispatcherFrame = new DispatcherFrame();
+                using var timer = DispatcherTimer.RunOnce(() => dispatcherFrame.Continue = false, TimeSpan.FromMilliseconds(100));
+                Dispatcher.UIThread.PushFrame(dispatcherFrame);
+                window.UpdateLayout(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); Dispatcher.UIThread.RunJobs();
+                using var bitmap = window.CaptureRenderedFrame() ?? throw new InvalidOperationException("Documentation frame missing.");
+                bitmap.Save(Path.Combine(folder, $"{frame:D3}.png"));
+            }
+            Console.WriteLine("RECORD " + name + "; frames=60; interval=100ms");
         }
     }
 }

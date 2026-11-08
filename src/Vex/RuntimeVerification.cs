@@ -200,7 +200,7 @@ internal static class RuntimeVerification
                 throw new InvalidOperationException("Published Markdown file icon is missing: " + name);
         }
         // 快速开始按相对路径引用功能截图，应用内离线阅读要求图片随包，缺一张就少一幅画面。
-        foreach (Match image in Regex.Matches(File.ReadAllText(BundledDocuments.GetPath("快速开始.md")), @"!\[[^\]]*\]\(([^)]+\.png)\)"))
+        foreach (Match image in Regex.Matches(File.ReadAllText(BundledDocuments.GetPath("快速开始.md")), @"!\[[^\]]*\]\(([^)]+\.(?:png|gif))\)"))
         {
             var relative = image.Groups[1].Value.Replace('/', Path.DirectorySeparatorChar);
             if (!File.Exists(Path.Combine(BundledDocuments.Folder, relative)))

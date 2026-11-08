@@ -4,7 +4,7 @@
 
 Vex 是基于 .NET 与 Avalonia 的桌面 Markdown 编辑器，支持 **Windows、Linux、macOS**，围绕本地文件提供即时编辑、源码、阅读、章节导图、导出与本机 MCP 协作。
 
-官网：[vex.codewf.com](https://vex.codewf.com/) · 出品：[码坊 CodeWF](https://codewf.com) · 当前版本：**1.21.0.0**
+官网：[vex.codewf.com](https://vex.codewf.com/) · 出品：[码坊 CodeWF](https://codewf.com) · 已发布版本：**1.21.1.1**
 
 ![Vex 桌面工作区](docs/图片/主界面.png)
 
@@ -27,7 +27,25 @@ Vex 是基于 .NET 与 Avalonia 的桌面 Markdown 编辑器，支持 **Windows�
 
 ## 界面
 
-以下界面由 Vex 1.20.0.0 与正式自研库 12.2.48 的真实 Avalonia 控件渲染生成。更多操作见[快速开始](docs/快速开始.md)，采集方式见[截图说明](docs/图片/截图说明.md)。
+以下 PNG 与 GIF 采集于 2026-11-08 的本地验收构建（版本元数据 1.21.1.1，CodeWF.Avalonia 12.1.5.2 / Toolkit 1.1.6）。素材来自真实 Avalonia 控件，GIF 是连续交互帧；本次菜单与阅读大纲修复尚未发布。更多操作见[快速开始](docs/快速开始.md)，采集与验证边界见[截图说明](docs/图片/截图说明.md)。
+
+### 从写作到阅读
+
+即时编辑、源码与阅读对照、单阅读和导图在同一工作区切换：
+
+![四种视图的实际切换](docs/图片/四视图切换.gif)
+
+### 大纲与阅读位置
+
+点击章节定位；继续滚动阅读时，大纲更新当前章节。同一个节点可以重复激活，也支持 Enter / Space。阅读跟随只更新状态，不抢正文焦点；此处演示的是阅读预览视口。
+
+![点击大纲定位并随阅读位置更新当前章节](docs/图片/大纲导航与阅读跟随.gif)
+
+### 外观切换
+
+界面配色与明暗模式即时切换，正文排版可独立选择：
+
+![真实界面的配色和明暗切换](docs/图片/外观切换.gif)
 
 | 源码与阅读对照 | 文档导图 |
 | --- | --- |
@@ -50,9 +68,8 @@ Vex 是基于 .NET 与 Avalonia 的桌面 Markdown 编辑器，支持 **Windows�
 ## 运行
 
 ~~~powershell
-# 重产物默认落在仓库内 artifacts/；想放仓库外时用相对或任意路径即可（正斜杠跨平台）。
-$vexWorkRoot = [IO.Path]::GetFullPath('../vex-temp')
-pwsh scripts/restore_library_candidate.ps1 -OutputRoot "$vexWorkRoot/library-candidate"
+# 默认消费正式 NuGet 包；按 global.json 安装对应 .NET 11 RC SDK。
+$vexWorkRoot = 'D:/github/temp_files/vex-dev'
 dotnet restore Vex.slnx "-p:ArtifactsPath=$vexWorkRoot/artifacts"
 dotnet build Vex.slnx --no-restore -v:minimal "-p:ArtifactsPath=$vexWorkRoot/artifacts"
 dotnet run --project src/Vex/Vex.csproj -f net11.0 --no-restore "-p:ArtifactsPath=$vexWorkRoot/artifacts"
