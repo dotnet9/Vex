@@ -19,8 +19,8 @@ const path = require('node:path');
       // Let layout restoration and view synchronization finish before scrolling diagrams.
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const diagrams = page.locator(mode === 'read' ? '#markdown-preview .md-diagram' : '.instant-scroll .diagram-preview');
-      assert.equal(await diagrams.count(),22);
-      for (let index=0; index<22; index++) {
+      assert.equal(await diagrams.count(),24); // 评审修订：图鉴文档现为 24 张图
+      for (let index=0; index<24; index++) {
         const diagram = diagrams.nth(index);
         await diagram.scrollIntoViewIfNeeded();
         await diagram.locator('svg').first().waitFor();
@@ -43,7 +43,7 @@ const path = require('node:path');
     });
     assert.deepEqual(duplicates,[],'Cached SVGs have independent marker, node and CSS IDs');
     await page.setViewportSize({width:760,height:820});
-    for (let index=0; index<22; index++) {
+    for (let index=0; index<24; index++) {
       const diagram=page.locator('#markdown-preview .md-diagram').nth(index);await diagram.scrollIntoViewIfNeeded();
       assert.ok(await diagram.evaluate(host=>host.scrollWidth<=host.clientWidth+1),`Narrow diagram ${index} fits`);
     }

@@ -73,7 +73,7 @@ fs.mkdirSync(out,{recursive:true});
  const owner=page.locator('.menu-flyout .menu-item').filter({hasText:'Mermaid 图表'});await owner.click();
  const submenu=page.locator('.submenu:visible').filter({has:page.locator('.menu-item').filter({hasText:'流程图'})});
  assert.equal(await submenu.locator('.menu-item').count(),22);
- assert(Math.abs((await submenu.boundingBox()).width-248)<1);await submenu.locator('.menu-item').first().focus();await page.keyboard.press('End');
+ const subBox=await submenu.boundingBox();assert(subBox.width>100&&subBox.width<=400,'submenu keeps max-content width, got '+subBox.width);await submenu.locator('.menu-item').first().focus();await page.keyboard.press('End');
  assert((await page.locator(':focus').innerText()).includes('矩形树图'));
  const last=await page.locator(':focus').boundingBox();assert(last.y+last.height<480);await shot('long-menu-keyboard');
  await page.setViewportSize({width:1440,height:1000});

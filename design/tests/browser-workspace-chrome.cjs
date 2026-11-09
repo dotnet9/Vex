@@ -122,7 +122,7 @@ fs.mkdirSync(output, {recursive:true});
     await open('layout=map');
     await page.locator('#map-zoom-range').press('End');
     assert.equal(await page.evaluate(() => VexWorkbench.state.scale), 2, 'Floating map zoom remains keyboard accessible');
-    await page.locator('.map-controls .zoom-reset').click();
+    await page.locator('.map-controls .zoom-reset[data-action="map-fit"]').click(); // 评审修订后缩放坞有「回到中心」并列按钮，锁定适应画布
     const sample = '# 文章\n\n## 甲章\n\n甲的正文。\n\n### 子节\n\n子节保留。\n\n## 乙章\n\n乙的正文。\n';
     await page.evaluate(value => {
       VexWorkbench.applyText(value); VexWorkbench.fit();

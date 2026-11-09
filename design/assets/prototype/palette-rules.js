@@ -183,12 +183,9 @@
     return endpoint;
   }
 
-  /* 评审修订（UI 级强调色可读性）：浅色态 accent 作为图标钮/工具栏强调文字消费（--accent），
-     在纸面/面板不足 4.5:1 时向 ink 收敛——与状态四键同一条规则；装饰与焦点环仍用原色（--accent-decoration/--focus-ring）。 */
-  function accentFor(base, dark) {
-    if (dark) return base.accent;
-    return readable(base.accent, [base.paper, base.surface], 4.5);
-  }
+  /* 评审复核：曾把浅色 --accent 向 ink 收敛以满足 4.5，但这会拉低 on-accent（黑字）在强调面上的对比
+     （teal 5.9→4.17，破坏 browser-design-principles 契约）。结论：--accent 保持规则文档原色——
+     它主要作图形/底色消费（WCAG 图形 ≥3:1，teal 3.26 达标）；文字级强调用 --accent-ink（≥4.5，§3 已派生）。 */
 
   /* 原型变量映射层：规则语义键 → 原型 CSS 变量词汇表（§4 消费契约的原型投影）。 */
   function deriveVars(base, mode, constants) {
@@ -228,7 +225,7 @@
       'segmented-thumb': dark ? base.surface : alphaOver('#ffffff', 0.55, base.paper),
       elevated: mix(base.paper, base.surface, 0.12),
       'code-bg': base.surface, code: base.surface,
-      accent: accentFor(base, dark), 'accent-decoration': base.accent,
+      accent: base.accent, 'accent-decoration': base.accent,
       'accent-fg': on, 'on-accent': on, 'accent-hover': resolved.primaryHover,
       primary: base.accent, 'on-primary': on,
       'primary-hover': resolved.primaryHover, 'primary-pressed': resolved.primaryPressed,
