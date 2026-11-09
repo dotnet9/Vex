@@ -411,7 +411,10 @@ public sealed class MarkdownExportService : IMarkdownExportService
 
     private string ResolvePrintTitle(DocumentSnapshot document)
     {
-        return MarkdownHeadingScanner.FindFirstHeading(document.Markdown)
+        // 首标题改走库端提取（含退化扫描），遗留的 MarkdownHeadingScanner 已删除。
+        return CodeWF.Avalonia.Markdown.Shared.Rendering.MarkdownOutlineExtractor
+                   .ExtractFromText(document.Markdown, _preferences.SyntaxOptions.CreatePipeline())
+                   .FirstOrDefault()?.Title
                ?? Path.GetFileNameWithoutExtension(document.FileName)
                ?? document.FileName
                ?? _localizer.Get(VexL.DocumentDefaultHeading);

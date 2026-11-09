@@ -155,15 +155,15 @@ internal static class RuntimeVerification
         var viewer = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
         var scroll = preview.FindControl<ScrollViewer>("PreviewScrollViewer")!;
         var outlineView = window.GetVisualDescendants().OfType<ShellOutlineView>().Single();
-        var list = outlineView.FindControl<ListBox>("OutlineList")!;
+        var outlinePanel = outlineView.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownOutlinePanel>("OutlinePanel")!;
         var outline = (ShellOutlineViewModel)outlineView.DataContext!;
         Wait(() => viewer.CurrentModel.Source == source && outline.OutlineItems.Count == 50);
         var target = outline.OutlineItems[39];
-        Activate(target);
+        Activate(39);
         Wait(() => scroll.Offset.Y > 5000);
         Wait(() => Landed(target.Line)); Settle();
         scroll.Offset = default;
-        Activate(target);
+        Activate(39);
         Wait(() => Landed(target.Line)); Settle();
         if (!ReferenceEquals(outline.CurrentOutlineItem, target)) throw new InvalidOperationException("Native outline lost source identity.");
         scroll.Focus();
@@ -179,10 +179,10 @@ internal static class RuntimeVerification
         bitmap.Render(window); bitmap.Save(Path.Combine(_uiDirectory, "outline-reading.png"));
         Console.WriteLine("Native outline activation, repeated navigation and reading follow passed.");
 
-        void Activate(OutlineItem item)
+        void Activate(int index)
         {
-            list.SelectedItem = item;
-            list.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+            // 大纲行 UI 已下沉到库面板：按同序索引换算面板行后走面板导航入口。
+            outlinePanel.Navigate(outlinePanel.Rows[index]);
         }
         bool Landed(int line) => viewer.TryGetSourceLineBounds(line, out var sourceBounds)
             && viewer.TranslatePoint(new Point(0, sourceBounds.Top), scroll) is { } targetPoint

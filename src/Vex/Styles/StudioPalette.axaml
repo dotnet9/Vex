@@ -57,6 +57,14 @@
     <SolidColorBrush x:Key="VexSegmentedTrackBrush" Color="{DynamicResource StudioSegmentedTrackColor}" />
     <SolidColorBrush x:Key="VexSegmentedThumbBrush" Color="{DynamicResource StudioSegmentedThumbColor}" />
     <SolidColorBrush x:Key="VexPressedBrush" Color="{DynamicResource StudioPressedColor}" />
+    <!-- 大纲面板（库 MarkdownOutlinePanel）视觉契约键：随 Studio 调色板运行时换肤。 -->
+    <SolidColorBrush x:Key="OutlinePanelHoverBrush" Color="{DynamicResource StudioPressedColor}" />
+    <SolidColorBrush x:Key="OutlinePanelCurrentBrush" Color="{DynamicResource StudioSelectedColor}" />
+    <SolidColorBrush x:Key="OutlinePanelAccentBrush" Color="{DynamicResource StudioAccentColor}" />
+    <SolidColorBrush x:Key="OutlinePanelMutedBrush" Color="{DynamicResource StudioMutedColor}" />
+    <SolidColorBrush x:Key="OutlinePanelValueBrush" Color="{DynamicResource StudioTextColor}" />
+    <SolidColorBrush x:Key="OutlinePanelSearchBackgroundBrush" Color="{DynamicResource StudioSurfaceColor}" />
+    <SolidColorBrush x:Key="OutlinePanelSearchBorderBrush" Color="{DynamicResource StudioControlBorderColor}" />
     <!-- 原型文档选区两档：.reading-scroll/.source-scroll 等正文滚动区把 selection 覆写为
          document-selection（surface.css:112→54：vex-selected→selected），即 accent@12%/18% 叠 paper，
          与 StudioPressedColor 同源（indigo 浅 #e7e5f7 / 深 #2e313e，探针实测两者同值）；

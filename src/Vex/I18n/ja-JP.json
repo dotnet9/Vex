@@ -947,6 +947,7 @@
       "MenuImportWord": "Word からインポート…",
       "StatusImportUnavailable": "{0}インポートはまだサポートされていません",
       "PrefSourceLineNumbers": "ソース行番号を表示",
+      "PrefOutlineNumbers": "アウトラインに章番号を表示",
       "PrefSpaceUnit": "{0} スペース",
       "PrefCodeAndSource": "コードとソース",
       "PrefWatermarkExportNote": "HTML / PDF",

@@ -35,6 +35,10 @@ public sealed record AppSettings
     public bool? IsOutlineVisible { get; init; }
     public double? OutlineWidth { get; init; }
 
+    /// <summary>大纲条目前的层级章节序号（1.1、1.1.1）。默认不显示——大纲与正文标题原文一致，
+    /// 文章自带序号时不重复；未手写序号的文章可在设置里打开。</summary>
+    public bool? ShowOutlineNumbers { get; init; }
+
     /// <summary>视图分屏比例，按「预设/轴向」记档（原型 vex-design-split-ratio）。</summary>
     public string? ViewSplitRatios { get; init; }
     public bool? FileListView { get; init; }

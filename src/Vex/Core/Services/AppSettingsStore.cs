@@ -48,6 +48,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string IsTypewriterMode = nameof(AppSettings.IsTypewriterMode);
     private const string IsOutlineVisible = nameof(AppSettings.IsOutlineVisible);
     private const string OutlineWidth = nameof(AppSettings.OutlineWidth);
+    private const string ShowOutlineNumbers = nameof(AppSettings.ShowOutlineNumbers);
     private const string ViewSplitRatios = nameof(AppSettings.ViewSplitRatios);
     private const string FileListView = nameof(AppSettings.FileListView);
     private const string FileListFontSize = nameof(AppSettings.FileListFontSize);
@@ -133,6 +134,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
         {
             IsOutlineVisible = Get<bool?>(configuration, IsOutlineVisible),
             OutlineWidth = Get<double?>(configuration, OutlineWidth),
+            ShowOutlineNumbers = Get<bool?>(configuration, ShowOutlineNumbers),
             ViewSplitRatios = Get<string>(configuration, ViewSplitRatios),
             FileListView = Get<bool?>(configuration, FileListView),
             FileListFontSize = Get<double?>(configuration, FileListFontSize),
@@ -232,6 +234,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             {
                 [IsOutlineVisible] = settings.IsOutlineVisible,
                 [OutlineWidth] = settings.OutlineWidth,
+                [ShowOutlineNumbers] = settings.ShowOutlineNumbers,
                 [ViewSplitRatios] = settings.ViewSplitRatios,
                 [FileListView] = settings.FileListView,
                 [FileListFontSize] = settings.FileListFontSize,

@@ -1,6 +1,5 @@
 using CodeWF.Avalonia.Markdown.Shared.Rendering;
 using Markdig;
-using Vex.Core.Models;
 using Vex.Core.Services;
 
 namespace Vex.Modules.Workspace.Services;
@@ -15,15 +14,13 @@ public sealed partial class MarkdownOutlineService : IMarkdownOutlineService
         .UseAdvancedExtensions()
         .Build();
 
-    public IReadOnlyList<OutlineItem> BuildOutline(string markdown)
+    public IReadOnlyList<MarkdownOutlineItem> BuildOutline(string markdown)
     {
         if (string.IsNullOrEmpty(markdown))
         {
             return [];
         }
 
-        var model = MarkdownParser.Parse(markdown, Pipeline);
-        var items = MarkdownOutlineExtractor.Extract(model);
-        return items.Select(item => new OutlineItem(item.Level, item.Title, item.Line)).ToArray();
+        return MarkdownOutlineExtractor.ExtractFromText(markdown, Pipeline);
     }
 }

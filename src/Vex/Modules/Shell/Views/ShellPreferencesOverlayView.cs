@@ -141,13 +141,15 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Choice(page, VexL.PrefNewline, p, nameof(p.DefaultNewline), [(L(VexL.PrefSystemFont), "system"), ("LF", "LF"), ("CRLF", "CRLF")]);
                 break;
             case "editor":
-                // 对齐原型 editor 页：仅 编辑区字体、缩进 与「代码与源码」组（自动换行、源码行号）。
+                // 对齐原型 editor 页：仅 编辑区字体、缩进 与「代码与源码」组（自动换行、源码行号），
+                // 末尾追加「大纲显示章节序号」（与源码行号同为编号显示偏好，原型 editor 页同步放置）。
                 Choice(page, VexL.PrefBodyFont, p, nameof(p.BodyFont), [(L(VexL.PrefSystemFont), "system"), (L(VexL.PrefSerifFont), "serif"), (L(VexL.PrefMonoFont), "mono")]);
                 Number(page, VexL.PrefFileListFontSize, p, nameof(p.FileListFontSize), 10, 18, .5m);
                 Choice(page, VexL.PrefIndent, p, nameof(p.IndentSize), [(LF("Vex.VexL.PrefSpaceUnit", 2), 2), (LF("Vex.VexL.PrefSpaceUnit", 4), 4), (LF("Vex.VexL.PrefSpaceUnit", 8), 8)]);
                 Heading(page, "Vex.VexL.PrefCodeAndSource");
                 Toggle(page, VexL.PrefWrap, p, nameof(p.CodeWrap));
                 Toggle(page, "Vex.VexL.PrefSourceLineNumbers", _model.Display, nameof(_model.Display.ShowLineNumbers));
+                Toggle(page, VexL.PrefOutlineNumbers, _model.Outline, nameof(_model.Outline.ShowOutlineNumbers));
                 break;
             case "images":
                 Toggle(page, VexL.PrefImageCopy, p, nameof(p.ImageCopy)); Toggle(page, VexL.PrefImageRelative, p, nameof(p.ImageRelative));

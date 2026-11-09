@@ -55,23 +55,6 @@
     <Setter Property="MinHeight" Value="{DynamicResource VexUiFieldHeight}" />
     <Setter Property="Padding" Value="{DynamicResource VexUiToolbarButtonPadding}" />
   </Style>
-  <Style Selector="ListBox.side-list Border.structure-item">
-    <Setter Property="MinHeight" Value="{DynamicResource VexUiMenuRowHeight}" />
-  </Style>
-  <Style Selector="ListBox.side-list TextBlock.structure-text">
-    <Setter Property="FontSize" Value="{DynamicResource VexUiOutlineFontSize}" />
-    <Setter Property="LineHeight" Value="{DynamicResource VexUiOutlineLineHeight}" />
-  </Style>
-  <Style Selector="ListBox.side-list TextBlock.structure-num">
-    <Setter Property="FontSize" Value="{DynamicResource VexUiOutlineNumberFontSize}" />
-    <Setter Property="LineHeight" Value="{DynamicResource VexUiSmallLineHeight}" />
-  </Style>
-  <Style Selector="ListBox.side-list Border.structure-item > Grid">
-    <Setter Property="ColumnSpacing" Value="{DynamicResource VexUiGap7}" />
-  </Style>
-  <Style Selector="ListBox.side-list Border.structure-item.top > Grid">
-    <Setter Property="ColumnSpacing" Value="{DynamicResource VexUiGap8}" />
-  </Style>
   <Style Selector="TreeView.side-tree Border.file-card">
     <Setter Property="MinHeight" Value="{DynamicResource VexUiFolderRowHeight}" />
     <Setter Property="Padding" Value="{DynamicResource VexUiFolderPadding}" />

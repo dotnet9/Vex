@@ -102,6 +102,13 @@ public sealed partial class ShellAppearanceViewModel
         Set("OutlineLineHeight", Size(19.2, 1.6));
         Set("SmallLineHeight", Size(17.6, .8));
         Set("CaptionLineHeight", Size(19.2, 1.6));
+        // 库大纲面板（MarkdownOutlinePanel）的 OutlinePanel* 尺寸契约键随密度一起换档。
+        Set("OutlinePanelTitleFontSize", Size(12, 1));
+        Set("OutlinePanelNumberFontSize", Size(11, 1));
+        Set("OutlinePanelTitleLineHeight", Size(19.2, 1.6));
+        Set("OutlinePanelNumberLineHeight", Size(17.6, .8));
+        Set("OutlinePanelRowMinHeight", Size(32));
+        Set("OutlinePanelRowPadding", new Avalonia.Thickness(0, Space(6), Space(6), Space(6)));
         Set("BodyLineHeight", Size(21, 1.5));
         foreach (var gap in new[] { 4, 6, 7, 8, 16, 24 })
             Set("Gap" + gap, Space(gap));

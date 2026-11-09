@@ -948,6 +948,7 @@
       "MenuImportWord": "從 Word 匯入…",
       "StatusImportUnavailable": "暫不支援{0}匯入",
       "PrefSourceLineNumbers": "顯示原始碼行號",
+      "PrefOutlineNumbers": "大綱顯示章節序號",
       "PrefSpaceUnit": "{0} 空格",
       "PrefCodeAndSource": "程式碼與原始碼",
       "PrefWatermarkExportNote": "HTML / PDF",

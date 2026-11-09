@@ -1,124 +1,118 @@
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using CodeWF.Avalonia.Markdown.Controls;
+using CodeWF.Avalonia.Markdown.Shared.Rendering;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
-using Vex.Core.Models;
 using Vex.Core.Regions;
 using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
+/// <summary>
+/// 大纲侧栏状态：条目来自命令（Markdown 派生，库条目类型），行 UI 与筛选/折叠渲染已下沉到
+/// 库的 MarkdownOutlinePanel（View 薄壳 AttachPanel 接入）；这里只保留展开持久化、
+/// 当前章跟随与导航下发。
+/// </summary>
 public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
 {
     private readonly IShellStatusPublisher _statusPublisher;
-    private OutlineItem? _selectedOutlineItem;
-    private OutlineItem? _currentOutlineItem;
     private int _lastCaretLine = 1;
     private int _lastLineCount = 1;
     private readonly IAppSettingsStore? _settingsStore;
     private readonly IWorkspaceDocumentState? _document;
+    private readonly ShellWindowLayoutViewModel _layout;
+    private MarkdownOutlinePanel? _panel;
+    private IReadOnlyList<MarkdownOutlineItem> _items = [];
+    private IReadOnlyList<string> _expansionKeys = [];
 
     public ShellOutlineViewModel(IShellStatusPublisher statusPublisher,
-        IAppSettingsStore? settingsStore = null, IWorkspaceDocumentState? document = null)
+        ShellWindowLayoutViewModel layout, IAppSettingsStore? settingsStore = null,
+        IWorkspaceDocumentState? document = null)
     {
         _statusPublisher = statusPublisher;
+        _layout = layout;
         _settingsStore = settingsStore;
         _document = document;
+        _showOutlineNumbers = settingsStore?.Current.ShowOutlineNumbers ?? false;
+        ToggleOutlineCommand = ReactiveCommand.Create(ToggleOutline);
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 
     public string? TitleKey { get; } = VexL.SidebarOutline;
 
-    public ObservableCollection<OutlineItem> OutlineItems { get; } = [];
-    public ObservableCollection<OutlineItem> FilteredOutlineItems { get; } = [];
-    private string _filterText = string.Empty;
-    public string FilterText
-    {
-        get => _filterText;
-        set { if (SetProperty(ref _filterText, value)) FilterOutline(); }
-    }
+    private IReadOnlyList<OutlineRow> _currentRows = [];
 
-    public void ClearFilter() => FilterText = string.Empty;
+    /// <summary>验收脚本契约：当前文档的大纲行（与展开键同序）。</summary>
+    public IReadOnlyList<OutlineRow> OutlineItems => _currentRows;
 
-    private void FilterOutline()
+    private OutlineRow? _currentOutlineItem;
+
+    /// <summary>光标/阅读位置所在章节行（验收脚本契约；面板同步高亮与滚动）。</summary>
+    public OutlineRow? CurrentOutlineItem
     {
-        FilteredOutlineItems.Clear();
-        var hiddenBelow = 7;
-        foreach (var item in OutlineItems)
+        get => _currentOutlineItem;
+        private set
         {
-            if (!string.IsNullOrWhiteSpace(FilterText))
-            {
-                if (item.Title.Contains(FilterText.Trim(), StringComparison.CurrentCultureIgnoreCase))
-                    FilteredOutlineItems.Add(item);
-                continue;
-            }
-            if (item.Level > hiddenBelow) continue;
-            hiddenBelow = item.IsExpanded ? 7 : item.Level;
-            FilteredOutlineItems.Add(item);
+            if (!SetProperty(ref _currentOutlineItem, value)) return;
+            _panel?.CurrentRow = value;
         }
-        OnPropertyChanged(nameof(IsFilterEmpty));
-        OnPropertyChanged(nameof(IsFilterNoMatch));
     }
 
-    public bool IsFilterEmpty => FilteredOutlineItems.Count == 0;
+    private bool _showOutlineNumbers;
 
-    /// <summary>原型区分两种空态：文档没有标题给引导文案，筛选无结果给无匹配文案。</summary>
-    public bool IsFilterNoMatch => HasOutlineItems && !string.IsNullOrWhiteSpace(FilterText) && IsFilterEmpty;
-
-    public bool HasOutlineItems => OutlineItems.Count > 0;
-
-    public bool IsOutlineEmpty => !HasOutlineItems;
-
-    public OutlineItem? SelectedOutlineItem
+    /// <summary>大纲条目前的层级章节序号显隐（默认不显示，见 AppSettings.ShowOutlineNumbers）。
+    /// 序号始终已算好，这里只切面板样式，翻开关不需要重建大纲。</summary>
+    public bool ShowOutlineNumbers
     {
-        get => _selectedOutlineItem;
-        set => SetProperty(ref _selectedOutlineItem, value);
+        get => _showOutlineNumbers;
+        set
+        {
+            if (_showOutlineNumbers == value) return;
+            _showOutlineNumbers = value;
+            _settingsStore?.Update(settings => settings with { ShowOutlineNumbers = value });
+            OnPropertyChanged(nameof(ShowOutlineNumbers));
+        }
+    }
+
+    /// <summary>面板头关闭钮：切换大纲停靠显隐（视图只负责回收焦点）。</summary>
+    public ReactiveCommand<ReactiveUI.Primitives.RxVoid, ReactiveUI.Primitives.RxVoid> ToggleOutlineCommand { get; }
+
+    /// <summary>面板头关闭钮：切换大纲停靠显隐（视图只负责回收焦点）。</summary>
+    public void ToggleOutline() => _layout.ToggleOutline();
+
+    /// <summary>View 挂载面板（区域视图可能随语言重建，单例 VM 只认最新挂载的面板）。</summary>
+    public void AttachPanel(MarkdownOutlinePanel panel)
+    {
+        if (ReferenceEquals(_panel, panel)) return;
+        if (_panel is { } old)
+        {
+            old.NavigateRequested -= OnPanelNavigateRequested;
+            old.ExpandedChanged -= OnPanelExpandedChanged;
+        }
+
+        _panel = panel;
+        panel.NavigateRequested += OnPanelNavigateRequested;
+        panel.ExpandedChanged += OnPanelExpandedChanged;
+        ReapplyRows();
+    }
+
+    public void DetachPanel(MarkdownOutlinePanel panel)
+    {
+        if (!ReferenceEquals(_panel, panel)) return;
+        panel.NavigateRequested -= OnPanelNavigateRequested;
+        panel.ExpandedChanged -= OnPanelExpandedChanged;
+        _panel = null;
     }
 
     [EventHandler]
     public void ApplyOutlineItemsChanged(OutlineItemsChangedCommand command)
     {
         // 大纲由 Markdown 派生生成，这里只更新展示状态，跳转仍通过事件总线发给编辑器。
-        OutlineItems.Clear();
-        var counters = new int[6];
-        var collapsed = NavigationExpansionState.Read(_settingsStore?.Current.CollapsedOutlineSections);
-        var documentKey = NavigationExpansionState.Encode(_document?.FilePath is { Length: > 0 } path
-            ? NavigationExpansionState.PathKey(path) : "untitled");
-        var ancestors = new Stack<OutlineItem>();
-        var occurrences = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var item in command.Items)
-        {
-            var level = Math.Clamp(item.Level, 1, 6);
-            counters[level - 1]++;
-            Array.Clear(counters, level, 6 - level);
-            item.Number = string.Join('.', counters.Take(level));
-            while (ancestors.Count > 0 && ancestors.Peek().Level >= item.Level) ancestors.Pop();
-            var parentKey = ancestors.Count > 0 ? ancestors.Peek().ExpansionKey : documentKey;
-            var key = parentKey + "/" + level + ":" + NavigationExpansionState.Encode(item.Title);
-            occurrences.TryGetValue(key, out var occurrence);
-            occurrences[key] = occurrence + 1;
-            item.ExpansionKey = key + ":" + occurrence;
-            item.IsExpanded = !collapsed.Contains(item.ExpansionKey);
-            if (ancestors.Count > 0) ancestors.Peek().HasChildren = true;
-            ancestors.Push(item);
-            item.PropertyChanged += (_, args) =>
-            {
-                if (args.PropertyName != nameof(OutlineItem.IsExpanded)) return;
-                _settingsStore?.Update(settings => settings with
-                {
-                    CollapsedOutlineSections = NavigationExpansionState.Set(settings.CollapsedOutlineSections,
-                        item.ExpansionKey, !item.IsExpanded)
-                });
-                FilterOutline();
-            };
-            OutlineItems.Add(item);
-        }
-
-        FilterOutline();
-        SelectOutlineItemSilently(null);
-        NotifyOutlineChanged();
+        _items = command.Items;
+        ReapplyRows();
         UpdateReadingState(_lastCaretLine, _lastLineCount);
     }
 
@@ -132,44 +126,58 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     public void ApplyReadingPositionChanged(MarkdownReadingPositionChangedCommand command) =>
         UpdateReadingState(command.Line, _lastLineCount);
 
-    // 编辑时按光标、阅读时按视口更新；状态同步不触发导航。
-    public OutlineItem? CurrentOutlineItem
+    /// <summary>把命令条目灌进面板并按持久化状态盖章折叠（展开键由库生成，历史配置口径不变）。</summary>
+    private void ReapplyRows()
     {
-        get => _currentOutlineItem;
-        private set
+        var panel = _panel;
+        if (panel is null) return;
+        var rows = panel.SetItems(_items);
+        var documentKey = OutlineExpansionState.PathKey(_document?.FilePath is { Length: > 0 } path
+            ? path : "untitled");
+        _expansionKeys = OutlineExpansionKey.BuildSequence(
+            rows.Select(row => (row.Level, row.Title)), documentKey);
+        var collapsed = OutlineExpansionState.Read(_settingsStore?.Current.CollapsedOutlineSections);
+        for (var i = 0; i < rows.Count; i++)
         {
-            if (ReferenceEquals(_currentOutlineItem, value))
-            {
-                return;
-            }
+            rows[i].IsExpanded = !collapsed.Contains(_expansionKeys[i]);
+        }
 
-            if (_currentOutlineItem is not null)
-            {
-                _currentOutlineItem.IsCurrent = false;
-            }
+        _currentRows = rows;
+        this.RaisePropertyChanged(nameof(OutlineItems));
+        panel.RefreshRows();
+        SyncCurrentToPanel();
+    }
 
-            _currentOutlineItem = value;
-            if (_currentOutlineItem is not null)
-            {
-                _currentOutlineItem.IsCurrent = true;
-            }
+    private void OnPanelNavigateRequested(object? sender, OutlineRow row) => NavigateToOutlineItem(row);
 
-            OnPropertyChanged(nameof(CurrentOutlineItem));
-            SelectOutlineItemSilently(value);
+    private void OnPanelExpandedChanged(object? sender, OutlineRow row)
+    {
+        // 用户折叠/展开即落盘；宿主自身的初始盖章不经过此事件。
+        var index = IndexOf(_currentRows, row);
+        if (index >= 0 && index < _expansionKeys.Count)
+        {
+            var key = _expansionKeys[index];
+            _settingsStore?.Update(settings => settings with
+            {
+                CollapsedOutlineSections = OutlineExpansionState.Set(settings.CollapsedOutlineSections, key, !row.IsExpanded)
+            });
         }
     }
 
+    /// <summary>当前章换算：按行号找最后一条 ≤ 光标行，交面板盖章（滚动与"指针悬停不挪动"由面板负责）。</summary>
     private void UpdateReadingState(int caretLine, int lineCount)
     {
         _lastCaretLine = caretLine;
         _lastLineCount = lineCount;
 
-        OutlineItem? current = null;
-        foreach (var item in OutlineItems)
+        var panel = _panel;
+        var rows = panel?.Rows ?? _currentRows;
+        OutlineRow? current = null;
+        foreach (var row in rows)
         {
-            if (item.Line <= caretLine)
+            if (row.Line <= caretLine)
             {
-                current = item;
+                current = row;
             }
             else
             {
@@ -180,27 +188,29 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
         CurrentOutlineItem = current;
     }
 
-    private void SelectOutlineItemSilently(OutlineItem? outlineItem)
+    private void SyncCurrentToPanel()
     {
-        SetProperty(ref _selectedOutlineItem, outlineItem, nameof(SelectedOutlineItem));
+        if (_panel is null) return;
+        _panel.CurrentRow = CurrentOutlineItem;
     }
 
-    /// <summary>
-    /// 点击大纲跳转。重复点击同一项时选中值不变，因此不能只靠选中值变化触发，
-    /// 必须每次都下发一次跳转指令（指令带序号，接收端按序号强制重新定位）。
-    /// </summary>
-    public void NavigateToOutlineItem(OutlineItem outlineItem)
+    /// <summary>面板行导航：换算回命令条目后统一走这里（验收脚本也直接调用条目重载）。</summary>
+    public void NavigateToOutlineItem(OutlineRow row)
     {
-        UpdateReadingState(outlineItem.Line, _lastLineCount);
-        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(outlineItem.Line));
-        _statusPublisher.PublishResourceFormat(VexL.StatusNavigatedToOutlineFormat, outlineItem.Title);
+        UpdateReadingState(row.Line, _lastLineCount);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new NavigateToLineCommand(row.Line));
+        _statusPublisher.PublishResourceFormat(VexL.StatusNavigatedToOutlineFormat, row.Title);
     }
 
-    private void NotifyOutlineChanged()
+    private static int IndexOf(IReadOnlyList<OutlineRow> rows, OutlineRow? row)
     {
-        OnPropertyChanged(nameof(HasOutlineItems));
-        OnPropertyChanged(nameof(IsOutlineEmpty));
-        OnPropertyChanged(nameof(IsFilterNoMatch));
+        if (row is null) return -1;
+        for (var i = 0; i < rows.Count; i++)
+        {
+            if (ReferenceEquals(rows[i], row)) return i;
+        }
+
+        return -1;
     }
 
     private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)

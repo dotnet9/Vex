@@ -999,7 +999,7 @@
       var button = document.createElement('button'); button.className = 'structure-item'; button.dataset.level = String(node.level);
       button.dataset.sourceLine = node.line;
       button.style.paddingLeft = (Math.max(0, node.level - 1) * 12) + 'px';
-      button.innerHTML = '<span class="structure-marker"></span><span class="structure-num">' + number + '</span><span class="structure-text"></span>';
+      button.innerHTML = '<span class="structure-num">' + number + '</span><span class="structure-text"></span>';
       button.querySelector('.structure-text').textContent = node.text;
       button.onclick = function () {
         if (state.view === 'mindmap') {
@@ -2042,6 +2042,7 @@
       if (key === 'font') document.documentElement.dataset.writingFont = value;
       if (key === 'zoom') document.documentElement.style.setProperty('--vex-content-zoom',value / 100);
       if (key === 'lineNumbers') document.querySelector('.source-scroll').classList.toggle('no-lines',!value);
+      if (key === 'outlineNumbers') document.documentElement.dataset.outlineNumbers = String(value === true);
       if (key === 'wordCountVisible') $('sb-wordcount').hidden = !value;
       if (key === 'autoPair') state.autoPair = value;
       if (key === 'typewriter') { state.typewriter = value; typewriter.refresh(); }

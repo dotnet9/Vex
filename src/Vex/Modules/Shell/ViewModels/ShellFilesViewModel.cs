@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
+using CodeWF.Avalonia.Markdown.Controls;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
@@ -259,7 +260,7 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
             && PathsEqual(_workspacePath, command.WorkspaceRootPath);
         var expandedPaths = sameWorkspace
             ? Enumerate(DocumentFileNodes).Where(node => node.IsFolder && node.IsExpanded)
-                .Select(node => NavigationExpansionState.PathKey(node.Path)).ToHashSet(StringComparer.Ordinal)
+                .Select(node => OutlineExpansionState.PathKey(node.Path)).ToHashSet(StringComparer.Ordinal)
             : new HashSet<string>(StringComparer.Ordinal);
         var selectedFolderPath = SelectedDocumentFileNode is { IsFolder: true } selectedFolder
             && sameWorkspace ? selectedFolder.Path : null;
@@ -274,7 +275,7 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
 
         foreach (var node in Enumerate(DocumentFileNodes).Where(node => node.IsFolder))
         {
-            var pathKey = NavigationExpansionState.PathKey(node.Path);
+            var pathKey = OutlineExpansionState.PathKey(node.Path);
             // 新目录默认折叠；同一工作区刷新只恢复用户本次手动展开的目录。
             node.IsExpanded = sameWorkspace
                 ? expandedPaths.Contains(pathKey)
@@ -282,10 +283,10 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
             node.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName != nameof(DocumentFileNode.IsExpanded)) return;
-                var key = NavigationExpansionState.Encode(NavigationExpansionState.PathKey(node.Path));
+                var key = OutlineExpansionState.Encode(OutlineExpansionState.PathKey(node.Path));
                 if (!_batchExpansionChange) _settingsStore?.Update(settings => settings with
                 {
-                    CollapsedFolders = NavigationExpansionState.Set(settings.CollapsedFolders, key, !node.IsExpanded)
+                    CollapsedFolders = OutlineExpansionState.Set(settings.CollapsedFolders, key, !node.IsExpanded)
                 });
                 OnPropertyChanged(nameof(CanCollapseAll));
             };

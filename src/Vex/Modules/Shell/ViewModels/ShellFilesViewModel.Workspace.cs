@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using CodeWF.Avalonia.Markdown.Controls;
 using Avalonia.Threading;
 using Vex.Core.Messaging;
 using Vex.Core.Models;
@@ -108,7 +109,7 @@ public sealed partial class ShellFilesViewModel
         {
             var value = settings.CollapsedFolders;
             foreach (var folder in Enumerate(DocumentFileNodes).Where(node => node.IsFolder))
-                value = NavigationExpansionState.Set(value, NavigationExpansionState.Encode(NavigationExpansionState.PathKey(folder.Path)), !folder.IsExpanded);
+                value = OutlineExpansionState.Set(value, OutlineExpansionState.Encode(OutlineExpansionState.PathKey(folder.Path)), !folder.IsExpanded);
             return settings with { CollapsedFolders = value };
         });
     }

@@ -1,8 +1,8 @@
-using Vex.Core.Models;
+using CodeWF.Avalonia.Markdown.Shared.Rendering;
 
 namespace Vex.Core.Services;
 
 public interface IMarkdownOutlineService
 {
-    IReadOnlyList<OutlineItem> BuildOutline(string markdown);
+    IReadOnlyList<MarkdownOutlineItem> BuildOutline(string markdown);
 }

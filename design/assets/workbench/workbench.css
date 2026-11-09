@@ -72,17 +72,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .structure-search { margin: 0 12px 8px; }
 .structure-list { padding: 2px 8px 14px; gap: 1px; }
 .structure-item { display: flex; align-items: center; gap: 7px; border: 0; background: transparent; text-align: left; padding: 6px 6px; border-radius: var(--vex-radius-sm); cursor: pointer; font-size:12px; color: var(--fg); width: 100%; }
-.structure-item:hover { background: var(--hover); }
-.structure-marker { flex: 0 0 auto; width: 8px; height: 2px; border-radius: var(--vex-radius-2xs); background: var(--border); margin-left: 6px; }
+/* 行首装饰角标条已按 2026-11-09 拍板移除（原型与原生端同步）。 */
+.structure-item:hover { background: var(--selected); }
 .structure-item[data-level="1"] { gap: 8px; }
-.structure-item[data-level="1"] .structure-marker { width: 3px; height: 11px; }
-.structure-num { flex: 0 0 30px; color: var(--muted); font-variant-numeric: tabular-nums; font-size:11px; }
+/* 章节序号默认不显示（大纲与正文标题原文一致，偏好「编辑器→大纲显示章节序号」可开）。
+   隐藏态 display:none 让标题只让一个 gap，与原生端隐藏态单列布局完全一致；
+   开启后序号列宽随内容，与标题只隔一个字距（gap 7/8，2026-11-09 拍板，不再 30 定宽）。 */
+.structure-num { display: none; }
+html[data-outline-numbers="true"] .structure-num { display: inline; flex: 0 0 auto; color: var(--muted); font-variant-numeric: tabular-nums; font-size:11px; }
 .structure-item[data-level="1"] .structure-num { color: var(--fg); font-weight:600; }
 .structure-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .structure-item.on { background: color-mix(in srgb, var(--accent) 9%, transparent); }
 .structure-item.on .structure-text { color: var(--accent); font-weight:600; }
-.structure-item.on .structure-marker, .structure-item.on .structure-num { color: var(--accent); }
-.structure-item.on .structure-marker { background: var(--accent); }
+.structure-item.on .structure-num { color: var(--accent); }
 .source-pane { width: 45%; flex: none; min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border); background: var(--editor-bg); }
 .workspace[data-view="mindmap"] .source-pane { width: 34%; }
 .pane-head { height: 44px; padding: 0 20px; display: flex; align-items: center; gap: 7px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 11px; flex: none; }

@@ -947,6 +947,7 @@
       "MenuImportWord": "Import from Word…",
       "StatusImportUnavailable": "{0} import is not supported yet",
       "PrefSourceLineNumbers": "Show source line numbers",
+      "PrefOutlineNumbers": "Show outline section numbers",
       "PrefSpaceUnit": "{0} spaces",
       "PrefCodeAndSource": "Code & source",
       "PrefWatermarkExportNote": "HTML / PDF",
