@@ -23,6 +23,15 @@
  * 浅色同理反向：轨道比卡片暗一档，选中块提亮成纸白浮起。 */
 :root { --segmented-track:color-mix(in srgb, var(--fg) 4%, var(--surface)); --segmented-thumb:color-mix(in srgb, #fff 55%, var(--surface)); --segmented-thumb-shadow:0 1px 4px color-mix(in srgb, var(--fg) 12%, transparent); }
 :root[data-theme=dark] { --segmented-track:color-mix(in srgb, var(--fg) 4.5%, var(--panel)); --segmented-thumb:var(--panel); --segmented-thumb-shadow:0 0 0 1px color-mix(in srgb, var(--fg) 7%, transparent); }
+/* 评审修订（样式卫生）：模态遮罩统一令牌——替代各弹层自带的三种硬编码遮罩色（#0b211e66/#0005/#0b172947），
+   随明暗自适应；新增弹层一律用它。 */
+:root { --vex-scrim: color-mix(in srgb, var(--fg) 26%, transparent); }
+:root[data-theme=dark] { --vex-scrim: color-mix(in srgb, var(--fg) 46%, transparent); }
+/* 评审修订（z-index 阶梯规范）：现有 69 处取值按此分段对号入座；迁移到令牌需配合 snapshot-styles
+   零回归基线逐步进行（保留原值零风险）。新代码按段取值，不再发明新数字。
+   1–99 局部装饰/把手 · 100–499 工具条与浮出面板 · 500 弹层(.win-layer) · 600–999 上下文菜单/气泡
+   · 1000 演示层 · 1100 子菜单/元素菜单 · 1200 toast/主题弹层 · 2000 新手引导 · 2500 偏好设置 · 2600 导出 · 9999 仅调试 */
+:root { --z-popover: 1100; --z-modal: 2500; --z-top: 9999; }
 /* 评审修订（键盘可达性）：全局键盘焦点环——仅 :focus-visible（键盘 / 辅助技术导航）出现，鼠标点击不打扰；
    正文编辑面（.instant-block、代码块 pre 等）刻意无环，靠光标表达焦点，不受此规则影响（它们的 outline:none 保留）。 */
 button:focus-visible, summary:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
@@ -149,7 +158,7 @@ body.device-phone .mobile-more { width:44px; height:44px; }
 .diagram-preview[data-loading=true]::after { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background:var(--accent); animation:vex-progress 1s var(--vex-ease-in-out) infinite; }
 .diagram-preview[data-stale=true] svg { opacity:.35; }
 .diagram-error { margin:0; padding:10px 16px; border-top:1px solid var(--border); color:var(--danger,#bd4545); background:var(--panel,var(--surface)); font-size:12px; line-height:1.6; text-align:left; }
-.vex-settings-host { position:fixed; inset:0; z-index:2500; background:#0b172947; display:grid; place-items:center; padding:24px; animation:vex-fade-in var(--vex-fast) both; }
+.vex-settings-host { position:fixed; inset:0; z-index:2500; background:var(--vex-scrim); display:grid; place-items:center; padding:24px; animation:vex-fade-in var(--vex-fast) both; }
 .vex-contained-overlay { position:absolute; inset:0; }
 .vex-contained-overlay.vex-settings-host,.vex-contained-overlay.vex-export-host { padding:20px; }
 .vex-contained-overlay .vex-settings,.vex-contained-overlay .vex-export-dialog { height:100%; max-height:100%; }
@@ -277,7 +286,7 @@ body.device-phone .modal .stat-card strong { font-size:20px; }
 .vex-watermark-sample { margin-top:18px; padding:26px 20px; min-height:140px; border:1px solid var(--border); border-radius:var(--vex-radius-xs); background-color:var(--paper,var(--bg)); display:flex; flex-direction:column; justify-content:center; gap:10px; }
 .vex-watermark-sample strong { font-size:17px; font-weight:500; }
 .vex-watermark-sample span { font-size:12px; color:var(--muted); }
-.vex-export-host { position:fixed; inset:0; z-index:2600; padding:24px; background:#0b172947; display:grid; place-items:center; animation:vex-fade-in var(--vex-fast) both; }
+.vex-export-host { position:fixed; inset:0; z-index:2600; padding:24px; background:var(--vex-scrim); display:grid; place-items:center; animation:vex-fade-in var(--vex-fast) both; }
 .vex-export-dialog { width:min(800px,100%); height:min(850px,calc(100dvh - 48px)); display:flex; flex-direction:column; background:var(--panel,var(--surface)); color:var(--fg); border:1px solid var(--border); border-radius:var(--vex-radius-md); overflow:hidden; box-shadow:0 22px 80px #09182733; animation:vex-dialog-in var(--vex-duration) var(--vex-ease) both; }
 .vex-export-dialog>header { display:flex; align-items:center; justify-content:space-between; padding:4px 8px 4px 18px; border-bottom:1px solid var(--border); }
 .vex-export-dialog>header h2 { font-size:15px; margin:0; min-width:0; overflow-wrap:anywhere; }

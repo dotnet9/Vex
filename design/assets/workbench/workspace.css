@@ -42,7 +42,7 @@
 .chapter-body-note{font-size:10px;line-height:1.6;color:var(--muted);margin:5px 0 0}.chapter-delete-button{color:var(--danger)}
 .chapter-inspector-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px}.chapter-inspector-foot button{border:0;background:transparent;color:var(--accent);font-size:11px;padding:4px 0}
 .chapter-context-hint{position:absolute;z-index:7;left:50%;bottom:52px;transform:translateX(-50%);font-size:11px;color:var(--muted);background:var(--panel);border:1px solid var(--border);border-radius:var(--vex-radius-xs);padding:6px 10px;white-space:nowrap;pointer-events:none;box-shadow:var(--shadow-pop)}
-.chapter-delete-dialog{position:fixed;inset:0;z-index:350;display:flex;align-items:center;justify-content:center;background:#0005;backdrop-filter:blur(2px)}
+.chapter-delete-dialog{position:fixed;inset:0;z-index:350;display:flex;align-items:center;justify-content:center;background:var(--vex-scrim);backdrop-filter:blur(2px)}
 .chapter-delete-dialog>section{width:420px;max-width:calc(100% - 32px);background:var(--panel);border:1px solid var(--border);border-radius:var(--vex-radius-lg);padding:24px;box-shadow:var(--shadow-pop)}
 .chapter-delete-dialog h2{font-size:16px;margin:0 0 10px}.chapter-delete-dialog p{font-size:12px;color:var(--muted);line-height:1.8;margin:0 0 16px}.chapter-delete-dialog .dlg-actions{margin-top:20px}.chapter-delete-dialog label{font-size:11px;color:var(--fg);display:flex;align-items:center;gap:6px}
 .map-pane .node-inspector{top:45px;right:10px;width:282px;max-height:calc(100% - 60px)}
