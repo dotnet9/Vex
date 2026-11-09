@@ -9,18 +9,24 @@
     xmlns:vm="using:Vex.Modules.Shell.ViewModels"
     x:DataType="vm:ShellUpdateViewModel">
     <UserControl.Styles>
-        <!-- 原型 .upd-pill：22px 高、全圆角胶囊、accent 底（StudioPrimary 与强调色同源）。
-             文字前景直接钉在模板内的 TextBlock 上（StudioOnPrimary = 引擎按对比度派生的 on-accent 令牌），
-             不吃标题栏的继承前景——graphite 等深强调色配色下白字才能保持可读，且配色切换实时跟随。 -->
+        <!-- 评审修订（原型 C1）：药丸幽灵化——accent 12% 软底 + 32% 描边 + accent 文字 + 前置圆点，
+             不再以实底 accent 抢主操作焦点；下载中切回实底 accent（进度渐变与 on-accent 读数不受影响）。
+             文字前景仍钉在模板内，不吃标题栏继承前景。 -->
         <Style Selector="Button.upd-pill">
             <Setter Property="Height" Value="22" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="Background" Value="{DynamicResource StudioPrimary}" />
+            <Setter Property="Background" Value="{DynamicResource VexAccentGhostBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexAccentGhostBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="11" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <ControlTemplate x:DataType="vm:ShellUpdateViewModel">
-                    <Border Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
                         <Panel>
                             <!-- 下载进度：左段（0..pct）accent 掺 26% 墨的混色覆盖，右段露出 accent 底，
                                  与原型 linear-gradient(90deg, mix(accent 74%, fg) pct%, accent pct%) 同形。 -->
@@ -31,15 +37,21 @@
                                 </Grid.ColumnDefinitions>
                                 <Border Background="{DynamicResource VexAccentProgressBrush}" CornerRadius="11,0,0,11" />
                             </Grid>
-                            <TextBlock
-                                Margin="11,0"
+                            <StackPanel
+                                Margin="10,0"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                FontSize="12"
-                                FontWeight="SemiBold"
-                                Foreground="{DynamicResource StudioOnPrimary}"
-                                LineHeight="22"
-                                Text="{Binding PillText}" />
+                                Orientation="Horizontal"
+                                Spacing="5">
+                                <Ellipse Classes="upd-pill-dot" Fill="{DynamicResource StudioAccentColor}" Height="6" Width="6" />
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Foreground="{DynamicResource StudioAccentColor}"
+                                    LineHeight="22"
+                                    Text="{Binding PillText}" />
+                            </StackPanel>
                         </Panel>
                     </Border>
                 </ControlTemplate>
@@ -47,7 +59,19 @@
         </Style>
         <!-- 悬停加档一阶；下载中不换底，进度读数不被悬停态打乱（原型 JS 内联背景优先于 hover）。 -->
         <Style Selector="Button.upd-pill:pointerover:not(.downloading)">
-            <Setter Property="Background" Value="{DynamicResource StudioPrimaryHover}" />
+            <Setter Property="Background" Value="{DynamicResource VexAccentGhostHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource StudioAccentColor}" />
+        </Style>
+        <!-- 下载中：实底 accent，圆点隐藏，文字回 on-accent。 -->
+        <Style Selector="Button.upd-pill.downloading">
+            <Setter Property="Background" Value="{DynamicResource StudioPrimary}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource StudioPrimary}" />
+        </Style>
+        <Style Selector="Button.upd-pill.downloading /template/ Ellipse.upd-pill-dot">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="Button.upd-pill.downloading /template/ TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}" />
         </Style>
         <!-- 原型 upd-pill-pulse：就绪后脉冲环（accent-soft 淡环呼吸三次）提示「重启以更新」。 -->
         <Style Selector="Border.upd-pill-pulse">

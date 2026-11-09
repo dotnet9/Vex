@@ -20,6 +20,11 @@
         </SolidColorBrush.Color>
     </SolidColorBrush>
     <!-- 与 StudioTheme 共用动态颜色令牌，不复制 Semi 的整套主题字典。 -->
+    <!-- 评审修订（原型 C1）：更新药丸幽灵化的三档画刷——12%/18%/32% 强调色透明度叠铬面，
+         随色板与明暗实时跟随（透明度方案免去逐色板混色推导）。 -->
+    <SolidColorBrush x:Key="VexAccentGhostBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.12" />
+    <SolidColorBrush x:Key="VexAccentGhostHoverBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.18" />
+    <SolidColorBrush x:Key="VexAccentGhostBorderBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.32" />
     <SolidColorBrush x:Key="VexShellBackgroundBrush" Color="{DynamicResource StudioBackgroundColor}" />
     <SolidColorBrush x:Key="VexPanelBackgroundBrush" Color="{DynamicResource StudioPaperColor}" />
     <!-- 面契约 L1 铬面（原型 vex-chrome = panel）：标题栏/图标栏/侧栏/查找条/状态栏共用。 -->
@@ -153,6 +158,8 @@
     <SolidColorBrush x:Key="CodeWFMarkdownFrontMatterBorderBrush" Color="{DynamicResource StudioMutedColor}" />
     <SolidColorBrush x:Key="CodeWFMarkdownFrontMatterBackgroundBrush" Color="{DynamicResource StudioTextColor}" Opacity="0.04" />
     <SolidColorBrush x:Key="CodeWFMarkdownFrontMatterForegroundBrush" Color="{DynamicResource StudioTextColor}" />
+    <!-- 评审修订（原型 C10）：引用块底色在深色下与正文差过小（6% accent），提到 13% 增强引用边界；
+         深色由 ThemeDictionaries 覆盖，此处保持浅色 6%。 -->
     <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.06" />
     <!-- 搜索框焦点柔光（原型 .input:focus / .sidebar-search:focus-within 的 box-shadow 0 0 0 3px accent 18%）：
          3px 外扩环用描边画，色取强调令牌 18% 透明，随九套配色与明暗走。 -->
@@ -257,6 +264,8 @@
             <!-- 暗色档同样取原型的固定 info（#A5B4FC），淡底用同族 10% 实色。 -->
             <SolidColorBrush x:Key="VexInfoBrush" Color="#A5B4FC" />
             <SolidColorBrush x:Key="VexInfoSoftBrush" Color="#1AA5B4FC" />
+            <!-- 评审修订（原型 C10）：深色下引用块底色提到 13%（浅色 6% 不变），引用块与正文拉开边界。 -->
+            <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="{DynamicResource StudioAccentColor}" Opacity="0.13" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

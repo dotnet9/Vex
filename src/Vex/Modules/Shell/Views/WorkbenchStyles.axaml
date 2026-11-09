@@ -613,8 +613,7 @@
     <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeBodySm}"/>
   </Style>
   <!-- 原型 .vex-pref-row input[type=checkbox]：34x20 轨道、14 圆钮、选中 accent -->
-  <Style Selector="ToggleButton.pref-switch">
-    <Setter Property="Width" Value="34"/><Setter Property="Height" Value="20"/><Setter Property="Padding" Value="0"/>
+  <Style Selector="ToggleButton.pref-switch">    <Setter Property="Width" Value="34"/><Setter Property="Height" Value="20"/><Setter Property="Padding" Value="0"/>
     <Setter Property="Template">
       <ControlTemplate>
         <Border Name="SwitchTrack" Width="34" Height="20" CornerRadius="{DynamicResource VexDensityCornerRadiusPill}" Background="{DynamicResource VexPanelBorderBrush}">
@@ -1020,6 +1019,11 @@
     <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
     <Setter Property="HorizontalContentAlignment" Value="Left"/>
+  </Style>
+  <!-- 评审修订（原型 C4）：随父开关禁用的子选项降透明 + 禁用指针，禁用态一眼可辨。 -->
+  <Style Selector="ComboBox.pref-field[IsEnabled=False]">
+    <Setter Property="Opacity" Value="0.5"/>
+    <Setter Property="Cursor" Value="NoCursor"/>
   </Style>
   <!-- 目录行（原型 .vex-pref-folder）：控件吃满剩余宽度并靠右，路径再长也不被 180 截断。 -->
   <Style Selector="TextBox.pref-field-fill">

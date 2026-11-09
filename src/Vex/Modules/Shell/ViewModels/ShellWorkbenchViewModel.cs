@@ -382,7 +382,31 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         if (IsInstantEditing) SynchronizeLive();
         NotifyModes();
         _settings.Update(s => s with { WorkspaceLayout = id, WorkbenchView = _view, EditMode = _edit });
+        AutoCollapseNavForReading(_view);
         MakeRoomForThreeViewsOnNarrowWindow(id);
+    }
+
+    /// <summary>
+    /// 评审修订（原型 C2）：阅读模式做减法——进入阅读自动收起文件导航，回到编辑/导图恢复原状。
+    /// 只记录「本次阅读由我们收起」的标记：阅读中用户手动展开过（或此前本来就收着），都不再代管。
+    /// </summary>
+    private bool _readCollapsedNav;
+
+    private void AutoCollapseNavForReading(string view)
+    {
+        if (view == "read")
+        {
+            if (_layout.IsSidebarVisible)
+            {
+                _readCollapsedNav = true;
+                _layout.CollapseSidebarForLayout();
+            }
+        }
+        else if (_readCollapsedNav)
+        {
+            _readCollapsedNav = false;
+            if (!_layout.IsSidebarVisible) _layout.ToggleSidebar();
+        }
     }
 
     /// <summary>

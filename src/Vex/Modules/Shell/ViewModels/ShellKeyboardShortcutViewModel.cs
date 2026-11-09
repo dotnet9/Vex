@@ -55,6 +55,22 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
         }
 
         if (hasControl && hasShift && key == Key.P) return PublishShellAction(ShellActionKind.Print);
+
+        // 评审修订（原型 C5）：补齐格式快捷键（Typora 惯例）——链接/行内代码/删除线/高亮/上下标，
+        // 经 EditorActionCommand 走既有分发（工具条、菜单与 MCP 工具同一通道）。
+        if (hasControl && !hasAlt && !hasShift && key == Key.K)
+            return PublishEditorAction(EditorActionKind.Link);
+        if (hasControl && hasShift && key == Key.OemTilde)
+            return PublishEditorAction(EditorActionKind.InlineCode);
+        if (hasControl && hasShift && key is Key.D5 or Key.OemBackslash)
+            return PublishEditorAction(EditorActionKind.Strikethrough);
+        if (hasControl && hasShift && key == Key.H)
+            return PublishEditorAction(EditorActionKind.Highlight);
+        if (hasControl && hasShift && key is Key.OemPlus or Key.Add)
+            return PublishEditorAction(EditorActionKind.Superscript);
+        if (hasControl && hasShift && key is Key.OemMinus or Key.Subtract)
+            return PublishEditorAction(EditorActionKind.Subscript);
+
         if (key == Key.F8 && keyModifiers == KeyModifiers.None) { Layout.ToggleFocusMode(); return true; }
 
         if (hasControl && !hasShift && key == Key.W)
@@ -107,6 +123,12 @@ public sealed class ShellKeyboardShortcutViewModel : ReactiveObject
     private bool PublishShellAction(ShellActionKind action)
     {
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(action));
+        return true;
+    }
+
+    private bool PublishEditorAction(EditorActionKind action)
+    {
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorActionCommand(action));
         return true;
     }
 

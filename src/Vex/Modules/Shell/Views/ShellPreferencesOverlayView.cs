@@ -134,11 +134,18 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 // 界面语言入口收敛到标题栏语言菜单，偏好「通用与文件」不再重复放置。
                 Choice(page, "Vex.VexL.PrefStartup", p, nameof(p.RestoreWorkspace), [(L("Vex.VexL.PrefEmptyWorkspace"), false), (L("Vex.VexL.PrefRecentWorkspace"), true)]);
                 Toggle(page, VexL.PrefAutoSave, p, nameof(p.AutoSave));
-                Choice(page, VexL.PrefSaveDelay, p, nameof(p.AutoSaveDelay), [("2 " + L("Vex.VexL.PrefSeconds"), 2), ("5 " + L("Vex.VexL.PrefSeconds"), 5), ("10 " + L("Vex.VexL.PrefSeconds"), 10)]);
+                // 评审修订（原型 C4）：子选项随父开关联动——自动保存关闭时「停止输入后保存」禁用。
+                var saveDelay = Choice(page, VexL.PrefSaveDelay, p, nameof(p.AutoSaveDelay), [("2 " + L("Vex.VexL.PrefSeconds"), 2), ("5 " + L("Vex.VexL.PrefSeconds"), 5), ("10 " + L("Vex.VexL.PrefSeconds"), 10)]);
+                saveDelay.Bind(Avalonia.Input.InputElement.IsEnabledProperty, new Binding(nameof(p.AutoSave)) { Source = p });
+                saveDelay.SetValue(OpacityProperty, 1.0);
+                saveDelay.Classes.Add("pref-child");
                 Toggle(page, VexL.PrefRecovery, p, nameof(p.RecoveryDrafts));
                 Heading(page, "Vex.VexL.PrefNewDefaults");
-                Choice(page, VexL.PrefEncoding, p, nameof(p.DefaultEncoding), [("UTF-8", "utf-8"), ("UTF-8 BOM", "utf-8-bom"), ("GB18030", "GB18030")]);
-                Choice(page, VexL.PrefNewline, p, nameof(p.DefaultNewline), [(L(VexL.PrefSystemFont), "system"), ("LF", "LF"), ("CRLF", "CRLF")]);
+                // 评审修订（原型 C4）：编码/换行符随「新文档默认值」缩进表从属。
+                var encoding = Choice(page, VexL.PrefEncoding, p, nameof(p.DefaultEncoding), [("UTF-8", "utf-8"), ("UTF-8 BOM", "utf-8-bom"), ("GB18030", "GB18030")]);
+                encoding.Classes.Add("pref-child");
+                var newline = Choice(page, VexL.PrefNewline, p, nameof(p.DefaultNewline), [(L(VexL.PrefSystemFont), "system"), ("LF", "LF"), ("CRLF", "CRLF")]);
+                newline.Classes.Add("pref-child");
                 break;
             case "editor":
                 // 对齐原型 editor 页：仅 编辑区字体、缩进 与「代码与源码」组（自动换行、源码行号），
@@ -421,10 +428,11 @@ public sealed class ShellPreferencesOverlayView : UserControl
         row.Children.Add(labels); control.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(control, 1); row.Children.Add(control);
         var frame = Frame(row, new Thickness(0, 0, 0, 1)); frame.Classes.Add("pref-row"); BindResource(frame, Border.PaddingProperty, "VexUiPreferencesRowPadding"); page.Children.Add(frame);
     }
-    private void Toggle(StackPanel page, string label, object source, string property, string? note = null)
+    private ToggleButton Toggle(StackPanel page, string label, object source, string property, string? note = null)
     {
         var toggle = new ToggleButton { Name = property, Classes = { "pref-switch" } };
         toggle.Bind(ToggleButton.IsCheckedProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, toggle, note);
+        return toggle;
     }
 
     /// <summary>
@@ -555,13 +563,14 @@ public sealed class ShellPreferencesOverlayView : UserControl
         var text = new TextBox { Name = property, Classes = { "pref-field" } };
         text.Bind(TextBox.TextProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, text);
     }
-    private void Choice(StackPanel page, string label, object source, string property, IEnumerable<(string Label, object Value)> choices)
+    private ComboBox Choice(StackPanel page, string label, object source, string property, IEnumerable<(string Label, object Value)> choices)
     {
         var items = choices.Select(x => new ChoiceItem(x.Label, x.Value)).ToArray();
         var combo = new ComboBox { Name = property, Classes = { "pref-field" }, ItemsSource = items,
             ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<ChoiceItem>((x, _) => new TextBlock { Text = x?.Label }) };
         // 显式映射选项，避免 NativeAOT 对私有记录的反射路径及初始化空选区写回设置。
         combo.Bind(ComboBox.SelectedItemProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay, Converter = new ChoiceSelectionConverter(items) }); Row(page, label, combo);
+        return combo;
     }
     private sealed record ChoiceItem(string Label, object Value);
     private sealed class ChoiceSelectionConverter(ChoiceItem[] items) : IValueConverter
