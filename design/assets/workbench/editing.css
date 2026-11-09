@@ -184,7 +184,8 @@
 :root[data-reading-theme="eye"] .reading-scroll{background:color-mix(in srgb,var(--bg) 78%,#E7EEE5)}
 :root[data-reading-theme="paper"] .reading-pane .md-body{max-width:820px}
 .map-viewport{background-color:var(--bg);background-image:radial-gradient(circle,color-mix(in srgb,var(--accent) 18%,transparent) .65px,transparent .9px);background-size:22px 22px}
-.map-links path{stroke-width:1.7;opacity:.5}
+/* 评审修订：连线过淡密集区难辨——加粗提浓（单色风格同步）。 */
+.map-links path{stroke-width:1.8;opacity:.68}
 .map-node{border-radius:10px;border-color:color-mix(in srgb,var(--branch-color,var(--border)) 28%,var(--border));background:color-mix(in srgb,var(--surface) 90%,var(--branch-color,var(--accent)));box-shadow:0 3px 10px rgba(42,62,49,.055)}
 .map-node[data-kind="heading"]{border-left:3px solid var(--branch-color,var(--accent));background:color-mix(in srgb,var(--surface) 86%,var(--branch-color,var(--accent)))}
 .map-node.root{background:var(--accent);color:#FFFDF9;border-color:var(--accent);box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 23%,transparent)}
@@ -228,7 +229,7 @@
 #map-scene[data-map-style="underline"] .map-node.root{background:var(--accent);border-radius:8px}
 #map-scene[data-map-style="mono"] .map-node{background:var(--surface);border:1px solid #89938C;box-shadow:none;color:var(--fg)}
 #map-scene[data-map-style="mono"] .map-node.root{background:#E9ECE9;color:#28332C;border-color:#68746C}
-#map-scene[data-map-style="mono"] .map-links path{stroke:#7C8780;opacity:.65}
+#map-scene[data-map-style="mono"] .map-links path{stroke:#7C8780;opacity:.8}
 .map-appearance-popover{width:min(440px,calc(100% - 24px));max-height:min(78vh,700px);overflow:auto;overscroll-behavior:contain}
 .map-choice{border-radius:9px;border-color:var(--border);background:var(--surface)}
 .map-choice[aria-pressed="true"]{border-color:var(--accent);background:var(--selected);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 12%,transparent)}

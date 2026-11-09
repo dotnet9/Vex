@@ -1177,7 +1177,9 @@
       if (mapStyle === 'colorful' && series) element.style.setProperty('--branch-ink', series.onSeries[node.branch % series.onSeries.length]);
       element.style.setProperty('--delay', Math.min(index * 14, 180) + 'ms');
       var kind = node.isRoot ? '文档' : node.kind === 'heading' ? 'H' + node.level : node.label || labels[node.kind];
-      element.innerHTML = '<button class="map-node-button" title="' + VexEsc(node.text || kind) + '"><span class="map-node-text">' + VexEsc(nodeText(node)) + '</span><span class="map-node-type">' + VexEsc(kind) + '</span></button>';
+      /* 评审修订：角标含义不明——按钮 aria-label 带节点类型前缀，角标悬停给出“标题层级/内容类型”说明；title 保留全文。 */
+      var kindHint = node.isRoot ? '文档根节点' : node.kind === 'heading' ? '标题层级 ' + kind : (labels[node.kind] || kind) + '内容摘要';
+      element.innerHTML = '<button class="map-node-button" title="' + VexEsc(node.text || kind) + '" aria-label="' + VexEsc(kindHint + '：' + (node.text || kind)) + '"><span class="map-node-text">' + VexEsc(nodeText(node)) + '</span><span class="map-node-type" title="' + VexEsc(kindHint) + '">' + VexEsc(kind) + '</span></button>';
       element.querySelector('button').setAttribute('aria-pressed', String(state.selected === node.id));
       element.querySelector('button').onclick = function () { selectNode(node); };
       var children = visibleChildren(node);
@@ -1222,6 +1224,15 @@
       }
     }
     lastCanvasSize = { width: canvas.clientWidth, height: canvas.clientHeight };
+    transform(true);
+  }
+  /* 评审修订：平移画布后容易迷失——保持当前缩放，把根节点带回视口中心偏左的位置。 */
+  function centerRoot() {
+    if ($('map-pane').hidden || !state.bounds || !canvas.clientWidth) return;
+    var root = (state.nodes || []).find(function (node) { return node.isRoot; });
+    if (!root || root.x == null) return;
+    state.x = Math.max(32, canvas.clientWidth * 0.16) - root.x * state.scale;
+    state.y = canvas.clientHeight / 2 - (root.y + (root.height || 40) / 2) * state.scale;
     transform(true);
   }
   /* 样式弹层避让：弹层悬在画布左上时，把内容焦点（根节点）平移到弹层下方剩余区域的中心，
@@ -1613,6 +1624,9 @@
       },
       "map-fit": function (action, item) {
         fit();
+      },
+      "map-center": function (action, item) {
+        centerRoot();
       },
       "close-inspector": function (action, item) {
         state.selected = null; $('node-inspector').hidden = true; renderMap();
