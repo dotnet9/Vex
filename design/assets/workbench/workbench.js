@@ -2006,6 +2006,14 @@
       if (!$('map-settings').hidden) { event.preventDefault(); $('map-settings').hidden = true; $('map-settings-button').setAttribute('aria-expanded', 'false'); return; }
       if (!$('findbar').hidden) { event.preventDefault(); $('findbar').hidden = true; if (window.VexWorkbench) VexWorkbench.returnToEditing(); }
     }
+    /* 评审修订：补齐格式类快捷键（Typora 惯例）——链接/行内代码/删除线/高亮/上下标；替换仍为 Ctrl+H。 */
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.isComposing) {
+      var fmtKey = event.key.toLowerCase();
+      var fmtShortcut = event.shiftKey
+        ? { '`': 'insert-inline-code', '5': 'insert-strike', '%': 'insert-strike', h: 'insert-highlight', '=': 'insert-superscript', '+': 'insert-superscript', '-': 'insert-subscript', '_': 'insert-subscript' }[fmtKey]
+        : { k: 'insert-link' }[fmtKey];
+      if (fmtShortcut) { event.preventDefault(); VexProto.handleAction(fmtShortcut); return; }
+    }
     if ((event.ctrlKey || event.metaKey) && ['s', 'f', 'h', 'o', 'n', 'w', 'p', 'b', 'i'].includes(event.key.toLowerCase())) {
       event.preventDefault(); VexProto.handleAction(event.key.toLowerCase() === 'p' ? (event.shiftKey ? 'print' : 'quick-open') : event.key.toLowerCase() === 'n' && event.shiftKey ? 'new-window' : event.key.toLowerCase() === 's' && event.shiftKey ? 'save-as' : { s: 'save', f: 'find', h: 'replace', o: 'open', n: 'new', w: 'close', b: 'insert-bold', i: 'insert-italic' }[event.key.toLowerCase()]);
     }

@@ -160,7 +160,8 @@
     {label:'Mermaid 图表',sub:VexMermaid.items.map(function (item) {return {label:item.label,action:'insert-mermaid-'+item.key};})},
     {sep:true}, paragraphItem('insert-rule'), {label:'脚注',action:'insert-footnote'}
   ]};
-  MENUS.splice(3,0,{key:'format',label:'格式(O)',items:[{label:'加粗',gesture:'Ctrl+B',action:'insert-bold'},{label:'斜体',gesture:'Ctrl+I',action:'insert-italic'},{label:'删除线',action:'insert-strike'},{label:'高亮',action:'insert-highlight'},{label:'上标',action:'insert-superscript'},{label:'下标',action:'insert-subscript'},{label:'行内代码',action:'insert-inline-code'},{sep:true},{label:'链接',action:'insert-link'},{label:'图片',action:'insert-image'},{sep:true},{label:'清除格式',action:'clear-format'}]});
+  /* 评审修订：格式菜单补齐快捷键标注（Typora 惯例，workbench 全局键盘分支同源实现）。 */
+  MENUS.splice(3,0,{key:'format',label:'格式(O)',items:[{label:'加粗',gesture:'Ctrl+B',action:'insert-bold'},{label:'斜体',gesture:'Ctrl+I',action:'insert-italic'},{label:'删除线',gesture:'Ctrl+Shift+5',action:'insert-strike'},{label:'高亮',gesture:'Ctrl+Shift+H',action:'insert-highlight'},{label:'上标',gesture:'Ctrl+Shift+=',action:'insert-superscript'},{label:'下标',gesture:'Ctrl+Shift+-',action:'insert-subscript'},{label:'行内代码',gesture:'Ctrl+Shift+`',action:'insert-inline-code'},{sep:true},{label:'链接',gesture:'Ctrl+K',action:'insert-link'},{label:'图片',action:'insert-image'},{sep:true},{label:'清除格式',action:'clear-format'}]});
   var toolsMenu = MENUS.find(function (menu) { return menu.key === 'tools'; });
   /* 「工具」不再单列：整块展开并入「文件」的导出/导入之后，不折叠成子菜单。
      偏好设置/MCP 设置/MCP 审计 只保留图标栏设置入口，菜单不再重复。 */
