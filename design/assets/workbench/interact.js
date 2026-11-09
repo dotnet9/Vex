@@ -15,7 +15,7 @@
   };
   window.VexProto = VexProto;
 
-  /* ---------- Toast ---------- */
+  /* ---------- Toast（右下角、主题化、可关闭） ---------- */
   var toastWrap = null;
   VexProto.toast = function (msg) {
     if (!toastWrap) {
@@ -27,13 +27,27 @@
     }
     var t = document.createElement('div');
     t.className = 'proto-toast';
-    t.textContent = msg;
-    toastWrap.appendChild(t);
-    requestAnimationFrame(function () { t.classList.add('show'); });
-    setTimeout(function () {
+    var text = document.createElement('span');
+    text.className = 'proto-toast-text';
+    text.textContent = msg;
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'proto-toast-close';
+    close.setAttribute('aria-label', '关闭提示');
+    close.textContent = '×';
+    var done = false;
+    var dismiss = function () {
+      if (done) return;
+      done = true;
       t.classList.remove('show');
       setTimeout(function () { t.remove(); }, 250);
-    }, 1900);
+    };
+    close.addEventListener('click', dismiss);
+    t.appendChild(text);
+    t.appendChild(close);
+    toastWrap.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add('show'); });
+    setTimeout(dismiss, 1900);
   };
   /* 键直查版 toast：文案取自 VEX_DATA.languages（verify.cjs 审计键存在性），
    * 值可含 {0} 占位符，多余实参按序填充。 */

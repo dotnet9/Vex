@@ -250,7 +250,8 @@ input, textarea, select {
 /* == merged from usability.css == */
 /* 用户评审：把状态放在固定区域，正文与导图不被浮动按钮遮挡。 */
 .app-window{min-height:0;max-height:100%}
-.proto-toast-wrap{bottom:64px;max-width:calc(100% - 32px)}.proto-toast{max-width:100%;white-space:normal;text-align:center}
+/* 评审修订：toast 右下角（64px 抬升避让字数/缩放坞），左对齐不再居中压正文 */
+.proto-toast-wrap{bottom:64px}.proto-toast{max-width:min(420px,calc(100vw - 32px));white-space:normal;text-align:left}
 .document-label{min-width:100px;overflow:hidden}.document-title{min-width:0}.document-title #document-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #document-save-status{border:0;background:transparent;color:var(--muted);font-size:11px;text-align:left;padding:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 #document-save-status[data-status=dirty]{color:var(--accent)}#document-save-status[data-status=error]{color:var(--danger)}

@@ -2,7 +2,11 @@
    版本、日期与更新日志全部解析自内置《更新日志》文档（与更新日志.md 同源）。 */
 (function () {
   const $ = id => document.getElementById(id);
-  let state = 'idle', scenario = 'available', retry = 'checking', timer, progressTimer, generation = 0;
+  /* 演示场景可用 URL 参数 ?update= 覆盖（available/current/missing/check-failed/download-failed/checksum-failed/install-failed）。
+     默认仍为 available 以展示更新流程；评审走查可加 ?update=current 静默启动。 */
+  const SCENARIOS = ['available','current','missing','check-failed','download-failed','checksum-failed','install-failed'];
+  const queryScenario = new URLSearchParams(location.search).get('update');
+  let state = 'idle', scenario = SCENARIOS.includes(queryScenario) ? queryScenario : 'available', retry = 'checking', timer, progressTimer, generation = 0;
   let lastRatio = null; // 供标题栏药丸同步下载进度
   const failures = new Set();
   const newer = [];               // 检查到的新版本（倒序，含类型化条目）
@@ -331,7 +335,7 @@
   }, 1400);
   // 自动化验证可选择失败场景；演示开关不进入产品界面。
   window.VexUpdate = { setScenario(value) {
-    if (!['available','current','missing','check-failed','download-failed','checksum-failed','install-failed'].includes(value)) return;
+    if (!SCENARIOS.includes(value)) return;
     generation++; clearTimeout(timer); clearInterval(progressTimer);
     scenario = value; state = 'idle'; failures.clear(); newer.length = 0; render();
   } };

@@ -880,27 +880,37 @@ svg.ico, svg.mi-ico, svg.file-ico, svg.sb-ico, svg.sym,
 .nav-item svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; opacity: .75; }
 
 /* ---------- Toast 反馈 ---------- */
+/* 评审修订：toast 从底部居中的深色块改为右下角主题化通知（避让右下缩放坞，见 workspace-chrome 的 64px 抬升） */
 .proto-toast-wrap {
   position: fixed;
-  left: 50%; bottom: 30px;
-  transform: translateX(-50%);
+  right: 16px; bottom: 30px;
   z-index: 1200;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
   pointer-events: none;
 }
 .proto-toast {
-  background: var(--tooltip-bg);
-  color: var(--tooltip-fg);
+  display: flex; align-items: flex-start; gap: 8px;
+  background: var(--panel);
+  color: var(--fg);
+  border: 1px solid var(--border);
   font-size:12px;
-  padding: 8px 16px;
-  border-radius:var(--vex-radius-pill);
+  padding: 8px 12px 8px 14px;
+  border-radius:var(--vex-radius-md, var(--vex-radius-sm));
   box-shadow: var(--shadow-pop);
   opacity: 0;
   transform: translateY(8px);
   transition: opacity var(--vex-duration) var(--vex-ease), transform var(--vex-duration) var(--vex-ease);
-  max-width: 70vw;
+  max-width: min(440px, 70vw);
+  pointer-events: auto; /* 容器不挡内容，单条自身可点（关闭钮） */
 }
 .proto-toast.show { opacity: 1; transform: translateY(0); }
+.proto-toast-text { flex: 1 1 auto; min-width: 0; }
+.proto-toast-close {
+  flex: none; border: 0; background: transparent; color: inherit;
+  opacity: .6; cursor: pointer; font-size: 14px; line-height: 1;
+  padding: 2px 4px; border-radius: var(--vex-radius-xs);
+}
+.proto-toast-close:hover { opacity: 1; }
 
 /* ---------- 动态菜单（标题菜单栏下拉） ---------- */
 .menu-flyout {

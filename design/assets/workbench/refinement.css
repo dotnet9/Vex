@@ -215,9 +215,14 @@ body { font-family:var(--font); font-size:var(--fs-body,14px); }
 /* 选择器带 .upd-pill-wrap 前缀：压过 workspace-chrome 的 .app-window button{color:inherit}（0,1,1），
    否则药丸文字会被强制继承 --fg，on-accent 失效（graphite 等白字配色下尤为明显）。 */
 .upd-pill-wrap { position: relative; flex: none; display: flex; align-items: center; }
-.upd-pill-wrap .upd-pill { height: 22px; padding: 0 11px; border-radius: var(--vex-radius-pill); background: var(--accent); color: var(--on-accent);
-  font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: background .14s ease; }
-.upd-pill-wrap .upd-pill:hover { background: var(--accent-hover); }
+/* 评审修订：更新入口降级为轻量幽灵样式（实底胶囊过于抢主操作焦点）；
+   「下载中」的内联进度渐变仍由 about-update.js 覆写 background，不受影响。 */
+.upd-pill-wrap .upd-pill { height: 22px; padding: 0 10px; border-radius: var(--vex-radius-pill);
+  background: var(--accent-soft); color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: background .14s ease, border-color .14s ease; }
+.upd-pill-wrap .upd-pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.upd-pill-wrap .upd-pill:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: color-mix(in srgb, var(--accent) 48%, transparent); }
 .upd-pill.ready { animation: upd-pill-pulse 1.5s ease-in-out 3; }
 @keyframes upd-pill-pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--accent-soft); } 50% { box-shadow: 0 0 0 5px var(--accent-soft); } }
 :root.sage-focus-mode .titlebar .upd-pill-wrap { opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
