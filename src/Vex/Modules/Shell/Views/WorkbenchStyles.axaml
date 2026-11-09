@@ -1020,10 +1020,9 @@
     <Setter Property="VerticalContentAlignment" Value="Center"/>
     <Setter Property="HorizontalContentAlignment" Value="Left"/>
   </Style>
-  <!-- 评审修订（原型 C4）：随父开关禁用的子选项降透明 + 禁用指针，禁用态一眼可辨。 -->
+  <!-- 评审修订（原型 C4）：随父开关禁用的子选项降透明，禁用态一眼可辨。 -->
   <Style Selector="ComboBox.pref-field[IsEnabled=False]">
     <Setter Property="Opacity" Value="0.5"/>
-    <Setter Property="Cursor" Value="NoCursor"/>
   </Style>
   <!-- 目录行（原型 .vex-pref-folder）：控件吃满剩余宽度并靠右，路径再长也不被 180 截断。 -->
   <Style Selector="TextBox.pref-field-fill">
