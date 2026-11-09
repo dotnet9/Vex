@@ -618,6 +618,7 @@ namespace Vex
         public static readonly string WBTables = "Vex.VexL.WBTables";
         public static readonly string WBLocate = "Vex.VexL.WBLocate";
         public static readonly string WBFit = "Vex.VexL.WBFit";
+        public static readonly string WBCenter = "Vex.VexL.WBCenter";
         public static readonly string WBExpand = "Vex.VexL.WBExpand";
         public static readonly string WBCollapse = "Vex.VexL.WBCollapse";
         public static readonly string WBTypographyTitle = "Vex.VexL.WBTypographyTitle";

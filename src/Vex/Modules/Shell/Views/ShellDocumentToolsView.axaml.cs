@@ -21,5 +21,8 @@ public partial class ShellDocumentToolsView : UserControl
         }
         MapZoomDock.ResetRequested += (_, _) =>
             (TopLevel.GetTopLevel(this) as MainWindow)?.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")?.FitMap();
+        // 评审修订（原型 C3）：缩放坞新增「回到中心」——保持缩放把根节点带回视口，平移后不再迷失。
+        MapZoomDock.CenterRequested += (_, _) =>
+            (TopLevel.GetTopLevel(this) as MainWindow)?.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownMindMapHost>("MindMapGuideTarget")?.CenterMap();
     }
 }

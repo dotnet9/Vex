@@ -611,6 +611,7 @@
       "WBRichBlocks": "Show code and table summaries",
       "WBTables": "Show table summaries",
       "WBLocate": "Go to Source",
+      "WBCenter": "Center on root",
       "WBFit": "Fit to canvas",
       "WBExpand": "Expand all",
       "WBCollapse": "Collapse branches",

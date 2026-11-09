@@ -103,6 +103,21 @@
                                     </Canvas>
                                 </Viewbox>
                             </Button>
+                            <!-- 评审修订（原型 C3）：可选「回到中心」钮（导图坞用），正文坞不设 CenterLabel 即隐藏。 -->
+                            <Button
+                                Name="PART_Center"
+                                Classes="vex-zoom-reset"
+                                ToolTip.Tip="{TemplateBinding CenterLabel}"
+                                AutomationProperties.Name="{TemplateBinding CenterLabel}">
+                                <Viewbox
+                                    Width="{DynamicResource VexZoomDockIconSize}"
+                                    Height="{DynamicResource VexZoomDockIconSize}">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Data="{TemplateBinding CenterGeometry}"
+                                            StrokeThickness="1.7" StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Canvas>
+                                </Viewbox>
+                            </Button>
                         </Panel>
                     </StackPanel>
                 </Border>

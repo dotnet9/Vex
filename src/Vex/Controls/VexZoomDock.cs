@@ -61,6 +61,14 @@ public class VexZoomDock : TemplatedControl
     public static readonly StyledProperty<object?> ResetGeometryProperty =
         AvaloniaProperty.Register<VexZoomDock, object?>(nameof(ResetGeometry));
 
+    /// <summary>评审修订（原型 C3）：可选「回到中心」钮——导图坞在适应画布之外提供保持缩放定位根节点的动作；
+    /// 正文坞不设置 CenterLabel 时该钮整体隐藏。</summary>
+    public static readonly StyledProperty<string?> CenterLabelProperty =
+        AvaloniaProperty.Register<VexZoomDock, string?>(nameof(CenterLabel));
+
+    public static readonly StyledProperty<object?> CenterGeometryProperty =
+        AvaloniaProperty.Register<VexZoomDock, object?>(nameof(CenterGeometry));
+
     private Slider? _slider;
     private Canvas? _bubbleTrack;
     private Border? _bubble;
@@ -81,9 +89,14 @@ public class VexZoomDock : TemplatedControl
     public string? Label { get => GetValue(LabelProperty); set => SetValue(LabelProperty, value); }
     public string? ResetLabel { get => GetValue(ResetLabelProperty); set => SetValue(ResetLabelProperty, value); }
     public object? ResetGeometry { get => GetValue(ResetGeometryProperty); set => SetValue(ResetGeometryProperty, value); }
+    public string? CenterLabel { get => GetValue(CenterLabelProperty); set => SetValue(CenterLabelProperty, value); }
+    public object? CenterGeometry { get => GetValue(CenterGeometryProperty); set => SetValue(CenterGeometryProperty, value); }
 
     /// <summary>还原钮被按下（宿主没有命令可绑时使用，例如代码后置的导图视图）。</summary>
     public event EventHandler? ResetRequested;
+
+    /// <summary>「回到中心」钮被按下（同 ResetRequested 的代码后置通道）。</summary>
+    public event EventHandler? CenterRequested;
 
     /// <summary>当前读数文案，供宿主与验证器断言。</summary>
     public string PercentText => $"{Math.Round(Value * PercentMultiplier)}%";
@@ -119,6 +132,11 @@ public class VexZoomDock : TemplatedControl
             Show(TimeSpan.Zero);
         }), RoutingStrategies.Tunnel);
         if (e.NameScope.Find<Button>("PART_Reset") is { } reset) reset.Click += (_, _) => RaiseReset();
+        if (e.NameScope.Find<Button>("PART_Center") is { } center)
+        {
+            center.IsVisible = !string.IsNullOrEmpty(CenterLabel);
+            center.Click += (_, _) => CenterRequested?.Invoke(this, EventArgs.Empty);
+        }
         Place();
     }
 

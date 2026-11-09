@@ -611,6 +611,7 @@
       "WBRichBlocks": "コードと表の要約を表示",
       "WBTables": "表の要約を表示",
       "WBLocate": "ソースへ移動",
+      "WBCenter": "ルートへ戻る",
       "WBFit": "全体を表示",
       "WBExpand": "すべて展開",
       "WBCollapse": "枝を折りたたむ",

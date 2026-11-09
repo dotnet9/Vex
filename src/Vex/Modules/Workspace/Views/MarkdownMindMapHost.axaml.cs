@@ -463,6 +463,9 @@ public partial class MarkdownMindMapHost : UserControl
     public void ZoomPresentation(bool increase) { if (increase) Map.ZoomIn(); else Map.ZoomOut(); }
     /// <summary>演示缩放坞的导图文档位：还原=适应画布，语义同 .map-controls 的 map-fit。</summary>
     public void FitMap() => Map.Fit();
+
+    /// <summary>评审修订（原型 C3）：缩放坞「回到中心」= 保持缩放把根节点带回视口中心偏左（CenterOnRoot）。</summary>
+    public void CenterMap() => Map.CenterOnRoot();
     private void ExpandClick(object? sender, RoutedEventArgs e) => Map.ExpandAll();
     private void CollapseClick(object? sender, RoutedEventArgs e)
     {

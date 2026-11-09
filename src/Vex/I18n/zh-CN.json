@@ -611,6 +611,7 @@
       "WBRichBlocks": "显示代码块与表格摘要",
       "WBTables": "显示表格摘要",
       "WBLocate": "定位源码",
+      "WBCenter": "回到中心",
       "WBFit": "适应画布",
       "WBExpand": "全部展开",
       "WBCollapse": "收起分支",
