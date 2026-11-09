@@ -496,7 +496,7 @@ html.js .appearance-choices .palette-card-tools{position:absolute;top:5px;right:
 .find-strip{padding:7px 12px;gap:6px;margin:0;border-bottom:1px solid var(--vex-hairline)}
 /* 分栏把手压在面板的发丝线上：本体透明不占宽，命中区向两侧各扩 5px。 */
 .sidebar-splitter,.structure-splitter{width:1px;flex:none;margin:0;background:transparent;position:relative;z-index:9;cursor:col-resize}
-.sidebar-splitter::before,.structure-splitter::before{content:'';position:absolute;top:0;bottom:0;left:-5px;right:-5px}
+.sidebar-splitter::before,.structure-splitter::before{content:'';position:absolute;top:0;bottom:0;left:-6px;right:-6px}
 .sidebar-splitter::after,.structure-splitter::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:3px;height:36px;border-radius:var(--vex-radius-pill);background:color-mix(in srgb,var(--fg) 24%,transparent);opacity:0;transition:opacity var(--vex-fast)}
 .sidebar-splitter:hover::after,.sidebar-splitter:focus-visible::after,.sidebar-resizing .sidebar-splitter::after,
 .structure-splitter:hover::after,.structure-splitter:focus-visible::after,.structure-resizing .structure-splitter::after{opacity:1}
@@ -600,3 +600,11 @@ html.js .appearance-choices .palette-card-tools{position:absolute;top:5px;right:
 .hit-more{padding:2px 10px 2px 30px;font-size:10px;color:var(--muted)}
 .fulltext-summary{padding:6px 12px 4px;font-size:10px;color:var(--muted)}
 .file-root.drop-target>.file-root-head,.file-root.drop-target{outline:2px dashed var(--accent);outline-offset:-2px;border-radius:var(--vex-radius-sm)}
+
+/* ===== 评审修订（命中目标 ≥24px）：视觉尺寸不变，命中区经伪元素外扩 ===== */
+/* 清除搜索钮 18→24、外观配色卡工具钮 20→24、缩放坞还原钮 23→26（把手另扩到 13px，见分隔条 ::before）。 */
+.sidebar-search .clear-search{position:relative}
+.sidebar-search .clear-search::before{content:'';position:absolute;inset:-3px}
+.appearance-choices .palette-card-tools button{position:relative}
+.appearance-choices .palette-card-tools button::before{content:'';position:absolute;inset:-2px}
+.vex-zoomdock .zoom-reset::after{content:'';position:absolute;left:-5px;right:-5px;top:-4px;bottom:-4px}
