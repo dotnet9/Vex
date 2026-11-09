@@ -183,6 +183,13 @@
     return endpoint;
   }
 
+  /* 评审修订（UI 级强调色可读性）：浅色态 accent 作为图标钮/工具栏强调文字消费（--accent），
+     在纸面/面板不足 4.5:1 时向 ink 收敛——与状态四键同一条规则；装饰与焦点环仍用原色（--accent-decoration/--focus-ring）。 */
+  function accentFor(base, dark) {
+    if (dark) return base.accent;
+    return readable(base.accent, [base.paper, base.surface], 4.5);
+  }
+
   /* 原型变量映射层：规则语义键 → 原型 CSS 变量词汇表（§4 消费契约的原型投影）。 */
   function deriveVars(base, mode, constants) {
     var dark = mode === 'dark';
@@ -221,7 +228,7 @@
       'segmented-thumb': dark ? base.surface : alphaOver('#ffffff', 0.55, base.paper),
       elevated: mix(base.paper, base.surface, 0.12),
       'code-bg': base.surface, code: base.surface,
-      accent: base.accent, 'accent-decoration': base.accent,
+      accent: accentFor(base, dark), 'accent-decoration': base.accent,
       'accent-fg': on, 'on-accent': on, 'accent-hover': resolved.primaryHover,
       primary: base.accent, 'on-primary': on,
       'primary-hover': resolved.primaryHover, 'primary-pressed': resolved.primaryPressed,
