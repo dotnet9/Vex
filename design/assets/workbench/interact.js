@@ -82,6 +82,7 @@
       { sep: true },
       { label: '保存', gesture: 'Ctrl+S', action: 'save' },
       { label: '另存为…', gesture: 'Ctrl+Shift+S', action: 'save-as' },
+      { label: '重命名', act: 'dlg-rename' },
       { sep: true },
       { label: '导出', sub: [
         { label: '导出 HTML', action: 'export-html' }, { label: '导出 PDF', action: 'export-pdf' },

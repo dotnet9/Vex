@@ -595,6 +595,8 @@
     });
   }
   var pendingSwitch = null, switchOrigin = null;
+  /* 评审修订：重命名可作用于非当前文档（右键文件列表触发），记录目标索引；null 表示当前文档。 */
+  var renameTargetIndex = null;
   function restoreSwitchOrigin() { if(!switchOrigin)return;var origin=switchOrigin;switchOrigin=null;requestAnimationFrame(function(){if(origin.focus?.isConnected)origin.focus.focus({preventScroll:true});input.setSelectionRange(origin.start,origin.end);origin.scrolls.forEach(function(item){item.el.scrollTop=item.top;});}); }
   function confirmSwitch(callback) {
     if (!state.dirty) { callback(); return; }
@@ -688,7 +690,11 @@
   function closeFileContextMenu() { fileContextMenu.hidden = true; fileContextTarget = null; }
   function showFileContextMenu(target, event) {
     fileContextTarget = target;
-    fileContextMenu.innerHTML = '<button type="button" role="menuitem" data-file-context="open-window">在新窗口打开</button><button type="button" role="menuitem" data-file-context="reveal">打开文件位置</button>';
+    /* 评审修订：文件右键补「重命名」（原对话框不可达），只读文档不提供。 */
+    fileContextMenu.innerHTML = (target.kind === 'file'
+        ? '<button type="button" role="menuitem" data-file-context="rename">重命名</button>'
+        : '')
+      + '<button type="button" role="menuitem" data-file-context="open-window">在新窗口打开</button><button type="button" role="menuitem" data-file-context="reveal">打开文件位置</button>';
     fileContextMenu.hidden = false;
     var width = fileContextMenu.offsetWidth || 168, height = fileContextMenu.offsetHeight || 72;
     fileContextMenu.style.left = Math.max(8, Math.min(event.clientX, innerWidth - width - 8)) + 'px';
@@ -698,6 +704,15 @@
   fileContextMenu.addEventListener('click', function (event) {
     var action = event.target.closest('[data-file-context]'); if (!action || !fileContextTarget) return;
     var target = fileContextTarget, act = action.dataset.fileContext; closeFileContextMenu();
+    if (act === 'rename') {
+      var doc_ = docs[target.index];
+      if (!doc_) return;
+      if (doc_.readOnly) { VexProto.toastKey('ToastDocumentReadOnly'); return; }
+      renameTargetIndex = target.index;
+      if ($('rename-input')) { $('rename-input').value = doc_.name; syncRenameState(); }
+      openLayer('rename');
+      return;
+    }
     if (act === 'reveal') {
       if (target.kind === 'folder') VexProto.toastKey('ToastFolderLocation', target.path || '演示文档');
       else {
@@ -1375,24 +1390,33 @@
       docs[state.doc].saveError = true; updateMeta(); window.dispatchEvent(new CustomEvent('vex-workflow-result',{detail:{kind:'save',ok:false}})); VexProto.toastKey('ToastCopyDownloadFailed'); return false;
     }
   }
-  /* 另存为：浏览器无系统保存框，用文件名输入代替目的地选择；取消不产生成功提示。 */
+  /* 另存为（评审修订：window.prompt 换自绘弹层，与重命名同一套校验规范）；取消不产生成功提示。 */
   function saveAs() {
     instant.finish();
     refreshNow();
-    var name = window.prompt('另存为（副本将以下述文件名下载）', docs[state.doc].name);
-    if (name === null) return false;
-    name = name.trim();
-    if (!name) { VexProto.toastKey('ToastSaveAsEmptyName'); return false; }
+    var field = $('saveas-input');
+    if (!field) return false;
+    field.value = docs[state.doc].name;
+    syncSaveAsState();
+    openLayer('saveas');
+    return true;
+  }
+  function performSaveAs() {
+    var name = $('saveas-input').value.trim();
+    if (!name) { VexProto.toastKey('ToastSaveAsEmptyName'); return; }
+    if (/[\\/:*?"<>|]/.test(name)) return;
     if (!/\.(md|markdown|mdown|txt)$/i.test(name)) name += '.md';
     try {
       if (state.failNextSave) { state.failNextSave = false; throw new Error('下载未能开始'); }
       download(input.value, name);
       docs[state.doc].lastExport = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      VexProto.toastKey('ToastCopyDownloadNamed', name); return true;
+      closeLayers();
+      VexProto.toastKey('ToastCopyDownloadNamed', name);
     } catch (_) {
+      closeLayers();
       docs[state.doc].saveError = true; updateMeta();
       window.dispatchEvent(new CustomEvent('vex-workflow-result', { detail: { kind: 'save', ok: false } }));
-      VexProto.toastKey('ToastSaveAsFailed'); return false;
+      VexProto.toastKey('ToastSaveAsFailed');
     }
   }
   function exportHtml() {
@@ -1772,6 +1796,11 @@
         document.querySelector('#layer-delete .dlg-msg').textContent = '原型仅移除工作区中的文档，原文件不会改动。' + (state.dirty ? '当前文档有未保存的修改，移除后这些修改将被丢弃。' : '');
         document.querySelector('#layer-delete .dlg-path').textContent = docs[state.doc].name;
       }
+      /* 评审修订：重命名入口补齐——菜单打开时预填当前文档名（右键其他文件时由上下文菜单改写目标）。 */
+      if (action === 'dlg-rename') {
+        renameTargetIndex = state.doc;
+        if ($('rename-input')) { $('rename-input').value = docs[state.doc].name; syncRenameState(); }
+      }
       if (action === 'dlg-doc') {
         if (!VexDocumentWindow.open({builtin:item && item.arg === '鸣谢' ? 'thanks' : 'changelog'})) VexProto.toastKey('ToastAllowPopups');
       } else openLayer(action.slice(4));
@@ -1981,20 +2010,36 @@
     $('rename-ok').addEventListener('click', function () {
       var name = $('rename-input').value.trim();
       if (!name || renameInvalid(name)) return;
-      docs[state.doc].name = name;
-      $('document-name').textContent = name;
+      var idx = renameTargetIndex == null ? state.doc : renameTargetIndex;
+      renameTargetIndex = null;
+      if (!docs[idx]) idx = state.doc;
+      docs[idx].name = name;
+      if (idx === state.doc) $('document-name').textContent = name;
+      var pathLine = document.querySelector('#layer-rename .dlg-path');
+      if (pathLine) pathLine.textContent = (workspaceFolder && workspaceFolder !== '未打开文件夹' ? workspaceFolder + '\\' : '') + name;
       renderFiles();
       closeLayers();
       VexProto.toastKey('ToastFileRenamed', name);
     });
     syncRenameState();
   }
-  // 保留对话框的可点击演示。
+  /* 另存为弹层：与重命名同一套校验规范，Enter 提交。 */
+  if ($('saveas-input') && $('saveas-ok')) {
+    var saveAsInvalid = function (value) { return /[\\/:*?"<>|]/.test(value); };
+    var syncSaveAsState = function () {
+      var value = $('saveas-input').value, invalid = saveAsInvalid(value);
+      $('saveas-error').classList.toggle('is-hidden', !invalid);
+      $('saveas-input').setAttribute('aria-invalid', String(invalid));
+      $('saveas-ok').disabled = invalid || !value.trim();
+    };
+    $('saveas-input').addEventListener('input', syncSaveAsState);
+    $('saveas-input').addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && !$('saveas-ok').disabled) { event.preventDefault(); $('saveas-ok').click(); }
+    });
+    $('saveas-ok').addEventListener('click', performSaveAs);
+  }
+  // 保留错误对话框的可点击演示（layer-mcp 已并入偏好设置，其演示处理器随之移除）。
   if ($('err-toggle')) $('err-toggle').onclick = function () { $('err-detail').style.display = $('err-detail').style.display === 'none' ? '' : 'none'; };
-  ['mcp-copy-token', 'mcp-copy-endpoint'].forEach(function (id) { if ($(id)) $(id).onclick = function () { navigator.clipboard.writeText(id.endsWith('token') ? $('mcp-token').value : $('mcp-endpoint') ? $('mcp-endpoint').textContent : 'http://127.0.0.1:17891/mcp/').catch(function () { VexProto.toastKey('ToastCopyManually'); }); }; });
-  if ($('mcp-switch')) $('mcp-switch').onclick = function () { this.classList.toggle('on'); this.setAttribute('aria-checked', String(this.classList.contains('on'))); $('mcp-form').style.opacity = this.classList.contains('on') ? '' : '.45'; $('mcp-status-text').textContent = this.classList.contains('on') ? '服务运行中（演示）' : '服务已停止（演示）'; };
-  if ($('mcp-save')) $('mcp-save').onclick = function () { closeLayers(); VexProto.toastKey('ToastMcpSettingsSaved'); };
-  if ($('mcp-gen')) $('mcp-gen').onclick = function () { $('mcp-token').value = 'vx_' + crypto.randomUUID().replace(/-/g, ''); };
   document.addEventListener('keydown', function (event) {
     if (event.key === 'F6' && !event.isComposing) { event.preventDefault(); startPresentation(); return; }
     if (event.key === 'Escape') {

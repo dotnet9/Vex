@@ -250,6 +250,28 @@
       </div>
     </div>
 
+    <!-- 另存为（评审修订：替代 window.prompt 的自绘弹层，与重命名同一套规范） -->
+    <div class="overlay win-layer" id="layer-saveas" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="saveas-title">
+        <div class="mini-titlebar"><span id="saveas-title">另存为</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="dialog-content">
+        <div class="dlg-field dlg-field-gap">
+          <label class="fld-label">文件名</label>
+          <input class="input mono" id="saveas-input" autofocus>
+          <div class="rn-error is-hidden" id="saveas-error">文件名不能包含 \ / : * ? " &lt; &gt; | 等字符</div>
+        </div>
+        <div class="dlg-path-gap">
+          <div class="sub-label">说明</div>
+          <div class="dlg-path dlg-path-flush">副本将以下述文件名下载到本机下载目录。</div>
+        </div>
+        <div class="dlg-actions">
+          <button class="btn" data-close="已取消">取消</button>
+          <button class="btn primary" id="saveas-ok">保存副本</button>
+        </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 错误提示 -->
     <div class="overlay win-layer" id="layer-error" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="error-title">
@@ -331,71 +353,7 @@
       </div>
     </div>
 
-    <!-- MCP 设置 -->
-    <div class="overlay win-layer" id="layer-mcp" hidden>
-      <div class="mini-window wide" role="dialog" aria-modal="true" data-l10n-label="MCP 设置" aria-labelledby="mcp-title">
-        <div class="mini-titlebar">
-          <span id="mcp-title">MCP 设置</span>
-          <span class="caption-btns">
-            <button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
-          </span>
-        </div>
-        <div class="set-head">
-          <span class="s-ico"><svg class="ico ico-21"><use href="#i-terminal"/></svg></span>
-          <div>
-            <h2>MCP 设置</h2>
-            <div class="sub">允许 AI 客户端通过本机 MCP 接口读取和操作当前文档。</div>
-          </div>
-        </div>
-        <div class="enable-row">
-          <div>
-            <div class="et">启用 MCP Server</div>
-            <div class="ed">仅监听本机地址，通过 Bearer Token 鉴权</div>
-          </div>
-          <button class="switch on" id="mcp-switch" role="switch" aria-checked="true" data-l10n-label="启用 MCP Server" aria-label="启用 MCP Server"></button>
-        </div>
-        <div class="set-body" id="mcp-form">
-          <div class="form-grid">
-            <span class="k">监听地址</span>
-            <input class="input mono" value="127.0.0.1">
-            <span class="k">端口</span>
-            <input class="input mono input-port" value="17891">
-            <span class="k">授权 Token</span>
-            <span class="input-group">
-              <input class="input mono" id="mcp-token" value="vx_9f3ac21e77b04d5c8a12">
-              <button class="btn sm" id="mcp-gen"><svg class="ico ico-13"><use href="#i-refresh"/></svg>生成</button>
-              <button class="btn sm" id="mcp-copy-token"><svg class="ico ico-13"><use href="#i-copy"/></svg>复制</button>
-            </span>
-            <span class="k">端点</span>
-            <span class="endpoint">
-              <code class="mono">http://127.0.0.1:17891/mcp/</code>
-              <button class="btn sm ghost btn-outlined" id="mcp-copy-endpoint"><svg class="ico ico-13"><use href="#i-copy"/></svg>复制地址</button>
-            </span>
-          </div>
-          <div class="field-card">
-            <h3>允许访问范围</h3>
-            <div class="radio-list">
-              <label class="radio"><input type="radio" name="scope" checked><span class="dot"></span>仅当前文档</label>
-              <label class="radio"><input type="radio" name="scope"><span class="dot"></span>当前打开文件夹</label>
-              <label class="radio"><input type="radio" name="scope"><span class="dot"></span>自定义目录</label>
-              <input class="input mono input-wide" data-l10n-placeholder="自定义目录路径，例如 D:\Notes" placeholder="自定义目录路径，例如 D:\Notes">
-            </div>
-          </div>
-          <label class="check check-flush">
-            <input type="checkbox" checked><span class="box"></span>
-            修改、删除、打开外部路径前需要确认
-          </label>
-        </div>
-        <div class="mcp-status">
-          <span id="mcp-status-dot" class="status-dot"></span>
-          <span id="mcp-status-text">服务运行中 · 最近调用 2 分钟前</span>
-        </div>
-        <div class="set-foot">
-          <button class="btn" data-close>取消</button>
-          <button class="btn primary" id="mcp-save">保存</button>
-        </div>
-      </div>
-    </div>
+    <!-- MCP 设置弹层已并入「偏好设置 → MCP」页（dlg-mcp 由 preferences 接管），旧独立弹层移除。 -->
 
   </div>
 </div>
