@@ -1125,7 +1125,7 @@
     document.querySelector('.workspace').classList.toggle('source-only', view === 'edit' && state.editMode === 'source');
     document.querySelectorAll('.content-area > section').forEach(function (pane) { pane.classList.remove('pane-enter'); void pane.offsetWidth; if (!pane.hidden) pane.classList.add('pane-enter'); });
     $('map-settings').hidden = true; $('map-settings-button').setAttribute('aria-expanded', 'false');
-    if (view === 'mindmap' && !state.mapVisited) { state.mapVisited = true; requestAnimationFrame(function () { fit(true); }); }
+    if (view === 'mindmap' && !state.mapVisited) { state.mapVisited = true; requestAnimationFrame(function () { requestAnimationFrame(function () { fit(); }); }); }
     window.dispatchEvent(new CustomEvent('vex-view-changed', { detail: { view: view, editMode: state.editMode } }));
   }
   function setEditMode(mode) {
@@ -1283,7 +1283,7 @@
         state.x += (canvas.clientWidth - lastCanvasSize.width) / 2;
         state.y += (canvas.clientHeight - lastCanvasSize.height) / 2;
         transform();
-      } else fit(true);
+      } else fit();
       lastCanvasSize = { width: canvas.clientWidth, height: canvas.clientHeight };
     }
   }).observe(canvas);

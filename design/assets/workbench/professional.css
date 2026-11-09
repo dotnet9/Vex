@@ -1,51 +1,10 @@
 /*
  * Vex quiet-workbench pass.
  *
- * Final workbench refinements for the prototype. Default light/teal tokens
- * establish the paper/chrome palette; shared rules refine workspace controls
- * and writing hierarchy across themes.
+ * Component refinements only: workspace controls, writing hierarchy and the
+ * map/typography surfaces. Color tokens come from the generated palettes.css
+ * (the single source of truth) — do not hand-write palette values here.
  */
-
-:root[data-theme="light"][data-palette="teal"] {
-  --stage: #e4e8e5;
-  --bg: #f1f3f1;
-  --panel: #e9eeeb;
-  --sidebar: #edf2ee;
-  --splitter: #d1dad3;
-  --statusbar-bg: #e9eeeb;
-  --badge-bg: #edf2ee;
-  --surface: #ffffff;
-  --paper: #ffffff;
-  --field: #ffffff;
-  --editor-bg: #ffffff;
-  --fg: #27372f;
-  --value: #27372f;
-  --editor-fg: #27372f;
-  --muted: #56655d;
-  --subtle: #77837c;
-  --md-marker: #56655d;
-  --md-quote: #56655d;
-  --fg-disabled: #8b9790;
-  --border: #d2dcd5;
-  --line: #d2dcd5;
-  --badge-border: #d2dcd5;
-  --currentline-border: #d2dcd5;
-  --control-border: #d4d7d5;
-  --hover: #e3ece6;
-  --raised: #f5f8f5;
-  --currentline-bg: #eef4ef;
-  --pressed: #dbe8df;
-  --selected: #dfece3;
-  --accent-soft: #eaf3ed;
-  --selection: #c8ddd0;
-  --segmented-track: #e5ece7;
-  --segmented-thumb: #ffffff;
-  --elevated: #ffffff;
-  --code-bg: #f1f5f2;
-  --code: #f1f5f2;
-  --tooltip-bg: #27372f;
-  --tooltip-fg: #ffffff;
-}
 
 body {
   background: var(--stage, #e4e8e5);

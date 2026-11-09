@@ -93,7 +93,7 @@ for (const [key, palette] of Object.entries(data.palettes)) {
 /* 旧 Key → 新 Key 别名（自用迁移，规则 §2 替换声明）。 */
 const legacyAliases = {
   weft: 'teal', aquatic: 'teal', teal: 'teal',
-  ocean: 'indigo', blue: 'indigo', dusk: 'indigo', dotnet: 'indigo', 'night-sky': 'indigo', default: 'indigo',
+  ocean: 'indigo', blue: 'indigo', dusk: 'indigo', dotnet: 'indigo', 'night-sky': 'indigo', default: data.default,
   sand: 'amber', ochre: 'amber', desert: 'amber',
   rose: 'crimson', iris: 'violet', plum: 'violet', aurora: 'violet',
   olive: 'pine', ember: 'terracotta'

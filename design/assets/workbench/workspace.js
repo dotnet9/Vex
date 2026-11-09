@@ -251,7 +251,7 @@
       VexProto.handleAction('toggle-sidebar');
       VexProto.toastKey('ToastFileNavCollapsed');
     }
-    if (wanted.includes('map') && (!hadMap || id === 'three')) requestAnimationFrame(function () { requestAnimationFrame(function () { W.fit(true); }); });
+    if (wanted.includes('map') && (!hadMap || id === 'three')) requestAnimationFrame(function () { requestAnimationFrame(function () { W.fit(); }); });
   }
   function openPanel(id) { if (leaves(tree).includes(id)) return; var wanted = new Set(leaves(tree).concat(id)); setLayout(wanted.size === 3 ? 'three' : wanted.has('map') ? (editorMode === 'source' ? 'source-map' : 'instant-map') : 'source-render'); }
   function switchEditorMode(mode) { var hasMap = leaves(tree).includes('map'), hasRender = leaves(tree).includes('render'); setLayout(mode === 'instant' ? hasMap ? 'instant-map' : 'instant' : hasMap ? hasRender ? 'three' : 'source-map' : hasRender ? 'source-render' : 'source'); }
