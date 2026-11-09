@@ -103,7 +103,9 @@ internal static class UiDensityVerification
             var headers = new[] { files, (Control)outline }.SelectMany(c => c.GetVisualDescendants().OfType<Border>())
                 .Where(b => b.Classes.Contains("panel-head") || b.Classes.Contains("panel-tools")).ToArray();
             var tab = Find<Border>("WorkspaceTabRow");
-            Check(headers.Length == 4 && headers.All(h => Math.Abs(h.Bounds.Height - tab.Bounds.Height) < 1), density + ": sidebar and workspace rows share a height");
+            // 大纲 UI 下沉到库 MarkdownOutlinePanel 后，panel-head/panel-tools 由 4 处变为文件栏 2 处 + 主窗工具条；
+            // 密度断言的本意（侧栏行与工作台行同高）保持不变，改为校验文件栏两处 + 顶部行对齐。
+            Check(headers.Length == 3 && headers.All(h => Math.Abs(h.Bounds.Height - tab.Bounds.Height) < 1), density + ": sidebar and workspace rows share a height");
             Check(headers.Where(h => h.Classes.Contains("panel-head")).All(h => Math.Abs(Top(h) - Top(tab)) < 1), density + ": three column titles align");
             var toolbar = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("edit-options") && b.IsEffectivelyVisible);
             Check(headers.Where(h => h.Classes.Contains("panel-tools")).All(h => Math.Abs(h.Bounds.Height - toolbar.Bounds.Height) < 1), density + ": search and formatting rows share a height");

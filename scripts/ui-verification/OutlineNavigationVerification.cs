@@ -25,7 +25,9 @@ internal static class OutlineNavigationVerification
         var viewer = preview.FindControl<MarkdownViewer>("PreviewMarkdownViewer")!;
         var scroll = preview.FindControl<ScrollViewer>("PreviewScrollViewer")!;
         var outlineView = window.GetVisualDescendants().OfType<ShellOutlineView>().Single();
-        var list = outlineView.FindControl<ListBox>("OutlineList")!;
+        // 大纲 UI 已下沉到库 MarkdownOutlinePanel（行模型 OutlineRow），旧 ListBox「OutlineList」由模板内部提供。
+        var outlinePanel = outlineView.FindControl<MarkdownOutlinePanel>("OutlinePanel")!;
+        var list = outlinePanel.GetVisualDescendants().OfType<ListBox>().First();
         var outline = (ShellOutlineViewModel)outlineView.DataContext!;
         var opening = vm.OpenPathAsync(path);
         Wait(() => opening.IsCompleted, "Document opens"); opening.GetAwaiter().GetResult();
@@ -59,7 +61,7 @@ internal static class OutlineNavigationVerification
         bitmap.Render(window); bitmap.Save(Path.Combine(output, "outline-reading.png"));
         Console.WriteLine("Outline navigation verification passed.");
 
-        void Click(Vex.Core.Models.OutlineItem item)
+        void Click(OutlineRow item)
         {
             list.ScrollIntoView(item); Render();
             var row = list.GetVisualDescendants().OfType<ListBoxItem>().Single(control => ReferenceEquals(control.DataContext, item));
@@ -68,10 +70,10 @@ internal static class OutlineNavigationVerification
                 listScroll.Offset = new Vector(0, Math.Max(0, listScroll.Offset.Y + rowOrigin.Y - listScroll.Viewport.Height / 2));
             Render();
             var point = row.TranslatePoint(new Point(row.Bounds.Width / 2, row.Bounds.Height / 2), window)!.Value;
-            Console.WriteLine($"OUTLINE CLICK {item.Line}: row={row.Bounds}; point={point}; hit={window.InputHitTest(point)}; selected={outline.SelectedOutlineItem?.Line}; visible={row.IsEffectivelyVisible}");
+            Console.WriteLine($"OUTLINE CLICK {item.Line}: row={row.Bounds}; point={point}; hit={window.InputHitTest(point)}; current={outline.CurrentOutlineItem?.Line}; visible={row.IsEffectivelyVisible}");
             window.MouseMove(point); window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left);
             Render();
-            Console.WriteLine($"OUTLINE AFTER current={outline.CurrentOutlineItem?.Line}; selected={outline.SelectedOutlineItem?.Line}; offset={scroll.Offset}; extent={scroll.Extent}; viewport={scroll.Viewport}");
+            Console.WriteLine($"OUTLINE AFTER current={outline.CurrentOutlineItem?.Line}; offset={scroll.Offset}; extent={scroll.Extent}; viewport={scroll.Viewport}");
         }
         bool Landed(int line)
         {

@@ -216,7 +216,7 @@ internal static class PrototypeChromeVerification
                 Check(clear.Bounds.Size == new Size(18, 18) && clear.Padding == default,
                     "Sidebar clear target fits its 13px icon without shrinking");
                 if (pane.DataContext is ShellFilesViewModel filesFilter) filesFilter.FilterText = "probe";
-                else ((ShellOutlineViewModel)pane.DataContext!).FilterText = "probe";
+                else pane.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownOutlinePanel>().Single().ApplyFilter("probe");
                 Render();
                 var clearPoint = clear.TranslatePoint(new Point(9, 9), window)!.Value;
                 Console.WriteLine($"SIDEBAR CLEAR {pane.GetType().Name} at {clearPoint}, size={window.ClientSize}, enabled={clear.IsEffectivelyEnabled}, hit={window.InputHitTest(clearPoint)}");
@@ -226,7 +226,7 @@ internal static class PrototypeChromeVerification
                     "Sidebar clear icon follows its hovered button foreground");
                 window.MouseDown(clearPoint, MouseButton.Left); window.MouseUp(clearPoint, MouseButton.Left); Render();
                 Check(pane.DataContext is ShellFilesViewModel filesState ? string.IsNullOrEmpty(filesState.FilterText)
-                        : string.IsNullOrEmpty(((ShellOutlineViewModel)pane.DataContext!).FilterText),
+                        : pane.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownOutlinePanel>().Single() is { } op && op.VisibleRows.Count == op.Rows.Count,
                     "Clicking the sidebar clear button clears its actual filter");
             }
             filesPane.FindControl<Button>("CloseFilesButton")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Settle();

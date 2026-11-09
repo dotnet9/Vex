@@ -21,6 +21,8 @@ internal static class DesktopParityVerification
         var vm = (MainWindowViewModel)window.DataContext!;
         var layout = vm.Layout;
         var outline = app.Resolve<ShellOutlineViewModel>();
+        // 大纲面板下沉后：筛选/可见行走 MarkdownOutlinePanel，主窗里挂的是单例 VM 的当前面板。
+        var outlinePanel = window.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownOutlinePanel>().Single();
         void Check(bool value, string message)
         {
             if (!value) throw new InvalidOperationException(message);
@@ -60,23 +62,27 @@ internal static class DesktopParityVerification
         Check(!layout.ShowOutlineSidebar, "Presentation hides the outline without changing preference");
         layout.IsPresentationMode = false;
         outline.ApplyOutlineItemsChanged(new OutlineItemsChangedCommand([
-            new(1, "第一章", 1), new(3, "细节", 4), new(3, "补充", 7), new(2, "第二节", 10), new(1, "下一章", 12)]));
+            new(1, "第一章", 1, 0), new(3, "细节", 4, 0), new(3, "补充", 7, 0), new(2, "第二节", 10, 0), new(1, "下一章", 12, 0)]));
         Check(string.Join(',', outline.OutlineItems.Select(item => item.Number)) == "1,1.0.1,1.0.2,1.1,2", "Heading numbers preserve all source heading levels");
-        outline.FilterText = "细节";
-        Check(outline.FilteredOutlineItems.Count == 1 && outline.FilteredOutlineItems[0].Line == 4, "Outline filter keeps source positions");
-        outline.ClearFilter();
-        Check(outline.FilteredOutlineItems.Count == 5, "Clearing heading filter restores the outline");
+        // 大纲筛选与折叠已下沉到库 MarkdownOutlinePanel：驱动面板 ApplyFilter / 行的 IsExpanded，
+        // 持久化仍经 VM 订阅的 ExpandedChanged 落盘（新的 VM+面板实例读设置还原折叠态）。
+        outlinePanel.ApplyFilter("细节");
+        Check(outlinePanel.VisibleRows.Count == 1 && outlinePanel.VisibleRows[0].Line == 4, "Outline filter keeps source positions");
+        outlinePanel.ApplyFilter(string.Empty);
+        Check(outlinePanel.VisibleRows.Count == 5, "Clearing heading filter restores the outline");
         outline.OutlineItems[0].IsExpanded = false;
-        Check(outline.FilteredOutlineItems.Count == 2, "Collapsing a section hides all descendants including skipped levels");
-        outline.FilterText = "细节";
-        Check(outline.FilteredOutlineItems.Count == 1, "Search reveals a heading under a collapsed section");
-        outline.ClearFilter();
-        Check(outline.FilteredOutlineItems.Count == 2, "Clearing search preserves the collapsed section");
+        Check(outlinePanel.VisibleRows.Count == 2, "Collapsing a section hides all descendants including skipped levels");
+        outlinePanel.ApplyFilter("细节");
+        Check(outlinePanel.VisibleRows.Count == 1, "Search reveals a heading under a collapsed section");
+        outlinePanel.ApplyFilter(string.Empty);
+        Check(outlinePanel.VisibleRows.Count == 2, "Clearing search preserves the collapsed section");
         var restoredOutline = new ShellOutlineViewModel(app.Resolve<IShellStatusPublisher>(),
-            app.Resolve<IAppSettingsStore>(), app.Resolve<IWorkspaceDocumentState>());
+            app.Resolve<ShellWindowLayoutViewModel>());
+        var restoredPanel = new CodeWF.Avalonia.Markdown.Controls.MarkdownOutlinePanel();
+        restoredOutline.AttachPanel(restoredPanel);
         restoredOutline.ApplyOutlineItemsChanged(new OutlineItemsChangedCommand([
-            new(1, "第一章", 3), new(3, "细节", 6), new(3, "补充", 9), new(2, "第二节", 12), new(1, "下一章", 14)]));
-        Check(restoredOutline.FilteredOutlineItems.Count == 2, "New outline instance restores collapse after source lines shift");
+            new(1, "第一章", 3, 0), new(3, "细节", 6, 0), new(3, "补充", 9, 0), new(2, "第二节", 12, 0), new(1, "下一章", 14, 0)]));
+        Check(restoredPanel.VisibleRows.Count == 2, "New outline instance restores collapse after source lines shift");
         var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
         var productionFiles = filesView.DataContext;
         using var navigation = new ShellFilesViewModel(app.Resolve<IAppSettingsStore>());
