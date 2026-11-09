@@ -258,6 +258,9 @@ input, textarea, select {
 .save-details{position:absolute;z-index:95;left:16px;top:62px;width:366px;max-width:calc(100% - 32px);max-height:calc(100% - 78px);overflow:auto;padding:18px;background:var(--panel);border:1px solid var(--border);border-radius:var(--vex-radius-lg);box-shadow:var(--shadow-pop);font-size:12px}
 .usability-panel-heading{display:flex;align-items:center;justify-content:space-between}.save-details dl{margin:14px 0}.save-details dt{color:var(--muted);font-size:11px;margin-top:12px}.save-details dd{margin:3px 0 0;line-height:1.6;overflow-wrap:anywhere}.save-details p{color:var(--muted);line-height:1.7;font-size:11px}
 .workspace-layout-button{max-width:210px}.workspace-layout-button #current-layout-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 评审修订：阅读视图隐藏「布局」下拉（编辑器布局预设与阅读无关，模式切换由视图切换器承担），保留「排版」。 */
+.workspace[data-view="read"] .workspace-viewswitch-more,
+.workspace[data-view="read"] .workspace-layout-button{display:none}
 .view-panel.active-view>.view-heading .view-caption{color:var(--vex-on)}
 #view-follow-controls{display:flex;align-items:center;gap:8px;font-size:11px;min-width:0}#view-follow-controls button{font:inherit;border:0;border-radius:var(--vex-radius-xs);background:transparent;color:var(--accent);padding:4px 6px;white-space:nowrap;cursor:pointer}#view-follow-toggle[aria-pressed=true]{background:var(--accent-soft)}#view-follow-driver{color:var(--muted);white-space:nowrap}
 .file-navigation-footer>button:has(>span){display:flex;align-items:center;gap:4px;width:auto;padding:0 6px}.file-navigation-footer .folder-trigger{min-width:0;flex:1}.file-navigation-footer .folder-trigger span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

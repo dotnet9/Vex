@@ -1125,6 +1125,13 @@
     document.querySelector('.workspace').classList.toggle('source-only', view === 'edit' && state.editMode === 'source');
     document.querySelectorAll('.content-area > section').forEach(function (pane) { pane.classList.remove('pane-enter'); void pane.offsetWidth; if (!pane.hidden) pane.classList.add('pane-enter'); });
     $('map-settings').hidden = true; $('map-settings-button').setAttribute('aria-expanded', 'false');
+    /* 评审修订：阅读模式做减法——进入阅读自动收起文件导航（回到编辑/导图恢复原状），阅读中手动展开不受影响。 */
+    if (view === 'read') {
+      if (state.sidebar) { state.readCollapsedNav = true; if (VexProto.handleAction) VexProto.handleAction('toggle-sidebar'); }
+    } else if (state.readCollapsedNav) {
+      state.readCollapsedNav = false;
+      if (!state.sidebar && VexProto.handleAction) VexProto.handleAction('toggle-sidebar');
+    }
     if (view === 'mindmap' && !state.mapVisited) { state.mapVisited = true; requestAnimationFrame(function () { requestAnimationFrame(function () { fit(); }); }); }
     window.dispatchEvent(new CustomEvent('vex-view-changed', { detail: { view: view, editMode: state.editMode } }));
   }
