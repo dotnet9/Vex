@@ -33,6 +33,18 @@
 html.js .vex-zoomdock .zoom-value { position:absolute; left:0; bottom:calc(100% + 6px); transform:translateX(-50%) scale(.9); opacity:0; pointer-events:none; padding:1px 6px; border-radius:var(--vex-radius-sm,6px); background:var(--accent); color:var(--on-accent,var(--accent-fg,#fff)); font-size:var(--fs-caption,12px); line-height:1.5; font-variant-numeric:tabular-nums; white-space:nowrap; transition:opacity var(--vex-fast) var(--vex-ease),transform var(--vex-fast) var(--vex-ease); }
 .vex-zoomdock .zoom-value.is-live { opacity:1; transform:translateX(-50%) scale(1); }
 .vex-zoomdock .zoom-range { width:calc(var(--control-h-md,32px) * 1.875); accent-color:var(--accent); }
+/* 评审修订（深色打磨）：原生滑杆轨道在深色下近隐形——自定义轨道/拖动块；
+   引用块底色与正文差过小——深色提到 13%；大纲当前项高亮提亮；左下装饰水印降透明避免亮斑压文字。 */
+:root[data-theme=dark] .vex-zoomdock .zoom-range { appearance:none; -webkit-appearance:none; background:transparent; height:14px; }
+:root[data-theme=dark] .vex-zoomdock .zoom-range::-webkit-slider-runnable-track { height:4px; border-radius:var(--vex-radius-pill); background:color-mix(in srgb, var(--fg) 20%, transparent); }
+:root[data-theme=dark] .vex-zoomdock .zoom-range::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:12px; height:12px; margin-top:-4px; border-radius:50%; background:var(--accent); border:2px solid var(--panel); box-shadow:0 1px 4px #0009; }
+:root[data-theme=dark] .vex-zoomdock .zoom-range::-moz-range-track { height:4px; border-radius:var(--vex-radius-pill); background:color-mix(in srgb, var(--fg) 20%, transparent); }
+:root[data-theme=dark] .vex-zoomdock .zoom-range::-moz-range-thumb { width:12px; height:12px; border-radius:50%; background:var(--accent); border:2px solid var(--panel); }
+:root[data-theme=dark] .reading-scroll .md-body .md-callout,
+:root[data-theme=dark] .content-area .md-body .md-callout,
+:root[data-theme=dark] .md-body .md-callout { background:color-mix(in srgb, var(--callout-color, var(--accent)) 13%, transparent); }
+:root[data-theme=dark] .structure-item.on { background:color-mix(in srgb, var(--accent) 16%, transparent); }
+:root[data-theme=dark] .workspace::before { opacity:.12; }
 .vex-zoomdock .zoom-reset { position:relative; min-width:0; min-height:0; height:calc(var(--control-h-md,32px) - 9px); margin-left:calc(var(--gap-sm,6px) - 3px); padding:2px 7px; border:0; border-radius:var(--vex-radius-pill); background:transparent; color:inherit; font-size:13px; cursor:pointer; }
 .vex-zoomdock .zoom-reset::before { content:""; position:absolute; left:calc(var(--gap-sm,6px) * -1 + 1px); top:calc(var(--control-h-md,32px) * .125); bottom:calc(var(--control-h-md,32px) * .125); width:1px; background:color-mix(in srgb,var(--border,var(--line)) 70%,transparent); }
 .vex-zoomdock .zoom-reset:hover { background:var(--hover,var(--accent-soft)); color:var(--accent); }
