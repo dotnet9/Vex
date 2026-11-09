@@ -8,6 +8,13 @@
    - VexProto.handleAction        页面注入：处理菜单呼出动作（act 名）
    ============================================================ */
 (function () {
+  /* 键盘模态跟踪（评审修订）：首次 Tab 进入键盘导航时给 html 标记 data-kbd，pointerdown 清除；
+     配合全局 :focus-visible 规则为不触发启发式的引擎兜底焦点环（见 prototype.css）。 */
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Tab' && !event.defaultPrevented) document.documentElement.setAttribute('data-kbd', '');
+  });
+  document.addEventListener('pointerdown', function () { document.documentElement.removeAttribute('data-kbd'); }, true);
+
   var VexProto = {
     applyTheme: function (key) {
       window.VexTheme.setMode(key);

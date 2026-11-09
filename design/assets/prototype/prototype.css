@@ -23,6 +23,20 @@
  * 浅色同理反向：轨道比卡片暗一档，选中块提亮成纸白浮起。 */
 :root { --segmented-track:color-mix(in srgb, var(--fg) 4%, var(--surface)); --segmented-thumb:color-mix(in srgb, #fff 55%, var(--surface)); --segmented-thumb-shadow:0 1px 4px color-mix(in srgb, var(--fg) 12%, transparent); }
 :root[data-theme=dark] { --segmented-track:color-mix(in srgb, var(--fg) 4.5%, var(--panel)); --segmented-thumb:var(--panel); --segmented-thumb-shadow:0 0 0 1px color-mix(in srgb, var(--fg) 7%, transparent); }
+/* 评审修订（键盘可达性）：全局键盘焦点环——仅 :focus-visible（键盘 / 辅助技术导航）出现，鼠标点击不打扰；
+   正文编辑面（.instant-block、代码块 pre 等）刻意无环，靠光标表达焦点，不受此规则影响（它们的 outline:none 保留）。 */
+button:focus-visible, summary:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
+[role="button"]:focus-visible, [role="menuitem"]:focus-visible, [role="tab"]:focus-visible, [role="switch"]:focus-visible, [role="slider"]:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--accent));
+  outline-offset: 1px;
+}
+/* 键盘模态兜底：interact.js 在首次 Tab 给 html 标记 data-kbd、pointerdown 清除；
+   部分 Web 引擎（演示 WebView 的合成按键）不触发 :focus-visible 启发式，用同一副环兜底。 */
+html[data-kbd] button:focus, html[data-kbd] summary:focus, html[data-kbd] a:focus, html[data-kbd] select:focus,
+html[data-kbd] [role="button"]:focus, html[data-kbd] [role="menuitem"]:focus, html[data-kbd] [role="tab"]:focus, html[data-kbd] [role="switch"]:focus, html[data-kbd] [role="slider"]:focus, html[data-kbd] [tabindex]:focus {
+  outline: 2px solid var(--focus-ring, var(--accent));
+  outline-offset: 1px;
+}
 /* 缩放坞：右下角悬浮胶囊的唯一配方（主窗体正文、主窗体导图、演示正文/导图同一枚），宿主只改位置与量程，不改色。
  * 几何全部由密度令牌推导（与 .vex-segmented 同受「界面密度」缩放），圆角走 --vex-radius-pill 跟随「界面圆角」三档。
  * 坞内只有拖动条与还原钮：±/A± 的静态标签与常驻百分比都已去掉，百分比改成拖动时才浮出的气泡（见 zoomdock.js）。 */
