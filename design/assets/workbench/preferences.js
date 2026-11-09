@@ -27,8 +27,8 @@
   /* 「外观」留给标题栏外观菜单（密度/明暗/配色）；这里收动效、圆角与水印，命名区隔避免双入口歧义。 */
   const categories = [['general','通用与文件','file'],['editor','编辑器','edit'],['images','图片','image'],['appearance','窗口与动效','palette'],['export','导出','export'],['mcp','MCP','terminal']];
   const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><use href="#i-${name}"/></svg>`;
-  const control = (key, label, options, note = '') => {
-    const value = values[key], prefix = `<label class="vex-pref-row"><span>${label}${note ? `<small>${note}</small>` : ''}</span>`;
+  const control = (key, label, options, note = '', child = false) => {
+    const value = values[key], prefix = `<label class="vex-pref-row${child ? ' vex-pref-child' : ''}"><span>${label}${note ? `<small>${note}</small>` : ''}</span>`;
     if (!options) return prefix + `<input type="checkbox" role="switch" data-vex-pref="${key}" ${value ? 'checked' : ''}></label>`;
     if (Array.isArray(options)) return prefix + `<select data-vex-pref="${key}">${options.map(item => {const [v,t] = Array.isArray(item) ? item : [item,item]; return `<option value="${esc(v)}" ${String(value) === String(v) ? 'selected' : ''}>${esc(t)}</option>`;}).join('')}</select></label>`;
     if (options.range) return prefix + `<span class="vex-range"><input type="range" data-vex-pref="${key}" data-unit="${options.unit || ''}" min="${options.min}" max="${options.max}" step="${options.step || 1}" value="${value}"><output>${value}${options.unit || ''}</output></span></label>`;
@@ -41,7 +41,8 @@
   const folderControl = (key, label) => `<div class="vex-pref-row"><span>${label}</span><span class="vex-pref-folder"><input data-vex-pref="${key}" type="text" aria-label="${esc(label)}" value="${esc(values[key])}"><button type="button" class="vex-icon-button" data-vex-browse="${key}" title="选择目录" aria-label="选择目录">…</button></span></div>`;
   function content() {
     switch (section) {
-      case 'general': return control('startup','启动时',[['empty','空白工作区'],['recent','恢复上次工作区']]) + control('autoSave','自动保存') + control('saveDelay','停止输入后保存',[[2,'2 秒'],[5,'5 秒'],[10,'10 秒']]) + control('recovery','保留恢复草稿') + heading('新文档默认值') + control('encoding','编码',['UTF-8','UTF-8 BOM','GB18030']) + control('newline','换行符',[['system','跟随系统'],['LF','LF'],['CRLF','CRLF']]);
+      /* 评审修订：关键项补说明副文案；子选项缩进表从属（saveDelay 随自动保存、编码/换行符随新文档默认值）。 */
+      case 'general': return control('startup','启动时',[['empty','空白工作区'],['recent','恢复上次工作区']],'打开 Vex 后首先看到的内容。') + control('autoSave','自动保存',null,'编辑过程中自动写入磁盘，无需手动保存。') + control('saveDelay','停止输入后保存',[[2,'2 秒'],[5,'5 秒'],[10,'10 秒']],'自动保存开启后，停顿多久执行一次写入。',true) + control('recovery','保留恢复草稿',null,'异常退出后可恢复未保存的内容。') + heading('新文档默认值') + control('encoding','编码',['UTF-8','UTF-8 BOM','GB18030'],'仅作用于新建文档，不影响已打开文件。',true) + control('newline','换行符',[['system','跟随系统'],['LF','LF'],['CRLF','CRLF']],'',true);
       case 'editor': return control('font','编辑区字体',[['system','系统默认'],['serif','系统衬线'],['mono','等宽']]) + control('indent','缩进',[[2,'2 空格'],[4,'4 空格'],[8,'8 空格']]) + heading('代码与源码') + control('codeWrap','代码自动换行') + control('lineNumbers','显示源码行号') + control('outlineNumbers','大纲显示章节序号',null,'文章自带序号时不重复，未手写序号可开。');
       case 'images': return control('imageCopy','插入时复制图片') + control('imageRelative','使用相对路径') + folderControl('imageFolder','资源目录');
       case 'appearance': return segmented('motion','界面动效',[['full','完整'],['reduced','精简'],['off','关闭']],'精简只保留淡入淡出，关闭后所有过渡立即到位。') + segmented('radius','界面圆角',[['square','直角'],['compact','紧凑'],['standard','标准']],'只作用于控件圆角，胶囊与头像保持原形。') + control('watermarkText','水印文字',{maxlength:60}) + control('watermarkFontSize','水印字号',{range:true,min:12,max:36,unit:' px'}) + control('watermarkColor','前景色',{type:'color'}) + control('watermarkWeight','粗细',[[300,'细'],[400,'常规'],[700,'粗']]) + control('watermarkOpacity','不透明度',{range:true,min:0,max:50,unit:'%'}) + '<div class="vex-watermark-sample" aria-label="水印样式预览"><strong>写下想法，看见脉络。</strong><span>维刻 Vex</span></div>';
@@ -118,6 +119,7 @@
     pane.removeAttribute('aria-labelledby');
     pane.innerHTML = content();
     mountCodeFrames(pane);
+    syncLinkedControls();
     pane.scrollTop = 0;
     if (animate && motionFull()) pane.animate?.([{opacity:.4,translate:'0 5px'},{opacity:1,translate:'0 0'}],{duration:180,easing:'cubic-bezier(.2,.8,.2,1)'});
   }
@@ -128,8 +130,19 @@
     document.documentElement.dataset.radius = String(values.radius);
     document.documentElement.dataset.codeWrap = String(values.codeWrap);
     if (key.startsWith('watermark')) VexWatermark.apply(values);
+    if (key === 'autoSave') syncLinkedControls();
     adapter.apply?.(key,value,values);
     window.dispatchEvent(new CustomEvent('vex-preference-changed',{detail:{key,value}}));
+  }
+  /* 评审修订：子选项随父开关联动——「自动保存」关闭时「停止输入后保存」禁用并降透明度。 */
+  function syncLinkedControls() {
+    if (!host) return;
+    const delay = host.querySelector('[data-vex-pref="saveDelay"]');
+    if (!delay) return;
+    const enabled = !!values.autoSave;
+    delay.disabled = !enabled;
+    delay.setAttribute('aria-disabled', String(!enabled));
+    delay.closest('.vex-pref-row')?.classList.toggle('is-disabled', !enabled);
   }
   function close() {
     if (!host || host.hidden) return;

@@ -212,6 +212,11 @@ body.device-phone .modal .stat-card strong { font-size:20px; }
 /* 行高 = 34 控件 + 上下 10 + 1 分隔线 = 55；min-height 让更矮的控件（开关、滑块）也占同一档间距。 */
 .vex-pref-row { min-height:53px; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:10px 0; border-bottom:1px solid var(--border); box-sizing:border-box; }
 .vex-pref-row>span { min-width:0; }
+/* 评审修订：子选项缩进 + 左侧竖向引导线表从属；父开关关闭时子项禁用降透明。 */
+.vex-pref-row.vex-pref-child { padding-left:4px; }
+.vex-pref-row.vex-pref-child::before { content:''; flex:none; width:1px; align-self:stretch; background:var(--border); margin:0 14px 0 0; }
+.vex-pref-row.is-disabled { opacity:.5; }
+.vex-pref-row.is-disabled select { cursor:not-allowed; }
 .vex-pref-row small { display:block; color:var(--muted); font-size:12px; font-weight:400; line-height:1.6; margin-top:4px; max-width:340px; }
 /* 字段是正常输入框：圆角走 --vex-radius-xs，与同排的「…」按钮、图标钮一致；胶囊只留给分段控件与开关。 */
 .vex-pref-row select,.vex-pref-row input:not([type=checkbox]):not([type=range]) { box-sizing:border-box; width:180px; max-width:48%; min-width:70px; height:var(--control-h-md,32px); border:1px solid var(--control-border); border-radius:var(--vex-radius-xs); padding:5px 9px; background:transparent; color:inherit; }
