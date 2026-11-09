@@ -110,6 +110,14 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     [EventHandler]
     public void ApplyOutlineItemsChanged(OutlineItemsChangedCommand command)
     {
+        // 评审修订（UI 验证抓到的真实竞态）：EventBus 的异步分发可能把处理器派到非 UI 线程，
+        // 而大纲面板的集合重建只允许在 UI 线程进行（并发 SetItems/Refilter 会索引越界）。
+        // 到不了 UI 线程时转投调度器串行执行。
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => ApplyOutlineItemsChanged(command));
+            return;
+        }
         // 大纲由 Markdown 派生生成，这里只更新展示状态，跳转仍通过事件总线发给编辑器。
         _items = command.Items;
         ReapplyRows();
@@ -119,12 +127,24 @@ public sealed class ShellOutlineViewModel : ReactiveObject, IRegionTabItem
     [EventHandler]
     public void ApplyMarkdownTextChanged(MarkdownTextChangedCommand command)
     {
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => ApplyMarkdownTextChanged(command));
+            return;
+        }
         UpdateReadingState(command.CaretLine, command.LineCount);
     }
 
     [EventHandler]
-    public void ApplyReadingPositionChanged(MarkdownReadingPositionChangedCommand command) =>
+    public void ApplyReadingPositionChanged(MarkdownReadingPositionChangedCommand command)
+    {
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => ApplyReadingPositionChanged(command));
+            return;
+        }
         UpdateReadingState(command.Line, _lastLineCount);
+    }
 
     /// <summary>把命令条目灌进面板并按持久化状态盖章折叠（展开键由库生成，历史配置口径不变）。</summary>
     private void ReapplyRows()
