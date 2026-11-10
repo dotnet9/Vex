@@ -157,7 +157,7 @@ erDiagram
 requirementDiagram
   requirement aot_release {
     id: 1
-    text: Publish win-x64 Native AOT
+    text: Publish Windows x64 Native AOT
     risk: low
     verifymethod: test
   }

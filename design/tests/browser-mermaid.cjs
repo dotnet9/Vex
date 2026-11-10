@@ -11,7 +11,7 @@ const path = require('node:path');
     await page.goto((process.env.VEX_PREVIEW_URL || 'http://127.0.0.1:4317/design/') + 'Vex.html');
     await page.evaluate(() => VexWorkbench.loadDocument(VexWorkbench.documents.findIndex(doc => doc.name === 'Mermaid 图表图鉴.md')));
     await page.locator('.instant-scroll .diagram-preview svg').first().waitFor();
-    assert.ok(await page.locator('.instant-scroll .diagram-preview svg').count() < 22,'Only nearby diagrams render on opening');
+    assert.ok(await page.locator('.instant-scroll .diagram-preview svg').count() < 24,'Only nearby diagrams render on opening');
     assert.equal(await page.locator('#markdown-preview svg').count(),0,'Hidden reading view does not render diagrams');
     const report = [];
     for (const mode of ['instant','read']) {
@@ -32,7 +32,7 @@ const path = require('node:path');
         assert.ok(size.overflowX<=1 && size.overflowY<=1,`${mode} ${index}: no internal clipping or scrolling: ${JSON.stringify(size)}`);
       }
       const rendered = await diagrams.evaluateAll(hosts => hosts.filter(host => host.querySelector('svg')).length);
-      assert.equal(rendered,22);
+      assert.equal(rendered,24);
       report.push({mode,rendered});
     }
     // Both views remain in the DOM; cached instances must have distinct SVG IDs.

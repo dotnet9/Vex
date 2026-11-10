@@ -1,4 +1,4 @@
-/* Templates supported by the bundled Mermaid 11.12 renderer. */
+/* Templates supported by the bundled Mermaid 11.17 renderer. */
 (() => {
   'use strict';
   const items = [
@@ -18,12 +18,14 @@
     {key:'c4',label:'C4 架构图',group:'结构与关系',source:'C4Context\n  title 本地写作空间\n  Person(writer, "写作者", "记录与整理想法")\n  System(vex, "维刻 Vex", "Markdown 工作区")\n  System_Ext(files, "本地文件", "Markdown 文档")\n  Rel(writer, vex, "写作")\n  Rel(vex, files, "读写")'},
     {key:'architecture',label:'架构图',group:'结构与关系',source:'architecture-beta\n  group app(cloud)[Workspace]\n  service editor(server)[Editor] in app\n  service files(disk)[Files] in app\n  editor:R -- L:files'},
     {key:'packet',label:'数据包图',group:'结构与关系',source:'packet-beta\n  title 文档消息头\n  0-7: "Version"\n  8-15: "Type"\n  16-31: "Length"\n  32-63: "Document ID"'},
+    {key:'treeview',label:'目录树',group:'结构与关系',source:'treeView-beta\n    AvaloniaNotes/\n        Models/\n            Document.cs\n        ViewModels/\n            MainWindowViewModel.cs :::highlight ## 状态与命令\n        Views/\n            MainWindow.axaml\n        App.axaml\n        Program.cs\n        AvaloniaNotes.csproj'},
     {key:'pie',label:'饼图',group:'数据与比较',source:'pie showData\n  title 写作时间分配\n  "构思" : 25\n  "写作" : 50\n  "校对" : 25'},
     {key:'quadrant',label:'象限图',group:'数据与比较',source:'quadrantChart\n  title 选题优先级\n  x-axis Low effort --> High effort\n  y-axis Low value --> High value\n  quadrant-1 Plan\n  quadrant-2 Do first\n  quadrant-3 Later\n  quadrant-4 Reconsider\n  Note: [0.25, 0.8]\n  Essay: [0.7, 0.75]'},
     {key:'xy',label:'XY 坐标图',group:'数据与比较',source:'xychart-beta\n  title "每周写作量"\n  x-axis "星期" ["周一", "周二", "周三", "周四", "周五"]\n  y-axis "字数" 0 --> 1000\n  bar [300, 500, 450, 800, 600]\n  line [300, 500, 450, 800, 600]'},
     {key:'sankey',label:'桑基图',group:'数据与比较',source:'sankey-beta\n\nIdeas,Draft,40\nIdeas,Notes,20\nDraft,Published,30\nDraft,Revision,10'},
     {key:'radar',label:'雷达图',group:'数据与比较',source:'radar-beta\n  title "写作自评"\n  axis clarity["清晰"], structure["结构"], detail["细节"], rhythm["节奏"]\n  curve draft["初稿"]{3, 4, 3, 2}\n  curve revised["修订"]{5, 4, 4, 4}\n  max 5'},
-    {key:'treemap',label:'矩形树图',group:'数据与比较',source:'treemap-beta\n  "文章"\n    "构思"\n      "灵感": 20\n      "提纲": 15\n    "正文"\n      "论述": 45\n      "案例": 20'}
+    {key:'treemap',label:'矩形树图',group:'数据与比较',source:'treemap-beta\n  "文章"\n    "构思"\n      "灵感": 20\n      "提纲": 15\n    "正文"\n      "论述": 45\n      "案例": 20'},
+    {key:'venn',label:'韦恩图',group:'数据与比较',source:'venn-beta\n  set A["C#"]\n  set B["AXAML"]\n  set C[".NET"]\n  union A, B["Avalonia 应用"]\n  union A, C["服务与模型"]'}
   ];
   const snippet = key => '\n\n```mermaid\n' + (items.find(item => item.key === key) || items[0]).source + '\n```\n\n';
   const label = source => {

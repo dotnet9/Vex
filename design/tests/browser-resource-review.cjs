@@ -40,10 +40,10 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
  }
  await open('layout=read');
  await page.evaluate(()=>{VexWorkspace.setLayout('read');VexWorkbench.applyText('# 图表图鉴\n\n'+VexMermaid.items.map(x=>'## '+x.label+'\n'+VexMermaid.snippet(x.key)).join('\n'));});
- // 图表按 IntersectionObserver 懒渲染：逐张滚入视口，直到 22 张全部完成。
+ // 图表按 IntersectionObserver 懒渲染：逐张滚入视口，直到 24 张全部完成。
  const hosts=page.locator('#markdown-preview .md-diagram');
  for(let index=0;index<await hosts.count();index++)await hosts.nth(index).scrollIntoViewIfNeeded();
- await page.waitForFunction(()=>{const nodes=[...document.querySelectorAll('#markdown-preview .md-diagram')];return nodes.length===22&&nodes.every(node=>node.dataset.rendered==='true');},null,{timeout:120000});
+ await page.waitForFunction(()=>{const nodes=[...document.querySelectorAll('#markdown-preview .md-diagram')];return nodes.length===24&&nodes.every(node=>node.dataset.rendered==='true');},null,{timeout:120000});
  const diagram=await page.evaluate(()=>[...document.querySelectorAll('#markdown-preview .md-diagram')].map(el=>{const svg=el.querySelector('svg'),box=svg.viewBox.baseVal,rect=svg.getBoundingClientRect();return {label:el.dataset.label,width:rect.width,height:rect.height,viewBox:box.width,viewBoxHeight:box.height,overflow:getComputedStyle(el).overflowX};}));
  // 图表按原生尺寸绘制，正文更窄时等比缩放（max-width:100%），不得裁切或变形。
  for(const d of diagram)assert(d.width>0&&d.width<=d.viewBox+1&&Math.abs(d.height/d.width-d.viewBoxHeight/d.viewBox)<0.01,JSON.stringify(d));
@@ -86,6 +86,6 @@ const out=path.resolve(process.env.VEX_CAPTURE_DIR || path.join(__dirname,'../..
  await shot('appearance-comparison');
  assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);
  fs.writeFileSync(out+'/results.json',JSON.stringify({palette,types,widths,diagram,hint,errors,missing},null,2));
- console.log('PASS: 9 palettes × 2 modes; 13 distinct typographies; content-sized table; 22 diagrams; XY bounds; editable diagrams; titlebar alignment on 3 platforms; inline map hints; 12 installer scenarios.');
+ console.log('PASS: 9 palettes × 2 modes; 13 distinct typographies; content-sized table; 24 diagrams; XY bounds; editable diagrams; titlebar alignment on 3 platforms; inline map hints; 12 installer scenarios.');
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});
