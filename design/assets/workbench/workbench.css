@@ -63,7 +63,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .content-area { position: relative; display: flex; flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
 /* 右侧“文档结构”栏：左侧只放文件，结构大纲常驻右侧、可收起。 */
 .structure-sidebar { width: 240px; flex: none; background: var(--panel); border-left: 1px solid var(--border); overflow: hidden; transition: opacity var(--vex-duration); }
-.structure-sidebar.collapsed { width: 0; opacity: 0; border-left-width: 0; }
+.structure-sidebar.collapsed { width: 0; opacity: 0; border-left-width: 0; pointer-events: none; }
 .structure-inner { width: 240px; height: 100%; display: flex; flex-direction: column; }
 .structure-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px 6px; }
 .structure-title { font-size:12px; font-weight: 700; color: var(--fg); letter-spacing: .02em; }
@@ -90,7 +90,9 @@ html[data-outline-numbers="true"] .structure-num { display: inline; flex: 0 0 au
 .pane-head { height: 44px; padding: 0 20px; display: flex; align-items: center; gap: 7px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 11px; flex: none; }
 .pane-head .ph-right { margin-left: auto; font-size: 11px; display: flex; align-items: center; gap: 5px; }
 .source-scroll { position: relative; flex: 1; overflow: auto; }
-.source-scroll textarea,.source-scroll .source-highlight { width: 100%; min-height: 100%; border: none; outline: none; resize: none; padding: 22px 24px 60px 54px; color: var(--editor-fg); background: transparent; font: var(--vex-writing-size,var(--writing-size,16px))/1.75 "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace; tab-size: 2; white-space: pre; overflow: hidden; }
+.source-scroll textarea,.source-scroll .source-highlight { width: max-content; min-width: 100%; min-height: 100%; border: none; outline: none; resize: none; padding: 22px 24px 60px 54px; color: var(--editor-fg); background: transparent; font: var(--vex-writing-size,var(--writing-size,16px))/1.75 "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace; tab-size: 2; white-space: pre; overflow: hidden; }
+/* 长行口径（评审定版）：源码默认横向滚动（与原生 WordWrap=false 一致）；偏好「代码自动换行」开启后整区软换行。 */
+html[data-code-wrap="true"] .source-scroll textarea,html[data-code-wrap="true"] .source-scroll .source-highlight { width: 100%; white-space: pre-wrap; }
 /* 行号行高与正文同源计算（字号档 × 1.75），任意渲染密度下都与内容逐行对齐。 */
 .line-numbers { position: absolute; top: 22px; left: 0; width: 40px; text-align: right; font-family: Consolas, monospace; font-size: 12px; line-height: calc(var(--vex-writing-size,var(--writing-size,15px)) * 1.75); color: var(--md-marker); user-select: none; pointer-events: none; }
 .source-scroll.no-lines textarea { padding-left: 24px; }

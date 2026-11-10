@@ -47,13 +47,20 @@
         var layoutKey = adapter.getLayout();
         var layoutItem = (window.VexMapLayout ? VexMapLayout.items : []).find(function (item) {return item.key === layoutKey;});
         var span = trigger.querySelector('span');
-        if (span) span.textContent = (layoutItem ? layoutItem.label : layoutKey) + ' · ' + styles.find(function (item) {return item.key === style;}).label;
+        if (span) { var pick = function (text) { return window.VexL ? VexL.t(text) : text; };
+          span.textContent = pick(layoutItem ? layoutItem.label : layoutKey) + ' · ' + pick(styles.find(function (item) {return item.key === style;}).label); }
       }
+      /* 语言切换后重跑 apply：重写组合标签并重扫描弹层文案。 */
+      if (!apply._l10nHooked) { apply._l10nHooked = true; window.addEventListener('vex-language-changed', function () { apply(); }); }
+      if (window.VexL) { VexL.sync(panel); if (trigger) VexL.sync(trigger); }
     }
     function render() {
-      panel.querySelector('#map-structure-choices').innerHTML=VexMapLayout.items.map(function (item) {return '<button class="map-choice" data-map-layout="'+item.key+'">'+miniature(item.key,style)+'<strong>'+item.label+'</strong></button>';}).join('');
-      panel.querySelector('#map-style-choices').innerHTML=styles.map(function (item) {return '<button class="map-choice" data-map-style-choice="'+item.key+'">'+miniature(adapter.getLayout(),item.key)+'<strong>'+item.label+'</strong></button>';}).join('');
+      panel.querySelector('#map-structure-choices').setAttribute('aria-label', window.VexL ? VexL.t('导图结构') : '导图结构');
+      panel.querySelector('#map-style-choices').setAttribute('aria-label', window.VexL ? VexL.t('导图风格') : '导图风格');
+      panel.querySelector('#map-structure-choices').innerHTML=VexMapLayout.items.map(function (item) {return '<button class="map-choice" data-map-layout="'+item.key+'">'+miniature(item.key,style)+'<strong>'+(window.VexL ? VexL.t(item.label) : item.label)+'</strong></button>';}).join('');
+      panel.querySelector('#map-style-choices').innerHTML=styles.map(function (item) {return '<button class="map-choice" data-map-style-choice="'+item.key+'">'+miniature(adapter.getLayout(),item.key)+'<strong>'+(window.VexL ? VexL.t(item.label) : item.label)+'</strong></button>';}).join('');
       apply();
+      if (window.VexL) VexL.sync(panel);
     }
     // 步骤联想：选完结构把「② 配色」点亮 900ms，视线跟着走，不用人再去找第二排。
     function nudgeNextStep() {

@@ -103,6 +103,6 @@
 /* 快捷工具条上的行内样式按钮：A 字符号 + 下拉箭头。 */
 .format-button .span-glyph { font-size:13px; font-weight:700; line-height:1; }
 .format-button .span-glyph.fg { color:#0064FA; text-decoration:underline; text-underline-offset:2px; }
-.format-button .span-glyph.bg { background:#FFF3BF; border-radius:3px; padding:1px 3px; }
+.format-button .span-glyph.bg { background:#FFF3BF; color:#664A03; border-radius:3px; padding:1px 3px; }
 .format-button .span-chevron { width:10px; height:10px; }
 .format-button.span-tool { display:inline-flex; align-items:center; gap:2px; width:auto; padding:0 6px; }

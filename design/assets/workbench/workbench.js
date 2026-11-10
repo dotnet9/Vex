@@ -1051,7 +1051,7 @@
     window.dispatchEvent(new CustomEvent('vex-content-changed'));
   }
   function updateMeta() {
-    $('sb-wordcount').textContent = '字数 ' + (state.emptyWorkspace ? 0 : contentCount()).toLocaleString();
+    $('sb-wordcount').textContent = (window.VexL ? VexL.t('字数') : '字数') + ' ' + (state.emptyWorkspace ? 0 : contentCount()).toLocaleString();
     updateSaveStatus();
   }
   function updateSaveStatus() {
@@ -1147,7 +1147,7 @@
       state.readCollapsedNav = false;
       if (!state.sidebar && VexProto.handleAction) VexProto.handleAction('toggle-sidebar');
     }
-    if (view === 'mindmap' && !state.mapVisited) { state.mapVisited = true; requestAnimationFrame(function () { requestAnimationFrame(function () { fit(); }); }); }
+    if (view === 'mindmap' && !state.mapVisited) { state.mapVisited = true; requestAnimationFrame(function () { requestAnimationFrame(function () { fit(true); }); }); }
     window.dispatchEvent(new CustomEvent('vex-view-changed', { detail: { view: view, editMode: state.editMode } }));
   }
   function setEditMode(mode) {
@@ -1316,7 +1316,7 @@
         state.x += (canvas.clientWidth - lastCanvasSize.width) / 2;
         state.y += (canvas.clientHeight - lastCanvasSize.height) / 2;
         transform();
-      } else fit();
+      } else fit(true);
       lastCanvasSize = { width: canvas.clientWidth, height: canvas.clientHeight };
     }
   }).observe(canvas);
@@ -1361,7 +1361,7 @@
     $('summary-label').textContent = !settings.paragraphs && !settings.lists && !settings.blocks ? '仅显示标题' : '摘要 ' + settings.length + ' 字';
     $('summary-example').textContent = MM.clip('把注意力留给内容。写作时保留必要工具，阅读和梳理结构时让文档占据更多空间。', settings.length);
     try { VexStorage.setItem('vex-design-mindmap', JSON.stringify(settings)); } catch (_) {}
-    renderMap(); requestAnimationFrame(function () { fit(settings.layout === 'right'); });
+    renderMap(); requestAnimationFrame(function () { fit(true); });
   }
   $('map-layout').innerHTML = VexMapLayout.items.map(function (item) { return '<option value="' + item.key + '">' + item.label + '</option>'; }).join('');
   $('map-layout').onchange = function () { settings.layout = this.value; syncSettings(); };

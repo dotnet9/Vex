@@ -104,7 +104,7 @@
   /* 内容面顶端标签行：编辑 / 阅读 / 导图直选，右端选择布局。 */
   var tabrow = document.createElement('div'); tabrow.className = 'workspace-tabrow';
   area.insertBefore(tabrow, surface);
-  var viewSwitch = document.createElement('div'); viewSwitch.className = 'workspace-viewswitch workspace-tabs'; viewSwitch.setAttribute('role', 'group'); viewSwitch.setAttribute('aria-label', '视图切换');
+  var viewSwitch = document.createElement('div'); viewSwitch.className = 'workspace-viewswitch workspace-tabs'; viewSwitch.setAttribute('role', 'group'); viewSwitch.setAttribute('aria-label', window.VexL ? VexL.t('视图切换') : '视图切换');
   [['instant', '编辑', 'edit'], ['read', '阅读', 'eye'], ['map', '导图', 'map']].forEach(function (segment) {
     var button = document.createElement('button'); button.type = 'button';
     button.dataset.viewLink = segment[0]; button.innerHTML = icon(segment[2]) + '<span>' + segment[1] + '</span>';
@@ -119,11 +119,11 @@
   layoutButton.lastElementChild.classList.add('vex-expand-icon','layout-chevron');
   tabrow.appendChild(viewSwitch); tabrow.appendChild(layoutButton);
   var layoutMenu = document.createElement('section'); layoutMenu.className = 'workspace-layout-menu'; layoutMenu.id = 'workspace-layout-menu'; layoutMenu.hidden = true;
-  layoutMenu.setAttribute('role', 'dialog'); layoutMenu.setAttribute('aria-label', '工作区视图');
+  layoutMenu.setAttribute('role', 'dialog'); layoutMenu.setAttribute('aria-label', window.VexL ? VexL.t('工作区视图') : '工作区视图');
   layoutMenu.innerHTML = '<div class="layout-preset-grid"></div>';
   tabrow.appendChild(layoutMenu);
   function miniature(node) { return typeof node === 'string' ? '<i class="mini-pane mini-' + node + '"></i>' : '<span class="mini-split mini-' + node[0] + '">' + miniature(node[1]) + miniature(node[2]) + '</span>'; }
-  presets.forEach(function (preset) { var button = document.createElement('button'); button.className = 'layout-preset'; button.dataset.layout = preset.id; button.innerHTML = '<span class="layout-miniature">' + miniature(preset.tree) + '</span><span class="layout-name">' + preset.title + '</span><span class="preset-check">✓</span>'; button.onclick = function () { setLayout(preset.id); closeMenus(true); }; layoutMenu.querySelector('.layout-preset-grid').appendChild(button); });
+  presets.forEach(function (preset) { var button = document.createElement('button'); button.className = 'layout-preset'; button.dataset.layout = preset.id; button.innerHTML = '<span class="layout-miniature">' + miniature(preset.tree) + '</span><span class="layout-name">' + (window.VexL ? VexL.t(preset.title) : preset.title) + '</span><span class="preset-check">✓</span>'; button.onclick = function () { setLayout(preset.id); closeMenus(true); }; layoutMenu.querySelector('.layout-preset-grid').appendChild(button); });
   function closeMenus(restore) { var wasOpen = !layoutMenu.hidden; layoutMenu.hidden = true; layoutButton.setAttribute('aria-expanded', 'false'); if (restore && wasOpen) layoutButton.focus(); }
   layoutButton.onclick = function () { var show = layoutMenu.hidden; closeMenus(); layoutMenu.hidden = !show; layoutButton.setAttribute('aria-expanded', String(show)); if (show) layoutMenu.querySelector('[data-layout="' + current + '"]').focus(); };
   layoutMenu.addEventListener('keydown', function (event) {
@@ -216,12 +216,13 @@
     });
     /* 非三段直选时"更多"段显示当前布局名并高亮（与原生底栏 MoreSegmentLabel 一致）。 */
     layoutButton.setAttribute('aria-pressed', String(segment === 'more'));
-    var moreLabel = '布局：' + preset.title;
+    var pick = function (text) { return window.VexL ? VexL.t(text) : text; };
+    var moreLabel = pick('布局：') + pick(preset.title);
     if (layoutButton.dataset.moreLabel !== moreLabel) {
       layoutButton.dataset.moreLabel = moreLabel;
       layoutButton.firstChild.textContent = moreLabel;
     }
-    layoutButton.setAttribute('aria-label', '当前视图：' + preset.title + '，点击更换');
+    layoutButton.setAttribute('aria-label', pick('当前视图：' + preset.title + '，点击更换'));
     /* 状态栏已移除联动入口（usability.js 注明），这里只在旧布局仍提供该容器时同步可见性。 */
     if ($('view-follow-controls')) $('view-follow-controls').hidden = displayed.length < 2;
     document.body.classList.toggle('workspace-multiple', displayed.length > 1);
@@ -251,7 +252,7 @@
       VexProto.handleAction('toggle-sidebar');
       VexProto.toastKey('ToastFileNavCollapsed');
     }
-    if (wanted.includes('map') && (!hadMap || id === 'three')) requestAnimationFrame(function () { requestAnimationFrame(function () { W.fit(); }); });
+    if (wanted.includes('map') && (!hadMap || id === 'three')) requestAnimationFrame(function () { requestAnimationFrame(function () { W.fit(true); }); });
   }
   function openPanel(id) { if (leaves(tree).includes(id)) return; var wanted = new Set(leaves(tree).concat(id)); setLayout(wanted.size === 3 ? 'three' : wanted.has('map') ? (editorMode === 'source' ? 'source-map' : 'instant-map') : 'source-render'); }
   function switchEditorMode(mode) { var hasMap = leaves(tree).includes('map'), hasRender = leaves(tree).includes('render'); setLayout(mode === 'instant' ? hasMap ? 'instant-map' : 'instant' : hasMap ? hasRender ? 'three' : 'source-map' : hasRender ? 'source-render' : 'source'); }

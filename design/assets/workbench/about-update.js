@@ -14,10 +14,26 @@
   const DOWNLOAD_TICKS = 28;      // 演示用：约 3.4 秒走完进度
   let tick = 0;
 
-  const failureMessages = { 'check-failed':'检查失败，请重试。', 'download-failed':'下载失败，请重试。', 'checksum-failed':'校验失败，请重新下载。', 'install-failed':'安装失败，请重试。' };
+  const failureMessages = () => ({
+    'check-failed': T('检查失败，请重试。', '檢查失敗，請重試。', 'Check failed — please retry.', '確認に失敗しました。再試行してください。'),
+    'download-failed': T('下载失败，请重试。', '下載失敗，請重試。', 'Download failed — please retry.', 'ダウンロードに失敗しました。再試行してください。'),
+    'checksum-failed': T('校验失败，请重新下载。', '校驗失敗，請重新下載。', 'Checksum mismatch — download again.', 'チェックサム不一致。再ダウンロードしてください。'),
+    'install-failed': T('安装失败，请重试。', '安裝失敗，請重試。', 'Install failed — please retry.', 'インストールに失敗しました。再試行してください。')
+  });
   const TAGS = { '新增':'tag-new', '优化':'tag-opt', '修复':'tag-fix', '删除':'tag-remove' };
 
   function VexEsc(text) { return text.replace(/[&<>"]/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ch])); }
+  /* 壳层文案四语言：更新日志正文本身是内容、保持来源原样；标题/按钮/标签等界面词在此翻译。
+   * 语言切换后再打开对话框时按当前文化取值；语言切换前的已开浮窗由 localization 的全量翻译兜底。 */
+  function T(zh, ht, en, ja) {
+    if (!window.VexL || VexL.culture === 'zh-CN') return zh;
+    return { 'zh-Hant': ht, 'en-US': en, 'ja-JP': ja }[VexL.culture] || en;
+  }
+  const TAG_WORDS = {
+    '新增': ['新增', 'New', '新機能'], '优化': ['優化', 'Improved', '改善'],
+    '修复': ['修復', 'Fixed', '修正'], '删除': ['刪除', 'Removed', '削除']
+  };
+  function TTag(tag) { const w = TAG_WORDS[tag]; return w ? T(tag, w[0], w[1], w[2]) : tag; }
 
   function releaseIndex() {
     const text = (window.VexDocuments && VexDocuments.changelog && VexDocuments.changelog.text) || '';
@@ -52,10 +68,10 @@
     const list = $('update-list');
     list.innerHTML = newer.map(item => {
       const header = newer.length > 1
-        ? '<div class="update-version"><strong>V' + item.version + '</strong><span class="update-date">' + item.date + ' 发布</span></div>'
+        ? '<div class="update-version"><strong>V' + item.version + '</strong><span class="update-date">' + item.date + T(' 发布', ' 發布', ' released', ' リリース') + '</span></div>'
         : '';
       const entries = typedEntries(item.body).map(entry =>
-        '<li>' + (entry.tag ? '<span class="update-tag ' + TAGS[entry.tag] + '">' + entry.tag + '</span>' : '') + '<span>' + VexEsc(entry.text) + '</span></li>'
+        '<li>' + (entry.tag ? '<span class="update-tag ' + TAGS[entry.tag] + '">' + TTag(entry.tag) + '</span>' : '') + '<span>' + VexEsc(entry.text) + '</span></li>'
       ).join('');
       return header + '<ul class="update-entries">' + entries + '</ul>';
     }).join('');
@@ -91,47 +107,49 @@
     const latest = newer.length ? newer[0] : null;
     switch (state) {
       case 'checking':
-        setHero('正在检查更新...', '正在连接服务器，请稍候...');
+        setHero(T('正在检查更新...', '正在檢查更新...', 'Checking for updates…', '更新を確認中…'), T('正在连接服务器，请稍候...', '正在連接伺服器，請稍候...', 'Connecting to the update server…', 'サーバーに接続中です…'));
         setActions([]);
         setProgress(null);
         break;
       case 'current':
-        setHero('已是最新版本', '当前版本 ' + current + '（' + releaseDate(current) + ' 发布）');
-        setActions([{ label: '检查更新', onClick: () => operation('checking') }]);
+        setHero(T('已是最新版本', '已是最新版本', 'You are up to date', '最新です'),
+          T('当前版本 ' + current + '（' + releaseDate(current) + ' 发布）', '目前版本 ' + current + '（' + releaseDate(current) + ' 發布）', 'Current version ' + current + ' (released ' + releaseDate(current) + ')', '現在のバージョン ' + current + '（' + releaseDate(current) + ' にリリース）'));
+        setActions([{ label: T('检查更新', '檢查更新', 'Check again', '更新を確認'), onClick: () => operation('checking') }]);
         setProgress(null);
         break;
       case 'available':
-        setHero('Vex最新' + latest.version + '版本来了！', '您目前使用版本为' + current + '版本，新版本更新日志如下：');
+        setHero(T('Vex最新' + latest.version + '版本来了！', 'Vex最新' + latest.version + '版本來了！', 'Vex ' + latest.version + ' is here!', 'Vex ' + latest.version + ' が登場！'),
+          T('您目前使用版本为' + current + '版本，新版本更新日志如下：', '您目前使用版本為' + current + '版本，新版本更新日誌如下：', 'You are on ' + current + '. Release notes since then:', '現在のバージョンは ' + current + '。最新の更新ログ：'));
         setActions([
-          { label: '稍后升级', onClick: closeLayer },
-          { label: '立即升级', primary: true, onClick: () => operation('downloading') },
+          { label: T('稍后升级', '稍後升級', 'Later', '後で更新'), onClick: closeLayer },
+          { label: T('立即升级', '立即升級', 'Upgrade now', '今すぐ更新'), primary: true, onClick: () => operation('downloading') },
         ]);
         setProgress(null);
         break;
       case 'downloading':
-        setHero('正在下载更新 ' + latest.version, '');
-        setActions([{ label: '取消', onClick: cancelDownload }]);
+        setHero(T('正在下载更新 ' + latest.version, '正在下載更新 ' + latest.version, 'Downloading update ' + latest.version, '更新 ' + latest.version + ' をダウンロード中'), '');
+        setActions([{ label: T('取消', '取消', 'Cancel', 'キャンセル'), onClick: cancelDownload }]);
         break;
       case 'downloaded':
-        setHero('下载完成', '新版本 ' + latest.version + ' 已通过校验，可以安装。');
+        setHero(T('下载完成', '下載完成', 'Download complete', 'ダウンロード完了'), T('新版本 ' + latest.version + ' 已通过校验，可以安装。', '新版本 ' + latest.version + ' 已通過校驗，可以安裝。', 'Version ' + latest.version + ' verified and ready to install.', '新バージョン ' + latest.version + ' の検証が完了し、インストールできます。'));
         setActions([
-          { label: '稍后升级', onClick: () => { closeLayer(); } },
-          { label: '立即安装', primary: true, onClick: () => operation('installing') },
+          { label: T('稍后升级', '稍後升級', 'Later', '後で更新'), onClick: () => { closeLayer(); } },
+          { label: T('立即安装', '立即安裝', 'Install now', '今すぐインストール'), primary: true, onClick: () => operation('installing') },
         ]);
         setProgress(null);
         break;
       case 'installing':
-        setHero('正在启动安装程序…', '更新包已下载并校验完成。启动后 Vex 将退出，安装将在独立安装程序中继续。');
+        setHero(T('正在启动安装程序…', '正在啟動安裝程式…', 'Launching the installer…', 'インストーラーを起動中…'), T('更新包已下载并校验完成。启动后 Vex 将退出，安装将在独立安装程序中继续。', '更新套件已下載並校驗完成。啟動後 Vex 將退出，安裝將在獨立安裝程式中繼續。', 'The update package is verified. Vex will exit and installation continues in its own installer.', '更新パッケージの検証済み。起動後 Vex は終了し、専用インストーラーで続行します。'));
         setActions([]);
         break;
       case 'installed':
-        setHero('更新已安装', '重启应用后生效。');
-        setActions([{ label: '完成', onClick: () => { closeLayer(); } }]);
+        setHero(T('更新已安装', '更新已安裝', 'Update installed', '更新をインストール済み'), T('重启应用后生效。', '重啟應用後生效。', 'Takes effect after restarting the app.', 'アプリ再起動後に有効になります。'));
+        setActions([{ label: T('完成', '完成', 'Done', '完了'), onClick: () => { closeLayer(); } }]);
         setProgress(null);
         break;
       case 'failed':
-        setHero(failureMessages[scenario] || '检查失败，请重试。', '');
-        setActions([{ label: '重试', primary: true, onClick: () => operation(retry) }]);
+        setHero(failureMessages()[scenario] || T('检查失败，请重试。', '檢查失敗，請重試。', 'Check failed — please retry.', '確認に失敗しました。再試行してください。'), '');
+        setActions([{ label: T('重试', '重試', 'Retry', '再試行'), primary: true, onClick: () => operation(retry) }]);
         setProgress(null);
         break;
       case 'canceled':
@@ -206,7 +224,7 @@
       download.done = Math.min(download.total, download.total * tick / DOWNLOAD_TICKS);
       const ratio = download.done / download.total;
       const minutes = Math.max(1, Math.round((DOWNLOAD_TICKS - tick) * 0.12 * 10) / 10);
-      $('update-phase-sub').textContent = '已下载 ' + download.done.toFixed(1) + ' MB / ' + download.total.toFixed(1) + ' MB · 约 ' + minutes + ' 分钟';
+      $('update-phase-sub').textContent = T('已下载 ' + download.done.toFixed(1) + ' MB / ' + download.total.toFixed(1) + ' MB · 约 ' + minutes + ' 分钟', '已下載 ' + download.done.toFixed(1) + ' MB / ' + download.total.toFixed(1) + ' MB · 約 ' + minutes + ' 分鐘', 'Downloaded ' + download.done.toFixed(1) + ' / ' + download.total.toFixed(1) + ' MB · about ' + minutes + ' min', 'ダウンロード済み ' + download.done.toFixed(1) + ' / ' + download.total.toFixed(1) + ' MB · 約 ' + minutes + ' 分');
       $('update-phase-sub').hidden = false;
       setProgress(ratio);
       if (scenario === 'download-failed' && tick === 4 && !failures.has(scenario)) { clearInterval(progressTimer); failures.add(scenario); state = 'failed'; render(); setProgress(null); return; }
@@ -263,15 +281,15 @@
   const PILL_GROUP = { '新增':'g-new', '优化':'g-opt', '修复':'g-fix', '删除':'g-rm' };
   function pillSync() {
     if (!pillWrap) return;
-    let show = true, txt = '更新', ready = false;
+    let show = true, txt = T('更新', '更新', 'Update', '更新'), ready = false;
     if (state === 'downloading') {
       const pct = lastRatio == null ? 0 : Math.min(99, Math.round(lastRatio * 100));
-      txt = '下载中 ' + pct + '%';
+      txt = T('下载中 ' + pct + '%', '下載中 ' + pct + '%', 'Downloading ' + pct + '%', 'ダウンロード中 ' + pct + '%');
       pill.style.background = 'linear-gradient(90deg, color-mix(in srgb, var(--accent) 74%, var(--fg)) ' + pct + '%, var(--accent) ' + pct + '%)';
     } else {
       pill.style.background = '';
-      if (state === 'downloaded' || state === 'installing') { txt = '重启以更新'; ready = true; }
-      else if (state === 'available' || state === 'failed' || state === 'canceled') { txt = '更新'; }
+      if (state === 'downloaded' || state === 'installing') { txt = T('重启以更新', '重啟以更新', 'Restart to update', '再起動して更新'); ready = true; }
+      else if (state === 'available' || state === 'failed' || state === 'canceled') { txt = T('更新', '更新', 'Update', '更新'); }
       else if (state === 'checking') { show = newer.length > 0; }
       else show = false; // idle / current / manual / installed
     }
@@ -279,14 +297,17 @@
     if (!show) return;
     pill.textContent = txt;
     pill.classList.toggle('ready', ready);
-    pill.title = state === 'downloading' ? '正在下载更新，点击恢复窗口'
-      : (state === 'downloaded' || state === 'installing') ? '新版本已就绪，点击恢复窗口'
-      : '发现新版本' + (newer.length ? ' V' + newer[0].version : '') + '，点击查看更新日志';
+    pill.title = state === 'downloading' ? T('正在下载更新，点击恢复窗口', '正在下載更新，點擊恢復視窗', 'Downloading — click to restore the window', 'ダウンロード中。クリックで復元')
+      : (state === 'downloaded' || state === 'installing') ? T('新版本已就绪，点击恢复窗口', '新版本已就緒，點擊恢復視窗', 'Update ready — click to restore the window', '更新準備完了。クリックで復元')
+      : T('发现新版本' + (newer.length ? ' V' + newer[0].version : '') + '，点击查看更新日志',
+          '發現新版本' + (newer.length ? ' V' + newer[0].version : '') + '，點擊查看更新日誌',
+          'New version' + (newer.length ? ' V' + newer[0].version : '') + ' available — click for release notes',
+          '新バージョン' + (newer.length ? ' V' + newer[0].version : '') + '。更新ログを表示');
   }
   function renderPop() {
     const top = newer[0];
     if (!top) return;
-    $('upd-pop-ver').textContent = 'V' + top.version + ' 更新日志';
+    $('upd-pop-ver').textContent = T('V' + top.version + ' 更新日志', 'V' + top.version + ' 更新日誌', 'V' + top.version + ' release notes', 'V' + top.version + ' 更新ログ');
     $('upd-pop-date').textContent = top.date;
     // [系统要求]/[注意] 行升为引用块，其余按类型化标签分组（色点与 update-tag 同源）
     const quote = [], groups = {};
@@ -298,7 +319,7 @@
     }));
     let html = quote.length ? '<div class="upd-quote">' + quote.join('<br>') + '</div>' : '';
     Object.keys(groups).forEach(tag => {
-      html += '<div class="upd-group ' + (PILL_GROUP[tag] || '') + '"><b>' + VexEsc(tag) + '</b><ul>'
+      html += '<div class="upd-group ' + (PILL_GROUP[tag] || '') + '"><b>' + VexEsc(TTag(tag)) + '</b><ul>'
         + groups[tag].map(t => '<li>' + t + '</li>').join('') + '</ul></div>';
     });
     $('upd-pop-body').innerHTML = html;

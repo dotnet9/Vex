@@ -75,7 +75,7 @@
       }
     }
     var total = W.state.emptyWorkspace || !W.text.trim() ? 0 : VexWriting.metrics(W.text).count;
-    $('sb-wordcount').textContent = (selected ? '选中 ' + count.toLocaleString() + ' · ' : '') + '字数 ' + total.toLocaleString();
+    $('sb-wordcount').textContent = (selected ? (window.VexL ? VexL.t('选中') : '选中') + ' ' + count.toLocaleString() + ' · ' : '') + (window.VexL ? VexL.t('字数') : '字数') + ' ' + total.toLocaleString();
   }
   document.addEventListener('selectionchange', updateSelectionCount); $('markdown-input').addEventListener('select', updateSelectionCount);
   window.addEventListener('vex-content-changed', updateSelectionCount);

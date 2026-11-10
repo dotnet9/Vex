@@ -229,7 +229,9 @@
       'accent-fg': on, 'on-accent': on, 'accent-hover': resolved.primaryHover,
       primary: base.accent, 'on-primary': on,
       'primary-hover': resolved.primaryHover, 'primary-pressed': resolved.primaryPressed,
-      'focus-ring': base.accent, 'md-code-fg': base.accent,
+      'focus-ring': base.accent,
+      /* 源码高亮/正文性代码文字按 §2 v7 用文字级强调色（≥4.5:1），不再用原始 accent。 */
+      'md-code-fg': resolved.accentInk,
       'tooltip-bg': base.ink, 'tooltip-fg': base.paper,
       scrim: resolved.scrim,
       'gradient-end': resolved.gradientEnd,

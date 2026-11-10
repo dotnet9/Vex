@@ -9,7 +9,7 @@ const port = Number(process.env.VEX_PREVIEW_PORT || 4317);
 const server = http.createServer((req,res) => {
   let pathname;
   try {pathname = decodeURIComponent(new URL(req.url,'http://localhost').pathname);} catch {res.writeHead(400).end();return;}
-  if (pathname === '/' || pathname === '/design/') pathname = '/design/index.html';
+  if (pathname === '/' || pathname === '/design/') pathname = '/design/Vex.html?preview=1';
   if (pathname === '/design/assets/generated/documents-data.js' || pathname === '/design/assets/prototype/project-info.js') {
     try { prepareDocuments(); } catch (error) { console.error(error.message);res.writeHead(500).end('Document preparation failed');return; }
   }

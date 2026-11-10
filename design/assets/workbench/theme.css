@@ -259,7 +259,7 @@ a:hover { text-decoration: underline; }
   width: 100%;
   transition: border-color var(--vex-instant) var(--vex-ease), box-shadow var(--vex-instant) var(--vex-ease), background var(--vex-instant) var(--vex-ease);
 }
-.input::placeholder { color: var(--fg-disabled); }
+.input::placeholder { color: var(--muted); }
 .input:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
 .input:focus {
   outline: none;

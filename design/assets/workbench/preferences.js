@@ -218,10 +218,12 @@
     }
     section = categories.some(c => c[0] === category) ? category : 'general';
     mcpDraft = {...values}; clearTimeout(closeTimer); host.classList.remove('is-closing'); host.hidden = false;
+    if (window.VexL) VexL.sync(host);
     host.dataset.small = String(smallScreen());
     if (!releaseOverlay) releaseOverlay = VexOverlay.lock(host);
     detail(!smallScreen() || category !== 'general');
     render();
+    if (window.VexL) VexL.sync(host);
     var opener = Array.from(host.querySelectorAll('button:not([disabled]), input, select')).find(function (el) { return !el.closest('[inert]') && !el.matches('[data-vex-close], [data-vex-back]'); });
     (opener || host.querySelector('[data-vex-close]')).focus();
   }
@@ -328,5 +330,6 @@
     if (event.key === 'Tab') { const items = [...host.querySelectorAll('button,input,select')].filter(el => !el.disabled && !el.closest('[inert]') && el.getClientRects().length); const first = items[0], last = items.at(-1); if (event.shiftKey && document.activeElement === first) {event.preventDefault();last?.focus();} else if (!event.shiftKey && document.activeElement === last) {event.preventDefault();first?.focus();} }
     if (event.ctrlKey || event.metaKey) event.stopImmediatePropagation();
   },true);
+  window.addEventListener('vex-language-changed', () => { if (host && !host.hidden) { render(true); if (window.VexL) VexL.sync(host); } });
   window.VexPreferences = {values,open,close,set,configure(value) { adapter = value; for (const [key,value] of Object.entries(values)) set(key,value,false); if (values.mcpEnabled) { mcpDraft = {...values}; saveMcp(); } }};
 })();

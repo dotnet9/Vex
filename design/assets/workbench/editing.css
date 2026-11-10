@@ -196,6 +196,9 @@
 .map-node-text{font-weight:650;line-height:1.58}
 .map-node.content .map-node-text{font-weight:450;color:var(--muted)}
 .map-collapse{width:21px;height:21px;background:var(--surface);border-color:var(--control-border);box-shadow:0 2px 6px rgba(30,48,36,.08)}
+/* 评审修订：根节点折叠钮不得继承节点强调前景（暗色下黑底黑字），固定用主题令牌。 */
+.map-node > .map-collapse{color:var(--muted);background:var(--surface);border-color:var(--control-border)}
+.map-node > .map-collapse:hover{color:var(--accent);border-color:var(--accent)}
 .map-legend{padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:color-mix(in srgb,var(--surface) 90%,transparent);box-shadow:0 2px 8px rgba(30,48,36,.04)}
 :is(.settings-popover,.node-inspector,.map-appearance-popover,.typography-popover,.workspace-layout-menu,.files-sort-menu,.file-context-menu){
   border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:0 16px 42px rgba(31,49,38,.15);

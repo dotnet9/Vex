@@ -9,13 +9,13 @@ node design/scripts/preview.cjs    # http://127.0.0.1:4317/design/
 node design/scripts/verify.cjs     # 静态检查：脚本可解析、引用文件存在、生成物与 docs 一致
 ```
 
-直接双击 `index.html` 也可离线浏览，但需先 `node design/scripts/sync.cjs` 生成 `assets/prototype/project-info.js` 与 `assets/generated/documents-data.js`。
+直接双击 `Vex.html` 也可离线浏览，但需先 `node design/scripts/sync.cjs` 生成 `assets/prototype/project-info.js` 与 `assets/generated/documents-data.js`。
 
 ## 结构
 
 | 位置 | 内容 |
 | --- | --- |
-| `*.html` | 页面：`Vex.html` 工作台、`index.html` 目录、`Appearance.html` 外观、`Usability-Review.html` 走查、`Vex-Installer-*.html` 三平台安装、`Third-Party-Licenses.html` 许可 |
+| `*.html` | 页面：`Vex.html` 工作台、`Appearance.html` 外观、`Vex-Installer-*.html` 三平台安装、`Third-Party-Licenses.html` 许可 |
 | `assets/prototype/` | 跨页共享：令牌、字体、密度、配色与排版目录、桌面资源清单、生成器消费的 `palette-rules.js` |
 | `assets/workbench/` | 仅 `Vex.html` 使用：编辑器、图表、导图、引导、对话框、工作区外壳等 |
 | `assets/installer/` | 仅安装页使用：`installer.css` / `installer-windows.css` / `installer.js` |

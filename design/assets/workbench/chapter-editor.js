@@ -142,6 +142,7 @@
   var toolbar = document.createElement('div'); toolbar.className = 'chapter-toolbar';
   toolbar.innerHTML = '<button class="chapter-primary" id="chapter-add-child" title="新增子章节">' + icon('plus') + '子章节</button><button id="chapter-add-sibling" title="新增同级章节">' + icon('plus') + '同级</button><button id="chapter-headings-only" aria-pressed="false" title="只显示章节标题">仅标题</button>';
   document.querySelector('.map-toolbar').prepend(toolbar);
+  if (window.VexL) VexL.sync(toolbar);
   $('chapter-add-child').onclick = function () { add(heading(), true); };
   $('chapter-add-sibling').onclick = function () { var node = heading(); add(node, !!node.isRoot); };
   var savedVisibility = null;

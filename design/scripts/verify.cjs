@@ -38,6 +38,40 @@ for (const generated of ['assets/prototype/palettes.css','assets/prototype/palet
   const header = fs.readFileSync(path.join(root, generated), 'utf8').split('\n', 1)[0];
   assert.match(header, new RegExp(`ruleVersion ${sandbox.window.VexPaletteRulesData.ruleVersion}`), `${generated} matches the generated ruleVersion`);
 }
+/* 生成令牌对比度门禁（规则 §2 v7）：正文性文字（源码高亮 md-code-fg / 文字级强调 accent-ink）
+ * 落在 code-bg / editor-bg / surface / paper 上必须 ≥4.5:1，九套配色 × 明暗全覆盖。 */
+{
+  const parse = value => {
+    let m = /^#([0-9a-f]{6})$/i.exec(value.trim());
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    return [n >> 16 & 255, n >> 8 & 255, n & 255, 1];
+  };
+  const mixOver = (fg, bg) => fg[3] >= 1 ? fg : fg.slice(0, 3).map((v, i) => v * fg[3] + bg[i] * (1 - fg[3])).concat(1);
+  const luminance = c => c.slice(0, 3).map(v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; })
+    .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+  const contrast = (a, b) => { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const paletteCss = fs.readFileSync(path.join(root, 'assets/prototype/palettes.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const blocks = {};
+  for (const match of paletteCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    for (const theme of ['light', 'dark']) {
+      if (!match[1].includes(`data-theme="${theme}"`)) continue;
+      const scope = match[1].includes('data-palette=') ? /data-palette="([a-z-]+)"/.exec(match[1])[1] : '';
+      blocks[theme + '/' + scope] = Object.assign(blocks[theme + '/' + scope] || {}, Object.fromEntries(match[2].split(';').map(d => d.split(':')).filter(d => d.length === 2 && d[0].startsWith('--')).map(d => [d[0].trim(), d[1].trim()])));
+    }
+  }
+  for (const [name, vars] of Object.entries(blocks)) {
+    if (!vars['--accent-ink']) continue;
+    const surface = parse(vars['--surface']) || [255, 255, 255, 1];
+    for (const inkKey of ['--md-code-fg', '--accent-ink']) {
+      for (const bgKey of ['--code-bg', '--editor-bg', '--surface']) {
+        const fg = mixOver(parse(vars[inkKey]), surface);
+        const bg = mixOver(parse(vars[bgKey]), surface);
+        assert.ok(contrast(fg, bg) >= 4.5, `${name}: ${inkKey} on ${bgKey} = ${contrast(fg, bg).toFixed(2)}:1（需 ≥4.5，规则 §2 v7）`);
+      }
+    }
+  }
+}
 assert.equal(Object.keys(sandbox.window.VexPaletteRulesData.palettes).length, 9, 'Nine palettes come from rule appendix A');
 const prototype = {VexStorage:{getItem:()=>null}};
 prototype.window = prototype;
