@@ -27,9 +27,9 @@ public partial class ShellUnsavedDialogView : UserControl
         HintLine1.LineHeight = HintLine2.LineHeight = exit ? 23.4 : 20;
         BodyPanel.Margin = new Thickness(0, 10, 0, exit ? 6 : 0);
         ActionsGrid.Margin = new Thickness(0, exit ? 14 : 18, 0, 0);
-        var height = exit ? 36.0 : 32.0;
-        CancelButton.Height = height;
-        CancelButton.CornerRadius = new CornerRadius(height / 2);
+        // 切换流取消钮 32 高/16 圆角已由 XAML 显式值固定（原型口径）；退出流取消钮 36 高/18 圆角在此切换。
+        CancelButton.Height = exit ? 36.0 : 32.0;
+        CancelButton.CornerRadius = new CornerRadius(exit ? 18 : 16);
     }
 
     private void OnCancelClicked(object? sender, RoutedEventArgs e) => Complete(vm => vm.Cancel());

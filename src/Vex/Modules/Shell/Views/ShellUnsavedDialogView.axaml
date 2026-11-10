@@ -80,9 +80,9 @@
                     Click="OnCancelClicked"
                     Content="{i18n:I18n Vex.VexL.DialogContinueEditing}"
                     FontSize="12"
-                    Height="{DynamicResource VexUiDialogButtonHeight}"
+                    Height="32"
                     Padding="{DynamicResource VexUiActionPadding}"
-                    CornerRadius="18"
+                    CornerRadius="16"
                     BorderThickness="1" />
             </Grid>
         </StackPanel>
