@@ -590,11 +590,11 @@
     <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
     <Setter Property="Template"><ControlTemplate><Border Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}"><ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}"/></Border></ControlTemplate></Setter>
   </Style>
-  <Style Selector="ListBox.preferences-navigation ListBoxItem:selected"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+  <Style Selector="ListBox.preferences-navigation ListBoxItem:selected"><Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource VexAccentInkBrush}"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem:pointerover"><Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem Path"><Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}"/></Style>
-  <Style Selector="ListBox.preferences-navigation ListBoxItem:selected TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+  <Style Selector="ListBox.preferences-navigation ListBoxItem:selected TextBlock"><Setter Property="Foreground" Value="{DynamicResource VexAccentInkBrush}"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
   <Style Selector="ListBox.preferences-navigation ListBoxItem:selected Path"><Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/></Style>
   <Style Selector="Button.preferences-close">
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>

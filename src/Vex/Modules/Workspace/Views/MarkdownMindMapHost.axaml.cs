@@ -305,6 +305,18 @@ public partial class MarkdownMindMapHost : UserControl
                 Avalonia.Threading.Dispatcher.UIThread.Post(Map.EnsureViewport, Avalonia.Threading.DispatcherPriority.Render);
         };
     }
+
+    /// <summary>可读适配跟随编辑行（原型 fit(true) 同口径）：光标移动只更新对焦目标，下次首视/适配生效。</summary>
+    [EventHandler]
+    public void ApplyMarkdownTextChanged(MarkdownTextChangedCommand command)
+    {
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => ApplyMarkdownTextChanged(command));
+            return;
+        }
+        Map.UpdateFocusLine(command.CaretLine);
+    }
     /// <summary>原型 .map-viewport 的点阵底纹（editing.css:184）：accent 18% 的圆点，22px 网格重复一次。</summary>
     /// <remarks>DrawingBrush 在 Native AOT 下会让 libSkiaSharp 崩溃（启动即 0xC0000005），
     /// 故把贴片按 CSS 的停止点（实心 .65px → 透明 .9px）烘焙成位图，交给 ImageBrush 平铺。</remarks>

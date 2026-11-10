@@ -131,7 +131,7 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     {
         if (_editor is null) return;
         EditorFontSize = _editorDisplayState.EditorFontSize;
-        _editor.Editor.WordWrap = _preferences.CodeWrap;
+        _editor.WordWrap = _preferences.CodeWrap;
         _editor.Editor.Options.IndentationSize = _preferences.IndentSize;
         _editor.Editor.Options.ConvertTabsToSpaces = true;
     }
