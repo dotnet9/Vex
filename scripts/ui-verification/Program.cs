@@ -483,6 +483,9 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
     VerifyDialogButtonStates(app, window, vm, "danger");
     vm.Workbench.ShowRead(); Pump(); SettleRendering();
     window.Width = 1280; window.Height = 820; Pump();
+    // 阅读视图会自动收起文件导航（V1.21.1.5 产品行为：进入阅读收起、回到编辑恢复）。
+    // 文件树几何断言以展开态为前提，先回编辑视图让侧栏恢复原状再测。
+    vm.Workbench.ShowInstant(); Pump(); SettleRendering();
     VerifyFileTreeLayout(window, app.Resolve<ShellFilesViewModel>(), sampleFolder);
     Check(vm.Appearance.PaletteOptions.Count == 9 && vm.Appearance.ThemeOptions.Count == 3,
         "Vex exposes the nine registry palettes and three independent theme modes");
