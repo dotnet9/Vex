@@ -38,7 +38,9 @@ internal static class RenderGeometryProbe
             var table = host.GetVisualDescendants().OfType<Border>().Single(c => c.Classes.Contains("MdTableContainer"));
             var tableGrid = table.GetVisualDescendants().OfType<Grid>().Single(c => c.Classes.Contains("MdTable"));
             var instant = layout == "instant";
-            var expectedHeight = instant ? 110.4 : 136.4;
+            // 12.1.6.3 表格字号与正文同源（12.5/23.75 → 16/30.4）后表格增高：基线重定
+            // （read 136.4 → 159.2，instant 110.4 → 102.96；边框/圆角/裁剪合同未变）。
+            var expectedHeight = instant ? 102.96 : 159.2;
             if (CodeWF.Avalonia.Markdown.Rendering.MarkdownTableLayout.GetCollapseBorders(tableGrid)
                 || table.BorderThickness != new Thickness(instant ? 0 : 1)
                 || table.CornerRadius != new CornerRadius(instant ? 8 : 10)
