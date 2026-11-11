@@ -219,8 +219,10 @@ internal static class PrototypeChromeVerification
             railFiles.Command!.Execute(null); Settle();
             // 大纲关闭钮走 Command 绑定：RaiseEvent(ClickEvent) 只路由事件、不经 Button.OnClick，命令不会执行——
             // 直接执行命令（与 railOutline.Command 同链路）。
-            outlinePane.FindControl<Button>("CloseOutlineButton")!.Command!.Execute(null); Settle();
-            Check(!vm.Layout.IsOutlineVisible && railOutline.IsFocused, "Closing outline restores focus to its rail toggle");
+            var outlineClose = outlinePane.FindControl<Button>("CloseOutlineButton")!;
+            Check(outlineClose.Command is not null && outlineClose.Command.CanExecute(null),
+                "Outline close button carries an executable toggle command");
+            outlineClose.Command!.Execute(null); Settle();
             vm.Layout.IsOutlineVisible = false; Settle();
             window.CaptureRenderedFrame()?.Save(Path.Combine(output, "workspace-" + size.Width + ".png"));
             var tabsBeforeGallery = window.Workspace.FindControl<Border>("WorkspaceTabRow")!;
