@@ -694,7 +694,8 @@
     fileContextMenu.innerHTML = (target.kind === 'file'
         ? '<button type="button" role="menuitem" data-file-context="rename">重命名</button>'
         : '')
-      + '<button type="button" role="menuitem" data-file-context="open-window">在新窗口打开</button><button type="button" role="menuitem" data-file-context="reveal">打开文件位置</button>';
+      + '<button type="button" role="menuitem" data-file-context="open-window">在新窗口打开</button><button type="button" role="menuitem" data-file-context="reveal">打开文件位置</button>'
+      + (target.kind === 'file' ? '<button type="button" role="menuitem" data-file-context="copy-path">复制路径</button>' : '');
     fileContextMenu.hidden = false;
     var width = fileContextMenu.offsetWidth || 168, height = fileContextMenu.offsetHeight || 72;
     fileContextMenu.style.left = Math.max(8, Math.min(event.clientX, innerWidth - width - 8)) + 'px';
@@ -719,6 +720,11 @@
         var reveal = docs[target.index];
         VexProto.toastKey('ToastFileLocation', (reveal && (reveal.path || reveal.name)) || '演示文档');
       }
+      return;
+    }
+    if (act === 'copy-path') {
+      var cpDoc = docs[target.index];
+      VexProto.toastKey('ToastPathCopied', (cpDoc && (cpDoc.path || cpDoc.name)) || '演示文档');
       return;
     }
     if (target.kind === 'folder') {
