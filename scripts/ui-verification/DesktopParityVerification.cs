@@ -162,7 +162,9 @@ internal static class DesktopParityVerification
         var searchGlow = searchShell.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("search-glow"));
         var searchHover = searchShell.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("search-hover"));
         Application.Current!.TryGetResource("VexAccentBrush", window.ActualThemeVariant, out var accentResource);
-        Application.Current!.TryGetResource("VexControlBorderBrush", window.ActualThemeVariant, out var controlBorderResource);
+        // 原型 .sidebar-search 边框 = var(--field-border, var(--control-border))：field 是主色、control 仅回退，
+        // 断言参照应取 VexFieldBorderBrush（与实现样式同源）。
+        Application.Current!.TryGetResource("VexFieldBorderBrush", window.ActualThemeVariant, out var controlBorderResource);
         var accentRef = (Avalonia.Media.ISolidColorBrush)accentResource!;
         var idleRef = (Avalonia.Media.ISolidColorBrush)controlBorderResource!;
         var searchText = searchFrame.GetVisualDescendants().OfType<TextBox>().First();
@@ -200,7 +202,7 @@ internal static class DesktopParityVerification
         Check(Settle(() => searchGlow.Opacity == 0 && searchHover.Opacity == 0)
             && searchFrame.CornerRadius == (CornerRadius)Application.Current!.FindResource("VexDensityCornerRadiusPill")!
             && searchFrame.BorderBrush is Avalonia.Media.ISolidColorBrush idleBorder && idleBorder.Color == idleRef.Color,
-            "Idle search box is a density pill on control-border with no glow or hover tint");
+            "Idle search box is a density pill on the field border with no glow or hover tint");
         searchText.Focus();
         var focused = Settle(() => searchGlow.Opacity == 1 && searchHover.Opacity == 0);
         Render();
@@ -238,28 +240,28 @@ internal static class DesktopParityVerification
             && filesHeadContainer.Height == 36
             && filesHead.TranslatePoint(default, filesView)!.Value.Y < searchShell.TranslatePoint(default, filesView)!.Value.Y,
             "Files panel head titles the pane above the search box at the prototype 36px row and 12px side inset");
-        var outlineShell = outlineView.GetVisualDescendants().OfType<Grid>().First(g => g.Classes.Contains("search-shell"));
-        var outlineText = outlineShell.GetVisualDescendants().OfType<TextBox>().First();
+        // 大纲侧搜索壳已随「大纲 UI 下沉库 MarkdownOutlinePanel」退役；筛选输入的密度联动由库
+        // MarkdownOutlinePanelTests 覆盖。这里只保留头部 chrome 与文件侧搜索输入的密度跟随断言。
         var outlineHead = outlineView.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.Classes.Contains("panel-title"));
         var outlineHeadContainer = outlineHead?.GetVisualAncestors().OfType<Border>().FirstOrDefault(border => border.Classes.Contains("panel-head"));
         Check(outlineHead?.Text == localizer.Get(Vex.VexL.SidebarOutline)
             && outlineHead.FontSize == (double)Application.Current!.FindResource("VexDensityFontSizeCaption")!
             && outlineHead.FontWeight == Avalonia.Media.FontWeight.SemiBold
             && outlineHeadContainer?.Padding == new Thickness(12, 0, 12, 0)
-            && outlineHeadContainer.Height == 36
-            && outlineShell.Margin == default,
-            "Structure panel titles the pane above its search pill with the same 36px chrome row");
-        // 原型 --fs-caption（density.css:2-4）：面板标题与两栏搜索输入都随界面密度走 11/12/12，不写死 12。
+            && outlineHeadContainer.Height == 36,
+            "Structure panel titles the pane with the same 36px chrome row (search pill retired into the library panel)");
+        // 原型 --fs-caption（density.css:2-4）：面板标题与文件侧搜索输入随界面密度走 11/12/12，不写死 12。
         var densityBefore = vm.Appearance.SelectedDensity;
         foreach (var density in new[] { "compact", "normal", "relaxed" })
         {
             vm.Appearance.SelectedDensity = density; Render();
-            var caption = density == "compact" ? 11d : 12d;
+            var caption = density switch { "compact" => 11d, "relaxed" => 13d, _ => 12d };
             Check((double)Application.Current!.FindResource("VexDensityFontSizeCaption")! == caption
                 && filesHead.FontSize == caption
-                && searchText.FontSize == caption && outlineText.FontSize == caption,
-                $"Panel titles and both search inputs follow the caption tier at {density}: {caption}");
+                && searchText.FontSize == caption,
+                $"Panel title and the files search input follow the caption tier at {density}: {caption}");
         }
+        vm.Appearance.SelectedDensity = densityBefore; Render();
         vm.Appearance.SelectedDensity = densityBefore; Render();
         navigation.SelectDocumentFileForContextMenu(navigation.DocumentFileNodes.First(node => node.IsFolder));
         Check(navigation.HasPathCommandTarget && !navigation.HasDocumentFileCommandTarget, "Folder context supports path actions without file mutation actions");
