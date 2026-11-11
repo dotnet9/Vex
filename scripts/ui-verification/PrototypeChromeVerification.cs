@@ -622,7 +622,9 @@ internal static class PrototypeChromeVerification
                 var item = window.FindControl<ShellTitleMenuView>("TitleMenuView")!.FindControl<MenuItem>(name)!;
                 item.IsSubMenuOpen = true; Render();
                 var popup = item.GetVisualDescendants().OfType<Popup>().FirstOrDefault();
-                Check(popup?.Child is { Bounds.Width: 248 }, "Title menu has a 248px panel: " + culture.CultureName + "/" + name);
+                // 原生菜单重做（V1.22.0.0）后各菜单宽度由内容自适应（File 314 / Insert 183 / Help 各异），不再共用定宽；
+                // 性质断言防空白塌陷与失控变宽，区间须容纳四语言菜单宽度差（zh 314 / ja 412）。
+                Check(popup?.Child is { Bounds.Width: > 100 and < 500 }, "Title menu popup has content-driven width: " + culture.CultureName + "/" + name + " got=" + (popup?.Child as Control)?.Bounds);
                 item.IsSubMenuOpen = false; Render();
             }
         }
