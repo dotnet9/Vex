@@ -104,6 +104,7 @@ public static class VexL
     public static readonly string SaveAll = "Vex.VexL.SaveAll";
     public static readonly string Properties = "Vex.VexL.Properties";
     public static readonly string OpenFileLocation = "Vex.VexL.OpenFileLocation";
+    public static readonly string CopyPath = "Vex.VexL.CopyPath";
     public static readonly string Delete = "Vex.VexL.Delete";
     public static readonly string Rename = "Vex.VexL.Rename";
     public static readonly string Export = "Vex.VexL.Export";
@@ -941,6 +942,7 @@ public static class VexL
     public static readonly string StatusBlockCopied = "Vex.VexL.StatusBlockCopied";
     public static readonly string StatusShareRichCopied = "Vex.VexL.StatusShareRichCopied";
     public static readonly string StatusShareMarkdownCopied = "Vex.VexL.StatusShareMarkdownCopied";
+    public static readonly string StatusPathCopied = "Vex.VexL.StatusPathCopied";
     public static readonly string StatusShareUnavailable = "Vex.VexL.StatusShareUnavailable";
     public static readonly string MenuImportHtml = "Vex.VexL.MenuImportHtml";
     public static readonly string MenuImportPdf = "Vex.VexL.MenuImportPdf";

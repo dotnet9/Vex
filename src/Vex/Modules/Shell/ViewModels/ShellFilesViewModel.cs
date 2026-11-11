@@ -1,5 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
 using CodeWF.Avalonia.Markdown.Controls;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
@@ -7,6 +10,7 @@ using Vex.Core.Messaging;
 using Vex.Core.Models;
 using Vex.Core.Regions;
 using Vex.Core.Services;
+using Vex.Modules.Shell.Services;
 
 namespace Vex.Modules.Shell.ViewModels;
 
@@ -17,14 +21,16 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     private DocumentFile? _currentDocumentFile;
     private readonly IAppSettingsStore? _settingsStore;
     private readonly IDocumentFileFactory? _fileFactory;
+    private readonly IShellToastPublisher? _toastPublisher;
     private bool _isListView;
     private string _sortKey = "group";
 
-    public ShellFilesViewModel(IAppSettingsStore? settingsStore = null, IWorkspaceFileService? workspaceFiles = null, IDocumentFileFactory? fileFactory = null, EditorPreferences? preferences = null)
+    public ShellFilesViewModel(IAppSettingsStore? settingsStore = null, IWorkspaceFileService? workspaceFiles = null, IDocumentFileFactory? fileFactory = null, EditorPreferences? preferences = null, IShellToastPublisher? toastPublisher = null)
     {
         _settingsStore = settingsStore;
         Preferences = preferences ?? (settingsStore is null ? null : new EditorPreferences(settingsStore));
         _fileFactory = fileFactory;
+        _toastPublisher = toastPublisher;
         _isListView = settingsStore?.Current.FileListView ?? false;
         _sortKey = settingsStore?.Current.FileSortKey ?? "group";
         _workspaceFiles = workspaceFiles;
@@ -48,6 +54,8 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     public bool IsTreeView => !_isListView;
     public bool CanCollapseAll => IsTreeView && Enumerate(FilteredDocumentFileNodes).Any(node => node.IsFolder && node.IsExpanded);
     public bool HasPathCommandTarget => (_contextDocumentFileNode ?? SelectedDocumentFileNode) is { IsPlaceholder: false };
+    // 复制路径只对文件项开放（目录项保持「打开文件位置」即可覆盖），与右键目标联动。
+    public bool HasFilePathCommandTarget => (_contextDocumentFileNode ?? SelectedDocumentFileNode) is { IsPlaceholder: false, IsDocument: true };
     public void NewDocument() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.NewDocument));
     public void QuickOpen() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.QuickOpen));
     public void RefreshFiles() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.RefreshFiles));
@@ -158,6 +166,7 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
                 OnPropertyChanged(nameof(HasSelectedDocumentFile));
                 OnPropertyChanged(nameof(HasDocumentFileCommandTarget));
                 OnPropertyChanged(nameof(HasPathCommandTarget));
+                OnPropertyChanged(nameof(HasFilePathCommandTarget));
                 OnPropertyChanged(nameof(SelectedListDocumentFileNode));
                 if (value?.DocumentFile is { } file)
                 {
@@ -228,6 +237,26 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.OpenPathLocation, node.Path));
     }
 
+    /// <summary>复制路径：把右键/选中文件项的完整绝对路径写入剪贴板，完成走 Toast 轻提示。</summary>
+    public async Task CopySelectedFilePathAsync()
+    {
+        if ((_contextDocumentFileNode ?? SelectedDocumentFileNode) is not { IsPlaceholder: false, IsDocument: true } node)
+        {
+            return;
+        }
+
+        ClearContextDocumentFile();
+        // 剪贴板写入沿用 McpSettingsViewModel 的主窗口剪贴板取法，不另起一套。
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime { MainWindow.Clipboard: { } clipboard })
+        {
+            return;
+        }
+
+        await clipboard.SetTextAsync(node.Path);
+        var copied = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(VexL.StatusPathCopied);
+        if (!string.IsNullOrEmpty(copied)) _toastPublisher?.Publish(copied);
+    }
+
     public void DeleteSelectedFile()
     {
         if (GetDocumentFileCommandTarget() is not { } file)
@@ -245,6 +274,7 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
         _contextDocumentFileNode = documentFileNode;
         OnPropertyChanged(nameof(HasDocumentFileCommandTarget));
         OnPropertyChanged(nameof(HasPathCommandTarget));
+        OnPropertyChanged(nameof(HasFilePathCommandTarget));
     }
 
     [EventHandler]
@@ -334,6 +364,7 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
             OnPropertyChanged(nameof(HasSelectedDocumentFile));
             OnPropertyChanged(nameof(HasDocumentFileCommandTarget));
             OnPropertyChanged(nameof(HasPathCommandTarget));
+            OnPropertyChanged(nameof(HasFilePathCommandTarget));
             OnPropertyChanged(nameof(SelectedListDocumentFileNode));
         }
     }

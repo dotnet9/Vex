@@ -341,6 +341,11 @@
                         Header="{i18n:I18n {x:Static l:VexL.OpenFileLocation}}"
                         Command="{Binding OpenSelectedFileLocation}"
                         IsEnabled="{Binding HasPathCommandTarget}"/>
+                    <!-- 复制路径：仅文件项可用（目录项沿用「打开文件位置」），写入完整绝对路径。 -->
+                    <MenuItem
+                        Header="{i18n:I18n {x:Static l:VexL.CopyPath}}"
+                        Command="{Binding CopySelectedFilePathAsync}"
+                        IsEnabled="{Binding HasFilePathCommandTarget}"/>
                     <Separator />
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}"/>
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}"/>
@@ -401,6 +406,11 @@
                         Header="{i18n:I18n {x:Static l:VexL.OpenFileLocation}}"
                         Command="{Binding OpenSelectedFileLocation}"
                         IsEnabled="{Binding HasPathCommandTarget}"/>
+                    <!-- 复制路径：仅文件项可用（目录项沿用「打开文件位置」），写入完整绝对路径。 -->
+                    <MenuItem
+                        Header="{i18n:I18n {x:Static l:VexL.CopyPath}}"
+                        Command="{Binding CopySelectedFilePathAsync}"
+                        IsEnabled="{Binding HasFilePathCommandTarget}"/>
                     <Separator />
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}"/>
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" helpers:ToolTipHelper.Text="{Binding WorkspaceName}"/>
