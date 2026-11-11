@@ -1,5 +1,8 @@
 <Project>
   <PropertyGroup>
+    <MicrosoftNetTestSdkVersion>18.11.0</MicrosoftNetTestSdkVersion>
+    <XunitVersion>2.9.3</XunitVersion>
+    <XunitRunnerVisualStudioVersion>4.0.1</XunitRunnerVisualStudioVersion>
     <CodeWFAvaloniaVersion>12.1.6.2</CodeWFAvaloniaVersion>
     <CodeWFToolkitVersion>1.1.6</CodeWFToolkitVersion>
     <AvaloniaVersion>12.1.6</AvaloniaVersion>

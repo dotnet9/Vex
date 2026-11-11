@@ -7,6 +7,7 @@ using Markdig;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
 using Vex.Modules.Mcp.Models;
+using ModelContextProtocol.Protocol;
 using Vex.Modules.Mcp.Serialization;
 using Vex.Modules.Shell.ViewModels;
 
@@ -69,9 +70,9 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         _localizer = localizer;
     }
 
-    public McpToolsListResult ListTools() => new(BuildTools());
+    public ListToolsResult ListTools() => new() { Tools = BuildTools() };
 
-    private McpToolDescription[] BuildTools()
+    private Tool[] BuildTools()
     {
         return
         [
@@ -107,7 +108,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         ];
     }
 
-    public async Task<McpToolCallResult> CallToolAsync(string name, JsonElement? arguments)
+    public async Task<CallToolResult> CallToolAsync(string name, JsonElement? arguments)
     {
         var toolName = NormalizeToolName(name);
         try
@@ -354,33 +355,33 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         return new OperationResult("ok", undo ? "undone" : "redone");
     }
 
-    public async Task<ResourceListResult> ListResourcesAsync()
+    public async Task<ListResourcesResult> ListResourcesAsync()
     {
         var files = await _shell.GetWorkspaceFilesAsync();
         return await Dispatcher.UIThread.InvokeAsync(() => BuildResources(files));
     }
 
-    private ResourceListResult BuildResources(IReadOnlyList<Vex.Core.Models.DocumentFile> files)
+    private ListResourcesResult BuildResources(IReadOnlyList<Vex.Core.Models.DocumentFile> files)
     {
         var document = _shell.GetCurrentDocumentSnapshot();
-        var resources = new List<ResourceEntryResult>
+        var resources = new List<Resource>
         {
-            new("vex://current-document", document.FileName, "text/markdown", null)
+            new() { Uri = "vex://current-document", Name = document.FileName, MimeType = "text/markdown" },
         };
 
         foreach (var file in files)
         {
-            resources.Add(new ResourceEntryResult(ResourceUriForPath(file.Path), file.Name, "text/markdown", null));
+            resources.Add(new Resource { Uri = ResourceUriForPath(file.Path), Name = file.Name, MimeType = "text/markdown" });
         }
 
-        return new ResourceListResult(resources);
+        return new ListResourcesResult { Resources = resources };
     }
 
-    public ResourceReadResult ReadResource(string uri)
+    public ReadResourceResult ReadResource(string uri)
     {
         if (string.Equals(uri, "vex://current-document", StringComparison.Ordinal))
         {
-            return new ResourceReadResult(uri, "text/markdown", _shell.Markdown);
+            return TextResource(uri, _shell.Markdown);
         }
 
         const string filePrefix = "vex://file/";
@@ -395,7 +396,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             throw new FileNotFoundException("Resource not found.", path);
         }
 
-        return new ResourceReadResult(uri, "text/markdown", File.ReadAllText(path));
+        return TextResource(uri, File.ReadAllText(path));
     }
 
     private static string ResourceUriForPath(string path)
@@ -868,9 +869,17 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         return arguments.Value.Deserialize(typeInfo)!;
     }
 
-    private static McpToolCallResult TextResult(string text, bool isError = false)
+    private static CallToolResult TextResult(string text, bool isError = false)
     {
-        return new McpToolCallResult([new McpContentItem("text", text)], isError);
+        return new CallToolResult { Content = [new TextContentBlock { Text = text }], IsError = isError };
+    }
+
+    private static ReadResourceResult TextResource(string uri, string text)
+    {
+        return new ReadResourceResult
+        {
+            Contents = [new TextResourceContents { Uri = uri, MimeType = "text/markdown", Text = text }],
+        };
     }
 
     private static string SerializeToolResult(object result)
@@ -890,10 +899,10 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         };
     }
 
-    private static McpToolDescription Tool(string name, string description, string inputSchema = EmptySchema)
+    private static Tool Tool(string name, string description, string inputSchema = EmptySchema)
     {
         using var document = JsonDocument.Parse(inputSchema);
-        return new McpToolDescription(name, description, document.RootElement.Clone());
+        return new Tool { Name = name, Description = description, InputSchema = document.RootElement.Clone() };
     }
 
     private static string NormalizeToolName(string name)

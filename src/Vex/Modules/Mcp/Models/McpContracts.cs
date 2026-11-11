@@ -1,63 +1,6 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Vex.Modules.Mcp.Models;
-
-public sealed record JsonRpcRequest(
-    [property: JsonPropertyName("jsonrpc")] string? JsonRpc,
-    [property: JsonPropertyName("id")] JsonElement? Id,
-    [property: JsonPropertyName("method")] string? Method,
-    [property: JsonPropertyName("params")] JsonElement? Params);
-
-public sealed record JsonRpcResponse(
-    [property: JsonPropertyName("jsonrpc")] string JsonRpc,
-    [property: JsonPropertyName("id")] JsonElement? Id,
-    [property: JsonPropertyName("result")] JsonElement? Result = null,
-    [property: JsonPropertyName("error")] JsonRpcError? Error = null);
-
-public sealed record JsonRpcError(
-    [property: JsonPropertyName("code")] int Code,
-    [property: JsonPropertyName("message")] string Message);
-
-public sealed record McpInitializeResult(
-    [property: JsonPropertyName("protocolVersion")] string ProtocolVersion,
-    [property: JsonPropertyName("serverInfo")] McpServerInfo ServerInfo,
-    [property: JsonPropertyName("capabilities")] McpCapabilities Capabilities);
-
-public sealed record McpServerInfo(
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("version")] string Version);
-
-public sealed record McpCapabilities(
-    [property: JsonPropertyName("tools")] McpToolsCapability Tools,
-    [property: JsonPropertyName("resources")] McpResourcesCapability? Resources = null);
-
-public sealed record McpResourcesCapability(
-    [property: JsonPropertyName("subscribe")] bool SubscribeChanged,
-    [property: JsonPropertyName("listChanged")] bool ListChanged);
-
-public sealed record McpToolsCapability(
-    [property: JsonPropertyName("listChanged")] bool ListChanged);
-
-public sealed record McpToolsListResult(
-    [property: JsonPropertyName("tools")] IReadOnlyList<McpToolDescription> Tools);
-
-public sealed record McpToolDescription(
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("description")] string Description,
-    [property: JsonPropertyName("inputSchema")] JsonElement InputSchema);
-
-public sealed record McpToolCallParams(
-    [property: JsonPropertyName("name")] string? Name,
-    [property: JsonPropertyName("arguments")] JsonElement? Arguments);
-
-public sealed record McpToolCallResult(
-    [property: JsonPropertyName("content")] IReadOnlyList<McpContentItem> Content,
-    [property: JsonPropertyName("isError")] bool IsError = false);
-
-public sealed record McpContentItem(
-    [property: JsonPropertyName("type")] string Type,
-    [property: JsonPropertyName("text")] string Text);
 
 public sealed record EmptyInput;
 

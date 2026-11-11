@@ -11,9 +11,10 @@
        "args": ["<仓库>/scripts/mcp_stdio_bridge.py"],
        "env": { "VEX_MCP_TOKEN": "<你的 Token>" }
 
-协议说明：Vex 的 MCP 端点是 HTTP JSON-RPC（POST）。本桥从 stdin 逐行读取
-JSON-RPC（单请求或批量数组），转发到 Vex，再把响应按行写回 stdout；
-通知类消息（无 id）不产生响应。
+协议说明：Vex 的 MCP 端点是 MCP Streamable HTTP（官方 C# SDK，会话由服务端分配）。
+本桥从 stdin 逐行读取 JSON-RPC（单请求或批量数组），转发到 Vex，再把响应按行写回
+stdout；通知类消息（无 id）不产生响应。initialize 之后本桥携带服务端分配的
+Mcp-Session-Id 与协商出的 MCP-Protocol-Version 继续通信。
 """
 import json
 import os
@@ -24,21 +25,55 @@ import urllib.request
 URL = os.environ.get("VEX_MCP_URL", "http://127.0.0.1:17891/mcp/")
 TOKEN = os.environ.get("VEX_MCP_TOKEN", "")
 
+SESSION = {"id": None, "protocol": None}
+
 
 def post(payload):
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    req = urllib.request.Request(
-        URL,
-        data=body,
-        headers={
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": "Bearer " + TOKEN,
-        },
-        method="POST",
-    )
+    headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "Accept": "application/json, text/event-stream",
+        "Authorization": "Bearer " + TOKEN,
+    }
+    is_initialize = isinstance(payload, dict) and payload.get("method") == "initialize"
+    if SESSION["id"]:
+        headers["Mcp-Session-Id"] = SESSION["id"]
+    if SESSION["protocol"] and not is_initialize:
+        headers["MCP-Protocol-Version"] = SESSION["protocol"]
+    req = urllib.request.Request(URL, data=body, headers=headers, method="POST")
     with urllib.request.urlopen(req, timeout=120) as resp:
         data = resp.read()
-    return json.loads(data.decode("utf-8")) if data.strip() else None
+        session_id = resp.headers.get("Mcp-Session-Id")
+        content_type = resp.headers.get("Content-Type", "")
+    if session_id:
+        SESSION["id"] = session_id
+    if not data.strip():
+        return None
+
+    text = data.decode("utf-8")
+    if "text/event-stream" in content_type:
+        # Streamable HTTP 以 SSE 帧回包：event: message / data: {...}
+        messages = []
+        for line in text.splitlines():
+            if line.startswith("data:"):
+                try:
+                    messages.append(json.loads(line[len("data:"):].strip()))
+                except json.JSONDecodeError:
+                    pass
+        if not messages:
+            return None
+        if isinstance(payload, dict) and "id" in payload:
+            for message in messages:
+                if message.get("id") == payload["id"]:
+                    return message
+        return messages[0]
+
+    message = json.loads(text)
+    if is_initialize and isinstance(message, dict):
+        result = message.get("result")
+        if isinstance(result, dict) and result.get("protocolVersion"):
+            SESSION["protocol"] = result["protocolVersion"]
+    return message
 
 
 def handle(line):

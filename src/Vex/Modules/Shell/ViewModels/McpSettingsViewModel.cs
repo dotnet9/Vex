@@ -326,8 +326,8 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         }
 
         var result = await _toolDispatcher.CallToolAsync("vex_get_current_document", null);
-        var text = result.Content.Count > 0 ? result.Content[0].Text : string.Empty;
-        if (result.IsError)
+        var text = result.Content.Count > 0 && result.Content[0] is ModelContextProtocol.Protocol.TextContentBlock block ? block.Text : string.Empty;
+        if (result.IsError == true)
         {
             RequestCode = string.Empty;
             SetRequestMessage(text, true);
@@ -351,13 +351,13 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
         // 试写的示例段落属于界面文案，按当前语言取；前后各一个空行是 Markdown 的段落分隔，不是文案的一部分。
         var arguments = System.Text.Json.JsonSerializer.SerializeToElement(new { text = "\n\n" + _localizer.Get(VexL.McpBridgeParagraph) + "\n" });
         var result = await _toolDispatcher.CallToolAsync("vex_insert_text", arguments);
-        var text = result.Content.Count > 0 ? result.Content[0].Text : string.Empty;
+        var text = result.Content.Count > 0 && result.Content[0] is ModelContextProtocol.Protocol.TextContentBlock block ? block.Text : string.Empty;
         RequestCode = string.Empty;
         SetRequestMessage(
-            result.IsError || text.Contains("canceled", StringComparison.OrdinalIgnoreCase)
+            result.IsError == true || text.Contains("canceled", StringComparison.OrdinalIgnoreCase)
                 ? _localizer.Get(VexL.McpRequestRejected)
                 : _localizer.Get(VexL.McpRequestApproved),
-            result.IsError);
+            result.IsError == true);
     }
 
     /// <summary>原型语义：未启动服务时请求区只给一条红色提示，其余动作不再执行。</summary>

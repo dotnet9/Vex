@@ -14,4 +14,5 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="src/Vex/Vex.csproj" />
+  <Project Path="tests/Vex.Mcp.Tests/Vex.Mcp.Tests.csproj" />
 </Solution>

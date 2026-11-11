@@ -7,6 +7,12 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="CodeWF.Avalonia.MindView" Version="$(CodeWFAvaloniaVersion)" />
+    <PackageVersion Include="ModelContextProtocol" Version="2.4.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNetTestSdkVersion)" />
+    <PackageVersion Include="xunit" Version="$(XunitVersion)" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="$(XunitRunnerVisualStudioVersion)" />
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.4.0" />
+    <PackageVersion Include="ModelContextProtocol.Core" Version="2.4.0" />
     <PackageVersion Include="CodeWF.Toolkit.Core" Version="$(CodeWFToolkitVersion)" />
     <PackageVersion Include="CodeWF.Toolkit.Lang" Version="$(CodeWFToolkitVersion)" />
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />

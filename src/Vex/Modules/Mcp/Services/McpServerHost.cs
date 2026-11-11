@@ -1,21 +1,29 @@
-using System.Net;
-using System.Text;
+using System.Net.Sockets;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using ModelContextProtocol.AspNetCore;
+using ModelContextProtocol.Protocol;
 using Vex.Core.Services;
 using Vex.Modules.Mcp.Models;
-using Vex.Modules.Mcp.Serialization;
+using McpSdk = ModelContextProtocol.Server;
 
 namespace Vex.Modules.Mcp.Services;
 
+/// <summary>
+/// Vex 的 MCP 传输宿主：进程内 Kestrel 承载 ModelContextProtocol.AspNetCore 的 Streamable HTTP
+/// 传输（会话握手、协议版本协商由官方 SDK 处理），Bearer 鉴权在路由前拦截；
+/// 工具与资源的业务实现在 <see cref="McpToolDispatcher"/>（与 Vox 的 McpWebHost 同构）。
+/// </summary>
 public sealed class McpServerHost : IMcpServerHost
 {
     private readonly IAppSettingsStore _settingsStore;
     private readonly IMcpToolDispatcher _toolDispatcher;
     private readonly IAppLocalizer _localizer;
-    private HttpListener? _listener;
+    private WebApplication? _app;
+    private Task? _runTask;
     private CancellationTokenSource? _cts;
-    private Task? _listenTask;
     private string? _statusResourceKey;
     private object?[] _statusArgs = [];
 
@@ -63,22 +71,55 @@ public sealed class McpServerHost : IMcpServerHost
             return;
         }
 
+        var endpoint = $"http://{FormatEndpointHost(host)}:{port}/mcp/";
         try
         {
             _cts = new CancellationTokenSource();
-            _listener = new HttpListener();
-            _listener.Prefixes.Add($"http://{FormatEndpointHost(host)}:{port}/mcp/");
-            _listener.Start();
-            _listenTask = Task.Run(() => ListenAsync(_cts.Token));
+            var builder = WebApplication.CreateBuilder();
+            builder.Services
+                .AddMcpServer(o =>
+                {
+                    o.ServerInfo = new Implementation
+                    {
+                        Name = "vex",
+                        Title = "Vex",
+                        Version = typeof(McpServerHost).Assembly.GetName().Version?.ToString(3) ?? "1.0",
+                    };
+                })
+                .WithHttpTransport(o => o.SessionMode = ModelContextProtocol.AspNetCore.HttpServerSessionMode.Stateful)
+                .WithListToolsHandler((_, _) => ValueTask.FromResult(_toolDispatcher.ListTools()))
+                .WithCallToolHandler(HandleCallAsync)
+                .WithListResourcesHandler(async (_, _) => await _toolDispatcher.ListResourcesAsync())
+                .WithReadResourceHandler((ctx, _) =>
+                    ValueTask.FromResult(_toolDispatcher.ReadResource(ctx.Params?.Uri ?? string.Empty)));
+
+            _app = builder.Build();
+            _app.Urls.Add($"http://{FormatEndpointHost(host)}:{port}");
+            _app.Use(async (context, next) =>
+            {
+                if (context.Request.Path.StartsWithSegments("/mcp") && !IsAuthorized(context.Request))
+                {
+                    context.Response.StatusCode = 401;
+                    context.Response.Headers.WWWAuthenticate = "Bearer";
+                    await context.Response.CompleteAsync();
+                    return;
+                }
+
+                await next(context);
+            });
+            _app.MapMcp("/mcp");
+
+            _app.StartAsync(_cts.Token).GetAwaiter().GetResult();
+            _runTask = _app.WaitForShutdownAsync(_cts.Token);
             State = McpServerState.Running;
-            SetStatus(VexL.McpStatusRunningFormat, $"http://{FormatEndpointHost(host)}:{port}/mcp/");
+            SetStatus(VexL.McpStatusRunningFormat, endpoint);
         }
-        catch (Exception exception) when (exception is HttpListenerException or InvalidOperationException)
+        catch (Exception exception) when (exception is SocketException or IOException or InvalidOperationException)
         {
             // 先释放监听器再落状态：StopAsync 会把状态改回「已停止」，失败原因必须写在它之后。
             await StopAsync();
             State = McpServerState.Faulted;
-            if (exception is HttpListenerException)
+            if (exception is SocketException or IOException)
             {
                 SetStatus(VexL.McpStatusPortBusy);
             }
@@ -92,38 +133,55 @@ public sealed class McpServerHost : IMcpServerHost
     public async Task StopAsync()
     {
         _cts?.Cancel();
-        if (_listener is not null)
+        if (_app is not null)
         {
             try
             {
-                _listener.Stop();
-                _listener.Close();
+                await _app.StopAsync();
             }
-            catch (ObjectDisposedException)
+            catch
             {
+                // 已停止
             }
-        }
 
-        if (_listenTask is not null)
-        {
             try
             {
-                await _listenTask;
+                await _app.DisposeAsync();
             }
-            catch (OperationCanceledException)
+            catch
             {
-            }
-            catch (HttpListenerException)
-            {
+                // 已释放
             }
         }
 
-        _listener = null;
+        _app = null;
         _cts?.Dispose();
         _cts = null;
-        _listenTask = null;
+        _runTask = null;
         State = McpServerState.Stopped;
         SetStatus(VexL.McpStatusStopped);
+    }
+
+    private async ValueTask<CallToolResult> HandleCallAsync(
+        McpSdk.RequestContext<CallToolRequestParams> context, CancellationToken cancellationToken)
+    {
+        var arguments = context.Params?.Arguments;
+        JsonElement? args = arguments is { Count: > 0 }
+            ? JsonSerializer.SerializeToElement(arguments)
+            : null;
+        return await _toolDispatcher.CallToolAsync(context.Params?.Name ?? string.Empty, args);
+    }
+
+    private bool IsAuthorized(Microsoft.AspNetCore.Http.HttpRequest request)
+    {
+        var token = _settingsStore.Current.McpAuthorizationToken;
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return false;
+        }
+
+        var authorization = request.Headers.Authorization.ToString();
+        return authorization?.Equals($"Bearer {token}", StringComparison.Ordinal) == true;
     }
 
     private void SetStatus(string resourceKey, params object?[] args)
@@ -152,176 +210,6 @@ public sealed class McpServerHost : IMcpServerHost
         StatusText = _statusArgs.Length == 0
             ? _localizer.Get(resourceKey)
             : _localizer.Format(resourceKey, _statusArgs);
-    }
-
-    private async Task ListenAsync(CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested && _listener is { IsListening: true } listener)
-        {
-            HttpListenerContext context;
-            try
-            {
-                context = await listener.GetContextAsync();
-            }
-            catch (Exception exception) when (exception is ObjectDisposedException or HttpListenerException or InvalidOperationException)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                State = McpServerState.Faulted;
-                SetRawStatus(exception.Message);
-                return;
-            }
-
-            _ = Task.Run(() => HandleContextAsync(context), cancellationToken);
-        }
-    }
-
-    private async Task HandleContextAsync(HttpListenerContext context)
-    {
-        try
-        {
-            if (!context.Request.HttpMethod.Equals("POST", StringComparison.OrdinalIgnoreCase))
-            {
-                await WritePlainAsync(context, 405, "Method Not Allowed");
-                return;
-            }
-
-            if (!IsAuthorized(context.Request))
-            {
-                await WritePlainAsync(context, 401, "Unauthorized");
-                return;
-            }
-
-            var request = await JsonSerializer.DeserializeAsync(
-                context.Request.InputStream,
-                McpJsonContext.Default.JsonRpcRequest);
-            if (request is null || string.IsNullOrWhiteSpace(request.Method))
-            {
-                await WriteJsonAsync(context, new JsonRpcResponse("2.0", request?.Id, Error: new JsonRpcError(-32600, "Invalid request")));
-                return;
-            }
-
-            var response = await DispatchAsync(request);
-            if (response is null)
-            {
-                WriteNoContent(context);
-                return;
-            }
-
-            await WriteJsonAsync(context, response);
-        }
-        catch (Exception exception)
-        {
-            await WriteJsonAsync(context, new JsonRpcResponse("2.0", null, Error: new JsonRpcError(-32603, exception.Message)));
-        }
-    }
-
-    private async Task<JsonRpcResponse?> DispatchAsync(JsonRpcRequest request)
-    {
-        var isNotification = request.Id is null;
-        if (isNotification && !request.Method!.StartsWith("notifications/", StringComparison.Ordinal))
-        {
-            return null;
-        }
-
-        switch (request.Method)
-        {
-            case "initialize":
-                return new JsonRpcResponse(
-                    "2.0",
-                    request.Id,
-                    ToJsonElement(
-                    new McpInitializeResult(
-                        "2025-06-18",
-                        new McpServerInfo("Vex", "1.0"),
-                        new McpCapabilities(new McpToolsCapability(false), new McpResourcesCapability(false, false))),
-                    McpJsonContext.Default.McpInitializeResult));
-            case "ping":
-                return new JsonRpcResponse("2.0", request.Id, ToJsonElement(new OperationResult("ok"), McpJsonContext.Default.OperationResult));
-            case "tools/list":
-                return new JsonRpcResponse("2.0", request.Id, ToJsonElement(_toolDispatcher.ListTools(), McpJsonContext.Default.McpToolsListResult));
-            case "tools/call":
-                var call = request.Params?.Deserialize(McpJsonContext.Default.McpToolCallParams);
-                if (call?.Name is not { Length: > 0 } name)
-                {
-                    return new JsonRpcResponse("2.0", request.Id, Error: new JsonRpcError(-32602, "Tool name is required."));
-                }
-
-                return new JsonRpcResponse(
-                    "2.0",
-                    request.Id,
-                    ToJsonElement(await _toolDispatcher.CallToolAsync(name, call.Arguments), McpJsonContext.Default.McpToolCallResult));
-            case "resources/list":
-                return new JsonRpcResponse(
-                    "2.0",
-                    request.Id,
-                    ToJsonElement(await _toolDispatcher.ListResourcesAsync(), McpJsonContext.Default.ResourceListResult));
-            case "resources/read":
-                var resourceParams = request.Params?.Deserialize(McpJsonContext.Default.ResourceReadParams);
-                if (string.IsNullOrWhiteSpace(resourceParams?.Uri))
-                {
-                    return new JsonRpcResponse("2.0", request.Id, Error: new JsonRpcError(-32602, "Resource uri is required."));
-                }
-
-                return new JsonRpcResponse(
-                    "2.0",
-                    request.Id,
-                    ToJsonElement(_toolDispatcher.ReadResource(resourceParams.Uri), McpJsonContext.Default.ResourceReadResult));
-            case "notifications/initialized":
-                return null;
-            default:
-                if (isNotification)
-                {
-                    return null;
-                }
-
-                return new JsonRpcResponse("2.0", request.Id, Error: new JsonRpcError(-32601, $"Unknown method: {request.Method}"));
-        }
-    }
-
-    private bool IsAuthorized(HttpListenerRequest request)
-    {
-        var token = _settingsStore.Current.McpAuthorizationToken;
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return false;
-        }
-
-        var authorization = request.Headers["Authorization"];
-        return authorization?.Equals($"Bearer {token}", StringComparison.Ordinal) == true;
-    }
-
-    private static async Task WriteJsonAsync(HttpListenerContext context, JsonRpcResponse response)
-    {
-        context.Response.StatusCode = 200;
-        context.Response.ContentType = "application/json; charset=utf-8";
-        await JsonSerializer.SerializeAsync(context.Response.OutputStream, response, McpJsonContext.Default.JsonRpcResponse);
-        context.Response.Close();
-    }
-
-    private static async Task WritePlainAsync(HttpListenerContext context, int statusCode, string text)
-    {
-        context.Response.StatusCode = statusCode;
-        context.Response.ContentType = "text/plain; charset=utf-8";
-        var bytes = Encoding.UTF8.GetBytes(text);
-        context.Response.ContentLength64 = bytes.Length;
-        await context.Response.OutputStream.WriteAsync(bytes);
-        context.Response.Close();
-    }
-
-    private static void WriteNoContent(HttpListenerContext context)
-    {
-        context.Response.StatusCode = 204;
-        context.Response.ContentLength64 = 0;
-        context.Response.Close();
-    }
-
-    private static JsonElement ToJsonElement<T>(T value, JsonTypeInfo<T> typeInfo)
-    {
-        return JsonSerializer.SerializeToElement(value, typeInfo);
     }
 
     private static string FormatEndpointHost(string host)

@@ -1,15 +1,15 @@
 using System.Text.Json;
-using Vex.Modules.Mcp.Models;
+using ModelContextProtocol.Protocol;
 
 namespace Vex.Modules.Mcp.Services;
 
 public interface IMcpToolDispatcher
 {
-    McpToolsListResult ListTools();
+    ListToolsResult ListTools();
 
-    Task<ResourceListResult> ListResourcesAsync();
+    Task<ListResourcesResult> ListResourcesAsync();
 
-    ResourceReadResult ReadResource(string uri);
+    ReadResourceResult ReadResource(string uri);
 
-    Task<McpToolCallResult> CallToolAsync(string name, JsonElement? arguments);
+    Task<CallToolResult> CallToolAsync(string name, JsonElement? arguments);
 }
