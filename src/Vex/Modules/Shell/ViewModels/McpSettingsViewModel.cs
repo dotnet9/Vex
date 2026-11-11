@@ -295,6 +295,9 @@ public sealed class McpSettingsViewModel : ReactiveObject, Irihi.Avalonia.Shared
             using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
             using var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Post, Endpoint);
             request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + Token);
+            // MCP 规范要求 POST 的 Accept 同时含 application/json 与 text/event-stream，缺失会被官方 SDK 拒绝（406）。
+            request.Headers.TryAddWithoutValidation("Accept", "application/json");
+            request.Headers.TryAddWithoutValidation("Accept", "text/event-stream");
             request.Content = new System.Net.Http.StringContent(
                 "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"vex\",\"version\":\"1.0\"}}}",
                 System.Text.Encoding.UTF8,

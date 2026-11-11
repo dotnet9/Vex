@@ -110,6 +110,21 @@ public sealed class McpServerHostTests
     }
 
     [Fact]
+    public async Task Missing_accept_header_returns_406_and_dual_accept_returns_200()
+    {
+        await using var fixture = await McpFixture.CreateAsync();
+        const string initialize =
+            """{"jsonrpc":"2.0","id":"init","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"Vex","version":"1.0"}}}""";
+
+        // MCP 规范：POST 缺少 Accept（需同时含 application/json 与 text/event-stream）时 SDK 直接回 406
+        var withoutAccept = await fixture.PostWithoutAcceptAsync(initialize);
+        Assert.Equal(406, withoutAccept.Status);
+
+        var withAccept = await fixture.PostRawAsync(initialize, Token);
+        Assert.Equal(200, withAccept.Status);
+    }
+
+    [Fact]
     public async Task Disabled_service_does_not_listen()
     {
         await using var fixture = await McpFixture.CreateAsync(enabled: false);
@@ -243,6 +258,17 @@ public sealed class McpServerHostTests
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             request.Headers.Accept.ParseAdd("application/json");
             request.Headers.Accept.ParseAdd("text/event-stream");
+            return await SendAsync(request);
+        }
+
+        /// <summary>不带 Accept 头的发送变体：复现应用内自测器缺失 Accept 的请求。</summary>
+        public async Task<(int Status, string Body, string? Session)> PostWithoutAcceptAsync(string json)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, "")
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json"),
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
             return await SendAsync(request);
         }
 
