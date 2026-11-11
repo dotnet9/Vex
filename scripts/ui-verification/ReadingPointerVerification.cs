@@ -59,6 +59,9 @@ internal static class ReadingPointerVerification
         }
         window.SetRenderScaling(1);
         vm.Appearance.SelectLanguageByCulture("zh-CN");
+        // 阅读页签已收敛为纯浏览（点图不出源码框）：图表编辑回归整体迁到源码+预览对照布局，
+        // 预览仍是同一个 PreviewGuideTarget 实例，只是该形态下编辑包装保持启用。
+        vm.Workbench.SelectLayout("source-render"); Render();
         var deadline = DateTime.UtcNow.AddSeconds(12);
         Image? image;
         do

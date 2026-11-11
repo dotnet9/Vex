@@ -269,8 +269,8 @@ internal static class ElementVerification
             Check(cellEditor, "点击单元格进入就地编辑");
         }
 
-        // 图表原位编辑：展开、源码编辑、Esc 收起并写回。
-        vm.Workbench.ShowRead(); Pump(); Pump();
+        // 图表原位编辑：编辑对照视图展开、源码编辑、Esc 收起并写回；阅读页签收敛为纯浏览。
+        vm.Workbench.SelectLayout("source-render"); Pump(); Pump();
         SetDocument("图表验证\n\n```mermaid\nflowchart LR\n  A --> B\n```\n");
         var previewView = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var diagramDeadline = DateTime.UtcNow.AddSeconds(15);
@@ -292,6 +292,27 @@ internal static class ElementVerification
         editorBox.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
         Pump(); Pump();
         Check(vm.Markdown.Contains("A --> Z", StringComparison.Ordinal), "收起图表编辑写回正文");
+
+        // 阅读页签纯浏览：同一篇文档里点击图表不再展开源码面板，文档也不被改写。
+        vm.Workbench.ShowRead(); Pump(); Pump();
+        var browseDeadline = DateTime.UtcNow.AddSeconds(15);
+        Image? browseImage = null;
+        while (browseImage is null)
+        {
+            Pump();
+            browseImage = previewView.GetVisualDescendants().OfType<Border>()
+                .Where(border => border.Classes.Contains("MdMermaid"))
+                .SelectMany(border => border.GetVisualDescendants().OfType<Image>())
+                .FirstOrDefault(item => item.Source is not null);
+            if (DateTime.UtcNow > browseDeadline) throw new TimeoutException("阅读页签图表块未渲染");
+            Thread.Sleep(20);
+        }
+        var browsePoint = browseImage.TranslatePoint(new Point(browseImage.Bounds.Width / 2, browseImage.Bounds.Height / 2), window)!.Value;
+        window.MouseMove(browsePoint);
+        window.MouseDown(browsePoint, MouseButton.Left); window.MouseUp(browsePoint, MouseButton.Left); Pump(); Pump();
+        Check(!previewView.GetVisualDescendants().OfType<TextBox>().Any(box => box.IsEffectivelyVisible),
+            "阅读页签点击图表不再展开源码面板");
+        Check(vm.Markdown.Contains("A --> Z", StringComparison.Ordinal), "阅读页签点击图表不改写正文");
 
         // 面板视觉核对：外观弹层 / 语言弹层 / 搜索条（对照原型截图）。
         var appearanceMenu = window.FindControl<ShellAppearanceMenuView>("AppearanceMenu")!;

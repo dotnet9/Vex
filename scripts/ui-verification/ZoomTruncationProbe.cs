@@ -340,10 +340,18 @@ internal static class ZoomTruncationProbe
                     $"{zoom}% 图表卡留出徽标站位（own {card?.Bounds.Height:F0} ≥ 120，留白 {(card?.Padding.Left ?? 0):F0}）");
                 // 徽标是悬浮件，原型靠卡片留白 + 120 最低高把它让在图形上方。图形按 Uniform 居中，
                 // 所以「不压过画面纵向 35%」等价于「不压到居中的节点带」——修之前 200% 这里压到 52%。
-                Check(badge is not null && picture is not null
-                    && badge.Bounds.Bottom <= picture.Bounds.Top + picture.Bounds.Height * .35 + 1,
-                    $"{zoom}% 徽标没压在图表节点带上（徽标底 {badge?.Bounds.Bottom:F0} ≤ 画面上沿 {picture?.Bounds.Top:F0}" +
-                    $" + 35% 画面高 {picture?.Bounds.Height * .35:F0}）");
+                // 阅读页签已收敛为纯浏览：图表不带徽标（也就没有可被压住的徽标），让位检查只在有徽标时跑。
+                if (badge is null)
+                {
+                    Console.WriteLine($"BADGE {zoom}% 阅读形态图表无 mermaid 徽标，跳过让位检查");
+                }
+                else
+                {
+                    Check(picture is not null
+                        && badge.Bounds.Bottom <= picture.Bounds.Top + picture.Bounds.Height * .35 + 1,
+                        $"{zoom}% 徽标没压在图表节点带上（徽标底 {badge.Bounds.Bottom:F0} ≤ 画面上沿 {picture?.Bounds.Top:F0}" +
+                        $" + 35% 画面高 {picture?.Bounds.Height * .35:F0}）");
+                }
                 if (scale > 1 && diagramBaseline > 0)
                     Check(diagram.Bounds.Height * scale >= diagramBaseline - 1,
                         $"{zoom}% 放大后图表物理高不缩水（{diagram.Bounds.Height * scale:F0} ≥ {diagramBaseline:F0}）");

@@ -21,7 +21,14 @@ public partial class MarkdownPreviewView : UserControl
         {
             PaneHeader.IsVisible = false;
             PreviewMarkdownViewer.Classes.Set("reading-flow", IsReadingMode);
+            ApplyDiagramEditingAffordance();
             ApplyDocumentGeometry();
+        }
+        else if (change.Property == IsVisibleProperty && IsVisible && _viewModel is not null)
+        {
+            // 经即时等隐藏布局回来时正文往往原样复用（Markdown 未变就不重绘）：
+            // 阅读期换下的纯图不能滞留在编辑对照里，按当前形态补一次换装。
+            ApplyDiagramEditingAffordance();
         }
     }
     private MarkdownPreviewViewModel? _viewModel;
@@ -159,6 +166,20 @@ public partial class MarkdownPreviewView : UserControl
         _savedReadingPosition = PreviewMarkdownViewer.SaveReadingPosition();
         QueueRestoreReadingPosition(args.Markdown);
         _viewModel.CommitDiagramEdit(args.OriginalMarkdown, args.Markdown, args.Start);
+    }
+
+    // 阅读与编辑对照共用这一个预览实例：IsReadingMode 翻转时库内两个图表开关
+    // （MermaidEditing 渲染包装 + IsDiagramEditingEnabled 点击闸）由绑定一起换档，
+    // 但已渲染的图表块不会自行重建，这里补一次整篇重绘让编辑包装换上/换下。
+    // 只在窗格在场时做（经即时等隐藏布局回到编辑对照由 OnIsVisibleChanged 补一次），
+    // 演示态有自己的锚点链路且入退场都整篇换文档，也不在这里插手。
+    private void ApplyDiagramEditingAffordance()
+    {
+        if (_viewModel?.IsPresenting == true || _viewModel?.IsPreviewVisible != true) return;
+        // 切走前先把仍持有焦点的图表源码按保存/关闭同一条链路提交，重绘才不会丢掉未提交的编辑。
+        CodeWF.Avalonia.Markdown.Mermaid.MermaidEditing.CommitPendingEdits(PreviewMarkdownViewer);
+        PreviewMarkdownViewer.Rerender();
+        QueueRestoreReadingPosition();
     }
 
     public void FlushDiagramEdits() => CodeWF.Avalonia.Markdown.Mermaid.MermaidEditing.CommitPendingEdits(PreviewMarkdownViewer);

@@ -23,6 +23,8 @@ public sealed class HelpDocumentWindow : Window
         var viewer = new MarkdownViewer
         {
             Markdown = markdown,
+            // 只读帮助文档：点 Mermaid 图不展开源码输入，保持纯浏览。
+            IsDiagramEditingEnabled = false,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
             Margin = new Thickness(28, 22, 28, 32),

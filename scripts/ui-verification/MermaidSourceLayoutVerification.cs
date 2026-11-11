@@ -57,6 +57,20 @@ internal static class MermaidSourceLayoutVerification
             } while (DateTime.UtcNow < deadline);
             var kind = source.Split('\n')[0];
             Check(image is not null, $"Diagram renders before source click: {layout}/{theme}/{kind}");
+            if (layout == "read")
+            {
+                // 阅读页签是纯浏览：图表照常出图（无编辑包装），点击不再展开源码框，mermaid 徽标一并隐藏。
+                var documentBeforeClick = vm.Markdown;
+                Click(image!);
+                Check(!root.GetVisualDescendants().OfType<TextBox>().Any(input => input.IsEffectivelyVisible),
+                    $"Read tab keeps diagrams browse-only without a source editor: {theme}/{kind}");
+                Check(vm.Markdown == documentBeforeClick,
+                    $"Read tab diagram click never rewrites the document: {theme}/{kind}");
+                var browseDiagram = image!.GetVisualAncestors().OfType<Border>().FirstOrDefault(border => border.Classes.Contains("MdMermaid"));
+                Check(browseDiagram is null || !browseDiagram.GetVisualDescendants().OfType<Button>().Any(b => Equals(b.Content, "mermaid")),
+                    $"Read tab hides the mermaid badge: {theme}/{kind}");
+                continue;
+            }
             Click(image!);
             var editor = root.GetVisualDescendants().OfType<TextBox>().SingleOrDefault(input =>
                 input.Classes.Contains("MdMermaidSourceInput") && input.IsEffectivelyVisible)

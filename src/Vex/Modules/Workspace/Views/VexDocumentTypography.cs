@@ -25,8 +25,7 @@ internal static class VexDocumentTypography
         resources["CodeWFMarkdownListMargin"] = new Thickness(0, 0, 0,
             article.BodySize * 1.15 - Math.Max(0, Thickness.Parse(article.Quote.Margin).Top - 8));
         resources["CodeWFMarkdownTableCellPadding"] = new Thickness(13, 10);
-        resources["CodeWFMarkdownTableCellFontSize"] = article.BodySize * .75;
-        resources["CodeWFMarkdownTableCellLineHeight"] = article.BodySize * article.Leading * .75;
+        // 单元格字号/行高与正文同源（库层 TableRenderer 直接绑定 ParagraphFontSize/LineHeight），App 不再单独缩小表格字号。
         resources["CodeWFMarkdownTableCornerRadius"] = new CornerRadius(10);
         resources["VexTableInnerMargin"] = new Thickness(0, article.BodySize * .75 * 1.35);
         resources["VexTableBlockMargin"] = new Thickness(0,

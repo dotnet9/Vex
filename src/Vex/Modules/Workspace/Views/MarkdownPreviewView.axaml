@@ -42,8 +42,9 @@
             <!-- 正文边距与限宽由 ApplyDocumentGeometry 按单阅读/分栏和实际视口计算。 -->
             <md:MarkdownViewer
                 x:Name="PreviewMarkdownViewer"
-                md:MermaidEditing.IsEnabled="True"
+                md:MermaidEditing.IsEnabled="{Binding IsDiagramEditingEnabled}"
                 md:MermaidEditing.EditCommitted="OnDiagramEditCommitted"
+                IsDiagramEditingEnabled="{Binding IsDiagramEditingEnabled}"
                 IsTaskEditingEnabled="{Binding IsTaskEditingEnabled}"
                 Margin="52,30,52,88"
                 ImageBasePath="{Binding ImageBasePath}"

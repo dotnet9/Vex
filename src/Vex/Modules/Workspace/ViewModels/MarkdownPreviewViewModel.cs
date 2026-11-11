@@ -15,7 +15,15 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     private readonly IEditorAppearanceState _appearanceState;
     private readonly Vex.Modules.Shell.ViewModels.ShellWorkbenchViewModel _workbench;
     public bool IsTaskEditingEnabled => _workbench.IsSourceEditing;
+    /// <summary>
+    /// Mermaid 图表点开源码编辑只属于编辑形态（即时/源码对照的预览窗格）；
+    /// 阅读页签是纯浏览（演示入场即置阅读视图，一并覆盖），点图不再展开源码框。
+    /// 库内的 MermaidEditing 渲染开关与 MarkdownViewer.IsDiagramEditingEnabled 点击开关共用这一位。
+    /// </summary>
+    public bool IsDiagramEditingEnabled => !_workbench.IsReading;
     public bool IsPresenting => _workbench.IsPresenting;
+    /// <summary>预览窗格是否在场（跟随工作台布局的渲染列）；视图用它决定要不要为形态切换重绘。</summary>
+    public bool IsPreviewVisible => _workbench.IsPreviewVisible;
     public double PresentationZoom => IsPresenting ? _workbench.PresentationZoom : 1;
     /// <summary>阅读使用整篇 zoom；演示只缩放排版字号，屏幕内距与边框保持固定。</summary>
     public double DocumentScale => IsPresenting ? 1 : Preferences.ContentZoomFactor;
@@ -217,6 +225,14 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         if (e.PropertyName == nameof(_workbench.IsSourceEditing))
         {
             this.RaisePropertyChanged(nameof(IsTaskEditingEnabled));
+        }
+        if (e.PropertyName == nameof(_workbench.IsReading))
+        {
+            this.RaisePropertyChanged(nameof(IsDiagramEditingEnabled));
+        }
+        if (e.PropertyName == nameof(_workbench.IsPreviewVisible))
+        {
+            this.RaisePropertyChanged(nameof(IsPreviewVisible));
         }
     }
 
