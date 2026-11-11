@@ -3,7 +3,7 @@
     <MicrosoftNetTestSdkVersion>18.11.0</MicrosoftNetTestSdkVersion>
     <XunitVersion>2.9.3</XunitVersion>
     <XunitRunnerVisualStudioVersion>4.0.1</XunitRunnerVisualStudioVersion>
-    <CodeWFAvaloniaVersion>12.1.6.2</CodeWFAvaloniaVersion>
+    <CodeWFAvaloniaVersion>12.1.6.3</CodeWFAvaloniaVersion>
     <CodeWFToolkitVersion>1.1.6</CodeWFToolkitVersion>
     <AvaloniaVersion>12.1.6</AvaloniaVersion>
     <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
