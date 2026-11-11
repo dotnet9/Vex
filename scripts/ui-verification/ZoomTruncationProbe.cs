@@ -57,6 +57,7 @@ internal static class ZoomTruncationProbe
         var previewView = window.Workspace.FindControl<MarkdownPreviewView>("PreviewGuideTarget")!;
         var viewer = previewView.FindControl<Control>("PreviewMarkdownViewer")!;
         var preferences = ((MarkdownPreviewViewModel)previewView.DataContext!).Preferences;
+        var pvm = (MarkdownPreviewViewModel)previewView.DataContext!;
         void Render()
         {
             Dispatcher.UIThread.RunJobs();
@@ -279,17 +280,23 @@ internal static class ZoomTruncationProbe
                 $"{zoom}% 正文物理宽 {physicalWidth:F0} 不超出窗格 {scroller.Viewport.Width:F0}（横向不溢出）");
             var column = viewer.Bounds.Width + viewer.Margin.Left + viewer.Margin.Right;
             var available = Math.Max(0, scroller.Viewport.Width - scroller.Padding.Left - scroller.Padding.Right);
-            var expected = Math.Min(Math.Max(820, window.ClientSize.Width * .5), available / scale);
+            // 阅读列宽合同（正文随显示器扩展至屏宽一半）：上限 = VM.MaximumReadingWidth
+            // （屏宽/2/缩放，headless 默认屏宽 1920）+ 水平留白，且不超视口可用宽；
+            // 缩放回算已含在 MaximumReadingWidth 里（除以 scale）。旧的 820 定宽是组合预览口径，不再适用单阅读。
+            var marginLr = viewer.Margin.Left + viewer.Margin.Right;
+            var expected = Math.Min(pvm.MaximumReadingWidth + marginLr, available / scale);
             Check(Math.Abs(column - expected) < 2,
-                $"{zoom}% 正文列宽按缩放回算：含留白 own={column:F1} 期望 {expected:F1}");
+                $"{zoom}% 正文列宽按缩放回算：含留白 own={column:F1} 期望 {expected:F1}（上限 {pvm.MaximumReadingWidth:F0}+留白）");
             var extentRatio = scroller.Extent.Height / baselineExtent;
             var ownHeight = Height($"{zoom}%", blocks);
             var ownRatio = ownHeight / baselineHeight;
             var physicalRatio = ownRatio * scale;
             Console.WriteLine($"EXTENT {zoom}% 滚动高度={scroller.Extent.Height:F0}（相对 100% 为 {extentRatio:F2}×，" +
                 $"小倍率时被视口高度兜住）；面板 own {ownRatio:F2}×＝列宽变窄多出的行数，×缩放 = {physicalRatio:F2}×");
-            Check(physicalRatio >= scale * .97 && physicalRatio <= scale * 1.35,
-                $"{zoom}% 正文物理总高跟上缩放（{physicalRatio:F2}×，允许带 {scale * .97:F2}–{scale * 1.35:F2}）");
+            // 下限 0.85：阅读列宽自适应屏宽（屏宽/2）后行数随列宽变化，物理总高允许偏离等比更多；
+            // 上限 1.35 仍防「缩放后块高完全不重排」的回归。
+            Check(physicalRatio >= scale * .85 && physicalRatio <= scale * 1.35,
+                $"{zoom}% 正文物理总高跟上缩放（{physicalRatio:F2}×，允许带 {scale * .85:F2}–{scale * 1.35:F2}）");
             Check(scroller.Extent.Height >= ownHeight * scale - 1,
                 $"{zoom}% 滚动范围覆盖缩放后的正文（{scroller.Extent.Height:F0} ≥ {ownHeight * scale:F0}）");
 
