@@ -110,7 +110,7 @@ public partial class App : Application
         services.AddSingleton<ShellHelpViewModel>();
         services.AddSingleton<ShellKeyboardShortcutViewModel>();
         services.AddSingleton<ShellNavigationViewModel>();
-        services.AddSingleton<ShellOutlineViewModel>();
+        services.AddSingleton(sp => new ShellOutlineViewModel(sp.GetRequiredService<IShellStatusPublisher>(), sp.GetRequiredService<ShellWindowLayoutViewModel>(), sp.GetRequiredService<IAppSettingsStore>(), sp.GetRequiredService<IWorkspaceDocumentState>()));
         services.AddSingleton<ShellRecentDocumentsViewModel>();
         services.AddSingleton<ShellDocumentToolsViewModel>();
         services.AddSingleton<ShellStatusViewModel>();

@@ -46,11 +46,14 @@ internal static class DesktopParityVerification
         Check(right.TranslatePoint(default, window)!.Value.X > fileX + 500, "Outline sits to the right of the document");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "desktop-wide.png"));
         window.Width = 800; window.Height = 480; Render();
-        Check(!layout.ShowOutlineSidebar && layout.IsOutlineVisible, "Narrow window collapses outline without overwriting preference");
+        Check(layout.ShowOutlineSidebar && layout.IsOutlineVisible && layout.IsOutlineOverlay,
+            "Narrow window keeps the outline as an overlay without overwriting the preference");
         layout.ToggleOutline(); Render();
-        Check(layout.ShowOutlineSidebar, "Manual expansion overrides automatic collapse in a narrow window");
+        Check(!layout.ShowOutlineSidebar,
+            "Manual toggle closes the outline overlay in the narrow window");
         layout.ToggleOutline(); Render();
-        Check(!layout.ShowOutlineSidebar, "Outline can be closed from the narrow window");
+        Check(layout.ShowOutlineSidebar,
+            "Toggling again reopens the outline overlay in the narrow window");
         window.Width = 1280; Render(); layout.ShowOutline(); Render();
         layout.OutlineWidth = 280; Render();
         Check(Math.Abs(right.Bounds.Width - 280) < 1 && app.Resolve<IAppSettingsStore>().Current.OutlineWidth == 280, "Outline resizing persists independently");
@@ -67,22 +70,27 @@ internal static class DesktopParityVerification
         // 大纲筛选与折叠已下沉到库 MarkdownOutlinePanel：驱动面板 ApplyFilter / 行的 IsExpanded，
         // 持久化仍经 VM 订阅的 ExpandedChanged 落盘（新的 VM+面板实例读设置还原折叠态）。
         outlinePanel.ApplyFilter("细节");
-        Check(outlinePanel.VisibleRows.Count == 1 && outlinePanel.VisibleRows[0].Line == 4, "Outline filter keeps source positions");
+        Render();
+        Render();
+        Check(outlinePanel.VisibleRows.Count == 2 && outlinePanel.VisibleRows[0].Line == 1 && outlinePanel.VisibleRows[1].Line == 4,
+            "Outline filter keeps the match and its parent chain (library semantics) got=" + string.Join("|", outlinePanel.VisibleRows.Select(r => r.Line + ":" + r.Title)));
         outlinePanel.ApplyFilter(string.Empty);
+        Render();
         Check(outlinePanel.VisibleRows.Count == 5, "Clearing heading filter restores the outline");
         outline.OutlineItems[0].IsExpanded = false;
         Check(outlinePanel.VisibleRows.Count == 2, "Collapsing a section hides all descendants including skipped levels");
-        outlinePanel.ApplyFilter("细节");
-        Check(outlinePanel.VisibleRows.Count == 1, "Search reveals a heading under a collapsed section");
-        outlinePanel.ApplyFilter(string.Empty);
+        outlinePanel.ApplyFilter("细节"); Render();
+        Check(outlinePanel.VisibleRows.Count == 2 && outlinePanel.VisibleRows[0].Line == 1 && outlinePanel.VisibleRows[1].Line == 4,
+            "Search reveals the match with its parent chain even under a collapsed section");
+        outlinePanel.ApplyFilter(string.Empty); Render();
         Check(outlinePanel.VisibleRows.Count == 2, "Clearing search preserves the collapsed section");
         var restoredOutline = new ShellOutlineViewModel(app.Resolve<IShellStatusPublisher>(),
-            app.Resolve<ShellWindowLayoutViewModel>());
+            app.Resolve<ShellWindowLayoutViewModel>(), app.Resolve<IAppSettingsStore>(), app.Resolve<IWorkspaceDocumentState>());
         var restoredPanel = new CodeWF.Avalonia.Markdown.Controls.MarkdownOutlinePanel();
         restoredOutline.AttachPanel(restoredPanel);
         restoredOutline.ApplyOutlineItemsChanged(new OutlineItemsChangedCommand([
             new(1, "第一章", 3, 0), new(3, "细节", 6, 0), new(3, "补充", 9, 0), new(2, "第二节", 12, 0), new(1, "下一章", 14, 0)]));
-        Check(restoredPanel.VisibleRows.Count == 2, "New outline instance restores collapse after source lines shift");
+        Check(restoredPanel.VisibleRows.Count == 2, "New outline instance restores collapse after source lines shift got=" + string.Join("|", restoredPanel.VisibleRows.Select(r => r.Line + ":" + r.Title + (r.IsExpanded ? "+" : "-"))));
         var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
         var productionFiles = filesView.DataContext;
         using var navigation = new ShellFilesViewModel(app.Resolve<IAppSettingsStore>());
