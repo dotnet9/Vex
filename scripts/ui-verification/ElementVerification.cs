@@ -326,6 +326,10 @@ internal static class ElementVerification
             new ShellActionCommand(ShellActionKind.ShowFindPanel));
         Pump(); Pump();
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "panel-find.png"));
+        // 收起视觉核对段留下的查找条：后续表格预览段依赖稳定的预览布局与指针路由，
+        // 悬浮面板留在屏上会让 headless 点击命中浮层而不是表格工具钮。
+        window.KeyPress(Avalonia.Input.Key.Escape, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Escape, null);
+        Pump(); Pump();
         TablePreviewVerification.Run(window, output);
     }
 

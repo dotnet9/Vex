@@ -90,6 +90,10 @@ internal static class TablePreviewVerification
             } while (DateTime.UtcNow < deadline);
             Check(viewer.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!.CurrentModel.Source == table,
                 "Preview waits for the current document to finish rendering");
+            // 表格字号与正文同源后变高，工具钮可能落在首屏视口外——点击前先滚入视野，
+            // 否则 headless 的窗口坐标点击会落空（点不到 preview 钮，TablePreviewView 永不挂载）。
+            foreach (var action in actions) action.BringIntoView();
+            Render();
             if (actions.Length != 3)
             {
                 Console.WriteLine($"TABLE ACTIONS count={actions.Length}, layout={vm.Workbench.WorkspaceLayout}, viewer={viewer.Bounds}, visible={viewer.IsEffectivelyVisible}");
