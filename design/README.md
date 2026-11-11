@@ -11,6 +11,22 @@ node design/scripts/verify.cjs     # 静态检查：脚本可解析、引用文�
 
 直接双击 `Vex.html` 也可离线浏览，但需先 `node design/scripts/sync.cjs` 生成 `assets/prototype/project-info.js` 与 `assets/generated/documents-data.js`。
 
+## 维护纪律（改 docs 后必读）
+
+- **改 `docs/更新日志.md`、`docs/鸣谢.md` 或版本号后，必须依次跑**
+  `node design/scripts/sync.cjs`（重生成原型副本）→ `node design/scripts/verify.cjs`（门禁）；
+  安装器内嵌另跑 `python scripts/installer/embed_changelog.py --regen` + 无参校验。
+  三者数据源相同，漏跑任何一步都会在 CI 或安装器里出现"逐字不一致"。
+- **条目标签白名单**（verify.cjs 逐行审计）：`✨[新增]`、`⚡[优化]`、`🐛[修复]`、
+  `✅[验证]`、`😄[新增]`、`🔨[优化]`、`❌[删除]`。没有 `[功能]` 档——版本递增的
+  "功能"分类只属于 `scripts/bump-version.ps1` 的提交标题口径，不进日志条目。
+- **行尾陷阱**：本仓 docs 为 CRLF。用脚本往文件里插行时，锚点定位到 `
+` 前插入会
+  造出 `
+` 混行尾（verify 只归一 `
+`，孤立 `` 会残留成 diff）。插入后
+  整文件归一一次行尾，或插入前后各跑一次 verify。
+
 ## 结构
 
 | 位置 | 内容 |
