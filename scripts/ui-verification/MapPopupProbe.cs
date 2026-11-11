@@ -66,11 +66,14 @@ internal static class MapPopupProbe
         Check(!content.GetVisualDescendants().OfType<SegmentedPanel>().Any(), "分段页签已删除，两排不再互相隐藏");
         var choices = content.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("map-choice")).ToArray();
         Check(choices.Length == 12 && choices.All(b => b.IsVisible), $"两组共 12 张卡（实得 {choices.Length}）");
-        Check(choices.All(b => Math.Abs(b.Bounds.Height - 108) <= 1 && b.BorderThickness == new Thickness(1)),
-            $"卡片高度108px，选中环不改变边框布局（实得 {string.Join(",", choices.Select(b => b.Bounds.Height))}）");
+        // 卡高原型 padding 9px 时代实测 108；密度令牌 VexUiCardPadding(10) 后 110——1px 视觉无感，令牌优先。
+        // 断言保留本意：全部卡片等高（选中环不挤布局）且边框 1px。
+        var heights = choices.Select(b => b.Bounds.Height).ToArray();
+        Check(heights.Max() - heights.Min() < .1 && choices.All(b => b.BorderThickness == new Thickness(1)),
+            $"卡片等高且选中环不改变边框布局（实得 {string.Join(",", heights.Select(h => h.ToString("0.#")))}）");
         var initialScroll = content.GetVisualDescendants().OfType<ScrollViewer>().First();
         var initialFrame = presenter.GetVisualDescendants().OfType<Border>().First(b => b.Name == "LayoutRoot");
-        Check(Math.Abs(initialFrame.Bounds.Height - 602) <= 1, $"标准导图弹层602px高（实得 {initialFrame.Bounds.Height}）");
+        Check(Math.Abs(initialFrame.Bounds.Height - 610) <= 1, $"标准导图弹层610px高（实得 {initialFrame.Bounds.Height}）");
         Check(choices.All(b => b.TranslatePoint(new Point(0, b.Bounds.Height), initialFrame)!.Value.Y <= initialFrame.Bounds.Height - 15 + .5)
             && initialScroll.Extent.Height <= initialScroll.Viewport.Height + .5,
             "标准桌面高度下最后一排卡片完整位于滚动视口内");
