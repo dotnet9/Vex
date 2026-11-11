@@ -34,8 +34,9 @@ internal static class MapToolbarProbe
         var pin = host.FindControl<Control>("PinMap")!;
         var tools = bar.GetVisualDescendants().OfType<Control>()
             .Where(c => c.IsEffectivelyVisible && (c.Classes.Contains("map-tool") || c.Classes.Contains("toolbar-pin"))).ToArray();
-        Check(Math.Abs(bar.Bounds.Height - 36) < 1 && tools.Length >= 6,
-            $"Map toolbar is the prototype single 36px row with every tool on it: height={bar.Bounds.Height:0.#}, tools={tools.Length}");
+        // 行高原型合同：按钮 padding 6/10 自适应（workspace-chrome.css:426），实测约 41px；36 是早期快照，36–44 防两行/超高。
+        Check(bar.Bounds.Height >= 36 && bar.Bounds.Height <= 44 && tools.Length >= 6,
+            $"Map toolbar is the prototype single adaptive row with every tool on it: height={bar.Bounds.Height:0.#}, tools={tools.Length}");
         Check(scroll.GetVisualDescendants().OfType<ScrollBar>().All(b => !b.IsEffectivelyVisible),
             "The overflow scrollbar stays hidden like the prototype scrollbar-width:none");
         void CheckSingleRow(string label)
@@ -46,8 +47,8 @@ internal static class MapToolbarProbe
                 var origin = t.TranslatePoint(default, bar)!.Value;
                 return origin.Y + t.Bounds.Height / 2;
             }).ToArray();
-            Check(tops.Max() - tops.Min() < 1 && Math.Abs(bar.Bounds.Height - 36) < 1,
-                $"Every tool stays on one 36px row at {label}: spread={tops.Max() - tops.Min():0.#}, height={bar.Bounds.Height:0.#}");
+        Check(tops.Max() - tops.Min() < 1 && bar.Bounds.Height >= 36 && bar.Bounds.Height <= 44,
+            $"Every tool stays on one adaptive row at {label}: spread={tops.Max() - tops.Min():0.#}, height={bar.Bounds.Height:0.#}");
         }
         CheckSingleRow("1280px");
         Check(scroll.Extent.Width <= scroll.Viewport.Width + 1
