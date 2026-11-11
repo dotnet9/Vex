@@ -29,6 +29,8 @@ internal static class MermaidSourceLayoutVerification
             point = control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), window)!.Value;
             window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); Render();
         }
+        // 阅读态放大对话框是库内 internal 类型，挂在窗口 OverlayLayer 上，按样式类从视觉树识别。
+        bool OverlayOpen() => window.GetVisualDescendants().OfType<Panel>().Any(panel => panel.Classes.Contains("MdMediaZoomDialog"));
         foreach (var theme in new[] { "light", "dark" })
         foreach (var layout in new[] { "read", "instant" })
         foreach (var source in sources)
@@ -59,7 +61,8 @@ internal static class MermaidSourceLayoutVerification
             Check(image is not null, $"Diagram renders before source click: {layout}/{theme}/{kind}");
             if (layout == "read")
             {
-                // 阅读页签是纯浏览：图表照常出图（无编辑包装），点击不再展开源码框，mermaid 徽标一并隐藏。
+                // 阅读页签是纯浏览：图表照常出图，点击不再展开源码框而是弹放大查看对话框
+                // （MdMediaZoomDialog 遮罩），mermaid 徽标在交互包装里按 IsDiagramEditingEnabled=false 隐藏。
                 var documentBeforeClick = vm.Markdown;
                 Click(image!);
                 Check(!root.GetVisualDescendants().OfType<TextBox>().Any(input => input.IsEffectivelyVisible),
@@ -67,8 +70,18 @@ internal static class MermaidSourceLayoutVerification
                 Check(vm.Markdown == documentBeforeClick,
                     $"Read tab diagram click never rewrites the document: {theme}/{kind}");
                 var browseDiagram = image!.GetVisualAncestors().OfType<Border>().FirstOrDefault(border => border.Classes.Contains("MdMermaid"));
-                Check(browseDiagram is null || !browseDiagram.GetVisualDescendants().OfType<Button>().Any(b => Equals(b.Content, "mermaid")),
-                    $"Read tab hides the mermaid badge: {theme}/{kind}");
+                var badges = browseDiagram?.GetVisualDescendants().OfType<Button>().Where(b => Equals(b.Content, "mermaid")).ToArray() ?? [];
+                // 徽标仍留在视觉树里（交互包装承担放大点击），只按「不可见」断言；与上方源码框的 IsEffectivelyVisible 口径一致。
+                Check(badges.All(badge => !badge.IsEffectivelyVisible),
+                    $"Read tab hides the mermaid badge: {theme}/{kind}; badges={badges.Length}, visible={badges.Count(badge => badge.IsEffectivelyVisible)}");
+                // 点击应弹出放大对话框；断言其出现后按 Esc 收起，避免遮罩残留挡住后续迭代与布局切换后的点击。
+                var zoomDeadline = DateTime.UtcNow.AddSeconds(5);
+                while (!OverlayOpen() && DateTime.UtcNow < zoomDeadline) { Render(); Thread.Sleep(10); }
+                Check(OverlayOpen(), $"Read tab diagram click opens the media zoom dialog: {theme}/{kind}");
+                window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+                zoomDeadline = DateTime.UtcNow.AddSeconds(5);
+                while (OverlayOpen() && DateTime.UtcNow < zoomDeadline) { Render(); Thread.Sleep(10); }
+                Check(!OverlayOpen(), $"Read tab zoom dialog closes on Escape: {theme}/{kind}");
                 continue;
             }
             Click(image!);

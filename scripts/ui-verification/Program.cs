@@ -1301,7 +1301,7 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
     var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!.Editor;
     window.WindowState = WindowState.Normal;
     // 分页与多布局查看器会在视觉树里留下有效可见但不在视口内的离屏副本（截图证实屏幕上只有一张表），
-    // 一切表格/图片查询都必须按「完整落在窗口客户区内」过滤，Single 才指向真正显示的那份。
+    // 图片与短表格查询按「完整落在窗口客户区内」过滤，Single 才指向真正显示的那份；长表格见下方 TableDisplayedIn。
     bool DisplayedIn(Control control)
     {
         if (!control.IsEffectivelyVisible) return false;
@@ -1310,6 +1310,18 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
             && point.X > -2 && point.Y > -2
             && point.X + control.Bounds.Width <= window.Bounds.Width + 2
             && point.Y + control.Bounds.Height <= window.Bounds.Height + 2;
+    }
+    // 表格专用：起点在客户区内、水平方向完整落在窗口内即算「正在显示的那份」，纵向允许越过窗口底边。
+    // 单元格字号与正文同源后，窄预览栏（980 宽的源码+预览）里的长表格会高过视口，超出部分是正常滚动内容；
+    // 仍按「完整落在客户区」等待的话这一状态永远不会到来。离屏副本的起点不在客户区内，照旧被排除。
+    bool TableDisplayedIn(Control control)
+    {
+        if (!control.IsEffectivelyVisible) return false;
+        var pos = control.TranslatePoint(default, window);
+        return pos is { } point
+            && point.X > -2 && point.Y > -2
+            && point.X + control.Bounds.Width <= window.Bounds.Width + 2
+            && point.Y < window.Bounds.Height;
     }
     foreach (var width in new[] { 1380, 980 })
     foreach (var theme in new[] { "light", "dark" })
@@ -1324,10 +1336,10 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
         foreach (var (kind, source) in new[] { ("pipe", pipe), ("html", html) })
         {
             vm.Markdown = source; Pump(); SettleRendering();
-            PumpUntil(() => host.GetVisualDescendants().OfType<Grid>().Any(grid => grid.Classes.Contains("MdTable") && grid.Bounds.Height > 1 && DisplayedIn(grid)
+            PumpUntil(() => host.GetVisualDescendants().OfType<Grid>().Any(grid => grid.Classes.Contains("MdTable") && grid.Bounds.Height > 1 && TableDisplayedIn(grid)
                 && grid.Children.OfType<Border>().Count(cell => cell.Classes.Contains("MdTableHeaderCell")) == 3));
             var grids = host.GetVisualDescendants().OfType<Grid>()
-                .Where(g => g.Classes.Contains("MdTable") && g.Bounds.Height > 1 && DisplayedIn(g)
+                .Where(g => g.Classes.Contains("MdTable") && g.Bounds.Height > 1 && TableDisplayedIn(g)
                     && g.Children.OfType<Border>().Count(cell => cell.Classes.Contains("MdTableHeaderCell")) == 3).ToArray();
             Check(grids.Length > 0, $"{width} {theme} {layout} {kind}: rendered table is present");
             // 已知缺陷之二：source-render 等布局会渲染出未应用主题的重复表（表头 Background 为 null），
@@ -1374,8 +1386,9 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
     }
     vm.Markdown = pipe; vm.Workbench.SelectLayout("read"); Pump();
     vm.Workbench.StartPresentation(); Pump(); SettleRendering();
+    // 演示态单元格跟随演示正文字号（15 × 演示缩放），长表格同样会高过视口，按表格口径取正在显示的那份。
     var presentationGrid = preview.GetVisualDescendants().OfType<Grid>()
-        .Where(grid => grid.Classes.Contains("MdTable") && grid.Bounds.Height > 1 && DisplayedIn(grid)
+        .Where(grid => grid.Classes.Contains("MdTable") && grid.Bounds.Height > 1 && TableDisplayedIn(grid)
             && grid.Children.OfType<Border>().Count(cell => cell.Classes.Contains("MdTableHeaderCell")) == 3)
         .LastOrDefault();
     Check(presentationGrid is not null && TryDocumentWidth(presentationGrid, out var presentationWidth)
