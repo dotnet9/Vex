@@ -145,6 +145,8 @@ internal static class ZoomTruncationProbe
         }
 
         window.Width = 1280; window.Height = 820;
+        // 批量跑时共享的设置文件可能残留前一个模式的密度/排版档——探针显式重置，保证基线与运行顺序无关。
+        vm.Appearance.SelectedDensity = "normal";
         vm.Appearance.SelectLanguageByCulture("zh-CN");
         vm.Appearance.SelectThemeByKey("light");
         vm.Appearance.SelectPaletteByKey("indigo");
