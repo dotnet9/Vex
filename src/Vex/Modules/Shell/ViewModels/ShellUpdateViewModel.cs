@@ -176,8 +176,20 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
     /// <summary>药丸在后台态点击：恢复更新窗现场（不重新检查）。</summary>
     public void RestoreWindow() => RestoreWindowRequested?.Invoke(this, EventArgs.Empty);
 
-    /// <summary>气泡「完整日志」：打开内置《更新日志》文档。</summary>
-    public void OpenFullChangelog() => OpenChangelogRequested?.Invoke(this, EventArgs.Empty);
+    /// <summary>
+    /// 气泡「完整日志」：有远端新版日志时打开更新窗（窗内即新版分节完整日志）；
+    /// 仅在无新版日志可读时回退到内置《更新日志》文档（本机文档是旧版本的日志，不是更新的日志）。
+    /// </summary>
+    public void OpenFullChangelog()
+    {
+        if (HasReleaseNotes)
+        {
+            RestoreWindowRequested?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        OpenChangelogRequested?.Invoke(this, EventArgs.Empty);
+    }
 
     /// <summary>气泡「立即更新」：日志已在气泡看过，直接进入下载（原型同时打开更新窗显示进度）；
     /// 无包时退回更新窗走「打开发布页」链路。</summary>
