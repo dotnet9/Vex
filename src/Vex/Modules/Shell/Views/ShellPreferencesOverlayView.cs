@@ -116,6 +116,10 @@ public sealed class ShellPreferencesOverlayView : UserControl
             var iconCanvas = new Canvas { Width = 24, Height = 24 }; iconCanvas.Children.Add(icon);
             row.Children.Add(new Viewbox { Width = 17, Height = 17, Child = iconCanvas, VerticalAlignment = VerticalAlignment.Center });
             var label = new TextBlock { Text = L(c.Key), Classes = { "pref-navigation-label" }, VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(label, 1); row.Children.Add(label);
+            // 11-03 密度重构误删标签 14/21 本地值且未补类样式（字号掉回继承、harness 断言红）：
+            // 接密度令牌 MenuFontSize/BodyLineHeight（正常档 14/21，三档密度联动）。
+            BindResource(label, Avalonia.Controls.TextBlock.FontSizeProperty, "VexUiMenuFontSize");
+            BindResource(label, Avalonia.Controls.TextBlock.LineHeightProperty, "VexUiBodyLineHeight");
             var item = new ListBoxItem { Content = row, Classes = { "pref-navigation-item" }, Margin = new Thickness(0, 0, 0, 3), HorizontalContentAlignment = HorizontalAlignment.Stretch };
             // 原型 .vex-settings-nav button 用 --vex-radius-xs（4 基线，只乘 --radius-scale），不是固定 5。
             BindResource(item, ListBoxItem.CornerRadiusProperty, "VexDensityCornerRadiusXs");
