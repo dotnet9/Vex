@@ -30,6 +30,10 @@
     <AssemblyMetadata Include="Website" Value="$(PackageProjectUrl)" />
     <PackageReference Include="CodeWF.Toolkit.Core" />
     <AvaloniaResource Include="Assets\**" Exclude="Assets\FileIcons\**" />
+    <!-- 随包模板：目录驱动（子文件夹=分组，templates.json=元数据），安装目录内为只读根。 -->
+    <Content Include="Templates\**\*.md" Link="Templates\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <Content Include="Templates\templates.json" Link="Templates\templates.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <Content Include="Assets\FileIcons\**\*" Link="file-icons\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <AvaloniaResource Include="..\..\logo.ico" Link="Assets\logo.ico" />

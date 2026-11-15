@@ -399,6 +399,35 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             });
     }
 
+    /// <summary>
+    /// 从模板新建文档：走新建确认流，随后以模板内容填充新文档，
+    /// 文件名默认为模板名（保存时可改）。模板中心「新建文档」入口。
+    /// </summary>
+    public Task NewDocumentFromTemplateAsync(string fileName, string markdown)
+    {
+        return RequestUnsavedConfirmationAsync(
+            () =>
+            {
+                NewDocumentCore();
+                _document = _document with { FileName = fileName, Markdown = markdown };
+                Markdown = markdown;
+                RefreshDocumentInfo();
+                PublishWorkspaceDocumentState();
+                return Task.CompletedTask;
+            });
+    }
+
+    /// <summary>
+    /// 应用模板到当前文档：整体替换正文（同 ReplaceMarkdownFromMcp 通道，自动保存调度接管后续）；
+    /// 非编辑视图（阅读/导图）静默忽略，由调用方以 toast 提示。
+    /// </summary>
+    public void ApplyTemplateToCurrentDocument(string markdown)
+    {
+        if (!Workbench.IsEditing) return;
+        Markdown = markdown;
+        EditorActions.FocusEditor();
+    }
+
     private void NewDocumentCore(bool stopFolderWatcher = true)
     {
         CompleteRecoveredSave();

@@ -57,6 +57,15 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     // 复制路径只对文件项开放（目录项保持「打开文件位置」即可覆盖），与右键目标联动。
     public bool HasFilePathCommandTarget => (_contextDocumentFileNode ?? SelectedDocumentFileNode) is { IsPlaceholder: false, IsDocument: true };
     public void NewDocument() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.NewDocument));
+    /// <summary>把右键/选中的文件另存为用户模板：带文件路径打开模板中心的另存面板。</summary>
+    public void SaveSelectedFileAsTemplate()
+    {
+        if ((_contextDocumentFileNode ?? SelectedDocumentFileNode) is not { IsPlaceholder: false, IsDocument: true } node)
+        {
+            return;
+        }
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.ShowTemplateSave, node.Path));
+    }
     public void QuickOpen() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.QuickOpen));
     public void RefreshFiles() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.RefreshFiles));
     public void ClearFilter() => FilterText = string.Empty;

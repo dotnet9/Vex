@@ -115,6 +115,9 @@ public partial class App : Application
         services.AddSingleton<ShellDocumentToolsViewModel>();
         services.AddSingleton<ShellStatusViewModel>();
         services.AddSingleton<ShellTitleMenuViewModel>();
+        services.AddSingleton(sp => new Vex.Modules.Templates.Services.TemplateCatalog(
+            Vex.Modules.Templates.Services.TemplateCatalog.ResolveBuiltinRoot(),
+            () => sp.GetRequiredService<Vex.Core.Services.IAppSettingsStore>().Current.TemplatesPath));
         services.AddSingleton<ShellWindowLayoutViewModel>();
         services.AddSingleton<ShellWorkbenchViewModel>();
         services.AddSingleton<McpSettingsViewModel>();

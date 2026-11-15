@@ -149,4 +149,6 @@ public sealed record AppSettings
     public int? WatermarkWeight { get; init; }
     public string? PdfSize { get; init; }
     public double? PdfMargin { get; init; }
+    /// <summary>用户模板目录；空值用默认 %LocalAppData%/Vex/Templates。</summary>
+    public string? TemplatesPath { get; init; }
 }

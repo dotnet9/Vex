@@ -13,7 +13,8 @@
              「工具」并入文件，不设「文档操作/标题/编辑方式/侧栏与大纲/编辑显示/窗口」等二级聚合组。 -->
         <MenuItem x:Name="FileMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuFile}}">
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}" InputGesture="Ctrl+N" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewWindow}}" Command="{Binding NewWindow}" InputGesture="Ctrl+Shift+N" />
+            <MenuItem Header="{i18n:I18n Vex.VexL.TemplateFromNewMenu}" Command="{Binding NewFromTemplate}" />
+    <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewWindow}}" Command="{Binding NewWindow}" InputGesture="Ctrl+Shift+N" />
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFile}}" Command="{Binding OpenAsync}" InputGesture="Ctrl+O" />
             <MenuItem x:Name="OpenFolderMenuItem" Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}" />
@@ -34,6 +35,7 @@
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Save}}" Command="{Binding SaveAsync}" InputGesture="Ctrl+S" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.SaveAs}}" Command="{Binding SaveAsAsync}" InputGesture="Ctrl+Shift+S" />
+            <MenuItem Header="{i18n:I18n Vex.VexL.TemplateSaveAsMenu}" Command="{Binding SaveAsTemplate}" />
             <Separator />
             <MenuItem x:Name="ExportMenuItem" Header="{i18n:I18n {x:Static l:VexL.Export}}">
                 <MenuItem Header="{i18n:I18n Vex.VexL.DialogExportHtmlTitle}" Command="{Binding Export}" CommandParameter="HTML" />

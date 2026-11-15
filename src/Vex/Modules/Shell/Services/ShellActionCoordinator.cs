@@ -58,6 +58,12 @@ public sealed class ShellActionCoordinator
                 case ShellActionKind.NewDocument:
                     await _shell.NewDocument();
                     break;
+                case ShellActionKind.ShowTemplateCenter:
+                    await _overlay.ShowTemplateCenterAsync();
+                    break;
+                case ShellActionKind.ShowTemplateSave:
+                    await _overlay.ShowTemplateSaveAsync(command.Parameter);
+                    break;
                 case ShellActionKind.NewWindow:
                     Process.Start(ShellProcessLauncher.CreateStartInfo(command.Parameter));
                     break;

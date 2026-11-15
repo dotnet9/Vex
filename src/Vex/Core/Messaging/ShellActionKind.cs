@@ -23,6 +23,8 @@ public enum ShellActionKind
     ShowFindPanel,
     ShowReplacePanel,
     ShowPreferences,
+    ShowTemplateCenter,
+    ShowTemplateSave,
     ShowMcpSettings,
     ShowMcpAudit,
     RefreshFiles,

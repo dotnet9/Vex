@@ -33,6 +33,12 @@ public interface IShellOverlayService
 
     Task ShowMcpSettingsAsync(McpSettingsViewModel viewModel);
 
+    /// <summary>模板中心浮层；initialMode=SaveForm 直接进入另存当前文档为模板。</summary>
+    Task ShowTemplateCenterAsync(Vex.Modules.Templates.ViewModels.TemplateViewMode initialMode = Vex.Modules.Templates.ViewModels.TemplateViewMode.Picker, string? initialSourceFile = null);
+
+    /// <summary>另存为模板（独立菜单入口）；sourceFilePath 非空时以该文件为正文（文件列表右键入口）。</summary>
+    Task ShowTemplateSaveAsync(string? sourceFilePath = null);
+
     Task ShowMcpAuditAsync(Vex.Modules.Mcp.Services.IMcpOperationAuditService auditService, string title, string refreshText, string emptyText);
 
     /// <summary>Ctrl+P 快速打开浮层；返回用户选中的文件路径，取消返回 null。</summary>

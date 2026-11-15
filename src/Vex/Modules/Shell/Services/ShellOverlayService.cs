@@ -8,13 +8,14 @@ using CodeWF.Toolkit.Core.UpdateChecking;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Vex.Modules.Shell.Services;
 
 /// <summary>
 /// 设置、确认使用窗内浮层；检查更新是非模态小窗（可最小化，下载转后台）；内置文档交给独立工作台进程打开。
 /// </summary>
-public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer localizer, IDocumentWindowLauncher windows, IShellToastPublisher toasts) : IShellOverlayService, IDisposable
+public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer localizer, IDocumentWindowLauncher windows, IShellToastPublisher toasts, IServiceProvider provider) : IShellOverlayService, IDisposable
 {
     public Task<DocumentReviewChoice> ShowDocumentReviewAsync(ShellDocumentReviewModel model)
     {
@@ -119,6 +120,20 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
 
     public Task ShowMcpSettingsAsync(McpSettingsViewModel viewModel) =>
         ShowAsync(new McpSettingsOverlayView(), viewModel);
+
+    public Task ShowTemplateCenterAsync(Vex.Modules.Templates.ViewModels.TemplateViewMode initialMode = Vex.Modules.Templates.ViewModels.TemplateViewMode.Picker, string? initialSourceFile = null)
+    {
+        /* 延迟解析 MainWindowViewModel：ShellDialogsViewModel → 本服务 → 主窗体 VM 存在依赖链，构造期直取会循环。 */
+        var model = new Vex.Modules.Templates.ViewModels.TemplateCenterViewModel(
+            provider.GetRequiredService<Vex.Modules.Templates.Services.TemplateCatalog>(),
+            localizer,
+            new Vex.Modules.Templates.Services.MainWindowTemplateTarget(provider.GetRequiredService<MainWindowViewModel>()),
+            path => provider.GetRequiredService<ShellDialogsViewModel>().ShowDeleteConfirmationAsync(path),
+            toasts, initialMode);
+        return ShowAsync(new Vex.Modules.Templates.Views.TemplateCenterOverlayView(), model);
+    }
+
+    public Task ShowTemplateSaveAsync(string? sourceFilePath = null) => ShowTemplateCenterAsync(Vex.Modules.Templates.ViewModels.TemplateViewMode.SaveForm, sourceFilePath);
 
     public Task ShowMcpAuditAsync(IMcpOperationAuditService auditService, string title, string refreshText, string emptyText) =>
         ShowAsync(new McpAuditOverlayView(auditService, title, refreshText, emptyText), null);

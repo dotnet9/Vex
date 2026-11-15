@@ -52,6 +52,8 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
     public void NewDocument() => Publish(ShellActionKind.NewDocument);
 
     public void NewWindow() => Publish(ShellActionKind.NewWindow);
+    public void NewFromTemplate() => Publish(ShellActionKind.ShowTemplateCenter);
+    public void SaveAsTemplate() => Publish(ShellActionKind.ShowTemplateSave);
 
     public void OpenAsync() => Publish(ShellActionKind.Open);
 

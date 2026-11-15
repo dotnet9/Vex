@@ -347,6 +347,7 @@
                         Command="{Binding CopySelectedFilePathAsync}"
                         IsEnabled="{Binding HasFilePathCommandTarget}"/>
                     <Separator />
+                    <MenuItem Header="{i18n:I18n Vex.VexL.TemplateSaveAsMenu}" Command="{Binding SaveSelectedFileAsTemplate}" IsEnabled="{Binding HasFilePathCommandTarget}"/>
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}"/>
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFolder}}" Command="{Binding OpenFolderAsync}"/>
                     <MenuItem Header="{i18n:I18n {x:Static l:VexL.RemoveWorkspaceFolder}}" Command="{Binding RemoveWorkspaceFolderFromSelectionAsync}" IsEnabled="{Binding HasRemovableWorkspaceFolder}"/>

@@ -1,0 +1,133 @@
+<UserControl x:Class="Vex.Modules.Templates.Views.TemplateCenterOverlayView"
+ xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
+ xmlns:md="https://codewf.com" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+ xmlns:t="using:Vex.Modules.Templates"
+ xmlns:vm="using:Vex.Modules.Templates.ViewModels" x:DataType="vm:TemplateCenterViewModel">
+ <UserControl.Styles>
+  <Style Selector="ListBox.strip"><Setter Property="Background" Value="Transparent"/></Style>
+  <Style Selector="ListBoxItem.strip-item"><Setter Property="Padding" Value="10,4"/><Setter Property="Margin" Value="0,0,6,0"/><Setter Property="MinHeight" Value="28"/><Setter Property="CornerRadius" Value="14"/></Style>
+  <Style Selector="ListBox.template-list"><Setter Property="Background" Value="Transparent"/></Style>
+  <Style Selector="ListBoxItem.template-item"><Setter Property="Padding" Value="10,8"/><Setter Property="CornerRadius" Value="8"/><Setter Property="Margin" Value="0,0,0,6"/></Style>
+  <Style Selector="TextBox.template-input"><Setter Property="CornerRadius" Value="8"/></Style>
+  <!-- 搜索框：复用文件列表搜索框结构（放大镜居左 + 白底 pill） -->
+  <Style Selector="Border.search-frame"><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="16"/><Setter Property="Padding" Value="10,5"/></Style>
+  <Style Selector="TextBox.template-search"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="0"/><Setter Property="MinHeight" Value="0"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+  <Style Selector="TextBlock.hint"><Setter Property="FontSize" Value="11.5"/><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="Foreground" Value="{DynamicResource VexInkBrush}"/></Style>
+ </UserControl.Styles>
+ <Border Classes="dialog-card" Width="1060" MaxHeight="720" Padding="0" CornerRadius="8" ClipToBounds="True">
+  <Grid RowDefinitions="36,*">
+   <Border Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+    <Grid ColumnDefinitions="*,46" VerticalAlignment="Center"><TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Click="Close_OnClick" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Close}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}"/></Grid>
+   </Border>
+
+   <!-- ===== 选择面板：分组 / Tag / 列表 || 预览 ===== -->
+   <Grid Grid.Row="1" IsVisible="{Binding IsPicker}" ColumnDefinitions="320,*" RowDefinitions="*">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="0,12,0,0">
+     <ListBox x:Name="GroupsList" Classes="strip" Margin="14,0,0,0" ItemsSource="{Binding Groups}" SelectedIndex="{Binding SelectedGroupIndex}" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+      <ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+      <ListBox.ItemTemplate><DataTemplate x:DataType="vm:TemplateCenterViewModel+TemplateGroupOption"><TextBlock Text="{Binding DisplayName}" Padding="0"/></DataTemplate></ListBox.ItemTemplate>
+     </ListBox>
+     <Border Grid.Row="1" Classes="search-frame" Margin="14,10,14,0">
+      <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7">
+       <Viewbox Width="13" Height="13" VerticalAlignment="Center"><Canvas Width="24" Height="24">
+        <Path Classes="stroke-ico" Width="24" Height="24" Stretch="None" StrokeThickness="1.7" Data="M19 11A8 8 0 1 1 3 11A8 8 0 1 1 19 11 M21 21L16.65 16.65"/>
+       </Canvas></Viewbox>
+       <TextBox Grid.Column="1" Classes="template-search" PlaceholderText="{i18n:I18n Vex.VexL.TemplateFilterPlaceholder}" Text="{Binding SearchText}"/>
+      </Grid>
+     </Border>
+     <ListBox x:Name="TagsList" Grid.Row="2" Classes="strip" Margin="14,10,0,0" ItemsSource="{Binding TagFilters}" SelectedIndex="{Binding SelectedTagIndex}" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+      <ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+      <ListBox.ItemTemplate><DataTemplate x:DataType="x:String"><TextBlock Text="{Binding StringFormat='# {0}'}"/></DataTemplate></ListBox.ItemTemplate>
+     </ListBox>
+     <ListBox Grid.Row="3" Classes="template-list" Margin="10,8,10,8" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}">
+      <ListBox.ItemTemplate>
+       <DataTemplate x:DataType="t:TemplateItem">
+        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="3">
+         <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+          <TextBlock Grid.Column="1" Text="{Binding Standard}" Classes="muted" FontSize="10.5" Margin="8,0,0,0" IsVisible="{Binding HasStandard}"/>
+         </Grid>
+         <TextBlock Grid.Row="1" Text="{Binding Description}" Classes="muted" FontSize="11" TextWrapping="Wrap" IsVisible="{Binding HasDescription}"/>
+         <ItemsControl Grid.Row="2" ItemsSource="{Binding Tags}" IsVisible="{Binding HasTags}">
+          <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate><DataTemplate x:DataType="x:String"><TextBlock Text="{Binding StringFormat='# {0}'}" Classes="muted" FontSize="10.5"/></DataTemplate></ItemsControl.ItemTemplate>
+         </ItemsControl>
+        </Grid>
+       </DataTemplate>
+      </ListBox.ItemTemplate>
+     </ListBox>
+    </Grid>
+    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*,Auto" Margin="18,12,18,0">
+     <!-- 预览头部：名称 / 描述 / 标签 三行固定，不随内容滚动 -->
+     <StackPanel Spacing="4">
+      <TextBlock Text="{Binding PreviewName}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+      <TextBlock Text="{Binding PreviewDescription}" Classes="muted" FontSize="11.5" TextWrapping="Wrap" IsVisible="{Binding PreviewDescription.Length}"/>
+      <ItemsControl ItemsSource="{Binding PreviewTags}" IsVisible="{Binding PreviewTags.Count}">
+       <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="6"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+       <ItemsControl.ItemTemplate><DataTemplate x:DataType="x:String"><TextBlock Text="{Binding StringFormat='# {0}'}" Classes="muted" FontSize="11"/></DataTemplate></ItemsControl.ItemTemplate>
+      </ItemsControl>
+     </StackPanel>
+     <Border Grid.Row="1" Margin="0,10,0,0" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}"/>
+     <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Margin="0,10,0,12">
+      <md:MarkdownViewer Markdown="{Binding PreviewMarkdown}"/>
+     </ScrollViewer>
+    </Grid>
+   </Grid>
+
+   <!-- ===== 另存为模板面板（无预览；覆盖提示 / 内置保护） ===== -->
+   <ScrollViewer Grid.Row="1" IsVisible="{Binding IsSaveForm}" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="28,20,28,8" MaxWidth="560" HorizontalAlignment="Left" Spacing="14">
+     <TextBlock Classes="hint" Text="{i18n:I18n Vex.VexL.TemplateSaveGroupHint}"/>
+     <StackPanel Spacing="6">
+      <TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n Vex.VexL.TemplateSaveName}"/>
+      <TextBox Classes="template-input" Text="{Binding SaveName}"/>
+     </StackPanel>
+     <StackPanel Spacing="6">
+      <TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n Vex.VexL.TemplateSaveGroup}"/>
+      <ComboBox MinWidth="220" ItemsSource="{Binding SaveGroupOptions}" SelectedIndex="{Binding SaveGroupIndex}">
+       <ComboBox.ItemTemplate><DataTemplate x:DataType="x:String"><TextBlock Text="{Binding}"/></DataTemplate></ComboBox.ItemTemplate>
+      </ComboBox>
+     </StackPanel>
+     <StackPanel Spacing="6">
+      <TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n Vex.VexL.TemplateSaveTags}"/>
+      <TextBox Classes="template-input" PlaceholderText="{i18n:I18n Vex.VexL.TemplateSaveTagsPlaceholder}" Text="{Binding SaveTags}"/>
+     </StackPanel>
+     <TextBlock FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource VexWarningBrush}" IsVisible="{Binding HasSaveHint}" Text="{Binding SaveHint}"/>
+     <TextBlock FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource VexDangerBrush}" IsVisible="{Binding HasError}" Text="{Binding ErrorText}"/>
+    </StackPanel>
+   </ScrollViewer>
+
+   <!-- ===== 修改模板面板（名称/分组/Tag + 内容） ===== -->
+   <ScrollViewer Grid.Row="1" IsVisible="{Binding IsEditForm}" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="28,20,28,8" Spacing="12">
+     <Grid ColumnDefinitions="2*,1*,1.6*" ColumnSpacing="10">
+      <StackPanel Spacing="6"><TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n Vex.VexL.TemplateSaveName}"/><TextBox Classes="template-input" Text="{Binding EditName}"/></StackPanel>
+      <StackPanel Grid.Column="1" Spacing="6"><TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n Vex.VexL.TemplateSaveGroup}"/><ComboBox MinWidth="150" ItemsSource="{Binding EditGroupOptions}" SelectedIndex="{Binding EditGroupIndex}"><ComboBox.ItemTemplate><DataTemplate x:DataType="x:String"><TextBlock Text="{Binding}"/></DataTemplate></ComboBox.ItemTemplate></ComboBox></StackPanel>
+      <StackPanel Grid.Column="2" Spacing="6"><TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n Vex.VexL.TemplateSaveTags}"/><TextBox Classes="template-input" Text="{Binding EditTags}"/></StackPanel>
+     </Grid>
+     <TextBlock Classes="muted" FontSize="12" Text="{i18n:I18n Vex.VexL.TemplateEditContent}"/>
+     <TextBox Classes="template-input" Height="340" FontFamily="Cascadia Code, Consolas, monospace" FontSize="12.5" AcceptsReturn="True" TextWrapping="Wrap" Text="{Binding EditContent}"/>
+     <TextBlock FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource VexDangerBrush}" IsVisible="{Binding HasError}" Text="{Binding ErrorText}"/>
+    </StackPanel>
+   </ScrollViewer>
+
+   <!-- ===== 底部动作行 ===== -->
+   <Border Grid.Row="1" VerticalAlignment="Bottom" Padding="16,10" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+    <Grid ColumnDefinitions="Auto,*,Auto">
+     <Button Classes="btn" Content="{i18n:I18n Vex.VexL.TemplateSaveCurrentAsTemplate}" Command="{Binding OpenSaveForm}" IsVisible="{Binding IsPicker}"/>
+     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+      <Button Classes="btn" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" Command="{Binding Cancel}" IsVisible="{Binding IsPicker}"/>
+      <Button Classes="btn" Content="{i18n:I18n Vex.VexL.TemplateApplyCurrent}" Command="{Binding ApplyToCurrentDocument}" IsEnabled="{Binding CanApply}" IsVisible="{Binding IsPicker}" helpers:ToolTipHelper.Text="{i18n:I18n Vex.VexL.TemplateApplyCurrentHint}"/>
+      <Button Classes="btn primary" Content="{i18n:I18n Vex.VexL.TemplateUseNewDocument}" Command="{Binding UseNewDocumentAsync}" IsEnabled="{Binding HasSelection}" IsVisible="{Binding IsPicker}"/>
+      <Button Classes="btn" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" Command="{Binding Cancel}" IsVisible="{Binding IsSaveForm}"/>
+      <Button Classes="btn primary" Content="{i18n:I18n Vex.VexL.TemplateSaveBtn}" Command="{Binding SaveCurrentAsync}" IsVisible="{Binding IsSaveForm}"/>
+      <Button Classes="btn" Content="{i18n:I18n Vex.VexL.TemplateDeleteBtn}" Command="{Binding DeleteEditingAsync}" IsVisible="{Binding IsEditForm}"/>
+      <Button Classes="btn" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" Command="{Binding Cancel}" IsVisible="{Binding IsEditForm}"/>
+      <Button Classes="btn primary" Content="{i18n:I18n Vex.VexL.TemplateEditSaveBtn}" Command="{Binding SaveEditAsync}" IsVisible="{Binding IsEditForm}"/>
+     </StackPanel>
+    </Grid>
+   </Border>
+  </Grid>
+ </Border>
+</UserControl>
