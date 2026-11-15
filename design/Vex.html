@@ -31,7 +31,7 @@
 <script src="assets/prototype/palette-rules.js?v=20261030a"></script><script src="assets/generated/palette-rules-data.js?v=20261030a"></script><script src="assets/workbench/table-tools.js?v=20261030a"></script><script src="assets/workbench/theme.js?v=20261030a"></script>
 <script src="assets/vendor/d3-hierarchy/d3-hierarchy.min.js?v=20261030a"></script><script src="assets/workbench/map-layout.js?v=20261030a"></script><script src="assets/workbench/map-appearance.js?v=20261030a"></script><script src="assets/workbench/document-window.js?v=20261030a"></script><script src="assets/workbench/exit-dialog.js?v=20261030a"></script>
 <script src="assets/workbench/overlay.js?v=20261030a"></script><script src="assets/workbench/mermaid-catalog.js?v=20261030a"></script><script src="assets/generated/documents-data.js?v=20261030a"></script><script src="assets/workbench/watermark.js?v=20261030a"></script><script src="assets/workbench/preferences.js?v=20261030a"></script><script src="assets/workbench/tour-placement.js?v=20261030a"></script><script src="assets/workbench/diagram-editor.js?v=20261030a"></script>
-<link rel="stylesheet" href="assets/prototype/table-layout.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/diagram-layout.css?v=20261030a"><link rel="stylesheet" href="assets/prototype/design-system.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/professional.css?v=20261031a"></head>
+<link rel="stylesheet" href="assets/prototype/table-layout.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/diagram-layout.css?v=20261030a"><link rel="stylesheet" href="assets/prototype/design-system.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/professional.css?v=20261031a"><link rel="stylesheet" href="assets/workbench/git-templates.css?v=20261115b"></head>
 <body data-page="index">
 <svg xmlns="http://www.w3.org/2000/svg" class="hidden-sprite" aria-hidden="true"><defs>
   <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
@@ -130,7 +130,7 @@
           </div>
         </div>
 
-        
+
       </div></aside>
       <div class="sidebar-splitter" id="sidebar-splitter" role="separator" data-l10n-label="调整文档导航宽度" aria-label="调整文档导航宽度" aria-orientation="vertical" aria-valuemin="200" aria-valuemax="560" aria-valuenow="226" tabindex="0"></div>
       <div class="workspace-main">
@@ -359,6 +359,89 @@
       </div>
     </div>
 
+    <!-- 模板中心：左窄（分组/Tag/列表）右宽（排版预览）；「新建文档」以模板新建，「应用到当前文档」替换当前内容（可撤销）。 -->
+    <div class="overlay win-layer" id="layer-templates" hidden>
+      <div class="mini-window wide template-window" role="dialog" aria-modal="true" aria-labelledby="templates-title">
+        <div class="mini-titlebar"><span id="templates-title">模板中心</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="template-body">
+          <div class="template-list-col">
+            <div class="template-groups vex-segmented" role="group" aria-label="模板分组" id="template-groups"></div>
+            <label class="sidebar-search template-search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="template-filter" data-l10n-placeholder="按名称、说明或 Tag 查找…" placeholder="按名称、说明或 Tag 查找…" aria-label="筛选模板" title="按名称、说明或 Tag 筛选模板"><button class="clear-search" id="template-filter-clear" title="清除模板筛选" aria-label="清除模板筛选"><svg class="ico"><use href="#i-x"/></svg></button></label>
+            <div class="template-tags" id="template-tags" hidden></div>
+            <div class="template-list" id="template-list" role="listbox" aria-label="模板列表"></div>
+          </div>
+          <div class="template-preview-col">
+            <div class="template-meta" id="template-meta"></div>
+            <div class="template-preview"><article class="md-body" id="template-preview-body"></article></div>
+          </div>
+        </div>
+        <div class="template-foot">
+          <button class="btn" id="template-save-current" type="button">另存当前文档为模板</button>
+          <span class="template-foot-spacer"></span>
+          <button class="btn" data-close="已取消，未使用模板">取消</button>
+          <button class="btn" id="template-apply" type="button" disabled title="用模板内容替换当前打开文档的全部内容，可 Ctrl+Z 撤销">应用到当前文档</button>
+          <button class="btn primary" id="template-use" type="button" disabled title="以模板内容新建一个独立文档">新建文档</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 另存为模板：无预览；唯一标识 = 分组 + 模板名，同名覆盖我的模板，系统自带模板不可覆盖。 -->
+    <div class="overlay win-layer" id="layer-template-save" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="template-save-title">
+        <div class="mini-titlebar"><span id="template-save-title">另存为模板</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="dialog-content">
+        <div class="dlg-field dlg-field-gap">
+          <label class="fld-label">模板名称</label>
+          <input class="input mono" id="template-save-name" autofocus>
+          <div class="rn-error is-hidden" id="template-save-error">名称不能包含 \ / : * ? " &lt; &gt; | 等字符</div>
+        </div>
+        <div class="dlg-field dlg-field-gap">
+          <label class="fld-label">分组（对应模板目录的子文件夹）</label>
+          <select class="input" id="template-save-group"></select>
+        </div>
+        <div class="dlg-field dlg-field-gap">
+          <label class="fld-label">Tag（用逗号分隔，可留空）</label>
+          <input class="input" id="template-save-tags" placeholder="例如：周报, 总结">
+        </div>
+        <div class="save-hint is-hidden" id="template-save-hint">同名模板已存在，保存将覆盖其内容。</div>
+        <div class="dlg-actions">
+          <button class="btn" data-close="已取消">取消</button>
+          <button class="btn primary" id="template-save-ok">保存模板</button>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 修改模板：仅「我的模板」可改；唯一标识 = 分组 + 模板名，改名撞名时阻断提示。 -->
+    <div class="overlay win-layer" id="layer-template-edit" hidden>
+      <div class="dialog template-edit-window" role="dialog" aria-modal="true" aria-labelledby="template-edit-title">
+        <div class="mini-titlebar"><span id="template-edit-title">修改模板</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="dialog-content template-edit-body">
+          <div class="template-edit-grid">
+            <div class="dlg-field">
+              <label class="fld-label">模板名称</label>
+              <input class="input mono" id="template-edit-name">
+            </div>
+            <div class="dlg-field">
+              <label class="fld-label">分组</label>
+              <select class="input" id="template-edit-group"></select>
+            </div>
+            <div class="dlg-field">
+              <label class="fld-label">Tag（用逗号分隔）</label>
+              <input class="input" id="template-edit-tags">
+            </div>
+          </div>
+          <label class="fld-label">内容（Markdown）</label>
+          <textarea class="input mono" id="template-edit-content" spellcheck="false"></textarea>
+          <div class="rn-error is-hidden" id="template-edit-error"></div>
+        </div>
+        <div class="dlg-actions">
+          <button class="btn" data-close="已取消">取消</button>
+          <button class="btn primary" id="template-edit-ok">保存修改</button>
+        </div>
+      </div>
+    </div>
+
     <!-- MCP 设置弹层已并入「偏好设置 → MCP」页（dlg-mcp 由 preferences 接管），旧独立弹层移除。 -->
 
   </div>
@@ -373,4 +456,5 @@
 <input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
 <input type="file" id="open-folder-input" accept=".md,.markdown,.mdown,.txt" webkitdirectory directory multiple hidden>
 <script src="assets/workbench/vex-data.js?v=20261030a"></script><script src="assets/workbench/localization.js?v=20261030a"></script><script src="assets/prototype/project-info.js?v=20261030a"></script><script src="assets/workbench/typography.js?v=20261030a"></script><script src="assets/workbench/interact.js?v=20261030a"></script><script src="assets/workbench/mindmap.js?v=20261030a"></script><script src="assets/workbench/code-fence.js?v=20261030a"></script><script src="assets/vendor/katex/katex.min.js?v=20261030a"></script><script src="assets/vendor/katex/mhchem.min.js?v=20261030a"></script><script src="assets/vendor/mermaid/mermaid.min.js?v=20261030a"></script><script src="assets/workbench/diagram-rendering.js?v=20261030a"></script><script src="assets/workbench/rendering.js?v=20261030a"></script><script src="assets/workbench/samples.js?v=20261030a"></script><script src="assets/workbench/typewriter.js?v=20261030a"></script><script src="assets/workbench/instant-editor.js?v=20261030a"></script><script src="assets/workbench/source-highlight.js?v=20261030a"></script><script src="assets/workbench/workbench.js?v=20261030a"></script><script src="assets/workbench/guide.js?v=20261030a"></script>
-<script src="assets/workbench/about-update.js?v=20261104a"></script><script src="assets/workbench/workspace.js?v=20261030a"></script><script src="assets/workbench/chapter-editor.js?v=20261030a"></script><script src="assets/workbench/usability.js?v=20261030a"></script><script src="assets/workbench/workspace-chrome.js?v=20261030a"></script><script src="assets/workbench/workflows.js?v=20261030a"></script><script src="assets/workbench/preview.js?v=20261030a"></script></body></html>
+<script src="assets/workbench/about-update.js?v=20261104a"></script><script src="assets/workbench/workspace.js?v=20261030a"></script><script src="assets/workbench/chapter-editor.js?v=20261030a"></script><script src="assets/workbench/usability.js?v=20261030a"></script><script src="assets/workbench/workspace-chrome.js?v=20261030a"></script><script src="assets/workbench/workflows.js?v=20261030a"></script><script src="assets/workbench/preview.js?v=20261030a"></script>
+<script src="assets/workbench/template-center.js?v=20261115b"></script></body></html>

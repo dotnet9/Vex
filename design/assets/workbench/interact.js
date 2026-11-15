@@ -74,6 +74,7 @@
   var MENUS = [
     { key: 'file', label: '文件(F)', items: [
       { label: '新建', gesture: 'Ctrl+N', action: 'new' },
+      { label: '从模板新建…', action: 'new-from-template' },
       { label: '新建窗口', gesture: 'Ctrl+Shift+N', action: 'new-window' },
       { sep: true },
       { label: '打开…', gesture: 'Ctrl+O', action: 'open' },
@@ -89,6 +90,7 @@
       { sep: true },
       { label: '保存', gesture: 'Ctrl+S', action: 'save' },
       { label: '另存为…', gesture: 'Ctrl+Shift+S', action: 'save-as' },
+      { label: '另存为模板…', action: 'save-as-template' },
       { label: '重命名', act: 'dlg-rename' },
       { sep: true },
       { label: '导出', sub: [
