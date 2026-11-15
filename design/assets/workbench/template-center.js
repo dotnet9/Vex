@@ -285,21 +285,15 @@
     var existing = findUser(group, name);
     if (existing) {
       existing.body = text; existing.tags = tags; existing.desc = t('来自当前文档') + ' · ' + groupLabel(group);
-      persistUser();
-      var saveLayer = document.getElementById('layer-template-save');
-      if (saveLayer) saveLayer.hidden = true;
-      selectedGroup = group; activeTag = null;
-      open();
-      VexProto.toast(t('已覆盖模板（演示）') + '：' + name);
-      return;
+    } else {
+      userTemplates.unshift({ id: 'user-' + Date.now(), group: group, name: name, tags: tags, standard: t('自定义'), desc: t('来自当前文档') + ' · ' + groupLabel(group), body: text, isCustom: true });
     }
-    userTemplates.unshift({ id: 'user-' + Date.now(), group: group, name: name, tags: tags, standard: t('自定义'), desc: t('来自当前文档') + ' · ' + groupLabel(group), body: text, isCustom: true });
     persistUser();
-    var saveLayer2 = document.getElementById('layer-template-save');
-    if (saveLayer2) saveLayer2.hidden = true;
+    var saveLayer = document.getElementById('layer-template-save');
+    if (saveLayer) saveLayer.hidden = true;
     selectedGroup = group; activeTag = null;
     open();
-    VexProto.toast(t('已保存为模板（演示）') + '：' + name);
+    VexProto.toast((existing ? t('已覆盖模板（演示）') : t('已保存为模板（演示）')) + '：' + name);
   }
 
   /* ---------- 修改 / 删除我的模板 ---------- */
