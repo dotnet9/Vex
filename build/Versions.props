@@ -9,7 +9,7 @@
     <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
     <AvaloniaControlsDataGridVersion>12.1.2</AvaloniaControlsDataGridVersion>
     <SvgSkiaVersion>5.2.3</SvgSkiaVersion>
-    <SkiaSharpVersion>4.158.0-preview.1.26556.2</SkiaSharpVersion>
+    <SkiaSharpVersion>4.158.0-preview.2.26560.5</SkiaSharpVersion>
     <HarfBuzzSharpVersion>14.4.0.300-preview.1.26556.2</HarfBuzzSharpVersion>
     <UrsaAvaloniaVersion>2.3.1</UrsaAvaloniaVersion>
     <PdfPigVersion>0.1.17-alpha-202611100027-21de1</PdfPigVersion>
