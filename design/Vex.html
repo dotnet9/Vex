@@ -31,7 +31,7 @@
 <script src="assets/prototype/palette-rules.js?v=20261030a"></script><script src="assets/generated/palette-rules-data.js?v=20261030a"></script><script src="assets/workbench/table-tools.js?v=20261030a"></script><script src="assets/workbench/theme.js?v=20261030a"></script>
 <script src="assets/vendor/d3-hierarchy/d3-hierarchy.min.js?v=20261030a"></script><script src="assets/workbench/map-layout.js?v=20261030a"></script><script src="assets/workbench/map-appearance.js?v=20261030a"></script><script src="assets/workbench/document-window.js?v=20261030a"></script><script src="assets/workbench/exit-dialog.js?v=20261030a"></script>
 <script src="assets/workbench/overlay.js?v=20261030a"></script><script src="assets/workbench/mermaid-catalog.js?v=20261030a"></script><script src="assets/generated/documents-data.js?v=20261030a"></script><script src="assets/workbench/watermark.js?v=20261030a"></script><script src="assets/workbench/preferences.js?v=20261030a"></script><script src="assets/workbench/tour-placement.js?v=20261030a"></script><script src="assets/workbench/diagram-editor.js?v=20261030a"></script>
-<link rel="stylesheet" href="assets/prototype/table-layout.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/diagram-layout.css?v=20261030a"><link rel="stylesheet" href="assets/prototype/design-system.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/professional.css?v=20261031a"><link rel="stylesheet" href="assets/workbench/git-templates.css?v=20261115b"></head>
+<link rel="stylesheet" href="assets/prototype/table-layout.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/diagram-layout.css?v=20261030a"><link rel="stylesheet" href="assets/prototype/design-system.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/professional.css?v=20261031a"><link rel="stylesheet" href="assets/workbench/git-templates.css?v=20261115e"></head>
 <body data-page="index">
 <svg xmlns="http://www.w3.org/2000/svg" class="hidden-sprite" aria-hidden="true"><defs>
   <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
@@ -84,10 +84,16 @@
 <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
 <symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></symbol>
 <symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></symbol>
+<symbol id="i-git-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+<symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 1 0-.42-8.98 6 6 0 1 0-11.06 3.1A3.5 3.5 0 0 0 7.5 19Z"/></symbol>
+<symbol id="i-rail-collapse" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M14.5 4v16"/><path d="m11 9-3 3 3 3"/></symbol>
+<symbol id="i-rail-expand" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M14.5 4v16"/><path d="m8 9 3 3-3 3"/></symbol>
 </defs></svg>
 <div class="app-window">
   <header class="titlebar">
     <div class="brand" data-l10n-tip="维刻 Vex · 写下想法，看见脉络。" title="维刻 Vex · 写下想法，看见脉络。"><img src="assets/vex-logo.svg?v=20261030a" alt="">Vex</div>
+    <button class="caption-btn titlebar-toggle" id="sidebar-toggle" data-action="toggle-sidebar" data-l10n-name="收起文件导航" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-rail-collapse"/></svg></button>
     <nav class="tb-menu" data-l10n-label="应用菜单" aria-label="应用菜单"><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">文件(F)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">编辑(E)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">段落(P)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">格式(O)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">视图(V)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">帮助(H)</button></nav>
     <!-- 更新药丸：发现新版常驻标题栏；下载中显进度、就绪后提示重启；气泡与 layer-update 共用 about-update.js 数据源 -->
     <div class="upd-pill-wrap" id="upd-pill-wrap" hidden>
@@ -102,6 +108,8 @@
       </div>
     </div>
     <div class="document-label titlebar-document"><div class="document-title"><span id="document-name">主题设计笔记.md</span><i class="doc-dot" id="dirty-dot" hidden></i></div></div>
+    <!-- 大纲折叠按钮：加载后被 git-panel.js 移到外观/语言面板（studio-title-controls）右侧。 -->
+    <button class="caption-btn titlebar-toggle" id="outline-toggle" data-action="toggle-structure" data-l10n-name="收起文档大纲" title="收起文档大纲" aria-label="收起文档大纲" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-rail-expand"/></svg></button>
     <div class="caption-btns" id="caption-btns">
       <button class="caption-btn" data-action="minimize" data-l10n-name="最小化" title="最小化"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button>
       <button class="caption-btn" data-action="maximize" data-l10n-name="最大化 / 还原" title="最大化 / 还原"><svg class="ico" aria-hidden="true"><use href="#i-max"/></svg></button>
@@ -112,9 +120,8 @@
     <main class="workspace" data-view="edit">
       <!-- 图标栏：窗口级导航。文件/大纲两枚沿用原 id，workbench.js 的状态同步不用改。 -->
       <nav class="nav-rail" data-l10n-label="主导航" aria-label="主导航">
-        <button class="rail-item on" id="sidebar-toggle" data-action="toggle-sidebar" data-l10n-name="收起文件导航" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg><span>文件</span></button>
-        <button class="rail-item" id="outline-toggle" data-action="toggle-structure" data-l10n-name="展开文档大纲" title="展开文档大纲" aria-label="展开文档大纲" aria-pressed="false" aria-controls="structure-sidebar"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg><span>大纲</span></button>
-        <button class="rail-item" data-action="find" data-l10n-name="查找" title="查找" aria-label="查找"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><span>搜索</span></button>
+        <button class="rail-item on" id="mode-files" data-action="mode-files" data-l10n-name="文件" title="文件" aria-label="文件" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg><span>文件</span></button>
+        <button class="rail-item" id="mode-git" data-action="mode-git" data-l10n-name="Git 仓库" title="Git 仓库" aria-label="Git 仓库" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-git-branch"/></svg><span>Git</span></button>
         <button class="rail-item rail-bottom" data-action="preferences" data-l10n-name="偏好设置" title="偏好设置" aria-label="偏好设置"><svg class="ico" aria-hidden="true"><use href="#i-gear"/></svg><span>设置</span></button>
       </nav>
       <aside class="sidebar" data-l10n-label="文件列表" aria-label="文件列表"><div class="sidebar-inner">
@@ -130,6 +137,7 @@
           </div>
         </div>
 
+        <!-- Git 仓库面板：工作区版本管理（原型为模拟状态），由 git-panel.js 渲染内容。 -->
 
       </div></aside>
       <div class="sidebar-splitter" id="sidebar-splitter" role="separator" data-l10n-label="调整文档导航宽度" aria-label="调整文档导航宽度" aria-orientation="vertical" aria-valuemin="200" aria-valuemax="560" aria-valuenow="226" tabindex="0"></div>
@@ -211,6 +219,8 @@
         </div>
       </div></aside>
       </main>
+      <!-- Git 管理界面：Git 模式下整体替换编辑工作区（GitHub Desktop 式左右布局），由 git-panel.js 渲染。 -->
+      <section class="git-workspace" id="git-workspace" hidden aria-label="Git 仓库"></section>
       <!-- 字数与缩放悬浮于右下角，不占用工作区高度。 -->
       <div class="document-tools">
         <span class="document-word-count" id="sb-wordcount">字数 0</span>
@@ -442,6 +452,25 @@
       </div>
     </div>
 
+    <!-- 添加远程仓库：HTTPS 用令牌免 Git 推送；SSH 需系统 Git，提示改址。 -->
+    <div class="overlay win-layer" id="layer-git-remote" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="git-remote-title">
+        <div class="mini-titlebar"><span id="git-remote-title">添加远程仓库</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="dialog-content">
+        <div class="dlg-field dlg-field-gap">
+          <label class="fld-label">远程地址</label>
+          <input class="input mono" id="git-remote-url" placeholder="https://github.com/dotnet9/Vex.git" autofocus>
+          <div class="rn-error is-hidden" id="git-remote-error">请输入 HTTPS 或 SSH 形式的仓库地址</div>
+        </div>
+        <p class="dlg-msg git-remote-note">HTTPS 地址使用访问令牌推送拉取，无需安装 Git；SSH 地址（git@…）首次同步需要系统 Git 环境，也可以改用 HTTPS。</p>
+        <div class="dlg-actions">
+          <button class="btn" data-close="已取消">取消</button>
+          <button class="btn primary" id="git-remote-ok">保存远程</button>
+        </div>
+        </div>
+      </div>
+    </div>
+
     <!-- MCP 设置弹层已并入「偏好设置 → MCP」页（dlg-mcp 由 preferences 接管），旧独立弹层移除。 -->
 
   </div>
@@ -457,4 +486,4 @@
 <input type="file" id="open-folder-input" accept=".md,.markdown,.mdown,.txt" webkitdirectory directory multiple hidden>
 <script src="assets/workbench/vex-data.js?v=20261030a"></script><script src="assets/workbench/localization.js?v=20261030a"></script><script src="assets/prototype/project-info.js?v=20261030a"></script><script src="assets/workbench/typography.js?v=20261030a"></script><script src="assets/workbench/interact.js?v=20261030a"></script><script src="assets/workbench/mindmap.js?v=20261030a"></script><script src="assets/workbench/code-fence.js?v=20261030a"></script><script src="assets/vendor/katex/katex.min.js?v=20261030a"></script><script src="assets/vendor/katex/mhchem.min.js?v=20261030a"></script><script src="assets/vendor/mermaid/mermaid.min.js?v=20261030a"></script><script src="assets/workbench/diagram-rendering.js?v=20261030a"></script><script src="assets/workbench/rendering.js?v=20261030a"></script><script src="assets/workbench/samples.js?v=20261030a"></script><script src="assets/workbench/typewriter.js?v=20261030a"></script><script src="assets/workbench/instant-editor.js?v=20261030a"></script><script src="assets/workbench/source-highlight.js?v=20261030a"></script><script src="assets/workbench/workbench.js?v=20261030a"></script><script src="assets/workbench/guide.js?v=20261030a"></script>
 <script src="assets/workbench/about-update.js?v=20261104a"></script><script src="assets/workbench/workspace.js?v=20261030a"></script><script src="assets/workbench/chapter-editor.js?v=20261030a"></script><script src="assets/workbench/usability.js?v=20261030a"></script><script src="assets/workbench/workspace-chrome.js?v=20261030a"></script><script src="assets/workbench/workflows.js?v=20261030a"></script><script src="assets/workbench/preview.js?v=20261030a"></script>
-<script src="assets/workbench/template-center.js?v=20261115b"></script></body></html>
+<script src="assets/workbench/template-center.js?v=20261115f"></script><script src="assets/workbench/git-panel.js?v=20261115f"></script></body></html>

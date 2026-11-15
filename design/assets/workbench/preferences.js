@@ -3,7 +3,7 @@
   'use strict';
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const query = new URLSearchParams(location.search), isolated = query.get('preview') === '1';
-  const defaults = {language:'zh-CN', startup:'empty', autoSave:false, saveDelay:2, recovery:true, encoding:'UTF-8', newline:'system', size:16, font:'system', codeSize:13, indent:2, autoPair:true, codeWrap:false, lineNumbers:true, outlineNumbers:false, focus:false, typewriter:false, math:true, chemistry:true, mermaid:true, subscript:true, highlight:true, autoLink:true, softBreak:true, imageCopy:true, imageRelative:true, imageFolder:'assets', theme:'light', palette:'teal', typography:'Simple', compact:false, zoom:100, wordCountVisible:true, motion:'full', radius:'standard', toolbarPin:true, exportFormat:'html', exportFolder:'文档所在目录', exportOpen:true, pdfSize:'A4', pdfMargin:20, htmlStyle:true, mcpEnabled:false, mcpPort:17891, mcpToken:'vx_preview_local_token_for_demo', mcpScope:'document', mcpFolder:'', mcpRootAuth:[], mcpConfirm:true};
+  const defaults = {language:'zh-CN', startup:'empty', autoSave:false, saveDelay:2, recovery:true, encoding:'UTF-8', newline:'system', size:16, font:'system', codeSize:13, indent:2, autoPair:true, codeWrap:false, lineNumbers:true, outlineNumbers:false, focus:false, typewriter:false, math:true, chemistry:true, mermaid:true, subscript:true, highlight:true, autoLink:true, softBreak:true, imageCopy:true, imageRelative:true, imageFolder:'assets', theme:'light', palette:'teal', typography:'Simple', compact:false, zoom:100, wordCountVisible:true, motion:'full', radius:'standard', toolbarPin:true, exportFormat:'html', exportFolder:'文档所在目录', exportOpen:true, pdfSize:'A4', pdfMargin:20, htmlStyle:true, gitAutoCommit:false, gitAutoCommitInterval:30, gitAutoCommitMessage:'auto: {date}', mcpEnabled:false, mcpPort:17891, mcpToken:'vx_preview_local_token_for_demo', mcpScope:'document', mcpFolder:'', mcpRootAuth:[], mcpConfirm:true};
   Object.assign(defaults,{watermarkPreview:false,watermarkExport:false,watermarkText:'维刻 Vex',watermarkOpacity:12,watermarkFontSize:21,watermarkColor:'#24766B',watermarkWeight:400});
   /* 界面密度与正文字号的真实源在 theme.js（外观菜单同源），这里仅镜像值用于偏好呈现与回放。 */
   Object.assign(defaults,{uiDensity:window.VexTheme ? VexTheme.state.density : 'normal',mdSize:window.VexTheme ? VexTheme.state.mdsize : 'normal'});
@@ -25,7 +25,7 @@
   let adapter = {}, host, releaseOverlay, section = 'general', tab = 'server', clientTab = 'http', closeTimer, testTimer, generation = 0;
   let mcpState = 'stopped', mcpMessage = '服务已停止', audit = [], request = null, mcpDraft, mcpSaveTimer, serviceTimer, serviceRevision = 0, mcpError = '';
   /* 「外观」留给标题栏外观菜单（密度/明暗/配色）；这里收动效、圆角与水印，命名区隔避免双入口歧义。 */
-  const categories = [['general','通用与文件','file'],['editor','编辑器','edit'],['images','图片','image'],['appearance','窗口与动效','palette'],['export','导出','export'],['mcp','MCP','terminal']];
+  const categories = [['general','通用与文件','file'],['editor','编辑器','edit'],['images','图片','image'],['appearance','窗口与动效','palette'],['export','导出','export'],['git','Git','git-branch'],['mcp','MCP','terminal']];
   const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const control = (key, label, options, note = '', child = false) => {
     const value = values[key], prefix = `<label class="vex-pref-row${child ? ' vex-pref-child' : ''}"><span>${label}${note ? `<small>${note}</small>` : ''}</span>`;
@@ -47,6 +47,8 @@
       case 'images': return control('imageCopy','插入时复制图片') + control('imageRelative','使用相对路径') + folderControl('imageFolder','资源目录');
       case 'appearance': return segmented('motion','界面动效',[['full','完整'],['reduced','精简'],['off','关闭']],'精简只保留淡入淡出，关闭后所有过渡立即到位。') + segmented('radius','界面圆角',[['square','直角'],['compact','紧凑'],['standard','标准']],'只作用于控件圆角，胶囊与头像保持原形。') + control('watermarkText','水印文字',{maxlength:60}) + control('watermarkFontSize','水印字号',{range:true,min:12,max:36,unit:' px'}) + control('watermarkColor','前景色',{type:'color'}) + control('watermarkWeight','粗细',[[300,'细'],[400,'常规'],[700,'粗']]) + control('watermarkOpacity','不透明度',{range:true,min:0,max:50,unit:'%'}) + '<div class="vex-watermark-sample" aria-label="水印样式预览"><strong>写下想法，看见脉络。</strong><span>维刻 Vex</span></div>';
       case 'export': return control('exportOpen','导出后打开') + heading('PDF') + control('pdfSize','纸张',['A4','Letter','A5']) + control('pdfMargin','页边距',{range:true,min:10,max:30,unit:' mm'}) + heading('HTML') + control('htmlStyle','保留当前文档排版');
+      /* Git：自动提交默认关闭；间隔与信息模板为子选项（缩进表从属）。 */
+      case 'git': return heading('自动提交') + control('gitAutoCommit','定时自动提交',null,'有变更才提交，无变更自动跳过；只提交到本地仓库，不会自动推送。') + control('gitAutoCommitInterval','提交间隔',{range:true,min:5,max:120,step:5,unit:' 分钟'},'',true) + control('gitAutoCommitMessage','提交信息模板',{maxlength:40},'可用 {date} 占位当前时间。',true) + heading('同步') + '<p class="vex-pref-note">推送与拉取：HTTPS 远程使用访问令牌，无需安装 Git；SSH 远程需系统 Git 环境。</p>';
       case 'mcp': return mcpContent();
       default: return '';
     }
