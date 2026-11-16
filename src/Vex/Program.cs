@@ -36,6 +36,13 @@ internal sealed class Program
             RuntimeVerification.RunGitExecute(runRepository, runAction, runArgument, runPaths);
             return;
         }
+        // 四参形态（repo + 动作 + 参数，无 paths）：tag/push-tag 等需要 argument 的动作。
+        // 缺此模式时四参调用两个模式都不匹配，会落到 SingleInstance 直接拉起完整 GUI 干等。
+        if (args is ["--git-run", var runRepo4, var runAction4, var runArg4])
+        {
+            RuntimeVerification.RunGitExecute(runRepo4, runAction4, runArg4);
+            return;
+        }
         if (args is ["--git-run", var runRepo3, var runAction3])
         {
             RuntimeVerification.RunGitExecute(runRepo3, runAction3, null);
