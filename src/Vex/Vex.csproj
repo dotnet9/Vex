@@ -73,6 +73,7 @@
     <PackageReference Include="Semi.Avalonia" />
     <PackageReference Include="Semi.Avalonia.ColorPicker" />
     <PackageReference Include="System.Reactive" />
+    <ProjectReference Include="..\Vex.Git\Vex.Git.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="I18n\Language.cs">

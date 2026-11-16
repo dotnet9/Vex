@@ -49,6 +49,8 @@ window.VexProject = {
     "Semi.Avalonia.ColorPicker",
     "System.Drawing.Common",
     "System.Reactive",
+    "LibGit2Sharp",
+    "System.Security.Cryptography.ProtectedData",
     "Microsoft.SourceLink.GitHub",
     "Microsoft.Extensions.DependencyInjection"
   ]

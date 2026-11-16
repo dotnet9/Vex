@@ -17,6 +17,7 @@
     <ReactiveUIAvaloniaVersion>12.1.6</ReactiveUIAvaloniaVersion>
     <SemiAvaloniaVersion>12.1.0.1</SemiAvaloniaVersion>
     <DotNetLibrariesVersion>11.0.0</DotNetLibrariesVersion>
+    <LibGit2SharpVersion>0.32.0</LibGit2SharpVersion>
     <SystemReactiveVersion>7.0.0</SystemReactiveVersion>
     <MicrosoftSourceLinkGitHubVersion>11.0.100</MicrosoftSourceLinkGitHubVersion>
   </PropertyGroup>

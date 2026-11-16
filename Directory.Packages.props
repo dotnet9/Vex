@@ -49,6 +49,9 @@
     <PackageVersion Include="Semi.Avalonia.ColorPicker" Version="$(SemiAvaloniaVersion)" />
     <PackageVersion Include="System.Drawing.Common" Version="$(DotNetLibrariesVersion)" />
     <PackageVersion Include="System.Reactive" Version="$(SystemReactiveVersion)" />
+    <!-- Git 管理界面（Vex.Git）：LibGit2Sharp 嵌入式本地操作 + HTTPS PAT 推送，版本跟 Vox 同款已验证组合。 -->
+    <PackageVersion Include="LibGit2Sharp" Version="$(LibGit2SharpVersion)" />
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="$(DotNetLibrariesVersion)" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(DotNetLibrariesVersion)" />
   </ItemGroup>
