@@ -290,10 +290,20 @@ internal static class RuntimeVerification
                     Console.WriteLine("GIT-EXEC committed");
                     break;
                 case "tag":
-                    git.CreateTagCommand.Execute(argument ?? throw new ArgumentException("tag 需要名称。"));
-                    Dispatcher.UIThread.RunJobs();
-                    Console.WriteLine("GIT-EXEC tagged " + argument);
-                    break;
+                    {
+                        // async-void 命令不可等待：无头通道必须等真实完成，失败透出而非无条件报成功。
+                        var tagTask = git.CreateTagHeadlessAsync(argument ?? throw new ArgumentException("tag 需要名称。"));
+                        var tagDeadline = DateTime.UtcNow.AddSeconds(60);
+                        while (!tagTask.IsCompleted)
+                        {
+                            if (DateTime.UtcNow >= tagDeadline) throw new TimeoutException("Tag timed out.");
+                            Dispatcher.UIThread.RunJobs();
+                            Thread.Sleep(10);
+                        }
+                        tagTask.GetAwaiter().GetResult();
+                        Console.WriteLine("GIT-EXEC tagged " + argument);
+                        break;
+                    }
                 case "push":
                     var push = git.PushAsync();
                     var pushDeadline = DateTime.UtcNow.AddSeconds(180);

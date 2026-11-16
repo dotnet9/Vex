@@ -317,6 +317,13 @@ public sealed class ShellGitViewModel : ReactiveObject
         TagAlsoPush = alsoPush;
     }
 
+    /// <summary>无头通道（--git-run tag）：等待完成的 tag 创建；不自动推送（推送走 push-tag 动作保持正交）。</summary>
+    public Task CreateTagHeadlessAsync(string? name)
+    {
+        TagAlsoPush = false;
+        return CreateTagAsync(name);
+    }
+
     private async Task CreateTagAsync(string? name)
     {
         if (_service is null || string.IsNullOrWhiteSpace(name))

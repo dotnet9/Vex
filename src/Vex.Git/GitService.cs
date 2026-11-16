@@ -364,7 +364,7 @@ public sealed class GitService
     /// <summary>仓库是否已有提交（unborn HEAD = 无提交，不能打 tag）。</summary>
     public bool HasCommits()
     {
-        using var repo = Repo();
+        var repo = Repo();
         return repo.Head.Tip is not null;
     }
 
@@ -373,7 +373,7 @@ public sealed class GitService
     {
         get
         {
-            using var repo = Repo();
+            var repo = Repo();
             var (missing, _, _) = IdentityOf(repo);
             return missing;
         }
@@ -383,7 +383,7 @@ public sealed class GitService
     public void EnsureIdentity(string? userName, string? userEmail)
     {
         if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(userEmail)) return;
-        using var repo = Repo();
+        var repo = Repo();
         var (missing, _, _) = IdentityOf(repo);
         if (missing) SetIdentity(userName.Trim(), userEmail.Trim());
     }
