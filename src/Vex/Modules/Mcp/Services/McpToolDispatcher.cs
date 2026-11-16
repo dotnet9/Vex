@@ -23,6 +23,8 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         ? StringComparison.OrdinalIgnoreCase
         : StringComparison.Ordinal;
     private const string EmptySchema = """{"type":"object","properties":{},"additionalProperties":false}""";
+    private const string GitCommitSchema = """{"type":"object","properties":{"summary":{"type":"string"},"description":{"type":"string"}},"required":["summary"],"additionalProperties":false}""";
+    private const string GitTagSchema = """{"type":"object","properties":{"name":{"type":"string"},"push":{"type":"boolean"}},"required":["name"],"additionalProperties":false}""";
     private const string ReplaceDocumentSchema = """{"type":"object","properties":{"markdown":{"type":"string"},"reason":{"type":"string"}},"required":["markdown"],"additionalProperties":false}""";
     private const string ApplyTextEditSchema = """{"type":"object","properties":{"startOffset":{"type":"integer","minimum":0},"length":{"type":"integer","minimum":0},"replacement":{"type":"string"},"reason":{"type":"string"}},"required":["startOffset","length","replacement"],"additionalProperties":false}""";
     private const string InsertTextSchema = """{"type":"object","properties":{"offset":{"type":"integer","minimum":0},"text":{"type":"string"}},"required":["text"],"additionalProperties":false}""";
@@ -41,6 +43,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
     private const string CreateDocumentSchema = """{"type":"object","properties":{"path":{"type":"string"},"content":{"type":"string"},"overwrite":{"type":"boolean"},"reason":{"type":"string"}},"required":["path","content"],"additionalProperties":false}""";
 
     private readonly MainWindowViewModel _shell;
+    private readonly Modules.Git.ViewModels.ShellGitViewModel _git;
     private readonly IMarkdownOutlineService _outlineService;
     private readonly IDocumentService _documentService;
     private readonly IAppSettingsStore _settingsStore;
@@ -54,6 +57,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
 
     public McpToolDispatcher(
         MainWindowViewModel shell,
+        Modules.Git.ViewModels.ShellGitViewModel git,
         IMarkdownOutlineService outlineService,
         IDocumentService documentService,
         IAppSettingsStore settingsStore,
@@ -62,6 +66,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         IAppLocalizer localizer)
     {
         _shell = shell;
+        _git = git;
         _outlineService = outlineService;
         _documentService = documentService;
         _settingsStore = settingsStore;
@@ -76,6 +81,10 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
     {
         return
         [
+            Tool("vex_git_status", _localizer.Get(VexL.McpToolGitStatus)),
+            Tool("vex_git_commit", _localizer.Get(VexL.McpToolGitCommit), GitCommitSchema),
+            Tool("vex_git_push", _localizer.Get(VexL.McpToolGitPush)),
+            Tool("vex_git_tag", _localizer.Get(VexL.McpToolGitTag), GitTagSchema),
             Tool("vex_get_current_document", _localizer.Get(VexL.McpToolGetDocument)),
             Tool("vex_get_document_outline", _localizer.Get(VexL.McpToolGetOutline)),
             Tool("vex_get_selection", _localizer.Get(VexL.McpToolGetSelection)),
@@ -128,6 +137,14 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
     {
         switch (name)
         {
+            case "vex_git_status":
+                return await GitStatusAsync();
+            case "vex_git_commit":
+                return await GitCommitAsync(Read(arguments, McpJsonContext.Default.GitCommitInput));
+            case "vex_git_push":
+                return await GitPushAsync();
+            case "vex_git_tag":
+                return await GitTagAsync(Read(arguments, McpJsonContext.Default.GitTagInput));
             case "vex_get_current_document":
                 return GetCurrentDocument();
             case "vex_get_document_outline":
@@ -215,6 +232,63 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         var selection = CodeWF.Toolkit.EventBus.EventBus.Default.Query(new EditorSelectionQuery());
         return new SelectionResult(selection.Text, selection.StartOffset, selection.Length);
     }
+
+    private async Task<CallToolResult> GitStatusAsync()
+    {
+        var folder = _shell.WorkspaceFolderPath;
+        if (string.IsNullOrWhiteSpace(folder) || !Vex.Git.GitService.IsRepository(folder))
+            return Text("工作区不是 Git 仓库（尚未初始化）。");
+        var service = new Vex.Git.GitService(folder);
+        var (branch, ahead, behind) = service.BranchState();
+        var lines = new StringBuilder();
+        lines.AppendLine("branch: " + branch + (ahead is > 0 ? $" (ahead {ahead})" : "") + (behind is > 0 ? $" (behind {behind})" : ""));
+        foreach (var change in service.Changes())
+            lines.AppendLine($"{change.KindLabel} {change.Path}");
+        if (service.RemoteRawUrl() is { } remote) lines.AppendLine("remote: " + remote);
+        return Text(lines.ToString().TrimEnd());
+    }
+
+    private async Task<CallToolResult> GitCommitAsync(GitCommitInput? input)
+    {
+        if (input is null || string.IsNullOrWhiteSpace(input.Summary)) return Text("summary 必填。");
+        var folder = _shell.WorkspaceFolderPath;
+        if (string.IsNullOrWhiteSpace(folder) || !Vex.Git.GitService.IsRepository(folder))
+            return Text("工作区不是 Git 仓库（尚未初始化）。");
+        var service = new Vex.Git.GitService(folder);
+        var paths = service.Changes().Select(change => change.Path).ToArray();
+        if (paths.Length == 0) return Text("工作区干净，没有可提交的变更。");
+        var message = input.Description is { Length: > 0 } description ? input.Summary + "\n\n" + description : input.Summary;
+        var commit = service.CommitPaths(paths, message);
+        return Text($"已提交 {paths.Length} 个文件：{commit.Sha[..7]} {commit.MessageShort}");
+    }
+
+    private async Task<CallToolResult> GitPushAsync()
+    {
+        var folder = _shell.WorkspaceFolderPath;
+        if (string.IsNullOrWhiteSpace(folder) || !Vex.Git.GitService.IsRepository(folder))
+            return Text("工作区不是 Git 仓库（尚未初始化）。");
+        var service = new Vex.Git.GitService(folder);
+        service.Push(pat: string.Empty);
+        return Text("已推送到 origin。");
+    }
+
+    private async Task<CallToolResult> GitTagAsync(GitTagInput? input)
+    {
+        if (input is null || string.IsNullOrWhiteSpace(input.Name)) return Text("tag 名称必填。");
+        var folder = _shell.WorkspaceFolderPath;
+        if (string.IsNullOrWhiteSpace(folder) || !Vex.Git.GitService.IsRepository(folder))
+            return Text("工作区不是 Git 仓库（尚未初始化）。");
+        var service = new Vex.Git.GitService(folder);
+        service.CreateTag(input.Name.Trim());
+        if (input.Push == true)
+        {
+            service.Push(pat: string.Empty, tag: input.Name.Trim());
+            return Text($"tag {input.Name.Trim()} 已创建并推送。");
+        }
+        return Text($"tag {input.Name.Trim()} 已创建。");
+    }
+
+    private static CallToolResult Text(string text) => new() { Content = [new TextContentBlock { Text = text }] };
 
     private async Task<OperationResult> ReplaceCurrentDocumentAsync(ReplaceCurrentDocumentInput input)
     {

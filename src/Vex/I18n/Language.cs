@@ -2,6 +2,19 @@
 namespace Vex;
 public static class VexL
 {
+    public static readonly string McpToolGitStatus = "Vex.VexL.McpToolGitStatus";
+    public static readonly string McpToolGitCommit = "Vex.VexL.McpToolGitCommit";
+    public static readonly string McpToolGitPush = "Vex.VexL.McpToolGitPush";
+    public static readonly string McpToolGitTag = "Vex.VexL.McpToolGitTag";
+    public static readonly string GitTagCreateMenu = "Vex.VexL.GitTagCreateMenu";
+    public static readonly string GitTagPushMenu = "Vex.VexL.GitTagPushMenu";
+    public static readonly string GitTagNamePlaceholder = "Vex.VexL.GitTagNamePlaceholder";
+    public static readonly string GitTagAlsoPush = "Vex.VexL.GitTagAlsoPush";
+    public static readonly string GitTagNameInvalid = "Vex.VexL.GitTagNameInvalid";
+    public static readonly string GitTagCreatedFormat = "Vex.VexL.GitTagCreatedFormat";
+    public static readonly string GitTagPushedFormat = "Vex.VexL.GitTagPushedFormat";
+    public static readonly string GitTagNoCommits = "Vex.VexL.GitTagNoCommits";
+    public static readonly string GitTagCreate = "Vex.VexL.GitTagCreate";
     public static readonly string GitOpenInExplorer = "Vex.VexL.GitOpenInExplorer";
     public static readonly string GitRevealMissingToast = "Vex.VexL.GitRevealMissingToast";
     public static readonly string GitBinaryFileNote = "Vex.VexL.GitBinaryFileNote";

@@ -4,6 +4,10 @@ namespace Vex.Modules.Mcp.Models;
 
 public sealed record EmptyInput;
 
+public sealed record GitCommitInput(string Summary, string? Description);
+
+public sealed record GitTagInput(string Name, bool? Push);
+
 public sealed record ReplaceCurrentDocumentInput(string Markdown, string? Reason);
 
 public sealed record ReplaceTextInput(string Find, string Replacement, bool ReplaceAll);

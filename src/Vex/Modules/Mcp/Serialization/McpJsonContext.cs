@@ -5,6 +5,8 @@ namespace Vex.Modules.Mcp.Serialization;
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(EmptyInput))]
+[JsonSerializable(typeof(GitCommitInput))]
+[JsonSerializable(typeof(GitTagInput))]
 [JsonSerializable(typeof(ReplaceCurrentDocumentInput))]
 [JsonSerializable(typeof(ApplyTextEditInput))]
 [JsonSerializable(typeof(InsertTextInput))]
