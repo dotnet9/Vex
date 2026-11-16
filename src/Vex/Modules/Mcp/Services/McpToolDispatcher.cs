@@ -85,6 +85,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             Tool("vex_git_commit", _localizer.Get(VexL.McpToolGitCommit), GitCommitSchema),
             Tool("vex_git_push", _localizer.Get(VexL.McpToolGitPush)),
             Tool("vex_git_tag", _localizer.Get(VexL.McpToolGitTag), GitTagSchema),
+            Tool("vex_git_pull", _localizer.Get(VexL.McpToolGitPull)),
             Tool("vex_get_current_document", _localizer.Get(VexL.McpToolGetDocument)),
             Tool("vex_get_document_outline", _localizer.Get(VexL.McpToolGetOutline)),
             Tool("vex_get_selection", _localizer.Get(VexL.McpToolGetSelection)),
@@ -145,6 +146,8 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
                 return await GitPushAsync();
             case "vex_git_tag":
                 return await GitTagAsync(Read(arguments, McpJsonContext.Default.GitTagInput));
+            case "vex_git_pull":
+                return await GitPullAsync();
             case "vex_get_current_document":
                 return GetCurrentDocument();
             case "vex_get_document_outline":
@@ -270,6 +273,23 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         var service = new Vex.Git.GitService(folder);
         service.Push(pat: string.Empty);
         return Text("已推送到 origin。");
+    }
+    private async Task<CallToolResult> GitPullAsync()
+    {
+        var folder = _shell.WorkspaceFolderPath;
+        if (string.IsNullOrWhiteSpace(folder) || !Vex.Git.GitService.IsRepository(folder))
+            return Text("工作区不是 Git 仓库（尚未初始化）。");
+        var service = new Vex.Git.GitService(folder);
+        var pat = _git.ResolveStoredPat();
+        try
+        {
+            var pulled = service.PullFastForward(pat: pat ?? string.Empty);
+            return Text(pulled > 0 ? $"已快进合入 {pulled} 个提交。" : "已是最新，无新提交。");
+        }
+        catch (Exception ex)
+        {
+            return Text("拉取失败：" + ex.Message);
+        }
     }
 
     private async Task<CallToolResult> GitTagAsync(GitTagInput? input)
