@@ -151,4 +151,13 @@ public sealed record AppSettings
     public double? PdfMargin { get; init; }
     /// <summary>用户模板目录；空值用默认 %LocalAppData%/Vex/Templates。</summary>
     public string? TemplatesPath { get; init; }
+
+    /// <summary>Git 定时自动提交开关（默认关，原型偏好 Git 页）。</summary>
+    public bool? GitAutoCommit { get; init; }
+
+    /// <summary>Git 自动提交间隔（分钟，5~120，默认 30）。</summary>
+    public int? GitAutoCommitInterval { get; init; }
+
+    /// <summary>Git 自动提交信息模板，{date} 占位当前时间。</summary>
+    public string? GitAutoCommitMessage { get; init; }
 }

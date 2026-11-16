@@ -33,7 +33,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private int _mcpTab;
     private readonly (string Id, string Key)[] _categories =
     [ ("general", VexL.PrefGeneral), ("editor", VexL.PrefEditor),
-      ("images", VexL.PrefImages), ("appearance", VexL.PrefAppearance), ("export", VexL.Export), ("mcp", "MCP") ];
+      ("images", VexL.PrefImages), ("appearance", VexL.PrefAppearance), ("export", VexL.Export), ("git", VexL.GitPrefCategory), ("mcp", "MCP") ];
 
     public ShellPreferencesOverlayView(ShellPreferencesViewModel model, IAppLocalizer localizer, string category)
     {
@@ -106,8 +106,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var selected = Math.Max(0, _navigation.SelectedIndex);
         _title.Text = L(VexL.PreferencesTitle);
-        // 字形与 _categories 逐项对应：文件、编辑、图片、调色板、导出（向上箭头，同原型 i-export）、终端。
-        string[] icons = ["M7 2H15L20 7V22H4V2Z M14 2V8H20", "M12 4H4V20H20V12 M18 2L22 6L12 16L8 17L9 13Z", "M3 5H21V19H3Z M8 11A1.5 1.5 0 1 0 8 11.01 M5 17L10 12L13 15L16 12L19 15", "M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h3.5a5.5 5.5 0 0 0 0-11H12Z M7.5 9h.1 M11 6.5h.1 M16 7.5h.1", "M21 15V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V15 M17 8L12 3L7 8 M12 3V15", "M5 7L10 12L5 17 M13 17H20"];
+        // 字形与 _categories 逐项对应：文件、编辑、图片、调色板、导出（向上箭头，同原型 i-export）、Git 分支、终端。
+        string[] icons = ["M7 2H15L20 7V22H4V2Z M14 2V8H20", "M12 4H4V20H20V12 M18 2L22 6L12 16L8 17L9 13Z", "M3 5H21V19H3Z M8 11A1.5 1.5 0 1 0 8 11.01 M5 17L10 12L13 15L16 12L19 15", "M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h3.5a5.5 5.5 0 0 0 0-11H12Z M7.5 9h.1 M11 6.5h.1 M16 7.5h.1", "M21 15V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V15 M17 8L12 3L7 8 M12 3V15", "M6 3V15 M18 9A3 3 0 1 0 18 3A3 3 0 0 0 18 9 M6 21A3 3 0 1 0 6 15A3 3 0 0 0 6 21 M18 9A9 9 0 0 1 9 18", "M5 7L10 12L5 17 M13 17H20"];
         _navigation.ItemsSource = _categories.Select((c, i) =>
         {
             var row = new Grid { ColumnDefinitions = new ColumnDefinitions("17,*"), ColumnSpacing = 10 };
@@ -193,6 +193,17 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Range(page, VexL.PrefPdfMargin, p, nameof(p.PdfMargin), 10, 30, " mm");
                 Heading(page, "HTML");
                 Toggle(page, VexL.PrefHtmlStyle, p, nameof(p.HtmlStyle));
+                break;
+            case "git":
+                // 对齐原型偏好 Git 页（preferences.js case 'git'）：定时自动提交（默认关）+ 同步说明。
+                Heading(page, VexL.GitPrefAutoCommitHeading);
+                Toggle(page, VexL.GitPrefAutoCommit, p, nameof(p.GitAutoCommit), VexL.GitPrefAutoCommitNote);
+                Range(page, VexL.GitPrefInterval, p, nameof(p.GitAutoCommitInterval), 5, 120, L(VexL.GitPrefMinutesSuffix));
+                Text(page, VexL.GitPrefMessageTemplate, p, nameof(p.GitAutoCommitMessage), VexL.GitPrefMessageTemplateNote);
+                Heading(page, VexL.GitPrefSyncHeading);
+                var syncNote = new TextBlock { Text = L(VexL.GitPrefSyncNote), FontSize = 12, LineHeight = 19.2, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
+                BindResource(syncNote, TextBlock.ForegroundProperty, "VexMutedBrush");
+                page.Children.Add(syncNote);
                 break;
             case "mcp":
                 // 对齐原型 .vex-mcp-tabs：它就是 .vex-segmented 的一份宿主——轨道、滑动指示块、选中字色字重
@@ -562,10 +573,10 @@ public sealed class ShellPreferencesOverlayView : UserControl
         var number = new NumericUpDown { Classes = { "pref-field" }, Name = property, Minimum = minimum, Maximum = maximum, Increment = step, Width = 104, FormatString = "0.#" };
         number.Bind(NumericUpDown.ValueProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, number);
     }
-    private void Text(StackPanel page, string label, object source, string property)
+    private void Text(StackPanel page, string label, object source, string property, string? note = null)
     {
         var text = new TextBox { Name = property, Classes = { "pref-field" } };
-        text.Bind(TextBox.TextProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, text);
+        text.Bind(TextBox.TextProperty, new Binding(property) { Source = source, Mode = BindingMode.TwoWay }); Row(page, label, text, note);
     }
     private ComboBox Choice(StackPanel page, string label, object source, string property, IEnumerable<(string Label, object Value)> choices)
     {

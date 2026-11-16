@@ -84,6 +84,9 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string ExportFormat = nameof(AppSettings.ExportFormat);
     private const string ExportFolder = nameof(AppSettings.ExportFolder);
     private const string TemplatesPath = nameof(AppSettings.TemplatesPath);
+    private const string GitAutoCommit = nameof(AppSettings.GitAutoCommit);
+    private const string GitAutoCommitInterval = nameof(AppSettings.GitAutoCommitInterval);
+    private const string GitAutoCommitMessage = nameof(AppSettings.GitAutoCommitMessage);
     private const string ExportOpen = nameof(AppSettings.ExportOpen);
     private const string HtmlStyle = nameof(AppSettings.HtmlStyle);
     private const string WatermarkPreview = nameof(AppSettings.WatermarkPreview);
@@ -170,6 +173,9 @@ public sealed class AppSettingsStore : IAppSettingsStore
             ExportFormat = Choice(configuration, ExportFormat, "HTML", "PDF", "Markdown", "PNG", "Word"),
             ExportFolder = Get<string>(configuration, ExportFolder),
         TemplatesPath = Get<string>(configuration, TemplatesPath),
+            GitAutoCommit = Get<bool?>(configuration, GitAutoCommit),
+            GitAutoCommitInterval = Get<int?>(configuration, GitAutoCommitInterval),
+            GitAutoCommitMessage = Get<string>(configuration, GitAutoCommitMessage),
             ExportOpen = Get<bool?>(configuration, ExportOpen),
             HtmlStyle = Get<bool?>(configuration, HtmlStyle),
             WatermarkPreview = Get<bool?>(configuration, WatermarkPreview),
@@ -271,6 +277,9 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [ExportFormat] = settings.ExportFormat,
                 [ExportFolder] = settings.ExportFolder,
         [TemplatesPath] = settings.TemplatesPath,
+                [GitAutoCommit] = settings.GitAutoCommit,
+                [GitAutoCommitInterval] = settings.GitAutoCommitInterval,
+                [GitAutoCommitMessage] = settings.GitAutoCommitMessage,
                 [ExportOpen] = settings.ExportOpen,
                 [HtmlStyle] = settings.HtmlStyle,
                 [WatermarkPreview] = settings.WatermarkPreview,

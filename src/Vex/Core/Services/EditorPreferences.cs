@@ -64,6 +64,13 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     public string PdfSize { get => settings.Current.PdfSize ?? "A4"; set => Set(s => s with { PdfSize = value is "A5" or "Letter" ? value : "A4" }); }
     public double PdfMargin { get => settings.Current.PdfMargin ?? 20; set => Set(s => s with { PdfMargin = Math.Clamp(value, 10, 30) }); }
 
+    /// <summary>Git 定时自动提交（原型偏好 Git 页，默认关）。</summary>
+    public bool GitAutoCommit { get => settings.Current.GitAutoCommit ?? false; set => Set(s => s with { GitAutoCommit = value }); }
+    /// <summary>Git 自动提交间隔（分钟，5~120，默认 30）。</summary>
+    public int GitAutoCommitInterval { get => settings.Current.GitAutoCommitInterval ?? 30; set => Set(s => s with { GitAutoCommitInterval = Math.Clamp(value, 5, 120) }); }
+    /// <summary>Git 自动提交信息模板，{date} 占位当前时间（上限 40 字符，原型 maxlength）。</summary>
+    public string GitAutoCommitMessage { get => settings.Current.GitAutoCommitMessage ?? "auto: {date}"; set => Set(s => s with { GitAutoCommitMessage = string.Concat((value ?? "").EnumerateRunes().Take(40).Select(r => r.ToString())) }); }
+
     public MarkdownSyntaxOptions SyntaxOptions => new(SyntaxMath, SyntaxSubscript, SyntaxHighlight,
         SyntaxAutoLinks, SyntaxSoftBreaks, SyntaxDiagrams, SyntaxChemistry);
     public FontFamily ContentFontFamily => BodyFont switch
