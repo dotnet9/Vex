@@ -136,21 +136,24 @@ internal static class PrototypeChromeVerification
             }
             // 原型 .nav-rail（workspace-chrome.css）：块角折叠钮退役，换成窗口级 56px 图标栏（铬面+右侧发丝线），
             // 文件/大纲两枚 44×48 开关的选中态跟随侧栏可见性，设置钮沉底。
+            // Git 原型稿：rail 只剩 文件/Git 双模式 + 设置钮（大纲/搜索折叠钮移到标题栏）。
             var rail = window.Workspace.Navigation.FindControl<Border>("NavRail")!;
             var railFiles = window.Workspace.Navigation.FindControl<ToggleButton>("RailFilesToggle")!;
-            var railOutline = window.Workspace.Navigation.FindControl<ToggleButton>("RailOutlineToggle")!;
+            var railGit = window.Workspace.Navigation.FindControl<ToggleButton>("RailGitToggle")!;
             var railSettings = window.Workspace.Navigation.FindControl<Button>("RailSettingsButton")!;
+            var titleSidebarToggle = window.FindControl<ToggleButton>("TitlebarSidebarToggle")!;
+            var titleOutlineToggle = window.FindControl<ToggleButton>("TitlebarOutlineToggle")!;
             void CheckRail()
             {
                 Check(rail.Bounds.Width == 56 && rail.IsVisible
-                    && railFiles.Bounds.Size == new Size(44, 48) && railOutline.Bounds.Size == new Size(44, 48)
-                    && railFiles.IsChecked == vm.Layout.ShowSidebar
-                    && railOutline.IsChecked == vm.Layout.ShowOutlineSidebar
-                    && railSettings.TranslatePoint(default, rail)!.Value.Y > railOutline.TranslatePoint(default, rail)!.Value.Y,
-                    $"Nav rail is a 56px chrome column with 44x48 toggles at {size.Width}: rail={rail.Bounds.Size} files={railFiles.IsChecked}/{vm.Layout.ShowSidebar} outline={railOutline.IsChecked}/{vm.Layout.ShowOutlineSidebar}");
+                    && railFiles.Bounds.Size == new Size(44, 48) && railGit.Bounds.Size == new Size(44, 48)
+                    && railFiles.IsChecked == !vm.IsGitMode && railGit.IsChecked == vm.IsGitMode
+                    && railSettings.TranslatePoint(default, rail)!.Value.Y > railGit.TranslatePoint(default, rail)!.Value.Y
+                    && titleSidebarToggle.IsVisible == !vm.IsGitMode && titleOutlineToggle.IsVisible == !vm.IsGitMode,
+                    $"Nav rail is a 56px chrome column with files/git dual mode at {size.Width}: files={railFiles.IsChecked}/{!vm.IsGitMode} git={railGit.IsChecked}/{vm.IsGitMode}");
             }
             CheckRail();
-            foreach (var entry in new Button[] { railFiles, railOutline, railSettings, window.Workspace.Navigation.FindControl<Button>("RailFindButton")! })
+            foreach (var entry in new Button[] { railFiles, railGit, railSettings })
             {
                 var icon = entry.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Single();
                 var frame = entry.GetVisualDescendants().OfType<Viewbox>().Single();
@@ -158,20 +161,31 @@ internal static class PrototypeChromeVerification
                     && frame.Bounds.Size == new Size(18, 18),
                     "Rail icon retains its SVG viewbox and 18px footprint: " + entry.Name);
             }
+            // 标题栏折叠钮（原型 .titlebar-toggle）：30x26 命中区、16px 描线、展开/收起双态图标。
+            foreach (var entry in new ToggleButton[] { titleSidebarToggle, titleOutlineToggle })
+            {
+                var icons = entry.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().ToArray();
+                // 双态图标一显一隐：隐藏态 Viewbox Bounds 归零，Path 测量值保留 16px。
+                // 双态图标一显一隐：隐藏枚测量可为 0，断双枚存在 + 可见枚 16px + 可见 Viewbox 16px。
+                Check(icons.Length == 2 && icons.All(icon => icon.Stretch == Stretch.None)
+                    && icons.Any(icon => icon.Bounds.Size == new Size(16, 16))
+                    && entry.GetVisualDescendants().OfType<Viewbox>().Where(f => f.IsVisible).All(frame => frame.Bounds.Size == new Size(16, 16)),
+                    "Titlebar toggles carry collapse/expand icon pairs at 16px: " + entry.Name);
+            }
             Check(Equals(railFiles.GetVisualDescendants().OfType<TextBlock>().Single().Foreground,
                     railFiles.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Single().Stroke),
                 "Selected rail icon and label share the accent ink");
-            Check(railSettings.Command is not null && window.Workspace.Navigation.FindControl<Button>("RailFindButton")!.Command is not null,
-                "Rail settings and find entries route to commands");
+            Check(railSettings.Command is not null && railGit.Command is not null,
+                "Rail settings and git entries route to commands");
             // 列宽逐帧插值：动画没走完就量几何，读到的是起点。
             void Settle() { LayoutSettle.Run(); Render(); }
             vm.Layout.IsOutlineVisible = true; Settle();
             CheckRail();
-            railOutline.Command!.Execute(null); Settle();
-            Check(!vm.Layout.IsOutlineVisible, "Rail outline toggle collapses the outline pane");
+            titleOutlineToggle.Command!.Execute(null); Settle();
+            Check(!vm.Layout.IsOutlineVisible, "Titlebar outline toggle collapses the outline pane");
             CheckRail();
-            railOutline.Command!.Execute(null); Settle();
-            Check(vm.Layout.IsOutlineVisible, "Rail outline toggle expands the outline pane again");
+            titleOutlineToggle.Command!.Execute(null); Settle();
+            Check(vm.Layout.IsOutlineVisible, "Titlebar outline toggle expands the outline pane again");
             CheckRail();
             var filesPane = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
             var outlinePane = window.GetVisualDescendants().OfType<ShellOutlineView>().Single();
@@ -214,9 +228,11 @@ internal static class PrototypeChromeVerification
                         "Sidebar icons preserve the prototype's 24px SVG coordinates: " + pane.GetType().Name + "/" + expectedSize);
                 }
             }
+            // Git 原型稿：侧栏折叠钮移到标题栏——关闭侧栏后焦点回标题栏钮，重开也走它。
             filesPane.FindControl<Button>("CloseFilesButton")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); Settle();
-            Check(!vm.Layout.IsSidebarVisible && railFiles.IsFocused, "Closing files restores focus to its rail toggle");
-            railFiles.Command!.Execute(null); Settle();
+            Check(!vm.Layout.IsSidebarVisible && titleSidebarToggle.IsFocused, "Closing files restores focus to the titlebar toggle");
+            titleSidebarToggle.Command!.Execute(null); Settle();
+            Check(vm.Layout.ShowSidebar, "Titlebar toggle reopens the files sidebar");
             // 大纲关闭钮走 Command 绑定：RaiseEvent(ClickEvent) 只路由事件、不经 Button.OnClick，命令不会执行——
             // 直接执行命令（与 railOutline.Command 同链路）。
             var outlineClose = outlinePane.FindControl<Button>("CloseOutlineButton")!;
@@ -245,6 +261,7 @@ internal static class PrototypeChromeVerification
         var filesView = window.GetVisualDescendants().OfType<ShellFilesView>().Single();
         var filesVm = (ShellFilesViewModel)filesView.DataContext!;
         var filterBox = filesView.FindControl<Border>("FileSearchBox")!;
+        Console.WriteLine("DIAG filesView=" + filesView.Bounds.Size + " showSidebar=" + vm.Layout.ShowSidebar + " colW=" + vm.Layout.SidebarColumnWidth + " gitMode=" + vm.IsGitMode);
         var sortFolder = filesView.FindControl<Button>("SortFolderButton")!;
         var footer = sortFolder.GetVisualAncestors().OfType<Border>().First();
         var footerTools = footer.GetVisualDescendants().OfType<Control>()

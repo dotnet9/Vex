@@ -110,7 +110,7 @@ if (mode == "parity-score")
     VisualParityScore.Run(args.Skip(1).ToArray());
     return;
 }
-if (mode is "outline-navigation" or "instant-menu" or "document-typography" or "reading-pointer" or "diagram-pointer" or "context-menu" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics" or "ui-density" or "ui-density-performance" or "theme-performance")
+if (mode is "outline-navigation" or "instant-menu" or "document-typography" or "reading-pointer" or "diagram-pointer" or "context-menu" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics" or "ui-density" or "ui-density-performance" or "theme-performance" or "git-panel" or "git-shots")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -160,6 +160,8 @@ if (mode is "outline-navigation" or "instant-menu" or "document-typography" or "
     else if (mode == "zoom-truncate") ZoomTruncationProbe.Run(app, window, output);
     else if (mode == "scrollbar-fidelity") ScrollbarFidelityProbe.Run(app, window, output);
     else if (mode is "settings-ui" or "settings-real-ui") PreferencesVerification.Run(app, window, output);
+    else if (mode == "git-panel") GitPanelVerification.Run(app, window, output);
+    else if (mode == "git-shots") { GitShotsCapture.Run(app, window, output); window.Close(); return; }
     else DesktopParityVerification.Run(app, window, output);
     window.Close();
     return;

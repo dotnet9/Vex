@@ -64,7 +64,7 @@ internal static class PreferencesVerification
         Render();
         var view = window.GetVisualDescendants().OfType<ShellPreferencesOverlayView>().Single();
         T Control<T>(string name) where T : Control => view.GetVisualDescendants().OfType<T>().Single(x => x.Name == name);
-        Check(view.GetVisualDescendants().OfType<ListBox>().Single().ItemCount == 6, "Preferences has six prototype categories");
+        Check(view.GetVisualDescendants().OfType<ListBox>().Single().ItemCount == 7, "Preferences has seven prototype categories (Git added)");
 
         // 最新 surface.css：标题栏/配置区为 pop 面，只有左分类栏使用 chrome。
         Application.Current!.TryGetResource("VexDialogChromeBrush", window.ActualThemeVariant, out var chrome);
@@ -80,7 +80,7 @@ internal static class PreferencesVerification
             "Preferences keeps its 1px outer frame and 8px standard radius");
         var navigation = view.GetVisualDescendants().OfType<ListBox>().Single();
         var navigationRows = navigation.GetVisualDescendants().OfType<ListBoxItem>().ToArray();
-        Check(navigationRows.Length == 6 && navigationRows.All(row => Math.Abs(row.Bounds.Width - 127) < .1
+        Check(navigationRows.Length == 7 && navigationRows.All(row => Math.Abs(row.Bounds.Width - 127) < .1
             && Math.Abs(row.Bounds.Height - 40) < .1
             && row.GetVisualDescendants().OfType<TextBlock>().All(text => text.FontSize == 14 && text.LineHeight == 21)),
             "Preferences navigation uses 127x40 rows and 14/21 labels");
