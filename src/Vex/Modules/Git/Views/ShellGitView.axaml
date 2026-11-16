@@ -429,7 +429,7 @@
                 <Panel Grid.Column="4" />
                 <!-- 远程芯片（SSH 警示）或 添加远程按钮；领先落后芯片 -->
                 <Border x:Name="RemoteChip" Grid.Column="5" Classes="git-chip" Classes.warn="{Binding IsSshRemote}" IsVisible="{Binding HasRemote}" VerticalAlignment="Center"
-                        ToolTip.Tip="{i18n:I18n {x:Static l:VexL.GitRemoteSshTip}}">
+                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.GitRemoteSshTip}}">
                     <TextBlock Text="{Binding RemoteChipText}" />
                 </Border>
                 <Button x:Name="AddRemoteButton" Grid.Column="5" Classes="git-topbtn" IsVisible="{Binding !HasRemote}"
@@ -528,7 +528,7 @@
                                                               AutomationProperties.Name="{Binding Path}" />
                                                     <Border Grid.Column="1" Classes="git-status" Classes.m="{Binding IsModified}" Classes.a="{Binding IsAdded}"
                                                             Classes.d="{Binding IsDeleted}" Classes.u="{Binding IsUntracked}"
-                                                            ToolTip.Tip="{Binding StatusText}">
+                                                            helpers:ToolTipHelper.Text="{Binding StatusText}">
                                                         <Panel>
                                                             <Ellipse Width="6" Height="6" Fill="{DynamicResource VexWarningBrush}" IsVisible="{Binding IsModified}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                             <TextBlock Text="+" IsVisible="{Binding IsAdded}" />
@@ -578,7 +578,7 @@
 
                             <!-- History 页签 -->
                             <Grid IsVisible="{Binding IsHistoryTab}" RowDefinitions="Auto,*,Auto">
-                                <Border Classes="git-filter git-filter-dim" ToolTip.Tip="{i18n:I18n {x:Static l:VexL.GitBranchCompareTip}}">
+                                <Border Classes="git-filter git-filter-dim" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.GitBranchCompareTip}}">
                                     <Grid ColumnDefinitions="13,*" ColumnSpacing="7">
                                         <Viewbox Width="13" Height="13" VerticalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBGitBranchIcon}" /></Canvas></Viewbox>
                                         <TextBox Classes="git-filter-input" IsEnabled="False"
@@ -659,7 +659,7 @@
                                 </Button>
                                 <!-- 文件状态标志（与列表一致，右侧重复一枚，原型 git-head-status） -->
                                 <Border Grid.Column="4" Classes="git-status" Margin="6,0,0,0" VerticalAlignment="Center"
-                                        ToolTip.Tip="{Binding SelectedChange.StatusText}"
+                                        helpers:ToolTipHelper.Text="{Binding SelectedChange.StatusText}"
                                         Classes.m="{Binding SelectedChange.IsModified}" Classes.a="{Binding SelectedChange.IsAdded}"
                                         Classes.d="{Binding SelectedChange.IsDeleted}" Classes.u="{Binding SelectedChange.IsUntracked}">
                                     <Panel>
