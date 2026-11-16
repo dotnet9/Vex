@@ -115,6 +115,13 @@ function Copy-PublishContents([string]$Source, [string]$Destination) {
     foreach ($item in $items) {
         Copy-Item -LiteralPath $item.FullName -Destination $Destination -Recurse -Force
     }
+
+    # 用户包不含调试符号：与安装器（Excludes *.pdb）和 deb/dmg（滤 .pdb/.dbg/.dSYM）同一口径。
+    $symbols = @(Get-ChildItem -LiteralPath $Destination -Recurse -File -Force |
+        Where-Object { $_.Extension -in '.pdb', '.dbg' })
+    foreach ($symbol in $symbols) {
+        Remove-Item -LiteralPath $symbol.FullName -Force
+    }
 }
 
 function Ensure-MsixAssets([string]$LayoutRoot, [string]$RepoRoot) {
