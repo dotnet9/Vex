@@ -54,6 +54,9 @@ body.git-mode .structure-splitter, body.git-mode .workspace-main, body.git-mode 
 .git-status.a::after { content:"+"; }
 .git-status.d::after { content:"2"; }
 .git-status.u::after { content:"?"; }
+/* 顶栏状态芯片（原型遗留缺失：远程协议、领先落后） */
+.git-chip { display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--muted); background:var(--code-bg); border:1px solid var(--border); border-radius:14px; padding:3px 9px; white-space:nowrap; }
+.git-chip.warn { color:var(--warning,#b8860b); border-color:var(--warning,#b8860b); }
 .git-path { flex:1; min-width:0; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .git-path .dir { color:var(--muted); }
 .commit-item { align-items:flex-start; padding-top:8px; padding-bottom:8px; }
