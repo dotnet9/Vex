@@ -447,7 +447,6 @@
     branchMenu.style.top = Math.max(8, rect.bottom + 4) + 'px';
     branchMenu.querySelector('button').focus({ preventScroll: true });
   }
-  var paneButtonGuard = event.target.closest('[data-git="branch"]');
   pane.addEventListener('click', function (event) {
     var branchBtn = event.target.closest('[data-git="branch"]');
     if (branchBtn && !event.target.closest('[data-branch-act]')) { showBranchMenu(event); return; }
@@ -576,14 +575,6 @@
     return result;
   };
 
-  /* ---------- 大纲折叠按钮移位：外观/语言面板（studio-title-controls）右侧 ---------- */
-  function moveOutlineButton() {
-    var captionBtns = document.getElementById('caption-btns');
-    var outlineBtn = document.getElementById('outline-toggle');
-    if (captionBtns && outlineBtn) captionBtns.before(outlineBtn);
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', moveOutlineButton);
-  else moveOutlineButton();
   /* 启动时同步两个折叠按钮图标（侧栏/大纲默认展开 → 收起态图标） */
   (function () {
     var sidebar = document.querySelector('.sidebar');
@@ -603,6 +594,18 @@
       if (outlineUse) outlineUse.setAttribute('href', expanded ? '#i-rail-expand' : '#i-rail-collapse');
     }
   })();
+
+  /* ---------- 大纲折叠钮移位：外观/语言面板右侧、窗口按钮左侧（DOMContentLoaded 时 panel 已建） ---------- */
+  function moveOutlineButton() {
+    var captionBtns = document.getElementById('caption-btns');
+    var outlineBtn = document.getElementById('outline-toggle');
+    var panel = document.getElementById('vex-theme-panel');
+    if (!captionBtns || !outlineBtn) return;
+    if (panel) panel.after(outlineBtn);
+    else captionBtns.before(outlineBtn);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', moveOutlineButton);
+  else moveOutlineButton();
 
   /* ---------- 偏好联动（自动提交默认关） ---------- */
   window.addEventListener('vex-preference-changed', function (event) {

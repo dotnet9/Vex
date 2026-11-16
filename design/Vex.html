@@ -108,7 +108,7 @@
       </div>
     </div>
     <div class="document-label titlebar-document"><div class="document-title"><span id="document-name">主题设计笔记.md</span><i class="doc-dot" id="dirty-dot" hidden></i></div></div>
-    <!-- 大纲折叠按钮：加载后被 git-panel.js 移到外观/语言面板（studio-title-controls）右侧。 -->
+    <!-- 大纲折叠按钮：位于外观/语言按钮右侧、窗口按钮左侧。 -->
     <button class="caption-btn titlebar-toggle" id="outline-toggle" data-action="toggle-structure" data-l10n-name="收起文档大纲" title="收起文档大纲" aria-label="收起文档大纲" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-rail-expand"/></svg></button>
     <div class="caption-btns" id="caption-btns">
       <button class="caption-btn" data-action="minimize" data-l10n-name="最小化" title="最小化"><svg class="ico" aria-hidden="true"><use href="#i-min"/></svg></button>
@@ -471,22 +471,6 @@
       </div>
     </div>
 
-    <!-- MCP 设置弹层已并入「偏好设置 → MCP」页（dlg-mcp 由 preferences 接管），旧独立弹层移除。 -->
-
-  </div>
-</div>
-<div class="presentation-tools" id="presentation-tools" hidden>
-  <button data-action="presentation-smaller" data-l10n-name="减小演示字号" aria-label="减小演示字号" title="减小演示字号">A−</button>
-  <button data-action="presentation-larger" data-l10n-name="增大演示字号" aria-label="增大演示字号" title="增大演示字号">A+</button>
-  <button data-action="presentation-exit" data-l10n-name="退出演示" aria-label="退出演示" title="退出演示">×</button>
-</div>
-<link rel="stylesheet" href="assets/workbench/presentation.css?v=20261030a">
-<script src="assets/workbench/document-operations.js?v=20261030a"></script><script src="assets/workbench/editor.js?v=20261030a"></script><script src="assets/workbench/writing-chrome.js?v=20261030a"></script><script src="assets/workbench/element-menu.js?v=20261030a"></script><script src="assets/workbench/selection-menu.js?v=20261030a"></script><script src="assets/workbench/presentation-labels.js?v=20261030a"></script><script src="assets/workbench/presentation.js?v=20261030a"></script>
-<input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
-<input type="file" id="open-folder-input" accept=".md,.markdown,.mdown,.txt" webkitdirectory directory multiple hidden>
-<script src="assets/workbench/vex-data.js?v=20261030a"></script><script src="assets/workbench/localization.js?v=20261030a"></script><script src="assets/prototype/project-info.js?v=20261030a"></script><script src="assets/workbench/typography.js?v=20261030a"></script><script src="assets/workbench/interact.js?v=20261030a"></script><script src="assets/workbench/mindmap.js?v=20261030a"></script><script src="assets/workbench/code-fence.js?v=20261030a"></script><script src="assets/vendor/katex/katex.min.js?v=20261030a"></script><script src="assets/vendor/katex/mhchem.min.js?v=20261030a"></script><script src="assets/vendor/mermaid/mermaid.min.js?v=20261030a"></script><script src="assets/workbench/diagram-rendering.js?v=20261030a"></script><script src="assets/workbench/rendering.js?v=20261030a"></script><script src="assets/workbench/samples.js?v=20261030a"></script><script src="assets/workbench/typewriter.js?v=20261030a"></script><script src="assets/workbench/instant-editor.js?v=20261030a"></script><script src="assets/workbench/source-highlight.js?v=20261030a"></script><script src="assets/workbench/workbench.js?v=20261030a"></script><script src="assets/workbench/guide.js?v=20261030a"></script>
-<script src="assets/workbench/about-update.js?v=20261104a"></script><script src="assets/workbench/workspace.js?v=20261030a"></script><script src="assets/workbench/chapter-editor.js?v=20261030a"></script><script src="assets/workbench/usability.js?v=20261030a"></script><script src="assets/workbench/workspace-chrome.js?v=20261030a"></script><script src="assets/workbench/workflows.js?v=20261030a"></script><script src="assets/workbench/preview.js?v=20261030a"></script>
-<script src="assets/workbench/template-center.js?v=20261115f"></script><script src="assets/workbench/git-panel.js?v=20261115f"></script></body></html>
     <div class="overlay win-layer" id="layer-git-tag" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="git-tag-title">
         <div class="mini-titlebar"><span id="git-tag-title">打 tag</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
@@ -503,3 +487,22 @@
         </div>
       </div>
     </div>
+
+    <!-- MCP 设置弹层已并入「偏好设置 → MCP」页（dlg-mcp 由 preferences 接管），旧独立弹层移除。 -->
+
+  </div>
+</div>
+<div class="presentation-tools" id="presentation-tools" hidden>
+  <button data-action="presentation-smaller" data-l10n-name="减小演示字号" aria-label="减小演示字号" title="减小演示字号">A−</button>
+  <button data-action="presentation-larger" data-l10n-name="增大演示字号" aria-label="增大演示字号" title="增大演示字号">A+</button>
+  <button data-action="presentation-exit" data-l10n-name="退出演示" aria-label="退出演示" title="退出演示">×</button>
+</div>
+<link rel="stylesheet" href="assets/workbench/presentation.css?v=20261030a">
+<script src="assets/workbench/document-operations.js?v=20261030a"></script><script src="assets/workbench/editor.js?v=20261030a"></script><script src="assets/workbench/writing-chrome.js?v=20261030a"></script><script src="assets/workbench/element-menu.js?v=20261030a"></script><script src="assets/workbench/selection-menu.js?v=20261030a"></script><script src="assets/workbench/presentation-labels.js?v=20261030a"></script><script src="assets/workbench/presentation.js?v=20261030a"></script>
+<input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
+<input type="file" id="open-folder-input" accept=".md,.markdown,.mdown,.txt" webkitdirectory directory multiple hidden>
+<script src="assets/workbench/vex-data.js?v=20261030a"></script><script src="assets/workbench/localization.js?v=20261030a"></script><script src="assets/prototype/project-info.js?v=20261030a"></script><script src="assets/workbench/typography.js?v=20261030a"></script><script src="assets/workbench/interact.js?v=20261030a"></script><script src="assets/workbench/mindmap.js?v=20261030a"></script><script src="assets/workbench/code-fence.js?v=20261030a"></script><script src="assets/vendor/katex/katex.min.js?v=20261030a"></script><script src="assets/vendor/katex/mhchem.min.js?v=20261030a"></script><script src="assets/vendor/mermaid/mermaid.min.js?v=20261030a"></script><script src="assets/workbench/diagram-rendering.js?v=20261030a"></script><script src="assets/workbench/rendering.js?v=20261030a"></script><script src="assets/workbench/samples.js?v=20261030a"></script><script src="assets/workbench/typewriter.js?v=20261030a"></script><script src="assets/workbench/instant-editor.js?v=20261030a"></script><script src="assets/workbench/source-highlight.js?v=20261030a"></script><script src="assets/workbench/workbench.js?v=20261030a"></script><script src="assets/workbench/guide.js?v=20261030a"></script>
+<script src="assets/workbench/about-update.js?v=20261104a"></script><script src="assets/workbench/workspace.js?v=20261030a"></script><script src="assets/workbench/chapter-editor.js?v=20261030a"></script><script src="assets/workbench/usability.js?v=20261030a"></script><script src="assets/workbench/workspace-chrome.js?v=20261030a"></script><script src="assets/workbench/workflows.js?v=20261030a"></script><script src="assets/workbench/preview.js?v=20261030a"></script>
+<script src="assets/workbench/template-center.js?v=20261115f"></script><script src="assets/workbench/git-panel.js?v=20261115f"></script></body></html>
+</body>
+</html>
