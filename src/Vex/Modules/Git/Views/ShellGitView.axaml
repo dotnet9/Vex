@@ -375,7 +375,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,*" Background="{DynamicResource VexPanelBackgroundBrush}">
         <!-- ===== 顶栏 ===== -->
         <Border Classes="git-topbar">
             <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" ColumnSpacing="10">
@@ -611,8 +611,8 @@
                 <GridSplitter Grid.Column="1" Classes="git-splitter" Width="11" Margin="-5,0"
                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                               ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="False" />
-                <!-- ===== 右列：Changes 选中文件 diff / History 提交详情 ===== -->
-                <Panel Grid.Column="2">
+                <!-- ===== 右列：Changes 选中文件 diff / History 提交详情（画布色与左柱面板区分） ===== -->
+                <Panel Grid.Column="2" Background="{DynamicResource VexWorkspaceCanvasBrush}">
                     <!-- Changes 页签右区 -->
                     <Grid IsVisible="{Binding IsChangesTab}" RowDefinitions="Auto,Auto,*,Auto">
                         <!-- 文件头快捷栏 -->

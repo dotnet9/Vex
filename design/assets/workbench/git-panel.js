@@ -334,7 +334,6 @@
         case 'push': push(); break;
         case 'pull': pull(); break;
         case 'remote-dialog': openRemoteDialog(); break;
-        case 'branch': VexProto.toast(t('分支管理在桌面版中提供')); break;
         case 'diff-options': diffOptionsOpen = !diffOptionsOpen; render(); return;
       }
       return;
@@ -452,6 +451,14 @@
   pane.addEventListener('click', function (event) {
     var branchBtn = event.target.closest('[data-git="branch"]');
     if (branchBtn && !event.target.closest('[data-branch-act]')) { showBranchMenu(event); return; }
+    var act = event.target.closest('[data-branch-act]');
+    if (!act) return;
+    closeBranchMenu();
+    if (act.dataset.branchAct === 'create-tag') { openTagDialog(false); return; }
+    if (act.dataset.branchAct === 'push-tag') { openTagDialog(true); return; }
+    VexProto.toast(t('分支管理在桌面版中提供'));
+  });
+  branchMenu.addEventListener('click', function (event) {
     var act = event.target.closest('[data-branch-act]');
     if (!act) return;
     closeBranchMenu();
