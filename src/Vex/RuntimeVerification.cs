@@ -229,6 +229,158 @@ internal static class RuntimeVerification
         public void Save(IEnumerable<RecentDocument> documents) { }
     }
 
+    /// <summary>git 执行模式：Vex 程序作为本仓库（或指定仓库）git 操作的统一入口——
+    /// commit/tag/push 全走面板同一套 GitService（SSH 推送内部转系统 git，属于 Vex 的封装行为）。</summary>
+    public static void RunGitExecute(string repositoryPath, string action, string? argument, string? pathsCsv = null)
+    {
+        AppBuilder.Configure<NativeVerificationApp>().UsePlatformDetect().With(VexFonts.Options)
+            .UseReactiveUI(_ => { }).SetupWithoutStarting();
+        var app = (NativeVerificationApp)Application.Current!;
+        var window = app.CreateShell();
+        window.Show();
+        try
+        {
+            var model = (MainWindowViewModel)window.DataContext!;
+            var opened = model.OpenStartupDocumentAsync([repositoryPath]);
+            var deadline = DateTime.UtcNow.AddSeconds(60);
+            while (!opened.IsCompleted)
+            {
+                if (DateTime.UtcNow >= deadline) throw new TimeoutException("Open repository timed out.");
+                Dispatcher.UIThread.RunJobs();
+                Thread.Sleep(10);
+            }
+            opened.GetAwaiter().GetResult();
+            model.EnterGitMode();
+            var git = (Modules.Git.ViewModels.ShellGitViewModel)window.GetVisualDescendants()
+                .OfType<Modules.Git.Views.ShellGitView>().Single().DataContext!;
+            var refresh = git.RefreshAsync();
+            var refreshDeadline = DateTime.UtcNow.AddSeconds(60);
+            while (!refresh.IsCompleted)
+            {
+                if (DateTime.UtcNow >= refreshDeadline) throw new TimeoutException("Git snapshot timed out.");
+                Dispatcher.UIThread.RunJobs();
+                Thread.Sleep(10);
+            }
+            refresh.GetAwaiter().GetResult();
+            switch (action)
+            {
+                case "commit":
+                    git.Summary = argument ?? throw new ArgumentException("commit 需要提交信息。");
+                    // pathsCsv 非空时按路径部分提交（分批提交历史用），否则全勾提交。
+                    var commitPaths = string.IsNullOrWhiteSpace(pathsCsv)
+                        ? null
+                        : pathsCsv.Split(',').Select(p => p.Trim().Replace('/', System.IO.Path.DirectorySeparatorChar)).ToArray();
+                    if (commitPaths is { Length: > 0 })
+                    {
+                        var service = new Vex.Git.GitService(repositoryPath);
+                        var committed = service.CommitPaths(commitPaths, git.Summary + (git.Description.Length > 0 ? "\n\n" + git.Description : string.Empty));
+                        Console.WriteLine("GIT-EXEC committed " + committed.Sha[..7] + " files=" + commitPaths.Length);
+                        break;
+                    }
+                    git.AllChecked = true;
+                    var commit = git.CommitAsync();
+                    var commitDeadline = DateTime.UtcNow.AddSeconds(60);
+                    while (!commit.IsCompleted)
+                    {
+                        if (DateTime.UtcNow >= commitDeadline) throw new TimeoutException("Commit timed out.");
+                        Dispatcher.UIThread.RunJobs();
+                        Thread.Sleep(10);
+                    }
+                    commit.GetAwaiter().GetResult();
+                    Console.WriteLine("GIT-EXEC committed");
+                    break;
+                case "tag":
+                    git.CreateTagCommand.Execute(argument ?? throw new ArgumentException("tag 需要名称。"));
+                    Dispatcher.UIThread.RunJobs();
+                    Console.WriteLine("GIT-EXEC tagged " + argument);
+                    break;
+                case "push":
+                    var push = git.PushAsync();
+                    var pushDeadline = DateTime.UtcNow.AddSeconds(180);
+                    while (!push.IsCompleted)
+                    {
+                        if (DateTime.UtcNow >= pushDeadline) throw new TimeoutException("Push timed out.");
+                        Dispatcher.UIThread.RunJobs();
+                        Thread.Sleep(100);
+                    }
+                    push.GetAwaiter().GetResult();
+                    Console.WriteLine("GIT-EXEC pushed");
+                    break;
+                case "push-tag":
+                    var pushTag = git.PushTagAsync(argument ?? throw new ArgumentException("push-tag 需要名称。"));
+                    var pushTagDeadline = DateTime.UtcNow.AddSeconds(180);
+                    while (!pushTag.IsCompleted)
+                    {
+                        if (DateTime.UtcNow >= pushTagDeadline) throw new TimeoutException("Push tag timed out.");
+                        Dispatcher.UIThread.RunJobs();
+                        Thread.Sleep(100);
+                    }
+                    pushTag.GetAwaiter().GetResult();
+                    Console.WriteLine("GIT-EXEC pushed-tag " + argument);
+                    break;
+                default:
+                    throw new ArgumentException("未知 git 动作：" + action);
+            }
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    public static void RunGit(string repositoryPath)
+    {
+        AppBuilder.Configure<NativeVerificationApp>().UsePlatformDetect().With(VexFonts.Options)
+            .UseReactiveUI(_ => { }).SetupWithoutStarting();
+        var app = (NativeVerificationApp)Application.Current!;
+        var window = app.CreateShell();
+        window.Width = 1440;
+        window.Height = 948;
+        window.Show();
+        try
+        {
+            var model = (MainWindowViewModel)window.DataContext!;
+            var opened = model.OpenStartupDocumentAsync([repositoryPath]);
+            var openDeadline = DateTime.UtcNow.AddSeconds(60);
+            while (!opened.IsCompleted)
+            {
+                if (DateTime.UtcNow >= openDeadline) throw new TimeoutException("Open repository timed out.");
+                Dispatcher.UIThread.RunJobs();
+                Thread.Sleep(10);
+            }
+            opened.GetAwaiter().GetResult();
+            model.EnterGitMode();
+            var panel = window.GetVisualDescendants().OfType<Modules.Git.Views.ShellGitView>().Single();
+            var git = (Modules.Git.ViewModels.ShellGitViewModel)panel.DataContext!;
+            var refresh = git.RefreshAsync();
+            var refreshDeadline = DateTime.UtcNow.AddSeconds(60);
+            while (!refresh.IsCompleted)
+            {
+                if (DateTime.UtcNow >= refreshDeadline) throw new TimeoutException("Git snapshot timed out.");
+                Dispatcher.UIThread.RunJobs();
+                Thread.Sleep(10);
+            }
+            refresh.GetAwaiter().GetResult();
+            Console.WriteLine($"GIT-VERIFY repo={repositoryPath} branch={git.BranchName} history={git.History.Count} changes={git.Changes.Count}");
+            for (var i = 0; i < git.History.Count; i++)
+            {
+                git.SelectedCommit = git.History[i];
+                Dispatcher.UIThread.RunJobs();
+                Console.WriteLine($"commit[{i}] files={git.CommitFiles.Count} subject={git.CommitSubject}");
+                foreach (var file in git.CommitFiles)
+                {
+                    git.SelectedCommitFile = file;
+                    Dispatcher.UIThread.RunJobs();
+                }
+            }
+            Console.WriteLine("GIT-VERIFY PASS");
+        }
+        finally
+        {
+            window.Hide(); // Close 会触发 headless 渲染竞态（CompositingRenderer），进程退出即回收
+        }
+    }
+
     public static void Run(string directory)
     {
         if (RuntimeFeature.IsDynamicCodeSupported)

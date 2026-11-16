@@ -10,6 +10,7 @@ internal sealed class Program
     public static void Main(string[] args)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        Vex.Core.Services.CrashLog.Install();
         if (args is ["--verify-ui", var uiDirectory])
         {
             RuntimeVerification.RunUi(uiDirectory);
@@ -23,6 +24,21 @@ internal sealed class Program
         if (args is ["--verify-runtime", var directory])
         {
             RuntimeVerification.Run(directory);
+            return;
+        }
+        if (args is ["--verify-git", var gitRepository])
+        {
+            RuntimeVerification.RunGit(gitRepository);
+            return;
+        }
+        if (args is ["--git-run", var runRepository, var runAction, var runArgument, var runPaths])
+        {
+            RuntimeVerification.RunGitExecute(runRepository, runAction, runArgument, runPaths);
+            return;
+        }
+        if (args is ["--git-run", var runRepo3, var runAction3])
+        {
+            RuntimeVerification.RunGitExecute(runRepo3, runAction3, null);
             return;
         }
         if (Core.Services.SingleInstance.TryAcquire(args))
