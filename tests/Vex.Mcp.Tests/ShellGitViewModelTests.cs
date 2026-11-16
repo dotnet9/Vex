@@ -40,13 +40,18 @@ public sealed class ShellGitViewModelTests : IDisposable
         File.WriteAllText(full, content);
     }
 
+    private static void PumpJobs() => Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
     private ShellGitViewModel CreateVm()
     {
         var preferences = new EditorPreferences(_settings);
-        return new ShellGitViewModel(_localizer, _toasts, preferences, _credentials)
+        var vm = new ShellGitViewModel(_localizer, _toasts, preferences, _credentials)
         {
             WorkspaceFolderProvider = () => _root,
+            // 无调度器夹具：集合派发直执行（替代 Dispatcher 排队 + RunJobs 泵的线程亲和坑）。
+            UiDispatch = action => { action(); return Task.CompletedTask; },
         };
+        return vm;
     }
 
     private async Task<ShellGitViewModel> CreateReadyVmAsync()
