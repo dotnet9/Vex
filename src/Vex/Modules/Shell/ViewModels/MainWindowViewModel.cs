@@ -68,7 +68,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         IShellExternalPathResolver externalPaths,
         IAutoSaveDraftService drafts,
         IShellStatusPublisher statusPublisher, IShellOverlayService overlays, IAppLocalizer localizer,
-        IWorkspaceFileService workspaceFiles)
+        IWorkspaceFileService workspaceFiles,
+        Vex.Modules.Git.ViewModels.ShellGitViewModel git)
     {
         _documentService = documentService;
         _workspaceDocumentState = workspaceDocumentState;
@@ -96,6 +97,11 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _statusPublisher = statusPublisher;
         _overlays = overlays; _localizer = localizer;
         _workspaceFiles = workspaceFiles;
+        Git = git;
+        // Git 面板的三条供给线：工作区根目录、PAT 输入层、远程地址层（Git 模块不反向依赖 Shell 视图）。
+        git.WorkspaceFolderProvider = () => WorkspaceFolderPath;
+        git.PatPrompt = () => overlays.ShowGitPatAsync();
+        git.RemoteDialog = () => overlays.ShowGitRemoteAsync(git.RemoteRawUrl);
         _workspaceFiles.Changed += WorkspaceFilesChanged;
         _drafts.StateChanged += (_, _) => Dispatcher.UIThread.Post(() => Protection.DraftError = _drafts.LastError);
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
@@ -125,6 +131,25 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     }
 
     public ShellAppearanceViewModel Appearance { get; }
+    public Vex.Modules.Git.ViewModels.ShellGitViewModel Git { get; }
+
+    /// <summary>左柱文件/Git 双模式（原型 body.git-mode）：Git 模式整体替换编辑工作区；会话态不持久化。</summary>
+    public bool IsGitMode
+    {
+        get => _isGitMode;
+        set
+        {
+            if (_isGitMode == value) return;
+            _isGitMode = value;
+            this.RaisePropertyChanged();
+            if (value) Git.Enter();
+            else Git.Exit();
+        }
+    }
+    private bool _isGitMode;
+
+    public void EnterGitMode() => IsGitMode = true;
+    public void ExitGitMode() => IsGitMode = false;
     public ShellDocumentInfoViewModel DocumentInfo { get; }
     public ShellDialogsViewModel Dialogs { get; }
     public ShellEditorActionsViewModel EditorActions { get; }
@@ -1147,7 +1172,12 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _statusPublisher.PublishResource(VexL.StatusPreviewRefreshed);
     }
 
-    public void ShowFindPanel() => FindBar.ShowFindPanel();
+    public void ShowFindPanel()
+    {
+        // 原型 git-panel.js 口径：Git 模式下查找等正文操作先回到文件模式。
+        if (IsGitMode) IsGitMode = false;
+        FindBar.ShowFindPanel();
+    }
     /// <summary>图标栏设置入口：与 Ctrl+, 同一意图通道，偏好/MCP 不再重复挂在文件菜单。</summary>
     public void ShowPreferences() => CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new ShellActionCommand(ShellActionKind.ShowPreferences));
     public void ShowReplacePanel() => FindBar.ShowReplacePanel();

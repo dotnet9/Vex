@@ -5,39 +5,31 @@
     x:DataType="vm:MainWindowViewModel">
     <Border x:Name="NavRail" Classes="nav-rail" IsVisible="{Binding !Workbench.IsPresenting}">
         <DockPanel>
-            <!-- 原型 .nav-rail 的 gap:4 是栏级间距，写在承载三项的 StackPanel 上，条目自身不带外距；
-            设置钮贴栏底（原型 margin-top:auto），与上方三项之间剩下的才是那段大空档。 -->
+            <!-- 原型 .nav-rail 的 gap:4 是栏级间距，写在承载项的 StackPanel 上，条目自身不带外距；
+            设置钮贴栏底（原型 margin-top:auto），与上方两项之间剩下的才是那段大空档。 -->
             <StackPanel DockPanel.Dock="Top" Spacing="{DynamicResource VexUiGap4}">
+                <!-- 原型 Git 原型稿：文件/Git 双模式互斥（mode-files / mode-git）；
+                侧栏与大纲的显隐折叠移到标题栏（标题栏双折叠按钮），搜索走 Ctrl+F。 -->
                 <ToggleButton x:Name="RailFilesToggle" Classes="rail-item"
                     HorizontalAlignment="Center"
-                    IsChecked="{Binding Layout.ShowSidebar, Mode=OneWay}"
-                    Command="{Binding Layout.ToggleSidebar}"
+                    IsChecked="{Binding !IsGitMode, Mode=OneWay}"
+                    Command="{Binding ExitGitMode}"
                     AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SidebarFiles}}">
                     <StackPanel Spacing="{DynamicResource VexUiGap4}">
                         <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBFolderIcon}" /></Canvas></Viewbox>
                         <TextBlock Text="{i18n:I18n {x:Static l:VexL.SidebarFiles}}" HorizontalAlignment="Center" />
                     </StackPanel>
                 </ToggleButton>
-                <ToggleButton x:Name="RailOutlineToggle" Classes="rail-item"
+                <ToggleButton x:Name="RailGitToggle" Classes="rail-item"
                     HorizontalAlignment="Center"
-                    IsChecked="{Binding Layout.ShowOutlineSidebar, Mode=OneWay}"
-                    Command="{Binding Layout.ToggleOutline}"
-                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Outline}}">
+                    IsChecked="{Binding IsGitMode, Mode=OneWay}"
+                    Command="{Binding EnterGitMode}"
+                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitNavRepository}}">
                     <StackPanel Spacing="{DynamicResource VexUiGap4}">
-                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBListIcon}" /></Canvas></Viewbox>
-                        <TextBlock Text="{i18n:I18n {x:Static l:VexL.Outline}}" HorizontalAlignment="Center" />
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBGitBranchIcon}" /></Canvas></Viewbox>
+                        <TextBlock Text="Git" HorizontalAlignment="Center" />
                     </StackPanel>
                 </ToggleButton>
-                <Button x:Name="RailFindButton" Classes="rail-item"
-                    HorizontalAlignment="Center"
-                    Command="{Binding ShowFindPanel}"
-                    helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Search}}"
-                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Search}}">
-                    <StackPanel Spacing="{DynamicResource VexUiGap4}">
-                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBSearchIcon}" /></Canvas></Viewbox>
-                        <TextBlock Text="{i18n:I18n {x:Static l:VexL.Search}}" HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Button>
             </StackPanel>
             <Button x:Name="RailSettingsButton" Classes="rail-item rail-bottom" DockPanel.Dock="Bottom"
                 HorizontalAlignment="Center"

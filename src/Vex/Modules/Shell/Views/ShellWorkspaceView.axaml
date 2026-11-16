@@ -4,6 +4,7 @@
     xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
     xmlns:views="using:Vex.Modules.Shell.Views" xmlns:shell="using:Vex.Modules.Shell.Views"
     xmlns:workspace="using:Vex.Modules.Workspace.Views" xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+    xmlns:git="using:Vex.Modules.Git.Views"
     x:DataType="vm:MainWindowViewModel">
     <UserControl.Styles>
         <Style Selector="Border#OutlineGuideTarget">
@@ -32,7 +33,8 @@
             HorizontalAlignment="Left" VerticalAlignment="Bottom"
             IsHitTestVisible="False" IsVisible="False" />
         <shell:ShellNavigationRailView x:Name="Navigation" x:FieldModifier="public" />
-        <Grid Grid.Column="1" x:Name="WorkspaceColumns" Margin="{Binding Workbench.WorkspaceContentMargin}">
+        <!-- 原型 body.git-mode：编辑工作区相关面整体退场，Git 面板取而代之（rail 保留承担双模式切换）。 -->
+        <Grid Grid.Column="1" x:Name="WorkspaceColumns" Margin="{Binding Workbench.WorkspaceContentMargin}" IsVisible="{Binding !IsGitMode}">
             <Grid.ColumnDefinitions>
                 <!-- 列宽是侧栏尺寸的唯一来源，拖动结果直接通过双向绑定进入布局状态。 -->
                 <ColumnDefinition Width="{Binding Layout.SidebarColumnWidth, Mode=TwoWay}"
@@ -142,8 +144,11 @@
                 <shell:ShellOutlineView/>
             </Border>
         </Grid>
+        <!-- 原型 section.git-workspace：Git 模式下整体替换编辑工作区（rail 右侧全客户区面板）。 -->
+        <git:ShellGitView x:Name="GitPanel" Grid.Column="1" DataContext="{Binding Git}" IsVisible="{Binding #WorkspaceRoot.((vm:MainWindowViewModel)DataContext).IsGitMode}" />
         <!-- 文档工具悬浮在右下角，不占用正文布局行。 -->
         <shell:ShellDocumentToolsView x:Name="DocumentTools" Grid.ColumnSpan="2" ZIndex="34"
-            HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12,0,12,8" />
+            HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12,0,12,8"
+            IsVisible="{Binding !IsGitMode}" />
     </Grid>
 </UserControl>

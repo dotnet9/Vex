@@ -34,8 +34,8 @@ public partial class ShellNavigationRailView : UserControl
         if (_railLayout is null) return;
         // 语言切换可能从工作线程触发（验证夹具即在后台线程改 Culture），控件访问必须回 UI 线程。
         if (!Dispatcher.UIThread.CheckAccess()) { Dispatcher.UIThread.Post(SyncRailTips); return; }
+        // Git 原型稿：大纲折叠钮移到标题栏，rail 只剩文件/Git 双模式 + 设置，大纲提示同步随之退役。
         ToolTipHelper.SetText(RailFilesToggle, DesignSelectionControls.Text(_railLayout.ShowSidebar ? "NavFilesCollapse" : "NavFilesExpand"));
-        ToolTipHelper.SetText(RailOutlineToggle, DesignSelectionControls.Text(_railLayout.ShowOutlineSidebar ? "NavOutlineCollapse" : "NavOutlineExpand"));
     }
 
 }

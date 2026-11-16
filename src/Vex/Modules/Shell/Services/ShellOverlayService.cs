@@ -144,6 +144,18 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
             viewModel,
             options: CreateOptions());
 
+    public Task<string?> ShowGitRemoteAsync(string? currentUrl) =>
+        OverlayDialog.ShowCustomAsync<string>(
+            new Vex.Modules.Git.Views.GitRemoteDialogView(),
+            new Vex.Modules.Git.ViewModels.GitRemoteDialogViewModel(currentUrl, key => localizer.Get(key)),
+            options: CreateOptions());
+
+    public Task<string?> ShowGitPatAsync() =>
+        OverlayDialog.ShowCustomAsync<string>(
+            new Vex.Modules.Git.Views.GitPatDialogView(),
+            new Vex.Modules.Git.ViewModels.GitPatDialogViewModel(),
+            options: CreateOptions());
+
     private static async Task ShowAsync(Control view, object? viewModel)
     {
         await OverlayDialog.ShowCustomAsync<object>(view, viewModel, options: CreateOptions());

@@ -43,4 +43,10 @@ public interface IShellOverlayService
 
     /// <summary>Ctrl+P 快速打开浮层；返回用户选中的文件路径，取消返回 null。</summary>
     Task<string?> ShowQuickOpenAsync(Vex.Modules.Shell.ViewModels.ShellQuickOpenViewModel viewModel);
+
+    /// <summary>Git 远程地址弹层（原型 layer-git-remote）；currentUrl 为已存地址（编辑态预填），取消返回 null。</summary>
+    Task<string?> ShowGitRemoteAsync(string? currentUrl);
+
+    /// <summary>HTTPS 远程访问令牌（PAT）输入弹层；返回打包答案（令牌+是否记住），取消返回 null。</summary>
+    Task<string?> ShowGitPatAsync();
 }

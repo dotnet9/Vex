@@ -10,4 +10,38 @@
     <Style Selector="TextBlock.titlebar-menu-text">
         <Setter Property="Foreground" Value="{DynamicResource CaptionButtonForeground}" />
     </Style>
+
+    <!-- 原型 .titlebar-toggle（Git 原型稿新增）：标题栏侧栏/大纲折叠钮，30×26 描线图标钮。 -->
+    <Style Selector="ToggleButton.titlebar-toggle">
+        <Setter Property="Width" Value="30" />
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Margin" Value="0,0,2,0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ToggleButton.titlebar-toggle /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ToggleButton.titlebar-toggle:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.titlebar-toggle Path">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Stretch" Value="None" />
+        <Setter Property="Stroke" Value="{DynamicResource VexMutedBrush}" />
+        <Setter Property="StrokeThickness" Value="1.6" />
+        <Setter Property="StrokeLineCap" Value="Round" />
+        <Setter Property="StrokeJoin" Value="Round" />
+    </Style>
+    <Style Selector="ToggleButton.titlebar-toggle:pointerover Path">
+        <Setter Property="Stroke" Value="{DynamicResource VexValueBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.titlebar-toggle:checked Path">
+        <Setter Property="Stroke" Value="{DynamicResource VexValueBrush}" />
+    </Style>
 </Styles>

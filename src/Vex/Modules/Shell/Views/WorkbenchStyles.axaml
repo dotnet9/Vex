@@ -283,6 +283,15 @@
     <StreamGeometry x:Key="WBColumnsIcon">M3 3H21V21H3Z M12 3V21</StreamGeometry>
     <StreamGeometry x:Key="WBCloseIcon">M6 6L18 18 M18 6L6 18</StreamGeometry>
     <StreamGeometry x:Key="WBGearIcon">M15 12A3 3 0 1 1 9 12A3 3 0 1 1 15 12 M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z</StreamGeometry>
+    <!-- Git 面板图标（原型 #i-git-branch / #i-rail-collapse / #i-rail-expand / #i-download / #i-export）：feather 描线。 -->
+    <StreamGeometry x:Key="WBGitBranchIcon">M6 3V15 M18 9A3 3 0 1 0 18 3A3 3 0 0 0 18 9 M6 21A3 3 0 1 0 6 15A3 3 0 0 0 6 21 M18 9A9 9 0 0 1 9 18</StreamGeometry>
+    <StreamGeometry x:Key="WBRailCollapseIcon">M5 4H19A2 2 0 0 1 21 6V18A2 2 0 0 1 19 20H5A2 2 0 0 1 3 18V6A2 2 0 0 1 5 4Z M14.5 4V20 M11 9L8 12L11 15</StreamGeometry>
+    <StreamGeometry x:Key="WBRailExpandIcon">M5 4H19A2 2 0 0 1 21 6V18A2 2 0 0 1 19 20H5A2 2 0 0 1 3 18V6A2 2 0 0 1 5 4Z M14.5 4V20 M8 9L11 12L8 15</StreamGeometry>
+    <StreamGeometry x:Key="WBDownloadIcon">M21 15V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V15 M7 10L12 15L17 10 M12 15V3</StreamGeometry>
+    <StreamGeometry x:Key="WBExportIcon">M21 15V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V15 M17 8L12 3L7 8 M12 3V15</StreamGeometry>
+    <StreamGeometry x:Key="WBCheckCircleIcon">M22 11.08V12A10 10 0 1 1 15.54 5.54 M22 4L12 14.01L9 11.01</StreamGeometry>
+    <StreamGeometry x:Key="WBSortClockIcon">M12 21A9 9 0 1 0 3 12A9 9 0 0 0 12 21 M12 7V12L15 14</StreamGeometry>
+    <StreamGeometry x:Key="WBCheckIcon">M18 6L7 17L2 12 M22 9L14 17</StreamGeometry>
   </Styles.Resources>
   <!-- 原型 .exit-dialog-actions .btn（非 primary）：面板底 + 1px #E2E2E4 细边 + 前景文字；
        Semi 主题模板 ContentPresenter 会覆盖按钮本地值，必须走 /template/ 选择器。 -->

@@ -66,6 +66,18 @@
                     Text="Vex"
                     VerticalAlignment="Center" />
             </StackPanel>
+            <!-- 原型 Git 原型稿 .titlebar-toggle#sidebar-toggle：品牌后侧栏折叠钮（Git 模式隐藏，body.git-mode 同款）。 -->
+            <ToggleButton x:Name="TitlebarSidebarToggle" Classes="titlebar-toggle"
+                          IsChecked="{Binding Layout.ShowSidebar, Mode=OneWay}"
+                          Command="{Binding Layout.ToggleSidebar}"
+                          IsVisible="{Binding !IsGitMode}"
+                          helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.GitSidebarToggle}}"
+                          AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitSidebarToggle}}">
+                <Panel>
+                    <Viewbox IsVisible="{Binding Layout.ShowSidebar}" Width="16" Height="16"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBRailCollapseIcon}" /></Canvas></Viewbox>
+                    <Viewbox IsVisible="{Binding !Layout.ShowSidebar}" Width="16" Height="16"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBRailExpandIcon}" /></Canvas></Viewbox>
+                </Panel>
+            </ToggleButton>
             <shell:ShellTitleMenuView x:Name="TitleMenuView" VerticalAlignment="Center" Margin="4,0,0,0" />
             <!-- 原型 upd-pill-wrap：更新药丸紧跟菜单之后左对齐，发现新版常驻标题栏，气泡挂在药丸正下方。 -->
             <shell:ShellUpdatePillView x:Name="UpdatePill" VerticalAlignment="Center" Margin="2,0,0,0" />
@@ -94,6 +106,18 @@
         <StackPanel x:Name="TitleBarAppearance" Orientation="Horizontal" Spacing="6" Margin="0,0,12,0"
                     VerticalAlignment="Center" IsEnabled="{Binding !IsInModalStatus, ElementName=ShellDialogHost}">
             <shell:ShellAppearanceMenuView x:Name="AppearanceMenu"/>
+            <!-- 原型把大纲折叠钮移到外观/语言面板右侧（caption-btns 之前）；Git 模式隐藏。 -->
+            <ToggleButton x:Name="TitlebarOutlineToggle" Classes="titlebar-toggle" Margin="2,0,0,0"
+                          IsChecked="{Binding Layout.ShowOutlineSidebar, Mode=OneWay}"
+                          Command="{Binding Layout.ToggleOutline}"
+                          IsVisible="{Binding !IsGitMode}"
+                          helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.GitOutlineToggle}}"
+                          AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitOutlineToggle}}">
+                <Panel>
+                    <Viewbox IsVisible="{Binding Layout.ShowOutlineSidebar}" Width="16" Height="16"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBRailCollapseIcon}" /></Canvas></Viewbox>
+                    <Viewbox IsVisible="{Binding !Layout.ShowOutlineSidebar}" Width="16" Height="16"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBRailExpandIcon}" /></Canvas></Viewbox>
+                </Panel>
+            </ToggleButton>
         </StackPanel>
     </codewf:CodeWFWindow.RightContent>
 

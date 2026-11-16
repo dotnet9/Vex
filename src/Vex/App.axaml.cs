@@ -94,6 +94,9 @@ public partial class App : Application
         services.AddSingleton<IShellDroppedPathReader, ShellDroppedPathReader>();
         services.AddSingleton<IShellDropTargetHandler, ShellDropTargetHandler>();
         services.AddSingleton<IShellStartupArgumentPublisher, ShellStartupArgumentPublisher>();
+        // Git 管理界面：凭据库按平台选择（Windows 凭据管理器/加密文件），面板 VM 单例供 rail 双模式共用。
+        services.AddSingleton<Vex.Git.ICredentialStore>(_ => Vex.Git.CredentialStoreFactory.Create());
+        services.AddSingleton<Vex.Modules.Git.ViewModels.ShellGitViewModel>();
         services.AddSingleton<IMcpToolDispatcher, McpToolDispatcher>();
         services.AddSingleton<IMcpOperationConfirmationService, McpOperationConfirmationService>();
         services.AddSingleton<IMcpOperationAuditService, McpOperationAuditService>();
