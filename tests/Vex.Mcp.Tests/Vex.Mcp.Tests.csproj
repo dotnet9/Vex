@@ -3,15 +3,14 @@
     <TargetFramework>net11.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- xunit.v3 走 Microsoft.Testing.Platform：测试项目本身是可执行 runner，
+         `dotnet test` 在 .NET 10+ SDK 走原生 MTP 集成，本机验证可直接运行 exe。 -->
+    <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
+    <!-- xunit.v3 自带 Microsoft.Testing.Platform runner：不再需要 Test.Sdk 与 visualstudio runner。 -->
+    <PackageReference Include="xunit.v3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/Vex/Vex.csproj" />

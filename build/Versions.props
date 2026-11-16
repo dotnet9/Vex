@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <MicrosoftNetTestSdkVersion>18.12.0</MicrosoftNetTestSdkVersion>
-    <XunitVersion>2.9.3</XunitVersion>
+    <XunitVersion>4.0.3</XunitVersion>
     <XunitRunnerVisualStudioVersion>4.0.1</XunitRunnerVisualStudioVersion>
     <CodeWFAvaloniaVersion>12.1.6.5</CodeWFAvaloniaVersion>
     <CodeWFToolkitVersion>1.1.7</CodeWFToolkitVersion>
@@ -14,7 +14,7 @@
     <UrsaAvaloniaVersion>2.3.1</UrsaAvaloniaVersion>
     <PdfPigVersion>0.1.17-alpha-202611100027-21de1</PdfPigVersion>
     <ReverseMarkdownVersion>6.3.0</ReverseMarkdownVersion>
-    <ReactiveUIAvaloniaVersion>12.1.6</ReactiveUIAvaloniaVersion>
+    <ReactiveUIAvaloniaVersion>12.1.7</ReactiveUIAvaloniaVersion>
     <SemiAvaloniaVersion>12.1.0.1</SemiAvaloniaVersion>
     <DotNetLibrariesVersion>11.0.0</DotNetLibrariesVersion>
     <LibGit2SharpVersion>0.32.0</LibGit2SharpVersion>
