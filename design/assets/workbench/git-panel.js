@@ -432,6 +432,46 @@
   document.getElementById('git-remote-ok').addEventListener('click', saveRemote);
   document.getElementById('git-remote-url').addEventListener('input', function () { document.getElementById('git-remote-error').classList.add('is-hidden'); });
 
+  /* ---------- 右键菜单「打开所在目录」（与文件列表右键菜单同一套样式；先选中右键行再弹出） ---------- */
+  var gitContextMenu = document.createElement('div');
+  gitContextMenu.className = 'file-context-menu'; gitContextMenu.hidden = true; gitContextMenu.setAttribute('role', 'menu');
+  document.body.appendChild(gitContextMenu);
+  function closeGitContextMenu() { gitContextMenu.hidden = true; }
+  pane.addEventListener('contextmenu', function (event) {
+    var changeRow = event.target.closest('.change-item[data-git-file]');
+    var commitFileRow = event.target.closest('[data-git-commit-file]');
+    if (!changeRow && !commitFileRow) return;
+    event.preventDefault(); event.stopPropagation();
+    var path;
+    if (changeRow) {
+      var index = Number(changeRow.dataset.gitFile);
+      var change = state.changes[index];
+      if (!change) return;
+      if (selectedChange !== change.path) { selectedChange = change.path; render(); }
+      path = change.path;
+    } else {
+      var commit = state.history.find(function (c) { return c.hash === selectedCommit; });
+      var file = commit && commit.files[Number(commitFileRow.dataset.gitCommitFile)];
+      if (!file) return;
+      if (selectedCommitFile !== file.path) { selectedCommitFile = file.path; render(); }
+      path = file.path;
+    }
+    gitContextMenu.innerHTML = '<button type="button" role="menuitem" data-git-context="reveal" data-git-reveal-path="' + esc(path) + '">' + esc(t('打开所在目录')) + '</button>';
+    gitContextMenu.hidden = false;
+    var width = gitContextMenu.offsetWidth || 168, height = gitContextMenu.offsetHeight || 36;
+    gitContextMenu.style.left = Math.max(8, Math.min(event.clientX, innerWidth - width - 8)) + 'px';
+    gitContextMenu.style.top = Math.max(8, Math.min(event.clientY, innerHeight - height - 8)) + 'px';
+    gitContextMenu.querySelector('button').focus({ preventScroll: true });
+  });
+  gitContextMenu.addEventListener('click', function (event) {
+    var action = event.target.closest('[data-git-context="reveal"]'); if (!action) return;
+    closeGitContextMenu();
+    /* 演示态：桌面端经 Toolkit FileHelper 打开资源管理器并选中（跨平台）。 */
+    VexProto.toastKey('ToastFileLocation', action.dataset.gitRevealPath);
+  });
+  document.addEventListener('pointerdown', function (event) { if (!gitContextMenu.contains(event.target)) closeGitContextMenu(); });
+  document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !gitContextMenu.hidden) { event.preventDefault(); closeGitContextMenu(); } });
+
   /* ---------- 文件 / Git 模式切换 ---------- */
   function setMode(mode) {
     var git = mode === 'git';
