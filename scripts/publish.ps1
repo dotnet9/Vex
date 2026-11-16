@@ -34,7 +34,8 @@ $tfm = if ($RuntimeIdentifier.StartsWith("win-", [StringComparison]::OrdinalIgno
 # ILC 使用单线程与工作站 GC，避免本机编译器在生成类型信息时崩溃；不改变应用 GC。
 $ilcArgs = @("-p:PublishAot=true", "-p:PublishTrimmed=true", "-p:PublishSingleFile=false",
     "-p:DebugSymbols=true", "-p:DebugType=portable",
-    "-p:IlcGenerateCompleteTypeMetadata=true", "-p:IlcTrimMetadata=false", "-p:IlcSingleThreaded=true", "-p:IlcUseServerGc=false")
+    "-p:IlcGenerateCompleteTypeMetadata=true", "-p:IlcTrimMetadata=false", "-p:IlcSingleThreaded=true", "-p:IlcUseServerGc=false",
+    "-p:IlcOptimizationPreference=Size", "-p:IlcFoldIdenticalMethodBodies=true")
 # macOS 保留符号（ld_classic 不支持压缩调试段）
 if ($RuntimeIdentifier.StartsWith("osx-", [StringComparison]::OrdinalIgnoreCase)) { $ilcArgs += "-p:StripSymbols=false" }
 if ($ArtifactsRoot) { $ilcArgs += "-p:ArtifactsPath=$([IO.Path]::GetFullPath($ArtifactsRoot))" }
