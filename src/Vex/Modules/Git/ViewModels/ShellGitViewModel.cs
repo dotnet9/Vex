@@ -174,6 +174,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         _preferences = preferences;
         _credentials = credentials;
         SetDiffModeCommand = new RelayCommand<string?>(SetDiffMode);
+        CreateTagCommand = new AsyncRelayCommand<string?>(CreateTagAsync);
         OpenChangeInExplorerCommand = new RelayCommand<GitChangeItem?>(RevealChange);
         OpenCommitFileInExplorerCommand = new RelayCommand<GitCommitFileItem?>(RevealCommitFile);
         _preferences.PropertyChanged += (_, args) =>
@@ -213,7 +214,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         try
         {
             var skip = History.Count;
-            var batch = await Task.Run(() => _service.History(skip, HistoryPageSize));
+            var batch = _service.History(skip, HistoryPageSize);
             foreach (var info in batch) History.Add(new GitCommitItem(info, FormatCommitTime(info.When)));
             HasMoreHistory = batch.Count >= HistoryPageSize;
             this.RaisePropertyChanged(nameof(HasMoreHistory));
@@ -227,6 +228,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         {
             _isLoadingHistory = false;
         }
+        await Task.CompletedTask;
     }
     public ObservableCollection<GitChangeItem> VisibleChanges { get; } = [];
 
@@ -284,6 +286,76 @@ public sealed class ShellGitViewModel : ReactiveObject
         {
             _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
         }
+    }
+
+    /// <summary>在 HEAD 打轻量 tag（可选立即推送）：发布流程「升版提交后打发布 tag」的面板入口。</summary>
+    public AsyncRelayCommand<string?> CreateTagCommand { get; }
+
+    private string _newTagName = string.Empty;
+    private bool _tagAlsoPush = true;
+
+    /// <summary>tag 名称输入（Flyout 表单绑定）。</summary>
+    public string NewTagName { get => _newTagName; set => this.RaiseAndSetIfChanged(ref _newTagName, value); }
+
+    /// <summary>创建后同时推送（默认勾选：发布 tag 触发 CI）。</summary>
+    public bool TagAlsoPush { get => _tagAlsoPush; set => this.RaiseAndSetIfChanged(ref _tagAlsoPush, value); }
+
+    /// <summary>tag 名称规则：发布 tag（v 开头数字）或任意非空合法名。</summary>
+    private async Task CreateTagAsync(string? name)
+    {
+        if (_service is null || string.IsNullOrWhiteSpace(name))
+        {
+            _toasts.Publish(_localizer.Get(VexL.GitTagNameInvalid), Avalonia.Controls.Notifications.NotificationType.Warning);
+            return;
+        }
+        var clean = name.Trim();
+        try
+        {
+            _service.CreateTag(clean);
+            _toasts.Publish(_localizer.Format(VexL.GitTagCreatedFormat, clean));
+            NewTagName = string.Empty;
+            if (TagAlsoPush)
+            {
+                await PushTagAsync(clean);
+            }
+        }
+        catch (Exception ex)
+        {
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
+    }
+
+    /// <summary>推送 tag 到 origin（发布 tag 触发 CI 的关键一步）。</summary>
+    public async Task PushTagAsync(string? name)
+    {
+        if (_service is null || !HasRemote || string.IsNullOrWhiteSpace(name)) return;
+        _isBusy = true;
+        this.RaisePropertyChanged(nameof(CanPush));
+        try
+        {
+            var tag = name.Trim();
+            await PushWithTagAsync(tag);
+            _toasts.Publish(_localizer.Format(VexL.GitTagPushedFormat, tag));
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
+        finally
+        {
+            _isBusy = false;
+            this.RaisePropertyChanged(nameof(CanPush));
+        }
+    }
+
+    private async Task PushWithTagAsync(string tag)
+    {
+        var pat = IsHttpsRemote ? await ResolvePatAsync() : null;
+        if (pat == null && IsHttpsRemote) return;
+        var branch = BranchName;
+        _service!.Push(pat ?? string.Empty, tag: tag);
+        LastSyncText = DateTime.Now.ToString("HH:mm");
     }
 
     /// <summary>Diff Options 弹层的模式切换（RadioButton 的 IsChecked 绑只读计算属性无法回写，走命令）。</summary>
@@ -581,10 +653,17 @@ public sealed class ShellGitViewModel : ReactiveObject
         RefreshInBackground();
     }
 
-    /// <summary>退出 Git 模式：停掉自动提交定时器。</summary>
-    public void Exit() => StopAutoCommitTimer();
+    /// <summary>退出 Git 模式：停掉自动提交定时器并释放常驻仓库句柄。</summary>
+    public void Exit()
+    {
+        StopAutoCommitTimer();
+        _service?.Dispose();
+        _service = null;
+    }
 
     /// <summary>全量刷新：仓库状态、变更、历史、远程芯片（异步，完成后回 UI 线程）。</summary>
+    private int _refreshEpoch;
+
     public async Task RefreshAsync()
     {
         // 自主探测工作区根（Enter 之外，提交/推送后的刷新也直接可用）；未打开文件夹才是真无仓库。
@@ -595,8 +674,13 @@ public sealed class ShellGitViewModel : ReactiveObject
             ResetState();
             return;
         }
+        // Enter 的自动刷新与显式刷新可能并发：旧快照晚到直接丢弃，集合重建只允许最新一次。
+        var epoch = ++_refreshEpoch;
         var repoRoot = _workspaceFolder;
-        var result = await Task.Run(() =>
+        GitSnapshot result;
+        // 采集放后台线程（大仓库 RetrieveStatus/History/行统计是秒级 IO+计算，UI 线程跑会挂界面）；
+        // 托管化后这里只剩值调用 API，线程安全；集合修改由 UiDispatch 保证回 UI 线程。
+        result = await Task.Run(() =>
         {
             try
             {
@@ -611,9 +695,24 @@ public sealed class ShellGitViewModel : ReactiveObject
                 return new GitSnapshot(false, string.Empty, 0, 0, null, [], []);
             }
         });
-        // 快照有效即重建服务实例：提交/推送/拉取/远程操作与 diff 读取都走它（构造只存路径，轻量）。
-        _service = result.HasRepo && repoRoot is not null ? new GitService(repoRoot) : null;
-        ApplySnapshot(result);
+        if (epoch != _refreshEpoch) return;
+        // 常驻服务复用（句柄创建/释放风暴是 AOT 无栈 NRE 源）：换仓库或关闭时释放旧句柄。
+        if (result.HasRepo && repoRoot is not null)
+        {
+            if (ReferenceEquals(_service, null) || !_service.Owns(repoRoot))
+            {
+                _service?.Dispose();
+                _service = new GitService(repoRoot);
+            }
+        }
+        else
+        {
+            _service?.Dispose();
+            _service = null;
+        }
+        // 集合与派生属性一律回 UI 线程更新：headless/验证夹具无 SyncContext，await 续体落在线程池，
+        // 后台重建 ObservableCollection 会与绑定枚举交错成无栈 NRE（AOT 下直接 fail-fast）。
+        await UiDispatch(() => ApplySnapshot(result));
     }
 
     private void ApplySnapshot(GitSnapshot snapshot)
@@ -650,6 +749,8 @@ public sealed class ShellGitViewModel : ReactiveObject
 
     private void ResetState()
     {
+        _service?.Dispose();
+        _service = null;
         BranchName = string.Empty;
         Ahead = 0;
         Behind = 0;
@@ -707,7 +808,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         try
         {
-            await Task.Run(() => GitService.InitRepository(folder));
+            GitService.InitRepository(folder);
         }
         catch (Exception ex)
         {
@@ -732,8 +833,8 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         try
         {
-            await Task.Run(() => _service.SetRemote(value));
-            try { await Task.Run(() => _service.TrackOrigin()); }
+            _service.SetRemote(value);
+            try { _service.TrackOrigin(); }
             catch { /* 无 HEAD 时尚不能跟踪，推送前再试 */ }
         }
         catch (Exception ex)
@@ -775,7 +876,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(CanCommit));
         try
         {
-            var sha = await Task.Run(() => _service.CommitPaths(paths, message).Sha[..7]);
+            var sha = _service.CommitPaths(paths, message).Sha[..7];
             _toasts.Publish(_localizer.Get(VexL.GitCommittedToast) + " · " + Summary.Trim());
             Summary = string.Empty;
             Description = string.Empty;
@@ -812,7 +913,7 @@ public sealed class ShellGitViewModel : ReactiveObject
                 return; // 用户取消 PAT 输入
             }
             var branch = BranchName;
-            await Task.Run(() => _service.Push(pat ?? string.Empty, branch: branch));
+            _service.Push(pat ?? string.Empty, branch: branch);
             LastSyncText = NowText();
             _toasts.Publish(_localizer.Format(VexL.GitPushToastFormat, branch));
             await RefreshAsync();
@@ -841,7 +942,7 @@ public sealed class ShellGitViewModel : ReactiveObject
             {
                 return; // 用户取消 PAT 输入
             }
-            var pulled = await Task.Run(() => _service.PullFastForward(pat));
+            var pulled = _service.PullFastForward(pat);
             if (pulled > 0)
             {
                 LastSyncText = NowText();
@@ -1149,7 +1250,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         var message = template.Replace("{date}", DateTime.Now.ToString("HH:mm"), StringComparison.Ordinal);
         try
         {
-            var commit = await Task.Run(() => _service.CommitAll(message));
+            var commit = _service.CommitAll(message);
             if (commit is null) return;
             _toasts.Publish(_localizer.Get(VexL.GitAutoCommitToast) + " · " + commit.MessageShort);
             await RefreshAsync();
@@ -1162,6 +1263,11 @@ public sealed class ShellGitViewModel : ReactiveObject
 
     /// <summary>Enter 的 fire-and-forget 刷新：异常吞掉（快照内部已兜底）。</summary>
     private void RefreshInBackground() => RefreshAsync().ContinueWith(t => _ = t.Exception, TaskScheduler.Default);
+
+    /// <summary>UI 线程派发器：默认走 Avalonia Dispatcher；验证夹具注入直执行替身，
+    /// 避免 xunit 无调度线程时 RunJobs/线程亲和的连环坑。</summary>
+    public Func<Action, Task> UiDispatch { get; set; } =
+        action => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(action).GetTask();
 }
 
 /// <summary>RefreshAsync 的一次快照（线程池采集，回 UI 线程后套用）。</summary>

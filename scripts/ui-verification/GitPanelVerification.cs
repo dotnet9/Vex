@@ -72,13 +72,39 @@ internal static class GitPanelVerification
         var git = (ShellGitViewModel)Control<ShellGitView>("GitPanel").DataContext!;
         Check(git.BranchName == "main", "Default branch is main (prototype wording)");
         Check(git.IsCleanWorkdir, "Clean workdir shows blank state");
+        // 崩点定位：该窗口主线程只跑 Dispatcher 队列回调——泵内逐回调抓栈。
+        Console.Error.WriteLine("STAGE queue-pump begin");
+        var pumpDeadline = DateTime.UtcNow.AddSeconds(4);
+        while (DateTime.UtcNow < pumpDeadline)
+        {
+            try { Dispatcher.UIThread.RunJobs(); }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("QUEUE CRASH STACK:");
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+            Thread.Sleep(50);
+        }
+        Console.Error.WriteLine("STAGE queue-pump survived");
+        // AOT 栈能力探针：同步 NRE 是否有栈（决定后续诊断路线）。
+        try { object? nothing = null; _ = nothing!.ToString(); }
+        catch (NullReferenceException probe)
+        {
+            Console.Error.WriteLine("PROBE STACK: " + (string.IsNullOrWhiteSpace(probe.StackTrace) ? "<EMPTY>" : probe.StackTrace));
+        }
+        Console.Error.WriteLine("STAGE write-baseline");
 
         // ===== Changes：勾选 + Summary 必填 + 提交 =====
         // 先提交一份基线（建立 HEAD），再制造「修改 + 未跟踪」组合。
         File.WriteAllText(Path.Combine(folder, "笔记.md"), "# 笔记\n\n第一稿。\n");
         Pump(git.RefreshAsync());
         git.AllChecked = true; git.Summary = "docs: 初始化笔记";
-        Pump(git.CommitAsync()); Pump(git.RefreshAsync());
+        Console.Error.WriteLine("STAGE commit-1 begin");
+        Pump(git.CommitAsync());
+        Console.Error.WriteLine("STAGE commit-1 done");
+        Pump(git.RefreshAsync());
+        Console.Error.WriteLine("STAGE refresh-2 done");
         Check(git.Changes.Count == 0, "Commit clears the working tree");
         File.WriteAllText(Path.Combine(folder, "笔记.md"), "# 笔记\n\n第一稿改。\n");
         File.WriteAllText(Path.Combine(folder, "草稿箱.md"), "# 草稿\n");

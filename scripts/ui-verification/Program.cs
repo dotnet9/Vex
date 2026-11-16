@@ -28,6 +28,7 @@ using CodeWF.Toolkit.Core.UpdateChecking;
 using Microsoft.Extensions.DependencyInjection;
 
 var mode = args.FirstOrDefault() ?? "vex";
+Vex.Core.Services.CrashLog.Install();
 VerificationVexApp.ProbeFileTree = mode is "file-tree-probe" or "workspace-files";
 VerificationVexApp.ControlDocumentReads = mode == "current-file-protection";
 if (mode == "protection") VerificationVexApp.Exports = new VerificationExports();
@@ -110,7 +111,7 @@ if (mode == "parity-score")
     VisualParityScore.Run(args.Skip(1).ToArray());
     return;
 }
-if (mode is "outline-navigation" or "instant-menu" or "document-typography" or "reading-pointer" or "diagram-pointer" or "context-menu" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics" or "ui-density" or "ui-density-performance" or "theme-performance" or "git-panel" or "git-shots")
+if (mode is "outline-navigation" or "instant-menu" or "document-typography" or "reading-pointer" or "diagram-pointer" or "context-menu" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics" or "ui-density" or "ui-density-performance" or "theme-performance" or "git-panel" or "git-shots" or "git-real")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -162,6 +163,7 @@ if (mode is "outline-navigation" or "instant-menu" or "document-typography" or "
     else if (mode is "settings-ui" or "settings-real-ui") PreferencesVerification.Run(app, window, output);
     else if (mode == "git-panel") GitPanelVerification.Run(app, window, output);
     else if (mode == "git-shots") { GitShotsCapture.Run(app, window, output); window.Close(); return; }
+    else if (mode == "git-real") { GitRealRepoVerification.Run(app, window, output, args.Length > 2 ? args[2] : "E:/github/Apps/Vex"); window.Close(); return; }
     else DesktopParityVerification.Run(app, window, output);
     window.Close();
     return;
@@ -220,8 +222,8 @@ if (mode == "parity")
     code.BringIntoView(); Pump(); SettleRendering(); Capture(window, "code-display");
     var codeClick = code.TranslatePoint(new Point(20, 8), window)!.Value;
     window.MouseDown(codeClick, MouseButton.Left); window.MouseUp(codeClick, MouseButton.Left); Pump(); Capture(window, "code-edit");
-    // 标题栏已无「快速上手」与搜索按钮（原型没有），改把焦点从正文移回图标栏搜索钮。
-    window.Workspace.Navigation.FindControl<Button>("RailFindButton")!.Focus(); Pump();
+    // 标题栏已无「快速上手」与搜索按钮；Git 原型稿 rail 搜索钮退役，焦点改标题栏侧栏折叠钮。
+    window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("TitlebarSidebarToggle")!.Focus(); Pump();
     var aboutTask = app.Resolve<IShellOverlayService>().ShowAboutAsync();
     PumpUntil(() => window.GetVisualDescendants().OfType<Vex.Modules.Shell.Views.ShellAboutOverlayView>().Any());
     Capture(window, "about");
@@ -531,14 +533,15 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
     vm.Layout.IsSidebarVisible = false;
     Pump();
     Check(window.Workspace.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 0, "Vex sidebar collapses");
-    var railFiles = window.Workspace.Navigation.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailFilesToggle")!;
-    Check(railFiles.IsChecked == false && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == false,
-        "Nav rail files toggle and persisted state follow collapse");
+    // Git 原型稿：侧栏折叠钮在标题栏（rail 文件钮是模式切换，不再反映侧栏可见性）。
+    var titleSidebar = window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("TitlebarSidebarToggle")!;
+    Check(titleSidebar.IsChecked == false && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == false,
+        "Titlebar sidebar toggle and persisted state follow collapse");
     vm.Layout.IsSidebarVisible = true;
     Pump();
     Check(window.Workspace.FindControl<Border>("SidebarGuideTarget")!.Bounds.Width == 226, "Vex sidebar reopens");
-    Check(railFiles.IsChecked == true && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == true,
-        "Nav rail files toggle and persisted state follow reopening");
+    Check(titleSidebar.IsChecked == true && app.Resolve<IAppSettingsStore>().Current.IsSidebarVisible == true,
+        "Titlebar sidebar toggle and persisted state follow reopening");
     window.Width = 980;
     window.Height = 640;
     Pump();
@@ -2791,10 +2794,10 @@ void VerifyVexDetails(Vex.Modules.Shell.Views.MainWindow window, ThemeVariant th
         "Vex independent Files and Outline panels remain visible under " + theme);
     Check(outline.TranslatePoint(default, window)!.Value.X > files.TranslatePoint(default, window)!.Value.X + files.Bounds.Width,
         "Vex Outline remains to the right of the document under " + theme);
-    // 原型 .nav-rail：大纲展开时图标栏开关保持选中，主题逐一切换后仍要跟随面板状态。
-    var railOutline = window.Workspace.Navigation.FindControl<Avalonia.Controls.Primitives.ToggleButton>("RailOutlineToggle")!;
-    Check(railOutline.IsChecked == true,
-        "Vex nav rail outline toggle stays checked for the open panel under " + theme);
+    // Git 原型稿：大纲折叠钮在标题栏，主题逐一切换后仍要跟随面板状态。
+    var titleOutline = window.FindControl<Avalonia.Controls.Primitives.ToggleButton>("TitlebarOutlineToggle")!;
+    Check(titleOutline.IsChecked == true,
+        "Vex titlebar outline toggle stays checked for the open panel under " + theme);
     var heading = window.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("MdH1Border"));
     var shellVm = (MainWindowViewModel)window.DataContext!;
     var type = CodeWF.Avalonia.Markdown.Themes.ArticleTypographyCatalog.Find(shellVm.Appearance.SelectedTypography?.Key)!;

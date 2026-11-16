@@ -206,8 +206,8 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
             WorkbenchGuideViewModel.Anchor.Preview => _window.Workspace.FindControl<Control>("PreviewGuideTarget"),
             WorkbenchGuideViewModel.Anchor.Map => _window.Workspace.FindControl<Control>("MindMapGuideTarget"),
             WorkbenchGuideViewModel.Anchor.OutlinePanel => _window.Workspace.FindControl<Control>("OutlineGuideTarget"),
-            // 图标栏（原型 .nav-rail）取代块角折叠钮，引导聚光跟着改指新宿主。
-            WorkbenchGuideViewModel.Anchor.OutlineToggle => _window.Workspace.Navigation.FindControl<Control>("RailOutlineToggle"),
+            // Git 原型稿：大纲折叠钮移到标题栏，引导聚光改指标题栏宿主。
+            WorkbenchGuideViewModel.Anchor.OutlineToggle => _window.FindControl<Control>("TitlebarOutlineToggle"),
             // 原型 [data-action="typography"]:not([hidden])：即时编辑在格式条、单阅读视图在标签行，聚光灯跟着当前在场的那颗走。
             WorkbenchGuideViewModel.Anchor.TypographyButton => _window.WorkspaceViews.ActiveTypographyTrigger,
             // 视图页签从底栏上移到原型 .workspace-tabrow 后，布局入口就是页签行右端的 .workspace-viewswitch-more。

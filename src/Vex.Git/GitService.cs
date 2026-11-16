@@ -1,3 +1,4 @@
+using System.Text;
 using LibGit2Sharp;
 
 namespace Vex.Git;
@@ -45,8 +46,34 @@ public sealed record TextDiff(string OldPath, IReadOnlyList<DiffHunk> Hunks);
 public sealed class GitService
 {
     private readonly string _repoRoot;
+    private readonly object _repoGate = new();
+    private Repository? _repo;
 
     public GitService(string repoRoot) => _repoRoot = repoRoot;
+
+    /// <summary>常驻仓库句柄：面板高频刷新/提交复用同一 handle，消除每调用创建/释放
+    /// native 仓库句柄的风暴（AOT 下句柄释放与 GC 时序交错会随机无栈 NRE）。</summary>
+    private Repository Repo()
+    {
+        lock (_repoGate)
+        {
+            _repo ??= new Repository(_repoRoot);
+            return _repo;
+        }
+    }
+
+    public void Dispose()
+    {
+        lock (_repoGate)
+        {
+            _repo?.Dispose();
+            _repo = null;
+        }
+    }
+
+    /// <summary>是否持有该路径的常驻句柄（同路径复用，跨路径才需要重建）。</summary>
+    public bool Owns(string repoRoot) =>
+        string.Equals(Path.GetFullPath(_repoRoot), Path.GetFullPath(repoRoot), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 
     /// <summary>路径是否已是 Git 仓库（Git 面板入口探测）。</summary>
     public static bool IsRepository(string path) =>
@@ -64,7 +91,7 @@ public sealed class GitService
 
     public RepositoryStatus Status()
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         return repo.RetrieveStatus(new StatusOptions { IncludeUntracked = true });
     }
 
@@ -72,7 +99,7 @@ public sealed class GitService
     /// 未配置 upstream（首次推送前）TrackingDetails 为 null，领先落后记 0。</summary>
     public (string Branch, int? AheadBy, int? BehindBy) BranchState()
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var head = repo.Head;
         var tracking = head.TrackingDetails;
         return (head.FriendlyName, tracking?.AheadBy ?? 0, tracking?.BehindBy ?? 0);
@@ -107,11 +134,21 @@ public sealed class GitService
         var stats = new Dictionary<string, (int, int)>(StringComparer.OrdinalIgnoreCase);
         try
         {
-            using var repo = new Repository(_repoRoot);
-            var patch = repo.Diff.Compare<Patch>(repo.Head.Tip?.Tree, DiffTargets.WorkingDirectory, paths);
-            foreach (var entry in patch)
+            var repo = Repo();
+            var tip = repo.Head.Tip;
+            foreach (var path in paths)
             {
-                stats[entry.Path.Replace('\\', '/')] = (entry.LinesAdded, entry.LinesDeleted);
+                if (IsBinaryPath(path)) continue;
+                var full = System.IO.Path.Combine(_repoRoot, path.Replace('/', System.IO.Path.DirectorySeparatorChar));
+                if (new FileInfo(full).Length > 1024 * 1024) continue; // 大文件跳过行统计（-1 不显示计数）
+                var newLines = ReadWorkingLines(path);
+                IReadOnlyList<string> oldLines = [];
+                if (tip is not null && tip.Tree[path]?.Target is Blob oldBlob)
+                {
+                    oldLines = TextDiffBuilder.ReadBlobLines(oldBlob);
+                }
+                var (added, deleted) = TextDiffBuilder.CountRows(oldLines, newLines);
+                stats[path.Replace('\\', '/')] = (added, deleted);
             }
         }
         catch
@@ -147,7 +184,7 @@ public sealed class GitService
     /// <summary>分页取历史（skip 之后的 count 条）：面板滚动近底部时续拉下一批。</summary>
     public IReadOnlyList<CommitInfo> History(int skip, int count)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var tags = TagLookup(repo);
         return repo.Commits.Skip(skip).Take(count)
             .Select(c => new CommitInfo(c.Sha[..7], c.MessageShort, c.Author.Name, c.Author.When, tags.GetValueOrDefault(c.Sha)))
@@ -166,15 +203,29 @@ public sealed class GitService
         return map;
     }
 
-    /// <summary>某次提交相对其父提交的改动文件列表（History 右区文件列）。</summary>
+    /// <summary>某次提交相对其父提交的改动文件列表（History 右区文件列）。
+    /// 初始提交（无父）直接枚举提交树全部按新增处理——AOT 下 Compare 传 null 树会抛无栈 NRE fail-fast。</summary>
     public IReadOnlyList<CommitFileChange> CommitChanges(string sha)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var commit = FindCommit(repo, sha);
-        var changes = commit.Parents.Any()
-            ? repo.Diff.Compare<TreeChanges>(commit.Parents.First().Tree, commit.Tree)
-            : repo.Diff.Compare<TreeChanges>(null, commit.Tree);
-        return changes.Select(c => new CommitFileChange(c.Path.Replace('\\', '/'), KindOf(c.Status))).Distinct().ToList();
+        if (!commit.Parents.Any())
+        {
+            var changes = new List<CommitFileChange>();
+            CollectTreeChanges(commit.Tree, changes);
+            return changes;
+        }
+        var treeChanges = repo.Diff.Compare<TreeChanges>(commit.Parents.First().Tree, commit.Tree);
+        return treeChanges.Select(c => new CommitFileChange(c.Path.Replace('\\', '/'), KindOf(c.Status))).Distinct().ToList();
+    }
+
+    private static void CollectTreeChanges(LibGit2Sharp.Tree tree, List<CommitFileChange> list)
+    {
+        foreach (var entry in tree)
+        {
+            if (entry.Target is LibGit2Sharp.Tree sub) CollectTreeChanges(sub, list);
+            else if (entry.Target is LibGit2Sharp.Blob) list.Add(new CommitFileChange(entry.Path.Replace('\\', '/'), GitChangeKind.Added));
+        }
     }
 
     private static GitChangeKind KindOf(LibGit2Sharp.ChangeKind status) => status switch
@@ -193,15 +244,19 @@ public sealed class GitService
     /// <summary>工作区单文件文本 diff（HEAD → 工作区）；未跟踪新文件整文件视为新增；二进制返回 null。</summary>
     public TextDiff? TextDiff(string path)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var tip = repo.Head.Tip;
         // 未跟踪/新文件不在 HEAD 树里：部分 diff 口径不产出 patch，统一按整文件新增读取。
         if (tip == null || tip.Tree[path] == null)
         {
             return ReadFileAsAdded(path);
         }
-        var patch = repo.Diff.Compare<Patch>(tip.Tree, DiffTargets.WorkingDirectory, new[] { path });
-        return ParsePatchContent(path, patch?.Content);
+        // AOT：Diff.Compare 会 fail-fast，改走托管 diff（HEAD blob ↔ 工作区）。
+        var headBlob = tip.Tree[path]?.Target as Blob;
+        var oldLines = headBlob is null ? [] : TextDiffBuilder.ReadBlobLines(headBlob);
+        var newLines = ReadWorkingLines(path);
+        if (oldLines.Count == 0 && newLines.Count == 0) return null;
+        return TextDiffBuilder.Build(path, oldLines, newLines);
     }
 
     private TextDiff? ReadFileAsAdded(string path)
@@ -223,11 +278,27 @@ public sealed class GitService
     /// <summary>历史提交里某文件的文本 diff（该提交 → 其父提交）；二进制返回 null。</summary>
     public TextDiff? CommitTextDiff(string sha, string path)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var commit = FindCommit(repo, sha);
         var parent = commit.Parents.FirstOrDefault();
-        var patch = repo.Diff.Compare<Patch>(parent?.Tree, commit.Tree, new[] { path });
-        return ParsePatchContent(path, patch?.Content);
+        if (parent is null)
+        {
+            // 初始提交：与空树比等价于整文件新增（AOT 下 Compare(null, …) 会抛无栈 NRE）。
+            var blob = commit.Tree[path]?.Target as LibGit2Sharp.Blob;
+            if (blob is null) return null;
+            using var reader = new StreamReader(blob.GetContentStream(), Encoding.UTF8);
+            var lines = new List<DiffLine>();
+            string? line;
+            while ((line = reader.ReadLine()) is not null) lines.Add(new DiffLine('+', line));
+            return new TextDiff(path, [new DiffHunk("@@ -0,0 +1," + lines.Count + " @@", lines)]);
+        }
+        // AOT：Diff.Compare 会 fail-fast，改走托管 diff（父 blob ↔ 提交 blob）。
+        var parentBlob = parent.Tree[path]?.Target as Blob;
+        var commitBlob = commit.Tree[path]?.Target as Blob;
+        if (parentBlob is null && commitBlob is null) return null;
+        var oldLines = parentBlob is null ? [] : TextDiffBuilder.ReadBlobLines(parentBlob);
+        var newLines = commitBlob is null ? [] : TextDiffBuilder.ReadBlobLines(commitBlob);
+        return TextDiffBuilder.Build(path, oldLines, newLines);
     }
 
     private static TextDiff? ParsePatchContent(string path, string? content)
@@ -285,7 +356,7 @@ public sealed class GitService
     /// <summary>HEAD 中某文件的流（二进制对比扩展点）；HEAD 不含该文件（新增）返回 null。</summary>
     public Stream? OpenHeadStream(string path)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var entry = repo.Head.Tip?.Tree[path]?.Target as LibGit2Sharp.Blob;
         return entry?.GetContentStream();
     }
@@ -294,7 +365,7 @@ public sealed class GitService
     /// 提交身份未配置时抛出带指引的异常（不冒名兜底）。</summary>
     public Commit CommitPaths(IEnumerable<string> paths, string message)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         foreach (var path in paths)
         {
             Commands.Stage(repo, path);
@@ -311,7 +382,7 @@ public sealed class GitService
     /// <summary>全部改动提交（定时自动提交用）；无改动返回 null（自动跳过）。</summary>
     public Commit? CommitAll(string message)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         if (!repo.RetrieveStatus(new StatusOptions { IncludeUntracked = true }).IsDirty) return null;
         Commands.Stage(repo, "*");
         var (missing, name, email) = IdentityOf(repo);
@@ -326,7 +397,7 @@ public sealed class GitService
     /// <summary>放弃一个文件的未提交更改：HEAD 中存在则还原（含暂存态），新增文件从索引与磁盘移除。</summary>
     public void Discard(string path)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var inHead = repo.Head.Tip?.Tree[path] != null;
         if (inHead)
         {
@@ -343,7 +414,7 @@ public sealed class GitService
     /// 远端分叉时抛出可读异常（请用外部 git 处理）。</summary>
     public int PullFastForward(string? pat)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var remote = repo.Network.Remotes["origin"] ?? throw new InvalidOperationException("未配置 origin 远端。");
         var before = repo.Head.TrackingDetails.BehindBy ?? 0;
         var options = new FetchOptions();
@@ -369,7 +440,7 @@ public sealed class GitService
     {
         try
         {
-            using var repo = new Repository(_repoRoot);
+            var repo = Repo();
             return repo.Network.Remotes["origin"]?.Url;
         }
         catch
@@ -381,7 +452,7 @@ public sealed class GitService
     /// <summary>保存 origin 远端地址（新增或更新）。</summary>
     public void SetRemote(string url)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var remote = repo.Network.Remotes["origin"];
         if (remote is null) repo.Network.Remotes.Add("origin", url);
         else repo.Network.Remotes.Update("origin", r => r.Url = url);
@@ -390,14 +461,14 @@ public sealed class GitService
     /// <summary>移除 origin 远端（原型未提供入口，远程同步回本地管理用）。</summary>
     public void RemoveRemote()
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         repo.Network.Remotes.Remove("origin");
     }
 
     /// <summary>为当前分支建立对 origin 的跟踪（首次推送前保证 ahead/behind 有值）。</summary>
     public void TrackOrigin()
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var remote = repo.Network.Remotes["origin"];
         if (remote is null) return;
         var branch = repo.Head;
@@ -446,14 +517,21 @@ public sealed class GitService
         return url is not null && (url.StartsWith("git@", StringComparison.OrdinalIgnoreCase) || url.StartsWith("ssh://", StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>推送分支：HTTPS remote 走 PAT 凭据（LibGit2）；SSH remote（git@host / ssh://）交给系统 git
-    /// 命令行（用户已配置的 agent / 密钥生效；未装 git 时报错原文透出）。</summary>
-    public void Push(string pat, string remoteName = "origin", string? branch = null)
+    /// <summary>在 HEAD 打轻量 tag（发布流程：升版提交后打发布 tag）。</summary>
+    public void CreateTag(string name)
     {
-        using (var repo = new Repository(_repoRoot))
+        var repo = Repo();
+        repo.Tags.Add(name, repo.Head.Tip ?? throw new InvalidOperationException("当前分支没有任何提交，无法打 tag。"));
+    }
+
+    /// <summary>推送分支或 tag：HTTPS remote 走 PAT 凭据（LibGit2）；SSH remote（git@host / ssh://）交给系统 git
+    /// 命令行（用户已配置的 agent / 密钥生效；未装 git 时报错原文透出）。</summary>
+    public void Push(string pat, string remoteName = "origin", string? branch = null, string? tag = null)
+    {
+        var repo = Repo();
         {
             var remote = repo.Network.Remotes[remoteName] ?? throw new InvalidOperationException("未配置 origin 远端。");
-            var pushRef = $"refs/heads/{branch ?? repo.Head.FriendlyName}";
+            var pushRef = tag is not null ? $"refs/tags/{tag}" : $"refs/heads/{branch ?? repo.Head.FriendlyName}";
             if (remote.Url.StartsWith("git@", StringComparison.OrdinalIgnoreCase) ||
                 remote.Url.StartsWith("ssh://", StringComparison.OrdinalIgnoreCase))
             {
@@ -496,7 +574,7 @@ public sealed class GitService
 
     public (string Name, string Email) Identity()
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         var identity = IdentityOf(repo);
         return (identity.Missing ? string.Empty : identity.Name, identity.Missing ? string.Empty : identity.Email);
     }
@@ -504,7 +582,7 @@ public sealed class GitService
     /// <summary>身份未配置时返回缺失标记：调用方阻断提交并指引配置（不静默兜底冒名提交）。</summary>
     public (bool Missing, string Name, string Email) IdentityOrDefault()
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         return IdentityOf(repo);
     }
 
@@ -521,9 +599,17 @@ public sealed class GitService
 
     public void SetIdentity(string name, string email)
     {
-        using var repo = new Repository(_repoRoot);
+        var repo = Repo();
         repo.Config.Set("user.name", name);
         repo.Config.Set("user.email", email);
+    }
+
+    /// <summary>读工作区文件行（统一 UTF8，路径分隔归一）。</summary>
+    private List<string> ReadWorkingLines(string path)
+    {
+        var full = System.IO.Path.Combine(_repoRoot, path.Replace('/', System.IO.Path.DirectorySeparatorChar));
+        if (!File.Exists(full)) return [];
+        return [.. File.ReadAllLines(full)];
     }
 
     /// <summary>把模式追加到仓库根 .gitignore（已存在则跳过）。</summary>

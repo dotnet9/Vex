@@ -196,11 +196,11 @@
         <!-- 提交行（原型 .commit-item） -->
         <Style Selector="TextBlock.commit-subject">
             <Setter Property="FontSize" Value="12.5" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontWeight" Value="Normal" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         </Style>
         <Style Selector="TextBlock.commit-meta">
-            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontSize" Value="12.5" />
             <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
         </Style>
         <Style Selector="TextBlock.hash">
@@ -390,8 +390,9 @@
                         <Viewbox Width="12" Height="12"><Canvas Width="24" Height="24"><Path Classes="chevron" Data="M6 9L12 15L18 9" /></Canvas></Viewbox>
                     </StackPanel>
                 </Button>
+                <!-- 分支钮：弹 tag 菜单（原型 branch 下拉：打 tag/推送 tag；分支管理占位）。
+                     打 tag 需要输入名称：直接在 Flyout 内嵌输入区（名称+同时推送+创建）。 -->
                 <Button x:Name="BranchButton" Grid.Column="1" Classes="git-topbtn" IsVisible="{Binding HasRepo}"
-                        Command="{Binding ShowBranchPlaceholder}"
                         helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.GitBranchManagementToast}}"
                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitBranchManagementToast}}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
@@ -399,6 +400,20 @@
                         <TextBlock Classes="git-topname" Text="{Binding BranchName}" />
                         <Viewbox Width="12" Height="12"><Canvas Width="24" Height="24"><Path Classes="chevron" Data="M6 9L12 15L18 9" /></Canvas></Viewbox>
                     </StackPanel>
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft">
+                            <StackPanel MinWidth="240" Spacing="8">
+                                <TextBox x:Name="TagNameBox" Watermark="{i18n:I18n {x:Static l:VexL.GitTagNamePlaceholder}}"
+                                         Text="{Binding NewTagName, Mode=TwoWay}"
+                                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitTagNamePlaceholder}}" />
+                                <CheckBox x:Name="TagAlsoPush" Content="{i18n:I18n {x:Static l:VexL.GitTagAlsoPush}}"
+                                          IsChecked="{Binding TagAlsoPush, Mode=TwoWay}" />
+                                <Button x:Name="CreateTagButton" Classes="btn primary" HorizontalAlignment="Stretch"
+                                        Content="{i18n:I18n {x:Static l:VexL.GitTagCreate}}"
+                                        Command="{Binding CreateTagCommand}" CommandParameter="{Binding NewTagName}" />
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
                 </Button>
                 <Button x:Name="PullButton" Grid.Column="2" Classes="git-topbtn" IsVisible="{Binding HasRepo}" IsEnabled="{Binding CanPull}"
                         Command="{Binding PullAsync}"
@@ -492,7 +507,7 @@
                                 <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="14,0,14,6" IsVisible="{Binding HasChanges}">
                                     <CheckBox x:Name="StageAllCheck" IsChecked="{Binding AllChecked, Mode=TwoWay}"
                                               AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitSelectAll}}" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" FontSize="12"
+                                    <TextBlock Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" FontSize="12.5"
                                                Foreground="{DynamicResource VexMutedBrush}" Text="{Binding ChangeCountText}" />
                                 </Grid>
                                 <!-- 变更列表 / 干净空态 -->
@@ -521,7 +536,7 @@
                                                             <TextBlock Text="?" IsVisible="{Binding IsUntracked}" />
                                                         </Panel>
                                                     </Border>
-                                                    <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12" TextTrimming="CharacterEllipsis">
+                                                    <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12.5" TextTrimming="CharacterEllipsis">
                                                         <Run Text="{Binding Dir, Mode=OneWay}" Foreground="{DynamicResource VexMutedBrush}" /><Run Text="{Binding Name, Mode=OneWay}" />
                                                     </TextBlock>
                                                 </Grid>
@@ -666,6 +681,7 @@
                             <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                 <Panel>
                                     <ItemsControl x:Name="UnifiedDiff" ItemsSource="{Binding UnifiedRows}" IsVisible="{Binding IsUnified}">
+                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:GitDiffRow">
                                                 <Border Classes="git-diff-row" Classes.add="{Binding IsAdded}" Classes.del="{Binding IsDeleted}">
@@ -680,6 +696,7 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                     <ItemsControl x:Name="SplitDiff" ItemsSource="{Binding SplitRows}" IsVisible="{Binding IsSplit}">
+                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:GitDiffPairRow">
                                                 <Grid ColumnDefinitions="*,*" Classes="git-split-row-inner">
@@ -761,7 +778,7 @@
                                                                 <TextBlock Text="?" IsVisible="{Binding IsUntracked}" />
                                                             </Panel>
                                                         </Border>
-                                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" TextTrimming="CharacterEllipsis" Text="{Binding Path}" />
+                                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12.5" TextTrimming="CharacterEllipsis" Text="{Binding Path}" />
                                                     </Grid>
                                                 </DataTemplate>
                                             </ListBox.ItemTemplate>
@@ -823,6 +840,7 @@
                                         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                             <Panel>
                                                 <ItemsControl ItemsSource="{Binding UnifiedRows}" IsVisible="{Binding IsUnified}">
+                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate x:DataType="vm:GitDiffRow">
                                                             <Border Classes="git-diff-row" Classes.add="{Binding IsAdded}" Classes.del="{Binding IsDeleted}">
@@ -837,6 +855,7 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
                                                 <ItemsControl ItemsSource="{Binding SplitRows}" IsVisible="{Binding IsSplit}">
+                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate x:DataType="vm:GitDiffPairRow">
                                                             <Grid ColumnDefinitions="*,*" Classes="git-split-row-inner">

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Vex.Core.Services;
 
 namespace Vex.Modules.Workspace.Services;
@@ -14,7 +15,7 @@ public sealed class WorkspaceFileMonitor : IDisposable
     private readonly Action<IReadOnlyList<WorkspacePathChange>, bool, Exception?> _notify;
     private readonly Dictionary<string, WorkspacePathChange> _pending = new(WorkspaceFileEnumeration.PathComparer);
     private readonly Timer _timer;
-    private readonly Timer _availabilityTimer;
+    private readonly Timer? _availabilityTimer;
     private FileSystemWatcher? _watcher;
     private long _firstEvent;
     private bool _recovery;
@@ -29,6 +30,14 @@ public sealed class WorkspaceFileMonitor : IDisposable
         _isKnownDirectory = isKnownDirectory;
         _notify = notify;
         _timer = new Timer(Flush);
+        if (!RuntimeFeature.IsDynamicCodeSupported)
+        {
+            // NativeAOT 发布：FileSystemWatcher 事件管线存在随机无栈 NRE（写文件/事件分派时
+            // 直接 fail-fast，事件查看器无托管栈）。AOT 禁用事件监控，文件列表依赖打开时
+            // 扫描与手动刷新；非 AOT（调试）保持事件监控。
+            _timer.Dispose();
+            return;
+        }
         try
         {
             AttachWatcher();
@@ -92,12 +101,32 @@ public sealed class WorkspaceFileMonitor : IDisposable
         watcher.EnableRaisingEvents = true;
     }
 
-    private void OnCreated(object sender, FileSystemEventArgs e) => ReportChange(e.FullPath, changeType: WatcherChangeTypes.Created);
-    private void OnDeleted(object sender, FileSystemEventArgs e) => ReportChange(e.FullPath, changeType: WatcherChangeTypes.Deleted);
-    private void OnChanged(object sender, FileSystemEventArgs e) => ReportChange(e.FullPath, changeType: WatcherChangeTypes.Changed);
-    private void OnRenamed(object sender, RenamedEventArgs e) => ReportChange(e.FullPath, e.OldFullPath,
-        Directory.Exists(e.FullPath) || _isKnownDirectory(e.OldFullPath), WatcherChangeTypes.Renamed);
-    private void OnError(object sender, ErrorEventArgs e) => ReportError(e.GetException());
+    private void OnCreated(object sender, FileSystemEventArgs e) => GuardCrash(() => ReportChange(e.FullPath, changeType: WatcherChangeTypes.Created));
+    private void OnDeleted(object sender, FileSystemEventArgs e) => GuardCrash(() => ReportChange(e.FullPath, changeType: WatcherChangeTypes.Deleted));
+    private void OnChanged(object sender, FileSystemEventArgs e) => GuardCrash(() => ReportChange(e.FullPath, changeType: WatcherChangeTypes.Changed));
+    private void OnRenamed(object sender, RenamedEventArgs e) => GuardCrash(() => ReportChange(e.FullPath, e.OldFullPath,
+        Directory.Exists(e.FullPath) || _isKnownDirectory(e.OldFullPath), WatcherChangeTypes.Renamed));
+    private void OnError(object sender, ErrorEventArgs e) => GuardCrash(() => ReportError(e.GetException()));
+
+    /// <summary>AOT 诊断：监控事件线程的无栈 NRE 直接 fail-fast（事件查看器无托管栈），
+    /// 这里兜住打印完整栈到 stderr 与 Vex crash 目录后再走原失败路径。</summary>
+    private void GuardCrash(Action action)
+    {
+        try { action(); }
+        catch (Exception ex)
+        {
+            var dump = "MONITOR THREAD CRASH thread=" + Environment.CurrentManagedThreadId + " " + ex;
+            Console.WriteLine(dump);
+            try
+            {
+                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vex", "crash");
+                Directory.CreateDirectory(dir);
+                File.WriteAllText(Path.Combine(dir, "monitor-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + ".log"), dump);
+            }
+            catch { }
+            throw;
+        }
+    }
 
     private void CheckRootAvailability(object? state)
     {
@@ -111,6 +140,27 @@ public sealed class WorkspaceFileMonitor : IDisposable
     }
 
     private void QueuePath(string path, bool? directoryHint, WatcherChangeTypes changeType)
+    {
+        try
+        {
+            QueuePathCore(path, directoryHint, changeType);
+        }
+        catch (Exception ex) when (ex is not IOException and not UnauthorizedAccessException)
+        {
+            var dump = "MONITOR QUEUEPATH CRASH thread=" + Environment.CurrentManagedThreadId + " " + ex;
+            Console.WriteLine(dump);
+            try
+            {
+                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vex", "crash");
+                Directory.CreateDirectory(dir);
+                File.WriteAllText(Path.Combine(dir, "monitor-queue-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + ".log"), dump);
+            }
+            catch { }
+            throw;
+        }
+    }
+
+    private void QueuePathCore(string path, bool? directoryHint, WatcherChangeTypes changeType)
     {
         path = Path.GetFullPath(path);
         var isDirectory = directoryHint ?? (Directory.Exists(path) || _isKnownDirectory(path));
@@ -207,7 +257,7 @@ public sealed class WorkspaceFileMonitor : IDisposable
             _disposed = true;
             _pending.Clear();
             _timer.Dispose();
-            _availabilityTimer.Dispose();
+            _availabilityTimer?.Dispose();
             DetachWatcher();
         }
     }

@@ -18,3 +18,19 @@ public sealed class RelayCommand<T>(Action<T?> execute, Func<T?, bool>? canExecu
 
     private static T? Cast(object? parameter) => parameter is T value ? value : default;
 }
+
+/// <summary>异步版本：async 命令体走 Execute 的 fire-and-forget（异常经 UiDispatch 已在面板 toast）。</summary>
+public sealed class AsyncRelayCommand<T>(Func<T?, Task> execute, Func<T?, bool>? canExecute = null) : ICommand
+{
+    public event EventHandler? CanExecuteChanged
+    {
+        add { }
+        remove { }
+    }
+
+    public bool CanExecute(object? parameter) => canExecute?.Invoke(Cast(parameter)) ?? true;
+
+    public async void Execute(object? parameter) => await execute(Cast(parameter));
+
+    private static T? Cast(object? parameter) => parameter is T value ? value : default;
+}
