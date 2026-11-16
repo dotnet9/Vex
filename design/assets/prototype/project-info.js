@@ -10,7 +10,7 @@ window.VexProject = {
     "CodeWF.Avalonia.MindView",
     "ModelContextProtocol",
     "Microsoft.NET.Test.Sdk",
-    "xunit",
+    "xunit.v3",
     "xunit.runner.visualstudio",
     "ModelContextProtocol.AspNetCore",
     "ModelContextProtocol.Core",

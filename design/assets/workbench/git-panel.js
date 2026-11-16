@@ -432,6 +432,60 @@
   document.getElementById('git-remote-ok').addEventListener('click', saveRemote);
   document.getElementById('git-remote-url').addEventListener('input', function () { document.getElementById('git-remote-error').classList.add('is-hidden'); });
 
+  /* ---------- 分支按钮下拉：tag 创建/推送（发布流程：升版提交后打发布 tag 触发 CI） ---------- */
+  var branchMenu = document.createElement('div');
+  branchMenu.className = 'file-context-menu'; branchMenu.hidden = true; branchMenu.setAttribute('role', 'menu');
+  document.body.appendChild(branchMenu);
+  function closeBranchMenu() { branchMenu.hidden = true; }
+  function showBranchMenu(event) {
+    branchMenu.innerHTML = '<button type="button" role="menuitem" data-branch-act="create-tag">' + esc(t('打 tag…')) + '</button>'
+      + '<button type="button" role="menuitem" data-branch-act="push-tag">' + esc(t('推送 tag')) + '</button>'
+      + '<button type="button" role="menuitem" data-branch-act="manage">' + esc(t('分支管理')) + '</button>';
+    branchMenu.hidden = false;
+    var width = branchMenu.offsetWidth || 160, height = branchMenu.offsetHeight || 96;
+    var rect = event.target.closest('button').getBoundingClientRect();
+    branchMenu.style.left = Math.max(8, Math.min(rect.left, innerWidth - width - 8)) + 'px';
+    branchMenu.style.top = Math.max(8, rect.bottom + 4) + 'px';
+    branchMenu.querySelector('button').focus({ preventScroll: true });
+  }
+  var paneButtonGuard = event.target.closest('[data-git="branch"]');
+  pane.addEventListener('click', function (event) {
+    var branchBtn = event.target.closest('[data-git="branch"]');
+    if (branchBtn && !event.target.closest('[data-branch-act]')) { showBranchMenu(event); return; }
+    var act = event.target.closest('[data-branch-act]');
+    if (!act) return;
+    closeBranchMenu();
+    if (act.dataset.branchAct === 'create-tag') { openTagDialog(false); return; }
+    if (act.dataset.branchAct === 'push-tag') { openTagDialog(true); return; }
+    VexProto.toast(t('分支管理在桌面版中提供'));
+  });
+  document.addEventListener('pointerdown', function (event) {
+    if (!branchMenu.hidden && !branchMenu.contains(event.target) && !event.target.closest('[data-git="branch"]')) closeBranchMenu();
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && !branchMenu.hidden) { event.preventDefault(); closeBranchMenu(); }
+  });
+  function openTagDialog(pushAfter) {
+    document.getElementById('git-tag-name').value = '';
+    document.getElementById('git-tag-push').checked = pushAfter;
+    document.getElementById('git-tag-title').textContent = pushAfter ? t('打 tag 并推送') : t('打 tag');
+    document.getElementById('git-tag-error').classList.add('is-hidden');
+    VexProto.handleAction('dlg-git-tag');
+  }
+  document.getElementById('git-tag-ok').addEventListener('click', function () {
+    var name = document.getElementById('git-tag-name').value.trim();
+    var push = document.getElementById('git-tag-push').checked;
+    var error = document.getElementById('git-tag-error');
+    if (!/^[A-Za-z0-9._-]+$/.test(name)) { error.classList.remove('is-hidden'); return; }
+    if (!state.history.length) { error.textContent = t('还没有提交，无法打 tag'); error.classList.remove('is-hidden'); return; }
+    var layer = document.getElementById('layer-git-tag');
+    if (layer) layer.hidden = true;
+    (push ? VexProto.toast(t('tag 已创建并推送') + '：' + name) : VexProto.toast(t('tag 已创建') + '：' + name));
+  });
+  document.getElementById('git-tag-name').addEventListener('input', function () {
+    document.getElementById('git-tag-error').classList.add('is-hidden');
+  });
+
   /* ---------- 右键菜单「打开所在目录」（与文件列表右键菜单同一套样式；先选中右键行再弹出） ---------- */
   var gitContextMenu = document.createElement('div');
   gitContextMenu.className = 'file-context-menu'; gitContextMenu.hidden = true; gitContextMenu.setAttribute('role', 'menu');

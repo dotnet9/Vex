@@ -487,3 +487,19 @@
 <script src="assets/workbench/vex-data.js?v=20261030a"></script><script src="assets/workbench/localization.js?v=20261030a"></script><script src="assets/prototype/project-info.js?v=20261030a"></script><script src="assets/workbench/typography.js?v=20261030a"></script><script src="assets/workbench/interact.js?v=20261030a"></script><script src="assets/workbench/mindmap.js?v=20261030a"></script><script src="assets/workbench/code-fence.js?v=20261030a"></script><script src="assets/vendor/katex/katex.min.js?v=20261030a"></script><script src="assets/vendor/katex/mhchem.min.js?v=20261030a"></script><script src="assets/vendor/mermaid/mermaid.min.js?v=20261030a"></script><script src="assets/workbench/diagram-rendering.js?v=20261030a"></script><script src="assets/workbench/rendering.js?v=20261030a"></script><script src="assets/workbench/samples.js?v=20261030a"></script><script src="assets/workbench/typewriter.js?v=20261030a"></script><script src="assets/workbench/instant-editor.js?v=20261030a"></script><script src="assets/workbench/source-highlight.js?v=20261030a"></script><script src="assets/workbench/workbench.js?v=20261030a"></script><script src="assets/workbench/guide.js?v=20261030a"></script>
 <script src="assets/workbench/about-update.js?v=20261104a"></script><script src="assets/workbench/workspace.js?v=20261030a"></script><script src="assets/workbench/chapter-editor.js?v=20261030a"></script><script src="assets/workbench/usability.js?v=20261030a"></script><script src="assets/workbench/workspace-chrome.js?v=20261030a"></script><script src="assets/workbench/workflows.js?v=20261030a"></script><script src="assets/workbench/preview.js?v=20261030a"></script>
 <script src="assets/workbench/template-center.js?v=20261115f"></script><script src="assets/workbench/git-panel.js?v=20261115f"></script></body></html>
+    <div class="overlay win-layer" id="layer-git-tag" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="git-tag-title">
+        <div class="mini-titlebar"><span id="git-tag-title">打 tag</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="dialog-content">
+          <label class="fld-label" for="git-tag-name" data-l10n-label="TagName">tag 名称</label>
+          <input class="input mono" id="git-tag-name" placeholder="v1.2.3" autofocus>
+          <div class="rn-error is-hidden" id="git-tag-error">tag 名称只允许字母、数字、点、横线、下划线</div>
+          <label class="setting-label" style="margin-top:10px"><input type="checkbox" id="git-tag-push"> 同时推送 tag（触发 CI 发布）</label>
+          <p class="dlg-msg git-remote-note">tag 打在当前 HEAD 上；推送 tag 会触发远端 CI 的发布流程。</p>
+        </div>
+        <div class="dlg-actions">
+          <button class="btn" data-close>取消</button>
+          <button class="btn primary" id="git-tag-ok">创建 tag</button>
+        </div>
+      </div>
+    </div>
