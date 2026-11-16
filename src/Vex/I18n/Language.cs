@@ -2,6 +2,18 @@
 namespace Vex;
 public static class VexL
 {
+    public static readonly string GitTagNoCommitToast = "Vex.VexL.GitTagNoCommitToast";
+    public static readonly string GitDiscardMenu = "Vex.VexL.GitDiscardMenu";
+    public static readonly string GitDiscardedToast = "Vex.VexL.GitDiscardedToast";
+    public static readonly string GitDiscardConfirmFormat = "Vex.VexL.GitDiscardConfirmFormat";
+    public static readonly string McpToolGitPull = "Vex.VexL.McpToolGitPull";
+    public static readonly string GitBranchTagMenu = "Vex.VexL.GitBranchTagMenu";
+    public static readonly string GitBranchPushTagMenu = "Vex.VexL.GitBranchPushTagMenu";
+    public static readonly string GitBranchManageMenu = "Vex.VexL.GitBranchManageMenu";
+    public static readonly string GitIdentitySection = "Vex.VexL.GitIdentitySection";
+    public static readonly string GitIdentityName = "Vex.VexL.GitIdentityName";
+    public static readonly string GitIdentityEmail = "Vex.VexL.GitIdentityEmail";
+    public static readonly string GitIdentityHint = "Vex.VexL.GitIdentityHint";
     public static readonly string McpToolGitStatus = "Vex.VexL.McpToolGitStatus";
     public static readonly string McpToolGitCommit = "Vex.VexL.McpToolGitCommit";
     public static readonly string McpToolGitPush = "Vex.VexL.McpToolGitPush";
@@ -979,6 +991,7 @@ public static class VexL
     public static readonly string TypographyPurposeBasic = "Vex.VexL.TypographyPurposeBasic";
     public static readonly string TypographyPurposeInkBlack = "Vex.VexL.TypographyPurposeInkBlack";
     public static readonly string TypographyPurposeTechnologyBlue = "Vex.VexL.TypographyPurposeTechnologyBlue";
+    public static readonly string TypographyPurposeWeChatFormat = "Vex.VexL.TypographyPurposeWeChatFormat";
     public static readonly string TypographyPurposeOrangeHeart = "Vex.VexL.TypographyPurposeOrangeHeart";
     public static readonly string TypographyPurposeColorfulPurple = "Vex.VexL.TypographyPurposeColorfulPurple";
     public static readonly string TypographyPurposeTenderGreen = "Vex.VexL.TypographyPurposeTenderGreen";
@@ -1160,7 +1173,6 @@ public static class VexL
     public static readonly string ToastFileNavCollapsed = "Vex.VexL.ToastFileNavCollapsed";
     public static readonly string TypographySoftSage = "Vex.VexL.TypographySoftSage";
     public static readonly string TypographyPurposeSoftSage = "Vex.VexL.TypographyPurposeSoftSage";
-    public static readonly string TypographyPurposeWeChatFormat = "Vex.VexL.TypographyPurposeWeChatFormat";
     public static readonly string FindCountMatches = "Vex.VexL.FindCountMatches";
     public static readonly string FindCountNone = "Vex.VexL.FindCountNone";
     public static readonly string LayoutCurrentFormat = "Vex.VexL.LayoutCurrentFormat";
@@ -1168,16 +1180,4 @@ public static class VexL
     public static readonly string PrefFileListFontSize = "Vex.VexL.PrefFileListFontSize";
     public static readonly string MermaidVenn = "Vex.VexL.MermaidVenn";
     public static readonly string MermaidTreeView = "Vex.VexL.MermaidTreeView";
-    public static readonly string GitTagNoCommitToast = "Vex.VexL.GitTagNoCommitToast";
-    public static readonly string GitDiscardMenu = "Vex.VexL.GitDiscardMenu";
-    public static readonly string GitDiscardedToast = "Vex.VexL.GitDiscardedToast";
-    public static readonly string GitDiscardConfirmFormat = "Vex.VexL.GitDiscardConfirmFormat";
-    public static readonly string McpToolGitPull = "Vex.VexL.McpToolGitPull";
-    public static readonly string GitBranchTagMenu = "Vex.VexL.GitBranchTagMenu";
-    public static readonly string GitBranchPushTagMenu = "Vex.VexL.GitBranchPushTagMenu";
-    public static readonly string GitBranchManageMenu = "Vex.VexL.GitBranchManageMenu";
-    public static readonly string GitIdentitySection = "Vex.VexL.GitIdentitySection";
-    public static readonly string GitIdentityName = "Vex.VexL.GitIdentityName";
-    public static readonly string GitIdentityEmail = "Vex.VexL.GitIdentityEmail";
-    public static readonly string GitIdentityHint = "Vex.VexL.GitIdentityHint";
 }
