@@ -4,6 +4,18 @@
   "cultureName": "en-US",
   "Vex": {
     "VexL": {
+      "GitTagNoCommitToast": "No commits yet - cannot create tag",
+      "GitDiscardMenu": "Discard changes…",
+      "GitDiscardedToast": "Changes discarded",
+      "GitDiscardConfirmFormat": "Discard all changes to \"{0}\"? This cannot be undone.",
+      "McpToolGitPull": "Pull from remote",
+      "GitBranchTagMenu": "Create tag…",
+      "GitBranchPushTagMenu": "Push tag…",
+      "GitBranchManageMenu": "Manage branches",
+      "GitIdentitySection": "Git identity",
+      "GitIdentityName": "User name",
+      "GitIdentityEmail": "Email",
+      "GitIdentityHint": "Applied to the repository when it has no commit identity configured.",
       "McpToolGitStatus": "Git status query",
       "McpToolGitCommit": "Git commit changes",
       "McpToolGitPush": "Git push to remote",

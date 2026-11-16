@@ -4,6 +4,18 @@
   "cultureName": "zh-Hant",
   "Vex": {
     "VexL": {
+      "GitTagNoCommitToast": "還沒有提交，無法打 tag",
+      "GitDiscardMenu": "放棄變更…",
+      "GitDiscardedToast": "已放棄變更",
+      "GitDiscardConfirmFormat": "放棄對「{0}」的全部變更？此操作不可復原。",
+      "McpToolGitPull": "拉取遠端更新",
+      "GitBranchTagMenu": "打 tag…",
+      "GitBranchPushTagMenu": "推送 tag…",
+      "GitBranchManageMenu": "分支管理",
+      "GitIdentitySection": "Git 提交身份",
+      "GitIdentityName": "使用者名稱",
+      "GitIdentityEmail": "電子郵件",
+      "GitIdentityHint": "倉庫未設定提交身份時，提交將自動套用這裡填寫的資訊。",
       "McpToolGitStatus": "Git 狀態查詢",
       "McpToolGitCommit": "Git 提交變更",
       "McpToolGitPush": "Git 推送到遠端",

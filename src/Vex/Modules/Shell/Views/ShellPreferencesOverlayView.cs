@@ -202,6 +202,12 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Text(page, VexL.GitPrefMessageTemplate, p, nameof(p.GitAutoCommitMessage), VexL.GitPrefMessageTemplateNote);
                 Heading(page, VexL.GitPrefSyncHeading);
                 var syncNote = new TextBlock { Text = L(VexL.GitPrefSyncNote), FontSize = 12, LineHeight = 19.2, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
+                Heading(page, VexL.GitIdentitySection);
+                Text(page, VexL.GitIdentityName, p, nameof(p.GitUserName));
+                Text(page, VexL.GitIdentityEmail, p, nameof(p.GitUserEmail));
+                var idNote = new TextBlock { Text = L(VexL.GitIdentityHint), FontSize = 12, LineHeight = 19.2, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
+                BindResource(idNote, TextBlock.ForegroundProperty, "VexMutedBrush");
+                page.Children.Add(idNote);
                 BindResource(syncNote, TextBlock.ForegroundProperty, "VexMutedBrush");
                 page.Children.Add(syncNote);
                 break;

@@ -4,6 +4,18 @@
   "cultureName": "ja-JP",
   "Vex": {
     "VexL": {
+      "GitTagNoCommitToast": "コミットがないためタグを作成できません",
+      "GitDiscardMenu": "変更を破棄…",
+      "GitDiscardedToast": "変更を破棄しました",
+      "GitDiscardConfirmFormat": "「{0}」のすべての変更を破棄しますか？元に戻せません。",
+      "McpToolGitPull": "リモートからプル",
+      "GitBranchTagMenu": "タグを作成…",
+      "GitBranchPushTagMenu": "タグをプッシュ…",
+      "GitBranchManageMenu": "ブランチ管理",
+      "GitIdentitySection": "Git 個人情報",
+      "GitIdentityName": "ユーザー名",
+      "GitIdentityEmail": "メール",
+      "GitIdentityHint": "リポジトリにID未設定の場合、コミット時に適用されます。",
       "McpToolGitStatus": "Git 状態取得",
       "McpToolGitCommit": "Git コミット",
       "McpToolGitPush": "Git プッシュ",

@@ -151,6 +151,10 @@ public sealed record AppSettings
     public double? PdfMargin { get; init; }
     /// <summary>用户模板目录；空值用默认 %LocalAppData%/Vex/Templates。</summary>
     public string? TemplatesPath { get; init; }
+    /// <summary>Git 提交身份（用户名），提交时补配仓库级 user.name。</summary>
+    public string? GitUserName { get; init; }
+    /// <summary>Git 提交身份（邮箱）。</summary>
+    public string? GitUserEmail { get; init; }
 
     /// <summary>Git 定时自动提交开关（默认关，原型偏好 Git 页）。</summary>
     public bool? GitAutoCommit { get; init; }

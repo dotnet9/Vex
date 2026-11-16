@@ -70,6 +70,10 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     public int GitAutoCommitInterval { get => settings.Current.GitAutoCommitInterval ?? 30; set => Set(s => s with { GitAutoCommitInterval = Math.Clamp(value, 5, 120) }); }
     /// <summary>Git 自动提交信息模板，{date} 占位当前时间（上限 40 字符，原型 maxlength）。</summary>
     public string GitAutoCommitMessage { get => settings.Current.GitAutoCommitMessage ?? "auto: {date}"; set => Set(s => s with { GitAutoCommitMessage = string.Concat((value ?? "").EnumerateRunes().Take(40).Select(r => r.ToString())) }); }
+    /// <summary>Git 提交身份（仓库级补配来源；空值不参与自动补配）。</summary>
+    public string GitUserName { get => settings.Current.GitUserName ?? ""; set => Set(s => s with { GitUserName = value }); }
+    /// <summary>Git 提交邮箱。</summary>
+    public string GitUserEmail { get => settings.Current.GitUserEmail ?? ""; set => Set(s => s with { GitUserEmail = value }); }
 
     public MarkdownSyntaxOptions SyntaxOptions => new(SyntaxMath, SyntaxSubscript, SyntaxHighlight,
         SyntaxAutoLinks, SyntaxSoftBreaks, SyntaxDiagrams, SyntaxChemistry);

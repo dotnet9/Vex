@@ -361,6 +361,33 @@ public sealed class GitService
         return entry?.GetContentStream();
     }
 
+    /// <summary>仓库是否已有提交（unborn HEAD = 无提交，不能打 tag）。</summary>
+    public bool HasCommits()
+    {
+        using var repo = Repo();
+        return repo.Head.Tip is not null;
+    }
+
+    /// <summary>仓库级提交身份是否缺失（供外部决定是否补配）。</summary>
+    public bool HasIdentityGap
+    {
+        get
+        {
+            using var repo = Repo();
+            var (missing, _, _) = IdentityOf(repo);
+            return missing;
+        }
+    }
+
+    /// <summary>提交身份缺失时，用偏好设置的用户名/邮箱补配仓库级身份（不覆盖已配置值）。</summary>
+    public void EnsureIdentity(string? userName, string? userEmail)
+    {
+        if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(userEmail)) return;
+        using var repo = Repo();
+        var (missing, _, _) = IdentityOf(repo);
+        if (missing) SetIdentity(userName.Trim(), userEmail.Trim());
+    }
+
     /// <summary>勾选暂存后提交（部分提交）；paths 为仓库相对路径。
     /// 提交身份未配置时抛出带指引的异常（不冒名兜底）。</summary>
     public Commit CommitPaths(IEnumerable<string> paths, string message)

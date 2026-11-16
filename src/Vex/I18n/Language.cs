@@ -1168,4 +1168,16 @@ public static class VexL
     public static readonly string PrefFileListFontSize = "Vex.VexL.PrefFileListFontSize";
     public static readonly string MermaidVenn = "Vex.VexL.MermaidVenn";
     public static readonly string MermaidTreeView = "Vex.VexL.MermaidTreeView";
+    public static readonly string GitTagNoCommitToast = "Vex.VexL.GitTagNoCommitToast";
+    public static readonly string GitDiscardMenu = "Vex.VexL.GitDiscardMenu";
+    public static readonly string GitDiscardedToast = "Vex.VexL.GitDiscardedToast";
+    public static readonly string GitDiscardConfirmFormat = "Vex.VexL.GitDiscardConfirmFormat";
+    public static readonly string McpToolGitPull = "Vex.VexL.McpToolGitPull";
+    public static readonly string GitBranchTagMenu = "Vex.VexL.GitBranchTagMenu";
+    public static readonly string GitBranchPushTagMenu = "Vex.VexL.GitBranchPushTagMenu";
+    public static readonly string GitBranchManageMenu = "Vex.VexL.GitBranchManageMenu";
+    public static readonly string GitIdentitySection = "Vex.VexL.GitIdentitySection";
+    public static readonly string GitIdentityName = "Vex.VexL.GitIdentityName";
+    public static readonly string GitIdentityEmail = "Vex.VexL.GitIdentityEmail";
+    public static readonly string GitIdentityHint = "Vex.VexL.GitIdentityHint";
 }

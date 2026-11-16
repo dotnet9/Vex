@@ -84,6 +84,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string ExportFormat = nameof(AppSettings.ExportFormat);
     private const string ExportFolder = nameof(AppSettings.ExportFolder);
     private const string TemplatesPath = nameof(AppSettings.TemplatesPath);
+    private const string GitUserName = nameof(AppSettings.GitUserName);
+    private const string GitUserEmail = nameof(AppSettings.GitUserEmail);
     private const string GitAutoCommit = nameof(AppSettings.GitAutoCommit);
     private const string GitAutoCommitInterval = nameof(AppSettings.GitAutoCommitInterval);
     private const string GitAutoCommitMessage = nameof(AppSettings.GitAutoCommitMessage);
@@ -173,6 +175,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
             ExportFormat = Choice(configuration, ExportFormat, "HTML", "PDF", "Markdown", "PNG", "Word"),
             ExportFolder = Get<string>(configuration, ExportFolder),
         TemplatesPath = Get<string>(configuration, TemplatesPath),
+        GitUserName = Get<string>(configuration, GitUserName),
+        GitUserEmail = Get<string>(configuration, GitUserEmail),
             GitAutoCommit = Get<bool?>(configuration, GitAutoCommit),
             GitAutoCommitInterval = Get<int?>(configuration, GitAutoCommitInterval),
             GitAutoCommitMessage = Get<string>(configuration, GitAutoCommitMessage),
@@ -277,6 +281,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [ExportFormat] = settings.ExportFormat,
                 [ExportFolder] = settings.ExportFolder,
         [TemplatesPath] = settings.TemplatesPath,
+        [GitUserName] = settings.GitUserName,
+        [GitUserEmail] = settings.GitUserEmail,
                 [GitAutoCommit] = settings.GitAutoCommit,
                 [GitAutoCommitInterval] = settings.GitAutoCommitInterval,
                 [GitAutoCommitMessage] = settings.GitAutoCommitMessage,

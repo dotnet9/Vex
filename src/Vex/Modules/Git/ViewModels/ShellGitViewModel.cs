@@ -175,6 +175,8 @@ public sealed class ShellGitViewModel : ReactiveObject
         _credentials = credentials;
         SetDiffModeCommand = new RelayCommand<string?>(SetDiffMode);
         CreateTagCommand = new AsyncRelayCommand<string?>(CreateTagAsync);
+        DiscardChangeCommand = new AsyncRelayCommand<GitChangeItem?>(async item => await DiscardChangeAsync(item));
+        this.RaisePropertyChanged(nameof(DiscardChangeCommand));
         OpenChangeInExplorerCommand = new RelayCommand<GitChangeItem?>(RevealChange);
         OpenCommitFileInExplorerCommand = new RelayCommand<GitCommitFileItem?>(RevealCommitFile);
         _preferences.PropertyChanged += (_, args) =>
@@ -191,6 +193,9 @@ public sealed class ShellGitViewModel : ReactiveObject
 
     /// <summary>PAT 输入弹层（宿主注入）：HTTPS 远程无已存凭据时调用，返回 null 表示取消。</summary>
     public Func<Task<string?>>? PatPrompt { get; set; }
+
+    /// <summary>放弃更改确认浮层（宿主注入）：返回 false 表示取消。</summary>
+    public Func<string, Task<bool>>? DiscardConfirm { get; set; }
 
     /// <summary>远程地址弹层（宿主注入）：返回 null 表示取消。</summary>
     public Func<Task<string?>>? RemoteDialog { get; set; }
@@ -290,6 +295,7 @@ public sealed class ShellGitViewModel : ReactiveObject
 
     /// <summary>在 HEAD 打轻量 tag（可选立即推送）：发布流程「升版提交后打发布 tag」的面板入口。</summary>
     public AsyncRelayCommand<string?> CreateTagCommand { get; }
+    public AsyncRelayCommand<GitChangeItem?> DiscardChangeCommand { get; }
 
     private string _newTagName = string.Empty;
     private bool _tagAlsoPush = true;
@@ -301,6 +307,16 @@ public sealed class ShellGitViewModel : ReactiveObject
     public bool TagAlsoPush { get => _tagAlsoPush; set => this.RaiseAndSetIfChanged(ref _tagAlsoPush, value); }
 
     /// <summary>tag 名称规则：发布 tag（v 开头数字）或任意非空合法名。</summary>
+    /// <summary>分支管理（占位：桌面版后续提供分支列表/切换/创建）。</summary>
+    public void BranchManage() => _toasts.Publish(_localizer.Get(VexL.GitBranchManagementToast));
+
+    /// <summary>tag 表单预设置：alsoPush 决定「同时推送」初始勾选（分支下拉两个入口分别进入）。</summary>
+    public void PrepareTagFlyout(bool alsoPush)
+    {
+        NewTagName = string.Empty;
+        TagAlsoPush = alsoPush;
+    }
+
     private async Task CreateTagAsync(string? name)
     {
         if (_service is null || string.IsNullOrWhiteSpace(name))
@@ -309,6 +325,16 @@ public sealed class ShellGitViewModel : ReactiveObject
             return;
         }
         var clean = name.Trim();
+        if (!System.Text.RegularExpressions.Regex.IsMatch(clean, "^[A-Za-z0-9._-]+$"))
+        {
+            _toasts.Publish(_localizer.Get(VexL.GitTagNameInvalid), Avalonia.Controls.Notifications.NotificationType.Warning);
+            return;
+        }
+        if (!_service.HasCommits())
+        {
+            _toasts.Publish(_localizer.Get(VexL.GitTagNoCommitToast), Avalonia.Controls.Notifications.NotificationType.Warning);
+            return;
+        }
         try
         {
             _service.CreateTag(clean);
@@ -356,6 +382,14 @@ public sealed class ShellGitViewModel : ReactiveObject
         var branch = BranchName;
         _service!.Push(pat ?? string.Empty, tag: tag);
         LastSyncText = DateTime.Now.ToString("HH:mm");
+    }
+
+    /// <summary>已存 PAT（HTTPS 远程；无弹层打扰的静默解析，供 MCP/自动化通道使用）。</summary>
+    public string? ResolveStoredPat()
+    {
+        if (!IsHttpsRemote) return null;
+        var host = _service?.RemoteCredentialHost();
+        return string.IsNullOrEmpty(host) ? null : _credentials.GetPat(host);
     }
 
     /// <summary>Diff Options 弹层的模式切换（RadioButton 的 IsChecked 绑只读计算属性无法回写，走命令）。</summary>
@@ -865,10 +899,32 @@ public sealed class ShellGitViewModel : ReactiveObject
     }
 
     /// <summary>勾选暂存后提交；Summary 必填，身份未配置/无勾选时阻断并提示。</summary>
+    /// <summary>放弃更改：受跟踪文件还原、未跟踪文件移除；走确认浮层。</summary>
+    public async Task DiscardChangeAsync(GitChangeItem? item)
+    {
+        if (_service is null || item is null) return;
+        var path = item.Path;
+        if (DiscardConfirm is not null && !await DiscardConfirm(path)) return;
+        try
+        {
+            _service.Discard(path);
+            _toasts.Publish(_localizer.Get(VexL.GitDiscardedToast));
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            _toasts.Publish(_localizer.Format(VexL.GitCommitFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
+    }
+
     public async Task CommitAsync()
     {
         if (_service is null || !CanCommit) return;
         var paths = Changes.Where(item => item.Checked).Select(item => item.Path).ToArray();
+        if (_service.HasIdentityGap && !string.IsNullOrWhiteSpace(_preferences.GitUserName) && !string.IsNullOrWhiteSpace(_preferences.GitUserEmail))
+        {
+            _service.EnsureIdentity(_preferences.GitUserName, _preferences.GitUserEmail);
+        }
         var message = Summary.Trim();
         var description = Description.Trim();
         if (description.Length > 0) message += "\n\n" + description;

@@ -4,6 +4,18 @@
   "cultureName": "zh-CN",
   "Vex": {
     "VexL": {
+      "GitTagNoCommitToast": "还没有提交，无法打 tag",
+      "GitDiscardMenu": "放弃更改…",
+      "GitDiscardedToast": "已放弃更改",
+      "GitDiscardConfirmFormat": "放弃对「{0}」的全部更改？此操作不可撤销。",
+      "McpToolGitPull": "拉取远程更新",
+      "GitBranchTagMenu": "打 tag…",
+      "GitBranchPushTagMenu": "推送 tag…",
+      "GitBranchManageMenu": "分支管理",
+      "GitIdentitySection": "Git 提交身份",
+      "GitIdentityName": "用户名",
+      "GitIdentityEmail": "邮箱",
+      "GitIdentityHint": "仓库未配置提交身份时，提交将自动套用这里填写的信息。",
       "McpToolGitStatus": "Git 状态查询",
       "McpToolGitCommit": "Git 提交变更",
       "McpToolGitPush": "Git 推送到远端",

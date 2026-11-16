@@ -35,4 +35,24 @@ public partial class ShellGitView : UserControl
             await vm.LoadMoreHistoryAsync();
         }, RoutingStrategies.Bubble);
     }
+
+    /// <summary>分支下拉：打 tag…（默认不推送）。</summary>
+    private void TagMenu_OnClick(object? sender, RoutedEventArgs args)
+    {
+        (DataContext as ShellGitViewModel)?.PrepareTagFlyout(alsoPush: false);
+        FlyoutBase.GetAttachedFlyout(BranchButton)?.ShowAt(BranchButton);
+    }
+
+    /// <summary>分支下拉：推送 tag…（预勾选同时推送）。</summary>
+    private void PushTagMenu_OnClick(object? sender, RoutedEventArgs args)
+    {
+        (DataContext as ShellGitViewModel)?.PrepareTagFlyout(alsoPush: true);
+        FlyoutBase.GetAttachedFlyout(BranchButton)?.ShowAt(BranchButton);
+    }
+
+    /// <summary>分支下拉：分支管理（桌面版后续提供）。</summary>
+    private void BranchManage_OnClick(object? sender, RoutedEventArgs args)
+    {
+        (DataContext as ShellGitViewModel)?.BranchManage();
+    }
 }

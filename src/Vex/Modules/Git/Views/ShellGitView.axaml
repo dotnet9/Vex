@@ -71,6 +71,29 @@
                 <Setter Property="Foreground" Value="{DynamicResource VexWarningBrush}" />
             </Style>
         </Style>
+        <!-- 顶栏分区底色：比面板灰半档，形成头-体两段式 -->
+        <Style Selector="Border.git-topbar">
+            <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+        <!-- 页签 pill：选中态 AccentSoft 圆角底 + 2px 指示条 -->
+        <Style Selector="ToggleButton.git-tab:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
+            <Setter Property="CornerRadius" Value="7" />
+        </Style>
+        <!-- 状态描边框内加同色淡底（四态一眼可分） -->
+        <Style Selector="Border.git-status.m"><Setter Property="Background" Value="#14B54708" /></Style>
+        <Style Selector="Border.git-status.a"><Setter Property="Background" Value="#14056B42" /></Style>
+        <Style Selector="Border.git-status.d"><Setter Property="Background" Value="#14DC2626" /></Style>
+        <Style Selector="Border.git-status.u"><Setter Property="Background" Value="{DynamicResource VexCodeBackgroundBrush}" /></Style>
+        <!-- diff 删除/上下文正文弱化为 muted（还原原型 .del .text / .ctx .text） -->
+        <Style Selector="Border.git-diff-row.del TextBlock.dtext">
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        </Style>
+        <Style Selector="Border.git-diff-row.ctx TextBlock.dtext">
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        </Style>
         <!-- 主体左右两栏（原型 .git-main：minmax(300px,38%) + 1fr） -->
         <Style Selector="Border.git-left">
             <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
@@ -276,14 +299,14 @@
         <!-- Hunk 头（原型 .git-hunk-head） -->
         <Style Selector="Border.git-hunk-head">
             <Setter Property="Padding" Value="16,4" />
-            <Setter Property="Background" Value="{DynamicResource VexCodeBackgroundBrush}" />
+            <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
         </Style>
         <Style Selector="Border.git-hunk-head TextBlock">
             <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace" />
             <Setter Property="FontSize" Value="10.5" />
-            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}" />
         </Style>
         <!-- Diff 行（原型 .git-diff-row：unified 38/38/18/弹性列，11.5px 等宽 1.7 行高） -->
         <Style Selector="Border.git-diff TextBlock">
@@ -401,19 +424,27 @@
                         <Viewbox Width="12" Height="12"><Canvas Width="24" Height="24"><Path Classes="chevron" Data="M6 9L12 15L18 9" /></Canvas></Viewbox>
                     </StackPanel>
                     <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="{i18n:I18n Vex.VexL.GitBranchTagMenu}" Click="TagMenu_OnClick" />
+                            <MenuItem Header="{i18n:I18n Vex.VexL.GitBranchPushTagMenu}" Click="PushTagMenu_OnClick" />
+                            <MenuItem Header="{i18n:I18n Vex.VexL.GitBranchManageMenu}" Click="BranchManage_OnClick" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                    <!-- tag 表单（独立 AttachedFlyout：「打 tag…」默认不推送、「推送 tag…」预勾选同时推送） -->
+                    <FlyoutBase.AttachedFlyout>
                         <Flyout Placement="BottomEdgeAlignedLeft">
                             <StackPanel MinWidth="240" Spacing="8">
                                 <TextBox x:Name="TagNameBox" Watermark="{i18n:I18n {x:Static l:VexL.GitTagNamePlaceholder}}"
                                          Text="{Binding NewTagName, Mode=TwoWay}"
                                          AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitTagNamePlaceholder}}" />
-                                <CheckBox x:Name="TagAlsoPush" Content="{i18n:I18n {x:Static l:VexL.GitTagAlsoPush}}"
+                                <CheckBox x:Name="TagAlsoPushBox" Content="{i18n:I18n {x:Static l:VexL.GitTagAlsoPush}}"
                                           IsChecked="{Binding TagAlsoPush, Mode=TwoWay}" />
                                 <Button x:Name="CreateTagButton" Classes="btn primary" HorizontalAlignment="Stretch"
                                         Content="{i18n:I18n {x:Static l:VexL.GitTagCreate}}"
                                         Command="{Binding CreateTagCommand}" CommandParameter="{Binding NewTagName}" />
                             </StackPanel>
                         </Flyout>
-                    </Button.Flyout>
+                    </FlyoutBase.AttachedFlyout>
                 </Button>
                 <Button x:Name="PullButton" Grid.Column="2" Classes="git-topbtn" IsVisible="{Binding HasRepo}" IsEnabled="{Binding CanPull}"
                         Command="{Binding PullAsync}"
@@ -516,6 +547,9 @@
                                              SelectedItem="{Binding SelectedChange}" Margin="0,0,0,4">
                                         <ListBox.ContextMenu>
                                             <ContextMenu>
+                                                <MenuItem Header="{i18n:I18n Vex.VexL.GitDiscardMenu}"
+                                                          Command="{Binding DiscardChangeCommand}"
+                                                          CommandParameter="{Binding SelectedChange}" />
                                                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitOpenInExplorer}}"
                                                           Command="{Binding OpenChangeInExplorerCommand}"
                                                           CommandParameter="{Binding SelectedChange}" />
@@ -559,8 +593,13 @@
                                                  AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitCommitDescriptionLabel}}" />
                                         <Button x:Name="CommitButton" Classes="btn primary" HorizontalAlignment="Stretch"
                                                 Command="{Binding CommitAsync}" IsEnabled="{Binding CanCommit}"
-                                                Content="{Binding CommitButtonText}"
-                                                AutomationProperties.Name="{Binding CommitButtonText}" />
+                                                AutomationProperties.Name="{Binding CommitButtonText}">
+                                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                                <Path Width="14" Height="14" Stretch="None" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                      Stroke="{DynamicResource VexOnAccentBrush}" Data="M20 6L9 17L4 12" />
+                                                <TextBlock Text="{Binding CommitButtonText}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
                                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
                                             <Button x:Name="PushButton" Classes="btn" Command="{Binding PushAsync}" IsEnabled="{Binding CanPush}"
                                                     AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitPush}}">
@@ -678,7 +717,7 @@
                         <!-- Unified / Split 双 Diff -->
                         <Border Grid.Row="2" Classes="git-diff" IsVisible="{Binding HasDiffText}">
                             <!-- GHD 口径：diff 不横向滚动，长行 pre-wrap 换行；Split 两栏严格等分依赖有限宽度约束。 -->
-                            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                                 <Panel>
                                     <ItemsControl x:Name="UnifiedDiff" ItemsSource="{Binding UnifiedRows}" IsVisible="{Binding IsUnified}">
                                             <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
@@ -837,7 +876,7 @@
                                         <TextBlock Text="{Binding DiffHeaderText}" />
                                     </Border>
                                     <Border Grid.Row="2" Classes="git-diff" IsVisible="{Binding HasCommitFileDiffText}">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                                             <Panel>
                                                 <ItemsControl ItemsSource="{Binding UnifiedRows}" IsVisible="{Binding IsUnified}">
                                             <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
