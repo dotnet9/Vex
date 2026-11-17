@@ -150,7 +150,7 @@ if (mode == "parity-score")
     VisualParityScore.Run(args.Skip(1).ToArray());
     return;
 }
-if (mode is "outline-navigation" or "instant-menu" or "document-typography" or "reading-pointer" or "diagram-pointer" or "context-menu" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics" or "ui-density" or "ui-density-performance" or "theme-performance" or "git-panel" or "git-shots" or "git-real")
+if (mode is "outline-navigation" or "instant-menu" or "document-typography" or "reading-pointer" or "diagram-pointer" or "context-menu" or "search-layout" or "reading-geometry" or "popup-layout" or "elements" or "motion" or "desktop-parity" or "settings-ui" or "settings-real-ui" or "prototype-appearance" or "prototype-chrome" or "protection" or "visual" or "render-geometry" or "map-popup" or "motion-radius" or "segmented-fidelity" or "typography-probe" or "docs-shots" or "zoom-truncate" or "scrollbar-fidelity" or "map-toolbar" or "focus-ring" or "button-state" or "toolbar-probe" or "chrome-metrics" or "ui-density" or "ui-density-performance" or "theme-performance" or "git-panel" or "git-shots" or "git-real" or "fix-regression")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -177,6 +177,7 @@ if (mode is "outline-navigation" or "instant-menu" or "document-typography" or "
     else if (mode == "context-menu") ContextMenuLayoutVerification.Run(window, output);
     else if (mode == "reading-geometry") ReadingGeometryVerification.Run(window);
     else if (mode == "instant-menu") InstantMenuVerification.Run(window, output);
+    else if (mode == "fix-regression") FixRegressionVerification.Run(app, window, output);
     else if (mode == "popup-layout") PopupLayoutVerification.Run(app, window, output);
     else if (mode == "outline-navigation") OutlineNavigationVerification.Run(app, window, output);
     else if (mode == "elements") ElementVerification.Run(app, window, output);

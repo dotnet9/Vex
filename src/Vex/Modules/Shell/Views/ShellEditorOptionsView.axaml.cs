@@ -62,10 +62,13 @@ public partial class ShellEditorOptionsView : UserControl
     {
         if (_thumbsFilled) return;
         _thumbsFilled = true;
-        var thumbs = FormatMermaidGallery.GetVisualDescendants()
+        // Flyout 内容挂在 Popup（OverlayLayer）而非按钮视觉树里，必须从 Flyout.Content 出发找卡片 Image。
+        if (FormatMermaidGallery.Flyout is not Flyout flyout || flyout.Content is not Visual root) return;
+        var thumbs = root.GetVisualDescendants()
             .OfType<Image>()
             .Where(image => Helpers.GalleryThumb.GetThumbKey(image) is { } key && key.Length > 0)
-            .ToDictionary(image => Helpers.GalleryThumb.GetThumbKey(image)!, image => image);
+            .GroupBy(image => Helpers.GalleryThumb.GetThumbKey(image)!)
+            .ToDictionary(group => group.Key, group => group.First());
         if (thumbs.Count == 0) return;
         await System.Threading.Tasks.Task.Run(async () =>
         {

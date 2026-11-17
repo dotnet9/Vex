@@ -42,9 +42,11 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
         var langPlugin = new JsonLangPlugin();
         I18nManager.Instance.Register(langPlugin, new CultureInfo("zh-CN"), out _);
-        // 本地化 json 内嵌在各程序集（Vex 主工程 + Vex.Core），AddResource 扫嵌入资源合并键池；
+        // 本地化 json 内嵌在各程序集（Vex 主工程 + Vex.Core + 自研库 Markdown），AddResource 扫嵌入资源合并键池；
+        // I18n 标记扩展走全局池查键，库程序集不入池则库内 axaml 的键会回退成键名原文。
         // 宿主输出目录文件仍可覆盖（ApplyFileOverrides 优先级最高），无目录时纯嵌入生效。
-        I18nManager.Instance.AddResource(typeof(App).Assembly, typeof(Vex.Core.Messaging.ShellActionKind).Assembly);
+        I18nManager.Instance.AddResource(typeof(App).Assembly, typeof(Vex.Core.Messaging.ShellActionKind).Assembly,
+            typeof(CodeWF.Avalonia.Markdown.MarkdownLocalization).Assembly);
         I18nManager.Instance.CultureChanged += OnCultureChanged;
         ApplyControlCulture();
 
