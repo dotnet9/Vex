@@ -1425,14 +1425,27 @@
     <Setter Property="Orientation" Value="Horizontal"/>
   </Style>
   <Style Selector="Button.dg-card">
-    <Setter Property="MinWidth" Value="132"/>
-    <Setter Property="Height" Value="34"/>
+    <Setter Property="MinWidth" Value="280"/>
     <Setter Property="Margin" Value="0,0,8,8"/>
-    <Setter Property="Padding" Value="8,6"/>
+    <Setter Property="Padding" Value="8,8"/>
     <Setter Property="FontSize" Value="12"/>
     <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/>
     <Setter Property="Background" Value="{DynamicResource VexPaperBrush}"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
+  </Style>
+  <!-- 图鉴分组切换（RadioButton tab）：选中态 accent，未选 muted。 -->
+  <Style Selector="RadioButton.dg-tab">
+    <Setter Property="Padding" Value="12,5"/>
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
+  <Style Selector="RadioButton.dg-tab:checked">
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
   </Style>
   <Style Selector="Button.dg-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>

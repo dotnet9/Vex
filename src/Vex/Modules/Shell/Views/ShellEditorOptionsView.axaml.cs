@@ -57,6 +57,45 @@ public partial class ShellEditorOptionsView : UserControl
     }
 
     private bool _thumbsFilled;
+    private bool _galleryTabsWired;
+
+    /// <summary>
+    /// 图鉴分组切换（Flyout 内 RadioButton tab）：Avalonia 的 RadioButton 没有 WPF 的 Checked 事件，
+    /// 在首开填充时挂 IsChecked 变化；只显示选中分组的卡片（Tag=组号），缩略图首开全量渲染避免切换空白。
+    /// </summary>
+    private void WireGalleryGroupTabs(Visual root)
+    {
+        if (_galleryTabsWired) return;
+        _galleryTabsWired = true;
+        foreach (var tab in root.GetVisualDescendants()
+                     .OfType<RadioButton>()
+                     .Where(radio => radio.GroupName == "MermaidGallery"))
+        {
+            tab.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == RadioButton.IsCheckedProperty && tab.IsChecked == true
+                    && int.TryParse(tab.Tag?.ToString(), out var group))
+                    ApplyGalleryGroupFilter(group);
+            };
+        }
+    }
+
+    private void ApplyGalleryGroupFilter(int group)
+    {
+        if (FormatMermaidGallery.Flyout is not Flyout { Content: Visual root }) return;
+        foreach (var card in root.GetVisualDescendants()
+                     .OfType<Button>()
+                     .Where(button => int.TryParse(button.Tag?.ToString(), out var cardGroup) && cardGroup == group))
+        {
+            card.IsVisible = true;
+        }
+        foreach (var card in root.GetVisualDescendants()
+                     .OfType<Button>()
+                     .Where(button => int.TryParse(button.Tag?.ToString(), out var cardGroup) && cardGroup != group))
+        {
+            card.IsVisible = false;
+        }
+    }
 
     private async System.Threading.Tasks.Task FillGalleryThumbnailsAsync()
     {
@@ -64,6 +103,8 @@ public partial class ShellEditorOptionsView : UserControl
         _thumbsFilled = true;
         // Flyout 内容挂在 Popup（OverlayLayer）而非按钮视觉树里，必须从 Flyout.Content 出发找卡片 Image。
         if (FormatMermaidGallery.Flyout is not Flyout flyout || flyout.Content is not Visual root) return;
+        WireGalleryGroupTabs(root);
+        ApplyGalleryGroupFilter(0);
         var thumbs = root.GetVisualDescendants()
             .OfType<Image>()
             .Where(image => Helpers.GalleryThumb.GetThumbKey(image) is { } key && key.Length > 0)
@@ -81,11 +122,15 @@ public partial class ShellEditorOptionsView : UserControl
                     var svg = Mermaider.MermaidRenderer.RenderSvg(source, new Mermaider.Models.RenderOptions
                     {
                         Bg = "#FFFFFF",
-                        Fg = "#27272A",
-                        Accent = "#4338CA",
+                        Fg = "#302C3C",
+                        Accent = "#8B7CF6",
                         Transparent = true,
-                        Style = Mermaider.Models.DiagramStyle.Quiet,
+                        // 系列色必须显式给（象限/饼/桑基等图型缺省落黑块），与运行时自检同参。
+                        DataPalette = ["#8B7CF6", "#D9AD53", "#70A98B", "#C583B5", "#62A9C2"],
                     });
+                    // Mermaider 的 SVG 依赖宿主 CSS 变量（var(--fg) 等）与 color-mix，SvgImage 不解析会落黑块；
+                    // 缩略图自包含化：变量与混合全部内联为字面量色值。
+                    svg = Helpers.GallerySvgInliner.Inline(svg, "#302C3C", "#FFFFFF", "#8B7CF6");
                     using var stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(svg));
                     var svgSource = Avalonia.Svg.Skia.SvgSource.LoadFromStream(stream);
                     await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => image.Source = new Avalonia.Svg.Skia.SvgImage { Source = svgSource });

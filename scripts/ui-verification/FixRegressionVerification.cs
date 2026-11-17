@@ -67,9 +67,29 @@ internal static class FixRegressionVerification
             Thread.Sleep(250);
         }
         Console.WriteLine($"gallery thumbs: {filled}/{total} filled");
+        // 分组 tab + 大卡（260x110）：4 个 tab，默认组 0 可见 4 卡、其余隐藏。
+        var tabs = flyout.Content is Visual tabRoot
+            ? tabRoot.GetVisualDescendants().OfType<RadioButton>().Where(r => r.GroupName == "MermaidGallery").ToList()
+            : [];
+        var cards0 = flyout.Content is Visual cardRoot
+            ? cardRoot.GetVisualDescendants().OfType<Button>().Where(b => b is not RadioButton && int.TryParse(b.Tag?.ToString(), out _) && b.IsVisible).ToList()
+            : [];
+        Console.WriteLine($"gallery tabs: {tabs.Count}, visible cards (group0): {cards0.Count}");
+        // 切到组 2 应见 8 卡。
+        tabs.LastOrDefault()?.IsChecked = true;
+        Render();
+        var cards2 = flyout.Content is Visual cardRoot2
+            ? cardRoot2.GetVisualDescendants().OfType<Button>().Where(b => b is not RadioButton && int.TryParse(b.Tag?.ToString(), out _) && b.IsVisible).ToList()
+            : [];
+        Console.WriteLine("visible cards (group2): " + cards2.Count);
+        var bigThumb = cards2.SelectMany(b => b.GetVisualDescendants().OfType<Image>()).FirstOrDefault();
+        Console.WriteLine($"thumb size: {bigThumb?.Width}x{bigThumb?.Height}");
         Shot("gallery-thumbs");
-        Check(total >= 24, "Gallery has at least 24 card images: " + total);
-        Check(filled >= 24, "All gallery thumbnails rendered: " + filled);
+        Check(total >= 24 && filled >= 24, "All 24 gallery thumbnails rendered: " + filled);
+        Check(tabs.Count == 4, "Gallery group tabs present: " + tabs.Count);
+        Check(cards0.Count == 4, "Group 0 shows 4 cards: " + cards0.Count);
+        Check(cards2.Count == 8, "Group 2 shows 8 cards after switch: " + cards2.Count);
+        Check(bigThumb is { Width: >= 260, Height: >= 110 }, "Thumbnails enlarged to at least 260x110");
         flyout.Hide();
         Render();
 
@@ -107,11 +127,22 @@ internal static class FixRegressionVerification
             .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
         Console.WriteLine("block views after enter: " + blocksAfter.Count);
         Shot("instant-enter");
-        // 原型语义：普通段落回车=块内换行（文本含换行符），不拆块。
-        var textAfter = editor.Text ?? string.Empty;
+        // 原型语义：普通段落回车=块内换行（文本含换行符），不拆块且保持编辑态。
+        var textAfter = editor!.Text ?? string.Empty;
         Console.WriteLine("editor text after enter: " + textAfter);
         Check(blocksAfter.Count == blocks.Count && textAfter.Contains('\n'),
             "Enter inserts a newline inside the paragraph block");
+        // 连续回车：末尾连按两次应再添两个换行（编辑态保持，模型同步）。
+        editor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = editor });
+        Render(); Thread.Sleep(150); Render();
+        editor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = editor });
+        Render(); Thread.Sleep(150); Render();
+        var textFinal = editor.Text ?? string.Empty;
+        Console.WriteLine("newlines after triple enter: " + textFinal.Count(character => character == '\n'));
+        var newlineCount = textFinal.Count(character => character == '\n');
+        Shot("instant-enter");
+        Check(newlineCount >= 3 && editor.IsVisible,
+            "Consecutive enters keep inserting newlines while editing stays active: " + newlineCount);
         Console.WriteLine("Fix regression verification PASS");
     }
 }
