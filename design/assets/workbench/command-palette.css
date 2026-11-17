@@ -1,4 +1,4 @@
-/* 命令面板（F1）+ Mermaid 图鉴选择器 + 视图徽标 / MCP 徽标 + 写作工具带补样。
+﻿/* 命令面板（F1）+ Mermaid 图鉴选择器 + 视图徽标 / MCP 徽标 + 写作工具带补样。
    全部令牌走 design-system 既有变量；accent 只出现在可交互与选中态（配色范围规则 §1）。 */
 
 /* ---------- 命令面板 ---------- */
@@ -23,13 +23,16 @@
 .dg-head b { font-size: 15px; color: var(--fg); }
 .dg-head small { color: var(--muted); font-size: 12px; }
 .dg-close { margin-left: auto; }
-.dg-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px 16px 16px; }
+.dg-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 0; }
+.dg-tab { padding: 6px 14px; font-size: 12px; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: var(--vex-radius-sm, 8px); cursor: pointer; }
+.dg-tab.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.dg-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px 16px 16px; }
 .dg-group { grid-column: 1 / -1; margin: 8px 0 2px; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .04em; }
 .dg-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--vex-radius-sm, 8px); cursor: pointer; color: var(--fg); font-size: 12px; transition: border-color var(--vex-fast, .15s), background var(--vex-fast, .15s); }
 .dg-card:hover { border-color: var(--accent); background: var(--accent-soft); }
 .dg-card .ico { width: 20px; height: 20px; color: var(--accent); }
 .dg-card .dg-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-@media (max-width: 900px) { .dg-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .dg-grid { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- 写作工具带补样：标题档位下拉 ---------- */
 .band-heading { height: 26px; padding: 0 6px; border: 1px solid var(--control-border, var(--border)); border-radius: var(--vex-radius-xs, 6px); background: transparent; color: var(--fg); font-size: 12px; cursor: pointer; }
@@ -57,5 +60,5 @@
 @container (max-width: 320px) { .file-folder-tag { display: none; } }
 
 /* 图鉴卡缩略图：真实迷你渲染，骨架底防白板。 */
-.dg-card .dg-thumb { display: flex; align-items: center; justify-content: center; width: 100%; height: 46px; border-radius: 5px; background: var(--hover, var(--panel)); overflow: hidden; }
-.dg-card .dg-thumb svg { max-width: 100%; max-height: 44px; width: auto; height: auto; }
+.dg-card .dg-thumb { display: flex; align-items: center; justify-content: center; width: 100%; height: 120px; border-radius: 5px; background: var(--hover, var(--panel)); overflow: hidden; }
+.dg-card .dg-thumb svg { max-width: 100%; max-height: 116px; width: auto; height: auto; }

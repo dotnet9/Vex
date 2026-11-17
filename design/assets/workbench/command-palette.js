@@ -171,15 +171,26 @@
     head.appendChild(close);
     var grid = document.createElement('div');
     grid.className = 'dg-grid';
-    var lastGroup = null;
+    /* 分组 tab（对话框头下方）：选组看大预览，默认第一组。 */
+    var tabs = document.createElement('div');
+    tabs.className = 'dg-tabs';
+    var groups = [];
+    (window.VexMermaid ? VexMermaid.items : []).forEach(function (item) { if (groups.indexOf(item.group) < 0) groups.push(item.group); });
+    groups.forEach(function (group, index) {
+      var tab = document.createElement('button');
+      tab.type = 'button'; tab.className = 'dg-tab' + (index === 0 ? ' on' : ''); tab.textContent = group;
+      tab.setAttribute('aria-pressed', String(index === 0));
+      tab.addEventListener('click', function () {
+        tabs.querySelectorAll('.dg-tab').forEach(function (t) { t.classList.remove('on'); t.setAttribute('aria-pressed', 'false'); });
+        tab.classList.add('on'); tab.setAttribute('aria-pressed', 'true');
+        grid.querySelectorAll('.dg-card').forEach(function (card) { card.hidden = card.dataset.group !== group; });
+      });
+      tabs.appendChild(tab);
+    });
     (window.VexMermaid ? VexMermaid.items : []).forEach(function (item) {
-      if (item.group !== lastGroup) {
-        var groupRow = document.createElement('div');
-        groupRow.className = 'dg-group'; groupRow.textContent = item.group;
-        grid.appendChild(groupRow); lastGroup = item.group;
-      }
       var card = document.createElement('button');
-      card.type = 'button'; card.className = 'dg-card';
+      card.type = 'button'; card.className = 'dg-card'; card.dataset.group = item.group;
+      if (item.group !== groups[0]) card.hidden = true;
       card.innerHTML = '<span class="dg-thumb" aria-hidden="true"></span><span class="dg-label"></span>';
       card.querySelector('.dg-label').textContent = item.label;
       card.title = item.label + '（' + item.group + '）';
@@ -201,7 +212,7 @@
         }).catch(function () { thumbHost.classList.add('failed'); });
       }
     });
-    panel.appendChild(head); panel.appendChild(grid);
+    panel.appendChild(head); panel.appendChild(tabs); panel.appendChild(grid);
     picker.appendChild(panel);
     document.body.appendChild(picker);
     picker.addEventListener('pointerdown', function (event) { if (event.target === picker) closePicker(); });
