@@ -59,7 +59,6 @@
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Irihi.Ursa.Themes.Semi" />
     <PackageReference Include="PdfPig" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="ReactiveUI.Avalonia" />
     <PackageReference Include="ReverseMarkdown" />
     <PackageReference Include="Semi.Avalonia" />

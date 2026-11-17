@@ -16,7 +16,6 @@ public sealed partial class ShellFilesViewModel
     private string? _projectedFilter;
     private string _projectedSortKey = "group";
     private bool _projectedList;
-    private bool _projectedDescending;
     private string? _projectionSelectionPath;
     private string _treeSortKey = "group";
 

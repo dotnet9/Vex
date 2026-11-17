@@ -89,7 +89,7 @@ public sealed class ShellCommandPaletteViewModel : ReactiveObject
             ("文件", "新建窗口", "Ctrl+Shift+N", () => menu.NewWindow()),
             ("文件", "打开", "Ctrl+O", () => menu.OpenAsync()),
             ("文件", "打开文件夹", string.Empty, () => menu.OpenFolderAsync()),
-            ("文件", "打开演示文档", string.Empty, () => menu.Help.OpenHelpTopic("samples")),
+            ("文件", "打开演示文档", string.Empty, () => _ = menu.Help.OpenHelpTopic("samples")),
             ("文件", "快速打开", "Ctrl+P", () => menu.QuickOpenAsync()),
             ("文件", "保存", "Ctrl+S", () => menu.SaveAsync()),
             ("文件", "另存为", "Ctrl+Shift+S", () => menu.SaveAsAsync()),
@@ -114,11 +114,11 @@ public sealed class ShellCommandPaletteViewModel : ReactiveObject
             ("视图", "打字机模式", string.Empty, () => menu.Layout.ToggleTypewriterMode()),
             ("视图", "全屏", "F11", () => menu.Layout.ToggleFullScreen()),
             ("视图", "窗口置顶", string.Empty, () => menu.Layout.ToggleAlwaysOnTop()),
-            ("帮助", "新手引导", string.Empty, () => menu.Help.OpenHelpTopic("guide")),
-            ("帮助", "更新日志", string.Empty, () => menu.Help.OpenHelpTopic("changelog")),
-            ("帮助", "鸣谢", string.Empty, () => menu.Help.OpenHelpTopic("thanks")),
-            ("帮助", "检查更新", string.Empty, () => menu.Help.OpenHelpTopic("update")),
-            ("帮助", "关于 Vex", string.Empty, () => menu.Help.OpenHelpTopic("about")),
+            ("帮助", "新手引导", string.Empty, () => _ = menu.Help.OpenHelpTopic("guide")),
+            ("帮助", "更新日志", string.Empty, () => _ = menu.Help.OpenHelpTopic("changelog")),
+            ("帮助", "鸣谢", string.Empty, () => _ = menu.Help.OpenHelpTopic("thanks")),
+            ("帮助", "检查更新", string.Empty, () => _ = menu.Help.OpenHelpTopic("update")),
+            ("帮助", "关于 Vex", string.Empty, () => _ = menu.Help.OpenHelpTopic("about")),
         };
         foreach (var (group, label, gesture, execute) in fileCommands)
         {
