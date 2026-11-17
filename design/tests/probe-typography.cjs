@@ -13,11 +13,13 @@ const base = process.env.VEX_PREVIEW_URL || 'http://127.0.0.1:4317/design/';
   await page.waitForTimeout(500);
   const report = await page.evaluate(() => {
     const out = {};
-    const rect = el => { const r = el.getBoundingClientRect(); const w = document.querySelector('.app-window').getBoundingClientRect(); return {x:+(r.x-w.x).toFixed(2),y:+(r.y-w.y).toFixed(2),w:+r.width.toFixed(2),h:+r.height.toFixed(2)}; };
-    const style = (el, props) => { const cs = getComputedStyle(el); const o = {}; for (const p of props) o[p] = cs.getPropertyValue(p); return o; };
+    /* null 安全：预览结构随版本演进，个别子元素缺失时输出 null 字段而非炸整份报告。 */
+    const rect = el => { if (!el) return null; const r = el.getBoundingClientRect(); const w = document.querySelector('.app-window').getBoundingClientRect(); return {x:+(r.x-w.x).toFixed(2),y:+(r.y-w.y).toFixed(2),w:+r.width.toFixed(2),h:+r.height.toFixed(2)}; };
+    const style = (el, props) => { if (!el) return null; const cs = getComputedStyle(el); const o = {}; for (const p of props) o[p] = cs.getPropertyValue(p); return o; };
     const panel = document.querySelector('#typography-panel');
     out.panel = {rect:rect(panel), style:style(panel,['background-color','padding','border-radius','width','height','box-shadow','border-color'])};
-    const title = panel.querySelector('.popover-title');
+    // 排版弹层现结构无 .popover-title（密度行即头部）；标题走 aria-label。
+    const title = panel.querySelector('.typography-density');
     out.title = {rect:rect(title), style:style(title,['font-size','padding','margin','color'])};
     const density = panel.querySelector('.typography-density');
     out.density = {rect:rect(density), style:style(density,['gap','padding','border-bottom-color'])};
@@ -36,7 +38,8 @@ const base = process.env.VEX_PREVIEW_URL || 'http://127.0.0.1:4317/design/';
     const docs = Array.from(grid.querySelectorAll('.type-document'));
     out.doc = docs.slice(0,2).map(d => ({rect:rect(d), style:style(d,['padding','font-size','--type-size','transform','line-height'])}));
     const h2 = docs[0].querySelector('h2');
-    out.h2 = {rect:rect(h2), style:style(h2,['font-size','line-height','margin','font-weight','color','letter-spacing','border-bottom-width','border-bottom-color','padding'])};
+    if (h2) out.h2 = {rect:rect(h2), style:style(h2,['font-size','line-height','margin','font-weight','color','letter-spacing','border-bottom-width','border-bottom-color','padding'])};
+    else out.h2 = {note:'no h2 in first type-document (preview structure may vary)'};
     const p = docs[0].querySelector('p');
     out.p = {rect:rect(p), style:style(p,['font-size','line-height','margin','color'])};
     const q = docs[0].querySelector('blockquote');

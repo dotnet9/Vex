@@ -14,7 +14,7 @@
 .instant-scroll.typewriter-on, .source-scroll.typewriter-on { overflow-anchor: none; scroll-behavior: auto; }
 .instant-scroll.typewriter-on .md-body, .source-scroll.typewriter-on textarea { padding-top: var(--typewriter-space) !important; padding-bottom: var(--typewriter-space) !important; }
 .source-scroll.typewriter-on .line-numbers { top: var(--typewriter-space); }
-.instant-block { position: relative; display: flow-root; cursor: text; outline: none; caret-color: var(--fg); overflow-wrap: anywhere; }
+.instant-block { position: relative; display: flow-root; cursor: text; outline: none; caret-color: var(--accent); overflow-wrap: anywhere; }
 .instant-block:focus-visible:not(.is-editing) { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 2px; }
 .instant-block.is-editing { outline: none; }
 .instant-input { outline: none; }

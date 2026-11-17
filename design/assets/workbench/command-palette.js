@@ -1,9 +1,11 @@
-/* 命令面板（F1）+ Mermaid 图鉴选择器 + 界面微状态（视图徽标 / MCP 服务徽标）。
+﻿/* 命令面板（F1）+ Mermaid 图鉴选择器 + 界面微状态（视图徽标 / MCP 服务徽标）。
    菜单收敛后的全命令检索入口：所有退役菜单命令（编辑/插入/段落/格式/工具）在此保留。
    依赖：VexProto.handleAction（workbench.js，须在本文件之前加载）、VexMermaid.items（mermaid-catalog.js）。 */
 (function () {
   'use strict';
   var VexProto = window.VexProto;
+  /* 本地化取值：zh-CN 原文直出，其余语言查 label 表（与 localization.js 同源）。 */
+  var L = function (text) { return window.VexL && VexL.label ? VexL.label(text) : text; };
 
   /* ---------- 命令表：group 为分类徽标，label 为检索主词 ---------- */
   var COMMANDS = [];
@@ -26,7 +28,7 @@
   C('插入', '水平分割线', 'insert-rule'); C('插入', '脚注', 'insert-footnote'); C('插入', '链接', 'insert-link', 'Ctrl+K'); C('插入', '图片', 'insert-image');
   C('插入', 'Mermaid 图鉴（全部类型）', 'insert-mermaid-picker');
   (window.VexMermaid ? VexMermaid.items : []).forEach(function (item) {
-    C('插入 · 图表', item.label, 'insert-mermaid-' + item.key);
+    C('插入 · 图表', 'Mermaid ' + item.label, 'insert-mermaid-' + item.key);
   });
   C('格式', '加粗', 'insert-bold', 'Ctrl+B'); C('格式', '斜体', 'insert-italic', 'Ctrl+I');
   C('格式', '删除线', 'insert-strike', 'Ctrl+Shift+5'); C('格式', '高亮', 'insert-highlight', 'Ctrl+Shift+H');
@@ -60,18 +62,18 @@
     panel.className = 'cp-panel';
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
-    panel.setAttribute('aria-label', '命令面板');
+    panel.setAttribute('aria-label', L('命令面板'));
     input = document.createElement('input');
     input.className = 'cp-input';
     input.type = 'text';
-    input.placeholder = '搜索命令（全部命令，含图表 / 布局 / 开关）…';
-    input.setAttribute('aria-label', '搜索命令');
+    input.placeholder = L('搜索命令（全部命令，含图表 / 布局 / 开关）…');
+    input.setAttribute('aria-label', L('搜索命令'));
     listEl = document.createElement('div');
     listEl.className = 'cp-list';
     listEl.setAttribute('role', 'listbox');
     var foot = document.createElement('div');
     foot.className = 'cp-foot';
-    foot.innerHTML = '<span>↑↓ 选择</span><span>Enter 执行</span><span>Esc 关闭</span>';
+    foot.innerHTML = '<span>' + L('↑↓ 选择') + '</span><span>' + L('Enter 执行') + '</span><span>' + L('Esc 关闭') + '</span>';
     panel.appendChild(input); panel.appendChild(listEl); panel.appendChild(foot);
     backdrop.appendChild(panel);
     document.body.appendChild(backdrop);
@@ -104,13 +106,14 @@
     listEl.innerHTML = '';
     if (!matches.length) {
       var empty = document.createElement('div');
-      empty.className = 'cp-empty'; empty.textContent = '没有匹配的命令';
+      empty.className = 'cp-empty'; empty.textContent = L('没有匹配的命令');
       listEl.appendChild(empty); return;
     }
     matches.slice(0, 40).forEach(function (item, index) {
       var row = document.createElement('div');
       row.className = 'cp-item' + (index === cursor ? ' active' : '');
       row.setAttribute('role', 'option');
+      row.tabIndex = -1;
       row.innerHTML = '<span class="cp-label"></span><span class="cp-group"></span>' + (item.gesture ? '<span class="cp-gesture">' + item.gesture + '</span>' : '');
       row.querySelector('.cp-label').textContent = item.label;
       row.querySelector('.cp-group').textContent = item.group;
@@ -120,7 +123,7 @@
     });
     if (matches.length > 40) {
       var more = document.createElement('div');
-      more.className = 'cp-empty'; more.textContent = '还有 ' + (matches.length - 40) + ' 条，继续输入缩小范围';
+      more.className = 'cp-empty'; more.textContent = L('还有') + ' ' + (matches.length - 40) + ' ' + L('条，继续输入缩小范围');
       listEl.appendChild(more);
     }
   }
@@ -148,7 +151,7 @@
   }, true);
 
   /* ---------- Mermaid 图鉴选择器：24 类型分组网格 ---------- */
-  var picker = null;
+  var picker = null, thumbSerial = 0;
   function buildPicker() {
     picker = document.createElement('div');
     picker.className = 'cp-backdrop dg-backdrop';
@@ -160,10 +163,10 @@
     panel.setAttribute('aria-label', 'Mermaid 图鉴');
     var head = document.createElement('div');
     head.className = 'dg-head';
-    head.innerHTML = '<b>Mermaid 图鉴</b><small>24 类图表 · 单击插入</small>';
+    head.innerHTML = '<b>' + L('Mermaid 图鉴') + '</b><small>' + L('24 类图表 · 单击插入') + '</small>';
     var close = document.createElement('button');
     close.type = 'button'; close.className = 'icon-button dg-close';
-    close.setAttribute('aria-label', '关闭图鉴'); close.textContent = '×';
+    close.setAttribute('aria-label', L('关闭图鉴')); close.textContent = '×';
     close.addEventListener('click', function () { closePicker(); });
     head.appendChild(close);
     var grid = document.createElement('div');
@@ -177,7 +180,7 @@
       }
       var card = document.createElement('button');
       card.type = 'button'; card.className = 'dg-card';
-      card.innerHTML = '<svg class="ico" aria-hidden="true"><use href="#i-map"/></svg><span class="dg-label"></span>';
+      card.innerHTML = '<span class="dg-thumb" aria-hidden="true"></span><span class="dg-label"></span>';
       card.querySelector('.dg-label').textContent = item.label;
       card.title = item.label + '（' + item.group + '）';
       card.addEventListener('click', function () {
@@ -185,6 +188,18 @@
         if (typeof VexProto.handleAction === 'function') VexProto.handleAction('insert-mermaid-' + item.key, { label: item.label, action: 'insert-mermaid-' + item.key });
       });
       grid.appendChild(card);
+      // 缩略图：真实渲染各类型的迷你图（render 生成后做 id 前缀隔离，避免同页 24 张 id 撞车）。
+      var thumbHost = card.querySelector('.dg-thumb');
+      if (window.VexDiagramRendering && VexMermaid.snippet) {
+        var serial = ++thumbSerial;
+        VexDiagramRendering.render('dg-thumb-' + serial, VexMermaid.snippet(item.key)).then(function (entry) {
+          if (!thumbHost.isConnected) return;
+          thumbHost.innerHTML = entry.svg.replace(entry.references, function (match, prefix, id) {
+            return prefix + 'dgt' + serial + '-' + id;
+          });
+          thumbHost.classList.add('ready');
+        }).catch(function () { thumbHost.classList.add('failed'); });
+      }
     });
     panel.appendChild(head); panel.appendChild(grid);
     picker.appendChild(panel);
@@ -251,6 +266,7 @@
   function initBandHeading() {
     var select = document.getElementById('band-heading');
     if (!select) return;
+    for (var oi = 0; oi < select.options.length; oi++) select.options[oi].text = L(select.options[oi].text);
     select.addEventListener('change', function () {
       if (!select.value) return;
       if (typeof VexProto.handleAction === 'function') VexProto.handleAction(select.value, { label: select.options[select.selectedIndex].text, action: select.value });

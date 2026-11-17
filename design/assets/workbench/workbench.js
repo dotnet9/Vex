@@ -1103,6 +1103,7 @@
     if (state.typewriter) typewriter.request();
   }
   ['click', 'keyup', 'select'].forEach(function (event) { input.addEventListener(event, updateCursor); });
+  ['click', 'keyup', 'select'].forEach(function (event) { input.addEventListener(event, updateCursor); });
   input.addEventListener('keydown', function (event) {
     if (event.isComposing) return;
     if (event.key === 'Tab') { event.preventDefault(); insert('  ', false); }
@@ -1286,7 +1287,9 @@
     var focusY = root ? root.y + root.height / 2 : state.bounds.height / 2;
     var visibleTop = occludedBottom + 16;
     var desiredCenterY = visibleTop + Math.max(0, canvas.clientHeight - visibleTop) / 2;
-    var dy = desiredCenterY - (state.y + focusY * state.scale);
+    // 避让只把根节点**下移**到弹层之下（被遮挡时），已可见则不动——
+    // 根节点本就在弹层下方时强行居中会把内容大幅上拉（y 反向变化），违背"避让"语义。
+    var dy = Math.max(0, desiredCenterY - (state.y + focusY * state.scale));
     if (Math.abs(dy) < 2) return;
     if (!avoidSaved) avoidSaved = { x: state.x, y: state.y };
     state.y += dy;

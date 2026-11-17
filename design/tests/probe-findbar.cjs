@@ -8,7 +8,10 @@ const {chromium} = require('playwright');
   page.on('pageerror', e => errors.push(e.message));
   await page.goto('http://127.0.0.1:4317/design/Vex.html?preview=1&device=desktop');
   await page.waitForFunction(() => window.VexAuxiliary && window.VexChapters);
-  await page.evaluate(() => document.querySelector('.find-launch')?.click() || VexWorkspace.toggleFind?.());
+  // 查找条入口：Ctrl+F（菜单收敛后旧 .find-launch 键已退役）。
+  await page.keyboard.press('Control+f');
+  await page.waitForTimeout(250);
+  if (await page.evaluate(() => document.querySelector('#findbar').hidden)) { await page.keyboard.press('Control+f'); await page.waitForTimeout(250); }
   await page.waitForTimeout(300);
   assert.equal(await page.evaluate(() => !document.querySelector('#findbar').hidden), true, 'findbar 应打开');
   for (const [action, label] of [['find-regex', '正则'], ['find-case', '大小写'], ['find-word', '整词']]) {

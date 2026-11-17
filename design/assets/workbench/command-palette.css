@@ -55,3 +55,7 @@
 /* ---------- 窄侧栏降级：目录标签让位文件名（容器查询，随拖宽自动恢复） ---------- */
 .sidebar { container-type: inline-size; }
 @container (max-width: 320px) { .file-folder-tag { display: none; } }
+
+/* 图鉴卡缩略图：真实迷你渲染，骨架底防白板。 */
+.dg-card .dg-thumb { display: flex; align-items: center; justify-content: center; width: 100%; height: 46px; border-radius: 5px; background: var(--hover, var(--panel)); overflow: hidden; }
+.dg-card .dg-thumb svg { max-width: 100%; max-height: 44px; width: auto; height: auto; }

@@ -11,13 +11,20 @@ const {chromium} = require('playwright');
   await page.evaluate(() => { VexWorkspace.setLayout('map'); });
   await page.waitForTimeout(600);
 
-  // 1) 打开弹层 → 导图避让（state.y 下移）；关闭 → 还原
+  // 1) 打开弹层 → 导图避让：根节点屏幕位置不被弹层遮挡（被遮才下移，已可见不动）；关闭 → 还原
   const before = await page.evaluate(() => ({ y: VexWorkbench.state.y, x: VexWorkbench.state.x }));
   await page.locator('.map-appearance-trigger').click();
   await page.waitForTimeout(500);
-  const during = await page.evaluate(() => ({ y: VexWorkbench.state.y, open: !document.querySelector('#map-appearance-panel').hidden }));
+  const during = await page.evaluate(() => {
+    const open = !document.querySelector('#map-appearance-panel').hidden;
+    const panel = document.querySelector('#map-appearance-panel').getBoundingClientRect();
+    const canvas = document.querySelector('#map-viewport').getBoundingClientRect();
+    const root = (VexWorkbench.state.nodes || []).find(node => node.isRoot);
+    const rootScreenY = canvas.top + (VexWorkbench.state.y + (root ? root.y + root.height / 2 : 0) * VexWorkbench.state.scale);
+    return { open, occluded: rootScreenY < panel.bottom, rootScreenY: Math.round(rootScreenY), panelBottom: Math.round(panel.bottom) };
+  });
   assert.equal(during.open, true, '弹层应打开');
-  assert.ok(during.y > before.y + 10, '避让应把内容下移（y ' + before.y + ' -> ' + during.y + '）');
+  assert.ok(!during.occluded, '根节点应保持可见（不落进弹层遮挡区）：rootScreenY=' + during.rootScreenY + ' panelBottom=' + during.panelBottom);
   await page.keyboard.press('Escape');
   await page.waitForTimeout(500);
   const restored = await page.evaluate(() => ({ y: VexWorkbench.state.y, open: !document.querySelector('#map-appearance-panel').hidden }));

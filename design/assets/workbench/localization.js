@@ -8,6 +8,33 @@
     '保持窗口在最前':'AlwaysOnTop','全屏':'ToggleFullScreen','图片':'Image','行内代码':'InlineCode','打印预览':'Print','查看排版样式…':'WBTypographyTitle'
   };
   const extra = {
+    '段落结构':['段落结构','段落結構','Paragraph structure','段落構造'],
+    '写作工具带':['写作工具带','寫作工具帶','Writing band','執筆ツールバー'],
+    '删除线 (Ctrl+Shift+5)':['删除线 (Ctrl+Shift+5)','刪除線 (Ctrl+Shift+5)','Strikethrough (Ctrl+Shift+5)','取り消し線 (Ctrl+Shift+5)'],
+    '高亮 (Ctrl+Shift+H)':['高亮 (Ctrl+Shift+H)','高亮 (Ctrl+Shift+H)','Highlight (Ctrl+Shift+H)','ハイライト (Ctrl+Shift+H)'],
+    '段落结构：正文与标题档位':['段落结构：正文与标题档位','段落結構：正文與標題檔位','Paragraph structure: body and heading levels','段落構造：本文と見出しレベル'],
+    '当前视图':['当前视图','當前視圖','Current view','現在のビュー'],
+    '即时':['即时','即時','Instant','インスタント'],
+
+    '正文':['正文','正文','Body text','本文'],
+    'Mermaid 图表':['Mermaid 图表','Mermaid 圖表','Mermaid diagrams','Mermaid 図'],
+    'Mermaid 图表（24 类图鉴）':['Mermaid 图表（24 类图鉴）','Mermaid 圖表（24 類圖鑑）','Mermaid diagrams (24 types)','Mermaid 図（24種）'],
+    '分割线':['分割线','分割線','Divider','区切り線'],
+    '脚注':['脚注','腳註','Footnote','脚注'],
+    '搜索命令…':['搜索命令…','搜索命令…','Search commands…','コマンドを検索…'],
+    '还有':['还有','還有','and','あと'],
+    '条，继续输入缩小范围':['条，继续输入缩小范围','條，繼續輸入縮小範圍','more — keep typing to narrow down','件、入力を絞ってください'],
+
+    '搜索命令（全部命令，含图表 / 布局 / 开关）…':['搜索命令（全部命令，含图表 / 布局 / 开关）…','搜索命令（全部命令，含圖表 / 佈局 / 開關）…','Search commands (diagrams, layouts, toggles)…','コマンドを検索（図・レイアウト・切替）…'],
+    '命令面板':['命令面板','命令面板','Command palette','コマンドパレット'],
+
+    '没有匹配的命令':['没有匹配的命令','沒有符合的命令','No matching commands','一致するコマンドなし'],
+    '↑↓ 选择':['↑↓ 选择','↑↓ 選擇','↑↓ Select','↑↓ 選択'],
+    'Enter 执行':['Enter 执行','Enter 執行','Enter Run','Enter 実行'],
+    'Esc 关闭':['Esc 关闭','Esc 關閉','Esc Close','Esc 閉じる'],
+    'Mermaid 图鉴':['Mermaid 图鉴','Mermaid 圖鑑','Mermaid gallery','Mermaid ギャラリー'],
+    '24 类图表 · 单击插入':['24 类图表 · 单击插入','24 類圖表 · 單擊插入','24 diagram types · click to insert','24種の図 · クリックで挿入'],
+    '关闭图鉴':['关闭图鉴','關閉圖鑑','Close gallery','ギャラリーを閉じる'],
     '从模板新建…':['从模板新建…','從範本新建…','New from template…','テンプレートから新規作成…'],
     '另存为模板…':['另存为模板…','另存為範本…','Save as template…','テンプレートとして保存…'],
     '模板中心':['模板中心','範本中心','Template center','テンプレート'],

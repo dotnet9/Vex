@@ -302,3 +302,4 @@ html[data-code-wrap="true"] .source-scroll textarea,html[data-code-wrap="true"] 
 }
 @media(prefers-reduced-motion:reduce){.sage-lightbox,}
 
+/* 源码模式当前行高亮：光标所在行的淡底（--currentline-bg），随滚动/编辑实时跟随。 */

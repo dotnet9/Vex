@@ -69,13 +69,15 @@ fs.mkdirSync(out,{recursive:true});
  await page.locator('#vex-appearance-menu>summary').click();await shot('appearance-recommended');assert.equal(await page.locator('#vex-appearance-menu [data-palette]').count(),9);
  await page.setViewportSize({width:800,height:480});await page.locator('#vex-appearance-menu [data-palette]').last().scrollIntoViewIfNeeded();const rect=await page.locator('#vex-appearance-menu [data-palette]').last().boundingBox();assert(rect.y+rect.height<480);await shot('appearance-small');
  // A long command submenu keeps its width and scrolls to the last keyboard target.
- await page.keyboard.press('Escape');await page.locator('.tb-menuitem').filter({hasText:'段落'}).click();
- const owner=page.locator('.menu-flyout .menu-item').filter({hasText:'Mermaid 图表'});await owner.click();
- const submenu=page.locator('.submenu:visible').filter({has:page.locator('.menu-item').filter({hasText:'流程图'})});
- assert.equal(await submenu.locator('.menu-item').count(),24);
- const subBox=await submenu.boundingBox();assert(subBox.width>100&&subBox.width<=400,'submenu keeps max-content width, got '+subBox.width);await submenu.locator('.menu-item').first().focus();await page.keyboard.press('End');
- assert((await page.locator(':focus').innerText()).includes('韦恩图'));
- const last=await page.locator(':focus').boundingBox();assert(last.y+last.height<480);await shot('long-menu-keyboard');
+  // 菜单收敛后，长命令列表的键盘滚动由命令面板承载：F1 搜 mermaid 列出全部图表命令，End 滚到末条。
+  await page.keyboard.press('Escape');await page.keyboard.press('F1');
+  await page.fill('.cp-input','mermaid');await page.waitForTimeout(250);
+  assert.equal(await page.locator('.cp-item').count(),25);
+  await page.keyboard.press('End');
+  const lastRow=await page.evaluate(()=>{const items=[...document.querySelectorAll('.cp-item')];return items[items.length-1].innerText.replace(/\s+/g,' ');});
+  assert((await page.locator('.cp-item.active').innerText()).replace(/\s+/g,' ')===lastRow,'End jumps to the last row: '+await page.locator('.cp-item.active').innerText());
+  const last=await page.locator(':focus').boundingBox();assert(last.y+last.height<480);await shot('long-list-keyboard');
+  await page.keyboard.press('Escape');
  await page.setViewportSize({width:1440,height:1000});
  // Saving failure is persistent, and retry never alters the article or undo history.
  await open('scenario=save-error&layout=source');await page.evaluate(t=>VexWorkbench.applyText(t),article);
