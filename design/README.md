@@ -22,7 +22,7 @@ node design/scripts/verify.cjs     # 静态检查：脚本可解析、引用文�
   "功能"分类只属于 `scripts/bump-version.ps1` 的提交标题口径，不进日志条目。
 - **行尾陷阱**：本仓 docs 为 CRLF。用脚本往文件里插行时，锚点定位到 `
 ` 前插入会
-  造出 `
+  造出 `
 ` 混行尾（verify 只归一 `
 `，孤立 `` 会残留成 diff）。插入后
   整文件归一一次行尾，或插入前后各跑一次 verify。
@@ -61,3 +61,10 @@ node design/tests/snapshot-styles.cjs artifacts/styles-snapshot.json
 ```
 
 `snapshot-styles.cjs` 按元素路径与计算样式建多重集，改动 CSS 或 HTML 前后各跑一次即可证明零视觉回归。完整验收口径见 [docs/开发与验证.md](../docs/开发与验证.md)，资源与令牌约定见 [docs/原型与资源.md](../docs/原型与资源.md)。
+
+## 配色应用范围四规则（评审口径，2026-11-17 起）
+
+1. **accent 触达 = 可交互与选中态**。按钮/链接/焦点环/选中底/光标可以；正文、图标常态、标题栏、分隔线不可以。判断口诀：色相只出现在"能点、正被选"的地方。
+2. **纸面允许带色相、铬面保持中性**。`--paper` 随色板微染（indigo 偏冷、amber 偏暖）营造氛围；`--surface/--panel/--sidebar` 等铬面永远中性灰白，不随色板带彩。
+3. **状态色与色板解耦**。danger/success/warning/info 及其淡底全色板同值（红绿黄橙不跟 accent 走）；Git 面板等新增状态语义必须复用这套，不得新造色。
+4. **三处明确解耦清单**：代码高亮只跟明暗主题（LightPlus/DarkPlus 二选，不跟 accent）；导图与图表系列色从 accent 派生序列（`CodeWFMindViewDefaultPalette` 注入点）；遮罩走前景墨色派生（`vex-scrim` = fg 26%/46%），不手写色值。
