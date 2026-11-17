@@ -67,6 +67,8 @@
     <PackageReference Include="System.Reactive" />
     <ProjectReference Include="..\Vex.Core\Vex.Core.csproj" />
     <ProjectReference Include="..\Vex.Git\Vex.Git.csproj" />
+    <ProjectReference Include="../Vex.Generators/Vex.Generators.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <!-- 自研库以 libs/ submodule 源引用（详见 docs/开发与验证.md §2.1）：
        Avalonia 库直接消费五工程，Markdown.Lite/TreeDataGrid/Dock/Log 经库内 ProjectReference 传递；

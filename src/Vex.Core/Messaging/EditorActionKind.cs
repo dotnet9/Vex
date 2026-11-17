@@ -1,42 +1,42 @@
 namespace Vex.Core.Messaging;
 
 public enum EditorActionKind
-{
-    Undo,
-    Redo,
-    Cut,
-    Copy,
-    Paste,
-    SelectAll,
-    Bold,
-    Italic,
-    Strikethrough,
-    Highlight,
-    Superscript,
-    Subscript,
-    InlineCode,
-    Link,
-    Image,
-    ClearFormatting,
-    CopyPlainText,
-    Paragraph,
-    Heading1,
-    Heading2,
-    Heading3,
-    Heading4,
-    Heading5,
-    Heading6,
-    Quote,
-    UnorderedList,
-    OrderedList,
-    TaskList,
-    CodeFence,
-    Table,
-    MathBlock,
-    HorizontalRule,
-    SmartNewLine,
-    Indent,
-    Outdent,
-    ClearSpanStyles,
-    FocusEditor
+{    [VexCommand("CommandGroupEdit", "Undo", Gesture = "Ctrl+Z")]
+    Undo,    [VexCommand("CommandGroupEdit", "Redo", Gesture = "Ctrl+Y")]
+    Redo,    [VexCommand("CommandGroupEdit", "Cut", Gesture = "Ctrl+X")]
+    Cut,    [VexCommand("CommandGroupEdit", "Copy", Gesture = "Ctrl+C")]
+    Copy,    [VexCommand("CommandGroupEdit", "Paste", Gesture = "Ctrl+V")]
+    Paste,    [VexCommand("CommandGroupEdit", "SelectAll", Gesture = "Ctrl+A")]
+    SelectAll,    [VexCommand("CommandGroupFormat", "Bold", Gesture = "Ctrl+B")]
+    Bold,    [VexCommand("CommandGroupFormat", "Italic", Gesture = "Ctrl+I")]
+    Italic,    [VexCommand("CommandGroupFormat", "Strikethrough", Gesture = "Ctrl+Shift+5")]
+    Strikethrough,    [VexCommand("CommandGroupFormat", "Highlight", Gesture = "Ctrl+Shift+H")]
+    Highlight,    [VexCommand("CommandGroupFormat", "Superscript", Gesture = "Ctrl+Shift+=")]
+    Superscript,    [VexCommand("CommandGroupFormat", "Subscript", Gesture = "Ctrl+Shift+-")]
+    Subscript,    [VexCommand("CommandGroupFormat", "InlineCode", Gesture = "Ctrl+Shift+`")]
+    InlineCode,    [VexCommand("CommandGroupInsert", "Link", Gesture = "Ctrl+K")]
+    Link,    [VexCommand("CommandGroupInsert", "Image")]
+    Image,    [VexCommand("CommandGroupFormat", "ClearFormatting")]
+    ClearFormatting,    [VexCommand("CommandGroupEdit", "CopyPlainText", Gesture = "Ctrl+Shift+C")]
+    CopyPlainText,    [VexCommand("CommandGroupInsert", "Paragraph")]
+    Paragraph,    [VexCommand("CommandGroupInsert", "Heading1")]
+    Heading1,    [VexCommand("CommandGroupInsert", "Heading2")]
+    Heading2,    [VexCommand("CommandGroupInsert", "Heading3")]
+    Heading3,    [VexCommand("CommandGroupInsert", "Heading4")]
+    Heading4,    [VexCommand("CommandGroupInsert", "Heading5")]
+    Heading5,    [VexCommand("CommandGroupInsert", "Heading6")]
+    Heading6,    [VexCommand("CommandGroupInsert", "Quote")]
+    Quote,    [VexCommand("CommandGroupInsert", "UnorderedList")]
+    UnorderedList,    [VexCommand("CommandGroupInsert", "OrderedList")]
+    OrderedList,    [VexCommand("CommandGroupInsert", "TaskList")]
+    TaskList,    [VexCommand("CommandGroupInsert", "CodeFence")]
+    CodeFence,    [VexCommand("CommandGroupInsert", "Table")]
+    Table,    [VexCommand("CommandGroupInsert", "MathBlock")]
+    MathBlock,    [VexCommand("CommandGroupInsert", "HorizontalRule")]
+    HorizontalRule,    [VexCommand("CommandGroupInsert", "SmartNewLine")]
+    SmartNewLine,    [VexCommand("CommandGroupInsert", "Indent")]
+    Indent,    [VexCommand("CommandGroupInsert", "Outdent")]
+    Outdent,    [VexCommand("CommandGroupFormat", "ClearSpanStyles")]
+    ClearSpanStyles,    [VexCommand("CommandGroupView", "FocusEditor")]
+    FocusEditor,
 }
