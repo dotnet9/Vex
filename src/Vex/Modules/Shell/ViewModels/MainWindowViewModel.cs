@@ -106,9 +106,10 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _drafts.StateChanged += (_, _) => Dispatcher.UIThread.Post(() => Protection.DraftError = _drafts.LastError);
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
 
-        _document = _documentService.CreateNew();
-        _lastSavedMarkdown = _document.Markdown;
-        Markdown = _document.Markdown;
+        // 启动空白：不生成默认标题模板（CreateNew 会带 "# 未命名 + 正文"），内容区就是纯空白。
+        _document = _documentService.CreateNew() with { Markdown = string.Empty };
+        _lastSavedMarkdown = string.Empty;
+        Markdown = string.Empty;
         RefreshDocumentInfo();
         DiscoverRecoveryDraft(_document);
         CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += OnCultureChanged;

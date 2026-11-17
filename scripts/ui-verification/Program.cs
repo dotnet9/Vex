@@ -162,6 +162,8 @@ if (mode is "outline-navigation" or "instant-menu" or "document-typography" or "
     var startupVm = (MainWindowViewModel)window.DataContext!;
     Check(startupVm.DocumentFiles.Count == 0 && startupVm.DocumentInfo.CurrentFilePath is not { Length: > 0 },
         "未带参数启动时不加载任何文档");
+    // 启动空白：默认标题模板不再生成，内容区就是纯空白（演示文档在此检查之后才装载）。
+    Check(startupVm.Markdown.Length == 0, "启动内容区空白（无默认标题模板）");
     if (mode == "protection")
     {
         // 空白启动态留一张证据图；protection 的输出目录不参与原型比对，不会引入无对照的截图。

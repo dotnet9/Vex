@@ -36,7 +36,6 @@ internal static class FixRegressionVerification
         }
         var vm = (MainWindowViewModel)window.DataContext!;
         window.Width = 1440; window.Height = 948; Render();
-
         // ---- 2. tooltip I18n 绑定：读工具带按钮的附加属性文案 ----
         var ruleButton = window.GetVisualDescendants().OfType<Button>()
             .FirstOrDefault(b => b.Name == "FormatHorizontalRule");
@@ -120,29 +119,23 @@ internal static class FixRegressionVerification
         window.KeyPress(Key.End, RawInputModifiers.None, PhysicalKey.End, null); Render();
         // headless 焦点链路不可靠：直接对块编辑器派发 KeyDown（tunnel handler 挂在它自己上必收）。
         editor!.CaretIndex = (editor.Text ?? string.Empty).Length;
-        editor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = editor });
-        Render(); Thread.Sleep(400); Render();
-        Render(); Thread.Sleep(400); Render();
-        var blocksAfter = live!.GetVisualDescendants()
-            .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
-        Console.WriteLine("block views after enter: " + blocksAfter.Count);
+        var textBefore = editor.Text ?? string.Empty;
+        Console.WriteLine("editor text: " + textBefore);
+        // Typora 语义：末尾连续回车，每敲一次拆出一个新（空）段落块，块数递增。
+        var counts = new List<int> { blocks.Count };
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            editor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = editor });
+            Render(); Thread.Sleep(300); Render();
+            var viewsNow = live!.GetVisualDescendants()
+                .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
+            counts.Add(viewsNow.Count);
+            Console.WriteLine($"enter #{attempt + 1}: blocks={viewsNow.Count}");
+            Check(viewsNow.Count == blocks.Count + attempt + 1,
+                $"Enter #{attempt + 1} appends a new empty paragraph: {viewsNow.Count}");
+        }
         Shot("instant-enter");
-        // 原型语义：普通段落回车=块内换行（文本含换行符），不拆块且保持编辑态。
-        var textAfter = editor!.Text ?? string.Empty;
-        Console.WriteLine("editor text after enter: " + textAfter);
-        Check(blocksAfter.Count == blocks.Count && textAfter.Contains('\n'),
-            "Enter inserts a newline inside the paragraph block");
-        // 连续回车：末尾连按两次应再添两个换行（编辑态保持，模型同步）。
-        editor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = editor });
-        Render(); Thread.Sleep(150); Render();
-        editor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = editor });
-        Render(); Thread.Sleep(150); Render();
-        var textFinal = editor.Text ?? string.Empty;
-        Console.WriteLine("newlines after triple enter: " + textFinal.Count(character => character == '\n'));
-        var newlineCount = textFinal.Count(character => character == '\n');
-        Shot("instant-enter");
-        Check(newlineCount >= 3 && editor.IsVisible,
-            "Consecutive enters keep inserting newlines while editing stays active: " + newlineCount);
+        Check(counts[^1] > counts[0], "Consecutive enters append empty paragraphs: " + string.Join(" -> ", counts));
         Console.WriteLine("Fix regression verification PASS");
     }
 }
