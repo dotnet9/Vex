@@ -1,4 +1,4 @@
-{
+﻿{
   "language": "繁體中文",
   "description": "中文（繁體）",
   "cultureName": "zh-Hant",
@@ -226,6 +226,7 @@
       "CommandGroupInsert": "插入",
       "CommandGroupFormat": "格式",
       "CommandGroupView": "視圖",
+      "CommandGroupCharts": "插入 · 圖表",
       "CommandGroupSettings": "設定",
       "CommandGroupHelp": "幫助",
       "NewDocument": "新增",

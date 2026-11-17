@@ -47,7 +47,8 @@ public partial class MainWindow : CodeWFWindow
         TitleMenuView.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
         // 命令面板（F1）：菜单收敛后的全命令检索；VM 由标题菜单 VM（DI 单例）装配，同一批命令源。
         CommandPalette.DataContext = new ShellCommandPaletteViewModel(
-            App.Services.GetRequiredService<ShellTitleMenuViewModel>());
+            App.Services.GetRequiredService<ShellTitleMenuViewModel>(),
+            App.Services.GetRequiredService<IAppLocalizer>());
         AddHandler(KeyDownEvent, WindowKeyDown, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, WorkbenchPointerPressed, RoutingStrategies.Tunnel);
         DragDrop.SetAllowDrop(this, true);

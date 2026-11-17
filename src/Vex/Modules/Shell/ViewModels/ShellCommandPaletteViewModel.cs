@@ -14,119 +14,158 @@ public sealed record ShellCommandItem(string Group, string Label, string? Gestur
 /// <summary>
 /// 命令面板（F1）：全部编辑/插入/格式/视图/帮助命令的检索与执行。
 /// 命令表编译期由 [VexCommand] 特性标注经 VexCommandCatalogGenerator 收集（AOT 安全），
-/// 面板构建时按分组/标签走 localizer 四语言回退链，Mermaid 图表由 MarkdownTemplates 键表程序化补充。
+/// 分组/标签/图表名全部是 I18n 键（Language.cs 常量 + localizer 四语言回退链），
+/// CultureChanged 时整表重建，面板文案随语言即时切换。
 /// </summary>
 public sealed class ShellCommandPaletteViewModel : ReactiveObject
 {
-    private readonly List<ShellCommandItem> _all;
+    /// <summary>Mermaid 片段键 → 图表名 I18n 键（与图鉴同源，键名见 Language.cs 的 Mermaid* 段）。</summary>
+    private static readonly (string Snippet, string NameKey)[] MermaidCharts =
+    [
+        ("flowchart", VexL.MermaidFlowchart), ("sequence", VexL.MermaidSequence), ("state", VexL.MermaidState),
+        ("journey", VexL.MermaidJourney), ("gantt", VexL.MermaidGantt), ("timeline", VexL.MermaidTimeline),
+        ("git", VexL.MermaidGit), ("kanban", VexL.MermaidKanban), ("class", VexL.MermaidClass),
+        ("er", VexL.MermaidEr), ("requirement", VexL.MermaidRequirement), ("mindmap", VexL.MermaidMindmap),
+        ("block", VexL.MermaidBlock), ("c4", VexL.MermaidC4), ("architecture", VexL.MermaidArchitecture),
+        ("packet", VexL.MermaidPacket), ("pie", VexL.MermaidPie), ("quadrant", VexL.MermaidQuadrant),
+        ("xy", VexL.MermaidXy), ("sankey", VexL.MermaidSankey), ("radar", VexL.MermaidRadar),
+        ("treemap", VexL.MermaidTreemap), ("venn", VexL.MermaidVenn), ("treeview", VexL.MermaidTreeView),
+    ];
+
+    /// <summary>
+    /// 文件/视图/帮助命令的快捷键集中表（真值源是标题菜单 ShellTitleMenuView.axaml 的
+    /// InputGesture；这里只读展示，菜单调整时同步本表）。
+    /// </summary>
+    private static class Gestures
+    {
+        public const string NewDocument = "Ctrl+N";
+        public const string NewWindow = "Ctrl+Shift+N";
+        public const string Open = "Ctrl+O";
+        public const string QuickOpen = "Ctrl+P";
+        public const string Save = "Ctrl+S";
+        public const string SaveAs = "Ctrl+Shift+S";
+        public const string Print = "Ctrl+Shift+P";
+        public const string CloseDocument = "Ctrl+W";
+        public const string Find = "Ctrl+F";
+        public const string Replace = "Ctrl+H";
+        public const string Presentation = "F6";
+        public const string FocusMode = "F8";
+        public const string FullScreen = "F11";
+    }
+
+    private readonly ShellTitleMenuViewModel _menu;
+    private readonly IAppLocalizer _localizer;
+    private List<ShellCommandItem> _all = [];
     private string _query = string.Empty;
     private ShellCommandItem? _selected;
 
-    public ShellCommandPaletteViewModel(ShellTitleMenuViewModel menu)
+    public ShellCommandPaletteViewModel(ShellTitleMenuViewModel menu, IAppLocalizer localizer)
     {
+        _menu = menu;
+        _localizer = localizer;
+        RebuildCommands();
+        localizer.CultureChanged += (_, _) => RebuildCommands();
+    }
+
+    /// <summary>整表重建：键 → 文案的翻译只发生在这一处，语言切换后面板文案即时跟随。</summary>
+    private void RebuildCommands()
+    {
+        var menu = _menu;
         var actions = menu.EditorActions;
         var list = new List<ShellCommandItem>();
 
-        // ---- 编辑动作（EditorActionKind 枚举驱动，与工具带同一命令源）----
-        foreach (var (kind, group, label) in new[]
-                 {
-                     (EditorActionKind.Undo, "编辑", "撤销"),
-                     (EditorActionKind.Redo, "编辑", "重做"),
-                     (EditorActionKind.Heading1, "插入", "标题 1"),
-                     (EditorActionKind.Heading2, "插入", "标题 2"),
-                     (EditorActionKind.Heading3, "插入", "标题 3"),
-                     (EditorActionKind.Heading4, "插入", "标题 4"),
-                     (EditorActionKind.Heading5, "插入", "标题 5"),
-                     (EditorActionKind.Heading6, "插入", "标题 6"),
-                     (EditorActionKind.UnorderedList, "插入", "无序列表"),
-                     (EditorActionKind.OrderedList, "插入", "有序列表"),
-                     (EditorActionKind.TaskList, "插入", "任务列表"),
-                     (EditorActionKind.Quote, "插入", "引用"),
-                     (EditorActionKind.Table, "插入", "表格"),
-                     (EditorActionKind.CodeFence, "插入", "代码块"),
-                     (EditorActionKind.MathBlock, "插入", "公式块"),
-                     (EditorActionKind.HorizontalRule, "插入", "水平分割线"),
-                     (EditorActionKind.Link, "插入", "链接"),
-                     (EditorActionKind.Image, "插入", "图片"),
-                     (EditorActionKind.Bold, "格式", "加粗"),
-                     (EditorActionKind.Italic, "格式", "斜体"),
-                     (EditorActionKind.Strikethrough, "格式", "删除线"),
-                     (EditorActionKind.Highlight, "格式", "高亮"),
-                     (EditorActionKind.Superscript, "格式", "上标"),
-                     (EditorActionKind.Subscript, "格式", "下标"),
-                     (EditorActionKind.InlineCode, "格式", "行内代码"),
-                     (EditorActionKind.ClearFormatting, "格式", "清除格式"),
-                 })
+        // ---- 编辑/插入/格式动作（VexCommandCatalog 编译期目录驱动，与工具带同一命令源）----
+        foreach (var entry in VexCommandCatalog.Items)
         {
-            var kindCaptured = kind;
-            list.Add(new ShellCommandItem(group, label, string.Empty, () => actions.InsertAction(kindCaptured)));
+            if (entry.Action is EditorActionKind kind)
+            {
+                var kindCaptured = kind;
+                list.Add(new ShellCommandItem(
+                    _localizer.Get(entry.Group), _localizer.Get(entry.Label), entry.Gesture,
+                    () => actions.InsertAction(kindCaptured)));
+            }
         }
 
-        list.Add(new ShellCommandItem("编辑", "查找", "Ctrl+F", menu.ShowFindPanel));
-        list.Add(new ShellCommandItem("编辑", "替换", "Ctrl+H", menu.ShowReplacePanel));
-        // ---- Mermaid 图表（MarkdownTemplates 键表驱动）----
-        foreach (var (key, label) in new[]
-                 {
-                     ("flowchart", "Mermaid 流程图"), ("sequence", "Mermaid 时序图"), ("state", "Mermaid 状态图"),
-                     ("journey", "Mermaid 用户旅程图"), ("gantt", "Mermaid 甘特图"), ("timeline", "Mermaid 时间线"),
-                     ("git", "Mermaid Git 分支图"), ("kanban", "Mermaid 看板"), ("class", "Mermaid 类图"),
-                     ("er", "Mermaid 实体关系图"), ("requirement", "Mermaid 需求图"), ("mindmap", "Mermaid 思维导图"),
-                     ("block", "Mermaid 块图"), ("c4", "Mermaid C4 架构图"), ("architecture", "Mermaid 架构图"),
-                     ("packet", "Mermaid 数据包图"), ("pie", "Mermaid 饼图"), ("quadrant", "Mermaid 象限图"),
-                     ("xy", "Mermaid 坐标图"), ("sankey", "Mermaid 桑基图"), ("radar", "Mermaid 雷达图"),
-                     ("treemap", "Mermaid 矩形树图"), ("venn", "Mermaid 维恩图"), ("treeview", "Mermaid 目录树图"),
-                 })
+        // 查找/替换不走 EditorActionKind（开关查找条而非插入动作）。
+        list.Add(new ShellCommandItem(_localizer.Get(VexL.CommandGroupEdit), _localizer.Get(VexL.FindBarFind), Gestures.Find, menu.ShowFindPanel));
+        list.Add(new ShellCommandItem(_localizer.Get(VexL.CommandGroupEdit), _localizer.Get(VexL.FindBarReplace), Gestures.Replace, menu.ShowReplacePanel));
+
+        // ---- Mermaid 图表（片段键表驱动，图表名与图鉴同源）----
+        foreach (var (snippet, nameKey) in MermaidCharts)
         {
-            var keyCaptured = key;
-            list.Add(new ShellCommandItem("插入 · 图表", label, string.Empty, () => actions.InsertSnippet(keyCaptured)));
+            var snippetCaptured = snippet;
+            list.Add(new ShellCommandItem(
+                _localizer.Get(VexL.CommandGroupCharts), _localizer.Get(nameKey), string.Empty,
+                () => actions.InsertSnippet(snippetCaptured)));
         }
 
-        // ---- 文件/视图/帮助（title menu VM 命令源）----
-        var fileCommands = new (string Group, string Label, string? Gesture, Action Execute)[]
+        // ---- 文件（title menu VM 命令源，标签键与菜单项同源）----
+        var fileCommands = new (string LabelKey, string? Gesture, Action Execute)[]
         {
-            ("文件", "新建", "Ctrl+N", () => menu.NewDocument()),
-            ("文件", "从模板新建", string.Empty, () => menu.NewFromTemplate()),
-            ("文件", "新建窗口", "Ctrl+Shift+N", () => menu.NewWindow()),
-            ("文件", "打开", "Ctrl+O", () => menu.OpenAsync()),
-            ("文件", "打开文件夹", string.Empty, () => menu.OpenFolderAsync()),
-            ("文件", "打开演示文档", string.Empty, () => _ = menu.Help.OpenHelpTopic("samples")),
-            ("文件", "快速打开", "Ctrl+P", () => menu.QuickOpenAsync()),
-            ("文件", "保存", "Ctrl+S", () => menu.SaveAsync()),
-            ("文件", "另存为", "Ctrl+Shift+S", () => menu.SaveAsAsync()),
-            ("文件", "另存为模板", string.Empty, () => menu.SaveAsTemplate()),
-            ("文件", "删除文档", string.Empty, () => menu.DeleteAsync()),
-            ("文件", "导出 HTML", string.Empty, () => menu.Export("HTML")),
-            ("文件", "导出 PDF", string.Empty, () => menu.Export("PDF")),
-            ("文件", "导出 PNG 长图", string.Empty, () => menu.Export("PNG")),
-            ("文件", "导出 Word", string.Empty, () => menu.Export("Word")),
-            ("文件", "复制到微信公众号", string.Empty, () => menu.CopyHtml("wechat")),
-            ("文件", "复制到知乎", string.Empty, () => menu.CopyHtml("zhihu")),
-            ("文件", "复制到稀土掘金", string.Empty, () => menu.CopyHtml("juejin")),
-            ("文件", "导入 HTML", string.Empty, () => menu.ImportFrom("HTML")),
-            ("文件", "导入 PDF", string.Empty, () => menu.ImportFrom("PDF")),
-            ("文件", "导入 Word", string.Empty, () => menu.ImportFrom("Word")),
-            ("文件", "打印预览", "Ctrl+Shift+P", () => menu.Print()),
-            ("文件", "刷新预览", string.Empty, () => menu.RefreshPreview()),
-            ("文件", "打开文件位置", string.Empty, () => menu.OpenFileLocationAsync()),
-            ("文件", "关闭文档", "Ctrl+W", () => menu.CloseDocument()),
-            ("视图", "演示模式", "F6", () => menu.Workbench.StartPresentation()),
-            ("视图", "专注模式", "F8", () => menu.Layout.ToggleFocusMode()),
-            ("视图", "打字机模式", string.Empty, () => menu.Layout.ToggleTypewriterMode()),
-            ("视图", "全屏", "F11", () => menu.Layout.ToggleFullScreen()),
-            ("视图", "窗口置顶", string.Empty, () => menu.Layout.ToggleAlwaysOnTop()),
-            ("帮助", "新手引导", string.Empty, () => _ = menu.Help.OpenHelpTopic("guide")),
-            ("帮助", "更新日志", string.Empty, () => _ = menu.Help.OpenHelpTopic("changelog")),
-            ("帮助", "鸣谢", string.Empty, () => _ = menu.Help.OpenHelpTopic("thanks")),
-            ("帮助", "检查更新", string.Empty, () => _ = menu.Help.OpenHelpTopic("update")),
-            ("帮助", "关于 Vex", string.Empty, () => _ = menu.Help.OpenHelpTopic("about")),
+            (VexL.NewDocument, Gestures.NewDocument, () => menu.NewDocument()),
+            (VexL.TemplateCenterTitle, string.Empty, () => menu.NewFromTemplate()),
+            (VexL.NewWindow, Gestures.NewWindow, () => menu.NewWindow()),
+            (VexL.OpenFile, Gestures.Open, () => menu.OpenAsync()),
+            (VexL.DialogOpenFolderTitle, string.Empty, () => menu.OpenFolderAsync()),
+            (VexL.MenuSamples, string.Empty, () => menu.Help.OpenHelpTopic("samples")),
+            (VexL.QuickOpen, Gestures.QuickOpen, () => menu.QuickOpenAsync()),
+            (VexL.Save, Gestures.Save, () => menu.SaveAsync()),
+            (VexL.SaveAs, Gestures.SaveAs, () => menu.SaveAsAsync()),
+            (VexL.TemplateSaveTitle, string.Empty, () => menu.SaveAsTemplate()),
+            (VexL.Delete, string.Empty, () => menu.DeleteAsync()),
+            (VexL.DialogExportHtmlTitle, string.Empty, () => menu.Export("HTML")),
+            (VexL.ExportPdf, string.Empty, () => menu.Export("PDF")),
+            (VexL.MenuExportPng, string.Empty, () => menu.Export("PNG")),
+            (VexL.MenuExportWord, string.Empty, () => menu.Export("Word")),
+            (VexL.CopyToWechat, string.Empty, () => menu.CopyHtml("wechat")),
+            (VexL.CopyToZhihu, string.Empty, () => menu.CopyHtml("zhihu")),
+            (VexL.CopyToJuejin, string.Empty, () => menu.CopyHtml("juejin")),
+            (VexL.ImportHtml, string.Empty, () => menu.ImportFrom("HTML")),
+            (VexL.ImportPdf, string.Empty, () => menu.ImportFrom("PDF")),
+            (VexL.ImportWord, string.Empty, () => menu.ImportFrom("Word")),
+            (VexL.Print, Gestures.Print, () => menu.Print()),
+            (VexL.RefreshPreview, string.Empty, () => menu.RefreshPreview()),
+            (VexL.OpenFileLocation, string.Empty, () => menu.OpenFileLocationAsync()),
+            (VexL.MenuCloseDocument, Gestures.CloseDocument, () => menu.CloseDocument()),
         };
-        foreach (var (group, label, gesture, execute) in fileCommands)
+        foreach (var (labelKey, gesture, execute) in fileCommands)
         {
-            list.Add(new ShellCommandItem(group, label, gesture, execute));
+            list.Add(new ShellCommandItem(_localizer.Get(VexL.CommandGroupFile), _localizer.Get(labelKey), gesture, execute));
+        }
+
+        // ---- 视图 ----
+        var viewCommands = new (string LabelKey, string? Gesture, Action Execute)[]
+        {
+            (VexL.WBPresentation, Gestures.Presentation, () => menu.Workbench.StartPresentation()),
+            (VexL.MenuFocusMode, Gestures.FocusMode, () => menu.Layout.ToggleFocusMode()),
+            (VexL.MenuTypewriterMode, string.Empty, () => menu.Layout.ToggleTypewriterMode()),
+            (VexL.ToggleFullScreen, Gestures.FullScreen, () => menu.Layout.ToggleFullScreen()),
+            (VexL.AlwaysOnTop, string.Empty, () => menu.Layout.ToggleAlwaysOnTop()),
+        };
+        foreach (var (labelKey, gesture, execute) in viewCommands)
+        {
+            list.Add(new ShellCommandItem(_localizer.Get(VexL.CommandGroupView), _localizer.Get(labelKey), gesture, execute));
+        }
+
+        // ---- 帮助（帮助主题跳转键与帮助菜单同源）----
+        var helpCommands = new (string LabelKey, string Topic)[]
+        {
+            (VexL.OnboardingGuide, "guide"),
+            (VexL.Changelog, "changelog"),
+            (VexL.Thanks, "thanks"),
+            (VexL.AboutCheckUpdate, "update"),
+            (VexL.About, "about"),
+        };
+        foreach (var (labelKey, topic) in helpCommands)
+        {
+            var topicCaptured = topic;
+            list.Add(new ShellCommandItem(
+                _localizer.Get(VexL.CommandGroupHelp), _localizer.Get(labelKey), string.Empty,
+                () => _ = menu.Help.OpenHelpTopic(topicCaptured)));
         }
 
         _all = list;
-        Results = new ObservableCollection<ShellCommandItem>(_all);
+        ApplyFilter();
     }
 
     public string Query
@@ -139,7 +178,7 @@ public sealed class ShellCommandPaletteViewModel : ReactiveObject
         }
     }
 
-    public ObservableCollection<ShellCommandItem> Results { get; }
+    public ObservableCollection<ShellCommandItem> Results { get; } = [];
 
     public ShellCommandItem? Selected
     {

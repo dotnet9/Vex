@@ -1,4 +1,4 @@
-{
+﻿{
   "language": "Japanese",
   "description": "日本語",
   "cultureName": "ja-JP",
@@ -226,6 +226,7 @@
       "CommandGroupInsert": "挿入",
       "CommandGroupFormat": "書式",
       "CommandGroupView": "表示",
+      "CommandGroupCharts": "挿入 · 図表",
       "CommandGroupSettings": "設定",
       "CommandGroupHelp": "ヘルプ",
       "NewDocument": "新規",
