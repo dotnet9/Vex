@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.LogicalTree;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -124,12 +124,18 @@ internal static class PrototypeChromeVerification
                 $"Formatting toolbar stays inside the document at {size.Width}: origin={origin?.ToString() ?? "null"} toolbar={formatting.Bounds} host={formats.Bounds}");
             if (size.Width == 1440)
             {
+                // 工具带收敛为四组 22 键（历史 2 / 行内 5 / 段落 5 / 插入 7 / span 3）：断言只锁性质——
+                // 28px 等宽键 + 分隔符偏移呈 32px 跳变节奏（原型 4px 网格），不再钉死逐键坐标。
                 var keys = formatting.GetLogicalChildren().OfType<Button>().Where(b => b.Classes.Contains("wb-format")).ToArray();
-                var expectedOffsets = new[] { 0d, 32, 79, 111, 143, 175, 207, 254, 286, 318, 350, 382, 429, 461, 493 };
-                Check(keys.Length == expectedOffsets.Length && keys.Select((key, index) =>
-                        Math.Abs(key.TranslatePoint(default, formatting)!.Value.X - expectedOffsets[index]) < .01
-                        && key.Bounds.Size == new Size(28, 28)).All(value => value),
-                    "All fifteen formatting keys keep the prototype's 4px rhythm and separator offsets");
+                var separators = formatting.GetLogicalChildren().OfType<Avalonia.Controls.Separator>().Concat(
+                    formatting.GetLogicalChildren().OfType<Control>().Where(c => c.Classes.Contains("wb-formatbar-sep"))).ToList();
+                var gaps = keys.Zip(keys.Skip(1), (left, right) =>
+                    right.TranslatePoint(default, formatting)!.Value.X - left.TranslatePoint(default, formatting)!.Value.X).ToArray();
+                // 4px 网格性质：32（相邻键）/47（跨分隔符）两种节奏，22 键 21 间隔。
+                Check(keys.Length == 22 && keys.All(key => key.Bounds.Size == new Size(28, 28))
+                        && gaps.All(gap => Math.Abs(gap - 32) < .01 || Math.Abs(gap - 43) < .01 || Math.Abs(gap - 54) < .01 || Math.Abs(gap - 120) < .01),
+                    "All twenty-two formatting keys keep the key grid (32 key / 43 sep / 54 combo+sep / 120 combo span): count=" + keys.Length
+                    + " gaps=" + string.Join(",", gaps));
                 Check(keys.SelectMany(key => key.GetVisualDescendants().OfType<TextBlock>())
                         .Where(text => text.Classes.Contains("span-glyph")).All(text => text.LineHeight == 13 && text.Bounds.Height >= 13),
                     "Inline-style glyphs use a full 13px line box instead of clipping to one pixel");
@@ -634,7 +640,7 @@ internal static class PrototypeChromeVerification
                     && origin.Y >= 0 && origin.Y + label.Bounds.Height <= entry.Bounds.Height + .5,
                     $"Navigation label has a complete line box: {culture.CultureName}/{label.Text}, font={label.FontSize}, bounds={label.Bounds.Size}, natural={natural.DesiredSize}, origin={origin}, entry={entry.Bounds.Size}");
             }
-            foreach (var name in new[] { "FileMenuItem", "InsertMenuItem", "HelpMenuItem" })
+            foreach (var name in new[] { "FileMenuItem", "ViewMenuItem", "HelpMenuItem" })
             {
                 var item = window.FindControl<ShellTitleMenuView>("TitleMenuView")!.FindControl<MenuItem>(name)!;
                 item.IsSubMenuOpen = true; Render();

@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
@@ -53,6 +53,28 @@ if (mode == "visual")
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);
+if (mode == "layout-parity")
+{
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+    var app = (VerificationVexApp)Application.Current!;
+    var window = (Vex.Modules.Shell.Views.MainWindow)app.CreateShell();
+    window.Show();
+    try
+    {
+        var vm = (Vex.Modules.Shell.ViewModels.MainWindowViewModel)window.DataContext!;
+        vm.Appearance.SelectLanguageByCulture("zh-CN");
+        var sample = Path.Combine(AppContext.BaseDirectory, "parity-sample.md");
+        // 与 VisualParityCapture 同通道写正文（事件总线驱动统计/文件列表同步）。
+        if (File.Exists(sample)) CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
+            new Vex.Core.Messaging.MarkdownTextChangedCommand(File.ReadAllText(sample), 1, 1, 24));
+        Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
+        Thread.Sleep(600); Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
+        Vex.Modules.Shell.Views.LayoutParityCapture.Capture(window, output);
+    }
+    finally { window.Close(); }
+    return;
+}
 if (mode == "blog-frontmatter")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
@@ -346,21 +368,26 @@ if (mode is "span-styles" or "mermaid" or "documents" or "document-open-child" o
     var localizer = app.Resolve<IAppLocalizer>();
     string Header(MenuItem item) => item.Header?.ToString() ?? string.Empty;
     var viewMenu = titleMenu.FindControl<MenuItem>("ViewMenuItem")!;
-    // 原型 483dbd3：视图菜单去掉与布局预设重复的视图开关与侧栏/大纲条目，只剩显示、演示、窗口三组九项。
+    // 菜单收敛（原型 1117 轮）：视图菜单=显示/演示/窗口三组 + 自动配对（编辑菜单退役后归此），共十项。
     var viewRows = viewMenu.Items.OfType<MenuItem>().Select(Header).ToArray();
     Check(viewRows.SequenceEqual([
         localizer.Get(Vex.VexL.ShowLineNumbers), localizer.Get(Vex.VexL.PrefWordCount), localizer.Get(Vex.VexL.MenuWatermark),
         localizer.Get(Vex.VexL.MenuMotion), localizer.Get(Vex.VexL.WBPresentation), localizer.Get(Vex.VexL.MenuFocusMode),
-        localizer.Get(Vex.VexL.MenuTypewriterMode), localizer.Get(Vex.VexL.ToggleFullScreen), localizer.Get(Vex.VexL.AlwaysOnTop)]),
-        "View menu holds exactly the prototype's nine entries: " + string.Join(" / ", viewRows));
-    // 「工具」不再单列：字数统计与平台复制整块并入文件菜单；偏好/MCP 只走图标栏设置入口，菜单不再重复。
-    var fileRows = titleMenu.FileMenuTarget.Items.OfType<MenuItem>().Select(Header).ToArray();
-    foreach (var key in new[] { Vex.VexL.RefreshPreview, Vex.VexL.CopyToWechat,
-        Vex.VexL.CopyToZhihu, Vex.VexL.CopyToJuejin })
-        Check(fileRows.Contains(localizer.Get(key)), "File menu carries the merged tools entry: " + key);
+        localizer.Get(Vex.VexL.MenuTypewriterMode), localizer.Get(Vex.VexL.MenuAutoPair), localizer.Get(Vex.VexL.ToggleFullScreen),
+        localizer.Get(Vex.VexL.AlwaysOnTop)]),
+        "View menu holds exactly the prototype's ten entries: " + string.Join(" / ", viewRows));
+    // 编辑菜单退役：撤销/重做/查找走快捷键与工具带；平台复制并入「文件→导出」子菜单。
+    Check(titleMenu.FindControl<MenuItem>("InsertMenuItem") is null && titleMenu.FindControl<MenuItem>("FormatMenuItem") is null,
+        "Insert and format menus are retired into the writing band");
+    var exportRows = titleMenu.FileMenuTarget.Items.OfType<MenuItem>()
+        .First(item => Header(item) == localizer.Get(Vex.VexL.Export))
+        .Items.OfType<MenuItem>().Select(Header).ToArray();
+    foreach (var key in new[] { Vex.VexL.CopyToWechat, Vex.VexL.CopyToZhihu, Vex.VexL.CopyToJuejin })
+        Check(exportRows.Contains(localizer.Get(key)), "File → export submenu carries the platform copy entry: " + key);
+    var fileTopRows = titleMenu.FileMenuTarget.Items.OfType<MenuItem>().Select(Header).ToArray();
     foreach (var key in new[] { Vex.VexL.Preferences, Vex.VexL.McpSettings, Vex.VexL.McpAudit })
-        Check(!fileRows.Contains(localizer.Get(key)), "Settings entries stay out of the file menu (rail-only): " + key);
-    Check(!fileRows.Contains(localizer.Get(Vex.VexL.MenuProperties)) && !fileRows.Contains(localizer.Get(Vex.VexL.WordCount)),
+        Check(!fileTopRows.Contains(localizer.Get(key)), "Settings entries stay out of the file menu (rail-only): " + key);
+    Check(!fileTopRows.Contains(localizer.Get(Vex.VexL.MenuProperties)) && !fileTopRows.Contains(localizer.Get(Vex.VexL.WordCount)),
         "File menu omits retired properties and detailed statistics dialogs");
     Check(!app.Resolve<ShellKeyboardShortcutViewModel>().HandleKeyDown(Key.Enter, KeyModifiers.Alt),
         "Alt+Enter no longer opens a retired properties dialog");
@@ -1900,9 +1927,13 @@ void VerifyMermaidWorkspace(Vex.Modules.Shell.Views.MainWindow window, MainWindo
     }
     var sourceEditor = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!
         .FindControl<MarkdownEditorView>("MarkdownEditor")!;
-    var insertMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!.FindControl<MenuItem>("InsertMenuItem")!;
-    var templateKeys = insertMenu.GetLogicalDescendants().OfType<MenuItem>().Select(item => item.CommandParameter)
-        .OfType<string>().Where(key => key != "footnote").ToArray();
+    // 菜单收敛后 24 个模板键改从工具带 Mermaid 图鉴 Flyout 取（ShellEditorOptionsView 内 dg-card）。
+    var templateKeys = window.GetVisualDescendants().OfType<Button>()
+        .Where(button => button.Name == "FormatMermaidGallery")
+        .SelectMany(button => button.Flyout is Flyout flyout && flyout.Content is Visual content
+            ? content.GetVisualDescendants().OfType<Button>()
+            : Enumerable.Empty<Button>())
+        .Select(card => card.CommandParameter).OfType<string>().Distinct().ToArray();
     Check(templateKeys.Distinct().Count() == 24, "Insertion menu exposes all 24 distinct template keys");
     foreach (var layout in new[] { "source", "instant" })
     {
@@ -2668,9 +2699,14 @@ void VerifyWorkspaceLayout(VerificationVexApp app, Vex.Modules.Shell.Views.MainW
     var instant = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownInstantView>("InstantGuideTarget")!;
     var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
     var titleMenu = window.FindControl<Vex.Modules.Shell.Views.ShellTitleMenuView>("TitleMenuView")!;
-    var insert = titleMenu.FindControl<MenuItem>("InsertMenuItem")!;
-    Check(insert.GetLogicalDescendants().OfType<MenuItem>().Count(item => item.CommandParameter is string key && key is not "footnote") == 24,
-        "All 24 Mermaid templates remain available in grouped insertion menus");
+    var galleryCards = window.GetVisualDescendants().OfType<Button>()
+        .Where(button => button.Name == "FormatMermaidGallery")
+        .SelectMany(button => button.Flyout is Flyout flyout && flyout.Content is Visual content
+            ? content.GetVisualDescendants().OfType<Button>()
+            : Enumerable.Empty<Button>())
+        .Where(card => card.CommandParameter is string).ToList();
+    Check(galleryCards.Count(card => card.CommandParameter is string) == 24,
+        "All 24 Mermaid templates remain available in the toolbar diagram gallery");
     foreach (var width in new[] { 1280, 980, 1920 })
     {
         window.Width = width; window.Height = width == 980 ? 640 : 900; vm.Layout.IsSidebarVisible = true;

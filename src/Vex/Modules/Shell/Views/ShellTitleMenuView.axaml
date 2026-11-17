@@ -9,8 +9,9 @@
     x:DataType="vm:ShellTitleMenuViewModel" UseLayoutRounding="False"
     xmlns:prism="http://prismlibrary.com/">
     <Menu x:Name="TitleMenuBar" Classes="title-menu" VerticalAlignment="Center">
-        <!-- 菜单树严格对齐原型 interact.js 的 MENUS：六个顶级菜单（文件/编辑/段落/格式/视图/帮助）全部扁平展开，
-             「工具」并入文件，不设「文档操作/标题/编辑方式/侧栏与大纲/编辑显示/窗口」等二级聚合组。 -->
+        <!-- 菜单树对齐原型 interact.js 的收敛后 MENUS：三个顶级菜单（文件/视图/帮助）。
+             编辑/插入/段落/格式/工具退役：插入与格式下沉常驻写作工具带（ShellEditorOptionsView），
+             平台复制并入「文件→导出」子菜单，自动配对归「视图」；全部命令保留命令面板（F1）检索。 -->
         <MenuItem x:Name="FileMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuFile}}">
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.NewDocument}}" Command="{Binding NewDocument}" InputGesture="Ctrl+N" />
             <MenuItem Header="{i18n:I18n Vex.VexL.TemplateFromNewMenu}" Command="{Binding NewFromTemplate}" />
@@ -42,6 +43,11 @@
                 <MenuItem Header="{i18n:I18n {x:Static l:VexL.ExportPdf}}" Command="{Binding Export}" CommandParameter="PDF" />
                 <MenuItem Header="{i18n:I18n Vex.VexL.MenuExportPng}" Command="{Binding Export}" CommandParameter="PNG" />
                 <MenuItem Header="{i18n:I18n Vex.VexL.MenuExportWord}" Command="{Binding Export}" CommandParameter="Word" />
+                <Separator />
+                <!-- 平台复制并入导出子菜单（原型收敛口径）：发布动作同族。 -->
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToWechat}}" Command="{Binding CopyHtml}" CommandParameter="wechat" />
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToZhihu}}" Command="{Binding CopyHtml}" CommandParameter="zhihu" />
+                <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToJuejin}}" Command="{Binding CopyHtml}" CommandParameter="juejin" />
             </MenuItem>
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuImport}}">
                 <MenuItem Header="{i18n:I18n Vex.VexL.MenuImportHtml}" Command="{Binding ImportFrom}" CommandParameter="HTML" />
@@ -49,14 +55,9 @@
                 <MenuItem Header="{i18n:I18n Vex.VexL.MenuImportWord}" Command="{Binding ImportFrom}" CommandParameter="Word" />
             </MenuItem>
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Print}}" Command="{Binding Print}" InputGesture="Ctrl+Shift+P" />
-            <!-- 「工具」不再单列：平台复制并入文件菜单（原型 interact.js）；
-                 偏好设置/MCP 设置/MCP 审计只保留图标栏设置入口，菜单不再重复（Ctrl+, 仍由快捷键注册）。 -->
+            <!-- 「工具」并入导出子菜单；偏好设置/MCP 只保留图标栏设置入口（Ctrl+, 仍由快捷键注册）。 -->
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.RefreshPreview}}" Command="{Binding RefreshPreview}" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToWechat}}" Command="{Binding CopyHtml}" CommandParameter="wechat" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToZhihu}}" Command="{Binding CopyHtml}" CommandParameter="zhihu" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyToJuejin}}" Command="{Binding CopyHtml}" CommandParameter="juejin" />
             <Separator />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OpenFileLocation}}" Command="{Binding OpenFileLocationAsync}" IsEnabled="{Binding DocumentInfo.HasCurrentFile}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ReopenWithEncoding}}">
@@ -70,112 +71,7 @@
             <MenuItem Header="{i18n:I18n Vex.VexL.MenuCloseDocument}" Command="{Binding CloseDocument}" InputGesture="Ctrl+W" />
         </MenuItem>
 
-        <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuEdit}}">
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Undo}}" Command="{Binding EditorActions.Undo}" InputGesture="Ctrl+Z" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Redo}}" Command="{Binding EditorActions.Redo}" InputGesture="Ctrl+Y" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Cut}}" Command="{Binding EditorActions.Cut}" InputGesture="Ctrl+X" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Copy}}" Command="{Binding EditorActions.Copy}" InputGesture="Ctrl+C" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Paste}}" Command="{Binding EditorActions.Paste}" InputGesture="Ctrl+V" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.SelectAll}}" Command="{Binding EditorActions.SelectAll}" InputGesture="Ctrl+A" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CopyPlainText}}" Command="{Binding EditorActions.CopyPlainText}" InputGesture="Ctrl+Shift+C" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Find}}" Command="{Binding ShowFindPanel}" InputGesture="Ctrl+F" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Replace}}" Command="{Binding ShowReplacePanel}" InputGesture="Ctrl+H" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuAutoPair}}" Command="{Binding EditorDisplay.ToggleAutoPair}" IsChecked="{Binding EditorDisplay.EnableAutoPair}" ToggleType="CheckBox" />
-        </MenuItem>
-
-        <MenuItem x:Name="InsertMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuParagraph}}">
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Paragraph}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Paragraph}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading1}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading1}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading2}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading2}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading3}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading3}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading4}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading4}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading5}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading5}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Heading6}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Heading6}" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.UnorderedList}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.UnorderedList}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.OrderedList}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.OrderedList}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.TaskList}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.TaskList}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Quote}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Quote}" />
-            <Separator />
-            <!-- 表格：插入 + 结构操作子菜单，与原型 element-menu 的 tableItems 同一语义 -->
-            <MenuItem x:Name="TableMenuItem" Header="{i18n:I18n {x:Static l:VexL.Table}}">
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.InsertTable}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Table}" />
-                <Separator />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableRowAbove}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.RowAbove}" />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableRowBelow}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.RowBelow}" />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableColumnBefore}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.ColBefore}" />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableColumnAfter}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.ColAfter}" />
-                <Separator />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableRowUp}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.RowUp}" />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableRowDown}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.RowDown}" />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableColumnLeft}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.ColLeft}" />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableColumnRight}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.ColRight}" />
-                <Separator />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableColumnAlignLeft}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.AlignLeft}" />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableColumnAlignCenter}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.AlignCenter}" />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableColumnAlignRight}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.AlignRight}" />
-                <Separator />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableRowDelete}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.RowDelete}" />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableColumnDelete}" Command="{Binding ElementTable}" CommandParameter="{x:Static core:MarkdownTableAction.ColDelete}" />
-                <Separator />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableCopy}" Command="{Binding ElementCopyBlock}" />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableFormat}" Command="{Binding ElementFormatTable}" />
-                <Separator />
-                <MenuItem Header="{i18n:I18n Vex.VexL.TableDelete}" Command="{Binding ElementDeleteBlock}" />
-            </MenuItem>
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.CodeBlock}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.CodeFence}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.MathBlock}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.MathBlock}" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n Vex.VexL.MenuMermaid}">
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidFlowchart}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="flowchart" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidSequence}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="sequence" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidState}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="state" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidJourney}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="journey" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidGantt}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="gantt" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidTimeline}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="timeline" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidGit}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="git" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidKanban}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="kanban" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidClass}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="class" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidEr}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="er" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidRequirement}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="requirement" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidMindmap}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="mindmap" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidBlock}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="block" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidC4}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="c4" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidArchitecture}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="architecture" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidPacket}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="packet" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidPie}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="pie" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidQuadrant}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="quadrant" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidXy}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="xy" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidSankey}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="sankey" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidRadar}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="radar" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidTreemap}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="treemap" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidVenn}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="venn" />
-                <MenuItem Header="{i18n:I18n {x:Static l:VexL.MermaidTreeView}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="treeview" />
-            </MenuItem>
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.HorizontalRule}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.HorizontalRule}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Footnote}}" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="footnote" />
-        </MenuItem>
-
-        <MenuItem x:Name="FormatMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuFormat}}">
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Bold}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Bold}" InputGesture="Ctrl+B" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Italic}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Italic}" InputGesture="Ctrl+I" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Strikethrough}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Strikethrough}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Highlight}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Highlight}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Superscript}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Superscript}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Subscript}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Subscript}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.InlineCode}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.InlineCode}" />
-            <Separator />
-            <MenuItem x:Name="LinkMenuItem" Header="{i18n:I18n {x:Static l:VexL.Link}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Link}" />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.Image}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Image}" />
-            <Separator />
-            <MenuItem Header="{i18n:I18n {x:Static l:VexL.ClearFormatting}}" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.ClearFormatting}" />
-        </MenuItem>
-
-        <!-- 视图菜单只留原型「显示/演示/窗口」三组：编辑/阅读/导图与侧栏、大纲开关已由布局预设分段条和块角按钮承担。 -->
+        <!-- 视图菜单：显示/演示/窗口三组 + 自动配对（原型收敛口径，编辑菜单退役后归此）。 -->
         <MenuItem x:Name="ViewMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuView}}">
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.ShowLineNumbers}}" Command="{Binding EditorDisplay.ToggleLineNumbers}" IsChecked="{Binding EditorDisplay.ShowLineNumbers}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n Vex.VexL.PrefWordCount}" Command="{Binding ToggleWordCount}" IsChecked="{Binding Preferences.WordCountVisible, Mode=OneWay}" ToggleType="CheckBox" />
@@ -186,12 +82,14 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuFocusMode}}" Command="{Binding Layout.ToggleFocusMode}" InputGesture="F8" IsChecked="{Binding Layout.IsFocusMode}" ToggleType="CheckBox" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuTypewriterMode}}" Command="{Binding Layout.ToggleTypewriterMode}" IsChecked="{Binding Layout.IsTypewriterMode}" ToggleType="CheckBox" />
             <Separator />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.MenuAutoPair}}" Command="{Binding EditorDisplay.ToggleAutoPair}" IsChecked="{Binding EditorDisplay.EnableAutoPair}" ToggleType="CheckBox" />
+            <Separator />
             <MenuItem x:Name="FullScreenMenuItem" Header="{i18n:I18n {x:Static l:VexL.ToggleFullScreen}}" Command="{Binding Layout.ToggleFullScreen}" InputGesture="F11" ToggleType="CheckBox" IsChecked="{Binding Layout.IsFullScreen, Mode=OneWay}" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.AlwaysOnTop}}" Command="{Binding Layout.ToggleAlwaysOnTop}" IsChecked="{Binding Layout.IsAlwaysOnTop}" ToggleType="CheckBox" />
         </MenuItem>
 
         <MenuItem x:Name="HelpMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuHelp}}">
-            <MenuItem x:Name="BeginGuideMenuItem" Header="{i18n:I18n {x:Static l:VexL.OnboardingGuide}}" Click="BeginGuideMenuItem_OnClick" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.OnboardingGuide}}" Click="BeginGuideMenuItem_OnClick" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Changelog}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="changelog" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Thanks}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="thanks" />
             <Separator />

@@ -1,4 +1,4 @@
-using CodeWF.Avalonia.Controls.Helpers;
+﻿using CodeWF.Avalonia.Controls.Helpers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CodeWF.Avalonia.Controls.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using Vex.Core.Services;
 using Vex.Modules.Mcp.Services;
 using Vex.Modules.Shell.Services;
@@ -44,6 +45,9 @@ public partial class MainWindow : CodeWFWindow
             if (DataContext is MainWindowViewModel vm) { vm.Layout.IsCompactWindow = Bounds.Width < 1100; vm.Layout.WorkspaceWidth = Bounds.Width; }
         };
         TitleMenuView.BeginGuideRequested += TitleMenuView_OnBeginGuideRequested;
+        // 命令面板（F1）：菜单收敛后的全命令检索；VM 由标题菜单 VM（DI 单例）装配，同一批命令源。
+        CommandPalette.DataContext = new ShellCommandPaletteViewModel(
+            App.Services.GetRequiredService<ShellTitleMenuViewModel>());
         AddHandler(KeyDownEvent, WindowKeyDown, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, WorkbenchPointerPressed, RoutingStrategies.Tunnel);
         DragDrop.SetAllowDrop(this, true);
@@ -114,6 +118,16 @@ public partial class MainWindow : CodeWFWindow
     {
         // 窗内模态框处理自己的按键，避免 Esc/F6/撤销等穿透到后面的工作台。
         if (ShellDialogHost.IsInModalStatus) return;
+        // 命令面板（F1）：菜单收敛后的全命令检索入口，先于一切工作台按键接管。
+        if (CommandPalette is { } palette)
+        {
+            if (e.Key == Key.F1 && e.KeyModifiers == KeyModifiers.None) { palette.IsOpen = !palette.IsOpen; e.Handled = true; return; }
+            if (palette.IsOpen)
+            {
+                if (e.Key == Key.Escape) { palette.IsOpen = false; e.Handled = true; return; }
+                if (palette.QueryInput.IsFocused) return;
+            }
+        }
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key is Key.S or Key.W or Key.O or Key.N)
             Workspace.MindMapGuideTarget.FlushInspector();
         // 引导按键优先：演示中的 Esc/翻页等在引导第 5 幕期间由引导接管。

@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Vex.Modules.Shell.ViewModels"
+             x:Class="Vex.Modules.Shell.Views.ShellCommandPaletteView"
+             x:DataType="vm:ShellCommandPaletteViewModel"
+             IsVisible="{Binding IsOpen, RelativeSource={RelativeSource Self}}">
+  <!-- 命令面板（F1）：命令收敛后的全命令检索入口（原型 cp-backdrop/cp-panel 语义）。 -->
+  <Panel x:Name="Backdrop" Classes="cp-backdrop" Tapped="Backdrop_OnTapped">
+    <Border Classes="cp-panel" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,88,0,0">
+      <StackPanel>
+        <TextBox x:Name="QueryInput" Classes="cp-input" Watermark="搜索命令…"
+                 Text="{Binding Query}" BorderThickness="0,0,0,1" CornerRadius="0" />
+        <ListBox x:Name="ResultsList" Classes="cp-list"
+                 ItemsSource="{Binding Results}"
+                 SelectedItem="{Binding Selected}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:ShellCommandItem">
+              <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,4,0">
+                <TextBlock Grid.Column="0" Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Classes="cp-group" Text="{Binding Group}" Margin="8,0,0,0" />
+                <TextBlock Grid.Column="2" Classes="cp-gesture" Text="{Binding Gesture}" Margin="10,0,0,0" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPaneHeadBorderBrush}" Padding="14,8">
+          <StackPanel Orientation="Horizontal" Spacing="14" Opacity="0.75">
+            <TextBlock Text="↑↓ 选择" FontSize="11" Foreground="{DynamicResource VexMutedBrush}" />
+            <TextBlock Text="Enter 执行" FontSize="11" Foreground="{DynamicResource VexMutedBrush}" />
+            <TextBlock Text="Esc 关闭" FontSize="11" Foreground="{DynamicResource VexMutedBrush}" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </Border>
+  </Panel>
+</UserControl>

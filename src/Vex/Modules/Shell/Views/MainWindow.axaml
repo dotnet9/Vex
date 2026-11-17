@@ -1,4 +1,4 @@
-<codewf:CodeWFWindow
+﻿<codewf:CodeWFWindow
     x:Class="Vex.Modules.Shell.Views.MainWindow" x:Name="ShellWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
@@ -81,13 +81,12 @@
             <shell:ShellTitleMenuView x:Name="TitleMenuView" VerticalAlignment="Center" Margin="4,0,0,0" />
             <!-- 原型 upd-pill-wrap：更新药丸紧跟菜单之后左对齐，发现新版常驻标题栏，气泡挂在药丸正下方。 -->
             <shell:ShellUpdatePillView x:Name="UpdatePill" VerticalAlignment="Center" Margin="2,0,0,0" />
-            <!-- 原型把文档名放在菜单之后左对齐，而不是标题栏正中。 -->
-            <!-- 原型 .document-title：文档名 12/600（fs-caption 令牌 + 600 字重）。 -->
+            <!-- 文档题名：CodeWFWindow 无 CenterContent 槽（在 TitleBar 内部类），题名居中需库支持，暂维持左对齐（原型收敛差异已记录）。 -->
             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" IsHitTestVisible="False">
                 <TextBlock
                     x:Name="TitleDocumentLabel"
                     Text="{Binding DocumentInfo.CurrentDocumentName}"
-                    FontSize="12"
+                    FontSize="13"
                     FontWeight="SemiBold"
                     LineHeight="19.2"
                     MaxWidth="300"
@@ -154,6 +153,9 @@
              外层 Grid 承载图标栏，内层 WorkspaceColumns 的列号与拖动逻辑保持不变。 -->
 
         <shell:ShellWorkspaceView x:Name="Workspace" x:FieldModifier="public" Grid.Row="2" />
+
+        <!-- 命令面板（F1）：菜单收敛后的全命令检索入口，窗口级浮层（常驻可视树，IsVisible 切换）。 -->
+        <shell:ShellCommandPaletteView x:Name="CommandPalette" x:FieldModifier="public" Grid.RowSpan="4" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ZIndex="300" />
 
         <!-- 原型 .vex-deck header：与正常标题条同高（令牌 app-titlebar-height 33px），面板底色 + 1px 底边；
              文档名 13px/400 单行省略，右侧 25px 高的关闭钮（原型是 × 文本，这里画成 12px 描线叉，避免字体回退把字符画歪）。 -->

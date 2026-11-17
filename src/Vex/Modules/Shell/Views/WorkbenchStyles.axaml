@@ -1,4 +1,4 @@
-<Styles xmlns:theme="using:Vex.Core.Theme" xmlns:behaviors="using:Vex.Core.Behaviors" xmlns:shell="using:Vex.Modules.Shell.Views" xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<Styles xmlns:theme="using:Vex.Core.Theme" xmlns:behaviors="using:Vex.Core.Behaviors" xmlns:shell="using:Vex.Modules.Shell.Views" xmlns:ctl="clr-namespace:CodeWF.Avalonia.Controls.Controls;assembly=CodeWF.Avalonia.Controls" xmlns:motion="using:CodeWF.Avalonia.Controls.Animations" xmlns:anim="using:Avalonia.Animation.Easings" xmlns:u="https://irihi.tech/ursa" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- ===== 块状工作区（原型 workspace-chrome.css）：灰画布 + 圆角描边白块，外缘 10px、块间 4px ===== -->
   <!-- 原型组合布局的面板齐平拼贴（.view-panel radius 0 无描边、.view-split gap:1px bg=border）：
        块本体只保留面板底色，缝隙与描边一律由 1px 分栏线承担。 -->
@@ -1410,5 +1410,88 @@
   </Style>
   <Style Selector="Thumb.vex-scroll-thumb:pointerover, Thumb.vex-scroll-thumb:pressed">
     <Setter Property="Background" Value="{DynamicResource VexScrollThumbHoverBrush}"/>
+  </Style>
+  <!-- 工具带分隔符对齐原型 .format-divider（1px 线 + 5px 边距 ≈ 11px 占宽）：Ursa 分隔符默认槽 32px，
+       5 个分隔累积 +100px 横向漂移（1117 布局锚点实测），收敛后键位与原型逐键对齐。 -->
+  <Style Selector="Border.band-divider">
+    <Setter Property="Width" Value="1" />
+    <Setter Property="Height" Value="18" />
+    <Setter Property="Margin" Value="5,0" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource VexPaneHeadBorderBrush}" />
+  </Style>
+  <!-- Mermaid 图鉴网格（原型 dg-grid/dg-card）与命令面板（F1）样式：accent 只在悬停/选中态。 -->
+  <Style Selector="WrapPanel.dg-grid">
+    <Setter Property="Orientation" Value="Horizontal"/>
+  </Style>
+  <Style Selector="Button.dg-card">
+    <Setter Property="MinWidth" Value="132"/>
+    <Setter Property="Height" Value="34"/>
+    <Setter Property="Margin" Value="0,0,8,8"/>
+    <Setter Property="Padding" Value="8,6"/>
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/>
+    <Setter Property="Background" Value="{DynamicResource VexPaperBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
+  </Style>
+  <Style Selector="Button.dg-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="TextBlock.dg-group">
+    <Setter Property="FontSize" Value="11"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <Style Selector="Panel.cp-backdrop">
+    <Setter Property="Background" Value="{DynamicResource VexScrimBrush}"/>
+  </Style>
+  <Style Selector="Border.cp-panel">
+    <Setter Property="Width" Value="560"/>
+    <Setter Property="MaxHeight" Value="520"/>
+    <Setter Property="Background" Value="{DynamicResource VexPopBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="12"/>
+    <Setter Property="BoxShadow" Value="0 16 42 0 #29000000"/>
+  </Style>
+  <Style Selector="TextBox.cp-input">
+    <Setter Property="Padding" Value="14,12"/>
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    <Setter Property="CornerRadius" Value="0"/>
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="ListBox.cp-list">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="MaxHeight" Value="380"/>
+  </Style>
+  <Style Selector="ListBoxItem.cp-item">
+    <Setter Property="Padding" Value="10,8"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="FontSize" Value="13"/>
+  </Style>
+  <Style Selector="ListBoxItem.cp-item:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+  </Style>
+  <Style Selector="ListBoxItem.cp-item:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+  </Style>
+  <Style Selector="TextBlock.cp-group">
+    <Setter Property="FontSize" Value="11"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="Margin" Value="0,0,6,0"/>
+  </Style>
+  <Style Selector="TextBlock.cp-gesture">
+    <Setter Property="FontSize" Value="11"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+  </Style>
+  <Style Selector="TextBlock.cp-empty">
+    <Setter Property="Padding" Value="18,10"/>
+    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="HorizontalAlignment" Value="Center"/>
   </Style>
 </Styles>
