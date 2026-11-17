@@ -1,6 +1,9 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Threading;
 using CodeWF.Avalonia.Controls.Helpers;
+using Microsoft.Extensions.DependencyInjection;
+using Vex;
+using Vex.Modules.Mcp.Services;
 using Vex.Modules.Shell.ViewModels;
 
 namespace Vex.Modules.Shell.Views;
@@ -22,6 +25,18 @@ public partial class ShellNavigationRailView : UserControl
         };
         AttachedToVisualTree += (_, _) => CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += CultureChanged;
         DetachedFromVisualTree += (_, _) => CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged -= CultureChanged;
+        // MCP 服务运行徽标：设置图标右上角绿点（原型 mcp-badge 语义），状态变化实时点亮/熄灭。
+        if (App.Services.GetService(typeof(Vex.Modules.Mcp.Services.IMcpServerHost)) is Vex.Modules.Mcp.Services.IMcpServerHost host)
+        {
+            host.StatusChanged += SyncMcpBadge;
+            SyncMcpBadge(host, EventArgs.Empty);
+            DetachedFromVisualTree += (_, _) => host.StatusChanged -= SyncMcpBadge;
+        }
+    }
+    private void SyncMcpBadge(object? sender, EventArgs e)
+    {
+        if (sender is Vex.Modules.Mcp.Services.IMcpServerHost host)
+            McpRunningBadge.IsVisible = host.IsRunning;
     }
     private void CultureChanged(object? sender, EventArgs e) => SyncRailTips();
     private void RailLayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

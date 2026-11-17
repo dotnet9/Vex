@@ -1,4 +1,4 @@
-<UserControl x:Class="Vex.Modules.Shell.Views.ShellDocumentToolsView"
+﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellDocumentToolsView"
  xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
  xmlns:vm="using:Vex.Modules.Shell.ViewModels" xmlns:vex="clr-namespace:Vex.Controls"
@@ -19,6 +19,13 @@
    Value="{Binding Workbench.MapZoomPercent, Mode=TwoWay}" Label="{i18n:I18n {x:Static l:VexL.ZoomMap}}"
    ResetLabel="{i18n:I18n {x:Static l:VexL.WBFit}}" ResetGeometry="{StaticResource WBFitIcon}"
    CenterLabel="{i18n:I18n {x:Static l:VexL.WBCenter}}" CenterGeometry="{StaticResource WBCenterIcon}" />
+  <!-- 视图徽标（原型 #sb-layout 语义）：当前视图胶囊，随布局/编辑模式实时刷新。 -->
+  <Border x:Name="LayoutChip" Classes="layout-chip" Padding="7,3" CornerRadius="4" VerticalAlignment="Center"
+   Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPaneHeadBorderBrush}"
+   BorderThickness="1" IsHitTestVisible="False">
+   <TextBlock x:Name="LayoutChipText" Text="即时" FontSize="11" LineHeight="16"
+    Foreground="{DynamicResource VexMutedBrush}" />
+  </Border>
   <Border Classes="document-word-count" Padding="7,3" CornerRadius="4" VerticalAlignment="Center"
    Background="{DynamicResource VexPreviewBackgroundBrush}" IsHitTestVisible="False" IsVisible="{Binding Preferences.WordCountVisible}">
    <TextBlock x:Name="DocumentWordCount" Text="{Binding DocumentInfo.StatusWordCountText}" FontSize="12"

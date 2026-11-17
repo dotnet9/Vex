@@ -1,4 +1,4 @@
-<UserControl x:Class="Vex.Modules.Shell.Views.ShellNavigationRailView"
+﻿<UserControl x:Class="Vex.Modules.Shell.Views.ShellNavigationRailView"
     xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com"
     xmlns:l="clr-namespace:Vex" xmlns:vm="using:Vex.Modules.Shell.ViewModels"
@@ -37,7 +37,14 @@
                 helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.PreferencesTitle}}"
                 AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.NavSettings}}">
                 <StackPanel Spacing="{DynamicResource VexUiGap4}">
-                    <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBGearIcon}" /></Canvas></Viewbox>
+                    <Panel HorizontalAlignment="Center">
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBGearIcon}" /></Canvas></Viewbox>
+                        <!-- MCP 服务运行徽标（原型 .mcp-badge 语义）：服务 Running 时点亮设置图标右上角。 -->
+                        <Ellipse x:Name="McpRunningBadge" Classes="mcp-running-badge" Fill="{DynamicResource VexSuccessBrush}"
+                                 Width="7" Height="7" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 IsHitTestVisible="False" IsVisible="False"
+                                 helpers:ToolTipHelper.Text="{i18n:I18n Vex.VexL.McpSettingsTitle}" />
+                    </Panel>
                     <TextBlock Text="{i18n:I18n {x:Static l:VexL.NavSettings}}" HorizontalAlignment="Center" />
                 </StackPanel>
             </Button>

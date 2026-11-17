@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Vex.Modules.Shell.Views.ShellFilesView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -274,7 +274,7 @@
         <!-- 对应原型 .sidebar-search（workbench.css:44 + workspace-chrome.css:339/387）：外距 14/12/12/12，
              本体即那枚 pill——1px control-border、内距 5×12、透明底；实测高 31.2 = 5+19.2+5+2。
              焦点单环配方（accent 边 + 3px 柔光 + 悬停混边）由 Grid.search-shell 共享样式驱动。 -->
-        <Border Classes="panel-tools" Grid.Row="1">
+        <Border x:Name="FilesPanelTools" Classes="panel-tools" Grid.Row="1">
         <Grid Classes="search-shell" Height="{DynamicResource VexUiControlHeight}" VerticalAlignment="Center">
             <Border Classes="search-glow" />
             <Border
