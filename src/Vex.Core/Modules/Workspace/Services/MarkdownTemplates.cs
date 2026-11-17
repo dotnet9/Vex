@@ -31,4 +31,16 @@ internal static class MarkdownTemplates
         "footnote" => "[^note]\n\n[^note]: ",
         _ => null
     };
+
+    /// <summary>纯 mermaid 源码（剥掉 Get 返回值里的插入用围栏），图鉴缩略图渲染用；
+    /// 渲染管线要纯源码，围栏串只适合插入编辑器。</summary>
+    public static string? GetDiagramSource(string key)
+    {
+        var snippet = Get(key);
+        if (snippet is null) return null;
+        const string fence = "```mermaid\n";
+        var start = snippet.IndexOf(fence, StringComparison.Ordinal);
+        var end = snippet.LastIndexOf("```", StringComparison.Ordinal);
+        return start < 0 || end <= start ? null : snippet[(start + fence.Length)..end].TrimEnd('\n');
+    }
 }

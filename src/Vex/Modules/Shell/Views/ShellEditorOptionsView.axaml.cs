@@ -71,7 +71,7 @@ public partial class ShellEditorOptionsView : UserControl
         {
             foreach (var (key, image) in thumbs)
             {
-                var source = MarkdownTemplates.Get(key);
+                var source = MarkdownTemplates.GetDiagramSource(key);
                 if (source is null) continue;
                 try
                 {
