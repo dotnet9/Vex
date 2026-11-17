@@ -438,16 +438,13 @@ internal static class RuntimeVerification
         if (OperatingSystem.IsWindows()) DefaultFileOpeningService.Configure();
         var root = Path.GetFullPath(directory);
         Directory.CreateDirectory(root);
-        var resources = Path.Combine(AppContext.BaseDirectory, "I18n");
-        if (OperatingSystem.IsMacOS() && !Directory.Exists(resources))
-            resources = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Resources", "I18n"));
+        // 语言 json 已内嵌程序集（不再拷贝输出目录），验证走与 App 相同的 AddResource 嵌入注册。
         var manager = I18nManager.Instance;
-        manager.Register(new JsonLangPlugin { ResourceFolder = resources }, CultureInfo.GetCultureInfo("en-US"));
+        manager.Register(new JsonLangPlugin(), CultureInfo.GetCultureInfo("en-US"));
+        manager.AddResource(typeof(VexL).Assembly, typeof(Vex.Core.Messaging.ShellActionKind).Assembly);
         var labels = new HashSet<string>();
         foreach (var culture in new[] { "en-US", "zh-CN", "zh-Hant", "ja-JP" })
         {
-            if (!File.Exists(Path.Combine(resources, "Vex", culture + ".json")))
-                throw new InvalidOperationException("Published language file is missing: " + culture);
             manager.Culture = CultureInfo.GetCultureInfo(culture);
             var text = manager.GetResource(VexL.MenuLanguage);
             if (string.IsNullOrWhiteSpace(text) || text == VexL.MenuLanguage)
