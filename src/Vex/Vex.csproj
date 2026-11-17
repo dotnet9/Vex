@@ -28,7 +28,6 @@
   </PropertyGroup>
   <ItemGroup>
     <AssemblyMetadata Include="Website" Value="$(PackageProjectUrl)" />
-    <PackageReference Include="CodeWF.Toolkit.Core" />
     <AvaloniaResource Include="Assets\**" Exclude="Assets\FileIcons\**" />
     <!-- 随包模板：目录驱动（子文件夹=分组，templates.json=元数据），安装目录内为只读根。 -->
     <Content Include="Templates\**\*.md" Link="Templates\%(RecursiveDir)%(Filename)%(Extension)"
@@ -58,14 +57,7 @@
     <PackageReference Include="Avalonia.Controls.ColorPicker" />
     <PackageReference Include="Avalonia.Controls.DataGrid" />
     <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="CodeWF.Avalonia.Controls" />
-    <PackageReference Include="CodeWF.Avalonia.DataGrid" />
-    <PackageReference Include="CodeWF.Avalonia.MindView" />
-    <PackageReference Include="CodeWF.Toolkit.EventBus" />
-    <PackageReference Include="CodeWF.Avalonia.Markdown" />
-    <PackageReference Include="CodeWF.Toolkit.Files" />
     <PackageReference Include="Irihi.Ursa.Themes.Semi" />
-    <PackageReference Include="CodeWF.Avalonia.Lang" />
     <PackageReference Include="PdfPig" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="ReactiveUI.Avalonia" />
@@ -74,6 +66,19 @@
     <PackageReference Include="Semi.Avalonia.ColorPicker" />
     <PackageReference Include="System.Reactive" />
     <ProjectReference Include="..\Vex.Git\Vex.Git.csproj" />
+  </ItemGroup>
+  <!-- 自研库以 libs/ submodule 源引用（详见 docs/开发与验证.md §2.1）：
+       Avalonia 库直接消费五工程，Markdown.Lite/TreeDataGrid/Dock/Log 经库内 ProjectReference 传递；
+       Toolkit 直接消费三工程，Toolkit.Lang 经库传递。不消费自研 NuGet 包。 -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\libs\CodeWF.Avalonia\src\Controls\CodeWF.Avalonia.Controls\CodeWF.Avalonia.Controls.csproj" />
+    <ProjectReference Include="..\..\libs\CodeWF.Avalonia\src\DataGrid\CodeWF.Avalonia.DataGrid\CodeWF.Avalonia.DataGrid.csproj" />
+    <ProjectReference Include="..\..\libs\CodeWF.Avalonia\src\Lang\CodeWF.Avalonia.Lang\CodeWF.Avalonia.Lang.csproj" />
+    <ProjectReference Include="..\..\libs\CodeWF.Avalonia\src\Markdown\CodeWF.Avalonia.Markdown\CodeWF.Avalonia.Markdown.csproj" />
+    <ProjectReference Include="..\..\libs\CodeWF.Avalonia\src\MindView\CodeWF.Avalonia.MindView\CodeWF.Avalonia.MindView.csproj" />
+    <ProjectReference Include="..\..\libs\CodeWF.Toolkit\src\Core\CodeWF.Toolkit.Core\CodeWF.Toolkit.Core.csproj" />
+    <ProjectReference Include="..\..\libs\CodeWF.Toolkit\src\EventBus\CodeWF.Toolkit.EventBus\CodeWF.Toolkit.EventBus.csproj" />
+    <ProjectReference Include="..\..\libs\CodeWF.Toolkit\src\Files\CodeWF.Toolkit.Files\CodeWF.Toolkit.Files.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="I18n\Language.cs">

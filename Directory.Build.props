@@ -1,6 +1,9 @@
 <Project>
   <Import Project="build/ProjectDefaults.props" />
   <PropertyGroup>
+    <!-- 自研库（libs/CodeWF.Avalonia、libs/CodeWF.Toolkit）以 git submodule 源引用，Vex 不消费其 NuGet 包；
+         NuGet 发布只作为"库升级/打包/发布"检查点管道（scripts/prepare_local_libraries.ps1 等，供 Vox 与外部消费者）。
+         指针策略为手动 bump：git -C libs/<库名> fetch && 检出目标 commit 后在 Vex 提交指针，库 main 故障不拖累 Vex 构建。 -->
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <DebugType>portable</DebugType>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>

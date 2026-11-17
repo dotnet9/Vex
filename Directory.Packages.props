@@ -5,7 +5,9 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="CodeWF.Avalonia.MindView" Version="$(CodeWFAvaloniaVersion)" />
+    <!-- 自研库（CodeWF.Avalonia 全系 / CodeWF.Toolkit.EventBus / Files）走 libs/ submodule 源引用（docs/开发与验证.md §2.1），
+         不再有直接包引用，条目随之删除；$(CodeWFAvaloniaVersion) 等属性保留，供库发布管道（prepare_local_libraries.ps1 等）读写。
+         Toolkit.Core 是 update-verification 工具的直接引用、Toolkit.Lang 是库源码的传递依赖（传递钉住），两条必须与 libs 锚点同步升级。 -->
     <PackageVersion Include="ModelContextProtocol" Version="2.4.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNetTestSdkVersion)" />
     <PackageVersion Include="xunit.v3" Version="$(XunitVersion)" />
@@ -33,14 +35,7 @@
     <PackageVersion Include="HarfBuzzSharp.NativeAssets.macOS" Version="$(HarfBuzzSharpVersion)" />
     <PackageVersion Include="HarfBuzzSharp.NativeAssets.WebAssembly" Version="$(HarfBuzzSharpVersion)" />
     <PackageVersion Include="HarfBuzzSharp.NativeAssets.Win32" Version="$(HarfBuzzSharpVersion)" />
-    <PackageVersion Include="CodeWF.Avalonia.Controls" Version="$(CodeWFAvaloniaVersion)" />
-    <PackageVersion Include="CodeWF.Avalonia.DataGrid" Version="$(CodeWFAvaloniaVersion)" />
-    <PackageVersion Include="CodeWF.Toolkit.EventBus" Version="$(CodeWFToolkitVersion)" />
-    <PackageVersion Include="CodeWF.Avalonia.Markdown" Version="$(CodeWFAvaloniaVersion)" />
-    <PackageVersion Include="CodeWF.Avalonia.Markdown.Lite" Version="$(CodeWFAvaloniaVersion)" />
-    <PackageVersion Include="CodeWF.Toolkit.Files" Version="$(CodeWFToolkitVersion)" />
     <PackageVersion Include="Irihi.Ursa.Themes.Semi" Version="$(UrsaAvaloniaVersion)" />
-    <PackageVersion Include="CodeWF.Avalonia.Lang" Version="$(CodeWFAvaloniaVersion)" />
     <PackageVersion Include="PdfPig" Version="$(PdfPigVersion)" />
     <PackageVersion Include="ReverseMarkdown" Version="$(ReverseMarkdownVersion)" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="$(ReactiveUIAvaloniaVersion)" />
