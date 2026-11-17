@@ -55,7 +55,7 @@
   if (!items.some(function (item) { return item.key === state.key; })) state.key = items[0].key;
 
   var panel = document.createElement('section'); panel.id = 'typography-panel'; panel.className = 'typography-popover'; panel.hidden = true;
-  panel.setAttribute('aria-labelledby', 'typography-title'); panel.setAttribute('role', 'dialog');
+  panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', '正文排版');
   function cardHtml(item) {
     /* 卡片直接渲染该排版的真实效果（名称/说明/示例引用），角标标注"推荐"与"✓ 当前"。 */
     var badge = '<span class="palette-badge" data-card-badge hidden></span>';
