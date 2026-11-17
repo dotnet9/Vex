@@ -28,11 +28,8 @@ public sealed class DocumentService : IDocumentService
 
     public DocumentSnapshot CreateNew()
     {
-        var markdown = $"# {_localizer.Get(VexL.DocumentDefaultHeading)}\n\n{_localizer.Get(VexL.DocumentDefaultBody)}\n";
-
-        var newline = _preferences.DefaultNewline == "CRLF" ? "\r\n" : _preferences.DefaultNewline == "LF" ? "\n" : Environment.NewLine;
-        markdown = markdown.Replace("\n", newline);
-        return new DocumentSnapshot(null, _localizer.Get(VexL.DocumentDefaultFileName), markdown, ResolveEncoding(_preferences.DefaultEncoding), true);
+        // 空文档：不生成默认标题/正文模板，启动与新建窗口都是纯空白。
+        return new DocumentSnapshot(null, _localizer.Get(VexL.DocumentDefaultFileName), string.Empty, ResolveEncoding(_preferences.DefaultEncoding), true);
     }
 
     public async Task<DocumentSnapshot?> OpenAsync()
