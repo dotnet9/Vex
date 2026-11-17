@@ -91,6 +91,9 @@ html[data-outline-numbers="true"] .structure-num { display: inline; flex: 0 0 au
 .pane-head .ph-right { margin-left: auto; font-size: 11px; display: flex; align-items: center; gap: 5px; }
 .source-scroll { position: relative; flex: 1; overflow: auto; }
 .source-scroll textarea,.source-scroll .source-highlight { width: max-content; min-width: 100%; min-height: 100%; border: none; outline: none; resize: none; padding: 22px 24px 60px 54px; color: var(--editor-fg); background: transparent; font: var(--vex-writing-size,var(--writing-size,16px))/1.75 "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace; tab-size: 2; white-space: pre; overflow: hidden; }
+/* textarea 提到镜像层之上：高亮层是 absolute（后绘制压制 static 输入框），caret 属于输入框，
+   被压层时聚焦后光标不可见（用户实测）；输入框背景透明不遮镜像层的彩色文字。 */
+.source-scroll textarea { position: relative; z-index: 1; }
 /* 长行口径（评审定版）：源码默认横向滚动（与原生 WordWrap=false 一致）；偏好「代码自动换行」开启后整区软换行。 */
 html[data-code-wrap="true"] .source-scroll textarea,html[data-code-wrap="true"] .source-scroll .source-highlight { width: 100%; white-space: pre-wrap; }
 /* 行号行高与正文同源计算（字号档 × 1.75），任意渲染密度下都与内容逐行对齐。 */
@@ -112,7 +115,7 @@ html[data-code-wrap="true"] .source-scroll textarea,html[data-code-wrap="true"] 
 .source-highlight .sh-mark { background: var(--accent-soft); }
 .source-highlight .sh-link { color: var(--accent); }
 .source-highlight .sh-url { color: var(--md-marker); text-decoration: underline; }
-.source-highlighted textarea { color: transparent; caret-color: var(--editor-fg); }
+.source-highlighted textarea { color: transparent; caret-color: transparent; }
 .source-highlighted textarea::selection { color: transparent; background: var(--selection); }
 .reading-pane { min-width: 0; display: flex; flex-direction: column; flex: 1; background: var(--bg); }
 .reading-scroll { flex: 1; min-height: 0; overflow: auto; }
@@ -280,7 +283,7 @@ html[data-code-wrap="true"] .source-scroll textarea,html[data-code-wrap="true"] 
 /* Soft Sage · writing comfort and interaction refinements */
 .app-window .md-body{max-width:800px;margin-inline:auto;padding-inline:clamp(22px,5vw,64px)}
 .reading-scroll{scroll-behavior:smooth}
-.source-scroll textarea{line-height:1.82;caret-color:var(--accent)}
+.source-scroll textarea{line-height:1.82;caret-color:transparent}
 #markdown-input:focus{outline:none}
 .sage-reading-progress{width:74px;height:3px;border-radius:9px;background:var(--border);overflow:hidden}
 .sage-reading-progress i{display:block;width:0;height:100%;background:var(--accent)}
@@ -303,3 +306,10 @@ html[data-code-wrap="true"] .source-scroll textarea,html[data-code-wrap="true"] 
 @media(prefers-reduced-motion:reduce){.sage-lightbox,}
 
 /* 源码模式当前行高亮：光标所在行的淡底（--currentline-bg），随滚动/编辑实时跟随。 */
+
+/* 源码自绘光标：Chromium textarea 光标贴行盒顶部（无半行距），与有半行距的文字错位——
+   隐藏原生 caret，在镜像层按等宽度量画一根与文字基线对齐的闪烁竖线（accent 色）。 */
+.source-scroll .source-caret { position: absolute; width: 2px; border-radius: 1px; background: var(--accent); pointer-events: none; animation: vex-caret-blink 1.06s steps(1) infinite; }
+/* z-index 必须高于 textarea(z1)：自绘光标插在容器首位（DOM 先绘制），无 z-index 会被提层的输入框完全盖住——上一轮"光标又没了"的根因。 */
+.source-scroll .source-caret { z-index: 2; }
+@keyframes vex-caret-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }

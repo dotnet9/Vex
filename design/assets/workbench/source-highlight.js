@@ -63,10 +63,54 @@
     /* 当前行：滚动容器里的绝对定位色条（用规则生成的 --currentline-bg 令牌），
        行号同步点亮；横向滚动跟随 textarea 偏移，镜像层保持逐字对齐不受影响。 */
     var currentBar = null;
+    var caretBar = null, caretSerial = 0;
+    /* 自绘光标：Chromium textarea 光标贴行盒顶（无半行距），与文字错位——
+       隐藏原生 caret（caret-color:transparent），按 selection 列位置在镜像层
+       画一根与文字基线对齐的 accent 竖线。等宽度量：CJK 全角=字号，拉丁/半角=0.6em。 */
+    function charWidth(code) {
+      if (code >= 0x2E80 || (code >= 0x1100 && code <= 0x115F) || (code >= 0xFF01 && code <= 0xFF60) || (code >= 0xFFE0 && code <= 0xFFE6)) return 1;
+      return 0.6;
+    }
+    function caretOffsetX(text, offset) {
+      var units = 0;
+      for (var i = 0; i < offset && i < text.length; i++) units += charWidth(text.charCodeAt(i));
+      return units * parseFloat(getComputedStyle(source).fontSize) + (/	/.test(text.slice(0, offset)) ? 0 : 0);
+    }
+    function syncCaretBar() {
+      var scroller = host.parentElement;
+      if (source.readOnly || document.activeElement !== source || !source.getClientRects().length) {
+        if (caretBar) caretBar.hidden = true;
+        return;
+      }
+      if (!caretBar) {
+        caretBar = document.createElement('div');
+        caretBar.className = 'source-caret';
+        caretBar.setAttribute('aria-hidden', 'true');
+        scroller.insertBefore(caretBar, scroller.firstChild);
+      }
+      var style = getComputedStyle(source);
+      var fontSize = parseFloat(style.fontSize);
+      var lineHeight = parseFloat(style.lineHeight) || fontSize * 1.75;
+      var upto = source.value.slice(0, source.selectionStart);
+      var linesAll = upto.split('\n');
+      var line = linesAll.length - 1;
+      var lineText = linesAll[line] || '';
+      var emUnits = 0;
+      for (var i = 0; i < lineText.length; i++) emUnits += charWidth(lineText.charCodeAt(i));
+      var caretX = parseFloat(style.paddingLeft) + emUnits * fontSize - source.scrollLeft;
+      /* -4px 垂直补偿：caret 按字体全高（ascent+descent）绘制，CJK 字形视觉重心偏上——
+         与文字字形块对齐（实测文字顶/底 253/271，未补偿 caret 258/277 偏低 5px）。 */
+      var caretY = parseFloat(style.paddingTop) + line * lineHeight + (lineHeight - fontSize * 1.29) / 2 - 4;
+      caretBar.hidden = source.scrollLeft > caretX + fontSize * 40;
+      caretBar.style.left = caretX + 'px';
+      caretBar.style.top = caretY + 'px';
+      caretBar.style.height = Math.round(fontSize * 1.29) + 'px';
+    }
     function syncCurrent() {
       var scroller = host.parentElement;
       if (!source.value.length || !source.getClientRects().length) {
         if (currentBar) currentBar.hidden = true;
+        if (caretBar) caretBar.hidden = true;
         return;
       }
       if (!currentBar) {
@@ -77,11 +121,16 @@
       }
       var line = source.value.slice(0, source.selectionStart).split('\n').length - 1;
       var style = getComputedStyle(source);
-      var row = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.75;
+      var lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.75;
+      /* Chromium 的 textarea 光标贴行盒顶部（不加半行距），文字却有半行距下沉——
+         色条若按整行高画，光标/文字/色条三者错位。收窄到字形内容高（≈0.72 行高）
+         并加 (行高-条高)/2 垂直补偿，让光标、文字、色条三者视觉聚合。 */
+      var bar = Math.round(lineHeight * 0.72);
       currentBar.hidden = false;
-      currentBar.style.top = (parseFloat(style.paddingTop) + line * row) + 'px';
-      currentBar.style.height = row + 'px';
+      currentBar.style.top = (parseFloat(style.paddingTop) + line * lineHeight + (lineHeight - bar) / 2) + 'px';
+      currentBar.style.height = bar + 'px';
       currentBar.style.transform = 'translateX(' + (-source.scrollLeft) + 'px)';
+      syncCaretBar();
       var numbers = scroller.querySelector('.line-numbers');
       if (numbers && numbers.children.length) {
         var previous = numbers.querySelector('.current');
