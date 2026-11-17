@@ -1,5 +1,6 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
+    <MarkdigVersion>1.6.0</MarkdigVersion>
     <MicrosoftNetTestSdkVersion>18.12.0</MicrosoftNetTestSdkVersion>
     <XunitVersion>4.0.3</XunitVersion>
     <XunitRunnerVisualStudioVersion>4.0.1</XunitRunnerVisualStudioVersion>

@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 应用域层：文档模型与 Markdown 服务、文件服务、消息总线与动作、设置存储、本地化。
+       边界规则：不 using Avalonia 控件/窗口/样式（XAML 标记扩展与 UI 相关类型留在 Vex 主工程）。 -->
+  <PropertyGroup>
+    <TargetFrameworks>$(RepositoryTargetFramework);$(RepositoryWindowsTargetFramework)</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Svg.Skia" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\libs\CodeWF.Toolkit\src\EventBus\CodeWF.Toolkit.EventBus\CodeWF.Toolkit.EventBus.csproj" />
+    <ProjectReference Include="..\..\libs\CodeWF.Toolkit\src\Files\CodeWF.Toolkit.Files\CodeWF.Toolkit.Files.csproj" />
+    <ProjectReference Include="..\..\libs\CodeWF.Toolkit\src\Lang\CodeWF.Toolkit.Lang\CodeWF.Toolkit.Lang.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="I18n\Language.cs">
+      <DependentUpon>Language.tt</DependentUpon>
+    </Compile>
+    <None Update="I18n\Language.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Language.cs</LastGenOutput>
+    </None>
+    <Compile Update="I18n\ReleaseTags.cs">
+      <DependentUpon>ReleaseTags.tt</DependentUpon>
+    </Compile>
+    <None Update="I18n\ReleaseTags.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ReleaseTags.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+</Project>

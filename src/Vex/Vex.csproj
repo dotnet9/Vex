@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <IsPackable>false</IsPackable>
@@ -65,6 +65,7 @@
     <PackageReference Include="Semi.Avalonia" />
     <PackageReference Include="Semi.Avalonia.ColorPicker" />
     <PackageReference Include="System.Reactive" />
+    <ProjectReference Include="..\Vex.Core\Vex.Core.csproj" />
     <ProjectReference Include="..\Vex.Git\Vex.Git.csproj" />
   </ItemGroup>
   <!-- 自研库以 libs/ submodule 源引用（详见 docs/开发与验证.md §2.1）：

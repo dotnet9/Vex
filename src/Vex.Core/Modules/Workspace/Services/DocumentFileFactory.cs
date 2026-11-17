@@ -59,8 +59,8 @@ public sealed class DocumentFileFactory : IDocumentFileFactory
         return age.TotalDays switch
         {
             < 1 => lastWriteTime.ToString("HH:mm", _localizer.Culture),
-            < 2 => _localizer.Get(VexL.DocumentModifiedYesterday),
-            < 8 => _localizer.Format(VexL.DocumentModifiedDaysAgoFormat, (int)age.TotalDays),
+            < 2 => _localizer.Get("Vex.VexL.DocumentModifiedYesterday"),
+            < 8 => _localizer.Format("Vex.VexL.DocumentModifiedDaysAgoFormat", (int)age.TotalDays),
             _ => lastWriteTime.ToString("MMM dd", _localizer.Culture)
         };
     }
