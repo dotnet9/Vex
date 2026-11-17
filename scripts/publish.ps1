@@ -32,7 +32,9 @@ $tfm = if ($RuntimeIdentifier.StartsWith("win-", [StringComparison]::OrdinalIgno
 }
 # 全平台 NativeAOT：完整反射元数据保全（MS DI 反射激活）。
 # ILC 使用单线程与工作站 GC，避免本机编译器在生成类型信息时崩溃；不改变应用 GC。
-$ilcArgs = @("-p:PublishAot=true", "-p:PublishTrimmed=true", "-p:PublishSingleFile=false",
+# PublishAot/Trimmed/SingleFile 由主工程 pubxml 携带（FolderProfile__*.pubxml），不走全局参数：
+# -p: 全局属性会渗到依赖链上的 Vex.Generators（netstandard2.0），触发 NETSDK1207 不支持 AOT。
+$ilcArgs = @(
     "-p:DebugSymbols=true", "-p:DebugType=portable",
     "-p:IlcGenerateCompleteTypeMetadata=true", "-p:IlcTrimMetadata=false", "-p:IlcSingleThreaded=true", "-p:IlcUseServerGc=false",
     "-p:IlcOptimizationPreference=Size", "-p:IlcFoldIdenticalMethodBodies=true")
