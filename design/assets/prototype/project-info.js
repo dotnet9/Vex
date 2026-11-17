@@ -23,6 +23,8 @@ window.VexProject = {
     "Avalonia.Headless",
     "Avalonia.Markup.Xaml.Loader",
     "Svg.Skia",
+    "Markdig",
+    "Microsoft.CodeAnalysis.BannedApiAnalyzers",
     "SkiaSharp",
     "SkiaSharp.NativeAssets.Linux",
     "SkiaSharp.NativeAssets.macOS",

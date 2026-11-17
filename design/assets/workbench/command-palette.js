@@ -188,15 +188,15 @@
         if (typeof VexProto.handleAction === 'function') VexProto.handleAction('insert-mermaid-' + item.key, { label: item.label, action: 'insert-mermaid-' + item.key });
       });
       grid.appendChild(card);
-      // 缩略图：真实渲染各类型的迷你图（render 生成后做 id 前缀隔离，避免同页 24 张 id 撞车）。
+      // 缩略图：真实渲染各类型的迷你图。render 要纯 mermaid 源码（item.source），
+      // snippet 是带 ```mermaid 围栏的插入串；render(id, source) 返回已完成 id 前缀隔离的
+      // svg 字符串，唯一 id 由这里的 serial 保证，避免同页 24 张图 id 撞车。
       var thumbHost = card.querySelector('.dg-thumb');
-      if (window.VexDiagramRendering && VexMermaid.snippet) {
+      if (window.VexDiagramRendering && item.source) {
         var serial = ++thumbSerial;
-        VexDiagramRendering.render('dg-thumb-' + serial, VexMermaid.snippet(item.key)).then(function (entry) {
+        VexDiagramRendering.render('dg-thumb-' + serial, item.source).then(function (svg) {
           if (!thumbHost.isConnected) return;
-          thumbHost.innerHTML = entry.svg.replace(entry.references, function (match, prefix, id) {
-            return prefix + 'dgt' + serial + '-' + id;
-          });
+          thumbHost.innerHTML = svg;
           thumbHost.classList.add('ready');
         }).catch(function () { thumbHost.classList.add('failed'); });
       }
