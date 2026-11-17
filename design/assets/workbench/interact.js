@@ -96,7 +96,10 @@
       { label: '导出', sub: [
         { label: '导出 HTML', action: 'export-html' }, { label: '导出 PDF', action: 'export-pdf' },
         { label: '导出 PNG 长图', toast: 'PNG 长图导出（桌面版操作演示）' },
-        { label: '导出 Word（.docx）', toast: 'Word 导出（桌面版操作演示）' }
+        { label: '导出 Word（.docx）', toast: 'Word 导出（桌面版操作演示）' }, { sep: true },
+        { label: '复制到微信公众号', action: 'copy-wechat' },
+        { label: '复制到知乎', action: 'copy-zhihu' },
+        { label: '复制到稀土掘金', action: 'copy-juejin' }
       ]},
       { label: '导入', sub: [
         { label: '从 HTML 导入…', toast: 'HTML 导入（桌面版操作演示）' },
@@ -112,29 +115,6 @@
       { sep: true }, { label: '从工作区移除…', danger: true, act: 'dlg-delete' },
       { label: '关闭文档', gesture: 'Ctrl+W', action: 'close' }
     ]},
-    { key: 'edit', label: '编辑(E)', items: [
-      { label: '撤销', gesture: 'Ctrl+Z', action: 'undo' }, { label: '重做', gesture: 'Ctrl+Y', action: 'redo' },
-      { sep: true },
-      { label: '剪切', gesture: 'Ctrl+X', action: 'cut' }, { label: '复制', gesture: 'Ctrl+C', action: 'copy' },
-      { label: '粘贴', gesture: 'Ctrl+V', action: 'paste' }, { label: '全选', gesture: 'Ctrl+A', action: 'select-all' },
-      { label: '复制为纯文本', gesture: 'Ctrl+Shift+C', action: 'copy-plain' },
-      { sep: true },
-      { label: '查找…', gesture: 'Ctrl+F', action: 'find' }, { label: '替换…', gesture: 'Ctrl+H', action: 'replace' },
-      { sep: true }, { label: '自动配对输入', check: true, action: 'toggle-pairs' }
-    ]},
-    { key: 'insert', label: '插入(I)', items: [
-      { label: '段落', action: 'insert-paragraph' },
-      { label: '标题 1', action: 'insert-heading1' }, { label: '标题 2', action: 'insert-heading2' }, { label: '标题 3', action: 'insert-heading3' }, { label: '标题 4', action: 'insert-heading4' }, { label: '标题 5', action: 'insert-heading5' }, { label: '标题 6', action: 'insert-heading6' },
-      { label: '无序列表', action: 'insert-list' }, { label: '有序列表', action: 'insert-ordered' }, { label: '任务列表', action: 'insert-task' },
-      { label: '引用', action: 'insert-quote' },
-      { sep: true },
-      { label: '表格', action: 'insert-table', sub:VexElementMenu.tableItems() }, { label: '代码块', action: 'insert-code' },
-      { label: '公式块', action: 'insert-math' }, { label: '水平分割线', action: 'insert-rule' },
-      { label: '链接', action: 'insert-link' }, { label: '图片', action: 'insert-image' },
-      { sep: true },
-      { label: '加粗', action: 'insert-bold' }, { label: '斜体', action: 'insert-italic' },
-      { label: '行内代码', action: 'insert-inline-code' }, { label: '清除格式', action: 'clear-format' }
-    ]},
     { key: 'view', label: '视图(V)', items: [
       { label: '显示行号', check: true, action: 'toggle-lines' }, { label: '显示词数', check: true, action: 'toggle-word-count' },
       { label: '显示文档水印', check: true, action: 'toggle-watermark' }, { label: '界面动效', check: true, action: 'toggle-motion' },
@@ -142,43 +122,23 @@
       { label: '演示模式', gesture: 'F6', action: 'presentation' },
       { label: '专注模式', gesture: 'F8', check: true, action: 'toggle-focus' }, { label: '打字机模式', check: true, action: 'toggle-typewriter' },
       { sep: true },
+      { label: '自动配对输入', check: true, action: 'toggle-pairs' },
+      { sep: true },
       { label: '全屏', gesture: 'F11', check: true, action: 'toggle-fullscreen' },
       { label: '保持窗口在最前', check: true, action: 'toggle-topmost' }
     ]},
-    { key: 'tools', label: '工具(T)', items: [
-      { label: '刷新内容', action: 'refresh' }, { sep: true },
-      { label: '复制到微信公众号', action: 'copy-wechat' },
-      { label: '复制到知乎', action: 'copy-zhihu' },
-      { label: '复制到稀土掘金', action: 'copy-juejin' }
-    ]},
     { key: 'help', label: '帮助(H)', items: [
+      { label: '命令面板', gesture: 'F1', action: 'command-palette' }, { sep: true },
       { label: '新手引导', action: 'guide' }, { label: '更新日志', act: 'dlg-doc', arg: '更新日志' },
       { label: '鸣谢', act: 'dlg-doc', arg: '鸣谢' }, { sep: true },
       { label: '官方网站', toast: '官方网站：codewf.com' }, { label: '反馈', toast: '反馈入口：github.com/dotnet9/Vex/issues' },
       { label: '检查更新', act: 'dlg-update' }, { label: '关于 Vex', act: 'dlg-about' }
     ]}
   ];
-  var originalInsert = MENUS[2].items;
-  var paragraphItems = originalInsert.filter(function (item) { return item.action && !['insert-link','insert-image','insert-bold','insert-italic','insert-inline-code','clear-format'].includes(item.action); });
-  var paragraphItem = function (action) { return paragraphItems.find(function (item) { return item.action === action; }); };
-  MENUS[2] = { key:'paragraph', label:'段落(P)', items:[
-    paragraphItem('insert-paragraph'),
-    paragraphItem('insert-heading1'), paragraphItem('insert-heading2'), paragraphItem('insert-heading3'),
-    paragraphItem('insert-heading4'), paragraphItem('insert-heading5'), paragraphItem('insert-heading6'), {sep:true},
-    paragraphItem('insert-list'), paragraphItem('insert-ordered'), paragraphItem('insert-task'), paragraphItem('insert-quote'), {sep:true},
-    paragraphItem('insert-table'), paragraphItem('insert-code'), paragraphItem('insert-math'),
-    {label:'Mermaid 图表',sub:VexMermaid.items.map(function (item) {return {label:item.label,action:'insert-mermaid-'+item.key};})},
-    {sep:true}, paragraphItem('insert-rule'), {label:'脚注',action:'insert-footnote'}
-  ]};
-  /* 评审修订：格式菜单补齐快捷键标注（Typora 惯例，workbench 全局键盘分支同源实现）。 */
-  MENUS.splice(3,0,{key:'format',label:'格式(O)',items:[{label:'加粗',gesture:'Ctrl+B',action:'insert-bold'},{label:'斜体',gesture:'Ctrl+I',action:'insert-italic'},{label:'删除线',gesture:'Ctrl+Shift+5',action:'insert-strike'},{label:'高亮',gesture:'Ctrl+Shift+H',action:'insert-highlight'},{label:'上标',gesture:'Ctrl+Shift+=',action:'insert-superscript'},{label:'下标',gesture:'Ctrl+Shift+-',action:'insert-subscript'},{label:'行内代码',gesture:'Ctrl+Shift+`',action:'insert-inline-code'},{sep:true},{label:'链接',gesture:'Ctrl+K',action:'insert-link'},{label:'图片',action:'insert-image'},{sep:true},{label:'清除格式',action:'clear-format'}]});
-  var toolsMenu = MENUS.find(function (menu) { return menu.key === 'tools'; });
-  /* 「工具」不再单列：整块展开并入「文件」的导出/导入之后，不折叠成子菜单。
-     偏好设置/MCP 设置/MCP 审计 只保留图标栏设置入口，菜单不再重复。 */
-  var fileItems = MENUS.find(function (menu) { return menu.key === 'file'; }).items;
-  var toolsIndex = MENUS.indexOf(toolsMenu);
-  Array.prototype.splice.apply(fileItems, [fileItems.findIndex(function (item) { return item.action === 'print'; }) + 1, 0, { sep: true }].concat(toolsMenu.items));
-  MENUS.splice(toolsIndex, 1);
+  /* 菜单收敛（评审决定）：编辑/插入/段落/格式/工具 五个菜单退役——
+     插入与格式全部下沉到常驻写作工具带（Vex.html #format-toolbar），撤销重做/查找走快捷键与工具带，
+     平台复制并入「文件→导出」子菜单，自动配对归入「视图」；全部命令保留命令面板（F1）检索。
+     偏好设置/MCP 设置 只保留图标栏设置入口，菜单不再重复。 */
   if (new URLSearchParams(location.search).get('platform') === 'macos') MENUS.unshift({key:'app',label:'Vex',items:[{label:'关于 Vex',act:'dlg-about'},{label:'偏好设置…',gesture:'⌘,',action:'preferences'},{sep:true},{label:'退出 Vex',gesture:'⌘Q',action:'exit-app'}]});
   VexProto.menuData = MENUS;
   var menuNav = document.querySelector('.tb-menu');

@@ -315,6 +315,11 @@ body {
 
 .palette-preview b { font-size: 13px; line-height: 1; }
 .palette-preview em { width: 20px; height: 4px; border-radius: 2px; background: var(--preview-accent); }
+/* 迷你文档样张：Aa 之后两行正文（墨色弱化）+ 右侧 accent 标记，预览即文章缩影。 */
+.palette-preview .pv-lines { display: flex; flex: 1; flex-direction: column; gap: 3px; }
+.palette-preview .pv-lines em { width: 100%; height: 4px; background: color-mix(in srgb, var(--preview-ink) 38%, transparent); }
+.palette-preview .pv-line-2 { width: 64%; }
+.palette-preview em.pv-accent { flex: none; width: 14px; }
 
 #edit-options { position: relative; }
 .format-overflow {

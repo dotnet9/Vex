@@ -104,7 +104,7 @@
     if(!grid)return;
     grid.innerHTML=palettes.map(function(item){
       var info=VexPalettes.find(function(p){return p.key===item[0];});
-      var preview='<span class="palette-preview" aria-hidden="true" style="--preview-panel:light-dark('+info.panel+','+info.darkPanel+');--preview-paper:light-dark('+info.paper+','+info.darkPaper+');--preview-ink:light-dark('+info.fg+','+info.darkFg+');--preview-accent:light-dark('+info.light+','+info.dark+')"><i></i><span><b>Aa</b><em></em></span></span>';
+      var preview='<span class="palette-preview" aria-hidden="true" style="--preview-panel:light-dark('+info.panel+','+info.darkPanel+');--preview-paper:light-dark('+info.paper+','+info.darkPaper+');--preview-ink:light-dark('+info.fg+','+info.darkFg+');--preview-accent:light-dark('+info.light+','+info.dark+')"><i></i><span><b>Aa</b><span class="pv-lines"><em></em><em class="pv-line-2"></em></span><em class="pv-accent"></em></span></span>';
       var card='<button type="button" data-palette="'+item[0]+'" aria-label="'+VexEsc(item[1])+'">'+(info.recommended?'<em class="palette-badge">推荐</em>':'')+preview+'<span class="palette-label">'+VexEsc(item[1])+'</span></button>';
       if(item[0]===CUSTOM)card='<div class="palette-wrap">'+card+'<span class="palette-card-tools"><button type="button" data-edit-palette title="编辑此配色" aria-label="编辑自定义配色">✎</button><button type="button" data-delete-palette title="删除此配色" aria-label="删除自定义配色">×</button></span></div>';
       return card;

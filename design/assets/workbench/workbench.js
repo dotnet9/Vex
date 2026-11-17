@@ -1013,14 +1013,27 @@
     var query = $('outline-filter').value.trim().toLowerCase();
     var maxLevel = outlineFolded ? 2 : 6;
     var headings = state.nodes.filter(function (node) { return node.kind === 'heading' && node.level > 0 && node.level <= maxLevel && node.text.toLowerCase().includes(query); });
+    /* 大纲微标注：每节字数与阅读时长（400 字/分钟，不足一分钟只标字数）。 */
+    var sectionStarts = [], sectionOffset = 0;
+    input.value.split('\n').forEach(function (lineText) { sectionStarts.push(sectionOffset); sectionOffset += lineText.length + 1; });
+    function sectionChars(node, index, list) {
+      var start = sectionStarts[node.line - 1]; if (start === undefined) return 0;
+      var end = input.value.length;
+      for (var next = index + 1; next < list.length; next++) {
+        if (list[next].level <= node.level) { var bound = sectionStarts[list[next].line - 1]; if (bound !== undefined) end = bound; break; }
+      }
+      return Math.max(0, end - start);
+    }
     var counters = [0, 0, 0, 0, 0, 0];
-    headings.forEach(function (node) {
+    headings.forEach(function (node, index) {
       counters[node.level - 1]++; for (var i = node.level; i < 6; i++) counters[i] = 0;
       var number = counters.slice(0, node.level).join('.');
+      var chars = sectionChars(node, index, headings);
+      var minutes = Math.round(chars / 400);
       var button = document.createElement('button'); button.className = 'structure-item'; button.dataset.level = String(node.level);
       button.dataset.sourceLine = node.line;
       button.style.paddingLeft = (Math.max(0, node.level - 1) * 12) + 'px';
-      button.innerHTML = '<span class="structure-num">' + number + '</span><span class="structure-text"></span>';
+      button.innerHTML = '<span class="structure-num">' + number + '</span><span class="structure-text"></span><span class="structure-meta">' + chars + ' 字' + (minutes >= 1 ? ' · ' + minutes + ' 分钟' : '') + '</span>';
       button.querySelector('.structure-text').textContent = node.text;
       button.onclick = function () {
         if (state.view === 'mindmap') {

@@ -1,0 +1,57 @@
+/* 命令面板（F1）+ Mermaid 图鉴选择器 + 视图徽标 / MCP 徽标 + 写作工具带补样。
+   全部令牌走 design-system 既有变量；accent 只出现在可交互与选中态（配色范围规则 §1）。 */
+
+/* ---------- 命令面板 ---------- */
+.cp-backdrop { position: fixed; inset: 0; z-index: 2400; display: flex; align-items: flex-start; justify-content: center; padding: 96px 24px 24px; background: var(--scrim, color-mix(in srgb, var(--fg) 26%, transparent)); }
+.cp-panel { width: min(560px, 100%); max-height: min(520px, calc(100vh - 160px)); display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--vex-radius-lg, 12px); box-shadow: 0 16px 42px rgba(0, 0, 0, .18); overflow: hidden; }
+.cp-input { flex: none; border: 0; outline: none; padding: 14px 16px; font-size: 14px; color: var(--fg); background: transparent; border-bottom: 1px solid var(--border); }
+.cp-input::placeholder { color: var(--muted); }
+.cp-list { flex: 1; min-height: 0; overflow-y: auto; padding: 6px; }
+.cp-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--vex-radius-xs, 6px); cursor: pointer; color: var(--fg); font-size: 13px; }
+.cp-item.active { background: var(--accent-soft); color: var(--accent); }
+.cp-item .cp-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-item .cp-group { flex: none; font-size: 11px; color: var(--muted); }
+.cp-item.active .cp-group { color: var(--accent); opacity: .8; }
+.cp-item .cp-gesture { flex: none; font-size: 11px; color: var(--muted); font-family: var(--vex-mono, Consolas, monospace); }
+.cp-empty { padding: 18px 10px; text-align: center; color: var(--muted); font-size: 12px; }
+.cp-foot { flex: none; display: flex; gap: 14px; padding: 8px 14px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+
+/* ---------- Mermaid 图鉴选择器 ---------- */
+.dg-backdrop { align-items: center; padding: 24px; }
+.dg-panel { width: min(720px, 100%); max-height: min(620px, calc(100vh - 96px)); display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--vex-radius-lg, 12px); box-shadow: 0 16px 42px rgba(0, 0, 0, .18); overflow: hidden; }
+.dg-head { display: flex; align-items: baseline; gap: 10px; padding: 16px 18px 10px; border-bottom: 1px solid var(--border); }
+.dg-head b { font-size: 15px; color: var(--fg); }
+.dg-head small { color: var(--muted); font-size: 12px; }
+.dg-close { margin-left: auto; }
+.dg-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px 16px 16px; }
+.dg-group { grid-column: 1 / -1; margin: 8px 0 2px; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .04em; }
+.dg-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--vex-radius-sm, 8px); cursor: pointer; color: var(--fg); font-size: 12px; transition: border-color var(--vex-fast, .15s), background var(--vex-fast, .15s); }
+.dg-card:hover { border-color: var(--accent); background: var(--accent-soft); }
+.dg-card .ico { width: 20px; height: 20px; color: var(--accent); }
+.dg-card .dg-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+@media (max-width: 900px) { .dg-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* ---------- 写作工具带补样：标题档位下拉 ---------- */
+.band-heading { height: 26px; padding: 0 6px; border: 1px solid var(--control-border, var(--border)); border-radius: var(--vex-radius-xs, 6px); background: transparent; color: var(--fg); font-size: 12px; cursor: pointer; }
+.band-heading:hover { border-color: var(--accent); }
+.band-heading:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- 视图徽标（字数左侧） ---------- */
+.document-tools .sb-layout { padding: 3px 8px; border-radius: 999px; background: var(--panel); border: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+
+/* ---------- MCP 服务徽标（导航栏设置图标右上角） ---------- */
+.rail-item { position: relative; }
+.rail-item .mcp-badge { position: absolute; top: 7px; right: 14px; width: 7px; height: 7px; border-radius: 50%; background: var(--success, #15803D); box-shadow: 0 0 0 3px color-mix(in srgb, var(--success, #15803D) 16%, transparent); }
+
+/* ---------- 演示 / 专注模式的 HUD 化：浮件收窄、字数与徽标弱化 ---------- */
+.presentation-mode .document-tools, .focus-mode .document-tools { opacity: .45; transition: opacity var(--vex-fast, .15s); }
+.presentation-mode .document-tools:hover, .focus-mode .document-tools:hover { opacity: 1; }
+.presentation-mode .sb-layout, .focus-mode .sb-layout { display: none; }
+
+/* ---------- 大纲微标注：每节字数与阅读时长 ---------- */
+.structure-item .structure-meta { margin-left: auto; flex: none; font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.structure-item:hover .structure-meta, .structure-item.on .structure-meta { color: var(--accent); opacity: .85; }
+
+/* ---------- 窄侧栏降级：目录标签让位文件名（容器查询，随拖宽自动恢复） ---------- */
+.sidebar { container-type: inline-size; }
+@container (max-width: 320px) { .file-folder-tag { display: none; } }

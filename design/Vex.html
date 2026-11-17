@@ -31,7 +31,7 @@
 <script src="assets/prototype/palette-rules.js?v=20261030a"></script><script src="assets/generated/palette-rules-data.js?v=20261030a"></script><script src="assets/workbench/table-tools.js?v=20261030a"></script><script src="assets/workbench/theme.js?v=20261030a"></script>
 <script src="assets/vendor/d3-hierarchy/d3-hierarchy.min.js?v=20261030a"></script><script src="assets/workbench/map-layout.js?v=20261030a"></script><script src="assets/workbench/map-appearance.js?v=20261030a"></script><script src="assets/workbench/document-window.js?v=20261030a"></script><script src="assets/workbench/exit-dialog.js?v=20261030a"></script>
 <script src="assets/workbench/overlay.js?v=20261030a"></script><script src="assets/workbench/mermaid-catalog.js?v=20261030a"></script><script src="assets/generated/documents-data.js?v=20261030a"></script><script src="assets/workbench/watermark.js?v=20261030a"></script><script src="assets/workbench/preferences.js?v=20261030a"></script><script src="assets/workbench/tour-placement.js?v=20261030a"></script><script src="assets/workbench/diagram-editor.js?v=20261030a"></script>
-<link rel="stylesheet" href="assets/prototype/table-layout.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/diagram-layout.css?v=20261030a"><link rel="stylesheet" href="assets/prototype/design-system.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/professional.css?v=20261031a"><link rel="stylesheet" href="assets/workbench/git-templates.css?v=20261115e"></head>
+<link rel="stylesheet" href="assets/prototype/table-layout.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/diagram-layout.css?v=20261030a"><link rel="stylesheet" href="assets/prototype/design-system.css?v=20261030a"><link rel="stylesheet" href="assets/workbench/professional.css?v=20261031a"><link rel="stylesheet" href="assets/workbench/git-templates.css?v=20261115e"><link rel="stylesheet" href="assets/workbench/command-palette.css?v=20261117a"></head>
 <body data-page="index">
 <svg xmlns="http://www.w3.org/2000/svg" class="hidden-sprite" aria-hidden="true"><defs>
   <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
@@ -44,6 +44,13 @@
   <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
   <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
   <symbol id="i-bold" viewBox="0 0 24 24"><path d="M6 4h7a4 4 0 0 1 0 8H6zm0 8h8a4 4 0 0 1 0 8H6z"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/></symbol>
+  <symbol id="i-strike" viewBox="0 0 24 24"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" y1="12" x2="20" y2="12"/></symbol>
+  <symbol id="i-highlight" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4l8 8Z"/></symbol>
+  <symbol id="i-math" viewBox="0 0 24 24"><path d="M18 7V4H6l6 8-6 8h12v-3"/></symbol>
+  <symbol id="i-rule" viewBox="0 0 24 24"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="7" x2="9" y2="7"/><line x1="15" y1="17" x2="20" y2="17"/></symbol>
+  <symbol id="i-footnote" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 15h8M12 12v6"/></symbol>
   <symbol id="i-italic" viewBox="0 0 24 24"><path d="M10 4h8M6 20h8M14 4 10 20"/></symbol>
   <symbol id="i-quote" viewBox="0 0 24 24"><path d="M5 11h5v8H5zm9 0h5v8h-5zM5 11a5 5 0 0 1 5-5M14 11a5 5 0 0 1 5-5"/></symbol>
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></symbol>
@@ -94,7 +101,7 @@
   <header class="titlebar">
     <div class="brand" data-l10n-tip="维刻 Vex · 写下想法，看见脉络。" title="维刻 Vex · 写下想法，看见脉络。"><img src="assets/vex-logo.svg?v=20261030a" alt="">Vex</div>
     <button class="caption-btn titlebar-toggle" id="sidebar-toggle" data-action="toggle-sidebar" data-l10n-name="收起文件导航" title="收起文件导航" aria-label="收起文件导航" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-rail-collapse"/></svg></button>
-    <nav class="tb-menu" data-l10n-label="应用菜单" aria-label="应用菜单"><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">文件(F)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">编辑(E)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">段落(P)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">格式(O)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">视图(V)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">帮助(H)</button></nav>
+    <nav class="tb-menu" data-l10n-label="应用菜单" aria-label="应用菜单"><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">文件(F)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">视图(V)</button><button class="tb-menuitem" type="button" aria-haspopup="true" aria-expanded="false">帮助(H)</button></nav>
     <!-- 更新药丸：发现新版常驻标题栏；下载中显进度、就绪后提示重启；气泡与 layer-update 共用 about-update.js 数据源 -->
     <div class="upd-pill-wrap" id="upd-pill-wrap" hidden>
       <button class="upd-pill" id="upd-pill" type="button" title="发现新版本，点击查看更新日志">更新</button>
@@ -144,26 +151,43 @@
       <div class="workspace-main">
         <div class="find-strip" id="findbar" hidden><input class="input" id="find-input" data-l10n-placeholder="查找当前正文…" data-l10n-label="查找当前正文" placeholder="查找当前正文…" aria-label="查找当前正文" title="Enter 下一个 · Shift+Enter 上一个 · Esc 关闭"><input class="input" id="replace-input" data-l10n-placeholder="替换为" data-l10n-label="替换内容" placeholder="替换为" aria-label="替换内容" hidden><button class="btn sm" data-action="find-prev">上一个</button><button class="btn sm" data-action="find-next">下一个</button><button class="btn sm" data-action="replace-all" id="replace-all" hidden>全部替换</button><small id="find-count" role="status" aria-live="polite" hidden></small><button class="opt-toggle" data-action="find-regex" data-find-option="regex" data-l10n-title="FindBarRegex" title="正则匹配" aria-label="正则匹配" aria-pressed="false">.*</button><button class="opt-toggle" data-action="find-case" data-find-option="case" data-l10n-title="FindBarMatchCase" title="区分大小写" aria-label="区分大小写" aria-pressed="false">Aa</button><button class="opt-toggle" data-action="find-word" data-find-option="word" data-l10n-title="FindBarWholeWord" title="整词匹配" aria-label="整词匹配" aria-pressed="false">W</button><button class="icon-button" data-action="close-find" data-l10n-name="关闭查找" title="关闭查找" aria-label="关闭查找"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
         <div class="edit-options" id="edit-options">
-          <div class="format-toolbar" id="format-toolbar" role="toolbar" data-l10n-label="常用格式" aria-label="常用格式">
-            <button class="format-button" data-action="insert-bold" data-l10n-title="Bold" aria-label="加粗" title="加粗"><svg class="ico"><use href="#i-bold"/></svg></button>
-            <button class="format-button" data-action="insert-italic" data-l10n-title="Italic" aria-label="斜体" title="斜体"><svg class="ico"><use href="#i-italic"/></svg></button>
+          <div class="format-toolbar" id="format-toolbar" role="toolbar" aria-label="写作工具带">
+            <button class="format-button" data-action="undo" data-l10n-title="Undo" aria-label="撤销" title="撤销 (Ctrl+Z)"><svg class="ico"><use href="#i-undo"/></svg></button>
+            <button class="format-button" data-action="redo" data-l10n-title="Redo" aria-label="重做" title="重做 (Ctrl+Y)"><svg class="ico"><use href="#i-redo"/></svg></button>
             <span class="format-divider"></span>
-            <button class="format-button" data-action="insert-heading2" data-l10n-title="Heading2" aria-label="标题" title="标题"><svg class="ico"><use href="#i-heading"/></svg></button>
+            <button class="format-button" data-action="insert-bold" data-l10n-title="Bold" aria-label="加粗" title="加粗 (Ctrl+B)"><svg class="ico"><use href="#i-bold"/></svg></button>
+            <button class="format-button" data-action="insert-italic" data-l10n-title="Italic" aria-label="斜体" title="斜体 (Ctrl+I)"><svg class="ico"><use href="#i-italic"/></svg></button>
+            <button class="format-button" data-action="insert-strike" aria-label="删除线" title="删除线 (Ctrl+Shift+5)"><svg class="ico"><use href="#i-strike"/></svg></button>
+            <button class="format-button" data-action="insert-highlight" aria-label="高亮" title="高亮 (Ctrl+Shift+H)"><svg class="ico"><use href="#i-highlight"/></svg></button>
+            <button class="format-button" data-action="insert-inline-code" data-l10n-title="InlineCode" aria-label="行内代码" title="行内代码"><svg class="ico"><use href="#i-inline-code"/></svg></button>
+            <span class="format-divider"></span>
+            <select class="band-heading" id="band-heading" aria-label="段落结构" title="段落结构：正文与标题档位">
+              <option value="insert-paragraph" selected>正文</option>
+              <option value="insert-heading1">标题 1</option>
+              <option value="insert-heading2">标题 2</option>
+              <option value="insert-heading3">标题 3</option>
+              <option value="insert-heading4">标题 4</option>
+              <option value="insert-heading5">标题 5</option>
+              <option value="insert-heading6">标题 6</option>
+            </select>
             <button class="format-button" data-action="insert-quote" data-l10n-title="Quote" aria-label="引用" title="引用"><svg class="ico"><use href="#i-quote"/></svg></button>
             <button class="format-button" data-action="insert-list" data-l10n-title="UnorderedList" aria-label="无序列表" title="无序列表"><svg class="ico"><use href="#i-list"/></svg></button>
             <button class="format-button" data-action="insert-ordered" data-l10n-title="OrderedList" aria-label="有序列表" title="有序列表"><svg class="ico"><use href="#i-list-number"/></svg></button>
             <button class="format-button" data-action="insert-task" data-l10n-title="TaskList" aria-label="任务列表" title="任务列表"><svg class="ico"><use href="#i-check"/></svg></button>
             <span class="format-divider"></span>
-            <button class="format-button" data-action="insert-link" data-l10n-title="Link" aria-label="链接" title="链接"><svg class="ico"><use href="#i-link"/></svg></button>
+            <button class="format-button" data-action="insert-link" data-l10n-title="Link" aria-label="链接" title="链接 (Ctrl+K)"><svg class="ico"><use href="#i-link"/></svg></button>
             <button class="format-button" data-action="insert-image" data-l10n-title="Image" aria-label="图片" title="图片"><svg class="ico"><use href="#i-image"/></svg></button>
-            <button class="format-button" data-action="insert-inline-code" data-l10n-title="InlineCode" aria-label="行内代码" title="行内代码"><svg class="ico"><use href="#i-inline-code"/></svg></button>
-            <button class="format-button" data-action="insert-code" data-l10n-title="CodeBlock" aria-label="代码块" title="代码块"><svg class="ico"><use href="#i-code-block"/></svg></button>
             <button class="format-button" data-action="insert-table" data-l10n-title="Table" aria-label="表格" title="表格"><svg class="ico"><use href="#i-grid"/></svg></button>
+            <button class="format-button" data-action="insert-code" data-l10n-title="CodeBlock" aria-label="代码块" title="代码块"><svg class="ico"><use href="#i-code-block"/></svg></button>
+            <button class="format-button" data-action="insert-math" data-l10n-title="MathBlock" aria-label="公式块" title="公式块"><svg class="ico"><use href="#i-math"/></svg></button>
+            <button class="format-button" data-action="insert-mermaid-picker" aria-label="Mermaid 图表" title="Mermaid 图表（24 类图鉴）"><svg class="ico"><use href="#i-map"/></svg></button>
+            <button class="format-button" data-action="insert-rule" aria-label="分割线" title="分割线"><svg class="ico"><use href="#i-rule"/></svg></button>
+            <button class="format-button" data-action="insert-footnote" aria-label="脚注" title="脚注"><svg class="ico"><use href="#i-footnote"/></svg></button>
             <span class="format-divider"></span>
             <button class="format-button span-tool" id="span-size-button" title="字号" aria-label="字号" aria-haspopup="menu"><span class="span-glyph">A</span><svg class="ico span-chevron"><use href="#i-chevron-down"/></svg></button>
             <button class="format-button span-tool" id="span-fg-button" title="文字颜色" aria-label="文字颜色" aria-haspopup="menu"><span class="span-glyph fg">A</span><svg class="ico span-chevron"><use href="#i-chevron-down"/></svg></button>
             <button class="format-button span-tool" id="span-bg-button" title="背景颜色" aria-label="背景颜色" aria-haspopup="menu"><span class="span-glyph bg">A</span><svg class="ico span-chevron"><use href="#i-chevron-down"/></svg></button>
-            
+
           </div>
 
           <button class="toolbar-button typography-trigger" data-action="typography" data-l10n-tip="正文排版" title="正文排版">排版 <span data-typography-label>简</span><svg class="ico vex-expand-icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
@@ -502,7 +526,7 @@
 <input type="file" id="open-file-input" accept=".md,.markdown,.mdown,.txt" hidden>
 <input type="file" id="open-folder-input" accept=".md,.markdown,.mdown,.txt" webkitdirectory directory multiple hidden>
 <script src="assets/workbench/vex-data.js?v=20261030a"></script><script src="assets/workbench/localization.js?v=20261030a"></script><script src="assets/prototype/project-info.js?v=20261030a"></script><script src="assets/workbench/typography.js?v=20261030a"></script><script src="assets/workbench/interact.js?v=20261030a"></script><script src="assets/workbench/mindmap.js?v=20261030a"></script><script src="assets/workbench/code-fence.js?v=20261030a"></script><script src="assets/vendor/katex/katex.min.js?v=20261030a"></script><script src="assets/vendor/katex/mhchem.min.js?v=20261030a"></script><script src="assets/vendor/mermaid/mermaid.min.js?v=20261030a"></script><script src="assets/workbench/diagram-rendering.js?v=20261030a"></script><script src="assets/workbench/rendering.js?v=20261030a"></script><script src="assets/workbench/samples.js?v=20261030a"></script><script src="assets/workbench/typewriter.js?v=20261030a"></script><script src="assets/workbench/instant-editor.js?v=20261030a"></script><script src="assets/workbench/source-highlight.js?v=20261030a"></script><script src="assets/workbench/workbench.js?v=20261030a"></script><script src="assets/workbench/guide.js?v=20261030a"></script>
-<script src="assets/workbench/about-update.js?v=20261104a"></script><script src="assets/workbench/workspace.js?v=20261030a"></script><script src="assets/workbench/chapter-editor.js?v=20261030a"></script><script src="assets/workbench/usability.js?v=20261030a"></script><script src="assets/workbench/workspace-chrome.js?v=20261030a"></script><script src="assets/workbench/workflows.js?v=20261030a"></script><script src="assets/workbench/preview.js?v=20261030a"></script>
+<script src="assets/workbench/about-update.js?v=20261104a"></script><script src="assets/workbench/workspace.js?v=20261030a"></script><script src="assets/workbench/chapter-editor.js?v=20261030a"></script><script src="assets/workbench/usability.js?v=20261030a"></script><script src="assets/workbench/workspace-chrome.js?v=20261030a"></script><script src="assets/workbench/workflows.js?v=20261030a"></script><script src="assets/workbench/preview.js?v=20261030a"></script><script src="assets/workbench/command-palette.js?v=20261117a"></script>
 <script src="assets/workbench/template-center.js?v=20261115f"></script><script src="assets/workbench/git-panel.js?v=20261115f"></script></body></html>
 </body>
 </html>

@@ -326,8 +326,9 @@ html.js .appearance-choices .palette-card-tools{position:absolute;top:5px;right:
 .app-window{border-radius:var(--vex-radius-lg);box-shadow:0 8px 32px color-mix(in srgb,var(--fg) 7%,transparent)}
 .app-window>.titlebar{border-top:0;border-bottom-color:color-mix(in srgb,var(--border) 65%,transparent)}
 .titlebar{position:relative}
-.titlebar-document{flex:none;flex-direction:row;gap:8px;max-width:300px;min-width:0;justify-content:flex-start;align-items:center;white-space:nowrap}
-.document-label{min-width:0;display:flex}.document-title{font-size:var(--fs-caption,12px);font-weight:600}#document-save-status{font-size:var(--fs-caption,12px);color:var(--muted)}
+.titlebar-document{flex:1;flex-direction:row;gap:8px;max-width:none;min-width:0;justify-content:center;align-items:center;white-space:nowrap}
+.document-label{min-width:0;display:flex}.document-title{font-size:var(--fs-caption,13px);font-weight:600;letter-spacing:.01em}#document-save-status{font-size:var(--fs-caption,12px);color:var(--muted)}
+@media(max-width:1100px){.titlebar-document{flex:none;max-width:300px;justify-content:flex-start}}
 .work-actions{min-width:0;margin:0;gap:var(--gap-sm,6px);justify-self:end;display:flex}.work-actions .guide-launch{display:none}
 .workspace-layout-button{height:var(--control-h-md,32px);max-width:240px;border-color:transparent;background:transparent;border-radius:var(--vex-radius-sm);font-weight:600;gap:var(--gap-sm,6px)}
 .workspace-layout-button>.ico:first-child{width:14px;height:14px;color:var(--muted)}.workspace-layout-button:hover,.workspace-layout-button[aria-expanded=true]{border-color:transparent;background:var(--hover);color:var(--fg)}
