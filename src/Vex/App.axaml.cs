@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -40,11 +40,11 @@ public partial class App : Application
         CodeWF.Avalonia.Markdown.Mermaid.CodeWFMarkdownMermaidExtensions.EnsureRegistered();
         CodeWF.Avalonia.Markdown.CodeWFMarkdownHtmlExtensions.UseHtmlTables();
         AvaloniaXamlLoader.Load(this);
-        var langPlugin = new JsonLangPlugin
-        {
-            ResourceFolder = ResolveI18nFolder()
-        };
+        var langPlugin = new JsonLangPlugin();
         I18nManager.Instance.Register(langPlugin, new CultureInfo("zh-CN"), out _);
+        // 本地化 json 内嵌在各程序集（Vex 主工程 + Vex.Core），AddResource 扫嵌入资源合并键池；
+        // 宿主输出目录文件仍可覆盖（ApplyFileOverrides 优先级最高），无目录时纯嵌入生效。
+        I18nManager.Instance.AddResource(typeof(App).Assembly, typeof(Vex.Core.Messaging.ShellActionKind).Assembly);
         I18nManager.Instance.CultureChanged += OnCultureChanged;
         ApplyControlCulture();
 
@@ -166,21 +166,6 @@ public partial class App : Application
         themeService.ApplyTheme(option, palette);
     }
 
-    /// <summary>
-    /// 语言包目录：常规部署在 BaseDirectory/I18n；macOS .app 打包会把
-    /// 可执行文件以外的内容挪进 Contents/Resources，这里按存在性探测。
-    /// </summary>
-    private static string ResolveI18nFolder()
-    {
-        var baseDirectory = AppContext.BaseDirectory;
-        var candidates = new[]
-        {
-            Path.Combine(baseDirectory, "I18n"),
-            Path.Combine(baseDirectory, "..", "Resources", "I18n"),
-        };
-        return candidates.FirstOrDefault(Directory.Exists)
-            ?? Path.Combine(baseDirectory, "I18n");
-    }
     private static void OnCultureChanged(object? sender, EventArgs args)
     {
         if (Dispatcher.UIThread.CheckAccess()) ApplyControlCulture();

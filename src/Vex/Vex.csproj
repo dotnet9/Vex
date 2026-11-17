@@ -98,9 +98,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ReleaseTags.cs</LastGenOutput>
     </None>
-    <None Update="I18n\*.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>I18n\Vex\%(Filename)%(Extension)</TargetPath>
-    </None>
+    <EmbeddedResource Include="I18n\*.json" />
   </ItemGroup>
 </Project>
