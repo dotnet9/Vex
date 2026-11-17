@@ -1,0 +1,12 @@
+# Banned API 清单（BannedApiAnalyzers：命中即编译错误，写明替代方案）。
+# 参考 WalletWasabi 同名机制；按 Vex 场景渐进补充。
+#
+# 语法: https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md
+
+# 同步阻塞等待异步任务：UI 线程死锁风险，改用 await 或 GetAwaiter().GetResult()（仅限非 UI 上下文）。
+M:System.Threading.Tasks.Task.Result;不要在 UI 线程同步阻塞等待异步任务；改用 await。
+M:System.Threading.Tasks.Task.Wait();不要在 UI 线程同步阻塞等待异步任务；改用 await。
+M:System.Threading.Tasks.Task`1.Wait();不要在 UI 线程同步阻塞等待异步任务；改用 await。
+
+# DateTime.Now 依赖本地时区且非单调——时间戳/去重场景用 DateTimeOffset.UtcNow。
+M:System.DateTime.get_Now;时间戳/去重场景用 DateTime.UtcNow 或 DateTimeOffset.UtcNow。

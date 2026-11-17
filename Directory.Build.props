@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="build/ProjectDefaults.props" />
   <PropertyGroup>
     <!-- 自研库（libs/CodeWF.Avalonia、libs/CodeWF.Toolkit）以 git submodule 源引用，Vex 不消费其 NuGet 包；
@@ -28,5 +28,16 @@
     <Copyright>Copyright © 2026 Vex(维刻) - CodeWF(码坊) https://codewf.com</Copyright>
     <ImplicitUsings>enable</ImplicitUsings>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- 参考 WalletWasabi：传递依赖漏洞全量审计（level=low 起报，只警告不阻断构建）。 -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'Vex.Generators'">
+    <!-- Banned API 门禁（参考 WalletWasabi）：命中 BannedSymbols.txt 即编译错误，写明替代方案。
+         源生成器工程（Vex.Generators）排除：它自身依赖 Roslyn 包且退出了 CPM，注入会报 NU1015。 -->
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
 </Project>
