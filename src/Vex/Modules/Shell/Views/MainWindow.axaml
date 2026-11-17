@@ -123,7 +123,7 @@
 
     <!-- 自定义窗口不含 UrsaWindow 的默认宿主，显式复用 Ursa 浮层控件。
          放在整窗浮层槽（12.2.8 OverlayContent）里，遮罩才能像原型 .vex-settings-host 一样盖住标题条；
-         遮罩色对齐原型：#0B1729 28% 透明度。 -->
+         遮罩色走 VexScrimBrush（对齐原型 scrim 令牌：纯黑 40%/60% 随主题，ruleVersion 7 全色板同值）。 -->
     <codewf:CodeWFWindow.OverlayContent>
         <u:OverlayDialogHost x:Name="ShellDialogHost" OverlayMaskBrush="{DynamicResource VexScrimBrush}" />
     </codewf:CodeWFWindow.OverlayContent>
