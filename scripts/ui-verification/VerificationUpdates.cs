@@ -18,13 +18,17 @@ public sealed class VerificationUpdates : IUpdateService
     public int Checks { get; private set; }
     public int Downloads { get; private set; }
     public IProgress<UpdateDownloadProgress>? DownloadProgress { get; private set; }
+    // 检查结果里的假新版：默认 v9.0.0 与 Notes 首节对应；visual parity 场景设为 99.0.0
+    // 对齐原型 preview 环境自动合成的示例版本（about-update.js:191），toast/药丸文本才逐字符一致。
+    public Version CheckVersion { get; set; } = new(9, 0);
+    public string CheckVersionText { get; set; } = "v9.0.0";
     public UpdateServiceOptions Options { get; } = new() { Repository = "Vex" };
     public Version CurrentVersion => new(1, 6, 0);
     public string CurrentVersionText => "1.6.0";
     public Task<UpdateCheckResult> CheckAsync(Version? current = null, CancellationToken cancellationToken = default)
     {
         Checks++;
-        return Task.FromResult(new UpdateCheckResult(new UpdateInfo(new Version(9, 0), "v9.0.0", "Vex", Notes,
+        return Task.FromResult(new UpdateCheckResult(new UpdateInfo(CheckVersion, CheckVersionText, "Vex", Notes,
             "https://example.test/releases", "https://example.test/Vex-setup.exe", "Vex-setup.exe", "https://example.test/Vex-setup.exe.sha256"), true, null));
     }
     public Task<UpdateDownloadResult> DownloadAsync(UpdateInfo update, IProgress<UpdateDownloadProgress>? progress = null, CancellationToken cancellationToken = default)

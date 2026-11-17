@@ -33,6 +33,23 @@ VerificationVexApp.ProbeFileTree = mode is "file-tree-probe" or "workspace-files
 VerificationVexApp.ControlDocumentReads = mode == "current-file-protection";
 if (mode == "protection") VerificationVexApp.Exports = new VerificationExports();
 if (mode == "updates") VerificationVexApp.Updates = new VerificationUpdates();
+// visual parity 对齐原型 preview 环境的更新演示态：原型在无版本日志时自动合成 V99.0.0
+// 示例新版（about-update.js:191），标题栏常驻「更新」药丸并弹发现新版 toast；注入后药丸与
+// toast 都走真实产品路径（ShellUpdateViewModel 状态机），只有假版本与日志文本由桩给出。
+if (mode == "visual")
+{
+    VerificationVexApp.Updates = new VerificationUpdates
+    {
+        CheckVersion = new Version(99, 0),
+        CheckVersionText = "v99.0.0",
+        Notes = """
+            ## V99.0.0（示例）
+
+            - 😄[新增]-示例更新：跨版本升级时，这里列出当前版本之后的所有版本与更新日志。
+            - 🔨[优化]-日志使用与正文一致的类型化标签：新增、优化、修复。
+            """,
+    };
+}
 Console.WriteLine("Markdown library " + typeof(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer).Assembly.GetName().Version);
 var output = Path.GetFullPath(args.ElementAtOrDefault(1) ?? "artifacts/ui-verification");
 Directory.CreateDirectory(output);

@@ -36,6 +36,10 @@ internal static class VisualParityCapture
         }
 
         window.Width = Width; window.Height = Height; Render();
+        // 原型 preview 环境自动进入更新演示态（标题栏常驻「更新」药丸 + 发现新版 toast）。
+        // headless 无桌面生命周期，MainWindow 的启动检查守卫不会触发；这里显式拉起同一产品链路
+        //（VerificationUpdates 桩无网络，v99.0.0 对齐原型 about-update.js 合成的示例版本）。
+        app.Resolve<IShellOverlayService>().StartUpdateWatch();
         vm.Appearance.SelectLanguageByCulture("zh-CN");
         vm.Appearance.SelectThemeByKey("light");
         vm.Appearance.SelectPaletteByKey("indigo");
@@ -54,6 +58,11 @@ internal static class VisualParityCapture
         Thread.Sleep(900);
         Render();
 
+        // 启动检查的 toast（Ursa 卡片：绿勾+底部居中）与原型 toast（右下角+关闭钮）风格位置都不同，
+        // 强行同框反而双重失配：等它按 2.5 秒生命自然过期后再开始截图——
+        // 只保留常驻的标题栏「更新」药丸（该元素与原型逐像素同位同款）。
+        Thread.Sleep(2600);
+        Render();
         Capture("01-instant", () => Select(vm, "instant"));
         Capture("02-source", () => Select(vm, "source"));
         Capture("03-read", () => Select(vm, "read"));
