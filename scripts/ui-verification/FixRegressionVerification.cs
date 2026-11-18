@@ -339,6 +339,22 @@ internal static class FixRegressionVerification
         blankEditor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape, Source = blankEditor });
         Render();
 
+        // ---- 2.8 真实键盘回车（window.KeyPress 走焦点路由管线，非 RaiseEvent 直发）：
+        // 空白文档打开后不点击直接回车，应拆块——真机反馈场景的行为钉。 ----
+        vm.Markdown = string.Empty;
+        Render(); Thread.Sleep(300); Render();
+        var realKeyLive = window.Workspace.GetVisualDescendants()
+            .FirstOrDefault(control => control.GetType().Name == "MarkdownInstantView");
+        int RealBlocks() => realKeyLive!.GetVisualDescendants()
+            .Count(c => c.GetType().Name == "MarkdownBlockView");
+        Console.WriteLine($"  real-enter: blocks-before={RealBlocks()} focused={window.FocusManager?.GetFocusedElement()?.GetType().Name}");
+        window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
+        window.KeyRelease(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
+        Render(); Thread.Sleep(300); Render();
+        Console.WriteLine($"  real-enter: blocks-after={RealBlocks()} text=\"{vm.Workbench.LiveEditor?.Text}\"");
+        Check(RealBlocks() == 2, "Real keyboard Enter on untouched blank document splits into two paragraphs");
+        vm.Markdown = string.Empty; Render();
+
         Console.WriteLine("Fix regression verification PASS");
     }
 }

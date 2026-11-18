@@ -376,11 +376,16 @@ public partial class MarkdownLiveEditorView : UserControl
             _models.AddRange(MarkdownBlockParser.Parse(markdown));
             // 空文档保持一个空段落并光标就位：点击即可输入（Typora 行为），
             // 否则零块视图点不进任何编辑器，空白文档等于不可编辑。
-            if (_core.EnsureFirstBlock())
+            // 顺序必须「先重建宿主、后聚焦」：FocusBlock 若先于 RebuildBlocks 执行，
+            // 焦点落在旧条目的编辑器上并随 ClearItems 移出可视树而丢失——
+            // 空白文档打开后回车/打字全部落空（真机反馈场景）。
+            // EnsureFirstBlock 新建首块或空白文档已有空块时都聚焦首块。
+            _core.EnsureFirstBlock();
+            RebuildBlocks();
+            if (_models.Count == 1 && _models[0].Kind == MarkdownBlockKind.Paragraph && _models[0].Text.Length == 0)
             {
                 FocusBlock(0);
             }
-            RebuildBlocks();
             if (!_restoringHistory) { _undo.Clear(); _redo.Clear(); }
             _lastSnapshot = CaptureSnapshot();
         }
