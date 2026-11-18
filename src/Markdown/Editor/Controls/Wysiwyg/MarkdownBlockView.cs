@@ -361,8 +361,18 @@ internal sealed class MarkdownBlockView : UserControl
         UpdateRichText();
     }
 
+    /// <summary>纯文本块（非覆盖/代码/含图/含式）：编辑态常驻，失焦不翻回渲染态。
+    /// 模型已逐键同步，失焦提交只剩「翻态」效果——那正是双态架构的脆弱源；渲染保真由
+    /// InlinePresenter（源码+富文本样式+语法标记隐藏）承担，复杂块仍走失焦提交回渲染。</summary>
+    public bool IsPureText =>
+        !_isCode && !_isTableCell && !IsSourceOverlay
+        && Model.Kind is MarkdownBlockKind.Paragraph or MarkdownBlockKind.Heading
+            or MarkdownBlockKind.ListItem or MarkdownBlockKind.Quote
+        && !Model.Text.Contains('$');
+
     private void CommitIfFocusLeft() => Dispatcher.UIThread.Post(() =>
     {
+        if (IsPureText) return;
         if (!_editor.IsKeyboardFocusWithin && _codeLanguage?.IsKeyboardFocusWithin != true) CommitAndRender();
     }, DispatcherPriority.Input);
 

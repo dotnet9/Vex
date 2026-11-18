@@ -920,7 +920,9 @@ public partial class MarkdownLiveEditorView : UserControl
     {
         var next = index + direction;
         if (next < 0 || next >= _blockViews.Count || _models[next].Kind is MarkdownBlockKind.Table or MarkdownBlockKind.ThematicBreak) return false;
-        FindBlockView(_blockViews[index])?.CommitAndRender();
+        var leaving = FindBlockView(_blockViews[index]);
+        // 纯文本块编辑态常驻：跨块导航不翻回渲染态（模型已逐键同步，无内容可丢）。
+        if (leaving is { IsPureText: false }) leaving.CommitAndRender();
         FocusBlock(next);
         if (ActiveTextBox is { } box)
         {
