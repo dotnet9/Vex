@@ -150,28 +150,15 @@
     if (event.key === 'Escape' && backdrop && !backdrop.hidden && document.activeElement !== input) close();
   }, true);
 
-  /* ---------- Mermaid 图鉴选择器：24 类型分组网格 ---------- */
-  var picker = null, thumbSerial = 0;
+  /* ---------- Mermaid 图鉴：贴按钮浮层（布局选择器同款，无遮罩无标题） ---------- */
+  var picker = null, thumbSerial = 0, galleryAnchor = null;
   function buildPicker() {
-    picker = document.createElement('div');
-    picker.className = 'cp-backdrop dg-backdrop';
+    picker = document.createElement('section');
+    picker.className = 'dg-picker';
     picker.hidden = true;
-    var panel = document.createElement('div');
-    panel.className = 'dg-panel';
-    panel.setAttribute('role', 'dialog');
-    panel.setAttribute('aria-modal', 'true');
-    panel.setAttribute('aria-label', 'Mermaid 图鉴');
-    var head = document.createElement('div');
-    head.className = 'dg-head';
-    head.innerHTML = '<b>' + L('Mermaid 图鉴') + '</b><small>' + L('24 类图表 · 单击插入') + '</small>';
-    var close = document.createElement('button');
-    close.type = 'button'; close.className = 'icon-button dg-close';
-    close.setAttribute('aria-label', L('关闭图鉴')); close.textContent = '×';
-    close.addEventListener('click', function () { closePicker(); });
-    head.appendChild(close);
-    var grid = document.createElement('div');
-    grid.className = 'dg-grid';
-    /* 分组 tab（对话框头下方）：选组看大预览，默认第一组。 */
+    picker.setAttribute('role', 'dialog');
+    picker.setAttribute('aria-label', 'Mermaid 图鉴');
+    /* 分组 tab（TabControl 头部）：选组即切下方卡片，默认第一组。 */
     var tabs = document.createElement('div');
     tabs.className = 'dg-tabs';
     var groups = [];
@@ -187,6 +174,8 @@
       });
       tabs.appendChild(tab);
     });
+    var grid = document.createElement('div');
+    grid.className = 'dg-grid';
     (window.VexMermaid ? VexMermaid.items : []).forEach(function (item) {
       var card = document.createElement('button');
       card.type = 'button'; card.className = 'dg-card'; card.dataset.group = item.group;
@@ -200,8 +189,7 @@
       });
       grid.appendChild(card);
       // 缩略图：真实渲染各类型的迷你图。render 要纯 mermaid 源码（item.source），
-      // snippet 是带 ```mermaid 围栏的插入串；render(id, source) 返回已完成 id 前缀隔离的
-      // svg 字符串，唯一 id 由这里的 serial 保证，避免同页 24 张图 id 撞车。
+      // render(id, source) 返回已完成 id 前缀隔离的 svg 字符串，唯一 id 由这里的 serial 保证。
       var thumbHost = card.querySelector('.dg-thumb');
       if (window.VexDiagramRendering && item.source) {
         var serial = ++thumbSerial;
@@ -212,17 +200,28 @@
         }).catch(function () { thumbHost.classList.add('failed'); });
       }
     });
-    panel.appendChild(head); panel.appendChild(tabs); panel.appendChild(grid);
-    picker.appendChild(panel);
+    picker.appendChild(tabs); picker.appendChild(grid);
     document.body.appendChild(picker);
-    picker.addEventListener('pointerdown', function (event) { if (event.target === picker) closePicker(); });
+    /* 外部点击关闭（浮层轻量，无遮罩）。 */
+    document.addEventListener('pointerdown', function (event) {
+      if (picker && !picker.hidden && !picker.contains(event.target)) closePicker();
+    }, true);
     picker.addEventListener('keydown', function (event) { if (event.key === 'Escape') { event.preventDefault(); closePicker(); } });
   }
   function openPicker() {
     if (!picker) buildPicker();
+    /* 定位：贴图鉴按钮下方弹出（布局选择器同款贴按钮浮层）。 */
+    var anchorBtn = document.querySelector('[data-action="insert-mermaid-picker"]');
+    if (anchorBtn) {
+      var rect = anchorBtn.getBoundingClientRect();
+      var width = Math.min(660, window.innerWidth - 24);
+      var left = Math.min(rect.left, window.innerWidth - width - 12);
+      picker.style.left = Math.max(8, left) + 'px';
+      picker.style.top = (rect.bottom + 8) + 'px';
+    }
     picker.hidden = false;
-    var close = picker.querySelector('.dg-close');
-    if (close) close.focus({ preventScroll: true });
+    var firstTab = picker.querySelector('.dg-tab');
+    if (firstTab) firstTab.focus({ preventScroll: true });
   }
   function closePicker() { if (picker) picker.hidden = true; }
 
