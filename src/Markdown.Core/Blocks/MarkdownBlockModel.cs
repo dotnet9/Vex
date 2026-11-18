@@ -56,7 +56,11 @@ public sealed class MarkdownBlockModel
 
 /// <summary>块前导 trivia 与规范源码快照（组序列化用）。</summary>
 public sealed record MarkdownBlockSource(string LeadingTrivia, string Markdown, string CanonicalMarkdown,
-    string LineEnding, string TrailingTrivia);
+    string LineEnding, string TrailingTrivia)
+{
+    // 新建结构没有原始 trivia；仍用独立快照标识需要一起序列化的块。
+    public bool IsGenerated { get; init; }
+}
 
 /// <summary>块类型。</summary>
 public enum MarkdownBlockKind

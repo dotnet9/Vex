@@ -406,6 +406,48 @@ public class MarkdownBlockEditorCoreTests
         Assert.Equal("引用内容", core.Blocks[0].Text);
     }
 
+    [Theory]
+    [InlineData(">", " ", "", 0)]
+    [InlineData("  >", "x", "x", 1)]
+    [InlineData("", "> 示例", "示例", 2)]
+    public void EnterQuoteMarker_PromotesCommittedPrefix(string text, string input, string body, int caret)
+    {
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = text };
+        var core = new MarkdownBlockEditorCore([model]);
+        var result = core.EnterQuoteMarker(0, text, text.Length, text.Length, input);
+        Assert.Equal(new MarkdownBlockEditorCore.BlockEditResult(true, 0, caret), result);
+        Assert.Equal(MarkdownBlockKind.Quote, model.Kind);
+        Assert.Equal(1, model.QuoteDepth);
+        Assert.Equal(body, model.Text);
+        Assert.NotNull(model.Source);
+    }
+
+    [Theory]
+    [InlineData("", ">")]
+    [InlineData("a >", " ")]
+    [InlineData("    >", " ")]
+    [InlineData(">", "\n")]
+    public void EnterQuoteMarker_LeavesOrdinaryInputToTextBox(string text, string input)
+    {
+        var model = new MarkdownBlockModel { Text = text };
+        var core = new MarkdownBlockEditorCore([model]);
+        Assert.Null(core.EnterQuoteMarker(0, text, text.Length, text.Length, input));
+        Assert.Equal(MarkdownBlockKind.Paragraph, model.Kind);
+        Assert.Equal(text, model.Text);
+    }
+
+    [Fact]
+    public void EnterQuoteMarker_InQuote_NestsWithoutDiscardingSourceOrSuffix()
+    {
+        var source = new MarkdownBlockSource("\n", "> tail", "> tail", "\n", "");
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Quote, QuoteDepth = 1, Text = "tail", Source = source };
+        var core = new MarkdownBlockEditorCore([model]);
+        Assert.Equal(0, core.EnterQuoteMarker(0, model.Text, 0, 0, "> ")!.Caret);
+        Assert.Equal(2, model.QuoteDepth);
+        Assert.Equal("tail", model.Text);
+        Assert.Same(source, model.Source);
+    }
+
     [Fact]
     public void Enter_OnQuote_ContinuationInheritsSource()
     {

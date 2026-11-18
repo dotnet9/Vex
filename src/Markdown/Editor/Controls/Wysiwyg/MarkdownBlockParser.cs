@@ -178,7 +178,7 @@ public static class MarkdownBlockParser
             }
             var group = blocks.Skip(first).Take(index - first).ToList();
             var canonical = WriteCanonical(group).TrimEnd('\n');
-            if (source is not null)
+            if (source is { IsGenerated: false })
             {
                 builder.Append(source.LeadingTrivia);
                 builder.Append(canonical == source.CanonicalMarkdown ? source.Markdown
@@ -417,6 +417,11 @@ public static class MarkdownBlockParser
 
     private static void AppendQuote(List<MarkdownBlockModel> blocks, QuoteBlock quote, string sourceText, int depth = 1)
     {
+        if (quote.Count == 0)
+        {
+            blocks.Add(new MarkdownBlockModel { Kind = MarkdownBlockKind.Quote, QuoteDepth = depth });
+            return;
+        }
         foreach (var child in quote)
         {
             switch (child)

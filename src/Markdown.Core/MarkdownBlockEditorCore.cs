@@ -159,6 +159,30 @@ public sealed class MarkdownBlockEditorCore
         return true;
     }
 
+    /// <summary>已提交的输入在块首补全引用标记时，把标记移入块结构，保留正文和光标。</summary>
+    public BlockEditResult? EnterQuoteMarker(int index, string text, int start, int end, string input)
+    {
+        if (index < 0 || index >= _models.Count || input.Length == 0 || input.AsSpan().ContainsAny('\r', '\n')) return null;
+        var model = _models[index];
+        if (model.Kind is not (MarkdownBlockKind.Paragraph or MarkdownBlockKind.Quote)
+            || start < 0 || end < start || end > text.Length) return null;
+
+        var edited = text.Remove(start, end - start).Insert(start, input);
+        var marker = 0;
+        while (marker < 3 && marker < edited.Length && edited[marker] == ' ') marker++;
+        var caret = start + input.Length;
+        if (start > marker + 1 || caret <= marker || marker + 1 >= edited.Length || edited[marker] != '>'
+            || edited[marker + 1] is '\r' or '\n') return null;
+
+        var body = marker + 1;
+        while (body < edited.Length && edited[body] is ' ' or '\t') body++;
+        model.QuoteDepth = model.Kind == MarkdownBlockKind.Quote ? model.QuoteDepth + 1 : 1;
+        model.Kind = MarkdownBlockKind.Quote;
+        model.Text = edited[body..];
+        model.Source ??= new MarkdownBlockSource(string.Empty, string.Empty, string.Empty, "\n", string.Empty) { IsGenerated = true };
+        return new BlockEditResult(true, index, Math.Max(0, caret - body));
+    }
+
     /// <summary>
     /// 列表项缩进/降级（Tab/Shift+Tab）：仅对列表项生效，层级不小于 0。
     /// 返回是否生效。

@@ -997,10 +997,30 @@ public partial class MarkdownLiveEditorView : UserControl
 
     private void OnBlockTextInput(object? sender, TextInputEventArgs e)
     {
-        if (!_autoPairEnabled || e.Text?.Length != 1 || sender is not MarkdownBlockView { ActiveEditor: { } box }) return;
+        if (e.Text is not { Length: > 0 } input || sender is not MarkdownBlockView { ActiveEditor: { } box } view) return;
         var start = Math.Min(box.SelectionStart, box.SelectionEnd);
-        var length = Math.Abs(box.SelectionEnd - box.SelectionStart);
-        if (TextAutoPair.HandleTextInput(box.Text ?? string.Empty, start, length, e.Text) is not { } change) return;
+        var end = Math.Max(box.SelectionStart, box.SelectionEnd);
+        var text = box.Text ?? string.Empty;
+        if (start <= 4 && (input.Contains('>') || text.AsSpan(0, Math.Min(text.Length, 5)).Contains('>')))
+        {
+            var index = _models.IndexOf(view.Model);
+            var wasGrouped = IsQuoteGroupedMember(index);
+            if (_core.EnterQuoteMarker(index, text, start, end, input) is { } result)
+            {
+                e.Handled = true;
+                // 旧输入框保留原始文本；先同步再换视图，避免失焦时回写旧正文。
+                _selectionContentStarts = null;
+                view.SyncEditorFromModel(result.Caret);
+                if (wasGrouped) RebuildBlocks(); else RefreshBlockView(index);
+                RevealBlock(index);
+                _activeIndex = index;
+                FindBlockView(_blockViews[index])?.BeginEdit(result.Caret);
+                RaiseChanged();
+                return;
+            }
+        }
+        if (!_autoPairEnabled || input.Length != 1
+            || TextAutoPair.HandleTextInput(text, start, end - start, input) is not { } change) return;
         e.Handled = true;
         if (change.Length > 0 || change.Text.Length > 0)
             box.Text = (box.Text ?? string.Empty).Remove(change.Start, change.Length).Insert(change.Start, change.Text);

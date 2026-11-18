@@ -278,6 +278,21 @@ internal static class FixRegressionVerification
         Check(afterQuote.Item1 == beforeQuote.Item1 && afterQuote.Item2 == beforeQuote.Item2 + 1,
             $"Enter in quote continues same group (host {beforeQuote.Item1}->{afterQuote.Item1}, blocks {beforeQuote.Item2}->{afterQuote.Item2})");
         Shot("quote-continue");
+        var instantEditor = vm.Workbench.LiveEditor!;
+        instantEditor.SetText(string.Empty);
+        instantEditor.EnableAutoPair = false;
+        instantEditor.FocusBlock(0); Render();
+        window.KeyTextInput(">"); Render();
+        Check(MdQuoteCount() == 0, "Bare quote marker stays in the paragraph");
+        window.KeyTextInput(" "); Render();
+        Check(MdQuoteCount() == 1 && instantEditor.Text.TrimEnd() == ">"
+            && window.FocusManager?.GetFocusedElement() is TextBox { Text.Length: 0, CaretIndex: 0 },
+            "Quote marker plus space opens an empty quote independently of auto-pair");
+        window.KeyTextInput("引用正文"); Render();
+        Check(instantEditor.Text.TrimEnd() == "> 引用正文" && instantEditor.Selection.Start == "> 引用正文".Length,
+            "Typing continues inside the quote, with a source-relative caret");
+        instantEditor.SetText("> "); Render();
+        Check(MdQuoteCount() == 1 && instantEditor.Text == "> ", "Empty quote round-trips through SetText");
         // ---- 2.5 空白文档即时编辑：空段落块存在、光标就位、可拆块（Typora 空文档行为） ----
         // 共享流程装载了演示文档；直接清空内容模拟空白文档（NewDocument 会因 dirty 弹确认挂探针）。
         vm.Markdown = string.Empty;
