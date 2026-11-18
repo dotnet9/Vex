@@ -56,7 +56,8 @@ public sealed class MarkdownBlockEditorCore
             IsTask = model.IsTask,
             IsOrdered = model.IsOrdered,
             OrderedNumber = model.OrderedNumber + (model.IsOrdered ? 1 : 0),
-            Source = model.Kind == MarkdownBlockKind.ListItem ? model.Source : null
+            // 引用续行必须继承 Source：同组引用共享 Source 才能合并为同一引用块（组渲染与序列化都依赖它）。
+            Source = model.Kind is MarkdownBlockKind.ListItem or MarkdownBlockKind.Quote ? model.Source : null
         };
         model.Text = model.Text[..caret];
         var focusIndex = index + 1;

@@ -405,4 +405,17 @@ public class MarkdownBlockEditorCoreTests
         Assert.Equal(0, core.Blocks[0].QuoteDepth);
         Assert.Equal("引用内容", core.Blocks[0].Text);
     }
+
+    [Fact]
+    public void Enter_OnQuote_ContinuationInheritsSource()
+    {
+        // 引用续行共享 Source：同组引用合并渲染为同一引用块（视图分组与序列化都依赖同源）。
+        var source = new MarkdownBlockSource(string.Empty, string.Empty, string.Empty, "\n", string.Empty);
+        var core = new MarkdownBlockEditorCore(
+            [new MarkdownBlockModel { Kind = MarkdownBlockKind.Quote, QuoteDepth = 1, Text = "第一行", Source = source }]);
+        var result = core.Enter(0, core.Blocks[0].Text.Length);
+        Assert.True(result.Changed);
+        Assert.True(ReferenceEquals(core.Blocks[1].Source, source), "continuation must share the quote Source");
+        Assert.Equal(MarkdownBlockKind.Quote, core.Blocks[1].Kind);
+    }
 }

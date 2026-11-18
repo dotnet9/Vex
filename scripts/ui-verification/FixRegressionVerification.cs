@@ -257,6 +257,27 @@ internal static class FixRegressionVerification
         var mathCount = mathOverlays is { } mlist ? mlist.Cast<object>().Count() : 0;
         Check(mathCount >= 1, "Inline math resolved into overlay list: " + mathCount);
         Shot("inline-math");
+        // ---- 2.7 Quote 分组区间级重建：引用内回车续行仍在同组（一个 MdQuote 宿主条目） ----
+        vm.Markdown = "> 第一行引用\n> 第二行引用\n\n后续段落";
+        Render(); Thread.Sleep(400); Render();
+        var quoteLine = live!.GetVisualDescendants()
+            .Where(c => c.GetType().Name == "MarkdownBlockView").OfType<Control>()
+            .FirstOrDefault(b => b.GetVisualDescendants().OfType<TextBox>()
+                .Any(box => (box.Text ?? "").Contains("第二行", StringComparison.Ordinal)));
+        Check(quoteLine is not null, "Quote second-line block found");
+        int MdQuoteCount() => live!.GetVisualDescendants()
+            .OfType<Border>().Count(border => border.Classes.Contains("MdQuote"));
+        int BlockCount() => live!.GetVisualDescendants().Count(c => c.GetType().Name == "MarkdownBlockView");
+        var beforeQuote = (MdQuoteCount(), BlockCount());
+        var quoteEditor = quoteLine!.GetVisualDescendants().OfType<TextBox>()
+            .First(box => (box.Text ?? "").Contains("第二行", StringComparison.Ordinal));
+        quoteEditor.CaretIndex = quoteEditor.Text?.Length ?? 0;
+        quoteEditor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = quoteEditor });
+        Render(); Thread.Sleep(300); Render();
+        var afterQuote = (MdQuoteCount(), BlockCount());
+        Check(afterQuote.Item1 == beforeQuote.Item1 && afterQuote.Item2 == beforeQuote.Item2 + 1,
+            $"Enter in quote continues same group (host {beforeQuote.Item1}->{afterQuote.Item1}, blocks {beforeQuote.Item2}->{afterQuote.Item2})");
+        Shot("quote-continue");
         // ---- 2.5 空白文档即时编辑：空段落块存在、光标就位、可拆块（Typora 空文档行为） ----
         // 共享流程装载了演示文档；直接清空内容模拟空白文档（NewDocument 会因 dirty 弹确认挂探针）。
         vm.Markdown = string.Empty;
