@@ -796,7 +796,9 @@ void VerifyPointerRegressions(VerificationVexApp app, Vex.Modules.Shell.Views.Ma
     var selectionText = live.GetVisualDescendants().OfType<TextBox>().Single(box => box.IsEffectivelyVisible)
         .GetVisualDescendants().OfType<Avalonia.Controls.Presenters.TextPresenter>().First();
     var selectionCaret = selectionText.TextLayout.HitTestTextPosition(selectionText.SelectionEnd);
-    var expectedSelectionAnchor = selectionText.TranslatePoint(new Point(selectionCaret.X, selectionCaret.Bottom), window)!.Value;
+    // 应用锚定选区末端字符格的中心（浮条挂 PlacementRect.Center），期望取同一中心而非左下角。
+    var expectedSelectionAnchor = selectionText.TranslatePoint(
+        new Point(selectionCaret.X + selectionCaret.Width / 2, selectionCaret.Bottom - selectionCaret.Height / 2), window)!.Value;
     var actualSelectionAnchor = selectionPopup?.PlacementRect is { } placementRect
         ? live.TranslatePoint(placementRect.Center, window) : null;
     Check(selectionPopup is { IsOpen: true } && ReferenceEquals(selectionPopup.PlacementTarget, live)
@@ -897,7 +899,7 @@ void VerifyPointerRegressions(VerificationVexApp app, Vex.Modules.Shell.Views.Ma
             Check(bar.Bounds.Width == 9 && thumb.Bounds.Width >= 5, $"Changelog scrollbar remains easy to hit: track={bar.Bounds.Width}, thumb={thumb.Bounds.Width}");
             var from = thumb.TranslatePoint(new Point(thumb.Bounds.Width / 2, thumb.Bounds.Height / 2), window)!.Value;
             var barOrigin = bar.TranslatePoint(default, window)!.Value;
-            var to = new Point(from.X, barOrigin.Y + (direction > 0 ? bar.Bounds.Height - 18 : 18));
+            var to = new Point(from.X, barOrigin.Y + (direction > 0 ? bar.Bounds.Height - 9 : 9));
             window.MouseDown(from, MouseButton.Left); Pump();
             for (var step = 1; step <= 50; step++) { window.MouseMove(from + (to - from) * (step / 50d), RawInputModifiers.LeftMouseButton); Pump(); }
             window.MouseUp(to, MouseButton.Left); Pump(); SettleRendering();
@@ -2972,6 +2974,11 @@ void VerifyEditingTools(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
     {
         window.Width = width; vm.Layout.SidebarWidth = width == 980 ? 560 : 226; wb.ShowSource(); Pump(); SettleRendering();
         var origin = toolbar.TranslatePoint(default, options)!.Value;
+        Console.WriteLine($"  toolbar@{width}: toolbar={toolbar.Bounds.Width:F1}x{toolbar.Bounds.Height:F1} originX={origin.X:F1} optionsW={options.Bounds.Width:F1} overflow={origin.X + toolbar.Bounds.Width - options.Bounds.Width:F1}");
+        foreach (var tall in toolbar.GetVisualDescendants()
+            .Where(c => c.GetType().Name == "ToolBarPanel").SelectMany(panel => panel.GetVisualChildren())
+            .OfType<Control>().OrderByDescending(c => c.Bounds.Height).Take(5))
+            Console.WriteLine($"    item: {tall.GetType().Name}#{tall.Name} h={tall.Bounds.Height:F1} heightProp={(tall is ComboBox cb ? cb.Height.ToString() : "-")} minHeight={(tall as ComboBox)?.MinHeight} w={tall.Bounds.Width:F1} margin={tall.Margin} cls=[{string.Join(",", tall.Classes)}]");
         Check(toolbar.Bounds.Height <= 30 && origin.X >= 0 && origin.X + toolbar.Bounds.Width <= options.Bounds.Width,
             "Formatting remains one compact row inside the available editor width: " + width);
         // 原型格式条当前包含基础格式键与 span 工具；宽屏一行放得下就没有溢出按钮，窄屏才由 Ursa 自动折叠。
@@ -2984,8 +2991,18 @@ void VerifyEditingTools(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
             Check(toolbar.Classes.Contains(":overflow"), "Narrow document moves formatting commands into Ursa overflow");
             Check(more is { IsEffectivelyVisible: true } && more!.Bounds.Width > 0, "More formatting remains reachable with automatic overflow");
         }
-        else Check(visibleFormats == 15 && more is not { IsEffectivelyVisible: true }, "Wide document keeps all fifteen prototype format keys in one row");
+        else Check(visibleFormats == 22 && more is not { IsEffectivelyVisible: true }, "Wide document keeps all twenty-two format keys in one row");
         Capture(window, "editing-tools-" + width);
+    }
+    // 即时布局同宽复测：1280 一行放下是布局契约，不随编辑视图切换而破。
+    foreach (var width in new[] { 1280 })
+    {
+        window.Width = width; vm.Layout.SidebarWidth = 226; wb.SelectLayout("instant"); Pump(); SettleRendering();
+        var originI = toolbar.TranslatePoint(default, options)!.Value;
+        Console.WriteLine($"  toolbar@instant-{width}: toolbar={toolbar.Bounds.Width:F1}x{toolbar.Bounds.Height:F1} originX={originI.X:F1} optionsW={options.Bounds.Width:F1} overflowClass={toolbar.Classes.Contains(":overflow")}");
+        Check(!toolbar.Classes.Contains(":overflow") && originI.X + toolbar.Bounds.Width <= options.Bounds.Width,
+            "Instant layout toolbar fits one row at wide width: " + width);
+        wb.ShowSource(); Pump(); SettleRendering();
     }
     window.Width = 1280; vm.Layout.SidebarWidth = 226;
     wb.ShowRead(); Pump();

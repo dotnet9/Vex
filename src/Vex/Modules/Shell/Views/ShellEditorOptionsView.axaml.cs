@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 using CodeWF.Avalonia.Markdown.Mermaid;
@@ -19,6 +21,17 @@ public partial class ShellEditorOptionsView : UserControl
     public ShellEditorOptionsView()
     {
         InitializeComponent();
+        // Ursa 工具带溢出状态在编辑器重排的瞬态窄约束下可能卡死：按钮停留在溢出
+        // 弹层不回归，即使宽约束已恢复（ToolBarPanel.MeasureOverride 依赖传入的
+        // availableSize，普通 InvalidateMeasure 传不进正确约束）。每次布局经过
+        // 都探测「溢出态且有格式按钮被驻留」——命中才强灌一次已知可用宽度的
+        // Measure 解锁（解锁后 :overflow 退场，门控自动停止，无布局环）。
+        FormattingToolbar.LayoutUpdated += (_, _) => HealIfParked();
+        SizeChanged += (_, _) => HealIfParked();
+        // 真机空闲态兜底：headless 探针不产生布局经过时由定时器驱动（每秒一次，健康态零动作）。
+        var overflowHealTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        overflowHealTimer.Tick += (_, _) => HealIfParked();
+        overflowHealTimer.Start();
         FormattingToolbar.KeyDown += OnOverflowKeyDown;
         FormattingToolbar.AddHandler(Button.ClickEvent, OnOverflowActionClick);
         foreach (var button in new[] { SpanFontSize, SpanForeground, SpanBackground })
@@ -114,6 +127,27 @@ public partial class ShellEditorOptionsView : UserControl
             if (image is not null && GallerySources.TryGetValue((string)card.CommandParameter!, out var source))
                 image.Source = new Avalonia.Svg.Skia.SvgImage { Source = source };
         }
+    }
+
+    /// <summary>栏宽变化后重灌工具带面板测量，解锁卡死的溢出状态（按钮回归主面板）。</summary>
+    private void HealToolbarOverflow()
+    {
+        if (!FormattingToolbar.Classes.Contains(":overflow")) return;
+        var panel = FormattingToolbar.GetVisualDescendants()
+            .FirstOrDefault(control => control.GetType().Name == "ToolBarPanel") as Layoutable;
+        panel?.Measure(new Size(Bounds.Width, Bounds.Height));
+    }
+
+    /// <summary>溢出态下探测被驻留的格式按钮（attached=false）：强灌正确约束的测量解锁。
+    /// 真窄栏（如 980）驻留是合法状态，此时强灌用的也是窄约束，按钮保持驻留不闪烁。</summary>
+    private void HealIfParked()
+    {
+        if (!FormattingToolbar.Classes.Contains(":overflow")) return;
+        var parked = FormattingToolbar.GetVisualDescendants()
+            .OfType<Button>()
+            .Any(button => button.Classes.Contains("wb-format") && button.IsVisible && !button.IsAttachedToVisualTree());
+        if (!parked) return;
+        HealToolbarOverflow();
     }
 
     /// <summary>TabItem 切换：TabControl 非选中组内容不驻留可视树，新材料化即补挂缓存源。

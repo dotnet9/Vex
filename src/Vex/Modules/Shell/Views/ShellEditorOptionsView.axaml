@@ -16,7 +16,7 @@
         <Button x:Name="FormatHighlight" Classes="wb-format" Command="{Binding EditorActions.InsertAction}" CommandParameter="{x:Static core:EditorActionKind.Highlight}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Highlight}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Highlight}}"><Viewbox Width="{DynamicResource VexUiFormatIconSize}" Height="{DynamicResource VexUiFormatIconSize}"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="m9 11-6 6v3h9l3-3 m3.4-13.6 4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4l8 8Z"/></Canvas></Viewbox></Button>
                 <Border Classes="band-divider" />
         <!-- 段落结构档位（原型 band-heading select 形态）：正文 + 标题 1~6，选择即插入并复位。 -->
-        <ComboBox x:Name="FormatHeading" Classes="band-heading" MinWidth="75" Height="26" FontSize="12"
+        <ComboBox x:Name="FormatHeading" Classes="band-heading" MinWidth="75" MinHeight="26" Height="26" FontSize="12"
                   helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.WBHeadings}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBHeadings}}">
           <ComboBoxItem Content="{i18n:I18n {x:Static l:VexL.Paragraph}}" Tag="{x:Static core:EditorActionKind.Paragraph}" IsSelected="True" />
           <ComboBoxItem Content="{i18n:I18n {x:Static l:VexL.Heading1}}" Tag="{x:Static core:EditorActionKind.Heading1}" />
@@ -132,8 +132,9 @@
             <Viewbox Classes="pin-off"><Canvas Width="24" Height="24"><Canvas.RenderTransform><RotateTransform Angle="45" CenterX="12" CenterY="11"/></Canvas.RenderTransform><Path Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
           </Panel>
         </ToggleButton>
-        <!-- 原型：源码模式下格式条不带排版入口，改由阅读窗格头居中提供（WorkspaceViewController）。 -->
-        <Button x:Name="TypographyTarget" Classes="wb-quiet typography-trigger" IsVisible="{Binding Workbench.IsInstantEditing}" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="7"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><TextBlock Text="{i18n:I18n {Binding Appearance.SelectedTypography.NameKey}}" FontWeight="SemiBold" Foreground="{DynamicResource VexValueBrush}"/><Path Classes="expand-chevron" Data="M6 9L12 15L18 9"/></StackPanel></Button>
+        <!-- 原型：源码模式下格式条不带排版入口，改由阅读窗格头居中提供（WorkspaceViewController）。
+             紧凑 chip（省去当前排版名）：instant 行内 22 键格式带 + 本触发器在 1280 宽必须同排放得下。 -->
+        <Button x:Name="TypographyTarget" Classes="wb-quiet typography-trigger" IsVisible="{Binding Workbench.IsInstantEditing}" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="7"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><Path Classes="expand-chevron" Data="M6 9L12 15L18 9"/></StackPanel></Button>
       </StackPanel>
     </Grid>
   </Border>
