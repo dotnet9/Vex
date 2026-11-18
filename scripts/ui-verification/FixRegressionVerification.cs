@@ -158,6 +158,41 @@ internal static class FixRegressionVerification
         }
         Shot("instant-enter");
         Check(counts[^1] > counts[0], "Consecutive enters append empty paragraphs: " + string.Join(" -> ", counts));
+        // ---- 2.4 真实鼠标焦点语义（window.Mouse* 走真 hit test 管线）：文字命中落光标、
+        // 块间点击不翻态、跨块往返内容零丢失——纯文本块编辑态常驻的行为钉。
+        // 坐标必须落在字形上（块左缘+40px）：块内左对齐文字右侧是空白，点那里会穿透走最近块回退。 ----
+        var textBlocks = live!.GetVisualDescendants()
+            .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
+        var withText = textBlocks.Where(b => b.GetVisualDescendants().OfType<TextBox>()
+            .FirstOrDefault()?.Text is { Length: > 0 }).ToList();
+        var firstText = withText.OrderByDescending(b => b.Bounds.Width * b.Bounds.Height).First();
+        var nextText = withText.Where(b => !ReferenceEquals(b, firstText))
+            .Select(b => (Block: b, Y: b.TranslatePoint(default, window)?.Y ?? double.MinValue))
+            .Where(t => t.Y is > 0 && t.Y < window.ClientSize.Height - 40)
+            .OrderBy(t => t.Y).First().Block;
+        Point GlyphPointOf(Control c) => c.TranslatePoint(new Point(40, c.Bounds.Height / 2), window)
+            ?? throw new InvalidOperationException("Block unmapped");
+        void RealClick(Control target)
+        {
+            var point = GlyphPointOf(target);
+            window.MouseMove(point, RawInputModifiers.None); Render();
+            window.MouseDown(point, MouseButton.Left); Render();
+            window.MouseUp(point, MouseButton.Left); Render();
+            Thread.Sleep(150); Render();
+        }
+        TextBox EditorOf(Control c) => c.GetVisualDescendants().OfType<TextBox>().First();
+        RealClick(firstText);
+        Check(EditorOf(firstText).IsFocused, "Real click on glyphs focuses first text block editor");
+        var textSnapshot = vm.Markdown;
+        RealClick(nextText);
+        var nextEditor = EditorOf(nextText);
+        Check(nextEditor.IsFocused, "Real click on glyphs focuses second text block");
+        Check(nextEditor.CaretIndex is > 0 and < 8, "Caret lands at glyph hit position, not block start: " + nextEditor.CaretIndex);
+        Check(EditorOf(firstText).IsVisible, "First block stays in edit form after blur (no render flip)");
+        RealClick(firstText);
+        Check(EditorOf(firstText).IsFocused, "Click back reuses persistent editing state");
+        Check(nextEditor.IsVisible, "Second block also stays in edit form");
+        Check(vm.Markdown == textSnapshot, "No content loss across focus round-trip");
         // ---- 2.5 空白文档即时编辑：空段落块存在、光标就位、可拆块（Typora 空文档行为） ----
         // 共享流程装载了演示文档；直接清空内容模拟空白文档（NewDocument 会因 dirty 弹确认挂探针）。
         vm.Markdown = string.Empty;
