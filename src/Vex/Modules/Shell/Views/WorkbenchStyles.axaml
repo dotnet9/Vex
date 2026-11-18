@@ -858,6 +858,8 @@
     <Setter Property="Fill" Value="{DynamicResource VexPanelBorderBrush}"/>
   </Style>
   <Style Selector="Path.format-stroke"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/><Setter Property="StrokeThickness" Value="1.7"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/></Style>
+  <!-- 图鉴 i-map 图形的空心方块（原型 icon 三个 rect 同款描边）。 -->
+  <Style Selector="Rectangle.format-stroke-box"><Setter Property="Stroke" Value="{DynamicResource VexValueBrush}"/><Setter Property="StrokeThickness" Value="1.7"/><Setter Property="Fill" Value="Transparent"/></Style>
   <!-- 行内样式三键（对齐原型 span-tool，element-menu.css:104-106 字面量）：A 字符号 + 下拉箭头；
        前景键蓝字、背景键黄底深棕字。 -->
   <Style Selector="Button.wb-format.span-tool"><Setter Property="Padding" Value="0"/></Style>
@@ -1297,6 +1299,9 @@
     <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
   <Style Selector="Button.wb-format:pointerover Path.format-stroke">
+    <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <Style Selector="Button.wb-format:pointerover Rectangle.format-stroke-box">
     <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}"/>
   </Style>
   <!-- ===== 带光晕的按钮模板（原型 .btn.primary 两档投影 prototype.css:430/433）=====

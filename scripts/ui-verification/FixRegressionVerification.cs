@@ -61,7 +61,7 @@ internal static class FixRegressionVerification
                 ? root.GetVisualDescendants().OfType<Image>().ToList()
                 : [];
             total = images.Count;
-            filled = images.Count(i => i.Source is not null);
+            filled = images.Count(i => i.Source is Avalonia.Media.Imaging.Bitmap);
             if (total >= 24 && filled >= 24) break;
             Thread.Sleep(250);
         }
@@ -74,6 +74,7 @@ internal static class FixRegressionVerification
             ? cardRoot.GetVisualDescendants().OfType<Button>().Where(b => b is not RadioButton && int.TryParse(b.Tag?.ToString(), out _) && b.IsVisible).ToList()
             : [];
         Console.WriteLine($"gallery tabs: {tabs.Count}, visible cards (group0): {cards0.Count}");
+        Shot("gallery-group0");
         // 切到组 2 应见 8 卡。
         tabs.LastOrDefault()?.IsChecked = true;
         Render();
@@ -84,34 +85,16 @@ internal static class FixRegressionVerification
         var bigThumb = cards2.SelectMany(b => b.GetVisualDescendants().OfType<Image>()).FirstOrDefault();
         Console.WriteLine($"thumb size: {bigThumb?.Width}x{bigThumb?.Height}");
         Shot("gallery-thumbs");
+        // 组 1 也截一张（计划与演进：甘特/时间线/Git/看板）。
+        tabs[1].IsChecked = true;
+        Render();
+        Shot("gallery-group1");
         Check(total >= 24 && filled >= 24, "All 24 gallery thumbnails rendered: " + filled);
         Check(tabs.Count == 4, "Gallery group tabs present: " + tabs.Count);
         Check(cards0.Count == 4, "Group 0 shows 4 cards: " + cards0.Count);
         Check(cards2.Count == 8, "Group 2 shows 8 cards after switch: " + cards2.Count);
         Check(bigThumb is { Width: >= 260, Height: >= 110 }, "Thumbnails enlarged to at least 260x110");
         flyout.Hide();
-        Render();
-
-        // ---- 2.5 空白文档即时编辑：空段落块存在、光标就位、可拆块（Typora 空文档行为） ----
-        vm.Workbench.SelectLayout("instant");
-        Render(); Thread.Sleep(300); Render();
-        var blankLive = window.Workspace.GetVisualDescendants()
-            .FirstOrDefault(control => control.GetType().Name == "MarkdownInstantView");
-        Check(blankLive is not null, "Blank instant view found");
-        var blankBlocks = blankLive!.GetVisualDescendants()
-            .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
-        Console.WriteLine("blank doc block views: " + blankBlocks.Count);
-        Check(blankBlocks.Count == 1, "Blank document keeps one empty paragraph block: " + blankBlocks.Count);
-        var blankEditor = blankBlocks[0].GetVisualDescendants().OfType<TextBox>().FirstOrDefault();
-        Console.WriteLine("blank editor: visible=" + blankEditor?.IsVisible + " focused=" + blankEditor?.IsFocused);
-        Check(blankEditor is { IsVisible: true }, "Blank paragraph editor is visible (click target exists)");
-        blankEditor!.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = blankEditor });
-        Render(); Thread.Sleep(300); Render();
-        var blankAfter = blankLive.GetVisualDescendants()
-            .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
-        Console.WriteLine("blank doc blocks after enter: " + blankAfter.Count);
-        Check(blankAfter.Count == 2, "Enter on blank document splits into two paragraphs");
-        blankEditor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape, Source = blankEditor });
         Render();
 
         // ---- 3. 即时编辑回车：真实点击块进入编辑态，再回车应拆块换行 ----
@@ -158,6 +141,52 @@ internal static class FixRegressionVerification
         }
         Shot("instant-enter");
         Check(counts[^1] > counts[0], "Consecutive enters append empty paragraphs: " + string.Join(" -> ", counts));
+        // ---- 2.5 空白文档即时编辑：空段落块存在、光标就位、可拆块（Typora 空文档行为） ----
+        // 共享流程装载了演示文档；直接清空内容模拟空白文档（NewDocument 会因 dirty 弹确认挂探针）。
+        vm.Markdown = string.Empty;
+        Render(); Thread.Sleep(300); Render();
+        vm.Workbench.SelectLayout("instant");
+        Render(); Thread.Sleep(300); Render();
+        var blankLive = window.Workspace.GetVisualDescendants()
+            .FirstOrDefault(control => control.GetType().Name == "MarkdownInstantView");
+        Check(blankLive is not null, "Blank instant view found");
+        var blankBlocks = blankLive!.GetVisualDescendants()
+            .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
+        Console.WriteLine("blank doc block views: " + blankBlocks.Count);
+        Check(blankBlocks.Count == 1, "Blank document keeps one empty paragraph block: " + blankBlocks.Count);
+        var blankEditor = blankBlocks[0].GetVisualDescendants().OfType<TextBox>().FirstOrDefault();
+        Console.WriteLine("blank editor: visible=" + blankEditor?.IsVisible + " focused=" + blankEditor?.IsFocused);
+        Check(blankEditor is { IsVisible: true }, "Blank paragraph editor is visible (click target exists)");
+        // Typora 行为：点击文档空白区域（块外下方远处，修上轮只点块中心的盲区），
+        // 光标落到最近段落块（FindNearestBlockIndex → FocusBlock）。
+        var blankRect = blankBlocks[0].TranslatePoint(new Point(0, 0), window)
+            ?? throw new InvalidOperationException("Blank block unmapped");
+        var farBelow = new Point(blankRect.X + blankRect.X / 2, blankRect.Y + blankBlocks[0].Bounds.Height + 220);
+        window.MouseMove(farBelow, RawInputModifiers.None); Render();
+        window.MouseDown(farBelow, MouseButton.Left); Render();
+        window.MouseUp(farBelow, MouseButton.Left); Render();
+        Thread.Sleep(300); Render();
+        // 强验证：点击空白后直接打字，能接住文本=编辑器在编辑态（headless 焦点链不可靠，以功能为准）。
+        var typed = blankBlocks[0].GetVisualDescendants().OfType<TextBox>()
+            .FirstOrDefault(box => box.IsVisible);
+        if (typed is not null)
+        {
+            // 模拟文本输入走 TextInput 通道（真实键盘路径）。
+            typed.RaiseEvent(new Avalonia.Input.TextInputEventArgs { Text = "点击空白后输入", RoutedEvent = Avalonia.Input.InputElement.TextInputEvent });
+            Render(); Thread.Sleep(200); Render();
+        }
+        Console.WriteLine("text after blank click typing: " + (typed?.Text ?? "null"));
+        Check(typed is { } && (typed.Text ?? string.Empty).Contains("点击空白后输入"),
+            "Typing after clicking blank area lands in the empty paragraph (Typora behavior)");
+        blankEditor!.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = blankEditor });
+        Render(); Thread.Sleep(300); Render();
+        var blankAfter = blankLive!.GetVisualDescendants()
+            .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
+        Console.WriteLine("blank doc blocks after enter: " + blankAfter.Count);
+        Check(blankAfter.Count == 2, "Enter on blank document splits into two paragraphs");
+        blankEditor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape, Source = blankEditor });
+        Render();
+
         Console.WriteLine("Fix regression verification PASS");
     }
 }
