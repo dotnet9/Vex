@@ -26,6 +26,15 @@ internal class MarkdownInputTextBox : TextBox
         BeforeTextInput?.Invoke(e);
         if (!e.Handled) base.OnTextInput(e);
     }
+
+    /// <summary>行内图片叠绘：presenter.Render 密封，挂到 TextBox 渲染层（其层级在 presenter 文字之下，
+    /// 占位字符零宽且透明，视觉互不遮挡）。</summary>
+    public override void Render(DrawingContext context)
+    {
+        base.Render(context);
+        foreach (var presenter in this.GetVisualDescendants().OfType<MarkdownInlinePresenter>())
+            presenter.DrawImageOverlays(context, this);
+    }
 }
 
 /// <summary>
@@ -51,13 +60,12 @@ internal sealed class MarkdownBlockView : UserControl
     private bool IsDiagram => _isCode && string.Equals(Model.Language, "mermaid", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// 块正文包含图片语法（不含表格单元格/代码/公式块）。这类块在整体替换成原始文本时
-    /// 会表现为「图片消失、失焦又回来」（旧实现），与图表一致改走媒体布局：
-    /// 编辑时上方挂源码输入框、下方保留渲染预览。
+    /// 块正文包含图片语法（不含表格单元格/代码）。渲染态（未首击）仍由 Viewer 出图；
+    /// 进入单表面后由 InlinePresenter 内嵌绘制（阶段 3），不再走源码覆盖模式。
     /// </summary>
     private bool HasImageSyntax => !_isCode && !_isTableCell && Model.Kind != MarkdownBlockKind.Raw
         && ModelText.Contains("![", StringComparison.Ordinal);
-    private bool IsSourceOverlay => IsDiagram || HasImageSyntax;
+    private bool IsSourceOverlay => IsDiagram;
 
     private double _runFontSize = 15;
 
@@ -321,7 +329,7 @@ internal sealed class MarkdownBlockView : UserControl
         _syncingText = false;
         _editing = true;
         UpdateRichText();
-        _inlineEditing = !IsSourceOverlay && (_isCode || Model.Kind != MarkdownBlockKind.Raw && !ModelText.Contains("![", StringComparison.Ordinal) && !ModelText.Contains('$'));
+        _inlineEditing = !IsSourceOverlay && (_isCode || Model.Kind != MarkdownBlockKind.Raw && !ModelText.Contains('$'));
         if (IsSourceOverlay)
         {
             _editingLayer.Children.Remove(_editor);
@@ -367,7 +375,7 @@ internal sealed class MarkdownBlockView : UserControl
     /// 模型已逐键同步，失焦提交只剩「翻态」效果——那正是双态架构的脆弱源；渲染保真由
     /// InlinePresenter（源码+富文本样式+语法标记隐藏）承担，复杂块仍走失焦提交回渲染。</summary>
     public bool IsPureText =>
-        !_isCode && !_isTableCell && !IsSourceOverlay
+        !_isCode && !_isTableCell && !IsDiagram
         && Model.Kind is MarkdownBlockKind.Paragraph or MarkdownBlockKind.Heading
             or MarkdownBlockKind.ListItem or MarkdownBlockKind.Quote
         && !Model.Text.Contains('$');

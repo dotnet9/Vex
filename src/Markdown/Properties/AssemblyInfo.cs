@@ -20,6 +20,7 @@ using global::Avalonia.Metadata;
 [assembly: XmlnsDefinition("https://codewf.com", "CodeWF.Avalonia.Markdown.Themes")]
 
 [assembly: InternalsVisibleTo("CodeWF.Avalonia.Content.Tests")]
+[assembly: InternalsVisibleTo("CodeWF.Avalonia.Markdown.Tests")]
 
 // 宿主（Vex）复用 Mermaid 渲染管线（图鉴缩略图与文档内同一条渲染+缓存路径）
 [assembly: InternalsVisibleTo("Vex")]

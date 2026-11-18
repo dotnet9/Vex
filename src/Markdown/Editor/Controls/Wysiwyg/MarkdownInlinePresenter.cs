@@ -1,13 +1,18 @@
 using global::Avalonia;
 using global::Avalonia.Controls.Presenters;
 using global::Avalonia.Media;
+using global::Avalonia.Media.Imaging;
 using global::Avalonia.Media.TextFormatting;
 using global::Avalonia.Utilities;
+using global::Avalonia.VisualTree;
+using System.Collections.Concurrent;
 using CodeWF.Avalonia.Markdown.Shared.Rendering;
 
 namespace CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg;
 
-/// <summary>保留 TextBox 的输入法、选择和光标；显示行内样式并保持源码字符索引。</summary>
+/// <summary>保留 TextBox 的输入法、选择和光标；显示行内样式并保持源码字符索引。
+/// 行内图片：源码区间以零宽占位+撑行高样式维持索引契约，图片按版面几何叠绘；
+/// 光标/选区进入语法区间时显源码（muya 行为）。</summary>
 internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, bool plain) : TextPresenter
 {
     private double _availableWidth = double.PositiveInfinity;
@@ -16,12 +21,61 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
     protected override Size ArrangeOverride(Size finalSize)
     { _availableWidth = finalSize.Width; return base.ArrangeOverride(finalSize); }
 
+    /// <summary>当前版面的图片叠绘清单（CreateTextLayout 重建时刷新）。</summary>
+    private readonly List<ImageOverlay> _imageOverlays = [];
+    private TextLayout? _lastLayout;
+
+    private sealed record ImageOverlay(int Start, Bitmap? Bitmap, double Width, double Height);
+
+    private static readonly ConcurrentDictionary<string, Bitmap?> ImageBank = new(StringComparer.Ordinal);
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        // 图片区间的显源码/叠绘随光标与选区切换，需要整层重建（无图片块的纯文本零开销）。
+        if (_imageOverlays.Count > 0 && change.Property.Name is "CaretIndex" or "SelectionStart" or "SelectionEnd")
+            InvalidateTextLayout();
+    }
+
+    private Bitmap? LoadImage(string url)
+    {
+        var path = ResolveImagePath(url, options.ImageBasePath);
+        if (path is null) return null;
+        return ImageBank.GetOrAdd(path, Decode);
+        static Bitmap? Decode(string p)
+        {
+            try
+            {
+                if (!File.Exists(p)) return null;
+                using var stream = File.OpenRead(p);
+                return Bitmap.DecodeToWidth(stream, 640);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+    }
+
+    private static string? ResolveImagePath(string url, string? basePath)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return uri.Scheme == "file" ? uri.LocalPath : null; // http(s) 等远程图暂不内嵌，回退源码显示
+        if (Path.IsPathRooted(url)) return url;
+        if (string.IsNullOrEmpty(basePath)) return null;
+        // 应用契约：basePath 为文档完整路径（相对图片相对其所在目录解析）。
+        var baseDir = File.Exists(basePath) ? Path.GetDirectoryName(basePath) : basePath;
+        return string.IsNullOrEmpty(baseDir) ? null : Path.GetFullPath(Path.Combine(baseDir, url));
+    }
+
     protected override TextLayout CreateTextLayout()
     {
         if (plain) return base.CreateTextLayout();
         var source = Text ?? "";
         var face = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
         var styles = new List<ValueSpan<TextRunProperties>>();
+        _imageOverlays.Clear();
         // 隐藏的语法仍占一个源码索引，但不能包含实际换行而影响段落排版。
         var display = Enumerable.Repeat('\u200b', source.Length).ToArray();
         var cursor = 0;
@@ -29,6 +83,35 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
         {
             var start = Math.Clamp(run.SourceStart, cursor, source.Length);
             if (start > cursor) Hide(cursor, start - cursor);
+            if (run.ImageUrl is not null && run.SourceLength > 0)
+            {
+                // 行内图片：整个语法区间显源码（光标/选区在内）或占位叠绘。
+                var spanLength = Math.Min(run.SourceLength, source.Length - start);
+                var revealed = SelectionStart != SelectionEnd
+                    ? start < SelectionEnd && SelectionStart < start + spanLength
+                    : CaretIndex > start && CaretIndex < start + spanLength;
+                if (revealed)
+                {
+                    source.AsSpan(start, spanLength).CopyTo(display.AsSpan(start));
+                    styles.Add(new(start, spanLength,
+                        new GenericTextRunProperties(face, FontSize, foregroundBrush: Foreground)));
+                }
+                else
+                {
+                    var bitmap = LoadImage(run.ImageUrl);
+                    var (width, height) = ImageDrawSize(bitmap);
+                    if (bitmap is not null)
+                        _imageOverlays.Add(new ImageOverlay(start, bitmap, width, height));
+                    // 占位字符用空格而非零宽符：全 em 下零宽符触发字体回退会崩掉整行 shaping
+                    //（实测整行文字消失）；空格有真实宽度（预留图片横空间）、无回退、透明不可见。
+                    display.AsSpan(start, spanLength).Fill(' ');
+                    styles.Add(new(start, spanLength, new GenericTextRunProperties(face,
+                        bitmap is null ? FontSize : Math.Min(height, FontSize * 2),
+                        foregroundBrush: Brushes.Transparent)));
+                }
+                cursor = start + spanLength;
+                continue;
+            }
             var length = Math.Min(run.Text.Length, source.Length - start);
             if (length > 0)
             {
@@ -103,11 +186,44 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
         }
         var mixedSizes = styles.Any(span => span.Value.FontRenderingEmSize > FontSize + .01);
         var layoutFontSize = mixedSizes ? MarkdownLineMetrics.StrutFontSize(face, FontSize, LineHeight) : FontSize;
-        return new TextLayout(text, face, layoutFontSize, Foreground, TextAlignment, TextWrapping,
+        var layout = new TextLayout(text, face, layoutFontSize, Foreground, TextAlignment, TextWrapping,
             maxWidth: _availableWidth > 0 ? _availableWidth : double.PositiveInfinity,
             flowDirection: FlowDirection, fontFeatures: FontFeatures,
             lineHeight: mixedSizes ? double.NaN : LineHeight, letterSpacing: LetterSpacing, textStyleOverrides: overrides);
+        _lastLayout = layout;
+        return layout;
         void Hide(int start, int length) => styles.Add(new(start, length,
             new GenericTextRunProperties(face, .001, foregroundBrush: Brushes.Transparent)));
+    }
+
+    /// <summary>显示尺寸：高 2×正文行字号封顶（更高会毒化整行版面，实测文字消失）、宽随可用宽收，保纵横比。</summary>
+    private (double Width, double Height) ImageDrawSize(Bitmap? bitmap)
+    {
+        if (bitmap is null) return (0, 0);
+        var maxWidth = Math.Max(80, _availableWidth - 32);
+        var height = Math.Min(bitmap.PixelSize.Height, FontSize * 2);
+        var width = bitmap.PixelSize.Width * height / bitmap.PixelSize.Height;
+        if (width > maxWidth)
+        {
+            width = maxWidth;
+            height = bitmap.PixelSize.Height * width / bitmap.PixelSize.Width;
+        }
+        return (width, height);
+    }
+
+    /// <summary>叠绘行内图片（宿主 TextBox 渲染层调用；presenter 自身 Render 密封）。
+    /// 几何来自当前 TextLayout 命中测试，坐标映射到 coordinateSpace。</summary>
+    internal void DrawImageOverlays(DrawingContext context, Visual coordinateSpace)
+    {
+        if (_imageOverlays.Count == 0 || _lastLayout is null) return;
+        var offset = this.TranslatePoint(default, coordinateSpace);
+        foreach (var overlay in _imageOverlays)
+        {
+            if (overlay.Bitmap is null) continue;
+            var origin = _lastLayout.HitTestTextPosition(overlay.Start);
+            var top = origin.Y + Math.Max(0, (origin.Height - overlay.Height) / 2);
+            var pos = offset is { } o ? new Point(origin.X + o.X, top + o.Y) : new Point(origin.X, top);
+            context.DrawImage(overlay.Bitmap, new Rect(pos, new Size(overlay.Width, overlay.Height)));
+        }
     }
 }

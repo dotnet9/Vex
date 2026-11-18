@@ -183,7 +183,7 @@ internal static class FixRegressionVerification
         TextBox EditorOf(Control c) => c.GetVisualDescendants().OfType<TextBox>().First();
         RealClick(firstText);
         Check(EditorOf(firstText).IsFocused, "Real click on glyphs focuses first text block editor");
-        var textSnapshot = vm.Markdown;
+        var textSnapshot = vm.Workbench.LiveEditor!.Text;
         RealClick(nextText);
         var nextEditor = EditorOf(nextText);
         Check(nextEditor.IsFocused, "Real click on glyphs focuses second text block");
@@ -192,7 +192,48 @@ internal static class FixRegressionVerification
         RealClick(firstText);
         Check(EditorOf(firstText).IsFocused, "Click back reuses persistent editing state");
         Check(nextEditor.IsVisible, "Second block also stays in edit form");
-        Check(vm.Markdown == textSnapshot, "No content loss across focus round-trip");
+        Check(vm.Workbench.LiveEditor!.Text == textSnapshot, "No content loss across focus round-trip");
+        // ---- 2.5 行内图片单表面（阶段3）：含图段落进入行内编辑，图片以叠绘呈现 ----
+        var imagePath = System.IO.Path.Combine(output, "inline-probe.png");
+        using (var bitmap = new Avalonia.Media.Imaging.RenderTargetBitmap(new Avalonia.PixelSize(96, 48)))
+        {
+            using (var ctx = bitmap.CreateDrawingContext())
+                ctx.FillRectangle(Avalonia.Media.Brushes.SlateBlue, new Rect(0, 0, 96, 48));
+            bitmap.Save(imagePath);
+        }
+        vm.Markdown = "行内图片段落 ![示例图](inline-probe.png) 尾文字";
+        Render(); Thread.Sleep(400); Render();
+        Shot("inline-image-render");
+        var imageBlock = live!.GetVisualDescendants()
+            .Where(c => c.GetType().Name == "MarkdownBlockView").OfType<Control>()
+            .FirstOrDefault(b => b.GetVisualDescendants().OfType<TextBox>()
+                .Any(box => (box.Text ?? "").Contains("![", StringComparison.Ordinal)));
+        Check(imageBlock is not null, "Inline-image paragraph block found");
+        var imgBlock = imageBlock!;
+        var imageGlyph = imgBlock.TranslatePoint(new Point(20, imgBlock.Bounds.Height / 2), window)
+            ?? throw new InvalidOperationException("Image block unmapped");
+        window.MouseMove(imageGlyph, RawInputModifiers.None); Render();
+        window.MouseDown(imageGlyph, MouseButton.Left); Render();
+        window.MouseUp(imageGlyph, MouseButton.Left); Render();
+        Thread.Sleep(200); Render();
+        var inlineFlag = imgBlock.GetType()
+            .GetField("_inlineEditing", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+            .GetValue(imgBlock);
+        Check(inlineFlag as bool? == true, "Image paragraph enters inline single-surface editing (not source overlay)");
+        var imagePresenter = imgBlock.GetVisualDescendants()
+            .FirstOrDefault(p => p.GetType().Name == "MarkdownInlinePresenter");
+        var overlays = imagePresenter?.GetType()
+            .GetField("_imageOverlays", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+            .GetValue(imagePresenter) as System.Collections.IEnumerable;
+        var overlayCount = overlays is { } list ? list.Cast<object>().Count() : 0;
+        Check(overlayCount >= 1, "Inline image resolved into overlay geometry: " + overlayCount);
+        Shot("inline-image");
+        // caret 进图片区间：显源码态截图（muya 行为对照）。
+        var imgEditor = imgBlock.GetVisualDescendants()
+            .OfType<TextBox>().First(box => (box.Text ?? "").Contains("![", StringComparison.Ordinal));
+        imgEditor.CaretIndex = 8;
+        Render(); Thread.Sleep(200); Render();
+        Shot("inline-image-revealed");
         // ---- 2.5 空白文档即时编辑：空段落块存在、光标就位、可拆块（Typora 空文档行为） ----
         // 共享流程装载了演示文档；直接清空内容模拟空白文档（NewDocument 会因 dirty 弹确认挂探针）。
         vm.Markdown = string.Empty;

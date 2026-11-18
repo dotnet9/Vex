@@ -18,7 +18,9 @@ public readonly record struct MarkdownTextRun(
     int SourceStart = 0,
     string? Foreground = null,
     string? Background = null,
-    double? FontSize = null);
+    double? FontSize = null,
+    string? ImageUrl = null,
+    int SourceLength = 0);
 
 /// <summary>把行内 Markdown 文本切成带样式的 <see cref="MarkdownTextRun"/> 列表。</summary>
 public static class MarkdownTextRunParser
@@ -203,8 +205,14 @@ public static class MarkdownTextRunParser
                     style,
                     spanStack);
 
+            case Markdig.Syntax.Inlines.LinkInline link when link.IsImage:
+                // 行内图片：整段语法 ![alt](url) 是一个嵌入对象 run（Text=alt 供显源码与回退占位）。
+                runs.Add(new MarkdownTextRun(CollectText(link), LinkUrl: link.Url,
+                    ImageUrl: link.Url, SourceStart: link.Span.Start, SourceLength: link.Span.Length));
+                return true;
+
             case Markdig.Syntax.Inlines.LinkInline link:
-                return AppendInlines(runs, link, bold, italic, strike, link.IsImage ? null : link.Url, style, spanStack);
+                return AppendInlines(runs, link, bold, italic, strike, link.Url, style, spanStack);
 
             case Markdig.Syntax.Inlines.LineBreakInline lineBreak:
                 // 预览保留软换行，输入层必须使用相同换行规则，避免点入时整段重排。
