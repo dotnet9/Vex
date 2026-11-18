@@ -26,6 +26,7 @@
     <PackageVersion Include="CodeWF.Toolkit.Lang" Version="$(CodeWFToolkitVersion)" />
     <PackageVersion Include="CodeWF.Toolkit.EventBus" Version="$(CodeWFToolkitVersion)" />
     <PackageVersion Include="CodeWF.Toolkit.Files" Version="$(CodeWFToolkitVersion)" />
+    <PackageVersion Include="CodeWF.Toolkit.Logging" Version="$(CodeWFToolkitVersion)" />
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.AvaloniaEdit" Version="$(AvaloniaEditVersion)" />
     <PackageVersion Include="Avalonia.Controls.ColorPicker" Version="$(AvaloniaVersion)" />

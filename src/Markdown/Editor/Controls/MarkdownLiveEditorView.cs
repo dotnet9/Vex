@@ -158,14 +158,13 @@ public partial class MarkdownLiveEditorView : UserControl
         // Tunnel 从根向下必经此 handler；点在块内时交还给块自己的处理。
         this.AddHandler(PointerPressedEvent, (_, e) =>
         {
-            try { System.IO.File.AppendAllText(@"E:/github/temp_files/live-diag.log", "root pressed src=" + e.Source?.GetType().Name + System.Environment.NewLine); } catch { }
+            try { CodeWF.Toolkit.Logging.Logger.Debug("live pressed src=" + e.Source?.GetType().Name); } catch { }
             if (e.Source is not Visual source) return;
             foreach (var view in _blockViews)
             {
                 if (ReferenceEquals(source, view) || source.GetVisualAncestors().Contains(view)) return;
             }
             var nearest = FindNearestBlockIndex(e.GetCurrentPoint(_container).Position.Y);
-            try { System.IO.File.AppendAllText(@"E:/github/temp_files/live-diag.log", "nearest=" + nearest + System.Environment.NewLine); } catch { }
             if (nearest >= 0) FocusBlock(nearest);
         }, RoutingStrategies.Tunnel);
         Content = BuildContent();
@@ -364,6 +363,7 @@ public partial class MarkdownLiveEditorView : UserControl
     /// <summary>同时载入正文和图片基址，只重建一次文档；不触发 <see cref="MarkdownChanged"/>。</summary>
     public void SetText(string? markdown, string? imageBasePath)
     {
+        CodeWF.Toolkit.Logging.Logger.Debug("SetText len=" + (markdown?.Length ?? -1));
         ContextSourceLine = 1;
         _suppressChanged = true;
         try
@@ -377,7 +377,9 @@ public partial class MarkdownLiveEditorView : UserControl
             // 空文档保持一个空段落并光标就位：点击即可输入（Typora 行为），
             // 否则零块视图点不进任何编辑器，空白文档等于不可编辑。
             if (_core.EnsureFirstBlock())
+            {
                 FocusBlock(0);
+            }
             RebuildBlocks();
             if (!_restoringHistory) { _undo.Clear(); _redo.Clear(); }
             _lastSnapshot = CaptureSnapshot();
@@ -464,8 +466,16 @@ public partial class MarkdownLiveEditorView : UserControl
         return nearest;
     }
 
+    /// <summary>点击文档空白（未命中任何块）：光标落到最后一个段落块末尾（Typora 行为）。</summary>
+    public void FocusLastParagraph()
+    {
+        if (_blockViews.Count == 0) return;
+        FocusBlock(_blockViews.Count - 1);
+    }
+
     public void FocusBlock(int index)
     {
+        CodeWF.Toolkit.Logging.Logger.Debug("FocusBlock index=" + index);
         if (index < 0 || index >= _blockViews.Count)
         {
             return;
@@ -535,7 +545,8 @@ public partial class MarkdownLiveEditorView : UserControl
 
     private Control BuildContent()
     {
-        var host = new Grid { RowDefinitions = new RowDefinitions("Auto,*") };
+        // 透明背景：让空白区域参与 hit test（点击空白→光标落最近段落，Typora 行为）。
+        var host = new Grid { RowDefinitions = new RowDefinitions("Auto,*"), Background = Brushes.Transparent };
         host.Children.Add(_paneHead);
 
         var scroll = new ScrollViewer
@@ -543,6 +554,8 @@ public partial class MarkdownLiveEditorView : UserControl
             Classes = { "MdEditorScroll" },
             HorizontalScrollBarVisibility = global::Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
             VerticalScrollBarVisibility = global::Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+            // 透明背景：滚动区空白参与 hit test（配合空白点击落光标）。
+            Background = global::Avalonia.Media.Brushes.Transparent,
             Content = _container
         };
         _blockHost.ScrollHost = scroll;

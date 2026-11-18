@@ -1,6 +1,7 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CodeWF.Toolkit.EventBus;
@@ -20,6 +21,14 @@ public sealed partial class MarkdownInstantView : UserControl
     public MarkdownInstantView()
     {
         InitializeComponent();
+        // Typora 行为：点击文档空白（未命中任何块编辑器）→ 光标落到最后一个段落块末尾。
+        // Tunnel 从窗口根向下必经此处；点在块内时交还给块自己的 OnPointerPressed。
+        this.AddHandler(PointerPressedEvent, (_, e) =>
+        {
+            if (e.Source is Avalonia.Visual source
+                && source.GetVisualAncestors().OfType<MarkdownLiveEditorView>().Any()) return;
+            Editor.FocusLastParagraph();
+        }, RoutingStrategies.Tunnel);
         AttachedToVisualTree += (_, _) => EventBus.Default.Subscribe(this);
         DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
         SizeChanged += (_, _) => UpdatePadding();

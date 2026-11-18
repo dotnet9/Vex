@@ -1,4 +1,5 @@
-using System.Text;
+﻿using System.Text;
+using Microsoft.Extensions.Logging;
 using Avalonia;
 using ReactiveUI.Avalonia;
 
@@ -11,6 +12,16 @@ internal sealed class Program
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         Vex.Core.Services.CrashLog.Install();
+        CodeWF.Toolkit.Logging.Logger.Initialize(new CodeWF.Toolkit.Logging.LoggerOptions
+        {
+            MinimumLevel = LogLevel.Debug,
+            EnableConsole = false,
+            File = new CodeWF.Toolkit.Logging.FileLogOptions
+            {
+                DirectoryPath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vex", "logs"),
+            },
+        });
         if (args is ["--verify-ui", var uiDirectory])
         {
             RuntimeVerification.RunUi(uiDirectory);

@@ -34,6 +34,7 @@
     <ProjectReference Include="..\Markdown.Core\CodeWF.Avalonia.Markdown.Core.csproj" />
     <PackageReference Include="CodeWF.Avalonia.Controls" />
     <PackageReference Include="CodeWF.Avalonia.Lang" />
+    <PackageReference Include="CodeWF.Toolkit.Logging" />
   </ItemGroup>
 
 </Project>

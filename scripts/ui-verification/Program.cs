@@ -29,6 +29,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 var mode = args.FirstOrDefault() ?? "vex";
 Vex.Core.Services.CrashLog.Install();
+
+        CodeWF.Toolkit.Logging.Logger.Initialize(new CodeWF.Toolkit.Logging.LoggerOptions
+        {
+            MinimumLevel = Microsoft.Extensions.Logging.LogLevel.Debug,
+            EnableConsole = true,
+        });
 VerificationVexApp.ProbeFileTree = mode is "file-tree-probe" or "workspace-files";
 VerificationVexApp.ControlDocumentReads = mode == "current-file-protection";
 if (mode == "protection") VerificationVexApp.Exports = new VerificationExports();

@@ -505,7 +505,7 @@ internal sealed class MarkdownBlockView : UserControl
 
     private void OnEditorKeyDown(object? sender, KeyEventArgs e)
     {
-        try { System.IO.File.AppendAllText(@"E:/github/temp_files/live-diag.log", "block keydown " + e.Key + System.Environment.NewLine); } catch { }
+        CodeWF.Toolkit.Logging.Logger.Debug("block keydown " + e.Key);
         if (e.KeyModifiers == KeyModifiers.None && _editor.SelectionStart == _editor.SelectionEnd)
         {
             var caret = _editor.CaretIndex;

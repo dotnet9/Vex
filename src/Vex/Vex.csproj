@@ -80,6 +80,7 @@
     <PackageReference Include="CodeWF.Toolkit.Core" />
     <PackageReference Include="CodeWF.Toolkit.EventBus" />
     <PackageReference Include="CodeWF.Toolkit.Files" />
+    <PackageReference Include="CodeWF.Toolkit.Logging" />
     <PackageReference Include="Mermaider" />
     <PackageReference Include="TextMateSharp" />
     <PackageReference Include="TextMateSharp.Grammars" />
