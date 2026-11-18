@@ -61,7 +61,7 @@ internal static class FixRegressionVerification
                 ? root.GetVisualDescendants().OfType<Image>().ToList()
                 : [];
             total = images.Count;
-            filled = images.Count(i => i.Source is Avalonia.Media.Imaging.Bitmap);
+            filled = images.Count(i => i.Source is Avalonia.Svg.Skia.SvgImage);
             if (total >= 24 && filled >= 24) break;
             Thread.Sleep(250);
         }

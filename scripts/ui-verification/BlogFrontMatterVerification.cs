@@ -1,4 +1,5 @@
-using Avalonia;
+﻿using Avalonia;
+using CodeWF.Avalonia.Markdown.Core.Blocks;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Media.Imaging;
