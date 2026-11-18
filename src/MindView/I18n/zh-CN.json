@@ -1,0 +1,48 @@
+{
+  "language": "简体中文",
+  "description": "中文（简体）",
+  "cultureName": "zh-CN",
+  "CodeWF": {
+    "Avalonia": {
+      "MindView": {
+        "MindViewL": {
+          "CenterTopicPlaceholder": "中心主题",
+          "TopicPlaceholder": "主题",
+          "NotePlaceholder": "备注",
+          "AddSiblingText": "添加同级主题",
+          "AddChildText": "添加子主题",
+          "PromoteText": "提升为父节点",
+          "DemoteText": "降级为子节点",
+          "MoveUpText": "上移",
+          "MoveDownText": "下移",
+          "AddNoteText": "添加备注",
+          "EditNoteText": "编辑备注",
+          "DeleteNodeText": "删除节点",
+          "DragNodeTip": "拖到节点中部成为子节点，拖到上下边缘调整同级顺序",
+          "DropAsChildText": "设为子节点",
+          "DropBeforeText": "插入到前面",
+          "DropAfterText": "插入到后面",
+          "DropUnavailableText": "不能放在这里",
+          "UntitledTopic": "未命名主题",
+          "DefaultRootTitle": "中心主题",
+          "JsonChildTitle": "主题",
+          "JsonItemTitle": "项目",
+          "CsvRecordTitle": "记录",
+          "CsvColumnTitle": "列 {0}",
+          "ParseFailed": "解析失败：{0}",
+          "XMindContentMissing": "未找到可识别的 XMind 内容。",
+          "XMindJsonMissingRootTopic": "XMind content.json 中没有 rootTopic。",
+          "XMindXmlMissingRootTopic": "XMind content.xml 中没有根主题。",
+          "MetadataFormatLabel": "格式：{0}",
+          "MetadataPathLabel": "路径：{0}",
+          "BaiduMindMapFormat": "百度脑图",
+          "ImageFormat": "图片",
+          "DrawIoDiagramTitle": "draw.io 图表",
+          "MarkdownDocument": "文档",
+          "ExpandBranch": "展开分支",
+          "CollapseBranch": "收起分支"
+        }
+      }
+    }
+  }
+}

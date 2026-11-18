@@ -1,0 +1,20 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:media="clr-namespace:Avalonia.Media;assembly=Avalonia.Base"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <x:Double x:Key="CodeWFMarkdownParagraphFontSize">16</x:Double>
+    <x:Double x:Key="CodeWFMarkdownParagraphLineHeight">26</x:Double>
+    <x:Double x:Key="CodeWFMarkdownHeading2FontSize">22.4</x:Double>
+    <x:Double x:Key="CodeWFMarkdownHeading3FontSize">19.2</x:Double>
+    <Thickness x:Key="CodeWFMarkdownParagraphMargin">0 10 0 10</Thickness>
+    <Thickness x:Key="CodeWFMarkdownHeadingMargin">0 40 0 20</Thickness>
+    <media:TextAlignment x:Key="CodeWFMarkdownHeading2TextAlignment">Center</media:TextAlignment>
+    <media:TextAlignment x:Key="CodeWFMarkdownHeading3TextAlignment">Left</media:TextAlignment>
+    <Thickness x:Key="CodeWFMarkdownHeading2BorderThickness">0</Thickness>
+    <Thickness x:Key="CodeWFMarkdownHeading2Padding">0</Thickness>
+    <Thickness x:Key="CodeWFMarkdownQuoteBorderThickness">3 0 0 0</Thickness>
+    <CornerRadius x:Key="CodeWFMarkdownQuoteCornerRadius">0</CornerRadius>
+    <Thickness x:Key="CodeWFMarkdownQuotePadding">10 1 0 1</Thickness>
+    <Thickness x:Key="CodeWFMarkdownQuoteMargin">0 20 0 20</Thickness>
+    <x:Double x:Key="CodeWFMarkdownQuoteContentSpacing">0</x:Double>
+</ResourceDictionary>

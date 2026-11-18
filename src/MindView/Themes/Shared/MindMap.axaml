@@ -1,0 +1,82 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <x:String x:Key="CodeWFMindViewDefaultPalette">#2563EB;#16A34A;#F97316;#DB2777;#7C3AED;#0891B2;#DC2626;#CA8A04;#0D9488;#4F46E5</x:String>
+
+    <x:Double x:Key="CodeWFMindViewMinCanvasWidth">920</x:Double>
+    <x:Double x:Key="CodeWFMindViewMinCanvasHeight">620</x:Double>
+    <x:Double x:Key="CodeWFMindViewMinCanvasHorizontalPadding">560</x:Double>
+    <x:Double x:Key="CodeWFMindViewMinCanvasVerticalPadding">180</x:Double>
+    <x:Double x:Key="CodeWFMindViewMinZoom">0.1</x:Double>
+    <x:Double x:Key="CodeWFMindViewMaxZoom">2</x:Double>
+    <x:Double x:Key="CodeWFMindViewZoomFactor">1.1</x:Double>
+    <x:Double x:Key="CodeWFMindViewTouchPadMagnifySensitivity">16</x:Double>
+    <x:Double x:Key="CodeWFMindViewTouchPadMagnifyMaxSteps">4</x:Double>
+    <x:Double x:Key="CodeWFMindViewWheelPanStep">72</x:Double>
+    <x:Double x:Key="CodeWFMindViewRebuildConnectorBatchSize">160</x:Double>
+    <x:Double x:Key="CodeWFMindViewRebuildNodeBatchSize">48</x:Double>
+    <x:Double x:Key="CodeWFMindViewDragStartDistance">6</x:Double>
+    <x:Double x:Key="CodeWFMindViewDropEdgeRatio">0.28</x:Double>
+    <x:Double x:Key="CodeWFMindViewNodeMenuWidth">224</x:Double>
+
+    <x:Double x:Key="CodeWFMindViewDefaultRootX">420</x:Double>
+    <x:Double x:Key="CodeWFMindViewDefaultRootY">220</x:Double>
+    <x:Double x:Key="CodeWFMindViewDefaultMinNodeY">24</x:Double>
+    <x:Double x:Key="CodeWFMindViewDefaultHorizontalSpacing">104</x:Double>
+    <x:Double x:Key="CodeWFMindViewDefaultVerticalSpacing">34</x:Double>
+
+    <x:Double x:Key="CodeWFMindViewRootMinWidth">88</x:Double>
+    <x:Double x:Key="CodeWFMindViewRootMaxWidth">260</x:Double>
+    <x:Double x:Key="CodeWFMindViewRootMinHeight">46</x:Double>
+    <Thickness x:Key="CodeWFMindViewRootPadding">10,5</Thickness>
+    <CornerRadius x:Key="CodeWFMindViewRootCornerRadius">8</CornerRadius>
+    <Thickness x:Key="CodeWFMindViewRootBorderThickness">0</Thickness>
+    <x:String x:Key="CodeWFMindViewRootBoxShadow">0 6 18 0 #16000000</x:String>
+    <x:Double x:Key="CodeWFMindViewRootFontSize">18</x:Double>
+
+    <x:Double x:Key="CodeWFMindViewBranchMinWidth">112</x:Double>
+    <x:Double x:Key="CodeWFMindViewBranchMaxWidth">240</x:Double>
+    <x:Double x:Key="CodeWFMindViewBranchMinHeight">42</x:Double>
+    <Thickness x:Key="CodeWFMindViewBranchPadding">12,5</Thickness>
+    <CornerRadius x:Key="CodeWFMindViewBranchCornerRadius">8</CornerRadius>
+    <Thickness x:Key="CodeWFMindViewBranchBorderThickness">1</Thickness>
+    <Thickness x:Key="CodeWFMindViewBranchSelectedBorderThickness">1</Thickness>
+    <x:Double x:Key="CodeWFMindViewBranchFontSize">17</x:Double>
+
+    <x:Double x:Key="CodeWFMindViewLeafMinWidth">48</x:Double>
+    <x:Double x:Key="CodeWFMindViewLeafMaxWidth">260</x:Double>
+    <x:Double x:Key="CodeWFMindViewLeafMinHeight">30</x:Double>
+    <Thickness x:Key="CodeWFMindViewLeafPadding">6,3</Thickness>
+    <CornerRadius x:Key="CodeWFMindViewLeafCornerRadius">5</CornerRadius>
+    <x:Double x:Key="CodeWFMindViewLeafFontSize">16</x:Double>
+
+    <x:Double x:Key="CodeWFMindViewDragHandleHitWidth">24</x:Double>
+    <x:Double x:Key="CodeWFMindViewNoteFontSize">13</x:Double>
+    <x:Double x:Key="CodeWFMindViewNoteVerticalSpacing">4</x:Double>
+    <x:Double x:Key="CodeWFMindViewNoteMinHeight">28</x:Double>
+    <x:Double x:Key="CodeWFMindViewNoteMaxHeight">96</x:Double>
+
+    <x:Double x:Key="CodeWFMindViewToolbarWidth">272</x:Double>
+    <x:Double x:Key="CodeWFMindViewToolbarHeight">32</x:Double>
+    <Thickness x:Key="CodeWFMindViewToolbarPadding">8,3</Thickness>
+    <CornerRadius x:Key="CodeWFMindViewToolbarCornerRadius">6</CornerRadius>
+    <Thickness x:Key="CodeWFMindViewToolbarBorderThickness">1</Thickness>
+    <x:String x:Key="CodeWFMindViewToolbarBoxShadow">0 6 18 0 #22000000</x:String>
+    <x:Double x:Key="CodeWFMindViewToolbarButtonSpacing">4</x:Double>
+    <x:Double x:Key="CodeWFMindViewToolbarButtonWidth">28</x:Double>
+    <x:Double x:Key="CodeWFMindViewToolbarButtonHeight">24</x:Double>
+    <CornerRadius x:Key="CodeWFMindViewToolbarButtonCornerRadius">4</CornerRadius>
+    <x:Double x:Key="CodeWFMindViewToolbarIconSize">15</x:Double>
+
+    <Thickness x:Key="CodeWFMindViewNodeMenuPadding">6</Thickness>
+    <CornerRadius x:Key="CodeWFMindViewNodeMenuCornerRadius">6</CornerRadius>
+    <Thickness x:Key="CodeWFMindViewNodeMenuBorderThickness">1</Thickness>
+    <x:String x:Key="CodeWFMindViewNodeMenuBoxShadow">0 8 22 0 #24000000</x:String>
+    <x:Double x:Key="CodeWFMindViewNodeMenuRowHeight">30</x:Double>
+    <CornerRadius x:Key="CodeWFMindViewNodeMenuRowCornerRadius">4</CornerRadius>
+    <Thickness x:Key="CodeWFMindViewNodeMenuRowPadding">8,0</Thickness>
+    <x:Double x:Key="CodeWFMindViewNodeMenuIconWidth">18</x:Double>
+    <x:Double x:Key="CodeWFMindViewNodeMenuTextFontSize">13</x:Double>
+    <x:Double x:Key="CodeWFMindViewNodeMenuShortcutFontSize">12</x:Double>
+
+    <x:Double x:Key="CodeWFMindViewMiniMapPreviewPadding">14</x:Double>
+</ResourceDictionary>

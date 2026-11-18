@@ -1,0 +1,73 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:md="https://codewf.com"
+    xmlns:mdimg="https://codewf.com">
+    <!-- CodeWF.Avalonia.Markdown 完整包的附加外观：图片能力控件（MarkdownImage / 预览窗）。
+         基础包只依赖 Lite 与 Lite.Themes，能力外观集中在这里，避免让 Lite.Themes 反向依赖能力包。 -->
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ControlTheme x:Key="{x:Type mdimg:MarkdownImage}" TargetType="mdimg:MarkdownImage">
+                <Setter Property="Template">
+                    <ControlTemplate TargetType="{x:Type mdimg:MarkdownImage}">
+                        <!-- 源码输入区默认收起：仅编辑态 MarkdownViewer（IsDiagramEditingEnabled）里点击独立成段图片时展开，
+                             与 MermaidDiagramView 的「上方源码框」交互一致；展开样式（前景/背景/边框/字体）由代码按 Viewer 属性绑定。 -->
+                        <StackPanel>
+                            <TextBox Name="PART_SourceInput"
+                                     IsVisible="False"
+                                     AcceptsReturn="False" TextWrapping="NoWrap"
+                                     FontFamily="Consolas,Menlo,monospace" FontSize="13" LineHeight="24"
+                                     Padding="14,12" BorderThickness="1" CornerRadius="8" MinHeight="0"
+                                     HorizontalAlignment="Stretch" VerticalContentAlignment="Center"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                     ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+                            <ContentControl Name="PART_ContentHost" />
+                        </StackPanel>
+                    </ControlTemplate>
+                </Setter>
+            </ControlTheme>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <Style Selector="Image.MdImageContent">
+        <Setter Property="MaxWidth" Value="{DynamicResource CodeWFMarkdownImageMaxWidth}" />
+        <Setter Property="MaxHeight" Value="{DynamicResource CodeWFMarkdownImageMaxHeight}" />
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownImageMargin}" />
+    </Style>
+
+    <Style Selector="Border.MdImageFallback">
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource CodeWFMarkdownImageFallbackBorderThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CodeWFMarkdownImageFallbackCornerRadius}" />
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownImageFallbackPadding}" />
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownImageFallbackMargin}" />
+    </Style>
+
+    <Style Selector="TextBlock.MdImageFallbackText">
+        <Setter Property="Opacity" Value="{DynamicResource CodeWFMarkdownImageFallbackOpacity}" />
+    </Style>
+
+    <Style Selector="Window.MdImagePreviewWindow">
+        <Setter Property="Width" Value="{DynamicResource CodeWFMarkdownImagePreviewWidth}" />
+        <Setter Property="Height" Value="{DynamicResource CodeWFMarkdownImagePreviewHeight}" />
+        <Setter Property="MinWidth" Value="{DynamicResource CodeWFMarkdownImagePreviewMinWidth}" />
+        <Setter Property="MinHeight" Value="{DynamicResource CodeWFMarkdownImagePreviewMinHeight}" />
+    </Style>
+
+    <Style Selector="Border.MdImagePreviewContent">
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownImagePreviewContentPadding}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdImagePreviewToolbar">
+        <Setter Property="Spacing" Value="{DynamicResource CodeWFMarkdownImagePreviewToolbarSpacing}" />
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownImagePreviewToolbarMargin}" />
+    </Style>
+
+    <Style Selector="TextBlock.MdImagePreviewZoomText">
+        <Setter Property="MinWidth" Value="{DynamicResource CodeWFMarkdownImagePreviewZoomTextMinWidth}" />
+    </Style>
+
+    <Style Selector="Button.MdImagePreviewButton">
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownImagePreviewButtonPadding}" />
+    </Style>
+</Styles>

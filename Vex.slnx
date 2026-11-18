@@ -17,20 +17,11 @@
   <Project Path="src/Vex.Git/Vex.Git.csproj" />
   <Project Path="src/Vex/Vex.csproj" />
   <Project Path="tests/Vex.Mcp.Tests/Vex.Mcp.Tests.csproj" />
-  <Folder Name="/libs/CodeWF.Avalonia/">
-    <Project Path="libs/CodeWF.Avalonia/src/Controls/CodeWF.Avalonia.Controls/CodeWF.Avalonia.Controls.csproj" />
-    <Project Path="libs/CodeWF.Avalonia/src/DataGrid/CodeWF.Avalonia.DataGrid/CodeWF.Avalonia.DataGrid.csproj" />
-    <Project Path="libs/CodeWF.Avalonia/src/Dock/CodeWF.Avalonia.Dock/CodeWF.Avalonia.Dock.csproj" />
-    <Project Path="libs/CodeWF.Avalonia/src/Lang/CodeWF.Avalonia.Lang/CodeWF.Avalonia.Lang.csproj" />
-    <Project Path="libs/CodeWF.Avalonia/src/Log/CodeWF.Avalonia.Log/CodeWF.Avalonia.Log.csproj" />
-    <Project Path="libs/CodeWF.Avalonia/src/Markdown/CodeWF.Avalonia.Markdown/CodeWF.Avalonia.Markdown.csproj" />
-    <Project Path="libs/CodeWF.Avalonia/src/Markdown/CodeWF.Avalonia.Markdown.Lite/CodeWF.Avalonia.Markdown.Lite.csproj" />
-    <Project Path="libs/CodeWF.Avalonia/src/MindView/CodeWF.Avalonia.MindView/CodeWF.Avalonia.MindView.csproj" />
-    <Project Path="libs/CodeWF.Avalonia/src/TreeDataGrid/CodeWF.Avalonia.TreeDataGrid/CodeWF.Avalonia.TreeDataGrid.csproj" />
-  </Folder>
-  <Folder Name="/libs/CodeWF.Toolkit/">
-    <Project Path="libs/CodeWF.Toolkit/src/Core/CodeWF.Toolkit.Core/CodeWF.Toolkit.Core.csproj" />
-    <Project Path="libs/CodeWF.Toolkit/src/EventBus/CodeWF.Toolkit.EventBus/CodeWF.Toolkit.EventBus.csproj" />
-    <Project Path="libs/CodeWF.Toolkit/src/Files/CodeWF.Toolkit.Files/CodeWF.Toolkit.Files.csproj" />
+  <Folder Name="/Controls/">
+    <Project Path="src/Markdown.Core/CodeWF.Avalonia.Markdown.Core.csproj" />
+    <Project Path="src/Markdown.Lite/CodeWF.Avalonia.Markdown.Lite.csproj" />
+    <Project Path="src/Markdown/CodeWF.Avalonia.Markdown.csproj" />
+    <Project Path="src/Markdown.Tests/CodeWF.Avalonia.Markdown.Tests.csproj" />
+    <Project Path="src/MindView/CodeWF.Avalonia.MindView.csproj" />
   </Folder>
 </Solution>

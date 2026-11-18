@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TargetFramework>net11.0</TargetFramework>
+    <!-- 纯逻辑工程：块编辑模型与操作，零 Avalonia 依赖（UI 层只消费状态与焦点指令）。
+         单元测试直接覆盖键盘行为（Enter/Backspace/拆块/合并），不经过 headless UI。 -->
+    <Description>Markdown 块编辑核心：块模型与编辑操作（拆块/合并/空文档首块），零 UI 依赖。Block editing core for the markdown editor: block model and editing operations with no UI dependency.</Description>
+    <PackageTags>markdown;editor;block;core;codewf</PackageTags>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+</Project>

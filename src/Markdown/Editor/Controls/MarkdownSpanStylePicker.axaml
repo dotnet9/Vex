@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CodeWF.Avalonia.Markdown.Editor.Controls"
+             x:Class="CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownSpanStylePicker"
+             x:DataType="vm:MarkdownSpanStylePickerViewModel" x:Name="Picker"
+             Foreground="{DynamicResource CodeWFMarkdownSelectionForegroundBrush}">
+  <UserControl.Resources>
+    <!-- Avalonia 12.1.5 的选色原语引用 Fluent 前景键；使用控件自己的主题资源兼容 Semi 宿主及浮层脱树。 -->
+    <StaticResource x:Key="SystemControlForegroundBaseHighBrush" ResourceKey="CodeWFMarkdownSelectionForegroundBrush" />
+  </UserControl.Resources>
+  <UserControl.Styles>
+    <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
+    <Style Selector="Button.choice">
+      <Setter Property="Width" Value="30"/><Setter Property="Height" Value="26"/>
+      <Setter Property="MinHeight" Value="0"/><Setter Property="MinWidth" Value="0"/>
+      <Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0"/>
+      <Setter Property="CornerRadius" Value="4"/><Setter Property="FontSize" Value="12"/>
+      <Setter Property="Focusable" Value="False"/><Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.swatch">
+      <Setter Property="Width" Value="22"/><Setter Property="Height" Value="22"/>
+      <Setter Property="MinHeight" Value="0"/><Setter Property="MinWidth" Value="0"/>
+      <Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0"/>
+      <Setter Property="CornerRadius" Value="5"/><Setter Property="Focusable" Value="False"/>
+      <Setter Property="BorderThickness" Value="1"/><Setter Property="BorderBrush" Value="{DynamicResource CodeWFMarkdownSelectionBorderBrush}"/>
+    </Style>
+  </UserControl.Styles>
+  <StackPanel Spacing="7">
+    <TextBlock Text="{Binding Title}" FontSize="12" Foreground="{DynamicResource CodeWFMarkdownSelectionMutedBrush}"/>
+    <ItemsControl IsVisible="{Binding IsSize}" ItemsSource="{Binding Sizes}">
+      <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="6"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate><DataTemplate x:DataType="x:Double">
+        <Button Classes="choice" Content="{Binding}" Command="{Binding #Picker.((vm:MarkdownSpanStylePickerViewModel)DataContext).SizeCommand}" CommandParameter="{Binding}"/>
+      </DataTemplate></ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <StackPanel IsVisible="{Binding IsColor}" Width="238" Spacing="7">
+      <ColorSpectrum Name="Spectrum" Height="132" Components="SaturationValue" HsvColor="{Binding SelectedHsv, Mode=TwoWay}"/>
+      <ColorSlider Name="Hue" Height="16" MinHeight="0" ColorModel="Hsva" ColorComponent="Component1" HsvColor="{Binding SelectedHsv, Mode=TwoWay}"/>
+      <Grid ColumnDefinitions="30,*,Auto" ColumnSpacing="8">
+        <Border Height="24" Background="{Binding PreviewBrush}" BorderBrush="{DynamicResource CodeWFMarkdownSelectionBorderBrush}" BorderThickness="1" CornerRadius="5"/>
+        <TextBox Name="HexInput" Grid.Column="1" Text="{Binding HexValue, Mode=TwoWay}" FontFamily="Consolas" FontSize="12" Padding="9,5" MinHeight="28"/>
+        <Button Name="ApplyColor" Grid.Column="2" Content="{Binding ApplyLabel}" Command="{Binding ApplyCommand}" Padding="8,4" MinHeight="28" FontSize="12"/>
+      </Grid>
+      <ItemsControl ItemsSource="{Binding Swatches}">
+        <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="9" Rows="4"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate><DataTemplate x:DataType="x:String">
+          <Button Classes="swatch" Margin="0,0,0,5" Background="{Binding}" ToolTip.Tip="{Binding}"
+                  Command="{Binding #Picker.((vm:MarkdownSpanStylePickerViewModel)DataContext).SwatchCommand}" CommandParameter="{Binding}"/>
+        </DataTemplate></ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+    <Button Name="ClearStyles" Content="{Binding ClearLabel}" Command="{Binding ClearCommand}" HorizontalAlignment="Stretch" FontSize="12" MinHeight="28" Padding="8,5"/>
+  </StackPanel>
+</UserControl>

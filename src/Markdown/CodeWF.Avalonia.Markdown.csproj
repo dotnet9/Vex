@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TargetFramework>net11.0</TargetFramework>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <Description>Markdown 完整包：在 Lite 渲染引擎之上提供图片（GIF/SVG/预览）、数学公式、Mermaid 图表、TextMate 代码高亮、行内样式（span style 字号/前景色/背景色，含选区浮动条与可读性回退）、PNG/PDF/Word/公众号 HTML 导出，以及源码编辑器与单栏实时编辑（所见即所得）控件，并内置能力控件主题。Full Markdown package: images, math, mermaid, highlighting, inline span styles (font size / foreground / background with selection bar and readability fallback), export and editors on top of the Lite engine.</Description>
+    <PackageTags>avalonia;markdown;editor;wysiwyg;export;codewf</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Controls.ColorPicker" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" />
+    <PackageReference Include="AnimatedImage.Avalonia" />
+    <PackageReference Include="Mermaider" />
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="Svg.Controls.Skia.Avalonia" />
+    <PackageReference Include="Svg.Skia" />
+    <PackageReference Include="Sylinko.CSharpMath.Avalonia" />
+    <PackageReference Include="TextMateSharp" />
+    <PackageReference Include="TextMateSharp.Grammars" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Editor\Highlighting\VexMarkDown-Mode.xshd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Markdown.Lite\CodeWF.Avalonia.Markdown.Lite.csproj" />
+    <ProjectReference Include="..\Markdown.Core\CodeWF.Avalonia.Markdown.Core.csproj" />
+    <PackageReference Include="CodeWF.Avalonia.Controls" />
+    <PackageReference Include="CodeWF.Avalonia.Lang" />
+  </ItemGroup>
+
+</Project>

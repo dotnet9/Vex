@@ -1,0 +1,48 @@
+{
+  "language": "English",
+  "description": "English (United States)",
+  "cultureName": "en-US",
+  "CodeWF": {
+    "Avalonia": {
+      "MindView": {
+        "MindViewL": {
+          "CenterTopicPlaceholder": "Center topic",
+          "TopicPlaceholder": "Topic",
+          "NotePlaceholder": "Note",
+          "AddSiblingText": "Add sibling topic",
+          "AddChildText": "Add child topic",
+          "PromoteText": "Promote",
+          "DemoteText": "Demote",
+          "MoveUpText": "Move up",
+          "MoveDownText": "Move down",
+          "AddNoteText": "Add note",
+          "EditNoteText": "Edit note",
+          "DeleteNodeText": "Delete node",
+          "DragNodeTip": "Drop on the middle to make it a child; drop on the top or bottom edge to reorder siblings",
+          "DropAsChildText": "Set as child",
+          "DropBeforeText": "Insert before",
+          "DropAfterText": "Insert after",
+          "DropUnavailableText": "Cannot drop here",
+          "UntitledTopic": "Untitled topic",
+          "DefaultRootTitle": "Center topic",
+          "JsonChildTitle": "Topic",
+          "JsonItemTitle": "Item",
+          "CsvRecordTitle": "Record",
+          "CsvColumnTitle": "Column {0}",
+          "ParseFailed": "Parse failed: {0}",
+          "XMindContentMissing": "No recognizable XMind content was found.",
+          "XMindJsonMissingRootTopic": "XMind content.json does not contain rootTopic.",
+          "XMindXmlMissingRootTopic": "XMind content.xml does not contain a root topic.",
+          "MetadataFormatLabel": "Format: {0}",
+          "MetadataPathLabel": "Path: {0}",
+          "BaiduMindMapFormat": "Baidu Mind Map",
+          "ImageFormat": "Image",
+          "DrawIoDiagramTitle": "draw.io diagram",
+          "MarkdownDocument": "Document",
+          "ExpandBranch": "Expand branch",
+          "CollapseBranch": "Collapse branch"
+        }
+      }
+    }
+  }
+}

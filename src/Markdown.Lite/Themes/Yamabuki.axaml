@@ -1,0 +1,24 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="CodeWF.Avalonia.Markdown.Themes.YamabukiTypographyResources">
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="ButtonSolidPrimaryBackground" Color="#FFB11B" />
+            <SolidColorBrush x:Key="BorderCardBackground" Color="#FFF7E6" />
+            <SolidColorBrush x:Key="TextBoxDefaultBackground" Color="#FFF7E6" />
+            <SolidColorBrush x:Key="ButtonDefaultBackground" Color="#FFE8B3" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="ButtonSolidPrimaryBackground" Color="#FFC247" />
+            <SolidColorBrush x:Key="BorderCardBackground" Color="#3D2B10" />
+            <SolidColorBrush x:Key="TextBoxDefaultBackground" Color="#3D2B10" />
+            <SolidColorBrush x:Key="ButtonDefaultBackground" Color="#523914" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Themes/Shared/Yamabuki.axaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

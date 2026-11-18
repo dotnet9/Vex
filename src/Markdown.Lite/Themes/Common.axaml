@@ -1,0 +1,563 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:md="https://codewf.com">
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Themes/Shared/_index.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 文档大纲侧栏面板（MarkdownOutlinePanel）默认视觉：OutlinePanel* 资源键提供
+                 中性兜底，宿主在应用层同名覆写即可整体换肤（Vex 映射 Studio 令牌、Vox 映射 Vox 令牌）。 -->
+            <SolidColorBrush x:Key="OutlinePanelValueBrush" Color="#303030" />
+            <SolidColorBrush x:Key="OutlinePanelMutedBrush" Color="#8A8A8A" />
+            <SolidColorBrush x:Key="OutlinePanelAccentBrush" Color="#4C6FE8" />
+            <SolidColorBrush x:Key="OutlinePanelHoverBrush" Color="#14000000" />
+            <SolidColorBrush x:Key="OutlinePanelCurrentBrush" Color="#17000000" />
+            <SolidColorBrush x:Key="OutlinePanelSearchBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="OutlinePanelSearchBorderBrush" Color="#DDDDDD" />
+            <x:Double x:Key="OutlinePanelTitleFontSize">12</x:Double>
+            <x:Double x:Key="OutlinePanelNumberFontSize">11</x:Double>
+            <x:Double x:Key="OutlinePanelTitleLineHeight">19.2</x:Double>
+            <x:Double x:Key="OutlinePanelNumberLineHeight">17.6</x:Double>
+            <x:Double x:Key="OutlinePanelRowMinHeight">32</x:Double>
+            <Thickness x:Key="OutlinePanelRowPadding">0,6,6,6</Thickness>
+
+            <!-- 面板列表自带完整模板：不依赖宿主主题（Semi/Arc）的 ListBox/ListBoxItem 样式，
+                 任何宿主下容器生成与行呈现行为一致（ Vox 悬停抑制等已内联在模板里）。 -->
+            <ControlTheme x:Key="OutlinePanelListBoxTheme" TargetType="ListBox">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="10,0,10,18" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                            <ScrollViewer>
+                                <ItemsPresenter />
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter>
+            </ControlTheme>
+            <ControlTheme x:Key="OutlinePanelItemTheme" TargetType="ListBoxItem">
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0,0,0,1" />
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <!-- 行面与悬停/当前底色画在 DataTemplate 的 Border.op-row 上，
+                             容器只提供通栏呈现；选中底透明（当前章由 .current 表达）。 -->
+                        <ContentPresenter
+                            Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch" />
+                    </ControlTemplate>
+                </Setter>
+            </ControlTheme>
+
+            <ControlTheme x:Key="{x:Type md:MarkdownOutlinePanel}" TargetType="md:MarkdownOutlinePanel">
+                <Setter Property="Template">
+                    <ControlTemplate TargetType="{x:Type md:MarkdownOutlinePanel}">
+                        <Grid RowDefinitions="Auto,*">
+                            <!-- 筛选 pill：图标 + 输入 + 清除；文案与配色走资源键。 -->
+                            <Border
+                                Classes="op-search"
+                                Height="32"
+                                Padding="12,5"
+                                CornerRadius="16"
+                                BorderThickness="1"
+                                Margin="12,14,12,10"
+                                Background="{DynamicResource OutlinePanelSearchBackgroundBrush}"
+                                BorderBrush="{DynamicResource OutlinePanelSearchBorderBrush}">
+                                <Grid ColumnDefinitions="13,*,20" ColumnSpacing="7">
+                                    <Viewbox Width="13" Height="13" VerticalAlignment="Center">
+                                        <Canvas Width="24" Height="24">
+                                            <Path
+                                                Classes="op-icon"
+                                                Width="24" Height="24" Stretch="None" StrokeThickness="1.7"
+                                                Data="M19 11A8 8 0 1 1 3 11A8 8 0 1 1 19 11 M21 21L16.65 16.65" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBox
+                                        Name="PART_Filter"
+                                        Grid.Column="1"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0"
+                                        MinHeight="0"
+                                        FontSize="{DynamicResource OutlinePanelTitleFontSize}"
+                                        VerticalContentAlignment="Center"
+                                        PlaceholderText="{TemplateBinding FilterWatermark}"
+                                        Foreground="{DynamicResource OutlinePanelValueBrush}"
+                                        PlaceholderForeground="{DynamicResource OutlinePanelMutedBrush}" />
+                                    <Button
+                                        Name="PART_ClearFilter"
+                                        Grid.Column="2"
+                                        Width="18" Height="18" MinWidth="0" MinHeight="0" Padding="0"
+                                        Background="Transparent" BorderThickness="0"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Viewbox Width="13" Height="13">
+                                            <Canvas Width="24" Height="24">
+                                                <Path
+                                                    Classes="op-icon"
+                                                    Width="24" Height="24" Stretch="None" StrokeThickness="1.7"
+                                                    Data="M6 6L18 18 M18 6L6 18" />
+                                            </Canvas>
+                                        </Viewbox>
+                                    </Button>
+                                </Grid>
+                            </Border>
+                            <ListBox
+                                Name="PART_List"
+                                Grid.Row="1"
+                                Theme="{StaticResource OutlinePanelListBoxTheme}"
+                                ItemContainerTheme="{StaticResource OutlinePanelItemTheme}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Padding="10,0,10,18"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="md:OutlineRow">
+                                        <!-- 列定义固定 Auto,*（ColumnDefinitions 不能走样式）：序号列随内容，
+                                             隐藏态序号不可见且间距样式归 0，标题退回纯缩进位；
+                                             开启后序号与标题一个字距（间距样式见文件尾 op-numbers 一档）。 -->
+                                        <Border
+                                            Classes.op-row="True"
+                                            Classes.top="{Binding IsTopLevel}"
+                                            Classes.current="{Binding IsCurrent}"
+                                            MinHeight="{DynamicResource OutlinePanelRowMinHeight}"
+                                            Padding="{DynamicResource OutlinePanelRowPadding}"
+                                            CornerRadius="4">
+                                            <Grid Margin="{Binding Indent}" ColumnDefinitions="Auto,*">
+                                                <TextBlock Classes="op-num" Text="{Binding Number}" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Classes="op-title"
+                                                    Text="{Binding Title}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <!-- 空态（无标题）与无匹配：accent 圆点 + 文案横排居中。 -->
+                            <StackPanel
+                                Name="PART_EmptyState"
+                                Grid.Row="1"
+                                IsVisible="False"
+                                Margin="18"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Top"
+                                Spacing="8">
+                                <Ellipse Width="8" Height="8" Fill="{DynamicResource OutlinePanelAccentBrush}" VerticalAlignment="Center" />
+                                <TextBlock
+                                    Classes="op-empty-text" VerticalAlignment="Center"
+                                    Text="{TemplateBinding EmptyText}" />
+                            </StackPanel>
+                            <StackPanel
+                                Name="PART_NoMatch"
+                                Grid.Row="1"
+                                IsVisible="False"
+                                Margin="18"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Top"
+                                Spacing="8">
+                                <Ellipse Width="8" Height="8" Fill="{DynamicResource OutlinePanelAccentBrush}" VerticalAlignment="Center" />
+                                <TextBlock
+                                    Classes="op-empty-text" VerticalAlignment="Center"
+                                    Text="{TemplateBinding NoMatchText}" />
+                            </StackPanel>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter>
+            </ControlTheme>
+
+            <ControlTheme x:Key="{x:Type md:MarkdownViewer}" TargetType="md:MarkdownViewer">
+                <Setter Property="TypographyTheme" Value="{DynamicResource CodeWFMarkdownTypographyTheme}" />
+                <Setter Property="TypographySize" Value="{DynamicResource CodeWFMarkdownTypographySize}" />
+                <Setter Property="TextBrush" Value="{DynamicResource TextBlockDefaultForeground}" />
+                <Setter Property="MutedTextBrush" Value="{DynamicResource TextBlockDisabledForeground}" />
+                <Setter Property="AccentBrush" Value="{DynamicResource ButtonSolidPrimaryBackground}" />
+                <Setter Property="QuoteBackgroundBrush" Value="{DynamicResource BorderCardBackground}" />
+                <Setter Property="BorderLineBrush" Value="{DynamicResource BorderCardBorderBrush}" />
+                <Setter Property="CodeBackgroundBrush" Value="{DynamicResource TextBlockCodeBackground}" />
+                <Setter Property="InlineCodeBackgroundBrush" Value="{DynamicResource TextBoxDefaultBackground}" />
+                <Setter Property="TableHeaderBackgroundBrush" Value="{DynamicResource ButtonDefaultBackground}" />
+                <Setter Property="AccentForegroundBrush" Value="{DynamicResource ButtonSolidForeground}" />
+                <Setter Property="ParagraphFontSize" Value="{DynamicResource CodeWFMarkdownParagraphFontSize}" />
+                <Setter Property="ParagraphLineHeight" Value="{DynamicResource CodeWFMarkdownParagraphLineHeight}" />
+                <Setter Property="Heading1FontSize" Value="{DynamicResource CodeWFMarkdownHeading1FontSize}" />
+                <Setter Property="Heading2FontSize" Value="{DynamicResource CodeWFMarkdownHeading2FontSize}" />
+                <Setter Property="Heading3FontSize" Value="{DynamicResource CodeWFMarkdownHeading3FontSize}" />
+                <Setter Property="Heading4FontSize" Value="{DynamicResource CodeWFMarkdownHeading4FontSize}" />
+                <Setter Property="Heading5FontSize" Value="{DynamicResource CodeWFMarkdownHeading5FontSize}" />
+                <Setter Property="Heading6FontSize" Value="{DynamicResource CodeWFMarkdownHeading6FontSize}" />
+                <Setter Property="BlockSpacing" Value="{DynamicResource CodeWFMarkdownBlockSpacing}" />
+                <Setter Property="DocumentBottomPadding" Value="{DynamicResource CodeWFMarkdownDocumentBottomPadding}" />
+                <Setter Property="ParagraphMargin" Value="{DynamicResource CodeWFMarkdownParagraphMargin}" />
+                <Setter Property="HeadingMargin" Value="{DynamicResource CodeWFMarkdownHeadingMargin}" />
+                <Setter Property="CodeBlockFontSize" Value="{DynamicResource CodeWFMarkdownCodeBlockFontSize}" />
+                <Setter Property="CodeBlockLineHeight" Value="{DynamicResource CodeWFMarkdownCodeBlockLineHeight}" />
+                <Setter Property="CodeLanguageFontSize" Value="{DynamicResource CodeWFMarkdownCodeLanguageFontSize}" />
+                <Setter Property="UnorderedListMarkerWidth" Value="{DynamicResource CodeWFMarkdownUnorderedListMarkerWidth}" />
+                <Setter Property="OrderedListMarkerMinWidth" Value="{DynamicResource CodeWFMarkdownOrderedListMarkerMinWidth}" />
+                <Setter Property="OrderedListMarkerCharacterWidth" Value="{DynamicResource CodeWFMarkdownOrderedListMarkerCharacterWidth}" />
+                <Setter Property="OrderedListMarkerExtraWidth" Value="{DynamicResource CodeWFMarkdownOrderedListMarkerExtraWidth}" />
+                <Setter Property="ListFirstParagraphMargin" Value="{DynamicResource CodeWFMarkdownListFirstParagraphMargin}" />
+                <Setter Property="ListNestedParagraphMargin" Value="{DynamicResource CodeWFMarkdownListNestedParagraphMargin}" />
+                <Setter Property="Template">
+                    <ControlTemplate TargetType="{x:Type md:MarkdownViewer}">
+                        <StackPanel
+                            Classes="MdDocument"
+                            Orientation="Vertical">
+                            <md:WindowedStackPanel
+                                Name="PART_DocumentHost"
+                                EnableVirtualization="{TemplateBinding EnableVirtualization}"
+                                EstimatedItemHeight="42"
+                                KeepAliveBudget="{TemplateBinding HeavyBlockKeepAliveBudget}"
+                                KeepAliveMinItemHeight="72"
+                                KeepAliveUnknownCount="{TemplateBinding HeavyBlockKeepAliveUnknownCount}"
+                                Spacing="{TemplateBinding BlockSpacing}"
+                                VirtualizationThreshold="{TemplateBinding VirtualizationThreshold}" />
+                            <Border
+                                Classes="MdDocumentBottomSpacer"
+                                Height="{TemplateBinding DocumentBottomPadding}"
+                                IsHitTestVisible="False" />
+                        </StackPanel>
+                    </ControlTemplate>
+                </Setter>
+            </ControlTheme>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <Style Selector="Border.MdH2Border">
+        <Setter Property="BorderThickness" Value="{DynamicResource CodeWFMarkdownHeading2BorderThickness}" />
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownHeading2Padding}" />
+    </Style>
+
+    <Style Selector="TextBlock.MdH2, SelectableTextBlock.MdH2">
+        <Setter Property="TextAlignment" Value="{DynamicResource CodeWFMarkdownHeading2TextAlignment}" />
+    </Style>
+
+    <Style Selector="TextBlock.MdH3, SelectableTextBlock.MdH3">
+        <Setter Property="TextAlignment" Value="{DynamicResource CodeWFMarkdownHeading3TextAlignment}" />
+    </Style>
+
+    <Style Selector="SelectableTextBlock.MdSelectedBlock">
+        <Setter Property="Background" Value="{DynamicResource TextBlockSelectionBackground}" />
+    </Style>
+
+    <Style Selector="Border.MdSelectedBlock">
+        <Setter Property="Background" Value="{DynamicResource TextBlockSelectionBackground}" />
+    </Style>
+
+    <Style Selector="Grid.MdSelectedBlock">
+        <Setter Property="Background" Value="{DynamicResource TextBlockSelectionBackground}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdSelectedBlock">
+        <Setter Property="Background" Value="{DynamicResource TextBlockSelectionBackground}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdDocument">
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownDocumentMargin}" />
+    </Style>
+
+    <Style Selector="Border.MdCodeBlock">
+        <Setter Property="CornerRadius" Value="{DynamicResource CodeWFMarkdownCodeBlockCornerRadius}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource CodeWFMarkdownCodeBlockBorderThickness}" />
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownCodeBlockPadding}" />
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownCodeBlockMargin}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdCodeBlockContent">
+        <Setter Property="Spacing" Value="{DynamicResource CodeWFMarkdownCodeBlockSpacing}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdCodeBlockHeader">
+        <Setter Property="Spacing" Value="{DynamicResource CodeWFMarkdownCodeBlockHeaderSpacing}" />
+    </Style>
+
+    <Style Selector="Button.MdCopyButton">
+        <Setter Property="MinWidth" Value="{DynamicResource CodeWFMarkdownCopyButtonMinWidth}" />
+        <Setter Property="Height" Value="{DynamicResource CodeWFMarkdownCopyButtonHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownCopyButtonPadding}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CodeWFMarkdownCopyButtonCornerRadius}" />
+    </Style>
+
+    <Style Selector="Button.MdCopyButton:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                     Button.MdCopyButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background"
+                Value="{Binding Background, RelativeSource={RelativeSource AncestorType=Button}}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdCodeBlockToolbar">
+        <Setter Property="Spacing" Value="{DynamicResource CodeWFMarkdownCodeBlockToolbarSpacing}" />
+    </Style>
+
+    <Style Selector="Button.MdCodeBlockToolButton">
+        <Setter Property="Width" Value="{DynamicResource CodeWFMarkdownCodeBlockToolButtonSize}" />
+        <Setter Property="Height" Value="{DynamicResource CodeWFMarkdownCodeBlockToolButtonSize}" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CodeWFMarkdownCopyButtonCornerRadius}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Button.MdCodeBlockToolButton:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                     Button.MdCodeBlockToolButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonDefaultBackground}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdCodeBlockFooter">
+        <Setter Property="Spacing" Value="{DynamicResource CodeWFMarkdownCodeBlockFooterSpacing}" />
+        <Setter Property="Margin" Value="0 2 0 0" />
+    </Style>
+
+    <Style Selector="Button.MdCodeExpandButton">
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="4 2" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CodeWFMarkdownCopyButtonCornerRadius}" />
+    </Style>
+
+    <Style Selector="Button.MdCodeExpandButton:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                     Button.MdCodeExpandButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background"
+                Value="{Binding Background, RelativeSource={RelativeSource AncestorType=Button}}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdList">
+        <Setter Property="Spacing" Value="{DynamicResource CodeWFMarkdownListSpacing}" />
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownListMargin}" />
+    </Style>
+
+    <Style Selector="Grid.MdListItem">
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownListItemMargin}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdListItemContent">
+        <Setter Property="Spacing" Value="{DynamicResource CodeWFMarkdownListItemContentSpacing}" />
+    </Style>
+
+    <Style Selector="Border.MdListMarker, SelectableTextBlock.MdListMarker">
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownListMarkerMargin}" />
+    </Style>
+
+    <Style Selector="CheckBox.MdTaskMarkerBox">
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownTaskMarkerBoxMargin}" />
+    </Style>
+
+    <Style Selector="Border.MdQuote">
+        <Setter Property="BorderThickness" Value="{DynamicResource CodeWFMarkdownQuoteBorderThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CodeWFMarkdownQuoteCornerRadius}" />
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownQuotePadding}" />
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownQuoteMargin}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdQuoteContent">
+        <Setter Property="Spacing" Value="{DynamicResource CodeWFMarkdownQuoteContentSpacing}" />
+    </Style>
+
+    <Style Selector="Border.MdThematicBreak">
+        <Setter Property="Height" Value="{DynamicResource CodeWFMarkdownThematicBreakHeight}" />
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownThematicBreakMargin}" />
+    </Style>
+
+    <Style Selector="Border.MdTableContainer">
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownTableMargin}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource CodeWFMarkdownTableContainerBorderThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CodeWFMarkdownTableCornerRadius}" />
+    </Style>
+
+    <Style Selector="Grid.MdTable">
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style Selector="Grid.MdTableBlock">
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownTableMargin}" />
+    </Style>
+    <Style Selector="Grid.MdTableBlock > Border.MdTableContainer">
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style Selector="Border.MdTableHeaderCell, Border.MdTableCell">
+        <Setter Property="BorderThickness" Value="{DynamicResource CodeWFMarkdownTableCellBorderThickness}" />
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownTableCellPadding}" />
+        <Setter Property="MinHeight" Value="{DynamicResource CodeWFMarkdownTableCellMinHeight}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdTableCellContent">
+        <Setter Property="Spacing" Value="{DynamicResource CodeWFMarkdownTableCellContentSpacing}" />
+    </Style>
+
+    <Style Selector="Image.MdImageContent">
+        <Setter Property="MaxWidth" Value="{DynamicResource CodeWFMarkdownImageMaxWidth}" />
+        <Setter Property="MaxHeight" Value="{DynamicResource CodeWFMarkdownImageMaxHeight}" />
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownImageMargin}" />
+    </Style>
+
+    <Style Selector="Border.MdImageFallback">
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource CodeWFMarkdownImageFallbackBorderThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CodeWFMarkdownImageFallbackCornerRadius}" />
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownImageFallbackPadding}" />
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownImageFallbackMargin}" />
+    </Style>
+
+    <Style Selector="TextBlock.MdImageFallbackText">
+        <Setter Property="Opacity" Value="{DynamicResource CodeWFMarkdownImageFallbackOpacity}" />
+    </Style>
+
+    <Style Selector="Window.MdImagePreviewWindow">
+        <Setter Property="Width" Value="{DynamicResource CodeWFMarkdownImagePreviewWidth}" />
+        <Setter Property="Height" Value="{DynamicResource CodeWFMarkdownImagePreviewHeight}" />
+        <Setter Property="MinWidth" Value="{DynamicResource CodeWFMarkdownImagePreviewMinWidth}" />
+        <Setter Property="MinHeight" Value="{DynamicResource CodeWFMarkdownImagePreviewMinHeight}" />
+    </Style>
+
+    <Style Selector="Border.MdImagePreviewContent">
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownImagePreviewContentPadding}" />
+    </Style>
+
+    <Style Selector="StackPanel.MdImagePreviewToolbar">
+        <Setter Property="Spacing" Value="{DynamicResource CodeWFMarkdownImagePreviewToolbarSpacing}" />
+        <Setter Property="Margin" Value="{DynamicResource CodeWFMarkdownImagePreviewToolbarMargin}" />
+    </Style>
+
+    <Style Selector="TextBlock.MdImagePreviewZoomText">
+        <Setter Property="MinWidth" Value="{DynamicResource CodeWFMarkdownImagePreviewZoomTextMinWidth}" />
+    </Style>
+
+    <Style Selector="Button.MdImagePreviewButton">
+        <Setter Property="Padding" Value="{DynamicResource CodeWFMarkdownImagePreviewButtonPadding}" />
+    </Style>
+
+    <!-- ============ 文档大纲侧栏面板（MarkdownOutlinePanel）行与筛选样式 ============ -->
+
+    <Style Selector="md|MarkdownOutlinePanel Border.op-search">
+        <Setter Property="Background" Value="{DynamicResource OutlinePanelSearchBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource OutlinePanelSearchBorderBrush}" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel Path.op-icon">
+        <Setter Property="Stroke" Value="{DynamicResource OutlinePanelMutedBrush}" />
+        <Setter Property="StrokeLineCap" Value="Round" />
+        <Setter Property="StrokeJoin" Value="Round" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel TextBox">
+        <Setter Property="Foreground" Value="{DynamicResource OutlinePanelValueBrush}" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel Button">
+        <Setter Property="Foreground" Value="{DynamicResource OutlinePanelMutedBrush}" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel TextBlock.op-empty-text">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource OutlinePanelMutedBrush}" />
+    </Style>
+
+    <Style Selector="md|MarkdownOutlinePanel ListBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    </Style>
+
+    <!-- 行的面与悬停/当前底色都画在 Border.op-row 上；序号与标题只隔一个字距
+         （普通行 7、H1 行 8），序号列宽随内容；默认（无 .op-numbers）单列标题。 -->
+    <Style Selector="md|MarkdownOutlinePanel Border.op-row">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel Border.op-row:pointerover">
+        <Setter Property="Background" Value="{DynamicResource OutlinePanelHoverBrush}" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel Border.op-row.current">
+        <Setter Property="Background" Value="{DynamicResource OutlinePanelCurrentBrush}" />
+    </Style>
+
+    <!-- 列定义固定 Auto,*（ColumnDefinitions 不能走样式）：序号列随内容，隐藏态序号不可见
+         且间距样式归 0，标题退回纯缩进位；间距一个字距（普通 7、H1 8）。 -->
+    <Style Selector="md|MarkdownOutlinePanel Border.op-row > Grid">
+        <Setter Property="ColumnSpacing" Value="0" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel.op-numbers Border.op-row > Grid">
+        <Setter Property="ColumnSpacing" Value="7" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel.op-numbers Border.op-row.top > Grid">
+        <Setter Property="ColumnSpacing" Value="8" />
+    </Style>
+
+    <Style Selector="md|MarkdownOutlinePanel TextBlock.op-num">
+        <Setter Property="IsVisible" Value="False" />
+        <Setter Property="Grid.Column" Value="0" />
+        <Setter Property="LineHeight" Value="{DynamicResource OutlinePanelNumberLineHeight}" />
+        <Setter Property="FontSize" Value="{DynamicResource OutlinePanelNumberFontSize}" />
+        <Setter Property="Foreground" Value="{DynamicResource OutlinePanelMutedBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel.op-numbers TextBlock.op-num">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel Border.op-row.top TextBlock.op-num">
+        <Setter Property="Foreground" Value="{DynamicResource OutlinePanelValueBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="md|MarkdownOutlinePanel TextBlock.op-title">
+        <Setter Property="Grid.Column" Value="0" />
+        <Setter Property="LineHeight" Value="{DynamicResource OutlinePanelTitleLineHeight}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="FontSize" Value="{DynamicResource OutlinePanelTitleFontSize}" />
+        <Setter Property="Foreground" Value="{DynamicResource OutlinePanelValueBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel.op-numbers TextBlock.op-title">
+        <Setter Property="Grid.Column" Value="1" />
+    </Style>
+
+    <!-- 当前章一档写在最后：同特异性按定义顺序裁决（悬停当前行时保持当前底色）。 -->
+    <Style Selector="md|MarkdownOutlinePanel Border.op-row.current TextBlock.op-title">
+        <Setter Property="Foreground" Value="{DynamicResource OutlinePanelAccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel Border.op-row.current TextBlock.op-num">
+        <Setter Property="Foreground" Value="{DynamicResource OutlinePanelAccentBrush}" />
+    </Style>
+
+    <!-- 大纲行容器：主题模板由宿主主题（Semi/Arc）供给，这里只覆写外观并抑制容器悬停/选中底色
+         （行的面与悬停/当前底色都画在 Border.op-row 上，容器只留通栏点击区）。 -->
+    <Style Selector="md|MarkdownOutlinePanel ListBoxItem">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,0,0,1" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="md|MarkdownOutlinePanel ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+</Styles>

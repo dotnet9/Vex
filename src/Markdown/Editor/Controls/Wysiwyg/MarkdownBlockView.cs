@@ -1,0 +1,693 @@
+﻿using Avalonia;
+using CodeWF.Avalonia.Markdown.Core.Blocks;
+using global::Avalonia.Controls;
+using global::Avalonia.Input;
+using global::Avalonia.Interactivity;
+using global::Avalonia.Layout;
+using global::Avalonia.Media;
+using global::Avalonia.VisualTree;
+using CodeWF.Avalonia.Markdown.Controls;
+using CodeWF.Toolkit.Lang;
+using global::Avalonia.Threading;
+using global::Avalonia.Controls.Templates;
+using global::Avalonia.Controls.Presenters;
+using global::Avalonia.Data;
+using CodeWF.Avalonia.Markdown.Mermaid;
+
+namespace CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg;
+
+/// <summary>在 TextBox 默认插入之前处理已提交文本，保留输入法预编辑流程。</summary>
+internal class MarkdownInputTextBox : TextBox
+{
+    protected override Type StyleKeyOverride => typeof(TextBox);
+    public Action<TextInputEventArgs>? BeforeTextInput { get; set; }
+    protected override void OnTextInput(TextInputEventArgs e)
+    {
+        BeforeTextInput?.Invoke(e);
+        if (!e.Handled) base.OnTextInput(e);
+    }
+}
+
+/// <summary>
+/// 一个块的就地编辑视图：默认渲染为富文本（只读显示，可选中），
+/// 点入后使用原位富文本输入（<see cref="TextBox"/>），失焦或按 Esc 结束编辑，
+/// 按 Tab 进入下一个块。文本变化通过 <see cref="TextCommitted"/> 回抛给宿主视图。
+/// </summary>
+internal sealed class MarkdownBlockView : UserControl
+{
+    private readonly MarkdownRichTextView _richText = new();
+    private MarkdownInputTextBox _editor;
+    private readonly TextBox? _codeLanguage;
+    private readonly Border _root;
+    private readonly Grid _layer = new();
+    private readonly Canvas _editingLayer = new() { IsVisible = false };
+    private SelectableTextBlock? _editingText;
+    private bool _inlineEditing;
+    private MarkdownViewer? _preview;
+    private readonly bool _isCode;
+    private readonly bool _isTableCell;
+    private readonly MarkdownBlockViewOptions _options;
+    private TopLevel? _diagramOwner;
+    private bool IsDiagram => _isCode && string.Equals(Model.Language, "mermaid", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 块正文包含图片语法（不含表格单元格/代码/公式块）。这类块在整体替换成原始文本时
+    /// 会表现为「图片消失、失焦又回来」（旧实现），与图表一致改走媒体布局：
+    /// 编辑时上方挂源码输入框、下方保留渲染预览。
+    /// </summary>
+    private bool HasImageSyntax => !_isCode && !_isTableCell && Model.Kind != MarkdownBlockKind.Raw
+        && ModelText.Contains("![", StringComparison.Ordinal);
+    private bool IsSourceOverlay => IsDiagram || HasImageSyntax;
+
+    private double _runFontSize = 15;
+
+    private bool _editing;
+    private bool _syncingText;
+    private IPointer? _selectionPointer;
+    private int _pointerSelectionAnchor;
+    private string _editOriginalText = string.Empty;
+    private string _editOriginalLanguage = string.Empty;
+
+    public MarkdownBlockView(MarkdownBlockModel model, bool isCode, MarkdownBlockViewOptions options, bool isTableCell = false)
+    {
+        Model = model;
+        _isCode = isCode;
+        _isTableCell = isTableCell;
+        _options = options;
+        _editor = IsSourceOverlay ? new MermaidSourceInput() : new MarkdownInputTextBox();
+
+        if (isCode && !IsDiagram)
+        {
+            // 语言选择占用代码块原有的下方留白，出现光标时不推动正文。
+            _layer.RowDefinitions = new RowDefinitions("Auto,20");
+            Grid.SetRowSpan(_editingLayer, 2);
+            _codeLanguage = new TextBox
+            {
+                Classes = { "MdCodeLanguageInput" }, Width = 180, Height = 24, MinHeight = 0,
+                Padding = new Thickness(8, 2), FontSize = 12, TextAlignment = TextAlignment.Center, PlaceholderText = "text",
+                Background = options.CodeBackgroundBrush, Foreground = options.TextBrush,
+                BorderBrush = options.SeparatorBrush, BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(3)
+            };
+            _codeLanguage.TextChanged += (_, _) =>
+            {
+                if (!_editing || _syncingText) return;
+                var language = (_codeLanguage.Text ?? string.Empty).Trim().Replace("`", string.Empty);
+                if (Model.Language == language) return;
+                Model.Language = language; UpdateRichText(); TextCommitted?.Invoke(this, ModelText);
+            };
+            _codeLanguage.KeyDown += (_, e) =>
+            {
+                if (e.Key == Key.Enter) { _editor.Focus(); e.Handled = true; }
+                else if (e.Key == Key.Escape) { CancelEdit(); e.Handled = true; }
+            };
+            _codeLanguage.LostFocus += (_, _) => CommitIfFocusLeft();
+            _editingLayer.Children.Add(_codeLanguage);
+        }
+
+        ConfigureSourceInput();
+
+        _editingLayer.Children.Add(_editor);
+        _layer.Children.Add(_richText); _layer.Children.Add(_editingLayer);
+        _root = new Border { Child = _layer };
+        Content = _root;
+
+        // 先接管渲染块的点击，避免 SelectableTextBlock 在冒泡前后抢回焦点，
+        // 导致刚打开的编辑框立即触发 LostFocus 并消失。
+        AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
+        AddHandler(PointerMovedEvent, OnPointerMoved, RoutingStrategies.Tunnel);
+        AddHandler(PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Tunnel);
+        PointerCaptureLost += (_, _) => _selectionPointer = null;
+        UpdateRichText();
+        LayoutUpdated += (_, _) => { if (_inlineEditing) PositionInlineEditor(); };
+        DetachedFromVisualTree += (_, _) => StopWatchingDiagramPointer();
+    }
+
+    private void ConfigureSourceInput()
+    {
+        _editor.AcceptsReturn = true;
+        _editor.ClearSelectionOnLostFocus = false;
+        _editor.TextWrapping = TextWrapping.Wrap;
+        _editor.FontFamily = _isCode || IsSourceOverlay ? _options.CodeFontFamily : _options.ContentFontFamily;
+        if (_isCode) _editor.TextWrapping = _options.CodeWrap ? TextWrapping.Wrap : TextWrapping.NoWrap;
+        _editor.FontSize = _runFontSize;
+        _editor.Foreground = _options.TextBrush;
+        _editor.CaretBrush = _options.AccentBrush;
+        _editor.HorizontalAlignment = HorizontalAlignment.Stretch;
+        _editor.Text = ModelText;
+        if (IsSourceOverlay)
+        {
+            _layer.RowDefinitions = new RowDefinitions("Auto,Auto");
+            _editor.Margin = new Thickness(0, 0, 0, 10);
+            _editor.Background = _options.CodeBackgroundBrush;
+            _editor.BorderBrush = _options.SeparatorBrush;
+            if (!IsDiagram)
+            {
+                // 图片源通常一行写完，不留图表源码卡的最小高度，编辑时更贴近 Typora 的紧凑源码框。
+                _editor.MinHeight = 0;
+            }
+        }
+        else
+        {
+            _editor.Padding = new Thickness(0);
+            _editor.BorderThickness = new Thickness(0);
+            _editor.Background = Brushes.Transparent;
+            // 空文档/空段落：一行高度的空白块也要可点击可显光标（Typora 空文档行为）。
+            _editor.MinHeight = _runFontSize * 1.6;
+            _editor.Template = new FuncControlTemplate<TextBox>((box, scope) =>
+            {
+                var presenter = new MarkdownInlinePresenter(_options, _isCode || Model.Kind == MarkdownBlockKind.Raw) { Name = "PART_TextPresenter" };
+                scope.Register("PART_TextPresenter", presenter);
+                // 与标准 TextBox 模板一致，由输入框单向驱动 presenter；反向光标绑定会在 Shift 选择时清空选区。
+                foreach (var (boxProperty, presenterProperty) in new (AvaloniaProperty, AvaloniaProperty)[]
+                         {
+                             (TextBox.TextProperty, TextPresenter.TextProperty),
+                             (TextBox.CaretIndexProperty, TextPresenter.CaretIndexProperty),
+                             (TextBox.SelectionStartProperty, TextPresenter.SelectionStartProperty),
+                             (TextBox.SelectionEndProperty, TextPresenter.SelectionEndProperty),
+                             (TextBox.FontFamilyProperty, global::Avalonia.Controls.Documents.TextElement.FontFamilyProperty),
+                             (TextBox.FontSizeProperty, global::Avalonia.Controls.Documents.TextElement.FontSizeProperty),
+                             (TextBox.FontWeightProperty, global::Avalonia.Controls.Documents.TextElement.FontWeightProperty),
+                             (TextBox.FontStyleProperty, global::Avalonia.Controls.Documents.TextElement.FontStyleProperty),
+                             (TextBox.ForegroundProperty, global::Avalonia.Controls.Documents.TextElement.ForegroundProperty),
+                             (TextBox.CaretBrushProperty, TextPresenter.CaretBrushProperty),
+                             (TextBox.SelectionBrushProperty, TextPresenter.SelectionBrushProperty),
+                             (TextBox.SelectionForegroundBrushProperty, TextPresenter.SelectionForegroundBrushProperty),
+                             (TextBox.TextWrappingProperty, TextPresenter.TextWrappingProperty),
+                             (TextBox.LineHeightProperty, TextPresenter.LineHeightProperty),
+                         })
+                {
+                    presenter.Bind(presenterProperty, box.GetObservable(boxProperty));
+                }
+                var scroll = new ScrollViewer { Name = "PART_ScrollViewer", Content = presenter,
+                    HorizontalScrollBarVisibility = global::Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
+                    VerticalScrollBarVisibility = global::Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
+                scope.Register("PART_ScrollViewer", scroll); return scroll;
+            });
+        }
+        _editor.TextChanged += (_, _) =>
+        {
+            if (!_editing || _syncingText) return;
+            var text = _editor.Text ?? string.Empty;
+            if (string.Equals(ModelText, text, StringComparison.Ordinal)) return;
+            ModelText = text;
+            UpdateRichText();
+            TextCommitted?.Invoke(this, ModelText);
+        };
+        _editor.LostFocus += (_, _) => CommitIfFocusLeft();
+        _editor.AddHandler(KeyDownEvent, OnEditorKeyDown, RoutingStrategies.Tunnel);
+        _editor.PropertyChanged += (_, e) =>
+        {
+            if (_editing && e.Property.Name is "CaretIndex" or "SelectionStart" or "SelectionEnd") EditorSelectionChanged?.Invoke();
+        };
+    }
+
+    private void EnsureSourceInput()
+    {
+        if (IsSourceOverlay == (_editor is MermaidSourceInput)) return;
+        var wasEditing = _editing;
+        var caret = _editor.CaretIndex;
+        var originalText = _editOriginalText;
+        var originalLanguage = _editOriginalLanguage;
+        var textEntering = _editor.BeforeTextInput;
+        _editing = false;
+        EndInlineEditor();
+        _editingLayer.Children.Remove(_editor);
+        _editor = IsSourceOverlay ? new MermaidSourceInput() : new MarkdownInputTextBox();
+        ConfigureSourceInput();
+        _editor.BeforeTextInput = textEntering;
+        _editingLayer.Children.Add(_editor);
+        _layer.RowDefinitions = new RowDefinitions(IsSourceOverlay ? "Auto,Auto" : "Auto,20");
+        if (wasEditing)
+        {
+            BeginEdit(caret);
+            _editOriginalText = originalText;
+            _editOriginalLanguage = originalLanguage;
+        }
+    }
+
+    /// <summary>块内容变化的回调（参数为新文本）。</summary>
+    public Action<MarkdownBlockView, string>? TextCommitted { get; set; }
+
+    /// <summary>请求把焦点移到相邻块（参数为相对方向：-1 上一块，+1 下一块）。</summary>
+    public Action<int>? NavigateRequested { get; set; }
+    public Func<int, double?, bool>? BoundaryNavigateRequested { get; set; }
+    public Func<int, bool>? MergeRequested { get; set; }
+
+    public Action<MarkdownBlockView>? EditingStarted { get; set; }
+    public Action? EditorSelectionChanged { get; set; }
+    internal Action<TextInputEventArgs>? TextEntering { get => _editor.BeforeTextInput; set => _editor.BeforeTextInput = value; }
+
+    public Action<MarkdownBlockView, int>? SplitRequested { get; set; }
+
+    public MarkdownBlockModel Model { get; }
+
+    private bool _renderQuoteAsParagraph;
+    internal bool RenderQuoteAsParagraph
+    {
+        get => _renderQuoteAsParagraph;
+        set { _renderQuoteAsParagraph = value; UpdateRichText(); }
+    }
+
+    /// <summary>正文字号；标题与代码块按类型设置。</summary>
+    public double RunFontSize
+    {
+        get => _runFontSize;
+        set
+        {
+            _runFontSize = value;
+            _editor.FontSize = value;
+            UpdateRichText();
+        }
+    }
+
+    internal double RunLineHeight
+    {
+        get => _richText.LineHeight;
+        set { _richText.LineHeight = value; _editor.LineHeight = value; }
+    }
+
+    /// <summary>外部修改模型后刷新显示并通知宿主。</summary>
+    public void NotifyModelChanged()
+    {
+        RefreshFromModel();
+        TextCommitted?.Invoke(this, Model.Text);
+    }
+
+    public bool IsEditing => _editing;
+
+    public void InsertText(string text)
+    {
+        if (!_editing) BeginEditAtEnd();
+        var start = Math.Min(_editor.SelectionStart, _editor.SelectionEnd);
+        var length = Math.Abs(_editor.SelectionEnd - _editor.SelectionStart);
+        _editor.Text = CurrentText.Remove(start, length).Insert(start, text);
+        _editor.CaretIndex = start + text.Length;
+    }
+
+    /// <summary>正在编辑时的底层文本框（用于格式化动作），否则为 null。</summary>
+    internal TextBox? ActiveEditor => _editing ? _editor : null;
+    internal TextBox EditingInput => _editor;
+
+    /// <summary>当前编辑文本（非编辑态返回模型文本）。</summary>
+    internal string CurrentText => _editing ? _editor.Text ?? string.Empty : ModelText;
+
+    private string ModelText
+    {
+        get => Model.Kind == MarkdownBlockKind.Raw ? Model.Raw : Model.Text;
+        set { if (Model.Kind == MarkdownBlockKind.Raw) Model.Raw = value; else Model.Text = value; }
+    }
+
+    /// <summary>进入编辑态并把光标放到行尾（等价于点入该块）。</summary>
+    public void BeginEditAtEnd() => BeginEdit(ModelText.Length);
+
+    /// <summary>进入编辑态，并把光标放到指定偏移。</summary>
+    public void BeginEdit(int caretIndex)
+    {
+        if (_editing)
+        {
+            _editor.CaretIndex = Math.Clamp(caretIndex, 0, _editor.Text?.Length ?? 0);
+            _editor.Focus();
+            return;
+        }
+
+        _editOriginalText = ModelText;
+        _editOriginalLanguage = Model.Language;
+        _syncingText = true;
+        _editor.Text = ModelText;
+        if (_codeLanguage is not null) _codeLanguage.Text = Model.Language;
+        _syncingText = false;
+        _editing = true;
+        UpdateRichText();
+        _inlineEditing = !IsSourceOverlay && (_isCode || Model.Kind != MarkdownBlockKind.Raw && !ModelText.Contains("![", StringComparison.Ordinal) && !ModelText.Contains('$'));
+        if (IsSourceOverlay)
+        {
+            _editingLayer.Children.Remove(_editor);
+            SetDisplay(_preview!);
+            _diagramOwner = TopLevel.GetTopLevel(this);
+            _diagramOwner?.AddHandler(PointerPressedEvent, OnDiagramOutsidePointer, RoutingStrategies.Tunnel, handledEventsToo: true);
+        }
+        else if (_inlineEditing)
+        {
+            _editingLayer.IsVisible = true;
+            PositionInlineEditor();
+        }
+        else
+        {
+            _editingLayer.Children.Remove(_editor);
+            _root.Child = _editor;
+        }
+        _editor.Focus();
+        _editor.CaretIndex = Math.Clamp(caretIndex, 0, _editor.Text?.Length ?? 0);
+        EditingStarted?.Invoke(this);
+    }
+
+    /// <summary>回渲染（提交文本）。</summary>
+    public void CommitAndRender()
+    {
+        if (!_editing)
+        {
+            return;
+        }
+
+        _editing = false;
+        EndInlineEditor();
+        var text = _editor.Text ?? string.Empty;
+        if (!string.Equals(text, ModelText, StringComparison.Ordinal))
+        {
+            ModelText = text;
+            TextCommitted?.Invoke(this, text);
+        }
+        UpdateRichText();
+    }
+
+    private void CommitIfFocusLeft() => Dispatcher.UIThread.Post(() =>
+    {
+        if (!_editor.IsKeyboardFocusWithin && _codeLanguage?.IsKeyboardFocusWithin != true) CommitAndRender();
+    }, DispatcherPriority.Input);
+
+    private void OnDiagramOutsidePointer(object? sender, PointerPressedEventArgs args)
+    {
+        if (args.Source is Visual source && (source == this || source.GetVisualAncestors().Contains(this))) return;
+        CommitAndRender();
+    }
+
+    private void StopWatchingDiagramPointer()
+    {
+        _diagramOwner?.RemoveHandler(PointerPressedEvent, OnDiagramOutsidePointer);
+        _diagramOwner = null;
+    }
+
+    private void CancelEdit()
+    {
+        ModelText = _editOriginalText; Model.Language = _editOriginalLanguage;
+        _editing = false; EndInlineEditor(); UpdateRichText(); TextCommitted?.Invoke(this, ModelText);
+    }
+
+    /// <summary>外部替换内容（例如预览回写）时刷新显示。</summary>
+    public void RefreshFromModel()
+    {
+        if (_editing)
+        {
+            return;
+        }
+
+        UpdateRichText();
+    }
+
+    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Source is Visual interactive && IsInteractiveChild(interactive)) return;
+        if (e.Source is Visual languageSource && _codeLanguage is not null && (languageSource == _codeLanguage || languageSource.GetVisualAncestors().Contains(_codeLanguage))) return;
+        if (_editing || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        var offset = GetPointerTextOffset(e);
+        BeginEdit(offset);
+        _pointerSelectionAnchor = offset;
+        _editor.SelectionStart = _editor.SelectionEnd = offset;
+        // 初次按下发生在只读预览上，TextBox 没有收到按下事件，必须保留拖选起点。
+        _selectionPointer = e.Pointer;
+        e.Pointer.Capture(this);
+        e.Handled = true;
+    }
+
+    internal static bool IsInteractiveChild(Visual source) => source.GetVisualAncestors().Prepend(source)
+        .Any(element => element is global::Avalonia.Controls.Primitives.ScrollBar or Button);
+
+    internal int GetPointerTextOffset(PointerEventArgs e)
+    {
+        if (_editing && _editor.GetVisualDescendants().OfType<TextPresenter>().FirstOrDefault() is { } presenter)
+            return Math.Clamp(presenter.TextLayout.HitTestPoint(e.GetPosition(presenter)).TextPosition, 0, ModelText.Length);
+        var offset = _preview is null
+            ? MarkdownTextRunParser.GetSourceOffset(ModelText, _richText.GetTextOffset(e.GetPosition(_richText)))
+            : ModelText.Length;
+        if (_preview is not null)
+        {
+            var text = _preview.GetVisualDescendants().OfType<SelectableTextBlock>()
+                .FirstOrDefault(block => !_isCode || block.Classes.Contains("MdCodeBlockText"));
+            if (text?.TextLayout is { } layout)
+            {
+                var visible = layout.HitTestPoint(e.GetPosition(text)).TextPosition;
+                offset = _isCode || Model.Kind == MarkdownBlockKind.Raw ? visible
+                    : MarkdownTextRunParser.GetSourceOffset(ModelText, visible);
+            }
+        }
+        return Math.Clamp(offset, 0, ModelText.Length);
+    }
+
+    internal void SetTextSelection(int start, int end)
+    {
+        start = Math.Clamp(start, 0, ModelText.Length); end = Math.Clamp(end, 0, ModelText.Length);
+        if (_editing)
+        {
+            _editor.CaretIndex = end; _editor.SelectionStart = start; _editor.SelectionEnd = end;
+            return;
+        }
+        if (_preview is null) return;
+        var text = _preview.GetVisualDescendants().OfType<SelectableTextBlock>()
+            .FirstOrDefault(block => !_isCode || block.Classes.Contains("MdCodeBlockText"));
+        if (text is null) return;
+        text.SelectionStart = _isCode || Model.Kind == MarkdownBlockKind.Raw ? start : MarkdownTextRunParser.GetTextOffset(ModelText, start);
+        text.SelectionEnd = _isCode || Model.Kind == MarkdownBlockKind.Raw ? end : MarkdownTextRunParser.GetTextOffset(ModelText, end);
+    }
+
+    internal Rect? GetTextBounds(int offset)
+    {
+        Visual? text;
+        global::Avalonia.Media.TextFormatting.TextLayout? layout;
+        int textLength;
+        int visibleOffset;
+        if (_editing)
+        {
+            if (_editor.GetVisualDescendants().OfType<TextPresenter>().FirstOrDefault() is not { } presenter) return null;
+            text = presenter;
+            layout = presenter.TextLayout;
+            textLength = _editor.Text?.Length ?? 0;
+            visibleOffset = offset;
+        }
+        else
+        {
+            var previewText = _preview?.GetVisualDescendants().OfType<SelectableTextBlock>()
+                .FirstOrDefault(block => !_isCode || block.Classes.Contains("MdCodeBlockText"));
+            if (previewText is null) return null;
+            text = previewText;
+            layout = previewText.TextLayout;
+            textLength = previewText.Text?.Length ?? 0;
+            visibleOffset = _isCode || Model.Kind == MarkdownBlockKind.Raw
+                ? offset
+                : MarkdownTextRunParser.GetTextOffset(ModelText, offset);
+        }
+
+        var position = layout.HitTestTextPosition(Math.Clamp(visibleOffset, 0, textLength));
+        return text.TranslatePoint(position.TopLeft, this) is { } origin ? new Rect(origin, position.Size) : null;
+    }
+
+    private void OnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_selectionPointer != e.Pointer || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        var offset = GetPointerTextOffset(e);
+        _editor.CaretIndex = offset;
+        _editor.SelectionStart = _pointerSelectionAnchor;
+        _editor.SelectionEnd = offset;
+        e.Handled = true;
+    }
+
+    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_selectionPointer != e.Pointer) return;
+        _selectionPointer = null;
+        e.Pointer.Capture(null);
+        e.Handled = true;
+    }
+
+    private void OnEditorKeyDown(object? sender, KeyEventArgs e)
+    {
+        try { System.IO.File.AppendAllText(@"E:/github/temp_files/live-diag.log", "block keydown " + e.Key + System.Environment.NewLine); } catch { }
+        if (e.KeyModifiers == KeyModifiers.None && _editor.SelectionStart == _editor.SelectionEnd)
+        {
+            var caret = _editor.CaretIndex;
+            var length = CurrentText.Length;
+            var direction = e.Key is Key.Left or Key.Up or Key.Back ? -1 : 1;
+            if (e.Key is Key.Left or Key.Right && (direction < 0 ? caret == 0 : caret == length)
+                && BoundaryNavigateRequested?.Invoke(direction, null) == true) { e.Handled = true; return; }
+            if (e.Key is Key.Up or Key.Down && _editor.GetVisualDescendants().OfType<TextPresenter>().FirstOrDefault() is { } presenter)
+            {
+                var rect = presenter.TextLayout.HitTestTextPosition(caret);
+                if ((direction < 0 ? rect.Top < rect.Height : rect.Bottom >= presenter.TextLayout.Height - .5)
+                    && BoundaryNavigateRequested?.Invoke(direction, rect.X) == true) { e.Handled = true; return; }
+            }
+            if (e.Key is Key.Back or Key.Delete && (direction < 0 ? caret == 0 : caret == length)
+                && MergeRequested?.Invoke(direction) == true) { e.Handled = true; return; }
+        }
+        switch (e.Key)
+        {
+            case Key.Escape:
+                CancelEdit();
+                e.Handled = true;
+                break;
+
+            case Key.Enter when e.KeyModifiers == KeyModifiers.Control:
+                CommitAndRender(); e.Handled = true; break;
+
+            case Key.Enter when !_isCode && !HasImageSyntax && Model.Kind != MarkdownBlockKind.Raw && e.KeyModifiers == KeyModifiers.None:
+                // Typora 语义：回车=在光标处拆出新段落（焦点进新块），空段落可连续存在
+                // （末尾连敲即持续加空行）。有选区时先删选区再拆。
+                e.Handled = true;
+                var enterText = _editor.Text ?? string.Empty;
+                var enterStart = Math.Clamp(Math.Min(_editor.SelectionStart, _editor.SelectionEnd), 0, enterText.Length);
+                var enterEnd = Math.Clamp(Math.Max(_editor.SelectionStart, _editor.SelectionEnd), enterStart, enterText.Length);
+                if (enterEnd > enterStart)
+                {
+                    _editor.Text = enterText.Remove(enterStart, enterEnd - enterStart);
+                    _editor.CaretIndex = enterStart;
+                }
+                CommitAndRender();
+                SplitRequested?.Invoke(this, _editor.CaretIndex);
+                break;
+
+            case Key.Enter when HasImageSyntax && e.KeyModifiers == KeyModifiers.None:
+                // 图片源码一行为主：回车即提交，不走段内换行/拆块。
+                CommitAndRender(); e.Handled = true; break;
+
+            case Key.Enter when e.KeyModifiers == KeyModifiers.Shift:
+                var start = Math.Min(_editor.SelectionStart, _editor.SelectionEnd);
+                var length = Math.Abs(_editor.SelectionEnd - _editor.SelectionStart);
+                _editor.Text = CurrentText.Remove(start, length).Insert(start, _isCode ? "\n" : "  \n");
+                _editor.CaretIndex = start + (_isCode ? 1 : 3);
+                e.Handled = true;
+                break;
+
+            case Key.Tab:
+                e.Handled = true;
+                CommitAndRender();
+                NavigateRequested?.Invoke(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+                break;
+        }
+    }
+
+    private void UpdateRichText()
+    {
+        if (_isCode) EnsureSourceInput();
+        if (_editing && !_inlineEditing && !IsSourceOverlay) return;
+        if (IsDiagram)
+        {
+            _editor.Foreground = _options.TextBrush;
+            _editor.Background = _options.CodeBackgroundBrush;
+            _editor.BorderBrush = _options.SeparatorBrush;
+        }
+        var useViewer = !_isTableCell || ModelText.Contains("![", StringComparison.Ordinal) || ModelText.Contains('$');
+        if (useViewer)
+        {
+            var preview = _preview ??= CreatePreview();
+            preview.Classes.Set("MdLiveListContent", Model.Kind == MarkdownBlockKind.ListItem);
+            preview.Classes.Set("MdBeforeHeading", Classes.Contains("MdBeforeHeading"));
+
+            preview.SyntaxOptions = _options.SyntaxOptions;
+            preview.ImageBasePath = _options.ImageBasePath;
+            preview.TypographyTheme = _options.TypographyTheme;
+            preview.TypographySize = _options.TypographySize;
+            preview.ContentFontFamily = _options.ContentFontFamily;
+            preview.ParagraphFontSize = _isTableCell ? _runFontSize : _options.FontSize;
+            preview.CodeBlockFontSize = _options.CodeFontSize;
+            preview.CodeBlockWrap = _options.CodeWrap;
+            preview.Markdown = Model.Kind == MarkdownBlockKind.ListItem || RenderQuoteAsParagraph
+                ? Model.Text : MarkdownBlockParser.WriteCanonical([Model]);
+            SetDisplay(preview);
+            return;
+        }
+
+        _richText.BindPalette(_options);
+        _richText.FontWeight = Model.HeadingLevel > 0 ? FontWeight.Bold : FontWeight.Normal;
+        _richText.RunFontSize = _runFontSize;
+        _richText.SetRuns(_isCode
+            ? MarkdownTextRunParser.Plain(Model.Text, code: true)
+            : MarkdownTextRunParser.Parse(Model.Text, _options.SyntaxOptions));
+        SetDisplay(_richText);
+    }
+
+    private void SetDisplay(Control display)
+    {
+        if (!_layer.Children.Contains(display)) { _layer.Children.Clear(); _layer.Children.Add(display); _layer.Children.Add(_editingLayer); }
+        Grid.SetRow(display, IsSourceOverlay ? 1 : 0);
+        if (IsSourceOverlay)
+        {
+            if (_editing && !_layer.Children.Contains(_editor))
+            {
+                _editingLayer.Children.Remove(_editor);
+                _layer.Children.Add(_editor);
+            }
+        }
+        if (!ReferenceEquals(_root.Child, _layer)) _root.Child = _layer;
+    }
+    private void PositionInlineEditor()
+    {
+        var text = _preview?.GetVisualDescendants().OfType<SelectableTextBlock>()
+            .FirstOrDefault(block => !_isCode || block.Classes.Contains("MdCodeBlockText"));
+        if (text is not null && text.TranslatePoint(default, _layer) is { } point)
+        {
+            if (_editingText is not null && !ReferenceEquals(_editingText, text)) _editingText.Opacity = 1;
+            _editingText = text; text.Opacity = _isCode ? 1 : 0;
+            // 代码沿用预览的语法高亮；选区只由上方的输入层绘制，避免遗留只读选区。
+            if (_isCode) text.SelectionStart = text.SelectionEnd = 0;
+            Canvas.SetLeft(_editor, point.X); Canvas.SetTop(_editor, point.Y); _editor.Width = Math.Max(1, text.Bounds.Width);
+            _editor.FontSize = text.FontSize; _editor.FontWeight = text.FontWeight; _editor.FontFamily = text.FontFamily;
+            _editor.LineHeight = text.LineHeight; _editor.Foreground = _isCode ? Brushes.Transparent : text.Foreground;
+            _editor.TextWrapping = _isCode ? TextWrapping.NoWrap : TextWrapping.Wrap;
+            if (_isCode && text.GetVisualAncestors().OfType<ScrollViewer>().FirstOrDefault() is { } codeScroll)
+            {
+                // 输入层位于预览上方，只能覆盖代码的可见文字范围，不能挡住滚动条。
+                var clip = new Rect(text.Bounds.Size);
+                if (codeScroll.GetVisualDescendants().OfType<ScrollContentPresenter>().FirstOrDefault() is { } viewport
+                    && viewport.TranslatePoint(default, text) is { } viewportOrigin)
+                    clip = clip.Intersect(new Rect(viewportOrigin, viewport.Bounds.Size));
+                foreach (var bar in codeScroll.GetVisualDescendants().OfType<global::Avalonia.Controls.Primitives.ScrollBar>().Where(bar => bar.IsVisible))
+                {
+                    if (bar.TranslatePoint(default, text) is not { } origin) continue;
+                    if (bar.Orientation == Orientation.Horizontal)
+                        clip = clip.Intersect(new Rect(clip.X, clip.Y, clip.Width, Math.Max(0, origin.Y - clip.Y)));
+                }
+                _editor.Clip = new RectangleGeometry(clip);
+            }
+            if (_codeLanguage is not null && text.GetVisualAncestors().OfType<Border>().FirstOrDefault(border => border.Classes.Contains("MdCodeBlock")) is { } frame
+                && frame.TranslatePoint(new Point(frame.Bounds.Width, frame.Bounds.Height), _layer) is { } bottom)
+            {
+                Canvas.SetLeft(_codeLanguage, Math.Max(0, bottom.X - _codeLanguage.Width));
+                Canvas.SetTop(_codeLanguage, bottom.Y + 3);
+            }
+        }
+        else if (_preview is null)
+        {
+            _richText.Opacity = 0; _editor.Width = Math.Max(1, _richText.Bounds.Width); _editor.FontSize = _richText.FontSize;
+            _editor.FontWeight = _richText.FontWeight;
+        }
+    }
+    private void EndInlineEditor()
+    {
+        StopWatchingDiagramPointer();
+        _layer.Children.Remove(_editor);
+        _editor.Clip = null;
+        _inlineEditing = false; _editingLayer.IsVisible = false; _richText.Opacity = 1;
+        if (ReferenceEquals(_root.Child, _editor)) _root.Child = null;
+        if (!_editingLayer.Children.Contains(_editor)) _editingLayer.Children.Add(_editor);
+        if (_editingText is not null) _editingText.Opacity = 1;
+        _editingText = null;
+    }
+
+    // 即时编辑保持「底部语言输入框」的既有约定（测试 CodeLanguageAppearsBelow... 守住）；
+    // 头部与输入框并存属冗余，整合进头部可编辑留后续版本。
+    private MarkdownViewer CreatePreview() => new()
+    {
+        DocumentBottomPadding = 0,
+        IsTaskEditingEnabled = false,
+        ShowCodeBlockHeader = false,
+        CodeFontFamily = _options.CodeFontFamily,
+        IsDefaultContextMenuEnabled = _options.IsDefaultContextMenuEnabled,
+        // 块内的图表/图片编辑由本视图（上方源码框）承担，内嵌预览保持纯渲染：
+        // 关闭阅读态放大（IsMediaZoomEnabled）避免点击预览弹遮罩对话框抢占块编辑入口。
+        IsDiagramEditingEnabled = false,
+        IsMediaZoomEnabled = false
+    };
+}

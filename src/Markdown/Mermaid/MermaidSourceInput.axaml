@@ -1,0 +1,12 @@
+<editor:MarkdownInputTextBox xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:editor="using:CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg"
+    x:Class="CodeWF.Avalonia.Markdown.Mermaid.MermaidSourceInput"
+    Classes="MdMermaidSourceInput"
+    AcceptsReturn="True" TextWrapping="NoWrap"
+    FontFamily="Consolas,Menlo,monospace" FontSize="13" LineHeight="24"
+    Padding="14,12" BorderThickness="1" CornerRadius="8"
+    MinHeight="128" MaxHeight="360" VerticalContentAlignment="Top"
+    HorizontalAlignment="Stretch"
+    ScrollViewer.HorizontalScrollBarVisibility="Auto"
+    ScrollViewer.VerticalScrollBarVisibility="Auto" />

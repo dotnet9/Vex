@@ -1,0 +1,24 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="CodeWF.Avalonia.Markdown.Themes.RedScarletTypographyResources">
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="ButtonSolidPrimaryBackground" Color="#F83929" />
+            <SolidColorBrush x:Key="BorderCardBackground" Color="#FFF0EF" />
+            <SolidColorBrush x:Key="TextBoxDefaultBackground" Color="#FFF0EF" />
+            <SolidColorBrush x:Key="ButtonDefaultBackground" Color="#FFDAD6" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="ButtonSolidPrimaryBackground" Color="#FF7A70" />
+            <SolidColorBrush x:Key="BorderCardBackground" Color="#3D1B19" />
+            <SolidColorBrush x:Key="TextBoxDefaultBackground" Color="#3D1B19" />
+            <SolidColorBrush x:Key="ButtonDefaultBackground" Color="#522522" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Themes/Shared/RedScarlet.axaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

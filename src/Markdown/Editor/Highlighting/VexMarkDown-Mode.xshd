@@ -1,0 +1,117 @@
+﻿<?xml version="1.0"?>
+<!--
+  Markdown 源码视图语法着色（镜像原型 design/assets/workbench/source-highlight.js）：
+  核心气质是「符号退后、内容向前」——围栏记号、井号、引用符、列表记号、
+  表格竖线、强调定界符、链接括号等一律压到 Marker 灰，标题/引用/代码/
+  链接等内容各按语义色。色值全部走命名色，由 MarkdownEditorView 的
+  设计令牌键（ApplyThemedSyntaxHighlighting）在运行时注入。
+-->
+<SyntaxDefinition name="VexMarkDown" extensions=".md" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Marker" exampleText="# ` `` ** > - |" />
+  <Color name="Heading" exampleText="# Title" />
+  <Color name="StrongEmphasis" fontWeight="bold" exampleText="**x**" />
+  <Color name="Emphasis" fontStyle="italic" exampleText="*x*" />
+  <Color name="StrikeThrough" strikethrough="true" exampleText="~~x~~" />
+  <Color name="Mark" exampleText="==x==" />
+  <Color name="Code" exampleText="`x`" />
+  <Color name="BlockQuote" exampleText="> quote" />
+  <Color name="Link" exampleText="[text](url)" />
+  <Color name="Url" underline="true" exampleText="(url)" />
+  <Color name="Math" exampleText="$$x$$" />
+  <Color name="LineBreak" background="#40808080" exampleText="end of line  " />
+
+  <RuleSet ignoreCase="true">
+    <!-- 缩进代码块：沿用内置的 C# 导入着色（测试按 Visibility 命名色断言）。 -->
+    <Span color="Code" ruleSet="C#/" multiline="true">
+      <Begin>^\t</Begin>
+      <End>^(?!\t)</End>
+    </Span>
+    <Span color="Code" ruleSet="C#/" multiline="true">
+      <Begin>^[ ]{4}</Begin>
+      <End>^(?![ ]{4})</End>
+    </Span>
+    <!-- 围栏代码块：开/闭栏记号 marker，栏内正文 code；语言名与代码同色（原型 sh-lang 与 sh-code 同值）。 -->
+    <Span color="Code" multiline="true">
+      <Begin color="Marker">^\s{0,3}(`{3,}|~{3,})</Begin>
+      <End color="Marker">^\s{0,3}(`{3,}|~{3,})\s*$</End>
+    </Span>
+    <!-- 数学块：$$ 开闭均为 marker，栏内正文 math。 -->
+    <Span color="Math" multiline="true">
+      <Begin color="Marker">^\s{0,3}\$\$</Begin>
+      <End color="Marker">^\s{0,3}\$\$\s*$</End>
+    </Span>
+    <!-- 引用：> 链 marker，正文 quote；跨行连续引用共享一个 span。 -->
+    <Span color="BlockQuote" multiline="true">
+      <Begin color="Marker">^\s{0,3}&gt;+</Begin>
+      <End color="Marker">^(?![ \t]*&gt;)</End>
+    </Span>
+    <!-- 脚注引用：整体 marker。 -->
+    <Span color="Marker" multiline="false">
+      <Begin>\[\^</Begin>
+      <End>\]</End>
+    </Span>
+    <!-- 行内样式 span 标签：整体 marker 灰（样式效果由渲染呈现，源码只留标签痕迹）。
+         用 Rule 一次性匹配整段标签（Span 的 End=$ 语义在行内标签场景不可靠）。 -->
+    <Rule color="Marker">&lt;/?span[^&gt;\n]*&gt;</Rule>
+    <!-- 任务框由下方 marker 规则处理；链接在右方括号结束，不能给同行后续正文染色。 -->
+    <Span color="Link" multiline="false">
+      <Begin color="Marker">\!?\[(?![ xX]\])</Begin>
+      <End color="Marker">\]</End>
+    </Span>
+    <!-- 紧邻链接后的 URL：括号为 marker，地址为 Url，与原型一致。 -->
+    <Span color="Url" multiline="false">
+      <Begin color="Marker">(?&lt;=\])\(</Begin>
+      <End color="Marker">\)</End>
+    </Span>
+    <!-- 标题：井号 marker，正文 heading。 -->
+    <Span color="Heading" multiline="true">
+      <Begin color="Marker">^\s{0,3}\x23{1,6}</Begin>
+      <End>^(?!\x23)</End>
+    </Span>
+    <!-- 行内强调：定界符 marker，内容按语义。 -->
+    <Span color="StrongEmphasis" multiline="false">
+      <Begin color="Marker">\*\*</Begin>
+      <End color="Marker">\*\*</End>
+    </Span>
+    <Span color="StrongEmphasis" multiline="false">
+      <Begin color="Marker">__</Begin>
+      <End color="Marker">__</End>
+    </Span>
+    <Span color="StrikeThrough" multiline="false">
+      <Begin color="Marker">~~</Begin>
+      <End color="Marker">~~</End>
+    </Span>
+    <Span color="Mark" multiline="false">
+      <Begin color="Marker">==</Begin>
+      <End color="Marker">==</End>
+    </Span>
+    <Span color="Code" multiline="false">
+      <Begin color="Marker">`</Begin>
+      <End color="Marker">`</End>
+    </Span>
+    <Span color="Emphasis" multiline="false">
+      <Begin color="Marker">\*(?![ \t*])</Begin>
+      <End color="Marker">\*</End>
+    </Span>
+    <Span color="Emphasis" multiline="false">
+      <Begin color="Marker">_(?!_)</Begin>
+      <End color="Marker">_</End>
+    </Span>
+    <!-- 分隔线、列表记号、任务方括号、表格竖线：符号整体 marker。 -->
+    <Rule color="Marker">
+      ^\s{0,3}(-[ \t]*){3,}$|^\s{0,3}(\*[ \t]*){3,}$|^\s{0,3}(_[ \t]*){3,}$
+    </Rule>
+    <Rule color="Marker">
+      ^(\s*)([-+*]|\d{1,9}[.)])(?=\s)
+    </Rule>
+    <Rule color="Marker">
+      \[[ xX]\]
+    </Rule>
+    <Rule color="Marker">
+      \|
+    </Rule>
+    <Rule color="LineBreak">
+      [ ]{2}$
+    </Rule>
+  </RuleSet>
+</SyntaxDefinition>

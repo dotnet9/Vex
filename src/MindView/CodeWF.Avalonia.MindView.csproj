@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <IsAotCompatible>true</IsAotCompatible>
+    <Description>Avalonia mind map editor, Markdown viewer, import/export and light/dark accent themes in one package.</Description>
+    <PackageTags>avalonia;mindmap;markdown;themes;codewf</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
+    <PackageReference Include="CodeWF.Avalonia.Lang" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="I18n/*.json" />
+    <EmbeddedResource Include="I18n/*.json" />
+    <AvaloniaResource Include="Assets/Cursors/*.png" />
+  </ItemGroup>
+</Project>

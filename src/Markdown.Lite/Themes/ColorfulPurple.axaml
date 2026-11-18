@@ -1,0 +1,24 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="CodeWF.Avalonia.Markdown.Themes.ColorfulPurpleTypographyResources">
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="ButtonSolidPrimaryBackground" Color="#773098" />
+            <SolidColorBrush x:Key="BorderCardBackground" Color="#FAF2FF" />
+            <SolidColorBrush x:Key="TextBoxDefaultBackground" Color="#FAF2FF" />
+            <SolidColorBrush x:Key="ButtonDefaultBackground" Color="#EFD8FA" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="ButtonSolidPrimaryBackground" Color="#D8A7F0" />
+            <SolidColorBrush x:Key="BorderCardBackground" Color="#2B2140" />
+            <SolidColorBrush x:Key="TextBoxDefaultBackground" Color="#2B2140" />
+            <SolidColorBrush x:Key="ButtonDefaultBackground" Color="#382A55" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Themes/Shared/ColorfulPurple.axaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

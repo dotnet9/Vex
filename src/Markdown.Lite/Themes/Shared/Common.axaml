@@ -1,0 +1,87 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:media="clr-namespace:Avalonia.Media;assembly=Avalonia.Base"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="CodeWF.Avalonia.Markdown.Themes.CommonTypographyResources">
+    <x:Double x:Key="CodeWFMarkdownParagraphFontSize">16</x:Double>
+    <x:Double x:Key="CodeWFMarkdownParagraphLineHeight">28</x:Double>
+    <x:Double x:Key="CodeWFMarkdownHeading1FontSize">30</x:Double>
+    <x:Double x:Key="CodeWFMarkdownHeading2FontSize">26</x:Double>
+    <x:Double x:Key="CodeWFMarkdownHeading3FontSize">22</x:Double>
+    <x:Double x:Key="CodeWFMarkdownHeading4FontSize">20</x:Double>
+    <x:Double x:Key="CodeWFMarkdownHeading5FontSize">18</x:Double>
+    <x:Double x:Key="CodeWFMarkdownHeading6FontSize">16</x:Double>
+    <x:Double x:Key="CodeWFMarkdownBlockSpacing">8</x:Double>
+    <x:Double x:Key="CodeWFMarkdownDocumentBottomPadding">72</x:Double>
+    <Thickness x:Key="CodeWFMarkdownDocumentMargin">0</Thickness>
+    <Thickness x:Key="CodeWFMarkdownParagraphMargin">0 4 0 10</Thickness>
+    <Thickness x:Key="CodeWFMarkdownHeadingMargin">0 18 0 10</Thickness>
+    <media:TextAlignment x:Key="CodeWFMarkdownHeading2TextAlignment">Left</media:TextAlignment>
+    <media:TextAlignment x:Key="CodeWFMarkdownHeading3TextAlignment">Left</media:TextAlignment>
+    <Thickness x:Key="CodeWFMarkdownHeading2BorderThickness">0 0 0 2</Thickness>
+    <Thickness x:Key="CodeWFMarkdownHeading2Padding">0 0 0 6</Thickness>
+
+    <x:Double x:Key="CodeWFMarkdownCodeBlockFontSize">14</x:Double>
+    <x:Double x:Key="CodeWFMarkdownCodeBlockLineHeight">22</x:Double>
+    <x:Double x:Key="CodeWFMarkdownCodeLanguageFontSize">12</x:Double>
+    <CornerRadius x:Key="CodeWFMarkdownCodeBlockCornerRadius">8</CornerRadius>
+    <Thickness x:Key="CodeWFMarkdownCodeBlockBorderThickness">1</Thickness>
+    <Thickness x:Key="CodeWFMarkdownCodeBlockPadding">12</Thickness>
+    <Thickness x:Key="CodeWFMarkdownCodeBlockMargin">0 8 0 12</Thickness>
+    <x:Double x:Key="CodeWFMarkdownCodeBlockSpacing">4</x:Double>
+    <x:Double x:Key="CodeWFMarkdownCodeBlockHeaderSpacing">8</x:Double>
+    <x:Double x:Key="CodeWFMarkdownCopyButtonMinWidth">54</x:Double>
+    <x:Double x:Key="CodeWFMarkdownCopyButtonHeight">24</x:Double>
+    <Thickness x:Key="CodeWFMarkdownCopyButtonPadding">10 0</Thickness>
+    <CornerRadius x:Key="CodeWFMarkdownCopyButtonCornerRadius">5</CornerRadius>
+    <x:Double x:Key="CodeWFMarkdownCodeBlockToolButtonSize">24</x:Double>
+    <x:Double x:Key="CodeWFMarkdownCodeBlockToolbarSpacing">2</x:Double>
+    <x:Double x:Key="CodeWFMarkdownCodeBlockFooterSpacing">4</x:Double>
+
+    <x:Double x:Key="CodeWFMarkdownListSpacing">6</x:Double>
+    <Thickness x:Key="CodeWFMarkdownListMargin">0 2 0 8</Thickness>
+    <Thickness x:Key="CodeWFMarkdownListItemMargin">0 2 0 2</Thickness>
+    <x:Double x:Key="CodeWFMarkdownListItemContentSpacing">4</x:Double>
+    <Thickness x:Key="CodeWFMarkdownListMarkerMargin">0 0 8 0</Thickness>
+    <Thickness x:Key="CodeWFMarkdownTaskMarkerBoxMargin">0 1 0 0</Thickness>
+    <x:Double x:Key="CodeWFMarkdownUnorderedListMarkerWidth">24</x:Double>
+    <x:Double x:Key="CodeWFMarkdownOrderedListMarkerMinWidth">28</x:Double>
+    <x:Double x:Key="CodeWFMarkdownOrderedListMarkerCharacterWidth">9</x:Double>
+    <x:Double x:Key="CodeWFMarkdownOrderedListMarkerExtraWidth">6</x:Double>
+    <Thickness x:Key="CodeWFMarkdownListFirstParagraphMargin">0 0 0 2</Thickness>
+    <Thickness x:Key="CodeWFMarkdownListNestedParagraphMargin">0 2 0 2</Thickness>
+
+    <Thickness x:Key="CodeWFMarkdownQuoteBorderThickness">4 0 0 0</Thickness>
+    <CornerRadius x:Key="CodeWFMarkdownQuoteCornerRadius">6</CornerRadius>
+    <Thickness x:Key="CodeWFMarkdownQuotePadding">12 8</Thickness>
+    <Thickness x:Key="CodeWFMarkdownQuoteMargin">0 6 0 12</Thickness>
+    <x:Double x:Key="CodeWFMarkdownQuoteContentSpacing">4</x:Double>
+    <x:Double x:Key="CodeWFMarkdownThematicBreakHeight">1</x:Double>
+    <Thickness x:Key="CodeWFMarkdownThematicBreakMargin">0 16 0 16</Thickness>
+
+    <Thickness x:Key="CodeWFMarkdownTableMargin">0 8 0 14</Thickness>
+    <Thickness x:Key="CodeWFMarkdownTableContainerBorderThickness">1</Thickness>
+    <CornerRadius x:Key="CodeWFMarkdownTableCornerRadius">6</CornerRadius>
+    <Thickness x:Key="CodeWFMarkdownTableCellBorderThickness">1</Thickness>
+    <Thickness x:Key="CodeWFMarkdownTableCellPadding">10 8</Thickness>
+    <x:Double x:Key="CodeWFMarkdownTableCellMinHeight">38</x:Double>
+    <x:Double x:Key="CodeWFMarkdownTableCellContentSpacing">4</x:Double>
+
+    <x:Double x:Key="CodeWFMarkdownImageMaxWidth">900</x:Double>
+    <x:Double x:Key="CodeWFMarkdownImageMaxHeight">520</x:Double>
+    <Thickness x:Key="CodeWFMarkdownImageMargin">0 6 0 10</Thickness>
+    <Thickness x:Key="CodeWFMarkdownImageFallbackBorderThickness">1</Thickness>
+    <CornerRadius x:Key="CodeWFMarkdownImageFallbackCornerRadius">6</CornerRadius>
+    <Thickness x:Key="CodeWFMarkdownImageFallbackPadding">10</Thickness>
+    <Thickness x:Key="CodeWFMarkdownImageFallbackMargin">0 6 0 10</Thickness>
+    <x:Double x:Key="CodeWFMarkdownImageFallbackOpacity">0.72</x:Double>
+    <x:Double x:Key="CodeWFMarkdownImagePreviewWidth">1120</x:Double>
+    <x:Double x:Key="CodeWFMarkdownImagePreviewHeight">760</x:Double>
+    <x:Double x:Key="CodeWFMarkdownImagePreviewMinWidth">720</x:Double>
+    <x:Double x:Key="CodeWFMarkdownImagePreviewMinHeight">480</x:Double>
+    <Thickness x:Key="CodeWFMarkdownImagePreviewContentPadding">24</Thickness>
+    <x:Double x:Key="CodeWFMarkdownImagePreviewToolbarSpacing">8</x:Double>
+    <Thickness x:Key="CodeWFMarkdownImagePreviewToolbarMargin">12</Thickness>
+    <x:Double x:Key="CodeWFMarkdownImagePreviewZoomTextMinWidth">58</x:Double>
+    <Thickness x:Key="CodeWFMarkdownImagePreviewButtonPadding">12 6</Thickness>
+</ResourceDictionary>

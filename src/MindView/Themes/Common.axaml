@@ -1,0 +1,57 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:Avalonia.Data.Converters"
+    xmlns:mind="https://codewf.com">
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceInclude x:Key="Default" Source="Light/MindMap.axaml" />
+                <ResourceInclude x:Key="Light" Source="Light/MindMap.axaml" />
+                <ResourceInclude x:Key="Dark" Source="Dark/MindMap.axaml" />
+            </ResourceDictionary.ThemeDictionaries>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="Shared/MindMap.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <Style Selector="TextBox.codewfMindMapTitleEditor">
+        <Setter Property="CaretBrush" Value="{DynamicResource CodeWFMindViewPrimaryTextBrush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource CodeWFMindViewTextSelectionBrush}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ScrollViewer Name="PART_ScrollViewer"
+                              HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                              VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
+                              BringIntoViewOnFocusChange="{TemplateBinding (ScrollViewer.BringIntoViewOnFocusChange)}">
+                    <Panel>
+                        <TextBlock Text="{TemplateBinding PlaceholderText}"
+                                   Foreground="{TemplateBinding PlaceholderForeground}"
+                                   IsHitTestVisible="False"
+                                   IsVisible="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static converters:StringConverters.IsNullOrEmpty}}"
+                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        <TextPresenter Name="PART_TextPresenter"
+                                       Text="{TemplateBinding Text, Mode=TwoWay}"
+                                       CaretBlinkInterval="{TemplateBinding CaretBlinkInterval}"
+                                       CaretIndex="{TemplateBinding CaretIndex}"
+                                       SelectionStart="{TemplateBinding SelectionStart}"
+                                       SelectionEnd="{TemplateBinding SelectionEnd}"
+                                       TextAlignment="{TemplateBinding TextAlignment}"
+                                       TextWrapping="{TemplateBinding TextWrapping}"
+                                       LineHeight="{TemplateBinding LineHeight}"
+                                       LetterSpacing="{TemplateBinding LetterSpacing}"
+                                       PasswordChar="{TemplateBinding PasswordChar}"
+                                       RevealPassword="{TemplateBinding RevealPassword}"
+                                       SelectionBrush="{TemplateBinding SelectionBrush}"
+                                       SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                       CaretBrush="{TemplateBinding CaretBrush}"
+                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Panel>
+                </ScrollViewer>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

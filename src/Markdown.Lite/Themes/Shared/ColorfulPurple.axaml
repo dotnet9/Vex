@@ -1,0 +1,6 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <x:Double x:Key="CodeWFMarkdownHeading1FontSize">32</x:Double>
+    <x:Double x:Key="CodeWFMarkdownParagraphLineHeight">29</x:Double>
+</ResourceDictionary>

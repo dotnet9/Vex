@@ -14,9 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\libs\CodeWF.Toolkit\src\EventBus\CodeWF.Toolkit.EventBus\CodeWF.Toolkit.EventBus.csproj" />
-    <ProjectReference Include="..\..\libs\CodeWF.Toolkit\src\Files\CodeWF.Toolkit.Files\CodeWF.Toolkit.Files.csproj" />
-    <ProjectReference Include="..\..\libs\CodeWF.Toolkit\src\Lang\CodeWF.Toolkit.Lang\CodeWF.Toolkit.Lang.csproj" />
+    <PackageReference Include="CodeWF.Toolkit.EventBus" />
+    <PackageReference Include="CodeWF.Toolkit.Files" />
+    <PackageReference Include="CodeWF.Toolkit.Lang" />
   </ItemGroup>
 
   <ItemGroup>

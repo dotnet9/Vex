@@ -1,0 +1,52 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:CodeWF.Avalonia.Markdown.Editor.Controls" xmlns:actions="using:CodeWF.Avalonia.Markdown.Editor.Services" xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:l="using:CodeWF.Avalonia.Markdown" xmlns:codewf="https://codewf.com"
+             x:Class="CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownSelectionToolbar"
+             x:DataType="local:MarkdownSelectionToolbarViewModel" FontSize="14"
+             Foreground="{DynamicResource CodeWFMarkdownSelectionForegroundBrush}">
+  <UserControl.Styles>
+    <Style Selector="Button.format">
+      <Setter Property="Width" Value="30"/><Setter Property="Height" Value="30"/>
+      <Setter Property="MinHeight" Value="0"/><Setter Property="MinWidth" Value="0"/>
+      <Setter Property="Padding" Value="3"/><Setter Property="Margin" Value="0"/>
+      <Setter Property="Focusable" Value="False"/><Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Template"><ControlTemplate><Border Name="Plate" Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}"><ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></ControlTemplate></Setter>
+    </Style>
+    <Style Selector="Button.format:pointerover /template/ Border#Plate"><Setter Property="Background" Value="{DynamicResource CodeWFMarkdownSelectionHoverBrush}"/></Style>
+    <Style Selector="Button.format:pressed /template/ Border#Plate"><Setter Property="Background" Value="{DynamicResource CodeWFMarkdownSelectionHoverBrush}"/></Style>
+    <Style Selector="Button.span"><Setter Property="Width" Value="NaN"/><Setter Property="MinWidth" Value="30"/><Setter Property="Padding" Value="5,0"/></Style>
+    <Style Selector="TextBlock.glyph"><Setter Property="FontSize" Value="13"/><Setter Property="FontWeight" Value="Bold"/></Style>
+    <Style Selector="Path.stroke"><Setter Property="Stroke" Value="{DynamicResource CodeWFMarkdownSelectionForegroundBrush}"/><Setter Property="StrokeThickness" Value="1.7"/><Setter Property="StrokeLineCap" Value="Round"/><Setter Property="StrokeJoin" Value="Round"/></Style>
+    <Style Selector="Border.rule"><Setter Property="Width" Value="1"/><Setter Property="Height" Value="18"/><Setter Property="Margin" Value="3,0"/><Setter Property="Background" Value="{DynamicResource CodeWFMarkdownSelectionBorderBrush}"/></Style>
+  </UserControl.Styles>
+  <Border Padding="3" CornerRadius="8" Background="{DynamicResource CodeWFMarkdownSelectionBackgroundBrush}"
+          BorderBrush="{DynamicResource CodeWFMarkdownSelectionBorderBrush}" BorderThickness="1"
+          BoxShadow="{DynamicResource CodeWFMarkdownSelectionShadow}">
+    <StackPanel Name="Items" Orientation="Horizontal" Spacing="1">
+      <Button Name="Bold" Classes="format" Command="{Binding FormatCommand}" CommandParameter="{x:Static actions:MarkdownEditorAction.Bold}" helpers:ToolTipHelper.Text="{codewf:I18n {x:Static l:MarkdownL.SelectionBold}}" AutomationProperties.Name="{codewf:I18n {x:Static l:MarkdownL.SelectionBold}}"><Viewbox Width="16" Height="16"><Canvas Width="24" Height="24"><Path Classes="stroke" Data="M6 4h7a4 4 0 0 1 0 8H6z M6 12h8a4 4 0 0 1 0 8H6z"/></Canvas></Viewbox></Button>
+      <Button Name="Italic" Classes="format" Command="{Binding FormatCommand}" CommandParameter="{x:Static actions:MarkdownEditorAction.Italic}" helpers:ToolTipHelper.Text="{codewf:I18n {x:Static l:MarkdownL.SelectionItalic}}" AutomationProperties.Name="{codewf:I18n {x:Static l:MarkdownL.SelectionItalic}}"><Viewbox Width="16" Height="16"><Canvas Width="24" Height="24"><Path Classes="stroke" Data="M10 4h8 M6 20h8 M14 4l-4 16"/></Canvas></Viewbox></Button>
+      <Button Name="Strike" Classes="format" Command="{Binding FormatCommand}" CommandParameter="{x:Static actions:MarkdownEditorAction.Strikethrough}" helpers:ToolTipHelper.Text="{codewf:I18n {x:Static l:MarkdownL.SelectionStrike}}" AutomationProperties.Name="{codewf:I18n {x:Static l:MarkdownL.SelectionStrike}}"><TextBlock Classes="glyph" Text="S" TextDecorations="Strikethrough"/></Button>
+      <Button Name="InlineCode" Classes="format" Command="{Binding FormatCommand}" CommandParameter="{x:Static actions:MarkdownEditorAction.InlineCode}" helpers:ToolTipHelper.Text="{codewf:I18n {x:Static l:MarkdownL.SelectionCode}}" AutomationProperties.Name="{codewf:I18n {x:Static l:MarkdownL.SelectionCode}}"><Viewbox Width="16" Height="16"><Canvas Width="24" Height="24"><Path Classes="stroke" Data="M8 6l-6 6 6 6 M16 6l6 6-6 6 M14 4l-4 16"/></Canvas></Viewbox></Button>
+      <Button Name="Link" Classes="format" Command="{Binding FormatCommand}" CommandParameter="{x:Static actions:MarkdownEditorAction.Link}" helpers:ToolTipHelper.Text="{codewf:I18n {x:Static l:MarkdownL.SelectionLink}}" AutomationProperties.Name="{codewf:I18n {x:Static l:MarkdownL.SelectionLink}}"><Viewbox Width="16" Height="16"><Canvas Width="24" Height="24"><Path Classes="stroke" Data="M10 13a5 5 0 0 0 7 .5l3-3a5 5 0 0 0-7-7l-2 2 M14 11a5 5 0 0 0-7-.5l-3 3a5 5 0 0 0 7 7l2-2"/></Canvas></Viewbox></Button>
+      <Button Name="Heading1" Classes="format" Command="{Binding FormatCommand}" CommandParameter="{x:Static actions:MarkdownEditorAction.Heading1}" helpers:ToolTipHelper.Text="{codewf:I18n {x:Static l:MarkdownL.SelectionHeading1}}" AutomationProperties.Name="{codewf:I18n {x:Static l:MarkdownL.SelectionHeading1}}"><TextBlock Classes="glyph" Text="H1"/></Button>
+      <Button Name="Heading2" Classes="format" Command="{Binding FormatCommand}" CommandParameter="{x:Static actions:MarkdownEditorAction.Heading2}" helpers:ToolTipHelper.Text="{codewf:I18n {x:Static l:MarkdownL.SelectionHeading2}}" AutomationProperties.Name="{codewf:I18n {x:Static l:MarkdownL.SelectionHeading2}}"><TextBlock Classes="glyph" Text="H2"/></Button>
+      <Button Name="List" Classes="format" Command="{Binding FormatCommand}" CommandParameter="{x:Static actions:MarkdownEditorAction.UnorderedList}" helpers:ToolTipHelper.Text="{codewf:I18n {x:Static l:MarkdownL.SelectionList}}" AutomationProperties.Name="{codewf:I18n {x:Static l:MarkdownL.SelectionList}}"><Viewbox Width="16" Height="16"><Canvas Width="24" Height="24"><Path Classes="stroke" Data="M9 6h12 M9 12h12 M9 18h12 M3 6h.01 M3 12h.01 M3 18h.01"/></Canvas></Viewbox></Button>
+      <Border Classes="rule"/>
+      <Button Name="FontSizeButton" Classes="format span" helpers:ToolTipHelper.Text="{Binding FontSize.Title}" AutomationProperties.Name="{Binding FontSize.Title}">
+        <StackPanel Orientation="Horizontal" Spacing="2"><TextBlock Classes="glyph" Text="A"/><Viewbox Width="10" Height="10"><Canvas Width="24" Height="24"><Path Classes="stroke" Data="M6 9l6 6 6-6"/></Canvas></Viewbox></StackPanel>
+        <Button.Flyout><local:MarkdownSpanStyleFlyout Placement="Bottom"><local:MarkdownSpanStylePicker DataContext="{Binding FontSize}"/></local:MarkdownSpanStyleFlyout></Button.Flyout>
+      </Button>
+      <Button Name="ForegroundButton" Classes="format span" helpers:ToolTipHelper.Text="{Binding Foreground.Title}" AutomationProperties.Name="{Binding Foreground.Title}">
+        <StackPanel Orientation="Horizontal" Spacing="2"><TextBlock Classes="glyph" Text="A" Foreground="#1971C2" TextDecorations="Underline"/><Viewbox Width="10" Height="10"><Canvas Width="24" Height="24"><Path Classes="stroke" Data="M6 9l6 6 6-6"/></Canvas></Viewbox></StackPanel>
+        <Button.Flyout><local:MarkdownSpanStyleFlyout Placement="Bottom"><local:MarkdownSpanStylePicker DataContext="{Binding Foreground}"/></local:MarkdownSpanStyleFlyout></Button.Flyout>
+      </Button>
+      <Button Name="BackgroundButton" Classes="format span" helpers:ToolTipHelper.Text="{Binding Background.Title}" AutomationProperties.Name="{Binding Background.Title}">
+        <StackPanel Orientation="Horizontal" Spacing="2"><Border Background="#FFF3BF" CornerRadius="3" Padding="3,1"><TextBlock Classes="glyph" Text="A" Foreground="#222222"/></Border><Viewbox Width="10" Height="10"><Canvas Width="24" Height="24"><Path Classes="stroke" Data="M6 9l6 6 6-6"/></Canvas></Viewbox></StackPanel>
+        <Button.Flyout><local:MarkdownSpanStyleFlyout Placement="Bottom"><local:MarkdownSpanStylePicker DataContext="{Binding Background}"/></local:MarkdownSpanStyleFlyout></Button.Flyout>
+      </Button>
+      <Border Classes="rule"/>
+      <Button Name="Clear" Classes="format" Command="{Binding ClearCommand}" helpers:ToolTipHelper.Text="{codewf:I18n {x:Static l:MarkdownL.SelectionClear}}" AutomationProperties.Name="{codewf:I18n {x:Static l:MarkdownL.SelectionClear}}"><Viewbox Width="16" Height="16"><Canvas Width="24" Height="24"><Path Classes="stroke" Data="M6 6l12 12 M18 6L6 18"/></Canvas></Viewbox></Button>
+    </StackPanel>
+  </Border>
+</UserControl>
+

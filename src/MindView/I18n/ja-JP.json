@@ -1,0 +1,48 @@
+{
+  "language": "日本語",
+  "description": "日本語",
+  "cultureName": "ja-JP",
+  "CodeWF": {
+    "Avalonia": {
+      "MindView": {
+        "MindViewL": {
+          "CenterTopicPlaceholder": "中心トピック",
+          "TopicPlaceholder": "トピック",
+          "NotePlaceholder": "ノート",
+          "AddSiblingText": "兄弟トピックを追加",
+          "AddChildText": "子トピックを追加",
+          "PromoteText": "昇格",
+          "DemoteText": "降格",
+          "MoveUpText": "上へ移動",
+          "MoveDownText": "下へ移動",
+          "AddNoteText": "ノートを追加",
+          "EditNoteText": "ノートを編集",
+          "DeleteNodeText": "ノードを削除",
+          "DragNodeTip": "中央にドロップすると子ノードになり、上下端にドロップすると兄弟順を変更します",
+          "DropAsChildText": "子ノードにする",
+          "DropBeforeText": "前に挿入",
+          "DropAfterText": "後に挿入",
+          "DropUnavailableText": "ここにはドロップできません",
+          "UntitledTopic": "無題のトピック",
+          "DefaultRootTitle": "中心トピック",
+          "JsonChildTitle": "トピック",
+          "JsonItemTitle": "項目",
+          "CsvRecordTitle": "レコード",
+          "CsvColumnTitle": "列 {0}",
+          "ParseFailed": "解析に失敗しました: {0}",
+          "XMindContentMissing": "認識できる XMind コンテンツが見つかりません。",
+          "XMindJsonMissingRootTopic": "XMind content.json に rootTopic がありません。",
+          "XMindXmlMissingRootTopic": "XMind content.xml にルートトピックがありません。",
+          "MetadataFormatLabel": "形式: {0}",
+          "MetadataPathLabel": "パス: {0}",
+          "BaiduMindMapFormat": "Baidu Mind Map",
+          "ImageFormat": "画像",
+          "DrawIoDiagramTitle": "draw.io 図表",
+          "MarkdownDocument": "ドキュメント",
+          "ExpandBranch": "枝を展開",
+          "CollapseBranch": "枝を折りたたむ"
+        }
+      }
+    }
+  }
+}

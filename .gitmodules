@@ -1,6 +1,0 @@
-[submodule "libs/CodeWF.Avalonia"]
-	path = libs/CodeWF.Avalonia
-	url = https://github.com/dotnet9/CodeWF.Avalonia.git
-[submodule "libs/CodeWF.Toolkit"]
-	path = libs/CodeWF.Toolkit
-	url = https://github.com/dotnet9/CodeWF.Toolkit.git

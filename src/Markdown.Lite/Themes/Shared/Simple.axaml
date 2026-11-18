@@ -1,0 +1,26 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- 对齐 design 原型 Simple（简约）排版实测值（1440x900 / 15px 正文）：
+         块间距由 BlockSpacing 承担改为各块自带 margin（原型 CSS margin 折叠后的等效值）。 -->
+    <x:Double x:Key="CodeWFMarkdownParagraphLineHeight">28.5</x:Double>
+    <x:Double x:Key="CodeWFMarkdownBlockSpacing">0</x:Double>
+    <Thickness x:Key="CodeWFMarkdownParagraphMargin">0 0 0 12.75</Thickness>
+    <Thickness x:Key="CodeWFMarkdownHeading1Margin">0 0 0 16.5</Thickness>
+    <Thickness x:Key="CodeWFMarkdownHeading2Margin">0 16.65 0 9.45</Thickness>
+    <Thickness x:Key="CodeWFMarkdownHeading3Margin">0 4.84 0 6.04</Thickness>
+    <x:Double x:Key="CodeWFMarkdownHeading1LineHeight">43.5</x:Double>
+    <x:Double x:Key="CodeWFMarkdownHeading2LineHeight">33.6</x:Double>
+    <x:Double x:Key="CodeWFMarkdownHeading3LineHeight">28.46</x:Double>
+    <Thickness x:Key="CodeWFMarkdownListMargin">0 0 0 8</Thickness>
+    <x:Double x:Key="CodeWFMarkdownListSpacing">0</x:Double>
+    <Thickness x:Key="CodeWFMarkdownListItemMargin">0 1.5</Thickness>
+    <Thickness x:Key="CodeWFMarkdownListFirstParagraphMargin">0</Thickness>
+    <Thickness x:Key="CodeWFMarkdownQuoteMargin">0 8.5 0 12.75</Thickness>
+    <Thickness x:Key="CodeWFMarkdownQuotePadding">15 9</Thickness>
+    <x:Double x:Key="CodeWFMarkdownQuoteContentSpacing">0</x:Double>
+    <!-- 表格块：工具条占位后表格自身只留底距；单元格字号/行高与正文同源（ParagraphFontSize/LineHeight），此处只保留内距与高度节奏。 -->
+    <Thickness x:Key="CodeWFMarkdownTableMargin">0 15 0 15</Thickness>
+    <Thickness x:Key="CodeWFMarkdownTableCellPadding">10 5</Thickness>
+    <x:Double x:Key="CodeWFMarkdownTableCellMinHeight">24.75</x:Double>
+</ResourceDictionary>

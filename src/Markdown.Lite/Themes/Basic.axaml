@@ -1,0 +1,28 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="CodeWF.Avalonia.Markdown.Themes.BasicTypographyResources">
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="ButtonSolidPrimaryBackground" Color="#24292F" />
+            <SolidColorBrush x:Key="BorderCardBorderBrush" Color="#D0D7DE" />
+            <SolidColorBrush x:Key="BorderCardBackground" Color="#F6F8FA" />
+            <SolidColorBrush x:Key="TextBlockCodeBackground" Color="#F6F8FA" />
+            <SolidColorBrush x:Key="TextBoxDefaultBackground" Color="#F6F8FA" />
+            <SolidColorBrush x:Key="ButtonDefaultBackground" Color="#F6F8FA" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="ButtonSolidPrimaryBackground" Color="#F0F6FC" />
+            <SolidColorBrush x:Key="BorderCardBorderBrush" Color="#30363D" />
+            <SolidColorBrush x:Key="BorderCardBackground" Color="#11161D" />
+            <SolidColorBrush x:Key="TextBlockCodeBackground" Color="#0D1117" />
+            <SolidColorBrush x:Key="TextBoxDefaultBackground" Color="#161B22" />
+            <SolidColorBrush x:Key="ButtonDefaultBackground" Color="#161B22" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Themes/Shared/Basic.axaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>
