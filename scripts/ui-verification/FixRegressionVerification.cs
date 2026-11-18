@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Threading;
@@ -45,7 +46,7 @@ internal static class FixRegressionVerification
         Check(tipText is { } tip && tip.Length > 0 && !tip.Contains("MarkdownL.") && !tip.Contains("VexL."),
             "Tooltip resolves to localized text, not raw key");
 
-        // ---- 1. 图鉴缩略图：打开 Flyout 等填充，24 张 Image 应有源 ----
+        // ---- 1. 图鉴缩略图：打开 Flyout 等填充；TabControl 只驻留选中组，按可见组验收 ----
         var galleryButton = window.GetVisualDescendants().OfType<Button>()
             .FirstOrDefault(b => b.Name == "FormatMermaidGallery");
         Check(galleryButton is not null, "Gallery button found");
@@ -62,38 +63,54 @@ internal static class FixRegressionVerification
                 : [];
             total = images.Count;
             filled = images.Count(i => i.Source is Avalonia.Svg.Skia.SvgImage);
-            if (total >= 24 && filled >= 24) break;
+            if (total >= 4 && filled >= total && filled > 0) break;
             Thread.Sleep(250);
         }
         Console.WriteLine($"gallery thumbs: {filled}/{total} filled");
-        // 分组 tab + 大卡（260x110）：4 个 tab，默认组 0 可见 4 卡、其余隐藏。
+        // 分组 tab（经典 TabControl）：4 个 TabItem，默认组 0 可见 4 卡。
         var tabs = flyout.Content is Visual tabRoot
-            ? tabRoot.GetVisualDescendants().OfType<RadioButton>().Where(r => r.GroupName == "MermaidGallery").ToList()
+            ? tabRoot.GetVisualDescendants().OfType<TabItem>().ToList()
             : [];
-        var cards0 = flyout.Content is Visual cardRoot
-            ? cardRoot.GetVisualDescendants().OfType<Button>().Where(b => b is not RadioButton && int.TryParse(b.Tag?.ToString(), out _) && b.IsVisible).ToList()
-            : [];
-        Console.WriteLine($"gallery tabs: {tabs.Count}, visible cards (group0): {cards0.Count}");
+        int VisibleCards(Visual? root) => root?.GetVisualDescendants()
+            .OfType<Button>().Count(b => b.Classes.Contains("dg-card") && b.IsVisible) ?? 0;
+        var cards0 = VisibleCards(flyout.Content as Visual);
+        Console.WriteLine($"gallery tabs: {tabs.Count}, visible cards (group0): {cards0}");
         Shot("gallery-group0");
-        // 切到组 2 应见 8 卡。
-        tabs.LastOrDefault()?.IsChecked = true;
-        Render();
-        var cards2 = flyout.Content is Visual cardRoot2
-            ? cardRoot2.GetVisualDescendants().OfType<Button>().Where(b => b is not RadioButton && int.TryParse(b.Tag?.ToString(), out _) && b.IsVisible).ToList()
-            : [];
-        Console.WriteLine("visible cards (group2): " + cards2.Count);
-        var bigThumb = cards2.SelectMany(b => b.GetVisualDescendants().OfType<Image>()).FirstOrDefault();
-        Console.WriteLine($"thumb size: {bigThumb?.Width}x{bigThumb?.Height}");
+        // 切到组 2 应见 9 卡（treeview 属结构与关系组，原型 mermaid-catalog 分组真值）。
+        // SVG 光栅化非首帧完成：等新组可见卡片全部有源再截图（真机为亚秒级，感知不到）。
+        void WaitVisibleThumbs()
+        {
+            var waitDeadline = DateTime.UtcNow.AddSeconds(10);
+            while (DateTime.UtcNow < waitDeadline)
+            {
+                var imgs = (flyout.Content as Visual)?.GetVisualDescendants().OfType<Image>().ToList() ?? [];
+                if (imgs.Count > 0 && imgs.All(i => i.Source is Avalonia.Svg.Skia.SvgImage)) break;
+                Render(); Thread.Sleep(100);
+            }
+            Render();
+        }
+        tabs.ElementAtOrDefault(2)!.IsSelected = true;
+        WaitVisibleThumbs();
+        {
+            var imgs = (flyout.Content as Visual)?.GetVisualDescendants().OfType<Image>().ToList() ?? [];
+            Console.WriteLine($"group2 thumbs after wait: {imgs.Count(i => i.Source is Avalonia.Svg.Skia.SvgImage)}/{imgs.Count}");
+        }
+        var cards2 = VisibleCards(flyout.Content as Visual);
+        Console.WriteLine("visible cards (group2): " + cards2);
+        var bigThumb = (flyout.Content as Visual)?.GetVisualDescendants()
+            .OfType<Border>()
+            .FirstOrDefault(b => b.Classes.Contains("dg-thumb"));
+        Console.WriteLine($"thumb size: {bigThumb?.Bounds.Width}x{bigThumb?.Bounds.Height}");
         Shot("gallery-thumbs");
         // 组 1 也截一张（计划与演进：甘特/时间线/Git/看板）。
-        tabs[1].IsChecked = true;
-        Render();
+        tabs[1].IsSelected = true;
+        WaitVisibleThumbs();
         Shot("gallery-group1");
-        Check(total >= 24 && filled >= 24, "All 24 gallery thumbnails rendered: " + filled);
+        Check(filled >= 4 && filled == total, "Visible group thumbnails rendered: " + filled + "/" + total);
         Check(tabs.Count == 4, "Gallery group tabs present: " + tabs.Count);
-        Check(cards0.Count == 4, "Group 0 shows 4 cards: " + cards0.Count);
-        Check(cards2.Count == 8, "Group 2 shows 8 cards after switch: " + cards2.Count);
-        Check(bigThumb is { Width: >= 260, Height: >= 110 }, "Thumbnails enlarged to at least 260x110");
+        Check(cards0 == 4, "Group 0 shows 4 cards: " + cards0);
+        Check(cards2 == 9, "Group 2 shows 9 cards after switch (treeview moved to group 2): " + cards2);
+        Check(bigThumb is { Bounds.Width: >= 260, Bounds.Height: >= 110 }, "Thumbnails enlarged to at least 260x110");
         flyout.Hide();
         Render();
 

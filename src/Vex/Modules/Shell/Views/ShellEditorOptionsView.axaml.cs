@@ -5,6 +5,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 
+using CodeWF.Avalonia.Markdown.Mermaid;
+using CodeWF.Avalonia.Markdown.Core.Blocks;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Workspace.Services;
 
@@ -36,18 +38,14 @@ public partial class ShellEditorOptionsView : UserControl
             };
             popup.KeyDown += OnOverflowKeyDown;
         };
-        // 图鉴卡片 SVG（原型导出的自包含资源）：Loaded 即后台线程预解析进缓存，
-        // 弹出时只做引用赋值（零解析零光栅化零延迟）；Opened 做分组 tab 接线与默认组过滤。
+        // 图鉴卡片 SVG（库端正式管线渲染）：Flyout 打开或 TabItem 切换时对可见卡片赋 SvgSource。
         Loaded += (_, _) => _ = PreloadGallerySourcesAsync();
-        FormatMermaidGallery.Flyout!.Opened += (_, _) =>
-        {
-            if (FormatMermaidGallery.Flyout is Flyout { Content: Visual root })
-            {
-                WireGalleryGroupTabs(root);
-                ApplyGalleryGroupFilter(0);
-                ApplyGallerySources();
-            }
-        };
+        FormatMermaidGallery.Flyout!.Opened += (_, _) => ApplyGallerySources();
+        FormatMermaidGallery.Flyout!.Closed += (_, _) => { /* 关闭不清理，下次打开直接复用缓存 */ };
+        // 图鉴卡片点击即插入（原型 closePicker 语义）：Click 先冒泡、插入命令随后执行，
+        // 推到 Dispatcher 下一轮收起弹层，保证「落到文件后」才收。
+        if (FormatMermaidGallery.Flyout is Flyout { Content: Control galleryRoot })
+            galleryRoot.AddHandler(Button.ClickEvent, OnGalleryCardClick);
         // 段落结构档位：选择即插入并复位到「正文」（原型 band-heading select 语义）。
         // DataContext 在构造后才附着，接线挂到 Loaded。
         Loaded += (_, _) =>
@@ -64,7 +62,6 @@ public partial class ShellEditorOptionsView : UserControl
         };
     }
 
-    private bool _galleryTabsWired;
 
     /// <summary>图鉴缩略图源缓存：SvgSource 在后台线程解析一次，跨 Flyout 打开复用（弹出零延迟的关键）。</summary>
     private static readonly Dictionary<string, Avalonia.Svg.Skia.SvgSource> GallerySources = new(StringComparer.Ordinal);
@@ -79,21 +76,23 @@ public partial class ShellEditorOptionsView : UserControl
     /// <summary>后台线程预解析 24 张自包含 SVG（AssetLoader 读流 → SvgSource），启动后即开始。</summary>
     private async System.Threading.Tasks.Task PreloadGallerySourcesAsync()
     {
+        // 走库端 Mermaid 正式渲染管线（渲染 + CSS 变量内联 + 象限/桑基修正 + LRU 缓存），
+        // 与文档内图表同一条代码路径，视觉一致；后台线程执行，弹出时只做引用赋值。
         foreach (var key in GalleryKeys)
         {
             if (GallerySources.ContainsKey(key)) continue;
             try
             {
-                var uri = new Uri($"avares://Vex/Assets/MermaidGallery/{key}.svg");
-                await System.Threading.Tasks.Task.Run(() =>
-                {
-                    using var stream = Avalonia.Platform.AssetLoader.Open(uri);
-                    GallerySources[key] = Avalonia.Svg.Skia.SvgSource.LoadFromStream(stream);
-                });
+                var source = MarkdownTemplates.GetDiagramSource(key);
+                if (source is null) continue;
+                var options = MermaidBlockRenderer.GetRenderOptions(source);
+                var cacheKey = MermaidBlockRenderer.CreateCacheKey(source, options);
+                var svgSource = await MermaidBlockRenderer.ResolveSvgSourceAsync(cacheKey, source, options);
+                if (svgSource is not null) GallerySources[key] = svgSource;
             }
             catch
             {
-                // 单张资源缺失不阻塞其余；卡片保留文字标签。
+                // 单张渲染失败不阻塞其余；卡片保留文字标签。
             }
         }
         // 预热完成时若 Flyout 已打开（首开点得快），补一次赋值——Opened 只在打开瞬间触发。
@@ -117,42 +116,20 @@ public partial class ShellEditorOptionsView : UserControl
         }
     }
 
-    /// <summary>
-    /// 图鉴分组切换（Flyout 内 RadioButton tab）：Avalonia 的 RadioButton 没有 WPF 的 Checked 事件，
-    /// 在首开时挂 IsChecked 变化；只显示选中分组的卡片（Tag=组号）。
-    /// </summary>
-    private void WireGalleryGroupTabs(Visual root)
+    /// <summary>TabItem 切换：TabControl 非选中组内容不驻留可视树，新材料化即补挂缓存源。
+    /// SelectedContent 换树发生在 SelectionChanged 之后，推到下一轮再赋；XAML 装载期选择模型
+    /// 初始化也会触发（彼时字段未就绪、弹层未开），按弹层开关过滤。</summary>
+    private void OnGalleryTabChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (_galleryTabsWired) return;
-        _galleryTabsWired = true;
-        foreach (var tab in root.GetVisualDescendants()
-                     .OfType<RadioButton>()
-                     .Where(radio => radio.GroupName == "MermaidGallery"))
-        {
-            tab.PropertyChanged += (_, e) =>
-            {
-                if (e.Property == RadioButton.IsCheckedProperty && tab.IsChecked == true
-                    && int.TryParse(tab.Tag?.ToString(), out var group))
-                    ApplyGalleryGroupFilter(group);
-            };
-        }
+        if (FormatMermaidGallery?.Flyout?.IsOpen != true) return;
+        Avalonia.Threading.Dispatcher.UIThread.Post(ApplyGallerySources);
     }
 
-    private void ApplyGalleryGroupFilter(int group)
+    /// <summary>图鉴卡片点击：插入命令执行完毕后（Dispatcher 下一轮）收起弹层。</summary>
+    private void OnGalleryCardClick(object? sender, RoutedEventArgs e)
     {
-        if (FormatMermaidGallery.Flyout is not Flyout { Content: Visual root }) return;
-        foreach (var card in root.GetVisualDescendants()
-                     .OfType<Button>()
-                     .Where(button => int.TryParse(button.Tag?.ToString(), out var cardGroup) && cardGroup == group))
-        {
-            card.IsVisible = true;
-        }
-        foreach (var card in root.GetVisualDescendants()
-                     .OfType<Button>()
-                     .Where(button => int.TryParse(button.Tag?.ToString(), out var cardGroup) && cardGroup != group))
-        {
-            card.IsVisible = false;
-        }
+        if (e.Source is Button card && card.Classes.Contains("dg-card"))
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => FormatMermaidGallery.Flyout?.Hide());
     }
 
     private void OnOverflowKeyDown(object? sender, KeyEventArgs e)

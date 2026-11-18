@@ -1430,32 +1430,106 @@
     <Setter Property="Orientation" Value="Horizontal"/>
   </Style>
   <Style Selector="Button.dg-card">
-    <Setter Property="MinWidth" Value="280"/>
-    <Setter Property="Margin" Value="0,0,8,8"/>
-    <Setter Property="Padding" Value="8,8"/>
+    <!-- 卡片对齐原型 .dg-card 计算真值：底 bg 令牌、描边 border 令牌、圆角 6、内距 10；
+         宽 310 = (660−14×2−10 间距)/2，两张一行（310+10+310=630 ≤ 660−28）。 -->
+    <Setter Property="Width" Value="310"/>
+    <Setter Property="Margin" Value="0,0,10,10"/>
+    <Setter Property="Padding" Value="10"/>
     <Setter Property="FontSize" Value="12"/>
-    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/>
-    <Setter Property="Background" Value="{DynamicResource VexPaperBrush}"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource VexControlBorderBrush}"/>
-  </Style>
-  <!-- 图鉴分组切换（RadioButton tab）：选中态 accent，未选 muted。 -->
-  <Style Selector="RadioButton.dg-tab">
-    <Setter Property="Padding" Value="12,5"/>
-    <Setter Property="FontSize" Value="12"/>
-    <Setter Property="CornerRadius" Value="{DynamicResource VexDensityCornerRadiusSm}"/>
-    <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}"/>
-    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
     <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <!-- 内容撑满卡宽：Semi 默认 Center 会把无内在宽的 SVG 缩略图塌成内容宽（实测 24px）。 -->
+    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+  </Style>
+  <!-- 图鉴弹层 TabControl（原型 .dg-picker 计算真值，经典 TabControl）：
+       tab 行顶距 12、左右 14、间距 4、底 1px 分隔线；内容区固定 375 高（两行大卡），
+       整层 660 宽、总高 424（=12 顶距+37 tab 行+375 内容），切组不变高度。
+       模板结构照抄 Semi BaseTabControl（部件名 PART_ItemsPresenter /
+       PART_SelectedContentHost 必须保留，TabControl 靠它们接线）。 -->
+  <Style Selector="TabControl.dg-gallery-tabs">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="Width" Value="660"/>
+    <Setter Property="Height" Value="424"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="TabControl">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <DockPanel>
+            <Panel DockPanel.Dock="{TemplateBinding TabStripPlacement}" Margin="12,12,14,0">
+              <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}"/>
+              <Border Name="PART_BorderSeparator" Height="1" VerticalAlignment="Bottom"
+                      Background="{DynamicResource VexPanelBorderBrush}"/>
+            </Panel>
+            <Panel ClipToBounds="True">
+              <ContentPresenter Name="PART_SelectedContentHost2" Margin="{TemplateBinding Padding}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                IsVisible="False"/>
+              <ContentPresenter Name="PART_SelectedContentHost" Margin="{TemplateBinding Padding}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+            </Panel>
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <!-- tab 度量：13px、左右内距 14、行高 37、顶部圆角 6。底部 2px 下划线、选中 accent 色+600 字重、
+       hover 深字由 Semi TabItem（Top placement）自带；这里压掉未选态 hover/按下的管脚描边——
+       原型 hover 只深字不变框；选中态补 bg 令牌底（比弹层面深一档）。 -->
+  <Style Selector="TabControl.dg-gallery-tabs TabItem">
+    <Setter Property="Margin" Value="0,0,4,0"/>
+    <Setter Property="Padding" Value="14,7"/>
+    <Setter Property="MinHeight" Value="37"/>
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="CornerRadius" Value="6,6,0,0"/>
+  </Style>
+  <Style Selector="TabControl.dg-gallery-tabs TabItem:selected /template/ Border#PART_RootBorder">
+    <Setter Property="Background" Value="{DynamicResource VexShellBackgroundBrush}"/>
+  </Style>
+  <Style Selector="TabControl.dg-gallery-tabs TabItem:not(:selected):pointerover /template/ Border#PART_RootBorder">
     <Setter Property="BorderBrush" Value="Transparent"/>
   </Style>
-  <Style Selector="RadioButton.dg-tab:checked">
-    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
-    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
+  <Style Selector="TabControl.dg-gallery-tabs TabItem:not(:selected):pressed /template/ Border#PART_RootBorder">
+    <Setter Property="BorderBrush" Value="Transparent"/>
   </Style>
+  <!-- 缩略图底：hover 令牌浅块承托透明底 SVG，圆角 5（原型 .dg-thumb 计算真值，高 120 在 XAML）。 -->
+  <Style Selector="Border.dg-thumb">
+    <Setter Property="Background" Value="{DynamicResource VexHoverBrush}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="CornerRadius" Value="5"/>
+  </Style>
+  <!-- 卡片 hover 只描边不变底不变字色（原型 .dg-picker .dg-card:hover 仅 border-color）。 -->
   <Style Selector="Button.dg-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource VexAccentSoftBrush}"/>
     <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
-    <Setter Property="Foreground" Value="{DynamicResource VexAccentBrush}"/>
+  </Style>
+  <!-- 图鉴弹层外壳：贴按钮 Transient Flyout，Prototype .dg-picker = surface 底、1px 边、
+       圆角 10（radius-lg）、0 16 42 投影、无内距无标题（内容自带边距）。 -->
+  <Style Selector="FlyoutPresenter.dg-gallery-flyout">
+    <Setter Property="Background" Value="{DynamicResource VexPopBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexPanelBorderBrush}"/>
+    <Setter Property="CornerRadius" Value="10"/>
+    <Setter Property="Padding" Value="0"/>
+    <!-- Semi 默认 FlyoutMaxWidth=600 会把 660 弹层压扁成单列卡片，按 660+两侧 32 投影留白放开。 -->
+    <Setter Property="MaxWidth" Value="726"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="LayoutRoot" Margin="32,20,32,44" VerticalAlignment="Top"
+                Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"
+                BoxShadow="{DynamicResource VexPopShadow}" UseLayoutRounding="False" ClipToBounds="False">
+          <ContentPresenter Margin="{TemplateBinding Padding}" Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
+        </Border>
+      </ControlTemplate>
+    </Setter>
   </Style>
   <Style Selector="TextBlock.dg-group">
     <Setter Property="FontSize" Value="11"/>
