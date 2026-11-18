@@ -36,13 +36,16 @@ public partial class ShellEditorOptionsView : UserControl
             };
             popup.KeyDown += OnOverflowKeyDown;
         };
-        // 图鉴卡片是随包静态 PNG（XAML 直接绑定，弹出零延迟）；Opened 只做分组 tab 接线与默认组过滤。
+        // 图鉴卡片 SVG（原型导出的自包含资源）：Loaded 即后台线程预解析进缓存，
+        // 弹出时只做引用赋值（零解析零光栅化零延迟）；Opened 做分组 tab 接线与默认组过滤。
+        Loaded += (_, _) => _ = PreloadGallerySourcesAsync();
         FormatMermaidGallery.Flyout!.Opened += (_, _) =>
         {
             if (FormatMermaidGallery.Flyout is Flyout { Content: Visual root })
             {
                 WireGalleryGroupTabs(root);
                 ApplyGalleryGroupFilter(0);
+                ApplyGallerySources();
             }
         };
         // 段落结构档位：选择即插入并复位到「正文」（原型 band-heading select 语义）。
@@ -62,6 +65,57 @@ public partial class ShellEditorOptionsView : UserControl
     }
 
     private bool _galleryTabsWired;
+
+    /// <summary>图鉴缩略图源缓存：SvgSource 在后台线程解析一次，跨 Flyout 打开复用（弹出零延迟的关键）。</summary>
+    private static readonly Dictionary<string, Avalonia.Svg.Skia.SvgSource> GallerySources = new(StringComparer.Ordinal);
+
+    private static readonly string[] GalleryKeys =
+    [
+        "flowchart", "sequence", "state", "journey", "gantt", "timeline", "git", "kanban",
+        "class", "er", "requirement", "mindmap", "block", "c4", "architecture", "packet",
+        "pie", "quadrant", "xy", "sankey", "radar", "treemap", "venn", "treeview",
+    ];
+
+    /// <summary>后台线程预解析 24 张自包含 SVG（AssetLoader 读流 → SvgSource），启动后即开始。</summary>
+    private async System.Threading.Tasks.Task PreloadGallerySourcesAsync()
+    {
+        foreach (var key in GalleryKeys)
+        {
+            if (GallerySources.ContainsKey(key)) continue;
+            try
+            {
+                var uri = new Uri($"avares://Vex/Assets/MermaidGallery/{key}.svg");
+                await System.Threading.Tasks.Task.Run(() =>
+                {
+                    using var stream = Avalonia.Platform.AssetLoader.Open(uri);
+                    GallerySources[key] = Avalonia.Svg.Skia.SvgSource.LoadFromStream(stream);
+                });
+            }
+            catch
+            {
+                // 单张资源缺失不阻塞其余；卡片保留文字标签。
+            }
+        }
+        // 预热完成时若 Flyout 已打开（首开点得快），补一次赋值——Opened 只在打开瞬间触发。
+        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (FormatMermaidGallery.Flyout?.IsOpen == true) ApplyGallerySources();
+        });
+    }
+
+    /// <summary>把缓存的 SvgSource 赋给卡片 Image；尚未就绪的由 Preload 完成后下次打开生效。</summary>
+    private void ApplyGallerySources()
+    {
+        if (FormatMermaidGallery.Flyout is not Flyout { Content: Visual root }) return;
+        foreach (var card in root.GetVisualDescendants()
+                     .OfType<Button>()
+                     .Where(button => button.CommandParameter is string && GallerySources.TryGetValue((string)button.CommandParameter, out _)))
+        {
+            var image = card.GetVisualDescendants().OfType<Image>().FirstOrDefault();
+            if (image is not null && GallerySources.TryGetValue((string)card.CommandParameter!, out var source))
+                image.Source = new Avalonia.Svg.Skia.SvgImage { Source = source };
+        }
+    }
 
     /// <summary>
     /// 图鉴分组切换（Flyout 内 RadioButton tab）：Avalonia 的 RadioButton 没有 WPF 的 Checked 事件，

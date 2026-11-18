@@ -1,0 +1,100 @@
+<svg id="exp-mindmap" width="100%" xmlns="http://www.w3.org/2000/svg" class="mindmapDiagram" style="max-width: 490.19403076171875px;" viewBox="5 5 490.19403076171875 390.092041015625" role="graphics-document document" aria-roledescription="mindmap"><g><marker id="exp-mindmap_mindmap-pointEnd" class="marker mindmap" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto" style=";fill:rgb(51, 51, 51);stroke:rgb(51, 51, 51);"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="exp-mindmap_mindmap-pointStart" class="marker mindmap" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto" style=";fill:rgb(51, 51, 51);stroke:rgb(51, 51, 51);"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="exp-mindmap_mindmap-pointEnd-margin" class="marker mindmap" viewBox="0 0 11.5 14" refX="11.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="10.5" markerHeight="14" orient="auto" style=";fill:rgb(51, 51, 51);stroke:rgb(51, 51, 51);"><path d="M 0 0 L 11.5 7 L 0 14 z" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></path></marker><marker id="exp-mindmap_mindmap-pointStart-margin" class="marker mindmap" viewBox="0 0 11.5 14" refX="1" refY="7" markerUnits="userSpaceOnUse" markerWidth="11.5" markerHeight="14" orient="auto" style=";fill:rgb(51, 51, 51);stroke:rgb(51, 51, 51);"><polygon points="0,7 11.5,14 11.5,0" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></polygon></marker><g class="subgraphs"></g><g class="edgePaths"><path d="M234.344,205.185L241.505,205.701C248.666,206.217,262.987,207.249,277.308,208.281C291.629,209.313,305.951,210.345,313.111,210.861L320.272,211.377" id="exp-mindmap-edge_0_1" class=" edge-thickness-normal edge-pattern-solid edge section-edge-0 edge-depth-1" style="undefined;;;undefined;stroke:rgb(255, 255, 120);;fill:none;" data-edge="true" data-et="edge" data-id="edge_0_1" data-points="W3sieCI6MjM0LjM0NDIzNDM0MDg1NTY4LCJ5IjoyMDUuMTg1MTI5MDQ3OTEwNH0seyJ4IjoyNzcuMzA4MDQ3MjA2Mjk0NjUsInkiOjIwOC4yODA4NTI3Nzc2NDk1Nn0seyJ4IjozMjAuMjcxODYwMDcxNzMzNiwieSI6MjExLjM3NjU3NjUwNzM4ODd9XQ==" data-look="classic"></path><path d="M348.577,205.603L355.85,201.869C363.123,198.135,377.668,190.667,392.214,183.2C406.759,175.732,421.305,168.264,428.577,164.53L435.85,160.796" id="exp-mindmap-edge_1_2" class=" edge-thickness-normal edge-pattern-solid edge section-edge-0 edge-depth-3" style="undefined;;;undefined;stroke:rgb(255, 255, 120);;fill:none;" data-edge="true" data-et="edge" data-id="edge_1_2" data-points="W3sieCI6MzQ4LjU3NzA2Nzg4MTY3MDgsInkiOjIwNS42MDM0NzkxOTAwODk3fSx7IngiOjM5Mi4yMTM1Mzk5MDkxMDYsInkiOjE4My4xOTk1MDU3NTQyMjk0fSx7IngiOjQzNS44NTAwMTE5MzY1NDExNCwieSI6MTYwLjc5NTUzMjMxODM2OTA4fV0=" data-look="classic"></path><path d="M344.736,224.061L348.286,228.397C351.836,232.733,358.936,241.405,366.037,250.077C373.137,258.749,380.237,267.421,383.787,271.758L387.338,276.094" id="exp-mindmap-edge_1_3" class=" edge-thickness-normal edge-pattern-solid edge section-edge-0 edge-depth-3" style="undefined;;;undefined;stroke:rgb(255, 255, 120);;fill:none;" data-edge="true" data-et="edge" data-id="edge_1_3" data-points="W3sieCI6MzQ0LjczNTU5Mzc2MDIxMzkzLCJ5IjoyMjQuMDYwNzE3ODA3ODc2NTN9LHsieCI6MzY2LjAzNjU4ODM3MzI2MjYsInkiOjI1MC4wNzcxNzc0NDUzNzYzOH0seyJ4IjozODcuMzM3NTgyOTg2MzExMjUsInkiOjI3Ni4wOTM2MzcwODI4NzYyfV0=" data-look="classic"></path><path d="M211.242,216.706L207.845,221.964C204.447,227.223,197.651,237.74,190.856,248.257C184.06,258.774,177.265,269.29,173.867,274.549L170.469,279.807" id="exp-mindmap-edge_0_4" class=" edge-thickness-normal edge-pattern-solid edge section-edge-1 edge-depth-1" style="undefined;;;undefined;stroke:rgb(215, 255, 134);;fill:none;" data-edge="true" data-et="edge" data-id="edge_0_4" data-points="W3sieCI6MjExLjI0MjMxMDg2NDkxNjEsInkiOjIxNi43MDU4NzM0MjIyMDIyfSx7IngiOjE5MC44NTU3NjExNjg4MzcwMywieSI6MjQ4LjI1NjU5NDMxMzQyMTI2fSx7IngiOjE3MC40NjkyMTE0NzI3NTc5NiwieSI6Mjc5LjgwNzMxNTIwNDY0MDN9XQ==" data-look="classic"></path><path d="M171.776,304.057L175.316,308.422C178.856,312.788,185.936,321.518,193.016,330.249C200.096,338.98,207.176,347.711,210.716,352.076L214.256,356.441" id="exp-mindmap-edge_4_5" class=" edge-thickness-normal edge-pattern-solid edge section-edge-1 edge-depth-3" style="undefined;;;undefined;stroke:rgb(215, 255, 134);;fill:none;" data-edge="true" data-et="edge" data-id="edge_4_5" data-points="W3sieCI6MTcxLjc3NjMwNTYzNDM5MDg0LCJ5IjozMDQuMDU2Nzg1MDczODQzNX0seyJ4IjoxOTMuMDE2MTc2ODIyNDczNjUsInkiOjMzMC4yNDkwNjA2MjMxODk0fSx7IngiOjIxNC4yNTYwNDgwMTA1NTY0NywieSI6MzU2LjQ0MTMzNjE3MjUzNTN9XQ==" data-look="classic"></path><path d="M149.317,299.869L142.66,303.687C136.003,307.505,122.689,315.141,109.374,322.778C96.06,330.414,82.746,338.05,76.089,341.868L69.432,345.686" id="exp-mindmap-edge_4_6" class=" edge-thickness-normal edge-pattern-solid edge section-edge-1 edge-depth-3" style="undefined;;;undefined;stroke:rgb(215, 255, 134);;fill:none;" data-edge="true" data-et="edge" data-id="edge_4_6" data-points="W3sieCI6MTQ5LjMxNjcyMjg3MTU4ODU4LCJ5IjoyOTkuODY4ODk1NTEyNzQzODV9LHsieCI6MTA5LjM3NDQ1MDIzMTA3MTIsInkiOjMyMi43Nzc1MTc1MzkxOTExfSx7IngiOjY5LjQzMjE3NzU5MDU1MzgsInkiOjM0NS42ODYxMzk1NjU2MzgzfV0=" data-look="classic"></path><path d="M213.015,190.526L210.486,185.131C207.956,179.736,202.897,168.947,197.839,158.157C192.78,147.368,187.721,136.578,185.191,131.184L182.662,125.789" id="exp-mindmap-edge_0_7" class=" edge-thickness-normal edge-pattern-solid edge section-edge-2 edge-depth-1" style="undefined;;;undefined;stroke:rgb(195, 134, 255);;fill:none;" data-edge="true" data-et="edge" data-id="edge_0_7" data-points="W3sieCI6MjEzLjAxNTE2OTAzNDU2NTA4LCJ5IjoxOTAuNTI1ODU3MDYyMzA0NDJ9LHsieCI6MTk3LjgzODUxODE5NDM5MTY3LCJ5IjoxNTguMTU3MzQxODQzMzUyNTh9LHsieCI6MTgyLjY2MTg2NzM1NDIxODI2LCJ5IjoxMjUuNzg4ODI2NjI0NDAwNzR9XQ==" data-look="classic"></path><path d="M161.307,112.826L153.363,113.153C145.42,113.481,129.534,114.136,113.647,114.792C97.76,115.447,81.874,116.102,73.931,116.43L65.987,116.757" id="exp-mindmap-edge_7_8" class=" edge-thickness-normal edge-pattern-solid edge section-edge-2 edge-depth-3" style="undefined;;;undefined;stroke:rgb(195, 134, 255);;fill:none;" data-edge="true" data-et="edge" data-id="edge_7_8" data-points="W3sieCI6MTYxLjMwNjc1NzUzMTE1NTM3LCJ5IjoxMTIuODI1NzM5ODU2OTM2Nzh9LHsieCI6MTEzLjY0NzAwNzIyMTk1MjE1LCJ5IjoxMTQuNzkxNTIxNjUzOTkwNTF9LHsieCI6NjUuOTg3MjU2OTEyNzQ4OTUsInkiOjExNi43NTczMDM0NTEwNDQyNX1d" data-look="classic"></path><path d="M183.86,99.256L186.504,94.73C189.147,90.205,194.435,81.154,199.722,72.104C205.009,63.053,210.296,54.003,212.94,49.477L215.583,44.952" id="exp-mindmap-edge_7_9" class=" edge-thickness-normal edge-pattern-solid edge section-edge-2 edge-depth-3" style="undefined;;;undefined;stroke:rgb(195, 134, 255);;fill:none;" data-edge="true" data-et="edge" data-id="edge_7_9" data-points="W3sieCI6MTgzLjg2MDIyNzkxMjcwNzcsInkiOjk5LjI1NTY0NTk5NzQ1OTU4fSx7IngiOjE5OS43MjE3MTA0OTI3MDE2MiwieSI6NzIuMTAzNzg2NTEyODQyOTN9LHsieCI6MjE1LjU4MzE5MzA3MjY5NTU0LCJ5Ijo0NC45NTE5MjcwMjgyMjYyOH1d" data-look="classic"></path></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="edge_0_1" transform="translate(0, 0)"><text y="-10.1" text-anchor="middle"><tspan class="text-outer-tspan row" x="0" y="-0.1em" dy="1.1em" text-anchor="middle"></tspan></text></g></g><g><rect class="background" style="stroke: none"></rect></g><g class="edgeLabel"><g class="label" data-id="edge_1_2" transform="translate(0, 0)"><text y="-10.1" text-anchor="middle"><tspan class="text-outer-tspan row" x="0" y="-0.1em" dy="1.1em" text-anchor="middle"></tspan></text></g></g><g><rect class="background" style="stroke: none"></rect></g><g class="edgeLabel"><g class="label" data-id="edge_1_3" transform="translate(0, 0)"><text y="-10.1" text-anchor="middle"><tspan class="text-outer-tspan row" x="0" y="-0.1em" dy="1.1em" text-anchor="middle"></tspan></text></g></g><g><rect class="background" style="stroke: none"></rect></g><g class="edgeLabel"><g class="label" data-id="edge_0_4" transform="translate(0, 0)"><text y="-10.1" text-anchor="middle"><tspan class="text-outer-tspan row" x="0" y="-0.1em" dy="1.1em" text-anchor="middle"></tspan></text></g></g><g><rect class="background" style="stroke: none"></rect></g><g class="edgeLabel"><g class="label" data-id="edge_4_5" transform="translate(0, 0)"><text y="-10.1" text-anchor="middle"><tspan class="text-outer-tspan row" x="0" y="-0.1em" dy="1.1em" text-anchor="middle"></tspan></text></g></g><g><rect class="background" style="stroke: none"></rect></g><g class="edgeLabel"><g class="label" data-id="edge_4_6" transform="translate(0, 0)"><text y="-10.1" text-anchor="middle"><tspan class="text-outer-tspan row" x="0" y="-0.1em" dy="1.1em" text-anchor="middle"></tspan></text></g></g><g><rect class="background" style="stroke: none"></rect></g><g class="edgeLabel"><g class="label" data-id="edge_0_7" transform="translate(0, 0)"><text y="-10.1" text-anchor="middle"><tspan class="text-outer-tspan row" x="0" y="-0.1em" dy="1.1em" text-anchor="middle"></tspan></text></g></g><g><rect class="background" style="stroke: none"></rect></g><g class="edgeLabel"><g class="label" data-id="edge_7_8" transform="translate(0, 0)"><text y="-10.1" text-anchor="middle"><tspan class="text-outer-tspan row" x="0" y="-0.1em" dy="1.1em" text-anchor="middle"></tspan></text></g></g><g><rect class="background" style="stroke: none"></rect></g><g class="edgeLabel"><g class="label" data-id="edge_7_9" transform="translate(0, 0)"><text y="-10.1" text-anchor="middle"><tspan class="text-outer-tspan row" x="0" y="-0.1em" dy="1.1em" text-anchor="middle"></tspan></text></g></g><g><rect class="background" style="stroke: none"></rect></g></g><g class="nodes"><g class="node mindmap-node section-root section--1 " id="exp-mindmap-node_0" data-look="classic" transform="translate(219.38302194487903, 204.1071106610193)"><circle class="basic label-container" style=";fill:rgb(134, 134, 255);;fill:rgb(0, 0, 236);" r="26" cx="0" cy="0"></circle><g class="label" style="" transform="translate(-16, -12)"><rect style=";fill:rgb(134, 134, 255);;fill:rgb(0, 0, 236);"></rect><text x="16.0" y="17.0" text-anchor="middle" fill="rgb(51, 51, 51)" font-size="14" font-family="&quot;Segoe UI&quot;, &quot;Microsoft YaHei UI&quot;, sans-serif">写作</text></g></g><g class="node mindmap-node section-0 " id="exp-mindmap-node_1" data-look="classic" transform="translate(335.23307246771026, 212.4545948942798)"><path id="exp-mindmap-node_1" class="node-bkg node-0" style=";fill:rgb(255, 255, 120);" d="
+    M-36 12
+    v-24
+    q0,-5 5,-5
+    h62
+    q5,0 5,5
+    v24
+    q0,5 -5,5
+    h-62
+    q-5,0 -5,-5
+    Z
+  "></path><line class="node-line-" x1="-36" y1="17" x2="36" y2="17" style=";stroke:rgb(171, 171, 255);"></line><g class="label" style="" transform="translate(-16, -12)"><rect style=";fill:rgb(255, 255, 120);"></rect><text x="16.0" y="17.0" text-anchor="middle" fill="rgb(51, 51, 51)" font-size="14" font-family="&quot;Segoe UI&quot;, &quot;Microsoft YaHei UI&quot;, sans-serif">构思</text></g></g><g class="node mindmap-node section-0 " id="exp-mindmap-node_2" data-look="classic" transform="translate(449.1940073505017, 153.94441661417898)"><path id="exp-mindmap-node_2" class="node-bkg node-0" style=";fill:rgb(255, 255, 120);" d="
+    M-36 12
+    v-24
+    q0,-5 5,-5
+    h62
+    q5,0 5,5
+    v24
+    q0,5 -5,5
+    h-62
+    q-5,0 -5,-5
+    Z
+  "></path><line class="node-line-" x1="-36" y1="17" x2="36" y2="17" style=";stroke:rgb(171, 171, 255);"></line><g class="label" style="" transform="translate(-16, -12)"><rect style=";fill:rgb(255, 255, 120);"></rect><text x="16.0" y="17.0" text-anchor="middle" fill="rgb(51, 51, 51)" font-size="14" font-family="&quot;Segoe UI&quot;, &quot;Microsoft YaHei UI&quot;, sans-serif">观察</text></g></g><g class="node mindmap-node section-0 " id="exp-mindmap-node_3" data-look="classic" transform="translate(396.8401042788149, 287.69975999647295)"><path id="exp-mindmap-node_3" class="node-bkg node-0" style=";fill:rgb(255, 255, 120);" d="
+    M-36 12
+    v-24
+    q0,-5 5,-5
+    h62
+    q5,0 5,5
+    v24
+    q0,5 -5,5
+    h-62
+    q-5,0 -5,-5
+    Z
+  "></path><line class="node-line-" x1="-36" y1="17" x2="36" y2="17" style=";stroke:rgb(171, 171, 255);"></line><g class="label" style="" transform="translate(-16, -12)"><rect style=";fill:rgb(255, 255, 120);"></rect><text x="16.0" y="17.0" text-anchor="middle" fill="rgb(51, 51, 51)" font-size="14" font-family="&quot;Segoe UI&quot;, &quot;Microsoft YaHei UI&quot;, sans-serif">灵感</text></g></g><g class="node mindmap-node section-1 " id="exp-mindmap-node_4" data-look="classic" transform="translate(162.32850039279504, 292.4060779658232)"><path id="exp-mindmap-node_4" class="node-bkg node-0" style=";fill:rgb(215, 255, 134);" d="
+    M-36 12
+    v-24
+    q0,-5 5,-5
+    h62
+    q5,0 5,5
+    v24
+    q0,5 -5,5
+    h-62
+    q-5,0 -5,-5
+    Z
+  "></path><line class="node-line-" x1="-36" y1="17" x2="36" y2="17" style=";stroke:rgb(208, 185, 255);"></line><g class="label" style="" transform="translate(-16, -12)"><rect style=";fill:rgb(215, 255, 134);"></rect><text x="16.0" y="17.0" text-anchor="middle" fill="rgb(51, 51, 51)" font-size="14" font-family="&quot;Segoe UI&quot;, &quot;Microsoft YaHei UI&quot;, sans-serif">整理</text></g></g><g class="node mindmap-node section-1 " id="exp-mindmap-node_5" data-look="classic" transform="translate(223.70385325215227, 368.0920432805556)"><path id="exp-mindmap-node_5" class="node-bkg node-0" style=";fill:rgb(215, 255, 134);" d="
+    M-36 12
+    v-24
+    q0,-5 5,-5
+    h62
+    q5,0 5,5
+    v24
+    q0,5 -5,5
+    h-62
+    q-5,0 -5,-5
+    Z
+  "></path><line class="node-line-" x1="-36" y1="17" x2="36" y2="17" style=";stroke:rgb(208, 185, 255);"></line><g class="label" style="" transform="translate(-16, -12)"><rect style=";fill:rgb(215, 255, 134);"></rect><text x="16.0" y="17.0" text-anchor="middle" fill="rgb(51, 51, 51)" font-size="14" font-family="&quot;Segoe UI&quot;, &quot;Microsoft YaHei UI&quot;, sans-serif">提纲</text></g></g><g class="node mindmap-node section-1 " id="exp-mindmap-node_6" data-look="classic" transform="translate(56.42040006934735, 353.14895711255895)"><path id="exp-mindmap-node_6" class="node-bkg node-0" style=";fill:rgb(215, 255, 134);" d="
+    M-36 12
+    v-24
+    q0,-5 5,-5
+    h62
+    q5,0 5,5
+    v24
+    q0,5 -5,5
+    h-62
+    q-5,0 -5,-5
+    Z
+  "></path><line class="node-line-" x1="-36" y1="17" x2="36" y2="17" style=";stroke:rgb(208, 185, 255);"></line><g class="label" style="" transform="translate(-16, -12)"><rect style=";fill:rgb(215, 255, 134);"></rect><text x="16.0" y="17.0" text-anchor="middle" fill="rgb(51, 51, 51)" font-size="14" font-family="&quot;Segoe UI&quot;, &quot;Microsoft YaHei UI&quot;, sans-serif">论据</text></g></g><g class="node mindmap-node section-2 " id="exp-mindmap-node_7" data-look="classic" transform="translate(176.2940144439043, 112.20757302568586)"><path id="exp-mindmap-node_7" class="node-bkg node-0" style=";fill:rgb(195, 134, 255);" d="
+    M-36 12
+    v-24
+    q0,-5 5,-5
+    h62
+    q5,0 5,5
+    v24
+    q0,5 -5,5
+    h-62
+    q-5,0 -5,-5
+    Z
+  "></path><line class="node-line-" x1="-36" y1="17" x2="36" y2="17" style=";stroke:rgb(220, 255, 185);"></line><g class="label" style="" transform="translate(-16, -12)"><rect style=";fill:rgb(195, 134, 255);"></rect><text x="16.0" y="17.0" text-anchor="middle" fill="rgb(51, 51, 51)" font-size="14" font-family="&quot;Segoe UI&quot;, &quot;Microsoft YaHei UI&quot;, sans-serif">表达</text></g></g><g class="node mindmap-node section-2 " id="exp-mindmap-node_8" data-look="classic" transform="translate(51, 117.37547028229517)"><path id="exp-mindmap-node_8" class="node-bkg node-0" style=";fill:rgb(195, 134, 255);" d="
+    M-36 12
+    v-24
+    q0,-5 5,-5
+    h62
+    q5,0 5,5
+    v24
+    q0,5 -5,5
+    h-62
+    q-5,0 -5,-5
+    Z
+  "></path><line class="node-line-" x1="-36" y1="17" x2="36" y2="17" style=";stroke:rgb(220, 255, 185);"></line><g class="label" style="" transform="translate(-16, -12)"><rect style=";fill:rgb(195, 134, 255);"></rect><text x="16.0" y="17.0" text-anchor="middle" fill="rgb(51, 51, 51)" font-size="14" font-family="&quot;Segoe UI&quot;, &quot;Microsoft YaHei UI&quot;, sans-serif">初稿</text></g></g><g class="node mindmap-node section-2 " id="exp-mindmap-node_9" data-look="classic" transform="translate(223.14940654149893, 32)"><path id="exp-mindmap-node_9" class="node-bkg node-0" style=";fill:rgb(195, 134, 255);" d="
+    M-36 12
+    v-24
+    q0,-5 5,-5
+    h62
+    q5,0 5,5
+    v24
+    q0,5 -5,5
+    h-62
+    q-5,0 -5,-5
+    Z
+  "></path><line class="node-line-" x1="-36" y1="17" x2="36" y2="17" style=";stroke:rgb(220, 255, 185);"></line><g class="label" style="" transform="translate(-16, -12)"><rect style=";fill:rgb(195, 134, 255);"></rect><text x="16.0" y="17.0" text-anchor="middle" fill="rgb(51, 51, 51)" font-size="14" font-family="&quot;Segoe UI&quot;, &quot;Microsoft YaHei UI&quot;, sans-serif">校对</text></g></g></g></g><defs><filter id="exp-mindmap-drop-shadow" height="130%" width="130%"><feDropShadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></feDropShadow></filter></defs><defs><filter id="exp-mindmap-drop-shadow-small" height="150%" width="150%"><feDropShadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></feDropShadow></filter></defs></svg>
