@@ -84,6 +84,8 @@ internal static class ToolbarProbe
                 Console.WriteLine($"  child {child.GetType().Name} {B(child)}");
         }
 
+        // 分栏时格式工具只占源码半栏，先给足宽度再断言它们全部在主栏。
+        window.Width = 2240;
         vm.Workbench.SelectLayout("source-render");
         Render();
         Console.WriteLine($"=== source-render toolbar {B(toolbar)} options={B(options)} ===");

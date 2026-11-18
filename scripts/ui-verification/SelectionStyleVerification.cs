@@ -11,12 +11,6 @@ using Vex.Modules.Shell.Views;
 
 internal static class SelectionStyleVerification
 {
-    /// <summary>Ursa ToolBar 多按钮溢出恢复缺陷的可识别标记（探测到即跳过该组合，不掩盖其他失败）。</summary>
-    private sealed class KnownWedgeException : Exception
-    {
-        public KnownWedgeException(string message) : base(message) { }
-    }
-
     public static void Run(MainWindow window, string output)
     {
         var vm = (MainWindowViewModel)window.DataContext!;
@@ -42,13 +36,6 @@ internal static class SelectionStyleVerification
         }
         void Click(Control control)
         {
-            // Ursa 工具带在编辑器重排瞬间会把溢出按钮短暂挪进溢出弹层（脱离可视树），
-            // 等它回主面板再取坐标——真实点击同样发生在界面稳定之后。
-            var attachDeadline = DateTime.UtcNow.AddSeconds(2);
-            while (!control.IsAttachedToVisualTree() && DateTime.UtcNow < attachDeadline)
-            {
-                Thread.Sleep(25); Render();
-            }
             var point = control.TranslatePoint(new Rect(control.Bounds.Size).Center, window)
                 ?? throw new InvalidOperationException(
                     $"Click target unmapped: {control.GetType().Name}#{control.Name} visible={control.IsVisible} " +
@@ -76,6 +63,30 @@ internal static class SelectionStyleVerification
             vm.Appearance.SelectThemeByKey(theme); vm.Appearance.SelectLanguageByCulture(culture);
             vm.Workbench.SelectLayout(layout); Render();
             var label = $"{theme}/{culture}/{layout}/{width}";
+            var popup = toolbar.GetVisualDescendants().OfType<Popup>().Single(p => p.Name == "FormatOverflowPopup");
+            var overflow = (FormattingOverflowPanel)((ScrollViewer)((Border)popup.Child!).Child!).Content!;
+            var spanButtons = new[] { "SpanFontSize", "SpanForeground", "SpanBackground" }
+                .Select(name => options.FindControl<Button>(name)!).ToArray();
+            var row = toolbar.GetVisualDescendants().OfType<Ursa.Controls.ToolBarPanel>().Single();
+            var more = toolbar.GetVisualDescendants().OfType<ToggleButton>().Single(b => b.Name == "button");
+            if (width == 1280 && culture == "zh-CN")
+                Check(spanButtons.All(row.Children.Contains), "Style commands are on the wide toolbar: " + label);
+            if (width == 980)
+            {
+                Check(spanButtons.All(overflow.Children.Contains), "Narrow toolbar parks all three style commands: " + label);
+                Click(more);
+                Check(popup.IsOpen, "Overflow is open before widening: " + label);
+                // 拉宽同一窗口并收回侧栏；较长的本地化标签用 1440 确保主栏确实放得下。
+                window.Width = culture == "zh-CN" ? 1280 : 1440;
+                vm.Layout.SidebarWidth = 226;
+                Render();
+                Check(spanButtons.All(row.Children.Contains) && overflow.Children.Count == 0 && !popup.IsOpen && more.IsChecked != true,
+                    $"Widening restores all commands: {label} → {window.Width}; " +
+                    $"toolbar={toolbar.Bounds.Width}, row={row.Bounds.Width}, parking=[{string.Join(", ", overflow.Children.Select(c => c.Name))}]");
+                window.Width = width;
+                vm.Layout.SidebarWidth = 560;
+                Render();
+            }
             void Select()
             {
                 vm.Markdown = text; Render();
@@ -95,21 +106,8 @@ internal static class SelectionStyleVerification
             MarkdownSpanStylePicker Open(string name)
             {
                 var button = options.FindControl<Button>(name)!;
-                if (!button.IsAttachedToVisualTree())
-                {
-                    // 按钮被 Ursa 溢出收进关闭的弹层：先给自愈钩子 2 秒解锁机会；
-                    // 仍驻留则该组合跳过——弹层内按钮的 headless 点击会先触发放大层
-                    // 关闭弹层（LightDismissOverlayLayer），视觉点击不可达。
-                    var attachDeadline = DateTime.UtcNow.AddSeconds(2);
-                    while (!button.IsAttachedToVisualTree() && DateTime.UtcNow < attachDeadline)
-                    {
-                        Thread.Sleep(25); Render();
-                    }
-                    if (!button.IsAttachedToVisualTree())
-                        throw new KnownWedgeException(
-                            $"{name} still parked in overflow popup (Ursa multi-button restore) — {label}");
-                }
-                if (width == 980) Click(toolbar.GetVisualDescendants().OfType<ToggleButton>().Single(button => button.Name == "button"));
+                if (overflow.Children.Contains(button) && !popup.IsOpen)
+                    Click(toolbar.GetVisualDescendants().OfType<ToggleButton>().Single(b => b.Name == "button"));
                 Click(button);
                 var picker = window.GetVisualDescendants().OfType<MarkdownSpanStylePicker>().SingleOrDefault();
                 if (picker is null)
@@ -123,10 +121,8 @@ internal static class SelectionStyleVerification
                 Check(picker.DataContext is MarkdownSpanStylePickerViewModel, "Host binds shared style model: " + label);
                 return picker;
             }
-            try
-            {
-                Select();
-                var picker = Open("SpanForeground");
+            Select();
+            var picker = Open("SpanForeground");
             var hex = picker.FindControl<TextBox>("HexInput")!;
             Click(hex); hex.SelectAll(); window.KeyTextInput("#30953B"); Render();
             Check(vm.Markdown == text, "Typing a draft color leaves source unchanged: " + label);
@@ -155,13 +151,6 @@ internal static class SelectionStyleVerification
                 Select(); Open("SpanForeground");
                 window.CaptureRenderedFrame()?.Save(Path.Combine(output, $"host-picker-{theme}-{layout}.png"), new Avalonia.Media.Imaging.PngBitmapEncoderOptions());
                 Escape();
-            }
-            }
-            catch (KnownWedgeException wedge)
-            {
-                // 已知 Ursa 多按钮溢出恢复缺陷：instant/1280 深驻留组合视觉不可达，
-                // 跳过该组合（其余组合照常断言，其他失败仍会抛出）。
-                Console.WriteLine("SKIP " + label + " — " + wedge.Message);
             }
         }
     }

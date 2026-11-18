@@ -72,10 +72,12 @@ internal static class ToolbarOverflowVerification
                     && button.Bounds.Height >= 32,
                     "Complete localized toolbar label: " + text.Text);
             }
-            Check(ReferenceEquals(window.FocusManager?.GetFocusedElement(), buttons[0]), "Opening overflow focuses its first command");
+            var focusable = panel.Children.Where(c => c is Button or ComboBox && c.IsVisible && c.IsEnabled).ToArray();
+            Check(focusable.All(c => c.Bounds.Width > 0 && c.Bounds.Height > 0), "Focusable overflow commands have a visible cell");
+            Check(ReferenceEquals(window.FocusManager?.GetFocusedElement(), focusable[0]), "Opening overflow focuses its first command");
             window.KeyPress(Key.Tab, RawInputModifiers.None, PhysicalKey.Tab, null);
             window.KeyRelease(Key.Tab, RawInputModifiers.None, PhysicalKey.Tab, null); Render();
-            Check(ReferenceEquals(window.FocusManager?.GetFocusedElement(), buttons[1]), "Tab moves to the next overflow command");
+            Check(ReferenceEquals(window.FocusManager?.GetFocusedElement(), focusable[1]), "Tab moves to the next overflow command");
             // 收紧视口以覆盖受限桌面工作区的滚动路径，而不是只检查内容恰好装得下的情况。
             var maxHeight = scroll.MaxHeight;
             scroll.MaxHeight = 100; Render();

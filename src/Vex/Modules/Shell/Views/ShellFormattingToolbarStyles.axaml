@@ -2,6 +2,9 @@
         xmlns:u="https://irihi.tech/ursa" xmlns:views="using:Vex.Modules.Shell.Views" x:CompileBindings="False">
   <!-- 保留 Ursa 的溢出测量与命令实例，菜单只补原型的双列标签和可滚动视口。 -->
   <Style Selector="u|ToolBar.wb-formatbar">
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate><views:FormattingToolbarPanel /></ItemsPanelTemplate>
+    </Setter>
     <Setter Property="Template">
       <ControlTemplate TargetType="u:ToolBar">
         <Border Name="PART_BackgroundBorder" Padding="{TemplateBinding Padding}"
@@ -56,6 +59,8 @@
   </Style>
   <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:overflow">
     <Setter Property="Focusable" Value="True" />
+  </Style>
+  <Style Selector="u|ToolBar.wb-formatbar:not(.measure-compact) Button.wb-format:overflow">
     <Setter Property="Width" Value="NaN" />
     <Setter Property="Height" Value="NaN" />
     <Setter Property="MinHeight" Value="32" />
@@ -64,13 +69,13 @@
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
   </Style>
-  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:overflow /template/ Grid#OverflowAction">
+  <Style Selector="u|ToolBar.wb-formatbar:not(.measure-compact) Button.wb-format:overflow /template/ Grid#OverflowAction">
     <Setter Property="ColumnSpacing" Value="7" />
   </Style>
-  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:overflow /template/ ContentPresenter#PART_ContentPresenter">
+  <Style Selector="u|ToolBar.wb-formatbar:not(.measure-compact) Button.wb-format:overflow /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Width" Value="28" />
   </Style>
-  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:overflow /template/ TextBlock.format-overflow-label">
+  <Style Selector="u|ToolBar.wb-formatbar:not(.measure-compact) Button.wb-format:overflow /template/ TextBlock.format-overflow-label">
     <Setter Property="IsVisible" Value="True" />
   </Style>
   <Style Selector="u|ToolBar.wb-formatbar u|ToolBarSeparator:overflow">

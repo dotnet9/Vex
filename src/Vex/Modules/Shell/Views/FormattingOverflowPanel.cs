@@ -3,17 +3,34 @@ using Avalonia.Controls;
 
 namespace Vex.Modules.Shell.Views;
 
-/// <summary>双列命令菜单；工具条的分隔符仍归 Ursa 管理，不占菜单单元格。</summary>
+public sealed class FormattingToolbarPanel : Ursa.Controls.ToolBarPanel
+{
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        if (TemplatedParent is not Ursa.Controls.ToolBar toolbar || !toolbar.Classes.Contains(":overflow")
+            || toolbar.Classes.Contains("measure-compact"))
+            return base.MeasureOverride(availableSize);
+
+        // Ursa also measures the parked items here. Use their row styles for the fit check,
+        // not the wider, localized menu labels. The popup retains its own measurement pass.
+        toolbar.Classes.Add("measure-compact");
+        try { return base.MeasureOverride(availableSize); }
+        finally { toolbar.Classes.Remove("measure-compact"); }
+    }
+}
+
+/// <summary>双列命令菜单；按钮和段落下拉框占格，分隔符不占格。</summary>
 public sealed class FormattingOverflowPanel : Panel
 {
     private const double Gap = 4;
+    private static bool IsCommand(Control child) => child is Button or ComboBox;
 
     protected override Size MeasureOverride(Size availableSize)
     {
         var width = Math.Max(0, (availableSize.Width - Gap) / 2);
         foreach (var child in Children)
-            child.Measure(child is Button ? new Size(width, double.PositiveInfinity) : default);
-        var buttons = Children.OfType<Button>().Where(b => b.IsVisible).ToArray();
+            child.Measure(IsCommand(child) ? new Size(width, double.PositiveInfinity) : default);
+        var buttons = Children.Where(c => IsCommand(c) && c.IsVisible).ToArray();
         var height = 0d;
         for (var i = 0; i < buttons.Length; i += 2)
             height += Math.Max(buttons[i].DesiredSize.Height, i + 1 < buttons.Length ? buttons[i + 1].DesiredSize.Height : 0) + Gap;
@@ -22,8 +39,8 @@ public sealed class FormattingOverflowPanel : Panel
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        foreach (var child in Children.Where(c => c is not Button)) child.Arrange(default);
-        var buttons = Children.OfType<Button>().Where(b => b.IsVisible).ToArray();
+        foreach (var child in Children.Where(c => !IsCommand(c))) child.Arrange(default);
+        var buttons = Children.Where(c => IsCommand(c) && c.IsVisible).ToArray();
         var width = Math.Max(0, (finalSize.Width - Gap) / 2);
         var top = 0d;
         for (var i = 0; i < buttons.Length; i += 2)
