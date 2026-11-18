@@ -622,10 +622,51 @@ internal sealed class MarkdownBlockView : UserControl
 
             case Key.Tab:
                 e.Handled = true;
-                // 列表项：Tab/Shift+Tab 缩进/降级（muya 键盘矩阵）；其余块保持提交+移焦点。
+                // 列表项：Tab/Shift+Tab 缩进/降级（muya 键盘矩阵）；代码块：插入/退一格
+                //（选中多行整段缩进）；其余块保持提交+移焦点。
                 if (Model.Kind == MarkdownBlockKind.ListItem)
                 {
                     IndentRequested?.Invoke(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+                    break;
+                }
+                if (_isCode)
+                {
+                    var unit = "    ";
+                    var codeStart = Math.Min(_editor.SelectionStart, _editor.SelectionEnd);
+                    var codeEnd = Math.Max(_editor.SelectionStart, _editor.SelectionEnd);
+                    var codeText = _editor.Text ?? string.Empty;
+                    if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                    {
+                        // 退格：行首四空格（选中多行则逐行）删除一层。
+                        var lineBegin = codeText.LastIndexOf('\n', Math.Max(0, codeStart - 1)) + 1;
+                        var blockStart = codeText.IndexOf('\n', codeEnd) is { } stop && stop >= 0 ? stop : codeText.Length;
+                        var segment = codeText[lineBegin..blockStart];
+                        var replaced = segment.Replace("\n    ", "\n");
+                        replaced = replaced.Length >= 4 && replaced.StartsWith("    ")
+                            ? replaced[4..]
+                            : replaced.TrimStart(' ').Length < segment.TrimStart(' ').Length ? replaced.TrimStart(' ') : replaced;
+                        if (replaced == segment) break;
+                        _editor.Text = codeText[..lineBegin] + replaced + codeText[blockStart..];
+                        _editor.CaretIndex = codeStart;
+                        _editor.SelectionStart = _editor.SelectionEnd = codeStart;
+                        break;
+                    }
+                    var selection = codeEnd - codeStart;
+                    if (selection == 0)
+                    {
+                        _editor.Text = codeText[..codeStart] + unit + codeText[codeStart..];
+                        _editor.CaretIndex = codeStart + unit.Length;
+                        _editor.SelectionStart = _editor.SelectionEnd = _editor.CaretIndex;
+                        break;
+                    }
+                    // 选中区每行行首插一层缩进（含选中首行）；选区平移覆盖整段缩进文本。
+                    var selBegin = codeText.LastIndexOf('\n', Math.Max(0, codeStart - 1)) + 1;
+                    var indented = codeText[selBegin..codeEnd].Replace("\n", "\n" + unit);
+                    _editor.Text = codeText[..selBegin] + unit + indented + codeText[codeEnd..];
+                    var addedUnits = 1 + (indented.Length - (codeEnd - selBegin)) / unit.Length;
+                    _editor.CaretIndex = codeStart + unit.Length;
+                    _editor.SelectionStart = codeStart + unit.Length;
+                    _editor.SelectionEnd = codeEnd + addedUnits * unit.Length;
                     break;
                 }
                 CommitAndRender();
@@ -647,6 +688,10 @@ internal sealed class MarkdownBlockView : UserControl
         var useViewer = !_isTableCell || ModelText.Contains("![", StringComparison.Ordinal) || ModelText.Contains('$');
         if (useViewer)
         {
+            // 纯文本 inline 编辑中冻结预览：编辑框已覆盖显示，逐键击重解析预览
+            // （如输入 ">" 会被写成 ">\n" 立即渲染成空引用框）既闪假象又拖慢输入；
+            // 预览只服务失焦后的整块渲染。代码块前景透明透出高亮，必须继续刷新。
+            if (_editing && _inlineEditing && !_isCode) return;
             var preview = _preview ??= CreatePreview();
             preview.Classes.Set("MdLiveListContent", Model.Kind == MarkdownBlockKind.ListItem);
             preview.Classes.Set("MdBeforeHeading", Classes.Contains("MdBeforeHeading"));
