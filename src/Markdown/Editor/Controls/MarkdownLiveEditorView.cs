@@ -840,23 +840,14 @@ public partial class MarkdownLiveEditorView : UserControl
 
     private bool MergeBlock(int index, int direction)
     {
-        var current = _models[index];
-        if (current.Kind is MarkdownBlockKind.Code or MarkdownBlockKind.Raw) return false;
-        if (direction < 0 && current.Kind is MarkdownBlockKind.Heading or MarkdownBlockKind.ListItem or MarkdownBlockKind.Quote)
-        {
-            current.Kind = MarkdownBlockKind.Paragraph; current.HeadingLevel = current.QuoteDepth = current.IndentLevel = 0;
-            current.IsTask = current.IsOrdered = false;
-            RebuildBlocks(); RaiseChanged(); FocusBlock(index);
-            if (ActiveTextBox is { } plain) plain.CaretIndex = plain.SelectionStart = plain.SelectionEnd = 0;
-            return true;
-        }
-        var adjacent = index + direction;
-        if (adjacent < 0 || adjacent >= _models.Count || _models[adjacent].Kind is not (MarkdownBlockKind.Paragraph or MarkdownBlockKind.Heading or MarkdownBlockKind.ListItem or MarkdownBlockKind.Quote)) return false;
-        var first = Math.Min(index, adjacent); var left = _models[first]; var right = _models[first + 1];
-        var caret = left.Text.Length;
-        left.Text += right.Text; _models.RemoveAt(first + 1);
-        RebuildBlocks(); RaiseChanged(); FocusBlock(first);
-        if (ActiveTextBox is { } box) box.CaretIndex = box.SelectionStart = box.SelectionEnd = caret;
+        // 合并/降级语义收回 Core（muya 对齐，15 测护航）：退格=Backspace（降级或并入前块），
+        // Delete=MergeForward（吞并后块）；null=不可合并（UI 保留默认行为）。
+        var result = direction < 0 ? _core.Backspace(index) : _core.MergeForward(index);
+        if (result is null) return false;
+        RebuildBlocks();
+        RaiseChanged();
+        FocusBlock(result.FocusIndex);
+        if (ActiveTextBox is { } box) box.CaretIndex = box.SelectionStart = box.SelectionEnd = result.Caret;
         return true;
     }
 
@@ -864,41 +855,14 @@ public partial class MarkdownLiveEditorView : UserControl
     {
         var index = _models.IndexOf(view.Model);
         if (index < 0) return;
-        var model = view.Model;
-        caret = Math.Clamp(caret, 0, model.Text.Length);
-        var next = new MarkdownBlockModel
-        {
-            Kind = model.Kind == MarkdownBlockKind.Heading ? MarkdownBlockKind.Paragraph : model.Kind,
-            Text = model.Text[caret..],
-            IndentLevel = model.IndentLevel,
-            QuoteDepth = model.QuoteDepth,
-            IsTask = model.IsTask,
-            IsOrdered = model.IsOrdered,
-            OrderedNumber = model.OrderedNumber + (model.IsOrdered ? 1 : 0),
-            Source = model.Kind == MarkdownBlockKind.ListItem ? model.Source : null
-        };
-        model.Text = model.Text[..caret];
-        if (model.Kind == MarkdownBlockKind.ListItem && model.Text.Length == 0)
-        {
-            model.Kind = MarkdownBlockKind.Paragraph;
-            model.IsTask = model.IsOrdered = false;
-        }
-        else
-        {
-            _models.Insert(index + 1, next);
-            if (model.IsOrdered)
-            {
-                for (var following = index + 2; following < _models.Count; following++)
-                {
-                    var item = _models[following];
-                    if (!ReferenceEquals(item.Source, model.Source)) break;
-                    if (item.IsOrdered && item.IndentLevel == model.IndentLevel) item.OrderedNumber++;
-                }
-            }
-        }
+        // 拆块语义收回 Core；视图只负责重建/事件/焦点执行。
+        var result = _core.Enter(index, caret);
+        if (!result.Changed) return;
         RebuildBlocks();
         RaiseChanged();
-        FocusBlock(model.Kind == MarkdownBlockKind.Paragraph && model.Text.Length == 0 ? index : index + 1);
+        FocusBlock(result.FocusIndex);
+        // 光标落拆分点（Core 契约 Caret=0=新块首）；修正旧实现 BeginEditAtEnd 落新块末尾。
+        if (ActiveTextBox is { } box) box.CaretIndex = box.SelectionStart = box.SelectionEnd = result.Caret;
     }
 
     private void AttachAutoPair(MarkdownBlockView view)
