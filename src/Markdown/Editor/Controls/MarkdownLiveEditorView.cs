@@ -638,28 +638,53 @@ public partial class MarkdownLiveEditorView : UserControl
                 var paragraphs = new StackPanel();
                 for (; index < end; index++)
                 {
-                    var paragraph = CreateLazyBlock(index, quote: true);
+                    var paragraph = CreateLazyBlock(_models[index], quote: true);
+                    _blockViews.Add(paragraph);
                     paragraphs.Children.Add(paragraph);
                 }
+                _hostIndices.AddRange(Enumerable.Repeat(_blockHost.ItemCount, end - _hostIndices.Count));
                 var quote = new Border { Classes = { "MdQuote", "MdLiveQuote" }, Child = paragraphs };
                 quote.SetValue(Border.BorderBrushProperty, _blockOptions.AccentBrush, global::Avalonia.Data.BindingPriority.Style);
                 quote.SetValue(Border.BackgroundProperty, _blockOptions.CodeBackgroundBrush, global::Avalonia.Data.BindingPriority.Style);
                 _blockHost.AddItem(quote);
                 index--;
             }
-            else _blockHost.AddItem(CreateLazyBlock(index));
+            else
+            {
+                var lazy = CreateLazyBlock(model);
+                _blockViews.Add(lazy);
+                _hostIndices.Add(_blockHost.ItemCount);
+                _blockHost.AddItem(lazy);
+            }
         }
     }
 
-    private Control CreateLazyBlock(int index, bool quote = false)
+    /// <summary>惰性块工厂：按模型（非下标）建块——结构增量更新后下标漂移不影响工厂产物。</summary>
+    private Control CreateLazyBlock(MarkdownBlockModel model, bool quote = false)
     {
         var lazy = new LazyLiveBlock(() =>
         {
-            var content = BuildBlockView(index);
+            var content = BuildBlockView(model);
             if (quote && FindBlockView(content) is { } block) block.RenderQuoteAsParagraph = true;
             return content;
         });
-        _hostIndices.Add(_blockHost.ItemCount); _blockViews.Add(lazy); return lazy;
+        return lazy;
+    }
+
+    /// <summary>事件期解析模型当前下标（结构变化后构建期捕获的下标已漂移）。</summary>
+    private int CurrentIndexOf(MarkdownBlockModel model) => Math.Max(0, _models.IndexOf(model));
+
+    /// <summary>激活模型所在块为编辑态：写下标、防虚拟化解体、钉扎宿主条目。</summary>
+    private void ActivateModel(MarkdownBlockModel model)
+    {
+        var index = _models.IndexOf(model);
+        if (index < 0) return;
+        _activeIndex = index;
+        if (index < _hostIndices.Count)
+        {
+            _blockHost.DetachAllPinned();
+            _blockHost.PinItem(_hostIndices[index]);
+        }
     }
     private void RevealBlock(int index)
     {
@@ -683,13 +708,14 @@ public partial class MarkdownLiveEditorView : UserControl
         scroll.UpdateLayout();
     }
 
-    private Control BuildBlockView(int index)
+    /// <summary>按模型建块视图：事件回调在下标漂移后仍正确——触发时重新解析模型当前下标。</summary>
+    private Control BuildBlockView(MarkdownBlockModel model)
     {
         _blockOptions.FontSize = EditorFontSize;
         _blockOptions.CodeFontSize = CodeFontSize;
         _blockOptions.CodeWrap = CodeWrap;
         _blockOptions.ContentFontFamily = FontFamily;
-        var model = _models[index];
+        var index = _models.IndexOf(model);
         var beforeHeading = index + 1 < _models.Count
             && _models[index + 1] is { Kind: MarkdownBlockKind.Heading, HeadingLevel: <= 4 };
 
@@ -698,7 +724,7 @@ public partial class MarkdownLiveEditorView : UserControl
             var table = new MarkdownTableView(model, _blockOptions)
             {
                 CellsChanged = _ => RaiseChanged(),
-                CellEditingStarted = _ => { _activeIndex = index; _blockHost.DetachAllPinned(); _blockHost.PinItem(_hostIndices[index]); RaiseSelectionChanged(); },
+                CellEditingStarted = _ => { ActivateModel(model); RaiseSelectionChanged(); },
                 CellSelectionChanged = RaiseSelectionChanged,
                 StructureChangeRequested = (tableView, action) =>
                 {
@@ -727,10 +753,10 @@ public partial class MarkdownLiveEditorView : UserControl
         var view = new MarkdownBlockView(model, isCode: model.Kind == MarkdownBlockKind.Code, _blockOptions)
         {
             TextCommitted = OnBlockTextCommitted,
-            NavigateRequested = direction => FocusBlock(Math.Clamp(index + direction, 0, _models.Count - 1)),
-            BoundaryNavigateRequested = (direction, x) => FocusAdjacentBlock(index, direction, x),
-            MergeRequested = direction => MergeBlock(index, direction),
-            EditingStarted = _ => { _activeIndex = index; _blockHost.DetachAllPinned(); _blockHost.PinItem(_hostIndices[index]); RaiseSelectionChanged(); },
+            NavigateRequested = direction => FocusBlock(Math.Clamp(CurrentIndexOf(model) + direction, 0, _models.Count - 1)),
+            BoundaryNavigateRequested = (direction, x) => FocusAdjacentBlock(CurrentIndexOf(model), direction, x),
+            MergeRequested = direction => MergeBlock(CurrentIndexOf(model), direction),
+            EditingStarted = _ => ActivateModel(model),
             SplitRequested = SplitBlock
         };
         AttachAutoPair(view);
