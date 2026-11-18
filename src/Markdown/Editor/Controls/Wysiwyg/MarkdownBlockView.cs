@@ -194,6 +194,8 @@ internal sealed class MarkdownBlockView : UserControl
             UpdateRichText();
             TextCommitted?.Invoke(this, ModelText);
         };
+        // Ctrl+Click 打开链接（Typora 交互，单击仍落光标）：命中 LinkUrl run 才拦截默认按下。
+        _editor.AddHandler(PointerPressedEvent, OnEditorPointerPressed, RoutingStrategies.Tunnel);
         _editor.LostFocus += (_, _) => CommitIfFocusLeft();
         _editor.AddHandler(KeyDownEvent, OnEditorKeyDown, RoutingStrategies.Tunnel);
         _editor.PropertyChanged += (_, e) =>
@@ -449,6 +451,23 @@ internal sealed class MarkdownBlockView : UserControl
 
     internal static bool IsInteractiveChild(Visual source) => source.GetVisualAncestors().Prepend(source)
         .Any(element => element is global::Avalonia.Controls.Primitives.ScrollBar or Button);
+
+    /// <summary>Ctrl+Click：光标命中 LinkUrl run 时经共享策略打开（仅 http/https/mailto），拦截默认落光标。</summary>
+    private void OnEditorPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!IsPureText) return;
+        var point = e.GetCurrentPoint(_editor);
+        if (!point.Properties.IsLeftButtonPressed || (e.KeyModifiers & KeyModifiers.Control) == 0) return;
+        var offset = GetPointerTextOffset(e);
+        var url = MarkdownTextRunParser.Parse(ModelText)
+            .Where(run => run.LinkUrl is not null
+                && offset >= run.SourceStart && offset < run.SourceStart + run.Text.Length)
+            .Select(run => run.LinkUrl)
+            .FirstOrDefault();
+        if (url is null) return;
+        Shared.Rendering.MarkdownUrlPolicy.Open(url);
+        e.Handled = true;
+    }
 
     internal int GetPointerTextOffset(PointerEventArgs e)
     {
