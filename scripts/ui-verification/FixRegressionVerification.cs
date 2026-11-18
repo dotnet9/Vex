@@ -92,6 +92,28 @@ internal static class FixRegressionVerification
         flyout.Hide();
         Render();
 
+        // ---- 2.5 空白文档即时编辑：空段落块存在、光标就位、可拆块（Typora 空文档行为） ----
+        vm.Workbench.SelectLayout("instant");
+        Render(); Thread.Sleep(300); Render();
+        var blankLive = window.Workspace.GetVisualDescendants()
+            .FirstOrDefault(control => control.GetType().Name == "MarkdownInstantView");
+        Check(blankLive is not null, "Blank instant view found");
+        var blankBlocks = blankLive!.GetVisualDescendants()
+            .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
+        Console.WriteLine("blank doc block views: " + blankBlocks.Count);
+        Check(blankBlocks.Count == 1, "Blank document keeps one empty paragraph block: " + blankBlocks.Count);
+        var blankEditor = blankBlocks[0].GetVisualDescendants().OfType<TextBox>().FirstOrDefault();
+        Console.WriteLine("blank editor: visible=" + blankEditor?.IsVisible + " focused=" + blankEditor?.IsFocused);
+        Check(blankEditor is { IsVisible: true }, "Blank paragraph editor is visible (click target exists)");
+        blankEditor!.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = blankEditor });
+        Render(); Thread.Sleep(300); Render();
+        var blankAfter = blankLive.GetVisualDescendants()
+            .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
+        Console.WriteLine("blank doc blocks after enter: " + blankAfter.Count);
+        Check(blankAfter.Count == 2, "Enter on blank document splits into two paragraphs");
+        blankEditor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape, Source = blankEditor });
+        Render();
+
         // ---- 3. 即时编辑回车：真实点击块进入编辑态，再回车应拆块换行 ----
         var probeDoc = System.IO.Path.Combine(output, "instant-enter-probe.md");
         System.IO.File.WriteAllText(probeDoc, "# 探针标题\n\n第一段内容，光标在末尾回车应拆块。\n");
