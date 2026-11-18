@@ -395,6 +395,29 @@ internal sealed class MarkdownBlockView : UserControl
         UpdateRichText();
     }
 
+    /// <summary>
+    /// 外部已直接改写模型文本（增量结构操作：拆块截头/合并续接），编辑态下强制同步
+    /// 编辑器与覆盖定位——否则失焦提交会把编辑器里的旧全文写回截断后的模型造成内容回滚。
+    /// 非编辑态等价 RefreshFromModel。
+    /// </summary>
+    public void SyncEditorFromModel(int caretIndex)
+    {
+        if (!_editing)
+        {
+            UpdateRichText();
+            return;
+        }
+
+        _syncingText = true;
+        _editor.Text = Model.Text;
+        if (_codeLanguage is not null) _codeLanguage.Text = Model.Language;
+        _syncingText = false;
+        UpdateRichText();
+        if (_inlineEditing) PositionInlineEditor();
+        _editor.CaretIndex = Math.Clamp(caretIndex, 0, _editor.Text?.Length ?? 0);
+        _editor.SelectionStart = _editor.SelectionEnd = _editor.CaretIndex;
+    }
+
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.Source is Visual interactive && IsInteractiveChild(interactive)) return;

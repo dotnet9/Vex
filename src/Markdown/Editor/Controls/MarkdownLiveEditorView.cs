@@ -686,6 +686,78 @@ public partial class MarkdownLiveEditorView : UserControl
             _blockHost.PinItem(_hostIndices[index]);
         }
     }
+
+    // ---- 增量结构更新：热路径（纯文本块）不再整表重建 ----
+    // 分组规则与 RebuildBlocks 一致（连续同源 depth-1 引用合并一个宿主条目）；
+    // 触及分组的变更仍回退全量重建（引用块编辑频率低，正确性优先），后续再收敛组级重建。
+
+    /// <summary>模型 i 是否位于多成员 Quote 分组（含自身在组边界上的情形）。</summary>
+    private bool IsQuoteGroupedMember(int index)
+    {
+        if (index < 0 || index >= _models.Count) return false;
+        var model = _models[index];
+        if (model.Kind != MarkdownBlockKind.Quote || model.QuoteDepth != 1 || model.Source is null) return false;
+        if (index > 0 && _models[index - 1] is { Kind: MarkdownBlockKind.Quote, QuoteDepth: 1, Source: { } } prev
+            && ReferenceEquals(prev.Source, model.Source)) return true;
+        if (index + 1 < _models.Count && _models[index + 1] is { Kind: MarkdownBlockKind.Quote, QuoteDepth: 1, Source: { } } next
+            && ReferenceEquals(next.Source, model.Source)) return true;
+        return false;
+    }
+
+    /// <summary>结构变化能否走增量路径：触及块及其相邻块都不在 Quote 分组内。</summary>
+    private bool CanUpdateIncrementally(int index)
+    {
+        return !IsQuoteGroupedMember(index - 1) && !IsQuoteGroupedMember(index) && !IsQuoteGroupedMember(index + 1);
+    }
+
+    /// <summary>模型层已在 newIndex 插入新块：增量同步映射与宿主；触及分组回退全量。</summary>
+    private void HostInsertModel(int newIndex)
+    {
+        if (!CanUpdateIncrementally(newIndex))
+        {
+            RebuildBlocks();
+            return;
+        }
+        var lazy = CreateLazyBlock(_models[newIndex]);
+        var hostPos = newIndex == 0 ? 0 : _hostIndices[newIndex - 1] + 1;
+        _blockHost.InsertItem(hostPos, lazy);
+        _blockViews.Insert(newIndex, lazy);
+        _hostIndices.Insert(newIndex, hostPos);
+        for (var i = newIndex + 1; i < _hostIndices.Count; i++) _hostIndices[i]++;
+    }
+
+    /// <summary>模型层已移除 removedIndex 处的旧块（映射仍持旧条目）：增量同步；触及分组回退全量。</summary>
+    private void HostRemoveModel(int removedIndex)
+    {
+        if (removedIndex < 0 || removedIndex >= _blockViews.Count
+            || !CanUpdateIncrementally(Math.Min(removedIndex, _models.Count - 1)))
+        {
+            RebuildBlocks();
+            return;
+        }
+        var hostPos = _hostIndices[removedIndex];
+        _blockHost.RemoveAt(hostPos);
+        _blockViews.RemoveAt(removedIndex);
+        _hostIndices.RemoveAt(removedIndex);
+        for (var i = removedIndex; i < _hostIndices.Count; i++) _hostIndices[i]--;
+    }
+
+    /// <summary>单块的 Kind/缩进等形态变化：原位替换宿主条目（保留下游映射不动）；触及分组回退全量。
+    /// 调用方须在模型变更【前】确认未处于分组（分组成员形态转换改变分组拓扑）。</summary>
+    private void RefreshBlockView(int index)
+    {
+        if (index < 0 || index >= _blockViews.Count || index >= _hostIndices.Count
+            || !CanUpdateIncrementally(index))
+        {
+            RebuildBlocks();
+            return;
+        }
+        var hostPos = _hostIndices[index];
+        var lazy = CreateLazyBlock(_models[index]);
+        _blockHost.RemoveAt(hostPos);
+        _blockHost.InsertItem(hostPos, lazy);
+        _blockViews[index] = lazy;
+    }
     private void RevealBlock(int index)
     {
         if (index < 0 || index >= _hostIndices.Count) return;
@@ -866,11 +938,23 @@ public partial class MarkdownLiveEditorView : UserControl
 
     private bool MergeBlock(int index, int direction)
     {
-        // 合并/降级语义收回 Core（muya 对齐，15 测护航）：退格=Backspace（降级或并入前块），
+        // 合并/降级语义收回 Core（muya 对齐，单测护航）：退格=Backspace（降级或并入前块），
         // Delete=MergeForward（吞并后块）；null=不可合并（UI 保留默认行为）。
+        var before = _models.Count;
         var result = direction < 0 ? _core.Backspace(index) : _core.MergeForward(index);
         if (result is null) return false;
-        RebuildBlocks();
+        if (_models.Count < before)
+        {
+            // 合并吞块：增量移除被吞条目；存活块编辑器强制同步合并文本（编辑态 BeginEdit 不重读模型）。
+            HostRemoveModel(direction < 0 ? index : index + 1);
+            if (FindBlockView(_blockViews[result.FocusIndex]) is { } surviving)
+                surviving.SyncEditorFromModel(result.Caret);
+        }
+        else
+        {
+            // 块首退格降级：Kind 变了但条目数不变，原位替换单块视图。
+            RefreshBlockView(index);
+        }
         RaiseChanged();
         FocusBlock(result.FocusIndex);
         if (ActiveTextBox is { } box) box.CaretIndex = box.SelectionStart = box.SelectionEnd = result.Caret;
@@ -881,10 +965,21 @@ public partial class MarkdownLiveEditorView : UserControl
     {
         var index = _models.IndexOf(view.Model);
         if (index < 0) return;
-        // 拆块语义收回 Core；视图只负责重建/事件/焦点执行。
+        // 拆块语义收回 Core；视图只负责增量结构同步/事件/焦点执行。
+        var before = _models.Count;
         var result = _core.Enter(index, caret);
         if (!result.Changed) return;
-        RebuildBlocks();
+        if (_models.Count > before)
+        {
+            HostInsertModel(index + 1);
+            // 拆剩的头部块仍处编辑态且编辑器还持有拆分前全文：同步截断文本，防失焦提交回滚。
+            if (FindBlockView(_blockViews[index]) is { } head) head.SyncEditorFromModel(caret);
+        }
+        else
+        {
+            // 空列表项回车降级：条目数不变，原位替换单块视图。
+            RefreshBlockView(index);
+        }
         RaiseChanged();
         FocusBlock(result.FocusIndex);
         // 光标落拆分点（Core 契约 Caret=0=新块首）；修正旧实现 BeginEditAtEnd 落新块末尾。
@@ -1295,13 +1390,15 @@ public partial class MarkdownLiveEditorView : UserControl
             return;
         }
 
+        // 分组成员的形态转换会改变分组拓扑（Quote↔非 Quote），先验后走增量或全量。
+        var wasGrouped = IsQuoteGroupedMember(_activeIndex);
         // 转换语义收回 Core（含标记清理不变式，单测护航）。
         if (!_core.ConvertBlock(_activeIndex, kind, headingLevel, isTask, isOrdered))
         {
             return;
         }
 
-        RebuildBlocks();
+        if (wasGrouped) RebuildBlocks(); else RefreshBlockView(_activeIndex);
         RaiseChanged();
     }
 
@@ -1317,7 +1414,8 @@ public partial class MarkdownLiveEditorView : UserControl
             return;
         }
 
-        RebuildBlocks();
+        // 列表项缩进只改边距形态，不涉分组拓扑：单块原位替换。
+        RefreshBlockView(_activeIndex);
         RaiseChanged();
     }
 
@@ -1325,7 +1423,7 @@ public partial class MarkdownLiveEditorView : UserControl
     {
         var index = _activeIndex < 0 ? _models.Count : Math.Min(_activeIndex + 1, _models.Count);
         _models.Insert(index, model);
-        RebuildBlocks();
+        HostInsertModel(index);
         RaiseChanged();
         FocusBlock(index);
     }
