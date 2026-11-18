@@ -1,5 +1,6 @@
 ﻿using CodeWF.Avalonia.Markdown.Core;
 using CodeWF.Avalonia.Markdown.Core.Blocks;
+using CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg;
 using Xunit;
 
 namespace CodeWF.Avalonia.Markdown.Tests;
@@ -209,5 +210,125 @@ public class MarkdownBlockEditorCoreTests
         core.Blocks[focus].Text = "新输入的文字";
         Assert.Equal("新输入的文字", core.Blocks[focus].Text);
         Assert.Equal(4, core.Count);
+    }
+
+    // ---- 块转换矩阵（ConvertBlock，语义对齐 muya）----
+
+    [Fact]
+    public void Convert_ParagraphToHeading_SetsLevelAndKeepsText()
+    {
+        var core = new MarkdownBlockEditorCore([Paragraph("标题文字")]);
+        Assert.True(core.ConvertBlock(0, MarkdownBlockKind.Heading, headingLevel: 2));
+        Assert.Equal(MarkdownBlockKind.Heading, core.Blocks[0].Kind);
+        Assert.Equal(2, core.Blocks[0].HeadingLevel);
+        Assert.Equal("标题文字", core.Blocks[0].Text);
+    }
+
+    [Fact]
+    public void Convert_ParagraphToOrderedListItem_StartsAtOne()
+    {
+        var core = new MarkdownBlockEditorCore([Paragraph("第一步")]);
+        Assert.True(core.ConvertBlock(0, MarkdownBlockKind.ListItem, isOrdered: true));
+        Assert.True(core.Blocks[0].IsOrdered);
+        Assert.Equal(1, core.Blocks[0].OrderedNumber);
+        Assert.Equal("1. 第一步", MarkdownBlockParser.Write(core.Blocks).Trim());
+    }
+
+    [Fact]
+    public void Convert_ParagraphToQuote_DepthAtLeastOne()
+    {
+        var core = new MarkdownBlockEditorCore([Paragraph("引用内容")]);
+        Assert.True(core.ConvertBlock(0, MarkdownBlockKind.Quote));
+        Assert.Equal(1, core.Blocks[0].QuoteDepth);
+        Assert.Equal("> 引用内容", MarkdownBlockParser.Write(core.Blocks).Trim());
+    }
+
+    [Fact]
+    public void Convert_ListItemToParagraph_ClearsListMarkers()
+    {
+        var core = new MarkdownBlockEditorCore(
+            [new MarkdownBlockModel { Kind = MarkdownBlockKind.ListItem, Text = "待办", IsOrdered = true, OrderedNumber = 3, IndentLevel = 2, IsChecked = true }]);
+        Assert.True(core.ConvertBlock(0, MarkdownBlockKind.Paragraph));
+        var model = core.Blocks[0];
+        Assert.Equal(MarkdownBlockKind.Paragraph, model.Kind);
+        Assert.False(model.IsOrdered);
+        Assert.False(model.IsTask);
+        Assert.False(model.IsChecked);
+        Assert.Equal(0, model.OrderedNumber);
+        Assert.Equal(0, model.IndentLevel);
+        Assert.Equal("待办", MarkdownBlockParser.Write(core.Blocks).Trim());
+    }
+
+    [Fact]
+    public void Convert_QuoteToListItem_DropsQuotePrefix()
+    {
+        var core = new MarkdownBlockEditorCore([new MarkdownBlockModel { Kind = MarkdownBlockKind.Quote, QuoteDepth = 1, Text = "引用转列表" }]);
+        Assert.True(core.ConvertBlock(0, MarkdownBlockKind.ListItem));
+        Assert.Equal(0, core.Blocks[0].QuoteDepth);
+        Assert.Equal("- 引用转列表", MarkdownBlockParser.Write(core.Blocks).Trim());
+    }
+
+    [Fact]
+    public void Convert_HeadingToParagraph_ClearsHeadingLevel()
+    {
+        var core = new MarkdownBlockEditorCore([Heading(3, "降级标题")]);
+        Assert.True(core.ConvertBlock(0, MarkdownBlockKind.Paragraph));
+        Assert.Equal(MarkdownBlockKind.Paragraph, core.Blocks[0].Kind);
+        Assert.Equal(0, core.Blocks[0].HeadingLevel);
+    }
+
+    [Fact]
+    public void Convert_HeadingLevel_ClampedTo1To6()
+    {
+        var core = new MarkdownBlockEditorCore([Paragraph("越界层级")]);
+        core.ConvertBlock(0, MarkdownBlockKind.Heading, headingLevel: 9);
+        Assert.Equal(6, core.Blocks[0].HeadingLevel);
+        core.ConvertBlock(0, MarkdownBlockKind.Heading, headingLevel: 0);
+        Assert.Equal(1, core.Blocks[0].HeadingLevel);
+    }
+
+    [Fact]
+    public void Convert_CodeBlock_IsRejected()
+    {
+        var core = new MarkdownBlockEditorCore([new MarkdownBlockModel { Kind = MarkdownBlockKind.Code, Text = "code", IsFenced = true }]);
+        Assert.False(core.ConvertBlock(0, MarkdownBlockKind.Heading, 1));
+        Assert.Equal(MarkdownBlockKind.Code, core.Blocks[0].Kind);
+    }
+
+    [Fact]
+    public void Convert_IndexOutOfRange_ReturnsFalse()
+    {
+        var core = new MarkdownBlockEditorCore([Paragraph("唯一一块")]);
+        Assert.False(core.ConvertBlock(1, MarkdownBlockKind.Heading, 1));
+        Assert.False(core.ConvertBlock(-1, MarkdownBlockKind.Heading, 1));
+    }
+
+    // ---- 列表缩进矩阵（IndentListItem，Tab/Shift+Tab）----
+
+    [Fact]
+    public void Indent_ListItem_IncreasesLevel()
+    {
+        var core = new MarkdownBlockEditorCore(
+            [new MarkdownBlockModel { Kind = MarkdownBlockKind.ListItem, Text = "子项" }]);
+        Assert.True(core.IndentListItem(0, 1));
+        Assert.Equal(1, core.Blocks[0].IndentLevel);
+        Assert.Equal("  - 子项", MarkdownBlockParser.Write(core.Blocks).TrimEnd());
+    }
+
+    [Fact]
+    public void Indent_Paragraph_IsRejected()
+    {
+        var core = new MarkdownBlockEditorCore([Paragraph("不是列表")]);
+        Assert.False(core.IndentListItem(0, 1));
+        Assert.Equal(0, core.Blocks[0].IndentLevel);
+    }
+
+    [Fact]
+    public void Outdent_AtLevel0_ClampsToZero()
+    {
+        var core = new MarkdownBlockEditorCore(
+            [new MarkdownBlockModel { Kind = MarkdownBlockKind.ListItem, Text = "顶格" }]);
+        Assert.True(core.IndentListItem(0, -1));
+        Assert.Equal(0, core.Blocks[0].IndentLevel);
     }
 }

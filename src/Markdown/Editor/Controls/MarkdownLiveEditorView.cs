@@ -1269,20 +1269,11 @@ public partial class MarkdownLiveEditorView : UserControl
             return;
         }
 
-        var model = _models[_activeIndex];
-        model.Kind = kind;
-        if (kind == MarkdownBlockKind.Heading)
+        // 转换语义收回 Core（含标记清理不变式，单测护航）。
+        if (!_core.ConvertBlock(_activeIndex, kind, headingLevel, isTask, isOrdered))
         {
-            model.HeadingLevel = headingLevel;
+            return;
         }
-
-        if (kind == MarkdownBlockKind.ListItem)
-        {
-            model.IsTask = isTask;
-            model.IsOrdered = isOrdered;
-            model.OrderedNumber = isOrdered ? 1 : 0;
-        }
-        if (kind == MarkdownBlockKind.Quote) model.QuoteDepth = Math.Max(1, model.QuoteDepth);
 
         RebuildBlocks();
         RaiseChanged();
@@ -1290,12 +1281,16 @@ public partial class MarkdownLiveEditorView : UserControl
 
     private void ChangeIndent(int delta)
     {
-        if (_activeIndex < 0 || _activeIndex >= _models.Count || _models[_activeIndex].Kind != MarkdownBlockKind.ListItem)
+        if (_activeIndex < 0 || _activeIndex >= _models.Count)
         {
             return;
         }
 
-        _models[_activeIndex].IndentLevel = Math.Max(0, _models[_activeIndex].IndentLevel + delta);
+        if (!_core.IndentListItem(_activeIndex, delta))
+        {
+            return;
+        }
+
         RebuildBlocks();
         RaiseChanged();
     }

@@ -129,4 +129,45 @@ public sealed class MarkdownBlockEditorCore
         _models.RemoveAt(index);
         return new BlockEditResult(true, adjacent, caret);
     }
+
+    /// <summary>
+    /// 块转换（段落/标题/列表/引用互转，语义对齐 muya ConvertBlock）：
+    /// 只允许文本类块参与；转有序列表从 1 起编号，转引用至少一层。
+    /// 转到非本类时清掉其独占标记（标题级/序号/任务/缩进/引用层/勾选态）——
+    /// 不变式：块只携带其 Kind 实际消费的标记，再转换不会复活旧形态。
+    /// 返回是否发生转换。
+    /// </summary>
+    public bool ConvertBlock(int index, MarkdownBlockKind kind, int headingLevel = 0,
+        bool isTask = false, bool isOrdered = false)
+    {
+        if (index < 0 || index >= _models.Count) return false;
+        if (kind is not (MarkdownBlockKind.Paragraph or MarkdownBlockKind.Heading
+                or MarkdownBlockKind.ListItem or MarkdownBlockKind.Quote)
+            || _models[index].Kind is not (MarkdownBlockKind.Paragraph or MarkdownBlockKind.Heading
+                or MarkdownBlockKind.ListItem or MarkdownBlockKind.Quote))
+            return false;
+        var model = _models[index];
+        model.Kind = kind;
+        model.HeadingLevel = kind == MarkdownBlockKind.Heading ? Math.Clamp(headingLevel, 1, 6) : 0;
+        model.IsTask = kind == MarkdownBlockKind.ListItem && isTask;
+        model.IsOrdered = kind == MarkdownBlockKind.ListItem && isOrdered;
+        model.OrderedNumber = kind == MarkdownBlockKind.ListItem && isOrdered ? 1 : 0;
+        model.QuoteDepth = kind == MarkdownBlockKind.Quote ? Math.Max(1, model.QuoteDepth) : 0;
+        if (kind != MarkdownBlockKind.ListItem) model.IndentLevel = 0;
+        model.IsChecked = false;
+        return true;
+    }
+
+    /// <summary>
+    /// 列表项缩进/降级（Tab/Shift+Tab）：仅对列表项生效，层级不小于 0。
+    /// 返回是否生效。
+    /// </summary>
+    public bool IndentListItem(int index, int delta)
+    {
+        if (index < 0 || index >= _models.Count) return false;
+        var model = _models[index];
+        if (model.Kind != MarkdownBlockKind.ListItem) return false;
+        model.IndentLevel = Math.Max(0, model.IndentLevel + delta);
+        return true;
+    }
 }
