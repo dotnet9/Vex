@@ -828,6 +828,7 @@ public partial class MarkdownLiveEditorView : UserControl
             NavigateRequested = direction => FocusBlock(Math.Clamp(CurrentIndexOf(model) + direction, 0, _models.Count - 1)),
             BoundaryNavigateRequested = (direction, x) => FocusAdjacentBlock(CurrentIndexOf(model), direction, x),
             MergeRequested = direction => MergeBlock(CurrentIndexOf(model), direction),
+            IndentRequested = delta => ChangeIndent(delta),
             EditingStarted = _ => ActivateModel(model),
             SplitRequested = SplitBlock
         };

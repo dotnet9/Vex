@@ -243,6 +243,7 @@ internal sealed class MarkdownBlockView : UserControl
     public Action<int>? NavigateRequested { get; set; }
     public Func<int, double?, bool>? BoundaryNavigateRequested { get; set; }
     public Func<int, bool>? MergeRequested { get; set; }
+    public Action<int>? IndentRequested { get; set; }
 
     public Action<MarkdownBlockView>? EditingStarted { get; set; }
     public Action? EditorSelectionChanged { get; set; }
@@ -621,6 +622,12 @@ internal sealed class MarkdownBlockView : UserControl
 
             case Key.Tab:
                 e.Handled = true;
+                // 列表项：Tab/Shift+Tab 缩进/降级（muya 键盘矩阵）；其余块保持提交+移焦点。
+                if (Model.Kind == MarkdownBlockKind.ListItem)
+                {
+                    IndentRequested?.Invoke(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+                    break;
+                }
                 CommitAndRender();
                 NavigateRequested?.Invoke(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
                 break;

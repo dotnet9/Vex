@@ -331,4 +331,78 @@ public class MarkdownBlockEditorCoreTests
         Assert.True(core.IndentListItem(0, -1));
         Assert.Equal(0, core.Blocks[0].IndentLevel);
     }
+
+    // ---- muya enterHandler/backspaceHandler spec 翻译（边界组合批）----
+
+    [Fact]
+    public void Enter_AtStartOfParagraph_NewEmptyBlockAbove_CaretAtTextStart()
+    {
+        // muya: "leaves the first block empty and carries the whole text onto the second"。
+        var core = new MarkdownBlockEditorCore([Paragraph("正文")]);
+        var result = core.Enter(0, 0);
+        Assert.True(result.Changed);
+        Assert.Equal(string.Empty, core.Blocks[0].Text);
+        Assert.Equal("正文", core.Blocks[1].Text);
+        Assert.Equal(1, result.FocusIndex);
+        Assert.Equal(0, result.Caret);
+    }
+
+    [Fact]
+    public void Backspace_EmptyListItemStart_DegradesToParagraph()
+    {
+        // muya list 语义：空列表项块首退格降级为段落（不是删除）。
+        var core = new MarkdownBlockEditorCore(
+            [new MarkdownBlockModel { Kind = MarkdownBlockKind.ListItem, Text = string.Empty }]);
+        var result = core.Backspace(0);
+        Assert.NotNull(result);
+        Assert.Equal(MarkdownBlockKind.Paragraph, core.Blocks[0].Kind);
+        Assert.False(core.Blocks[0].IsOrdered);
+    }
+
+    [Fact]
+    public void MergeForward_AtParagraphEnd_MergesNextParagraph_CaretAtJunction()
+    {
+        var core = new MarkdownBlockEditorCore([Paragraph("前半"), Paragraph("后半")]);
+        var result = core.MergeForward(0);
+        Assert.NotNull(result);
+        Assert.Equal("前半后半", core.Blocks[0].Text);
+        Assert.Equal(1, core.Count);
+        Assert.Equal(2, result!.Caret);
+        Assert.Equal(0, result.FocusIndex);
+    }
+
+    [Fact]
+    public void MergeForward_AtParagraphEnd_IntoHeading_AppendsHeadingText()
+    {
+        var core = new MarkdownBlockEditorCore([Paragraph("引言："), Heading(2, "结论")]);
+        var result = core.MergeForward(0);
+        Assert.NotNull(result);
+        Assert.Equal(1, core.Count);
+        Assert.Equal("引言：结论", core.Blocks[0].Text);
+    }
+
+    [Fact]
+    public void Enter_OnTaskListItem_ContinuesAsUncheckedTask()
+    {
+        // muya 任务列表语义：回车续接任务项，新项不继承勾选态。
+        var core = new MarkdownBlockEditorCore(
+            [new MarkdownBlockModel { Kind = MarkdownBlockKind.ListItem, Text = "已完成", IsTask = true, IsChecked = true }]);
+        var result = core.Enter(0, core.Blocks[0].Text.Length);
+        Assert.True(result.Changed);
+        Assert.True(core.Blocks[1].IsTask);
+        Assert.False(core.Blocks[1].IsChecked);
+        Assert.Equal(string.Empty, core.Blocks[1].Text);
+    }
+
+    [Fact]
+    public void Backspace_QuoteStart_DegradesToParagraph_ClearsQuoteDepth()
+    {
+        var core = new MarkdownBlockEditorCore(
+            [new MarkdownBlockModel { Kind = MarkdownBlockKind.Quote, QuoteDepth = 1, Text = "引用内容" }]);
+        var result = core.Backspace(0);
+        Assert.NotNull(result);
+        Assert.Equal(MarkdownBlockKind.Paragraph, core.Blocks[0].Kind);
+        Assert.Equal(0, core.Blocks[0].QuoteDepth);
+        Assert.Equal("引用内容", core.Blocks[0].Text);
+    }
 }
