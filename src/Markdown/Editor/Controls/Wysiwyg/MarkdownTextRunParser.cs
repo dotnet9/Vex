@@ -20,7 +20,8 @@ public readonly record struct MarkdownTextRun(
     string? Background = null,
     double? FontSize = null,
     string? ImageUrl = null,
-    int SourceLength = 0);
+    int SourceLength = 0,
+    string? MathLatex = null);
 
 /// <summary>把行内 Markdown 文本切成带样式的 <see cref="MarkdownTextRun"/> 列表。</summary>
 public static class MarkdownTextRunParser
@@ -30,7 +31,7 @@ public static class MarkdownTextRunParser
         .UsePreciseSourceLocation()
         .Build();
 
-    /// <summary>解析行内 Markdown（支持 **粗**、*斜*、`码`、~~删~~、[链接](url)、&lt;span style&gt; 行内样式）。</summary>
+    /// <summary>解析行内 Markdown（支持 **粗**、*斜*、`码`、~~删~~、[链接](url)、&lt;span style&gt; 行内样式、$行内数学$）。</summary>
     public static List<MarkdownTextRun> Parse(string? inlineMarkdown, MarkdownSyntaxOptions? syntaxOptions = null)
     {
         var runs = new List<MarkdownTextRun>();
@@ -40,23 +41,65 @@ public static class MarkdownTextRunParser
             return runs;
         }
 
-        var container = Markdig.Markdown.Parse(text, syntaxOptions?.CreatePipeline() ?? Pipeline);
+        // 行内数学预提取（判定语义与阅读视图一致）：必须在 Markdig 之前切段——
+        // 上标等行内扩展会把 $...$ 内部文本切碎，逐 run 配对必然失败。
+        var prevEnd = 0;
+        foreach (var (start, length, latex) in ExtractMathSegments(text))
+        {
+            ParseRange(runs, text, prevEnd, start, syntaxOptions);
+            runs.Add(new MarkdownTextRun(latex)
+            {
+                SourceStart = start,
+                SourceLength = length,
+                MathLatex = latex
+            });
+            prevEnd = start + length;
+        }
+        ParseRange(runs, text, prevEnd, text.Length, syntaxOptions);
+        return runs;
+    }
+
+    /// <summary>解析 [prevEnd, end) 区间文本并把 run 源偏移平移到全文坐标。</summary>
+    private static void ParseRange(List<MarkdownTextRun> runs, string text, int prevEnd, int end,
+        MarkdownSyntaxOptions? syntaxOptions)
+    {
+        var slice = text[prevEnd..end];
+        if (slice.Length == 0) return;
+        var sliceRuns = new List<MarkdownTextRun>();
+        var container = Markdig.Markdown.Parse(slice, syntaxOptions?.CreatePipeline() ?? Pipeline);
         var added = false;
         var spanStack = new Stack<MarkdownSpanStyle>();
         foreach (var block in container)
         {
             if (block is Markdig.Syntax.LeafBlock leaf)
             {
-                added |= AppendInlines(runs, leaf.Inline, bold: false, italic: false, strike: false, linkUrl: null, style: null, spanStack);
+                added |= AppendInlines(sliceRuns, leaf.Inline, bold: false, italic: false, strike: false, linkUrl: null, style: null, spanStack);
             }
         }
+        if (!added) sliceRuns.Add(new MarkdownTextRun(slice));
+        runs.AddRange(sliceRuns.Select(r => r with { SourceStart = r.SourceStart + prevEnd }));
+    }
 
-        if (!added)
+    /// <summary>$...$ 段提取（$$ 块级数学不在此处理；成对即取，trim 内文）。</summary>
+    private static List<(int Start, int Length, string Latex)> ExtractMathSegments(string text)
+    {
+        var segments = new List<(int, int, string)>();
+        var index = 0;
+        while (index < text.Length)
         {
-            runs.Add(new MarkdownTextRun(text));
+            if (text[index] != '$' || index + 1 >= text.Length || text[index + 1] == '$')
+            {
+                index++;
+                continue;
+            }
+            var close = text.IndexOf('$', index + 1);
+            if (close <= index + 1) break;
+            var latex = text[(index + 1)..close].Trim();
+            if (latex.Length == 0) { index = close + 1; continue; }
+            segments.Add((index, close + 1 - index, latex));
+            index = close + 1;
         }
-
-        return runs;
+        return segments;
     }
 
     /// <summary>纯文本（不做 Markdown 解析），用于代码块/原始块。</summary>

@@ -6,6 +6,7 @@ using global::Avalonia.Media.TextFormatting;
 using global::Avalonia.Utilities;
 using global::Avalonia.VisualTree;
 using System.Collections.Concurrent;
+using CodeWF.Avalonia.Markdown.MathRendering;
 using CodeWF.Avalonia.Markdown.Shared.Rendering;
 
 namespace CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg;
@@ -23,17 +24,23 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
 
     /// <summary>当前版面的图片叠绘清单（CreateTextLayout 重建时刷新）。</summary>
     private readonly List<ImageOverlay> _imageOverlays = [];
+    /// <summary>当前版面的行内数学叠绘清单（几何在绘制时按当前版面命中）。</summary>
+    private readonly List<MathOverlay> _mathOverlays = [];
     private TextLayout? _lastLayout;
 
     private sealed record ImageOverlay(int Start, Bitmap? Bitmap, double Width, double Height);
 
+    private sealed record MathOverlay(int Start, string Latex);
+
     private static readonly ConcurrentDictionary<string, Bitmap?> ImageBank = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, MarkdownMathPainter> MathPainters = new(StringComparer.Ordinal);
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        // 图片区间的显源码/叠绘随光标与选区切换，需要整层重建（无图片块的纯文本零开销）。
-        if (_imageOverlays.Count > 0 && change.Property.Name is "CaretIndex" or "SelectionStart" or "SelectionEnd")
+        // 嵌入对象区间的显源码/叠绘随光标与选区切换，需要整层重建（纯文本块零开销）。
+        if ((_imageOverlays.Count > 0 || _mathOverlays.Count > 0)
+            && change.Property.Name is "CaretIndex" or "SelectionStart" or "SelectionEnd")
             InvalidateTextLayout();
     }
 
@@ -76,6 +83,7 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
         var face = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
         var styles = new List<ValueSpan<TextRunProperties>>();
         _imageOverlays.Clear();
+        _mathOverlays.Clear();
         // 隐藏的语法仍占一个源码索引，但不能包含实际换行而影响段落排版。
         var display = Enumerable.Repeat('\u200b', source.Length).ToArray();
         var cursor = 0;
@@ -83,9 +91,9 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
         {
             var start = Math.Clamp(run.SourceStart, cursor, source.Length);
             if (start > cursor) Hide(cursor, start - cursor);
-            if (run.ImageUrl is not null && run.SourceLength > 0)
+            if ((run.ImageUrl is not null || run.MathLatex is not null) && run.SourceLength > 0)
             {
-                // 行内图片：整个语法区间显源码（光标/选区在内）或占位叠绘。
+                // 嵌入对象（行内图片/行内数学）：整个语法区间显源码（光标/选区在内）或占位叠绘。
                 var spanLength = Math.Min(run.SourceLength, source.Length - start);
                 var revealed = SelectionStart != SelectionEnd
                     ? start < SelectionEnd && SelectionStart < start + spanLength
@@ -98,16 +106,24 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
                 }
                 else
                 {
-                    var bitmap = LoadImage(run.ImageUrl);
-                    var (width, height) = ImageDrawSize(bitmap);
-                    if (bitmap is not null)
-                        _imageOverlays.Add(new ImageOverlay(start, bitmap, width, height));
+                    var em = FontSize * 2;
+                    if (run.ImageUrl is not null)
+                    {
+                        var bitmap = LoadImage(run.ImageUrl);
+                        var (width, height) = ImageDrawSize(bitmap);
+                        em = bitmap is null ? FontSize : Math.Min(height, FontSize * 2);
+                        if (bitmap is not null)
+                            _imageOverlays.Add(new ImageOverlay(start, bitmap, width, height));
+                    }
+                    else
+                    {
+                        _mathOverlays.Add(new MathOverlay(start, run.MathLatex!));
+                    }
                     // 占位字符用空格而非零宽符：全 em 下零宽符触发字体回退会崩掉整行 shaping
-                    //（实测整行文字消失）；空格有真实宽度（预留图片横空间）、无回退、透明不可见。
+                    //（实测整行文字消失）；空格有真实宽度（预留对象横空间）、无回退、透明不可见。
                     display.AsSpan(start, spanLength).Fill(' ');
                     styles.Add(new(start, spanLength, new GenericTextRunProperties(face,
-                        bitmap is null ? FontSize : Math.Min(height, FontSize * 2),
-                        foregroundBrush: Brushes.Transparent)));
+                        em, foregroundBrush: Brushes.Transparent)));
                 }
                 cursor = start + spanLength;
                 continue;
@@ -211,11 +227,11 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
         return (width, height);
     }
 
-    /// <summary>叠绘行内图片（宿主 TextBox 渲染层调用；presenter 自身 Render 密封）。
+    /// <summary>叠绘嵌入对象（行内图片 + 行内数学；宿主 TextBox 渲染层调用，presenter 自身 Render 密封）。
     /// 几何来自当前 TextLayout 命中测试，坐标映射到 coordinateSpace。</summary>
     internal void DrawImageOverlays(DrawingContext context, Visual coordinateSpace)
     {
-        if (_imageOverlays.Count == 0 || _lastLayout is null) return;
+        if ((_imageOverlays.Count == 0 && _mathOverlays.Count == 0) || _lastLayout is null) return;
         var offset = this.TranslatePoint(default, coordinateSpace);
         foreach (var overlay in _imageOverlays)
         {
@@ -224,6 +240,28 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
             var top = origin.Y + Math.Max(0, (origin.Height - overlay.Height) / 2);
             var pos = offset is { } o ? new Point(origin.X + o.X, top + o.Y) : new Point(origin.X, top);
             context.DrawImage(overlay.Bitmap, new Rect(pos, new Size(overlay.Width, overlay.Height)));
+        }
+
+        if (_mathOverlays.Count == 0) return;
+        var foreground = (Foreground as SolidColorBrush)?.Color ?? Colors.Black;
+        foreach (var overlay in _mathOverlays)
+        {
+            var painter = MathPainters.GetOrAdd(overlay.Latex, latex => new MarkdownMathPainter
+            {
+                LaTeX = latex,
+                DisplayErrorInline = false
+            });
+            painter.FontSize = (float)FontSize;
+            painter.TextColor = foreground;
+            painter.ErrorColor = foreground;
+            var bounds = painter.Measure();
+            var size = new Size(Math.Max(1, bounds.Width), Math.Max(1, bounds.Height));
+            var origin = _lastLayout.HitTestTextPosition(overlay.Start);
+            var top = origin.Y + Math.Max(0, (origin.Height - size.Height) / 2);
+            var pos = offset is { } o ? new Point(origin.X + o.X, top + o.Y) : new Point(origin.X, top);
+            using var translated = context.PushTransform(Matrix.CreateTranslation(pos));
+            var canvas = new AvaloniaMathCanvas(context, size);
+            painter.Draw(canvas, CSharpMath.Rendering.FrontEnd.TextAlignment.Left);
         }
     }
 }

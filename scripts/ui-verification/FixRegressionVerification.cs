@@ -234,6 +234,29 @@ internal static class FixRegressionVerification
         imgEditor.CaretIndex = 8;
         Render(); Thread.Sleep(200); Render();
         Shot("inline-image-revealed");
+        // ---- 2.6 行内数学单表面：$...$ 段落进入行内编辑，公式以 CSharpMath 矢量叠绘 ----
+        vm.Markdown = "质能方程 $E=mc^2$ 是物理学基石";
+        Render(); Thread.Sleep(400); Render();
+        var mathBlock = live!.GetVisualDescendants()
+            .Where(c => c.GetType().Name == "MarkdownBlockView").OfType<Control>()
+            .FirstOrDefault(b => b.GetVisualDescendants().OfType<TextBox>()
+                .Any(box => (box.Text ?? "").Contains('$')));
+        Check(mathBlock is not null, "Inline-math paragraph block found");
+        var mBlock = mathBlock!;
+        var mathGlyph = mBlock.TranslatePoint(new Point(20, mBlock.Bounds.Height / 2), window)
+            ?? throw new InvalidOperationException("Math block unmapped");
+        window.MouseMove(mathGlyph, RawInputModifiers.None); Render();
+        window.MouseDown(mathGlyph, MouseButton.Left); Render();
+        window.MouseUp(mathGlyph, MouseButton.Left); Render();
+        Thread.Sleep(200); Render();
+        var mathPresenter = mBlock.GetVisualDescendants()
+            .FirstOrDefault(p => p.GetType().Name == "MarkdownInlinePresenter");
+        var mathOverlays = mathPresenter?.GetType()
+            .GetField("_mathOverlays", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+            .GetValue(mathPresenter) as System.Collections.IEnumerable;
+        var mathCount = mathOverlays is { } mlist ? mlist.Cast<object>().Count() : 0;
+        Check(mathCount >= 1, "Inline math resolved into overlay list: " + mathCount);
+        Shot("inline-math");
         // ---- 2.5 空白文档即时编辑：空段落块存在、光标就位、可拆块（Typora 空文档行为） ----
         // 共享流程装载了演示文档；直接清空内容模拟空白文档（NewDocument 会因 dirty 弹确认挂探针）。
         vm.Markdown = string.Empty;

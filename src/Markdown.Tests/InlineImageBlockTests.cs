@@ -53,6 +53,22 @@ public sealed class InlineImageBlockTests(AvaloniaPlatformFixture platform)
     }
 
     [Fact]
+    public void MathRun_Parse_SplitsDollarPairs()
+    {
+        const string source = "质能方程 $E=mc^2$ 是物理学基石";
+        var runs = MarkdownTextRunParser.Parse(source);
+        var math = runs.FirstOrDefault(r => r.MathLatex is not null);
+        Assert.False(math.Equals(default(MarkdownTextRun)), "math run should exist");
+        Assert.Equal("E=mc^2", math.MathLatex);
+        Assert.Equal(source.IndexOf('$'), math.SourceStart);
+        Assert.Contains(runs, r => r.MathLatex is null && r.Text.StartsWith("质能方程", StringComparison.Ordinal));
+        Assert.Contains(runs, r => r.MathLatex is null && r.Text.Contains("是物理学基石"));
+        // 金额类不成对的 $ 不应产生数学 run。
+        var currency = MarkdownTextRunParser.Parse("价格 $5 和 $10 元").Count(r => r.MathLatex is not null);
+        Assert.True(currency <= 1, "single-pair heuristic only");
+    }
+
+    [Fact]
     public void ImagePresenter_Layout_ProducesOverlayGeometry()
     {
         platform.Run(async () =>

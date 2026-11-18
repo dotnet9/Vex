@@ -9,7 +9,7 @@ namespace CodeWF.Avalonia.Markdown.MathRendering;
 
 public sealed class MarkdownMathView : Control
 {
-	private readonly MathPainter _painter = new();
+	private readonly MarkdownMathPainter _painter = new();
 	private string? _appliedLatex;
 	private float? _appliedFontSize;
 	private LineStyle? _appliedLineStyle;
@@ -142,19 +142,5 @@ public sealed class MarkdownMathView : Control
 			? solid.Color
 			: Colors.Black;
 	}
-
-	/// <summary>
-	/// 数学排版器：把输出目标换成 Avalonia 12 兼容画布
-	/// （官方 <c>MathPainter</c> 固定绑定官方的 <c>AvaloniaCanvas</c>）。
-	/// </summary>
-	private sealed class MathPainter : CSharpMath.Rendering.FrontEnd.MathPainter<AvaloniaMathCanvas, Color>
-	{
-		public override ICanvas WrapCanvas(AvaloniaMathCanvas canvas) => canvas;
-
-		public override System.Drawing.Color WrapColor(Color color) =>
-			System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B);
-
-		public override Color UnwrapColor(System.Drawing.Color color) =>
-			Color.FromArgb(color.A, color.R, color.G, color.B);
-	}
 }
+

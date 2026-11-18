@@ -329,7 +329,7 @@ internal sealed class MarkdownBlockView : UserControl
         _syncingText = false;
         _editing = true;
         UpdateRichText();
-        _inlineEditing = !IsSourceOverlay && (_isCode || Model.Kind != MarkdownBlockKind.Raw && !ModelText.Contains('$'));
+        _inlineEditing = !IsSourceOverlay && (_isCode || Model.Kind != MarkdownBlockKind.Raw);
         if (IsSourceOverlay)
         {
             _editingLayer.Children.Remove(_editor);
@@ -377,8 +377,7 @@ internal sealed class MarkdownBlockView : UserControl
     public bool IsPureText =>
         !_isCode && !_isTableCell && !IsDiagram
         && Model.Kind is MarkdownBlockKind.Paragraph or MarkdownBlockKind.Heading
-            or MarkdownBlockKind.ListItem or MarkdownBlockKind.Quote
-        && !Model.Text.Contains('$');
+            or MarkdownBlockKind.ListItem or MarkdownBlockKind.Quote;
 
     private void CommitIfFocusLeft() => Dispatcher.UIThread.Post(() =>
     {
