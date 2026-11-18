@@ -34,7 +34,17 @@ public sealed partial class MarkdownInstantView : UserControl
         SizeChanged += (_, _) => UpdatePadding();
         Editor.SelectionChanged += (_, _) => CenterCaret();
         // 切换视图后正文块已重排，残留的右键菜单会指向错误段落（对应原型 element-menu 的切换即收起）。
-        PropertyChanged += (_, e) => { if (e.Property == IsVisibleProperty && !IsVisible) CloseElementMenu(); };
+        // 变为可见时空白文档补一次首块聚焦：切布局走 SynchronizeLive 同文本短路不调 SetText，
+        // 库侧挂起聚焦不会武装；推到布局稳定（Dispatcher.Background）后执行。
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property != IsVisibleProperty) return;
+            if (!IsVisible) { CloseElementMenu(); return; }
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (IsVisible && this.IsAttachedToVisualTree()) Editor.FocusBlankIfBlank();
+            }, DispatcherPriority.Background);
+        };
         DataContextChanged += (_, _) => Attach();
         AttachedToVisualTree += (_, _) => Attach();
         DetachedFromVisualTree += (_, _) =>

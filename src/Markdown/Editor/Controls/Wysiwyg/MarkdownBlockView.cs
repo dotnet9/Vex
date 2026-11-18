@@ -351,6 +351,21 @@ internal sealed class MarkdownBlockView : UserControl
         _editor.Focus();
         _editor.CaretIndex = Math.Clamp(caretIndex, 0, _editor.Text?.Length ?? 0);
         EditingStarted?.Invoke(this);
+        if (!_editor.IsFocused)
+        {
+            // 真机上 BeginEdit 可能发生在视图可见性传播完成之前（切布局/文档切换瞬间），
+            // 同步 Focus 静默失败；推到布局稳定后重试一次（headless 时序不同，探针一直绿）。
+            var retryCaret = Math.Clamp(caretIndex, 0, _editor.Text?.Length ?? 0);
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_editing && !_editor.IsFocused && IsEffectivelyVisible)
+                {
+                    _editor.Focus();
+                    _editor.CaretIndex = Math.Clamp(retryCaret, 0, _editor.Text?.Length ?? 0);
+                    _editor.SelectionStart = _editor.SelectionEnd = _editor.CaretIndex;
+                }
+            }, DispatcherPriority.Background);
+        }
     }
 
     /// <summary>回渲染（提交文本）。</summary>

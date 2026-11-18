@@ -55,6 +55,8 @@ public partial class MarkdownLiveEditorView : UserControl
     private readonly List<MarkdownLiveEditorSnapshot> _redo = [];
     private MarkdownLiveEditorSnapshot _lastSnapshot = new(string.Empty, -1, 0, 0);
     private bool _restoringHistory;
+    /// <summary>空白文档待消费的首块聚焦：视图可见性传播完成后由 LayoutUpdated 消费。</summary>
+    private bool _pendingBlankFocus;
 
     public static readonly StyledProperty<string?> ImageBasePathProperty =
         AvaloniaProperty.Register<MarkdownLiveEditorView, string?>(nameof(ImageBasePath));
@@ -170,6 +172,8 @@ public partial class MarkdownLiveEditorView : UserControl
         Content = BuildContent();
 
         _core = new MarkdownBlockEditorCore(_models);
+        // 空白文档挂起聚焦的消费者：布局稳定（附着+可见）后才真正落焦点。
+        LayoutUpdated += (_, _) => TryConsumePendingBlankFocus();
         SetText(string.Empty);
         ActualThemeVariantChanged += (_, _) => ApplyThemedVisuals();
         AttachedToVisualTree += (_, _) => ApplyThemedVisuals();
@@ -377,14 +381,19 @@ public partial class MarkdownLiveEditorView : UserControl
             // 空文档保持一个空段落并光标就位：点击即可输入（Typora 行为），
             // 否则零块视图点不进任何编辑器，空白文档等于不可编辑。
             // 顺序必须「先重建宿主、后聚焦」：FocusBlock 若先于 RebuildBlocks 执行，
-            // 焦点落在旧条目的编辑器上并随 ClearItems 移出可视树而丢失——
-            // 空白文档打开后回车/打字全部落空（真机反馈场景）。
-            // EnsureFirstBlock 新建首块或空白文档已有空块时都聚焦首块。
+            // 焦点落在旧条目的编辑器上并随 ClearItems 移出可视树而丢失。
+            // 聚焦再挂起到布局稳定后消费：切布局/文档切换瞬间视图尚未可见，
+            // 同步 Focus 在真机上静默失败（headless 时序不同，探针一直绿）。
             _core.EnsureFirstBlock();
             RebuildBlocks();
             if (_models.Count == 1 && _models[0].Kind == MarkdownBlockKind.Paragraph && _models[0].Text.Length == 0)
             {
-                FocusBlock(0);
+                _pendingBlankFocus = true;
+                TryConsumePendingBlankFocus();
+            }
+            else
+            {
+                _pendingBlankFocus = false;
             }
             if (!_restoringHistory) { _undo.Clear(); _redo.Clear(); }
             _lastSnapshot = CaptureSnapshot();
@@ -392,6 +401,25 @@ public partial class MarkdownLiveEditorView : UserControl
         finally
         {
             _suppressChanged = false;
+        }
+    }
+
+    /// <summary>消费挂起的空白文档首块聚焦：附着且可见才执行（真机切布局瞬间同步 Focus 会静默失败）。</summary>
+    private void TryConsumePendingBlankFocus()
+    {
+        if (!_pendingBlankFocus || !this.IsAttachedToVisualTree() || !IsEffectivelyVisible) return;
+        _pendingBlankFocus = false;
+        FocusBlock(0);
+    }
+
+    /// <summary>空白文档（单个空段落）聚焦首块落光标；宿主在变为可见时调用——
+    /// 切布局走 SynchronizeLive 同文本短路不调 SetText，库侧挂起聚焦不会武装，由此补位。</summary>
+    public void FocusBlankIfBlank()
+    {
+        if (!this.IsAttachedToVisualTree() || !IsEffectivelyVisible) return;
+        if (_models.Count == 1 && _models[0].Kind == MarkdownBlockKind.Paragraph && _models[0].Text.Length == 0)
+        {
+            FocusBlock(0);
         }
     }
 

@@ -355,6 +355,19 @@ internal static class FixRegressionVerification
         Check(RealBlocks() == 2, "Real keyboard Enter on untouched blank document splits into two paragraphs");
         vm.Markdown = string.Empty; Render();
 
+        // ---- 2.9 真机时序：文档在 source 布局打开、切即时后直接真实回车——
+        // 切布局瞬间同步 Focus 在真机上静默失败（可见性传播未完成），挂起聚焦应兜底。 ----
+        vm.Workbench.SelectLayout("source"); Render();
+        vm.Markdown = string.Empty; Render();
+        vm.Workbench.SelectLayout("instant"); Render();
+        Console.WriteLine($"  switch-enter: blocks-before={RealBlocks()} focused={window.FocusManager?.GetFocusedElement()?.GetType().Name}");
+        window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
+        window.KeyRelease(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
+        Render(); Thread.Sleep(300); Render();
+        Console.WriteLine($"  switch-enter: blocks-after={RealBlocks()}");
+        Check(RealBlocks() == 2, "Real keyboard Enter after layout switch (source->instant) splits into two paragraphs");
+        vm.Markdown = string.Empty; Render();
+
         Console.WriteLine("Fix regression verification PASS");
     }
 }
