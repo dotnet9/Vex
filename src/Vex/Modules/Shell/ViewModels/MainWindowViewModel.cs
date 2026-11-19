@@ -1036,13 +1036,14 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _workspaceDocumentState.UpdateDocument(Markdown, _document.FilePath);
     }
 
-    private void PublishDocumentFilesChanged(DocumentFile? selectedFile = null, bool focusWorkspaceRoot = false)
+    private void PublishDocumentFilesChanged(DocumentFile? selectedFile = null, bool focusWorkspaceRoot = false, string? renamedFrom = null)
     {
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentFilesChangedCommand(
             _documentFiles,
             selectedFile,
             _currentWorkspaceFolderPath,
-            focusWorkspaceRoot));
+            focusWorkspaceRoot,
+            renamedFrom));
     }
 
     private void UpdateCurrentWorkspaceFolder(string? folderPath, bool persist)
@@ -1303,7 +1304,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         }
 
         var selectedFile = wasCurrentDocument ? renamedFile : FindCurrentDocumentFile() ?? renamedFile;
-        PublishDocumentFilesChanged(selectedFile);
+        PublishDocumentFilesChanged(selectedFile, renamedFrom: path);
         _text.PublishRenamedFile(Path.GetFileName(renamedPath));
     }
 

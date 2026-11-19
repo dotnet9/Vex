@@ -5,6 +5,8 @@ using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Vex.Core.Messaging;
+using Vex.Core.Models;
 using Vex.Modules.Shell.ViewModels;
 using Vex.Modules.Shell.Views;
 
@@ -347,6 +349,112 @@ internal static class FixRegressionVerification
             "Focused list item keeps its rendered marker (effect-mode editing)");
         var otherMarker = markerByBlock.First(kv => !ReferenceEquals(kv.Key, listBlock)).Value;
         Check(otherMarker.IsVisible, "Unfocused list item also keeps its rendered marker");
+
+        // ---- 2.8 真实键盘回车（window.KeyPress 走焦点路由管线，非 RaiseEvent 直发）：
+        // 空白文档打开后不点击直接回车，应拆块——真机反馈场景的行为钉。 ----
+        vm.Markdown = string.Empty;
+        Render(); Thread.Sleep(300); Render();
+        var realKeyLive = window.Workspace.GetVisualDescendants()
+            .FirstOrDefault(control => control.GetType().Name == "MarkdownInstantView");
+        int RealBlocks() => realKeyLive!.GetVisualDescendants()
+            .Count(c => c.GetType().Name == "MarkdownBlockView");
+        window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
+        window.KeyRelease(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
+        Render(); Thread.Sleep(300); Render();
+        Check(RealBlocks() == 2, "Real keyboard Enter on untouched blank document splits into two paragraphs");
+        vm.Markdown = string.Empty; Render();
+
+        // ---- 2.9 真机时序：文档在 source 布局打开、切即时后直接真实回车——
+        // 切布局瞬间同步 Focus 在真机上静默失败（可见性传播未完成），挂起聚焦应兜底。 ----
+        vm.Workbench.SelectLayout("source"); Render();
+        vm.Markdown = string.Empty; Render();
+        vm.Workbench.SelectLayout("instant"); Render();
+        window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
+        window.KeyRelease(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
+        Render(); Thread.Sleep(300); Render();
+        Check(RealBlocks() == 2, "Real keyboard Enter after layout switch (source->instant) splits into two paragraphs");
+        vm.Markdown = string.Empty; Render();
+
+        // ---- 2.10 中文输入法形态回车（真机缺陷钉）：IME 激活时按键以 Key.ImeProcessed
+        // 到达（真机日志实测），OnEditorKeyDown 用 PhysicalKey 归一化——ImeProcessed+PhysicalKey.Enter
+        // 必须等效 Enter 拆块，否则回车静默失效。 ----
+        var imeEditor = realKeyLive!.GetVisualDescendants().OfType<TextBox>()
+            .FirstOrDefault(box => box.IsEffectivelyVisible);
+        Check(imeEditor is not null, "IME probe finds the caret editor");
+        imeEditor!.Focus();
+        imeEditor.RaiseEvent(new KeyEventArgs
+        {
+            RoutedEvent = InputElement.KeyDownEvent,
+            Key = Key.ImeProcessed,
+            PhysicalKey = PhysicalKey.Enter,
+            Source = imeEditor
+        });
+        Render(); Thread.Sleep(300); Render();
+        var imeAfter = realKeyLive!.GetVisualDescendants()
+            .Count(c => c.GetType().Name == "MarkdownBlockView");
+        Check(imeAfter == 2, "ImeProcessed Enter (PhysicalKey=Enter) splits a paragraph like a plain Enter");
+
+        // ---- 2.11 文件重命名后就地刷新（用户反馈：改名后列表滞留旧名）----
+        // 树模式此前只更新选中项不重建节点；修复后重命名命令（RenamedFrom）驱动节点就地替换。
+        var filesHost = window.Workspace.GetVisualDescendants()
+            .FirstOrDefault(view => view.DataContext is Vex.Modules.Shell.ViewModels.ShellFilesViewModel);
+        Check(filesHost is not null, "Files view host found");
+        var filesVm = (Vex.Modules.Shell.ViewModels.ShellFilesViewModel)filesHost!.DataContext!;
+
+        DocumentFileNode? FindNodeBySuffix(System.Collections.ObjectModel.ObservableCollection<DocumentFileNode> nodes, string suffix)
+        {
+            foreach (var node in nodes)
+            {
+                if (node.DocumentFile?.Path.EndsWith(suffix, StringComparison.Ordinal) == true) return node;
+                if (node.DocumentFile is null && node.Path.EndsWith(suffix, StringComparison.Ordinal)) return node;
+                var child = FindNodeBySuffix(node.Children, suffix);
+                if (child is not null) return child;
+            }
+            return null;
+        }
+        var dump = string.Join(" | ", EnumerateNodePaths(filesVm.DocumentFileNodes).Take(8));
+        Console.WriteLine("  tree dump: " + dump);
+        var renamedTarget = FindNodeBySuffix(filesVm.DocumentFileNodes, "instant-enter-probe.md");
+        Check(renamedTarget is { DocumentFile: not null }, "Rename target node exists in the workspace tree");
+
+        static System.Collections.Generic.IEnumerable<string> EnumerateNodePaths(
+            System.Collections.ObjectModel.ObservableCollection<DocumentFileNode> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                yield return node.DocumentFile?.Path ?? node.Path + "/";
+                foreach (var path in EnumerateNodePaths(node.Children)) yield return path;
+            }
+        }
+        var oldPath = renamedTarget!.DocumentFile!.Path;
+        var newName = "重命名后.md";
+        var newPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(oldPath)!, newName);
+        var newFile = new DocumentFile(newPath, newName, renamedTarget.DocumentFile.FolderName,
+            renamedTarget.DocumentFile.ModifiedText, renamedTarget.DocumentFile.Preview,
+            renamedTarget.DocumentFile.ModifiedTime, renamedTarget.DocumentFile.CreatedTime);
+
+        var snapshotFiles = new System.Collections.Generic.List<DocumentFile>();
+        void CollectFiles(System.Collections.ObjectModel.ObservableCollection<DocumentFileNode> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                if (node.DocumentFile is { } file && !string.Equals(file.Path, oldPath, StringComparison.OrdinalIgnoreCase))
+                    snapshotFiles.Add(file);
+                else if (node.DocumentFile is not null)
+                    snapshotFiles.Add(newFile);
+                CollectFiles(node.Children);
+            }
+        }
+        CollectFiles(filesVm.DocumentFileNodes);
+
+        filesVm.ApplyDocumentFilesChanged(new DocumentFilesChangedCommand(
+            snapshotFiles, newFile, workspaceRootPath: null, renamedFrom: oldPath));
+        Render(); Thread.Sleep(200); Render();
+
+        Check(FindNodeBySuffix(filesVm.DocumentFileNodes, newName) is not null,
+            "Renamed node appears in the tree with the new name");
+        Check(FindNodeBySuffix(filesVm.DocumentFileNodes, "instant-enter-probe.md") is null,
+            "Old-named node is gone from the tree");
         Console.WriteLine("Fix regression verification PASS");
     }
 }

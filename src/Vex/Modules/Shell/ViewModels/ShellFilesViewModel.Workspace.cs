@@ -65,11 +65,81 @@ public sealed partial class ShellFilesViewModel
         RebuildWorkspaceProjection();
     }
 
+    /// <summary>
+    /// 重命名后就地更新文件树节点：按旧路径定位，构造新节点（新名/新路径 + 迁移
+    /// 子树引用、展开态、文档绑定与目录标签），父集合按原索引替换（Observable 集合
+    /// 直接驱动 UI 刷新）；选中项与当前文档引用同步迁移。
+    /// </summary>
+    private void ApplyFileRenamed(string oldPath, DocumentFilesChangedCommand command)
+    {
+        if (command.SelectedFile is null) return;
+        var node = FindNodeByPath(DocumentFileNodes, oldPath);
+        if (node is null)
+        {
+            // 节点不在树中（懒加载未展开）：刷新当前选中即可，等目录展开时自然读磁盘。
+            SelectDocumentFileSilently(FindDocumentFileNode(DocumentFileNodes, command.SelectedFile));
+            return;
+        }
+
+        var parent = node.Parent;
+        var index = parent?.Children.IndexOf(node) ?? -1;
+        if (parent is null || index < 0)
+        {
+            SelectDocumentFileSilently(FindDocumentFileNode(DocumentFileNodes, command.SelectedFile));
+            return;
+        }
+
+        var oldFile = node.DocumentFile;
+        node.DetachDocument();
+        var replacement = new DocumentFileNode(
+            Path.GetFileName(command.SelectedFile.Path),
+            command.SelectedFile.Path,
+            node.IsFolder,
+            node.Children,
+            command.SelectedFile)
+        {
+            Parent = parent,
+            FolderTag = node.FolderTag,
+        };
+        replacement.IsExpanded = node.IsExpanded;
+        parent.Children[index] = replacement;
+
+        if (_currentDocumentFile is { } current && PathsEqual(current.Path, oldPath))
+        {
+            _currentDocumentFile = replacement.DocumentFile;
+        }
+        if (ReferenceEquals(SelectedDocumentFileNode, node))
+        {
+            SelectDocumentFileSilently(replacement);
+        }
+        NotifyDocumentFilesChanged();
+    }
+
+    /// <summary>按完整路径递归查找树节点（与文件系统一致，Windows 不分大小写）。</summary>
+    private static DocumentFileNode? FindNodeByPath(
+        System.Collections.ObjectModel.ObservableCollection<DocumentFileNode> nodes, string path)
+    {
+        foreach (var node in nodes)
+        {
+            if (PathsEqual(node.Path, path)) return node;
+            if (node.Children.Count == 0) continue;
+            var child = FindNodeByPath(node.Children, path);
+            if (child is not null) return child;
+        }
+        return null;
+    }
+
     private void ApplyWorkspaceDocumentFilesChanged(DocumentFilesChangedCommand command)
     {
         if (!Dispatcher.UIThread.CheckAccess())
         {
             Dispatcher.UIThread.Post(() => ApplyWorkspaceDocumentFilesChanged(command));
+            return;
+        }
+        // 重命名命令优先：就地改名节点（保留展开态/选中/子树），不做全量重建。
+        if (command.RenamedFrom is { Length: > 0 } renamedFrom)
+        {
+            ApplyFileRenamed(renamedFrom, command);
             return;
         }
         EnsureWorkspaceSession();
