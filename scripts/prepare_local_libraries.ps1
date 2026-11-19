@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory)][string] $PackageVersion,
     [string] $LibraryRoot = "",
@@ -22,9 +22,9 @@ $packages = [ordered]@{
     'CodeWF.Avalonia.Lang' = 'src/Lang/CodeWF.Avalonia.Lang/CodeWF.Avalonia.Lang.csproj'
     'CodeWF.Avalonia.Controls' = 'src/Controls/CodeWF.Avalonia.Controls/CodeWF.Avalonia.Controls.csproj'
     'CodeWF.Avalonia.DataGrid' = 'src/DataGrid/CodeWF.Avalonia.DataGrid/CodeWF.Avalonia.DataGrid.csproj'
-    'CodeWF.Avalonia.Markdown.Lite' = 'src/Markdown/CodeWF.Avalonia.Markdown.Lite/CodeWF.Avalonia.Markdown.Lite.csproj'
-    'CodeWF.Avalonia.Markdown' = 'src/Markdown/CodeWF.Avalonia.Markdown/CodeWF.Avalonia.Markdown.csproj'
-    'CodeWF.Avalonia.MindView' = 'src/MindView/CodeWF.Avalonia.MindView/CodeWF.Avalonia.MindView.csproj'
+    'CodeWF.Avalonia.Markdown.Lite' = 'src/CodeWF.Avalonia.Markdown.Lite/CodeWF.Avalonia.Markdown.Lite.csproj'
+    'CodeWF.Avalonia.Markdown' = 'src/CodeWF.Avalonia.Markdown/CodeWF.Avalonia.Markdown.csproj'
+    'CodeWF.Avalonia.MindView' = 'src/CodeWF.Avalonia.MindView/CodeWF.Avalonia.MindView.csproj'
 }
 foreach ($name in $packages.Keys) {
     $packageFile = Join-Path $PackageRoot "$name.$PackageVersion.nupkg"

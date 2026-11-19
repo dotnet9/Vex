@@ -251,10 +251,17 @@ internal sealed class MarkdownBlockView : UserControl
     public Func<int, bool>? MergeRequested { get; set; }
     public Action<int>? IndentRequested { get; set; }
 
+    /// <summary>编辑开始（宿主借此记录活动块并防虚拟化回收）。</summary>
     public Action<MarkdownBlockView>? EditingStarted { get; set; }
+    /// <summary>编辑框选区/光标变化（驱动选区统计与浮条）。</summary>
     public Action? EditorSelectionChanged { get; set; }
+    /// <summary>文本输入前钩子（自动配对等预编辑处理）。</summary>
     internal Action<TextInputEventArgs>? TextEntering { get => _editor.BeforeTextInput; set => _editor.BeforeTextInput = value; }
 
+    /// <summary>围栏补全判定（宿主强灌 ```/```lang 转代码块）：true=已转换并重建。</summary>
+    public Func<MarkdownBlockView, bool>? FenceCompleted { get; set; }
+
+    /// <summary>回车拆块请求（参数为光标偏移）。</summary>
     public Action<MarkdownBlockView, int>? SplitRequested { get; set; }
 
     public MarkdownBlockModel Model { get; }
@@ -424,7 +431,6 @@ internal sealed class MarkdownBlockView : UserControl
     private void CancelEdit()
     {
         ModelText = _editOriginalText; Model.Language = _editOriginalLanguage;
-        _editing = false; EndInlineEditor(); UpdateRichText(); TextCommitted?.Invoke(this, ModelText);
     }
 
     /// <summary>外部替换内容（例如预览回写）时刷新显示。</summary>
@@ -636,6 +642,8 @@ internal sealed class MarkdownBlockView : UserControl
                 // Typora 语义：回车=在光标处拆出新段落（焦点进新块），空段落可连续存在
                 // （末尾连敲即持续加空行）。有选区时先删选区再拆。
                 e.Handled = true;
+                // 围栏补全优先：整行恰为 ``` / ```lang 时转代码块源码编辑（Typora 行为）。
+                if (FenceCompleted?.Invoke(this) == true) return;
                 var enterText = _editor.Text ?? string.Empty;
                 var enterStart = Math.Clamp(Math.Min(_editor.SelectionStart, _editor.SelectionEnd), 0, enterText.Length);
                 var enterEnd = Math.Clamp(Math.Max(_editor.SelectionStart, _editor.SelectionEnd), enterStart, enterText.Length);

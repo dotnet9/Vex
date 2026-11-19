@@ -408,13 +408,12 @@ public class MarkdownBlockEditorCoreTests
 
     [Theory]
     [InlineData(">", " ", "", 0)]
-    [InlineData("  >", "x", "x", 1)]
     [InlineData("", "> 示例", "示例", 2)]
-    public void EnterQuoteMarker_PromotesCommittedPrefix(string text, string input, string body, int caret)
+    public void EnterBlockMarker_PromotesCommittedQuotePrefix(string text, string input, string body, int caret)
     {
         var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = text };
         var core = new MarkdownBlockEditorCore([model]);
-        var result = core.EnterQuoteMarker(0, text, text.Length, text.Length, input);
+        var result = core.EnterBlockMarker(0, text, text.Length, text.Length, input);
         Assert.Equal(new MarkdownBlockEditorCore.BlockEditResult(true, 0, caret), result);
         Assert.Equal(MarkdownBlockKind.Quote, model.Kind);
         Assert.Equal(1, model.QuoteDepth);
@@ -427,25 +426,114 @@ public class MarkdownBlockEditorCoreTests
     [InlineData("a >", " ")]
     [InlineData("    >", " ")]
     [InlineData(">", "\n")]
-    public void EnterQuoteMarker_LeavesOrdinaryInputToTextBox(string text, string input)
+    public void EnterBlockMarker_LeavesOrdinaryInputToTextBox(string text, string input)
     {
         var model = new MarkdownBlockModel { Text = text };
         var core = new MarkdownBlockEditorCore([model]);
-        Assert.Null(core.EnterQuoteMarker(0, text, text.Length, text.Length, input));
+        Assert.Null(core.EnterBlockMarker(0, text, text.Length, text.Length, input));
         Assert.Equal(MarkdownBlockKind.Paragraph, model.Kind);
         Assert.Equal(text, model.Text);
     }
 
     [Fact]
-    public void EnterQuoteMarker_InQuote_NestsWithoutDiscardingSourceOrSuffix()
+    public void EnterBlockMarker_InQuote_NestsWithoutDiscardingSourceOrSuffix()
     {
         var source = new MarkdownBlockSource("\n", "> tail", "> tail", "\n", "");
         var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Quote, QuoteDepth = 1, Text = "tail", Source = source };
         var core = new MarkdownBlockEditorCore([model]);
-        Assert.Equal(0, core.EnterQuoteMarker(0, model.Text, 0, 0, "> ")!.Caret);
+        Assert.Equal(0, core.EnterBlockMarker(0, model.Text, 0, 0, "> ")!.Caret);
         Assert.Equal(2, model.QuoteDepth);
         Assert.Equal("tail", model.Text);
         Assert.Same(source, model.Source);
+    }
+
+    // ---- 块首标记族（muya/Typora 输入转换）：# 标题、-/*/＋ 无序、N./N) 有序 ----
+
+    [Theory]
+    [InlineData("# ", 1)]
+    [InlineData("## ", 2)]
+    [InlineData("###### ", 6)]
+    public void EnterBlockMarker_HashSpace_PromotesToHeading(string prefix, int level)
+    {
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = "" };
+        var core = new MarkdownBlockEditorCore([model]);
+        var result = core.EnterBlockMarker(0, "", 0, 0, prefix + "正文");
+        Assert.NotNull(result);
+        Assert.Equal(MarkdownBlockKind.Heading, model.Kind);
+        Assert.Equal(level, model.HeadingLevel);
+        Assert.Equal("正文", model.Text);
+        // 整段输入（"# 正文"）后光标落在正文末尾。
+        Assert.Equal(2, result!.Caret);
+    }
+
+    [Fact]
+    public void EnterBlockMarker_BareMarkerThenLetter_IsRejected()
+    {
+        // ">x" 无空格分隔不是合法标记（收紧语义）：真机流中空格时刻已完成转换。
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = "  >" };
+        var core = new MarkdownBlockEditorCore([model]);
+        Assert.Null(core.EnterBlockMarker(0, "  >", 3, 3, "x"));
+        Assert.Equal(MarkdownBlockKind.Paragraph, model.Kind);
+    }
+
+    [Fact]
+    public void EnterBlockMarker_SevenHashes_IsRejected()
+    {
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = "" };
+        var core = new MarkdownBlockEditorCore([model]);
+        Assert.Null(core.EnterBlockMarker(0, "", 0, 0, "####### 正文"));
+        Assert.Equal(MarkdownBlockKind.Paragraph, model.Kind);
+    }
+
+    [Theory]
+    [InlineData("- ")]
+    [InlineData("* ")]
+    [InlineData("+ ")]
+    public void EnterBlockMarker_BulletSpace_PromotesToUnorderedListItem(string prefix)
+    {
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = "" };
+        var core = new MarkdownBlockEditorCore([model]);
+        var result = core.EnterBlockMarker(0, "", 0, 0, prefix + "待办");
+        Assert.NotNull(result);
+        Assert.Equal(MarkdownBlockKind.ListItem, model.Kind);
+        Assert.False(model.IsOrdered);
+        Assert.False(model.IsTask);
+        Assert.Equal("待办", model.Text);
+    }
+
+    [Theory]
+    [InlineData("2. ", 2)]
+    [InlineData("10) ", 10)]
+    public void EnterBlockMarker_OrderedMarker_CarriesTheTypedNumber(string prefix, int expected)
+    {
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = "" };
+        var core = new MarkdownBlockEditorCore([model]);
+        var result = core.EnterBlockMarker(0, "", 0, 0, prefix + "第二步");
+        Assert.NotNull(result);
+        Assert.Equal(MarkdownBlockKind.ListItem, model.Kind);
+        Assert.True(model.IsOrdered);
+        Assert.Equal(expected, model.OrderedNumber);
+        Assert.Equal("第二步", model.Text);
+    }
+
+    [Fact]
+    public void EnterBlockMarker_MidTextHash_IsNotConverted()
+    {
+        // 文档中部巧合命中不转换：光标必须紧跟标记之后。
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = "前文 " };
+        var core = new MarkdownBlockEditorCore([model]);
+        Assert.Null(core.EnterBlockMarker(0, "前文 ", 4, 4, "# 标题"));
+        Assert.Equal(MarkdownBlockKind.Paragraph, model.Kind);
+    }
+
+    [Fact]
+    public void EnterBlockMarker_InQuote_NonQuoteMarker_IsRejected()
+    {
+        // 引用块内只有 > 参与转换（嵌套加深），# 等标记原样保留。
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Quote, QuoteDepth = 1, Text = "" };
+        var core = new MarkdownBlockEditorCore([model]);
+        Assert.Null(core.EnterBlockMarker(0, "", 0, 0, "# 标题"));
+        Assert.Equal(MarkdownBlockKind.Quote, model.Kind);
     }
 
     [Fact]
@@ -459,5 +547,62 @@ public class MarkdownBlockEditorCoreTests
         Assert.True(result.Changed);
         Assert.True(ReferenceEquals(core.Blocks[1].Source, source), "continuation must share the quote Source");
         Assert.Equal(MarkdownBlockKind.Quote, core.Blocks[1].Kind);
+    }
+    // ---- 围栏代码块补全（Typora 行为）：```lang + 回车 → 转代码块源码编辑 ----
+
+    [Theory]
+    [InlineData("```", "")]
+    [InlineData("```csharp", "csharp")]
+    [InlineData("```  json ", "json")]
+    public void EnterFenceMarker_AtBlockStart_PromotesToFencedCode(string input, string language)
+    {
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = "" };
+        var core = new MarkdownBlockEditorCore([model]);
+        var result = core.EnterFenceMarker(0, "", 0, 0, input);
+        Assert.NotNull(result);
+        Assert.Equal(MarkdownBlockKind.Code, model.Kind);
+        Assert.True(model.IsFenced);
+        Assert.Equal(language, model.Language);
+        Assert.Equal(string.Empty, model.Text);
+        Assert.Equal(0, result!.Caret);
+        Assert.NotNull(model.Source);
+    }
+
+    [Fact]
+    public void EnterFenceMarker_WithLeadingSpaces_Promotes()
+    {
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = "  " };
+        var core = new MarkdownBlockEditorCore([model]);
+        var result = core.EnterFenceMarker(0, "  ", 2, 2, "```python");
+        Assert.NotNull(result);
+        Assert.Equal("python", model.Language);
+    }
+
+    [Fact]
+    public void EnterFenceMarker_InsideExistingCodeBlock_IsRejected()
+    {
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Code, Text = "", IsFenced = true };
+        var core = new MarkdownBlockEditorCore([model]);
+        Assert.Null(core.EnterFenceMarker(0, "", 0, 0, "```"));
+        Assert.Equal(MarkdownBlockKind.Code, model.Kind);
+    }
+
+    [Fact]
+    public void EnterFenceMarker_InQuote_IsRejected()
+    {
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Quote, QuoteDepth = 1, Text = "" };
+        var core = new MarkdownBlockEditorCore([model]);
+        Assert.Null(core.EnterFenceMarker(0, "", 0, 0, "```csharp"));
+        Assert.Equal(MarkdownBlockKind.Quote, model.Kind);
+    }
+
+    [Fact]
+    public void EnterFenceMarker_BareText_IsRejected()
+    {
+        var model = new MarkdownBlockModel { Kind = MarkdownBlockKind.Paragraph, Text = "普通文字" };
+        var core = new MarkdownBlockEditorCore([model]);
+        Assert.Null(core.EnterFenceMarker(0, "普通文字", 4, 4, "```"));
+        Assert.Equal(MarkdownBlockKind.Paragraph, model.Kind);
+        Assert.Equal("普通文字", model.Text);
     }
 }

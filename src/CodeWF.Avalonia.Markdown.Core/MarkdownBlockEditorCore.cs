@@ -159,10 +159,17 @@ public sealed class MarkdownBlockEditorCore
         return true;
     }
 
-    /// <summary>已提交的输入在块首补全引用标记时，把标记移入块结构，保留正文和光标。</summary>
-    public BlockEditResult? EnterQuoteMarker(int index, string text, int start, int end, string input)
+    /// <summary>
+    /// 已提交的输入在块首补全块标记时，把标记移入块结构，保留正文和光标
+    /// （muya/Typora 的 markdown 输入转换）：#~###### → 标题、-/*/＋ → 无序列表、
+    /// N. / N) → 有序列表（编号取输入值）、> → 引用（引用块内再输 &gt; 为嵌套加深）。
+    /// 触发条件：输入含空格使前缀完整成立，且光标紧跟标记之后（用户正在块首打字）。
+    /// 标记不成立（裸 #、a > 、4+ 空格缩进=代码块形态）返回 null 交给默认输入。
+    /// </summary>
+    public BlockEditResult? EnterBlockMarker(int index, string text, int start, int end, string input)
     {
-        if (index < 0 || index >= _models.Count || input.Length == 0 || input.AsSpan().ContainsAny('\r', '\n')) return null;
+        if (index < 0 || index >= _models.Count || input.Length == 0 || !input.Contains(' ')
+            || input.AsSpan().ContainsAny('\r', '\n')) return null;
         var model = _models[index];
         if (model.Kind is not (MarkdownBlockKind.Paragraph or MarkdownBlockKind.Quote)
             || start < 0 || end < start || end > text.Length) return null;
@@ -170,17 +177,113 @@ public sealed class MarkdownBlockEditorCore
         var edited = text.Remove(start, end - start).Insert(start, input);
         var marker = 0;
         while (marker < 3 && marker < edited.Length && edited[marker] == ' ') marker++;
+        // 4+ 空格缩进是代码块形态，永不转换。
+        if (marker == 3 && marker < edited.Length && edited[marker] == ' ') return null;
         var caret = start + input.Length;
-        if (start > marker + 1 || caret <= marker || marker + 1 >= edited.Length || edited[marker] != '>'
-            || edited[marker + 1] is '\r' or '\n') return null;
+        if (caret <= marker || caret > edited.Length) return null;
+        var rest = edited[marker..];
 
-        var body = marker + 1;
+        MarkdownBlockKind kind; int headingLevel = 0, orderedNumber = 0, markerLength;
+        var ordered = false;
+        if (rest.Length > 1 && rest[0] == '>' && rest[1] is ' ' or '\t')
+        {
+            kind = MarkdownBlockKind.Quote; markerLength = 2;
+        }
+        else if (model.Kind == MarkdownBlockKind.Quote)
+        {
+            // 引用块内只有 > 参与转换（嵌套加深），其余标记原样保留。
+            return null;
+        }
+        else if (rest.Length > 1 && rest[0] == '#' && (markerLength = rest.TakeWhile(c => c == '#').Count()) is >= 1 and <= 6
+            && markerLength < rest.Length && rest[markerLength] == ' ')
+        {
+            kind = MarkdownBlockKind.Heading; headingLevel = markerLength; markerLength++;
+        }
+        else if (rest.Length > 1 && (rest[0] is '-' or '*' or '+') && rest[1] == ' ')
+        {
+            kind = MarkdownBlockKind.ListItem; markerLength = 2;
+        }
+        else if (TryParseOrderedMarker(rest, out orderedNumber, out markerLength))
+        {
+            kind = MarkdownBlockKind.ListItem; ordered = true;
+        }
+        else return null;
+
+        // 光标必须落在标记之后（正在块首打字），文档中部的巧合命中不转换。
+        if (caret < marker + markerLength) return null;
+        var body = marker + markerLength;
         while (body < edited.Length && edited[body] is ' ' or '\t') body++;
-        model.QuoteDepth = model.Kind == MarkdownBlockKind.Quote ? model.QuoteDepth + 1 : 1;
-        model.Kind = MarkdownBlockKind.Quote;
+
+        model.HeadingLevel = 0; model.IsTask = false; model.IsChecked = false;
+        switch (kind)
+        {
+            case MarkdownBlockKind.Heading:
+                model.Kind = MarkdownBlockKind.Heading;
+                model.HeadingLevel = headingLevel;
+                model.QuoteDepth = 0; model.IndentLevel = 0; model.IsOrdered = false; model.OrderedNumber = 0;
+                break;
+            case MarkdownBlockKind.ListItem when ordered:
+                model.Kind = MarkdownBlockKind.ListItem;
+                model.IsOrdered = true; model.OrderedNumber = orderedNumber;
+                model.QuoteDepth = 0; model.IndentLevel = 0;
+                break;
+            case MarkdownBlockKind.ListItem:
+                model.Kind = MarkdownBlockKind.ListItem;
+                model.IsOrdered = false; model.OrderedNumber = 0;
+                model.QuoteDepth = 0; model.IndentLevel = 0;
+                break;
+            default:
+                model.QuoteDepth = model.Kind == MarkdownBlockKind.Quote ? model.QuoteDepth + 1 : 1;
+                model.Kind = MarkdownBlockKind.Quote;
+                break;
+        }
         model.Text = edited[body..];
         model.Source ??= new MarkdownBlockSource(string.Empty, string.Empty, string.Empty, "\n", string.Empty) { IsGenerated = true };
-        return new BlockEditResult(true, index, Math.Max(0, caret - body));
+        return new BlockEditResult(true, index,
+            Math.Min(Math.Max(0, caret - body), model.Text.Length));
+    }
+
+    /// <summary>有序标记 N. / N) + 空格（N 最多 9 位），返回编号与标记长度（含分隔与空格）。</summary>
+    private static bool TryParseOrderedMarker(string rest, out int number, out int markerLength)
+    {
+        number = 0; markerLength = 0;
+        var digits = 0;
+        while (digits < rest.Length && digits < 9 && rest[digits] is >= '0' and <= '9') digits++;
+        if (digits == 0 || digits >= rest.Length || rest[digits] is not ('.' or ')') || digits + 1 >= rest.Length
+            || rest[digits + 1] != ' ') return false;
+        if (!int.TryParse(rest[..digits], out number)) return false;
+        markerLength = digits + 2;
+        return true;
+    }
+
+    /// <summary>
+    /// 围栏代码块补全（Typora 行为）：已提交的 ``` 或 ```lang 输入 + 回车 →
+    /// 段落转围栏代码块（Language 取 lang，Text 空，光标 0，直接进入源码编辑）。
+    /// 仅纯段落参与；引用内与既有代码块不转换。返回焦点指令，无法转换返回 null。
+    /// </summary>
+    public BlockEditResult? EnterFenceMarker(int index, string text, int start, int end, string input)
+    {
+        if (index < 0 || index >= _models.Count) return null;
+        var model = _models[index];
+        if (model.Kind != MarkdownBlockKind.Paragraph
+            || start < 0 || end < start || end > text.Length || input.Length < 3) return null;
+
+        var edited = text.Remove(start, end - start).Insert(start, input);
+        var marker = 0;
+        while (marker < 3 && marker < edited.Length && edited[marker] == ' ') marker++;
+        if (edited.Length - marker < 3 || edited[marker] != '`' || edited[marker + 1] != '`' || edited[marker + 2] != '`')
+            return null;
+
+        var language = edited[(marker + 3)..].Trim();
+        if (language.Length > 0 && language.Contains(' ')) return null;
+        model.Kind = MarkdownBlockKind.Code;
+        model.IsFenced = true;
+        model.Language = language;
+        model.Text = string.Empty;
+        model.QuoteDepth = 0; model.IndentLevel = 0; model.HeadingLevel = 0;
+        model.IsTask = false; model.IsOrdered = false; model.OrderedNumber = 0;
+        model.Source ??= new MarkdownBlockSource(string.Empty, string.Empty, string.Empty, "\n", string.Empty) { IsGenerated = true };
+        return new BlockEditResult(true, index, 0);
     }
 
     /// <summary>

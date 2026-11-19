@@ -30,8 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Markdown.Lite\CodeWF.Avalonia.Markdown.Lite.csproj" />
-    <ProjectReference Include="..\Markdown.Core\CodeWF.Avalonia.Markdown.Core.csproj" />
+    <ProjectReference Include="..\CodeWF.Avalonia.Markdown.Lite\CodeWF.Avalonia.Markdown.Lite.csproj" />
+    <ProjectReference Include="..\CodeWF.Avalonia.Markdown.Core\CodeWF.Avalonia.Markdown.Core.csproj" />
     <PackageReference Include="CodeWF.Avalonia.Controls" />
     <PackageReference Include="CodeWF.Avalonia.Lang" />
     <PackageReference Include="CodeWF.Toolkit.Logging" />

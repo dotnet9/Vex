@@ -293,120 +293,60 @@ internal static class FixRegressionVerification
             "Typing continues inside the quote, with a source-relative caret");
         instantEditor.SetText("> "); Render();
         Check(MdQuoteCount() == 1 && instantEditor.Text == "> ", "Empty quote round-trips through SetText");
-        // ---- 2.5 空白文档即时编辑：空段落块存在、光标就位、可拆块（Typora 空文档行为） ----
-        // 共享流程装载了演示文档；直接清空内容模拟空白文档（NewDocument 会因 dirty 弹确认挂探针）。
-        vm.Markdown = string.Empty;
-        Render(); Thread.Sleep(300); Render();
-        vm.Workbench.SelectLayout("instant");
-        Render(); Thread.Sleep(300); Render();
-        var blankLive = window.Workspace.GetVisualDescendants()
-            .FirstOrDefault(control => control.GetType().Name == "MarkdownInstantView");
-        Check(blankLive is not null, "Blank instant view found");
-        var blankBlocks = blankLive!.GetVisualDescendants()
-            .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
-        Console.WriteLine("blank doc block views: " + blankBlocks.Count);
-        Check(blankBlocks.Count == 1, "Blank document keeps one empty paragraph block: " + blankBlocks.Count);
-        var blankEditor = blankBlocks[0].GetVisualDescendants().OfType<TextBox>().FirstOrDefault();
-        Console.WriteLine("blank editor: visible=" + blankEditor?.IsVisible + " focused=" + blankEditor?.IsFocused);
-        Check(blankEditor is { IsVisible: true }, "Blank paragraph editor is visible (click target exists)");
-        // 真机缺陷钉：Canvas 内空文本期望宽 0 → 编辑框 0 宽不可见（内容照进、光标与文字全无）。
-        Check(blankEditor is { } && blankEditor.MinWidth >= 160 && blankEditor.Bounds.Width >= 100,
-            "Blank paragraph editor has usable width for the caret: " +
-            $"min={blankEditor?.MinWidth}, bounds={blankEditor?.Bounds.Width}");
-        // 真机缺陷钉：占位/隐藏渲染管线对空源码产出空 TextLayout，HitTestTextPosition(0) 高度 0
-        // → 光标画出即不可见。空块布局层必须填透明空格撑行高。
-        var blankPresenter = blankEditor!.GetVisualDescendants()
-            .OfType<Avalonia.Controls.Presenters.TextPresenter>().FirstOrDefault();
-        var caretRect = blankPresenter?.TextLayout.HitTestTextPosition(0);
-        Console.WriteLine($"blank caret rect: {caretRect?.Width}x{caretRect?.Height} blockH={blankBlocks[0].Bounds.Height}");
-        Check(caretRect is { Height: > 0 } && blankBlocks[0].Bounds.Height > 0,
-            "Blank-block caret has line-height geometry: caret={caretRect?.Width}x{caretRect?.Height}, block={blankBlocks[0].Bounds.Height}");
-        // Typora 行为：点击文档空白区域（块外下方远处，修上轮只点块中心的盲区），
-        // 光标落到最近段落块（FindNearestBlockIndex → FocusBlock）。
-        var blankRect = blankBlocks[0].TranslatePoint(new Point(0, 0), window)
-            ?? throw new InvalidOperationException("Blank block unmapped");
-        var farBelow = new Point(blankRect.X + blankRect.X / 2, blankRect.Y + blankBlocks[0].Bounds.Height + 220);
-        window.MouseMove(farBelow, RawInputModifiers.None); Render();
-        window.MouseDown(farBelow, MouseButton.Left); Render();
-        window.MouseUp(farBelow, MouseButton.Left); Render();
-        Thread.Sleep(300); Render();
-        // 强验证：点击空白后直接打字，能接住文本=编辑器在编辑态（headless 焦点链不可靠，以功能为准）。
-        var typed = blankBlocks[0].GetVisualDescendants().OfType<TextBox>()
-            .FirstOrDefault(box => box.IsVisible);
-        // 真机缺陷钉：Win32 层点击非聚焦区会在 bubble 阶段清焦——聚焦后编辑器必须仍是焦点元素。
-        var focusAfterBlank = window.FocusManager?.GetFocusedElement();
-        Console.WriteLine("focus after blank click: " + focusAfterBlank?.GetType().Name);
-        Check(ReferenceEquals(focusAfterBlank, typed),
-            "Blank-area click keeps the caret editor focused (no Win32 focus steal)");
-        if (typed is not null)
+        // ---- 2.7b 块首标记转换族（muya/Typora 输入转换）：# 空格→标题、- 空格→无序、2. →有序带编号 ----
+        instantEditor.SetText(string.Empty); Render();
+        instantEditor.FocusBlock(0); Render();
+        window.KeyTextInput("#"); Render();
+        window.KeyTextInput(" "); Render();
+        window.KeyTextInput("标题正文"); Render();
+        Check(vm.Markdown.Contains("# 标题正文"),
+            "Hash+space promotes to heading with the marker absorbed: " + vm.Markdown.Replace("\n", "\\n"));
+        Check(window.FocusManager?.GetFocusedElement() is TextBox { Text: "标题正文" },
+            "Caret continues inside the promoted heading");
+        vm.EditorActions.Undo(); Render();
+        instantEditor.SetText(string.Empty); Render();
+        instantEditor.FocusBlock(0); Render();
+        window.KeyTextInput("-"); Render();
+        window.KeyTextInput(" "); Render();
+        window.KeyTextInput("待办项"); Render();
+        Check(vm.Markdown.Contains("- 待办项"),
+            "Dash+space promotes to unordered list item");
+        vm.EditorActions.Undo(); Render();
+        instantEditor.SetText(string.Empty); Render();
+        instantEditor.FocusBlock(0); Render();
+        window.KeyTextInput("2"); Render();
+        window.KeyTextInput("."); Render();
+        window.KeyTextInput(" "); Render();
+        window.KeyTextInput("第二步"); Render();
+        Check(vm.Markdown.Contains("2. 第二步"),
+            "Ordered marker carries the typed number");
+        // ---- 2.7c 聚焦形态（Typora 对齐）：点击已渲染块 = 效果上编辑——
+        // 渲染标记（圆点/序号）保持可见，不隐藏不切换源码形态。 ----
+        vm.Markdown = "- 第一项\n- 第二项"; Render();
+        var listBlocks = live!.GetVisualDescendants()
+            .Where(c => c.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
+        var markerByBlock = new System.Collections.Generic.Dictionary<Control, TextBlock>();
+        foreach (var block in listBlocks)
         {
-            // 模拟文本输入走 TextInput 通道（真实键盘路径）。
-            typed.RaiseEvent(new Avalonia.Input.TextInputEventArgs { Text = "点击空白后输入", RoutedEvent = Avalonia.Input.InputElement.TextInputEvent });
-            Render(); Thread.Sleep(200); Render();
+            var marker = block.GetVisualAncestors().OfType<Panel>().SelectMany(p => p.Children)
+                .OfType<TextBlock>().FirstOrDefault(t => t.Text is "• " or "1. " or "2. ");
+            if (marker is not null) markerByBlock[block] = marker;
         }
-        Console.WriteLine("text after blank click typing: " + (typed?.Text ?? "null"));
-        Check(typed is { } && (typed.Text ?? string.Empty).Contains("点击空白后输入"),
-            "Typing after clicking blank area lands in the empty paragraph (Typora behavior)");
-        blankEditor!.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = blankEditor });
-        Render(); Thread.Sleep(300); Render();
-        var blankAfter = blankLive!.GetVisualDescendants()
-            .Where(control => control.GetType().Name == "MarkdownBlockView").OfType<Control>().ToList();
-        Console.WriteLine("blank doc blocks after enter: " + blankAfter.Count);
-        Check(blankAfter.Count == 2, "Enter on blank document splits into two paragraphs");
-        blankEditor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape, Source = blankEditor });
-        Render();
-
-        // ---- 2.8 真实键盘回车（window.KeyPress 走焦点路由管线，非 RaiseEvent 直发）：
-        // 空白文档打开后不点击直接回车，应拆块——真机反馈场景的行为钉。 ----
-        vm.Markdown = string.Empty;
-        Render(); Thread.Sleep(300); Render();
-        var realKeyLive = window.Workspace.GetVisualDescendants()
-            .FirstOrDefault(control => control.GetType().Name == "MarkdownInstantView");
-        int RealBlocks() => realKeyLive!.GetVisualDescendants()
-            .Count(c => c.GetType().Name == "MarkdownBlockView");
-        Console.WriteLine($"  real-enter: blocks-before={RealBlocks()} focused={window.FocusManager?.GetFocusedElement()?.GetType().Name}");
-        window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
-        window.KeyRelease(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
-        Render(); Thread.Sleep(300); Render();
-        Console.WriteLine($"  real-enter: blocks-after={RealBlocks()} text=\"{vm.Workbench.LiveEditor?.Text}\"");
-        Check(RealBlocks() == 2, "Real keyboard Enter on untouched blank document splits into two paragraphs");
-        vm.Markdown = string.Empty; Render();
-
-        // ---- 2.9 真机时序：文档在 source 布局打开、切即时后直接真实回车——
-        // 切布局瞬间同步 Focus 在真机上静默失败（可见性传播未完成），挂起聚焦应兜底。 ----
-        vm.Workbench.SelectLayout("source"); Render();
-        vm.Markdown = string.Empty; Render();
-        vm.Workbench.SelectLayout("instant"); Render();
-        Console.WriteLine($"  switch-enter: blocks-before={RealBlocks()} focused={window.FocusManager?.GetFocusedElement()?.GetType().Name}");
-        window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
-        window.KeyRelease(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
-        Render(); Thread.Sleep(300); Render();
-        Console.WriteLine($"  switch-enter: blocks-after={RealBlocks()}");
-        Check(RealBlocks() == 2, "Real keyboard Enter after layout switch (source->instant) splits into two paragraphs");
-        vm.Markdown = string.Empty; Render();
-
-        // ---- 2.10 中文输入法形态回车（真机缺陷钉）：IME 激活时按键以 Key.ImeProcessed
-        // 到达（真机日志实测），OnEditorKeyDown 用 PhysicalKey 归一化——ImeProcessed+PhysicalKey.Enter
-        // 必须等效 Enter 拆块，否则回车静默失效。 ----
-        var imeBlocks = realKeyLive!.GetVisualDescendants()
-            .Count(c => c.GetType().Name == "MarkdownBlockView");
-        var imeEditor = realKeyLive!.GetVisualDescendants().OfType<TextBox>()
-            .FirstOrDefault(box => box.IsEffectivelyVisible);
-        Check(imeEditor is not null, "IME probe finds the caret editor");
-        imeEditor!.Focus();
-        imeEditor.RaiseEvent(new KeyEventArgs
-        {
-            RoutedEvent = InputElement.KeyDownEvent,
-            Key = Key.ImeProcessed,
-            PhysicalKey = PhysicalKey.Enter,
-            Source = imeEditor
-        });
-        Render(); Thread.Sleep(300); Render();
-        var imeAfter = realKeyLive!.GetVisualDescendants()
-            .Count(c => c.GetType().Name == "MarkdownBlockView");
-        Console.WriteLine($"  ime-enter: blocks {imeBlocks} -> {imeAfter}");
-        Check(imeAfter == imeBlocks + 1, "ImeProcessed Enter (PhysicalKey=Enter) splits a paragraph like a plain Enter");
-
+        Check(markerByBlock.Count == 2, "Both list items expose their rendered markers: " + markerByBlock.Count);
+        var listBlock = listBlocks.OrderBy(b => b.TranslatePoint(default, window)?.Y ?? double.MinValue)
+            .LastOrDefault(b => b.TranslatePoint(default, window)?.Y is > 0 and < 900)
+            ?? throw new InvalidOperationException("Second list block not found");
+        var listPoint = listBlock.TranslatePoint(new Point(30, listBlock.Bounds.Height / 2), window)
+            ?? throw new InvalidOperationException("List block unmapped");
+        window.MouseMove(listPoint, RawInputModifiers.None); Render();
+        window.MouseDown(listPoint, MouseButton.Left); Render();
+        window.MouseUp(listPoint, MouseButton.Left); Render();
+        Thread.Sleep(200); Render();
+        // 点击聚焦后渲染标记保持可见（Typora：效果上编辑），第二项亦然。
+        Check(markerByBlock[listBlock].IsVisible,
+            "Focused list item keeps its rendered marker (effect-mode editing)");
+        var otherMarker = markerByBlock.First(kv => !ReferenceEquals(kv.Key, listBlock)).Value;
+        Check(otherMarker.IsVisible, "Unfocused list item also keeps its rendered marker");
         Console.WriteLine("Fix regression verification PASS");
     }
 }

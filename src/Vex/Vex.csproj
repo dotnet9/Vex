@@ -72,8 +72,8 @@
   <ItemGroup>
     <!-- Markdown/MindView：源码工程随本仓迭代（Controls/ 目录，高频改动区，git 历史可见）；
          Controls/Lang/DataGrid/Toolkit：成熟稳定走 nuget 包（升级=改版本号一行）。 -->
-    <ProjectReference Include="..\Markdown\CodeWF.Avalonia.Markdown.csproj" />
-    <ProjectReference Include="..\MindView\CodeWF.Avalonia.MindView.csproj" />
+    <ProjectReference Include="..\CodeWF.Avalonia.Markdown\CodeWF.Avalonia.Markdown.csproj" />
+    <ProjectReference Include="..\CodeWF.Avalonia.MindView\CodeWF.Avalonia.MindView.csproj" />
     <PackageReference Include="CodeWF.Avalonia.Controls" />
     <PackageReference Include="CodeWF.Avalonia.DataGrid" />
     <PackageReference Include="CodeWF.Avalonia.Lang" />

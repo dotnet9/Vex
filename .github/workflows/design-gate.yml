@@ -11,7 +11,7 @@ on:
       - 'scripts/sync_native_locales.cjs'
       - 'src/Vex/I18n/**'
       - 'src/Controls/CodeWF.Avalonia.Controls/Themes/Studio/**'
-      - 'src/Markdown/CodeWF.Avalonia.Markdown.Lite/Themes/ArticleTypographyCatalog.g.cs'
+      - 'src/CodeWF.Avalonia.Markdown.Lite/Themes/ArticleTypographyCatalog.g.cs'
       - '.github/workflows/design-gate.yml'
   pull_request:
     paths:
@@ -20,7 +20,7 @@ on:
       - 'scripts/sync_native_locales.cjs'
       - 'src/Vex/I18n/**'
       - 'src/Controls/CodeWF.Avalonia.Controls/Themes/Studio/**'
-      - 'src/Markdown/CodeWF.Avalonia.Markdown.Lite/Themes/ArticleTypographyCatalog.g.cs'
+      - 'src/CodeWF.Avalonia.Markdown.Lite/Themes/ArticleTypographyCatalog.g.cs'
       - '.github/workflows/design-gate.yml'
 jobs:
   gate:

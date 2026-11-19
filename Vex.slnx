@@ -16,12 +16,14 @@
   <Project Path="src/Vex.Core/Vex.Core.csproj" />
   <Project Path="src/Vex.Git/Vex.Git.csproj" />
   <Project Path="src/Vex/Vex.csproj" />
-  <Project Path="tests/Vex.Mcp.Tests/Vex.Mcp.Tests.csproj" />
   <Folder Name="/Controls/">
-    <Project Path="src/Markdown.Core/CodeWF.Avalonia.Markdown.Core.csproj" />
-    <Project Path="src/Markdown.Lite/CodeWF.Avalonia.Markdown.Lite.csproj" />
-    <Project Path="src/Markdown/CodeWF.Avalonia.Markdown.csproj" />
-    <Project Path="src/Markdown.Tests/CodeWF.Avalonia.Markdown.Tests.csproj" />
-    <Project Path="src/MindView/CodeWF.Avalonia.MindView.csproj" />
+    <Project Path="src/CodeWF.Avalonia.Markdown.Core/CodeWF.Avalonia.Markdown.Core.csproj" />
+    <Project Path="src/CodeWF.Avalonia.Markdown.Lite/CodeWF.Avalonia.Markdown.Lite.csproj" />
+    <Project Path="src/CodeWF.Avalonia.Markdown/CodeWF.Avalonia.Markdown.csproj" />
+    <Project Path="src/CodeWF.Avalonia.MindView/CodeWF.Avalonia.MindView.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="src/CodeWF.Avalonia.Markdown.Tests/CodeWF.Avalonia.Markdown.Tests.csproj" />
+    <Project Path="tests/Vex.Mcp.Tests/Vex.Mcp.Tests.csproj" />
   </Folder>
 </Solution>

@@ -907,6 +907,7 @@ public partial class MarkdownLiveEditorView : UserControl
                     Margin = new Thickness(model.IndentLevel * 18, 0, 0, 0)
                 };
 
+                Control marker;
                 if (model.IsTask)
                 {
                     // 任务复选框本身就是列表标记，与阅读视图保持一致。
@@ -923,18 +924,22 @@ public partial class MarkdownLiveEditorView : UserControl
                         view.NotifyModelChanged();
                     };
                     row.Children.Add(box);
+                    marker = box;
                 }
                 else
                 {
-                    row.Children.Add(new TextBlock
+                    marker = new TextBlock
                     {
                         Text = model.IsOrdered || model.OrderedNumber > 0 ? $"{model.OrderedNumber}. " : "• ",
                         VerticalAlignment = VerticalAlignment.Center,
                         Foreground = _blockOptions.MutedBrush,
                         MinWidth = 20
-                    });
+                    };
+                    row.Children.Add(marker);
                 }
 
+                // Typora 对齐：点击已渲染块 = 效果上编辑——渲染标记保持可见，
+                // 不做聚焦源码化切换（用户拍板）。
                 Grid.SetColumn(view, 1);
                 row.Children.Add(view);
                 return new Border { Classes = { "MdLiveListItem" }, Child = row };
@@ -1035,6 +1040,26 @@ public partial class MarkdownLiveEditorView : UserControl
     {
         view.AddHandler(InputElement.KeyDownEvent, OnBlockKeyDown, RoutingStrategies.Tunnel);
         view.TextEntering = e => OnBlockTextInput(view, e);
+        view.FenceCompleted = fenceView => TryEnterFenceMarker(fenceView);
+    }
+
+    /// <summary>
+    /// 围栏补全（Typora）：整行恰为 ``` / ```lang 时，回车把段落转成围栏代码块并进入
+    /// 源码编辑——Core.EnterFenceMarker 判定，单块原位刷新（SyncEditorFromModel 防旧文回滚）。
+    /// </summary>
+    private bool TryEnterFenceMarker(MarkdownBlockView view)
+    {
+        var index = _models.IndexOf(view.Model);
+        if (index < 0) return false;
+        var lineText = view.Model.Text;
+        if (!lineText.TrimStart().StartsWith("```", StringComparison.Ordinal)) return false;
+        if (_core.EnterFenceMarker(index, lineText, lineText.Length, lineText.Length, lineText) is null) return false;
+        RefreshBlockView(index);
+        RevealBlock(index);
+        _activeIndex = index;
+        FindBlockView(_blockViews[index])?.BeginEdit(0);
+        RaiseChanged();
+        return true;
     }
 
     private void OnBlockTextInput(object? sender, TextInputEventArgs e)
@@ -1043,11 +1068,13 @@ public partial class MarkdownLiveEditorView : UserControl
         var start = Math.Min(box.SelectionStart, box.SelectionEnd);
         var end = Math.Max(box.SelectionStart, box.SelectionEnd);
         var text = box.Text ?? string.Empty;
-        if (start <= 4 && (input.Contains('>') || text.AsSpan(0, Math.Min(text.Length, 5)).Contains('>')))
+        // 块首标记转换族（muya/Typora）：# 空格→标题、-/*/＋ 空格→无序、N./N) 空格→有序、> 空格→引用。
+        // ``` / ```lang 回车（FenceCompleted）→ 围栏代码块补全，转换失败（裸标记/中段命中）回落默认输入。
+        if (start <= 8 && input.Contains(' '))
         {
             var index = _models.IndexOf(view.Model);
             var wasGrouped = IsQuoteGroupedMember(index);
-            if (_core.EnterQuoteMarker(index, text, start, end, input) is { } result)
+            if (_core.EnterBlockMarker(index, text, start, end, input) is { } result)
             {
                 e.Handled = true;
                 // 旧输入框保留原始文本；先同步再换视图，避免失焦时回写旧正文。
