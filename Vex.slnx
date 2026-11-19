@@ -24,6 +24,7 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="src/CodeWF.Avalonia.Markdown.Tests/CodeWF.Avalonia.Markdown.Tests.csproj" />
+    <Project Path="src/Vex.Core.Tests/Vex.Core.Tests.csproj" />
     <Project Path="tests/Vex.Mcp.Tests/Vex.Mcp.Tests.csproj" />
   </Folder>
 </Solution>

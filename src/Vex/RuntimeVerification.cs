@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -67,9 +67,9 @@ internal static class RuntimeVerification
                 model.Workbench.SelectLayout(layout.Id);
                 Dispatcher.UIThread.RunJobs();
                 window.UpdateLayout();
-                if (layout.Id is "read" or "instant")
+                if (layout.Id is WorkbenchLayoutKeys.Read or WorkbenchLayoutKeys.Instant)
                 {
-                    var view = window.Workspace.FindControl<Control>(layout.Id == "read" ? "PreviewGuideTarget" : "InstantGuideTarget")!;
+                    var view = window.Workspace.FindControl<Control>(layout.Id == WorkbenchLayoutKeys.Read ? "PreviewGuideTarget" : "InstantGuideTarget")!;
                     var rendered = DateTime.UtcNow.AddSeconds(15);
                     while (!view.GetVisualDescendants().OfType<Border>().Any(border => border.Classes.Contains("MdFrontMatter")))
                     {
@@ -103,10 +103,10 @@ internal static class RuntimeVerification
         var source = File.ReadAllText(articlePath);
         var opening = model.OpenPathAsync(articlePath);
         Wait(() => opening.IsCompleted); opening.GetAwaiter().GetResult();
-        foreach (var layout in new[] { "read", "instant" })
+        foreach (var layout in new[] { WorkbenchLayoutKeys.Read, WorkbenchLayoutKeys.Instant })
         {
             model.Workbench.SelectLayout(layout);
-            var view = window.Workspace.FindControl<Control>(layout == "read" ? "PreviewGuideTarget" : "InstantGuideTarget")!;
+            var view = window.Workspace.FindControl<Control>(layout == WorkbenchLayoutKeys.Read ? "PreviewGuideTarget" : "InstantGuideTarget")!;
             var ready = Environment.TickCount64 + 300; Wait(() => Environment.TickCount64 >= ready);
             var scroll = view.GetVisualDescendants().OfType<ScrollViewer>().OrderByDescending(control => control.Extent.Height - control.Viewport.Height).First();
             scroll.ScrollToEnd();
@@ -150,7 +150,7 @@ internal static class RuntimeVerification
         File.WriteAllText(path, source);
         var opening = model.OpenPathAsync(path);
         Wait(() => opening.IsCompleted); opening.GetAwaiter().GetResult();
-        model.Workbench.SelectLayout("read"); model.Layout.IsOutlineVisible = true;
+        model.Workbench.SelectLayout(WorkbenchLayoutKeys.Read); model.Layout.IsOutlineVisible = true;
         var preview = window.Workspace.FindControl<Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var viewer = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
         var scroll = preview.FindControl<ScrollViewer>("PreviewScrollViewer")!;
@@ -418,7 +418,7 @@ internal static class RuntimeVerification
         var catalog = File.ReadAllText(Path.Combine(BundledDocuments.SamplesFolder, "Mermaid 图表图鉴.md"));
         var diagrams = Regex.Matches(catalog, @"(?m)^```mermaid\s*\r?\n([\s\S]*?)^```\s*$");
         string[] diagramTypes = ["flowchart", "sequenceDiagram", "stateDiagram-v2", "journey", "gantt", "timeline",
-            "gitGraph", "kanban", "classDiagram", "erDiagram", "requirementDiagram", "mindmap", "block-beta",
+            "gitGraph", "kanban", "classDiagram", "erDiagram", "requirementDiagram", WorkbenchLayoutKeys.ViewMindMap, "block-beta",
             "C4Context", "architecture-beta", "packet-beta", "pie", "quadrantChart", "xychart-beta", "sankey-beta",
             "radar-beta", "treemap-beta", "venn-beta", "treeView-beta"];
         var actualTypes = diagrams.Select(diagram => diagram.Groups[1].Value.TrimStart().Split([' ', '\r', '\n'])[0]);

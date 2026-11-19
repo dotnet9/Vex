@@ -1,4 +1,4 @@
-using CodeWF.Avalonia.Controls.Helpers;
+﻿using CodeWF.Avalonia.Controls.Helpers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -42,8 +42,8 @@ public sealed class WorkbenchGuideView : Panel, WorkbenchGuideViewModel.IStage
     private IAppSettingsStore? _settings;
     private AppSettings? _savedSettings;
     private TypographyOption? _savedTypography;
-    private string _savedView = "edit";
-    private string _savedEdit = "instant";
+    private string _savedView = WorkbenchLayoutKeys.ViewEdit;
+    private string _savedEdit = WorkbenchLayoutKeys.Instant;
     private bool _sidebar;
     private bool _focus;
     private bool _mapSettings;

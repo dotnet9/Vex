@@ -1,4 +1,4 @@
-using CodeWF.Avalonia.Controls.Helpers;
+﻿using CodeWF.Avalonia.Controls.Helpers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -100,7 +100,7 @@ public sealed class WorkspaceViewController
     private static GridLength NoGap => new(0);
     public IReadOnlyDictionary<string, CodeWFWindow> FloatingWindows => _floating;
     // 原型 makeHandle() 的 key = 「视图预设 : 轴向」：同一预设下左右与上下各存一份比例。
-    private string SplitKey(bool vertical) => (_vm?.Workbench.WorkspaceLayout ?? "edit") + (vertical ? ":v" : ":h");
+    private string SplitKey(bool vertical) => (_vm?.Workbench.WorkspaceLayout ?? WorkbenchLayoutKeys.ViewEdit) + (vertical ? ":v" : ":h");
     private static GridLength Star(double value) => new(value, GridUnitType.Star);
 
     /// <summary>未分栏的一侧收成 0、另一侧独占；分栏时按持久化比例分配星值。</summary>
@@ -150,7 +150,7 @@ public sealed class WorkspaceViewController
         double first, second;
         if (vertical)
         {
-            if (_topIds.Length < 1 || !_frames.TryGetValue("map", out var map)) return;
+            if (_topIds.Length < 1 || !_frames.TryGetValue(WorkbenchLayoutKeys.Map, out var map)) return;
             first = _frames[_topIds[0]].Bounds.Height; second = map.Bounds.Height;
         }
         else
@@ -209,7 +209,7 @@ public sealed class WorkspaceViewController
         source.FindControl<Border>("SourceHeader")!.IsVisible = false;
         preview.FindControl<Border>("PaneHeader")!.IsVisible = false;
         var editors = new Grid(); editors.Children.Add(source); editors.Children.Add(instant);
-        Add("editor", editors); Add("render", preview); Add("map", map);
+        Add("editor", editors); Add("render", preview); Add(WorkbenchLayoutKeys.Map, map);
         // 原型把格式条移进编辑块（panels.editor.insertBefore(..., .view-body)）：块内才能被圆角裁切，
         // 也让浮动窗格带走工具条；名称仍注册在 ShellWorkspaceView 的作用域中。
         _editorOptions = window.Workspace.FindControl<Control>("EditorOptions");
@@ -270,7 +270,7 @@ public sealed class WorkspaceViewController
     private void DocumentChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) => UpdateTitles();
     private void UpdateTitles()
     { foreach (var (id, floating) in _floating) floating.Title = Label(id) + " · " + _vm?.DocumentInfo.PropertyNameText + " · Vex"; }
-    private string Label(string id) => WorkbenchText.Get(id == "editor" ? _vm?.Workbench.EditMode == "source" ? "WSSource" : "WSInstant" : id == "map" ? "WSMap" : "WSRead");
+    private string Label(string id) => WorkbenchText.Get(id == "editor" ? _vm?.Workbench.EditMode == WorkbenchLayoutKeys.Source ? "WSSource" : "WSInstant" : id == WorkbenchLayoutKeys.Map ? "WSMap" : "WSRead");
     private void Add(string id, Control content)
     {
         content.ClearValue(Grid.ColumnProperty); content.ClearValue(Grid.ColumnSpanProperty); content.ClearValue(Grid.RowProperty);
@@ -332,7 +332,7 @@ public sealed class WorkspaceViewController
         try
         {
             var state = _vm.Workbench; var option = state.LayoutOption;
-            var wanted = state.IsPresenting ? new[] { state.PresentationMap ? "map" : "render" } : new[] { option.Editor is null ? null : "editor", option.Render ? "render" : null, option.Map ? "map" : null }.OfType<string>().ToArray();
+            var wanted = state.IsPresenting ? new[] { state.PresentationMap ? WorkbenchLayoutKeys.Map : "render" } : new[] { option.Editor is null ? null : "editor", option.Render ? "render" : null, option.Map ? WorkbenchLayoutKeys.Map : null }.OfType<string>().ToArray();
             var viewports = _frames.Values.SelectMany(frame => frame.GetVisualDescendants().OfType<ScrollViewer>()).Select(scroll => (scroll, scroll.Offset)).ToArray();
             foreach (var id in _floating.Keys.Where(id => !wanted.Contains(id)).ToArray()) Return(id);
             _surface.Children.Remove(_empty);
@@ -388,7 +388,7 @@ public sealed class WorkspaceViewController
             _horizontalSplit.IsVisible = twoUp;
             _verticalSplit.IsVisible = stacked;
             for (var i = 0; i < top.Length; i++) Place(top[i], i * 2, 0);
-            if (stacked) Place("map", 0, 2, 3);
+            if (stacked) Place(WorkbenchLayoutKeys.Map, 0, 2, 3);
             if (local.Length == 0) { _empty.Text = WorkbenchText.Get("WSSeparate"); _surface.Children.Add(_empty); }
             _shelf.Children.Clear(); _shelf.IsVisible = _floating.Count > 0;
             foreach (var (id, floating) in _floating)
@@ -410,7 +410,7 @@ public sealed class WorkspaceViewController
     {
         if (_vm is null || !_frames.ContainsKey(id)) return;
         var option = _vm.Workbench.LayoutOption;
-        if (id == "editor" && option.Editor is null || id == "render" && !option.Render || id == "map" && !option.Map) return;
+        if (id == "editor" && option.Editor is null || id == "render" && !option.Render || id == WorkbenchLayoutKeys.Map && !option.Map) return;
         if (_floating.TryGetValue(id,out var existing)) { existing.Activate(); return; }
         var frame=_frames[id]; if(frame.Parent is Panel panel) panel.Children.Remove(frame);
         _window.UpdateLayout();
@@ -436,7 +436,7 @@ public sealed class WorkspaceViewController
     {
         if(_vm is null)return;
         if(_vm.Workbench.LayoutOption.Render)Float("render");
-        if(_vm.Workbench.LayoutOption.Map)Float("map");
+        if(_vm.Workbench.LayoutOption.Map)Float(WorkbenchLayoutKeys.Map);
     }
     public void Return(string id)
     {

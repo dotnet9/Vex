@@ -2,9 +2,11 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Layout;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Vex.Core.Models;
 
 using CodeWF.Avalonia.Markdown.Mermaid;
 using CodeWF.Avalonia.Markdown.Core.Blocks;
@@ -20,6 +22,15 @@ public partial class ShellEditorOptionsView : UserControl
     public ShellEditorOptionsView()
     {
         InitializeComponent();
+        // Ursa ToolBarPanel 的多按钮溢出恢复有错位缺陷：宽约束恢复后驻留弹层的按钮
+        // 不全回主面板（单按钮可回，多按钮恢复序错位）。重置式自愈：清 IsOverflowItem
+        // 标记并重灌面板测量，Ursa 在当前宽约束下重新判定。门控=编辑栏可用宽 ≥848
+        //（22 键整行下限+边距）——真窄栏（980 侧栏挤压）溢出合法，门控拦截不循环。
+        FormattingToolbar.LayoutUpdated += (_, _) => HealIfParked();
+        SizeChanged += (_, _) => HealIfParked();
+        var overflowHealTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        overflowHealTimer.Tick += (_, _) => HealIfParked();
+        overflowHealTimer.Start();
         FormattingToolbar.KeyDown += OnOverflowKeyDown;
         FormattingToolbar.AddHandler(Button.ClickEvent, OnOverflowActionClick);
         foreach (var button in new[] { SpanFontSize, SpanForeground, SpanBackground })
@@ -76,7 +87,7 @@ public partial class ShellEditorOptionsView : UserControl
     private static readonly string[] GalleryKeys =
     [
         "flowchart", "sequence", "state", "journey", "gantt", "timeline", "git", "kanban",
-        "class", "er", "requirement", "mindmap", "block", "c4", "architecture", "packet",
+        "class", "er", "requirement", WorkbenchLayoutKeys.ViewMindMap, "block", "c4", "architecture", "packet",
         "pie", "quadrant", "xy", "sankey", "radar", "treemap", "venn", "treeview",
     ];
 
@@ -137,6 +148,32 @@ public partial class ShellEditorOptionsView : UserControl
     {
         if (e.Source is Button card && card.Classes.Contains("dg-card"))
             Avalonia.Threading.Dispatcher.UIThread.Post(() => FormatMermaidGallery.Flyout?.Hide());
+    }
+
+    /// <summary>
+    /// 溢出卡死自愈：溢出态且有格式按钮被驻留在关闭的弹层（Ursa 多按钮恢复序错位）时，
+    /// 清全部 IsOverflowItem 标记让 Ursa 在当前宽约束下重新判定，再强灌面板测量。
+    /// 门控：可用宽 ≥848（22 键整行下限+边距）——真窄栏溢出合法，强灌只会立刻回弹造成布局环。
+    /// </summary>
+    private void HealIfParked()
+    {
+        if (!FormattingToolbar.Classes.Contains(":overflow")) return;
+        if (Bounds.Width < 848) return;
+        var parked = FormattingToolbar.GetVisualDescendants()
+            .OfType<Button>()
+            .Any(button => button.Classes.Contains("wb-format") && button.IsVisible && !button.IsAttachedToVisualTree());
+        if (!parked) return;
+
+        // Ursa 的 IsOverflowItem 标记是 internal：无法直接重置——强灌面板测量让 Ursa
+        // 重算 fit；多按钮深驻留时单次救回一个，由 LayoutUpdated 驱动迭代收敛。
+        foreach (var panel in FormattingToolbar.GetVisualDescendants()
+                     .Where(control => control.GetType().Name == "ToolBarPanel")
+                     .OfType<Layoutable>())
+        {
+            panel.InvalidateMeasure();
+            panel.Measure(new Size(Bounds.Width, double.PositiveInfinity));
+        }
+        FormattingToolbar.InvalidateMeasure();
     }
 
     private void OnOverflowKeyDown(object? sender, KeyEventArgs e)

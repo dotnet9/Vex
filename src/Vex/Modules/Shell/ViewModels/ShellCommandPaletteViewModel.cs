@@ -5,6 +5,7 @@ using System.Linq;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Services;
+using Vex.Core.Models;
 
 namespace Vex.Modules.Shell.ViewModels;
 
@@ -25,7 +26,7 @@ public sealed class ShellCommandPaletteViewModel : ReactiveObject
         ("flowchart", VexL.MermaidFlowchart), ("sequence", VexL.MermaidSequence), ("state", VexL.MermaidState),
         ("journey", VexL.MermaidJourney), ("gantt", VexL.MermaidGantt), ("timeline", VexL.MermaidTimeline),
         ("git", VexL.MermaidGit), ("kanban", VexL.MermaidKanban), ("class", VexL.MermaidClass),
-        ("er", VexL.MermaidEr), ("requirement", VexL.MermaidRequirement), ("mindmap", VexL.MermaidMindmap),
+        ("er", VexL.MermaidEr), ("requirement", VexL.MermaidRequirement), (WorkbenchLayoutKeys.ViewMindMap, VexL.MermaidMindmap),
         ("block", VexL.MermaidBlock), ("c4", VexL.MermaidC4), ("architecture", VexL.MermaidArchitecture),
         ("packet", VexL.MermaidPacket), ("pie", VexL.MermaidPie), ("quadrant", VexL.MermaidQuadrant),
         ("xy", VexL.MermaidXy), ("sankey", VexL.MermaidSankey), ("radar", VexL.MermaidRadar),

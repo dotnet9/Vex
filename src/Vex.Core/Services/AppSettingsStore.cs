@@ -1,4 +1,4 @@
-using CodeWF.Toolkit.Files.Helpers;
+﻿using CodeWF.Toolkit.Files.Helpers;
 using Vex.Core.Models;
 
 namespace Vex.Core.Services;
@@ -18,7 +18,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string IsSourceMode = nameof(AppSettings.IsSourceMode);
     private const string IsAlwaysOnTop = nameof(AppSettings.IsAlwaysOnTop);
     private const string SelectedSidebarTabIndex = nameof(AppSettings.SelectedSidebarTabIndex);
-    private const string EditorZoom = nameof(AppSettings.EditorZoom);
     private const string ShowLineNumbers = nameof(AppSettings.ShowLineNumbers);
     private const string HasSeenOnboardingGuide = nameof(AppSettings.HasSeenOnboardingGuide);
     private const string LastWorkspaceFolderPath = nameof(AppSettings.LastWorkspaceFolderPath);
@@ -207,7 +206,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
             IsSourceMode = Get<bool?>(configuration, IsSourceMode),
             IsAlwaysOnTop = Get<bool?>(configuration, IsAlwaysOnTop),
             SelectedSidebarTabIndex = Get<int?>(configuration, SelectedSidebarTabIndex),
-            EditorZoom = Get<double?>(configuration, EditorZoom),
             ShowLineNumbers = Get<bool?>(configuration, ShowLineNumbers),
             HasSeenOnboardingGuide = Get<bool?>(configuration, HasSeenOnboardingGuide),
             LastWorkspaceFolderPath = Get<string>(configuration, LastWorkspaceFolderPath),
@@ -313,7 +311,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [IsSourceMode] = settings.IsSourceMode,
                 [IsAlwaysOnTop] = settings.IsAlwaysOnTop,
                 [SelectedSidebarTabIndex] = settings.SelectedSidebarTabIndex,
-                [EditorZoom] = settings.EditorZoom,
                 [ShowLineNumbers] = settings.ShowLineNumbers,
                 [HasSeenOnboardingGuide] = settings.HasSeenOnboardingGuide,
                 [LastWorkspaceFolderPath] = settings.LastWorkspaceFolderPath,

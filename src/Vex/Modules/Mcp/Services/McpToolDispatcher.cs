@@ -1,4 +1,5 @@
-using System.Reflection;
+﻿using System.Reflection;
+using Vex.Core.Models;
 using System.Text;
 using System.Text.Json;
 using Avalonia.Threading;
@@ -725,9 +726,9 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         {
             "vex_get_current_document" or "vex_get_document_outline" or "vex_get_selection"
                 or "vex_get_rendered_html" or "vex_get_app_status" or "vex_ui_get_state"
-                or "vex_list_files" => "read",
+                or "vex_list_files" => WorkbenchLayoutKeys.Read,
             "vex_replace_current_document" or "vex_apply_text_edit" or "vex_insert_text"
-                or "vex_replace_selection" => "edit",
+                or "vex_replace_selection" => WorkbenchLayoutKeys.ViewEdit,
             "vex_open_document" => "open",
             "vex_create_document" => "create",
             "vex_save_current_document" => "save",

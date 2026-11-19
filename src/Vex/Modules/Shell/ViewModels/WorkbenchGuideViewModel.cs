@@ -1,4 +1,4 @@
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
@@ -26,10 +26,10 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
     /// <summary>聚光锚点语义键，由视图解析为实际控件。</summary>
     public static class Anchor
     {
-        public const string Instant = "instant";
+        public const string Instant = WorkbenchLayoutKeys.Instant;
         public const string Editor = "editor";
         public const string Preview = "preview";
-        public const string Map = "map";
+        public const string Map = WorkbenchLayoutKeys.Map;
         public const string OutlinePanel = "outline-panel";
         public const string OutlineToggle = "outline-toggle";
         public const string TypographyButton = "typography-button";
@@ -147,28 +147,28 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
         switch (StepIndex)
         {
             case 0:
-                EnsureText(string.Empty); _shell.Workbench.SelectLayout("instant");
+                EnsureText(string.Empty); _shell.Workbench.SelectLayout(WorkbenchLayoutKeys.Instant);
                 SetLiveCard([Anchor.Instant]);
                 break;
             case 1:
-                EnsureText(Stage1WithEnding); _shell.Workbench.SelectLayout("instant");
+                EnsureText(Stage1WithEnding); _shell.Workbench.SelectLayout(WorkbenchLayoutKeys.Instant);
                 SetLiveCard([Anchor.OutlineToggle]);
                 break;
             case 2:
-                EnsureText(Stage1WithEnding); _shell.Workbench.SelectLayout("read");
+                EnsureText(Stage1WithEnding); _shell.Workbench.SelectLayout(WorkbenchLayoutKeys.Read);
                 _stage.ScrollAnchor(Anchor.Preview, top: true);
                 SetLiveCard([Anchor.TypographyButton]);
                 break;
             case 3:
-                EnsureText(Stage1WithEnding); _shell.Workbench.SelectLayout("source");
+                EnsureText(Stage1WithEnding); _shell.Workbench.SelectLayout(WorkbenchLayoutKeys.Source);
                 SetLiveCard([Anchor.Editor]);
                 break;
             case 4:
-                EnsureText(RouteEdited); _shell.Workbench.SelectLayout("read");
+                EnsureText(RouteEdited); _shell.Workbench.SelectLayout(WorkbenchLayoutKeys.Read);
                 SetLiveCard([Anchor.Preview]);
                 break;
             case 5:
-                EnsureText(RouteEdited); _shell.Workbench.SelectLayout("read");
+                EnsureText(RouteEdited); _shell.Workbench.SelectLayout(WorkbenchLayoutKeys.Read);
                 SetLiveCard([Anchor.MenuItemFile]);
                 break;
         }
@@ -196,11 +196,11 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
             Pause(T("GuideAct1Step1"), [Anchor.Instant], () =>
                 TypeText(Stage0, 28, () =>
                     Pause(T("GuideAct1Step2"), [Anchor.Instant], () =>
-                        LayoutGate("source", "GuideGateLayoutSource", () =>
+                        LayoutGate(WorkbenchLayoutKeys.Source, "GuideGateLayoutSource", () =>
                             Later(350, () =>
                                 TransitionText(Stage0, Stage1, 10, () =>
                                     Pause(T("GuideAct1Step3"), [Anchor.Editor], () =>
-                                        LayoutGate("instant", "GuideGateLayoutInstant", () =>
+                                        LayoutGate(WorkbenchLayoutKeys.Instant, "GuideGateLayoutInstant", () =>
                                             TypeText(Stage1WithEnding, 24, FinishAct))))))))));
     }
 
@@ -215,7 +215,7 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
                         _stage.SelectOutlineItem("第一天行程");
                         Later(420, () =>
                             Pause(T("GuideAct2Step2"), [Anchor.Instant], () =>
-                                LayoutGate("map", "GuideGateLayoutMap", () =>
+                                LayoutGate(WorkbenchLayoutKeys.Map, "GuideGateLayoutMap", () =>
                                     Later(450, () =>
                                     {
                                         _stage.FitMap(.65);
@@ -271,7 +271,7 @@ public sealed class WorkbenchGuideViewModel : ReactiveObject
             TypeText(Stage1WithEnding + "\n## 成都慢游路线\n\n", 8, () =>
             {
                 PublishText(Stage2);
-                _shell!.Workbench.SelectLayout("source-render");
+                _shell!.Workbench.SelectLayout(WorkbenchLayoutKeys.SourceRender);
                 // 等图表真正出图再继续，避免高亮落在还没渲染的空白预览上。
                 _stage.WaitForDiagrams(() =>
                 {

@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -98,7 +98,7 @@ public sealed class WorkspaceLayoutGallery : Border
         {
             var width = Bounds.Width; var height = Bounds.Height; var brush = Foreground ?? Brushes.MediumPurple;
             var pen = new Pen(brush, 1);
-            if (kind == "map")
+            if (kind == WorkbenchLayoutKeys.Map)
             {
                 context.DrawRectangle(null, pen, new Rect(width * .35, height * .3, width * .3, height * .35), 2, 2);
             }

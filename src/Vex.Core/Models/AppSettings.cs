@@ -1,4 +1,4 @@
-namespace Vex.Core.Models;
+﻿namespace Vex.Core.Models;
 
 public sealed record AppSettings
 {
@@ -55,8 +55,6 @@ public sealed record AppSettings
     public bool? IsAlwaysOnTop { get; init; }
 
     public int? SelectedSidebarTabIndex { get; init; }
-
-    public double? EditorZoom { get; init; }
 
     public bool? ShowLineNumbers { get; init; }
 

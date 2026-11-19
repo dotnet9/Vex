@@ -1,4 +1,4 @@
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Markdown.Editor.Services;
 using CodeWF.Avalonia.MindView.Markdown;
@@ -23,7 +23,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private readonly Modules.Shell.Services.IShellToastPublisher _toastPublisher;
     private string _view;
     private string _edit;
-    private string _workspaceLayout = "instant";
+    private string _workspaceLayout = WorkbenchLayoutKeys.Instant;
     private bool _showLayouts;
     private int _summaryLength;
     private bool _showParagraphs;
@@ -61,10 +61,11 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         // 排版主题/尺寸档变化要即时重放到实时编辑器，而不是只在挂载时应用一次。
         appearance.Changed += (_, _) => ApplyLiveAppearance();
         display.Changed += (_, _) => { if (_live is { } live) live.EnableAutoPair = display.EnableAutoPair; };
-        _view = settings.Current.WorkbenchView is "read" or "mindmap" ? settings.Current.WorkbenchView : "edit";
-        _edit = settings.Current.EditMode == "source" ? "source" : "instant";
+        _view = settings.Current.WorkbenchView is WorkbenchLayoutKeys.Read or WorkbenchLayoutKeys.ViewMindMap ? settings.Current.WorkbenchView : WorkbenchLayoutKeys.ViewEdit;
+        // 默认源码编辑（即时编辑仍在完善）：仅设置明确为即时才落即时，其余回落源码。
+        _edit = settings.Current.EditMode == WorkbenchLayoutKeys.Instant ? WorkbenchLayoutKeys.Instant : WorkbenchLayoutKeys.Source;
         _workspaceLayout = WorkbenchLayoutOption.All.Any(option => option.Id == settings.Current.WorkspaceLayout)
-            ? settings.Current.WorkspaceLayout! : _view == "mindmap" ? "map" : _view == "read" ? "read" : _edit;
+            ? settings.Current.WorkspaceLayout! : _view == WorkbenchLayoutKeys.ViewMindMap ? WorkbenchLayoutKeys.Map : _view == WorkbenchLayoutKeys.Read ? WorkbenchLayoutKeys.Read : _edit;
         if (LayoutOption.Editor is { } initialMode) _edit = initialMode;
         _summaryLength = Math.Clamp(settings.Current.MindMapSummaryLength ?? 30, 1, 120);
         _mindMapLayout = settings.Current.MindMapLayout is { } savedLayout && MindMapLayoutKeys.Contains(savedLayout) ? savedLayout : "right";
@@ -123,15 +124,15 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     }
 
     public Avalonia.Thickness ViewIndicatorMargin => new(IsReading ? 88 : IsMindMap ? 176 : 0, 0, 0, 0);
-    public bool IsEditing => _view == "edit";
-    public bool IsReading => _view == "read";
-    public bool IsMindMap => _view == "mindmap";
+    public bool IsEditing => _view == WorkbenchLayoutKeys.ViewEdit;
+    public bool IsReading => _view == WorkbenchLayoutKeys.Read;
+    public bool IsMindMap => _view == WorkbenchLayoutKeys.ViewMindMap;
     public string WorkspaceLayout => _workspaceLayout;
 
     /// <summary>即时编辑与源码共用编辑标签，组合布局由布局入口标示。</summary>
-    public bool IsEditSegmentActive => _workspaceLayout is "source" or "instant";
-    public bool IsReadSegmentActive => _workspaceLayout == "read";
-    public bool IsMapSegmentActive => _workspaceLayout == "map";
+    public bool IsEditSegmentActive => _workspaceLayout is WorkbenchLayoutKeys.Source or WorkbenchLayoutKeys.Instant;
+    public bool IsReadSegmentActive => _workspaceLayout == WorkbenchLayoutKeys.Read;
+    public bool IsMapSegmentActive => _workspaceLayout == WorkbenchLayoutKeys.Map;
 
     /// <summary>「更多」段：组合布局时显示当前布局名并高亮，否则回落为「更多」。</summary>
     public bool IsMoreSegmentActive => !IsEditSegmentActive && !IsReadSegmentActive && !IsMapSegmentActive;
@@ -143,8 +144,8 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public bool IsCombined => !IsPresenting && (LayoutOption.Render && LayoutOption.Map || HasEditor && (LayoutOption.Render || LayoutOption.Map));
     public bool IsMapVisible => IsPresenting ? PresentationMap : LayoutOption.Map;
     public bool ShowLayouts { get => _showLayouts; set => this.RaiseAndSetIfChanged(ref _showLayouts, value); }
-    public bool IsInstantEditing => HasEditor && _edit == "instant";
-    public bool IsSourceEditing => HasEditor && _edit == "source";
+    public bool IsInstantEditing => HasEditor && _edit == WorkbenchLayoutKeys.Instant;
+    public bool IsSourceEditing => HasEditor && _edit == WorkbenchLayoutKeys.Source;
     public bool IsSourceVisible => IsSourceEditing;
     public int MapColumn => IsMindMap && ShowMapSource ? 2 : 0;
     public int MapSpan => ShowMapSource ? 1 : 3;
@@ -204,11 +205,11 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         _presentationSnapshot = (_view, _edit, _layout.CurrentWindowState, IsInstantEditing ? _live?.CaptureState() : null);
         _layout.IsPresentationMode = true;
         _isPresenting = true;
-        _presentationMap = _view == "mindmap";
+        _presentationMap = _view == WorkbenchLayoutKeys.ViewMindMap;
         BuildPresentation();
         // 原型 deck 在宽屏默认展开大纲（outline = !narrow），本实现只按桌面档处理。
         _presentationOutline = true;
-        _view = "read";
+        _view = WorkbenchLayoutKeys.Read;
         ShowTypography = false; ShowMapSettings = false; ShowLayouts = false; CloseInspector();
         _presentationZoom = Preferences.PresentationScale;
         _presentationInitialZoom = _presentationZoom;
@@ -284,7 +285,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     }
     public string SelectedFullText => SelectedNode?.FullText ?? string.Empty;
     public string SelectedSourceLabel => SelectedNode is { } node ? string.Format(L(VexL.WBSourceLineFormat), node.SourceLine) : string.Empty;
-    public bool ShowMapSource { get => _showMapSource; set { if (value != _showMapSource) SelectLayout(value ? "source-map" : "map"); } }
+    public bool ShowMapSource { get => _showMapSource; set { if (value != _showMapSource) SelectLayout(value ? WorkbenchLayoutKeys.SourceMap : WorkbenchLayoutKeys.Map); } }
 
     public static readonly string[] MindMapLayoutKeys = ["right", "balanced", "radial", "down", "outline", "fishbone"];
     public static readonly string[] MindMapStyleKeys = ["quiet", "colorful", "outline", "capsule", "underline", "mono"];
@@ -362,13 +363,13 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public bool IsGuiding { get; set; }
     public int GuideStep { get; set; }
 
-    public void ShowEdit() => SelectView("edit");
-    public void ShowRead() => SelectView("read");
-    public void ShowMindMap() => SelectView("mindmap");
-    public void ShowInstant() => SelectLayout(IsMapVisible ? "instant-map" : "instant");
+    public void ShowEdit() => SelectView(WorkbenchLayoutKeys.ViewEdit);
+    public void ShowRead() => SelectView(WorkbenchLayoutKeys.Read);
+    public void ShowMindMap() => SelectView(WorkbenchLayoutKeys.ViewMindMap);
+    public void ShowInstant() => SelectLayout(IsMapVisible ? WorkbenchLayoutKeys.InstantMap : WorkbenchLayoutKeys.Instant);
     public void ToggleSourceEditing() { if (IsSourceEditing) ShowInstant(); else ShowSource(); }
-    public void ShowSource() => SelectLayout(IsMapVisible ? IsPreviewVisible ? "three" : "source-map" : IsPreviewVisible && !IsReading ? "source-render" : "source");
-    public void ToggleMapSource() => SelectLayout(HasEditor ? "map" : "source-map");
+    public void ShowSource() => SelectLayout(IsMapVisible ? IsPreviewVisible ? WorkbenchLayoutKeys.Three : WorkbenchLayoutKeys.SourceMap : IsPreviewVisible && !IsReading ? WorkbenchLayoutKeys.SourceRender : WorkbenchLayoutKeys.Source);
+    public void ToggleMapSource() => SelectLayout(HasEditor ? WorkbenchLayoutKeys.Map : WorkbenchLayoutKeys.SourceMap);
     public void ToggleLayouts() => ShowLayouts = !ShowLayouts;
     public void SelectLayout(string id)
     {
@@ -377,8 +378,8 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         History.BreakGroup();
         _workspaceLayout = id;
         if (option.Editor is { } mode) _edit = mode;
-        _view = option.Editor is not null ? "edit" : option.Map ? "mindmap" : "read";
-        _showMapSource = option.Map && option.Editor == "source";
+        _view = option.Editor is not null ? WorkbenchLayoutKeys.ViewEdit : option.Map ? WorkbenchLayoutKeys.ViewMindMap : WorkbenchLayoutKeys.Read;
+        _showMapSource = option.Map && option.Editor == WorkbenchLayoutKeys.Source;
         if (IsInstantEditing) SynchronizeLive();
         NotifyModes();
         _settings.Update(s => s with { WorkspaceLayout = id, WorkbenchView = _view, EditMode = _edit });
@@ -394,7 +395,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
 
     private void AutoCollapseNavForReading(string view)
     {
-        if (view == "read")
+        if (view == WorkbenchLayoutKeys.Read)
         {
             if (_layout.IsSidebarVisible)
             {
@@ -415,7 +416,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     /// </summary>
     private void MakeRoomForThreeViewsOnNarrowWindow(string id)
     {
-        if (id != "three" || _layout.WorkspaceWidth >= NarrowThreeViewWindowWidth || !_layout.IsSidebarVisible) return;
+        if (id != WorkbenchLayoutKeys.Three || _layout.WorkspaceWidth >= NarrowThreeViewWindowWidth || !_layout.IsSidebarVisible) return;
         _layout.CollapseSidebarForLayout();
         _toastPublisher.Publish(_localizer.Get(VexL.ToastFileNavCollapsed));
     }
@@ -439,12 +440,12 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         _showTables = settings?.MindMapShowTables ?? false;
         _showLists = settings?.MindMapShowLists ?? true;
         foreach (var name in new[] { nameof(SummaryLength), nameof(ShowParagraphs), nameof(ShowCode), nameof(ShowTables), nameof(ShowRichBlocks), nameof(ShowLists) }) this.RaisePropertyChanged(name);
-        SelectLayout(settings?.WorkspaceLayout ?? (view == "read" ? "read" : view == "mindmap" ? "map" : edit)); QueueMap();
+        SelectLayout(settings?.WorkspaceLayout ?? (view == WorkbenchLayoutKeys.Read ? WorkbenchLayoutKeys.Read : view == WorkbenchLayoutKeys.ViewMindMap ? WorkbenchLayoutKeys.Map : edit)); QueueMap();
     }
     private void SelectView(string view)
     {
         ShowTypography = false;
-        SelectLayout(view == "read" ? "read" : view == "mindmap" ? "map" : _edit);
+        SelectLayout(view == WorkbenchLayoutKeys.Read ? WorkbenchLayoutKeys.Read : view == WorkbenchLayoutKeys.ViewMindMap ? WorkbenchLayoutKeys.Map : _edit);
     }
     private void NotifyModes()
     {
@@ -453,7 +454,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     }
     private void ApplyLayout()
     {
-        _layout.IsThreeViewLayout = WorkspaceLayout == "three";
+        _layout.IsThreeViewLayout = WorkspaceLayout == WorkbenchLayoutKeys.Three;
         _layout.IsSourceMode = IsSourceVisible;
         _layout.IsPreviewVisible = IsPreviewVisible;
     }
