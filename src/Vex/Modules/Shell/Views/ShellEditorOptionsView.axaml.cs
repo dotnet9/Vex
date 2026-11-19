@@ -26,10 +26,13 @@ public partial class ShellEditorOptionsView : UserControl
         // 不全回主面板（单按钮可回，多按钮恢复序错位）。重置式自愈：清 IsOverflowItem
         // 标记并重灌面板测量，Ursa 在当前宽约束下重新判定。门控=编辑栏可用宽 ≥848
         //（22 键整行下限+边距）——真窄栏（980 侧栏挤压）溢出合法，门控拦截不循环。
-        FormattingToolbar.LayoutUpdated += (_, _) => HealIfParked();
-        SizeChanged += (_, _) => HealIfParked();
+        // HealIfParked 内含同步 Measure——绝不能在布局过程中重入（headless 实测
+        // 布局中重入测量直接 native Segfault）。三驱动全部改为队列化：排队一次，
+        // Background 优先级（布局完成后的空闲点）执行；空闲态零布局经过零动作。
+        FormattingToolbar.LayoutUpdated += (_, _) => QueueOverflowHeal();
+        SizeChanged += (_, _) => QueueOverflowHeal();
         var overflowHealTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-        overflowHealTimer.Tick += (_, _) => HealIfParked();
+        overflowHealTimer.Tick += (_, _) => QueueOverflowHeal();
         overflowHealTimer.Start();
         FormattingToolbar.KeyDown += OnOverflowKeyDown;
         FormattingToolbar.AddHandler(Button.ClickEvent, OnOverflowActionClick);
@@ -155,6 +158,19 @@ public partial class ShellEditorOptionsView : UserControl
     /// 清全部 IsOverflowItem 标记让 Ursa 在当前宽约束下重新判定，再强灌面板测量。
     /// 门控：可用宽 ≥848（22 键整行下限+边距）——真窄栏溢出合法，强灌只会立刻回弹造成布局环。
     /// </summary>
+    private bool _overflowHealQueued;
+
+    private void QueueOverflowHeal()
+    {
+        if (_overflowHealQueued || !FormattingToolbar.Classes.Contains(":overflow")) return;
+        _overflowHealQueued = true;
+        Dispatcher.UIThread.Post(() =>
+        {
+            _overflowHealQueued = false;
+            HealIfParked();
+        }, DispatcherPriority.Background);
+    }
+
     private void HealIfParked()
     {
         if (!FormattingToolbar.Classes.Contains(":overflow")) return;

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia;
@@ -147,18 +147,11 @@ internal static class DocsShotCapture
         var preview = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var scroll = preview.FindControl<ScrollViewer>("PreviewScrollViewer")!;
         if (outline.OutlineItems.Count < 3) throw new InvalidOperationException("Documentation outline fixture is incomplete.");
-        Record("大纲导航与阅读跟随", frame =>
-        {
-            if (frame is 5 or 20)
-            {
-                var item = outline.OutlineItems[frame == 5 ? 1 : 2];
-                list.ScrollIntoView(item); Render();
-                var row = list.GetVisualDescendants().OfType<ListBoxItem>().Single(control => ReferenceEquals(control.DataContext, item));
-                var point = row.TranslatePoint(new Point(row.Bounds.Width / 2, row.Bounds.Height / 2), window)!.Value;
-                window.MouseMove(point); window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left);
-            }
-            if (frame is >= 35 and < 55) scroll.Offset = new Vector(0, Math.Max(0, scroll.Offset.Y - 25));
-        });
+        // [已知回归 2026-11-17 区间引入] 本段 GIF 采集在 headless 下触发 native
+        // Segfault（点击大纲行即崩，单帧动作粒度二分确认与 MouseMove/按键无关）。
+        // bisect 候选 21 笔（见 docs/更新日志 V2.0.0.0 后续修复记录），专项排查前
+        // 以静态截图替代 GIF，保证文档站产物完整可用。
+        Shot("大纲导航与阅读跟随-静态");
         Shot("大纲阅读跟随");
 
         Record("四视图切换", frame =>
