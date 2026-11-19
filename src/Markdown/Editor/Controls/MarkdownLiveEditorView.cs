@@ -167,7 +167,14 @@ public partial class MarkdownLiveEditorView : UserControl
                 if (ReferenceEquals(source, view) || source.GetVisualAncestors().Contains(view)) return;
             }
             var nearest = FindNearestBlockIndex(e.GetCurrentPoint(_container).Position.Y);
-            if (nearest >= 0) FocusBlock(nearest);
+            if (nearest >= 0)
+            {
+                FocusBlock(nearest);
+                // 聚焦后必须标记已处理：Avalonia 原生点击焦点逻辑会在 bubble 阶段
+                // 对「点击非可聚焦区」清除焦点，刚获得的编辑器焦点随之丢失（真机实测
+                // keydown 计数=0，headless 时序差异掩盖）。
+                e.Handled = true;
+            }
         }, RoutingStrategies.Tunnel);
         Content = BuildContent();
 
@@ -516,7 +523,9 @@ public partial class MarkdownLiveEditorView : UserControl
 
         _activeIndex = index;
         RevealBlock(index);
-        FindBlockView(_blockViews[index])?.BeginEditAtEnd();
+        var found = FindBlockView(_blockViews[index]);
+        CodeWF.Toolkit.Logging.Logger.Debug($"FocusBlock found={found is not null} lazyAttached={this.IsAttachedToVisualTree()} lazyVisible={IsEffectivelyVisible}");
+        found?.BeginEditAtEnd();
 
         RaiseSelectionChanged();
     }

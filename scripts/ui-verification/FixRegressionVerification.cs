@@ -309,6 +309,18 @@ internal static class FixRegressionVerification
         var blankEditor = blankBlocks[0].GetVisualDescendants().OfType<TextBox>().FirstOrDefault();
         Console.WriteLine("blank editor: visible=" + blankEditor?.IsVisible + " focused=" + blankEditor?.IsFocused);
         Check(blankEditor is { IsVisible: true }, "Blank paragraph editor is visible (click target exists)");
+        // 真机缺陷钉：Canvas 内空文本期望宽 0 → 编辑框 0 宽不可见（内容照进、光标与文字全无）。
+        Check(blankEditor is { } && blankEditor.MinWidth >= 160 && blankEditor.Bounds.Width >= 100,
+            "Blank paragraph editor has usable width for the caret: " +
+            $"min={blankEditor?.MinWidth}, bounds={blankEditor?.Bounds.Width}");
+        // 真机缺陷钉：占位/隐藏渲染管线对空源码产出空 TextLayout，HitTestTextPosition(0) 高度 0
+        // → 光标画出即不可见。空块布局层必须填透明空格撑行高。
+        var blankPresenter = blankEditor!.GetVisualDescendants()
+            .OfType<Avalonia.Controls.Presenters.TextPresenter>().FirstOrDefault();
+        var caretRect = blankPresenter?.TextLayout.HitTestTextPosition(0);
+        Console.WriteLine($"blank caret rect: {caretRect?.Width}x{caretRect?.Height} blockH={blankBlocks[0].Bounds.Height}");
+        Check(caretRect is { Height: > 0 } && blankBlocks[0].Bounds.Height > 0,
+            "Blank-block caret has line-height geometry: caret={caretRect?.Width}x{caretRect?.Height}, block={blankBlocks[0].Bounds.Height}");
         // Typora 行为：点击文档空白区域（块外下方远处，修上轮只点块中心的盲区），
         // 光标落到最近段落块（FindNearestBlockIndex → FocusBlock）。
         var blankRect = blankBlocks[0].TranslatePoint(new Point(0, 0), window)
@@ -321,6 +333,11 @@ internal static class FixRegressionVerification
         // 强验证：点击空白后直接打字，能接住文本=编辑器在编辑态（headless 焦点链不可靠，以功能为准）。
         var typed = blankBlocks[0].GetVisualDescendants().OfType<TextBox>()
             .FirstOrDefault(box => box.IsVisible);
+        // 真机缺陷钉：Win32 层点击非聚焦区会在 bubble 阶段清焦——聚焦后编辑器必须仍是焦点元素。
+        var focusAfterBlank = window.FocusManager?.GetFocusedElement();
+        Console.WriteLine("focus after blank click: " + focusAfterBlank?.GetType().Name);
+        Check(ReferenceEquals(focusAfterBlank, typed),
+            "Blank-area click keeps the caret editor focused (no Win32 focus steal)");
         if (typed is not null)
         {
             // 模拟文本输入走 TextInput 通道（真实键盘路径）。
@@ -367,6 +384,28 @@ internal static class FixRegressionVerification
         Console.WriteLine($"  switch-enter: blocks-after={RealBlocks()}");
         Check(RealBlocks() == 2, "Real keyboard Enter after layout switch (source->instant) splits into two paragraphs");
         vm.Markdown = string.Empty; Render();
+
+        // ---- 2.10 中文输入法形态回车（真机缺陷钉）：IME 激活时按键以 Key.ImeProcessed
+        // 到达（真机日志实测），OnEditorKeyDown 用 PhysicalKey 归一化——ImeProcessed+PhysicalKey.Enter
+        // 必须等效 Enter 拆块，否则回车静默失效。 ----
+        var imeBlocks = realKeyLive!.GetVisualDescendants()
+            .Count(c => c.GetType().Name == "MarkdownBlockView");
+        var imeEditor = realKeyLive!.GetVisualDescendants().OfType<TextBox>()
+            .FirstOrDefault(box => box.IsEffectivelyVisible);
+        Check(imeEditor is not null, "IME probe finds the caret editor");
+        imeEditor!.Focus();
+        imeEditor.RaiseEvent(new KeyEventArgs
+        {
+            RoutedEvent = InputElement.KeyDownEvent,
+            Key = Key.ImeProcessed,
+            PhysicalKey = PhysicalKey.Enter,
+            Source = imeEditor
+        });
+        Render(); Thread.Sleep(300); Render();
+        var imeAfter = realKeyLive!.GetVisualDescendants()
+            .Count(c => c.GetType().Name == "MarkdownBlockView");
+        Console.WriteLine($"  ime-enter: blocks {imeBlocks} -> {imeAfter}");
+        Check(imeAfter == imeBlocks + 1, "ImeProcessed Enter (PhysicalKey=Enter) splits a paragraph like a plain Enter");
 
         Console.WriteLine("Fix regression verification PASS");
     }

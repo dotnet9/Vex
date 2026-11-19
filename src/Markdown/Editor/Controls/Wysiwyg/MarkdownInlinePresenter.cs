@@ -154,6 +154,14 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
         }
         if (cursor < source.Length) Hide(cursor, source.Length - cursor);
         var text = new string(display);
+        if (text.Length == 0)
+        {
+            // 空块光标需要行高支撑：占位/隐藏管线对空源码产出空 TextLayout，
+            // HitTestTextPosition(0) 高度为 0，光标画出即不可见（真机"没有光标"根因）。
+            // 布局层填一个透明空格，仅撑行高；源码索引契约不动（TextBox.Text 仍为空）。
+            text = " ";
+            styles.Add(new(0, 1, new GenericTextRunProperties(face, FontSize, foregroundBrush: Brushes.Transparent)));
+        }
         var compositionStart = Math.Clamp(CaretIndex, 0, source.Length);
         var compositionLength = PreeditText?.Length ?? 0;
         if (compositionLength > 0)

@@ -161,7 +161,13 @@ internal sealed class MarkdownBlockView : UserControl
             _editor.BorderThickness = new Thickness(0);
             _editor.Background = Brushes.Transparent;
             // 空文档/空段落：一行高度的空白块也要可点击可显光标（Typora 空文档行为）。
+            // MinWidth 兜底：Canvas 内空文本期望宽为 0，无它则编辑框 0 宽不可见——
+            // 真机实测内容照进（字数/模型更新）但光标与文字全部不可见。
+            _editor.MinWidth = 160;
             _editor.MinHeight = _runFontSize * 1.6;
+            // 空预览（Viewer 零段落）时 Grid 高度塌陷为 0：Canvas 不贡献量测尺寸，
+            // 块没有可视存在。层高兜底一行，光标/编辑框有绘制空间。
+            _layer.MinHeight = _editor.MinHeight;
             _editor.Template = new FuncControlTemplate<TextBox>((box, scope) =>
             {
                 var presenter = new MarkdownInlinePresenter(_options, _isCode || Model.Kind == MarkdownBlockKind.Raw) { Name = "PART_TextPresenter" };
@@ -348,7 +354,9 @@ internal sealed class MarkdownBlockView : UserControl
             _editingLayer.Children.Remove(_editor);
             _root.Child = _editor;
         }
-        _editor.Focus();
+        var focusGranted = _editor.Focus();
+        CodeWF.Toolkit.Logging.Logger.Debug($"beginedit focus={focusGranted} immediate={_editor.IsFocused} " +
+            $"editorAttached={_editor.IsAttachedToVisualTree()} visible={IsEffectivelyVisible} layerVisible={_editingLayer.IsVisible} inline={_inlineEditing}");
         _editor.CaretIndex = Math.Clamp(caretIndex, 0, _editor.Text?.Length ?? 0);
         EditingStarted?.Invoke(this);
         if (!_editor.IsFocused)
@@ -580,24 +588,41 @@ internal sealed class MarkdownBlockView : UserControl
 
     private void OnEditorKeyDown(object? sender, KeyEventArgs e)
     {
-        CodeWF.Toolkit.Logging.Logger.Debug("block keydown " + e.Key);
+        // 中文输入法激活时，回车/退格等按键以 Key.ImeProcessed 形态到达（真机实测），
+        // 所有 case Key.Enter 全部不匹配——回车/边界导航/合并静默失效。用 PhysicalKey 归一化。
+        var key = e.Key == Key.ImeProcessed
+            ? e.PhysicalKey switch
+            {
+                PhysicalKey.Enter => Key.Enter,
+                PhysicalKey.Backspace => Key.Back,
+                PhysicalKey.Delete => Key.Delete,
+                PhysicalKey.Escape => Key.Escape,
+                PhysicalKey.Tab => Key.Tab,
+                PhysicalKey.ArrowLeft => Key.Left,
+                PhysicalKey.ArrowRight => Key.Right,
+                PhysicalKey.ArrowUp => Key.Up,
+                PhysicalKey.ArrowDown => Key.Down,
+                _ => e.Key
+            }
+            : e.Key;
+        CodeWF.Toolkit.Logging.Logger.Debug("block keydown " + e.Key + " -> " + key);
         if (e.KeyModifiers == KeyModifiers.None && _editor.SelectionStart == _editor.SelectionEnd)
         {
             var caret = _editor.CaretIndex;
             var length = CurrentText.Length;
-            var direction = e.Key is Key.Left or Key.Up or Key.Back ? -1 : 1;
-            if (e.Key is Key.Left or Key.Right && (direction < 0 ? caret == 0 : caret == length)
+            var direction = key is Key.Left or Key.Up or Key.Back ? -1 : 1;
+            if (key is Key.Left or Key.Right && (direction < 0 ? caret == 0 : caret == length)
                 && BoundaryNavigateRequested?.Invoke(direction, null) == true) { e.Handled = true; return; }
-            if (e.Key is Key.Up or Key.Down && _editor.GetVisualDescendants().OfType<TextPresenter>().FirstOrDefault() is { } presenter)
+            if (key is Key.Up or Key.Down && _editor.GetVisualDescendants().OfType<TextPresenter>().FirstOrDefault() is { } presenter)
             {
                 var rect = presenter.TextLayout.HitTestTextPosition(caret);
                 if ((direction < 0 ? rect.Top < rect.Height : rect.Bottom >= presenter.TextLayout.Height - .5)
                     && BoundaryNavigateRequested?.Invoke(direction, rect.X) == true) { e.Handled = true; return; }
             }
-            if (e.Key is Key.Back or Key.Delete && (direction < 0 ? caret == 0 : caret == length)
+            if (key is Key.Back or Key.Delete && (direction < 0 ? caret == 0 : caret == length)
                 && MergeRequested?.Invoke(direction) == true) { e.Handled = true; return; }
         }
-        switch (e.Key)
+        switch (key)
         {
             case Key.Escape:
                 CancelEdit();
@@ -784,10 +809,17 @@ internal sealed class MarkdownBlockView : UserControl
                 Canvas.SetTop(_codeLanguage, bottom.Y + 3);
             }
         }
-        else if (_preview is null)
+        else
         {
-            _richText.Opacity = 0; _editor.Width = Math.Max(1, _richText.Bounds.Width); _editor.FontSize = _richText.FontSize;
+            // 预览无可用文字几何（空文档 Viewer 零段落，或无预览）：Canvas 上未定位且
+            // 空文本期望宽为 0，编辑框不可见——光标"消失"。回退到块顶原点 + 面板宽。
+            _richText.Opacity = 0;
+            _editor.Width = Math.Max(1, _layer.Bounds.Width > 1 ? _layer.Bounds.Width : _richText.Bounds.Width);
+            _editor.FontSize = _richText.FontSize;
             _editor.FontWeight = _richText.FontWeight;
+            Canvas.SetLeft(_editor, 0);
+            Canvas.SetTop(_editor, 0);
+            _editingLayer.IsVisible = true;
         }
     }
     private void EndInlineEditor()
