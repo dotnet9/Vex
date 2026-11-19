@@ -46,9 +46,12 @@ public sealed class ShellDialogsViewModel : ReactiveObject
     public async Task<string?> RenameFileAsync(string path)
     {
         var viewModel = new ShellRenameDialogViewModel(_localizer, path, global::System.IO.Path.GetFileName(path));
+        // 视图标题栏自带 vex-dismiss，关掉宿主 chrome 的关闭钮，避免双 ✕。
+        var options = new OverlayDialogOptions { IsCloseButtonVisible = false };
         var newName = await OverlayDialog.ShowCustomAsync<string?>(
             new ShellRenameDialogView(),
-            viewModel);
+            viewModel,
+            options: options);
         if (string.IsNullOrWhiteSpace(newName))
         {
             _statusPublisher.PublishResource(VexL.StatusRenameCanceled);

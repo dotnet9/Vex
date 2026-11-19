@@ -1311,6 +1311,8 @@
        Semi 与各状态样式按同名命中，交互不变；两档色值随配色由 ElevationResources 回放。 -->
   <Style Selector="Button.primary">
     <Setter Property="ClipToBounds" Value="False"/>
+    <!-- 自定义模板覆盖 Semi 后其模板内前景 setter 丢失：显式钉 on-accent 白字（黑字真机反馈）。 -->
+    <Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}"/>
     <Setter Property="Template">
       <ControlTemplate TargetType="Button">
         <Border Name="PART_Halo" CornerRadius="{TemplateBinding CornerRadius}">
