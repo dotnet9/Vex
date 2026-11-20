@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CodeWF.Avalonia.Markdown.Controls;
 using CodeWF.Toolkit.EventBus;
@@ -103,6 +104,10 @@ public partial class MarkdownPreviewView : UserControl
         DetachedFromVisualTree += (_, _) => SetViewModel(null);
         PreviewScrollViewer.ScrollChanged += OnPreviewScrollChanged;
         PreviewScrollViewer.SizeChanged += (_, _) => ApplyDocumentGeometry();
+        // 用户接管：滚轮或按下即取消大纲跳转/恢复环的程序化纠正，否则定时器还会
+        // 持续改写偏移数秒——表现正是「滚动后点击视图漂移、光标下文字换了位导致误选」。
+        PreviewScrollViewer.AddHandler(PointerWheelChangedEvent, OnUserTakesOverScroll, RoutingStrategies.Tunnel);
+        PreviewScrollViewer.AddHandler(PointerPressedEvent, OnUserTakesOverScroll, RoutingStrategies.Tunnel);
         DetachedFromVisualTree += (_, _) => PreviewMarkdownViewer.TaskWriteBackRequested -= OnTaskWriteBackRequested;
         // 大纲跳转不经过预览视图模型，直接订阅总线，避免被「属性值未变」过滤掉。
         DetachedFromVisualTree += (_, _) =>
@@ -184,9 +189,22 @@ public partial class MarkdownPreviewView : UserControl
 
     public void FlushDiagramEdits() => CodeWF.Avalonia.Markdown.Mermaid.MermaidEditing.CommitPendingEdits(PreviewMarkdownViewer);
 
-    private void OnPreviewScrollChanged(object? sender, ScrollChangedEventArgs e)
+    // 用户按下/滚轮 = 接管滚动：立即停掉大纲跳转与恢复环，防止程序化纠正继续拖动视口。
+    private void OnUserTakesOverScroll(object? sender, RoutedEventArgs e)
     {
-        if (_restoringScrollPosition || _outlineNavigation is not null || _viewModel?.IsPresenting == true)
+        if (_viewModel?.IsPresenting == true) return;
+        if (_outlineNavigation is not null)
+        {
+            _outlineNavigation.Dispose();
+            _outlineNavigation = null;
+        }
+        if (_restoringScrollPosition) StopReadingRestore();
+        _readingSample?.Dispose();
+        _readingSample = null;
+    }
+
+    private void OnPreviewScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {        if (_restoringScrollPosition || _outlineNavigation is not null || _viewModel?.IsPresenting == true)
         {
             return;
         }
