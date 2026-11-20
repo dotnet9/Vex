@@ -56,6 +56,13 @@ public partial class MarkdownLiveEditorView : UserControl
     private readonly List<MarkdownLiveEditorSnapshot> _redo = [];
     private MarkdownLiveEditorSnapshot _lastSnapshot = new(string.Empty, -1, 0, 0);
     private bool _restoringHistory;
+    // 撤销分组与内存预算（与宿主 WorkspaceEditHistory 同策略）：
+    // 650ms/32 字符内的连续编辑并入同组（不重复压栈），总量超预算从最旧丢弃——
+    // 全文快照本身是每键拼接产生的新字符串引用，不设上限会在长文档下放大内存。
+    private long _lastUndoPush;
+    private bool _undoSeparate = true;
+    private const int UndoEntryLimit = 200;
+    private const long UndoMemoryBudgetChars = 8_000_000;
     /// <summary>空白文档待消费的首块聚焦：视图可见性传播完成后由 LayoutUpdated 消费。</summary>
     private bool _pendingBlankFocus;
 
@@ -352,6 +359,8 @@ public partial class MarkdownLiveEditorView : UserControl
         RestoreSnapshot(state.Current);
         _undo.Clear(); _undo.AddRange(state.Undo);
         _redo.Clear(); _redo.AddRange(state.Redo);
+        _undoSeparate = true;
+        TrimUndo();
     }
     private MarkdownLiveEditorSnapshot CaptureSnapshot() => new(Text, _activeIndex, SelectionTextBox?.SelectionStart ?? 0, SelectionTextBox?.SelectionEnd ?? 0);
     private void RestoreSnapshot(MarkdownLiveEditorSnapshot snapshot)
@@ -405,7 +414,7 @@ public partial class MarkdownLiveEditorView : UserControl
             {
                 _pendingBlankFocus = false;
             }
-            if (!_restoringHistory) { _undo.Clear(); _redo.Clear(); }
+            if (!_restoringHistory) { _undo.Clear(); _redo.Clear(); _undoSeparate = true; }
             _lastSnapshot = CaptureSnapshot();
         }
         finally
@@ -446,8 +455,11 @@ public partial class MarkdownLiveEditorView : UserControl
         // ClearDocumentSelection 会把编辑框选区清到 0，先捕获后恢复。
         var editor = _activeIndex >= 0 && _activeIndex < _blockViews.Count ? FindActiveEditor(_blockViews[_activeIndex]) : null;
         var caret = editor?.CaretIndex ?? 0;
+        _undoSeparate = true;
         ClearDocumentSelection();
         ApplyExternalEditCore(markdown ?? string.Empty);
+        // 外部改写自身成组（前），其后的用户键入另起新组（后）——一次撤销不得同时跳过勾选与键入。
+        var nextEditSeparate = true;
         if (editor is not null && _activeIndex >= 0 && _activeIndex < _blockViews.Count
             && ReferenceEquals(FindActiveEditor(_blockViews[_activeIndex]), editor))
         {
@@ -457,6 +469,7 @@ public partial class MarkdownLiveEditorView : UserControl
             editor.SelectionEnd = editor.CaretIndex;
         }
         RaiseChanged();
+        _undoSeparate = nextEditSeparate;
     }
 
     /// <summary>模型按共享 <see cref="MarkdownBlockSource"/> 分组（组序与 WriteWithSpans 一致），记录组首下标。</summary>
@@ -1256,13 +1269,31 @@ public partial class MarkdownLiveEditorView : UserControl
 
         if (textChanged && !_restoringHistory)
         {
-            _undo.Add(_lastSnapshot);
-            if (_undo.Count > 200) _undo.RemoveAt(0);
+            var now = Environment.TickCount64;
+            var separate = _undoSeparate || now - _lastUndoPush > 650
+                || Math.Abs(_textBuffer.Text.Length - _lastSnapshot.Text.Length) > 32;
+            if (separate)
+            {
+                _undo.Add(_lastSnapshot);
+                TrimUndo();
+            }
             _redo.Clear();
+            _lastUndoPush = now;
+            _undoSeparate = false;
         }
         _lastSnapshot = CaptureSnapshot();
         MarkdownChanged?.Invoke(this, _textBuffer.Text);
         RaiseSelectionChanged();
+    }
+
+    /// <summary>条数与总字符量双上限：超预算从最旧丢弃（与宿主 16MB 口径一致）。</summary>
+    private void TrimUndo()
+    {
+        while (_undo.Count > UndoEntryLimit
+            || _undo.Count > 1 && _undo.Sum(item => (long)item.Text.Length) > UndoMemoryBudgetChars)
+        {
+            _undo.RemoveAt(0);
+        }
     }
 
     /// <summary>拼接回写后增量更新选区映射：组后块按位移平移，组内块在组片段窗口内局部重定位。</summary>
@@ -1438,6 +1469,7 @@ public partial class MarkdownLiveEditorView : UserControl
         var snapshot = from[^1]; from.RemoveAt(from.Count - 1);
         to.Add(CaptureSnapshot());
         RestoreSnapshot(snapshot);
+        _undoSeparate = true;
         _restoringHistory = true;
         try { RaiseChanged(); }
         finally { _restoringHistory = false; }

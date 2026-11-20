@@ -151,3 +151,107 @@ public sealed class MarkdownLiveEditorExternalEditTests(AvaloniaPlatformFixture 
         });
     }
 }
+
+/// <summary>
+/// 视图撤销分组（与宿主 WorkspaceEditHistory 同策略）：650ms/32 字符内的连续编辑并入
+/// 同组——一次 Ctrl+Z 回到组前状态；预算上限从最旧丢弃。
+/// </summary>
+[Collection("AvaloniaPlatform")]
+public sealed class MarkdownLiveEditorUndoGroupingTests(AvaloniaPlatformFixture platform)
+{
+    [Fact]
+    public void RapidTyping_CoalescesIntoSingleUndoStep()
+    {
+        platform.Run(() =>
+        {
+            var view = new MarkdownLiveEditorView();
+            var window = new Window { Width = 600, Height = 400, Content = view };
+            window.Show();
+            try
+            {
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                view.SetText("甲");
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                view.FocusBlock(0);
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+
+                view.InsertText("乙");
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                view.InsertText("丙");
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                Assert.Equal("甲乙丙", view.Text);
+
+                // 一次撤销回到组前（"乙丙" 在同一 650ms 组内）。
+                view.ExecuteAsync(MarkdownEditorAction.Undo);
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                Assert.Equal("甲", view.Text);
+
+                // 重做恢复整组。
+                view.ExecuteAsync(MarkdownEditorAction.Redo);
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                Assert.Equal("甲乙丙", view.Text);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void LongDocumentUndoStack_IsBoundedByBudget()
+    {
+        platform.Run(() =>
+        {
+            var view = new MarkdownLiveEditorView();
+            var window = new Window { Width = 600, Height = 400, Content = view };
+            window.Show();
+            try
+            {
+                // 大文档 + 逐次独立（>650ms 模拟）编辑：栈按预算从最旧丢弃。
+                var paragraph = new string('字', 200_000);
+                view.SetText(paragraph);
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+
+                var undoField = typeof(MarkdownLiveEditorView).GetField("_undo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var lastPushField = typeof(MarkdownLiveEditorView).GetField("_lastUndoPush", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var undo = (System.Collections.IList?)undoField?.GetValue(view);
+                Assert.NotNull(undo);
+
+                for (var round = 0; round < 45; round++)
+                {
+                    view.FocusBlock(0);
+                    Dispatcher.UIThread.RunJobs();
+                    window.UpdateLayout();
+                    view.InsertText("添");
+                    Dispatcher.UIThread.RunJobs();
+                    window.UpdateLayout();
+                    // 模拟距上次压栈超过 650ms：直接回拨时间戳让下一轮独立成组。
+                    lastPushField?.SetValue(view, Environment.TickCount64 - 700);
+                }
+
+                var totalChars = 0L;
+                foreach (var item in undo!)
+                {
+                    var textProp = item!.GetType().GetProperty("Text");
+                    totalChars += (textProp?.GetValue(item) as string)?.Length ?? 0;
+                }
+                Assert.True(undo.Count < 45, "超预算条目应从最旧丢弃");
+                Assert.True(totalChars <= 8_000_000, "撤销栈总字符量应在预算内");
+                Assert.Equal(paragraph + new string('添', 45), view.Text);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+}
