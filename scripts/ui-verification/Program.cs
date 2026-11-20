@@ -1939,12 +1939,27 @@ void VerifyMermaidWorkspace(Vex.Modules.Shell.Views.MainWindow window, MainWindo
     var sourceEditor = window.Workspace.FindControl<Vex.Modules.Workspace.Views.MarkdownEditorView>("EditorGuideTarget")!
         .FindControl<MarkdownEditorView>("MarkdownEditor")!;
     // 菜单收敛后 24 个模板键改从工具带 Mermaid 图鉴 Flyout 取（ShellEditorOptionsView 内 dg-card）。
-    var templateKeys = window.GetVisualDescendants().OfType<Button>()
-        .Where(button => button.Name == "FormatMermaidGallery")
-        .SelectMany(button => button.Flyout is Flyout flyout && flyout.Content is Visual content
-            ? content.GetVisualDescendants().OfType<Button>()
-            : Enumerable.Empty<Button>())
-        .Select(card => card.CommandParameter).OfType<string>().Distinct().ToArray();
+    // 1118 改版后图鉴是 4 组 TabControl：未选中页不物化内容，须逐页选中收集卡片的模板键。
+    var templateKeys = new List<string>();
+    if (window.GetVisualDescendants().OfType<Button>().FirstOrDefault(button => button.Name == "FormatMermaidGallery") is { } galleryButton
+        && galleryButton.Flyout is Flyout galleryFlyout
+        && galleryFlyout.Content is Visual galleryRoot)
+    {
+        galleryFlyout.ShowAt(galleryButton);
+        Pump();
+        var galleryTabs = galleryRoot.GetVisualDescendants().OfType<TabItem>().ToArray();
+        foreach (var tab in galleryTabs)
+        {
+            tab.IsSelected = true;
+            Pump();
+            templateKeys.AddRange(galleryRoot.GetVisualDescendants().OfType<Button>()
+                .Where(card => card.Classes.Contains("dg-card"))
+                .Select(card => card.CommandParameter).OfType<string>());
+        }
+
+        galleryFlyout.Hide();
+        Pump();
+    }
     Check(templateKeys.Distinct().Count() == 24, "Insertion menu exposes all 24 distinct template keys");
     foreach (var layout in new[] { "source", "instant" })
     {

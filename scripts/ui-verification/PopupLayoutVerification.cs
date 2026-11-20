@@ -35,12 +35,14 @@ internal static class PopupLayoutVerification
             Check(vm.Appearance.SelectedLanguage?.CultureName == culture, "Title-menu locale is selected: " + culture);
             var menu = title.FindControl<Menu>("TitleMenuBar")!;
             var topItems = menu.Items.OfType<MenuItem>().ToArray();
-            Check(topItems.Length == 6 && topItems.All(item => Math.Abs(item.Bounds.Height - 28) < .01)
+            // 11-17 菜单收敛 6→3（文件/视图/帮助）：顶级项数、28px 目标与 2px 自然间距随收敛口径更新。
+            Check(topItems.Length == 3 && topItems.All(item => Math.Abs(item.Bounds.Height - 28) < .01)
                 && topItems.Zip(topItems.Skip(1)).All(pair => Math.Abs(pair.Second.Bounds.X - pair.First.Bounds.Right - 2) < .01),
                 "Title menus keep natural text widths, 28px targets and 2px gaps in " + culture);
             if (OperatingSystem.IsWindows() && culture == "zh-CN")
             {
-                Check(Math.Abs(menu.Bounds.Width - 409.5625) < .1,
+                // 11-17 收敛后三顶级菜单（文件/视图/帮助）在 zh-CN 的自然总宽；换字体度量时此值须重测。
+                Check(Math.Abs(menu.Bounds.Width - 203.788) < .1,
                     $"Chinese title-menu width follows the measured prototype without per-item rounding: {menu.Bounds.Width:0.###}");
                 var titleLayer = window.GetVisualDescendants().OfType<Control>().Single(control => control.Name == "PART_TitleBarLayer");
                 var menuOrigin = menu.TranslatePoint(default, titleLayer)!.Value;
