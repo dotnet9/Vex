@@ -273,7 +273,12 @@ public sealed class ShellUpdateViewModel : ReactiveObject, IDialogContext, IDisp
             return;
         }
         SetState(UpdateState.Installed);
-        if (_install.Kind == UpdateInstallKind.Launched && _install.ShouldExitApplication) _exit();
+        if (_install.Kind == UpdateInstallKind.Launched && _install.ShouldExitApplication)
+        {
+            // 升级续接：交接成功即写标记，新版本首次无参启动据此恢复最近打开的文档。
+            new UpdateResumeMarker().Write();
+            _exit();
+        }
     });
 
     private async Task RunAsync(UpdateState state, Func<CancellationToken, Task> action)

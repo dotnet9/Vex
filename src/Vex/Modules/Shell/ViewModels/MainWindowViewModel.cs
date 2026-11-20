@@ -185,6 +185,12 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                 await RestoreLastWorkspaceFolderAsync();
             }
 
+            // 升级续接：更新安装完成后的首次无参启动，恢复最近打开的文档（标记消费即清）。
+            if (normalizedArguments.Length == 0 && new UpdateResumeMarker().TryConsume())
+            {
+                await RestoreLastOpenedDocumentAsync();
+            }
+
             return;
         }
 
@@ -239,6 +245,22 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         {
             PublishDocumentFilesChanged();
         }
+    }
+
+    /// <summary>升级续接：打开最近文档列表的第一项（= 最后一次打开的文件）；文件已不存在则静默跳过。</summary>
+    private async Task RestoreLastOpenedDocumentAsync()
+    {
+        var recentPath = new Vex.Modules.Shell.Services.RecentDocumentStore().Load(1).FirstOrDefault()?.Path;
+        if (string.IsNullOrWhiteSpace(recentPath) || !File.Exists(recentPath))
+        {
+            return;
+        }
+
+        await RequestUnsavedConfirmationAsync(
+            GuardedAction(
+                VexL.ErrorMessageCannotOpenFileFormat,
+                () => LoadDocumentPathAsync(recentPath),
+                recentPath));
     }
 
     public Task OpenDroppedPathAsync(string path)
