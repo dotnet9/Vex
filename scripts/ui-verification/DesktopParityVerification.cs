@@ -46,14 +46,15 @@ internal static class DesktopParityVerification
         Check(right.TranslatePoint(default, window)!.Value.X > fileX + 500, "Outline sits to the right of the document");
         window.CaptureRenderedFrame()?.Save(Path.Combine(output, "desktop-wide.png"));
         window.Width = 800; window.Height = 480; Render();
-        Check(layout.ShowOutlineSidebar && layout.IsOutlineVisible && layout.IsOutlineOverlay,
-            "Narrow window keeps the outline as an overlay without overwriting the preference");
+        Check(layout.ShowOutlineSidebar && layout.IsOutlineVisible && right.Bounds.Width >= 280
+            && Math.Abs(right.Bounds.Width - layout.OutlineWidth) < 1,
+            "Narrow window keeps the outline docked as a layout column without overwriting the preference");
         layout.ToggleOutline(); Render();
         Check(!layout.ShowOutlineSidebar,
-            "Manual toggle closes the outline overlay in the narrow window");
+            "Manual toggle closes the outline in the narrow window");
         layout.ToggleOutline(); Render();
         Check(layout.ShowOutlineSidebar,
-            "Toggling again reopens the outline overlay in the narrow window");
+            "Toggling again reopens the outline in the narrow window");
         window.Width = 1280; Render(); layout.ShowOutline(); Render();
         layout.OutlineWidth = 280; Render();
         Check(Math.Abs(right.Bounds.Width - 280) < 1 && app.Resolve<IAppSettingsStore>().Current.OutlineWidth == 280, "Outline resizing persists independently");

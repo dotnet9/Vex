@@ -199,16 +199,15 @@ internal static class PrototypeChromeVerification
             var outlineHead = outlinePane.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("panel-head"));
             Check(filesHead.Bounds.Height == 36 && outlineHead.Bounds.Height == 36
                 && Math.Abs(filesHead.TranslatePoint(default, window)!.Value.Y - tabRow.TranslatePoint(default, window)!.Value.Y) < 1
-                && Math.Abs(outlineHead.TranslatePoint(default, window)!.Value.Y - tabRow.TranslatePoint(default, window)!.Value.Y
-                    - (vm.Layout.IsOutlineOverlay ? 9 : 0)) < 1,
-                "Sidebar headings follow the docked tab row or the inset outline overlay");
+                && Math.Abs(outlineHead.TranslatePoint(default, window)!.Value.Y - tabRow.TranslatePoint(default, window)!.Value.Y) < 1,
+                "Sidebar headings follow the docked tab row");
             var outlineSurface = window.Workspace.FindControl<Border>("OutlineGuideTarget")!;
             var outlineOrigin = outlineSurface.TranslatePoint(default, window)!.Value;
+            // 大纲只有坞设形态（11-20 拍板）：宽度=大纲列宽，且整块落在窗内、右侧保留布局列。
             Check(outlineOrigin.X >= 0 && outlineOrigin.X + outlineSurface.Bounds.Width <= window.ClientSize.Width
-                && (vm.Layout.IsOutlineOverlay
-                    ? outlineSurface.Bounds.Width == 344 && vm.Layout.OutlineColumnWidth.Value == 0
-                    : outlineSurface.Bounds.Width == vm.Layout.OutlineWidth),
-                "Outline remains inside the desktop window without reserving a column in overlay mode");
+                && outlineSurface.Bounds.Width == vm.Layout.OutlineWidth
+                && vm.Layout.OutlineColumnWidth.Value == vm.Layout.OutlineWidth,
+                "Outline remains inside the desktop window as a reserved layout column");
             // 大纲侧搜索框已随「大纲 UI 下沉库 MarkdownOutlinePanel」退役（面板内筛选框由库
             // MarkdownOutlinePanelTests 覆盖），这里只核对文件侧栏的搜索壳与图标坐标。
             {
