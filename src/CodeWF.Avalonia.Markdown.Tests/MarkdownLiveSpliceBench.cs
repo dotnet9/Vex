@@ -81,3 +81,34 @@ public class MarkdownLiveSpliceBench(ITestOutputHelper output)
         output.WriteLine($"新脏组拼接　：{newSw.ElapsedMilliseconds} ms（均 {newSw.ElapsedMilliseconds / (double)keystrokes:F2} ms/键），分配 {newAlloc / 1024 / 1024} MB");
     }
 }
+
+[Collection("AvaloniaPlatform")]
+public class MarkdownPresenterCostBench(AvaloniaPlatformFixture platform, ITestOutputHelper output)
+{
+    [Fact]
+    public void Parse_Vs_Reshape_OnLargeParagraph() => platform.Run(() =>
+    {
+        var paragraph = string.Concat(Enumerable.Repeat("这是一段用于测量的正文文字，包含中文与 ascii 123 混排。", 180)); // ≈9.7KB
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var parseStart = GC.GetTotalAllocatedBytes(precise: true);
+        var sw = Stopwatch.StartNew();
+        for (var i = 0; i < 200; i++) _ = MarkdownTextRunParser.Parse(paragraph);
+        sw.Stop();
+        var parseAlloc = GC.GetTotalAllocatedBytes(precise: true) - parseStart;
+
+        var face = new global::Avalonia.Media.Typeface(global::Avalonia.Media.FontFamily.Default);
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var layoutStart = GC.GetTotalAllocatedBytes(precise: true);
+        var sw2 = Stopwatch.StartNew();
+        for (var i = 0; i < 200; i++)
+        {
+            _ = new global::Avalonia.Media.TextFormatting.TextLayout(paragraph, face, 15,
+                global::Avalonia.Media.Brushes.Black, global::Avalonia.Media.TextAlignment.Left,
+                global::Avalonia.Media.TextWrapping.Wrap, maxWidth: 800);
+        }
+        sw2.Stop();
+        var layoutAlloc = GC.GetTotalAllocatedBytes(precise: true) - layoutStart;
+
+        output.WriteLine($"9.7KB 段落 ×200：Parse {sw.ElapsedMilliseconds} ms（均 {sw.ElapsedMilliseconds / 200.0:F3} ms/次，分配 {parseAlloc / 200 / 1024} KB/次）；TextLayout {sw2.ElapsedMilliseconds} ms（均 {sw2.ElapsedMilliseconds / 200.0:F3} ms/次，分配 {layoutAlloc / 200 / 1024} KB/次）");
+    });
+}

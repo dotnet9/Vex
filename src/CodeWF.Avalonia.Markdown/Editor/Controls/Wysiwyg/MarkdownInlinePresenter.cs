@@ -5,6 +5,7 @@ using global::Avalonia.Media.Imaging;
 using global::Avalonia.Media.TextFormatting;
 using global::Avalonia.Utilities;
 using global::Avalonia.VisualTree;
+using System.Buffers;
 using System.Collections.Concurrent;
 using CodeWF.Avalonia.Markdown.MathRendering;
 using CodeWF.Avalonia.Markdown.Shared.Rendering;
@@ -27,6 +28,10 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
     /// <summary>当前版面的行内数学叠绘清单（几何在绘制时按当前版面命中）。</summary>
     private readonly List<MathOverlay> _mathOverlays = [];
     private TextLayout? _lastLayout;
+    /// <summary>行内 run 解析缓存：键为源码引用与语法选项（光标/选区驱动的重建直接复用）。</summary>
+    private List<MarkdownTextRun>? _cachedRuns;
+    private string? _cachedRunsSource;
+    private MarkdownSyntaxOptions? _cachedRunsOptions;
 
     private sealed record ImageOverlay(int Start, Bitmap? Bitmap, double Width, double Height);
 
@@ -81,79 +86,99 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
         if (plain) return base.CreateTextLayout();
         var source = Text ?? "";
         var face = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
-        var styles = new List<ValueSpan<TextRunProperties>>();
         _imageOverlays.Clear();
         _mathOverlays.Clear();
-        // 隐藏的语法仍占一个源码索引，但不能包含实际换行而影响段落排版。
-        var display = Enumerable.Repeat('\u200b', source.Length).ToArray();
-        var cursor = 0;
-        foreach (var run in MarkdownTextRunParser.Parse(source))
+        // 解析结果只依赖源码文本：光标/选区驱动的重建（叠绘显源码切换）直接复用，
+        // 避免每次重建都重扫整块 Markdown。
+        if (!ReferenceEquals(_cachedRunsSource, source) || !Equals(_cachedRunsOptions, options.SyntaxOptions))
         {
-            var start = Math.Clamp(run.SourceStart, cursor, source.Length);
-            if (start > cursor) Hide(cursor, start - cursor);
-            if ((run.ImageUrl is not null || run.MathLatex is not null) && run.SourceLength > 0)
+            _cachedRuns = MarkdownTextRunParser.Parse(source, options.SyntaxOptions);
+            _cachedRunsSource = source;
+            _cachedRunsOptions = options.SyntaxOptions;
+        }
+        var runs = _cachedRuns!;
+        var styles = new List<ValueSpan<TextRunProperties>>();
+        string text;
+        // 隐藏的语法仍占一个源码索引，但不能包含实际换行而影响段落排版。
+        // 长段落逐键重建：显示缓冲走池化数组，避免每次整块堆分配。
+        var display = ArrayPool<char>.Shared.Rent(Math.Max(1, source.Length));
+        try
+        {
+            display.AsSpan(0, source.Length).Fill('\u200b');
+            var cursor = 0;
+            foreach (var run in runs)
             {
-                // 嵌入对象（行内图片/行内数学）：整个语法区间显源码（光标/选区在内）或占位叠绘。
-                var spanLength = Math.Min(run.SourceLength, source.Length - start);
-                var revealed = SelectionStart != SelectionEnd
-                    ? start < SelectionEnd && SelectionStart < start + spanLength
-                    : CaretIndex > start && CaretIndex < start + spanLength;
-                if (revealed)
+                var start = Math.Clamp(run.SourceStart, cursor, source.Length);
+                if (start > cursor) Hide(cursor, start - cursor);
+                if ((run.ImageUrl is not null || run.MathLatex is not null) && run.SourceLength > 0)
                 {
-                    source.AsSpan(start, spanLength).CopyTo(display.AsSpan(start));
-                    styles.Add(new(start, spanLength,
-                        new GenericTextRunProperties(face, FontSize, foregroundBrush: Foreground)));
-                }
-                else
-                {
-                    var em = FontSize * 2;
-                    if (run.ImageUrl is not null)
+                    // 嵌入对象（行内图片/行内数学）：整个语法区间显源码（光标/选区在内）或占位叠绘。
+                    var spanLength = Math.Min(run.SourceLength, source.Length - start);
+                    var revealed = SelectionStart != SelectionEnd
+                        ? start < SelectionEnd && SelectionStart < start + spanLength
+                        : CaretIndex > start && CaretIndex < start + spanLength;
+                    if (revealed)
                     {
-                        var bitmap = LoadImage(run.ImageUrl);
-                        var (width, height) = ImageDrawSize(bitmap);
-                        em = bitmap is null ? FontSize : Math.Min(height, FontSize * 2);
-                        if (bitmap is not null)
-                            _imageOverlays.Add(new ImageOverlay(start, bitmap, width, height));
+                        source.AsSpan(start, spanLength).CopyTo(display.AsSpan(start));
+                        styles.Add(new(start, spanLength,
+                            new GenericTextRunProperties(face, FontSize, foregroundBrush: Foreground)));
                     }
                     else
                     {
-                        _mathOverlays.Add(new MathOverlay(start, run.MathLatex!));
+                        var em = FontSize * 2;
+                        if (run.ImageUrl is not null)
+                        {
+                            var bitmap = LoadImage(run.ImageUrl);
+                            var (width, height) = ImageDrawSize(bitmap);
+                            em = bitmap is null ? FontSize : Math.Min(height, FontSize * 2);
+                            if (bitmap is not null)
+                                _imageOverlays.Add(new ImageOverlay(start, bitmap, width, height));
+                        }
+                        else
+                        {
+                            _mathOverlays.Add(new MathOverlay(start, run.MathLatex!));
+                        }
+                        // 占位字符用空格而非零宽符：全 em 下零宽符触发字体回退会崩掉整行 shaping
+                        //（实测整行文字消失）；空格有真实宽度（预留对象横空间）、无回退、透明不可见。
+                        display.AsSpan(start, spanLength).Fill(' ');
+                        styles.Add(new(start, spanLength, new GenericTextRunProperties(face,
+                            em, foregroundBrush: Brushes.Transparent)));
                     }
-                    // 占位字符用空格而非零宽符：全 em 下零宽符触发字体回退会崩掉整行 shaping
-                    //（实测整行文字消失）；空格有真实宽度（预留对象横空间）、无回退、透明不可见。
-                    display.AsSpan(start, spanLength).Fill(' ');
-                    styles.Add(new(start, spanLength, new GenericTextRunProperties(face,
-                        em, foregroundBrush: Brushes.Transparent)));
+                    cursor = start + spanLength;
+                    continue;
                 }
-                cursor = start + spanLength;
-                continue;
+                var length = Math.Min(run.Text.Length, source.Length - start);
+                if (length > 0)
+                {
+                    run.Text.AsSpan(0, length).CopyTo(display.AsSpan(start));
+                    var typeface = new Typeface(run.Code ? options.CodeFontFamily : FontFamily,
+                        run.Italic ? FontStyle.Italic : FontStyle, run.Bold ? FontWeight.Bold : FontWeight, FontStretch);
+                    var decoration = run.Strike ? TextDecorations.Strikethrough : run.LinkUrl is not null ? TextDecorations.Underline : null;
+                    // 样式优先级：行内代码 > <span style>（对比度不足回退主题） > 链接 > 默认前景。
+                    var themeTextColor = (Foreground as SolidColorBrush)?.Color ?? Colors.Black;
+                    var spanBackgroundColor = MarkdownSpanStyle.TryGetColor(run.Background);
+                    var foreground = run.Code ? options.CodeBrush
+                        : MarkdownSpanStyle.EnsureReadable(
+                              MarkdownSpanStyle.TryGetColor(run.Foreground),
+                              spanBackgroundColor,
+                              themeTextColor) is { } readable
+                            ? new SolidColorBrush(readable)
+                            : (run.LinkUrl is not null ? options.LinkBrush : Foreground);
+                    var background = run.Code ? options.CodeBackgroundBrush
+                        : spanBackgroundColor is { } backgroundColor ? new SolidColorBrush(backgroundColor) : null;
+                    styles.Add(new(start, length, new GenericTextRunProperties(typeface, run.FontSize ?? FontSize, decoration,
+                        foreground, background)));
+                }
+                cursor = start + length;
             }
-            var length = Math.Min(run.Text.Length, source.Length - start);
-            if (length > 0)
-            {
-                run.Text.AsSpan(0, length).CopyTo(display.AsSpan(start));
-                var typeface = new Typeface(run.Code ? options.CodeFontFamily : FontFamily,
-                    run.Italic ? FontStyle.Italic : FontStyle, run.Bold ? FontWeight.Bold : FontWeight, FontStretch);
-                var decoration = run.Strike ? TextDecorations.Strikethrough : run.LinkUrl is not null ? TextDecorations.Underline : null;
-                // 样式优先级：行内代码 > <span style>（对比度不足回退主题） > 链接 > 默认前景。
-                var themeTextColor = (Foreground as SolidColorBrush)?.Color ?? Colors.Black;
-                var spanBackgroundColor = MarkdownSpanStyle.TryGetColor(run.Background);
-                var foreground = run.Code ? options.CodeBrush
-                    : MarkdownSpanStyle.EnsureReadable(
-                          MarkdownSpanStyle.TryGetColor(run.Foreground),
-                          spanBackgroundColor,
-                          themeTextColor) is { } readable
-                        ? new SolidColorBrush(readable)
-                        : (run.LinkUrl is not null ? options.LinkBrush : Foreground);
-                var background = run.Code ? options.CodeBackgroundBrush
-                    : spanBackgroundColor is { } backgroundColor ? new SolidColorBrush(backgroundColor) : null;
-                styles.Add(new(start, length, new GenericTextRunProperties(typeface, run.FontSize ?? FontSize, decoration,
-                    foreground, background)));
-            }
-            cursor = start + length;
+            if (cursor < source.Length) Hide(cursor, source.Length - cursor);
+            // 池化数组可能比源码长，必须按长度切片构造字符串。
+            text = source.Length == 0 ? string.Empty : new string(display, 0, source.Length);
         }
-        if (cursor < source.Length) Hide(cursor, source.Length - cursor);
-        var text = new string(display);
+        finally
+        {
+            ArrayPool<char>.Shared.Return(display);
+        }
         if (text.Length == 0)
         {
             // 空块光标需要行高支撑：占位/隐藏管线对空源码产出空 TextLayout，
@@ -188,24 +213,34 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
         }
         var selectionStart = Math.Min(SelectionStart, SelectionEnd);
         var selectionEnd = Math.Max(SelectionStart, SelectionEnd);
-        var overrides = new List<ValueSpan<TextRunProperties>>();
-        foreach (var span in styles)
+        List<ValueSpan<TextRunProperties>> overrides;
+        if (selectionStart == selectionEnd && compositionLength == 0)
         {
-            var end = span.Start + span.Length;
-            var boundaries = new[] { span.Start, end, selectionStart, selectionEnd, compositionStart, compositionStart + compositionLength }
-                .Where(index => index >= span.Start && index <= end).Distinct().Order().ToArray();
-            for (var i = 0; i + 1 < boundaries.Length; i++)
+            // 常态打字（无选区、无组合输入）没有任何跨度切分可做：样式即最终覆盖，
+            // 跳过逐 span 的边界数组分派（原本每个 span 都要分配数组再走一遍）。
+            overrides = styles;
+        }
+        else
+        {
+            overrides = new List<ValueSpan<TextRunProperties>>();
+            foreach (var span in styles)
             {
-                var start = boundaries[i]; var finish = boundaries[i + 1]; var properties = span.Value;
-                var composing = compositionLength > 0 && start >= compositionStart && finish <= compositionStart + compositionLength;
-                var selected = start >= selectionStart && finish <= selectionEnd && selectionStart != selectionEnd;
-                if ((selected && SelectionForegroundBrush is not null || composing) && properties.FontRenderingEmSize > .01)
-                    properties = new GenericTextRunProperties(properties.Typeface, properties.FontRenderingEmSize,
-                        composing ? TextDecorations.Underline : properties.TextDecorations,
-                        selected ? SelectionForegroundBrush : properties.ForegroundBrush,
-                        selected && SelectionForegroundBrush is not null ? null : properties.BackgroundBrush,
-                        properties.BaselineAlignment, properties.CultureInfo, properties.FontFeatures);
-                overrides.Add(new(start, finish - start, properties));
+                var end = span.Start + span.Length;
+                var boundaries = new[] { span.Start, end, selectionStart, selectionEnd, compositionStart, compositionStart + compositionLength }
+                    .Where(index => index >= span.Start && index <= end).Distinct().Order().ToArray();
+                for (var i = 0; i + 1 < boundaries.Length; i++)
+                {
+                    var start = boundaries[i]; var finish = boundaries[i + 1]; var properties = span.Value;
+                    var composing = compositionLength > 0 && start >= compositionStart && finish <= compositionStart + compositionLength;
+                    var selected = start >= selectionStart && finish <= selectionEnd && selectionStart != selectionEnd;
+                    if ((selected && SelectionForegroundBrush is not null || composing) && properties.FontRenderingEmSize > .01)
+                        properties = new GenericTextRunProperties(properties.Typeface, properties.FontRenderingEmSize,
+                            composing ? TextDecorations.Underline : properties.TextDecorations,
+                            selected ? SelectionForegroundBrush : properties.ForegroundBrush,
+                            selected && SelectionForegroundBrush is not null ? null : properties.BackgroundBrush,
+                            properties.BaselineAlignment, properties.CultureInfo, properties.FontFeatures);
+                    overrides.Add(new(start, finish - start, properties));
+                }
             }
         }
         var mixedSizes = styles.Any(span => span.Value.FontRenderingEmSize > FontSize + .01);
