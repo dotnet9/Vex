@@ -14,6 +14,7 @@ public static class ShellWindowPlacement
     static ShellWindowPlacement() => LayoutProperty.Changed.AddClassHandler<Window, ShellWindowLayoutViewModel?>((window, args) =>
     {
         window.SizeChanged -= OnSizeChanged;
+        window.PositionChanged -= OnPositionChanged;
         window.Closed -= OnClosed;
         if (args.NewValue.Value is not { } layout) return;
         var screen = window.Screens.ScreenFromWindow(window) ?? window.Screens.Primary;
@@ -22,7 +23,10 @@ public static class ShellWindowPlacement
         var size = layout.RestoreWindowPlacement(workArea, new Size(window.MinWidth, window.MinHeight));
         window.Width = size.Width;
         window.Height = size.Height;
+        // 有已保存位置才落 Manual：首次启动仍沿用 XAML 的 CenterScreen。
+        layout.RestoreWindowPosition(window);
         window.SizeChanged += OnSizeChanged;
+        window.PositionChanged += OnPositionChanged;
         window.Closed += OnClosed;
     });
 
@@ -40,13 +44,27 @@ public static class ShellWindowPlacement
         }, DispatcherPriority.Background);
     }
 
+    private static void OnPositionChanged(object? sender, EventArgs args)
+    {
+        var window = (Window)sender!;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (window.IsVisible && window.WindowState == WindowState.Normal)
+                GetLayout(window)?.TrackNormalWindowPosition(window.Position);
+        }, DispatcherPriority.Background);
+    }
+
     private static void OnClosed(object? sender, EventArgs args)
     {
         var window = (Window)sender!;
         if (window.WindowState == WindowState.Normal)
+        {
             GetLayout(window)?.TrackNormalWindowSize(window.Bounds.Size);
+            GetLayout(window)?.TrackNormalWindowPosition(window.Position);
+        }
         GetLayout(window)?.SaveWindowPlacement();
         window.SizeChanged -= OnSizeChanged;
+        window.PositionChanged -= OnPositionChanged;
         window.Closed -= OnClosed;
     }
 }

@@ -25,6 +25,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string WindowWidth = nameof(AppSettings.WindowWidth);
     private const string WindowHeight = nameof(AppSettings.WindowHeight);
     private const string IsWindowMaximized = nameof(AppSettings.IsWindowMaximized);
+    private const string WindowX = nameof(AppSettings.WindowX);
+    private const string WindowY = nameof(AppSettings.WindowY);
     private const string IsMcpServerEnabled = nameof(AppSettings.IsMcpServerEnabled);
     private const string McpServerHost = nameof(AppSettings.McpServerHost);
     private const string McpServerPort = nameof(AppSettings.McpServerPort);
@@ -213,6 +215,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
             WindowWidth = Get<double?>(configuration, WindowWidth),
             WindowHeight = Get<double?>(configuration, WindowHeight),
             IsWindowMaximized = Get<bool?>(configuration, IsWindowMaximized),
+            WindowX = Get<double?>(configuration, WindowX),
+            WindowY = Get<double?>(configuration, WindowY),
             IsMcpServerEnabled = Get<bool?>(configuration, IsMcpServerEnabled),
             McpServerHost = Get<string>(configuration, McpServerHost),
             McpServerPort = Get<int?>(configuration, McpServerPort),
@@ -318,6 +322,8 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [WindowWidth] = settings.WindowWidth,
                 [WindowHeight] = settings.WindowHeight,
                 [IsWindowMaximized] = settings.IsWindowMaximized,
+                [WindowX] = settings.WindowX,
+                [WindowY] = settings.WindowY,
                 [IsMcpServerEnabled] = settings.IsMcpServerEnabled,
                 [McpServerHost] = settings.McpServerHost,
                 [McpServerPort] = settings.McpServerPort,

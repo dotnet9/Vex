@@ -72,6 +72,12 @@ public sealed record AppSettings
 
     public double? WindowHeight { get; init; }
 
+    /// <summary>上次正常态窗口左上角（设备像素）；null 时启动居中。</summary>
+    public double? WindowX { get; init; }
+
+    /// <summary>上次正常态窗口左上角（设备像素）；null 时启动居中。</summary>
+    public double? WindowY { get; init; }
+
     public bool? IsWindowMaximized { get; init; }
 
     public bool? IsMcpServerEnabled { get; init; }
