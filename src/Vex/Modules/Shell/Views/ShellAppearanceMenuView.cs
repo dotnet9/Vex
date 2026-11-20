@@ -29,6 +29,11 @@ public sealed class ShellAppearanceMenuView : UserControl
     public Button AppearanceButton { get; private set; } = null!;
     public Button LanguageButton { get; private set; } = null!;
     public const double MenuWidth = 430;
+
+    /// <summary>外观菜单外框宽：随密度令牌（VexUiAppearanceMenuWidth）缩放，令牌缺失回落 430 原型值。</summary>
+    private static double MenuWidthForDensity() =>
+        global::Avalonia.Application.Current?.Resources.TryGetResource("VexUiAppearanceMenuWidth", null, out var value) == true
+        && value is double width ? width : MenuWidth;
     /// <summary>原型 *{box-sizing:border-box}：430 是含 14 内距与 1px 发丝描边的外框宽，
     /// 内容面板按 430 − 2×(14+1) 收口，弹层才不会被内容宽顶成 432。</summary>
     private const double MenuInset = 15;
@@ -109,6 +114,7 @@ public sealed class ShellAppearanceMenuView : UserControl
     {
         if (_vm is null) return;
         if (e.PropertyName is nameof(ShellAppearanceViewModel.PaletteOptions) or null) { Build(); return; }
+        if (e.PropertyName is nameof(ShellAppearanceViewModel.SelectedDensity)) { Build(); return; }
         var accent = Brush("VexAccentBrush"); var soft = Brush("VexAccentSoftBrush"); var onAccent = Brush("StudioOnPrimary"); var text = Brush("VexValueBrush");
         foreach (var (option, card) in _paletteButtons)
         {
@@ -221,7 +227,7 @@ public sealed class ShellAppearanceMenuView : UserControl
         Grid.SetRow(_addCard, ordered.Length / 3); Grid.SetColumn(_addCard, ordered.Length % 3);
         _palettes.RowDefinitions = new RowDefinitions(string.Join(",", Enumerable.Repeat("Auto", (ordered.Length + 3) / 3)));
         _palettes.Children.Add(_addCard);
-        var content = new StackPanel { Width = MenuWidth - 2 * MenuInset, Margin = default };
+        var content = new StackPanel { Width = MenuWidthForDensity() - 2 * MenuInset, Margin = default };
         content.Children.Add(SectionTitle(Text("AppearanceDensityTitle")));
         content.Children.Add(densityRow);
         content.Children.Add(SectionTitle(Text("AppearanceModeTitle")));

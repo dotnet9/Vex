@@ -44,7 +44,7 @@
             <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Transient" FlyoutPresenterClasses="dg-gallery-flyout">
               <TabControl Classes="dg-gallery-tabs" SelectionChanged="OnGalleryTabChanged">
                 <TabItem Header="{i18n:I18n Vex.VexL.MermaidGroup0}">
-                  <ScrollViewer Height="375" HorizontalScrollBarVisibility="Disabled">
+                  <ScrollViewer Height="{DynamicResource VexUiGalleryPaneHeight}" HorizontalScrollBarVisibility="Disabled">
                     <WrapPanel Classes="dg-grid" Margin="14,12,6,14">
                       <Button Classes="dg-card" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="flowchart"><StackPanel Spacing="6" HorizontalAlignment="Stretch"><Border Classes="dg-thumb" Height="120"><Image Stretch="Uniform" MaxHeight="116"/></Border><TextBlock Text="{i18n:I18n Vex.VexL.MermaidFlowchart}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/></StackPanel></Button>
                       <Button Classes="dg-card" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="sequence"><StackPanel Spacing="6" HorizontalAlignment="Stretch"><Border Classes="dg-thumb" Height="120"><Image Stretch="Uniform" MaxHeight="116"/></Border><TextBlock Text="{i18n:I18n Vex.VexL.MermaidSequence}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/></StackPanel></Button>
@@ -54,7 +54,7 @@
                   </ScrollViewer>
                 </TabItem>
                 <TabItem Header="{i18n:I18n Vex.VexL.MermaidGroup1}">
-                  <ScrollViewer Height="375" HorizontalScrollBarVisibility="Disabled">
+                  <ScrollViewer Height="{DynamicResource VexUiGalleryPaneHeight}" HorizontalScrollBarVisibility="Disabled">
                     <WrapPanel Classes="dg-grid" Margin="14,12,6,14">
                       <Button Classes="dg-card" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="gantt"><StackPanel Spacing="6" HorizontalAlignment="Stretch"><Border Classes="dg-thumb" Height="120"><Image Stretch="Uniform" MaxHeight="116"/></Border><TextBlock Text="{i18n:I18n Vex.VexL.MermaidGantt}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/></StackPanel></Button>
                       <Button Classes="dg-card" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="timeline"><StackPanel Spacing="6" HorizontalAlignment="Stretch"><Border Classes="dg-thumb" Height="120"><Image Stretch="Uniform" MaxHeight="116"/></Border><TextBlock Text="{i18n:I18n Vex.VexL.MermaidTimeline}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/></StackPanel></Button>
@@ -64,7 +64,7 @@
                   </ScrollViewer>
                 </TabItem>
                 <TabItem Header="{i18n:I18n Vex.VexL.MermaidGroup2}">
-                  <ScrollViewer Height="375" HorizontalScrollBarVisibility="Disabled">
+                  <ScrollViewer Height="{DynamicResource VexUiGalleryPaneHeight}" HorizontalScrollBarVisibility="Disabled">
                     <WrapPanel Classes="dg-grid" Margin="14,12,6,14">
                       <Button Classes="dg-card" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="class"><StackPanel Spacing="6" HorizontalAlignment="Stretch"><Border Classes="dg-thumb" Height="120"><Image Stretch="Uniform" MaxHeight="116"/></Border><TextBlock Text="{i18n:I18n Vex.VexL.MermaidClass}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/></StackPanel></Button>
                       <Button Classes="dg-card" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="er"><StackPanel Spacing="6" HorizontalAlignment="Stretch"><Border Classes="dg-thumb" Height="120"><Image Stretch="Uniform" MaxHeight="116"/></Border><TextBlock Text="{i18n:I18n Vex.VexL.MermaidEr}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/></StackPanel></Button>
@@ -79,7 +79,7 @@
                   </ScrollViewer>
                 </TabItem>
                 <TabItem Header="{i18n:I18n Vex.VexL.MermaidGroup3}">
-                  <ScrollViewer Height="375" HorizontalScrollBarVisibility="Disabled">
+                  <ScrollViewer Height="{DynamicResource VexUiGalleryPaneHeight}" HorizontalScrollBarVisibility="Disabled">
                     <WrapPanel Classes="dg-grid" Margin="14,12,6,14">
                       <Button Classes="dg-card" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="pie"><StackPanel Spacing="6" HorizontalAlignment="Stretch"><Border Classes="dg-thumb" Height="120"><Image Stretch="Uniform" MaxHeight="116"/></Border><TextBlock Text="{i18n:I18n Vex.VexL.MermaidPie}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/></StackPanel></Button>
                       <Button Classes="dg-card" Command="{Binding EditorActions.InsertSnippet}" CommandParameter="quadrant"><StackPanel Spacing="6" HorizontalAlignment="Stretch"><Border Classes="dg-thumb" Height="120"><Image Stretch="Uniform" MaxHeight="116"/></Border><TextBlock Text="{i18n:I18n Vex.VexL.MermaidQuadrant}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/></StackPanel></Button>

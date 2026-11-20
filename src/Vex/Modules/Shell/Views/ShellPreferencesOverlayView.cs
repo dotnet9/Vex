@@ -22,7 +22,7 @@ public sealed class ShellPreferencesOverlayView : UserControl
 {
     private readonly ShellPreferencesViewModel _model;
     private readonly IAppLocalizer _localizer;
-    private readonly ListBox _navigation = new() { Classes = { "preferences-navigation" }, Width = 147, Padding = new Thickness(10, 18), Background = Brushes.Transparent, BorderThickness = new Thickness(0) };
+    private readonly ListBox _navigation = new() { Classes = { "preferences-navigation" }, Padding = new Thickness(10, 18), Background = Brushes.Transparent, BorderThickness = new Thickness(0) };
     // 原型两栏背景：左栏 --panel、右栏 --bg，浅深主题下有明暗差。浏览器侧是覆盖式滚动条，
     // 截图不占位；原生用 Hidden 保持同宽内容列（滚轮/触摸板仍可滚动）。
     private readonly ScrollViewer _scroll = new() { Name = "PreferencesContent", Padding = new Thickness(20), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Hidden };
@@ -62,9 +62,12 @@ public sealed class ShellPreferencesOverlayView : UserControl
         // 改值即生效：去掉「设置已保存 / 完成」页脚（对应原型偏好浮层）。
         // 宿主挂在 CodeWFWindow.OverlayContent 整窗浮层槽（含标题条），与原型
         // .vex-settings-host 同几何：卡片直接在整窗内居中，无需负边距补偿。
-        _card = new Border { Name = "PreferencesCard", Classes = { "dialog-card" }, Width = 675, Height = 700, Padding = new Thickness(0), BorderThickness = new Thickness(1), ClipToBounds = true, Child = grid };
+        _card = new Border { Name = "PreferencesCard", Classes = { "dialog-card" }, Padding = new Thickness(0), BorderThickness = new Thickness(1), ClipToBounds = true, Child = grid };
         // surface.css 的 --vex-r-pop 使用 md 档：标准圆角 8，保留整圈 1px 描边。
         BindResource(_card, Border.CornerRadiusProperty, "VexDensityCornerRadiusMd");
+        BindResource(_card, Border.WidthProperty, "VexUiPreferencesCardWidth");
+        BindResource(_card, Border.HeightProperty, "VexUiPreferencesCardHeight");
+        BindResource(_navigation, WidthProperty, "VexUiPreferencesNavigationWidth");
         Content = _card;
         _navigation.SelectionChanged += (_, _) => ShowCategory();
         RefreshLabels();
@@ -93,7 +96,6 @@ public sealed class ShellPreferencesOverlayView : UserControl
         if (TopLevel.GetTopLevel(this) is not Window window) return;
         _card.MaxWidth = Math.Max(320, window.Bounds.Width - 48);
         _card.MaxHeight = Math.Max(260, window.Bounds.Height - 48);
-        _navigation.Width = 147;
         Vex.Controls.OverlayDialogLayout.CenterAfterLayout(this);
     }
     private void CultureChanged(object? sender, EventArgs args)

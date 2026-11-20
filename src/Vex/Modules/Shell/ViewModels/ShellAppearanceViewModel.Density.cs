@@ -144,5 +144,12 @@ public sealed partial class ShellAppearanceViewModel
         Set("ZoomPadding", new Avalonia.Thickness(Space(5), 0));
         Set("ZoomSliderWidth", Size(72, 8));
         Set("ZoomResetHeight", Size(22, 2));
+        // 弹层内容几何：整卡随密度 ±6% 缩放，设置/外观/图鉴不再写死像素。
+        double Dialog(double normal) => Math.Round(normal * (1 + step * .06));
+        Set("PreferencesCardWidth", Dialog(675));
+        Set("PreferencesCardHeight", Dialog(700));
+        Set("PreferencesNavigationWidth", Dialog(147));
+        Set("AppearanceMenuWidth", Dialog(430));
+        Set("GalleryPaneHeight", Dialog(375));
     }
 }
