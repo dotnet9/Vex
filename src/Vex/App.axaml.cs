@@ -118,7 +118,6 @@ public partial class App : Application
         services.AddSingleton(sp => new ShellOutlineViewModel(sp.GetRequiredService<IShellStatusPublisher>(), sp.GetRequiredService<ShellWindowLayoutViewModel>(), sp.GetRequiredService<IAppSettingsStore>(), sp.GetRequiredService<IWorkspaceDocumentState>()));
         services.AddSingleton<ShellRecentDocumentsViewModel>();
         services.AddSingleton<ShellDocumentToolsViewModel>();
-        services.AddSingleton<ShellStatusViewModel>();
         services.AddSingleton<ShellTitleMenuViewModel>();
         services.AddSingleton(sp => new Vex.Modules.Templates.Services.TemplateCatalog(
             Vex.Modules.Templates.Services.TemplateCatalog.ResolveBuiltinRoot(),

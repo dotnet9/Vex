@@ -61,7 +61,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         ShellWorkbenchViewModel workbench,
         ShellNavigationViewModel navigation,
         ShellRecentDocumentsViewModel recent,
-        ShellStatusViewModel status,
         IShellDocumentWorkflowText text,
         IShellUnsavedChangesGuard unsavedChanges,
         IShellDocumentUtilityActions documentUtilities,
@@ -88,7 +87,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         Workbench = workbench;
         Navigation = navigation;
         Recent = recent;
-        Status = status;
         _text = text;
         _unsavedChanges = unsavedChanges;
         _documentUtilities = documentUtilities;
@@ -161,7 +159,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     public ShellWorkbenchViewModel Workbench { get; }
     public ShellNavigationViewModel Navigation { get; }
     public ShellRecentDocumentsViewModel Recent { get; }
-    public ShellStatusViewModel Status { get; }
     public ShellDocumentProtection Protection { get; } = new();
     private bool _retrySaveAs;
     private string? _retryExportFormat;

@@ -9,7 +9,6 @@
                 <ResourceInclude Source="Themes/Shared/AppPalette.axaml" />
                 <ResourceInclude Source="Themes/Shared/Motion.axaml" />
                 <ResourceInclude Source="Themes/Shared/Palette.axaml" />
-                <ResourceInclude Source="Themes/Controls/VexStatusBadge.axaml" />
                 <ResourceInclude Source="Themes/Controls/VexZoomDock.axaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- 滚动条配色：几何（常驻 16px 轨道 + 10px 滑块）与提示浮层折行已由库的

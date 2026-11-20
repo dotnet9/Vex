@@ -53,7 +53,6 @@
     <SolidColorBrush x:Key="VexStatusBarBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <SolidColorBrush x:Key="VexStatusBadgeBorderBrush" Color="{DynamicResource StudioBorderColor}" />
     <SolidColorBrush x:Key="VexStatusBarBackgroundBrush" Color="{DynamicResource StudioSurfaceColor}" />
-    <SolidColorBrush x:Key="VexStatusBadgeBackgroundBrush" Color="{DynamicResource StudioSurfaceColor}" />
     <SolidColorBrush x:Key="VexSplitterBrush" Color="{DynamicResource StudioRaisedColor}" />
     <SolidColorBrush x:Key="VexEditorCurrentLineBackgroundBrush" Color="{DynamicResource StudioRaisedColor}" />
     <SolidColorBrush x:Key="VexHoverBrush" Color="{DynamicResource StudioRaisedColor}" />
@@ -82,9 +81,7 @@
     <StaticResource x:Key="TextBlockSelectionForeground" ResourceKey="VexEditorForegroundBrush" />
     <SolidColorBrush x:Key="VexAccentSoftBrush" Color="{DynamicResource StudioSelectedColor}" />
     <SolidColorBrush x:Key="VexEditorForegroundBrush" Color="{DynamicResource StudioTextColor}" />
-    <SolidColorBrush x:Key="VexStatusBadgeValueBrush" Color="{DynamicResource StudioTextColor}" />
     <SolidColorBrush x:Key="VexValueBrush" Color="{DynamicResource StudioTextColor}" />
-    <SolidColorBrush x:Key="VexStatusBadgeLabelBrush" Color="{DynamicResource StudioMutedColor}" />
     <SolidColorBrush x:Key="VexMutedBrush" Color="{DynamicResource StudioMutedColor}" />
     <SolidColorBrush x:Key="VexDisabledBrush" Color="{DynamicResource StudioDisabledColor}" />
     <SolidColorBrush x:Key="VexQuoteBrush" Color="{DynamicResource StudioMutedColor}" />
