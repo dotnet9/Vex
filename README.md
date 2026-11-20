@@ -77,6 +77,10 @@ dotnet run --project src/Vex/Vex.csproj -f net11.0 --no-restore "-p:ArtifactsPat
 
 应用版本在 Directory.Build.props，框架默认值在 build/ProjectDefaults.props，依赖版本变量在 build/Versions.props，Directory.Packages.props 维护中央包声明，SDK 由 global.json 选择。主分支使用 .NET 11 RC；Win7 历史兼容基线冻结在 win7-archive，不再维护。应用图标以根目录 logo.svg、logo.png、logo.ico 为源；共享库经 NuGet 消费，本地联调和五 RID NativeAOT 发布见开发文档。
 
+## 待优化
+
+- [ ] 长文档阅读模式在连续滚动后，新暴露的区域可能整段暂不渲染，交互（点击/再次滚动）后恢复；布局与块物化状态经探针验证正常，属呈现层问题。疑似与远程桌面会话或特定显卡驱动下的 GPU 合成路径相关（SkiaSharp 当前为预发布版本）。临时缓解：出现空白时最小化再还原窗口（或轻微滚动）即可强制重绘。
+
 ## 许可证
 
 项目使用 [MIT](LICENSE)。依赖与维护者见 [鸣谢](docs/鸣谢.md)，浏览器原型本地依赖见 [许可说明](design/Third-Party-Licenses.html)。
