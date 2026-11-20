@@ -175,6 +175,13 @@ internal sealed class MarkdownSelectionController
 	{
 		for (var i = 0; i < _blocks.Count; i++)
 		{
+			// 虚拟化下未物化块已脱离坐标树：TranslatePoint 失败时旧 Bounds 是上一帧的残值，
+			// 拿它命中会把锚点钉到错误块上（表现为点击后冒出莫名选区）。
+			if (!IsBlockHittable(_blocks[i]))
+			{
+				continue;
+			}
+
 			var bounds = GetDocumentBounds(_blocks[i].Control);
 			if (documentPoint.Y >= bounds.Top && documentPoint.Y <= bounds.Bottom)
 			{
@@ -196,11 +203,18 @@ internal sealed class MarkdownSelectionController
 		return control.Bounds;
 	}
 
+	/// <summary>控件挂在坐标树（即滚动宿主的可视树）上才算可命中；跨树 TranslatePoint 返回 null，
+	/// 脱离树的块只保留纯文本选区语义（复制/跨块选区），不参与命中测试。</summary>
+	private bool IsBlockHittable(MarkdownSelectionBlock block) =>
+		_coordinateRoot is not null
+		&& block.Control.TranslatePoint(new Point(0, 0), _coordinateRoot) is not null;
+
 	private int ResolveExtensionIndex(Point documentPoint)
 	{
 		var hit = HitTestBlock(documentPoint);
 		if (hit >= 0) return hit;
 		return _blocks.Count == 0 ? -1 : Enumerable.Range(0, _blocks.Count)
+			.Where(i => IsBlockHittable(_blocks[i]))
 			.MinBy(i => Math.Abs(GetDocumentBounds(_blocks[i].Control).Center.Y - documentPoint.Y));
 	}
 
