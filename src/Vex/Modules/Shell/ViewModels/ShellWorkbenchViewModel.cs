@@ -504,6 +504,9 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         SelectedNode = _pendingChapterStart is { } start ? Flatten(Root).FirstOrDefault(node => node.Kind == MarkdownMindMapNodeKind.Heading && node.SourceStart == start) : null;
         _pendingChapterStart = null;
     }
+    /// <summary>即时编辑器挂接通知：宿主模块可在此对编辑器补装能力（如剪贴板图片落盘委托）。</summary>
+    public event Action<MarkdownLiveEditorView>? LiveEditorAttached;
+
     public void AttachLiveEditor(MarkdownLiveEditorView editor)
     {
         if (ReferenceEquals(_live, editor)) return;
@@ -512,6 +515,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         editor.SelectionChanged += LiveSelectionChanged;
         editor.EnableAutoPair = _display.EnableAutoPair;
         SynchronizeLive(); ApplyLiveAppearance();
+        LiveEditorAttached?.Invoke(editor);
     }
     public void DetachLiveEditor(MarkdownLiveEditorView editor)
     {

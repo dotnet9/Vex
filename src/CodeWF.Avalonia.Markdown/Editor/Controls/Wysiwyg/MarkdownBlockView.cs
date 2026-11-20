@@ -261,6 +261,23 @@ internal sealed class MarkdownBlockView : UserControl
     /// <summary>围栏补全判定（宿主强灌 ```/```lang 转代码块）：true=已转换并重建。</summary>
     public Func<MarkdownBlockView, bool>? FenceCompleted { get; set; }
 
+    /// <summary>Ctrl+V 剪贴板钩子：返回 true 表示已处理（如图片落盘插入）；
+    /// false 或异常时回落 TextBox 默认文本粘贴。</summary>
+    public Func<Task<bool>>? PasteFromClipboard { get; set; }
+
+    private async Task RunClipboardPasteAsync(Func<Task<bool>> handler)
+    {
+        try
+        {
+            if (await handler()) return;
+        }
+        catch
+        {
+            // 钩子异常回落默认粘贴。
+        }
+        if (_editing) _editor.Paste();
+    }
+
     /// <summary>回车拆块请求（参数为光标偏移）。</summary>
     public Action<MarkdownBlockView, int>? SplitRequested { get; set; }
 
@@ -594,6 +611,14 @@ internal sealed class MarkdownBlockView : UserControl
 
     private void OnEditorKeyDown(object? sender, KeyEventArgs e)
     {
+        // Ctrl+V：剪贴板含图片（文件复制/截图）时由宿主落盘并插入 Markdown 链接；
+        // 处理失败或未命中图片回落默认文本粘贴。
+        if (e.Key == Key.V && e.KeyModifiers == KeyModifiers.Control && PasteFromClipboard is { } paste)
+        {
+            e.Handled = true;
+            _ = RunClipboardPasteAsync(paste);
+            return;
+        }
         // 中文输入法激活时，回车/退格等按键以 Key.ImeProcessed 形态到达（真机实测），
         // 所有 case Key.Enter 全部不匹配——回车/边界导航/合并静默失效。用 PhysicalKey 归一化。
         var key = e.Key == Key.ImeProcessed

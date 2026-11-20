@@ -605,6 +605,62 @@ public partial class MarkdownLiveEditorView : UserControl
         return Task.CompletedTask;
     }
 
+    /// <summary>剪贴板图片负载：文件来源给 SourceFilePath，位图（截图）来源给 PngBytes。</summary>
+    public sealed record MarkdownClipboardImage(string? SourceFilePath, byte[] PngBytes);
+
+    /// <summary>
+    /// 剪贴板图片落盘委托：宿主按自己的资源偏好保存并返回可直接嵌入 Markdown 的路径/URL；
+    /// 返回 null 表示未处理，粘贴回落默认文本行为。未设置时 Ctrl+V 走默认文本粘贴。
+    /// </summary>
+    public Func<MarkdownClipboardImage, Task<string?>>? ClipboardImageSaver { get; set; }
+
+    private async Task<bool> HandleClipboardImagePasteAsync()
+    {
+        var saver = ClipboardImageSaver;
+        if (saver is null) return false;
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is null) return false;
+        try
+        {
+            using var data = await clipboard.TryGetDataAsync();
+            if (data is null) return false;
+            foreach (var item in data.Items)
+            {
+                // 文件复制（资源管理器等）：取首个图片扩展名的本地文件。
+                if (item.Contains(DataFormat.File)
+                    && await item.TryGetValueAsync(DataFormat.File) is { } file
+                    && file.Path is { IsFile: true } fileUri && IsImagePath(fileUri.LocalPath))
+                {
+                    return await CommitClipboardImageAsync(new MarkdownClipboardImage(fileUri.LocalPath, []), saver);
+                }
+                // 位图（截图等）：DataFormat.Bitmap 直接给解码后的 Bitmap，转 PNG 字节落盘。
+                if (item.Contains(DataFormat.Bitmap)
+                    && await item.TryGetValueAsync(DataFormat.Bitmap) is { } bitmap)
+                {
+                    using var output = new MemoryStream();
+                    bitmap.Save(output);
+                    return await CommitClipboardImageAsync(new MarkdownClipboardImage(null, output.ToArray()), saver);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // 剪贴板读取或格式不可达：回落默认粘贴。
+        }
+        return false;
+    }
+
+    private async Task<bool> CommitClipboardImageAsync(MarkdownClipboardImage image, Func<MarkdownClipboardImage, Task<string?>> saver)
+    {
+        var path = await saver(image);
+        if (string.IsNullOrEmpty(path)) return false;
+        InsertText($"![]({path})");
+        return true;
+    }
+
+    private static bool IsImagePath(string path) => Path.GetExtension(path) is ".png" or ".jpg" or ".jpeg" or ".gif"
+        or ".bmp" or ".webp" or ".svg" or ".ico" or ".avif";
+
     /// <summary>按块序号聚焦（0 基）。</summary>
     /// <summary>按点击的纵坐标找最近的块（垂直范围内直接命中，否则取距离最小者）。</summary>
     private int FindNearestBlockIndex(double y)
@@ -1159,6 +1215,7 @@ public partial class MarkdownLiveEditorView : UserControl
         view.AddHandler(InputElement.KeyDownEvent, OnBlockKeyDown, RoutingStrategies.Tunnel);
         view.TextEntering = e => OnBlockTextInput(view, e);
         view.FenceCompleted = fenceView => TryEnterFenceMarker(fenceView);
+        view.PasteFromClipboard = HandleClipboardImagePasteAsync;
     }
 
     /// <summary>

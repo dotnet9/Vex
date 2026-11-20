@@ -63,7 +63,30 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
         // 文档载入/保存走本地事件：库控件必须先拿到新文档正文，否则首次焦点同步会把
         // 上一篇的文本回抛给 Shell，被误判为「已修改」并弹出保存确认。
         _workspaceDocumentState.DocumentChanged += OnDocumentChanged;
+        // 即时编辑器挂接即装剪贴板图片落盘委托：截图/文件复制粘贴进正文（与拖入图片同一资源管线）。
+        workbench.LiveEditorAttached += WireClipboardImageSaver;
+        if (workbench.LiveEditor is { } attached) WireClipboardImageSaver(attached);
         EventBus.Default.Subscribe(this);
+    }
+
+    private void WireClipboardImageSaver(MarkdownLiveEditorView editor)
+    {
+        editor.ClipboardImageSaver = SaveClipboardImageAsync;
+    }
+
+    private async Task<string?> SaveClipboardImageAsync(CodeWF.Avalonia.Markdown.Editor.Controls.MarkdownLiveEditorView.MarkdownClipboardImage image)
+    {
+        try
+        {
+            if (image.SourceFilePath is { } sourcePath) return _documentUtilities.CopyImageToAssets(_workspaceDocumentState.FilePath, sourcePath);
+            if (image.PngBytes.Length == 0) return null;
+            return _documentUtilities.CopyImageBytesToAssets(_workspaceDocumentState.FilePath, image.PngBytes, "png");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _status.PublishResource(VexL.ErrorMessageImageDropFailed);
+            return null;
+        }
     }
 
     /// <summary>自动配对开关（Shell 显示偏好下发）。</summary>

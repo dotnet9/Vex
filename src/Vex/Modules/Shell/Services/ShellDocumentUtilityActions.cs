@@ -161,6 +161,36 @@ public sealed class ShellDocumentUtilityActions : IShellDocumentUtilityActions
         return string.Join('/', relative.Replace('\\', '/').Split('/').Select(Uri.EscapeDataString));
     }
 
+    /// <summary>
+    /// 剪贴板位图（截图等）落盘：无源文件可复制，始终写入图片偏好目录，
+    /// 文件名 paste-时间戳 防碰撞；返回 Markdown 路径口径与 CopyImageToAssets 一致。
+    /// </summary>
+    public string? CopyImageBytesToAssets(string? documentPath, byte[] bytes, string extension)
+    {
+        if (bytes.Length == 0 || string.IsNullOrWhiteSpace(documentPath) || string.IsNullOrWhiteSpace(extension))
+        {
+            return null;
+        }
+
+        var documentDirectory = Path.GetDirectoryName(Path.GetFullPath(documentPath));
+        if (documentDirectory is null) return null;
+        var folder = string.IsNullOrWhiteSpace(_preferences.ImageFolder) ? "assets" : _preferences.ImageFolder.Trim();
+        if (Path.IsPathRooted(folder)) throw new IOException("Image folder must be relative to the document.");
+        var assetsDirectory = Path.GetFullPath(Path.Combine(documentDirectory, folder));
+        var relativeFolder = Path.GetRelativePath(documentDirectory, assetsDirectory);
+        if (relativeFolder == ".." || relativeFolder.StartsWith(".." + Path.DirectorySeparatorChar))
+            throw new IOException("Image folder must remain within the document directory.");
+        Directory.CreateDirectory(assetsDirectory);
+        var fileName = $"paste-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}.{extension}";
+        var targetPath = Path.Combine(assetsDirectory, fileName);
+        File.WriteAllBytes(targetPath, bytes);
+
+        if (!_preferences.ImageRelative) return new Uri(targetPath).AbsoluteUri;
+        var relative = Path.GetRelativePath(documentDirectory, targetPath);
+        if (Path.IsPathRooted(relative)) return new Uri(targetPath).AbsoluteUri;
+        return string.Join('/', relative.Replace('\\', '/').Split('/').Select(Uri.EscapeDataString));
+    }
+
     private static bool SameImage(string left, string right)
     {
         if (string.Equals(Path.GetFullPath(left), Path.GetFullPath(right), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)) return true;
