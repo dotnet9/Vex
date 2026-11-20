@@ -1,6 +1,6 @@
 ﻿# CodeWF.Avalonia.MindView
 
-脑图控件、Markdown 结构图、导入导出和配套主题合并为一个 NuGet 包。依赖 Avalonia、Markdig 和 CodeWF.Avalonia.Lang，宿主可独立选择 Semi / Ursa / Fluent 等主题。版本随本仓（Vex）统一版本。
+脑图控件、Markdown 结构图、导入导出和配套主题合并为一个 NuGet 包。依赖 Avalonia、Markdig 和 CodeWF.Avalonia.Lang，宿主可独立选择 Semi / Ursa / Fluent 等主题。版本沿用 CodeWF.Avalonia 的 `12.1.6.x` 版本线（Vex 应用本体另用独立版本号）。
 
 [![NuGet](https://img.shields.io/nuget/v/CodeWF.Avalonia.MindView?label=nuget)](https://www.nuget.org/packages/CodeWF.Avalonia.MindView)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/dotnet9/Vex/blob/main/LICENSE)
