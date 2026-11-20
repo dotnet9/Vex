@@ -42,6 +42,7 @@ public partial class MarkdownLiveEditorView : UserControl
     private readonly List<Control> _blockViews = [];
     private readonly List<MarkdownBlockModel> _models = [];
     private readonly MarkdownBlockEditorCore _core;
+    private readonly MarkdownLiveTextBuffer _textBuffer;
     private readonly Border _container;
     private readonly Border _paneHead;
     private readonly TextBlock _paneTitle;
@@ -179,6 +180,7 @@ public partial class MarkdownLiveEditorView : UserControl
         Content = BuildContent();
 
         _core = new MarkdownBlockEditorCore(_models);
+        _textBuffer = new MarkdownLiveTextBuffer(_models);
         // 空白文档挂起聚焦的消费者：布局稳定（附着+可见）后才真正落焦点。
         LayoutUpdated += (_, _) => TryConsumePendingBlankFocus();
         SetText(string.Empty);
@@ -317,8 +319,8 @@ public partial class MarkdownLiveEditorView : UserControl
     /// <summary>分隔线 / 表格边框色。</summary>
     public IBrush SeparatorBrush => _blockOptions.SeparatorBrush;
 
-    /// <summary>当前 Markdown 全文。</summary>
-    public string Text => MarkdownBlockParser.Write(_models);
+    /// <summary>当前 Markdown 全文（缓存：纯文本编辑只重算被编辑组，不整篇序列化）。</summary>
+    public string Text => _textBuffer.Text;
 
     /// <summary>块数量。</summary>
     public int BlockCount => _models.Count;
@@ -392,6 +394,7 @@ public partial class MarkdownLiveEditorView : UserControl
             // 聚焦再挂起到布局稳定后消费：切布局/文档切换瞬间视图尚未可见，
             // 同步 Focus 在真机上静默失败（headless 时序不同，探针一直绿）。
             _core.EnsureFirstBlock();
+            _textBuffer.Reset();
             RebuildBlocks();
             if (_models.Count == 1 && _models[0].Kind == MarkdownBlockKind.Paragraph && _models[0].Text.Length == 0)
             {
@@ -837,7 +840,7 @@ public partial class MarkdownLiveEditorView : UserControl
         {
             var table = new MarkdownTableView(model, _blockOptions)
             {
-                CellsChanged = _ => RaiseChanged(),
+                CellsChanged = _ => RaiseChanged(model),
                 CellEditingStarted = _ => { ActivateModel(model); RaiseSelectionChanged(); },
                 CellSelectionChanged = RaiseSelectionChanged,
                 StructureChangeRequested = (tableView, action) =>
@@ -961,7 +964,7 @@ public partial class MarkdownLiveEditorView : UserControl
 
     private void OnBlockTextCommitted(MarkdownBlockView view, string text)
     {
-        RaiseChanged();
+        RaiseChanged(view.Model);
     }
 
     private bool FocusAdjacentBlock(int index, int direction, double? x)
@@ -1116,27 +1119,71 @@ public partial class MarkdownLiveEditorView : UserControl
         }
     }
 
-    private void RaiseChanged()
+    private void RaiseChanged() => RaiseChanged(null);
+
+    /// <summary>
+    /// 编辑后回抛。<paramref name="edited"/> 给定时走脏组增量回写（每键热路径），
+    /// 否则整篇重算（结构变化）。文本未变时照旧回抛事件，但不动撤销历史。
+    /// </summary>
+    private void RaiseChanged(MarkdownBlockModel? edited)
     {
-        _selectionContentStarts = null;
         if (_suppressChanged)
         {
             return;
         }
 
-        var current = CaptureSnapshot();
-        if (current.Text != _lastSnapshot.Text)
+        var before = _textBuffer.Text;
+        bool textChanged;
+        var editedIndex = edited is null ? -1 : _models.IndexOf(edited);
+        // 组边界必须在拼接【前】捕获：Start/Length 指旧片段几何，供选区映射按位移平移。
+        var bounds = editedIndex >= 0 ? _textBuffer.GetGroupBounds(editedIndex) : null;
+        if (bounds is not null && _textBuffer.Splice(editedIndex))
         {
-            if (!_restoringHistory)
+            textChanged = !ReferenceEquals(before, _textBuffer.Text);
+            if (textChanged)
             {
-                _undo.Add(_lastSnapshot);
-                if (_undo.Count > 200) _undo.RemoveAt(0);
-                _redo.Clear();
+                UpdateSelectionMapAfterSplice(bounds.Value, _textBuffer.Text.Length - before.Length);
             }
-            _lastSnapshot = current;
         }
-        MarkdownChanged?.Invoke(this, current.Text);
+        else
+        {
+            _textBuffer.Reset();
+            textChanged = !string.Equals(before, _textBuffer.Text, StringComparison.Ordinal);
+            _selectionContentStarts = null;
+        }
+
+        if (textChanged && !_restoringHistory)
+        {
+            _undo.Add(_lastSnapshot);
+            if (_undo.Count > 200) _undo.RemoveAt(0);
+            _redo.Clear();
+        }
+        _lastSnapshot = CaptureSnapshot();
+        MarkdownChanged?.Invoke(this, _textBuffer.Text);
         RaiseSelectionChanged();
+    }
+
+    /// <summary>拼接回写后增量更新选区映射：组后块按位移平移，组内块在组片段窗口内局部重定位。</summary>
+    private void UpdateSelectionMapAfterSplice(
+        (int FirstBlockIndex, int LastBlockIndex, int Start, int OldLength) bounds, int delta)
+    {
+        if (_selectionContentStarts is null) return;
+        _selectionMappedText = _textBuffer.Text;
+        for (var i = bounds.LastBlockIndex + 1; i < _selectionContentStarts.Length; i++)
+        {
+            _selectionContentStarts[i] += delta;
+        }
+        var windowEnd = bounds.Start + bounds.OldLength + delta;
+        var cursor = bounds.Start;
+        for (var i = bounds.FirstBlockIndex; i <= bounds.LastBlockIndex && i < _selectionContentStarts.Length; i++)
+        {
+            var content = _models[i].Kind == MarkdownBlockKind.Raw ? _models[i].Raw : _models[i].Text;
+            var searchStart = Math.Min(cursor, windowEnd);
+            var found = _selectionMappedText.IndexOf(content, searchStart, windowEnd - searchStart, StringComparison.Ordinal);
+            if (found < 0) found = Math.Min(cursor, windowEnd);
+            _selectionContentStarts[i] = found;
+            cursor = found + content.Length;
+        }
     }
 
     private void RaiseSelectionChanged()
@@ -1147,7 +1194,7 @@ public partial class MarkdownLiveEditorView : UserControl
         var offset = Math.Clamp(Selection.Start, 0, text.Length);
         var line = 1 + text.AsSpan(0, offset).Count('\n');
         var previous = offset == 0 ? -1 : text.LastIndexOf('\n', offset - 1);
-        SelectionChanged?.Invoke(this, new MarkdownCaretEventArgs(line, offset - previous, 1 + text.Count(c => c == '\n')));
+        SelectionChanged?.Invoke(this, new MarkdownCaretEventArgs(line, offset - previous, _textBuffer.LineCount));
     }
 
     #endregion
@@ -1341,7 +1388,7 @@ public partial class MarkdownLiveEditorView : UserControl
                 _models[_activeIndex].Text = box.Text ?? string.Empty;
             }
 
-            RaiseChanged();
+            RaiseChanged(_models[_activeIndex]);
         }
     }
 
@@ -1428,7 +1475,7 @@ public partial class MarkdownLiveEditorView : UserControl
             _models[_activeIndex].Text = box.Text ?? string.Empty;
         }
 
-        RaiseChanged();
+        RaiseChanged(_models[_activeIndex]);
     }
 
     private void EnsureActiveBlockEditing()
@@ -1472,7 +1519,7 @@ public partial class MarkdownLiveEditorView : UserControl
             _models[_activeIndex].Text = box.Text ?? string.Empty;
         }
 
-        RaiseChanged();
+        RaiseChanged(_models[_activeIndex]);
     }
 
     private void ConvertActiveBlock(MarkdownBlockKind kind, int headingLevel, bool isTask = false, bool isOrdered = false)

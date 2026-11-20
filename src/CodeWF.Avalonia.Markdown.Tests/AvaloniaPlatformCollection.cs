@@ -14,8 +14,18 @@ namespace CodeWF.Avalonia.Markdown.Tests;
 /// </summary>
 public sealed class AvaloniaPlatformFixture
 {
-    private static readonly HeadlessUnitTestSession Session =
-        HeadlessUnitTestSession.StartNew(typeof(TestEntryPoint), AvaloniaTestIsolationLevel.PerAssembly);
+    private static readonly HeadlessUnitTestSession Session = StartSession();
+
+    private static HeadlessUnitTestSession StartSession()
+    {
+        // 控件构造路径会打点日志（如 MarkdownLiveEditorView.SetText），宿主未初始化时 Logger 会抛异常。
+        CodeWF.Toolkit.Logging.Logger.Initialize(new CodeWF.Toolkit.Logging.LoggerOptions
+        {
+            MinimumLevel = Microsoft.Extensions.Logging.LogLevel.Warning,
+            EnableConsole = false,
+        });
+        return HeadlessUnitTestSession.StartNew(typeof(TestEntryPoint), AvaloniaTestIsolationLevel.PerAssembly);
+    }
 
     /// <summary>在专用 UI 线程上执行。</summary>
     public void Run(Action action) => Session.Dispatch(action, CancellationToken.None).GetAwaiter().GetResult();

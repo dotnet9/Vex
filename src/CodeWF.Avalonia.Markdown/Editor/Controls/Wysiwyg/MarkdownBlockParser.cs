@@ -165,37 +165,70 @@ public static class MarkdownBlockParser
     }
 
     /// <summary>把块列表回写为 Markdown 文本。</summary>
-    public static string Write(IReadOnlyList<MarkdownBlockModel> blocks)
+    public static string Write(IReadOnlyList<MarkdownBlockModel> blocks) => WriteWithSpans(blocks).Text;
+
+    /// <summary>
+    /// 整篇回写并同时记录每个组在结果文本中的区间（一次遍历，供编辑器做脏组拼接）。
+    /// 区间与 <see cref="Write"/> 的输出逐字符一致；生成组的区间同样有效，但其片段依赖前文状态，
+    /// 只能整体重写、不能单独拼接（<see cref="WriteGroupSegment"/> 仅支持非生成组）。
+    /// </summary>
+    public static (string Text, List<MarkdownGroupSpan> Spans) WriteWithSpans(IReadOnlyList<MarkdownBlockModel> blocks)
     {
         var builder = new StringBuilder();
+        var spans = new List<MarkdownGroupSpan>();
         for (var index = 0; index < blocks.Count;)
         {
             var source = blocks[index].Source;
-            var first = index++;
+            var first = index;
+            // 先无条件前进一格：Source 为 null 的块自成单块组（否则 while 不触发、死循环）。
+            index++;
             while (source is not null && index < blocks.Count && ReferenceEquals(blocks[index].Source, source))
             {
                 index++;
             }
-            var group = blocks.Skip(first).Take(index - first).ToList();
-            var canonical = WriteCanonical(group).TrimEnd('\n');
-            if (source is { IsGenerated: false })
+            var group = new List<MarkdownBlockModel>(index - first);
+            for (var i = first; i < index; i++) group.Add(blocks[i]);
+            var start = builder.Length;
+            AppendGroup(builder, group, source, isLast: index == blocks.Count);
+            spans.Add(new MarkdownGroupSpan(start, builder.Length - start, first, source));
+        }
+        return (builder.ToString(), spans);
+    }
+
+    /// <summary>
+    /// 回写单个非生成组为文本片段：与 <see cref="Write"/> 对该组的输出逐字符一致。
+    /// 生成组的片段依赖前文（前导空行），必须走整体重写。
+    /// </summary>
+    public static string WriteGroupSegment(IReadOnlyList<MarkdownBlockModel> group, MarkdownBlockSource source, bool isLast)
+    {
+        if (source.IsGenerated)
+        {
+            throw new InvalidOperationException("生成组没有独立源码快照，只能整体重写。");
+        }
+        var builder = new StringBuilder();
+        AppendGroup(builder, group, source, isLast);
+        return builder.ToString();
+    }
+
+    private static void AppendGroup(StringBuilder builder, IReadOnlyList<MarkdownBlockModel> group, MarkdownBlockSource? source, bool isLast)
+    {
+        var canonical = WriteCanonical(group).TrimEnd('\n');
+        if (source is { IsGenerated: false })
+        {
+            builder.Append(source.LeadingTrivia);
+            builder.Append(canonical == source.CanonicalMarkdown ? source.Markdown
+                : canonical.Replace("\n", source.LineEnding, StringComparison.Ordinal));
+            if (isLast)
             {
-                builder.Append(source.LeadingTrivia);
-                builder.Append(canonical == source.CanonicalMarkdown ? source.Markdown
-                    : canonical.Replace("\n", source.LineEnding, StringComparison.Ordinal));
-                if (index == blocks.Count)
-                {
-                    builder.Append(source.TrailingTrivia);
-                }
-            }
-            else
-            {
-                if (builder.Length > 0 && builder[^1] != '\n') builder.Append('\n');
-                if (builder.Length > 0) builder.Append('\n');
-                builder.Append(WriteCanonical(group));
+                builder.Append(source.TrailingTrivia);
             }
         }
-        return builder.ToString();
+        else
+        {
+            if (builder.Length > 0 && builder[^1] != '\n') builder.Append('\n');
+            if (builder.Length > 0) builder.Append('\n');
+            builder.Append(WriteCanonical(group));
+        }
     }
 
     internal static string WriteCanonical(IReadOnlyList<MarkdownBlockModel> blocks)
@@ -203,7 +236,9 @@ public static class MarkdownBlockParser
         var builder = new StringBuilder();
         foreach (var block in blocks)
         {
-            if (builder.Length > 0)
+            // 组成员是同一容器（列表/引用）的子块：紧凑连接，不加空行——
+            // 否则编辑任一成员会把紧列表改写成松散列表、引用成员之间插出空行。
+            if (builder.Length > 0 && builder[^1] != '\n')
             {
                 builder.Append('\n');
             }
@@ -253,10 +288,14 @@ public static class MarkdownBlockParser
                 break;
 
             case MarkdownBlockKind.Quote:
+                // 引用内标题保留级别（"## "），否则编辑引用组任一成员会把标题降级为普通行。
+                var headingPrefix = block.HeadingLevel > 0
+                    ? new string('#', Math.Clamp(block.HeadingLevel, 1, 6)) + " "
+                    : string.Empty;
                 foreach (var line in block.Text.Split('\n'))
                 {
                     for (var depth = 0; depth < Math.Max(1, block.QuoteDepth); depth++) builder.Append("> ");
-                    builder.Append(line).Append('\n');
+                    builder.Append(headingPrefix).Append(line).Append('\n');
                 }
                 break;
 
@@ -719,4 +758,10 @@ public static class MarkdownBlockParser
     }
 
     private static string EscapeCell(string value) => value.Replace("|", "\\|", StringComparison.Ordinal);
+}
+
+/// <summary>组回写区间：该组（共享同一 <see cref="MarkdownBlockSource"/> 的连续块）在整篇回写文本中的范围。</summary>
+public readonly record struct MarkdownGroupSpan(int Start, int Length, int FirstBlockIndex, MarkdownBlockSource? Source)
+{
+    public int End => Start + Length;
 }
