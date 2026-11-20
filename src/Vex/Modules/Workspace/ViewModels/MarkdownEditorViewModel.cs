@@ -191,10 +191,12 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
         else if (_workbench.IsSourceEditing) _editor?.InsertText(text);
     }
 
-    /// <summary>外部改写（预览勾选任务回写）转发给库控件，保持编辑器与文档状态一致。</summary>
+    /// <summary>外部改写（预览勾选任务回写）转发给库控件，保持编辑器与文档状态一致；
+    /// 即时编辑此前被静默丢弃（勾选回写只在源码布局生效），现同样转发。</summary>
     public void ApplyExternalEdit(string markdown, int start, int length)
     {
         if (_workbench.IsSourceEditing) _editor?.ApplyExternalEdit(markdown, start, length);
+        else if (_workbench.IsInstantEditing) _workbench.LiveEditor?.ApplyExternalEdit(markdown, start, length);
     }
 
     public AvaloniaEdit.Document.TextDocument? BeginTemporaryDocument()

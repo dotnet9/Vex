@@ -24,8 +24,8 @@ namespace CodeWF.Avalonia.Markdown.Editor.Controls;
 /// 点入该块就地按源码编辑，离开即回渲染；表格直接渲染为表格、任务列表可直接勾选。
 /// <para>
 /// 与 <see cref="MarkdownEditorView"/>（源码编辑器）保持一致的对外语义：
-/// <see cref="SetText"/> 与 <see cref="ApplyExternalEdit"/> 不会触发 <see cref="MarkdownChanged"/>，
-/// 只有用户编辑才回抛。
+/// <see cref="SetText"/> 不触发 <see cref="MarkdownChanged"/>（载入，非编辑）；
+/// <see cref="ApplyExternalEdit"/> 外部改写后回抛（与源码编辑器一致，宿主文档状态随之一致）。
 /// </para>
 /// </summary>
 public partial class MarkdownLiveEditorView : UserControl
@@ -433,10 +433,112 @@ public partial class MarkdownLiveEditorView : UserControl
         }
     }
 
-    /// <summary>按源码偏移应用一次外部改写（预览勾选任务回写）；语义与源码编辑器一致。</summary>
+    /// <summary>
+    /// 按源码偏移应用一次外部改写（预览勾选任务回写等）。对齐式替换：新旧块按组
+    /// canonical 前缀/后缀匹配，未变组复用模型对象与视图（不重建、不丢编辑态），
+    /// 只重建受影响的中段；撤销历史保留、末尾回抛 <see cref="MarkdownChanged"/>——
+    /// 与源码编辑器 <see cref="MarkdownEditorView.ApplyExternalEdit"/> 同语义。
+    /// <paramref name="start"/>/<paramref name="length"/> 仅作契约兼容，对齐按内容进行。
+    /// </summary>
     public void ApplyExternalEdit(string markdown, int start, int length)
     {
-        SetText(markdown);
+        // 活动块在替换中存活时（前缀/后缀组），跨替换保留其编辑态光标；
+        // ClearDocumentSelection 会把编辑框选区清到 0，先捕获后恢复。
+        var editor = _activeIndex >= 0 && _activeIndex < _blockViews.Count ? FindActiveEditor(_blockViews[_activeIndex]) : null;
+        var caret = editor?.CaretIndex ?? 0;
+        ClearDocumentSelection();
+        ApplyExternalEditCore(markdown ?? string.Empty);
+        if (editor is not null && _activeIndex >= 0 && _activeIndex < _blockViews.Count
+            && ReferenceEquals(FindActiveEditor(_blockViews[_activeIndex]), editor))
+        {
+            var maxLength = editor.Text?.Length ?? 0;
+            editor.CaretIndex = Math.Clamp(caret, 0, maxLength);
+            editor.SelectionStart = editor.CaretIndex;
+            editor.SelectionEnd = editor.CaretIndex;
+        }
+        RaiseChanged();
+    }
+
+    /// <summary>模型按共享 <see cref="MarkdownBlockSource"/> 分组（组序与 WriteWithSpans 一致），记录组首下标。</summary>
+    private static List<(int FirstIndex, List<MarkdownBlockModel> Models)> SplitGroups(List<MarkdownBlockModel> models)
+    {
+        var groups = new List<(int FirstIndex, List<MarkdownBlockModel> Models)>();
+        for (var i = 0; i < models.Count;)
+        {
+            var source = models[i].Source;
+            var first = i;
+            var group = new List<MarkdownBlockModel> { models[i] };
+            i++;
+            while (source is not null && i < models.Count && ReferenceEquals(models[i].Source, source))
+            {
+                group.Add(models[i]);
+                i++;
+            }
+            groups.Add((first, group));
+        }
+        return groups;
+    }
+
+    private static bool CanonicalGroupEquals(List<MarkdownBlockModel> oldGroup, List<MarkdownBlockModel> newGroup) =>
+        oldGroup.Count == newGroup.Count
+        && string.Equals(MarkdownBlockParser.WriteCanonical(oldGroup), MarkdownBlockParser.WriteCanonical(newGroup), StringComparison.Ordinal);
+
+    /// <summary>复用组对齐到新解析的源码快照：trivia/行号取新值（canonical 相同，正文不动）。</summary>
+    private static void CopyGroupIdentity(List<MarkdownBlockModel> oldGroup, List<MarkdownBlockModel> newGroup)
+    {
+        var source = newGroup.Count > 0 ? newGroup[0].Source : null;
+        var sourceLine = newGroup.Count > 0 ? newGroup[0].SourceLine : 1;
+        foreach (var model in oldGroup)
+        {
+            model.Source = source;
+            model.SourceLine = sourceLine;
+        }
+    }
+
+    private void ApplyExternalEditCore(string markdown)
+    {
+        var newModels = MarkdownBlockParser.Parse(markdown);
+        var oldGroups = SplitGroups(_models);
+        var newGroups = SplitGroups(newModels);
+
+        var prefix = 0;
+        while (prefix < oldGroups.Count && prefix < newGroups.Count
+            && CanonicalGroupEquals(oldGroups[prefix].Models, newGroups[prefix].Models))
+        {
+            prefix++;
+        }
+        var oldEnd = oldGroups.Count;
+        var newEnd = newGroups.Count;
+        while (oldEnd > prefix && newEnd > prefix
+            && CanonicalGroupEquals(oldGroups[oldEnd - 1].Models, newGroups[newEnd - 1].Models))
+        {
+            oldEnd--;
+            newEnd--;
+        }
+        for (var g = 0; g < prefix; g++) CopyGroupIdentity(oldGroups[g].Models, newGroups[g].Models);
+        for (int g = oldEnd, n = newEnd; g < oldGroups.Count; g++, n++) CopyGroupIdentity(oldGroups[g].Models, newGroups[n].Models);
+
+        var removeStart = prefix < oldGroups.Count ? oldGroups[prefix].FirstIndex : _models.Count;
+        var removeEnd = oldEnd < oldGroups.Count ? oldGroups[oldEnd].FirstIndex : _models.Count;
+        var middle = new List<MarkdownBlockModel>();
+        for (var g = prefix; g < newEnd; g++) middle.AddRange(newGroups[g].Models);
+
+        var removedCount = removeEnd - removeStart;
+        _models.RemoveRange(removeStart, removedCount);
+        _models.InsertRange(removeStart, middle);
+        // 视图层中段增量同步：先删后插；触及引用分组时 Host* 自行回退全量重建。
+        for (var i = 0; i < removedCount; i++) HostRemoveModel(removeStart);
+        for (var i = 0; i < middle.Count; i++) HostInsertModel(removeStart + i);
+
+        // 活动块映射：中段内的编辑态随块消失；后段整体平移。
+        if (_activeIndex >= removeStart && _activeIndex < removeEnd)
+        {
+            _activeIndex = -1;
+        }
+        else if (_activeIndex >= removeEnd)
+        {
+            _activeIndex += middle.Count - removedCount;
+        }
     }
 
     /// <summary>在当前活动块插入文本；无活动块时追加一个段落块。</summary>
