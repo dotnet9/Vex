@@ -220,10 +220,8 @@ public sealed partial class ShellWindowLayoutViewModel : ReactiveObject
     }
 
     public bool ShowOutlineSidebar => IsOutlineVisible && !IsPresentationMode && !IsFocusMode;
-    public bool IsOutlineOverlay => ShowOutlineSidebar
-        && (_workspaceWidth - VisibleSidebarWidth - OutlineWidth < 640
-            || _isThreeViewLayout && _workspaceWidth < 1400);
-    public bool ShowDockedOutline => ShowOutlineSidebar && !IsOutlineOverlay;
+    // 11-20 用户拍板：大纲不再有悬浮形态——展开即占布局列宽，窄窗由正文列（MinWidth 280）自己让位，
+    // 全屏、缩窗、三视图一律同款；旧 IsOutlineOverlay 的 640/1400 阈值随悬浮卡样式一并移除。
     public bool IsThreeViewLayout
     {
         get => _isThreeViewLayout;
@@ -254,19 +252,19 @@ public sealed partial class ShellWindowLayoutViewModel : ReactiveObject
     private double OutlineTargetWidth => ShowOutlineSidebar ? OutlineWidth : 0;
     public GridLength OutlineColumnWidth
     {
-        get => new(IsOutlineOverlay ? 0 : VisibleOutlineWidth);
+        get => new(VisibleOutlineWidth);
         // 动画期间的插值宽度不回写用户设定宽度。
-        set { if (ShowDockedOutline && _outlineAnimator.Value is null && value.IsAbsolute) OutlineWidth = value.Value; }
+        set { if (ShowOutlineSidebar && _outlineAnimator.Value is null && value.IsAbsolute) OutlineWidth = value.Value; }
     }
-    public double MinimumOutlineWidth => ShowDockedOutline && _outlineAnimator.Value is null ? MinOutlineWidth : 0;
-    public double MaximumOutlineWidth => IsOutlineOverlay ? 0 : ShowOutlineSidebar || _outlineAnimator.Value is not null ? MaxOutlineWidth : 0;
-    public GridLength OutlineSplitterWidth => new(ShowDockedOutline ? BlockGap : 0);
+    public double MinimumOutlineWidth => ShowOutlineSidebar && _outlineAnimator.Value is null ? MinOutlineWidth : 0;
+    public double MaximumOutlineWidth => ShowOutlineSidebar || _outlineAnimator.Value is not null ? MaxOutlineWidth : 0;
+    public GridLength OutlineSplitterWidth => new(ShowOutlineSidebar ? BlockGap : 0);
     public void BeginOutlineResize() => _isOutlineResizing = true;
     public void CompleteOutlineResize() { _isOutlineResizing = false; PersistLayoutSettings(); }
     public void ToggleOutline() => IsOutlineVisible = !ShowOutlineSidebar;
     private void NotifyOutlineLayout()
     {
-        foreach (var name in new[] { nameof(ShowOutlineSidebar), nameof(IsOutlineOverlay), nameof(ShowDockedOutline), nameof(OutlineColumnWidth), nameof(OutlineSplitterWidth), nameof(MinimumOutlineWidth), nameof(MaximumOutlineWidth) })
+        foreach (var name in new[] { nameof(ShowOutlineSidebar), nameof(OutlineColumnWidth), nameof(OutlineSplitterWidth), nameof(MinimumOutlineWidth), nameof(MaximumOutlineWidth) })
             OnPropertyChanged(name);
     }
     /// <summary>演示只临时隐藏界面，不改写用户布局偏好。</summary>

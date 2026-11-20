@@ -1,0 +1,151 @@
+using CodeWF.Avalonia.Markdown.Tests;
+using CodeWF.Avalonia.Markdown.Controls;
+using global::Avalonia;
+using global::Avalonia.Controls;
+using global::Avalonia.Controls.Presenters;
+using global::Avalonia.Controls.Templates;
+using global::Avalonia.Headless;
+using global::Avalonia.Threading;
+using global::Avalonia.Media;
+using Xunit;
+
+namespace CodeWF.Avalonia.Markdown.Tests;
+
+/// <summary>
+/// 视口覆盖不变量：任何时刻，「与滚动视口相交的条目」必须已物化，否则阅读视图就是
+/// 一段不随滚动消失的空白。量测会把上方块量高/量矮（延迟建块、图片、图表），真实位置
+/// 随之整体平移，旧缓存尺寸算出的窗口判定会漏掉视口内的条目——这正是「正文下方大片
+/// 空白、永远物化的代码块却画在更远处」的病根。量测后的窗口重放 + 补物化把这一类
+/// 漂移闭环在单次量测内（ReadVerifyLayout 探针也在真机整窗上断言同一不变量）。
+/// <para>
+/// 此断言只跑 markdown 侧本仓副本；Controls 仓的互为副本同步该修复后方可并入共用 theory。
+/// </para>
+/// </summary>
+[Collection("AvaloniaPlatform")]
+public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixture platform)
+{
+    [Fact]
+    public void JumpScrollKeepsEveryViewportBandRealizedWhileSizesAreStillConverging() => platform.Run(() =>
+    {
+        var panel = new WindowedStackPanel();
+        // 首测量谎报 24、次测量才报 600：复刻延迟建块/图片加载把量测拖到物化之后。
+        for (var i = 0; i < 120; i++)
+        {
+            panel.AddItem(new GrowingBlock(600));
+        }
+
+        var presenter = new ScrollContentPresenter { Content = panel };
+        var scroll = new ScrollViewer
+        {
+            Template = new FuncControlTemplate<ScrollViewer>((_, scope) =>
+            {
+                scope.Register("PART_ScrollContentPresenter", presenter);
+                return presenter;
+            })
+        };
+        var window = new Window { Width = 300, Height = 100, Content = scroll };
+        window.Show();
+        try
+        {
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            // 跳滚到远端：视口落在只有估高（且估高远小于真实高度）的区域。
+            var extent = scroll.Extent.Height;
+            scroll.Offset = new Vector(0, Math.Min(9000, Math.Max(0, extent - scroll.Viewport.Height)));
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+
+            AssertViewportFullyRealized(panel, scroll);
+        }
+        finally
+        {
+            window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+    });
+
+    [Fact]
+    public void ShrinkingUpperBlocksKeepsLowerViewportBandsRealized() => platform.Run(() =>
+    {
+        var panel = new WindowedStackPanel();
+        for (var i = 0; i < 80; i++)
+        {
+            panel.AddItem(new Border { Height = 500 });
+        }
+
+        var presenter = new ScrollContentPresenter { Content = panel };
+        var scroll = new ScrollViewer
+        {
+            Template = new FuncControlTemplate<ScrollViewer>((_, scope) =>
+            {
+                scope.Register("PART_ScrollContentPresenter", presenter);
+                return presenter;
+            })
+        };
+        var window = new Window { Width = 300, Height = 100, Content = scroll };
+        window.Show();
+        try
+        {
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            scroll.Offset = new Vector(0, 12000);
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            // 上方块收缩（量测变矮），视口下方的真实位置整体上移：窗口判定必须跟着重放。
+            for (var i = 0; i < 10; i++)
+            {
+                if (panel.GetRealizedItem(i) is Border border) border.Height = 40;
+            }
+            panel.InvalidateMeasure();
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+
+            AssertViewportFullyRealized(panel, scroll);
+        }
+        finally
+        {
+            window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+    });
+
+    /// <summary>探针同款断言：与视口相交的每个条目都必须已物化。</summary>
+    private static void AssertViewportFullyRealized(WindowedStackPanel panel, ScrollViewer scroll)
+    {
+        var viewportTop = scroll.Offset.Y;
+        var viewportBottom = scroll.Offset.Y + scroll.Viewport.Height;
+        var missed = new List<int>();
+        for (var index = 0; index < panel.ItemCount; index++)
+        {
+            if (!panel.TryGetItemTop(index, out var top)) continue;
+            var bandHeight = panel.GetItemHeight(index);
+            if (top + bandHeight <= viewportTop || top >= viewportBottom) continue;
+            if (panel.GetRealizedItem(index) is null) missed.Add(index);
+        }
+
+        Assert.True(missed.Count == 0,
+            $"viewport [{viewportTop:0},{viewportBottom:0}] has unrealized bands: {string.Join(",", missed)}");
+    }
+
+    /// <summary>首次量测报矮、之后报真实高度的控制：模拟延迟建块与异步出图的量测时序。</summary>
+    private sealed class GrowingBlock(double realHeight) : Control
+    {
+        private bool _lied;
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            if (!_lied)
+            {
+                _lied = true;
+                return new Size(availableSize.Width, 24);
+            }
+
+            return new Size(double.IsFinite(availableSize.Width) ? availableSize.Width : 100, realHeight);
+        }
+
+        protected override Size ArrangeOverride(Size finalSize) => finalSize;
+    }
+}

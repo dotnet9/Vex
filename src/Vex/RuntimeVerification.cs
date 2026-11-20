@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Avalonia;
@@ -469,5 +470,303 @@ internal static class RuntimeVerification
         var result = $"NativeAOT runtime verification passed; version={typeof(Program).Assembly.GetName().Version}; website={ProjectLinks.Website}; languages=4; tableDialog=localized; samples={samples.Length}; mermaid={diagrams.Count}; fileIcons=5; preferences=isolated";
         File.WriteAllText(Path.Combine(root, "runtime-verification.txt"), result);
         Console.WriteLine(result);
+    }
+
+    /// <summary>
+    /// 布局真值探针：大纲悬浮/坞设切换、正文列贴底对齐、阅读长文虚拟化空白。
+    /// 三类问题都以运行时几何为准（容器底边差、视口内未物化条目带），并留整窗截图。
+    /// </summary>
+    public static void RunLayout(string directory)
+    {
+        _uiDirectory = Path.GetFullPath(directory);
+        Directory.CreateDirectory(_uiDirectory);
+        new AppSettingsStore().Update(settings => settings with
+        {
+            HasSeenOnboardingGuide = true, IsMcpServerEnabled = false
+        });
+        AppBuilder.Configure<NativeVerificationApp>().UsePlatformDetect().With(VexFonts.Options)
+            .UseReactiveUI(_ => { }).SetupWithoutStarting();
+        var app = (NativeVerificationApp)Application.Current!;
+        var window = app.CreateShell();
+        window.Width = 1280;
+        window.Height = 820;
+        window.Show();
+        var report = new List<string>();
+        try
+        {
+            var model = (MainWindowViewModel)window.DataContext!;
+            // 用户的验收文档形态：多级标题 + 操作/预期/实际段落 + XAML 代码栅栏。
+            // 16 章起复刻 5.1C 家族的两个特征：反引号内大量空格对齐的超宽行内代码、
+            // 括号里成对裸反引号（2.0`2`），行尾超宽在源码视图里横向溢出。
+            var sections = new StringBuilder();
+            for (var section = 1; section <= 40; section++)
+            {
+                var wide = section >= 16;
+                sections.AppendLine($"## {section}. 验收章节 {section}").AppendLine();
+                sections.AppendLine("**准备**：版本=3.2、算例类型=restart。").AppendLine();
+                sections.AppendLine(wide
+                    ? "**操作**：运行选项切 inp-chk。"
+                    : $"**操作**：执行第 {section} 章的验收步骤，观察画布刷新。").AppendLine();
+                sections.AppendLine(wide
+                    ? "**预期**：101 行为 `101     inp-chk`。"
+                    : $"**预期**：第 {section} 章的画布网格与吸附线同时刷新。").AppendLine();
+                sections.AppendLine("**实际**：").AppendLine();
+                for (var sub = 1; sub <= 3; sub++)
+                {
+                    sections.AppendLine($"### {section}.{sub} 头卡 {section}{sub} 联动").AppendLine();
+                    sections.AppendLine(wide
+                        ? "**操作**：输入单位/输出单位 切 british。"
+                        : $"**操作**：头卡 {section}{sub} 改编号 7、勾选压缩标记。").AppendLine();
+                    if (sub == 2 && wide)
+                    {
+                        sections.AppendLine("**预期**：新增 `103   7   cmpress   rstplt2`（压缩未勾选时为 ncmpress）；切回类型=new 后 103 行消失。").AppendLine();
+                    }
+                    else if (sub == 3 && wide)
+                    {
+                        sections.AppendLine("**预期**：新增 `105    1.5    2`（V1 同款：限值为 double 最短形态 2.0`2`，分配时间 `/` 渲染成空不留痕；三值任一非缺省即整行回滚并弹提示，若任一值超上限则整族拒绝提交。）").AppendLine();
+                    }
+                    else
+                    {
+                        sections.AppendLine($"**预期**：新增 `{section}{sub}` 与 `7`（压缩未勾选时为 `{section}{sub}` 原值）。").AppendLine();
+                    }
+                    sections.AppendLine("```xml").AppendLine("<Setter Property=\"VerticalAlignment\" Value=\"Center\" />")
+                        .AppendLine("<Setter Property=\"Width\" Value=\"12\" />").AppendLine("```").AppendLine();
+                    if (sub == 1 && wide && section % 4 == 0)
+                    {
+                        // 表格（重块 + 工具条装饰）与 mermaid（异步出图、量测后变高）穿插在宽行内码区。
+                        sections.AppendLine("| 头卡 | 字段 | V1 行为 |").AppendLine("| --- | --- | --- |")
+                            .AppendLine("| 101 | 运行选项 | `inp-chk` |").AppendLine("| 102 | 单位制 | `british` |")
+                            .AppendLine("| 105 | CPU 预留 | `1.5` |").AppendLine();
+                        sections.AppendLine("```mermaid").AppendLine("flowchart LR").AppendLine(" A[头卡] --> B[画布]")
+                            .AppendLine(" B --> C{校验}").AppendLine(" C -->|通过| D[提交]").AppendLine("```").AppendLine();
+                    }
+                    sections.AppendLine(wide
+                        ? "> [!WARNING]\n> 三值任一非缺省即整行回滚；清单与引用混排时注意压缩标记的联动。\n"
+                        : string.Empty);
+                    sections.AppendLine("**实际**：").AppendLine();
+                }
+            }
+            var source = sections.ToString();
+            var documentPath = Path.Combine(_uiDirectory, "layout-probe.md");
+            File.WriteAllText(documentPath, source);
+            var opening = model.OpenPathAsync(documentPath);
+            Wait(window, () => opening.IsCompleted);
+            opening.GetAwaiter().GetResult();
+            // 对齐用户实机环境：SoftSage 衬线排版主题（其验收文档即在主题下阅读）。
+            model.Appearance.SelectTypographyByKey("SoftSage");
+            SettleStable(window, 800);
+            model.Layout.IsOutlineVisible = true;
+
+            var workspaceColumns = window.Workspace.FindControl<Grid>("WorkspaceColumns")!;
+            var documentColumn = window.Workspace.FindControl<Grid>("DocumentColumn")!;
+            var viewSurface = window.Workspace.FindControl<Grid>("ViewSurface")!;
+            var outlineTarget = window.Workspace.FindControl<Border>("OutlineGuideTarget")!;
+            var preview = window.Workspace.FindControl<Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
+
+            double Bottom(Avalonia.Visual element) =>
+                element.TranslatePoint(new Point(0, element.Bounds.Height), window)?.Y ?? -1;
+
+            void Probe(string tag)
+            {
+                window.UpdateLayout();
+                var layout = model.Layout;
+                // 悬浮形态已移除：任何窗幅、任何布局，大纲展开即坞设列（outlineCol>0），不得再出现悬浮卡。
+                var docked = layout.ShowOutlineSidebar && layout.OutlineColumnWidth.Value > 0
+                    && !outlineTarget.Classes.Contains("overlay");
+                report.Add($"[{tag}] size={window.Width:0}x{window.Height:0} layout={model.Workbench.WorkspaceLayout} " +
+                    $"docked={docked} outlineCol={(layout.ShowOutlineSidebar ? layout.OutlineColumnWidth.Value : 0):0}" +
+                    (docked ? string.Empty : "  <-- DOCK VIOLATION"));
+            }
+
+            void Screenshot(string tag)
+            {
+                using var bitmap = new RenderTargetBitmap(new PixelSize((int)window.Width, (int)window.Height));
+                bitmap.Render(window);
+                bitmap.Save(Path.Combine(_uiDirectory, tag + ".png"));
+            }
+
+            // 一、大纲悬浮与正文贴底：三档窗幅 × 四种布局全扫。
+            foreach (var (width, height) in new[] { (1280, 820), (1000, 700), (900, 640) })
+            {
+                window.Width = width;
+                window.Height = height;
+                foreach (var layoutId in new[] { WorkbenchLayoutKeys.Source, WorkbenchLayoutKeys.Map, WorkbenchLayoutKeys.Read, WorkbenchLayoutKeys.Three })
+                {
+                    model.Workbench.SelectLayout(layoutId);
+                    SettleStable(window, 600);
+                    Probe($"dock-{width}x{height}-{layoutId}");
+                    if (layoutId is WorkbenchLayoutKeys.Map or WorkbenchLayoutKeys.Source) Screenshot($"dock-{width}x{height}-{layoutId}");
+                }
+            }
+
+            // 二、阅读空白：按用户手势序列——源码编辑态缩窗 → 切阅读 → 大纲跳到宽行内代码区（5.1C 形态）→
+            // 逐屏下滚（每步探一次视口内未物化条目）→ 放大窗幅，捕捉空白首次出现的位置与当时条目尺寸。
+            window.Width = 1280;
+            window.Height = 820;
+            model.Workbench.SelectLayout(WorkbenchLayoutKeys.Source);
+            SettleStable(window, 800);
+            window.Width = 1000;
+            window.Height = 700;
+            SettleStable(window, 600);
+            model.Workbench.SelectLayout(WorkbenchLayoutKeys.Read);
+            SettleStable(window, 1200);
+            var viewer = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
+            var scroll = preview.FindControl<ScrollViewer>("PreviewScrollViewer")!;
+            var panel = viewer.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().Single();
+            var outlineView = window.GetVisualDescendants().OfType<ShellOutlineView>().Single();
+            var outlinePanel = outlineView.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownOutlinePanel>("OutlinePanel")!;
+            var outline = (ShellOutlineViewModel)outlineView.DataContext!;
+            Wait(window, () => viewer.CurrentModel.Blocks.Count > 0 && outline.OutlineItems.Count > 0);
+            report.Add($"[read] blocks={viewer.CurrentModel.Blocks.Count} items={panel.ItemCount} outlineRows={outline.OutlineItems.Count}");
+
+            var blanks = new List<string>();
+            void ProbeBlank(string tag)
+            {
+                window.UpdateLayout();
+                blanks.Clear();
+                double blankHeight = 0;
+                var viewportTop = scroll.Offset.Y;
+                var viewportBottom = scroll.Offset.Y + scroll.Viewport.Height;
+                for (var index = 0; index < panel.ItemCount; index++)
+                {
+                    if (!panel.TryGetItemTop(index, out var top)) continue;
+                    var bandHeight = panel.GetItemHeight(index);
+                    if (top + bandHeight <= viewportTop || top >= viewportBottom) continue;
+                    if (panel.GetRealizedItem(index) is null)
+                    {
+                        blanks.Add($"#{index}@{top:0}+{bandHeight:0}");
+                        blankHeight += bandHeight;
+                    }
+                }
+                report.Add($"[{tag}] offset={scroll.Offset.Y:0} extent={scroll.Extent.Height:0} viewport={scroll.Viewport.Height:0} " +
+                    $"compensations={panel.AnchorCompensationCount} viewportBlankBands={blanks.Count} blankHeight={blankHeight:0}" +
+                    (blanks.Count > 0 ? " " + string.Join(",", blanks.Take(12)) : string.Empty));
+            }
+
+            void DumpNeighbors(string tag, int aroundIndex)
+            {
+                for (var index = Math.Max(0, aroundIndex - 3); index <= Math.Min(panel.ItemCount - 1, aroundIndex + 3); index++)
+                {
+                    panel.TryGetItemTop(index, out var top);
+                    var realized = panel.GetRealizedItem(index);
+                    report.Add($"[{tag}] item#{index} top={top:0} height={panel.GetItemHeight(index):0} measured={panel.IsItemMeasured(index)} " +
+                        $"realized={realized is not null} control={(realized?.GetType().Name ?? "-")} childEmpty={(realized is Avalonia.Controls.Decorator d && d.Child is null ? "yes" : "no")}");
+                }
+            }
+
+            // 大纲跳到宽行内代码区开头（复刻「从 5.1C 开始」的落点）。
+            var wideRow = outlinePanel.Rows[Math.Min(48, outlinePanel.Rows.Count - 1)];
+            outlinePanel.Navigate(wideRow);
+            SettleStable(window, 1200);
+            ProbeBlank("read-jump");
+            if (blanks.Count > 0) { DumpNeighbors("read-jump", int.Parse(blanks[0].Split('@')[0][1..])); Screenshot("read-jump"); }
+
+            // 逐屏下滚：捕捉空白首次出现与最严重一步。
+            string? worstStep = null;
+            double worstBlank = 0;
+            for (var step = 0; step < 24; step++)
+            {
+                scroll.Offset += new Vector(0, 260);
+                SettleStable(window, 350);
+                ProbeBlank($"read-scroll-{step}");
+                var stepBlank = blanks.Count;
+                if (stepBlank > 0 && worstStep is null) Screenshot($"read-onset-{step}");
+                if (stepBlank > worstBlank)
+                {
+                    worstBlank = stepBlank;
+                    worstStep = $"read-scroll-{step}";
+                    Screenshot("read-worst");
+                    DumpNeighbors("read-worst", int.Parse(blanks[0].Split('@')[0][1..]));
+                }
+            }
+            if (worstStep is not null) report.Add($"[read] worstStep={worstStep} worstBlankBands={worstBlank}");
+
+            // 放大窗幅（用户「调整窗体大小」路径），复探一次。
+            window.Width = 1400;
+            window.Height = 940;
+            SettleStable(window, 1200);
+            ProbeBlank("read-enlarged");
+            Screenshot("read-enlarged");
+
+            // 三、渲染进行中的滚动风暴：阅读态在场重开文档，不等渲染静默就开始逐屏下滚，
+            // 复刻「渲染时底部逐渐抬升」的观察时序；捕到空白立即截图保鲜。
+            window.Width = 1000;
+            window.Height = 700;
+            SettleStable(window, 500);
+            var reopened = model.OpenPathAsync(documentPath);
+            Wait(window, () => reopened.IsCompleted);
+            reopened.GetAwaiter().GetResult();
+            for (var step = 0; step < 40; step++)
+            {
+                scroll.Offset += new Vector(0, 320);
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                ProbeBlank($"live-{step}");
+                if (blanks.Count > 0)
+                {
+                    Screenshot($"live-blank-{step}");
+                    DumpNeighbors($"live-{step}", int.Parse(blanks[0].Split('@')[0][1..]));
+                    break;
+                }
+                Thread.Sleep(120);
+                Dispatcher.UIThread.RunJobs();
+            }
+            // 风暴后再静默复探：区分「瞬时未收敛」与「稳定坏态」。
+            SettleStable(window, 1200);
+            ProbeBlank("live-settled");
+
+            var finalResult = string.Join(Environment.NewLine, report);
+            File.WriteAllText(Path.Combine(_uiDirectory, "layout-verification.txt"), finalResult);
+            Console.WriteLine(finalResult);
+            Console.WriteLine("LAYOUT-VERIFY PASS");
+        }
+        finally
+        {
+            window.Close();
+        }
+
+        void SettleStable(Window target, int quietMilliseconds)
+        {
+            // 等几何三要素（偏移、范围、面板总高）连续静默后再补一拍后台队列，锚点补偿链路才算收完。
+            var stable = 0d;
+            double lastOffset = -1, lastExtent = -1, lastDesired = -1;
+            Wait(target, () =>
+            {
+                var panelQuiet = true;
+                var previewPanel = target.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().FirstOrDefault();
+                var desired = previewPanel?.DesiredSize.Height ?? -1;
+                var scrollNow = target.GetVisualDescendants().OfType<ScrollViewer>()
+                    .OrderByDescending(control => control.Extent.Height - control.Viewport.Height).FirstOrDefault();
+                var offset = scrollNow?.Offset.Y ?? -1;
+                var extent = scrollNow?.Extent.Height ?? -1;
+                if (Math.Abs(offset - lastOffset) < .5 && Math.Abs(extent - lastExtent) < .5 && Math.Abs(desired - lastDesired) < .5)
+                {
+                    stable += 30;
+                    panelQuiet = stable >= quietMilliseconds;
+                }
+                else
+                {
+                    stable = 0;
+                    panelQuiet = false;
+                }
+                lastOffset = offset;
+                lastExtent = extent;
+                lastDesired = desired;
+                return panelQuiet;
+            });
+        }
+    }
+
+    private static void Wait(Window window, Func<bool> condition)
+    {
+        var deadline = Environment.TickCount64 + 30000;
+        var frame = new DispatcherFrame();
+        var passed = false;
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(30) };
+        timer.Tick += (_, _) => { window.UpdateLayout(); passed = condition(); if (passed || Environment.TickCount64 >= deadline) frame.Continue = false; };
+        timer.Start();
+        try { Dispatcher.UIThread.PushFrame(frame); }
+        finally { timer.Stop(); }
+        if (!passed) throw new TimeoutException("Layout probe condition timed out.");
     }
 }

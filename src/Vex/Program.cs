@@ -27,6 +27,11 @@ internal sealed class Program
             RuntimeVerification.RunUi(uiDirectory);
             return;
         }
+        if (args is ["--verify-layout", var layoutDirectory])
+        {
+            RuntimeVerification.RunLayout(layoutDirectory);
+            return;
+        }
         if (args is ["--verify-ui", var sampleDirectory, var sampleArticle])
         {
             RuntimeVerification.RunUi(sampleDirectory, sampleArticle);

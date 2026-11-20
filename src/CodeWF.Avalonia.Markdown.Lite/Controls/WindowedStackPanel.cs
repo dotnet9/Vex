@@ -401,60 +401,128 @@ public class WindowedStackPanel : Panel
             width = 0;
         }
 
-        var (windowTop, windowBottom) = ResolveVisibleWindow(virtualizing, availableSize);
-        var isVisibleWindow = !double.IsNegativeInfinity(windowTop) && !double.IsPositiveInfinity(windowBottom);
-
-        // 解体候选基于「上一帧是否已物化」+「本帧视口窗口判定」：
-        // 本帧刚离开窗口的块才是候选，必须在同一帧决定保留还是解体，
-        // 否则它已被解体，下一帧 realized 为 false，就再也回不到保留逻辑里。
-        var sizes = FillSizeBuffer();
-        var pinned = FillPinnedBuffer();
-        var realized = FillRealizedBuffer();
-        var inWindow = FillInWindowBuffer();
-        var windowRealization = WindowedRealization.Resolve(sizes, pinned, Spacing, windowTop, windowBottom);
-        var keepAlive = WindowedRealization.ResolveInPlace(
-            sizes,
-            pinned,
-            realized,
-            windowRealization,
-            isVisibleWindow,
-            KeepAliveBudget,
-            KeepAliveMinItemHeight,
-            KeepAliveUnknownCount,
-            FillCandidateBuffer(),
-            _scrollDown);
-
+        // 窗口判定用的是量测前的缓存条带高度；本轮把上方块量高后，后续条目的真实位置整体下移，
+        // 旧窗口判定会漏掉视口（含 overscan）内的条目——表现就是视口下沿空白、永远物化的重块
+        // 却画在更远处。这里用量测后的真实条带高度重放窗口判定，把漏掉的条目在下一轮补物化，
+        // 三轮封顶；收敛态（无漏）只多付一次 O(n) 走查。
+        List<int>? missed = null;
         double y = 0;
         var maxWidth = 0d;
-        for (var i = 0; i < _entries.Count; i++)
+        for (var attempt = 0; ; attempt++)
         {
-            var entry = _entries[i];
-            var realize = windowRealization[i] || keepAlive[i];
-            entry.InWindow = windowRealization[i];
-            SetRealized(entry, realize);
+            var (windowTop, windowBottom) = ResolveVisibleWindow(virtualizing, availableSize);
+            var isVisibleWindow = !double.IsNegativeInfinity(windowTop) && !double.IsPositiveInfinity(windowBottom);
 
-            if (entry.Realized)
+            // 解体候选基于「上一帧是否已物化」+「本帧视口窗口判定」：
+            // 本帧刚离开窗口的块才是候选，必须在同一帧决定保留还是解体，
+            // 否则它已被解体，下一帧 realized 为 false，就再也回不到保留逻辑里。
+            var sizes = FillSizeBuffer();
+            var pinned = FillPinnedBuffer();
+            var realized = FillRealizedBuffer();
+            var inWindow = FillInWindowBuffer();
+            var windowRealization = WindowedRealization.Resolve(sizes, pinned, Spacing, windowTop, windowBottom);
+            if (missed is not null)
             {
-                entry.Control.Measure(new Size(width, double.PositiveInfinity));
-                var desired = entry.Control.DesiredSize;
-                entry.Size = desired.Height;
-                entry.Measured = true;
-                maxWidth = Math.Max(maxWidth, desired.Width);
+                foreach (var index in missed)
+                {
+                    windowRealization[index] = true;
+                }
             }
 
-            maxWidth = Math.Max(maxWidth, MeasureDecorators(i, width));
-            y += ResolveSize(entry) + _decoratorHeights[i] + Spacing;
-        }
+            var keepAlive = WindowedRealization.ResolveInPlace(
+                sizes,
+                pinned,
+                realized,
+                windowRealization,
+                isVisibleWindow,
+                KeepAliveBudget,
+                KeepAliveMinItemHeight,
+                KeepAliveUnknownCount,
+                FillCandidateBuffer(),
+                _scrollDown);
 
-        if (_entries.Count > 0)
-        {
-            y -= Spacing;
+            y = 0;
+            maxWidth = 0;
+            for (var i = 0; i < _entries.Count; i++)
+            {
+                var entry = _entries[i];
+                var realize = windowRealization[i] || keepAlive[i];
+                entry.InWindow = windowRealization[i];
+                SetRealized(entry, realize);
+
+                if (entry.Realized)
+                {
+                    entry.Control.Measure(new Size(width, double.PositiveInfinity));
+                    var desired = entry.Control.DesiredSize;
+                    entry.Size = desired.Height;
+                    entry.Measured = true;
+                    maxWidth = Math.Max(maxWidth, desired.Width);
+                }
+
+                maxWidth = Math.Max(maxWidth, MeasureDecorators(i, width));
+                y += ResolveSize(entry) + _decoratorHeights[i] + Spacing;
+            }
+
+            if (_entries.Count > 0)
+            {
+                y -= Spacing;
+            }
+
+            if (!virtualizing || attempt >= 2)
+            {
+                break;
+            }
+
+            missed = CollectMissedViewportEntries(availableSize, missed);
+            if (missed.Count == 0)
+            {
+                break;
+            }
         }
 
         if (double.IsFinite(width)) _lastWidth = width;
         var size = new Size(maxWidth, Math.Max(0, y));
         CompensateAnchor(size.Height);
         return size;
+    }
+
+    /// <summary>
+    /// 用量测后的真实条带高度重放视口窗口判定（窗口仍按滚动宿主当前偏移与视口加 overscan 计算），
+    /// 返回「与窗口相交却未物化」的条目下标；这些条目正是量测变高把窗口判定甩在身后的漏网块。
+    /// </summary>
+    private List<int> CollectMissedViewportEntries(Size availableSize, List<int>? alreadyForced)
+    {
+        var missed = new List<int>();
+        var host = _subscribedScrollHost ?? ScrollHost;
+        if (host is null)
+        {
+            return missed;
+        }
+
+        var viewportHeight = host.Viewport.Height;
+        if (!double.IsFinite(viewportHeight) || viewportHeight <= 0)
+        {
+            viewportHeight = double.IsFinite(availableSize.Height) && availableSize.Height > 0
+                ? availableSize.Height
+                : 720;
+        }
+
+        var margin = Math.Max(0, OverscanViewports) * viewportHeight;
+        var windowTop = host.Offset.Y - margin;
+        var windowBottom = host.Offset.Y + viewportHeight + margin;
+        double y = 0;
+        for (var i = 0; i < _entries.Count; i++)
+        {
+            var band = ResolveSize(_entries[i]) + _decoratorHeights[i];
+            if (!_entries[i].Realized && y + band >= windowTop && y <= windowBottom)
+            {
+                missed.Add(i);
+            }
+
+            y += band + Spacing;
+        }
+
+        return missed;
     }
 
     protected override Size ArrangeOverride(Size finalSize)
