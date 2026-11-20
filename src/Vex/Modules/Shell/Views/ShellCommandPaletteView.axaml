@@ -2,13 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Vex.Modules.Shell.ViewModels"
              x:Class="Vex.Modules.Shell.Views.ShellCommandPaletteView"
+             xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
              x:DataType="vm:ShellCommandPaletteViewModel"
              IsVisible="{Binding IsOpen, RelativeSource={RelativeSource Self}}">
   <!-- 命令面板（F1）：命令收敛后的全命令检索入口（原型 cp-backdrop/cp-panel 语义）。 -->
   <Panel x:Name="Backdrop" Classes="cp-backdrop" Tapped="Backdrop_OnTapped">
     <Border Classes="cp-panel" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,88,0,0">
       <StackPanel>
-        <TextBox x:Name="QueryInput" Classes="cp-input" Watermark="搜索命令…"
+        <TextBox x:Name="QueryInput" Classes="cp-input" Watermark="{i18n:I18n {x:Static l:VexL.CommandPaletteSearch}}"
                  Text="{Binding Query}" BorderThickness="0,0,0,1" CornerRadius="0" />
         <ListBox x:Name="ResultsList" Classes="cp-list"
                  ItemsSource="{Binding Results}"
@@ -25,9 +26,9 @@
         </ListBox>
         <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPaneHeadBorderBrush}" Padding="14,8">
           <StackPanel Orientation="Horizontal" Spacing="14" Opacity="0.75">
-            <TextBlock Text="↑↓ 选择" FontSize="11" Foreground="{DynamicResource VexMutedBrush}" />
-            <TextBlock Text="Enter 执行" FontSize="11" Foreground="{DynamicResource VexMutedBrush}" />
-            <TextBlock Text="Esc 关闭" FontSize="11" Foreground="{DynamicResource VexMutedBrush}" />
+            <TextBlock Text="{i18n:I18n {x:Static l:VexL.CommandPaletteHintSelect}}" FontSize="11" Foreground="{DynamicResource VexMutedBrush}" />
+            <TextBlock Text="{i18n:I18n {x:Static l:VexL.CommandPaletteHintExecute}}" FontSize="11" Foreground="{DynamicResource VexMutedBrush}" />
+            <TextBlock Text="{i18n:I18n {x:Static l:VexL.CommandPaletteHintClose}}" FontSize="11" Foreground="{DynamicResource VexMutedBrush}" />
           </StackPanel>
         </Border>
       </StackPanel>

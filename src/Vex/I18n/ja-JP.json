@@ -1,9 +1,14 @@
-﻿{
+{
   "language": "Japanese",
   "description": "日本語",
   "cultureName": "ja-JP",
   "Vex": {
     "VexL": {
+      "GitErrorCommitIdentityMissing": "Git のコミット身元が未設定です。先に user.name と user.email を設定してください。",
+      "GitErrorNoOriginRemote": "origin リモートが未設定です。",
+      "GitErrorNonFastForward": "リモート履歴がローカルと分岐しており fast-forward できません。外部の Git ツールで処理してください。",
+      "GitErrorNoCommitsForTag": "現在のブランチにコミットがなく、tag を作成できません。",
+      "GitErrorCommitNotFoundFormat": "コミットが見つかりません：{0}",
       "GitTagNoCommitToast": "コミットがないためタグを作成できません",
       "GitDiscardMenu": "変更を破棄…",
       "GitDiscardedToast": "変更を破棄しました",
@@ -432,6 +437,11 @@
       "StatusViewSource": "ソース",
       "StatusViewRead": "閲読",
       "StatusViewMap": "マップ",
+      "StatusViewInstant": "即時",
+      "CommandPaletteSearch": "コマンドを検索…",
+      "CommandPaletteHintSelect": "↑↓ 移動",
+      "CommandPaletteHintExecute": "Enter 実行",
+      "CommandPaletteHintClose": "Esc 閉じる",
       "StatusViewMore": "その他",
       "WBPinToolbar": "ツールバーをピン留め（解除すると自動的に隠れます）",
       "LayoutRight": "右ツリー",

@@ -1,9 +1,14 @@
-﻿{
+{
   "language": "繁體中文",
   "description": "中文（繁體）",
   "cultureName": "zh-Hant",
   "Vex": {
     "VexL": {
+      "GitErrorCommitIdentityMissing": "尚未設定 Git 提交身分：請先設定 user.name 與 user.email。",
+      "GitErrorNoOriginRemote": "未設定 origin 遠端。",
+      "GitErrorNonFastForward": "遠端歷史與本地分岔，無法快進合併——請用外部 Git 工具處理。",
+      "GitErrorNoCommitsForTag": "目前分支沒有任何提交，無法打 tag。",
+      "GitErrorCommitNotFoundFormat": "提交不存在：{0}",
       "GitTagNoCommitToast": "還沒有提交，無法打 tag",
       "GitDiscardMenu": "放棄變更…",
       "GitDiscardedToast": "已放棄變更",
@@ -432,6 +437,11 @@
       "StatusViewSource": "原始碼",
       "StatusViewRead": "閱讀",
       "StatusViewMap": "導圖",
+      "StatusViewInstant": "即時",
+      "CommandPaletteSearch": "搜尋命令…",
+      "CommandPaletteHintSelect": "↑↓ 選擇",
+      "CommandPaletteHintExecute": "Enter 執行",
+      "CommandPaletteHintClose": "Esc 關閉",
       "StatusViewMore": "更多",
       "WBPinToolbar": "釘住工具列（取消釘住後自動隱藏）",
       "LayoutRight": "單側樹形",

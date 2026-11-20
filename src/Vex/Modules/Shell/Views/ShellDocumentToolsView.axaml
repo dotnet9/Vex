@@ -23,7 +23,7 @@
   <Border x:Name="LayoutChip" Classes="layout-chip" Padding="7,3" CornerRadius="4" VerticalAlignment="Center"
    Background="{DynamicResource VexPanelBackgroundBrush}" BorderBrush="{DynamicResource VexPaneHeadBorderBrush}"
    BorderThickness="1" IsHitTestVisible="False">
-   <TextBlock x:Name="LayoutChipText" Text="即时" FontSize="11" LineHeight="16"
+   <TextBlock x:Name="LayoutChipText" Text="{i18n:I18n {x:Static l:VexL.StatusViewInstant}}" FontSize="11" LineHeight="16"
     Foreground="{DynamicResource VexMutedBrush}" />
   </Border>
   <Border Classes="document-word-count" Padding="7,3" CornerRadius="4" VerticalAlignment="Center"

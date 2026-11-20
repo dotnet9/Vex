@@ -239,7 +239,7 @@ public sealed class GitService
 
     private static LibGit2Sharp.Commit FindCommit(Repository repo, string sha) =>
         repo.Commits.FirstOrDefault(c => c.Sha.StartsWith(sha, StringComparison.OrdinalIgnoreCase))
-        ?? throw new InvalidOperationException($"提交不存在：{sha}");
+        ?? throw new GitServiceException(GitServiceError.CommitNotFound, $"提交不存在：{sha}", sha);
 
     /// <summary>工作区单文件文本 diff（HEAD → 工作区）；未跟踪新文件整文件视为新增；二进制返回 null。</summary>
     public TextDiff? TextDiff(string path)
@@ -400,7 +400,7 @@ public sealed class GitService
         var (missing, name, email) = IdentityOf(repo);
         if (missing)
         {
-            throw new InvalidOperationException("尚未配置 Git 提交身份：请先设置 user.name 与 user.email。");
+            throw new GitServiceException(GitServiceError.CommitIdentityMissing, "尚未配置 Git 提交身份：请先设置 user.name 与 user.email。");
         }
         var signature = new Signature(name, email, DateTimeOffset.Now);
         return repo.Commit(message, signature, signature);
@@ -415,7 +415,7 @@ public sealed class GitService
         var (missing, name, email) = IdentityOf(repo);
         if (missing)
         {
-            throw new InvalidOperationException("尚未配置 Git 提交身份：请先设置 user.name 与 user.email。");
+            throw new GitServiceException(GitServiceError.CommitIdentityMissing, "尚未配置 Git 提交身份：请先设置 user.name 与 user.email。");
         }
         var signature = new Signature(name, email, DateTimeOffset.Now);
         return repo.Commit(message, signature, signature);
@@ -442,7 +442,7 @@ public sealed class GitService
     public int PullFastForward(string? pat)
     {
         var repo = Repo();
-        var remote = repo.Network.Remotes["origin"] ?? throw new InvalidOperationException("未配置 origin 远端。");
+        var remote = repo.Network.Remotes["origin"] ?? throw new GitServiceException(GitServiceError.NoOriginRemote, "未配置 origin 远端。");
         var before = repo.Head.TrackingDetails.BehindBy ?? 0;
         var options = new FetchOptions();
         var isHttps = !remote.Url.StartsWith("git@", StringComparison.OrdinalIgnoreCase)
@@ -457,7 +457,7 @@ public sealed class GitService
         var result = repo.MergeFetchedRefs(signature, new MergeOptions { FastForwardStrategy = FastForwardStrategy.FastForwardOnly });
         if (result.Status == MergeStatus.NonFastForward)
         {
-            throw new InvalidOperationException("远端历史与本地分叉，无法快进合并——请用外部 Git 工具处理。");
+            throw new GitServiceException(GitServiceError.NonFastForward, "远端历史与本地分叉，无法快进合并——请用外部 Git 工具处理。");
         }
         return (repo.Head.TrackingDetails.BehindBy ?? 0) == 0 ? before : 0;
     }
@@ -548,7 +548,7 @@ public sealed class GitService
     public void CreateTag(string name)
     {
         var repo = Repo();
-        repo.Tags.Add(name, repo.Head.Tip ?? throw new InvalidOperationException("当前分支没有任何提交，无法打 tag。"));
+        repo.Tags.Add(name, repo.Head.Tip ?? throw new GitServiceException(GitServiceError.NoCommitsForTag, "当前分支没有任何提交，无法打 tag。"));
     }
 
     /// <summary>推送分支或 tag：HTTPS remote 走 PAT 凭据（LibGit2）；SSH remote（git@host / ssh://）交给系统 git
@@ -557,7 +557,7 @@ public sealed class GitService
     {
         var repo = Repo();
         {
-            var remote = repo.Network.Remotes[remoteName] ?? throw new InvalidOperationException("未配置 origin 远端。");
+            var remote = repo.Network.Remotes[remoteName] ?? throw new GitServiceException(GitServiceError.NoOriginRemote, "未配置 origin 远端。");
             var pushRef = tag is not null ? $"refs/tags/{tag}" : $"refs/heads/{branch ?? repo.Head.FriendlyName}";
             if (remote.Url.StartsWith("git@", StringComparison.OrdinalIgnoreCase) ||
                 remote.Url.StartsWith("ssh://", StringComparison.OrdinalIgnoreCase))
@@ -649,4 +649,21 @@ public sealed class GitService
         lines.Add(pattern);
         File.WriteAllLines(file, lines);
     }
+}
+
+/// <summary>GitService 稳定错误码：UI 层据码本地化，未知回落原始消息。</summary>
+public static class GitServiceError
+{
+    public const string CommitIdentityMissing = "commitIdentityMissing";
+    public const string NoOriginRemote = "noOriginRemote";
+    public const string NonFastForward = "nonFastForward";
+    public const string NoCommitsForTag = "noCommitsForTag";
+    public const string CommitNotFound = "commitNotFound";
+}
+
+/// <summary>带稳定码的 Git 服务异常：消息为内置中文默认值，UI 按 Code 本地化覆盖。</summary>
+public sealed class GitServiceException(string code, string message, string? sha = null) : InvalidOperationException(message)
+{
+    public string Code { get; } = code;
+    public string? Sha { get; } = sha;
 }

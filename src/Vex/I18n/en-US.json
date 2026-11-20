@@ -1,9 +1,14 @@
-﻿{
+{
   "language": "English",
   "description": "English",
   "cultureName": "en-US",
   "Vex": {
     "VexL": {
+      "GitErrorCommitIdentityMissing": "Git identity is not configured: set user.name and user.email first.",
+      "GitErrorNoOriginRemote": "No origin remote configured.",
+      "GitErrorNonFastForward": "Remote history diverged from local; fast-forward is impossible — use an external Git tool.",
+      "GitErrorNoCommitsForTag": "The current branch has no commits, so no tag can be created.",
+      "GitErrorCommitNotFoundFormat": "Commit not found: {0}",
       "GitTagNoCommitToast": "No commits yet - cannot create tag",
       "GitDiscardMenu": "Discard changes…",
       "GitDiscardedToast": "Changes discarded",
@@ -432,6 +437,11 @@
       "StatusViewSource": "Source",
       "StatusViewRead": "Read",
       "StatusViewMap": "Map",
+      "StatusViewInstant": "Instant",
+      "CommandPaletteSearch": "Search commands…",
+      "CommandPaletteHintSelect": "↑↓ Navigate",
+      "CommandPaletteHintExecute": "Enter Run",
+      "CommandPaletteHintClose": "Esc Close",
       "StatusViewMore": "More",
       "WBPinToolbar": "Pin toolbar (unpin to auto-hide)",
       "LayoutRight": "Right tree",

@@ -289,13 +289,27 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
         }
     }
 
     /// <summary>在 HEAD 打轻量 tag（可选立即推送）：发布流程「升版提交后打发布 tag」的面板入口。</summary>
     public AsyncRelayCommand<string?> CreateTagCommand { get; }
     public AsyncRelayCommand<GitChangeItem?> DiscardChangeCommand { get; }
+
+
+    /// <summary>GitService 稳定错误码 → 本地化文案；未知异常回落原始消息。</summary>
+    private string LocalizeGitError(Exception exception) => exception is GitServiceException service
+        ? service.Code switch
+        {
+            GitServiceError.CommitIdentityMissing => _localizer.Get(VexL.GitErrorCommitIdentityMissing),
+            GitServiceError.NoOriginRemote => _localizer.Get(VexL.GitErrorNoOriginRemote),
+            GitServiceError.NonFastForward => _localizer.Get(VexL.GitErrorNonFastForward),
+            GitServiceError.NoCommitsForTag => _localizer.Get(VexL.GitErrorNoCommitsForTag),
+            GitServiceError.CommitNotFound => _localizer.Format(VexL.GitErrorCommitNotFoundFormat, service.Sha ?? string.Empty),
+            _ => exception.Message
+        }
+        : exception.Message;
 
     private string _newTagName = string.Empty;
     private bool _tagAlsoPush = true;
@@ -354,7 +368,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
         }
     }
 
@@ -373,7 +387,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
         }
         finally
         {
@@ -853,7 +867,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            _toasts.Publish(_localizer.Format(VexL.GitCommitFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+            _toasts.Publish(_localizer.Format(VexL.GitCommitFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
             return;
         }
         _workspaceFolder = folder;
@@ -880,7 +894,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
             return;
         }
         _toasts.Publish(_localizer.Format(VexL.GitRemoteSavedFormat, value.StartsWith("git@") || value.StartsWith("ssh://") ? "SSH" : "HTTPS"));
@@ -920,7 +934,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            _toasts.Publish(_localizer.Format(VexL.GitCommitFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+            _toasts.Publish(_localizer.Format(VexL.GitCommitFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
         }
     }
 
@@ -948,7 +962,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            _toasts.Publish(_localizer.Format(VexL.GitCommitFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+            _toasts.Publish(_localizer.Format(VexL.GitCommitFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
         }
         finally
         {
@@ -983,7 +997,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
         }
         finally
         {
@@ -1020,7 +1034,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            _toasts.Publish(_localizer.Format(VexL.GitPullFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+            _toasts.Publish(_localizer.Format(VexL.GitPullFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
         }
         finally
         {
@@ -1320,7 +1334,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            _toasts.Publish(_localizer.Format(VexL.GitCommitFailedFormat, ex.Message), Avalonia.Controls.Notifications.NotificationType.Warning);
+            _toasts.Publish(_localizer.Format(VexL.GitCommitFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
         }
     }
 

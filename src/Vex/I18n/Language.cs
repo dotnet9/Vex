@@ -11,6 +11,11 @@ namespace Vex
     public static class VexL
     {
         public static readonly string GitTagNoCommitToast = "Vex.VexL.GitTagNoCommitToast";
+        public static readonly string GitErrorCommitIdentityMissing = "Vex.VexL.GitErrorCommitIdentityMissing";
+        public static readonly string GitErrorNoOriginRemote = "Vex.VexL.GitErrorNoOriginRemote";
+        public static readonly string GitErrorNonFastForward = "Vex.VexL.GitErrorNonFastForward";
+        public static readonly string GitErrorNoCommitsForTag = "Vex.VexL.GitErrorNoCommitsForTag";
+        public static readonly string GitErrorCommitNotFoundFormat = "Vex.VexL.GitErrorCommitNotFoundFormat";
         public static readonly string GitDiscardMenu = "Vex.VexL.GitDiscardMenu";
         public static readonly string GitDiscardedToast = "Vex.VexL.GitDiscardedToast";
         public static readonly string GitDiscardConfirmFormat = "Vex.VexL.GitDiscardConfirmFormat";
@@ -438,6 +443,11 @@ namespace Vex
         public static readonly string StatusViewSource = "Vex.VexL.StatusViewSource";
         public static readonly string StatusViewRead = "Vex.VexL.StatusViewRead";
         public static readonly string StatusViewMap = "Vex.VexL.StatusViewMap";
+        public static readonly string StatusViewInstant = "Vex.VexL.StatusViewInstant";
+        public static readonly string CommandPaletteSearch = "Vex.VexL.CommandPaletteSearch";
+        public static readonly string CommandPaletteHintSelect = "Vex.VexL.CommandPaletteHintSelect";
+        public static readonly string CommandPaletteHintExecute = "Vex.VexL.CommandPaletteHintExecute";
+        public static readonly string CommandPaletteHintClose = "Vex.VexL.CommandPaletteHintClose";
         public static readonly string StatusViewMore = "Vex.VexL.StatusViewMore";
         public static readonly string WBPinToolbar = "Vex.VexL.WBPinToolbar";
         public static readonly string LayoutRight = "Vex.VexL.LayoutRight";
