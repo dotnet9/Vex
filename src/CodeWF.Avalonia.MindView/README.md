@@ -1,6 +1,15 @@
 ﻿# CodeWF.Avalonia.MindView
 
-脑图控件、Markdown 结构图、导入导出和配套主题合并为一个 NuGet 包。依赖 Avalonia、Markdig 和 CodeWF.Avalonia.Lang，宿主可独立选择 Semi / Ursa / Fluent 等主题。版本随 CodeWF.Avalonia 仓库统一版本。
+脑图控件、Markdown 结构图、导入导出和配套主题合并为一个 NuGet 包。依赖 Avalonia、Markdig 和 CodeWF.Avalonia.Lang，宿主可独立选择 Semi / Ursa / Fluent 等主题。版本随本仓（Vex）统一版本。
+
+[![NuGet](https://img.shields.io/nuget/v/CodeWF.Avalonia.MindView?label=nuget)](https://www.nuget.org/packages/CodeWF.Avalonia.MindView)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/dotnet9/Vex/blob/main/LICENSE)
+
+## 安装
+
+```bash
+dotnet add package CodeWF.Avalonia.MindView
+```
 
 在应用样式中加载 `<mind:MindViewThemes />`，XAML 命名空间为 `xmlns:mind="https://codewf.com"`。
 
@@ -43,3 +52,8 @@ view.SourceRequested += (_, node) => NavigateToSource(node.SourceStart, node.Sou
 `RevealNode(id)` 展开祖先、选中并居中节点；`ClearSelection()` 清除选择；`VisibleNodeCount` / `VisibleNodesChanged` 供工具栏显示实时可见节点数。自动适应状态会随窗口尺寸重新适配，手动缩放、平移或定位后则保留画布中心对应的内容。节点 ID 随内容生成，前方插入段落不会让后续章节丢失折叠状态；同文重复内容按出现次序区分。
 
 配套 Markdown 即时编辑器新增 `DocumentMaxWidth`、`DocumentPadding`、`DocumentBlockSpacing`，宿主可设置阅读行长和留白。`NavigateToSourceLine(line, beginEdit: false)` 只滚动到对应块，`beginEdit: true` 进入编辑。排版切换保留活动块选区。
+
+## 文档
+
+- 仓库（Vex · 维刻 Markdown 编辑器）：<https://github.com/dotnet9/Vex>
+

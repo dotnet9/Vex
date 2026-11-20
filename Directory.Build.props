@@ -14,7 +14,7 @@
     <ArtifactsPath Condition="'$(CI)' != 'true'">$(MSBuildThisFileDirectory)..\..\temp_files\vex-build\</ArtifactsPath>
     <ArtifactsPath Condition="'$(CI)' == 'true'">$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
     <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts\packages\</PackageOutputPath>
-    <Version>2.1.0.0</Version>
+    <Version>2.1.0.1</Version>
     <Authors>Vex Contributors</Authors>
     <Company>CodeWF</Company>
     <Title>Vex - 维刻</Title>
@@ -25,6 +25,9 @@
     <PackageProjectUrl>https://vex.codewf.com/</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <!-- 库包元数据：包内 README 按各工程目录独立维护，图标共享仓库根资源。 -->
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Copyright>Copyright © 2026 Vex(维刻) - CodeWF(码坊) https://codewf.com</Copyright>
     <ImplicitUsings>enable</ImplicitUsings>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -33,6 +36,11 @@
     <NuGetAuditMode>all</NuGetAuditMode>
     <NuGetAuditLevel>low</NuGetAuditLevel>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)logo.png" Pack="true" PackagePath="" Link="logo.png" />
+    <None Include="$(MSBuildProjectDirectory)\README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <ItemGroup Condition="'$(MSBuildProjectName)' != 'Vex.Generators'">
     <!-- Banned API 门禁（参考 WalletWasabi）：命中 BannedSymbols.txt 即编译错误，写明替代方案。
