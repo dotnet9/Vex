@@ -40,6 +40,14 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
     private static readonly ConcurrentDictionary<string, Bitmap?> ImageBank = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<string, MarkdownMathPainter> MathPainters = new(StringComparer.Ordinal);
 
+    /// <summary>远程图片（http/https）加载状态：位图就绪或失败冷却。Typora 对齐——编辑态内嵌网络图。</summary>
+    private sealed record RemoteImageEntry(Bitmap? Bitmap, DateTime AttemptedAt, bool Failed);
+
+    private static readonly ConcurrentDictionary<string, RemoteImageEntry> RemoteImageBank = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, byte> RemoteImageInFlight = new(StringComparer.Ordinal);
+    /// <summary>失败冷却窗：冷却期内不重试，避免断网时每次重排都打一次网络。</summary>
+    private static readonly TimeSpan RemoteImageRetryWindow = TimeSpan.FromSeconds(30);
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -52,8 +60,22 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
     private Bitmap? LoadImage(string url)
     {
         var path = ResolveImagePath(url, options.ImageBasePath);
-        if (path is null) return null;
-        return ImageBank.GetOrAdd(path, Decode);
+        if (path is not null) return ImageBank.GetOrAdd(path, Decode);
+
+        // 远程图片：异步经 MarkdownImageSourceLoader（磁盘缓存 + 32MB 上限 + 宿主解析回调）。
+        // 首帧未就绪返回 null（调用方回退显源码），就绪后失效版面重排补绘；
+        // 失败进入 30s 冷却，避免断网时每次重排都打网络。
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var remote) || remote.Scheme is not ("http" or "https")) return null;
+        var key = remote.ToString();
+        if (RemoteImageBank.TryGetValue(key, out var entry))
+        {
+            if (entry.Bitmap is { } ready) return ready;
+            if (!entry.Failed || DateTime.UtcNow - entry.AttemptedAt < RemoteImageRetryWindow) return null;
+        }
+        if (!RemoteImageInFlight.TryAdd(key, 0)) return null;
+        RemoteImageBank[key] = new RemoteImageEntry(null, DateTime.UtcNow, Failed: false);
+        _ = LoadRemoteImageAsync(key, url, remote.Host);
+        return null;
         static Bitmap? Decode(string p)
         {
             try
@@ -66,6 +88,39 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
             {
                 return null;
             }
+        }
+    }
+
+    private async Task LoadRemoteImageAsync(string key, string url, string host)
+    {
+        Bitmap? bitmap = null;
+        var failed = false;
+        try
+        {
+            var source = await MarkdownImageSourceLoader.LoadAsync(url, options.ImageBasePath);
+            if (source.IsSvg && source.Bytes.Length > 0)
+            {
+                // SVG 远程图：栅格化为 PNG 后解码（与阅读视图同一栅格化管线）。
+                var png = MarkdownSvgRasterizer.RenderToPngBytes(source.Bytes);
+                using var svgStream = new MemoryStream(png);
+                bitmap = new Bitmap(svgStream);
+            }
+            else if (source.Bytes.Length > 0)
+            {
+                using var stream = new MemoryStream(source.Bytes);
+                bitmap = new Bitmap(stream); // GIF 取首帧（内嵌叠绘不做动画）
+            }
+            failed = bitmap is null;
+        }
+        catch
+        {
+            failed = true;
+        }
+        finally
+        {
+            RemoteImageInFlight.TryRemove(key, out _);
+            RemoteImageBank[key] = new RemoteImageEntry(bitmap, DateTime.UtcNow, failed);
+            global::Avalonia.Threading.Dispatcher.UIThread.Post(InvalidateTextLayout, global::Avalonia.Threading.DispatcherPriority.Background);
         }
     }
 
@@ -114,6 +169,7 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
                 {
                     // 嵌入对象（行内图片/行内数学）：整个语法区间显源码（光标/选区在内）或占位叠绘。
                     var spanLength = Math.Min(run.SourceLength, source.Length - start);
+                    var em = FontSize * 2;
                     var revealed = SelectionStart != SelectionEnd
                         ? start < SelectionEnd && SelectionStart < start + spanLength
                         : CaretIndex > start && CaretIndex < start + spanLength;
@@ -125,14 +181,22 @@ internal sealed class MarkdownInlinePresenter(MarkdownBlockViewOptions options, 
                     }
                     else
                     {
-                        var em = FontSize * 2;
                         if (run.ImageUrl is not null)
                         {
-                            var bitmap = LoadImage(run.ImageUrl);
-                            var (width, height) = ImageDrawSize(bitmap);
-                            em = bitmap is null ? FontSize : Math.Min(height, FontSize * 2);
-                            if (bitmap is not null)
-                                _imageOverlays.Add(new ImageOverlay(start, bitmap, width, height));
+                            var imageBitmap = LoadImage(run.ImageUrl);
+                            if (imageBitmap is null)
+                            {
+                                // 图片不可得（远程未就绪/加载失败/本地缺失）：回退显示源码——
+                                // 透明占位会让正文凭空消失；远程就绪后失效版面重排翻回叠绘。
+                                source.AsSpan(start, spanLength).CopyTo(display.AsSpan(start));
+                                styles.Add(new(start, spanLength,
+                                    new GenericTextRunProperties(face, FontSize, foregroundBrush: Foreground)));
+                                cursor = start + spanLength;
+                                continue;
+                            }
+                            var (width, height) = ImageDrawSize(imageBitmap);
+                            _imageOverlays.Add(new ImageOverlay(start, imageBitmap, width, height));
+                            em = Math.Min(height, FontSize * 2);
                         }
                         else
                         {
