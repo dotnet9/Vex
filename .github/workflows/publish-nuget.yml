@@ -1,4 +1,4 @@
-name: publish-libraries
+name: publish-nuget
 
 # 推送 lib-v* 格式 tag 时发布迁入主仓的四个库包（Markdown/Lite/Core/MindView）：
 # 包版本号以各库 csproj 的 <Version> 为准（发版前先统一升版），tag 只负责触发，
