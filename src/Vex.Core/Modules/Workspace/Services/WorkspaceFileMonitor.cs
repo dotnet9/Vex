@@ -65,16 +65,51 @@ public sealed class WorkspaceFileMonitor : IDisposable
     }
 
     private const int RescanIntervalMs = 10_000;
+    private string? _lastFingerprint;
 
-    /// <summary>AOT 兜底：周期性触发 recovery 刷新（全量缓存失效+重新枚举），
-    /// 补齐 FileSystemWatcher 被禁用后的目录变更感知。</summary>
+    /// <summary>AOT 兜底：周期性目录指纹检查——指纹不变时跳过（稳态零开销），
+    /// 指纹变化时触发 recovery 刷新（全量缓存失效+重新枚举），补齐
+    /// FileSystemWatcher 被禁用后的目录变更感知。</summary>
     private void RescanTick(object? state)
     {
         lock (_gate)
         {
             if (_disposed || _rootUnavailable) return;
+        }
+        // 枚举在锁外执行（IO 操作不阻塞事件管线）
+        var fingerprint = ComputeFingerprint();
+        if (fingerprint == _lastFingerprint) return;
+        _lastFingerprint = fingerprint;
+        lock (_gate)
+        {
+            if (_disposed) return;
             _recovery = true;
             Schedule();
+        }
+    }
+
+    /// <summary>轻量目录指纹：文件数 + 最新 LastWriteTime。O(枚举) 但无缓存失效、无 UI 重建。</summary>
+    private string? ComputeFingerprint()
+    {
+        try
+        {
+            var latestWrite = 0L;
+            var count = 0L;
+            foreach (var path in WorkspaceFileEnumeration.EnumerateFiles(_rootPath))
+            {
+                count++;
+                try
+                {
+                    var write = File.GetLastWriteTimeUtc(path).Ticks;
+                    if (write > latestWrite) latestWrite = write;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+            }
+            return $"{count}:{latestWrite}";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or DirectoryNotFoundException)
+        {
+            return null;
         }
     }
 
