@@ -1,10 +1,10 @@
-# Vex · 维刻
+﻿# Vex · 维刻
 
 写下想法，看见脉络。
 
 Vex 是基于 .NET 与 Avalonia 的桌面 Markdown 编辑器，支持 **Windows、Linux、macOS**，围绕本地文件提供即时编辑、源码、阅读、章节导图、导出与本机 MCP 协作。
 
-官网：[vex.codewf.com](https://vex.codewf.com/) · 出品：[码坊 CodeWF](https://codewf.com) · 当前版本：**2.1.1.0**
+官网：[vex.codewf.com](https://vex.codewf.com/) · 出品：[码坊 CodeWF](https://codewf.com) · 当前版本：**2.1.0.2**
 
 ![Vex 桌面工作区](docs/图片/主界面.png)
 
