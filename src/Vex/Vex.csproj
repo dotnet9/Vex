@@ -106,4 +106,10 @@
     </None>
     <EmbeddedResource Include="I18n\*.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\native\win7-shim\api-ms-win-core-synch-l1-2-0.dll"
+             CopyToOutputDirectory="PreserveNewest"
+             Link="api-ms-win-core-synch-l1-2-0.dll"
+             Condition="'$(RuntimeIdentifier)' == 'win-x64' or '$(RuntimeIdentifier)' == 'win-x86' or '$(RuntimeIdentifier)' == ''" />
+  </ItemGroup>
 </Project>
