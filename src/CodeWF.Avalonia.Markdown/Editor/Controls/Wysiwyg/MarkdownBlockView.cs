@@ -38,9 +38,10 @@ internal class MarkdownInputTextBox : TextBox
 }
 
 /// <summary>
-/// 一个块的就地编辑视图：默认渲染为富文本（只读显示，可选中），
-/// 点入后使用原位富文本输入（<see cref="TextBox"/>），失焦或按 Esc 结束编辑，
-/// 按 Tab 进入下一个块。文本变化通过 <see cref="TextCommitted"/> 回抛给宿主视图。
+/// 一个块的就地编辑视图：默认渲染为富文本（只读显示，可选中），点入后使用原位
+/// 富文本输入（<see cref="TextBox"/>）。纯文本块与代码块编辑态常驻（失焦不翻态，
+/// Esc 恢复进入前内容、Ctrl+Enter 显式提交）；其余块失焦提交回渲染。文本变化通过
+/// <see cref="TextCommitted"/> 回抛给宿主视图。
 /// </summary>
 internal sealed class MarkdownBlockView : UserControl
 {
@@ -429,9 +430,17 @@ internal sealed class MarkdownBlockView : UserControl
         && Model.Kind is MarkdownBlockKind.Paragraph or MarkdownBlockKind.Heading
             or MarkdownBlockKind.ListItem or MarkdownBlockKind.Quote;
 
+    /// <summary>
+    /// 常驻编辑（P1 连续所见即所得，Typora 对齐）：纯文本块之外，代码块也失焦不翻态——
+    /// 其编辑态视觉（透明前景输入层叠在语法高亮上）与提交后的预览完全同形，翻态只剩
+    /// 状态机意义而无视觉差异；模型逐键同步无内容可丢。Mermaid 源码覆盖不常驻
+    /// （编辑态多出源码卡，视觉必须翻回）。
+    /// </summary>
+    public bool IsPersistentEdit => IsPureText || (_isCode && !IsDiagram);
+
     private void CommitIfFocusLeft() => Dispatcher.UIThread.Post(() =>
     {
-        if (IsPureText) return;
+        if (IsPersistentEdit) return;
         if (!_editor.IsKeyboardFocusWithin && _codeLanguage?.IsKeyboardFocusWithin != true) CommitAndRender();
     }, DispatcherPriority.Input);
 
