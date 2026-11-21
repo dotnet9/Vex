@@ -64,6 +64,8 @@
     <PackageReference Include="Semi.Avalonia" />
     <PackageReference Include="Semi.Avalonia.ColorPicker" />
     <PackageReference Include="System.Reactive" />
+    <PackageReference Include="VC-LTL" />
+    <PackageReference Include="YY-Thunks" />
     <ProjectReference Include="..\Vex.Core\Vex.Core.csproj" />
     <ProjectReference Include="..\Vex.Git\Vex.Git.csproj" />
     <ProjectReference Include="../Vex.Generators/Vex.Generators.csproj"

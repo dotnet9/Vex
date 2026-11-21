@@ -75,7 +75,7 @@ dotnet build Vex.slnx --no-restore -v:minimal "-p:ArtifactsPath=$vexWorkRoot/art
 dotnet run --project src/Vex/Vex.csproj -f net11.0 --no-restore "-p:ArtifactsPath=$vexWorkRoot/artifacts"
 ~~~
 
-应用版本在 Directory.Build.props，框架默认值在 build/ProjectDefaults.props，依赖版本变量在 build/Versions.props，Directory.Packages.props 维护中央包声明，SDK 由 global.json 选择。主分支使用 .NET 11 RC；Win7 历史兼容基线冻结在 win7-archive，不再维护。应用图标以根目录 logo.svg、logo.png、logo.ico 为源；共享库经 NuGet 消费，本地联调和五 RID NativeAOT 发布见开发文档。
+应用版本在 Directory.Build.props，框架默认值在 build/ProjectDefaults.props，依赖版本变量在 build/Versions.props，Directory.Packages.props 维护中央包声明，SDK 由 global.json 选择。主分支使用 .NET 11 RC；Win7 兼容通过 VC-LTL + YY-Thunks + 垫片 DLL 在主线实现（2026-11-21 起）。应用图标以根目录 logo.svg、logo.png、logo.ico 为源；共享库经 NuGet 消费，本地联调和五 RID NativeAOT 发布见开发文档。
 
 ## 待优化
 

@@ -60,6 +60,8 @@
     <PackageVersion Include="LibGit2Sharp" Version="$(LibGit2SharpVersion)" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="$(DotNetLibrariesVersion)" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubVersion)" />
+    <PackageVersion Include="VC-LTL" Version="$(VcLtlVersion)" />
+    <PackageVersion Include="YY-Thunks" Version="$(YYThunksVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(DotNetLibrariesVersion)" />
   </ItemGroup>
 </Project>
