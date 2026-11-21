@@ -1,0 +1,5 @@
+LIBRARY api-ms-win-core-synch-l1-2-0
+EXPORTS
+    WaitOnAddress = shim_wait
+    WakeByAddressSingle = shim_wake_one
+    WakeByAddressAll = shim_wake_all
