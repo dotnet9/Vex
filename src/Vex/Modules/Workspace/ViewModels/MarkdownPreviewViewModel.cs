@@ -44,7 +44,6 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     private string _sourceMarkdown;
     private string? _sourceImageBasePath;
     private int _previewSourceLine = 1;
-    private double _previewScrollRatio;
     private int _remoteImageRefreshVersion;
     private string _typographySize;
     private string? _typographyTheme;
@@ -89,12 +88,6 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     {
         get => _imageBasePath;
         private set => this.RaiseAndSetIfChanged(ref _imageBasePath, value);
-    }
-
-    public double PreviewScrollRatio
-    {
-        get => _previewScrollRatio;
-        set => this.RaiseAndSetIfChanged(ref _previewScrollRatio, value);
     }
 
     /// <summary>
@@ -163,7 +156,6 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
     public void ApplyMarkdownTextChanged(MarkdownTextChangedCommand command)
     {
         PreviewSourceLine = command.CaretLine;
-        PreviewScrollRatio = CalculatePreviewScrollRatio(command.CaretLine, command.LineCount);
     }
 
     public void CommitDiagramEdit(string original, string markdown, int start)
@@ -236,14 +228,4 @@ public sealed class MarkdownPreviewViewModel : ReactiveObject
         }
     }
 
-    private static double CalculatePreviewScrollRatio(int caretLine, int lineCount)
-    {
-        if (lineCount <= 1)
-        {
-            return 0d;
-        }
-
-        var lineIndex = Math.Clamp(caretLine, 1, lineCount) - 1;
-        return lineIndex / (double)(lineCount - 1);
-    }
 }

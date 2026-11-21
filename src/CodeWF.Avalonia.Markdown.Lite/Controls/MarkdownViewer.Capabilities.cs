@@ -237,6 +237,37 @@ public partial class MarkdownViewer
     }
 
     /// <summary>
+    /// 源码行所在块的滚动比例估计（块级兜底）：返回「块索引 + 块内字符进度」÷ 总块数。
+    /// 目标块已渲染时无需此估计（走 <see cref="TryGetSourceLineBounds"/> 精确落点）；
+    /// 未物化块的兜底用块粒度代替旧行数比例——块高差异大时行数比例偏差可达数屏。
+    /// 文档未解析或行为 0 时返回 0。
+    /// </summary>
+    public double GetSourceLineFallbackRatio(int sourceLine)
+    {
+        var model = CurrentModel;
+        if (model.Blocks.Count == 0)
+        {
+            return 0d;
+        }
+
+        var offset = GetSourceLineOffset(Markdown ?? string.Empty, sourceLine);
+        var blocks = model.Blocks;
+        // 二分找最后一个 Start ≤ offset 的块；块间 trivia（空行等）归前一块的块尾进度。
+        var low = 0;
+        var high = blocks.Count - 1;
+        while (low < high)
+        {
+            var mid = (low + high + 1) / 2;
+            if (blocks[mid].SourceSpan.Start <= offset) low = mid;
+            else high = mid - 1;
+        }
+        var block = blocks[low];
+        var spanLength = Math.Max(1, block.SourceSpan.Length);
+        var intra = Math.Clamp((offset - block.SourceSpan.Start) / (double)spanLength, 0d, 1d);
+        return (low + intra) / blocks.Count;
+    }
+
+    /// <summary>
     /// 滚动到源码偏移所在块的顶部（如 <see cref="GetOutline"/> 条目的
     /// <see cref="MarkdownOutlineItem.SourceOffset"/>）。偏移越界时钳制到最近块，
     /// 与阅读锚定的定位语义一致；文档未渲染时返回 false。

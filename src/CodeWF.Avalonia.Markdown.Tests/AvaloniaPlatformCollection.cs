@@ -46,7 +46,9 @@ public sealed class AvaloniaPlatformFixture
     {
         public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<Application>()
             .UseSkia()
-            .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false });
+            .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
+            .AfterSetup(_ => Application.Current!.Styles.Add(
+                new global::CodeWF.Avalonia.Markdown.Themes.MarkdownThemes()));
     }
 }
 

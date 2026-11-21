@@ -294,7 +294,6 @@ public partial class MarkdownPreviewView : UserControl
         if (e.PropertyName == nameof(MarkdownPreviewViewModel.Markdown) && _presentationReadingPosition is not null)
             return;
         if (e.PropertyName is nameof(MarkdownPreviewViewModel.PreviewSourceLine)
-            or nameof(MarkdownPreviewViewModel.PreviewScrollRatio)
             or nameof(MarkdownPreviewViewModel.Markdown))
         {
             QueueScrollToEditorPosition();
@@ -393,7 +392,6 @@ public partial class MarkdownPreviewView : UserControl
         _outlineNavigation?.Dispose();
         _readingSample?.Dispose(); _readingSample = null;
         _viewModel.PreviewSourceLine = command.Line;
-        _viewModel.PreviewScrollRatio = 0d;
         var version = ++_scrollRequestVersion;
         var source = _viewModel.Markdown;
         var attempts = 0;
@@ -528,12 +526,12 @@ public partial class MarkdownPreviewView : UserControl
             return;
         }
 
-        // 目标块尚未渲染/量测：用本次定位带来的滚动比例做临时落点，
+        // 目标块尚未渲染/量测：用块级兜底比例（块索引+块内进度÷总块数）做临时落点，
         // 渲染完成后的 Markdown 属性变化会再触发一次精确定位。
         var height = Math.Max(0d, PreviewScrollViewer.Extent.Height - PreviewScrollViewer.Viewport.Height);
         PreviewScrollViewer.Offset = new Vector(
             0d,
-            height * Math.Clamp(_viewModel.PreviewScrollRatio, 0d, 1d));
+            height * Math.Clamp(PreviewMarkdownViewer.GetSourceLineFallbackRatio(_viewModel.PreviewSourceLine), 0d, 1d));
         Dispatcher.UIThread.Post(
             () => PreviewMarkdownViewer.TryGetSourceLineBounds(_viewModel.PreviewSourceLine, out _),
             DispatcherPriority.Background);
