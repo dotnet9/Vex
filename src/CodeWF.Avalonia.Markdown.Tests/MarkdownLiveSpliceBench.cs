@@ -112,3 +112,51 @@ public class MarkdownPresenterCostBench(AvaloniaPlatformFixture platform, ITestO
         output.WriteLine($"9.7KB 段落 ×200：Parse {sw.ElapsedMilliseconds} ms（均 {sw.ElapsedMilliseconds / 200.0:F3} ms/次，分配 {parseAlloc / 200 / 1024} KB/次）；TextLayout {sw2.ElapsedMilliseconds} ms（均 {sw2.ElapsedMilliseconds / 200.0:F3} ms/次，分配 {layoutAlloc / 200 / 1024} KB/次）");
     });
 }
+
+/// <summary>
+/// TextRunCache 增量重排收益（Avalonia 12.1.6 起 TextLayout 直接接受 TextRunCache）：
+/// 模拟段落末尾逐键追加——无缓存每次全量 reshape；有缓存按追加点 InvalidateFrom 后重建。
+/// </summary>
+[Collection("AvaloniaPlatform")]
+public class TextRunCacheBench(AvaloniaPlatformFixture platform, ITestOutputHelper output)
+{
+    [Fact]
+    public void AppendReshape_WithoutCache_Vs_WithCache() => platform.Run(() =>
+    {
+        var paragraph = string.Concat(Enumerable.Repeat("这是一段用于测量的正文文字，包含中文与 ascii 123 混排。", 180)); // ≈9.7KB
+        var face = new global::Avalonia.Media.Typeface(global::Avalonia.Media.FontFamily.Default);
+        global::Avalonia.Media.TextFormatting.TextLayout MakeLayout(string text, global::Avalonia.Media.TextFormatting.TextRunCache? cache) =>
+            new(text, face, 15, global::Avalonia.Media.Brushes.Black, global::Avalonia.Media.TextAlignment.Left,
+                global::Avalonia.Media.TextWrapping.Wrap, maxWidth: 800, textRunCache: cache);
+
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var start = GC.GetTotalAllocatedBytes(precise: true);
+        var sw = Stopwatch.StartNew();
+        var current = paragraph;
+        for (var i = 0; i < 60; i++)
+        {
+            current += "字";
+            _ = MakeLayout(current, null); // 无缓存：整段重排
+        }
+        sw.Stop();
+        var allocNoCache = GC.GetTotalAllocatedBytes(precise: true) - start;
+
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        start = GC.GetTotalAllocatedBytes(precise: true);
+        var sw2 = Stopwatch.StartNew();
+        using var cache = new global::Avalonia.Media.TextFormatting.TextRunCache();
+        current = paragraph;
+        _ = MakeLayout(current, cache); // 首次全量进缓存
+        for (var i = 0; i < 60; i++)
+        {
+            current += "字";
+            cache.InvalidateFrom(current.Length - 1); // 只失效追加点之后
+            _ = MakeLayout(current, cache);
+        }
+        sw2.Stop();
+        var allocCache = GC.GetTotalAllocatedBytes(precise: true) - start;
+
+        output.WriteLine($"9.7KB 段落末尾追加 ×60：无缓存 {sw.ElapsedMilliseconds} ms（均 {sw.ElapsedMilliseconds / 60.0:F2} ms/次，分配 {allocNoCache / 60 / 1024} KB/次）；TextRunCache {sw2.ElapsedMilliseconds} ms（均 {sw2.ElapsedMilliseconds / 60.0:F2} ms/次，分配 {allocCache / 60 / 1024} KB/次）");
+        Assert.True(sw2.ElapsedMilliseconds <= sw.ElapsedMilliseconds, "带缓存不应更慢");
+    });
+}
