@@ -1192,8 +1192,16 @@
     <Setter Property="Foreground" Value="{DynamicResource VexValueBrush}"/>
     <Setter Property="VerticalAlignment" Value="Center"/>
   </Style>
+  <!-- 原型 .vex-button.primary：accent 实心底 + accent 描边 + on-accent 字（prototype.css:309）。
+       必须在此（双类最高特异性）补全整套外观：文档序上 Button.primary（1312，只钉白字+光环模板）
+       与 Button.mcp-pill（1184，浅底黑字）互相覆盖，此前结果是白字浅底——「测试连接」不可读。
+       悬停/按压态由 Themes/Controls/Shell.axaml 的 .primary:pointerover/:pressed（StudioPrimaryHover/
+       Pressed 实心）在模板 ContentPresenter 上接管。 -->
   <Style Selector="Button.mcp-pill.primary">
     <Setter Property="FontWeight" Value="Normal"/>
+    <Setter Property="Background" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource StudioOnPrimary}"/>
   </Style>
   <!-- 动作行（原型 .vex-mcp-actions：上间距 18、项间 8；两枚按钮在 620 宽里排得下，Avalonia StackPanel 没有 flex-wrap 也不需要用）。 -->
   <Style Selector="StackPanel.mcp-actions">
