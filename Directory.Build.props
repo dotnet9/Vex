@@ -14,7 +14,7 @@
     <ArtifactsPath Condition="'$(CI)' != 'true'">$(MSBuildThisFileDirectory)..\..\temp_files\vex-build\</ArtifactsPath>
     <ArtifactsPath Condition="'$(CI)' == 'true'">$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
     <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts\packages\</PackageOutputPath>
-    <Version>2.1.0.2</Version>
+    <Version>2.2.0.0</Version>
     <!-- 本文件只保留应用本体一个 Version 节点（release.yml 的版本一致性校验按单节点读取）。
          迁入库（Markdown / Markdown.Lite / Markdown.Core / MindView）沿用 CodeWF.Avalonia
          的 12.1.6.x 版本线，在各库 csproj 内覆写 <Version>。 -->
