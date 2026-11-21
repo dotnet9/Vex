@@ -16,6 +16,7 @@ public sealed class WorkspaceFileMonitor : IDisposable
     private readonly Dictionary<string, WorkspacePathChange> _pending = new(WorkspaceFileEnumeration.PathComparer);
     private readonly Timer _timer;
     private readonly Timer? _availabilityTimer;
+    private readonly Timer? _rescanTimer;
     private FileSystemWatcher? _watcher;
     private long _firstEvent;
     private bool _recovery;
@@ -33,9 +34,10 @@ public sealed class WorkspaceFileMonitor : IDisposable
         if (!RuntimeFeature.IsDynamicCodeSupported)
         {
             // NativeAOT 发布：FileSystemWatcher 事件管线存在随机无栈 NRE（写文件/事件分派时
-            // 直接 fail-fast，事件查看器无托管栈）。AOT 禁用事件监控，文件列表依赖打开时
-            // 扫描与手动刷新；非 AOT（调试）保持事件监控。
-            _timer.Dispose();
+            // 直接 fail-fast，事件查看器无托管栈）。AOT 禁用事件监控，改用周期性 recovery
+            // 刷新兜底——每 10 秒触发一次全量缓存失效+重新枚举，文件树自动更新。
+            // 非 AOT（调试）保持事件监控。
+            _rescanTimer = new Timer(RescanTick, null, RescanIntervalMs, RescanIntervalMs);
             return;
         }
         try
@@ -59,6 +61,20 @@ public sealed class WorkspaceFileMonitor : IDisposable
         if (!string.IsNullOrWhiteSpace(oldPath))
         {
             QueuePath(oldPath, isDirectory, WatcherChangeTypes.Deleted);
+        }
+    }
+
+    private const int RescanIntervalMs = 10_000;
+
+    /// <summary>AOT 兜底：周期性触发 recovery 刷新（全量缓存失效+重新枚举），
+    /// 补齐 FileSystemWatcher 被禁用后的目录变更感知。</summary>
+    private void RescanTick(object? state)
+    {
+        lock (_gate)
+        {
+            if (_disposed || _rootUnavailable) return;
+            _recovery = true;
+            Schedule();
         }
     }
 
@@ -258,6 +274,7 @@ public sealed class WorkspaceFileMonitor : IDisposable
             _pending.Clear();
             _timer.Dispose();
             _availabilityTimer?.Dispose();
+            _rescanTimer?.Dispose();
             DetachWatcher();
         }
     }
