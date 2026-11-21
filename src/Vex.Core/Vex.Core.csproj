@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
     <PackageReference Include="Markdig" />
     <PackageReference Include="Svg.Skia" />
   </ItemGroup>

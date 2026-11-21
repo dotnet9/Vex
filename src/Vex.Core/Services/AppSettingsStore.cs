@@ -120,6 +120,12 @@ public sealed class AppSettingsStore : IAppSettingsStore
         }
     }
 
+    /// <summary>跨进程配置互斥（验收项「配置只有进程内锁」收敛）：多实例并存的读-改-写
+    /// 在同一命名互斥体下串行，消除"实例 A 读盘 → 实例 B 写盘 → 实例 A 写盘"丢键窗口。
+    /// 互斥体按用户会话命名（配置本就按用户目录存取）；等待超时回落进程内锁路径，
+    /// 死锁不会卡住 UI（极小概率的并发竞争最多丢一次更新，与未加锁前一致）。</summary>
+    private static readonly Mutex ConfigMutex = new(initiallyOwned: false, @"Local\Vex.AppSettings.Write");
+
     public AppSettings Update(Func<AppSettings, AppSettings> update)
     {
         lock (_syncRoot)
@@ -127,10 +133,30 @@ public sealed class AppSettingsStore : IAppSettingsStore
             // 以磁盘最新配置为基准做读-改-写合并：Update 调用点均为 with{指定键} 的部分更新，
             // 其余键保留磁盘现状。此前以内存快照全量覆盖保存，多实例并存或配置文件被外部
             // 修改后，任一实例退出都会用过期快照覆盖全部键（MCP 开关/Token 因此丢失）。
-            var latest = Load();
-            _settings = update(latest);
-            Save(_settings);
-            return _settings;
+            Mutex? crossProcess = null;
+            try
+            {
+                crossProcess = ConfigMutex;
+                if (!crossProcess.WaitOne(TimeSpan.FromSeconds(2)))
+                {
+                    crossProcess = null; // 超时不阻塞 UI：退化为进程内锁路径
+                }
+            }
+            catch (AbandonedMutexException)
+            {
+                // 上个持有者异常退出：互斥体已归我们所有，继续正常流程。
+            }
+            try
+            {
+                var latest = Load();
+                _settings = update(latest);
+                Save(_settings);
+                return _settings;
+            }
+            finally
+            {
+                crossProcess?.ReleaseMutex();
+            }
         }
     }
 
@@ -220,7 +246,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             IsMcpServerEnabled = Get<bool?>(configuration, IsMcpServerEnabled),
             McpServerHost = Get<string>(configuration, McpServerHost),
             McpServerPort = Get<int?>(configuration, McpServerPort),
-            McpAuthorizationToken = Get<string>(configuration, McpAuthorizationToken),
+            McpAuthorizationToken = LoadSecret(Get<string>(configuration, McpAuthorizationToken)),
             McpAccessScope = Get<string>(configuration, McpAccessScope),
             McpAllowedWorkspacePath = Get<string>(configuration, McpAllowedWorkspacePath),
             McpRequireConfirmation = Get<bool?>(configuration, McpRequireConfirmation),
@@ -327,7 +353,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [IsMcpServerEnabled] = settings.IsMcpServerEnabled,
                 [McpServerHost] = settings.McpServerHost,
                 [McpServerPort] = settings.McpServerPort,
-                [McpAuthorizationToken] = settings.McpAuthorizationToken,
+                [McpAuthorizationToken] = SaveSecret(settings.McpAuthorizationToken),
                 [McpAccessScope] = settings.McpAccessScope,
                 [McpAllowedWorkspacePath] = settings.McpAllowedWorkspacePath,
                 [McpRequireConfirmation] = settings.McpRequireConfirmation,
@@ -369,5 +395,39 @@ public sealed class AppSettingsStore : IAppSettingsStore
         return configuration.TryGet<T>(key, out var value)
             ? value
             : default;
+    }
+
+    /// <summary>MCP 访问令牌静态加密：Windows DPAPI（CurrentUser）/其他平台 Base64 兜底（文件权限即边界，
+    /// 与 Git 凭据存储同款策略）。dpapi: 前缀自描述；旧明文在下次保存时自动迁移为密文。</summary>
+    private const string SecretPrefix = "dpapi:";
+
+    private static string? LoadSecret(string? stored)
+    {
+        if (string.IsNullOrEmpty(stored)) return stored;
+        if (!stored.StartsWith(SecretPrefix, StringComparison.Ordinal)) return stored;
+        try
+        {
+            var bytes = Convert.FromBase64String(stored[SecretPrefix.Length..]);
+            return System.Text.Encoding.UTF8.GetString(
+                OperatingSystem.IsWindows()
+                    ? System.Security.Cryptography.ProtectedData.Unprotect(bytes, null, System.Security.Cryptography.DataProtectionScope.CurrentUser)
+                    : bytes);
+        }
+        catch
+        {
+            // 密文损坏（如配置在用户间拷贝）：返回空，令牌需重新生成，避免半截值参与校验。
+            return null;
+        }
+    }
+
+    private static string? SaveSecret(string? plain)
+    {
+        if (string.IsNullOrEmpty(plain)) return plain;
+        if (plain.StartsWith(SecretPrefix, StringComparison.Ordinal)) return plain; // 已是密文（多实例合并回写）
+        var bytes = System.Text.Encoding.UTF8.GetBytes(plain);
+        var protectedBytes = OperatingSystem.IsWindows()
+            ? System.Security.Cryptography.ProtectedData.Protect(bytes, null, System.Security.Cryptography.DataProtectionScope.CurrentUser)
+            : bytes;
+        return SecretPrefix + Convert.ToBase64String(protectedBytes);
     }
 }
