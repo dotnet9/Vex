@@ -72,6 +72,7 @@ internal sealed class MarkdownBlockView : UserControl
 
     private bool _editing;
     private bool _syncingText;
+    private Button? _grip;
     private IPointer? _selectionPointer;
     private int _pointerSelectionAnchor;
     private string _editOriginalText = string.Empty;
@@ -119,6 +120,34 @@ internal sealed class MarkdownBlockView : UserControl
 
         _editingLayer.Children.Add(_editor);
         _layer.Children.Add(_richText); _layer.Children.Add(_editingLayer);
+        // 拖拽把手（Notion 式 ⠿）：悬停显示于块右上角；按下交给宿主做块重排序。
+        _grip = new Button
+        {
+            Classes = { "md-block-grip" },
+            Content = new TextBlock { Text = "⠿", FontSize = 11, FontWeight = FontWeight.Bold },
+            Focusable = false,
+            Width = 18, Height = 18, MinWidth = 0, MinHeight = 0,
+            Padding = new Thickness(0),
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(0, 2, 2, 0),
+            IsVisible = false,
+            Cursor = new Cursor(StandardCursorType.SizeAll),
+        };
+        ToolTip.SetTip(_grip, "拖动排序");
+        _grip.PointerPressed += (_, args) =>
+        {
+            if (args.GetCurrentPoint(_grip).Properties.IsLeftButtonPressed && !_editing)
+            {
+                ReorderDragStarted?.Invoke(this, args);
+                args.Handled = true;
+            }
+        };
+        _layer.Children.Add(_grip);
+        PropertyChanged += (_, args) =>
+        {
+            if (args.Property.Name == nameof(IsPointerOver)) UpdateGripVisibility();
+        };
         _root = new Border { Child = _layer };
         Content = _root;
 
@@ -247,6 +276,7 @@ internal sealed class MarkdownBlockView : UserControl
         var originalLanguage = _editOriginalLanguage;
         var textEntering = _editor.BeforeTextInput;
         _editing = false;
+        UpdateGripVisibility();
         EndInlineEditor();
         _editingLayer.Children.Remove(_editor);
         _editor = IsSourceOverlay ? new MermaidSourceInput() : new MarkdownInputTextBox();
@@ -284,6 +314,9 @@ internal sealed class MarkdownBlockView : UserControl
     /// <summary>Ctrl+V 剪贴板钩子：返回 true 表示已处理（如图片落盘插入）；
     /// false 或异常时回落 TextBox 默认文本粘贴。</summary>
     public Func<Task<bool>>? PasteFromClipboard { get; set; }
+
+    /// <summary>拖拽把手按下（宿主接管指针循环做块重排序）。</summary>
+    public event EventHandler<PointerPressedEventArgs>? ReorderDragStarted;
 
     private async Task RunClipboardPasteAsync(Func<Task<bool>> handler)
     {
@@ -380,6 +413,7 @@ internal sealed class MarkdownBlockView : UserControl
         _syncingText = false;
         _editing = true;
         UpdateRichText();
+        UpdateGripVisibility();
         _inlineEditing = !IsSourceOverlay && (_isCode || Model.Kind != MarkdownBlockKind.Raw);
         if (IsSourceOverlay)
         {
@@ -429,6 +463,7 @@ internal sealed class MarkdownBlockView : UserControl
         }
 
         _editing = false;
+        UpdateGripVisibility();
         EndInlineEditor();
         var text = _editor.Text ?? string.Empty;
         if (!string.Equals(text, ModelText, StringComparison.Ordinal))
@@ -775,6 +810,12 @@ internal sealed class MarkdownBlockView : UserControl
                 NavigateRequested?.Invoke(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
                 break;
         }
+    }
+
+    private void UpdateGripVisibility()
+    {
+        if (_grip is null) return;
+        _grip.IsVisible = !_editing && IsPointerOver && !IsDiagram;
     }
 
     private void UpdateRichText()

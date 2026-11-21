@@ -1231,12 +1231,101 @@ public partial class MarkdownLiveEditorView : UserControl
         view.TextEntering = e => OnBlockTextInput(view, e);
         view.FenceCompleted = fenceView => TryEnterFenceMarker(fenceView);
         view.PasteFromClipboard = HandleClipboardImagePasteAsync;
+        view.ReorderDragStarted += BeginReorderDrag;
     }
 
-    /// <summary>
-    /// 围栏补全（Typora）：整行恰为 ``` / ```lang 时，回车把段落转成围栏代码块并进入
-    /// 源码编辑——Core.EnterFenceMarker 判定，单块原位刷新（SyncEditorFromModel 防旧文回滚）。
-    /// </summary>
+    /// <summary>块拖拽排序：把手按下接管指针循环，插入指示线跟随，松手落位。
+    /// 非编辑态块均可拖；落位走整篇重建（标题前置装饰/引用分组拓扑随序刷新），
+    /// 撤销栈压落位前快照（结构变化口径）。</summary>
+    private void BeginReorderDrag(object? sender, PointerPressedEventArgs args)
+    {
+        if (sender is not MarkdownBlockView sourceView) return;
+        var fromIndex = _models.IndexOf(sourceView.Model);
+        if (fromIndex < 0) return;
+        var grip = sourceView;
+        var pointer = args.Pointer;
+        pointer.Capture(grip);
+
+        var indicator = new Border
+        {
+            Background = _blockOptions.AccentBrush,
+            Height = 2,
+            IsHitTestVisible = false,
+        };
+        var adornerLayer = global::Avalonia.Controls.Primitives.AdornerLayer.GetAdornerLayer(_container);
+        adornerLayer?.Children.Add(indicator);
+        Canvas.SetLeft(indicator, 0);
+        indicator.Width = _container.Bounds.Width > 0 ? _container.Bounds.Width : double.NaN;
+        var dragTarget = fromIndex;
+
+        void PositionIndicator(int insertBefore)
+        {
+            var anchor = insertBefore < _blockViews.Count
+                ? _blockViews[insertBefore].TranslatePoint(default, _container)?.Y
+                : (_blockViews.Count > 0
+                    ? _blockViews[^1].TranslatePoint(default, _container)?.Y + _blockViews[^1].Bounds.Height
+                    : null);
+            if (anchor is { } y) Canvas.SetTop(indicator, Math.Max(0, y - 1));
+        }
+
+        void OnDragMove(object? o, PointerEventArgs e)
+        {
+            var y = e.GetPosition(_container).Y;
+            var insertBefore = _blockViews.Count;
+            for (var i = 0; i < _blockViews.Count; i++)
+            {
+                if (_blockViews[i].TranslatePoint(default, _container) is not { } top) continue;
+                var middle = top.Y + _blockViews[i].Bounds.Height / 2;
+                if (y < middle) { insertBefore = i; break; }
+            }
+            dragTarget = insertBefore;
+            PositionIndicator(insertBefore);
+        }
+
+        void OnDragRelease(object? o, PointerReleasedEventArgs e)
+        {
+            grip.PointerMoved -= OnDragMove;
+            grip.PointerReleased -= OnDragRelease;
+            pointer.Capture(null);
+            if (adornerLayer is not null) adornerLayer.Children.Remove(indicator);
+            if (dragTarget != fromIndex && dragTarget != fromIndex + 1)
+            {
+                MoveBlockTo(fromIndex, dragTarget);
+            }
+        }
+
+        grip.PointerMoved += OnDragMove;
+        grip.PointerReleased += OnDragRelease;
+        PositionIndicator(fromIndex);
+    }
+
+    /// <summary>把 fromIndex 的块移动到 insertBefore（目标块之前）。</summary>
+    private void MoveBlockTo(int from, int insertBefore)
+    {
+        if (from < 0 || from >= _models.Count) return;
+        var adjusted = insertBefore > from ? insertBefore - 1 : insertBefore;
+        if (adjusted == from) return;
+
+        // 撤销：压落位前快照（结构变化口径），随后整篇回抛不再压栈。
+        _undo.Add(new SnapshotEntry(_lastSnapshot));
+        TrimUndo();
+        _redo.Clear();
+        _undoSeparate = true;
+
+        var moved = _models[from];
+        _models.RemoveAt(from);
+        _models.Insert(adjusted, moved);
+        HostRemoveModel(from);
+        HostInsertModel(adjusted);
+        RebuildBlocks();
+        if (_activeIndex == from) _activeIndex = adjusted;
+        else if (_activeIndex > from && _activeIndex < insertBefore) _activeIndex--;
+        _restoringHistory = true;
+        try { RaiseChanged(); }
+        finally { _restoringHistory = false; }
+        RaiseSelectionChanged();
+    }
+
     private bool TryEnterFenceMarker(MarkdownBlockView view)
     {
         var index = _models.IndexOf(view.Model);

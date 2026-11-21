@@ -1,4 +1,4 @@
-{
+﻿﻿{
   "language": "繁體中文",
   "description": "中文（繁體）",
   "cultureName": "zh-Hant",
@@ -65,7 +65,8 @@
           "SelectionItalic": "斜體",
           "SelectionLink": "連結",
           "SelectionList": "清單",
-          "SelectionStrike": "刪除線"
+          "SelectionStrike": "刪除線",
+          "EditorReorderGripToolTip": "拖曳排序"
         }
       }
     }

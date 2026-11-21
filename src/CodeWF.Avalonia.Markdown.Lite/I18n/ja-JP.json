@@ -1,4 +1,4 @@
-{
+﻿﻿{
   "language": "日本語",
   "description": "日本語",
   "cultureName": "ja-JP",
@@ -65,7 +65,8 @@
           "SelectionItalic": "斜体",
           "SelectionLink": "リンク",
           "SelectionList": "リスト",
-          "SelectionStrike": "取り消し線"
+          "SelectionStrike": "取り消し線",
+          "EditorReorderGripToolTip": "ドラッグで並べ替え"
         }
       }
     }

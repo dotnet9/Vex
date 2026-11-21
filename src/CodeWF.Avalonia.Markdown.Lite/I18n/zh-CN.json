@@ -1,4 +1,4 @@
-{
+﻿﻿{
   "language": "简体中文",
   "description": "中文（简体）",
   "cultureName": "zh-CN",
@@ -34,6 +34,7 @@
           "EditorImageAltPlaceholder": "替代文本",
           "EditorCodeFencePlaceholder": "代码",
           "EditorMathPlaceholder": "公式",
+          "EditorReorderGripToolTip": "拖动排序",
           "EditorTableColumn": "列",
           "EditorTableValue": "值",
           "EditorTableItem": "项目",

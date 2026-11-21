@@ -1,4 +1,4 @@
-{
+﻿﻿{
   "language": "English",
   "description": "English",
   "cultureName": "en-US",
@@ -65,7 +65,8 @@
           "SelectionItalic": "Italic",
           "SelectionLink": "Link",
           "SelectionList": "List",
-          "SelectionStrike": "Strikethrough"
+          "SelectionStrike": "Strikethrough",
+          "EditorReorderGripToolTip": "Drag to reorder"
         }
       }
     }
