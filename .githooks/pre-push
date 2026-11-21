@@ -1,0 +1,34 @@
+#!/bin/sh
+# 强制本地门禁：推送 v*（应用发布）或 lib-v*（库包发布）tag 前，
+# 先在本机跑与 CI 同源的验证；失败即阻止推送。
+# 逃生口：git push --no-verify（不建议，失败会在 CI 里原样重现）。
+# 启用方式（克隆后执行一次）：git config core.hooksPath .githooks
+zero="0000000000000000000000000000000000000000"
+app_tag=""
+lib_tag=""
+while read -r local_ref local_oid remote_ref remote_oid; do
+  case "$remote_ref" in
+    refs/tags/v*) app_tag="${remote_ref#refs/tags/}" ;;
+    refs/tags/lib-v*) lib_tag="${remote_ref#refs/tags/}" ;;
+  esac
+  # 删除 tag（local oid = zero）不触发门禁
+  if [ "$local_oid" = "$zero" ] && [ -n "$app_tag" ] && [ "${remote_ref#refs/tags/}" = "$app_tag" ]; then app_tag=""; fi
+  if [ "$local_oid" = "$zero" ] && [ -n "$lib_tag" ] && [ "${remote_ref#refs/tags/}" = "$lib_tag" ]; then lib_tag=""; fi
+done
+
+if [ -n "$app_tag" ]; then
+  echo "==> 检测到应用发布 tag $app_tag：先跑本地发布门禁（约 15 分钟，Ctrl+C 放弃推送）"
+  pwsh scripts/verify-release.ps1 || {
+    echo "✗ 本地门禁未通过，推送已被阻止。修复后重试；确需跳过：git push --no-verify" >&2
+    exit 1
+  }
+fi
+
+if [ -n "$lib_tag" ]; then
+  echo "==> 检测到库包 tag $lib_tag：先跑本地库包门禁"
+  pwsh scripts/verify-libraries.ps1 || {
+    echo "✗ 本地库包门禁未通过，推送已被阻止。修复后重试；确需跳过：git push --no-verify" >&2
+    exit 1
+  }
+fi
+exit 0
