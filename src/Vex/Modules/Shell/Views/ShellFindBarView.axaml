@@ -70,23 +70,10 @@
             Classes="workspace-block"
             Padding="{DynamicResource VexUiFindPadding}">
             <!-- 原型是 flex + gap:6、输入框 flex:1 / max-width:220 / min-width:0：控件一律靠左排，剩余空间留在行尾。
-                 实现用「星列 + 列上下限」同解——列限到 226（220 本体 + 6 间隙）就把多余空间挤到最后一列之后；
-                 窄窗先收缩输入框（地板 96，原型是 0），不换行（条高由 ExpandedSize 钉死，换行会裁掉按钮）。
-                 间隙走每个控件自己的 6px 右外距而不是 ColumnSpacing：隐藏列宽度归零时，列间距仍会各占 6px。 -->
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition MinWidth="102" MaxWidth="226" Width="*" />
-                    <ColumnDefinition MaxWidth="226" Width="{Binding ReplacePillColumnWidth}" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                 实现三列同解：查找框占 * 列（102–220 弹性），替换框与尾部动作组各占 Auto——
+                 尾部动作收进一个 Spacing=6 的 StackPanel，替换框隐藏时整列自然塌缩，
+                 不再有「隐藏列残留间隙」的补偿外距与十一列手工编号。 -->
+            <Grid ColumnDefinitions="*,Auto,Auto">
                 <!-- 查找框：与侧栏搜索同一焦点配方（Grid.search-shell：pill、accent 边 + 3px 柔光、fast 档过渡）。
                      原型 .find-strip .input 另给 11 号字与 28 最小高；29.6 = 11×1.6 行盒 + 5×2 内距 + 1×2 描边。 -->
                 <Grid
@@ -94,6 +81,7 @@
                     Classes="search-shell"
                     Margin="0,0,6,0"
                     MaxWidth="220"
+                    MinWidth="102"
                     VerticalAlignment="Center">
                     <Border Classes="search-glow" />
                     <Border Classes="search-frame" Height="{DynamicResource VexUiFindFieldHeight}" Padding="{DynamicResource VexUiFindFieldPadding}">
@@ -143,77 +131,65 @@
                     <Border Classes="search-hover" />
                 </Grid>
                 <!-- 原型 .find-strip 的动作顺序是「上一个 → 下一个 → 全部替换」；「替换」是实现侧补充，夹在中间。 -->
-                <Button
-                    x:Name="FindPrevButton"
-                    Grid.Column="2"
-                    Classes="find-action"
-                    Command="{Binding FindPrev}"
-                    Content="{i18n:I18n {x:Static l:VexL.FindBarPrev}}" />
-                <Button
-                    x:Name="FindNextButton"
-                    Grid.Column="3"
-                    Classes="find-action"
-                    Command="{Binding FindNext}"
-                    Content="{i18n:I18n {x:Static l:VexL.FindBarNext}}" />
-                <Button
-                    Grid.Column="4"
-                    Classes="find-action"
-                    Command="{Binding ReplaceNext}"
-                    Content="{i18n:I18n {x:Static l:VexL.FindBarReplace}}"
-                    IsVisible="{Binding IsReplaceVisible}" />
-                <Button
-                    Grid.Column="5"
-                    Classes="find-action"
-                    Command="{Binding ReplaceAll}"
-                    Content="{i18n:I18n {x:Static l:VexL.FindBarAll}}"
-                    IsVisible="{Binding IsReplaceVisible}" />
-                <!-- 命中计数（原型 #find-count）：没输入词时整枚不占位，不像旧版常驻一枚「0/0」。 -->
-                <Border
-                    Grid.Column="6"
-                    Classes="find-count"
-                    IsVisible="{Binding HasFindQuery}">
-                    <TextBlock Text="{Binding FindCountText}" />
-                </Border>
-                <!-- Aa / W / .* 图标化开关（原型 .opt-toggle）：度量收在 Themes/Controls/Shell.axaml 一处。 -->
-                <ToggleButton
-                    Grid.Column="7"
-                    Classes="opt-toggle"
-                    Content=".*"
-                    Margin="0,0,6,0"
-                    IsChecked="{Binding IsRegex, Mode=TwoWay}"
-                    helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarRegex}}"
-                    VerticalAlignment="Center" />
-                <ToggleButton
-                    Grid.Column="8"
-                    Classes="opt-toggle"
-                    Content="Aa"
-                    Margin="0,0,6,0"
-                    IsChecked="{Binding IsMatchCase, Mode=TwoWay}"
-                    helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarMatchCase}}"
-                    VerticalAlignment="Center" />
-                <ToggleButton
-                    Grid.Column="9"
-                    Classes="opt-toggle"
-                    Content="W"
-                    Margin="0,0,6,0"
-                    IsChecked="{Binding IsWholeWord, Mode=TwoWay}"
-                    helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
-                    VerticalAlignment="Center" />
-                <Button
-                    Grid.Column="10"
-                    Classes="find-close"
-                    Command="{Binding CloseFindPanel}"
-                    helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
-                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarClose}}">
-                    <Path
-                        Width="16"
-                        Height="16"
-                        Data="M18 6L6 18 M6 6L18 18"
-                        Stretch="Uniform"
-                        Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                        StrokeThickness="1.7"
-                        StrokeLineCap="Round" />
-                </Button>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <Button
+                        x:Name="FindPrevButton"
+                        Classes="find-action"
+                        Command="{Binding FindPrev}"
+                        Content="{i18n:I18n {x:Static l:VexL.FindBarPrev}}" />
+                    <Button
+                        x:Name="FindNextButton"
+                        Classes="find-action"
+                        Command="{Binding FindNext}"
+                        Content="{i18n:I18n {x:Static l:VexL.FindBarNext}}" />
+                    <Button
+                        Classes="find-action"
+                        Command="{Binding ReplaceNext}"
+                        Content="{i18n:I18n {x:Static l:VexL.FindBarReplace}}"
+                        IsVisible="{Binding IsReplaceVisible}" />
+                    <Button
+                        Classes="find-action"
+                        Command="{Binding ReplaceAll}"
+                        Content="{i18n:I18n {x:Static l:VexL.FindBarAll}}"
+                        IsVisible="{Binding IsReplaceVisible}" />
+                    <!-- 命中计数（原型 #find-count）：没输入词时整枚不占位，不像旧版常驻一枚「0/0」。 -->
+                    <Border Classes="find-count" IsVisible="{Binding HasFindQuery}">
+                        <TextBlock Text="{Binding FindCountText}" />
+                    </Border>
+                    <!-- Aa / W / .* 图标化开关（原型 .opt-toggle）：度量收在 Themes/Controls/Shell.axaml 一处。 -->
+                    <ToggleButton
+                        Classes="opt-toggle"
+                        Content=".*"
+                        IsChecked="{Binding IsRegex, Mode=TwoWay}"
+                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarRegex}}"
+                        VerticalAlignment="Center" />
+                    <ToggleButton
+                        Classes="opt-toggle"
+                        Content="Aa"
+                        IsChecked="{Binding IsMatchCase, Mode=TwoWay}"
+                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarMatchCase}}"
+                        VerticalAlignment="Center" />
+                    <ToggleButton
+                        Classes="opt-toggle"
+                        Content="W"
+                        IsChecked="{Binding IsWholeWord, Mode=TwoWay}"
+                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
+                        VerticalAlignment="Center" />
+                    <Button
+                        Classes="find-close"
+                        Command="{Binding CloseFindPanel}"
+                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarClose}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarClose}}">
+                        <Path
+                            Width="16"
+                            Height="16"
+                            Data="M18 6L6 18 M6 6L18 18"
+                            Stretch="Uniform"
+                            Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                            StrokeThickness="1.7"
+                            StrokeLineCap="Round" />
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
     </ac:ContentExpansionAnimator>

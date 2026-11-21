@@ -46,13 +46,9 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         {
             if (SetProperty(ref _isReplaceVisible, value))
             {
-                this.RaisePropertyChanged(nameof(ReplacePillColumnWidth));
             }
         }
     }
-
-    /// <summary>原型隐藏替换框是让整行重新排，不是留一个空槽：星列换成 0 宽，后面的控件才收得回来。</summary>
-    public GridLength ReplacePillColumnWidth => IsReplaceVisible ? new(1, GridUnitType.Star) : new(0);
 
     public bool IsMatchCase
     {
