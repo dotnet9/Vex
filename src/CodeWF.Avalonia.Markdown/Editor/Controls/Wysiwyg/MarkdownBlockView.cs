@@ -84,6 +84,7 @@ internal sealed class MarkdownBlockView : UserControl
         _isTableCell = isTableCell;
         _options = options;
         _editor = IsSourceOverlay ? new MermaidSourceInput() : new MarkdownInputTextBox();
+        ApplyHeadingAlignment();
 
         if (isCode && !IsDiagram)
         {
@@ -130,6 +131,23 @@ internal sealed class MarkdownBlockView : UserControl
         UpdateRichText();
         LayoutUpdated += (_, _) => { if (_inlineEditing) PositionInlineEditor(); };
         DetachedFromVisualTree += (_, _) => StopWatchingDiagramPointer();
+    }
+
+    /// <summary>
+    /// 标题对齐随排版主题（ArticleHeadingStyle.Alignment）：SoftSage 等主题标题居中、其余居左。
+    /// 阅读视图由 HeadingRenderer 绑定同名资源；这里把对齐应用到编辑框——常驻编辑态
+    /// （纯文本块+代码块）的标题在打字时就保持主题对齐，不等到预览才居中。
+    /// </summary>
+    private void ApplyHeadingAlignment()
+    {
+        if (Model.Kind != MarkdownBlockKind.Heading || Model.HeadingLevel is < 1 or > 6) return;
+        if (CodeWF.Avalonia.Markdown.Themes.ArticleTypographyResolver.Find(_options.TypographyTheme)
+            is not { } article || Model.HeadingLevel > article.Headings.Length) return;
+        if (Enum.TryParse<TextAlignment>(article.Headings[Model.HeadingLevel - 1].Alignment, out var alignment))
+        {
+            _editor.TextAlignment = alignment;
+            _richText.TextAlignment = alignment;
+        }
     }
 
     private void ConfigureSourceInput()
