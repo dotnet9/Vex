@@ -30,10 +30,16 @@ public sealed class ShellAppearanceMenuView : UserControl
     public Button LanguageButton { get; private set; } = null!;
     public const double MenuWidth = 430;
 
-    /// <summary>外观菜单外框宽：随密度令牌（VexUiAppearanceMenuWidth）缩放，令牌缺失回落 430 原型值。</summary>
-    private static double MenuWidthForDensity() =>
-        global::Avalonia.Application.Current?.Resources.TryGetResource("VexUiAppearanceMenuWidth", null, out var value) == true
-        && value is double width ? width : MenuWidth;
+    /// <summary>外观菜单外框宽绑定：随密度令牌（VexUiAppearanceMenuWidth）live 缩放，令牌缺失回落 430 原型值。</summary>
+    /// <summary>资源宽度 → 减去两侧内距（外框宽 → 内容面板宽）的观察器适配。</summary>
+    private sealed class MenuWidthObservable(IObservable<object?> source) : IObservable<double>
+    {
+        public IDisposable Subscribe(IObserver<double> observer) =>
+            source.Subscribe(value =>
+            {
+                if (value is double width) observer.OnNext(width - 2 * MenuInset);
+            });
+    }
     /// <summary>原型 *{box-sizing:border-box}：430 是含 14 内距与 1px 发丝描边的外框宽，
     /// 内容面板按 430 − 2×(14+1) 收口，弹层才不会被内容宽顶成 432。</summary>
     private const double MenuInset = 15;
@@ -114,7 +120,6 @@ public sealed class ShellAppearanceMenuView : UserControl
     {
         if (_vm is null) return;
         if (e.PropertyName is nameof(ShellAppearanceViewModel.PaletteOptions) or null) { Build(); return; }
-        if (e.PropertyName is nameof(ShellAppearanceViewModel.SelectedDensity)) { Build(); return; }
         var accent = Brush("VexAccentBrush"); var soft = Brush("VexAccentSoftBrush"); var onAccent = Brush("StudioOnPrimary"); var text = Brush("VexValueBrush");
         foreach (var (option, card) in _paletteButtons)
         {
@@ -227,7 +232,9 @@ public sealed class ShellAppearanceMenuView : UserControl
         Grid.SetRow(_addCard, ordered.Length / 3); Grid.SetColumn(_addCard, ordered.Length % 3);
         _palettes.RowDefinitions = new RowDefinitions(string.Join(",", Enumerable.Repeat("Auto", (ordered.Length + 3) / 3)));
         _palettes.Children.Add(_addCard);
-        var content = new StackPanel { Width = MenuWidthForDensity() - 2 * MenuInset, Margin = default };
+        var content = new StackPanel { Margin = default };
+        // 已打开的外观菜单在密度切换时必须立即变宽/变窄（验证器钉住）——宽度走资源绑定而非 Build 时取值。
+        content.Bind(Layoutable.WidthProperty, new MenuWidthObservable(content.GetResourceObservable("VexUiAppearanceMenuWidth")));
         content.Children.Add(SectionTitle(Text("AppearanceDensityTitle")));
         content.Children.Add(densityRow);
         content.Children.Add(SectionTitle(Text("AppearanceModeTitle")));
