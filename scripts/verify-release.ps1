@@ -1,4 +1,4 @@
-# 本地发布门禁（v* tag 推送前由 .githooks/pre-push 强制执行）：
+﻿# 本地发布门禁（v* tag 推送前由 .githooks/pre-push 强制执行）：
 # 与 update-checks.yml / release.yml 的 CI 场景同源，失败即阻止推送。
 # 用法：pwsh scripts/verify-release.ps1 [-SkipAot]
 # 说明：真实 Inno 夹具仅在机器存在 ISCC.exe 时执行（CI 同款条件）。
