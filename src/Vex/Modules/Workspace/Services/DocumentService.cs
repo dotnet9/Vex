@@ -200,7 +200,7 @@ public sealed class DocumentService : IDocumentService
         await semaphore.WaitAsync();
         try
         {
-            await File.WriteAllTextAsync(document.FilePath, document.Markdown, document.Encoding);
+            await WriteAtomicallyAsync(document.FilePath, document.Markdown, document.Encoding);
         }
         finally
         {
@@ -212,18 +212,35 @@ public sealed class DocumentService : IDocumentService
     public async Task<bool> TryAutoSaveAsync(DocumentSnapshot document, string lastSavedMarkdown)
     {
         if (document.FilePath is not { } path || !File.Exists(path)) return false;
-        // 校验和写入持有同一文件句柄；Windows 上禁止其他写入及替换，避免校验后覆盖外部修改。
-        await using var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, useAsync: true);
-        using (var reader = new StreamReader(stream, document.Encoding, detectEncodingFromByteOrderMarks: true, leaveOpen: true))
-            if (await reader.ReadToEndAsync() != lastSavedMarkdown) return false;
-        var preamble = document.Encoding.GetPreamble();
-        var bytes = document.Encoding.GetBytes(document.Markdown);
-        stream.Position = 0;
-        await stream.WriteAsync(preamble);
-        await stream.WriteAsync(bytes);
-        stream.SetLength(stream.Position);
-        await stream.FlushAsync();
+        // 校验持独占读句柄（禁止校验期间外部写入）；写入改为临时文件+替换的原子写——
+        // 校验与替换之间留下极小的外部写入竞窗，由文件监视的外部修改流程兜底，
+        // 换取断电/崩溃时不会把原文截断成半截（验收文档「保存非事务性」项收敛）。
+        string onDisk;
+        await using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None, 4096, useAsync: true))
+        using (var reader = new StreamReader(stream, document.Encoding, detectEncodingFromByteOrderMarks: true))
+            onDisk = await reader.ReadToEndAsync();
+        if (onDisk != lastSavedMarkdown) return false;
+        await WriteAtomicallyAsync(path, document.Markdown, document.Encoding);
         return true;
+    }
+
+    /// <summary>
+    /// 原子写：先写同目录隐藏临时文件（同卷保证 Move 为元数据操作），再替换目标。
+    /// 断电/崩溃最坏情况留下 .vex-tmp 残片，原文件不会变成半截内容。
+    /// </summary>
+    private static async Task WriteAtomicallyAsync(string path, string markdown, Encoding encoding)
+    {
+        var directory = Path.GetDirectoryName(Path.GetFullPath(path)) ?? ".";
+        var tempPath = Path.Combine(directory, $".{Path.GetFileName(path)}.vex-tmp");
+        try
+        {
+            await File.WriteAllTextAsync(tempPath, markdown, encoding);
+            File.Move(tempPath, path, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(tempPath)) File.Delete(tempPath);
+        }
     }
 
     public async Task<DocumentSnapshot?> SaveAsAsync(DocumentSnapshot document)
@@ -252,7 +269,7 @@ public sealed class DocumentService : IDocumentService
         await saveLock.WaitAsync();
         try
         {
-            await File.WriteAllTextAsync(path, document.Markdown, document.Encoding);
+            await WriteAtomicallyAsync(path, document.Markdown, document.Encoding);
         }
         finally
         {
