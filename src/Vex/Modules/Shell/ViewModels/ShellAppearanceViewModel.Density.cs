@@ -150,6 +150,7 @@ public sealed partial class ShellAppearanceViewModel
         Set("PreferencesCardHeight", Dialog(700));
         Set("PreferencesNavigationWidth", Dialog(147));
         Set("AppearanceMenuWidth", Dialog(430));
+        Set("LanguageMenuWidth", Dialog(248));
         Set("GalleryPaneHeight", Dialog(375));
     }
 }

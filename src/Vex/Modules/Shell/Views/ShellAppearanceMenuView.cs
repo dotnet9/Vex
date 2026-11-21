@@ -249,7 +249,9 @@ public sealed class ShellAppearanceMenuView : UserControl
         appearanceFlyout.Closed += (_, _) => { SetAppearanceMenuOpen(false); AppearanceButton.Classes.Remove("title-picker-open"); };
         AppearanceButton.Flyout = appearanceFlyout;
         // 语言菜单保持 248px 菜单标准（外观面板 430px 属内容面板）：248 − 2×(6 内距 + 1 描边)。
-        var languages = new StackPanel { Width = LanguageMenuWidth - 14, Spacing = 2 };
+        var languageMenuWidth = global::Avalonia.Application.Current?.Resources.TryGetResource("VexUiLanguageMenuWidth", null, out var languageWidth) == true
+            && languageWidth is double languageValue ? languageValue : LanguageMenuWidth;
+        var languages = new StackPanel { Width = languageMenuWidth - 14, Spacing = 2 };
         _languageRows.Clear();
         foreach (var language in _vm.LanguageOptions)
         {
