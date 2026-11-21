@@ -52,8 +52,8 @@ public partial class MarkdownLiveEditorView : UserControl
     private bool _suppressChanged;
     private bool _autoPairEnabled = true;
     private int _activeIndex = -1;
-    private readonly List<MarkdownLiveEditorSnapshot> _undo = [];
-    private readonly List<MarkdownLiveEditorSnapshot> _redo = [];
+    private readonly List<MarkdownLiveUndoEntry> _undo = [];
+    private readonly List<MarkdownLiveUndoEntry> _redo = [];
     private MarkdownLiveEditorSnapshot _lastSnapshot = new(string.Empty, -1, 0, 0);
     private bool _restoringHistory;
     // 撤销分组与内存预算（与宿主 WorkspaceEditHistory 同策略）：
@@ -353,12 +353,27 @@ public partial class MarkdownLiveEditorView : UserControl
         }
     }
 
-    public MarkdownLiveEditorState CaptureState() => new(CaptureSnapshot(), _undo.ToArray(), _redo.ToArray());
+    public MarkdownLiveEditorState CaptureState() => new(CaptureSnapshot(), [], [])
+    {
+        InternalUndo = _undo.ToArray(),
+        InternalRedo = _redo.ToArray(),
+    };
+
     public void RestoreState(MarkdownLiveEditorState state)
     {
         RestoreSnapshot(state.Current);
-        _undo.Clear(); _undo.AddRange(state.Undo);
-        _redo.Clear(); _redo.AddRange(state.Redo);
+        if (state.InternalUndo is { } undo)
+        {
+            _undo.Clear(); _undo.AddRange(undo.Cast<MarkdownLiveUndoEntry>());
+            _redo.Clear();
+            if (state.InternalRedo is { } redo) _redo.AddRange(redo.Cast<MarkdownLiveUndoEntry>());
+        }
+        else
+        {
+            // 旧快照契约（外部构造的状态）：整栈降级为快照条目。
+            _undo.Clear(); foreach (var snapshot in state.Undo) _undo.Add(new SnapshotEntry(snapshot));
+            _redo.Clear(); foreach (var snapshot in state.Redo) _redo.Add(new SnapshotEntry(snapshot));
+        }
         _undoSeparate = true;
         TrimUndo();
     }
@@ -1011,7 +1026,7 @@ public partial class MarkdownLiveEditorView : UserControl
         {
             var table = new MarkdownTableView(model, _blockOptions)
             {
-                CellsChanged = _ => RaiseChanged(model),
+                CellsChanged = _ => RaiseChanged(model, null),
                 CellEditingStarted = _ => { ActivateModel(model); RaiseSelectionChanged(); },
                 CellSelectionChanged = RaiseSelectionChanged,
                 StructureChangeRequested = (tableView, action) =>
@@ -1133,9 +1148,9 @@ public partial class MarkdownLiveEditorView : UserControl
 
     #region 编辑事件
 
-    private void OnBlockTextCommitted(MarkdownBlockView view, string text)
+    private void OnBlockTextCommitted(MarkdownBlockView view, string text, string? previousText)
     {
-        RaiseChanged(view.Model);
+        RaiseChanged(view.Model, previousText);
     }
 
     private bool FocusAdjacentBlock(int index, int direction, double? x)
@@ -1291,13 +1306,35 @@ public partial class MarkdownLiveEditorView : UserControl
         }
     }
 
-    private void RaiseChanged() => RaiseChanged(null);
+    /// <summary>撤销栈条目：文本编辑存块级翻转量（内存 O(块)），其余存整篇快照（内存 O(文档)）。</summary>
+    private abstract record MarkdownLiveUndoEntry(int ActiveBlock, int SelectionStart, int SelectionEnd)
+    {
+        /// <summary>内存成本（字符量）：快照按整篇计，文本条目按块前后文本计。</summary>
+        public abstract long Cost { get; }
+    }
+
+    /// <summary>块级文本编辑条目：模型对象稳定（脏组回写不换实例），按模型翻转即可，不必整篇重建。</summary>
+    private sealed record TextEditEntry(MarkdownBlockModel Model, string OldText, string NewText,
+        int ActiveBlock, int SelectionStart, int SelectionEnd) : MarkdownLiveUndoEntry(ActiveBlock, SelectionStart, SelectionEnd)
+    {
+        public override long Cost => (long)OldText.Length + NewText.Length;
+    }
+
+    /// <summary>整篇快照条目：结构变化、外部改写与所有"不知道旧文本"的路径（勾选/语言/单元格）。</summary>
+    private sealed record SnapshotEntry(MarkdownLiveEditorSnapshot Snapshot) : MarkdownLiveUndoEntry(
+        Snapshot.ActiveBlock, Snapshot.SelectionStart, Snapshot.SelectionEnd)
+    {
+        public override long Cost => Snapshot.Text.Length;
+    }
+
+    private void RaiseChanged() => RaiseChanged(null, null);
 
     /// <summary>
-    /// 编辑后回抛。<paramref name="edited"/> 给定时走脏组增量回写（每键热路径），
-    /// 否则整篇重算（结构变化）。文本未变时照旧回抛事件，但不动撤销历史。
+    /// 编辑后回抛。<paramref name="edited"/> 给定时走脏组增量回写（每键热路径）；
+    /// <paramref name="previousText"/>（编辑前块文本）再给定时压块级撤销条目，
+    /// 否则压整篇快照条目。文本未变时照旧回抛事件，但不动撤销历史。
     /// </summary>
-    private void RaiseChanged(MarkdownBlockModel? edited)
+    private void RaiseChanged(MarkdownBlockModel? edited, string? previousText)
     {
         if (_suppressChanged)
         {
@@ -1331,8 +1368,16 @@ public partial class MarkdownLiveEditorView : UserControl
                 || Math.Abs(_textBuffer.Text.Length - _lastSnapshot.Text.Length) > 32;
             if (separate)
             {
-                _undo.Add(_lastSnapshot);
+                _undo.Add(CreateUndoEntry(edited, previousText));
                 TrimUndo();
+            }
+            else if (edited is not null && previousText is not null
+                && _undo.Count > 0 && _undo[^1] is TextEditEntry top
+                && ReferenceEquals(top.Model, edited)
+                && string.Equals(top.NewText, previousText, StringComparison.Ordinal))
+            {
+                // 同组连续键入：延伸栈顶条目的"编辑后"文本，保持翻转可执行。
+                _undo[^1] = top with { NewText = GetModelText(edited) };
             }
             _redo.Clear();
             _lastUndoPush = now;
@@ -1343,14 +1388,32 @@ public partial class MarkdownLiveEditorView : UserControl
         RaiseSelectionChanged();
     }
 
-    /// <summary>条数与总字符量双上限：超预算从最旧丢弃（与宿主 16MB 口径一致）。</summary>
+    /// <summary>条数与内存量双上限：快照按整篇计、文本条目按块前后文本计；超预算从最旧丢弃（与宿主 16MB 口径一致）。</summary>
     private void TrimUndo()
     {
         while (_undo.Count > UndoEntryLimit
-            || _undo.Count > 1 && _undo.Sum(item => (long)item.Text.Length) > UndoMemoryBudgetChars)
+            || _undo.Count > 1 && _undo.Sum(item => item.Cost) > UndoMemoryBudgetChars)
         {
             _undo.RemoveAt(0);
         }
+    }
+
+    private MarkdownLiveUndoEntry CreateUndoEntry(MarkdownBlockModel? edited, string? previousText)
+    {
+        var selection = (SelectionTextBox?.SelectionStart ?? 0, SelectionTextBox?.SelectionEnd ?? 0);
+        if (edited is not null && previousText is not null)
+        {
+            return new TextEditEntry(edited, previousText, GetModelText(edited), _activeIndex, selection.Item1, selection.Item2);
+        }
+        return new SnapshotEntry(_lastSnapshot);
+    }
+
+    private static string GetModelText(MarkdownBlockModel model) =>
+        model.Kind == MarkdownBlockKind.Raw ? model.Raw : model.Text;
+
+    private static void SetModelText(MarkdownBlockModel model, string value)
+    {
+        if (model.Kind == MarkdownBlockKind.Raw) model.Raw = value; else model.Text = value;
     }
 
     /// <summary>拼接回写后增量更新选区映射：组后块按位移平移，组内块在组片段窗口内局部重定位。</summary>
@@ -1405,10 +1468,10 @@ public partial class MarkdownLiveEditorView : UserControl
         switch (action)
         {
             case MarkdownEditorAction.Undo:
-                ChangeHistory(_undo, _redo);
+                ChangeHistory(_undo, _redo, undo: true);
                 break;
             case MarkdownEditorAction.Redo:
-                ChangeHistory(_redo, _undo);
+                ChangeHistory(_redo, _undo, undo: false);
                 break;
             case MarkdownEditorAction.Cut:
                 activeEditor?.Cut();
@@ -1520,16 +1583,66 @@ public partial class MarkdownLiveEditorView : UserControl
         }
     }
 
-    private void ChangeHistory(List<MarkdownLiveEditorSnapshot> from, List<MarkdownLiveEditorSnapshot> to)
+    private void ChangeHistory(List<MarkdownLiveUndoEntry> from, List<MarkdownLiveUndoEntry> to, bool undo)
     {
         if (from.Count == 0) return;
-        var snapshot = from[^1]; from.RemoveAt(from.Count - 1);
-        to.Add(CaptureSnapshot());
-        RestoreSnapshot(snapshot);
-        _undoSeparate = true;
+        while (from.Count > 0)
+        {
+            var entry = from[^1];
+            if (entry is TextEditEntry textEntry && TryInvertTextEdit(textEntry, to, undo))
+            {
+                from.RemoveAt(from.Count - 1);
+                return;
+            }
+
+            // 文本条目无法本地翻转（结构已分叉/文本不符）或快照条目：弹出至最近快照整篇恢复。
+            from.RemoveAt(from.Count - 1);
+            to.Add(new SnapshotEntry(CaptureSnapshot()));
+            if (entry is SnapshotEntry snapshotEntry)
+            {
+                RestoreSnapshot(snapshotEntry.Snapshot);
+                _undoSeparate = true;
+                _restoringHistory = true;
+                try { RaiseChanged(); }
+                finally { _restoringHistory = false; }
+                return;
+            }
+            // 更早的仍是文本条目：继续弹出，直到找回一个可整篇恢复的快照。
+        }
+    }
+
+    /// <summary>
+    /// 块级翻转：模型仍在文档中、当前文本与条目记录的"编辑后"一致时，把块文本翻回
+    /// "编辑前"，同步该块视图（编辑态保编辑框、渲染态刷新渲染）并走脏组回抛。
+    /// 返回 false 时调用方回退整篇快照路径。
+    /// </summary>
+    private bool TryInvertTextEdit(TextEditEntry entry, List<MarkdownLiveUndoEntry> to, bool undo)
+    {
+        var index = _models.IndexOf(entry.Model);
+        if (index < 0) return false;
+        var expected = undo ? entry.NewText : entry.OldText;
+        var target = undo ? entry.OldText : entry.NewText;
+        if (!string.Equals(GetModelText(entry.Model), expected, StringComparison.Ordinal)) return false;
+
+        SetModelText(entry.Model, target);
+        if (index < _blockViews.Count && FindBlockView(_blockViews[index]) is { } view)
+        {
+            if (view.IsEditing) view.SyncEditorFromModel(Math.Clamp(entry.SelectionStart, 0, target.Length));
+            else view.RefreshFromModel();
+        }
+        if (entry.ActiveBlock >= 0 && entry.ActiveBlock < _models.Count) _activeIndex = entry.ActiveBlock;
         _restoringHistory = true;
-        try { RaiseChanged(); }
+        try { RaiseChanged(entry.Model, null); }
         finally { _restoringHistory = false; }
+        // 对侧栈存同一条目：方向参数决定翻转方向（undo 取 New→Old，redo 取 Old→New）。
+        to.Add(entry);
+        // 撤销后光标落在编辑点所在块，便于继续输入。
+        if (_activeIndex >= 0 && _activeIndex < _blockViews.Count && FindBlockView(_blockViews[_activeIndex]) is { } activeView
+            && activeView.IsEditing && ActiveTextBox is { } box)
+        {
+            box.CaretIndex = box.SelectionStart = box.SelectionEnd = Math.Clamp(entry.SelectionStart, 0, box.Text?.Length ?? 0);
+        }
+        return true;
     }
 
     /// <summary>剥掉当前选区（跨块或块内）的所有行内样式 span 标签。</summary>
@@ -1579,7 +1692,7 @@ public partial class MarkdownLiveEditorView : UserControl
                 _models[_activeIndex].Text = box.Text ?? string.Empty;
             }
 
-            RaiseChanged(_models[_activeIndex]);
+            RaiseChanged(_models[_activeIndex], null);
         }
     }
 
@@ -1666,7 +1779,7 @@ public partial class MarkdownLiveEditorView : UserControl
             _models[_activeIndex].Text = box.Text ?? string.Empty;
         }
 
-        RaiseChanged(_models[_activeIndex]);
+        RaiseChanged(_models[_activeIndex], null);
     }
 
     private void EnsureActiveBlockEditing()
@@ -1710,7 +1823,7 @@ public partial class MarkdownLiveEditorView : UserControl
             _models[_activeIndex].Text = box.Text ?? string.Empty;
         }
 
-        RaiseChanged(_models[_activeIndex]);
+        RaiseChanged(_models[_activeIndex], null);
     }
 
     private void ConvertActiveBlock(MarkdownBlockKind kind, int headingLevel, bool isTask = false, bool isOrdered = false)

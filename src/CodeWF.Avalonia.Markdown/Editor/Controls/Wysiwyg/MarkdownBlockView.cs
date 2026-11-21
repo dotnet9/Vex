@@ -102,7 +102,7 @@ internal sealed class MarkdownBlockView : UserControl
                 if (!_editing || _syncingText) return;
                 var language = (_codeLanguage.Text ?? string.Empty).Trim().Replace("`", string.Empty);
                 if (Model.Language == language) return;
-                Model.Language = language; UpdateRichText(); TextCommitted?.Invoke(this, ModelText);
+                Model.Language = language; UpdateRichText(); TextCommitted?.Invoke(this, ModelText, null);
             };
             _codeLanguage.KeyDown += (_, e) =>
             {
@@ -204,9 +204,10 @@ internal sealed class MarkdownBlockView : UserControl
             if (!_editing || _syncingText) return;
             var text = _editor.Text ?? string.Empty;
             if (string.Equals(ModelText, text, StringComparison.Ordinal)) return;
+            var previous = ModelText;
             ModelText = text;
             UpdateRichText();
-            TextCommitted?.Invoke(this, ModelText);
+            TextCommitted?.Invoke(this, ModelText, previous);
         };
         // Ctrl+Click 打开链接（Typora 交互，单击仍落光标）：命中 LinkUrl run 才拦截默认按下。
         _editor.AddHandler(PointerPressedEvent, OnEditorPointerPressed, RoutingStrategies.Tunnel);
@@ -242,8 +243,8 @@ internal sealed class MarkdownBlockView : UserControl
         }
     }
 
-    /// <summary>块内容变化的回调（参数为新文本）。</summary>
-    public Action<MarkdownBlockView, string>? TextCommitted { get; set; }
+    /// <summary>块内容变化的回调（参数：视图、新文本、变更前文本——勾选/语言等路径前者不变、旧文本为 null 表示未知）。</summary>
+    public Action<MarkdownBlockView, string, string?>? TextCommitted { get; set; }
 
     /// <summary>请求把焦点移到相邻块（参数为相对方向：-1 上一块，+1 下一块）。</summary>
     public Action<int>? NavigateRequested { get; set; }
@@ -308,11 +309,11 @@ internal sealed class MarkdownBlockView : UserControl
         set { _richText.LineHeight = value; _editor.LineHeight = value; }
     }
 
-    /// <summary>外部修改模型后刷新显示并通知宿主。</summary>
+    /// <summary>外部修改模型后刷新显示并通知宿主（勾选等路径旧文本未知：旧文本参数为 null）。</summary>
     public void NotifyModelChanged()
     {
         RefreshFromModel();
-        TextCommitted?.Invoke(this, Model.Text);
+        TextCommitted?.Invoke(this, Model.Text, null);
     }
 
     public bool IsEditing => _editing;
@@ -413,8 +414,9 @@ internal sealed class MarkdownBlockView : UserControl
         var text = _editor.Text ?? string.Empty;
         if (!string.Equals(text, ModelText, StringComparison.Ordinal))
         {
+            var previous = ModelText;
             ModelText = text;
-            TextCommitted?.Invoke(this, text);
+            TextCommitted?.Invoke(this, text, previous);
         }
         UpdateRichText();
     }

@@ -128,7 +128,7 @@ internal sealed class MarkdownTableView : UserControl
                 };
                 var capturedRow = row;
                 var capturedColumn = column;
-                box.TextCommitted = (_, text) => CommitCell(capturedRow, capturedColumn, text);
+                box.TextCommitted = (_, text, _) => CommitCell(capturedRow, capturedColumn, text);
                 box.EditingStarted = cell =>
                 {
                     if (_activeCell != cell) _activeCell?.CommitAndRender();
