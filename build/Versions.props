@@ -5,18 +5,18 @@
     <XunitVersion>4.0.3</XunitVersion>
     <XunitRunnerVisualStudioVersion>4.0.1</XunitRunnerVisualStudioVersion>
     <CodeWFAvaloniaVersion>12.1.6.5</CodeWFAvaloniaVersion>
-    <CodeWFToolkitVersion>1.1.7</CodeWFToolkitVersion>
+    <CodeWFToolkitVersion>1.1.10</CodeWFToolkitVersion>
     <AvaloniaVersion>12.1.6</AvaloniaVersion>
     <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
     <AvaloniaControlsDataGridVersion>12.1.2</AvaloniaControlsDataGridVersion>
     <SvgSkiaVersion>5.2.3</SvgSkiaVersion>
-    <SkiaSharpVersion>4.158.0-preview.2.26560.5</SkiaSharpVersion>
-    <HarfBuzzSharpVersion>14.4.0.300-preview.1.26556.2</HarfBuzzSharpVersion>
+    <SkiaSharpVersion>4.159.0-rc.1.26567.13</SkiaSharpVersion>
+    <HarfBuzzSharpVersion>15.0.0.100-rc.1.26567.13</HarfBuzzSharpVersion>
     <UrsaAvaloniaVersion>2.3.1</UrsaAvaloniaVersion>
     <PdfPigVersion>0.1.17-alpha-202611100027-21de1</PdfPigVersion>
     <ReverseMarkdownVersion>6.3.0</ReverseMarkdownVersion>
     <ReactiveUIAvaloniaVersion>12.1.7</ReactiveUIAvaloniaVersion>
-    <SemiAvaloniaVersion>12.1.0.1</SemiAvaloniaVersion>
+    <SemiAvaloniaVersion>12.1.0.2</SemiAvaloniaVersion>
     <DotNetLibrariesVersion>11.0.0</DotNetLibrariesVersion>
     <LibGit2SharpVersion>0.32.0</LibGit2SharpVersion>
     <SystemReactiveVersion>7.0.0</SystemReactiveVersion>
