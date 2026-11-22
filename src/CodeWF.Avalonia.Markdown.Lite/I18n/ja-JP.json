@@ -1,4 +1,4 @@
-﻿﻿{
+﻿{
   "language": "日本語",
   "description": "日本語",
   "cultureName": "ja-JP",
@@ -19,6 +19,7 @@
           "ImageLoadFailed": "画像を読み込めませんでした：{0}",
           "ImageFileNotFound": "ファイルが見つかりません：{0}",
           "CopySelectedText": "選択したテキストをコピー",
+          "FrontMatterTitle": "メタデータ",
           "CopyRenderedText": "レンダリング済みテキストをコピー",
           "Copy": "コピー",
           "CodeWrapLines": "折り返す",

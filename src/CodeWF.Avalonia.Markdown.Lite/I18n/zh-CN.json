@@ -1,4 +1,4 @@
-﻿﻿{
+﻿{
   "language": "简体中文",
   "description": "中文（简体）",
   "cultureName": "zh-CN",
@@ -19,6 +19,7 @@
           "ImageLoadFailed": "图片加载失败：{0}",
           "ImageFileNotFound": "文件不存在：{0}",
           "CopySelectedText": "复制选中文本",
+          "FrontMatterTitle": "元数据",
           "CopyRenderedText": "复制渲染文本",
           "Copy": "复制",
           "CodeWrapLines": "自动换行",

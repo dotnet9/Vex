@@ -1,4 +1,4 @@
-﻿﻿{
+﻿{
   "language": "繁體中文",
   "description": "中文（繁體）",
   "cultureName": "zh-Hant",
@@ -19,6 +19,7 @@
           "ImageLoadFailed": "圖片載入失敗：{0}",
           "ImageFileNotFound": "檔案不存在：{0}",
           "CopySelectedText": "複製選取文字",
+          "FrontMatterTitle": "元資料",
           "CopyRenderedText": "複製渲染文字",
           "Copy": "複製",
           "CodeWrapLines": "自動換行",

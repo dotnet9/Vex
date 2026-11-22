@@ -22,6 +22,7 @@ namespace CodeWF.Avalonia.Markdown
         public static readonly string ImagePreviewFit = "CodeWF.Avalonia.Markdown.MarkdownL.ImagePreviewFit";
         public static readonly string ImageLoadFailed = "CodeWF.Avalonia.Markdown.MarkdownL.ImageLoadFailed";
         public static readonly string ImageFileNotFound = "CodeWF.Avalonia.Markdown.MarkdownL.ImageFileNotFound";
+        public static readonly string FrontMatterTitle = "CodeWF.Avalonia.Markdown.MarkdownL.FrontMatterTitle";
         public static readonly string CopySelectedText = "CodeWF.Avalonia.Markdown.MarkdownL.CopySelectedText";
         public static readonly string CopyRenderedText = "CodeWF.Avalonia.Markdown.MarkdownL.CopyRenderedText";
         public static readonly string Copy = "CodeWF.Avalonia.Markdown.MarkdownL.Copy";

@@ -1,4 +1,4 @@
-﻿﻿{
+﻿{
   "language": "English",
   "description": "English",
   "cultureName": "en-US",
@@ -19,6 +19,7 @@
           "ImageLoadFailed": "Image failed to load: {0}",
           "ImageFileNotFound": "File not found: {0}",
           "CopySelectedText": "Copy selected text",
+          "FrontMatterTitle": "Metadata",
           "CopyRenderedText": "Copy rendered text",
           "Copy": "Copy",
           "CodeWrapLines": "Wrap lines",
