@@ -223,7 +223,10 @@
                     <ControlTemplate TargetType="{x:Type md:MarkdownViewer}">
                         <StackPanel
                             Classes="MdDocument"
-                            Orientation="Vertical">
+                            Orientation="Vertical"
+                            Background="Transparent">
+                            <!-- 透明背景让空白区参与 hit test：点击空白也能命中 viewer，
+                                 焦点收编（Ctrl+C 复制链路）等指针交互依赖指针事件路由经过 viewer。 -->
                             <md:WindowedStackPanel
                                 Name="PART_DocumentHost"
                                 EnableVirtualization="{TemplateBinding EnableVirtualization}"

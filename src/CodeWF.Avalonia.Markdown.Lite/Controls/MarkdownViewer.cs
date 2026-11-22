@@ -68,9 +68,12 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         AvaloniaProperty.Register<MarkdownViewer, MarkdownSyntaxOptions?>(nameof(SyntaxOptions));
     public MarkdownSyntaxOptions? SyntaxOptions { get => GetValue(SyntaxOptionsProperty); set => SetValue(SyntaxOptionsProperty, value); }
 
-    /// <summary>是否提供内置复制菜单；嵌入编辑器时可关闭，让上下文请求交给宿主菜单。</summary>
+    /// <summary>是否提供内置复制菜单（「复制选中文本」单项）；默认关闭——
+    /// 此前默认菜单含「复制渲染文本」（一键把整篇渲染文本压进剪贴板并覆盖原内容），
+    /// 误触代价过高已退役；Ctrl+C 级联（跨块选区 → 块内原生选择）承担复制主路径，
+    /// <see cref="CopyRenderedTextAsync"/> 保留为公开 API 供纯渲染消费者显式调用。</summary>
     public static readonly StyledProperty<bool> IsDefaultContextMenuEnabledProperty =
-        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(IsDefaultContextMenuEnabled), true);
+        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(IsDefaultContextMenuEnabled), false);
     public bool IsDefaultContextMenuEnabled
     {
         get => GetValue(IsDefaultContextMenuEnabledProperty);
@@ -910,13 +913,39 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
 
     private async void OnViewerKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.C
-            && (e.KeyModifiers & KeyModifiers.Control) != 0
-            && HasSelection)
+        if (e.Key != Key.C || (e.KeyModifiers & KeyModifiers.Control) == 0)
+        {
+            return;
+        }
+
+        // 焦点在可编辑框（Mermaid 源码编辑等）时让位：框内原生复制优先。
+        if (e.Source is TextBox)
+        {
+            return;
+        }
+
+        // 复制级联：跨块选择 → 块内原生选择。Tunnel 只在焦点落在本控件子树内时
+        // 被路由到（点击阅读区时已收编焦点，见 Selection.cs）。无选区时不动作——
+        // 此前的「整篇渲染文本」兜底让误点一下再按 Ctrl+C 就复制整篇，体感失控；
+        // 整篇复制走右键菜单的「复制渲染文本」。
+        if (HasSelection)
         {
             await CopySelectionAsync();
-            e.Handled = true;
         }
+        else if (this.GetVisualDescendants().OfType<SelectableTextBlock>()
+            .FirstOrDefault(block => block.SelectedText.Length > 0) is { } native)
+        {
+            if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+            {
+                await clipboard.SetTextAsync(native.SelectedText);
+            }
+        }
+        else
+        {
+            return;
+        }
+
+        e.Handled = true;
     }
 
     private void OnActualThemeVariantChanged(object? sender, EventArgs e)
@@ -1795,12 +1824,29 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
 
     private ContextMenu CreateViewerContextMenu()
     {
+        // 宿主显式开启（IsDefaultContextMenuEnabled=true）时提供的是选区复制：
+        // 跨块选区 → CopySelectionAsync；块内原生选择 → 原生 SelectedText；
+        // 无选区不动作。整篇复制仍走 CopyRenderedTextAsync 公开 API。
         if (_viewerCopyMenuItem is null)
         {
             _viewerCopyMenuItem = new MenuItem();
-            _viewerCopyMenuItem.Click += async (_, _) => await CopyRenderedTextAsync();
+            _viewerCopyMenuItem.Click += async (_, _) =>
+            {
+                if (HasSelection)
+                {
+                    await CopySelectionAsync();
+                }
+                else if (this.GetVisualDescendants().OfType<SelectableTextBlock>()
+                    .FirstOrDefault(block => block.SelectedText.Length > 0) is { } native)
+                {
+                    if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+                    {
+                        await clipboard.SetTextAsync(native.SelectedText);
+                    }
+                }
+            };
         }
-        _viewerCopyMenuItem.Header = MarkdownLocalization.GetResource(MarkdownL.CopyRenderedText);
+        _viewerCopyMenuItem.Header = MarkdownLocalization.GetResource(MarkdownL.CopySelectedText);
         return new ContextMenu { ItemsSource = new[] { _viewerCopyMenuItem } };
     }
 
@@ -1822,13 +1868,9 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
             }
         };
 
-        var copyRenderedTextItem = new MenuItem
-        {
-            Header = MarkdownLocalization.GetResource(MarkdownL.CopyRenderedText)
-        };
-        copyRenderedTextItem.Click += async (_, _) => await CopyRenderedTextAsync();
-
-        return new ContextMenu { ItemsSource = new[] { copySelectionItem, copyRenderedTextItem } };
+        // 「复制渲染文本」不再进默认菜单：一键整篇覆盖剪贴板的误触代价过高，
+        // 整篇复制走公开 API CopyRenderedTextAsync（宿主可自行加项）。
+        return new ContextMenu { ItemsSource = new[] { copySelectionItem } };
     }
 
     private void AddMarkdownClass(Control control, params string[] classes)

@@ -21,6 +21,15 @@ public partial class MarkdownViewer
         }
 
         var documentPoint = e.GetPosition(_documentHost);
+        // Ctrl+C 的复制处理挂在本控件的 Tunnel KeyDown 上，要求键盘焦点在本控件子树内。
+        // 块内原生选择（SelectableTextBlock）不取焦点，宿主焦点也未必落在阅读区——
+        // 点击落进阅读区时把焦点收进来，之后 Ctrl+C（选区 → 块内原生 → 整篇兜底）才有路由可走。
+        // 不能就地 Focus：Avalonia 原生点击焦点逻辑会在 bubble 阶段清除「点击非可聚焦区」
+        // 的焦点（与即时编辑视图同一坑），延后到输入处理完成后再落焦点。
+        if (!IsKeyboardFocusWithin)
+        {
+            global::Avalonia.Threading.Dispatcher.UIThread.Post(() => Focus());
+        }
         var extending = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         if (_selectionController.Begin(documentPoint, extending))
         {
