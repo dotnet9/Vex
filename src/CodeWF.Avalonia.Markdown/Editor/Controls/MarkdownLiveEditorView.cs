@@ -170,6 +170,10 @@ public partial class MarkdownLiveEditorView : UserControl
         {
             try { CodeWF.Toolkit.Logging.Logger.Debug("live pressed src=" + e.Source?.GetType().Name); } catch { }
             if (e.Source is not Visual source) return;
+            // 滚动条是视口 chrome 不是文档空白：按下必须放行给 ScrollBar 自身拖动。
+            // 在 Tunnel 里当空白接管（Handled=true）会吞掉 thumb 的 PointerPressed，
+            // 滚动条就只剩滚轮能滚、鼠标拖不动。
+            if (source.GetSelfAndVisualAncestors().OfType<global::Avalonia.Controls.Primitives.ScrollBar>().Any()) return;
             foreach (var view in _blockViews)
             {
                 if (ReferenceEquals(source, view) || source.GetVisualAncestors().Contains(view)) return;
