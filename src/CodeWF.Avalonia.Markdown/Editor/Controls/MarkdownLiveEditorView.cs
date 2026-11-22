@@ -57,8 +57,8 @@ public partial class MarkdownLiveEditorView : UserControl
     private MarkdownLiveEditorSnapshot _lastSnapshot = new(string.Empty, -1, 0, 0);
     private bool _restoringHistory;
     // 撤销分组与内存预算（与宿主 WorkspaceEditHistory 同策略）：
-    // 650ms/32 字符内的连续编辑并入同组（不重复压栈），总量超预算从最旧丢弃——
-    // 全文快照本身是每键拼接产生的新字符串引用，不设上限会在长文档下放大内存。
+    // 650ms/32 字符内同一块的连续键入并入同组（延伸栈顶，不重复压栈），跨块编辑各自成条；
+    // 总量超预算从最旧丢弃——全文快照本身是每键拼接产生的新字符串引用，不设上限会在长文档下放大内存。
     private long _lastUndoPush;
     private bool _undoSeparate = true;
     private const int UndoEntryLimit = 200;
@@ -1467,6 +1467,13 @@ public partial class MarkdownLiveEditorView : UserControl
             {
                 // 同组连续键入：延伸栈顶条目的"编辑后"文本，保持翻转可执行。
                 _undo[^1] = top with { NewText = GetModelText(edited) };
+            }
+            else
+            {
+                // 合并窗口内但栈顶不可延伸（跨块编辑/翻转链断裂/快照栈顶）：补压独立条目。
+                // 条目只能翻转单一模型，跨块编辑必须各自成条，否则撤销时静默丢失这批编辑。
+                _undo.Add(CreateUndoEntry(edited, previousText));
+                TrimUndo();
             }
             _redo.Clear();
             _lastUndoPush = now;
