@@ -11,6 +11,7 @@ public sealed class DocumentFileNode : INotifyPropertyChanged
     private string? _preview;
     private DirectoryLoadState _loadState;
     private bool _isInvalidated;
+    private WorkspaceGitStatus _gitStatus;
 
     public DocumentFileNode(
         string name,
@@ -61,6 +62,13 @@ public sealed class DocumentFileNode : INotifyPropertyChanged
     {
         get => _isInvalidated;
         internal set { if (_isInvalidated == value) return; _isInvalidated = value; Notify(nameof(IsInvalidated)); }
+    }
+
+    /// <summary>Git 状态角标（Shell 层经 WorkspaceGitStatusTree.Apply 批量写入；None 不渲染）。</summary>
+    public WorkspaceGitStatus GitStatus
+    {
+        get => _gitStatus;
+        internal set { if (_gitStatus == value) return; _gitStatus = value; Notify(nameof(GitStatus)); }
     }
 
     public string ModifiedText => DocumentFile?.ModifiedText ?? string.Empty;
