@@ -91,21 +91,6 @@
   .box-old.d { border-color: #F87171; color: #F87171; }
   .dot-old { width: 6px; height: 6px; border-radius: 50%; background: #FBBF24; }
   .note { font-size: 12px; color: #8FA6B4; line-height: 1.9; margin-top: 10px; max-width: 1000px; }
-
-  /* ---- GitHub Desktop 口径按钮 ---- */
-  .ghd-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 16px; border-radius: 8px; flex: none;
-    font-size: 13px; font-weight: 600; min-width: 96px; justify-content: center;
-  }
-  .ghd-primary { background: #1F6FEB; color: #FFFFFF; border: 1px solid #388BFD; }
-  .ghd-primary:hover { background: #2A7DF0; }
-  .ghd-secondary { background: #21283D; color: #C9D5DE; border: 1px solid #2B3443; }
-  .ghd-badge {
-    font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 9px;
-    background: #123B2C; color: #3FB950; border: 1px solid #1F5B36;
-  }
-  .ghd-badge-down { background: #3B1D23; color: #F85149; border-color: #5B2630; }
   .note b { color: #C9D8E2; }
   .divider { height: 1px; background: #1F2A3A; margin: 30px 0 0; }
   .law { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
@@ -336,69 +321,9 @@
 </div>
 
 <div class="divider"></div>
-
-<!-- ============ 04 顶栏推送语义 ============ -->
-<h2><span class="tag">04</span>顶栏推送语义（GitHub Desktop 对照 · 用户报障：提交后推送按钮点不了）</h2>
-<div class="note" style="margin-top:0">
-  <b>Vex 现状缺陷（根因已定位，实现修复另批）：</b>提交成功后推送按钮保持禁用，副文案却显示「1 个本地提交待推送」——自相矛盾。根因：<span class="mono">CanPush = HasRemote 加 Ahead&gt;0 加 非 busy</span>，提交的 busy 置位/复位<b>只通知了 CanCommit 没通知 CanPush</b>；而 Ahead=1 时快照触发的唯一一次 CanPush 通知恰好落在 busy 仍为 true 的窗口里，之后无人再触发 → 按钮卡死。
-</div>
-<div class="cols">
-  <div class="panel" style="min-width:430px">
-    <div class="panel-title">GitHub Desktop 口径 · 按钮随状态换动作，永不矛盾</div>
-    <div class="gitlist">
-      <div class="gitrow dark-hover">
-        <span class="ghd-btn ghd-primary">Push origin <span class="ghd-badge">1↑</span></span>
-        <span class="gdir">有本地提交，可点；副文案=上次拉取时间</span>
-      </div>
-      <div class="gitrow dark-hover">
-        <span class="ghd-btn ghd-secondary">Fetch origin</span>
-        <span class="gdir">已同步（0↑0↓），可点，仅刷新远端信息</span>
-      </div>
-      <div class="gitrow dark-hover">
-        <span class="ghd-btn ghd-secondary">Pull origin <span class="ghd-badge ghd-badge-down">2↓</span></span>
-        <span class="gdir">落后远端，可点</span>
-      </div>
-      <div class="gitrow dark-hover">
-        <span class="ghd-btn ghd-primary">Push origin</span>
-        <span class="gdir">首次推送前无 upstream：照常可点（不做禁用）</span>
-      </div>
-    </div>
-    <div class="note" style="padding:0 14px 12px">副文案恒为「上次拉取 X 前」；↑/↓ 计数以角标缀在按钮上；<b>按钮永远可点</b>，动作随 ahead/behind 切换。</div>
-  </div>
-  <div class="panel" style="min-width:430px">
-    <div class="panel-title">Vex 改版口径（对照现状缺陷逐条落位）</div>
-    <div class="gitlist">
-      <div class="gitrow dark-hover">
-        <span class="ghd-btn ghd-primary">推送 <span class="ghd-badge">1↑</span></span>
-        <span class="gdir">本地提交待推送（可点）</span>
-      </div>
-      <div class="gitrow dark-hover">
-        <span class="ghd-btn ghd-secondary">拉取远端</span>
-        <span class="gdir">已同步 · 上次同步 2 小时前（可点，只刷新信息）</span>
-      </div>
-      <div class="gitrow dark-hover">
-        <span class="ghd-btn ghd-secondary">拉取 <span class="ghd-badge ghd-badge-down">2↓</span></span>
-        <span class="gdir">落后远端（可点）</span>
-      </div>
-      <div class="gitrow dark-hover">
-        <span class="ghd-btn ghd-primary">推送</span>
-        <span class="gdir">首次推送前（无 upstream）可点</span>
-      </div>
-    </div>
-    <div class="note" style="padding:0 14px 12px">废弃「无 upstream 即禁用」：首推语义改为可点直达。busy 期间按钮统一禁用（操作进行中），busy 结束必须重触发 CanPush/CanPull/CanCommit 全部派生属性。</div>
-  </div>
-</div>
 <div class="note">
-  <b>样式注记：</b>主按钮（待推送）沿用面板强调色，次按钮（拉取/同步）用静音描边；↑ 绿 ↓ 红，与变更行行数统计同色。<span class="mono">LastSyncText</span> 已有（上次同步 X 前），直接挪作副文案。
-</div>
-
-<div class="note">
-  <b>实现侧改动清单（REV2 前导槽五条已全部落地）：</b>
+  <b>实现侧改动清单（原型验证通过后再动，本版未改实现）：</b>
   ① 枚举加 <span class="mono">TrackedClean</span>（受管干净=挂锁）；② 服务端状态字典从"仅变更文件"扩成"全部受管文件"——变更查 RetrieveStatus，受管干净查 Index/HEAD 命中（逐节点 Index[path] 查询，索引常驻内存，代价可控）；③ 树/列表模板在 chevron 与文件图标之间加前导状态槽（11px），文件行必有三态（锁/变更字形/空），文件夹行空槽或变更字形；④ 聚合规则改为"忽略挂锁与未跟踪，取最强变更"；⑤ 未跟踪在树内不渲染任何字形（枚举保留 Untracked 供面板与 tooltip 使用）。
-</div>
-<div class="note">
-  <b>顶栏推送实现清单（本节验证通过后再动）：</b>
-  ① 修 busy 通知缺失：CommitAsync/PushTagAsync 的 busy 置位/复位补 Raise CanPush（两行）；② CanPush 语义改为 HasRemote 加 非 busy（去掉 Ahead&gt;0 硬门槛），按钮文案/动作随 Ahead/Behind 切换：推送（↑n）/拉取（↓n）/拉取远端（同步）；③ 无 upstream 首推可点（Push 内部已有Ahead==0 提示分支需同步调整）；④ 副文案固定为 LastSyncText；⑤ 测试：提交后 CanPush 立即为真、各状态按钮文案断言。
 </div>
 <div class="note">
   <b>素材与来源：</b>lock-16 / plus-16 / check-16 / alert-16 / diff-* 全部逐字取自 primer/octicons 16（MIT，© GitHub）；配色沿用已实现五刷（灰锁用 VexMutedBrush 口径）。中间素材在 <span class="mono">E:\github\temp_files\vex-git-badge\</span>。
