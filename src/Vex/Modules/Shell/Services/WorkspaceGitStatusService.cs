@@ -23,6 +23,7 @@ public sealed class WorkspaceGitStatusService : IDisposable
     private readonly object _gate = new();
     private readonly UiMarshal _marshal;
     private GitService? _git;
+    private readonly List<GitService> _retired = [];
     private string? _gitRoot;
     private string? _pendingRoot;
     private Func<IReadOnlyList<DocumentFileNode>>? _rootsProvider;
@@ -60,7 +61,9 @@ public sealed class WorkspaceGitStatusService : IDisposable
     [EventHandler]
     public void ApplyWorkspaceGitMutated(WorkspaceGitMutatedCommand command) => RequestRefresh();
 
-    /// <summary>设置期望工作区根：换根时重建/清空仓库句柄（非仓库 → 状态全清零，徽章静默禁用）。</summary>
+    /// <summary>设置期望工作区根：换根时重建/清空仓库句柄（非仓库 → 状态全清零，徽章静默禁用）。
+    /// 退役句柄不在此处释放——工作者可能正拿它采集（LibGit2Sharp 并发用/释放原生层会崩），
+    /// 移入退役列表由工作者线程在采集后统一释放。</summary>
     public void SetWorkspace(string? workspaceRoot)
     {
         lock (_gate)
@@ -69,7 +72,11 @@ public sealed class WorkspaceGitStatusService : IDisposable
             var sameRoot = _gitRoot is not null && workspaceRoot is not null && SamePath(_gitRoot, workspaceRoot);
             if (!sameRoot)
             {
-                _git?.Dispose();
+                if (_git is not null)
+                {
+                    _retired.Add(_git);
+                }
+
                 _git = null;
                 _gitRoot = null;
                 if (!string.IsNullOrWhiteSpace(workspaceRoot) && Directory.Exists(workspaceRoot)
@@ -122,6 +129,12 @@ public sealed class WorkspaceGitStatusService : IDisposable
 
         EventBus.Default.Unsubscribe(this);
         _git?.Dispose();
+        foreach (var service in _retired)
+        {
+            service.Dispose();
+        }
+
+        _retired.Clear();
     }
 
     private void EnsureWorker()
@@ -183,6 +196,13 @@ public sealed class WorkspaceGitStatusService : IDisposable
         }
 
         var statuses = new Dictionary<string, WorkspaceGitStatus>(StringComparer.OrdinalIgnoreCase);
+        GitService[] retired;
+        lock (_gate)
+        {
+            retired = [.. _retired];
+            _retired.Clear();
+        }
+
         try
         {
             var changed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -213,11 +233,22 @@ public sealed class WorkspaceGitStatusService : IDisposable
         }
         catch (Exception exception)
         {
+            DisposeRetired(retired);
             System.Diagnostics.Debug.WriteLine($"Git status refresh failed: {exception.Message}");
             return null;
         }
 
+        // 采集已离开旧实例：此刻在工作者线程释放退役句柄是安全的（UI 线程 SetWorkspace 不再碰它们）。
+        DisposeRetired(retired);
         return (repoRoot, statuses);
+    }
+
+    private void DisposeRetired(GitService[] retired)
+    {
+        foreach (var service in retired)
+        {
+            service.Dispose();
+        }
     }
 
     private void ApplySnapshot(string repoRoot, IReadOnlyDictionary<string, WorkspaceGitStatus> statuses)
