@@ -292,6 +292,14 @@
     <StreamGeometry x:Key="WBCheckCircleIcon">M22 11.08V12A10 10 0 1 1 15.54 5.54 M22 4L12 14.01L9 11.01</StreamGeometry>
     <StreamGeometry x:Key="WBSortClockIcon">M12 21A9 9 0 1 0 3 12A9 9 0 0 0 12 21 M12 7V12L15 14</StreamGeometry>
     <StreamGeometry x:Key="WBCheckIcon">M18 6L7 17L2 12 M22 9L14 17</StreamGeometry>
+    <!-- Git 徽章六态（design/Git-Badges.html）：octicon 16 逐字 path（primer/octicons，MIT，© GitHub），
+         F1 前缀 = nonzero 填充（SVG 默认），方框内点/加号不被偶奇规则挖洞。 -->
+    <StreamGeometry x:Key="WBGitAddedIcon">F1 M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z</StreamGeometry>
+    <StreamGeometry x:Key="WBGitModifiedIcon">F1 M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z</StreamGeometry>
+    <StreamGeometry x:Key="WBGitRemovedIcon">F1 M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25Zm8.5 6.25h-6.5a.75.75 0 0 1 0-1.5h6.5a.75.75 0 0 1 0 1.5Z</StreamGeometry>
+    <StreamGeometry x:Key="WBGitRenamedIcon">F1 M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25Zm9.03 6.03-3.25 3.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.97-1.97H4.75a.75.75 0 0 1 0-1.5h4.69L7.47 5.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l3.25 3.25a.75.75 0 0 1 0 1.06Z</StreamGeometry>
+    <StreamGeometry x:Key="WBGitConflictedIcon">F1 M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z</StreamGeometry>
+    <StreamGeometry x:Key="WBGitCheckIcon">F1 M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z</StreamGeometry>
   </Styles.Resources>
   <!-- 原型 .exit-dialog-actions .btn（非 primary）：面板底 + 1px #E2E2E4 细边 + 前景文字；
        Semi 主题模板 ContentPresenter 会覆盖按钮本地值，必须走 /template/ 选择器。 -->

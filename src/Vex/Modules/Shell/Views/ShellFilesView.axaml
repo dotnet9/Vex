@@ -84,6 +84,19 @@
                                 <Path Classes="tree-ico" IsVisible="{Binding IsDocument}"
                                       Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
                             </Panel>
+                            <!-- Git 徽章：octicon 原字形压图标左下（VS 同位），None 不渲染；形状来源见 WorkbenchStyles。 -->
+                            <Path Classes="git-badge"
+                                  IsVisible="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.NotNone}}"
+                                  Data="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Geometry}}"
+                                  Stroke="{DynamicResource VexPanelBackgroundBrush}"
+                                  helpers:ToolTipHelper.Text="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Word}}">
+                                <Path.Fill>
+                                    <MultiBinding Converter="{x:Static converters:GitBadgeConverters.Brush}">
+                                        <Binding Path="GitStatus" />
+                                        <Binding Path="$parent[UserControl].ActualThemeVariant" />
+                                    </MultiBinding>
+                                </Path.Fill>
+                            </Path>
                         </Panel>
                     </StackPanel>
                     <TextBlock Grid.Column="1" Classes="file-heading" IsVisible="{Binding IsFolder}"
@@ -104,6 +117,17 @@
     </UserControl.DataTemplates>
 
     <UserControl.Styles>
+     <!-- Git 徽章（design/Git-Badges.html）：octicon 字形 11px 压图标左下（VS 同位），
+          面板底色细描边作 halo 隔离彩色文件图标；深浅两档由状态刷 DynamicResource 切换。 -->
+     <Style Selector="Path.git-badge">
+        <Setter Property="Width" Value="11" />
+        <Setter Property="Height" Value="11" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="Margin" Value="-5,0,0,-4" />
+        <Setter Property="StrokeThickness" Value="0.9" />
+        <Setter Property="StrokeJoin" Value="Round" />
+     </Style>
      <!-- 原型 .empty-state button（workspace-chrome.css:264）：强调色 11px 文字钮，无底无描边，悬停加深。 -->
      <!-- 原型 .files-sort-item[aria-checked=true]（writing-chrome.css:23）：选中项 accent-soft 底 + accent 字。 -->
      <Style Selector="MenuItem.files-sort-item">
@@ -383,6 +407,18 @@
                         </Image>
                         <Path Classes="tree-ico" IsVisible="{Binding #ListFileIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNull}}"
                               Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+                        <Path Classes="git-badge"
+                              IsVisible="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.NotNone}}"
+                              Data="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Geometry}}"
+                              Stroke="{DynamicResource VexPanelBackgroundBrush}"
+                              helpers:ToolTipHelper.Text="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Word}}">
+                            <Path.Fill>
+                                <MultiBinding Converter="{x:Static converters:GitBadgeConverters.Brush}">
+                                    <Binding Path="GitStatus" />
+                                    <Binding Path="$parent[UserControl].ActualThemeVariant" />
+                                </MultiBinding>
+                            </Path.Fill>
+                        </Path>
                     </Panel>
                     <TextBlock Grid.Column="1" Classes="file-list-name" Text="{Binding Name}" VerticalAlignment="Center"
                                FontSize="{Binding $parent[UserControl].((vm:ShellFilesViewModel)DataContext).Preferences.FileListFontSize, FallbackValue=12.5}"

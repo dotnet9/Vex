@@ -41,6 +41,12 @@
             <SolidColorBrush x:Key="VexQuoteBrush" Color="#667085" />
             <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="#0F1677FF" />
             <SolidColorBrush x:Key="VexMarkerBrush" Color="#98A2B3" />
+            <!-- Git 徽章五色（design/Git-Badges.html：desktop/desktop _variables.scss 权威浅色值）。 -->
+            <SolidColorBrush x:Key="VexGitNewBrush" Color="#1A7F37" />
+            <SolidColorBrush x:Key="VexGitModifiedBrush" Color="#674500" />
+            <SolidColorBrush x:Key="VexGitRenamedBrush" Color="#0969DA" />
+            <SolidColorBrush x:Key="VexGitDeletedBrush" Color="#CF222E" />
+            <SolidColorBrush x:Key="VexGitConflictedBrush" Color="#953800" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush x:Key="VexShellBackgroundBrush" Color="#111827" />
@@ -82,6 +88,12 @@
             <SolidColorBrush x:Key="VexQuoteBrush" Color="#AAB4C3" />
             <SolidColorBrush x:Key="VexQuoteBackgroundBrush" Color="#0F60A5FA" />
             <SolidColorBrush x:Key="VexMarkerBrush" Color="#7D8999" />
+            <!-- Git 徽章五色深色档（Primer dark 近似，实现基准=desktop/desktop 深色主题）。 -->
+            <SolidColorBrush x:Key="VexGitNewBrush" Color="#3FB950" />
+            <SolidColorBrush x:Key="VexGitModifiedBrush" Color="#D29922" />
+            <SolidColorBrush x:Key="VexGitRenamedBrush" Color="#539BF5" />
+            <SolidColorBrush x:Key="VexGitDeletedBrush" Color="#F85149" />
+            <SolidColorBrush x:Key="VexGitConflictedBrush" Color="#BD561D" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

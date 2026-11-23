@@ -11,6 +11,12 @@ namespace Vex
     public static class VexL
     {
         public static readonly string GitTagNoCommitToast = "Vex.VexL.GitTagNoCommitToast";
+        public static readonly string GitBadgeNew = "Vex.VexL.GitBadgeNew";
+        public static readonly string GitBadgeUntracked = "Vex.VexL.GitBadgeUntracked";
+        public static readonly string GitBadgeModified = "Vex.VexL.GitBadgeModified";
+        public static readonly string GitBadgeRenamed = "Vex.VexL.GitBadgeRenamed";
+        public static readonly string GitBadgeDeleted = "Vex.VexL.GitBadgeDeleted";
+        public static readonly string GitBadgeConflicted = "Vex.VexL.GitBadgeConflicted";
         public static readonly string GitErrorCommitIdentityMissing = "Vex.VexL.GitErrorCommitIdentityMissing";
         public static readonly string GitErrorNoOriginRemote = "Vex.VexL.GitErrorNoOriginRemote";
         public static readonly string GitErrorNonFastForward = "Vex.VexL.GitErrorNonFastForward";
