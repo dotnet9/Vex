@@ -1,0 +1,33 @@
+<UserControl x:Class="Vex.Modules.Git.Views.GitMergeDialogView"
+    xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+    xmlns:vm="using:Vex.Modules.Git.ViewModels" x:DataType="vm:GitMergeDialogViewModel">
+    <!-- 原型 git-merge：标题「合并到 当前分支」+ 源分支下拉 + 说明文案（GitHub Desktop merge-choose-branch 口径）。 -->
+    <Border Classes="dialog-card" Width="520" Padding="0" CornerRadius="8" ClipToBounds="True">
+        <StackPanel>
+            <Border Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+                <Grid ColumnDefinitions="*,46" Height="36" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Command="{Binding Cancel}"
+                            helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Close}}"
+                            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}" />
+                </Grid>
+            </Border>
+            <StackPanel Margin="20,16,20,8" Spacing="8">
+                <TextBlock FontSize="12" Foreground="{DynamicResource VexMutedBrush}" Text="{Binding SourceLabel}" />
+                <ComboBox x:Name="MergeSourceBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Sources}"
+                          SelectedItem="{Binding SelectedSource}"
+                          AutomationProperties.Name="{Binding SourceLabel}" />
+                <TextBlock FontSize="12" LineHeight="19.2" TextWrapping="Wrap" Foreground="{DynamicResource VexMutedBrush}"
+                           Margin="0,4,0,0" Text="{Binding NoteText}" />
+            </StackPanel>
+            <Border Padding="16,10" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                    <Button Classes="btn" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" Command="{Binding Cancel}" />
+                    <Button Classes="btn primary" Content="{i18n:I18n {x:Static l:VexL.GitMergeButton}}" Command="{Binding Save}"
+                            AutomationProperties.Name="{Binding Title}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Border>
+</UserControl>
