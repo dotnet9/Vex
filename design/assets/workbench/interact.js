@@ -127,6 +127,20 @@
       { label: '全屏', gesture: 'F11', check: true, action: 'toggle-fullscreen' },
       { label: '保持窗口在最前', check: true, action: 'toggle-topmost' }
     ]},
+    { key: 'git', label: 'Git', items: [
+      { label: '拉取', action: 'git-pull' },
+      { label: '推送', action: 'git-push' },
+      { label: '获取', action: 'git-fetch' },
+      { sep: true },
+      { label: '新建分支…', action: 'git-new-branch' },
+      { label: '合并分支…', action: 'git-merge' },
+      { sep: true },
+      { label: '打 tag…', action: 'git-create-tag' },
+      { label: '推送 tag', action: 'git-push-tag' },
+      { sep: true },
+      { label: '初始化本地仓库', action: 'git-init' },
+      { label: '远程设置…', action: 'git-remote' }
+    ]},
     { key: 'help', label: '帮助(H)', items: [
       { label: '命令面板', gesture: 'F1', action: 'command-palette' }, { sep: true },
       { label: '新手引导', action: 'guide' }, { label: '更新日志', act: 'dlg-doc', arg: '更新日志' },

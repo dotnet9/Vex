@@ -218,3 +218,70 @@ body.git-mode .structure-splitter, body.git-mode .workspace-main, body.git-mode 
 .template-edit-body textarea:focus{outline:none;border-color:var(--accent)}
 .template-edit-body .dlg-actions{margin-top:2px}
 
+
+/* ---------- 同步按钮（GitHub Desktop 式）：随状态换动作，永不禁用 ---------- */
+.git-sync { display:inline-flex; align-items:center; gap:8px; margin-left:6px; padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:var(--code-bg); color:var(--fg,#e6edf3); cursor:pointer; }
+.git-sync.primary { border-color:#2F81F7; background:rgba(47,129,247,.12); }
+.git-sync .ico { width:13px; height:13px; }
+.git-sync-main { font-size:12.5px; font-weight:600; white-space:nowrap; }
+.git-sync-sub { color:var(--muted); font-size:11px; white-space:nowrap; }
+.git-sync-badge { font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:9px; }
+.git-sync-badge.up { background:#123B2C; color:#3FB950; border:1px solid #1F5B36; }
+.git-sync-badge.down { background:#3B1D23; color:#F85149; border:1px solid #5B2630; }
+
+
+/* ---------- 标题栏分支下拉（GitHub Desktop 分支列表口径；源码对照见 git-panel.js 注释） ---------- */
+.tb-git { display:inline-flex; align-items:center; flex:none; }
+.tb-branch-btn { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-h-sm,28px); padding:0 var(--pad-md,10px); border:0; border-radius:var(--vex-radius-md); background:transparent; color:var(--fg); font-size:var(--fs-body,14px); line-height:1.55; cursor:pointer; }
+.tb-branch-btn:hover { background:var(--hover); }
+.tb-branch-btn.active { background:var(--accent-soft); color:var(--accent); }
+.tb-branch-btn .ico { width:13px; height:13px; }
+.tb-branch-name { max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; }
+.tb-branch-pop { position:fixed; z-index:190; width:340px; max-width:calc(100vw - 16px); padding:6px; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:var(--vex-radius-md); box-shadow:0 12px 28px #0003; animation:vex-menu-in var(--vex-fast) var(--vex-ease) both; transform-origin:top left; }
+.tb-branch-filter { display:flex; align-items:center; gap:8px; padding:0 8px; border:1px solid var(--border); border-radius:var(--vex-radius-md); background:var(--code-bg); }
+.tb-branch-filter .ico { width:13px; height:13px; color:var(--muted); }
+.tb-branch-filter input { flex:1; min-width:0; height:30px; border:0; background:transparent; color:var(--fg); font-size:12.5px; outline:none; }
+.tb-branch-new { display:flex; align-items:center; gap:6px; width:100%; margin-top:6px; padding:7px 10px; border:1px solid var(--border); border-radius:var(--vex-radius-md); background:transparent; color:var(--fg); font-size:12.5px; font-weight:600; text-align:left; }
+.tb-branch-new:hover { background:var(--hover); }
+.tb-branch-new .ico { width:12px; height:12px; color:var(--accent); }
+.tb-branch-list { max-height:min(42vh,340px); overflow-y:auto; margin-top:4px; }
+.tb-branch-group { padding:10px 8px 4px; font-size:11px; font-weight:600; color:var(--muted); }
+.tb-branch-row { display:flex; align-items:center; gap:8px; min-height:30px; padding:0 8px; border-radius:var(--vex-radius-md); font-size:12.5px; cursor:default; user-select:none; }
+.tb-branch-row:hover, .tb-branch-row.kb { background:var(--hover); }
+.tb-branch-row.current .tb-branch-check { color:var(--accent); }
+.tb-branch-check { display:inline-flex; width:14px; height:14px; color:var(--muted); }
+.tb-branch-check .ico { width:13px; height:13px; }
+.tb-branch-row-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tb-branch-row-date { font-size:11px; color:var(--muted); white-space:nowrap; }
+.tb-branch-empty { padding:18px 8px 12px; text-align:center; }
+.tb-branch-empty-title { font-size:13px; font-weight:600; }
+.tb-branch-empty-sub { margin:4px 0 10px; font-size:12px; color:var(--muted); }
+.tb-branch-extra { display:flex; gap:6px; margin-top:6px; padding-top:6px; border-top:1px solid var(--border); }
+.tb-branch-extra button { flex:1; padding:6px 8px; border:1px solid var(--border); border-radius:var(--vex-radius-md); background:transparent; color:var(--fg); font-size:12px; }
+.tb-branch-extra button:hover { background:var(--hover); }
+.tb-branch-merge { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; margin-top:6px; padding:8px 10px; border:0; border-radius:var(--vex-radius-md); background:var(--code-bg); color:var(--fg); font-size:12.5px; }
+.tb-branch-merge:hover { background:var(--hover); }
+.tb-branch-merge .ico { width:13px; height:13px; color:var(--muted); }
+.tb-branch-merge b, .tb-branch-base-label, #git-merge-title b, #git-merge-note b, #git-branch-base-note b, #git-branch-delete-msg b { color:var(--accent); }
+.tb-branch-base-label { margin:10px 0 4px; font-size:12px; font-weight:600; }
+#git-branch-base-options .setting-label { display:flex; align-items:flex-start; justify-content:flex-start; gap:8px; margin:6px 0; font-size:12px; font-weight:400; line-height:1.5; cursor:pointer; }
+#git-branch-base-options .setting-label input { margin-top:3px; }
+#git-merge-source { height:32px; }
+/* 行右键菜单压在下拉面板之上（.file-context-menu 默认 z-index 180 低于面板的 190） */
+.tb-branch-menu { z-index:200; }
+
+/* ---------- 仓库下拉（GHD Current repository ▾）与面板分支芯片（GHD 两行式） ---------- */
+.tb-repo-pop { position:fixed; z-index:200; width:300px; max-width:calc(100vw - 16px); padding:6px; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:var(--vex-radius-md); box-shadow:0 12px 28px #0003; animation:vex-menu-in var(--vex-fast) var(--vex-ease) both; transform-origin:top left; }
+.tb-branch-menu { z-index:200; }
+/* Git 模块面板顶栏 44px：分支/仓库芯片用 GHD 两行式（主文字 + 小字说明） */
+.git-repo, .git-branch { gap:8px; }
+.git-branch-lines { display:flex; flex-direction:column; align-items:flex-start; line-height:1.2; }
+.git-branch-lines .git-chip-name { font-size:12.5px; font-weight:600; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.git-branch-lines small { font-size:10.5px; color:var(--muted); }
+.git-branch.active { background:var(--hover); }
+/* 标题栏 Git 菜单：仅 Git 模式显示 */
+#tb-git-menu { display:none; }
+body.git-mode #tb-git-menu { display:inline-flex; }
+body.git-mode #tb-git-menu { display:flex; }
+.file-context-menu .menu-sep { min-height:0; height:1px; margin:5px 4px; padding:0; background:var(--border); pointer-events:none; }
+.file-context-menu .menu-sep:hover { background:var(--border); }

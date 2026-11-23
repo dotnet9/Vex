@@ -115,6 +115,7 @@
       </div>
     </div>
     <div class="document-label titlebar-document"><div class="document-title"><span id="document-name">主题设计笔记.md</span><i class="doc-dot" id="dirty-dot" hidden></i></div></div>
+
     <!-- 大纲折叠按钮：位于外观/语言按钮右侧、窗口按钮左侧。 -->
     <button class="caption-btn titlebar-toggle" id="outline-toggle" data-action="toggle-structure" data-l10n-name="收起文档大纲" title="收起文档大纲" aria-label="收起文档大纲" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-rail-expand"/></svg></button>
     <div class="caption-btns" id="caption-btns">
@@ -495,6 +496,51 @@
       </div>
     </div>
 
+    <!-- Git：新建/重命名分支（对照 GitHub Desktop create-branch-dialog：名称 + 基于哪个分支；创建后切换过去） -->
+    <div class="overlay win-layer" id="layer-git-branch" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="git-branch-title">
+        <div class="mini-titlebar"><span id="git-branch-title">新建分支</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="dialog-content">
+          <label class="fld-label" for="git-branch-name">名称</label>
+          <input class="input mono" id="git-branch-name" placeholder="feature/…" autofocus>
+          <div class="rn-error is-hidden" id="git-branch-error"></div>
+          <div id="git-branch-base-row">
+            <p class="dlg-msg git-remote-note" id="git-branch-base-note"></p>
+            <div id="git-branch-base-options"></div>
+          </div>
+        </div>
+        <div class="dlg-actions">
+          <button class="btn" data-close>取消</button>
+          <button class="btn primary" id="git-branch-ok">创建分支</button>
+        </div>
+      </div>
+    </div>
+    <!-- Git：合并分支（对照 GitHub Desktop merge-choose-branch-dialog：选择分支，标题「合并到 当前分支」） -->
+    <div class="overlay win-layer" id="layer-git-merge" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="git-merge-title">
+        <div class="mini-titlebar"><span id="git-merge-title">合并分支</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="dialog-content">
+          <label class="fld-label" for="git-merge-source">选择分支</label>
+          <select class="input mono" id="git-merge-source"></select>
+          <p class="dlg-msg git-remote-note" id="git-merge-note"></p>
+        </div>
+        <div class="dlg-actions">
+          <button class="btn" data-close>取消</button>
+          <button class="btn primary" id="git-merge-ok">合并</button>
+        </div>
+      </div>
+    </div>
+    <!-- Git：删除分支确认（对照 GitHub Desktop delete-branch-dialog） -->
+    <div class="overlay win-layer" id="layer-git-branch-delete" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="git-branch-delete-title">
+        <div class="mini-titlebar"><span id="git-branch-delete-title">删除分支</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
+        <div class="dialog-content"><p class="dlg-msg" id="git-branch-delete-msg"></p></div>
+        <div class="dlg-actions">
+          <button class="btn" data-close>取消</button>
+          <button class="btn danger" id="git-branch-delete-ok">删除</button>
+        </div>
+      </div>
+    </div>
     <div class="overlay win-layer" id="layer-git-tag" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="git-tag-title">
         <div class="mini-titlebar"><span id="git-tag-title">打 tag</span><span class="caption-btns"><button class="caption-btn close" data-close data-l10n-title="Close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></span></div>
