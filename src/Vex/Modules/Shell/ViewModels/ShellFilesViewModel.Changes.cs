@@ -11,6 +11,7 @@ public sealed partial class ShellFilesViewModel
         void ApplyChange()
         {
             if (_disposed || _workspaceFiles is null || change.Generation != _workspaceFiles.Generation) return;
+            _gitStatus?.RequestRefresh();
             var changedSession = _workspaceGeneration != change.Generation;
             EnsureWorkspaceSession();
             if (changedSession) return;

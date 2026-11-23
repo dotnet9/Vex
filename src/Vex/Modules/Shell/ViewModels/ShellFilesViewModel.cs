@@ -22,18 +22,21 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
     private readonly IAppSettingsStore? _settingsStore;
     private readonly IDocumentFileFactory? _fileFactory;
     private readonly IShellToastPublisher? _toastPublisher;
+    private readonly WorkspaceGitStatusService? _gitStatus;
     private bool _isListView;
     private string _sortKey = "group";
 
-    public ShellFilesViewModel(IAppSettingsStore? settingsStore = null, IWorkspaceFileService? workspaceFiles = null, IDocumentFileFactory? fileFactory = null, EditorPreferences? preferences = null, IShellToastPublisher? toastPublisher = null)
+    public ShellFilesViewModel(IAppSettingsStore? settingsStore = null, IWorkspaceFileService? workspaceFiles = null, IDocumentFileFactory? fileFactory = null, EditorPreferences? preferences = null, IShellToastPublisher? toastPublisher = null, WorkspaceGitStatusService? gitStatus = null)
     {
         _settingsStore = settingsStore;
         Preferences = preferences ?? (settingsStore is null ? null : new EditorPreferences(settingsStore));
         _fileFactory = fileFactory;
         _toastPublisher = toastPublisher;
+        _gitStatus = gitStatus;
         _isListView = settingsStore?.Current.FileListView ?? false;
         _sortKey = settingsStore?.Current.FileSortKey ?? "group";
         _workspaceFiles = workspaceFiles;
+        _gitStatus?.Bind(() => DocumentFileNodes);
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
         if (workspaceFiles is not null)
         {
@@ -345,6 +348,8 @@ public sealed partial class ShellFilesViewModel : ReactiveObject, IRegionTabItem
             SelectDocumentFileSilently(retainedFolder ?? FindDocumentFileNode(DocumentFileNodes, command.SelectedFile));
         }
         NotifyDocumentFilesChanged();
+        // 树整体重建（换工作区或快照刷新）：节点实例全新，触发 Git 徽章重算补状态。
+        _gitStatus?.RequestRefresh();
     }
 
     [EventHandler]

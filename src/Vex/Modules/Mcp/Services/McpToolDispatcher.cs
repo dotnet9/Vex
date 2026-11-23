@@ -263,6 +263,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         if (paths.Length == 0) return Text("工作区干净，没有可提交的变更。");
         var message = input.Description is { Length: > 0 } description ? input.Summary + "\n\n" + description : input.Summary;
         var commit = service.CommitPaths(paths, message);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new WorkspaceGitMutatedCommand(folder));
         return Text($"已提交 {paths.Length} 个文件：{commit.Sha[..7]} {commit.MessageShort}");
     }
 
@@ -273,6 +274,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             return Text("工作区不是 Git 仓库（尚未初始化）。");
         var service = new Vex.Git.GitService(folder);
         service.Push(pat: string.Empty);
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new WorkspaceGitMutatedCommand(folder));
         return Text("已推送到 origin。");
     }
     private async Task<CallToolResult> GitPullAsync()
@@ -285,6 +287,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
         try
         {
             var pulled = service.PullFastForward(pat: pat ?? string.Empty);
+            CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new WorkspaceGitMutatedCommand(folder));
             return Text(pulled > 0 ? $"已快进合入 {pulled} 个提交。" : "已是最新，无新提交。");
         }
         catch (Exception ex)
@@ -301,6 +304,7 @@ public sealed class McpToolDispatcher : IMcpToolDispatcher
             return Text("工作区不是 Git 仓库（尚未初始化）。");
         var service = new Vex.Git.GitService(folder);
         service.CreateTag(input.Name.Trim());
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new WorkspaceGitMutatedCommand(folder));
         if (input.Push == true)
         {
             service.Push(pat: string.Empty, tag: input.Name.Trim());

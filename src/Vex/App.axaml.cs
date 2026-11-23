@@ -99,6 +99,8 @@ public partial class App : Application
         // Git 管理界面：凭据库按平台选择（Windows 凭据管理器/加密文件），面板 VM 单例供 rail 双模式共用。
         services.AddSingleton<Vex.Git.ICredentialStore>(_ => Vex.Git.CredentialStoreFactory.Create());
         services.AddSingleton<Vex.Modules.Git.ViewModels.ShellGitViewModel>();
+        // 文件树 Git 徽章：常驻单例（独立于 Git 面板生命周期），ShellFilesViewModel 注入绑定树根。
+        services.AddSingleton<Vex.Modules.Shell.Services.WorkspaceGitStatusService>();
         services.AddSingleton<IMcpToolDispatcher, McpToolDispatcher>();
         services.AddSingleton<IMcpOperationConfirmationService, McpOperationConfirmationService>();
         services.AddSingleton<IMcpOperationAuditService, McpOperationAuditService>();

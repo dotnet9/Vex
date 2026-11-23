@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using ReactiveUI;
+using Vex.Core.Messaging;
 using Vex.Core.Services;
 using Vex.Git;
 using Vex.Modules.Shell.Services;
@@ -768,6 +769,9 @@ public sealed class ShellGitViewModel : ReactiveObject
         // 集合与派生属性一律回 UI 线程更新：headless/验证夹具无 SyncContext，await 续体落在线程池，
         // 后台重建 ObservableCollection 会与绑定枚举交错成无栈 NRE（AOT 下直接 fail-fast）。
         await UiDispatch(() => ApplySnapshot(result));
+        // 变更操作（提交/推送/拉取/放弃/自动提交）都经此刷新收尾：广播给文件树 Git 徽章重算
+        // （提交不改工作区内容，文件监控收不到；Enter 的例行刷新只是多一次零差量重算，无副作用）。
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new WorkspaceGitMutatedCommand(_workspaceFolder));
     }
 
     private void ApplySnapshot(GitSnapshot snapshot)

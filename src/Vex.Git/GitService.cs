@@ -43,7 +43,7 @@ public sealed record TextDiff(string OldPath, IReadOnlyList<DiffHunk> Hunks);
 
 /// <summary>内置 git 基座：LibGit2Sharp 进程内完成本地操作与 HTTPS+PAT 推送拉取；
 /// SSH 远程推送交由系统 git（原型口径：SSH 需系统 Git 环境，改用 HTTPS 则无需安装）。</summary>
-public sealed class GitService
+public sealed class GitService : IDisposable
 {
     private readonly string _repoRoot;
     private readonly object _repoGate = new();

@@ -800,6 +800,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                     ScheduleCurrentFileCheck();
                     Protection.SaveError = null;
                     _text.PublishSaved(saved.FileName);
+                    CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentSavedCommand(saved.FilePath ?? string.Empty));
                 }
             },
             _document.FileName);
@@ -824,6 +825,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                     ScheduleCurrentFileCheck();
                     Protection.SaveError = null;
                     _text.PublishSavedAs(saved.FileName);
+                    CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new DocumentSavedCommand(saved.FilePath ?? string.Empty));
                 }
             },
             _document.FileName);
