@@ -19,6 +19,7 @@ public sealed class MarkdownStreamSegmenter
 		Fence,
 		Math,
 		HtmlRaw,
+		FrontMatter,
 	}
 
 	private TopLevelState _state = TopLevelState.Normal;
@@ -28,6 +29,9 @@ public sealed class MarkdownStreamSegmenter
 
 	// 文档起始视同"空行之后"，使首行允许开启数学块/原始 HTML 块。
 	private bool _prevLineBlank = true;
+
+	// 是否尚未处理过任何行（front matter 只认文档首行的 `---`，规格 §3.2 F5）。
+	private bool _atDocumentStart = true;
 
 	// 上一行是否为段落延续行（setext 下划线判定、决定性新块判定用）。
 	private bool _prevParagraphish;
@@ -94,6 +98,7 @@ public sealed class MarkdownStreamSegmenter
 		_fenceLength = 0;
 		_htmlCloseToken = string.Empty;
 		_prevLineBlank = true;
+		_atDocumentStart = true;
 		_prevParagraphish = false;
 		_containerOpen = false;
 		_htmlBlockOpen = false;
@@ -133,10 +138,23 @@ public sealed class MarkdownStreamSegmenter
 				}
 
 				return;
+			case TopLevelState.FrontMatter:
+				// F5：闭合 `---` 行行尾整块冻结；闭合行到达前任何行都不产生冻结。
+				var matterIndent = CountIndent(line, out var matterRest);
+				if (matterIndent == 0 && matterRest.TrimEnd() == "---")
+				{
+					_state = TopLevelState.Normal;
+					_prevLineBlank = true;
+					Freeze(end);
+				}
+
+				return;
 		}
 
 		var indent = CountIndent(line, out var rest);
 		var trimmed = rest.TrimEnd();
+		var isDocumentStart = _atDocumentStart;
+		_atDocumentStart = false;
 
 		// 空行：冻结与否取决于下一行形态，挂起等待；空行同时关闭容器上下文。
 		if (trimmed.Length == 0)
@@ -157,6 +175,17 @@ public sealed class MarkdownStreamSegmenter
 			{
 				Freeze(start);
 			}
+		}
+
+		// F5：文档首行 `---`（零缩进、精确三横线）开启 YAML front matter 候选。
+		// front matter 块的意义取决于闭合 `---` 是否出现——前缀独立解析会把开 `---`
+		// 看成分隔线，违反 I4；整块悬置到闭合行一次冻结，两口径从此同形。
+		if (isDocumentStart && indent == 0 && trimmed == "---")
+		{
+			_state = TopLevelState.FrontMatter;
+			_prevLineBlank = false;
+			_prevParagraphish = false;
+			return;
 		}
 
 		// 本行是否紧跟空行/文档起始（数学块与原始 HTML 块只在此时开启）。
