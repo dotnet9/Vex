@@ -1,14 +1,14 @@
 namespace Vex.Core.Models;
 
 /// <summary>
-/// 工作区文件(夹)的 Git 状态——图标语义对齐 GitHub Desktop:
-/// 新增/未跟踪/复制同用 diff-added 字形(绿色),修改 diff-modified(琥珀),
-/// 重命名 diff-renamed(蓝),删除 diff-removed(红,文件不在磁盘故仅 Git 面板展示),
-/// 冲突 alert(橙)。非 None 状态由 Shell 层批量应用到节点并驱动角标渲染。
+/// 工作区文件(夹)的 Git 状态——树内前导状态槽语义（VS 经典语言，design/Git-Badges.html REV2）：
+/// TrackedClean=受管干净挂灰锁（文件行）；Modified/Renamed 红勾、New 绿加号、Deleted 红减（面板）、
+/// Conflicted 橙警（面板）；Untracked 不受管控=树内空槽（枚举保留供面板与 tooltip）。
 /// </summary>
 public enum WorkspaceGitStatus
 {
     None,
+    TrackedClean,
     New,
     Untracked,
     Modified,
@@ -19,12 +19,12 @@ public enum WorkspaceGitStatus
 
 /// <summary>
 /// Git 状态到文件树的批量应用与文件夹聚合。
-/// 聚合取后代最强状态(优先级:冲突 &gt; 删除 &gt; 修改 &gt; 重命名 &gt; 新增 &gt; 未跟踪),
-/// 自底向上计算后写在文件夹节点上,供树/列表模板直接绑定。
+/// 聚合取后代最强<b>变更</b>状态（挂锁与未跟踪不参与——文件夹只呈现变更字形，
+/// 干净文件夹无字形；优先级：冲突 &gt; 删除 &gt; 修改 &gt; 重命名 &gt; 新增）。
 /// </summary>
 public static class WorkspaceGitStatusTree
 {
-    /// <summary>聚合优先级:数值越大越优先呈现。</summary>
+    /// <summary>聚合优先级：数值越大越优先呈现（挂锁/未跟踪不参与聚合）。</summary>
     public static int Priority(WorkspaceGitStatus status) => status switch
     {
         WorkspaceGitStatus.Conflicted => 6,
@@ -32,9 +32,15 @@ public static class WorkspaceGitStatusTree
         WorkspaceGitStatus.Modified => 4,
         WorkspaceGitStatus.Renamed => 3,
         WorkspaceGitStatus.New => 2,
-        WorkspaceGitStatus.Untracked => 1,
+        WorkspaceGitStatus.TrackedClean => 1,
+        WorkspaceGitStatus.Untracked => 0,
         _ => 0,
     };
+
+    /// <summary>是否为会呈现变更字形的聚合参与状态。</summary>
+    public static bool IsChange(WorkspaceGitStatus status) =>
+        status is WorkspaceGitStatus.Conflicted or WorkspaceGitStatus.Deleted
+            or WorkspaceGitStatus.Modified or WorkspaceGitStatus.Renamed or WorkspaceGitStatus.New;
 
     /// <summary>
     /// 把状态字典写到整棵树上。字典键为文件绝对路径(不区分大小写,Windows 口径);
@@ -90,7 +96,13 @@ public static class WorkspaceGitStatusTree
         WorkspaceGitStatus best = WorkspaceGitStatus.None;
         foreach (var child in children)
         {
-            // 子文件夹的 GitStatus 已在自底向上递归中聚合完成。
+            // 子文件夹的 GitStatus 已在自底向上递归中聚合完成；
+            // 挂锁与未跟踪不是变更，文件夹只呈现变更字形（干净文件夹无字形）。
+            if (!IsChange(child.GitStatus))
+            {
+                continue;
+            }
+
             if (Priority(child.GitStatus) > Priority(best))
             {
                 best = child.GitStatus;

@@ -80,8 +80,12 @@ public sealed class WorkspaceGitStatusTreeTests
         WorkspaceGitStatusTree.Apply(roots, Dict());
         Assert.Equal(WorkspaceGitStatus.None, folder.GitStatus);
 
+        // REV2：未跟踪不参与文件夹聚合（空槽），有变更的后代才给字形。
         WorkspaceGitStatusTree.Apply(roots, Dict((@"C:\ws\a.cs", WorkspaceGitStatus.Untracked)));
-        Assert.Equal(WorkspaceGitStatus.Untracked, folder.GitStatus);
+        Assert.Equal(WorkspaceGitStatus.None, folder.GitStatus);
+
+        WorkspaceGitStatusTree.Apply(roots, Dict((@"C:\ws\a.cs", WorkspaceGitStatus.Modified)));
+        Assert.Equal(WorkspaceGitStatus.Modified, folder.GitStatus);
 
         WorkspaceGitStatusTree.Apply(roots, Dict());
         Assert.Equal(WorkspaceGitStatus.None, folder.GitStatus);
@@ -118,6 +122,39 @@ public sealed class WorkspaceGitStatusTreeTests
     }
 
     [Fact]
+    public void Apply_TrackedCleanFileGetsLockState_AndFolderIgnoresIt()
+    {
+        // 前导状态槽语义（REV2）：受管干净文件=挂锁；挂锁与未跟踪不参与文件夹聚合。
+        var clean = File(@"C:\ws\keep.md");
+        var untracked = File(@"C:\ws\draft.md");
+        var folder = Folder(@"C:\ws", clean, untracked);
+
+        Assert.Equal(2, WorkspaceGitStatusTree.Apply([folder], Dict(
+            (@"C:\ws\keep.md", WorkspaceGitStatus.TrackedClean),
+            (@"C:\ws\draft.md", WorkspaceGitStatus.Untracked))));
+
+        Assert.Equal(WorkspaceGitStatus.TrackedClean, clean.GitStatus);
+        Assert.Equal(WorkspaceGitStatus.Untracked, untracked.GitStatus);
+        Assert.Equal(WorkspaceGitStatus.None, folder.GitStatus); // 干净文件夹无字形
+    }
+
+    [Fact]
+    public void Apply_FolderAggregation_IgnoresLockAndUntracked_TakesChange()
+    {
+        var clean = File(@"C:\ws\clean.md");
+        var untracked = File(@"C:\ws\draft.md");
+        var modified = File(@"C:\ws\touched.md");
+        var folder = Folder(@"C:\ws", clean, untracked, modified);
+
+        WorkspaceGitStatusTree.Apply([folder], Dict(
+            (@"C:\ws\clean.md", WorkspaceGitStatus.TrackedClean),
+            (@"C:\ws\draft.md", WorkspaceGitStatus.Untracked),
+            (@"C:\ws\touched.md", WorkspaceGitStatus.Modified)));
+
+        Assert.Equal(WorkspaceGitStatus.Modified, folder.GitStatus);
+    }
+
+    [Fact]
     public void Priority_OrdersConflictAboveAll_AndUntrackedAboveNone()
     {
         Assert.True(WorkspaceGitStatusTree.Priority(WorkspaceGitStatus.Conflicted)
@@ -129,8 +166,8 @@ public sealed class WorkspaceGitStatusTreeTests
         Assert.True(WorkspaceGitStatusTree.Priority(WorkspaceGitStatus.Renamed)
             > WorkspaceGitStatusTree.Priority(WorkspaceGitStatus.New));
         Assert.True(WorkspaceGitStatusTree.Priority(WorkspaceGitStatus.New)
+            > WorkspaceGitStatusTree.Priority(WorkspaceGitStatus.TrackedClean));
+        Assert.True(WorkspaceGitStatusTree.Priority(WorkspaceGitStatus.TrackedClean)
             > WorkspaceGitStatusTree.Priority(WorkspaceGitStatus.Untracked));
-        Assert.True(WorkspaceGitStatusTree.Priority(WorkspaceGitStatus.Untracked)
-            > WorkspaceGitStatusTree.Priority(WorkspaceGitStatus.None));
     }
 }
