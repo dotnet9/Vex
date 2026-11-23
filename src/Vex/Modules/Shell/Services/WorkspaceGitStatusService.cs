@@ -164,7 +164,9 @@ public sealed class WorkspaceGitStatusService : IDisposable
         }
     }
 
-    /// <summary>后台线程采集：仓库状态 → 绝对路径状态字典（LibGit2Sharp 异常吞掉保留上一份，下次触发重算）。</summary>
+    /// <summary>后台线程采集：仓库状态 → 绝对路径状态字典（LibGit2Sharp 异常吞掉保留上一份，下次触发重算）。
+    /// 前导状态槽语义（REV2）：字典含全部受管文件——变更查 RetrieveStatus（未跟踪不入字典=树内空槽），
+    /// 受管干净查索引命中（TrackedClean=挂锁）；未跟踪文件缺席字典，Apply 按.None 清零。</summary>
     private (string RepoRoot, Dictionary<string, WorkspaceGitStatus> Statuses)? ComputeLatest()
     {
         string? repoRoot;
@@ -183,11 +185,30 @@ public sealed class WorkspaceGitStatusService : IDisposable
         var statuses = new Dictionary<string, WorkspaceGitStatus>(StringComparer.OrdinalIgnoreCase);
         try
         {
+            var changed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in git.Status())
             {
                 var relative = item.FilePath.Replace('\\', '/');
+                changed.Add(relative);
+                if (item.State.HasFlag(LibGit2Sharp.FileStatus.NewInWorkdir))
+                {
+                    // 未跟踪 = 不受管控 = 树内空槽：不入字典。
+                    continue;
+                }
+
                 var absolute = Path.Combine(repoRoot, relative.Replace('/', Path.DirectorySeparatorChar));
                 statuses[absolute] = MapKind(item.State);
+            }
+
+            foreach (var tracked in git.TrackedIndexPaths())
+            {
+                if (changed.Contains(tracked))
+                {
+                    continue;
+                }
+
+                statuses[Path.Combine(repoRoot, tracked.Replace('/', Path.DirectorySeparatorChar))] =
+                    WorkspaceGitStatus.TrackedClean;
             }
         }
         catch (Exception exception)

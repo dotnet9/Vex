@@ -97,6 +97,16 @@ public sealed class GitService : IDisposable
         return repo.RetrieveStatus(new StatusOptions { IncludeUntracked = true });
     }
 
+    /// <summary>索引内全部受管路径（'/' 分隔，不区分大小写集合由调用方决定）。
+    /// 文件树挂锁语义用：受管干净 = 命中索引且不在变更集。</summary>
+    public IReadOnlyCollection<string> TrackedIndexPaths()
+    {
+        lock (_repoGate)
+        {
+            return Repo().Index.Select(entry => entry.Path.Replace('\\', '/')).ToList();
+        }
+    }
+
     /// <summary>分支名与领先/落后远端的提交数（顶栏芯片与推送可用性）；
     /// 未配置 upstream（首次推送前）TrackingDetails 为 null，领先落后记 0。</summary>
     public (string Branch, int? AheadBy, int? BehindBy) BranchState()

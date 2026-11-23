@@ -39,15 +39,16 @@ public sealed class WorkspaceGitStatusServiceTests : IDisposable
     [Fact]
     public async Task Refresh_MapsWorkingTreeStates()
     {
-        // 未跟踪 + 修改：README 改一行，draft 新建未跟踪。
+        // 前导状态槽语义：README 已修改（红勾），draft 未跟踪（空槽=None），
+        // 受管干净文件挂锁——README 在修改前是干净态，改后翻转为修改。
         File.WriteAllText(Path.Combine(_root, "README.md"), "# hello\n\ntail\n");
         File.WriteAllText(Path.Combine(_root, "draft.md"), "new\n");
         _service.SetWorkspace(_root);
         await _service.RefreshNowAsync();
 
         Assert.Equal(WorkspaceGitStatus.Modified, _readme.GitStatus);
-        Assert.Equal(WorkspaceGitStatus.Untracked, _draft.GitStatus);
-        Assert.Equal(WorkspaceGitStatus.Modified, _roots[0].GitStatus); // 聚合：修改 > 未跟踪
+        Assert.Equal(WorkspaceGitStatus.None, _draft.GitStatus); // 未跟踪=空槽
+        Assert.Equal(WorkspaceGitStatus.Modified, _roots[0].GitStatus); // 聚合：只取变更
     }
 
     [Fact]
@@ -56,17 +57,18 @@ public sealed class WorkspaceGitStatusServiceTests : IDisposable
         File.WriteAllText(Path.Combine(_root, "draft.md"), "new\n");
         _service.SetWorkspace(_root);
         await _service.RefreshNowAsync();
-        Assert.Equal(WorkspaceGitStatus.Untracked, _draft.GitStatus);
+        Assert.Equal(WorkspaceGitStatus.None, _draft.GitStatus); // 未跟踪=空槽
 
         using (var git = new GitService(_root))
         {
             git.CommitAll("add draft");
         }
 
+        // 提交后进入管控：受管干净=挂锁（TrackedClean）。
         await _service.RefreshNowAsync();
-        Assert.Equal(WorkspaceGitStatus.None, _draft.GitStatus);
-        Assert.Equal(WorkspaceGitStatus.None, _readme.GitStatus);
-        Assert.Equal(WorkspaceGitStatus.None, _roots[0].GitStatus);
+        Assert.Equal(WorkspaceGitStatus.TrackedClean, _draft.GitStatus);
+        Assert.Equal(WorkspaceGitStatus.TrackedClean, _readme.GitStatus);
+        Assert.Equal(WorkspaceGitStatus.None, _roots[0].GitStatus); // 干净文件夹不挂锁
     }
 
     [Fact]
@@ -75,7 +77,7 @@ public sealed class WorkspaceGitStatusServiceTests : IDisposable
         File.WriteAllText(Path.Combine(_root, "draft.md"), "new\n");
         _service.SetWorkspace(_root);
         await _service.RefreshNowAsync();
-        Assert.Equal(WorkspaceGitStatus.Untracked, _draft.GitStatus);
+        Assert.Equal(WorkspaceGitStatus.None, _draft.GitStatus); // 未跟踪=空槽
 
         var plain = Path.Combine(Path.GetTempPath(), "vex-git-badge-tests", "plain-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(plain);
