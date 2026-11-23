@@ -3,6 +3,7 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using ReactiveUI;
 using Vex.Core.Messaging;
+using Vex.Core.Models;
 using Vex.Core.Services;
 using Vex.Git;
 using Vex.Modules.Shell.Services;
@@ -47,17 +48,19 @@ public sealed record GitDiffCell(int? Number, string Text, char Kind)
 /// <summary>Split 左右配对行：−块与其后的 + 块按行配对，余者单侧留空。</summary>
 public sealed record GitDiffPairRow(GitDiffCell Left, GitDiffCell Right);
 
-/// <summary>变更列表行：状态描边字母 + 目录/文件名拆分 + 勾选态。</summary>
+/// <summary>变更列表行：octicon 状态 + 目录/文件名拆分 + 勾选态 + 行级增删统计。</summary>
 public sealed class GitChangeItem : ReactiveObject
 {
     private bool _checked;
     private bool _isSelected;
 
-    public GitChangeItem(string path, GitChangeKind kind, string statusText)
+    public GitChangeItem(string path, GitChangeKind kind, string statusText, int linesAdded = -1, int linesDeleted = -1)
     {
         Path = path;
         Kind = kind;
         StatusText = statusText;
+        LinesAdded = linesAdded;
+        LinesDeleted = linesDeleted;
         var slash = path.LastIndexOf('/');
         Dir = slash >= 0 ? path[..(slash + 1)] : string.Empty;
         Name = slash >= 0 ? path[(slash + 1)..] : path;
@@ -67,6 +70,7 @@ public sealed class GitChangeItem : ReactiveObject
             GitChangeKind.Deleted => "D",
             GitChangeKind.Modified => "M",
             GitChangeKind.Renamed => "R",
+            GitChangeKind.Conflicted => "C",
             _ => "?",
         };
         Checked = kind != GitChangeKind.Untracked;
@@ -81,7 +85,7 @@ public sealed class GitChangeItem : ReactiveObject
     /// <summary>未跟踪默认不勾选（原型 seed 口径），其余默认勾选。</summary>
     public bool Checked { get => _checked; set { this.RaiseAndSetIfChanged(ref _checked, value); } }
 
-    public bool IsSelected { get => _isSelected; set => this.RaiseAndSetIfChanged(ref _isSelected, value); }
+    public bool IsSelected { get => _isSelected; set { this.RaiseAndSetIfChanged(ref _isSelected, value); } }
 
     /// <summary>状态描边标志的样式开关（黄点/绿加号/红减号/灰问号）。</summary>
     public bool IsModified => Kind == GitChangeKind.Modified || Kind == GitChangeKind.Renamed;
@@ -91,6 +95,25 @@ public sealed class GitChangeItem : ReactiveObject
 
     /// <summary>状态说明（描边标志 tooltip，构造时按当前语言传入）。</summary>
     public string StatusText { get; }
+
+    /// <summary>行级增删统计（-1 = 未知/二进制，UI 不显示计数）。</summary>
+    public int LinesAdded { get; }
+    public int LinesDeleted { get; }
+    public bool HasLineStats => LinesAdded >= 0 && LinesDeleted >= 0;
+    public string LinesAddedText => LinesAdded >= 0 ? $"+{LinesAdded}" : string.Empty;
+    public string LinesDeletedText => LinesDeleted >= 0 ? $"−{LinesDeleted}" : string.Empty;
+
+    /// <summary>映射到文件树徽章同款状态枚举（octicon 字形与配色共用 GitBadgeConverters）。</summary>
+    public WorkspaceGitStatus Status => Kind switch
+    {
+        GitChangeKind.Added => WorkspaceGitStatus.New,
+        GitChangeKind.Untracked => WorkspaceGitStatus.Untracked,
+        GitChangeKind.Modified => WorkspaceGitStatus.Modified,
+        GitChangeKind.Deleted => WorkspaceGitStatus.Deleted,
+        GitChangeKind.Renamed => WorkspaceGitStatus.Renamed,
+        GitChangeKind.Conflicted => WorkspaceGitStatus.Conflicted,
+        _ => WorkspaceGitStatus.None,
+    };
 }
 
 /// <summary>历史文件行：状态描边 + 路径。</summary>
@@ -788,7 +811,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         RemoteRawUrl = snapshot.RemoteRawUrl;
         IsSshRemote = snapshot.RemoteRawUrl is not null &&
             (snapshot.RemoteRawUrl.StartsWith("git@", StringComparison.OrdinalIgnoreCase) || snapshot.RemoteRawUrl.StartsWith("ssh://", StringComparison.OrdinalIgnoreCase));
-        ReplaceAll(Changes, snapshot.Changes.Select(c => new GitChangeItem(c.Path, c.Kind, StatusTextOf(c.Kind))));
+        ReplaceAll(Changes, snapshot.Changes.Select(c => new GitChangeItem(c.Path, c.Kind, StatusTextOf(c.Kind), c.LinesAdded, c.LinesDeleted)));
         foreach (var item in Changes) item.PropertyChanged += ChangeItemPropertyChanged;
         this.RaisePropertyChanged(nameof(CheckedCount));
         this.RaisePropertyChanged(nameof(CanCommit));
@@ -852,7 +875,8 @@ public sealed class ShellGitViewModel : ReactiveObject
         GitChangeKind.Added => _localizer.Get(VexL.GitStatusAdded),
         GitChangeKind.Deleted => _localizer.Get(VexL.GitStatusDeleted),
         GitChangeKind.Modified => _localizer.Get(VexL.GitStatusModified),
-        GitChangeKind.Renamed => _localizer.Get(VexL.GitStatusModified),
+        GitChangeKind.Renamed => _localizer.Get(VexL.GitBadgeRenamed),
+        GitChangeKind.Conflicted => _localizer.Get(VexL.GitBadgeConflicted),
         _ => _localizer.Get(VexL.GitStatusUntracked),
     };
 

@@ -3,7 +3,7 @@ using LibGit2Sharp;
 
 namespace Vex.Git;
 
-/// <summary>文件状态枚举：对应原型描边标志（M 黄点 / A 绿加号 / D 红减号 / ? 未跟踪）。</summary>
+/// <summary>文件状态枚举：对应原型描边标志（M 黄点 / A 绿加号 / D 红减号 / ? 未跟踪）+ 冲突（octicon alert）。</summary>
 public enum GitChangeKind
 {
     Modified,
@@ -11,6 +11,7 @@ public enum GitChangeKind
     Deleted,
     Renamed,
     Untracked,
+    Conflicted,
 }
 
 /// <summary>工作区改动条目：路径 + 状态 + 行级增删统计（-1 = 未知，二进制或统计失败，UI 不显示计数）。</summary>
@@ -22,6 +23,7 @@ public sealed record ChangeEntry(string Path, GitChangeKind Kind, int LinesAdded
         GitChangeKind.Deleted => "D",
         GitChangeKind.Modified => "M",
         GitChangeKind.Renamed => "R",
+        GitChangeKind.Conflicted => "C",
         _ => "?",
     };
 
@@ -113,7 +115,8 @@ public sealed class GitService : IDisposable
         {
             var path = item.FilePath.Replace('\\', '/');
             GitChangeKind kind;
-            if (item.State.HasFlag(FileStatus.NewInWorkdir)) kind = GitChangeKind.Untracked;
+            if (item.State.HasFlag(FileStatus.Conflicted)) kind = GitChangeKind.Conflicted;
+            else if (item.State.HasFlag(FileStatus.NewInWorkdir)) kind = GitChangeKind.Untracked;
             else if (item.State.HasFlag(FileStatus.NewInIndex)) kind = GitChangeKind.Added;
             else if (item.State.HasFlag(FileStatus.DeletedFromWorkdir) || item.State.HasFlag(FileStatus.DeletedFromIndex)) kind = GitChangeKind.Deleted;
             else if (item.State.HasFlag(FileStatus.RenamedInWorkdir) || item.State.HasFlag(FileStatus.RenamedInIndex)) kind = GitChangeKind.Renamed;

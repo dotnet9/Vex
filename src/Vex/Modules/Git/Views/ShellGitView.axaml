@@ -1,6 +1,7 @@
 <UserControl x:Class="Vex.Modules.Git.Views.ShellGitView"
     xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+    xmlns:converters="using:Vex.Modules.Shell.Views"
     xmlns:vm="using:Vex.Modules.Git.ViewModels" x:DataType="vm:ShellGitViewModel">
     <!-- 原型 .git-workspace：全客户区面板，背景取面板色，左缘 1px 发丝线（rail 已自带给右缘的 1px）。 -->
     <UserControl.Styles>
@@ -215,6 +216,25 @@
         <!-- 路径：目录灰、文件名正常（原型 .git-path .dir） -->
         <Style Selector="TextBlock.git-dir">
             <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        </Style>
+        <!-- 变更行新案（design/Git-Badges.html §04）：octicon 16 + 行数统计 + 彩色状态词。 -->
+        <Style Selector="Path.git-status-oct">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.git-status-word">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="4,0,0,0" />
+        </Style>
+        <Style Selector="TextBlock.git-lines-add">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="{DynamicResource VexGitNewBrush}" />
+        </Style>
+        <Style Selector="TextBlock.git-lines-del">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="{DynamicResource VexGitDeletedBrush}" />
         </Style>
         <!-- 提交行（原型 .commit-item） -->
         <Style Selector="TextBlock.commit-subject">
@@ -555,27 +575,44 @@
                                                           CommandParameter="{Binding SelectedChange}" />
                                             </ContextMenu>
                                         </ListBox.ContextMenu>
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:GitChangeItem">
-                                                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
-                                                    <CheckBox IsChecked="{Binding Checked}" VerticalAlignment="Center"
-                                                              AutomationProperties.Name="{Binding Path}" />
-                                                    <Border Grid.Column="1" Classes="git-status" Classes.m="{Binding IsModified}" Classes.a="{Binding IsAdded}"
-                                                            Classes.d="{Binding IsDeleted}" Classes.u="{Binding IsUntracked}"
-                                                            helpers:ToolTipHelper.Text="{Binding StatusText}">
-                                                        <Panel>
-                                                            <Ellipse Width="6" Height="6" Fill="{DynamicResource VexWarningBrush}" IsVisible="{Binding IsModified}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                            <TextBlock Text="+" IsVisible="{Binding IsAdded}" />
-                                                            <TextBlock Text="−" IsVisible="{Binding IsDeleted}" />
-                                                            <TextBlock Text="?" IsVisible="{Binding IsUntracked}" />
-                                                        </Panel>
-                                                    </Border>
-                                                    <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12.5" TextTrimming="CharacterEllipsis">
-                                                        <Run Text="{Binding Dir, Mode=OneWay}" Foreground="{DynamicResource VexMutedBrush}" /><Run Text="{Binding Name, Mode=OneWay}" />
-                                                    </TextBlock>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:GitChangeItem">
+                                                    <!-- design/Git-Badges.html 新案：octicon 同款图标 + +/− 行数 + 状态词列
+                                                         （六态形状互异，替换旧 18px 框 + 6px 点；diff 头/历史文件行旧框后续打磨）。 -->
+                                                    <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="8">
+                                                        <CheckBox IsChecked="{Binding Checked}" VerticalAlignment="Center"
+                                                                  AutomationProperties.Name="{Binding Path}" />
+                                                        <Path Grid.Column="1" Classes="git-status-oct" VerticalAlignment="Center"
+                                                              IsVisible="{Binding Status, Converter={x:Static converters:GitBadgeConverters.NotNone}}"
+                                                              Data="{Binding Status, Converter={x:Static converters:GitBadgeConverters.Geometry}}"
+                                                              helpers:ToolTipHelper.Text="{Binding StatusText}">
+                                                            <Path.Fill>
+                                                                <MultiBinding Converter="{x:Static converters:GitBadgeConverters.Brush}">
+                                                                    <Binding Path="Status" />
+                                                                    <Binding Path="$parent[UserControl].ActualThemeVariant" />
+                                                                </MultiBinding>
+                                                            </Path.Fill>
+                                                        </Path>
+                                                        <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12.5" TextTrimming="CharacterEllipsis">
+                                                            <Run Text="{Binding Dir, Mode=OneWay}" Foreground="{DynamicResource VexMutedBrush}" /><Run Text="{Binding Name, Mode=OneWay}" />
+                                                        </TextBlock>
+                                                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center"
+                                                                    IsVisible="{Binding HasLineStats}">
+                                                            <TextBlock Classes="git-lines-add" Text="{Binding LinesAddedText}" />
+                                                            <TextBlock Classes="git-lines-del" Text="{Binding LinesDeletedText}" />
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="4" Classes="git-status-word" VerticalAlignment="Center"
+                                                                   Text="{Binding StatusText}">
+                                                            <TextBlock.Foreground>
+                                                                <MultiBinding Converter="{x:Static converters:GitBadgeConverters.Brush}">
+                                                                    <Binding Path="Status" />
+                                                                    <Binding Path="$parent[UserControl].ActualThemeVariant" />
+                                                                </MultiBinding>
+                                                            </TextBlock.Foreground>
+                                                        </TextBlock>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
                                     </ListBox>
                                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8"
                                                 IsVisible="{Binding IsCleanWorkdir}">
