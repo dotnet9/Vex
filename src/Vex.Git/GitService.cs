@@ -558,99 +558,6 @@ public sealed class GitService : IDisposable
     }
 
     /// <summary>在 HEAD 打轻量 tag（发布流程：升版提交后打发布 tag）。</summary>
-    // ===== 分支管理（GitHub Desktop 分支下拉语义：列表/切换/新建/重命名/删除/合并/获取）=====
-
-    /// <summary>本地分支信息：名称 + 是否当前检出 + 最后提交时间（下拉列表行）。</summary>
-    public sealed record LocalBranchInfo(string Name, bool IsCurrent, DateTimeOffset? LastCommitTime);
-
-    /// <summary>本地分支清单（排除远程跟踪分支），按最后提交时间倒序。</summary>
-    public IReadOnlyList<LocalBranchInfo> LocalBranches()
-    {
-        var repo = Repo();
-        var current = repo.Head.FriendlyName;
-        return repo.Branches
-            .Where(b => !b.IsRemote)
-            .OrderByDescending(b => b.Tip?.Author.When ?? DateTimeOffset.MinValue)
-            .Select(b => new LocalBranchInfo(b.FriendlyName, b.FriendlyName == current, b.Tip?.Author.When))
-            .ToList();
-    }
-
-    /// <summary>切换分支（保留工作区未提交变更；冲突时 LibGit2Sharp 抛出，调用方转 toast）。</summary>
-    public void CheckoutBranch(string name)
-    {
-        var repo = Repo();
-        LibGit2Sharp.Commands.Checkout(repo, name);
-    }
-
-    /// <summary>新建分支并检出（基于指定分支；null = 当前 HEAD）。</summary>
-    public void CreateBranch(string name, string? baseBranch = null)
-    {
-        var repo = Repo();
-        var start = baseBranch is not null
-            ? (repo.Branches[baseBranch]?.Tip ?? throw new GitServiceException(GitServiceError.BranchNotFound, "基准分支不存在：" + baseBranch, baseBranch))
-            : (repo.Head.Tip ?? throw new GitServiceException(GitServiceError.NoCommitsForTag, "还没有提交，无法创建分支。"));
-        repo.Branches.Add(name, start);
-        LibGit2Sharp.Commands.Checkout(repo, name);
-    }
-
-    /// <summary>重命名本地分支；LibGit2Sharp 会同步移动 HEAD 符号引用。</summary>
-    public void RenameBranch(string oldName, string newName)
-    {
-        var repo = Repo();
-        repo.Branches.Rename(oldName, newName);
-    }
-
-    /// <summary>删除本地分支（当前检出的分支必须先切走，git 同样拒绝；未合并分支由 UI 确认后 force）。</summary>
-    public void DeleteBranch(string name, bool force = false)
-    {
-        var repo = Repo();
-        if (name == repo.Head.FriendlyName)
-        {
-            throw new GitServiceException(GitServiceError.BranchIsCurrent, "不能删除当前检出的分支，请先切换到其他分支。", name);
-        }
-        var branch = repo.Branches[name] ?? throw new GitServiceException(GitServiceError.BranchNotFound, "分支不存在：" + name, name);
-        repo.Branches.Remove(name, force);
-    }
-
-    /// <summary>把指定分支合并进当前分支；已最新返回 "up-to-date"，成功返回合并说明，冲突抛出。</summary>
-    public string MergeBranchInto(string name)
-    {
-        var repo = Repo();
-        var branch = repo.Branches[name] ?? throw new GitServiceException(GitServiceError.BranchNotFound, "分支不存在：" + name, name);
-        var identity = IdentityOf(repo);
-        var signature = new Signature(identity.Missing ? "Vex" : identity.Name, identity.Missing ? "vex@local" : identity.Email, DateTimeOffset.Now);
-        var result = repo.Merge(branch, signature, new MergeOptions());
-        return result.Status switch
-        {
-            LibGit2Sharp.MergeStatus.UpToDate => "up-to-date",
-            LibGit2Sharp.MergeStatus.Conflicts => throw new GitServiceException(GitServiceError.MergeConflicts, "与 " + name + " 合并存在冲突，请用外部 Git 工具处理。", name),
-            _ => result.Commit is null ? "merged" : "merged " + result.Commit.Sha[..7],
-        };
-    }
-
-    /// <summary>获取远端（仅更新远端跟踪信息，不合并不改动工作区）。</summary>
-    public void Fetch(string pat)
-    {
-        var repo = Repo();
-        var remote = repo.Network.Remotes["origin"] ?? throw new GitServiceException(GitServiceError.NoOriginRemote, "未配置 origin 远端。");
-        var options = new FetchOptions();
-        var isHttps = !remote.Url.StartsWith("git@", StringComparison.OrdinalIgnoreCase)
-            && !remote.Url.StartsWith("ssh://", StringComparison.OrdinalIgnoreCase);
-        if (isHttps && !string.IsNullOrWhiteSpace(pat))
-        {
-            options.CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials { Username = pat, Password = string.Empty };
-        }
-        repo.Network.Fetch(remote.Name, Enumerable.Empty<string>(), options);
-    }
-
-    /// <summary>在指定提交上打轻量 tag（历史右键入口）。</summary>
-    public void CreateTag(string name, string sha)
-    {
-        var repo = Repo();
-        var commit = FindCommit(repo, sha);
-        repo.Tags.Add(name, commit);
-    }
-
     public void CreateTag(string name)
     {
         var repo = Repo();
@@ -765,9 +672,6 @@ public static class GitServiceError
     public const string NonFastForward = "nonFastForward";
     public const string NoCommitsForTag = "noCommitsForTag";
     public const string CommitNotFound = "commitNotFound";
-    public const string BranchNotFound = "branchNotFound";
-    public const string BranchIsCurrent = "branchIsCurrent";
-    public const string MergeConflicts = "mergeConflicts";
 }
 
 /// <summary>带稳定码的 Git 服务异常：消息为内置中文默认值，UI 按 Code 本地化覆盖。</summary>

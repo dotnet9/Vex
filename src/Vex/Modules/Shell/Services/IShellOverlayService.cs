@@ -49,14 +49,4 @@ public interface IShellOverlayService
 
     /// <summary>HTTPS 远程访问令牌（PAT）输入弹层；返回打包答案（令牌+是否记住），取消返回 null。</summary>
     Task<string?> ShowGitPatAsync();
-
-    /// <summary>新建/重命名分支弹层（GitHub Desktop create-branch-dialog 口径）：返回 名称+基准，取消返回 null。</summary>
-    Task<Vex.Modules.Git.ViewModels.GitBranchDialogResult?> ShowGitBranchDialogAsync(
-        Vex.Modules.Git.ViewModels.GitBranchDialogRequest request);
-
-    /// <summary>合并分支弹层（GitHub Desktop merge-choose-branch-dialog 口径）：选择源分支，取消返回 null。</summary>
-    Task<string?> ShowGitMergeDialogAsync(string currentBranch, IReadOnlyList<string> sourceBranches);
-
-    /// <summary>删除分支确认弹层（GitHub Desktop delete-branch-dialog 口径）：确认返回 true。</summary>
-    Task<bool> ShowGitBranchDeleteConfirmAsync(string branchName);
 }

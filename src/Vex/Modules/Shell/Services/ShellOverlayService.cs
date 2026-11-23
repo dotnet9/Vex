@@ -156,25 +156,6 @@ public sealed class ShellOverlayService(IUpdateService updates, IAppLocalizer lo
             new Vex.Modules.Git.ViewModels.GitPatDialogViewModel(),
             options: CreateOptions());
 
-    public Task<Vex.Modules.Git.ViewModels.GitBranchDialogResult?> ShowGitBranchDialogAsync(
-        Vex.Modules.Git.ViewModels.GitBranchDialogRequest request) =>
-        OverlayDialog.ShowCustomAsync<Vex.Modules.Git.ViewModels.GitBranchDialogResult?>(
-            new Vex.Modules.Git.Views.GitBranchDialogView(),
-            new Vex.Modules.Git.ViewModels.GitBranchDialogViewModel(request, key => localizer.Get(key)),
-            options: CreateOptions());
-
-    public Task<string?> ShowGitMergeDialogAsync(string currentBranch, IReadOnlyList<string> sourceBranches) =>
-        OverlayDialog.ShowCustomAsync<string>(
-            new Vex.Modules.Git.Views.GitMergeDialogView(),
-            new Vex.Modules.Git.ViewModels.GitMergeDialogViewModel(currentBranch, sourceBranches, key => localizer.Get(key)),
-            options: CreateOptions());
-
-    public Task<bool> ShowGitBranchDeleteConfirmAsync(string branchName) =>
-        OverlayDialog.ShowCustomAsync<bool>(
-            new Vex.Modules.Git.Views.GitBranchDeleteConfirmView(),
-            new Vex.Modules.Git.ViewModels.GitBranchDeleteConfirmViewModel(branchName, key => localizer.Get(key)),
-            options: CreateOptions());
-
     private static async Task ShowAsync(Control view, object? viewModel)
     {
         await OverlayDialog.ShowCustomAsync<object>(view, viewModel, options: CreateOptions());

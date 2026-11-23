@@ -178,8 +178,7 @@ internal static class GitPanelVerification
         Pump(git.SaveRemoteAsync("https://github.com/dotnet9/vex-notes.git"));
         Check(!git.IsSshRemote && git.RemoteChipText == "origin · HTTPS", "HTTPS remote switches chip wording");
         Check(git.RepoName == "vex-notes", "Repo name derives from remote url");
-        // GHD 口径（原型 REV3）：同步按钮随状态换动作、永不禁用——同步态可点「获取 origin」。
-        Check(git.CanPush, "Sync button stays clickable while in sync (GHD semantics)");
+        Check(!git.CanPush, "Push disabled while in sync");
         Check(git.PushHint.Contains("与远程同步"), "Sync hint wording matches prototype");
 
         // ===== 偏好：Git 分类（原型第 6 类） =====
