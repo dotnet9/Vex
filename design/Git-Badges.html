@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Git 修改标识 · GitHub Desktop 同款图标原型</title>
+<style>
+  :root { --font: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font);
+    background: #0B1220;
+    /* 深色档状态色(Primer dark 近似,实现时以 Desktop 深色主题核对) */
+    --c-new: #3FB950;   /* new / untracked / copied → diffAdded */
+    --c-mod: #D29922;   /* modified → diffModified */
+    --c-del: #F85149;   /* deleted → diffRemoved */
+    --c-ren: #539BF5;   /* renamed → diffRenamed */
+    --c-conf: #BD561D;  /* conflicted → alert */
+    --c-ok: #3FB950;    /* conflicted resolved → check */
+    --halo: #151B26;
+    color: #E5E7EB;
+    padding: 36px 44px 60px;
+  }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: .5px; }
+  .kicker { color: #5DD9BC; font-size: 12px; letter-spacing: 3px; font-weight: 600; margin-bottom: 6px; }
+  .sub { color: #8FA6B4; font-size: 13px; margin: 6px 0 26px; max-width: 980px; line-height: 1.8; }
+  h2 { font-size: 15px; font-weight: 700; margin: 32px 0 12px; color: #C9D8E2; }
+  h2 .tag { font-size: 11px; font-weight: 600; color: #5DD9BC; letter-spacing: 2px; margin-right: 8px; }
+
+  /* 浅色档状态色(desktop/desktop app/styles/_variables.scss 逐字):
+     new=green-600 #1A7F37, modified=darken(yellow-700,10%)≈#674500,
+     deleted=red-600 #CF222E, renamed=$blue #0969DA, conflicted=orange-800 #953800 */
+  .light {
+    --c-new: #1A7F37; --c-mod: #674500; --c-del: #CF222E;
+    --c-ren: #0969DA; --c-conf: #953800; --c-ok: #1A7F37;
+    --halo: #FFFFFF;
+  }
+
+  .oct { width: 16px; height: 16px; display: inline-block; fill: currentColor; }
+  .b-new  { color: var(--c-new); }
+  .b-mod  { color: var(--c-mod); }
+  .b-del  { color: var(--c-del); }
+  .b-ren  { color: var(--c-ren); }
+  .b-conf { color: var(--c-conf); }
+  .b-ok   { color: var(--c-ok); }
+
+  /* ---- 面板 ---- */
+  .cols { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+  .panel { border-radius: 12px; overflow: hidden; border: 1px solid #2B3443; min-width: 330px; background: #151B26; }
+  .panel.light { background: #FFFFFF; border-color: #E4E7EC; }
+  .panel-title { font-size: 11px; letter-spacing: 2px; font-weight: 600; padding: 8px 14px; border-bottom: 1px solid; }
+  .panel .panel-title  { color: #AAB4C3; border-color: #2B3443; background: #111827; }
+  .panel.light .panel-title { color: #667085; border-color: #E4E7EC; background: #FDFDFD; }
+
+  /* ---- 文件树行 ---- */
+  .tree { padding: 6px 0 10px; font-size: 13px; }
+  .row { display: flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px; position: relative; }
+  .dark-hover:hover  { background: #263244; }
+  .light-hover:hover { background: #F2F4F7; }
+  .row.selected { background: #1D3A5F; }
+  .light .row.selected { background: #E8F1FF; }
+  .chevron { width: 12px; display: inline-flex; justify-content: center; color: #7D8999; font-size: 9px; flex: none; }
+  .indent-1 { padding-left: 26px; }
+  .icon { position: relative; width: 16px; height: 16px; flex: none; display: inline-block; }
+  .name { white-space: nowrap; }
+  .dark-name { color: #E5E7EB; }
+  .light-name { color: #1D2939; }
+  .dark-folder { color: #C9D5DE; font-weight: 600; }
+  .light-folder { color: #344054; font-weight: 600; }
+  .meta { margin-left: auto; font-size: 11px; color: #7D8999; }
+  .light .meta { color: #98A2B3; }
+
+  /* 角标:octicon 原始字形,压在图标左下(VS 位置),halo 双投影隔离底图 */
+  .badge-oct {
+    position: absolute; left: -5px; bottom: -4px; width: 11px; height: 11px;
+    display: none;
+  }
+  .badge-oct.show { display: inline-block; }
+  .badge-oct .oct { width: 11px; height: 11px;
+    filter: drop-shadow(0 0 0.7px var(--halo)) drop-shadow(0 0 0.7px var(--halo)); }
+  .badge-oct.agg { left: -4px; bottom: -3px; width: 9px; height: 9px; opacity: .85; }
+  .badge-oct.agg .oct { width: 9px; height: 9px; }
+
+  /* ---- 映射表 ---- */
+  table.map { border-collapse: collapse; font-size: 12.5px; min-width: 760px; }
+  table.map th, table.map td { border: 1px solid #2B3443; padding: 7px 12px; text-align: left; }
+  table.map th { background: #111827; color: #AAB4C3; font-weight: 600; font-size: 11px; letter-spacing: 1px; }
+  table.map td { color: #C9D5DE; }
+  table.map .cell-ico { display: flex; align-items: center; gap: 8px; }
+  .mono { font-family: Consolas, "Microsoft YaHei Mono", monospace; font-size: 11.5px; color: #8FA6B4; }
+  .apply { font-size: 11px; padding: 2px 8px; border-radius: 9px; border: 1px solid #2B5A64; color: #73DCC2; white-space: nowrap; }
+  .apply.panel-only { border-color: #7D5433; color: #E8B36B; }
+
+  /* ---- 形态对比 ---- */
+  .variants { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+  .variant { border: 1px solid #2B3443; border-radius: 10px; background: #151B26; padding: 12px 16px; min-width: 230px; }
+  .variant .label { font-size: 11px; color: #AAB4C3; margin-bottom: 10px; letter-spacing: 1px; }
+  .variant.recommend { border-color: #2FA37A; }
+  .variant.recommend .label { color: #5DD9BC; }
+  .variant .demo { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #E5E7EB; }
+  .vs-ref { margin-top: 8px; font-size: 11px; color: #7D8999; line-height: 1.7; }
+
+  /* ---- Git 面板 ---- */
+  .gitlist { padding: 8px 0 12px; font-size: 12.5px; }
+  .gitrow { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 14px; }
+  .dark-hover.gitrow:hover { background: #263244; }
+  .gpath { color: #C9D5DE; }
+  .light .gpath { color: #344054; }
+  .gdir { font-size: 11px; color: #7D8999; }
+  .gnum-add { color: #3FB950; }
+  .gnum-del { color: #F85149; }
+  .status-word { margin-left: auto; font-size: 11.5px; font-weight: 600; }
+  .box-old { width: 18px; height: 18px; border-radius: 5px; flex: none;
+    border: 1.5px solid; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; }
+  .box-old.m { border-color: #FBBF24; color: #FBBF24; }
+  .box-old.a { border-color: #4ADE80; color: #4ADE80; }
+  .box-old.d { border-color: #F87171; color: #F87171; }
+  .box-old.u { border-color: #7D8999; color: #7D8999; background: #1B2533; }
+  .dot-old { width: 6px; height: 6px; border-radius: 50%; background: #FBBF24; }
+  .note { font-size: 12px; color: #8FA6B4; line-height: 1.9; margin-top: 10px; max-width: 980px; }
+  .note b { color: #C9D8E2; }
+  .divider { height: 1px; background: #1F2A3A; margin: 30px 0 0; }
+</style>
+</head>
+<body>
+
+<div class="kicker">VEX / DESIGN PROTOTYPE</div>
+<h1>Git 修改标识 · GitHub Desktop 同款图标</h1>
+<div class="sub">图标逐字取自 Primer octicons 16(MIT,desktop/desktop 同源,路径未改一笔),状态→图标映射对齐其 <span class="mono">app/src/ui/octicons/status.ts</span>,配色对齐其 <span class="mono">app/styles/_variables.scss</span>。六态全集:新增 / 修改 / 删除 / 重命名 / 冲突 / 冲突已解。</div>
+
+<!-- ============ 01 映射表 ============ -->
+<h2><span class="tag">01</span>状态映射与配色(逐字来源)</h2>
+<table class="map">
+  <tr><th>状态</th><th>octicon(status.ts)</th><th>Desktop 变量(_variables.scss)</th><th>浅色</th><th>深色</th><th>适用面</th></tr>
+  <tr>
+    <td>新增 / 未跟踪 / 复制</td>
+    <td class="cell-ico"><svg class="oct b-new" viewBox="0 0 16 16"><path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg><span class="mono">diff-added</span></td>
+    <td class="mono">--color-new: $green-600</td><td class="mono b-new">#1A7F37</td><td class="mono b-new">#3FB950</td>
+    <td><span class="apply">文件树 + 面板</span></td>
+  </tr>
+  <tr>
+    <td>修改</td>
+    <td class="cell-ico"><svg class="oct b-mod" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg><span class="mono">diff-modified</span></td>
+    <td class="mono">--color-modified: darken($yellow-700, 10%)</td><td class="mono b-mod">≈#674500</td><td class="mono b-mod">#D29922</td>
+    <td><span class="apply">文件树 + 面板</span></td>
+  </tr>
+  <tr>
+    <td>重命名(新路径)</td>
+    <td class="cell-ico"><svg class="oct b-ren" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25Zm9.03 6.03-3.25 3.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.97-1.97H4.75a.75.75 0 0 1 0-1.5h4.69L7.47 5.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l3.25 3.25a.75.75 0 0 1 0 1.06Z"/></svg><span class="mono">diff-renamed</span></td>
+    <td class="mono">--color-renamed: $blue</td><td class="mono b-ren">#0969DA</td><td class="mono b-ren">#539BF5</td>
+    <td><span class="apply">文件树 + 面板</span></td>
+  </tr>
+  <tr>
+    <td>删除</td>
+    <td class="cell-ico"><svg class="oct b-del" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25Zm8.5 6.25h-6.5a.75.75 0 0 1 0-1.5h6.5a.75.75 0 0 1 0 1.5Z"/></svg><span class="mono">diff-removed</span></td>
+    <td class="mono">--color-deleted: $red-600</td><td class="mono b-del">#CF222E</td><td class="mono b-del">#F85149</td>
+    <td><span class="apply panel-only">仅面板</span></td>
+  </tr>
+  <tr>
+    <td>冲突</td>
+    <td class="cell-ico"><svg class="oct b-conf" viewBox="0 0 16 16"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg><span class="mono">alert</span></td>
+    <td class="mono">--color-conflicted: $orange-800</td><td class="mono b-conf">#953800</td><td class="mono b-conf">#BD561D</td>
+    <td><span class="apply panel-only">仅面板</span></td>
+  </tr>
+  <tr>
+    <td>冲突已解(标记清零)</td>
+    <td class="cell-ico"><svg class="oct b-ok" viewBox="0 0 16 16"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg><span class="mono">check</span></td>
+    <td class="mono">status.ts: markers=0 → octicons.check</td><td class="mono b-ok">#1A7F37</td><td class="mono b-ok">#3FB950</td>
+    <td><span class="apply panel-only">仅面板</span></td>
+  </tr>
+</table>
+<div class="note">删除的文件不在磁盘上,文件树不显示该节点 → <b>仅面板</b>展示;冲突态 Vex 当前 GitChangeKind 尚未建模,枚举扩展后按此行接入。深色档为 Primer dark 近似值(浅色档全部来自 Desktop 源码逐字),实现时以 Desktop 深色主题核对一次。</div>
+
+<!-- ============ 02 文件树实装 ============ -->
+<h2><span class="tag">02</span>文件树实装(图标左下角标 · 深 / 浅)</h2>
+<div class="cols">
+  <!-- DARK TREE -->
+  <div class="panel">
+    <div class="panel-title">深色 · Vex 侧栏</div>
+    <div class="tree">
+      <div class="row dark-hover"><span class="chevron">▼</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16" fill="none"><path d="M1.8 4.2a1 1 0 0 1 1-1h3.1l1.3 1.5h6a1 1 0 0 1 1 1v6.1a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1V4.2Z" stroke="#9DB0C0" stroke-width="1.1"/></svg>
+          <span class="badge-oct agg show b-mod"><svg class="oct" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg></span></span>
+        <span class="name dark-folder">docs</span><span class="meta">子项有修改</span>
+      </div>
+      <div class="row indent-1 dark-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="#EAF1FB" opacity=".18"/><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8" width="6.8" height="1.6" rx=".5" fill="#3B82F6"/><rect x="4.6" y="10.4" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg>
+          <span class="badge-oct show b-mod"><svg class="oct" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg></span></span>
+        <span class="name dark-name">流式规则.md</span><span class="meta">已修改</span>
+      </div>
+      <div class="row indent-1 dark-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8" width="6.8" height="1.6" rx=".5" fill="#3B82F6"/><rect x="4.6" y="10.4" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg></span>
+        <span class="name dark-name">基准报告.md</span>
+      </div>
+      <div class="row dark-hover"><span class="chevron">▼</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16" fill="none"><path d="M1.8 4.2a1 1 0 0 1 1-1h3.1l1.3 1.5h6a1 1 0 0 1 1 1v6.1a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1V4.2Z" stroke="#9DB0C0" stroke-width="1.1"/></svg>
+          <span class="badge-oct agg show b-new"><svg class="oct" viewBox="0 0 16 16"><path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg></span></span>
+        <span class="name dark-folder">src</span><span class="meta">子项有新增</span>
+      </div>
+      <div class="row indent-1 dark-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8.2" width="6.8" height="1.4" rx=".5" fill="#A78BFA"/><rect x="4.6" y="10.6" width="4.6" height="1.2" rx=".5" fill="#C9BCF5"/></svg>
+          <span class="badge-oct show b-ren"><svg class="oct" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25Zm9.03 6.03-3.25 3.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.97-1.97H4.75a.75.75 0 0 1 0-1.5h4.69L7.47 5.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l3.25 3.25a.75.75 0 0 1 0 1.06Z"/></svg></span></span>
+        <span class="name dark-name">ShellFilesView.axaml</span><span class="meta">重命名</span>
+      </div>
+      <div class="row indent-1 selected"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8.2" width="6.8" height="1.4" rx=".5" fill="#4ADE80"/><rect x="4.6" y="10.6" width="4.6" height="1.2" rx=".5" fill="#86EFAC"/></svg>
+          <span class="badge-oct show b-new"><svg class="oct" viewBox="0 0 16 16"><path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg></span></span>
+        <span class="name dark-name">GitBadgeService.cs</span><span class="meta">新增</span>
+      </div>
+      <div class="row indent-1 dark-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8.2" width="6.8" height="1.4" rx=".5" fill="#FBBF24"/><rect x="4.6" y="10.6" width="4.6" height="1.2" rx=".5" fill="#FCD34D"/></svg></span>
+        <span class="name dark-name">palette.json</span>
+      </div>
+      <div class="row dark-hover"><span class="chevron">▶</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16" fill="none"><path d="M1.8 4.2a1 1 0 0 1 1-1h3.1l1.3 1.5h6a1 1 0 0 1 1 1v6.1a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1V4.2Z" stroke="#9DB0C0" stroke-width="1.1"/></svg></span>
+        <span class="name dark-folder">tests</span>
+      </div>
+      <div class="row dark-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8" width="6.8" height="1.6" rx=".5" fill="#3B82F6"/><rect x="4.6" y="10.4" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg>
+          <span class="badge-oct show b-mod"><svg class="oct" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg></span></span>
+        <span class="name dark-name">README.md</span><span class="meta">已修改</span>
+      </div>
+      <div class="row dark-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8.2" width="6.8" height="1.4" rx=".5" fill="#9AA7B8"/><rect x="4.6" y="10.6" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg>
+          <span class="badge-oct show b-new"><svg class="oct" viewBox="0 0 16 16"><path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg></span></span>
+        <span class="name dark-name">22.txt</span><span class="meta">未跟踪</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIGHT TREE -->
+  <div class="panel light">
+    <div class="panel-title">浅色 · Vex 侧栏</div>
+    <div class="tree">
+      <div class="row light-hover"><span class="chevron">▼</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16" fill="none"><path d="M1.8 4.2a1 1 0 0 1 1-1h3.1l1.3 1.5h6a1 1 0 0 1 1 1v6.1a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1V4.2Z" stroke="#667085" stroke-width="1.1"/></svg>
+          <span class="badge-oct agg show b-mod"><svg class="oct" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg></span></span>
+        <span class="name light-folder">docs</span><span class="meta">子项有修改</span>
+      </div>
+      <div class="row indent-1 light-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8" width="6.8" height="1.6" rx=".5" fill="#3B82F6"/><rect x="4.6" y="10.4" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg>
+          <span class="badge-oct show b-mod"><svg class="oct" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg></span></span>
+        <span class="name light-name">流式规则.md</span><span class="meta">已修改</span>
+      </div>
+      <div class="row indent-1 light-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8" width="6.8" height="1.6" rx=".5" fill="#3B82F6"/><rect x="4.6" y="10.4" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg></span>
+        <span class="name light-name">基准报告.md</span>
+      </div>
+      <div class="row light-hover"><span class="chevron">▼</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16" fill="none"><path d="M1.8 4.2a1 1 0 0 1 1-1h3.1l1.3 1.5h6a1 1 0 0 1 1 1v6.1a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1V4.2Z" stroke="#667085" stroke-width="1.1"/></svg>
+          <span class="badge-oct agg show b-new"><svg class="oct" viewBox="0 0 16 16"><path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg></span></span>
+        <span class="name light-folder">src</span><span class="meta">子项有新增</span>
+      </div>
+      <div class="row indent-1 light-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8.2" width="6.8" height="1.4" rx=".5" fill="#A78BFA"/><rect x="4.6" y="10.6" width="4.6" height="1.2" rx=".5" fill="#C9BCF5"/></svg>
+          <span class="badge-oct show b-ren"><svg class="oct" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25Zm9.03 6.03-3.25 3.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.97-1.97H4.75a.75.75 0 0 1 0-1.5h4.69L7.47 5.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l3.25 3.25a.75.75 0 0 1 0 1.06Z"/></svg></span></span>
+        <span class="name light-name">ShellFilesView.axaml</span><span class="meta">重命名</span>
+      </div>
+      <div class="row indent-1 selected"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8.2" width="6.8" height="1.4" rx=".5" fill="#4ADE80"/><rect x="4.6" y="10.6" width="4.6" height="1.2" rx=".5" fill="#86EFAC"/></svg>
+          <span class="badge-oct show b-new"><svg class="oct" viewBox="0 0 16 16"><path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg></span></span>
+        <span class="name light-name">GitBadgeService.cs</span><span class="meta">新增</span>
+      </div>
+      <div class="row indent-1 light-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8.2" width="6.8" height="1.4" rx=".5" fill="#FBBF24"/><rect x="4.6" y="10.6" width="4.6" height="1.2" rx=".5" fill="#FCD34D"/></svg></span>
+        <span class="name light-name">palette.json</span>
+      </div>
+      <div class="row light-hover"><span class="chevron">▶</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16" fill="none"><path d="M1.8 4.2a1 1 0 0 1 1-1h3.1l1.3 1.5h6a1 1 0 0 1 1 1v6.1a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1V4.2Z" stroke="#667085" stroke-width="1.1"/></svg></span>
+        <span class="name light-folder">tests</span>
+      </div>
+      <div class="row light-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8" width="6.8" height="1.6" rx=".5" fill="#3B82F6"/><rect x="4.6" y="10.4" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg>
+          <span class="badge-oct show b-mod"><svg class="oct" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg></span></span>
+        <span class="name light-name">README.md</span><span class="meta">已修改</span>
+      </div>
+      <div class="row light-hover"><span class="chevron">·</span>
+        <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8.2" width="6.8" height="1.4" rx=".5" fill="#9AA7B8"/><rect x="4.6" y="10.6" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg>
+          <span class="badge-oct show b-new"><svg class="oct" viewBox="0 0 16 16"><path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg></span></span>
+        <span class="name light-name">22.txt</span><span class="meta">未跟踪</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="note">角标 = octicon 原始字形按 <b>11px</b>(文件夹聚合 9px、85% 不透明度)压在文件图标<b>左下</b>(与 VS 截图同位),双层 drop-shadow 描 halo(深色描面板底色、浅色描白)隔离彩色文件图标;悬停 tooltip 显示状态词。六态形状互异(加号/方框点/方框减/方框箭/三角叹/勾),色觉障碍也可辨。</div>
+
+<!-- ============ 03 形态对比 ============ -->
+<h2><span class="tag">03</span>角标形态备选(同一文件"流式规则.md · 已修改")</h2>
+<div class="variants">
+  <div class="variant recommend">
+    <div class="label">A · octicon 原字形直贴 —— 推荐(= Desktop 同款)</div>
+    <div class="demo">
+      <span class="icon"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8" width="6.8" height="1.6" rx=".5" fill="#3B82F6"/><rect x="4.6" y="10.4" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg><span class="badge-oct show b-mod" style="position:absolute;left:-5px;bottom:-4px;width:11px;height:11px"><svg class="oct" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg></span></span>
+      <span class="name dark-name">流式规则.md</span>
+    </div>
+    <div class="vs-ref">GitHub Desktop 官方语义(修改=方框点,非红勾);形状自带方框底,单色即清晰</div>
+  </div>
+  <div class="variant">
+    <div class="label">B · 圆盘白字(上一版方案)</div>
+    <div class="demo">
+      <span class="icon" style="position:relative;width:16px;height:16px"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8" width="6.8" height="1.6" rx=".5" fill="#3B82F6"/><rect x="4.6" y="10.4" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg><span style="position:absolute;left:-5px;bottom:-4px;width:11px;height:11px;border-radius:50%;background:#DC2626;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 0 0 1.5px #151B26"><svg viewBox="0 0 8 8" style="width:7px;height:7px"><path d="M1.2 4.2 3 6l3.8-4" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+      <span class="name dark-name">流式规则.md</span>
+    </div>
+    <div class="vs-ref">与 Desktop 语言不一致(修改≠红勾),弃</div>
+  </div>
+  <div class="variant">
+    <div class="label">C · VS 红勾对照(用户首截图)</div>
+    <div class="demo">
+      <span class="icon" style="position:relative;width:16px;height:16px"><svg class="oct" viewBox="0 0 16 16"><path d="M4 1.5h5.2L12.5 4.8V14a.9.9 0 0 1-.9.9H4a.9.9 0 0 1-.9-.9V2.4a.9.9 0 0 1 .9-.9Z" fill="none" stroke="#8AA5C8" stroke-width=".9"/><rect x="4.6" y="8" width="6.8" height="1.6" rx=".5" fill="#3B82F6"/><rect x="4.6" y="10.4" width="4.6" height="1.2" rx=".5" fill="#B6CBEC"/></svg><svg viewBox="0 0 16 16" class="oct b-del" style="position:absolute;left:-5px;bottom:-4px;width:11px;height:11px;filter:drop-shadow(0 0 .7px #151B26) drop-shadow(0 0 .7px #151B26)"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg></span>
+      <span class="name dark-name">流式规则.md</span>
+    </div>
+    <div class="vs-ref">VS 修改=红勾;但其勾无形状差异(与"冲突已解"勾撞形),语义密度低</div>
+  </div>
+</div>
+<div class="note">推荐 <b>A</b>:六个 octicon 两两形状互异、官方维护、MIT 可直用;Desktop 用它多年,语义已被开发者广泛熟悉。</div>
+
+<!-- ============ 04 Git 面板 ============ -->
+<h2><span class="tag">04</span>Git 面板同步强化(现状 vs 新案 · 深色)</h2>
+<div class="cols">
+  <div class="panel" style="min-width:380px">
+    <div class="panel-title">现状 · 18px 描边框 + 6px 点/字符</div>
+    <div class="gitlist">
+      <div class="gitrow dark-hover"><span class="box-old m"><span class="dot-old"></span></span><span class="gpath">docs/流式规则.md</span></div>
+      <div class="gitrow dark-hover"><span class="box-old a">+</span><span class="gpath">src/Vex/GitBadgeService.cs</span></div>
+      <div class="gitrow dark-hover"><span class="box-old d">−</span><span class="gpath">src/old.css</span></div>
+      <div class="gitrow dark-hover"><span class="box-old u">?</span><span class="gpath">22.txt</span></div>
+    </div>
+    <div class="note" style="padding:0 14px 12px">问题:M 状态只有 6px 色点;四态几乎只差 1.5px 描边颜色;无重命名/冲突形态。</div>
+  </div>
+  <div class="panel" style="min-width:420px">
+    <div class="panel-title">新案 · octicon 同款图标 + 状态词(六态全集)</div>
+    <div class="gitlist">
+      <div class="gitrow dark-hover"><svg class="oct b-mod" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg><span class="gpath">流式规则.md</span> <span class="gdir">docs/</span><span class="gnum-add">+12</span><span class="gnum-del">−3</span><span class="status-word b-mod">已修改</span></div>
+      <div class="gitrow dark-hover"><svg class="oct b-new" viewBox="0 0 16 16"><path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg><span class="gpath">GitBadgeService.cs</span> <span class="gdir">src/Vex/</span><span class="gnum-add">+86</span><span class="status-word b-new">新增</span></div>
+      <div class="gitrow dark-hover"><svg class="oct b-del" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25Zm8.5 6.25h-6.5a.75.75 0 0 1 0-1.5h6.5a.75.75 0 0 1 0 1.5Z"/></svg><span class="gpath">old.css</span> <span class="gdir">src/</span><span class="gnum-del">−140</span><span class="status-word b-del">已删除</span></div>
+      <div class="gitrow dark-hover"><svg class="oct b-ren" viewBox="0 0 16 16"><path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25Zm9.03 6.03-3.25 3.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.97-1.97H4.75a.75.75 0 0 1 0-1.5h4.69L7.47 5.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l3.25 3.25a.75.75 0 0 1 0 1.06Z"/></svg><span class="gpath">GitBadge.cs</span> <span class="gdir">src/Vex/</span><span class="status-word b-ren">重命名</span></div>
+      <div class="gitrow dark-hover"><svg class="oct b-conf" viewBox="0 0 16 16"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg><span class="gpath">App.axaml</span> <span class="gdir">src/Vex/</span><span class="status-word b-conf">冲突</span></div>
+      <div class="gitrow dark-hover"><svg class="oct b-new" viewBox="0 0 16 16"><path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg><span class="gpath">22.txt</span><span class="status-word b-new">未跟踪</span></div>
+      <div class="gitrow dark-hover"><svg class="oct b-ok" viewBox="0 0 16 16"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg><span class="gpath">App.axaml.cs</span> <span class="gdir">src/Vex/</span><span class="status-word b-ok">冲突已解</span></div>
+    </div>
+    <div class="note" style="padding:0 14px 12px">面板行直接复用 16px octicon;+− 行数沿用现有 <span class="mono">ChangeEntry.LinesAdded/LinesDeleted</span>;状态词列可读性兜底。</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+<div class="note">
+  <b>素材与来源:</b>六个 SVG path 逐字取自 <a style="color:#5DD9BC" href="https://github.com/primer/octicons">primer/octicons</a> 16px 构建(MIT,© GitHub);状态映射对照 <a style="color:#5DD9BC" href="https://github.com/desktop/desktop/blob/development/app/src/ui/octicons/status.ts">desktop/desktop status.ts</a>;浅色配色逐字对照其 <span class="mono">app/styles/_variables.scss</span>。中间素材(tarball/脚本)均在 <span class="mono">E:\github\temp_files\vex-git-badge\</span>,仓库内只保留本原型页。
+</div>
+<div class="note">
+  <b>落地钩子(实现时接线):</b>① 枚举+节点属性进 Vex.Core(<span class="mono">DocumentFileNode</span> 加 notify 属性,文件夹聚合 Shell 层算);② 常驻轻量服务持 <span class="mono">GitService</span>(非仓库静默禁用),不挂 Git 面板生命周期;③ 刷新走后台 <span class="mono">RetrieveStatus</span>→快照→UI 线程批 apply,与本仓 10s 指纹重扫对齐,本机保存即时触发;④ MCP git 工具改走共享服务(否则 AI 改文件徽章不更新);⑤ octicon Path Data 作为 StreamGeometry 资源进 WorkbenchStyles(树/列表双模板角标 + Git 面板行三处复用),Git 面板旧 git-status 框样式同步替换。
+</div>
+
+</body>
+</html>
