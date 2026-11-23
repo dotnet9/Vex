@@ -37,30 +37,43 @@ public static class GitBadgeConverters
         }
     }
 
-    private static string? GeometryKey(WorkspaceGitStatus status) => status switch
+    private static string? GeometryKey(WorkspaceGitStatus status, bool lead) => (status, lead) switch
     {
-        WorkspaceGitStatus.New or WorkspaceGitStatus.Untracked => "WBGitAddedIcon",
-        WorkspaceGitStatus.Modified => "WBGitModifiedIcon",
-        WorkspaceGitStatus.Renamed => "WBGitRenamedIcon",
-        WorkspaceGitStatus.Deleted => "WBGitRemovedIcon",
-        WorkspaceGitStatus.Conflicted => "WBGitConflictedIcon",
+        // 树内前导槽语言（REV2）：受管干净=锁；修改/重命名=红勾；新增=加号；未跟踪=空槽。
+        (WorkspaceGitStatus.TrackedClean, _) => "WBGitLockIcon",
+        (WorkspaceGitStatus.Modified or WorkspaceGitStatus.Renamed, true) => "WBGitCheckIcon",
+        (WorkspaceGitStatus.New, true) => "WBGitPlusIcon",
+        (WorkspaceGitStatus.Untracked, true) => null,
+        (WorkspaceGitStatus.Deleted, _) => "WBGitRemovedIcon",
+        (WorkspaceGitStatus.Conflicted, _) => "WBGitConflictedIcon",
+        (WorkspaceGitStatus.New or WorkspaceGitStatus.Untracked, false) => "WBGitAddedIcon",
+        (WorkspaceGitStatus.Modified, false) => "WBGitModifiedIcon",
+        (WorkspaceGitStatus.Renamed, false) => "WBGitRenamedIcon",
         _ => null,
     };
 
-    private static string BrushKey(WorkspaceGitStatus status) => status switch
+    private static string? BrushKey(WorkspaceGitStatus status, bool lead) => (status, lead) switch
     {
-        WorkspaceGitStatus.New or WorkspaceGitStatus.Untracked => "VexGitNewBrush",
-        WorkspaceGitStatus.Modified => "VexGitModifiedBrush",
-        WorkspaceGitStatus.Renamed => "VexGitRenamedBrush",
-        WorkspaceGitStatus.Deleted => "VexGitDeletedBrush",
-        WorkspaceGitStatus.Conflicted => "VexGitConflictedBrush",
-        _ => "VexGitNewBrush",
+        (WorkspaceGitStatus.TrackedClean, _) => "VexGitLockBrush",
+        (WorkspaceGitStatus.Modified or WorkspaceGitStatus.Renamed, true) => "VexGitCheckBrush",
+        (WorkspaceGitStatus.New, true) => "VexGitNewBrush",
+        (WorkspaceGitStatus.Untracked, true) => null,
+        (WorkspaceGitStatus.Deleted, _) => "VexGitDeletedBrush",
+        (WorkspaceGitStatus.Conflicted, _) => "VexGitConflictedBrush",
+        (WorkspaceGitStatus.New or WorkspaceGitStatus.Untracked, false) => "VexGitNewBrush",
+        (WorkspaceGitStatus.Modified, false) => "VexGitModifiedBrush",
+        (WorkspaceGitStatus.Renamed, false) => "VexGitRenamedBrush",
+        _ => null,
     };
 
     private sealed class NotNoneConverter : IValueConverter
     {
-        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-            value is WorkspaceGitStatus status && status != WorkspaceGitStatus.None;
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value is not WorkspaceGitStatus status || status == WorkspaceGitStatus.None) return false;
+            // 树内前导槽：未跟踪=空槽，整个字形元素隐藏（面板无此参数，未跟踪行照常显示）。
+            return !(status == WorkspaceGitStatus.Untracked && parameter as string == "lead");
+        }
 
         public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
             throw new NotSupportedException();
@@ -71,7 +84,8 @@ public static class GitBadgeConverters
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is not WorkspaceGitStatus status || status == WorkspaceGitStatus.None) return null;
-            var key = GeometryKey(status);
+            var lead = parameter as string == "lead";
+            var key = GeometryKey(status, lead);
             if (key is null) return null;
             return Application.Current?.TryGetResource(key, ThemeVariant.Default, out var geometry) == true
                 ? geometry
@@ -91,8 +105,11 @@ public static class GitBadgeConverters
                 return null;
             }
 
+            var lead = parameter as string == "lead";
             var theme = values.Count > 1 && values[1] is ThemeVariant variant ? variant : ThemeVariant.Default;
-            return Application.Current?.TryGetResource(BrushKey(status), theme, out var brush) == true ? brush : null;
+            var key = BrushKey(status, lead);
+            if (key is null) return null;
+            return Application.Current?.TryGetResource(key, theme, out var brush) == true ? brush : null;
         }
     }
 
@@ -103,6 +120,7 @@ public static class GitBadgeConverters
             if (value is not WorkspaceGitStatus status || status == WorkspaceGitStatus.None) return null;
             var key = status switch
             {
+                WorkspaceGitStatus.TrackedClean => VexL.GitBadgeTrackedClean,
                 WorkspaceGitStatus.New => VexL.GitBadgeNew,
                 WorkspaceGitStatus.Untracked => VexL.GitBadgeUntracked,
                 WorkspaceGitStatus.Modified => VexL.GitBadgeModified,

@@ -65,6 +65,19 @@
                                       IsVisible="{Binding $parent[TreeViewItem].IsExpanded}" />
                             </Panel>
                         </ToggleButton>
+                        <!-- Git 前导状态槽（design/Git-Badges.html REV2）：标识与图标分开——受管干净=灰锁，
+                             修改/重命名=红勾，新增=绿加号，未跟踪/None=空槽（什么都不放）。 -->
+                        <Path Classes="git-lead" VerticalAlignment="Center"
+                              IsVisible="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.NotNone}, ConverterParameter=lead}"
+                              Data="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Geometry}, ConverterParameter=lead}"
+                              helpers:ToolTipHelper.Text="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Word}}">
+                            <Path.Fill>
+                                <MultiBinding Converter="{x:Static converters:GitBadgeConverters.Brush}" ConverterParameter="lead">
+                                    <Binding Path="GitStatus" />
+                                    <Binding Path="$parent[UserControl].ActualThemeVariant" />
+                                </MultiBinding>
+                            </Path.Fill>
+                        </Path>
                         <Panel VerticalAlignment="Center">
                             <Image x:Name="FileTypeIcon" Classes="tree-ico" Stretch="Uniform"
                                    IsVisible="{Binding #FileTypeIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNotNull}}">
@@ -84,19 +97,6 @@
                                 <Path Classes="tree-ico" IsVisible="{Binding IsDocument}"
                                       Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
                             </Panel>
-                            <!-- Git 徽章：octicon 原字形压图标左下（VS 同位），None 不渲染；形状来源见 WorkbenchStyles。 -->
-                            <Path Classes="git-badge"
-                                  IsVisible="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.NotNone}}"
-                                  Data="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Geometry}}"
-                                  Stroke="{DynamicResource VexPanelBackgroundBrush}"
-                                  helpers:ToolTipHelper.Text="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Word}}">
-                                <Path.Fill>
-                                    <MultiBinding Converter="{x:Static converters:GitBadgeConverters.Brush}">
-                                        <Binding Path="GitStatus" />
-                                        <Binding Path="$parent[UserControl].ActualThemeVariant" />
-                                    </MultiBinding>
-                                </Path.Fill>
-                            </Path>
                         </Panel>
                     </StackPanel>
                     <TextBlock Grid.Column="1" Classes="file-heading" IsVisible="{Binding IsFolder}"
@@ -119,14 +119,13 @@
     <UserControl.Styles>
      <!-- Git 徽章（design/Git-Badges.html）：octicon 字形 11px 压图标左下（VS 同位），
           面板底色细描边作 halo 隔离彩色文件图标；深浅两档由状态刷 DynamicResource 切换。 -->
-     <Style Selector="Path.git-badge">
+     <!-- Git 前导状态槽（design/Git-Badges.html REV2）：octicon 字形 11px 独立槽位（标识与图标分开），
+          与文件图标不叠压；octicon 几何以 16 单位设计，必须均匀缩放进 11px 控件。 -->
+     <Style Selector="Path.git-lead">
         <Setter Property="Width" Value="11" />
         <Setter Property="Height" Value="11" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Bottom" />
-        <Setter Property="Margin" Value="-5,0,0,-4" />
-        <Setter Property="StrokeThickness" Value="0.9" />
-        <Setter Property="StrokeJoin" Value="Round" />
+        <Setter Property="Stretch" Value="Uniform" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
      </Style>
      <!-- 原型 .empty-state button（workspace-chrome.css:264）：强调色 11px 文字钮，无底无描边，悬停加深。 -->
      <!-- 原型 .files-sort-item[aria-checked=true]（writing-chrome.css:23）：选中项 accent-soft 底 + accent 字。 -->
@@ -388,11 +387,22 @@
                  ItemsSource="{Binding FlatDocumentFileNodes}" SelectedItem="{Binding SelectedListDocumentFileNode, Mode=TwoWay}" PointerPressed="SelectItemOnPointerPressed">
             <ListBox.ItemTemplate><DataTemplate x:DataType="models:DocumentFileNode">
                 <!-- 原型 .file-row：单行（图标 13 + 名称 + 行尾目录标签），28 高与 8 内距、6 圆角由行本身给出。 -->
-                <Grid Classes="file-list-row" ColumnDefinitions="13,*,Auto" ColumnSpacing="7">
-                    <Border Classes="file-selection-marker" Grid.ColumnSpan="3" Width="3" Margin="-8,4,0,4"
+                <Grid Classes="file-list-row" ColumnDefinitions="12,13,*,Auto" ColumnSpacing="7">
+                    <Border Classes="file-selection-marker" Grid.ColumnSpan="4" Width="3" Margin="-8,4,0,4"
                             HorizontalAlignment="Left" CornerRadius="2" IsHitTestVisible="False"
                             Background="{DynamicResource VexAccentBrush}"
                             IsVisible="{Binding $parent[ListBoxItem].IsSelected}" />
+                    <Path Classes="git-lead" VerticalAlignment="Center"
+                          IsVisible="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.NotNone}, ConverterParameter=lead}"
+                          Data="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Geometry}, ConverterParameter=lead}"
+                          helpers:ToolTipHelper.Text="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Word}}">
+                        <Path.Fill>
+                            <MultiBinding Converter="{x:Static converters:GitBadgeConverters.Brush}" ConverterParameter="lead">
+                                <Binding Path="GitStatus" />
+                                <Binding Path="$parent[UserControl].ActualThemeVariant" />
+                            </MultiBinding>
+                        </Path.Fill>
+                    </Path>
                     <Panel Width="13" Height="13" VerticalAlignment="Center">
                         <Image x:Name="ListFileIcon" Classes="tree-ico" Width="13" Height="13" Stretch="Uniform"
                                IsVisible="{Binding #ListFileIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNotNull}}">
@@ -407,18 +417,6 @@
                         </Image>
                         <Path Classes="tree-ico" IsVisible="{Binding #ListFileIcon.Source, Converter={x:Static avaloniaConverters:ObjectConverters.IsNull}}"
                               Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
-                        <Path Classes="git-badge"
-                              IsVisible="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.NotNone}}"
-                              Data="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Geometry}}"
-                              Stroke="{DynamicResource VexPanelBackgroundBrush}"
-                              helpers:ToolTipHelper.Text="{Binding GitStatus, Converter={x:Static converters:GitBadgeConverters.Word}}">
-                            <Path.Fill>
-                                <MultiBinding Converter="{x:Static converters:GitBadgeConverters.Brush}">
-                                    <Binding Path="GitStatus" />
-                                    <Binding Path="$parent[UserControl].ActualThemeVariant" />
-                                </MultiBinding>
-                            </Path.Fill>
-                        </Path>
                     </Panel>
                     <TextBlock Grid.Column="1" Classes="file-list-name" Text="{Binding Name}" VerticalAlignment="Center"
                                FontSize="{Binding $parent[UserControl].((vm:ShellFilesViewModel)DataContext).Preferences.FileListFontSize, FallbackValue=12.5}"

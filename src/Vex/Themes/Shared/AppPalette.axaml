@@ -47,6 +47,8 @@
             <SolidColorBrush x:Key="VexGitRenamedBrush" Color="#0969DA" />
             <SolidColorBrush x:Key="VexGitDeletedBrush" Color="#CF222E" />
             <SolidColorBrush x:Key="VexGitConflictedBrush" Color="#953800" />
+            <SolidColorBrush x:Key="VexGitLockBrush" Color="#98A2B3" />
+            <SolidColorBrush x:Key="VexGitCheckBrush" Color="#CF222E" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush x:Key="VexShellBackgroundBrush" Color="#111827" />
@@ -94,6 +96,8 @@
             <SolidColorBrush x:Key="VexGitRenamedBrush" Color="#539BF5" />
             <SolidColorBrush x:Key="VexGitDeletedBrush" Color="#F85149" />
             <SolidColorBrush x:Key="VexGitConflictedBrush" Color="#BD561D" />
+            <SolidColorBrush x:Key="VexGitLockBrush" Color="#7D8999" />
+            <SolidColorBrush x:Key="VexGitCheckBrush" Color="#F85149" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

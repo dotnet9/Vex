@@ -16,6 +16,7 @@
       "GitBadgeRenamed": "名前変更",
       "GitBadgeDeleted": "削除済み",
       "GitBadgeConflicted": "競合",
+      "GitBadgeTrackedClean": "git 管理下",
       "GitDiscardMenu": "変更を破棄…",
       "GitDiscardedToast": "変更を破棄しました",
       "GitDiscardConfirmFormat": "「{0}」のすべての変更を破棄しますか？元に戻せません。",

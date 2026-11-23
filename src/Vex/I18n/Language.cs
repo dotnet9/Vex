@@ -17,6 +17,7 @@ namespace Vex
         public static readonly string GitBadgeRenamed = "Vex.VexL.GitBadgeRenamed";
         public static readonly string GitBadgeDeleted = "Vex.VexL.GitBadgeDeleted";
         public static readonly string GitBadgeConflicted = "Vex.VexL.GitBadgeConflicted";
+        public static readonly string GitBadgeTrackedClean = "Vex.VexL.GitBadgeTrackedClean";
         public static readonly string GitErrorCommitIdentityMissing = "Vex.VexL.GitErrorCommitIdentityMissing";
         public static readonly string GitErrorNoOriginRemote = "Vex.VexL.GitErrorNoOriginRemote";
         public static readonly string GitErrorNonFastForward = "Vex.VexL.GitErrorNonFastForward";

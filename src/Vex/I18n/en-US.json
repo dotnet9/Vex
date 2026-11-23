@@ -16,6 +16,7 @@
       "GitBadgeRenamed": "Renamed",
       "GitBadgeDeleted": "Deleted",
       "GitBadgeConflicted": "Conflict",
+      "GitBadgeTrackedClean": "Managed by git",
       "GitDiscardMenu": "Discard changes…",
       "GitDiscardedToast": "Changes discarded",
       "GitDiscardConfirmFormat": "Discard all changes to \"{0}\"? This cannot be undone.",

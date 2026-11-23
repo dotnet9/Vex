@@ -16,6 +16,7 @@
       "GitBadgeRenamed": "重新命名",
       "GitBadgeDeleted": "已刪除",
       "GitBadgeConflicted": "衝突",
+      "GitBadgeTrackedClean": "受 git 管控",
       "GitDiscardMenu": "放棄變更…",
       "GitDiscardedToast": "已放棄變更",
       "GitDiscardConfirmFormat": "放棄對「{0}」的全部變更？此操作不可復原。",
