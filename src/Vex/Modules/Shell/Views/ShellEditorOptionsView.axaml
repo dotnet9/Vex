@@ -6,7 +6,7 @@
   <!-- 原型格式条为 12 个格式命令和 3 个行内样式入口；窄窗用工具条溢出菜单。 -->
   <Border Classes="edit-options" Classes.pinned="{Binding Workbench.Preferences.PinEditorToolbar}" Height="{DynamicResource VexUiHeaderHeight}" Padding="{DynamicResource VexUiHeaderPadding}" Background="{DynamicResource VexChromeBrush}" BorderBrush="{DynamicResource VexPaneHeadBorderBrush}" BorderThickness="0,0,0,1">
     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-      <u:ToolBar x:Name="FormattingToolbar" Classes="wb-formatbar" Margin="4,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding Workbench.IsEditing}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBFormatting}}">
+      <u:ToolBar x:Name="FormattingToolbar" Classes="wb-formatbar" Margin="4,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding Workbench.IsEditing}" KeyboardNavigation.TabNavigation="Continue" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBFormatting}}">
         <Button x:Name="FormatUndo" Classes="wb-format" Command="{Binding EditorActions.Undo}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Undo}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Undo}}"><Viewbox Width="{DynamicResource VexUiFormatIconSize}" Height="{DynamicResource VexUiFormatIconSize}"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M9 14L4 9l5-5 M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></Canvas></Viewbox></Button>
         <Button x:Name="FormatRedo" Classes="wb-format" Command="{Binding EditorActions.Redo}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Redo}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Redo}}"><Viewbox Width="{DynamicResource VexUiFormatIconSize}" Height="{DynamicResource VexUiFormatIconSize}"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="m15 14 5-5-5-5 M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></Canvas></Viewbox></Button>
         <Border Classes="band-divider" />
@@ -116,7 +116,7 @@
           </Button.Flyout>
         </Button>
         <Button x:Name="SpanBackground" Classes="wb-format span-tool" Margin="0" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.SpanBackground}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.SpanBackground}}">
-          <StackPanel Orientation="Horizontal" Spacing="2"><Border Classes="span-background" Padding="3,1" CornerRadius="3" Background="#FFF3BF"><TextBlock Classes="span-glyph bg" Text="A"/></Border><Viewbox Width="10" Height="10"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M6 9l6 6 6-6"/></Canvas></Viewbox></StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="2"><Border Classes="span-background" Padding="3,1" CornerRadius="3" Background="{DynamicResource VexMarkBackgroundBrush}"><TextBlock Classes="span-glyph bg" Text="A"/></Border><Viewbox Width="10" Height="10"><Canvas Width="24" Height="24"><Path Classes="format-stroke" Data="M6 9l6 6 6-6"/></Canvas></Viewbox></StackPanel>
           <Button.Flyout>
             <md:MarkdownSpanStyleFlyout Placement="Bottom">
               <md:MarkdownSpanStylePicker DataContext="{Binding EditorActions.SpanBackground}"/>
@@ -125,7 +125,7 @@
         </Button>
       </u:ToolBar>
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-        <ToggleButton x:Name="PinEditor" Classes="toolbar-pin" IsChecked="{Binding Workbench.Preferences.PinEditorToolbar}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
+        <ToggleButton x:Name="PinEditor" Classes="toolbar-pin" IsChecked="{Binding Workbench.Preferences.PinEditorToolbar}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBPinToolbar}}">
           <Panel Width="17" Height="17">
             <Viewbox Classes="pin-on"><Canvas Width="24" Height="24"><Path Classes="pin-head" Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
             <Viewbox Classes="pin-off"><Canvas Width="24" Height="24"><Canvas.RenderTransform><RotateTransform Angle="45" CenterX="12" CenterY="11"/></Canvas.RenderTransform><Path Data="M8 3h8l-1 8H9l-1-8z"/><Path Data="M12 11v9"/></Canvas></Viewbox>
@@ -133,7 +133,7 @@
         </ToggleButton>
         <!-- 原型：源码模式下格式条不带排版入口，改由阅读窗格头居中提供（WorkspaceViewController）。
              紧凑 chip（省去当前排版名）：instant 行内 22 键格式带 + 本触发器在 1280 宽必须同排放得下。 -->
-        <Button x:Name="TypographyTarget" Classes="wb-quiet typography-trigger" IsVisible="{Binding Workbench.IsInstantEditing}" Command="{Binding Workbench.ToggleTypography}"><StackPanel Orientation="Horizontal" Spacing="7"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><Path Classes="expand-chevron" Data="M6 9L12 15L18 9"/></StackPanel></Button>
+        <Button x:Name="TypographyTarget" Classes="wb-quiet typography-trigger" IsVisible="{Binding Workbench.IsInstantEditing}" Command="{Binding Workbench.ToggleTypography}" helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.WBTypography}}" AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.WBTypography}}"><StackPanel Orientation="Horizontal" Spacing="7"><TextBlock Text="{i18n:I18n {x:Static l:VexL.Typography}}"/><Path Classes="expand-chevron" Data="M6 9L12 15L18 9"/></StackPanel></Button>
       </StackPanel>
     </Grid>
   </Border>

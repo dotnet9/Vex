@@ -35,6 +35,7 @@ public partial class ShellEditorOptionsView : UserControl
         overflowHealTimer.Tick += (_, _) => QueueOverflowHeal();
         overflowHealTimer.Start();
         FormattingToolbar.KeyDown += OnOverflowKeyDown;
+        FormattingToolbar.AddHandler(KeyDownEvent, OnToolbarNavigationKeyDown, RoutingStrategies.Bubble);
         FormattingToolbar.AddHandler(Button.ClickEvent, OnOverflowActionClick);
         foreach (var button in new[] { SpanFontSize, SpanForeground, SpanBackground })
             button.Flyout!.Closed += (_, _) => { if (_formatOverflowPopup is { } popup) popup.IsOpen = false; };
@@ -58,6 +59,7 @@ public partial class ShellEditorOptionsView : UserControl
                     panel.Children.FirstOrDefault(c => c is Button or ComboBox && c.IsVisible && c.IsEnabled)?.Focus();
             };
             popup.KeyDown += OnOverflowKeyDown;
+            popup.Child?.AddHandler(KeyDownEvent, OnToolbarNavigationKeyDown, RoutingStrategies.Bubble);
         };
         // 图鉴卡片 SVG（库端正式管线渲染）：Flyout 打开或 TabItem 切换时对可见卡片赋 SvgSource。
         Loaded += (_, _) =>
@@ -224,6 +226,27 @@ public partial class ShellEditorOptionsView : UserControl
             panel.Measure(new Size(Bounds.Width, double.PositiveInfinity));
         }
         FormattingToolbar.InvalidateMeasure();
+    }
+
+    private void OnToolbarNavigationKeyDown(object? sender, RoutedEventArgs e)
+    {
+        if (e is not KeyEventArgs args || args.Key is not (Key.Left or Key.Right or Key.Home or Key.End)) return;
+        if (args.Source is ComboBox { IsDropDownOpen: true }) return;
+        var overflow = _formatOverflowPopup?.IsOpen == true && sender is not Ursa.Controls.ToolBar;
+        Control[] commands = overflow
+            ? _formatOverflowPopup?.Child?.GetVisualDescendants().OfType<Control>()
+                .Where(control => control is Button or ComboBox && control.Focusable && control.IsEffectivelyVisible)
+                .OrderBy(control => control.Bounds.Top).ThenBy(control => control.Bounds.Left).ToArray() ?? []
+            : FormattingToolbar.GetVisualDescendants().OfType<Control>()
+                .Where(control => control is Button or ComboBox && control.Focusable && control.IsEffectivelyVisible)
+                .OrderBy(control => control.Bounds.Top).ThenBy(control => control.Bounds.Left).ToArray();
+        if (commands.Length == 0) return;
+        var current = Array.IndexOf(commands, TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() as Control);
+        if (current < 0) return;
+        var next = args.Key == Key.Home ? 0 : args.Key == Key.End ? commands.Length - 1
+            : (current + (args.Key == Key.Left ? -1 : 1) + commands.Length) % commands.Length;
+        commands[next].Focus();
+        args.Handled = true;
     }
 
     private void OnOverflowKeyDown(object? sender, KeyEventArgs e)

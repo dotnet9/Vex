@@ -83,6 +83,18 @@
   formatOverflow.addEventListener('click', function (event) { if (event.target.closest('button')) closeFormatOverflow(false); });
   document.addEventListener('pointerdown', function (event) { if (!formatOverflow.contains(event.target) && !formatMore.contains(event.target)) closeFormatOverflow(false); });
   document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !formatOverflow.hidden) { event.preventDefault(); closeFormatOverflow(true); } });
+  function moveFormatFocus(event, container) {
+    if (event.target === formatMore && event.key === 'ArrowDown') { event.preventDefault(); formatMore.click(); return; }
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+    var items = Array.from(container.querySelectorAll('button:not([disabled]),select:not([disabled])')).filter(function (item) { return item.offsetParent !== null; });
+    var index = items.indexOf(document.activeElement); if (index < 0) return;
+    event.preventDefault();
+    var step = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1;
+    var next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (index + step + items.length) % items.length;
+    items[next].focus();
+  }
+  formatToolbar.addEventListener('keydown', function (event) { moveFormatFocus(event, formatToolbar); });
+  formatOverflow.addEventListener('keydown', function (event) { moveFormatFocus(event, formatOverflow); });
   window.addEventListener('resize', arrangeFormat); arrangeFormat();
   var readingTypeButton=typeButton.cloneNode(true);panels.render.querySelector('.view-heading').appendChild(readingTypeButton);
   $('reading-pane').querySelector('[data-action="typography"]').remove();

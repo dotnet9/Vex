@@ -19,10 +19,8 @@
 .instant-block.is-editing { outline: none; }
 .instant-input { outline: none; }
 .instant-input:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 2px; }
-.instant-hint { flex: none; font-size: 11px; color: var(--muted); padding: 9px 20px; border-top: 1px solid var(--border); background: var(--panel); transition: opacity .45s ease; }
-/* 开始写作后提示条淡出（instant-editor 加 is-used），只淡透明度，布局高度不变。 */
-.instant-hint.is-used { opacity: 0; pointer-events: none; }
-.instant-empty { min-height: 1.95em; }
+.instant-hint { flex: none; font-size: 11px; color: var(--muted); padding: 9px 20px; border-top: 1px solid var(--border); background: var(--panel); }
+/* 开始写作后提示条淡出（instant-editor 加 is-used），只淡透明度，布局高度不变。 */.instant-empty { min-height: 1.95em; }
 .instant-empty:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
 .workspace.source-only .source-pane { width: 100%; border-right: none; }
 .typography-popover { position: absolute; z-index: 30; right: 18px; top: 108px; width: 338px; max-height: calc(100% - 124px); padding: 18px; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: var(--vex-radius-lg); box-shadow: var(--shadow-pop); animation: inspector-in var(--vex-duration) var(--vex-ease); }
@@ -120,6 +118,7 @@
 .format-toolbar { display:flex; align-items:center; gap:2px; min-width:0; margin-left:4px; }
 .format-button { width:28px; height:28px; display:grid; place-items:center; padding:5px; border:0; border-radius:var(--vex-radius-xs); background:transparent; color:var(--fg); cursor:pointer; font-size:11px; }
 .format-button:hover,.format-button:focus-visible { background:var(--hover); color:var(--accent); outline:none; }
+.format-button:focus-visible,.band-heading:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .format-button .ico { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.7; }
 .format-divider { height:18px; width:1px; background:var(--border); margin:0 3px; }
 .format-more { font-size:16px; letter-spacing:1px; }

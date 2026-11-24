@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CodeWF.Toolkit.EventBus;
@@ -25,6 +26,7 @@ public sealed class ShellFindBarViewModel : ReactiveObject
     private string _replacementText = string.Empty;
     private int _currentMatch;
     private int _matchTotal;
+    private string _searchError = string.Empty;
 
     public ShellFindBarViewModel(IAppLocalizer localizer, IShellStatusPublisher statusPublisher)
     {
@@ -102,6 +104,12 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 
     /// <summary>原型 #find-count 没词时整枚 hidden，不占行里的位置。</summary>
     public bool HasFindQuery => !string.IsNullOrWhiteSpace(SearchText);
+
+    public string SearchError => _searchError;
+
+    public bool HasSearchError => !string.IsNullOrEmpty(_searchError);
+
+    public bool ShowFindCount => HasFindQuery && !HasSearchError;
 
     /// <summary>原型徽标只报命中数（「N 处匹配」/「当前正文无匹配」），当前位置另有读数。</summary>
     public string FindCountText => _matchTotal > 0
@@ -204,6 +212,17 @@ public sealed class ShellFindBarViewModel : ReactiveObject
             return;
         }
 
+        UpdateSearchError();
+        if (HasSearchError)
+        {
+            CancelSearchResultCount();
+            _matchTotal = 0;
+            _currentMatch = 0;
+            this.RaisePropertyChanged(nameof(CurrentMatch));
+            this.RaisePropertyChanged(nameof(FindCountText));
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(SearchText))
         {
             CancelSearchResultCount();
@@ -222,6 +241,24 @@ public sealed class ShellFindBarViewModel : ReactiveObject
         }
 
         ScheduleSearchResultCount();
+    }
+
+    private void UpdateSearchError()
+    {
+        var error = string.Empty;
+        if (IsRegex && !string.IsNullOrWhiteSpace(SearchText))
+        {
+            var options = RegexOptions.Multiline;
+            if (!IsMatchCase) options |= RegexOptions.IgnoreCase;
+            try { _ = new Regex(SearchText, options, TimeSpan.FromSeconds(1)); }
+            catch (ArgumentException exception) { error = _localizer.Format(VexL.FindRegexInvalid, exception.Message); }
+        }
+
+        if (_searchError == error) return;
+        _searchError = error;
+        this.RaisePropertyChanged(nameof(SearchError));
+        this.RaisePropertyChanged(nameof(HasSearchError));
+        this.RaisePropertyChanged(nameof(ShowFindCount));
     }
 
     private void ScheduleSearchResultCount()
@@ -249,6 +286,12 @@ public sealed class ShellFindBarViewModel : ReactiveObject
 
     private void PublishSearch(EditorSearchAction action, string? replacementText = null)
     {
+        if (HasSearchError)
+        {
+            SetStatus(SearchError);
+            return;
+        }
+
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new EditorSearchCommand(
             action,
             SearchText,

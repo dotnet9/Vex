@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Vex.Modules.Shell.ViewModels;
@@ -113,6 +114,43 @@ internal static class ToolbarOverflowVerification
         Check(source.Editor.SelectionLength == 8, "Opening overflow retains the editor selection");
         Click(options.FindControl<Button>("FormatInlineCode")!);
         Check(!finalPopup.IsOpen && vm.Markdown == "`overflow` action", "An actual overflow command formats the selection and closes the menu");
+        var undo = options.FindControl<Button>("FormatUndo")!;
+        var redo = options.FindControl<Button>("FormatRedo")!;
+        Check(undo.Focusable && !string.IsNullOrWhiteSpace(AutomationProperties.GetName(undo)),
+            "Main formatting commands are keyboard focusable and named");
+        undo.Focus(); Render();
+        window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null);
+        window.KeyRelease(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, null); Render();
+        Check(ReferenceEquals(window.FocusManager?.GetFocusedElement(), redo), "ArrowRight moves between main formatting commands");
+        Check(!string.IsNullOrWhiteSpace(AutomationProperties.GetName(finalToggle)), "Toolbar overflow toggle has an accessible name");
+
+        vm.Workbench.SelectLayout("instant"); Render();
+        var instant = window.GetVisualDescendants().OfType<Vex.Modules.Workspace.Views.MarkdownInstantView>().Single();
+        var hint = instant.FindControl<TextBlock>("InstantKeyboardHint")!;
+        Check(hint.IsEffectivelyVisible && hint.Text!.Contains("Ctrl+Enter") && hint.Text.Contains("Esc")
+            && hint.Text.Contains("Shift+Enter") && hint.Text.Contains("Ctrl+B") && hint.Text.Contains("Ctrl+I"),
+            "Instant editor keeps its complete keyboard shortcut hint visible");
+
+        vm.FindBar.IsVisible = true;
+        vm.FindBar.IsRegex = true;
+        vm.FindBar.SearchText = "["; Render();
+        var findError = window.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(text => text.Classes.Contains("find-error"));
+        Check(findError?.IsEffectivelyVisible == true && !string.IsNullOrWhiteSpace(findError.Text),
+            "Invalid regular expression shows an inline actionable error");
+        vm.FindBar.IsRegex = false; Render();
+        Check(findError?.IsEffectivelyVisible != true, "Disabling regular expression clears the inline error");
+
+        var background = options.FindControl<Button>("SpanBackground")!;
+        var mark = background.GetVisualDescendants().OfType<Border>().First(border => border.Classes.Contains("span-background"));
+        vm.Appearance.SelectThemeByKey("light"); Render();
+        var lightMark = (mark.Background as ISolidColorBrush)?.Color;
+        vm.Appearance.SelectThemeByKey("dark"); Render();
+        var darkMark = (mark.Background as ISolidColorBrush)?.Color;
+        Check(lightMark != darkMark, "Inline mark swatch follows light/dark semantic theme tokens");
+
+        vm.Appearance.SelectThemeByKey("light");
+        vm.FindBar.IsVisible = false;
+        vm.Workbench.SelectLayout("source-render"); Render();
         vm.Markdown = original; Render();
     }
 }

@@ -5,6 +5,7 @@ using global::Avalonia.Layout;
 using global::Avalonia.Media;
 using global::Avalonia.Markup.Xaml.MarkupExtensions;
 using global::Avalonia.Styling;
+using global::Avalonia.Threading;
 using global::Avalonia.Animation;
 using CodeWF.Avalonia.MindView.Markdown;
 using CodeWF.Avalonia.MindView.I18n;
@@ -252,6 +253,7 @@ public sealed partial class MarkdownMindMapView : UserControl
         else if (change.Property == LayoutKindProperty || change.Property == StyleKindProperty)
         {
             Rebuild();
+            global::Avalonia.Threading.Dispatcher.UIThread.Post(EnsureViewport, DispatcherPriority.Loaded);
         }
         else if (change.Property == AccentColorProperty || change.Property == EnableMotionProperty || change.Property == CanvasBrushProperty || change.Property == CardBrushProperty || change.Property == PanelBrushProperty || change.Property == MutedTextBrushProperty || change.Property == TextBrushProperty || change.Property == LineBrushProperty || change.Property == DotBrushProperty || change.Property == SuccessColorProperty || change.Property == WarningColorProperty || change.Property == DangerColorProperty) Rebuild();
     }
@@ -518,7 +520,7 @@ public sealed partial class MarkdownMindMapView : UserControl
             or >= '\uFF00' and <= '\uFF60'            // 全角 ASCII、半角片假名
             or >= '\uFFE0' and <= '\uFFE6';           // 全角符号
 
-    public void EnsureViewport() { if (!_hasViewport && IsEffectivelyVisible) Fit(.75, _fitFocusLine); }
+    public void EnsureViewport() { if (!_hasViewport && IsEffectivelyVisible) Fit(); }
 
     /// <summary>宿主在编辑行变化后调用：更新可读适配的垂直对焦目标（不改当前视野，下次适配生效）。</summary>
     public void UpdateFocusLine(int? line) => _fitFocusLine = line;

@@ -65,8 +65,8 @@
 .vex-selection-icon { display:block; width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
 .vex-selection-glyph { font-size:13px; font-weight:700; line-height:1; }
 .vex-selection-glyph.strike { text-decoration:line-through; }
-.vex-selection-glyph.fg { color:#1971c2; text-decoration:underline; text-underline-offset:2px; }
-.vex-selection-glyph.bg { background:#fff3bf; border-radius:3px; padding:1px 3px; }
+.vex-selection-glyph.fg { color:var(--accent); text-decoration:underline; text-underline-offset:2px; }
+.vex-selection-glyph.bg { background:var(--accent-soft); border-radius:3px; padding:1px 3px; }
 .vex-selection-bar button:has(.vex-selection-glyph) { width:auto; min-width:30px; padding:0 5px; gap:2px; display:flex; align-items:center; }
 .vex-selection-rule { width:1px; height:18px; background:var(--line,var(--border)); margin:0 3px; }
 .vex-selection-flyout { pointer-events:auto; position:absolute; top:calc(100% + 6px); min-width:150px; padding:8px; display:grid; grid-template-columns:repeat(6,26px); gap:5px; background:var(--surface,var(--panel)); border:1px solid var(--line,var(--border)); border-radius:var(--vex-radius-md); box-shadow:var(--pop-shadow,var(--shadow-pop)); animation:vex-element-in var(--vex-fast) var(--vex-ease-enter); }
@@ -102,7 +102,7 @@
 
 /* 快捷工具条上的行内样式按钮：A 字符号 + 下拉箭头。 */
 .format-button .span-glyph { font-size:13px; font-weight:700; line-height:1; }
-.format-button .span-glyph.fg { color:#0064FA; text-decoration:underline; text-underline-offset:2px; }
-.format-button .span-glyph.bg { background:#FFF3BF; color:#664A03; border-radius:3px; padding:1px 3px; }
+.format-button .span-glyph.fg { color:var(--accent); text-decoration:underline; text-underline-offset:2px; }
+.format-button .span-glyph.bg { background:var(--accent-soft); color:var(--accent-ink,var(--accent)); border-radius:3px; padding:1px 3px; }
 .format-button .span-chevron { width:10px; height:10px; }
 .format-button.span-tool { display:inline-flex; align-items:center; gap:2px; width:auto; padding:0 6px; }

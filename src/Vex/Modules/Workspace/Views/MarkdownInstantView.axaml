@@ -7,6 +7,18 @@
     xmlns:core="using:Vex.Core.Messaging" xmlns:services="using:Vex.Core.Services"
     xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
     x:DataType="shell:MainWindowViewModel">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.instant-keyboard-hint">
+            <Setter Property="FontSize" Value="{DynamicResource VexDensityFontSizeCaption}" />
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+            <Setter Property="Margin" Value="16,0,16,12" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+        </Style>
+    </UserControl.Styles>
     <Grid Background="{DynamicResource VexPreviewBackgroundBrush}">
         <live:MarkdownLiveEditorView x:Name="InstantEditor" HeaderText="{x:Null}" ChipText="{x:Null}"
             EditorFontSize="15" CodeFontFamily="{x:Static services:VexFonts.Code}"
@@ -73,6 +85,9 @@
                 </ContextMenu>
             </live:MarkdownLiveEditorView.ContextMenu>
         </live:MarkdownLiveEditorView>
+        <TextBlock x:Name="InstantKeyboardHint" Classes="instant-keyboard-hint"
+                   Text="{Binding Workbench.InstantHint}"
+                   AutomationProperties.Name="{Binding Workbench.InstantHint}" />
         <views:WatermarkOverlay IsVisible="{Binding Workbench.Preferences.WatermarkPreview}"
             Text="{Binding Workbench.Preferences.WatermarkText}" Strength="{Binding Workbench.Preferences.WatermarkOpacity}"
             FontSize="{Binding Workbench.Preferences.WatermarkFontSize}" HexInk="{Binding Workbench.Preferences.WatermarkColor}"

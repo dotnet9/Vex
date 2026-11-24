@@ -593,6 +593,8 @@ namespace Vex
         public static readonly string FindBarMatchCase = "Vex.VexL.FindBarMatchCase";
         public static readonly string FindBarWholeWord = "Vex.VexL.FindBarWholeWord";
         public static readonly string FindBarRegex = "Vex.VexL.FindBarRegex";
+        public static readonly string FindRegexInvalid = "Vex.VexL.FindRegexInvalid";
+        public static readonly string FormattingMore = "Vex.VexL.FormattingMore";
         public static readonly string StatisticsTitle = "Vex.VexL.StatisticsTitle";
         public static readonly string StatisticsLines = "Vex.VexL.StatisticsLines";
         public static readonly string StatisticsParagraphs = "Vex.VexL.StatisticsParagraphs";

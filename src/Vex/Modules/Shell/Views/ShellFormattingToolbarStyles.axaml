@@ -1,5 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:u="https://irihi.tech/ursa" xmlns:views="using:Vex.Modules.Shell.Views" x:CompileBindings="False">
+        xmlns:u="https://irihi.tech/ursa" xmlns:views="using:Vex.Modules.Shell.Views"
+        xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers"
+        xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex" x:CompileBindings="False">
   <!-- 保留 Ursa 的溢出测量与命令实例，菜单只补原型的双列标签和可滚动视口。 -->
   <Style Selector="u|ToolBar.wb-formatbar">
     <Setter Property="ItemsPanel">
@@ -13,7 +15,9 @@
           <DockPanel LastChildFill="True">
             <Panel Name="PART_PopupButtonPanel" DockPanel.Dock="Right">
               <ToggleButton Name="button" Padding="8,0" VerticalAlignment="Stretch" IsVisible="False"
-                            Theme="{DynamicResource ToolBarExpandToggleButton}">
+                            Theme="{DynamicResource ToolBarExpandToggleButton}"
+                            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FormattingMore}}"
+                            helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FormattingMore}}">
                 <PathIcon Height="12" Data="{DynamicResource ToolBarHorizontalMoreGlyph}"
                           Foreground="{DynamicResource VexValueBrush}" />
               </ToggleButton>
@@ -39,7 +43,7 @@
   </Style>
   <!-- 同一模板随溢出状态显示标签，避免重建模板时图标仍挂在旧 ContentPresenter 上。 -->
   <Style Selector="u|ToolBar.wb-formatbar Button.wb-format">
-    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Focusable" Value="True" />
     <Setter Property="Template">
       <ControlTemplate>
         <Border Name="OverflowBackground" Padding="{TemplateBinding Padding}"
@@ -86,5 +90,9 @@
   </Style>
   <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:pressed /template/ Border#OverflowBackground">
     <Setter Property="Background" Value="{DynamicResource VexPressedBrush}" />
+  </Style>
+  <Style Selector="u|ToolBar.wb-formatbar Button.wb-format:focus-visible /template/ Border#OverflowBackground">
+    <Setter Property="BorderBrush" Value="{DynamicResource VexAccentBrush}" />
+    <Setter Property="BorderThickness" Value="2" />
   </Style>
 </Styles>

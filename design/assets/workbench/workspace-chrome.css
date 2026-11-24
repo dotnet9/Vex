@@ -385,6 +385,8 @@ html.js .appearance-choices .palette-card-tools{position:absolute;top:5px;right:
 .sidebar-search .clear-search:hover{color:var(--fg);background:var(--hover)}
 /* 查找计数：轻量药丸。 */
 #find-count{font-size:11px;color:var(--muted);background:var(--panel);border-radius:var(--vex-radius-lg);padding:3px 9px}
+#find-error{max-width:280px;color:var(--danger);font-size:11px;white-space:normal}
+#find-input[aria-invalid="true"]{border-color:var(--danger)}
 /* 弹层内卡片不再自带投影：面与描边归契约，选中/悬停只用强调色状态。 */
 #vex-appearance-menu .studio-palettes button.on,#vex-appearance-menu .studio-palettes button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent)}
 #typography-panel .typography-card[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}

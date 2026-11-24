@@ -1255,7 +1255,6 @@
       if (root) {
         var headings = state.nodes.filter(function (node) { return node.kind === 'heading' && !node.isRoot && node.x != null; });
         var focus = headings.filter(function (node) { return node.line <= state.editingLine; }).pop() || headings[0] || root;
-        state.x = 32 - root.x * state.scale;
         var target = state.bounds.height * state.scale > canvas.clientHeight ? focus : root;
         state.y = canvas.clientHeight / 2 - (target.y + target.height / 2) * state.scale;
       }
@@ -1475,11 +1474,13 @@
   /* 查找开关（对应实现 ShellFindBarView 的三枚 .opt-toggle）：正则 / 区分大小写 / 整词。
      计数、跳转与替换统一走 findMatches()，避免只有计数认开关。 */
   var findFlags = { regex: false, case: false, word: false };
+  var findError = '';
   function findPattern(term) {
+    findError = '';
     if (!term) return null;
     var source = findFlags.regex ? term : term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     if (findFlags.word) source = '\\b(?:' + source + ')\\b';
-    try { return new RegExp(source, 'g' + (findFlags.case ? '' : 'i')); } catch (_) { return null; }
+    try { return new RegExp(source, 'g' + (findFlags.case ? '' : 'i')); } catch (error) { findError = error.message; return null; }
   }
   function findMatches() {
     var pattern = findPattern($('find-input').value), found = [];
@@ -1512,7 +1513,10 @@
       if (element) { element.classList.remove('located'); void element.offsetWidth; element.classList.add('located'); }
     });
   }
-  function reportFindMiss() { var miss = $('find-count'); miss.textContent = '没有匹配内容'; miss.hidden = false; }
+  function reportFindMiss() {
+    if (findError) { updateFind(); $('find-input').focus(); return; }
+    var miss = $('find-count'); miss.textContent = '没有匹配内容'; miss.hidden = false;
+  }
   function findNext() {
     var term = $('find-input').value;
     if (!term) return;
@@ -1530,11 +1534,14 @@
   }
   function updateFind() {
     var term = $('find-input').value;
-    var badge = $('find-count');
-    if (!term) { badge.textContent = ''; badge.hidden = true; return; }
+    var badge = $('find-count'), error = $('find-error');
     var count = findMatches().length;
+    error.textContent = findError ? '正则表达式无效：' + findError : '';
+    error.hidden = !findError;
+    $('find-input').setAttribute('aria-invalid', String(!!findError));
+    badge.hidden = !!findError;
+    if (!term || findError) { badge.textContent = ''; return; }
     badge.textContent = count ? count + ' 处匹配' : '当前正文无匹配';
-    badge.hidden = false;
   }
   $('find-input').oninput = updateFind; $('find-input').onkeydown = function (event) { if (event.key !== 'Enter') return; event.preventDefault(); if (event.shiftKey) findPrev(); else findNext(); };
   $('open-file-input').onchange = async function () {

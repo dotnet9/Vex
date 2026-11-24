@@ -50,6 +50,20 @@
             <Setter Property="FontSize" Value="{DynamicResource VexUiSmallFontSize}" />
             <Setter Property="LineHeight" Value="{DynamicResource VexUiSmallLineHeight}" />
             <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="AutomationProperties.LiveSetting" Value="Polite" />
+        </Style>
+        <Style Selector="TextBlock.find-error">
+            <Setter Property="MaxWidth" Value="220" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="FontSize" Value="{DynamicResource VexUiSmallFontSize}" />
+            <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}" />
+            <Setter Property="TextWrapping" Value="NoWrap" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="AutomationProperties.LiveSetting" Value="Assertive" />
+        </Style>
+        <Style Selector="Grid.search-shell.search-invalid Border.search-frame">
+            <Setter Property="BorderBrush" Value="{DynamicResource VexDangerBrush}" />
         </Style>
     </UserControl.Styles>
 
@@ -79,6 +93,7 @@
                 <Grid
                     Grid.Column="0"
                     Classes="search-shell"
+                    Classes.search-invalid="{Binding HasSearchError}"
                     Margin="0,0,6,0"
                     MaxWidth="220"
                     MinWidth="102"
@@ -152,9 +167,11 @@
                         Command="{Binding ReplaceAll}"
                         Content="{i18n:I18n {x:Static l:VexL.FindBarAll}}"
                         IsVisible="{Binding IsReplaceVisible}" />
-                    <!-- 命中计数（原型 #find-count）：没输入词时整枚不占位，不像旧版常驻一枚「0/0」。 -->
-                    <Border Classes="find-count" IsVisible="{Binding HasFindQuery}">
-                        <TextBlock Text="{Binding FindCountText}" />
+                    <TextBlock Classes="find-error" Text="{Binding SearchError}" IsVisible="{Binding HasSearchError}"
+                               helpers:ToolTipHelper.Text="{Binding SearchError}" />
+                    <!-- 命中计数（原型 #find-count）：没输入词或正则无效时整枚不占位。 -->
+                    <Border Classes="find-count" IsVisible="{Binding ShowFindCount}">
+                        <TextBlock Text="{Binding FindCountText}" AutomationProperties.Name="{Binding FindCountText}" />
                     </Border>
                     <!-- Aa / W / .* 图标化开关（原型 .opt-toggle）：度量收在 Themes/Controls/Shell.axaml 一处。 -->
                     <ToggleButton
@@ -162,18 +179,21 @@
                         Content=".*"
                         IsChecked="{Binding IsRegex, Mode=TwoWay}"
                         helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarRegex}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarRegex}}"
                         VerticalAlignment="Center" />
                     <ToggleButton
                         Classes="opt-toggle"
                         Content="Aa"
                         IsChecked="{Binding IsMatchCase, Mode=TwoWay}"
                         helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarMatchCase}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarMatchCase}}"
                         VerticalAlignment="Center" />
                     <ToggleButton
                         Classes="opt-toggle"
                         Content="W"
                         IsChecked="{Binding IsWholeWord, Mode=TwoWay}"
                         helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.FindBarWholeWord}}"
                         VerticalAlignment="Center" />
                     <Button
                         Classes="find-close"

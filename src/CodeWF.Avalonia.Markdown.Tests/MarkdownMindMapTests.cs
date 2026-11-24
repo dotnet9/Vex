@@ -154,6 +154,35 @@ public sealed class MarkdownMindMapLayoutTests(AvaloniaPlatformFixture platform)
     }
 
     [Fact]
+    public void InitialViewportCentersTheWholeMap()
+    {
+        platform.Run(() =>
+        {
+            var map = new MarkdownMindMapView
+            {
+                EnableMotion = false,
+                Root = MarkdownMindMapDocument.Parse("# Root\n\n## Alpha\n\nParagraph\n\n## Beta\n\nParagraph")
+            };
+            var window = new Window { Width = 1400, Height = 900, Content = map };
+            window.Show();
+            try
+            {
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                map.EnsureViewport();
+                window.UpdateLayout();
+                var nodes = Flatten(map.Root!).Select(node => map.GetNodeBounds(node.Id)).OfType<Rect>().ToArray();
+                var left = nodes.Min(rect => rect.Left);
+                var right = nodes.Max(rect => rect.Right);
+                var translatedCenter = map.TranslatePoint(new Point((left + right) / 2, 0), window)?.X ?? 0;
+                Assert.True(Math.Abs(translatedCenter - map.Bounds.Width / 2) < 1,
+                    $"Map content center {translatedCenter}, viewport center {map.Bounds.Width / 2}, scale {map.Zoom}");
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
     public void AlertCardsUseSemanticBorders()
     {
         platform.Run(() =>
