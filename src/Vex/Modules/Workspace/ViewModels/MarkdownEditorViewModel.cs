@@ -438,10 +438,12 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     private Avalonia.Controls.Control? EditingControl() => _workbench.IsInstantEditing
         ? (Avalonia.Controls.Control?)_workbench.LiveEditor : _editor;
 
-    private void ReplaceSpan(string text, int start, int length, string insertion)
+    private void ReplaceSpan(string text, int start, int length, string insertion) =>
+        PublishTextReplacement(text.Remove(start, length).Insert(start, insertion));
+
+    private void PublishTextReplacement(string changed)
     {
         _workbench.History.BreakGroup();
-        var changed = text.Remove(start, length).Insert(start, insertion);
         EventBus.Default.Publish(new MarkdownTextChangedCommand(changed, 1, 1, changed.Count(c => c == '\n') + 1));
         _workbench.History.BreakGroup();
     }
@@ -557,14 +559,20 @@ public sealed class MarkdownEditorViewModel : ReactiveObject
     public async void PasteAsPlainTextAsync()
     {
         if (EditingCaret() is not { } editing) return;
+        var selection = _workbench.IsInstantEditing ? _workbench.LiveEditor?.Selection : _editor?.Selection;
+        if (selection is not { } range) return;
+        var target = new EditorPasteTarget(_workspaceDocumentState.FilePath, editing.Text,
+            range.Start, range.Length, _workbench.IsInstantEditing);
         var control = EditingControl();
         var owner = control is null ? null : Avalonia.Controls.TopLevel.GetTopLevel(control);
         if (owner?.Clipboard is not { } clipboard) return;
         var plain = await clipboard.TryGetTextAsync();
-        if (string.IsNullOrEmpty(plain)) return;
-        var selection = _workbench.IsInstantEditing ? _workbench.LiveEditor?.Selection : _editor?.Selection;
-        if (selection is not { } range) return;
-        ReplaceSpan(editing.Text, range.Start, range.Length, plain);
+        if (string.IsNullOrEmpty(plain) || !_workbench.IsEditing) return;
+        var currentSelection = _workbench.IsInstantEditing ? _workbench.LiveEditor?.Selection : _editor?.Selection;
+        if (currentSelection is not { } current) return;
+        var changed = target.TryReplace(_workspaceDocumentState.FilePath, _workspaceDocumentState.Markdown,
+            current.Start, current.Length, _workbench.IsInstantEditing, plain);
+        if (changed is not null) PublishTextReplacement(changed);
     }
 
     private void OnDocumentChanged(object? sender, MarkdownDocumentChangedCommand command) => SyncTextFromDocument();
