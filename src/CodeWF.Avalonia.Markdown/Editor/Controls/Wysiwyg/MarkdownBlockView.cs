@@ -511,7 +511,22 @@ internal sealed class MarkdownBlockView : UserControl
 
     private void CancelEdit()
     {
-        ModelText = _editOriginalText; Model.Language = _editOriginalLanguage;
+        var previousText = ModelText;
+        var previousLanguage = Model.Language;
+        _syncingText = true;
+        _editor.Text = _editOriginalText;
+        if (_codeLanguage is not null) _codeLanguage.Text = _editOriginalLanguage;
+        _syncingText = false;
+        Model.Language = _editOriginalLanguage;
+        ModelText = _editOriginalText;
+        UpdateRichText();
+        _editor.CaretIndex = Math.Clamp(_editor.CaretIndex, 0, _editor.Text?.Length ?? 0);
+        _editor.SelectionStart = _editor.SelectionEnd = _editor.CaretIndex;
+        if (!string.Equals(previousText, _editOriginalText, StringComparison.Ordinal)
+            || !string.Equals(previousLanguage, _editOriginalLanguage, StringComparison.Ordinal))
+        {
+            TextCommitted?.Invoke(this, ModelText, previousText);
+        }
     }
 
     /// <summary>外部替换内容（例如预览回写）时刷新显示。</summary>
@@ -539,7 +554,7 @@ internal sealed class MarkdownBlockView : UserControl
         }
 
         _syncingText = true;
-        _editor.Text = Model.Text;
+        _editor.Text = ModelText;
         if (_codeLanguage is not null) _codeLanguage.Text = Model.Language;
         _syncingText = false;
         UpdateRichText();
