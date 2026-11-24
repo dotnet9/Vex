@@ -39,7 +39,7 @@ public sealed class MermaidBlockRenderer : IMarkdownBlockRenderer
     /// <summary>缓存图表上限：按「源码 + 主题配色」缓存，块被虚拟化回收后重建时不再重新解析渲染。</summary>
     private const int MaxCachedDiagrams = 48;
 
-    private static readonly Dictionary<string, SvgSource?> DiagramCache = new(StringComparer.Ordinal);
+    private static readonly Dictionary<string, SvgSource> DiagramCache = new(StringComparer.Ordinal);
     private static readonly LinkedList<string> DiagramCacheOrder = new();
     private static readonly object DiagramCacheGate = new();
     private static readonly Dictionary<string, Task<SvgSource?>> PendingDiagrams = new(StringComparer.Ordinal);
@@ -68,7 +68,10 @@ public sealed class MermaidBlockRenderer : IMarkdownBlockRenderer
         return diagram;
     }
 
-    internal static Control CreateMermaidBlock(string source, IMarkdownRenderContext? context = null)
+    internal static Control CreateMermaidBlock(
+        string source,
+        IMarkdownRenderContext? context = null,
+        Func<string, MermaidRenderOptions, string>? renderSvg = null)
     {
         var image = new Image
         {
@@ -157,19 +160,20 @@ public sealed class MermaidBlockRenderer : IMarkdownBlockRenderer
 
             try
             {
-                var svgSource = await ResolveSvgSourceAsync(cacheKey, source, options).WaitAsync(token);
+                var svgSource = await ResolveSvgSourceAsync(cacheKey, source, options, renderSvg).WaitAsync(token);
 
                 if (!token.IsCancellationRequested)
                 {
                     if (svgSource is null)
                     {
-                        // 上次渲染已失败且结果被缓存：本次直接回落，不重复尝试。
                         ShowFallback("Mermaid render failed.");
                         return;
                     }
 
                     image.Source = new SvgImage { Source = svgSource };
+                    preview.Child = image;
                     border.MinHeight = 0;
+                    border.Classes.Remove("MdMermaidFallback");
                 }
             }
             catch (OperationCanceledException)
@@ -188,9 +192,11 @@ public sealed class MermaidBlockRenderer : IMarkdownBlockRenderer
                 var panel = new StackPanel { Spacing = 4 };
                 panel.Children.Add(new TextBlock { Text = $"Mermaid render error: {message}" });
                 panel.Children.Add(new TextBlock { Text = source, TextWrapping = TextWrapping.Wrap });
-                border.Child = panel;
+                var retry = new Button { Content = "Retry", HorizontalAlignment = HorizontalAlignment.Left };
+                retry.Click += (_, _) => _ = ApplyThemeAsync();
+                panel.Children.Add(retry);
+                preview.Child = panel;
                 border.MinHeight = 0;
-                border.Classes.Clear();
                 border.Classes.Add("MdMermaidFallback");
             }
         }
@@ -198,7 +204,11 @@ public sealed class MermaidBlockRenderer : IMarkdownBlockRenderer
         return border;
     }
 
-    internal static Task<SvgSource?> ResolveSvgSourceAsync(string cacheKey, string source, MermaidRenderOptions options)
+    internal static Task<SvgSource?> ResolveSvgSourceAsync(
+        string cacheKey,
+        string source,
+        MermaidRenderOptions options,
+        Func<string, MermaidRenderOptions, string>? renderSvg = null)
     {
         lock (DiagramCacheGate)
         {
@@ -206,13 +216,13 @@ public sealed class MermaidBlockRenderer : IMarkdownBlockRenderer
             {
                 DiagramCacheOrder.Remove(cacheKey);
                 DiagramCacheOrder.AddLast(cacheKey);
-                return Task.FromResult(cached);
+                return Task.FromResult<SvgSource?>(cached);
             }
             if (PendingDiagrams.TryGetValue(cacheKey, out var pending)) return pending;
-            var task = Task.Run(async () =>
+            Task<SvgSource?> task = Task.Run(async () =>
             {
                 await RenderSlots.WaitAsync().ConfigureAwait(false);
-                try { return ResolveSvgSource(cacheKey, source, options); }
+                try { return ResolveSvgSource(cacheKey, source, options, renderSvg); }
                 finally
                 {
                     RenderSlots.Release();
@@ -226,10 +236,14 @@ public sealed class MermaidBlockRenderer : IMarkdownBlockRenderer
 
     /// <summary>
     /// 取图表 SVG：按「源码 + 主题配色」缓存，块被虚拟化回收后重新物化时
-    /// 直接复用已解析的 SVG，不再跑一遍布局与 CSS 变量内联。
-    /// 渲染失败以 null 缓存，避免每次重建都重试同一份坏图。
+    /// 直接复用已解析的 SVG，不再跑一遍布局与 CSS 变量内联。失败不进入缓存，
+    /// 用户可在错误面板主动重试，块重新物化时也会再次尝试。
     /// </summary>
-    private static SvgSource? ResolveSvgSource(string cacheKey, string source, MermaidRenderOptions options)
+    private static SvgSource? ResolveSvgSource(
+        string cacheKey,
+        string source,
+        MermaidRenderOptions options,
+        Func<string, MermaidRenderOptions, string>? renderSvg)
     {
         lock (DiagramCacheGate)
         {
@@ -244,7 +258,7 @@ public sealed class MermaidBlockRenderer : IMarkdownBlockRenderer
         SvgSource? svgSource = null;
         try
         {
-            var svg = MermaidRenderer.RenderSvg(source, options);
+            var svg = renderSvg is null ? MermaidRenderer.RenderSvg(source, options) : renderSvg(source, options);
             // 象限图统一化必须先于 CSS 变量内联：内联会把 var(--_group-fill) 等目标串改写为具体色值，
             // 统一化的精确匹配将全部落空（12.1.6.1 回归根因）。
             if (options.Style == DiagramStyle.Quiet && Regex.IsMatch(source, @"^\s*quadrantChart\b", RegexOptions.Multiline | RegexOptions.CultureInvariant))
@@ -260,19 +274,31 @@ public sealed class MermaidBlockRenderer : IMarkdownBlockRenderer
             svgSource = null;
         }
 
-        lock (DiagramCacheGate)
+        if (svgSource is not null)
         {
-            DiagramCache[cacheKey] = svgSource;
-            DiagramCacheOrder.Remove(cacheKey);
-            DiagramCacheOrder.AddLast(cacheKey);
-            while (DiagramCacheOrder.Count > MaxCachedDiagrams && DiagramCacheOrder.First is { } oldest)
+            lock (DiagramCacheGate)
             {
-                DiagramCacheOrder.RemoveFirst();
-                DiagramCache.Remove(oldest.Value);
+                DiagramCache[cacheKey] = svgSource;
+                DiagramCacheOrder.Remove(cacheKey);
+                DiagramCacheOrder.AddLast(cacheKey);
+                while (DiagramCacheOrder.Count > MaxCachedDiagrams && DiagramCacheOrder.First is { } oldest)
+                {
+                    DiagramCacheOrder.RemoveFirst();
+                    DiagramCache.Remove(oldest.Value);
+                }
             }
         }
 
         return svgSource;
+    }
+
+    internal static void InvalidateDiagramCache(string cacheKey)
+    {
+        lock (DiagramCacheGate)
+        {
+            DiagramCache.Remove(cacheKey);
+            DiagramCacheOrder.Remove(cacheKey);
+        }
     }
 
     /// <summary>桑基图画布未计入左右外置标签，扩展 SVG 视口后再等比缩放。</summary>

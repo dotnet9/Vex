@@ -1051,6 +1051,7 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     /// </summary>
     private bool IsAppendOnlyStreamingUpdate(string text) =>
         StreamingSource is not null
+        && StreamingSource.Latest.Generation == _streamingGeneration
         && text.StartsWith(_renderedMarkdown ?? string.Empty, StringComparison.Ordinal);
 
     private void RenderDocumentFull(string text, MarkdownDocumentModel? parsedModel = null)

@@ -48,7 +48,7 @@ public sealed class MarkdownStreamingDocument : IDisposable
 		.Build();
 
 	private readonly object _gate = new();
-	private readonly MarkdownStreamSegmenter _segmenter = new();
+	private readonly Func<string, MarkdownDocumentModel> _parse;
 
 	private string _source = string.Empty;
 	private long _version;
@@ -58,18 +58,22 @@ public sealed class MarkdownStreamingDocument : IDisposable
 	private bool _completed;
 	private bool _disposed;
 
-	// 冻结区状态：只增不改，跨快照共享。
-	private int _frozenEnd;
-	private readonly List<MarkdownDocumentBlock> _frozenBlocks = [];
-	private readonly StringBuilder _frozenPlain = new();
-	private MarkdownDependencyFlags _frozenFlags = MarkdownDependencyFlags.None;
+	// 冻结区状态：只增不改，跨快照共享；Reset 替换整个状态，避免污染在途解析。
+	private StreamState _state = new();
 
 	private MarkdownStreamingSnapshot _latest = MarkdownStreamingSnapshot.Empty;
 
 	private readonly SynchronizationContext? _synchronizationContext;
 
 	public MarkdownStreamingDocument()
+		: this(static text => MarkdownParser.Parse(text, Pipeline))
 	{
+	}
+
+	internal MarkdownStreamingDocument(Func<string, MarkdownDocumentModel> parse)
+	{
+		ArgumentNullException.ThrowIfNull(parse);
+		_parse = parse;
 		_synchronizationContext = SynchronizationContext.Current;
 	}
 
@@ -83,7 +87,16 @@ public sealed class MarkdownStreamingDocument : IDisposable
 	public event EventHandler? Completed;
 
 	/// <summary>最新快照（尚未产出时为 <see cref="MarkdownStreamingSnapshot.Empty"/>）。</summary>
-	public MarkdownStreamingSnapshot Latest => _latest;
+	public MarkdownStreamingSnapshot Latest
+	{
+		get
+		{
+			lock (_gate)
+			{
+				return _latest;
+			}
+		}
+	}
 
 	/// <summary>追加文本切片（任意线程）。</summary>
 	public void Append(string text)
@@ -119,6 +132,7 @@ public sealed class MarkdownStreamingDocument : IDisposable
 		lock (_gate)
 		{
 			ObjectDisposedException.ThrowIf(_disposed, this);
+			_generation++;
 			_completed = true;
 			_dirty = true;
 		}
@@ -139,11 +153,8 @@ public sealed class MarkdownStreamingDocument : IDisposable
 			_version++;
 			_completed = false;
 			_dirty = true;
-			_frozenEnd = 0;
-			_frozenBlocks.Clear();
-			_frozenPlain.Clear();
-			_frozenFlags = MarkdownDependencyFlags.None;
-			_segmenter.Reset();
+			_state = new StreamState();
+			_latest = MarkdownStreamingSnapshot.Empty;
 		}
 
 		EnsureWorker();
@@ -180,6 +191,7 @@ public sealed class MarkdownStreamingDocument : IDisposable
 			bool complete;
 			int generation;
 			long version;
+			StreamState state;
 			lock (_gate)
 			{
 				if (!_dirty || _disposed)
@@ -193,35 +205,58 @@ public sealed class MarkdownStreamingDocument : IDisposable
 				complete = _completed;
 				generation = _generation;
 				version = _version;
+				state = _state;
 			}
 
 			MarkdownStreamingSnapshot snapshot;
 			try
 			{
-				snapshot = BuildSnapshot(source, complete, generation, version);
+				snapshot = BuildSnapshot(source, complete, generation, version, state);
 			}
 			catch (Exception exception)
 			{
-				// 解析失败保留上一份快照（规格 B2），异常上抛给宿主。
-				Post(() => Failed?.Invoke(this, exception));
+				// 解析失败保留上一份快照（规格 B2），旧代失败不再打扰宿主。
+				if (IsCurrent(generation, version))
+				{
+					Post(() =>
+					{
+						if (IsCurrent(generation, version)) Failed?.Invoke(this, exception);
+					});
+				}
 				continue;
 			}
 
 			lock (_gate)
 			{
+				if (_disposed || generation != _generation || version != _version)
+				{
+					continue;
+				}
+
 				_latest = snapshot;
 			}
 
-			Post(() => SnapshotReady?.Invoke(this, snapshot));
+			Post(() =>
+			{
+				if (IsCurrent(generation, version)) SnapshotReady?.Invoke(this, snapshot);
+			});
 			if (complete)
 			{
 				// Complete 之后 Append 会抛出，本事件每次 Complete 周期只发一次。
-				Post(() => Completed?.Invoke(this, EventArgs.Empty));
+				Post(() =>
+				{
+					if (IsCurrent(generation, version)) Completed?.Invoke(this, EventArgs.Empty);
+				});
 			}
 		}
 	}
 
-	private MarkdownStreamingSnapshot BuildSnapshot(string source, bool complete, int generation, long version)
+	private MarkdownStreamingSnapshot BuildSnapshot(
+		string source,
+		bool complete,
+		int generation,
+		long version,
+		StreamState state)
 	{
 		var start = Stopwatch.GetTimestamp();
 
@@ -234,38 +269,38 @@ public sealed class MarkdownStreamingDocument : IDisposable
 				generation, version, source, source.Length, true, finalModel.Blocks, finalModel, duration);
 		}
 
-		_segmenter.Scan(source, sourceComplete: false);
-		var boundary = _segmenter.FrozenBoundary;
+		state.Segmenter.Scan(source, sourceComplete: false);
+		var boundary = state.Segmenter.FrozenBoundary;
 
 		// 冻结新定型的前缀：一次解析、块偏移映射回原始源码，实例从此跨快照共享。
-		if (boundary > _frozenEnd)
+		if (boundary > state.FrozenEnd)
 		{
-			var segmentText = source[_frozenEnd..boundary];
+			var segmentText = source[state.FrozenEnd..boundary];
 			var segmentModel = Parse(segmentText);
 			foreach (var block in segmentModel.Blocks)
 			{
-				var plainStart = _frozenPlain.Length;
+				var plainStart = state.FrozenPlain.Length;
 				if (block.PlainText.Length > 0)
 				{
-					_frozenPlain.Append(block.PlainText);
+					state.FrozenPlain.Append(block.PlainText);
 				}
 
-				var plainEnd = _frozenPlain.Length;
-				if (_frozenPlain.Length > 0)
+				var plainEnd = state.FrozenPlain.Length;
+				if (state.FrozenPlain.Length > 0)
 				{
-					_frozenPlain.AppendLine();
-					_frozenPlain.AppendLine();
+					state.FrozenPlain.AppendLine();
+					state.FrozenPlain.AppendLine();
 				}
 
-				_frozenBlocks.Add(block with
+				state.FrozenBlocks.Add(block with
 				{
-					SourceSpan = new MarkdownTextSpan(block.SourceSpan.Start + _frozenEnd, block.SourceSpan.End + _frozenEnd),
+					SourceSpan = new MarkdownTextSpan(block.SourceSpan.Start + state.FrozenEnd, block.SourceSpan.End + state.FrozenEnd),
 					PlainTextSpan = new MarkdownTextSpan(plainStart, plainEnd),
 				});
 			}
 
-			_frozenFlags |= segmentModel.DependencyFlags;
-			_frozenEnd = boundary;
+			state.FrozenFlags |= segmentModel.DependencyFlags;
+			state.FrozenEnd = boundary;
 		}
 
 		// 尾部：开放围栏快速路径（规格 §4.4），未命中时容错补全后解析，
@@ -275,7 +310,7 @@ public sealed class MarkdownStreamingDocument : IDisposable
 		var tailPlain = new StringBuilder();
 		var tailFlags = MarkdownDependencyFlags.None;
 
-		if (TryBuildOpenFenceTailBlock(source, boundary, tailText) is { } fenceBlock)
+		if (TryBuildOpenFenceTailBlock(source, boundary, tailText, state.Segmenter, state.FrozenPlain.Length) is { } fenceBlock)
 		{
 			tailBlocks.Add(fenceBlock);
 			tailFlags = fenceBlock.DependencyFlags;
@@ -295,13 +330,13 @@ public sealed class MarkdownStreamingDocument : IDisposable
 			{
 				var sourceStart = boundary + remend.OffsetMap.MapTempToOriginal(block.SourceSpan.Start);
 				var sourceEnd = boundary + remend.OffsetMap.MapTempToOriginal(block.SourceSpan.End);
-				var plainStart = _frozenPlain.Length + tailPlain.Length;
+				var plainStart = state.FrozenPlain.Length + tailPlain.Length;
 				if (block.PlainText.Length > 0)
 				{
 					tailPlain.Append(block.PlainText);
 				}
 
-				var plainEnd = _frozenPlain.Length + tailPlain.Length;
+				var plainEnd = state.FrozenPlain.Length + tailPlain.Length;
 				if (tailPlain.Length > 0)
 				{
 					tailPlain.AppendLine();
@@ -319,33 +354,38 @@ public sealed class MarkdownStreamingDocument : IDisposable
 			}
 		}
 
-		var blocks = new List<MarkdownDocumentBlock>(_frozenBlocks.Count + tailBlocks.Count);
-		blocks.AddRange(_frozenBlocks);
+		var blocks = new List<MarkdownDocumentBlock>(state.FrozenBlocks.Count + tailBlocks.Count);
+		blocks.AddRange(state.FrozenBlocks);
 		blocks.AddRange(tailBlocks);
 		var plainText = tailPlain.Length == 0
-			? _frozenPlain.ToString()
-			: _frozenPlain.ToString() + tailPlain.ToString();
-		var model = new MarkdownDocumentModel(source, blocks, plainText.TrimEnd(), _frozenFlags | tailFlags);
+			? state.FrozenPlain.ToString()
+			: state.FrozenPlain.ToString() + tailPlain.ToString();
+		var model = new MarkdownDocumentModel(source, blocks, plainText.TrimEnd(), state.FrozenFlags | tailFlags);
 
 		return new MarkdownStreamingSnapshot(
-			generation, version, source, boundary, false, _frozenBlocks, model, Stopwatch.GetElapsedTime(start));
+			generation, version, source, boundary, false, state.FrozenBlocks, model, Stopwatch.GetElapsedTime(start));
 	}
 
-	private static MarkdownDocumentModel Parse(string text) => MarkdownParser.Parse(text, Pipeline);
+	private MarkdownDocumentModel Parse(string text) => _parse(text);
 
 	/// <summary>
 	/// 开放围栏快速路径（规格 §4.4）：尾部以完整的围栏开启行开始且未闭合时，
 	/// 跳过补全与 Markdig，按围栏规则直接构造代码块。返回 null 表示未命中，
 	/// 调用方走常规补全解析路径。
 	/// </summary>
-	private MarkdownDocumentBlock? TryBuildOpenFenceTailBlock(string source, int boundary, string tailText)
+	private MarkdownDocumentBlock? TryBuildOpenFenceTailBlock(
+		string source,
+		int boundary,
+		string tailText,
+		MarkdownStreamSegmenter segmenter,
+		int frozenPlainLength)
 	{
-		if (!_segmenter.IsScanningFence)
+		if (!segmenter.IsScanningFence)
 		{
 			return null;
 		}
 
-		var (fenceChar, fenceLength) = _segmenter.OpenFence;
+		var (fenceChar, fenceLength) = segmenter.OpenFence;
 
 		// 末行（可能未完成）已构成闭合围栏时未命中（Q2）：补全后解析才能得到完整块。
 		var lastLineStart = tailText.LastIndexOf('\n') + 1;
@@ -382,7 +422,7 @@ public sealed class MarkdownStreamingDocument : IDisposable
 		var flags = MarkdownBlockClassifier.GetDependencyFlags(fenced, kind);
 		var sourceText = remendedTail[indent..];
 		var blockText = MarkdownParser.ExtractPlainText(fenced).TrimEnd();
-		var plainStart = _frozenPlain.Length;
+		var plainStart = frozenPlainLength;
 		var plainEnd = plainStart + (blockText.Length > 0 ? blockText.Length : 0);
 
 		return new MarkdownDocumentBlock(
@@ -457,6 +497,23 @@ public sealed class MarkdownStreamingDocument : IDisposable
 		}
 
 		return line[stripped..];
+	}
+
+	private bool IsCurrent(int generation, long version)
+	{
+		lock (_gate)
+		{
+			return !_disposed && generation == _generation && version == _version;
+		}
+	}
+
+	private sealed class StreamState
+	{
+		public int FrozenEnd { get; set; }
+		public List<MarkdownDocumentBlock> FrozenBlocks { get; } = [];
+		public StringBuilder FrozenPlain { get; } = new();
+		public MarkdownDependencyFlags FrozenFlags { get; set; }
+		public MarkdownStreamSegmenter Segmenter { get; } = new();
 	}
 
 	private void Post(Action action)

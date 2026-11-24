@@ -60,7 +60,18 @@ public partial class ShellEditorOptionsView : UserControl
             popup.KeyDown += OnOverflowKeyDown;
         };
         // 图鉴卡片 SVG（库端正式管线渲染）：Flyout 打开或 TabItem 切换时对可见卡片赋 SvgSource。
-        Loaded += (_, _) => _ = PreloadGallerySourcesAsync();
+        Loaded += (_, _) =>
+        {
+            _galleryThemeHost?.PropertyChanged -= OnGalleryThemeChanged;
+            _galleryThemeHost = Application.Current;
+            if (_galleryThemeHost is not null) _galleryThemeHost.PropertyChanged += OnGalleryThemeChanged;
+            _ = PreloadGallerySourcesAsync();
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (_galleryThemeHost is not null) _galleryThemeHost.PropertyChanged -= OnGalleryThemeChanged;
+            _galleryThemeHost = null;
+        };
         FormatMermaidGallery.Flyout!.Opened += (_, _) => ApplyGallerySources();
         FormatMermaidGallery.Flyout!.Closed += (_, _) => { /* 关闭不清理，下次打开直接复用缓存 */ };
         // 图鉴卡片点击即插入（原型 closePicker 语义）：Click 先冒泡、插入命令随后执行，
@@ -85,7 +96,8 @@ public partial class ShellEditorOptionsView : UserControl
 
 
     /// <summary>图鉴缩略图源缓存：SvgSource 在后台线程解析一次，跨 Flyout 打开复用（弹出零延迟的关键）。</summary>
-    private static readonly Dictionary<string, Avalonia.Svg.Skia.SvgSource> GallerySources = new(StringComparer.Ordinal);
+    private static readonly Dictionary<string, (string CacheKey, Avalonia.Svg.Skia.SvgSource Source)> GallerySources = new(StringComparer.Ordinal);
+    private Application? _galleryThemeHost;
 
     private static readonly string[] GalleryKeys =
     [
@@ -101,7 +113,8 @@ public partial class ShellEditorOptionsView : UserControl
         // 与文档内图表同一条代码路径，视觉一致；后台线程执行，弹出时只做引用赋值。
         foreach (var key in GalleryKeys)
         {
-            if (GallerySources.ContainsKey(key)) continue;
+            var current = GetGallerySource(key);
+            if (current is { } ready && GallerySources.TryGetValue(key, out var cached) && cached.CacheKey == ready.CacheKey) continue;
             try
             {
                 var source = MarkdownTemplates.GetDiagramSource(key);
@@ -109,7 +122,8 @@ public partial class ShellEditorOptionsView : UserControl
                 var options = MermaidBlockRenderer.GetRenderOptions(source);
                 var cacheKey = MermaidBlockRenderer.CreateCacheKey(source, options);
                 var svgSource = await MermaidBlockRenderer.ResolveSvgSourceAsync(cacheKey, source, options);
-                if (svgSource is not null) GallerySources[key] = svgSource;
+                if (svgSource is not null && GetGallerySource(key) is { } latest && latest.CacheKey == cacheKey)
+                    GallerySources[key] = (cacheKey, svgSource);
             }
             catch
             {
@@ -123,17 +137,37 @@ public partial class ShellEditorOptionsView : UserControl
         });
     }
 
+    private void OnGalleryThemeChanged(object? sender, AvaloniaPropertyChangedEventArgs args)
+    {
+        if (args.Property.Name != "ActualThemeVariant") return;
+        _ = PreloadGallerySourcesAsync();
+        if (FormatMermaidGallery.Flyout?.IsOpen == true)
+            Avalonia.Threading.Dispatcher.UIThread.Post(ApplyGallerySources);
+    }
+
+    private static (string Source, string CacheKey)? GetGallerySource(string key)
+    {
+        var source = MarkdownTemplates.GetDiagramSource(key);
+        if (source is null) return null;
+        var options = MermaidBlockRenderer.GetRenderOptions(source);
+        return (source, MermaidBlockRenderer.CreateCacheKey(source, options));
+    }
+
     /// <summary>把缓存的 SvgSource 赋给卡片 Image；尚未就绪的由 Preload 完成后下次打开生效。</summary>
     private void ApplyGallerySources()
     {
         if (FormatMermaidGallery.Flyout is not Flyout { Content: Visual root }) return;
-        foreach (var card in root.GetVisualDescendants()
-                     .OfType<Button>()
-                     .Where(button => button.CommandParameter is string && GallerySources.TryGetValue((string)button.CommandParameter, out _)))
+        foreach (var card in root.GetVisualDescendants().OfType<Button>())
         {
+            if (card.CommandParameter is not string key) continue;
             var image = card.GetVisualDescendants().OfType<Image>().FirstOrDefault();
-            if (image is not null && GallerySources.TryGetValue((string)card.CommandParameter!, out var source))
-                image.Source = new Avalonia.Svg.Skia.SvgImage { Source = source };
+            if (image is null) continue;
+            var current = GetGallerySource(key);
+            image.Source = current is { } latest
+                && GallerySources.TryGetValue(key, out var cached)
+                && cached.CacheKey == latest.CacheKey
+                ? new Avalonia.Svg.Skia.SvgImage { Source = cached.Source }
+                : null;
         }
     }
 

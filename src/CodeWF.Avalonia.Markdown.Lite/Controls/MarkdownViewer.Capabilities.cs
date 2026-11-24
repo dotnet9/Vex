@@ -362,6 +362,8 @@ public partial class MarkdownViewer
     /// <summary>
     /// 流式源绑定切换：退订旧文档、订阅新文档并立即应用其当前快照。
     /// </summary>
+    private int _streamingGeneration = -1;
+
     private void OnStreamingSourceChanged(Streaming.MarkdownStreamingDocument? oldValue, Streaming.MarkdownStreamingDocument? newValue)
     {
         if (ReferenceEquals(oldValue, newValue))
@@ -379,6 +381,7 @@ public partial class MarkdownViewer
             return;
         }
 
+        _streamingGeneration = -1;
         newValue.SnapshotReady += OnStreamingSnapshotReady;
         if (newValue.Latest.Source.Length > 0)
         {
@@ -397,14 +400,29 @@ public partial class MarkdownViewer
             return;
         }
 
-        // 文档已被换绑的过期快照直接丢弃。
-        if (!ReferenceEquals(sender, StreamingSource))
+        // 文档已被换绑，或同一文档已推进到更新版本时，排队中的旧快照直接丢弃。
+        var streamingSource = StreamingSource;
+        if (streamingSource is null || !ReferenceEquals(sender, streamingSource))
+        {
+            return;
+        }
+
+        var latest = streamingSource.Latest;
+        if (latest.Generation != snapshot.Generation || latest.Version != snapshot.Version)
         {
             return;
         }
 
         _lastParseDuration = snapshot.ParseDuration;
         var text = snapshot.Model.Source;
+        if (snapshot.Generation != _streamingGeneration)
+        {
+            if (snapshot.IsComplete) _streamingGeneration = snapshot.Generation;
+            RenderDocumentFull(text, snapshot.Model);
+            _streamingGeneration = snapshot.Generation;
+            return;
+        }
+
         if (!TryRenderIncremental(text, snapshot.Model, null))
         {
             RenderDocumentFull(text, snapshot.Model);
