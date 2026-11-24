@@ -1595,7 +1595,7 @@ public partial class MarkdownLiveEditorView : UserControl
                     var start = Math.Min(clear.SelectionStart, clear.SelectionEnd);
                     var length = Math.Abs(clear.SelectionStart - clear.SelectionEnd);
                     if (length == 0) { start = 0; length = text.Length; }
-                    var plain = MarkdownTextRunParser.ToPlainText(MarkdownTextRunParser.Parse(text.Substring(start, length)));
+                    var plain = MarkdownFormattingCleaner.Clear(text.Substring(start, length));
                     clear.Text = text.Remove(start, length).Insert(start, plain);
                     clear.CaretIndex = start + plain.Length;
                 }

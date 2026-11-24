@@ -197,7 +197,7 @@ public sealed class MarkdownEditorMutationService : IMarkdownEditorMutationServi
         }
 
         var selected = text.Substring(start, length);
-        var cleaned = ClearMarkdownFormatting(selected);
+        var cleaned = MarkdownFormattingCleaner.Clear(selected);
         editor.Document.Replace(start, length, cleaned);
         editor.SelectionStart = start;
         editor.SelectionLength = cleaned.Length;
@@ -455,33 +455,4 @@ public sealed class MarkdownEditorMutationService : IMarkdownEditorMutationServi
 
         return line;
     }
-
-    private static string ClearMarkdownFormatting(string markdown)
-    {
-        // 这里只处理常见 Markdown 标记，复杂语法后续应放到可测试的 Markdown AST 服务里扩展。
-        var lines = markdown
-            .Replace("**", string.Empty, StringComparison.Ordinal)
-            .Replace("__", string.Empty, StringComparison.Ordinal)
-            .Replace("*", string.Empty, StringComparison.Ordinal)
-            .Replace("_", string.Empty, StringComparison.Ordinal)
-            .Replace("`", string.Empty, StringComparison.Ordinal)
-            .Split('\n');
-
-        for (var i = 0; i < lines.Length; i++)
-        {
-            lines[i] = SpanTagPattern.Replace(
-                RemoveMarkdownLinePrefix(lines[i])
-                    .Replace("![", "[", StringComparison.Ordinal)
-                    .Replace("](", " (", StringComparison.Ordinal)
-                    .Replace(")", string.Empty, StringComparison.Ordinal),
-                string.Empty);
-        }
-
-        return string.Join('\n', lines);
-    }
-
-    /// <summary>剥掉行内样式 span 标签（清除格式时颜色/字号随标记一起去除）。</summary>
-    private static readonly System.Text.RegularExpressions.Regex SpanTagPattern = new(
-        @"<span\b[^>]*>|</span\s*>",
-        System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 }
