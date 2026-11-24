@@ -26,8 +26,11 @@ Step '候选库重建' { ./scripts/restore_library_candidate.ps1 -OutputRoot (Jo
 Step '更新状态与启动失败边界' { dotnet run --project scripts/update-verification -c Release }
 
 Step '构建 UiVerification' { dotnet build scripts/ui-verification/UiVerification.csproj -c Release }
-$uv = 'dotnet artifacts/bin/UiVerification/release/UiVerification.dll'
-$out = Join-Path $root 'artifacts/verify-release'
+# 工件根随 Directory.Build.props 口径：CI 在仓内 artifacts\，本地（CI 未设）在仓外 ..\..\temp_files\vex-build\。
+$artifacts = if ($env:CI -eq 'true') { Join-Path $root 'artifacts' }
+             else { Join-Path (Split-Path -Parent (Split-Path -Parent $root)) 'temp_files/vex-build' }
+$uvDll = Join-Path $artifacts 'bin/UiVerification/release/UiVerification.dll'
+$out = Join-Path $artifacts 'verify-release'
 foreach ($scenario in @(
         @{ mode = 'updates'; args = '' },
         @{ mode = 'media-layout'; args = '' },
@@ -41,14 +44,14 @@ foreach ($scenario in @(
         @{ mode = 'mermaid'; args = '' },
         @{ mode = 'blog-frontmatter'; args = '' },
         @{ mode = 'presentation'; args = '' })) {
-    Step "UiVerification：$($scenario.mode)" { Invoke-Expression "$uv $($scenario.mode) $out/$($scenario.mode) $($scenario.args)" }
+    Step "UiVerification：$($scenario.mode)" { Invoke-Expression "dotnet `"$uvDll`" $($scenario.mode) `"$out/$($scenario.mode)`" $($scenario.args)" }
 }
 
 if (-not $SkipAot) {
     $version = '0.0.0'
     if ((Get-Content Directory.Build.props -Raw) -match '<Version>([^<]+)</Version>') { $version = $Matches[1] }
     Step 'AOT 发布 win-x64' { pwsh scripts/publish.ps1 -RuntimeIdentifier win-x64 -Version $version }
-    $exe = Join-Path $root 'artifacts/publish/win-x64/Vex/Vex.exe'
+    $exe = Join-Path $artifacts 'publish/win-x64/Vex/Vex.exe'
     Step 'AOT 验证：ui' { & $exe --verify-ui (Join-Path $out 'aot-ui') }
     Step 'AOT 验证：layout' { & $exe --verify-layout (Join-Path $out 'aot-layout') }
     Step 'AOT 验证：runtime' { & $exe --verify-runtime (Join-Path $out 'aot-runtime') }
