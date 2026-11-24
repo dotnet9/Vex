@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
+using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Models;
@@ -47,6 +48,39 @@ public sealed record GitDiffCell(int? Number, string Text, char Kind)
 
 /// <summary>Split 左右配对行：−块与其后的 + 块按行配对，余者单侧留空。</summary>
 public sealed record GitDiffPairRow(GitDiffCell Left, GitDiffCell Right);
+
+/// <summary>分支下拉行：分组头或分支行（GitHub Desktop 分支列表口径）。</summary>
+public sealed record GitBranchRow(
+    string Name,
+    bool IsCurrent,
+    string GroupName,
+    string DateText,
+    bool IsGroupHeader = false)
+{
+    public string Display => IsGroupHeader ? GroupName : Name;
+}
+
+/// <summary>已打开仓库下拉行（工作区主根 + 附加根中的 git 仓库）。</summary>
+public sealed record GitRepoRow(string Path, string Name, bool IsCurrent);
+
+/// <summary>分支名称弹层结果：新名称 + 基准分支（rename 时基准与旧分支相同）。</summary>
+public sealed record GitBranchDialogResult(string Name, string BaseBranch);
+
+/// <summary>分支名称弹层请求：create 模式带「基于…」二选一；rename 模式预填旧名。</summary>
+public sealed record GitBranchDialogRequest(
+    GitBranchDialogMode Mode,
+    string InitialName,
+    IReadOnlyList<string> Branches,
+    string DefaultBranch,
+    string CurrentBranch)
+{
+    public string? SelectedBase { get; set; }
+}
+
+public enum GitBranchDialogMode { Create, Rename }
+
+/// <summary>同步按钮语义（GitHub Desktop push-pull-button 状态机）。</summary>
+public enum GitSyncKind { Push, Pull, Fetch, Publish }
 
 /// <summary>变更列表行：octicon 状态 + 目录/文件名拆分 + 勾选态 + 行级增删统计。</summary>
 public sealed class GitChangeItem : ReactiveObject
@@ -191,6 +225,23 @@ public sealed class ShellGitViewModel : ReactiveObject
     private int _commitDeleted;
     private bool _isBusy;
 
+    /// <summary>网络操作进行中（根修：此前各操作只 Raise 自己的 CanXxx，其他按钮的可用性
+    /// 状态滞留——「提交后推送按钮点不了」的根因）。</summary>
+    private bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            if (_isBusy == value) return;
+            _isBusy = value;
+            this.RaisePropertyChanged(nameof(CanPush));
+            this.RaisePropertyChanged(nameof(CanPull));
+            this.RaisePropertyChanged(nameof(CanCommit));
+            this.RaisePropertyChanged(nameof(CanSync));
+            this.RaisePropertyChanged(nameof(CanManageBranch));
+        }
+    }
+
     public ShellGitViewModel(IAppLocalizer localizer, IShellToastPublisher toasts, EditorPreferences preferences, ICredentialStore credentials)
     {
         _localizer = localizer;
@@ -200,6 +251,8 @@ public sealed class ShellGitViewModel : ReactiveObject
         SetDiffModeCommand = new RelayCommand<string?>(SetDiffMode);
         CreateTagCommand = new AsyncRelayCommand<string?>(CreateTagAsync);
         DiscardChangeCommand = new AsyncRelayCommand<GitChangeItem?>(async item => await DiscardChangeAsync(item));
+        RenameBranchCommand = new AsyncRelayCommand<string?>(RenameBranchFromDialogAsync);
+        DeleteBranchCommand = new AsyncRelayCommand<string?>(DeleteBranchFromDialogAsync);
         this.RaisePropertyChanged(nameof(DiscardChangeCommand));
         OpenChangeInExplorerCommand = new RelayCommand<GitChangeItem?>(RevealChange);
         OpenCommitFileInExplorerCommand = new RelayCommand<GitCommitFileItem?>(RevealCommitFile);
@@ -210,10 +263,49 @@ public sealed class ShellGitViewModel : ReactiveObject
                 SyncAutoCommitTimer();
             }
         };
+        // 工作区整体切换（打开/切换目录）时重建 Git 面板上下文。
+        CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
     }
 
-    /// <summary>工作区根目录来源（MainWindowViewModel 注入；未打开文件夹时 Git 功能不可用）。</summary>
+    /// <summary>工作区根目录来源（MainWindowViewModel 注入；未打开文件夹时 Git 功能不可用）。
+    /// 已选中仓库根时优先生效（仓库下拉切换）。</summary>
     public Func<string?>? WorkspaceFolderProvider { get; set; }
+
+    /// <summary>工作区根目录来源（主根 + 附加根；仓库下拉数据源）。</summary>
+    public Func<IReadOnlyList<string>>? WorkspaceRootsProvider { get; set; }
+
+    /// <summary>仓库下拉当前选中的根（null = 跟随主根；打开/切换目录时重置回主根）。</summary>
+    public string? SelectedRepoRoot { get; private set; }
+
+    /// <summary>Git 模式开关（标题栏 Git 菜单显隐的数据源；Enter/Exit 维护）。</summary>
+    public bool IsGitMode { get; private set; }
+
+    /// <summary>工作区整体切换：Git 面板跟随新主根重建上下文（打开目录 ≠ 添加附加根——附加根只进仓库下拉）。
+    /// 路径未变（同目录刷新）时跳过；非仓库目录清空面板回英雄区。</summary>
+    private void ApplyWorkspaceRootChanged(string? newRoot)
+    {
+        if (string.IsNullOrWhiteSpace(newRoot)) return;
+        var sameRoot = _workspaceFolder is not null && string.Equals(
+            _workspaceFolder, newRoot,
+            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        if (sameRoot && _service is not null) return;
+
+        SelectedRepoRoot = null;
+        _workspaceFolder = newRoot;
+        LastSyncText = null;
+        SelectedCommit = null;
+        BranchRows.Clear();
+        if (!GitService.IsRepository(newRoot))
+        {
+            ResetState();
+            return;
+        }
+        _ = RefreshAsync();
+    }
+
+    [EventHandler]
+    public void ApplyDocumentFilesChanged(DocumentFilesChangedCommand command) =>
+        ApplyWorkspaceRootChanged(command.WorkspaceRootPath);
 
     /// <summary>PAT 输入弹层（宿主注入）：HTTPS 远程无已存凭据时调用，返回 null 表示取消。</summary>
     public Func<Task<string?>>? PatPrompt { get; set; }
@@ -226,6 +318,12 @@ public sealed class ShellGitViewModel : ReactiveObject
 
     public ObservableCollection<GitChangeItem> Changes { get; } = [];
     public ObservableCollection<GitCommitItem> History { get; } = [];
+
+    /// <summary>分支下拉行（含分组头；GitHub Desktop 分支列表口径：默认/最近/其他）。</summary>
+    public ObservableCollection<GitBranchRow> BranchRows { get; } = [];
+
+    /// <summary>已打开仓库（工作区主根 + 附加根中的 git 仓库；GitHub Desktop Current repository ▾ 口径）。</summary>
+    public ObservableCollection<GitRepoRow> OpenRepos { get; } = [];
 
     /// <summary>历史分页页大小（滚动近底部续拉下一批，原型滚动加载口径）。</summary>
     public const int HistoryPageSize = 30;
@@ -320,6 +418,8 @@ public sealed class ShellGitViewModel : ReactiveObject
     /// <summary>在 HEAD 打轻量 tag（可选立即推送）：发布流程「升版提交后打发布 tag」的面板入口。</summary>
     public AsyncRelayCommand<string?> CreateTagCommand { get; }
     public AsyncRelayCommand<GitChangeItem?> DiscardChangeCommand { get; }
+    public AsyncRelayCommand<string?> RenameBranchCommand { get; }
+    public AsyncRelayCommand<string?> DeleteBranchCommand { get; }
 
 
     /// <summary>GitService 稳定错误码 → 本地化文案；未知异常回落原始消息。</summary>
@@ -382,7 +482,8 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         try
         {
-            _service.CreateTag(clean);
+            if (TagTargetSha is { } sha) _service.CreateTag(clean, sha); else _service.CreateTag(clean);
+            TagTargetSha = null;
             _toasts.Publish(_localizer.Format(VexL.GitTagCreatedFormat, clean));
             NewTagName = string.Empty;
             if (TagAlsoPush)
@@ -400,8 +501,7 @@ public sealed class ShellGitViewModel : ReactiveObject
     public async Task PushTagAsync(string? name)
     {
         if (_service is null || !HasRemote || string.IsNullOrWhiteSpace(name)) return;
-        _isBusy = true;
-        this.RaisePropertyChanged(nameof(CanPush));
+        IsBusy = true;
         try
         {
             var tag = name.Trim();
@@ -415,8 +515,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         finally
         {
-            _isBusy = false;
-            this.RaisePropertyChanged(nameof(CanPush));
+            IsBusy = false;
         }
     }
 
@@ -472,9 +571,9 @@ public sealed class ShellGitViewModel : ReactiveObject
     /// <summary>远程协议芯片文案（origin · HTTPS / origin · SSH）。</summary>
     public string RemoteChipText => HasRemote ? "origin · " + (IsSshRemote ? "SSH" : "HTTPS") : string.Empty;
 
-    public int Ahead { get => _ahead; private set { this.RaiseAndSetIfChanged(ref _ahead, value); this.RaisePropertyChanged(nameof(SyncChipText)); this.RaisePropertyChanged(nameof(HasSyncDelta)); } }
+    public int Ahead { get => _ahead; private set { this.RaiseAndSetIfChanged(ref _ahead, value); this.RaisePropertyChanged(nameof(SyncChipText)); this.RaisePropertyChanged(nameof(HasSyncDelta)); RaiseSyncProps(); } }
 
-    public int Behind { get => _behind; private set { this.RaiseAndSetIfChanged(ref _behind, value); this.RaisePropertyChanged(nameof(SyncChipText)); this.RaisePropertyChanged(nameof(HasSyncDelta)); } }
+    public int Behind { get => _behind; private set { this.RaiseAndSetIfChanged(ref _behind, value); this.RaisePropertyChanged(nameof(SyncChipText)); this.RaisePropertyChanged(nameof(HasSyncDelta)); RaiseSyncProps(); } }
 
     public bool HasSyncDelta => Ahead > 0 || Behind > 0;
 
@@ -484,6 +583,8 @@ public sealed class ShellGitViewModel : ReactiveObject
     public string? LastSyncText { get => _lastSyncText; private set => this.RaiseAndSetIfChanged(ref _lastSyncText, value); }
 
     public string LastSyncDisplay => LastSyncText ?? "—";
+
+    private void RaiseLastSyncProps() => RaiseSyncProps();
 
     private double _leftColumnWidth = 300;
 
@@ -684,9 +785,102 @@ public sealed class ShellGitViewModel : ReactiveObject
 
     public bool HasCommitDetail => SelectedCommit is not null;
 
-    public bool CanPush => HasRemote && Ahead > 0 && !_isBusy;
-
+    public bool CanPush => HasRemote && !_isBusy;
     public bool CanPull => HasRemote && !_isBusy;
+    public bool CanSync => HasRepo && !_isBusy;
+    public bool CanManageBranch => HasRepo && !_isBusy;
+
+    /// <summary>同步按钮语义（GitHub Desktop push-pull-button 口径）：随状态换动作，永不禁用。</summary>
+    public GitSyncKind SyncKind
+    {
+        get
+        {
+            if (!HasRemote) return GitSyncKind.Publish;
+            if (Ahead > 0) return GitSyncKind.Push;
+            if (Behind > 0) return GitSyncKind.Pull;
+            return GitSyncKind.Fetch;
+        }
+    }
+
+    public string SyncTitle => SyncKind switch
+    {
+        GitSyncKind.Push => _localizer.Get(VexL.GitSyncPushLabel) + " origin",
+        GitSyncKind.Pull => _localizer.Get(VexL.GitSyncPullLabel) + " origin",
+        GitSyncKind.Fetch => _localizer.Get(VexL.GitSyncFetchLabel) + " origin",
+        _ => _localizer.Get(VexL.GitSyncPublishLabel),
+    };
+
+    /// <summary>副文案：上次拉取时间 / 从未拉取 / 未配置远程。</summary>
+    public string SyncSubText => !HasRemote
+        ? _localizer.Get(VexL.GitNoRemoteHint)
+        : LastSyncText is null ? _localizer.Get(VexL.GitNeverFetched) : _localizer.Get(VexL.GitLastFetch) + " " + LastSyncText;
+
+    public string SyncBadgeUp => Ahead > 0 ? "↑" + Ahead : string.Empty;
+    public string SyncBadgeDown => Behind > 0 ? "↓" + Behind : string.Empty;
+    public bool SyncIsPush => SyncKind == GitSyncKind.Push;
+    public bool SyncIsPull => SyncKind == GitSyncKind.Pull;
+    public bool SyncIsFetch => SyncKind == GitSyncKind.Fetch;
+    public bool HasBadgeUp => SyncBadgeUp.Length > 0;
+    public bool HasBadgeDown => SyncBadgeDown.Length > 0;
+
+    /// <summary>同步按钮点击分发（GitHub Desktop：一个按钮随状态换动作）。</summary>
+    public async Task SyncAsync()
+    {
+        switch (SyncKind)
+        {
+            case GitSyncKind.Push: await PushAsync(); break;
+            case GitSyncKind.Pull: await PullAsync(); break;
+            case GitSyncKind.Fetch: await FetchAsync(); break;
+            case GitSyncKind.Publish: await OpenRemoteDialogAsync(); break;
+        }
+    }
+
+    /// <summary>获取远端（顶栏同步按钮 Fetch 态；仅更新远端跟踪信息，不动工作区）。</summary>
+    public async Task FetchAsync()
+    {
+        if (_service is null || !HasRemote || IsBusy) return;
+        IsBusy = true;
+        try
+        {
+            var pat = IsHttpsRemote ? await ResolvePatAsync() : null;
+            // 网络 IO 放后台线程：网络操作在 UI 线程执行会冻结界面。
+            await Task.Run(() => _service.Fetch(pat ?? string.Empty));
+            LastSyncText = NowText();
+            _toasts.Publish(_localizer.Get(VexL.GitFetchDoneToast));
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
+    }
+
+    /// <summary>分支筛选词（分支下拉筛选框；空=全部）。</summary>
+    private string _branchFilter = string.Empty;
+    public string BranchFilter
+    {
+        get => _branchFilter;
+        set
+        {
+            if (_branchFilter == value) return;
+            _branchFilter = value;
+            RefreshBranchRows();
+        }
+    }
+
+    private void RaiseSyncProps()
+    {
+        this.RaisePropertyChanged(nameof(SyncKind));
+        this.RaisePropertyChanged(nameof(SyncTitle));
+        this.RaisePropertyChanged(nameof(SyncSubText));
+        this.RaisePropertyChanged(nameof(SyncBadgeUp));
+        this.RaisePropertyChanged(nameof(SyncBadgeDown));
+        this.RaisePropertyChanged(nameof(SyncIsPush));
+        this.RaisePropertyChanged(nameof(SyncIsPull));
+        this.RaisePropertyChanged(nameof(SyncIsFetch));
+        this.RaisePropertyChanged(nameof(HasBadgeUp));
+        this.RaisePropertyChanged(nameof(HasBadgeDown));
+    }
 
     public bool HasChanges => Changes.Count > 0;
 
@@ -726,9 +920,13 @@ public sealed class ShellGitViewModel : ReactiveObject
     /// <summary>进入 Git 模式：探测工作区仓库并刷新全部状态。</summary>
     public void Enter()
     {
-        var folder = WorkspaceFolderProvider?.Invoke();
+        IsGitMode = true;
+        this.RaisePropertyChanged(nameof(IsGitMode));
+        var folder = SelectedRepoRoot ?? WorkspaceFolderProvider?.Invoke();
         _workspaceFolder = folder;
         _service = folder is null || !GitService.IsRepository(folder) ? null : new GitService(folder);
+        RefreshBranchRows();
+        RefreshOpenRepos();
         RefreshInBackground();
     }
 
@@ -736,6 +934,8 @@ public sealed class ShellGitViewModel : ReactiveObject
     public void Exit()
     {
         StopAutoCommitTimer();
+        IsGitMode = false;
+        this.RaisePropertyChanged(nameof(IsGitMode));
         _service?.Dispose();
         _service = null;
     }
@@ -812,6 +1012,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         IsSshRemote = snapshot.RemoteRawUrl is not null &&
             (snapshot.RemoteRawUrl.StartsWith("git@", StringComparison.OrdinalIgnoreCase) || snapshot.RemoteRawUrl.StartsWith("ssh://", StringComparison.OrdinalIgnoreCase));
         ReplaceAll(Changes, snapshot.Changes.Select(c => new GitChangeItem(c.Path, c.Kind, StatusTextOf(c.Kind), c.LinesAdded, c.LinesDeleted)));
+        RefreshBranchRows();
         foreach (var item in Changes) item.PropertyChanged += ChangeItemPropertyChanged;
         this.RaisePropertyChanged(nameof(CheckedCount));
         this.RaisePropertyChanged(nameof(CanCommit));
@@ -870,6 +1071,74 @@ public sealed class ShellGitViewModel : ReactiveObject
     }
 
     /// <summary>状态描边标志的本地化说明（修改/新增/删除/未跟踪）。</summary>
+    /// <summary>会话内最近检出的分支（本会话记录，不持久化；GHD「Recent branches」组的轻量实现）。</summary>
+    private readonly List<string> _recentBranches = [];
+    private string _defaultBranchName = string.Empty;
+
+    /// <summary>按 GHD 分组重建分支行：默认分支 → 最近分支（去默认，会话内）→ 其他。</summary>
+    private void RefreshBranchRows()
+    {
+        var rows = ReplaceBranchRows(_service?.LocalBranches() ?? []);
+        this.RaisePropertyChanged(nameof(BranchName));
+    }
+
+    private List<GitBranchRow> ReplaceBranchRows(IReadOnlyList<Vex.Git.GitService.LocalBranchInfo> branches)
+    {
+        var current = _service is null ? string.Empty : CurrentBranchName();
+        if (_defaultBranchName.Length == 0 || branches.All(b => b.Name != _defaultBranchName))
+        {
+            _defaultBranchName = branches.FirstOrDefault(b => b.Name is "main" or "master")?.Name
+                ?? branches.FirstOrDefault()?.Name ?? string.Empty;
+        }
+
+        var rows = new List<GitBranchRow>();
+        var filter = BranchFilter.Trim();
+        void AddHeader(string title) => rows.Add(new GitBranchRow(string.Empty, false, title, string.Empty, IsGroupHeader: true));
+        void AddBranch(Vex.Git.GitService.LocalBranchInfo b, string group)
+        {
+            // 筛选词：分支名包含即呈现（GHD SectionFilterList 的包含口径）。
+            if (filter.Length > 0 && !b.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)) return;
+            rows.Add(new GitBranchRow(b.Name, b.IsCurrent, group,
+                b.LastCommitTime is { } time ? FormatCommitTime(time) : string.Empty, IsGroupHeader: false));
+        }
+
+        var handled = new HashSet<string>(StringComparer.Ordinal);
+        var def = branches.FirstOrDefault(b => b.Name == _defaultBranchName);
+        if (def is not null) { AddHeader(_localizer.Get(VexL.GitBranchGroupDefault)); AddBranch(def, _defaultBranchName); handled.Add(def.Name); }
+        var recent = _recentBranches.Where(n => n != _defaultBranchName && branches.Any(b => b.Name == n)).ToList();
+        if (recent.Count > 0) AddHeader(_localizer.Get(VexL.GitBranchGroupRecent));
+        foreach (var name in recent) { var b = branches.First(x => x.Name == name); AddBranch(b, "recent"); handled.Add(name); }
+        var others = branches.Where(b => !handled.Contains(b.Name)).ToList();
+        if (others.Count > 0) AddHeader(_localizer.Get(VexL.GitBranchGroupOther));
+        foreach (var b in others) AddBranch(b, "other");
+
+        ReplaceAll(BranchRows, rows);
+        return rows;
+    }
+
+    /// <summary>当前分支名（切分器/检出后保持最新）。</summary>
+    public string CurrentBranchName() => _service is null
+        ? string.Empty
+        : _service.LocalBranches().FirstOrDefault(b => b.IsCurrent)?.Name ?? string.Empty;
+
+    /// <summary>重建已打开仓库行（工作区主根 + 附加根中的 git 仓库；当前置顶打勾）。</summary>
+    private void RefreshOpenRepos()
+    {
+        var roots = WorkspaceRootsProvider?.Invoke() ?? [];
+        var rows = roots.Where(GitService.IsRepository)
+            .Select(r => new GitRepoRow(r, Path.GetFileName(r.TrimEnd(Path.DirectorySeparatorChar))!, string.Equals(r, _workspaceFolder, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+        if (rows.Count == 0 && _workspaceFolder is not null && GitService.IsRepository(_workspaceFolder))
+        {
+            rows.Add(new GitRepoRow(_workspaceFolder, Path.GetFileName(_workspaceFolder.TrimEnd(Path.DirectorySeparatorChar))!, true));
+        }
+        ReplaceAll(OpenRepos, rows);
+        this.RaisePropertyChanged(nameof(RepoChipName));
+    }
+
+    /// <summary>仓库芯片文案：当前选中的仓库名。</summary>
+    public string RepoChipName => _workspaceFolder is null ? string.Empty : Path.GetFileName(_workspaceFolder.TrimEnd(Path.DirectorySeparatorChar));
+
     internal string StatusTextOf(GitChangeKind kind) => kind switch
     {
         GitChangeKind.Added => _localizer.Get(VexL.GitStatusAdded),
@@ -935,6 +1204,173 @@ public sealed class ShellGitViewModel : ReactiveObject
         || System.Text.RegularExpressions.Regex.IsMatch(url, @"^git@\S+:\S+")
         || System.Text.RegularExpressions.Regex.IsMatch(url, @"^ssh://\S+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
+    // ===== 分支下拉与 Git 菜单（GitHub Desktop 分支管理；原型 design/Git-Badges.html REV3+）=====
+
+    /// <summary>分支名称弹层（宿主注入）：create 模式带「基于…」二选一；返回 null 表示取消。</summary>
+    public Func<GitBranchDialogRequest, Task<GitBranchDialogResult?>>? BranchNameDialog { get; set; }
+
+    /// <summary>合并分支弹层（宿主注入）：传入可选源分支，返回选中的源；null 取消。</summary>
+    public Func<IReadOnlyList<string>, Task<string?>>? MergeDialog { get; set; }
+
+    /// <summary>删除分支确认弹层（宿主注入）：返回 false 表示取消。</summary>
+    public Func<string, Task<bool>>? BranchDeleteConfirm { get; set; }
+
+    /// <summary>tag 表单请求挂在哪个提交上（null = HEAD）。</summary>
+    public string? TagTargetSha { get; private set; }
+
+    /// <summary>分支下拉当前选中行（行右键 重命名/复制/删除 的目标）。</summary>
+    public GitBranchRow? SelectedBranchRow { get; set; }
+    /// <summary>复制分支名的 toast（剪贴板在视图层写入）。</summary>
+    public void CopyBranchNameToast(string name) => _toasts.Publish(_localizer.Get(VexL.GitBranchCopiedToast).Replace("{0}", name));
+
+
+    /// <summary>tag 表单锚点请求（历史右键入口；ShellGitView 订阅后在分支芯片上展开表单）。</summary>
+    public event EventHandler? TagFlyoutRequested;
+
+    public void RequestTagFlyout(bool alsoPush, string? sha)
+    {
+        PrepareTagFlyout(alsoPush, sha);
+        TagFlyoutRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>标题栏 Git 菜单：打 tag…（在分支芯片上展开 tag 表单）。</summary>
+    public void RequestCreateTagFlyout() => RequestTagFlyout(false, null);
+
+    /// <summary>标题栏 Git 菜单：推送 tag…（预勾选同时推送）。</summary>
+    public void RequestPushTagFlyout() => RequestTagFlyout(true, null);
+
+    /// <summary>tag 表单预设置（指定提交；历史右键入口）。</summary>
+    public void PrepareTagFlyout(bool alsoPush, string? targetSha)
+    {
+        PrepareTagFlyout(alsoPush);
+        TagTargetSha = targetSha;
+    }
+
+    /// <summary>切换检出分支（保留工作区未提交变更；冲突 toast）。</summary>
+    public async Task SwitchBranchAsync(string? name)
+    {
+        if (_service is null || string.IsNullOrWhiteSpace(name) || name == BranchName) return;
+        try
+        {
+            _service.CheckoutBranch(name);
+            TrackRecentBranch(name);
+            _toasts.Publish(_localizer.Get(VexL.GitBranchSwitchedFormat).Replace("{0}", name));
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
+    }
+
+    /// <summary>新建分支（弹层收集名称与基准分支；创建后检出）。分支下拉与标题栏 Git 菜单共用。</summary>
+    public async Task ShowNewBranchDialogAsync() => await CreateBranchFromDialogAsync();
+
+    public async Task CreateBranchFromDialogAsync()
+    {
+        if (_service is null || BranchNameDialog is null) return;
+        var sources = _service.LocalBranches().Select(b => b.Name).ToList();
+        var request = new GitBranchDialogRequest(GitBranchDialogMode.Create, string.Empty, sources, _defaultBranchName, BranchName);
+        var dialogResult = await BranchNameDialog.Invoke(request);
+        if (dialogResult is null || string.IsNullOrWhiteSpace(dialogResult.Name)) return;
+        var baseBranch = dialogResult.BaseBranch;
+        try
+        {
+            _service.CreateBranch(dialogResult.Name, baseBranch);
+            TrackRecentBranch(dialogResult.Name);
+            _toasts.Publish(_localizer.Get(VexL.GitBranchCreatedFormat).Replace("{0}", dialogResult.Name));
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
+    }
+
+    /// <summary>重命名分支（行右键；弹层预填旧名）。</summary>
+    public async Task RenameBranchFromDialogAsync(string? oldName)
+    {
+        if (_service is null || string.IsNullOrWhiteSpace(oldName) || BranchNameDialog is null) return;
+        var request = new GitBranchDialogRequest(GitBranchDialogMode.Rename, oldName, [], string.Empty, oldName);
+        var dialogResult = await BranchNameDialog.Invoke(request);
+        if (dialogResult is null || string.IsNullOrWhiteSpace(dialogResult.Name) || dialogResult.Name == oldName) return;
+        try
+        {
+            _service.RenameBranch(oldName, dialogResult.Name);
+            _toasts.Publish(_localizer.Get(VexL.GitBranchRenamedFormat).Replace("{0}", dialogResult.Name));
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
+    }
+
+    /// <summary>删除分支（确认弹层；当前分支由服务端拒绝并 toast）。</summary>
+    public async Task DeleteBranchFromDialogAsync(string? name)
+    {
+        if (_service is null || string.IsNullOrWhiteSpace(name)) return;
+        if (BranchDeleteConfirm is not null && !await BranchDeleteConfirm.Invoke(name)) return;
+        try
+        {
+            _service.DeleteBranch(name, force: false);
+            _toasts.Publish(_localizer.Get(VexL.GitBranchDeletedFormat).Replace("{0}", name));
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
+    }
+
+    /// <summary>合并分支（弹层选源；合并进当前分支，冲突 toast）。</summary>
+    public async Task MergeFromDialogAsync()
+    {
+        if (_service is null || MergeDialog is null) return;
+        var others = _service.LocalBranches().Where(b => !b.IsCurrent).Select(b => b.Name).ToList();
+        if (others.Count == 0)
+        {
+            _toasts.Publish(_localizer.Get(VexL.GitMergeNoSourceToast), Avalonia.Controls.Notifications.NotificationType.Warning);
+            return;
+        }
+        var source = await MergeDialog.Invoke(others);
+        if (string.IsNullOrWhiteSpace(source)) return;
+        try
+        {
+            var result = _service.MergeBranchInto(source);
+            if (result == "up-to-date") _toasts.Publish(_localizer.Get(VexL.GitMergeUpToDateToast));
+            else _toasts.Publish(_localizer.Format(VexL.GitMergeDoneFormat, source, CurrentBranchName()));
+            await RefreshAsync();
+        }
+        catch (GitServiceException ex) when (ex.Code == GitServiceError.MergeConflicts)
+        {
+            _toasts.Publish(_localizer.Get(ex.Code), Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
+        catch (Exception ex)
+        {
+            _toasts.Publish(_localizer.Format(VexL.GitPushFailedFormat, LocalizeGitError(ex)), Avalonia.Controls.Notifications.NotificationType.Warning);
+        }
+    }
+
+    /// <summary>切换仓库（已打开仓库下拉；把 Git 面板重绑到该仓库根并刷新）。</summary>
+    public async Task SwitchRepoAsync(string? rootPath)
+    {
+        if (string.IsNullOrWhiteSpace(rootPath) || !GitService.IsRepository(rootPath)) return;
+        if (_workspaceFolder is not null && string.Equals(_workspaceFolder, rootPath, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)) return;
+        _workspaceFolder = rootPath;
+        _service?.Dispose();
+        _service = new GitService(rootPath);
+        _toasts.Publish(_localizer.Get(VexL.GitRepoSwitchedFormat).Replace("{0}", Path.GetFileName(rootPath.TrimEnd(Path.DirectorySeparatorChar))));
+        await RefreshAsync();
+    }
+
+    private void TrackRecentBranch(string name)
+    {
+        _recentBranches.Remove(name);
+        _recentBranches.Insert(0, name);
+        if (_recentBranches.Count > 5) _recentBranches.RemoveRange(5, _recentBranches.Count - 5);
+    }
+
     /// <summary>分支按钮（原型占位：分支管理在桌面版中提供）。</summary>
     public void ShowBranchPlaceholder() => _toasts.Publish(_localizer.Get(VexL.GitBranchManagementToast));
 
@@ -977,8 +1413,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         var message = Summary.Trim();
         var description = Description.Trim();
         if (description.Length > 0) message += "\n\n" + description;
-        _isBusy = true;
-        this.RaisePropertyChanged(nameof(CanCommit));
+        IsBusy = true;
         try
         {
             var sha = _service.CommitPaths(paths, message).Sha[..7];
@@ -994,8 +1429,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         finally
         {
-            _isBusy = false;
-            this.RaisePropertyChanged(nameof(CanCommit));
+            IsBusy = false;
         }
     }
 
@@ -1008,8 +1442,7 @@ public sealed class ShellGitViewModel : ReactiveObject
             _toasts.Publish(_localizer.Get(VexL.GitPushNothingToast));
             return;
         }
-        _isBusy = true;
-        this.RaisePropertyChanged(nameof(CanPush));
+        IsBusy = true;
         try
         {
             var pat = await ResolvePatAsync();
@@ -1018,7 +1451,8 @@ public sealed class ShellGitViewModel : ReactiveObject
                 return; // 用户取消 PAT 输入
             }
             var branch = BranchName;
-            _service.Push(pat ?? string.Empty, branch: branch);
+            // 网络 IO 放后台线程：推送传输可达秒级～分钟级，阻塞 UI 线程会冻结界面。
+            await Task.Run(() => _service.Push(pat ?? string.Empty, branch: branch));
             LastSyncText = NowText();
             _toasts.Publish(_localizer.Format(VexL.GitPushToastFormat, branch));
             await RefreshAsync();
@@ -1029,8 +1463,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         finally
         {
-            _isBusy = false;
-            this.RaisePropertyChanged(nameof(CanPush));
+            IsBusy = false;
         }
     }
 
@@ -1038,8 +1471,7 @@ public sealed class ShellGitViewModel : ReactiveObject
     public async Task PullAsync()
     {
         if (_service is null || !HasRemote) return;
-        _isBusy = true;
-        this.RaisePropertyChanged(nameof(CanPull));
+        IsBusy = true;
         try
         {
             var pat = IsHttpsRemote ? await ResolvePatAsync() : null;
@@ -1047,7 +1479,7 @@ public sealed class ShellGitViewModel : ReactiveObject
             {
                 return; // 用户取消 PAT 输入
             }
-            var pulled = _service.PullFastForward(pat);
+            var pulled = await Task.Run(() => _service.PullFastForward(pat));
             if (pulled > 0)
             {
                 LastSyncText = NowText();
@@ -1066,8 +1498,7 @@ public sealed class ShellGitViewModel : ReactiveObject
         }
         finally
         {
-            _isBusy = false;
-            this.RaisePropertyChanged(nameof(CanPull));
+            IsBusy = false;
         }
     }
 
