@@ -65,8 +65,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         appearance.Changed += (_, _) => ApplyLiveAppearance();
         display.Changed += (_, _) => { if (_live is { } live) live.EnableAutoPair = display.EnableAutoPair; };
         _view = settings.Current.WorkbenchView is WorkbenchLayoutKeys.Read or WorkbenchLayoutKeys.ViewMindMap ? settings.Current.WorkbenchView : WorkbenchLayoutKeys.ViewEdit;
-        // 默认源码编辑（即时编辑仍在完善）：仅设置明确为即时才落即时，其余回落源码。
-        _edit = settings.Current.EditMode == WorkbenchLayoutKeys.Instant ? WorkbenchLayoutKeys.Instant : WorkbenchLayoutKeys.Source;
+        _edit = WorkbenchLayoutKeys.ResolveEditMode(settings.Current.EditMode);
         _workspaceLayout = WorkbenchLayoutOption.All.Any(option => option.Id == settings.Current.WorkspaceLayout)
             ? settings.Current.WorkspaceLayout! : _view == WorkbenchLayoutKeys.ViewMindMap ? WorkbenchLayoutKeys.Map : _view == WorkbenchLayoutKeys.Read ? WorkbenchLayoutKeys.Read : _edit;
         if (LayoutOption.Editor is { } initialMode) _edit = initialMode;

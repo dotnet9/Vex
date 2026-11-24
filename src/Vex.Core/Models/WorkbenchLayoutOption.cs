@@ -15,6 +15,9 @@ public static class WorkbenchLayoutKeys
     /// <summary>编辑席位的形态键（WorkbenchView）：编辑=源码/即时，阅读与脑图无编辑席位。</summary>
     public const string ViewEdit = "edit";
     public const string ViewMindMap = "mindmap";
+
+    public static string ResolveEditMode(string? savedMode) =>
+        savedMode == Source ? Source : Instant;
 }
 
 /// <summary>固定视图组合。源码和即时编辑共用一个编辑器席位。</summary>
