@@ -51,7 +51,8 @@ if (-not $SkipAot) {
     $version = '0.0.0'
     if ((Get-Content Directory.Build.props -Raw) -match '<Version>([^<]+)</Version>') { $version = $Matches[1] }
     Step 'AOT 发布 win-x64' { pwsh scripts/publish.ps1 -RuntimeIdentifier win-x64 -Version $version }
-    $exe = Join-Path $artifacts 'publish/win-x64/Vex/Vex.exe'
+    # publish.ps1 的输出契约固定在仓内 artifacts/publish/<rid>/（PublishProfile 指定），不随 ArtifactsPath 走。
+    $exe = Join-Path $root 'artifacts/publish/win-x64/Vex/Vex.exe'
     Step 'AOT 验证：ui' { & $exe --verify-ui (Join-Path $out 'aot-ui') }
     Step 'AOT 验证：layout' { & $exe --verify-layout (Join-Path $out 'aot-layout') }
     Step 'AOT 验证：runtime' { & $exe --verify-runtime (Join-Path $out 'aot-runtime') }
