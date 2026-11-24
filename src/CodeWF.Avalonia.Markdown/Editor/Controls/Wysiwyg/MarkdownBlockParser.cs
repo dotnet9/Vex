@@ -87,13 +87,7 @@ public static class MarkdownBlockParser
                     break;
 
                 case FencedCodeBlock fenced:
-                    blocks.Add(new MarkdownBlockModel
-                    {
-                        Kind = MarkdownBlockKind.Code,
-                        IsFenced = true,
-                        Language = fenced.Info ?? string.Empty,
-                        Text = ExtractCode(fenced)
-                    });
+                    blocks.Add(CreateCodeModel(fenced, text, true));
                     break;
 
                 case Markdig.Extensions.Yaml.YamlFrontMatterBlock:
@@ -105,12 +99,7 @@ public static class MarkdownBlockParser
                     break;
 
                 case CodeBlock code:
-                    blocks.Add(new MarkdownBlockModel
-                    {
-                        Kind = MarkdownBlockKind.Code,
-                        IsFenced = false,
-                        Text = ExtractCode(code)
-                    });
+                    blocks.Add(CreateCodeModel(code, text, false));
                     break;
 
                 case Table table:
@@ -300,10 +289,7 @@ public static class MarkdownBlockParser
                 break;
 
             case MarkdownBlockKind.Code:
-                var language = block.IsFenced ? block.Language : string.Empty;
-                builder.Append("```").Append(language).Append('\n');
-                builder.Append(block.Text);
-                builder.Append('\n').Append("```").Append('\n');
+                AppendCode(builder, block);
                 break;
 
             case MarkdownBlockKind.Table:
@@ -318,6 +304,91 @@ public static class MarkdownBlockParser
                 builder.Append(block.Raw).Append('\n');
                 break;
         }
+    }
+
+    private static void AppendCode(StringBuilder builder, MarkdownBlockModel block)
+    {
+        var prefix = block.CodePrefix ?? FallbackCodePrefix(block);
+        if (!block.IsFenced)
+        {
+            foreach (var line in block.Text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Split('\n'))
+            {
+                builder.Append(prefix).Append(line).Append('\n');
+            }
+
+            return;
+        }
+
+        var fenceChar = block.FenceChar is '`' or '~' ? block.FenceChar : '`';
+        var fenceLength = Math.Max(3, block.FenceLength);
+        foreach (var line in block.Text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Split('\n'))
+        {
+            var run = 0;
+            foreach (var character in line.TrimStart())
+            {
+                if (character != fenceChar) break;
+                run++;
+            }
+
+            if (run >= fenceLength) fenceLength = run + 1;
+        }
+
+        var fence = new string(fenceChar, fenceLength);
+        builder.Append(prefix).Append(fence).Append(block.Language).Append('\n');
+        foreach (var line in block.Text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Split('\n'))
+        {
+            builder.Append(prefix).Append(line).Append('\n');
+        }
+
+        builder.Append(prefix).Append(fence).Append('\n');
+    }
+
+    private static string FallbackCodePrefix(MarkdownBlockModel block)
+    {
+        var builder = new StringBuilder();
+        if (!block.IsFenced) builder.Append("    ");
+        else builder.Append(' ', block.IndentLevel * 2);
+        for (var depth = 0; depth < block.QuoteDepth; depth++) builder.Append("> ");
+        return builder.ToString();
+    }
+
+    private static MarkdownBlockModel CreateCodeModel(CodeBlock code, string sourceText, bool isFenced)
+    {
+        var prefix = isFenced
+            ? ExtractCodePrefix(sourceText, code.Span.Start)
+            : ExtractIndentedCodePrefix(sourceText, code);
+        return new MarkdownBlockModel
+        {
+            Kind = MarkdownBlockKind.Code,
+            IsFenced = isFenced,
+            Language = isFenced && code is FencedCodeBlock fenced ? fenced.Info ?? string.Empty : string.Empty,
+            FenceChar = code is FencedCodeBlock fencedCode && fencedCode.FencedChar is '`' or '~' ? fencedCode.FencedChar : '`',
+            FenceLength = code is FencedCodeBlock fencedBlock ? Math.Max(3, fencedBlock.OpeningFencedCharCount) : 3,
+            CodePrefix = prefix,
+            Text = ExtractCode(code)
+        };
+    }
+
+    private static string ExtractIndentedCodePrefix(string sourceText, CodeBlock code)
+    {
+        if (code.Lines.Count == 0) return string.Empty;
+        var line = code.Lines.Lines[0];
+        if (line.Position < 0 || line.Position > sourceText.Length) return string.Empty;
+        var lineEnd = sourceText.IndexOf('\n', line.Position);
+        if (lineEnd < 0) lineEnd = sourceText.Length;
+        if (lineEnd > line.Position && sourceText[lineEnd - 1] == '\r') lineEnd--;
+        var rawLine = sourceText[line.Position..lineEnd];
+        var content = line.Slice.ToString();
+        return content.Length > 0 && rawLine.EndsWith(content, StringComparison.Ordinal)
+            ? rawLine[..^content.Length]
+            : string.Empty;
+    }
+
+    private static string ExtractCodePrefix(string sourceText, int position)
+    {
+        if (position < 0 || position > sourceText.Length) return string.Empty;
+        var lineStart = sourceText.LastIndexOf('\n', Math.Max(0, position - 1)) + 1;
+        return sourceText[lineStart..position];
     }
 
     private static void AppendTable(StringBuilder builder, MarkdownBlockModel block)
@@ -408,15 +479,17 @@ public static class MarkdownBlockParser
                         break;
 
                     case FencedCodeBlock nestedFenced:
-                        blocks.Add(new MarkdownBlockModel
-                        {
-                            Kind = MarkdownBlockKind.Code,
-                            IsFenced = true,
-                            Language = nestedFenced.Info ?? string.Empty,
-                            Text = ExtractCode(nestedFenced),
-                            IndentLevel = indentLevel + 1,
-                            QuoteDepth = quoteDepth
-                        });
+                        var nestedFencedModel = CreateCodeModel(nestedFenced, sourceText, true);
+                        nestedFencedModel.IndentLevel = indentLevel + 1;
+                        nestedFencedModel.QuoteDepth = quoteDepth;
+                        blocks.Add(nestedFencedModel);
+                        break;
+
+                    case CodeBlock nestedCode:
+                        var nestedCodeModel = CreateCodeModel(nestedCode, sourceText, false);
+                        nestedCodeModel.IndentLevel = indentLevel + 1;
+                        nestedCodeModel.QuoteDepth = quoteDepth;
+                        blocks.Add(nestedCodeModel);
                         break;
 
                     case ContainerBlock container:
@@ -492,11 +565,24 @@ public static class MarkdownBlockParser
                     AppendQuote(blocks, nested, sourceText, depth + 1);
                     break;
 
+                case FencedCodeBlock fenced:
+                    var quotedFencedModel = CreateCodeModel(fenced, sourceText, true);
+                    quotedFencedModel.QuoteDepth = depth;
+                    blocks.Add(quotedFencedModel);
+                    break;
+
+                case CodeBlock code:
+                    var quotedCodeModel = CreateCodeModel(code, sourceText, false);
+                    quotedCodeModel.QuoteDepth = depth;
+                    blocks.Add(quotedCodeModel);
+                    break;
+
                 case LeafBlock leaf:
                     blocks.Add(new MarkdownBlockModel
                     {
                         Kind = MarkdownBlockKind.Quote,
-                        Text = ExtractLines(leaf.Lines)
+                        Text = ExtractLines(leaf.Lines),
+                        QuoteDepth = depth
                     });
                     break;
             }

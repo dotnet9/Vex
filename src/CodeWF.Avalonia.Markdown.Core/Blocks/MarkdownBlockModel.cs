@@ -38,6 +38,15 @@ public sealed class MarkdownBlockModel
     /// <summary>代码块是否使用围栏（```）。</summary>
     public bool IsFenced { get; set; } = true;
 
+    /// <summary>围栏字符；保留反引号与波浪线写法。</summary>
+    public char FenceChar { get; set; } = '`';
+
+    /// <summary>围栏最短长度。</summary>
+    public int FenceLength { get; set; } = 3;
+
+    /// <summary>源码中每行代码前的列表或引用前缀。</summary>
+    public string? CodePrefix { get; set; }
+
     /// <summary>表格首行为表头。</summary>
     public bool HasHeader { get; set; }
 
