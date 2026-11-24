@@ -56,6 +56,7 @@ internal sealed class MathBlockRenderer : IMarkdownBlockRenderer
             return context.CreateFallbackText(latex, MarkdownStyleKeys.HtmlBlock);
         }
 
+        MarkdownFormulaState.SetText(view, latex);
         var border = new Border
         {
             Child = view,

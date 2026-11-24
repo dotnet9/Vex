@@ -1,7 +1,9 @@
 using Avalonia;
 using global::Avalonia.Controls;
 using global::Avalonia.Media;
+using global::Avalonia.Media.Immutable;
 
+using CodeWF.Avalonia.Markdown.Shared.Rendering;
 using CSharpMath.Atom;
 using CSharpMath.Rendering.FrontEnd;
 
@@ -30,6 +32,10 @@ public sealed class MarkdownMathView : Control
 
 	public static readonly StyledProperty<bool> DisplayErrorInlineProperty =
 		AvaloniaProperty.Register<MarkdownMathView, bool>(nameof(DisplayErrorInline), false);
+
+	public static readonly StyledProperty<IBrush?> SelectionBrushProperty =
+		AvaloniaProperty.Register<MarkdownMathView, IBrush?>(nameof(SelectionBrush),
+			new ImmutableSolidColorBrush(Color.FromArgb(0x66, 0x33, 0x99, 0xFF)));
 
 	public string? LaTeX
 	{
@@ -61,6 +67,12 @@ public sealed class MarkdownMathView : Control
 		set => SetValue(DisplayErrorInlineProperty, value);
 	}
 
+	public IBrush? SelectionBrush
+	{
+		get => GetValue(SelectionBrushProperty);
+		set => SetValue(SelectionBrushProperty, value);
+	}
+
 	static MarkdownMathView()
 	{
 		LaTeXProperty.Changed.AddClassHandler<MarkdownMathView>((view, _) => view.OnPainterPropertyChanged());
@@ -68,6 +80,10 @@ public sealed class MarkdownMathView : Control
 		FontSizeProperty.Changed.AddClassHandler<MarkdownMathView>((view, _) => view.OnPainterPropertyChanged());
 		LineStyleProperty.Changed.AddClassHandler<MarkdownMathView>((view, _) => view.OnPainterPropertyChanged());
 		DisplayErrorInlineProperty.Changed.AddClassHandler<MarkdownMathView>((view, _) => view.OnPainterPropertyChanged());
+		SelectionBrushProperty.Changed.AddClassHandler<MarkdownMathView>((view, _) => view.InvalidateVisual());
+		MarkdownFormulaState.SearchBrushProperty.Changed.AddClassHandler<MarkdownMathView>((view, _) => view.InvalidateVisual());
+		MarkdownFormulaState.SelectionStartProperty.Changed.AddClassHandler<MarkdownMathView>((view, _) => view.InvalidateVisual());
+		MarkdownFormulaState.SelectionEndProperty.Changed.AddClassHandler<MarkdownMathView>((view, _) => view.InvalidateVisual());
 	}
 
 	public MarkdownMathView()
@@ -86,8 +102,31 @@ public sealed class MarkdownMathView : Control
 	{
 		base.Render(context);
 		ApplyPainter();
+		DrawFormulaState(context);
 		var canvas = new AvaloniaMathCanvas(context, Bounds.Size);
 		_painter.Draw(canvas, CSharpMath.Rendering.FrontEnd.TextAlignment.Center);
+	}
+
+	private void DrawFormulaState(DrawingContext context)
+	{
+		if (MarkdownFormulaState.GetSearchBrush(this) is { } searchBrush)
+		{
+			context.DrawRectangle(searchBrush, null, new Rect(Bounds.Size));
+		}
+
+		var textLength = MarkdownFormulaState.GetText(this)?.Length ?? 0;
+		var start = MarkdownFormulaState.GetSelectionStart(this);
+		var end = MarkdownFormulaState.GetSelectionEnd(this);
+		if (textLength == 0 || start == end || SelectionBrush is not { } selectionBrush)
+		{
+			return;
+		}
+
+		var from = Math.Clamp(Math.Min(start, end), 0, textLength);
+		var to = Math.Clamp(Math.Max(start, end), 0, textLength);
+		var left = Bounds.Width * from / textLength;
+		var right = Bounds.Width * to / textLength;
+		context.DrawRectangle(selectionBrush, null, new Rect(left, 0, Math.Max(1, right - left), Bounds.Height));
 	}
 
 	private void OnPainterPropertyChanged()

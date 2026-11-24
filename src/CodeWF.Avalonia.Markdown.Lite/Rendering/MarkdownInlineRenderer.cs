@@ -416,6 +416,7 @@ internal sealed class MarkdownInlineRenderer(IMarkdownRenderContext context)
                 return new Run($"${latex}$");
             }
 
+            MarkdownFormulaState.SetText(view, latex);
             view.VerticalAlignment = VerticalAlignment.Center;
             return CreateInlineContainer(view);
         }

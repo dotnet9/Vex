@@ -25,7 +25,7 @@ internal sealed class MarkdownSelectionController
 	private MarkdownTextPoint? _anchor;
 	private MarkdownTextPoint? _active;
 	private bool _hasVisualSelection;
-	private readonly HashSet<SelectableTextBlock> _selectedTexts = [];
+	private readonly HashSet<MarkdownTextProjection> _selectedSegments = [];
 
 	public bool HasSelection => _hasVisualSelection
 								&& _anchor.HasValue
@@ -220,37 +220,44 @@ internal sealed class MarkdownSelectionController
 
 	private int HitTestOffset(MarkdownSelectionBlock block, Point point)
 	{
-		var projected = TextSegments(block).ToArray();
+		var projected = MarkdownTextProjections.Create(block.Control, block.PlainText).ToArray();
 		// 图表、图片等非文字块没有可投影的字形，端点沿用块模型的首尾。
 		if (projected.Length == 0)
 			return point.Y < GetDocumentBounds(block.Control).Center.Y ? 0 : block.PlainText.Length;
+		var formulas = projected.Where(item => item.TextBlock is null)
+			.Where(item => GetDocumentBounds(item.Control).Contains(point))
+			.ToArray();
+		if (formulas.Length > 0)
+		{
+			var formula = formulas.MinBy(item => GetDocumentBounds(item.Control).Width * GetDocumentBounds(item.Control).Height);
+			var local = _coordinateRoot?.TranslatePoint(point, formula.Control) ?? point - GetDocumentBounds(formula.Control).Position;
+			var formulaRatio = formula.Control.Bounds.Width <= 0 ? 0 : Math.Clamp(local.X / formula.Control.Bounds.Width, 0, 1);
+			return formula.Start + (int)Math.Round(formulaRatio * formula.Length);
+		}
+
 		var nearest = projected.MinBy(item =>
 		{
-			var bounds = GetDocumentBounds(item.Text);
+			var bounds = GetDocumentBounds(item.Control);
 			return point.Y < bounds.Top ? bounds.Top - point.Y : point.Y > bounds.Bottom ? point.Y - bounds.Bottom : 0;
 		});
-		var local = _coordinateRoot?.TranslatePoint(point, nearest.Text) ?? point - GetDocumentBounds(nearest.Text).Position;
-		if (local.Y < 0) return nearest.Start;
-		if (local.Y > nearest.Text.Bounds.Height) return nearest.Start + nearest.Length;
-		var hit = nearest.Text.TextLayout.HitTestPoint(new Point(local.X - nearest.Text.Padding.Left, local.Y - nearest.Text.Padding.Top));
-		return nearest.Start + Math.Clamp(hit.TextPosition, 0, nearest.Length);
-	}
-
-	private static IEnumerable<(SelectableTextBlock Text, int Start, int Length)> TextSegments(MarkdownSelectionBlock block)
-	{
-		var root = block.Control;
-		var texts = root is SelectableTextBlock text ? new[] { text }.Concat(root.GetVisualDescendants().OfType<SelectableTextBlock>())
-			: root.GetVisualDescendants().OfType<SelectableTextBlock>();
-		var cursor = 0;
-		foreach (var item in texts.Where(item => item.Tag as string != "CodeLineNumbers"))
+		var projectedPoint = _coordinateRoot?.TranslatePoint(point, nearest.Control) ?? point - GetDocumentBounds(nearest.Control).Position;
+		if (projectedPoint.Y < 0) return nearest.Start;
+		if (projectedPoint.Y > nearest.Control.Bounds.Height) return nearest.Start + nearest.Length;
+		if (nearest.TextBlock is not null)
 		{
-			var buffer = item.Inlines?.Text ?? item.Text ?? string.Empty;
-			if (buffer.Length == 0) continue;
-			var start = block.PlainText.IndexOf(buffer, cursor, StringComparison.Ordinal);
-			if (start < 0) continue;
-			cursor = start + buffer.Length;
-			yield return (item, start, buffer.Length);
+			var hit = nearest.TextBlock.TextLayout.HitTestPoint(new Point(projectedPoint.X - nearest.TextBlock.Padding.Left, projectedPoint.Y - nearest.TextBlock.Padding.Top));
+			var textPosition = hit.TextPosition;
+			nearest = projected.Where(item => item.TextBlock == nearest.TextBlock).MinBy(item =>
+			{
+				var start = item.LocalStart;
+				var end = start + item.Length;
+				return textPosition < start ? start - textPosition : textPosition > end ? textPosition - end : 0;
+			});
+			return nearest.Start + Math.Clamp(textPosition - nearest.LocalStart, 0, nearest.Length);
 		}
+
+		var ratio = nearest.Control.Bounds.Width <= 0 ? 0 : Math.Clamp(projectedPoint.X / nearest.Control.Bounds.Width, 0, 1);
+		return nearest.Start + (int)Math.Round(ratio * nearest.Length);
 	}
 
 	private (MarkdownTextPoint Start, MarkdownTextPoint End) GetOrderedPoints()
@@ -292,13 +299,25 @@ internal sealed class MarkdownSelectionController
 		for (var i = start; i <= end; i++)
 		{
 			var block = _blocks[i];
-			var segments = TextSegments(block).ToArray();
+			var segments = MarkdownTextProjections.Create(block.Control, block.PlainText).ToArray();
 			if (segments.Length == 0) block.Control.Classes.Add(SelectedBlockClass);
-			foreach (var segment in segments)
+			var fromOffset = i == start ? from.Offset : 0;
+			var toOffset = i == end ? to.Offset : block.PlainText.Length;
+			foreach (var textGroup in segments.Where(segment => segment.TextBlock is not null).GroupBy(segment => segment.TextBlock))
 			{
-				_selectedTexts.Add(segment.Text);
-				segment.Text.SelectionStart = Math.Clamp((i == start ? from.Offset : 0) - segment.Start, 0, segment.Length);
-				segment.Text.SelectionEnd = Math.Clamp((i == end ? to.Offset : block.PlainText.Length) - segment.Start, 0, segment.Length);
+				var text = textGroup.Key!;
+				_selectedSegments.Add(textGroup.First());
+				text.SelectionStart = textGroup.Min(segment => segment.LocalStart
+					+ Math.Clamp(fromOffset - segment.Start, 0, segment.Length));
+				text.SelectionEnd = textGroup.Max(segment => segment.LocalStart
+					+ Math.Clamp(toOffset - segment.Start, 0, segment.Length));
+			}
+
+			foreach (var segment in segments.Where(segment => segment.TextBlock is null))
+			{
+				_selectedSegments.Add(segment);
+				MarkdownFormulaState.SetSelectionStart(segment.Control, Math.Clamp(fromOffset - segment.Start, 0, segment.Length));
+				MarkdownFormulaState.SetSelectionEnd(segment.Control, Math.Clamp(toOffset - segment.Start, 0, segment.Length));
 			}
 		}
 
@@ -311,8 +330,12 @@ internal sealed class MarkdownSelectionController
 		{
 			block.Control.Classes.Remove(SelectedBlockClass);
 		}
-		foreach (var text in _selectedTexts) text.ClearSelection();
-		_selectedTexts.Clear();
+		foreach (var segment in _selectedSegments)
+		{
+			if (segment.TextBlock is { } text) text.ClearSelection();
+			else MarkdownFormulaState.ClearSelection(segment.Control);
+		}
+		_selectedSegments.Clear();
 
 		_hasVisualSelection = false;
 	}

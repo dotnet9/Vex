@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 
+using Markdig.Extensions.Mathematics;
 using Markdig.Extensions.TaskLists;
 using Markdig.Syntax.Inlines;
 
@@ -32,8 +33,9 @@ public static class MarkdownPlainTextExtractor
 					HtmlInline html when IsLineBreakTag(html.Tag) => Environment.NewLine,
 					HtmlInline html when IsSpanTag(html.Tag) => string.Empty,
 					LinkInline { IsImage: true } image => ExtractImageText(image),
-					ContainerInline nested => ExtractPlainText(nested),
 					_ when MarkdownChemistry.TryGetChemInlinePlainText(child, out var chemText) => chemText,
+					MathInline math => math.Content.ToString(),
+					ContainerInline nested => ExtractPlainText(nested),
 					_ => IsTypeNameFallback(child.ToString() ?? string.Empty, child.GetType())
 						? string.Empty
 						: MarkdownChemistry.ReplaceChemCommandsWithPlainText(child.ToString() ?? string.Empty)
