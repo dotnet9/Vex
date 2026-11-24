@@ -528,6 +528,7 @@ public partial class MindMapEditor
             UpdateConnectors();
             EnsureCanvasSize();
             PositionNodeToolbar();
+            Dispatcher.UIThread.Post(ArrangeNodes, DispatcherPriority.Loaded);
         }
         else if (e.PropertyName == nameof(MindMapNode.Note))
         {
@@ -536,6 +537,7 @@ public partial class MindMapEditor
             UpdateConnectors();
             EnsureCanvasSize();
             PositionNodeToolbar();
+            Dispatcher.UIThread.Post(ArrangeNodes, DispatcherPriority.Loaded);
         }
     }
 

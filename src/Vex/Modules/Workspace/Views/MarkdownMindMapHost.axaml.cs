@@ -28,6 +28,7 @@ public partial class MarkdownMindMapHost : UserControl
     private ShellWorkbenchViewModel? _workbench;
     private bool _applyingMapZoom;
     private int? _renamingStart;
+    private MarkdownMindMapNode? _pendingDeleteNode;
     private (bool Paragraphs, bool Lists, bool Code, bool Tables)? _savedVisibility;
     private Vex.Core.Services.EditorPreferences? _pinPreferences;
     // 样式弹层：打开前捕获视口，压住画布时平移让出，关闭精确还原；风格卡选完 650ms 自动收起。
@@ -298,6 +299,7 @@ public partial class MarkdownMindMapHost : UserControl
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.AccentColorProperty, this.GetResourceObservable("StudioAccentColor").Select(r => r is Color color ? color : Colors.MediumPurple));
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.SuccessColorProperty, this.GetResourceObservable("VexSuccessBrush").Select(r => r is ISolidColorBrush b ? b.Color : Colors.SeaGreen));
         Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.WarningColorProperty, this.GetResourceObservable("VexWarningBrush").Select(r => r is ISolidColorBrush b ? b.Color : Colors.Orange));
+        Map.Bind(CodeWF.Avalonia.MindView.Controls.MarkdownMindMapView.DangerColorProperty, this.GetResourceObservable("VexDangerBrush").Select(r => r is ISolidColorBrush b ? b.Color : Colors.Red));
         MapDotGrid.Bind(Border.BackgroundProperty, this.GetResourceObservable("VexAccentBrush").Select(MapDotGridBrush));
         PropertyChanged += (_, e) =>
         {
@@ -420,6 +422,7 @@ public partial class MarkdownMindMapHost : UserControl
         if (command == "delete")
         {
             if (_workbench?.IsChapterSelected != true || ReferenceEquals(_workbench.SelectedNode, _workbench.Root)) return;
+            _pendingDeleteNode = _workbench.SelectedNode;
             DeleteChapterName.Text = _workbench.SelectedTitle; KeepChapterContent.IsChecked = false;
             ChapterDeleteLayer.IsVisible = true; CancelDeleteChapter.Focus(); return;
         }
@@ -447,11 +450,16 @@ public partial class MarkdownMindMapHost : UserControl
     public bool HandleEscape()
     {
         if (RenameLayer.IsVisible) { EndRename(false); Map.Focus(); return true; }
-        if (ChapterDeleteLayer.IsVisible) { ChapterDeleteLayer.IsVisible = false; Map.Focus(); return true; }
+        if (ChapterDeleteLayer.IsVisible) { _pendingDeleteNode = null; ChapterDeleteLayer.IsVisible = false; Map.Focus(); return true; }
         return false;
     }
-    private void CancelDeleteClick(object? sender, RoutedEventArgs e) { ChapterDeleteLayer.IsVisible = false; Map.Focus(); }
-    private void ConfirmDeleteClick(object? sender, RoutedEventArgs e) { _workbench?.DeleteChapter(KeepChapterContent.IsChecked == true); ChapterDeleteLayer.IsVisible = false; Map.Focus(); }
+    private void CancelDeleteClick(object? sender, RoutedEventArgs e) { _pendingDeleteNode = null; ChapterDeleteLayer.IsVisible = false; Map.Focus(); }
+    private void ConfirmDeleteClick(object? sender, RoutedEventArgs e)
+    {
+        var target = _pendingDeleteNode; _pendingDeleteNode = null;
+        _workbench?.DeleteChapter(KeepChapterContent.IsChecked == true, target);
+        ChapterDeleteLayer.IsVisible = false; Map.Focus();
+    }
     private void HeadingsOnlyClick(object? sender, RoutedEventArgs e)
     {
         if (_workbench is not { } state) return;

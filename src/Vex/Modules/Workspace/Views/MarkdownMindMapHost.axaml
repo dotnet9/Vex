@@ -65,10 +65,14 @@
             <Border Width="7" Height="7" CornerRadius="2" BorderThickness="1" BorderBrush="{DynamicResource VexAccentBrush}"/>
             <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBHeadingNode}}" Classes="wb-muted" FontSize="11"/>
           </StackPanel>
-          <StackPanel Orientation="Horizontal" Spacing="5">
+          <StackPanel x:Name="ContentLegend" Orientation="Horizontal" Spacing="5" IsVisible="{Binding Workbench.ShowContentNodes}">
             <Rectangle Width="7" Height="7" RadiusX="2" RadiusY="2" StrokeThickness="1"
                 StrokeDashArray="2,2" Stroke="{DynamicResource VexMutedBrush}"/>
             <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBContentNode}}" Classes="wb-muted" FontSize="11"/>
+          </StackPanel>
+          <StackPanel x:Name="AlertLegend" Orientation="Horizontal" Spacing="5" IsVisible="{Binding Workbench.ShowParagraphs}">
+            <Border Width="8" Height="8" CornerRadius="2" BorderThickness="2" BorderBrush="{DynamicResource VexWarningBrush}"/>
+            <TextBlock Text="{i18n:I18n {x:Static l:VexL.WBAlertNode}}" Classes="wb-muted" FontSize="11"/>
           </StackPanel>
         </StackPanel>
       </Border>

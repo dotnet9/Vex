@@ -50,6 +50,7 @@ public sealed partial class MarkdownMindMapView : UserControl
     public static readonly StyledProperty<IBrush?> DotBrushProperty = AvaloniaProperty.Register<MarkdownMindMapView, IBrush?>(nameof(DotBrush));
     public static readonly StyledProperty<Color> SuccessColorProperty = AvaloniaProperty.Register<MarkdownMindMapView, Color>(nameof(SuccessColor), Color.Parse("#3BAA84"));
     public static readonly StyledProperty<Color> WarningColorProperty = AvaloniaProperty.Register<MarkdownMindMapView, Color>(nameof(WarningColor), Color.Parse("#CE9840"));
+    public static readonly StyledProperty<Color> DangerColorProperty = AvaloniaProperty.Register<MarkdownMindMapView, Color>(nameof(DangerColor), Color.Parse("#D95555"));
     public IBrush? CanvasBrush { get => GetValue(CanvasBrushProperty); set => SetValue(CanvasBrushProperty, value); }
     public IBrush? CardBrush { get => GetValue(CardBrushProperty); set => SetValue(CardBrushProperty, value); }
     public IBrush? TextBrush { get => GetValue(TextBrushProperty); set => SetValue(TextBrushProperty, value); }
@@ -57,6 +58,7 @@ public sealed partial class MarkdownMindMapView : UserControl
     public IBrush? DotBrush { get => GetValue(DotBrushProperty); set => SetValue(DotBrushProperty, value); }
     public Color SuccessColor { get => GetValue(SuccessColorProperty); set => SetValue(SuccessColorProperty, value); }
     public Color WarningColor { get => GetValue(WarningColorProperty); set => SetValue(WarningColorProperty, value); }
+    public Color DangerColor { get => GetValue(DangerColorProperty); set => SetValue(DangerColorProperty, value); }
     private readonly DotGrid _dots = new() { IsHitTestVisible = false };
     private readonly Dictionary<MarkdownMindMapNode, Color> _branches = [];
     private readonly Canvas _canvas = new();
@@ -196,9 +198,19 @@ public sealed partial class MarkdownMindMapView : UserControl
         };
         KeyDown += (_, e) =>
         {
-            if (IsChapterEditingEnabled && _selected is { } chapter && e.KeyModifiers == KeyModifiers.None)
+            if (IsChapterEditingEnabled && _selected is { } chapter)
             {
-                var action = e.Key switch { Key.Enter => ReferenceEquals(chapter, Root) ? "child" : "sibling", Key.Tab => "child", Key.F2 => "rename", Key.Delete => "delete", _ => null };
+                var action = e.Key switch
+                {
+                    Key.Enter when e.KeyModifiers == KeyModifiers.None => ReferenceEquals(chapter, Root) ? "child" : "sibling",
+                    Key.Tab when e.KeyModifiers == KeyModifiers.None => "child",
+                    Key.Tab when e.KeyModifiers == KeyModifiers.Shift => "promote",
+                    Key.Up when e.KeyModifiers == KeyModifiers.Alt => "move-up",
+                    Key.Down when e.KeyModifiers == KeyModifiers.Alt => "move-down",
+                    Key.F2 when e.KeyModifiers == KeyModifiers.None => "rename",
+                    Key.Delete when e.KeyModifiers == KeyModifiers.None => "delete",
+                    _ => null
+                };
                 if (action is not null) { ChapterActionRequested?.Invoke(this, new(chapter, action)); e.Handled = true; return; }
             }
             if (e.Key == Key.Enter && _selected is { } node) { SourceRequested?.Invoke(this, node); e.Handled = true; }
@@ -214,19 +226,34 @@ public sealed partial class MarkdownMindMapView : UserControl
         {
             var oldRoot = change.GetOldValue<MarkdownMindMapNode?>();
             var newRoot = Root;
-            var sameDocument = oldRoot is not null && newRoot is not null && (PreserveViewportOnRootChange || oldRoot.Id == newRoot.Id && oldRoot.Title == newRoot.Title);
-            var collapsed = Flatten(oldRoot).Where(n => n.IsCollapsed).Select(n => n.Id).ToHashSet();
-            foreach (var node in Flatten(newRoot)) node.IsCollapsed = collapsed.Contains(node.Id);
-            _selected = Flatten(newRoot).FirstOrDefault(n => n.Id == _selected?.Id);
+            var oldSelected = _selected;
+            var sameDocument = oldRoot is not null && newRoot is not null && (PreserveViewportOnRootChange || oldRoot.Id == newRoot.Id);
+            MarkdownMindMapDocument.CopyCollapsedState(oldRoot, newRoot);
+            _selected = MarkdownMindMapDocument.FindCorrespondingNode(oldRoot, newRoot, oldSelected);
             Rebuild();
             if (!sameDocument) { _hasViewport = false; EnsureViewport(); }
-            if (newRoot is not null && _pendingViewport is { } pending) { _pendingViewport = null; RestoreViewport(pending); }
+            if (newRoot is not null && _pendingViewport is { } pending)
+            {
+                _pendingViewport = null;
+                var collapsedIds = Flatten(oldRoot)
+                    .Where(node => pending.CollapsedIds.Contains(node.Id))
+                    .Select(node => MarkdownMindMapDocument.FindCorrespondingNode(oldRoot, newRoot, node)?.Id)
+                    .OfType<string>()
+                    .ToArray();
+                var selected = Flatten(oldRoot).FirstOrDefault(node => node.Id == pending.SelectedId);
+                pending = pending with
+                {
+                    SelectedId = MarkdownMindMapDocument.FindCorrespondingNode(oldRoot, newRoot, selected)?.Id,
+                    CollapsedIds = collapsedIds
+                };
+                RestoreViewport(pending);
+            }
         }
         else if (change.Property == LayoutKindProperty || change.Property == StyleKindProperty)
         {
             Rebuild();
         }
-        else if (change.Property == AccentColorProperty || change.Property == EnableMotionProperty || change.Property == CanvasBrushProperty || change.Property == CardBrushProperty || change.Property == PanelBrushProperty || change.Property == MutedTextBrushProperty || change.Property == TextBrushProperty || change.Property == LineBrushProperty || change.Property == DotBrushProperty || change.Property == SuccessColorProperty || change.Property == WarningColorProperty) Rebuild();
+        else if (change.Property == AccentColorProperty || change.Property == EnableMotionProperty || change.Property == CanvasBrushProperty || change.Property == CardBrushProperty || change.Property == PanelBrushProperty || change.Property == MutedTextBrushProperty || change.Property == TextBrushProperty || change.Property == LineBrushProperty || change.Property == DotBrushProperty || change.Property == SuccessColorProperty || change.Property == WarningColorProperty || change.Property == DangerColorProperty) Rebuild();
     }
 
     public void ToggleCollapse(MarkdownMindMapNode node) { node.IsCollapsed = !node.IsCollapsed; Rebuild(); }
@@ -525,7 +552,17 @@ public sealed partial class MarkdownMindMapView : UserControl
         {
             if (!_bounds.TryGetValue(child, out var childRect)) continue;
             Point a, b;
-            if (LayoutKind is MindMapLayoutKind.Down or MindMapLayoutKind.Outline or MindMapLayoutKind.Radial or MindMapLayoutKind.Fishbone)
+            if (LayoutKind == MindMapLayoutKind.Outline)
+            {
+                a = new Point(rect.Center.X, rect.Bottom);
+                b = new Point(childRect.Left, childRect.Top);
+            }
+            else if (LayoutKind == MindMapLayoutKind.Fishbone && ReferenceEquals(node, Root))
+            {
+                a = new Point(rect.Left, rect.Center.Y);
+                b = new Point(childRect.Right, childRect.Center.Y);
+            }
+            else if (LayoutKind is MindMapLayoutKind.Down or MindMapLayoutKind.Radial or MindMapLayoutKind.Fishbone)
             {
                 a = new Point(rect.Center.X, rect.Bottom);
                 b = new Point(childRect.Center.X, childRect.Top);
@@ -538,9 +575,15 @@ public sealed partial class MarkdownMindMapView : UserControl
                 b = new Point(right ? childRect.Left : childRect.Right, childRect.Center.Y);
             }
             if (_bounds.Count >= 200 && !new Rect(new Point(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y)), new Size(Math.Abs(b.X - a.X) + 1, Math.Abs(b.Y - a.Y) + 1)).Intersects(_realizedRegion)) continue;
-            var data = LayoutKind is MindMapLayoutKind.Down or MindMapLayoutKind.Outline or MindMapLayoutKind.Radial or MindMapLayoutKind.Fishbone
-                ? FormattableString.Invariant($"M {a.X},{a.Y} L {b.X},{b.Y}")
-                : FormattableString.Invariant($"M {a.X},{a.Y} C {(a.X + b.X) / 2},{a.Y} {(a.X + b.X) / 2},{b.Y} {b.X},{b.Y}");
+            var data = LayoutKind switch
+            {
+                MindMapLayoutKind.Outline => FormattableString.Invariant($"M {a.X},{a.Y} V {b.Y - 12} H {b.X} V {b.Y}"),
+                MindMapLayoutKind.Down or MindMapLayoutKind.Fishbone => FormattableString.Invariant($"M {a.X},{a.Y} C {a.X},{(a.Y + b.Y) / 2} {b.X},{(a.Y + b.Y) / 2} {b.X},{b.Y}"),
+                MindMapLayoutKind.Radial => FormattableString.Invariant($"M {a.X},{a.Y} L {b.X},{b.Y}"),
+                _ => FormattableString.Invariant($"M {a.X},{a.Y} C {(a.X + b.X) / 2},{a.Y} {(a.X + b.X) / 2},{b.Y} {b.X},{b.Y}")
+            };
+            if (LayoutKind == MindMapLayoutKind.Fishbone && ReferenceEquals(node, Root))
+                data = FormattableString.Invariant($"M {a.X},{a.Y} L {b.X},{b.Y}");
             var linkColor = StyleKind switch
             {
                 MindMapStyleKind.Colorful => _branches[child],

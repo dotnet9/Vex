@@ -84,10 +84,12 @@ public sealed partial class ShellWorkbenchViewModel
     }
     private void ApplyMove(MarkdownChapterDocument doc, MarkdownChapterDocument.Chapter chapter, MarkdownChapterDocument.Chapter? target, string position)
     { var moved = doc.Move(chapter, target, position); ApplyChapter(moved.Text, moved.Start); }
-    public void DeleteChapter(bool keepContent)
+    public void DeleteChapter(bool keepContent, MarkdownMindMapNode? target = null)
     {
+        if (ReferenceEquals(target, Root)) return;
         var doc = ChapterDocument;
-        if (SelectedChapter() is { } chapter)
+        var chapter = target is null ? SelectedChapter() : ResolveChapter(target.SourceStart);
+        if (chapter is not null)
             ApplyChapter(doc.Delete(chapter, keepContent), chapter.Parent);
     }
     private void ApplyChapter(string text, int? start)

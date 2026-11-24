@@ -68,7 +68,12 @@
       } else if (/^\s*>/.test(line)) {
         i++;
         while (i < lines.length && /^\s*>/.test(lines[i])) i++;
-        block('quote', plain(lines.slice(start, i).map(function (item) { return item.replace(/^\s*>\s?/, ''); }).join(' ')), start, i - 1);
+        var rawQuote = lines.slice(start, i).map(function (item) { return item.replace(/^\s*>\s?/, ''); }).join(' ');
+        var alert = /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|INFO)\]\s*/i.exec(rawQuote);
+        if (alert) {
+          var alertKind = alert[1].toLowerCase(), alertLabel = alert[1].toUpperCase();
+          block('alert', plain(rawQuote.slice(alert[0].length).replace(/\n/g, ' ')), start, i - 1, { alertKind: alertKind, label: alertLabel });
+        } else block('quote', plain(rawQuote), start, i - 1);
       } else if (i + 1 < lines.length && line.includes('|') && /^\s*\|?\s*:?-{3,}/.test(lines[i + 1])) {
         i += 2;
         while (i < lines.length && lines[i].includes('|') && lines[i].trim()) i++;

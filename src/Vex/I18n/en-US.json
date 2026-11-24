@@ -839,6 +839,7 @@
       "WBSummarySample": "Paragraphs appear as summaries. Select a node to read its full text.",
       "WBHeadingNode": "Heading",
       "WBContentNode": "Content summary",
+      "WBAlertNode": "Alert",
       "WBSummaryPreview": "Summary preview",
       "WBReset": "Reset to Defaults",
       "WBWorkspace": "Workspace",

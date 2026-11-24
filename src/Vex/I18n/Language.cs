@@ -838,6 +838,7 @@ namespace Vex
         public static readonly string WBSummarySample = "Vex.VexL.WBSummarySample";
         public static readonly string WBHeadingNode = "Vex.VexL.WBHeadingNode";
         public static readonly string WBContentNode = "Vex.VexL.WBContentNode";
+        public static readonly string WBAlertNode = "Vex.VexL.WBAlertNode";
         public static readonly string WBSummaryPreview = "Vex.VexL.WBSummaryPreview";
         public static readonly string WBReset = "Vex.VexL.WBReset";
         public static readonly string WBWorkspace = "Vex.VexL.WBWorkspace";

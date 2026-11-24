@@ -536,7 +536,7 @@
   /* 导图缩放坞的标记已在 HTML 里，这里只接上「拖动时才浮出百分比气泡」的显隐。 */
   var zoomDock = document.querySelector('.map-controls');
   VexZoomDock.attach(zoomDock);
-  var labels = { heading: '标题', paragraph: '段落', quote: '引用', list: '列表项', code: '代码块', table: '表格' };
+  var labels = { heading: '标题', paragraph: '段落', quote: '引用', alert: '提示块', list: '列表项', code: '代码块', table: '表格' };
   /* 非 colorful 档沿用强调色家族（清雅的「单色」语义不动）；colorful 档换图表 series 八色，
    * 与阅读视图里的 Mermaid 图同源同族（diagram-rendering 暴露），解决导图配色偏素。 */
   var accentBranchColors = ['var(--accent)', 'var(--branch-secondary)', 'var(--branch-tertiary)', 'var(--accent)', 'var(--muted)'];
@@ -1179,7 +1179,7 @@
   syncStructureVisibility();
   function visibleChildren(node) {
     return node.children.filter(function (child) {
-      return child.kind === 'heading' || (['paragraph', 'quote'].includes(child.kind) && settings.paragraphs)
+      return child.kind === 'heading' || (['paragraph', 'quote', 'alert'].includes(child.kind) && settings.paragraphs)
         || (child.kind === 'list' && settings.lists) || (['code', 'table'].includes(child.kind) && settings.blocks);
     });
   }
@@ -1193,6 +1193,8 @@
   }
   function renderMap() {
     if (!state.parsed) return;
+    document.querySelector('.content-legend').hidden = !(settings.paragraphs || settings.lists || settings.blocks);
+    document.querySelector('.alert-legend').hidden = !settings.paragraphs;
     var geometry = VexMapLayout.layout(state.parsed.root, {
       mode: settings.layout,
       children: function (node) { return node.visibleChildren = state.collapsed.has(node.id) ? [] : visibleChildren(node); },
@@ -1205,7 +1207,7 @@
       var element = mapElements.get(node.id), isNew = !element;
       if (isNew) { element = document.createElement('div'); mapElements.set(node.id, element); $('map-nodes').appendChild(element); }
       element.className = 'map-node' + (node.isRoot ? ' root' : node.kind === 'heading' ? '' : ' content') + (state.selected === node.id ? ' selected' : '') + (isNew ? ' enter' : '');
-      element.dataset.kind = node.kind; element.dataset.side = node.layoutSide; element.dataset.line = node.line; element.dataset.nodeId = node.id; element.style.left = node.x + 'px'; element.style.top = node.y + 'px';
+      element.dataset.kind = node.kind; element.dataset.alertKind = node.alertKind || ''; element.dataset.side = node.layoutSide; element.dataset.line = node.line; element.dataset.nodeId = node.id; element.style.left = node.x + 'px'; element.style.top = node.y + 'px';
       element.style.width = node.width + 'px'; element.style.minHeight = node.height + 'px';
       var mapStyle = scene.dataset.mapStyle || 'quiet', palette = branchPalette(mapStyle), series = window.VexDiagramRendering;
       element.style.setProperty('--branch-color', palette[node.branch % palette.length]);

@@ -23,6 +23,7 @@ public sealed partial class MarkdownMindMapView
     private void ShiftTree(MarkdownMindMapNode node, double dy, double dx)
     {
         if (_bounds.TryGetValue(node, out var rect)) _bounds[node] = new Rect(rect.X + dx, rect.Y + dy, rect.Width, rect.Height);
+        if (node.IsCollapsed) return;
         foreach (var child in node.Children) ShiftTree(child, dy, dx);
     }
 
@@ -46,17 +47,19 @@ public sealed partial class MarkdownMindMapView
 
     private void PlaceDownBounds(MarkdownMindMapNode node, double top)
     {
-        var existing = _bounds[node];
+        if (!_bounds.TryGetValue(node, out var existing)) return;
         _bounds[node] = new Rect(existing.X, top, existing.Width, existing.Height);
+        if (node.IsCollapsed) return;
         foreach (var child in node.Children) PlaceDownBounds(child, top + existing.Height + 40);
     }
 
     private void OutlineBounds(MarkdownMindMapNode node, int depth, ref double cursor)
     {
-        var existing = _bounds[node];
+        if (!_bounds.TryGetValue(node, out var existing)) return;
         var indent = 32 + depth * 64;
-        _bounds[node] = new Rect(indent, cursor, Math.Min(existing.Width, 340 - indent), existing.Height);
+        _bounds[node] = new Rect(indent, cursor, Math.Max(160, Math.Min(existing.Width, 340)), existing.Height);
         cursor += existing.Height + 12;
+        if (node.IsCollapsed) return;
         foreach (var child in node.Children) OutlineBounds(child, depth + 1, ref cursor);
     }
 
@@ -66,6 +69,7 @@ public sealed partial class MarkdownMindMapView
     private void RadialBounds(MarkdownMindMapNode root)
     {
         var rootRect = _bounds[root];
+        if (root.IsCollapsed) return;
         var centerX = rootRect.Center.X;
         var centerY = rootRect.Center.Y;
         var leaves = root.Children.Select(SubtreeLeafCountOf).ToList();
@@ -114,27 +118,27 @@ public sealed partial class MarkdownMindMapView
 
     private void FishboneBounds(MarkdownMindMapNode root)
     {
-        var rootRect = _bounds[root];
+        if (!_bounds.TryGetValue(root, out var rootRect) || root.IsCollapsed) return;
+        var branches = root.Children.Where(child => _bounds.ContainsKey(child)).ToArray();
+        if (branches.Length == 0) return;
+
+        const double branchGap = 30;
+        var branchWidth = branches.Max(NodeWidth);
+        var spineRight = 32 + branches.Length * (branchWidth + branchGap) - branchGap + 56;
+        rootRect = new Rect(Math.Max(rootRect.Right, spineRight), rootRect.Y, rootRect.Width, rootRect.Height);
+        _bounds[root] = rootRect;
         var spineY = rootRect.Center.Y;
-        var branchX = rootRect.Right + 56;
-        var index = 0;
-        foreach (var branch in root.Children)
+        for (var index = 0; index < branches.Length; index++)
         {
+            var branch = branches[index];
+            if (!_bounds.TryGetValue(branch, out var branchRect)) continue;
             var direction = index % 2 == 0 ? -1 : 1;
-            var branchRect = _bounds[branch];
-            _bounds[branch] = new Rect(branchX, spineY + direction * 64 - branchRect.Height / 2, branchRect.Width, branchRect.Height);
-            var childX = branchX;
-            var cursor = spineY + direction * (64 + branchRect.Height / 2 + 18);
-            foreach (var child in branch.Children)
-            {
-                var childRect = _bounds[child];
-                Bind(child, childX, direction > 0 ? cursor : cursor - childRect.Height, childRect.Size);
-                StackFishChildren(child, childX, ref cursor, direction);
-                childX += childRect.Width + 30;
-            }
-            branchX += branchRect.Width + 30;
-            index++;
+            var x = 32 + index * (branchWidth + branchGap);
+            var y = spineY + direction * 64 - branchRect.Height / 2;
+            Bind(branch, x, y, branchRect.Size);
+            PlaceFishDescendants(branch, x + branchRect.Width / 2, y + direction * (branchRect.Height / 2 + 36), direction);
         }
+
         var maxRight = _bounds.Values.Max(rect => rect.Right);
         var minTop = _bounds.Values.Min(rect => rect.Top);
         if (minTop < 24) ShiftTree(root, 24 - minTop, 0);
@@ -142,17 +146,21 @@ public sealed partial class MarkdownMindMapView
         _height = Math.Max(_height, _bounds.Values.Max(rect => rect.Bottom) + 20);
     }
 
-    private void StackFishChildren(MarkdownMindMapNode node, double x, ref double cursor, int direction)
+    private void PlaceFishDescendants(MarkdownMindMapNode node, double centerX, double firstY, int direction)
     {
-        var local = cursor;
-        foreach (var child in node.Children)
+        if (node.IsCollapsed) return;
+        var children = node.Children.Where(child => _bounds.ContainsKey(child)).ToArray();
+        if (children.Length == 0) return;
+        var totalWidth = children.Sum(child => NodeWidth(child)) + (children.Length - 1) * 30;
+        var x = centerX - totalWidth / 2;
+        foreach (var child in children)
         {
             var rect = _bounds[child];
-            Bind(child, x + 30, direction > 0 ? local : local - rect.Height, rect.Size);
-            local += direction > 0 ? rect.Height + 12 : -(rect.Height + 12);
-            StackFishChildren(child, x + 30, ref local, direction);
+            var y = direction > 0 ? firstY : firstY - rect.Height;
+            Bind(child, x, y, rect.Size);
+            PlaceFishDescendants(child, rect.Center.X, y + direction * (rect.Height / 2 + 36), direction);
+            x += rect.Width + 30;
         }
-        cursor = local;
     }
 
 }

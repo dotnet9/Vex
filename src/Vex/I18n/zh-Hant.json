@@ -839,6 +839,7 @@
       "WBSummarySample": "段落內容在導圖中以摘要顯示，點擊節點即可查看完整內文。",
       "WBHeadingNode": "標題",
       "WBContentNode": "內容摘要",
+      "WBAlertNode": "提示區塊",
       "WBSummaryPreview": "摘要預覽",
       "WBReset": "恢復預設設定",
       "WBWorkspace": "工作區",

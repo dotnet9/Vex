@@ -839,6 +839,7 @@
       "WBSummarySample": "段落を要約で表示し、ノードを選択すると全文を確認できます。",
       "WBHeadingNode": "見出し",
       "WBContentNode": "内容の要約",
+      "WBAlertNode": "アラート",
       "WBSummaryPreview": "要約プレビュー",
       "WBReset": "既定の設定に戻す",
       "WBWorkspace": "ワークスペース",

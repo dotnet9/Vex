@@ -36,6 +36,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private MarkdownMindMapNode? _root;
     private MarkdownMindMapNode? _selected;
     private MarkdownLiveEditorView? _live;
+    private string? _liveDocumentPath;
     private MarkdownLiveEditorState? _detachedLiveState;
     private bool _syncingLive;
     private bool _livePublishing;
@@ -100,7 +101,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         document.DocumentChanged += (_, _) =>
         {
             // 即时编辑拥有自己的撤销栈；宿主只保留进入即时模式前的基线，退出时合并为一条。
-            if (_livePublishing) History.InvalidateRedo();
+            if (_livePublishing || _live is not null && IsInstantEditing) History.InvalidateRedo();
             else History.Observe(document.Markdown);
             if (_detachedLiveState?.Current.Text != document.Markdown) _detachedLiveState = null;
             SynchronizeLive(); QueueMap();
@@ -361,6 +362,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     public bool ShowCode { get => _showCode; set { this.RaiseAndSetIfChanged(ref _showCode, value); this.RaisePropertyChanged(nameof(ShowRichBlocks)); UpdateMapOptions(); } }
     public bool ShowTables { get => _showTables; set { this.RaiseAndSetIfChanged(ref _showTables, value); this.RaisePropertyChanged(nameof(ShowRichBlocks)); UpdateMapOptions(); } }
     public bool ShowRichBlocks { get => ShowCode && ShowTables; set { ShowCode = value; ShowTables = value; } }
+    public bool ShowContentNodes => ShowParagraphs || ShowCode || ShowTables || ShowLists;
     public bool ShowLists { get => _showLists; set { this.RaiseAndSetIfChanged(ref _showLists, value); UpdateMapOptions(); } }
     public MarkdownLiveEditorView? LiveEditor => _live;
     public event EventHandler<MarkdownMindMapNode>? SourceNavigationRequested;
@@ -471,6 +473,7 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         _settings.Update(s => s with { MindMapSummaryLength = SummaryLength, MindMapShowParagraphs = ShowParagraphs, MindMapShowCode = ShowCode, MindMapShowTables = ShowTables, MindMapShowLists = ShowLists });
         this.RaisePropertyChanged(nameof(MapSummaryLabel));
         this.RaisePropertyChanged(nameof(SummaryPreview));
+        this.RaisePropertyChanged(nameof(ShowContentNodes));
         QueueMap();
     }
     private async void QueueMap()
@@ -488,18 +491,16 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         {
             if (version != _mapVersion) return;
             var sameDocument = _mapDocumentPath == documentPath;
-            var selectedId = sameDocument ? SelectedNode?.Id : null;
+            var selected = sameDocument ? MarkdownMindMapDocument.FindCorrespondingNode(Root, root, SelectedNode) : null;
             if (!sameDocument) Root = null;
             _mapDocumentPath = documentPath;
             _mapMarkdown = markdown;
             Root = root;
-            SelectedNode = _pendingChapterStart is { } start ? Flatten(root).FirstOrDefault(node => node.Kind == MarkdownMindMapNodeKind.Heading && node.SourceStart == start) : Find(root, selectedId);
+            SelectedNode = _pendingChapterStart is { } start ? Flatten(root).FirstOrDefault(node => node.Kind == MarkdownMindMapNodeKind.Heading && node.SourceStart == start) : selected;
             _pendingChapterStart = null;
             this.RaisePropertyChanged(nameof(ImageBasePath));
             this.RaisePropertyChanged(nameof(SummaryPreview));
         }, DispatcherPriority.Background);
-        static MarkdownMindMapNode? Find(MarkdownMindMapNode node, string? id) => node.Id == id ? node
-            : node.Children.Select(child => Find(child, id)).FirstOrDefault(child => child is not null);
     }
     private void RefreshChapterMap()
     {
@@ -507,9 +508,11 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         var markdown = _document.Markdown;
         var title = _document.FilePath is { } path ? Path.GetFileNameWithoutExtension(path) : WorkbenchText.Get("Untitled");
         _mapMarkdown = markdown; _mapDocumentPath = _document.FilePath;
-        Root = MarkdownMindMapDocument.Parse(markdown, title, new MarkdownMindMapOptions
+        var root = MarkdownMindMapDocument.Parse(markdown, title, new MarkdownMindMapOptions
         { SummaryLength = SummaryLength, ShowParagraphs = ShowParagraphs, ShowCode = ShowCode, ShowTables = ShowTables, ShowLists = ShowLists });
-        SelectedNode = _pendingChapterStart is { } start ? Flatten(Root).FirstOrDefault(node => node.Kind == MarkdownMindMapNodeKind.Heading && node.SourceStart == start) : null;
+        var selected = MarkdownMindMapDocument.FindCorrespondingNode(Root, root, SelectedNode);
+        Root = root;
+        SelectedNode = _pendingChapterStart is { } start ? Flatten(root).FirstOrDefault(node => node.Kind == MarkdownMindMapNodeKind.Heading && node.SourceStart == start) : selected;
         _pendingChapterStart = null;
     }
     /// <summary>即时编辑器挂接通知：宿主模块可在此对编辑器补装能力（如剪贴板图片落盘委托）。</summary>
@@ -523,9 +526,14 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         editor.SelectionChanged += LiveSelectionChanged;
         editor.EnableAutoPair = _display.EnableAutoPair;
         if (_detachedLiveState is { } state && state.Current.Text == _document.Markdown)
+        {
             editor.RestoreState(state);
+            _liveDocumentPath = _document.FilePath;
+        }
         else
+        {
             SynchronizeLive();
+        }
         _detachedLiveState = null;
         ApplyLiveAppearance();
         LiveEditorAttached?.Invoke(editor);
@@ -558,7 +566,11 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         try
         {
             if (sameText) _live.ImageBasePath = _document.FilePath;
-            else _live.SetText(_document.Markdown, _document.FilePath);
+            else if (_liveDocumentPath == _document.FilePath)
+                _live.ApplyExternalEdit(_document.Markdown, 0, _live.Text.Length);
+            else
+                _live.SetText(_document.Markdown, _document.FilePath);
+            _liveDocumentPath = _document.FilePath;
         }
         finally { _syncingLive = false; }
     }

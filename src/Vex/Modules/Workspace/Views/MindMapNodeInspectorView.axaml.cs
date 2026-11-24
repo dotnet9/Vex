@@ -38,6 +38,7 @@ public partial class MindMapNodeInspectorView : UserControl
         var bodyChanged = body is not null && body != state.ChapterBody;
         if (titleChanged) state.CommitChapterTitle(title!);
         if (bodyChanged) state.CommitChapterBody(body!);
+        Refresh();
     }
 
     public void FocusTitle() => ChapterTitleInput.Focus();

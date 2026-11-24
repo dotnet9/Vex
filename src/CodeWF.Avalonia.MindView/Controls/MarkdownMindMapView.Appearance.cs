@@ -20,6 +20,7 @@ public sealed partial class MarkdownMindMapView
     {
         var root = ReferenceEquals(node, Root);
         var heading = node.Kind == MarkdownMindMapNodeKind.Heading;
+        var alert = node.Kind == MarkdownMindMapNodeKind.Alert;
         var ink = root && StyleKind is not (MindMapStyleKind.Outline or MindMapStyleKind.Colorful)
             ? MindViewThemeResources.AccentForeground(AccentColor)
             : !root && !heading && StyleKind != MindMapStyleKind.Colorful ? MutedTextBrush ?? foreground : foreground;
@@ -31,7 +32,10 @@ public sealed partial class MarkdownMindMapView
             FontWeight = root || heading ? FontWeight.SemiBold : FontWeight.Normal,
             Foreground = ink, VerticalAlignment = VerticalAlignment.Center
         });
-        var badge = root ? MindViewLocalization.GetResource(MindViewL.MarkdownDocument) : heading ? $"H{node.HeadingLevel}" : null;
+        var badge = root ? MindViewLocalization.GetResource(MindViewL.MarkdownDocument)
+            : heading ? $"H{node.HeadingLevel}"
+            : alert ? node.AlertKind?.ToUpperInvariant()
+            : null;
         if (badge is not null)
         {
             var text = new TextBlock
@@ -43,7 +47,7 @@ public sealed partial class MarkdownMindMapView
             Grid.SetColumn(text, 1); body.Children.Add(text);
         }
         var content = new Grid();
-        if (!root && !heading && StyleKind is MindMapStyleKind.Quiet or MindMapStyleKind.Colorful or MindMapStyleKind.Capsule)
+        if (!root && !heading && !alert && StyleKind is MindMapStyleKind.Quiet or MindMapStyleKind.Colorful or MindMapStyleKind.Capsule)
             content.Children.Add(new CardDecoration { IsSummary = true, Line = line, Margin = new Thickness(-12, -10), IsHitTestVisible = false });
         content.Children.Add(body);
         var card = new Border
@@ -64,8 +68,9 @@ public sealed partial class MarkdownMindMapView
     {
         var root = ReferenceEquals(node, Root);
         var heading = node.Kind == MarkdownMindMapNodeKind.Heading;
+        var alert = node.Kind == MarkdownMindMapNodeKind.Alert;
         var branch = _branches[node];
-        var dashedSummary = !root && !heading && StyleKind is MindMapStyleKind.Quiet or MindMapStyleKind.Colorful or MindMapStyleKind.Capsule;
+        var dashedSummary = !root && !heading && !alert && StyleKind is MindMapStyleKind.Quiet or MindMapStyleKind.Colorful or MindMapStyleKind.Capsule;
         card.Background = root ? new SolidColorBrush(AccentColor) : background;
         card.BorderBrush = root ? new SolidColorBrush(AccentColor) : dashedSummary ? Brushes.Transparent : line;
         card.BorderThickness = new Thickness(1);
@@ -93,6 +98,19 @@ public sealed partial class MarkdownMindMapView
             case MindMapStyleKind.Mono:
                 if (root) card.BorderBrush = MutedTextBrush ?? line;
                 break;
+        }
+        if (alert)
+        {
+            var alertColor = node.AlertKind switch
+            {
+                "warning" => WarningColor,
+                "caution" => DangerColor,
+                "tip" => SuccessColor,
+                _ => AccentColor
+            };
+            card.BorderBrush = new SolidColorBrush(alertColor);
+            card.BorderThickness = new Thickness(2);
+            card.Background = Mix(alertColor, background, .10, dark);
         }
         // 外圈单独表达选中，不能覆盖线框/脉络样式自身的边框。
         var gap = (PanelBrush ?? background) as ISolidColorBrush;
