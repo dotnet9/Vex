@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="t d">
+  <title id="t">维刻 Vex 导出与分享</title>
+  <desc id="d">左侧为写作窗口示意；右侧列出导出格式：独立 HTML、PDF、Word、长图 PNG，以及复制到微信公众号、知乎、掘金的排版分享，和始终保留的 Markdown 源文件。</desc>
+  <defs>
+    <style>
+      .sans { font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .mono { font-family: "Cascadia Code", Consolas, monospace; }
+      .card { fill: #fff; stroke: rgba(24,40,36,.13); stroke-width: 1.5; }
+      .lbl { fill: #1b1f1e; font-size: 19px; font-weight: 600; }
+      .sub { fill: #79847f; font-size: 13.5px; }
+      .tag { fill: #24766b; font-size: 14px; font-weight: 700; letter-spacing: .3px; }
+      .ico { fill: none; stroke: #24766b; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+      .ext { fill: none; stroke: #0f6f8f; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+      .winbar { fill: #f2f7f5; }
+      .line { stroke: rgba(24,40,36,.1); stroke-width: 1.4; }
+      .txt { fill: #46514f; font-size: 12.5px; }
+      .txt2 { fill: #79847f; font-size: 11.5px; }
+      .h { fill: #1b1f1e; font-weight: 700; }
+      .box { fill: #f2f7f5; stroke: rgba(24,40,36,.1); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="620" fill="#f7faf9"/>
+
+  <!-- 左侧：写作窗口 -->
+  <g transform="translate(46 74)">
+    <rect class="card" x="0" y="0" width="470" height="470" rx="14"/>
+    <path class="winbar" d="M0 14a14 14 0 0 1 14-14h442a14 14 0 0 1 14 14v30H0z"/>
+    <line class="line" x1="0" y1="44" x2="470" y2="44"/>
+    <circle cx="22" cy="22" r="5" fill="#e0655f"/>
+    <circle cx="40" cy="22" r="5" fill="#e8b04b"/>
+    <circle cx="58" cy="22" r="5" fill="#4fb477"/>
+    <text class="sans txt" x="80" y="27">开始写作.md</text>
+    <text class="mono txt2" x="374" y="27">维刻 Vex</text>
+
+    <text class="sans h" x="34" y="92" style="font-size:21px">写下想法，看见脉络</text>
+    <text class="sans txt" x="34" y="122">从一段文字开始，把零散的灵感整理成清晰的文章。</text>
+    <line class="line" x1="34" y1="142" x2="436" y2="142"/>
+
+    <text class="sans h" x="34" y="176" style="font-size:15px">捕捉灵感</text>
+    <g>
+      <rect x="36" y="190" width="13" height="13" rx="3" fill="#24766b"/>
+      <path d="M39 197l3 3 5-6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+      <text class="sans txt" x="58" y="201">写下第一个想法</text>
+      <rect x="36" y="214" width="13" height="13" rx="3" fill="#24766b"/>
+      <path d="M39 221l3 3 5-6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+      <text class="sans txt" x="58" y="225">整理文章的章节</text>
+      <rect x="36" y="238" width="13" height="13" rx="3" fill="none" stroke="#79847f" stroke-width="1.5"/>
+      <text class="sans txt" x="58" y="249">分享给未来的自己</text>
+    </g>
+
+    <text class="sans h" x="34" y="292" style="font-size:15px">梳理结构</text>
+    <text class="sans txt" x="34" y="318">正文与导图共享同一份 Markdown。</text>
+    <rect class="box" x="34" y="336" width="404" height="104" rx="9"/>
+    <text class="mono txt2" x="48" y="360"># 一篇文章的诞生</text>
+    <text class="mono txt2" x="48" y="382">## 捕捉灵感</text>
+    <text class="mono txt2" x="48" y="404">- [x] 整理文章的章节</text>
+    <text class="mono txt2" x="48" y="426">| 格式 | 用途 |</text>
+  </g>
+
+  <!-- 连线 -->
+  <g stroke="#cfe0dc" stroke-width="2" fill="none">
+    <path d="M516 300 C 562 300, 566 127, 604 127"/>
+    <path d="M516 305 C 562 305, 566 239, 604 239"/>
+    <path d="M516 315 C 562 315, 566 425, 604 425"/>
+    <path d="M516 320 C 562 320, 566 550, 604 550"/>
+  </g>
+  <circle cx="516" cy="310" r="5" fill="#24766b"/>
+
+  <!-- 导出文件 -->
+  <text class="sans tag" x="604" y="62">导出文件</text>
+
+  <g transform="translate(604 78)">
+    <rect class="card" x="0" y="0" width="240" height="98" rx="12"/>
+    <g class="ico" transform="translate(22 26)">
+      <path d="M9 18l-6-6 6-6"/>
+      <path d="M15 6l6 6-6 6"/>
+    </g>
+    <text class="sans lbl" x="68" y="48">独立 HTML</text>
+    <text class="sans sub" x="68" y="72">样式内嵌，双击即开</text>
+  </g>
+
+  <g transform="translate(864 78)">
+    <rect class="card" x="0" y="0" width="240" height="98" rx="12"/>
+    <g class="ico" transform="translate(22 26)">
+      <path d="M6 3h8l4 4v14H6z"/>
+      <path d="M14 3v4h4"/>
+      <path d="M9 12h6"/>
+      <path d="M9 16h4"/>
+    </g>
+    <text class="sans lbl" x="68" y="48">PDF</text>
+    <text class="sans sub" x="68" y="72">离线字体，打印与归档</text>
+  </g>
+
+  <g transform="translate(604 190)">
+    <rect class="card" x="0" y="0" width="240" height="98" rx="12"/>
+    <g class="ico" transform="translate(22 26)">
+      <rect x="4" y="4" width="16" height="16" rx="2"/>
+      <path d="M4 9h16"/>
+      <path d="M9 9v11"/>
+    </g>
+    <text class="sans lbl" x="68" y="48">Word</text>
+    <text class="sans sub" x="68" y="72">交付给同事继续改</text>
+  </g>
+
+  <g transform="translate(864 190)">
+    <rect class="card" x="0" y="0" width="240" height="98" rx="12"/>
+    <g class="ico" transform="translate(22 26)">
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      <path d="M4 17l5-5 4 4 3-3 4 4"/>
+      <circle cx="9" cy="9.5" r="1.6"/>
+    </g>
+    <text class="sans lbl" x="68" y="48">长图 PNG</text>
+    <text class="sans sub" x="68" y="72">整篇一张，直接发</text>
+  </g>
+
+  <!-- 复制到自媒体 -->
+  <text class="sans tag" x="604" y="332">复制到自媒体</text>
+
+  <g transform="translate(604 350)">
+    <rect class="card" x="0" y="0" width="500" height="146" rx="12"/>
+    <g transform="translate(28 30)">
+      <rect class="box" x="0" y="0" width="44" height="44" rx="12"/>
+      <g class="ext" transform="translate(11 11)">
+        <path d="M8 3C4.7 3 2 5.2 2 8c0 1.6.9 3 2.3 4L4 14l2-1.2c.6.2 1.3.3 2 .3"/>
+        <path d="M14 8c3 0 5 1.9 5 4.3 0 1.3-.7 2.5-1.9 3.3l.3 1.8-1.7-1c-.5.1-1.1.2-1.7.2-3 0-5-1.9-5-4.3S11 8 14 8z"/>
+      </g>
+      <text class="sans lbl" x="0" y="76" style="font-size:15px">微信公众号</text>
+      <text class="sans txt2" x="0" y="96">保留样式与图片</text>
+    </g>
+    <g transform="translate(196 30)">
+      <rect class="box" x="0" y="0" width="44" height="44" rx="12"/>
+      <g class="ext" transform="translate(11 11)">
+        <circle cx="11" cy="11" r="8.5"/>
+        <path d="M8.6 8.6a2.6 2.6 0 0 1 4.9 1c0 1.6-2.4 2-2.4 3.4"/>
+        <path d="M11 16.6h.01"/>
+      </g>
+      <text class="sans lbl" x="0" y="76" style="font-size:15px">知乎</text>
+      <text class="sans txt2" x="0" y="96">段落与公式可读</text>
+    </g>
+    <g transform="translate(344 30)">
+      <rect class="box" x="0" y="0" width="44" height="44" rx="12"/>
+      <g class="ext" transform="translate(11 11)">
+        <path d="M12 3l9 6-9 6-9-6z"/>
+        <path d="M6 12l6 4 6-4"/>
+      </g>
+      <text class="sans lbl" x="0" y="76" style="font-size:15px">掘金</text>
+      <text class="sans txt2" x="0" y="96">代码块带高亮</text>
+    </g>
+  </g>
+
+  <!-- Markdown 源文件 -->
+  <g transform="translate(604 520)">
+    <rect class="card" x="0" y="0" width="500" height="62" rx="12"/>
+    <g class="ico" transform="translate(26 19)">
+      <path d="M6 3h8l4 4v14H6z"/>
+      <path d="M14 3v4h4"/>
+      <path d="M9 13h6"/>
+      <path d="M9 17h4"/>
+    </g>
+    <text class="sans lbl" x="70" y="28">Markdown 源文件</text>
+    <text class="sans sub" x="70" y="49">始终是普通 .md，任何编辑器都能打开</text>
+  </g>
+</svg>

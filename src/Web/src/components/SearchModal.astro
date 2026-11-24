@@ -1,0 +1,112 @@
+---
+import { SITE } from '../config/site';
+
+const placeholder = `搜索 ${SITE.brand.name} 文档、更新日志…`;
+---
+
+<div class="search-overlay" id="searchOverlay" role="dialog" aria-modal="true" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="sp-head">
+      <span aria-hidden="true">⌕</span>
+      <input id="searchInput" type="search" placeholder={placeholder} autocomplete="off" />
+      <span class="sp-esc">Esc</span>
+    </div>
+    <div class="search-results" id="searchResults">
+      <div class="search-empty">输入关键词开始搜索</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const overlay = document.getElementById('searchOverlay')!;
+  const input = document.getElementById('searchInput') as HTMLInputElement;
+  const box = document.getElementById('searchResults')!;
+  let pagefind: any = null;
+  let searchSeq = 0;
+  let selIndex = -1;
+
+  async function ensurePagefind() {
+    if (pagefind !== null) return pagefind;
+    try {
+      const pfUrl = '/pagefind/pagefind.js';
+      pagefind = await import(/* @vite-ignore */ pfUrl);
+      return pagefind;
+    } catch {
+      pagefind = false;
+      return false;
+    }
+  }
+
+  const esc = (s: string) =>
+    s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+  function empty(msg: string) {
+    box.innerHTML = `<div class="search-empty">${esc(msg)}</div>`;
+  }
+
+  async function doSearch(q: string) {
+    const seq = ++searchSeq;
+    if (!q.trim()) return empty('输入关键词开始搜索');
+    const pf = await ensurePagefind();
+    if (!pf) return empty('搜索索引尚未生成（pagefind 在构建时运行）');
+    const res = await pf.search(q);
+    if (seq !== searchSeq) return;
+    if (!res.results.length) return empty(`没有找到与「${q}」相关的内容`);
+    const top = res.results.slice(0, 10);
+    const items = await Promise.all(top.map((r: any) => r.data()));
+    if (seq !== searchSeq) return;
+    box.innerHTML = items
+      .map(
+        (d: any, i: number) => `
+        <a class="sr-item${i === 0 ? ' sel' : ''}" href="${esc(d.url)}" data-i="${i}">
+          <div class="sr-title">${esc(d.meta?.title || d.url)}</div>
+          <div class="sr-excerpt">${d.excerpt || ''}</div>
+        </a>`,
+      )
+      .join('');
+    selIndex = 0;
+  }
+
+  let timer: ReturnType<typeof setTimeout>;
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => doSearch(input.value), 120);
+  });
+
+  function open() {
+    overlay.classList.add('open');
+    input.value = '';
+    empty('输入关键词开始搜索');
+    input.focus();
+    ensurePagefind().then((pf) => {
+      if (!pf) empty('搜索索引尚未生成（pagefind 在构建时运行）');
+    });
+  }
+  function close() {
+    overlay.classList.remove('open');
+  }
+
+  document.getElementById('searchTrigger')?.addEventListener('click', open);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      overlay.classList.contains('open') ? close() : open();
+    } else if (e.key === 'Escape') {
+      close();
+    } else if (overlay.classList.contains('open')) {
+      const items = Array.from(box.querySelectorAll<HTMLElement>('.sr-item'));
+      if (!items.length) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        selIndex = (selIndex + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length;
+        items.forEach((el, i) => el.classList.toggle('sel', i === selIndex));
+        items[selIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter' && selIndex >= 0) {
+        (items[selIndex] as HTMLAnchorElement).click();
+      }
+    }
+  });
+</script>

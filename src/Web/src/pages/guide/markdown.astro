@@ -1,0 +1,125 @@
+---
+/**
+ * 独立指南页：Markdown 写作指南（/guide/markdown/）
+ *
+ * 与 DocsPage 观感一致：同一套 .layout 三栏（导航侧栏 / 正文 / 本页目录）、
+ * 同一套 .doc-body 样式与代码块高亮。内容用 scripts/lib/markdown.mjs
+ * （与仓库文档同步共用的渲染管线）从 _markdown-guide.md 渲染，
+ * 因此 TOC、标题 id、代码高亮与文档页完全同源。
+ * 本页不依赖 Vex 仓库 sync，正文随本仓库独立维护。
+ */
+import Base from '../../layouts/Base.astro';
+import { docUrl } from '../../lib/content';
+import { renderMarkdown } from '../../../scripts/lib/markdown.mjs';
+import guideMd from './_markdown-guide.md?raw';
+
+const TITLE = 'Markdown 写作指南';
+const { html, toc } = renderMarkdown(guideMd);
+
+// 预计阅读时间：CJK 字符按字数、拉丁词按词数，每分钟约 400 单位（与 DocsPage 同一算法）
+const plain = html.replace(/<[^>]+>/g, ' ');
+const cjk = (plain.match(/[一-鿿]/g) ?? []).length;
+const latin = (plain.match(/[A-Za-z0-9_]+/g) ?? []).length;
+const readingMinutes = Math.max(1, Math.ceil((cjk + latin * 2) / 400));
+
+// 侧栏「相关文档」：指向真实存在的同步文档 slug
+const related = [
+  { title: 'Markdown 功能示例', slug: 'Markdown功能示例' },
+  { title: '快速开始', slug: '快速开始' },
+  { title: '项目总览', slug: '' },
+];
+---
+
+<Base
+  title={`${TITLE} · 维刻 Vex 文档`}
+  description={`一份面向维刻 Vex 用户的 ${TITLE}：基础语法、表格、代码块、数学公式与化学方程式、Mermaid 图表与行内样式，每个知识点都配可复制的源码示例。`}
+  active="docs"
+  simpleFooter
+>
+  <div class="layout">
+    <aside class="sidebar" id="docSidebar">
+      <a class="side-back" href="/docs/">← 文档索引</a>
+      <div class="side-group">
+        <b>写作指南</b>
+        <a href="/guide/markdown/" class="on">{TITLE}</a>
+      </div>
+      <div class="side-group">
+        <b>相关文档</b>
+        {related.map((d) => (
+          <a href={docUrl(d.slug)}>{d.title}</a>
+        ))}
+      </div>
+    </aside>
+
+    <article class="content" data-pagefind-body>
+      <div class="doc-crumb" data-pagefind-ignore>
+        <a href="/">维刻 Vex</a> / <a href="/docs/">文档</a> / <span style="color:var(--text)">{TITLE}</span>
+      </div>
+      <h1 class="doc-title">{TITLE}</h1>
+      <div class="doc-meta" data-pagefind-ignore>
+        <span>⏱ 预计阅读 {readingMinutes} 分钟</span>
+        <span>适用于 Vex 桌面端与移动端</span>
+        <span>站内独立指南，随官网维护更新</span>
+      </div>
+      <div class="doc-body" set:html={html} />
+
+      <div class="pager">
+        <a href="/docs/">← 文档索引<b>返回全部文档</b></a>
+        <a class="next" href={docUrl('Markdown功能示例')}>实践一下<b>Markdown 功能示例</b>→</a>
+      </div>
+    </article>
+
+    {
+      toc.length > 0 && (
+        <aside class="toc" id="docToc">
+          <b>本页目录</b>
+          {toc.map((t) => (
+            <a href={`#${t.id}`} class:list={[{ l2: t.level === 3 }]} data-toc-link={t.id} title={t.text}>
+              {t.text}
+            </a>
+          ))}
+        </aside>
+      )
+    }
+  </div>
+</Base>
+
+<script>
+  // 移动端侧边栏
+  document.getElementById('menuBtn')?.addEventListener('click', () => {
+    document.getElementById('docSidebar')?.classList.toggle('open');
+  });
+  // TOC 点击高亮 + 滚动高亮（取视口上方最近的标题）
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
+  links.forEach((a) =>
+    a.addEventListener('click', () => {
+      links.forEach((x) => x.classList.remove('on'));
+      a.classList.add('on');
+    }),
+  );
+  const headings = links
+    .map((a) => document.getElementById(a.dataset.tocLink!))
+    .filter((el): el is HTMLElement => !!el);
+  if (headings.length) {
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      let current: Element | null = null;
+      for (const h of headings) {
+        if (h.getBoundingClientRect().top <= 100) current = h;
+      }
+      links.forEach((a) => a.classList.toggle('on', a.dataset.tocLink === current?.id));
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true },
+    );
+    update();
+  }
+</script>

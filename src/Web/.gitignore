@@ -1,0 +1,16 @@
+# 依赖与构建产物
+node_modules/
+dist/
+.astro/
+
+# 内容同步产物（构建时由 scripts/sync-content.mjs 生成）
+.source/
+src/generated/
+public/assets/
+public/logos/
+public/design/
+
+# 日志与系统文件
+*.log
+.DS_Store
+Thumbs.db

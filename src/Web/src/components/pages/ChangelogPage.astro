@@ -1,0 +1,68 @@
+---
+import Base from '../../layouts/Base.astro';
+import Giscus from '../Giscus.astro';
+import { SITE } from '../../config/site';
+import { loadChangelog, loadMetrics, loadSyncInfo } from '../../lib/content';
+
+const cl = loadChangelog();
+const metrics = loadMetrics();
+const sync = loadSyncInfo();
+const releaseUrl = metrics.release?.url ?? SITE.releasesLatest;
+---
+
+<Base
+  title="更新日志 · 维刻 Vex"
+  description="维刻 Vex 的版本更新记录：新增、优化与修复，逐版可查。"
+  active="changelog"
+>
+  <div class="wrap" data-pagefind-body>
+    <section class="proj-hero" style="padding: 48px 0 26px;" data-pagefind-ignore>
+      <img class="plogo xl" src="/logos/vex.svg" alt="" width="84" height="84" style="padding:0" />
+      <div class="info">
+        <h1 style="font-size: 30px;">更新日志</h1>
+        <div class="slogan">{SITE.brand.name} {SITE.brand.en} · {SITE.brand.slogan}</div>
+        <p class="desc" style="margin-bottom: 0;">
+          {
+            cl.source ? (
+              <>
+                来源仓库文件 <code style="font-family:var(--mono);font-size:12px">{cl.source}</code>
+                {sync.updatedAt && <> · 同步于 {sync.updatedAt}</>}
+              </>
+            ) : (
+              '尚未同步到更新日志。'
+            )
+          }
+        </p>
+        <div class="cta-row" style="margin-top: 14px;">
+          <a class="btn btn-primary" href={releaseUrl} target="_blank" rel="noopener">查看最新 Release ↗</a>
+          <a class="btn btn-ghost" href={`${SITE.repo}/commits/main`} target="_blank" rel="noopener">提交记录 ↗</a>
+        </div>
+      </div>
+    </section>
+
+    {
+      cl.entries.length > 0 ? (
+        cl.entries.map((e) => (
+          <section class="section" style="padding-top: 4px;">
+            <div class="card">
+              <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+                <span class="pill">{e.version || e.title}</span>
+                {e.date && <time style="color:var(--text-3);font-size:12px">{e.date}</time>}
+                {e.version && e.title !== e.version && <b style="font-size:14px">{e.title}</b>}
+              </div>
+              <div class="doc-body" set:html={e.html} />
+            </div>
+          </section>
+        ))
+      ) : (
+        <div class="note-card">
+          <b>提示：</b>可前往 <a href={releaseUrl} target="_blank" rel="noopener" style="color:var(--brand)">GitHub Releases</a> 查看每个版本的完整变更。
+        </div>
+      )
+    }
+
+    <section class="section" data-pagefind-ignore>
+      <Giscus />
+    </section>
+  </div>
+</Base>

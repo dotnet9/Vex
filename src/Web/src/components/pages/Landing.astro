@@ -1,0 +1,347 @@
+---
+import Base from '../../layouts/Base.astro';
+import Giscus from '../Giscus.astro';
+import Icon from '../Icon.astro';
+import MediaSwitch from '../MediaSwitch.astro';
+import ScreenshotCarousel from '../ScreenshotCarousel.astro';
+import { SITE, DOWNLOADS } from '../../config/site';
+import { loadMetrics, loadChangelog, docUrl, hasDesign, media, staticFile } from '../../lib/content';
+
+const metrics = loadMetrics();
+const cl = loadChangelog();
+const version = metrics.release?.version ?? 'x.y.z';
+const downloadUrl = metrics.release?.url ?? SITE.releasesLatest;
+const docHref = docUrl('');
+const installerUrl = (file: string) => metrics.release?.assets?.find((asset) => asset.name === file.replace('{version}', version))?.url ?? downloadUrl;
+const designOk = hasDesign();
+
+/** 主视觉轮播：优先展示当前版本的真实控件截图。 */
+const shots = [
+  { media: media('views-instant'), tag: '写作工作区', caption: '文件列表、即时编辑与文档大纲，共用一份 Markdown' },
+  { media: media('views-switch'), tag: '四视图切换', caption: '本地验收录制：即时、源码对照、阅读、导图实际切换' },
+  { media: media('outline-reading'), tag: '大纲与阅读', caption: '真实控件录制：点击章节定位，继续阅读时高亮随位置更新；修复纳入 Vex 1.21.1.2' },
+  { media: media('markdown-formulas'), tag: '公式与图表', caption: '公式、矩阵、化学表达式与 Mermaid 原生渲染' },
+  { media: media('mindmap-structures'), tag: '思维导图', caption: '六种结构随手切换，改的是同一份 Markdown' },
+  { media: media('appearance-themes'), tag: '配色与排版', caption: '真实控件连续帧：界面配色与明暗切换，正文排版另有十三套方案' },
+  { media: media('views-source'), tag: '源码视图', caption: '完整 Markdown 与排版结果并排对照' },
+  { media: staticFile('export-formats.svg'), tag: '导出与分享', caption: 'Markdown、HTML、PDF、Word 与 PNG，支持自媒体复制' },
+].filter(
+  (s): s is { media: { src: string; animated: boolean }; tag: string; caption: string } => !!s.media,
+);
+
+/**
+ * 四种视图：点标签即切换下方大图。
+ * 每项由媒体映射选取当前截图，没有时再使用已有媒体。
+ */
+const views = [
+  { key: 'edit', name: '即时编辑', one: '点正文直接写，离开后回到排版', icon: 'edit' as const, media: media('views-instant') ?? media('workspace') },
+  { key: 'code', name: '源码', one: '完整 Markdown，随时精修', icon: 'code' as const, media: media('views-source') ?? media('source-preview') },
+  { key: 'book', name: '阅读', one: '专心读，字号配色随你', icon: 'book' as const, media: media('views-read') },
+  { key: 'mindmap', name: '思维导图', one: '从标题长出文章结构', icon: 'mindmap' as const, media: media('views-mindmap') ?? media('mindmap-dark') },
+];
+
+/** 左右交替的产品区块：大图（优先动图）+ 一行标题 + 一行说明 + 要点 */
+const blocks = [
+  {
+    key: 'mindmap',
+    en: 'Mind Map',
+    title: '导图不只用来看',
+    lead: '章节操作直接改写 Markdown 原文，改错可撤销。',
+    points: ['六种结构：树形 / 平衡 / 放射 / 向下 / 目录 / 鱼骨', '新增、改名、升降级、移动章节', '折叠分支、正文摘要、缩放适配全图', '导出完整导图 PNG，不截断'],
+    icon: 'mindmap' as const,
+    media: media('mindmap-structures') ?? media('mindmap-dark'),
+    alt: null,
+    formats: null,
+  },
+  {
+    key: 'write',
+    en: 'Writing',
+    title: '公式、图表、代码都原生',
+    lead: '基于 .NET 与 Avalonia 原生控件，数学公式、代码与 Mermaid 无需浏览器内核即可呈现。',
+    points: ['数学公式、矩阵、化学表达式', '24 类图表，含 Venn 与 TreeView', '单击图表直接编辑上方源码，点击正文收起', '专注模式 + 打字机模式'],
+    icon: 'sigma' as const,
+    media: media('markdown-formulas') ?? media('source-preview'),
+    alt: media('markdown-mermaid'),
+    formats: null,
+  },
+  {
+    key: 'export',
+    en: 'Export',
+    title: '写完就能发出去',
+    lead: '同一份文档导出成文件，或直接复制到自媒体平台，排版不用重做。',
+    points: [
+      'Markdown、独立 HTML、PDF、Word 与 PNG',
+      '一键复制到微信公众号、知乎、掘金',
+      '代码块、表格、公式、图表一并带过去',
+      '正文 / 大纲 / 导图三种演示，系统打印入口',
+    ],
+    icon: 'outbox' as const,
+    media: media('export-formats'),
+    alt: staticFile('export-formats.svg'),
+    formats: null,
+  },
+];
+
+/** 小功能卡片：标题 + 一行 */
+const cards = [
+  { icon: 'folder', title: '文件夹工作流', one: '打开目录即列出文档，外部变更自动检测' },
+  { icon: 'search', title: '查找与替换', one: '留在正文区，不遮挡文件栏' },
+  { icon: 'palette', title: '外观可定制', one: '明暗模式、字号、紧凑间距、预览水印' },
+  { icon: 'layout', title: '桌面多视图', one: '八种布局、章节导图与悬浮缩放' },
+  { icon: 'book', title: '四种界面语言', one: '简中、繁中、English、日本語即时切换' },
+  { icon: 'history', title: '异常退出恢复', one: '正常保存或放弃后清理，异常退出才提示草稿' },
+] as const;
+
+const localPoints = [
+  { icon: 'lock', title: '普通 Markdown 文件', one: '不需要账户，不依赖云数据库' },
+  { icon: 'toggle', title: '自动保存默认关闭', one: '需要时在偏好设置里开启' },
+  { icon: 'terminal', title: '本机 MCP（实验性）', one: '回环地址、访问令牌，写操作需确认' },
+] as const;
+
+const boundaries = ['五个平台与架构组合提供 Native AOT 安装包', '签名、公证与兼容性请查看对应版本说明'];
+
+const platformIcon = (platform: string) => platform === 'Linux' ? ('linux' as const) : ('desktop' as const);
+---
+
+<Base
+  title="维刻 Vex · 写下想法，看见脉络"
+  description="本地优先的开源 Markdown 写作空间：即时编辑、源码、阅读与思维导图四种视图共享同一份文档；原生公式与 Mermaid 图表；导出 PDF/Word/长图。Windows、macOS、Linux 桌面安装包开源免费。"
+  active="home"
+>
+  <div class="wrap" data-pagefind-body>
+    <!-- Hero：一句话 + 主 CTA + 当前界面图 -->
+    <section class="hero hero-compact" data-pagefind-meta="title:维刻 Vex 官网">
+      <img src="/logos/vex.svg" alt="维刻 Vex" width="72" height="72" style="margin:0 auto 14px" />
+      <h1><span class="grad">写下想法，看见脉络</span></h1>
+      <p class="lead">
+        本地优先的开源 Markdown 写作空间 · 写作、结构、导图在同一份文档里完成
+        {metrics.release?.version && <span class="hero-ver">v{metrics.release.version}</span>}
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary btn-lg" href={downloadUrl} target="_blank" rel="noopener">
+          <Icon name="download" size={17} /> 免费下载
+        </a>
+        <a class="btn btn-ghost btn-lg" href={docHref}><Icon name="book" size={17} /> 阅读文档</a>
+      </div>
+      <p class="hero-note">Windows · macOS · Linux · 开源免费 · MIT License</p>
+    </section>
+
+    <!-- 主视觉：界面演示轮播 -->
+    {
+      shots.length > 0 && (
+        <section class="section" id="shots" style="padding-top: 20px">
+          <ScreenshotCarousel shots={shots.map((s) => ({ ...s, ...s.media }))} />
+          <p class="shot-note">
+            Vex 1.20.0.0 · 当前 Avalonia 界面渲染
+            {metrics.stars > 0 && <> · GitHub ★ {metrics.stars}</>}
+          </p>
+        </section>
+      )
+    }
+
+    <!-- 四种视图：点标签切换大图 / 动图 -->
+    <section class="section" id="views">
+      <div class="sec-head center">
+        <h2>一份 Markdown，四种看法</h2>
+        <p>共享同一份文档与撤销历史，不需要在几份副本之间同步</p>
+      </div>
+      <MediaSwitch items={views} id="viewSwitch" />
+    </section>
+
+    <!-- 产品区块：左右交替，大图为主 -->
+    {
+      blocks.map((b, i) => (
+        <section class:list={['section', 'feature-row', { flip: i % 2 === 1 }]} id={b.key}>
+          <div class="fr-text">
+            <span class="fr-en">
+              <Icon name={b.icon} size={16} /> {b.en}
+            </span>
+            <h2>{b.title}</h2>
+            <p class="fr-lead">{b.lead}</p>
+            <ul class="fr-points">
+              {b.points.map((p) => (
+                <li>
+                  <Icon name="check" size={15} /> {p}
+                </li>
+              ))}
+            </ul>
+          </div>
+          {b.media || b.alt ? (
+            <div class="fr-media">
+              {b.media && (
+                <figure class="fr-shot">
+                  <img
+                    src={b.media.src}
+                    alt={b.title}
+                    loading="lazy"
+                    data-animated={b.media.animated ? 'true' : 'false'}
+                  />
+                  {b.media.animated && <figcaption class="fr-gif">动图</figcaption>}
+                </figure>
+              )}
+              {b.alt && (
+                <figure class:list={['fr-shot', { small: !!b.media }]}>
+                  <img src={b.alt.src} alt={`${b.title}（示意）`} loading="lazy" />
+                </figure>
+              )}
+            </div>
+          ) : (
+            <div class="fr-tiles">
+              {b.formats?.map((f) => (
+                <div class="fr-tile">
+                  <Icon name={f.icon} size={26} />
+                  <b>{f.label}</b>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      ))
+    }
+
+    <!-- 小功能卡片：标题 + 一行 -->
+    <section class="section" id="more">
+      <div class="sec-head center">
+        <h2>还有这些顺手的地方</h2>
+      </div>
+      <div class="icon-grid three">
+        {
+          cards.map((c) => (
+            <div class="icon-card row">
+              <span class="ic"><Icon name={c.icon} /></span>
+              <span class="ic-body">
+                <b>{c.title}</b>
+                <span>{c.one}</span>
+              </span>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- 本地优先 -->
+    <section class="section" id="files">
+      <div class="sec-head center">
+        <h2>文件属于你</h2>
+        <p>普通 Markdown 文件 · 无账户 · 无云数据库 · 自动保存默认关闭</p>
+      </div>
+      <div class="icon-grid compact three">
+        {
+          localPoints.map((l) => (
+            <div class="icon-card">
+              <span class="ic"><Icon name={l.icon} /></span>
+              <div class="ic-body">
+                <b>{l.title}</b>
+                <p>{l.one}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- 下载 -->
+    <section class="section" id="download">
+      <div class="sec-head center">
+        <h2>下载</h2>
+        <p>
+          无需 .NET 运行时、Git 或编译环境
+          {metrics.release?.date && <> · 最新版 {metrics.release.date}</>}
+        </p>
+      </div>
+      <div class="dl-grid">
+        {
+          DOWNLOADS.map((d) => (
+            <div class:list={['dl-card', { off: !d.available }]}>
+              <span class="ic"><Icon name={platformIcon(d.platform)} /></span>
+              <b>{d.platform}</b>
+              <span class="dl-arch">{d.arch}</span>
+              <p class="hint">{d.hint}</p>
+              {d.available ? (
+                <a class="btn btn-ghost btn-sm" href={installerUrl(d.file)} target="_blank" rel="noopener">
+                  <Icon name="download" size={14} /> {version}
+                </a>
+              ) : (
+                <span class="pill muted">暂缓</span>
+              )}
+            </div>
+          ))
+        }
+      </div>
+      <p class="hint center">
+        每个安装包附 <code>.sha256</code> 校验文件；请仅从
+        <a href={SITE.releases} target="_blank" rel="noopener" style="color: var(--brand)">本仓库 Releases</a>
+        获取。{boundaries.join(' · ')}。
+        <a href={SITE.releases} target="_blank" rel="noopener" style="color: var(--brand)">全部版本 →</a>
+      </p>
+    </section>
+
+    <!-- 文档入口 -->
+    <section class="section" id="docs">
+      <div class="eco-row">
+        <a class="card eco" href={docHref}>
+          <Icon name="book" size={18} />
+          <div><b>项目总览</b><span>仓库结构与文档索引</span></div>
+        </a>
+        <a class="card eco" href={docUrl('安装与发布')}>
+          <Icon name="outbox" size={18} />
+          <div><b>安装包与发布</b><span>构建、签名与平台限制</span></div>
+        </a>
+        <a class="card eco" href="/changelog/">
+          <Icon name="history" size={18} />
+          <div><b>更新日志</b><span>{cl.entries.length} 条版本记录</span></div>
+        </a>
+        <a class="card eco" href={SITE.issues} target="_blank" rel="noopener">
+          <Icon name="issue" size={18} />
+          <div><b>反馈与建议</b><span>发现问题也是有价值的贡献</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 开源 -->
+    <section class="section" id="opensource">
+      <div class="card oss-card">
+        <div class="oss-left">
+          <h2>开源与鸣谢</h2>
+          <p>
+            Vex 基于 .NET 10 与 Avalonia 12，通用编辑与渲染能力由
+            <a href="https://github.com/dotnet9/CodeWF.Avalonia" target="_blank" rel="noopener">CodeWF.Avalonia</a>
+            提供。感谢 Avalonia、Semi、Ursa、Mermaider 及所有贡献者。
+          </p>
+        </div>
+        <div class="cta-row">
+          <a class="btn btn-ghost" href={SITE.repo} target="_blank" rel="noopener">
+            <Icon name="link" size={15} /> 源码仓库
+          </a>
+          <a class="btn btn-ghost" href={`${SITE.repo}/blob/HEAD/LICENSE`} target="_blank" rel="noopener">MIT License</a>
+          {designOk && (
+            <a class="btn btn-ghost" href="/design/index.html" target="_blank" rel="noopener">
+              <Icon name="sparkle" size={15} /> 设计原型
+            </a>
+          )}
+        </div>
+      </div>
+    </section>
+
+    <section class="section" data-pagefind-ignore>
+      <Giscus />
+    </section>
+  </div>
+</Base>
+
+<script>
+  // 四种视图：点击切换说明
+  (function () {
+    const wrap = document.getElementById('viewSwitch');
+    if (!wrap) return;
+    const tabs = Array.from(wrap.querySelectorAll<HTMLButtonElement>('.view-tab'));
+    const panels = Array.from(document.querySelectorAll<HTMLElement>('[data-panel]'));
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const key = tab.dataset.view;
+        tabs.forEach((t) => t.classList.toggle('on', t === tab));
+        panels.forEach((p) => p.classList.toggle('on', p.dataset.panel === key));
+      });
+    });
+  })();
+</script>

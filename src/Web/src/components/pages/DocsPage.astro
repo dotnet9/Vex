@@ -1,0 +1,144 @@
+---
+import Base from '../../layouts/Base.astro';
+import Giscus from '../Giscus.astro';
+import { SITE } from '../../config/site';
+import {
+  docGroups,
+  docUrl,
+  loadDocs,
+  loadSyncInfo,
+  orderedDocs,
+  repoBlob,
+  type DocPage,
+} from '../../lib/content';
+
+interface Props {
+  page: DocPage;
+}
+const { page } = Astro.props;
+const docs = loadDocs();
+const groups = docGroups(docs).filter((g) => g.index || g.items.length > 0);
+const pages = orderedDocs(docs);
+const sync = loadSyncInfo();
+const idx = pages.findIndex((d) => d.path === page.path);
+const prev = idx > 0 ? pages[idx - 1] : null;
+const next = idx >= 0 && idx < pages.length - 1 ? pages[idx + 1] : null;
+const repoEdit = `${SITE.repo}/edit/HEAD/${page.sourcePath.split('/').map(encodeURIComponent).join('/')}`;
+
+// 预计阅读时间：CJK 字符按字数、拉丁词按词数，每分钟约 400 单位
+const plain = page.html.replace(/<[^>]+>/g, ' ');
+const cjk = (plain.match(/[一-鿿]/g) ?? []).length;
+const latin = (plain.match(/[A-Za-z0-9_]+/g) ?? []).length;
+const readingMinutes = Math.max(1, Math.ceil((cjk + latin * 2) / 400));
+---
+
+<Base
+  title={`${page.title} · 维刻 Vex 文档`}
+  description={page.excerpt || `维刻 Vex 文档：${page.title}`}
+  active="docs"
+  simpleFooter
+>
+  <div class="layout">
+    <aside class="sidebar" id="docSidebar">
+      <a class="side-back" href="/docs/">← 文档索引</a>
+      {
+        groups.map((g) => (
+          <div class="side-group">
+            <b>{g.label}</b>
+            {g.index && (
+              <a href={docUrl('')} class:list={[{ on: page.path === '' }]} title={g.index.title}>
+                {g.index.title}
+              </a>
+            )}
+            {g.items.map((d) => (
+              <a href={docUrl(d.path)} class:list={[{ on: page.path === d.path }]} title={d.title}>
+                {d.title}
+              </a>
+            ))}
+          </div>
+        ))
+      }
+    </aside>
+
+    <article class="content" data-pagefind-body>
+      <div class="doc-crumb" data-pagefind-ignore>
+        <a href="/">维刻 Vex</a> / <a href="/docs/">文档</a> / <span style="color:var(--text)">{page.title}</span>
+      </div>
+      <h1 class="doc-title">{page.title}</h1>
+      <div class="doc-meta" data-pagefind-ignore>
+        <span>⏱ 预计阅读 {readingMinutes} 分钟</span>
+        {sync.updatedAt && <span>同步于 {sync.updatedAt}</span>}
+        <span>
+          来源：
+          <a href={repoBlob(page.sourcePath)} target="_blank" rel="noopener">
+            Vex · {page.sourcePath}
+          </a>
+        </span>
+        <span>
+          <a href={repoEdit} target="_blank" rel="noopener">✎ 在 GitHub 编辑此页</a>
+        </span>
+      </div>
+      <div class="doc-body" set:html={page.html} />
+
+      <div class="pager">
+        {prev ? <a href={docUrl(prev.path)}>← 上一篇<b>{prev.title}</b></a> : <span />}
+        {next ? <a class="next" href={docUrl(next.path)}>下一篇<b>{next.title}</b>→</a> : <span />}
+      </div>
+
+      <Giscus />
+    </article>
+
+    {
+      page.toc.length > 0 && (
+        <aside class="toc" id="docToc">
+          <b>本页目录</b>
+          {page.toc.map((t) => (
+            <a href={`#${t.id}`} class:list={[{ l2: t.level === 3 }]} data-toc-link={t.id} title={t.text}>
+              {t.text}
+            </a>
+          ))}
+        </aside>
+      )
+    }
+  </div>
+</Base>
+
+<script>
+  // 移动端侧边栏
+  document.getElementById('menuBtn')?.addEventListener('click', () => {
+    document.getElementById('docSidebar')?.classList.toggle('open');
+  });
+  // TOC 点击高亮 + 滚动高亮（取视口上方最近的标题）
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
+  links.forEach((a) =>
+    a.addEventListener('click', () => {
+      links.forEach((x) => x.classList.remove('on'));
+      a.classList.add('on');
+    }),
+  );
+  const headings = links
+    .map((a) => document.getElementById(a.dataset.tocLink!))
+    .filter((el): el is HTMLElement => !!el);
+  if (headings.length) {
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      let current: Element | null = null;
+      for (const h of headings) {
+        if (h.getBoundingClientRect().top <= 100) current = h;
+      }
+      links.forEach((a) => a.classList.toggle('on', a.dataset.tocLink === current?.id));
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true },
+    );
+    update();
+  }
+</script>

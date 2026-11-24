@@ -1,0 +1,30 @@
+{
+  "name": "vex-site",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "维刻 Vex 官网（vex.codewf.com）：落地页 + 文档 + 更新日志，全静态",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "sync": "node scripts/sync-content.mjs",
+    "sync:ci": "node scripts/sync-content.mjs --ci",
+    "metrics": "node scripts/fetch-metrics.mjs",
+    "predev": "npm run -s sync",
+    "dev": "astro dev",
+    "build": "node scripts/build.mjs",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.11",
+    "@astrojs/sitemap": "^3.2.1",
+    "astro": "^5.7.0",
+    "github-slugger": "^2.0.0",
+    "highlight.js": "^11.10.0",
+    "marked": "^18.0.14"
+  },
+  "devDependencies": {
+    "pagefind": "^1.3.0"
+  }
+}

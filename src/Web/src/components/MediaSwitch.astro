@@ -1,0 +1,91 @@
+---
+/**
+ * 媒体切换器：一排可点标签，切换下方大图 / 动图。
+ * 没有媒体时（还没录制 GIF）自动退回图标卡片，不留空框。
+ */
+import Icon from './Icon.astro';
+import type { IconName } from '../lib/icons';
+
+export interface MediaItem {
+  key: string;
+  name: string;
+  one: string;
+  icon: IconName;
+  media: { src: string; animated: boolean } | null;
+  /** 单条媒体时的说明（多张图时按 alt 展示） */
+  note?: string;
+}
+
+interface Props {
+  items: MediaItem[];
+  id?: string;
+}
+const { items, id = 'mediaSwitch' } = Astro.props;
+const withMedia = items.filter((i) => i.media);
+const hasAnyMedia = withMedia.length > 0;
+---
+
+{
+  hasAnyMedia ? (
+    <div class="ms" id={id} data-count={withMedia.length}>
+      <div class="ms-tabs">
+        {withMedia.map((it, i) => (
+          <button class:list={['ms-tab', { on: i === 0 }]} type="button" data-ms={it.key}>
+            <span class="ic">
+              <Icon name={it.icon} size={18} />
+            </span>
+            <span class="ms-body">
+              <b>{it.name}</b>
+              <span class="ms-one">{it.one}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+      <div class="ms-stage">
+        {withMedia.map((it, i) => (
+          <figure class:list={['ms-slide', { on: i === 0 }]} data-ms-slide={it.key}>
+            <img
+              src={it.media!.src}
+              alt={`${it.name}：${it.one}`}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              data-animated={it.media!.animated ? 'true' : 'false'}
+            />
+            <figcaption>
+              <span class="ms-tag">{it.name}</span>
+              {it.note ?? it.one}
+              {it.media!.animated && <span class="ms-gif">动图</span>}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  ) : (
+    <div class="ms-tabs only">
+      {items.map((it) => (
+        <div class="ms-tab static">
+          <span class="ic">
+            <Icon name={it.icon} size={18} />
+          </span>
+          <span class="ms-body">
+            <b>{it.name}</b>
+            <span class="ms-one">{it.one}</span>
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+<script>
+  document.querySelectorAll<HTMLElement>('.ms').forEach((root) => {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-ms]'));
+    const slides = Array.from(root.querySelectorAll<HTMLElement>('[data-ms-slide]'));
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const key = tab.dataset.ms;
+        tabs.forEach((t) => t.classList.toggle('on', t === tab));
+        slides.forEach((s) => s.classList.toggle('on', s.dataset.msSlide === key));
+      });
+    });
+  });
+</script>

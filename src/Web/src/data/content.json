@@ -1,0 +1,85 @@
+{
+ "source": {
+  "repo": "https://github.com/dotnet9/Vex",
+  "repoPath": "../..",
+  "slug": "vex",
+  "changelog": "docs/更新日志.md",
+  "logo": [
+   "logo.svg",
+   "logo.png",
+   "logo.ico"
+  ],
+  "docRoots": [
+   "docs"
+  ],
+  "extraDocs": [
+   "README.md"
+  ]
+ },
+ "docs": {
+  "overview": "README.md",
+  "groupRules": {
+   "use": {
+    "label": "使用与发布",
+    "desc": "安装、写作、导出与参与",
+    "depth": 0,
+    "alwaysUse": [
+     "README.md"
+    ]
+   },
+   "dev": {
+    "label": "开发与验收",
+    "desc": "组件包、本机 MCP、打包脚本与性能记录",
+    "depthAtLeast": 1
+   }
+  },
+  "order": [
+   "README.md",
+   "快速开始.md",
+   "图片/截图说明.md",
+   "Markdown功能示例.md",
+   "Markdown行内样式.md",
+   "MCP接口.md",
+   "安装与发布.md",
+   "需求文档.md",
+   "仓库学习文档.md",
+   "概要设计.md",
+   "详细设计.md",
+   "引导设计.md",
+   "卸载界面设计.md",
+   "原型与资源.md",
+   "外部修改对比设计.md",
+   "开发与验证.md",
+   "验收与已知限制.md",
+   "界面优化/图标优化/执行记录/大纲收起图标.md",
+   "界面优化/图标优化/执行记录/标题栏关闭图标修复.md",
+   "贡献与安全.md",
+   "更新日志.md",
+   "鸣谢.md"
+  ],
+  "titles": {
+   "README.md": "项目总览",
+   "快速开始.md": "快速开始",
+   "Markdown功能示例.md": "Markdown 功能示例",
+   "MCP接口.md": "MCP 接口",
+   "安装与发布.md": "安装与发布",
+   "需求文档.md": "需求文档",
+   "概要设计.md": "概要设计",
+   "详细设计.md": "详细设计",
+   "引导设计.md": "引导设计",
+   "卸载界面设计.md": "卸载界面设计",
+   "原型与资源.md": "原型与资源",
+   "外部修改对比设计.md": "外部修改对比",
+   "开发与验证.md": "开发与验证",
+   "验收与已知限制.md": "验收与已知限制",
+   "贡献与安全.md": "贡献与安全",
+   "更新日志.md": "版本记录",
+   "鸣谢.md": "鸣谢与素材许可",
+   "仓库学习文档.md": "仓库学习文档",
+   "Markdown行内样式.md": "Markdown 行内样式"
+  },
+  "exclude": [
+   "演示文档"
+  ]
+ }
+}

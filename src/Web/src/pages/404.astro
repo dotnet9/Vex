@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../config/site';
+---
+
+<Base title="页面未找到 · 维刻 Vex" description="页面不存在或已被移动。" simpleFooter>
+  <div class="wrap">
+    <div class="nf">
+      <b>404</b>
+      <h1>页面走丢了</h1>
+      <p>你要找的页面不存在，或已被移动。</p>
+      <a class="btn btn-primary btn-lg" href="/">返回维刻 Vex 首页</a>
+      <a class="btn btn-ghost btn-lg" href="/docs/" style="margin-left:10px">浏览文档</a>
+      <p style="margin-top:22px;font-size:12.5px">
+        也可以在 <a href={SITE.repo} target="_blank" rel="noopener" style="color:var(--brand)">GitHub 仓库</a>
+        查看源码与历史版本。
+      </p>
+    </div>
+  </div>
+</Base>

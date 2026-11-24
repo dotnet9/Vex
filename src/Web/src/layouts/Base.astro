@@ -1,0 +1,87 @@
+---
+import '../styles/global.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SearchModal from '../components/SearchModal.astro';
+import { SITE } from '../config/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  active?: '' | 'home' | 'docs' | 'changelog';
+  /** 文档页：正文结束后的自定义内容（评论区等） */
+  simpleFooter?: boolean;
+  /** 搜索索引是否存在（构建产物判断，缺省时不弹出无效搜索） */
+  search?: boolean;
+}
+
+const {
+  title,
+  description = `${SITE.brand.name} ${SITE.brand.en}：${SITE.brand.slogan}。${SITE.brand.desc}`,
+  active = '',
+  simpleFooter = false,
+  search = true,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title="维刻 Vex 更新动态" href="/rss.xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="generator" content={Astro.generator} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={`${SITE.brand.name} ${SITE.brand.en}`} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL('/logos/vex.svg', Astro.site)} />
+    <script is:inline>
+      // 主题初始化：优先用户选择，其次跟随系统（阻塞式防闪烁）
+      (function () {
+        try {
+          var t = localStorage.getItem('vex-theme');
+          var dark = t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.dataset.theme = 'dark';
+        } catch (e) {}
+      })();
+    </script>
+    {SITE.analytics.key && SITE.analytics.provider === '51la' && (
+      <script is:inline defer src="https://sdk.51.la/js-sdk-pro.min.js" data-id={SITE.analytics.key}></script>
+    )}
+  </head>
+  <body>
+    <SiteHeader {active} />
+    <main>
+      <slot />
+    </main>
+    <SiteFooter simple={simpleFooter} />
+    <SearchModal />
+
+    <script>
+      // 汉堡按钮仅在文档页（存在侧栏）时可用
+      if (!document.getElementById('docSidebar')) {
+        document.getElementById('menuBtn')?.style.setProperty('display', 'none');
+      }
+      const btn = document.getElementById('themeBtn') as HTMLButtonElement | null;
+      const setDark = (dark: boolean) => {
+        if (dark) document.documentElement.dataset.theme = 'dark';
+        else delete document.documentElement.dataset.theme;
+        try {
+          localStorage.setItem('vex-theme', dark ? 'dark' : 'light');
+        } catch {}
+        if (btn) btn.textContent = dark ? '☀' : '☾';
+        window.dispatchEvent(new CustomEvent('theme-change', { detail: { dark } }));
+      };
+      btn?.addEventListener('click', () => setDark(document.documentElement.dataset.theme !== 'dark'));
+      if (btn) btn.textContent = document.documentElement.dataset.theme === 'dark' ? '☀' : '☾';
+    </script>
+  </body>
+</html>

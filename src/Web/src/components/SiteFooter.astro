@@ -1,0 +1,48 @@
+---
+import { SITE } from '../config/site';
+interface Props {
+  simple?: boolean;
+}
+const { simple = false } = Astro.props;
+---
+
+<footer>
+  <div class="wrap">
+    {
+      !simple && (
+        <div class="foot-grid">
+          <div>
+            <h4>维刻 Vex</h4>
+            <p>本地优先的开源 Markdown 写作空间：写文章、理结构、看导图，在同一份文档里完成。</p>
+          </div>
+          <div>
+            <h4>本站</h4>
+            <a href="/docs/">文档</a>
+            <a href="/changelog/">更新日志</a>
+            <a href="/#download">下载</a>
+            <a href="/rss.xml">RSS 订阅</a>
+          </div>
+          <div>
+            <h4>源码与反馈</h4>
+            <a href={SITE.repo} target="_blank" rel="noopener">GitHub 仓库</a>
+            <a href={SITE.releases} target="_blank" rel="noopener">全部版本</a>
+            <a href={SITE.issues} target="_blank" rel="noopener">反馈与建议</a>
+            <a href={`${SITE.repo}/blob/HEAD/SECURITY.md`} target="_blank" rel="noopener">安全政策</a>
+          </div>
+          <div>
+            <h4>码坊 CodeWF</h4>
+            <a href={SITE.home} target="_blank" rel="noopener">博客 codewf.com</a>
+            <a href={SITE.docsSite} target="_blank" rel="noopener">开源矩阵 doc.codewf.com</a>
+            <a href="/sitemap-index.xml">站点地图</a>
+          </div>
+        </div>
+      )
+    }
+  </div>
+  <div class="foot-bottom">
+    <span>© {new Date().getFullYear()} {SITE.author} · MIT License</span>
+    <span>
+      <a href="/">维刻 Vex 官网</a> · <a href={SITE.docsSite} target="_blank" rel="noopener">码坊开源矩阵</a>
+    </span>
+  </div>
+</footer>

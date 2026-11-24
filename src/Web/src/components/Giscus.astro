@@ -1,0 +1,49 @@
+---
+import { SITE } from '../config/site';
+const g = SITE.giscus;
+const themeUrl = 'https://giscus.app';
+---
+
+{
+  g.enabled && g.repoId && g.categoryId ? (
+    <section class="giscus-box">
+      <script
+        is:inline
+        src={`${themeUrl}/client.js`}
+        data-repo={g.repo}
+        data-repo-id={g.repoId}
+        data-category={g.category}
+        data-category-id={g.categoryId}
+        data-mapping={g.mapping}
+        data-strict="0"
+        data-reactions-enabled={g.reactionsEnabled}
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="light"
+        data-lang="zh-CN"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async
+      />
+      <script is:inline>
+        // 主题联动：监听站点主题切换事件，同步 giscus 配色
+        window.addEventListener('theme-change', function (e) {
+          var iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage(
+            { giscus: { setConfig: { theme: e.detail.dark ? 'dark' : 'light' } } },
+            'https://giscus.app'
+          );
+        });
+      </script>
+    </section>
+  ) : (
+    <div class="giscus-ph">
+      💬 评论暂未开启
+      <br />
+      有疑问或建议，欢迎到
+      <a href={SITE.issues} target="_blank" rel="noopener" style="color:var(--brand)">GitHub 提交 Issue</a>
+      参与讨论。
+    </div>
+  )
+}
