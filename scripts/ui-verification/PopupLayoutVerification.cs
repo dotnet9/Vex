@@ -34,11 +34,14 @@ internal static class PopupLayoutVerification
             vm.Appearance.SelectLanguageByCulture(culture); Render();
             Check(vm.Appearance.SelectedLanguage?.CultureName == culture, "Title-menu locale is selected: " + culture);
             var menu = title.FindControl<Menu>("TitleMenuBar")!;
-            var topItems = menu.Items.OfType<MenuItem>().ToArray();
-            // 11-17 菜单收敛 6→3（文件/视图/帮助）：顶级项数、28px 目标与 2px 自然间距随收敛口径更新。
+            // 11-17 菜单收敛 6→3（文件/视图/帮助）；11-24 GHD 改版加第 4 项 Git（仅 Git 模式显示）：
+            // 文件模式下折叠不参与布局，量测只算可见顶级项。
+            var topItems = menu.Items.OfType<MenuItem>().Where(item => item.IsVisible).ToArray();
             Check(topItems.Length == 3 && topItems.All(item => Math.Abs(item.Bounds.Height - 28) < .01)
                 && topItems.Zip(topItems.Skip(1)).All(pair => Math.Abs(pair.Second.Bounds.X - pair.First.Bounds.Right - 2) < .01),
                 "Title menus keep natural text widths, 28px targets and 2px gaps in " + culture);
+            Check(title.FindControl<MenuItem>("GitMenuItem") is { } gitItem && !gitItem.IsVisible,
+                "Git title menu stays registered but collapsed outside git mode");
             if (OperatingSystem.IsWindows() && culture == "zh-CN")
             {
                 // 11-17 收敛后三顶级菜单（文件/视图/帮助）在 zh-CN 的自然总宽；换字体度量时此值须重测。
@@ -75,6 +78,8 @@ internal static class PopupLayoutVerification
             "File menu exposes recent/export/import/reopen submenus");
         foreach (var item in ((Menu)title.Content!).Items.OfType<MenuItem>())
         {
+            // Git 菜单仅 Git 模式显示（需要工作区仓库上下文），文件模式下不开弹层、不量测。
+            if (!item.IsVisible) continue;
             item.IsSubMenuOpen = true; Render();
             var popup = item.GetVisualDescendants().OfType<Popup>().First();
             var panel = popup.Child!;
