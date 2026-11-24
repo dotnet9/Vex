@@ -1,0 +1,43 @@
+#!/bin/sh
+# 提交门禁：秒级静态检查 + 受影响时增量编译，失败即阻止提交。
+# 逃生口：git commit --no-verify（不建议——本地拦下来的问题，推送门禁还会再拦一遍）。
+# 启用方式（克隆后执行一次）：git config core.hooksPath .githooks
+
+# 0) 暂存内容空白错误与冲突标记（无条件，毫秒级）
+if ! git diff --cached --check; then
+  echo "✗ 暂存内容含空白错误或冲突标记，提交被阻止。修复后重试；确需跳过：git commit --no-verify" >&2
+  exit 1
+fi
+
+staged=$(git -c core.quotepath=off diff --cached --name-only --diff-filter=ACMR)
+
+# 1) 更新日志形状：每条必须带 [类别] 标签（与 UiVerification updates 场景同口径）
+if printf '%s\n' "$staged" | grep -q '^docs/更新日志\.md$'; then
+  bad=$(grep -E '^- ' docs/更新日志.md | grep -vE '\[[^]]+\]' || true)
+  if [ -n "$bad" ]; then
+    echo "✗ 更新日志条目缺 [类别] 标签（每条须形如 - ✨[新增]-…），提交被阻止：" >&2
+    printf '%s\n' "$bad" >&2
+    exit 1
+  fi
+fi
+
+# 2) design 目录门禁（JS 语法 + 资源引用 + 令牌断言，秒级）
+if printf '%s\n' "$staged" | grep -q '^design/'; then
+  echo "==> 提交门禁：design verify.cjs…"
+  node design/scripts/verify.cjs || {
+    echo "✗ design 门禁未通过，提交被阻止。确需跳过：git commit --no-verify" >&2
+    exit 1
+  }
+fi
+
+# 3) 增量编译（改了编译面文件才跑；用 Release 避开运行中 Debug 实例的产物文件锁）
+#    注意：后台正在跑 verify-release 等构建门禁时，并发构建会互锁——等它跑完再提交，或 --no-verify。
+if printf '%s\n' "$staged" | grep -qE '\.(cs|xaml|axaml|csproj|props|targets|slnx)$'; then
+  echo "==> 提交门禁：增量编译（Release）…"
+  dotnet build Vex.slnx -c Release -v q --nologo -m || {
+    echo "✗ 编译失败，提交被阻止。确需跳过：git commit --no-verify" >&2
+    exit 1
+  }
+fi
+
+exit 0
