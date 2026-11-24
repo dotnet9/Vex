@@ -91,8 +91,14 @@ public partial class MarkdownViewer
         var documentHeight = Math.Max(viewportHeight, host.Extent.Height);
         // 视口中心换算到文档坐标，兼容宿主留白及演示缩放。
         var probeOffset = host.TranslatePoint(new Point(0, viewportHeight / 2), _documentHost)?.Y ?? offset + viewportHeight / 2;
+        var startIndex = 0;
+        if (_virtualizingHost is { } virtualizingHost)
+        {
+            var panelOriginY = virtualizingHost.TranslatePoint(new Point(0, 0), _documentHost)?.Y ?? 0;
+            startIndex = Math.Max(0, virtualizingHost.FindMeasuredItemAtOffset(probeOffset - panelOriginY));
+        }
 
-        for (var i = 0; i < _renderedBlocks.Count; i++)
+        for (var i = startIndex; i < _renderedBlocks.Count; i++)
         {
             // 未物化/未量测的块拿不到可信位置：跳过昂贵的 TranslatePoint，
             // 虚拟化下每帧只需检查视口附近那几十个块（这个采样在滚动中会反复执行）。

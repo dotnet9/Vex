@@ -98,6 +98,9 @@ public class WindowedStackPanel : Panel
     private bool[] _realizedBuffer = [];
     private bool[] _inWindowBuffer = [];
     private bool[] _candidateBuffer = [];
+    private double[] _itemTops = [];
+    private List<int> _pinnedIndices = [];
+    private bool _layoutIndexDirty = true;
     private double _anchorOffsetY = double.NaN;
     private double _anchorTop;
     private int _anchorIndex;
@@ -220,8 +223,13 @@ public class WindowedStackPanel : Panel
     /// <summary>滚动偏移被回补（布局锚点补偿）的次数，供诊断与测试使用。</summary>
     public int AnchorCompensationCount { get; private set; }
 
+    internal int LayoutIndexBuildCount { get; private set; }
+
+    internal bool IsItemPinned(int index) =>
+        index >= 0 && index < _entries.Count && _entries[index].Pinned;
+
     /// <summary>当前被调用方固定物化的子项数量，供诊断与测试使用。</summary>
-    public int PinnedItemCount => _entries.Count(entry => entry.Pinned);
+    public int PinnedItemCount => _pinnedIndices.Count;
 
     static WindowedStackPanel()
     {
@@ -245,8 +253,20 @@ public class WindowedStackPanel : Panel
         var entry = new ItemEntry(control, pinned, pinnedByKind);
         index = Math.Clamp(index, 0, _entries.Count);
         _entries.Insert(index, entry);
+        for (var i = 0; i < _pinnedIndices.Count; i++)
+        {
+            if (_pinnedIndices[i] >= index)
+            {
+                _pinnedIndices[i]++;
+            }
+        }
+        if (entry.Pinned)
+        {
+            _pinnedIndices.Add(index);
+        }
         Children.Insert(RealizedIndexBefore(index), control);
         entry.Realized = true;
+        _layoutIndexDirty = true;
         InvalidateMeasure();
     }
 
@@ -278,6 +298,17 @@ public class WindowedStackPanel : Panel
         }
 
         var entry = _entries[index];
+        for (var i = _pinnedIndices.Count - 1; i >= 0; i--)
+        {
+            if (_pinnedIndices[i] == index)
+            {
+                _pinnedIndices.RemoveAt(i);
+            }
+            else if (_pinnedIndices[i] > index)
+            {
+                _pinnedIndices[i]--;
+            }
+        }
         if (entry.Realized)
         {
             Children.Remove(entry.Control);
@@ -285,6 +316,7 @@ public class WindowedStackPanel : Panel
         }
 
         _entries.RemoveAt(index);
+        _layoutIndexDirty = true;
         InvalidateMeasure();
     }
 
@@ -293,8 +325,10 @@ public class WindowedStackPanel : Panel
         _anchorOffsetY = double.NaN;
         _anchorIndex = 0;
         _entries.Clear();
+        _pinnedIndices.Clear();
         Children.Clear();
         _decorators.Clear();
+        _layoutIndexDirty = true;
         InvalidateMeasure();
     }
 
@@ -336,6 +370,14 @@ public class WindowedStackPanel : Panel
         }
 
         _entries[index].Pinned = pinned;
+        if (pinned)
+        {
+            _pinnedIndices.Add(index);
+        }
+        else
+        {
+            _pinnedIndices.Remove(index);
+        }
         InvalidateMeasure();
     }
 
@@ -348,16 +390,34 @@ public class WindowedStackPanel : Panel
     /// </summary>
     public void DetachAllPinned()
     {
-        var changed = false;
-        foreach (var entry in _entries)
+        if (_pinnedIndices.Count == 0)
         {
-            if (entry.Pinned)
-            {
-                entry.Pinned = false;
-                changed = true;
-            }
+            return;
         }
 
+        foreach (var index in _pinnedIndices)
+        {
+            _entries[index].Pinned = false;
+        }
+        _pinnedIndices.Clear();
+        InvalidateMeasure();
+    }
+
+    internal void ReleasePinnedItemsExcept(int first, int second)
+    {
+        var changed = false;
+        for (var i = _pinnedIndices.Count - 1; i >= 0; i--)
+        {
+            var index = _pinnedIndices[i];
+            if (index == first || index == second)
+            {
+                continue;
+            }
+
+            _entries[index].Pinned = false;
+            _pinnedIndices.RemoveAt(i);
+            changed = true;
+        }
         if (changed)
         {
             InvalidateMeasure();
@@ -367,18 +427,99 @@ public class WindowedStackPanel : Panel
     /// <summary>取子项在滚动方向上的顶边（未物化项用已测量/估算尺寸推算）。</summary>
     public bool TryGetItemTop(int index, out double top)
     {
-        top = 0;
         if (index < 0 || index >= _entries.Count)
         {
+            top = 0;
             return false;
         }
 
-        for (var i = 0; i < index; i++)
+        EnsureLayoutIndex();
+        top = _itemTops[index];
+        return true;
+    }
+
+    internal int FindItemAtOffset(double offset)
+    {
+        EnsureLayoutIndex();
+        if (_entries.Count == 0)
         {
-            top += BandSize(i) + Spacing;
+            return -1;
         }
 
-        return true;
+        var low = 0;
+        var high = _entries.Count - 1;
+        while (low < high)
+        {
+            var mid = (low + high) / 2;
+            if (_itemTops[mid] + BandSize(mid) >= offset)
+            {
+                high = mid;
+            }
+            else
+            {
+                low = mid + 1;
+            }
+        }
+        return low;
+    }
+
+    internal int FindItemStartIndexAtOffset(double offset)
+    {
+        EnsureLayoutIndex();
+        if (_entries.Count == 0)
+        {
+            return -1;
+        }
+
+        var low = 0;
+        var high = _entries.Count - 1;
+        while (low < high)
+        {
+            var mid = (low + high + 1) / 2;
+            if (_itemTops[mid] <= offset)
+            {
+                low = mid;
+            }
+            else
+            {
+                high = mid - 1;
+            }
+        }
+        return low;
+    }
+
+    internal int FindMeasuredItemAtOffset(double offset)
+    {
+        for (var index = FindItemAtOffset(offset); index >= 0 && index < _entries.Count; index++)
+        {
+            if (_entries[index].Measured)
+            {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    private void EnsureLayoutIndex()
+    {
+        if (!_layoutIndexDirty)
+        {
+            return;
+        }
+
+        if (_itemTops.Length != _entries.Count)
+        {
+            _itemTops = new double[_entries.Count];
+        }
+
+        var top = 0d;
+        for (var i = 0; i < _entries.Count; i++)
+        {
+            _itemTops[i] = top;
+            top += BandSize(i) + Spacing;
+        }
+        _layoutIndexDirty = false;
+        LayoutIndexBuildCount++;
     }
 
     /// <summary>子项尺寸：已量测优先，其次估算。</summary>
@@ -482,6 +623,7 @@ public class WindowedStackPanel : Panel
 
         if (double.IsFinite(width)) _lastWidth = width;
         var size = new Size(maxWidth, Math.Max(0, y));
+        _layoutIndexDirty = true;
         CompensateAnchor(size.Height);
         return size;
     }
@@ -568,6 +710,10 @@ public class WindowedStackPanel : Panel
         if (change.Property == ScrollHostProperty)
         {
             SubscribeScrollHost();
+        }
+        else if (change.Property == SpacingProperty || change.Property == EstimatedItemHeightProperty)
+        {
+            _layoutIndexDirty = true;
         }
     }
 
@@ -786,23 +932,12 @@ public class WindowedStackPanel : Panel
         if (double.IsFinite(_anchorOffsetY) && Math.Abs(_anchorOffsetY - host.Offset.Y) < .5) return;
         _anchorOffsetY = host.Offset.Y;
         var offset = Math.Max(0, host.Offset.Y - Margin.Top);
-        var top = 0d; _anchorIndex = 0;
-        for (var i = 0; i < _entries.Count; i++)
-        {
-            if (top > offset) break;
-            _anchorIndex = i;
-            top += BandSize(i) + Spacing;
-        }
+        _anchorIndex = Math.Max(0, FindItemStartIndexAtOffset(offset));
         _anchorTop = FindAnchorTop();
     }
 
-    private double FindAnchorTop()
-    {
-        var top = 0d;
-        for (var i = 0; i < Math.Min(_anchorIndex, _entries.Count); i++)
-            top += BandSize(i) + Spacing;
-        return top;
-    }
+    private double FindAnchorTop() =>
+        _anchorIndex > 0 && TryGetItemTop(_anchorIndex, out var top) ? top : 0d;
 
     private void SetRealized(ItemEntry entry, bool realized)
     {
@@ -875,6 +1010,7 @@ public class WindowedStackPanel : Panel
         {
             Array.Clear(_decoratorHeights);
         }
+        _layoutIndexDirty = true;
 
         if (_entries.Count == 0)
         {

@@ -983,31 +983,10 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         _lastScrollOffsetY = offsetY;
 
         var center = offsetY + Math.Max(0, host.ScrollHost?.Viewport.Height ?? 0) / 2;
-        var anchor = -1;
-        for (var i = 0; i < _renderedBlocks.Count; i++)
-        {
-            if (!host.IsItemMeasured(i))
-            {
-                continue;
-            }
-
-            if (host.TryGetItemTop(i, out var top) && top + host.GetItemHeight(i) < center)
-            {
-                continue;
-            }
-
-            anchor = i;
-            break;
-        }
+        var anchor = host.FindMeasuredItemAtOffset(center);
 
         var secondary = anchor < 0 ? -1 : anchor + (scrollDown ? 1 : -1);
-        for (var i = 0; i < _renderedBlocks.Count; i++)
-        {
-            if (i != anchor && i != secondary)
-            {
-                host.ReleaseItem(i);
-            }
-        }
+        host.ReleasePinnedItemsExcept(anchor, secondary);
 
         foreach (var index in stackalloc[] { anchor, secondary })
         {
