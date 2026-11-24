@@ -47,6 +47,7 @@
           "EditorSearchReplacedAllFormat": "已取代 {0} 處。",
           "EditorSearchMatchCountFormat": "「{1}」共符合 {0} 處（{2}）。",
           "EditorSearchInvalidRegexFormat": "規則運算式無效：{0}",
+          "EditorSearchTimedOutFormat": "規則運算式執行逾時，請簡化 pattern：{0}",
           "EditorTableAddRow": "新增列",
           "EditorTableRemoveLastRow": "刪除最後一列",
           "EditorTableAddColumn": "新增欄",

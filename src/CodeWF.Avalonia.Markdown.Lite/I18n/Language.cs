@@ -51,6 +51,7 @@ namespace CodeWF.Avalonia.Markdown
         public static readonly string EditorSearchReplacedAllFormat = "CodeWF.Avalonia.Markdown.MarkdownL.EditorSearchReplacedAllFormat";
         public static readonly string EditorSearchMatchCountFormat = "CodeWF.Avalonia.Markdown.MarkdownL.EditorSearchMatchCountFormat";
         public static readonly string EditorSearchInvalidRegexFormat = "CodeWF.Avalonia.Markdown.MarkdownL.EditorSearchInvalidRegexFormat";
+        public static readonly string EditorSearchTimedOutFormat = "CodeWF.Avalonia.Markdown.MarkdownL.EditorSearchTimedOutFormat";
         public static readonly string EditorTableAddRow = "CodeWF.Avalonia.Markdown.MarkdownL.EditorTableAddRow";
         public static readonly string EditorTableRemoveLastRow = "CodeWF.Avalonia.Markdown.MarkdownL.EditorTableRemoveLastRow";
         public static readonly string EditorTableAddColumn = "CodeWF.Avalonia.Markdown.MarkdownL.EditorTableAddColumn";

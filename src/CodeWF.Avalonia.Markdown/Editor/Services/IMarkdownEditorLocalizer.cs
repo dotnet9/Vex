@@ -21,7 +21,8 @@ public enum MarkdownEditorText
     SearchReplacedNextFormat,
     SearchReplacedAllFormat,
     SearchMatchCountFormat,
-    SearchInvalidRegexFormat
+    SearchInvalidRegexFormat,
+    SearchTimedOutFormat
 }
 
 /// <summary>

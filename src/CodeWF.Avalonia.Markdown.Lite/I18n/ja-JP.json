@@ -47,6 +47,7 @@
           "EditorSearchReplacedAllFormat": "{0} 件置換しました。",
           "EditorSearchMatchCountFormat": "「{1}」に {0} 件一致しました（{2}）。",
           "EditorSearchInvalidRegexFormat": "正規表現が無効です：{0}",
+          "EditorSearchTimedOutFormat": "正規表現の実行がタイムアウトしました。pattern を簡素化してください：{0}",
           "EditorTableAddRow": "行を追加",
           "EditorTableRemoveLastRow": "最後の行を削除",
           "EditorTableAddColumn": "列を追加",

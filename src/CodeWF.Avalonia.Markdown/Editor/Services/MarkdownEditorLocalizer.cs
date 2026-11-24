@@ -26,6 +26,7 @@ public sealed class MarkdownEditorLocalizer : IMarkdownEditorLocalizer
             MarkdownEditorText.SearchReplacedAllFormat => MarkdownL.EditorSearchReplacedAllFormat,
             MarkdownEditorText.SearchMatchCountFormat => MarkdownL.EditorSearchMatchCountFormat,
             MarkdownEditorText.SearchInvalidRegexFormat => MarkdownL.EditorSearchInvalidRegexFormat,
+            MarkdownEditorText.SearchTimedOutFormat => MarkdownL.EditorSearchTimedOutFormat,
             _ => null
         };
         return key is null ? string.Empty : MarkdownLocalization.GetResource(key);

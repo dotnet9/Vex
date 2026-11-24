@@ -47,6 +47,7 @@
           "EditorSearchReplacedAllFormat": "Replaced {0} occurrence(s).",
           "EditorSearchMatchCountFormat": "{0} match(es) for \"{1}\" ({2}).",
           "EditorSearchInvalidRegexFormat": "Invalid regular expression: {0}",
+          "EditorSearchTimedOutFormat": "The regular expression timed out; simplify the pattern: {0}",
           "EditorTableAddRow": "Add row",
           "EditorTableRemoveLastRow": "Remove last row",
           "EditorTableAddColumn": "Add column",

@@ -48,6 +48,7 @@
           "EditorSearchReplacedAllFormat": "已替换 {0} 处。",
           "EditorSearchMatchCountFormat": "“{1}”共匹配 {0} 处（{2}）。",
           "EditorSearchInvalidRegexFormat": "正则表达式无效：{0}",
+          "EditorSearchTimedOutFormat": "正则表达式执行超时，请简化 pattern：{0}",
           "EditorTableAddRow": "添加行",
           "EditorTableRemoveLastRow": "删除末行",
           "EditorTableAddColumn": "添加列",

@@ -18,6 +18,7 @@ namespace Vex.Modules.Workspace.Views;
 public partial class MarkdownEditorView : UserControl
 {
     private ShellWindowLayoutViewModel? _layout;
+    private bool _caretTrackingAttached;
     public MarkdownEditorView()
     {
         InitializeComponent();
@@ -32,11 +33,11 @@ public partial class MarkdownEditorView : UserControl
         AttachedToVisualTree += (_, _) => AttachViewModel();
         DetachedFromVisualTree += (_, _) =>
         {
+            DetachCaretTracking();
             ViewModel?.DetachEditor(MarkdownEditor);
             if (_layout is not null) _layout.PropertyChanged -= LayoutChanged;
             _layout = null;
         };
-        MarkdownEditor.Editor.TextArea.Caret.PositionChanged += (_, _) => CenterCaret();
         // 控件正文变化统一由 ViewModel 回抛，文档载入期间的回抛会在 ViewModel 里被抑制。
         MarkdownEditor.MarkdownChanged += (_, _) => ViewModel?.PublishTextChanged();
         MarkdownEditor.SearchResultProduced += (_, result) =>
@@ -79,10 +80,25 @@ public partial class MarkdownEditorView : UserControl
             if (_layout is not null) _layout.PropertyChanged += LayoutChanged;
         }
         MarkdownEditor.Editor.Options.AllowScrollBelowDocument = _layout?.IsTypewriterMode == true;
-        // 打字机跟随：光标每动一次就把光标行拉回视口中部（原型 typewriter.js 的 center），
-        // CenterCaret 内部有开关与可见性守卫，关闭时直接返回。
-        MarkdownEditor.Editor.TextArea.Caret.PositionChanged += (_, _) => CenterCaret();
+        AttachCaretTracking();
     }
+
+    private void AttachCaretTracking()
+    {
+        if (_caretTrackingAttached) return;
+        MarkdownEditor.Editor.TextArea.Caret.PositionChanged += OnCaretPositionChanged;
+        _caretTrackingAttached = true;
+    }
+
+    private void DetachCaretTracking()
+    {
+        if (!_caretTrackingAttached) return;
+        MarkdownEditor.Editor.TextArea.Caret.PositionChanged -= OnCaretPositionChanged;
+        _caretTrackingAttached = false;
+    }
+
+    private void OnCaretPositionChanged(object? sender, EventArgs e) =>
+        CenterCaret();
 
     private void LayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
