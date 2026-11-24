@@ -12,6 +12,7 @@ public sealed class WorkspaceEditHistory
     public bool CanUndo => _undo.Count > 0;
     public bool CanRedo => _redo.Count > 0;
     public void BreakGroup() => _separate = true;
+    public void InvalidateRedo() { _redo.Clear(); BreakGroup(); }
     public void Reset(string text) { _current = text; _undo.Clear(); _redo.Clear(); BreakGroup(); }
     public void Observe(string text)
     {

@@ -146,6 +146,81 @@ public partial class MarkdownLiveEditorView
         else HideSelectionBar();
     }
 
+    private (int Start, int Length)? GetTableSelection(MarkdownTableView table)
+    {
+        var cell = table.ActiveCell ?? table.FirstCell;
+        if (cell is null) return null;
+        var position = table.ActiveCellPosition ?? (0, 0);
+        if (FindTableCellSpan(position.Row, position.Column) is not { } span) return null;
+        var box = cell.EditingInput;
+        var start = Math.Clamp(Math.Min(box.SelectionStart, box.SelectionEnd), 0, span.Length);
+        var length = Math.Clamp(Math.Abs(box.SelectionEnd - box.SelectionStart), 0, span.Length - start);
+        return (span.Start + start, length);
+    }
+
+    private (int Start, int Length)? FindTableCellSpan(int row, int column)
+    {
+        var text = Text;
+        var lineStart = GetContentStart(_activeIndex);
+        var sourceRow = row;
+        var firstLineEnd = text.IndexOf('\n', lineStart);
+        if (row > 0 && firstLineEnd >= 0 && IsTableDelimiterLine(text, firstLineEnd + 1)) sourceRow++;
+        for (var currentRow = 0; currentRow <= sourceRow && lineStart <= text.Length; currentRow++)
+        {
+            var lineEnd = text.IndexOf('\n', lineStart);
+            if (lineEnd < 0) lineEnd = text.Length;
+            if (currentRow == sourceRow)
+            {
+                var cells = SplitTableLine(text, lineStart, lineEnd);
+                return column >= 0 && column < cells.Count ? cells[column] : null;
+            }
+            lineStart = lineEnd < text.Length ? lineEnd + 1 : text.Length + 1;
+        }
+        return null;
+    }
+
+    private static bool IsTableDelimiterLine(string text, int start)
+    {
+        var end = text.IndexOf('\n', start);
+        if (end < 0) end = text.Length;
+        var cells = SplitTableLine(text, start, end);
+        return cells.Count > 0 && cells.All(cell =>
+        {
+            var value = text.AsSpan(cell.Start, cell.Length).Trim();
+            if (value.IsEmpty) return false;
+            value = value.Trim(':');
+            return value.Length >= 3 && value.IndexOfAnyExcept('-') < 0;
+        });
+    }
+
+    private static List<(int Start, int Length)> SplitTableLine(string text, int start, int end)
+    {
+        var cells = new List<(int Start, int Length)>();
+        var first = start;
+        while (first < end && char.IsWhiteSpace(text[first])) first++;
+        var cellStart = first < end && text[first] == '|' ? first + 1 : start;
+        for (var i = cellStart; i < end; i++)
+        {
+            if (text[i] == '\\' && i + 1 < end) { i++; continue; }
+            if (text[i] != '|') continue;
+            AddTableCell(cells, text, cellStart, i);
+            cellStart = i + 1;
+        }
+        var lastContent = end;
+        if (cellStart >= end) return cells;
+        while (lastContent > cellStart && char.IsWhiteSpace(text[lastContent - 1])) lastContent--;
+        if (lastContent <= cellStart || text[lastContent - 1] != '|')
+            AddTableCell(cells, text, cellStart, end);
+        return cells;
+    }
+
+    private static void AddTableCell(List<(int Start, int Length)> cells, string text, int start, int end)
+    {
+        while (start < end && char.IsWhiteSpace(text[start])) start++;
+        while (end > start && char.IsWhiteSpace(text[end - 1])) end--;
+        cells.Add((start, end - start));
+    }
+
     private int GetContentStart(int index)
     {
         EnsureSelectionMap();
@@ -160,6 +235,12 @@ public partial class MarkdownLiveEditorView
         for (var i = 0; i < _models.Count; i++)
         {
             var content = _models[i].Kind == MarkdownBlockKind.Raw ? _models[i].Raw : _models[i].Text;
+            if (content.Length == 0)
+            {
+                _selectionContentStarts[i] = _textBuffer.GetGroupBounds(i)?.Start ?? Math.Min(cursor, text.Length);
+                cursor = _selectionContentStarts[i];
+                continue;
+            }
             var found = text.IndexOf(content, Math.Min(cursor, text.Length), StringComparison.Ordinal);
             if (found < 0) found = Math.Min(cursor, text.Length);
             _selectionContentStarts[i] = found;

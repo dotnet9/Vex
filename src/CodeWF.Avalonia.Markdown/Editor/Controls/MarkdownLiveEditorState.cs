@@ -12,4 +12,7 @@ public sealed record MarkdownLiveEditorState(MarkdownLiveEditorSnapshot Current,
     internal IReadOnlyList<object>? InternalUndo { get; init; }
 
     internal IReadOnlyList<object>? InternalRedo { get; init; }
+
+    internal Func<IReadOnlyList<MarkdownLiveEditorSnapshot>>? UndoMaterializer { get; init; }
+    internal Func<IReadOnlyList<MarkdownLiveEditorSnapshot>>? RedoMaterializer { get; init; }
 }

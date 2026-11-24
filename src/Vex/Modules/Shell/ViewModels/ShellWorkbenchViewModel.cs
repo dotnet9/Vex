@@ -36,7 +36,9 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     private MarkdownMindMapNode? _root;
     private MarkdownMindMapNode? _selected;
     private MarkdownLiveEditorView? _live;
+    private MarkdownLiveEditorState? _detachedLiveState;
     private bool _syncingLive;
+    private bool _livePublishing;
     private int _mapVersion;
     private string? _mapDocumentPath;
     private string? _mapMarkdown;
@@ -97,7 +99,11 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         };
         document.DocumentChanged += (_, _) =>
         {
-            History.Observe(document.Markdown); SynchronizeLive(); QueueMap();
+            // 即时编辑拥有自己的撤销栈；宿主只保留进入即时模式前的基线，退出时合并为一条。
+            if (_livePublishing) History.InvalidateRedo();
+            else History.Observe(document.Markdown);
+            if (_detachedLiveState?.Current.Text != document.Markdown) _detachedLiveState = null;
+            SynchronizeLive(); QueueMap();
             if (IsPresenting)
             {
                 // 演示期间外部打开文件或更新正文，退出时不能重放旧文档的编辑快照。
@@ -375,6 +381,8 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
     {
         var option = WorkbenchLayoutOption.All.FirstOrDefault(option => option.Id == id);
         if (option is null) return;
+        if (IsInstantEditing && option.Editor != WorkbenchLayoutKeys.Instant)
+            History.Observe(_document.Markdown);
         History.BreakGroup();
         _workspaceLayout = id;
         if (option.Editor is { } mode) _edit = mode;
@@ -514,19 +522,27 @@ public sealed partial class ShellWorkbenchViewModel : ReactiveObject
         _live = editor; editor.MarkdownChanged += LiveChanged;
         editor.SelectionChanged += LiveSelectionChanged;
         editor.EnableAutoPair = _display.EnableAutoPair;
-        SynchronizeLive(); ApplyLiveAppearance();
+        if (_detachedLiveState is { } state && state.Current.Text == _document.Markdown)
+            editor.RestoreState(state);
+        else
+            SynchronizeLive();
+        _detachedLiveState = null;
+        ApplyLiveAppearance();
         LiveEditorAttached?.Invoke(editor);
     }
     public void DetachLiveEditor(MarkdownLiveEditorView editor)
     {
         if (!ReferenceEquals(_live, editor)) return;
+        _detachedLiveState = editor.CaptureState();
         editor.MarkdownChanged -= LiveChanged; editor.SelectionChanged -= LiveSelectionChanged; _live = null;
     }
     private void LiveChanged(object? sender, string markdown)
     {
         if (_syncingLive) return;
         var lines = markdown.Count(c => c == '\n') + 1;
-        EventBus.Default.Publish(new MarkdownTextChangedCommand(markdown, 1, 1, lines));
+        _livePublishing = true;
+        try { EventBus.Default.Publish(new MarkdownTextChangedCommand(markdown, 1, 1, lines)); }
+        finally { _livePublishing = false; }
     }
     private void LiveSelectionChanged(object? sender, MarkdownCaretEventArgs e)
     {

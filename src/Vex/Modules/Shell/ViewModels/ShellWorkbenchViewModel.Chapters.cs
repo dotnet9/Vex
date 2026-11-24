@@ -99,8 +99,16 @@ public sealed partial class ShellWorkbenchViewModel
         History.BreakGroup();
     }
     public void ResetHistory() => History.Reset(_document.Markdown);
-    public void UndoDocument() => ReplayHistory(false);
-    public void RedoDocument() => ReplayHistory(true);
+    public void UndoDocument()
+    {
+        if (IsInstantEditing && _live is { } live && live.Undo()) return;
+        ReplayHistory(false);
+    }
+    public void RedoDocument()
+    {
+        if (IsInstantEditing && _live is { } live && live.Redo()) return;
+        ReplayHistory(true);
+    }
     private void ReplayHistory(bool redo)
     {
         if (_replayingHistory) return;

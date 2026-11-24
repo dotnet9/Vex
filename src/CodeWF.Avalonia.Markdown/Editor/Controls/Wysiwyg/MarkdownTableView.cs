@@ -81,7 +81,9 @@ internal sealed class MarkdownTableView : UserControl
     public Action<MarkdownBlockView>? CellEditingStarted { get; set; }
     public Action? CellSelectionChanged { get; set; }
     private MarkdownBlockView? _activeCell;
+    private (int Row, int Column)? _activeCellPosition;
     internal MarkdownBlockView? ActiveCell => _activeCell;
+    internal (int Row, int Column)? ActiveCellPosition => _activeCellPosition;
     internal MarkdownBlockView? FirstCell => _cells.SelectMany(row => row).FirstOrDefault();
 
     /// <summary>请求增删行列（参数为 0=加行 1=删行 2=加列 3=删列）。</summary>
@@ -98,6 +100,7 @@ internal sealed class MarkdownTableView : UserControl
         _grid.RowDefinitions.Clear();
         _cells.Clear();
         _activeCell = null;
+        _activeCellPosition = null;
 
         var rows = _model.Cells;
         var columnCount = rows.Count == 0 ? 0 : rows.Max(row => row.Count);
@@ -105,6 +108,7 @@ internal sealed class MarkdownTableView : UserControl
         {
             return;
         }
+        _activeCellPosition = (0, 0);
 
         for (var column = 0; column < columnCount; column++)
         {
@@ -133,6 +137,7 @@ internal sealed class MarkdownTableView : UserControl
                 {
                     if (_activeCell != cell) _activeCell?.CommitAndRender();
                     _activeCell = cell;
+                    _activeCellPosition = (capturedRow, capturedColumn);
                     CellEditingStarted?.Invoke(cell);
                 };
                 box.EditorSelectionChanged = () => CellSelectionChanged?.Invoke();

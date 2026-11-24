@@ -342,6 +342,10 @@ public partial class MarkdownLiveEditorView : UserControl
     public string SelectedText => _documentSelection is { } range ? Text.Substring(range.Start, range.Length) : ActiveTextBox?.SelectedText ?? string.Empty;
     private TextBox? ActiveTextBox => _activeIndex >= 0 && _activeIndex < _blockViews.Count ? FindActiveEditor(_blockViews[_activeIndex]) : null;
     private TextBox? SelectionTextBox => _activeIndex >= 0 && _activeIndex < _blockViews.Count ? FindBlockView(_blockViews[_activeIndex])?.EditingInput : null;
+    public bool CanUndo => _undo.Count > 0;
+    public bool CanRedo => _redo.Count > 0;
+    public bool Undo() => CanUndo && ChangeHistory(_undo, _redo, undo: true);
+    public bool Redo() => CanRedo && ChangeHistory(_redo, _undo, undo: false);
 
     /// <summary>当前活动块的选择映射到原始 Markdown；无选择时返回插入点。</summary>
     public (int Start, int Length) Selection
@@ -350,6 +354,10 @@ public partial class MarkdownLiveEditorView : UserControl
         {
             if (_documentSelection is { } range) return range;
             if (_activeIndex < 0 || _activeIndex >= _models.Count) return (0, 0);
+            if (_models[_activeIndex].Kind == MarkdownBlockKind.Table
+                && _activeIndex < _blockViews.Count
+                && FindTableView(_blockViews[_activeIndex]) is { } table
+                && GetTableSelection(table) is { } tableSelection) return tableSelection;
             var found = GetContentStart(_activeIndex);
             var box = SelectionTextBox;
             var start = Math.Min(box?.SelectionStart ?? 0, box?.SelectionEnd ?? 0);
@@ -357,16 +365,25 @@ public partial class MarkdownLiveEditorView : UserControl
         }
     }
 
-    public MarkdownLiveEditorState CaptureState() => new(CaptureSnapshot(), [], [])
+    public MarkdownLiveEditorState CaptureState()
     {
-        InternalUndo = _undo.ToArray(),
-        InternalRedo = _redo.ToArray(),
-    };
+        var current = CaptureSnapshot();
+        var undo = _undo.ToArray();
+        var redo = _redo.ToArray();
+        return new MarkdownLiveEditorState(current, [], [])
+        {
+            InternalUndo = undo,
+            InternalRedo = redo,
+            UndoMaterializer = () => MaterializeHistory(undo, current.Text, reverse: true),
+            RedoMaterializer = () => MaterializeHistory(redo, current.Text, reverse: false),
+        };
+    }
 
     public void RestoreState(MarkdownLiveEditorState state)
     {
         RestoreSnapshot(state.Current);
-        if (state.InternalUndo is { } undo)
+        if (state.InternalUndo is { } undo && CanRestoreInternal(undo)
+            && (state.InternalRedo is null || CanRestoreInternal(state.InternalRedo)))
         {
             _undo.Clear(); _undo.AddRange(undo.Cast<MarkdownLiveUndoEntry>());
             _redo.Clear();
@@ -374,25 +391,131 @@ public partial class MarkdownLiveEditorView : UserControl
         }
         else
         {
-            // 旧快照契约（外部构造的状态）：整栈降级为快照条目。
-            _undo.Clear(); foreach (var snapshot in state.Undo) _undo.Add(new SnapshotEntry(snapshot));
-            _redo.Clear(); foreach (var snapshot in state.Redo) _redo.Add(new SnapshotEntry(snapshot));
+            var undoSnapshots = state.UndoMaterializer?.Invoke() ?? state.Undo;
+            var redoSnapshots = state.RedoMaterializer?.Invoke() ?? state.Redo;
+            _undo.Clear(); foreach (var snapshot in undoSnapshots) _undo.Add(new SnapshotEntry(snapshot));
+            _redo.Clear(); foreach (var snapshot in redoSnapshots) _redo.Add(new SnapshotEntry(snapshot));
         }
         _undoSeparate = true;
         TrimUndo();
     }
-    private MarkdownLiveEditorSnapshot CaptureSnapshot() => new(Text, _activeIndex, SelectionTextBox?.SelectionStart ?? 0, SelectionTextBox?.SelectionEnd ?? 0);
+
+    private bool CanRestoreInternal(IReadOnlyList<object> entries) => entries.All(entry =>
+        entry is not TextEditEntry text || _models.Contains(text.Model));
+
+    private static IReadOnlyList<MarkdownLiveEditorSnapshot> MaterializeHistory(
+        IReadOnlyList<MarkdownLiveUndoEntry> entries, string currentText, bool reverse)
+    {
+        var texts = new string[entries.Count];
+        var text = currentText;
+        if (reverse)
+        {
+            for (var i = entries.Count - 1; i >= 0; i--)
+            {
+                var entry = entries[i];
+                if (entry is SnapshotEntry snapshot)
+                {
+                    text = snapshot.Snapshot.Text;
+                    texts[i] = text;
+                }
+                else if (entry is TextEditEntry edit)
+                {
+                    var index = FindHistoryText(text, edit.NewText, edit.Offset, edit.Before.ActiveBlock);
+                    if (index >= 0) text = text.Remove(index, edit.NewText.Length).Insert(index, edit.OldText);
+                    texts[i] = text;
+                }
+            }
+        }
+        else
+        {
+            for (var i = 0; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                if (entry is SnapshotEntry snapshot)
+                {
+                    text = snapshot.Snapshot.Text;
+                    texts[i] = text;
+                }
+                else if (entry is TextEditEntry edit)
+                {
+                    var index = FindHistoryText(text, edit.OldText, edit.Offset, edit.Before.ActiveBlock);
+                    if (index >= 0) text = text.Remove(index, edit.OldText.Length).Insert(index, edit.NewText);
+                    texts[i] = text;
+                }
+            }
+        }
+        return texts.Select((value, index) =>
+        {
+            MarkdownLiveEditorPosition position;
+            if (entries[index] is TextEditEntry edit)
+                position = reverse ? edit.Before : edit.After;
+            else
+            {
+                var snapshot = ((SnapshotEntry)entries[index]).Snapshot;
+                position = new MarkdownLiveEditorPosition(snapshot.ActiveBlock, snapshot.SelectionStart, snapshot.SelectionEnd);
+            }
+            return new MarkdownLiveEditorSnapshot(value, position.ActiveBlock, position.SelectionStart, position.SelectionEnd);
+        }).ToArray();
+    }
+
+    private static int FindHistoryText(string text, string expected, int offset, int blockIndex)
+    {
+        if (expected.Length == 0) return Math.Clamp(offset, 0, text.Length);
+        var models = MarkdownBlockParser.Parse(text);
+        if (blockIndex >= 0 && blockIndex < models.Count)
+        {
+            var content = GetModelText(models[blockIndex]);
+            if (string.Equals(content, expected, StringComparison.Ordinal))
+            {
+                var (_, spans) = MarkdownBlockParser.WriteWithSpans(models);
+                var spanIndex = spans.FindLastIndex(span => span.FirstBlockIndex <= blockIndex);
+                if (spanIndex >= 0)
+                {
+                    var span = spans[spanIndex];
+                    var blockOffset = text.IndexOf(content, span.Start, span.Length, StringComparison.Ordinal);
+                    if (blockOffset >= 0) return blockOffset;
+                }
+            }
+        }
+        var index = text.IndexOf(expected, Math.Clamp(offset, 0, text.Length), StringComparison.Ordinal);
+        if (index >= 0) return index;
+        index = text.IndexOf(expected, StringComparison.Ordinal);
+        if (index < 0) return -1;
+        var nearest = index;
+        var distance = Math.Abs(index - offset);
+        while ((index = text.IndexOf(expected, index + 1, StringComparison.Ordinal)) >= 0)
+        {
+            var candidate = Math.Abs(index - offset);
+            if (candidate < distance) { nearest = index; distance = candidate; }
+        }
+        return nearest;
+    }
+
+    private MarkdownLiveEditorSnapshot CaptureSnapshot() =>
+        new(Text, _activeIndex, SelectionTextBox?.SelectionStart ?? 0, SelectionTextBox?.SelectionEnd ?? 0);
+
+    private MarkdownLiveEditorPosition CapturePosition() =>
+        new(_activeIndex, SelectionTextBox?.SelectionStart ?? 0, SelectionTextBox?.SelectionEnd ?? 0);
+
+    private void RestorePosition(MarkdownLiveEditorPosition position)
+    {
+        if (position.ActiveBlock < 0 || position.ActiveBlock >= _models.Count) return;
+        FocusBlock(position.ActiveBlock);
+        if (ActiveTextBox is not { } box) return;
+        var length = box.Text?.Length ?? 0;
+        box.CaretIndex = Math.Clamp(position.SelectionEnd, 0, length);
+        box.SelectionStart = Math.Clamp(position.SelectionStart, 0, length);
+        box.SelectionEnd = Math.Clamp(position.SelectionEnd, 0, length);
+        _lastSnapshot = CaptureSnapshot();
+    }
+
     private void RestoreSnapshot(MarkdownLiveEditorSnapshot snapshot)
     {
         _restoringHistory = true;
         try
         {
-            SetText(snapshot.Text);
-            if (snapshot.ActiveBlock >= 0)
-            {
-                FocusBlock(Math.Min(snapshot.ActiveBlock, _models.Count - 1));
-                if (ActiveTextBox is { } box) { box.SelectionStart = snapshot.SelectionStart; box.SelectionEnd = snapshot.SelectionEnd; }
-            }
+            if (!string.Equals(Text, snapshot.Text, StringComparison.Ordinal)) SetText(snapshot.Text);
+            RestorePosition(new MarkdownLiveEditorPosition(snapshot.ActiveBlock, snapshot.SelectionStart, snapshot.SelectionEnd));
             _lastSnapshot = CaptureSnapshot();
         }
         finally { _restoringHistory = false; }
@@ -1154,7 +1277,12 @@ public partial class MarkdownLiveEditorView : UserControl
 
     private void OnBlockTextCommitted(MarkdownBlockView view, string text, string? previousText)
     {
-        RaiseChanged(view.Model, previousText);
+        if (previousText is null || view.Model is not { } model) { RaiseChanged(); return; }
+        var index = _models.IndexOf(model);
+        var offset = index >= 0 ? _textBuffer.GetGroupBounds(index)?.Start ?? -1 : -1;
+        var selection = view.SelectionBeforeTextChange;
+        var before = new MarkdownLiveEditorSnapshot(Text, index, selection.Start, selection.End);
+        RaiseChanged(model, previousText, before, offset);
     }
 
     private bool FocusAdjacentBlock(int index, int direction, double? x)
@@ -1399,23 +1527,24 @@ public partial class MarkdownLiveEditorView : UserControl
         }
     }
 
+    private sealed record MarkdownLiveEditorPosition(int ActiveBlock, int SelectionStart, int SelectionEnd);
+
     /// <summary>撤销栈条目：文本编辑存块级翻转量（内存 O(块)），其余存整篇快照（内存 O(文档)）。</summary>
-    private abstract record MarkdownLiveUndoEntry(int ActiveBlock, int SelectionStart, int SelectionEnd)
+    private abstract record MarkdownLiveUndoEntry
     {
         /// <summary>内存成本（字符量）：快照按整篇计，文本条目按块前后文本计。</summary>
         public abstract long Cost { get; }
     }
 
     /// <summary>块级文本编辑条目：模型对象稳定（脏组回写不换实例），按模型翻转即可，不必整篇重建。</summary>
-    private sealed record TextEditEntry(MarkdownBlockModel Model, string OldText, string NewText,
-        int ActiveBlock, int SelectionStart, int SelectionEnd) : MarkdownLiveUndoEntry(ActiveBlock, SelectionStart, SelectionEnd)
+    private sealed record TextEditEntry(MarkdownBlockModel Model, string OldText, string NewText, int Offset,
+        MarkdownLiveEditorPosition Before, MarkdownLiveEditorPosition After) : MarkdownLiveUndoEntry
     {
         public override long Cost => (long)OldText.Length + NewText.Length;
     }
 
     /// <summary>整篇快照条目：结构变化、外部改写与所有"不知道旧文本"的路径（勾选/语言/单元格）。</summary>
-    private sealed record SnapshotEntry(MarkdownLiveEditorSnapshot Snapshot) : MarkdownLiveUndoEntry(
-        Snapshot.ActiveBlock, Snapshot.SelectionStart, Snapshot.SelectionEnd)
+    private sealed record SnapshotEntry(MarkdownLiveEditorSnapshot Snapshot) : MarkdownLiveUndoEntry
     {
         public override long Cost => Snapshot.Text.Length;
     }
@@ -1427,8 +1556,10 @@ public partial class MarkdownLiveEditorView : UserControl
     /// <paramref name="previousText"/>（编辑前块文本）再给定时压块级撤销条目，
     /// 否则压整篇快照条目。文本未变时照旧回抛事件，但不动撤销历史。
     /// </summary>
-    private void RaiseChanged(MarkdownBlockModel? edited, string? previousText)
+    private void RaiseChanged(MarkdownBlockModel? edited, string? previousText,
+        MarkdownLiveEditorSnapshot? beforeSnapshot = null, int textOffset = -1)
     {
+        var historyBefore = beforeSnapshot ?? _lastSnapshot;
         if (_suppressChanged)
         {
             return;
@@ -1458,10 +1589,10 @@ public partial class MarkdownLiveEditorView : UserControl
         {
             var now = Environment.TickCount64;
             var separate = _undoSeparate || now - _lastUndoPush > 650
-                || Math.Abs(_textBuffer.Text.Length - _lastSnapshot.Text.Length) > 32;
+                || Math.Abs(_textBuffer.Text.Length - historyBefore.Text.Length) > 32;
             if (separate)
             {
-                _undo.Add(CreateUndoEntry(edited, previousText));
+                _undo.Add(CreateUndoEntry(edited, previousText, historyBefore, textOffset));
                 TrimUndo();
             }
             else if (edited is not null && previousText is not null
@@ -1470,13 +1601,13 @@ public partial class MarkdownLiveEditorView : UserControl
                 && string.Equals(top.NewText, previousText, StringComparison.Ordinal))
             {
                 // 同组连续键入：延伸栈顶条目的"编辑后"文本，保持翻转可执行。
-                _undo[^1] = top with { NewText = GetModelText(edited) };
+                _undo[^1] = top with { NewText = GetModelText(edited), After = CapturePosition() };
             }
             else
             {
                 // 合并窗口内但栈顶不可延伸（跨块编辑/翻转链断裂/快照栈顶）：补压独立条目。
                 // 条目只能翻转单一模型，跨块编辑必须各自成条，否则撤销时静默丢失这批编辑。
-                _undo.Add(CreateUndoEntry(edited, previousText));
+                _undo.Add(CreateUndoEntry(edited, previousText, historyBefore, textOffset));
                 TrimUndo();
             }
             _redo.Clear();
@@ -1498,14 +1629,17 @@ public partial class MarkdownLiveEditorView : UserControl
         }
     }
 
-    private MarkdownLiveUndoEntry CreateUndoEntry(MarkdownBlockModel? edited, string? previousText)
+    private MarkdownLiveUndoEntry CreateUndoEntry(MarkdownBlockModel? edited, string? previousText,
+        MarkdownLiveEditorSnapshot before, int textOffset)
     {
-        var selection = (SelectionTextBox?.SelectionStart ?? 0, SelectionTextBox?.SelectionEnd ?? 0);
         if (edited is not null && previousText is not null)
         {
-            return new TextEditEntry(edited, previousText, GetModelText(edited), _activeIndex, selection.Item1, selection.Item2);
+            var offset = textOffset >= 0 ? textOffset : Math.Max(0, before.Text.IndexOf(previousText, StringComparison.Ordinal));
+            return new TextEditEntry(edited, previousText, GetModelText(edited), offset,
+                new MarkdownLiveEditorPosition(before.ActiveBlock, before.SelectionStart, before.SelectionEnd),
+                CapturePosition());
         }
-        return new SnapshotEntry(_lastSnapshot);
+        return new SnapshotEntry(before);
     }
 
     private static string GetModelText(MarkdownBlockModel model) =>
@@ -1542,6 +1676,7 @@ public partial class MarkdownLiveEditorView : UserControl
     private void RaiseSelectionChanged()
     {
         if (_suppressChanged) return;
+        _lastSnapshot = CaptureSnapshot();
         EnsureSelectionMap();
         var text = _selectionMappedText;
         var offset = Math.Clamp(Selection.Start, 0, text.Length);
@@ -1683,16 +1818,16 @@ public partial class MarkdownLiveEditorView : UserControl
         }
     }
 
-    private void ChangeHistory(List<MarkdownLiveUndoEntry> from, List<MarkdownLiveUndoEntry> to, bool undo)
+    private bool ChangeHistory(List<MarkdownLiveUndoEntry> from, List<MarkdownLiveUndoEntry> to, bool undo)
     {
-        if (from.Count == 0) return;
+        if (from.Count == 0) return false;
         while (from.Count > 0)
         {
             var entry = from[^1];
             if (entry is TextEditEntry textEntry && TryInvertTextEdit(textEntry, to, undo))
             {
                 from.RemoveAt(from.Count - 1);
-                return;
+                return true;
             }
 
             // 文本条目无法本地翻转（结构已分叉/文本不符）或快照条目：弹出至最近快照整篇恢复。
@@ -1705,10 +1840,11 @@ public partial class MarkdownLiveEditorView : UserControl
                 _restoringHistory = true;
                 try { RaiseChanged(); }
                 finally { _restoringHistory = false; }
-                return;
+                return true;
             }
             // 更早的仍是文本条目：继续弹出，直到找回一个可整篇恢复的快照。
         }
+        return false;
     }
 
     /// <summary>
@@ -1727,21 +1863,15 @@ public partial class MarkdownLiveEditorView : UserControl
         SetModelText(entry.Model, target);
         if (index < _blockViews.Count && FindBlockView(_blockViews[index]) is { } view)
         {
-            if (view.IsEditing) view.SyncEditorFromModel(Math.Clamp(entry.SelectionStart, 0, target.Length));
+            if (view.IsEditing) view.SyncEditorFromModel(0);
             else view.RefreshFromModel();
         }
-        if (entry.ActiveBlock >= 0 && entry.ActiveBlock < _models.Count) _activeIndex = entry.ActiveBlock;
         _restoringHistory = true;
         try { RaiseChanged(entry.Model, null); }
         finally { _restoringHistory = false; }
-        // 对侧栈存同一条目：方向参数决定翻转方向（undo 取 New→Old，redo 取 Old→New）。
         to.Add(entry);
-        // 撤销后光标落在编辑点所在块，便于继续输入。
-        if (_activeIndex >= 0 && _activeIndex < _blockViews.Count && FindBlockView(_blockViews[_activeIndex]) is { } activeView
-            && activeView.IsEditing && ActiveTextBox is { } box)
-        {
-            box.CaretIndex = box.SelectionStart = box.SelectionEnd = Math.Clamp(entry.SelectionStart, 0, box.Text?.Length ?? 0);
-        }
+        RestorePosition(undo ? entry.Before : entry.After);
+        _undoSeparate = true;
         return true;
     }
 
@@ -1978,6 +2108,15 @@ public partial class MarkdownLiveEditorView : UserControl
         MarkdownBlockView view => view,
         Panel panel => panel.Children.Select(FindBlockView).FirstOrDefault(view => view is not null),
         Border { Child: Control child } => FindBlockView(child),
+        _ => null
+    };
+
+    private static MarkdownTableView? FindTableView(Control control) => control switch
+    {
+        MarkdownTableView table => table,
+        LazyLiveBlock lazy => FindTableView(lazy.Realize()),
+        Panel panel => panel.Children.Select(FindTableView).FirstOrDefault(table => table is not null),
+        Border { Child: Control child } => FindTableView(child),
         _ => null
     };
 

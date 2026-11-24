@@ -1,9 +1,11 @@
 using CodeWF.Avalonia.Markdown.Core.Blocks;
+using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg;
 
 using global::Avalonia.Controls;
 using global::Avalonia.Input;
 using global::Avalonia.Threading;
+using global::Avalonia.VisualTree;
 
 using Xunit;
 
@@ -117,6 +119,47 @@ public sealed class MarkdownTableEditingTests(AvaloniaPlatformFixture platform)
 
         Assert.Contains("甲<br>乙\\|丙", text);
         Assert.DoesNotContain("甲\n乙", text);
+    }
+
+    [Fact]
+    public void LiveSelection_MapsActiveCellToTableSource()
+    {
+        platform.Run(() =>
+        {
+            var view = new MarkdownLiveEditorView();
+            var window = new Window { Width = 600, Height = 300, Content = view };
+            window.Show();
+            try
+            {
+                Dispatcher.UIThread.RunJobs();
+                view.SetText("| H1 | H2 |\n| --- | --- |\n| a | b |");
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                view.FocusBlock(0);
+                var table = view.GetVisualDescendants().OfType<MarkdownTableView>().Single();
+                table.FirstCell!.BeginEditAtEnd();
+                RaiseKey(table.FirstCell, Key.Tab, KeyModifiers.None);
+                var header = table.ActiveCell!.EditingInput;
+                header.CaretIndex = 1;
+                header.SelectionStart = 0;
+                header.SelectionEnd = 1;
+                Assert.Equal((view.Text.IndexOf("H2", StringComparison.Ordinal), 1), view.Selection);
+                Assert.Equal("H", view.SelectedText);
+
+                RaiseKey(table.ActiveCell, Key.Enter, KeyModifiers.None);
+                Assert.Equal((1, 1), table.ActiveCellPosition);
+                var body = table.ActiveCell!.EditingInput;
+                body.CaretIndex = 1;
+                body.SelectionStart = 0;
+                body.SelectionEnd = 1;
+                Assert.Equal((view.Text.IndexOf('b'), 1), view.Selection);
+                Assert.Equal("b", view.SelectedText);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
     }
 
     private static MarkdownTableView CreateTable(out Window window)

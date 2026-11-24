@@ -78,6 +78,8 @@ internal sealed class MarkdownBlockView : UserControl
     private int _pointerSelectionAnchor;
     private string _editOriginalText = string.Empty;
     private string _editOriginalLanguage = string.Empty;
+    private int _stableSelectionStart;
+    private int _stableSelectionEnd;
 
     public MarkdownBlockView(MarkdownBlockModel model, bool isCode, MarkdownBlockViewOptions options, bool isTableCell = false)
     {
@@ -257,6 +259,8 @@ internal sealed class MarkdownBlockView : UserControl
             ModelText = text;
             UpdateRichText();
             TextCommitted?.Invoke(this, ModelText, previous);
+            _stableSelectionStart = _editor.SelectionStart;
+            _stableSelectionEnd = _editor.SelectionEnd;
         };
         // Ctrl+Click 打开链接（Typora 交互，单击仍落光标）：命中 LinkUrl run 才拦截默认按下。
         _editor.AddHandler(PointerPressedEvent, OnEditorPointerPressed, RoutingStrategies.Tunnel);
@@ -264,7 +268,15 @@ internal sealed class MarkdownBlockView : UserControl
         _editor.AddHandler(KeyDownEvent, OnEditorKeyDown, RoutingStrategies.Tunnel);
         _editor.PropertyChanged += (_, e) =>
         {
-            if (_editing && e.Property.Name is "CaretIndex" or "SelectionStart" or "SelectionEnd") EditorSelectionChanged?.Invoke();
+            if (_editing && e.Property.Name is "CaretIndex" or "SelectionStart" or "SelectionEnd")
+            {
+                if (!_syncingText && string.Equals(_editor.Text, ModelText, StringComparison.Ordinal))
+                {
+                    _stableSelectionStart = _editor.SelectionStart;
+                    _stableSelectionEnd = _editor.SelectionEnd;
+                }
+                EditorSelectionChanged?.Invoke();
+            }
         };
     }
 
@@ -395,6 +407,7 @@ internal sealed class MarkdownBlockView : UserControl
     /// <summary>正在编辑时的底层文本框（用于格式化动作），否则为 null。</summary>
     internal TextBox? ActiveEditor => _editing ? _editor : null;
     internal TextBox EditingInput => _editor;
+    internal (int Start, int End) SelectionBeforeTextChange => (_stableSelectionStart, _stableSelectionEnd);
 
     /// <summary>当前编辑文本（非编辑态返回模型文本）。</summary>
     internal string CurrentText => _editing ? _editor.Text ?? string.Empty : ModelText;
@@ -414,6 +427,7 @@ internal sealed class MarkdownBlockView : UserControl
         if (_editing)
         {
             _editor.CaretIndex = Math.Clamp(caretIndex, 0, _editor.Text?.Length ?? 0);
+            _stableSelectionStart = _stableSelectionEnd = _editor.CaretIndex;
             _editor.Focus();
             return;
         }
@@ -449,6 +463,7 @@ internal sealed class MarkdownBlockView : UserControl
         CodeWF.Toolkit.Logging.Logger.Debug($"beginedit focus={focusGranted} immediate={_editor.IsFocused} " +
             $"editorAttached={_editor.IsAttachedToVisualTree()} visible={IsEffectivelyVisible} layerVisible={_editingLayer.IsVisible} inline={_inlineEditing}");
         _editor.CaretIndex = Math.Clamp(caretIndex, 0, _editor.Text?.Length ?? 0);
+        _stableSelectionStart = _stableSelectionEnd = _editor.CaretIndex;
         EditingStarted?.Invoke(this);
         if (!_editor.IsFocused)
         {
@@ -535,6 +550,7 @@ internal sealed class MarkdownBlockView : UserControl
         UpdateRichText();
         _editor.CaretIndex = Math.Clamp(_editor.CaretIndex, 0, _editor.Text?.Length ?? 0);
         _editor.SelectionStart = _editor.SelectionEnd = _editor.CaretIndex;
+        _stableSelectionStart = _stableSelectionEnd = _editor.CaretIndex;
         if (!string.Equals(previousText, _editOriginalText, StringComparison.Ordinal)
             || !string.Equals(previousLanguage, _editOriginalLanguage, StringComparison.Ordinal))
         {
@@ -574,6 +590,7 @@ internal sealed class MarkdownBlockView : UserControl
         if (_inlineEditing) PositionInlineEditor();
         _editor.CaretIndex = Math.Clamp(caretIndex, 0, _editor.Text?.Length ?? 0);
         _editor.SelectionStart = _editor.SelectionEnd = _editor.CaretIndex;
+        _stableSelectionStart = _stableSelectionEnd = _editor.CaretIndex;
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
