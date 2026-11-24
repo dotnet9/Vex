@@ -136,7 +136,15 @@ internal sealed class MarkdownTableView : UserControl
                     CellEditingStarted?.Invoke(cell);
                 };
                 box.EditorSelectionChanged = () => CellSelectionChanged?.Invoke();
-                box.SplitRequested = (_, _) => MoveFocus(capturedRow + 1, capturedColumn);
+                box.SplitRequested = (_, _) =>
+                {
+                    if (capturedRow + 1 < _cells.Count) MoveFocus(capturedRow + 1, capturedColumn);
+                    else
+                    {
+                        StructureChangeRequested?.Invoke(this, 0);
+                        MoveFocus(capturedRow + 1, capturedColumn);
+                    }
+                };
                 box.NavigateRequested = direction =>
                 {
                     var next = capturedRow * columnCount + capturedColumn + direction;
@@ -170,6 +178,7 @@ internal sealed class MarkdownTableView : UserControl
             return;
         }
 
+        value = MarkdownTableCellText.Normalize(value);
         if (string.Equals(_model.Cells[row][column], value, StringComparison.Ordinal))
         {
             return;

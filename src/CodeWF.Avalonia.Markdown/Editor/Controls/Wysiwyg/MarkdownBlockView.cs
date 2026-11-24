@@ -2,6 +2,7 @@
 using CodeWF.Avalonia.Markdown.Core.Blocks;
 using global::Avalonia.Controls;
 using global::Avalonia.Input;
+using global::Avalonia.Input.Platform;
 using global::Avalonia.Interactivity;
 using global::Avalonia.Layout;
 using global::Avalonia.Media;
@@ -328,7 +329,19 @@ internal sealed class MarkdownBlockView : UserControl
         {
             // 钩子异常回落默认粘贴。
         }
-        if (_editing) _editor.Paste();
+        if (_editing)
+        {
+            if (_isTableCell) await PasteTableCellTextAsync();
+            else _editor.Paste();
+        }
+    }
+
+    private async Task PasteTableCellTextAsync()
+    {
+        var clipboard = TopLevel.GetTopLevel(_editor)?.Clipboard;
+        if (clipboard is null) return;
+        var text = await clipboard.TryGetTextAsync();
+        if (!string.IsNullOrEmpty(text)) InsertText(MarkdownTableCellText.Normalize(text));
     }
 
     /// <summary>回车拆块请求（参数为光标偏移）。</summary>
@@ -767,8 +780,9 @@ internal sealed class MarkdownBlockView : UserControl
             case Key.Enter when e.KeyModifiers == KeyModifiers.Shift:
                 var start = Math.Min(_editor.SelectionStart, _editor.SelectionEnd);
                 var length = Math.Abs(_editor.SelectionEnd - _editor.SelectionStart);
-                _editor.Text = CurrentText.Remove(start, length).Insert(start, _isCode ? "\n" : "  \n");
-                _editor.CaretIndex = start + (_isCode ? 1 : 3);
+                var insertion = _isTableCell ? "<br>" : _isCode ? "\n" : "  \n";
+                _editor.Text = CurrentText.Remove(start, length).Insert(start, insertion);
+                _editor.CaretIndex = start + insertion.Length;
                 e.Handled = true;
                 break;
 

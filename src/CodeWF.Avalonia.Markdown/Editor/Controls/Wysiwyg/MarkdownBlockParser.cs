@@ -757,7 +757,8 @@ public static class MarkdownBlockParser
         return builder.ToString();
     }
 
-    private static string EscapeCell(string value) => value.Replace("|", "\\|", StringComparison.Ordinal);
+    private static string EscapeCell(string value) => MarkdownTableCellText.Normalize(value)
+        .Replace("|", "\\|", StringComparison.Ordinal);
 }
 
 /// <summary>组回写区间：该组（共享同一 <see cref="MarkdownBlockSource"/> 的连续块）在整篇回写文本中的范围。</summary>
