@@ -88,6 +88,22 @@
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.AlwaysOnTop}}" Command="{Binding Layout.ToggleAlwaysOnTop}" IsChecked="{Binding Layout.IsAlwaysOnTop}" ToggleType="CheckBox" />
         </MenuItem>
 
+        <!-- Git（GitHub Desktop Repository+Branch 菜单合并）：仅 Git 模式显示，条目路由到 Git 面板单例。 -->
+        <MenuItem x:Name="GitMenuItem" Header="Git" IsVisible="{Binding IsGitMode}">
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitPull}}" Command="{Binding Git.PullAsync}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitSyncPushLabel}}" Command="{Binding Git.PushAsync}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitSyncFetchLabel}}" Command="{Binding Git.FetchAsync}" />
+            <Separator />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitBranchNew}}" Command="{Binding Git.CreateBranchFromDialogAsync}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitMergeInto}}" Command="{Binding Git.MergeFromDialogAsync}" />
+            <Separator />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitBranchTagMenu}}" Command="{Binding Git.RequestCreateTagFlyout}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitBranchPushTagMenu}}" Command="{Binding Git.RequestPushTagFlyout}" />
+            <Separator />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitInitButton}}" Command="{Binding Git.InitRepositoryAsync}" />
+            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitRemoteSettings}}" Command="{Binding Git.OpenRemoteDialogAsync}" />
+        </MenuItem>
+
         <MenuItem x:Name="HelpMenuItem" Header="{i18n:I18n {x:Static l:VexL.MenuHelp}}">
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.OnboardingGuide}}" Click="BeginGuideMenuItem_OnClick" />
             <MenuItem Header="{i18n:I18n {x:Static l:VexL.Changelog}}" Command="{Binding Help.OpenHelpTopic}" CommandParameter="changelog" />

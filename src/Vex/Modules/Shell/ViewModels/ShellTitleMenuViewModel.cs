@@ -17,7 +17,8 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
         ShellWorkbenchViewModel workbench,
         ShellRecentDocumentsViewModel recent,
         Vex.Core.Services.EditorPreferences preferences,
-        Vex.Modules.Shell.Services.IShellStatusPublisher status)
+        Vex.Modules.Shell.Services.IShellStatusPublisher status,
+        Vex.Modules.Git.ViewModels.ShellGitViewModel git)
     {
         Appearance = appearance;
         DocumentInfo = documentInfo;
@@ -29,7 +30,14 @@ public sealed class ShellTitleMenuViewModel : ReactiveObject
         Recent = recent;
         Preferences = preferences;
         _status = status;
+        Git = git;
     }
+
+    /// <summary>标题栏「Git」菜单的数据源（仅 Git 模式显示；条目路由到 Git 面板单例）。</summary>
+    public Vex.Modules.Git.ViewModels.ShellGitViewModel Git { get; }
+
+    /// <summary>Git 菜单显隐：仅 Git 模式显示（文件模式由文件树徽章承担 Git 感知）。</summary>
+    public bool IsGitMode => Git.IsGitMode;
 
     public ShellAppearanceViewModel Appearance { get; }
 

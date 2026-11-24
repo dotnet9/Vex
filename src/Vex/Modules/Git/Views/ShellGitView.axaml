@@ -43,6 +43,44 @@
             <Setter Property="Width" Value="12" />
             <Setter Property="Height" Value="12" />
         </Style>
+        <!-- 顶栏同步按钮（GitHub Desktop push-pull-button 口径）：主行+副行（上次拉取时间），↑绿 ↓红 徽章。 -->
+        <Style Selector="Button.git-syncbtn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+        <Style Selector="Button.git-syncbtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource VexHoverBrush}" />
+        </Style>
+        <Style Selector="Button.git-syncbtn TextBlock.git-syncsub">
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        </Style>
+        <Style Selector="Button.git-syncbtn TextBlock.git-syncbadge">
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="4,1" />
+        </Style>
+        <Style Selector="Button.git-syncbtn TextBlock.git-syncbadge.up">
+            <Setter Property="Foreground" Value="{DynamicResource VexSuccessBrush}" />
+            <Setter Property="Background" Value="{DynamicResource VexSuccessSoftBrush}" />
+        </Style>
+        <Style Selector="Button.git-syncbtn TextBlock.git-syncbadge.down">
+            <Setter Property="Foreground" Value="{DynamicResource VexDangerBrush}" />
+            <Setter Property="Background" Value="{DynamicResource VexDangerSoftBrush}" />
+        </Style>
+        <Style Selector="TextBlock.git-topsub">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+            <Setter Property="MaxWidth" Value="220" />
+        </Style>
+        <Style Selector="TextBlock.git-pop-title">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource VexMutedBrush}" />
+        </Style>
         <Style Selector="TextBlock.git-topname">
             <Setter Property="MaxWidth" Value="220" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -422,36 +460,94 @@
     <Grid RowDefinitions="Auto,*" Background="{DynamicResource VexPanelBackgroundBrush}">
         <!-- ===== 顶栏 ===== -->
         <Border Classes="git-topbar">
-            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" ColumnSpacing="10">
-                <!-- 有仓库：仓库钮（开远程弹层）+ 分支钮；无仓库：静态未初始化 -->
-                <Button x:Name="RepoButton" Classes="git-topbtn" IsVisible="{Binding HasRepo}"
-                        Command="{Binding OpenRemoteDialogAsync}"
-                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.GitModifyRemoteTip}}"
-                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitModifyRemoteTip}}">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="10">
+                <!-- 仓库芯片：已打开仓库下拉（GHD Current repository ▾ 口径）；下拉内含远程设置 -->
+                <Button x:Name="RepoButton" Grid.Column="0" Classes="git-topbtn" IsVisible="{Binding HasRepo}"
+                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitOpenRepos}}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <Viewbox Width="14" Height="14"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBGitBranchIcon}" /></Canvas></Viewbox>
-                        <TextBlock Classes="git-topname" Text="{Binding RepoName}" />
-                        <Viewbox Width="12" Height="12"><Canvas Width="24" Height="24"><Path Classes="chevron" Data="M6 9L12 15L18 9" /></Canvas></Viewbox>
-                    </StackPanel>
-                </Button>
-                <!-- 分支钮：弹 tag 菜单（原型 branch 下拉：打 tag/推送 tag；分支管理占位）。
-                     打 tag 需要输入名称：直接在 Flyout 内嵌输入区（名称+同时推送+创建）。 -->
-                <Button x:Name="BranchButton" Grid.Column="1" Classes="git-topbtn" IsVisible="{Binding HasRepo}"
-                        helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.GitBranchManagementToast}}"
-                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitBranchManagementToast}}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Viewbox Width="14" Height="14"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBGitBranchIcon}" /></Canvas></Viewbox>
-                        <TextBlock Classes="git-topname" Text="{Binding BranchName}" />
+                        <TextBlock Classes="git-topname" Text="{Binding RepoChipName}" />
                         <Viewbox Width="12" Height="12"><Canvas Width="24" Height="24"><Path Classes="chevron" Data="M6 9L12 15L18 9" /></Canvas></Viewbox>
                     </StackPanel>
                     <Button.Flyout>
-                        <MenuFlyout>
-                            <MenuItem Header="{i18n:I18n Vex.VexL.GitBranchTagMenu}" Click="TagMenu_OnClick" />
-                            <MenuItem Header="{i18n:I18n Vex.VexL.GitBranchPushTagMenu}" Click="PushTagMenu_OnClick" />
-                            <MenuItem Header="{i18n:I18n Vex.VexL.GitBranchManageMenu}" Click="BranchManage_OnClick" />
-                        </MenuFlyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Transient">
+                            <StackPanel MinWidth="260" Spacing="8">
+                                <TextBlock Classes="git-pop-title" Text="{i18n:I18n {x:Static l:VexL.GitOpenRepos}}" />
+                                <ListBox x:Name="RepoListBox" ItemsSource="{Binding OpenRepos}" MaxHeight="220"
+                                         SelectionChanged="RepoListBox_OnSelectionChanged">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Width="14" TextAlignment="Center" Foreground="{DynamicResource VexAccentBrush}"
+                                                           IsVisible="{Binding IsCurrent}" Text="✓" />
+                                                <TextBlock Text="{Binding Name}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <Button Classes="btn" HorizontalAlignment="Stretch"
+                                        Content="{i18n:I18n {x:Static l:VexL.GitRemoteSettings}}"
+                                        Command="{Binding OpenRemoteDialogAsync}" />
+                            </StackPanel>
+                        </Flyout>
                     </Button.Flyout>
-                    <!-- tag 表单（独立 AttachedFlyout：「打 tag…」默认不推送、「推送 tag…」预勾选同时推送） -->
+                </Button>
+                <!-- 分支芯片：GHD 两行式（分支名/当前分支）；下拉=筛选 + 新建分支 + 分组列表（切换/右键管理）+ 合并行。
+                     tag 表单 AttachedFlyout 保留在按钮上：历史提交右键「打 tag…」展开到此。 -->
+                <Button x:Name="BranchButton" Grid.Column="1" Classes="git-topbtn" IsVisible="{Binding HasRepo}"
+                        AutomationProperties.Name="{Binding BranchName}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Viewbox Width="14" Height="14"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBGitBranchIcon}" /></Canvas></Viewbox>
+                        <StackPanel Orientation="Vertical" Spacing="0">
+                            <TextBlock Classes="git-topname" Text="{Binding BranchName}" HorizontalAlignment="Left" />
+                            <TextBlock Classes="git-topsub" Text="{i18n:I18n {x:Static l:VexL.GitBranchCurrent}}" HorizontalAlignment="Left" />
+                        </StackPanel>
+                        <Viewbox Width="12" Height="12"><Canvas Width="24" Height="24"><Path Classes="chevron" Data="M6 9L12 15L18 9" /></Canvas></Viewbox>
+                    </StackPanel>
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Transient">
+                            <StackPanel MinWidth="320" Spacing="8">
+                                <TextBox x:Name="BranchFilterBox" PlaceholderText="{i18n:I18n {x:Static l:VexL.GitBranchFilter}}"
+                                         TextChanged="BranchFilterBox_OnTextChanged"
+                                         AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitBranchFilter}}" />
+                                <Button Classes="btn" HorizontalAlignment="Stretch" Content="{i18n:I18n {x:Static l:VexL.GitBranchNew}}"
+                                        Command="{Binding ShowNewBranchDialogAsync}" />
+                                <ListBox x:Name="BranchListBox" ItemsSource="{Binding BranchRows}" MaxHeight="320"
+                                         SelectionChanged="BranchListBox_OnSelectionChanged">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Classes="tb-branch-row" Classes.header="{Binding IsGroupHeader}" Classes.current="{Binding IsCurrent}"
+                                                  IsHitTestVisible="{Binding !IsGroupHeader}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="14" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Width="14" TextAlignment="Center" Foreground="{DynamicResource VexAccentBrush}"
+                                                           IsVisible="{Binding IsCurrent}" Text="✓" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Display}" />
+                                                <TextBlock Grid.Column="2" FontSize="11" Foreground="{DynamicResource VexMutedBrush}"
+                                                           Text="{Binding DateText}" IsVisible="{Binding !IsGroupHeader}" />
+                                                <Grid.Styles>
+                                                    <Style Selector="Grid.header">
+                                                        <Setter Property="IsHitTestVisible" Value="False" />
+                                                        <Setter Property="Opacity" Value="0.6" />
+                                                    </Style>
+                                                </Grid.Styles>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <Button Classes="btn" HorizontalAlignment="Stretch" Command="{Binding MergeFromDialogAsync}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="{i18n:I18n {x:Static l:VexL.GitMergeInto}}" />
+                                        <TextBlock FontWeight="SemiBold" Text="{Binding BranchName}" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                    <!-- tag 表单（AttachedFlyout：「打 tag…」默认不推送、「推送 tag…」预勾选同时推送） -->
                     <FlyoutBase.AttachedFlyout>
                         <Flyout Placement="BottomEdgeAlignedLeft">
                             <StackPanel MinWidth="240" Spacing="8">
@@ -467,30 +563,29 @@
                         </Flyout>
                     </FlyoutBase.AttachedFlyout>
                 </Button>
-                <Button x:Name="PullButton" Grid.Column="2" Classes="git-topbtn" IsVisible="{Binding HasRepo}" IsEnabled="{Binding CanPull}"
-                        Command="{Binding PullAsync}"
-                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitPull}}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Viewbox Width="12" Height="12"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBDownloadIcon}" /></Canvas></Viewbox>
-                        <TextBlock Text="{i18n:I18n {x:Static l:VexL.GitPull}}" VerticalAlignment="Center" />
+                <!-- 同步按钮：随状态换动作（推送 origin ↑n / 拉取 origin ↓n / 获取 origin），永不矛盾禁用 -->
+                <Button x:Name="SyncButton" Grid.Column="2" Classes="git-syncbtn" IsVisible="{Binding HasRepo}"
+                        IsEnabled="{Binding CanSync}" Command="{Binding SyncAsync}"
+                        AutomationProperties.Name="{Binding SyncTitle}">
+                    <StackPanel Orientation="Vertical" Spacing="2">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Viewbox Width="12" Height="12" IsVisible="{Binding SyncIsPush}"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBExportIcon}" /></Canvas></Viewbox>
+                            <Viewbox Width="12" Height="12" IsVisible="{Binding SyncIsPull}"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBDownloadIcon}" /></Canvas></Viewbox>
+                            <Viewbox Width="12" Height="12" IsVisible="{Binding SyncIsFetch}"><Canvas Width="24" Height="24"><Path Data="{StaticResource WBDownloadIcon}" /></Canvas></Viewbox>
+                            <TextBlock Text="{Binding SyncTitle}" VerticalAlignment="Center" />
+                            <TextBlock Classes="git-syncbadge" Classes.up="{Binding SyncIsPush}"
+                                       IsVisible="{Binding HasBadgeUp}" Text="{Binding SyncBadgeUp}" VerticalAlignment="Center" />
+                            <TextBlock Classes="git-syncbadge" Classes.down="{Binding HasBadgeDown}"
+                                       IsVisible="{Binding HasBadgeDown}" Text="{Binding SyncBadgeDown}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Classes="git-syncsub" Text="{Binding SyncSubText}" HorizontalAlignment="Left" />
                     </StackPanel>
                 </Button>
-                <TextBlock Grid.Column="3" Classes="git-syncsmall" IsVisible="{Binding HasRepo}" VerticalAlignment="Center">
-                    <Run Text="{i18n:I18n {x:Static l:VexL.GitLastSync}}" /><Run Text=" " /><Run Text="{Binding LastSyncDisplay, Mode=OneWay}" />
-                </TextBlock>
-                <Panel Grid.Column="4" />
-                <!-- 远程芯片（SSH 警示）或 添加远程按钮；领先落后芯片 -->
-                <Border x:Name="RemoteChip" Grid.Column="5" Classes="git-chip" Classes.warn="{Binding IsSshRemote}" IsVisible="{Binding HasRemote}" VerticalAlignment="Center"
+                <Panel Grid.Column="3" />
+                <!-- 远程芯片（SSH 警示） -->
+                <Border x:Name="RemoteChip" Grid.Column="4" Classes="git-chip" Classes.warn="{Binding IsSshRemote}" IsVisible="{Binding HasRemote}" VerticalAlignment="Center"
                         helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.GitRemoteSshTip}}">
                     <TextBlock Text="{Binding RemoteChipText}" />
-                </Border>
-                <Button x:Name="AddRemoteButton" Grid.Column="5" Classes="git-topbtn" IsVisible="{Binding !HasRemote}"
-                        Command="{Binding OpenRemoteDialogAsync}"
-                        AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitAddRemote}}">
-                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.GitAddRemote}}" VerticalAlignment="Center" />
-                </Button>
-                <Border Grid.Column="6" Classes="git-chip" IsVisible="{Binding HasSyncDelta}" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding SyncChipText}" />
                 </Border>
             </Grid>
         </Border>
@@ -638,17 +733,7 @@
                                                 <TextBlock Text="{Binding CommitButtonText}" VerticalAlignment="Center" />
                                             </StackPanel>
                                         </Button>
-                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                                            <Button x:Name="PushButton" Classes="btn" Command="{Binding PushAsync}" IsEnabled="{Binding CanPush}"
-                                                    AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitPush}}">
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                                    <Viewbox Width="12" Height="12"><Canvas Width="24" Height="24"><Path Classes="stroke-ico" Data="{StaticResource WBExportIcon}" /></Canvas></Viewbox>
-                                                    <TextBlock Text="{i18n:I18n {x:Static l:VexL.GitPush}}" VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-                                            <TextBlock Grid.Column="1" FontSize="11" Foreground="{DynamicResource VexMutedBrush}"
-                                                       VerticalAlignment="Center" Text="{Binding PushHint}" />
-                                        </Grid>
+                                        <!-- 推送已上顶栏同步按钮（随状态换动作），底部推送行退役。 -->
                                     </StackPanel>
                                 </Border>
                             </Grid>
@@ -665,6 +750,13 @@
                                 </Border>
                                 <ListBox x:Name="HistoryList" Grid.Row="1" Classes="git-list" ItemsSource="{Binding History}"
                                          SelectedItem="{Binding SelectedCommit}" Margin="0,4,0,4">
+                                    <!-- 历史提交右键：打 tag 指定提交（GHD commit-list「Create Tag…」同位）+ 推送 tag。 -->
+                                    <ListBox.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitBranchTagMenu}}" Click="TagOnCommit_OnClick" />
+                                            <MenuItem Header="{i18n:I18n {x:Static l:VexL.GitBranchPushTagMenu}}" Click="PushTagOnCommit_OnClick" />
+                                        </ContextMenu>
+                                    </ListBox.ContextMenu>
                                     <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="vm:GitCommitItem">
                                             <StackPanel Margin="0,3" Spacing="3">
