@@ -45,6 +45,28 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
     private static readonly LinkedList<string> ImagePreviewCacheOrder = new();
     private static readonly object ImagePreviewCacheGate = new();
     private static long _imagePreviewCacheBytes;
+    private static long _imageCacheGeneration;
+
+    internal readonly record struct PreparedMarkdownImage(Bitmap Bitmap, byte[] PreviewBytes, int FrameCount);
+    private readonly record struct LoadedMarkdownImage(MarkdownImageSource Source, string CacheKey);
+
+    internal static long CacheGeneration => Volatile.Read(ref _imageCacheGeneration);
+
+    internal static int ImageByteCacheCount
+    {
+        get
+        {
+            lock (ImageByteCacheGate) return ImageByteCache.Count;
+        }
+    }
+
+    internal static int ImagePreviewCacheCount
+    {
+        get
+        {
+            lock (ImagePreviewCacheGate) return ImagePreviewCache.Count;
+        }
+    }
 
     private ContentControl? _contentHost;
     private TextBox? _sourceInput;
@@ -238,44 +260,45 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
     private async Task LoadAsync(string source, long version, CancellationTokenSource loadCts)
     {
         var token = loadCts.Token;
-        var cacheKey = MarkdownImageSourceLoader.CreateCacheKey(source, ImageBasePath);
+        var imageBasePath = ImageBasePath;
+        var resolvedPath = TryResolveLocalSource(source);
+        var cacheGeneration = Volatile.Read(ref _imageCacheGeneration);
 
         try
         {
             token.ThrowIfCancellationRequested();
-            var loadResult = await LoadBytesAsync(source, token);
+            var loaded = await Task.Run(
+                () => LoadBytesAsync(source, imageBasePath, resolvedPath, cacheGeneration, token),
+                token);
             token.ThrowIfCancellationRequested();
-            var previewBytes = ResolvePreviewBytes(cacheKey, loadResult);
-            token.ThrowIfCancellationRequested();
-            using var stream = new MemoryStream(previewBytes);
-            var bitmap = new Bitmap(stream);
-            var fileName = loadResult.FileName;
+            var prepared = await PrepareAsync(loaded.Source, loaded.CacheKey, cacheGeneration, token);
+            var fileName = loaded.Source.FileName;
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (version != _loadVersion || token.IsCancellationRequested)
                 {
-                    bitmap.Dispose();
+                    prepared.Bitmap.Dispose();
                     return;
                 }
 
+                var isAnimated = loaded.Source.IsGif && prepared.FrameCount > 1;
                 MemoryStream? animatedStream = null;
-                var isAnimated = loadResult.IsGif && CountGifFrames(loadResult.Bytes) > 1;
-                var content = loadResult.IsSvg
-                    ? CreateSvgContent(bitmap)
+                var content = loaded.Source.IsSvg
+                    ? CreateSvgContent(prepared.Bitmap)
                     : isAnimated
-                        ? CreateAnimatedGifContent(loadResult.Bytes, bitmap, out animatedStream)
-                        : CreateBitmapContent(bitmap);
+                        ? CreateAnimatedGifContent(loaded.Source.Bytes, prepared.Bitmap, out animatedStream)
+                        : CreateBitmapContent(prepared.Bitmap);
 
                 var oldBitmap = _bitmap;
                 var oldAnimatedStream = _animatedStream;
-                _bitmap = bitmap;
+                _bitmap = prepared.Bitmap;
                 _animatedStream = animatedStream;
-                _imageBytes = loadResult.Bytes;
-                _previewBytes = previewBytes;
+                _imageBytes = loaded.Source.Bytes;
+                _previewBytes = prepared.PreviewBytes;
                 _fileName = fileName;
-                _isSvg = loadResult.IsSvg;
-                _isGif = loadResult.IsGif;
+                _isSvg = loaded.Source.IsSvg;
+                _isGif = loaded.Source.IsGif;
                 _isAnimated = isAnimated;
 
                 SetContent(content);
@@ -288,7 +311,6 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
         }
         catch (FileNotFoundException ex)
         {
-            ;
             await ShowFallbackAsync(
                 version,
                 string.Format(MarkdownLocalization.GetResource(CodeWF.Avalonia.Markdown.MarkdownL.ImageFileNotFound), ex.FileName ?? source));
@@ -310,11 +332,33 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
         }
     }
 
+    internal static async Task<PreparedMarkdownImage> PrepareAsync(
+        MarkdownImageSource source,
+        string cacheKey,
+        long cacheGeneration,
+        CancellationToken cancellationToken,
+        Func<MarkdownImageSource, byte[]>? previewEncoder = null,
+        Func<byte[], Bitmap>? bitmapDecoder = null)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return await Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var previewBytes = previewEncoder is null
+                ? ResolvePreviewBytes(cacheKey, source, cacheGeneration)
+                : previewEncoder(source);
+            using var stream = new MemoryStream(previewBytes);
+            var bitmap = bitmapDecoder is null ? new Bitmap(stream) : bitmapDecoder(previewBytes);
+            var frameCount = source.IsGif ? CountGifFrames(source.Bytes) : 1;
+            return new PreparedMarkdownImage(bitmap, previewBytes, frameCount);
+        }, cancellationToken);
+    }
+
     /// <summary>
     /// 取静态预览字节：SVG/GIF 需要光栅化，结果按缓存 Key 复用，
     /// 让被回收后重新物化的图片块跳过解析与光栅化。
     /// </summary>
-    private static byte[] ResolvePreviewBytes(string cacheKey, MarkdownImageSource loadResult)
+    private static byte[] ResolvePreviewBytes(string cacheKey, MarkdownImageSource loadResult, long cacheGeneration)
     {
         if (!loadResult.IsSvg && !loadResult.IsGif)
         {
@@ -327,7 +371,7 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
         }
 
         var previewBytes = MarkdownImageRasterizer.RenderToPngBytes(loadResult);
-        AddPreviewBytesToCache(cacheKey, previewBytes);
+        AddPreviewBytesToCache(cacheKey, previewBytes, cacheGeneration);
         return previewBytes;
     }
 
@@ -346,22 +390,53 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
         }
     }
 
-    private async Task<MarkdownImageSource> LoadBytesAsync(string source, CancellationToken token)
+    private async Task<LoadedMarkdownImage> LoadBytesAsync(
+        string source,
+        string? imageBasePath,
+        string? resolvedPath,
+        long cacheGeneration,
+        CancellationToken token)
     {
-        // 解析回调只对 http(s) 源有意义；解析结果参与缓存键，避免同 URL 在
-        // 「已映射/未映射」两种取用方式间互相命中。
-        var resolvedPath = TryResolveLocalSource(source);
-        var cacheKey = MarkdownImageSourceLoader.CreateCacheKey(source, ImageBasePath)
-                       + (resolvedPath is null ? string.Empty : $"|resolved:{resolvedPath}");
+        var cacheKey = MarkdownImageSourceLoader.CreateCacheKey(
+            source,
+            imageBasePath,
+            resolvedPath is null ? null : _ => resolvedPath);
         if (TryGetCachedImageBytes(cacheKey, out var cached))
         {
-            return cached;
+            return new LoadedMarkdownImage(cached, cacheKey);
         }
 
         var result = await MarkdownImageSourceLoader.LoadAsync(
-            source, ImageBasePath, token, resolveLocalSource: resolvedPath is null ? null : _ => resolvedPath);
-        AddImageBytesToCache(cacheKey, result);
-        return result;
+            source,
+            imageBasePath,
+            token,
+            resolveLocalSource: resolvedPath is null ? null : _ => resolvedPath,
+            writeDiskCache: false);
+        AddImageBytesToCache(cacheKey, result, cacheGeneration);
+        TryStoreRemoteDiskCache(source, resolvedPath, result.Bytes, cacheGeneration);
+        return new LoadedMarkdownImage(result, cacheKey);
+    }
+
+    internal static void TryStoreRemoteDiskCache(
+        string source,
+        string? resolvedPath,
+        byte[] bytes,
+        long cacheGeneration)
+    {
+        if (resolvedPath is not null
+            || !Uri.TryCreate(source.Trim(), UriKind.Absolute, out var uri)
+            || uri.Scheme is not ("http" or "https"))
+        {
+            return;
+        }
+
+        lock (ImageByteCacheGate)
+        {
+            if (cacheGeneration == _imageCacheGeneration)
+            {
+                MarkdownImageDiskCache.Store("remote|" + uri, bytes);
+            }
+        }
     }
 
     private string? TryResolveLocalSource(string source)
@@ -377,7 +452,7 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
         return resolver(source);
     }
 
-    private static bool TryGetCachedImageBytes(string source, out MarkdownImageSource result)
+    internal static bool TryGetCachedImageBytes(string source, out MarkdownImageSource result)
     {
         lock (ImageByteCacheGate)
         {
@@ -392,11 +467,14 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
         }
     }
 
-    private static void AddImageBytesToCache(string source, MarkdownImageSource result)
+    internal static void AddImageBytesToCache(
+        string source,
+        MarkdownImageSource result,
+        long cacheGeneration)
     {
         lock (ImageByteCacheGate)
         {
-            if (result.Bytes.LongLength > MaxImageByteCacheBytes)
+            if (cacheGeneration != _imageCacheGeneration || result.Bytes.LongLength > MaxImageByteCacheBytes)
             {
                 return;
             }
@@ -425,7 +503,7 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
         }
     }
 
-    private static bool TryGetCachedPreviewBytes(string cacheKey, out byte[] previewBytes)
+    internal static bool TryGetCachedPreviewBytes(string cacheKey, out byte[] previewBytes)
     {
         lock (ImagePreviewCacheGate)
         {
@@ -440,11 +518,14 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
         }
     }
 
-    private static void AddPreviewBytesToCache(string cacheKey, byte[] previewBytes)
+    internal static void AddPreviewBytesToCache(
+        string cacheKey,
+        byte[] previewBytes,
+        long cacheGeneration)
     {
         lock (ImagePreviewCacheGate)
         {
-            if (previewBytes.LongLength > MaxImagePreviewCacheBytes)
+            if (cacheGeneration != _imageCacheGeneration || previewBytes.LongLength > MaxImagePreviewCacheBytes)
             {
                 return;
             }
@@ -467,6 +548,24 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
                 }
             }
         }
+    }
+
+    internal static void InvalidateRemoteCaches()
+    {
+        Interlocked.Increment(ref _imageCacheGeneration);
+        lock (ImageByteCacheGate)
+        {
+            ImageByteCache.Clear();
+            ImageByteCacheOrder.Clear();
+            _imageByteCacheBytes = 0;
+        }
+        lock (ImagePreviewCacheGate)
+        {
+            ImagePreviewCache.Clear();
+            ImagePreviewCacheOrder.Clear();
+            _imagePreviewCacheBytes = 0;
+        }
+        MarkdownImageDiskCache.Clear();
     }
 
     private void OnImagePointerPressed(object? sender, PointerPressedEventArgs e)

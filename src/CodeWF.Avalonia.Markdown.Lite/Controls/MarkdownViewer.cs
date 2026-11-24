@@ -689,6 +689,7 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     private static Rendering.MarkdownMathViewFactory? s_mathViewFactory;
 
     private static Rendering.MarkdownImageControlFactory? s_imageControlFactory;
+    private static Action? s_imageCacheInvalidator;
 
     /// <summary>
     /// 注册全局图片控件工厂（CodeWF.Avalonia.Markdown.Images 包注册）；
@@ -696,6 +697,10 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     /// </summary>
     public static void RegisterImageControlFactory(Rendering.MarkdownImageControlFactory? factory) =>
         s_imageControlFactory = factory;
+
+    /// <summary>注册显式刷新远程图片时清除内存与磁盘缓存的能力包回调。</summary>
+    public static void RegisterImageCacheInvalidator(Action? invalidator) =>
+        s_imageCacheInvalidator = invalidator;
 
     private static Rendering.MarkdownTableToolsFactory? s_tableToolsFactory;
 

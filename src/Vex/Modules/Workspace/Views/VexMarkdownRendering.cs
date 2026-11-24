@@ -15,6 +15,7 @@ internal static class VexMarkdownRendering
         _registered = true;
         VexDocumentTypography.Register();
         MarkdownViewer.RegisterTableToolsFactory((_, data) => TableTools.Create(data));
+        MarkdownViewer.RegisterImageCacheInvalidator(MarkdownImage.InvalidateRemoteCaches);
         MarkdownViewer.RegisterImageControlFactory((context, source, alt) =>
         {
             var image = new MarkdownImage

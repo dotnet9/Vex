@@ -11,7 +11,9 @@ namespace CodeWF.Avalonia.Markdown.Images;
 /// </summary>
 public static class CodeWFMarkdownImagesExtensions
 {
-    public static void UseImages() =>
+    public static void UseImages()
+    {
+        MarkdownViewer.RegisterImageCacheInvalidator(MarkdownImage.InvalidateRemoteCaches);
         MarkdownViewer.RegisterImageControlFactory(static (context, source, altText) =>
         {
             var image = new MarkdownImage
@@ -24,4 +26,5 @@ public static class CodeWFMarkdownImagesExtensions
             context.AddMarkdownClass(image, MarkdownStyleKeys.Image);
             return image;
         });
+    }
 }

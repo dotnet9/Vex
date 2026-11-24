@@ -79,6 +79,41 @@ public static class MarkdownImageDiskCache
 		}
 	}
 
+	public static void Clear()
+	{
+		var directory = CacheDirectory;
+		if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+		{
+			return;
+		}
+
+		try
+		{
+			lock (Gate)
+			{
+				foreach (var path in Directory.EnumerateFiles(directory))
+				{
+					try
+					{
+						File.Delete(path);
+					}
+					catch (IOException)
+					{
+					}
+					catch (UnauthorizedAccessException)
+					{
+					}
+				}
+			}
+		}
+		catch (IOException)
+		{
+		}
+		catch (UnauthorizedAccessException)
+		{
+		}
+	}
+
 	private static string? GetCacheFilePath(string key)
 	{
 		var directory = CacheDirectory;

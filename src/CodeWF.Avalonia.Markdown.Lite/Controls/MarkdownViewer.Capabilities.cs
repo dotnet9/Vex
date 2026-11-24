@@ -174,6 +174,7 @@ public partial class MarkdownViewer
     /// </summary>
     public void RefreshRemoteImages()
     {
+        MarkdownViewer.s_imageCacheInvalidator?.Invoke();
         if (!TryRefreshRemoteImageBlocks())
         {
             QueueRenderDocument(MarkdownRenderMode.Full);

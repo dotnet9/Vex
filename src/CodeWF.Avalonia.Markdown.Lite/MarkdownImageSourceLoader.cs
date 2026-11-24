@@ -16,7 +16,8 @@ public static class MarkdownImageSourceLoader
 		string? imageBasePath = null,
 		long maxRemoteImageBytes = DefaultMaxRemoteImageBytes,
 		long maxLocalImageBytes = DefaultMaxRemoteImageBytes,
-		Func<string, string?>? resolveLocalSource = null)
+		Func<string, string?>? resolveLocalSource = null,
+		bool writeDiskCache = true)
 	{
 		ValidateMaxImageBytes(maxRemoteImageBytes, nameof(maxRemoteImageBytes));
 		ValidateMaxImageBytes(maxLocalImageBytes, nameof(maxLocalImageBytes));
@@ -44,7 +45,7 @@ public static class MarkdownImageSourceLoader
 					return LoadLocalFile(resolvedLocal, resolvedLocal, maxLocalImageBytes);
 				}
 
-				var bytes = ReadRemoteBytesWithDiskCache(uri, maxRemoteImageBytes);
+				var bytes = ReadRemoteBytesWithDiskCache(uri, maxRemoteImageBytes, writeDiskCache);
 				return new MarkdownImageSource(
 					bytes,
 					ResolveFileName(normalizedSource),
@@ -69,7 +70,8 @@ public static class MarkdownImageSourceLoader
 		CancellationToken cancellationToken = default,
 		long maxRemoteImageBytes = DefaultMaxRemoteImageBytes,
 		long maxLocalImageBytes = DefaultMaxRemoteImageBytes,
-		Func<string, string?>? resolveLocalSource = null)
+		Func<string, string?>? resolveLocalSource = null,
+		bool writeDiskCache = true)
 	{
 		ValidateMaxImageBytes(maxRemoteImageBytes, nameof(maxRemoteImageBytes));
 		ValidateMaxImageBytes(maxLocalImageBytes, nameof(maxLocalImageBytes));
@@ -95,7 +97,7 @@ public static class MarkdownImageSourceLoader
 					return await LoadLocalFileAsync(resolvedLocal, resolvedLocal, maxLocalImageBytes, cancellationToken);
 				}
 
-				var bytes = await ReadRemoteBytesWithDiskCacheAsync(uri, maxRemoteImageBytes, cancellationToken);
+				var bytes = await ReadRemoteBytesWithDiskCacheAsync(uri, maxRemoteImageBytes, cancellationToken, writeDiskCache);
 				return new MarkdownImageSource(
 					bytes,
 					ResolveFileName(normalizedSource),
@@ -114,17 +116,60 @@ public static class MarkdownImageSourceLoader
 		return await LoadLocalFileAsync(localPath.Path, localPath.DisplayPath, maxLocalImageBytes, cancellationToken);
 	}
 
-	public static string CreateCacheKey(string source, string? imageBasePath)
+	public static string CreateCacheKey(
+		string source,
+		string? imageBasePath,
+		Func<string, string?>? resolveLocalSource = null)
 	{
 		var normalizedSource = NormalizeSource(source);
-		if (IsDataUri(normalizedSource)
-			|| Uri.TryCreate(normalizedSource, UriKind.Absolute, out _)
-			|| Path.IsPathRooted(normalizedSource))
+		if (IsDataUri(normalizedSource))
 		{
 			return normalizedSource;
 		}
 
-		return $"{ResolveImageBaseDirectory(imageBasePath) ?? AppContext.BaseDirectory}|{normalizedSource}";
+		if (Uri.TryCreate(normalizedSource, UriKind.Absolute, out var uri))
+		{
+			if (uri.Scheme is "http" or "https")
+			{
+				var resolvedPath = resolveLocalSource?.Invoke(normalizedSource);
+				return string.IsNullOrWhiteSpace(resolvedPath)
+					? normalizedSource
+					: CreateLocalFileCacheKey(resolvedPath);
+			}
+
+			if (uri.IsFile)
+			{
+				return CreateLocalFileCacheKey(uri.LocalPath);
+			}
+
+			return normalizedSource;
+		}
+
+		if (Path.IsPathRooted(normalizedSource))
+		{
+			return CreateLocalFileCacheKey(normalizedSource);
+		}
+
+		var localPath = ResolveLocalPath(normalizedSource, imageBasePath);
+		return CreateLocalFileCacheKey(localPath.Path);
+	}
+
+	private static string CreateLocalFileCacheKey(string path)
+	{
+		var fullPath = Path.GetFullPath(path);
+		try
+		{
+			var info = new FileInfo(fullPath);
+			if (info.Exists)
+			{
+				return $"{fullPath}|{info.Length:x16}|{info.LastWriteTimeUtc.Ticks:x16}";
+			}
+		}
+		catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException or IOException or UnauthorizedAccessException)
+		{
+		}
+
+		return fullPath;
 	}
 
 	private static HttpClient CreateHttpClient()
@@ -284,7 +329,7 @@ public static class MarkdownImageSourceLoader
 	}
 
 	/// <summary>远程读取附带磁盘缓存：命中免网络，未命中取回后回存。</summary>
-	private static byte[] ReadRemoteBytesWithDiskCache(Uri uri, long maxRemoteImageBytes)
+	private static byte[] ReadRemoteBytesWithDiskCache(Uri uri, long maxRemoteImageBytes, bool writeDiskCache)
 	{
 		var cacheKey = "remote|" + uri.ToString();
 		var cached = MarkdownImageDiskCache.TryRead(cacheKey);
@@ -294,12 +339,15 @@ public static class MarkdownImageSourceLoader
 		}
 
 		var bytes = ReadRemoteBytes(uri, maxRemoteImageBytes);
-		MarkdownImageDiskCache.Store(cacheKey, bytes);
+		if (writeDiskCache)
+		{
+			MarkdownImageDiskCache.Store(cacheKey, bytes);
+		}
 		return bytes;
 	}
 
 	private static async Task<byte[]> ReadRemoteBytesWithDiskCacheAsync(
-		Uri uri, long maxRemoteImageBytes, CancellationToken cancellationToken)
+		Uri uri, long maxRemoteImageBytes, CancellationToken cancellationToken, bool writeDiskCache)
 	{
 		var cacheKey = "remote|" + uri.ToString();
 		var cached = MarkdownImageDiskCache.TryRead(cacheKey);
@@ -309,7 +357,10 @@ public static class MarkdownImageSourceLoader
 		}
 
 		var bytes = await ReadRemoteBytesAsync(uri, maxRemoteImageBytes, cancellationToken);
-		MarkdownImageDiskCache.Store(cacheKey, bytes);
+		if (writeDiskCache)
+		{
+			MarkdownImageDiskCache.Store(cacheKey, bytes);
+		}
 		return bytes;
 	}
 
