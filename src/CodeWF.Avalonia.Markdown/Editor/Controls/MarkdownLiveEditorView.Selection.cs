@@ -19,7 +19,7 @@ public partial class MarkdownLiveEditorView
     private (int Start, int Length)? _documentSelection;
     private bool _hasSelectionAnchor;
     private int[]? _selectionContentStarts;
-    private string _selectionMappedText = string.Empty;
+    private int _selectionMappedLength;
 
     private void InitializeDocumentSelection()
     {
@@ -224,13 +224,14 @@ public partial class MarkdownLiveEditorView
     private int GetContentStart(int index)
     {
         EnsureSelectionMap();
-        return index >= 0 && index < _selectionContentStarts!.Length ? _selectionContentStarts[index] : _selectionMappedText.Length;
+        return index >= 0 && index < _selectionContentStarts!.Length ? _selectionContentStarts[index] : _selectionMappedLength;
     }
 
     private void EnsureSelectionMap()
     {
         if (_selectionContentStarts is not null) return;
-        var text = _selectionMappedText = Text; var cursor = 0;
+        var text = Text; var cursor = 0;
+        _selectionMappedLength = text.Length;
         _selectionContentStarts = new int[_models.Count];
         for (var i = 0; i < _models.Count; i++)
         {

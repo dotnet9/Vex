@@ -7,6 +7,7 @@ using Avalonia.VisualTree;
 using CodeWF.Toolkit.EventBus;
 using Vex.Core.Messaging;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
+using CodeWF.Avalonia.Markdown.Editor.Services;
 using Vex.Modules.Shell.ViewModels;
 
 namespace Vex.Modules.Workspace.Views;
@@ -121,7 +122,9 @@ public sealed partial class MarkdownInstantView : UserControl
             if (presenter is null || scroll is null) return;
             var caret = presenter.TextLayout.HitTestTextPosition(box!.CaretIndex);
             if (presenter.TranslatePoint(caret.Center, scroll) is not { } point) return;
-            scroll.Offset = new Vector(scroll.Offset.X, Math.Max(0, scroll.Offset.Y + point.Y - scroll.Viewport.Height / 2));
+            scroll.Offset = new Vector(
+                scroll.Offset.X,
+                TypewriterScroll.GetTargetOffset(scroll.Offset.Y + point.Y, scroll.Viewport.Height));
         }, DispatcherPriority.Background);
     }
 }

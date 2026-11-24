@@ -599,9 +599,10 @@ public partial class MarkdownEditorView : UserControl
         }
 
         var result = TextAutoPair.HandleBackspace(
-            document.Text,
+            document.TextLength,
             _editor.SelectionStart,
-            _editor.SelectionLength);
+            _editor.SelectionLength,
+            document.GetCharAt);
         if (result is not { } change)
         {
             return false;
@@ -916,10 +917,12 @@ public partial class MarkdownEditorView : UserControl
         }
 
         var result = TextAutoPair.HandleTextInput(
-            document.Text,
+            document.TextLength,
             _editor.SelectionStart,
             _editor.SelectionLength,
-            e.Text);
+            e.Text,
+            document.GetCharAt,
+            document.GetText);
         if (result is not { } change)
         {
             return;

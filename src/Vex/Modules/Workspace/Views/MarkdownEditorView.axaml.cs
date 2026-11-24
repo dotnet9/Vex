@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CodeWF.Toolkit.EventBus;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
+using CodeWF.Avalonia.Markdown.Editor.Services;
 using Vex.Core.Messaging;
 using Vex.Modules.Workspace.ViewModels;
 using Vex.Modules.Shell.ViewModels;
@@ -101,7 +102,9 @@ public partial class MarkdownEditorView : UserControl
             editor.TextArea.TextView.EnsureVisualLines();
             var caret = editor.TextArea.Caret.CalculateCaretRectangle();
             if (editor.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault() is { } scroll)
-                scroll.Offset = new Avalonia.Vector(scroll.Offset.X, Math.Max(0, caret.Center.Y - scroll.Viewport.Height / 2));
+                scroll.Offset = new Avalonia.Vector(
+                    scroll.Offset.X,
+                    TypewriterScroll.GetTargetOffset(caret.Center.Y, scroll.Viewport.Height));
         }, DispatcherPriority.Background);
     }
 

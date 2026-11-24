@@ -4,38 +4,36 @@ namespace CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg;
 
 /// <summary>
 /// 即时编辑的全文缓存：块模型列表（与宿主视图共享同一实例）是唯一真相，全文文本是派生缓存。
-/// <para>
-/// 纯文本编辑的热路径只重算被编辑组（共享同一 <see cref="MarkdownBlockSource"/> 的连续块）的片段，
-/// 拼接回缓存文本；结构变化（拆块/合并/转换/增删）走整体重算。组区间由
-/// <see cref="MarkdownBlockParser.WriteWithSpans"/> 记录，保证缓存文本与
-/// <see cref="MarkdownBlockParser.Write"/> 的输出逐字符一致。
-/// </para>
+/// 纯文本编辑只重算被编辑组，正文以分段 rope 保存；仅在读取全文的边界物化为字符串。
 /// </summary>
 internal sealed class MarkdownLiveTextBuffer(List<MarkdownBlockModel> models)
 {
-    private string _text = string.Empty;
+    private MarkdownTextRope _rope = MarkdownTextRope.FromString(string.Empty);
+    private string? _text = string.Empty;
     private List<MarkdownGroupSpan> _spans = [];
+    private SpanStartIndex _spanStarts = new(0);
+    private int _length;
     private int _lineCount = 1;
 
-    /// <summary>当前全文（与 <see cref="MarkdownBlockParser.Write"/> 对同一模型列表的输出一致）。</summary>
-    public string Text => _text;
-
-    /// <summary>全文行数（按「1 + 换行数」口径，与整篇扫描一致）。</summary>
+    public string Text => _text ??= _rope.ToString();
+    public int TextLength => _length;
     public int LineCount => _lineCount;
+    public int Version { get; private set; }
+    internal bool IsTextMaterialized => _text is not null;
 
-    /// <summary>模型整体重建（载入文档或结构变化后）：整篇重算并记录组区间。</summary>
     public void Reset()
     {
-        (_text, _spans) = MarkdownBlockParser.WriteWithSpans(models);
-        _lineCount = 1 + _text.AsSpan().Count('\n');
+        var (text, spans) = MarkdownBlockParser.WriteWithSpans(models);
+        var changed = !_rope.ContentEquals(text);
+        _text = text;
+        _rope = MarkdownTextRope.FromString(text);
+        _spans = spans;
+        _spanStarts = new SpanStartIndex(_spans.Count);
+        _length = text.Length;
+        _lineCount = 1 + text.AsSpan().Count('\n');
+        if (changed) Version++;
     }
 
-    /// <summary>
-    /// 只重算 <paramref name="modelIndex"/> 所在组的片段并拼接回全文。
-    /// 返回 <c>false</c> 表示该组无法增量（生成组或区间簿记缺失），调用方应走 <see cref="Reset"/>；
-    /// 返回 <c>true</c> 表示已按增量处理——片段与缓存一致时文本引用不变，
-    /// 调用方可用引用比较（<see cref="object.ReferenceEquals"/>）判断全文是否变化。
-    /// </summary>
     public bool Splice(int modelIndex)
     {
         if (modelIndex < 0 || modelIndex >= models.Count || _spans.Count == 0) return false;
@@ -48,22 +46,21 @@ internal sealed class MarkdownLiveTextBuffer(List<MarkdownBlockModel> models)
         var group = new List<MarkdownBlockModel>(lastModel - span.FirstBlockIndex + 1);
         for (var i = span.FirstBlockIndex; i <= lastModel; i++) group.Add(models[i]);
         var segment = MarkdownBlockParser.WriteGroupSegment(group, span.Source, isLast: spanIndex == _spans.Count - 1);
-        var oldSegment = _text.Substring(span.Start, span.Length);
+        var start = GetSpanStart(spanIndex);
+        var oldSegment = GetText(start, span.Length);
         if (string.Equals(oldSegment, segment, StringComparison.Ordinal)) return true;
 
-        _text = string.Concat(_text.AsSpan(0, span.Start), segment, _text.AsSpan(span.Start + span.Length));
+        _rope = _rope.Replace(start, span.Length, segment);
+        _text = null;
         var delta = segment.Length - span.Length;
+        _length += delta;
         _spans[spanIndex] = span with { Length = segment.Length };
-        for (var i = spanIndex + 1; i < _spans.Count; i++)
-        {
-            _spans[i] = _spans[i] with { Start = _spans[i].Start + delta };
-        }
-
+        if (delta != 0) _spanStarts.AddSuffix(spanIndex + 1, delta);
         _lineCount += segment.AsSpan().Count('\n') - oldSegment.AsSpan().Count('\n');
+        Version++;
         return true;
     }
 
-    /// <summary>块下标所在组的区间（增量维护选区映射等派生数据用）；组不存在时返回 null。</summary>
     public (int FirstBlockIndex, int LastBlockIndex, int Start, int OldLength)? GetGroupBounds(int modelIndex)
     {
         if (modelIndex < 0 || modelIndex >= models.Count) return null;
@@ -71,8 +68,25 @@ internal sealed class MarkdownLiveTextBuffer(List<MarkdownBlockModel> models)
         if (spanIndex < 0) return null;
         var span = _spans[spanIndex];
         var lastModel = (spanIndex + 1 < _spans.Count ? _spans[spanIndex + 1].FirstBlockIndex : models.Count) - 1;
-        return (span.FirstBlockIndex, lastModel, span.Start, span.Length);
+        return (span.FirstBlockIndex, lastModel, GetSpanStart(spanIndex), span.Length);
     }
+
+    public string GetText(int start, int length)
+    {
+        start = Math.Clamp(start, 0, _length);
+        length = Math.Clamp(length, 0, _length - start);
+        return _text?.Substring(start, length) ?? _rope.Substring(start, length);
+    }
+
+    public (int Line, int Column) GetLineColumn(int offset) => _rope.GetLineColumn(offset);
+
+    internal (Func<string> Materializer, int Length) CaptureText()
+    {
+        var rope = _rope;
+        return (() => rope.ToString(), _length);
+    }
+
+    private int GetSpanStart(int spanIndex) => _spans[spanIndex].Start + _spanStarts.Get(spanIndex);
 
     private int FindSpanIndex(int modelIndex)
     {
@@ -87,5 +101,24 @@ internal sealed class MarkdownLiveTextBuffer(List<MarkdownBlockModel> models)
         if (lo < 0 || lo >= _spans.Count) return -1;
         var lastModel = (lo + 1 < _spans.Count ? _spans[lo + 1].FirstBlockIndex : models.Count) - 1;
         return modelIndex >= _spans[lo].FirstBlockIndex && modelIndex <= lastModel ? lo : -1;
+    }
+
+    private sealed class SpanStartIndex(int count)
+    {
+        private readonly int[] _tree = new int[count + 1];
+
+        public void AddSuffix(int start, int delta) => Add(start, delta);
+
+        public int Get(int index)
+        {
+            var value = 0;
+            for (var i = index + 1; i > 0; i -= i & -i) value += _tree[i];
+            return value;
+        }
+
+        private void Add(int index, int delta)
+        {
+            for (var i = index + 1; i < _tree.Length; i += i & -i) _tree[i] += delta;
+        }
     }
 }

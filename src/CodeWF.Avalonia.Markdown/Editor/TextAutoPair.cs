@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-// 与 Controls/CodeWF.Avalonia.Controls/Text/TextAutoPair.cs 互为副本：
-// Markdown 包不依赖 Controls 主工程，修改任一侧须评估同步另一侧。
 namespace CodeWF.Avalonia.Markdown.Editor;
 
 /// <summary>自动配对选项。</summary>
@@ -23,10 +21,7 @@ public sealed class TextAutoPairOptions
     public static readonly IReadOnlyDictionary<string, string> DefaultPairs =
         new Dictionary<string, string>
         {
-            ["*"] = "*",
-            ["_"] = "_",
             ["`"] = "`",
-            ["~"] = "~",
             ["("] = ")",
             ["["] = "]",
             ["{"] = "}",
@@ -67,22 +62,56 @@ public static class TextAutoPair
         string? input,
         TextAutoPairOptions? options = null)
     {
+        var source = text ?? string.Empty;
+        return HandleTextInput(source.Length, selectionStart, selectionLength, input,
+            index => source[index], (start, length) => source.Substring(start, length), options);
+    }
+
+    public static TextAutoPairResult? HandleTextInput(
+        int textLength,
+        int selectionStart,
+        int selectionLength,
+        string? input,
+        Func<int, char> charAt,
+        Func<int, int, string> getText,
+        TextAutoPairOptions? options = null)
+    {
         if (string.IsNullOrEmpty(input))
         {
             return null;
         }
 
         options ??= new TextAutoPairOptions();
-        var source = text ?? string.Empty;
-        var start = Clamp(selectionStart, 0, source.Length);
-        var length = Clamp(selectionLength, 0, source.Length - start);
+        var start = Clamp(selectionStart, 0, textLength);
+        var length = Clamp(selectionLength, 0, textLength - start);
+
+        if (input.Length == 1 && IsEmphasisMarker(input[0]))
+        {
+            var marker = input[0];
+            if (length > 0)
+            {
+                var selected = getText(start, length);
+                var pair = new string(marker, 2);
+                return new TextAutoPairResult(start, length, pair + selected + pair, start + pair.Length + selected.Length + pair.Length);
+            }
+            if (start > 0 && charAt(start - 1) == marker && (start < 2 || charAt(start - 2) != marker)
+                && (start >= textLength || charAt(start) != marker))
+            {
+                return new TextAutoPairResult(start - 1, 1, new string(marker, 4), start + 1);
+            }
+            if (start < textLength && charAt(start) == marker)
+            {
+                return new TextAutoPairResult(start, 0, string.Empty, start + 1);
+            }
+            return null;
+        }
 
         // 已有选区 + 可包裹符号 → 用左右半边包裹选区。
         if (length > 0
             && options.Pairs.TryGetValue(input, out var wrapping)
             && options.WrapSelectionKeys.Contains(input))
         {
-            var selected = source.Substring(start, length);
+            var selected = getText(start, length);
             return new TextAutoPairResult(start, length, input + selected + wrapping, start + input.Length + selected.Length + wrapping.Length);
         }
 
@@ -90,8 +119,8 @@ public static class TextAutoPair
         if (length == 0
             && options.SkipExistingClosing
             && IsClosingKey(input, options)
-            && start < source.Length
-            && source[start].ToString() == input)
+            && start < textLength
+            && charAt(start).ToString() == input)
         {
             return new TextAutoPairResult(start, 0, string.Empty, start + input.Length);
         }
@@ -112,28 +141,50 @@ public static class TextAutoPair
         int selectionLength,
         TextAutoPairOptions? options = null)
     {
+        var source = text ?? string.Empty;
+        return HandleBackspace(source.Length, selectionStart, selectionLength,
+            index => source[index], options);
+    }
+
+    public static TextAutoPairResult? HandleBackspace(
+        int textLength,
+        int selectionStart,
+        int selectionLength,
+        Func<int, char> charAt,
+        TextAutoPairOptions? options = null)
+    {
         options ??= new TextAutoPairOptions();
         if (!options.DeleteEmptyPairOnBackspace)
         {
             return null;
         }
 
-        var source = text ?? string.Empty;
-        var start = Clamp(selectionStart, 0, source.Length);
-        var length = Clamp(selectionLength, 0, source.Length - start);
+        var start = Clamp(selectionStart, 0, textLength);
+        var length = Clamp(selectionLength, 0, textLength - start);
 
         // 有选区时按普通删除处理，由宿主的撤销栈负责。
-        if (length > 0 || start <= 0 || start >= source.Length)
+        if (length > 0 || start <= 0 || start >= textLength)
         {
             return null;
         }
 
-        var left = source[start - 1].ToString();
-        var right = source[start].ToString();
+        if (IsEmphasisMarker(charAt(start - 1)))
+        {
+            var marker = charAt(start - 1);
+            return start >= 2 && start + 1 < textLength
+                && charAt(start - 2) == marker && charAt(start) == marker && charAt(start + 1) == marker
+                ? new TextAutoPairResult(start - 2, 4, string.Empty, start - 2)
+                : null;
+        }
+
+        var left = charAt(start - 1).ToString();
+        var right = charAt(start).ToString();
         return options.Pairs.TryGetValue(left, out var closing) && closing == right
             ? new TextAutoPairResult(start - 1, 2, string.Empty, start - 1)
             : null;
     }
+
+    private static bool IsEmphasisMarker(char value) => value is '*' or '_' or '~';
 
     private static bool IsClosingKey(string input, TextAutoPairOptions options) =>
         options.Pairs.Values.Contains(input);

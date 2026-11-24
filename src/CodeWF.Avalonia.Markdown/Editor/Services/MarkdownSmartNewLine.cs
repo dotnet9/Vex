@@ -11,60 +11,60 @@ public static class MarkdownSmartNewLine
         lineStart = lineStart < 0 ? 0 : lineStart + 1;
         var lineBeforeCaret = text[lineStart..start];
 
-        if (TryCreateEmptyContinuationReplacement(lineBeforeCaret, out var lineReplacement))
+        if (TryParseLinePrefix(lineBeforeCaret, out var prefix)
+            && prefix.HasPrefix
+            && string.IsNullOrWhiteSpace(prefix.Remaining))
         {
-            return new SmartNewLineChange(lineStart, start + length - lineStart, lineReplacement + "\n");
+            return new SmartNewLineChange(lineStart, start + length - lineStart, prefix.EmptyReplacement + "\n");
         }
 
-        return new SmartNewLineChange(start, length, "\n" + CreateContinuationPrefix(lineBeforeCaret));
+        return new SmartNewLineChange(start, length, "\n" + prefix.Continuation);
     }
 
-    private static bool TryCreateEmptyContinuationReplacement(string lineBeforeCaret, out string replacement)
+    private static bool TryParseLinePrefix(string line, out LinePrefix prefix)
     {
-        replacement = string.Empty;
-        var leading = GetLeadingWhitespace(lineBeforeCaret);
-        var content = lineBeforeCaret[leading.Length..];
-
-        if ((TryParseTaskListPrefix(content, out _, out var remaining)
-             || TryParseUnorderedListPrefix(content, out _, out remaining)
-             || TryParseOrderedListPrefix(content, out _, out remaining)
-             || TryParseQuotePrefix(content, out _, out remaining))
-            && string.IsNullOrWhiteSpace(remaining))
+        prefix = default;
+        var leading = GetLeadingWhitespace(line);
+        var content = line[leading.Length..];
+        var quotes = new List<string>();
+        while (content.Length > 0 && content[0] == '>')
         {
-            replacement = leading;
-            return true;
+            var end = 1;
+            while (end < content.Length && content[end] is ' ' or '\t') end++;
+            quotes.Add(content[..end]);
+            content = content[end..];
         }
 
-        return false;
+        var quotePrefix = string.Concat(quotes);
+        var listPrefix = string.Empty;
+        var hasList = TryParseTaskListPrefix(content, out listPrefix, out var remaining)
+            || TryParseUnorderedListPrefix(content, out listPrefix, out remaining)
+            || TryParseOrderedListPrefix(content, out listPrefix, out remaining);
+        if (!hasList) remaining = content;
+
+        var emptyReplacement = leading;
+        if (hasList)
+        {
+            emptyReplacement += quotePrefix.TrimEnd();
+        }
+        else if (quotes.Count > 0)
+        {
+            emptyReplacement += string.Concat(quotes.Take(quotes.Count - 1)).TrimEnd();
+        }
+
+        prefix = new LinePrefix(
+            leading + quotePrefix + listPrefix,
+            remaining,
+            emptyReplacement,
+            hasList || quotes.Count > 0);
+        return true;
     }
 
-    private static string CreateContinuationPrefix(string lineBeforeCaret)
-    {
-        var leading = GetLeadingWhitespace(lineBeforeCaret);
-        var content = lineBeforeCaret[leading.Length..];
-
-        if (TryParseTaskListPrefix(content, out var taskPrefix, out _))
-        {
-            return leading + taskPrefix;
-        }
-
-        if (TryParseUnorderedListPrefix(content, out var listPrefix, out _))
-        {
-            return leading + listPrefix;
-        }
-
-        if (TryParseOrderedListPrefix(content, out var orderedPrefix, out _))
-        {
-            return leading + orderedPrefix;
-        }
-
-        if (TryParseQuotePrefix(content, out var quotePrefix, out _))
-        {
-            return leading + quotePrefix;
-        }
-
-        return leading;
-    }
+    private readonly record struct LinePrefix(
+        string Continuation,
+        string Remaining,
+        string EmptyReplacement,
+        bool HasPrefix);
 
     private static string GetLeadingWhitespace(string line)
     {
@@ -81,24 +81,33 @@ public static class MarkdownSmartNewLine
     {
         prefix = string.Empty;
         remaining = string.Empty;
-        if (content.Length < 6
+        if (content.Length < 5
             || !IsUnorderedListMarker(content[0])
-            || content[1] != ' '
-            || content[2] != '['
-            || content[4] != ']'
-            || content[5] != ' ')
+            || content[1] is not (' ' or '\t'))
         {
             return false;
         }
 
-        var state = content[3];
+        var markerEnd = 1;
+        while (markerEnd < content.Length && content[markerEnd] is ' ' or '\t') markerEnd++;
+        if (markerEnd + 3 >= content.Length
+            || content[markerEnd] != '['
+            || content[markerEnd + 2] != ']'
+            || content[markerEnd + 3] is not (' ' or '\t'))
+        {
+            return false;
+        }
+
+        var state = content[markerEnd + 1];
         if (state is not (' ' or 'x' or 'X'))
         {
             return false;
         }
 
+        var contentStart = markerEnd + 3;
+        while (contentStart < content.Length && content[contentStart] is ' ' or '\t') contentStart++;
         prefix = $"{content[0]} [ ] ";
-        remaining = content[6..];
+        remaining = content[contentStart..];
         return true;
     }
 
@@ -154,26 +163,6 @@ public static class MarkdownSmartNewLine
 
         prefix = $"{number + 1}{content[digitEnd]}{content[(digitEnd + 1)..spacingEnd]}";
         remaining = content[spacingEnd..];
-        return true;
-    }
-
-    private static bool TryParseQuotePrefix(string content, out string prefix, out string remaining)
-    {
-        prefix = string.Empty;
-        remaining = string.Empty;
-        if (!content.StartsWith('>'))
-        {
-            return false;
-        }
-
-        var index = 1;
-        while (index < content.Length && (content[index] == ' ' || content[index] == '\t'))
-        {
-            index++;
-        }
-
-        prefix = content[..index];
-        remaining = content[index..];
         return true;
     }
 

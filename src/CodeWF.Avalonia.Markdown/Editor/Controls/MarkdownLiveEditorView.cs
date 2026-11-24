@@ -361,7 +361,7 @@ public partial class MarkdownLiveEditorView : UserControl
             var found = GetContentStart(_activeIndex);
             var box = SelectionTextBox;
             var start = Math.Min(box?.SelectionStart ?? 0, box?.SelectionEnd ?? 0);
-            return (Math.Min(_selectionMappedText.Length, found + start), Math.Abs((box?.SelectionEnd ?? 0) - (box?.SelectionStart ?? 0)));
+            return (Math.Min(_selectionMappedLength, found + start), Math.Abs((box?.SelectionEnd ?? 0) - (box?.SelectionStart ?? 0)));
         }
     }
 
@@ -491,8 +491,12 @@ public partial class MarkdownLiveEditorView : UserControl
         return nearest;
     }
 
-    private MarkdownLiveEditorSnapshot CaptureSnapshot() =>
-        new(Text, _activeIndex, SelectionTextBox?.SelectionStart ?? 0, SelectionTextBox?.SelectionEnd ?? 0);
+    private MarkdownLiveEditorSnapshot CaptureSnapshot()
+    {
+        var (materializer, length) = _textBuffer.CaptureText();
+        return new(materializer, length, _activeIndex,
+            SelectionTextBox?.SelectionStart ?? 0, SelectionTextBox?.SelectionEnd ?? 0);
+    }
 
     private MarkdownLiveEditorPosition CapturePosition() =>
         new(_activeIndex, SelectionTextBox?.SelectionStart ?? 0, SelectionTextBox?.SelectionEnd ?? 0);
@@ -1281,7 +1285,8 @@ public partial class MarkdownLiveEditorView : UserControl
         var index = _models.IndexOf(model);
         var offset = index >= 0 ? _textBuffer.GetGroupBounds(index)?.Start ?? -1 : -1;
         var selection = view.SelectionBeforeTextChange;
-        var before = new MarkdownLiveEditorSnapshot(Text, index, selection.Start, selection.End);
+        var (materializer, length) = _textBuffer.CaptureText();
+        var before = new MarkdownLiveEditorSnapshot(materializer, length, index, selection.Start, selection.End);
         RaiseChanged(model, previousText, before, offset);
     }
 
@@ -1546,7 +1551,7 @@ public partial class MarkdownLiveEditorView : UserControl
     /// <summary>整篇快照条目：结构变化、外部改写与所有"不知道旧文本"的路径（勾选/语言/单元格）。</summary>
     private sealed record SnapshotEntry(MarkdownLiveEditorSnapshot Snapshot) : MarkdownLiveUndoEntry
     {
-        public override long Cost => Snapshot.Text.Length;
+        public override long Cost => Snapshot.TextLength;
     }
 
     private void RaiseChanged() => RaiseChanged(null, null);
@@ -1565,23 +1570,24 @@ public partial class MarkdownLiveEditorView : UserControl
             return;
         }
 
-        var before = _textBuffer.Text;
+        var beforeLength = _textBuffer.TextLength;
+        var beforeVersion = _textBuffer.Version;
         bool textChanged;
         var editedIndex = edited is null ? -1 : _models.IndexOf(edited);
         // 组边界必须在拼接【前】捕获：Start/Length 指旧片段几何，供选区映射按位移平移。
         var bounds = editedIndex >= 0 ? _textBuffer.GetGroupBounds(editedIndex) : null;
         if (bounds is not null && _textBuffer.Splice(editedIndex))
         {
-            textChanged = !ReferenceEquals(before, _textBuffer.Text);
+            textChanged = _textBuffer.Version != beforeVersion;
             if (textChanged)
             {
-                UpdateSelectionMapAfterSplice(bounds.Value, _textBuffer.Text.Length - before.Length);
+                UpdateSelectionMapAfterSplice(bounds.Value, _textBuffer.TextLength - beforeLength);
             }
         }
         else
         {
             _textBuffer.Reset();
-            textChanged = !string.Equals(before, _textBuffer.Text, StringComparison.Ordinal);
+            textChanged = _textBuffer.Version != beforeVersion;
             _selectionContentStarts = null;
         }
 
@@ -1589,7 +1595,7 @@ public partial class MarkdownLiveEditorView : UserControl
         {
             var now = Environment.TickCount64;
             var separate = _undoSeparate || now - _lastUndoPush > 650
-                || Math.Abs(_textBuffer.Text.Length - historyBefore.Text.Length) > 32;
+                || Math.Abs(_textBuffer.TextLength - historyBefore.TextLength) > 32;
             if (separate)
             {
                 _undo.Add(CreateUndoEntry(edited, previousText, historyBefore, textOffset));
@@ -1655,21 +1661,22 @@ public partial class MarkdownLiveEditorView : UserControl
         (int FirstBlockIndex, int LastBlockIndex, int Start, int OldLength) bounds, int delta)
     {
         if (_selectionContentStarts is null) return;
-        _selectionMappedText = _textBuffer.Text;
+        _selectionMappedLength = _textBuffer.TextLength;
         for (var i = bounds.LastBlockIndex + 1; i < _selectionContentStarts.Length; i++)
         {
             _selectionContentStarts[i] += delta;
         }
-        var windowEnd = bounds.Start + bounds.OldLength + delta;
+        var windowLength = bounds.OldLength + delta;
+        var segment = _textBuffer.GetText(bounds.Start, windowLength);
         var cursor = bounds.Start;
         for (var i = bounds.FirstBlockIndex; i <= bounds.LastBlockIndex && i < _selectionContentStarts.Length; i++)
         {
             var content = _models[i].Kind == MarkdownBlockKind.Raw ? _models[i].Raw : _models[i].Text;
-            var searchStart = Math.Min(cursor, windowEnd);
-            var found = _selectionMappedText.IndexOf(content, searchStart, windowEnd - searchStart, StringComparison.Ordinal);
-            if (found < 0) found = Math.Min(cursor, windowEnd);
-            _selectionContentStarts[i] = found;
-            cursor = found + content.Length;
+            var searchStart = Math.Clamp(cursor - bounds.Start, 0, segment.Length);
+            var found = segment.IndexOf(content, searchStart, segment.Length - searchStart, StringComparison.Ordinal);
+            if (found < 0) found = Math.Min(cursor - bounds.Start, segment.Length);
+            _selectionContentStarts[i] = bounds.Start + found;
+            cursor = _selectionContentStarts[i] + content.Length;
         }
     }
 
@@ -1678,11 +1685,9 @@ public partial class MarkdownLiveEditorView : UserControl
         if (_suppressChanged) return;
         _lastSnapshot = CaptureSnapshot();
         EnsureSelectionMap();
-        var text = _selectionMappedText;
-        var offset = Math.Clamp(Selection.Start, 0, text.Length);
-        var line = 1 + text.AsSpan(0, offset).Count('\n');
-        var previous = offset == 0 ? -1 : text.LastIndexOf('\n', offset - 1);
-        SelectionChanged?.Invoke(this, new MarkdownCaretEventArgs(line, offset - previous, _textBuffer.LineCount));
+        var offset = Math.Clamp(Selection.Start, 0, _textBuffer.TextLength);
+        var (line, column) = _textBuffer.GetLineColumn(offset);
+        SelectionChanged?.Invoke(this, new MarkdownCaretEventArgs(line, column, _textBuffer.LineCount));
     }
 
     #endregion
