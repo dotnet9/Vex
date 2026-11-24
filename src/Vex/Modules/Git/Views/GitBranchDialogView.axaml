@@ -1,0 +1,37 @@
+<UserControl x:Class="Vex.Modules.Git.Views.GitBranchDialogView"
+    xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers" xmlns:i18n="https://codewf.com" xmlns:l="clr-namespace:Vex"
+    xmlns:vm="using:Vex.Modules.Git.ViewModels" x:DataType="vm:GitBranchDialogViewModel">
+    <!-- 原型 layer-git-branch：mini 窗 + 名称框 + 基准二选一（GitHub Desktop create-branch-dialog 口径）。 -->
+    <Border Classes="dialog-card" Width="520" Padding="0" CornerRadius="8" ClipToBounds="True">
+        <StackPanel>
+            <Border Padding="16,0,0,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+                <Grid ColumnDefinitions="*,46" Height="36" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Classes="vex-dismiss" Width="46" Height="32" Command="{Binding Cancel}"
+                            helpers:ToolTipHelper.Text="{i18n:I18n {x:Static l:VexL.Close}}"
+                            AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.Close}}" />
+                </Grid>
+            </Border>
+            <StackPanel Margin="20,16,20,8" Spacing="8">
+                <TextBox x:Name="BranchNameBox" Classes="template-input" Text="{Binding Name}"
+                         AutomationProperties.Name="{Binding Title}" />
+                <TextBlock x:Name="BranchErrorText" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource VexDangerBrush}"
+                           Text="{Binding ErrorText}" IsVisible="{Binding HasError}" />
+                <StackPanel IsVisible="{Binding ShowBase}" Spacing="8">
+                    <TextBlock FontSize="12" Foreground="{DynamicResource VexMutedBrush}" Text="{Binding BaseNoteText}" />
+                    <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding BaseOptions}"
+                              SelectedIndex="{Binding BaseIndex}"
+                              AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitMergeChoose}}" />
+                </StackPanel>
+            </StackPanel>
+            <Border Padding="16,10" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource VexPanelBorderBrush}" Background="{DynamicResource VexShellBackgroundBrush}">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                    <Button Classes="btn" Content="{i18n:I18n {x:Static l:VexL.Cancel}}" Command="{Binding Cancel}" />
+                    <Button x:Name="BranchOkButton" Classes="btn primary" Content="{Binding OkText}"
+                            Command="{Binding Save}" AutomationProperties.Name="{Binding Title}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Border>
+</UserControl>

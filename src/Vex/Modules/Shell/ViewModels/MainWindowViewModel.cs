@@ -100,6 +100,10 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         git.WorkspaceFolderProvider = () => WorkspaceFolderPath;
         git.PatPrompt = () => overlays.ShowGitPatAsync();
         git.RemoteDialog = () => overlays.ShowGitRemoteAsync(git.RemoteRawUrl);
+        git.BranchNameDialog = r => overlays.ShowGitBranchDialogAsync(r);
+        git.MergeDialog = sources => overlays.ShowGitMergeDialogAsync(git.CurrentBranchName(), sources);
+        git.BranchDeleteConfirm = name => overlays.ShowGitBranchDeleteConfirmAsync(name);
+        git.WorkspaceRootsProvider = () => _workspaceFiles.RootPaths;
         _workspaceFiles.Changed += WorkspaceFilesChanged;
         _drafts.StateChanged += (_, _) => Dispatcher.UIThread.Post(() => Protection.DraftError = _drafts.LastError);
         CodeWF.Toolkit.EventBus.EventBus.Default.Subscribe(this);
