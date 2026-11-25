@@ -551,7 +551,7 @@
                     <FlyoutBase.AttachedFlyout>
                         <Flyout Placement="BottomEdgeAlignedLeft">
                             <StackPanel MinWidth="240" Spacing="8">
-                                <TextBox x:Name="TagNameBox" Watermark="{i18n:I18n {x:Static l:VexL.GitTagNamePlaceholder}}"
+                                <TextBox x:Name="TagNameBox" PlaceholderText="{i18n:I18n {x:Static l:VexL.GitTagNamePlaceholder}}"
                                          Text="{Binding NewTagName, Mode=TwoWay}"
                                          AutomationProperties.Name="{i18n:I18n {x:Static l:VexL.GitTagNamePlaceholder}}" />
                                 <CheckBox x:Name="TagAlsoPushBox" Content="{i18n:I18n {x:Static l:VexL.GitTagAlsoPush}}"

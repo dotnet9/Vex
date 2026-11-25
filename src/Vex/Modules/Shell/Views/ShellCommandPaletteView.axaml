@@ -9,7 +9,7 @@
   <Panel x:Name="Backdrop" Classes="cp-backdrop" Tapped="Backdrop_OnTapped">
     <Border Classes="cp-panel" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,88,0,0">
       <StackPanel>
-        <TextBox x:Name="QueryInput" Classes="cp-input" Watermark="{i18n:I18n {x:Static l:VexL.CommandPaletteSearch}}"
+        <TextBox x:Name="QueryInput" Classes="cp-input" PlaceholderText="{i18n:I18n {x:Static l:VexL.CommandPaletteSearch}}"
                  Text="{Binding Query}" BorderThickness="0,0,0,1" CornerRadius="0" />
         <ListBox x:Name="ResultsList" Classes="cp-list"
                  ItemsSource="{Binding Results}"
